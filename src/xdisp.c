@@ -5722,9 +5722,6 @@ reseat_at_next_visible_line_start (struct it *it, int on_newline_p)
 {
   int newline_found_p, skipped_p = 0;
   struct bidi_it bidi_it_prev;
-  int new_paragraph, first_elt, disp_prop;
-  EMACS_INT paragraph_end, disp_pos;
-  bidi_dir_t paragraph_dir;
 
   newline_found_p = forward_to_next_line_start (it, &skipped_p, &bidi_it_prev);
 
@@ -5740,23 +5737,6 @@ reseat_at_next_visible_line_start (struct it *it, int on_newline_p)
 	newline_found_p =
 	  forward_to_next_line_start (it, &skipped_p, &bidi_it_prev);
       }
-
-  /* Under bidi iteration, save the attributes of the paragraph we are
-     in, to be restored after the call to `reseat' below.  That's
-     because `reseat' overwrites them, which requires unneeded and
-     potentially expensive backward search for paragraph beginning.
-     This search is unnecessary because we will be `reseat'ed to the
-     same position where we are now, for which we already have all the
-     information we need in the bidi iterator.  */
-  if (it->bidi_p && !STRINGP (it->string))
-    {
-      new_paragraph = it->bidi_it.new_paragraph;
-      first_elt = it->bidi_it.first_elt;
-      paragraph_end = it->bidi_it.separator_limit;
-      paragraph_dir = it->bidi_it.paragraph_dir;
-      disp_pos = it->bidi_it.disp_pos;
-      disp_prop = it->bidi_it.disp_prop;
-    }
 
   /* Position on the newline if that's what's requested.  */
   if (on_newline_p && newline_found_p)
@@ -5797,30 +5777,10 @@ reseat_at_next_visible_line_start (struct it *it, int on_newline_p)
 	      IT_BYTEPOS (*it) = it->bidi_it.bytepos;
 	    }
 	  reseat (it, it->current.pos, 0);
-	  if (it->bidi_p)
-	    {
-	      it->bidi_it.new_paragraph = new_paragraph;
-	      it->bidi_it.first_elt = first_elt;
-	      it->bidi_it.separator_limit = paragraph_end;
-	      it->bidi_it.paragraph_dir = paragraph_dir;
-	      it->bidi_it.disp_pos = disp_pos;
-	      it->bidi_it.disp_prop = disp_prop;
-	    }
 	}
     }
   else if (skipped_p)
-    {
-      reseat (it, it->current.pos, 0);
-      if (it->bidi_p)
-	{
-	  it->bidi_it.new_paragraph = new_paragraph;
-	  it->bidi_it.first_elt = first_elt;
-	  it->bidi_it.separator_limit = paragraph_end;
-	  it->bidi_it.paragraph_dir = paragraph_dir;
-	  it->bidi_it.disp_pos = disp_pos;
-	  it->bidi_it.disp_prop = disp_prop;
-	}
-    }
+    reseat (it, it->current.pos, 0);
 
   CHECK_IT (it);
 }
@@ -18703,11 +18663,6 @@ display_line (struct it *it)
 		      it->current_x = new_x;
 		      it->continuation_lines_width += new_x;
 		      ++it->hpos;
-		      /* Record the maximum and minimum buffer
-			 positions seen so far in glyphs that will be
-			 displayed by this row.  */
-		      if (it->bidi_p)
-			RECORD_MAX_MIN_POS (it);
 		      if (i == nglyphs - 1)
 			{
 			  /* If line-wrap is on, check if a previous
@@ -18722,6 +18677,11 @@ display_line (struct it *it)
 				  || IT_DISPLAYING_WHITESPACE (it)))
 			    goto back_to_wrap;
 
+			  /* Record the maximum and minimum buffer
+			     positions seen so far in glyphs that will be
+			     displayed by this row.  */
+			  if (it->bidi_p)
+			    RECORD_MAX_MIN_POS (it);
 			  set_iterator_to_next (it, 1);
 			  if (IT_OVERFLOW_NEWLINE_INTO_FRINGE (it))
 			    {
@@ -18739,6 +18699,8 @@ display_line (struct it *it)
 				}
 			    }
 			}
+		      else if (it->bidi_p)
+			RECORD_MAX_MIN_POS (it);
 		    }
 		  else if (CHAR_GLYPH_PADDING_P (*glyph)
 			   && !FRAME_WINDOW_P (it->f))
@@ -18869,6 +18831,10 @@ display_line (struct it *it)
 		  xassert (it->first_visible_x <= it->last_visible_x);
 		}
 	    }
+	  /* Even if this display element produced no glyphs at all,
+	     we want to record its position.  */
+	  if (it->bidi_p && nglyphs == 0)
+	    RECORD_MAX_MIN_POS (it);
 
 	  row->ascent = max (row->ascent, it->max_ascent);
 	  row->height = max (row->height, it->max_ascent + it->max_descent);
@@ -23286,7 +23252,14 @@ produce_stretch_glyph (struct it *it)
 
   if (width > 0 && it->line_wrap != TRUNCATE
       && it->current_x + width > it->last_visible_x)
-    width = it->last_visible_x - it->current_x - 1;
+    {
+      width = it->last_visible_x - it->current_x;
+#ifdef HAVE_WINDOW_SYSTEM
+      /* Subtact one more pixel from the stretch width, but only on
+	 GUI frames, since on a TTY each glyph is one "pixel" wide.  */
+      width -= FRAME_WINDOW_P (it->f);
+#endif
+    }
 
   if (width > 0 && height > 0 && it->glyph_row)
     {
@@ -23298,14 +23271,7 @@ produce_stretch_glyph (struct it *it)
 	object = it->w->buffer;
 #ifdef HAVE_WINDOW_SYSTEM
       if (FRAME_WINDOW_P (it->f))
-	{
-	  append_stretch_glyph (it, object, width, height, ascent);
-	  it->pixel_width = width;
-	  it->ascent = it->phys_ascent = ascent;
-	  it->descent = it->phys_descent = height - it->ascent;
-	  it->nglyphs = width > 0 && height > 0 ? 1 : 0;
-	  take_vertical_position_into_account (it);
-	}
+	append_stretch_glyph (it, object, width, height, ascent);
       else
 #endif
 	{
@@ -23317,6 +23283,19 @@ produce_stretch_glyph (struct it *it)
 	  it->object = o_object;
 	}
     }
+
+  it->pixel_width = width;
+#ifdef HAVE_WINDOW_SYSTEM
+  if (FRAME_WINDOW_P (it->f))
+    {
+      it->ascent = it->phys_ascent = ascent;
+      it->descent = it->phys_descent = height - it->ascent;
+      it->nglyphs = width > 0 && height > 0 ? 1 : 0;
+      take_vertical_position_into_account (it);
+    }
+  else
+#endif
+    it->nglyphs = width;
 }
 
 #ifdef HAVE_WINDOW_SYSTEM
@@ -27254,7 +27233,7 @@ expose_window (struct window *w, XRectangle *fr)
     {
       int yb = window_text_bottom_y (w);
       struct glyph_row *row;
-      int cursor_cleared_p;
+      int cursor_cleared_p, phys_cursor_on_p;
       struct glyph_row *first_overlapping_row, *last_overlapping_row;
 
       TRACE ((stderr, "expose_window (%d, %d, %d, %d)\n",
@@ -27273,6 +27252,13 @@ expose_window (struct window *w, XRectangle *fr)
 	}
       else
 	cursor_cleared_p = 0;
+
+      /* If the row containing the cursor extends face to end of line,
+	 then expose_area might overwrite the cursor outside the
+	 rectangle and thus notice_overwritten_cursor might clear
+	 w->phys_cursor_on_p.  We remember the original value and
+	 check later if it is changed.  */
+      phys_cursor_on_p = w->phys_cursor_on_p;
 
       /* Update lines intersecting rectangle R.  */
       first_overlapping_row = last_overlapping_row = NULL;
@@ -27340,7 +27326,8 @@ expose_window (struct window *w, XRectangle *fr)
 	  x_draw_vertical_border (w);
 
 	  /* Turn the cursor on again.  */
-	  if (cursor_cleared_p)
+	  if (cursor_cleared_p
+	      || (phys_cursor_on_p && !w->phys_cursor_on_p))
 	    update_window_cursor (w, 1);
 	}
     }

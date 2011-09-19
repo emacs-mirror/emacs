@@ -1760,7 +1760,7 @@ boyer_moore (EMACS_INT n, unsigned char *base_pat,
 		ch = -1;
 	    }
 
-	  if (ch >= 0200)
+	  if (ch >= 0200 && multibyte)
 	    j = (ch & 0x3F) | 0200;
 	  else
 	    j = *ptr;
@@ -1779,7 +1779,7 @@ boyer_moore (EMACS_INT n, unsigned char *base_pat,
 	      while (1)
 		{
 		  TRANSLATE (ch, inverse_trt, ch);
-		  if (ch >= 0200)
+		  if (ch >= 0200 && multibyte)
 		    j = (ch & 0x3F) | 0200;
 		  else
 		    j = ch;

@@ -38,7 +38,15 @@
 ;; ... and add it to the method list.
 ;;;###tramp-autoload
 (unless (memq system-type '(cygwin windows-nt))
-  (add-to-list 'tramp-methods (cons tramp-smb-method nil)))
+  (add-to-list 'tramp-methods
+    `(,tramp-smb-method
+      ;; We define an empty command, because `tramp-smb-call-winexe'
+      ;; opens already the powershell.  Used in `tramp-handle-shell-command'.
+      (tramp-remote-shell "")
+      ;; This is just a guess.  We don't know whether the share "$C"
+      ;; is available for public use, and whether the user has write
+      ;; access.
+      (tramp-tmpdir "/C$/Temp"))))
 
 ;; Add a default for `tramp-default-method-alist'. Rule: If there is
 ;; a domain in USER, it must be the SMB method.
@@ -98,7 +106,8 @@ call, letting the SMB client use the default one."
 	 "ERRnomem"
 	 "ERRnosuchshare"
 	 ;; Windows 4.0 (Windows NT), Windows 5.0 (Windows 2000),
-	 ;; Windows 5.1 (Windows XP), Windows 5.2 (Windows Server 2003).
+	 ;; Windows 5.1 (Windows XP), Windows 5.2 (Windows Server 2003),
+	 ;; Windows 6.0 (Windows Vista), Windows 6.1 (Windows 7).
 	 "NT_STATUS_ACCESS_DENIED"
 	 "NT_STATUS_ACCOUNT_LOCKED_OUT"
 	 "NT_STATUS_BAD_NETWORK_NAME"
@@ -107,6 +116,7 @@ call, letting the SMB client use the default one."
 	 "NT_STATUS_DIRECTORY_NOT_EMPTY"
 	 "NT_STATUS_DUPLICATE_NAME"
 	 "NT_STATUS_FILE_IS_A_DIRECTORY"
+	 "NT_STATUS_IMAGE_ALREADY_LOADED"
 	 "NT_STATUS_IO_TIMEOUT"
 	 "NT_STATUS_LOGON_FAILURE"
 	 "NT_STATUS_NETWORK_ACCESS_DENIED"
@@ -490,39 +500,40 @@ PRESERVE-UID-GID and PRESERVE-SELINUX-CONTEXT are completely ignored."
 (defun tramp-smb-handle-file-attributes (filename &optional id-format)
   "Like `file-attributes' for Tramp files."
   (unless id-format (setq id-format 'integer))
-  (with-parsed-tramp-file-name filename nil
-    (with-file-property v localname (format "file-attributes-%s" id-format)
-      (if (and (tramp-smb-get-share v) (tramp-smb-get-stat-capability v))
-	  (tramp-smb-do-file-attributes-with-stat v id-format)
-	;; Reading just the filename entry via "dir localname" is not
-	;; possible, because when filename is a directory, some
-	;; smbclient versions return the content of the directory, and
-	;; other versions don't.  Therefore, the whole content of the
-	;; upper directory is retrieved, and the entry of the filename
-	;; is extracted from.
-	(let* ((entries (tramp-smb-get-file-entries
-			 (file-name-directory filename)))
-	       (entry (assoc (file-name-nondirectory filename) entries))
-	       (uid (if (equal id-format 'string) "nobody" -1))
-	       (gid (if (equal id-format 'string) "nogroup" -1))
-	       (inode (tramp-get-inode v))
-	       (device (tramp-get-device v)))
+  (ignore-errors
+    (with-parsed-tramp-file-name filename nil
+      (with-file-property v localname (format "file-attributes-%s" id-format)
+	(if (and (tramp-smb-get-share v) (tramp-smb-get-stat-capability v))
+	    (tramp-smb-do-file-attributes-with-stat v id-format)
+	  ;; Reading just the filename entry via "dir localname" is not
+	  ;; possible, because when filename is a directory, some
+	  ;; smbclient versions return the content of the directory, and
+	  ;; other versions don't.  Therefore, the whole content of the
+	  ;; upper directory is retrieved, and the entry of the filename
+	  ;; is extracted from.
+	  (let* ((entries (tramp-smb-get-file-entries
+			   (file-name-directory filename)))
+		 (entry (assoc (file-name-nondirectory filename) entries))
+		 (uid (if (equal id-format 'string) "nobody" -1))
+		 (gid (if (equal id-format 'string) "nogroup" -1))
+		 (inode (tramp-get-inode v))
+		 (device (tramp-get-device v)))
 
-	  ;; Check result.
-	  (when entry
-	    (list (and (string-match "d" (nth 1 entry))
-		       t)       ;0 file type
-		  -1	        ;1 link count
-		  uid	        ;2 uid
-		  gid	        ;3 gid
-		  '(0 0)	;4 atime
-		  (nth 3 entry) ;5 mtime
-		  '(0 0)	;6 ctime
-		  (nth 2 entry) ;7 size
-		  (nth 1 entry) ;8 mode
-		  nil	        ;9 gid weird
-		  inode	        ;10 inode number
-		  device))))))) ;11 file system number
+	    ;; Check result.
+	    (when entry
+	      (list (and (string-match "d" (nth 1 entry))
+			 t)        ;0 file type
+		    -1	           ;1 link count
+		    uid	           ;2 uid
+		    gid	           ;3 gid
+		    '(0 0)	   ;4 atime
+		    (nth 3 entry)  ;5 mtime
+		    '(0 0)	   ;6 ctime
+		    (nth 2 entry)  ;7 size
+		    (nth 1 entry)  ;8 mode
+		    nil	           ;9 gid weird
+		    inode	   ;10 inode number
+		    device)))))))) ;11 file system number
 
 (defun tramp-smb-do-file-attributes-with-stat (vec &optional id-format)
   "Implement `file-attributes' for Tramp files using stat command."
@@ -1352,12 +1363,13 @@ Returns nil if an error message has appeared."
 	  (found (progn (goto-char (point-min))
 			(re-search-forward tramp-smb-prompt nil t)))
 	  (err   (progn (goto-char (point-min))
-			(re-search-forward tramp-smb-errors nil t))))
+			(re-search-forward tramp-smb-errors nil t)))
+	  buffer-read-only)
 
       ;; Algorithm: get waiting output.  See if last line contains
-      ;; tramp-smb-prompt sentinel or tramp-smb-errors strings.
+      ;; `tramp-smb-prompt' sentinel or `tramp-smb-errors' strings.
       ;; If not, wait a bit and again get waiting output.
-      (while (and (not found) (not err))
+      (while (and (not found) (not err) (memq (process-status p) '(run open)))
 
 	;; Accept pending output.
 	(tramp-accept-process-output p)
@@ -1393,12 +1405,11 @@ Returns nil if an error message has appeared."
 ;;; TODO:
 
 ;; * Error handling in case password is wrong.
-;; * Read password from "~/.netrc".
 ;; * Return more comprehensive file permission string.
 ;; * Try to remove the inclusion of dummy "" directory.  Seems to be at
 ;;   several places, especially in `tramp-smb-handle-insert-directory'.
 ;; * (RMS) Use unwind-protect to clean up the state so as to make the state
 ;;   regular again.
-;; * Make it multi-hop capable.
+;; * Ignore case in file names.
 
 ;;; tramp-smb.el ends here

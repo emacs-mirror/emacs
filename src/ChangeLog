@@ -1,3 +1,56 @@
+2011-09-18  Chong Yidong  <cyd@stupidchicken.com>
+
+	* xfns.c (Fx_create_frame): Handle the bitmapIcon resource as
+	boolean (Bug#9154).
+
+2011-09-18  Eli Zaretskii  <eliz@gnu.org>
+
+	* xdisp.c (display_line): Record maximum and minimum buffer
+	positions even if no glyphs were produced (e.g., by a zero-width
+	stretch).  Fixes bug#9530 on a TTY.  Under word-wrap, don't record
+	buffer positions that will be removed from the glyph row because
+	they don't fit.
+	(produce_stretch_glyph): Fix a bug in :align-to on a TTY when the
+	column is beyond frame width: don't subtract 1 "pixel" when
+	computing width of the stretch.
+	(reseat_at_next_visible_line_start): Undo the change made on
+	2011-09-17 that saved paragraph information and restored it after
+	the call to `reseat'.  (Bug#9545)
+
+2011-09-18  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
+
+	* xdisp.c (expose_window): Save original value of phys_cursor_on_p
+	and turn window cursor on if cleared (Bug#9415).
+
+2011-09-18  Andreas Schwab  <schwab@linux-m68k.org>
+
+	* search.c (boyer_moore): Take unibyte characters from pattern
+	literally.  (Bug#9458)
+
+2011-09-18  Eli Zaretskii  <eliz@gnu.org>
+
+	* xdisp.c (reseat_at_next_visible_line_start): Fix last change.
+
+2011-09-18  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Fix minor problem found by static checking.
+	* xdisp.c (reseat_at_next_visible_line_start): Mark locals as
+	initialized, to pacify gcc -Wuninitialized.
+
+	* fileio.c: Report proper errno when syscall falls.
+	(Finsert_file_contents): Save and restore errno,
+	so that report_file_error outputs the correct diagnostic.
+	(Fwrite_region) [CLASH_DETECTION]: Likewise.
+
+2011-09-18  Eli Zaretskii  <eliz@gnu.org>
+
+	* .gdbinit (pgx): Fix references to fields of `struct glyph'.
+
+2011-09-17  Eli Zaretskii  <eliz@gnu.org>
+
+	* xdisp.c (produce_stretch_glyph): Another fix for changes made on
+	2011-08-30 (revision 105619).  (Bug#9530)
+
 2011-09-17  Eli Zaretskii  <eliz@gnu.org>
 
 	* xdisp.c (reseat_at_next_visible_line_start): Keep information

@@ -632,9 +632,10 @@ an alist of attribute/value pairs."
 	    (setq record (cons (list name value)
 			       record))
 	    (forward-line 1))
-	  (push (if withdn
-		    (cons dn (nreverse record))
-		  (nreverse record)) result)
+	  (cond (withdn
+		 (push (cons dn (nreverse record)) result))
+		(record
+		 (push (nreverse record) result)))
 	  (setq record nil)
 	  (skip-chars-forward " \t\n")
 	  (message "Parsing results... %d" numres)

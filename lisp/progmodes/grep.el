@@ -476,7 +476,7 @@ Set up `compilation-exit-message-function' and run `grep-setup-hook'."
 	     ;; so the buffer is still unmodified if there is no output.
 	     (cond ((and (zerop code) (buffer-modified-p))
 		    '("finished (matches found)\n" . "matched"))
-		   ((or (= code 1) (not (buffer-modified-p)))
+		   ((not (buffer-modified-p))
 		    '("finished with no matches found\n" . "no match"))
 		   (t
 		    (cons msg code)))

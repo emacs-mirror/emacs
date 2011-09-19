@@ -540,7 +540,7 @@ in `Info-file-supports-index-cookies-list'."
 	  (condition-case ()
 	      (if (and (re-search-forward
 			"makeinfo[ \n]version[ \n]\\([0-9]+.[0-9]+\\)"
-			(line-beginning-position 3) t)
+			(line-beginning-position 4) t)
 		       (not (version< (match-string 1) "4.7")))
 		  (setq found t))
 	    (error nil))
@@ -2440,7 +2440,8 @@ Because of ambiguities, this should be concatenated with something like
       )
     (replace-regexp-in-string
      "[ \n]+" " "
-     (or (match-string-no-properties 2)
+     (or (and (not (equal (match-string-no-properties 2) ""))
+	      (match-string-no-properties 2))
 	 ;; If the node name is the menu entry name (using `entry::').
 	 (buffer-substring-no-properties
 	  (match-beginning 0) (1- (match-beginning 1)))))))
@@ -2765,22 +2766,24 @@ N is the digit argument used to invoke this command."
 	  ;; so we can scroll back through it.
 	  (goto-char (point-max)))
 	 ;; Keep going down, as long as there are nested menu nodes.
-	 (while (Info-no-error
-		 (Info-last-menu-item)
-		 ;; If we go down a menu item, go to the end of the node
-		 ;; so we can scroll back through it.
-		 (goto-char (point-max))))
+	 (let (Info-history) ; Don't add intermediate nodes to the history.
+	   (while (Info-no-error
+		   (Info-last-menu-item)
+		   ;; If we go down a menu item, go to the end of the node
+		   ;; so we can scroll back through it.
+		   (goto-char (point-max)))))
 	 (recenter -1))
 	((and (Info-no-error (Info-extract-pointer "prev"))
 	      (not (equal (Info-extract-pointer "up")
 			  (Info-extract-pointer "prev"))))
 	 (Info-no-error (Info-prev))
 	 (goto-char (point-max))
-	 (while (Info-no-error
-		 (Info-last-menu-item)
-		 ;; If we go down a menu item, go to the end of the node
-		 ;; so we can scroll back through it.
-		 (goto-char (point-max))))
+	 (let (Info-history) ; Don't add intermediate nodes to the history.
+	   (while (Info-no-error
+		   (Info-last-menu-item)
+		   ;; If we go down a menu item, go to the end of the node
+		   ;; so we can scroll back through it.
+		   (goto-char (point-max)))))
 	 (recenter -1))
 	((Info-no-error (Info-up t))
 	 (goto-char (point-min))
@@ -3887,6 +3890,14 @@ With a zero prefix arg, put the name inside a function call to `info'."
 (defvar tool-bar-map)
 (defvar bookmark-make-record-function)
 
+(defvar Info-mode-syntax-table
+  (let ((st (copy-syntax-table text-mode-syntax-table)))
+    ;; Use punctuation syntax for apostrophe because of
+    ;; extensive use of quotes like `this' in Info manuals.
+    (modify-syntax-entry ?' "." st)
+    st)
+  "Syntax table used in `Info-mode'.")
+
 ;; Autoload cookie needed by desktop.el
 ;;;###autoload
 (define-derived-mode Info-mode nil "Info"
@@ -3951,7 +3962,7 @@ Advanced commands:
 \\[clone-buffer]	Select a new cloned Info buffer in another window.
 \\[universal-argument] \\[info]	Move to new Info file with completion.
 \\[universal-argument] N \\[info]	Select Info buffer with prefix number in the name *info*<N>."
-  :syntax-table text-mode-syntax-table
+  :syntax-table Info-mode-syntax-table
   :abbrev-table text-mode-abbrev-table
   (setq tab-width 8)
   (add-hook 'activate-menubar-hook 'Info-menu-update nil t)

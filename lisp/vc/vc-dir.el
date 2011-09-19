@@ -125,15 +125,15 @@ See `run-hooks'."
 		  :enable (not (vc-dir-busy))
 		  :help "Refresh the contents of the directory buffer"))
     (define-key map [remup]
-      '(menu-item "Hide up-to-date" vc-dir-hide-up-to-date
+      '(menu-item "Hide Up-to-date" vc-dir-hide-up-to-date
 		  :help "Hide up-to-date items from display"))
     ;; Movement.
     (define-key map [sepmv] '("--"))
     (define-key map [next-line]
-      '(menu-item "Next line" vc-dir-next-line
+      '(menu-item "Next Line" vc-dir-next-line
 		  :help "Go to the next line" :keys "n"))
     (define-key map [previous-line]
-      '(menu-item "Previous line" vc-dir-previous-line
+      '(menu-item "Previous Line" vc-dir-previous-line
 		  :help "Go to the previous line"))
     ;; Marking.
     (define-key map [sepmrk] '("--"))
@@ -142,7 +142,7 @@ See `run-hooks'."
 		  :help "Unmark all files that are in the same state as the current file\
 \nWith prefix argument unmark all files"))
     (define-key map [unmark-previous]
-      '(menu-item "Unmark previous " vc-dir-unmark-file-up
+      '(menu-item "Unmark Previous " vc-dir-unmark-file-up
 		  :help "Move to the previous line and unmark the file"))
 
     (define-key map [mark-all]
@@ -171,10 +171,10 @@ See `run-hooks'."
       '(menu-item "Isearch Files..." vc-dir-isearch
 		  :help "Incremental search a string in the marked files"))
     (define-key map [open-other]
-      '(menu-item "Open in other window" vc-dir-find-file-other-window
+      '(menu-item "Open in Other Window" vc-dir-find-file-other-window
 		  :help "Find the file on the current line, in another window"))
     (define-key map [open]
-      '(menu-item "Open file" vc-dir-find-file
+      '(menu-item "Open File" vc-dir-find-file
 		  :help "Find the file on the current line"))
     (define-key map [sepvcdet] '("--"))
     ;; FIXME: This needs a key binding.  And maybe a better name
@@ -203,10 +203,10 @@ See `run-hooks'."
     ;; VC commands.
     (define-key map [sepvccmd] '("--"))
     (define-key map [update]
-      '(menu-item "Update to latest version" vc-update
+      '(menu-item "Update to Latest Version" vc-update
 		  :help "Update the current fileset's files to their tip revisions"))
     (define-key map [revert]
-      '(menu-item "Revert to base version" vc-revert
+      '(menu-item "Revert to Base Version" vc-revert
 		  :help "Revert working copies of the selected fileset to their repository contents."))
     (define-key map [next-action]
       ;; FIXME: This really really really needs a better name!
