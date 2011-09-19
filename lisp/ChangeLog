@@ -1,3 +1,7 @@
+2011-09-19  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* whitespace.el (whitespace-newline-mode): Disable it right (bug#9550).
+
 2011-09-19  Michael Albinus  <michael.albinus@gmx.de>
 
 	* net/tramp-sh.el (tramp-inline-compress-commands): Add "xz".
