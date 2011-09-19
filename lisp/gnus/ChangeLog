@@ -1,3 +1,12 @@
+2011-09-18  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* mm-decode.el (mm-inline-media-tests): Fix typo in regexp.
+
+2011-09-19  Julien Danjou  <julien@danjou.info>
+
+	* auth-source.el (auth-source-netrc-parse): Use an obfuscation method
+	which work with things that are not ASCII.
+
 2011-09-17  Lars Magne Ingebrigtsen  <larsi@gnus.org>
 
 	* mm-decode.el (mm-inline-media-tests): Support imagemagick images.
