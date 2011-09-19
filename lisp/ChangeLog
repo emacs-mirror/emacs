@@ -1,3 +1,8 @@
+2011-09-19  Michael Albinus  <michael.albinus@gmx.de>
+
+	* net/tramp-sh.el (tramp-inline-compress-commands): Add "xz".
+	Suggested by Liam Stitt <stittl@cuug.ab.ca>.
+
 2011-09-18  Juri Linkov  <juri@jurta.org>
 
 	* buff-menu.el (Buffer-menu-mode-map):
