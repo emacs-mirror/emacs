@@ -1,3 +1,7 @@
+2011-09-20  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* gnus-fun.el (gnus-convert-image-to-x-face-command): Doc fix.
+
 2011-09-18  Lars Magne Ingebrigtsen  <larsi@gnus.org>
 
 	* mm-decode.el (mm-inline-media-tests): Fix typo in regexp.
