@@ -13666,6 +13666,17 @@ set_cursor_from_row (struct window *w, struct glyph_row *row,
 
 	  x = -1;
 
+	  /* If the row ends in a newline from a display string,
+	     reordering could have moved the glyphs belonging to the
+	     string out of the [GLYPH_BEFORE..GLYPH_AFTER] range.  So
+	     in this case we extend the search to the last glyph in
+	     the row that was not inserted by redisplay.  */
+	  if (row->ends_in_newline_from_string_p)
+	    {
+	      glyph_after = end;
+	      pos_after = MATRIX_ROW_END_CHARPOS (row) + delta;
+	    }
+
 	  /* GLYPH_BEFORE and GLYPH_AFTER are the glyphs that
 	     correspond to POS_BEFORE and POS_AFTER, respectively.  We
 	     need START and STOP in the order that corresponds to the
@@ -18341,7 +18352,8 @@ find_row_edges (struct it *it, struct glyph_row *row,
      Line ends in a newline from buffer       eol_pos + 1
      Line is continued from buffer            max_pos + 1
      Line is truncated on right               it->current.pos
-     Line ends in a newline from string       max_pos
+     Line ends in a newline from string       max_pos + 1(*)
+      (*) + 1 only when line ends in a forward scan
      Line is continued from string            max_pos
      Line is continued from display vector    max_pos
      Line is entirely from a string           min_pos == max_pos
@@ -18354,8 +18366,76 @@ find_row_edges (struct it *it, struct glyph_row *row,
     row->maxpos = it->current.pos;
   else if (row->used[TEXT_AREA])
     {
-      if (row->ends_in_newline_from_string_p)
-	SET_TEXT_POS (row->maxpos, max_pos, max_bpos);
+      int seen_this_string = 0;
+      struct glyph_row *r1 = row - 1;
+
+      /* Did we see the same display string on the previous row?  */
+      if (STRINGP (it->object)
+	  /* this is not the first row */
+	  && row > it->w->desired_matrix->rows
+	  /* previous row is not the header line */
+	  && !r1->mode_line_p
+	  /* previous row also ends in a newline from a string */
+	  && r1->ends_in_newline_from_string_p)
+	{
+	  struct glyph *start, *end;
+
+	  /* Search for the last glyph of the previous row that came
+	     from buffer or string.  Depending on whether the row is
+	     L2R or R2L, we need to process it front to back or the
+	     other way round.  */
+	  if (!r1->reversed_p)
+	    {
+	      start = r1->glyphs[TEXT_AREA];
+	      end = start + r1->used[TEXT_AREA];
+	      /* Glyphs inserted by redisplay have an integer (zero)
+		 as their object.  */
+	      while (end > start
+		     && INTEGERP ((end - 1)->object)
+		     && (end - 1)->charpos <= 0)
+		--end;
+	      if (end > start)
+		{
+		  if (EQ ((end - 1)->object, it->object))
+		    seen_this_string = 1;
+		}
+	      else
+		abort ();
+	    }
+	  else
+	    {
+	      end = r1->glyphs[TEXT_AREA] - 1;
+	      start = end + r1->used[TEXT_AREA];
+	      while (end < start
+		     && INTEGERP ((end + 1)->object)
+		     && (end + 1)->charpos <= 0)
+		++end;
+	      if (end < start)
+		{
+		  if (EQ ((end + 1)->object, it->object))
+		    seen_this_string = 1;
+		}
+	      else
+		abort ();
+	    }
+	}
+      /* Take note of each display string that covers a newline only
+	 once, the first time we see it.  This is for when a display
+	 string includes more than one newline in it.  */
+      if (row->ends_in_newline_from_string_p && !seen_this_string)
+	{
+	  /* If we were scanning the buffer forward when we displayed
+	     the string, we want to account for at least one buffer
+	     position that belongs to this row (position covered by
+	     the display string), so that cursor positioning will
+	     consider this row as a candidate when point is at the end
+	     of the visual line represented by this row.  This is not
+	     required when scanning back, because max_pos will already
+	     have a much larger value.  */
+	  if (CHARPOS (row->end.pos) > max_pos)
+	    INC_BOTH (max_pos, max_bpos);
+	  SET_TEXT_POS (row->maxpos, max_pos, max_bpos);
+	}
       else if (CHARPOS (it->eol_pos) > 0)
 	SET_TEXT_POS (row->maxpos,
 		      CHARPOS (it->eol_pos) + 1, BYTEPOS (it->eol_pos) + 1);

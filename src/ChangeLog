@@ -1,3 +1,11 @@
+2011-09-20  Eli Zaretskii  <eliz@gnu.org>
+
+	* xdisp.c (set_cursor_from_row): If the row ends in a newline from
+	a display string, extend search for cursor position to end of row.
+	(find_row_edges): If the row ends in a newline from a display
+	string, increment its MATRIX_ROW_END_CHARPOS by one.  (Bug#9549)
+	Handle the case of a display string with multiple newlines.
+
 2011-09-19  Lars Magne Ingebrigtsen  <larsi@gnus.org>
 
 	* lread.c (Fread_from_string): Document what FINAL-STRING-INDEX is
