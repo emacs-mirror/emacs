@@ -1723,7 +1723,11 @@ quit          spell session exited."
 		  (extent-at start)
 		  (and (fboundp 'delete-extent)
 		       (delete-extent (extent-at start)))))
-	    ((null poss) (message "Error in ispell process"))
+	    ((null poss)
+	     (message "Error checking word %s using %s with %s dictionary"
+		      (funcall ispell-format-word-function word)
+		      (file-name-nondirectory ispell-program-name)
+		      (or ispell-current-dictionary "default")))
 	    (ispell-check-only	      ; called from ispell minor mode.
 	     (if (fboundp 'make-extent)
 		 (if (fboundp 'set-extent-property)
@@ -3034,7 +3038,7 @@ Must call after `ispell-buffer-local-parsing' due to dependence on mode."
 	(while (looking-at "[ \t\n]*\\[") (forward-sexp))
 	(forward-sexp (or arg 1)))
     (error
-     (message "error skipping s-expressions at point %d." (point))
+     (message "Error skipping s-expressions at point %d." (point))
      (beep)
      (sit-for 2))))
 

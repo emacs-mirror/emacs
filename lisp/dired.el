@@ -1552,6 +1552,10 @@ Do so according to the former subdir alist OLD-SUBDIR-ALIST."
       [menu-bar immediate image-dired-dired-display-image]
       '(menu-item "Display Image" image-dired-dired-display-image
                   :help "Display sized image in a separate window"))
+    (define-key map
+      [menu-bar immediate image-dired-dired-toggle-marked-thumbs]
+      '(menu-item "Toggle Image Thumbnails in This Buffer" image-dired-dired-toggle-marked-thumbs
+                  :help "Add or remove image thumbnails in front of marked file names"))
 
     (define-key map [menu-bar immediate revert-buffer]
       '(menu-item "Refresh" revert-buffer
@@ -1708,7 +1712,7 @@ Do so according to the former subdir alist OLD-SUBDIR-ALIST."
                   :help "Add image comment to current or marked files"))
     (define-key map
       [menu-bar operate image-dired-display-thumbs]
-      '(menu-item "Display image thumbnails" image-dired-display-thumbs
+      '(menu-item "Display Image Thumbnails" image-dired-display-thumbs
                   :help "Display image thumbnails for current or marked image files"))
 
     (define-key map [menu-bar operate dashes-4]
@@ -3663,7 +3667,7 @@ Ask means pop up a menu for the user to select one of copy, move or link."
 ;;;;;;  dired-run-shell-command dired-do-shell-command dired-do-async-shell-command
 ;;;;;;  dired-clean-directory dired-do-print dired-do-touch dired-do-chown
 ;;;;;;  dired-do-chgrp dired-do-chmod dired-compare-directories dired-backup-diff
-;;;;;;  dired-diff) "dired-aux" "dired-aux.el" "bbc9babe193843cad535d73492326c48")
+;;;;;;  dired-diff) "dired-aux" "dired-aux.el" "0ffe89ae728efb341dfacff6c85e2ba4")
 ;;; Generated autoloads from dired-aux.el
 
 (autoload 'dired-diff "dired-aux" "\

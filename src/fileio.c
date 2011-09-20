@@ -3187,6 +3187,7 @@ variable `last-coding-system-used' to the coding system actually used.  */)
   Lisp_Object p;
   EMACS_INT total = 0;
   int not_regular = 0;
+  int save_errno = 0;
   char read_buf[READ_BUF_SIZE];
   struct coding_system coding;
   char buffer[1 << 14];
@@ -3250,6 +3251,7 @@ variable `last-coding-system-used' to the coding system actually used.  */)
 #endif /* WINDOWSNT */
     {
     badopen:
+      save_errno = errno;
       if (NILP (visit))
 	report_file_error ("Opening input file", Fcons (orig_filename, Qnil));
       st.st_mtime = -1;
@@ -4281,6 +4283,7 @@ variable `last-coding-system-used' to the coding system actually used.  */)
       && current_buffer->modtime == -1)
     {
       /* If visiting nonexistent file, return nil.  */
+      errno = save_errno;
       report_file_error ("Opening input file", Fcons (orig_filename, Qnil));
     }
 
@@ -4618,7 +4621,9 @@ This calls `write-region-annotate-functions' at the start, and
       if (ret < 0)
 	{
 #ifdef CLASH_DETECTION
+	  save_errno = errno;
 	  if (!auto_saving) unlock_file (lockname);
+	  errno = save_errno;
 #endif /* CLASH_DETECTION */
 	  UNGCPRO;
 	  report_file_error ("Lseek error", Fcons (filename, Qnil));

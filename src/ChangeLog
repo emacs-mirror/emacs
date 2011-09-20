@@ -1,3 +1,150 @@
+2011-09-19  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* lread.c (Fread_from_string): Document what FINAL-STRING-INDEX is
+	(bug#9493).
+
+2011-09-18  Chong Yidong  <cyd@stupidchicken.com>
+
+	* xfns.c (Fx_create_frame): Handle the bitmapIcon resource as
+	boolean (Bug#9154).
+
+2011-09-18  Eli Zaretskii  <eliz@gnu.org>
+
+	* xdisp.c (display_line): Record maximum and minimum buffer
+	positions even if no glyphs were produced (e.g., by a zero-width
+	stretch).  Fixes bug#9530 on a TTY.  Under word-wrap, don't record
+	buffer positions that will be removed from the glyph row because
+	they don't fit.
+	(produce_stretch_glyph): Fix a bug in :align-to on a TTY when the
+	column is beyond frame width: don't subtract 1 "pixel" when
+	computing width of the stretch.
+	(reseat_at_next_visible_line_start): Undo the change made on
+	2011-09-17 that saved paragraph information and restored it after
+	the call to `reseat'.  (Bug#9545)
+
+2011-09-18  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
+
+	* xdisp.c (expose_window): Save original value of phys_cursor_on_p
+	and turn window cursor on if cleared (Bug#9415).
+
+2011-09-18  Andreas Schwab  <schwab@linux-m68k.org>
+
+	* search.c (boyer_moore): Take unibyte characters from pattern
+	literally.  (Bug#9458)
+
+2011-09-18  Eli Zaretskii  <eliz@gnu.org>
+
+	* xdisp.c (reseat_at_next_visible_line_start): Fix last change.
+
+2011-09-18  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Fix minor problem found by static checking.
+	* xdisp.c (reseat_at_next_visible_line_start): Mark locals as
+	initialized, to pacify gcc -Wuninitialized.
+
+	* fileio.c: Report proper errno when syscall falls.
+	(Finsert_file_contents): Save and restore errno,
+	so that report_file_error outputs the correct diagnostic.
+	(Fwrite_region) [CLASH_DETECTION]: Likewise.
+
+2011-09-18  Eli Zaretskii  <eliz@gnu.org>
+
+	* .gdbinit (pgx): Fix references to fields of `struct glyph'.
+
+2011-09-17  Eli Zaretskii  <eliz@gnu.org>
+
+	* xdisp.c (produce_stretch_glyph): Another fix for changes made on
+	2011-08-30 (revision 105619).  (Bug#9530)
+
+2011-09-17  Eli Zaretskii  <eliz@gnu.org>
+
+	* xdisp.c (reseat_at_next_visible_line_start): Keep information
+	about the current paragraph and restore it after the call to
+	reseat.
+
+	* bidi.c (MAX_PARAGRAPH_SEARCH): New macro.
+	(bidi_find_paragraph_start): Search back for paragraph beginning
+	at most MAX_PARAGRAPH_SEARCH lines; if not found, return BEGV_BYTE.
+	(bidi_move_to_visually_next): Only trigger paragraph-related
+	computations when the last character is a newline or at EOB, not
+	just any NEUTRAL_B.  (Bug#9470)
+
+	* xdisp.c (set_cursor_from_row): Don't invoke special treatment of
+	truncated lines if point is covered by a display string.  (Bug#9524)
+
+2011-09-16  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* xselect.c: Relax test for outgoing X longs (Bug#9498).
+	(cons_to_x_long): New function.
+	(lisp_data_to_selection_data): Use it.  Correct the test for
+	short-versus-long data; it was negated.  Break out of vector
+	loop, for efficiency, when a long datum is discovered.
+
+2011-09-16  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* eval.c (Fquote): Document its non-consing behavior (bug#9482).
+
+2011-09-16  Eli Zaretskii  <eliz@gnu.org>
+
+	* image.c (tiff_handler): Work around a bug in MinGW GCC 3.x (see
+	GCC PR/17406) by declaring this function with external scope.
+
+2011-09-15  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* editfns.c (Fformat): Fix bug in text-property fix (Bug#9514).
+	Don't mishandle (length (format "%%")) and (format "%4000s%%" "").
+
+2011-09-15  Andreas Schwab  <schwab@linux-m68k.org>
+
+	* editfns.c (Fformat): Correctly handle text properties on "%%".
+
+2011-09-15  Eli Zaretskii  <eliz@gnu.org>
+
+	* xterm.c (x_draw_composite_glyph_string_foreground):
+	* w32term.c (x_draw_composite_glyph_string_foreground):
+	* term.c (encode_terminal_code):
+	* composite.c (composition_update_it, get_composition_id):
+	* xdisp.c (get_next_display_element)
+	(fill_composite_glyph_string): Add comments about special meaning
+	of TAB characters in a composition.
+
+2011-09-15  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* editfns.c (Fformat): Fix off-by-1 bug for "%%b" (Bug#9514).
+	This occurs when processing a multibyte format.
+	Problem reported by Wolfgang Jenker.
+
+2011-09-15  Johan Bockgård  <bojohan@gnu.org>
+
+	* xdisp.c (try_cursor_movement): Only check for exact match if
+	cursor hpos found by set_cursor_from_row is valid.  (Bug#9495)
+
+2011-09-14  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Remove unused external symbols.
+	* dispextern.h (calc_pixel_width_or_height): Remove decl.
+	* xdisp.c (calc_pixel_width_or_height): Now static.
+	* doprnt.c (exprintf) [! (HAVE_X_WINDOWS && USE_X_TOOLKIT)]: Remove.
+	* indent.c (check_display_width):
+	* w32term.c: Fix comment to match code.
+	* xterm.c, xterm.h (x_catching_errors): Remove.
+
+2011-09-14  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* xselect.c: Use signed conversions more consistently (Bug#9498).
+	(selection_data_to_lisp_data): Assume incoming selection data are
+	signed integers, not unsigned.  This is to be consistent with
+	outgoing selection data, which was modified to use signed integers
+	in as part of the fix to Bug#9196 in response to Jan D.'s comment
+	in <http://debbugs.gnu.org/cgi/bugreport.cgi?bug=9196#32> that X11
+	expects long, not unsigned long.
+
+2011-09-14  Eli Zaretskii  <eliz@gnu.org>
+
+	* xdisp.c (try_window_reusing_current_matrix): Fix incorrect
+	computation of loop end.  Reported by Johan Bockgård
+	<bojohan@gnu.org>.
+
 2011-09-13  Chong Yidong  <cyd@stupidchicken.com>
 
 	* frame.c (Fother_visible_frames_p): Function deleted.
@@ -1225,7 +1372,7 @@
 	underline, overline, and strike-through.
 	(ns_dumpglyphs_image, ns_dumpglyphs_stretch): Add call to
 	ns_draw_text_decoration.  Change treatment of cursor drawing to
-	accomodate underlining, etc.
+	accommodate underlining, etc.
 
 2011-07-28  Eli Zaretskii  <eliz@gnu.org>
 

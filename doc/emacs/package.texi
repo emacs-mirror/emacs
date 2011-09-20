@@ -107,6 +107,12 @@ entails.
 Remove any installation or deletion mark previously added to the
 current line by an @kbd{i} or @kbd{d} command.
 
+@item U
+Mark all package with a newer available version for ``upgrading''
+(@code{package-menu-mark-upgrades}).  This places an installation mark
+on the new available versions, and a deletion mark on the old
+installed versions.
+
 @item x
 Download and install all packages marked with @kbd{i}, and their
 dependencies; also, delete all packages marked with @kbd{d}

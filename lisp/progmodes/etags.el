@@ -2070,7 +2070,9 @@ for \\[find-tag] (which see)."
   (let ((comp-data (tags-completion-at-point-function)))
     (if (null comp-data)
 	(error "Nothing to complete")
-      (apply 'completion-in-region comp-data))))
+      (completion-in-region (car comp-data) (cadr comp-data)
+			    (nth 2 comp-data)
+			    (plist-get (nthcdr 3 comp-data) :predicate)))))
 
 (dolist (x '("^No tags table in use; use .* to select one$"
 	     "^There is no default tag$"

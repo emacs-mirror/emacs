@@ -886,11 +886,8 @@ Note that the MAX parameter is used so we can exit the parse early."
             ;; (note for the irony-impaired: they are just obfuscated)
             (aput 'auth-source-netrc-cache file
                   (list :mtime (nth 5 (file-attributes file))
-                        :secret (lexical-let ((v (rot13-string
-                                                  (base64-encode-string
-                                                   (buffer-string)))))
-                                  (lambda () (base64-decode-string
-                                              (rot13-string v)))))))
+                        :secret (lexical-let ((v (mapcar '1+ (buffer-string))))
+                                  (lambda () (apply 'string (mapcar '1- v)))))))
           (goto-char (point-min))
           ;; Go through the file, line by line.
           (while (and (not (eobp))

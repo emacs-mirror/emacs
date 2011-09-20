@@ -773,8 +773,12 @@ The list is in preference order.")
 		     (eq (car result) 530))
 		;; We got a "530 auth required", so we close and try
 		;; again, this time asking the user for a password.
-		(smtpmail-send-command process "QUIT")
-		(smtpmail-read-response process)
+		;; We ignore any errors here, because some MTAs just
+		;; close the connection immediately after giving the
+		;; error message.
+		(ignore-errors
+		  (smtpmail-send-command process "QUIT")
+		  (smtpmail-read-response process))
 		(delete-process process)
 		(setq process nil)
 		(throw 'done
@@ -835,7 +839,8 @@ The list is in preference order.")
 (defun smtpmail-process-filter (process output)
   (with-current-buffer (process-buffer process)
     (goto-char (point-max))
-    (insert output)))
+    (insert output)
+    (set-marker (process-mark process) (point))))
 
 (defun smtpmail-read-response (process)
   (let ((case-fold-search nil)
@@ -891,8 +896,8 @@ The list is in preference order.")
 
 (defun smtpmail-send-command (process command)
   (goto-char (point-max))
-  (if (= (aref command 0) ?P)
-      (insert "PASS <omitted>\r\n")
+  (if (string-match "\\`AUTH [A-Z]+ " command)
+      (insert (match-string 0 command) "<omitted>\r\n")
     (insert command "\r\n"))
   (setq smtpmail-read-point (point))
   (process-send-string process command)

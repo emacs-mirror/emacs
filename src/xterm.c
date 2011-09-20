@@ -1306,6 +1306,8 @@ x_draw_composite_glyph_string_foreground (struct glyph_string *s)
       int y = s->ybase;
 
       for (i = 0, j = s->cmp_from; i < s->nchars; i++, j++)
+	/* TAB in a composition means display glyphs with padding
+	   space on the left or right.  */
 	if (COMPOSITION_GLYPH (s->cmp, j) != '\t')
 	  {
 	    int xx = x + s->cmp->offsets[j * 2];
@@ -7685,14 +7687,6 @@ x_fully_uncatch_errors (void)
     x_uncatch_errors ();
 }
 #endif
-
-/* Nonzero if x_catch_errors has been done and not yet canceled.  */
-
-int
-x_catching_errors (void)
-{
-  return x_error_message != 0;
-}
 
 #if 0
 static unsigned int x_wire_count;

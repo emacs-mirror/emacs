@@ -1965,6 +1965,8 @@ STREAM or the value of `standard-input' may be:
 DEFUN ("read-from-string", Fread_from_string, Sread_from_string, 1, 3, 0,
        doc: /* Read one Lisp expression which is represented as text by STRING.
 Returns a cons: (OBJECT-READ . FINAL-STRING-INDEX).
+FINAL-STRING-INDEX is an integer giving the position of the next
+ remaining chararacter in STRING.
 START and END optionally delimit a substring of STRING from which to read;
  they default to 0 and (length STRING) respectively.  */)
   (Lisp_Object string, Lisp_Object start, Lisp_Object end)

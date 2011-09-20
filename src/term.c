@@ -574,6 +574,8 @@ encode_terminal_code (struct glyph *src, int src_len, struct coding_system *codi
 	      {
 		int c = COMPOSITION_GLYPH (cmp, i);
 
+		/* TAB in a composition means display glyphs with
+		   padding space on the left or right.  */
 		if (c == '\t')
 		  continue;
 		if (char_charset (c, charset_list, NULL))

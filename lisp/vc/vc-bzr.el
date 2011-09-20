@@ -964,23 +964,23 @@ stream.  Standard error output is discarded."
 (defvar vc-bzr-shelve-menu-map
   (let ((map (make-sparse-keymap "Bzr Shelve")))
     (define-key map [de]
-      '(menu-item "Delete shelf" vc-bzr-shelve-delete-at-point
+      '(menu-item "Delete Shelf" vc-bzr-shelve-delete-at-point
 		  :help "Delete the current shelf"))
     (define-key map [ap]
-      '(menu-item "Apply and keep shelf" vc-bzr-shelve-apply-and-keep-at-point
+      '(menu-item "Apply and Keep Shelf" vc-bzr-shelve-apply-and-keep-at-point
 		  :help "Apply the current shelf and keep it"))
     (define-key map [po]
-      '(menu-item "Apply and remove shelf (pop)" vc-bzr-shelve-apply-at-point
+      '(menu-item "Apply and Remove Shelf (Pop)" vc-bzr-shelve-apply-at-point
 		  :help "Apply the current shelf and remove it"))
     (define-key map [sh]
-      '(menu-item "Show shelve" vc-bzr-shelve-show-at-point
+      '(menu-item "Show Shelve" vc-bzr-shelve-show-at-point
     		  :help "Show the contents of the current shelve"))
     map))
 
 (defvar vc-bzr-extra-menu-map
   (let ((map (make-sparse-keymap)))
     (define-key map [bzr-sn]
-      '(menu-item "Shelve a snapshot" vc-bzr-shelve-snapshot
+      '(menu-item "Shelve a Snapshot" vc-bzr-shelve-snapshot
 		  :help "Shelve the current state of the tree and keep the current state"))
     (define-key map [bzr-sh]
       '(menu-item "Shelve..." vc-bzr-shelve

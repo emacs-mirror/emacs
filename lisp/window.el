@@ -158,7 +158,7 @@ An application may bind this to a non-nil value around calls to
 these functions to inhibit processing of window parameters.")
 
 (defconst window-safe-min-height 1
-  "The absolut minimum number of lines of a window.
+  "The absolute minimum number of lines of a window.
 Anything less might crash Emacs.")
 
 (defcustom window-min-height 4
@@ -177,12 +177,12 @@ shorter, explictly specify the SIZE argument of that function."
   :group 'windows)
 
 (defconst window-safe-min-width 2
-  "The absolut minimum number of columns of a window.
+  "The absolute minimum number of columns of a window.
 Anything less might crash Emacs.")
 
 (defcustom window-min-width 10
   "The minimum number of columns of any window.
-The value has to accomodate margins, fringes, or scrollbars if
+The value has to accommodate margins, fringes, or scrollbars if
 present.  A value less than `window-safe-min-width' is ignored.
 The value of this variable is honored when windows are resized or
 split.
@@ -3772,7 +3772,7 @@ subwindows can get as small as `window-safe-min-height' and
 	;; issues - so IGNORE equal 'safe might not always produce the
 	;; minimum possible state.  But such configurations hardly make
 	;; sense anyway.
-	(error "Window %s too small to accomodate state" window)
+	(error "Window %s too small to accommodate state" window)
       (setq state (cdr state))
       (setq window-state-put-list nil)
       ;; Work on the windows of a temporary buffer to make sure that
@@ -3785,17 +3785,6 @@ subwindows can get as small as `window-safe-min-height' and
 	(window-state-put-2 ignore))
       (window-check frame))))
 
-(defvar display-buffer-window nil
-  "Window used by `display-buffer' and related information.
-After `display-buffer' displays a buffer in some window this
-variable is a cons cell whose car denotes the window used to
-display the buffer.  The cdr is supposed to be one of the symbols
-`reuse-buffer-window', `reuse-other-window', `new-window' or
-`new-frame'.
-
-See the function `display-buffer-record-window' for how this
-variable can be assigned a value.")
-
 (defun display-buffer-record-window (type window buffer)
   "Record information for window used by `display-buffer'.
 TYPE must be one of the symbols reuse-window, pop-up-window, or
@@ -3804,15 +3793,13 @@ pop-up-frame.  WINDOW is the window used for or created by the
 displayed."
   (cond
    ((eq type 'reuse-window)
-    ;; In `display-buffer-window' record whether we used a window on the
-    ;; same buffer or another one.
-    (if (eq (window-buffer window) buffer)
-	(setq display-buffer-window
-	      (cons window 'reuse-buffer-window))
-      (setq display-buffer-window
-	    (cons window 'reuse-other-window)))
-    ;; In quit-restore parameter record information about the old buffer
-    ;; unless such information exists already.
+    ;; In `help-setup' window parameter record whether we used a window
+    ;; on the same buffer or another one.
+    (set-window-parameter
+     window 'help-setup
+     (if (eq (window-buffer window) buffer) 'reuse-same 'reuse-other))
+    ;; In `quit-restore' parameter record information about the old
+    ;; buffer unless such information exists already.
     (unless (window-parameter window 'quit-restore)
       (set-window-parameter
        window 'quit-restore
@@ -3820,15 +3807,15 @@ displayed."
 	     (window-point window) buffer
 	     (window-total-size window) (selected-window)))))
    ((eq type 'pop-up-window)
-    ;; In `display-buffer-window' record window as new.
-    (setq display-buffer-window (cons window 'new-window))
+    ;; In `help-setup' window parameter record window as new.
+    (set-window-parameter window 'help-setup 'new-window)
     ;; In `quit-restore' parameter record that we popped up this window,
     ;; its buffer, and which window was selected before.
     (set-window-parameter
      window 'quit-restore (list 'new-window buffer (selected-window))))
    ((eq type 'pop-up-frame)
-    ;; In `display-buffer-window' record window as on new frame.
-    (setq display-buffer-window (cons window 'new-frame))
+    ;; In `help-setup' window parameter record window as on new frame.
+    (set-window-parameter window 'help-setup 'new-frame)
     ;; In `quit-restore' parameter record that we popped up this window
     ;; on a new frame, the buffer, and which window was selected before.
     (set-window-parameter
@@ -3841,9 +3828,8 @@ means that the currently selected window is not acceptable.  It
 should choose or create a window, display the specified buffer in
 it, and return the window.
 
-The function specified here is responsible for setting the value
-of `display-buffer-window' and the quit-restore parameter of the
-window used."
+The function specified here is responsible for setting the
+quit-restore and help-setup parameters of the window used."
   :type '(choice
 	  (const nil)
 	  (function :tag "function"))
@@ -3913,8 +3899,8 @@ second.  If `special-display-function' specifies some other
 function, that function is called with the buffer named
 BUFFER-NAME as first, and the element's cdr as second argument.
 In any case, that function is responsible for setting the value
-of `display-buffer-window' and the quit-restore parameter of the
-window used.
+The function specified here is responsible for setting the
+quit-restore and help-setup parameters of the window used.
 
 If this variable appears \"not to work\", because you added a
 name to it but the corresponding buffer is displayed in the
@@ -4115,9 +4101,8 @@ A buffer is special when its name is either listed in
 `special-display-buffer-names' or matches a regexp in
 `special-display-regexps'.
 
-The function specified here is responsible for setting the value
-of `display-buffer-window' and the quit-restore parameter of the
-window used."
+The function specified here is responsible for setting the
+quit-restore and help-setup parameters of the window used."
   :type 'function
   :group 'frames)
 
@@ -4480,6 +4465,14 @@ BUFFER-OR-NAME and return that buffer."
 		:value-type (sexp :tag "Value")))
   "Custom type for `display-buffer' actions.")
 
+(defvar display-buffer-overriding-action '(nil . nil)
+  "Overriding action to perform to display a buffer.
+It should be a cons cell (FUNCTION . ALIST), where FUNCTION is a
+function or a list of functions.  Each function should accept 2
+arguments: a buffer to display and an alist similar to ALIST.
+See `display-buffer' for details.")
+(put 'display-buffer-overriding-action 'risky-local-variable t)
+
 (defcustom display-buffer-alist nil
   "Alist of conditional actions for `display-buffer'.
 This is a list of elements (CONDITION . ACTION), where:
@@ -4500,15 +4493,8 @@ This is a list of elements (CONDITION . ACTION), where:
   :version "24.1"
   :group 'windows)
 
-(defcustom display-buffer-default-action
-  '((display-buffer--maybe-same-window
-     display-buffer-reuse-window
-     display-buffer--special
-     display-buffer--maybe-pop-up-frame-or-window
-     display-buffer-use-some-window
-     ;; If all else fails, pop up a new frame.
-     display-buffer-pop-up-frame))
-  "List of default actions for `display-buffer'.
+(defcustom display-buffer-base-action '(nil . nil)
+  "User-specified default action for `display-buffer'.
 It should be a cons cell (FUNCTION . ALIST), where FUNCTION is a
 function or a list of functions.  Each function should accept 2
 arguments: a buffer to display and an alist similar to ALIST.
@@ -4518,16 +4504,19 @@ See `display-buffer' for details."
   :version "24.1"
   :group 'windows)
 
-(defcustom display-buffer-overriding-action '(nil . nil)
-  "Overriding action to perform to display a buffer.
-It should be a cons cell (FUNCTION . ALIST), where FUNCTION is a
-function or a list of functions.  Each function should accept 2
-arguments: a buffer to display and an alist similar to ALIST.
-See `display-buffer' for details."
-  :type display-buffer--action-custom-type
-  :risky t
-  :version "24.1"
-  :group 'windows)
+(defconst display-buffer-fallback-action
+  '((display-buffer--maybe-same-window
+     display-buffer-reuse-window
+     display-buffer--special
+     display-buffer--maybe-pop-up-frame-or-window
+     display-buffer-use-some-window
+     ;; If all else fails, pop up a new frame.
+     display-buffer-pop-up-frame))
+  "Default fallback action for `display-buffer'.
+This is the action used by `display-buffer' if no other actions
+specified, e.g. by the user options `display-buffer-alist' or
+`display-buffer-base-action'.  See `display-buffer'.")
+(put 'display-buffer-fallback-action 'risky-local-variable t)
 
 (defun display-buffer-assq-regexp (buffer-name alist)
   "Retrieve ALIST entry corresponding to BUFFER-NAME."
@@ -4568,12 +4557,13 @@ function is called with 2 arguments: the buffer to display and an
 alist.  It should either display the buffer and return the
 window, or return nil if unable to display the buffer.
 
-`display-buffer' builds a function list and an alist from
-`display-buffer-overriding-action', `display-buffer-alist',
-ACTION, and `display-buffer-default-action' (in that order).
-Then it calls each function in the combined function list in
-turn, passing the buffer as the first argument and the combined
-alist as the second argument, until a function returns non-nil.
+The `display-buffer' function builds a function list and an alist
+from `display-buffer-overriding-action', `display-buffer-alist',
+the ACTION argument, `display-buffer-base-action', and
+`display-buffer-fallback-action' (in that order).  Then it calls
+each function in the combined function list in turn, passing the
+buffer as the first argument and the combined alist as the second
+argument, until one of the functions returns non-nil.
 
 Available action functions include:
  `display-buffer-same-window'
@@ -4623,7 +4613,8 @@ search for a window that is already displaying the buffer.  See
 	     ;; Construct action function list and action alist.
 	     (actions (list display-buffer-overriding-action
 			    user-action action extra-action
-			    display-buffer-default-action))
+			    display-buffer-base-action
+			    display-buffer-fallback-action))
 	     (functions (apply 'append
 			       (mapcar (lambda (x)
 					 (setq x (car x))
