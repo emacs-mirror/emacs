@@ -2760,11 +2760,12 @@ N is the digit argument used to invoke this command."
 (defun Info-last-preorder ()
   "Go to the last node, popping up a level if there is none."
   (interactive)
-  (cond ((Info-no-error
-	  (Info-last-menu-item)
-	  ;; If we go down a menu item, go to the end of the node
-	  ;; so we can scroll back through it.
-	  (goto-char (point-max)))
+  (cond ((and Info-scroll-prefer-subnodes
+	      (Info-no-error
+	       (Info-last-menu-item)
+	       ;; If we go down a menu item, go to the end of the node
+	       ;; so we can scroll back through it.
+	       (goto-char (point-max))))
 	 ;; Keep going down, as long as there are nested menu nodes.
 	 (let (Info-history) ; Don't add intermediate nodes to the history.
 	   (while (Info-no-error
