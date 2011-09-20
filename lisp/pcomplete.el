@@ -515,14 +515,13 @@ Same as `pcomplete' but using the standard completion UI."
               (pred
                ;; Pare it down, if applicable.
                (when (and pcomplete-use-paring pcomplete-seen)
-                 (setq pcomplete-seen
-                       (mapcar (lambda (f)
-                                 (funcall pcomplete-norm-func
-                                          (directory-file-name f)))
-                               pcomplete-seen))
                  ;; Capture the dynbound values for later use.
                  (let ((norm-func pcomplete-norm-func)
-                       (seen pcomplete-seen))
+                       (seen
+			(mapcar (lambda (f)
+				  (funcall pcomplete-norm-func
+					   (directory-file-name f)))
+				pcomplete-seen)))
                    (lambda (f)
                      (not (member
                            (funcall norm-func (directory-file-name f))
