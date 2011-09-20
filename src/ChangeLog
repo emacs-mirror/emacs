@@ -5,6 +5,9 @@
 	(find_row_edges): If the row ends in a newline from a display
 	string, increment its MATRIX_ROW_END_CHARPOS by one.  (Bug#9549)
 	Handle the case of a display string with multiple newlines.
+	(Fcurrent_bidi_paragraph_direction): Fix search for previous
+	non-empty line.  Fixes confusing cursor motion with arrow keys at
+	the beginning of a line that starts with whitespace.
 
 2011-09-19  Lars Magne Ingebrigtsen  <larsi@gnus.org>
 

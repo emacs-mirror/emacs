@@ -19205,6 +19205,7 @@ See also `bidi-paragraph-direction'.  */)
       EMACS_INT pos = BUF_PT (buf);
       EMACS_INT bytepos = BUF_PT_BYTE (buf);
       int c;
+      void *itb_data = bidi_shelve_cache ();
 
       set_buffer_temp (buf);
       /* bidi_paragraph_init finds the base direction of the paragraph
@@ -19217,27 +19218,27 @@ See also `bidi-paragraph-direction'.  */)
 	  pos--;
 	  bytepos = CHAR_TO_BYTE (pos);
 	}
-      while ((c = FETCH_BYTE (bytepos)) == '\n'
-	     || c == ' ' || c == '\t' || c == '\f')
+      if (fast_looking_at (build_string ("[\f\t ]*\n"),
+			   pos, bytepos, ZV, ZV_BYTE, Qnil) > 0)
 	{
-	  if (bytepos <= BEGV_BYTE)
-	    break;
-	  bytepos--;
-	  pos--;
+	  while ((c = FETCH_BYTE (bytepos)) == '\n'
+		 || c == ' ' || c == '\t' || c == '\f')
+	    {
+	      if (bytepos <= BEGV_BYTE)
+		break;
+	      bytepos--;
+	      pos--;
+	    }
+	  while (!CHAR_HEAD_P (FETCH_BYTE (bytepos)))
+	    bytepos--;
 	}
-      while (!CHAR_HEAD_P (FETCH_BYTE (bytepos)))
-	bytepos--;
-      itb.charpos = pos;
-      itb.bytepos = bytepos;
-      itb.nchars = -1;
+      bidi_init_it (pos, bytepos, FRAME_WINDOW_P (SELECTED_FRAME ()), &itb);
       itb.string.s = NULL;
       itb.string.lstring = Qnil;
-      itb.frame_window_p = FRAME_WINDOW_P (SELECTED_FRAME ()); /* guesswork */
-      itb.first_elt = 1;
-      itb.separator_limit = -1;
-      itb.paragraph_dir = NEUTRAL_DIR;
-
+      itb.string.bufpos = 0;
+      itb.string.unibyte = 0;
       bidi_paragraph_init (NEUTRAL_DIR, &itb, 1);
+      bidi_unshelve_cache (itb_data, 0);
       set_buffer_temp (old);
       switch (itb.paragraph_dir)
 	{
