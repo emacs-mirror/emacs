@@ -1,5 +1,11 @@
 2011-09-20  Juri Linkov  <juri@jurta.org>
 
+	* info.el (Info-history-skip-intermediate-nodes): New defcustom.
+	(Info-forward-node, Info-backward-node, Info-next-preorder)
+	(Info-last-preorder): Use it.  (Bug#9528)
+
+2011-09-20  Juri Linkov  <juri@jurta.org>
+
 	* info.el (Info-last-preorder): Visit last menu item only when
 	`Info-scroll-prefer-subnodes' is non-nil (third test-case of bug#9528).
 
