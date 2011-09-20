@@ -1,3 +1,9 @@
+2011-09-20  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* minibuffer.el (completion-file-name-table): Keep track of errors.
+	(completion-table-with-predicate): Handle the case where pred1 is nil.
+	* pcomplete.el (pcomplete-completions-at-point): Simplify.
+
 2011-09-19  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* emacs-lisp/debug.el (debugger-args): Give it a docstring.

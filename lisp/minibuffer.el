@@ -322,14 +322,15 @@ Note: TABLE needs to be a proper completion table which obeys predicates."
     (test-completion string table pred2))
    (t
     (or (complete-with-action action table string
-                              (if (null pred2) pred1
+                              (if (not (and pred1 pred2))
+                                  (or pred1 pred2)
                                 (lambda (x)
                                   ;; Call `pred1' first, so that `pred2'
                                   ;; really can't tell that `x' is in table.
-                                  (if (funcall pred1 x) (funcall pred2 x)))))
+                                  (and (funcall pred1 x) (funcall pred2 x)))))
         ;; If completion failed and we're not applying pred1 strictly, try
         ;; again without pred1.
-        (and (not strict)
+        (and (not strict) pred1 pred2
              (complete-with-action action table string pred2))))))
 
 (defun completion-table-in-turn (&rest tables)
@@ -1774,7 +1775,7 @@ same as `substitute-in-file-name'."
 
 (defun completion-file-name-table (string pred action)
   "Completion table for file names."
-  (ignore-errors
+  (with-demoted-errors
     (cond
      ((eq action 'metadata) '(metadata (category . file)))
      ((eq (car-safe action) 'boundaries)
