@@ -3679,10 +3679,9 @@ However, if `message-yank-prefix' is non-nil, insert that prefix on each line."
       (message-delete-line))
     ;; Delete blank lines at the end of the buffer.
     (goto-char (point-max))
-    (unless (eolp)
-      (insert "\n"))
-    (while (and (zerop (forward-line -1))
-		(looking-at "$"))
+    (beginning-of-line)
+    (while (and (looking-at "$")
+		(zerop (forward-line -1)))
       (message-delete-line)))
   ;; Do the indentation.
   (if (null message-yank-prefix)

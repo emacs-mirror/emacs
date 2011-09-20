@@ -1,4 +1,17 @@
+2011-09-20  Łukasz Stelmach  <lukasz.stelmach@iem.pw.edu.pl>  (tiny change)
+
+	* message.el (message-indent-citation): Fix empty line removal at the
+	end of the citation.
+
 2011-09-20  Julien Danjou  <julien@danjou.info>
+
+	* auth-source.el (auth-source-netrc-create): Use default value for
+	password if specified. Evaluate default.
+	(auth-source-plstore-create): Ditto.
+	(auth-source-plstore-create, auth-source-netrc-create): Fix default
+	value evaluation.
+	(auth-source-netrc-create): Typo fix.
+	(auth-source-plstore-create): Ditto.
 
 	* auth-source.el (auth-source-format-cache-entry): New function.
 
