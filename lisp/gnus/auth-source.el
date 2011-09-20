@@ -749,28 +749,31 @@ Returns the deleted entries."
         do (password-cache-remove (symbol-name sym)))
   (setq auth-source-netrc-cache nil))
 
+(defun auth-source-format-cache-entry (spec)
+  "Format SPEC entry to put it in the password cache."
+  (concat auth-source-magic (format "%S" spec)))
+
 (defun auth-source-remember (spec found)
   "Remember FOUND search results for SPEC."
   (let ((password-cache-expiry auth-source-cache-expiry))
     (password-cache-add
-     (concat auth-source-magic (format "%S" spec)) found)))
+     (auth-source-format-cache-entry spec) found)))
 
 (defun auth-source-recall (spec)
   "Recall FOUND search results for SPEC."
-  (password-read-from-cache
-   (concat auth-source-magic (format "%S" spec))))
+  (password-read-from-cache (auth-source-format-cache-entry spec)))
 
 (defun auth-source-remembered-p (spec)
   "Check if SPEC is remembered."
   (password-in-cache-p
-   (concat auth-source-magic (format "%S" spec))))
+   (auth-source-format-cache-entry spec)))
 
 (defun auth-source-forget (spec)
   "Forget any cached data matching SPEC exactly.
 
 This is the same SPEC you passed to `auth-source-search'.
 Returns t or nil for forgotten or not found."
-  (password-cache-remove (concat auth-source-magic (format "%S" spec))))
+  (password-cache-remove (auth-source-format-cache-entry spec)))
 
 ;;; (loop for sym being the symbols of password-data when (string-match (concat "^" auth-source-magic) (symbol-name sym)) collect (symbol-name sym))
 
