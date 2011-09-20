@@ -5,7 +5,7 @@
 
 ;; Author: Bill Wohler <wohler@newt.com>
 ;; Maintainer: Bill Wohler <wohler@newt.com>
-;; Version: 8.2.93
+;; Version: 8.3
 ;; Keywords: mail
 
 ;; This file is part of GNU Emacs.
@@ -127,7 +127,7 @@
 ;; Try to keep variables local to a single file. Provide accessors if
 ;; variables are shared. Use this section as a last resort.
 
-(defconst mh-version "8.2.93" "Version number of MH-E.")
+(defconst mh-version "8.3" "Version number of MH-E.")
 
 ;; Variants
 
