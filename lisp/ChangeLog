@@ -1,5 +1,7 @@
 2011-09-21  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* faces.el (face-list): Fix docstring (bug#9564).
+
 	* window.el (display-buffer--action-function-custom-type):
 	Don't include internal functions in the Custom interface.
 

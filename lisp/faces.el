@@ -119,7 +119,7 @@ REGISTRY, ALTERNATIVE1, ALTERNATIVE2, and etc."
 
 
 (defun face-list ()
-  "Return a list of all defined face names."
+  "Return a list of all defined faces."
   (mapcar #'car face-new-frame-defaults))
 
 
