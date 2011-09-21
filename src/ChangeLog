@@ -67,7 +67,7 @@
 	Use ptrdiff_t, not EMACS_INT, where ptrdiff_t is wide enough.
 	(casify_object): Avoid integer overflow when overallocating buffer.
 	* casetab.c (set_identity, shuffle): Prefer int to unsigned when
-	either works.
+	either works.  Use lint_assume to convince GCC 4.6.1 that it's OK.
 	* category.c (Fchar_category_set): Don't assume fixnum fits in int.
 	* category.h (CATEGORYP): Don't assume arg is nonnegative.
 	* ccl.c (GET_CCL_INT): Remove; no longer needed, since the
