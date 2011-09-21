@@ -1,3 +1,8 @@
+2011-09-13  Kan-Ru Chen  <kanru@kanru.info>
+
+	* ecomplete.el (ecomplete-display-matches): Intercept key sequence from
+	terminal as well.
+
 2011-09-21  Katsumi Yamaoka  <yamaoka@jpl.org>
 
 	* mm-view.el (mm-display-inline-fontify): Don't run doc-view-mode
