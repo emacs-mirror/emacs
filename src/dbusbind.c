@@ -528,7 +528,7 @@ xd_append_arg (unsigned int dtype, Lisp_Object object, DBusMessageIter *iter)
 	}
 
       case DBUS_TYPE_INT64:
-	CHECK_TYPE_RANGED_INTEGER (dbus_int64_t, object);
+	CHECK_NUMBER (object);
 	{
 	  dbus_int64_t val = XINT (object);
 	  XD_DEBUG_MESSAGE ("%c %d", dtype, (int) val);
