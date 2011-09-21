@@ -758,7 +758,7 @@ The return value is BASE-VARIABLE.  */)
   {
     struct specbinding *p;
 
-    for (p = specpdl_ptr; p > specpdl; p)
+    for (p = specpdl_ptr; p > specpdl; )
       if ((--p)->func == NULL
 	  && (EQ (new_alias,
 		  CONSP (p->symbol) ? XCAR (p->symbol) : p->symbol)))

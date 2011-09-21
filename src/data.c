@@ -1094,7 +1094,7 @@ let_shadows_global_binding_p (Lisp_Object symbol)
 {
   struct specbinding *p;
 
-  for (p = specpdl_ptr; p > specpdl; p)
+  for (p = specpdl_ptr; p > specpdl; )
     if ((--p)->func == NULL && EQ (p->symbol, symbol))
       return 1;
 
