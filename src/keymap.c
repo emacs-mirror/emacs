@@ -2091,9 +2091,12 @@ spaces are put between sequence elements, etc.  */)
       if (add_meta)
 	{
 	  args[len] = Fsingle_key_description (meta_prefix_char, Qnil);
-	  len += 2;
+	  result = Fconcat (len + 1, args);
 	}
-      result = len == 0 ? empty_unibyte_string : Fconcat (len - 1, args);
+      else if (len == 0)
+	result = empty_unibyte_string;
+      else
+	result = Fconcat (len - 1, args);
       SAFE_FREE ();
       return result;
     }
