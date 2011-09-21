@@ -2411,6 +2411,6 @@ bidi_dump_cached_states (void)
   fputs ("\n", stderr);
   fputs ("pos ", stderr);
   for (i = 0; i < bidi_cache_idx; i++)
-    fprintf (stderr, "%*"pI"d", ndigits, bidi_cache[i].charpos);
+    fprintf (stderr, "%*"pD"d", ndigits, bidi_cache[i].charpos);
   fputs ("\n", stderr);
 }

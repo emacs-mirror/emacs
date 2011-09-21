@@ -6493,7 +6493,7 @@ modify_event_symbol (ptrdiff_t symbol_num, int modifiers, Lisp_Object symbol_kin
       if (NILP (value))
 	{
 	  char buf[sizeof "key-" + INT_STRLEN_BOUND (EMACS_INT)];
-	  sprintf (buf, "key-%"pI"d", symbol_num);
+	  sprintf (buf, "key-%"pD"d", symbol_num);
 	  value = intern (buf);
 	}
 

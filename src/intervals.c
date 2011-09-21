@@ -774,7 +774,7 @@ update_interval (register INTERVAL i, ptrdiff_t pos)
 	      i = i->right;		/* Move to the right child */
 	    }
 	  else if (NULL_PARENT (i))
-	    error ("Point %"pI"d after end of properties", pos);
+	    error ("Point %"pD"d after end of properties", pos);
 	  else
             i = INTERVAL_PARENT (i);
 	  continue;

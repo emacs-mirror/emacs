@@ -1807,7 +1807,7 @@ print_object (Lisp_Object obj, register Lisp_Object printcharfun, int escapeflag
 	  /* Implement a readable output, e.g.:
 	    #s(hash-table size 2 test equal data (k1 v1 k2 v2)) */
 	  /* Always print the size. */
-	  sprintf (buf, "#s(hash-table size %"pI"d", ASIZE (h->next));
+	  sprintf (buf, "#s(hash-table size %"pD"d", ASIZE (h->next));
 	  strout (buf, -1, -1, printcharfun);
 
 	  if (!NILP (h->test))
@@ -1982,7 +1982,7 @@ print_object (Lisp_Object obj, register Lisp_Object printcharfun, int escapeflag
 	    strout ("in no buffer", -1, -1, printcharfun);
 	  else
 	    {
-	      sprintf (buf, "at %"pI"d", marker_position (obj));
+	      sprintf (buf, "at %"pD"d", marker_position (obj));
 	      strout (buf, -1, -1, printcharfun);
 	      strout (" in ", -1, -1, printcharfun);
 	      print_string (BVAR (XMARKER (obj)->buffer, name), printcharfun);
@@ -1996,7 +1996,7 @@ print_object (Lisp_Object obj, register Lisp_Object printcharfun, int escapeflag
 	    strout ("in no buffer", -1, -1, printcharfun);
 	  else
 	    {
-	      sprintf (buf, "from %"pI"d to %"pI"d in ",
+	      sprintf (buf, "from %"pD"d to %"pD"d in ",
 		       marker_position (OVERLAY_START (obj)),
 		       marker_position (OVERLAY_END   (obj)));
 	      strout (buf, -1, -1, printcharfun);
@@ -2035,7 +2035,7 @@ print_object (Lisp_Object obj, register Lisp_Object printcharfun, int escapeflag
 	if (MISCP (obj))
 	  sprintf (buf, "(MISC 0x%04x)", (int) XMISCTYPE (obj));
 	else if (VECTORLIKEP (obj))
-	  sprintf (buf, "(PVEC 0x%08"pI"x)", ASIZE (obj));
+	  sprintf (buf, "(PVEC 0x%08"pD"x)", ASIZE (obj));
 	else
 	  sprintf (buf, "(0x%02x)", (int) XTYPE (obj));
 	strout (buf, -1, -1, printcharfun);

@@ -1108,7 +1108,7 @@ an error is signaled.  */)
       ptrdiff_t converted = str_to_unibyte (SDATA (string), str, chars, 0);
 
       if (converted < chars)
-	error ("Can't convert the %"pI"dth character to unibyte", converted);
+	error ("Can't convert the %"pD"dth character to unibyte", converted);
       string = make_unibyte_string ((char *) str, chars);
       xfree (str);
     }

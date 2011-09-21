@@ -2251,7 +2251,7 @@ between them, return t; otherwise return nil.  */)
   int found;
   EMACS_INT count1;
   ptrdiff_t out_charpos, out_bytepos;
-  ptrdiff_t dummy;
+  EMACS_INT dummy;
 
   CHECK_NUMBER (count);
   count1 = XINT (count);
@@ -2473,7 +2473,7 @@ scan_lists (register EMACS_INT from, EMACS_INT count, EMACS_INT depth, int sexpf
   ptrdiff_t from_byte;
   ptrdiff_t out_bytepos, out_charpos;
   int temp;
-  ptrdiff_t dummy;
+  EMACS_INT dummy;
   int multibyte_symbol_p = sexpflag && multibyte_syntax_as_symbol;
 
   if (depth > 0) min_depth = 0;
