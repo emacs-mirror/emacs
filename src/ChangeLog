@@ -459,6 +459,8 @@
 	(openp): Check for out-of-range argument to 'access'.
 	(read1): Use int, not EMACS_INT, where int is wide enough.
 	Don't assume fixnum fits into int.
+	(read_filtered_event): Use duration_to_sec_usec
+	to do proper overflow checking on durations.
 	* macros.c (Fstart_kbd_macro): Use xpalloc to check for overflow
 	in size calculation.
 	(Fexecute_kbd_macro):
