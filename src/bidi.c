@@ -204,7 +204,7 @@ bidi_mirror_char (int c)
   val = CHAR_TABLE_REF (bidi_mirror_table, c);
   if (INTEGERP (val))
     {
-      int v = XINT (val);
+      EMACS_INT v = XINT (val);
 
       if (v < 0 || v > MAX_CHAR)
 	abort ();
@@ -378,7 +378,7 @@ bidi_cache_fetch_state (ptrdiff_t idx, struct bidi_it *bidi_it)
    resolved levels in cached states.  DIR, if non-zero, means search
    in that direction from the last cache hit.  */
 static inline ptrdiff_t
-bidi_cache_search (EMACS_INT charpos, int level, int dir)
+bidi_cache_search (ptrdiff_t charpos, int level, int dir)
 {
   ptrdiff_t i, i_start;
 
@@ -562,7 +562,7 @@ bidi_cache_iterator_state (struct bidi_it *bidi_it, int resolved)
 }
 
 static inline bidi_type_t
-bidi_cache_find (EMACS_INT charpos, int level, struct bidi_it *bidi_it)
+bidi_cache_find (ptrdiff_t charpos, int level, struct bidi_it *bidi_it)
 {
   ptrdiff_t i = bidi_cache_search (charpos, level, bidi_it->scan_dir);
 
@@ -794,7 +794,7 @@ bidi_set_paragraph_end (struct bidi_it *bidi_it)
 
 /* Initialize the bidi iterator from buffer/string position CHARPOS.  */
 void
-bidi_init_it (EMACS_INT charpos, EMACS_INT bytepos, int frame_window_p,
+bidi_init_it (ptrdiff_t charpos, ptrdiff_t bytepos, int frame_window_p,
 	      struct bidi_it *bidi_it)
 {
   if (! bidi_initialized)
@@ -863,11 +863,11 @@ bidi_line_init (struct bidi_it *bidi_it)
    are zero-based character positions in S, BEGBYTE is byte position
    corresponding to BEG.  UNIBYTE, if non-zero, means S is a unibyte
    string.  */
-static inline EMACS_INT
-bidi_count_bytes (const unsigned char *s, const EMACS_INT beg,
-		  const EMACS_INT begbyte, const EMACS_INT end, int unibyte)
+static inline ptrdiff_t
+bidi_count_bytes (const unsigned char *s, const ptrdiff_t beg,
+		  const ptrdiff_t begbyte, const ptrdiff_t end, int unibyte)
 {
-  EMACS_INT pos = beg;
+  ptrdiff_t pos = beg;
   const unsigned char *p = s + begbyte, *start = p;
 
   if (unibyte)
@@ -892,7 +892,7 @@ bidi_count_bytes (const unsigned char *s, const EMACS_INT beg,
    character from the current buffer.  UNIBYTE non-zero means S is a
    unibyte string.  */
 static inline int
-bidi_char_at_pos (EMACS_INT bytepos, const unsigned char *s, int unibyte)
+bidi_char_at_pos (ptrdiff_t bytepos, const unsigned char *s, int unibyte)
 {
   if (s)
     {
@@ -920,12 +920,12 @@ bidi_char_at_pos (EMACS_INT bytepos, const unsigned char *s, int unibyte)
    string to iterate, or NULL if iterating over a buffer or a Lisp
    string; in the latter case, STRING->lstring is the Lisp string.  */
 static inline int
-bidi_fetch_char (EMACS_INT bytepos, EMACS_INT charpos, EMACS_INT *disp_pos,
+bidi_fetch_char (ptrdiff_t bytepos, ptrdiff_t charpos, ptrdiff_t *disp_pos,
 		 int *disp_prop, struct bidi_string_data *string,
-		 int frame_window_p, EMACS_INT *ch_len, EMACS_INT *nchars)
+		 int frame_window_p, ptrdiff_t *ch_len, ptrdiff_t *nchars)
 {
   int ch;
-  EMACS_INT endpos =
+  ptrdiff_t endpos =
     (string->s || STRINGP (string->lstring)) ? string->schars : ZV;
   struct text_pos pos;
 
@@ -949,7 +949,7 @@ bidi_fetch_char (EMACS_INT bytepos, EMACS_INT charpos, EMACS_INT *disp_pos,
     }
   else if (charpos >= *disp_pos && *disp_prop)
     {
-      EMACS_INT disp_end_pos;
+      ptrdiff_t disp_end_pos;
 
       /* We don't expect to find ourselves in the middle of a display
 	 property.  Hopefully, it will never be needed.  */
@@ -1049,12 +1049,12 @@ bidi_fetch_char (EMACS_INT bytepos, EMACS_INT charpos, EMACS_INT *disp_pos,
    following the buffer position, -1 if position is at the beginning
    of a new paragraph, or -2 if position is neither at beginning nor
    at end of a paragraph.  */
-static EMACS_INT
-bidi_at_paragraph_end (EMACS_INT charpos, EMACS_INT bytepos)
+static ptrdiff_t
+bidi_at_paragraph_end (ptrdiff_t charpos, ptrdiff_t bytepos)
 {
   Lisp_Object sep_re;
   Lisp_Object start_re;
-  EMACS_INT val;
+  ptrdiff_t val;
 
   sep_re = paragraph_separate_re;
   start_re = paragraph_start_re;
@@ -1073,11 +1073,11 @@ bidi_at_paragraph_end (EMACS_INT charpos, EMACS_INT bytepos)
 
 /* Find the beginning of this paragraph by looking back in the buffer.
    Value is the byte position of the paragraph's beginning.  */
-static EMACS_INT
-bidi_find_paragraph_start (EMACS_INT pos, EMACS_INT pos_byte)
+static ptrdiff_t
+bidi_find_paragraph_start (ptrdiff_t pos, ptrdiff_t pos_byte)
 {
   Lisp_Object re = paragraph_start_re;
-  EMACS_INT limit = ZV, limit_byte = ZV_BYTE;
+  ptrdiff_t limit = ZV, limit_byte = ZV_BYTE;
 
   while (pos_byte > BEGV_BYTE
 	 && fast_looking_at (re, pos, pos_byte, limit, limit_byte, Qnil) < 0)
@@ -1110,14 +1110,14 @@ bidi_find_paragraph_start (EMACS_INT pos, EMACS_INT pos_byte)
 void
 bidi_paragraph_init (bidi_dir_t dir, struct bidi_it *bidi_it, int no_default_p)
 {
-  EMACS_INT bytepos = bidi_it->bytepos;
+  ptrdiff_t bytepos = bidi_it->bytepos;
   int string_p = bidi_it->string.s != NULL || STRINGP (bidi_it->string.lstring);
-  EMACS_INT pstartbyte;
+  ptrdiff_t pstartbyte;
   /* Note that begbyte is a byte position, while end is a character
      position.  Yes, this is ugly, but we are trying to avoid costly
      calls to BYTE_TO_CHAR and its ilk.  */
-  EMACS_INT begbyte = string_p ? 0 : BEGV_BYTE;
-  EMACS_INT end = string_p ? bidi_it->string.schars : ZV;
+  ptrdiff_t begbyte = string_p ? 0 : BEGV_BYTE;
+  ptrdiff_t end = string_p ? bidi_it->string.schars : ZV;
 
   /* Special case for an empty buffer. */
   if (bytepos == begbyte && bidi_it->charpos == end)
@@ -1139,8 +1139,8 @@ bidi_paragraph_init (bidi_dir_t dir, struct bidi_it *bidi_it, int no_default_p)
   else if (dir == NEUTRAL_DIR)	/* P2 */
     {
       int ch;
-      EMACS_INT ch_len, nchars;
-      EMACS_INT pos, disp_pos = -1;
+      ptrdiff_t ch_len, nchars;
+      ptrdiff_t pos, disp_pos = -1;
       int disp_prop = 0;
       bidi_type_t type;
       const unsigned char *s;
@@ -1235,8 +1235,8 @@ bidi_paragraph_init (bidi_dir_t dir, struct bidi_it *bidi_it, int no_default_p)
 	      bidi_it->paragraph_dir = L2R; /* P3 and HL1 */
 	    else
 	      {
-		EMACS_INT prevpbyte = pstartbyte;
-		EMACS_INT p = BYTE_TO_CHAR (pstartbyte), pbyte = pstartbyte;
+		ptrdiff_t prevpbyte = pstartbyte;
+		ptrdiff_t p = BYTE_TO_CHAR (pstartbyte), pbyte = pstartbyte;
 
 		/* Find the beginning of the previous paragraph, if any.  */
 		while (pbyte > BEGV_BYTE && prevpbyte >= pstartbyte)
@@ -1496,7 +1496,7 @@ bidi_resolve_explicit (struct bidi_it *bidi_it)
 {
   int prev_level = bidi_it->level_stack[bidi_it->stack_idx].level;
   int new_level  = bidi_resolve_explicit_1 (bidi_it);
-  EMACS_INT eob = bidi_it->string.s ? bidi_it->string.schars : ZV;
+  ptrdiff_t eob = bidi_it->string.s ? bidi_it->string.schars : ZV;
   const unsigned char *s = STRINGP (bidi_it->string.lstring)
     ? SDATA (bidi_it->string.lstring) : bidi_it->string.s;
 
@@ -1582,7 +1582,7 @@ bidi_resolve_weak (struct bidi_it *bidi_it)
   int next_char;
   bidi_type_t type_of_next;
   struct bidi_it saved_it;
-  EMACS_INT eob =
+  ptrdiff_t eob =
     (STRINGP (bidi_it->string.lstring) || bidi_it->string.s)
     ? bidi_it->string.schars : ZV;
 
@@ -1707,7 +1707,7 @@ bidi_resolve_weak (struct bidi_it *bidi_it)
 	    type = WEAK_EN;
 	  else			/* W5: ET/BN with EN after it.  */
 	    {
-	      EMACS_INT en_pos = bidi_it->charpos + bidi_it->nchars;
+	      ptrdiff_t en_pos = bidi_it->charpos + bidi_it->nchars;
 	      const unsigned char *s =
 		STRINGP (bidi_it->string.lstring)
 		? SDATA (bidi_it->string.lstring) : bidi_it->string.s;
@@ -1955,11 +1955,11 @@ bidi_level_of_next_char (struct bidi_it *bidi_it)
   bidi_type_t type;
   int level, prev_level = -1;
   struct bidi_saved_info next_for_neutral;
-  EMACS_INT next_char_pos = -2;
+  ptrdiff_t next_char_pos = -2;
 
   if (bidi_it->scan_dir == 1)
     {
-      EMACS_INT eob =
+      ptrdiff_t eob =
 	(bidi_it->string.s || STRINGP (bidi_it->string.lstring))
 	? bidi_it->string.schars : ZV;
 
@@ -2086,11 +2086,11 @@ bidi_level_of_next_char (struct bidi_it *bidi_it)
       && bidi_it->next_for_ws.type == UNKNOWN_BT)
     {
       int ch;
-      EMACS_INT clen = bidi_it->ch_len;
-      EMACS_INT bpos = bidi_it->bytepos;
-      EMACS_INT cpos = bidi_it->charpos;
-      EMACS_INT disp_pos = bidi_it->disp_pos;
-      EMACS_INT nc = bidi_it->nchars;
+      ptrdiff_t clen = bidi_it->ch_len;
+      ptrdiff_t bpos = bidi_it->bytepos;
+      ptrdiff_t cpos = bidi_it->charpos;
+      ptrdiff_t disp_pos = bidi_it->disp_pos;
+      ptrdiff_t nc = bidi_it->nchars;
       struct bidi_string_data bs = bidi_it->string;
       bidi_type_t chtype;
       int fwp = bidi_it->frame_window_p;
@@ -2331,7 +2331,7 @@ bidi_move_to_visually_next (struct bidi_it *bidi_it)
 	bidi_it->separator_limit = bidi_it->string.schars;
       else if (bidi_it->bytepos < ZV_BYTE)
 	{
-	  EMACS_INT sep_len =
+	  ptrdiff_t sep_len =
 	    bidi_at_paragraph_end (bidi_it->charpos + bidi_it->nchars,
 				   bidi_it->bytepos + bidi_it->ch_len);
 	  if (bidi_it->nchars <= 0)

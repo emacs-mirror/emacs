@@ -69,11 +69,11 @@ static Lisp_Object being_printed[PRINT_CIRCLE];
 static char *print_buffer;
 
 /* Size allocated in print_buffer.  */
-static EMACS_INT print_buffer_size;
+static ptrdiff_t print_buffer_size;
 /* Chars stored in print_buffer.  */
-static EMACS_INT print_buffer_pos;
+static ptrdiff_t print_buffer_pos;
 /* Bytes stored in print_buffer.  */
-static EMACS_INT print_buffer_pos_byte;
+static ptrdiff_t print_buffer_pos_byte;
 
 Lisp_Object Qprint_escape_newlines;
 static Lisp_Object Qprint_escape_multibyte, Qprint_escape_nonascii;
@@ -104,9 +104,9 @@ int print_output_debug_flag EXTERNALLY_VISIBLE = 1;
 
 #define PRINTDECLARE							\
    struct buffer *old = current_buffer;					\
-   EMACS_INT old_point = -1, start_point = -1;				\
-   EMACS_INT old_point_byte = -1, start_point_byte = -1;		\
-   int specpdl_count = SPECPDL_INDEX ();				\
+   ptrdiff_t old_point = -1, start_point = -1;				\
+   ptrdiff_t old_point_byte = -1, start_point_byte = -1;		\
+   ptrdiff_t specpdl_count = SPECPDL_INDEX ();				\
    int free_print_buffer = 0;						\
    int multibyte = !NILP (BVAR (current_buffer, enable_multibyte_characters));	\
    Lisp_Object original
@@ -122,7 +122,7 @@ int print_output_debug_flag EXTERNALLY_VISIBLE = 1;
      }									\
    if (MARKERP (printcharfun))						\
      {									\
-       EMACS_INT marker_pos;						\
+       ptrdiff_t marker_pos;						\
        if (! XMARKER (printcharfun)->buffer)				\
          error ("Marker does not point anywhere");			\
        if (XMARKER (printcharfun)->buffer != current_buffer)		\
@@ -156,7 +156,7 @@ int print_output_debug_flag EXTERNALLY_VISIBLE = 1;
 	 }								\
        else								\
 	 {								\
-	   ptrdiff_t new_size = 1000;					\
+	   int new_size = 1000;						\
 	   print_buffer = (char *) xmalloc (new_size);			\
 	   print_buffer_size = new_size;				\
 	   free_print_buffer = 1;					\
@@ -173,12 +173,14 @@ int print_output_debug_flag EXTERNALLY_VISIBLE = 1;
        if (print_buffer_pos != print_buffer_pos_byte			\
 	   && NILP (BVAR (current_buffer, enable_multibyte_characters)))	\
 	 {								\
-	   unsigned char *temp						\
-	     = (unsigned char *) alloca (print_buffer_pos + 1);		\
+	   USE_SAFE_ALLOCA;						\
+	   unsigned char *temp;						\
+	   SAFE_ALLOCA (temp, unsigned char *, print_buffer_pos + 1);	\
 	   copy_text ((unsigned char *) print_buffer, temp,		\
 		      print_buffer_pos_byte, 1, 0);			\
 	   insert_1_both ((char *) temp, print_buffer_pos,		\
 			  print_buffer_pos, 0, 1, 0);			\
+	   SAFE_FREE ();						\
 	 }								\
        else								\
 	 insert_1_both (print_buffer, print_buffer_pos,			\
@@ -233,15 +235,10 @@ printchar (unsigned int ch, Lisp_Object fun)
 
       if (NILP (fun))
 	{
-	  if (print_buffer_size - len <= print_buffer_pos_byte)
-	    {
-	      ptrdiff_t new_size;
-	      if (STRING_BYTES_BOUND / 2 < print_buffer_size)
-		string_overflow ();
-	      new_size = print_buffer_size * 2;
-	      print_buffer = (char *) xrealloc (print_buffer, new_size);
-	      print_buffer_size = new_size;
-	    }
+	  ptrdiff_t incr = len - (print_buffer_size - print_buffer_pos_byte);
+	  if (0 < incr)
+	    print_buffer =
+	      xpalloc (print_buffer, &print_buffer_size, incr, -1, 1);
 	  memcpy (print_buffer + print_buffer_pos_byte, str, len);
 	  print_buffer_pos += 1;
 	  print_buffer_pos_byte += len;
@@ -276,7 +273,7 @@ printchar (unsigned int ch, Lisp_Object fun)
    to data in a Lisp string.  Otherwise that is not safe.  */
 
 static void
-strout (const char *ptr, EMACS_INT size, EMACS_INT size_byte,
+strout (const char *ptr, ptrdiff_t size, ptrdiff_t size_byte,
 	Lisp_Object printcharfun)
 {
   if (size < 0)
@@ -284,15 +281,9 @@ strout (const char *ptr, EMACS_INT size, EMACS_INT size_byte,
 
   if (NILP (printcharfun))
     {
-      if (print_buffer_size - size_byte < print_buffer_pos_byte)
-	{
-	  ptrdiff_t new_size;
-	  if (STRING_BYTES_BOUND / 2 - size_byte < print_buffer_size)
-	    string_overflow ();
-	  new_size = print_buffer_size * 2 + size_byte;
-	  print_buffer = (char *) xrealloc (print_buffer, new_size);
-	  print_buffer_size = new_size;
-	}
+      ptrdiff_t incr = size_byte - (print_buffer_size - print_buffer_pos_byte);
+      if (0 < incr)
+	print_buffer = xpalloc (print_buffer, &print_buffer_size, incr, -1, 1);
       memcpy (print_buffer + print_buffer_pos_byte, ptr, size_byte);
       print_buffer_pos += size;
       print_buffer_pos_byte += size_byte;
@@ -333,7 +324,7 @@ strout (const char *ptr, EMACS_INT size, EMACS_INT size_byte,
   else
     {
       /* PRINTCHARFUN is a Lisp function.  */
-      EMACS_INT i = 0;
+      ptrdiff_t i = 0;
 
       if (size == size_byte)
 	{
@@ -369,7 +360,7 @@ print_string (Lisp_Object string, Lisp_Object printcharfun)
 {
   if (EQ (printcharfun, Qt) || NILP (printcharfun))
     {
-      EMACS_INT chars;
+      ptrdiff_t chars;
 
       if (print_escape_nonascii)
 	string = string_escape_byte8 (string);
@@ -385,7 +376,7 @@ print_string (Lisp_Object string, Lisp_Object printcharfun)
 	     convert STRING to a multibyte string containing the same
 	     character codes.  */
 	  Lisp_Object newstr;
-	  EMACS_INT bytes;
+	  ptrdiff_t bytes;
 
 	  chars = SBYTES (string);
 	  bytes = count_size_as_multibyte (SDATA (string), chars);
@@ -403,7 +394,7 @@ print_string (Lisp_Object string, Lisp_Object printcharfun)
       if (EQ (printcharfun, Qt))
 	{
 	  /* Output to echo area.  */
-	  EMACS_INT nbytes = SBYTES (string);
+	  ptrdiff_t nbytes = SBYTES (string);
 	  char *buffer;
 
 	  /* Copy the string contents so that relocation of STRING by
@@ -425,9 +416,9 @@ print_string (Lisp_Object string, Lisp_Object printcharfun)
     {
       /* Otherwise, string may be relocated by printing one char.
 	 So re-fetch the string address for each character.  */
-      EMACS_INT i;
-      EMACS_INT size = SCHARS (string);
-      EMACS_INT size_byte = SBYTES (string);
+      ptrdiff_t i;
+      ptrdiff_t size = SCHARS (string);
+      ptrdiff_t size_byte = SBYTES (string);
       struct gcpro gcpro1;
       GCPRO1 (string);
       if (size == size_byte)
@@ -498,7 +489,7 @@ write_string_1 (const char *data, int size, Lisp_Object printcharfun)
 void
 temp_output_buffer_setup (const char *bufname)
 {
-  int count = SPECPDL_INDEX ();
+  ptrdiff_t count = SPECPDL_INDEX ();
   register struct buffer *old = current_buffer;
   register Lisp_Object buf;
 
@@ -602,7 +593,7 @@ A printed representation of an object is text which describes that object.  */)
   Lisp_Object printcharfun;
   /* struct gcpro gcpro1, gcpro2; */
   Lisp_Object save_deactivate_mark;
-  int count = SPECPDL_INDEX ();
+  ptrdiff_t count = SPECPDL_INDEX ();
   struct buffer *previous;
 
   specbind (Qinhibit_modification_hooks, Qt);
@@ -727,7 +718,7 @@ You can call print while debugging emacs, and pass it this function
 to make it write to the debugging output.  */)
   (Lisp_Object character)
 {
-  CHECK_NUMBER (character);
+  CHECK_CHARACTER (character);
   putc ((int) XINT (character), stderr);
 
 #ifdef WINDOWSNT
@@ -875,10 +866,13 @@ print_error_message (Lisp_Object data, Lisp_Object stream, const char *context,
   if (!NILP (caller) && SYMBOLP (caller))
     {
       Lisp_Object cname = SYMBOL_NAME (caller);
-      char *name = alloca (SBYTES (cname));
+      char *name;
+      USE_SAFE_ALLOCA;
+      SAFE_ALLOCA (name, char *, SBYTES (cname));
       memcpy (name, SDATA (cname), SBYTES (cname));
       message_dolog (name, SBYTES (cname), 0, 0);
       message_dolog (": ", 2, 0, 0);
+      SAFE_FREE ();
     }
 
   errname = Fcar (data);
@@ -1092,7 +1086,7 @@ print (Lisp_Object obj, register Lisp_Object printcharfun, int escapeflag)
 	     Maybe a better way to do that is to copy elements to
 	     a new hash table.  */
 	  struct Lisp_Hash_Table *h = XHASH_TABLE (Vprint_number_table);
-	  EMACS_INT i;
+	  ptrdiff_t i;
 
 	  for (i = 0; i < HASH_TABLE_SIZE (h); ++i)
 	    if (!NILP (HASH_HASH (h, i))
@@ -1126,7 +1120,7 @@ static void
 print_preprocess (Lisp_Object obj)
 {
   int i;
-  EMACS_INT size;
+  ptrdiff_t size;
   int loop_count = 0;
   Lisp_Object halftail;
 
@@ -1269,8 +1263,8 @@ print_check_string_charset_prop (INTERVAL interval, Lisp_Object string)
       || ! (print_check_string_result & PRINT_STRING_UNSAFE_CHARSET_FOUND))
     {
       int i, c;
-      EMACS_INT charpos = interval->position;
-      EMACS_INT bytepos = string_char_to_byte (string, charpos);
+      ptrdiff_t charpos = interval->position;
+      ptrdiff_t bytepos = string_char_to_byte (string, charpos);
       Lisp_Object charset;
 
       charset = XCAR (XCDR (val));
@@ -1392,10 +1386,10 @@ print_object (Lisp_Object obj, register Lisp_Object printcharfun, int escapeflag
 	print_string (obj, printcharfun);
       else
 	{
-	  register EMACS_INT i_byte;
+	  register ptrdiff_t i_byte;
 	  struct gcpro gcpro1;
 	  unsigned char *str;
-	  EMACS_INT size_byte;
+	  ptrdiff_t size_byte;
 	  /* 1 means we must ensure that the next character we output
 	     cannot be taken as part of a hex character escape.  */
 	  int need_nonhex = 0;
@@ -1513,8 +1507,8 @@ print_object (Lisp_Object obj, register Lisp_Object printcharfun, int escapeflag
 	register unsigned char *p = SDATA (SYMBOL_NAME (obj));
 	register unsigned char *end = p + SBYTES (SYMBOL_NAME (obj));
 	register int c;
-	int i, i_byte;
-	EMACS_INT size_byte;
+	ptrdiff_t i, i_byte;
+	ptrdiff_t size_byte;
 	Lisp_Object name;
 
 	name = SYMBOL_NAME (obj);
@@ -1705,7 +1699,7 @@ print_object (Lisp_Object obj, register Lisp_Object printcharfun, int escapeflag
 	  ptrdiff_t i;
 	  register unsigned char c;
 	  struct gcpro gcpro1;
-	  EMACS_INT size_in_chars
+	  ptrdiff_t size_in_chars
 	    = ((XBOOL_VECTOR (obj)->size + BOOL_VECTOR_BITS_PER_CHAR - 1)
 	       / BOOL_VECTOR_BITS_PER_CHAR);
 
@@ -1791,8 +1785,8 @@ print_object (Lisp_Object obj, register Lisp_Object printcharfun, int escapeflag
       else if (HASH_TABLE_P (obj))
 	{
 	  struct Lisp_Hash_Table *h = XHASH_TABLE (obj);
-	  int i;
-	  EMACS_INT real_size, size;
+	  ptrdiff_t i;
+	  ptrdiff_t real_size, size;
 #if 0
 	  strout ("#<hash-table", -1, -1, printcharfun);
 	  if (SYMBOLP (h->test))
@@ -1897,7 +1891,7 @@ print_object (Lisp_Object obj, register Lisp_Object printcharfun, int escapeflag
 	}
       else if (FONTP (obj))
 	{
-	  EMACS_INT i;
+	  int i;
 
 	  if (! FONT_OBJECT_P (obj))
 	    {
@@ -1925,7 +1919,7 @@ print_object (Lisp_Object obj, register Lisp_Object printcharfun, int escapeflag
 	}
       else
 	{
-	  EMACS_INT size = ASIZE (obj);
+	  ptrdiff_t size = ASIZE (obj);
 	  if (COMPILEDP (obj))
 	    {
 	      PRINTCHAR ('#');
@@ -1956,7 +1950,7 @@ print_object (Lisp_Object obj, register Lisp_Object printcharfun, int escapeflag
 	  {
 	    register int i;
 	    register Lisp_Object tem;
-	    EMACS_INT real_size = size;
+	    ptrdiff_t real_size = size;
 
 	    /* Don't print more elements than the specified maximum.  */
 	    if (NATNUMP (Vprint_length)

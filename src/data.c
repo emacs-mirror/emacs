@@ -1075,18 +1075,18 @@ let_shadows_buffer_binding_p (struct Lisp_Symbol *symbol)
 {
   struct specbinding *p;
 
-  for (p = specpdl_ptr - 1; p >= specpdl; p--)
-    if (p->func == NULL
+  for (p = specpdl_ptr; p > specpdl; )
+    if ((--p)->func == NULL
 	&& CONSP (p->symbol))
       {
 	struct Lisp_Symbol *let_bound_symbol = XSYMBOL (XCAR (p->symbol));
 	eassert (let_bound_symbol->redirect != SYMBOL_VARALIAS);
 	if (symbol == let_bound_symbol
 	    && XBUFFER (XCDR (XCDR (p->symbol))) == current_buffer)
-	  break;
+	  return 1;
       }
 
-  return p >= specpdl;
+  return 0;
 }
 
 static int
@@ -1094,11 +1094,11 @@ let_shadows_global_binding_p (Lisp_Object symbol)
 {
   struct specbinding *p;
 
-  for (p = specpdl_ptr - 1; p >= specpdl; p--)
-    if (p->func == NULL && EQ (p->symbol, symbol))
-      break;
+  for (p = specpdl_ptr; p > specpdl; p)
+    if ((--p)->func == NULL && EQ (p->symbol, symbol))
+      return 1;
 
-  return p >= specpdl;
+  return 0;
 }
 
 /* Store the value NEWVAL into SYMBOL.
@@ -2064,7 +2064,7 @@ or a byte-code object.  IDX starts at 0.  */)
   if (STRINGP (array))
     {
       int c;
-      EMACS_INT idxval_byte;
+      ptrdiff_t idxval_byte;
 
       if (idxval < 0 || idxval >= SCHARS (array))
 	args_out_of_range (array, idx);
@@ -2156,7 +2156,8 @@ bool-vector.  IDX starts at 0.  */)
 
       if (STRING_MULTIBYTE (array))
 	{
-	  EMACS_INT idxval_byte, prev_bytes, new_bytes, nbytes;
+	  ptrdiff_t idxval_byte, nbytes;
+	  int prev_bytes, new_bytes;
 	  unsigned char workbuf[MAX_MULTIBYTE_LENGTH], *p0 = workbuf, *p1;
 
 	  nbytes = SBYTES (array);
@@ -2167,7 +2168,7 @@ bool-vector.  IDX starts at 0.  */)
 	  if (prev_bytes != new_bytes)
 	    {
 	      /* We must relocate the string data.  */
-	      EMACS_INT nchars = SCHARS (array);
+	      ptrdiff_t nchars = SCHARS (array);
 	      unsigned char *str;
 	      USE_SAFE_ALLOCA;
 
@@ -2474,9 +2475,9 @@ If the base used is not 10, STRING is always parsed as integer.  */)
   else
     {
       CHECK_NUMBER (base);
-      b = XINT (base);
-      if (b < 2 || b > 16)
+      if (! (2 <= XINT (base) && XINT (base) <= 16))
 	xsignal1 (Qargs_out_of_range, base);
+      b = XINT (base);
     }
 
   p = SSDATA (string);
@@ -2724,7 +2725,7 @@ Both must be integers or markers.  */)
   CHECK_NUMBER_COERCE_MARKER (x);
   CHECK_NUMBER_COERCE_MARKER (y);
 
-  if (XFASTINT (y) == 0)
+  if (XINT (y) == 0)
     xsignal0 (Qarith_error);
 
   XSETINT (val, XINT (x) % XINT (y));

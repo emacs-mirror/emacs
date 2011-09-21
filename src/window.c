@@ -63,7 +63,7 @@ static int displayed_window_lines (struct window *);
 static struct window *decode_window (Lisp_Object);
 static int count_windows (struct window *);
 static int get_leaf_windows (struct window *, struct window **, int);
-static void window_scroll (Lisp_Object, int, int, int);
+static void window_scroll (Lisp_Object, EMACS_INT, int, int);
 static void window_scroll_pixel_based (Lisp_Object, int, int, int);
 static void window_scroll_line_based (Lisp_Object, int, int, int);
 static int freeze_window_start (struct window *, void *);
@@ -127,8 +127,8 @@ static int window_scroll_pixel_based_preserve_x;
 static int window_scroll_pixel_based_preserve_y;
 
 /* Same for window_scroll_line_based.  */
-static int window_scroll_preserve_hpos;
-static int window_scroll_preserve_vpos;
+static EMACS_INT window_scroll_preserve_hpos;
+static EMACS_INT window_scroll_preserve_vpos;
 
 static struct window *
 decode_window (register Lisp_Object window)
@@ -379,7 +379,7 @@ select_window (Lisp_Object window, Lisp_Object norecord, int inhibit_point_swap)
      redisplay_window has altered point after scrolling,
      because it makes the change only in the window.  */
   {
-    register EMACS_INT new_point = marker_position (w->pointm);
+    register ptrdiff_t new_point = marker_position (w->pointm);
     if (new_point < BEGV)
       SET_PT (BEGV);
     else if (new_point > ZV)
@@ -691,10 +691,10 @@ window so that the location of point moves off-window.  */)
   (Lisp_Object window, Lisp_Object ncol)
 {
   struct window *w = decode_window (window);
-  int hscroll;
+  ptrdiff_t hscroll;
 
   CHECK_NUMBER (ncol);
-  hscroll = max (0, XINT (ncol));
+  hscroll = clip_to_bounds (0, XINT (ncol), PTRDIFF_MAX);
 
   /* Prevent redisplay shortcuts when changing the hscroll.  */
   if (XINT (w->hscroll) != hscroll)
@@ -1526,7 +1526,8 @@ Return nil if window display is not up-to-date.  In that case, use
   register struct window *w;
   register struct buffer *b;
   struct glyph_row *row, *end_row;
-  int max_y, crop, i, n;
+  int max_y, crop, i;
+  EMACS_INT n;
 
   w = decode_window (window);
 
@@ -2596,7 +2597,7 @@ window-start value is reasonable when this function is called.  */)
   struct window *w, *r, *s;
   struct frame *f;
   Lisp_Object sibling, pwindow, swindow IF_LINT (= Qnil), delta;
-  EMACS_INT startpos IF_LINT (= 0);
+  ptrdiff_t startpos IF_LINT (= 0);
   int top IF_LINT (= 0), new_top, resize_failed;
 
   w = decode_any_window (window);
@@ -2925,7 +2926,7 @@ select_frame_norecord (Lisp_Object frame)
 void
 run_window_configuration_change_hook (struct frame *f)
 {
-  int count = SPECPDL_INDEX ();
+  ptrdiff_t count = SPECPDL_INDEX ();
   Lisp_Object frame, global_wcch
     = Fdefault_value (Qwindow_configuration_change_hook);
   XSETFRAME (frame, f);
@@ -2956,7 +2957,7 @@ run_window_configuration_change_hook (struct frame *f)
 	if (!NILP (Flocal_variable_p (Qwindow_configuration_change_hook,
 				      buffer)))
 	  {
-	    int inner_count = SPECPDL_INDEX ();
+	    ptrdiff_t inner_count = SPECPDL_INDEX ();
 	    record_unwind_protect (select_window_norecord, Fselected_window ());
 	    select_window_norecord (window);
 	    run_funs (Fbuffer_local_value (Qwindow_configuration_change_hook,
@@ -2991,7 +2992,7 @@ set_window_buffer (Lisp_Object window, Lisp_Object buffer, int run_hooks_p, int 
 {
   struct window *w = XWINDOW (window);
   struct buffer *b = XBUFFER (buffer);
-  int count = SPECPDL_INDEX ();
+  ptrdiff_t count = SPECPDL_INDEX ();
   int samebuf = EQ (buffer, w->buffer);
 
   w->buffer = buffer;
@@ -3225,7 +3226,7 @@ temp_output_buffer_show (register Lisp_Object buf)
       /* Run temp-buffer-show-hook, with the chosen window selected
 	 and its buffer current.  */
       {
-        int count = SPECPDL_INDEX ();
+        ptrdiff_t count = SPECPDL_INDEX ();
         Lisp_Object prev_window, prev_buffer;
         prev_window = selected_window;
         XSETBUFFER (prev_buffer, old);
@@ -4212,9 +4213,10 @@ window_internal_height (struct window *w)
    respectively.  */
 
 static void
-window_scroll (Lisp_Object window, int n, int whole, int noerror)
+window_scroll (Lisp_Object window, EMACS_INT n, int whole, int noerror)
 {
   immediate_quit = 1;
+  n = clip_to_bounds (INT_MIN, n, INT_MAX);
 
   /* If we must, use the pixel-based version which is much slower than
      the line-based one but can handle varying line heights.  */
@@ -4310,7 +4312,7 @@ window_scroll_pixel_based (Lisp_Object window, int n, int whole, int noerror)
 	      /* Maybe modify window start instead of scrolling.  */
 	      if (rbot > 0 || w->vscroll < 0)
 		{
-		  EMACS_INT spos;
+		  ptrdiff_t spos;
 
 		  Fset_window_vscroll (window, make_number (0), Qt);
 		  /* If there are other text lines above the current row,
@@ -4365,7 +4367,7 @@ window_scroll_pixel_based (Lisp_Object window, int n, int whole, int noerror)
   start_display (&it, w, start);
   if (whole)
     {
-      EMACS_INT start_pos = IT_CHARPOS (it);
+      ptrdiff_t start_pos = IT_CHARPOS (it);
       int dy = WINDOW_FRAME_LINE_HEIGHT (w);
       dy = max ((window_box_height (w)
 		 - next_screen_context_lines * dy),
@@ -4452,8 +4454,8 @@ window_scroll_pixel_based (Lisp_Object window, int n, int whole, int noerror)
 
   if (! vscrolled)
     {
-      EMACS_INT pos = IT_CHARPOS (it);
-      EMACS_INT bytepos;
+      ptrdiff_t pos = IT_CHARPOS (it);
+      ptrdiff_t bytepos;
 
       /* If in the middle of a multi-glyph character move forward to
 	 the next character.  */
@@ -4523,7 +4525,7 @@ window_scroll_pixel_based (Lisp_Object window, int n, int whole, int noerror)
     }
   else if (n < 0)
     {
-      EMACS_INT charpos, bytepos;
+      ptrdiff_t charpos, bytepos;
       int partial_p;
 
       /* Save our position, for the
@@ -4600,12 +4602,12 @@ window_scroll_line_based (Lisp_Object window, int n, int whole, int noerror)
      in `grep-mode-font-lock-keywords').  So we use a marker to record
      the old point position, to prevent crashes in SET_PT_BOTH.  */
   Lisp_Object opoint_marker = Fpoint_marker ();
-  register EMACS_INT pos, pos_byte;
+  register ptrdiff_t pos, pos_byte;
   register int ht = window_internal_height (w);
   register Lisp_Object tem;
   int lose;
   Lisp_Object bolp;
-  EMACS_INT startpos;
+  ptrdiff_t startpos;
   Lisp_Object original_pos = Qnil;
 
   /* If scrolling screen-fulls, compute the number of lines to
@@ -4754,7 +4756,7 @@ window_scroll_line_based (Lisp_Object window, int n, int whole, int noerror)
 static void
 scroll_command (Lisp_Object n, int direction)
 {
-  int count = SPECPDL_INDEX ();
+  ptrdiff_t count = SPECPDL_INDEX ();
 
   xassert (eabs (direction) == 1);
 
@@ -4869,7 +4871,7 @@ specifies the window to scroll.  This takes precedence over
 {
   Lisp_Object window;
   struct window *w;
-  int count = SPECPDL_INDEX ();
+  ptrdiff_t count = SPECPDL_INDEX ();
 
   window = Fother_window_for_scrolling ();
   w = XWINDOW (window);
@@ -4911,7 +4913,7 @@ by this function.  This happens in an interactive call.  */)
   (register Lisp_Object arg, Lisp_Object set_minimum)
 {
   Lisp_Object result;
-  int hscroll;
+  EMACS_INT hscroll;
   struct window *w = XWINDOW (selected_window);
 
   if (NILP (arg))
@@ -4940,7 +4942,7 @@ by this function.  This happens in an interactive call.  */)
   (register Lisp_Object arg, Lisp_Object set_minimum)
 {
   Lisp_Object result;
-  int hscroll;
+  EMACS_INT hscroll;
   struct window *w = XWINDOW (selected_window);
 
   if (NILP (arg))
@@ -5051,7 +5053,7 @@ and redisplay normally--don't erase and redraw the frame.  */)
   struct buffer *buf = XBUFFER (w->buffer);
   struct buffer *obuf = current_buffer;
   int center_p = 0;
-  EMACS_INT charpos, bytepos;
+  ptrdiff_t charpos, bytepos;
   EMACS_INT iarg IF_LINT (= 0);
   int this_scroll_margin;
 
@@ -5400,7 +5402,7 @@ the return value is nil.  Otherwise the value is t.  */)
   Lisp_Object frame;
   Lisp_Object auto_buffer_name;
   FRAME_PTR f;
-  EMACS_INT old_point = -1;
+  ptrdiff_t old_point = -1;
 
   CHECK_WINDOW_CONFIGURATION (configuration);
 
@@ -6117,7 +6119,7 @@ Fourth parameter HORIZONTAL-TYPE is currently unused.  */)
 
   if (!NILP (width))
     {
-      CHECK_NATNUM (width);
+      CHECK_RANGED_INTEGER (0, width, INT_MAX);
 
       if (XINT (width) == 0)
 	vertical_type = Qnil;

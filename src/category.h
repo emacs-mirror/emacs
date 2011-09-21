@@ -53,8 +53,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
    The second extra slot is a version number of the category table.
    But, for the moment, we are not using this slot.  */
 
-#define CATEGORYP(x) \
-  (INTEGERP ((x)) && XFASTINT ((x)) >= 0x20 && XFASTINT ((x)) <= 0x7E)
+#define CATEGORYP(x) RANGED_INTEGERP (0x20, x, 0x7E)
 
 #define CHECK_CATEGORY(x) \
   CHECK_TYPE (CATEGORYP (x), Qcategoryp, x)

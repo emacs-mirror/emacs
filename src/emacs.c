@@ -112,15 +112,15 @@ int gdb_use_union EXTERNALLY_VISIBLE  = 0;
 #else
 int gdb_use_union EXTERNALLY_VISIBLE = 1;
 #endif
-EMACS_INT gdb_valbits EXTERNALLY_VISIBLE = VALBITS;
-EMACS_INT gdb_gctypebits EXTERNALLY_VISIBLE = GCTYPEBITS;
+int gdb_valbits EXTERNALLY_VISIBLE = VALBITS;
+int gdb_gctypebits EXTERNALLY_VISIBLE = GCTYPEBITS;
 #if defined (DATA_SEG_BITS) && ! defined (USE_LSB_TAG)
-EMACS_INT gdb_data_seg_bits EXTERNALLY_VISIBLE = DATA_SEG_BITS;
+uintptr_t gdb_data_seg_bits EXTERNALLY_VISIBLE = DATA_SEG_BITS;
 #else
-EMACS_INT gdb_data_seg_bits EXTERNALLY_VISIBLE = 0;
+uintptr_t gdb_data_seg_bits EXTERNALLY_VISIBLE = 0;
 #endif
-EMACS_INT PVEC_FLAG EXTERNALLY_VISIBLE = PSEUDOVECTOR_FLAG;
-EMACS_INT gdb_array_mark_flag EXTERNALLY_VISIBLE = ARRAY_MARK_FLAG;
+ptrdiff_t PVEC_FLAG EXTERNALLY_VISIBLE = PSEUDOVECTOR_FLAG;
+ptrdiff_t gdb_array_mark_flag EXTERNALLY_VISIBLE = ARRAY_MARK_FLAG;
 /* GDB might say "No enum type named pvec_type" if we don't have at
    least one symbol with that type, and then xbacktrace could fail.  */
 enum pvec_type gdb_pvec_type EXTERNALLY_VISIBLE = PVEC_TYPE_MASK;
@@ -397,7 +397,7 @@ init_cmdargs (int argc, char **argv, int skip_args)
 {
   register int i;
   Lisp_Object name, dir, handler;
-  int count = SPECPDL_INDEX ();
+  ptrdiff_t count = SPECPDL_INDEX ();
   Lisp_Object raw_name;
 
   initial_argv = argv;
@@ -1993,6 +1993,7 @@ all of which are called before Emacs is actually killed.  */)
 {
   struct gcpro gcpro1;
   Lisp_Object hook;
+  int status;
 
   GCPRO1 (arg);
 
@@ -2017,7 +2018,13 @@ all of which are called before Emacs is actually killed.  */)
   if (STRINGP (Vauto_save_list_file_name))
     unlink (SSDATA (Vauto_save_list_file_name));
 
-  exit (INTEGERP (arg) ? XINT (arg) : EXIT_SUCCESS);
+  if (! INTEGERP (arg))
+    status = EXIT_SUCCESS;
+  else if (XINT (arg) < 0)
+    status = XINT (arg) | INT_MIN;
+  else
+    status = XINT (arg) & INT_MAX;
+  exit (status);
 }
 
 
@@ -2127,7 +2134,7 @@ You must run Emacs in batch mode in order to dump it.  */)
 {
   Lisp_Object tem;
   Lisp_Object symbol;
-  int count = SPECPDL_INDEX ();
+  ptrdiff_t count = SPECPDL_INDEX ();
 
   check_pure_size ();
 

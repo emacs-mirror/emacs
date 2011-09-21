@@ -1,3 +1,749 @@
+2011-09-21  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* alloc.c (pure_bytes_used_lisp, pure_bytes_used_non_lisp):
+	(allocate_vectorlike, buffer_memory_full, struct sdata, SDATA_SIZE)
+	(string_bytes, check_sblock, allocate_string_data):
+	(compact_small_strings, Fmake_bool_vector, make_string)
+	(make_unibyte_string, make_multibyte_string)
+	(make_string_from_bytes, make_specified_string)
+	(allocate_vectorlike, Fmake_vector, find_string_data_in_pure)
+	(make_pure_string, make_pure_c_string, make_pure_vector, Fpurecopy)
+	(mark_vectorlike):
+	Use ptrdiff_t, not EMACS_INT, where ptrdiff_t is wide enough.
+	(allocate_pseudovector):
+	Use int, not EMACS_INT, where int is wide enough.
+	(inhibit_garbage_collection, Fgarbage_collect):
+	Use ptrdiff_t, not int, to avoid needless 32-bit limit on 64-bit hosts.
+	* bidi.c (bidi_mirror_char): Use EMACS_INT, not int, where
+	int might not be wide enough.
+	(bidi_cache_search, bidi_cache_find, bidi_init_it)
+	(bidi_count_bytes, bidi_char_at_pos, bidi_fetch_char)
+	(bidi_at_paragraph_end, bidi_find_paragraph_start)
+	(bidi_paragraph_init, bidi_resolve_explicit, bidi_resolve_weak)
+	(bidi_level_of_next_char, bidi_move_to_visually_next):
+	Use ptrdiff_t, not EMACS_INT, where ptrdiff_t is wide enough.
+	* buffer.c (copy_overlays, Fgenerate_new_buffer_name)
+	(Fkill_buffer, Fset_buffer_major_mode)
+	(advance_to_char_boundary, Fbuffer_swap_text)
+	(Fset_buffer_multibyte, overlays_at, overlays_in)
+	(overlay_touches_p, struct sortvec, record_overlay_string)
+	(overlay_strings, recenter_overlay_lists)
+	(adjust_overlays_for_insert, adjust_overlays_for_delete)
+	(fix_start_end_in_overlays, fix_overlays_before, modify_overlay)
+	(Fmove_overlay, Fnext_overlay_change, Fprevious_overlay_change)
+	(Foverlay_recenter, last_overlay_modification_hooks_used)
+	(report_overlay_modification, evaporate_overlays, enlarge_buffer_text):
+	Use ptrdiff_t, not EMACS_INT, where ptrdiff_t is wide enough.
+	(validate_region): Omit unnecessary test for b <= e, since
+	that's guaranteed by the previous test.
+	(adjust_overlays_for_delete): Avoid pos + length overflow.
+	(Fmove_overlay, Fdelete_overlay, add_overlay_mod_hooklist)
+	(report_overlay_modification):
+	Use ptrdiff_t, not int, to avoid needless 32-bit limit on 64-bit hosts.
+	(Foverlays_at, Fnext_overlay_change, Fprevious_overlay_change):
+	Omit pointer cast, which isn't needed anyway, and doesn't work
+	after the EMACS_INT -> ptrdiff_t change.
+	* buffer.h: Adjust decls to match defn changes elsewhere.
+	(struct buffer_text, struct buffer):
+	Use ptrdiff_t, not EMACS_INT, where ptrdiff_t is wide enough.
+	Use EMACS_INT, not int, where int might not be wide enough.
+	* bytecode.c (exec_byte_code): Use ptrdiff_t, not int, to avoid
+	needless 32-bit limit on 64-bit hosts.  Remove unnecessary
+	memory-full test.  Use EMACS_INT, not ptrdiff_t or int, where
+	ptrdiff_t or int might not be wide enough.
+	* callint.c (Fcall_interactively):
+	Use ptrdiff_t, not int, to avoid needless 32-bit limit on 64-bit hosts.
+	* callproc.c (call_process_kill, Fcall_process):
+	Don't assume pid_t fits into an Emacs fixnum.
+	(call_process_cleanup, Fcall_process, child_setup):
+	Don't assume pid_t fits into int.
+	(call_process_cleanup, Fcall_process, delete_temp_file)
+	(Fcall_process_region):
+	Use ptrdiff_t, not int, to avoid needless 32-bit limit on 64-bit hosts.
+	(Fcall_process): Simplify handling of volatile integers.
+	Use int, not EMACS_INT, where int will do.
+	* casefiddle.c (casify_object, casify_region, operate_on_word)
+	(Fupcase_word, Fdowncase_word, Fcapitalize_word):
+	Use ptrdiff_t, not EMACS_INT, where ptrdiff_t is wide enough.
+	(casify_object): Avoid integer overflow when overallocating buffer.
+	* casetab.c (set_identity, shuffle): Prefer int to unsigned when
+	either works.
+	* category.c (Fchar_category_set): Don't assume fixnum fits in int.
+	* category.h (CATEGORYP): Don't assume arg is nonnegative.
+	* ccl.c (GET_CCL_INT): Remove; no longer needed, since the
+	integers are now checked earlier.  All uses replaced with XINT.
+	(ccl_driver):
+	Use ptrdiff_t, not EMACS_INT, where ptrdiff_t is wide enough.
+	For CCL_MapSingle, check that content and value are in int range.
+	(resolve_symbol_ccl_program): Check that vector header is in range.
+	Always copy the vector, so that we can check its contents reliably
+	now rather than having to recheck each instruction as it's being
+	executed.  Check that vector words fit in 'int'.
+	(ccl_get_compiled_code, Fregister_ccl_program)
+	(Fregister_code_conversion_map): Use ptrdiff_t, not int, for
+	program indexes, to avoid needless 32-bit limit on 64-bit hosts.
+	(Fccl_execute, Fccl_execute_on_string): Check that initial reg
+	contents are in range.
+	(Fccl_execute_on_string): Check that status is in range.
+	* ccl.h (struct ccl_program.idx): Now ptrdiff_t, not int.
+	* character.c (char_resolve_modifier_mask, Fchar_resolve_modifiers):
+	Accept and return EMACS_INT, not int, because callers can pass values
+	out of 'int' range.
+	(c_string_width, strwidth, lisp_string_width, chars_in_text)
+	(multibyte_chars_in_text, parse_str_as_multibyte)
+	(str_as_multibyte, count_size_as_multibyte, str_to_multibyte)
+	(str_as_unibyte, str_to_unibyte, string_count_byte8)
+	(string_escape_byte8, Fget_byte):
+	Use ptrdiff_t, not EMACS_INT, where ptrdiff_t is wide enough.
+	(Funibyte_string): Use CHECK_CHARACTER, not CHECK_NATNUM, to
+	avoid mishandling large integers.
+	* character.h: Adjust decls to match defn changes elsewhere.
+	* charset.c (load_charset_map_from_file, find_charsets_in_text)
+	(Ffind_charset_region):
+	Use ptrdiff_t, not int, to avoid needless 32-bit limit on 64-bit hosts.
+	(load_charset_map_from_file): Redo idx calculation to avoid overflow.
+	(load_charset_map_from_vector, Fdefine_charset_internal):
+	Don't assume fixnum fits in int or unsigned int.
+	(load_charset_map_from_vector, Fmap_charset_chars):
+	Remove now-unnecessary CHECK_NATNUMs.
+	(Fdefine_charset_internal): Check ranges here, more carefully.
+	* chartab.c (Fmake_char_table, Fset_char_table_range)
+	(uniprop_get_decoder, uniprop_get_encoder):
+	Don't assume fixnum fits in int.
+	* cmds.c (move_point): New function, that does the gist of
+	Fforward_char and Fbackward_char, but does so while checking
+	for integer overflow more accurately.
+	(Fforward_char, Fbackward_char, internal_self_insert): Use it.
+	(Fforward_line, Fend_of_line, internal_self_insert)
+	(internal_self_insert):
+	Use ptrdiff_t, not EMACS_INT, where ptrdiff_t is wide enough.
+	Fix a FIXME, by checking for integer overflow when calculating
+	target_clm and actual_clm.
+	* coding.c (detect_coding_XXX, encode_coding_XXX, CODING_DECODE_CHAR)
+	(ASSURE_DESTINATION, coding_alloc_by_realloc)
+	(coding_alloc_by_making_gap, alloc_destination)
+	(detect_coding_utf_8, encode_coding_utf_8, decode_coding_utf_16)
+	(encode_coding_utf_16, detect_coding_emacs_mule)
+	(decode_coding_emacs_mule, encode_coding_emacs_mule)
+	(detect_coding_iso_2022, decode_coding_iso_2022)
+	(encode_invocation_designation, encode_designation_at_bol)
+	(encode_coding_iso_2022, detect_coding_sjis, detect_coding_big5)
+	(decode_coding_sjis, decode_coding_big5, encode_coding_sjis)
+	(encode_coding_big5, detect_coding_ccl, decode_coding_ccl)
+	(encode_coding_ccl, encode_coding_raw_text)
+	(detect_coding_charset, decode_coding_charset)
+	(encode_coding_charset, detect_eol, decode_eol, produce_chars)
+	(produce_composition, produce_charset, produce_annotation)
+	(decode_coding, handle_composition_annotation)
+	(handle_charset_annotation, consume_chars, decode_coding_gap)
+	(decode_coding_object, encode_coding_object, detect_coding_system)
+	(Ffind_coding_systems_region_internal, Fcheck_coding_systems_region)
+	(code_convert_region, code_convert_string)
+	(Fdefine_coding_system_internal):
+	Use ptrdiff_t, not EMACS_INT, where ptrdiff_t is wide enough.
+	(setup_iso_safe_charsets, consume_chars, Funencodable_char_position)
+	(Fdefine_coding_system_internal):
+	Don't assume fixnums fit in int.
+	(decode_coding_gap, decode_coding_object, encode_coding_object)
+	(Fread_coding_system, Fdetect_coding_region, Funencodable_char_position)
+	(Fcheck_coding_systems_region):
+	Use ptrdiff_t, not int, to avoid needless 32-bit limit on 64-bit hosts.
+	(Ffind_operation_coding_system): NATNUMP can eval its arg twice.
+	(Fdefine_coding_system_internal): Check for charset-id overflow.
+	* coding.h: Adjust decls to match defn changes elsewhere.
+	(struct coding_system):
+	Use ptrdiff_t, not EMACS_INT, where ptrdiff_t is wide enough.
+	* composite.c (get_composition_id, find_composition)
+	(run_composition_function, update_compositions)
+	(compose_text, composition_gstring_put_cache)
+	(composition_gstring_p, composition_gstring_width)
+	(fill_gstring_header, fill_gstring_body, autocmp_chars)
+	(composition_compute_stop_pos, composition_reseat_it)
+	(composition_update_it, struct position_record)
+	(find_automatic_composition, composition_adjust_point)
+	(Fcomposition_get_gstring, Ffind_composition_internal):
+	Use ptrdiff_t, not EMACS_INT, where ptrdiff_t is wide enough.
+	(update_compositions):
+	Use ptrdiff_t, not int, to avoid needless 32-bit limit on 64-bit hosts.
+	* composite.h: Adjust decls to match defn changes elsewhere.
+	(struct composition):
+	Use ptrdiff_t, not EMACS_INT, where ptrdiff_t is wide enough.
+	* data.c (let_shadows_buffer_binding_p, let_shadows_global_binding_p):
+	Do not attempt to compute the address of the object just before a
+	buffer; this is not portable.
+	(Faref, Faset):
+	Use ptrdiff_t, not EMACS_INT, where ptrdiff_t is wide enough.
+	(Faset): Use int, not EMACS_INT, where int is wide enough.
+	(Fstring_to_number): Don't assume fixnums fit in int.
+	(Frem): Don't assume arg is nonnegative.
+	* dbusbind.c (xd_append_arg): Check for integers out of range.
+	(Fdbus_call_method): Don't overflow the timeout int.
+	* dired.c (directory_files_internal, file_name_completion, scmp)
+	(file_name_completion_stat):
+	Use ptrdiff_t, not int, to avoid needless 32-bit limit on 64-bit hosts.
+	(file_name_completion): Don't overflow matchcount.
+	(file_name_completion_stat): Use SAFE_ALLOCA, not alloca.
+	* dispextern.h: Adjust decls to match defn changes elsewhere.
+	(struct text_pos, struct glyph, struct bidi_saved_info)
+	(struct bidi_string_data, struct bidi_it, struct composition_it)
+	(struct it):
+	Use ptrdiff_t, not EMACS_INT, where ptrdiff_t is wide enough.
+	(struct display_pos, struct composition_it, struct it):
+	Use ptrdiff_t, not int, to avoid needless 32-bit limit on 64-bit hosts.
+	* dispnew.c (increment_matrix_positions)
+	(increment_row_positions, mode_line_string)
+	(marginal_area_string):
+	Use ptrdiff_t, not EMACS_INT, where ptrdiff_t is wide enough.
+	(change_frame_size_1, Fredisplay):
+	Use ptrdiff_t, not int, to avoid needless 32-bit limit on 64-bit hosts.
+	(duration_to_sec_usec): New function, to check for overflow better.
+	(Fsleep_for, sit_for): Use it.
+	* doc.c (get_doc_string, store_function_docstring):
+	Use ptrdiff_t, not EMACS_INT, where ptrdiff_t is wide enough.
+	(get_doc_string, Fsnarf_documentation):
+	Use int, not EMACS_INT, where int is wide enough.
+	(get_doc_string):
+	Use SAFE_ALLOCA, not alloca.
+	Check for overflow when converting EMACS_INT to off_t.
+	* doprnt.c (doprnt):
+	Use ptrdiff_t, not EMACS_INT, where ptrdiff_t is wide enough.
+	* editfns.c (init_editfns, Fuser_uid, Fuser_real_uid):
+	Don't assume uid_t fits into fixnum.
+	(buildmark, Fgoto_char, overlays_around, find_field, Fdelete_field)
+	(Ffield_string, Ffield_string_no_properties, Ffield_beginning)
+	(Ffield_end, Fconstrain_to_field, Fline_beginning_position)
+	(Fline_end_position, Fprevious_char, Fchar_after, Fchar_before)
+	(general_insert_function)
+	(Finsert_char, make_buffer_string, make_buffer_string_both)
+	(update_buffer_properties, Fbuffer_substring)
+	(Fbuffer_substring_no_properties, Fcompare_buffer_substrings)
+	(Fsubst_char_in_region, check_translation)
+	(Ftranslate_region_internal, save_restriction_restore, Fformat)
+	(transpose_markers, Ftranspose_regions):
+	Use ptrdiff_t, not EMACS_INT, where ptrdiff_t is wide enough.
+	(clip_to_bounds): Move to lisp.h as an inline function).
+	(Fconstrain_to_field): Don't assume integers are nonnegative.
+	(Fline_beginning_position, Fsave_excursion, Fsave_current_buffer):
+	(Fsubst_char_in_region, Fsave_restriction):
+	Use ptrdiff_t, not int, to avoid needless 32-bit limit on 64-bit hosts.
+	(Femacs_pid): Don't assume pid_t fits into fixnum.
+	(lo_time): Use int, not EMACS_INT, when int suffices.
+	(lisp_time_argument): Check for usec out of range.
+	(Fencode_time): Don't assume fixnum fits in int.
+	* emacs.c (gdb_valbits, gdb_gctypebits): Now int, not EMACS_INT.
+	(gdb_data_seg_bits): Now uintptr_t, not EMACS_INT.
+	(PVEC_FLAG, gdb_array_mark_flag): Now ptrdiff_t, not EMACS_INT.
+	(init_cmdargs, Fdump_emacs):
+	Use ptrdiff_t, not int, to avoid needless 32-bit limit on 64-bit hosts.
+	(Fkill_emacs): Don't assume fixnum fits in int; instead, take just
+	the bottom (typically) 32 bits of the fixnum.
+	* eval.c (specpdl_size, call_debugger):
+	Use ptrdiff_t, not EMACS_INT, where ptrdiff_t is wide enough.
+	(when_entered_debugger, Fbacktrace_debug):
+	Don't assume fixnum can fit in int.
+	(Fdefvaralias, Fdefvar): Do not attempt to compute the address of
+	the object just before a buffer; this is not portable.
+	(FletX, Flet, Funwind_protect, do_autoload, Feval, funcall_lambda)
+	(grow_specpdl, unbind_to):
+	Use ptrdiff_t, not int, to avoid needless 32-bit limit on 64-bit hosts.
+	(Fapply, apply_lambda): Don't assume ptrdiff_t can hold fixnum.
+	(grow_specpdl): Simplify allocation by using xpalloc.
+	* fileio.c (Ffind_file_name_handler, Fcopy_file, Frename_file)
+	(Finsert_file_contents, Fwrite_region, Fdo_auto_save):
+	Use ptrdiff_t, not int, to avoid needless 32-bit limit on 64-bit hosts.
+	(Ffind_file_name_handler, non_regular_inserted, Finsert_file_contents)
+	(a_write, e_write):
+	Use ptrdiff_t, not EMACS_INT, where ptrdiff_t is wide enough.
+	(Fcopy_file, non_regular_nbytes, read_non_regular)
+	(Finsert_file_contents):
+	Use int, not EMACS_INT, where int is wide enough.
+	(READ_BUF_SIZE): Verify that it fits in int.
+	(Finsert_file_contents): Check that counts are in proper range,
+	rather than assuming fixnums fit into ptrdiff_t etc.
+	Don't assume fixnums fit into int.
+	(Fdo_auto_save, Fset_buffer_auto_saved)
+	(Fclear_buffer_auto_save_failure):
+	Don't assume time_t is signed, or that it fits in int.
+	* fns.c (Fcompare_strings, Fstring_lessp, struct textprop_rec)
+	(concat, string_char_byte_cache_charpos, string_char_byte_cache_bytepos)
+	(string_char_to_byte, string_byte_to_char)
+	(string_make_multibyte, string_to_multibyte)
+	(string_make_unibyte, Fstring_as_unibyte, Fstring_as_multibyte)
+	(Fstring_to_unibyte, Fsubstring, Fsubstring_no_properties)
+	(substring_both, Fdelete, internal_equal, Ffillarray)
+	(Fclear_string, mapcar1)
+	(Fbase64_encode_region, Fbase64_encode_string, base64_encode_1)
+	(Fbase64_decode_region, Fbase64_decode_string, base64_decode_1)
+	(larger_vector, make_hash_table, maybe_resize_hash_table)
+	(hash_lookup, hash_remove_from_table, hash_clear, sweep_weak_table)
+	(Fmaphash, secure_hash):
+	Use ptrdiff_t, not EMACS_INT, where ptrdiff_t is wide enough.
+	(concat): Check for string index and length overflow.
+	(Fmapconcat): Don't assume fixnums fit into ptrdiff_t.
+	(Frequire):
+	Use ptrdiff_t, not int, to avoid needless 32-bit limit on 64-bit hosts.
+	(larger_vector): New API (vec, incr_min, size_max) replaces old
+	one (vec, new_size, init).  This catches size overflow.
+	INIT was removed because it was always Qnil.
+	All callers changed.
+	(INDEX_SIZE_BOUND): New macro, which calculates more precisely
+	the upper bound on a hash table index size.
+	(make_hash_table, maybe_resize_hash_table): Use it.
+	(secure_hash): Computer start_byte and end_byte only after
+	they're known to be in ptrdiff_t range.
+	* font.c (font_intern_prop, font_at, font_range, Ffont_shape_gstring)
+	(Ffont_get_glyphs, Ffont_at):
+	Use ptrdiff_t, not EMACS_INT, where ptrdiff_t is wide enough.
+	(font_style_to_value, font_prop_validate_style, font_expand_wildcards)
+	(Flist_fonts, Fopen_font):
+	Don't assume fixnum can fit in int.
+	(check_gstring): Don't assume index can fit in int.
+	(font_match_p): Check that fixnum is a character, not a nonnegative
+	fixnum, since the later code needs to stuff it into an int.
+	(font_find_for_lface): Use SAFE_ALLOCA_LISP, not alloca.
+	(font_fill_lglyph_metrics): Use unsigned, not EMACS_INT, to avoid
+	conversion overflow issues.
+	(Fopen_font): Check for integer out of  range.
+	(Ffont_get_glyphs): Don't assume index can fit in int.
+	* font.h: Adjust decls to match defn changes elsewhere.
+	* fontset.c (reorder_font_vector): Redo score calculation to avoid
+	integer overflow.
+	(num_auto_fontsets, fontset_from_font): Use ptrdiff_t, not
+	printmax_t, where ptrdiff_t is wide enough.
+	(Finternal_char_font):
+	Use ptrdiff_t, not EMACS_INT, where ptrdiff_t is wide enough.
+	* frame.c (Fset_mouse_position, Fset_mouse_pixel_position)
+	(Fset_frame_height, Fset_frame_width, Fset_frame_size)
+	(Fset_frame_position, x_set_frame_parameters)
+	(x_set_line_spacing, x_set_border_width)
+	(x_set_internal_border_width, x_set_alpha, x_figure_window_size):
+	Check that fixnums are in proper range for system types.
+	(frame_name_fnn_p, Fframe_parameter, Fmodify_frame_parameters):
+	Use ptrdiff_t, not EMACS_INT, where ptrdiff_t is wide enough.
+	(Fmodify_frame_parameters): Don't assume fixnum fits in int.
+	Use SAFE_ALLOCA_LISP, not alloca.
+	* frame.h (struct frame): Use intptr_t, not EMACS_INT, where
+	intptr_t is wide enough.
+	* fringe.c (lookup_fringe_bitmap, get_logical_fringe_bitmap)
+	(Fdefine_fringe_bitmap): Don't assume fixnum fits in int.
+	(Ffringe_bitmaps_at_pos): Don't assume index fits in int.
+	Check for fixnum out of range.
+	* ftfont.c (ftfont_list): Don't assume index fits in int.
+	Check that fixnums are in proper range for system types.
+	(ftfont_shape_by_flt):
+	Use ptrdiff_t, not EMACS_INT, where ptrdiff_t is wide enough.
+	Remove no-longer-needed lint_assume.
+	* gnutls.c (emacs_gnutls_write, emacs_gnutls_read):
+	Use ptrdiff_t, not EMACS_INT, where ptrdiff_t is wide enough.
+	(Fgnutls_error_fatalp, Fgnutls_error_string, Fgnutls_boot):
+	Check that fixnums are in proper range for system types.
+	* gnutls.h: Adjust decls to match defn changes elsewhere.
+	* gtkutil.c (xg_dialog_run):
+	Use ptrdiff_t, not int, to avoid needless 32-bit limit on 64-bit hosts.
+	(update_frame_tool_bar):
+	Check that fixnums are in proper range for system types.
+	* image.c (parse_image_spec): Redo count calculation to avoid overflow.
+	(lookup_image): Check that fixnums are in proper range for system types.
+	* indent.c (last_known_column, last_known_column_point):
+	(current_column_bol_cache):
+	(skip_invisible, current_column, check_display_width):
+	(check_display_width, scan_for_column, current_column_1)
+	(Findent_to, Fcurrent_indentation, position_indentation)
+	(indented_beyond_p, Fmove_to_column, compute_motion):
+	(Fcompute_motion, Fvertical_motion):
+	Use ptrdiff_t, not EMACS_INT, where ptrdiff_t is wide enough.
+	(last_known_column_modified): Use EMACS_INT, not int.
+	(check_display_width):
+	(Fcompute_motion):
+	Check that fixnums and floats are in proper range for system types.
+	(compute_motion): Don't assume index or fixnum fits in int.
+	(compute_motion, Fcompute_motion):
+	Use int, not EMACS_INT, when it is wide enough.
+	(vmotion): Omit local var start_hpos that is always 0; that way
+	we don't need to worry about overflow in expressions involving it.
+	* indent.h: Adjust decls to match defn changes elsewhere.
+	(struct position):
+	Use ptrdiff_t, not EMACS_INT, where ptrdiff_t is wide enough.
+	Use int, not EMACS_INT, where int is wide enough.
+	Remove unused members ovstring_chars_done and tab_offset;
+	all uses removed.
+	* insdel.c (move_gap, move_gap_both, gap_left, gap_right)
+	(adjust_markers_for_delete, adjust_markers_for_insert, adjust_point)
+	(adjust_markers_for_replace, make_gap_larger, make_gap_smaller)
+	(make_gap, copy_text, insert, insert_and_inherit)
+	(insert_before_markers, insert_before_markers_and_inherit)
+	(insert_1, count_combining_before, count_combining_after)
+	(insert_1_both, insert_from_string)
+	(insert_from_string_before_markers, insert_from_string_1)
+	(insert_from_gap, insert_from_buffer, insert_from_buffer_1)
+	(adjust_after_replace, adjust_after_insert, replace_range)
+	(replace_range_2, del_range, del_range_1, del_range_byte)
+	(del_range_both, del_range_2, modify_region)
+	(prepare_to_modify_buffer, signal_before_change)
+	(signal_after_change, Fcombine_after_change_execute):
+	Use ptrdiff_t, not EMACS_INT, where ptrdiff_t is wide enough.
+	* intervals.c (traverse_intervals, rotate_right, rotate_left)
+	(balance_an_interval, split_interval_right, split_interval_left)
+	(find_interval, next_interval, update_interval)
+	(adjust_intervals_for_insertion, delete_node, delete_interval)
+	(interval_deletion_adjustment, adjust_intervals_for_deletion)
+	(static_offset_intervals, offset_intervals)
+	(merge_interval_right, merge_interval_left, make_new_interval)
+	(graft_intervals_into_buffer, temp_set_point_both)
+	(temp_set_point, set_point, adjust_for_invis_intang)
+	(set_point_both, move_if_not_intangible, get_property_and_range)
+	(get_local_map, copy_intervals, copy_intervals_to_string)
+	(compare_string_intervals, set_intervals_multibyte_1):
+	Use ptrdiff_t, not EMACS_INT, where ptrdiff_t is wide enough.
+	* intervals.h: Adjust decls to match defn changes elsewhere.
+	(struct interval):
+	Use ptrdiff_t, not EMACS_INT, where ptrdiff_t is wide enough.
+	* keyboard.c (this_command_key_count, this_single_command_key_start)
+	(before_command_key_count, before_command_echo_length, echo_now)
+	(echo_length, recursive_edit_1, Frecursive_edit, Ftrack_mouse)
+	(command_loop_1, safe_run_hooks, read_char, timer_check_2)
+	(menu_item_eval_property, read_key_sequence, Fread_key_sequence)
+	(Fread_key_sequence_vector, Fexecute_extended_command, Fsuspend_emacs):
+	Use ptrdiff_t, not int, to avoid needless 32-bit limit on 64-bit hosts.
+	(last_non_minibuf_size, last_point_position, echo_truncate)
+	(command_loop_1, adjust_point_for_property, read_char, gen_help_event)
+	(make_lispy_position, make_lispy_event, parse_modifiers_uncached)
+	(parse_modifiers, modify_event_symbol, Fexecute_extended_command)
+	(stuff_buffered_input):
+	Use ptrdiff_t, not EMACS_INT, where ptrdiff_t is wide enough.
+	(last_auto_save, command_loop_1, read_char):
+	Use EMACS_INT, not int, to avoid integer overflow.
+	(record_char): Avoid overflow in total_keys computation.
+	(parse_modifiers_uncached): Redo index calculation to avoid overflow.
+	* keyboard.h: Adjust decls to match defn changes elsewhere.
+	* keymap.c (Fdefine_key, Fcurrent_active_maps, accessible_keymaps_1)
+	(Fkey_description, Fdescribe_vector, Flookup_key):
+	Use ptrdiff_t, not int, to avoid needless 32-bit limit on 64-bit hosts.
+	(click_position): New function, to check that positions are in range.
+	(Fcurrent_active_maps):
+	(describe_command):
+	Use ptrdiff_t, not EMACS_INT, where ptrdiff_t is wide enough.
+	(Faccessible_keymaps, Fkey_description):
+	(preferred_sequence_p):
+	Don't assume fixnum can fit into int.
+	(Fkey_description): Use SAFE_ALLOCA_LISP, not alloca.
+	Check for integer overflow in size calculations.
+	(Ftext_char_description): Use CHECK_CHARACTER, not CHECK_NUMBER, to
+	avoid mishandling large integers.
+	* lisp.h: Adjust decls to match defn changes elsewhere.
+	(ARRAY_MARK_FLAG, PSEUDOVECTOR_FLAG, struct Lisp_String)
+	(struct vectorlike_header, struct Lisp_Subr, struct Lisp_Hash_Table)
+	(struct Lisp_Marker):
+	Use ptrdiff_t, not EMACS_INT, where ptrdiff_t is wide enough.
+	(clip_to_bounds): Now an inline function, moved here from editfns.c.
+	(XSETSUBR): Use size of 0 since the actual size doesn't matter,
+	and using 0 avoids overflow.
+	(GLYPH_CODE_P): Check for overflow in system types, subsuming the
+	need for GLYPH_CODE_CHAR_VALID_P and doing proper checking ourselves.
+	All callers changed.
+	(GLYPH_CODE_CHAR, GLYPH_CODE_FACE):
+	Assume the arg has valid form, since it always does.
+	(TYPE_RANGED_INTEGERP): Avoid bug when checking against a wide
+	unsigned integer system type.
+	(CHECK_RANGED_INTEGER, CHECK_TYPE_RANGED_INTEGER): New macros.
+	(struct catchtag, specpdl_size, SPECPDL_INDEX, USE_SAFE_ALLOCA):
+	Use ptrdiff_t, not int, to avoid needless 32-bit limit on 64-bit hosts.
+	(struct catchtag): Use EMACS_INT, not int, since it may be a fixnum.
+	(duration_to_sec_usec): New decl.
+	* lread.c (read_from_string_index, read_from_string_index_byte)
+	(read_from_string_limit, readchar, unreadchar, openp)
+	(read_internal_start, read1, oblookup):
+	Use ptrdiff_t, not EMACS_INT, where ptrdiff_t is wide enough.
+	(Fload, readevalloop, Feval_buffer, Feval_region):
+	Use ptrdiff_t, not int, to avoid needless 32-bit limit on 64-bit hosts.
+	(openp): Check for out-of-range argument to 'access'.
+	(read1): Use int, not EMACS_INT, where int is wide enough.
+	Don't assume fixnum fits into int.
+	* macros.c (Fstart_kbd_macro): Use xpalloc to check for overflow
+	in size calculation.
+	(Fexecute_kbd_macro):
+	Use ptrdiff_t, not int, to avoid needless 32-bit limit on 64-bit hosts.
+	* marker.c (cached_charpos, cached_bytepos, CONSIDER)
+	(byte_char_debug_check, buf_charpos_to_bytepos, verify_bytepos)
+	(buf_bytepos_to_charpos, Fset_marker, set_marker_restricted)
+	(set_marker_both, set_marker_restricted_both, marker_position)
+	(marker_byte_position, Fbuffer_has_markers_at):
+	Use ptrdiff_t, not EMACS_INT, where ptrdiff_t is wide enough.
+	(Fset_marker, set_marker_restricted): Don't assume fixnum fits in int.
+	* menu.c (ensure_menu_items): Renamed from grow_menu_items.
+	It now merely ensures that the menu is large enough, without
+	necessarily growing it, as this avoids some integer overflow issues.
+	All callers changed.
+	(keymap_panes, parse_single_submenu, Fx_popup_menu):
+	Use ptrdiff_t, not int, to avoid needless 32-bit limit on 64-bit hosts.
+	(parse_single_submenu, Fx_popup_menu): Don't assume fixnum fits in int.
+	Use SAFE_ALLOCA_LISP, not alloca.
+	(find_and_return_menu_selection): Avoid unnecessary casts of pointers
+	to EMACS_INT.  Check that fixnums are in proper range for system types.
+	* minibuf.c (minibuf_prompt_width, string_to_object)
+	(Fminibuffer_contents, Fminibuffer_contents_no_properties)
+	(Fminibuffer_completion_contents, Ftry_completion, Fall_completions):
+	Use ptrdiff_t, not EMACS_INT, where ptrdiff_t is wide enough.
+	(get_minibuffer, read_minibuf_unwind):
+	Use ptrdiff_t, not int, to avoid needless 32-bit limit on 64-bit hosts.
+	(read_minibuf): Omit unnecessary arg BACKUP_N, which is always nil;
+	this simplifies overflow checking.  All callers changed.
+	(read_minibuf, Fread_buffer, Ftry_completion, Fall_completions)
+	(Ftest_completion):
+	Use ptrdiff_t, not int, to avoid needless 32-bit limit on 64-bit hosts.
+	* nsfns.m (check_ns_display_info): Don't assume fixnum fits in long.
+	(x_set_menu_bar_lines, x_set_tool_bar_lines, Fx_create_frame):
+	Check that fixnums are in proper range for system types.
+	(Fx_create_frame, Fx_show_tip):
+	Use ptrdiff_t, not int, to avoid needless 32-bit limit on 64-bit hosts.
+	* nsfont.m (ns_findfonts, nsfont_list_family):
+	Don't assume fixnum fits in long.
+	* nsmenu.m (ns_update_menubar, ns_menu_show, ns_popup_dialog):
+	Use ptrdiff_t, not int, to avoid needless 32-bit limit on 64-bit hosts.
+	(ns_update_menubar): Use intptr_t, not EMACS_INT, when intptr_t is
+	wide enough.
+	* nsselect.m (ns_get_local_selection):
+	Use ptrdiff_t, not int, to avoid needless 32-bit limit on 64-bit hosts.
+	* print.c (print_buffer_size, print_buffer_pos, print_buffer_pos_byte)
+	(PRINTDECLARE, PRINTPREPARE):
+	(strout, print_string):
+	(print, print_preprocess, print_check_string_charset_prop)
+	(print_object):
+	Use ptrdiff_t, not EMACS_INT, where ptrdiff_t is wide enough.
+	(PRINTDECLARE):
+	(temp_output_buffer_setup, Fprin1_to_string, print_object):
+	Use ptrdiff_t, not int, to avoid needless 32-bit limit on 64-bit hosts.
+	(PRINTPREPARE): Use int, not ptrdiff_t, where int is wide enough.
+	(PRINTFINISH): Use SAFE_ALLOCA, not alloca.
+	(printchar, strout): Use xpalloc to catch size calculation overflow.
+	(Fexternal_debugging_output): Use CHECK_CHARACTER, not CHECK_NUMBER,
+	to avoid mishandling large integers.
+	(print_error_message): Use SAFE_ALLOCA, not alloca.
+	(print_object): Use int, not EMACS_INT, where int is wide enough.
+	* process.c (Fdelete_process): Don't assume pid fits into EMACS_INT.
+	(Fset_process_window_size, Fformat_network_address)
+	(get_lisp_to_sockaddr_size, set_socket_option, Fmake_network_process)
+	(Fsignal_process, sigchld_handler):
+	Check that fixnums are in proper range for system types.
+	(Fformat_network_address, read_process_output, send_process)
+	(Fprocess_send_region, status_notify):
+	Use ptrdiff_t, not EMACS_INT, where ptrdiff_t is wide enough.
+	(Fformat_network_address, Fmake_serial_process, Fmake_network_process)
+	(wait_reading_process_output, read_process_output, exec_sentinel):
+	Use ptrdiff_t, not int, to avoid needless 32-bit limit on 64-bit hosts.
+	(conv_lisp_to_sockaddr): Don't assume fixnums fit into int.
+	(Faccept_process_output): Use duration_to_sec_usec to do proper
+	overflow checking on durations.
+	* scroll.c (calculate_scrolling, calculate_direct_scrolling)
+	(line_ins_del): Use int, not EMACS_INT, where int is wide enough.
+	* search.c (looking_at_1, string_match_1):
+	(fast_string_match, fast_c_string_match_ignore_case)
+	(fast_string_match_ignore_case, fast_looking_at, scan_buffer)
+	(scan_newline, find_before_next_newline, search_command)
+	(trivial_regexp_p, search_buffer, simple_search, boyer_moore)
+	(set_search_regs, wordify):
+	(Freplace_match):
+	(Fmatch_data):
+	Use ptrdiff_t, not EMACS_INT, where ptrdiff_t is wide enough.
+	(string_match_1, search_buffer, set_search_regs):
+	(Fmatch_data):
+	Use ptrdiff_t, not int, to avoid needless 32-bit limit on 64-bit hosts.
+	(wordify): Check for overflow in size calculation.
+	(Freplace_match): Avoid potential buffer overflow in search_regs.start.
+	(Fset_match_data): Don't assume fixnum fits in ptrdiff_t.
+	Check that fixnums are in proper range for system types.
+	* sound.c (struct sound_device)
+	(wav_play, au_play, vox_write, alsa_period_size, alsa_write):
+	Use ptrdiff_t, not EMACS_INT, where ptrdiff_t is wide enough.
+	(Fplay_sound_internal):
+	Use ptrdiff_t, not int, to avoid needless 32-bit limit on 64-bit hosts.
+	* syntax.c (ST_COMMENT_STYLE, ST_STRING_STYLE):
+	In definitions, make it clearer that these values must be out of range
+	for the respective integer ranges.  This fixes a bug with ST_STRING_STYLE
+	and non-ASCII characters.
+	(struct lisp_parse_state, find_start_modiff)
+	(Finternal_describe_syntax_value, scan_lists, scan_sexps_forward):
+	(Fparse_partial_sexp):
+	Don't assume fixnums can fit in int.
+	(struct lisp_parse_state, find_start_pos, find_start_value)
+	(find_start_value_byte, find_start_begv)
+	(update_syntax_table, char_quoted, dec_bytepos)
+	(find_defun_start, prev_char_comend_first, back_comment):
+	(scan_words, skip_chars, skip_syntaxes, forw_comment, Fforward_comment)
+	(scan_lists, Fbackward_prefix_chars, scan_sexps_forward):
+	Use ptrdiff_t, not EMACS_INT, where ptrdiff_t is wide enough.
+	(Finternal_describe_syntax_value): Check that match_lisp is a
+	character, not an integer, since the code stuffs it into int.
+	(scan_words, scan_sexps_forward):
+	Check that fixnums are in proper range for system types.
+	(Fforward_word):
+	Use ptrdiff_t, not int, to avoid needless 32-bit limit on 64-bit hosts.
+	(scan_sexps_forward):
+	Use CHARACTERP, not INTEGERP, since the value must fit into int.
+	(Fparse_partial_sexp): Fix doc; element 8 is not ignored.
+	* syntax.h: Adjust decls to match defn changes elsewhere.
+	(struct gl_state_s):
+	Use ptrdiff_t, not EMACS_INT, where ptrdiff_t is wide enough.
+	* sysdep.c (wait_for_termination_1, wait_for_termination)
+	(interruptible_wait_for_termination, mkdir):
+	Don't assume pid_t fits in int; on 64-bit AIX pid_t is 64-bit.
+	(emacs_read, emacs_write):
+	Use ptrdiff_t, not EMACS_INT, where ptrdiff_t is wide enough.
+	(system_process_attributes): Don't assume uid_t, gid_t, and
+	double all fit in int or even EMACS_INT.
+	* term.c (set_tty_color_mode):
+	Check that fixnums are in proper range for system types.
+	* termhooks.h (struct input_event):
+	Use ptrdiff_t, not EMACS_INT, where ptrdiff_t is wide enough.
+	* textprop.c (validate_interval_range, interval_of)
+	(Fadd_text_properties, set_text_properties_1)
+	(Fremove_text_properties, Fremove_list_of_text_properties)
+	(Ftext_property_any, Ftext_property_not_all)
+	(copy_text_properties, text_property_list, extend_property_ranges)
+	(verify_interval_modification):
+	Use ptrdiff_t, not EMACS_INT, where ptrdiff_t is wide enough.
+	(Fnext_single_char_property_change)
+	(Fprevious_single_char_property_change):
+	Use ptrdiff_t, not int, to avoid needless 32-bit limit on 64-bit hosts.
+	(copy_text_properties): Check for integer overflow in index calculation.
+	* undo.c (last_boundary_position, record_point, record_insert)
+	(record_delete, record_marker_adjustment, record_change)
+	(record_property_change):
+	Use ptrdiff_t, not EMACS_INT, where ptrdiff_t is wide enough.
+	(truncate_undo_list, Fprimitive_undo): Don't assume fixnum fits in int.
+	Use ptrdiff_t, not int, to avoid needless 32-bit limit on 64-bit hosts.
+	* w32fns.c (Fx_create_frame, x_create_tip_frame, Fx_show_tip)
+	(Fx_hide_tip, Fx_file_dialog):
+	* w32menu.c (set_frame_menubar):
+	Use ptrdiff_t, not int, for consistency with rest of code.
+	* window.c (window_scroll_preserve_hpos, window_scroll_preserve_vpos)
+	(select_window, Fdelete_other_windows_internal)
+	(window_scroll_pixel_based, window_scroll_line_based)
+	(Frecenter, Fset_window_configuration):
+	Use ptrdiff_t, not EMACS_INT, where ptrdiff_t is wide enough.
+	(Fset_window_hscroll, run_window_configuration_change_hook)
+	(set_window_buffer, temp_output_buffer_show, scroll_command)
+	(Fscroll_other_window):
+	Use ptrdiff_t, not int, to avoid needless 32-bit limit on 64-bit hosts.
+	(Fwindow_line_height, window_scroll, Fscroll_left, Fscroll_right):
+	Don't assume fixnum fits in int.
+	(Fset_window_scroll_bars):
+	Check that fixnums are in proper range for system types.
+	* xdisp.c (help_echo_pos, pos_visible_p, string_pos_nchars_ahead)
+	(string_pos, c_string_pos, number_of_chars, init_iterator)
+	(in_ellipses_for_invisible_text_p, init_from_display_pos)
+	(compute_stop_pos, next_overlay_change, compute_display_string_pos)
+	(compute_display_string_end, handle_face_prop)
+	(face_before_or_after_it_pos, handle_invisible_prop, handle_display_prop)
+	(handle_display_spec, handle_single_display_spec)
+	(display_prop_intangible_p, string_buffer_position_lim)
+	(string_buffer_position, handle_composition_prop, load_overlay_strings)
+	(get_overlay_strings_1, get_overlay_strings)
+	(iterate_out_of_display_property, forward_to_next_line_start)
+	(back_to_previous_visible_line_start, reseat, reseat_to_string)
+	(get_next_display_element, set_iterator_to_next)
+	(get_visually_first_element, compute_stop_pos_backwards)
+	(handle_stop_backwards, next_element_from_buffer)
+	(move_it_in_display_line_to, move_it_in_display_line)
+	(move_it_to, move_it_vertically_backward, move_it_by_lines)
+	(add_to_log, message_dolog, message_log_check_duplicate)
+	(message2, message2_nolog, message3, message3_nolog
+	(with_echo_area_buffer, display_echo_area_1, resize_mini_window_1)
+	(current_message_1, truncate_echo_area, truncate_message_1)
+	(set_message, set_message_1, store_mode_line_noprop)
+	(hscroll_window_tree, debug_delta, debug_delta_bytes, debug_end_vpos)
+	(text_outside_line_unchanged_p, check_point_in_composition)
+	(reconsider_clip_changes)
+	(redisplay_internal, set_cursor_from_row, try_scrolling)
+	(try_cursor_movement, set_vertical_scroll_bar, redisplay_window)
+	(redisplay_window, find_last_unchanged_at_beg_row)
+	(find_first_unchanged_at_end_row, row_containing_pos, try_window_id)
+	(trailing_whitespace_p, find_row_edges, display_line)
+	(RECORD_MAX_MIN_POS, Fcurrent_bidi_paragraph_direction)
+	(display_mode_element, store_mode_line_string)
+	(pint2str, pint2hrstr, decode_mode_spec)
+	(display_count_lines, display_string, draw_glyphs)
+	(x_produce_glyphs, x_insert_glyphs)
+	(rows_from_pos_range, mouse_face_from_buffer_pos)
+	(fast_find_string_pos, mouse_face_from_string_pos)
+	(note_mode_line_or_margin_highlight, note_mouse_highlight):
+	Use ptrdiff_t, not EMACS_INT, where ptrdiff_t is wide enough.
+	(safe_call, init_from_display_pos, handle_fontified_prop)
+	(handle_single_display_spec, load_overlay_strings)
+	(with_echo_area_buffer, setup_echo_area_for_printing)
+	(display_echo_area, echo_area_display)
+	(x_consider_frame_title, prepare_menu_bars, update_menu_bar)
+	(update_tool_bar, hscroll_window_tree, redisplay_internal)
+	(redisplay_window, dump_glyph_row, display_mode_line, Fformat_mode_line)
+	(decode_mode_spec, on_hot_spot_p):
+	Use ptrdiff_t, not int, to avoid needless 32-bit limit on 64-bit hosts.
+	(handle_single_display_spec, build_desired_tool_bar_string)
+	(redisplay_tool_bar, scroll_window_tree, Fdump_glyph_matrix)
+	(get_specified_cursor_type):
+	Check that fixnums are in proper range for system types.
+	(struct overlay_entry, resize_mini_window, Fdump_glyph_row)
+	(Flookup_image_map):
+	Don't assume fixnums fit in int.
+	(compare_overlay_entries):
+	Avoid mishandling comparisons due to subtraction overflow.
+	(load_overlay_strings): Use SAFE_NALLOCA, not alloca.
+	(last_escape_glyph_face_id, last_glyphless_glyph_face_id):
+	(handle_tool_bar_click):
+	Use int, not unsigned, since we prefer signed and the signedness
+	doesn't matter here.
+	(get_next_display_element, next_element_from_display_vector):
+	Use int, not EMACS_INT, when int is wide enough.
+	(start_hourglass): Use duration_to_sec_usec to do proper
+	overflow checking on durations.
+	* xfaces.c (Fbitmap_spec_p):
+	Check that fixnums are in proper range for system types.
+	(compare_fonts_by_sort_order):
+	Avoid mishandling comparisons due to subtraction overflow.
+	(Fx_family_fonts, realize_basic_faces):
+	Use ptrdiff_t, not int, to avoid needless 32-bit limit on 64-bit hosts.
+	(Fx_family_fonts):
+	Don't assume fixnum fits in int.
+	Use SAFE_ALLOCA_LISP, not alloca.
+	(merge_face_heights): Remove unnecessary cast to EMACS_INT.
+	(Finternal_make_lisp_face): Don't allocate more than MAX_FACE_ID.
+	(face_at_buffer_position, face_for_overlay_string)
+	(face_at_string_position):
+	Use ptrdiff_t, not EMACS_INT, where ptrdiff_t is wide enough.
+	(merge_faces): Use int, not EMACS_INT, where int is wide enough.
+	* xfns.c (x_set_menu_bar_lines, x_set_tool_bar_lines, x_icon_verify)
+	(Fx_show_tip):
+	Check that fixnums are in proper range for system types.
+	(Fx_create_frame, x_create_tip_frame, Fx_show_tip)
+	(Fx_hide_tip, Fx_file_dialog, Fx_select_font):
+	Use ptrdiff_t, not int, to avoid needless 32-bit limit on 64-bit hosts.
+	(Fx_change_window_property): Don't assume fixnums fit in int.
+	* xfont.c (xfont_chars_supported):
+	Use ptrdiff_t, not int, to avoid needless 32-bit limit on 64-bit hosts.
+	* xmenu.c (Fx_popup_dialog, set_frame_menubar)
+	(create_and_show_popup_menu, create_and_show_dialog, xmenu_show):
+	Use ptrdiff_t, not int, to avoid needless 32-bit limit on 64-bit hosts.
+	* xml.c (parse_region):
+	* xrdb.c (magic_file_p):
+	Use ptrdiff_t, not EMACS_INT, where ptrdiff_t is wide enough.
+	* xselect.c (TRACE1): Don't assume pid_t promotes to int.
+	(x_get_local_selection, x_reply_selection_request)
+	(x_handle_selection_request, wait_for_property_change):
+	Use ptrdiff_t, not int, to avoid needless 32-bit limit on 64-bit hosts.
+	(selection_data_to_lisp_data): Use short, not EMACS_INT, where
+	short is wide enough.
+	(x_send_client_event): Don't assume fixnum fits in int.
+	* xterm.c (x_x_to_emacs_modifiers):
+	Don't assume EMACS_INT overflows nicely into int.
+	(x_emacs_to_x_modifiers): Use EMACS_INT, not int, because values
+	may come from Lisp.
+	(handle_one_xevent): NATNUMP can eval its arg twice.
+	(x_connection_closed):
+	Use ptrdiff_t, not int, to avoid needless 32-bit limit on 64-bit hosts.
+	* xterm.h: Adjust decls to match defn changes elsewhere.
+	(struct scroll_bar): Use struct vectorlike_header
+	rather than rolling our own approximation.
+	(SCROLL_BAR_VEC_SIZE): Remove; not used.
+
 2011-09-16  Paul Eggert  <eggert@cs.ucla.edu>
 
 	* xselect.c: Relax test for outgoing X longs (Bug#9498).

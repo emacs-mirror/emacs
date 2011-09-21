@@ -771,10 +771,9 @@ parse_image_spec (Lisp_Object spec, struct image_keyword *keywords,
       /* Record that we recognized the keyword.  If a keywords
 	 was found more than once, it's an error.  */
       keywords[i].value = value;
-      ++keywords[i].count;
-
       if (keywords[i].count > 1)
 	return 0;
+      ++keywords[i].count;
 
       /* Check type of value against allowed type.  */
       switch (keywords[i].type)
@@ -1754,6 +1753,7 @@ lookup_image (struct frame *f, Lisp_Object spec)
 	     `:ascent ASCENT', `:margin MARGIN', `:relief RELIEF',
 	     `:background COLOR'.  */
 	  Lisp_Object ascent, margin, relief, bg;
+	  int relief_bound;
 
 	  ascent = image_spec_value (spec, QCascent, NULL);
 	  if (INTEGERP (ascent))
@@ -1771,7 +1771,8 @@ lookup_image (struct frame *f, Lisp_Object spec)
 	    }
 
 	  relief = image_spec_value (spec, QCrelief, NULL);
-	  if (INTEGERP (relief))
+	  relief_bound = INT_MAX - max (img->hmargin, img->vmargin);
+	  if (RANGED_INTEGERP (- relief_bound, relief, relief_bound))
 	    {
 	      img->relief = XINT (relief);
 	      img->hmargin += eabs (img->relief);

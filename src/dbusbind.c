@@ -485,7 +485,7 @@ xd_append_arg (unsigned int dtype, Lisp_Object object, DBusMessageIter *iter)
 	}
 
       case DBUS_TYPE_INT16:
-	CHECK_NUMBER (object);
+	CHECK_TYPE_RANGED_INTEGER (dbus_int16_t, object);
 	{
 	  dbus_int16_t val = XINT (object);
 	  XD_DEBUG_MESSAGE ("%c %d", dtype, (int) val);
@@ -495,7 +495,7 @@ xd_append_arg (unsigned int dtype, Lisp_Object object, DBusMessageIter *iter)
 	}
 
       case DBUS_TYPE_UINT16:
-	CHECK_NATNUM (object);
+	CHECK_TYPE_RANGED_INTEGER (dbus_uint16_t, object);
 	{
 	  dbus_uint16_t val = XFASTINT (object);
 	  XD_DEBUG_MESSAGE ("%c %u", dtype, (unsigned int) val);
@@ -505,7 +505,7 @@ xd_append_arg (unsigned int dtype, Lisp_Object object, DBusMessageIter *iter)
 	}
 
       case DBUS_TYPE_INT32:
-	CHECK_NUMBER (object);
+	CHECK_TYPE_RANGED_INTEGER (dbus_int32_t, object);
 	{
 	  dbus_int32_t val = XINT (object);
 	  XD_DEBUG_MESSAGE ("%c %d", dtype, val);
@@ -518,7 +518,7 @@ xd_append_arg (unsigned int dtype, Lisp_Object object, DBusMessageIter *iter)
 #ifdef DBUS_TYPE_UNIX_FD
       case DBUS_TYPE_UNIX_FD:
 #endif
-	CHECK_NATNUM (object);
+	CHECK_TYPE_RANGED_INTEGER (dbus_uint32_t, object);
 	{
 	  dbus_uint32_t val = XFASTINT (object);
 	  XD_DEBUG_MESSAGE ("%c %u", dtype, val);
@@ -528,7 +528,7 @@ xd_append_arg (unsigned int dtype, Lisp_Object object, DBusMessageIter *iter)
 	}
 
       case DBUS_TYPE_INT64:
-	CHECK_NUMBER (object);
+	CHECK_TYPE_RANGED_INTEGER (dbus_int64_t, object);
 	{
 	  dbus_int64_t val = XINT (object);
 	  XD_DEBUG_MESSAGE ("%c %d", dtype, (int) val);
@@ -538,7 +538,7 @@ xd_append_arg (unsigned int dtype, Lisp_Object object, DBusMessageIter *iter)
 	}
 
       case DBUS_TYPE_UINT64:
-	CHECK_NATNUM (object);
+	CHECK_TYPE_RANGED_INTEGER (dbus_uint64_t, object);
 	{
 	  dbus_uint64_t val = XFASTINT (object);
 	  XD_DEBUG_MESSAGE ("%c %"pI"d", dtype, XFASTINT (object));
@@ -1145,7 +1145,7 @@ usage: (dbus-call-method BUS SERVICE PATH INTERFACE METHOD &optional :timeout TI
   if ((i+2 <= nargs) && (EQ ((args[i]), QCdbus_timeout)))
     {
       CHECK_NATNUM (args[i+1]);
-      timeout = XFASTINT (args[i+1]);
+      timeout = min (XFASTINT (args[i+1]), INT_MAX);
       i = i+2;
     }
 
@@ -1328,7 +1328,7 @@ usage: (dbus-call-method-asynchronously BUS SERVICE PATH INTERFACE METHOD HANDLE
   if ((i+2 <= nargs) && (EQ ((args[i]), QCdbus_timeout)))
     {
       CHECK_NATNUM (args[i+1]);
-      timeout = XFASTINT (args[i+1]);
+      timeout = min (XFASTINT (args[i+1]), INT_MAX);
       i = i+2;
     }
 

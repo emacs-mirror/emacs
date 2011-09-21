@@ -82,8 +82,8 @@ casify_object (enum case_action flag, Lisp_Object obj)
     wrong_type_argument (Qchar_or_string_p, obj);
   else if (!STRING_MULTIBYTE (obj))
     {
-      EMACS_INT i;
-      EMACS_INT size = SCHARS (obj);
+      ptrdiff_t i;
+      ptrdiff_t size = SCHARS (obj);
 
       obj = Fcopy_sequence (obj);
       for (i = 0; i < size; i++)
@@ -111,26 +111,20 @@ casify_object (enum case_action flag, Lisp_Object obj)
     }
   else
     {
-      EMACS_INT i, i_byte, size = SCHARS (obj);
+      ptrdiff_t i, i_byte, size = SCHARS (obj);
       int len;
       USE_SAFE_ALLOCA;
       unsigned char *dst, *o;
-      /* Over-allocate by 12%: this is a minor overhead, but should be
-	 sufficient in 99.999% of the cases to avoid a reallocation.  */
-      EMACS_INT o_size = SBYTES (obj) + SBYTES (obj) / 8 + MAX_MULTIBYTE_LENGTH;
+      ptrdiff_t o_size = (size < STRING_BYTES_BOUND / MAX_MULTIBYTE_LENGTH
+			  ? size * MAX_MULTIBYTE_LENGTH
+			  : STRING_BYTES_BOUND);
       SAFE_ALLOCA (dst, void *, o_size);
       o = dst;
 
       for (i = i_byte = 0; i < size; i++, i_byte += len)
 	{
-	  if ((o - dst) + MAX_MULTIBYTE_LENGTH > o_size)
-	    { /* Not enough space for the next char: grow the destination.  */
-	      unsigned char *old_dst = dst;
-	      o_size += o_size;	/* Probably overkill, but extremely rare.  */
-	      SAFE_ALLOCA (dst, void *, o_size);
-	      memcpy (dst, old_dst, o - old_dst);
-	      o = dst + (o - old_dst);
-	    }
+	  if (o_size - (o - dst) < MAX_MULTIBYTE_LENGTH)
+	    string_overflow ();
 	  c = STRING_CHAR_AND_LENGTH (SDATA (obj) + i_byte, len);
 	  if (inword && flag != CASE_CAPITALIZE_UP)
 	    c = downcase (c);
@@ -199,14 +193,14 @@ casify_region (enum case_action flag, Lisp_Object b, Lisp_Object e)
   register int c;
   register int inword = flag == CASE_DOWN;
   register int multibyte = !NILP (BVAR (current_buffer, enable_multibyte_characters));
-  EMACS_INT start, end;
-  EMACS_INT start_byte;
+  ptrdiff_t start, end;
+  ptrdiff_t start_byte;
 
   /* Position of first and last changes.  */
-  EMACS_INT first = -1, last IF_LINT (= 0);
+  ptrdiff_t first = -1, last IF_LINT (= 0);
 
-  EMACS_INT opoint = PT;
-  EMACS_INT opoint_byte = PT_BYTE;
+  ptrdiff_t opoint = PT;
+  ptrdiff_t opoint_byte = PT_BYTE;
 
   if (EQ (b, e))
     /* Not modifying because nothing marked */
@@ -351,10 +345,10 @@ character positions to operate on.  */)
 }
 
 static Lisp_Object
-operate_on_word (Lisp_Object arg, EMACS_INT *newpoint)
+operate_on_word (Lisp_Object arg, ptrdiff_t *newpoint)
 {
   Lisp_Object val;
-  EMACS_INT farend;
+  ptrdiff_t farend;
   EMACS_INT iarg;
 
   CHECK_NUMBER (arg);
@@ -376,7 +370,7 @@ See also `capitalize-word'.  */)
   (Lisp_Object arg)
 {
   Lisp_Object beg, end;
-  EMACS_INT newpoint;
+  ptrdiff_t newpoint;
   XSETFASTINT (beg, PT);
   end = operate_on_word (arg, &newpoint);
   casify_region (CASE_UP, beg, end);
@@ -390,7 +384,7 @@ With negative argument, convert previous words but do not move.  */)
   (Lisp_Object arg)
 {
   Lisp_Object beg, end;
-  EMACS_INT newpoint;
+  ptrdiff_t newpoint;
   XSETFASTINT (beg, PT);
   end = operate_on_word (arg, &newpoint);
   casify_region (CASE_DOWN, beg, end);
@@ -406,7 +400,7 @@ With negative argument, capitalize previous words but do not move.  */)
   (Lisp_Object arg)
 {
   Lisp_Object beg, end;
-  EMACS_INT newpoint;
+  ptrdiff_t newpoint;
   XSETFASTINT (beg, PT);
   end = operate_on_word (arg, &newpoint);
   casify_region (CASE_CAPITALIZE, beg, end);

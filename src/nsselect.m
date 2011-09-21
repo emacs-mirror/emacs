@@ -181,7 +181,7 @@ ns_get_local_selection (Lisp_Object selection_name,
 {
   Lisp_Object local_value;
   Lisp_Object handler_fn, value, type, check;
-  int count;
+  ptrdiff_t count;
 
   local_value = assq_no_quit (selection_name, Vselection_alist);
 

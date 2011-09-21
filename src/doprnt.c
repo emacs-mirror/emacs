@@ -174,7 +174,7 @@ doprnt (char *buffer, ptrdiff_t bufsize, const char *format,
       if (*fmt == '%')	/* Check for a '%' character */
 	{
 	  ptrdiff_t size_bound = 0;
-	  EMACS_INT width;  /* Columns occupied by STRING on display.  */
+	  ptrdiff_t width;  /* Columns occupied by STRING on display.  */
 	  enum {
 	    pDlen = sizeof pD - 1,
 	    pIlen = sizeof pI - 1,

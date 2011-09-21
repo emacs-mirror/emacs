@@ -435,7 +435,7 @@ Lisp_Object
 exec_byte_code (Lisp_Object bytestr, Lisp_Object vector, Lisp_Object maxdepth,
 		Lisp_Object args_template, ptrdiff_t nargs, Lisp_Object *args)
 {
-  int count = SPECPDL_INDEX ();
+  ptrdiff_t count = SPECPDL_INDEX ();
 #ifdef BYTE_CODE_METER
   int this_op = 0;
   int prev_op;
@@ -486,8 +486,6 @@ exec_byte_code (Lisp_Object bytestr, Lisp_Object vector, Lisp_Object maxdepth,
   stack.byte_string = bytestr;
   stack.pc = stack.byte_string_start = SDATA (bytestr);
   stack.constants = vector;
-  if (min (PTRDIFF_MAX, SIZE_MAX) / sizeof (Lisp_Object) < XFASTINT (maxdepth))
-    memory_full (SIZE_MAX);
   top = (Lisp_Object *) alloca (XFASTINT (maxdepth)
                                          * sizeof (Lisp_Object));
 #if BYTE_MAINTAIN_TOP
@@ -504,14 +502,14 @@ exec_byte_code (Lisp_Object bytestr, Lisp_Object vector, Lisp_Object maxdepth,
 
   if (INTEGERP (args_template))
     {
-      ptrdiff_t at = XINT (args_template);
+      EMACS_INT at = XINT (args_template);
       int rest = at & 128;
       int mandatory = at & 127;
-      ptrdiff_t nonrest = at >> 8;
+      EMACS_INT nonrest = at >> 8;
       eassert (mandatory <= nonrest);
       if (nargs <= nonrest)
 	{
-	  ptrdiff_t i;
+	  EMACS_INT i;
 	  for (i = 0 ; i < nargs; i++, args++)
 	    PUSH (*args);
 	  if (nargs < mandatory)
@@ -943,7 +941,7 @@ exec_byte_code (Lisp_Object bytestr, Lisp_Object vector, Lisp_Object maxdepth,
 
 	case Bsave_window_excursion: /* Obsolete since 24.1.  */
 	  {
-	    register int count1 = SPECPDL_INDEX ();
+	    register ptrdiff_t count1 = SPECPDL_INDEX ();
 	    record_unwind_protect (Fset_window_configuration,
 				   Fcurrent_window_configuration (Qnil));
 	    BEFORE_POTENTIAL_GC ();
@@ -1007,13 +1005,14 @@ exec_byte_code (Lisp_Object bytestr, Lisp_Object vector, Lisp_Object maxdepth,
 	case Bnth:
 	  {
 	    Lisp_Object v1, v2;
+	    EMACS_INT n;
 	    BEFORE_POTENTIAL_GC ();
 	    v1 = POP;
 	    v2 = TOP;
 	    CHECK_NUMBER (v2);
-	    op = XINT (v2);
+	    n = XINT (v2);
 	    immediate_quit = 1;
-	    while (--op >= 0 && CONSP (v1))
+	    while (--n >= 0 && CONSP (v1))
 	      v1 = XCDR (v1);
 	    immediate_quit = 0;
 	    TOP = CAR (v1);
@@ -1640,14 +1639,15 @@ exec_byte_code (Lisp_Object bytestr, Lisp_Object vector, Lisp_Object maxdepth,
 	    if (CONSP (TOP))
 	      {
 		/* Exchange args and then do nth.  */
+		EMACS_INT n;
 		BEFORE_POTENTIAL_GC ();
 		v2 = POP;
 		v1 = TOP;
 		CHECK_NUMBER (v2);
 		AFTER_POTENTIAL_GC ();
-		op = XINT (v2);
+		n = XINT (v2);
 		immediate_quit = 1;
-		while (--op >= 0 && CONSP (v1))
+		while (--n >= 0 && CONSP (v1))
 		  v1 = XCDR (v1);
 		immediate_quit = 0;
 		TOP = CAR (v1);

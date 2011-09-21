@@ -90,7 +90,7 @@ Lisp_Object Vautoload_queue;
 
 /* Current number of specbindings allocated in specpdl.  */
 
-EMACS_INT specpdl_size;
+ptrdiff_t specpdl_size;
 
 /* Pointer to beginning of specpdl.  */
 
@@ -111,7 +111,7 @@ static EMACS_INT lisp_eval_depth;
    signal the error instead of entering an infinite loop of debugger
    invocations.  */
 
-static int when_entered_debugger;
+static EMACS_INT when_entered_debugger;
 
 /* The function from which the last `signal' was called.  Set in
    Fsignal.  */
@@ -177,7 +177,7 @@ static Lisp_Object
 call_debugger (Lisp_Object arg)
 {
   int debug_while_redisplaying;
-  int count = SPECPDL_INDEX ();
+  ptrdiff_t count = SPECPDL_INDEX ();
   Lisp_Object val;
   EMACS_INT old_max = max_specpdl_size;
 
@@ -758,8 +758,8 @@ The return value is BASE-VARIABLE.  */)
   {
     struct specbinding *p;
 
-    for (p = specpdl_ptr - 1; p >= specpdl; p--)
-      if (p->func == NULL
+    for (p = specpdl_ptr; p > specpdl; p)
+      if ((--p)->func == NULL
 	  && (EQ (new_alias,
 		  CONSP (p->symbol) ? XCAR (p->symbol) : p->symbol)))
 	error ("Don't know how to make a let-bound variable an alias");
@@ -833,9 +833,9 @@ usage: (defvar SYMBOL &optional INITVALUE DOCSTRING)  */)
 	{ /* Check if there is really a global binding rather than just a let
 	     binding that shadows the global unboundness of the var.  */
 	  volatile struct specbinding *pdl = specpdl_ptr;
-	  while (--pdl >= specpdl)
+	  while (pdl > specpdl)
 	    {
-	      if (EQ (pdl->symbol, sym) && !pdl->func
+	      if (EQ ((--pdl)->symbol, sym) && !pdl->func
 		  && EQ (pdl->old_value, Qunbound))
 		{
 		  message_with_string ("Warning: defvar ignored because %s is let-bound",
@@ -983,7 +983,7 @@ usage: (let* VARLIST BODY...)  */)
   (Lisp_Object args)
 {
   Lisp_Object varlist, var, val, elt, lexenv;
-  int count = SPECPDL_INDEX ();
+  ptrdiff_t count = SPECPDL_INDEX ();
   struct gcpro gcpro1, gcpro2, gcpro3;
 
   GCPRO3 (args, elt, varlist);
@@ -1046,7 +1046,7 @@ usage: (let VARLIST BODY...)  */)
 {
   Lisp_Object *temps, tem, lexenv;
   register Lisp_Object elt, varlist;
-  int count = SPECPDL_INDEX ();
+  ptrdiff_t count = SPECPDL_INDEX ();
   ptrdiff_t argnum;
   struct gcpro gcpro1, gcpro2;
   USE_SAFE_ALLOCA;
@@ -1349,7 +1349,7 @@ usage: (unwind-protect BODYFORM UNWINDFORMS...)  */)
   (Lisp_Object args)
 {
   Lisp_Object val;
-  int count = SPECPDL_INDEX ();
+  ptrdiff_t count = SPECPDL_INDEX ();
 
   record_unwind_protect (Fprogn, Fcdr (args));
   val = eval_sub (Fcar (args));
@@ -2123,7 +2123,7 @@ un_autoload (Lisp_Object oldqueue)
 void
 do_autoload (Lisp_Object fundef, Lisp_Object funname)
 {
-  int count = SPECPDL_INDEX ();
+  ptrdiff_t count = SPECPDL_INDEX ();
   Lisp_Object fun;
   struct gcpro gcpro1, gcpro2, gcpro3;
 
@@ -2170,7 +2170,7 @@ DEFUN ("eval", Feval, Seval, 1, 2, 0,
 If LEXICAL is t, evaluate using lexical scoping.  */)
   (Lisp_Object form, Lisp_Object lexical)
 {
-  int count = SPECPDL_INDEX ();
+  ptrdiff_t count = SPECPDL_INDEX ();
   specbind (Qinternal_interpreter_environment,
 	    NILP (lexical) ? Qnil : Fcons (Qt, Qnil));
   return unbind_to (count, eval_sub (form));
@@ -2404,7 +2404,8 @@ Thus, (apply '+ 1 2 '(3 4)) returns 10.
 usage: (apply FUNCTION &rest ARGUMENTS)  */)
   (ptrdiff_t nargs, Lisp_Object *args)
 {
-  ptrdiff_t i, numargs;
+  ptrdiff_t i;
+  EMACS_INT numargs;
   register Lisp_Object spread_arg;
   register Lisp_Object *funcall_args;
   Lisp_Object fun, retval;
@@ -3054,7 +3055,8 @@ static Lisp_Object
 apply_lambda (Lisp_Object fun, Lisp_Object args)
 {
   Lisp_Object args_left;
-  ptrdiff_t i, numargs;
+  ptrdiff_t i;
+  EMACS_INT numargs;
   register Lisp_Object *arg_vector;
   struct gcpro gcpro1, gcpro2, gcpro3;
   register Lisp_Object tem;
@@ -3099,7 +3101,7 @@ funcall_lambda (Lisp_Object fun, ptrdiff_t nargs,
 		register Lisp_Object *arg_vector)
 {
   Lisp_Object val, syms_left, next, lexenv;
-  int count = SPECPDL_INDEX ();
+  ptrdiff_t count = SPECPDL_INDEX ();
   ptrdiff_t i;
   int optional, rest;
 
@@ -3238,12 +3240,8 @@ DEFUN ("fetch-bytecode", Ffetch_bytecode, Sfetch_bytecode,
 static void
 grow_specpdl (void)
 {
-  register int count = SPECPDL_INDEX ();
-  int max_size =
-    min (max_specpdl_size,
-	 min (max (PTRDIFF_MAX, SIZE_MAX) / sizeof (struct specbinding),
-	      INT_MAX));
-  int size;
+  register ptrdiff_t count = SPECPDL_INDEX ();
+  ptrdiff_t max_size = min (max_specpdl_size, PTRDIFF_MAX);
   if (max_size <= specpdl_size)
     {
       if (max_specpdl_size < 400)
@@ -3251,9 +3249,7 @@ grow_specpdl (void)
       if (max_size <= specpdl_size)
 	signal_error ("Variable binding depth exceeds max-specpdl-size", Qnil);
     }
-  size = specpdl_size < max_size / 2 ? 2 * specpdl_size : max_size;
-  specpdl = xnrealloc (specpdl, size, sizeof *specpdl);
-  specpdl_size = size;
+  specpdl = xpalloc (specpdl, &specpdl_size, 1, max_size, sizeof *specpdl);
   specpdl_ptr = specpdl + count;
 }
 
@@ -3383,7 +3379,7 @@ record_unwind_protect (Lisp_Object (*function) (Lisp_Object), Lisp_Object arg)
 }
 
 Lisp_Object
-unbind_to (int count, Lisp_Object value)
+unbind_to (ptrdiff_t count, Lisp_Object value)
 {
   Lisp_Object quitf = Vquit_flag;
   struct gcpro gcpro1, gcpro2;
@@ -3463,7 +3459,7 @@ The debugger is entered when that frame exits, if the flag is non-nil.  */)
   (Lisp_Object level, Lisp_Object flag)
 {
   register struct backtrace *backlist = backtrace_list;
-  register int i;
+  register EMACS_INT i;
 
   CHECK_NUMBER (level);
 

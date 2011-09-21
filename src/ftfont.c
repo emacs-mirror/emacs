@@ -1026,13 +1026,13 @@ ftfont_list (Lisp_Object frame, Lisp_Object spec)
 #endif	/* HAVE_LIBOTF */
       if (VECTORP (chars))
 	{
-	  int j;
+	  ptrdiff_t j;
 
 	  if (FcPatternGetCharSet (fontset->fonts[i], FC_CHARSET, 0, &charset)
 	      != FcResultMatch)
 	    continue;
 	  for (j = 0; j < ASIZE (chars); j++)
-	    if (NATNUMP (AREF (chars, j))
+	    if (TYPE_RANGED_INTEGERP (FcChar32, AREF (chars, j))
 		&& FcCharSetHasChar (charset, XFASTINT (AREF (chars, j))))
 	      break;
 	  if (j == ASIZE (chars))
@@ -2387,8 +2387,8 @@ static Lisp_Object
 ftfont_shape_by_flt (Lisp_Object lgstring, struct font *font,
 		     FT_Face ft_face, OTF *otf, FT_Matrix *matrix)
 {
-  EMACS_INT len = LGSTRING_GLYPH_LEN (lgstring);
-  EMACS_INT i;
+  ptrdiff_t len = LGSTRING_GLYPH_LEN (lgstring);
+  ptrdiff_t i;
   struct MFLTFontFT flt_font_ft;
   MFLT *flt = NULL;
   int with_variation_selector = 0;
@@ -2416,7 +2416,6 @@ ftfont_shape_by_flt (Lisp_Object lgstring, struct font *font,
     }
 
   len = i;
-  lint_assume (len <= TYPE_MAXIMUM (EMACS_INT) - 2);
 
   if (with_variation_selector)
     {

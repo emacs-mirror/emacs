@@ -3678,24 +3678,23 @@ x_find_modifier_meanings (struct x_display_info *dpyinfo)
 /* Convert between the modifier bits X uses and the modifier bits
    Emacs uses.  */
 
-EMACS_INT
+int
 x_x_to_emacs_modifiers (struct x_display_info *dpyinfo, int state)
 {
-  EMACS_INT mod_meta = meta_modifier;
-  EMACS_INT mod_alt  = alt_modifier;
-  EMACS_INT mod_hyper = hyper_modifier;
-  EMACS_INT mod_super = super_modifier;
+  int mod_meta = meta_modifier;
+  int mod_alt  = alt_modifier;
+  int mod_hyper = hyper_modifier;
+  int mod_super = super_modifier;
   Lisp_Object tem;
 
   tem = Fget (Vx_alt_keysym, Qmodifier_value);
-  if (INTEGERP (tem)) mod_alt = XINT (tem);
+  if (INTEGERP (tem)) mod_alt = XINT (tem) & INT_MAX;
   tem = Fget (Vx_meta_keysym, Qmodifier_value);
-  if (INTEGERP (tem)) mod_meta = XINT (tem);
+  if (INTEGERP (tem)) mod_meta = XINT (tem) & INT_MAX;
   tem = Fget (Vx_hyper_keysym, Qmodifier_value);
-  if (INTEGERP (tem)) mod_hyper = XINT (tem);
+  if (INTEGERP (tem)) mod_hyper = XINT (tem) & INT_MAX;
   tem = Fget (Vx_super_keysym, Qmodifier_value);
-  if (INTEGERP (tem)) mod_super = XINT (tem);
-
+  if (INTEGERP (tem)) mod_super = XINT (tem) & INT_MAX;
 
   return (  ((state & (ShiftMask | dpyinfo->shift_lock_mask)) ? shift_modifier : 0)
             | ((state & ControlMask)			? ctrl_modifier	: 0)
@@ -3708,10 +3707,10 @@ x_x_to_emacs_modifiers (struct x_display_info *dpyinfo, int state)
 static int
 x_emacs_to_x_modifiers (struct x_display_info *dpyinfo, EMACS_INT state)
 {
-  int mod_meta = meta_modifier;
-  int mod_alt  = alt_modifier;
-  int mod_hyper = hyper_modifier;
-  int mod_super = super_modifier;
+  EMACS_INT mod_meta = meta_modifier;
+  EMACS_INT mod_alt  = alt_modifier;
+  EMACS_INT mod_hyper = hyper_modifier;
+  EMACS_INT mod_super = super_modifier;
 
   Lisp_Object tem;
 
@@ -6456,9 +6455,10 @@ handle_one_xevent (struct x_display_info *dpyinfo, XEvent *eventptr,
 
 	  /* Now non-ASCII.  */
 	  if (HASH_TABLE_P (Vx_keysym_table)
-	      && (NATNUMP (c = Fgethash (make_number (keysym),
- 					 Vx_keysym_table,
- 					 Qnil))))
+	      && (c = Fgethash (make_number (keysym),
+				Vx_keysym_table,
+				Qnil),
+		  NATNUMP (c)))
  	    {
  	      inev.ie.kind = (SINGLE_BYTE_CHAR_P (XFASTINT (c))
                               ? ASCII_KEYSTROKE_EVENT
@@ -7731,7 +7731,7 @@ x_connection_closed (Display *dpy, const char *error_message)
 {
   struct x_display_info *dpyinfo = x_display_info_for_display (dpy);
   Lisp_Object frame, tail;
-  int idx = SPECPDL_INDEX ();
+  ptrdiff_t idx = SPECPDL_INDEX ();
 
   error_msg = (char *) alloca (strlen (error_message) + 1);
   strcpy (error_msg, error_message);

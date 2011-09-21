@@ -315,7 +315,7 @@ for instance using the window manager, then this produces a quit and
     Lisp_Object title;
     const char *error_name;
     Lisp_Object selection;
-    int specpdl_count = SPECPDL_INDEX ();
+    ptrdiff_t specpdl_count = SPECPDL_INDEX ();
 
     /* Decode the dialog items from what was specified.  */
     title = Fcar (contents);
@@ -968,7 +968,7 @@ set_frame_menubar (FRAME_PTR f, int first_time, int deep_p)
 
       struct buffer *prev = current_buffer;
       Lisp_Object buffer;
-      int specpdl_count = SPECPDL_INDEX ();
+      ptrdiff_t specpdl_count = SPECPDL_INDEX ();
       int previous_menu_items_used = f->menu_bar_items_used;
       Lisp_Object *previous_items
 	= (Lisp_Object *) alloca (previous_menu_items_used
@@ -1434,7 +1434,7 @@ create_and_show_popup_menu (FRAME_PTR f, widget_value *first_wv, int x, int y,
   GtkWidget *menu;
   GtkMenuPositionFunc pos_func = 0;  /* Pop up at pointer.  */
   struct next_popup_x_y popup_x_y;
-  int specpdl_count = SPECPDL_INDEX ();
+  ptrdiff_t specpdl_count = SPECPDL_INDEX ();
 
   if (! FRAME_X_P (f))
     abort ();
@@ -1590,7 +1590,7 @@ create_and_show_popup_menu (FRAME_PTR f, widget_value *first_wv,
 
   {
     int fact = 4 * sizeof (LWLIB_ID);
-    int specpdl_count = SPECPDL_INDEX ();
+    ptrdiff_t specpdl_count = SPECPDL_INDEX ();
     record_unwind_protect (pop_down_menu,
                            Fcons (make_number (menu_id >> (fact)),
                                   make_number (menu_id & ~(-1 << (fact)))));
@@ -1909,7 +1909,7 @@ create_and_show_dialog (FRAME_PTR f, widget_value *first_wv)
 
   if (menu)
     {
-      int specpdl_count = SPECPDL_INDEX ();
+      ptrdiff_t specpdl_count = SPECPDL_INDEX ();
       record_unwind_protect (pop_down_menu, make_save_value (menu, 0));
 
       /* Display the menu.  */
@@ -1965,7 +1965,7 @@ create_and_show_dialog (FRAME_PTR f, widget_value *first_wv)
   /* Process events that apply to the dialog box.
      Also handle timers.  */
   {
-    int count = SPECPDL_INDEX ();
+    ptrdiff_t count = SPECPDL_INDEX ();
     int fact = 4 * sizeof (LWLIB_ID);
 
     /* xdialog_show_unwind is responsible for popping the dialog box down.  */
@@ -2262,7 +2262,7 @@ xmenu_show (FRAME_PTR f, int x, int y, int for_click, int keymaps,
   int maxwidth;
   int dummy_int;
   unsigned int dummy_uint;
-  int specpdl_count = SPECPDL_INDEX ();
+  ptrdiff_t specpdl_count = SPECPDL_INDEX ();
 
   if (! FRAME_X_P (f) && ! FRAME_MSDOS_P (f))
     abort ();

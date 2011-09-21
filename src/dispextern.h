@@ -179,10 +179,10 @@ extern int trace_redisplay_p EXTERNALLY_VISIBLE;
 struct text_pos
 {
   /* Character position.  */
-  EMACS_INT charpos;
+  ptrdiff_t charpos;
 
   /* Corresponding byte position.  */
-  EMACS_INT bytepos;
+  ptrdiff_t bytepos;
 };
 
 /* Access character and byte position of POS in a functional form.  */
@@ -253,7 +253,7 @@ struct display_pos
      is the index of that overlay string in the sequence of overlay
      strings at `pos' in the order redisplay processes them.  A value
      < 0 means that this is not a position in an overlay string.  */
-  int overlay_string_index;
+  ptrdiff_t overlay_string_index;
 
   /* If this is a position in an overlay string, string_pos is the
      position within that string.  */
@@ -320,7 +320,7 @@ struct glyph
      buffer, this is a position in that buffer.  A value of -1
      together with a null object means glyph is a truncation glyph at
      the start of a row.  */
-  EMACS_INT charpos;
+  ptrdiff_t charpos;
 
   /* Lisp object source of this glyph.  Currently either a buffer or
      a string, if the glyph was produced from characters which came from
@@ -1808,7 +1808,7 @@ typedef enum { NEUTRAL_DIR, L2R, R2L } bidi_dir_t;
 /* Data type for storing information about characters we need to
    remember.  */
 struct bidi_saved_info {
-  EMACS_INT bytepos, charpos;	/* character's buffer position */
+  ptrdiff_t bytepos, charpos;	/* character's buffer position */
   bidi_type_t type;		/* character's resolved bidi type */
   bidi_type_t type_after_w1;	/* original type of the character, after W1 */
   bidi_type_t orig_type;	/* type as we found it in the buffer */
@@ -1825,9 +1825,9 @@ struct bidi_stack {
 struct bidi_string_data {
   Lisp_Object lstring;		/* Lisp string to reorder, or nil */
   const unsigned char *s;	/* string data, or NULL if reordering buffer */
-  EMACS_INT schars;		/* the number of characters in the string,
+  ptrdiff_t schars;		/* the number of characters in the string,
 				   excluding the terminating null */
-  EMACS_INT bufpos;		/* buffer position of lstring, or 0 if N/A */
+  ptrdiff_t bufpos;		/* buffer position of lstring, or 0 if N/A */
   unsigned from_disp_str : 1;	/* 1 means the string comes from a
 				   display property */
   unsigned unibyte : 1;		/* 1 means the string is unibyte */
@@ -1835,14 +1835,14 @@ struct bidi_string_data {
 
 /* Data type for reordering bidirectional text.  */
 struct bidi_it {
-  EMACS_INT bytepos;		/* iterator's position in buffer/string */
-  EMACS_INT charpos;
+  ptrdiff_t bytepos;		/* iterator's position in buffer/string */
+  ptrdiff_t charpos;
   int ch;			/* character at that position, or u+FFFC
 				   ("object replacement character") for a run
 				   of characters covered by a display string */
-  EMACS_INT nchars;		/* its "length", usually 1; it's > 1 for a run
+  ptrdiff_t nchars;		/* its "length", usually 1; it's > 1 for a run
 				   of characters covered by a display string */
-  EMACS_INT ch_len;		/* its length in bytes */
+  ptrdiff_t ch_len;		/* its length in bytes */
   bidi_type_t type;		/* bidi type of this character, after
 				   resolving weak and neutral types */
   bidi_type_t type_after_w1;	/* original type, after overrides and W1 */
@@ -1856,11 +1856,11 @@ struct bidi_it {
   struct bidi_saved_info next_for_neutral; /* surrounding characters for... */
   struct bidi_saved_info prev_for_neutral; /* ...resolving neutrals */
   struct bidi_saved_info next_for_ws; /* character after sequence of ws */
-  EMACS_INT next_en_pos;	/* position of next EN char for ET */
-  EMACS_INT ignore_bn_limit;	/* position until which to ignore BNs */
+  ptrdiff_t next_en_pos;	/* position of next EN char for ET */
+  ptrdiff_t ignore_bn_limit;	/* position until which to ignore BNs */
   bidi_dir_t sor;		/* direction of start-of-run in effect */
   int scan_dir;			/* direction of text scan, 1: forw, -1: back */
-  EMACS_INT disp_pos;		/* position of display string after ch */
+  ptrdiff_t disp_pos;		/* position of display string after ch */
   int disp_prop;		/* if non-zero, there really is a
 				   `display' property/string at disp_pos;
 				   if 2, the property is a `space' spec */
@@ -1871,7 +1871,7 @@ struct bidi_it {
   struct bidi_stack level_stack[BIDI_MAXLEVEL]; /* stack of embedding levels */
   struct bidi_string_data string;	/* string to reorder */
   bidi_dir_t paragraph_dir;	/* current paragraph direction */
-  EMACS_INT separator_limit;	/* where paragraph separator should end */
+  ptrdiff_t separator_limit;	/* where paragraph separator should end */
   unsigned first_elt : 1;	/* if non-zero, examine current char first */
   unsigned new_paragraph : 1;	/* if non-zero, we expect a new paragraph */
   unsigned frame_window_p : 1;	/* non-zero if displaying on a GUI frame */
@@ -2057,7 +2057,7 @@ enum it_method {
 struct composition_it
 {
   /* Next position at which to check the composition.  */
-  EMACS_INT stop_pos;
+  ptrdiff_t stop_pos;
   /* ID number of the composition or glyph-string.  If negative, we
      are not iterating over a composition now.  */
   ptrdiff_t id;
@@ -2075,7 +2075,7 @@ struct composition_it
   /* If this is an automatic composition, how many characters to look
      back from the position where a character triggering the
      composition exists.  */
-  int lookback;
+  ptrdiff_t lookback;
   /* If non-negative, number of glyphs of the glyph-string.  */
   int nglyphs;
   /* Nonzero iff the composition is created while buffer is scanned in
@@ -2086,7 +2086,7 @@ struct composition_it
   /** The following members contain information about the current
       grapheme cluster.  */
   /* Position of the first character of the current grapheme cluster.  */
-  EMACS_INT charpos;
+  ptrdiff_t charpos;
   /* Number of characters and bytes of the current grapheme cluster.  */
   int nchars, nbytes;
   /* Indices of the glyphs for the current grapheme cluster.  */
@@ -2111,19 +2111,19 @@ struct it
 
   /* The next position at which to check for face changes, invisible
      text, overlay strings, end of text etc., which see.  */
-  EMACS_INT stop_charpos;
+  ptrdiff_t stop_charpos;
 
   /* Previous stop position, i.e. the last one before the current
      iterator position in `current'.  */
-  EMACS_INT prev_stop;
+  ptrdiff_t prev_stop;
 
   /* Last stop position iterated across whose bidi embedding level is
      equal to the current paragraph's base embedding level.  */
-  EMACS_INT base_level_stop;
+  ptrdiff_t base_level_stop;
 
   /* Maximum string or buffer position + 1.  ZV when iterating over
      current_buffer.  */
-  EMACS_INT end_charpos;
+  ptrdiff_t end_charpos;
 
   /* C string to iterate over.  Non-null means get characters from
      this string, otherwise characters are read from current_buffer
@@ -2132,14 +2132,14 @@ struct it
 
   /* Number of characters in the string (s, or it->string) we iterate
      over.  */
-  EMACS_INT string_nchars;
+  ptrdiff_t string_nchars;
 
   /* Start and end of a visible region; -1 if the region is not
      visible in the window.  */
-  EMACS_INT region_beg_charpos, region_end_charpos;
+  ptrdiff_t region_beg_charpos, region_end_charpos;
 
   /* Position at which redisplay end trigger functions should be run.  */
-  EMACS_INT redisplay_end_trigger_charpos;
+  ptrdiff_t redisplay_end_trigger_charpos;
 
   /* 1 means multibyte characters are enabled.  */
   unsigned multibyte_p : 1;
@@ -2204,13 +2204,13 @@ struct it
 
   /* Total number of overlay strings to process.  This can be >
      OVERLAY_STRING_CHUNK_SIZE.  */
-  int n_overlay_strings;
+  ptrdiff_t n_overlay_strings;
 
   /* The charpos where n_overlay_strings was calculated.  This should
      be set at the same time as n_overlay_strings.  It is needed
      because we show before-strings at the start of invisible text;
      see handle_invisible_prop in xdisp.c.  */
-  EMACS_INT overlay_strings_charpos;
+  ptrdiff_t overlay_strings_charpos;
 
   /* Vector of overlays to process.  Overlay strings are processed
      OVERLAY_STRING_CHUNK_SIZE at a time.  */
@@ -2237,10 +2237,10 @@ struct it
   {
     Lisp_Object string;
     int string_nchars;
-    EMACS_INT end_charpos;
-    EMACS_INT stop_charpos;
-    EMACS_INT prev_stop;
-    EMACS_INT base_level_stop;
+    ptrdiff_t end_charpos;
+    ptrdiff_t stop_charpos;
+    ptrdiff_t prev_stop;
+    ptrdiff_t base_level_stop;
     struct composition_it cmp_it;
     int face_id;
 
@@ -2289,7 +2289,7 @@ struct it
 
   /* -1 means selective display hides everything between a \r and the
      next newline; > 0 means hide lines indented more than that value.  */
-  EMACS_INT selective;
+  ptrdiff_t selective;
 
   /* An enumeration describing what the next display element is
      after a call to get_next_display_element.  */
@@ -2973,7 +2973,7 @@ enum tool_bar_item_image
 
 /* Defined in bidi.c */
 
-extern void bidi_init_it (EMACS_INT, EMACS_INT, int, struct bidi_it *);
+extern void bidi_init_it (ptrdiff_t, ptrdiff_t, int, struct bidi_it *);
 extern void bidi_move_to_visually_next (struct bidi_it *);
 extern void bidi_paragraph_init (bidi_dir_t, struct bidi_it *, int);
 extern int  bidi_mirror_char (int);
@@ -2984,11 +2984,11 @@ extern void bidi_unshelve_cache (void *, int);
 
 /* Defined in xdisp.c */
 
-struct glyph_row *row_containing_pos (struct window *, EMACS_INT,
+struct glyph_row *row_containing_pos (struct window *, ptrdiff_t,
                                       struct glyph_row *,
                                       struct glyph_row *, int);
 int line_bottom_y (struct it *);
-int display_prop_intangible_p (Lisp_Object, Lisp_Object, EMACS_INT, EMACS_INT);
+int display_prop_intangible_p (Lisp_Object, Lisp_Object, ptrdiff_t, ptrdiff_t);
 void resize_echo_area_exactly (void);
 int resize_mini_window (struct window *, int);
 #if defined USE_TOOLKIT_SCROLL_BARS && !defined USE_GTK
@@ -3010,18 +3010,18 @@ void remember_mouse_glyph (struct frame *, int, int, NativeRectangle *);
 
 void mark_window_display_accurate (Lisp_Object, int);
 void redisplay_preserve_echo_area (int);
-void init_iterator (struct it *, struct window *, EMACS_INT,
-                    EMACS_INT, struct glyph_row *, enum face_id);
+void init_iterator (struct it *, struct window *, ptrdiff_t,
+                    ptrdiff_t, struct glyph_row *, enum face_id);
 void init_iterator_to_row_start (struct it *, struct window *,
                                  struct glyph_row *);
 void start_display (struct it *, struct window *, struct text_pos);
-void move_it_to (struct it *, EMACS_INT, int, int, int, int);
+void move_it_to (struct it *, ptrdiff_t, int, int, int, int);
 void move_it_vertically (struct it *, int);
 void move_it_vertically_backward (struct it *, int);
-void move_it_by_lines (struct it *, int);
+void move_it_by_lines (struct it *, ptrdiff_t);
 void move_it_past_eol (struct it *);
 void move_it_in_display_line (struct it *it,
-			      EMACS_INT to_charpos, int to_x,
+			      ptrdiff_t to_charpos, int to_x,
 			      enum move_operation_enum op);
 int in_display_vector_p (struct it *);
 int frame_mode_line_height (struct frame *);
@@ -3031,15 +3031,15 @@ extern int help_echo_showing_p;
 extern int current_mode_line_height, current_header_line_height;
 extern Lisp_Object help_echo_string, help_echo_window;
 extern Lisp_Object help_echo_object, previous_help_echo_string;
-extern EMACS_INT help_echo_pos;
+extern ptrdiff_t help_echo_pos;
 extern struct frame *last_mouse_frame;
 extern int last_tool_bar_item;
 extern void reseat_at_previous_visible_line_start (struct it *);
 extern Lisp_Object lookup_glyphless_char_display (int, struct it *);
-extern EMACS_INT compute_display_string_pos (struct text_pos *,
+extern ptrdiff_t compute_display_string_pos (struct text_pos *,
 					     struct bidi_string_data *,
 					     int, int *);
-extern EMACS_INT compute_display_string_end (EMACS_INT,
+extern ptrdiff_t compute_display_string_end (ptrdiff_t,
 					     struct bidi_string_data *);
 extern void produce_stretch_glyph (struct it *);
 
@@ -3085,7 +3085,7 @@ extern void get_glyph_string_clip_rect (struct glyph_string *,
 extern Lisp_Object find_hot_spot (Lisp_Object, int, int);
 
 extern void handle_tool_bar_click (struct frame *,
-                                   int, int, int, unsigned int);
+                                   int, int, int, int);
 
 extern void expose_frame (struct frame *, int, int, int, int);
 extern int x_intersect_rectangles (XRectangle *, XRectangle *,
@@ -3188,19 +3188,19 @@ int lookup_derived_face (struct frame *, Lisp_Object, int, int);
 void init_frame_faces (struct frame *);
 void free_frame_faces (struct frame *);
 void recompute_basic_faces (struct frame *);
-int face_at_buffer_position (struct window *w, EMACS_INT pos,
-                             EMACS_INT region_beg, EMACS_INT region_end,
-                             EMACS_INT *endptr, EMACS_INT limit,
+int face_at_buffer_position (struct window *w, ptrdiff_t pos,
+                             ptrdiff_t region_beg, ptrdiff_t region_end,
+                             ptrdiff_t *endptr, ptrdiff_t limit,
                              int mouse, int base_face_id);
-int face_for_overlay_string (struct window *w, EMACS_INT pos,
-                             EMACS_INT region_beg, EMACS_INT region_end,
-                             EMACS_INT *endptr, EMACS_INT limit,
+int face_for_overlay_string (struct window *w, ptrdiff_t pos,
+                             ptrdiff_t region_beg, ptrdiff_t region_end,
+                             ptrdiff_t *endptr, ptrdiff_t limit,
                              int mouse, Lisp_Object overlay);
 int face_at_string_position (struct window *w, Lisp_Object string,
-                             EMACS_INT pos, EMACS_INT bufpos,
-                             EMACS_INT region_beg, EMACS_INT region_end,
-                             EMACS_INT *endptr, enum face_id, int mouse);
-int merge_faces (struct frame *, Lisp_Object, EMACS_INT, int);
+                             ptrdiff_t pos, ptrdiff_t bufpos,
+                             ptrdiff_t region_beg, ptrdiff_t region_end,
+                             ptrdiff_t *endptr, enum face_id, int mouse);
+int merge_faces (struct frame *, Lisp_Object, int, int);
 int compute_char_face (struct frame *, int, Lisp_Object);
 void free_all_realized_faces (Lisp_Object);
 extern Lisp_Object Qforeground_color, Qbackground_color;
@@ -3266,11 +3266,11 @@ extern Lisp_Object buffer_posn_from_coords (struct window *,
                                             Lisp_Object *,
                                             int *, int *, int *, int *);
 extern Lisp_Object mode_line_string (struct window *, enum window_part,
-                                     int *, int *, EMACS_INT *,
+                                     int *, int *, ptrdiff_t *,
                                      Lisp_Object *,
                                      int *, int *, int *, int *);
 extern Lisp_Object marginal_area_string (struct window *, enum window_part,
-                                         int *, int *, EMACS_INT *,
+                                         int *, int *, ptrdiff_t *,
                                          Lisp_Object *,
                                          int *, int *, int *, int *);
 extern void redraw_frame (struct frame *);
@@ -3290,7 +3290,7 @@ void shift_glyph_matrix (struct window *, struct glyph_matrix *,
                          int, int, int);
 void rotate_matrix (struct glyph_matrix *, int, int, int);
 void increment_matrix_positions (struct glyph_matrix *,
-                                 int, int, EMACS_INT, EMACS_INT);
+                                 int, int, ptrdiff_t, ptrdiff_t);
 void blank_row (struct window *, struct glyph_row *, int);
 void enable_glyph_matrix_rows (struct glyph_matrix *, int, int, int);
 void clear_glyph_row (struct glyph_row *);

@@ -94,7 +94,7 @@ calculate_scrolling (FRAME_PTR frame,
 		     int free_at_end)
 {
   register int i, j;
-  EMACS_INT frame_lines = FRAME_LINES (frame);
+  int frame_lines = FRAME_LINES (frame);
   register struct matrix_elt *p, *p1;
   register int cost, cost1;
 
@@ -432,7 +432,7 @@ calculate_direct_scrolling (FRAME_PTR frame,
 			    int free_at_end)
 {
   register int i, j;
-  EMACS_INT frame_lines = FRAME_LINES (frame);
+  int frame_lines = FRAME_LINES (frame);
   register struct matrix_elt *p, *p1;
   register int cost, cost1, delta;
 
@@ -889,8 +889,8 @@ static void
 line_ins_del (FRAME_PTR frame, int ov1, int pf1, int ovn, int pfn,
               register int *ov, register int *mf)
 {
-  register EMACS_INT i;
-  register EMACS_INT frame_lines = FRAME_LINES (frame);
+  register int i;
+  register int frame_lines = FRAME_LINES (frame);
   register int insert_overhead = ov1 * 10;
   register int next_insert_cost = ovn * 10;
 

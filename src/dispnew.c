@@ -108,7 +108,7 @@ static int required_matrix_height (struct window *);
 static int required_matrix_width (struct window *);
 static void adjust_frame_glyphs (struct frame *);
 static void change_frame_size_1 (struct frame *, int, int, int, int, int);
-static void increment_row_positions (struct glyph_row *, EMACS_INT, EMACS_INT);
+static void increment_row_positions (struct glyph_row *, ptrdiff_t, ptrdiff_t);
 static void fill_up_frame_row_with_spaces (struct glyph_row *, int);
 static void build_frame_matrix_from_window_tree (struct glyph_matrix *,
                                                  struct window *);
@@ -750,7 +750,7 @@ rotate_matrix (struct glyph_matrix *matrix, int first, int last, int by)
 
 void
 increment_matrix_positions (struct glyph_matrix *matrix, int start, int end,
-			    EMACS_INT delta, EMACS_INT delta_bytes)
+			    ptrdiff_t delta, ptrdiff_t delta_bytes)
 {
   /* Check that START and END are reasonable values.  */
   xassert (start >= 0 && start <= matrix->nrows);
@@ -992,7 +992,7 @@ blank_row (struct window *w, struct glyph_row *row, int y)
 
 static void
 increment_row_positions (struct glyph_row *row,
-			 EMACS_INT delta, EMACS_INT delta_bytes)
+			 ptrdiff_t delta, ptrdiff_t delta_bytes)
 {
   int area, i;
 
@@ -2513,8 +2513,7 @@ build_frame_matrix_from_leaf_window (struct glyph_matrix *frame_matrix, struct w
 
 	  SET_GLYPH_FROM_CHAR (right_border_glyph, '|');
 	  if (dp
-	      && (gc = DISP_BORDER_GLYPH (dp), GLYPH_CODE_P (gc))
-	      && GLYPH_CODE_CHAR_VALID_P (gc))
+	      && (gc = DISP_BORDER_GLYPH (dp), GLYPH_CODE_P (gc)))
 	    {
 	      SET_GLYPH_FROM_GLYPH_CODE (right_border_glyph, gc);
 	      spec_glyph_lookup_face (w, &right_border_glyph);
@@ -5381,7 +5380,7 @@ buffer_posn_from_coords (struct window *w, int *x, int *y, struct display_pos *p
 
 Lisp_Object
 mode_line_string (struct window *w, enum window_part part,
-		  int *x, int *y, EMACS_INT *charpos, Lisp_Object *object,
+		  int *x, int *y, ptrdiff_t *charpos, Lisp_Object *object,
 		  int *dx, int *dy, int *width, int *height)
 {
   struct glyph_row *row;
@@ -5450,7 +5449,7 @@ mode_line_string (struct window *w, enum window_part part,
 
 Lisp_Object
 marginal_area_string (struct window *w, enum window_part part,
-		      int *x, int *y, EMACS_INT *charpos, Lisp_Object *object,
+		      int *x, int *y, ptrdiff_t *charpos, Lisp_Object *object,
 		      int *dx, int *dy, int *width, int *height)
 {
   struct glyph_row *row = w->current_matrix->rows;
@@ -5647,7 +5646,7 @@ static void
 change_frame_size_1 (register struct frame *f, int newheight, int newwidth, int pretend, int delay, int safe)
 {
   int new_frame_total_cols;
-  int count = SPECPDL_INDEX ();
+  ptrdiff_t count = SPECPDL_INDEX ();
 
   /* If we can't deal with the change now, queue it for later.  */
   if (delay || (redisplaying_p && !safe))
@@ -5865,6 +5864,38 @@ bitch_at_user (void)
 			  Sleeping, Waiting
  ***********************************************************************/
 
+/* Convert a positive value DURATION to a seconds count *PSEC plus a
+   microseconds count *PUSEC, rounding up.  On overflow return the
+   maximal value.  */
+void
+duration_to_sec_usec (double duration, int *psec, int *pusec)
+{
+  int MILLION = 1000000;
+  int sec = INT_MAX, usec = MILLION - 1;
+
+  if (duration < INT_MAX + 1.0)
+    {
+      int s = duration;
+      double usdouble = (duration - s) * MILLION;
+      int usfloor = usdouble;
+      int usceil = usfloor + (usfloor < usdouble);
+
+      if (usceil < MILLION)
+	{
+	  sec = s;
+	  usec = usceil;
+	}
+      else if (sec < INT_MAX)
+	{
+	  sec = s + 1;
+	  usec = 0;
+	}
+    }
+
+  *psec = sec;
+  *pusec = usec;
+}
+
 DEFUN ("sleep-for", Fsleep_for, Ssleep_for, 1, 2, 0,
        doc: /* Pause, without updating display, for SECONDS seconds.
 SECONDS may be a floating-point value, meaning that you can wait for a
@@ -5875,38 +5906,23 @@ Emacs was built without floating point support.
   (Lisp_Object seconds, Lisp_Object milliseconds)
 {
   int sec, usec;
+  double duration = extract_float (seconds);
 
-  if (NILP (milliseconds))
-    XSETINT (milliseconds, 0);
-  else
-    CHECK_NUMBER (milliseconds);
-  usec = XINT (milliseconds) * 1000;
+  if (!NILP (milliseconds))
+    {
+      CHECK_NUMBER (milliseconds);
+      duration += XINT (milliseconds) / 1000.0;
+    }
 
-  {
-    double duration = extract_float (seconds);
-    sec = (int) duration;
-    usec += (duration - sec) * 1000000;
-  }
+  if (! (0 < duration))
+    return Qnil;
+
+  duration_to_sec_usec (duration, &sec, &usec);
 
 #ifndef EMACS_HAS_USECS
   if (sec == 0 && usec != 0)
     error ("Millisecond `sleep-for' not supported on %s", SYSTEM_TYPE);
 #endif
-
-  /* Assure that 0 <= usec < 1000000.  */
-  if (usec < 0)
-    {
-      /* We can't rely on the rounding being correct if usec is negative.  */
-      if (-1000000 < usec)
-	sec--, usec += 1000000;
-      else
-	sec -= -usec / 1000000, usec = 1000000 - (-usec % 1000000);
-    }
-  else
-    sec += usec / 1000000, usec %= 1000000;
-
-  if (sec < 0 || (sec == 0 && usec == 0))
-    return Qnil;
 
   wait_reading_process_output (sec, usec, 0, 0, Qnil, NULL, 0);
 
@@ -5938,27 +5954,20 @@ sit_for (Lisp_Object timeout, int reading, int do_display)
   if (do_display >= 2)
     redisplay_preserve_echo_area (2);
 
-  if (INTEGERP (timeout))
-    {
-      sec = XINT (timeout);
-      usec = 0;
-    }
-  else if (FLOATP (timeout))
-    {
-      double seconds = XFLOAT_DATA (timeout);
-      sec = (int) seconds;
-      usec = (int) ((seconds - sec) * 1000000);
-    }
-  else if (EQ (timeout, Qt))
+  if (EQ (timeout, Qt))
     {
       sec = 0;
       usec = 0;
     }
   else
-    wrong_type_argument (Qnumberp, timeout);
+    {
+      double duration = extract_float (timeout);
 
-  if (sec == 0 && usec == 0 && !EQ (timeout, Qt))
-    return Qt;
+      if (! (0 < duration))
+	return Qt;
+
+      duration_to_sec_usec (duration, &sec, &usec);
+    }
 
 #ifdef SIGIO
   gobble_input (0);
@@ -5978,7 +5987,7 @@ perform a full redisplay even if input is available.
 Return t if redisplay was performed, nil otherwise.  */)
   (Lisp_Object force)
 {
-  int count;
+  ptrdiff_t count;
 
   swallow_events (1);
   if ((detect_input_pending_run_timers (1)

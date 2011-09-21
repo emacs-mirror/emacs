@@ -67,8 +67,8 @@ static Lisp_Object Qchar_script_table;
 /* If character code C has modifier masks, reflect them to the
    character code if possible.  Return the resulting code.  */
 
-int
-char_resolve_modifier_mask (int c)
+EMACS_INT
+char_resolve_modifier_mask (EMACS_INT c)
 {
   /* A non-ASCII character can't reflect modifier bits to the code.  */
   if (! ASCII_CHAR_P ((c & ~CHAR_MODIFIER_MASK)))
@@ -340,12 +340,12 @@ usage: (char-width CHAR)  */)
    characters and bytes of the substring in *NCHARS and *NBYTES
    respectively.  */
 
-EMACS_INT
-c_string_width (const unsigned char *str, EMACS_INT len, int precision,
-		EMACS_INT *nchars, EMACS_INT *nbytes)
+ptrdiff_t
+c_string_width (const unsigned char *str, ptrdiff_t len, int precision,
+		ptrdiff_t *nchars, ptrdiff_t *nbytes)
 {
-  EMACS_INT i = 0, i_byte = 0;
-  EMACS_INT width = 0;
+  ptrdiff_t i = 0, i_byte = 0;
+  ptrdiff_t width = 0;
   struct Lisp_Char_Table *dp = buffer_display_table ();
 
   while (i_byte < len)
@@ -392,8 +392,8 @@ c_string_width (const unsigned char *str, EMACS_INT len, int precision,
    current buffer.  The width is measured by how many columns it
    occupies on the screen.  */
 
-EMACS_INT
-strwidth (const char *str, EMACS_INT len)
+ptrdiff_t
+strwidth (const char *str, ptrdiff_t len)
 {
   return c_string_width ((const unsigned char *) str, len, -1, NULL, NULL);
 }
@@ -405,26 +405,26 @@ strwidth (const char *str, EMACS_INT len)
    PRECISION, and set number of characters and bytes of the substring
    in *NCHARS and *NBYTES respectively.  */
 
-EMACS_INT
-lisp_string_width (Lisp_Object string, EMACS_INT precision,
-		   EMACS_INT *nchars, EMACS_INT *nbytes)
+ptrdiff_t
+lisp_string_width (Lisp_Object string, ptrdiff_t precision,
+		   ptrdiff_t *nchars, ptrdiff_t *nbytes)
 {
-  EMACS_INT len = SCHARS (string);
+  ptrdiff_t len = SCHARS (string);
   /* This set multibyte to 0 even if STRING is multibyte when it
      contains only ascii and eight-bit-graphic, but that's
      intentional.  */
   int multibyte = len < SBYTES (string);
   unsigned char *str = SDATA (string);
-  EMACS_INT i = 0, i_byte = 0;
-  EMACS_INT width = 0;
+  ptrdiff_t i = 0, i_byte = 0;
+  ptrdiff_t width = 0;
   struct Lisp_Char_Table *dp = buffer_display_table ();
 
   while (i < len)
     {
-      EMACS_INT chars, bytes, thiswidth;
+      ptrdiff_t chars, bytes, thiswidth;
       Lisp_Object val;
       ptrdiff_t cmp_id;
-      EMACS_INT ignore, end;
+      ptrdiff_t ignore, end;
 
       if (find_composition (i, -1, &ignore, &end, &val, string)
 	  && ((cmp_id = get_composition_id (i, i_byte, end - i, val, string))
@@ -511,8 +511,8 @@ usage: (string-width STRING)  */)
    However, if the current buffer has enable-multibyte-characters =
    nil, we treat each byte as a character.  */
 
-EMACS_INT
-chars_in_text (const unsigned char *ptr, EMACS_INT nbytes)
+ptrdiff_t
+chars_in_text (const unsigned char *ptr, ptrdiff_t nbytes)
 {
   /* current_buffer is null at early stages of Emacs initialization.  */
   if (current_buffer == 0
@@ -527,15 +527,15 @@ chars_in_text (const unsigned char *ptr, EMACS_INT nbytes)
    sequences while assuming that there's no invalid sequence.  It
    ignores enable-multibyte-characters.  */
 
-EMACS_INT
-multibyte_chars_in_text (const unsigned char *ptr, EMACS_INT nbytes)
+ptrdiff_t
+multibyte_chars_in_text (const unsigned char *ptr, ptrdiff_t nbytes)
 {
   const unsigned char *endp = ptr + nbytes;
-  EMACS_INT chars = 0;
+  ptrdiff_t chars = 0;
 
   while (ptr < endp)
     {
-      EMACS_INT len = MULTIBYTE_LENGTH (ptr, endp);
+      int len = MULTIBYTE_LENGTH (ptr, endp);
 
       if (len == 0)
 	abort ();
@@ -553,11 +553,12 @@ multibyte_chars_in_text (const unsigned char *ptr, EMACS_INT nbytes)
    represented by 2-byte in a multibyte text.  */
 
 void
-parse_str_as_multibyte (const unsigned char *str, EMACS_INT len,
-			EMACS_INT *nchars, EMACS_INT *nbytes)
+parse_str_as_multibyte (const unsigned char *str, ptrdiff_t len,
+			ptrdiff_t *nchars, ptrdiff_t *nbytes)
 {
   const unsigned char *endp = str + len;
-  EMACS_INT n, chars = 0, bytes = 0;
+  int n;
+  ptrdiff_t chars = 0, bytes = 0;
 
   if (len >= MAX_MULTIBYTE_LENGTH)
     {
@@ -595,13 +596,13 @@ parse_str_as_multibyte (const unsigned char *str, EMACS_INT len,
    area and that is enough.  Return the number of bytes of the
    resulting text.  */
 
-EMACS_INT
-str_as_multibyte (unsigned char *str, EMACS_INT len, EMACS_INT nbytes,
-		  EMACS_INT *nchars)
+ptrdiff_t
+str_as_multibyte (unsigned char *str, ptrdiff_t len, ptrdiff_t nbytes,
+		  ptrdiff_t *nchars)
 {
   unsigned char *p = str, *endp = str + nbytes;
   unsigned char *to;
-  EMACS_INT chars = 0;
+  ptrdiff_t chars = 0;
   int n;
 
   if (nbytes >= MAX_MULTIBYTE_LENGTH)
@@ -672,11 +673,11 @@ str_as_multibyte (unsigned char *str, EMACS_INT len, EMACS_INT nbytes,
    bytes it may ocupy when converted to multibyte string by
    `str_to_multibyte'.  */
 
-EMACS_INT
-count_size_as_multibyte (const unsigned char *str, EMACS_INT len)
+ptrdiff_t
+count_size_as_multibyte (const unsigned char *str, ptrdiff_t len)
 {
   const unsigned char *endp = str + len;
-  EMACS_INT bytes;
+  ptrdiff_t bytes;
 
   for (bytes = 0; str < endp; str++)
     {
@@ -695,8 +696,8 @@ count_size_as_multibyte (const unsigned char *str, EMACS_INT len)
    that we can use LEN bytes at STR as a work area and that is
    enough.  */
 
-EMACS_INT
-str_to_multibyte (unsigned char *str, EMACS_INT len, EMACS_INT bytes)
+ptrdiff_t
+str_to_multibyte (unsigned char *str, ptrdiff_t len, ptrdiff_t bytes)
 {
   unsigned char *p = str, *endp = str + bytes;
   unsigned char *to;
@@ -724,8 +725,8 @@ str_to_multibyte (unsigned char *str, EMACS_INT len, EMACS_INT bytes)
    actually converts characters in the range 0x80..0xFF to
    unibyte.  */
 
-EMACS_INT
-str_as_unibyte (unsigned char *str, EMACS_INT bytes)
+ptrdiff_t
+str_as_unibyte (unsigned char *str, ptrdiff_t bytes)
 {
   const unsigned char *p = str, *endp = str + bytes;
   unsigned char *to;
@@ -766,10 +767,10 @@ str_as_unibyte (unsigned char *str, EMACS_INT bytes)
    of that character code.
    Note: Currently the arg ACCEPT_LATIN_1 is not used.  */
 
-EMACS_INT
-str_to_unibyte (const unsigned char *src, unsigned char *dst, EMACS_INT chars, int accept_latin_1)
+ptrdiff_t
+str_to_unibyte (const unsigned char *src, unsigned char *dst, ptrdiff_t chars, int accept_latin_1)
 {
-  EMACS_INT i;
+  ptrdiff_t i;
 
   for (i = 0; i < chars; i++)
     {
@@ -786,14 +787,14 @@ str_to_unibyte (const unsigned char *src, unsigned char *dst, EMACS_INT chars, i
 }
 
 
-static EMACS_INT
+static ptrdiff_t
 string_count_byte8 (Lisp_Object string)
 {
   int multibyte = STRING_MULTIBYTE (string);
-  EMACS_INT nbytes = SBYTES (string);
+  ptrdiff_t nbytes = SBYTES (string);
   unsigned char *p = SDATA (string);
   unsigned char *pend = p + nbytes;
-  EMACS_INT count = 0;
+  ptrdiff_t count = 0;
   int c, len;
 
   if (multibyte)
@@ -819,10 +820,10 @@ string_count_byte8 (Lisp_Object string)
 Lisp_Object
 string_escape_byte8 (Lisp_Object string)
 {
-  EMACS_INT nchars = SCHARS (string);
-  EMACS_INT nbytes = SBYTES (string);
+  ptrdiff_t nchars = SCHARS (string);
+  ptrdiff_t nbytes = SBYTES (string);
   int multibyte = STRING_MULTIBYTE (string);
-  EMACS_INT byte8_count;
+  ptrdiff_t byte8_count;
   const unsigned char *src, *src_end;
   unsigned char *dst;
   Lisp_Object val;
@@ -933,7 +934,7 @@ usage: (unibyte-string &rest BYTES)  */)
 
   for (i = 0; i < n; i++)
     {
-      CHECK_NATNUM (args[i]);
+      CHECK_CHARACTER (args[i]);
       c = XFASTINT (args[i]);
       if (c >= 256)
 	args_out_of_range_3 (args[i], make_number (0), make_number (255));
@@ -953,7 +954,7 @@ code.  Unresolved modifiers are kept in the value.
 usage: (char-resolve-modifiers CHAR)  */)
   (Lisp_Object character)
 {
-  int c;
+  EMACS_INT c;
 
   CHECK_NUMBER (character);
   c = XINT (character);
@@ -973,7 +974,7 @@ character is not ASCII nor 8-bit character, an error is signalled.  */)
   (Lisp_Object position, Lisp_Object string)
 {
   int c;
-  EMACS_INT pos;
+  ptrdiff_t pos;
   unsigned char *p;
 
   if (NILP (string))

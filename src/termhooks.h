@@ -229,7 +229,7 @@ struct input_event
      For a HELP_EVENT, this is the position within the object
       (stored in ARG below) where the help was found.  */
   /* In WindowsNT, for a mouse wheel event, this is the delta.  */
-  EMACS_INT code;
+  ptrdiff_t code;
   enum scroll_bar_part part;
 
   int modifiers;		/* See enum below for interpretation.  */
