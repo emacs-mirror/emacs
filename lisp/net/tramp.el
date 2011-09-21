@@ -3024,11 +3024,13 @@ User is always nil."
     (if (and (not current-buffer-p) (integerp asynchronous))
 	(prog1
 	    ;; Run the process.
-	    (apply 'start-file-process "*Async Shell*" buffer args)
+	    (setq p (apply 'start-file-process "*Async Shell*" buffer args))
 	  ;; Display output.
 	  (pop-to-buffer output-buffer)
 	  (setq mode-line-process '(":%s"))
-	  (shell-mode))
+	  (shell-mode)
+	  (set-process-sentinel p 'shell-command-sentinel)
+	  (set-process-filter p 'comint-output-filter))
 
       (prog1
 	  ;; Run the process.
