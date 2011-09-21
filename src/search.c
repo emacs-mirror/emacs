@@ -2126,7 +2126,7 @@ wordify (Lisp_Object string, int lax)
     }
 
   adjust = word_count - 1;
-  if (INT_MULTIPLY_OVERFLOW (5, adjust))
+  if (TYPE_MAXIMUM (EMACS_INT) / 5 < adjust)
     memory_full (SIZE_MAX);
   adjust = - punct_count + 5 * adjust
     + ((lax && !whitespace_at_end) ? 2 : 4);
@@ -3065,10 +3065,12 @@ If optional arg RESEAT is non-nil, make markers on LIST point nowhere.  */)
 	      XSETFASTINT (marker, 0);
 
 	    CHECK_NUMBER_COERCE_MARKER (marker);
-	    if (TYPE_MINIMUM (regoff_t) <= XINT (from)
-		&& XINT (from) <= TYPE_MAXIMUM (regoff_t)
-		&& TYPE_MINIMUM (regoff_t) <= XINT (marker)
-		&& XINT (marker) <= TYPE_MAXIMUM (regoff_t))
+	    if ((XINT (from) < 0
+		 ? TYPE_MINIMUM (regoff_t) <= XINT (from)
+		 : XINT (from) <= TYPE_MAXIMUM (regoff_t))
+		&& (XINT (marker) < 0
+		    ? TYPE_MINIMUM (regoff_t) <= XINT (marker)
+		    : XINT (marker) <= TYPE_MAXIMUM (regoff_t)))
 	      {
 		search_regs.start[i] = XINT (from);
 		search_regs.end[i] = XINT (marker);
