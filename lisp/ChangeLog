@@ -1,3 +1,8 @@
+2011-09-21  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* window.el (display-buffer--action-function-custom-type):
+	Don't include internal functions in the Custom interface.
+
 2011-09-20  Juri Linkov  <juri@jurta.org>
 
 	* info.el (Info-history-skip-intermediate-nodes): New defcustom.
@@ -130,8 +135,8 @@
 	* net/tramp.el (top): Don't require 'shell.
 	(tramp-methods): Fix docstring.
 	(tramp-get-remote-tmpdir): New defun, moved from tramp-sh.el.
-	Return complete remote file name.  Handle "smb" case.  Use
-	`tramp-tmpdir', if defined for the respective method.
+	Return complete remote file name.  Handle "smb" case.
+	Use `tramp-tmpdir', if defined for the respective method.
 	(tramp-make-tramp-temp-file): Adapt call of `tramp-get-remote-tmpdir'.
 
 	* net/tramp-compat.el (top): Require 'shell.

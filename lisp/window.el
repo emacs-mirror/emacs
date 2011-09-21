@@ -4442,10 +4442,7 @@ BUFFER-OR-NAME and return that buffer."
 (defconst display-buffer--action-function-custom-type
   '(choice :tag "Function"
 	   (const :tag "--" ignore) ; default for insertion
-	   (const display-buffer--maybe-same-window)
 	   (const display-buffer-reuse-window)
-	   (const display-buffer--special)
-	   (const display-buffer--maybe-pop-up-frame-or-window)
 	   (const display-buffer-use-some-window)
 	   (const display-buffer-same-window)
 	   (const display-buffer-pop-up-frame)
