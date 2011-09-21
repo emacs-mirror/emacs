@@ -1,3 +1,28 @@
+2011-09-21  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* message.el (message-indent-citation): Really make sure there's a
+	newline at the end.
+
+	* nnimap.el (nnimap-parse-flags): Make regexp less prone to overflows.
+	Fix suggested by John Wiegley.
+
+	* pop3.el (pop3-open-server): Fix +OK end-of-command regexp.
+
+	* gnus-art.el (gnus-treat-hide-citation): Add doc.
+
+	* message.el (message-default-send-rename-function): Break out into its
+	own function.
+
+	* ecomplete.el (ecomplete-display-matches): Revert patch since it
+	doesn't work under XEmacs.
+
+	* nnimap.el (nnimap-map-port): New function to connect to 993 instead
+	of "imaps" to word around Windows problems.
+	(nnimap-open-connection-1): Use it.
+
+	* message.el (message-indent-citation): Revert last change which made
+	`F' not work.
+
 2011-09-13  Kan-Ru Chen  <kanru@kanru.info>
 
 	* ecomplete.el (ecomplete-display-matches): Intercept key sequence from
