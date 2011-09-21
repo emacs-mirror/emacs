@@ -419,7 +419,7 @@ reorder_font_vector (Lisp_Object font_group, struct font *font)
 		   tail = XCDR (tail))
 		if (EQ (encoding, XCAR (tail)))
 		  break;
-		else if (score <= MIN (INT_MAX, MOST_POSITIVE_FIXNUM) - 0x100)
+		else if (score <= min (INT_MAX, MOST_POSITIVE_FIXNUM) - 0x100)
 		  score += 0x100;
 	    }
 	  else
