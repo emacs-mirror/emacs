@@ -1,3 +1,9 @@
+2011-09-21  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* mm-view.el (mm-display-inline-fontify): Don't run doc-view-mode
+	because it displays images using overlays that aren't easy to copy to
+	the article buffer.
+
 2011-09-20  Łukasz Stelmach  <lukasz.stelmach@iem.pw.edu.pl>  (tiny change)
 
 	* message.el (message-indent-citation): Fix empty line removal at the
