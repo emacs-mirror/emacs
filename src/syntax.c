@@ -1264,7 +1264,7 @@ scan_words (register ptrdiff_t from, register EMACS_INT count)
       if (! NILP (Ffboundp (func)))
 	{
 	  pos = call2 (func, make_number (from - 1), make_number (end));
-	  if (RANGED_INTEGERP (from + 1, pos, ZV))
+	  if (INTEGERP (pos) && from < XINT (pos) && XINT (pos) <= ZV)
 	    {
 	      from = XINT (pos);
 	      from_byte = CHAR_TO_BYTE (from);
@@ -1314,7 +1314,7 @@ scan_words (register ptrdiff_t from, register EMACS_INT count)
       if (! NILP (Ffboundp (func)))
  	{
 	  pos = call2 (func, make_number (from), make_number (beg));
-	  if (RANGED_INTEGERP (BEGV, pos, from - 1))
+	  if (INTEGERP (pos) && BEGV <= XINT (pos) && XINT (pos) < from)
 	    {
 	      from = XINT (pos);
 	      from_byte = CHAR_TO_BYTE (from);
