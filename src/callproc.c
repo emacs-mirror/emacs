@@ -631,7 +631,7 @@ usage: (call-process PROGRAM &optional INFILE BUFFER DISPLAY &rest ARGS)  */)
       fd_error = fd_error_volatile;
       fd_output = fd_output_volatile;
       output_to_buffer = output_to_buffer_volatile;
-      sa_must_free_volatile = sa_must_free;
+      sa_must_free = sa_must_free_volatile;
       sa_count = sa_count_volatile;
       new_argv = new_argv_volatile;
     }
