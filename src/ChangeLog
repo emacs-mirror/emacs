@@ -178,6 +178,7 @@
 	(Frem): Don't assume arg is nonnegative.
 	* dbusbind.c (xd_append_arg): Check for integers out of range.
 	(Fdbus_call_method): Don't overflow the timeout int.
+
 	* dired.c (directory_files_internal, file_name_completion, scmp)
 	(file_name_completion_stat):
 	Use ptrdiff_t, not int, to avoid needless 32-bit limit on 64-bit hosts.
@@ -332,7 +333,6 @@
 	Check that fixnums are in proper range for system types.
 	(ftfont_shape_by_flt):
 	Use ptrdiff_t, not EMACS_INT, where ptrdiff_t is wide enough.
-	Remove no-longer-needed lint_assume.
 	* gnutls.c (emacs_gnutls_write, emacs_gnutls_read):
 	Use ptrdiff_t, not EMACS_INT, where ptrdiff_t is wide enough.
 	(Fgnutls_error_fatalp, Fgnutls_error_string, Fgnutls_boot):
