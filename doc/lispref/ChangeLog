@@ -1,3 +1,7 @@
+2011-09-21  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* display.texi (Face Functions): `face-list' returns faces (bug#9564).
+
 2011-09-19  Lars Magne Ingebrigtsen  <larsi@gnus.org>
 
 	* errors.texi (Standard Errors): Remove apparent placeholder text

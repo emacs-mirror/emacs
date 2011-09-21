@@ -2598,7 +2598,7 @@ attributes @code{nil}.  It does nothing if there is already a face named
 @end defun
 
 @defun face-list
-This function returns a list of all defined face names.
+This function returns a list of all defined faces.
 @end defun
 
 @defun copy-face old-face new-name &optional frame new-frame
