@@ -3960,7 +3960,7 @@ Return non-nil if we received any output before the timeout expired.  */)
 
   if (!NILP (seconds))
     {
-      double duration = extract_float (duration);
+      double duration = extract_float (seconds);
       if (0 < duration)
 	duration_to_sec_usec (duration, &secs, &usecs);
     }
