@@ -1,3 +1,32 @@
+2011-09-21  Michael Albinus  <michael.albinus@gmx.de>
+
+	* net/tramp.el (tramp-handle-shell-command): Set process sentinel
+	and process filter, as done also in `shell-command'.
+
+2011-09-21  Martin Rudalics  <rudalics@gmx.at>
+
+	* window.el (set-window-buffer-start-and-point): Call
+	set-window-start with NOFORCE argument t.  Suggested by Thierry
+	Volpiatto <thierry.volpiatto@gmail.com>.
+	(quit-window): Reword doc-string.  Handle new format of
+	quit-restore parameter.  Don't delete window if it has a
+	previous buffer we can show instead of the present one.
+	(display-buffer-record-window): Rewrite using a new format for
+	the quit-restore window parameter
+	(special-display-popup-frame, display-buffer-same-window)
+	(display-buffer-reuse-window, display-buffer-pop-up-frame)
+	(display-buffer-pop-up-window, display-buffer-use-some-window):
+	Adapt symbol passed to display-buffer-record-window.
+	* help.el (help-window-setup): Handle new format of quit-restore
+	parameter.
+
+2011-09-21  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* faces.el (face-list): Fix docstring (bug#9564).
+
+	* window.el (display-buffer--action-function-custom-type):
+	Don't include internal functions in the Custom interface.
+
 2011-09-20  Juri Linkov  <juri@jurta.org>
 
 	* info.el (Info-history-skip-intermediate-nodes): New defcustom.
@@ -130,8 +159,8 @@
 	* net/tramp.el (top): Don't require 'shell.
 	(tramp-methods): Fix docstring.
 	(tramp-get-remote-tmpdir): New defun, moved from tramp-sh.el.
-	Return complete remote file name.  Handle "smb" case.  Use
-	`tramp-tmpdir', if defined for the respective method.
+	Return complete remote file name.  Handle "smb" case.
+	Use `tramp-tmpdir', if defined for the respective method.
 	(tramp-make-tramp-temp-file): Adapt call of `tramp-get-remote-tmpdir'.
 
 	* net/tramp-compat.el (top): Require 'shell.

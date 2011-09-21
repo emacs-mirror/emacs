@@ -5459,7 +5459,8 @@ pop_it (struct it *it)
 		&& IT_BYTEPOS (*it) == it->bidi_it.bytepos)
 	       || (STRINGP (it->object)
 		   && IT_STRING_CHARPOS (*it) == it->bidi_it.charpos
-		   && IT_STRING_BYTEPOS (*it) == it->bidi_it.bytepos));
+		   && IT_STRING_BYTEPOS (*it) == it->bidi_it.bytepos)
+	       || (CONSP (it->object) && it->method == GET_FROM_STRETCH));
     }
 }
 
