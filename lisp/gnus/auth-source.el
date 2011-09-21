@@ -1225,49 +1225,46 @@ See `auth-source-search' for details on SPEC."
                         (?p ,(aget printable-defaults 'port))))))
 
         ;; Store the data, prompting for the password if needed.
-        (setq data
-              (cond
-               ((and (null data) (eq r 'secret))
-                ;; Special case prompt for passwords.
-                ;; TODO: make the default (setq auth-source-netrc-use-gpg-tokens `((,(if (boundp 'epa-file-auto-mode-alist-entry) (car (symbol-value 'epa-file-auto-mode-alist-entry)) "\\.gpg\\'") nil) (t gpg)))
-                ;; TODO: or maybe leave as (setq auth-source-netrc-use-gpg-tokens 'never)
-                (let* ((ep (format "Use GPG password tokens in %s?" file))
-                       (gpg-encrypt
-                        (cond
-                         ((eq auth-source-netrc-use-gpg-tokens 'never)
-                          'never)
-                         ((listp auth-source-netrc-use-gpg-tokens)
-                          (let ((check (copy-sequence
-                                        auth-source-netrc-use-gpg-tokens))
-                                item ret)
-                            (while check
-                              (setq item (pop check))
-                              (when (or (eq (car item) t)
-                                        (string-match (car item) file))
-                                (setq ret (cdr item))
-                                (setq check nil)))))
-                         (t 'never)))
-                       (plain (read-passwd prompt)))
-                  ;; ask if we don't know what to do (in which case
-                  ;; auth-source-netrc-use-gpg-tokens must be a list)
-                  (unless gpg-encrypt
-                    (setq gpg-encrypt (if (y-or-n-p ep) 'gpg 'never))
-                    ;; TODO: save the defcustom now? or ask?
-                    (setq auth-source-netrc-use-gpg-tokens
-                          (cons `(,file ,gpg-encrypt)
-                                auth-source-netrc-use-gpg-tokens)))
-                  (if (eq gpg-encrypt 'gpg)
-                      (auth-source-epa-make-gpg-token plain file)
-                    plain)))
-               ((null data)
-                (when default
-                  (setq prompt
-                        (if (string-match ": *\\'" prompt)
-                            (concat (substring prompt 0 (match-beginning 0))
-                                    " (default " default "): ")
-                          (concat prompt "(default " default ") "))))
-                (read-string prompt nil nil default))
-               (t (or data default))))
+        (setq data (or data
+                       (if (eq r 'secret)
+                           ;; Special case prompt for passwords.
+                           ;; TODO: make the default (setq auth-source-netrc-use-gpg-tokens `((,(if (boundp 'epa-file-auto-mode-alist-entry) (car (symbol-value 'epa-file-auto-mode-alist-entry)) "\\.gpg\\'") nil) (t gpg)))
+                           ;; TODO: or maybe leave as (setq auth-source-netrc-use-gpg-tokens 'never)
+                           (let* ((ep (format "Use GPG password tokens in %s?" file))
+                                  (gpg-encrypt
+                                   (cond
+                                    ((eq auth-source-netrc-use-gpg-tokens 'never)
+                                     'never)
+                                    ((listp auth-source-netrc-use-gpg-tokens)
+                                     (let ((check (copy-sequence
+                                                   auth-source-netrc-use-gpg-tokens))
+                                           item ret)
+                                       (while check
+                                         (setq item (pop check))
+                                         (when (or (eq (car item) t)
+                                                   (string-match (car item) file))
+                                           (setq ret (cdr item))
+                                           (setq check nil)))))
+                                    (t 'never)))
+                                  (plain (or (eval default) (read-passwd prompt))))
+                             ;; ask if we don't know what to do (in which case
+                             ;; auth-source-netrc-use-gpg-tokens must be a list)
+                             (unless gpg-encrypt
+                               (setq gpg-encrypt (if (y-or-n-p ep) 'gpg 'never))
+                               ;; TODO: save the defcustom now? or ask?
+                               (setq auth-source-netrc-use-gpg-tokens
+                                     (cons `(,file ,gpg-encrypt)
+                                           auth-source-netrc-use-gpg-tokens)))
+                             (if (eq gpg-encrypt 'gpg)
+                                 (auth-source-epa-make-gpg-token plain file)
+                               plain))
+                         (if (stringp default)
+                             (read-string (if (string-match ": *\\'" prompt)
+                                              (concat (substring prompt 0 (match-beginning 0))
+                                                      " (default " default "): ")
+                                            (concat prompt "(default " default ") "))
+                                          nil nil default)
+                           (eval default)))))
 
         (when data
           (setq artificial (plist-put artificial
@@ -1671,20 +1668,16 @@ authentication tokens:
                         (?p ,(aget printable-defaults 'port))))))
 
         ;; Store the data, prompting for the password if needed.
-        (setq data
-              (cond
-               ((and (null data) (eq r 'secret))
-                ;; Special case prompt for passwords.
-                (read-passwd prompt))
-               ((null data)
-                (when default
-                  (setq prompt
-                        (if (string-match ": *\\'" prompt)
-                            (concat (substring prompt 0 (match-beginning 0))
-                                    " (default " default "): ")
-                          (concat prompt "(default " default ") "))))
-                (read-string prompt nil nil default))
-               (t (or data default))))
+        (setq data (or data
+                       (if (eq r 'secret)
+                           (or (eval default) (read-passwd prompt))
+                         (if (stringp default)
+                             (read-string (if (string-match ": *\\'" prompt)
+                                              (concat (substring prompt 0 (match-beginning 0))
+                                                      " (default " default "): ")
+                                            (concat prompt "(default " default ") "))
+                                          nil nil default)
+                           (eval default)))))
 
         (when data
           (if (member r base-secret)
