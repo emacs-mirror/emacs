@@ -1,3 +1,20 @@
+2011-09-21  Martin Rudalics  <rudalics@gmx.at>
+
+	* window.el (set-window-buffer-start-and-point): Call
+	set-window-start with NOFORCE argument t.  Suggested by Thierry
+	Volpiatto <thierry.volpiatto@gmail.com>.
+	(quit-window): Reword doc-string.  Handle new format of
+	quit-restore parameter.  Don't delete window if it has a
+	previous buffer we can show instead of the present one.
+	(display-buffer-record-window): Rewrite using a new format for
+	the quit-restore window parameter
+	(special-display-popup-frame, display-buffer-same-window)
+	(display-buffer-reuse-window, display-buffer-pop-up-frame)
+	(display-buffer-pop-up-window, display-buffer-use-some-window):
+	Adapt symbol passed to display-buffer-record-window.
+	* help.el (help-window-setup): Handle new format of quit-restore
+	parameter.
+
 2011-09-21  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* faces.el (face-list): Fix docstring (bug#9564).

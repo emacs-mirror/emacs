@@ -2531,7 +2531,8 @@ before was current this also makes BUFFER the current buffer."
     (when (and selected current)
       (set-buffer buffer))
     (when start
-      (set-window-start window start))
+      ;; Don't force window-start here (even if POINT is nil).
+      (set-window-start window start t))
     (when point
       (if selected
 	  (with-current-buffer buffer
@@ -2868,8 +2869,9 @@ all window-local buffer lists."
 
 (defun quit-window (&optional kill window)
   "Quit WINDOW and bury its buffer.
-WINDOW defaults to the selected window.
-With a prefix argument, kill the buffer instead.
+WINDOW must be a live window and defaults to the selected one.
+With prefix argument KILL non-nil, kill the buffer instead of
+burying it.
 
 According to information stored in WINDOW's `quit-restore' window
 parameter either \(1) delete WINDOW and its frame, \(2) delete
@@ -2878,50 +2880,62 @@ or \(4) make WINDOW display some other buffer than the present
 one.  If non-nil, reset `quit-restore' parameter to nil."
   (interactive "P")
   (setq window (window-normalize-live-window window))
-  (let ((buffer (window-buffer window))
-	(quit-restore (window-parameter window 'quit-restore))
-	resize)
+  (let* ((buffer (window-buffer window))
+	 (quit-restore (window-parameter window 'quit-restore))
+	 (prev-buffer
+	  (let* ((prev-buffers (window-prev-buffers window))
+		 (prev-buffer (caar prev-buffers)))
+	    (and (or (not (eq prev-buffer buffer))
+		     (and (cdr prev-buffers)
+			  (not (eq (setq prev-buffer (cadr prev-buffers))
+				   buffer))))
+		 prev-buffer)))
+	 quad resize)
     (cond
-     ((and (eq (car-safe quit-restore) 'new-frame)
-	   (eq (nth 1 quit-restore) (window-buffer window))
-	   (eq (window-deletable-p window) 'frame))
+     ((and (not prev-buffer)
+	   (eq (nth 1 quit-restore) 'frame)
+	   (eq (window-deletable-p window) 'frame)
+	   (eq (nth 3 quit-restore) buffer))
       ;; WINDOW's frame can be deleted.
       (delete-frame (window-frame window))
       ;; If the previously selected window is still alive, select it.
       (when (window-live-p (nth 2 quit-restore))
 	(select-window (nth 2 quit-restore))))
-     ((and (eq (car-safe quit-restore) 'new-window)
-	   (eq (nth 1 quit-restore) (window-buffer window))
-	   (eq (window-deletable-p window) t))
-      ;; WINDOW's can be deleted.
+     ((and (not prev-buffer)
+	   (eq (nth 1 quit-restore) 'window)
+	   (eq (window-deletable-p window) t)
+	   (eq (nth 3 quit-restore) buffer))
+      ;; WINDOW can be deleted.
       (delete-window window)
       ;; If the previously selected window is still alive, select it.
       (when (window-live-p (nth 2 quit-restore))
 	(select-window (nth 2 quit-restore))))
-     ((and (buffer-live-p (nth 0 quit-restore))
-	   ;; The buffer currently shown in WINDOW must still be the
-	   ;; buffer shown when its `quit-restore' parameter was created
-	   ;; in the first place.
-	   (eq (window-buffer window) (nth 3 quit-restore)))
-      (setq resize (with-current-buffer buffer temp-buffer-resize-mode))
+     ((and (listp (setq quad (nth 1 quit-restore)))
+	   (buffer-live-p (car quad))
+	   (eq (nth 3 quit-restore) buffer))
+      ;; Show another buffer stored in quit-restore parameter.
+      (setq resize (with-current-buffer buffer
+		     (and temp-buffer-resize-mode
+			  (/= (nth 3 quad) (window-total-size window)))))
       (unrecord-window-buffer window buffer)
-      ;; Display buffer stored in the quit-restore parameter.
       (set-window-dedicated-p window nil)
-      (set-window-buffer window (nth 0 quit-restore))
-      (set-window-start window (nth 1 quit-restore))
-      (set-window-point window (nth 2 quit-restore))
-      (and resize
-	   (/= (nth 4 quit-restore) (window-total-size window))
-	   (window-resize window
-			  (- (nth 4 quit-restore)
-			     (window-total-size window))))
+      (when resize
+	;; Try to resize WINDOW to its old height but don't signal an
+	;; error.
+	(condition-case nil
+	    (window-resize window (- (nth 3 quad) (window-total-size window)))
+	  (error nil)))
+      ;; Restore WINDOW's previous buffer, window start and point.
+      (set-window-buffer-start-and-point
+       window (nth 0 quad) (nth 1 quad) (nth 2 quad))
       ;; Reset the quit-restore parameter.
       (set-window-parameter window 'quit-restore nil)
-      (when (window-live-p (nth 5 quit-restore))
-	(select-window (nth 5 quit-restore))))
+      ;; Select old window.
+      (when (window-live-p (nth 2 quit-restore))
+	(select-window (nth 2 quit-restore))))
      (t
-      ;; Otherwise, show another buffer in WINDOW and reset the
-      ;; quit-restore parameter.
+      ;; Show some other buffer in WINDOW and reset the quit-restore
+      ;; parameter.
       (set-window-parameter window 'quit-restore nil)
       (switch-to-prev-buffer window 'bury-or-kill)))
 
@@ -3787,39 +3801,48 @@ subwindows can get as small as `window-safe-min-height' and
 
 (defun display-buffer-record-window (type window buffer)
   "Record information for window used by `display-buffer'.
-TYPE must be one of the symbols reuse-window, pop-up-window, or
-pop-up-frame.  WINDOW is the window used for or created by the
-`display-buffer' routines.  BUFFER is the buffer that shall be
-displayed."
+TYPE specifies the type of the calling operation and must be one
+of the symbols 'reuse \(when WINDOW existed already and was
+reused for displaying BUFFER), 'window \(when WINDOW was created
+on an already existing frame), or 'frame \(when WINDOW was
+created on a new frame). WINDOW is the window used for or created
+by the `display-buffer' routines.  BUFFER is the buffer that
+shall be displayed.
+
+This function installs or updates the quit-restore parameter of
+WINDOW.  The quit-restore parameter is a list of four elements:
+The first element is one of the symbols 'window, 'frame, 'same or
+'other.  The second element is either one of the symbols 'window
+or 'frame or a list whose elements are the buffer previously
+shown in the window, that buffer's window start and window point,
+and the window's height.  The third element is the window
+selected at the time the parameter was created.  The fourth
+element is BUFFER."
   (cond
-   ((eq type 'reuse-window)
-    ;; In `help-setup' window parameter record whether we used a window
-    ;; on the same buffer or another one.
-    (set-window-parameter
-     window 'help-setup
-     (if (eq (window-buffer window) buffer) 'reuse-same 'reuse-other))
-    ;; In `quit-restore' parameter record information about the old
-    ;; buffer unless such information exists already.
-    (unless (window-parameter window 'quit-restore)
+   ((eq type 'reuse)
+    (if (eq (window-buffer window) buffer)
+	;; WINDOW shows BUFFER already.
+	(when (consp (window-parameter window 'quit-restore))
+	  ;; If WINDOW has a quit-restore parameter, reset its car.
+	  (setcar (window-parameter window 'quit-restore) 'same))
+      ;; WINDOW shows another buffer.
       (set-window-parameter
        window 'quit-restore
-       (list (window-buffer window) (window-start window)
-	     (window-point window) buffer
-	     (window-total-size window) (selected-window)))))
-   ((eq type 'pop-up-window)
-    ;; In `help-setup' window parameter record window as new.
-    (set-window-parameter window 'help-setup 'new-window)
-    ;; In `quit-restore' parameter record that we popped up this window,
-    ;; its buffer, and which window was selected before.
+       (list 'other
+	     ;; A quadruple of WINDOW's buffer, start, point and height.
+	     (list (window-buffer window) (window-start window)
+		   (window-point window) (window-total-size window))
+	     (selected-window) buffer))))
+   ((eq type 'window)
+    ;; WINDOW has been created on an existing frame.
     (set-window-parameter
-     window 'quit-restore (list 'new-window buffer (selected-window))))
-   ((eq type 'pop-up-frame)
-    ;; In `help-setup' window parameter record window as on new frame.
-    (set-window-parameter window 'help-setup 'new-frame)
-    ;; In `quit-restore' parameter record that we popped up this window
-    ;; on a new frame, the buffer, and which window was selected before.
+     window 'quit-restore
+     (list 'window 'window (selected-window) buffer)))
+   ((eq type 'frame)
+    ;; WINDOW has been created on a new frame.
     (set-window-parameter
-     window 'quit-restore (list 'new-frame buffer (selected-window))))))
+     window 'quit-restore
+     (list 'frame 'frame (selected-window) buffer)))))
 
 (defcustom display-buffer-function nil
   "If non-nil, function to call to handle `display-buffer'.
@@ -4065,7 +4088,7 @@ and (cdr ARGS) as second."
 	 (let ((frame (window-frame window)))
 	   (make-frame-visible frame)
 	   (raise-frame frame)
-	   (display-buffer-record-window 'reuse-window window buffer)
+	   (display-buffer-record-window 'reuse window buffer)
 	   window))
        ;; Reuse the current window if the user requested it.
        (when (cdr (assq 'same-window args))
@@ -4083,7 +4106,7 @@ and (cdr ARGS) as second."
 	      (with-current-buffer buffer
 		(make-frame (append args special-display-frame-alist)))))
 	 (display-buffer-record-window
-	  'pop-up-frame (frame-selected-window frame) buffer)
+	  'frame (frame-selected-window frame) buffer)
 	 (set-window-buffer (frame-selected-window frame) buffer)
 	 (set-window-dedicated-p (frame-selected-window frame) t)
 	 (frame-selected-window frame))))))
@@ -4644,7 +4667,7 @@ selected window."
   (unless (or (cdr (assq 'inhibit-same-window alist))
 	      (window-minibuffer-p)
 	      (window-dedicated-p))
-    (display-buffer-record-window 'reuse-window (selected-window) buffer)
+    (display-buffer-record-window 'reuse (selected-window) buffer)
     (window--display-buffer-2 buffer (selected-window))))
 
 (defun display-buffer--maybe-same-window (buffer alist)
@@ -4689,7 +4712,7 @@ terminal if either of those variables is non-nil."
 			      (get-buffer-window-list buffer 'nomini
 						      frames))))))
     (when window
-      (display-buffer-record-window 'reuse-window window buffer)
+      (display-buffer-record-window 'reuse window buffer)
       (window--display-buffer-1 window))))
 
 (defun display-buffer--special (buffer alist)
@@ -4713,7 +4736,7 @@ return the window used; otherwise return nil."
     (when (and fun
 	       (setq frame (funcall fun))
 	       (setq window (frame-selected-window frame)))
-      (display-buffer-record-window 'pop-up-frame window buffer)
+      (display-buffer-record-window 'frame window buffer)
       (window--display-buffer-2 buffer window)
       ;; Reset list of WINDOW's previous buffers to nil.
       (set-window-prev-buffers window nil)
@@ -4739,7 +4762,7 @@ If sucessful, return the new window; otherwise return nil."
 				 (get-largest-window frame t))
 				(window--try-to-split-window
 				 (get-lru-window frame t)))))
-      (display-buffer-record-window 'pop-up-window window buffer)
+      (display-buffer-record-window 'window window buffer)
       (window--display-buffer-2 buffer window)
       ;; Reset list of WINDOW's previous buffers to nil.
       (set-window-prev-buffers window nil)
@@ -4793,7 +4816,7 @@ return the window.  If no suitable window is found, return nil."
 	;; Restore dedicated status of selected window.
 	(set-window-dedicated-p window-to-undedicate nil)))
     (when window
-      (display-buffer-record-window 'reuse-window window buffer)
+      (display-buffer-record-window 'reuse window buffer)
       (window--even-window-heights window)
       (window--display-buffer-2 buffer window))))
 
