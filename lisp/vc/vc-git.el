@@ -486,16 +486,16 @@ or an empty string if none."
 (defvar vc-git-stash-menu-map
   (let ((map (make-sparse-keymap "Git Stash")))
     (define-key map [de]
-      '(menu-item "Delete stash" vc-git-stash-delete-at-point
+      '(menu-item "Delete Stash" vc-git-stash-delete-at-point
 		  :help "Delete the current stash"))
     (define-key map [ap]
-      '(menu-item "Apply stash" vc-git-stash-apply-at-point
+      '(menu-item "Apply Stash" vc-git-stash-apply-at-point
 		  :help "Apply the current stash and keep it in the stash list"))
     (define-key map [po]
-      '(menu-item "Apply and remove stash (pop)" vc-git-stash-pop-at-point
+      '(menu-item "Apply and Remove Stash (Pop)" vc-git-stash-pop-at-point
 		  :help "Apply the current stash and remove it"))
     (define-key map [sh]
-      '(menu-item "Show stash" vc-git-stash-show-at-point
+      '(menu-item "Show Stash" vc-git-stash-show-at-point
 		  :help "Show the contents of the current stash"))
     map))
 
@@ -933,7 +933,7 @@ or BRANCH^ (where \"^\" can be repeated)."
       '(menu-item "Git grep..." vc-git-grep
 		  :help "Run the `git grep' command"))
     (define-key map [git-sn]
-      '(menu-item "Stash a snapshot" vc-git-stash-snapshot
+      '(menu-item "Stash a Snapshot" vc-git-stash-snapshot
 		  :help "Stash the current state of the tree and keep the current state"))
     (define-key map [git-st]
       '(menu-item "Create Stash..." vc-git-stash

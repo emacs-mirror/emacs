@@ -834,7 +834,7 @@ CONST2 may be evaulated multiple times."
       (setcar (cdr bytes-tail) (logand pc 255))
       (setcar bytes-tail (lsh pc -8))
       ;; FIXME: Replace this by some workaround.
-      (if (> (car bytes) 255) (error "Bytecode overflow")))
+      (if (> (car bytes-tail) 255) (error "Bytecode overflow")))
 
     (apply 'unibyte-string (nreverse bytes))))
 

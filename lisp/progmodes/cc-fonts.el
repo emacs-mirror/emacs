@@ -290,7 +290,7 @@
 	  res))))
 
   (defun c-make-font-lock-search-form (regexp highlights)
-    ;; Return a lisp form which will fontify every occurence of REGEXP
+    ;; Return a lisp form which will fontify every occurrence of REGEXP
     ;; (a regular expression, NOT a function) between POINT and `limit'
     ;; with HIGHLIGHTS, a list of highlighters as specified on page
     ;; "Search-based Fontification" in the elisp manual.

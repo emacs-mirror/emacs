@@ -2280,7 +2280,7 @@ The method used must be an out-of-band method."
 	;; password.
 	(setq tramp-current-method (tramp-file-name-method v)
 	      tramp-current-user   (tramp-file-name-user v)
-	      tramp-current-host   (tramp-file-name-host v))
+	      tramp-current-host   (tramp-file-name-real-host v))
 
 	;; Expand hops.  Might be necessary for gateway methods.
 	(setq v (car (tramp-compute-multi-hops v)))
@@ -4025,6 +4025,7 @@ means discard it)."
 (defconst tramp-inline-compress-commands
   '(("gzip" "gzip -d")
     ("bzip2" "bzip2 -d")
+    ("xz" "xz -d")
     ("compress" "compress -d"))
   "List of compress and decompress commands for inline transfer.
 Each item is a list that looks like this:
@@ -4292,7 +4293,7 @@ connection if a previous connection has died for some reason."
 		     (gw (tramp-get-file-property hop "" "gateway" nil))
 		     (g-method (and gw (tramp-file-name-method gw)))
 		     (g-user (and gw (tramp-file-name-user gw)))
-		     (g-host (and gw (tramp-file-name-host gw)))
+		     (g-host (and gw (tramp-file-name-real-host gw)))
 		     (command login-program)
 		     ;; We don't create the temporary file.  In fact,
 		     ;; it is just a prefix for the ControlPath option
@@ -4720,16 +4721,6 @@ This is used internally by `tramp-file-mode-from-int'."
 	     x))
 	   x))
 	remote-path)))))
-
-(defun tramp-get-remote-tmpdir (vec)
-  (with-connection-property vec "tmp-directory"
-    (let ((dir (tramp-shell-quote-argument "/tmp")))
-      (if (and (tramp-send-command-and-check
-		vec (format "%s -d %s" (tramp-get-test-command vec) dir))
-	       (tramp-send-command-and-check
-		vec (format "%s -w %s" (tramp-get-test-command vec) dir)))
-	  dir
-	(tramp-error vec 'file-error "Directory %s not accessible" dir)))))
 
 (defun tramp-get-ls-command (vec)
   (with-connection-property vec "ls"

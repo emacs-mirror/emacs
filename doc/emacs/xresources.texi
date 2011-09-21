@@ -169,11 +169,10 @@ with the class that it belongs to:
 @item @code{background} (class @code{Background})
 Background color name.
 
-@ifnottex
 @item @code{bitmapIcon} (class @code{BitmapIcon})
-Use a bitmap icon (a picture of a gnu) if @samp{on}, let the window
-manager choose an icon if @samp{off}.
-@end ifnottex
+Tell the window manager to display the Emacs icon if @samp{on}; don't
+do so if @samp{off}.  (The icon is usually shown in the ``taskbar'' on
+a graphical desktop.)
 
 @item @code{borderColor} (class @code{BorderColor})
 Color name for the external border.

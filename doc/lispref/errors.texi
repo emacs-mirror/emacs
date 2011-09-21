@@ -28,9 +28,6 @@ condition @code{error}, because quitting is not considered an error.
 handled.
 
 @table @code
-@item @var{symbol}
-@var{string}; @var{reference}.
-
 @item error
 @code{"error"}@*
 @xref{Errors}.

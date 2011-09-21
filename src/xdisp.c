@@ -5467,7 +5467,8 @@ pop_it (struct it *it)
 		&& IT_BYTEPOS (*it) == it->bidi_it.bytepos)
 	       || (STRINGP (it->object)
 		   && IT_STRING_CHARPOS (*it) == it->bidi_it.charpos
-		   && IT_STRING_BYTEPOS (*it) == it->bidi_it.bytepos));
+		   && IT_STRING_BYTEPOS (*it) == it->bidi_it.bytepos)
+	       || (CONSP (it->object) && it->method == GET_FROM_STRETCH));
     }
 }
 
@@ -13644,15 +13645,17 @@ set_cursor_from_row (struct window *w, struct glyph_row *row,
 	       /* A truncated row may not include PT among its
 		  character positions.  Setting the cursor inside the
 		  scroll margin will trigger recalculation of hscroll
-		  in hscroll_window_tree.  */
-	       || (row->truncated_on_left_p && pt_old < bpos_min)
-	       || (row->truncated_on_right_p && pt_old > bpos_max)
-	       /* Zero-width characters produce no glyphs.  */
+		  in hscroll_window_tree.  But if a display string
+		  covers point, defer to the string-handling code
+		  below to figure this out.  */
 	       || (!string_seen
-		   && !empty_line_p
-		   && (row->reversed_p
-		       ? glyph_after > glyphs_end
-		       : glyph_after < glyphs_end)))
+		   && ((row->truncated_on_left_p && pt_old < bpos_min)
+		       || (row->truncated_on_right_p && pt_old > bpos_max)
+		       /* Zero-width characters produce no glyphs.  */
+		       || (!empty_line_p
+			   && (row->reversed_p
+			       ? glyph_after > glyphs_end
+			       : glyph_after < glyphs_end)))))
 	{
 	  cursor = glyph_after;
 	  x = -1;
@@ -13670,6 +13673,17 @@ set_cursor_from_row (struct window *w, struct glyph_row *row,
 	  ptrdiff_t pos = pos_before;
 
 	  x = -1;
+
+	  /* If the row ends in a newline from a display string,
+	     reordering could have moved the glyphs belonging to the
+	     string out of the [GLYPH_BEFORE..GLYPH_AFTER] range.  So
+	     in this case we extend the search to the last glyph in
+	     the row that was not inserted by redisplay.  */
+	  if (row->ends_in_newline_from_string_p)
+	    {
+	      glyph_after = end;
+	      pos_after = MATRIX_ROW_END_CHARPOS (row) + delta;
+	    }
 
 	  /* GLYPH_BEFORE and GLYPH_AFTER are the glyphs that
 	     correspond to POS_BEFORE and POS_AFTER, respectively.  We
@@ -18346,7 +18360,8 @@ find_row_edges (struct it *it, struct glyph_row *row,
      Line ends in a newline from buffer       eol_pos + 1
      Line is continued from buffer            max_pos + 1
      Line is truncated on right               it->current.pos
-     Line ends in a newline from string       max_pos
+     Line ends in a newline from string       max_pos + 1(*)
+      (*) + 1 only when line ends in a forward scan
      Line is continued from string            max_pos
      Line is continued from display vector    max_pos
      Line is entirely from a string           min_pos == max_pos
@@ -18359,8 +18374,76 @@ find_row_edges (struct it *it, struct glyph_row *row,
     row->maxpos = it->current.pos;
   else if (row->used[TEXT_AREA])
     {
-      if (row->ends_in_newline_from_string_p)
-	SET_TEXT_POS (row->maxpos, max_pos, max_bpos);
+      int seen_this_string = 0;
+      struct glyph_row *r1 = row - 1;
+
+      /* Did we see the same display string on the previous row?  */
+      if (STRINGP (it->object)
+	  /* this is not the first row */
+	  && row > it->w->desired_matrix->rows
+	  /* previous row is not the header line */
+	  && !r1->mode_line_p
+	  /* previous row also ends in a newline from a string */
+	  && r1->ends_in_newline_from_string_p)
+	{
+	  struct glyph *start, *end;
+
+	  /* Search for the last glyph of the previous row that came
+	     from buffer or string.  Depending on whether the row is
+	     L2R or R2L, we need to process it front to back or the
+	     other way round.  */
+	  if (!r1->reversed_p)
+	    {
+	      start = r1->glyphs[TEXT_AREA];
+	      end = start + r1->used[TEXT_AREA];
+	      /* Glyphs inserted by redisplay have an integer (zero)
+		 as their object.  */
+	      while (end > start
+		     && INTEGERP ((end - 1)->object)
+		     && (end - 1)->charpos <= 0)
+		--end;
+	      if (end > start)
+		{
+		  if (EQ ((end - 1)->object, it->object))
+		    seen_this_string = 1;
+		}
+	      else
+		abort ();
+	    }
+	  else
+	    {
+	      end = r1->glyphs[TEXT_AREA] - 1;
+	      start = end + r1->used[TEXT_AREA];
+	      while (end < start
+		     && INTEGERP ((end + 1)->object)
+		     && (end + 1)->charpos <= 0)
+		++end;
+	      if (end < start)
+		{
+		  if (EQ ((end + 1)->object, it->object))
+		    seen_this_string = 1;
+		}
+	      else
+		abort ();
+	    }
+	}
+      /* Take note of each display string that covers a newline only
+	 once, the first time we see it.  This is for when a display
+	 string includes more than one newline in it.  */
+      if (row->ends_in_newline_from_string_p && !seen_this_string)
+	{
+	  /* If we were scanning the buffer forward when we displayed
+	     the string, we want to account for at least one buffer
+	     position that belongs to this row (position covered by
+	     the display string), so that cursor positioning will
+	     consider this row as a candidate when point is at the end
+	     of the visual line represented by this row.  This is not
+	     required when scanning back, because max_pos will already
+	     have a much larger value.  */
+	  if (CHARPOS (row->end.pos) > max_pos)
+	    INC_BOTH (max_pos, max_bpos);
+	  SET_TEXT_POS (row->maxpos, max_pos, max_bpos);
+	}
       else if (CHARPOS (it->eol_pos) > 0)
 	SET_TEXT_POS (row->maxpos,
 		      CHARPOS (it->eol_pos) + 1, BYTEPOS (it->eol_pos) + 1);
@@ -18668,11 +18751,6 @@ display_line (struct it *it)
 		      it->current_x = new_x;
 		      it->continuation_lines_width += new_x;
 		      ++it->hpos;
-		      /* Record the maximum and minimum buffer
-			 positions seen so far in glyphs that will be
-			 displayed by this row.  */
-		      if (it->bidi_p)
-			RECORD_MAX_MIN_POS (it);
 		      if (i == nglyphs - 1)
 			{
 			  /* If line-wrap is on, check if a previous
@@ -18687,6 +18765,11 @@ display_line (struct it *it)
 				  || IT_DISPLAYING_WHITESPACE (it)))
 			    goto back_to_wrap;
 
+			  /* Record the maximum and minimum buffer
+			     positions seen so far in glyphs that will be
+			     displayed by this row.  */
+			  if (it->bidi_p)
+			    RECORD_MAX_MIN_POS (it);
 			  set_iterator_to_next (it, 1);
 			  if (IT_OVERFLOW_NEWLINE_INTO_FRINGE (it))
 			    {
@@ -18704,6 +18787,8 @@ display_line (struct it *it)
 				}
 			    }
 			}
+		      else if (it->bidi_p)
+			RECORD_MAX_MIN_POS (it);
 		    }
 		  else if (CHAR_GLYPH_PADDING_P (*glyph)
 			   && !FRAME_WINDOW_P (it->f))
@@ -18834,6 +18919,10 @@ display_line (struct it *it)
 		  xassert (it->first_visible_x <= it->last_visible_x);
 		}
 	    }
+	  /* Even if this display element produced no glyphs at all,
+	     we want to record its position.  */
+	  if (it->bidi_p && nglyphs == 0)
+	    RECORD_MAX_MIN_POS (it);
 
 	  row->ascent = max (row->ascent, it->max_ascent);
 	  row->height = max (row->height, it->max_ascent + it->max_descent);
@@ -19124,6 +19213,7 @@ See also `bidi-paragraph-direction'.  */)
       ptrdiff_t pos = BUF_PT (buf);
       ptrdiff_t bytepos = BUF_PT_BYTE (buf);
       int c;
+      void *itb_data = bidi_shelve_cache ();
 
       set_buffer_temp (buf);
       /* bidi_paragraph_init finds the base direction of the paragraph
@@ -19136,27 +19226,27 @@ See also `bidi-paragraph-direction'.  */)
 	  pos--;
 	  bytepos = CHAR_TO_BYTE (pos);
 	}
-      while ((c = FETCH_BYTE (bytepos)) == '\n'
-	     || c == ' ' || c == '\t' || c == '\f')
+      if (fast_looking_at (build_string ("[\f\t ]*\n"),
+			   pos, bytepos, ZV, ZV_BYTE, Qnil) > 0)
 	{
-	  if (bytepos <= BEGV_BYTE)
-	    break;
-	  bytepos--;
-	  pos--;
+	  while ((c = FETCH_BYTE (bytepos)) == '\n'
+		 || c == ' ' || c == '\t' || c == '\f')
+	    {
+	      if (bytepos <= BEGV_BYTE)
+		break;
+	      bytepos--;
+	      pos--;
+	    }
+	  while (!CHAR_HEAD_P (FETCH_BYTE (bytepos)))
+	    bytepos--;
 	}
-      while (!CHAR_HEAD_P (FETCH_BYTE (bytepos)))
-	bytepos--;
-      itb.charpos = pos;
-      itb.bytepos = bytepos;
-      itb.nchars = -1;
+      bidi_init_it (pos, bytepos, FRAME_WINDOW_P (SELECTED_FRAME ()), &itb);
       itb.string.s = NULL;
       itb.string.lstring = Qnil;
-      itb.frame_window_p = FRAME_WINDOW_P (SELECTED_FRAME ()); /* guesswork */
-      itb.first_elt = 1;
-      itb.separator_limit = -1;
-      itb.paragraph_dir = NEUTRAL_DIR;
-
+      itb.string.bufpos = 0;
+      itb.string.unibyte = 0;
       bidi_paragraph_init (NEUTRAL_DIR, &itb, 1);
+      bidi_unshelve_cache (itb_data, 0);
       set_buffer_temp (old);
       switch (itb.paragraph_dir)
 	{
@@ -23251,7 +23341,14 @@ produce_stretch_glyph (struct it *it)
 
   if (width > 0 && it->line_wrap != TRUNCATE
       && it->current_x + width > it->last_visible_x)
-    width = it->last_visible_x - it->current_x - 1;
+    {
+      width = it->last_visible_x - it->current_x;
+#ifdef HAVE_WINDOW_SYSTEM
+      /* Subtact one more pixel from the stretch width, but only on
+	 GUI frames, since on a TTY each glyph is one "pixel" wide.  */
+      width -= FRAME_WINDOW_P (it->f);
+#endif
+    }
 
   if (width > 0 && height > 0 && it->glyph_row)
     {
@@ -23263,14 +23360,7 @@ produce_stretch_glyph (struct it *it)
 	object = it->w->buffer;
 #ifdef HAVE_WINDOW_SYSTEM
       if (FRAME_WINDOW_P (it->f))
-	{
-	  append_stretch_glyph (it, object, width, height, ascent);
-	  it->pixel_width = width;
-	  it->ascent = it->phys_ascent = ascent;
-	  it->descent = it->phys_descent = height - it->ascent;
-	  it->nglyphs = width > 0 && height > 0 ? 1 : 0;
-	  take_vertical_position_into_account (it);
-	}
+	append_stretch_glyph (it, object, width, height, ascent);
       else
 #endif
 	{
@@ -23282,6 +23372,19 @@ produce_stretch_glyph (struct it *it)
 	  it->object = o_object;
 	}
     }
+
+  it->pixel_width = width;
+#ifdef HAVE_WINDOW_SYSTEM
+  if (FRAME_WINDOW_P (it->f))
+    {
+      it->ascent = it->phys_ascent = ascent;
+      it->descent = it->phys_descent = height - it->ascent;
+      it->nglyphs = width > 0 && height > 0 ? 1 : 0;
+      take_vertical_position_into_account (it);
+    }
+  else
+#endif
+    it->nglyphs = width;
 }
 
 #ifdef HAVE_WINDOW_SYSTEM
@@ -27219,7 +27322,7 @@ expose_window (struct window *w, XRectangle *fr)
     {
       int yb = window_text_bottom_y (w);
       struct glyph_row *row;
-      int cursor_cleared_p;
+      int cursor_cleared_p, phys_cursor_on_p;
       struct glyph_row *first_overlapping_row, *last_overlapping_row;
 
       TRACE ((stderr, "expose_window (%d, %d, %d, %d)\n",
@@ -27238,6 +27341,13 @@ expose_window (struct window *w, XRectangle *fr)
 	}
       else
 	cursor_cleared_p = 0;
+
+      /* If the row containing the cursor extends face to end of line,
+	 then expose_area might overwrite the cursor outside the
+	 rectangle and thus notice_overwritten_cursor might clear
+	 w->phys_cursor_on_p.  We remember the original value and
+	 check later if it is changed.  */
+      phys_cursor_on_p = w->phys_cursor_on_p;
 
       /* Update lines intersecting rectangle R.  */
       first_overlapping_row = last_overlapping_row = NULL;
@@ -27305,7 +27415,8 @@ expose_window (struct window *w, XRectangle *fr)
 	  x_draw_vertical_border (w);
 
 	  /* Turn the cursor on again.  */
-	  if (cursor_cleared_p)
+	  if (cursor_cleared_p
+	      || (phys_cursor_on_p && !w->phys_cursor_on_p))
 	    update_window_cursor (w, 1);
 	}
     }

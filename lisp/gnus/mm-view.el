@@ -90,13 +90,14 @@
     (put-image
      (let ((image (mm-get-image handle)))
        (if (eq mm-inline-large-images 'resize)
-           (gnus-rescale-image image
-                               (let ((edges (gnus-window-inside-pixel-edges
-                                             (get-buffer-window (current-buffer)))))
-                                 (cons (truncate (* mm-inline-large-images-proportion
-                                                    (- (nth 2 edges) (nth 0 edges))))
-                                       (truncate (* mm-inline-large-images-proportion
-                                                    (- (nth 3 edges) (nth 1 edges)))))))
+           (gnus-rescale-image
+	    image
+	    (let ((edges (gnus-window-inside-pixel-edges
+			  (get-buffer-window (current-buffer)))))
+	      (cons (truncate (* mm-inline-large-images-proportion
+				 (- (nth 2 edges) (nth 0 edges))))
+		    (truncate (* mm-inline-large-images-proportion
+				 (- (nth 3 edges) (nth 1 edges)))))))
          image))
      b)
     (insert "\n\n")
@@ -606,7 +607,10 @@ If MODE is not set, try to find mode automatically."
         (set (make-local-variable 'enable-local-variables) nil)
         (if mode
             (funcall mode)
-          (set-auto-mode))
+	  (let ((auto-mode-alist
+		 (delq (rassq 'doc-view-mode-maybe auto-mode-alist)
+		       (copy-sequence auto-mode-alist))))
+	    (set-auto-mode)))
 	;; The mode function might have already turned on font-lock.
         ;; Do not fontify if the guess mode is fundamental.
 	(unless (or (symbol-value 'font-lock-mode)

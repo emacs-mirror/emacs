@@ -3954,6 +3954,8 @@ Optional argument NUMERIC, if non-nil, means the argument is numeric."
     ;; Done like this to preserve any text properties of the `\'
     (while (search-forward "\\" to t)
       (let ((c (following-char)))
+	;; Some other escapes, such as \f, are handled in
+	;; `woman0-process-escapes'.
 	(cond ((eq c ?')		; \' -> '
 	       (delete-char -1)
 	       (cond (numeric		; except in numeric args, \' -> `
@@ -3967,12 +3969,7 @@ Optional argument NUMERIC, if non-nil, means the argument is numeric."
 	       (insert "\t"))
 	      ((and numeric
 		    (memq c '(?w ?n ?h)))) ; leave \w, \n, \h (?????)
-	      ((eq c ?l) (woman-horizontal-line))
-	      (t
-	       ;; \? -> ? where ? is any remaining character
-	       (WoMan-warn "Escape ignored: \\%c -> %c" c c)
-	       (delete-char -1))
-	      )))
+	      ((eq c ?l) (woman-horizontal-line)))))
     (goto-char from)
     ;; Process non-default tab settings:
     (cond (tab-stop-list

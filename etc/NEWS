@@ -654,7 +654,7 @@ consult.
 
 ** The Landmark game is now invoked with `landmark', not `lm'.
 
-** MH-E has been upgraded to MH-E version 8.2.93.
+** MH-E has been upgraded to MH-E version 8.3.
 See MH-E-NEWS for details.
 
 ** Modula-2 mode provides auto-indentation.
@@ -814,7 +814,7 @@ They are superseded by shift-select-mode enabled by default in 23.1.
 * New Modes and Packages in Emacs 24.1
 
 ** Occur Edit mode applies edits made in *Occur* buffers to the
-original buffers.  It is bound to C-x C-q in Occur mode.
+original buffers.  It is bound to "e" in Occur mode.
 
 ** New global minor modes electric-pair-mode, electric-indent-mode,
 and electric-layout-mode.

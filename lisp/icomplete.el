@@ -179,11 +179,8 @@ otherwise turn it off."
   (if icomplete-mode
       ;; The following is not really necessary after first time -
       ;; no great loss.
-      (progn
-	(setq completion-show-inline-help nil)
-	(add-hook 'minibuffer-setup-hook 'icomplete-minibuffer-setup))
-    (remove-hook 'minibuffer-setup-hook 'icomplete-minibuffer-setup)
-    (setq completion-show-inline-help t)))
+      (add-hook 'minibuffer-setup-hook 'icomplete-minibuffer-setup)
+    (remove-hook 'minibuffer-setup-hook 'icomplete-minibuffer-setup)))
 
 ;;;_ > icomplete-simple-completing-p ()
 (defun icomplete-simple-completing-p ()
@@ -209,6 +206,7 @@ Conditions are:
   "Run in minibuffer on activation to establish incremental completion.
 Usually run by inclusion in `minibuffer-setup-hook'."
   (when (and icomplete-mode (icomplete-simple-completing-p))
+    (set (make-local-variable 'completion-show-inline-help) nil)
     (add-hook 'pre-command-hook
 	      (lambda () (run-hooks 'icomplete-pre-command-hook))
 	      nil t)

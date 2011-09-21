@@ -58,7 +58,6 @@
 ;;; Code:
 
 (require 'tramp-compat)
-(require 'shell)
 
 ;;; User Customizable Internal Variables:
 
@@ -192,15 +191,16 @@ This is a list of entries of the form (NAME PARAM1 PARAM2 ...).
 Each NAME stands for a remote access method.  Each PARAM is a
 pair of the form (KEY VALUE).  The following KEYs are defined:
   * `tramp-remote-shell'
-    This specifies the Bourne shell to use on the remote host.  This
-    MUST be a Bourne-like shell.  It is normally not necessary to set
-    this to any value other than \"/bin/sh\": Tramp wants to use a shell
-    which groks tilde expansion, but it can search for it.  Also note
-    that \"/bin/sh\" exists on all Unixen, this might not be true for
-    the value that you decide to use.  You Have Been Warned.
+    This specifies the shell to use on the remote host.  This
+    MUST be a Bourne-like shell.  It is normally not necessary to
+    set this to any value other than \"/bin/sh\": Tramp wants to
+    use a shell which groks tilde expansion, but it can search
+    for it.  Also note that \"/bin/sh\" exists on all Unixen,
+    this might not be true for the value that you decide to use.
+    You Have Been Warned.
   * `tramp-remote-shell-args'
     For implementation of `shell-command', this specifies the
-    argument to let `tramp-remote-shell' run a command.
+    arguments to let `tramp-remote-shell' run a single command.
   * `tramp-login-program'
     This specifies the name of the program to use for logging in to the
     remote host.  This may be the name of rsh or a workalike program,
@@ -255,6 +255,9 @@ pair of the form (KEY VALUE).  The following KEYs are defined:
     not have to be newline or carriage return characters.  Other login
     programs are happy with just one character, the newline character.
     We use \"xy\" as the value for methods using \"plink\".
+  * `tramp-tmpdir'
+    A directory on the remote host for temporary files.  If not
+    specified, \"/tmp\" is taken as default.
 
 What does all this mean?  Well, you should specify `tramp-login-program'
 for all methods; this program is used to log in to the remote site.  Then,
@@ -3021,11 +3024,13 @@ User is always nil."
     (if (and (not current-buffer-p) (integerp asynchronous))
 	(prog1
 	    ;; Run the process.
-	    (apply 'start-file-process "*Async Shell*" buffer args)
+	    (setq p (apply 'start-file-process "*Async Shell*" buffer args))
 	  ;; Display output.
 	  (pop-to-buffer output-buffer)
 	  (setq mode-line-process '(":%s"))
-	  (shell-mode))
+	  (shell-mode)
+	  (set-process-sentinel p 'shell-command-sentinel)
+	  (set-process-filter p 'comint-output-filter))
 
       (prog1
 	  ;; Run the process.
@@ -3531,20 +3536,26 @@ If the `tramp-methods' entry does not exist, return nil."
 	 ;; loaded already.
 	 (zerop (tramp-compat-funcall 'tramp-get-remote-uid vec 'integer))))))
 
+(defun tramp-get-remote-tmpdir (vec)
+  "Return directory for temporary files on the remote host identified by VEC."
+  (with-connection-property vec "tmpdir"
+    (let ((dir (tramp-make-tramp-file-name
+		(tramp-file-name-method vec)
+		(tramp-file-name-user vec)
+		(tramp-file-name-host vec)
+		(or
+		 (tramp-get-method-parameter
+		  (tramp-file-name-method vec) 'tramp-tmpdir)
+		 "/tmp"))))
+      (if (and (file-directory-p dir) (file-writable-p dir))
+	  dir
+	(tramp-error vec 'file-error "Directory %s not accessible" dir)))))
+
 (defun tramp-make-tramp-temp-file (vec)
   "Create a temporary file on the remote host identified by VEC.
 Return the local name of the temporary file."
-  (let ((prefix
-	 (tramp-make-tramp-file-name
-	  (tramp-file-name-method vec)
-	  (tramp-file-name-user vec)
-	  (tramp-file-name-host vec)
-	  (tramp-drop-volume-letter
-	   (expand-file-name
-	    tramp-temp-name-prefix
-	    ;; This is defined in tramp-sh.el.  Let's assume this is
-	    ;; loaded already.
-	    (tramp-compat-funcall 'tramp-get-remote-tmpdir vec)))))
+  (let ((prefix (expand-file-name
+		 tramp-temp-name-prefix (tramp-get-remote-tmpdir vec)))
 	result)
     (while (not result)
       ;; `make-temp-file' would be the natural choice for

@@ -1,3 +1,222 @@
+2011-09-21  Michael Albinus  <michael.albinus@gmx.de>
+
+	* net/tramp.el (tramp-handle-shell-command): Set process sentinel
+	and process filter, as done also in `shell-command'.
+
+2011-09-21  Martin Rudalics  <rudalics@gmx.at>
+
+	* window.el (set-window-buffer-start-and-point): Call
+	set-window-start with NOFORCE argument t.  Suggested by Thierry
+	Volpiatto <thierry.volpiatto@gmail.com>.
+	(quit-window): Reword doc-string.  Handle new format of
+	quit-restore parameter.  Don't delete window if it has a
+	previous buffer we can show instead of the present one.
+	(display-buffer-record-window): Rewrite using a new format for
+	the quit-restore window parameter
+	(special-display-popup-frame, display-buffer-same-window)
+	(display-buffer-reuse-window, display-buffer-pop-up-frame)
+	(display-buffer-pop-up-window, display-buffer-use-some-window):
+	Adapt symbol passed to display-buffer-record-window.
+	* help.el (help-window-setup): Handle new format of quit-restore
+	parameter.
+
+2011-09-21  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* faces.el (face-list): Fix docstring (bug#9564).
+
+	* window.el (display-buffer--action-function-custom-type):
+	Don't include internal functions in the Custom interface.
+
+2011-09-20  Juri Linkov  <juri@jurta.org>
+
+	* info.el (Info-history-skip-intermediate-nodes): New defcustom.
+	(Info-forward-node, Info-backward-node, Info-next-preorder)
+	(Info-last-preorder): Use it.  (Bug#9528)
+
+2011-09-20  Juri Linkov  <juri@jurta.org>
+
+	* info.el (Info-last-preorder): Visit last menu item only when
+	`Info-scroll-prefer-subnodes' is non-nil (third test-case of bug#9528).
+
+2011-09-20  Julien Danjou  <julien@danjou.info>
+
+	* password-cache.el (password-cache-remove): Remove entries even if the
+	value is nil, so that password with a nil value (negative caching) is
+	possible to invalidate.
+
+2011-09-20  Lawrence Mitchell  <wence@gmx.li>
+
+	* progmodes/f90.el (f90-break-line): If breaking inside comment delete
+	all whitespace around breakpoint.  (Bug#9553)
+	(f90-find-breakpoint): Only break at whitespace inside a comment.
+
+2011-09-20  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* minibuffer.el (completion-file-name-table): Keep track of errors.
+	(completion-table-with-predicate): Handle the case where pred1 is nil.
+	* pcomplete.el (pcomplete-completions-at-point): Simplify.
+
+2011-09-19  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* emacs-lisp/debug.el (debugger-args): Give it a docstring.
+	(debugger-return-value): Signal an error if the debugging context does
+	not await any return value.
+
+	* ps-mule.el (ps-mule-plot-string): Don't inf-loop (bug#5108).
+	* image-mode.el (image-toggle-display-text)
+	(image-toggle-display-image): Stay away from evil `intangible'.
+
+2011-09-19  Leo Liu  <sdl.web@gmail.com>
+
+	* replace.el (occur-revert-arguments): Make it permanent-local.
+	(occur-mode): Don't call font-lock-defontify.
+
+2011-09-19  Chong Yidong  <cyd@stupidchicken.com>
+
+	* net/ldap.el (ldap-search-internal): Don't push empty search
+	result (Bug#9508).
+
+2011-09-19  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* whitespace.el (whitespace-newline-mode): Disable it right (bug#9550).
+
+2011-09-19  Michael Albinus  <michael.albinus@gmx.de>
+
+	* net/tramp-sh.el (tramp-inline-compress-commands): Add "xz".
+	Suggested by Liam Stitt <stittl@cuug.ab.ca>.
+
+2011-09-18  Juri Linkov  <juri@jurta.org>
+
+	* buff-menu.el (Buffer-menu-mode-map):
+	* dired.el (dired-mode-map):
+	* emacs-lisp/lisp-mode.el (emacs-lisp-mode-map)
+	(lisp-interaction-mode-map):
+	* emacs-lisp/package.el (package-menu-mode-map):
+	* epa.el (epa-key-list-mode-map):
+	* menu-bar.el (menu-bar-showhide-tool-bar-menu)
+	(menu-bar-options-menu):
+	* outline.el (outline-mode-menu-bar-map):
+	* vc/vc-bzr.el (vc-bzr-shelve-menu-map, vc-bzr-extra-menu-map):
+	* vc/vc-dir.el (vc-dir-menu-map):
+	* vc/vc-git.el (vc-git-stash-menu-map, vc-git-extra-menu-map):
+	Capitalize non-function content words in menu item strings.
+
+	* dired.el (dired-mode-map): Add menu item for
+	`image-dired-dired-toggle-marked-thumbs'.
+
+2011-09-18  Juri Linkov  <juri@jurta.org>
+
+	* isearch.el (isearch-edit-string): Bind `isearch-new-case-fold'
+	to `isearch-case-fold-search' and restore its original value
+	after the `isearch-mode' call.
+
+2011-09-18  Juri Linkov  <juri@jurta.org>
+
+	* progmodes/grep.el (grep-process-setup): Don't check code for 1
+	because `zgrep' returns 1 for successful matches (bug#9226).
+
+2011-09-18  Juri Linkov  <juri@jurta.org>
+
+	* info.el (Info-extract-menu-node-name): Check the second match
+	for empty string (second test-case of bug#9528).
+	(Info-last-preorder): Let-bind `Info-history' to nil to not add
+	intermediate nodes to the history (first test-case of bug#9528).
+
+2011-09-18  Juri Linkov  <juri@jurta.org>
+
+	* info.el (Info-mode-syntax-table): New variable.
+	(Info-mode): Set `:syntax-table' to `Info-mode-syntax-table'.  (Bug#3312)
+
+2011-09-18  Juri Linkov  <juri@jurta.org>
+
+	* info.el (Info-file-supports-index-cookies): Increment
+	line-beginning-position's arg from 3 to 4 because makeinfo outputs
+	one more line for long file names (bug#4142).
+
+2011-09-18  Chong Yidong  <cyd@stupidchicken.com>
+
+	* newcomment.el (comment-normalize-vars): If prompting for
+	comment-start, set comment-start-skip too (Bug#8424).
+
+2011-09-18  Johan Bockgård  <bojohan@gnu.org>
+
+	* icomplete.el: Fix previous fix of Bug#5849.
+	(icomplete-mode): Don't set completion-show-inline-help.
+	(icomplete-minibuffer-setup): Set completion-show-inline-help
+	locally during icompletion.
+
+2011-09-18  Chong Yidong  <cyd@stupidchicken.com>
+
+	* woman.el (woman2-process-escapes): Don't delete unrecognized
+	escapes (Bug#7843).
+
+	* files.el (inhibit-first-line-modes-regexps): Add image files.
+	(hack-local-variables-prop-line): Return nil for malformed
+	prop-lines (Bug#9044).
+
+2011-09-18  Michael Albinus  <michael.albinus@gmx.de>
+
+	* net/tramp.el (top): Don't require 'shell.
+	(tramp-methods): Fix docstring.
+	(tramp-get-remote-tmpdir): New defun, moved from tramp-sh.el.
+	Return complete remote file name.  Handle "smb" case.
+	Use `tramp-tmpdir', if defined for the respective method.
+	(tramp-make-tramp-temp-file): Adapt call of `tramp-get-remote-tmpdir'.
+
+	* net/tramp-compat.el (top): Require 'shell.
+
+	* net/tramp-sh.el (tramp-do-copy-or-rename-file-out-of-band)
+	(tramp-maybe-open-connection): Use `tramp-file-name-real-host' for
+	`tramp-current-host'.
+	(tramp-get-remote-tmpdir): Remove.
+
+	* net/tramp-smb.el (tramp-methods): Add `tramp-remote-shell' and
+	`tramp-tmpdir' entries.
+	(tramp-smb-errors): Add "NT_STATUS_IMAGE_ALREADY_LOADED".
+	(tramp-smb-handle-file-attributes): Ignore errors.
+	(tramp-smb-wait-for-output): Check also for process end.
+
+2011-09-18  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* mail/smtpmail.el (smtpmail-via-smtp): Ignore errors that arise
+	when sending QUIT (bug#9312).
+
+2011-09-17  Chong Yidong  <cyd@stupidchicken.com>
+
+	* replace.el (occur-mode-map): Rebind occur-edit-mode to "e" (Bug#8463).
+	(occur-edit-mode-map): Bind C-c C-c to occur-cease-edit and C-o to
+	occur-mode-display-occurrence.
+	(occur-edit-mode): Add usage message.
+	(occur-cease-edit): New command.
+	(occur-after-change-function): Use text properties to find the
+	position of the prefix text.
+	(occur-engine): Set stickiness of prefix text properties.
+
+2011-09-17  Glenn Morris  <rgm@gnu.org>
+
+	* progmodes/etags.el (complete-tag):
+	Fix call to completion-in-region.  (Bug#9526)
+
+2011-09-17  Juri Linkov  <juri@jurta.org>
+
+	* textmodes/ispell.el (ispell-word): Add to the error message
+	the word, ispell program name and current dictionary (bug#9121).
+	(ispell-tex-arg-end): Capitalize "error" in the error message.
+
+2011-09-17  Andreas Schwab  <schwab@linux-m68k.org>
+
+	* emacs-lisp/bytecomp.el (byte-compile-lapcode): Fix overflow
+	check.  (Bug#4251)
+
+2011-09-17  Juri Linkov  <juri@jurta.org>
+
+	* window.el (window-safe-min-height, window-safe-min-width):
+	Fix typos (followup to bug#9522).
+
+2011-09-17  Sven Joachim  <svenjoac@gmx.de>
+
+	* window.el (window-min-width, window-state-put): Fix typos (bug#9522).
+
 2011-09-16  Eli Zaretskii  <eliz@gnu.org>
 
 	* simple.el (line-move): If goal-column is set, move by logical

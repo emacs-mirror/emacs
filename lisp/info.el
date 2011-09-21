@@ -52,6 +52,15 @@ Each element of the stack is a list (FILENAME NODENAME BUFFERPOS).")
   "List of all Info nodes user has visited.
 Each element of the list is a list (FILENAME NODENAME).")
 
+(defcustom Info-history-skip-intermediate-nodes t
+  "Non-nil means don't record intermediate Info nodes to the history.
+Intermediate Info nodes are nodes visited by Info internally in the process of
+searching the node to display.  Intermediate nodes are not presented
+to the user."
+  :type 'boolean
+  :group 'info
+  :version "24.1")
+
 (defcustom Info-enable-edit nil
   "Non-nil means the \\<Info-mode-map>\\[Info-edit] command in Info can edit the current node.
 This is convenient if you want to write Info files by hand.
@@ -540,7 +549,7 @@ in `Info-file-supports-index-cookies-list'."
 	  (condition-case ()
 	      (if (and (re-search-forward
 			"makeinfo[ \n]version[ \n]\\([0-9]+.[0-9]+\\)"
-			(line-beginning-position 3) t)
+			(line-beginning-position 4) t)
 		       (not (version< (match-string 1) "4.7")))
 		  (setq found t))
 	    (error nil))
@@ -2440,7 +2449,8 @@ Because of ambiguities, this should be concatenated with something like
       )
     (replace-regexp-in-string
      "[ \n]+" " "
-     (or (match-string-no-properties 2)
+     (or (and (not (equal (match-string-no-properties 2) ""))
+	      (match-string-no-properties 2))
 	 ;; If the node name is the menu entry name (using `entry::').
 	 (buffer-substring-no-properties
 	  (match-beginning 0) (1- (match-beginning 1)))))))
@@ -2667,10 +2677,13 @@ N is the digit argument used to invoke this command."
 				   "top")))
 	   (let ((old-node Info-current-node))
 	     (Info-up)
-	     (let (Info-history success)
+	     (let ((old-history Info-history)
+		   success)
 	       (unwind-protect
 		   (setq success (Info-forward-node t nil no-error))
-		 (or success (Info-goto-node old-node))))))
+		 (or success (Info-goto-node old-node)))
+	       (if Info-history-skip-intermediate-nodes
+		   (setq Info-history old-history)))))
 	  (no-error nil)
 	  (t (error "No pointer forward from this node")))))
 
@@ -2692,10 +2705,12 @@ N is the digit argument used to invoke this command."
 	   ;; If we move back at the same level,
 	   ;; go down to find the last subnode*.
 	   (Info-prev)
-	   (let (Info-history)
+	   (let ((old-history Info-history))
 	     (while (and (not (Info-index-node))
 			 (save-excursion (search-forward "\n* Menu:" nil t)))
-	       (Info-goto-node (Info-extract-menu-counting nil)))))
+	       (Info-goto-node (Info-extract-menu-counting nil)))
+	     (if Info-history-skip-intermediate-nodes
+		 (setq Info-history old-history))))
 	  (t
 	   (error "No pointer backward from this node")))))
 
@@ -2751,36 +2766,45 @@ N is the digit argument used to invoke this command."
 	 ;; Since logically we are done with the node with that menu,
 	 ;; move on from it.  But don't add intermediate nodes
 	 ;; to the history on recursive calls.
-	 (let (Info-history)
-	   (Info-next-preorder)))
+	 (let ((old-history Info-history))
+	   (Info-next-preorder)
+	   (if Info-history-skip-intermediate-nodes
+	       (setq Info-history old-history))))
 	(t
 	 (error "No more nodes"))))
 
 (defun Info-last-preorder ()
   "Go to the last node, popping up a level if there is none."
   (interactive)
-  (cond ((Info-no-error
-	  (Info-last-menu-item)
-	  ;; If we go down a menu item, go to the end of the node
-	  ;; so we can scroll back through it.
-	  (goto-char (point-max)))
+  (cond ((and Info-scroll-prefer-subnodes
+	      (Info-no-error
+	       (Info-last-menu-item)
+	       ;; If we go down a menu item, go to the end of the node
+	       ;; so we can scroll back through it.
+	       (goto-char (point-max))))
 	 ;; Keep going down, as long as there are nested menu nodes.
-	 (while (Info-no-error
-		 (Info-last-menu-item)
-		 ;; If we go down a menu item, go to the end of the node
-		 ;; so we can scroll back through it.
-		 (goto-char (point-max))))
+	 (let ((old-history Info-history))
+	   (while (Info-no-error
+		   (Info-last-menu-item)
+		   ;; If we go down a menu item, go to the end of the node
+		   ;; so we can scroll back through it.
+		   (goto-char (point-max))))
+	   (if Info-history-skip-intermediate-nodes
+	       (setq Info-history old-history)))
 	 (recenter -1))
 	((and (Info-no-error (Info-extract-pointer "prev"))
 	      (not (equal (Info-extract-pointer "up")
 			  (Info-extract-pointer "prev"))))
 	 (Info-no-error (Info-prev))
 	 (goto-char (point-max))
-	 (while (Info-no-error
-		 (Info-last-menu-item)
-		 ;; If we go down a menu item, go to the end of the node
-		 ;; so we can scroll back through it.
-		 (goto-char (point-max))))
+	 (let ((old-history Info-history))
+	   (while (Info-no-error
+		   (Info-last-menu-item)
+		   ;; If we go down a menu item, go to the end of the node
+		   ;; so we can scroll back through it.
+		   (goto-char (point-max))))
+	   (if Info-history-skip-intermediate-nodes
+	       (setq Info-history old-history)))
 	 (recenter -1))
 	((Info-no-error (Info-up t))
 	 (goto-char (point-min))
@@ -3887,6 +3911,14 @@ With a zero prefix arg, put the name inside a function call to `info'."
 (defvar tool-bar-map)
 (defvar bookmark-make-record-function)
 
+(defvar Info-mode-syntax-table
+  (let ((st (copy-syntax-table text-mode-syntax-table)))
+    ;; Use punctuation syntax for apostrophe because of
+    ;; extensive use of quotes like `this' in Info manuals.
+    (modify-syntax-entry ?' "." st)
+    st)
+  "Syntax table used in `Info-mode'.")
+
 ;; Autoload cookie needed by desktop.el
 ;;;###autoload
 (define-derived-mode Info-mode nil "Info"
@@ -3951,7 +3983,7 @@ Advanced commands:
 \\[clone-buffer]	Select a new cloned Info buffer in another window.
 \\[universal-argument] \\[info]	Move to new Info file with completion.
 \\[universal-argument] N \\[info]	Select Info buffer with prefix number in the name *info*<N>."
-  :syntax-table text-mode-syntax-table
+  :syntax-table Info-mode-syntax-table
   :abbrev-table text-mode-abbrev-table
   (setq tab-width 8)
   (add-hook 'activate-menubar-hook 'Info-menu-update nil t)

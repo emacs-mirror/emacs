@@ -1,3 +1,27 @@
+2011-09-21  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* display.texi (Face Functions): `face-list' returns faces (bug#9564).
+
+2011-09-19  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* errors.texi (Standard Errors): Remove apparent placeholder text
+	(bug#9491).
+
+2011-09-18  Chong Yidong  <cyd@stupidchicken.com>
+
+	* frames.texi (Management Parameters): Fix description of
+	icon-type parameter.
+
+2011-09-17  Chong Yidong  <cyd@stupidchicken.com>
+
+	* tips.texi (Key Binding Conventions): Don't bind a key sequence
+	ending in C-g.  Suggested by Edward O'Connor.
+
+2011-09-17  Eli Zaretskii  <eliz@gnu.org>
+
+	* numbers.texi (Integer Basics): Add indexing for
+	most-positive-fixnum and most-negative-fixnum.  (Bug#9525)
+
 2011-09-14  Dani Moncayo  <dmoncayo@gmail.com>  (tiny change)
 
 	* lists.texi (Sets And Lists): Fix typo.  (Bug#9393)
