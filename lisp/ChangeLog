@@ -1,3 +1,8 @@
+2011-09-22  Michael Albinus  <michael.albinus@gmx.de>
+
+	* files.el (copy-directory): Set directory attributes only in case
+	they could be retrieved from the source directory.  (Bug#9565)
+
 2011-09-22  Dima Kogan  <dkogan@secretsauce.net>  (tiny change)
 
 	* progmodes/hideshow.el (hs-looking-at-block-start-p)
