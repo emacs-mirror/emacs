@@ -4725,7 +4725,7 @@ Try to set `comint-output-filter-functions' like this:
     (if (not (string= "" sql-user))
 	(setq params (append (list "-U" sql-user) params)))
     (if (not (= 0 sql-port))
-	(setq params (append (list "-p" sql-port) params)))
+	(setq params (append (list "-p" (number-to-string sql-port)) params)))
     (sql-comint product params)))
 
 (defun sql-postgres-completion-object (sqlbuf schema)

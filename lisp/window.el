@@ -2937,6 +2937,8 @@ one.  If non-nil, reset `quit-restore' parameter to nil."
       ;; Show some other buffer in WINDOW and reset the quit-restore
       ;; parameter.
       (set-window-parameter window 'quit-restore nil)
+      ;; Make sure that WINDOW is no more dedicated.
+      (set-window-dedicated-p window nil)
       (switch-to-prev-buffer window 'bury-or-kill)))
 
     ;; Kill WINDOW's old-buffer if requested
@@ -4102,14 +4104,16 @@ and (cdr ARGS) as second."
 		special-display-buffer-names special-display-regexps)
 	   (display-buffer buffer)))
        ;; If no window yet, make one in a new frame.
-       (let ((frame
-	      (with-current-buffer buffer
-		(make-frame (append args special-display-frame-alist)))))
-	 (display-buffer-record-window
-	  'frame (frame-selected-window frame) buffer)
-	 (set-window-buffer (frame-selected-window frame) buffer)
-	 (set-window-dedicated-p (frame-selected-window frame) t)
-	 (frame-selected-window frame))))))
+       (let* ((frame
+	       (with-current-buffer buffer
+		 (make-frame (append args special-display-frame-alist))))
+	      (window (frame-selected-window frame)))
+	 (display-buffer-record-window 'frame window buffer)
+	 (set-window-buffer window buffer)
+	 ;; Reset list of WINDOW's previous buffers to nil.
+	 (set-window-prev-buffers window nil)
+	 (set-window-dedicated-p window t)
+	 window)))))
 
 (defcustom special-display-function 'special-display-popup-frame
   "Function to call for displaying special buffers.
@@ -4856,6 +4860,28 @@ at the front of the list of recently selected ones."
       ;; gets input focus.
       (select-frame-set-input-focus frame norecord))
     buffer))
+
+(defun pop-to-buffer-same-window (buffer &optional norecord)
+  "Select buffer BUFFER in some window, preferably the same one.
+This function behaves much like `switch-to-buffer', except it
+displays with `special-display-function' if BUFFER has a match in
+`special-display-buffer-names' or `special-display-regexps'.
+
+Unlike `pop-to-buffer', this function prefers using the selected
+window over popping up a new window or frame.
+
+BUFFER may be a buffer, a string (a buffer name), or nil.  If it
+is a string not naming an existent buffer, create a buffer with
+that name.  If BUFFER is nil, choose some other buffer.  Return
+the buffer.
+
+NORECORD, if non-nil means do not put this buffer at the front of
+the list of recently selected ones."
+  (pop-to-buffer buffer
+		 '((display-buffer--special
+		    display-buffer-same-window)
+		   (inhibit-same-window . nil))
+		 norecord))
 
 (defun read-buffer-to-switch (prompt)
   "Read the name of a buffer to switch to, prompting with PROMPT.

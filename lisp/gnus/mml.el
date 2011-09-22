@@ -461,6 +461,7 @@ If MML is non-nil, return the buffer up till the correspondent mml tag."
 (defvar mml-boundary nil)
 (defvar mml-base-boundary "-=-=")
 (defvar mml-multipart-number 0)
+(defvar mml-inhibit-compute-boundary nil)
 
 (defun mml-generate-mime ()
   "Generate a MIME message based on the current MML document."
@@ -710,34 +711,30 @@ If MML is non-nil, return the buffer up till the correspondent mml tag."
   "Return a unique boundary that does not exist in CONT."
   (let ((mml-boundary (funcall mml-boundary-function
 			       (incf mml-multipart-number))))
-    ;; This function tries again and again until it has found
-    ;; a unique boundary.
-    (while (not (catch 'not-unique
-		  (mml-compute-boundary-1 cont))))
+    (unless mml-inhibit-compute-boundary
+      ;; This function tries again and again until it has found
+      ;; a unique boundary.
+      (while (not (catch 'not-unique
+		    (mml-compute-boundary-1 cont)))))
     mml-boundary))
 
 (defun mml-compute-boundary-1 (cont)
-  (let (filename)
-    (cond
-     ((member (car cont) '(part mml))
-      (with-temp-buffer
-	(cond
-	 ((cdr (assq 'buffer cont))
-	  (insert-buffer-substring (cdr (assq 'buffer cont))))
-	 ((and (setq filename (cdr (assq 'filename cont)))
-	       (not (equal (cdr (assq 'nofile cont)) "yes")))
-	  (mm-insert-file-contents filename nil nil nil nil t))
-	 (t
-	  (insert (cdr (assq 'contents cont)))))
-	(goto-char (point-min))
-	(when (re-search-forward (concat "^--" (regexp-quote mml-boundary))
-				 nil t)
-	  (setq mml-boundary (funcall mml-boundary-function
-				      (incf mml-multipart-number)))
-	  (throw 'not-unique nil))))
-     ((eq (car cont) 'multipart)
-      (mapc 'mml-compute-boundary-1 (cddr cont))))
-    t))
+  (cond
+   ((member (car cont) '(part mml))
+    (mm-with-multibyte-buffer
+      (let ((mml-inhibit-compute-boundary t)
+	    (mml-multipart-number 0)
+	    mml-sign-alist mml-encrypt-alist)
+	(mml-generate-mime-1 cont))
+      (goto-char (point-min))
+      (when (re-search-forward (concat "^--" (regexp-quote mml-boundary))
+			       nil t)
+	(setq mml-boundary (funcall mml-boundary-function
+				    (incf mml-multipart-number)))
+	(throw 'not-unique nil))))
+   ((eq (car cont) 'multipart)
+    (mapc 'mml-compute-boundary-1 (cddr cont))))
+  t)
 
 (defun mml-make-boundary (number)
   (concat (make-string (% number 60) ?=)

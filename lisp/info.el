@@ -649,7 +649,8 @@ See a list of available Info commands in `Info-mode'."
                     (read-file-name "Info file name: " nil nil t))
                 (if (numberp current-prefix-arg)
                     (format "*info*<%s>" current-prefix-arg))))
-  (info-setup file-or-node (switch-to-buffer (or buffer "*info*"))))
+  (info-setup file-or-node
+	      (pop-to-buffer-same-window (or buffer "*info*"))))
 
 (defun info-setup (file-or-node buffer)
   "Display Info node FILE-OR-NODE in BUFFER."

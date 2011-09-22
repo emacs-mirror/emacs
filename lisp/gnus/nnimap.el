@@ -345,6 +345,11 @@ textual parts.")
 	nil
       stream)))
 
+(defun nnimap-map-port (port)
+  (if (equal port "imaps")
+      "993"
+    port))
+
 (defun nnimap-open-connection-1 (buffer)
   (unless nnimap-keepalive-timer
     (setq nnimap-keepalive-timer (run-at-time (* 60 15) (* 60 15)
@@ -373,7 +378,8 @@ textual parts.")
 	(push nnimap-server-port ports))
       (let* ((stream-list
 	      (open-protocol-stream
-	       "*nnimap*" (current-buffer) nnimap-address (car ports)
+	       "*nnimap*" (current-buffer) nnimap-address
+	       (nnimap-map-port (car ports))
 	       :type nnimap-stream
 	       :return-list t
 	       :shell-command nnimap-shell-program
@@ -1551,7 +1557,7 @@ textual parts.")
 		 (goto-char start)
 		 (setq vanished
 		       (and (eq flag-sequence 'qresync)
-			    (re-search-forward "^\\* VANISHED .* \\([0-9:,]+\\)"
+			    (re-search-forward "^\\* VANISHED .*? \\([0-9:,]+\\)"
 					       (or end (point-min)) t)
 			    (match-string 1)))
 		 (goto-char start)
