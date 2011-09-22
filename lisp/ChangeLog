@@ -1,3 +1,8 @@
+2011-09-22  Andrew Schein  <andrew@andrewschein.com>  (tiny change)
+
+	* progmodes/sql.el (sql-comint-postgres):
+	Convert port number to a string.  (Bug#9566)
+
 2011-09-22  Martin Rudalics  <rudalics@gmx.at>
 
 	* window.el (quit-window): Undedicate window when switching to
