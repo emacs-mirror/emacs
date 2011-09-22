@@ -1,3 +1,15 @@
+2011-09-22  Chong Yidong  <cyd@stupidchicken.com>
+
+	* window.el (pop-to-buffer-same-window): New (reinstated) fun.
+
+	* cmuscheme.el (run-scheme, switch-to-scheme):
+	* cus-edit.el (customize-group, custom-buffer-create)
+	(customize-browse):
+	* info.el (info):
+	* shell.el (shell):
+	* mail/sendmail.el (mail):
+	* progmodes/inf-lisp.el (inferior-lisp): Use it (Bug#9532).
+
 2011-09-22  Richard Stallman  <rms@gnu.org>
 
 	* textmodes/paragraphs.el (forward-sentence): When setting PAR-BEG,

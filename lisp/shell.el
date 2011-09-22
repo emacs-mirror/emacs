@@ -652,7 +652,7 @@ Otherwise, one argument `-i' is passed to the shell.
 
   ;; The buffer's window must be correctly set when we call comint (so
   ;; that comint sets the COLUMNS env var properly).
-  (switch-to-buffer buffer)
+  (pop-to-buffer-same-window buffer)
   (unless (comint-check-proc buffer)
     (let* ((prog (or explicit-shell-file-name
 		     (getenv "ESHELL") shell-file-name))
