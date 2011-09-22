@@ -1,3 +1,9 @@
+2011-09-22  Eli Zaretskii  <eliz@gnu.org>
+
+	* simple.el (what-cursor-position): Use get-char-property-change
+	and next-single-char-property-change, to be able to show display
+	properties that come from overlays as well as text properties.
+
 2011-09-22  Chong Yidong  <cyd@stupidchicken.com>
 
 	* window.el (pop-to-buffer-same-window): New (reinstated) fun.

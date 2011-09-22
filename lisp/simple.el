@@ -1054,9 +1054,9 @@ in *Help* buffer.  See also the command `describe-char'."
 	  ;; Check if the character is displayed with some `display'
 	  ;; text property.  In that case, set under-display to the
 	  ;; buffer substring covered by that property.
-	  (setq display-prop (get-text-property pos 'display))
+	  (setq display-prop (get-char-property pos 'display))
 	  (if display-prop
-	      (let ((to (or (next-single-property-change pos 'display)
+	      (let ((to (or (next-single-char-property-change pos 'display)
 			    (point-max))))
 		(if (< to (+ pos 4))
 		    (setq under-display "")
