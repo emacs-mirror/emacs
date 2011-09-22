@@ -1,3 +1,10 @@
+2011-09-22  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* mml.el (mml-inhibit-compute-boundary): New internal variable.
+	(mml-compute-boundary): Don't check collision if it is non-nil.
+	(mml-compute-boundary-1): Use mml-generate-mime-1 to encode part
+	before checking collision.
+
 2011-09-21  Lars Magne Ingebrigtsen  <larsi@gnus.org>
 
 	* message.el (message-indent-citation): Really make sure there's a
