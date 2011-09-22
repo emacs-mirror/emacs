@@ -2937,6 +2937,8 @@ one.  If non-nil, reset `quit-restore' parameter to nil."
       ;; Show some other buffer in WINDOW and reset the quit-restore
       ;; parameter.
       (set-window-parameter window 'quit-restore nil)
+      ;; Make sure that WINDOW is no more dedicated.
+      (set-window-dedicated-p window nil)
       (switch-to-prev-buffer window 'bury-or-kill)))
 
     ;; Kill WINDOW's old-buffer if requested
