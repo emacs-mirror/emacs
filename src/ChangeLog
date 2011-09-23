@@ -1,3 +1,8 @@
+2011-09-23  Andreas Schwab  <schwab@linux-m68k.org>
+
+	* emacs.c (Fkill_emacs): In noninteractive mode exit
+	non-successfully if a write error occurred on stdout.  (Bug#9574)
+
 2011-09-21  Eli Zaretskii  <eliz@gnu.org>
 
 	* xdisp.c (pop_it): Allow it->object that is a cons cell to pass
