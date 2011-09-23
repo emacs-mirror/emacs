@@ -586,6 +586,12 @@ If the region is active, only delete whitespace within the region."
             (if (looking-at ".*\f")
                 (goto-char (match-end 0))))
           (delete-region (point) (match-end 0)))
+        (save-restriction
+          (goto-char end-marker)
+          (widen)
+          (if (and (eobp)
+                   (looking-back "\n\n+" nil t))
+              (replace-match "\n")))
         (set-marker end-marker nil))))
   ;; Return nil for the benefit of `write-file-functions'.
   nil)
