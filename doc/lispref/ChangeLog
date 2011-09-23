@@ -1,3 +1,33 @@
+2011-09-23  Martin Rudalics  <rudalics@gmx.at>
+
+	* frames.texi (Frames and Windows): Move section and rename to
+	Windows and Frames in windows.texi.
+	* windows.texi (Windows): Restructure.
+	(Basic Windows): Rewrite.  Explain live and internal windows and
+	normalization functions.
+	(Windows and Frames): Move section here from frames.texi.
+	Describe subwindows, window combinations, window tree, and
+	corresponding functions including window-list here.
+	(Window Sizes): Rename section from Size of Window and move it
+	up in chapter.  Describe total and body sizes and the
+	corresponding functions.  Explain new semantics of
+	window-min-height/-width.
+	(Resizing Windows): Move section up in chapter.  Describe new
+	resize functions.
+	(Splitting Windows): Describe new behavior of split-window,
+	split-window-above-each-other and split-window-side-by-side.
+	Provide examples.  Describe window-nest and window-splits
+	options.
+	(Deleting Windows): Minor rewrite.
+	(Selecting Windows): Minor rewrite.  Describe
+	frame-selected-window and set-frame-selected-window here.
+	(Cyclic Window Ordering): Minor rewrite.  Describe
+	window-list-1.
+	(Buffers and Windows): Rewrite.  Explain a window's previous and
+	next buffers and the corresponding functions.
+	* elisp.texi (Top): Update node listings for frames and windows
+	sections.
+
 2011-09-21  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* display.texi (Face Functions): `face-list' returns faces (bug#9564).
