@@ -4853,12 +4853,11 @@ at the front of the list of recently selected ones."
 	 (old-frame (selected-frame))
 	 (window (display-buffer buffer action))
 	 (frame (window-frame window)))
-    (if (eq frame old-frame)
-	;; Make sure new window is selected (Bug#8615), (Bug#6954).
-	(select-window window norecord)
-      ;; If `display-buffer' has chosen another frame, make sure it
-      ;; gets input focus.
+    ;; If we chose another frame, make sure it gets input focus.
+    (unless (eq frame old-frame)
       (select-frame-set-input-focus frame norecord))
+    ;; Make sure new window is selected (Bug#8615), (Bug#6954).
+    (select-window window norecord)
     buffer))
 
 (defun pop-to-buffer-same-window (buffer &optional norecord)
