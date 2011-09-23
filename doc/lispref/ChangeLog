@@ -25,6 +25,7 @@
 	window-list-1.
 	(Buffers and Windows): Rewrite.  Explain a window's previous and
 	next buffers and the corresponding functions.
+	(Window Tree): Merge into Windows and Frames section.
 	* elisp.texi (Top): Update node listings for frames and windows
 	sections.
 
