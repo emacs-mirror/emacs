@@ -4941,9 +4941,10 @@ directly into NEWNAME instead."
 	      (copy-file file target t keep-time)))))
 
       ;; Set directory attributes.
-      (set-file-modes newname (file-modes directory))
-      (if keep-time
-	  (set-file-times newname (nth 5 (file-attributes directory)))))))
+      (let ((modes (file-modes directory))
+	    (times (and keep-time (nth 5 (file-attributes directory)))))
+	(if modes (set-file-modes newname modes))
+	(if times (set-file-times newname times))))))
 
 (put 'revert-buffer-function 'permanent-local t)
 (defvar revert-buffer-function nil

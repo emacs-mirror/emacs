@@ -1377,7 +1377,7 @@ arbitrary expression.
 ARGS is a list of variables which will be passed as additional arguments
 to each function, after the initial argument, and which the first argument
 expects to receive when called."
-  (declare (indent 2) (debug t))
+  (declare (indent 2) (debug (form sexp body)))
   ;; We need those two gensyms because CL's lexical scoping is not available
   ;; for function arguments :-(
   (let ((funs (make-symbol "funs"))

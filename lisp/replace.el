@@ -826,6 +826,8 @@ a previously found match."
 (defvar occur-revert-arguments nil
   "Arguments to pass to `occur-1' to revert an Occur mode buffer.
 See `occur-revert-function'.")
+(make-variable-buffer-local 'occur-revert-arguments)
+(put 'occur-revert-arguments 'permanent-local t)
 
 (defcustom occur-mode-hook '(turn-on-font-lock)
   "Hook run when entering Occur mode."
@@ -853,8 +855,6 @@ Alternatively, click \\[occur-mode-mouse-goto] on an item to go to it.
 
 \\{occur-mode-map}"
   (set (make-local-variable 'revert-buffer-function) 'occur-revert-function)
-  (make-local-variable 'occur-revert-arguments)
-  (add-hook 'change-major-mode-hook 'font-lock-defontify nil t)
   (setq next-error-function 'occur-next-error))
 
 
@@ -876,7 +876,7 @@ Alternatively, click \\[occur-mode-mouse-goto] on an item to go to it.
 In this mode, changes to the *Occur* buffer are also applied to
 the originating buffer.
 
-To return to ordinary Occur mode, use \\[occur-mode]."
+To return to ordinary Occur mode, use \\[occur-cease-edit]."
   (setq buffer-read-only nil)
   (add-hook 'after-change-functions 'occur-after-change-function nil t)
   (message (substitute-command-keys

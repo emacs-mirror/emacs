@@ -1054,9 +1054,9 @@ in *Help* buffer.  See also the command `describe-char'."
 	  ;; Check if the character is displayed with some `display'
 	  ;; text property.  In that case, set under-display to the
 	  ;; buffer substring covered by that property.
-	  (setq display-prop (get-text-property pos 'display))
+	  (setq display-prop (get-char-property pos 'display))
 	  (if display-prop
-	      (let ((to (or (next-single-property-change pos 'display)
+	      (let ((to (or (next-single-char-property-change pos 'display)
 			    (point-max))))
 		(if (< to (+ pos 4))
 		    (setq under-display "")
@@ -3429,6 +3429,10 @@ a number counts as a prefix arg.
 
 To kill a whole line, when point is not at the beginning, type \
 \\[move-beginning-of-line] \\[kill-line] \\[kill-line].
+
+If `show-trailing-whitespace' is non-nil, this command will just
+kill the rest of the current line, even if there are only
+nonblanks there.
 
 If `kill-whole-line' is non-nil, then this command kills the whole line
 including its terminating newline, when used at the beginning of a line

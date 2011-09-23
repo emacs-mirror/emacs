@@ -7516,7 +7516,7 @@ the inserted text when done."
   (org-with-limited-levels
    (let* ((visp (not (outline-invisible-p)))
 	  (txt tree)
-	  (^re_ (concat "\\(\\*+\\)[  \t]*"))
+	  (^re_ (concat "\\(\\*+\\)[  \t]*")) ;FIXME: Why `concat'?
 	  (old-level (if (string-match org-outline-regexp-bol txt)
 			 (- (match-end 0) (match-beginning 0) 1)
 		       -1))
@@ -7534,7 +7534,7 @@ the inserted text when done."
 			    (condition-case nil
 				(progn
 				  (outline-previous-visible-heading 1)
-				  (if (looking-at re)
+				  (if (looking-at re) ;FIXME: What's `re'?
 				      (- (match-end 0) (match-beginning 0) 1)
 				    1))
 			      (error 1))))
@@ -7543,7 +7543,7 @@ the inserted text when done."
 			    (progn
 			      (or (looking-at org-outline-regexp)
 				  (outline-next-visible-heading 1))
-			      (if (looking-at re)
+			      (if (looking-at re) ;FIXME: What's `re'?
 				  (- (match-end 0) (match-beginning 0) 1)
 				1))
 			  (error 1))))

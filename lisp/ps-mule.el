@@ -659,7 +659,7 @@ the sequence."
 	 width)
     (goto-char from)
     (while (not endpos)
-      (cond ((= (point) stop)
+      (cond ((>= (point) stop)
 	     (if (= stop to)
 		 (setq endpos stop)
 	       (when (< from stop)

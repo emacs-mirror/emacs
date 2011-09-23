@@ -1066,7 +1066,7 @@ HELP-WINDOW is the window used for displaying the help buffer."
   (let* ((help-buffer (when (window-live-p help-window)
 			(window-buffer help-window)))
 	 (help-setup (when (window-live-p help-window)
-		       (window-parameter help-window 'help-setup))))
+		       (car (window-parameter help-window 'quit-restore)))))
     (when help-buffer
       ;; Handle `help-window-point-marker'.
       (when (eq (marker-buffer help-window-point-marker) help-buffer)
@@ -1077,7 +1077,7 @@ HELP-WINDOW is the window used for displaying the help buffer."
       (cond
        ((or (eq help-window (selected-window))
 	    (and (or (eq help-window-select t)
-		     (eq help-setup 'new-frame)
+		     (eq help-setup 'frame)
 		     (and (eq help-window-select 'other)
 			  (eq (window-frame help-window) (selected-frame))
 			  (> (length (window-list nil 'no-mini)) 2)))
@@ -1085,12 +1085,12 @@ HELP-WINDOW is the window used for displaying the help buffer."
 	;; The help window is or gets selected ...
 	(help-window-display-message
 	 (cond
-	  ((eq help-setup 'new-window)
+	  ((eq help-setup 'window)
 	   ;; ... and is new, ...
 	   "Type \"q\" to delete help window")
-	  ((eq help-setup 'new-frame)
+	  ((eq help-setup 'frame)
 	   "Type \"q\" to delete help frame")
-	  ((eq help-setup 'reuse-other)
+	  ((eq help-setup 'other)
 	   ;; ... or displayed some other buffer before.
 	   "Type \"q\" to restore previous buffer"))
 	 help-window t))
@@ -1100,19 +1100,19 @@ HELP-WINDOW is the window used for displaying the help buffer."
 	;; other one is the selected one.
 	(help-window-display-message
 	 (cond
-	  ((eq help-setup 'new-window)
+	  ((eq help-setup 'window)
 	   "Type \\[delete-other-windows] to delete the help window")
-	  ((eq help-setup 'reuse-other)
+	  ((eq help-setup 'other)
 	   "Type \"q\" in help window to restore its previous buffer"))
 	 help-window 'other))
        (t
 	;; The help window is not selected ...
 	(help-window-display-message
 	 (cond
-	  ((eq help-setup 'new-window)
+	  ((eq help-setup 'window)
 	   ;; ... and is new, ...
 	   "Type \"q\" in help window to delete it")
-	  ((eq help-setup 'reuse-other)
+	  ((eq help-setup 'other)
 	   ;; ... or displayed some other buffer before.
 	   "Type \"q\" in help window to restore previous buffer"))
 	 help-window))))))

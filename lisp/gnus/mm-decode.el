@@ -265,7 +265,7 @@ before the external MIME handler is invoked."
     ("multipart/alternative" ignore identity)
     ("multipart/mixed" ignore identity)
     ("multipart/related" ignore identity)
-    ("image/*"
+    ("image/.*"
      mm-inline-image
      (lambda (handle)
        (and (mm-valid-image-format-p 'imagemagick)

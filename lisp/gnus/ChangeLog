@@ -1,3 +1,76 @@
+2011-09-22  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* mml.el (mml-inhibit-compute-boundary): New internal variable.
+	(mml-compute-boundary): Don't check collision if it is non-nil.
+	(mml-compute-boundary-1): Use mml-generate-mime-1 to encode part
+	before checking collision.
+
+2011-09-21  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* message.el (message-indent-citation): Really make sure there's a
+	newline at the end.
+
+	* nnimap.el (nnimap-parse-flags): Make regexp less prone to overflows.
+	Fix suggested by John Wiegley.
+
+	* pop3.el (pop3-open-server): Fix +OK end-of-command regexp.
+
+	* gnus-art.el (gnus-treat-hide-citation): Add doc.
+
+	* message.el (message-default-send-rename-function): Break out into its
+	own function.
+
+	* ecomplete.el (ecomplete-display-matches): Revert patch since it
+	doesn't work under XEmacs.
+
+	* nnimap.el (nnimap-map-port): New function to connect to 993 instead
+	of "imaps" to word around Windows problems.
+	(nnimap-open-connection-1): Use it.
+
+	* message.el (message-indent-citation): Revert last change which made
+	`F' not work.
+
+2011-09-13  Kan-Ru Chen  <kanru@kanru.info>
+
+	* ecomplete.el (ecomplete-display-matches): Intercept key sequence from
+	terminal as well.
+
+2011-09-21  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* mm-view.el (mm-display-inline-fontify): Don't run doc-view-mode
+	because it displays images using overlays that aren't easy to copy to
+	the article buffer.
+
+2011-09-20  Łukasz Stelmach  <lukasz.stelmach@iem.pw.edu.pl>  (tiny change)
+
+	* message.el (message-indent-citation): Fix empty line removal at the
+	end of the citation.
+
+2011-09-20  Julien Danjou  <julien@danjou.info>
+
+	* auth-source.el (auth-source-netrc-create): Use default value for
+	password if specified. Evaluate default.
+	(auth-source-plstore-create): Ditto.
+	(auth-source-plstore-create, auth-source-netrc-create): Fix default
+	value evaluation.
+	(auth-source-netrc-create): Typo fix.
+	(auth-source-plstore-create): Ditto.
+
+	* auth-source.el (auth-source-format-cache-entry): New function.
+
+2011-09-20  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* gnus-fun.el (gnus-convert-image-to-x-face-command): Doc fix.
+
+2011-09-18  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* mm-decode.el (mm-inline-media-tests): Fix typo in regexp.
+
+2011-09-19  Julien Danjou  <julien@danjou.info>
+
+	* auth-source.el (auth-source-netrc-parse): Use an obfuscation method
+	which work with things that are not ASCII.
+
 2011-09-17  Lars Magne Ingebrigtsen  <larsi@gnus.org>
 
 	* mm-decode.el (mm-inline-media-tests): Support imagemagick images.
