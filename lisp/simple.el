@@ -568,6 +568,7 @@ On nonblank line, delete any immediately following blank lines."
 All whitespace after the last non-whitespace character in a line is deleted.
 This respects narrowing, created by \\[narrow-to-region] and friends.
 A formfeed is not considered whitespace by this function.
+If END is nil, also delete all trailing lines at the end of the buffer.
 If the region is active, only delete whitespace within the region."
   (interactive (progn
                  (barf-if-buffer-read-only)
@@ -580,18 +581,18 @@ If the region is active, only delete whitespace within the region."
             (start (or start (point-min))))
         (goto-char start)
         (while (re-search-forward "\\s-$" end-marker t)
-          (skip-syntax-backward "-" (save-excursion (forward-line 0) (point)))
+          (skip-syntax-backward "-" (line-beginning-position))
           ;; Don't delete formfeeds, even if they are considered whitespace.
-          (save-match-data
-            (if (looking-at ".*\f")
-                (goto-char (match-end 0))))
+          (if (looking-at-p ".*\f")
+              (goto-char (match-end 0)))
           (delete-region (point) (match-end 0)))
-        (save-restriction
-          (goto-char end-marker)
-          (widen)
-          (if (and (eobp)
-                   (looking-back "\n\n+" nil t))
-              (replace-match "\n")))
+        ;; Delete trailing empty lines.
+        (goto-char end-marker)
+        (when (and (not end)
+                   (<= (skip-chars-backward "\n") -2)
+                   ;; Really the end of buffer.
+                   (save-restriction (widen) (eobp)))
+          (delete-region (1+ (point)) end-marker))
         (set-marker end-marker nil))))
   ;; Return nil for the benefit of `write-file-functions'.
   nil)
