@@ -456,19 +456,23 @@ sentences.  Also, every paragraph boundary terminates sentences as well."
         (sentence-end (sentence-end)))
     (while (< arg 0)
       (let ((pos (point))
-	    (par-beg
-	     (save-excursion
-	       (start-of-paragraph-text)
-	       ;; Move PAR-BEG back over indentation
-	       ;; to allow s1entence-end to match if it is anchored at
-	       ;; BOL and the paragraph starts indented.
-	       (beginning-of-line)
-	       (point))))
+	    par-beg par-text-beg)
+	(save-excursion
+	  (start-of-paragraph-text)
+	  ;; Start of real text in the paragraph.
+	  ;; We move back to here if we don't see a sentence-end.
+	  (setq par-text-beg (point))
+	  ;; Start of the first line of the paragraph.
+	  ;; We use this as the search limit
+	  ;; to allow s1entence-end to match if it is anchored at
+	  ;; BOL and the paragraph starts indented.
+	  (beginning-of-line)
+	  (setq par-beg (point)))
 	(if (and (re-search-backward sentence-end par-beg t)
 		 (or (< (match-end 0) pos)
 		     (re-search-backward sentence-end par-beg t)))
 	    (goto-char (match-end 0))
-	  (goto-char par-beg)))
+	  (goto-char par-text-beg)))
       (setq arg (1+ arg)))
     (while (> arg 0)
       (let ((par-end (save-excursion (end-of-paragraph-text) (point))))
