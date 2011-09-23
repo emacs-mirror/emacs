@@ -3430,6 +3430,10 @@ a number counts as a prefix arg.
 To kill a whole line, when point is not at the beginning, type \
 \\[move-beginning-of-line] \\[kill-line] \\[kill-line].
 
+If `show-trailing-whitespace' is non-nil, this command will just
+kill the rest of the current line, even if there are only
+nonblanks there.
+
 If `kill-whole-line' is non-nil, then this command kills the whole line
 including its terminating newline, when used at the beginning of a line
 with no argument.  As a consequence, you can always kill a whole line
