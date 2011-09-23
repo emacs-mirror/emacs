@@ -83,7 +83,7 @@
   "Position point at the beginning of the line.
 With ARG not nil, move forward ARG - 1 lines first.
 If scan reaches end of buffer, stop there without error."
-  (interactive "P")
+  (interactive "^P")
   (if arg (forward-line (1- (prefix-numeric-value arg))))
   (beginning-of-line)
   (setq picture-desired-column 0))
@@ -92,7 +92,7 @@ If scan reaches end of buffer, stop there without error."
   "Position point after last non-blank character on current line.
 With ARG not nil, move forward ARG - 1 lines first.
 If scan reaches end of buffer, stop there without error."
-  (interactive "P")
+  (interactive "^P")
   (if arg (forward-line (1- (prefix-numeric-value arg))))
   (beginning-of-line)
   (skip-chars-backward " \t" (prog1 (point) (end-of-line)))
@@ -101,7 +101,7 @@ If scan reaches end of buffer, stop there without error."
 (defun picture-forward-column (arg &optional interactive)
   "Move cursor right, making whitespace if necessary.
 With argument, move that many columns."
-  (interactive "p\nd")
+  (interactive "^p\nd")
   (let (deactivate-mark)
     (picture-update-desired-column interactive)
     (setq picture-desired-column (max 0 (+ picture-desired-column arg)))
@@ -115,14 +115,14 @@ With argument, move that many columns."
 (defun picture-backward-column (arg &optional interactive)
   "Move cursor left, making whitespace if necessary.
 With argument, move that many columns."
-  (interactive "p\nd")
+  (interactive "^p\nd")
   (picture-update-desired-column interactive)
   (picture-forward-column (- arg)))
 
 (defun picture-move-down (arg)
   "Move vertically down, making whitespace if necessary.
 With argument, move that many lines."
-  (interactive "p")
+  (interactive "^p")
   (let (deactivate-mark)
     (picture-update-desired-column nil)
     (picture-newline arg)
@@ -139,7 +139,7 @@ With argument, move that many lines."
 (defun picture-move-up (arg)
   "Move vertically up, making whitespace if necessary.
 With argument, move that many lines."
-  (interactive "p")
+  (interactive "^p")
   (picture-update-desired-column nil)
   (picture-move-down (- arg)))
 
@@ -212,7 +212,7 @@ The mode line is updated to reflect the current direction."
 With ARG do it that many times.  Useful for delineating rectangles in
 conjunction with diagonal picture motion.
 Do \\[command-apropos]  picture-movement  to see commands which control motion."
-  (interactive "p")
+  (interactive "^p")
   (picture-move-down (* arg picture-vertical-step))
   (picture-forward-column (* arg picture-horizontal-step)))
 
@@ -221,7 +221,7 @@ Do \\[command-apropos]  picture-movement  to see commands which control motion."
 With ARG do it that many times.  Useful for delineating rectangles in
 conjunction with diagonal picture motion.
 Do \\[command-apropos]  picture-movement  to see commands which control motion."
-  (interactive "p")
+  (interactive "^p")
   (picture-motion (- arg)))
 
 (defun picture-mouse-set-point (event)
@@ -323,13 +323,14 @@ many lines."
   "Move to the beginning of the following line.
 With argument, moves that many lines (up, if negative argument);
 always moves to the beginning of a line."
-  (interactive "p")
-  (if (< arg 0)
-      (forward-line arg)
-    (while (> arg 0)
-      (end-of-line)
-      (if (eobp) (newline) (forward-char 1))
-      (setq arg (1- arg)))))
+  (interactive "^p")
+  (let ((start (point))
+        (lines-left (forward-line arg)))
+    (if (and (eobp)
+             (> (point) start))
+        (newline))
+    (if (> lines-left 0)
+        (newline lines-left))))
 
 (defun picture-open-line (arg)
   "Insert an empty line after the current line.
@@ -438,7 +439,7 @@ With ARG move to column occupied by next interesting character in this
 line.  The character must be preceded by whitespace.
 \"interesting characters\" are defined by variable `picture-tab-chars'.
 If no such character is found, move to beginning of line."
-  (interactive "P")
+  (interactive "^P")
   (let ((target (current-column)))
     (save-excursion
       (if (and (not arg)
@@ -464,7 +465,7 @@ If no such character is found, move to beginning of line."
 With prefix arg, overwrite the traversed text with spaces.  The tab stop
 list can be changed by \\[picture-set-tab-stops] and \\[edit-tab-stops].
 See also documentation for variable `picture-tab-chars'."
-  (interactive "P")
+  (interactive "^P")
   (let* ((opoint (point)))
     (move-to-tab-stop)
     (if arg

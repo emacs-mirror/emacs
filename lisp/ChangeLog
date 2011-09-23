@@ -1,3 +1,8 @@
+2011-09-23  Peter J. Weisberg  <pj@irregularexpressions.net>
+
+	* textmodes/picture.el: Make motion commands obey shift-select-mode.
+	(picture-newline): Use forward-line so as to ignore fields.
+
 2011-09-23  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* subr.el (with-wrapper-hook): Fix edebug spec.
@@ -9,8 +14,8 @@
 
 2011-09-23  Michael Albinus  <michael.albinus@gmx.de>
 
-	* net/tramp-sh.el (tramp-sh-handle-file-name-all-completions): Fix
-	nasty bug using wrong cached values.
+	* net/tramp-sh.el (tramp-sh-handle-file-name-all-completions):
+	Fix nasty bug using wrong cached values.
 
 2011-09-23  Alan Mackenzie  <acm@muc.de>
 
@@ -75,8 +80,8 @@
 
 2011-09-21  Martin Rudalics  <rudalics@gmx.at>
 
-	* window.el (set-window-buffer-start-and-point): Call
-	set-window-start with NOFORCE argument t.  Suggested by Thierry
+	* window.el (set-window-buffer-start-and-point):
+	Call set-window-start with NOFORCE argument t.  Suggested by Thierry
 	Volpiatto <thierry.volpiatto@gmail.com>.
 	(quit-window): Reword doc-string.  Handle new format of
 	quit-restore parameter.  Don't delete window if it has a
