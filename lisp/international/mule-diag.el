@@ -1139,7 +1139,8 @@ system which uses fontsets)."
 	(insert "Fontset-Name\t\t\t\t\t\t  WDxHT Style\n")
 	(insert "------------\t\t\t\t\t\t  ----- -----\n")
 	(dolist (fontset (fontset-list))
-	  (print-fontset fontset t)))
+	  (print-fontset fontset t)
+	  (insert "\n")))
       (help-print-return-message))))
 
 ;;;###autoload
