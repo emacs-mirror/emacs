@@ -1,3 +1,10 @@
+2011-09-24  Michael Albinus  <michael.albinus@gmx.de>
+
+	* dbusbind.c (Fdbus_register_signal): Add match rule to
+	Vdbus_registered_objects_table.  (Bug#9581)
+	(Fdbus_register_method, Vdbus_registered_objects_table): Fix
+	docstring.
+
 2011-09-24  Jim Meyering  <meyering@redhat.com>
 
 	do not ignore write error for any output size
