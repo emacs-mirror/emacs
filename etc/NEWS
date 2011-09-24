@@ -500,6 +500,13 @@ prompts for a number to count from and for a format string.
 directory is a remote file name and neither environment variable
 $ESHELL nor variable `explicit-shell-file-name' is set.
 
++++
+** The default value of redisplay-dont-change is now t
+This makes Emacs feel more responsive to editing commands that arrive
+at high rate, e.g. if you lean on some key, because stopping redisplay
+in the middle (when this variable is nil) forces more expensive
+updates later on, and Emacs appears to be unable to keep up.
+
 
 * Changes in Specialized Modes and Packages in Emacs 24.1
 

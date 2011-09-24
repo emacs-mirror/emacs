@@ -1,5 +1,8 @@
 2011-09-24  Eli Zaretskii  <eliz@gnu.org>
 
+	* dispnew.c (syms_of_display) <redisplay-dont-pause>: Default
+	value is now t.  Doc fix.
+
 	* indent.c (Fvertical_motion): Compute and apply the overshoot
 	logic when moving up, not only when moving down.  Fix the
 	confusing name and values of the it_overshoot_expected variable;
