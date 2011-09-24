@@ -904,7 +904,8 @@ DO-MOUSE-DRAG-REGION-POST-PROCESS should only be used by
   (mouse-minibuffer-check start-event)
   (setq mouse-selection-click-count-buffer (current-buffer))
   (deactivate-mark)
-  (let* ((original-window (selected-window))
+  (let* ((scroll-margin 0) ; Avoid margin scrolling (Bug#9541).
+	 (original-window (selected-window))
          ;; We've recorded what we needed from the current buffer and
          ;; window, now let's jump to the place of the event, where things
          ;; are happening.
