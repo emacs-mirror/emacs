@@ -961,6 +961,97 @@ of the line.
 
 ** Window changes
 
++++
+*** Window tree functions are accessible in Elisp.
+Functions are provided to return the parent, siblings or child windows
+of any window including internal windows (windows not associated with a
+buffer) in the window tree.
+
++++
+*** Window manipulation can deal with internal windows.
+Many window handling functions like `split-window', `delete-window', or
+`delete-other-windows' as well as the window resizing functions can now
+act on any window including internal ones.
+
++++
+*** window-total-height/-width vs window-body-height/-width.
+The function `window-height' has been renamed to `window-total-height'
+and `window-width' has been renamed to `window-body-width'.  The old
+names are provided as aliases.  Two new functions `window-total-width'
+and `window-body-height' are provided.
+
++++
+*** Window parameters specific to window handling functions.
+For each window you can specify a parameter to override the default
+behavior of a number of functions like `split-window', `delete-window'
+and `delete-other-windows'.
+
++++
+*** New semantics of third argument of `split-window'.
+
+The third argument of `split-window' has been renamed to SIDE and can be
+set to any of the values 'below, 'right, 'above, or 'left to make the
+new window appear on the corresponding side of the window that shall be
+split.  Any other value of SIDE will cause `split-window' to split the
+window into two side-by-side windows as before.
+
++++
+*** New option `window-nest'.
+The new option `window-nest' allows to return the space obtained for
+resizing or creating a window more reliably to the window from which
+such space was obtained.
+
++++
+*** New option `window-splits'.
+The new option `window-splits' allows to split a window that otherwise
+cannot be split because it's too small by stealing space from other
+windows in the same combination.
+
++++
+*** `split-window-above-each-other' and `split-window-side-by-side'.
+The commands `split-window-vertically' and `split-window-horizontally'
+have been renamed to `split-window-above-each-other' and
+`split-window-side-by-side' respectively.  The old names are provided as
+aliases.
+
++++
+*** Window resizing functions.
+A new standard function for resizing windows called `resize-window' has
+been introduced.  This and all other functions for resizing windows no
+longer delete any windows when they become too small.
+
++++
+*** Frame/window resizing.
+Resizing an Emacs frame now preserves the proportional sizes of
+subwindows modulo restrictions imposed by window minimum sizes and
+fixed-size windows.
+
++++
+*** `adjust-window-trailing-edge' adjustments.
+`adjust-window-trailing-edge' can now deal with fixed-size windows and
+is able to resize other windows if a window adjacent to the trailing
+edge cannot be shrunk any more.  This makes its behavior more similar to
+that of Emacs 21 without compromising, however, its inability to delete
+windows which was introduced in Emacs 22.
+
++++
+*** Commands for maximizing and minimizing windows.
+New functions to maximize and minimize a window within its frame are
+provided, namely `maximize-window' and `minimize-window'.
+
++++
+*** Window-local buffer lists.
+Windows now have local buffer lists.  This means that removing a buffer
+from display in a window will preferably show the buffer previously
+shown in that window with its previous window-start and window-point
+positions.  This also means that the same buffer may be automatically
+shown twice even if it already appears in another window.
+
++++
+*** New commands `switch-to-prev-buffer' and `switch-to-next-buffer'.
+These functions allow to navigate through the live buffers that have
+been shown in a specific window.
+
 *** `switch-to-buffer' has a new optional argument FORCE-SAME-WINDOW,
 which if non-nil requires the buffer to be displayed in the currently
 selected window, signaling an error otherwise.  If nil, another window
