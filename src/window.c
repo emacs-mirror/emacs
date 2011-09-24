@@ -1665,8 +1665,9 @@ DEFUN ("window-prev-buffers", Fwindow_prev_buffers, Swindow_prev_buffers,
        doc:  /* Return buffers previously shown in WINDOW.
 WINDOW must be a live window and defaults to the selected one.
 
-The return value is either nil or a list of <buffer, window-start,
-window-point> triples where buffer was previously shown in WINDOW.  */)
+The return value is a list of elements (BUFFER WINDOW-START POS),
+where BUFFER is a buffer, WINDOW-START is the start position of the
+window for that buffer, and POS is a window-specific point value.  */)
   (Lisp_Object window)
 {
   return decode_window (window)->prev_buffers;
@@ -1675,11 +1676,11 @@ window-point> triples where buffer was previously shown in WINDOW.  */)
 DEFUN ("set-window-prev-buffers", Fset_window_prev_buffers,
        Sset_window_prev_buffers, 2, 2, 0,
        doc: /* Set WINDOW's previous buffers to PREV-BUFFERS.
-WINDOW must be a live window and defaults to the selected one.  Return
-PREV-BUFFERS.
+WINDOW must be a live window and defaults to the selected one.
 
-PREV-BUFFERS should be either nil or a list of <buffer, window-start,
-window-point> triples where buffer was previously shown in WINDOW.  */)
+PREV-BUFFERS should be a list of elements (BUFFER WINDOW-START POS),
+where BUFFER is a buffer, WINDOW-START is the start position of the
+window for that buffer, and POS is a window-specific point value.  */)
      (Lisp_Object window, Lisp_Object prev_buffers)
 {
   return decode_window (window)->prev_buffers = prev_buffers;
@@ -1697,11 +1698,8 @@ WINDOW must be a live window and defaults to the selected one.  */)
 DEFUN ("set-window-next-buffers", Fset_window_next_buffers,
        Sset_window_next_buffers, 2, 2, 0,
        doc: /* Set WINDOW's next buffers to NEXT-BUFFERS.
-WINDOW must be a live window and defaults to the selected one.  Return
-NEXT-BUFFERS.
-
-NEXT-BUFFERS should be either nil or a list of buffers that have been
-recently re-shown in WINDOW.  */)
+WINDOW must be a live window and defaults to the selected one.
+NEXT-BUFFERS should be a list of buffers.  */)
      (Lisp_Object window, Lisp_Object next_buffers)
 {
   return decode_window (window)->next_buffers = next_buffers;
