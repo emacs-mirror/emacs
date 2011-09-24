@@ -1,3 +1,12 @@
+2011-09-24  Ulf Jasper  <ulf.jasper@web.de>
+
+	* net/newst-reader.el (newsticker-html-renderer)
+	(newsticker-show-news): Automatically
+	load html rendering package if newsticker-html-renderer is
+	set. Fixes "Warning: defvar ignored because w3m-fill-column is
+	let-bound" and the error "Symbol's value as variable is void:
+	w3m-fill-column".
+
 2011-09-24  Michael Albinus  <michael.albinus@gmx.de>
 
 	* net/dbus.el (dbus-unregister-object): Remove match rule of signals.
