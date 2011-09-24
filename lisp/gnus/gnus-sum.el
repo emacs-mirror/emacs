@@ -9611,8 +9611,10 @@ C-u g', show the raw article."
 	(when (gnus-summary-goto-subject (cdr gnus-article-current) nil t)
 	  (gnus-summary-update-secondary-mark (cdr gnus-article-current))))))
    ((not arg)
-    ;; Select the article the normal way.
-    (gnus-summary-select-article nil 'force))
+    (require 'shr)
+    (let ((shr-ignore-cache t))
+      ;; Select the article the normal way.
+      (gnus-summary-select-article nil 'force)))
    ((equal arg '(16))
     ;; C-u C-u g
     (let ((gnus-inhibit-article-treatments t))

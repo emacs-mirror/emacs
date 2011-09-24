@@ -112,6 +112,7 @@ cid: URL as the argument.")
 (defvar shr-table-depth 0)
 (defvar shr-stylesheet nil)
 (defvar shr-base nil)
+(defvar shr-ignore-cache nil)
 
 (defvar shr-map
   (let ((map (make-sparse-keymap)))
@@ -896,10 +897,16 @@ ones, in case fg and bg are nil."
 	    (if (> (string-width alt) 8)
 		(shr-insert (truncate-string-to-width alt 8))
 	      (shr-insert alt))))
-	 ((url-is-cached (shr-encode-url url))
+	 ((and (not shr-ignore-cache)
+	       (url-is-cached (shr-encode-url url)))
 	  (funcall shr-put-image-function (shr-get-image-data url) alt))
 	 (t
 	  (insert alt)
+	  (when (and shr-ignore-cache
+		     (url-is-cached (shr-encode-url url)))
+	    (let ((file (url-cache-create-filename (shr-encode-url url))))
+	      (when (file-exists-p file)
+		(delete-file file))))
 	  (funcall
 	   (if (fboundp 'url-queue-retrieve)
 	       'url-queue-retrieve
