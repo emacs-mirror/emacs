@@ -1226,7 +1226,7 @@ string_from_display_spec (Lisp_Object spec)
     }
   else if (VECTORP (spec))
     {
-      int i;
+      ptrdiff_t i;
 
       for (i = 0; i < ASIZE (spec); i++)
 	{
