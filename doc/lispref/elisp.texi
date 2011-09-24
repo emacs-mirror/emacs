@@ -927,6 +927,9 @@ Buffers
 Windows
 
 * Basic Windows::           Basic information on using windows.
+* Windows and Frames::      Relating windows to the frame they appear on.
+* Window Sizes::            Accessing a window's size.
+* Resizing Windows::        Changing the sizes of windows.
 * Splitting Windows::       Splitting one window into two windows.
 * Deleting Windows::        Deleting a window gives its space to other windows.
 * Selecting Windows::       The selected window is the one that you edit in.
@@ -936,17 +939,14 @@ Windows
                               and choosing a window for it.
 * Choosing Window::         How to choose a window for displaying a buffer.
 * Dedicated Windows::       How to avoid displaying another buffer in
-                              a specific window.          
+                              a specific window.
 * Window Point::            Each window has its own location of point.
 * Window Start and End::    Buffer positions indicating which text is
                               on-screen in a window.
 * Textual Scrolling::       Moving text up and down through the window.
 * Vertical Scrolling::      Moving the contents up and down on the window.
 * Horizontal Scrolling::    Moving the contents sideways on the window.
-* Size of Window::          Accessing the size of a window.
-* Resizing Windows::        Changing the size of a window.
 * Coordinates and Windows:: Converting coordinates to windows.
-* Window Tree::             The layout and sizes of all windows in a frame.
 * Window Configurations::   Saving and restoring the state of the screen.
 * Window Parameters::       Associating additional information with windows.
 * Window Hooks::            Hooks for scrolling, window size changes,
@@ -962,8 +962,6 @@ Frames
 * Frame Titles::            Automatic updating of frame titles.
 * Deleting Frames::         Frames last until explicitly deleted.
 * Finding All Frames::      How to examine all existing frames.
-* Frames and Windows::      A frame contains windows;
-                              display of text always works through windows.
 * Minibuffers and Frames::  How a frame finds the minibuffer to use.
 * Input Focus::             Specifying the selected frame.
 * Visibility of Frames::    Frames may be visible or invisible, or icons.

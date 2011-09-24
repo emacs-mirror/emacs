@@ -10619,7 +10619,7 @@
 2008-06-14  Martin Rudalics  <rudalics@gmx.at>
 
 	* window.el (window--even-window-heights): Even window heights
-	only if the selected window is higher than WINDOW.
+	only if the selected window is higher than WINDOW.  (Bug#410)
 	Reported by Stephen Berman <Stephen.Berman at gmx.net>.
 
 2008-06-14  Stefan Monnier  <monnier@iro.umontreal.ca>

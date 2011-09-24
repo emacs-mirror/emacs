@@ -2145,7 +2145,7 @@ usage: (dbus-register-signal BUS SERVICE PATH INTERFACE SIGNAL HANDLER &rest ARG
 
   /* Create a hash table entry.  */
   key = list3 (bus, interface, signal);
-  key1 = list4 (uname, service, path, handler);
+  key1 = list5 (uname, service, path, handler, build_string (rule));
   value = Fgethash (key, Vdbus_registered_objects_table, Qnil);
 
   if (NILP (Fmember (key1, value)))
@@ -2177,7 +2177,7 @@ When DONT-REGISTER-SERVICE is non-nil, the known name SERVICE is not
 registered.  This means that other D-Bus clients have no way of
 noticing the newly registered method.  When interfaces are constructed
 incrementally by adding single methods or properties at a time,
-DONT-REGISTER-SERVICE can be use to prevent other clients from
+DONT-REGISTER-SERVICE can be used to prevent other clients from
 discovering the still incomplete interface.*/)
   (Lisp_Object bus, Lisp_Object service, Lisp_Object path,
    Lisp_Object interface, Lisp_Object method, Lisp_Object handler,
@@ -2318,6 +2318,9 @@ be nil, which means a wildcard then.  OBJECT is either the handler to
 be called when a D-Bus message, which matches the key criteria,
 arrives (methods and signals), or a cons cell containing the value of
 the property.
+
+For signals, there is also a fifth element RULE, which keeps the match
+string the signal is registered with.
 
 In the second case, the key in the hash table is the list (BUS
 SERIAL).  BUS is either a Lisp symbol, `:system' or `:session', or a

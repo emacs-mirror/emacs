@@ -1,3 +1,69 @@
+2011-09-24  Ulf Jasper  <ulf.jasper@web.de>
+
+	* net/newst-reader.el (newsticker-html-renderer)
+	(newsticker-show-news): Automatically
+	load html rendering package if newsticker-html-renderer is
+	set. Fixes "Warning: defvar ignored because w3m-fill-column is
+	let-bound" and the error "Symbol's value as variable is void:
+	w3m-fill-column".
+
+2011-09-24  Michael Albinus  <michael.albinus@gmx.de>
+
+	* net/dbus.el (dbus-unregister-object): Remove match rule of signals.
+	Release services only if they are defined.  (Bug#9581)
+
+2011-09-23  Richard Stallman  <rms@gnu.org>
+
+	* textmodes/paragraphs.el (forward-sentence): For backwards case,
+	distinguish start of paragraph from start of its text.
+
+	* mail/emacsbug.el (report-emacs-bug-query-existing-bugs): Autoload.
+
+	* mail/rmail.el (rmail-view-buffer-kill-buffer-hook): New function.
+	(rmail-generate-viewer-buffer): Put that hook on view buffer.
+	(rmail-mode-kill-buffer-hook): Override that hook, to kill view buffer.
+
+2011-09-23  Andreas Schwab  <schwab@linux-m68k.org>
+
+	* international/mule-diag.el (mule-diag): Insert a newline after
+	each fontset description.
+
+2011-09-23  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* simple.el (delete-trailing-whitespace):
+	Document last change; simplify.
+
+2011-09-23  Peter J. Weisberg  <pj@irregularexpressions.net>
+
+	* simple.el (delete-trailing-whitespace): Also delete
+	extra newlines at the end of the buffer.
+
+	* textmodes/picture.el: Make motion commands obey shift-select-mode.
+	(picture-newline): Use forward-line so as to ignore fields.
+
+2011-09-23  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* subr.el (with-wrapper-hook): Fix edebug spec.
+
+2011-09-23  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* simple.el (kill-line): Note effect of `show-trailing-whitespace'
+	(bug#4538).
+
+2011-09-23  Michael Albinus  <michael.albinus@gmx.de>
+
+	* net/tramp-sh.el (tramp-sh-handle-file-name-all-completions):
+	Fix nasty bug using wrong cached values.
+
+2011-09-23  Alan Mackenzie  <acm@muc.de>
+
+	* progmodes/cc-defs.el (c-version): Increase to 5.31.9.
+
+2011-09-23  Chong Yidong  <cyd@stupidchicken.com>
+
+	* window.el (pop-to-buffer): Ensure right window is selected if we
+	chose another frame.
+
 2011-09-22  Eli Zaretskii  <eliz@gnu.org>
 
 	* simple.el (what-cursor-position): Use get-char-property-change
@@ -52,8 +118,8 @@
 
 2011-09-21  Martin Rudalics  <rudalics@gmx.at>
 
-	* window.el (set-window-buffer-start-and-point): Call
-	set-window-start with NOFORCE argument t.  Suggested by Thierry
+	* window.el (set-window-buffer-start-and-point):
+	Call set-window-start with NOFORCE argument t.  Suggested by Thierry
 	Volpiatto <thierry.volpiatto@gmail.com>.
 	(quit-window): Reword doc-string.  Handle new format of
 	quit-restore parameter.  Don't delete window if it has a

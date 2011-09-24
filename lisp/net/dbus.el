@@ -143,7 +143,7 @@ association to the service from D-Bus."
 	 (value (cdr object))
 	 (entry (gethash key dbus-registered-objects-table))
 	 ret)
-    ;; entry has the structure ((UNAME SERVICE PATH MEMBER) ...).
+    ;; entry has the structure ((UNAME SERVICE PATH MEMBER [RULE]) ...).
     ;; value has the structure ((SERVICE PATH [HANDLER]) ...).
     ;; MEMBER is either a string (the handler), or a cons cell (a
     ;; property value).  UNAME and property values are not taken into
@@ -154,11 +154,17 @@ association to the service from D-Bus."
       (when (equal
 	     (car value)
 	     (butlast (cdr elt) (- (length (cdr elt)) (length (car value)))))
+	(setq ret t)
 	;; Compute new hash value.  If it is empty, remove it from the
 	;; hash table.
 	(unless (puthash key (delete elt entry) dbus-registered-objects-table)
 	  (remhash key dbus-registered-objects-table))
-	(setq ret t)))
+	;; Remove match rule of signals.
+	(let ((rule (nth 4 elt)))
+	  (when (stringp rule)
+	    (dbus-call-method
+	     (car key) dbus-service-dbus dbus-path-dbus dbus-interface-dbus
+	     "RemoveMatch" rule)))))
     ;; Check, whether there is still a registered function or property
     ;; for the given service.  If not, unregister the service from the
     ;; bus.
@@ -166,17 +172,18 @@ association to the service from D-Bus."
       (let ((service (cadr elt))
 	    (bus (car key))
 	    found)
-	(maphash
-	 (lambda (k v)
-	   (dolist (e v)
-	     (ignore-errors
-	       (when (and (equal bus (car k)) (string-equal service (cadr e)))
-		 (setq found t)))))
-	 dbus-registered-objects-table)
-	(unless found
-	  (dbus-call-method
-	   bus dbus-service-dbus dbus-path-dbus dbus-interface-dbus
-	   "ReleaseName" service))))
+	(when service
+	  (maphash
+	   (lambda (k v)
+	     (dolist (e v)
+	       (ignore-errors
+		 (when (and (equal bus (car k)) (string-equal service (cadr e)))
+		   (setq found t)))))
+	   dbus-registered-objects-table)
+	  (unless found
+	    (dbus-call-method
+	     bus dbus-service-dbus dbus-path-dbus dbus-interface-dbus
+	     "ReleaseName" service)))))
     ;; Return.
     ret))
 
