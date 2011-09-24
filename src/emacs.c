@@ -2019,7 +2019,7 @@ all of which are called before Emacs is actually killed.  */)
     unlink (SSDATA (Vauto_save_list_file_name));
 
   exit_code = EXIT_SUCCESS;
-  if (noninteractive && fflush (stdout))
+  if (noninteractive && (fflush (stdout) || ferror (stdout)))
     exit_code = EXIT_FAILURE;
   exit (INTEGERP (arg) ? XINT (arg) : exit_code);
 }
