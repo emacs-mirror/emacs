@@ -850,11 +850,12 @@ each others' edits if they are not careful.
 
 @vindex special-display-buffer-names
   You can make certain chosen buffers, which Emacs normally displays
-in ``another window,'' appear in special frames of their own.  To do
-this, set the variable @code{special-display-buffer-names} to a list
-of buffer names; any buffer whose name is in that list automatically
-gets a special frame, when an Emacs command wants to display it ``in
-another window.''
+in ``some other window'' (@pxref{Displaying Buffers}), appear in
+special frames of their own.  To do this, set the variable
+@code{special-display-buffer-names} to a list of buffer names; any
+buffer whose name is in that list automatically gets a special frame.
+@xref{Window Choice}, for how this fits in with the other ways for
+Emacs to choose a window to display in.
 
   For example, if you set the variable this way,
 
@@ -905,13 +906,6 @@ use the selected frame if possible.
 where @var{function} is a symbol.  Then the frame is constructed by
 calling @var{function}; its first argument is the buffer, and its
 remaining arguments are @var{args}.
-
-   An analogous feature lets you specify buffers which should be
-displayed in the selected window.  @xref{Force Same Window}.  The
-same-window feature takes precedence over the special-frame feature;
-therefore, if you add a buffer name to
-@code{special-display-buffer-names} and it has no effect, check to see
-whether that feature is also in use for the same buffer name.
 
 @node Frame Parameters
 @section Setting Frame Parameters

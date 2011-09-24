@@ -488,9 +488,8 @@ Multiple Windows
 * Split Window::        New windows are made by splitting existing windows.
 * Other Window::        Moving to another window or doing something to it.
 * Pop Up Window::       Finding a file or buffer in another window.
-* Force Same Window::   Forcing certain buffers to appear in the selected
-                          window rather than in another window.
 * Change Window::       Deleting windows and changing their sizes.
+* Displaying Buffers::  How Emacs picks a window for displaying a buffer.
 * Window Convenience::  Convenience functions for window handling.
 
 Frames and Graphical Displays

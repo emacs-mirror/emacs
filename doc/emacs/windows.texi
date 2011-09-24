@@ -18,9 +18,8 @@ one frame.
 * Split Window::        New windows are made by splitting existing windows.
 * Other Window::        Moving to another window or doing something to it.
 * Pop Up Window::       Finding a file or buffer in another window.
-* Force Same Window::   Forcing certain buffers to appear in the selected
-                          window rather than in another window.
 * Change Window::       Deleting windows and changing their sizes.
+* Displaying Buffers::  How Emacs picks a window for displaying a buffer.
 * Window Convenience::  Convenience functions for window handling.
 @end menu
 
@@ -191,83 +190,46 @@ feature is off by default.
 
 @cindex selecting buffers in other windows
 @kindex C-x 4
-  @kbd{C-x 4} is a prefix key for commands that select another window
-(splitting the window if there is only one) and select a buffer in that
-window.  Different @kbd{C-x 4} commands have different ways of finding the
-buffer to select.
+  @kbd{C-x 4} is a prefix key for a variety of commands that switch to
+a buffer in a different window---either another existing window, or a
+new window created by splitting the selected window.  @xref{Window
+Choice}, for how Emacs picks or creates the window to use.
 
 @table @kbd
+@findex switch-to-buffer-other-window
 @item C-x 4 b @var{bufname} @key{RET}
-Select buffer @var{bufname} in another window.  This runs
-@code{switch-to-buffer-other-window}.
+Select buffer @var{bufname} in another window
+(@code{switch-to-buffer-other-window}).
+
+@findex display-buffer
 @item C-x 4 C-o @var{bufname} @key{RET}
-Display buffer @var{bufname} in another window, but
-don't select that buffer or that window.  This runs
-@code{display-buffer}.
+Display buffer @var{bufname} in some window, without trying to select
+it (@code{display-buffer}).  @xref{Displaying Buffers}, for details
+about how the window is chosen.
+
+@findex find-file-other-window
 @item C-x 4 f @var{filename} @key{RET}
-Visit file @var{filename} and select its buffer in another window.  This
-runs @code{find-file-other-window}.  @xref{Visiting}.
+Visit file @var{filename} and select its buffer in another window
+(@code{find-file-other-window}).  @xref{Visiting}.
+
+@findex dired-other-window
 @item C-x 4 d @var{directory} @key{RET}
-Select a Dired buffer for directory @var{directory} in another window.
-This runs @code{dired-other-window}.  @xref{Dired}.
+Select a Dired buffer for directory @var{directory} in another window
+(@code{dired-other-window}).  @xref{Dired}.
+
+@findex mail-other-window
 @item C-x 4 m
-Start composing a mail message in another window.  This runs
-@code{mail-other-window}; its same-window analogue is @kbd{C-x m}
-(@pxref{Sending Mail}).
+Start composing a mail message, similar to @kbd{C-x m} (@pxref{Sending
+Mail}), but in another window (@code{mail-other-window}).
+
+@findex find-tag-other-window
 @item C-x 4 .
-Find a tag in the current tags table, in another window.  This runs
-@code{find-tag-other-window}, the multiple-window variant of @kbd{M-.}
-(@pxref{Tags}).
+Find a tag in the current tags table, similar to @kbd{M-.}
+(@pxref{Tags}), but in another window (@code{find-tag-other-window}).
 @item C-x 4 r @var{filename} @key{RET}
 Visit file @var{filename} read-only, and select its buffer in another
-window.  This runs @code{find-file-read-only-other-window}.
-@xref{Visiting}.
+window (@code{find-file-read-only-other-window}).  @xref{Visiting}.
 @end table
-
-@vindex split-height-threshold
-@vindex split-width-threshold
-  By default, these commands split the window vertically when there is
-only one.  You can customize the variables @code{split-height-threshold}
-and @code{split-width-threshold} to split the window horizontally
-instead.
-
-
-@node Force Same Window
-@section Forcing Display in the Same Window
-
-  Certain Emacs commands switch to a specific buffer with special
-contents.  For example, @kbd{M-x shell} switches to a buffer named
-@samp{*shell*}.  By convention, all these commands are written to pop up
-the buffer in a separate window.  But you can specify that certain of
-these buffers should appear in the selected window.
-
-@vindex same-window-buffer-names
-  If you add a buffer name to the list @code{same-window-buffer-names},
-the effect is that such commands display that particular buffer by
-switching to it in the selected window.  For example, if you add the
-element @code{"*grep*"} to the list, the @code{grep} command will
-display its output buffer in the selected window.
-
-  The default value of @code{same-window-buffer-names} is not
-@code{nil}: it specifies buffer names @samp{*info*}, @samp{*mail*} and
-@samp{*shell*} (as well as others used by more obscure Emacs packages).
-This is why @kbd{M-x shell} normally switches to the @samp{*shell*}
-buffer in the selected window.  If you delete this element from the
-value of @code{same-window-buffer-names}, the behavior of @kbd{M-x
-shell} will change---it will pop up the buffer in another window
-instead.
-
-@vindex same-window-regexps
-  You can specify these buffers more generally with the variable
-@code{same-window-regexps}.  Set it to a list of regular expressions;
-then any buffer whose name matches one of those regular expressions is
-displayed by switching to it in the selected window.  (Once again, this
-applies only to buffers that normally get displayed for you in a
-separate window.)  The default value of this variable specifies Telnet
-and rlogin buffers.
-
-  An analogous feature lets you specify buffers which should be
-displayed in their own individual frames.  @xref{Special Buffer Frames}.
 
 @node Change Window
 @section Deleting and Rearranging Windows
@@ -355,6 +317,113 @@ heights of all the windows in the selected frame.
 
   Mouse clicks on the mode line provide another way to change window
 heights and to delete windows.  @xref{Mode Line Mouse}.
+
+@node Displaying Buffers
+@section Displaying a Buffer in a Window
+
+  It is a common Emacs operation to display or ``pop up'' some buffer
+in response to a user command.  There are several different ways by
+which commands do this.
+
+  Many commands, like @kbd{C-x C-f} (@code{find-file}), display the
+buffer by ``taking over'' the selected window, expecting that the
+user's attention will be diverted to that buffer.  These commands
+usually work by calling @code{switch-to-buffer} internally
+(@pxref{Select Buffer}).
+
+@findex display-buffer
+  Some commands try to display ``intelligently'', trying not to take
+over the selected window, e.g. by splitting the selected window and
+displaying the desired buffer in the child window.  Such commands,
+which include the various help commands (@pxref{Help}), work by
+calling @code{display-buffer} internally.  @xref{Window Choice}, for
+details.
+
+  Other commands do the same as @code{display-buffer}, and
+additionally select the displaying window so that you can begin
+editing its buffer.  The command @kbd{C-x `} (@code{next-error}) is
+one example (@pxref{Compilation Mode}).  Such commands work by calling
+@code{pop-to-buffer} internally.  @xref{Displaying Buffers,,Displaying
+Buffers in Windows, elisp, The Emacs Lisp Reference Manual}.
+
+  Commands with names ending in @code{-other-window} behave like
+@code{display-buffer}, except that they never display in the selected
+window.  Several of these commands are bound in the @kbd{C-x 4} prefix
+key (@pxref{Pop Up Window}).
+
+  Commands with names ending in @code{-other-frame} behave like
+@code{display-buffer}, except that they (i) never display in the
+selected window and (ii) prefer to create a new frame to display the
+desired buffer instead of splitting a window---as though the variable
+@code{pop-up-frames} is set to @code{t} (@pxref{Window Choice}).
+Several of these commands are bound in the @kbd{C-x 5} prefix key.
+
+@menu
+* Window Choice::   How @code{display-buffer} works.
+@end menu
+
+@node Window Choice
+@subsection How @code{display-buffer} works
+@findex display-buffer
+
+The @code{display-buffer} command (as well as commands that call it
+internally) chooses a window to display using the following steps:
+
+@itemize
+@vindex same-window-buffer-names
+@vindex same-window-regexps
+@item
+First, check if the buffer should be displayed in the selected window
+regardless of other considerations.  You can tell Emacs to do this by
+adding the desired buffer's name to the list
+@code{same-window-buffer-names}, or adding a matching regular
+expression to the list @code{same-window-regexps}.  By default, these
+variables are @code{nil}, so this step is skipped.
+
+@vindex display-buffer-reuse-frames
+@item
+Otherwise, if the buffer is already displayed in an existing window,
+``reuse'' that window.  Normally, only windows on the selected frame
+are considered, but windows on other frames are also reusable if you
+change @code{display-buffer-reuse-frames} to @code{t}, or if you
+change @code{pop-up-frames} (see below) to @code{t}.
+
+@item
+Otherwise, if you specified that the buffer should be displayed in a
+special frame by customizing @code{special-display-buffer-names} or
+@code{special-display-regexps}, do so.  @xref{Special Buffer Frames}.
+
+@vindex pop-up-frames
+@item
+Otherwise, optionally create a new frame and display the buffer there.
+By default, this step is skipped.  To enable it, change the variable
+@code{pop-up-frames} to a non-@code{nil} value.  The special value
+@code{graphic-only} means to do this only on graphical displays.
+
+@item
+Otherwise, try to create a new window by splitting the selected
+window, and display the buffer in that new window.
+
+@vindex split-height-threshold
+@vindex split-width-threshold
+The split can be either vertical or horizontal, depending on the
+variables @code{split-height-threshold} and
+@code{split-width-threshold}.  These variables should have integer
+values.  If @code{split-height-threshold} is smaller than the selected
+window's height, the split puts the new window below.  Otherwise, if
+@code{split-width-threshold} is smaller than the window's width, the
+split puts the new window on the right.  If neither condition holds,
+Emacs tries to split so that the new window is below---but only if the
+window was not split before (to avoid excessive splitting).
+
+@item
+Otherwise, display the buffer in an existing window on the selected
+frame.
+
+@item
+If all the above methods fail for whatever reason, create a new frame
+and display the buffer there.
+@end itemize
 
 @node Window Convenience
 @section Window Handling Convenience Features and Customization

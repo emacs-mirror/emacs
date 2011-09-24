@@ -1,3 +1,17 @@
+2011-09-24  Chong Yidong  <cyd@stupidchicken.com>
+
+	* windows.texi (Pop Up Window): Defer discussion of window
+	splitting to the Window Choice node.  Add index entries.
+	(Force Same Window): Node deleted.
+	(Displaying Buffers, Window Choice): New nodes.
+
+	* buffers.texi (Select Buffer): Clarify description of
+	buffer-switching commands.  Add xref to Window Display node.
+	Don't repeat confirm-nonexistent-file-or-buffer description from
+	Visiting node.  Remove even-window-heights.
+
+	* frames.texi (Special Buffer Frames): Add xref to Window Choice.
+
 2011-09-18  Chong Yidong  <cyd@stupidchicken.com>
 
 	* cmdargs.texi (Icons X): Fix description of Emacs icon.
