@@ -1,3 +1,7 @@
+2011-09-24  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* indent.c (Fvertical_motion): Fix == vs = typo.
+
 2011-09-24  Eli Zaretskii  <eliz@gnu.org>
 
 	* dispnew.c (syms_of_display) <redisplay-dont-pause>: Default

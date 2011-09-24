@@ -2041,7 +2041,7 @@ whether or not it is currently displayed in some window.  */)
 		it_overshoot_count++;
 	    }
 	  if (!it_overshoot_count)
-	    it_overshoot_count == -1;
+	    it_overshoot_count = -1;
 	}
       else
 	it_overshoot_count =
