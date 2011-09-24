@@ -1,3 +1,15 @@
+2011-09-24  Eli Zaretskii  <eliz@gnu.org>
+
+	* indent.c (Fvertical_motion): Compute and apply the overshoot
+	logic when moving up, not only when moving down.  Fix the
+	confusing name and values of the it_overshoot_expected variable;
+	logic changes accordingly.  (Bug#9254) (Bug#9549)
+
+	* xdisp.c (pos_visible_p): Produce correct pixel coordinates when
+	CHARPOS is covered by a display string which includes newlines.
+	(move_it_vertically_backward): Avoid inflooping when START_CHARPOS
+	is covered by a display string with embedded newlines.
+
 2011-09-24  Michael Albinus  <michael.albinus@gmx.de>
 
 	* dbusbind.c (Fdbus_register_signal): Add match rule to
