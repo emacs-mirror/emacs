@@ -1,3 +1,12 @@
+2011-09-22  Ken Manheimer  <ken.manheimer@gmail.com>
+
+	* allout.el (allout-this-command-hid-stuff): Buffer-local variable
+	that's true if the current command involved collapsing of text.
+	It's reset to false at the beginning of the next command.
+	(allout-post-command-business): Move the cursor to the beginning
+	of entry if the cursor is hidden and collapsing activity just
+	happened.
+
 2011-09-24  Chong Yidong  <cyd@stupidchicken.com>
 
 	* mouse.el (mouse-drag-track): Set scroll-margin to 0 while
