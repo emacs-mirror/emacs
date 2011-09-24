@@ -21,7 +21,7 @@
 @end ifset
 
 @c per rms and peterb, use 10pt fonts for the main text, mostly to
-@c save on paper cost.  
+@c save on paper cost.
 @c Do this inside @tex for now, so current makeinfo does not complain.
 @tex
 @ifset smallbook
@@ -935,9 +935,9 @@ Windows
 * Selecting Windows::       The selected window is the one that you edit in.
 * Cyclic Window Ordering::  Moving around the existing windows.
 * Buffers and Windows::     Each window displays the contents of a buffer.
-* Displaying Buffers::      Higher-level functions for displaying a buffer
-                              and choosing a window for it.
+* Switching Buffers::       Higher-level functions for switching to a buffer.
 * Choosing Window::         How to choose a window for displaying a buffer.
+* Window History::          Each window remembers the buffers displayed in it.
 * Dedicated Windows::       How to avoid displaying another buffer in
                               a specific window.
 * Window Point::            Each window has its own location of point.

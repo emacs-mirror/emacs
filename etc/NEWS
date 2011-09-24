@@ -1070,6 +1070,7 @@ shown in that window with its previous window-start and window-point
 positions.  This also means that the same buffer may be automatically
 shown twice even if it already appears in another window.
 
++++
 *** `switch-to-buffer' has a new optional argument FORCE-SAME-WINDOW,
 which if non-nil requires the buffer to be displayed in the currently
 selected window, signaling an error otherwise.  If nil, another window
