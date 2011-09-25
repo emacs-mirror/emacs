@@ -1,3 +1,12 @@
+2011-09-25  Martin Rudalics  <rudalics@gmx.at>
+
+	* windows.texi (Windows and Frames, Display Action Functions)
+	(Switching Buffers): Fix some typos.
+	(Buffers and Windows): Remove reference to window-auto-delete.
+	Reword description of replace-buffer-in-windows.
+	(Window History): Fix some typos and refer to frame local buffer
+	list.
+
 2011-09-25  Chong Yidong  <cyd@stupidchicken.com>
 
 	* windows.texi (Display Action Functions)
