@@ -2071,13 +2071,7 @@ usage: (dbus-register-signal BUS SERVICE PATH INTERFACE SIGNAL HANDLER &rest ARG
       && (SBYTES (service) > 0)
       && (strcmp (SSDATA (service), DBUS_SERVICE_DBUS) != 0)
       && (strncmp (SSDATA (service), ":", 1) != 0))
-    {
-      uname = call2 (intern ("dbus-get-name-owner"), bus, service);
-      /* When there is no unique name, we mark it with an empty
-	 string.  */
-      if (NILP (uname))
-	uname = empty_unibyte_string;
-    }
+    uname = call2 (intern ("dbus-get-name-owner"), bus, service);
   else
     uname = service;
 
