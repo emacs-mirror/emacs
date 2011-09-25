@@ -8057,14 +8057,9 @@ case $opsys in
     LIB_STANDARD=-lc
     START_FILES='pre-crt0.o $(CRT_DIR)/crt0.o'
     ;;
-  netbsd | openbsd )
-    if test -f $CRT_DIR/crti.o; then
-	LIB_STANDARD='-lgcc -lc -lgcc $(CRT_DIR)/crtend.o $(CRT_DIR)/crtn.o'
-        START_FILES='pre-crt0.o $(CRT_DIR)/crt0.o $(CRT_DIR)/crti.o $(CRT_DIR)/crtbegin.o'
-    else
-	LIB_STANDARD='-lgcc -lc -lgcc $(CRT_DIR)/crtend.o'
-	START_FILES='pre-crt0.o $(CRT_DIR)/crt0.o $(CRT_DIR)/crtbegin.o'
-    fi
+    netbsd | openbsd )
+    LIB_STANDARD='-lgcc -lc -lgcc $(CRT_DIR)/crtend.o'
+    START_FILES='pre-crt0.o $(CRT_DIR)/crt0.o $(CRT_DIR)/crtbegin.o'
     ;;
 esac
 
@@ -8162,6 +8157,19 @@ Try using the --with-crt-dir option." "$LINENO" 5
 fi                              # crt_files != ""
 
 
+
+case $opsys in
+  netbsd | openbsd )
+    if test -f $CRT_DIR/crti.o; then
+
+        test -f $CRT_DIR/crtn.o || \
+          as_fn_error "Required file not found: crtn.o" "$LINENO" 5
+
+        LIB_STANDARD='-lgcc -lc -lgcc $(CRT_DIR)/crtend.o $(CRT_DIR)/crtn.o'
+        START_FILES='pre-crt0.o $(CRT_DIR)/crt0.o $(CRT_DIR)/crti.o $(CRT_DIR)/crtbegin.o'
+    fi
+    ;;
+esac
 
 
 
