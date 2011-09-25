@@ -6,6 +6,12 @@
 	Reword description of replace-buffer-in-windows.
 	(Window History): Fix some typos and refer to frame local buffer
 	list.
+	(Quitting Windows): New node.
+	(Window Configurations): Add descriptions of window-state-get
+	and window-state-put.
+	(Window Parameters): Describe variable ignore-window-parameters.
+	Sketch some window parameters currently in use.
+	* elisp.texi (Top): Update node listing.
 
 2011-09-25  Chong Yidong  <cyd@stupidchicken.com>
 

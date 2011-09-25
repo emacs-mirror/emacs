@@ -29,6 +29,8 @@ is displayed in windows.
 * Window History::          Each window remembers the buffers displayed in it.
 * Dedicated Windows::       How to avoid displaying another buffer in
                               a specific window.
+* Quitting Windows::        How to restore the state prior to displaying a
+                              buffer.
 * Window Point::            Each window has its own location of point.
 * Window Start and End::    Buffer positions indicating which text is
                               on-screen in a window.
@@ -2777,6 +2779,59 @@ display.  Other functions do not treat @code{t} differently from any
 non-@code{nil} value.
 @end defun
 
+
+@node Quitting Windows
+@section Quitting Windows
+
+When you want to get rid of a window used for displaying a buffer you
+can use the function @code{delete-window} (@pxref{Deleting Windows}) to
+remove that window from its frame.  If the buffer has been shown on a
+separate frame, you might want to call @code{delete-frame}
+(@pxref{Deleting Frames}) instead.  If, on the other hand, a window has
+been reused for displaying the buffer, you might prefer showing the
+buffer previously shown in that window by calling the function
+@code{switch-to-prev-buffer} (@pxref{Window History}).  Finally, you
+might want to either bury (@pxref{The Buffer List}) or kill
+(@pxref{Killing Buffers}) the window's buffer.
+
+   The following function uses information on how the window for
+displaying the buffer was obtained in the first place thus attempting to
+automatize the above decisions for you.
+
+@deffn Command quit-window &optional kill window
+This command quits @var{window} and buries its buffer.  The argument
+@var{window} must be a live window and defaults to the selected one.
+With prefix argument @var{kill} non-@code{nil}, it kills the buffer
+instead of burying it.
+
+Quitting @var{window} means to proceed as follows: If @var{window} was
+created specially for displaying its current buffer, delete @var{window}
+provided its frame contains at least one other live window.  If
+@var{window} is the only window on its frame and other frames still
+exist, delete the frame together with @var{window}.  If, however, there
+are no other frames left, display some other buffer in @var{window}.
+
+If @var{window} was reused for displaying its buffer, this command tries
+to display the buffer previously shown in it.  It also tries to restore
+the window start (@pxref{Window Start and End}) and point (@pxref{Window
+Point}) positions of the previously shown buffer.  If, in addition, the
+current buffer was temporarily resized, this command will also try to
+restore the original height of @var{window}.
+
+The three cases described so far require that the buffer shown in
+@var{window} is still the buffer displayed by the last buffer display
+function for this window.  If another buffer has been shown in the
+meantime or the buffer previously shown no longer exists, this command
+calls @code{switch-to-prev-buffer} (@pxref{Window History}) to show some
+other buffer instead.
+@end deffn
+
+The function @code{quit-window} bases its decisions on information
+stored in @var{window}'s @code{quit-restore} window parameter
+(@pxref{Window Parameters}) and resets that parameter to @code{nil}
+after it's done.
+
+
 @node Window Point
 @section Windows and Point
 @cindex window position
@@ -3523,14 +3578,13 @@ argument because it always uses the frame that @var{window} is on.
 @cindex window configurations
 @cindex saving window information
 
-  A @dfn{window configuration} records the entire layout of one
+A @dfn{window configuration} records the entire layout of one
 frame---all windows, their sizes, which buffers they contain, how those
 buffers are scrolled, and their values of point and the mark; also their
 fringes, margins, and scroll bar settings.  It also includes the value
 of @code{minibuffer-scroll-window}.  As a special exception, the window
 configuration does not record the value of point in the selected window
-for the current buffer.  Also, the window configuration does not record
-the values of window parameters; see @ref{Window Parameters}.
+for the current buffer.
 
   You can bring back an entire frame layout by restoring a previously
 saved window configuration.  If you want to record the layout of all
@@ -3640,24 +3694,62 @@ sense, but are not implemented because we did not need them.  See the
 file @file{winner.el} for some more operations on windows
 configurations.
 
+  The objects returned by @code{current-window-configuration} die
+together with the Emacs process.  In order to store a window
+configuration on disk and read it back in another Emacs session the
+following two functions can be used.
+
+@defun window-state-get &optional window markers
+This function returns the state of @var{window} as a Lisp object.  The
+argument @var{window} can be any window and defaults to the root window
+of the selected frame.
+
+The optional argument @var{markers} non-@code{nil} means to use markers
+for sampling positions like @code{window-point} or @code{window-start}.
+This argument should be non-@code{nil} only if the value is used for
+putting the state back in the same session since markers slow down
+processing.
+@end defun
+
+The value returned by @code{window-state-get} can be converted by using
+one of the functions defined by Desktop Save Mode (@pxref{Desktop Save
+Mode}) to an object that can be written to a file.  Such objects can be
+read back and converted to a Lisp object representing the state of the
+window.  That Lisp object can be used as argument for the following
+function in order to restore the state window in another window.
+
+@defun window-state-put state &optional window ignore
+This function puts the window state @var{state} into @var{window}.  The
+argument @var{state} should be the state of a window returned by an
+earlier invocation of @code{window-state-get}, see above.  The optional
+argument @var{window} must specify a live window and defaults to the
+selected one.
+
+The optional argument @var{ignore} non-@code{nil} means to ignore
+minimum window sizes and fixed size restrictions.  If @var{ignore}
+equals @code{safe}, this means subwindows can get as small as one line
+and/or two columns.
+@end defun
+
+
 @node Window Parameters
 @section Window Parameters
 @cindex window parameters
 
-This sections describes how window parameters can be used to associate
+This section describes how window parameters can be used to associate
 additional information with windows.
 
 @defun window-parameter window parameter
 This function returns @var{window}'s value for @var{parameter}.  The
-default for @var{window} is the selected window.  If @var{window}
-has no setting for @var{parameter}, this function returns @code{nil}.
+default for @var{window} is the selected window.  If @var{window} has no
+setting for @var{parameter}, this function returns @code{nil}.
 @end defun
 
 @defun window-parameters &optional window
 This function returns all parameters of @var{window} and their values.
-The default for @var{window} is the selected window.  The return value
-is an association list of elements of the form @code{(@var{parameter}
-. @var{value})}.
+The default for @var{window} is the selected window.  The return value,
+if non-@code{nil} is an association list whose elements have the form
+@code{(@var{parameter} . @var{value})}.
 @end defun
 
 @defun set-window-parameter window parameter value
@@ -3666,13 +3758,56 @@ This function sets @var{window}'s value of @var{parameter} to
 is the selected window.
 @end defun
 
-Currently, window parameters are not saved in window configurations and
-consequently not restored by @code{set-window-configuration}.  Hence,
-any change of a parameter introduced via @code{set-window-parameter} can
-be undone only by invoking @code{set-window-parameter} for the same
-parameter again.  Since @code{save-window-excursion} relies on window
-configurations (@pxref{Window Configurations}), window parameters are
-not saved and restored by that special form, either.
+Some functions, notably @code{delete-window},
+@code{delete-other-windows} and @code{split-window} may behave specially
+when their @var{window} argument has a parameter set.  You can override
+such special behavior by binding the following variable to a
+non-@code{nil} value:
+
+@defvar ignore-window-parameters
+If this variable is non-@code{nil}, some standard functions do not
+process window parameters.  The functions currently affected by this are
+@code{split-window}, @code{delete-window}, @code{delete-other-windows}
+and @code{other-window}.
+
+An application can bind this variable to a non-@code{nil} value around
+calls to these functions.  If it does so, the application is fully
+responsible for correctly assigning the parameters of all involved
+windows when exiting that function.
+@end defvar
+
+The following parameters are currently used by the window management
+code.
+
+@table @asis
+@item @code{delete-window}
+This parameter affects the execution of @code{delete-window}
+(@pxref{Deleting Windows}).
+
+@item @code{delete-other-windows}
+This parameter affects the execution of @code{delete-other-windows}
+(@pxref{Deleting Windows}).
+
+@item @code{split-window}
+This parameter affects the execution of @code{split-window}
+(@pxref{Splitting Windows}).
+
+@item @code{other-window}
+This parameter affects the execution of @code{other-window}
+(@pxref{Cyclic Window Ordering}).
+
+@item @code{no-other-window}
+This parameter marks the window as not selectable by @code{other-window}
+(@pxref{Cyclic Window Ordering}).
+@end table
+
+In addition, the parameters @code{window-atom} and @code{window-side}
+are reserved and should not be used by applications.  The
+@code{quit-restore} parameter tells how to proceed with a window when
+the buffer it shows is no more needed.  This parameter is installed by
+the buffer display functions (@pxref{Choosing Window}) and consulted by
+the function @code{quit-window} (@pxref{Quitting Windows}).
+
 
 @node Window Hooks
 @section Hooks for Window Scrolling and Changes
