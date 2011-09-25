@@ -556,6 +556,8 @@
 	(conv_lisp_to_sockaddr): Don't assume fixnums fit into int.
 	(Faccept_process_output): Use duration_to_sec_usec to do proper
 	overflow checking on durations.
+	* puresize.h (PURESIZE_RATIO): Shrink this to 8/6 on 32-bit hosts
+	configured --with-wide-int.
 	* scroll.c (calculate_scrolling, calculate_direct_scrolling)
 	(line_ins_del): Use int, not EMACS_INT, where int is wide enough.
 	* search.c (looking_at_1, string_match_1):
