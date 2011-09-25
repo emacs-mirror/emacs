@@ -425,6 +425,11 @@ These maximize and minize the size of a window within its frame.
 These functions allow to navigate through the live buffers that have
 been shown in a specific window.
 
++++
+*** New functions `window-state-get' and `window-state-put'.
+These functions allow to save and restore the state of an arbitrary
+frame or window as an Elisp object.
+
 ** The inactive minibuffer has its own major mode `minibuffer-inactive-mode'.
 This is handy for minibuffer-only frames, and is also used for the "mouse-1
 pops up *Messages*" feature, which can now easily be changed.
@@ -1030,11 +1035,11 @@ and `window-body-height' are provided.
 *** Window parameters specific to window handling functions.
 For each window you can specify a parameter to override the default
 behavior of a number of functions like `split-window', `delete-window'
-and `delete-other-windows'.
+and `delete-other-windows'.  The variable `ignore-window-parameters'
+allows to ignore processing such parameters.
 
 +++
 *** New semantics of third argument of `split-window'.
-
 The third argument of `split-window' has been renamed to SIDE and can be
 set to any of the values 'below, 'right, 'above, or 'left to make the
 new window appear on the corresponding side of the window that shall be
@@ -1096,6 +1101,11 @@ and `display-buffer-fallback-action'.  The second and fourth of these
 are user-customizable variables.
 
 See the docstring of `display-buffer' for details.
+
++++
+*** New behavior of `quit-window'.
+The behavior of `quit-window' has been changed in order to restore the
+state before the last buffer display operation in that window.
 
 ** Completion
 
