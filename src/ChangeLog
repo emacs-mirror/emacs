@@ -767,6 +767,11 @@
 	rather than rolling our own approximation.
 	(SCROLL_BAR_VEC_SIZE): Remove; not used.
 
+2011-09-25  Michael Albinus  <michael.albinus@gmx.de>
+
+	* dbusbind.c (Fdbus_register_signal): When service is not
+	registered, use nil in Vdbus_registered_objects_table.  (Bug#9581)
+
 2011-09-25  Glenn Morris  <rgm@gnu.org>
 
 	* buffer.c (truncate-lines): Doc fix.

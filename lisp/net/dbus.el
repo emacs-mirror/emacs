@@ -140,11 +140,14 @@ association to the service from D-Bus."
 
   ;; Find the corresponding entry in the hash table.
   (let* ((key (car object))
-	 (value (cdr object))
+	 (value (cadr object))
+	 (bus (car key))
+	 (service (car value))
 	 (entry (gethash key dbus-registered-objects-table))
 	 ret)
+    ;; key has the structure (BUS INTERRFACE MEMBER).
+    ;; value has the structure (SERVICE PATH [HANDLER]).
     ;; entry has the structure ((UNAME SERVICE PATH MEMBER [RULE]) ...).
-    ;; value has the structure ((SERVICE PATH [HANDLER]) ...).
     ;; MEMBER is either a string (the handler), or a cons cell (a
     ;; property value).  UNAME and property values are not taken into
     ;; account for comparision.
@@ -152,8 +155,8 @@ association to the service from D-Bus."
     ;; Loop over the registered functions.
     (dolist (elt entry)
       (when (equal
-	     (car value)
-	     (butlast (cdr elt) (- (length (cdr elt)) (length (car value)))))
+	     value
+	     (butlast (cdr elt) (- (length (cdr elt)) (length value))))
 	(setq ret t)
 	;; Compute new hash value.  If it is empty, remove it from the
 	;; hash table.
@@ -162,17 +165,16 @@ association to the service from D-Bus."
 	;; Remove match rule of signals.
 	(let ((rule (nth 4 elt)))
 	  (when (stringp rule)
+	    (setq service nil) ; We do not need to unregister the service.
 	    (dbus-call-method
-	     (car key) dbus-service-dbus dbus-path-dbus dbus-interface-dbus
+	     bus dbus-service-dbus dbus-path-dbus dbus-interface-dbus
 	     "RemoveMatch" rule)))))
     ;; Check, whether there is still a registered function or property
     ;; for the given service.  If not, unregister the service from the
     ;; bus.
-    (dolist (elt entry)
-      (let ((service (cadr elt))
-	    (bus (car key))
-	    found)
-	(when service
+    (when service
+      (dolist (elt entry)
+	(let (found)
 	  (maphash
 	   (lambda (k v)
 	     (dolist (e v)

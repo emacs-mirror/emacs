@@ -1,3 +1,14 @@
+2011-09-25  Michael Albinus  <michael.albinus@gmx.de>
+
+	* net/dbus.el (dbus-unregister-object): Don't release services for
+	registered signals.  (Bug#9581)
+
+2011-09-25  Teodor Zlatanov  <tzz@lifelogs.com>
+
+	* progmodes/cfengine.el (cfengine-auto-mode): Add convenience
+	function that picks between cfengine 2 and 3 support
+	automatically.  Update docs accordingly.
+
 2011-09-22  Ken Manheimer  <ken.manheimer@gmail.com>
 
 	* allout.el (allout-this-command-hid-stuff): Buffer-local variable
