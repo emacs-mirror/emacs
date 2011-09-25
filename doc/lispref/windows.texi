@@ -24,6 +24,8 @@ is displayed in windows.
 * Buffers and Windows::     Each window displays the contents of a buffer.
 * Switching Buffers::       Higher-level functions for switching to a buffer.
 * Choosing Window::         How to choose a window for displaying a buffer.
+* Display Action Functions:: Subroutines for @code{display-buffer}.
+* Choosing Window Options:: Extra options affecting how buffers are displayed.
 * Window History::          Each window remembers the buffers displayed in it.
 * Dedicated Windows::       How to avoid displaying another buffer in
                               a specific window.
@@ -2094,11 +2096,12 @@ option @code{window-auto-delete}.
 specified buffer in some window.
 
   Do @emph{not} use these functions to make a buffer temporarily
-current so that a Lisp program can access or modify it; they have
-side-effects that may surprise the user, such as changing window
-histories (@pxref{Window History}).  Instead, use
+current just so a Lisp program can access or modify it.  They have
+side-effects, such as changing window histories (@pxref{Window
+History}), which will surprise the user if used that way.  If you want
+to make a buffer current to modify it in Lisp, use
 @code{with-current-buffer}, @code{save-current-buffer}, or
-@code{set-buffer} (@pxref{Current Buffer}).
+@code{set-buffer}.  @xref{Current Buffer}.
 
 @deffn Command switch-to-buffer buffer-or-name &optional norecord force-same-window
 This function displays @var{buffer-or-name} in the selected window,
@@ -2203,24 +2206,25 @@ used as a subroutine by many functions and commands, including
 Buffers}).
 
 @cindex display action
+@cindex action function, for display-buffer
+@cindex action alist, for display-buffer
   This command performs several complex steps to find a window to
 display in.  These steps are described by means of @dfn{display
 actions}, which have the form @code{(@var{function} . @var{alist})}.
 Here, @var{function} is either a function or a list of functions,
-while @var{alist} is an association list.  In this section, we will
-refer to such functions as @dfn{action functions}, and such alists as
-@dfn{action alists}.
+which we refer to as @dfn{action functions}; @var{alist} is an
+association list, which we refer to as @dfn{action alists}.
 
-  An action function should accept two arguments: the buffer to
-display and an action alist.  It should attempt to display the buffer
-in some window, picking or creating a window based on some internal
-criteria (as well as, optionally, the action alist).  If successful,
-it should return the window; otherwise, it should return @code{nil}.
+  An action function accepts two arguments: the buffer to display and
+an action alist.  It attempts to display the buffer in some window,
+picking or creating a window according to its own criteria.  If
+successful, it returns the window; otherwise, it returns @code{nil}.
+@xref{Display Action Functions}, for a list of predefined action
+functions.
 
   @code{display-buffer} works by combining display actions from
-several sources (including some user-customizable options), and
-calling the action functions in turn, until one of the action
-functions manages to display the buffer and returns a non-@code{nil}
+several sources, and calling the action functions in turn, until one
+of them manages to display the buffer and returns a non-@code{nil}
 value.
 
 @deffn Command display-buffer buffer-or-name &optional action frame
@@ -2248,9 +2252,7 @@ The @var{action} argument.
 The user option @code{display-buffer-base-action}.
 
 @item
-The variable @code{display-buffer-fallback-action}.  This is
-non-@code{nil} by default, and specifies the fallback behavior if no
-other display actions are given.
+The constant @code{display-buffer-fallback-action}.
 @end itemize
 
 @noindent
@@ -2266,9 +2268,59 @@ with a prefix argument, @var{action} is @code{t}.
 
 The optional argument @var{frame}, if non-@code{nil}, specifies which
 frames to check when deciding whether the buffer is already displayed.
-If the buffer is already displayed in some window on one of these
-frames, @code{display-buffer} simply returns that window.  Here are
-the possible values of @var{frame}:
+It is equivalent to adding an element @code{(reusable-frames
+. @var{frame})} to the action alist of @var{action}.  @xref{Display
+Action Functions}.
+@end deffn
+
+@defvar display-buffer-overriding-action
+The value of this variable should be a display action, which is
+treated with the highest priority by @code{display-buffer}.  The
+default value is empty, i.e. @code{(nil . nil)}.
+@end defvar
+
+@defopt display-buffer-alist
+The value of this option is an alist mapping regular expressions to
+display actions.  If the name of the buffer passed to
+@code{display-buffer} matches a regular expression in this alist, then
+@code{display-buffer} uses the corresponding display action.
+@end defopt
+
+@defopt display-buffer-base-action
+The value of this option should be a display action.  This option can
+be used to define a ``standard'' display action for calls to
+@code{display-buffer}.
+@end defopt
+
+@defvr Constant display-buffer-fallback-action
+This display action specifies the fallback behavior for
+@code{display-buffer} if no other display actions are given.
+@end defvr
+
+@node Display Action Functions
+@section Action Functions for @code{display-buffer}
+
+The following basic action functions are defined in Emacs.  Each of
+these functions takes two arguments: @var{buffer}, the buffer to
+display, and @var{alist}, an action alist.  Each action function
+returns the window if it succeeds, and @code{nil} if it fails.
+
+@defun display-buffer-same-window buffer alist
+This function tries to display @var{buffer} in the selected window.
+It fails if the selected window is a minibuffer window or is dedicated
+to another buffer (@pxref{Dedicated Windows}).  It also fails if
+@var{alist} has a non-nil @code{inhibit-same-window} entry.
+@end defun
+
+@defun display-buffer-reuse-window buffer alist
+This function tries to ``display'' @var{buffer} by finding a window
+that is already displaying it.
+
+If @var{alist} has a non-@code{nil} @code{inhibit-same-window} entry,
+the selected window is not eligible for reuse.
+
+If @var{alist} contains a @code{reusable-frames} entry, its value
+determines which frames to search for a reusable window:
 
 @itemize @bullet
 @item
@@ -2284,9 +2336,36 @@ the possible values of @var{frame}:
 A frame means consider windows on that frame only.
 @end itemize
 
-Precisely how @code{display-buffer} finds or creates a window depends on
-the variables described below.
-@end deffn
+If @var{alist} contains no @code{reusable-frames} entry, this function
+normally searches just the selected frame; however, if either the
+variable @code{display-buffer-reuse-frames} or the variable
+@code{pop-up-frames} is non-@code{nil}, it searches all frames on the
+current terminal.  @xref{Choosing Window Options}.
+@end defun
+
+@defun display-buffer-pop-up-frame buffer alist
+This function creates a new frame, and displays the buffer in that
+frame's window.
+@end defun
+
+@defun display-buffer-pop-up-window buffer alist
+This function tries to display @var{buffer} by splitting the selected
+window.  It uses @code{split-window-sensibly} as a subroutine
+(@pxref{Choosing Window Options}).
+@end defun
+
+@defun display-buffer-use-some-window buffer alist
+This function tries to display @var{buffer} by choosing an existing
+buffer and displaying the buffer in that window.  It can fail if all
+windows are dedicated to another buffer (@pxref{Dedicated Windows}).
+@end defun
+
+@node Choosing Window Options
+@section Additional Options for Displaying Buffers
+
+The behavior of the standard display actions of @code{display-buffer}
+(@pxref{Choosing Window}) can be modified by a variety of user
+options.
 
 @defopt display-buffer-reuse-frames
 If this variable is non-@code{nil}, @code{display-buffer} searches

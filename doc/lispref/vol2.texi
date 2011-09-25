@@ -954,6 +954,8 @@ Windows
 * Buffers and Windows::     Each window displays the contents of a buffer.
 * Switching Buffers::       Higher-level functions for switching to a buffer.
 * Choosing Window::         How to choose a window for displaying a buffer.
+* Display Action Functions:: Subroutines for @code{display-buffer}.
+* Choosing Window Options:: Extra options affecting how buffers are displayed.
 * Window History::          Each window remembers the buffers displayed in it.
 * Dedicated Windows::       How to avoid displaying another buffer in
                               a specific window.
