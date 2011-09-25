@@ -1,3 +1,7 @@
+2011-09-25  Glenn Morris  <rgm@gnu.org>
+
+	* buffer.c (truncate-lines): Doc fix.
+
 2011-09-24  Chong Yidong  <cyd@stupidchicken.com>
 
 	* window.c (Fwindow_prev_buffers, Fset_window_prev_buffers)

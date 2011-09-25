@@ -5493,7 +5493,9 @@ Instead, give each line of text just one screen line.
 
 Note that this is overridden by the variable
 `truncate-partial-width-windows' if that variable is non-nil
-and this buffer is not full-frame width.  */);
+and this buffer is not full-frame width.
+
+Minibuffers set this variable to nil.  */);
 
   DEFVAR_PER_BUFFER ("word-wrap", &BVAR (current_buffer, word_wrap), Qnil,
 		     doc: /* *Non-nil means to use word-wrapping for continuation lines.
