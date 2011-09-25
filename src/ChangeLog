@@ -119,6 +119,13 @@
 	(load_charset_map): Pass unsigned, not int, as 2nd arg of
 	INDEX_TO_CODE_POINT, as that's what it expects.
 	(Funify_charset, encode_char): Don't stuff unsigned vals into int vars.
+	* charset.h (DECODE_CHAR): Return int, not unsigned;
+	this is what was intended anyway, and it avoids undefined behavior.
+	(CHARSET_OFFSET): Remove unused macro, instead of fixing its
+	integer-overflow issues.
+	(ENCODE_CHAR): Return unsigned on all hosts, not just on 32-bit hosts.
+	Formerly, it returned EMACS_INT on 64-bit hosts in the common case
+	where the argument is EMACS_INT, and this behavior is not intended.
 	* chartab.c (Fmake_char_table, Fset_char_table_range)
 	(uniprop_get_decoder, uniprop_get_encoder):
 	Don't assume fixnum fits in int.

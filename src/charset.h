@@ -401,7 +401,7 @@ extern Lisp_Object Vchar_charset_set;
    ? decode_char ((charset), (code))					\
    : (charset)->method == CHARSET_METHOD_OFFSET				\
    ? ((charset)->code_linear_p						\
-      ? (code) - (charset)->min_code + (charset)->code_offset		\
+      ? (int) ((code) - (charset)->min_code) + (charset)->code_offset	\
       : decode_char ((charset), (code)))				\
    : (charset)->method == CHARSET_METHOD_MAP				\
    ? (((charset)->code_linear_p						\
@@ -410,16 +410,6 @@ extern Lisp_Object Vchar_charset_set;
 		    (code) - (charset)->min_code))			\
       : decode_char ((charset), (code)))				\
    : decode_char ((charset), (code)))
-
-
-/* If CHARSET is a simple offset base charset, return it's offset,
-   otherwise return -1.  */
-#define CHARSET_OFFSET(charset)				\
-  (((charset)->method == CHARSET_METHOD_OFFSET		\
-    && (charset)->code_linear_p				\
-    && ! (charset)->unified_p)				\
-   ? (charset)->code_offset - (charset)->min_code	\
-   : -1)
 
 extern Lisp_Object charset_work;
 
@@ -430,7 +420,7 @@ extern Lisp_Object charset_work;
   (verify_expr								\
    (sizeof (c) <= sizeof (int),						\
     (ASCII_CHAR_P (c) && (charset)->ascii_compatible_p			\
-     ? (c)								\
+     ? (unsigned) (c)							\
      : ((charset)->unified_p						\
 	|| (charset)->method == CHARSET_METHOD_SUBSET			\
 	|| (charset)->method == CHARSET_METHOD_SUPERSET)		\
@@ -439,7 +429,7 @@ extern Lisp_Object charset_work;
      ? (charset)->invalid_code						\
      : (charset)->method == CHARSET_METHOD_OFFSET			\
      ? ((charset)->code_linear_p					\
-	? (c) - (charset)->code_offset + (charset)->min_code		\
+	? (unsigned) ((c) - (charset)->code_offset) + (charset)->min_code \
 	: encode_char (charset, c))					\
      : (charset)->method == CHARSET_METHOD_MAP				\
      ? (((charset)->compact_codes_p					\
@@ -447,7 +437,7 @@ extern Lisp_Object charset_work;
 	? (charset_work = CHAR_TABLE_REF (CHARSET_ENCODER (charset), c), \
 	   (NILP (charset_work)						\
 	    ? (charset)->invalid_code					\
-	    : XFASTINT (charset_work)))					\
+	    : (unsigned) XFASTINT (charset_work)))			\
 	: encode_char (charset, c))					\
      : encode_char (charset, c))))
 
