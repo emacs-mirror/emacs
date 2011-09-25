@@ -118,24 +118,25 @@ int iso_charset_table[ISO_MAX_DIMENSION][ISO_MAX_CHARS][ISO_MAX_FINAL];
 
 #define CODE_POINT_TO_INDEX(charset, code)				\
   ((charset)->code_linear_p						\
-   ? (code) - (charset)->min_code					\
+   ? (int) ((code) - (charset)->min_code)				\
    : (((charset)->code_space_mask[(code) >> 24] & 0x8)			\
       && ((charset)->code_space_mask[((code) >> 16) & 0xFF] & 0x4)	\
       && ((charset)->code_space_mask[((code) >> 8) & 0xFF] & 0x2)	\
       && ((charset)->code_space_mask[(code) & 0xFF] & 0x1))		\
-   ? (((((code) >> 24) - (charset)->code_space[12])			\
-       * (charset)->code_space[11])					\
-      + (((((code) >> 16) & 0xFF) - (charset)->code_space[8])		\
-	 * (charset)->code_space[7])					\
-      + (((((code) >> 8) & 0xFF) - (charset)->code_space[4])		\
-	 * (charset)->code_space[3])					\
-      + (((code) & 0xFF) - (charset)->code_space[0])			\
-      - ((charset)->char_index_offset))					\
+   ? (int) (((((code) >> 24) - (charset)->code_space[12])		\
+	     * (charset)->code_space[11])				\
+	    + (((((code) >> 16) & 0xFF) - (charset)->code_space[8])	\
+	       * (charset)->code_space[7])				\
+	    + (((((code) >> 8) & 0xFF) - (charset)->code_space[4])	\
+	       * (charset)->code_space[3])				\
+	    + (((code) & 0xFF) - (charset)->code_space[0])		\
+	    - ((charset)->char_index_offset))				\
    : -1)
 
 
-/* Convert the character index IDX to code-point CODE for CHARSET.
-   It is assumed that IDX is in a valid range.  */
+/* Return the code-point for the character index IDX in CHARSET.
+   IDX should be an unsigned int variable in a valid range (which is
+   always in nonnegative int range too).  IDX contains garbage afterwards.  */
 
 #define INDEX_TO_CODE_POINT(charset, idx)				     \
   ((charset)->code_linear_p						     \
@@ -363,7 +364,8 @@ load_charset_map (struct charset *charset, struct charset_map_entries *entries, 
 	      && CHARSET_COMPACT_CODES_P (charset))
 	    for (; from_index < lim_index; from_index++, from_c++)
 	      {
-		unsigned code = INDEX_TO_CODE_POINT (charset, from_index);
+		unsigned code = from_index;
+		code = INDEX_TO_CODE_POINT (charset, code);
 
 		if (NILP (CHAR_TABLE_REF (table, from_c)))
 		  CHAR_TABLE_SET (table, from_c, make_number (code));
@@ -923,11 +925,11 @@ usage: (define-charset-internal ...)  */)
   charset.min_code = (charset.code_space[0]
 		      | (charset.code_space[4] << 8)
 		      | (charset.code_space[8] << 16)
-		      | (charset.code_space[12] << 24));
+		      | ((unsigned) charset.code_space[12] << 24));
   charset.max_code = (charset.code_space[1]
 		      | (charset.code_space[5] << 8)
 		      | (charset.code_space[9] << 16)
-		      | (charset.code_space[13] << 24));
+		      | ((unsigned) charset.code_space[13] << 24));
   charset.char_index_offset = 0;
 
   val = args[charset_arg_min_code];
@@ -937,8 +939,8 @@ usage: (define-charset-internal ...)  */)
 
       if (code < charset.min_code
 	  || code > charset.max_code)
-	args_out_of_range_3 (make_number (charset.min_code),
-			     make_number (charset.max_code), val);
+	args_out_of_range_3 (make_fixnum_or_float (charset.min_code),
+			     make_fixnum_or_float (charset.max_code), val);
       charset.char_index_offset = CODE_POINT_TO_INDEX (&charset, code);
       charset.min_code = code;
     }
@@ -950,8 +952,8 @@ usage: (define-charset-internal ...)  */)
 
       if (code < charset.min_code
 	  || code > charset.max_code)
-	args_out_of_range_3 (make_number (charset.min_code),
-			     make_number (charset.max_code), val);
+	args_out_of_range_3 (make_fixnum_or_float (charset.min_code),
+			     make_fixnum_or_float (charset.max_code), val);
       charset.max_code = code;
     }
 
@@ -964,14 +966,14 @@ usage: (define-charset-internal ...)  */)
 	charset.invalid_code = 0;
       else
 	{
-	  if (charset.max_code < min (UINT_MAX, MOST_POSITIVE_FIXNUM))
+	  if (charset.max_code < UINT_MAX)
 	    charset.invalid_code = charset.max_code + 1;
 	  else
 	    error ("Attribute :invalid-code must be specified");
 	}
     }
   else
-    charset.invalid_code = XFASTINT (val);
+    charset.invalid_code = cons_to_unsigned (val, UINT_MAX);
 
   val = args[charset_arg_iso_final];
   if (NILP (val))
@@ -1015,17 +1017,17 @@ usage: (define-charset-internal ...)  */)
   if (! NILP (args[charset_arg_code_offset]))
     {
       val = args[charset_arg_code_offset];
-      CHECK_TYPE_RANGED_INTEGER (int, val);
+      CHECK_CHARACTER (val);
 
       charset.method = CHARSET_METHOD_OFFSET;
       charset.code_offset = XINT (val);
 
+      i = CODE_POINT_TO_INDEX (&charset, charset.max_code);
+      if (MAX_CHAR - charset.code_offset < i)
+	error ("Unsupported max char: %d", charset.max_char);
+      charset.max_char = i + charset.code_offset;
       i = CODE_POINT_TO_INDEX (&charset, charset.min_code);
       charset.min_char = i + charset.code_offset;
-      i = CODE_POINT_TO_INDEX (&charset, charset.max_code);
-      charset.max_char = i + charset.code_offset;
-      if (charset.max_char > MAX_CHAR)
-	error ("Unsupported max char: %d", charset.max_char);
 
       i = (charset.min_char >> 7) << 7;
       for (; i < 0x10000 && i <= charset.max_char; i += 128)
@@ -1385,8 +1387,8 @@ Optional third argument DEUNIFY, if non-nil, means to de-unify CHARSET.  */)
     }
   else if (CHAR_TABLE_P (Vchar_unify_table))
     {
-      int min_code = CHARSET_MIN_CODE (cs);
-      int max_code = CHARSET_MAX_CODE (cs);
+      unsigned min_code = CHARSET_MIN_CODE (cs);
+      unsigned max_code = CHARSET_MAX_CODE (cs);
       int min_char = DECODE_CHAR (cs, min_code);
       int max_char = DECODE_CHAR (cs, max_code);
 
@@ -1830,9 +1832,8 @@ encode_char (struct charset *charset, int c)
     }
   else				/* method == CHARSET_METHOD_OFFSET */
     {
-      int code_index = c - CHARSET_CODE_OFFSET (charset);
-
-      code = INDEX_TO_CODE_POINT (charset, code_index);
+      code = c - CHARSET_CODE_OFFSET (charset);
+      code = INDEX_TO_CODE_POINT (charset, code);
     }
 
   return code;

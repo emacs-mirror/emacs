@@ -1,4 +1,4 @@
-2011-09-21  Paul Eggert  <eggert@cs.ucla.edu>
+2011-09-25  Paul Eggert  <eggert@cs.ucla.edu>
 
 	* alloc.c (pure_bytes_used_lisp, pure_bytes_used_non_lisp):
 	(allocate_vectorlike, buffer_memory_full, struct sdata, SDATA_SIZE)
@@ -103,10 +103,22 @@
 	Use ptrdiff_t, not int, to avoid needless 32-bit limit on 64-bit hosts.
 	(load_charset_map_from_file): Redo idx calculation to avoid overflow.
 	(load_charset_map_from_vector, Fdefine_charset_internal):
-	Don't assume fixnum fits in int or unsigned int.
+	Don't assume fixnum fits in int.
 	(load_charset_map_from_vector, Fmap_charset_chars):
 	Remove now-unnecessary CHECK_NATNUMs.
 	(Fdefine_charset_internal): Check ranges here, more carefully.
+	Don't rely on undefined behavior with signed left shift overflow.
+	Don't assume unsigned int fits into fixnum, or that fixnum fits
+	into unsigned int.  Don't require max_code to be a valid fixnum;
+	that's not true for gb10830 4-byte on a 32-bit host.  Allow
+	invalid_code to be a cons, for the same reason.  Require code_offset
+	to be a character.  Avoid int overflow if max_char is close
+	to INT_MAX.
+	(CODE_POINT_TO_INDEX): On 32-bit hosts, return int, not unsigned;
+	this is intended anyway and avoids some undefined behavior.
+	(load_charset_map): Pass unsigned, not int, as 2nd arg of
+	INDEX_TO_CODE_POINT, as that's what it expects.
+	(Funify_charset, encode_char): Don't stuff unsigned vals into int vars.
 	* chartab.c (Fmake_char_table, Fset_char_table_range)
 	(uniprop_get_decoder, uniprop_get_encoder):
 	Don't assume fixnum fits in int.
