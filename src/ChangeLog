@@ -169,6 +169,8 @@
 	Use ptrdiff_t, not int, to avoid needless 32-bit limit on 64-bit hosts.
 	(Ffind_operation_coding_system): NATNUMP can eval its arg twice.
 	(Fdefine_coding_system_internal): Check for charset-id overflow.
+	(ENCODE_ISO_CHARACTER): Use unsigned, not int, to store the unsigned
+	result of ENCODE_CHAR.
 	* coding.h: Adjust decls to match defn changes elsewhere.
 	(struct coding_system):
 	Use ptrdiff_t, not EMACS_INT, where ptrdiff_t is wide enough.

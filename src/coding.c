@@ -4185,7 +4185,7 @@ decode_coding_iso_2022 (struct coding_system *coding)
 
 #define ENCODE_ISO_CHARACTER(charset, c)				   \
   do {									   \
-    int code = ENCODE_CHAR ((charset), (c));				   \
+    unsigned code = ENCODE_CHAR ((charset), (c));			   \
 									   \
     if (CHARSET_DIMENSION (charset) == 1)				   \
       ENCODE_ISO_CHARACTER_DIMENSION1 ((charset), code);		   \
