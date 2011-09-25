@@ -664,7 +664,8 @@ clip_to_bounds (ptrdiff_t lower, EMACS_INT num, ptrdiff_t upper)
 #define XSETWINDOW(a, b) (XSETPSEUDOVECTOR (a, b, PVEC_WINDOW))
 #define XSETTERMINAL(a, b) (XSETPSEUDOVECTOR (a, b, PVEC_TERMINAL))
 /* XSETSUBR is special since Lisp_Subr lacks struct vectorlike_header.  */
-#define XSETSUBR(a, b) XSETTYPED_PSEUDOVECTOR (a, b, 0, PVEC_SUBR)
+#define XSETSUBR(a, b) \
+  XSETTYPED_PSEUDOVECTOR (a, b, XSUBR (a)->size, PVEC_SUBR)
 #define XSETCOMPILED(a, b) (XSETPSEUDOVECTOR (a, b, PVEC_COMPILED))
 #define XSETBUFFER(a, b) (XSETPSEUDOVECTOR (a, b, PVEC_BUFFER))
 #define XSETCHAR_TABLE(a, b) (XSETPSEUDOVECTOR (a, b, PVEC_CHAR_TABLE))

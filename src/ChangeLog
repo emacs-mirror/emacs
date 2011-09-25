@@ -456,8 +456,6 @@
 	(struct Lisp_Marker):
 	Use ptrdiff_t, not EMACS_INT, where ptrdiff_t is wide enough.
 	(clip_to_bounds): Now an inline function, moved here from editfns.c.
-	(XSETSUBR): Use size of 0 since the actual size doesn't matter,
-	and using 0 avoids overflow.
 	(GLYPH_CODE_P): Check for overflow in system types, subsuming the
 	need for GLYPH_CODE_CHAR_VALID_P and doing proper checking ourselves.
 	All callers changed.
