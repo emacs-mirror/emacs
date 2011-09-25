@@ -1785,11 +1785,11 @@ The seventh argument ACTIONS is a list of actions to take
  This is how Rmail arranges to mark messages `answered'."
   (interactive "P")
   (if (eq noerase 'new)
-      (switch-to-buffer (generate-new-buffer "*mail*"))
+      (pop-to-buffer-same-window (generate-new-buffer "*mail*"))
     (and noerase
 	 (not (get-buffer "*mail*"))
 	 (setq noerase nil))
-    (switch-to-buffer "*mail*"))
+    (pop-to-buffer-same-window "*mail*"))
 
   ;; Avoid danger that the auto-save file can't be written.
   (let ((dir (expand-file-name

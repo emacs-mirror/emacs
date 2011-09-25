@@ -118,15 +118,12 @@ redisplay of all windows.
 to put more work on the queue to be done by redisplay whenever there
 is a chance.
 
-  Emacs redisplay normally stops if input arrives, and does not happen
-at all if input is available before it starts.  Most of the time, this
-is exactly what you want.  However, you can prevent preemption by
-binding @code{redisplay-dont-pause} to a non-@code{nil} value.
-
 @defvar redisplay-dont-pause
-If this variable is non-@code{nil}, pending input does not
-prevent or halt redisplay; redisplay occurs, and finishes,
-regardless of whether input is available.
+If this variable is non-@code{nil}, pending input does not prevent or
+halt redisplay; redisplay occurs, and finishes, regardless of whether
+input is available.  If it is @code{nil}, Emacs redisplay stops if
+input arrives, and does not happen at all if input is available before
+it starts.  The default is @code{t}.
 @end defvar
 
 @defvar redisplay-preemption-period

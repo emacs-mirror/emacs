@@ -1310,9 +1310,14 @@ Create the buffer if necessary."
   (if (and (local-variable-p 'rmail-view-buffer)
 	   (buffer-live-p rmail-view-buffer))
       rmail-view-buffer
-    (generate-new-buffer
-     (format " *message-viewer %s*"
-	     (file-name-nondirectory (or buffer-file-name (buffer-name)))))))
+    (let ((newbuf
+	   (generate-new-buffer
+	    (format " *message-viewer %s*"
+		    (file-name-nondirectory
+		     (or buffer-file-name (buffer-name)))))))
+      (with-current-buffer newbuf
+	(add-hook 'kill-buffer-hook 'rmail-view-buffer-kill-buffer-hook nil t))
+      newbuf)))
 
 (defun rmail-swap-buffers ()
   "Swap text between current buffer and `rmail-view-buffer'.
@@ -1372,7 +1377,14 @@ If so restore the actual mbox message collection."
     (message "Marking buffer unmodified to avoid rewriting Babyl file as mbox file")))
 
 (defun rmail-mode-kill-buffer-hook ()
-  (if (buffer-live-p rmail-view-buffer) (kill-buffer rmail-view-buffer)))
+  ;; Turn off the hook on the view buffer, so we can kill it, then kill it.
+  (if (buffer-live-p rmail-view-buffer)
+      (with-current-buffer rmail-view-buffer
+	(setq kill-buffer-hook nil)
+	(kill-buffer rmail-view-buffer))))
+
+(defun rmail-view-buffer-kill-buffer-hook ()
+  (error "Can't kill message view buffer by itself"))
 
 ;; Set up the permanent locals associated with an Rmail file.
 (defun rmail-perm-variables ()

@@ -559,6 +559,10 @@ read_minibuf (Lisp_Object map, Lisp_Object initial, Lisp_Object prompt,
   minibuffer = get_minibuffer (minibuf_level);
   Fset_buffer (minibuffer);
 
+  /* Defeat (setq-default truncate-lines t), since truncated lines do
+     not work correctly in minibuffers.  (Bug#5715, etc)  */
+  BVAR (current_buffer, truncate_lines) = Qnil;
+
   /* If appropriate, copy enable-multibyte-characters into the minibuffer.  */
   if (inherit_input_method)
     BVAR (current_buffer, enable_multibyte_characters) = enable_multibyte;

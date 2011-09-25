@@ -539,7 +539,7 @@ property of an overlay."
 (defun hs-looking-at-block-start-p ()
   "Return non-nil if the point is at the block start."
   (and (looking-at hs-block-start-regexp)
-       (save-match-data (not (nth 4 (syntax-ppss))))))
+       (save-match-data (not (nth 8 (syntax-ppss))))))
 
 (defun hs-forward-sexp (match-data arg)
   "Adjust point based on MATCH-DATA and call `hs-forward-sexp-func' w/ ARG.
@@ -693,8 +693,8 @@ Return point, or nil if original point was not in a block."
         (point)
       ;; look backward for the start of a block that contains the cursor
       (while (and (re-search-backward hs-block-start-regexp nil t)
-		  ;; go again if in a comment
-		  (or (save-match-data (nth 4 (syntax-ppss)))
+		  ;; go again if in a comment or a string
+		  (or (save-match-data (nth 8 (syntax-ppss)))
 		      (not (setq done
 				 (< here (save-excursion
 					   (hs-forward-sexp (match-data t) 1)
@@ -718,7 +718,7 @@ Return point, or nil if original point was not in a block."
            (and (< (point) maxp)
                 (re-search-forward hs-block-start-regexp maxp t)))
     (when (save-match-data
-	    (not (nth 4 (syntax-ppss)))) ; not inside comments
+	    (not (nth 8 (syntax-ppss)))) ; not inside comments or strings
       (if (> arg 1)
 	  (hs-hide-level-recursive (1- arg) minp maxp)
 	(goto-char (match-beginning hs-block-start-mdata-select))

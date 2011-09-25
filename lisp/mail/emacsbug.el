@@ -479,6 +479,7 @@ and send the mail again%s."
 		buglist))))
     (report-emacs-bug-create-existing-bugs-buffer (nreverse buglist) keywords)))
 
+;;;###autoload
 (defun report-emacs-bug-query-existing-bugs (keywords)
   "Query for KEYWORDS at `report-emacs-bug-tracker-url', and return the result.
 The result is an alist with items of the form (URL SUBJECT NO)."

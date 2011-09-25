@@ -164,8 +164,8 @@
 	(Fdefine_coding_system_internal):
 	Don't assume fixnums fit in int.
 	(decode_coding_gap, decode_coding_object, encode_coding_object)
-	(Fread_coding_system, Fdetect_coding_region, Funencodable_char_position)
-	(Fcheck_coding_systems_region):
+	(Fread_coding_system, Fdetect_coding_region)
+	(Funencodable_char_position, Fcheck_coding_systems_region):
 	Use ptrdiff_t, not int, to avoid needless 32-bit limit on 64-bit hosts.
 	(Ffind_operation_coding_system): NATNUMP can eval its arg twice.
 	(Fdefine_coding_system_internal): Check for charset-id overflow.
@@ -199,7 +199,6 @@
 	(Frem): Don't assume arg is nonnegative.
 	* dbusbind.c (xd_append_arg): Check for integers out of range.
 	(Fdbus_call_method): Don't overflow the timeout int.
-
 	* dired.c (directory_files_internal, file_name_completion, scmp)
 	(file_name_completion_stat):
 	Use ptrdiff_t, not int, to avoid needless 32-bit limit on 64-bit hosts.
@@ -286,8 +285,8 @@
 	(Fdo_auto_save, Fset_buffer_auto_saved)
 	(Fclear_buffer_auto_save_failure):
 	Don't assume time_t is signed, or that it fits in int.
-	* fns.c (Fcompare_strings, Fstring_lessp, struct textprop_rec)
-	(concat, string_char_byte_cache_charpos, string_char_byte_cache_bytepos)
+	* fns.c (Fcompare_strings, Fstring_lessp, struct textprop_rec, concat)
+	(string_char_byte_cache_charpos, string_char_byte_cache_bytepos)
 	(string_char_to_byte, string_byte_to_char)
 	(string_make_multibyte, string_to_multibyte)
 	(string_make_unibyte, Fstring_as_unibyte, Fstring_as_multibyte)
@@ -364,7 +363,7 @@
 	(update_frame_tool_bar):
 	Check that fixnums are in proper range for system types.
 	* image.c (parse_image_spec): Redo count calculation to avoid overflow.
-	(lookup_image): Check that fixnums are in proper range for system types.
+	(lookup_image): Check that fixnums are in range for system types.
 	* indent.c (last_known_column, last_known_column_point):
 	(current_column_bol_cache):
 	(skip_invisible, current_column, check_display_width):
@@ -582,8 +581,8 @@
 	Use ptrdiff_t, not int, to avoid needless 32-bit limit on 64-bit hosts.
 	* syntax.c (ST_COMMENT_STYLE, ST_STRING_STYLE):
 	In definitions, make it clearer that these values must be out of range
-	for the respective integer ranges.  This fixes a bug with ST_STRING_STYLE
-	and non-ASCII characters.
+	for the respective integer ranges.  This fixes a bug with
+	ST_STRING_STYLE and non-ASCII characters.
 	(struct lisp_parse_state, find_start_modiff)
 	(Finternal_describe_syntax_value, scan_lists, scan_sexps_forward):
 	(Fparse_partial_sexp):
@@ -628,7 +627,8 @@
 	(Fnext_single_char_property_change)
 	(Fprevious_single_char_property_change):
 	Use ptrdiff_t, not int, to avoid needless 32-bit limit on 64-bit hosts.
-	(copy_text_properties): Check for integer overflow in index calculation.
+	(copy_text_properties):
+	Check for integer overflow in index calculation.
 	* undo.c (last_boundary_position, record_point, record_insert)
 	(record_delete, record_marker_adjustment, record_change)
 	(record_property_change):
@@ -646,7 +646,7 @@
 	Use ptrdiff_t, not EMACS_INT, where ptrdiff_t is wide enough.
 	(Fset_window_hscroll, run_window_configuration_change_hook)
 	(set_window_buffer, temp_output_buffer_show, scroll_command)
-	(Fscroll_other_window):
+	(Fscroll_other_window, Frecenter):
 	Use ptrdiff_t, not int, to avoid needless 32-bit limit on 64-bit hosts.
 	(Fwindow_line_height, window_scroll, Fscroll_left, Fscroll_right):
 	Don't assume fixnum fits in int.
@@ -657,8 +657,8 @@
 	(in_ellipses_for_invisible_text_p, init_from_display_pos)
 	(compute_stop_pos, next_overlay_change, compute_display_string_pos)
 	(compute_display_string_end, handle_face_prop)
-	(face_before_or_after_it_pos, handle_invisible_prop, handle_display_prop)
-	(handle_display_spec, handle_single_display_spec)
+	(face_before_or_after_it_pos, handle_invisible_prop)
+	(handle_display_prop, handle_display_spec, handle_single_display_spec)
 	(display_prop_intangible_p, string_buffer_position_lim)
 	(string_buffer_position, handle_composition_prop, load_overlay_strings)
 	(get_overlay_strings_1, get_overlay_strings)
@@ -697,8 +697,8 @@
 	(display_echo_area, echo_area_display)
 	(x_consider_frame_title, prepare_menu_bars, update_menu_bar)
 	(update_tool_bar, hscroll_window_tree, redisplay_internal)
-	(redisplay_window, dump_glyph_row, display_mode_line, Fformat_mode_line)
-	(decode_mode_spec, on_hot_spot_p):
+	(redisplay_window, dump_glyph_row, display_mode_line)
+	(Fformat_mode_line, decode_mode_spec, on_hot_spot_p):
 	Use ptrdiff_t, not int, to avoid needless 32-bit limit on 64-bit hosts.
 	(handle_single_display_spec, build_desired_tool_bar_string)
 	(redisplay_tool_bar, scroll_window_tree, Fdump_glyph_matrix)
@@ -766,6 +766,63 @@
 	(struct scroll_bar): Use struct vectorlike_header
 	rather than rolling our own approximation.
 	(SCROLL_BAR_VEC_SIZE): Remove; not used.
+
+2011-09-24  Chong Yidong  <cyd@stupidchicken.com>
+
+	* window.c (Fwindow_prev_buffers, Fset_window_prev_buffers)
+	(Fset_window_next_buffers): Doc fix.
+
+2011-09-24  Glenn Morris  <rgm@gnu.org>
+
+	* minibuf.c (read_minibuf): Disable line truncation.  (Bug#5715)
+
+2011-09-24  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Fix minor problems found by static checking.
+	* xdisp.c (string_from_display_spec): Don't assume vecsize fits in int.
+	* indent.c (Fvertical_motion): Fix == vs = typo.
+
+2011-09-24  Eli Zaretskii  <eliz@gnu.org>
+
+	* dispnew.c (syms_of_display) <redisplay-dont-pause>: Default
+	value is now t.  Doc fix.
+
+	* indent.c (Fvertical_motion): Compute and apply the overshoot
+	logic when moving up, not only when moving down.  Fix the
+	confusing name and values of the it_overshoot_expected variable;
+	logic changes accordingly.  (Bug#9254) (Bug#9549)
+
+	* xdisp.c (pos_visible_p): Produce correct pixel coordinates when
+	CHARPOS is covered by a display string which includes newlines.
+	(move_it_vertically_backward): Avoid inflooping when START_CHARPOS
+	is covered by a display string with embedded newlines.
+
+2011-09-24  Michael Albinus  <michael.albinus@gmx.de>
+
+	* dbusbind.c (Fdbus_register_signal): Add match rule to
+	Vdbus_registered_objects_table.  (Bug#9581)
+	(Fdbus_register_method, Vdbus_registered_objects_table): Fix
+	docstring.
+
+2011-09-24  Jim Meyering  <meyering@redhat.com>
+
+	do not ignore write error for any output size
+	The previous change was incomplete.
+	While it makes emacs --batch detect the vast majority of stdout
+	write failures, errors were still ignored whenever the output size is
+	k * (BUFSIZ+1) - 4.  E.g., on a system with BUFSIZ of 4096,
+	  $ emacs --batch --eval '(print (format "%4093d" 0))' > /dev/full \
+	      && echo FAIL: ignored write error
+	  FAIL: ignored write error
+	  $ emacs --batch --eval '(print (format "%20481d" 0))' > /dev/full \
+	      && echo FAIL: ignored write error
+	  FAIL: ignored write error
+	* emacs.c (Fkill_emacs): Also test ferror.  (Bug#9574)
+
+2011-09-23  Andreas Schwab  <schwab@linux-m68k.org>
+
+	* emacs.c (Fkill_emacs): In noninteractive mode exit
+	non-successfully if a write error occurred on stdout.  (Bug#9574)
 
 2011-09-21  Eli Zaretskii  <eliz@gnu.org>
 
