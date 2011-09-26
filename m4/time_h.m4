@@ -2,7 +2,7 @@
 
 # Copyright (C) 2000-2001, 2003-2007, 2009-2011 Free Software Foundation, Inc.
 
-# serial 5
+# serial 6
 
 # This file is free software; the Free Software Foundation
 # gives unlimited permission to copy and/or distribute it,
@@ -23,9 +23,6 @@ AC_DEFUN([gl_HEADER_TIME_H_BODY],
   AC_REQUIRE([gl_HEADER_TIME_H_DEFAULTS])
   gl_NEXT_HEADERS([time.h])
   AC_REQUIRE([gl_CHECK_TYPE_STRUCT_TIMESPEC])
-
-  dnl Ensure the type pid_t gets defined.
-  AC_REQUIRE([AC_TYPE_PID_T])
 ])
 
 dnl Define HAVE_STRUCT_TIMESPEC if `struct timespec' is declared

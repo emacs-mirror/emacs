@@ -339,7 +339,8 @@ GNULIB_MODULES = \
   mktime pthread_sigmask readlink \
   socklen stdarg stdio strftime strtoimax strtoumax symlink sys_stat
 GNULIB_TOOL_FLAGS = \
- --avoid=threadlib \
+ --avoid=msvc-inval --avoid=msvc-nothrow --avoid=pathmax \
+ --avoid=raise --avoid=threadlib \
  --conditional-dependencies --import --no-changelog --no-vc-files \
  --makefile-name=gnulib.mk
 sync-from-gnulib: $(gnulib_srcdir)

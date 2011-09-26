@@ -46,6 +46,15 @@ orig_stat (const char *filename, struct stat *buf)
 #include "dosname.h"
 #include "verify.h"
 
+#if REPLACE_FUNC_STAT_DIR
+# include "pathmax.h"
+  /* The only known systems where REPLACE_FUNC_STAT_DIR is needed also
+     have a constant PATH_MAX.  */
+# ifndef PATH_MAX
+#  error "Please port this replacement to your platform"
+# endif
+#endif
+
 /* Store information about NAME into ST.  Work around bugs with
    trailing slashes.  Mingw has other bugs (such as st_ino always
    being 0 on success) which this wrapper does not work around.  But
@@ -70,11 +79,6 @@ rpl_stat (char const *name, struct stat *st)
     }
 #endif /* REPLACE_FUNC_STAT_FILE */
 #if REPLACE_FUNC_STAT_DIR
-  /* The only known systems where REPLACE_FUNC_STAT_DIR is needed also
-     have a constant PATH_MAX.  */
-# ifndef PATH_MAX
-#  error "Please port this replacement to your platform"
-# endif
 
   if (result == -1 && errno == ENOENT)
     {
