@@ -484,7 +484,8 @@ DEFUN ("expt", Fexpt, Sexpt, 2, 2, 0,
       && INTEGERP (arg2)   /* don't promote, if both are ints, and */
       && 0 <= XINT (arg2)) /* we are sure the result is not fractional */
     {				/* this can be improved by pre-calculating */
-      EMACS_INT acc, x, y;	/* some binary powers of x then accumulating */
+      EMACS_INT y;		/* some binary powers of x then accumulating */
+      EMACS_UINT acc, x;  /* Unsigned so that overflow is well defined.  */
       Lisp_Object val;
 
       x = XINT (arg1);

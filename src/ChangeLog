@@ -286,6 +286,7 @@
 	(Fdo_auto_save, Fset_buffer_auto_saved)
 	(Fclear_buffer_auto_save_failure):
 	Don't assume time_t is signed, or that it fits in int.
+	* floatfns.c (Fexpt): Avoid undefined signed * signed overflow.
 	* fns.c (Fcompare_strings, Fstring_lessp, struct textprop_rec, concat)
 	(string_char_byte_cache_charpos, string_char_byte_cache_bytepos)
 	(string_char_to_byte, string_byte_to_char)
