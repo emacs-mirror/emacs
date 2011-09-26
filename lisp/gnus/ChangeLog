@@ -1,6 +1,10 @@
 2011-09-26  Lars Magne Ingebrigtsen  <larsi@gnus.org>
 
+	* gnus-xmas.el (gnus-xmas-define): Add `member-ignore-case'.
+
 	* nnimap.el (nnimap-wait-for-response): Message less (bug#9540).
+	(nnimap-insert-partial-structure): The charset parameter isn't
+	case-sensitive.
 
 	* nnheader.el (nnheader-message-maybe): New function.
 
