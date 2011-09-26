@@ -953,11 +953,13 @@ Windows
 * Selecting Windows::       The selected window is the one that you edit in.
 * Cyclic Window Ordering::  Moving around the existing windows.
 * Buffers and Windows::     Each window displays the contents of a buffer.
-* Displaying Buffers::      Higher-level functions for displaying a buffer
-                              and choosing a window for it.
+* Switching Buffers::       Higher-level functions for switching to a buffer.
 * Choosing Window::         How to choose a window for displaying a buffer.
+* Display Action Functions:: Subroutines for @code{display-buffer}.
+* Choosing Window Options:: Extra options affecting how buffers are displayed.
+* Window History::          Each window remembers the buffers displayed in it.
 * Dedicated Windows::       How to avoid displaying another buffer in
-                              a specific window.          
+                              a specific window.
 * Window Point::            Each window has its own location of point.
 * Window Start and End::    Buffer positions indicating which text is
                               on-screen in a window.

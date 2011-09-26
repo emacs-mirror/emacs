@@ -22,7 +22,7 @@ dnl  You should have received a copy of the GNU General Public License
 dnl  along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
 
 AC_PREREQ(2.65)
-AC_INIT(emacs, 24.0.50)
+AC_INIT(emacs, 24.0.90)
 AC_CONFIG_HEADER(src/config.h:src/config.in)
 AC_CONFIG_SRCDIR(src/lisp.h)
 AC_CONFIG_AUX_DIR(build-aux)
@@ -985,6 +985,7 @@ LIB_MATH=-lm
 LIB_STANDARD=
 START_FILES=
 
+dnl NB do not use CRT_DIR unquoted here, since it might not be set yet.
 case $opsys in
   cygwin )
     LIB_MATH=
@@ -1007,14 +1008,10 @@ case $opsys in
     LIB_STANDARD=-lc
     START_FILES='pre-crt0.o $(CRT_DIR)/crt0.o'
     ;;
+  dnl NB this may be adjusted below.
   netbsd | openbsd )
-    if test -f $CRT_DIR/crti.o; then
-	LIB_STANDARD='-lgcc -lc -lgcc $(CRT_DIR)/crtend.o $(CRT_DIR)/crtn.o'
-        START_FILES='pre-crt0.o $(CRT_DIR)/crt0.o $(CRT_DIR)/crti.o $(CRT_DIR)/crtbegin.o'
-    else
-	LIB_STANDARD='-lgcc -lc -lgcc $(CRT_DIR)/crtend.o'
-	START_FILES='pre-crt0.o $(CRT_DIR)/crt0.o $(CRT_DIR)/crtbegin.o'
-    fi
+    LIB_STANDARD='-lgcc -lc -lgcc $(CRT_DIR)/crtend.o'
+    START_FILES='pre-crt0.o $(CRT_DIR)/crt0.o $(CRT_DIR)/crtbegin.o'
     ;;
 esac
 
@@ -1093,6 +1090,19 @@ Try using the --with-crt-dir option.])
 fi                              # crt_files != ""
 
 AC_SUBST(CRT_DIR)
+
+case $opsys in
+  netbsd | openbsd )
+    if test -f $CRT_DIR/crti.o; then
+
+        test -f $CRT_DIR/crtn.o || \
+          AC_MSG_ERROR([Required file not found: crtn.o])
+
+        LIB_STANDARD='-lgcc -lc -lgcc $(CRT_DIR)/crtend.o $(CRT_DIR)/crtn.o'
+        START_FILES='pre-crt0.o $(CRT_DIR)/crt0.o $(CRT_DIR)/crti.o $(CRT_DIR)/crtbegin.o'
+    fi
+    ;;
+esac
 
 
 dnl This function definition taken from Gnome 2.0

@@ -1,3 +1,11 @@
+2011-09-26  Glenn Morris  <rgm@gnu.org>
+
+	* make-dist: Add lib/makefile.w32-in.
+
+2011-09-24  Glenn Morris  <rgm@gnu.org>
+
+	* configure.in (CRT_DIR): Fix netbsd/openbsd handling.
+
 2011-09-19  Lars Magne Ingebrigtsen  <larsi@gnus.org>
 
 	* .dir-locals.el: Change the debbugs regexp to allow having the

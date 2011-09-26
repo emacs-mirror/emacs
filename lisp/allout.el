@@ -3304,12 +3304,19 @@ are mapped to the command of the corresponding control-key on the
 Set by `allout-pre-command-business', to support allout addons in
 coordinating with allout activity.")
 (make-variable-buffer-local 'allout-command-counter)
+;;;_   = allout-this-command-hid-text
+(defvar allout-this-command-hid-text nil
+  "True if the most recent allout-mode command hid any text.")
+(make-variable-buffer-local 'allout-this-command-hid-text)
 ;;;_   > allout-post-command-business ()
 (defun allout-post-command-business ()
   "Outline `post-command-hook' function.
 
 - Implement (and clear) `allout-post-goto-bullet', for hot-spot
   outline commands.
+
+- Move the cursor to the beginning of the entry if it is hidden
+  and collapsing activity just happened.
 
 - If the command we're following was an undo, check for change in
   the status of encrypted items and adjust auto-save inhibitions
@@ -3343,8 +3350,9 @@ coordinating with allout activity.")
     (if (and allout-post-goto-bullet
 	     (allout-current-bullet-pos))
 	(progn (goto-char (allout-current-bullet-pos))
-	       (setq allout-post-goto-bullet nil)))
-    ))
+	       (setq allout-post-goto-bullet nil))
+      (when (and (allout-hidden-p) allout-this-command-hid-text)
+        (allout-beginning-of-current-entry)))))
 ;;;_   > allout-pre-command-business ()
 (defun allout-pre-command-business ()
   "Outline `pre-command-hook' function for outline buffers.
@@ -3367,8 +3375,8 @@ return to regular interpretation of self-insert characters."
 
   (if (not (allout-mode-p))
       nil
-    ;; Increment allout-command-counter
     (setq allout-command-counter (1+ allout-command-counter))
+    (setq allout-this-command-hid-text nil)
     ;; Do hot-spot navigation.
     (if (and (eq this-command 'self-insert-command)
 	     (eq (point)(allout-current-bullet-pos)))
@@ -4767,7 +4775,8 @@ arguments as this function, after the exposure changes are made."
             (condition-case nil
                 ;; as of 2008-02-27, xemacs lacks modification-hooks
                 (overlay-put o (pop props) (pop props))
-              (error nil)))))))
+              (error nil))))))
+    (setq allout-this-command-hid-text t))
   (run-hook-with-args 'allout-exposure-change-hook from to flag))
 ;;;_   > allout-flag-current-subtree (flag)
 (defun allout-flag-current-subtree (flag)
