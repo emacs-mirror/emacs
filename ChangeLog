@@ -1,3 +1,7 @@
+2011-09-26  Andreas Schwab  <schwab@linux-m68k.org>
+
+	* configure.in: Initialize HAVE_LIBXML2.
+
 2011-09-26  Glenn Morris  <rgm@gnu.org>
 
 	* make-dist: Add lib/makefile.w32-in.
