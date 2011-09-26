@@ -396,9 +396,9 @@ usage: (prog2 FORM1 FORM2 BODY...)  */)
   struct gcpro gcpro1;
 
   GCPRO1 (args);
-
   eval_sub (XCAR (args));
-  RETURN_UNGCPRO (Fprog1 (XCDR (args)));
+  UNGCPRO;
+  return Fprog1 (XCDR (args));
 }
 
 DEFUN ("setq", Fsetq, Ssetq, 0, UNEVALLED, 0,
