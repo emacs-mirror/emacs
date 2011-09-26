@@ -1210,6 +1210,34 @@ line_bottom_y (struct it *it)
   return line_top_y + line_height;
 }
 
+/* Subroutine of pos_visible_p below.  Extracts a display string, if
+   any, from the display spec given as its argument.  */
+static Lisp_Object
+string_from_display_spec (Lisp_Object spec)
+{
+  if (CONSP (spec))
+    {
+      while (CONSP (spec))
+	{
+	  if (STRINGP (XCAR (spec)))
+	    return XCAR (spec);
+	  spec = XCDR (spec);
+	}
+    }
+  else if (VECTORP (spec))
+    {
+      ptrdiff_t i;
+
+      for (i = 0; i < ASIZE (spec); i++)
+	{
+	  if (STRINGP (AREF (spec, i)))
+	    return AREF (spec, i);
+	}
+      return Qnil;
+    }
+
+  return spec;
+}
 
 /* Return 1 if position CHARPOS is visible in window W.
    CHARPOS < 0 means return info about WINDOW_END position.
@@ -1301,6 +1329,136 @@ pos_visible_p (struct window *w, EMACS_INT charpos, int *x, int *y,
 		    {
 		      top_x = it2.current_x;
 		      top_y = it2.current_y;
+		    }
+		}
+	    }
+	  else if (IT_CHARPOS (it) != charpos)
+	    {
+	      Lisp_Object cpos = make_number (charpos);
+	      Lisp_Object spec = Fget_char_property (cpos, Qdisplay, Qnil);
+	      Lisp_Object string = string_from_display_spec (spec);
+	      int newline_in_string = 0;
+
+	      if (STRINGP (string))
+		{
+		  const char *s = SSDATA (string);
+		  const char *e = s + SBYTES (string);
+		  while (s < e)
+		    {
+		      if (*s++ == '\n')
+			{
+			  newline_in_string = 1;
+			  break;
+			}
+		    }
+		}
+	      /* The tricky code below is needed because there's a
+		 discrepancy between move_it_to and how we set cursor
+		 when the display line ends in a newline from a
+		 display string.  move_it_to will stop _after_ such
+		 display strings, whereas set_cursor_from_row
+		 conspires with cursor_row_p to place the cursor on
+		 the first glyph produced from the display string.  */
+
+	      /* We have overshoot PT because it is covered by a
+		 display property whose value is a string.  If the
+		 string includes embedded newlines, we are also in the
+		 wrong display line.  Backtrack to the correct line,
+		 where the display string begins.  */
+	      if (newline_in_string)
+		{
+		  Lisp_Object startpos, endpos;
+		  EMACS_INT start, end;
+		  struct it it3;
+
+		  /* Find the first and the last buffer positions
+		     covered by the display string.  */
+		  endpos =
+		    Fnext_single_char_property_change (cpos, Qdisplay,
+						       Qnil, Qnil);
+		  startpos =
+		    Fprevious_single_char_property_change (endpos, Qdisplay,
+							   Qnil, Qnil);
+		  start = XFASTINT (startpos);
+		  end = XFASTINT (endpos);
+		  /* Move to the last buffer position before the
+		     display property.  */
+		  start_display (&it3, w, top);
+		  move_it_to (&it3, start - 1, -1, -1, -1, MOVE_TO_POS);
+		  /* Move forward one more line if the position before
+		     the display string is a newline or if it is the
+		     rightmost character on a line that is
+		     continued or word-wrapped.  */
+		  if (it3.method == GET_FROM_BUFFER
+		      && it3.c == '\n')
+		    move_it_by_lines (&it3, 1);
+		  else if (move_it_in_display_line_to (&it3, -1,
+						       it3.current_x
+						       + it3.pixel_width,
+						       MOVE_TO_X)
+			   == MOVE_LINE_CONTINUED)
+		    {
+		      move_it_by_lines (&it3, 1);
+		      /* When we are under word-wrap, the #$@%!
+			 move_it_by_lines moves 2 lines, so we need to
+			 fix that up.  */
+		      if (it3.line_wrap == WORD_WRAP)
+			move_it_by_lines (&it3, -1);
+		    }
+
+		  /* Record the vertical coordinate of the display
+		     line where we wound up.  */
+		  top_y = it3.current_y;
+		  if (it3.bidi_p)
+		    {
+		      /* When characters are reordered for display,
+			 the character displayed to the left of the
+			 display string could be _after_ the display
+			 property in the logical order.  Use the
+			 smallest vertical position of these two.  */
+		      start_display (&it3, w, top);
+		      move_it_to (&it3, end + 1, -1, -1, -1, MOVE_TO_POS);
+		      if (it3.current_y < top_y)
+			top_y = it3.current_y;
+		    }
+		  /* Move from the top of the window to the beginning
+		     of the display line where the display string
+		     begins.  */
+		  start_display (&it3, w, top);
+		  move_it_to (&it3, -1, 0, top_y, -1, MOVE_TO_X | MOVE_TO_Y);
+		  /* Finally, advance the iterator until we hit the
+		     first display element whose character position is
+		     CHARPOS, or until the first newline from the
+		     display string, which signals the end of the
+		     display line.  */
+		  while (get_next_display_element (&it3))
+		    {
+		      PRODUCE_GLYPHS (&it3);
+		      if (IT_CHARPOS (it3) == charpos
+			  || ITERATOR_AT_END_OF_LINE_P (&it3))
+			break;
+		      set_iterator_to_next (&it3, 0);
+		    }
+		  top_x = it3.current_x - it3.pixel_width;
+		  /* Normally, we would exit the above loop because we
+		     found the display element whose character
+		     position is CHARPOS.  For the contingency that we
+		     didn't, and stopped at the first newline from the
+		     display string, move back over the glyphs
+		     prfoduced from the string, until we find the
+		     rightmost glyph not from the string.  */
+		  if (IT_CHARPOS (it3) != charpos && EQ (it3.object, string))
+		    {
+		      struct glyph *g = it3.glyph_row->glyphs[TEXT_AREA]
+					+ it3.glyph_row->used[TEXT_AREA];
+
+		      while (EQ ((g - 1)->object, string))
+			{
+			  --g;
+			  top_x -= g->pixel_width;
+			}
+		      xassert (g < it3.glyph_row->glyphs[TEXT_AREA]
+				    + it3.glyph_row->used[TEXT_AREA]);
 		    }
 		}
 	    }
@@ -8521,7 +8679,16 @@ move_it_vertically_backward (struct it *it, int dy)
       move_it_to (&it2, start_pos, -1, -1, it2.vpos + 1,
 		  MOVE_TO_POS | MOVE_TO_VPOS);
     }
-  while (!IT_POS_VALID_AFTER_MOVE_P (&it2));
+  while (!(IT_POS_VALID_AFTER_MOVE_P (&it2)
+	   /* If we are in a display string which starts at START_POS,
+	      and that display string includes a newline, and we are
+	      right after that newline (i.e. at the beginning of a
+	      display line), exit the loop, because otherwise we will
+	      infloop, since move_it_to will see that it is already at
+	      START_POS and will not move.  */
+	   || (it2.method == GET_FROM_STRING
+	       && IT_CHARPOS (it2) == start_pos
+	       && SREF (it2.string, IT_STRING_BYTEPOS (it2) - 1) == '\n')));
   xassert (IT_CHARPOS (*it) >= BEGV);
   SAVE_IT (it3, it2, it3data);
 

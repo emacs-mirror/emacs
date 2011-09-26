@@ -503,6 +503,12 @@ This can happen with CVS versions 1.12.8 and 1.12.9.  Upgrade to CVS
 
 ** Miscellaneous problems
 
+*** Editing files with very long lines is slow.
+
+For example, simply moving through a file that contains hundreds of
+thousands of characters per line is slow, and consumes a lot of CPU.
+This is a known limitation of Emacs with no solution at this time.
+
 *** Emacs uses 100% of CPU time
 
 This is a known problem with some versions of the Semantic package.

@@ -1,3 +1,64 @@
+2011-09-25  Michael Albinus  <michael.albinus@gmx.de>
+
+	* dbusbind.c (Fdbus_register_signal): When service is not
+	registered, use nil in Vdbus_registered_objects_table.  (Bug#9581)
+
+2011-09-25  Glenn Morris  <rgm@gnu.org>
+
+	* buffer.c (truncate-lines): Doc fix.
+
+2011-09-24  Chong Yidong  <cyd@stupidchicken.com>
+
+	* window.c (Fwindow_prev_buffers, Fset_window_prev_buffers)
+	(Fset_window_next_buffers): Doc fix.
+
+2011-09-24  Glenn Morris  <rgm@gnu.org>
+
+	* minibuf.c (read_minibuf): Disable line truncation.  (Bug#5715)
+
+2011-09-24  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Fix minor problems found by static checking.
+	* xdisp.c (string_from_display_spec): Don't assume vecsize fits in int.
+	* indent.c (Fvertical_motion): Fix == vs = typo.
+
+2011-09-24  Eli Zaretskii  <eliz@gnu.org>
+
+	* dispnew.c (syms_of_display) <redisplay-dont-pause>: Default
+	value is now t.  Doc fix.
+
+	* indent.c (Fvertical_motion): Compute and apply the overshoot
+	logic when moving up, not only when moving down.  Fix the
+	confusing name and values of the it_overshoot_expected variable;
+	logic changes accordingly.  (Bug#9254) (Bug#9549)
+
+	* xdisp.c (pos_visible_p): Produce correct pixel coordinates when
+	CHARPOS is covered by a display string which includes newlines.
+	(move_it_vertically_backward): Avoid inflooping when START_CHARPOS
+	is covered by a display string with embedded newlines.
+
+2011-09-24  Michael Albinus  <michael.albinus@gmx.de>
+
+	* dbusbind.c (Fdbus_register_signal): Add match rule to
+	Vdbus_registered_objects_table.  (Bug#9581)
+	(Fdbus_register_method, Vdbus_registered_objects_table): Fix
+	docstring.
+
+2011-09-24  Jim Meyering  <meyering@redhat.com>
+
+	do not ignore write error for any output size
+	The previous change was incomplete.
+	While it makes emacs --batch detect the vast majority of stdout
+	write failures, errors were still ignored whenever the output size is
+	k * (BUFSIZ+1) - 4.  E.g., on a system with BUFSIZ of 4096,
+	  $ emacs --batch --eval '(print (format "%4093d" 0))' > /dev/full \
+	      && echo FAIL: ignored write error
+	  FAIL: ignored write error
+	  $ emacs --batch --eval '(print (format "%20481d" 0))' > /dev/full \
+	      && echo FAIL: ignored write error
+	  FAIL: ignored write error
+	* emacs.c (Fkill_emacs): Also test ferror.  (Bug#9574)
+
 2011-09-23  Andreas Schwab  <schwab@linux-m68k.org>
 
 	* emacs.c (Fkill_emacs): In noninteractive mode exit

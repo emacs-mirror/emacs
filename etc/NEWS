@@ -386,6 +386,50 @@ by default.
 *** `menu-bar-select-buffer-function' lets you choose another operation
 instead of `switch-to-buffer' when selecting an item in the Buffers menu.
 
+** Window changes
+
++++
+*** Resizing an Emacs frame now preserves proportional window sizes,
+modulo restrictions like window minimum sizes and fixed-size windows.
+
+*** The behavior of `display-buffer' is now customizable in detail.
+
+**** New option `display-buffer-base-action' specifies a list of
+user-determined display "actions" (functions and optional arguments
+for choosing the displaying window).
+
+This takes precedence over the default display action, which is
+specified by `display-buffer-fallback-action'.
+
+**** New option `display-buffer-alist' maps buffer name regexps to
+display actions, taking precedence over `display-buffer-base-action'.
+
++++
+*** New option `window-nest'.
+The new option `window-nest' allows to return the space obtained for
+resizing or creating a window more reliably to the window from which
+such space was obtained.
+
++++
+*** New option `window-splits'.
+The new option `window-splits' allows to split a window that otherwise
+cannot be split because it's too small by stealing space from other
+windows in the same combination.
+
++++
+*** New commands `maximize-window' and `minimize-window'.
+These maximize and minize the size of a window within its frame.
+
++++
+*** New commands `switch-to-prev-buffer' and `switch-to-next-buffer'.
+These functions allow to navigate through the live buffers that have
+been shown in a specific window.
+
++++
+*** New functions `window-state-get' and `window-state-put'.
+These functions allow to save and restore the state of an arbitrary
+frame or window as an Elisp object.
+
 ** The inactive minibuffer has its own major mode `minibuffer-inactive-mode'.
 This is handy for minibuffer-only frames, and is also used for the "mouse-1
 pops up *Messages*" feature, which can now easily be changed.
@@ -410,7 +454,7 @@ isearch-yank-kill.
 
 ** The default value of `backup-by-copying-when-mismatch' is now t.
 
-** The command `just-one-space' (C-SPC), if given a negative argument,
+** The command `just-one-space' (M-SPC), if given a negative argument,
 also deletes newlines around point.
 
 ** Deletion changes
@@ -499,6 +543,13 @@ prompts for a number to count from and for a format string.
 ** The command shell prompts for the shell path name, when the default
 directory is a remote file name and neither environment variable
 $ESHELL nor variable `explicit-shell-file-name' is set.
+
++++
+** The default value of redisplay-dont-change is now t
+This makes Emacs feel more responsive to editing commands that arrive
+at high rate, e.g. if you lean on some key, because stopping redisplay
+in the middle (when this variable is nil) forces more expensive
+updates later on, and Emacs appears to be unable to keep up.
 
 
 * Changes in Specialized Modes and Packages in Emacs 24.1
@@ -984,28 +1035,16 @@ and `window-body-height' are provided.
 *** Window parameters specific to window handling functions.
 For each window you can specify a parameter to override the default
 behavior of a number of functions like `split-window', `delete-window'
-and `delete-other-windows'.
+and `delete-other-windows'.  The variable `ignore-window-parameters'
+allows to ignore processing such parameters.
 
 +++
 *** New semantics of third argument of `split-window'.
-
 The third argument of `split-window' has been renamed to SIDE and can be
 set to any of the values 'below, 'right, 'above, or 'left to make the
 new window appear on the corresponding side of the window that shall be
 split.  Any other value of SIDE will cause `split-window' to split the
 window into two side-by-side windows as before.
-
-+++
-*** New option `window-nest'.
-The new option `window-nest' allows to return the space obtained for
-resizing or creating a window more reliably to the window from which
-such space was obtained.
-
-+++
-*** New option `window-splits'.
-The new option `window-splits' allows to split a window that otherwise
-cannot be split because it's too small by stealing space from other
-windows in the same combination.
 
 +++
 *** `split-window-above-each-other' and `split-window-side-by-side'.
@@ -1021,23 +1060,12 @@ been introduced.  This and all other functions for resizing windows no
 longer delete any windows when they become too small.
 
 +++
-*** Frame/window resizing.
-Resizing an Emacs frame now preserves the proportional sizes of
-subwindows modulo restrictions imposed by window minimum sizes and
-fixed-size windows.
-
-+++
 *** `adjust-window-trailing-edge' adjustments.
 `adjust-window-trailing-edge' can now deal with fixed-size windows and
 is able to resize other windows if a window adjacent to the trailing
 edge cannot be shrunk any more.  This makes its behavior more similar to
 that of Emacs 21 without compromising, however, its inability to delete
 windows which was introduced in Emacs 22.
-
-+++
-*** Commands for maximizing and minimizing windows.
-New functions to maximize and minimize a window within its frame are
-provided, namely `maximize-window' and `minimize-window'.
 
 +++
 *** Window-local buffer lists.
@@ -1048,16 +1076,36 @@ positions.  This also means that the same buffer may be automatically
 shown twice even if it already appears in another window.
 
 +++
-*** New commands `switch-to-prev-buffer' and `switch-to-next-buffer'.
-These functions allow to navigate through the live buffers that have
-been shown in a specific window.
-
 *** `switch-to-buffer' has a new optional argument FORCE-SAME-WINDOW,
 which if non-nil requires the buffer to be displayed in the currently
 selected window, signaling an error otherwise.  If nil, another window
 can be used, e.g. if the selected one is strongly dedicated.
 
-*** FIXME: buffer-display-alist changes
+*** `split-window-vertically' and `split-window-horizontally' renamed
+to `split-window-above-each-other' and `split-window-side-by-side'
+respectively.  The old names are kept as aliases.
+
+*** Display actions
+
+**** The second arg to `display-buffer' and `pop-to-buffer' is now
+named ACTION, and takes a display action of the same form as
+`display-buffer-base-action' (see Changes, above).  A non-nil,
+non-list value is treated specially, as the old meaning.
+
+**** New variable `display-buffer-overriding-action'.
+
+**** The procedure of `display-buffer' etc. to choose a window is
+determined by combining `display-buffer-overriding-action',
+`display-buffer-alist', the ACTION arg, `display-buffer-base-action',
+and `display-buffer-fallback-action'.  The second and fourth of these
+are user-customizable variables.
+
+See the docstring of `display-buffer' for details.
+
++++
+*** New behavior of `quit-window'.
+The behavior of `quit-window' has been changed in order to restore the
+state before the last buffer display operation in that window.
 
 ** Completion
 

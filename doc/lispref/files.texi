@@ -103,7 +103,7 @@ function is basically equivalent to:
 @end smallexample
 
 @noindent
-(See @code{switch-to-buffer} in @ref{Displaying Buffers}.)
+(See @code{switch-to-buffer} in @ref{Switching Buffers}.)
 
 If @var{wildcards} is non-@code{nil}, which is always true in an
 interactive call, then @code{find-file} expands wildcard characters in
@@ -187,8 +187,9 @@ various files.
 
 @deffn Command find-file-other-window filename &optional wildcards
 This command selects a buffer visiting the file @var{filename}, but
-does so in a window other than the selected window.  It may use another
-existing window or split a window; see @ref{Displaying Buffers}.
+does so in a window other than the selected window.  It may use
+another existing window or split a window; see @ref{Switching
+Buffers}.
 
 When this command is called interactively, it prompts for
 @var{filename}.

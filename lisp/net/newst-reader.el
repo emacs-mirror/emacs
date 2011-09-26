@@ -5,7 +5,7 @@
 ;; Author:      Ulf Jasper <ulf.jasper@web.de>
 ;; Filename:    newst-reader.el
 ;; URL:         http://www.nongnu.org/newsticker
-;; Time-stamp:  "13. Mai 2011, 20:55:24 (ulf)"
+;; Time-stamp:  "24. September 2011, 15:47:49 (ulf)"
 ;; Package:     newsticker
 
 ;; ======================================================================
@@ -103,28 +103,11 @@ window is used when filling.  See also `newsticker-justification'."
 (defcustom newsticker-html-renderer
   nil
   "Function for rendering HTML contents.
-If non-nil, newsticker.el will call this function whenever it finds
-HTML-like tags in item descriptions.  Possible functions are, for
-example, `w3m-region', `w3-region', and (if you have htmlr.el installed)
-`newsticker-htmlr-render'.
-
-In order to make sure that the HTML renderer is loaded when you
-run newsticker, you should add one of the following statements to
-your .emacs.  If you use w3m,
-
-  (autoload 'w3m-region \"w3m\"
-    \"Render region in current buffer and replace with result.\" t)
-
-  (autoload 'w3m-toggle-inline-image \"w3m\"
-    \"Toggle the visibility of an image under point.\" t)
-
-or, if you use w3,
-
-  (require 'w3-auto)
-
-or, if you use htmlr
-
-  (require 'htmlr)"
+If non-nil, newsticker.el will call this function whenever it
+finds HTML-like tags in item descriptions.  Possible functions
+are `w3m-region', `w3-region', and `newsticker-htmlr-render'.
+Newsticker automatically loads the respective package w3m, w3, or
+htmlr if this option is set."
   :type '(choice :tag "Function"
                  (const :tag "None" nil)
                  (const :tag "w3" w3-region)
@@ -286,6 +269,14 @@ Return the image."
   "Start reading news.  You may want to bind this to a key."
   (interactive)
   (newsticker-start t) ;; will start only if not running
+  ;; Load the html rendering packages
+  (if newsticker-html-renderer
+      (cond ((eq newsticker-html-renderer 'w3m-region)
+             (require 'w3m))
+            ((eq newsticker-html-renderer 'w3-region)
+             (require 'w3-auto))
+            ((eq newsticker-html-renderer 'newsticker-htmlr-render)
+             (require 'htmlr))))
   (funcall newsticker-frontend))
 
 ;; ======================================================================

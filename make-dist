@@ -383,7 +383,7 @@ echo "Making links to \`lib'"
 (snippet_h=`(cd build-aux/snippet && ls *.h)`
  cd lib
  ln [a-zA-Z]*.[ch] ../${tempdir}/lib
- ln gnulib.mk Makefile.am Makefile.in ../${tempdir}/lib
+ ln gnulib.mk Makefile.am Makefile.in makefile.w32-in ../${tempdir}/lib
  cd ../${tempdir}/lib
  script='/[*]/d; s/\.in\.h$/.h/'
  rm -f `(echo "$snippet_h"; ls *.in.h) | sed "$script"`)

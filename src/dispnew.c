@@ -6494,8 +6494,8 @@ See `buffer-display-table' for more information.  */);
   Vstandard_display_table = Qnil;
 
   DEFVAR_BOOL ("redisplay-dont-pause", redisplay_dont_pause,
-	       doc: /* *Non-nil means update isn't paused when input is detected.  */);
-  redisplay_dont_pause = 0;
+	       doc: /* *Non-nil means display update isn't paused when input is detected.  */);
+  redisplay_dont_pause = 1;
 
 #if PERIODIC_PREEMPTION_CHECKING
   DEFVAR_LISP ("redisplay-preemption-period", Vredisplay_preemption_period,

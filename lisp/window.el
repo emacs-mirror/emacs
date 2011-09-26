@@ -4937,9 +4937,9 @@ do not make the window displaying it the most recently selected
 one.
 
 If FORCE-SAME-WINDOW is non-nil, BUFFER-OR-NAME must be displayed
-in the currently selected window; signal an error if that is
-impossible (e.g. if the selected window is minibuffer-only).
-If non-nil, BUFFER-OR-NAME may be displayed in another window.
+in the selected window; signal an error if that is
+impossible (e.g. if the selected window is minibuffer-only).  If
+non-nil, BUFFER-OR-NAME may be displayed in another window.
 
 Return the buffer switched to."
   (interactive

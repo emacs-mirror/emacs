@@ -1,3 +1,39 @@
+2011-09-25  Martin Rudalics  <rudalics@gmx.at>
+
+	* windows.texi (Windows and Frames, Display Action Functions)
+	(Switching Buffers): Fix some typos.
+	(Buffers and Windows): Remove reference to window-auto-delete.
+	Reword description of replace-buffer-in-windows.
+	(Window History): Fix some typos and refer to frame local buffer
+	list.
+	(Quitting Windows): New node.
+	(Window Configurations): Add descriptions of window-state-get
+	and window-state-put.
+	(Window Parameters): Describe variable ignore-window-parameters.
+	Sketch some window parameters currently in use.
+	* elisp.texi (Top): Update node listing.
+
+2011-09-25  Chong Yidong  <cyd@stupidchicken.com>
+
+	* windows.texi (Display Action Functions)
+	(Choosing Window Options): New nodes.
+
+2011-09-24  Chong Yidong  <cyd@stupidchicken.com>
+
+	* windows.texi (Window History): New node.  Move text here from
+	Buffers and Windows.
+	(Switching Buffers): Rename from Displaying Buffers, since we
+	don't document display-buffer here; callers changed.  Document
+	FORCE-SAME-WINDOW arg to switch-to-buffer and
+	switch-to-buffer-other-frame.  Delete duplicate
+	replace-buffer-in-windows doc.
+	(Choosing Window): Document display actions.
+
+2011-09-24  Eli Zaretskii  <eliz@gnu.org>
+
+	* display.texi (Forcing Redisplay): Update the description of
+	redisplay-dont-pause due to change in the default value.
+
 2011-09-23  Martin Rudalics  <rudalics@gmx.at>
 
 	* frames.texi (Frames and Windows): Move section and rename to
