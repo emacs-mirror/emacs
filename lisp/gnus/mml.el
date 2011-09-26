@@ -540,7 +540,8 @@ If MML is non-nil, return the buffer up till the correspondent mml tag."
 		      (mml-to-mime)
 		      ;; Update handle so mml-compute-boundary can
 		      ;; detect collisions with the nested parts.
-		      (setcdr (assoc 'contents cont) (buffer-string)))
+		      (unless mml-inhibit-compute-boundary
+			(setcdr (assoc 'contents cont) (buffer-string))))
 		    (let ((mm-7bit-chars (concat mm-7bit-chars "\x1b")))
 		      ;; ignore 0x1b, it is part of iso-2022-jp
 		      (setq encoding (mm-body-7-or-8))))

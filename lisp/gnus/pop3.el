@@ -167,17 +167,30 @@ Use streaming commands."
 
 (defun pop3-send-streaming-command (process command count total-size)
   (erase-buffer)
-  (let ((i 1))
+  (let ((i 1)
+	(start-point (point-min))
+	(waited-for 0))
     (while (>= count i)
       (process-send-string process (format "%s %d\r\n" command i))
       ;; Only do 100 messages at a time to avoid pipe stalls.
       (when (zerop (% i pop3-stream-length))
-	(pop3-wait-for-messages process i total-size))
-      (incf i)))
-  (pop3-wait-for-messages process count total-size))
+	(setq start-point
+	      (pop3-wait-for-messages process pop3-stream-length
+				      total-size start-point))
+	(incf waited-for pop3-stream-length))
+      (incf i))
+    (pop3-wait-for-messages process (- count waited-for)
+			    total-size start-point)))
 
-(defun pop3-wait-for-messages (process count total-size)
-  (while (< (pop3-number-of-responses total-size) count)
+(defun pop3-wait-for-messages (process count total-size start-point)
+  (while (> count 0)
+    (goto-char start-point)
+    (while (or (and (re-search-forward "^\\+OK" nil t)
+		    (or (not total-size)
+			(re-search-forward "^\\.\r?\n" nil t)))
+	       (re-search-forward "^-ERR " nil t))
+      (decf count)
+      (setq start-point (point)))
     (unless (memq (process-status process) '(open run))
       (error "pop3 process died"))
     (when total-size
@@ -185,7 +198,8 @@ Use streaming commands."
 	       (truncate (/ (buffer-size) 1000))
 	       (truncate (* (/ (* (buffer-size) 1.0)
 			       total-size) 100))))
-    (pop3-accept-process-output process)))
+    (pop3-accept-process-output process))
+  start-point)
 
 (defun pop3-write-to-file (file)
   (let ((pop-buffer (current-buffer))
@@ -218,17 +232,6 @@ Use streaming commands."
 	(when (eolp)
 	  (delete-char 1))
 	(write-region (point-min) (point-max) file nil 'nomesg)))))
-
-(defun pop3-number-of-responses (endp)
-  (let ((responses 0))
-    (save-excursion
-      (goto-char (point-min))
-      (while (or (and (re-search-forward "^\\+OK" nil t)
-		      (or (not endp)
-			  (re-search-forward "^\\.\r?\n" nil t)))
-		 (re-search-forward "^-ERR " nil t))
-	(incf responses)))
-    responses))
 
 (defun pop3-logon (process)
   (let ((pop3-password pop3-password))

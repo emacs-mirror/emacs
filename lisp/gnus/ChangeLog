@@ -1,3 +1,20 @@
+2011-09-26  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* nnimap.el (nnimap-wait-for-response): Message less (bug#9540).
+
+	* nnheader.el (nnheader-message-maybe): New function.
+
+	* shr.el (shr-tag-table): Render totally broken tables better.
+
+	* mml.el (mml-generate-mime-1): Don't alter the contents if we're
+	computing the boundary.
+
+2011-09-26  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* pop3.el (pop3-number-of-responses): Remove.
+	(pop3-wait-for-messages): Rewrite to take linear time instead of
+	exponential time.
+
 2011-09-24  Lars Magne Ingebrigtsen  <larsi@gnus.org>
 
 	* gnus-sum.el (gnus-summary-show-article): Bind `shr-ignore-cache' to

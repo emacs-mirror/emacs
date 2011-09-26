@@ -1055,44 +1055,53 @@ ones, in case fg and bg are nil."
 	 (nheader (if header (shr-max-columns header)))
 	 (nbody (if body (shr-max-columns body)))
 	 (nfooter (if footer (shr-max-columns footer))))
-    (shr-tag-table-1
-     (nconc
-      (if caption `((tr (td ,@caption))))
-      (if header
-	  (if footer
-	      ;; hader + body + footer
+    (if (and (not caption)
+	     (not header)
+	     (not (cdr (assq 'tbody cont)))
+	     (not (cdr (assq 'tr cont)))
+	     (not footer))
+	;; The table is totally invalid and just contains random junk.
+	;; Try to output it anyway.
+	(shr-generic cont)
+      ;; It's a real table, so render it.
+      (shr-tag-table-1
+       (nconc
+	(if caption `((tr (td ,@caption))))
+	(if header
+	    (if footer
+		;; hader + body + footer
+		(if (= nheader nbody)
+		    (if (= nbody nfooter)
+			`((tr (td (table (tbody ,@header ,@body ,@footer)))))
+		      (nconc `((tr (td (table (tbody ,@header ,@body)))))
+			     (if (= nfooter 1)
+				 footer
+			       `((tr (td (table (tbody ,@footer))))))))
+		  (nconc `((tr (td (table (tbody ,@header)))))
+			 (if (= nbody nfooter)
+			     `((tr (td (table (tbody ,@body ,@footer)))))
+			   (nconc `((tr (td (table (tbody ,@body)))))
+				  (if (= nfooter 1)
+				      footer
+				    `((tr (td (table (tbody ,@footer))))))))))
+	      ;; header + body
 	      (if (= nheader nbody)
-		  (if (= nbody nfooter)
-		      `((tr (td (table (tbody ,@header ,@body ,@footer)))))
-		    (nconc `((tr (td (table (tbody ,@header ,@body)))))
-			   (if (= nfooter 1)
-			       footer
-			     `((tr (td (table (tbody ,@footer))))))))
-		(nconc `((tr (td (table (tbody ,@header)))))
-		       (if (= nbody nfooter)
-			   `((tr (td (table (tbody ,@body ,@footer)))))
-			 (nconc `((tr (td (table (tbody ,@body)))))
-				(if (= nfooter 1)
-				    footer
-				  `((tr (td (table (tbody ,@footer))))))))))
-	    ;; header + body
-	    (if (= nheader nbody)
-		`((tr (td (table (tbody ,@header ,@body)))))
-	      (if (= nheader 1)
-		  `(,@header (tr (td (table (tbody ,@body)))))
-		`((tr (td (table (tbody ,@header))))
-		  (tr (td (table (tbody ,@body))))))))
-	(if footer
-	    ;; body + footer
-	    (if (= nbody nfooter)
-		`((tr (td (table (tbody ,@body ,@footer)))))
-	      (nconc `((tr (td (table (tbody ,@body)))))
-		     (if (= nfooter 1)
-			 footer
-		       `((tr (td (table (tbody ,@footer))))))))
-	  (if caption
-	      `((tr (td (table (tbody ,@body)))))
-	    body)))))
+		  `((tr (td (table (tbody ,@header ,@body)))))
+		(if (= nheader 1)
+		    `(,@header (tr (td (table (tbody ,@body)))))
+		  `((tr (td (table (tbody ,@header))))
+		    (tr (td (table (tbody ,@body))))))))
+	  (if footer
+	      ;; body + footer
+	      (if (= nbody nfooter)
+		  `((tr (td (table (tbody ,@body ,@footer)))))
+		(nconc `((tr (td (table (tbody ,@body)))))
+		       (if (= nfooter 1)
+			   footer
+			 `((tr (td (table (tbody ,@footer))))))))
+	    (if caption
+		`((tr (td (table (tbody ,@body)))))
+	      body))))))
     (when bgcolor
       (shr-colorize-region start (point) (cdr (assq 'color shr-stylesheet))
 			   bgcolor))))
