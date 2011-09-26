@@ -132,7 +132,7 @@
 	* cmds.c (move_point): New function, that does the gist of
 	Fforward_char and Fbackward_char, but does so while checking
 	for integer overflow more accurately.
-	(Fforward_char, Fbackward_char, internal_self_insert): Use it.
+	(Fforward_char, Fbackward_char): Use it.
 	(Fforward_line, Fend_of_line, internal_self_insert)
 	(internal_self_insert):
 	Use ptrdiff_t, not EMACS_INT, where ptrdiff_t is wide enough.
