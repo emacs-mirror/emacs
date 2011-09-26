@@ -1,4 +1,4 @@
-2011-09-25  Paul Eggert  <eggert@cs.ucla.edu>
+2011-09-26  Paul Eggert  <eggert@cs.ucla.edu>
 
 	* alloc.c (pure_bytes_used_lisp, pure_bytes_used_non_lisp):
 	(allocate_vectorlike, buffer_memory_full, struct sdata, SDATA_SIZE)
@@ -269,6 +269,7 @@
 	Use ptrdiff_t, not int, to avoid needless 32-bit limit on 64-bit hosts.
 	(Fapply, apply_lambda): Don't assume ptrdiff_t can hold fixnum.
 	(grow_specpdl): Simplify allocation by using xpalloc.
+	(Fprog1, Fprog2): Don't assume list length fits in int.  Simplify.
 	* fileio.c (Ffind_file_name_handler, Fcopy_file, Frename_file)
 	(Finsert_file_contents, Fwrite_region, Fdo_auto_save):
 	Use ptrdiff_t, not int, to avoid needless 32-bit limit on 64-bit hosts.

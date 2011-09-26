@@ -373,23 +373,14 @@ usage: (prog1 FIRST BODY...)  */)
   Lisp_Object val;
   register Lisp_Object args_left;
   struct gcpro gcpro1, gcpro2;
-  register int argnum = 0;
-
-  if (NILP (args))
-    return Qnil;
 
   args_left = args;
   val = Qnil;
   GCPRO2 (args, val);
 
-  do
-    {
-      Lisp_Object tem = eval_sub (XCAR (args_left));
-      if (!(argnum++))
-	val = tem;
-      args_left = XCDR (args_left);
-    }
-  while (CONSP (args_left));
+  val = eval_sub (XCAR (args_left));
+  while (CONSP (args_left = XCDR (args_left)))
+    eval_sub (XCAR (args_left));
 
   UNGCPRO;
   return val;
@@ -402,31 +393,12 @@ remaining args, whose values are discarded.
 usage: (prog2 FORM1 FORM2 BODY...)  */)
   (Lisp_Object args)
 {
-  Lisp_Object val;
-  register Lisp_Object args_left;
-  struct gcpro gcpro1, gcpro2;
-  register int argnum = -1;
+  struct gcpro gcpro1;
 
-  val = Qnil;
+  GCPRO1 (args);
 
-  if (NILP (args))
-    return Qnil;
-
-  args_left = args;
-  val = Qnil;
-  GCPRO2 (args, val);
-
-  do
-    {
-      Lisp_Object tem = eval_sub (XCAR (args_left));
-      if (!(argnum++))
-	val = tem;
-      args_left = XCDR (args_left);
-    }
-  while (CONSP (args_left));
-
-  UNGCPRO;
-  return val;
+  eval_sub (XCAR (args));
+  RETURN_UNGCPRO (Fprog1 (XCDR (args)));
 }
 
 DEFUN ("setq", Fsetq, Ssetq, 0, UNEVALLED, 0,
