@@ -454,7 +454,7 @@ isearch-yank-kill.
 
 ** The default value of `backup-by-copying-when-mismatch' is now t.
 
-** The command `just-one-space' (C-SPC), if given a negative argument,
+** The command `just-one-space' (M-SPC), if given a negative argument,
 also deletes newlines around point.
 
 ** Deletion changes
