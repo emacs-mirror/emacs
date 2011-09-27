@@ -1,4 +1,4 @@
-#serial 14
+#serial 16
 dnl Copyright (C) 2002, 2005, 2007, 2009-2011 Free Software Foundation, Inc.
 dnl This file is free software; the Free Software Foundation
 dnl gives unlimited permission to copy and/or distribute it,
@@ -71,3 +71,6 @@ AC_DEFUN([gl_FUNC_DUP2],
     fi
   ])
 ])
+
+# Prerequisites of lib/dup2.c.
+AC_DEFUN([gl_PREREQ_DUP2], [])

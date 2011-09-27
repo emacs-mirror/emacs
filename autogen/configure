@@ -669,11 +669,14 @@ REPLACE_FPURGE
 REPLACE_FPRINTF
 REPLACE_FOPEN
 REPLACE_FFLUSH
+REPLACE_FDOPEN
 REPLACE_FCLOSE
 REPLACE_DPRINTF
 HAVE_VDPRINTF
 HAVE_VASPRINTF
 HAVE_RENAMEAT
+HAVE_POPEN
+HAVE_PCLOSE
 HAVE_FTELLO
 HAVE_FSEEKO
 HAVE_DPRINTF
@@ -711,6 +714,7 @@ GNULIB_PRINTF_POSIX
 GNULIB_PRINTF
 GNULIB_POPEN
 GNULIB_PERROR
+GNULIB_PCLOSE
 GNULIB_OBSTACK_PRINTF_POSIX
 GNULIB_OBSTACK_PRINTF
 GNULIB_GETS
@@ -735,6 +739,7 @@ GNULIB_FOPEN
 GNULIB_FGETS
 GNULIB_FGETC
 GNULIB_FFLUSH
+GNULIB_FDOPEN
 GNULIB_FCLOSE
 GNULIB_DPRINTF
 NEXT_AS_FIRST_DIRECTIVE_STDDEF_H
@@ -755,6 +760,7 @@ NEXT_AS_FIRST_DIRECTIVE_STDARG_H
 NEXT_STDARG_H
 NEXT_AS_FIRST_DIRECTIVE_SIGNAL_H
 NEXT_SIGNAL_H
+REPLACE_RAISE
 REPLACE_PTHREAD_SIGMASK
 HAVE_SIGHANDLER_T
 HAVE_TYPE_VOLATILE_SIG_ATOMIC_T
@@ -762,11 +768,13 @@ HAVE_STRUCT_SIGACTION_SA_SIGACTION
 HAVE_SIGACTION
 HAVE_SIGINFO_T
 HAVE_SIGSET_T
+HAVE_RAISE
 HAVE_PTHREAD_SIGMASK
 HAVE_POSIX_SIGNALBLOCKING
 GNULIB_SIGACTION
 GNULIB_SIGPROCMASK
 GNULIB_SIGNAL_H_SIGPIPE
+GNULIB_RAISE
 GNULIB_PTHREAD_SIGMASK
 LIB_PTHREAD_SIGMASK
 REPLACE_TIMEGM
@@ -813,6 +821,7 @@ GNULIB_LSTAT
 GNULIB_LCHMOD
 GNULIB_FUTIMENS
 GNULIB_FSTATAT
+GNULIB_FSTAT
 GNULIB_FCHMODAT
 NEXT_AS_FIRST_DIRECTIVE_INTTYPES_H
 NEXT_INTTYPES_H
@@ -966,6 +975,7 @@ HAVE_DECL_GETUSERSHELL
 HAVE_DECL_GETPAGESIZE
 HAVE_DECL_GETLOGIN_R
 HAVE_DECL_GETDOMAINNAME
+HAVE_DECL_FDATASYNC
 HAVE_DECL_FCHDIR
 HAVE_DECL_ENVIRON
 HAVE_USLEEP
@@ -990,6 +1000,7 @@ HAVE_GETGROUPS
 HAVE_GETDTABLESIZE
 HAVE_FTRUNCATE
 HAVE_FSYNC
+HAVE_FDATASYNC
 HAVE_FCHOWNAT
 HAVE_FCHDIR
 HAVE_FACCESSAT
@@ -1032,6 +1043,7 @@ GNULIB_GETDOMAINNAME
 GNULIB_GETCWD
 GNULIB_FTRUNCATE
 GNULIB_FSYNC
+GNULIB_FDATASYNC
 GNULIB_FCHOWNAT
 GNULIB_FCHDIR
 GNULIB_FACCESSAT
@@ -1039,8 +1051,10 @@ GNULIB_EUIDACCESS
 GNULIB_ENVIRON
 GNULIB_DUP3
 GNULIB_DUP2
+GNULIB_DUP
 GNULIB_CLOSE
 GNULIB_CHOWN
+GNULIB_CHDIR
 GL_GENERATE_ALLOCA_H_FALSE
 GL_GENERATE_ALLOCA_H_TRUE
 ALLOCA_H
@@ -6944,7 +6958,7 @@ esac
   # Code from module nocrash:
   # Code from module pthread_sigmask:
   # Code from module readlink:
-  # Code from module signal:
+  # Code from module signal-h:
   # Code from module sigprocmask:
   # Code from module snippet/_Noreturn:
   # Code from module snippet/arg-nonnull:
@@ -13674,6 +13688,7 @@ fi
 
 
 ### Use libxml (-lxml2) if available
+HAVE_LIBXML2=no
 if test "${with_xml2}" != "no"; then
   ### I'm not sure what the version number should be, so I just guessed.
 
@@ -16607,8 +16622,10 @@ $as_echo "#define HAVE_C99_STRTOLD 1" >>confdefs.h
   fi
 
 
+  GNULIB_CHDIR=0;
   GNULIB_CHOWN=0;
   GNULIB_CLOSE=0;
+  GNULIB_DUP=0;
   GNULIB_DUP2=0;
   GNULIB_DUP3=0;
   GNULIB_ENVIRON=0;
@@ -16616,6 +16633,7 @@ $as_echo "#define HAVE_C99_STRTOLD 1" >>confdefs.h
   GNULIB_FACCESSAT=0;
   GNULIB_FCHDIR=0;
   GNULIB_FCHOWNAT=0;
+  GNULIB_FDATASYNC=0;
   GNULIB_FSYNC=0;
   GNULIB_FTRUNCATE=0;
   GNULIB_GETCWD=0;
@@ -16658,6 +16676,7 @@ $as_echo "#define HAVE_C99_STRTOLD 1" >>confdefs.h
   HAVE_FACCESSAT=1;
   HAVE_FCHDIR=1;
   HAVE_FCHOWNAT=1;
+  HAVE_FDATASYNC=1;
   HAVE_FSYNC=1;
   HAVE_FTRUNCATE=1;
   HAVE_GETDTABLESIZE=1;
@@ -16682,6 +16701,7 @@ $as_echo "#define HAVE_C99_STRTOLD 1" >>confdefs.h
   HAVE_USLEEP=1;
   HAVE_DECL_ENVIRON=1;
   HAVE_DECL_FCHDIR=1;
+  HAVE_DECL_FDATASYNC=1;
   HAVE_DECL_GETDOMAINNAME=1;
   HAVE_DECL_GETLOGIN_R=1;
   HAVE_DECL_GETPAGESIZE=1;
@@ -16992,9 +17012,9 @@ _ACEOF
                    ;;
                esac
 
-               gl_absolute_header_sed='\#'"${gl_dirsep_regex}"'getopt.h#{
-                   s#.*"\(.*'"${gl_dirsep_regex}"'getopt.h\)".*#\1#
-                   s#^/[^/]#//&#
+               gl_absolute_header_sed='\|'"${gl_dirsep_regex}"'getopt.h|{
+                   s|.*"\(.*'"${gl_dirsep_regex}"'getopt.h\)".*|\1|
+                   s|^/[^/]|//&|
                    p
                    q
                  }'
@@ -17749,9 +17769,9 @@ _ACEOF
                    ;;
                esac
 
-               gl_absolute_header_sed='\#'"${gl_dirsep_regex}"'stdint.h#{
-                   s#.*"\(.*'"${gl_dirsep_regex}"'stdint.h\)".*#\1#
-                   s#^/[^/]#//&#
+               gl_absolute_header_sed='\|'"${gl_dirsep_regex}"'stdint.h|{
+                   s|.*"\(.*'"${gl_dirsep_regex}"'stdint.h\)".*|\1|
+                   s|^/[^/]|//&|
                    p
                    q
                  }'
@@ -18381,6 +18401,10 @@ _ACEOF
 
 
 
+          if test $BITSIZEOF_WINT_T -lt 32; then
+    BITSIZEOF_WINT_T=32
+  fi
+
     STDINT_H=stdint.h
   fi
 
@@ -18456,9 +18480,9 @@ _ACEOF
                    ;;
                esac
 
-               gl_absolute_header_sed='\#'"${gl_dirsep_regex}"'inttypes.h#{
-                   s#.*"\(.*'"${gl_dirsep_regex}"'inttypes.h\)".*#\1#
-                   s#^/[^/]#//&#
+               gl_absolute_header_sed='\|'"${gl_dirsep_regex}"'inttypes.h|{
+                   s|.*"\(.*'"${gl_dirsep_regex}"'inttypes.h\)".*|\1|
+                   s|^/[^/]|//&|
                    p
                    q
                  }'
@@ -18499,6 +18523,7 @@ $as_echo "#define GL_TRIGGER_STDC_LIMIT_MACROS 1" >>confdefs.h
 
 
      GNULIB_FCHMODAT=0;
+  GNULIB_FSTAT=0;
   GNULIB_FSTATAT=0;
   GNULIB_FUTIMENS=0;
   GNULIB_LCHMOD=0;
@@ -18612,11 +18637,13 @@ _ACEOF
 
 
   GNULIB_PTHREAD_SIGMASK=0;
+  GNULIB_RAISE=0;
   GNULIB_SIGNAL_H_SIGPIPE=0;
   GNULIB_SIGPROCMASK=0;
   GNULIB_SIGACTION=0;
     HAVE_POSIX_SIGNALBLOCKING=1;
   HAVE_PTHREAD_SIGMASK=1;
+  HAVE_RAISE=1;
   HAVE_SIGSET_T=1;
   HAVE_SIGINFO_T=1;
   HAVE_SIGACTION=1;
@@ -18626,6 +18653,7 @@ _ACEOF
 
   HAVE_SIGHANDLER_T=1;
   REPLACE_PTHREAD_SIGMASK=0;
+  REPLACE_RAISE=0;
 
 
 
@@ -18797,6 +18825,7 @@ $as_echo "#define HAVE_WCHAR_T 1" >>confdefs.h
 
   GNULIB_DPRINTF=0;
   GNULIB_FCLOSE=0;
+  GNULIB_FDOPEN=0;
   GNULIB_FFLUSH=0;
   GNULIB_FGETC=0;
   GNULIB_FGETS=0;
@@ -18821,6 +18850,7 @@ $as_echo "#define HAVE_WCHAR_T 1" >>confdefs.h
   GNULIB_GETS=0;
   GNULIB_OBSTACK_PRINTF=0;
   GNULIB_OBSTACK_PRINTF_POSIX=0;
+  GNULIB_PCLOSE=0;
   GNULIB_PERROR=0;
   GNULIB_POPEN=0;
   GNULIB_PRINTF=0;
@@ -18858,11 +18888,14 @@ $as_echo "#define HAVE_WCHAR_T 1" >>confdefs.h
   HAVE_DPRINTF=1;
   HAVE_FSEEKO=1;
   HAVE_FTELLO=1;
+  HAVE_PCLOSE=1;
+  HAVE_POPEN=1;
   HAVE_RENAMEAT=1;
   HAVE_VASPRINTF=1;
   HAVE_VDPRINTF=1;
   REPLACE_DPRINTF=0;
   REPLACE_FCLOSE=0;
+  REPLACE_FDOPEN=0;
   REPLACE_FFLUSH=0;
   REPLACE_FOPEN=0;
   REPLACE_FPRINTF=0;
@@ -18976,6 +19009,17 @@ $as_echo "#define STAT_MACROS_BROKEN 1" >>confdefs.h
 fi
 
 
+
+ac_fn_c_check_type "$LINENO" "mode_t" "ac_cv_type_mode_t" "$ac_includes_default"
+if test "x$ac_cv_type_mode_t" = x""yes; then :
+
+else
+
+cat >>confdefs.h <<_ACEOF
+#define mode_t int
+_ACEOF
+
+fi
 
 { $as_echo "$as_me:${as_lineno-$LINENO}: checking for C/C++ restrict keyword" >&5
 $as_echo_n "checking for C/C++ restrict keyword... " >&6; }
@@ -19163,9 +19207,9 @@ _ACEOF
                    ;;
                esac
 
-               gl_absolute_header_sed='\#'"${gl_dirsep_regex}"'time.h#{
-                   s#.*"\(.*'"${gl_dirsep_regex}"'time.h\)".*#\1#
-                   s#^/[^/]#//&#
+               gl_absolute_header_sed='\|'"${gl_dirsep_regex}"'time.h|{
+                   s|.*"\(.*'"${gl_dirsep_regex}"'time.h\)".*|\1|
+                   s|^/[^/]|//&|
                    p
                    q
                  }'
@@ -19187,8 +19231,6 @@ $as_echo "$gl_cv_next_time_h" >&6; }
        gl_next_as_first_directive=$gl_cv_next_time_h
      fi
      NEXT_AS_FIRST_DIRECTIVE_TIME_H=$gl_next_as_first_directive
-
-
 
 
 
@@ -19398,6 +19440,7 @@ if test $HAVE_DUP2 = 0 || test $REPLACE_DUP2 = 1; then
 
 
   gl_LIBOBJS="$gl_LIBOBJS dup2.$ac_objext"
+
 
 fi
 
@@ -19799,9 +19842,9 @@ else
   HAVE_SYS_LOADAVG_H=0
 fi
 ac_fn_c_check_decl "$LINENO" "getloadavg" "ac_cv_have_decl_getloadavg" "#if HAVE_SYS_LOADAVG_H
-   # include <sys/loadavg.h>
-   #endif
-   #include <stdlib.h>
+    # include <sys/loadavg.h>
+    #endif
+    #include <stdlib.h>
 "
 if test "x$ac_cv_have_decl_getloadavg" = x""yes; then :
 
@@ -20710,9 +20753,9 @@ _ACEOF
                    ;;
                esac
 
-               gl_absolute_header_sed='\#'"${gl_dirsep_regex}"'signal.h#{
-                   s#.*"\(.*'"${gl_dirsep_regex}"'signal.h\)".*#\1#
-                   s#^/[^/]#//&#
+               gl_absolute_header_sed='\|'"${gl_dirsep_regex}"'signal.h|{
+                   s|.*"\(.*'"${gl_dirsep_regex}"'signal.h\)".*|\1|
+                   s|^/[^/]|//&|
                    p
                    q
                  }'
@@ -20954,9 +20997,9 @@ _ACEOF
                    ;;
                esac
 
-               gl_absolute_header_sed='\#'"${gl_dirsep_regex}"'stdarg.h#{
-                   s#.*"\(.*'"${gl_dirsep_regex}"'stdarg.h\)".*#\1#
-                   s#^/[^/]#//&#
+               gl_absolute_header_sed='\|'"${gl_dirsep_regex}"'stdarg.h|{
+                   s|.*"\(.*'"${gl_dirsep_regex}"'stdarg.h\)".*|\1|
+                   s|^/[^/]|//&|
                    p
                    q
                  }'
@@ -21154,9 +21197,9 @@ _ACEOF
                    ;;
                esac
 
-               gl_absolute_header_sed='\#'"${gl_dirsep_regex}"'stddef.h#{
-                   s#.*"\(.*'"${gl_dirsep_regex}"'stddef.h\)".*#\1#
-                   s#^/[^/]#//&#
+               gl_absolute_header_sed='\|'"${gl_dirsep_regex}"'stddef.h|{
+                   s|.*"\(.*'"${gl_dirsep_regex}"'stddef.h\)".*|\1|
+                   s|^/[^/]|//&|
                    p
                    q
                  }'
@@ -21224,9 +21267,9 @@ _ACEOF
                    ;;
                esac
 
-               gl_absolute_header_sed='\#'"${gl_dirsep_regex}"'stdio.h#{
-                   s#.*"\(.*'"${gl_dirsep_regex}"'stdio.h\)".*#\1#
-                   s#^/[^/]#//&#
+               gl_absolute_header_sed='\|'"${gl_dirsep_regex}"'stdio.h|{
+                   s|.*"\(.*'"${gl_dirsep_regex}"'stdio.h\)".*|\1|
+                   s|^/[^/]|//&|
                    p
                    q
                  }'
@@ -21316,9 +21359,9 @@ _ACEOF
                    ;;
                esac
 
-               gl_absolute_header_sed='\#'"${gl_dirsep_regex}"'stdlib.h#{
-                   s#.*"\(.*'"${gl_dirsep_regex}"'stdlib.h\)".*#\1#
-                   s#^/[^/]#//&#
+               gl_absolute_header_sed='\|'"${gl_dirsep_regex}"'stdlib.h|{
+                   s|.*"\(.*'"${gl_dirsep_regex}"'stdlib.h\)".*|\1|
+                   s|^/[^/]|//&|
                    p
                    q
                  }'
@@ -21573,9 +21616,9 @@ _ACEOF
                    ;;
                esac
 
-               gl_absolute_header_sed='\#'"${gl_dirsep_regex}"'sys/stat.h#{
-                   s#.*"\(.*'"${gl_dirsep_regex}"'sys/stat.h\)".*#\1#
-                   s#^/[^/]#//&#
+               gl_absolute_header_sed='\|'"${gl_dirsep_regex}"'sys/stat.h|{
+                   s|.*"\(.*'"${gl_dirsep_regex}"'sys/stat.h\)".*|\1|
+                   s|^/[^/]|//&|
                    p
                    q
                  }'
@@ -21600,6 +21643,8 @@ $as_echo "$gl_cv_next_sys_stat_h" >&6; }
        gl_next_as_first_directive=$gl_cv_next_sys_stat_h
      fi
      NEXT_AS_FIRST_DIRECTIVE_SYS_STAT_H=$gl_next_as_first_directive
+
+
 
 
 
@@ -21751,9 +21796,9 @@ _ACEOF
                    ;;
                esac
 
-               gl_absolute_header_sed='\#'"${gl_dirsep_regex}"'unistd.h#{
-                   s#.*"\(.*'"${gl_dirsep_regex}"'unistd.h\)".*#\1#
-                   s#^/[^/]#//&#
+               gl_absolute_header_sed='\|'"${gl_dirsep_regex}"'unistd.h|{
+                   s|.*"\(.*'"${gl_dirsep_regex}"'unistd.h\)".*|\1|
+                   s|^/[^/]|//&|
                    p
                    q
                  }'
@@ -21842,7 +21887,9 @@ if test $HAVE_POSIX_SIGNALBLOCKING = 0; then
 
   gl_LIBOBJS="$gl_LIBOBJS sigprocmask.$ac_objext"
 
-  :
+
+
+
 fi
 
 
@@ -21856,6 +21903,12 @@ fi
 
 
       gl_gnulib_enabled_sigprocmask=true
+      if $condition; then
+        func_gl_gnulib_m4code_raise
+      fi
+      if $condition; then
+        func_gl_gnulib_m4code_f691f076f650964c9f5598c3ee487616
+      fi
     fi
   }
   func_gl_gnulib_m4code_stat ()
@@ -21991,6 +22044,9 @@ fi
         func_gl_gnulib_m4code_dosname
       fi
       if $condition; then
+        func_gl_gnulib_m4code_pathmax
+      fi
+      if $condition; then
         func_gl_gnulib_m4code_verify
       fi
     fi
@@ -22105,6 +22161,12 @@ fi
       gl_gnulib_enabled_verify=true
     fi
   }
+  if test $HAVE_DUP2 = 0 || test $REPLACE_DUP2 = 1; then
+    func_gl_gnulib_m4code_f691f076f650964c9f5598c3ee487616
+  fi
+  if test $HAVE_DUP2 = 0 || test $REPLACE_DUP2 = 1; then
+    func_gl_gnulib_m4code_676220fa4366efa9bdbfccf11a857c07
+  fi
   if test $REPLACE_GETOPT = 1; then
     func_gl_gnulib_m4code_be453cec5eecf5731a274f2de7f2db36
   fi

@@ -80,9 +80,10 @@
   "Control whether or not to pop up the key selection dialog.
 
 If t, always asks user to select recipients.
-If nil, query user only when `plstore-encrypt-to' is not set.
-If neither t nor nil, doesn't ask user.  In this case, symmetric
-encryption is used."
+If nil, query user only when a file's default recipients are not
+known (i.e. `plstore-encrypt-to' is not locally set in the buffer
+visiting a plstore file).
+If neither t nor nil, doesn't ask user."
   :type '(choice (const :tag "Ask always" t)
 		 (const :tag "Ask when recipients are not set" nil)
 		 (const :tag "Don't ask" silent))
@@ -90,7 +91,8 @@ encryption is used."
 
 (defvar plstore-encrypt-to nil
   "*Recipient(s) used for encrypting secret entries.
-May either be a string or a list of strings.")
+May either be a string or a list of strings.  If it is nil,
+symmetric encryption will be used.")
 
 (put 'plstore-encrypt-to 'safe-local-variable
      (lambda (val)

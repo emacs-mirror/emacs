@@ -1826,7 +1826,7 @@ This function also adds a hook to the minibuffer."
 ;;       e.g. the file name may be ignored or joined with ido-current-directory, and
 ;;       the relevant function is called (find-file, write-file, etc).
 
-(defun ido-read-internal (item prompt history &optional default require-match initial)
+(defun ido-read-internal (item prompt hist &optional default require-match initial)
   "Perform the `ido-read-buffer' and `ido-read-file-name' functions.
 Return the name of a buffer or file selected.
 PROMPT is the prompt to give to the user.
@@ -1984,7 +1984,7 @@ If INITIAL is non-nil, it specifies the initial input string."
 		(read-from-minibuffer (ido-make-prompt item prompt)
 				      (prog1 ido-text-init
 					(setq ido-text-init nil))
-				      ido-completion-map nil history))))
+				      ido-completion-map nil hist))))
       (ido-trace "read-from-minibuffer" ido-final-text)
       (if (get-buffer ido-completion-buffer)
 	  (kill-buffer ido-completion-buffer))
@@ -2155,7 +2155,12 @@ If INITIAL is non-nil, it specifies the initial input string."
 
 	 (t
 	  (setq done t))))))
-    (add-to-history (or history 'minibuffer-history) ido-selected)
+    (add-to-history (cond
+		     ((consp hist)
+		      (or (car hist) 'minibuffer-history))
+		     (hist hist)
+		     (t 'minibuffer-history))
+		    ido-selected)
     ido-selected))
 
 (defun ido-edit-input ()

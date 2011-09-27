@@ -2624,6 +2624,7 @@ fi
 AC_SUBST(LIBXSM)
 
 ### Use libxml (-lxml2) if available
+HAVE_LIBXML2=no
 if test "${with_xml2}" != "no"; then
   ### I'm not sure what the version number should be, so I just guessed.
   PKG_CHECK_MODULES(LIBXML2, libxml-2.0 > 2.6.17, HAVE_LIBXML2=yes, HAVE_LIBXML2=no)

@@ -672,12 +672,13 @@ textual parts.")
       (if (consp (caar structure))
 	  (nnimap-insert-partial-structure (pop structure) parts t)
 	(let ((bit (pop structure)))
-	  (insert (format  "Content-type: %s/%s"
-			   (downcase (nth 0 bit))
-			   (downcase (nth 1 bit))))
-	  (if (member "CHARSET" (nth 2 bit))
+	  (insert (format "Content-type: %s/%s"
+			  (downcase (nth 0 bit))
+			  (downcase (nth 1 bit))))
+	  (if (member-ignore-case "CHARSET" (nth 2 bit))
 	      (insert (format
-		       "; charset=%S\n" (cadr (member "CHARSET" (nth 2 bit)))))
+		       "; charset=%S\n"
+		       (cadr (member-ignore-case "CHARSET" (nth 2 bit)))))
 	    (insert "\n"))
 	  (insert (format "Content-transfer-encoding: %s\n"
 			  (nth 5 bit)))
@@ -1723,7 +1724,8 @@ textual parts.")
 				      (looking-at "\\*"))))
 			(not (looking-at (format "%d .*\n" sequence)))))
 	    (when messagep
-	      (nnheader-message 7 "nnimap read %dk" (/ (buffer-size) 1000)))
+	      (nnheader-message-maybe
+	       7 "nnimap read %dk" (/ (buffer-size) 1000)))
 	    (nnheader-accept-process-output process)
 	    (goto-char (point-max)))
           openp)

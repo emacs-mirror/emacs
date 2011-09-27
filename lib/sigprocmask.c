@@ -24,6 +24,10 @@
 #include <stdint.h>
 #include <stdlib.h>
 
+#if HAVE_MSVC_INVALID_PARAMETER_HANDLER
+# include "msvc-inval.h"
+#endif
+
 /* We assume that a platform without POSIX signal blocking functions
    also does not have the POSIX sigaction() function, only the
    signal() function.  We also assume signal() has SysV semantics,
@@ -58,6 +62,28 @@
 
 typedef void (*handler_t) (int);
 
+#if HAVE_MSVC_INVALID_PARAMETER_HANDLER
+static inline handler_t
+signal_nothrow (int sig, handler_t handler)
+{
+  handler_t result;
+
+  TRY_MSVC_INVAL
+    {
+      result = signal (sig, handler);
+    }
+  CATCH_MSVC_INVAL
+    {
+      result = SIG_ERR;
+      errno = EINVAL;
+    }
+  DONE_MSVC_INVAL;
+
+  return result;
+}
+# define signal signal_nothrow
+#endif
+
 /* Handling of gnulib defined signals.  */
 
 #if GNULIB_defined_SIGPIPE
@@ -80,6 +106,7 @@ ext_signal (int sig, handler_t handler)
       return signal (sig, handler);
     }
 }
+# undef signal
 # define signal ext_signal
 #endif
 

@@ -152,6 +152,29 @@ _GL_WARN_ON_USE (pthread_sigmask, "pthread_sigmask is not portable - "
 #endif
 
 
+#if @GNULIB_RAISE@
+# if @REPLACE_RAISE@
+#  if !(defined __cplusplus && defined GNULIB_NAMESPACE)
+#   undef raise
+#   define raise rpl_raise
+#  endif
+_GL_FUNCDECL_RPL (raise, int, (int sig));
+_GL_CXXALIAS_RPL (raise, int, (int sig));
+# else
+#  if !@HAVE_RAISE@
+_GL_FUNCDECL_SYS (raise, int, (int sig));
+#  endif
+_GL_CXXALIAS_SYS (raise, int, (int sig));
+# endif
+_GL_CXXALIASWARN (raise);
+#elif defined GNULIB_POSIXCHECK
+# undef raise
+/* Assume raise is always declared.  */
+_GL_WARN_ON_USE (raise, "raise can crash on native Windows - "
+                 "use gnulib module raise for portability");
+#endif
+
+
 #if @GNULIB_SIGPROCMASK@
 # if !@HAVE_POSIX_SIGNALBLOCKING@
 

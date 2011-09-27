@@ -1,4 +1,4 @@
-# include_next.m4 serial 21
+# include_next.m4 serial 22
 dnl Copyright (C) 2006-2011 Free Software Foundation, Inc.
 dnl This file is free software; the Free Software Foundation
 dnl gives unlimited permission to copy and/or distribute it,
@@ -223,9 +223,11 @@ changequote(,)
                    ;;
                esac
 changequote([,])
-               gl_absolute_header_sed='\#'"${gl_dirsep_regex}"']m4_defn([gl_HEADER_NAME])[#{
-                   s#.*"\(.*'"${gl_dirsep_regex}"']m4_defn([gl_HEADER_NAME])[\)".*#\1#
-                   s#^/[^/]#//&#
+               gl_absolute_header_sed='\|'"${gl_dirsep_regex}"']m4_defn([gl_HEADER_NAME])[|{
+                   s|.*"\(.*'"${gl_dirsep_regex}"']m4_defn([gl_HEADER_NAME])[\)".*|\1|
+changequote(,)dnl
+                   s|^/[^/]|//&|
+changequote([,])dnl
                    p
                    q
                  }'
