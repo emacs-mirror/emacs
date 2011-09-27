@@ -297,7 +297,7 @@ of `inferior-lisp-program').  Runs the hooks from
 			   "inferior-lisp" (car cmdlist) nil (cdr cmdlist)))
 	(inferior-lisp-mode)))
   (setq inferior-lisp-buffer "*inferior-lisp*")
-  (switch-to-buffer "*inferior-lisp*"))
+  (pop-to-buffer-same-window "*inferior-lisp*"))
 
 ;;;###autoload
 (defalias 'run-lisp 'inferior-lisp)

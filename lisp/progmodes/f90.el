@@ -2012,14 +2012,15 @@ is non-nil, call `f90-update-line' after inserting the continuation marker."
 
 (defun f90-find-breakpoint ()
   "From `fill-column', search backward for break-delimiter."
+  ;; Commented text more likely than commented code.
   (if (f90-in-comment)
       (re-search-backward "\\s-" (line-beginning-position))
-    (re-search-backward f90-break-delimiters (line-beginning-position)))
-  (if (not f90-break-before-delimiters)
-      (forward-char (if (looking-at f90-no-break-re) 2 1))
-    (backward-char)
-    (or (looking-at f90-no-break-re)
-        (forward-char))))
+    (re-search-backward f90-break-delimiters (line-beginning-position))
+    (if (not f90-break-before-delimiters)
+        (forward-char (if (looking-at f90-no-break-re) 2 1))
+      (backward-char)
+      (or (looking-at f90-no-break-re)
+        (forward-char)))))
 
 (defun f90-do-auto-fill ()
   "Break line if non-white characters beyond `fill-column'.

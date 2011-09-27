@@ -222,7 +222,7 @@ bidi_mirror_char (int c)
 static inline void
 bidi_set_sor_type (struct bidi_it *bidi_it, int level_before, int level_after)
 {
-  int higher_level = level_before > level_after ? level_before : level_after;
+  int higher_level = (level_before > level_after ? level_before : level_after);
 
   /* The prev_was_pdf gork is required for when we have several PDFs
      in a row.  In that case, we want to compute the sor type for the
@@ -233,18 +233,18 @@ bidi_set_sor_type (struct bidi_it *bidi_it, int level_before, int level_after)
      level to which we descend after processing all the PDFs.  */
   if (!bidi_it->prev_was_pdf || level_before < level_after)
     /* FIXME: should the default sor direction be user selectable?  */
-    bidi_it->sor = (higher_level & 1) != 0 ? R2L : L2R;
+    bidi_it->sor = ((higher_level & 1) != 0 ? R2L : L2R);
   if (level_before > level_after)
     bidi_it->prev_was_pdf = 1;
 
   bidi_it->prev.type = UNKNOWN_BT;
-  bidi_it->last_strong.type = bidi_it->last_strong.type_after_w1 =
-    bidi_it->last_strong.orig_type = UNKNOWN_BT;
-  bidi_it->prev_for_neutral.type = bidi_it->sor == R2L ? STRONG_R : STRONG_L;
+  bidi_it->last_strong.type = bidi_it->last_strong.type_after_w1
+    = bidi_it->last_strong.orig_type = UNKNOWN_BT;
+  bidi_it->prev_for_neutral.type = (bidi_it->sor == R2L ? STRONG_R : STRONG_L);
   bidi_it->prev_for_neutral.charpos = bidi_it->charpos;
   bidi_it->prev_for_neutral.bytepos = bidi_it->bytepos;
-  bidi_it->next_for_neutral.type = bidi_it->next_for_neutral.type_after_w1 =
-    bidi_it->next_for_neutral.orig_type = UNKNOWN_BT;
+  bidi_it->next_for_neutral.type = bidi_it->next_for_neutral.type_after_w1
+    = bidi_it->next_for_neutral.orig_type = UNKNOWN_BT;
   bidi_it->ignore_bn_limit = -1; /* meaning it's unknown */
 }
 
@@ -325,10 +325,10 @@ static int bidi_cache_sp;
 /* Size of header used by bidi_shelve_cache.  */
 enum
   {
-    bidi_shelve_header_size =
-      (sizeof (bidi_cache_idx) + sizeof (bidi_cache_start_stack)
-       + sizeof (bidi_cache_sp) + sizeof (bidi_cache_start)
-       + sizeof (bidi_cache_last_idx))
+    bidi_shelve_header_size
+      = (sizeof (bidi_cache_idx) + sizeof (bidi_cache_start_stack)
+	 + sizeof (bidi_cache_sp) + sizeof (bidi_cache_start)
+	 + sizeof (bidi_cache_last_idx))
   };
 
 /* Reset the cache state to the empty state.  We only reset the part
@@ -353,8 +353,8 @@ bidi_cache_shrink (void)
 {
   if (bidi_cache_size > BIDI_CACHE_CHUNK)
     {
-      bidi_cache =
-	(struct bidi_it *) xrealloc (bidi_cache, BIDI_CACHE_CHUNK * elsz);
+      bidi_cache
+	= (struct bidi_it *) xrealloc (bidi_cache, BIDI_CACHE_CHUNK * elsz);
       bidi_cache_size = BIDI_CACHE_CHUNK;
     }
   bidi_cache_reset ();
@@ -490,17 +490,17 @@ bidi_cache_ensure_space (ptrdiff_t idx)
     {
       /* The bidi cache cannot be larger than the largest Lisp string
 	 or buffer.  */
-      ptrdiff_t string_or_buffer_bound =
-	max (BUF_BYTES_MAX, STRING_BYTES_BOUND);
+      ptrdiff_t string_or_buffer_bound
+	= max (BUF_BYTES_MAX, STRING_BYTES_BOUND);
 
       /* Also, it cannot be larger than what C can represent.  */
-      ptrdiff_t c_bound =
-	(min (PTRDIFF_MAX, SIZE_MAX) - bidi_shelve_header_size) / elsz;
+      ptrdiff_t c_bound
+	= (min (PTRDIFF_MAX, SIZE_MAX) - bidi_shelve_header_size) / elsz;
 
-      bidi_cache =
-	xpalloc (bidi_cache, &bidi_cache_size,
-		 max (BIDI_CACHE_CHUNK, idx - bidi_cache_size + 1),
-		 min (string_or_buffer_bound, c_bound), elsz);
+      bidi_cache
+	= xpalloc (bidi_cache, &bidi_cache_size,
+		   max (BIDI_CACHE_CHUNK, idx - bidi_cache_size + 1),
+		   min (string_or_buffer_bound, c_bound), elsz);
     }
 }
 
@@ -708,8 +708,8 @@ bidi_unshelve_cache (void *databuf, int just_free)
 	  ptrdiff_t idx;
 
 	  memcpy (&idx, p, sizeof (bidi_cache_idx));
-	  bidi_cache_total_alloc -=
-	    bidi_shelve_header_size + idx * sizeof (struct bidi_it);
+	  bidi_cache_total_alloc
+	    -= bidi_shelve_header_size + idx * sizeof (struct bidi_it);
 	}
       else
 	{
@@ -737,8 +737,9 @@ bidi_unshelve_cache (void *databuf, int just_free)
 		  + sizeof (bidi_cache_start_stack) + sizeof (bidi_cache_sp)
 		  + sizeof (bidi_cache_start),
 		  sizeof (bidi_cache_last_idx));
-	  bidi_cache_total_alloc -=
-	    bidi_shelve_header_size + bidi_cache_idx * sizeof (struct bidi_it);
+	  bidi_cache_total_alloc
+	    -= (bidi_shelve_header_size
+		+ bidi_cache_idx * sizeof (struct bidi_it));
 	}
 
       xfree (p);
@@ -813,18 +814,18 @@ bidi_init_it (EMACS_INT charpos, EMACS_INT bytepos, int frame_window_p,
   bidi_it->type_after_w1 = NEUTRAL_B;
   bidi_it->orig_type = NEUTRAL_B;
   bidi_it->prev_was_pdf = 0;
-  bidi_it->prev.type = bidi_it->prev.type_after_w1 =
-    bidi_it->prev.orig_type = UNKNOWN_BT;
-  bidi_it->last_strong.type = bidi_it->last_strong.type_after_w1 =
-    bidi_it->last_strong.orig_type = UNKNOWN_BT;
+  bidi_it->prev.type = bidi_it->prev.type_after_w1
+    = bidi_it->prev.orig_type = UNKNOWN_BT;
+  bidi_it->last_strong.type = bidi_it->last_strong.type_after_w1
+    = bidi_it->last_strong.orig_type = UNKNOWN_BT;
   bidi_it->next_for_neutral.charpos = -1;
-  bidi_it->next_for_neutral.type =
-    bidi_it->next_for_neutral.type_after_w1 =
-    bidi_it->next_for_neutral.orig_type = UNKNOWN_BT;
+  bidi_it->next_for_neutral.type
+    = bidi_it->next_for_neutral.type_after_w1
+    = bidi_it->next_for_neutral.orig_type = UNKNOWN_BT;
   bidi_it->prev_for_neutral.charpos = -1;
-  bidi_it->prev_for_neutral.type =
-    bidi_it->prev_for_neutral.type_after_w1 =
-    bidi_it->prev_for_neutral.orig_type = UNKNOWN_BT;
+  bidi_it->prev_for_neutral.type
+    = bidi_it->prev_for_neutral.type_after_w1
+    = bidi_it->prev_for_neutral.orig_type = UNKNOWN_BT;
   bidi_it->sor = L2R;	 /* FIXME: should it be user-selectable? */
   bidi_it->disp_pos = -1;	/* invalid/unknown */
   bidi_it->disp_prop = 0;
@@ -848,7 +849,7 @@ bidi_line_init (struct bidi_it *bidi_it)
   bidi_it->next_en_pos = -1;
   bidi_it->next_for_ws.type = UNKNOWN_BT;
   bidi_set_sor_type (bidi_it,
-		     bidi_it->paragraph_dir == R2L ? 1 : 0,
+		     (bidi_it->paragraph_dir == R2L ? 1 : 0),
 		     bidi_it->level_stack[0].level); /* X10 */
 
   bidi_cache_reset ();
@@ -925,8 +926,8 @@ bidi_fetch_char (EMACS_INT bytepos, EMACS_INT charpos, EMACS_INT *disp_pos,
 		 int frame_window_p, EMACS_INT *ch_len, EMACS_INT *nchars)
 {
   int ch;
-  EMACS_INT endpos =
-    (string->s || STRINGP (string->lstring)) ? string->schars : ZV;
+  EMACS_INT endpos
+    = (string->s || STRINGP (string->lstring)) ? string->schars : ZV;
   struct text_pos pos;
 
   /* If we got past the last known position of display string, compute
@@ -1173,8 +1174,9 @@ bidi_paragraph_init (bidi_dir_t dir, struct bidi_it *bidi_it, int no_default_p)
 	 we are potentially in a new paragraph that doesn't yet
 	 exist.  */
       pos = bidi_it->charpos;
-      s = STRINGP (bidi_it->string.lstring) ?
-	SDATA (bidi_it->string.lstring) : bidi_it->string.s;
+      s = (STRINGP (bidi_it->string.lstring)
+	   ? SDATA (bidi_it->string.lstring)
+	   : bidi_it->string.s);
       if (bytepos > begbyte
 	  && bidi_char_at_pos (bytepos, s, bidi_it->string.unibyte) == '\n')
 	{
@@ -1324,9 +1326,10 @@ bidi_resolve_explicit_1 (struct bidi_it *bidi_it)
       bidi_it->first_elt = 0;
       if (string_p)
 	{
-	  const unsigned char *p =
-	    STRINGP (bidi_it->string.lstring)
-	    ? SDATA (bidi_it->string.lstring) : bidi_it->string.s;
+	  const unsigned char *p
+	    = (STRINGP (bidi_it->string.lstring)
+	       ? SDATA (bidi_it->string.lstring)
+	       : bidi_it->string.s);
 
 	  if (bidi_it->charpos < 0)
 	    bidi_it->charpos = 0;
@@ -1509,8 +1512,10 @@ bidi_resolve_explicit (struct bidi_it *bidi_it)
   int prev_level = bidi_it->level_stack[bidi_it->stack_idx].level;
   int new_level  = bidi_resolve_explicit_1 (bidi_it);
   EMACS_INT eob = bidi_it->string.s ? bidi_it->string.schars : ZV;
-  const unsigned char *s = STRINGP (bidi_it->string.lstring)
-    ? SDATA (bidi_it->string.lstring) : bidi_it->string.s;
+  const unsigned char *s
+    = (STRINGP (bidi_it->string.lstring)
+       ? SDATA (bidi_it->string.lstring)
+       : bidi_it->string.s);
 
   if (prev_level < new_level
       && bidi_it->type == WEAK_BN
@@ -1594,9 +1599,9 @@ bidi_resolve_weak (struct bidi_it *bidi_it)
   int next_char;
   bidi_type_t type_of_next;
   struct bidi_it saved_it;
-  EMACS_INT eob =
-    (STRINGP (bidi_it->string.lstring) || bidi_it->string.s)
-    ? bidi_it->string.schars : ZV;
+  EMACS_INT eob
+    = ((STRINGP (bidi_it->string.lstring) || bidi_it->string.s)
+       ? bidi_it->string.schars : ZV);
 
   type = bidi_it->type;
   override = bidi_it->level_stack[bidi_it->stack_idx].override;
@@ -1663,15 +1668,15 @@ bidi_resolve_weak (struct bidi_it *bidi_it)
 			&& bidi_it->prev.orig_type == WEAK_EN)
 		       || bidi_it->prev.type_after_w1 == WEAK_AN)))
 	{
-	  const unsigned char *s =
-	    STRINGP (bidi_it->string.lstring)
-	    ? SDATA (bidi_it->string.lstring) : bidi_it->string.s;
+	  const unsigned char *s
+	    = (STRINGP (bidi_it->string.lstring)
+	       ? SDATA (bidi_it->string.lstring)
+	       : bidi_it->string.s);
 
-	  next_char =
-	    bidi_it->charpos + bidi_it->nchars >= eob
-	    ? BIDI_EOB
-	    : bidi_char_at_pos (bidi_it->bytepos + bidi_it->ch_len, s,
-				bidi_it->string.unibyte);
+	  next_char = (bidi_it->charpos + bidi_it->nchars >= eob
+		       ? BIDI_EOB
+		       : bidi_char_at_pos (bidi_it->bytepos + bidi_it->ch_len,
+					   s, bidi_it->string.unibyte));
 	  type_of_next = bidi_get_type (next_char, override);
 
 	  if (type_of_next == WEAK_BN
@@ -1720,17 +1725,17 @@ bidi_resolve_weak (struct bidi_it *bidi_it)
 	  else			/* W5: ET/BN with EN after it.  */
 	    {
 	      EMACS_INT en_pos = bidi_it->charpos + bidi_it->nchars;
-	      const unsigned char *s =
-		STRINGP (bidi_it->string.lstring)
-		? SDATA (bidi_it->string.lstring) : bidi_it->string.s;
+	      const unsigned char *s = (STRINGP (bidi_it->string.lstring)
+					? SDATA (bidi_it->string.lstring)
+					: bidi_it->string.s);
 
 	      if (bidi_it->nchars <= 0)
 		abort ();
-	      next_char =
-		bidi_it->charpos + bidi_it->nchars >= eob
-		? BIDI_EOB
-		: bidi_char_at_pos (bidi_it->bytepos + bidi_it->ch_len, s,
-				    bidi_it->string.unibyte);
+	      next_char
+		= (bidi_it->charpos + bidi_it->nchars >= eob
+		   ? BIDI_EOB
+		   : bidi_char_at_pos (bidi_it->bytepos + bidi_it->ch_len, s,
+				       bidi_it->string.unibyte));
 	      type_of_next = bidi_get_type (next_char, override);
 
 	      if (type_of_next == WEAK_ET
@@ -1875,8 +1880,8 @@ bidi_resolve_neutral (struct bidi_it *bidi_it)
 			 && bidi_get_category (type) != NEUTRAL)
 		     /* This is all per level run, so stop when we
 			reach the end of this level run.  */
-		     || bidi_it->level_stack[bidi_it->stack_idx].level !=
-		     current_level));
+		     || (bidi_it->level_stack[bidi_it->stack_idx].level
+			 != current_level)));
 
 	  bidi_remember_char (&saved_it.next_for_neutral, bidi_it);
 
@@ -1971,9 +1976,9 @@ bidi_level_of_next_char (struct bidi_it *bidi_it)
 
   if (bidi_it->scan_dir == 1)
     {
-      EMACS_INT eob =
-	(bidi_it->string.s || STRINGP (bidi_it->string.lstring))
-	? bidi_it->string.schars : ZV;
+      EMACS_INT eob
+	= ((bidi_it->string.s || STRINGP (bidi_it->string.lstring))
+	   ? bidi_it->string.schars : ZV);
 
       /* There's no sense in trying to advance if we hit end of text.  */
       if (bidi_it->charpos >= eob)
@@ -2018,9 +2023,8 @@ bidi_level_of_next_char (struct bidi_it *bidi_it)
      UNKNOWN_BT.  */
   if (bidi_cache_idx > bidi_cache_start && !bidi_it->first_elt)
     {
-      int bob =
-	(bidi_it->string.s || STRINGP (bidi_it->string.lstring)) ? 0 : 1;
-
+      int bob = ((bidi_it->string.s || STRINGP (bidi_it->string.lstring))
+		 ? 0 : 1);
       if (bidi_it->scan_dir > 0)
 	{
 	  if (bidi_it->nchars <= 0)
@@ -2345,9 +2349,9 @@ bidi_move_to_visually_next (struct bidi_it *bidi_it)
 	bidi_it->separator_limit = bidi_it->string.schars;
       else if (bidi_it->bytepos < ZV_BYTE)
 	{
-	  EMACS_INT sep_len =
-	    bidi_at_paragraph_end (bidi_it->charpos + bidi_it->nchars,
-				   bidi_it->bytepos + bidi_it->ch_len);
+	  EMACS_INT sep_len
+	    = bidi_at_paragraph_end (bidi_it->charpos + bidi_it->nchars,
+				     bidi_it->bytepos + bidi_it->ch_len);
 	  if (bidi_it->nchars <= 0)
 	    abort ();
 	  if (sep_len >= 0)
@@ -2355,8 +2359,8 @@ bidi_move_to_visually_next (struct bidi_it *bidi_it)
 	      bidi_it->new_paragraph = 1;
 	      /* Record the buffer position of the last character of the
 		 paragraph separator.  */
-	      bidi_it->separator_limit =
-		bidi_it->charpos + bidi_it->nchars + sep_len;
+	      bidi_it->separator_limit
+		= bidi_it->charpos + bidi_it->nchars + sep_len;
 	    }
 	}
     }

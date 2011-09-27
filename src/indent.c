@@ -2019,7 +2019,8 @@ whether or not it is currently displayed in some window.  */)
   else
     {
       EMACS_INT it_start;
-      int first_x, it_overshoot_expected IF_LINT (= 0);
+      int first_x, it_overshoot_count = 0;
+      int overshoot_handled = 0;
 
       itdata = bidi_shelve_cache ();
       SET_TEXT_POS (pt, PT, PT_BYTE);
@@ -2028,22 +2029,23 @@ whether or not it is currently displayed in some window.  */)
       it_start = IT_CHARPOS (it);
 
       /* See comments below for why we calculate this.  */
-      if (XINT (lines) > 0)
+      if (it.cmp_it.id >= 0)
+	it_overshoot_count = 0;
+      else if (it.method == GET_FROM_STRING)
 	{
-	  if (it.cmp_it.id >= 0)
-	    it_overshoot_expected = 1;
-	  else if (it.method == GET_FROM_STRING)
+	  const char *s = SSDATA (it.string);
+	  const char *e = s + SBYTES (it.string);
+	  while (s < e)
 	    {
-	      const char *s = SSDATA (it.string);
-	      const char *e = s + SBYTES (it.string);
-	      while (s < e && *s != '\n')
-		++s;
-	      it_overshoot_expected = (s == e) ? -1 : 0;
+	      if (*s++ == '\n')
+		it_overshoot_count++;
 	    }
-	  else
-	    it_overshoot_expected = (it.method == GET_FROM_IMAGE
-				     || it.method == GET_FROM_STRETCH);
+	  if (!it_overshoot_count)
+	    it_overshoot_count = -1;
 	}
+      else
+	it_overshoot_count =
+	  !(it.method == GET_FROM_IMAGE || it.method == GET_FROM_STRETCH);
 
       /* Scan from the start of the line containing PT.  If we don't
 	 do this, we start moving with IT->current_x == 0, while PT is
@@ -2057,6 +2059,25 @@ whether or not it is currently displayed in some window.  */)
 	   tell, and it causes Bug#2694 .  -- cyd */
 	move_it_to (&it, PT, -1, -1, -1, MOVE_TO_POS);
 
+      /* IT may move too far if truncate-lines is on and PT lies
+	 beyond the right margin.  IT may also move too far if the
+	 starting point is on a Lisp string that has embedded
+	 newlines.  In these cases, backtrack.  */
+      if (IT_CHARPOS (it) > it_start)
+	{
+	  /* We need to backtrack also if the Lisp string contains no
+	     newlines, but there is a newline right after it.  In this
+	     case, IT overshoots if there is an after-string just
+	     before the newline.  */
+	  if (it_overshoot_count < 0
+	      && it.method == GET_FROM_BUFFER
+	      && it.c == '\n')
+	    it_overshoot_count = 1;
+	  if (it_overshoot_count > 0)
+	    move_it_by_lines (&it, -it_overshoot_count);
+
+	  overshoot_handled = 1;
+	}
       if (XINT (lines) <= 0)
 	{
 	  it.vpos = 0;
@@ -2065,47 +2086,31 @@ whether or not it is currently displayed in some window.  */)
 	  if (XINT (lines) == 0 || IT_CHARPOS (it) > 0)
 	    move_it_by_lines (&it, max (INT_MIN, XINT (lines)));
 	}
+      else if (overshoot_handled)
+	{
+	  it.vpos = 0;
+	  move_it_by_lines (&it, min (INT_MAX, XINT (lines)));
+	}
       else
 	{
-	  if (IT_CHARPOS (it) > it_start)
+	  /* Otherwise, we are at the first row occupied by PT, which
+	     might span multiple screen lines (e.g., if it's on a
+	     multi-line display string).  We want to start from the
+	     last line that it occupies.  */
+	  if (it_start < ZV)
 	    {
-	      /* IT may move too far if truncate-lines is on and PT
-		 lies beyond the right margin.  In that case,
-		 backtrack unless the starting point is on an image,
-		 stretch glyph, composition, or Lisp string.  */
-	      if (!it_overshoot_expected
-		  /* Also, backtrack if the Lisp string contains no
-		     newline, but there is a newline right after it.
-		     In this case, IT overshoots if there is an
-		     after-string just before the newline.  */
-		  || (it_overshoot_expected < 0
-		      && it.method == GET_FROM_BUFFER
-		      && it.c == '\n'))
-		move_it_by_lines (&it, -1);
-	      it.vpos = 0;
-	      move_it_by_lines (&it, min (INT_MAX, XINT (lines)));
+	      while (IT_CHARPOS (it) <= it_start)
+		{
+		  it.vpos = 0;
+		  move_it_by_lines (&it, 1);
+		}
+	      if (XINT (lines) > 1)
+		move_it_by_lines (&it, min (INT_MAX, XINT (lines) - 1));
 	    }
 	  else
 	    {
-	      /* Otherwise, we are at the first row occupied by PT,
-		 which might span multiple screen lines (e.g., if it's
-		 on a multi-line display string).  We want to start
-		 from the last line that it occupies.  */
-	      if (it_start < ZV)
-		{
-		  while (IT_CHARPOS (it) <= it_start)
-		    {
-		      it.vpos = 0;
-		      move_it_by_lines (&it, 1);
-		    }
-		  if (XINT (lines) > 1)
-		    move_it_by_lines (&it, min (INT_MAX, XINT (lines) - 1));
-		}
-	      else
-		{
-		  it.vpos = 0;
-		  move_it_by_lines (&it, min (INT_MAX, XINT (lines)));
-		}
+	      it.vpos = 0;
+	      move_it_by_lines (&it, min (INT_MAX, XINT (lines)));
 	    }
 	}
 

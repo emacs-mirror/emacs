@@ -568,6 +568,7 @@ On nonblank line, delete any immediately following blank lines."
 All whitespace after the last non-whitespace character in a line is deleted.
 This respects narrowing, created by \\[narrow-to-region] and friends.
 A formfeed is not considered whitespace by this function.
+If END is nil, also delete all trailing lines at the end of the buffer.
 If the region is active, only delete whitespace within the region."
   (interactive (progn
                  (barf-if-buffer-read-only)
@@ -580,12 +581,18 @@ If the region is active, only delete whitespace within the region."
             (start (or start (point-min))))
         (goto-char start)
         (while (re-search-forward "\\s-$" end-marker t)
-          (skip-syntax-backward "-" (save-excursion (forward-line 0) (point)))
+          (skip-syntax-backward "-" (line-beginning-position))
           ;; Don't delete formfeeds, even if they are considered whitespace.
-          (save-match-data
-            (if (looking-at ".*\f")
-                (goto-char (match-end 0))))
+          (if (looking-at-p ".*\f")
+              (goto-char (match-end 0)))
           (delete-region (point) (match-end 0)))
+        ;; Delete trailing empty lines.
+        (goto-char end-marker)
+        (when (and (not end)
+                   (<= (skip-chars-backward "\n") -2)
+                   ;; Really the end of buffer.
+                   (save-restriction (widen) (eobp)))
+          (delete-region (1+ (point)) end-marker))
         (set-marker end-marker nil))))
   ;; Return nil for the benefit of `write-file-functions'.
   nil)
@@ -1054,9 +1061,9 @@ in *Help* buffer.  See also the command `describe-char'."
 	  ;; Check if the character is displayed with some `display'
 	  ;; text property.  In that case, set under-display to the
 	  ;; buffer substring covered by that property.
-	  (setq display-prop (get-text-property pos 'display))
+	  (setq display-prop (get-char-property pos 'display))
 	  (if display-prop
-	      (let ((to (or (next-single-property-change pos 'display)
+	      (let ((to (or (next-single-char-property-change pos 'display)
 			    (point-max))))
 		(if (< to (+ pos 4))
 		    (setq under-display "")
@@ -3429,6 +3436,10 @@ a number counts as a prefix arg.
 
 To kill a whole line, when point is not at the beginning, type \
 \\[move-beginning-of-line] \\[kill-line] \\[kill-line].
+
+If `show-trailing-whitespace' is non-nil, this command will just
+kill the rest of the current line, even if there are only
+nonblanks there.
 
 If `kill-whole-line' is non-nil, then this command kills the whole line
 including its terminating newline, when used at the beginning of a line

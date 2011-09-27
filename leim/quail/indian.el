@@ -118,12 +118,184 @@
  indian-mlm-itrans-v5-hash "malayalam-itrans" "Malayalam" "MlmIT"
  "Malayalam transliteration by ITRANS method.")
 
+(defvar quail-tamil-itrans-syllable-table
+  (let ((vowels
+	 '(("அ" nil "a")
+	   ("ஆ" "ா" "A")
+	   ("இ" "ி" "i")
+	   ("ஈ" "ீ" "I")
+	   ("உ" "ு" "u")
+	   ("ஊ" "ூ" "U")
+	   ("எ" "ெ" "e")
+	   ("ஏ" "ே" "E")
+	   ("ஐ" "ை" "ai")
+	   ("ஒ" "ொ" "o")
+	   ("ஓ" "ோ" "O")
+	   ("ஔ" "ௌ" "au")))
+	(consonants
+	 '(("க" "k")			; U+0B95
+	   ("ங" "N^")			; U+0B99
+	   ("ச" "ch")			; U+0B9A
+	   ("ஞ" "JN")			; U+0B9E
+	   ("ட" "T")			; U+0B9F
+	   ("ண" "N")			; U+0BA3
+	   ("த" "t")			; U+0BA4
+	   ("ந" "n")			; U+0BA8
+	   ("ப" "p")			; U+0BAA
+	   ("ம" "m")			; U+0BAE
+	   ("ய" "y")			; U+0BAF
+	   ("ர" "r")			; U+0BB0
+	   ("ல" "l")			; U+0BB2
+	   ("வ" "v")			; U+0BB5
+	   ("ழ" "z")			; U+0BB4
+	   ("ள" "L")			; U+0BB3
+	   ("ற" "rh")			; U+0BB1
+	   ("ன" "nh")			; U+0BA9
+	   ("ஜ" "j")			; U+0B9C
+	   ("ஶ" nil)			; U+0BB6
+	   ("ஷ" "Sh")			; U+0BB7
+	   ("ஸ" "s")			; U+0BB8
+	   ("ஹ" "h")			; U+0BB9
+	   ("க்ஷ" "x" )			; U+0B95
+	   ))
+	(virama #x0BCD)
+	clm)
+    (with-temp-buffer
+      (insert "\n")
+      (insert "    +")
+      (insert-char ?- 74)
+      (insert "\n    |")
+      (setq clm 6)
+      (dolist (v vowels)
+	(insert (propertize "\t" 'display (list 'space :align-to clm))
+		(car v))
+	(setq clm (+ clm 6)))
+      (insert "\n    |")
+      (setq clm 6)
+      (dolist (v vowels)
+	(insert (propertize "\t" 'display (list 'space :align-to clm))
+		(nth 2 v))
+	(setq clm (+ clm 6)))
+      (dolist (c consonants)
+	(insert "\n----+")
+	(insert-char ?- 74)
+	(insert "\n")
+	(insert (car c) virama
+		(propertize "\t" 'display '(space :align-to 4))
+		"|")
+	(setq clm 6)
+	(dolist (v vowels)
+	  (insert (propertize "\t" 'display (list 'space :align-to clm))
+		  (car c) (or (nth 1 v) ""))
+	  (setq clm (+ clm 6)))
+	(insert "\n" (or (nth 1 c) "")
+		(propertize "\t" 'display '(space :align-to 4))
+		"|")
+	(setq clm 6)
+
+	(dolist (v vowels)
+	  (apply 'insert (propertize "\t" 'display (list 'space :align-to clm))
+		 (if (nth 1 c) (list (nth 1 c) (nth 2 v)) (list "")))
+	  (setq clm (+ clm 6))))
+      (insert "\n")
+      (insert "----+")
+      (insert-char ?- 74)
+      (insert "\n")
+      (buffer-string))))
+
+(defvar quail-tamil-itrans-numerics-and-symbols-table
+  (let ((numerics '((?௰ "பத்து") (?௱ "நூறு") (?௲ "ஆயிரம்")))
+	(symbols '((?௳ "நாள்") (?௴ "மாதம்") (?௵ "வருடம்")
+		   (?௶ "பற்று") (?௷ "வரவு") (?௸ "மேற்படி")
+		   (?௹ "ரூபாய்") (?௺ "எண்")))
+	clm)
+    (with-temp-buffer
+      (insert "\n" (make-string 18 ?-) "+" (make-string 60 ?-) "\n")
+      (insert
+       (propertize "\t" 'display '(space :align-to 5)) "numerics"
+       (propertize "\t" 'display '(space :align-to 18)) "|"
+       (propertize "\t" 'display '(space :align-to 45)) "symbols")
+      (insert "\n" (make-string 18 ?-) "+" (make-string 60 ?-) "\n")
+      (dotimes (i 2)
+	(setq clm 0)
+	(dolist (elm numerics)
+	  (if (> clm 0)
+	      (insert (propertize "\t" 'display (list 'space :align-to clm))))
+	  (insert (nth i elm))
+	  (setq clm (+ clm 5)))
+	(insert (propertize "\t" 'display '(space :align-to 18)) "|")
+	(setq clm 19)
+	(dolist (elm symbols)
+	  (if (> clm 19)
+	      (insert (propertize "\t" 'display (list 'space :align-to clm))))
+	  (insert (nth i elm))
+	  (setq clm (+ clm 8)))
+	(insert "\n"))
+      (insert (make-string 18 ?-) "+" (make-string 60 ?-) "\n")
+      (insert "\n")
+      (buffer-string))))
+
+(defvar quail-tamil-itrans-various-signs-and-digits-table
+  (let ((various '((?ஃ . "H") ("ஸ்ரீ" . "srii") (?ௐ)))
+	(digits "௦௧௨௩௪௫௬௭௮௯")
+	(width 6) clm)
+    (with-temp-buffer
+      (insert "\n" (make-string 18 ?-) "+" (make-string 60 ?-) "\n")
+      (insert
+       (propertize "\t" 'display '(space :align-to 5)) "various"
+       (propertize "\t" 'display '(space :align-to 18)) "|"
+       (propertize "\t" 'display '(space :align-to 45)) "digits")
+
+      (insert "\n" (make-string 18 ?-) "+" (make-string 60 ?-) "\n")
+      (setq clm 0 )
+
+      (dotimes (i (length various))
+	(insert (propertize "\t" 'display (list 'space :align-to clm))
+		(car (nth i various)))
+	(setq clm (+ clm width)))
+      (insert (propertize "\t" 'display '(space :align-to 18)) "|")
+      (setq clm 20)
+      (dotimes (i 10)
+	(insert (propertize "\t" 'display (list 'space :align-to clm))
+		(aref digits i))
+	(setq clm (+ clm width)))
+      (insert "\n")
+      (setq clm 0)
+      (dotimes (i (length various))
+	(insert (propertize "\t" 'display (list 'space :align-to clm))
+		(or (cdr (nth i various)) ""))
+	(setq clm (+ clm width)))
+      (insert (propertize "\t" 'display '(space :align-to 18)) "|")
+      (setq clm 20)
+      (dotimes (i 10)
+	(insert (propertize "\t" 'display (list 'space :align-to clm))
+		(format "%d" i))
+	(setq clm (+ clm width)))
+      (insert "\n" (make-string 18 ?-) "+" (make-string 60 ?-) "\n")
+      (buffer-string))))
+
 (if nil
     (quail-define-package "tamil-itrans" "Tamil" "TmlIT" t "Tamil ITRANS"))
 (quail-define-indian-trans-package
  indian-tml-itrans-v5-hash "tamil-itrans" "Tamil" "TmlIT"
- "Tamil transliteration by ITRANS method.")
+ "Tamil transliteration by ITRANS method.
 
+You can input characters using the following mapping tables.
+    Example: To enter வணக்கம், type vaNakkam.
+
+### Basic syllables (consonants + vowels) ###
+\\<quail-tamil-itrans-syllable-table>
+
+### Miscellaneous (various signs + digits) ###
+\\<quail-tamil-itrans-various-signs-and-digits-table>
+
+### Others (numerics + symbols) ###
+
+Characters below have no ITRANS method associated with them.
+Their descriptions are included for easy reference.
+\\<quail-tamil-itrans-numerics-and-symbols-table>
+
+Full key sequences are listed below:")
 
 ;;;
 ;;; Input by Inscript

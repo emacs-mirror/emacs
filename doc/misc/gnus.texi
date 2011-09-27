@@ -12617,7 +12617,7 @@ Messages will be saved in all those groups.
 When a key ``matches'', the result is used.
 
 @item @code{nil}
-No message archiving will take place.  This is the default.
+No message archiving will take place.
 @end table
 
 Let's illustrate:

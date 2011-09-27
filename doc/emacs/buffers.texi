@@ -91,9 +91,9 @@ selected buffer other than the current buffer.
 @var{bufname} @key{RET}}.  This runs the command
 @code{switch-to-buffer} with argument @var{bufname}.  While entering
 the buffer name, you can use the usual minibuffer completion and
-history commands (@pxref{Minibuffer}).  An empty argument to @kbd{C-x
-b} specifies the buffer that was current most recently among those not
-now displayed in any window.
+history commands (@pxref{Minibuffer}).  An empty input specifies the
+buffer that was current most recently among those not now displayed in
+any window.
 
 @cindex minibuffer confirmation
 @cindex confirming in the minibuffer
@@ -107,16 +107,8 @@ catches a common mistake, in which one types @key{RET} before
 realizing that @key{TAB} did not complete far enough to yield the
 desired buffer name (@pxref{Completion}).  Emacs asks for confirmation
 by putting the message @samp{[Confirm]} in the minibuffer; type
-@key{RET} again to confirm and visit the buffer.
-
-@vindex confirm-nonexistent-file-or-buffer
-  The variable @code{confirm-nonexistent-file-or-buffer} controls
-whether Emacs asks for confirmation before visiting a buffer that did
-not previously exist.  The default value, @code{after-completion},
-gives the behavior we have just described.  If the value is
-@code{nil}, Emacs never asks for confirmation; for any other
-non-@code{nil} value, Emacs always asks for confirmation.  This
-variable also affects the @code{find-file} command (@pxref{Visiting}).
+@key{RET} again to confirm and visit the buffer.  @xref{Visiting}, for
+information about modifying this behavior.
 
   One reason to create a new buffer is to use it for making temporary
 notes.  If you try to save it, Emacs asks for the file name to use.
@@ -136,35 +128,25 @@ of most recent selection in the current frame), while @kbd{C-x @key{LEFT}}
 
 @kindex C-x 4 b
 @findex switch-to-buffer-other-window
-@vindex even-window-heights
   To select a buffer in a window other than the current one, type
 @kbd{C-x 4 b} (@code{switch-to-buffer-other-window}).  This prompts
 for a buffer name using the minibuffer, displays that buffer in
-another window, and selects that window.  By default, if displaying
-the buffer causes two vertically adjacent windows to be displayed, the
-heights of those windows are evened out; to countermand that and
-preserve the window configuration, set the variable
-@code{even-window-heights} to @code{nil}.
+another window, and selects that window.
 
 @kindex C-x 5 b
 @findex switch-to-buffer-other-frame
   Similarly, @kbd{C-x 5 b} (@code{switch-to-buffer-other-frame})
 prompts for a buffer name, displays that buffer in another frame, and
-selects that frame.
+selects that frame.  If the buffer is already being shown in a window
+on another frame, Emacs selects that window and frame instead of
+creating a new frame.
+
+  @xref{Displaying Buffers}, for how the @kbd{C-x 4 b} and @kbd{C-x 5
+b} commands get the window and/or frame to display in.
 
   In addition, @kbd{C-x C-f}, and any other command for visiting a
 file, can also be used to switch to an existing file-visiting buffer.
 @xref{Visiting}.
-
-@vindex display-buffer-reuse-frames
-  You can control how certain buffers are handled by these commands by
-customizing the variables @code{special-display-buffer-names},
-@code{special-display-regexps}, @code{same-window-buffer-names}, and
-@code{same-window-regexps}.  See @ref{Force Same Window}, and
-@ref{Special Buffer Frames}, for more about these variables.  In
-addition, if the value of @code{display-buffer-reuse-frames} is
-non-@code{nil}, and the buffer you want to switch to is already
-displayed in some frame, Emacs will just raise that frame.
 
 @findex goto-line
   @kbd{C-u M-g M-g}, that is @code{goto-line} with a plain prefix

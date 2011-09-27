@@ -1,3 +1,32 @@
+2011-09-26  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Merge from gnulib, improving some licensing wording.
+	This clarifies and fixes some licensing issues raised by Glenn Morris
+	<http://lists.gnu.org/archive/html/bug-gnulib/2011-09/msg00397.html>.
+	It also merges the latest version of texinfo.tex and has some
+	MSVC-related changes that don't affect Emacs.
+	* Makefile.in (GNULIB_TOOL_FLAGS): Avoid msvc-inval, msvc-nothrow,
+	pathmax, and raise, since these are needed only to address
+	MSVC-related issues that Emacs doesn't have.
+	* doc/misc/texinfo.tex, lib/dup2.c, lib/gnulib.mk, lib/signal.in.h:
+	* lib/sigprocmask.c, lib/stat.c, lib/stdio.in.h, lib/sys_stat.in.h:
+	* lib/unistd.in.h, m4/dup2.m4, m4/getloadavg.m4, m4/gl-comp.m4:
+	* m4/include_next.m4, m4/signal_h.m4, m4/signalblocking.m4:
+	* m4/stdint.m4, m4/stdio_h.m4, m4/sys_stat_h.m4, m4/time_h.m4:
+	* m4/unistd_h.m4: Merge from gnulib.
+
+2011-09-26  Andreas Schwab  <schwab@linux-m68k.org>
+
+	* configure.in: Initialize HAVE_LIBXML2.
+
+2011-09-26  Glenn Morris  <rgm@gnu.org>
+
+	* make-dist: Add lib/makefile.w32-in.
+
+2011-09-24  Glenn Morris  <rgm@gnu.org>
+
+	* configure.in (CRT_DIR): Fix netbsd/openbsd handling.
+
 2011-09-19  Lars Magne Ingebrigtsen  <larsi@gnus.org>
 
 	* .dir-locals.el: Change the debbugs regexp to allow having the

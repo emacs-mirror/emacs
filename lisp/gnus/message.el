@@ -3679,7 +3679,7 @@ However, if `message-yank-prefix' is non-nil, insert that prefix on each line."
       (message-delete-line))
     ;; Delete blank lines at the end of the buffer.
     (goto-char (point-max))
-    (unless (eolp)
+    (unless (eq (preceding-char) ?\n)
       (insert "\n"))
     (while (and (zerop (forward-line -1))
 		(looking-at "$"))
@@ -6358,34 +6358,37 @@ between beginning of field and beginning of line."
   ;; Rename the buffer.
   (if message-send-rename-function
       (funcall message-send-rename-function)
-    ;; Note: mail-abbrevs of XEmacs renames buffer name behind Gnus.
-    (when (string-match
-	   "\\`\\*\\(sent \\|unsent \\)?\\(.+\\)\\*[^\\*]*\\|\\`mail to "
-	   (buffer-name))
-      (let ((name (match-string 2 (buffer-name)))
-	    to group)
-	(if (not (or (null name)
-		     (string-equal name "mail")
-		     (string-equal name "posting")))
-	    (setq name (concat "*sent " name "*"))
-	  (message-narrow-to-headers)
-	  (setq to (message-fetch-field "to"))
-	  (setq group (message-fetch-field "newsgroups"))
-	  (widen)
-	  (setq name
-		(cond
-		 (to (concat "*sent mail to "
-			     (or (car (mail-extract-address-components to))
-				 to) "*"))
-		 ((and group (not (string= group "")))
-		  (concat "*sent posting on " group "*"))
-		 (t "*sent mail*"))))
-	(unless (string-equal name (buffer-name))
-	  (rename-buffer name t)))))
+    (message-default-send-rename-function))
   ;; Push the current buffer onto the list.
   (when message-max-buffers
     (setq message-buffer-list
 	  (nconc message-buffer-list (list (current-buffer))))))
+
+(defun message-default-send-rename-function ()
+  ;; Note: mail-abbrevs of XEmacs renames buffer name behind Gnus.
+  (when (string-match
+	 "\\`\\*\\(sent \\|unsent \\)?\\(.+\\)\\*[^\\*]*\\|\\`mail to "
+	 (buffer-name))
+    (let ((name (match-string 2 (buffer-name)))
+	  to group)
+      (if (not (or (null name)
+		   (string-equal name "mail")
+		   (string-equal name "posting")))
+	  (setq name (concat "*sent " name "*"))
+	(message-narrow-to-headers)
+	(setq to (message-fetch-field "to"))
+	(setq group (message-fetch-field "newsgroups"))
+	(widen)
+	(setq name
+	      (cond
+	       (to (concat "*sent mail to "
+			   (or (car (mail-extract-address-components to))
+			       to) "*"))
+	       ((and group (not (string= group "")))
+		(concat "*sent posting on " group "*"))
+	       (t "*sent mail*"))))
+      (unless (string-equal name (buffer-name))
+	(rename-buffer name t)))))
 
 (defun message-mail-user-agent ()
   (let ((mua (cond
