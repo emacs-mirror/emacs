@@ -1273,6 +1273,9 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 /* Define to a type if <wchar.h> does not define. */
 #undef mbstate_t
 
+/* Define to `int' if <sys/types.h> does not define. */
+#undef mode_t
+
 /* Define to the name of the strftime replacement function. */
 #undef my_strftime
 
