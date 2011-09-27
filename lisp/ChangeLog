@@ -1,3 +1,8 @@
+2011-09-27  Glenn Morris  <rgm@gnu.org>
+
+	* pcmpl-cvs.el (pcmpl-cvs-entries): Update for Emacs 22.1 changes
+	to split-string.  (Bug#9606)
+
 2011-09-27  Lars Magne Ingebrigtsen  <larsi@gnus.org>
 
 	* mail/smtpmail.el (smtpmail-via-smtp): Fix STARTTLS detection

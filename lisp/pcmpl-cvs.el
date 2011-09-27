@@ -169,13 +169,13 @@ operation character applies, as displayed by 'cvs -n update'."
 	(insert-file-contents (concat dir "CVS/Entries"))
 	(goto-char (point-min))
 	(while (not (eobp))
-	  (let* ((line (buffer-substring (line-beginning-position)
-					 (line-end-position)))
-		 (fields (split-string line "/"))
-		 text)
-	    (if (eq (aref line 0) ?/)
-		(setq fields (cons "" fields)))
-	    (setq text (nth 1 fields))
+	  ;; Normal file: /NAME   -> "" "NAME"
+	  ;; Directory  : D/NAME  -> "D" "NAME"
+	  (let* ((fields (split-string (buffer-substring
+					(line-beginning-position)
+					(line-end-position))
+				       "/"))
+		 (text (nth 1 fields)))
 	    (when text
 	      (if (string= (nth 0 fields) "D")
 		  (setq text (file-name-as-directory text)))
