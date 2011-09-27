@@ -705,6 +705,7 @@
 	(update_tool_bar, hscroll_window_tree, redisplay_internal)
 	(redisplay_window, dump_glyph_row, display_mode_line)
 	(Fformat_mode_line, decode_mode_spec, on_hot_spot_p):
+	(handle_display_spec, display_prop_string_p):
 	Use ptrdiff_t, not int, to avoid needless 32-bit limit on 64-bit hosts.
 	(handle_single_display_spec, build_desired_tool_bar_string)
 	(redisplay_tool_bar, scroll_window_tree, Fdump_glyph_matrix)

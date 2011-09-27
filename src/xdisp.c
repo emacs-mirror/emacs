@@ -4297,7 +4297,7 @@ handle_display_spec (struct it *it, Lisp_Object spec, Lisp_Object object,
     }
   else if (VECTORP (spec))
     {
-      int i;
+      ptrdiff_t i;
       for (i = 0; i < ASIZE (spec); ++i)
 	if ((rv = handle_single_display_spec (it, AREF (spec, i), object,
 					      overlay, position, bufpos,
@@ -4874,7 +4874,7 @@ display_prop_string_p (Lisp_Object prop, Lisp_Object string)
   else if (VECTORP (prop))
     {
       /* A vector of sub-properties.  */
-      int i;
+      ptrdiff_t i;
       for (i = 0; i < ASIZE (prop); ++i)
 	if (single_display_spec_string_p (AREF (prop, i), string))
 	  return 1;
