@@ -1,3 +1,17 @@
+2011-09-27  Jambunathan K <kjambunathan@gmail.com>
+
+	* quail/indian.el (quail-tamil-itrans-misc-table): Delete it.
+	(quail-tamil-itrans-numerics-and-symbols-table)
+	(quail-tamil-itrans-various-signs-and-digits-table): New variables.
+	("tamil-itrans"): Show the values of above variables (Bug#9336).
+
+2011-09-22  Kenichi Handa  <handa@m17n.org>
+
+	* quail/indian.el (quail-tamil-itrans-syllable-table)
+	(quail-tamil-itrans-misc-table): New variables.
+	("tamil-itrans"): Improve the docstring by showing the values of
+	above variables (Bug#9336).
+
 2011-09-06  Paul Eggert  <eggert@cs.ucla.edu>
 
 	* Makefile.in (install): install-sh is now in build-aux (Bug#9169).
