@@ -1371,7 +1371,7 @@ ccl_driver (struct ccl_program *ccl, int *source, int *destination, int src_size
 
 		for (;i < j;i++)
 		  {
-
+		    if (!VECTORP (Vcode_conversion_map_vector)) continue;
 		    size = ASIZE (Vcode_conversion_map_vector);
 		    point = XINT (ccl_prog[ic++]);
 		    if (! (0 <= point && point < size)) continue;
@@ -1447,7 +1447,8 @@ ccl_driver (struct ccl_program *ccl, int *source, int *destination, int src_size
 	    case CCL_MapMultiple:
 	      {
 		Lisp_Object map, content, attrib, value;
-		int point, size, map_vector_size;
+		EMACS_INT point;
+		ptrdiff_t size, map_vector_size;
 		int map_set_rest_length, fin_ic;
 		int current_ic = this_ic;
 
@@ -1530,6 +1531,8 @@ ccl_driver (struct ccl_program *ccl, int *source, int *destination, int src_size
 			break;
 		      }
 		  }
+		if (!VECTORP (Vcode_conversion_map_vector))
+		  CCL_INVALID_CMD;
 		map_vector_size = ASIZE (Vcode_conversion_map_vector);
 
 		do {
@@ -1652,7 +1655,8 @@ ccl_driver (struct ccl_program *ccl, int *source, int *destination, int src_size
 		int point;
 		j = XINT (ccl_prog[ic++]); /* map_id */
 		op = reg[rrr];
-		if (j >= ASIZE (Vcode_conversion_map_vector))
+		if (! (VECTORP (Vcode_conversion_map_vector)
+		       && j < ASIZE (Vcode_conversion_map_vector)))
 		  {
 		    reg[RRR] = -1;
 		    break;
@@ -1665,6 +1669,7 @@ ccl_driver (struct ccl_program *ccl, int *source, int *destination, int src_size
 		  }
 		map = XCDR (map);
 		if (! (VECTORP (map)
+		       && 0 < ASIZE (map)
 		       && INTEGERP (AREF (map, 0))
 		       && XINT (AREF (map, 0)) <= op
 		       && op - XINT (AREF (map, 0)) + 1 < ASIZE (map)))
@@ -2257,12 +2262,16 @@ DEFUN ("register-code-conversion-map", Fregister_code_conversion_map,
 Return index number of the registered map.  */)
   (Lisp_Object symbol, Lisp_Object map)
 {
-  ptrdiff_t len = ASIZE (Vcode_conversion_map_vector);
+  ptrdiff_t len;
   ptrdiff_t i;
   Lisp_Object idx;
 
   CHECK_SYMBOL (symbol);
   CHECK_VECTOR (map);
+  if (! VECTORP (Vcode_conversion_map_vector))
+    error ("Invalid code-conversion-map-vector");
+
+  len = ASIZE (Vcode_conversion_map_vector);
 
   for (i = 0; i < len; i++)
     {

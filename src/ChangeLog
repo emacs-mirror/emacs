@@ -1,4 +1,4 @@
-2011-09-26  Paul Eggert  <eggert@cs.ucla.edu>
+2011-09-27  Paul Eggert  <eggert@cs.ucla.edu>
 
 	* alloc.c (pure_bytes_used_lisp, pure_bytes_used_non_lisp):
 	(allocate_vectorlike, buffer_memory_full, struct sdata, SDATA_SIZE)
@@ -75,6 +75,8 @@
 	(ccl_driver):
 	Use ptrdiff_t, not EMACS_INT, where ptrdiff_t is wide enough.
 	For CCL_MapSingle, check that content and value are in int range.
+	(ccl_driver, Fregister_code_conversion_map):
+	Check that Vcode_version_map_vector is a vector.
 	(resolve_symbol_ccl_program): Check that vector header is in range.
 	Always copy the vector, so that we can check its contents reliably
 	now rather than having to recheck each instruction as it's being
