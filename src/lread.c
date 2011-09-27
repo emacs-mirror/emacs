@@ -1796,7 +1796,7 @@ readevalloop (Lisp_Object readcharfun,
 
       /* Ignore whitespace here, so we can detect eof.  */
       if (c == ' ' || c == '\t' || c == '\n' || c == '\f' || c == '\r'
-	  || c == 0x8a0)  /* NBSP */
+	  || c == 0xa0)  /* NBSP */
 	goto read_next;
 
       if (!NILP (Vpurify_flag) && c == '(')
@@ -2685,7 +2685,7 @@ read1 (register Lisp_Object readcharfun, int *pch, int first_in_list)
 	  uninterned_symbol = 1;
 	  c = READCHAR;
 	  if (!(c > 040
-		&& c != 0x8a0
+		&& c != 0xa0	/* NBSP */
 		&& (c >= 0200
 		    || strchr ("\"';()[]#`,", c) == NULL)))
 	    {
@@ -3033,7 +3033,7 @@ read1 (register Lisp_Object readcharfun, int *pch, int first_in_list)
     default:
     default_label:
       if (c <= 040) goto retry;
-      if (c == 0x8a0) /* NBSP */
+      if (c == 0xa0) /* NBSP */
 	goto retry;
 
     read_symbol:
@@ -3074,7 +3074,7 @@ read1 (register Lisp_Object readcharfun, int *pch, int first_in_list)
 	      c = READCHAR;
 	    }
 	  while (c > 040
-		 && c != 0x8a0 /* NBSP */
+		 && c != 0xa0 /* NBSP */
 		 && (c >= 0200
 		     || strchr ("\"';()[]#`,", c) == NULL));
 

@@ -1,3 +1,8 @@
+2011-09-27  Andreas Schwab  <schwab@linux-m68k.org>
+
+	* lread.c (readevalloop): Use correct code for NBSP.
+	(read1): Likewise.  (Bug#9608)
+
 2011-09-25  Michael Albinus  <michael.albinus@gmx.de>
 
 	* dbusbind.c (Fdbus_register_signal): When service is not
