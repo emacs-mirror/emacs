@@ -62,37 +62,26 @@ For each step, check for possible errors.
     number of the old Emacs to __, do the same with the new log and do
     M-x ediff.  Especially check that Info files aren't built.
 
-10.  cd EMACS_ROOT_DIR; cvs tag TAG
+10.  cd EMACS_ROOT_DIR; bzr tag TAG
     TAG is EMACS_PRETEST_XX_YY_ZZZ for a pretest, EMACS_XX_YY for a
     release.
 
-    Shortly before the release, cut the branch with the following commands:
-
-    cvs rtag EMACS_`NUMBER'_BASE
-    cvs rtag -b EMACS_`NUMBER'_RC -r EMACS_`NUMBER'_BASE
-
-    where `NUMBER' is the major version number of the release.  This
-    makes it easier to see what changes have been applied to the
-    branch with:
-
-    cvs diff -r EMACS_`NUMBER'_BASE -r EMACS_`NUMBER'_RC
-
-    or merge changes back to the trunk with "cvs update -j", if
-    necessary.
-
-    After doing this, increase the version number on the trunk as per
-    step 4.
-
-    Also, open a Savannah support request asking for commits to the
-    new branch to be sent to the emacs-diffs mailing list (by default,
-    the list normally only gets commits to the trunk).
+    Shortly before the release, cut the version branch also, and open
+    a Savannah support request asking for commits to the new branch to
+    be sent to the emacs-diffs mailing list (by default, the list
+    normally only gets commits to the trunk).
 
 11. Now you should upload the files to the GNU ftp server.  In order to
     do that, you must be registered as an Emacs maintainer and have your
     GPG key acknowledged by the ftp people.  Mail <ftp-upload@gnu.org>
-    for instructions.  Once you are there, for each file FILE to be
-    released, create a detached GPG binary signature and a clearsigned
-    directive file like this:
+    for instructions.
+
+    You can use the gnupload script to upload each FILE, like this:
+     gnupload --to alpha.gnu.org:emacs/pretest FILE (for a pretest)
+     gnupload --to ftp.gnu.org:emacs FILE           (for a release)
+
+    Instead of using gnupload, for each FILE, create a detached GPG
+    binary signature and a clearsigned directive file like this:
      gpg -b FILE
      echo directory: emacs/pretest > FILE.directive      (for a pretest)
      echo directory: emacs > FILE.directive              (for a release)

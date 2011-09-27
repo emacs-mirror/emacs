@@ -1,3 +1,18 @@
+2011-09-21  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* gnus.texi (Archived Messages): Note the default (bug#9552).
+
+2011-09-21  Bill Wohler  <wohler@newt.com>
+
+	Release MH-E manual version 8.3.
+
+	* mh-e.texi: (VERSION, EDITION, UPDATED, UPDATE-MONTH): Update for
+	release 8.3.
+	(Preface): Updated support information.
+	(From Bill Wohler): Reset text to original version. As a
+	historical quote, the tense should be correct in the time that it
+	was written.
+
 2011-09-11  Lars Magne Ingebrigtsen  <larsi@gnus.org>
 
 	* gnus.texi (Listing Groups): Explain `gnus-group-list-limit'.

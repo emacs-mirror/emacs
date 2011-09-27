@@ -319,9 +319,9 @@ ignored if VISIBLE-HEADERS is non-nil."
   "Separate current buffer from the message file it was visiting."
   (or (not (buffer-modified-p))
       (null buffer-file-name)           ;we've been here before
-      (yes-or-no-p (format "Message %s modified; flush changes? "
+      (yes-or-no-p (format "Message %s modified; discard changes? "
                            (file-name-nondirectory buffer-file-name)))
-      (error "Flushing changes not confirmed"))
+      (error "Changes preserved"))
   (clear-visited-file-modtime)
   (unlock-buffer)
   (setq buffer-file-name nil))

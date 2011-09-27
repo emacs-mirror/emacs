@@ -2927,7 +2927,7 @@
 	* nsimage.m (EmacsImage-setXBMColor:): Correct previous patch:
 	don't change the method signature, change the return.
 
-2010-11-04  Ismail Donmez  <ismail@namtrac.org>  (tiny change)
+2010-11-04  İsmail Dönmez  <ismail@namtrac.org>  (tiny change)
 
 	* nsfont.m (nsfont_draw)
 	* nsimage.m (EmacsImage-setXBMColor:)

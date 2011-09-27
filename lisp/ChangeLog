@@ -1,9 +1,193 @@
+2011-09-25  Michael Albinus  <michael.albinus@gmx.de>
+
+	* net/dbus.el (dbus-unregister-object): Don't release services for
+	registered signals.  (Bug#9581)
+
+2011-09-25  Teodor Zlatanov  <tzz@lifelogs.com>
+
+	* progmodes/cfengine.el (cfengine-auto-mode): Add convenience
+	function that picks between cfengine 2 and 3 support
+	automatically.  Update docs accordingly.
+
 2011-09-22  Kenichi Handa  <handa@m17n.org>
 
 	* language/ind-util.el (indian-tml-base-table): Add TAMIL DIGIT
 	ZERO.
 	(indian-itrans-v5-table-for-tamil): New variable.
 	(indian-tml-itrans-v5-hash): Use the above variable (Bug#9336).
+
+2011-09-22  Ken Manheimer  <ken.manheimer@gmail.com>
+
+	* allout.el (allout-this-command-hid-stuff): Buffer-local variable
+	that's true if the current command involved collapsing of text.
+	It's reset to false at the beginning of the next command.
+	(allout-post-command-business): Move the cursor to the beginning
+	of entry if the cursor is hidden and collapsing activity just
+	happened.
+
+2011-09-24  Chong Yidong  <cyd@stupidchicken.com>
+
+	* mouse.el (mouse-drag-track): Set scroll-margin to 0 while
+	tracking (Bug#9541).
+
+2011-09-24  Ulf Jasper  <ulf.jasper@web.de>
+
+	* net/newst-reader.el (newsticker-html-renderer)
+	(newsticker-show-news): Automatically
+	load html rendering package if newsticker-html-renderer is
+	set. Fixes "Warning: defvar ignored because w3m-fill-column is
+	let-bound" and the error "Symbol's value as variable is void:
+	w3m-fill-column".
+
+2011-09-24  Michael Albinus  <michael.albinus@gmx.de>
+
+	* net/dbus.el (dbus-unregister-object): Remove match rule of signals.
+	Release services only if they are defined.  (Bug#9581)
+
+2011-09-23  Richard Stallman  <rms@gnu.org>
+
+	* textmodes/paragraphs.el (forward-sentence): For backwards case,
+	distinguish start of paragraph from start of its text.
+
+	* mail/emacsbug.el (report-emacs-bug-query-existing-bugs): Autoload.
+
+	* mail/rmail.el (rmail-view-buffer-kill-buffer-hook): New function.
+	(rmail-generate-viewer-buffer): Put that hook on view buffer.
+	(rmail-mode-kill-buffer-hook): Override that hook, to kill view buffer.
+
+2011-09-23  Andreas Schwab  <schwab@linux-m68k.org>
+
+	* international/mule-diag.el (mule-diag): Insert a newline after
+	each fontset description.
+
+2011-09-23  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* simple.el (delete-trailing-whitespace):
+	Document last change; simplify.
+
+2011-09-23  Peter J. Weisberg  <pj@irregularexpressions.net>
+
+	* simple.el (delete-trailing-whitespace): Also delete
+	extra newlines at the end of the buffer.
+
+	* textmodes/picture.el: Make motion commands obey shift-select-mode.
+	(picture-newline): Use forward-line so as to ignore fields.
+
+2011-09-23  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* subr.el (with-wrapper-hook): Fix edebug spec.
+
+2011-09-23  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* simple.el (kill-line): Note effect of `show-trailing-whitespace'
+	(bug#4538).
+
+2011-09-23  Michael Albinus  <michael.albinus@gmx.de>
+
+	* net/tramp-sh.el (tramp-sh-handle-file-name-all-completions):
+	Fix nasty bug using wrong cached values.
+
+2011-09-23  Alan Mackenzie  <acm@muc.de>
+
+	* progmodes/cc-defs.el (c-version): Increase to 5.31.9.
+
+2011-09-23  Chong Yidong  <cyd@stupidchicken.com>
+
+	* window.el (pop-to-buffer): Ensure right window is selected if we
+	chose another frame.
+
+2011-09-22  Eli Zaretskii  <eliz@gnu.org>
+
+	* simple.el (what-cursor-position): Use get-char-property-change
+	and next-single-char-property-change, to be able to show display
+	properties that come from overlays as well as text properties.
+
+2011-09-22  Chong Yidong  <cyd@stupidchicken.com>
+
+	* window.el (pop-to-buffer-same-window): New (reinstated) fun.
+
+	* cmuscheme.el (run-scheme, switch-to-scheme):
+	* cus-edit.el (customize-group, custom-buffer-create)
+	(customize-browse):
+	* info.el (info):
+	* shell.el (shell):
+	* mail/sendmail.el (mail):
+	* progmodes/inf-lisp.el (inferior-lisp): Use it (Bug#9532).
+
+2011-09-22  Richard Stallman  <rms@gnu.org>
+
+	* textmodes/paragraphs.el (forward-sentence): When setting PAR-BEG,
+	move back only to line beg, don't move back over blank lines.
+
+2011-09-22  Michael Albinus  <michael.albinus@gmx.de>
+
+	* files.el (copy-directory): Set directory attributes only in case
+	they could be retrieved from the source directory.  (Bug#9565)
+
+2011-09-22  Dima Kogan  <dkogan@secretsauce.net>  (tiny change)
+
+	* progmodes/hideshow.el (hs-looking-at-block-start-p)
+	(hs-find-block-beginning, hs-hide-level-recursive):
+	Ignore strings as well as comments.  (Bug#9502)
+
+2011-09-22  Andrew Schein  <andrew@andrewschein.com>  (tiny change)
+
+	* progmodes/sql.el (sql-comint-postgres):
+	Convert port number to a string.  (Bug#9566)
+
+2011-09-22  Martin Rudalics  <rudalics@gmx.at>
+
+	* window.el (quit-window): Undedicate window when switching to
+	previous buffer.  Reported by Thierry Volpiatto
+	<thierry.volpiatto@gmail.com>.
+	(special-display-popup-frame): When popping up a new frame reset
+	its previous buffers to nil.  Simplify code.
+
+2011-09-21  Michael Albinus  <michael.albinus@gmx.de>
+
+	* net/tramp.el (tramp-handle-shell-command): Set process sentinel
+	and process filter, as done also in `shell-command'.
+
+2011-09-21  Martin Rudalics  <rudalics@gmx.at>
+
+	* window.el (set-window-buffer-start-and-point):
+	Call set-window-start with NOFORCE argument t.  Suggested by Thierry
+	Volpiatto <thierry.volpiatto@gmail.com>.
+	(quit-window): Reword doc-string.  Handle new format of
+	quit-restore parameter.  Don't delete window if it has a
+	previous buffer we can show instead of the present one.
+	(display-buffer-record-window): Rewrite using a new format for
+	the quit-restore window parameter
+	(special-display-popup-frame, display-buffer-same-window)
+	(display-buffer-reuse-window, display-buffer-pop-up-frame)
+	(display-buffer-pop-up-window, display-buffer-use-some-window):
+	Adapt symbol passed to display-buffer-record-window.
+	* help.el (help-window-setup): Handle new format of quit-restore
+	parameter.
+
+2011-09-21  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* faces.el (face-list): Fix docstring (bug#9564).
+
+	* window.el (display-buffer--action-function-custom-type):
+	Don't include internal functions in the Custom interface.
+
+2011-09-20  Juri Linkov  <juri@jurta.org>
+
+	* info.el (Info-history-skip-intermediate-nodes): New defcustom.
+	(Info-forward-node, Info-backward-node, Info-next-preorder)
+	(Info-last-preorder): Use it.  (Bug#9528)
+
+2011-09-20  Juri Linkov  <juri@jurta.org>
+
+	* info.el (Info-last-preorder): Visit last menu item only when
+	`Info-scroll-prefer-subnodes' is non-nil (third test-case of bug#9528).
+
+2011-09-20  Julien Danjou  <julien@danjou.info>
+
+	* password-cache.el (password-cache-remove): Remove entries even if the
+	value is nil, so that password with a nil value (negative caching) is
+	possible to invalidate.
 
 2011-09-20  Lawrence Mitchell  <wence@gmx.li>
 
@@ -120,8 +304,8 @@
 	* net/tramp.el (top): Don't require 'shell.
 	(tramp-methods): Fix docstring.
 	(tramp-get-remote-tmpdir): New defun, moved from tramp-sh.el.
-	Return complete remote file name.  Handle "smb" case.  Use
-	`tramp-tmpdir', if defined for the respective method.
+	Return complete remote file name.  Handle "smb" case.
+	Use `tramp-tmpdir', if defined for the respective method.
 	(tramp-make-tramp-temp-file): Adapt call of `tramp-get-remote-tmpdir'.
 
 	* net/tramp-compat.el (top): Require 'shell.

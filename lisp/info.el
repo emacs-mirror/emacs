@@ -52,6 +52,15 @@ Each element of the stack is a list (FILENAME NODENAME BUFFERPOS).")
   "List of all Info nodes user has visited.
 Each element of the list is a list (FILENAME NODENAME).")
 
+(defcustom Info-history-skip-intermediate-nodes t
+  "Non-nil means don't record intermediate Info nodes to the history.
+Intermediate Info nodes are nodes visited by Info internally in the process of
+searching the node to display.  Intermediate nodes are not presented
+to the user."
+  :type 'boolean
+  :group 'info
+  :version "24.1")
+
 (defcustom Info-enable-edit nil
   "Non-nil means the \\<Info-mode-map>\\[Info-edit] command in Info can edit the current node.
 This is convenient if you want to write Info files by hand.
@@ -640,7 +649,8 @@ See a list of available Info commands in `Info-mode'."
                     (read-file-name "Info file name: " nil nil t))
                 (if (numberp current-prefix-arg)
                     (format "*info*<%s>" current-prefix-arg))))
-  (info-setup file-or-node (switch-to-buffer (or buffer "*info*"))))
+  (info-setup file-or-node
+	      (pop-to-buffer-same-window (or buffer "*info*"))))
 
 (defun info-setup (file-or-node buffer)
   "Display Info node FILE-OR-NODE in BUFFER."
@@ -2668,10 +2678,13 @@ N is the digit argument used to invoke this command."
 				   "top")))
 	   (let ((old-node Info-current-node))
 	     (Info-up)
-	     (let (Info-history success)
+	     (let ((old-history Info-history)
+		   success)
 	       (unwind-protect
 		   (setq success (Info-forward-node t nil no-error))
-		 (or success (Info-goto-node old-node))))))
+		 (or success (Info-goto-node old-node)))
+	       (if Info-history-skip-intermediate-nodes
+		   (setq Info-history old-history)))))
 	  (no-error nil)
 	  (t (error "No pointer forward from this node")))))
 
@@ -2693,10 +2706,12 @@ N is the digit argument used to invoke this command."
 	   ;; If we move back at the same level,
 	   ;; go down to find the last subnode*.
 	   (Info-prev)
-	   (let (Info-history)
+	   (let ((old-history Info-history))
 	     (while (and (not (Info-index-node))
 			 (save-excursion (search-forward "\n* Menu:" nil t)))
-	       (Info-goto-node (Info-extract-menu-counting nil)))))
+	       (Info-goto-node (Info-extract-menu-counting nil)))
+	     (if Info-history-skip-intermediate-nodes
+		 (setq Info-history old-history))))
 	  (t
 	   (error "No pointer backward from this node")))))
 
@@ -2752,38 +2767,45 @@ N is the digit argument used to invoke this command."
 	 ;; Since logically we are done with the node with that menu,
 	 ;; move on from it.  But don't add intermediate nodes
 	 ;; to the history on recursive calls.
-	 (let (Info-history)
-	   (Info-next-preorder)))
+	 (let ((old-history Info-history))
+	   (Info-next-preorder)
+	   (if Info-history-skip-intermediate-nodes
+	       (setq Info-history old-history))))
 	(t
 	 (error "No more nodes"))))
 
 (defun Info-last-preorder ()
   "Go to the last node, popping up a level if there is none."
   (interactive)
-  (cond ((Info-no-error
-	  (Info-last-menu-item)
-	  ;; If we go down a menu item, go to the end of the node
-	  ;; so we can scroll back through it.
-	  (goto-char (point-max)))
+  (cond ((and Info-scroll-prefer-subnodes
+	      (Info-no-error
+	       (Info-last-menu-item)
+	       ;; If we go down a menu item, go to the end of the node
+	       ;; so we can scroll back through it.
+	       (goto-char (point-max))))
 	 ;; Keep going down, as long as there are nested menu nodes.
-	 (let (Info-history) ; Don't add intermediate nodes to the history.
+	 (let ((old-history Info-history))
 	   (while (Info-no-error
 		   (Info-last-menu-item)
 		   ;; If we go down a menu item, go to the end of the node
 		   ;; so we can scroll back through it.
-		   (goto-char (point-max)))))
+		   (goto-char (point-max))))
+	   (if Info-history-skip-intermediate-nodes
+	       (setq Info-history old-history)))
 	 (recenter -1))
 	((and (Info-no-error (Info-extract-pointer "prev"))
 	      (not (equal (Info-extract-pointer "up")
 			  (Info-extract-pointer "prev"))))
 	 (Info-no-error (Info-prev))
 	 (goto-char (point-max))
-	 (let (Info-history) ; Don't add intermediate nodes to the history.
+	 (let ((old-history Info-history))
 	   (while (Info-no-error
 		   (Info-last-menu-item)
 		   ;; If we go down a menu item, go to the end of the node
 		   ;; so we can scroll back through it.
-		   (goto-char (point-max)))))
+		   (goto-char (point-max))))
+	   (if Info-history-skip-intermediate-nodes
+	       (setq Info-history old-history)))
 	 (recenter -1))
 	((Info-no-error (Info-up t))
 	 (goto-char (point-min))

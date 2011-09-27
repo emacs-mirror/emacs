@@ -26,16 +26,21 @@
 ;; Provides support for editing GNU Cfengine files, including
 ;; font-locking, Imenu and indention, but with no special keybindings.
 
-;; Possible customization for auto-mode selection:
-;; (push '(("^cfagent.conf\\'" . cfengine-mode)) auto-mode-alist)
-;; (push '(("^cf\\." . cfengine-mode)) auto-mode-alist)
-;; (push '(("\\.cf\\'" . cfengine-mode)) auto-mode-alist)
+;; The CFEngine 3.x support doesn't have Imenu support but patches are
+;; welcome.
 
-;; Or, if you want to use the CFEngine 3.x support:
+;; You can set it up so either cfengine-mode (2.x and earlier) or
+;; cfengine3-mode (3.x) will be picked, depending on the buffer
+;; contents:
 
-;; (push '(("^cfagent.conf\\'" . cfengine3-mode)) auto-mode-alist)
-;; (push '(("^cf\\." . cfengine3-mode)) auto-mode-alist)
-;; (push '(("\\.cf\\'" . cfengine3-mode)) auto-mode-alist)
+;; (add-to-list 'auto-mode-alist '("\\.cf\\'" . cfengine-auto-mode))
+
+;; OR you can choose to always use a specific version, if you prefer
+;; it
+
+;; (add-to-list 'auto-mode-alist '("\\.cf\\'" . cfengine3-mode))
+;; (add-to-list 'auto-mode-alist '("^cf\\." . cfengine-mode))
+;; (add-to-list 'auto-mode-alist '("^cfagent.conf\\'" . cfengine-mode))
 
 ;; This is not the same as the mode written by Rolf Ebert
 ;; <ebert@waporo.muc.de>, distributed with cfengine-2.0.5.  It does
@@ -465,6 +470,18 @@ to the action header."
   (set (make-local-variable 'beginning-of-defun-function)
        #'cfengine-beginning-of-defun)
   (set (make-local-variable 'end-of-defun-function) #'cfengine-end-of-defun))
+
+;;;###autoload
+(defun cfengine-auto-mode ()
+  "Choose between `cfengine-mode' and `cfengine3-mode' depending
+on the buffer contents"
+  (let ((v3 nil))
+    (save-restriction
+      (goto-char (point-min))
+      (while (not (or (eobp) v3))
+        (setq v3 (looking-at (concat cfengine3-defuns-regex "\\>")))
+        (forward-line)))
+    (if v3 (cfengine3-mode) (cfengine-mode))))
 
 (provide 'cfengine3)
 (provide 'cfengine)

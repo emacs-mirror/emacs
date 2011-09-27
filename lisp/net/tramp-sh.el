@@ -1738,7 +1738,9 @@ and gid of the corresponding user is taken.  Both parameters must be integers."
 			"file-name-all-completions"
 			nil)))
 		  (when cache-hit (list cache-hit))))
-	      (tramp-compat-number-sequence (length filename) 0 -1)))))
+	      ;; We cannot use a length of 0, because file properties
+	      ;; for "foo" and "foo/" are identical.
+	      (tramp-compat-number-sequence (length filename) 1 -1)))))
 
          ;; Cache expired or no matching cache entry found so we need
          ;; to perform a remote operation.
@@ -1803,12 +1805,12 @@ and gid of the corresponding user is taken.  Both parameters must be integers."
            (with-current-buffer (tramp-get-buffer v)
              (goto-char (point-max))
 
-             ;; Check result code, found in last line of output
+             ;; Check result code, found in last line of output.
              (forward-line -1)
              (if (looking-at "^fail$")
                  (progn
                    ;; Grab error message from line before last line
-                   ;; (it was put there by `cd 2>&1')
+                   ;; (it was put there by `cd 2>&1').
                    (forward-line -1)
                    (tramp-error
                     v 'file-error
@@ -1829,9 +1831,8 @@ tramp-sh-handle-file-name-all-completions: internal error accessing `%s': `%s'"
                (push (buffer-substring (point) (point-at-eol)) result)))
 
            ;; Because the remote op went through OK we know the
-           ;; directory we `cd'-ed to exists
-           (tramp-set-file-property
-            v localname "file-exists-p" t)
+           ;; directory we `cd'-ed to exists.
+           (tramp-set-file-property v localname "file-exists-p" t)
 
            ;; Because the remote op went through OK we know every
            ;; file listed by `ls' exists.
@@ -1840,11 +1841,10 @@ tramp-sh-handle-file-name-all-completions: internal error accessing `%s': `%s'"
 		    v (concat localname entry) "file-exists-p" t))
 		 result)
 
-           ;; Store result in the cache
+           ;; Store result in the cache.
            (tramp-set-file-property
             v (concat localname filename)
-            "file-name-all-completions"
-            result))))))))
+	    "file-name-all-completions" result))))))))
 
 ;; cp, mv and ln
 

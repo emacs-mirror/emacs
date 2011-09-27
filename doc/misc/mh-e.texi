@@ -8,12 +8,12 @@
 @c %**end of header
 
 @c Version of the software and manual.
-@set VERSION 8.2
+@set VERSION 8.3
 @c Edition of the manual. It is either empty for the first edition or
 @c has the form ", nth Edition" (without the quotes).
 @set EDITION
-@set UPDATED 2009-06-13
-@set UPDATE-MONTH June, 2009
+@set UPDATED 2011-09-20
+@set UPDATE-MONTH September, 2011
 
 @c Other variables.
 @set MH-BOOK-HOME http://rand-mh.sourceforge.net/book/mh
@@ -212,10 +212,11 @@ more niceties about GNU Emacs and MH@. Now I'm fully hooked on both of
 them.
 
 The MH-E package is distributed with Emacs@footnote{Version
-@value{VERSION} of MH-E appeared in Emacs 23.1. It is supported
-in Emacs 21 and 22, as well as XEmacs 21 (except for versions
-21.5.9-21.5.16). It is compatible with MH versions 6.8.4 and higher,
-all versions of nmh, and GNU mailutils 1.0 and higher.}, so you
+@value{VERSION} of MH-E appeared in Emacs 24.1. It is supported in GNU
+Emacs 23 and higher, as well as XEmacs 21.4.22 and 21.5.31. MH-E is
+known not to work with GNU Emacs versions 20 and below, and XEmacs
+version 21.5.9 - 21.5.16. It is compatible with MH versions 6.8.4 and
+higher, all versions of nmh, and GNU mailutils 1.0 and higher}, so you
 shouldn't have to do anything special to use it. Gnus is also
 required; version 5.10 or higher is recommended. This manual covers
 MH-E version @value{VERSION}. To help you decide which version you
@@ -8950,8 +8951,8 @@ files that were already part of Emacs) and the software was completely
 reorganized to push back two decades of entropy. Version 8 appeared in
 Emacs 22.1 in 2006.
 
-Development was then quiet for a couple of years. Emacs 23.1, released
-in June 2009, contains version 8.2.  This version includes a few
+Development was then quiet for a couple of years. Emacs 23.1, which is
+due out in 2009, will contain version 8.1. This version includes a few
 new features and several bug fixes.
 
 Bill Wohler, August 2008
