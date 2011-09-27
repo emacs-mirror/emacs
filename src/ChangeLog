@@ -219,7 +219,7 @@
 	(increment_row_positions, mode_line_string)
 	(marginal_area_string):
 	Use ptrdiff_t, not EMACS_INT, where ptrdiff_t is wide enough.
-	(change_frame_size_1, Fredisplay):
+	(change_frame_size_1, Fredisplay, Fframe_or_buffer_changed_p):
 	Use ptrdiff_t, not int, to avoid needless 32-bit limit on 64-bit hosts.
 	(duration_to_sec_usec): New function, to check for overflow better.
 	(Fsleep_for, sit_for): Use it.

@@ -6033,7 +6033,7 @@ pass nil for VARIABLE.  */)
 {
   Lisp_Object state, tail, frame, buf;
   Lisp_Object *vecp, *end;
-  int n;
+  ptrdiff_t n;
 
   if (! NILP (variable))
     {
