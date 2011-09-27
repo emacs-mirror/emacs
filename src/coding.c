@@ -6613,8 +6613,8 @@ get_translation (Lisp_Object trans, int *buf, int *buf_end)
     {
       Lisp_Object val = XCAR (trans);
       Lisp_Object from = XCAR (val);
-      int len = ASIZE (from);
-      int i;
+      ptrdiff_t len = ASIZE (from);
+      ptrdiff_t i;
 
       for (i = 0; i < len; i++)
 	{
@@ -7132,7 +7132,7 @@ handle_composition_annotation (ptrdiff_t pos, ptrdiff_t limit,
 	  if (method != COMPOSITION_RELATIVE)
 	    {
 	      Lisp_Object components;
-	      int len, i, i_byte;
+	      ptrdiff_t i, len, i_byte;
 
 	      components = COMPOSITION_COMPONENTS (prop);
 	      if (VECTORP (components))
@@ -7303,7 +7303,7 @@ consume_chars (struct coding_system *coding, Lisp_Object translation_table,
 	*buf++ = c;
       else
 	{
-	  int from_nchars = 1, to_nchars = 1;
+	  ptrdiff_t from_nchars = 1, to_nchars = 1;
 	  int *lookup_buf_end;
 	  const unsigned char *p = src;
 	  int i;
@@ -7324,7 +7324,7 @@ consume_chars (struct coding_system *coding, Lisp_Object translation_table,
 	      else
 		{
 		  to_nchars = ASIZE (trans);
-		  if (buf + to_nchars > buf_end)
+		  if (buf_end - buf < to_nchars)
 		    break;
 		  c = XINT (AREF (trans, 0));
 		}

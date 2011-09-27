@@ -167,8 +167,10 @@
 	Don't assume fixnums fit in int.
 	(decode_coding_gap, decode_coding_object, encode_coding_object)
 	(Fread_coding_system, Fdetect_coding_region)
-	(Funencodable_char_position, Fcheck_coding_systems_region):
+	(Funencodable_char_position, Fcheck_coding_systems_region)
+	(get_translation, handle_composition_annotation, consume_chars):
 	Use ptrdiff_t, not int, to avoid needless 32-bit limit on 64-bit hosts.
+	(consume_chars): Rewrite to avoid calculating an address outside buffer.
 	(Ffind_operation_coding_system): NATNUMP can eval its arg twice.
 	(Fdefine_coding_system_internal): Check for charset-id overflow.
 	(ENCODE_ISO_CHARACTER): Use unsigned, not int, to store the unsigned
