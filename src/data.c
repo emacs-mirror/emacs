@@ -2092,7 +2092,7 @@ or a byte-code object.  IDX starts at 0.  */)
     }
   else
     {
-      int size = 0;
+      ptrdiff_t size = 0;
       if (VECTORP (array))
 	size = ASIZE (array);
       else if (COMPILEDP (array))
