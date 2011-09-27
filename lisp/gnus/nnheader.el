@@ -1112,6 +1112,13 @@ See `find-file-noselect' for the arguments."
 		       '(buffer-string)))))
        (insert-buffer-substring ,buffer ,start ,end))))
 
+(defvar nnheader-last-message-time '(0 0))
+(defun nnheader-message-maybe (&rest args)
+  (let ((now (current-time)))
+    (when (> (float-time (time-subtract now nnheader-last-message-time)) 1)
+      (setq nnheader-last-message-time now)
+      (apply 'nnheader-message args))))
+
 (when (featurep 'xemacs)
   (require 'nnheaderxm))
 

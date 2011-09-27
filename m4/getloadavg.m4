@@ -7,7 +7,7 @@
 # gives unlimited permission to copy and/or distribute it,
 # with or without modifications, as long as this notice is preserved.
 
-#serial 4
+#serial 5
 
 # Autoconf defines AC_FUNC_GETLOADAVG, but that is obsolescent.
 # New applications should use gl_GETLOADAVG instead.
@@ -91,10 +91,10 @@ else
   HAVE_SYS_LOADAVG_H=0
 fi
 AC_CHECK_DECL([getloadavg], [], [HAVE_DECL_GETLOADAVG=0],
-  [#if HAVE_SYS_LOADAVG_H
-   # include <sys/loadavg.h>
-   #endif
-   #include <stdlib.h>])
+  [[#if HAVE_SYS_LOADAVG_H
+    # include <sys/loadavg.h>
+    #endif
+    #include <stdlib.h>]])
 ])# gl_GETLOADAVG
 
 

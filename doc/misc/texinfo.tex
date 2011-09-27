@@ -3,7 +3,7 @@
 % Load plain if necessary, i.e., if running under initex.
 \expandafter\ifx\csname fmtname\endcsname\relax\input plain\fi
 %
-\def\texinfoversion{2011-08-14.17}
+\def\texinfoversion{2011-09-23.09}
 %
 % Copyright 1985, 1986, 1988, 1990, 1991, 1992, 1993, 1994, 1995,
 % 1996, 1997, 1998, 1999, 2000, 2001, 2002, 2003, 2004, 2005, 2006,
@@ -3955,13 +3955,13 @@ end
 %        If so, set to same dimension as multitablelinespace.
 \ifdim\multitableparskip>\multitablelinespace
 \global\multitableparskip=\multitablelinespace
-\global\advance\multitableparskip-7pt %% to keep parskip somewhat smaller
-                                      %% than skip between lines in the table.
+\global\advance\multitableparskip-7pt % to keep parskip somewhat smaller
+                                      % than skip between lines in the table.
 \fi%
 \ifdim\multitableparskip=0pt
 \global\multitableparskip=\multitablelinespace
-\global\advance\multitableparskip-7pt %% to keep parskip somewhat smaller
-                                      %% than skip between lines in the table.
+\global\advance\multitableparskip-7pt % to keep parskip somewhat smaller
+                                      % than skip between lines in the table.
 \fi}
 
 
@@ -7247,9 +7247,15 @@ end
 \def\macroxxx#1{%
   \getargs{#1}% now \macname is the macname and \argl the arglist
   \ifx\argl\empty       % no arguments
-     \paramno=0
+     \paramno=0\relax
   \else
      \expandafter\parsemargdef \argl;%
+     \if\paramno>256\relax
+       \ifx\eTeXversion\thisisundefined
+         \errhelp = \EMsimple
+         \errmessage{You need eTeX to compile a file with macros with more than 256 arguments}
+       \fi
+     \fi
   \fi
   \if1\csname ismacro.\the\macname\endcsname
      \message{Warning: redefining \the\macname}%
@@ -7299,9 +7305,17 @@ end
 \def\getmacname#1 #2\relax{\macname={#1}}
 \def\getmacargs#1{\def\argl{#1}}
 
+% For macro processing make @ a letter so that we can make Texinfo private macro names.
+\edef\texiatcatcode{\the\catcode`\@}
+\catcode `@=11\relax
+
 % Parse the optional {params} list.  Set up \paramno and \paramlist
-% so \defmacro knows what to do.  Define \macarg.blah for each blah
-% in the params list to be ##N where N is the position in that list.
+% so \defmacro knows what to do.  Define \macarg.BLAH for each BLAH
+% in the params list to some hook where the argument si to be expanded.  If
+% there are less than 10 arguments that hook is to be replaced by ##N where N
+% is the position in that list, that is to say the macro arguments are to be
+% defined `a la TeX in the macro body.  
+%
 % That gets used by \mbodybackslash (above).
 %
 % We need to get `macro parameter char #' into several definitions.
@@ -7311,12 +7325,33 @@ end
 %
 % The same technique is used to protect \eatspaces till just before
 % the macro is used.
-
+%
+% If there are 10 or more arguments, a different technique is used, where the
+% hook remains in the body, and when macro is to be expanded the body is
+% processed again to replace the arguments.
+%
+% In that case, the hook is \the\toks N-1, and we simply set \toks N-1 to the
+% argument N value and then \edef  the body (nothing else will expand because of
+% the catcode regime underwhich the body was input).
+%
+% If you compile with TeX (not eTeX), and you have macros with 10 or more
+% arguments, you need that no macro has more than 256 arguments, otherwise an
+% error is produced.
 \def\parsemargdef#1;{%
   \paramno=0\def\paramlist{}%
   \let\hash\relax
   \let\xeatspaces\relax
   \parsemargdefxxx#1,;,%
+  % In case that there are 10 or more arguments we parse again the arguments
+  % list to set new definitions for the \macarg.BLAH macros corresponding to
+  % each BLAH argument. It was anyhow needed to parse already once this list
+  % in order to count the arguments, and as macros with at most 9 arguments
+  % are by far more frequent than macro with 10 or more arguments, defining
+  % twice the \macarg.BLAH macros does not cost too much processing power.
+  \ifnum\paramno<10\relax\else
+    \paramno0\relax
+    \parsemmanyargdef@@#1,;,% 10 or more arguments
+  \fi
 }
 \def\parsemargdefxxx#1,{%
   \if#1;\let\next=\relax
@@ -7327,16 +7362,205 @@ end
     \edef\paramlist{\paramlist\hash\the\paramno,}%
   \fi\next}
 
+\def\parsemmanyargdef@@#1,{%
+  \if#1;\let\next=\relax
+  \else 
+    \let\next=\parsemmanyargdef@@
+    \edef\tempb{\eatspaces{#1}}%
+    \expandafter\def\expandafter\tempa
+       \expandafter{\csname macarg.\tempb\endcsname}%
+    % Note that we need some extra \noexpand\noexpand, this is because we
+    % don't want \the  to be expanded in the \parsermacbody  as it uses an
+    % \xdef .
+    \expandafter\edef\tempa
+      {\noexpand\noexpand\noexpand\the\toks\the\paramno}%
+    \advance\paramno by 1\relax
+  \fi\next}
+
 % These two commands read recursive and nonrecursive macro bodies.
 % (They're different since rec and nonrec macros end differently.)
 %
+
+\catcode `\@\texiatcatcode
 \long\def\parsemacbody#1@end macro%
 {\xdef\temp{\eatcr{#1}}\endgroup\defmacro}%
 \long\def\parsermacbody#1@end rmacro%
 {\xdef\temp{\eatcr{#1}}\endgroup\defmacro}%
+\catcode `\@=11\relax
 
-% This defines the macro itself. There are six cases: recursive and
-% nonrecursive macros of zero, one, and many arguments.
+\let\endargs@\relax
+\let\nil@\relax
+\def\nilm@{\nil@}%
+\long\def\nillm@{\nil@}%
+
+% This macro is expanded during the Texinfo macro expansion, not during its
+% definition.  It gets all the arguments values and assigns them to macros
+% macarg.ARGNAME
+%
+% #1 is the macro name
+% #2 is the list of argument names
+% #3 is the list of argument values
+\def\getargvals@#1#2#3{%
+  \def\macargdeflist@{}%
+  \def\saveparamlist@{#2}% Need to keep a copy for parameter expansion.
+  \def\paramlist{#2,\nil@}%
+  \def\macroname{#1}%
+  \begingroup
+  \macroargctxt
+  \def\argvaluelist{#3,\nil@}%
+  \def\@tempa{#3}%
+  \ifx\@tempa\empty
+    \setemptyargvalues@
+  \else
+    \getargvals@@
+  \fi
+}
+
+% 
+\def\getargvals@@{%
+  \ifx\paramlist\nilm@
+      % Some sanity check needed here that \argvaluelist is also empty.
+      \ifx\argvaluelist\nillm@
+      \else
+        \errhelp = \EMsimple
+        \errmessage{Too many arguments in macro `\macroname'!}%
+      \fi
+      \let\next\macargexpandinbody@
+  \else
+    \ifx\argvaluelist\nillm@
+       % No more arguments values passed to macro.  Set remaining named-arg
+       % macros to empty.
+       \let\next\setemptyargvalues@
+    \else
+      % pop current arg name into \@tempb
+      \def\@tempa##1{\pop@{\@tempb}{\paramlist}##1\endargs@}%
+      \expandafter\@tempa\expandafter{\paramlist}%
+       % pop current argument value into \@tempc
+      \def\@tempa##1{\longpop@{\@tempc}{\argvaluelist}##1\endargs@}%
+      \expandafter\@tempa\expandafter{\argvaluelist}%
+       % Here \@tempb is the current arg name and \@tempc is the current arg value.
+       % First place the new argument macro definition into \@tempd
+       \expandafter\macname\expandafter{\@tempc}%
+       \expandafter\let\csname macarg.\@tempb\endcsname\relax
+       \expandafter\def\expandafter\@tempe\expandafter{%
+         \csname macarg.\@tempb\endcsname}%
+       \edef\@tempd{\long\def\@tempe{\the\macname}}%
+       \push@\@tempd\macargdeflist@
+       \let\next\getargvals@@
+    \fi
+  \fi
+  \next
+}
+
+\def\push@#1#2{%
+  \expandafter\expandafter\expandafter\def
+  \expandafter\expandafter\expandafter#2%
+  \expandafter\expandafter\expandafter{%
+  \expandafter#1#2}%
+}
+
+% Replace arguments by their values in the macro body, and place the result
+% in macro \@tempa
+\def\macvalstoargs@{%
+  %  To do this we use the property that token registers that are \the'ed
+  % within an \edef  expand only once. So we are going to place all argument
+  % values into respective token registers.
+  %
+  % First we save the token context, and initialize argument numbering.
+  \begingroup
+    \paramno0\relax
+    % Then, for each argument number #N, we place the corresponding argument
+    % value into a new token list register \toks#N
+    \expandafter\putargsintokens@\saveparamlist@,;,%
+    % Then, we expand the body so that argument are replaced by their
+    % values. The trick for values not to be expanded themselves is that they
+    % are within tokens and that tokens expand only once in an \edef .
+    \edef\@tempc{\csname mac.\macroname .body\endcsname}%
+    % Now we restore the token stack pointer to free the token list registers
+    % which we have used, but we make sure that expanded body is saved after
+    % group.
+    \expandafter
+  \endgroup
+  \expandafter\def\expandafter\@tempa\expandafter{\@tempc}%
+  }
+
+\def\macargexpandinbody@{% 
+  %% Define the named-macro outside of this group and then close this group. 
+  \expandafter
+  \endgroup
+  \macargdeflist@
+  % First the replace in body the macro arguments by their values, the result
+  % is in \@tempa .
+  \macvalstoargs@
+  % Then we point at the \norecurse or \gobble (for recursive) macro value
+  % with \@tempb .
+  \expandafter\let\expandafter\@tempb\csname mac.\macroname .recurse\endcsname
+  % Depending on whether it is recursive or not, we need some tailing
+  % \egroup .
+  \ifx\@tempb\gobble
+     \let\@tempc\relax
+  \else
+     \let\@tempc\egroup
+  \fi
+  % And now we do the real job:
+  \edef\@tempd{\noexpand\@tempb{\macroname}\noexpand\scanmacro{\@tempa}\@tempc}%
+  \@tempd
+}
+
+\def\putargsintokens@#1,{%
+  \if#1;\let\next\relax
+  \else
+    \let\next\putargsintokens@
+    % First we allocate the new token list register, and give it a temporary
+    % alias \@tempb .
+    \toksdef\@tempb\the\paramno
+    % Then we place the argument value into that token list register.
+    \expandafter\let\expandafter\@tempa\csname macarg.#1\endcsname
+    \expandafter\@tempb\expandafter{\@tempa}%
+    \advance\paramno by 1\relax
+  \fi
+  \next
+}
+
+% Save the token stack pointer into macro #1
+\def\texisavetoksstackpoint#1{\edef#1{\the\@cclvi}}
+% Restore the token stack pointer from number in macro #1
+\def\texirestoretoksstackpoint#1{\expandafter\mathchardef\expandafter\@cclvi#1\relax}
+% newtoks that can be used non \outer .
+\def\texinonouternewtoks{\alloc@ 5\toks \toksdef \@cclvi}
+
+% Tailing missing arguments are set to empty
+\def\setemptyargvalues@{%
+  \ifx\paramlist\nilm@
+    \let\next\macargexpandinbody@
+  \else
+    \expandafter\setemptyargvaluesparser@\paramlist\endargs@
+    \let\next\setemptyargvalues@
+  \fi
+  \next
+}
+
+\def\setemptyargvaluesparser@#1,#2\endargs@{%
+  \expandafter\def\expandafter\@tempa\expandafter{%
+    \expandafter\def\csname macarg.#1\endcsname{}}%
+  \push@\@tempa\macargdeflist@
+  \def\paramlist{#2}%
+}
+
+% #1 is the element target macro
+% #2 is the list macro
+% #3,#4\endargs@ is the list value
+\def\pop@#1#2#3,#4\endargs@{%
+   \def#1{#3}%
+   \def#2{#4}%
+}
+\long\def\longpop@#1#2#3,#4\endargs@{%
+   \long\def#1{#3}%
+   \long\def#2{#4}%
+}
+
+% This defines a Texinfo @macro. There are eight cases: recursive and
+% nonrecursive macros of zero, one, up to nine, and many arguments.
 % Much magic with \expandafter here.
 % \xdef is used so that macro definitions will survive the file
 % they're defined in; @include reads the file inside a group.
@@ -7355,17 +7579,25 @@ end
          \expandafter\noexpand\csname\the\macname xxx\endcsname}%
       \expandafter\xdef\csname\the\macname xxx\endcsname##1{%
          \egroup\noexpand\scanmacro{\temp}}%
-    \else % many
-      \expandafter\xdef\csname\the\macname\endcsname{%
-         \bgroup\noexpand\macroargctxt
-         \noexpand\csname\the\macname xx\endcsname}%
-      \expandafter\xdef\csname\the\macname xx\endcsname##1{%
-          \expandafter\noexpand\csname\the\macname xxx\endcsname ##1,}%
-      \expandafter\expandafter
-      \expandafter\xdef
-      \expandafter\expandafter
-        \csname\the\macname xxx\endcsname
-          \paramlist{\egroup\noexpand\scanmacro{\temp}}%
+    \else
+      \ifnum\paramno<10\relax % at most 9
+        \expandafter\xdef\csname\the\macname\endcsname{%
+           \bgroup\noexpand\macroargctxt
+           \noexpand\csname\the\macname xx\endcsname}%
+        \expandafter\xdef\csname\the\macname xx\endcsname##1{%
+            \expandafter\noexpand\csname\the\macname xxx\endcsname ##1,}%
+        \expandafter\expandafter
+        \expandafter\xdef
+        \expandafter\expandafter
+          \csname\the\macname xxx\endcsname
+            \paramlist{\egroup\noexpand\scanmacro{\temp}}%
+      \else % 10 or more
+        \expandafter\xdef\csname\the\macname\endcsname{%
+          \noexpand\getargvals@{\the\macname}{\argl}%
+        }%    
+        \global\expandafter\let\csname mac.\the\macname .body\endcsname\temp
+        \global\expandafter\let\csname mac.\the\macname .recurse\endcsname\gobble
+      \fi
     \fi
   \else
     \ifcase\paramno
@@ -7382,22 +7614,32 @@ end
         \egroup
         \noexpand\norecurse{\the\macname}%
         \noexpand\scanmacro{\temp}\egroup}%
-    \else % many
-      \expandafter\xdef\csname\the\macname\endcsname{%
-         \bgroup\noexpand\macroargctxt
-         \expandafter\noexpand\csname\the\macname xx\endcsname}%
-      \expandafter\xdef\csname\the\macname xx\endcsname##1{%
-          \expandafter\noexpand\csname\the\macname xxx\endcsname ##1,}%
-      \expandafter\expandafter
-      \expandafter\xdef
-      \expandafter\expandafter
-      \csname\the\macname xxx\endcsname
-      \paramlist{%
-          \egroup
-          \noexpand\norecurse{\the\macname}%
-          \noexpand\scanmacro{\temp}\egroup}%
+    \else % at most 9
+      \ifnum\paramno<10\relax
+        \expandafter\xdef\csname\the\macname\endcsname{%
+           \bgroup\noexpand\macroargctxt
+           \expandafter\noexpand\csname\the\macname xx\endcsname}%
+        \expandafter\xdef\csname\the\macname xx\endcsname##1{%
+            \expandafter\noexpand\csname\the\macname xxx\endcsname ##1,}%
+        \expandafter\expandafter
+        \expandafter\xdef
+        \expandafter\expandafter
+        \csname\the\macname xxx\endcsname
+        \paramlist{%
+            \egroup
+            \noexpand\norecurse{\the\macname}%
+            \noexpand\scanmacro{\temp}\egroup}%
+      \else % 10 or more:
+        \expandafter\xdef\csname\the\macname\endcsname{%
+          \noexpand\getargvals@{\the\macname}{\argl}%
+        }%
+        \global\expandafter\let\csname mac.\the\macname .body\endcsname\temp
+        \global\expandafter\let\csname mac.\the\macname .recurse\endcsname\norecurse
+      \fi
     \fi
   \fi}
+
+\catcode `\@\texiatcatcode\relax
 
 \def\norecurse#1{\bgroup\cslet{#1}{macsave.#1}}
 
