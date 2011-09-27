@@ -271,7 +271,7 @@
     (;; Misc Symbols
      nil ?$,1<"(B ?$,1<#(B nil ?$,1<m(B nil nil)
     (;; Digits
-     nil ?$,1='(B ?$,1=((B ?$,1=)(B ?$,1=*(B ?$,1=+(B ?$,1=,(B ?$,1=-(B ?$,1=.(B ?$,1=/(B)
+     ?$,1=&(B ?$,1='(B ?$,1=((B ?$,1=)(B ?$,1=*(B ?$,1=+(B ?$,1=,(B ?$,1=-(B ?$,1=.(B ?$,1=/(B)
     (;; Inscript-extra (4)  (#, $, ^, *, ])
      "$,1<m<P(B" "$,1<P<m(B" "$,1<D<m<P(B" nil nil)))
 
@@ -301,6 +301,25 @@
      "y"   "r"   "rh"  "l"   ("L" "ld") nil  ("v" "w")
      "sh" ("Sh" "shh") "s" "h"
      "q" "K" "G" ("J" "z") ".D" ".Dh" "f" ("Y" "yh")
+     ("GY" "dny") "x")
+    (;; misc -- 7
+     ".N" (".n" "M") "H" ".a" ".h" ("AUM" "OM") "..")))
+
+(defvar indian-itrans-v5-table-for-tamil
+  '(;; for encode/decode
+    (;; vowels -- 18
+     "a" ("aa" "A") "i" ("ii" "I") "u" ("uu" "U")
+     ("RRi" "R^i") ("LLi" "L^i") (".c" "e.c") "E" "e" "ai"
+     "o.c"  "O"   "o"   "au"  ("RRI" "R^I") ("LLI" "L^I"))
+    (;; consonants -- 40
+     "k"   "kh"  "g"   "gh"  ("~N" "N^")
+     "ch" ("Ch" "chh") "j" "jh" ("~n" "JN")
+     "T"   "Th"  "D"   "Dh"  "N"
+     "t"   "th"  "d"   "dh"  "n"   "nh"
+     "p"   "ph"  "b"   "bh"  "m"
+     "y"   "r"   "rh"  "l"   ("L" "ld") ("J" "z")  ("v" "w")
+     "sh" ("Sh" "shh") "s" "h"
+     "q" "K" "G" nil ".D" ".Dh" "f" ("Y" "yh")
      ("GY" "dny") "x")
     (;; misc -- 7
      ".N" (".n" "M") "H" ".a" ".h" ("AUM" "OM") "..")))
@@ -508,7 +527,7 @@
 
 (defvar indian-tml-itrans-v5-hash
   (indian-make-hash indian-tml-base-table
-			  indian-itrans-v5-table))
+			  indian-itrans-v5-table-for-tamil))
 )
 
 (defmacro indian-translate-region (from to hashtable encode-p)
