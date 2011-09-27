@@ -528,7 +528,7 @@
 	Use ptrdiff_t, not int, to avoid needless 32-bit limit on 64-bit hosts.
 	(ns_update_menubar): Use intptr_t, not EMACS_INT, when intptr_t is
 	wide enough.
-	* nsselect.m (ns_get_local_selection):
+	* nsselect.m (ns_get_local_selection, clean_local_selection_data):
 	Use ptrdiff_t, not int, to avoid needless 32-bit limit on 64-bit hosts.
 	* print.c (print_buffer_size, print_buffer_pos, print_buffer_pos_byte)
 	(PRINTDECLARE, PRINTPREPARE):
