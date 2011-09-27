@@ -658,7 +658,7 @@ The list is in preference order.")
 		   :always-query-capabilities t
 		   :starttls-function
 		   (lambda (capabilities)
-		     (and (string-match "-STARTTLS" capabilities)
+		     (and (string-match "[ -]STARTTLS" capabilities)
 			  "STARTTLS\r\n"))
 		   :client-certificate t
 		   :use-starttls-if-possible t)))
