@@ -9291,7 +9291,7 @@ usage: (find-operation-coding-system OPERATION ARGUMENTS...)  */)
   if (!SYMBOLP (operation)
       || (target_idx = Fget (operation, Qtarget_idx), !NATNUMP (target_idx)))
     error ("Invalid first argument");
-  if (nargs < 1 + XFASTINT (target_idx))
+  if (nargs <= 1 + XFASTINT (target_idx))
     error ("Too few arguments for operation `%s'",
 	   SDATA (SYMBOL_NAME (operation)));
   target = args[XFASTINT (target_idx) + 1];

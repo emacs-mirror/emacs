@@ -172,6 +172,7 @@
 	Use ptrdiff_t, not int, to avoid needless 32-bit limit on 64-bit hosts.
 	(consume_chars): Rewrite to avoid calculating an address outside buffer.
 	(Ffind_operation_coding_system): NATNUMP can eval its arg twice.
+	Don't access memory outside of the args array.
 	(Fdefine_coding_system_internal): Check for charset-id overflow.
 	(ENCODE_ISO_CHARACTER): Use unsigned, not int, to store the unsigned
 	result of ENCODE_CHAR.
