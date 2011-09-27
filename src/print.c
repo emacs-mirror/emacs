@@ -1797,7 +1797,7 @@ print_object (Lisp_Object obj, register Lisp_Object printcharfun, int escapeflag
 	      PRINTCHAR (' ');
 	      strout (SDATA (SYMBOL_NAME (h->weak)), -1, -1, printcharfun);
 	      PRINTCHAR (' ');
-	      sprintf (buf, "%"pI"d/%"pI"d", h->count, ASIZE (h->next));
+	      sprintf (buf, "%"pD"d/%"pD"d", h->count, ASIZE (h->next));
 	      strout (buf, -1, -1, printcharfun);
 	    }
 	  sprintf (buf, " %p", h);
