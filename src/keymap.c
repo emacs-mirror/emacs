@@ -1143,7 +1143,7 @@ binding KEY to DEF is added at the front of KEYMAP.  */)
   if (VECTORP (def) && ASIZE (def) > 0 && CONSP (AREF (def, 0)))
     { /* DEF is apparently an XEmacs-style keyboard macro.  */
       Lisp_Object tmp = Fmake_vector (make_number (ASIZE (def)), Qnil);
-      int i = ASIZE (def);
+      ptrdiff_t i = ASIZE (def);
       while (--i >= 0)
 	{
 	  Lisp_Object defi = AREF (def, i);
