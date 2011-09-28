@@ -589,9 +589,9 @@ If the region is active, only delete whitespace within the region."
         ;; Delete trailing empty lines.
         (goto-char end-marker)
         (when (and (not end)
-                   (<= (skip-chars-backward "\n") -2)
                    ;; Really the end of buffer.
-                   (save-restriction (widen) (eobp)))
+                   (save-restriction (widen) (eobp))
+                   (<= (skip-chars-backward "\n") -2))
           (delete-region (1+ (point)) end-marker))
         (set-marker end-marker nil))))
   ;; Return nil for the benefit of `write-file-functions'.

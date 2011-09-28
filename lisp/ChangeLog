@@ -1,5 +1,7 @@
 2011-09-28  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* simple.el (delete-trailing-whitespace): Fix last change.
+
 	* progmodes/perl-mode.el (perl-syntax-propertize-function):
 	Don't confuse "y => 3" as the beginning of a `y' operation.
 
