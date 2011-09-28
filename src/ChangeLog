@@ -1,3 +1,12 @@
+2011-09-28  Eli Zaretskii  <eliz@gnu.org>
+
+	* xdisp.c (compute_display_string_end): If there's no display
+	string at CHARPOS, return -1.
+
+	* bidi.c (bidi_fetch_char): When compute_display_string_end
+	returns a negative value, treat the character as a normal
+	character not covered by a display string.  (Bug#9624)
+
 2011-09-28  Juanma Barranquero  <lekktu@gmail.com>
 
 	* lread.c (Fread_from_string): Fix typo in docstring.

@@ -974,6 +974,15 @@ bidi_fetch_char (EMACS_INT bytepos, EMACS_INT charpos, EMACS_INT *disp_pos,
 	  ch = 0xFFFC;
 	}
       disp_end_pos = compute_display_string_end (*disp_pos, string);
+      if (disp_end_pos < 0)
+	{
+	  /* Somebody removed the display string from the buffer
+	     behind our back.  Recover by processing this buffer
+	     position as if no display property were present there to
+	     begin with.  */
+	  *disp_prop = 0;
+	  goto normal_char;
+	}
       *nchars = disp_end_pos - *disp_pos;
       if (*nchars <= 0)
 	abort ();
@@ -988,6 +997,7 @@ bidi_fetch_char (EMACS_INT bytepos, EMACS_INT charpos, EMACS_INT *disp_pos,
     }
   else
     {
+    normal_char:
       if (string->s)
 	{
 	  int len;

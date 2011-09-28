@@ -3386,9 +3386,10 @@ compute_display_string_pos (struct text_pos *position,
 }
 
 /* Return the character position of the end of the display string that
-   started at CHARPOS.  A display string is either an overlay with
-   `display' property whose value is a string or a `display' text
-   property whose value is a string.  */
+   started at CHARPOS.  If there's no display string at CHARPOS,
+   return -1.  A display string is either an overlay with `display'
+   property whose value is a string or a `display' text property whose
+   value is a string.  */
 EMACS_INT
 compute_display_string_end (EMACS_INT charpos, struct bidi_string_data *string)
 {
@@ -3402,8 +3403,22 @@ compute_display_string_end (EMACS_INT charpos, struct bidi_string_data *string)
   if (charpos >= eob || (string->s && !STRINGP (object)))
     return eob;
 
+  /* It could happen that the display property or overlay was removed
+     since we found it in compute_display_string_pos above.  One way
+     this can happen is if JIT font-lock was called (through
+     handle_fontified_prop), and jit-lock-functions remove text
+     properties or overlays from the portion of buffer that includes
+     CHARPOS.  Muse mode is known to do that, for example.  In this
+     case, we return -1 to the caller, to signal that no display
+     string is actually present at CHARPOS.  See bidi_fetch_char for
+     how this is handled.
+
+     An alternative would be to never look for display properties past
+     it->stop_charpos.  But neither compute_display_string_pos nor
+     bidi_fetch_char that calls it know or care where the next
+     stop_charpos is.  */
   if (NILP (Fget_char_property (pos, Qdisplay, object)))
-    abort ();
+    return -1;
 
   /* Look forward for the first character where the `display' property
      changes.  */
