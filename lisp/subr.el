@@ -3002,7 +3002,7 @@ Instead it binds `standard-output' to that buffer, so that output
 generated with `prin1' and similar functions in BODY goes into
 the buffer.
 
-At the end of BODY, this marks buffer BUFNAME unmodifed and displays
+At the end of BODY, this marks buffer BUFNAME unmodified and displays
 it in a window, but does not select it.  The normal way to do this is
 by calling `display-buffer', then running `temp-buffer-show-hook'.
 However, if `temp-buffer-show-function' is non-nil, it calls that

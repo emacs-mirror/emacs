@@ -1,3 +1,9 @@
+2011-09-28  Juanma Barranquero  <lekktu@gmail.com>
+
+	* subr.el (with-output-to-temp-buffer):
+	* net/quickurl.el (quickurl, quickurl-browse-url):
+	Fix typos in docstrings.
+
 2011-09-27  Eli Zaretskii  <eliz@gnu.org>
 
 	* minibuffer.el (completion-styles)

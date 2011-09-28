@@ -1178,7 +1178,7 @@ equivalently, @code{(split-window W3 -8 'left)} should now produce the
 penultimate configuration from the previous scenario from where we can
 continue as described before.
 
-   Another strategy starts with splitting an inital window @code{W6} by
+   Another strategy starts with splitting an initial window @code{W6} by
 evaluating @code{(split-window W6 nil nil t)} with the following result:
 @smallexample
 @group
@@ -1259,11 +1259,11 @@ configuration.
 @defopt window-splits
 If this variable is nil, the function @code{split-window} can split a
 window if and only if that window's screen estate is sufficiently large
-to accomodate both--itself and the new window.
+to accommodate both--itself and the new window.
 
 If this variable is non-@code{nil}, @code{split-window} tries to resize
 all windows that are part of the same combination as the old window to
-accomodate the new window.  Hence, the new window can be also created if
+accommodate the new window.  Hence, the new window can be also created if
 the old window is of fixed size or too small to split (@pxref{Window
 Sizes}).
 
