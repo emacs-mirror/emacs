@@ -304,11 +304,12 @@ The expansion is entirely correct because it uses the C preprocessor."
              (put-text-property (match-beginning 2) (match-end 2)
                                 'syntax-table (string-to-syntax "\""))
              (perl-syntax-propertize-special-constructs end)))))
-      ("\\(^\\|[?:.,;=!~({[ \t]\\)\\([msy]\\|q[qxrw]?\\|tr\\)\\>\\s-*\\([^])}> \n\t]\\)"
+      ("\\(^\\|[?:.,;=!~({[ \t]\\)\\([msy]\\|q[qxrw]?\\|tr\\)\\>\\s-*\\(?:\\([^])}>= \n\t]\\)\\|\\(?3:=\\)[^>]\\)"
        ;; Nasty cases:
        ;; /foo/m  $a->m  $#m $m @m %m
        ;; \s (appears often in regexps).
        ;; -s file
+       ;; y => 3
        ;; sub tr {...}
        (3 (ignore
            (if (save-excursion (goto-char (match-beginning 0))

@@ -1743,7 +1743,7 @@
 	auto-composition-function to it.
 	(toggle-auto-composition): New function.
 
-	* international/characters.el: Make all chararacters in the
+	* international/characters.el: Make all characters in the
 	charset tibetan to tibetan script.
 
 	* international/mule-conf.el (tibetan): Fix :code-space property.

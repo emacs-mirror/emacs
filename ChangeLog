@@ -1,3 +1,8 @@
+2011-09-28  Eli Zaretskii  <eliz@gnu.org>
+
+	* INSTALL: Mention that m17n libraries and libotf are needed for
+	Arabic shaping.
+
 2011-09-26  Paul Eggert  <eggert@cs.ucla.edu>
 
 	Merge from gnulib, improving some licensing wording.
