@@ -3,6 +3,11 @@
 	* plstore.el (plstore-select-keys, plstore-encrypt-to): Clarify
 	documentation.
 
+2011-09-27  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* gnus-uu.el (gnus-uu-grab-articles): Require gnus-async so that
+	`gnus-asynchronous' isn't shadowed.
+
 2011-09-26  Lars Magne Ingebrigtsen  <larsi@gnus.org>
 
 	* nnimap.el (nnimap-wait-for-response): Message less (bug#9540).

@@ -1290,6 +1290,7 @@ When called interactively, prompt for REGEXP."
 ;; the process-function has been successful and nil otherwise.
 (defun gnus-uu-grab-articles (articles process-function
 				       &optional sloppy limit no-errors)
+  (require 'gnus-async)
   (let ((state 'first)
 	(gnus-asynchronous nil)
 	(gnus-inhibit-treatment t)
