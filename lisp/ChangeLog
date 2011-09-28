@@ -1,5 +1,8 @@
 2011-09-28  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* progmodes/perl-mode.el (perl-syntax-propertize-function):
+	Don't confuse "y => 3" as the beginning of a `y' operation.
+
 	* emacs-lisp/debug.el (debug-convert-byte-code): Don't assume the
 	object has more than 4 slots (bug#9613).
 
