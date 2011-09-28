@@ -482,7 +482,10 @@ and DOC describes the way this style of completion works.")
     ;; and simply add "bar" to the end of the result.
     emacs22)
   "List of completion styles to use.
-The available styles are listed in `completion-styles-alist'."
+The available styles are listed in `completion-styles-alist'.
+
+Note that `completion-category-overrides' may override these
+styles for specific categories, such as files, buffers, etc."
   :type `(repeat (choice ,@(mapcar (lambda (x) (list 'const (car x)))
                                    completion-styles-alist)))
   :group 'minibuffer
@@ -490,7 +493,7 @@ The available styles are listed in `completion-styles-alist'."
 
 (defcustom completion-category-overrides
   '((buffer (styles . (basic substring))))
-  "List of overrides for specific categories.
+  "List of `completion-styles' overrides for specific categories.
 Each override has the shape (CATEGORY . ALIST) where ALIST is
 an association list that can specify properties such as:
 - `styles': the list of `completion-styles' to use for that category.

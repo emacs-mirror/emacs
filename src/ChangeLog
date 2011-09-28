@@ -1,3 +1,24 @@
+2011-09-28  Eli Zaretskii  <eliz@gnu.org>
+
+	* xdisp.c (compute_display_string_end): If there's no display
+	string at CHARPOS, return -1.
+
+	* bidi.c (bidi_fetch_char): When compute_display_string_end
+	returns a negative value, treat the character as a normal
+	character not covered by a display string.  (Bug#9624)
+
+2011-09-28  Juanma Barranquero  <lekktu@gmail.com>
+
+	* lread.c (Fread_from_string): Fix typo in docstring.
+
+2011-09-27  Eli Zaretskii  <eliz@gnu.org>
+
+	* xdisp.c (handle_invisible_prop): If invisible text ends on a
+	newline, reseat the iterator instead of bidi-iterating there one
+	character at a time.  (Bug#9610)
+	(BUFFER_POS_REACHED_P, move_it_in_display_line_to): Bail when past
+	TO_CHARPOS if the bidi iterator is at base embedding level.
+
 2011-09-27  Andreas Schwab  <schwab@linux-m68k.org>
 
 	* lread.c (readevalloop): Use correct code for NBSP.

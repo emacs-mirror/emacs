@@ -1,3 +1,37 @@
+2011-09-28  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* progmodes/perl-mode.el (perl-syntax-propertize-function):
+	Don't confuse "y => 3" as the beginning of a `y' operation.
+
+	* emacs-lisp/debug.el (debug-convert-byte-code): Don't assume the
+	object has more than 4 slots (bug#9613).
+
+2011-09-28  Juanma Barranquero  <lekktu@gmail.com>
+
+	* subr.el (with-output-to-temp-buffer):
+	* net/quickurl.el (quickurl, quickurl-browse-url):
+	Fix typos in docstrings.
+
+2011-09-27  Eli Zaretskii  <eliz@gnu.org>
+
+	* minibuffer.el (completion-styles)
+	(completion-category-overrides): Cross reference each other in doc
+	strings.
+
+2011-09-27  Glenn Morris  <rgm@gnu.org>
+
+	* pcmpl-cvs.el (pcmpl-cvs-entries): Update for Emacs 22.1 changes
+	to split-string.  (Bug#9606)
+
+2011-09-27  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* mail/smtpmail.el (smtpmail-via-smtp): Fix STARTTLS detection
+	(bug#9615).
+
+2011-09-27  Chong Yidong  <cyd@stupidchicken.com>
+
+	* emacs-lisp/package.el (list-packages): Fix echo area message.
+
 2011-09-27  Leo Liu  <sdl.web@gmail.com>
 
 	* ido.el (ido-read-internal): Accept cons cell HIST arg.

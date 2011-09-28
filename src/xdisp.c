@@ -3386,9 +3386,10 @@ compute_display_string_pos (struct text_pos *position,
 }
 
 /* Return the character position of the end of the display string that
-   started at CHARPOS.  A display string is either an overlay with
-   `display' property whose value is a string or a `display' text
-   property whose value is a string.  */
+   started at CHARPOS.  If there's no display string at CHARPOS,
+   return -1.  A display string is either an overlay with `display'
+   property whose value is a string or a `display' text property whose
+   value is a string.  */
 EMACS_INT
 compute_display_string_end (EMACS_INT charpos, struct bidi_string_data *string)
 {
@@ -3402,8 +3403,22 @@ compute_display_string_end (EMACS_INT charpos, struct bidi_string_data *string)
   if (charpos >= eob || (string->s && !STRINGP (object)))
     return eob;
 
+  /* It could happen that the display property or overlay was removed
+     since we found it in compute_display_string_pos above.  One way
+     this can happen is if JIT font-lock was called (through
+     handle_fontified_prop), and jit-lock-functions remove text
+     properties or overlays from the portion of buffer that includes
+     CHARPOS.  Muse mode is known to do that, for example.  In this
+     case, we return -1 to the caller, to signal that no display
+     string is actually present at CHARPOS.  See bidi_fetch_char for
+     how this is handled.
+
+     An alternative would be to never look for display properties past
+     it->stop_charpos.  But neither compute_display_string_pos nor
+     bidi_fetch_char that calls it know or care where the next
+     stop_charpos is.  */
   if (NILP (Fget_char_property (pos, Qdisplay, object)))
-    abort ();
+    return -1;
 
   /* Look forward for the first character where the `display' property
      changes.  */
@@ -4056,40 +4071,67 @@ handle_invisible_prop (struct it *it)
 	  /* The position newpos is now either ZV or on visible text.  */
 	  if (it->bidi_p && newpos < ZV)
 	    {
-	      /* With bidi iteration, the region of invisible text
-		 could start and/or end in the middle of a non-base
-		 embedding level.  Therefore, we need to skip
-		 invisible text using the bidi iterator, starting at
-		 IT's current position, until we find ourselves
-		 outside the invisible text.  Skipping invisible text
-		 _after_ bidi iteration avoids affecting the visual
-		 order of the displayed text when invisible properties
-		 are added or removed.  */
-	      if (it->bidi_it.first_elt && it->bidi_it.charpos < ZV)
+	      EMACS_INT bpos = CHAR_TO_BYTE (newpos);
+
+	      if (FETCH_BYTE (bpos) == '\n'
+		  || (newpos > BEGV && FETCH_BYTE (bpos - 1) == '\n'))
 		{
-		  /* If we were `reseat'ed to a new paragraph,
-		     determine the paragraph base direction.  We need
-		     to do it now because next_element_from_buffer may
-		     not have a chance to do it, if we are going to
-		     skip any text at the beginning, which resets the
-		     FIRST_ELT flag.  */
-		  bidi_paragraph_init (it->paragraph_embedding,
-				       &it->bidi_it, 1);
+		  /* If the invisible text ends on a newline or the
+		     character after a newline, we can avoid the
+		     costly, character by character, bidi iteration to
+		     newpos, and instead simply reseat the iterator
+		     there.  That's because all bidi reordering
+		     information is tossed at the newline.  This is a
+		     big win for modes that hide complete lines, like
+		     Outline, Org, etc.  (Implementation note: the
+		     call to reseat_1 is necessary, because it signals
+		     to the bidi iterator that it needs to reinit its
+		     internal information when the next element for
+		     display is requested.  */
+		  struct text_pos tpos;
+
+		  SET_TEXT_POS (tpos, newpos, bpos);
+		  reseat_1 (it, tpos, 0);
 		}
-	      do
+	      else	/* Must use the slow method.  */
 		{
-		  bidi_move_to_visually_next (&it->bidi_it);
+		  /* With bidi iteration, the region of invisible text
+		     could start and/or end in the middle of a
+		     non-base embedding level.  Therefore, we need to
+		     skip invisible text using the bidi iterator,
+		     starting at IT's current position, until we find
+		     ourselves outside the invisible text.  Skipping
+		     invisible text _after_ bidi iteration avoids
+		     affecting the visual order of the displayed text
+		     when invisible properties are added or
+		     removed.  */
+		  if (it->bidi_it.first_elt && it->bidi_it.charpos < ZV)
+		    {
+		      /* If we were `reseat'ed to a new paragraph,
+			 determine the paragraph base direction.  We
+			 need to do it now because
+			 next_element_from_buffer may not have a
+			 chance to do it, if we are going to skip any
+			 text at the beginning, which resets the
+			 FIRST_ELT flag.  */
+		      bidi_paragraph_init (it->paragraph_embedding,
+					   &it->bidi_it, 1);
+		    }
+		  do
+		    {
+		      bidi_move_to_visually_next (&it->bidi_it);
+		    }
+		  while (it->stop_charpos <= it->bidi_it.charpos
+			 && it->bidi_it.charpos < newpos);
+		  IT_CHARPOS (*it) = it->bidi_it.charpos;
+		  IT_BYTEPOS (*it) = it->bidi_it.bytepos;
+		  /* If we overstepped NEWPOS, record its position in
+		     the iterator, so that we skip invisible text if
+		     later the bidi iteration lands us in the
+		     invisible region again. */
+		  if (IT_CHARPOS (*it) >= newpos)
+		    it->prev_stop = newpos;
 		}
-	      while (it->stop_charpos <= it->bidi_it.charpos
-		     && it->bidi_it.charpos < newpos);
-	      IT_CHARPOS (*it) = it->bidi_it.charpos;
-	      IT_BYTEPOS (*it) = it->bidi_it.bytepos;
-	      /* If we overstepped NEWPOS, record its position in the
-		 iterator, so that we skip invisible text if later the
-		 bidi iteration lands us in the invisible region
-		 again. */
-	      if (IT_CHARPOS (*it) >= newpos)
-		it->prev_stop = newpos;
 	    }
 	  else
 	    {
@@ -7880,7 +7922,9 @@ move_it_in_display_line_to (struct it *it,
   ((op & MOVE_TO_POS) != 0					\
    && BUFFERP (it->object)					\
    && (IT_CHARPOS (*it) == to_charpos				\
-       || (!it->bidi_p && IT_CHARPOS (*it) > to_charpos)	\
+       || ((!it->bidi_p						\
+	    || BIDI_AT_BASE_LEVEL (it->bidi_it))		\
+	   && IT_CHARPOS (*it) > to_charpos)			\
        || (it->what == IT_COMPOSITION				\
 	   && ((IT_CHARPOS (*it) > to_charpos			\
 		&& to_charpos >= it->cmp_it.charpos)		\
@@ -7912,7 +7956,13 @@ move_it_in_display_line_to (struct it *it,
       if ((op & MOVE_TO_POS) != 0
 	  && BUFFERP (it->object)
 	  && it->method == GET_FROM_BUFFER
-	  && ((!it->bidi_p && IT_CHARPOS (*it) > to_charpos)
+	  && (((!it->bidi_p
+		/* When the iterator is at base embedding level, we
+		   are guaranteed that characters are delivered for
+		   display in strictly increasing order of their
+		   buffer positions.  */
+		|| BIDI_AT_BASE_LEVEL (it->bidi_it))
+	       && IT_CHARPOS (*it) > to_charpos)
 	      || (it->bidi_p
 		  && (prev_method == GET_FROM_IMAGE
 		      || prev_method == GET_FROM_STRETCH

@@ -1658,10 +1658,11 @@ The list is displayed in a buffer named `*Packages*'."
     (switch-to-buffer buf))
   (let ((upgrades (package-menu--find-upgrades)))
     (if upgrades
-	(message "%d package%s can be upgraded; type `%s' to mark them for upgrading."
+	(message "%d package%s can be upgraded; type `%s' to mark %s for upgrading."
 		 (length upgrades)
 		 (if (= (length upgrades) 1) "" "s")
-		 (substitute-command-keys "\\[package-menu-mark-upgrades]")))))
+		 (substitute-command-keys "\\[package-menu-mark-upgrades]")
+		 (if (= (length upgrades) 1) "it" "them")))))
 
 ;;;###autoload
 (defalias 'package-list-packages 'list-packages)
