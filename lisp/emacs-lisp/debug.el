@@ -869,8 +869,10 @@ To specify a nil argument interactively, exit with an empty minibuffer."
                  ,defn
                  ,@(remq '&rest (remq '&optional args))))))
 	(if (> (length defn) 5)
+            ;; The mere presence of field 5 is sufficient to make
+            ;; it interactive.
 	    (push `(interactive ,(aref defn 5)) body))
-	(if (aref defn 4)
+	(if (and (> (length defn) 4) (aref defn 4))
 	    ;; Use `documentation' here, to get the actual string,
 	    ;; in case the compiled function has a reference
 	    ;; to the .elc file.

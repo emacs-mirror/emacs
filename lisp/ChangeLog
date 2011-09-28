@@ -1,3 +1,8 @@
+2011-09-28  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* emacs-lisp/debug.el (debug-convert-byte-code): Don't assume the
+	object has more than 4 slots (bug#9613).
+
 2011-09-28  Juanma Barranquero  <lekktu@gmail.com>
 
 	* subr.el (with-output-to-temp-buffer):
