@@ -1,3 +1,9 @@
+2011-09-29  Martin Rudalics  <rudalics@gmx.at>
+
+	* startup.el (command-line-1): Use insert-before-markers when
+	inserting initial-scratch-message.  (Bug#9605)
+	* help.el (help-window): Remove variable.
+
 2011-09-29  Glenn Morris  <rgm@gnu.org>
 
 	* pcmpl-cvs.el (pcomplete/cvs): Add "status" handler.

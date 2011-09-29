@@ -37,17 +37,6 @@
 (add-hook 'temp-buffer-setup-hook 'help-mode-setup)
 (add-hook 'temp-buffer-show-hook 'help-mode-finish)
 
-;; The variable `help-window' below is used by `help-mode-finish' to
-;; communicate the window displaying help (the "help window") to the
-;; macro `with-help-window'.  The latter sets `help-window' to t before
-;; invoking `with-output-to-temp-buffer'.  If and only if `help-window'
-;; is eq to t, `help-mode-finish' (called by `temp-buffer-setup-hook')
-;; sets `help-window' to the window selected by `display-buffer'.
-;; Exiting `with-help-window' and calling `help-print-return-message'
-;; reset `help-window' to nil.
-(defvar help-window nil
-  "Window chosen for displaying help.")
-
 ;; `help-window-point-marker' is a marker you can move to a valid
 ;; position of the buffer shown in the help window in order to override
 ;; the standard positioning mechanism (`point-min') chosen by
