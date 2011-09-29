@@ -329,7 +329,7 @@ goto End
 :gdbinitOk
 Echo Looking for the GDB init file...found
 rem GNUMakefile is not appropriate for MS-DOS so move it out of the way
-If Exist GNUMakefile mv -f GNUMakefile GNUMakefile.unix
+If Exist GNUmakefile mv -f GNUmakefile GNUmakefile.unix
 copy msdos\mainmake.v2 Makefile >nul
 rem   ----------------------------------------------------------------------
 goto End
