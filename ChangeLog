@@ -1,8 +1,8 @@
 2011-09-29  Eli Zaretskii  <eliz@gnu.org>
 
-	* .bzrignore: Add ./GNUMakefile.unix.
+	* .bzrignore: Add ./GNUmakefile.unix.
 
-	* config.bat: Rename GNUMakefile, so it is not run on MS-DOS.
+	* config.bat: Rename GNUmakefile, so it is not run on MS-DOS.
 	Rename signal.in.h and alloca.in.h.
 
 2011-09-28  Eli Zaretskii  <eliz@gnu.org>
