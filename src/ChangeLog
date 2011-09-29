@@ -1,3 +1,13 @@
+2011-09-29  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* alloc.c: Do not assume sizeof (size_t) is a multiple of 8
+	when debugging.
+	(alignof, XMALLOC_BASE_ALIGNMENT, XMALLOC_HEADER_ALIGNMENT)
+	(XMALLOC_OVERRUN_SIZE_SIZE): New macros.
+	(XMALLOC_OVERRUN_CHECK_OVERHEAD, xmalloc_put_size, xmalloc_get_size)
+	(overrun_check_malloc, overrun_check_realloc, overrun_check_free):
+	Replace uses of sizeof (size_t) with XMALLOC_OVERRUN_SIZE_SIZE.
+
 2011-09-28  Paul Eggert  <eggert@cs.ucla.edu>
 
 	* alloc.c (pure_bytes_used_lisp, pure_bytes_used_non_lisp):
