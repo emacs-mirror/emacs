@@ -62,7 +62,7 @@ lib/SYS
 lib/time.h
 lib/unistd.h
 lib/warn-on-use.h
-lib/.in-h
+lib/alloca.in-h
 lib/getopt.in-h
 lib/signal.in-h
 lib/signal.h
