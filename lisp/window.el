@@ -3833,7 +3833,14 @@ element is BUFFER."
        (list 'other
 	     ;; A quadruple of WINDOW's buffer, start, point and height.
 	     (list (window-buffer window) (window-start window)
-		   (window-point window) (window-total-size window))
+		   (if (eq window (selected-window))
+		       ;; When WINDOW is the selected window use its
+		       ;; buffer's `point' instead of `window-point'
+		       ;; (Bug#9626).
+		       (with-current-buffer (window-buffer window)
+			 (point))
+		     (window-point window))
+		   (window-total-size window))
 	     (selected-window) buffer))))
    ((eq type 'window)
     ;; WINDOW has been created on an existing frame.

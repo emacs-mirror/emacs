@@ -2318,7 +2318,10 @@ A fancy display is used on graphic displays, normal otherwise."
 	 (get-buffer "*scratch*")
 	 (with-current-buffer "*scratch*"
 	   (when (zerop (buffer-size))
-	     (insert initial-scratch-message)
+	     ;; Insert before markers to make sure that window-point
+	     ;; appears at end of buffer when *scratch* is displayed
+	     ;; (Bug#9605).
+	     (insert-before-markers initial-scratch-message)
 	     (set-buffer-modified-p nil))))
 
     (if (or inhibit-startup-screen

@@ -589,9 +589,9 @@ If the region is active, only delete whitespace within the region."
         ;; Delete trailing empty lines.
         (goto-char end-marker)
         (when (and (not end)
-                   (<= (skip-chars-backward "\n") -2)
                    ;; Really the end of buffer.
-                   (save-restriction (widen) (eobp)))
+                   (save-restriction (widen) (eobp))
+                   (<= (skip-chars-backward "\n") -2))
           (delete-region (1+ (point)) end-marker))
         (set-marker end-marker nil))))
   ;; Return nil for the benefit of `write-file-functions'.
@@ -4244,7 +4244,9 @@ screen, instead of relying on buffer contents alone.  It takes
 into account variable-width characters and line continuation.
 If nil, `line-move' moves point by logical lines.
 A non-nil setting of `goal-column' overrides the value of this variable
-and forces movement by logical lines."
+and forces movement by logical lines.
+Disabling `auto-hscroll-mode' also overrides forces movement by logical
+lines when the window is horizontally scrolled."
   :type 'boolean
   :group 'editing-basics
   :version "23.1")
@@ -4321,7 +4323,15 @@ and forces movement by logical lines."
 	       (not executing-kbd-macro)
 	       (line-move-partial arg noerror to-end))
     (set-window-vscroll nil 0 t)
-    (if (and line-move-visual (not goal-column))
+    (if (and line-move-visual
+	     ;; Display-based column are incompatible with goal-column.
+	     (not goal-column)
+	     ;; When auto-hscroll-mode is turned off and the text in
+	     ;; the window is scrolled to the left, display-based
+	     ;; motion doesn't make sense (because each logical line
+	     ;; occupies exactly one screen line).
+	     (not (and (null auto-hscroll-mode)
+		       (> (window-hscroll) 0))))
 	(line-move-visual arg noerror)
       (line-move-1 arg noerror to-end))))
 

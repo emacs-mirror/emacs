@@ -1,3 +1,39 @@
+2011-09-29  Eli Zaretskii  <eliz@gnu.org>
+
+	* mainmake.v2 (boot): Condition the value on the existence of
+	autogen/README, not admin/admin.el, since the latter is now part
+	of the release tarball.
+	(install): Don't copy lib-src/fns.el, as that file is no longer
+	generated in that directory.
+
+	* sed1v2.inp (LIB_PTHREAD, LIB_PTHREAD_SIGMASK): Edit to empty.
+	(SETTINGS_CFLAGS, SETTINGS_LIBS): Edit these instead of
+	GCONF_CFLAGS and GCONF_LIBS.
+
+	* sedlibmk.inp (ALLOCA_H, AR, ARFLAGS, GNULIB_CHDIR, GNULIB_DUP)
+	(GNULIB_FDATASYNC, GNULIB_FDOPEN, GNULIB_FSTAT, GNULIB_PCLOSE)
+	(GNULIB_PTHREAD_SIGMASK, GNULIB_RAISE, GNULIB_SIGACTION)
+	(GNULIB_SIGPROCMASK, GNULIB_SIGNAL_H_SIGPIPE, HAVE_FDATASYNC)
+	(HAVE_PCLOSE, HAVE_POPEN, HAVE_POSIX_SIGNALBLOCKING)
+	(HAVE_PTHREAD_SIGMASK, HAVE_RAISE, HAVE_SIGACTION)
+	(HAVE_SIGHANDLER_T, HAVE_SIGINFO_T, HAVE_SIGSET_T)
+	(HAVE_STRUCT_SIGACTION_SA_SIGACTION)
+	(HAVE_TYPE_VOLATILE_SIG_ATOMIC_T, LIB_PTHREAD)
+	(LIB_PTHREAD_SIGMASK, NEXT_AS_FIRST_DIRECTIVE_SIGNAL_H)
+	(NEXT_SIGNAL_H, REPLACE_FDOPEN, REPLACE_PTHREAD_SIGMASK)
+	(REPLACE_RAISE): New edits.
+	(gl_LIBOBJS): Remove md5.o, filemode.o, and sha1.o.  Add
+	pthread_sigmask.o.
+	(@GL_GENERATE_ALLOCA_H_TRUE@, @GL_GENERATE_ALLOCA_H_FALSE@): Edit
+	to comment out unneeded lines.
+	(warn-on-use.h): Edit the recipe commands to work with DJGPP
+	without requiring a Unixy shell.
+
+	* inttypes.h (strtoimax) [DJGPP < 2.04]: New macro.
+
+	* sed2v2.inp (HAVE_ALLOCA, HAVE_DECL_STRTOLL, HAVE_DECL_STRTOIMAX)
+	(HAVE_STRTOLL, HAVE_SIGSET_T, HAVE_SNPRINTF): New edits.
+
 2011-09-06  Paul Eggert  <eggert@cs.ucla.edu>
 
 	* sedlibmk.inp (CONFIG_CLEAN_VPATH_FILES): Adjust to snippet moves
