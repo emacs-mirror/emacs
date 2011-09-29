@@ -53,6 +53,7 @@ s/\.h\.in/.h-in/
 /^LIB_GCC *=/s/@LIB_GCC@//
 /^LIB_STANDARD *=/s/@LIB_STANDARD@//
 /^LIB_MATH *=/s/@LIB_MATH@/-lm/
+/^LIB_PTHREAD *=/s/@LIB_PTHREAD@//
 /^LIBTIFF *=/s/@LIBTIFF@//
 /^LIBJPEG *=/s/@LIBJPEG@//
 /^LIBPNG *=/s/@LIBPNG@//
@@ -70,8 +71,8 @@ s/\.h\.in/.h-in/
 /^DBUS_CFLAGS *=/s/@DBUS_CFLAGS@//
 /^DBUS_LIBS *=/s/@DBUS_LIBS@//
 /^DBUS_OBJ *=/s/@DBUS_OBJ@//
-/^GCONF_CFLAGS *=/s/@GCONF_CFLAGS@//
-/^GCONF_LIBS *=/s/@GCONF_LIBS@//
+/^SETTINGS_CFLAGS *=/s/@SETTINGS_CFLAGS@//
+/^SETTINGS_LIBS *=/s/@SETTINGS_LIBS@//
 /^GTK_OBJ *=/s/@GTK_OBJ@//
 /^LIBS_TERMCAP *=/s/@LIBS_TERMCAP@//
 /^TERMCAP_OBJ *=/s/@TERMCAP_OBJ@/termcap.o tparam.o/
@@ -102,6 +103,7 @@ s/\.h\.in/.h-in/
 /^GNU_OBJC_CFLAGS*=/s/@GNU_OBJC_CFLAGS@//
 /^LIBRESOLV *=/s/@LIBRESOLV@//
 /^LIBSELINUX_LIBS *=/s/@LIBSELINUX_LIBS@//
+/^LIB_PTHREAD_SIGMASK *=/s/@[^@\n]*@//
 /^LIBGNUTLS_LIBS *=/s/@[^@\n]*@//
 /^LIBGNUTLS_CFLAGS *=/s/@[^@\n]*@//
 /^GETLOADAVG_LIBS *=/s/@[^@\n]*@//

@@ -279,8 +279,10 @@ If Exist build-aux\snippet\c++defs.h update build-aux/snippet/c++defs.h build-au
 cd lib
 Rem Rename files like djtar on plain DOS filesystem would.
 If Exist build-aux\snippet\c++defs.h update build-aux/snippet/c++defs.h build-aux/snippet/cxxdefs.h
+If Exist alloca.in.h update alloca.in.h alloca.in-h
 If Exist getopt.in.h update getopt.in.h getopt.in-h
 If Exist stdbool.in.h update stdbool.in.h stdbool.in-h
+If Exist signal.in.h update signal.in.h signal.in-h
 If Exist stddef.in.h update stddef.in.h  stddef.in-h
 If Exist stdint.in.h update stdint.in.h  stdint.in-h
 If Exist stdio.in.h update stdio.in.h stdio.in-h
@@ -326,6 +328,8 @@ Echo Then run CONFIG.BAT again with the same arguments you did now.
 goto End
 :gdbinitOk
 Echo Looking for the GDB init file...found
+rem GNUMakefile is not appropriate for MS-DOS so move it out of the way
+If Exist GNUmakefile mv -f GNUmakefile GNUmakefile.unix
 copy msdos\mainmake.v2 Makefile >nul
 rem   ----------------------------------------------------------------------
 goto End

@@ -1844,7 +1844,11 @@ snprintf (char *buf, size_t bufsize, char const *format, ...)
 
   if (INT_MAX < nbytes)
     {
+#ifdef EOVERFLOW
       errno = EOVERFLOW;
+#else
+      errno = EDOM;
+#endif
       return -1;
     }
   return nbytes;

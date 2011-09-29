@@ -64,12 +64,13 @@ MAKESHELL=/xyzzy/command
 top_srcdir := $(subst \,/,$(shell cd))
 
 # Q: Do we need to bootstrap?
-# A: Only if we find admin/admin.el, i.e. we are building out of 
-#    a VCS-checkout (not a release) and src/b-emacs.exe does not exist.
+# A: Only if we find autogen/README, i.e. we are building out of
+#    a VCS-checkout (not a release), and src/b-emacs.exe does not exist.
 #    This avoids building a bootstrap-emacs and recompiling Lisp files
-#    when building a pretest/release tarball.
+#    when building a pretest/release tarball.  Recompiling Lisp files
+#    is BAD because lisp/Makefile.in requires a Unixy shell.
 boot :=
-ifneq ($(wildcard admin/admin.el),)
+ifneq ($(wildcard autogen/README),)
 ifeq ($(wildcard src/b-emacs.exe),)
 boot := b-emacs.exe
 endif
@@ -132,7 +133,6 @@ install: all
 	cd lib-src
 	command.com /c >/dev/null for %p in (hexl etags ctags ebrowse) do\
 	   if exist %p.exe mv -f %p.exe ../bin
-	if exist fns.el update fns.el ../bin/fns.el
 	cd ..
 	cd src
 	mv -f emacs.exe ../bin/

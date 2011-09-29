@@ -26,6 +26,7 @@ emacs-*/
 makefile
 Makefile
 Makefile.c
+./GNUmakefile.unix
 stamp-h1
 stamp_BLD
 subdirs.el

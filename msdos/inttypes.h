@@ -30,6 +30,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #else  /* __DJGPP__ < 2.04 */
 #include <stdlib.h>
 #define strtoumax strtoull
+#define strtoimax strtoll
 #endif	/* __DJGPP__ < 2.04 */
 
 #endif

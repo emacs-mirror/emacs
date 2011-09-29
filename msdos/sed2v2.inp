@@ -26,6 +26,7 @@
 #define NSIG 320\
 #endif
 
+/^#undef HAVE_ALLOCA *$/s/^.*$/#define HAVE_ALLOCA 1/
 /^#undef HAVE_SETITIMER *$/s/^.*$/#define HAVE_SETITIMER 1/
 /^#undef HAVE_STRUCT_UTIMBUF *$/s/^.*$/#define HAVE_STRUCT_UTIMBUF 1/
 /^#undef LOCALTIME_CACHE *$/s/^.*$/#define LOCALTIME_CACHE 1/
@@ -100,10 +101,19 @@ s/^#undef POINTER_TYPE *$/#define POINTER_TYPE void/
 #else\
 #undef HAVE_STDINT_H\
 #endif
+s/^#undef HAVE_DECL_STRTOLL *$/#define HAVE_DECL_STRTOLL 1/
 s/^#undef HAVE_DECL_STRTOULL *$/#define HAVE_DECL_STRTOULL 1/
+s/^#undef HAVE_DECL_STRTOIMAX *$/#define HAVE_DECL_STRTOIMAX 1/
 s/^#undef HAVE_DECL_STRTOUMAX *$/#define HAVE_DECL_STRTOUMAX 1/
+s/^#undef HAVE_STRTOLL *$/#define HAVE_STRTOLL 1/
 s/^#undef HAVE_STRTOULL *$/#define HAVE_STRTOULL 1/
-s/^#undef HAVE_STRTOULL *$/#define HAVE_STRTOULL 1/
+/^#undef HAVE_SIGSET_T *$/s/^.*$/#define HAVE_SIGSET_T 1/
+/^#undef HAVE_SNPRINTF/c\
+#if __DJGPP__ > 2 || __DJGPP_MINOR__ > 3\
+#define HAVE_SNPRINTF 1\
+#else\
+#undef HAVE_SNPRINTF\
+#endif
 
 # Comment out any remaining undef directives, because some of them
 # might be defined in sys/config.h we include at the top of config.h.
