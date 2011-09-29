@@ -107,6 +107,10 @@
 		    "j(pcmpl-cvs-tags '(?U ?P))"
 		    "I(pcmpl-cvs-entries '(??))W?"))
 	   (while (pcomplete-here (pcmpl-cvs-entries '(?U ?P)))))
+	  ((pcomplete-test "status")
+	   (setq pcomplete-help "(cvs)File status")
+	   (pcomplete-opt "vlR")
+	   (while (pcomplete-here (pcmpl-cvs-entries))))
 	  (t
 	   (while (pcomplete-here (pcmpl-cvs-entries)))))))
 
