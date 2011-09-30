@@ -2,7 +2,7 @@
 
 	* startup.el (command-line-1): Fix last fix by inserting
 	initial-scratch-message into *scratch* before displaying it.
-	(Bug#9626) and (Bug#9636)
+	(Bug#9605) and (Bug#9636)
 
 2011-09-29  Eli Zaretskii  <eliz@gnu.org>
 
