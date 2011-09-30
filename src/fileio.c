@@ -5344,7 +5344,7 @@ A non-nil CURRENT-ONLY argument means save only current buffer.  */)
 	    EMACS_GET_TIME (before_time);
 
 	    /* If we had a failure, don't try again for 20 minutes.  */
-	    if (b->auto_save_failure_time >= 0
+	    if (b->auto_save_failure_time > 0
 		&& EMACS_SECS (before_time) - b->auto_save_failure_time < 1200)
 	      continue;
 
@@ -5423,7 +5423,7 @@ No auto-save file will be written until the buffer changes again.  */)
      they're not autosaved.  */
   BUF_AUTOSAVE_MODIFF (current_buffer) = MODIFF;
   XSETFASTINT (BVAR (current_buffer, save_length), Z - BEG);
-  current_buffer->auto_save_failure_time = -1;
+  current_buffer->auto_save_failure_time = 0;
   return Qnil;
 }
 
@@ -5432,7 +5432,7 @@ DEFUN ("clear-buffer-auto-save-failure", Fclear_buffer_auto_save_failure,
        doc: /* Clear any record of a recent auto-save failure in the current buffer.  */)
   (void)
 {
-  current_buffer->auto_save_failure_time = -1;
+  current_buffer->auto_save_failure_time = 0;
   return Qnil;
 }
 
