@@ -482,27 +482,10 @@ buffer_memory_full (EMACS_INT nbytes)
   xsignal (Qnil, Vmemory_signal_data);
 }
 
-
-#ifndef XMALLOC_OVERRUN_CHECK
-#define XMALLOC_OVERRUN_CHECK_OVERHEAD 0
-#else
+#ifdef XMALLOC_OVERRUN_CHECK
 
 /* Check for overrun in malloc'ed buffers by wrapping a header and trailer
-   around each block.
-
-   The header consists of 16 fixed bytes followed by sizeof (size_t) bytes
-   containing the original block size in little-endian order,
-   while the trailer consists of 16 fixed bytes.
-
-   The header is used to detect whether this block has been allocated
-   through these functions -- as it seems that some low-level libc
-   functions may bypass the malloc hooks.
-*/
-
-
-#define XMALLOC_OVERRUN_CHECK_SIZE 16
-#define XMALLOC_OVERRUN_CHECK_OVERHEAD \
-  (2 * XMALLOC_OVERRUN_CHECK_SIZE + sizeof (size_t))
+   around each block.  */
 
 static char const xmalloc_overrun_check_header[XMALLOC_OVERRUN_CHECK_SIZE] =
   { '\x9a', '\x9b', '\xae', '\xaf',
@@ -522,9 +505,9 @@ static void
 xmalloc_put_size (unsigned char *ptr, size_t size)
 {
   int i;
-  for (i = 0; i < sizeof (size_t); i++)
+  for (i = 0; i < XMALLOC_OVERRUN_SIZE_SIZE; i++)
     {
-      *--ptr = size & (1 << CHAR_BIT) - 1;
+      *--ptr = size & ((1 << CHAR_BIT) - 1);
       size >>= CHAR_BIT;
     }
 }
@@ -534,8 +517,8 @@ xmalloc_get_size (unsigned char *ptr)
 {
   size_t size = 0;
   int i;
-  ptr -= sizeof (size_t);
-  for (i = 0; i < sizeof (size_t); i++)
+  ptr -= XMALLOC_OVERRUN_SIZE_SIZE;
+  for (i = 0; i < XMALLOC_OVERRUN_SIZE_SIZE; i++)
     {
       size <<= CHAR_BIT;
       size += *ptr++;
@@ -579,7 +562,7 @@ overrun_check_malloc (size_t size)
   if (val && check_depth == 1)
     {
       memcpy (val, xmalloc_overrun_check_header, XMALLOC_OVERRUN_CHECK_SIZE);
-      val += XMALLOC_OVERRUN_CHECK_SIZE + sizeof (size_t);
+      val += XMALLOC_OVERRUN_CHECK_SIZE + XMALLOC_OVERRUN_SIZE_SIZE;
       xmalloc_put_size (val, size);
       memcpy (val + size, xmalloc_overrun_check_trailer,
 	      XMALLOC_OVERRUN_CHECK_SIZE);
@@ -603,7 +586,7 @@ overrun_check_realloc (POINTER_TYPE *block, size_t size)
   if (val
       && check_depth == 1
       && memcmp (xmalloc_overrun_check_header,
-		 val - XMALLOC_OVERRUN_CHECK_SIZE - sizeof (size_t),
+		 val - XMALLOC_OVERRUN_CHECK_SIZE - XMALLOC_OVERRUN_SIZE_SIZE,
 		 XMALLOC_OVERRUN_CHECK_SIZE) == 0)
     {
       size_t osize = xmalloc_get_size (val);
@@ -611,8 +594,8 @@ overrun_check_realloc (POINTER_TYPE *block, size_t size)
 		  XMALLOC_OVERRUN_CHECK_SIZE))
 	abort ();
       memset (val + osize, 0, XMALLOC_OVERRUN_CHECK_SIZE);
-      val -= XMALLOC_OVERRUN_CHECK_SIZE + sizeof (size_t);
-      memset (val, 0, XMALLOC_OVERRUN_CHECK_SIZE + sizeof (size_t));
+      val -= XMALLOC_OVERRUN_CHECK_SIZE + XMALLOC_OVERRUN_SIZE_SIZE;
+      memset (val, 0, XMALLOC_OVERRUN_CHECK_SIZE + XMALLOC_OVERRUN_SIZE_SIZE);
     }
 
   val = (unsigned char *) realloc ((POINTER_TYPE *)val, size + overhead);
@@ -620,7 +603,7 @@ overrun_check_realloc (POINTER_TYPE *block, size_t size)
   if (val && check_depth == 1)
     {
       memcpy (val, xmalloc_overrun_check_header, XMALLOC_OVERRUN_CHECK_SIZE);
-      val += XMALLOC_OVERRUN_CHECK_SIZE + sizeof (size_t);
+      val += XMALLOC_OVERRUN_CHECK_SIZE + XMALLOC_OVERRUN_SIZE_SIZE;
       xmalloc_put_size (val, size);
       memcpy (val + size, xmalloc_overrun_check_trailer,
 	      XMALLOC_OVERRUN_CHECK_SIZE);
@@ -640,7 +623,7 @@ overrun_check_free (POINTER_TYPE *block)
   if (val
       && check_depth == 1
       && memcmp (xmalloc_overrun_check_header,
-		 val - XMALLOC_OVERRUN_CHECK_SIZE - sizeof (size_t),
+		 val - XMALLOC_OVERRUN_CHECK_SIZE - XMALLOC_OVERRUN_SIZE_SIZE,
 		 XMALLOC_OVERRUN_CHECK_SIZE) == 0)
     {
       size_t osize = xmalloc_get_size (val);
@@ -648,12 +631,12 @@ overrun_check_free (POINTER_TYPE *block)
 		  XMALLOC_OVERRUN_CHECK_SIZE))
 	abort ();
 #ifdef XMALLOC_CLEAR_FREE_MEMORY
-      val -= XMALLOC_OVERRUN_CHECK_SIZE + sizeof (size_t);
+      val -= XMALLOC_OVERRUN_CHECK_SIZE + XMALLOC_OVERRUN_SIZE_SIZE;
       memset (val, 0xff, osize + XMALLOC_OVERRUN_CHECK_OVERHEAD);
 #else
       memset (val + osize, 0, XMALLOC_OVERRUN_CHECK_SIZE);
-      val -= XMALLOC_OVERRUN_CHECK_SIZE + sizeof (size_t);
-      memset (val, 0, XMALLOC_OVERRUN_CHECK_SIZE + sizeof (size_t));
+      val -= XMALLOC_OVERRUN_CHECK_SIZE + XMALLOC_OVERRUN_SIZE_SIZE;
+      memset (val, 0, XMALLOC_OVERRUN_CHECK_SIZE + XMALLOC_OVERRUN_SIZE_SIZE);
 #endif
     }
 

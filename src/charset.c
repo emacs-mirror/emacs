@@ -2337,7 +2337,7 @@ syms_of_charset (void)
      mmap for larger allocations, and these don't work well across dumped
      systems.  */
   enum {
-    initial_malloc_max = (1 << 16) - 1,
+    initial_malloc_max = (1 << 16) - 1 - XMALLOC_OVERRUN_CHECK_OVERHEAD,
     charset_table_size_init = initial_malloc_max / sizeof (struct charset)
   };
 
