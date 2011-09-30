@@ -1,3 +1,7 @@
+2011-09-30  Glenn Morris  <rgm@gnu.org>
+
+	* commands.texi (Keys): Whitespace fix.  (Bug#9635)
+
 2011-09-24  Chong Yidong  <cyd@stupidchicken.com>
 
 	* windows.texi (Pop Up Window): Defer discussion of window

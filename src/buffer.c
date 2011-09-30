@@ -724,7 +724,7 @@ reset_buffer (register struct buffer *b)
   b->prevent_redisplay_optimizations_p = 1;
   BVAR (b, backed_up) = Qnil;
   BUF_AUTOSAVE_MODIFF (b) = 0;
-  b->auto_save_failure_time = -1;
+  b->auto_save_failure_time = 0;
   BVAR (b, auto_save_file_name) = Qnil;
   BVAR (b, read_only) = Qnil;
   b->overlays_before = NULL;

@@ -1,5 +1,13 @@
 2011-09-30  Paul Eggert  <eggert@cs.ucla.edu>
 
+	* buffer.h (struct buffer): Use time_t, not int, for a time stamp.
+	This fixes a Y2038 bug on 64-bit hosts.
+	* buffer.c (reset_buffer):
+	* fileio.c (Fdo_auto_save, Fset_buffer_auto_saved)
+	(Fclear_buffer_auto_save_failure):
+	Use 0, not -1, to represent an unset failure time, since time_t
+	might not be signed.
+
 	Remove dependency on glibc malloc internals.
 	* alloc.c (XMALLOC_OVERRUN_CHECK_OVERHEAD, XMALLOC_OVERRUN_CHECK_SIZE):
 	Move back here from lisp.h, but with their new implementations.
