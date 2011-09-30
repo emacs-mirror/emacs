@@ -2307,22 +2307,25 @@ A fancy display is used on graphic displays, normal otherwise."
 	    ;; abort later.
 	    (unless (frame-live-p (selected-frame)) (kill-emacs nil))))))
 
+    (when (eq initial-buffer-choice t)
+      ;; When initial-buffer-choice equals t make sure that *scratch*
+      ;; exists.
+      (get-buffer-create "*scratch*"))
+
+    ;; If *scratch* exists and is empty, insert initial-scratch-message.
+    ;; Do this before switching to *scratch* below to handle bug#9605.
+    (and initial-scratch-message
+	 (get-buffer "*scratch*")
+	 (with-current-buffer "*scratch*"
+	   (when (zerop (buffer-size))
+	     (insert initial-scratch-message)
+	     (set-buffer-modified-p nil))))
+
     (when initial-buffer-choice
       (cond ((eq initial-buffer-choice t)
 	     (switch-to-buffer (get-buffer-create "*scratch*")))
 	    ((stringp initial-buffer-choice)
 	     (find-file initial-buffer-choice))))
-
-    ;; If *scratch* exists and is empty, insert initial-scratch-message.
-    (and initial-scratch-message
-	 (get-buffer "*scratch*")
-	 (with-current-buffer "*scratch*"
-	   (when (zerop (buffer-size))
-	     ;; Insert before markers to make sure that window-point
-	     ;; appears at end of buffer when *scratch* is displayed
-	     ;; (Bug#9605).
-	     (insert-before-markers initial-scratch-message)
-	     (set-buffer-modified-p nil))))
 
     (if (or inhibit-startup-screen
 	    initial-buffer-choice

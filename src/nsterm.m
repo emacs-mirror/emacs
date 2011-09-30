@@ -5357,7 +5357,23 @@ ns_term_shutdown (int sig)
      a "windowDidResize" which calls x_set_window_size).  */
 #ifndef NS_IMPL_GNUSTEP
   if (cols > 0 && rows > 0)
-    x_set_window_size (emacsframe, 0, cols, rows);
+    {
+      if (ns_in_resize)
+        x_set_window_size (emacsframe, 0, cols, rows);
+      else
+        {
+          NSWindow *window = [self window];
+          NSRect wr = [window frame];
+          FRAME_PIXEL_WIDTH (emacsframe) = (int)wr.size.width
+            - emacsframe->border_width;
+          FRAME_PIXEL_HEIGHT (emacsframe) = (int)wr.size.height
+            - FRAME_NS_TITLEBAR_HEIGHT (emacsframe)
+            - FRAME_TOOLBAR_HEIGHT (emacsframe);
+          change_frame_size (emacsframe, rows, cols, 0, 0, 1);
+          SET_FRAME_GARBAGED (emacsframe);
+          cancel_mouse_face (emacsframe);
+        }
+    }
 #endif
 
   ns_send_appdefined (-1);
