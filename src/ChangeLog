@@ -1,3 +1,19 @@
+2011-09-30  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Remove dependency on glibc malloc internals.
+	* alloc.c (XMALLOC_OVERRUN_CHECK_OVERHEAD, XMALLOC_OVERRUN_CHECK_SIZE):
+	Move back here from lisp.h, but with their new implementations.
+	(XMALLOC_BASE_ALIGNMENT, COMMON_MULTIPLE, XMALLOC_HEADER_ALIGNMENT)
+	(XMALLOC_OVERRUN_SIZE_SIZE): Move these new lisp.h macros here.
+	* charset.c (charset_table_init): New static var.
+	(syms_of_charset): Use it instead of xmalloc.  This removes a
+	dependency on glibc malloc internals.  See Eli Zaretskii's comment in
+	<http://lists.gnu.org/archive/html/emacs-devel/2011-09/msg00815.html>.
+	* lisp.h (XMALLOC_OVERRUN_CHECK_OVERHEAD, XMALLOC_OVERRUN_CHECK_SIZE):
+	Move back to alloc.c.
+	(XMALLOC_BASE_ALIGNMENT, COMMON_MULTIPLE, XMALLOC_HEADER_ALIGNMENT)
+	(XMALLOC_OVERRUN_SIZE_SIZE): Move to alloc.c.
+
 2011-09-30  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* nsterm.m (windowDidResize): Call x_set_window_size only when

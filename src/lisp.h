@@ -3568,54 +3568,6 @@ extern int initialized;
 
 extern int immediate_quit;	    /* Nonzero means ^G can quit instantly */
 
-/* Overhead for overrun check in malloc'ed buffers.  The check
-   operates by wrapping a header and trailer around each block.
-
-   The header consists of XMALLOC_OVERRUN_CHECK_SIZE fixed bytes
-   followed by XMALLOC_OVERRUN_SIZE_SIZE bytes containing the original
-   block size in little-endian order.  The trailer consists of
-   XMALLOC_OVERRUN_CHECK_SIZE fixed bytes.
-
-   The header is used to detect whether this block has been allocated
-   through these functions, as some low-level libc functions may
-   bypass the malloc hooks.  */
-
-#ifndef XMALLOC_OVERRUN_CHECK
-# define XMALLOC_OVERRUN_CHECK_OVERHEAD 0
-#else
-
-# define XMALLOC_OVERRUN_CHECK_SIZE 16
-# define XMALLOC_OVERRUN_CHECK_OVERHEAD \
-   (2 * XMALLOC_OVERRUN_CHECK_SIZE + XMALLOC_OVERRUN_SIZE_SIZE)
-
-/* Define XMALLOC_OVERRUN_SIZE_SIZE so that (1) it's large enough to
-   hold a size_t value and (2) the header size is a multiple of the
-   alignment that Emacs needs for C types and for USE_LSB_TAG.  */
-# define XMALLOC_BASE_ALIGNMENT				\
-   offsetof (						\
-     struct {						\
-       union { long double d; intmax_t i; void *p; } u;	\
-       char c;						\
-     },							\
-     c)
-# ifdef USE_LSB_TAG
-/* A common multiple of the positive integers A and B.  Ideally this
-   would be the least common multiple, but there's no way to do that
-   as a constant expression in C, so do the best that we can easily do.  */
-#  define COMMON_MULTIPLE(a, b) \
-     ((a) % (b) == 0 ? (a) : (b) % (a) == 0 ? (b) : (a) * (b))
-#  define XMALLOC_HEADER_ALIGNMENT \
-     COMMON_MULTIPLE (1 << GCTYPEBITS, XMALLOC_BASE_ALIGNMENT)
-# else
-#  define XMALLOC_HEADER_ALIGNMENT XMALLOC_BASE_ALIGNMENT
-# endif
-# define XMALLOC_OVERRUN_SIZE_SIZE				\
-   (((XMALLOC_OVERRUN_CHECK_SIZE + sizeof (size_t)		\
-      + XMALLOC_HEADER_ALIGNMENT - 1)				\
-     / XMALLOC_HEADER_ALIGNMENT * XMALLOC_HEADER_ALIGNMENT)	\
-    - XMALLOC_OVERRUN_CHECK_SIZE)
-#endif
-
 extern POINTER_TYPE *xmalloc (size_t);
 extern POINTER_TYPE *xrealloc (POINTER_TYPE *, size_t);
 extern void xfree (POINTER_TYPE *);
