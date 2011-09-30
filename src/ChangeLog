@@ -1,3 +1,23 @@
+2011-09-30  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Port --enable-checking=all to Fedora 14 x86.
+	* alloc.c (XMALLOC_OVERRUN_CHECK_OVERHEAD, XMALLOC_OVERRUN_CHECK_SIZE):
+	Move to lisp.h.
+	(xmalloc_put_size, xmalloc_get_size, overrun_check_malloc)
+	(overrun_check_realloc, overrun_check_free):
+	Use XMALLOC_OVERRUN_SIZE_SIZE, not sizeof (size_t).
+	That way, xmalloc returns a properly-aligned pointer even if
+	XMALLOC_OVERRUN_CHECK is defined.  The old debugging code happened
+	to align OK on typical 64-bit hosts, but not on Fedora 14 x86.
+	* charset.c (syms_of_charset): Take XMALLOC_OVERRUN_CHECK_OVERHEAD
+	into account when calculating the initial malloc maximum.
+	* lisp.h (XMALLOC_OVERRUN_CHECK_OVERHEAD, XMALLOC_OVERRUN_CHECK_SIZE):
+	Move here from alloc.c, so that charset.c can use it too.
+	Properly align; the old code wasn't right for common 32-bit hosts
+	when configured with --enable-checking=all.
+	(XMALLOC_BASE_ALIGNMENT, COMMON_MULTIPLE, XMALLOC_HEADER_ALIGNMENT)
+	(XMALLOC_OVERRUN_SIZE_SIZE): New macros.
+
 2011-09-29  Eli Zaretskii  <eliz@gnu.org>
 
 	* sysdep.c (snprintf) [EOVERFLOW]: If EOVERFLOW is not defined,
