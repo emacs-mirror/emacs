@@ -43,6 +43,12 @@
 	(Foverlays_at, Fnext_overlay_change, Fprevious_overlay_change):
 	Omit pointer cast, which isn't needed anyway, and doesn't work
 	after the EMACS_INT -> ptrdiff_t change.
+	(Fmove_overlay): Delete an evaporating overlay
+	if it becomes empty after its bounds are adjusted to fit within
+	its buffer.  Without this fix, in a nonempty buffer (let ((o
+	(make-overlay 1 2))) (overlay-put o 'evaporate t) (move-overlay o 0 1))
+	yields an empty overlay that has the evaporate property, which is
+	not supposed to happen.  (Bug#9642)
 	* buffer.h: Adjust decls to match defn changes elsewhere.
 	(struct buffer_text, struct buffer):
 	Use ptrdiff_t, not EMACS_INT, where ptrdiff_t is wide enough.

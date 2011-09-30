@@ -3672,6 +3672,7 @@ buffer.  */)
   struct buffer *b, *ob;
   Lisp_Object obuffer;
   ptrdiff_t count = SPECPDL_INDEX ();
+  ptrdiff_t n_beg, n_end;
 
   CHECK_OVERLAY (overlay);
   if (NILP (buffer))
@@ -3696,16 +3697,18 @@ buffer.  */)
       temp = beg; beg = end; end = temp;
     }
 
-  b = XBUFFER (buffer);
-  if (! (BUF_BEGV (b) <= XINT (beg) && XINT (end) <= BUF_ZV (b)))
-    args_out_of_range (beg, end);
+  Fset_marker (OVERLAY_START (overlay), beg, buffer);
+  Fset_marker (OVERLAY_END (overlay), end, buffer);
+  n_beg = marker_position (OVERLAY_START (overlay));
+  n_end = marker_position (OVERLAY_END (overlay));
 
-  if (XINT (beg) == XINT (end) && ! NILP (Foverlay_get (overlay, Qevaporate)))
+  if (n_beg == n_end && ! NILP (Foverlay_get (overlay, Qevaporate)))
     return Fdelete_overlay (overlay);
 
   specbind (Qinhibit_quit, Qt);
 
   obuffer = Fmarker_buffer (OVERLAY_START (overlay));
+  b = XBUFFER (buffer);
   ob = BUFFERP (obuffer) ? XBUFFER (obuffer) : (struct buffer *) 0;
 
   /* If the overlay has changed buffers, do a thorough redisplay.  */
@@ -3724,7 +3727,7 @@ buffer.  */)
 	}
 
       /* Redisplay where the overlay is going to be.  */
-      modify_overlay (b, XINT (beg), XINT (end));
+      modify_overlay (b, n_beg, n_end);
     }
   else
     /* Redisplay the area the overlay has just left, or just enclosed.  */
@@ -3734,16 +3737,12 @@ buffer.  */)
       o_beg = OVERLAY_POSITION (OVERLAY_START (overlay));
       o_end = OVERLAY_POSITION (OVERLAY_END (overlay));
 
-      if (o_beg == XINT (beg))
-	modify_overlay (b, o_end, XINT (end));
-      else if (o_end == XINT (end))
-	modify_overlay (b, o_beg, XINT (beg));
+      if (o_beg == n_beg)
+	modify_overlay (b, o_end, n_end);
+      else if (o_end == n_end)
+	modify_overlay (b, o_beg, n_beg);
       else
-	{
-	  if (XINT (beg) < o_beg) o_beg = XINT (beg);
-	  if (XINT (end) > o_end) o_end = XINT (end);
-	  modify_overlay (b, o_beg, o_end);
-	}
+	modify_overlay (b, min (o_beg, n_beg), max (o_end, n_end));
     }
 
   if (!NILP (obuffer))
@@ -3755,12 +3754,8 @@ buffer.  */)
       eassert (XOVERLAY (overlay)->next == NULL);
     }
 
-  Fset_marker (OVERLAY_START (overlay), beg, buffer);
-  Fset_marker (OVERLAY_END   (overlay), end, buffer);
-
   /* Put the overlay on the wrong list.  */
-  end = OVERLAY_END (overlay);
-  if (OVERLAY_POSITION (end) < b->overlay_center)
+  if (n_end < b->overlay_center)
     {
       XOVERLAY (overlay)->next = b->overlays_after;
       b->overlays_after = XOVERLAY (overlay);
