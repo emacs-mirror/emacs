@@ -1,3 +1,9 @@
+2011-09-30  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* nsterm.m (windowDidResize): Call x_set_window_size only when
+	ns_in_resize is true.  Otherwise set pixelwidth/height and
+	call change_frame_size (Bug#9628).
+
 2011-09-30  Paul Eggert  <eggert@cs.ucla.edu>
 
 	Port --enable-checking=all to Fedora 14 x86-64.
