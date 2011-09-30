@@ -24,7 +24,7 @@
 
 2011-09-29  Eli Zaretskii  <eliz@gnu.org>
 
-	* sysdep.c (snprintf) [EOVERFLOW]: If EOVERFLOW is not defined,
+	* sysdep.c (snprintf) [!EOVERFLOW]: If EOVERFLOW is not defined,
 	use EDOM.
 
 2011-09-28  Eli Zaretskii  <eliz@gnu.org>
@@ -45,8 +45,8 @@
 	* xdisp.c (handle_invisible_prop): If invisible text ends on a
 	newline, reseat the iterator instead of bidi-iterating there one
 	character at a time.  (Bug#9610)
-	(BUFFER_POS_REACHED_P, move_it_in_display_line_to): Bail when past
-	TO_CHARPOS if the bidi iterator is at base embedding level.
+	(BUFFER_POS_REACHED_P, move_it_in_display_line_to): Bail out when
+	past TO_CHARPOS if the bidi iterator is at base embedding level.
 
 2011-09-27  Andreas Schwab  <schwab@linux-m68k.org>
 
@@ -83,9 +83,9 @@
 	value is now t.  Doc fix.
 
 	* indent.c (Fvertical_motion): Compute and apply the overshoot
-	logic when moving up, not only when moving down.  Fix the
+	logic also when moving up, not only when moving down.  Fix the
 	confusing name and values of the it_overshoot_expected variable;
-	logic changes accordingly.  (Bug#9254) (Bug#9549)
+	logic changed accordingly.  (Bug#9254) (Bug#9549)
 
 	* xdisp.c (pos_visible_p): Produce correct pixel coordinates when
 	CHARPOS is covered by a display string which includes newlines.
@@ -101,7 +101,7 @@
 
 2011-09-24  Jim Meyering  <meyering@redhat.com>
 
-	do not ignore write error for any output size
+	Do not ignore write error for any output size.
 	The previous change was incomplete.
 	While it makes emacs --batch detect the vast majority of stdout
 	write failures, errors were still ignored whenever the output size is
