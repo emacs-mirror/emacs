@@ -288,9 +288,6 @@
 	(Finsert_file_contents): Check that counts are in proper range,
 	rather than assuming fixnums fit into ptrdiff_t etc.
 	Don't assume fixnums fit into int.
-	(Fdo_auto_save, Fset_buffer_auto_saved)
-	(Fclear_buffer_auto_save_failure):
-	Don't assume time_t is signed, or that it fits in int.
 	* floatfns.c (Fexpt): Avoid undefined signed * signed overflow.
 	* fns.c (Fcompare_strings, Fstring_lessp, struct textprop_rec, concat)
 	(string_char_byte_cache_charpos, string_char_byte_cache_bytepos)
@@ -776,6 +773,14 @@
 	(SCROLL_BAR_VEC_SIZE): Remove; not used.
 
 2011-09-30  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* buffer.h (struct buffer): Use time_t, not int, for a time stamp.
+	This fixes a Y2038 bug on 64-bit hosts.
+	* buffer.c (reset_buffer):
+	* fileio.c (Fdo_auto_save, Fset_buffer_auto_saved)
+	(Fclear_buffer_auto_save_failure):
+	Use 0, not -1, to represent an unset failure time, since time_t
+	might not be signed.
 
 	Remove dependency on glibc malloc internals.
 	* alloc.c (XMALLOC_OVERRUN_CHECK_OVERHEAD, XMALLOC_OVERRUN_CHECK_SIZE):

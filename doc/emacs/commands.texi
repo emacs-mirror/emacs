@@ -137,7 +137,7 @@ become an invalid key sequence.  @xref{Key Bindings}.
 
   Typing the help character (@kbd{C-h} or @key{F1}) after a prefix key
 displays a list of the commands starting with that prefix.  The sole
-exception to this rule is @key{ESC}: @kbd{@key{ESC}C-h} is equivalent
+exception to this rule is @key{ESC}: @kbd{@key{ESC} C-h} is equivalent
 to @kbd{C-M-h}, which does something else entirely.  You can, however,
 use @key{F1} to displays a list of the commands starting with
 @key{ESC}.
