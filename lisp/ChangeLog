@@ -1,4 +1,37 @@
+2011-09-30  Martin Rudalics  <rudalics@gmx.at>
+
+	* startup.el (command-line-1): Fix last fix by inserting
+	initial-scratch-message into *scratch* before displaying it.
+	(Bug#9605) and (Bug#9636)
+
+2011-09-29  Eli Zaretskii  <eliz@gnu.org>
+
+	* simple.el (line-move): If auto-hscroll-mode is disabled and the
+	window is hscrolled, move by logical lines.  (Bug#9607)
+	(line-move-visual): Update the doc string to the above effect.
+
+2011-09-29  Martin Rudalics  <rudalics@gmx.at>
+
+	* window.el (display-buffer-record-window): When WINDOW is the
+	selected window use `point' instead of `window-point'.  (Bug#9626)
+
+	* startup.el (command-line-1): Use insert-before-markers when
+	inserting initial-scratch-message.  (Bug#9605)
+
+	* help.el (help-window): Remove variable.
+
+2011-09-29  Glenn Morris  <rgm@gnu.org>
+
+	* pcmpl-cvs.el (pcomplete/cvs): Add "status" handler.
+
+2011-09-29  Juanma Barranquero  <lekktu@gmail.com>
+
+	* descr-text.el (describe-char-categories): Accept category
+	descriptions more than one line long.
+
 2011-09-28  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* simple.el (delete-trailing-whitespace): Fix last change.
 
 	* progmodes/perl-mode.el (perl-syntax-propertize-function):
 	Don't confuse "y => 3" as the beginning of a `y' operation.

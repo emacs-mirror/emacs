@@ -1,14 +1,4 @@
-2011-09-29  Paul Eggert  <eggert@cs.ucla.edu>
-
-	* alloc.c: Do not assume sizeof (size_t) is a multiple of 8
-	when debugging.
-	(alignof, XMALLOC_BASE_ALIGNMENT, XMALLOC_HEADER_ALIGNMENT)
-	(XMALLOC_OVERRUN_SIZE_SIZE): New macros.
-	(XMALLOC_OVERRUN_CHECK_OVERHEAD, xmalloc_put_size, xmalloc_get_size)
-	(overrun_check_malloc, overrun_check_realloc, overrun_check_free):
-	Replace uses of sizeof (size_t) with XMALLOC_OVERRUN_SIZE_SIZE.
-
-2011-09-28  Paul Eggert  <eggert@cs.ucla.edu>
+2011-09-30  Paul Eggert  <eggert@cs.ucla.edu>
 
 	* alloc.c (pure_bytes_used_lisp, pure_bytes_used_non_lisp):
 	(allocate_vectorlike, buffer_memory_full, struct sdata, SDATA_SIZE)
@@ -785,6 +775,57 @@
 	rather than rolling our own approximation.
 	(SCROLL_BAR_VEC_SIZE): Remove; not used.
 
+2011-09-30  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Remove dependency on glibc malloc internals.
+	* alloc.c (XMALLOC_OVERRUN_CHECK_OVERHEAD, XMALLOC_OVERRUN_CHECK_SIZE):
+	Move back here from lisp.h, but with their new implementations.
+	(XMALLOC_BASE_ALIGNMENT, COMMON_MULTIPLE, XMALLOC_HEADER_ALIGNMENT)
+	(XMALLOC_OVERRUN_SIZE_SIZE): Move these new lisp.h macros here.
+	* charset.c (charset_table_init): New static var.
+	(syms_of_charset): Use it instead of xmalloc.  This removes a
+	dependency on glibc malloc internals.  See Eli Zaretskii's comment in
+	<http://lists.gnu.org/archive/html/emacs-devel/2011-09/msg00815.html>.
+	* lisp.h (XMALLOC_OVERRUN_CHECK_OVERHEAD, XMALLOC_OVERRUN_CHECK_SIZE):
+	Move back to alloc.c.
+	(XMALLOC_BASE_ALIGNMENT, COMMON_MULTIPLE, XMALLOC_HEADER_ALIGNMENT)
+	(XMALLOC_OVERRUN_SIZE_SIZE): Move to alloc.c.
+
+2011-09-30  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* nsterm.m (windowDidResize): Call x_set_window_size only when
+	ns_in_resize is true.  Otherwise set pixelwidth/height and
+	call change_frame_size (Bug#9628).
+
+2011-09-30  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Port --enable-checking=all to Fedora 14 x86-64.
+	* charset.c (syms_of_charset): Also account for glibc malloc's
+	internal overhead when calculating the initial malloc maximum.
+
+	Port --enable-checking=all to Fedora 14 x86.
+	* alloc.c (XMALLOC_OVERRUN_CHECK_OVERHEAD, XMALLOC_OVERRUN_CHECK_SIZE):
+	Move to lisp.h.
+	(xmalloc_put_size, xmalloc_get_size, overrun_check_malloc)
+	(overrun_check_realloc, overrun_check_free):
+	Use XMALLOC_OVERRUN_SIZE_SIZE, not sizeof (size_t).
+	That way, xmalloc returns a properly-aligned pointer even if
+	XMALLOC_OVERRUN_CHECK is defined.  The old debugging code happened
+	to align OK on typical 64-bit hosts, but not on Fedora 14 x86.
+	* charset.c (syms_of_charset): Take XMALLOC_OVERRUN_CHECK_OVERHEAD
+	into account when calculating the initial malloc maximum.
+	* lisp.h (XMALLOC_OVERRUN_CHECK_OVERHEAD, XMALLOC_OVERRUN_CHECK_SIZE):
+	Move here from alloc.c, so that charset.c can use it too.
+	Properly align; the old code wasn't right for common 32-bit hosts
+	when configured with --enable-checking=all.
+	(XMALLOC_BASE_ALIGNMENT, COMMON_MULTIPLE, XMALLOC_HEADER_ALIGNMENT)
+	(XMALLOC_OVERRUN_SIZE_SIZE): New macros.
+
+2011-09-29  Eli Zaretskii  <eliz@gnu.org>
+
+	* sysdep.c (snprintf) [!EOVERFLOW]: If EOVERFLOW is not defined,
+	use EDOM.
+
 2011-09-28  Eli Zaretskii  <eliz@gnu.org>
 
 	* xdisp.c (compute_display_string_end): If there's no display
@@ -803,8 +844,8 @@
 	* xdisp.c (handle_invisible_prop): If invisible text ends on a
 	newline, reseat the iterator instead of bidi-iterating there one
 	character at a time.  (Bug#9610)
-	(BUFFER_POS_REACHED_P, move_it_in_display_line_to): Bail when past
-	TO_CHARPOS if the bidi iterator is at base embedding level.
+	(BUFFER_POS_REACHED_P, move_it_in_display_line_to): Bail out when
+	past TO_CHARPOS if the bidi iterator is at base embedding level.
 
 2011-09-27  Andreas Schwab  <schwab@linux-m68k.org>
 
@@ -841,9 +882,9 @@
 	value is now t.  Doc fix.
 
 	* indent.c (Fvertical_motion): Compute and apply the overshoot
-	logic when moving up, not only when moving down.  Fix the
+	logic also when moving up, not only when moving down.  Fix the
 	confusing name and values of the it_overshoot_expected variable;
-	logic changes accordingly.  (Bug#9254) (Bug#9549)
+	logic changed accordingly.  (Bug#9254) (Bug#9549)
 
 	* xdisp.c (pos_visible_p): Produce correct pixel coordinates when
 	CHARPOS is covered by a display string which includes newlines.
@@ -859,7 +900,7 @@
 
 2011-09-24  Jim Meyering  <meyering@redhat.com>
 
-	do not ignore write error for any output size
+	Do not ignore write error for any output size.
 	The previous change was incomplete.
 	While it makes emacs --batch detect the vast majority of stdout
 	write failures, errors were still ignored whenever the output size is

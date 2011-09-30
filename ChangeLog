@@ -1,3 +1,11 @@
+2011-09-29  Eli Zaretskii  <eliz@gnu.org>
+
+	* .bzrignore: Add ./GNUmakefile.unix, lib/SYS, lib/alloca.in-h,
+	lib/signal.in-h.
+
+	* config.bat: Rename GNUmakefile, so it is not run on MS-DOS.
+	Rename signal.in.h and alloca.in.h.
+
 2011-09-28  Eli Zaretskii  <eliz@gnu.org>
 
 	* INSTALL: Mention that m17n libraries and libotf are needed for

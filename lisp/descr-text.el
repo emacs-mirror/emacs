@@ -366,9 +366,10 @@ This function is semi-obsolete.  Use `get-char-code-property'."
       (list (mapconcat
 	     (lambda (x)
 	       (let* ((c (category-docstring x))
-		      (doc (if (string-match "\\`\\(.*?\\)\n\\(.*\\)\\'" c)
+		      (doc (if (string-match "\\`\\(.*?\\)\n" c)
 			       (propertize (match-string 1 c)
-					   'help-echo (match-string 2 c))
+                                           'help-echo
+                                           (substring c (1+ (match-end 1))))
 			     c)))
 		 (format "%c:%s" x doc)))
 	     mnemonics ", ")))))
