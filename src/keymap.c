@@ -2274,10 +2274,11 @@ around function keys and event symbols.  */)
 
   if (INTEGERP (key))		/* Normal character */
     {
-      char tem[KEY_DESCRIPTION_SIZE];
+      char tem[KEY_DESCRIPTION_SIZE], *p;
 
-      *push_key_description (XINT (key), tem, 1) = 0;
-      return build_string (tem);
+      p = push_key_description (XINT (key), tem, 1);
+      *p = 0;
+      return make_specified_string (tem, -1, p - tem, 1);
     }
   else if (SYMBOLP (key))	/* Function key or event-symbol */
     {

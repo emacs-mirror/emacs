@@ -1,3 +1,9 @@
+2011-10-01  Andreas Schwab  <schwab@linux-m68k.org>
+
+	* keymap.c (Fsingle_key_description): Use make_specified_string
+	instead of build_string to build string from push_key_description.
+	(Bug#5193)
+
 2011-09-30  Paul Eggert  <eggert@cs.ucla.edu>
 
 	* buffer.h (struct buffer): Use time_t, not int, for a time stamp.
