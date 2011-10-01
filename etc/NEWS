@@ -288,15 +288,19 @@ If you have code that adds something to kill-emacs-hook, you should
 consider if it is still appropriate to add it in the noninteractive case.
 
 ** Scrolling changes
-
++++
 *** New scrolling commands `scroll-up-command' and `scroll-down-command'
 (bound to C-v/[next] and M-v/[prior]) do not signal errors at top/bottom
 of buffer at first key-press (instead move to top/bottom of buffer)
-when a new variable `scroll-error-top-bottom' is non-nil.
+when `scroll-error-top-bottom' is non-nil.
+
++++
+*** New variable `scroll-error-top-bottom' (see above).
 
 *** New scrolling commands `scroll-up-line' and `scroll-down-line'
 scroll a line instead of full screen.
 
++++
 *** New property `scroll-command' should be set on a command's symbol to
 define it as a scroll command affected by `scroll-preserve-screen-position'.
 
