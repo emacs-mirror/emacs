@@ -1055,15 +1055,8 @@ split.  Any other value of SIDE will cause `split-window' to split the
 window into two side-by-side windows as before.
 
 +++
-*** `split-window-above-each-other' and `split-window-side-by-side'.
-The commands `split-window-vertically' and `split-window-horizontally'
-have been renamed to `split-window-above-each-other' and
-`split-window-side-by-side' respectively.  The old names are provided as
-aliases.
-
-+++
 *** Window resizing functions.
-A new standard function for resizing windows called `resize-window' has
+A new standard function for resizing windows called `window-resize' has
 been introduced.  This and all other functions for resizing windows no
 longer delete any windows when they become too small.
 
