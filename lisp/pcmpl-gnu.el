@@ -298,7 +298,7 @@
 		  (mapcar
 		   (function
 		    (lambda (entry)
-		      (tar-header-name (cdr entry))))
+		      (tar-header-name entry)))
 		   tar-parse-info))
 	      (pcomplete-entries))
 	    nil 'identity))))
