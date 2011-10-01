@@ -184,7 +184,7 @@ Various PARAMS can be set:
 
 This function returns a notification id, an integer, which can be
 used to manipulate the notification item with
-`notifications-close'."
+`notifications-close-notification'."
   (let ((title (plist-get params :title))
         (body (plist-get params :body))
         (app-name (plist-get params :app-name))
