@@ -946,13 +946,13 @@ This \"dumb\" driver will be present in Gnuplot 3.0."
     (or calc-dumb-map
 	(progn
 	  (setq calc-dumb-map (make-sparse-keymap))
-	  (define-key calc-dumb-map "\n" 'scroll-up)
-	  (define-key calc-dumb-map " " 'scroll-up)
-	  (define-key calc-dumb-map "\177" 'scroll-down)
+	  (define-key calc-dumb-map "\n" 'scroll-up-command)
+	  (define-key calc-dumb-map " " 'scroll-up-command)
+	  (define-key calc-dumb-map "\177" 'scroll-down-command)
 	  (define-key calc-dumb-map "<" 'scroll-left)
 	  (define-key calc-dumb-map ">" 'scroll-right)
-	  (define-key calc-dumb-map "{" 'scroll-down)
-	  (define-key calc-dumb-map "}" 'scroll-up)
+	  (define-key calc-dumb-map "{" 'scroll-down-command)
+	  (define-key calc-dumb-map "}" 'scroll-up-command)
 	  (define-key calc-dumb-map "q" 'exit-recursive-edit)
 	  (define-key calc-dumb-map "\C-c\C-c" 'exit-recursive-edit)))
     (use-local-map calc-dumb-map)

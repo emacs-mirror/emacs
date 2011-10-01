@@ -133,10 +133,10 @@
   (global-set-key [r3]	'backward-page)
   (global-set-key [r6]	'forward-page)
   (global-set-key [r7]	'beginning-of-buffer)
-  (global-set-key [r9]	'scroll-down)
+  (global-set-key [r9]	'scroll-down-command)
   (global-set-key [r11]	'recenter)
   (global-set-key [r13]	'end-of-buffer)
-  (global-set-key [r15]	'scroll-up)
+  (global-set-key [r15]	'scroll-up-command)
   (global-set-key [redo]	'redraw-display) ;FIXME: collides with default.
   (global-set-key [props]	'list-buffers)
   (global-set-key [put]	'sun-select-region)
