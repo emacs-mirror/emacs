@@ -2351,9 +2351,9 @@ frame's window.
 @end defun
 
 @defun display-buffer-pop-up-window buffer alist
-This function tries to display @var{buffer} by splitting the selected
-window.  It uses @code{split-window-sensibly} as a subroutine
-(@pxref{Choosing Window Options}).
+This function tries to display @var{buffer} by splitting the largest
+or least recently-used window.  It uses @code{split-window-sensibly}
+as a subroutine (@pxref{Choosing Window Options}).
 @end defun
 
 @defun display-buffer-use-some-window buffer alist

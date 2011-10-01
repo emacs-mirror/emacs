@@ -3,6 +3,8 @@
 	* windows.texi (Textual Scrolling): Document scroll-up-command,
 	scroll-down-command, scroll-error-top-bottom, and the
 	scroll-command symbol property.
+	(Display Action Functions): Fix description of
+	display-buffer-pop-up-window.
 
 2011-09-28  Juanma Barranquero  <lekktu@gmail.com>
 
