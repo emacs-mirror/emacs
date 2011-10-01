@@ -53,10 +53,12 @@
 	(struct buffer_text, struct buffer):
 	Use ptrdiff_t, not EMACS_INT, where ptrdiff_t is wide enough.
 	Use EMACS_INT, not int, where int might not be wide enough.
-	* bytecode.c (exec_byte_code): Use ptrdiff_t, not int, to avoid
-	needless 32-bit limit on 64-bit hosts.  Remove unnecessary
-	memory-full test.  Use EMACS_INT, not ptrdiff_t or int, where
-	ptrdiff_t or int might not be wide enough.
+	* bytecode.c (unmark_byte_stack, exec_byte_code): Use ptrdiff_t,
+	not int, to avoid needless 32-bit limit on 64-bit hosts.
+	(exec_byte_code): Use tighter memory-full test, one that checks
+	for alloca overflow.  Don't compute the address of the object just
+	before an array, as that's not portable.  Use EMACS_INT, not
+	ptrdiff_t or int, where ptrdiff_t or int might not be wide enough.
 	* callint.c (Fcall_interactively):
 	Use ptrdiff_t, not int, to avoid needless 32-bit limit on 64-bit hosts.
 	* callproc.c (call_process_kill, Fcall_process):

@@ -318,7 +318,7 @@ unmark_byte_stack (void)
     {
       if (stack->byte_string_start != SDATA (stack->byte_string))
 	{
-	  int offset = stack->pc - stack->byte_string_start;
+	  ptrdiff_t offset = stack->pc - stack->byte_string_start;
 	  stack->byte_string_start = SDATA (stack->byte_string);
 	  stack->pc = stack->byte_string_start + offset;
 	}
@@ -446,7 +446,7 @@ exec_byte_code (Lisp_Object bytestr, Lisp_Object vector, Lisp_Object maxdepth,
 #ifdef BYTE_CODE_SAFE
   ptrdiff_t const_length;
   Lisp_Object *stacke;
-  int bytestr_length;
+  ptrdiff_t bytestr_length;
 #endif
   struct byte_stack stack;
   Lisp_Object *top;
@@ -486,13 +486,14 @@ exec_byte_code (Lisp_Object bytestr, Lisp_Object vector, Lisp_Object maxdepth,
   stack.byte_string = bytestr;
   stack.pc = stack.byte_string_start = SDATA (bytestr);
   stack.constants = vector;
-  top = (Lisp_Object *) alloca (XFASTINT (maxdepth)
+  if (MAX_ALLOCA / sizeof (Lisp_Object) <= XFASTINT (maxdepth))
+    memory_full (SIZE_MAX);
+  top = (Lisp_Object *) alloca ((XFASTINT (maxdepth) + 1)
                                          * sizeof (Lisp_Object));
 #if BYTE_MAINTAIN_TOP
-  stack.bottom = top;
+  stack.bottom = top + 1;
   stack.top = NULL;
 #endif
-  top -= 1;
   stack.next = byte_stack_list;
   byte_stack_list = &stack;
 
