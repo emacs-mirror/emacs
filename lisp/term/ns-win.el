@@ -150,8 +150,8 @@ The properties returned may include `top', `left', `height', and `width'."
 (define-key global-map [end] 'end-of-buffer)
 (define-key global-map [kp-home] 'beginning-of-buffer)
 (define-key global-map [kp-end] 'end-of-buffer)
-(define-key global-map [kp-prior] 'scroll-down)
-(define-key global-map [kp-next] 'scroll-up)
+(define-key global-map [kp-prior] 'scroll-down-command)
+(define-key global-map [kp-next] 'scroll-up-command)
 
 ;; Allow shift-clicks to work similarly to under Nextstep.
 (define-key global-map [S-mouse-1] 'mouse-save-then-kill)

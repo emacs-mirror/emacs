@@ -427,7 +427,7 @@ images."
     (define-key map "sx" 'newsticker-show-extra)
     (define-key map "hx" 'newsticker-hide-extra)
 
-    (define-key map " "  'scroll-up)
+    (define-key map " "  'scroll-up-command)
     (define-key map "q"  'newsticker-close-buffer)
     (define-key map "p"  'newsticker-previous-item)
     (define-key map "P"  'newsticker-previous-new-item)

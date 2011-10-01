@@ -1,5 +1,25 @@
 2011-10-01  Chong Yidong  <cyd@stupidchicken.com>
 
+	* cus-edit.el (custom-mode-map):
+	* epa.el (epa-key-list-mode-map):
+	* man.el (Man-mode-map):
+	* startup.el (splash-screen-keymap):
+	* simple.el (special-mode-map): Use scroll-up-command and
+	scroll-down-command.
+
+	* progmodes/idlw-help.el (idlwave-help-mode-map):
+	* progmodes/ebrowse.el (ebrowse-electric-position-mode-map):
+	* net/newst-plainview.el (newsticker-mode-map):
+	* emulation/ws-mode.el (wordstar-mode-map):
+	* emulation/vi.el (vi-com-map):
+	* calc/calc-graph.el (calc-graph-show-dumb):
+	* term/sun.el (terminal-init-sun):
+	* term/ns-win.el (global-map):
+	* progmodes/grep.el (grep-mode-map):
+	* progmodes/ebrowse.el (ebrowse-electric-list-mode-map):
+	* mail/rmail.el (rmail-mode-map):
+	* progmodes/cpp.el (cpp-edit-mode-map): Likewise.
+
 	* custom.el (custom-safe-themes, load-theme): Treat value of t for
 	custom-safe-themes as special.
 
