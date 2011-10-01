@@ -1,3 +1,8 @@
+2011-10-01  Chong Yidong  <cyd@stupidchicken.com>
+
+	* custom.el (custom-safe-themes, load-theme): Treat value of t for
+	custom-safe-themes as special.
+
 2011-10-01  Julien Danjou  <julien@danjou.info>
 
 	* notifications.el (notifications-notify): Fix docstring.
