@@ -1,3 +1,11 @@
+2011-10-02  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* pcmpl-gnu.el (pcmpl-gnu-with-file-buffer): New macro (bug#9643).
+	(pcmpl-gnu-tar-buffer): Remove.
+	(pcmpl-gnu-with-file-buffer): Use it to avoid leaving the tar's buffer
+	avoid.  Make sure pcomplete-suffix-list is only changed temporarily.
+	Don't look inside the tar's file is it's too large.
+
 2011-10-01  Chong Yidong  <cyd@stupidchicken.com>
 
 	* cus-edit.el (custom-mode-map):
