@@ -582,7 +582,7 @@
 
 	* help.el (describe-key-briefly): Copy previous standard-output change.
 
-2011-09-13  PJ Weisberg  <pj@irregularexpressions.net>  (tiny change)
+2011-09-13  PJ Weisberg  <pj@irregularexpressions.net>
 
 	* help.el (where-is): Respect non-standard standard-output.  (Bug#9030)
 

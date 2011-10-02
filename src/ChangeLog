@@ -1,3 +1,8 @@
+2011-10-02  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* minibuf.c (Finternal_complete_buffer): Only show internal buffers if
+	they've been requested explicitly (bug#9591).
+
 2011-10-01  Andreas Schwab  <schwab@linux-m68k.org>
 
 	* keymap.c (Fsingle_key_description): Use make_specified_string
