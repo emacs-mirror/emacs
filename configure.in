@@ -1792,9 +1792,9 @@ if test "${HAVE_X11}" = "yes"; then
     AC_MSG_CHECKING(whether X on GNU/Linux needs -b to link)
     AC_LINK_IFELSE([AC_LANG_PROGRAM([[]],
      [[XOpenDisplay ("foo");]])],
-     [xlinux_first_failure=no],
-     [xlinux_first_failure=yes])
-    if test "${xlinux_first_failure}" = "yes"; then
+     [xgnu_linux_first_failure=no],
+     [xgnu_linux_first_failure=yes])
+    if test "${xgnu_linux_first_failure}" = "yes"; then
       OLD_LD_SWITCH_X_SITE="$LD_SWITCH_X_SITE"
       OLD_C_SWITCH_X_SITE="$C_SWITCH_X_SITE"
       OLD_CPPFLAGS="$CPPFLAGS"
@@ -1805,9 +1805,9 @@ if test "${HAVE_X11}" = "yes"; then
       LIBS="$LIBS -b i486-linuxaout"
       AC_LINK_IFELSE([AC_LANG_PROGRAM([[]],
        [[XOpenDisplay ("foo");]])],
-       [xlinux_second_failure=no],
-       [xlinux_second_failure=yes])
-      if test "${xlinux_second_failure}" = "yes"; then
+       [xgnu_linux_second_failure=no],
+       [xgnu_linux_second_failure=yes])
+      if test "${xgnu_linux_second_failure}" = "yes"; then
 	# If we get the same failure with -b, there is no use adding -b.
 	# So take it out.  This plays safe.
 	LD_SWITCH_X_SITE="$OLD_LD_SWITCH_X_SITE"
