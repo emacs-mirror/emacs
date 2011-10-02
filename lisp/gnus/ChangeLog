@@ -1,3 +1,8 @@
+2011-10-02  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* shr.el (shr-tag-img): Add a space at the end of an ALT image text to
+	make asynchronous adjacent image insertion work better.
+
 2011-09-27  Daiki Ueno  <ueno@unixuser.org>
 
 	* plstore.el (plstore-select-keys, plstore-encrypt-to): Clarify

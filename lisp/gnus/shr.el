@@ -901,7 +901,7 @@ ones, in case fg and bg are nil."
 	       (url-is-cached (shr-encode-url url)))
 	  (funcall shr-put-image-function (shr-get-image-data url) alt))
 	 (t
-	  (insert alt)
+	  (insert alt " ")
 	  (when (and shr-ignore-cache
 		     (url-is-cached (shr-encode-url url)))
 	    (let ((file (url-cache-create-filename (shr-encode-url url))))
@@ -912,7 +912,7 @@ ones, in case fg and bg are nil."
 	       'url-queue-retrieve
 	     'url-retrieve)
 	   (shr-encode-url url) 'shr-image-fetched
-	   (list (current-buffer) start (point-marker))
+	   (list (current-buffer) start (set-marker (make-marker) (1- (point))))
 	   t)))
 	(put-text-property start (point) 'keymap shr-map)
 	(put-text-property start (point) 'shr-alt alt)
