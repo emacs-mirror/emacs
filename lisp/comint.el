@@ -3005,11 +3005,7 @@ Magic characters are those in `comint-file-name-quote-list'."
   (if (null comint-file-name-quote-list)
       filename
     (save-match-data
-      (let ((i 0))
-	(while (string-match "\\\\\\(.\\)" filename i)
-	  (setq filename (replace-match "\\1" nil nil filename))
-	  (setq i (+ 1 (match-beginning 0)))))
-      filename)))
+      (replace-regexp-in-string "\\\\\\(.\\)" "\\1" filename t))))
 
 (defun comint-completion-at-point ()
   (run-hook-with-args-until-success 'comint-dynamic-complete-functions))
@@ -3057,6 +3053,7 @@ Returns t if successful."
     (- (match-end 1) (match-beginning 1))))
 
 (defun comint--common-quoted-suffix (s1 s2)
+  ;; FIXME: Copied in pcomplete.el.
   "Find the common suffix between S1 and S2 where S1 is the expanded S2.
 S1 is expected to be the unquoted and expanded version of S1.
 Returns (PS1 . PS2), i.e. the shortest prefixes of S1 and S2, such that
@@ -3117,6 +3114,24 @@ in the same way as TABLE completes strings of the form (concat S2 S)."
        ;; E.g. action=nil and it's the only completion.
        (res)))))
 
+(defun comint-completion-file-name-table (string pred action)
+  (if (not (file-name-absolute-p string))
+      (completion-file-name-table string pred action)
+    (cond
+     ((memq action '(t lambda))
+      (completion-file-name-table
+       (concat comint-file-name-prefix string) pred action))
+     ((null action)
+      (let ((res (completion-file-name-table
+                  (concat comint-file-name-prefix string) pred action)))
+        (if (and (stringp res)
+                 (string-match
+                  (concat "\\`" (regexp-quote comint-file-name-prefix))
+                  res))
+            (substring res (match-end 0))
+          res)))
+     (t (completion-file-name-table string pred action)))))
+
 (defun comint--complete-file-name-data ()
   "Return the completion data for file name at point."
   (let* ((filesuffix (cond ((not comint-completion-addsuffix) "")
@@ -3133,7 +3148,7 @@ in the same way as TABLE completes strings of the form (concat S2 S)."
                            unquoted filename)))
             (apply-partially
              #'comint--table-subvert
-             #'completion-file-name-table
+             #'comint-completion-file-name-table
              (cdr prefixes) (car prefixes)))))
     (nconc
      (list

@@ -288,15 +288,19 @@ If you have code that adds something to kill-emacs-hook, you should
 consider if it is still appropriate to add it in the noninteractive case.
 
 ** Scrolling changes
-
++++
 *** New scrolling commands `scroll-up-command' and `scroll-down-command'
 (bound to C-v/[next] and M-v/[prior]) do not signal errors at top/bottom
 of buffer at first key-press (instead move to top/bottom of buffer)
-when a new variable `scroll-error-top-bottom' is non-nil.
+when `scroll-error-top-bottom' is non-nil.
+
++++
+*** New variable `scroll-error-top-bottom' (see above).
 
 *** New scrolling commands `scroll-up-line' and `scroll-down-line'
 scroll a line instead of full screen.
 
++++
 *** New property `scroll-command' should be set on a command's symbol to
 define it as a scroll command affected by `scroll-preserve-screen-position'.
 
@@ -393,7 +397,7 @@ instead of `switch-to-buffer' when selecting an item in the Buffers menu.
 modulo restrictions like window minimum sizes and fixed-size windows.
 
 *** The behavior of `display-buffer' is now customizable in detail.
-
++++
 **** New option `display-buffer-base-action' specifies a list of
 user-determined display "actions" (functions and optional arguments
 for choosing the displaying window).
@@ -401,6 +405,7 @@ for choosing the displaying window).
 This takes precedence over the default display action, which is
 specified by `display-buffer-fallback-action'.
 
++++
 **** New option `display-buffer-alist' maps buffer name regexps to
 display actions, taking precedence over `display-buffer-base-action'.
 
@@ -539,10 +544,6 @@ To inhibit this, change `x-select-enable-clipboard-manager' to nil.
 ** New command `rectangle-number-lines', bound to `C-x r N', numbers
 the lines in the current rectangle.  With a prefix argument, this
 prompts for a number to count from and for a format string.
-
-** The command shell prompts for the shell path name, when the default
-directory is a remote file name and neither environment variable
-$ESHELL nor variable `explicit-shell-file-name' is set.
 
 +++
 ** The default value of redisplay-dont-change is now t
@@ -721,8 +722,15 @@ more variants, including Mercury, and a lot more.
 *** The command `rmail-epa-decrypt' decrypts OpenPGP data
 in the Rmail incoming message.
 
-** shell-mode can track your cwd by reading it from your prompt.
-Just set shell-dir-cookie-re to an appropriate regexp.
+** Shell mode
+
+*** The `shell' command prompts for the shell path name if the default
+directory is a remote file name and neither the environment variable
+$ESHELL nor the variable `explicit-shell-file-name' is set.
+
+*** New variable `shell-dir-cookie-re'.
+If set to an appropriate regexp, Shell mode can track your cwd by
+reading it from your prompt.
 
 ---
 ** SQL Mode enhancements.
@@ -1047,15 +1055,8 @@ split.  Any other value of SIDE will cause `split-window' to split the
 window into two side-by-side windows as before.
 
 +++
-*** `split-window-above-each-other' and `split-window-side-by-side'.
-The commands `split-window-vertically' and `split-window-horizontally'
-have been renamed to `split-window-above-each-other' and
-`split-window-side-by-side' respectively.  The old names are provided as
-aliases.
-
-+++
 *** Window resizing functions.
-A new standard function for resizing windows called `resize-window' has
+A new standard function for resizing windows called `window-resize' has
 been introduced.  This and all other functions for resizing windows no
 longer delete any windows when they become too small.
 

@@ -381,7 +381,8 @@ This is used by `shell-dir-cookie-watcher' to try and use this info
 to track your current directory.  It can be used instead of or in addition
 to `dirtrack-mode'."
   :group 'shell
-  :type '(choice (const nil) regexp))
+  :type '(choice (const nil) regexp)
+  :version "24.1")
 
 (defun shell-parse-pcomplete-arguments ()
   "Parse whitespace separated arguments in the current region."

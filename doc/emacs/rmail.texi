@@ -100,9 +100,9 @@ frequent that it deserves to be easier.
 
 @table @kbd
 @item @key{SPC}
-Scroll forward (@code{scroll-up}).
+Scroll forward (@code{scroll-up-command}).
 @item @key{DEL}
-Scroll backward (@code{scroll-down}).
+Scroll backward (@code{scroll-down-command}).
 @item .
 Scroll to start of message (@code{rmail-beginning-of-message}).
 @item /
@@ -111,9 +111,10 @@ Scroll to end of message (@code{rmail-end-of-message}).
 
 @kindex SPC @r{(Rmail)}
 @kindex DEL @r{(Rmail)}
-  Since the most common thing to do while reading a message is to scroll
-through it by screenfuls, Rmail makes @key{SPC} and @key{DEL} synonyms of
-@kbd{C-v} (@code{scroll-up}) and @kbd{M-v} (@code{scroll-down})
+  Since the most common thing to do while reading a message is to
+scroll through it by screenfuls, Rmail makes @key{SPC} and @key{DEL}
+do the same as @kbd{C-v} (@code{scroll-up-command}) and @kbd{M-v}
+(@code{scroll-down-command}) respectively.
 
 @kindex . @r{(Rmail)}
 @kindex / @r{(Rmail)}
