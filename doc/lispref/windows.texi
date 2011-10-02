@@ -2351,9 +2351,9 @@ frame's window.
 @end defun
 
 @defun display-buffer-pop-up-window buffer alist
-This function tries to display @var{buffer} by splitting the selected
-window.  It uses @code{split-window-sensibly} as a subroutine
-(@pxref{Choosing Window Options}).
+This function tries to display @var{buffer} by splitting the largest
+or least recently-used window.  It uses @code{split-window-sensibly}
+as a subroutine (@pxref{Choosing Window Options}).
 @end defun
 
 @defun display-buffer-use-some-window buffer alist
@@ -3100,67 +3100,77 @@ text line, @var{ypos} is negative.
 @cindex scrolling textually
 
   @dfn{Textual scrolling} means moving the text up or down through a
-window.  It works by changing the value of the window's display-start
-location.  It may also change the value of @code{window-point} to keep
-point on the screen.
+window.  It works by changing the window's display-start location.  It
+may also change the value of @code{window-point} to keep point on the
+screen (@pxref{Window Point}).
 
-  Textual scrolling was formerly called ``vertical scrolling,'' but we
-changed its name to distinguish it from the new vertical fractional
-scrolling feature (@pxref{Vertical Scrolling}).
-
-  In the commands @code{scroll-up} and @code{scroll-down}, the directions
-``up'' and ``down'' refer to the motion of the text in the buffer at which
-you are looking through the window.  Imagine that the text is
-written on a long roll of paper and that the scrolling commands move the
-paper up and down.  Thus, if you are looking at text in the middle of a
-buffer and repeatedly call @code{scroll-down}, you will eventually see
-the beginning of the buffer.
+  The basic textual scrolling functions are @code{scroll-up} (which
+scrolls forward) and @code{scroll-down} (which scrolls backward).  In
+these function names, ``up'' and ``down'' refer to the direction of
+motion of the buffer text relative to the window.  Imagine that the
+text is written on a long roll of paper and that the scrolling
+commands move the paper up and down.  Thus, if you are looking at the
+middle of a buffer and repeatedly call @code{scroll-down}, you will
+eventually see the beginning of the buffer.
 
   Some people have urged that the opposite convention be used: they
-imagine that the window moves over text that remains in place.  Then
-``down'' commands would take you to the end of the buffer.  This view is
-more consistent with the actual relationship between windows and the
-text in the buffer, but it is less like what the user sees.  The
-position of a window on the terminal does not move, and short scrolling
-commands clearly move the text up or down on the screen.  We have chosen
-names that fit the user's point of view.
+imagine the window moving over text that remains in place, so that
+``down'' commands take you to the end of the buffer.  This convention
+is consistent with fact that such a command is bound to a key named
+@key{PageDown} on modern keyboards.  We have not switched to this
+convention as that is likely to break existing Emacs Lisp code.
 
-  The textual scrolling functions (aside from
-@code{scroll-other-window}) have unpredictable results if the current
-buffer is different from the buffer that is displayed in the selected
-window.  @xref{Current Buffer}.
+  Textual scrolling functions (aside from @code{scroll-other-window})
+have unpredictable results if the current buffer is not the one
+displayed in the selected window.  @xref{Current Buffer}.
 
-  If the window contains a row which is taller than the height of the
-window (for example in the presence of a large image), the scroll
-functions will adjust the window's vertical scroll position to scroll
-the partially visible row.  To disable this feature, Lisp code may bind
-the variable @code{auto-window-vscroll} to @code{nil} (@pxref{Vertical
-Scrolling}).
+  If the window contains a row taller than the height of the window
+(for example in the presence of a large image), the scroll functions
+will adjust the window's vertical scroll position to scroll the
+partially visible row.  Lisp callers can disable this feature by
+binding the variable @code{auto-window-vscroll} to @code{nil}
+(@pxref{Vertical Scrolling}).
 
 @deffn Command scroll-up &optional count
-This function scrolls the text in the selected window upward
-@var{count} lines.  If @var{count} is negative, scrolling is actually
-downward.
+This function scrolls forward by @var{count} lines in the selected
+window.
 
-If @var{count} is @code{nil} (or omitted), then the length of scroll
-is @code{next-screen-context-lines} lines less than the usable height of
-the window (not counting its mode line).
+If @var{count} is negative, it scrolls backward instead.  If
+@var{count} is @code{nil} (or omitted), the distance scrolled is
+@code{next-screen-context-lines} lines less than the height of the
+window's text area.
 
-@code{scroll-up} returns @code{nil}, unless it gets an error
-because it can't scroll any further.
+If the selected window cannot be scrolled any further, this function
+signals an error.  Otherwise, it returns @code{nil}.
 @end deffn
 
 @deffn Command scroll-down &optional count
-This function scrolls the text in the selected window downward
-@var{count} lines.  If @var{count} is negative, scrolling is actually
-upward.
+This function scrolls backward by @var{count} lines in the selected
+window.
 
-If @var{count} is omitted or @code{nil}, then the length of the scroll
-is @code{next-screen-context-lines} lines less than the usable height of
-the window (not counting its mode line).
+If @var{count} is negative, it scrolls forward instead.  If
+@var{count} is omitted or @code{nil}, the distance scrolled is
+@code{next-screen-context-lines} lines less than the height of the
+window's text area.
 
-@code{scroll-down} returns @code{nil}, unless it gets an error because
-it can't scroll any further.
+If the selected window cannot be scrolled any further, this function
+signals an error.  Otherwise, it returns @code{nil}.
+@end deffn
+
+@deffn Command scroll-up-command &optional count
+This behaves like @code{scroll-up}, except that if the selected window
+cannot be scrolled any further and the value of the variable
+@code{scroll-error-top-bottom} is @code{t}, it tries to move to the
+end of the buffer instead.  If point is already there, it signals an
+error.
+@end deffn
+
+@deffn Command scroll-down-command &optional count
+This behaves like @code{scroll-down}, except that if the selected
+window cannot be scrolled any further and the value of the variable
+@code{scroll-error-top-bottom} is @code{t}, it tries to move to the
+beginning of the buffer instead.  If point is already there, it
+signals an error.
 @end deffn
 
 @deffn Command scroll-other-window &optional count
@@ -3190,7 +3200,6 @@ line reappears after the echo area momentarily displays the message
 @samp{Beginning of buffer}.
 @end deffn
 
-@c Emacs 19 feature
 @defvar other-window-scroll-buffer
 If this variable is non-@code{nil}, it tells @code{scroll-other-window}
 which buffer's window to scroll.
@@ -3245,13 +3254,18 @@ only by precisely @var{n} lines, not a smaller number.  This feature
 does not work with @code{scroll-margin}.  The default value is zero.
 @end defopt
 
+@cindex @code{scroll-command} property
 @defopt scroll-preserve-screen-position
-If this option is @code{t}, scrolling which would move the current
-point position out of the window chooses the new position of point
-so that the vertical position of the cursor is unchanged, if possible.
+If this option is @code{t}, whenever a scrolling command moves point
+off-window, Emacs tries to adjust point to keep the cursor at its old
+vertical position in the window, rather than the window edge.
 
-If it is non-@code{nil} and not @code{t}, then the scrolling functions
-always preserve the vertical position of point, if possible.
+If the value is non-@code{nil} and not @code{t}, Emacs adjusts point
+to keep the cursor at the same vertical position, even if the
+scrolling command didn't move point off-window.
+
+This option affects all scroll commands that have a non-@code{nil}
+@code{scroll-command} symbol property.
 @end defopt
 
 @defopt next-screen-context-lines
@@ -3260,6 +3274,16 @@ retain when scrolling by full screens.  For example, @code{scroll-up}
 with an argument of @code{nil} scrolls so that this many lines at the
 bottom of the window appear instead at the top.  The default value is
 @code{2}.
+@end defopt
+
+@defopt scroll-error-top-bottom
+If this option is @code{nil} (the default), @code{scroll-up-command}
+and @code{scroll-down-command} simply signal an error when no more
+scrolling is possible.
+
+If the value is @code{t}, these commands instead move point to the
+beginning or end of the buffer (depending on scrolling direction);
+only if point is already on that position do they signal an error.
 @end defopt
 
 @deffn Command recenter &optional count

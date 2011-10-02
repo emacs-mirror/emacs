@@ -1,3 +1,14 @@
+2011-10-01  Chong Yidong  <cyd@stupidchicken.com>
+
+	* basic.texi (Moving Point):
+	* custom.texi (Mouse Buttons):
+	* rmail.texi (Rmail Scrolling):
+	* search.texi (Isearch Scroll):
+
+	* display.texi (Scrolling): Replace scroll-up/down with
+	scroll-up/down-command.  Fix scroll-preserve-screen-position
+	description.  Document scroll-error-top-bottom.
+
 2011-09-30  Glenn Morris  <rgm@gnu.org>
 
 	* commands.texi (Keys): Whitespace fix.  (Bug#9635)

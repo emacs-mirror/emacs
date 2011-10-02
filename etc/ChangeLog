@@ -1,3 +1,7 @@
+2011-10-01  Juanma Barranquero  <lekktu@gmail.com>
+
+	* NEWS: Fix typo.  Remove duplicate info.
+
 2011-09-23  Martin Rudalics  <rudalics@gmx.at>
 
 	* NEWS: Document some window code changes.
@@ -148,7 +152,7 @@
 
 2011-06-21  Leo Liu  <sdl.web@gmail.com>
 
-	* NEWS: Mention the new primtive secure-hash.
+	* NEWS: Mention the new primitive secure-hash.
 
 2011-06-14  Chong Yidong  <cyd@stupidchicken.com>
 

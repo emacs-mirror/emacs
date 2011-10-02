@@ -39,21 +39,22 @@ want to see, and how to display it.
 
 @node Scrolling
 @section Scrolling
-
-  If a buffer contains text that is too large to fit entirely within a
-window that is displaying the buffer, Emacs shows a contiguous portion of
-the text.  The portion shown always contains point.
-
 @cindex scrolling
-  @dfn{Scrolling} means moving text up or down in the window so that
-different parts of the text are visible.  Scrolling ``forward'' or
-``up'' means that text moves up, and new text appears at the bottom.
-Scrolling ``backward'' or ``down'' moves text down, and new text
-appears at the top.
 
-  Scrolling happens automatically if you move point past the bottom or
-top of the window.  You can also scroll explicitly with these
-commands:
+  If a window is too small to display all the text in its buffer, it
+displays only a portion of it.  @dfn{Scrolling} commands change which
+portion of the buffer is displayed.
+
+  Scrolling ``forward'' or ``up'' advances the portion of the buffer
+displayed in the window; equivalently, it moves the buffer text
+upwards relative to the window.  Scrolling ``backward'' or ``down''
+moves the displayed portion backwards, and moves the text downwards
+relative to the window.
+
+  The portion of a buffer displayed in a window always contains point.
+If you move point past the bottom or top of the window, scrolling
+occurs automatically to bring it back onscreen (@pxref{Auto
+Scrolling}).  You can also scroll explicitly with these commands:
 
 @table @kbd
 @item C-l
@@ -76,10 +77,10 @@ Scroll heuristically to bring useful information onto the screen
 
 @kindex C-l
 @findex recenter-top-bottom
-  @kbd{C-l} (@code{recenter-top-bottom}) is a basic scrolling command.
-It @dfn{recenters} the selected window, scrolling it so that the
-current screen line is exactly in the center of the window, or as
-close to the center as possible.
+  The @kbd{C-l} (@code{recenter-top-bottom}) command @dfn{recenters}
+the selected window, scrolling it so that the current screen line is
+exactly in the center of the window, or as close to the center as
+possible.
 
   Typing @kbd{C-l} twice in a row (@kbd{C-l C-l}) scrolls the window
 so that point is on the topmost screen line.  Typing a third @kbd{C-l}
@@ -95,7 +96,7 @@ floating-point number between 0.0 and 1.0 specifies a percentage of
 the screen space from the top.  The default, @code{(middle top
 bottom)}, is the cycling order described above.  Furthermore, if you
 change the variable @code{scroll-margin} to a non-zero value @var{n},
-Emacs always leaves @var{n} screen lines between point and the top or
+@kbd{C-l} leaves @var{n} screen lines between point and the top or
 bottom of the window (@pxref{Auto Scrolling}).
 
   You can also supply @kbd{C-l} with a prefix argument.  With a plain
@@ -108,17 +109,16 @@ puts point on the bottom line, and @kbd{C-u - 5 C-l} puts it five
 lines from the bottom.  When given an argument, @kbd{C-l} does not
 clear the screen or cycle through different screen positions.
 
-  The more primitive command @code{recenter} behaves like
-@code{recenter-top-bottom}, but does not cycle among screen positions.
-Prior to Emacs 23, @kbd{C-l} was bound to @code{recenter}.
-
 @vindex recenter-redisplay
   If the variable @code{recenter-redisplay} has a non-@code{nil}
-value, Emacs clears and redisplays the screen each time @kbd{C-l}
-recenters the window; the special value @code{tty} (the default) says
-to do this on text-terminal frames only.  Redisplaying is useful in
-case the screen becomes garbled for any reason (@pxref{Screen
-Garbled}).
+value, each invocation of @kbd{C-l} also clears and redisplays the
+screen; the special value @code{tty} (the default) says to do this on
+text-terminal frames only.  Redisplaying is useful in case the screen
+becomes garbled for any reason (@pxref{Screen Garbled}).
+
+@findex recenter
+  The more primitive command @code{recenter} behaves like
+@code{recenter-top-bottom}, but does not cycle among screen positions.
 
 @kindex C-v
 @kindex M-v
@@ -126,16 +126,15 @@ Garbled}).
 @kindex prior
 @kindex PageDown
 @kindex PageUp
-@findex scroll-up
-@findex scroll-down
-  To read the buffer a windowful at a time, type @kbd{C-v}
-(@code{scroll-up}).  This scrolls forward by nearly the whole window
-height.  The effect is to take the two lines at the bottom of the
-window and put them at the top, followed by lines that were not
-previously visible.  If point was in the text that scrolled off the
-top, it ends up at the new top of the window.
+@findex scroll-up-command
+@findex scroll-down-command
+  The @kbd{C-v} (@code{scroll-up-command}) command scrolls forward by
+nearly the whole window height.  The effect is to take the two lines
+at the bottom of the window and put them at the top, followed by lines
+that were not previously visible.  If point was in the text that
+scrolled off the top, it ends up at the new top of the window.
 
-  @kbd{M-v} (@code{scroll-down}) scrolls backward in a similar way.
+  Similarly, @kbd{M-v} (@code{scroll-down-command}) scrolls backward.
 
 @vindex next-screen-context-lines
   The variable @code{next-screen-context-lines} controls the number of
@@ -150,23 +149,39 @@ together).  @kbd{C-v} with a negative argument is like @kbd{M-v} and
 vice versa.
 
   The names of scroll commands are based on the direction that the
-text moves in the window.  Thus, the command to scroll forward is
-called @code{scroll-up} because it moves the text upward on the
-screen.  The keys @key{PageUp} and @key{PageDown} derive their names
-and customary meanings from a different convention that developed
-elsewhere; hence the strange result that @key{PageDown} runs
-@code{scroll-up}.
+text moves in the window.  For instance, @code{scroll-up-command}
+moves the text upward on the screen.  The keys @key{PageUp} and
+@key{PageDown} derive their names and customary meanings from a
+different convention that developed elsewhere; hence the strange
+result that @key{PageDown} runs @code{scroll-up-command}.
 
 @vindex scroll-preserve-screen-position
   Some users like the full-screen scroll commands to keep point at the
-same screen position.  To enable this behavior, set the variable
-@code{scroll-preserve-screen-position} to a non-@code{nil} value.
-Then, whenever a command scrolls the text around point offscreen (or
-within @code{scroll-margin} lines of the edge), Emacs moves point to
-keep it at the same vertical and horizontal position within the
-window.  This mode is convenient for browsing through a file by
-scrolling by screenfuls; if you come back to the screen where you
-started, point goes back to the line where it started.
+same screen position.  This behavior is convenient because scrolling
+back to the same screen also returns point to its original position.
+You can enable this via the variable
+@code{scroll-preserve-screen-position}.  If the value is @code{t},
+Emacs adjusts point to keep it at the same vertical position within
+the window, rather than the window edge, whenever a scroll command
+moves it off the window.  With any other non-@code{nil} value, Emacs
+adjusts point this way even if the scroll command leaves point in the
+window.
+
+@vindex scroll-error-top-bottom
+  By default, @code{scroll-up-command} and @code{scroll-down-command}
+signal an error (by beeping or flashing the screen) if no more
+scrolling is possible, because the window has reached the beginning or
+end of the buffer.  If you change the variable
+@code{scroll-error-top-bottom} to @code{t}, Emacs instead moves point
+to the farthest possible position.  If point is already there, the
+command signals an error.
+
+@vindex scroll-up
+@vindex scroll-down
+  The commands @code{scroll-up} and @code{scroll-down} behave
+similarly to @code{scroll-up-command} and @code{scroll-down-command},
+except they do not obey @code{scroll-error-top-bottom}.  Prior to
+Emacs 24, these were the default commands for scrolling up and down.
 
 @kindex C-M-l
 @findex reposition-window

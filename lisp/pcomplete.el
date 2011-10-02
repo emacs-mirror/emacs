@@ -119,6 +119,7 @@
 ;;; Code:
 
 (eval-when-compile (require 'cl))
+(require 'comint)
 
 (defgroup pcomplete nil
   "Programmable completion."
@@ -383,22 +384,14 @@ modified to be an empty string, or the desired separation string."
    (t
     (replace-regexp-in-string "\\\\\\(.\\)" "\\1" s t))))
 
-(defun pcomplete--common-suffix (s1 s2)
-  (assert (not (or (string-match "\n" s1) (string-match "\n" s2))))
-  ;; Since S2 is expected to be the "unquoted/expanded" version of S1,
-  ;; there shouldn't be any case difference, even if the completion is
-  ;; case-insensitive.
-  (let ((case-fold-search nil)) ;; pcomplete-ignore-case
-    (string-match ".*?\\(.*\\)\n.*\\1\\'" (concat s1 "\n" s2))
-    (- (match-end 1) (match-beginning 1))))
-
 (defun pcomplete--common-quoted-suffix (s1 s2)
+  ;; FIXME: Copied in comint.el.
   "Find the common suffix between S1 and S2 where S1 is the expanded S2.
 S1 is expected to be the unquoted and expanded version of S1.
 Returns (PS1 . PS2), i.e. the shortest prefixes of S1 and S2, such that
 S1 = (concat PS1 SS1) and S2 = (concat PS2 SS2) and
 SS1 = (unquote SS2)."
-  (let* ((cs (pcomplete--common-suffix s1 s2))
+  (let* ((cs (comint--common-suffix s1 s2))
          (ss1 (substring s1 (- (length s1) cs)))
          (qss1 (pcomplete-quote-argument ss1))
          qc)
@@ -416,6 +409,7 @@ SS1 = (unquote SS2)."
             (substring s2 0 (- (length s2) cs))))))
 
 (defun pcomplete--table-subvert (table s1 s2 string pred action)
+  ;; FIXME: Copied in comint.el.
   "Completion table that replaces the prefix S1 with S2 in STRING.
 When TABLE, S1 and S2 are provided by `apply-partially', the result
 is a completion table which completes strings of the form (concat S1 S)
@@ -449,7 +443,9 @@ in the same way as TABLE completes strings of the form (concat S2 S)."
                     (mapcar (lambda (c)
                               (if (string-match re c)
                                   (substring c (match-end 0))))
-                            res))))))))))
+                            res))))))
+       ;; E.g. action=nil and it's the only completion.
+       (res)))))
 
 ;; I don't think such commands are usable before first setting up buffer-local
 ;; variables to parse args, so there's no point autoloading it.
@@ -928,7 +924,7 @@ Magic characters are those in `pcomplete-arg-quote-list'."
                      ,@(cdr (completion-file-name-table s p a)))
         (let ((completion-ignored-extensions nil))
           (completion-table-with-predicate
-           'completion-file-name-table pred 'strict s p a))))))
+           #'comint-completion-file-name-table pred 'strict s p a))))))
 
 (defconst pcomplete--env-regexp
   "\\(?:\\`\\|[^\\]\\)\\(?:\\\\\\\\\\)*\\(\\$\\(?:{\\([^}]+\\)}\\|\\(?2:[[:alnum:]_]+\\)\\)\\)")

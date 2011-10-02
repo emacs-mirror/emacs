@@ -1,3 +1,53 @@
+2011-10-02  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* pcomplete.el: Require comint.
+	(pcomplete--common-suffix): Remove.
+	(pcomplete--common-quoted-suffix): Use comint--common-suffix instead.
+	(pcomplete--table-subvert): Sync with comint--table-subvert.
+	(pcomplete--entries): Use comint-completion-file-name-table.
+	* comint.el (comint-unquote-filename): Simplify.
+	(comint-completion-file-name-table): New function (bug#9616).
+	(comint--complete-file-name-data): Use it.
+
+	* pcmpl-gnu.el (pcmpl-gnu-with-file-buffer): New macro (bug#9643).
+	(pcmpl-gnu-tar-buffer): Remove.
+	(pcmpl-gnu-with-file-buffer): Use it to avoid leaving the tar's buffer
+	avoid.  Make sure pcomplete-suffix-list is only changed temporarily.
+	Don't look inside the tar's file is it's too large.
+
+2011-10-01  Chong Yidong  <cyd@stupidchicken.com>
+
+	* cus-edit.el (custom-mode-map):
+	* epa.el (epa-key-list-mode-map):
+	* man.el (Man-mode-map):
+	* startup.el (splash-screen-keymap):
+	* simple.el (special-mode-map): Use scroll-up-command and
+	scroll-down-command.
+
+	* progmodes/idlw-help.el (idlwave-help-mode-map):
+	* progmodes/ebrowse.el (ebrowse-electric-position-mode-map):
+	* net/newst-plainview.el (newsticker-mode-map):
+	* emulation/ws-mode.el (wordstar-mode-map):
+	* emulation/vi.el (vi-com-map):
+	* calc/calc-graph.el (calc-graph-show-dumb):
+	* term/sun.el (terminal-init-sun):
+	* term/ns-win.el (global-map):
+	* progmodes/grep.el (grep-mode-map):
+	* progmodes/ebrowse.el (ebrowse-electric-list-mode-map):
+	* mail/rmail.el (rmail-mode-map):
+	* progmodes/cpp.el (cpp-edit-mode-map): Likewise.
+
+	* custom.el (custom-safe-themes, load-theme): Treat value of t for
+	custom-safe-themes as special.
+
+2011-10-01  Julien Danjou  <julien@danjou.info>
+
+	* notifications.el (notifications-notify): Fix docstring.
+
+2011-10-01  Per Starbäck  <per@starback.se>
+
+	* pcmpl-gnu.el (pcomplete/tar): Fix tar-header-name call.  (Bug#9643)
+
 2011-09-30  Martin Rudalics  <rudalics@gmx.at>
 
 	* startup.el (command-line-1): Fix last fix by inserting
@@ -549,7 +599,7 @@
 
 	* help.el (describe-key-briefly): Copy previous standard-output change.
 
-2011-09-13  PJ Weisberg  <pj@irregularexpressions.net>  (tiny change)
+2011-09-13  PJ Weisberg  <pj@irregularexpressions.net>
 
 	* help.el (where-is): Respect non-standard standard-output.  (Bug#9030)
 

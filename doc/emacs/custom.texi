@@ -1854,10 +1854,10 @@ comes from a special area of the screen by means of dummy ``prefix
 keys.''  For example, if you click the mouse in the mode line, you get
 the prefix key @code{mode-line} before the ordinary mouse-button symbol.
 Thus, here is how to define the command for clicking the first button in
-a mode line to run @code{scroll-up}:
+a mode line to run @code{scroll-up-command}:
 
 @example
-(global-set-key [mode-line mouse-1] 'scroll-up)
+(global-set-key [mode-line mouse-1] 'scroll-up-command)
 @end example
 
   Here is the complete list of these dummy prefix keys and their

@@ -1104,13 +1104,17 @@ property `theme-feature' (which is usually a symbol created by
   (provide (get theme 'theme-feature)))
 
 (defcustom custom-safe-themes '(default)
-  "List of themes that are considered safe to load.
-Each list element should be the `sha1' hash of a theme file, or
-the symbol `default', which stands for any theme in the built-in
-Emacs theme directory (a directory named \"themes\" in
-`data-directory')."
-  :type '(repeat
-	  (choice string (const :tag "Built-in themes" default)))
+  "Themes that are considered safe to load.
+If the value is a list, each element should be either the `sha1'
+hash of a safe theme file, or the symbol `default', which stands
+for any theme in the built-in Emacs theme directory (a directory
+named \"themes\" in `data-directory').
+
+If the value is t, Emacs treats all themes as safe."
+  :type '(choice (repeat :tag "List of safe themes"
+			 (choice string
+				 (const :tag "Built-in themes" default)))
+		 (const :tag "All themes" t))
   :group 'customize
   :risky t
   :version "24.1")
@@ -1120,8 +1124,9 @@ Emacs theme directory (a directory named \"themes\" in
 The theme file is named THEME-theme.el, in one of the directories
 specified by `custom-theme-load-path'.
 
-If THEME is not in `custom-safe-themes', prompt the user for
-confirmation, unless optional arg NO-CONFIRM is non-nil.
+If optional arg NO-CONFIRM is non-nil, and THEME is not
+considered safe according to `custom-safe-themes', prompt the
+user for confirmation.
 
 Normally, this function also enables THEME; if optional arg
 NO-ENABLE is non-nil, load the theme but don't enable it.
@@ -1158,6 +1163,7 @@ Return t if THEME was successfully loaded, nil otherwise."
       ;; Check file safety with `custom-safe-themes', prompting the
       ;; user if necessary.
       (when (or no-confirm
+		(eq custom-safe-themes t)
 		(and (memq 'default custom-safe-themes)
 		     (equal (file-name-directory fn)
 			    (expand-file-name "themes/" data-directory)))

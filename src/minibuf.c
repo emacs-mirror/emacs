@@ -1859,8 +1859,8 @@ The arguments STRING and PREDICATE are as in `try-completion',
 	  /* First, look for a non-internal buffer in `res'.  */
 	  while (CONSP (bufs) && SREF (XCAR (bufs), 0) == ' ')
 	    bufs = XCDR (bufs);
-	  if (NILP (bufs))
-	    /* All bufs in `res' are internal, so don't trip them out.  */
+	  if (NILP (bufs) && EQ (Flength (res), Flength (Vbuffer_alist)))
+	    /* All bufs are internal, so don't trip them out.  */
 	    return res;
 	  res = bufs;
 	  while (CONSP (XCDR (bufs)))

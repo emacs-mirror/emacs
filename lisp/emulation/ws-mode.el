@@ -143,11 +143,11 @@
     map)
   "")
 
-(defvar wordstar-mode-map 
+(defvar wordstar-mode-map
   (let ((map (make-keymap)))
     (define-key map "\C-a" 'backward-word)
     (define-key map "\C-b" 'fill-paragraph)
-    (define-key map "\C-c" 'scroll-up)
+    (define-key map "\C-c" 'scroll-up-command)
     (define-key map "\C-d" 'forward-char)
     (define-key map "\C-e" 'previous-line)
     (define-key map "\C-f" 'forward-word)
@@ -161,7 +161,7 @@
     (define-key map "\C-o" wordstar-C-o-map)
     (define-key map "\C-p" 'quoted-insert)
     (define-key map "\C-q" wordstar-C-q-map)
-    (define-key map "\C-r" 'scroll-down)
+    (define-key map "\C-r" 'scroll-down-command)
     (define-key map "\C-s" 'backward-char)
     (define-key map "\C-t" 'kill-word)
     (define-key map "\C-u" 'keyboard-quit)
