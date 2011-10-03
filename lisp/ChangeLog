@@ -1,5 +1,13 @@
 2011-10-03  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* pcmpl-unix.el (pcomplete/scp): Don't assume pcomplete-all-entries
+	returns a list (bug#9554).  Add remote file name completion.
+	* comint.el (comint--table-subvert): Curry and get quote&unquote
+	functions as arguments.
+	(comint--complete-file-name-data): Adjust call accordingly.
+	* pcomplete.el (pcomplete--table-subvert): Remove.
+	(pcomplete-completions-at-point): Use comint--table-subvert instead.
+
 	* minibuffer.el (completion-table-case-fold): Use currying.
 	(completion--styles-type, completion--cycling-threshold-type):
 	New constants.

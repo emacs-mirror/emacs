@@ -193,10 +193,25 @@ Uses both `pcmpl-ssh-config-file' and `pcmpl-ssh-known-hosts-file'."
   "Completion rules for the `scp' command.
 Includes files as well as host names followed by a colon."
   (pcomplete-opt "1246BCpqrvcFiloPS")
-  (while t (pcomplete-here (append (pcomplete-all-entries)
-                                   (mapcar (lambda (host)
-                                             (concat host ":"))
-                                           (pcmpl-ssh-hosts))))))
+  (while t (pcomplete-here
+            (lambda (string pred action)
+              (let ((table
+                     (cond
+                      ((string-match "\\`[^:/]+:" string) ; Remote file name.
+		       (if (and (eq action 'lambda)
+				(eq (match-end 0) (length string)))
+			   ;; Avoid connecting to the remote host when we're
+			   ;; only completing the host name.
+			   (list string)
+			 (comint--table-subvert (pcomplete-all-entries)
+						"" "/ssh:")))
+                      ((string-match "/" string) ; Local file name.
+                       (pcomplete-all-entries))
+                      (t                ;Host name or local file name.
+                       (append (all-completions string (pcomplete-all-entries))
+                               (mapcar (lambda (host) (concat host ":"))
+                                       (pcmpl-ssh-hosts)))))))
+                (complete-with-action action table string pred))))))
 
 (provide 'pcmpl-unix)
 
