@@ -1,3 +1,13 @@
+2011-10-03  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* minibuffer.el (completion-table-case-fold): Use currying.
+	(completion--styles-type, completion--cycling-threshold-type):
+	New constants.
+	(completion-styles, completion-category-overrides)
+	(completion-cycle-threshold): Use them.
+	* pcomplete.el (pcomplete-completions-at-point): Adjust call to
+	completion-table-case-fold.
+
 2011-10-03  Stephen Berman  <stephen.berman@gmx.net>
 
 	* minibuffer.el (completion-category-overrides): Fix type of styles

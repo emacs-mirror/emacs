@@ -523,8 +523,7 @@ Same as `pcomplete' but using the standard completion UI."
                            (funcall norm-func (directory-file-name f))
                            seen)))))))
           (when pcomplete-ignore-case
-            (setq table
-                  (apply-partially #'completion-table-case-fold table)))
+            (setq table (completion-table-case-fold table)))
           (list beg (point) table
                 :predicate pred
                 :exit-function

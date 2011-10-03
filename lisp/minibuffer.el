@@ -216,9 +216,13 @@ You should give VAR a non-nil `risky-local-variable' property."
           (setq ,var (,fun)))
         ,var))))
 
-(defun completion-table-case-fold (table string pred action)
-  (let ((completion-ignore-case t))
-    (complete-with-action action table string pred)))
+(defun completion-table-case-fold (table &optional dont-fold)
+  "Return new completion TABLE that is case insensitive.
+If DONT-FOLD is non-nil, return a completion table that is
+case sensitive instead."
+  (lambda (string pred action)
+    (let ((completion-ignore-case (not dont-fold)))
+      (complete-with-action action table string pred))))
 
 (defun completion-table-with-context (prefix table string pred action)
   ;; TODO: add `suffix' maybe?
@@ -468,6 +472,15 @@ ALL-COMPLETIONS is the function that lists the completions (it should
 follow the calling convention of `completion-all-completions'),
 and DOC describes the way this style of completion works.")
 
+(defconst completion--styles-type
+  `(repeat :tag "insert a new menu to add more styles"
+           (choice ,@(mapcar (lambda (x) (list 'const (car x)))
+                             completion-styles-alist))))
+(defconst completion--cycling-threshold-type
+  '(choice (const :tag "No cycling" nil)
+           (const :tag "Always cycle" t)
+           (integer :tag "Threshold")))
+
 (defcustom completion-styles
   ;; First, use `basic' because prefix completion has been the standard
   ;; for "ever" and works well in most cases, so using it first
@@ -486,8 +499,7 @@ The available styles are listed in `completion-styles-alist'.
 
 Note that `completion-category-overrides' may override these
 styles for specific categories, such as files, buffers, etc."
-  :type `(repeat (choice ,@(mapcar (lambda (x) (list 'const (car x)))
-                                   completion-styles-alist)))
+  :type completion--styles-type
   :group 'minibuffer
   :version "23.1")
 
@@ -501,19 +513,16 @@ an association list that can specify properties such as:
   :type `(alist :key-type (choice :tag "Category"
 				  (const buffer)
                                   (const file)
+                                  (const unicode-name)
                                   symbol)
           :value-type
           (set :tag "Properties to override"
 	   (cons :tag "Completion Styles"
 		 (const :tag "Select a style from the menu;" styles)
-		 (repeat :tag "insert a new menu to add more styles"
-			 (choice ,@(mapcar (lambda (x) (list 'const (car x)))
-					   completion-styles-alist))))
+		 ,completion--styles-type)
            (cons :tag "Completion Cycling"
 		 (const :tag "Select one value from the menu." cycle)
-                 (choice (const :tag "No cycling" nil)
-                         (const :tag "Always cycle" t)
-                         (integer :tag "Threshold"))))))
+                 ,completion--cycling-threshold-type))))
 
 (defun completion--styles (metadata)
   (let* ((cat (completion-metadata-get metadata 'category))
@@ -599,9 +608,7 @@ If nil, cycling is never used.
 If t, cycling is always used.
 If an integer, cycling is used as soon as there are fewer completion
 candidates than this number."
-  :type '(choice (const :tag "No cycling" nil)
-          (const :tag "Always cycle" t)
-          (integer :tag "Threshold")))
+  :type completion--cycling-threshold-type)
 
 (defun completion--cycle-threshold (metadata)
   (let* ((cat (completion-metadata-get metadata 'category))
