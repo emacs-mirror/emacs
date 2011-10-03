@@ -1,3 +1,8 @@
+2011-10-03  Stephen Berman  <stephen.berman@gmx.net>
+
+	* minibuffer.el (completion-category-overrides): Fix type of styles
+	and add more user friendly tags (bug#9660).
+
 2011-10-03  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* international/mule-cmds.el: Fix abuses of apply-partially (bug#9661).

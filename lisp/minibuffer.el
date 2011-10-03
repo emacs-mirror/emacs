@@ -498,15 +498,19 @@ Each override has the shape (CATEGORY . ALIST) where ALIST is
 an association list that can specify properties such as:
 - `styles': the list of `completion-styles' to use for that category.
 - `cycle': the `completion-cycle-threshold' to use for that category."
-  :type `(alist :key-type (choice (const buffer)
+  :type `(alist :key-type (choice :tag "Category"
+				  (const buffer)
                                   (const file)
                                   symbol)
           :value-type
-          (set
-           (cons (const style)
-                 (repeat ,@(mapcar (lambda (x) (list 'const (car x)))
-                                   completion-styles-alist)))
-           (cons (const cycle)
+          (set :tag "Properties to override"
+	   (cons :tag "Completion Styles"
+		 (const :tag "Select a style from the menu;" styles)
+		 (repeat :tag "insert a new menu to add more styles"
+			 (choice ,@(mapcar (lambda (x) (list 'const (car x)))
+					   completion-styles-alist))))
+           (cons :tag "Completion Cycling"
+		 (const :tag "Select one value from the menu." cycle)
                  (choice (const :tag "No cycling" nil)
                          (const :tag "Always cycle" t)
                          (integer :tag "Threshold"))))))
