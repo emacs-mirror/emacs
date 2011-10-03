@@ -1,3 +1,9 @@
+2011-10-03  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* international/mule-cmds.el: Fix abuses of apply-partially (bug#9661).
+	(mule-input-method-string): New widget.
+	(default-input-method, language-info-custom-alist): Use it.
+
 2011-10-02  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* pcomplete.el: Require comint.
