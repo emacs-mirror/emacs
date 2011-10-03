@@ -1,3 +1,8 @@
+2011-10-03  Glenn Morris  <rgm@gnu.org>
+
+	* gnus-group.el (gnus-bug-group-download-format-alist): Once again get
+	the "maintainer" version of debbugs.gnu.org reports.
+
 2011-10-02  Lars Magne Ingebrigtsen  <larsi@gnus.org>
 
 	* shr.el (shr-tag-img): Add a space at the end of an ALT image text to
