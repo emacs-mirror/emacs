@@ -632,8 +632,9 @@ The optional LABEL is used to label the buffer created."
 ;;;###diary-autoload
 (defun calendar-check-holidays (date)
   "Check the list of holidays for any that occur on DATE.
-The value returned is a list of strings of relevant holiday descriptions.
-The holidays are those in the list `calendar-holidays'."
+DATE is a list (month day year).  This function considers the
+holidays from the list `calendar-holidays', and returns a list of
+strings describing those holidays that apply on DATE."
   (let ((displayed-month (calendar-extract-month date))
         (displayed-year (calendar-extract-year date))
         holiday-list)
