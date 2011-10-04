@@ -1,3 +1,13 @@
+2011-10-04  Martin Rudalics  <rudalics@gmx.at>
+
+	* window.el (window--delete): New function.
+	(frame-auto-delete): Resuscitate option.
+	(bury-buffer, replace-buffer-in-windows)
+	(quit-window): Rewrite using window--delete.
+	(display-buffer-pop-up-frame, display-buffer-pop-up-window):
+	Pass display-buffer-mark-dedicated to window--display-buffer-2
+	(Bug#9639).
+
 2011-10-03  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* pcmpl-unix.el (pcomplete/scp): Don't assume pcomplete-all-entries
