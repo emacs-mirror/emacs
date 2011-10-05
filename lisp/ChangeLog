@@ -1,3 +1,7 @@
+2011-10-05  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* mpc.el (mpc-tool-bar-map): Add labels.
+
 2011-10-04  Glenn Morris  <rgm@gnu.org>
 
 	* calendar/holidays.el (calendar-check-holidays): Doc fix.
