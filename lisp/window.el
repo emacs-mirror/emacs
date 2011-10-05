@@ -2738,13 +2738,18 @@ the buffer `*scratch*', creating it if necessary."
 	(set-buffer-major-mode scratch)
 	scratch)))
 
-(defcustom frame-auto-delete nil
-  "Non-nil means automatically delete frames.
-The default value nil means to iconify frames instead.  Functions
-affected by this variable are `quit-window' (when burying the
-window's buffer) and `bury-buffer'."
-  :type 'boolean
-  :group 'windows)
+(defcustom frame-auto-hide-function #'iconify-frame
+  "Function called to automatically hide frames.
+The function is called with one argument - a frame.
+
+Functions affected by this option are those that bury a buffer
+shown in a separate frame like `quit-window' and `bury-buffer'."
+  :type '(choice (const :tag "Iconify" iconify-frame)
+                 (const :tag "Delete" delete-frame)
+                 (const :tag "Do nothing" ignore)
+                 function)
+  :group 'windows
+  :group 'frames)
 
 (defun window--delete (&optional window dedicated-only kill)
   "Delete WINDOW if possible.
@@ -2760,9 +2765,8 @@ if WINDOW gets deleted."
       (cond
        ((eq deletable 'frame)
 	(let ((frame (window-frame window)))
-	  (if (or kill frame-auto-delete)
-	      (delete-frame frame)
-	    (iconify-frame frame)))
+	  (when (functionp frame-auto-hide-function)
+	    (funcall frame-auto-hide-function frame)))
 	'frame)
        (deletable
 	(delete-window window)

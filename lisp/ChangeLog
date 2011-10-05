@@ -1,3 +1,10 @@
+2011-10-05  Martin Rudalics  <rudalics@gmx.at>
+
+	* window.el (frame-auto-hide-function): New option replacing
+	frame-auto-delete.  Suggested by Stefan Monnier.
+	(window--delete): Call frame-auto-hide-function instead of
+	investigating frame-auto-delete.
+
 2011-10-05  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* emacs-lisp/edebug.el: Heed checkdoc recommendations.
