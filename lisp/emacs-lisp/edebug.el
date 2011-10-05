@@ -1557,7 +1557,7 @@ expressions; a `progn' form will be returned enclosing these forms."
   ;; The first spec is handled and the remainder-handler handles the rest.
   (let ((edebug-matching-depth
 	 (if (> edebug-matching-depth edebug-max-depth)
-	     (error "too deep - perhaps infinite loop in spec?")
+	     (error "Too deep - perhaps infinite loop in spec?")
 	   (1+ edebug-matching-depth))))
     (cond
      ((null specs) nil)
@@ -3201,7 +3201,7 @@ before returning.  The default is one second."
   "Modify the breakpoint for the form at point or after it.
 Set it if FLAG is non-nil, clear it otherwise.  Then move to that point.
 If CONDITION or TEMPORARY are non-nil, add those attributes to
-the breakpoint.  "
+the breakpoint."
   (let ((edebug-stop-point (edebug-find-stop-point)))
     (if edebug-stop-point
 	(let* ((edebug-def-name (car edebug-stop-point))
@@ -3879,24 +3879,23 @@ Global commands prefixed by `global-edebug-prefix':
 \\{global-edebug-map}
 
 Options:
-edebug-setup-hook
-edebug-all-defs
-edebug-all-forms
-edebug-save-windows
-edebug-save-displayed-buffer-points
-edebug-initial-mode
-edebug-trace
-edebug-test-coverage
-edebug-continue-kbd-macro
-edebug-print-length
-edebug-print-level
-edebug-print-circle
-edebug-on-error
-edebug-on-quit
-edebug-on-signal
-edebug-unwrap-results
-edebug-global-break-condition
-"
+`edebug-setup-hook'
+`edebug-all-defs'
+`edebug-all-forms'
+`edebug-save-windows'
+`edebug-save-displayed-buffer-points'
+`edebug-initial-mode'
+`edebug-trace'
+`edebug-test-coverage'
+`edebug-continue-kbd-macro'
+`edebug-print-length'
+`edebug-print-level'
+`edebug-print-circle'
+`edebug-on-error'
+`edebug-on-quit'
+`edebug-on-signal'
+`edebug-unwrap-results'
+`edebug-global-break-condition'"
   ;; If the user kills the buffer in which edebug is currently active,
   ;; exit to top level, because the edebug command loop can't usefully
   ;; continue running in such a case.

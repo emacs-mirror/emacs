@@ -1,3 +1,7 @@
+2011-10-05  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* emacs-lisp/edebug.el: Heed checkdoc recommendations.
+
 2011-10-05  Glenn Morris  <rgm@gnu.org>
 
 	* progmodes/perl-mode.el (perl-electric-terminator): Doc fix.
