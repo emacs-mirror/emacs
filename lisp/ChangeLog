@@ -1,3 +1,8 @@
+2011-10-05  Leo Liu  <sdl.web@gmail.com>
+
+	* subr.el (read-char-choice): Fix argument to buffer-live-p which
+	works with buffer object.
+
 2011-10-05  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* mpc.el (mpc-tool-bar-map): Add labels.

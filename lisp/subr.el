@@ -2170,7 +2170,7 @@ keyboard-quit events while waiting for a valid input."
 	    (setq prompt (propertize prompt 'face 'minibuffer-prompt)))
 	  (setq char (let ((inhibit-quit inhibit-keyboard-quit))
 		       (read-key prompt)))
-	  (and show-help (buffer-live-p helpbuf)
+	  (and show-help (buffer-live-p (get-buffer helpbuf))
 	       (kill-buffer helpbuf))
 	  (cond
 	   ((not (numberp char)))
