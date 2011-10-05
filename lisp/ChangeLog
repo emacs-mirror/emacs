@@ -1,3 +1,8 @@
+2011-10-05  Glenn Morris  <rgm@gnu.org>
+
+	* progmodes/perl-mode.el (perl-electric-terminator): Doc fix.
+	(perl-calculate-indent): Suppress scan errors.  (Bug#2205)
+
 2011-10-05  Leo Liu  <sdl.web@gmail.com>
 
 	* subr.el (read-char-choice): Fix argument to buffer-live-p which
