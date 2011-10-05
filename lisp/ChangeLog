@@ -4,6 +4,11 @@
 	frame-auto-delete.  Suggested by Stefan Monnier.
 	(window--delete): Call frame-auto-hide-function instead of
 	investigating frame-auto-delete.
+	(window-point-1, set-window-point-1): New functions.
+	(window-in-direction, record-window-buffer, window-state-get-1)
+	(display-buffer-record-window): Use window-point-1 instead of
+	window-point.
+	(set-window-buffer-start-and-point): Use set-window-point-1.
 
 2011-10-05  Stefan Monnier  <monnier@iro.umontreal.ca>
 

@@ -1058,6 +1058,32 @@ windows nor the buffer list."
     (dolist (walk-windows-window (window-list-1 nil minibuf all-frames))
       (funcall proc walk-windows-window))))
 
+(defun window-point-1 (&optional window)
+  "Return value of WINDOW's point.
+WINDOW can be any live window and defaults to the selected one.
+
+This function is like `window-point' with one exception: If
+WINDOW is selected, it returns the value of `point' of WINDOW's
+buffer regardless of whether that buffer is current or not."
+  (setq window (window-normalize-live-window window))
+  (if (eq window (selected-window))
+      (with-current-buffer (window-buffer window)
+	(point))
+    (window-point window)))
+
+(defun set-window-point-1 (window pos)
+  "Set value of WINDOW's point to POS.
+WINDOW can be any live window and defaults to the selected one.
+
+This function is like `set-window-point' with one exception: If
+WINDOW is selected, it moves `point' of WINDOW's buffer to POS
+regardless of whether that buffer is current or not."
+  (setq window (window-normalize-live-window window))
+  (if (eq window (selected-window))
+      (with-current-buffer (window-buffer window)
+	(goto-char pos))
+    (set-window-point window pos)))
+
 (defun window-in-direction-2 (window posn &optional horizontal)
   "Support function for `window-in-direction'."
   (if horizontal
@@ -1087,7 +1113,7 @@ IGNORE, when non-nil means a window can be returned even if its
 	 (last (+ first (if hor
 			    (window-total-width window)
 			  (window-total-height window))))
-	 (posn-cons (nth 6 (posn-at-point (window-point window) window)))
+	 (posn-cons (nth 6 (posn-at-point (window-point-1 window) window)))
 	 ;; The column / row value of `posn-at-point' can be nil for the
 	 ;; mini-window, guard against that.
 	 (posn (if hor
@@ -2492,7 +2518,7 @@ WINDOW must be a live window and defaults to the selected one."
       ;; Add an entry for buffer to WINDOW's previous buffers.
       (with-current-buffer buffer
 	(let ((start (window-start window))
-	      (point (window-point window)))
+	      (point (window-point-1 window)))
 	  (setq entry
 		(cons buffer
 		      (if entry
@@ -2534,10 +2560,7 @@ before was current this also makes BUFFER the current buffer."
       ;; Don't force window-start here (even if POINT is nil).
       (set-window-start window start t))
     (when point
-      (if selected
-	  (with-current-buffer buffer
-	    (goto-char point))
-	(set-window-point window point)))))
+      (set-window-point-1 window point))))
 
 (defun switch-to-prev-buffer (&optional window bury-or-kill)
   "In WINDOW switch to previous buffer.
@@ -3550,7 +3573,7 @@ specific buffers."
 	     ;; All buffer related things go in here - make the buffer
 	     ;; current when retrieving `point' and `mark'.
 	     (with-current-buffer (window-buffer window)
-	       (let ((point (if selected (point) (window-point window)))
+	       (let ((point (window-point-1 window))
 		     (start (window-start window))
 		     (mark (mark)))
 		 (window-list-no-nils
@@ -3845,14 +3868,7 @@ element is BUFFER."
        (list 'other
 	     ;; A quadruple of WINDOW's buffer, start, point and height.
 	     (list (window-buffer window) (window-start window)
-		   (if (eq window (selected-window))
-		       ;; When WINDOW is the selected window use its
-		       ;; buffer's `point' instead of `window-point'
-		       ;; (Bug#9626).
-		       (with-current-buffer (window-buffer window)
-			 (point))
-		     (window-point window))
-		   (window-total-size window))
+		   (window-point-1 window) (window-total-size window))
 	     (selected-window) buffer))))
    ((eq type 'window)
     ;; WINDOW has been created on an existing frame.
