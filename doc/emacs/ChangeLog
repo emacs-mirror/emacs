@@ -1,3 +1,8 @@
+2011-10-06  Chong Yidong  <cyd@stupidchicken.com>
+
+	* misc.texi (emacsclient Options): Document how emacsclient runs
+	the Emacs daemon (Bug#9674).
+
 2011-10-01  Chong Yidong  <cyd@stupidchicken.com>
 
 	* basic.texi (Moving Point):
