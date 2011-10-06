@@ -552,7 +552,8 @@ AFTER should be a single event type--a symbol or a character, not a sequence.
 
 Bindings are always added before any inherited map.
 
-The order of bindings in a keymap matters when it is used as a menu."
+The order of bindings in a keymap only matters when it is used as
+a menu, so this function is not useful for non-menu keymaps."
   (unless after (setq after t))
   (or (keymapp keymap)
       (signal 'wrong-type-argument (list 'keymapp keymap)))

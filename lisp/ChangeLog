@@ -1,5 +1,8 @@
 2011-10-06  Lars Magne Ingebrigtsen  <larsi@gnus.org>
 
+	* subr.el (define-key-after): Clarify that the function is not
+	useful for non-menu keymaps.
+
 	* progmodes/gdb-mi.el (gdb): Fix typo in doc string.
 
 2011-10-06  Thierry Volpiatto  <thierry.volpiatto@gmail.com>
