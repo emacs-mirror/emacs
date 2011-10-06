@@ -29093,7 +29093,7 @@ Takes an unprefixed group name and a select method, and returns the full
 
 @item gnus-get-info
 @findex gnus-get-info
-Returns the group info list for @var{group}.
+Returns the group info list for @var{group} (@pxref{Group Info}).
 
 @item gnus-group-unread
 @findex gnus-group-unread
@@ -29102,7 +29102,8 @@ unknown.
 
 @item gnus-active
 @findex gnus-active
-The active entry for @var{group}.
+The active entry (i.e., a cons cell containing the lowest and highest
+article numbers) for @var{group}.
 
 @item gnus-set-active
 @findex gnus-set-active
@@ -29137,7 +29138,9 @@ Returns the select method corresponding to @var{server}.
 
 @item gnus-server-equal
 @findex gnus-server-equal
-Says whether two virtual servers are equal.
+Says whether two virtual servers are essentially equal.  For instance,
+two virtual servers may have server parameters in different order, but
+this function will consider them equal.
 
 @item gnus-group-native-p
 @findex gnus-group-native-p
@@ -29153,8 +29156,9 @@ Says whether @var{group} is foreign or not.
 
 @item gnus-group-find-parameter
 @findex gnus-group-find-parameter
-Returns the parameter list of @var{group}.  If given a second parameter,
-returns the value of that parameter for @var{group}.
+Returns the parameter list of @var{group} (@pxref{Group Parameters}).
+If given a second parameter, returns the value of that parameter for
+@var{group}.
 
 @item gnus-group-set-parameter
 @findex gnus-group-set-parameter

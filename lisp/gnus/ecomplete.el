@@ -27,6 +27,11 @@
 (eval-when-compile
   (require 'cl))
 
+(eval-when-compile
+  (when (featurep 'xemacs)
+    ;; The `kbd' macro requires that the `read-kbd-macro' macro is available.
+    (require 'edmacro)))
+
 (defgroup ecomplete nil
   "Electric completion of email addresses and the like."
   :group 'mail)
@@ -123,15 +128,24 @@
 	    (message "%s" matches)
 	    nil)
 	(setq highlight (ecomplete-highlight-match-line matches line))
-	(while (not (memq (setq command (read-event highlight)) '(? return)))
-	  (cond
-	   ((eq command ?\M-n)
-	    (setq line (min (1+ line) max-lines)))
-	   ((eq command ?\M-p)
-	    (setq line (max (1- line) 0))))
-	  (setq highlight (ecomplete-highlight-match-line matches line)))
-	(when (eq command 'return)
-	  (nth line (split-string matches "\n")))))))
+	(let ((local-map (make-sparse-keymap))
+	      selected)
+	  (define-key local-map (kbd "RET")
+	    (lambda () (setq selected (nth line (split-string matches "\n")))))
+	  (define-key local-map (kbd "M-n")
+	    (lambda () (setq line (min (1+ line) max-lines))))
+	  (define-key local-map (kbd "M-p")
+	    (lambda () (setq line (max (1- line) 0))))
+	  (let ((overriding-local-map local-map))
+	    (while (and (null selected)
+			(setq command (read-key-sequence highlight))
+			(lookup-key local-map command))
+	      (apply (key-binding command) nil)
+	      (setq highlight (ecomplete-highlight-match-line matches line))))
+	  (if selected
+	      (message selected)
+	    (message "Abort"))
+	  selected)))))
 
 (defun ecomplete-highlight-match-line (matches line)
   (with-temp-buffer
