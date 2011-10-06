@@ -1,3 +1,7 @@
+2011-10-06  Chong Yidong  <cyd@stupidchicken.com>
+
+	* progmodes/gdb-mi.el (gdb): Doc fix.
+
 2011-10-05  Martin Rudalics  <rudalics@gmx.at>
 
 	* window.el (frame-auto-hide-function): New option replacing
