@@ -490,26 +490,13 @@ DEFUN ("expt", Fexpt, Sexpt, 2, 2, 0,
 
       x = XINT (arg1);
       y = XINT (arg2);
-      acc = 1;
+      acc = (y & 1 ? x : 1);
 
-      if (y < 0)
+      while ((y >>= 1) != 0)
 	{
-	  if (x == 1)
-	    acc = 1;
-	  else if (x == -1)
-	    acc = (y & 1) ? -1 : 1;
-	  else
-	    acc = 0;
-	}
-      else
-	{
-	  while (y > 0)
-	    {
-	      if (y & 1)
-		acc *= x;
-	      x *= x;
-	      y >>= 1;
-	    }
+	  x *= x;
+	  if (y & 1)
+	    acc *= x;
 	}
       XSETINT (val, acc);
       return val;
