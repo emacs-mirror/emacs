@@ -14,6 +14,9 @@
 	Use int, not EMACS_INT, where int is wide enough.
 	(inhibit_garbage_collection, Fgarbage_collect):
 	Use ptrdiff_t, not int, to avoid needless 32-bit limit on 64-bit hosts.
+	(GC_LISP_OBJECT_ARGUMENT):
+	Use offsetof, not __alignof__ or sizeof.  __alignof__ gives
+	the wrong answer on the x86 with GCC.
 	* bidi.c (bidi_mirror_char): Use EMACS_INT, not int, where
 	int might not be wide enough.
 	(bidi_cache_search, bidi_cache_find, bidi_init_it)

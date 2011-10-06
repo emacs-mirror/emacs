@@ -4455,10 +4455,7 @@ dump_zombies (void)
    pass starting at the start of the stack + 2.  Likewise, if the
    minimal alignment of Lisp_Objects on the stack is 1, four passes
    would be necessary, each one starting with one byte more offset
-   from the stack start.
-
-   The current code assumes by default that Lisp_Objects are aligned
-   equally on the stack.  */
+   from the stack start.  */
 
 static void
 mark_stack (void)
@@ -4522,11 +4519,8 @@ mark_stack (void)
      that's not the case, something has to be done here to iterate
      over the stack segments.  */
 #ifndef GC_LISP_OBJECT_ALIGNMENT
-#ifdef __GNUC__
-#define GC_LISP_OBJECT_ALIGNMENT __alignof__ (Lisp_Object)
-#else
-#define GC_LISP_OBJECT_ALIGNMENT sizeof (Lisp_Object)
-#endif
+# define GC_LISP_OBJECT_ALIGNMENT \
+    offsetof (struct {char a; Lisp_Object b;}, b)
 #endif
   for (i = 0; i < sizeof (Lisp_Object); i += GC_LISP_OBJECT_ALIGNMENT)
     mark_memory (stack_base, end, i);
