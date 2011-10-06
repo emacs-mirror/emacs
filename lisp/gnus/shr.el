@@ -914,12 +914,13 @@ ones, in case fg and bg are nil."
 	   (shr-encode-url url) 'shr-image-fetched
 	   (list (current-buffer) start (set-marker (make-marker) (1- (point))))
 	   t)))
-	(put-text-property start (point) 'keymap shr-map)
-	(put-text-property start (point) 'shr-alt alt)
-	(put-text-property start (point) 'image-url url)
-	(put-text-property start (point) 'image-displayer
-			   (shr-image-displayer shr-content-function))
-	(put-text-property start (point) 'help-echo alt)
+	(when (zerop shr-table-depth) ;; We are not in a table.
+	  (put-text-property start (point) 'keymap shr-map)
+	  (put-text-property start (point) 'shr-alt alt)
+	  (put-text-property start (point) 'image-url url)
+	  (put-text-property start (point) 'image-displayer
+			     (shr-image-displayer shr-content-function))
+	  (put-text-property start (point) 'help-echo alt))
 	(setq shr-state 'image)))))
 
 (defun shr-tag-pre (cont)
