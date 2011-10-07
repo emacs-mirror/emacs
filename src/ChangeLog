@@ -1,9 +1,7 @@
 2011-10-07  Paul Eggert  <eggert@cs.ucla.edu>
 
-	* alloc.c (mark_memory): Omit 3rd (offset) arg; caller changed.
-	Don't assume EMACS_INT alignment is the same as pointer alignment.
-	(GC_POINTER_ALIGNMENT): New macro.
-	(pure_bytes_used_lisp, pure_bytes_used_non_lisp):
+	Integer width fixes.
+	* alloc.c (pure_bytes_used_lisp, pure_bytes_used_non_lisp):
 	(allocate_vectorlike, buffer_memory_full, struct sdata, SDATA_SIZE)
 	(string_bytes, check_sblock, allocate_string_data):
 	(compact_small_strings, Fmake_bool_vector, make_string)
@@ -17,9 +15,6 @@
 	Use int, not EMACS_INT, where int is wide enough.
 	(inhibit_garbage_collection, Fgarbage_collect):
 	Use ptrdiff_t, not int, to avoid needless 32-bit limit on 64-bit hosts.
-	(GC_LISP_OBJECT_ARGUMENT):
-	Use offsetof, not __alignof__ or sizeof.  __alignof__ gives
-	the wrong answer on the x86 with GCC.
 	* bidi.c (bidi_mirror_char): Use EMACS_INT, not int, where
 	int might not be wide enough.
 	(bidi_cache_search, bidi_cache_find, bidi_init_it)
@@ -785,6 +780,18 @@
 	(struct scroll_bar): Use struct vectorlike_header
 	rather than rolling our own approximation.
 	(SCROLL_BAR_VEC_SIZE): Remove; not used.
+
+2011-10-07  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* alloc.c (GC_LISP_OBJECT_ALIGNMENT): Use offsetof, not __alignof__
+	or sizeof.  __alignof__ gives the wrong answer on Fedora x86-64
+	with GCC 4.6.1 when configured with CC='gcc -m32' --with-wide-int;
+	this makes Emacs dump core during garbage collection on rare
+	occasions.  sizeof is obviously inferior to offsetof here, so
+	stick with offsetof.
+	(GC_POINTER_ALIGNMENT): New macro.
+	(mark_memory): Omit 3rd (offset) arg; caller changed.
+	Don't assume EMACS_INT alignment is the same as pointer alignment.
 
 2011-10-03  Stefan Monnier  <monnier@iro.umontreal.ca>
 
