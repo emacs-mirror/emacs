@@ -1,3 +1,7 @@
+2011-10-07  Glenn Morris  <rgm@gnu.org>
+
+	* cus-start.el (debug-on-quit): Fix custom type.
+
 2011-10-06  Lars Magne Ingebrigtsen  <larsi@gnus.org>
 
 	* subr.el (define-key-after): Clarify that the function is not
@@ -7,7 +11,7 @@
 
 2011-10-06  Thierry Volpiatto  <thierry.volpiatto@gmail.com>
 
-	* lisp/eshell/eshell.el (eshell-command): Enable `eshell-mode' only
+	* eshell/eshell.el (eshell-command): Enable `eshell-mode' only
 	in current minibuffer (Fix bug with recursive minibuffers).
 
 2011-10-06  Chong Yidong  <cyd@stupidchicken.com>
