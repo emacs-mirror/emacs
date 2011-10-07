@@ -252,6 +252,7 @@ static Lisp_Object Qtimer_event_handler;
 /* read_key_sequence stores here the command definition of the
    key sequence that it reads.  */
 static Lisp_Object read_key_sequence_cmd;
+static Lisp_Object read_key_sequence_remapped;
 
 static Lisp_Object Qinput_method_function;
 
@@ -1514,14 +1515,10 @@ command_loop_1 (void)
 	 reset it before we execute the command. */
       Vdeactivate_mark = Qnil;
 
-      /* Remap command through active keymaps */
+      /* Remap command through active keymaps.  */
       Vthis_original_command = cmd;
-      if (SYMBOLP (cmd))
-	{
-	  Lisp_Object cmd1;
-	  if (cmd1 = Fcommand_remapping (cmd, Qnil, Qnil), !NILP (cmd1))
-	    cmd = cmd1;
-	}
+      if (!NILP (read_key_sequence_remapped))
+	cmd = read_key_sequence_remapped;
 
       /* Execute the command.  */
 
@@ -9999,6 +9996,13 @@ read_key_sequence (Lisp_Object *keybuf, int bufsize, Lisp_Object prompt,
     read_key_sequence_cmd = (first_binding < nmaps
 			     ? defs[first_binding]
 			     : Qnil);
+  read_key_sequence_remapped
+    /* Remap command through active keymaps.
+       Do the remapping here, before the unbind_to so it uses the keymaps
+       of the appropriate buffer.  */
+    = SYMBOLP (read_key_sequence_cmd)
+    ? Fcommand_remapping (read_key_sequence_cmd, Qnil, Qnil)
+    : Qnil;
 
   unread_switch_frame = delayed_switch_frame;
   unbind_to (count, Qnil);
@@ -11663,6 +11667,8 @@ syms_of_keyboard (void)
 
   read_key_sequence_cmd = Qnil;
   staticpro (&read_key_sequence_cmd);
+  read_key_sequence_remapped = Qnil;
+  staticpro (&read_key_sequence_remapped);
 
   menu_bar_one_keymap_changed_items = Qnil;
   staticpro (&menu_bar_one_keymap_changed_items);

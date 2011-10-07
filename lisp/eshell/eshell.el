@@ -346,14 +346,14 @@ With prefix ARG, insert output into the current buffer at point."
     (setq arg current-prefix-arg))
   (unwind-protect
       (let ((eshell-non-interactive-p t))
-	(add-hook 'minibuffer-setup-hook 'eshell-mode)
-	(add-hook 'minibuffer-exit-hook 'eshell-add-command-to-history)
-	(add-hook 'eshell-mode-hook 'eshell-return-exits-minibuffer)
-	(unless command
-	  (setq command (read-from-minibuffer "Emacs shell command: "))))
+        ;; Enable `eshell-mode' only in this minibuffer.
+        (minibuffer-with-setup-hook 'eshell-mode
+          (add-hook 'minibuffer-exit-hook 'eshell-add-command-to-history)
+          (add-hook 'eshell-mode-hook 'eshell-return-exits-minibuffer)
+          (unless command
+            (setq command (read-from-minibuffer "Emacs shell command: ")))))
     (remove-hook 'eshell-mode-hook 'eshell-return-exits-minibuffer)
-    (remove-hook 'minibuffer-exit-hook 'eshell-add-command-to-history)
-    (remove-hook 'minibuffer-setup-hook 'eshell-mode))
+    (remove-hook 'minibuffer-exit-hook 'eshell-add-command-to-history))
   (unless command
     (error "No command specified!"))
   ;; redirection into the current buffer is achieved by adding an

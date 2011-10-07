@@ -2065,9 +2065,9 @@ terminal type to a different value."
     (((supports :underline t))
      :underline t)
     (t
-     ;; default to italic, even it doesn't appear to be supported,
-     ;; because in some cases the display engine will do it's own
-     ;; workaround (to `dim' on ttys)
+     ;; Default to italic, even if it doesn't appear to be supported,
+     ;; because in some cases the display engine will do its own
+     ;; workaround (to `dim' on ttys).
      :slant italic))
   "Basic italic face."
   :group 'basic-faces)

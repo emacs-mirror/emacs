@@ -370,7 +370,7 @@ modified to be an empty string, or the desired separation string."
 ;; it pretty much impossible to have completion other than
 ;; prefix-completion.
 ;;
-;; pcomplete--common-quoted-suffix and pcomplete--table-subvert try to
+;; pcomplete--common-quoted-suffix and comint--table-subvert try to
 ;; work around this difficulty with heuristics, but it's
 ;; really a hack.
 
@@ -408,45 +408,6 @@ SS1 = (unquote SS2)."
       (cons (substring s1 0 (- (length s1) cs))
             (substring s2 0 (- (length s2) cs))))))
 
-(defun pcomplete--table-subvert (table s1 s2 string pred action)
-  ;; FIXME: Copied in comint.el.
-  "Completion table that replaces the prefix S1 with S2 in STRING.
-When TABLE, S1 and S2 are provided by `apply-partially', the result
-is a completion table which completes strings of the form (concat S1 S)
-in the same way as TABLE completes strings of the form (concat S2 S)."
-  (let* ((str (if (eq t (compare-strings string 0 (length s1) s1 nil nil
-                                         completion-ignore-case))
-                  (concat s2 (pcomplete-unquote-argument
-                              (substring string (length s1))))))
-         (res (if str (complete-with-action action table str pred))))
-    (when res
-      (cond
-       ((and (eq (car-safe action) 'boundaries))
-        (let ((beg (or (and (eq (car-safe res) 'boundaries) (cadr res)) 0)))
-          (list* 'boundaries
-                 (max (length s1)
-                      ;; FIXME: Adjust because of quoting/unquoting.
-                      (+ beg (- (length s1) (length s2))))
-                 (and (eq (car-safe res) 'boundaries) (cddr res)))))
-       ((stringp res)
-        (if (eq t (compare-strings res 0 (length s2) s2 nil nil
-                                   completion-ignore-case))
-            (concat s1 (pcomplete-quote-argument
-                        (substring res (length s2))))))
-       ((eq action t)
-        (let ((bounds (completion-boundaries str table pred "")))
-          (if (>= (car bounds) (length s2))
-              res
-            (let ((re (concat "\\`"
-                              (regexp-quote (substring s2 (car bounds))))))
-              (delq nil
-                    (mapcar (lambda (c)
-                              (if (string-match re c)
-                                  (substring c (match-end 0))))
-                            res))))))
-       ;; E.g. action=nil and it's the only completion.
-       (res)))))
-
 ;; I don't think such commands are usable before first setting up buffer-local
 ;; variables to parse args, so there's no point autoloading it.
 ;; ;;;###autoload
@@ -480,7 +441,7 @@ Same as `pcomplete' but using the standard completion UI."
            ;; pcomplete-stub and works from the buffer's text instead,
            ;; we need to trick minibuffer-complete, into using
            ;; pcomplete-stub without its knowledge.  To that end, we
-           ;; use pcomplete--table-subvert to construct a completion
+           ;; use comint--table-subvert to construct a completion
            ;; table which expects strings using a prefix from the
            ;; buffer's text but internally uses the corresponding
            ;; prefix from pcomplete-stub.
@@ -498,9 +459,9 @@ Same as `pcomplete' but using the standard completion UI."
                  ;; practice it should work just fine (fingers crossed).
                  (let ((prefixes (pcomplete--common-quoted-suffix
                                   pcomplete-stub buftext)))
-                   (apply-partially #'pcomplete--table-subvert
-                                    completions
-                                    (cdr prefixes) (car prefixes))))
+                   (comint--table-subvert
+                    completions (cdr prefixes) (car prefixes)
+                    #'pcomplete-quote-argument #'pcomplete-unquote-argument)))
                 (t
                  (lambda (string pred action)
                    (let ((res (complete-with-action
@@ -523,8 +484,7 @@ Same as `pcomplete' but using the standard completion UI."
                            (funcall norm-func (directory-file-name f))
                            seen)))))))
           (when pcomplete-ignore-case
-            (setq table
-                  (apply-partially #'completion-table-case-fold table)))
+            (setq table (completion-table-case-fold table)))
           (list beg (point) table
                 :predicate pred
                 :exit-function

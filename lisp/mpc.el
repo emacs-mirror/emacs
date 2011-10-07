@@ -1089,10 +1089,12 @@ If PLAYLIST is t or nil or missing, use the main playlist."
 (defvar mpc-tool-bar-map
   (let ((map (make-sparse-keymap)))
     (tool-bar-local-item "mpc/prev" 'mpc-prev 'prev map
-     :enable '(not (equal (cdr (assq 'state mpc-status)) "stop")))
+     :enable '(not (equal (cdr (assq 'state mpc-status)) "stop"))
+     :label "Prev" :vert-only t)
     ;; FIXME: how can we bind it to the down-event?
     (tool-bar-local-item "mpc/rewind" 'mpc-rewind 'rewind map
      :enable '(not (equal (cdr (assq 'state mpc-status)) "stop"))
+     :label "Rew" :vert-only t
      :button '(:toggle . (and mpc--faster-toggle-timer
                              (not mpc--faster-toggle-forward))))
     ;; We could use a single toggle command for pause/play, with 2 different
@@ -1100,20 +1102,26 @@ If PLAYLIST is t or nil or missing, use the main playlist."
     ;; to be a toggle-button, thus displayed depressed in one of the
     ;; two states :-(
     (tool-bar-local-item "mpc/pause" 'mpc-pause 'pause map
+     :label "Pause" :vert-only t
      :visible '(equal (cdr (assq 'state mpc-status)) "play")
      :help "Pause/play")
     (tool-bar-local-item "mpc/play" 'mpc-play 'play map
+     :label "Play" :vert-only t
      :visible '(not (equal (cdr (assq 'state mpc-status)) "play"))
      :help "Play/pause")
     ;; FIXME: how can we bind it to the down-event?
     (tool-bar-local-item "mpc/ffwd" 'mpc-ffwd 'ffwd map
      :enable '(not (equal (cdr (assq 'state mpc-status)) "stop"))
+     :label "Ffwd" :vert-only t
      :button '(:toggle . (and mpc--faster-toggle-timer
                              mpc--faster-toggle-forward)))
     (tool-bar-local-item "mpc/next" 'mpc-next 'next map
+     :label "Next" :vert-only t
      :enable '(not (equal (cdr (assq 'state mpc-status)) "stop")))
-    (tool-bar-local-item "mpc/stop" 'mpc-stop 'stop map)
+    (tool-bar-local-item "mpc/stop" 'mpc-stop 'stop map
+     :label "Stop" :vert-only t)
     (tool-bar-local-item "mpc/add" 'mpc-playlist-add 'add map
+     :label "Add" :vert-only t
      :help "Append to the playlist")
     map))
 

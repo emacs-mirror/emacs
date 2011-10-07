@@ -1,3 +1,9 @@
+2011-10-03  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* keyboard.c (read_key_sequence_remapped): New var.
+	(read_key_sequence): Compute remapping in the right buffer.
+	(command_loop_1): Use read_key_sequence's remapping directly.
+
 2011-10-02  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* dired.c (file_name_completion): Don't expand file name.

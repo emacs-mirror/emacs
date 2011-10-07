@@ -1306,17 +1306,22 @@ If nil, that means no input method is activated now.")
 (make-variable-buffer-local 'current-input-method-title)
 (put 'current-input-method-title 'permanent-local t)
 
+(define-widget 'mule-input-method-string 'string
+  "String widget with completion for input method."
+  :completions
+  (lambda (string pred action)
+    (let ((completion-ignore-case t))
+      (complete-with-action action input-method-alist string pred)))
+  :prompt-history 'input-method-history)
+
 (defcustom default-input-method nil
   "Default input method for multilingual text (a string).
 This is the input method activated automatically by the command
 `toggle-input-method' (\\[toggle-input-method])."
   :link  '(custom-manual "(emacs)Input Methods")
   :group 'mule
-  :type '(choice (const nil)
-          (string
-           :completions (apply-partially
-                         #'completion-table-case-fold input-method-alist)
-           :prompt-history input-method-history))
+  :type `(choice (const nil)
+                 mule-input-method-string)
   :set-after '(current-language-environment))
 
 (put 'input-method-function 'permanent-local t)
@@ -1879,10 +1884,11 @@ specifies the character set for the major languages of Western Europe."
 (define-widget 'charset 'symbol
   "An Emacs charset."
   :tag "Charset"
-  :completions (apply-partially #'completion-table-with-predicate
-                                (apply-partially #'completion-table-case-fold
-                                                 obarray)
-                                #'charsetp 'strict)
+  :completions
+  (lambda (string pred action)
+    (let ((completion-ignore-case t))
+      (completion-table-with-predicate
+       obarray #'charsetp 'strict string pred action)))
   :value 'ascii
   :validate (lambda (widget)
 	      (unless (charsetp (widget-value widget))
@@ -1917,8 +1923,10 @@ See `set-language-info-alist' for use in programs."
   :type `(alist
 	  :key-type (string :tag "Language environment"
 			    :completions
-                            (apply-partially #'completion-table-case-fold
-                                             language-info-alist))
+                            (lambda (string pred action)
+                              (let ((completion-ignore-case t))
+                                (complete-with-action
+                                 action language-info-alist string pred))))
 	  :value-type
 	  (alist :key-type symbol
 		 :options ((documentation string)
@@ -1929,12 +1937,7 @@ See `set-language-info-alist' for use in programs."
 			   (coding-system (repeat coding-system))
 			   (coding-priority (repeat coding-system))
 			   (nonascii-translation charset)
-			   (input-method
-			    (string
-			     :completions
-                             (apply-partially #'completion-table-case-fold
-                                              input-method-alist)
-			     :prompt-history input-method-history))
+			   (input-method mule-input-method-string)
 			   (features (repeat symbol))
 			   (unibyte-display coding-system)))))
 

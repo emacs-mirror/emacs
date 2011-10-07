@@ -605,6 +605,12 @@ NOARG must be t when this macro is used outside `gud-def'"
 The directory containing FILE becomes the initial working directory
 and source-file directory for your debugger.
 
+COMMAND-LINE is the shell command for starting the gdb session.
+It should be a string consisting of the name of the gdb
+executable followed by command-line options.  The command-line
+options should include \"-i=mi\" to use gdb's MI text interface.
+Note that the old \"--annotate\" option is no longer supported.
+
 If `gdb-many-windows' is nil (the default value) then gdb just
 pops up the GUD buffer unless `gdb-show-main' is t.  In this case
 it starts with two windows: one displaying the GUD buffer and the

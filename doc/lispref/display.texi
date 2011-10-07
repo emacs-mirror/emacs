@@ -2148,12 +2148,11 @@ When specifying this attribute using @code{set-face-attribute}
 entity, or a string.  Emacs converts such values to an appropriate
 font object, and stores that font object as the actual attribute
 value.  If you specify a string, the contents of the string should be
-a font name (@pxref{Font X,, Font Specification Options, emacs, The
-GNU Emacs Manual}); if the font name is an XLFD containing wildcards,
-Emacs chooses the first font matching those wildcards.  Specifying
-this attribute also changes the values of the @code{:family},
-@code{:foundry}, @code{:width}, @code{:height}, @code{:weight}, and
-@code{:slant} attributes.
+a font name (@pxref{Fonts,,, emacs, The GNU Emacs Manual}); if the
+font name is an XLFD containing wildcards, Emacs chooses the first
+font matching those wildcards.  Specifying this attribute also changes
+the values of the @code{:family}, @code{:foundry}, @code{:width},
+@code{:height}, @code{:weight}, and @code{:slant} attributes.
 
 @item :inherit
 The name of a face from which to inherit attributes, or a list of face
@@ -2854,11 +2853,11 @@ nominal heights and widths would suggest.
 @defun x-list-fonts name &optional reference-face frame maximum width
 This function returns a list of available font names that match
 @var{name}.  @var{name} should be a string containing a font name in
-either the Fontconfig, GTK, or XLFD format (@pxref{Font X,, Font
-Specification Options, emacs, The GNU Emacs Manual}).  Within an XLFD
-string, wildcard characters may be used: the @samp{*} character
-matches any substring, and the @samp{?} character matches any single
-character.  Case is ignored when matching font names.
+either the Fontconfig, GTK, or XLFD format (@pxref{Fonts,,, emacs, The
+GNU Emacs Manual}).  Within an XLFD string, wildcard characters may be
+used: the @samp{*} character matches any substring, and the @samp{?}
+character matches any single character.  Case is ignored when matching
+font names.
 
 If the optional arguments @var{reference-face} and @var{frame} are
 specified, the returned list includes only fonts that are the same
@@ -3108,8 +3107,7 @@ specifications are as follows:
 @table @code
 @item :name
 The font name (a string), in either XLFD, Fontconfig, or GTK format.
-@xref{Font X,, Font Specification Options, emacs, The GNU Emacs
-Manual}.
+@xref{Fonts,,, emacs, The GNU Emacs Manual}.
 
 @item :family
 @itemx :foundry
@@ -3226,10 +3224,9 @@ specified by @var{font}.
 
 @defun font-xlfd-name font &optional fold-wildcards
 This function returns the XLFD (X Logical Font Descriptor), a string,
-matching @var{font}.  @xref{Font X,, Font Specification Options,
-emacs, The GNU Emacs Manual}, for information about XLFDs.  If the
-name is too long for an XLFD (which can contain at most 255
-characters), the function returns @code{nil}.
+matching @var{font}.  @xref{Fonts,,, emacs, The GNU Emacs Manual}, for
+information about XLFDs.  If the name is too long for an XLFD (which
+can contain at most 255 characters), the function returns @code{nil}.
 
 If the optional argument @var{fold-wildcards} is non-@code{nil},
 consecutive wildcards in the XLFD are folded into one.

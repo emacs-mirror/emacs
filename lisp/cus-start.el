@@ -180,12 +180,7 @@ Leaving \"Default\" unchecked is equivalent with specifying a default of
 					     (symbol :format "%v"))
 				     (const :tag "always" t)))
 	     (debug-ignored-errors debug (repeat (choice symbol regexp)))
-	     (debug-on-quit debug
-			    (choice (const :tag "off")
-				    (repeat :menu-tag "When"
-					    :value (nil)
-					    (symbol :format "%v"))
-				    (const :tag "always" t)))
+	     (debug-on-quit debug boolean)
              ;; fileio.c
              (delete-by-moving-to-trash auto-save boolean "23.1")
 	     (auto-save-visited-file-name auto-save boolean)

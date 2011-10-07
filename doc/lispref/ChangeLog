@@ -1,3 +1,8 @@
+2011-10-05  Chong Yidong  <cyd@stupidchicken.com>
+
+	* display.texi (Low-Level Font, Face Attributes, Font Lookup): Fix
+	Emacs manual xref (Bug#9675).
+
 2011-10-01  Chong Yidong  <cyd@stupidchicken.com>
 
 	* windows.texi (Textual Scrolling): Document scroll-up-command,
