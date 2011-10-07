@@ -1229,8 +1229,7 @@ raises the frame.
 
 @node Non-Window Terminals
 @section Non-Window Terminals
-@cindex non-window terminals
-@cindex single-frame terminals
+@cindex text-only terminal
 
   On a text-only terminal, Emacs can display only one Emacs frame at a
 time.  However, you can still create multiple Emacs frames, and switch

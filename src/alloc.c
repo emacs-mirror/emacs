@@ -4236,6 +4236,11 @@ mark_maybe_pointer (void *p)
 }
 
 
+/* Alignment of Lisp_Object and pointer values.  Use offsetof, as it
+   sometimes returns a smaller alignment than GCC's __alignof__ and
+   mark_memory might miss objects if __alignof__ were used.  For
+   example, on x86 with WIDE_EMACS_INT, __alignof__ (Lisp_Object) is 8
+   but GC_LISP_OBJECT_ALIGNMENT should be 4.  */
 #ifndef GC_LISP_OBJECT_ALIGNMENT
 # define GC_LISP_OBJECT_ALIGNMENT offsetof (struct {char a; Lisp_Object b;}, b)
 #endif

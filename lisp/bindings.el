@@ -1103,9 +1103,9 @@ if `inhibit-field-text-motion' is non-nil."
   "Keymap for characters following C-c.")
 (define-key global-map "\C-c" 'mode-specific-command-prefix)
 
-(global-set-key [M-right]  'forward-word)
+(global-set-key [M-right]  'right-word)
 (define-key esc-map [right] 'forward-word)
-(global-set-key [M-left]   'backward-word)
+(global-set-key [M-left]   'left-word)
 (define-key esc-map [left] 'backward-word)
 ;; ilya@math.ohio-state.edu says these bindings are standard on PC editors.
 (global-set-key [C-right]  'right-word)

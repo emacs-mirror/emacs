@@ -1,3 +1,8 @@
+2011-10-07  Chong Yidong  <cyd@stupidchicken.com>
+
+	* bindings.el ([M-left],[M-right]): Bind to left-word and
+	right-word respectively.
+
 2011-10-07  Glenn Morris  <rgm@gnu.org>
 
 	* cus-start.el (debug-on-quit): Fix custom type.
