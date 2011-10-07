@@ -1473,9 +1473,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
   /* GC_SETJMP_WORKS is nearly always appropriate for GCC.  */
 #    define GC_SETJMP_WORKS 1
 #  endif
-#  ifndef GC_LISP_OBJECT_ALIGNMENT
-#    define GC_LISP_OBJECT_ALIGNMENT (__alignof__ (Lisp_Object))
-#  endif
 #endif
 
 #endif /* EMACS_CONFIG_H */
