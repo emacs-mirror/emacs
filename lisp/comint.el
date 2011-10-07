@@ -3040,8 +3040,9 @@ Returns t if successful."
     (comint--complete-file-name-data)))
 
 ;; FIXME: comint--common-suffix, comint--common-quoted-suffix, and
-;; comint--table-subvert copied from pcomplete.  And they don't fully solve
-;; the problem, since selecting a file from *Completions* won't quote it.
+;; comint--table-subvert don't fully solve the problem, since
+;; selecting a file from *Completions* won't quote it, among several
+;; other problems.
 
 (defun comint--common-suffix (s1 s2)
   (assert (not (or (string-match "\n" s1) (string-match "\n" s2))))
@@ -3076,43 +3077,45 @@ SS1 = (unquote SS2)."
       (cons (substring s1 0 (- (length s1) cs))
             (substring s2 0 (- (length s2) cs))))))
 
-(defun comint--table-subvert (table s1 s2 string pred action)
+(defun comint--table-subvert (table s1 s2 &optional quote-fun unquote-fun)
   "Completion table that replaces the prefix S1 with S2 in STRING.
 When TABLE, S1 and S2 are provided by `apply-partially', the result
 is a completion table which completes strings of the form (concat S1 S)
 in the same way as TABLE completes strings of the form (concat S2 S)."
-  (let* ((str (if (eq t (compare-strings string 0 (length s1) s1 nil nil
-                                         completion-ignore-case))
-                  (concat s2 (comint-unquote-filename
-                              (substring string (length s1))))))
-         (res (if str (complete-with-action action table str pred))))
-    (when res
-      (cond
-       ((and (eq (car-safe action) 'boundaries))
-        (let ((beg (or (and (eq (car-safe res) 'boundaries) (cadr res)) 0)))
-          (list* 'boundaries
-                 (max (length s1)
-                      ;; FIXME: Adjust because of quoting/unquoting.
-                      (+ beg (- (length s1) (length s2))))
-                 (and (eq (car-safe res) 'boundaries) (cddr res)))))
-       ((stringp res)
-        (if (eq t (compare-strings res 0 (length s2) s2 nil nil
-                                   completion-ignore-case))
-            (concat s1 (comint-quote-filename
-                        (substring res (length s2))))))
-       ((eq action t)
-        (let ((bounds (completion-boundaries str table pred "")))
-          (if (>= (car bounds) (length s2))
-              res
-            (let ((re (concat "\\`"
-                              (regexp-quote (substring s2 (car bounds))))))
-              (delq nil
-                    (mapcar (lambda (c)
-                              (if (string-match re c)
-                                  (substring c (match-end 0))))
-                            res))))))
-       ;; E.g. action=nil and it's the only completion.
-       (res)))))
+  (lambda (string pred action)
+    (let* ((str (if (eq t (compare-strings string 0 (length s1) s1 nil nil
+                                           completion-ignore-case))
+                    (let ((rest (substring string (length s1))))
+                      (concat s2 (if unquote-fun
+                                     (funcall unquote-fun rest) rest)))))
+           (res (if str (complete-with-action action table str pred))))
+      (when res
+        (cond
+         ((and (eq (car-safe action) 'boundaries))
+          (let ((beg (or (and (eq (car-safe res) 'boundaries) (cadr res)) 0)))
+            (list* 'boundaries
+                   (max (length s1)
+                        ;; FIXME: Adjust because of quoting/unquoting.
+                        (+ beg (- (length s1) (length s2))))
+                   (and (eq (car-safe res) 'boundaries) (cddr res)))))
+         ((stringp res)
+          (if (eq t (compare-strings res 0 (length s2) s2 nil nil
+                                     completion-ignore-case))
+              (let ((rest (substring res (length s2))))
+                (concat s1 (if quote-fun (funcall quote-fun rest) rest)))))
+         ((eq action t)
+          (let ((bounds (completion-boundaries str table pred "")))
+            (if (>= (car bounds) (length s2))
+                res
+              (let ((re (concat "\\`"
+                                (regexp-quote (substring s2 (car bounds))))))
+                (delq nil
+                      (mapcar (lambda (c)
+                                (if (string-match re c)
+                                    (substring c (match-end 0))))
+                              res))))))
+         ;; E.g. action=nil and it's the only completion.
+         (res))))))
 
 (defun comint-completion-file-name-table (string pred action)
   (if (not (file-name-absolute-p string))
@@ -3146,10 +3149,10 @@ in the same way as TABLE completes strings of the form (concat S2 S)."
          (table
           (let ((prefixes (comint--common-quoted-suffix
                            unquoted filename)))
-            (apply-partially
-             #'comint--table-subvert
+            (comint--table-subvert
              #'comint-completion-file-name-table
-             (cdr prefixes) (car prefixes)))))
+             (cdr prefixes) (car prefixes)
+             #'comint-quote-filename #'comint-unquote-filename))))
     (nconc
      (list
       filename-beg filename-end

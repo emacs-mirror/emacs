@@ -1,7 +1,12 @@
-2011-10-06  Paul Eggert  <eggert@cs.ucla.edu>
+2011-10-07  Paul Eggert  <eggert@cs.ucla.edu>
 
 	* configure.in (GC_LISP_OBJECT_ALIGNMENT): Remove.
 	This is now done by src/alloc.c.
+
+2011-10-02  Richard Stallman  <rms@gnu.org>
+
+	* configure.in: Rename xlinux_first_failure to xgnu_linux_first_failure
+	and xlinux_second_failure to xgnu_linux_second_failure.
 
 2011-09-29  Eli Zaretskii  <eliz@gnu.org>
 

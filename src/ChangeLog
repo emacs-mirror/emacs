@@ -3,10 +3,7 @@
 	* alloc.c (mark_memory): Omit 3rd (offset) arg; caller changed.
 	Don't assume EMACS_INT alignment is the same as pointer alignment.
 	(GC_POINTER_ALIGNMENT): New macro.
-
-2011-10-02  Paul Eggert  <eggert@cs.ucla.edu>
-
-	* alloc.c (pure_bytes_used_lisp, pure_bytes_used_non_lisp):
+	(pure_bytes_used_lisp, pure_bytes_used_non_lisp):
 	(allocate_vectorlike, buffer_memory_full, struct sdata, SDATA_SIZE)
 	(string_bytes, check_sblock, allocate_string_data):
 	(compact_small_strings, Fmake_bool_vector, make_string)
@@ -788,6 +785,12 @@
 	(struct scroll_bar): Use struct vectorlike_header
 	rather than rolling our own approximation.
 	(SCROLL_BAR_VEC_SIZE): Remove; not used.
+
+2011-10-03  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* keyboard.c (read_key_sequence_remapped): New var.
+	(read_key_sequence): Compute remapping in the right buffer.
+	(command_loop_1): Use read_key_sequence's remapping directly.
 
 2011-10-02  Stefan Monnier  <monnier@iro.umontreal.ca>
 

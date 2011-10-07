@@ -1,3 +1,8 @@
+2011-10-06  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* gnus.texi (Gnus Utility Functions): Add more references and
+	explanations (bug#9683).
+
 2011-09-21  Lars Magne Ingebrigtsen  <larsi@gnus.org>
 
 	* gnus.texi (Archived Messages): Note the default (bug#9552).

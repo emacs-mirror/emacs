@@ -633,8 +633,8 @@ Turning on Perl mode runs the normal hook `perl-mode-hook'."
 
 (defalias 'electric-perl-terminator 'perl-electric-terminator)
 (defun perl-electric-terminator (arg)
-  "Insert character and adjust indentation.
-If at end-of-line, and not in a comment or a quote, correct the's indentation."
+  "Insert character and maybe adjust indentation.
+If at end-of-line, and not in a comment or a quote, correct the indentation."
   (interactive "P")
   (let ((insertpos (point)))
     (and (not arg)			; decide whether to indent
@@ -832,7 +832,11 @@ Optional argument PARSE-START should be the position of `beginning-of-defun'."
 		  (save-excursion
 		    (beginning-of-line)
 		    (looking-at "\\s-+sub\\>"))
-		  (> indent-point (save-excursion (forward-sexp 1) (point))))
+		  (> indent-point (save-excursion
+				    (condition-case nil
+					(forward-sexp 1)
+				      (scan-error nil))
+				    (point))))
 	(perl-beginning-of-function))
       (while (< (point) indent-point)	;repeat until right sexp
 	(setq state (parse-partial-sexp (point) indent-point 0))
