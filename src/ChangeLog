@@ -1,3 +1,15 @@
+2011-10-07  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* alloc.c (GC_LISP_OBJECT_ALIGNMENT): Use offsetof, not __alignof__
+	or sizeof.  __alignof__ gives the wrong answer on Fedora x86-64
+	with GCC 4.6.1 when configured with CC='gcc -m32' --with-wide-int;
+	this makes Emacs dump core during garbage collection on rare
+	occasions.  sizeof is obviously inferior to offsetof here, so
+	stick with offsetof.
+	(GC_POINTER_ALIGNMENT): New macro.
+	(mark_memory): Omit 3rd (offset) arg; caller changed.
+	Don't assume EMACS_INT alignment is the same as pointer alignment.
+
 2011-10-03  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* keyboard.c (read_key_sequence_remapped): New var.
