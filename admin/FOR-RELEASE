@@ -158,7 +158,7 @@ building.texi
 calendar.texi     
 cal-xtra.texi     
 cmdargs.texi      
-commands.texi     
+commands.texi     cyd
 custom.texi       
 dired.texi        
 dired-xtra.texi
@@ -166,7 +166,7 @@ display.texi
 emacs.texi        
 emacs-xtra.texi
 emerge-xtra.texi
-entering.texi     
+entering.texi     cyd
 files.texi        
 fixit.texi        
 fortran-xtra.texi 
@@ -190,7 +190,7 @@ picture-xtra.texi
 programs.texi     
 regs.texi         
 rmail.texi        
-screen.texi       
+screen.texi       cyd
 search.texi       
 sending.texi      
 text.texi         

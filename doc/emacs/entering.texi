@@ -19,49 +19,45 @@
 
   The usual way to invoke Emacs is with the shell command
 @command{emacs}.  From a terminal window running in the X Window
-System, you can also run Emacs in the background with
-@command{emacs&}; this way, Emacs won't tie up the terminal window, so
-you can use it to run other shell commands.
+System, you can run Emacs in the background with @command{emacs &};
+this way, Emacs won't tie up the terminal window, so you can use it to
+run other shell commands.
 
 @cindex startup screen
   When Emacs starts up, the initial frame displays a special buffer
-named @samp{*GNU Emacs*}.  This buffer contains some information about
-Emacs, and includes @dfn{links} to common tasks that might be useful
-to beginning users.  For instance, activating the @samp{Emacs
+named @samp{*GNU Emacs*}.  This @dfn{startup screen} contains
+information about Emacs and @dfn{links} to common tasks that are
+useful for beginning users.  For instance, activating the @samp{Emacs
 Tutorial} link opens the Emacs tutorial; this does the same thing as
 the command @kbd{C-h t} (@code{help-with-tutorial}).  To activate a
 link, either move point onto it and type @kbd{@key{RET}}, or click on
 it with @kbd{mouse-1} (the left mouse button).
 
   Using a command line argument, you can tell Emacs to visit one or
-more specific files as soon as it starts up.  For example,
-@command{emacs foo.txt} starts Emacs with a buffer displaying the
-contents of the file @samp{foo.txt}.  This feature exists mainly for
-compatibility with other editors, which are designed to edit one file
-at a time: once you are done with that file, you exit the editor, and
-start it again the next time you need it.
+more files as soon as it starts up.  For example, @command{emacs
+foo.txt} starts Emacs with a buffer displaying the contents of the
+file @samp{foo.txt}.  This feature exists mainly for compatibility
+with other editors, which are designed to be launched from the shell
+for short editing sessions.  If you call Emacs this way, the initial
+frame is split into two windows---one showing the specified file, and
+the other showing the startup screen.  @xref{Windows}.
 
-  Using Emacs in this way---starting it afresh each time you want to
-edit a file---is unnecessary and wasteful.  Emacs can visit more than
-one file in a single editing session, and exiting the Emacs session
-loses valuable accumulated context, such as the kill ring, registers,
-undo history, and mark ring.  These features, described later in the
-manual, are useful for performing edits across multiple files, or
-continuing edits to a single file.
-
-  The recommended way to use Emacs is to start it only once, just
-after you log in, and do all your editing in the same Emacs session.
-Each time you edit a file, visit it with the existing Emacs, which
-eventually has many files in it ready for editing.  @xref{Files}, for
-more information on visiting more than one file.
+  Generally, it is unnecessary and wasteful to start Emacs afresh each
+time you want to edit a file.  The recommended way to use Emacs is to
+start it just once, just after you log in, and do all your editing in
+the same Emacs session.  @xref{Files}, for information on visiting
+more than one file.  If you use Emacs this way, the Emacs session
+accumulates valuable context, such as the kill ring, registers, undo
+history, and mark ring data, which together make editing more
+convenient.  These features are described later in the manual.
 
   To edit a file from another program while Emacs is running, you can
 use the @command{emacsclient} helper program to open a file in the
-already running Emacs.  @xref{Emacs Server}.
+existing Emacs session.  @xref{Emacs Server}.
 
   Emacs accepts other command line arguments that tell it to load
-certain Lisp files, call certain functions, and so forth.  These
-features exist mainly for advanced users.  @xref{Emacs Invocation}.
+certain Lisp files, where to put the initial frame, and so forth.
+@xref{Emacs Invocation}.
 
 @vindex inhibit-startup-screen
   If the variable @code{inhibit-startup-screen} is non-@code{nil},
@@ -72,11 +68,10 @@ which can be used to evaluate Emacs Lisp expressions interactively.
 @xref{Lisp Interaction}.  You can set the variable
 @code{inhibit-startup-screen} using the Customize facility
 (@pxref{Easy Customization}), or by editing your initialization file
-(@pxref{Init File}).@footnote{Note that setting
-@code{inhibit-startup-screen} in @file{site-start.el} doesn't work,
-because the startup screen is set up before reading
-@file{site-start.el}.  @xref{Init File}, for information about
-@file{site-start.el}.}
+(@pxref{Init File}).@footnote{Setting @code{inhibit-startup-screen} in
+@file{site-start.el} doesn't work, because the startup screen is set
+up before reading @file{site-start.el}.  @xref{Init File}, for
+information about @file{site-start.el}.}
 
   You can also force Emacs to display a file or directory at startup
 by setting the variable @code{initial-buffer-choice} to a
@@ -105,13 +100,13 @@ On a text terminal, suspend Emacs; on a graphical display,
 @findex save-buffers-kill-terminal
   @dfn{Killing} Emacs means terminating the Emacs program.  To do
 this, type @kbd{C-x C-c} (@code{save-buffers-kill-terminal}).  A
-two-character key is used to make it harder to type by accident.  If
-there are any modified file-visiting buffers when you type @kbd{C-x
-C-c}, Emacs first offers to save these buffers.  If you do not save
-them all, it asks for confirmation again, since the unsaved changes
-will be lost.  Emacs also asks for confirmation if any subprocesses
-are still running, since killing Emacs will also kill the subprocesses
-(@pxref{Shell}).
+two-character key sequence is used to make it harder to type by
+accident.  If there are any modified file-visiting buffers when you
+type @kbd{C-x C-c}, Emacs first offers to save these buffers.  If you
+do not save them all, it asks for confirmation again, since the
+unsaved changes will be lost.  Emacs also asks for confirmation if any
+subprocesses are still running, since killing Emacs will also kill the
+subprocesses (@pxref{Shell}).
 
   @kbd{C-x C-c} behaves specially if you are using Emacs as a server.
 If you type it from a ``client frame'', it closes the client
@@ -135,39 +130,19 @@ default value of @code{confirm-kill-emacs} is @code{nil}.
   To kill Emacs without being prompted about saving, type @kbd{M-x
 kill-emacs}.
 
-@cindex minimizing a frame
-@cindex iconifying
-@cindex suspending
-  You can ``exit'' Emacs in two other ways.  On a graphical display,
-you can @dfn{minimize} (or @dfn{iconify}) an Emacs frame; depending on
-the window system, this either replaces the Emacs frame with a tiny
-``icon'' or conceals the frame entirely (@pxref{Frames}).  On a
-text-only terminal, you can @dfn{suspend} Emacs; this means stopping
-the Emacs program temporarily, returning control to its parent process
-(usually a shell).
-
 @kindex C-z
 @findex suspend-frame
+@cindex minimizing
+@cindex iconifying
+@cindex suspending
   @kbd{C-z} runs the command @code{suspend-frame}.  On a graphical
-display, this ``minimizes'' (or ``iconifies'') the selected Emacs
-frame.  On a text terminal, this suspends the Emacs process.
-
-  After minimizing or suspending Emacs, you can return to it and
-continue editing wherever you left off.  The way to do this depends on
-the window system or shell.  In most common shells, you can resume
-Emacs after suspending it with the shell command @command{%emacs}.
-
-@vindex cannot-suspend
-  On very old systems that don't support suspending programs,
-@kbd{C-z} starts an inferior shell that communicates directly with the
-terminal, and Emacs waits until you exit the subshell.  (The way to
-exit the subshell is usually @kbd{C-d} or @command{exit}.)  On these
-systems, you can only get back to the shell from which Emacs was run
-(to log out, for example) when you kill Emacs.  Suspending can also
-fail if you run Emacs under a shell that doesn't support suspending
-jobs, even if the system itself does support it.  In this case, you
-can set the variable @code{cannot-suspend} to a non-@code{nil} value
-to force @kbd{C-z} to start an inferior shell.
+display, this command @dfn{minimizes} (or @dfn{iconifies}) the
+selected Emacs frame, hiding it in a way that lets you bring it back
+later (exactly how this hiding occurs depends on the window system).
+On a text terminal, the @kbd{C-z} command @dfn{suspends} Emacs,
+stopping the program temporarily and returning control to the parent
+process (usually a shell); in most shells, you can resume Emacs after
+suspending it with the shell command @command{%emacs}.
 
   Text-only terminals usually listen for certain special characters
 whose meaning is to kill or suspend the program you are running.
