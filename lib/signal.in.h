@@ -178,6 +178,10 @@ _GL_WARN_ON_USE (raise, "raise can crash on native Windows - "
 #if @GNULIB_SIGPROCMASK@
 # if !@HAVE_POSIX_SIGNALBLOCKING@
 
+#  ifndef GNULIB_defined_signal_blocking
+#   define GNULIB_defined_signal_blocking 1
+#  endif
+
 /* Maximum signal number + 1.  */
 #  ifndef NSIG
 #   define NSIG 32
@@ -303,18 +307,10 @@ _GL_CXXALIAS_SYS (signal, _gl_function_taking_int_returning_void_t,
 # endif
 _GL_CXXALIASWARN (signal);
 
-/* Raise signal SIG.  */
 # if !@HAVE_POSIX_SIGNALBLOCKING@ && GNULIB_defined_SIGPIPE
-#  if !(defined __cplusplus && defined GNULIB_NAMESPACE)
-#   undef raise
-#   define raise rpl_raise
-#  endif
-_GL_FUNCDECL_RPL (raise, int, (int sig));
-_GL_CXXALIAS_RPL (raise, int, (int sig));
-# else
-_GL_CXXALIAS_SYS (raise, int, (int sig));
+/* Raise signal SIGPIPE.  */
+_GL_EXTERN_C int _gl_raise_SIGPIPE (void);
 # endif
-_GL_CXXALIASWARN (raise);
 
 #elif defined GNULIB_POSIXCHECK
 # undef sigaddset

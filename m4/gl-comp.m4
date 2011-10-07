@@ -79,9 +79,9 @@ AC_DEFUN([gl_EARLY],
   # Code from module stdarg:
   dnl Some compilers (e.g., AIX 5.3 cc) need to be in c99 mode
   dnl for the builtin va_copy to work.  With Autoconf 2.60 or later,
-  dnl AC_PROG_CC_STDC arranges for this.  With older Autoconf AC_PROG_CC_STDC
+  dnl gl_PROG_CC_C99 arranges for this.  With older Autoconf gl_PROG_CC_C99
   dnl shouldn't hurt, though installers are on their own to set c99 mode.
-  AC_REQUIRE([AC_PROG_CC_STDC])
+  gl_PROG_CC_C99
   # Code from module stdbool:
   # Code from module stddef:
   # Code from module stdint:
@@ -246,12 +246,6 @@ if test $HAVE_POSIX_SIGNALBLOCKING = 0; then
 fi
 gl_SIGNAL_MODULE_INDICATOR([sigprocmask])
       gl_gnulib_enabled_sigprocmask=true
-      if $condition; then
-        func_gl_gnulib_m4code_raise
-      fi
-      if $condition; then
-        func_gl_gnulib_m4code_f691f076f650964c9f5598c3ee487616
-      fi
     fi
   }
   func_gl_gnulib_m4code_stat ()
@@ -264,13 +258,10 @@ if test $REPLACE_STAT = 1; then
 fi
 gl_SYS_STAT_MODULE_INDICATOR([stat])
       gl_gnulib_enabled_stat=true
-      if $condition; then
+      if test $REPLACE_STAT = 1; then
         func_gl_gnulib_m4code_dosname
       fi
-      if $condition; then
-        func_gl_gnulib_m4code_pathmax
-      fi
-      if $condition; then
+      if test $REPLACE_STAT = 1; then
         func_gl_gnulib_m4code_verify
       fi
     fi
@@ -305,12 +296,6 @@ gl_STDLIB_MODULE_INDICATOR([strtoull])
       gl_gnulib_enabled_verify=true
     fi
   }
-  if test $HAVE_DUP2 = 0 || test $REPLACE_DUP2 = 1; then
-    func_gl_gnulib_m4code_f691f076f650964c9f5598c3ee487616
-  fi
-  if test $HAVE_DUP2 = 0 || test $REPLACE_DUP2 = 1; then
-    func_gl_gnulib_m4code_676220fa4366efa9bdbfccf11a857c07
-  fi
   if test $REPLACE_GETOPT = 1; then
     func_gl_gnulib_m4code_be453cec5eecf5731a274f2de7f2db36
   fi
