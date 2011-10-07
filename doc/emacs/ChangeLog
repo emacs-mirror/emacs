@@ -1,3 +1,28 @@
+2011-10-07  Chong Yidong  <cyd@stupidchicken.com>
+
+	* basic.texi (Inserting Text): Add xref to Completion.  Add
+	ucs-insert example, and document prefix argument.
+	(Moving Point): Fix introduction; C-f/C-b are no longer equivalent
+	to left/right.  Tweak left-char and right-char descriptions.
+	M-left and M-right are now bound to left-word/right-word.
+	(Erasing): Document delete-forward-char.
+
+	* screen.texi (Screen, Menu Bar): Copyedits.
+	(Point): Remove duplicate paragraph on cursors, also in Screen.
+	(Mode Line): Trailing dashes no longer shown on X displays.
+
+	* frames.texi (Non-Window Terminals): Index just "text-only
+	terminal", which is used throughout the manual now.
+
+	* entering.texi (Entering Emacs): Define "startup screen".
+	Document window-splitting behavior with command-line inputs.
+	(Exiting): Remove obsolete paragraph about shells without suspend
+	functionality.
+
+	* commands.texi (User Input): Define "input event" more clearly.
+	(Keys): Add xref to Echo Area.
+	(Commands): Clarify relation between commands and functions.
+
 2011-10-06  Chong Yidong  <cyd@stupidchicken.com>
 
 	* misc.texi (emacsclient Options): Document how emacsclient runs

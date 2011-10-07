@@ -96,8 +96,10 @@ and also when HOME is set to C:\ by default.
 
 *** shell-mode uses pcomplete rules, with the standard completion UI.
 
-*** Many packages have been changed to use completion-at-point rather than
-their own completion code.
+*** Many packages have been changed to use `completion-at-point'
+rather than their own completion code.
+
+*** `completion-at-point' now handles tags and semantic completion.
 
 *** Completion in a non-minibuffer now tries to detect the end of completion
 and pops down the *Completions* buffer accordingly.
@@ -455,8 +457,6 @@ isearch-yank-kill.
 +++
 ** New command `count-words-region'.  This does what you expect.
 
-** completion-at-point now handles tags and semantic completion.
-
 ** The default value of `backup-by-copying-when-mismatch' is now t.
 
 ** The command `just-one-space' (M-SPC), if given a negative argument,
@@ -723,6 +723,8 @@ more variants, including Mercury, and a lot more.
 in the Rmail incoming message.
 
 ** Shell mode
+
+*** Shell mode uses pcomplete rules, with the standard completion UI.
 
 *** The `shell' command prompts for the shell path name if the default
 directory is a remote file name and neither the environment variable
