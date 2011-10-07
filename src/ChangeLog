@@ -1,3 +1,8 @@
+2011-10-07  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* buffer.c (syms_of_buffer) <enable-multibyte-characters>: Don't
+	advertise functionality which we discourage or doesn't work.
+
 2011-10-07  Paul Eggert  <eggert@cs.ucla.edu>
 
 	* alloc.c (GC_LISP_OBJECT_ALIGNMENT): Use offsetof, not __alignof__
@@ -142,8 +147,8 @@
 
 2011-09-24  Eli Zaretskii  <eliz@gnu.org>
 
-	* dispnew.c (syms_of_display) <redisplay-dont-pause>: Default
-	value is now t.  Doc fix.
+	* dispnew.c (syms_of_display) <redisplay-dont-pause>:
+	Default value is now t.  Doc fix.
 
 	* indent.c (Fvertical_motion): Compute and apply the overshoot
 	logic when moving up, not only when moving down.  Fix the
@@ -159,8 +164,8 @@
 
 	* dbusbind.c (Fdbus_register_signal): Add match rule to
 	Vdbus_registered_objects_table.  (Bug#9581)
-	(Fdbus_register_method, Vdbus_registered_objects_table): Fix
-	docstring.
+	(Fdbus_register_method, Vdbus_registered_objects_table):
+	Fix docstring.
 
 2011-09-24  Jim Meyering  <meyering@redhat.com>
 
@@ -640,15 +645,15 @@
 	* term.c (tty_append_glyph): New function.
 	(produce_stretch_glyph): Static function and its prototype deleted.
 
-	* dispextern.h (produce_stretch_glyph, tty_append_glyph): Add
-	prototypes.
+	* dispextern.h (produce_stretch_glyph, tty_append_glyph):
+	Add prototypes.
 
 2011-08-29  Paul Eggert  <eggert@cs.ucla.edu>
 
 	* image.c (parse_image_spec): Check for nonnegative, not for positive,
 	when checking :margin (Bug#9390).
 	(IMAGE_NON_NEGATIVE_INTEGER_VALUE_OR_PAIR):
-	Renamed from IMAGE_POSITIVE_INTEGER_VALUE_OR_PAIR,
+	Rename from IMAGE_POSITIVE_INTEGER_VALUE_OR_PAIR,
 	so that the name doesn't mislead.  All uses changed.
 
 2011-08-28  Johan Bockgård  <bojohan@gnu.org>
@@ -850,8 +855,8 @@
 	(read_char_minibuf_menu_prompt, follow_key, read_key_sequence):
 	Use ptrdiff_t, not int, to count maps.
 	(read_char_minibuf_menu_prompt): Check for overflow in size
-	calculations.  Don't update size until allocation succeeds.  Redo
-	calculations to avoid overflow.
+	calculations.  Don't update size until allocation succeeds.
+	Redo calculations to avoid overflow.
 	* keyboard.h: Change prototypes to match the above.
 
 	* keymap.c (cmm_size, current_minor_maps): Use ptrdiff_t, not int,
@@ -1020,7 +1025,7 @@
 	* indent.c (MULTIBYTE_BYTES_WIDTH):
 	Use sanitize_char_width to avoid undefined and/or bad behavior
 	with outlandish widths.
-	* character.h (sanitize_tab_width): Renamed from sanitize_width,
+	* character.h (sanitize_tab_width): Rename from sanitize_width,
 	now that we have two such functions.  All uses changed.
 	(sanitize_char_width): New inline function.
 
@@ -1086,8 +1091,8 @@
 	(png_load, gif_load, svg_load_image):
 	Prefer int to unsigned where either will do.
 	(tiff_handler): New function, combining the cores of the
-	old tiff_error_handler and tiff_warning_handler.  This
-	function is rewritten to use vsnprintf and thereby avoid
+	old tiff_error_handler and tiff_warning_handler.
+	This function is rewritten to use vsnprintf and thereby avoid
 	stack buffer overflows.  It uses only the features of vsnprintf
 	that are common to both POSIX and native Microsoft.
 	(tiff_error_handler, tiff_warning_handler): Use it.
@@ -1116,8 +1121,8 @@
 	`(space ...)', and specifies display in the text area, return 2
 	rather than 1.
 	(try_cursor_movement): Check for the need to scroll more
-	accurately, and prefer exact match for point under bidi.  Don't
-	advance `row' beyond the last row of the window.
+	accurately, and prefer exact match for point under bidi.
+	Don't advance `row' beyond the last row of the window.
 
 	* dispextern.h (struct bidi_it): Rename the disp_prop_p member
 	into disp_prop; all users changed.

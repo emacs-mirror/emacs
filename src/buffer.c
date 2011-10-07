@@ -5448,9 +5448,7 @@ file I/O and the behavior of various editing commands.
 
 This variable is buffer-local but you cannot set it directly;
 use the function `set-buffer-multibyte' to change a buffer's representation.
-Changing its default value with `setq-default' is supported.
-See also variable `default-enable-multibyte-characters' and Info node
-`(elisp)Text Representations'.  */);
+See also Info node `(elisp)Text Representations'.  */);
   XSYMBOL (intern_c_string ("enable-multibyte-characters"))->constant = 1;
 
   DEFVAR_PER_BUFFER ("buffer-file-coding-system",
