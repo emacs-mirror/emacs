@@ -1,3 +1,9 @@
+2011-10-07  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* alloc.c (mark_memory): Omit 3rd (offset) arg; caller changed.
+	Don't assume EMACS_INT alignment is the same as pointer alignment.
+	(GC_POINTER_ALIGNMENT): New macro.
+
 2011-10-02  Paul Eggert  <eggert@cs.ucla.edu>
 
 	* alloc.c (pure_bytes_used_lisp, pure_bytes_used_non_lisp):

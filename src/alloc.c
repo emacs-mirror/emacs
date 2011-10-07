@@ -393,7 +393,7 @@ static int live_symbol_p (struct mem_node *, void *);
 static int live_float_p (struct mem_node *, void *);
 static int live_misc_p (struct mem_node *, void *);
 static void mark_maybe_object (Lisp_Object);
-static void mark_memory (void *, void *, int);
+static void mark_memory (void *, void *);
 static void mem_init (void);
 static struct mem_node *mem_insert (void *, void *, enum mem_type);
 static void mem_insert_fixup (struct mem_node *);
@@ -4236,14 +4236,20 @@ mark_maybe_pointer (void *p)
 }
 
 
+#ifndef GC_LISP_OBJECT_ALIGNMENT
+# define GC_LISP_OBJECT_ALIGNMENT offsetof (struct {char a; Lisp_Object b;}, b)
+#endif
+#define GC_POINTER_ALIGNMENT offsetof (struct {char a; void *b;}, b)
+
 /* Mark Lisp objects referenced from the address range START+OFFSET..END
    or END+OFFSET..START. */
 
 static void
-mark_memory (void *start, void *end, int offset)
+mark_memory (void *start, void *end)
 {
   Lisp_Object *p;
   void **pp;
+  int i;
 
 #if GC_MARK_STACK == GC_USE_GCPROS_CHECK_ZOMBIES
   nzombies = 0;
@@ -4259,8 +4265,9 @@ mark_memory (void *start, void *end, int offset)
     }
 
   /* Mark Lisp_Objects.  */
-  for (p = (Lisp_Object *) ((char *) start + offset); (void *) p < end; ++p)
-    mark_maybe_object (*p);
+  for (p = start; (void *) p < end; p++)
+    for (i = 0; i < sizeof *p; i += GC_LISP_OBJECT_ALIGNMENT)
+      mark_maybe_object (*(Lisp_Object *) ((char *) p + i));
 
   /* Mark Lisp data pointed to.  This is necessary because, in some
      situations, the C compiler optimizes Lisp objects away, so that
@@ -4280,8 +4287,9 @@ mark_memory (void *start, void *end, int offset)
      away.  The only reference to the life string is through the
      pointer `s'.  */
 
-  for (pp = (void **) ((char *) start + offset); (void *) pp < end; ++pp)
-    mark_maybe_pointer (*pp);
+  for (pp = start; (void *) pp < end; pp++)
+    for (i = 0; i < sizeof *pp; i += GC_POINTER_ALIGNMENT)
+      mark_maybe_pointer (*(void **) ((char *) pp + i));
 }
 
 /* setjmp will work with GCC unless NON_SAVING_SETJMP is defined in
@@ -4460,7 +4468,6 @@ dump_zombies (void)
 static void
 mark_stack (void)
 {
-  int i;
   void *end;
 
 #ifdef HAVE___BUILTIN_UNWIND_INIT
@@ -4518,12 +4525,8 @@ mark_stack (void)
   /* This assumes that the stack is a contiguous region in memory.  If
      that's not the case, something has to be done here to iterate
      over the stack segments.  */
-#ifndef GC_LISP_OBJECT_ALIGNMENT
-# define GC_LISP_OBJECT_ALIGNMENT \
-    offsetof (struct {char a; Lisp_Object b;}, b)
-#endif
-  for (i = 0; i < sizeof (Lisp_Object); i += GC_LISP_OBJECT_ALIGNMENT)
-    mark_memory (stack_base, end, i);
+  mark_memory (stack_base, end);
+
   /* Allow for marking a secondary stack, like the register stack on the
      ia64.  */
 #ifdef GC_MARK_SECONDARY_STACK
