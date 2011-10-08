@@ -1,3 +1,7 @@
+2011-10-08  Glenn Morris  <rgm@gnu.org>
+
+	* positions.texi (Excursions): Update warning message.
+
 2011-10-05  Chong Yidong  <cyd@stupidchicken.com>
 
 	* display.texi (Low-Level Font, Face Attributes, Font Lookup): Fix
