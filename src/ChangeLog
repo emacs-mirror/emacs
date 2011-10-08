@@ -1,5 +1,8 @@
 2011-10-08  Eli Zaretskii  <eliz@gnu.org>
 
+	* xdisp.c (hscroll_window_tree): Support hscroll in right-to-left
+	lines.
+
 	* dispnew.c (buffer_posn_from_coords): Account for a possible
 	presence of header-line.  (Bug#4426)
 
