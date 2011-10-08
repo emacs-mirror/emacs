@@ -2,6 +2,8 @@
 
 	* xdisp.c (hscroll_window_tree): Support hscroll in right-to-left
 	lines.
+	(set_cursor_from_row): Fix cursor positioning in mixed L2R+R2L
+	lines that are hscrolled on the left.
 
 	* dispnew.c (buffer_posn_from_coords): Account for a possible
 	presence of header-line.  (Bug#4426)

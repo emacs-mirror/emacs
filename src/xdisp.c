@@ -13890,7 +13890,11 @@ set_cursor_from_row (struct window *w, struct glyph_row *row,
 			       ? glyph_after > glyphs_end
 			       : glyph_after < glyphs_end)))))
 	{
-	  cursor = glyph_after;
+	  if (!match_with_avoid_cursor
+	      && row->truncated_on_left_p && pt_old < bpos_min)
+	    cursor = glyph_before;
+	  else
+	    cursor = glyph_after;
 	  x = -1;
 	}
       else if (string_seen)
