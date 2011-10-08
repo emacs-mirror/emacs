@@ -1,5 +1,12 @@
 2011-10-08  Chong Yidong  <cyd@stupidchicken.com>
 
+	* basic.texi (Position Info): Omit page commands.  Document
+	count-words-region and count-words.
+
+	* text.texi (Pages): Move what-page documentation here.
+
+2011-10-08  Chong Yidong  <cyd@stupidchicken.com>
+
 	* mini.texi (Minibuffer File): Minor copyedits.  Use xref to
 	Remote Files node instead of linking directly to the Tramp manual.
 	(Minibuffer Edit): Add xref to Blank Lines.

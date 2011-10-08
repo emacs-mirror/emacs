@@ -332,6 +332,8 @@ pages are often meaningful divisions of the file, Emacs provides
 commands to move over them and operate on them.
 
 @table @kbd
+@item M-x what-page
+Display the page number of point, and the line number within that page.
 @item C-x [
 Move point to previous page boundary (@code{backward-page}).
 @item C-x ]
@@ -341,6 +343,10 @@ Put point and mark around this page (or another page) (@code{mark-page}).
 @item C-x l
 Count the lines in this page (@code{count-lines-page}).
 @end table
+
+@findex what-page
+  @kbd{M-x what-page} counts pages from the beginning of the file, and
+counts lines within the page, showing both numbers in the echo area.
 
 @kindex C-x [
 @kindex C-x ]

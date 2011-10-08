@@ -455,7 +455,10 @@ isearch-yank-kill.
 *** M-s C-e in Isearch is now bound to isearch-yank-line.
 
 +++
-** New command `count-words-region'.  This does what you expect.
+** New commands `count-words-region' and `count-words'.
+
+*** `count-lines-region' is now an alias for `count-words-region',
+bound to M-=, which shows the number of lines, words, and characters.
 
 ** The default value of `backup-by-copying-when-mismatch' is now t.
 

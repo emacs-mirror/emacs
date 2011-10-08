@@ -1,3 +1,15 @@
+2011-10-08  Chong Yidong  <cyd@stupidchicken.com>
+
+	* simple.el (count-words-region): Always count in the region.
+	Report the number of lines and characters too.
+	(count-words): New command, which counts in the buffer if the
+	region is inactive, as count-words-region used to.
+	(count-words--message): New function.  Handle plurals.
+	(count-lines-region): Make it an alias for count-words-region.
+
+	* bindings.el (esc-map): Replace count-lines-region with
+	count-words-region.
+
 2011-10-08  Martin Rudalics  <rudalics@gmx.at>
 
 	* window.el (window--delete): Delete dedicated frame
