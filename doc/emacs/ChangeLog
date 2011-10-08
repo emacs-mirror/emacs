@@ -1,3 +1,20 @@
+2011-10-08  Chong Yidong  <cyd@stupidchicken.com>
+
+	* mini.texi (Minibuffer File): Minor copyedits.  Use xref to
+	Remote Files node instead of linking directly to the Tramp manual.
+	(Minibuffer Edit): Add xref to Blank Lines.
+	(Completion): Add xref to Symbol Completion.  Remove redundant
+	example, which is repeated in the next node.
+	(Completion Commands): Minor clarifications.
+	(Completion Styles): New node, split from Completion Commands.
+	Document substring and initials styles.
+	(Strict Completion): Remove information duplicated in other nodes.
+	(Completion Options): Consolidate case difference discussion here.
+
+	* help.texi (Help Mode): Fix kindex entries.
+
+	* files.texi (File Names): Add index entries.
+
 2011-10-07  Chong Yidong  <cyd@stupidchicken.com>
 
 	* basic.texi (Inserting Text): Add xref to Completion.  Add

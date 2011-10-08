@@ -443,9 +443,9 @@ your steps.
 the @code{browse-url} command to view the page in the browser you
 choose.  @xref{Browse-URL}.
 
-@kindex @key{TAB} @r{(Help mode)}
+@kindex TAB @r{(Help mode)}
 @findex help-next-ref
-@kindex S-@key{TAB} @r{(Help mode)}
+@kindex S-TAB @r{(Help mode)}
 @findex help-previous-ref
   There are convenient commands to move point to cross references in
 the help text.  @key{TAB} (@code{help-next-ref}) moves point down to

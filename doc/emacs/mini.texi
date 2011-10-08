@@ -15,9 +15,9 @@ argument text.
 
 @cindex prompt
   When the minibuffer is in use, it appears in the echo area, with a
-cursor.  The minibuffer display starts with a @dfn{prompt} in a
-distinct color, usually ending with a colon.  The prompt states what
-kind of input is expected, and how it will be used.
+cursor.  The minibuffer starts with a @dfn{prompt} in a distinct
+color, usually ending with a colon.  The prompt states what kind of
+input is expected, and how it will be used.
 
   The simplest way to enter a minibuffer argument is to type the text,
 then @key{RET} to submit the argument and exit the minibuffer.  You
@@ -26,19 +26,17 @@ typing @kbd{C-g}.
 
 @cindex default argument
   Sometimes, a @dfn{default argument} appears in the prompt, inside
-parentheses before the colon.  The default will be used as the
-argument value if you just type @key{RET}.  For example, commands that
-read buffer names usually show a buffer name as the default; you can
-type @key{RET} to operate on that default buffer.
+parentheses before the colon.  This default will be used as the
+argument if you just type @key{RET}.  For example, commands that read
+buffer names usually show a buffer name as the default; you can type
+@key{RET} to operate on that default buffer.
 
   Since the minibuffer appears in the echo area, it can conflict with
-other uses of the echo area.  If an error occurs while the minibuffer
-is active, the error message hides the minibuffer for a few seconds,
-or until you type something; then the minibuffer comes back.  If a
-command such as @kbd{C-x =} needs to display a message in the echo
-area, the message hides the minibuffer for a few seconds, or until you
-type something; then the minibuffer comes back.  While the minibuffer
-is in use, keystrokes do not echo.
+other uses of the echo area.  If an error message or an informative
+message is emitted while the minibuffer is active, the message hides
+the minibuffer for a few seconds, or until you type something; then
+the minibuffer comes back.  While the minibuffer is in use, keystrokes
+do not echo.
 
 @menu
 * Minibuffer File::       Entering file names with the minibuffer.
@@ -52,6 +50,7 @@ is in use, keystrokes do not echo.
 @node Minibuffer File
 @section Minibuffers for File Names
 
+@cindex default directory
   Commands such as @kbd{C-x C-f} (@code{find-file}) use the minibuffer
 to read a file name argument (@pxref{Basic Files}).  When the
 minibuffer is used to read a file name, it typically starts out with
@@ -92,7 +91,7 @@ Emacs interprets a double slash as ``ignore everything before the
 second slash in the pair.''  In the example above,
 @file{/u2/emacs/src/} is ignored, so the argument you supplied is
 @file{/etc/termcap}.  The ignored part of the file name is dimmed if
-the terminal allows it (to disable this dimming, turn off File Name
+the terminal allows it.  (To disable this dimming, turn off File Name
 Shadow mode with the command @kbd{M-x file-name-shadow-mode}.)
 
 @cindex home directory shorthand
@@ -108,11 +107,11 @@ directory name in front of the @file{~} is ignored: thus,
 home directory, Emacs uses several alternatives.  For MS-Windows, see
 @ref{Windows HOME}; for MS-DOS, see
 @ifnottex
-@ref{MS-DOS File Names, HOME on MS-DOS}.
+@ref{MS-DOS File Names}.
 @end ifnottex
 @iftex
-@ref{MS-DOS File Names, HOME on MS-DOS,, emacs, the Emacs Manual}, in
-the main Emacs manual.
+@ref{MS-DOS File Names, HOME on MS-DOS,, emacs, the digital version of
+the Emacs Manual}.
 @end iftex
 On these systems, the @file{~@var{user-id}/} construct is supported
 only for the current user, i.e., only if @var{user-id} is the current
@@ -125,9 +124,8 @@ file names, change the variable @code{insert-default-directory} to
 Nonetheless, relative file name arguments are still interpreted based
 on the same default directory.
 
-  For rules how to read remote file names in the minibuffer, see
-@ref{Filename completion, file name completion,, tramp}, in the Tramp
-manual.
+  You can also enter remote file names in the minibuffer.
+@xref{Remote Files}.
 
 @node Minibuffer Edit
 @section Editing in the Minibuffer
@@ -136,17 +134,17 @@ manual.
 usual Emacs commands are available for editing the argument text.
 (The prompt, however, is @dfn{read-only}, and cannot be changed.)
 
-  Since @key{RET} in the minibuffer is defined to exit the minibuffer,
-you can't use it to insert a newline in the minibuffer.  To do that,
-type @kbd{C-o} or @kbd{C-q C-j}.  (The newline character is really the
-@acronym{ASCII} character control-J.)
+  Since @key{RET} in the minibuffer submits the argument, you can't
+use it to insert a newline.  You can do that with @kbd{C-q C-j}, which
+inserts a @kbd{C-j} control character, which is formally equivalent to
+a newline character (@pxref{Inserting Text}).  Alternatively, you can
+use the @kbd{C-o} (@code{open-line}) command (@pxref{Blank Lines}).
 
-  Inside a minibuffer, the keys @kbd{@key{TAB}}, @kbd{@key{SPC}}, and
-@kbd{@key{?}} are often bound to commands that perform
-@dfn{completion}.  @xref{Completion}.  You can use @kbd{C-q}
-(@code{quoted-insert}) to insert a @key{TAB}, @key{SPC}, or @key{?}
-character.  For example, @kbd{C-q @key{TAB}} inserts a @key{TAB}
-character.  @xref{Inserting Text}.
+  Inside a minibuffer, the keys @key{TAB}, @key{SPC}, and @kbd{?} are
+often bound to @dfn{completion commands}, which allow you to easily
+fill in the desired text without typing all of it.  @xref{Completion}.
+As with @key{RET}, you can use @kbd{C-q} to insert a @key{TAB},
+@key{SPC}, or @samp{?}  character.
 
   For convenience, @kbd{C-a} (@code{move-beginning-of-line}) in a
 minibuffer moves point to the beginning of the argument text, not the
@@ -203,35 +201,28 @@ set the variable @code{enable-recursive-minibuffers} to @code{t}.
 @c it, the tutorial needs to be adjusted.
 @cindex completion
 
-  Sometimes, you can use a feature called @dfn{completion} to help you
-enter arguments.  This means that after you type part of the argument,
-Emacs can fill in the rest, or some of it, based on what you have
-typed so far.
+  You can often use a feature called @dfn{completion} to help enter
+arguments.  This means that after you type part of the argument, Emacs
+can fill in the rest, or some of it, based on what was typed so far.
 
+@cindex completion alternative
   When completion is available, certain keys (usually @key{TAB},
-@key{RET}, and @key{SPC}) are rebound to complete the text in the
-minibuffer into a longer string chosen from a set of @dfn{completion
-alternatives}.  The set of completion alternatives depends on the
-command that requested the argument, and on what you have typed so
-far.  In addition, you can usually type @kbd{?} to display a list of
-possible completions.
+@key{RET}, and @key{SPC}) are rebound in the minibuffer to special
+completion commands (@pxref{Completion Commands}).  These commands
+attempt to complete the text in the minibuffer, based on a set of
+@dfn{completion alternatives} provided by the command that requested
+the argument.  You can usually type @kbd{?} to see a list of
+completion alternatives.
 
-  For example, @kbd{M-x} uses the minibuffer to read the name of a
-command, so completion works by matching the minibuffer text against
-the names of existing Emacs commands.  So, to run the command
-@code{insert-buffer}, you can type @kbd{M-x ins @key{SPC} b @key{RET}}
-instead of the full @kbd{M-x insert-buffer @key{RET}}.
-
-  Case is significant in completion when it is significant in the
-argument you are entering, such as command names.  Thus,
-@samp{insert-buffer} is not a valid completion for @samp{IN}.
-Completion ignores case distinctions for certain arguments in which
-case does not matter.
+  Although completion is usually done in the minibuffer, the feature
+is sometimes available in ordinary buffers too.  @xref{Symbol
+Completion}.
 
 @menu
 * Example: Completion Example.    Examples of using completion.
 * Commands: Completion Commands.  A list of completion commands.
 * Strict Completion::             Different types of completion.
+* Completion Styles::             How completion matches are chosen.
 * Options: Completion Options.    Options for completion.
 @end menu
 
@@ -239,24 +230,31 @@ case does not matter.
 @subsection Completion Example
 
 @kindex TAB @r{(completion)}
-  A concrete example may help here.  If you type @kbd{M-x a u
-@key{TAB}}, the @key{TAB} looks for alternatives (in this case,
-command names) that start with @samp{au}.  There are several,
-including @code{auto-fill-mode} and @code{autoconf-mode}, but they all
-begin with @code{auto}, so the @samp{au} in the minibuffer completes
-to @samp{auto}.
+  A simple example may help here.  @kbd{M-x} uses the minibuffer to
+read the name of a command, so completion works by matching the
+minibuffer text against the names of existing Emacs commands.  Suppose
+you wish to run the command @code{auto-fill-mode}.  You can do that by
+typing @kbd{M-x auto-fill-mode @key{RET}}, but it is easier to use
+completion.
+
+  If you type @kbd{M-x a u @key{TAB}}, the @key{TAB} looks for
+completion alternatives (in this case, command names) that start with
+@samp{au}.  There are several, including @code{auto-fill-mode} and
+@code{autoconf-mode}, but they all begin with @code{auto}, so the
+@samp{au} in the minibuffer completes to @samp{auto}.
 
   If you type @key{TAB} again immediately, it cannot determine the
 next character; it could be @samp{-}, @samp{a}, or @samp{c}.  So it
 does not add any characters; instead, @key{TAB} displays a list of all
 possible completions in another window.
 
-  Next, type @kbd{- f}.  The minibuffer now contains @samp{auto-f},
-and the only command name that starts with this is
-@code{auto-fill-mode}.  If you now type @key{TAB}, completion fills in
-the rest of the argument @samp{auto-fill-mode} into the minibuffer.
-You have been able to enter @samp{auto-fill-mode} by typing just
-@kbd{a u @key{TAB} - f @key{TAB}}.
+  Next, type @kbd{-f}.  The minibuffer now contains @samp{auto-f}, and
+the only command name that starts with this is @code{auto-fill-mode}.
+If you now type @key{TAB}, completion fills in the rest of the
+argument @samp{auto-fill-mode} into the minibuffer.
+
+  Hence, typing just @kbd{a u @key{TAB} - f @key{TAB}} allows you to
+enter @samp{auto-fill-mode}.
 
 @node Completion Commands
 @subsection Completion Commands
@@ -272,60 +270,24 @@ complete, display a list of possible completions
 (@code{minibuffer-complete}).
 @item @key{SPC}
 Complete up to one word from the minibuffer text before point
-(@code{minibuffer-complete-word}).  @key{SPC} for completion is not
-available when entering a file name, since file names often include
-spaces.
+(@code{minibuffer-complete-word}).  This command is not available for
+arguments that often include spaces, such as file names.
 @item @key{RET}
 Submit the text in the minibuffer as the argument, possibly completing
-first as described in the next
-@iftex
-subsection (@code{minibuffer-complete-and-exit}).
-@end iftex
-@ifnottex
-node (@code{minibuffer-complete-and-exit}).  @xref{Strict Completion}.
-@end ifnottex
+first (@code{minibuffer-complete-and-exit}).  @xref{Strict Completion}.
 @item ?
-Display a list of possible completions of the text before point
-(@code{minibuffer-completion-help}).
+Display a list of completions (@code{minibuffer-completion-help}).
 @end table
 
-@kindex TAB
+@kindex TAB @r{(completion)}
 @findex minibuffer-complete
   @key{TAB} (@code{minibuffer-complete}) is the most fundamental
-completion command.  It searches for all possible completion
-alternatives that match the existing minibuffer text, and attempts to
-complete as much as it can.  The matching of completion alternatives
-to the minibuffer text is performed according to somewhat intricate
-rules, which are designed so that plausible completions are offered
-under most circumstances.  A valid completion alternative must satisfy
-the following criteria:
+completion command.  It searches for all possible completions that
+match the existing minibuffer text, and attempts to complete as much
+as it can.  @xref{Completion Styles}, for how completion alternatives
+are chosen.
 
-@itemize @bullet
-@item
-The minibuffer text before point must be the same as the beginning of
-the completion alternative.  If there is any minibuffer text after
-point, it must be a substring of the remainder of the completion
-alternative.
-
-@item
-If no completion alternative satisfies the above rules, try using
-@dfn{partial completion} rules: divide the minibuffer text into words
-separated by hyphens or spaces, and complete each word separately.
-Thus, when completing command names, @samp{em-l-m} completes to
-@samp{emacs-lisp-mode}.
-
-@item
-If there is still no completion alternative, try the first rule again,
-but ignore the minibuffer text after point (i.e., don't try matching
-it).
-@end itemize
-
-@noindent
-When performing these comparisons, a @samp{*} in the minibuffer text
-acts as a @dfn{wildcard}---it matches any character at the
-corresponding position in the completion alternative.
-
-@kindex SPC
+@kindex SPC @r{(completion)}
 @findex minibuffer-complete-word
   @key{SPC} (@code{minibuffer-complete-word}) completes like
 @key{TAB}, but only up to the next hyphen or space.  If you have
@@ -334,50 +296,52 @@ completion is @samp{auto-fill-mode}, but it only inserts @samp{ill-},
 giving @samp{auto-fill-}.  Another @key{SPC} at this point completes
 all the way to @samp{auto-fill-mode}.
 
+@kindex ? @r{(completion)}
+@cindex completion list
   If @key{TAB} or @key{SPC} is unable to complete, it displays a list
-of possible completions (if there are any) in a separate window.  You
-can choose a completion from this list using the following commands:
+of matching completion alternatives (if there are any) in another
+window.  You can display the same list with @kbd{?}
+(@code{minibuffer-completion-help}).  The following commands can be
+used with the completion list:
 
 @table @kbd
 @findex mouse-choose-completion
 @item Mouse-1
 @itemx Mouse-2
-Clicking mouse button 1 or 2 on a completion possibility chooses that
-completion (@code{mouse-choose-completion}).
+Clicking mouse button 1 or 2 on a completion alternative chooses it
+(@code{mouse-choose-completion}).
 
 @findex switch-to-completions
 @item M-v
 @itemx @key{PageUp}
 @itemx @key{prior}
 Typing @kbd{M-v}, while in the minibuffer, selects the window showing
-the completion list buffer (@code{switch-to-completions}).  This paves
-the way for using the commands below.  Typing @key{PageUp} or
-@key{prior} does the same, as does selecting that window in other
-ways.
+the completion list (@code{switch-to-completions}).  This paves the
+way for using the commands below.  @key{PageUp} or @key{prior} does
+the same.  You can also select the window in other ways
+(@pxref{Windows}).
 
 @findex choose-completion
 @item @key{RET}
-Typing @key{RET}, while in the completion list buffer, chooses the
-completion that point is in or next to (@code{choose-completion}).  To
-use this command, you must first switch to the completion list window.
+While in the completion list buffer, this chooses the completion at
+point (@code{choose-completion}).
 
 @findex next-completion
 @item @key{Right}
-Typing the right-arrow key @key{Right}, while in the completion list
-buffer, moves point to the following completion possibility
-(@code{next-completion}).
+While in the completion list buffer, this moves point to the following
+completion alternative (@code{next-completion}).
 
 @findex previous-completion
 @item @key{Left}
-Typing the left-arrow key @key{Left}, while in the completion list
-buffer, moves point to the previous completion possibility
-(@code{previous-completion}).
+While in the completion list buffer, this moves point to the previous
+completion alternative (@code{previous-completion}).
 @end table
 
 @node Strict Completion
 @subsection Strict Completion
 
-  There are three different ways that @key{RET} can do completion,
+  There are three ways that the @key{RET}
+(@code{minibuffer-complete-and-exit}) completion command can act,
 depending on how the argument will be used.
 
 @itemize @bullet
@@ -406,13 +370,116 @@ completion, @key{RET} does not complete, it just submits the argument
 as you have entered it.
 @end itemize
 
-  The completion commands display a list of all possible completions
-whenever they can't determine even one more character by completion.
-Also, typing @kbd{?} explicitly requests such a list.  You can scroll
-the list with @kbd{C-M-v} (@pxref{Other Window}).
+  Like the other completion commands, @key{RET} displays a list of all
+possible completions whenever it is supposed to complete but is unable
+to complete any further.
+
+@node Completion Styles
+@subsection How Completion Alternatives Are Chosen
+@cindex completion style
+
+  Completion commands work by narrowing a large list of possible
+completion alternatives to a smaller subset that ``matches'' what you
+have typed in the minibuffer.  In @ref{Completion Example}, we gave a
+simple example of such matching.  The procedure of determining what
+constitutes a ``match'' is quite intricate.  Emacs attempts to offer
+plausible completions under most circumstances.
+
+  Emacs performs completion using one or more @dfn{completion
+styles}---sets of criteria for matching minibuffer text to completion
+alternatives.  During completion, Emacs tries each completion style in
+turn.  If a style yields one or more matches, that is used as the list
+of completion alternatives.  If a style produces no matches, Emacs
+falls back on the next style.
+
+@vindex completion-styles
+  The list variable @code{completion-styles} specifies the completion
+styles to use.  Each list element is the name of a completion style (a
+Lisp symbol).  The default completion styles are (in order):
+
+@table @code
+@item basic
+A matching completion alternative must have the same beginning as the
+text in the minibuffer before point.  Furthermore, if there is any
+text in the minibuffer after point, the rest of the completion
+alternative must contain that text as a substring.
+
+@findex partial completion
+@item partial-completion
+This aggressive completion style divides the minibuffer text into
+words separated by hyphens or spaces, and completes each word
+separately.  (For example, when completing command names,
+@samp{em-l-m} completes to @samp{emacs-lisp-mode}.)
+
+Furthermore, a @samp{*} in the minibuffer text is treated as a
+@dfn{wildcard}---it matches any character at the corresponding
+position in the completion alternative.
+
+@item emacs22
+This completion style is similar to @code{basic}, except that it
+ignores the text in the minibuffer after point.  It is so-named
+because it corresponds to the completion behavior in Emacs 22 and
+earlier.
+@end table
+
+@noindent
+The following additional completion styles are also defined, and you
+can add them to @code{completion-styles} if you wish
+(@pxref{Customization}):
+
+@table @code
+@item substring
+A matching completion alternative must contain the text in the
+minibuffer before point, and the text in the minibuffer after point,
+as substrings (in that same order).
+
+Thus, if the text in the minibuffer is @samp{foobar}, with point
+between @samp{foo} and @samp{bar}, that matches
+@samp{@var{a}foo@var{b}bar@var{c}}, where @var{a}, @var{b}, and
+@var{c} can be any string including the empty string.
+
+@item initials
+This very aggressive completion style attempts to complete acronyms
+and initialisms.  For example, when completing command names, it
+matches @samp{lch} to @samp{list-command-history}.
+@end table
 
 @node Completion Options
 @subsection Completion Options
+
+@cindex case-sensitivity and completion
+@cindex case in completion
+  Case is significant when completing case-sensitive arguments, such
+as command names.  For example, when completing command names,
+@samp{AU} does not complete to @samp{auto-fill-mode}.  Case
+differences are ignored when completing arguments in which case does
+not matter.
+
+@vindex read-file-name-completion-ignore-case
+@vindex read-buffer-completion-ignore-case
+  When completing file names, case differences are ignored if the
+variable @code{read-file-name-completion-ignore-case} is
+non-@code{nil}.  The default value is @code{nil} on systems that have
+case-sensitive file-names, such as GNU/Linux; it is non-@code{nil} on
+systems that have case-insensitive file-names, such as Microsoft
+Windows.  When completing buffer names, case is significant by
+default; to ignore case differences, change the variable
+@code{read-buffer-completion-ignore-case} to a non-@code{nil} value.
+
+@vindex completion-ignored-extensions
+@cindex ignored file names, in completion
+  When completing file names, Emacs usually omits certain alternatives
+that are considered unlikely to be chosen.  The variable
+@code{completion-ignored-extensions} contains a list of strings; a
+file name ending in any of those strings is ignored as a completion
+alternative.  The standard value of this variable has several elements
+including @code{".o"}, @code{".elc"}, and @code{"~"}.  For example, if
+a directory contains @samp{foo.c} and @samp{foo.elc}, @samp{foo}
+completes to @samp{foo.c}.  However, if @emph{all} possible
+completions end in ``ignored'' strings, they are not ignored: in the
+previous example, @samp{foo.e} completes to @samp{foo.elc}.
+Displaying the completion list disregards
+@code{completion-ignored-extensions}; all completions are listed.
 
 @vindex completion-auto-help
   If @code{completion-auto-help} is set to @code{nil}, the completion
@@ -423,50 +490,11 @@ In other words, if there is nothing to complete, the first @key{TAB}
 echoes @samp{Next char not unique}; the second @key{TAB} does the
 completion list buffer.
 
-@vindex completion-ignored-extensions
-@cindex ignored file names, in completion
-  When completing file names, certain file names are usually ignored.
-The variable @code{completion-ignored-extensions} contains a list of
-strings; a file name ending in any of those strings is ignored as a
-completion candidate.  The standard value of this variable has several
-elements including @code{".o"}, @code{".elc"}, and @code{"~"}.  For
-example, if a directory contains @samp{foo.c} and @samp{foo.elc},
-@samp{foo} completes to @samp{foo.c}.  However, if @emph{all} possible
-completions end in ``ignored'' strings, they are not ignored: in the
-previous example, @samp{foo.e} completes to @samp{foo.elc}.
-Displaying a list of possible completions disregards
-@code{completion-ignored-extensions}; it shows them all.
-
   If an element of @code{completion-ignored-extensions} ends in a
 slash (@file{/}), it's a subdirectory name; that directory and its
 contents are ignored.  Elements of
 @code{completion-ignored-extensions} that do not end in a slash are
 ordinary file names.
-
-@cindex case-sensitivity and completion
-@vindex read-file-name-completion-ignore-case
-@vindex read-buffer-completion-ignore-case
-  When completing file names, Emacs ignores case differences if the
-variable @code{read-file-name-completion-ignore-case} is
-non-@code{nil}.  The default value is @code{nil} on systems that have
-case-sensitive file-names, such as GNU/Linux; it is non-@code{nil} on
-systems that have case-insensitive file-names, such as Microsoft
-Windows.  When completing buffer names, Emacs ignores case differences
-if @code{read-buffer-completion-ignore-case} is non-@code{nil} (the
-default value is @code{nil}).
-
-@vindex completion-styles
-  You can customize the matching rules for completion alternatives
-using the variable @code{completion-styles}.  Its value should be a
-list of symbols, each representing a @dfn{completion style}; valid
-style symbols are @code{basic}, @code{partial-completion},
-@code{emacs22}, @code{emacs21}, and @code{initials}.  When completing,
-Emacs attempts to use the first completion style in the list; if this
-does not return any completion alternatives, it tries the next
-completion style in the list, and so on.  The completion rules
-described in @ref{Completion Commands} correspond to the default value
-of @code{completion-styles}, which is @code{(basic partial-completion
-emacs22)}.
 
 @cindex Icomplete mode
 @findex icomplete-mode
