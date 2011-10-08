@@ -2,6 +2,7 @@
 
 	* window.el (window--delete): Delete dedicated frame
 	unconditionally when argument KILL is non-nil.  (Bug#9699)
+	(switch-to-buffer): Fix doc-string typo.
 
 2011-10-08  Thierry Volpiatto  <thierry.volpiatto@gmail.com>
 
