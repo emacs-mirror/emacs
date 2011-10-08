@@ -330,27 +330,19 @@ rpl_signal (int sig, handler_t handler)
 }
 
 #if GNULIB_defined_SIGPIPE
-/* Raise the signal SIG.  */
+/* Raise the signal SIGPIPE.  */
 int
-rpl_raise (int sig)
-# undef raise
+_gl_raise_SIGPIPE (void)
 {
-  switch (sig)
+  if (blocked_set & (1U << SIGPIPE))
+    pending_array[SIGPIPE] = 1;
+  else
     {
-    case SIGPIPE:
-      if (blocked_set & (1U << sig))
-        pending_array[sig] = 1;
-      else
-        {
-          handler_t handler = SIGPIPE_handler;
-          if (handler == SIG_DFL)
-            exit (128 + SIGPIPE);
-          else if (handler != SIG_IGN)
-            (*handler) (sig);
-        }
-      return 0;
-    default: /* System defined signal */
-      return raise (sig);
+      handler_t handler = SIGPIPE_handler;
+      if (handler == SIG_DFL)
+        exit (128 + SIGPIPE);
+      else if (handler != SIG_IGN)
+        (*handler) (SIGPIPE);
     }
 }
 #endif
