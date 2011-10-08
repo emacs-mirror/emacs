@@ -1,4 +1,4 @@
-# gnulib-common.m4 serial 30
+# gnulib-common.m4 serial 31
 dnl Copyright (C) 2007-2011 Free Software Foundation, Inc.
 dnl This file is free software; the Free Software Foundation
 dnl gives unlimited permission to copy and/or distribute it,
@@ -210,6 +210,29 @@ m4_ifndef([m4_foreach_w],
 m4_ifndef([AS_VAR_IF],
 [m4_define([AS_VAR_IF],
 [AS_IF([test x"AS_VAR_GET([$1])" = x""$2], [$3], [$4])])])
+
+# gl_PROG_CC_C99
+# Modifies the value of the shell variable CC in an attempt to make $CC
+# understand ISO C99 source code.
+# This is like AC_PROG_CC_C99, except that
+# - AC_PROG_CC_C99 did not exist in Autoconf versions < 2.60,
+# - AC_PROG_CC_C99 does not mix well with AC_PROG_CC_STDC
+#   <http://lists.gnu.org/archive/html/bug-gnulib/2011-09/msg00367.html>,
+#   but many more packages use AC_PROG_CC_STDC than AC_PROG_CC_C99
+#   <http://lists.gnu.org/archive/html/bug-gnulib/2011-09/msg00441.html>.
+# Remaining problems:
+# - When AC_PROG_CC_STDC is invoked twice, it adds the C99 enabling options
+#   to CC twice
+#   <http://lists.gnu.org/archive/html/bug-gnulib/2011-09/msg00431.html>.
+# - AC_PROG_CC_STDC is likely to change when C1X is an ISO standard.
+AC_DEFUN([gl_PROG_CC_C99],
+[
+  dnl Change that version number to the minimum Autoconf version that supports
+  dnl mixing AC_PROG_CC_C99 calls with AC_PROG_CC_STDC calls.
+  m4_version_prereq([9.0],
+    [AC_REQUIRE([AC_PROG_CC_C99])],
+    [AC_REQUIRE([AC_PROG_CC_STDC])])
+])
 
 # gl_PROG_AR_RANLIB
 # Determines the values for AR, ARFLAGS, RANLIB that fit with the compiler.
