@@ -1,5 +1,7 @@
 2011-10-08  Glenn Morris  <rgm@gnu.org>
 
+	* symbols.texi (Other Plists): Markup fix.  (Bug#9702)
+
 	* positions.texi (Excursions): Update warning message.
 
 2011-10-05  Chong Yidong  <cyd@stupidchicken.com>
