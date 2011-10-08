@@ -1,3 +1,8 @@
+2011-10-08  Eli Zaretskii  <eliz@gnu.org>
+
+	* dispnew.c (buffer_posn_from_coords): Account for a possible
+	presence of header-line.  (Bug#4426)
+
 2011-10-07  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* buffer.c (syms_of_buffer) <enable-multibyte-characters>: Don't
