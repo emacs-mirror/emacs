@@ -1,3 +1,8 @@
+2011-10-08  Glenn Morris  <rgm@gnu.org>
+
+	* callint.c (Fcall_interactively): Give a more explicit error for the
+	'c' case with a non-character input.  (Bug#8479)
+
 2011-10-08  Eli Zaretskii  <eliz@gnu.org>
 
 	* xdisp.c (hscroll_window_tree): Support hscroll in right-to-left
