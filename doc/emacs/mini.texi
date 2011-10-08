@@ -462,24 +462,26 @@ variable @code{read-file-name-completion-ignore-case} is
 non-@code{nil}.  The default value is @code{nil} on systems that have
 case-sensitive file-names, such as GNU/Linux; it is non-@code{nil} on
 systems that have case-insensitive file-names, such as Microsoft
-Windows.  When completing buffer names, case is significant by
-default; to ignore case differences, change the variable
-@code{read-buffer-completion-ignore-case} to a non-@code{nil} value.
+Windows.  When completing buffer names, case differences are ignored
+if the variable @code{read-buffer-completion-ignore-case} is
+non-@code{nil}; the default is @code{nil}.
 
 @vindex completion-ignored-extensions
 @cindex ignored file names, in completion
   When completing file names, Emacs usually omits certain alternatives
-that are considered unlikely to be chosen.  The variable
-@code{completion-ignored-extensions} contains a list of strings; a
-file name ending in any of those strings is ignored as a completion
-alternative.  The standard value of this variable has several elements
-including @code{".o"}, @code{".elc"}, and @code{"~"}.  For example, if
-a directory contains @samp{foo.c} and @samp{foo.elc}, @samp{foo}
+that are considered unlikely to be chosen, as determined by the list
+variable @code{completion-ignored-extensions}.  Each element in the
+list should be a string; any file name ending in such a string is
+ignored as a completion alternative.  Any element ending in a slash
+(@file{/}) represents a subdirectory name.  The standard value of
+@code{completion-ignored-extensions} has several elements including
+@code{".o"}, @code{".elc"}, and @code{"~"}.  For example, if a
+directory contains @samp{foo.c} and @samp{foo.elc}, @samp{foo}
 completes to @samp{foo.c}.  However, if @emph{all} possible
 completions end in ``ignored'' strings, they are not ignored: in the
-previous example, @samp{foo.e} completes to @samp{foo.elc}.
-Displaying the completion list disregards
-@code{completion-ignored-extensions}; all completions are listed.
+previous example, @samp{foo.e} completes to @samp{foo.elc}.  Emacs
+disregards @code{completion-ignored-extensions} when showing
+completion alternatives in the completion list.
 
 @vindex completion-auto-help
   If @code{completion-auto-help} is set to @code{nil}, the completion
@@ -490,11 +492,18 @@ In other words, if there is nothing to complete, the first @key{TAB}
 echoes @samp{Next char not unique}; the second @key{TAB} does the
 completion list buffer.
 
-  If an element of @code{completion-ignored-extensions} ends in a
-slash (@file{/}), it's a subdirectory name; that directory and its
-contents are ignored.  Elements of
-@code{completion-ignored-extensions} that do not end in a slash are
-ordinary file names.
+@vindex completion-cycle-threshold
+  If @code{completion-cycle-threshold} is non-@code{nil}, completion
+commands can ``cycle'' through completion alternatives.  Normally, if
+there is more than one completion alternative for the text in the
+minibuffer, a completion command completes up to the longest common
+substring.  If you change @code{completion-cycle-threshold} to
+@code{t}, the completion command instead completes to the first of
+those completion alternatives; each subsequent invocation of the
+completion command replaces that with the next completion alternative,
+in a cyclic manner.  If you give @code{completion-cycle-threshold} a
+numeric value @var{n}, completion commands switch to this cycling
+behavior only when there are fewer than @var{n} alternatives.
 
 @cindex Icomplete mode
 @findex icomplete-mode

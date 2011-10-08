@@ -103,7 +103,7 @@ rather than their own completion code.
 ---
 *** Completion in a non-minibuffer now tries to detect the end of completion
 and pops down the *Completions* buffer accordingly.
-
++++
 *** Completion can cycle, depending on completion-cycle-threshold.
 +++
 *** New completion style `substring'.
@@ -111,13 +111,6 @@ and pops down the *Completions* buffer accordingly.
 *** Completion style can be set per-category `completion-category-overrides'.
 
 *** Completion of buffers now uses substring completion by default.
-
-*** `completing-read' can be customized using the new variable
-`completing-read-function'.
-
-*** minibuffer-local-filename-must-match-map is not used any more.
-Instead, the bindings in minibuffer-local-filename-completion-map are combined
-with minibuffer-local-must-match-map.
 
 ** Mail changes
 
@@ -1132,6 +1125,13 @@ can specify various details of the data returned by `all-completions':
 - `annotation-function' to add annotations in *Completions*.
 - `display-sort-function' to specify how to sort entries in *Completions*.
 - `cycle-sort-function' to specify how to sort entries when cycling.
+
+*** minibuffer-local-filename-must-match-map is not used any more.
+Instead, the bindings in minibuffer-local-filename-completion-map are
+combined with minibuffer-local-must-match-map.
+
+*** New variable `completing-read-function' allows overriding the
+behavior of `completing-read'.
 
 ** `glyphless-char-display' can now distinguish between graphical and
 text terminal display, via a char-table entry that is a cons cell.
