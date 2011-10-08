@@ -1,6 +1,6 @@
-2011-10-07  Paul Eggert  <eggert@cs.ucla.edu>
+2011-10-08  Paul Eggert  <eggert@cs.ucla.edu>
 
-	Integer width fixes.
+	Fix integer width and related issues.
 	* alloc.c (pure_bytes_used_lisp, pure_bytes_used_non_lisp):
 	(allocate_vectorlike, buffer_memory_full, struct sdata, SDATA_SIZE)
 	(string_bytes, check_sblock, allocate_string_data):
@@ -35,8 +35,8 @@
 	(Foverlay_recenter, last_overlay_modification_hooks_used)
 	(report_overlay_modification, evaporate_overlays, enlarge_buffer_text):
 	Use ptrdiff_t, not EMACS_INT, where ptrdiff_t is wide enough.
-	(validate_region): Omit unnecessary test for b <= e, since
-	that's guaranteed by the previous test.
+	(validate_region): Omit unnecessary test for b <= e,
+	since that's guaranteed by the previous test.
 	(adjust_overlays_for_delete): Avoid pos + length overflow.
 	(Fmove_overlay, Fdelete_overlay, add_overlay_mod_hooklist)
 	(report_overlay_modification):
@@ -179,7 +179,7 @@
 	(Funencodable_char_position, Fcheck_coding_systems_region)
 	(get_translation, handle_composition_annotation, consume_chars):
 	Use ptrdiff_t, not int, to avoid needless 32-bit limit on 64-bit hosts.
-	(consume_chars): Rewrite to avoid calculating an address outside buffer.
+	(consume_chars): Rewrite to not calculate an address outside buffer.
 	(Ffind_operation_coding_system): NATNUMP can eval its arg twice.
 	Don't access memory outside of the args array.
 	(Fdefine_coding_system_internal): Check for charset-id overflow.
