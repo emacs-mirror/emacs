@@ -503,14 +503,14 @@ exec_byte_code (Lisp_Object bytestr, Lisp_Object vector, Lisp_Object maxdepth,
 
   if (INTEGERP (args_template))
     {
-      EMACS_INT at = XINT (args_template);
+      ptrdiff_t at = XINT (args_template);
       int rest = at & 128;
       int mandatory = at & 127;
-      EMACS_INT nonrest = at >> 8;
+      ptrdiff_t nonrest = at >> 8;
       eassert (mandatory <= nonrest);
       if (nargs <= nonrest)
 	{
-	  EMACS_INT i;
+	  ptrdiff_t i;
 	  for (i = 0 ; i < nargs; i++, args++)
 	    PUSH (*args);
 	  if (nargs < mandatory)
