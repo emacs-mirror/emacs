@@ -1,3 +1,8 @@
+2011-10-08  Glenn Morris  <rgm@gnu.org>
+
+	* progmodes/f90.el (f90-calculate-indent): Give preprocessor lines
+	before the first code statement zero indent.  (Bug#9690)
+
 2011-10-08  Chong Yidong  <cyd@stupidchicken.com>
 
 	* simple.el (count-words-region): Always count in the region.
