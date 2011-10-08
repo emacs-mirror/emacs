@@ -1,3 +1,7 @@
+2011-10-08  Eli Zaretskii  <eliz@gnu.org>
+
+	* mule.texi (Bidirectional Editing): Correct some inaccuracies.
+
 2011-10-08  Chong Yidong  <cyd@stupidchicken.com>
 
 	* basic.texi (Position Info): Omit page commands.  Document

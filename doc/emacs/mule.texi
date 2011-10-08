@@ -1707,10 +1707,9 @@ directionality when they are displayed.  The default value is
 
   Each paragraph of bidirectional text can have its own @dfn{base
 direction}, either right-to-left or left-to-right.  (Paragraph
-boundaries are defined by the regular expressions
-@code{paragraph-start} and @code{paragraph-separate}, see
-@ref{Paragraphs}.)  Text in left-to-right paragraphs begins at the
-left margin of the window and is truncated or continued when it
+boundaries are empty lines, i.e.@: lines consisting entirely of
+whitespace characters.)  Text in left-to-right paragraphs begins at
+the left margin of the window and is truncated or continued when it
 reaches the right margin.  By contrast, text in right-to-left
 paragraphs begins at the right margin and is continued or truncated at
 the left margin.
@@ -1734,8 +1733,8 @@ The special character @code{RIGHT-TO-LEFT MARK}, or @sc{rlm}, forces
 the right-to-left direction on the following paragraph, while
 @code{LEFT-TO-RIGHT MARK}, or @sc{lrm} forces the left-to-right
 direction.  (You can use @kbd{C-x 8 RET} to insert these characters.)
-In a GUI session, the @sc{lrm} and @sc{rlm} characters display as
-blanks.
+In a GUI session, the @sc{lrm} and @sc{rlm} characters display as very
+thin blank characters; on text terminals they display as blanks.
 
   Because characters are reordered for display, Emacs commands that
 operate in the logical order or on stretches of buffer positions may
