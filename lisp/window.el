@@ -2780,7 +2780,7 @@ WINDOW must be a live window and defaults to the selected one.
 Optional argument DEDICATED-ONLY non-nil means to delete WINDOW
 only if it's dedicated to its buffer.  Optional argument KILL
 means the buffer shown in window will be killed.  Return non-nil
-if WINDOW gets deleted."
+if WINDOW gets deleted or its frame is auto-hidden."
   (setq window (window-normalize-live-window window))
   (unless (and dedicated-only (not (window-dedicated-p window)))
     (let* ((buffer (window-buffer window))
@@ -2788,8 +2788,11 @@ if WINDOW gets deleted."
       (cond
        ((eq deletable 'frame)
 	(let ((frame (window-frame window)))
-	  (when (functionp frame-auto-hide-function)
-	    (funcall frame-auto-hide-function frame)))
+	  (cond
+	   (kill
+	    (delete-frame frame))
+	   ((functionp frame-auto-hide-function)
+	    (funcall frame-auto-hide-function frame))))
 	'frame)
        (deletable
 	(delete-window window)
