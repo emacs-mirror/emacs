@@ -1832,8 +1832,9 @@ encode_char (struct charset *charset, int c)
     }
   else				/* method == CHARSET_METHOD_OFFSET */
     {
-      code = c - CHARSET_CODE_OFFSET (charset);
-      code = INDEX_TO_CODE_POINT (charset, code);
+      unsigned code_index = c - CHARSET_CODE_OFFSET (charset);
+
+      code = INDEX_TO_CODE_POINT (charset, code_index);
     }
 
   return code;
