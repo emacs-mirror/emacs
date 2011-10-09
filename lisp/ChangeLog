@@ -1,3 +1,8 @@
+2011-10-09  Michael Albinus  <michael.albinus@gmx.de>
+
+	* net/tramp.el (tramp-file-name-handler): Add 'debug to the error
+	condition.
+
 2011-10-09  Leo Liu  <sdl.web@gmail.com>
 
 	* mail/smtpmail.el (smtpmail-send-data): Add a missing space.

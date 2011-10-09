@@ -1886,7 +1886,7 @@ Falls back to normal file name handler if no Tramp file name handler exists."
 		      (apply foreign operation args))
 
 		  ;; Trace that somebody has interrupted the operation.
-		  (quit
+		  ((debug quit)
 		   (let (tramp-message-show-message)
 		     (tramp-message
 		      v 1 "Interrupt received in operation %s"
@@ -1898,6 +1898,9 @@ Falls back to normal file name handler if no Tramp file name handler exists."
 		  ;; operations shall return at least a default value
 		  ;; in order to give the user a chance to correct the
 		  ;; file name in the minibuffer.
+		  ;; We cannot use 'debug as error handler.  In order
+		  ;; to get a full backtrace, one could apply
+		  ;;   (setq debug-on-error t debug-on-signal t)
 		  (error
 		   (cond
 		    ((and completion (zerop (length localname))
@@ -3850,9 +3853,9 @@ Only works for Bourne-like shells."
 ;; * Run emerge on two remote files.  Bug is described here:
 ;;   <http://www.mail-archive.com/tramp-devel@nongnu.org/msg01041.html>.
 ;;   (Bug#6850)
-
-;; Functions for file-name-handler-alist:
-;; diff-latest-backup-file -- in diff.el
+;; * It would be very useful if it were possible to load or save a
+;;   buffer using Tramp in a non-blocking way so that use of Emacs on
+;;   other buffers could continue.  (Bug#9617)
 
 ;;; tramp.el ends here
 
