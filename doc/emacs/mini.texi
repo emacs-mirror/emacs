@@ -541,64 +541,60 @@ Move to a later item in the minibuffer history that matches
 
 @kindex M-p @r{(minibuffer history)}
 @kindex M-n @r{(minibuffer history)}
+@kindex UP @r{(minibuffer history)}
+@kindex DOWN @r{(minibuffer history)}
 @findex next-history-element
 @findex previous-history-element
-  While in the minibuffer, typing @kbd{M-p} or @key{Up}
-(@code{previous-history-element}) moves up through the minibuffer
-history list, one item at a time.  Each @kbd{M-p} fetches an earlier
-item from the history list into the minibuffer, replacing its existing
-contents.  Similarly, typing @kbd{M-n} or @key{Down}
-(@code{next-history-element}) moves back down the history list,
-fetching later entries into the minibuffer.  You can think of these
-commands as ``backwards'' and ``forwards'' through the history list.
+  While in the minibuffer, @kbd{M-p} or @key{Up}
+(@code{previous-history-element}) moves through the minibuffer history
+list, one item at a time.  Each @kbd{M-p} fetches an earlier item from
+the history list into the minibuffer, replacing its existing contents.
+Typing @kbd{M-n} or @key{Down} (@code{next-history-element}) moves
+through the minibuffer history list in the opposite direction,
+fetching later entries into the minibuffer.
 
   If you type @kbd{M-n} in the minibuffer when there are no later
 entries in the minibuffer history (e.g., if you haven't previously
 typed @kbd{M-p}), Emacs tries fetching from a list of default
-argument: values that you are likely to enter.  You can think of this
-as moving through the ``future list'' instead of the ``history list''.
+arguments: values that you are likely to enter.  You can think of this
+as moving through the ``future history'' list.
 
-  The input that @kbd{M-p} or @kbd{M-n} fetches into the minibuffer
-entirely replaces the existing contents of the minibuffer, so you can
-simply type @key{RET} to use it as an argument.  You can also edit the
-text before you reuse it; this does not change the history element
-that you ``moved'' to, but your new argument does go at the end of the
-history list in its own right.
+  If you edit the text inserted by the @kbd{M-p} or @key{M-n}
+minibuffer history commands, this does not change its entry in the
+history list.  However, the edited argument does go at the end of the
+history list when you submit it.
 
 @findex previous-matching-history-element
 @findex next-matching-history-element
 @kindex M-r @r{(minibuffer history)}
 @kindex M-s @r{(minibuffer history)}
-  There are also commands to search forward or backward through the
-history; they search for history elements that match a regular
-expression.  @kbd{M-r} (@code{previous-matching-history-element})
-searches older elements in the history, while @kbd{M-s}
-(@code{next-matching-history-element}) searches newer elements.  These
-commands are unusual: they use the minibuffer to read the regular
-expression even though they are invoked from the minibuffer.  As with
-incremental searching, an upper-case letter in the regular expression
-makes the search case-sensitive (@pxref{Search Case}).  You can also
-search through the history using an incremental search (@pxref{Isearch
-Minibuffer}).
+  You can use @kbd{M-r} (@code{previous-matching-history-element}) to
+search through older elements in the history list, and @kbd{M-s}
+(@code{next-matching-history-element}) to search through newer
+entries.  Each of these commands asks for a @dfn{regular expression}
+as an argument, and fetches the first matching entry into the
+minibuffer.  @xref{Regexps}, for an explanation of regular
+expressions.  A numeric prefix argument @var{n} means to fetch the
+@var{n}th matching entry.  These commands are unusual, in that they
+use the minibuffer to read the regular expression argument, even
+though they are invoked from the minibuffer.  An upper-case letter in
+the regular expression makes the search case-sensitive (@pxref{Search
+Case}).
 
-  All uses of the minibuffer record your input on a history list, but
-there are separate history lists for different kinds of arguments.
-For example, there is a list for file names, used by all the commands
-that read file names.  (As a special feature, this history list
-records the absolute file name, even if the name you entered was not
-absolute.)
+  You can also search through the history using an incremental search.
+@xref{Isearch Minibuffer}.
 
-  There are several other specific history lists, including one for
-buffer names, one for arguments of commands like @code{query-replace},
-one used by @kbd{M-x} for command names, and one used by
-@code{compile} for compilation commands.  Finally, there is one
-``miscellaneous'' history list that most minibuffer arguments use.
+  Emacs keeps separate history lists for several different kinds of
+arguments.  For example, there is a list for file names, used by all
+the commands that read file names.  Other history lists include buffer
+names, command names (used by @kbd{M-x}), and command arguments (used
+by commands like @code{query-replace}).
 
 @vindex history-length
   The variable @code{history-length} specifies the maximum length of a
 minibuffer history list; adding a new element deletes the oldest
-element if the list gets too long.  If the value of
-@code{history-length} is @code{t}, there is no maximum length.
+element if the list gets too long.  If the value is @code{t}, there is
+no maximum length.
 
 @vindex history-delete-duplicates
   The variable @code{history-delete-duplicates} specifies whether to
@@ -629,27 +625,25 @@ Display the entire command history, showing all the commands
 
 @kindex C-x ESC ESC
 @findex repeat-complex-command
-  @kbd{C-x @key{ESC} @key{ESC}} is used to re-execute a recent command
-that used the minibuffer.  With no argument, it repeats the last such
-command.  A numeric argument specifies which command to repeat; 1
-means the last one, 2 the previous, and so on.
+  @kbd{C-x @key{ESC} @key{ESC}} re-executes a recent command that used
+the minibuffer.  With no argument, it repeats the last such command.
+A numeric argument specifies which command to repeat; 1 means the last
+one, 2 the previous, and so on.
 
   @kbd{C-x @key{ESC} @key{ESC}} works by turning the previous command
 into a Lisp expression and then entering a minibuffer initialized with
-the text for that expression.  Even if you don't understand Lisp
-syntax, it will probably be obvious which command is displayed for
-repetition.  If you type just @key{RET}, that repeats the command
-unchanged.  You can also change the command by editing the Lisp
-expression before you execute it.  The repeated command is added to
-the front of the command history unless it is identical to the most
-recent item.
+the text for that expression.  Even if you don't know Lisp, it will
+probably be obvious which command is displayed for repetition.  If you
+type just @key{RET}, that repeats the command unchanged.  You can also
+change the command by editing the Lisp expression before you execute
+it.  The repeated command is added to the front of the command history
+unless it is identical to the most recent item.
 
-  Once inside the minibuffer for @kbd{C-x @key{ESC} @key{ESC}}, you can
-use the minibuffer history commands (@kbd{M-p}, @kbd{M-n}, @kbd{M-r},
-@kbd{M-s}; @pxref{Minibuffer History}) to move through the history list
-of saved entire commands.  After finding the desired previous command,
-you can edit its expression as usual and then repeat it by typing
-@key{RET}.
+  Once inside the minibuffer for @kbd{C-x @key{ESC} @key{ESC}}, you
+can use the usual minibuffer history commands (@pxref{Minibuffer
+History}) to move through the history list.  After finding the desired
+previous command, you can edit its expression as usual and then repeat
+it by typing @key{RET}.
 
 @vindex isearch-resume-in-command-history
   Incremental search does not, strictly speaking, use the minibuffer.
@@ -674,12 +668,11 @@ when you tell Emacs to visit a file on another machine via a network
 protocol such as FTP, you often need to supply a password to gain
 access to the machine (@pxref{Remote Files}).
 
-  Entering a password is, in a basic sense, similar to using a
-minibuffer.  Emacs displays a prompt in the echo area (such as
-@samp{Password: }); after you type the required password, press
-@key{RET} to submit it.  To prevent others from seeing your password,
-every character you type is displayed as a dot (@samp{.}) instead of
-its usual form.
+  Entering a password is similar to using a minibuffer.  Emacs
+displays a prompt in the echo area (such as @samp{Password: }); after
+you type the required password, press @key{RET} to submit it.  To
+prevent others from seeing your password, every character you type is
+displayed as a dot (@samp{.}) instead of its usual form.
 
   Most of the features and commands associated with the minibuffer can
 @emph{not} be used when entering a password.  There is no history or

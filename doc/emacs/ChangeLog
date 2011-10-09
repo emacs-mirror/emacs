@@ -1,6 +1,17 @@
-2011-10-08  Chong Yidong  <cyd@stupidchicken.com>
+2011-10-09  Chong Yidong  <cyd@stupidchicken.com>
+
+	* help.texi (Help, Help Summary): Eliminate the unnecessary "help
+	option" terminology.
+	(Key Help): Add command names.  Define "documentation string".
+	(Name Help): Remove an over-long joke.
+	(Apropos): Document prefix args.  Remove duplicated descriptions.
+	(Help Mode): Add C-c C-b to table.  Update TAB binding.
+	(Package Keywords): Rename from "Library by Keyword".  Describe
+	new package menu interface.
+	(Help Files, Help Echo): Tweak description.
 
 	* mini.texi (Completion Options): Add completion-cycle-threshold.
+	(Minibuffer History): Document numeric args to history commands.
 
 2011-10-08  Eli Zaretskii  <eliz@gnu.org>
 
