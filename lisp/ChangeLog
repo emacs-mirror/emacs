@@ -1,3 +1,8 @@
+2011-10-09  Martin Rudalics  <rudalics@gmx.at>
+
+	* window.el (frame-auto-hide-function): Add version tag.
+	(Bug#9699)
+
 2011-10-09  Michael Albinus  <michael.albinus@gmx.de>
 
 	* net/tramp.el (tramp-file-name-handler): Add 'debug to the error

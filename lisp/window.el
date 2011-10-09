@@ -2772,7 +2772,8 @@ shown in a separate frame like `quit-window' and `bury-buffer'."
                  (const :tag "Do nothing" ignore)
                  function)
   :group 'windows
-  :group 'frames)
+  :group 'frames
+  :version "24.1")
 
 (defun window--delete (&optional window dedicated-only kill)
   "Delete WINDOW if possible.
