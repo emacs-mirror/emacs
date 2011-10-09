@@ -1,3 +1,8 @@
+2011-10-09  Leo Liu  <sdl.web@gmail.com>
+
+	* mail/smtpmail.el (smtpmail-send-data): Add a missing space.
+	(Bug#9701)
+
 2011-10-08  Glenn Morris  <rgm@gnu.org>
 
 	* progmodes/f90.el (f90-calculate-indent): Give preprocessor lines
