@@ -666,18 +666,15 @@ the buffer contents as a comment."
       (funcall log-operation
 	       log-fileset
 	       log-entry))
-    ;; Remove checkin window (after the checkin so that if that fails
-    ;; we don't zap the log buffer and the typing therein).
-    ;; -- IMO this should be replaced with quit-window
-    (cond ((and logbuf vc-delete-logbuf-window)
-	   (delete-windows-on logbuf (selected-frame))
-	   ;; Kill buffer and delete any other dedicated windows/frames.
-	   (kill-buffer logbuf))
-	  (logbuf
-           (with-selected-window (or (get-buffer-window logbuf 0)
-                                     (selected-window))
-             (with-current-buffer logbuf
-               (bury-buffer)))))
+
+    ;; Quit windows on logbuf.
+    (cond
+     ((not logbuf))
+     (vc-delete-logbuf-window
+      (quit-windows-on logbuf t (selected-frame)))
+     (t
+      (quit-windows-on logbuf nil 0)))
+
     ;; Now make sure we see the expanded headers
     (when log-fileset
       (mapc

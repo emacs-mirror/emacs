@@ -3,6 +3,12 @@
 	* window.el (special-display-buffer-names)
 	(special-display-regexps): Remove some remnants of earlier
 	changes from doc-strings.
+	(quit-windows-on): New function.
+
+	* vc/vc.el (vc-revert, vc-rollback):
+	* vc/vc-dispatcher.el (vc-finish-logentry): Call quit-windows-on
+	instead of deleting windows.  (Bug#4557) (Bug#5310) (Bug#5556)
+	(Bug#6183) (Bug#7074)((Bug#7447)
 
 2011-10-09  Martin Rudalics  <rudalics@gmx.at>
 

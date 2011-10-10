@@ -2984,6 +2984,27 @@ one.  If non-nil, reset `quit-restore' parameter to nil."
     (if kill
 	(kill-buffer buffer)
       (bury-buffer-internal buffer))))
+
+(defun quit-windows-on (&optional buffer-or-name kill frame)
+  "Quit all windows showing BUFFER-OR-NAME.
+BUFFER-OR-NAME may be a buffer or the name of an existing buffer
+and defaults to the current buffer.  Optional argument KILL
+non-nil means to kill BUFFER-OR-NAME.  KILL nil means to bury
+BUFFER-OR-NAME.  Optional argument FRAME is handled as by
+`delete-windows-on'.
+
+This function calls `quit-window' on all candidate windows
+showing BUFFER-OR-NAME."
+  (interactive "BQuit windows on (buffer):\nP")
+  (let ((buffer (window-normalize-buffer buffer-or-name))
+	;; Handle the "inverted" meaning of the FRAME argument wrt other
+	;; `window-list-1' based function.
+	(all-frames (cond ((not frame) t) ((eq frame t) nil) (t frame))))
+    (dolist (window (window-list-1 nil nil all-frames))
+      (if (eq (window-buffer window) buffer)
+	  (quit-window kill window)
+	;; If a window doesn't show BUFFER, unrecord BUFFER in it.
+	(unrecord-window-buffer window buffer)))))
 
 ;;; Splitting windows.
 (defsubst window-split-min-size (&optional horizontal)
