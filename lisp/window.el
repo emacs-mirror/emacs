@@ -3959,12 +3959,10 @@ Finally, an element of this list can be also specified as
 \(BUFFER-NAME FUNCTION OTHER-ARGS).  In that case,
 `special-display-popup-frame' will call FUNCTION with the buffer
 named BUFFER-NAME as first argument, and OTHER-ARGS as the
-second.  If `special-display-function' specifies some other
-function, that function is called with the buffer named
-BUFFER-NAME as first, and the element's cdr as second argument.
-In any case, that function is responsible for setting the value
-The function specified here is responsible for setting the
-quit-restore and help-setup parameters of the window used.
+second.
+
+Any alternative function specified here is responsible for
+setting up the quit-restore parameter of the window used.
 
 If this variable appears \"not to work\", because you added a
 name to it but the corresponding buffer is displayed in the
@@ -4029,10 +4027,10 @@ as second argument.
 Finally, an element of this list can be also specified as
 \(REGEXP FUNCTION OTHER-ARGS).  `special-display-popup-frame'
 will then call FUNCTION with the buffer whose name matched
-REGEXP as first, and OTHER-ARGS as second argument.  If
-`special-display-function' specifies some other function, that
-function is called with the buffer whose name matched REGEXP
-as first, and the element's cdr as second argument.
+REGEXP as first, and OTHER-ARGS as second argument.
+
+Any alternative function specified here is responsible for
+setting up the quit-restore parameter of the window used.
 
 If this variable appears \"not to work\", because you added a
 name to it but the corresponding buffer is displayed in the
