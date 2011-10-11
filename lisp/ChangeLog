@@ -1,3 +1,11 @@
+2011-10-11  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* mail/sendmail.el (send-mail-function): Don't use sendmail-query-once
+	if not needed.
+	(sendmail-query-once): Remove OS dependencies.  Make it a 3-way choice
+	using completion.  Protect against "slow" callers.
+	Remove the "message hack".
+
 2011-10-11  Juri Linkov  <juri@jurta.org>
 
 	* isearch.el (isearch-lazy-highlight-word): New variable.
