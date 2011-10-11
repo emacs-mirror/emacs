@@ -1059,6 +1059,10 @@ been introduced.  This and all other functions for resizing windows no
 longer delete any windows when they become too small.
 
 +++
+*** Deleting the selected window now selects the most recently selected
+live window on that frame instead.
+
++++
 *** `adjust-window-trailing-edge' adjustments.
 `adjust-window-trailing-edge' can now deal with fixed-size windows and
 is able to resize other windows if a window adjacent to the trailing
