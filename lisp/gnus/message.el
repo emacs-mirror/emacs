@@ -7429,14 +7429,16 @@ is for the internal use."
       (with-temp-buffer
 	(insert-buffer-substring cur)
 	(when (setq handles (mm-dissect-buffer t t))
-	  (if (and (prog1
-		       (bufferp (car handles))
-		     (mm-destroy-parts handles))
+	  (if (and (bufferp (car handles))
 		   (equal (mm-handle-media-type handles) "text/plain"))
 	      (progn
+		(erase-buffer)
+		(insert-buffer-substring (car handles))
 		(mm-decode-content-transfer-encoding
 		 (mm-handle-encoding handles))
+		(mm-destroy-parts handles)
 		(setq handles (mm-uu-dissect)))
+	    (mm-destroy-parts handles)
 	    (setq handles nil))))))
   (when handles
     (prog1
