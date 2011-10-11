@@ -1,3 +1,9 @@
+2011-10-11  Andreas Schwab  <schwab@linux-m68k.org>
+
+	* lisp.h (GCPRO1_VAR, GCPRO2_VAR, GCPRO3_VAR, GCPRO4_VAR)
+	(GCPRO5_VAR, GCPRO6_VAR, UNGCPRO_VAR): Add whitespace to avoid
+	matching a pp-number.  Rename parameter var to var1.
+
 2011-10-11  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* minibuf.c (Finternal_complete_buffer): Fix last change (bug#9709).
