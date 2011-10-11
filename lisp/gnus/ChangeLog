@@ -1,3 +1,8 @@
+2011-10-11  Andreas Schwab  <schwab@linux-m68k.org>
+
+	* html2text.el (html2text-clean-anchor): Check for quotes around
+	`href' value.
+
 2011-10-11  Teodor Zlatanov  <tzz@lifelogs.com>
 
 	* spam.el (spam-check-BBDB): Simplify and support BBDB 3.x when

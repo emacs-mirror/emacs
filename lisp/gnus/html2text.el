@@ -358,7 +358,8 @@ formatting, and then moved afterward.")
     (delete-region p1 p4)
     (when href
       (goto-char p1)
-      (insert (substring href 1 -1))
+      (insert (if (string-match "\\`['\"].*['\"]\\'" href)
+		  (substring href 1 -1) href))
       (put-text-property p1 (point) 'face 'bold))))
 
 ;;
