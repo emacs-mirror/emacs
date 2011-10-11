@@ -1,3 +1,9 @@
+2011-10-11  Juri Linkov  <juri@jurta.org>
+
+	* isearch.el (isearch-lazy-highlight-word): New variable.
+	(isearch-lazy-highlight-new-loop, isearch-lazy-highlight-search):
+	Use it.  (Bug#9727)
+
 2011-10-11  Glenn Morris  <rgm@gnu.org>
 
 	* progmodes/f90.el (f90-next-statement): Ignore preprocessor lines,
