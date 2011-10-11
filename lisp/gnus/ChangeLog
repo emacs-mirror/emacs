@@ -1,3 +1,8 @@
+2011-10-11  Teodor Zlatanov  <tzz@lifelogs.com>
+
+	* spam.el (spam-check-BBDB): Simplify and support BBDB 3.x when
+	searching.  Drop `bbdb-cache'.
+
 2011-10-11  Katsumi Yamaoka  <yamaoka@jpl.org>
 
 	* message.el (message-signed-or-encrypted-p): Exclude header when
