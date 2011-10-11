@@ -924,7 +924,7 @@ The list is in preference order.")
 (defun smtpmail-send-data (process buffer)
   (let ((data-continue t) sending-data
         (pr (with-current-buffer buffer
-              (make-progress-reporter "Sending email"
+              (make-progress-reporter "Sending email "
                                       (point-min) (point-max)))))
     (with-current-buffer buffer
       (goto-char (point-min)))

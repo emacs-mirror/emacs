@@ -1789,59 +1789,60 @@ same as `substitute-in-file-name'."
 
 (defun completion-file-name-table (string pred action)
   "Completion table for file names."
-  (with-demoted-errors
-    (cond
-     ((eq action 'metadata) '(metadata (category . file)))
-     ((eq (car-safe action) 'boundaries)
-      (let ((start (length (file-name-directory string)))
-            (end (string-match-p "/" (cdr action))))
-        (list* 'boundaries
-               ;; if `string' is "C:" in w32, (file-name-directory string)
-               ;; returns "C:/", so `start' is 3 rather than 2.
-               ;; Not quite sure what is The Right Fix, but clipping it
-               ;; back to 2 will work for this particular case.  We'll
-               ;; see if we can come up with a better fix when we bump
-               ;; into more such problematic cases.
-               (min start (length string)) end)))
+  (condition-case nil
+      (cond
+       ((eq action 'metadata) '(metadata (category . file)))
+       ((eq (car-safe action) 'boundaries)
+        (let ((start (length (file-name-directory string)))
+              (end (string-match-p "/" (cdr action))))
+          (list* 'boundaries
+                 ;; if `string' is "C:" in w32, (file-name-directory string)
+                 ;; returns "C:/", so `start' is 3 rather than 2.
+                 ;; Not quite sure what is The Right Fix, but clipping it
+                 ;; back to 2 will work for this particular case.  We'll
+                 ;; see if we can come up with a better fix when we bump
+                 ;; into more such problematic cases.
+                 (min start (length string)) end)))
 
-     ((eq action 'lambda)
-      (if (zerop (length string))
-          nil    ;Not sure why it's here, but it probably doesn't harm.
-        (funcall (or pred 'file-exists-p) string)))
+       ((eq action 'lambda)
+        (if (zerop (length string))
+            nil          ;Not sure why it's here, but it probably doesn't harm.
+          (funcall (or pred 'file-exists-p) string)))
 
-     (t
-      (let* ((name (file-name-nondirectory string))
-             (specdir (file-name-directory string))
-             (realdir (or specdir default-directory)))
+       (t
+        (let* ((name (file-name-nondirectory string))
+               (specdir (file-name-directory string))
+               (realdir (or specdir default-directory)))
 
-        (cond
-         ((null action)
-          (let ((comp (file-name-completion name realdir pred)))
-            (if (stringp comp)
-                (concat specdir comp)
-              comp)))
+          (cond
+           ((null action)
+            (let ((comp (file-name-completion name realdir pred)))
+              (if (stringp comp)
+                  (concat specdir comp)
+                comp)))
 
-         ((eq action t)
-          (let ((all (file-name-all-completions name realdir)))
+           ((eq action t)
+            (let ((all (file-name-all-completions name realdir)))
 
-            ;; Check the predicate, if necessary.
-            (unless (memq pred '(nil file-exists-p))
-              (let ((comp ())
-                    (pred
-                     (if (eq pred 'file-directory-p)
-                         ;; Brute-force speed up for directory checking:
-                         ;; Discard strings which don't end in a slash.
-                         (lambda (s)
-                           (let ((len (length s)))
-                             (and (> len 0) (eq (aref s (1- len)) ?/))))
-                       ;; Must do it the hard (and slow) way.
-                       pred)))
-                (let ((default-directory (expand-file-name realdir)))
-                  (dolist (tem all)
-                    (if (funcall pred tem) (push tem comp))))
-                (setq all (nreverse comp))))
+              ;; Check the predicate, if necessary.
+              (unless (memq pred '(nil file-exists-p))
+                (let ((comp ())
+                      (pred
+                       (if (eq pred 'file-directory-p)
+                           ;; Brute-force speed up for directory checking:
+                           ;; Discard strings which don't end in a slash.
+                           (lambda (s)
+                             (let ((len (length s)))
+                               (and (> len 0) (eq (aref s (1- len)) ?/))))
+                         ;; Must do it the hard (and slow) way.
+                         pred)))
+                  (let ((default-directory (expand-file-name realdir)))
+                    (dolist (tem all)
+                      (if (funcall pred tem) (push tem comp))))
+                  (setq all (nreverse comp))))
 
-            all))))))))
+              all))))))
+    (file-error nil)))               ;PCM often calls with invalid directories.
 
 (defvar read-file-name-predicate nil
   "Current predicate used by `read-file-name-internal'.")

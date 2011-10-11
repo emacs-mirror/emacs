@@ -264,7 +264,7 @@ Basic Editing Commands
 * Basic Help::          Asking what a character does.
 * Blank Lines::         Making and deleting blank lines.
 * Continuation Lines::  How Emacs displays lines too wide for the screen.
-* Position Info::       What page, line, row, or column is point on?
+* Position Info::       What line, row, or column is point on?
 * Arguments::           Numeric arguments for repeating a command N times.
 * Repeating::           Repeating the previous command quickly.
 
@@ -282,6 +282,7 @@ Completion
 * Completion Example::  Examples of using completion.
 * Completion Commands:: A list of completion commands.
 * Strict Completion::   Different types of completion.
+* Completion Styles::   How completion matches are chosen.
 * Completion Options::  Options for completion.
 
 Help
@@ -291,10 +292,10 @@ Help
 * Name Help::           Asking about a command, variable or function name.
 * Apropos::             Asking what pertains to a given topic.
 * Help Mode::           Special features of Help mode and Help buffers.
-* Library Keywords::    Finding Lisp libraries by keywords (topics).
+* Package Keywords::    Finding Lisp libraries by keywords (topics).
 * Language Help::       Help relating to international language support.
 * Misc Help::           Other help commands.
-* Help Files::          Commands to display pre-written help files.
+* Help Files::          Commands to display auxilliary help files.
 * Help Echo::           Help on active text and tooltips (`balloon help').
 
 The Mark and the Region

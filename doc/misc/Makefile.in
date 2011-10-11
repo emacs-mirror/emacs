@@ -370,12 +370,13 @@ erc.pdf: ${srcdir}/erc.texi
 	$(ENVADD) $(TEXI2PDF) $<
 
 ert : $(infodir)/ert
-$(infodir)/ert: ert.texi $(infodir)
-	cd $(srcdir); $(MAKEINFO) ert.texi
-ert.dvi: ert.texi
-	$(ENVADD) $(TEXI2DVI) ${srcdir}/ert.texi
-ert.pdf: ert.texi
-	$(ENVADD) $(TEXI2PDF) ${srcdir}/ert.texi
+$(infodir)/ert: ert.texi
+	$(mkinfodir)
+	cd $(srcdir); $(MAKEINFO) $(MAKEINFO_OPTS) $<
+ert.dvi: ${srcdir}/ert.texi
+	$(ENVADD) $(TEXI2DVI) $<
+ert.pdf: ${srcdir}/ert.texi
+	$(ENVADD) $(TEXI2PDF) $<
 
 eshell : $(infodir)/eshell
 $(infodir)/eshell: eshell.texi

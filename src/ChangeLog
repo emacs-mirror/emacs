@@ -1,3 +1,18 @@
+2011-10-08  Glenn Morris  <rgm@gnu.org>
+
+	* callint.c (Fcall_interactively): Give a more explicit error for the
+	'c' case with a non-character input.  (Bug#8479)
+
+2011-10-08  Eli Zaretskii  <eliz@gnu.org>
+
+	* xdisp.c (hscroll_window_tree): Support hscroll in right-to-left
+	lines.
+	(set_cursor_from_row): Fix cursor positioning in mixed L2R+R2L
+	lines that are hscrolled on the left.
+
+	* dispnew.c (buffer_posn_from_coords): Account for a possible
+	presence of header-line.  (Bug#4426)
+
 2011-10-07  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* buffer.c (syms_of_buffer) <enable-multibyte-characters>: Don't

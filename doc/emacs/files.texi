@@ -54,11 +54,13 @@ Note that file name completion ignores file names whose extensions
 appear in the variable @code{completion-ignored-extensions}
 (@pxref{Completion Options}).
 
+@cindex default file name
   For most operations, there is a @dfn{default file name} which is
 used if you type just @key{RET} to enter an empty argument.  Normally,
 the default file name is the name of the file visited in the current
 buffer.
 
+@cindex default directory
 @vindex default-directory
 @vindex insert-default-directory
   Each buffer has a @dfn{default directory} which is normally the same
@@ -1863,7 +1865,7 @@ then specifying @file{/tmp/foo*bar} will visit only
 @cindex file name caching
 @cindex cache of file names
 @pindex find
-@kindex C-@key{TAB}
+@kindex C-TAB
 @findex file-cache-minibuffer-complete
   You can use the @dfn{file name cache} to make it easy to locate a
 file by name, without having to remember exactly where it is located.

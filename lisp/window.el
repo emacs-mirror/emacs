@@ -2772,7 +2772,8 @@ shown in a separate frame like `quit-window' and `bury-buffer'."
                  (const :tag "Do nothing" ignore)
                  function)
   :group 'windows
-  :group 'frames)
+  :group 'frames
+  :version "24.1")
 
 (defun window--delete (&optional window dedicated-only kill)
   "Delete WINDOW if possible.
@@ -2780,7 +2781,7 @@ WINDOW must be a live window and defaults to the selected one.
 Optional argument DEDICATED-ONLY non-nil means to delete WINDOW
 only if it's dedicated to its buffer.  Optional argument KILL
 means the buffer shown in window will be killed.  Return non-nil
-if WINDOW gets deleted."
+if WINDOW gets deleted or its frame is auto-hidden."
   (setq window (window-normalize-live-window window))
   (unless (and dedicated-only (not (window-dedicated-p window)))
     (let* ((buffer (window-buffer window))
@@ -2788,8 +2789,11 @@ if WINDOW gets deleted."
       (cond
        ((eq deletable 'frame)
 	(let ((frame (window-frame window)))
-	  (when (functionp frame-auto-hide-function)
-	    (funcall frame-auto-hide-function frame)))
+	  (cond
+	   (kill
+	    (delete-frame frame))
+	   ((functionp frame-auto-hide-function)
+	    (funcall frame-auto-hide-function frame))))
 	'frame)
        (deletable
 	(delete-window window)
@@ -2980,6 +2984,27 @@ one.  If non-nil, reset `quit-restore' parameter to nil."
     (if kill
 	(kill-buffer buffer)
       (bury-buffer-internal buffer))))
+
+(defun quit-windows-on (&optional buffer-or-name kill frame)
+  "Quit all windows showing BUFFER-OR-NAME.
+BUFFER-OR-NAME may be a buffer or the name of an existing buffer
+and defaults to the current buffer.  Optional argument KILL
+non-nil means to kill BUFFER-OR-NAME.  KILL nil means to bury
+BUFFER-OR-NAME.  Optional argument FRAME is handled as by
+`delete-windows-on'.
+
+This function calls `quit-window' on all candidate windows
+showing BUFFER-OR-NAME."
+  (interactive "BQuit windows on (buffer):\nP")
+  (let ((buffer (window-normalize-buffer buffer-or-name))
+	;; Handle the "inverted" meaning of the FRAME argument wrt other
+	;; `window-list-1' based function.
+	(all-frames (cond ((not frame) t) ((eq frame t) nil) (t frame))))
+    (dolist (window (window-list-1 nil nil all-frames))
+      (if (eq (window-buffer window) buffer)
+	  (quit-window kill window)
+	;; If a window doesn't show BUFFER, unrecord BUFFER in it.
+	(unrecord-window-buffer window buffer)))))
 
 ;;; Splitting windows.
 (defsubst window-split-min-size (&optional horizontal)
@@ -3955,12 +3980,10 @@ Finally, an element of this list can be also specified as
 \(BUFFER-NAME FUNCTION OTHER-ARGS).  In that case,
 `special-display-popup-frame' will call FUNCTION with the buffer
 named BUFFER-NAME as first argument, and OTHER-ARGS as the
-second.  If `special-display-function' specifies some other
-function, that function is called with the buffer named
-BUFFER-NAME as first, and the element's cdr as second argument.
-In any case, that function is responsible for setting the value
-The function specified here is responsible for setting the
-quit-restore and help-setup parameters of the window used.
+second.
+
+Any alternative function specified here is responsible for
+setting up the quit-restore parameter of the window used.
 
 If this variable appears \"not to work\", because you added a
 name to it but the corresponding buffer is displayed in the
@@ -4025,10 +4048,10 @@ as second argument.
 Finally, an element of this list can be also specified as
 \(REGEXP FUNCTION OTHER-ARGS).  `special-display-popup-frame'
 will then call FUNCTION with the buffer whose name matched
-REGEXP as first, and OTHER-ARGS as second argument.  If
-`special-display-function' specifies some other function, that
-function is called with the buffer whose name matched REGEXP
-as first, and the element's cdr as second argument.
+REGEXP as first, and OTHER-ARGS as second argument.
+
+Any alternative function specified here is responsible for
+setting up the quit-restore parameter of the window used.
 
 If this variable appears \"not to work\", because you added a
 name to it but the corresponding buffer is displayed in the
@@ -4974,7 +4997,7 @@ one.
 If FORCE-SAME-WINDOW is non-nil, BUFFER-OR-NAME must be displayed
 in the selected window; signal an error if that is
 impossible (e.g. if the selected window is minibuffer-only).  If
-non-nil, BUFFER-OR-NAME may be displayed in another window.
+nil, BUFFER-OR-NAME may be displayed in another window.
 
 Return the buffer switched to."
   (interactive

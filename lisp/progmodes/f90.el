@@ -1489,14 +1489,19 @@ Does not check type and subprogram indentation."
       (if (not (f90-previous-statement))
           ;; If f90-previous-statement returns nil, we must have been
           ;; called from on or before the first line of the first statement.
-          (setq icol (if (save-excursion
-                           ;; f90-previous-statement has moved us over
-                           ;; comment/blank lines, so we need to get
-                           ;; back to the first code statement.
-                           (when (looking-at "[ \t]*\\([!#]\\|$\\)")
-                             (f90-next-statement))
-                           (skip-chars-forward " \t0-9")
-                           (f90-looking-at-program-block-start))
+          (setq icol (if (or (save-excursion
+                               (goto-char pnt)
+                               (beginning-of-line)
+                               ;; Preprocessor line before code statement.
+                               (looking-at "[ \t]*#"))
+                             (progn
+                               ;; f90-previous-statement has moved us over
+                               ;; comment/blank lines, so we need to get
+                               ;; back to the first code statement.
+                               (when (looking-at "[ \t]*\\([!#]\\|$\\)")
+                                 (f90-next-statement))
+                               (skip-chars-forward " \t0-9")
+                               (f90-looking-at-program-block-start)))
                          0
                        ;; No explicit PROGRAM start statement.
                        f90-program-indent))

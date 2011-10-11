@@ -6969,6 +6969,8 @@ esac
   # Code from module stat:
   # Code from module stdarg:
 
+
+
   # Code from module stdbool:
   # Code from module stddef:
   # Code from module stdint:
@@ -21903,12 +21905,6 @@ fi
 
 
       gl_gnulib_enabled_sigprocmask=true
-      if $condition; then
-        func_gl_gnulib_m4code_raise
-      fi
-      if $condition; then
-        func_gl_gnulib_m4code_f691f076f650964c9f5598c3ee487616
-      fi
     fi
   }
   func_gl_gnulib_m4code_stat ()
@@ -22040,13 +22036,10 @@ fi
 
 
       gl_gnulib_enabled_stat=true
-      if $condition; then
+      if test $REPLACE_STAT = 1; then
         func_gl_gnulib_m4code_dosname
       fi
-      if $condition; then
-        func_gl_gnulib_m4code_pathmax
-      fi
-      if $condition; then
+      if test $REPLACE_STAT = 1; then
         func_gl_gnulib_m4code_verify
       fi
     fi
@@ -22161,12 +22154,6 @@ fi
       gl_gnulib_enabled_verify=true
     fi
   }
-  if test $HAVE_DUP2 = 0 || test $REPLACE_DUP2 = 1; then
-    func_gl_gnulib_m4code_f691f076f650964c9f5598c3ee487616
-  fi
-  if test $HAVE_DUP2 = 0 || test $REPLACE_DUP2 = 1; then
-    func_gl_gnulib_m4code_676220fa4366efa9bdbfccf11a857c07
-  fi
   if test $REPLACE_GETOPT = 1; then
     func_gl_gnulib_m4code_be453cec5eecf5731a274f2de7f2db36
   fi

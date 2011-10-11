@@ -884,23 +884,28 @@ This buffer therefore becomes the least desirable candidate for
 @code{other-buffer} to return.  The argument can be either a buffer
 itself or the name of one.
 
-@code{bury-buffer} operates on each frame's @code{buffer-list} parameter
-as well as the fundamental buffer list; therefore, the buffer that you
-bury will come last in the value of @code{(buffer-list @var{frame})} and
-in the value of @code{(buffer-list)}.
+This functions operates on each frame's @code{buffer-list} parameter as
+well as the fundamental buffer list; therefore, the buffer that you bury
+will come last in the value of @code{(buffer-list @var{frame})} and in
+the value of @code{(buffer-list)}.  In addition, it also puts the buffer
+at the end of the list of buffer of the selected window (@pxref{Window
+History}) provided it is shown in that window.
 
-If @var{buffer-or-name} is @code{nil} or omitted, this means to bury
-the current buffer.  In addition, if the buffer is displayed in the
-selected window, this switches to some other buffer (obtained using
-@code{other-buffer}) in the selected window.  @xref{Switching
-Buffers}.  But if the selected window is dedicated to its buffer, it
-deletes that window if there are other windows left on its frame.
-Otherwise, if the selected window is the only window on its frame, it
-iconifies that frame.  If @var{buffer-or-name} is displayed in some
+If @var{buffer-or-name} is @code{nil} or omitted, this means to bury the
+current buffer.  In addition, if the current buffer is displayed in the
+selected window, this makes sure that the window is either deleted or
+another buffer is shown in it.  More precisely, if the window is
+dedicated (@pxref{Dedicated Windows}) and there are other windows on its
+frame, the window is deleted.  If the window is both dedicated and the
+only window on its frame's terminal, the function specified by
+@code{frame-auto-hide-function} (@pxref{Quitting Windows}) will deal
+with the window.  If the window is not dedicated to its buffer, it calls
+@code{switch-to-prev-buffer} (@pxref{Window History}) to show another
+buffer in that window.  If @var{buffer-or-name} is displayed in some
 other window, it remains displayed there.
 
 To replace a buffer in all the windows that display it, use
-@code{replace-buffer-in-windows}.  @xref{Buffers and Windows}.
+@code{replace-buffer-in-windows}, @xref{Buffers and Windows}.
 @end deffn
 
 @deffn Command unbury-buffer

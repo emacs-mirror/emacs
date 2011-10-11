@@ -945,28 +945,46 @@ rather than line counts."
       (forward-line (1- line)))))
 
 (defun count-words-region (start end)
-  "Count the number of words in the active region.
-If the region is not active, counts the number of words in the buffer."
-  (interactive (if (use-region-p) (list (region-beginning) (region-end))
-                 (list (point-min) (point-max))))
-  (let ((count 0))
+  "Return the number of words between START and END.
+If called interactively, print a message reporting the number of
+lines, words, and characters in the region."
+  (interactive "r")
+  (let ((words 0))
     (save-excursion
       (save-restriction
         (narrow-to-region start end)
         (goto-char (point-min))
         (while (forward-word 1)
-          (setq count (1+ count)))))
+          (setq words (1+ words)))))
     (when (called-interactively-p 'interactive)
-      (message "%s has %d words"
-               (if (use-region-p) "Region" "Buffer")
-               count))
-    count))
+      (count-words--message "Region"
+			    (count-lines start end)
+			    words
+			    (- end start)))
+    words))
 
-(defun count-lines-region (start end)
-  "Print number of lines and characters in the region."
-  (interactive "r")
-  (message "Region has %d lines, %d characters"
-	   (count-lines start end) (- end start)))
+(defun count-words ()
+  "Display the number of lines, words, and characters in the buffer.
+In Transient Mark mode when the mark is active, display the
+number of lines, words, and characters in the region."
+  (interactive)
+  (if (use-region-p)
+      (call-interactively 'count-words-region)
+    (let* ((beg (point-min))
+	   (end (point-max))
+	   (lines (count-lines beg end))
+	   (words (count-words-region beg end))
+	   (chars (- end beg)))
+      (count-words--message "Buffer" lines words chars))))
+
+(defun count-words--message (str lines words chars)
+  (message "%s has %d line%s, %d word%s, and %d character%s."
+	   str
+	   lines (if (= lines 1) "" "s")
+	   words (if (= words 1) "" "s")
+	   chars (if (= chars 1) "" "s")))
+
+(defalias 'count-lines-region 'count-words-region)
 
 (defun what-line ()
   "Print the current buffer line number and narrowed line number of point."
