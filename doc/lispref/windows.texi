@@ -1608,7 +1608,9 @@ This function removes @var{window} from display and returns @code{nil}.
 The argument @var{window} can denote any window and defaults to the
 selected one.  An error is signaled if @var{window} is the only window
 on its frame.  Hence @var{window} must have at least one sibling window
-(@pxref{Windows and Frames}) in order to get deleted.
+(@pxref{Windows and Frames}) in order to get deleted.  If @var{window}
+is the selected window on its frame, this function selects the most
+recently selected live window on that frame instead.
 
 If the variable @code{ignore-window-parameters} (@pxref{Window
 Parameters}) is non-@code{nil}, this function ignores all parameters of
@@ -1629,7 +1631,8 @@ combination.
 @deffn Command delete-other-windows &optional window
 This function makes @var{window} fill its frame and returns @code{nil}.
 The argument @var{window} can denote an arbitrary window and defaults to
-the selected one.
+the selected one.  Upon exit, @var{window} will be the selected window
+on its frame.
 
 If the variable @code{ignore-window-parameters} (@pxref{Window
 Parameters}) is non-@code{nil}, this function ignores all parameters of
