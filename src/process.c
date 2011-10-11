@@ -5958,50 +5958,47 @@ SIGCODE may be an integer, or a symbol whose name is a signal name.  */)
 {
   pid_t pid;
 
-  if (INTEGERP (process))
-    {
-      CHECK_TYPE_RANGED_INTEGER (pid_t, process);
-      pid = XINT (process);
-      goto got_it;
-    }
-
-  if (FLOATP (process))
-    {
-      double v = XFLOAT_DATA (process);
-      if (! (TYPE_MINIMUM (pid_t) <= v && v < TYPE_MAXIMUM (pid_t) + 1.0))
-	args_out_of_range_3 (process,
-			     make_fixnum_or_float (TYPE_MINIMUM (pid_t)),
-			     make_fixnum_or_float (TYPE_MAXIMUM (pid_t)));
-      pid = v;
-      goto got_it;
-    }
-
   if (STRINGP (process))
     {
       Lisp_Object tem = Fget_process (process);
       if (NILP (tem))
 	{
-	  EMACS_INT v = XINT (Fstring_to_number (process, make_number (10)));
-	  if (0 < v && v <= TYPE_MAXIMUM (pid_t))
-	    {
-	      pid = v;
-	      goto got_it;
-	    }
+	  Lisp_Object process_number =
+	    string_to_number (SSDATA (process), 10, 1);
+	  if (INTEGERP (process_number) || FLOATP (process_number))
+	    tem = process_number;
 	}
       process = tem;
     }
-  else
+  else if (!NUMBERP (process))
     process = get_process (process);
 
   if (NILP (process))
     return process;
 
-  CHECK_PROCESS (process);
-  pid = XPROCESS (process)->pid;
-  if (pid <= 0)
-    error ("Cannot signal process %s", SDATA (XPROCESS (process)->name));
-
- got_it:
+  if (INTEGERP (process))
+    {
+      EMACS_INT v = XINT (process);
+      if (! (TYPE_MINIMUM (pid_t) <= v && v <= TYPE_MAXIMUM (pid_t)))
+	return make_number (-1);
+      pid = v;
+    }
+  else if (FLOATP (process))
+    {
+      double v = XFLOAT_DATA (process);
+      if (! (TYPE_MINIMUM (pid_t) <= v && v < TYPE_MAXIMUM (pid_t) + 1.0))
+	return make_number (-1);
+      pid = v;
+      if (pid != v)
+	return make_number (-1);
+    }
+  else
+    {
+      CHECK_PROCESS (process);
+      pid = XPROCESS (process)->pid;
+      if (pid <= 0)
+	error ("Cannot signal process %s", SDATA (XPROCESS (process)->name));
+    }
 
 #define parse_signal(NAME, VALUE)		\
   else if (!xstrcasecmp (name, NAME))		\

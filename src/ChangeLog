@@ -1,4 +1,4 @@
-2011-10-08  Paul Eggert  <eggert@cs.ucla.edu>
+2011-10-11  Paul Eggert  <eggert@cs.ucla.edu>
 
 	Fix integer width and related issues.
 	* alloc.c (pure_bytes_used_lisp, pure_bytes_used_non_lisp):
@@ -556,8 +556,11 @@
 	* process.c (Fdelete_process): Don't assume pid fits into EMACS_INT.
 	(Fset_process_window_size, Fformat_network_address)
 	(get_lisp_to_sockaddr_size, set_socket_option, Fmake_network_process)
-	(Fsignal_process, sigchld_handler):
+	(sigchld_handler):
 	Check that fixnums are in proper range for system types.
+	(Fsignal_process): Simplify by avoiding a goto.
+	Treat out-of-range process numbers just like invalid numbers
+	that fit into the pid_t range, and return -1.
 	(Fformat_network_address, read_process_output, send_process)
 	(Fprocess_send_region, status_notify):
 	Use ptrdiff_t, not EMACS_INT, where ptrdiff_t is wide enough.
