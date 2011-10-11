@@ -1578,7 +1578,7 @@ Return nil if no later statement is found."
     (while (and (setq not-last-statement
                       (and (zerop (forward-line 1))
                            (not (eobp))))
-                (looking-at "[ \t0-9]*\\(!\\|$\\)")))
+                (looking-at "[ \t0-9]*\\(!\\|$\\|#\\)")))
     not-last-statement))
 
 (defun f90-beginning-of-subprogram ()

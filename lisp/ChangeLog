@@ -1,8 +1,13 @@
+2011-10-11  Glenn Morris  <rgm@gnu.org>
+
+	* progmodes/f90.el (f90-next-statement): Ignore preprocessor lines,
+	like f90-previous-statement does.
+
 2011-10-11  Thierry Volpiatto  <thierry.volpiatto@gmail.com>
 
-	* lisp/eshell/eshell.el (eshell-command): History have to be saved 
-	only in interactive use to avoid error.
-	
+	* lisp/eshell/eshell.el (eshell-command): History should be saved
+	only in interactive use, to avoid error.
+
 2011-10-11  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* minibuffer.el (completion-file-name-table): Fix last change,
