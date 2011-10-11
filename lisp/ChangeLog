@@ -5,7 +5,7 @@
 
 2011-10-11  Thierry Volpiatto  <thierry.volpiatto@gmail.com>
 
-	* lisp/eshell/eshell.el (eshell-command): History should be saved
+	* eshell/eshell.el (eshell-command): History should be saved
 	only in interactive use, to avoid error.
 
 2011-10-11  Stefan Monnier  <monnier@iro.umontreal.ca>
