@@ -420,9 +420,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 /* Define to 1 if you have the hesiod library (-lhesiod). */
 #undef HAVE_LIBHESIOD
 
-/* Define to 1 if you have the `intl' library (-lintl). */
-#undef HAVE_LIBINTL
-
 /* Define to 1 if you have the `k5crypto' library (-lk5crypto). */
 #undef HAVE_LIBK5CRYPTO
 
