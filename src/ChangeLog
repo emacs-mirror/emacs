@@ -1,3 +1,7 @@
+2011-10-12  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* doc.c (get_doc_string): Encode file name (bug#9735).
+
 2011-10-12  Eli Zaretskii  <eliz@gnu.org>
 
 	* bidi.c (bidi_level_of_next_char):
