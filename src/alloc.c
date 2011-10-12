@@ -4071,7 +4071,7 @@ DEFUN ("gc-status", Fgc_status, Sgc_status, 0, 0, "",
 {
   Lisp_Object args[8], zombie_list = Qnil;
   EMACS_INT i;
-  for (i = 0; i < nzombies; i++)
+  for (i = 0; i < min (MAX_ZOMBIES, nzombies); i++)
     zombie_list = Fcons (zombies[i], zombie_list);
   args[0] = build_string ("%d GCs, avg live/zombies = %.2f/%.2f (%f%%), max %d/%d\nzombies: %S");
   args[1] = make_number (ngcs);
@@ -4410,7 +4410,7 @@ dump_zombies (void)
 {
   int i;
 
-  fprintf (stderr, "\nZombies kept alive = %"pI":\n", nzombies);
+  fprintf (stderr, "\nZombies kept alive = %"pI"d:\n", nzombies);
   for (i = 0; i < min (MAX_ZOMBIES, nzombies); ++i)
     {
       fprintf (stderr, "  %d = ", i);
