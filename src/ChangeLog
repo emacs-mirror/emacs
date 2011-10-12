@@ -1,3 +1,7 @@
+2011-10-12  Eli Zaretskii  <eliz@gnu.org>
+
+	* bidi.c (bidi_init_it): Initialize paragraph_dir to NEUTRAL_DIR.
+
 2011-10-12  Dmitry Antipov  <dmantipov@yandex.ru>
 
 	* alloc.c (Fgc_status): Do not access beyond zombies array
