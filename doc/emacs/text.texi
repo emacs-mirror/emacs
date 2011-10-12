@@ -147,13 +147,10 @@ more on transposition.
 
 @kindex M-@@
 @findex mark-word
-  To operate on the next @var{n} words with an operation which acts on
-the region, use the command @kbd{M-@@} (@code{mark-word}).  This
-command does not move point, but sets the mark where @kbd{M-f} would
-move to.  Once the mark is active, each additional @kbd{M-@@} advances
-the mark by one additional word.  @kbd{M-@@} also accepts a numeric
-argument that says how many words to scan for the place to put the
-mark.
+  To operate on words with an operation which acts on the region, use
+the command @kbd{M-@@} (@code{mark-word}).  This command sets the mark
+where @kbd{M-f} would move to.  @xref{Marking Objects}, for more
+information about this command.
 
   The word commands' understanding of word boundaries is controlled by
 the syntax table.  Any character can, for example, be declared to be a
@@ -2108,9 +2105,9 @@ the current Emacs session.
   If the region is active, the command applies to the text in the
 region; otherwise, it applies to any immediately following
 self-inserting input.  When Transient Mark mode is off
-(@pxref{Persistent Mark}), it always applies to the region unless a
-prefix argument is given, in which case it applies to the following
-input.
+(@pxref{Disabled Transient Mark}), it always applies to the region
+unless a prefix argument is given, in which case it applies to the
+following input.
 
   Each of the two color submenus contains one additional item:
 @samp{Other}.  You can use this item to specify a color that is not

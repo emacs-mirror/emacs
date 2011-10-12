@@ -306,7 +306,7 @@ The Mark and the Region
 * Mark Ring::           Previous mark positions saved so you can go back there.
 * Global Mark Ring::    Previous mark positions in various buffers.
 * Shift Selection::     Using shifted cursor motion keys.
-* Persistent Mark::     Keeping the mark active all the time.
+* Disabled Transient Mark:: Leaving regions unhighlighted by default.
 
 Killing and Moving Text
 

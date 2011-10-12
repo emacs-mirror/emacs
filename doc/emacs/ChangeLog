@@ -1,3 +1,21 @@
+2011-10-12  Chong Yidong  <cyd@stupidchicken.com>
+
+	* mark.texi (Mark): Clarify description of disabled Transient Mark
+	mode (Bug#9689).
+	(Setting Mark): Document prefix arg for C-x C-x.  Document primary
+	selection changes.  Mention that commands like C-y set the mark.
+	(Marking Objects): Add xref to Words node.  Note that mark-word
+	and mark-sexp also have the "extend region" behavior.
+	(Using Region): Mention M-$ in the table.  Document
+	mark-even-if-inactive here instead of in Mark Ring.
+	(Mark Ring): Move mark-even-if-inactive to Using Region.  Take
+	note of the "Mark Set" behavior.
+	(Disabled Transient Mark): Rename from "Persistent Mark"
+	(Bug#9688).  Callers changed.
+
+	* programs.texi (Expressions):
+	* text.texi (Words): Defer to Marking Objects for mark-word doc.
+
 2011-10-09  Chong Yidong  <cyd@stupidchicken.com>
 
 	* help.texi (Help, Help Summary): Eliminate the unnecessary "help

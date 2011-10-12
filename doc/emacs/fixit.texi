@@ -98,11 +98,12 @@ was deliberate, redo the change as described above.
   When there is an active region, any use of @code{undo} performs
 @dfn{selective undo}: it undoes the most recent change within the
 region, instead of the entire buffer.  However, when Transient Mark
-mode is off (@pxref{Persistent Mark}), @kbd{C-/} always operates on
-the entire buffer, ignoring the region.  In this case, you can perform
-selective undo by supplying a prefix argument to the @code{undo}
-command: @kbd{C-u C-/}.  To undo further changes in the same region,
-repeat the @code{undo} command (no prefix argument is needed).
+mode is off (@pxref{Disabled Transient Mark}), @kbd{C-/} always
+operates on the entire buffer, ignoring the region.  In this case, you
+can perform selective undo by supplying a prefix argument to the
+@code{undo} command: @kbd{C-u C-/}.  To undo further changes in the
+same region, repeat the @code{undo} command (no prefix argument is
+needed).
 
   Some specialized buffers do not make undo records.  Buffers whose
 names start with spaces never do; these buffers are used internally by
@@ -270,7 +271,7 @@ optionally correct it as well, type @kbd{M-$} (@code{ispell-word}).
 If a region is active, @kbd{M-$} checks the spelling of all words
 within the region.  @xref{Mark}.  (When Transient Mark mode is off,
 @kbd{M-$} always acts on the word around or before point, ignoring the
-region.  @xref{Persistent Mark}.)
+region; @pxref{Disabled Transient Mark}.)
 
 @findex ispell
 @findex ispell-buffer
