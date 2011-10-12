@@ -1,5 +1,8 @@
 2011-10-12  Paul Eggert  <eggert@cs.ucla.edu>
 
+	* xdisp.c (set_cursor_from_row): Simplify conditionals,
+	to pacify GCC 4.6.1 x86-64 with -O2 -Wstrict-overflow.
+
 	* lread.c (read_escape): Allow hex escapes as large as ?\xfffffff.
 	Some packages use them to denote characters with modifiers.
 
