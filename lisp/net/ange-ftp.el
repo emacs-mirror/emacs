@@ -4412,14 +4412,16 @@ NEWNAME should be the name to give the new compressed or uncompressed file.")
 ;;; Define ways of getting at unmodified Emacs primitives,
 ;;; turning off our handler.
 
-(defun ange-ftp-run-real-handler (operation args)
-  (let ((inhibit-file-name-handlers
-	 (cons 'ange-ftp-hook-function
-	       (cons 'ange-ftp-completion-hook-function
-		     (and (eq inhibit-file-name-operation operation)
-			  inhibit-file-name-handlers))))
-	(inhibit-file-name-operation operation))
-    (apply operation args)))
+;(defun ange-ftp-run-real-handler (operation args)
+;  (let ((inhibit-file-name-handlers
+;	 (cons 'ange-ftp-hook-function
+;	       (cons 'ange-ftp-completion-hook-function
+;		     (and (eq inhibit-file-name-operation operation)
+;			  inhibit-file-name-handlers))))
+;	(inhibit-file-name-operation operation))
+;    (apply operation args)))
+
+(defalias 'ange-ftp-run-real-handler 'tramp-run-real-handler)
 
 (defun ange-ftp-real-file-name-directory (&rest args)
   (ange-ftp-run-real-handler 'file-name-directory args))
@@ -5005,7 +5007,11 @@ NEWNAME should be the name to give the new compressed or uncompressed file.")
 		      dir (and dir "/")
 		      file))
 	  (error "name %s didn't match" name))
-      (let (drive dir file tmp)
+      (let (drive dir file tmp quote)
+	(if (string-match "\\`\".+\"\\'" name)
+	    (setq name (substring name 1 -1)
+		  quote "\"")
+	  (setq quote ""))
 	(if (string-match "\\`/[^:]+:/" name)
 	    (setq drive (substring name 1
 				   (1- (match-end 0)))
@@ -5014,9 +5020,9 @@ NEWNAME should be the name to give the new compressed or uncompressed file.")
 	(if tmp
 	    (setq dir (subst-char-in-string ?/ ?. (substring tmp 0 -1) t)))
 	(setq file (file-name-nondirectory name))
-	(concat drive
+	(concat quote drive
 		(and dir (concat "[" (if drive nil ".") dir "]"))
-		file)))))
+		file quote)))))
 
 ;; (ange-ftp-fix-name-for-vms "/PUB$:/ANONYMOUS/SDSCPUB/NEXT/Readme.txt;1")
 ;; (ange-ftp-fix-name-for-vms "/PUB$:[ANONYMOUS.SDSCPUB.NEXT]Readme.txt;1" t)
