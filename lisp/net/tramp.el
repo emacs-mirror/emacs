@@ -1606,24 +1606,28 @@ This is intended to be used as a minibuffer `post-command-hook' for
 `file-name-shadow-mode'; the minibuffer should have already
 been set up by `rfn-eshadow-setup-minibuffer'."
   ;; In remote files name, there is a shadowing just for the local part.
-  (let ((end (or (tramp-compat-funcall
-		  'overlay-end (symbol-value 'rfn-eshadow-overlay))
-		 (tramp-compat-funcall 'minibuffer-prompt-end))))
-    (when
-	(file-remote-p
-	 (tramp-compat-funcall 'buffer-substring-no-properties end (point-max)))
-      (save-excursion
-	(save-restriction
-	  (narrow-to-region
-	   (1+ (or (string-match
-		    tramp-rfn-eshadow-update-overlay-regexp (buffer-string) end)
-		   end))
-	   (point-max))
-	  (let ((rfn-eshadow-overlay tramp-rfn-eshadow-overlay)
-		(rfn-eshadow-update-overlay-hook nil))
-	    (tramp-compat-funcall
-	     'move-overlay rfn-eshadow-overlay (point-max) (point-max))
-	    (tramp-compat-funcall 'rfn-eshadow-update-overlay)))))))
+  (ignore-errors
+    (let ((end (or (tramp-compat-funcall
+		    'overlay-end (symbol-value 'rfn-eshadow-overlay))
+		   (tramp-compat-funcall 'minibuffer-prompt-end))))
+      (when
+	  (file-remote-p
+	   (tramp-compat-funcall
+	    'buffer-substring-no-properties end (point-max)))
+	(save-excursion
+	  (save-restriction
+	    (narrow-to-region
+	     (1+ (or (string-match
+		      tramp-rfn-eshadow-update-overlay-regexp
+		      (buffer-string) end)
+		     end))
+	     (point-max))
+	    (let ((rfn-eshadow-overlay tramp-rfn-eshadow-overlay)
+		  (rfn-eshadow-update-overlay-hook nil)
+		  file-name-handler-alist)
+	      (tramp-compat-funcall
+	       'move-overlay rfn-eshadow-overlay (point-max) (point-max))
+	      (tramp-compat-funcall 'rfn-eshadow-update-overlay))))))))
 
 (when (boundp 'rfn-eshadow-update-overlay-hook)
   (add-hook 'rfn-eshadow-update-overlay-hook

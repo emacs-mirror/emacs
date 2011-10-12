@@ -462,8 +462,9 @@ etc.  To correct the overall indentation as well, type @key{TAB}
 first.
 
   @kbd{C-M-\} (@code{indent-region}) applies @key{TAB} to the region.
-This is useful when Transient Mark mode is disabled (@pxref{Persistent
-Mark}), because in that case @key{TAB} does not act on the region.
+This is useful when Transient Mark mode is disabled (@pxref{Disabled
+Transient Mark}), because in that case @key{TAB} does not act on the
+region.
 
 @kindex C-u TAB
   If you like the relative indentation within a grouping but not the
@@ -741,9 +742,12 @@ after point and the mark.
 @kindex C-M-@@
 @kindex C-M-@key{SPC}
 @findex mark-sexp
-  To set the region around the next balanced expression in the buffer,
-use @kbd{C-M-@key{SPC}} (@code{mark-sexp}), which sets mark at the
-same place that @kbd{C-M-f} would move to.  @kbd{C-M-@key{SPC}} treats
+  To operate on balanced expressions with an operation which acts on
+the region, use the command @kbd{C-M-@key{SPC}} (@code{mark-sexp}).
+This sets the mark at the same place that @kbd{C-M-f} would move to.
+@xref{Marking Objects}, for more information about this command.
+
+@kbd{C-M-@key{SPC}} treats
 numeric arguments in the same way as @kbd{C-M-f}; in particular, a
 negative argument puts the mark at the beginning of the previous
 balanced expression.  The alias @kbd{C-M-@@} is equivalent to
