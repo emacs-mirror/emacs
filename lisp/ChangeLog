@@ -1,8 +1,33 @@
+2011-10-12  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* textmodes/flyspell.el (flyspell-word): Move with-local-quit
+	from here...
+	(flyspell-post-command-hook): ...to here.
+
+2011-10-11  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* mail/sendmail.el (send-mail-function): Don't use sendmail-query-once
+	if not needed.
+	(sendmail-query-once): Remove OS dependencies.  Make it a 3-way choice
+	using completion.  Protect against "slow" callers.
+	Remove the "message hack".
+
+2011-10-11  Juri Linkov  <juri@jurta.org>
+
+	* isearch.el (isearch-lazy-highlight-word): New variable.
+	(isearch-lazy-highlight-new-loop, isearch-lazy-highlight-search):
+	Use it.  (Bug#9727)
+
+2011-10-11  Glenn Morris  <rgm@gnu.org>
+
+	* progmodes/f90.el (f90-next-statement): Ignore preprocessor lines,
+	like f90-previous-statement does.
+
 2011-10-11  Thierry Volpiatto  <thierry.volpiatto@gmail.com>
 
-	* lisp/eshell/eshell.el (eshell-command): History have to be saved 
-	only in interactive use to avoid error.
-	
+	* eshell/eshell.el (eshell-command): History should be saved
+	only in interactive use, to avoid error.
+
 2011-10-11  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* minibuffer.el (completion-file-name-table): Fix last change,

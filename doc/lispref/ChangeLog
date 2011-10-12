@@ -1,3 +1,8 @@
+2011-10-11  Martin Rudalics  <rudalics@gmx.at>
+
+	* windows.texi (Deleting Windows): Mention which window gets
+	selected when deleting the selected window.
+
 2011-10-09  Martin Rudalics  <rudalics@gmx.at>
 
 	* buffers.texi (The Buffer List): Describe how bury-buffer deals
