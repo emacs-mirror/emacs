@@ -1,3 +1,9 @@
+2011-10-12  Eli Zaretskii  <eliz@gnu.org>
+
+	* xdisp.c (find_row_edges): Handle the case where ROW comes from a
+	display string and the previous row comes from the same string and
+	is empty.  (Bug#9739)  (Bug#9738)
+
 2011-10-12  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* doc.c (get_doc_string): Encode file name (bug#9735).
