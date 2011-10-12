@@ -1,5 +1,9 @@
 2011-10-12  Eli Zaretskii  <eliz@gnu.org>
 
+	* bidi.c (bidi_level_of_next_char):
+	* xdisp.c (get_visually_first_element): Remove old incorrect
+	comments regarding the Unicode Line Separator character.
+
 	* bidi.c (bidi_init_it): Initialize paragraph_dir to NEUTRAL_DIR.
 
 2011-10-12  Dmitry Antipov  <dmantipov@yandex.ru>

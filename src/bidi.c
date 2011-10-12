@@ -2128,7 +2128,7 @@ bidi_level_of_next_char (struct bidi_it *bidi_it)
       do {
 	ch = bidi_fetch_char (bpos += clen, cpos += nc, &disp_pos, &dpp, &bs,
 			      fwp, &clen, &nc);
-	if (ch == '\n' || ch == BIDI_EOB /* || ch == LINESEP_CHAR */)
+	if (ch == '\n' || ch == BIDI_EOB)
 	  chtype = NEUTRAL_B;
 	else
 	  chtype = bidi_get_type (ch, NEUTRAL_DIR);
@@ -2178,7 +2178,6 @@ bidi_level_of_next_char (struct bidi_it *bidi_it)
   else if (bidi_it->orig_type == NEUTRAL_B /* L1 */
 	   || bidi_it->orig_type == NEUTRAL_S
 	   || bidi_it->ch == '\n' || bidi_it->ch == BIDI_EOB
-	   /* || bidi_it->ch == LINESEP_CHAR */
 	   || (bidi_it->orig_type == NEUTRAL_WS
 	       && (bidi_it->next_for_ws.type == NEUTRAL_B
 		   || bidi_it->next_for_ws.type == NEUTRAL_S)))
