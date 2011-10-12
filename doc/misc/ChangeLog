@@ -1,3 +1,7 @@
+2011-10-12  Glenn Morris  <rgm@gnu.org>
+
+	* ert.texi: Whitespace trivia to make main menu items line up better.
+
 2011-10-08  Glenn Morris  <rgm@gnu.org>
 
 	* Makefile.in: Fix ert rules.

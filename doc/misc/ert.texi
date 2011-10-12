@@ -48,7 +48,7 @@ traditional software development methods.
 
 @menu
 * Introduction::                A simple example of an ERT test.
-* How to Run Tests::            Run tests in your Emacs or from the command line.
+* How to Run Tests::            Run tests in Emacs or from the command line.
 * How to Write Tests::          How to add tests to your Emacs Lisp code.
 * How to Debug Tests::          What to do if a test fails.
 * Extending ERT::               ERT is extensible in several ways.
@@ -61,13 +61,13 @@ How to Run Tests
 
 * Running Tests Interactively::  Run tests in your current Emacs.
 * Running Tests in Batch Mode::  Run tests in emacs -Q.
-* Test Selectors::              Choose which tests to run.
+* Test Selectors::               Choose which tests to run.
 
 How to Write Tests
 
-* The @code{should} Macro::     A powerful way to express assertions.
+* The @code{should} Macro::          A powerful way to express assertions.
 * Expected Failures::           Tests for known bugs.
-* Tests and Their Environment::  Don't depend on customizations; no side effects.
+* Tests and Their Environment:: Don't depend on customizations; no side effects.
 * Useful Techniques::           Some examples.
 
 How to Debug Tests
