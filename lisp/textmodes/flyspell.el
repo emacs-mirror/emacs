@@ -931,49 +931,52 @@ Mostly we check word delimiters."
 ;;*       previous word nor the current word                            */
 ;;*---------------------------------------------------------------------*/
 (defun flyspell-post-command-hook ()
-  "The `post-command-hook' used by flyspell to check a word in-the-fly."
+  "The `post-command-hook' used by flyspell to check a word on-the-fly."
   (interactive)
   (when flyspell-mode
-    (let ((command this-command)
-	  ;; Prevent anything we do from affecting the mark.
-	  deactivate-mark)
-      (if (flyspell-check-pre-word-p)
-	  (with-current-buffer flyspell-pre-buffer
-	    '(flyspell-debug-signal-pre-word-checked)
-	    (save-excursion
-	      (goto-char flyspell-pre-point)
-	      (flyspell-word))))
-      (if (flyspell-check-word-p)
-	  (progn
-	    '(flyspell-debug-signal-word-checked)
-	    (flyspell-word)
-	    ;; we remember which word we have just checked.
-	    ;; this will be used next time we will check a word
-	    ;; to compare the next current word with the word
-	    ;; that as been registered in the pre-command-hook
-	    ;; that is these variables are used within the predicate
-	    ;; FLYSPELL-CHECK-PRE-WORD-P
-	    (setq flyspell-pre-pre-buffer (current-buffer))
-	    (setq flyspell-pre-pre-point  (point)))
-	(progn
-	  (setq flyspell-pre-pre-buffer nil)
-	  (setq flyspell-pre-pre-point  nil)
-	  ;; when a word is not checked because of a delayed command
-	  ;; we do not disable the ispell cache.
-	  (if (and (symbolp this-command) (get this-command 'flyspell-delayed))
-	      (progn
-		(setq flyspell-word-cache-end -1)
-		(setq flyspell-word-cache-result '_)))))
-      (while (and (not (input-pending-p)) (consp flyspell-changes))
-	(let ((start (car (car flyspell-changes)))
-	      (stop  (cdr (car flyspell-changes))))
-	  (if (flyspell-check-changed-word-p start stop)
-	      (save-excursion
-		'(flyspell-debug-signal-changed-checked)
-		(goto-char start)
-		(flyspell-word)))
-	  (setq flyspell-changes (cdr flyspell-changes))))
-      (setq flyspell-previous-command command))))
+    (with-local-quit
+      (let ((command this-command)
+            ;; Prevent anything we do from affecting the mark.
+            deactivate-mark)
+        (if (flyspell-check-pre-word-p)
+            (with-current-buffer flyspell-pre-buffer
+              '(flyspell-debug-signal-pre-word-checked)
+              (save-excursion
+                (goto-char flyspell-pre-point)
+                (flyspell-word))))
+        (if (flyspell-check-word-p)
+            (progn
+              '(flyspell-debug-signal-word-checked)
+              ;; FIXME: This should be asynchronous!
+              (flyspell-word)
+              ;; we remember which word we have just checked.
+              ;; this will be used next time we will check a word
+              ;; to compare the next current word with the word
+              ;; that as been registered in the pre-command-hook
+              ;; that is these variables are used within the predicate
+              ;; FLYSPELL-CHECK-PRE-WORD-P
+              (setq flyspell-pre-pre-buffer (current-buffer))
+              (setq flyspell-pre-pre-point  (point)))
+          (progn
+            (setq flyspell-pre-pre-buffer nil)
+            (setq flyspell-pre-pre-point  nil)
+            ;; when a word is not checked because of a delayed command
+            ;; we do not disable the ispell cache.
+            (if (and (symbolp this-command)
+                     (get this-command 'flyspell-delayed))
+                (progn
+                  (setq flyspell-word-cache-end -1)
+                  (setq flyspell-word-cache-result '_)))))
+        (while (and (not (input-pending-p)) (consp flyspell-changes))
+          (let ((start (car (car flyspell-changes)))
+                (stop  (cdr (car flyspell-changes))))
+            (if (flyspell-check-changed-word-p start stop)
+                (save-excursion
+                  '(flyspell-debug-signal-changed-checked)
+                  (goto-char start)
+                  (flyspell-word)))
+            (setq flyspell-changes (cdr flyspell-changes))))
+        (setq flyspell-previous-command command)))))
 
 ;;*---------------------------------------------------------------------*/
 ;;*    flyspell-notify-misspell ...                                     */
@@ -1100,14 +1103,10 @@ misspelling and skips redundant spell-checking step."
                   ;; we mark the ispell process so it can be killed
                   ;; when emacs is exited without query
                   (set-process-query-on-exit-flag ispell-process nil)
-                  ;; Wait until ispell has processed word.  Since this
-                  ;; code is often executed from post-command-hook but
-                  ;; the ispell process may not be responsive, it's
-                  ;; important to make sure we re-enable C-g.
-                  (with-local-quit
-                    (while (progn
-                             (accept-process-output ispell-process)
-                             (not (string= "" (car ispell-filter))))))
+                  ;; Wait until ispell has processed word.
+                  (while (progn
+                           (accept-process-output ispell-process)
+                           (not (string= "" (car ispell-filter)))))
                   ;; (ispell-send-string "!\n")
                   ;; back to terse mode.
                   ;; Remove leading empty element

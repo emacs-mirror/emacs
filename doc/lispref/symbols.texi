@@ -541,7 +541,7 @@ returns @code{nil}.  For example,
 (plist-get '(foo 4 bad) 'foo)
      @result{} 4
 (plist-get '(foo 4 bad) 'bad)
-     @result{} @code{nil}
+     @result{} nil
 (plist-get '(foo 4 bad) 'bar)
      @result{} nil
 @end example

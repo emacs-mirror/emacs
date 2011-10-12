@@ -3008,10 +3008,6 @@ AC_SUBST(KRB5LIB)
 AC_SUBST(DESLIB)
 AC_SUBST(KRB4LIB)
 
-# Solaris requires -lintl if you want strerror (which calls dgettext)
-# to return localized messages.
-AC_CHECK_LIB(intl, dgettext)
-
 AC_MSG_CHECKING(whether localtime caches TZ)
 AC_CACHE_VAL(emacs_cv_localtime_cache,
 [if test x$ac_cv_func_tzset = xyes; then

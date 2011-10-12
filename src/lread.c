@@ -2215,7 +2215,7 @@ read_escape (Lisp_Object readcharfun, int stringp)
     case 'x':
       /* A hex escape, as in ANSI C.  */
       {
-	int i = 0;
+	unsigned int i = 0;
 	int count = 0;
 	while (1)
 	  {
@@ -2239,7 +2239,9 @@ read_escape (Lisp_Object readcharfun, int stringp)
 		UNREAD (c);
 		break;
 	      }
-	    if (MAX_CHAR < i)
+	    /* Allow hex escapes as large as ?\xfffffff, because some
+	       packages use them to denote characters with modifiers.  */
+	    if ((CHAR_META | (CHAR_META - 1)) < i)
 	      error ("Hex character out of range: \\x%x...", i);
 	    count += count < 3;
 	  }

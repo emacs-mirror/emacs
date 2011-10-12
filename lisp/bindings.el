@@ -773,7 +773,7 @@ if `inhibit-field-text-motion' is non-nil."
 (define-key ctl-x-map "\C-o" 'delete-blank-lines)
 (define-key esc-map " " 'just-one-space)
 (define-key esc-map "z" 'zap-to-char)
-(define-key esc-map "=" 'count-lines-region)
+(define-key esc-map "=" 'count-words-region)
 (define-key ctl-x-map "=" 'what-cursor-position)
 (define-key esc-map ":" 'eval-expression)
 ;; Define ESC ESC : like ESC : for people who type ESC ESC out of habit.

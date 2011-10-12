@@ -1608,7 +1608,9 @@ This function removes @var{window} from display and returns @code{nil}.
 The argument @var{window} can denote any window and defaults to the
 selected one.  An error is signaled if @var{window} is the only window
 on its frame.  Hence @var{window} must have at least one sibling window
-(@pxref{Windows and Frames}) in order to get deleted.
+(@pxref{Windows and Frames}) in order to get deleted.  If @var{window}
+is the selected window on its frame, this function selects the most
+recently selected live window on that frame instead.
 
 If the variable @code{ignore-window-parameters} (@pxref{Window
 Parameters}) is non-@code{nil}, this function ignores all parameters of
@@ -1629,7 +1631,8 @@ combination.
 @deffn Command delete-other-windows &optional window
 This function makes @var{window} fill its frame and returns @code{nil}.
 The argument @var{window} can denote an arbitrary window and defaults to
-the selected one.
+the selected one.  Upon exit, @var{window} will be the selected window
+on its frame.
 
 If the variable @code{ignore-window-parameters} (@pxref{Window
 Parameters}) is non-@code{nil}, this function ignores all parameters of
@@ -2076,16 +2079,17 @@ This command replaces @var{buffer-or-name} with some other buffer, in
 all windows displaying it.  For each such window, it choose another
 buffer using @code{switch-to-prev-buffer} (@pxref{Window History}).
 
-@var{buffer-or-name} may be a buffer, or the name of an existing
-buffer; it defaults to the current buffer.
+The argument @var{buffer-or-name} may be a buffer, or the name of an
+existing buffer; it defaults to the current buffer.
 
 If a window displaying @var{buffer-or-name} is dedicated
-(@pxref{Dedicated Windows}), has never displayed any other buffers and
-is not the only window on its frame, that window is deleted.  If that
-window is the only window on its frame and there are other frames on the
-frame's terminal, that frame is deleted too; otherwise, the buffer
-provided by the function @code{switch-to-prev-buffer} (@pxref{Window
-History}) is displayed instead.
+(@pxref{Dedicated Windows}) and is not the only window on its frame,
+that window is deleted.  If that window is the only window on its frame
+and there are other frames on the frame's terminal, that frame is dealt
+with by the function spcecified by @code{frame-auto-hide-function}
+(@pxref{Quitting Windows}).  Otherwise, the buffer provided by the
+function @code{switch-to-prev-buffer} (@pxref{Window History}) is
+displayed in the window instead.
 @end deffn
 
 
@@ -2784,14 +2788,14 @@ non-@code{nil} value.
 @section Quitting Windows
 
 When you want to get rid of a window used for displaying a buffer you
-can use the function @code{delete-window} (@pxref{Deleting Windows}) to
-remove that window from its frame.  If the buffer has been shown on a
-separate frame, you might want to call @code{delete-frame}
-(@pxref{Deleting Frames}) instead.  If, on the other hand, a window has
-been reused for displaying the buffer, you might prefer showing the
-buffer previously shown in that window by calling the function
-@code{switch-to-prev-buffer} (@pxref{Window History}).  Finally, you
-might want to either bury (@pxref{The Buffer List}) or kill
+can call @code{delete-window} or @code{delete-windows-on}
+(@pxref{Deleting Windows}) to remove that window from its frame.  If the
+buffer is shown on a separate frame, you might want to call
+@code{delete-frame} (@pxref{Deleting Frames}) instead.  If, on the other
+hand, a window has been reused for displaying the buffer, you might
+prefer showing the buffer previously shown in that window by calling the
+function @code{switch-to-prev-buffer} (@pxref{Window History}).
+Finally, you might want to either bury (@pxref{The Buffer List}) or kill
 (@pxref{Killing Buffers}) the window's buffer.
 
    The following function uses information on how the window for
@@ -2807,9 +2811,12 @@ instead of burying it.
 Quitting @var{window} means to proceed as follows: If @var{window} was
 created specially for displaying its current buffer, delete @var{window}
 provided its frame contains at least one other live window.  If
-@var{window} is the only window on its frame and other frames still
-exist, delete the frame together with @var{window}.  If, however, there
-are no other frames left, display some other buffer in @var{window}.
+@var{window} is the only window on its frame and there are other frames
+on the frame's terminal, the value of @var{kill} determines how to
+proceed with the window.  If @var{kill} is @code{nil}, the fate of the
+frame is determined by calling @code{frame-auto-hide-function} (see
+below) with that frame as sole argument.  If @var{kill} is
+non-@code{nil}, the frame is deleted unconditionally.
 
 If @var{window} was reused for displaying its buffer, this command tries
 to display the buffer previously shown in it.  It also tries to restore
@@ -2830,6 +2837,31 @@ The function @code{quit-window} bases its decisions on information
 stored in @var{window}'s @code{quit-restore} window parameter
 (@pxref{Window Parameters}) and resets that parameter to @code{nil}
 after it's done.
+
+The following option specifies how to deal with a frame containing just
+one window that shall be either quit or whose buffer shall be buried.
+
+@defopt frame-auto-hide-function
+The function specified by this option is called to automatically hide
+frames.  This function is called with one argument - a frame.
+
+The function specified here is called by @code{bury-buffer} (@pxref{The
+Buffer List}) when the selected window is dedicated and shows the buffer
+that shall be buried.  It is also called by @code{quit-window} (see
+above) when the frame of the window that shall be quit has been
+specially created for displaying that window's buffer and the buffer
+shall be buried.
+
+The default is to call @code{iconify-frame} (@pxref{Visibility of
+Frames}).  Alternatively, you may either specify @code{delete-frame}
+(@pxref{Deleting Frames}) to remove the frame from its display,
+@code{ignore} to leave the frame unchanged, or any other function that
+can take a frame as its sole argument.
+
+Note that the function specified by this option is called if and only if
+there's at least one other frame on the terminal of the frame it's
+supposed to handle and that frame contains only one live window.
+@end defopt
 
 
 @node Window Point

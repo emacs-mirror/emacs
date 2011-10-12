@@ -23,7 +23,7 @@ suggest you first run the Emacs learn-by-doing tutorial, by typing
 * Help: Basic Help.     Asking what a character does.
 * Blank Lines::         Making and deleting blank lines.
 * Continuation Lines::  How Emacs displays lines too wide for the screen.
-* Position Info::       What page, line, row, or column is point on?
+* Position Info::       What line, row, or column is point on?
 * Arguments::           Numeric arguments for repeating a command N times.
 * Repeating::           Repeating the previous command quickly.
 @end menu
@@ -569,28 +569,26 @@ logical lines.  @xref{Visual Line Mode}.
 @section Cursor Position Information
 
   Here are commands to get information about the size and position of
-parts of the buffer, and to count lines.
+parts of the buffer, and to count words and lines.
 
 @table @kbd
-@item M-x what-page
-Display the page number of point, and the line number within that page.
 @item M-x what-line
-Display the line number of point in the whole buffer.
+Display the line number of point.
 @item M-x line-number-mode
 @itemx M-x column-number-mode
 Toggle automatic display of the current line number or column number.
 @xref{Optional Mode Line}.
 
 @item M-=
-Display the number of lines in the region (@code{count-lines-region}).
-@xref{Mark}, for information about the region.
+Display the number of lines, words, and characters that are present in
+the region (@code{count-words-region}).  @xref{Mark}, for information
+about the region.
 
-@item C-x l
-Display the number of lines in the current page
-(@code{count-lines-page}).  @xref{Pages}.
+@item M-x count-words
+Display the number of lines, words, and characters that are present in
+the buffer.  If the region is active (@pxref{Mark}), display the
+numbers for the region instead.
 
-@item M-x count-words-region
-Display the number of words in the region.
 @item C-x =
 Display the character code of character after point, character position of
 point, and column of point (@code{what-cursor-position}).
@@ -602,7 +600,6 @@ Toggle automatic display of the size of the buffer.
 @xref{Optional Mode Line}.
 @end table
 
-@findex what-page
 @findex what-line
 @cindex line number commands
 @cindex location of point
@@ -616,16 +613,14 @@ the accessible portion (@pxref{Narrowing}).  By contrast,
 @code{what-line} displays both the line number relative to the
 narrowed region and the line number relative to the whole buffer.
 
-  @kbd{M-x what-page} counts pages from the beginning of the file, and
-counts lines within the page, showing both numbers in the echo area.
-@xref{Pages}.
-
 @kindex M-=
-@findex count-lines-region
-  @kbd{M-=} (@code{count-lines-region}) displays the number of lines
-in the region (@pxref{Mark}), while @kbd{C-x l}
-(@code{count-lines-page}) counts the lines in the current page
-(@pxref{Pages}).
+@findex count-words-region
+@findex count-words
+  @kbd{M-=} (@code{count-words-region}) displays a message reporting
+the number of lines, words, and characters in the region.  @kbd{M-x
+count-words} displays a similar message for the entire buffer, or for
+the region if the region is @dfn{active}.  @xref{Mark}, for an
+explanation of the region.
 
 @kindex C-x =
 @findex what-cursor-position

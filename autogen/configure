@@ -6969,6 +6969,8 @@ esac
   # Code from module stat:
   # Code from module stdarg:
 
+
+
   # Code from module stdbool:
   # Code from module stddef:
   # Code from module stdint:
@@ -15290,54 +15292,6 @@ fi
 
 
 
-# Solaris requires -lintl if you want strerror (which calls dgettext)
-# to return localized messages.
-{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for dgettext in -lintl" >&5
-$as_echo_n "checking for dgettext in -lintl... " >&6; }
-if test "${ac_cv_lib_intl_dgettext+set}" = set; then :
-  $as_echo_n "(cached) " >&6
-else
-  ac_check_lib_save_LIBS=$LIBS
-LIBS="-lintl  $LIBS"
-cat confdefs.h - <<_ACEOF >conftest.$ac_ext
-/* end confdefs.h.  */
-
-/* Override any GCC internal prototype to avoid an error.
-   Use char because int might match the return type of a GCC
-   builtin and then its argument prototype would still apply.  */
-#ifdef __cplusplus
-extern "C"
-#endif
-char dgettext ();
-int
-main ()
-{
-return dgettext ();
-  ;
-  return 0;
-}
-_ACEOF
-if ac_fn_c_try_link "$LINENO"; then :
-  ac_cv_lib_intl_dgettext=yes
-else
-  ac_cv_lib_intl_dgettext=no
-fi
-rm -f core conftest.err conftest.$ac_objext \
-    conftest$ac_exeext conftest.$ac_ext
-LIBS=$ac_check_lib_save_LIBS
-fi
-{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_cv_lib_intl_dgettext" >&5
-$as_echo "$ac_cv_lib_intl_dgettext" >&6; }
-if test "x$ac_cv_lib_intl_dgettext" = x""yes; then :
-  cat >>confdefs.h <<_ACEOF
-#define HAVE_LIBINTL 1
-_ACEOF
-
-  LIBS="-lintl $LIBS"
-
-fi
-
-
 { $as_echo "$as_me:${as_lineno-$LINENO}: checking whether localtime caches TZ" >&5
 $as_echo_n "checking whether localtime caches TZ... " >&6; }
 if test "${emacs_cv_localtime_cache+set}" = set; then :
@@ -21903,12 +21857,6 @@ fi
 
 
       gl_gnulib_enabled_sigprocmask=true
-      if $condition; then
-        func_gl_gnulib_m4code_raise
-      fi
-      if $condition; then
-        func_gl_gnulib_m4code_f691f076f650964c9f5598c3ee487616
-      fi
     fi
   }
   func_gl_gnulib_m4code_stat ()
@@ -22040,13 +21988,10 @@ fi
 
 
       gl_gnulib_enabled_stat=true
-      if $condition; then
+      if test $REPLACE_STAT = 1; then
         func_gl_gnulib_m4code_dosname
       fi
-      if $condition; then
-        func_gl_gnulib_m4code_pathmax
-      fi
-      if $condition; then
+      if test $REPLACE_STAT = 1; then
         func_gl_gnulib_m4code_verify
       fi
     fi
@@ -22161,12 +22106,6 @@ fi
       gl_gnulib_enabled_verify=true
     fi
   }
-  if test $HAVE_DUP2 = 0 || test $REPLACE_DUP2 = 1; then
-    func_gl_gnulib_m4code_f691f076f650964c9f5598c3ee487616
-  fi
-  if test $HAVE_DUP2 = 0 || test $REPLACE_DUP2 = 1; then
-    func_gl_gnulib_m4code_676220fa4366efa9bdbfccf11a857c07
-  fi
   if test $REPLACE_GETOPT = 1; then
     func_gl_gnulib_m4code_be453cec5eecf5731a274f2de7f2db36
   fi

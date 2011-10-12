@@ -832,7 +832,7 @@ consequences, so the byte compiler warns if you call @code{set-buffer}
 during an excursion:
 
 @example
-Warning: @code{save-excursion} defeated by @code{set-buffer}
+Warning: Use `with-current-buffer' rather than save-excursion+set-buffer
 @end example
 
 @noindent

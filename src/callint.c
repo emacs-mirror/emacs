@@ -535,6 +535,8 @@ invoke it.  If KEYS is omitted or nil, the return value of
 	  message1_nolog ((char *) 0);
 	  /* Passing args[i] directly stimulates compiler bug */
 	  teml = args[i];
+	  /* See bug#8479.  */
+	  if (! CHARACTERP (teml)) error ("Non-character input-event");
 	  visargs[i] = Fchar_to_string (teml);
 	  break;
 

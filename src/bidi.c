@@ -808,6 +808,7 @@ bidi_init_it (ptrdiff_t charpos, ptrdiff_t bytepos, int frame_window_p,
   bidi_it->nchars = -1;	/* to be computed in bidi_resolve_explicit_1 */
   bidi_it->first_elt = 1;
   bidi_set_paragraph_end (bidi_it);
+  bidi_it->paragraph_dir = NEUTRAL_DIR;
   bidi_it->new_paragraph = 1;
   bidi_it->separator_limit = -1;
   bidi_it->type = NEUTRAL_B;
@@ -2127,7 +2128,7 @@ bidi_level_of_next_char (struct bidi_it *bidi_it)
       do {
 	ch = bidi_fetch_char (bpos += clen, cpos += nc, &disp_pos, &dpp, &bs,
 			      fwp, &clen, &nc);
-	if (ch == '\n' || ch == BIDI_EOB /* || ch == LINESEP_CHAR */)
+	if (ch == '\n' || ch == BIDI_EOB)
 	  chtype = NEUTRAL_B;
 	else
 	  chtype = bidi_get_type (ch, NEUTRAL_DIR);
@@ -2177,7 +2178,6 @@ bidi_level_of_next_char (struct bidi_it *bidi_it)
   else if (bidi_it->orig_type == NEUTRAL_B /* L1 */
 	   || bidi_it->orig_type == NEUTRAL_S
 	   || bidi_it->ch == '\n' || bidi_it->ch == BIDI_EOB
-	   /* || bidi_it->ch == LINESEP_CHAR */
 	   || (bidi_it->orig_type == NEUTRAL_WS
 	       && (bidi_it->next_for_ws.type == NEUTRAL_B
 		   || bidi_it->next_for_ws.type == NEUTRAL_S)))

@@ -100,24 +100,17 @@ and also when HOME is set to C:\ by default.
 rather than their own completion code.
 
 *** `completion-at-point' now handles tags and semantic completion.
-
+---
 *** Completion in a non-minibuffer now tries to detect the end of completion
 and pops down the *Completions* buffer accordingly.
-
++++
 *** Completion can cycle, depending on completion-cycle-threshold.
-
++++
 *** New completion style `substring'.
 
 *** Completion style can be set per-category `completion-category-overrides'.
 
 *** Completion of buffers now uses substring completion by default.
-
-*** `completing-read' can be customized using the new variable
-`completing-read-function'.
-
-*** minibuffer-local-filename-must-match-map is not used any more.
-Instead, the bindings in minibuffer-local-filename-completion-map are combined
-with minibuffer-local-must-match-map.
 
 ** Mail changes
 
@@ -455,7 +448,10 @@ isearch-yank-kill.
 *** M-s C-e in Isearch is now bound to isearch-yank-line.
 
 +++
-** New command `count-words-region'.  This does what you expect.
+** New commands `count-words-region' and `count-words'.
+
+*** `count-lines-region' is now an alias for `count-words-region',
+bound to M-=, which shows the number of lines, words, and characters.
 
 ** The default value of `backup-by-copying-when-mismatch' is now t.
 
@@ -1063,6 +1059,10 @@ been introduced.  This and all other functions for resizing windows no
 longer delete any windows when they become too small.
 
 +++
+*** Deleting the selected window now selects the most recently selected
+live window on that frame instead.
+
++++
 *** `adjust-window-trailing-edge' adjustments.
 `adjust-window-trailing-edge' can now deal with fixed-size windows and
 is able to resize other windows if a window adjacent to the trailing
@@ -1110,6 +1110,11 @@ See the docstring of `display-buffer' for details.
 The behavior of `quit-window' has been changed in order to restore the
 state before the last buffer display operation in that window.
 
++++
+*** The new option `frame-auto-hide-function' lets you choose between
+iconfying or deleting a frame when burying a buffer shown in a dedicated
+frame or quitting a window showing a buffer in a frame of its own.
+
 ** Completion
 
 *** New variable completion-extra-properties used to specify extra properties
@@ -1129,6 +1134,13 @@ can specify various details of the data returned by `all-completions':
 - `annotation-function' to add annotations in *Completions*.
 - `display-sort-function' to specify how to sort entries in *Completions*.
 - `cycle-sort-function' to specify how to sort entries when cycling.
+
+*** minibuffer-local-filename-must-match-map is not used any more.
+Instead, the bindings in minibuffer-local-filename-completion-map are
+combined with minibuffer-local-must-match-map.
+
+*** New variable `completing-read-function' allows overriding the
+behavior of `completing-read'.
 
 ** `glyphless-char-display' can now distinguish between graphical and
 text terminal display, via a char-table entry that is a cons cell.

@@ -2617,6 +2617,7 @@ since they have special meaning in a regexp."
 (defvar isearch-lazy-highlight-case-fold-search nil)
 (defvar isearch-lazy-highlight-regexp nil)
 (defvar isearch-lazy-highlight-space-regexp nil)
+(defvar isearch-lazy-highlight-word nil)
 (defvar isearch-lazy-highlight-forward nil)
 (defvar isearch-lazy-highlight-error nil)
 
@@ -2655,6 +2656,8 @@ by other Emacs features."
 			  isearch-case-fold-search))
 		 (not (eq isearch-lazy-highlight-regexp
 			  isearch-regexp))
+		 (not (eq isearch-lazy-highlight-word
+			  isearch-word))
                  (not (= (window-start)
                          isearch-lazy-highlight-window-start))
                  (not (= (window-end)   ; Window may have been split/joined.
@@ -2675,11 +2678,12 @@ by other Emacs features."
             isearch-lazy-highlight-window-end   (window-end)
             isearch-lazy-highlight-start        (point)
             isearch-lazy-highlight-end          (point)
+            isearch-lazy-highlight-wrapped      nil
             isearch-lazy-highlight-last-string  isearch-string
 	    isearch-lazy-highlight-case-fold-search isearch-case-fold-search
-	    isearch-lazy-highlight-regexp	isearch-regexp
-            isearch-lazy-highlight-wrapped      nil
+	    isearch-lazy-highlight-regexp       isearch-regexp
 	    isearch-lazy-highlight-space-regexp search-whitespace-regexp
+	    isearch-lazy-highlight-word         isearch-word
 	    isearch-lazy-highlight-forward      isearch-forward)
       (unless (equal isearch-string "")
 	(setq isearch-lazy-highlight-timer
@@ -2693,6 +2697,7 @@ Attempt to do the search exactly the way the pending Isearch would."
       (let ((case-fold-search isearch-lazy-highlight-case-fold-search)
 	    (isearch-regexp isearch-lazy-highlight-regexp)
 	    (search-spaces-regexp isearch-lazy-highlight-space-regexp)
+	    (isearch-word isearch-lazy-highlight-word)
 	    (search-invisible nil)	; don't match invisible text
 	    (retry t)
 	    (success nil)

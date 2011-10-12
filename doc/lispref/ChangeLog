@@ -1,3 +1,23 @@
+2011-10-11  Martin Rudalics  <rudalics@gmx.at>
+
+	* windows.texi (Deleting Windows): Mention which window gets
+	selected when deleting the selected window.
+
+2011-10-09  Martin Rudalics  <rudalics@gmx.at>
+
+	* buffers.texi (The Buffer List): Describe how bury-buffer deals
+	with the selected window.
+	* windows.texi (Buffers and Windows): Reformulate text on how
+	replace-buffer-in-windows deals with a window.
+	(Quitting Windows): Describe how quit-window deals with a
+	standalone frame.  Describe new option frame-auto-hide-function.
+
+2011-10-08  Glenn Morris  <rgm@gnu.org>
+
+	* symbols.texi (Other Plists): Markup fix.  (Bug#9702)
+
+	* positions.texi (Excursions): Update warning message.
+
 2011-10-05  Chong Yidong  <cyd@stupidchicken.com>
 
 	* display.texi (Low-Level Font, Face Attributes, Font Lookup): Fix
