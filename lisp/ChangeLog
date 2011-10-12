@@ -1,3 +1,9 @@
+2011-10-12  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* textmodes/flyspell.el (flyspell-word): Move with-local-quit
+	from here...
+	(flyspell-post-command-hook): ...to here.
+
 2011-10-11  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* mail/sendmail.el (send-mail-function): Don't use sendmail-query-once
