@@ -7148,7 +7148,6 @@ get_visually_first_element (struct it *it)
     }
   else if (it->bidi_it.charpos == bob
 	   || (!string_p
-	       /* FIXME: Should support all Unicode line separators.  */
 	       && (FETCH_CHAR (it->bidi_it.bytepos - 1) == '\n'
 		   || FETCH_CHAR (it->bidi_it.bytepos) == '\n')))
     {
