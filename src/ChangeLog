@@ -1,3 +1,8 @@
+2011-10-12  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* lread.c (read_escape): Allow hex escapes as large as ?\xfffffff.
+	Some packages use them to denote characters with modifiers.
+
 2011-10-11  Andreas Schwab  <schwab@linux-m68k.org>
 
 	* lisp.h (GCPRO1_VAR, GCPRO2_VAR, GCPRO3_VAR, GCPRO4_VAR)
