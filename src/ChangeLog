@@ -1,3 +1,9 @@
+2011-10-12  Dmitry Antipov  <dmantipov@yandex.ru>
+
+	* alloc.c (Fgc_status): Do not access beyond zombies array
+	boundary if nzombies > MAX_ZOMBIES.
+	* alloc.c (dump_zombies): Add missing format specifier.
+
 2011-10-12  Paul Eggert  <eggert@cs.ucla.edu>
 
 	* xdisp.c (set_cursor_from_row): Simplify conditionals,
