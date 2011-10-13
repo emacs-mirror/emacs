@@ -1,3 +1,8 @@
+2011-10-13  Dmitry Antipov  <dmantipov@yandex.ru>
+
+	* editfns.c (Fset_time_zone_rule): Replace free with xfree to
+	avoid crash when xmalloc overrun checking is enabled.
+
 2011-10-13  Eli Zaretskii  <eliz@gnu.org>
 
 	* xdisp.c (Fcurrent_bidi_paragraph_direction): Initialize

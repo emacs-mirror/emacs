@@ -186,9 +186,9 @@ make_destroyed_instance (char* name,
 static void
 free_destroyed_instance (destroyed_instance* instance)
 {
-  free (instance->name);
-  free (instance->type);
-  free (instance);
+  xfree (instance->name);
+  xfree (instance->type);
+  xfree (instance);
 }
 
 /* motif utility functions */
@@ -928,13 +928,13 @@ xm_update_one_value (widget_instance* instance,
     }
   else if (class == xmTextWidgetClass)
     {
-      free (val->value);
+      xfree (val->value);
       val->value = XmTextGetString (widget);
       val->edited = True;
     }
   else if (class == xmTextFieldWidgetClass)
     {
-      free (val->value);
+      xfree (val->value);
       val->value = XmTextFieldGetString (widget);
       val->edited = True;
     }
@@ -959,7 +959,7 @@ xm_update_one_value (widget_instance* instance,
 	      XtVaGetValues (toggle, XmNset, &set, NULL);
 	      if (set)
 		{
-		  free (val->value);
+		  xfree (val->value);
 		  val->value = safe_strdup (XtName (toggle));
 		}
 	    }
