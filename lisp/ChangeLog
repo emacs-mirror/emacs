@@ -1,3 +1,20 @@
+2011-10-12  Michael Albinus  <michael.albinus@gmx.de>
+
+	Fix Bug#6019, Bug#9315.
+
+	* files.el (set-auto-mode): Call `file-name-sans-versions' for the
+	complete `buffer-file-name', the local file name part could look
+	remotely (for example on VMS).
+
+	* net/ange-ftp.el (ange-ftp-run-real-handler): Make it an alias of
+	`tramp-run-real-handler'.
+	(ange-ftp-fix-name-for-vms): Handle the case, where `name' is
+	already quoted by '"'.
+
+	* net/tramp.el (tramp-rfn-eshadow-update-overlay): Ignore errors.
+	Let `file-name-handler-alist' be nil, the local file name part
+	could look remotely (for example on VMS).
+
 2011-10-12  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* textmodes/flyspell.el (flyspell-word): Move with-local-quit

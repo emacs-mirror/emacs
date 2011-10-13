@@ -18653,7 +18653,12 @@ find_row_edges (struct it *it, struct glyph_row *row,
 		    seen_this_string = 1;
 		}
 	      else
-		abort ();
+		/* If all the glyphs of the previous row were inserted
+		   by redisplay, it means the previous row was
+		   produced from a single newline, which is only
+		   possible if that newline came from the same string
+		   as the one which produced this ROW.  */
+		seen_this_string = 1;
 	    }
 	  else
 	    {
@@ -18669,7 +18674,7 @@ find_row_edges (struct it *it, struct glyph_row *row,
 		    seen_this_string = 1;
 		}
 	      else
-		abort ();
+		seen_this_string = 1;
 	    }
 	}
       /* Take note of each display string that covers a newline only

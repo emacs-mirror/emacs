@@ -1,4 +1,4 @@
-2011-10-12  Paul Eggert  <eggert@cs.ucla.edu>
+2011-10-13  Paul Eggert  <eggert@cs.ucla.edu>
 
 	Fix integer width and related bugs.
 	* alloc.c (pure_bytes_used_lisp, pure_bytes_used_non_lisp):
@@ -786,6 +786,16 @@
 	(struct scroll_bar): Use struct vectorlike_header
 	rather than rolling our own approximation.
 	(SCROLL_BAR_VEC_SIZE): Remove; not used.
+
+2011-10-12  Eli Zaretskii  <eliz@gnu.org>
+
+	* xdisp.c (find_row_edges): Handle the case where ROW comes from a
+	display string and the previous row comes from the same string and
+	is empty.  (Bug#9739)  (Bug#9738)
+
+2011-10-12  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* doc.c (get_doc_string): Encode file name (bug#9735).
 
 2011-10-12  Eli Zaretskii  <eliz@gnu.org>
 
