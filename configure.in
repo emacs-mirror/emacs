@@ -2772,11 +2772,15 @@ AC_CHECK_FUNCS(getpt)
 # than to expect to find it in ncurses.
 # Also we need tputs and friends to be able to build at all.
 have_tputs_et_al=true
-AC_SEARCH_LIBS(tputs, [ncurses terminfo termcap], , have_tputs_et_al=false)
+# Maybe curses should be tried earlier?
+# See http://debbugs.gnu.org/cgi/bugreport.cgi?bug=9736#35
+AC_SEARCH_LIBS(tputs, [ncurses terminfo termcap curses], , have_tputs_et_al=false)
 if test "$have_tputs_et_al" != true; then
-  AC_MSG_ERROR([I couldn't find termcap functions (tputs and friends).
-Maybe some development libraries/packages are missing?  Try installing
-libncurses-dev(el), libterminfo-dev(el) or similar.])
+  AC_MSG_ERROR([The required function `tputs' was not found in any library.
+These libraries were tried: libncurses, libterminfo, libtermcap, libcurses.
+Please try installing whichever of these libraries is most appropriate
+for your system, together with its header files.
+For example, a libncurses-dev(el) or similar package.])
 fi
 # Must define this when any termcap library is found.
 AC_DEFINE(HAVE_LIBNCURSES, 1,
