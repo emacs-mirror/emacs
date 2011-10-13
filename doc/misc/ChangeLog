@@ -1,3 +1,8 @@
+2011-10-13  Jay Belanger  <jay.p.belanger@gmail.com>
+
+	* calc.texi (Basic Operations on Units): Discuss temperature
+	conversion (`u t') alongside with other unit conversions ('u c').
+
 2011-10-12  Glenn Morris  <rgm@gnu.org>
 
 	* ert.texi: Whitespace trivia to make main menu items line up better.
