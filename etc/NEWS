@@ -459,16 +459,16 @@ bound to M-=, which shows the number of lines, words, and characters.
 also deletes newlines around point.
 
 ** Deletion changes
-
++++
 *** New option `delete-active-region'.
 If non-nil, [delete] and DEL delete the region if it is active and no
 prefix argument is given.  If set to `kill', these commands kill
 instead.
-
++++
 *** New command `delete-forward-char', bound to [delete].
 This is meant for interactive use, and obeys `delete-active-region'.
 The command `delete-char' does not obey `delete-active-region'.
-
+---
 *** `delete-backward-char' is now a Lisp function.
 Apart from obeying `delete-active-region', its behavior is unchanged.
 However, the byte compiler now warns if it is called from Lisp; you
@@ -537,6 +537,7 @@ between applications.
 *** X clipboard managers are now supported.
 To inhibit this, change `x-select-enable-clipboard-manager' to nil.
 
++++
 ** New command `rectangle-number-lines', bound to `C-x r N', numbers
 the lines in the current rectangle.  With a prefix argument, this
 prompts for a number to count from and for a format string.
@@ -947,6 +948,7 @@ variable `menu-bar-mode'/`tool-bar-mode' to determine whether to create
 a menu-bar or tool-bar, respectively.  If the alist entries are added,
 they override the value of `menu-bar-mode'/`tool-bar-mode'.
 
++++
 ** Regions created by mouse dragging are now normal active regions,
 similar to the ones created by shift-selection.  In previous Emacs
 versions, these regions were delineated by `mouse-drag-overlay', which

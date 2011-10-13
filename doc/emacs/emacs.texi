@@ -319,9 +319,9 @@ Killing and Moving Text
 
 Yanking
 
-* Kill Ring::           Where killed text is stored.  Basic yanking.
-* Appending Kills::     Several kills in a row all yank together.
+* Kill Ring::           Where killed text is stored.
 * Earlier Kills::       Yanking something killed some time ago.
+* Appending Kills::     Several kills in a row all yank together.
 
 Killing and Yanking on Graphical Displays
 
