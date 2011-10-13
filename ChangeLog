@@ -1,3 +1,7 @@
+2011-10-13  Glenn Morris  <rgm@gnu.org>
+
+	* configure.in: Also look for tputs in libcurses.  (Bug#9736)
+
 2011-10-12  Paul Eggert  <eggert@cs.ucla.edu>
 
 	* configure.in: Remove check for -lintl (Bug#9713).
