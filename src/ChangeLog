@@ -265,6 +265,9 @@
 	(lo_time): Use int, not EMACS_INT, when int suffices.
 	(lisp_time_argument): Check for usec out of range.
 	(Fencode_time): Don't assume fixnum fits in int.
+	(Fuser_login_name, Fuser_full_name): Signal an error
+	if a uid argument is out of range, rather than relying on
+	undefined behavior.
 	* emacs.c (gdb_valbits, gdb_gctypebits): Now int, not EMACS_INT.
 	(gdb_data_seg_bits): Now uintptr_t, not EMACS_INT.
 	(PVEC_FLAG, gdb_array_mark_flag): Now ptrdiff_t, not EMACS_INT.

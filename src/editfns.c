@@ -1247,7 +1247,7 @@ of the user with that uid, or nil if there is no such user.  */)
   if (NILP (uid))
     return Vuser_login_name;
 
-  id = XFLOATINT (uid);
+  CONS_TO_INTEGER (uid, uid_t, id);
   BLOCK_INPUT;
   pw = getpwuid (id);
   UNBLOCK_INPUT;
@@ -1306,7 +1306,8 @@ name, or nil if there is no such user.  */)
     return Vuser_full_name;
   else if (NUMBERP (uid))
     {
-      uid_t u = XFLOATINT (uid);
+      uid_t u;
+      CONS_TO_INTEGER (uid, uid_t, u);
       BLOCK_INPUT;
       pw = getpwuid (u);
       UNBLOCK_INPUT;
