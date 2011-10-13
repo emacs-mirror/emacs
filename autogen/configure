@@ -14349,6 +14349,8 @@ done
 # than to expect to find it in ncurses.
 # Also we need tputs and friends to be able to build at all.
 have_tputs_et_al=true
+# Maybe curses should be tried earlier?
+# See http://debbugs.gnu.org/cgi/bugreport.cgi?bug=9736#35
 { $as_echo "$as_me:${as_lineno-$LINENO}: checking for library containing tputs" >&5
 $as_echo_n "checking for library containing tputs... " >&6; }
 if test "${ac_cv_search_tputs+set}" = set; then :
@@ -14373,7 +14375,7 @@ return tputs ();
   return 0;
 }
 _ACEOF
-for ac_lib in '' ncurses terminfo termcap; do
+for ac_lib in '' ncurses terminfo termcap curses; do
   if test -z "$ac_lib"; then
     ac_res="none required"
   else
@@ -14408,9 +14410,11 @@ else
 fi
 
 if test "$have_tputs_et_al" != true; then
-  as_fn_error "I couldn't find termcap functions (tputs and friends).
-Maybe some development libraries/packages are missing?  Try installing
-libncurses-dev(el), libterminfo-dev(el) or similar." "$LINENO" 5
+  as_fn_error "The required function \`tputs' was not found in any library.
+These libraries were tried: libncurses, libterminfo, libtermcap, libcurses.
+Please try installing whichever of these libraries is most appropriate
+for your system, together with its header files.
+For example, a libncurses-dev(el) or similar package." "$LINENO" 5
 fi
 # Must define this when any termcap library is found.
 

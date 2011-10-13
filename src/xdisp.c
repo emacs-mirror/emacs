@@ -19484,6 +19484,7 @@ See also `bidi-paragraph-direction'.  */)
 	    bytepos--;
 	}
       bidi_init_it (pos, bytepos, FRAME_WINDOW_P (SELECTED_FRAME ()), &itb);
+      itb.paragraph_dir = NEUTRAL_DIR;
       itb.string.s = NULL;
       itb.string.lstring = Qnil;
       itb.string.bufpos = 0;

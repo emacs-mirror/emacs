@@ -1050,6 +1050,16 @@ In addition, with prefix argument, show details about that character
 in *Help* buffer.  See also the command `describe-char'."
   (interactive "P")
   (let* ((char (following-char))
+	 ;; If the character is one of LRE, LRO, RLE, RLO, it will
+	 ;; start a directional embedding, which could completely
+	 ;; disrupt the rest of the line (e.g., RLO will display the
+	 ;; rest of the line right-to-left).  So we put an invisible
+	 ;; PDF character after these characters, to end the
+	 ;; embedding, which eliminates any effects on the rest of the
+	 ;; line.
+	 (pdf (if (memq char '(?\x202a ?\x202b ?\x202d ?\x202e))
+		  (propertize (string ?\x202c) 'invisible t)
+		""))
 	 (beg (point-min))
 	 (end (point-max))
          (pos (point))
@@ -1109,18 +1119,18 @@ in *Help* buffer.  See also the command `describe-char'."
 	    ;; We show the detailed information about CHAR.
 	    (describe-char (point)))
 	(if (or (/= beg 1) (/= end (1+ total)))
-	    (message "Char: %s %s point=%d of %d (%d%%) <%d-%d> column=%d%s"
+	    (message "Char: %s%s %s point=%d of %d (%d%%) <%d-%d> column=%d%s"
 		     (if (< char 256)
 			 (single-key-description char)
 		       (buffer-substring-no-properties (point) (1+ (point))))
-		     encoding-msg pos total percent beg end col hscroll)
-	  (message "Char: %s %s point=%d of %d (%d%%) column=%d%s"
+		     pdf encoding-msg pos total percent beg end col hscroll)
+	  (message "Char: %s%s %s point=%d of %d (%d%%) column=%d%s"
 		   (if enable-multibyte-characters
 		       (if (< char 128)
 			   (single-key-description char)
 			 (buffer-substring-no-properties (point) (1+ (point))))
 		     (single-key-description char))
-		   encoding-msg pos total percent col hscroll))))))
+		   pdf encoding-msg pos total percent col hscroll))))))
 
 ;; Initialize read-expression-map.  It is defined at C level.
 (let ((m (make-sparse-keymap)))
