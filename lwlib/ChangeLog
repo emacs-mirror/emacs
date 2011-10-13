@@ -1,3 +1,13 @@
+2011-10-13  Dmitry Antipov  <dmantipov@yandex.ru>
+
+	* lwlib-Xaw.c (openFont, xaw_destroy_instance): Replace free with
+	xfree to avoid crash when xmalloc overrun checking is enabled.
+	* lwlib-Xm.c (free_destroyed_instance, xm_update_one_value): Ditto.
+	* lwlib-utils.c (XtApplyToWidgets): Ditto.
+	* lwlib.c (safe_free_str, free_widget_value, free_widget_value_tree)
+	(free_widget_info, free_widget_instance, name_to_widget): Ditto.
+	* xlwmenu.c (openXftFont): Ditto.
+
 2011-06-27  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
 
 	* Makefile.in (ALL_CFLAGS): Add -I../lib for generated header files

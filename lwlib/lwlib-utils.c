@@ -80,7 +80,7 @@ XtApplyToWidgets (Widget w, XtApplyToWidgetsProc proc, XtPointer arg)
 	    XtApplyToWidgets (kids [i], proc, arg);
 	    proc (kids [i], arg);
 	  }
-      free (kids);
+      xfree (kids);
     }
 }
 

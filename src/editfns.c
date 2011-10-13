@@ -2079,7 +2079,7 @@ only the former.  */)
     }
 
   set_time_zone_rule (tzstring);
-  free (environbuf);
+  xfree (environbuf);
   environbuf = environ;
 
   return Qnil;
