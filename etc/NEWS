@@ -186,8 +186,8 @@ Text that includes characters from right-to-left (RTL) scripts, such
 as Arabic, Farsi, or Hebrew, is displayed in the correct visual order
 as expected by users of those scripts.  This display reordering is a
 "Full bidirectionality" class implementation of the Unicode
-Bidirectional Algorithm.  Buffers RTL text should look exactly the
-same as before.
+Bidirectional Algorithm.  Buffers with no RTL text should look exactly
+the same as before.
 
 For more information, see the node "Bidirectional Editing" in the
 Emacs Manual.

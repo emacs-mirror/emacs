@@ -787,6 +787,20 @@
 	rather than rolling our own approximation.
 	(SCROLL_BAR_VEC_SIZE): Remove; not used.
 
+2011-10-13  Dmitry Antipov  <dmantipov@yandex.ru>
+
+	* editfns.c (Fset_time_zone_rule): Replace free with xfree to
+	avoid crash when xmalloc overrun checking is enabled.
+
+2011-10-13  Eli Zaretskii  <eliz@gnu.org>
+
+	* xdisp.c (Fcurrent_bidi_paragraph_direction): Initialize
+	itb.paragraph_dir to NEUTRAL_DIR.  Fixes an occasional incorrect
+	cursor motion with <left> and <right> arrow keys.
+
+	* bidi.c (bidi_init_it): Don't initialize paragraph_dir here, as
+	some callers set that themselves.
+
 2011-10-12  Eli Zaretskii  <eliz@gnu.org>
 
 	* xdisp.c (find_row_edges): Handle the case where ROW comes from a

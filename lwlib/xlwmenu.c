@@ -1891,7 +1891,7 @@ openXftFont (XlwMenuWidget mw)
         }
     }
 
-  if (fname != mw->menu.fontName) free (fname);
+  if (fname != mw->menu.fontName) xfree (fname);
 
   return mw->menu.xft_font != 0;
 }

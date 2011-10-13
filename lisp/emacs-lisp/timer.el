@@ -402,10 +402,6 @@ This function returns a timer object which you can use in `cancel-timer'."
     (timer-activate-when-idle timer t)
     timer))
 
-(defun with-timeout-handler (tag)
-  "This is the timer function used for the timer made by `with-timeout'."
-  (throw tag 'timeout))
-
 (defvar with-timeout-timers nil
   "List of all timers used by currently pending `with-timeout' calls.")
 
@@ -417,24 +413,27 @@ event (such as keyboard input, input from subprocesses, or a certain time);
 if the program loops without waiting in any way, the timeout will not
 be detected.
 \n(fn (SECONDS TIMEOUT-FORMS...) BODY)"
-  (declare (indent 1))
+  (declare (indent 1) (debug ((form body) body)))
   (let ((seconds (car list))
-	(timeout-forms (cdr list)))
-    `(let ((with-timeout-tag (cons nil nil))
-	   with-timeout-value with-timeout-timer
-	   (with-timeout-timers with-timeout-timers))
-       (if (catch with-timeout-tag
-	     (progn
-	       (setq with-timeout-timer
-		     (run-with-timer ,seconds nil
-				      'with-timeout-handler
-				      with-timeout-tag))
-	       (push with-timeout-timer with-timeout-timers)
-	       (setq with-timeout-value (progn . ,body))
-	       nil))
-	   (progn . ,timeout-forms)
-	 (cancel-timer with-timeout-timer)
-	 with-timeout-value))))
+	(timeout-forms (cdr list))
+        (timeout (make-symbol "timeout")))
+    `(let ((-with-timeout-value-
+            (catch ',timeout
+              (let* ((-with-timeout-timer-
+                      (run-with-timer ,seconds nil
+                                      (lambda () (throw ',timeout ',timeout))))
+                     (with-timeout-timers
+                         (cons -with-timeout-timer- with-timeout-timers)))
+                (unwind-protect
+                    ,@body
+                  (cancel-timer -with-timeout-timer-))))))
+       ;; It is tempting to avoid the `if' altogether and instead run
+       ;; timeout-forms in the timer, just before throwing `timeout'.
+       ;; But that would mean that timeout-forms are run in the deeper
+       ;; dynamic context of the timer, with inhibit-quit set etc...
+       (if (eq -with-timeout-value- ',timeout)
+           (progn ,@timeout-forms)
+         -with-timeout-value-))))
 
 (defun with-timeout-suspend ()
   "Stop the clock for `with-timeout'.  Used by debuggers.
