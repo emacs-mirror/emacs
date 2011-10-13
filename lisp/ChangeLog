@@ -1,7 +1,8 @@
 2011-10-13  Eli Zaretskii  <eliz@gnu.org>
 
 	* simple.el (what-cursor-position): Fix the display of the
-	character info for LRE, LRO, RLE, and RLO characters.
+	character info for LRE, LRO, RLE, and RLO characters by appending
+	an invisible PDF.
 
 2011-10-13  Stefan Monnier  <monnier@iro.umontreal.ca>
 
