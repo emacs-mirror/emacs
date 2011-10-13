@@ -808,7 +808,6 @@ bidi_init_it (EMACS_INT charpos, EMACS_INT bytepos, int frame_window_p,
   bidi_it->nchars = -1;	/* to be computed in bidi_resolve_explicit_1 */
   bidi_it->first_elt = 1;
   bidi_set_paragraph_end (bidi_it);
-  bidi_it->paragraph_dir = NEUTRAL_DIR;
   bidi_it->new_paragraph = 1;
   bidi_it->separator_limit = -1;
   bidi_it->type = NEUTRAL_B;
