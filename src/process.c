@@ -5976,22 +5976,8 @@ SIGCODE may be an integer, or a symbol whose name is a signal name.  */)
   if (NILP (process))
     return process;
 
-  if (INTEGERP (process))
-    {
-      EMACS_INT v = XINT (process);
-      if (! (TYPE_MINIMUM (pid_t) <= v && v <= TYPE_MAXIMUM (pid_t)))
-	return make_number (-1);
-      pid = v;
-    }
-  else if (FLOATP (process))
-    {
-      double v = XFLOAT_DATA (process);
-      if (! (TYPE_MINIMUM (pid_t) <= v && v < TYPE_MAXIMUM (pid_t) + 1.0))
-	return make_number (-1);
-      pid = v;
-      if (pid != v)
-	return make_number (-1);
-    }
+  if (NUMBERP (process))
+    CONS_TO_INTEGER (process, pid_t, pid);
   else
     {
       CHECK_PROCESS (process);

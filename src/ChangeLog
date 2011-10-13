@@ -562,8 +562,8 @@
 	(sigchld_handler):
 	Check that fixnums are in proper range for system types.
 	(Fsignal_process): Simplify by avoiding a goto.
-	Treat out-of-range process numbers just like invalid numbers
-	that fit into the pid_t range, and return -1.
+	Check for process-ids out of pid_t range rather than relying on
+	undefined behavior.
 	(Fformat_network_address, read_process_output, send_process)
 	(Fprocess_send_region, status_notify):
 	Use ptrdiff_t, not EMACS_INT, where ptrdiff_t is wide enough.
