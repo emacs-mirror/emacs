@@ -1696,8 +1696,7 @@ usage: (format-time-string FORMAT-STRING &optional TIME UNIVERSAL)  */)
 
   CHECK_STRING (format_string);
 
-  if (! (lisp_time_argument (timeval, &value, &usec)
-	 && 0 <= usec && usec < 1000000))
+  if (! lisp_time_argument (timeval, &value, &usec))
     error ("Invalid time specification");
   ns = usec * 1000;
 

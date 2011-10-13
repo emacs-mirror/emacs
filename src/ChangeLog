@@ -268,6 +268,8 @@
 	(Fuser_login_name, Fuser_full_name): Signal an error
 	if a uid argument is out of range, rather than relying on
 	undefined behavior.
+	(Fformat_time_string): Remove now-unnecessary check.
+	lisp_time_argument checks for out-of-range usec now.
 	* emacs.c (gdb_valbits, gdb_gctypebits): Now int, not EMACS_INT.
 	(gdb_data_seg_bits): Now uintptr_t, not EMACS_INT.
 	(PVEC_FLAG, gdb_array_mark_flag): Now ptrdiff_t, not EMACS_INT.
