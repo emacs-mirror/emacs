@@ -1,5 +1,8 @@
 2011-10-14  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* mpc.el (mpc-songs-jump-to): Don't burp if the user clicks in an
+	empty buffer.
+
 	* mouse.el (mouse-drag-mode-line-1): Modify the end-event we pushed on
 	unread-command-events rather than pushing yet-another event.
 

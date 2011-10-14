@@ -1996,12 +1996,14 @@ This is used so that they can be compared with `eq', which is needed for
        (list (get-text-property (point) 'mpc-file)
              posn))))
   (let* ((plbuf (mpc-proc-cmd "playlist"))
-         (re (concat "^\\([0-9]+\\):" (regexp-quote song-file) "$"))
+         (re (if song-file
+		 (concat "^\\([0-9]+\\):" (regexp-quote song-file) "$")))
          (sn (with-current-buffer plbuf
                (goto-char (point-min))
-               (when (re-search-forward re nil t)
+               (when (and re (re-search-forward re nil t))
                  (match-string 1)))))
     (cond
+     ((null re) (posn-set-point posn))
      ((null sn) (error "This song is not in the playlist"))
      ((null (with-current-buffer plbuf (re-search-forward re nil t)))
       ;; song-file only appears once in the playlist: no ambiguity,
