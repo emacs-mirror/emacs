@@ -93,7 +93,7 @@ clicked.
   Normally, Emacs does not distinguish between ordinary mouse clicks
 and clicks that select a frame.  When you click on a frame to select
 it, that also changes the selected window and cursor position
-according to the mouse click position.  On the X window system, you
+according to the mouse click position.  On the X Window System, you
 can change this behavior by setting the variable
 @code{x-mouse-click-focus-ignore-position} to @code{t}.  Then the
 first click selects the frame, but does not affect the selected window
@@ -961,7 +961,7 @@ the left of each Emacs window, running the height of the
 window.@footnote{Placing it at the left is usually more useful with
 overlapping frames with text starting at the left margin.}
 
-  When Emacs is compiled with GTK+ support on the X window system, or
+  When Emacs is compiled with GTK+ support on the X Window System, or
 in operating systems such as Microsoft Windows or Mac OS, you can use
 the scroll bar as you do in other graphical applications.  If you
 click @kbd{Mouse-1} on the scroll bar's up and down buttons, that
@@ -971,7 +971,7 @@ the entire height of the window, like @kbd{M-v} and @kbd{C-v}
 respectively (@pxref{Moving Point}).  Dragging the inner box with
 @kbd{Mouse-1} scrolls the window continuously.
 
-  If Emacs is compiled without GTK+ support on the X window system,
+  If Emacs is compiled without GTK+ support on the X Window System,
 the scroll bar behaves differently.  The scroll bar's inner box is
 drawn to represent the portion of the buffer currently displayed, with
 the entire height of the scroll bar representing the entire length of

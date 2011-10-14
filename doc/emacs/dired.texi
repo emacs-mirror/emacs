@@ -1403,7 +1403,7 @@ directory than in this one.  It also marks files with no counterpart,
 in both directories, as always.
 
 @cindex drag and drop, Dired
-  On the X window system, Emacs supports the ``drag and drop''
+  On the X Window System, Emacs supports the ``drag and drop''
 protocol.  You can drag a file object from another program, and drop
 it onto a Dired buffer; this either moves, copies, or creates a link
 to the file in that directory.  Precisely which action is taken is
