@@ -1,4 +1,4 @@
-2011-10-13  Paul Eggert  <eggert@cs.ucla.edu>
+2011-10-14  Paul Eggert  <eggert@cs.ucla.edu>
 
 	Fix integer width and related bugs.
 	* alloc.c (pure_bytes_used_lisp, pure_bytes_used_non_lisp):
@@ -789,6 +789,11 @@
 	rather than rolling our own approximation.
 	(SCROLL_BAR_VEC_SIZE): Remove; not used.
 
+2011-10-14  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* xterm.c (frame_highlight, frame_unhighlight): Ignore unexplained
+	errors in XSetWindowBorder (bug#9310).
+
 2011-10-13  Dmitry Antipov  <dmantipov@yandex.ru>
 
 	* editfns.c (Fset_time_zone_rule): Replace free with xfree to
@@ -862,8 +867,8 @@
 
 2011-10-07  Stefan Monnier  <monnier@iro.umontreal.ca>
 
-	* buffer.c (syms_of_buffer) <enable-multibyte-characters>: Don't
-	advertise functionality which we discourage or doesn't work.
+	* buffer.c (syms_of_buffer) <enable-multibyte-characters>:
+	Don't advertise functionality which we discourage or doesn't work.
 
 2011-10-07  Paul Eggert  <eggert@cs.ucla.edu>
 
@@ -1129,8 +1134,7 @@
 2011-09-17  Eli Zaretskii  <eliz@gnu.org>
 
 	* xdisp.c (reseat_at_next_visible_line_start): Keep information
-	about the current paragraph and restore it after the call to
-	reseat.
+	about the current paragraph and restore it after the call to reseat.
 
 	* bidi.c (MAX_PARAGRAPH_SEARCH): New macro.
 	(bidi_find_paragraph_start): Search back for paragraph beginning
@@ -1350,7 +1354,7 @@
 	* doprnt.c (doprnt): Support printing ptrdiff_t and intmax_t values.
 	(esprintf, exprintf, evxprintf): New functions.
 	* keyboard.c (command_loop_level): Now EMACS_INT, not int.
-	(cmd_error): kbd macro iterations count is now EMACS_INT, not int.
+	(cmd_error): Kbd macro iterations count is now EMACS_INT, not int.
 	(modify_event_symbol): Do not assume that the length of
 	name_alist_or_stem is safe to alloca and fits in int.
 	(Fexecute_extended_command): Likewise for function name and binding.
@@ -2094,8 +2098,7 @@
 
 2011-08-18  Andreas Schwab  <schwab@linux-m68k.org>
 
-	* process.c (Fnetwork_interface_list): Correctly determine buffer
-	size.
+	* process.c (Fnetwork_interface_list): Correctly determine buffer size.
 
 2011-08-17  Chong Yidong  <cyd@stupidchicken.com>
 
@@ -2140,15 +2143,10 @@
 
 2011-08-15  Eli Zaretskii  <eliz@gnu.org>
 
-	* biditype.h: File removed.
-
-	* bidimirror.h: File removed.
-
-	* deps.mk (bidi.o): Remove biditype.h and
-	bidimirror.h.
-
-	* makefile.w32-in ($(BLD)/bidi.$(O)): Remove biditype.h and
-	bidimirror.h.
+	* bidimirror.h:
+	* biditype.h: Remove file.
+	* makefile.w32-in ($(BLD)/bidi.$(O)):
+	* deps.mk (bidi.o): Remove biditype.h and bidimirror.h.
 
 	* dispextern.h: Fix a typo in the comment to bidi_type_t.
 
@@ -2323,8 +2321,7 @@
 
 2011-08-04  Andreas Schwab  <schwab@linux-m68k.org>
 
-	* regex.c (re_iswctype): Remove some redundant boolean
-	conversions.
+	* regex.c (re_iswctype): Remove some redundant boolean conversions.
 
 2011-08-04  Jan Djärv  <jan.h.d@swipnet.se>
 
@@ -2861,8 +2858,7 @@
 2011-07-15  Eli Zaretskii  <eliz@gnu.org>
 
 	* xdisp.c (move_it_in_display_line_to): Fix vertical motion with
-	bidi redisplay when a line includes both an image and is
-	truncated.
+	bidi redisplay when a line includes both an image and is truncated.
 
 2011-07-14  Paul Eggert  <eggert@cs.ucla.edu>
 

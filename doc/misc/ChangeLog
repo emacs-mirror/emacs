@@ -1,3 +1,16 @@
+2011-10-14  Glenn Morris  <rgm@gnu.org>
+
+	* ert.texi (Introduction, How to Run Tests)
+	(Running Tests Interactively, Expected Failures)
+	(Tests and Their Environment, Useful Techniques)
+	(Interactive Debugging, Fixtures and Test Suites):
+	Minor rephrasings.
+	(Running Tests Interactively, The @code{should} Macro): Add xrefs.
+	(Running Tests in Batch Mode): Simplify loading instructions.
+	(Test Selectors): Clarify some selectors.
+	(Expected Failures, Useful Techniques):
+	Make examples fit in 80 columns.
+
 2011-10-13  Jay Belanger  <jay.p.belanger@gmail.com>
 
 	* calc.texi (Basic Operations on Units): Discuss temperature
