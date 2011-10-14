@@ -1,3 +1,9 @@
+2011-10-14  Eli Zaretskii  <eliz@gnu.org>
+
+	* mail/sendmail.el (sendmail-query-once): Improve the wording of
+	the explanation of the possible choices.  Make the options passed
+	to completing-read shorter.
+
 2011-10-13  Agustín Martín Domingo  <agustin.martin@hispalinux.es>
 
 	* textmodes/flyspell.el (flyspell-large-region): Make sure
