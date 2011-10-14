@@ -1,5 +1,7 @@
 2011-10-14  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* pcmpl-unix.el (pcomplete/ssh): SSH does allow ganging.
+
 	* mpc.el (mpc-songs-jump-to): Don't burp if the user clicks in an
 	empty buffer.
 
