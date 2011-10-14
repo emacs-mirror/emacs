@@ -63,7 +63,8 @@ should occupy a single line, ideally in 36 characters or less.
 This is shown in the buffer created by @kbd{C-h P}
 (@code{describe-package}), following the package's brief description
 and installation status.  It normally spans multiple lines, and should
-fully describe the package and its capabilities.
+fully describe the package's capabilities and how to begin using it
+once it is installed.
 
 @item Dependencies
 A list of other packages (possibly including minimal acceptable

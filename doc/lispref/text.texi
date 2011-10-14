@@ -907,10 +907,11 @@ text that they copy into the buffer.
 
 @defun insert-for-yank string
 This function normally works like @code{insert} except that it doesn't
-insert the text properties in the @code{yank-excluded-properties}
-list.  However, if any part of @var{string} has a non-@code{nil}
-@code{yank-handler} text property, that property can do various
-special processing on that part of the text being inserted.
+insert the text properties (@pxref{Text Properties}) in the list
+variable @code{yank-excluded-properties}.  However, if any part of
+@var{string} has a non-@code{nil} @code{yank-handler} text property,
+that property can do various special processing on that part of the
+text being inserted.
 @end defun
 
 @defun insert-buffer-substring-as-yank buf &optional start end
@@ -957,6 +958,15 @@ It is called with two arguments, the start and end of the current
 region.  @var{function} can set @code{yank-undo-function} to override
 the @var{undo} value.
 @end table
+
+@cindex yanking and text properties
+@defopt yank-excluded-properties
+Yanking discards certain text properties from the yanked text, as
+described above.  The value of this variable is the list of properties
+to discard.  Its default value contains properties that might lead to
+annoying results, such as causing the text to respond to the mouse or
+specifying key bindings.
+@end defopt
 
 @node Yank Commands
 @comment  node-name,  next,  previous,  up

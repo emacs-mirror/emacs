@@ -1559,6 +1559,14 @@ The buffer to mark them in is `flyspell-large-region-buffer'."
 			(list "-p"
 			      (expand-file-name
 			       ispell-current-personal-dictionary)))))
+
+      ;; Check for extended character mode
+      (let ((extended-char-mode (ispell-get-extended-character-mode)))
+        (and extended-char-mode          ; ~ extended character mode
+	     (string-match "[^~]+$" extended-char-mode)
+	     (add-to-list 'args (concat "-T" (match-string 0 extended-char-mode)))))
+
+      ;; Add ispell-extra-args
       (setq args (append args ispell-extra-args))
 
       ;; If we are using recent aspell or hunspell, make sure we use the right encoding

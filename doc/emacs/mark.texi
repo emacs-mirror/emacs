@@ -16,18 +16,22 @@ The region always extends between point and the mark, no matter which
 one comes earlier in the text; each time you move point, the region
 changes.
 
+@cindex active region
   Setting the mark at a position in the text also @dfn{activates} it.
-When the mark is active, Emacs indicates the extent of the region by
-highlighting the text within it, using the @code{region} face
-(@pxref{Face Customization}).  After certain non-motion commands,
-including any command that changes the text in the buffer, Emacs
-automatically @dfn{deactivates} the mark; this turns off the
-highlighting.  You can also explicitly deactivate the mark at any
-time, by typing @kbd{C-g} (@pxref{Quitting}).
+When the mark is active, we say also that the region is active; Emacs
+indicates its extent by highlighting the text within it, using the
+@code{region} face (@pxref{Face Customization}).
 
-  This default behavior is known as Transient Mark mode.  Disabling
-Transient Mark mode switches Emacs to an alternative behavior, in
-which the region is usually not highlighted.  @xref{Disabled Transient Mark}.
+  After certain non-motion commands, including any command that
+changes the text in the buffer, Emacs automatically @dfn{deactivates}
+the mark; this turns off the highlighting.  You can also explicitly
+deactivate the mark at any time, by typing @kbd{C-g}
+(@pxref{Quitting}).
+
+  The above default behavior is known as Transient Mark mode.
+Disabling Transient Mark mode switches Emacs to an alternative
+behavior, in which the region is usually not highlighted.
+@xref{Disabled Transient Mark}.
 
 @vindex highlight-nonselected-windows
   Setting the mark in one buffer has no effect on the marks in other
@@ -141,10 +145,10 @@ can tell that a command does this when it shows @samp{Mark set} in the
 echo area.
 
 @cindex primary selection
-  Under X, every time the region changes while the mark is active,
-Emacs saves the text in the region to the @dfn{primary selection}.
-This lets you insert that text into other X applications with
-@kbd{mouse-2} clicks.  @xref{Primary Selection}.
+  Under X, every time the active region changes, Emacs saves the text
+in the region to the @dfn{primary selection}.  This lets you insert
+that text into other X applications with @kbd{mouse-2} clicks.
+@xref{Primary Selection}.
 
 @node Marking Objects
 @section Commands to Mark Textual Objects
@@ -243,18 +247,30 @@ Save it in a buffer or a file (@pxref{Accumulating Text}).
 @end itemize
 
   Some commands have a default behavior when the mark is inactive, but
-operate on the text in the region if the mark is active.  For example,
-@kbd{M-$} (@code{ispell-word}) normally checks the spelling of the
-word at point, but it checks the text in the region if the region is
-active (@pxref{Spelling}).  Normally, such commands use their default
+operate on the region if the mark is active.  For example, @kbd{M-$}
+(@code{ispell-word}) normally checks the spelling of the word at
+point, but it checks the text in the region if the mark is active
+(@pxref{Spelling}).  Normally, such commands use their default
 behavior if the region is empty (i.e., if mark and point are at the
 same position).  If you want them to operate on the empty region,
 change the variable @code{use-empty-active-region} to @code{t}.
 
+@vindex delete-active-region
+  As described in @ref{Erasing}, the @key{DEL}
+(@code{backward-delete-char}) and @key{delete}
+(@code{delete-forward-char}) commands also act this way.  If the mark
+is active, they delete the text in the region.  (As an exception, if
+you supply a numeric argument @var{n}, where @var{n} is not one, these
+commands delete @var{n} characters regardless of whether the mark is
+active).  If you change the variable @code{delete-active-region} to
+@code{nil}, then these commands don't act differently when the mark is
+active.  If you change the value to @code{kill}, these commands
+@dfn{kill} the region instead of deleting it (@pxref{Killing}).
+
 @vindex mark-even-if-inactive
-  Other commands always operate on the text in the region, and have no
-default behavior.  Such commands usually have the word @code{region}
-in their names, like @kbd{C-w} (@code{kill-region}) and @code{C-x C-u}
+  Other commands always operate on the region, and have no default
+behavior.  Such commands usually have the word @code{region} in their
+names, like @kbd{C-w} (@code{kill-region}) and @code{C-x C-u}
 (@code{upcase-region}).  If the mark is inactive, they operate on the
 ``inactive region''---that is, on the text between point and the
 position at which the mark was last set (@pxref{Mark Ring}).  To

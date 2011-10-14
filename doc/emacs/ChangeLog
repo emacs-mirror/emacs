@@ -1,3 +1,18 @@
+2011-10-13  Chong Yidong  <cyd@stupidchicken.com>
+
+	* killing.texi (Deletion): Add xref to Using Region.  Document
+	delete-forward-char.
+	(Yanking): Move yank-excluded-properties to Lisp manual.  Move C-y
+	description here.  Recommend C-u C-SPC for jumping to mark.
+	(Kill Ring): Move kill ring variable documentation here.
+	(Primary Selection): Copyedits.
+	(Rectangles): Document new command rectangle-number-lines.
+	(CUA Bindings): Note that this disables the mark-even-if-inactive
+	behavior for C-x and C-c.
+
+	* mark.texi (Mark): Mention "active region" terminology.
+	(Using Region): Document delete-active-region.
+
 2011-10-12  Chong Yidong  <cyd@stupidchicken.com>
 
 	* mark.texi (Mark): Clarify description of disabled Transient Mark
