@@ -3355,8 +3355,14 @@ frame_highlight (struct frame *f)
      and border pixel are window attributes which are "private to the
      client", so we can always change it to whatever we want.  */
   BLOCK_INPUT;
+  /* I recently started to get errors in this XSetWindowBorder, depending on
+     the window-manager in use, tho something more is at play since I've been
+     using that same window-manager binary for ever.  Let's not crash just
+     because of this (bug#9310).  */
+  x_catch_errors (FRAME_X_DISPLAY (f));
   XSetWindowBorder (FRAME_X_DISPLAY (f), FRAME_X_WINDOW (f),
 		    f->output_data.x->border_pixel);
+  x_uncatch_errors ();
   UNBLOCK_INPUT;
   x_update_cursor (f, 1);
   x_set_frame_alpha (f);
@@ -3370,8 +3376,11 @@ frame_unhighlight (struct frame *f)
      and border pixel are window attributes which are "private to the
      client", so we can always change it to whatever we want.  */
   BLOCK_INPUT;
+  /* Same as above for XSetWindowBorder (bug#9310).  */
+  x_catch_errors (FRAME_X_DISPLAY (f));
   XSetWindowBorderPixmap (FRAME_X_DISPLAY (f), FRAME_X_WINDOW (f),
 			  f->output_data.x->border_tile);
+  x_uncatch_errors ();
   UNBLOCK_INPUT;
   x_update_cursor (f, 1);
   x_set_frame_alpha (f);

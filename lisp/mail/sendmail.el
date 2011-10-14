@@ -513,21 +513,34 @@ This also saves the value of `send-mail-function' via Customize."
   ;; a second time, probably because someone's using an old value
   ;; of send-mail-function.
   (when (eq send-mail-function 'sendmail-query-once)
-    (let* ((options `(("My favorite mail client" . mailclient-send-it)
-                      ("Configuring Emacs's SMTP variables" . smtpmail-send-it)
+    (let* ((options `(("Mail client" . mailclient-send-it)
                       ,@(when (and sendmail-program
                                    (executable-find sendmail-program))
-                          '(("The system's mail transport agent"
-                             . sendmail-send-it)))))
+                          '(("Mail transport agent" . sendmail-send-it)))
+                      ("SMTP server" . smtpmail-send-it)))
            (choice
             ;; Query the user.
             (with-temp-buffer
-              (rename-buffer "*Mail Help*" t)
-              (insert "Emacs has not been set up for sending mail.\n
-It can be told to send mail either via your favorite mail client,
-or via the system's mail transport agent (\"sendmail\"), if any,
-or it can send email on its own by configuring the SMTP parameters.\n
-To change your decision later, customize `send-mail-function'.\n")
+              (rename-buffer "*Emacs Mail Setup Help*" t)
+              (insert "\
+ Emacs is about to send an email message.  However, it was not configured
+ for sending email.  You can instruct Emacs to send email in one of the
+ following ways:
+
+ - Start your default mail client and pass to it the message text.
+   Type \"Mail client\" at the prompt below to select this option.\n\n")
+	      (if (and sendmail-program
+		       (executable-find sendmail-program))
+		  (insert "\
+ - Invoke the system's mail transport agent (\"sendmail\").
+   Type \"Mail transport agent\" at the prompt below to select this option.\n\n"))
+	      (insert "\
+ - Send mail directly by communicating with your mail server
+   (this requires setting up SMTP parameters).
+   Type \"SMTP server\" at the prompt below to select this option.
+
+ Emacs will record your selection and will use it thereafter.  To change
+ your selection later, customize the option `send-mail-function'.\n")
               (goto-char (point-min))
               (display-buffer (current-buffer))
               (let ((completion-ignore-case t))

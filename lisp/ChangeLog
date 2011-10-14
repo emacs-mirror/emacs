@@ -1,3 +1,19 @@
+2011-10-14  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* pcmpl-unix.el (pcomplete/ssh): SSH does allow ganging.
+
+	* mpc.el (mpc-songs-jump-to): Don't burp if the user clicks in an
+	empty buffer.
+
+	* mouse.el (mouse-drag-mode-line-1): Modify the end-event we pushed on
+	unread-command-events rather than pushing yet-another event.
+
+2011-10-14  Eli Zaretskii  <eliz@gnu.org>
+
+	* mail/sendmail.el (sendmail-query-once): Improve the wording of
+	the explanation of the possible choices.  Make the options passed
+	to completing-read shorter.
+
 2011-10-13  Agustín Martín Domingo  <agustin.martin@hispalinux.es>
 
 	* textmodes/flyspell.el (flyspell-large-region): Make sure
