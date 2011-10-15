@@ -1,3 +1,8 @@
+2011-10-15  Glenn Morris  <rgm@gnu.org>
+
+	* emacs-lisp/ert.el (ert--explain-equal-rec, ert-select-tests):
+	Doc fixes.
+
 2011-10-15  Chong Yidong  <cyd@stupidchicken.com>
 
 	* net/network-stream.el (network-stream-open-starttls): Improve
