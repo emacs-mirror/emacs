@@ -1,5 +1,8 @@
 2011-10-15  Chong Yidong  <cyd@stupidchicken.com>
 
+	* net/network-stream.el (network-stream-open-starttls): Improve
+	detection of failure due to lack of TLS support.
+
 	* mail/sendmail.el (sendmail-query-once): Tweak prompt message,
 	putting the input text in front and in bold.
 
