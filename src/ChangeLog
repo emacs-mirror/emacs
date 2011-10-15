@@ -1,3 +1,8 @@
+2011-10-15  Martin Rudalics  <rudalics@gmx.at>
+
+	* window.c (coordinates_in_window): Rewrite and delabelize
+	vertical border check.  (Bug#5357) (Bug#9618)
+
 2011-10-14  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* xterm.c (frame_highlight, frame_unhighlight): Ignore unexplained
