@@ -118,10 +118,12 @@ characters: spaces, tabs and newlines.  @kbd{M-\}
 (@code{delete-horizontal-space}) deletes all the spaces and tab
 characters before and after point.  With a prefix argument, this only
 deletes spaces and tab characters before point.  @kbd{M-@key{SPC}}
-(@code{just-one-space}) does likewise but leaves a single space after
+(@code{just-one-space}) does likewise but leaves a single space before
 point, regardless of the number of spaces that existed previously
 (even if there were none before).  With a numeric argument @var{n}, it
-leaves @var{n} spaces after point.
+leaves @var{n} spaces before point if @var{n} is positive; if @var{n}
+is negative, it deletes newlines in addition to spaces and tabs,
+leaving a single space before point.
 
   @kbd{C-x C-o} (@code{delete-blank-lines}) deletes all blank lines
 after the current line.  If the current line is blank, it deletes all
