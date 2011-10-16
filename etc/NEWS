@@ -251,6 +251,7 @@ highlight strings that indicate failure, caution or successful operation.
 with Xft.  To change font, use the X resource font, for example:
 Emacs.pane.menubar.font:  Courier-12
 
++++
 ** On graphical displays, the mode-line no longer ends in dashes.
 Also, the first dash (which does not indicate anything) is just
 displayed as a space.
@@ -455,6 +456,7 @@ bound to M-=, which shows the number of lines, words, and characters.
 
 ** The default value of `backup-by-copying-when-mismatch' is now t.
 
++++
 ** The command `just-one-space' (M-SPC), if given a negative argument,
 also deletes newlines around point.
 

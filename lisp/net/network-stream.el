@@ -218,7 +218,7 @@ functionality.
 	 (resulting-type 'plain)
 	 (builtin-starttls (and (fboundp 'gnutls-available-p)
 				(gnutls-available-p)))
-	 starttls-command error)
+	 starttls-available starttls-command error)
 
     ;; First check whether the server supports STARTTLS at all.
     (when (and capabilities success-string starttls-function)
@@ -227,10 +227,11 @@ functionality.
     ;; If we have built-in STARTTLS support, try to upgrade the
     ;; connection.
     (when (and starttls-command
-	       (or builtin-starttls
-		   (and (or require-tls
-			    (plist-get parameters :use-starttls-if-possible))
-			(starttls-available-p)))
+	       (setq starttls-available
+		     (or builtin-starttls
+			 (and (or require-tls
+				  (plist-get parameters :use-starttls-if-possible))
+			      (starttls-available-p))))
 	       (not (eq (plist-get parameters :type) 'plain)))
       ;; If using external STARTTLS, drop this connection and start
       ;; anew with `starttls-open-stream'.
@@ -298,9 +299,13 @@ functionality.
 	       ;; support, or no gnutls-cli installed.
 	       (eq resulting-type 'plain))
       (setq error
-	    (if require-tls
+	    (if starttls-available
 		"Server does not support TLS"
-	      "Server supports STARTTLS, but Emacs does not have support for it"))
+	      (concat "Emacs does not support TLS, and no external `"
+		      (if starttls-use-gnutls
+			  starttls-gnutls-program
+			starttls-program)
+		      "' program was found")))
       (delete-process stream)
       (setq stream nil))
     ;; Return value:

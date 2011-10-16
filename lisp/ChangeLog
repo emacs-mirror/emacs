@@ -1,3 +1,16 @@
+2011-10-15  Glenn Morris  <rgm@gnu.org>
+
+	* emacs-lisp/ert.el (ert--explain-equal-rec, ert-select-tests):
+	Doc fixes.
+
+2011-10-15  Chong Yidong  <cyd@stupidchicken.com>
+
+	* net/network-stream.el (network-stream-open-starttls): Improve
+	detection of failure due to lack of TLS support.
+
+	* mail/sendmail.el (sendmail-query-once): Tweak prompt message,
+	putting the input text in front and in bold.
+
 2011-10-14  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* pcmpl-unix.el (pcomplete/ssh): SSH does allow ganging.

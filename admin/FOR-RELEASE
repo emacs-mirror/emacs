@@ -152,7 +152,7 @@ abbrevs.texi
 ack.texi          
 anti.texi
 arevert-xtra.texi
-basic.texi        
+basic.texi        cyd
 buffers.texi      
 building.texi     
 calendar.texi     
@@ -172,23 +172,23 @@ fixit.texi
 fortran-xtra.texi 
 frames.texi       
 glossary.texi
-help.texi         
+help.texi         cyd
 indent.texi       
-killing.texi      
+killing.texi      cyd
 kmacro.texi       
 macos.texi        
 maintaining.texi  
 major.texi        
-mark.texi         
+mark.texi         cyd
 mini.texi         
 misc.texi         
 msdog.texi        
 msdog-xtra.texi   
 mule.texi         
-m-x.texi          
+m-x.texi          cyd
 picture-xtra.texi
 programs.texi     
-regs.texi         
+regs.texi         cyd
 rmail.texi        
 screen.texi       cyd
 search.texi       
