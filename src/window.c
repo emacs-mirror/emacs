@@ -919,21 +919,44 @@ static enum window_part
 coordinates_in_window (register struct window *w, int x, int y)
 {
   struct frame *f = XFRAME (WINDOW_FRAME (w));
-  int left_x, right_x;
   enum window_part part;
   int ux = FRAME_COLUMN_WIDTH (f);
-  int x0 = WINDOW_LEFT_EDGE_X (w);
-  int x1 = WINDOW_RIGHT_EDGE_X (w);
+  int left_x = WINDOW_LEFT_EDGE_X (w);
+  int right_x = WINDOW_RIGHT_EDGE_X (w);
+  int top_y = WINDOW_TOP_EDGE_Y (w);
+  int bottom_y = WINDOW_BOTTOM_EDGE_Y (w);
   /* The width of the area where the vertical line can be dragged.
      (Between mode lines for instance.  */
   int grabbable_width = ux;
   int lmargin_width, rmargin_width, text_left, text_right;
-  int top_y = WINDOW_TOP_EDGE_Y (w);
-  int bottom_y = WINDOW_BOTTOM_EDGE_Y (w);
 
-  /* Outside any interesting row?  */
-  if (y < top_y || y >= bottom_y)
+  /* Outside any interesting row or column?  */
+  if (y < top_y || y >= bottom_y || x < left_x || x >= right_x)
     return ON_NOTHING;
+
+  /* On the mode line or header line?   */
+  if ((WINDOW_WANTS_MODELINE_P (w)
+       && y >= bottom_y - CURRENT_MODE_LINE_HEIGHT (w)
+       && (part = ON_MODE_LINE))
+      || (WINDOW_WANTS_HEADER_LINE_P (w)
+	  && y < top_y + CURRENT_HEADER_LINE_HEIGHT (w)
+	  && (part = ON_HEADER_LINE)))
+    {
+      /* If it's under/over the scroll bar portion of the mode/header
+	 line, say it's on the vertical line.  That's to be able to
+	 resize windows horizontally in case we're using toolkit scroll
+	 bars.  Note: If scrollbars are on the left, the window that
+	 must be eventually resized is that on the left of WINDOW.  */
+      if ((WINDOW_HAS_VERTICAL_SCROLL_BAR_ON_LEFT (w)
+	   && !WINDOW_LEFTMOST_P (w)
+	   && eabs (x - left_x) < grabbable_width)
+	  || (!WINDOW_HAS_VERTICAL_SCROLL_BAR_ON_LEFT (w)
+	      && !WINDOW_RIGHTMOST_P (w)
+	      && eabs (x - right_x) < grabbable_width))
+	return ON_VERTICAL_BORDER;
+      else
+	return part;
+    }
 
   /* In what's below, we subtract 1 when computing right_x because we
      want the rightmost pixel, which is given by left_pixel+width-1.  */
@@ -947,50 +970,6 @@ coordinates_in_window (register struct window *w, int x, int y)
       left_x = WINDOW_BOX_LEFT_EDGE_X (w);
       right_x = WINDOW_BOX_RIGHT_EDGE_X (w) - 1;
     }
-
-  /* On the mode line or header line?  If it's near the start of
-     the mode or header line of window that's has a horizontal
-     sibling, say it's on the vertical line.  That's to be able
-     to resize windows horizontally in case we're using toolkit
-     scroll bars.  */
-
-  if (WINDOW_WANTS_MODELINE_P (w)
-      && y >= bottom_y - CURRENT_MODE_LINE_HEIGHT (w))
-    {
-      part = ON_MODE_LINE;
-
-    header_vertical_border_check:
-      /* We're somewhere on the mode line.  We consider the place
-	 between mode lines of horizontally adjacent mode lines
-	 as the vertical border.  If scroll bars on the left,
-	 return the right window.  */
-      if ((WINDOW_HAS_VERTICAL_SCROLL_BAR_ON_LEFT (w)
-	   || WINDOW_RIGHTMOST_P (w))
-	  && !WINDOW_LEFTMOST_P (w)
-	  && eabs (x - x0) < grabbable_width)
-	return ON_VERTICAL_BORDER;
-
-      /* Make sure we're not at the rightmost position of a
-	 mode-/header-line and there's yet another window on the
-	 right.  (Bug#1372)  */
-      else if ((WINDOW_RIGHTMOST_P (w) || x < x1)
-	       && eabs (x - x1) < grabbable_width)
-	return ON_VERTICAL_BORDER;
-
-      if (x < x0 || x >= x1)
-	return ON_NOTHING;
-
-      return part;
-    }
-
-  if (WINDOW_WANTS_HEADER_LINE_P (w)
-      && y < top_y + CURRENT_HEADER_LINE_HEIGHT (w))
-    {
-      part = ON_HEADER_LINE;
-      goto header_vertical_border_check;
-    }
-
-  if (x < x0 || x >= x1) return ON_NOTHING;
 
   /* Outside any interesting column?  */
   if (x < left_x || x > right_x)

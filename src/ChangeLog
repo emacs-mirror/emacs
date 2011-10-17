@@ -1,4 +1,4 @@
-2011-10-14  Paul Eggert  <eggert@cs.ucla.edu>
+2011-10-17  Paul Eggert  <eggert@cs.ucla.edu>
 
 	Fix integer width and related bugs.
 	* alloc.c (pure_bytes_used_lisp, pure_bytes_used_non_lisp):
@@ -788,6 +788,11 @@
 	(struct scroll_bar): Use struct vectorlike_header
 	rather than rolling our own approximation.
 	(SCROLL_BAR_VEC_SIZE): Remove; not used.
+
+2011-10-15  Martin Rudalics  <rudalics@gmx.at>
+
+	* window.c (coordinates_in_window): Rewrite and delabelize
+	vertical border check.  (Bug#5357) (Bug#9618)
 
 2011-10-14  Stefan Monnier  <monnier@iro.umontreal.ca>
 

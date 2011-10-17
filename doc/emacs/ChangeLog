@@ -1,3 +1,13 @@
+2011-10-15  Chong Yidong  <cyd@stupidchicken.com>
+
+	* display.texi (Scrolling): Tweak explanation of scroll direction.
+	(View Mode): Add index entries.
+
+	* killing.texi (Deletion): Document negative prefix arg to M-SPC.
+
+	* regs.texi (Text Registers): C-x r i does not activate the mark.
+	(Bookmarks): Document new default bookmark location.
+
 2011-10-13  Chong Yidong  <cyd@stupidchicken.com>
 
 	* killing.texi (Deletion): Add xref to Using Region.  Document
