@@ -1,7 +1,11 @@
+2011-10-17  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* comint.el (comint--table-subvert): Quote the all-completions output
+	(bug#9160).
+
 2011-10-17  Martin Rudalics  <rudalics@gmx.at>
 
-	* ido.el (ido-default-buffer-method): Remove redundant :type
-	entry.
+	* ido.el (ido-default-buffer-method): Remove redundant :type entry.
 
 	* menu-bar.el (menu-bar-file-menu): Add entry for making new
 	window on right of selected.  (Bug#9350) Reword other window
@@ -14,8 +18,8 @@
 
 2011-10-15  Chong Yidong  <cyd@stupidchicken.com>
 
-	* net/network-stream.el (network-stream-open-starttls): Improve
-	detection of failure due to lack of TLS support.
+	* net/network-stream.el (network-stream-open-starttls):
+	Improve detection of failure due to lack of TLS support.
 
 	* mail/sendmail.el (sendmail-query-once): Tweak prompt message,
 	putting the input text in front and in bold.

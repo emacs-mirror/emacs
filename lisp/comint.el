@@ -3079,9 +3079,9 @@ SS1 = (unquote SS2)."
 
 (defun comint--table-subvert (table s1 s2 &optional quote-fun unquote-fun)
   "Completion table that replaces the prefix S1 with S2 in STRING.
-When TABLE, S1 and S2 are provided by `apply-partially', the result
-is a completion table which completes strings of the form (concat S1 S)
-in the same way as TABLE completes strings of the form (concat S2 S)."
+The result is a completion table which completes strings of the
+form (concat S1 S) in the same way as TABLE completes strings of
+the form (concat S2 S)."
   (lambda (string pred action)
     (let* ((str (if (eq t (compare-strings string 0 (length s1) s1 nil nil
                                            completion-ignore-case))
@@ -3106,13 +3106,15 @@ in the same way as TABLE completes strings of the form (concat S2 S)."
          ((eq action t)
           (let ((bounds (completion-boundaries str table pred "")))
             (if (>= (car bounds) (length s2))
-                res
+                (if quote-fun (mapcar quote-fun res) res)
               (let ((re (concat "\\`"
                                 (regexp-quote (substring s2 (car bounds))))))
                 (delq nil
                       (mapcar (lambda (c)
                                 (if (string-match re c)
-                                    (substring c (match-end 0))))
+                                    (let ((str (substring c (match-end 0))))
+                                      (if quote-fun
+                                          (funcall quote-fun str) str))))
                               res))))))
          ;; E.g. action=nil and it's the only completion.
          (res))))))
