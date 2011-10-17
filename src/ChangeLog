@@ -3,6 +3,9 @@
 	* xdisp.c (push_display_prop): Determine whether to record string
 	or buffer position by IT->string, not by IT->method.  Allow
 	GET_FROM_DISPLAY_VECTOR as IT->method on entry.  (Bug#9771, part 4)
+	(move_it_vertically_backward): Don't look for character position
+	immediately after the newline when in a continuation line.
+	(Bug#9771, part 1)
 
 2011-10-15  Martin Rudalics  <rudalics@gmx.at>
 
