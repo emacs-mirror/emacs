@@ -603,7 +603,6 @@ Other back ends might or might not work.")
     nil))
 
 ;; Silence byte-compiler.
-(defvar gnus-registry-install)
 (autoload 'gnus-registry-get-id-key "gnus-registry")
 
 (deffoo nnmairix-request-set-mark (group actions &optional server)
@@ -1636,8 +1635,7 @@ search in raw mode."
 
 (defun nnmairix-determine-original-group-from-registry (mid)
   "Try to determinale original group for message-id MID from the registry."
-  (when (and (boundp 'gnus-registry-install)
-	     gnus-registry-install)
+  (when (bound-and-true-p gnus-registry-enabled)
     (unless (string-match "^<" mid)
       (set mid (concat "<" mid)))
     (unless (string-match ">$" mid)
