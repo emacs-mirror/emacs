@@ -1184,6 +1184,7 @@ value is a new vector that contains the elements between index FROM
   if (!(0 <= from_char && from_char <= to_char && to_char <= size))
     args_out_of_range_3 (string, make_number (from_char),
 			 make_number (to_char));
+
   if (STRINGP (string))
     {
       ptrdiff_t to_byte =
@@ -3430,15 +3431,15 @@ get_key_arg (Lisp_Object key, ptrdiff_t nargs, Lisp_Object *args, char *used)
    vector that are not copied from VEC are set to nil.  */
 
 Lisp_Object
-larger_vector (Lisp_Object vec, ptrdiff_t incr_min, ptrdiff_t size_max)
+larger_vector (Lisp_Object vec, ptrdiff_t incr_min, ptrdiff_t nitems_max)
 {
   struct Lisp_Vector *v;
   ptrdiff_t i, incr, incr_max, old_size, new_size;
   ptrdiff_t C_language_max = min (PTRDIFF_MAX, SIZE_MAX) / sizeof *v->contents;
-  ptrdiff_t n_max = (0 <= size_max && size_max < C_language_max
-		     ? size_max : C_language_max);
+  ptrdiff_t n_max = (0 <= nitems_max && nitems_max < C_language_max
+		     ? nitems_max : C_language_max);
   xassert (VECTORP (vec));
-  xassert (0 < incr_min && -1 <= size_max);
+  xassert (0 < incr_min && -1 <= nitems_max);
   old_size = ASIZE (vec);
   incr_max = n_max - old_size;
   incr = max (incr_min, min (old_size >> 1, incr_max));
