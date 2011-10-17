@@ -1,7 +1,7 @@
 2011-10-17  Martin Rudalics  <rudalics@gmx.at>
 
 	* menu-bar.el (menu-bar-file-menu): Add entry for making new
-	window on right of selected.  (Bug#6786) Reword other window
+	window on right of selected.  (Bug#9350) Reword other window
 	entries and separate them from frame entries.
 
 2011-10-15  Glenn Morris  <rgm@gnu.org>
