@@ -1,5 +1,9 @@
 2011-10-17  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* minibuffer.el (completion--replace): Inherit surrounding properties
+	(bug#114).
+	(minibuffer-complete-and-exit): Use it.
+
 	* comint.el (comint--table-subvert): Quote the all-completions output
 	(bug#9160).
 

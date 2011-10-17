@@ -596,7 +596,7 @@ Moves point to the end of the new text."
       (setq end (- end suffix-len))
       (setq newtext (substring newtext 0 (- suffix-len))))
     (goto-char beg)
-    (insert newtext)
+    (insert-and-inherit newtext)
     (delete-region (point) (+ (point) (- end beg)))
     (forward-char suffix-len)))
 
@@ -927,9 +927,7 @@ If `minibuffer-completion-confirm' is `confirm-after-completion',
                      ;; file, so `try-completion' actually completes to
                      ;; that file.
                      (= (length string) (length compl)))
-            (goto-char end)
-            (insert compl)
-            (delete-region beg end))))
+            (completion--replace beg end compl))))
       (exit-minibuffer))
 
      ((memq minibuffer-completion-confirm '(confirm confirm-after-completion))
