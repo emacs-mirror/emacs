@@ -1,3 +1,7 @@
+2011-10-17  Chong Yidong  <cyd@gnu.org>
+
+	* font-lock.el (font-lock-maximum-size): Mark as obsolete.
+
 2011-10-17  Ryan Barrett <emacs@ryanb.org>  (tiny change)
 
 	* dirtrack.el (dirtrack): Support shell buffers with path

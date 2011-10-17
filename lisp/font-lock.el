@@ -228,8 +228,11 @@
 ;; User variables.
 
 (defcustom font-lock-maximum-size 256000
-  "Maximum size of a buffer for buffer fontification.
-Only buffers less than this can be fontified when Font Lock mode is turned on.
+  "Maximum buffer size for unsupported buffer fontification.
+When `font-lock-support-mode' is nil, only buffers smaller than
+this are fontified.  This variable has no effect if a Font Lock
+support mode (usually `jit-lock-mode') is enabled.
+
 If nil, means size is irrelevant.
 If a list, each element should be a cons pair of the form (MAJOR-MODE . SIZE),
 where MAJOR-MODE is a symbol or t (meaning the default).  For example:
@@ -248,6 +251,7 @@ for buffers in Rmail mode, and size is irrelevant otherwise."
 				      (const :tag "none" nil)
 				      (integer :tag "size")))))
   :group 'font-lock)
+(make-obsolete-variable 'font-lock-maximum-size nil "24.1")
 
 (defcustom font-lock-maximum-decoration t
   "Maximum decoration level for fontification.
