@@ -1,5 +1,8 @@
 2011-10-17  Martin Rudalics  <rudalics@gmx.at>
 
+	* ido.el (ido-default-buffer-method): Remove redundant :type
+	entry.
+
 	* menu-bar.el (menu-bar-file-menu): Add entry for making new
 	window on right of selected.  (Bug#9350) Reword other window
 	entries and separate them from frame entries.
