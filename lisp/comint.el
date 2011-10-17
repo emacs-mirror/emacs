@@ -847,9 +847,10 @@ by the global keymap (usually `mouse-yank-at-click')."
       ;; If pos is at the very end of a field, the mouse-click was
       ;; probably outside (to the right) of the field.
       (and (< pos (field-end pos))
-           (setq field (field-at-pos pos))
-	   (setq input (field-string-no-properties pos))))
-    (if (or (null comint-accum-marker) field)
+	   (< (field-end pos) (point-max))
+           (progn (setq field (field-at-pos pos))
+		  (setq input (field-string-no-properties pos)))))
+    (if (or (null input) (null comint-accum-marker) field)
 	;; Fall back to the global definition if (i) the selected
 	;; buffer is not a comint buffer (which can happen if a
 	;; non-comint window was selected and we clicked in a comint
