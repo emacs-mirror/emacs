@@ -5,7 +5,7 @@
 2011-10-12  Paul Eggert  <eggert@cs.ucla.edu>
 
 	* configure.in: Remove check for -lintl (Bug#9713).
-	The check breaks 'configure' in some CentOS 5.7 x86 configurations.
+	The check could break 'configure' on GNU/Linux with a (broken) libintl.
 	The check was helpful but not essential in Solaris 2.6 (1997),
 	and is no longer needed in Solaris 8 (2000).  Solaris 2.6 is
 	obsolete -- Sun dropped support for it in 2006 -- and without
