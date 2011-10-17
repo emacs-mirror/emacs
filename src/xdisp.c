@@ -18427,9 +18427,10 @@ static int
 push_display_prop (struct it *it, Lisp_Object prop)
 {
   struct text_pos pos =
-    (it->method == GET_FROM_STRING) ? it->current.string_pos : it->current.pos;
+    STRINGP (it->string) ? it->current.string_pos : it->current.pos;
 
   xassert (it->method == GET_FROM_BUFFER
+	   || it->method == GET_FROM_DISPLAY_VECTOR
 	   || it->method == GET_FROM_STRING);
 
   /* We need to save the current buffer/string position, so it will be
