@@ -1,5 +1,10 @@
 2011-10-17  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* comint.el (comint-insert-input, comint-send-input)
+	(comint-get-old-input-default, comint-backward-matching-input)
+	(comint-next-prompt): Use nil instead of `input' for field property of
+	past user input (bug#114).
+
 	* minibuffer.el (completion--replace): Inherit surrounding properties
 	(bug#114).
 	(minibuffer-complete-and-exit): Use it.

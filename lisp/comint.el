@@ -849,8 +849,7 @@ by the global keymap (usually `mouse-yank-at-click')."
       (and (< pos (field-end pos))
            (setq field (field-at-pos pos))
 	   (setq input (field-string-no-properties pos))))
-    (if (or (null comint-accum-marker)
-	    (not (eq field 'input)))
+    (if (or (null comint-accum-marker) field)
 	;; Fall back to the global definition if (i) the selected
 	;; buffer is not a comint buffer (which can happen if a
 	;; non-comint window was selected and we clicked in a comint
@@ -1803,8 +1802,7 @@ Similarly for Soar, Scheme, etc."
               (add-text-properties
                beg end
                '(mouse-face highlight
-                 help-echo "mouse-2: insert after prompt as new input"
-                 field input))))
+                 help-echo "mouse-2: insert after prompt as new input"))))
           (unless (or no-newline comint-use-prompt-regexp)
             ;; Cover the terminating newline
             (add-text-properties end (1+ end)
@@ -2153,7 +2151,7 @@ If `comint-use-prompt-regexp' is non-nil, then return
 the current line with any initial string matching the regexp
 `comint-prompt-regexp' removed."
   (let ((bof (field-beginning)))
-    (if (eq (get-char-property bof 'field) 'input)
+    (if (null (get-char-property bof 'field)) ;Not `output'.
 	(field-string-no-properties bof)
       (comint-bol)
       (buffer-substring-no-properties (point) (line-end-position)))))
@@ -2473,7 +2471,7 @@ If N is negative, find the next or Nth next match."
 	      (while (/= n 0)
 		(unless (re-search-backward regexp nil t dir)
 		  (error "Not found"))
-		(when (eq (get-char-property (point) 'field) 'input)
+		(unless (get-char-property (point) 'field)
 		  (setq n (- n dir))))
 	      (field-beginning))))
       (goto-char pos))))
@@ -2520,7 +2518,7 @@ text matching `comint-prompt-regexp'."
 		 (setq input-pos (point-max)))
 	       ;; stop iterating
 	       (setq n 0))
-	      ((eq (get-char-property pos 'field) 'input)
+	      ((null (get-char-property pos 'field))
 	       (setq n (if (< n 0) (1+ n) (1- n)))
 	       (setq input-pos pos))))
       (when input-pos
