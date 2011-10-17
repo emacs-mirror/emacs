@@ -1,3 +1,8 @@
+2011-10-17  Ryan Barrett <emacs@ryanb.org>  (tiny change)
+
+	* dirtrack.el (dirtrack): Support shell buffers with path
+	prefixes, e.g. tramp-based remote shells.  (Bug#9647)
+
 2011-10-17  Teodor Zlatanov  <tzz@lifelogs.com>
 
 	* json.el: Bump version to 1.3 and note change in History.

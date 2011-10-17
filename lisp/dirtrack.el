@@ -227,7 +227,7 @@ If directory tracking does not seem to be working, you can use the
 function `dirtrack-debug-mode' to turn on debugging output."
   (unless (or (null dirtrack-mode)
               (eq (point) (point-min)))     ; no output?
-    (let (prompt-path
+    (let (prompt-path orig-prompt-path
 	  (current-dir default-directory)
 	  (dirtrack-regexp    (nth 0 dirtrack-list))
 	  (match-num	      (nth 1 dirtrack-list)))
@@ -243,8 +243,9 @@ function `dirtrack-debug-mode' to turn on debugging output."
           (if (not (> (length prompt-path) 0))
               (dirtrack-debug-message "Match is empty string")
             ;; Transform prompts into canonical forms
-            (setq prompt-path (funcall dirtrack-directory-function
-                                       prompt-path)
+            (setq orig-prompt-path (funcall dirtrack-directory-function
+                                            prompt-path)
+                  prompt-path (shell-prefixed-directory-name orig-prompt-path)
                   current-dir (funcall dirtrack-canonicalize-function
                                        current-dir))
             (dirtrack-debug-message
@@ -257,8 +258,9 @@ function `dirtrack-debug-mode' to turn on debugging output."
               ;; It's possible that Emacs will think the directory
               ;; won't exist (eg, rlogin buffers)
               (if (file-accessible-directory-p prompt-path)
-                  ;; Change directory
-                  (and (shell-process-cd prompt-path)
+                  ;; Change directory. shell-process-cd adds the prefix, so we
+                  ;; need to give it the original (un-prefixed) path.
+                  (and (shell-process-cd orig-prompt-path)
                        (run-hooks 'dirtrack-directory-change-hook)
                        (dirtrack-debug-message
                         (format "Changing directory to %s" prompt-path)))
