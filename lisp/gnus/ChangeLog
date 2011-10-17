@@ -1,3 +1,10 @@
+2011-10-17  Daiki Ueno  <ueno@unixuser.org>
+
+	* mml2015.el (mml2015-epg-find-usable-key): Skip the whole key if the
+	primary key is marked as disabled.
+	* mml1991.el (mml1991-epg-find-usable-key): Ditto.
+	Thanks to Christian von Roques <roques@mti.ag>.
+
 2011-10-11  Andreas Schwab  <schwab@linux-m68k.org>
 
 	* html2text.el (html2text-clean-anchor): Check for quotes around
