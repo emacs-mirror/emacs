@@ -38,7 +38,7 @@
    `(cperl-array-face ((,class (:foreground "SlateBlue3"))))
    `(cperl-hash-face ((,class (:foreground "turquoise3"))))
    `(cperl-nonoverridable-face ((,class (:foreground "orchid3"))))
-   `(cursor ((,class (:background "Green4" :foreground "gainsboro"))))
+   `(cursor ((,class (:background "Green4"))))
    `(default ((,class (:background "whitesmoke" :foreground "black"))))
    `(dired-marked ((,class (:background "dodgerblue3" :foreground "white"))))
    `(flymake-errline ((,class (:background nil :underline "red"))))
