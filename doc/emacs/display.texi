@@ -21,7 +21,7 @@ the text is displayed.
 * Follow Mode::            Follow mode lets two windows scroll as one.
 * Faces::                  How to change the display style using faces.
 * Standard Faces::         Emacs' predefined faces.
-* Temporary Face Changes:: Commands to temporarily modify the default text face
+* Text Scale::             Increasing or decreasing text size in a buffer.
 * Font Lock::              Minor mode for syntactic highlighting using faces.
 * Highlight Interactively:: Tell Emacs what text to highlight.
 * Fringes::                Enabling or disabling window fringes.
@@ -55,7 +55,7 @@ direction that the window moves relative to the text; this terminology
 was taken up by Emacs before the modern meaning of ``scrolling up''
 and ``scrolling down'' became widely adopted.  Hence the strange
 result that @key{PageDown} scrolls ``up'' in the Emacs sense.  In this
-manual, we refer to scrolling ``foward'' and ``backward'' where
+manual, we refer to scrolling ``forward'' and ``backward'' where
 possible, in order to minimize confusion.
 
   The portion of a buffer displayed in a window always contains point.
@@ -439,69 +439,61 @@ one large window.
 @section Faces: Controlling Text Display Style
 @cindex faces
 
-  Emacs can display text in several different styles, which are called
+  Emacs can display text in several different styles, called
 @dfn{faces}.  Each face can specify various @dfn{face attributes},
-such as the font, height, weight and slant, the foreground and
-background color, and underlining or overlining.  A face does not have
-to specify all of these attributes; often it inherits most of them
-from another face.
-
-  On a text-only terminal, not all face attributes are meaningful.
-Some text-only terminals support inverse video, bold, and underline
-attributes; some support colors.  Text-only terminals generally do not
-support changing the height, width or font.
-
-  Most major modes assign faces to the text automatically through the
-work of Font Lock mode.  @xref{Font Lock}, for more information about
-Font Lock mode and syntactic highlighting.  You can print the current
-buffer with the highlighting that appears on your screen using the
-command @code{ps-print-buffer-with-faces}.  @xref{PostScript}.
-
-  Enriched mode, the mode for editing formatted text, provides
-commands and menus for specifying faces for text in the buffer.
-@xref{Format Faces}.
-
-@cindex face colors, setting
-  To alter the appearance of a face, use the customization buffer.
-@xref{Face Customization}.  You can also use X resources to specify
-attributes of any particular face (@pxref{Resources}).  When
-displaying a character, any attribute that isn't specified by its face
-is taken from the @code{default} face, whose attributes reflect the
-default settings of the frame itself.
-
-@findex set-face-foreground
-@findex set-face-background
-  You can also change the foreground and background colors of a
-specific face with @kbd{M-x set-face-foreground} and @kbd{M-x
-set-face-background}.  These commands prompt in the minibuffer for a
-face name and a color name, with completion, and then set that face to
-use the specified color.  @xref{Face Customization}, for information
-about color names.  These commands affect the face colors on all
-frames, both existing and those to be created in the future.  These
-changes do not, however, persist for future Emacs sessions; to make
-lasting changes, use the customization buffer (@pxref{Face
-Customization}).
-
-  You can also set foreground and background colors for the current
-frame only; see @ref{Frame Parameters}.
-
-  Emacs can display variable-width fonts, but some of the Emacs
-commands that calculate width and indentation do not know how to
-calculate variable widths.  This can sometimes lead to incorrect
-results when you use variable-width fonts.  In particular, indentation
-commands can give inconsistent results, so we recommend you avoid
-variable-width fonts, especially for editing program source code.
-
-@node Standard Faces
-@section Standard Faces
+such as the font, height, weight, slant, foreground and background
+color, and underlining or overlining.  Most major modes assign faces
+to the text automatically, via Font Lock mode.  @xref{Font Lock}, for
+more information about how these faces are assigned.
 
 @findex list-faces-display
   To see what faces are currently defined, and what they look like,
-type @kbd{M-x list-faces-display}.  It's possible for a given face to
-look different in different frames; this command shows the appearance
-in the frame in which you type it.  With a prefix argument, this
+type @kbd{M-x list-faces-display}.  With a prefix argument, this
 prompts for a regular expression, and displays only faces with names
-matching that regular expression.
+matching that regular expression (@pxref{Regexps}).
+
+  It's possible for a given face to look different in different
+frames.  For instance, some text-only terminals do not support all
+face attributes, particularly font, height, and width, and some
+support a limited range of colors.  The @code{list-faces-display}
+command shows the appearance for the selected frame.
+
+@cindex face colors, setting
+@cindex background color
+@cindex default face
+  You can customize a face to alter its appearance, and save those
+changes for future Emacs sessions.  @xref{Face Customization}.  A face
+does not have to specify every single attribute; often it inherits
+most attributes from another face.  Any ultimately unspecified
+attribute is taken from a face named @code{default}, whose attributes
+are all specified.  The @code{default} face is the default for
+displaying text, and its background color is also used as the frame's
+background color.
+
+  You can also use X resources to specify attributes of any particular
+face.  @xref{Resources}.
+
+@findex set-face-foreground
+@findex set-face-background
+  You can also change the foreground and background colors of a face
+with @kbd{M-x set-face-foreground} and @kbd{M-x set-face-background}.
+These commands prompt in the minibuffer for a face name and a color
+name, with completion, and then set that face to use the specified
+color (@pxref{Face Customization}, for information about color names).
+They affect the face colors on all frames, but their effects do not
+persist for future Emacs sessions, unlike using the customization
+buffer or X resources.  You can also use frame parameters to set
+foreground and background colors for a specific frame; see @ref{Frame
+Parameters}.
+
+  Emacs can display variable-width fonts, but some Emacs commands,
+particularly indentation commands, do not account for variable
+character display widths.  Therefore, we recommend not using
+variable-width fonts for most faces, particularly those assigned by
+Font Lock mode.
+
+@node Standard Faces
+@section Standard Faces
 
   Here are the standard faces for specifying text appearance.  You can
 apply them to specific text when you want the effects they produce.
@@ -509,6 +501,7 @@ apply them to specific text when you want the effects they produce.
 @table @code
 @item default
 This face is used for ordinary text that doesn't specify any face.
+Its background color is used as the frame's background color.
 @item bold
 This face uses a bold variant of the default font.
 @item italic
@@ -535,37 +528,38 @@ their own faces for this purpose.)
 
 @table @code
 @item highlight
-This face is used for highlighting portions of text, in various modes.
-For example, mouse-sensitive text is highlighted using this face.
+This face is used for text highlighting in various contexts, such as
+when the mouse cursor is moved over a hyperlink.
 @item isearch
-This face is used for highlighting the current Isearch match
+This face is used to highlight the current Isearch match
 (@pxref{Incremental Search}).
 @item query-replace
-This face is used for highlighting the current Query Replace match
+This face is used to highlight the current Query Replace match
 (@pxref{Replace}).
 @item lazy-highlight
-This face is used for lazy highlighting of Isearch and Query Replace
-matches other than the current one.
+This face is used to highlight ``lazy matches'' for Isearch and Query
+Replace (matches other than the current one).
 @item region
-This face is used for displaying a selected region (@pxref{Mark}).
+This face is used for displaying an active region (@pxref{Mark}).
+When Emacs is built with GTK support, its colors are taken from the
+current GTK theme.
 @item secondary-selection
 This face is used for displaying a secondary X selection (@pxref{Secondary
 Selection}).
 @item trailing-whitespace
 The face for highlighting excess spaces and tabs at the end of a line
-when @code{show-trailing-whitespace} is non-@code{nil}; see
-@ref{Useless Whitespace}.
-@item nobreak-space
-The face for displaying the character ``nobreak space.''
+when @code{show-trailing-whitespace} is non-@code{nil} (@pxref{Useless
+Whitespace}).
 @item escape-glyph
-The face for highlighting the @samp{\} or @samp{^} that indicates
-a control character.  It's also used when @samp{\} indicates a
-nobreak space or nobreak (soft) hyphen.
+The face for displaying control characters and escape sequences
+(@pxref{Text Display}).
+@item nobreak-space
+The face for displaying ``non-breaking'' space characters (@pxref{Text
+Display}).
 @end table
 
-  These faces control the appearance of parts of the Emacs frame.
-They exist as faces to provide a consistent way to customize the
-appearance of these parts of the frame.
+  The following faces control the appearance of parts of the Emacs
+frame:
 
 @table @code
 @item mode-line
@@ -588,11 +582,8 @@ at the top of a window just as the mode line appears at the bottom.
 Most windows do not have a header line---only some special modes, such
 Info mode, create one.
 @item vertical-border
-This face is used for the vertical divider between windows.
-By default this face inherits from the @code{mode-line-inactive} face
-on character terminals.  On graphical displays the foreground color of
-this face is used for the vertical line between windows without
-scrollbars.
+This face is used for the vertical divider between windows on
+text-only terminals.
 @item minibuffer-prompt
 @cindex @code{minibuffer-prompt} face
 @vindex minibuffer-prompt-properties
@@ -607,35 +598,37 @@ The face for the fringes to the left and right of windows on graphic
 displays.  (The fringes are the narrow portions of the Emacs frame
 between the text area and the window's right and left borders.)
 @xref{Fringes}.
+@item cursor
+This face determines the color of the text cursor.
+@item tooltip
+This face is used for tooltip text.  By default, if Emacs is built
+with GTK support, tooltips are drawn via GTK and this face has no
+effect.  @xref{Tooltips}.
+@item mouse
+This face determines the color of the mouse pointer.
+@end table
+
+  The following faces likewise control the appearance of parts of the
+Emacs frame, but only on text-only terminals, or when Emacs is built
+on X with no toolkit support.  (For all other cases, the appearance of
+the respective frame elements is determined by system-wide settings.)
+
+@table @code
 @item scroll-bar
 This face determines the visual appearance of the scroll bar.
 @xref{Scroll Bars}.
-@item border
-This face determines the color of the frame border.
-@item cursor
-This face determines the color of the cursor.
-@item mouse
-This face determines the color of the mouse pointer.
 @item tool-bar
 This face determines the color of tool bar icons.  @xref{Tool Bars}.
-@item tooltip
-This face is used for tooltips.  @xref{Tooltips}.
 @item menu
 @cindex menu bar appearance
 @cindex @code{menu} face, no effect if customized
 @cindex customization of @code{menu} face
 This face determines the colors and font of Emacs's menus.  @xref{Menu
-Bars}.  This has no effect in Emacs built with GTK and in the
-MS-Windows/Mac ports; you need to use system-wide styles and options
-to change the appearance of GTK, Windows, or Mac menus.  Setting the
-font of LessTif/Motif menus is currently not supported; attempts to
-set the font are ignored in this case.
+Bars}.
 @end table
 
-@node Temporary Face Changes
-@section Temporary Face Changes
-
-The following commands change the default face within a buffer.
+@node Text Scale
+@section Text Scale
 
 @cindex adjust buffer face height
 @findex text-scale-adjust
@@ -652,9 +645,11 @@ determine which action to take.
 
   The final key of these commands may be repeated without the leading
 @kbd{C-x}.  For instance, @kbd{C-x C-= C-= C-=} increases the face
-height by three steps.  Each step scales the height of the default
-face by the value of the variable @code{text-scale-mode-step}.  As a
-special case, an argument of 0 removes any scaling currently active.
+height by three steps.  Each step scales the text height by a factor
+of 1.2; to change this factor, customize the variable
+@code{text-scale-mode-step}.  As an exception, a numeric argument of 0
+to the @code{text-scale-adjust} command restores the default height,
+similar to typing @kbd{C-x C-0}.
 
 @cindex increase buffer face height
 @findex text-scale-increase
@@ -668,21 +663,14 @@ You may find it convenient to bind to these commands, rather than
 
 @cindex set buffer face height
 @findex text-scale-set
-The command @code{text-scale-set} sets the height of the default face
-in the current buffer to an absolute level specified by its prefix
-argument.
+  The command @code{text-scale-set} scales the height of the default
+face in the current buffer to an absolute level specified by its
+prefix argument.
 
 @findex text-scale-mode
-  The above commands automatically enable or disable the minor mode
-@code{text-scale-mode}, depending on whether the current font scaling
-is other than 1 or not.
-
-@cindex variable pitch mode
-@findex variable-pitch-mode
-  To temporarily change the face in the current buffer to a
-variable-pitch (``proportional'') font, use the command @kbd{M-x
-variable-pitch-mode} to enable or disable the Variable Pitch minor
-mode.
+  The above commands automatically enable the minor mode
+@code{text-scale-mode} if the current font scaling is other than 1,
+and disable it otherwise.
 
 @node Font Lock
 @section Font Lock mode
@@ -691,41 +679,36 @@ mode.
 @cindex syntax highlighting and coloring
 
   Font Lock mode is a minor mode, always local to a particular buffer,
-which highlights (or ``fontifies'') the buffer contents according to
-the syntax of the text you are editing.  It can recognize comments and
-strings in most programming languages; in several languages, it can
-also recognize and properly highlight various other important
-constructs, such as names of functions being defined or reserved
-keywords.  Some special modes, such as Occur mode and Info mode, have
-completely specialized ways of assigning fonts for Font Lock mode.
+which assigns faces to (or @dfn{fontifies}) the text in the buffer.
+Each buffer's major mode tells Font Lock mode which text to fontify;
+for instance, programming language modes fontify syntactically
+relevant constructs like comments, strings, and function names.
 
 @findex font-lock-mode
-  Font Lock mode is turned on by default in all modes which support it.
-You can toggle font-lock for each buffer with the command @kbd{M-x
-font-lock-mode}.  Using a positive argument unconditionally turns Font
-Lock mode on, and a negative or zero argument turns it off.
+  Font Lock mode is enabled by default.  To toggle it in the current
+buffer, type @kbd{M-x font-lock-mode}.  A positive numeric argument
+unconditionally enables Font Lock mode, and a negative or zero
+argument disables it.
 
 @findex global-font-lock-mode
 @vindex global-font-lock-mode
-  If you do not wish Font Lock mode to be turned on by default,
-customize the variable @code{global-font-lock-mode} using the Customize
-interface (@pxref{Easy Customization}), or use the function
-@code{global-font-lock-mode} in your @file{.emacs} file, like this:
+  To toggle Font Lock mode in all buffers, type @kbd{M-x
+global-font-lock-mode}.  To impose this setting for future Emacs
+sessions, customize the variable @code{global-font-lock-mode}
+(@pxref{Easy Customization}), or add the following line to your init
+file:
 
 @example
 (global-font-lock-mode 0)
 @end example
 
-@noindent
-This variable, like all the variables that control Font Lock mode,
-take effect whenever fontification is done; that is, potentially at
-any time.
-
 @findex turn-on-font-lock
-  If you have disabled Global Font Lock mode, you can still enable Font
+@noindent
+If you have disabled Global Font Lock mode, you can still enable Font
 Lock for specific major modes by adding the function
 @code{turn-on-font-lock} to the mode hooks (@pxref{Hooks}).  For
-example, to enable Font Lock mode for editing C files, you can do this:
+example, to enable Font Lock mode for editing C files, you can do
+this:
 
 @example
 (add-hook 'c-mode-hook 'turn-on-font-lock)
@@ -739,27 +722,19 @@ use that customization buffer to customize the appearance of these
 faces.  @xref{Face Customization}.
 
 @vindex font-lock-maximum-decoration
-  The variable @code{font-lock-maximum-decoration} specifies the
-preferred level of fontification, for modes that provide multiple
-levels.  Level 1 is the least amount of fontification; some modes
-support levels as high as 3.  The normal default is ``as high as
-possible.''  You can specify an integer, which applies to all modes, or
-you can specify different numbers for particular major modes; for
-example, to use level 1 for C/C++ modes, and the default level
-otherwise, use this:
+  You can customize the variable @code{font-lock-maximum-decoration}
+to alter the amount of fontification applied by Font Lock mode, for
+major modes that support this feature.  The value should be a number
+(with 1 representing a minimal amount of fontification; some modes
+support levels as high as 3); or @code{t}, meaning ``as high as
+possible'' (the default).  You can also specify different numbers for
+particular major modes; for example, to use level 1 for C/C++ modes,
+and the default level otherwise, use the value
 
 @example
-(setq font-lock-maximum-decoration
-      '((c-mode . 1) (c++-mode . 1)))
+'((c-mode . 1) (c++-mode . 1)))
 @end example
 
-@vindex font-lock-maximum-size
-  Fontification can be too slow for large buffers, so you can suppress
-it for buffers above a certain size.  The variable
-@code{font-lock-maximum-size} specifies a buffer size, beyond which
-buffer fontification is suppressed.
-
-@c @w is used below to prevent a bad page-break.
 @vindex font-lock-beginning-of-syntax-function
 @cindex incorrect fontification
 @cindex parenthesis in column zero and fontification
@@ -768,11 +743,10 @@ buffer fontification is suppressed.
 relies on analysis of the syntactic structure of the buffer text.  For
 the sake of speed, some modes, including Lisp mode, rely on a special
 convention: an open-parenthesis or open-brace in the leftmost column
-always defines the @w{beginning} of a defun, and is thus always
-outside any string or comment.  (@xref{Left Margin Paren}.)  If you
-don't follow this convention, Font Lock mode can misfontify the text
-that follows an open-parenthesis or open-brace in the leftmost column
-that is inside a string or comment.
+always defines the beginning of a defun, and is thus always outside
+any string or comment.  Therefore, you should avoid placing a an
+open-parenthesis or open-brace in the leftmost column, if it is inside
+a string or comment.  @xref{Left Margin Paren}, for details.
 
 @cindex slow display during scrolling
   The variable @code{font-lock-beginning-of-syntax-function}, which is
@@ -788,11 +762,11 @@ considerably slow down redisplay while scrolling, particularly if you
 are close to the end of a large buffer.
 
 @findex font-lock-add-keywords
-  Font Lock highlighting patterns already exist for many modes, but you
-may want to fontify additional patterns.  You can use the function
-@code{font-lock-add-keywords}, to add your own highlighting patterns for
-a particular mode.  For example, to highlight @samp{FIXME:} words in C
-comments, use this:
+  Font Lock highlighting patterns already exist for most modes, but
+you may want to fontify additional patterns.  You can use the function
+@code{font-lock-add-keywords}, to add your own highlighting patterns
+for a particular mode.  For example, to highlight @samp{FIXME:} words
+in C comments, use this:
 
 @example
 (add-hook 'c-mode-hook
@@ -803,19 +777,20 @@ comments, use this:
 @end example
 
 @findex font-lock-remove-keywords
-  To remove keywords from the font-lock highlighting patterns, use the
+@noindent
+To remove keywords from the font-lock highlighting patterns, use the
 function @code{font-lock-remove-keywords}.  @xref{Search-based
 Fontification,,, elisp, The Emacs Lisp Reference Manual}.
 
 @cindex just-in-time (JIT) font-lock
 @cindex background syntax highlighting
   Fontifying large buffers can take a long time.  To avoid large
-delays when a file is visited, Emacs fontifies only the visible
-portion of a buffer.  As you scroll through the buffer, each portion
-that becomes visible is fontified as soon as it is displayed; this
-type of Font Lock is called @dfn{Just-In-Time} (or @dfn{JIT}) Lock.
-You can control how JIT Lock behaves, including telling it to perform
-fontification while idle, by customizing variables in the
+delays when a file is visited, Emacs initially fontifies only the
+visible portion of a buffer.  As you scroll through the buffer, each
+portion that becomes visible is fontified as soon as it is displayed;
+this type of Font Lock is called @dfn{Just-In-Time} (or @dfn{JIT})
+Lock.  You can control how JIT Lock behaves, including telling it to
+perform fontification while idle, by customizing variables in the
 customization group @samp{jit-lock}.  @xref{Specific Customization}.
 
 @node Highlight Interactively
@@ -826,7 +801,7 @@ customization group @samp{jit-lock}.  @xref{Specific Customization}.
 
 @findex highlight-changes-mode
 Highlight Changes mode is a minor mode that @dfn{highlights} the parts
-of the buffer were changed most recently, by giving that text a
+of the buffer that were changed most recently, by giving that text a
 different face.  To enable or disable Highlight Changes mode, use
 @kbd{M-x highlight-changes-mode}.
 
@@ -931,21 +906,23 @@ mode's symbol is a member of the list @code{hi-lock-exclude-modes}.
 display symbols that provide information about the text in the window.
 
   The most common use of the fringes is to indicate a continuation
-line, when one line of text is split into multiple lines on the
-screen.  The left fringe shows a curving arrow for each screen line
-except the first, indicating that ``this is not the real beginning.''
-The right fringe shows a curving arrow for each screen line except the
-last, indicating that ``this is not the real end.''  If the line's
-direction is right-to-left (@pxref{Bidirectional Editing}), the
-meaning of the curving arrows in the left and right fringes are
+line (@pxref{Continuation Lines}).  When one line of text is split
+into multiple screen lines, the left fringe shows a curving arrow for
+each screen line except the first, indicating that ``this is not the
+real beginning.''  The right fringe shows a curving arrow for each
+screen line except the last, indicating that ``this is not the real
+end.''  If the line's direction is right-to-left (@pxref{Bidirectional
+Editing}), the meanings of the curving arrows in the fringes are
 swapped.
 
   The fringes indicate line truncation with short horizontal arrows
 meaning ``there's more text on this line which is scrolled
-horizontally out of view;'' clicking the mouse on one of the arrows
-scrolls the display horizontally in the direction of the arrow.   The
-fringes can also indicate other things, such as empty lines, or where a
-program you are debugging is executing (@pxref{Debuggers}).
+horizontally out of view.''  Clicking the mouse on one of the arrows
+scrolls the display horizontally in the direction of the arrow.
+
+  The fringes can also indicate other things, such as buffer
+boundaries (@pxref{Displaying Boundaries}), and where a program you
+are debugging is executing (@pxref{Debuggers}).
 
 @findex set-fringe-style
 @findex fringe-mode
@@ -958,10 +935,10 @@ for the selected frame, use @kbd{M-x set-fringe-style}.
 
 @vindex indicate-buffer-boundaries
   On a graphical display, Emacs can indicate the buffer boundaries in
-the fringes.  It indicates the first line and the last line with
-angle images in the fringes.  This can be combined with up and down
-arrow images which say whether it is possible to scroll the window up
-and down.
+the fringes.  If you enable this feature, the first line and the last
+line are marked with angle images in the fringes.  This can be
+combined with up and down arrow images which say whether it is
+possible to scroll the window.
 
   The buffer-local variable @code{indicate-buffer-boundaries} controls
 how the buffer boundaries and window scrolling is indicated in the
@@ -1006,25 +983,22 @@ the location of point is enough to show you that the spaces are
 present.
 
 @findex delete-trailing-whitespace
-  Type @kbd{M-x delete-trailing-whitespace @key{RET}} to delete all
-trailing whitespace within the buffer's accessible portion
-(@pxref{Narrowing}).  This command does not remove newline characters.
+  Type @kbd{M-x delete-trailing-whitespace} to delete all trailing
+whitespace within the buffer.  If the region is active, it deletes all
+trailing whitespace in the region instead.
 
 @vindex indicate-empty-lines
 @cindex unused lines
 @cindex fringes, and unused line indication
-  Emacs can indicate unused lines at the end of the window with a
-small image in the left fringe (@pxref{Fringes}).  The image appears
-for window lines that do not correspond to any buffer text.  Blank
-lines at the end of the buffer then stand out because they do not have
-this image in the fringe.
-
-  To enable this feature, set the buffer-local variable
-@code{indicate-empty-lines} to a non-@code{nil} value.  You can enable
-or disable this feature for all new buffers by setting the default
-value of this variable, e.g.@: @code{(setq-default
-indicate-empty-lines t)};.  (This feature currently doesn't work on
-text-only terminals.)
+  On graphical displays, Emacs can indicate unused lines at the end of
+the window with a small image in the left fringe (@pxref{Fringes}).
+The image appears for window lines that do not correspond to any
+buffer text.  Blank lines at the end of the buffer then stand out
+because they do not have this image in the fringe.  To enable this
+feature, set the buffer-local variable @code{indicate-empty-lines} to
+a non-@code{nil} value.  You can enable or disable this feature for
+all new buffers by setting the default value of this variable,
+e.g.@:@code{(setq-default indicate-empty-lines t)}.
 
 @node Selective Display
 @section Selective Display
@@ -1178,11 +1152,10 @@ percentage of the total charge.
 @cindex mode line, 3D appearance
 @cindex attributes of mode line, changing
 @cindex non-integral number of lines in a window
-  By default, the mode line is drawn on graphics displays with
-3D-style highlighting, like that of a button when it is not being
-pressed.  If you don't like this effect, you can disable the 3D
-highlighting of the mode line, by customizing the attributes of the
-@code{mode-line} face.  @xref{Face Customization}.
+  On a graphical display, the mode line is drawn as a 3D box.  If you
+don't like this effect, you can disable it by customizing the
+@code{mode-line} face and setting its @code{box} attribute to
+@code{nil}.  @xref{Face Customization}.
 
 @cindex non-selected windows, mode line appearance
   By default, the mode line of nonselected windows is displayed in a
@@ -1210,51 +1183,45 @@ formats by setting each of the variables @code{eol-mnemonic-unix},
 @node Text Display
 @section How Text Is Displayed
 @cindex characters (in text)
+@cindex printing character
 
-  @acronym{ASCII} printing characters (octal codes 040 through 0176) in Emacs
-buffers are displayed with their graphics, as are non-@acronym{ASCII} multibyte
-printing characters (octal codes above 0400).
+  Most characters are @dfn{printing characters}: when they appear in a
+buffer, they are displayed literally on the screen.  Printing
+characters include @acronym{ASCII} numbers, letters, and punctuation
+characters, as well as many non-@acronym{ASCII} characters.
 
 @vindex tab-width
-  Some @acronym{ASCII} control characters are displayed in special
-ways.  The newline character (octal code 012) is displayed by starting
-a new line.  The tab character (octal code 011) is displayed by moving
-to the next tab stop column (normally every 8 columns).  The number of
-spaces per tab is controlled by the variable @code{tab-width}, which
-must have an integer value between 1 and 1000, inclusive, and is made
-buffer-local by changing it.  Note that how the tab character in the buffer
-is displayed has nothing to do with the definition of @key{TAB} as a
-command.
+@cindex control character
+  The @acronym{ASCII} character set contains non-printing @dfn{control
+characters}.  Two of these are displayed specially: the newline
+character (Unicode code point @code{U+000A}) is displayed by starting
+a new line, while the tab character (@code{U+0009}) is displayed as a
+space that extends to the next tab stop column (normally every 8
+columns).  The number of spaces per tab is controlled by the
+buffer-local variable @code{tab-width}, which must have an integer
+value between 1 and 1000, inclusive.  Note that how the tab character
+in the buffer is displayed has nothing to do with the definition of
+@key{TAB} as a command.
 
-  Other @acronym{ASCII} control characters are normally displayed as a caret
-(@samp{^}) followed by the non-control version of the character; thus,
-control-A is displayed as @samp{^A}.  The caret appears in face
-@code{escape-glyph}.
-
-  Non-@acronym{ASCII} characters 0200 through 0237 (octal) are
-displayed with octal escape sequences; thus, character code 0230
-(octal) is displayed as @samp{\230}.  The backslash appears in face
-@code{escape-glyph}.
+  Other @acronym{ASCII} control characters are displayed as a caret
+(@samp{^}) followed by the non-control version of the character, with
+the @code{escape-glyph} face.  For instance, the @samp{control-A}
+character, @code{U+0001}, is displayed as @samp{^A}.
 
 @vindex ctl-arrow
-  If the variable @code{ctl-arrow} is @code{nil}, control characters in
-the buffer are displayed with octal escape sequences, except for newline
-and tab.  Altering the value of @code{ctl-arrow} makes it local to the
-current buffer; until that time, the default value is in effect.  The
-default is initially @code{t}.
-
-  The display of character codes 0240 through 0377 (octal) may be
-either as escape sequences or as graphics.  They do not normally occur
-in multibyte buffers, but if they do, they are displayed as Latin-1
-graphics.  In unibyte mode, if you enable European display they are
-displayed using their graphics (assuming your terminal supports them),
-otherwise as escape sequences.  @xref{Unibyte Mode}.
+  The non-@acronym{ASCII}, non-printing characters @code{U+0080}
+(octal 200) through @code{U+009F} (octal 237) are displayed as octal
+escape sequences, with the @code{escape-glyph} face.  For instance,
+character code @code{U+0098} (octal 230) is displayed as @samp{\230}.
+If you change the buffer-local variable @code{ctl-arrow} to
+@code{nil}, @acronym{ASCII} control characters are also displayed as
+octal escape sequences instead of caret escape sequences.
 
 @vindex nobreak-char-display
-@cindex no-break space, display
-@cindex no-break hyphen, display
+@cindex non-breaking space, display
+@cindex non-breaking hyphen, display
 @cindex soft hyphen, display
-  Some character sets define ``no-break'' versions of the space and
+  There are two special ``non-breaking'' versions of the space and
 hyphen characters, which are used where a line should not be broken.
 Emacs normally displays these characters with special faces
 (respectively, @code{nobreak-space} and @code{escape-glyph}) to
@@ -1269,45 +1236,13 @@ elisp, The Emacs Lisp Reference Manual}.
 
 @cindex glyphless characters
 @cindex characters with no font glyphs
-  On graphics displays, some characters could have no glyphs in any of
-the fonts available to Emacs.  On text terminals, some characters
-could be impossible to encode with the terminal coding system
-(@pxref{Terminal Coding}).  Emacs can display such @dfn{glyphless}
-characters using one of the following methods:
-
-@table @code
-@item zero-width
-Don't display the character.
-
-@item thin-space
-Display a thin space, 1-pixel wide on graphics displays or 1-character
-wide on text terminals.
-
-@item empty-box
-Display an empty box.
-
-@item acronym
-Display the acronym of the character's name (such as @sc{zwnj} or
-@sc{rlm}) in a box.
-
-@item hex-code
-Display the Unicode codepoint of the character in hexadecimal
-notation, in a box.
-@end table
-
-@noindent
-@cindex @code{glyphless-char} face
-With the exception of @code{zero-width}, all other methods draw these
-characters in a special face @code{glyphless-char}, which you can
-customize.
-
-@vindex glyphless-char-display-control
-@vindex char-acronym-table
-To control what glyphless characters are displayed using which method,
-customize the variable @code{glyphless-char-display-control}; see its
-doc string for the details.  For even finer control, set the elements
-of 2 char-tables: @code{glyphless-char-display} and
-@code{char-acronym-table}.
+  On graphical displays, some characters may have no glyphs in any of
+the fonts available to Emacs.  These @dfn{glyphless characters} are
+normally displayed as boxes containing the hexadecimal character code.
+You can control the display method by customizing the variable
+@code{glyphless-char-display-control}.  @xref{Glyphless Chars,,
+Glyphless Character Display, elisp, The Emacs Lisp Reference Manual},
+for details.
 
 @node Cursor Display
 @section Displaying the Cursor

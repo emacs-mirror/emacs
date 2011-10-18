@@ -54,12 +54,12 @@ to change the foreground color of the face at that position (if the
 instead). To discard the settings, create a new frame and close the
 altered one.
 
-  @key{S-Mouse-1} (i.e., clicking the left mouse button
-while holding down the @key{Shift} key) adjusts the region to the
-click position, just like @key{Mouse-3} (@code{mouse-save-then-kill});
-it does not pop up a menu for changing the default face, as
-@key{S-Mouse-1} normally does (@pxref{Temporary Face Changes}).  This
-change makes Emacs behave more like other Mac / GNUstep applications.
+  @key{S-Mouse-1} (i.e., clicking the left mouse button while holding
+down the @key{Shift} key) adjusts the region to the click position,
+just like @key{Mouse-3} (@code{mouse-save-then-kill}); it does not pop
+up a menu for changing the default face, as @key{S-Mouse-1} normally
+does (@pxref{Text Scale}).  This change makes Emacs behave more like
+other Mac / GNUstep applications.
 
   When you open or save files using the menus, or using the
 @key{Cmd-o} and @key{Cmd-S} bindings, Emacs uses graphical file

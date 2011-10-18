@@ -236,10 +236,10 @@ is taken from the desktop settings.
 The frame-parameter tool-bar-position controls this.  It takes the values
 top, left, right or bottom.  The Options => Show/Hide menu has entries
 for this.
-
++++
 *** The colors for selected text (the `region' face) are taken from
 the GTK theme when Emacs is built with GTK.
-
++++
 *** Emacs uses GTK tooltips by default if built with GTK.  You can turn that
 off by customizing x-gtk-use-system-tooltips.
 
@@ -1146,6 +1146,7 @@ combined with minibuffer-local-must-match-map.
 *** New variable `completing-read-function' allows overriding the
 behavior of `completing-read'.
 
++++
 ** `glyphless-char-display' can now distinguish between graphical and
 text terminal display, via a char-table entry that is a cons cell.
 
@@ -1311,7 +1312,7 @@ Use `filter-buffer-substring-functions' instead.
 *** `byte-compile-disable-print-circle' is obsolete.
 
 *** `deferred-action-list' and `deferred-action-function' are obsolete.
-
++++
 *** `font-lock-maximum-size' is obsolete.
 
 
