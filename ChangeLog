@@ -1,3 +1,7 @@
+2011-10-18  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* configure.in (GLIB_REQUIRED, GTK_REQUIRED): Set to 2.10 (Bug#9786).
+
 2011-10-18  Chong Yidong  <cyd@gnu.org>
 
 	* make-dist: Remove Cocoa/Emacs.xcodeproj from distribution.
