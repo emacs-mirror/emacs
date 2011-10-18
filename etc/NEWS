@@ -51,6 +51,8 @@ This is not a new feature; only the configure flag is new.
 ---
 ** There is a new configure option --with-wide-int.
 With it, Emacs integers typically have 62 bits, even on 32-bit machines.
+On 32-bit hosts, this raises the limit on buffer sizes from 512 MiB to
+a bit less than 4 GiB, with the exact limit set by the operating system.
 
 ---
 ** New translation of the Emacs Tutorial in Hebrew is available.
