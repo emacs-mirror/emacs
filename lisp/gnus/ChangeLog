@@ -1,3 +1,13 @@
+2011-10-18  Teodor Zlatanov  <tzz@lifelogs.com>
+
+	* gnus-util.el (gnus-bound-and-true-p): Macro for XEmacs compatibility.
+	* nnir.el (nnir-mode): Use it.
+	* nnmairix.el (nnmairix-determine-original-group-from-registry):
+	Use it.
+
+	* nnir.el (gnus-registry-enabled): Defvar to keep the compiler happy.
+	* nnmairix.el (gnus-registry-enabled): Ditto.
+
 2011-10-17  Teodor Zlatanov  <tzz@lifelogs.com>
 
 	* gnus-registry.el (gnus-registry-enabled): Add new variable.
