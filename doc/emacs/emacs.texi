@@ -388,7 +388,6 @@ Incremental Search
                           or else edit the search string.
 * Isearch Scroll::      Scrolling during an incremental search.
 * Isearch Minibuffer::  Incremental search of the minibuffer history.
-* Slow Isearch::        Incremental search features for slow terminals.
 
 Replacement Commands
 

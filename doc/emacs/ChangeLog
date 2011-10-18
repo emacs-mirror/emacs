@@ -1,3 +1,18 @@
+2011-10-18  Chong Yidong  <cyd@gnu.org>
+
+	* display.texi (Fringes): Move overflow-newline-into-fringe here,
+	from Line Truncation node.
+	(Standard Faces): Note that only the background of the cursor face
+	has an effect.
+	(Cursor Display): Fix descriptions of cursor face
+	and bar cursor blinking.
+	(Text Display): Document nobreak-char-display more clearly.
+	(Line Truncation): Add xref to Split Window node.
+	(Display Custom): Don't bother documenting baud-rate or
+	no-redraw-on-reenter.
+
+	* search.texi (Slow Isearch): Node removed.
+
 2011-10-18  Glenn Morris  <rgm@gnu.org>
 
 	* maintaining.texi (Registering): Remove vc-initial-comment.  (Bug#9745)

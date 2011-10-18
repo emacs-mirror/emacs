@@ -554,7 +554,7 @@ Whitespace}).
 The face for displaying control characters and escape sequences
 (@pxref{Text Display}).
 @item nobreak-space
-The face for displaying ``non-breaking'' space characters (@pxref{Text
+The face for displaying ``no-break'' space characters (@pxref{Text
 Display}).
 @end table
 
@@ -599,7 +599,8 @@ displays.  (The fringes are the narrow portions of the Emacs frame
 between the text area and the window's right and left borders.)
 @xref{Fringes}.
 @item cursor
-This face determines the color of the text cursor.
+The @code{:background} attribute of this face specifies the color of
+the text cursor.  @xref{Cursor Display}.
 @item tooltip
 This face is used for tooltip text.  By default, if Emacs is built
 with GTK support, tooltips are drawn via GTK and this face has no
@@ -901,9 +902,14 @@ mode's symbol is a member of the list @code{hi-lock-exclude-modes}.
 @section Window Fringes
 @cindex fringes
 
-  On a graphical display, each Emacs window normally has narrow
+@findex set-fringe-style
+@findex fringe-mode
+  On graphical displays, each Emacs window normally has narrow
 @dfn{fringes} on the left and right edges.  The fringes are used to
 display symbols that provide information about the text in the window.
+You can type @kbd{M-x fringe-mode} to disable the fringes, or modify
+their width.  This command affects fringes in all frames; to modify
+fringes on the selected frame only, use @kbd{M-x set-fringe-style}.
 
   The most common use of the fringes is to indicate a continuation
 line (@pxref{Continuation Lines}).  When one line of text is split
@@ -924,17 +930,18 @@ scrolls the display horizontally in the direction of the arrow.
 boundaries (@pxref{Displaying Boundaries}), and where a program you
 are debugging is executing (@pxref{Debuggers}).
 
-@findex set-fringe-style
-@findex fringe-mode
-  You can enable and disable the fringes for all frames using
-@kbd{M-x fringe-mode}.  To enable and disable the fringes
-for the selected frame, use @kbd{M-x set-fringe-style}.
+@vindex overflow-newline-into-fringe
+  The fringe is also used for drawing the cursor, if the current line
+is exactly as wide as the window and point is at the end of the line.
+To disable this, change the variable
+@code{overflow-newline-into-fringe} to @code{nil}; this causes Emacs
+to continue or truncate lines that are exactly as wide as the window.
 
 @node Displaying Boundaries
 @section Displaying Boundaries
 
 @vindex indicate-buffer-boundaries
-  On a graphical display, Emacs can indicate the buffer boundaries in
+  On graphical displays, Emacs can indicate the buffer boundaries in
 the fringes.  If you enable this feature, the first line and the last
 line are marked with angle images in the fringes.  This can be
 combined with up and down arrow images which say whether it is
@@ -1127,14 +1134,15 @@ set the variable @code{display-time-24hr-format} to @code{t}.
 @vindex display-time-mail-file
 @vindex display-time-mail-directory
   The word @samp{Mail} appears after the load level if there is mail
-for you that you have not read yet.  On a graphical display you can use
-an icon instead of @samp{Mail} by customizing
-@code{display-time-use-mail-icon}; this may save some space on the mode
-line.  You can customize @code{display-time-mail-face} to make the mail
-indicator prominent.  Use @code{display-time-mail-file} to specify
-the mail file to check, or set @code{display-time-mail-directory}
-to specify the directory to check for incoming mail (any nonempty regular
-file in the directory is considered as ``newly arrived mail'').
+for you that you have not read yet.  On graphical displays, you can
+use an icon instead of @samp{Mail} by customizing
+@code{display-time-use-mail-icon}; this may save some space on the
+mode line.  You can customize @code{display-time-mail-face} to make
+the mail indicator prominent.  Use @code{display-time-mail-file} to
+specify the mail file to check, or set
+@code{display-time-mail-directory} to specify the directory to check
+for incoming mail (any nonempty regular file in the directory is
+considered as ``newly arrived mail'').
 
 @cindex mail (on mode line)
 @findex display-battery-mode
@@ -1152,7 +1160,7 @@ percentage of the total charge.
 @cindex mode line, 3D appearance
 @cindex attributes of mode line, changing
 @cindex non-integral number of lines in a window
-  On a graphical display, the mode line is drawn as a 3D box.  If you
+  On graphical displays, the mode line is drawn as a 3D box.  If you
 don't like this effect, you can disable it by customizing the
 @code{mode-line} face and setting its @code{box} attribute to
 @code{nil}.  @xref{Face Customization}.
@@ -1218,17 +1226,23 @@ If you change the buffer-local variable @code{ctl-arrow} to
 octal escape sequences instead of caret escape sequences.
 
 @vindex nobreak-char-display
-@cindex non-breaking space, display
-@cindex non-breaking hyphen, display
-@cindex soft hyphen, display
-  There are two special ``non-breaking'' versions of the space and
-hyphen characters, which are used where a line should not be broken.
-Emacs normally displays these characters with special faces
-(respectively, @code{nobreak-space} and @code{escape-glyph}) to
-distinguish them from ordinary spaces and hyphens.  You can turn off
-this feature by setting the variable @code{nobreak-char-display} to
-@code{nil}.  If you set the variable to any other value, that means to
-prefix these characters with an escape character.
+@cindex non-breaking space
+@cindex non-breaking hyphen
+@cindex soft hyphen
+  Some non-@acronym{ASCII} characters have the same appearance as an
+@acronym{ASCII} space or hyphen (minus) character.  Such characters
+can cause problems if they are entered into a buffer without your
+realization, e.g. by yanking; for instance, source code compilers
+typically do not treat non-@acronym{ASCII} spaces as whitespace
+characters.  To deal with this problem, Emacs displays such characters
+specially: it displays @code{U+00A0} (no-break space) with the
+@code{nobreak-space} face, and it displays @code{U+00AD} (soft
+hyphen), @code{U+2010} (hyphen), and @code{U+2011} (non-breaking
+hyphen) with the @code{escape-glyph} face.  To disable this, change
+the variable @code{nobreak-char-display} to @code{nil}.  If you give
+this variable a non-@code{nil} and non-@code{t} value, Emacs instead
+displays such characters as a highlighted backslash followed by a
+space or hyphen.
 
   You can customize the way any particular character code is displayed
 by means of a display table.  @xref{Display Tables,, Display Tables,
@@ -1246,47 +1260,60 @@ for details.
 
 @node Cursor Display
 @section Displaying the Cursor
-
-@findex blink-cursor-mode
-@vindex blink-cursor-alist
-@cindex cursor, locating visually
-@cindex cursor, blinking
-  You can customize the cursor's color, and whether it blinks, using
-the @code{cursor} Custom group (@pxref{Easy Customization}).  On
-a graphical display, the command @kbd{M-x blink-cursor-mode} enables
-or disables the blinking of the cursor.  (On text terminals, the
-terminal itself blinks the cursor, and Emacs has no control over it.)
-You can control how the cursor appears when it blinks off by setting
-the variable @code{blink-cursor-alist}.
-
-@vindex cursor-type
-  You can change the shape of the cursor from the default ``box'' look
-to a bar by altering the @code{cursor-type} variable.
+@cindex text cursor
 
 @vindex visible-cursor
-  Some text terminals offer two different cursors: the normal cursor
-and the very visible cursor, where the latter may be e.g. bigger or
-blinking.  By default Emacs uses the very visible cursor, and switches
-to it when you start or resume Emacs.  If the variable
-@code{visible-cursor} is @code{nil} when Emacs starts or resumes, it
-doesn't switch, so it uses the normal cursor.
+  On a text terminal, the cursor's appearance is controlled by the
+terminal, largely out of the control of Emacs.  Some terminals offer
+two different cursors: a ``visible'' static cursor, and a ``very
+visible'' blinking cursor.  By default, Emacs uses the very visible
+cursor, and switches to it when you start or resume Emacs.  If the
+variable @code{visible-cursor} is @code{nil} when Emacs starts or
+resumes, it uses the normal cursor.
 
-@cindex cursor in non-selected windows
-@vindex cursor-in-non-selected-windows
-  Normally, the cursor appears in non-selected windows without
-blinking, with the same appearance as when the blinking cursor blinks
-``off.''  For a box cursor, this is a hollow box; for a bar cursor,
-this is a thinner bar.  To turn off cursors in non-selected windows,
-customize the variable @code{cursor-in-non-selected-windows} and
-assign it a @code{nil} value.
+@cindex cursor face
+@vindex cursor-type
+  On a graphical display, many more properties of the text cursor can
+be altered.  To customize its color, change the @code{:background}
+attribute of the face named @code{cursor} (@pxref{Face
+Customization}).  (The other attributes of this face have no effect;
+the text shown under the cursor is drawn using the frame's background
+color.)  To change its shape, customize the buffer-local variable
+@code{cursor-type}; possible values are @code{box} (the default),
+@code{hollow} (a hollow box), @code{bar} (a vertical bar), @code{(bar
+. @var{n})} (a vertical bar @var{n} pixels wide), @code{hbar} (a
+horizontal bar), @code{(hbar . @var{n})} (a horizontal bar @var{n}
+pixels tall), or @code{nil} (no cursor at all).
+
+@findex blink-cursor-mode
+@cindex cursor, blinking
+@cindex blinking cursor
+@vindex blink-cursor-alist
+  To disable cursor blinking, change the variable
+@code{blink-cursor-mode} to @code{nil} (@pxref{Easy Customization}),
+or add the line @code{(blink-cursor-mode 0)} to your init file.
+Alternatively, you can change how the cursor looks when it ``blinks
+off'' by customizing the list variable @code{blink-cursor-alist}.
+Each element in the list should have the form @code{(@var{on-type}
+. @var{off-type})}; this means that if the cursor is displayed as
+@var{on-type} when it blinks on (where @var{on-type} is one of the
+cursor types described above), then it is displayed as @var{off-type}
+when it blinks off.
 
 @vindex x-stretch-cursor
 @cindex wide block cursor
-  On graphical displays, Emacs can optionally draw the block cursor
-as wide as the character under the cursor---for example, if the cursor
-is on a tab character, it would cover the full width occupied by that
-tab character.  To enable this feature, set the variable
+  Some characters, such as tab characters, are ``extra wide''.  When
+the cursor is positioned over such a character, it is normally drawn
+with the default character width.  You can make the cursor stretch to
+cover wide characters, by changing the variable
 @code{x-stretch-cursor} to a non-@code{nil} value.
+
+@cindex cursor in non-selected windows
+@vindex cursor-in-non-selected-windows
+  The cursor normally appears in non-selected windows as a
+non-blinking hollow box.  (For a bar cursor, it instead appears as a
+thinner bar.)  To turn off cursors in non-selected windows, change the
+variable @code{cursor-in-non-selected-windows} to @code{nil}.
 
 @findex hl-line-mode
 @findex global-hl-line-mode
@@ -1297,18 +1324,17 @@ hl-line-mode} to enable or disable it in the current buffer.  @kbd{M-x
 global-hl-line-mode} enables or disables the same mode globally.
 
 @node Line Truncation
-@section Truncation of Lines
+@section Line Truncation
 
 @cindex truncation
 @cindex line truncation, and fringes
-  As an alternative to continuation (@pxref{Continuation Lines}), Emacs
-can display long lines by @dfn{truncation}.  This means that all the
-characters that do not fit in the width of the screen or window do not
-appear at all.  On graphical displays, a small straight arrow in the
-fringe indicates truncation at either end of the line.  On text-only
-terminals, @samp{$} appears in the leftmost column when there is text
-truncated to the left, and in the rightmost column when there is text
-truncated to the right.
+  As an alternative to continuation (@pxref{Continuation Lines}),
+Emacs can display long lines by @dfn{truncation}.  This means that all
+the characters that do not fit in the width of the screen or window do
+not appear at all.  On graphical displays, a small straight arrow in
+the fringe indicates truncation at either end of the line.  On
+text-only terminals, this is indicated with @samp{$} signs in the
+leftmost and/or rightmost columns.
 
 @vindex truncate-lines
 @findex toggle-truncate-lines
@@ -1320,21 +1346,12 @@ toggle-truncate-lines}.  This works by locally changing the variable
 are truncated; if it is @code{nil}, they are continued onto multiple
 screen lines.  Setting the variable @code{truncate-lines} in any way
 makes it local to the current buffer; until that time, the default
-value is in effect.  The default value is normally @code{nil}.
+value, which is normally @code{nil}, is in effect.
 
-@c @vindex truncate-partial-width-windows  @c Idx entry is in Split Windows.
-  If the variable @code{truncate-partial-width-windows} is
-non-@code{nil}, it forces truncation rather than continuation in any
-window less than the full width of the screen or frame, regardless of
-the value of @code{truncate-lines}.  See also @ref{Display,, Display,
-elisp, The Emacs Lisp Reference Manual}.
-
-@vindex overflow-newline-into-fringe
-  If the variable @code{overflow-newline-into-fringe} is
-non-@code{nil} on a graphical display, then Emacs does not continue or
-truncate a line which is exactly as wide as the window.  Instead, the
-newline overflows into the right fringe, and the cursor appears in the
-fringe when positioned on that newline.
+@vindex truncate-partial-width-windows
+  If a split window becomes too narrow, Emacs may automatically enable
+line truncation.  @xref{Split Window}, for the variable
+@code{truncate-partial-width-windows} which controls this.
 
 @node Visual Line Mode
 @section Visual Line Mode
@@ -1387,11 +1404,8 @@ variable @code{visual-line-fringe-indicators}.
 @node Display Custom
 @section Customization of Display
 
-  This section describes variables (@pxref{Variables}) that you can
-change to customize how Emacs displays.  Beginning users can skip
-it.
-@c the reason for that pxref is because an xref early in the
-@c ``echo area'' section leads here.
+  This section describes variables that control miscellaneous aspects
+of the appearance of the Emacs screen.  Beginning users can skip it.
 
 @vindex visible-bell
   If the variable @code{visible-bell} is non-@code{nil}, Emacs attempts
@@ -1404,18 +1418,6 @@ to make the screen blink.
 keys; its value is the number of seconds of pause required to cause echoing
 to start, or zero, meaning don't echo at all.  The value takes effect when
 there is someting to echo.  @xref{Echo Area}.
-
-@vindex baud-rate
-  The variable @anchor{baud-rate}@code{baud-rate} holds the output
-speed of the terminal.  Setting this variable does not change the
-speed of actual data transmission, but the value is used for
-calculations.  On text-only terminals, it affects padding, and
-decisions about whether to scroll part of the screen or redraw it
-instead.  It also affects the behavior of incremental search.  On
-graphical displays, @code{baud-rate} is only used to determine how
-frequently to look for pending input during display updating.  A
-higher value of @code{baud-rate} means that check for pending input
-will be done less frequently.
 
 @cindex mouse pointer
 @cindex hourglass pointer display
@@ -1458,15 +1460,3 @@ itself, in pixels; the default is 2.
 result in text that is hard to read.  Call the function
 @code{tty-suppress-bold-inverse-default-colors} with a non-@code{nil}
 argument to suppress the effect of bold-face in this case.
-
-@vindex no-redraw-on-reenter
-  On a text-only terminal, when you reenter Emacs after suspending, Emacs
-normally clears the screen and redraws the entire display.  On some
-terminals with more than one page of memory, it is possible to arrange
-the termcap entry so that the @samp{ti} and @samp{te} strings (output
-to the terminal when Emacs is entered and exited, respectively) switch
-between pages of memory so as to use one page for Emacs and another
-page for other output.  On such terminals, you might want to set the variable
-@code{no-redraw-on-reenter} non-@code{nil}; this tells Emacs to
-assume, when resumed, that the screen page it is using still contains
-what Emacs last wrote there.

@@ -109,9 +109,9 @@ and pops down the *Completions* buffer accordingly.
 *** Completion can cycle, depending on completion-cycle-threshold.
 +++
 *** New completion style `substring'.
-
++++
 *** Completion style can be set per-category `completion-category-overrides'.
-
++++
 *** Completion of buffers now uses substring completion by default.
 
 ** Mail changes
@@ -224,6 +224,10 @@ cannot be encoded by the `terminal-coding-system'.
 
 ---
 *** New input methods for Farsi: farsi and farsi-translit.
+
++++
+*** `nobreak-char-display' now also highlights Unicode hyphen chars
+(U+2010 and U+2011).
 
 ** Improved GTK integration
 
