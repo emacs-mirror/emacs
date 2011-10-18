@@ -1,3 +1,7 @@
+2011-10-18  Michael Albinus  <michael.albinus@gmx.de>
+
+	* net/tramp.el (tramp-file-name-handler): Load Tramp packages silently.
+
 2011-10-18  Jirka Kosek  <jirka@kosek.cz>  (tiny change)
 
 	* international/mule.el (sgml-html-meta-auto-coding-function):
