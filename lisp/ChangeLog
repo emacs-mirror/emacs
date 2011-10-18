@@ -1,3 +1,9 @@
+2011-10-18  Juanma Barranquero  <lekktu@gmail.com>
+
+	* facemenu.el (list-colors-duplicates): On Windows, detect more
+	duplicates by assuming that only colors matching "^System" are
+	special "system colors".  (Bug#9722)
+
 2011-10-18  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* vc/log-edit.el (log-edit): Add "Author:" header to encourage people
@@ -26,7 +32,7 @@
 
 	* font-lock.el (font-lock-maximum-size): Mark as obsolete.
 
-2011-10-17  Ryan Barrett <emacs@ryanb.org>  (tiny change)
+2011-10-17  Ryan Barrett  <emacs@ryanb.org>  (tiny change)
 
 	* dirtrack.el (dirtrack): Support shell buffers with path
 	prefixes, e.g. tramp-based remote shells.  (Bug#9647)
@@ -465,8 +471,8 @@
 
 	* net/newst-reader.el (newsticker-html-renderer)
 	(newsticker-show-news): Automatically
-	load html rendering package if newsticker-html-renderer is
-	set. Fixes "Warning: defvar ignored because w3m-fill-column is
+	load html rendering package if newsticker-html-renderer is set.
+	Fixes "Warning: defvar ignored because w3m-fill-column is
 	let-bound" and the error "Symbol's value as variable is void:
 	w3m-fill-column".
 
