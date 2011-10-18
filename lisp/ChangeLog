@@ -1,3 +1,10 @@
+2011-10-18  Jirka Kosek  <jirka@kosek.cz>  (tiny change)
+
+	* international/mule.el (sgml-html-meta-auto-coding-function):
+	Add support for detecting encoding in HTML5 specified only as
+	<meta charset="UTF-8">.  Implementation just makes http-equiv and
+	content-type parts from HTML4 encoding string optional.  (Bug#9716)
+
 2011-10-18  Glenn Morris  <rgm@gnu.org>
 
 	* vc/vc.el (vc-initial-comment): Mark as obsolete.  (Bug#9745)
