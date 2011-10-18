@@ -6371,8 +6371,8 @@ get_next_display_element (struct it *it)
 	{
 	  Lisp_Object dv;
 	  struct charset *unibyte = CHARSET_FROM_ID (charset_unibyte);
-	  enum { char_is_other = 0, char_is_nbsp, char_is_soft_hyphen }
-	  nbsp_or_shy = char_is_other;
+	  int nonascii_space_p = 0;
+	  int nonascii_hyphen_p = 0;
 	  int c = it->c;	/* This is the character to display.  */
 
 	  if (! it->multibyte_p && ! ASCII_CHAR_P (c))
@@ -6424,10 +6424,15 @@ get_next_display_element (struct it *it)
 	      goto get_next;
 	    }
 
+	  /* If `nobreak-char-display' is non-nil, we display
+	     non-ASCII spaces and hyphens specially.  */
 	  if (! ASCII_CHAR_P (c) && ! NILP (Vnobreak_char_display))
-	    nbsp_or_shy = (c == 0xA0   ? char_is_nbsp
-			   : c == 0xAD ? char_is_soft_hyphen
-			   :             char_is_other);
+	    {
+	      if (c == 0xA0)
+		nonascii_space_p = 1;
+	      else if (c == 0xAD || c == 0x2010 || c == 0x2011)
+		nonascii_hyphen_p = 1;
+	    }
 
 	  /* Translate control characters into `\003' or `^C' form.
 	     Control characters coming from a display table entry are
@@ -6435,7 +6440,8 @@ get_next_display_element (struct it *it)
 	     the translation.  This could easily be changed but I
 	     don't believe that it is worth doing.
 
-	     NBSP and SOFT-HYPEN are property translated too.
+	     The characters handled by `nobreak-char-display' must be
+	     translated too.
 
 	     Non-printable characters and raw-byte characters are also
 	     translated to octal form.  */
@@ -6446,14 +6452,15 @@ get_next_display_element (struct it *it)
 		      && it->glyph_row
 		      && (it->glyph_row->mode_line_p || it->avoid_cursor_p))
 		  || (c != '\n' && c != '\t'))
-	       : (nbsp_or_shy
+	       : (nonascii_space_p
+		  || nonascii_hyphen_p
 		  || CHAR_BYTE8_P (c)
 		  || ! CHAR_PRINTABLE_P (c))))
 	    {
-	      /* C is a control character, NBSP, SOFT-HYPEN, raw-byte,
-		 or a non-printable character which must be displayed
-		 either as '\003' or as `^C' where the '\\' and '^'
-		 can be defined in the display table.  Fill
+	      /* C is a control character, non-ASCII space/hyphen,
+		 raw-byte, or a non-printable character which must be
+		 displayed either as '\003' or as `^C' where the '\\'
+		 and '^' can be defined in the display table.  Fill
 		 IT->ctl_chars with glyphs for what we have to
 		 display.  Then, set IT->dpvec to these glyphs.  */
 	      Lisp_Object gc;
@@ -6502,17 +6509,14 @@ get_next_display_element (struct it *it)
 		  goto display_control;
 		}
 
-	      /* Handle non-break space in the mode where it only gets
+	      /* Handle non-ascii space in the mode where it only gets
 		 highlighting.  */
 
-	      if (EQ (Vnobreak_char_display, Qt)
-		  && nbsp_or_shy == char_is_nbsp)
+	      if (nonascii_space_p && EQ (Vnobreak_char_display, Qt))
 		{
-		  /* Merge the no-break-space face into the current face.  */
+		  /* Merge `nobreak-space' into the current face.  */
 		  face_id = merge_faces (it->f, Qnobreak_space, 0,
 					 it->face_id);
-
-		  c = ' ';
 		  XSETINT (it->ctl_chars[0], ' ');
 		  ctl_len = 1;
 		  goto display_control;
@@ -6552,25 +6556,21 @@ get_next_display_element (struct it *it)
 		  last_escape_glyph_merged_face_id = face_id;
 		}
 
-	      /* Handle soft hyphens in the mode where they only get
-		 highlighting.  */
+	      /* Draw non-ASCII hyphen with just highlighting: */
 
-	      if (EQ (Vnobreak_char_display, Qt)
-		  && nbsp_or_shy == char_is_soft_hyphen)
+	      if (nonascii_hyphen_p && EQ (Vnobreak_char_display, Qt))
 		{
 		  XSETINT (it->ctl_chars[0], '-');
 		  ctl_len = 1;
 		  goto display_control;
 		}
 
-	      /* Handle non-break space and soft hyphen
-		 with the escape glyph.  */
+	      /* Draw non-ASCII space/hyphen with escape glyph: */
 
-	      if (nbsp_or_shy)
+	      if (nonascii_space_p || nonascii_hyphen_p)
 		{
 		  XSETINT (it->ctl_chars[0], escape_glyph);
-		  c = (nbsp_or_shy == char_is_nbsp ? ' ' : '-');
-		  XSETINT (it->ctl_chars[1], c);
+		  XSETINT (it->ctl_chars[1], nonascii_space_p ? ' ' : '-');
 		  ctl_len = 2;
 		  goto display_control;
 		}
@@ -28001,12 +28001,18 @@ The face used for trailing whitespace is `trailing-whitespace'.  */);
   Vshow_trailing_whitespace = Qnil;
 
   DEFVAR_LISP ("nobreak-char-display", Vnobreak_char_display,
-    doc: /* *Control highlighting of nobreak space and soft hyphen.
-A value of t means highlight the character itself (for nobreak space,
-use face `nobreak-space').
-A value of nil means no highlighting.
-Other values mean display the escape glyph followed by an ordinary
-space or ordinary hyphen.  */);
+    doc: /* Control highlighting of non-ASCII space and hyphen chars.
+If the value is t, Emacs highlights non-ASCII chars which have the
+same appearance as an ASCII space or hyphen, using the `nobreak-space'
+or `escape-glyph' face respectively.
+
+U+00A0 (no-break space), U+00AD (soft hyphen), U+2010 (hyphen), and
+U+2011 (non-breaking hyphen) are affected.
+
+Any other non-nil value means to display these characters as a escape
+glyph followed by an ordinary space or hyphen.
+
+A value of nil means no special handling of these characters.  */);
   Vnobreak_char_display = Qt;
 
   DEFVAR_LISP ("void-text-area-pointer", Vvoid_text_area_pointer,

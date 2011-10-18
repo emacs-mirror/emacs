@@ -1,3 +1,8 @@
+2011-10-18  Chong Yidong  <cyd@gnu.org>
+
+	* xdisp.c (get_next_display_element): Handle U+2010 and U+2011
+	with nobreak-char-display too.
+
 2011-10-18  Eli Zaretskii  <eliz@gnu.org>
 
 	Fix part 3 of bug#9771.
