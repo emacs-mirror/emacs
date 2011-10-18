@@ -290,9 +290,10 @@ is `(valuefunc member)'."
   (autoload 'nnimap-command "nnimap")
   (autoload 'nnimap-possibly-change-group "nnimap")
   (autoload 'nnimap-make-thread-query "nnimap")
-  (autoload 'gnus-registry-action "gnus-registry")
-  (defvar gnus-registry-install))
+  (autoload 'gnus-registry-action "gnus-registry"))
 
+;; Suppress byte-compiler warning `reference to free variable'
+(defvar gnus-registry-enabled)
 
 (nnoo-declare nnir)
 (nnoo-define-basics nnir)
@@ -1741,8 +1742,7 @@ environment unless `not-global' is non-nil."
   (when (eq (car (gnus-find-method-for-group gnus-newsgroup-name)) 'nnir)
     (setq gnus-summary-line-format
 	  (or nnir-summary-line-format gnus-summary-line-format))
-    (when (and (boundp 'gnus-registry-install)
-		       (eq gnus-registry-install t))
+    (when (gnus-bound-and-true-p gnus-registry-enabled)
       (remove-hook 'gnus-summary-article-delete-hook 'gnus-registry-action t)
       (remove-hook 'gnus-summary-article-move-hook 'gnus-registry-action t)
       (remove-hook 'gnus-summary-article-expire-hook 'gnus-registry-action t)

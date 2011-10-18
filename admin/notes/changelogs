@@ -1,3 +1,7 @@
+If installing changes written by someone else, make the ChangeLog
+entry in their name, not yours.
+
+
 http://lists.gnu.org/archive/html/emacs-devel/2007-09/msg00793.html
   There is no need to make change log entries for files such as NEWS,
   MAINTAINERS, and FOR-RELEASE.

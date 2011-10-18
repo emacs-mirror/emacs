@@ -36,6 +36,7 @@ that Emacs presents to the user.
 * Window Systems::      Which window system is being used.
 * Bidirectional Display:: Display of bidirectional scripts, such as
                              Arabic and Farsi.
+* Glyphless Chars::     How glyphless characters are drawn.
 @end menu
 
 @node Refresh Screen
@@ -6242,3 +6243,96 @@ affect all Emacs frames and windows.
 appropriate mirrored character in the reordered text.  Lisp programs
 can affect the mirrored display by changing this property.  Again, any
 such changes affect all of Emacs display.
+
+@node Glyphless Chars
+@section Glyphless Character Display
+@cindex glyphless characters
+
+  @dfn{Glyphless characters} are not displayed in the usual way when
+they appear in a buffer, but in some special way (e.g. as a box
+containing a hexadecimal code).  These include characters that cannot
+be displayed with any available font (on a graphical display), or that
+cannot be encoded by the terminal's coding system (on a text-only
+terminal).  Specific characters can also be defined to be glyphless.
+
+@defvar glyphless-char-display
+The value of this variable is a char-table that defines glyphless
+characters and how they are displayed.  If an entry is @code{nil}, the
+corresponding character is displayed in its usual way.  Otherwise, an
+entry should be one of the following display methods:
+
+@table @asis
+@item @code{zero-width}
+Don't display the character.
+
+@item @code{thin-space}
+Display a thin space, 1-pixel wide on graphical displays, or
+1-character wide on text-only terminals.
+
+@item @code{empty-box}
+Display an empty box.
+
+@item @code{hex-code}
+Display a box containing the Unicode codepoint of the character, in
+hexadecimal notation.
+
+@item an @acronym{ASCII} string
+Display a box containing that string.
+@end table
+
+@noindent
+Except for @code{zero-width}, these methods display using the
+@code{glyphless-char} face.
+
+An entry can also be a cons cell @code{(@var{graphical}
+. @var{text})}, where @var{graphical} and @var{text} are the display
+methods on graphical displays and text-only terminals respectively.
+
+The char-table has one extra slot, which determines how to display any
+character that cannot be displayed with any available font, or cannot
+be encoded by the terminal's coding system.  Its value should be one
+of the above display methods, except @code{zero-width} or a cons cell.
+@end defvar
+
+@defopt glyphless-char-display-control
+This user option provides a convenient way to set
+@code{glyphless-char-display} for groups of similar characters.  It
+takes effect via a custom @code{:set} function (@pxref{Variable
+Definitions}), which update @code{glyphless-char-display}.
+
+Its value should be an alist of elements @code{(@var{group}
+. @var{method})}, where @var{group} is a symbol specifying a group of
+characters, and @var{method} is a symbol specifying how to display
+them.
+
+@var{group} should be one of the following:
+
+@table @code
+@item c0-control
+@acronym{ASCII} control characters @code{U+0000} to @code{U+001F},
+excluding the newline and tab characters (normally displayed as escape
+sequences like @samp{^A}; @pxref{Text Display,, How Text Is Displayed,
+emacs, The GNU Emacs Manual}).
+
+@item c1-control
+Non-@acronym{ASCII}, non-printing characters @code{U+0080} to
+@code{U+009F} (normally displayed as octal escape sequences like
+@samp{\230}).
+
+@item format-control
+Characters of Unicode General Category `Cf', such as @samp{U+200E}
+(Left-to-Right Mark), but excluding characters that have graphic
+images, such as @samp{U+00AD} (Soft Hyphen).
+
+@item no-font
+Characters for there is no suitable font, or which cannot be encoded
+by the terminal's coding system.
+@end table
+
+@c FIXME: this can also be `acronym', but that's not currently
+@c completely implemented; it applies only to the format-control
+@c group, and only works if the acronym is in `char-acronym-table'.
+The @var{method} symbol should be one of @code{zero-width},
+@code{thin-space}, @code{empty-box}, or @code{hex-code}.  These have
+the same meanings as in @code{glyphless-char-display}, above.
+@end defopt

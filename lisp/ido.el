@@ -461,12 +461,6 @@ See `ido-default-file-method' for details."
 		   (const :tag "Show in other frame" other-frame)
 		   (const :tag "Ask to show in other frame" maybe-frame)
 		   (const :tag "Raise frame if already shown" raise-frame))
-    :type '(choice (const selected-window)
-		   (const other-window)
-		   (const display)
-		   (const other-frame)
-		   (const maybe-frame)
-		   (const raise-frame))
     :group 'ido)
 
 (defcustom ido-enable-flex-matching nil

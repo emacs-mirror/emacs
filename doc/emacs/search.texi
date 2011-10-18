@@ -60,7 +60,6 @@ Incremental search backward (@code{isearch-backward}).
                           or else edit the search string.
 * Isearch Scroll::      Scrolling during an incremental search.
 * Isearch Minibuffer::  Incremental search of the minibuffer history.
-* Slow Isearch::        Incremental search features for slow terminals.
 @end menu
 
 @node Basic Isearch
@@ -361,30 +360,6 @@ is pulled into the minibuffer.  If you exit the incremental search
 normally (e.g. by typing @key{RET}), it remains in the minibuffer
 afterwards.  Cancelling the search, with @kbd{C-g}, restores the
 contents of the minibuffer when you began the search.
-
-@node Slow Isearch
-@subsection Slow Terminal Incremental Search
-
-  Incremental search on a slow terminal uses a modified style of display
-that is designed to take less time.  Instead of redisplaying the buffer at
-each place the search gets to, it creates a new single-line window and uses
-that to display the line that the search has found.  The single-line window
-comes into play as soon as point moves outside of the text that is already
-on the screen.
-
-  When you terminate the search, the single-line window is removed.
-Emacs then redisplays the window in which the search was done, to show
-its new position of point.
-
-@vindex search-slow-speed
-  The slow terminal style of display is used when the terminal baud rate is
-less than or equal to the value of the variable @code{search-slow-speed},
-initially 1200.  See also the discussion of the variable @code{baud-rate}
-(@pxref{baud-rate,, Customization of Display}).
-
-@vindex search-slow-window-lines
-  The number of lines to use in slow terminal search display is controlled
-by the variable @code{search-slow-window-lines}.  Its normal value is 1.
 
 @node Nonincremental Search
 @section Nonincremental Search

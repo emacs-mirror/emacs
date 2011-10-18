@@ -1,3 +1,69 @@
+2011-10-18  Juanma Barranquero  <lekktu@gmail.com>
+
+	* facemenu.el (list-colors-duplicates): On Windows, detect more
+	duplicates by assuming that only colors matching "^System" are
+	special "system colors".  (Bug#9722)
+
+2011-10-18  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* vc/log-edit.el (log-edit): Add "Author:" header to encourage people
+	to distinguish the author from the committer.
+
+2011-10-18  Michael Albinus  <michael.albinus@gmx.de>
+
+	* net/tramp.el (tramp-file-name-handler): Load Tramp packages silently.
+
+2011-10-18  Jirka Kosek  <jirka@kosek.cz>  (tiny change)
+
+	* international/mule.el (sgml-html-meta-auto-coding-function):
+	Add support for detecting encoding in HTML5 specified only as
+	<meta charset="UTF-8">.  Implementation just makes http-equiv and
+	content-type parts from HTML4 encoding string optional.  (Bug#9716)
+
+2011-10-18  Glenn Morris  <rgm@gnu.org>
+
+	* vc/vc.el (vc-initial-comment): Mark as obsolete.  (Bug#9745)
+
+2011-10-18  Chong Yidong  <cyd@gnu.org>
+
+	* faces.el (cursor): Doc fix.
+
+2011-10-17  Chong Yidong  <cyd@gnu.org>
+
+	* font-lock.el (font-lock-maximum-size): Mark as obsolete.
+
+2011-10-17  Ryan Barrett  <emacs@ryanb.org>  (tiny change)
+
+	* dirtrack.el (dirtrack): Support shell buffers with path
+	prefixes, e.g. tramp-based remote shells.  (Bug#9647)
+
+2011-10-17  Teodor Zlatanov  <tzz@lifelogs.com>
+
+	* json.el: Bump version to 1.3 and note change in History.
+	(json-alist-p, json-plist-p): Rewrite to avoid recursion.
+
+2011-10-17  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* comint.el (comint-insert-input, comint-send-input)
+	(comint-get-old-input-default, comint-backward-matching-input)
+	(comint-next-prompt): Use nil instead of `input' for field property of
+	past user input (bug#114).
+
+	* minibuffer.el (completion--replace): Inherit surrounding properties
+	(bug#114).
+	(minibuffer-complete-and-exit): Use it.
+
+	* comint.el (comint--table-subvert): Quote the all-completions output
+	(bug#9160).
+
+2011-10-17  Martin Rudalics  <rudalics@gmx.at>
+
+	* ido.el (ido-default-buffer-method): Remove redundant :type entry.
+
+	* menu-bar.el (menu-bar-file-menu): Add entry for making new
+	window on right of selected.  (Bug#9350) Reword other window
+	entries and separate them from frame entries.
+
 2011-10-15  Glenn Morris  <rgm@gnu.org>
 
 	* emacs-lisp/ert.el (ert--explain-equal-rec, ert-select-tests):
@@ -5,8 +71,8 @@
 
 2011-10-15  Chong Yidong  <cyd@stupidchicken.com>
 
-	* net/network-stream.el (network-stream-open-starttls): Improve
-	detection of failure due to lack of TLS support.
+	* net/network-stream.el (network-stream-open-starttls):
+	Improve detection of failure due to lack of TLS support.
 
 	* mail/sendmail.el (sendmail-query-once): Tweak prompt message,
 	putting the input text in front and in bold.
@@ -405,8 +471,8 @@
 
 	* net/newst-reader.el (newsticker-html-renderer)
 	(newsticker-show-news): Automatically
-	load html rendering package if newsticker-html-renderer is
-	set. Fixes "Warning: defvar ignored because w3m-fill-column is
+	load html rendering package if newsticker-html-renderer is set.
+	Fixes "Warning: defvar ignored because w3m-fill-column is
 	let-bound" and the error "Symbol's value as variable is void:
 	w3m-fill-column".
 

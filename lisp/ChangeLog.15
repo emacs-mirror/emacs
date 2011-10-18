@@ -22676,7 +22676,7 @@
 	(vc-next-action, vc-transfer-file, vc-rename-file): Also pass the
 	backend when calling vc-mode-line.
 	(vc-register): Do not create a closure for calling the vc register
-	function, call it directly.
+	function, call it directly.  No longer obey vc-initial-comment.
 
 2009-06-23  Dan Nicolaescu  <dann@ics.uci.edu>
 

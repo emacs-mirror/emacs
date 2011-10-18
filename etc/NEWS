@@ -51,6 +51,8 @@ This is not a new feature; only the configure flag is new.
 ---
 ** There is a new configure option --with-wide-int.
 With it, Emacs integers typically have 62 bits, even on 32-bit machines.
+On 32-bit hosts, this raises the limit on buffer sizes from about 512 MiB
+to about 2 GiB.
 
 ---
 ** New translation of the Emacs Tutorial in Hebrew is available.
@@ -107,9 +109,9 @@ and pops down the *Completions* buffer accordingly.
 *** Completion can cycle, depending on completion-cycle-threshold.
 +++
 *** New completion style `substring'.
-
++++
 *** Completion style can be set per-category `completion-category-overrides'.
-
++++
 *** Completion of buffers now uses substring completion by default.
 
 ** Mail changes
@@ -223,6 +225,10 @@ cannot be encoded by the `terminal-coding-system'.
 ---
 *** New input methods for Farsi: farsi and farsi-translit.
 
++++
+*** `nobreak-char-display' now also highlights Unicode hyphen chars
+(U+2010 and U+2011).
+
 ** Improved GTK integration
 
 *** GTK scroll-bars are now placed on the right by default.
@@ -236,10 +242,10 @@ is taken from the desktop settings.
 The frame-parameter tool-bar-position controls this.  It takes the values
 top, left, right or bottom.  The Options => Show/Hide menu has entries
 for this.
-
-*** The colors for selected text (the region face) are taken from the GTK
-theme when Emacs is built with GTK.
-
++++
+*** The colors for selected text (the `region' face) are taken from
+the GTK theme when Emacs is built with GTK.
++++
 *** Emacs uses GTK tooltips by default if built with GTK.  You can turn that
 off by customizing x-gtk-use-system-tooltips.
 
@@ -844,6 +850,10 @@ binding `log-view-expanded-log-entry-function' to a suitable function.
 *** New command `vc-ediff' allows visual comparison of two revisions
 of a file similar to `vc-diff', but using ediff backend.
 
++++
+*** The option vc-initial-comment was removed in Emacs 23.2, but
+this was not advertised at the time.
+
 ** FIXME: xdg-open for browse-url and reportbug, 2010/08.
 
 ** Obsolete modes
@@ -1146,6 +1156,7 @@ combined with minibuffer-local-must-match-map.
 *** New variable `completing-read-function' allows overriding the
 behavior of `completing-read'.
 
++++
 ** `glyphless-char-display' can now distinguish between graphical and
 text terminal display, via a char-table entry that is a cons cell.
 
@@ -1311,6 +1322,8 @@ Use `filter-buffer-substring-functions' instead.
 *** `byte-compile-disable-print-circle' is obsolete.
 
 *** `deferred-action-list' and `deferred-action-function' are obsolete.
++++
+*** `font-lock-maximum-size' is obsolete.
 
 
 * Changes in Emacs 24.1 on non-free operating systems

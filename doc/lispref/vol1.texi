@@ -1299,6 +1299,9 @@ Emacs Display
 * Display Tables::          How to specify other conventions.
 * Beeping::                 Audible signal to the user.
 * Window Systems::          Which window system is being used.
+* Bidirectional Display::   Display of bidirectional scripts, such as
+                              Arabic and Farsi.
+* Glyphless Chars::         How glyphless characters are drawn.
 
 The Echo Area
 

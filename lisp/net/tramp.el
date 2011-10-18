@@ -1886,7 +1886,7 @@ Falls back to normal file name handler if no Tramp file name handler exists."
 		      (when (and (listp sf) (eq (car sf) 'autoload))
 			(let ((default-directory
 				(tramp-compat-temporary-file-directory)))
-			  (load (cadr sf) 'noerror)))
+			  (load (cadr sf) 'noerror 'nomessage)))
 		      (apply foreign operation args))
 
 		  ;; Trace that somebody has interrupted the operation.

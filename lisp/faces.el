@@ -2366,6 +2366,10 @@ used to display the prompt text."
   '((((background light)) :background "black")
     (((background dark))  :background "white"))
   "Basic face for the cursor color under X.
+Currently, only the `:background' attribute is meaningful; all
+other attributes are ignored.  The cursor foreground color is
+taken from the background color of the underlying text.
+
 Note: Other faces cannot inherit from the cursor face."
   :version "21.1"
   :group 'cursor

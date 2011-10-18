@@ -675,6 +675,8 @@
   :type 'boolean
   :group 'vc)
 
+(make-obsolete-variable 'vc-initial-comment "it has no effect." "23.2")
+
 (defcustom vc-default-init-revision "1.1"
   "A string used as the default revision number when a new file is registered.
 This can be overridden by giving a prefix argument to \\[vc-register].  This

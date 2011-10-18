@@ -1,3 +1,40 @@
+2011-10-18  Chong Yidong  <cyd@gnu.org>
+
+	* display.texi (Fringes): Move overflow-newline-into-fringe here,
+	from Line Truncation node.
+	(Standard Faces): Note that only the background of the cursor face
+	has an effect.
+	(Cursor Display): Fix descriptions of cursor face
+	and bar cursor blinking.
+	(Text Display): Document nobreak-char-display more clearly.
+	(Line Truncation): Add xref to Split Window node.
+	(Display Custom): Don't bother documenting baud-rate or
+	no-redraw-on-reenter.
+
+	* search.texi (Slow Isearch): Node removed.
+
+2011-10-18  Glenn Morris  <rgm@gnu.org>
+
+	* maintaining.texi (Registering): Remove vc-initial-comment.  (Bug#9745)
+
+2011-10-18  Chong Yidong  <cyd@gnu.org>
+
+	* display.texi (Faces): Simplify discussion.  Move documentation
+	of list-faces-display here, from Standard Faces node.  Note
+	special role of `default' background.
+	(Standard Faces): Note special role of `default' background.  Note
+	that region face may be taken fom GTK.  Add xref to Text Display.
+	(Text Scale): Rename from "Temporary Face Changes".  Callers
+	changed.  Don't bother documenting variable-pitch-mode.
+	(Font Lock): Copyedits.  Remove font-lock-maximum-size.
+	(Useless Whitespace): Simplify description of
+	delete-trailing-whitespace.  Note active region case.
+	(Text Display): Fix description of escape-glyph face assignment.
+	Remove unibye mode discussion.  Update some parts for Unicode.
+	Move glyphless chars documentation to Lisp manual.
+
+	* frames.texi (Tooltips): Document x-gtk-use-system-tooltips.
+
 2011-10-15  Chong Yidong  <cyd@stupidchicken.com>
 
 	* display.texi (Scrolling): Tweak explanation of scroll direction.

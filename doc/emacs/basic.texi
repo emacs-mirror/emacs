@@ -109,7 +109,7 @@ command provides completion (@pxref{Completion}).  If you enter a
 code-point, it should be a hexadecimal number (which is the convention
 for Unicode).  The command then inserts the corresponding character
 into the buffer.  For example, both of the following insert the
-infinity sign (Unicode code-point @code{#x221E}):
+infinity sign (Unicode code-point @code{U+221E}):
 
 @example
 @kbd{C-x 8 @key{RET} infinity @key{RET}}

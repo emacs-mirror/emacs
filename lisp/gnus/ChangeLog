@@ -1,3 +1,43 @@
+2011-10-18  Teodor Zlatanov  <tzz@lifelogs.com>
+
+	* gnus-util.el (gnus-bound-and-true-p): Macro for XEmacs compatibility.
+	* nnir.el (nnir-mode): Use it.
+	* nnmairix.el (nnmairix-determine-original-group-from-registry):
+	Use it.
+
+	* nnir.el (gnus-registry-enabled): Defvar to keep the compiler happy.
+	* nnmairix.el (gnus-registry-enabled): Ditto.
+
+2011-10-17  Teodor Zlatanov  <tzz@lifelogs.com>
+
+	* gnus-registry.el (gnus-registry-enabled): Add new variable.
+	(gnus-registry-install-shortcuts): Set `gnus-registry-install' to 'ask
+	only while we need to find out if it should be t or nil.
+	(gnus-registry-initialize): Don't set `gnus-registry-install' to t.
+	(gnus-registry-install-hooks): Set `gnus-registry-enabled' to t when
+	the registry is installed.  Set it to nil when it's unloaded.
+	(gnus-registry-install-p): Provide user guidance for the initial value
+	of `gnus-registry-install' when it's 'ask, otherwise return its value.
+	* nnregistry.el (nnregistry-open-server, nnregistry-server-opened):
+	Use `gnus-registry-enabled' instead of `gnus-registry-install'.
+	* nnmairix.el (nnmairix-determine-original-group-from-registry):
+	Use `gnus-registry-enabled' instead of `gnus-registry-install'.
+	* nnir.el (nnir-mode): Use `gnus-registry-enabled' instead of
+	`gnus-registry-install'.
+	From Dave Abrahams <dave@boostpro.com>.
+
+2011-10-17  Daiki Ueno  <ueno@unixuser.org>
+
+	* mml2015.el (mml2015-epg-find-usable-key): Add comment about the
+	previous change.
+	* mml1991.el (mml1991-epg-find-usable-key): Skip the whole key if the
+	primary key is marked as disabled.
+
+2011-10-17  Christian von Roques  <roques@mti.ag>  (tiny change)
+
+	* mml2015.el (mml2015-epg-find-usable-key): Skip the whole key if the
+	primary key is marked as disabled.
+
 2011-10-11  Andreas Schwab  <schwab@linux-m68k.org>
 
 	* html2text.el (html2text-clean-anchor): Check for quotes around

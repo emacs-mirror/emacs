@@ -1925,8 +1925,8 @@ fi
 if test "$pkg_check_gtk" != "yes"; then
   HAVE_GTK=no
 if test "${with_gtk}" = "yes" || test "$USE_X_TOOLKIT" = "maybe"; then
-  GLIB_REQUIRED=2.6
-  GTK_REQUIRED=2.6
+  GLIB_REQUIRED=2.10
+  GTK_REQUIRED=2.10
   GTK_MODULES="gtk+-2.0 >= $GTK_REQUIRED glib-2.0 >= $GLIB_REQUIRED"
 
   dnl Checks for libraries.

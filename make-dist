@@ -302,7 +302,6 @@ for subdir in site-lisp \
 	      nextstep/Cocoa/Emacs.base/Contents \
 	      nextstep/Cocoa/Emacs.base/Contents/Resources \
 	      nextstep/Cocoa/Emacs.base/Contents/Resources/English.lproj \
-	      nextstep/Cocoa/Emacs.xcodeproj \
 	      nextstep/GNUstep \
 	      nextstep/GNUstep/Emacs.base \
 	      nextstep/GNUstep/Emacs.base/Resources
@@ -437,10 +436,6 @@ echo "Making links to \`nextstep/Cocoa/Emacs.base/Contents/Resources'"
 echo "Making links to \`nextstep/Cocoa/Emacs.base/Contents/Resources/English.lproj'"
 (cd nextstep/Cocoa/Emacs.base/Contents/Resources/English.lproj
  ln InfoPlist.strings ../../../../../../${tempdir}/nextstep/Cocoa/Emacs.base/Contents/Resources/English.lproj)
-
-echo "Making links to \`nextstep/Cocoa/Emacs.xcodeproj'"
-(cd nextstep/Cocoa/Emacs.xcodeproj
- ln project.pbxproj ../../../${tempdir}/nextstep/Cocoa/Emacs.xcodeproj)
 
 echo "Making links to \`nextstep/GNUstep/Emacs.base/Resources'"
 (cd nextstep/GNUstep/Emacs.base/Resources
