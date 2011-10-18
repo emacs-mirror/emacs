@@ -846,7 +846,9 @@ bidi_line_init (struct bidi_it *bidi_it)
   bidi_it->level_stack[0].override = NEUTRAL_DIR; /* X1 */
   bidi_it->invalid_levels = 0;
   bidi_it->invalid_rl_levels = -1;
-  bidi_it->next_en_pos = -1;
+  /* Setting this to zero will force its recomputation the first time
+     we need it for W5.  */
+  bidi_it->next_en_pos = 0;
   bidi_it->next_for_ws.type = UNKNOWN_BT;
   bidi_set_sor_type (bidi_it,
 		     (bidi_it->paragraph_dir == R2L ? 1 : 0),
@@ -1732,7 +1734,7 @@ bidi_resolve_weak (struct bidi_it *bidi_it)
 	  if (bidi_it->prev.type_after_w1 == WEAK_EN /* ET/BN w/EN before it */
 	      || bidi_it->next_en_pos > bidi_it->charpos)
 	    type = WEAK_EN;
-	  else			/* W5: ET/BN with EN after it.  */
+	  else if (bidi_it->next_en_pos >=0) /* W5: ET/BN with EN after it.  */
 	    {
 	      EMACS_INT en_pos = bidi_it->charpos + bidi_it->nchars;
 	      const unsigned char *s = (STRINGP (bidi_it->string.lstring)
@@ -1775,6 +1777,11 @@ bidi_resolve_weak (struct bidi_it *bidi_it)
 		  else if (type == WEAK_BN)
 		    type = NEUTRAL_ON; /* W6/Retaining */
 		}
+	      else if (type_of_next == NEUTRAL_B)
+		/* Record the fact that there are no more ENs from
+		   here to the end of paragraph, to avoid entering the
+		   loop above ever again in this paragraph.  */
+		bidi_it->next_en_pos = -1;
 	    }
 	}
     }
@@ -1843,13 +1850,45 @@ bidi_resolve_neutral (struct bidi_it *bidi_it)
 	|| type == NEUTRAL_ON))
     abort ();
 
-  if (bidi_get_category (type) == NEUTRAL
+  if ((type != NEUTRAL_B /* Don't risk entering the long loop below if
+			    we are already at paragraph end.  */
+       && bidi_get_category (type) == NEUTRAL)
       || (type == WEAK_BN && prev_level == current_level))
     {
       if (bidi_it->next_for_neutral.type != UNKNOWN_BT)
 	type = bidi_resolve_neutral_1 (bidi_it->prev_for_neutral.type,
 				       bidi_it->next_for_neutral.type,
 				       current_level);
+      /* The next two "else if" clauses are shortcuts for the
+	 important special case when we have a long sequence of
+	 neutral or WEAK_BN characters, such as whitespace or nulls or
+	 other control characters, on the base embedding level of the
+	 paragraph, and that sequence goes all the way to the end of
+	 the paragraph and follows a character whose resolved
+	 directionality is identical to the base embedding level.
+	 (This is what happens in a buffer with plain L2R text that
+	 happens to include long sequences of control characters.)  By
+	 virtue of N1, the result of examining this long sequence will
+	 always be either STRONG_L or STRONG_R, depending on the base
+	 embedding level.  So we use this fact directly instead of
+	 entering the expensive loop in the "else" clause.  */
+      else if (current_level == 0
+	       && bidi_it->prev_for_neutral.type == STRONG_L
+	       && !bidi_explicit_dir_char (bidi_it->ch))
+	type = bidi_resolve_neutral_1 (bidi_it->prev_for_neutral.type,
+				       STRONG_L, current_level);
+      else if (/* current level is 1 */
+	       current_level == 1
+	       /* base embedding level is also 1 */
+	       && bidi_it->level_stack[0].level == 1
+	       /* previous character is one of those considered R for
+		  the purposes of W5 */
+	       && (bidi_it->prev_for_neutral.type == STRONG_R
+		   || bidi_it->prev_for_neutral.type == WEAK_EN
+		   || bidi_it->prev_for_neutral.type == WEAK_AN)
+	       && !bidi_explicit_dir_char (bidi_it->ch))
+	type = bidi_resolve_neutral_1 (bidi_it->prev_for_neutral.type,
+				       STRONG_R, current_level);
       else
 	{
 	  /* Arrrgh!!  The UAX#9 algorithm is too deeply entrenched in
@@ -1900,6 +1939,9 @@ bidi_resolve_neutral (struct bidi_it *bidi_it)
 	      case STRONG_L:
 	      case STRONG_R:
 	      case STRONG_AL:
+		/* Actually, STRONG_AL cannot happen here, because
+		   bidi_resolve_weak converts it to STRONG_R, per W3.  */
+		xassert (type != STRONG_AL);
 		next_type = type;
 		break;
 	      case WEAK_EN:
@@ -1907,7 +1949,6 @@ bidi_resolve_neutral (struct bidi_it *bidi_it)
 		/* N1: ``European and Arabic numbers are treated as
 		   though they were R.''  */
 		next_type = STRONG_R;
-		saved_it.next_for_neutral.type = STRONG_R;
 		break;
 	      case WEAK_BN:
 		if (!bidi_explicit_dir_char (bidi_it->ch))
@@ -1920,11 +1961,7 @@ bidi_resolve_neutral (struct bidi_it *bidi_it)
 		   member.  */
 		if (saved_it.type != WEAK_BN
 		    || bidi_get_category (bidi_it->prev.type_after_w1) == NEUTRAL)
-		  {
-		    next_type = bidi_it->prev_for_neutral.type;
-		    saved_it.next_for_neutral.type = next_type;
-		    bidi_check_type (next_type);
-		  }
+		  next_type = bidi_it->prev_for_neutral.type;
 		else
 		  {
 		    /* This is a BN which does not adjoin neutrals.
@@ -1938,7 +1975,9 @@ bidi_resolve_neutral (struct bidi_it *bidi_it)
 	    }
 	  type = bidi_resolve_neutral_1 (saved_it.prev_for_neutral.type,
 					 next_type, current_level);
+	  saved_it.next_for_neutral.type = next_type;
 	  saved_it.type = type;
+	  bidi_check_type (next_type);
 	  bidi_check_type (type);
 	  bidi_copy_it (bidi_it, &saved_it);
 	}
@@ -2014,7 +2053,7 @@ bidi_level_of_next_char (struct bidi_it *bidi_it)
 	bidi_it->next_for_neutral.type = UNKNOWN_BT;
       if (bidi_it->next_en_pos >= 0
 	  && bidi_it->charpos >= bidi_it->next_en_pos)
-	bidi_it->next_en_pos = -1;
+	bidi_it->next_en_pos = 0;
       if (bidi_it->next_for_ws.type != UNKNOWN_BT
 	  && bidi_it->charpos >= bidi_it->next_for_ws.charpos)
 	bidi_it->next_for_ws.type = UNKNOWN_BT;

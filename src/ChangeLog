@@ -1,3 +1,22 @@
+2011-10-18  Eli Zaretskii  <eliz@gnu.org>
+
+	Fix part 3 of bug#9771.
+	* bidi.c (bidi_line_init): Initialize next_en_pos to zero, not -1.
+	(bidi_resolve_neutral): Don't enter the expensive loop looking for
+	non-neutral characters if the current character is a paragraph
+	separator (a.k.a. Newline).  This avoids running the same
+	expensive loop twice, once when we consume the preceding newline
+	and the other time when the line actually needs to be displayed.
+	Avoid the loop when we see neutrals on the base embedding level
+	following a character whose directionality is the same as the
+	paragraph's.  This avoids running the expensive loop when a line
+	ends in a long sequence of neutrals, like control characters.
+	Add assertion against STRONG_AL type.  Slightly rearrange code
+	that determines the type of a neutral given the first non-neutral
+	that follows it.
+	(bidi_level_of_next_char): Set next_en_pos to zero when
+	invalidating its info.
+
 2011-10-17  Eli Zaretskii  <eliz@gnu.org>
 
 	* xdisp.c (push_display_prop): Determine whether to record string
