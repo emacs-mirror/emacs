@@ -386,7 +386,7 @@ uses the current buffer."
       (setq setup (not setup)))
     (when setup
       (erase-buffer)
-      (insert "Summary: ")
+      (insert "Summary: \nAuthor: ")
       (save-excursion (insert "\n\n")))
     (if mode
 	(funcall mode)
