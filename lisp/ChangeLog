@@ -1,3 +1,7 @@
+2011-10-18  Glenn Morris  <rgm@gnu.org>
+
+	* vc/vc.el (vc-initial-comment): Mark as obsolete.  (Bug#9745)
+
 2011-10-18  Chong Yidong  <cyd@gnu.org>
 
 	* faces.el (cursor): Doc fix.

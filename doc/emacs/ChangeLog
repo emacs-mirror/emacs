@@ -1,3 +1,7 @@
+2011-10-18  Glenn Morris  <rgm@gnu.org>
+
+	* maintaining.texi (Registering): Remove vc-initial-comment.  (Bug#9745)
+
 2011-10-18  Chong Yidong  <cyd@gnu.org>
 
 	* display.texi (Faces): Simplify discussion.  Move documentation
