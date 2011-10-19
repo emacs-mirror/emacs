@@ -1,5 +1,11 @@
 2011-10-19  Juri Linkov  <juri@jurta.org>
 
+	* net/browse-url.el (browse-url-can-use-xdg-open): Support LXDE
+	by checking environment variables "DESKTOP_SESSION" and
+	"XDG_CURRENT_DESKTOP".  (Bug#9779)
+
+2011-10-19  Juri Linkov  <juri@jurta.org>
+
 	* net/browse-url.el (browse-url-browser-function): Add "Chromium".
 	(browse-url-chromium-program, browse-url-chromium-arguments):
 	New defcustoms.

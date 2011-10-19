@@ -48,6 +48,7 @@
 ;; browse-url-generic                 arbitrary
 ;; browse-url-default-windows-browser MS-Windows browser
 ;; browse-url-default-macosx-browser  Mac OS X browser
+;; browse-url-xdg-open                Free Desktop xdg-open on Gnome, KDE, Xfce4, LXDE
 ;; browse-url-gnome-moz               GNOME interface to Mozilla
 ;; browse-url-kde                     KDE konqueror (kfm)
 ;; browse-url-elinks                  Elinks      Don't know (tried with 0.12.GIT)
@@ -943,12 +944,13 @@ used instead of `browse-url-new-window-flag'."
    url args))
 
 (defun browse-url-can-use-xdg-open ()
-  "Check if xdg-open can be used, i.e. we are on Gnome, KDE or xfce4."
+  "Check if xdg-open can be used, i.e. we are on Gnome, KDE, Xfce4 or LXDE."
   (and (getenv "DISPLAY")
        (executable-find "xdg-open")
        ;; xdg-open may call gnome-open and that does not wait for its child
        ;; to finish.  This child may then be killed when the parent dies.
-       ;; Use nohup to work around.
+       ;; Use nohup to work around.  See bug#7166, bug#8917, bug#9779 and
+       ;; http://lists.gnu.org/archive/html/emacs-devel/2009-07/msg00279.html
        (executable-find "nohup")
        (or (getenv "GNOME_DESKTOP_SESSION_ID")
 	   ;; GNOME_DESKTOP_SESSION_ID is deprecated, check on Dbus also.
@@ -966,7 +968,9 @@ used instead of `browse-url-new-window-flag'."
 		      "/bin/sh" nil nil nil
 		      "-c"
 		      "xprop -root _DT_SAVE_MODE|grep xfce4"))
-	     (error nil)))))
+	     (error nil))
+	   (member (getenv "DESKTOP_SESSION") '("LXDE" "Lubuntu"))
+	   (equal (getenv "XDG_CURRENT_DESKTOP") "LXDE"))))
 
 
 ;;;###autoload
