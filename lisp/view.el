@@ -369,19 +369,24 @@ this argument instead of explicitly setting `view-exit-action'."
   ;; bindings instead of using the \\[] construction.  The reason for this
   ;; is that most commands have more than one key binding.
   "Toggle View mode, a minor mode for viewing text but not editing it.
-With prefix argument ARG, turn View mode on if ARG is positive, otherwise
-turn it off.
+With a prefix argument ARG, enable View mode if ARG is positive,
+and disable it otherwise.  If called from Lisp, enable View mode
+if ARG is omitted or nil.
 
-Emacs commands that do not change the buffer contents are available as usual.
-Kill commands insert text in kill buffers but do not delete.  Other commands
-\(among them most letters and punctuation) beep and tell that the buffer is
-read-only.
+When View mode is enabled, commands that do not change the buffer
+contents are available as usual.  Kill commands insert text in
+kill buffers but do not delete.  Most other commands beep and
+tell the user that the buffer is read-only.
+
 \\<view-mode-map>
-The following additional commands are provided.  Most commands take prefix
-arguments.  Page commands default to \"page size\" lines which is almost a whole
-window full, or number of lines set by \\[View-scroll-page-forward-set-page-size] or \\[View-scroll-page-backward-set-page-size].  Half page commands default to
-and set \"half page size\" lines which initially is half a window full.  Search
-commands default to a repeat count of one.
+
+The following additional commands are provided.  Most commands
+take prefix arguments.  Page commands default to \"page size\"
+lines which is almost a whole window, or number of lines set by
+\\[View-scroll-page-forward-set-page-size] or \\[View-scroll-page-backward-set-page-size].
+Half page commands default to and set \"half page size\" lines
+which initially is half a window full.  Search commands default
+to a repeat count of one.
 
 H, h, ?	 This message.
 Digits	provide prefix arguments.

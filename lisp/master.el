@@ -72,12 +72,12 @@ You can set this variable using `master-set-slave'.")
 ;;;###autoload
 (define-minor-mode master-mode
   "Toggle Master mode.
-With no argument, this command toggles the mode.
-Non-null prefix argument turns on the mode.
-Null prefix argument turns off the mode.
+With a prefix argument ARG, enable Master mode if ARG is
+positive, and disable it otherwise.  If called from Lisp, enable
+the mode if ARG is omitted or nil.
 
-When Master mode is enabled, you can scroll the slave buffer using the
-following commands:
+When Master mode is enabled, you can scroll the slave buffer
+using the following commands:
 
 \\{master-mode-map}
 

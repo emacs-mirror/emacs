@@ -1336,12 +1336,14 @@ That is, remove duplicates, non-kept, and excluded files."
 
 ;;;###autoload
 (define-minor-mode recentf-mode
-  "Toggle recentf mode.
-With prefix argument ARG, turn on if positive, otherwise off.
-Returns non-nil if the new state is enabled.
+  "Toggle \"Open Recent\" menu (Recentf mode).
+With a prefix argument ARG, enable Recentf mode if ARG is
+positive, and disable it otherwise.  If called from Lisp, enable
+Recentf mode if ARG is omitted or nil.
 
-When recentf mode is enabled, it maintains a menu for visiting files
-that were operated on recently."
+When Recentf mode is enabled, a \"Open Recent\" submenu is
+displayed in the \"File\" menu, containing a list of files that
+were operated on recently."
   :global t
   :group 'recentf
   :keymap recentf-mode-map

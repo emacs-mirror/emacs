@@ -183,7 +183,11 @@ and ends with a forward slash."
 
 ;;;###autoload
 (define-minor-mode dirtrack-mode
-  "Enable or disable Dirtrack directory tracking in a shell buffer.
+  "Toggle directory tracking in shell buffers (Dirtrack mode).
+With a prefix argument ARG, enable Dirtrack mode if ARG is
+positive, and disable it otherwise.  If called from Lisp, enable
+the mode if ARG is omitted or nil.
+
 This method requires that your shell prompt contain the full
 current working directory at all times, and that `dirtrack-list'
 is set to match the prompt.  This is an alternative to
@@ -199,7 +203,7 @@ and similar commands which change the shell working directory."
 
 
 (define-minor-mode dirtrack-debug-mode
-  "Enable or disable Dirtrack debugging."
+  "Toggle Dirtrack debugging."
   nil nil nil
   (if dirtrack-debug-mode
       (display-buffer (get-buffer-create dirtrack-debug-buffer))))

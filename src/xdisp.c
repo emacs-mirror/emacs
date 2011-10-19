@@ -2851,6 +2851,13 @@ start_display (struct it *it, struct window *w, struct text_pos pos)
 
 	      it->continuation_lines_width += it->current_x;
 	    }
+	  /* If the character at POS is displayed via a display
+	     vector, move_it_to above stops at the final glyph of
+	     IT->dpvec.  To make the caller redisplay that character
+	     again (a.k.a. start at POS), we need to reset the
+	     dpvec_index to the beginning of IT->dpvec.  */
+	  else if (it->current.dpvec_index >= 0)
+	    it->current.dpvec_index = 0;
 
 	  /* We're starting a new display line, not affected by the
 	     height of the continued line, so clear the appropriate
@@ -16071,13 +16078,20 @@ try_window_reusing_current_matrix (struct window *w)
 
 	      start_vpos = MATRIX_ROW_VPOS (start_row, w->current_matrix);
 	    }
-	  /* If we have reached alignment,
-	     we can copy the rest of the rows.  */
-	  if (IT_CHARPOS (it) == CHARPOS (start))
+	  /* If we have reached alignment, we can copy the rest of the
+	     rows.  */
+	  if (IT_CHARPOS (it) == CHARPOS (start)
+	      /* Don't accept "alignment" inside a display vector,
+		 since start_row could have started in the middle of
+		 that same display vector (thus their character
+		 positions match), and we have no way of telling if
+		 that is the case.  */
+	      && it.current.dpvec_index < 0)
 	    break;
 
 	  if (display_line (&it))
 	    last_text_row = it.glyph_row - 1;
+
 	}
 
       /* A value of current_y < last_visible_y means that we stopped

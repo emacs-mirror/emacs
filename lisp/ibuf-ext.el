@@ -217,8 +217,10 @@ Currently, this only applies to `ibuffer-saved-filters' and
 
 ;;;###autoload
 (define-minor-mode ibuffer-auto-mode
-  "Toggle use of Ibuffer's auto-update facility.
-With numeric ARG, enable auto-update if and only if ARG is positive."
+  "Toggle use of Ibuffer's auto-update facility (Ibuffer Auto mode).
+With a prefix argument ARG, enable Ibuffer Auto mode if ARG is
+positive, and disable it otherwise.  If called from Lisp, enable
+the mode if ARG is omitted or nil."
   nil nil nil
   (unless (derived-mode-p 'ibuffer-mode)
     (error "This buffer is not in Ibuffer mode"))

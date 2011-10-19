@@ -326,14 +326,15 @@ remove it from existing buffers."
 
 ;;;###autoload
 (define-minor-mode highlight-changes-mode
-  "Toggle Highlight Changes mode.
+  "Toggle highlighting changes in this buffer (Highlight Changes mode).
+With a prefix argument ARG, enable Highlight Changes mode if ARG
+is positive, and disable it otherwise.  If called from Lisp,
+enable the mode if ARG is omitted or nil.
 
-With ARG, turn Highlight Changes mode on if and only if arg is positive.
-
-In Highlight Changes mode changes are recorded with a text property.
-Normally they are displayed in a distinctive face, but command
-\\[highlight-changes-visible-mode] can be used to toggles this
-on and off.
+When Highlight Changes is enabled, changes are marked with a text
+property.  Normally they are displayed in a distinctive face, but
+command \\[highlight-changes-visible-mode] can be used to toggles
+this on and off.
 
 Other functions for buffers in this mode include:
 \\[highlight-changes-next-change] - move point to beginning of next change
@@ -366,14 +367,17 @@ buffer with the contents of a file
 
 ;;;###autoload
 (define-minor-mode highlight-changes-visible-mode
-  "Toggle visiblility of changes when buffer is in Highlight Changes mode.
+  "Toggle visiblility of highlighting due to Highlight Changes mode.
+With a prefix argument ARG, enable Highlight Changes Visible mode
+if ARG is positive, and disable it otherwise.  If called from
+Lisp, enable the mode if ARG is omitted or nil.
 
-This mode only has an effect when Highlight Changes mode is on.
-It allows toggling between whether or not the changed text is displayed
+Highlight Changes Visible mode only has an effect when Highlight
+Changes mode is on.  When enabled, the changed text is displayed
 in a distinctive face.
 
 The default value can be customized with variable
-`highlight-changes-visibility-initial-state'
+`highlight-changes-visibility-initial-state'.
 
 This command does not itself set highlight-changes mode."
 

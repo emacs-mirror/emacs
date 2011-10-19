@@ -1469,8 +1469,10 @@ Removes badly formatted data and ignored directories."
   (add-hook 'choose-completion-string-functions 'ido-choose-completion-string))
 
 (define-minor-mode ido-everywhere
-  "Toggle using ido-mode everywhere file and directory names are read.
-With ARG, turn ido-mode on if arg is positive, off otherwise."
+  "Toggle use of Ido for all buffer/file reading.
+With a prefix argument ARG, enable this feature if ARG is
+positive, and disable it otherwise.  If called from Lisp, enable
+the mode if ARG is omitted or nil."
   :global t
   :group 'ido
   (when (get 'ido-everywhere 'file)

@@ -1,3 +1,11 @@
+2011-10-19  Chong Yidong  <cyd@gnu.org>
+
+	* search.texi (Repeat Isearch, Error in Isearch): Add kindex
+	entries.
+	(Isearch Yank): Document isearch-yank-pop.
+	(Isearch Scroll): Refer to C-l instead of unbound `recenter'.
+	(Other Repeating Search): Document Occur Edit mode.
+
 2011-10-18  Chong Yidong  <cyd@gnu.org>
 
 	* display.texi (Fringes): Move overflow-newline-into-fringe here,

@@ -1134,7 +1134,10 @@ To get the frame's current border color, use `frame-parameters'."
 
 (define-minor-mode auto-raise-mode
   "Toggle whether or not the selected frame should auto-raise.
-With ARG, turn auto-raise mode on if and only if ARG is positive.
+With a prefix argument ARG, enable Auto Raise mode if ARG is
+positive, and disable it otherwise.  If called from Lisp, enable
+the mode if ARG is omitted or nil.
+
 Note that this controls Emacs's own auto-raise feature.
 Some window managers allow you to enable auto-raise for certain windows.
 You can use that for Emacs windows if you wish, but if you do,
@@ -1145,7 +1148,10 @@ that is beyond the control of Emacs and this command has no effect on it."
 
 (define-minor-mode auto-lower-mode
   "Toggle whether or not the selected frame should auto-lower.
-With ARG, turn auto-lower mode on if and only if ARG is positive.
+With a prefix argument ARG, enable Auto Lower mode if ARG is
+positive, and disable it otherwise.  If called from Lisp, enable
+the mode if ARG is omitted or nil.
+
 Note that this controls Emacs's own auto-lower feature.
 Some window managers allow you to enable auto-lower for certain windows.
 You can use that for Emacs windows if you wish, but if you do,
@@ -1556,14 +1562,13 @@ itself as a pre-command hook."
     (setq blink-cursor-timer nil)))
 
 (define-minor-mode blink-cursor-mode
-  "Toggle blinking cursor mode.
-With a numeric argument, turn blinking cursor mode on if ARG is positive,
-otherwise turn it off.  When blinking cursor mode is enabled, the
-cursor of the selected window blinks.
+  "Toggle cursor blinking (Blink Cursor mode).
+With a prefix argument ARG, enable Blink Cursor mode if ARG is
+positive, and disable it otherwise.  If called from Lisp, enable
+the mode if ARG is omitted or nil.
 
-Note that this command is effective only when Emacs
-displays through a window system, because then Emacs does its own
-cursor display.  On a text-only terminal, this is not implemented."
+This command is effective only on graphical frames.  On text-only
+terminals, cursor blinking is controlled by the terminal."
   :init-value (not (or noninteractive
 		       no-blinking-cursor
 		       (eq system-type 'ms-dos)

@@ -2169,11 +2169,13 @@ It must accept a buffer as its only required argument.")
 		:help ,(purecopy "Put previous minibuffer history element in the minibuffer"))))
 
 (define-minor-mode menu-bar-mode
-  "Toggle display of a menu bar on each frame.
+  "Toggle display of a menu bar on each frame (Menu Bar mode).
+With a prefix argument ARG, enable Menu Bar mode if ARG is
+positive, and disable it otherwise.  If called from Lisp, enable
+Menu Bar mode if ARG is omitted or nil.
+
 This command applies to all frames that exist and frames to be
-created in the future.
-With a numeric argument, if the argument is positive,
-turn on menu bars; otherwise, turn off menu bars."
+created in the future."
   :init-value t
   :global t
   ;; It's defined in C/cus-start, this stops the d-m-m macro defining it again.

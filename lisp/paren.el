@@ -102,12 +102,14 @@ otherwise)."
 
 ;;;###autoload
 (define-minor-mode show-paren-mode
-  "Toggle Show Paren mode.
-With prefix ARG, turn Show Paren mode on if and only if ARG is positive.
-Returns the new status of Show Paren mode (non-nil means on).
+  "Toggle visualization of matching parens (Show Paren mode).
+With a prefix argument ARG, enable Show Paren mode if ARG is
+positive, and disable it otherwise.  If called from Lisp, enable
+the mode if ARG is omitted or nil.
 
-When Show Paren mode is enabled, any matching parenthesis is highlighted
-in `show-paren-style' after `show-paren-delay' seconds of Emacs idle time."
+Show Paren mode is a global minor mode.  When enabled, any
+matching parenthesis is highlighted in `show-paren-style' after
+`show-paren-delay' seconds of Emacs idle time."
   :global t :group 'paren-showing
     ;; Enable or disable the mechanism.
     ;; First get rid of the old idle timer.

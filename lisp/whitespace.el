@@ -1064,11 +1064,10 @@ Any other value is treated as nil."
 
 ;;;###autoload
 (define-minor-mode whitespace-mode
-  "Toggle whitespace minor mode visualization (\"ws\" on modeline).
-
-If ARG is null, toggle whitespace visualization.
-If ARG is a number greater than zero, turn on visualization;
-otherwise, turn off visualization.
+  "Toggle whitespace visualization (Whitespace mode).
+With a prefix argument ARG, enable Whitespace mode if ARG is
+positive, and disable it otherwise.  If called from Lisp, enable
+the mode if ARG is omitted or nil.
 
 See also `whitespace-style', `whitespace-newline' and
 `whitespace-display-mappings'."
@@ -1088,11 +1087,10 @@ See also `whitespace-style', `whitespace-newline' and
 
 ;;;###autoload
 (define-minor-mode whitespace-newline-mode
-  "Toggle NEWLINE minor mode visualization (\"nl\" on modeline).
-
-If ARG is null, toggle NEWLINE visualization.
-If ARG is a number greater than zero, turn on visualization;
-otherwise, turn off visualization.
+  "Toggle newline visualization (Whitespace Newline mode).
+With a prefix argument ARG, enable Whitespace Newline mode if ARG
+is positive, and disable it otherwise.  If called from Lisp,
+enable the mode if ARG is omitted or nil.
 
 Use `whitespace-newline-mode' only for NEWLINE visualization
 exclusively.  For other visualizations, including NEWLINE
@@ -1116,11 +1114,10 @@ See also `whitespace-newline' and `whitespace-display-mappings'."
 
 ;;;###autoload
 (define-minor-mode global-whitespace-mode
-  "Toggle whitespace global minor mode visualization (\"WS\" on modeline).
-
-If ARG is null, toggle whitespace visualization.
-If ARG is a number greater than zero, turn on visualization;
-otherwise, turn off visualization.
+  "Toggle whitespace visualization globally (Global Whitespace mode).
+With a prefix argument ARG, enable Global Whitespace mode if ARG
+is positive, and disable it otherwise.  If called from Lisp,
+enable it if ARG is omitted or nil.
 
 See also `whitespace-style', `whitespace-newline' and
 `whitespace-display-mappings'."
@@ -1174,11 +1171,10 @@ See also `whitespace-style', `whitespace-newline' and
 
 ;;;###autoload
 (define-minor-mode global-whitespace-newline-mode
-  "Toggle NEWLINE global minor mode visualization (\"NL\" on modeline).
-
-If ARG is null, toggle NEWLINE visualization.
-If ARG is a number greater than zero, turn on visualization;
-otherwise, turn off visualization.
+  "Toggle global newline visualization (Global Whitespace Newline mode).
+With a prefix argument ARG, enable Global Whitespace Newline mode
+if ARG is positive, and disable it otherwise.  If called from
+Lisp, enable it if ARG is omitted or nil.
 
 Use `global-whitespace-newline-mode' only for NEWLINE
 visualization exclusively.  For other visualizations, including

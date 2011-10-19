@@ -49,7 +49,7 @@ does that automatically."
   :group 'epa-file)
 
 (defvar epa-file-encrypt-to nil
-  "*Recipient(s) used for encrypting files.
+  "Recipient(s) used for encrypting files.
 May either be a string or a list of strings.")
 
 (put 'epa-file-encrypt-to 'safe-local-variable
@@ -83,9 +83,10 @@ May either be a string or a list of strings.")
       (auto-save-mode 0)))
 
 (define-minor-mode auto-encryption-mode
-  "Toggle automatic file encryption and decryption.
-With prefix argument ARG, turn auto encryption on if positive, else off.
-Return the new status of auto encryption (non-nil means on)."
+  "Toggle automatic file encryption/decryption (Auto Encryption mode).
+With a prefix argument ARG, enable Auto Encryption mode if ARG is
+positive, and disable it otherwise.  If called from Lisp, enable
+the mode if ARG is omitted or nil."
   :global t :init-value t :group 'epa-file :version "23.1"
   ;; We'd like to use custom-initialize-set here so the setup is done
   ;; before dumping, but at the point where the defcustom is evaluated,

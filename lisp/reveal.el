@@ -189,12 +189,13 @@ Each element has the form (WINDOW . OVERLAY).")
 
 ;;;###autoload
 (define-minor-mode reveal-mode
-  "Toggle Reveal mode on or off.
-Reveal mode renders invisible text around point visible again.
+  "Toggle decloaking of invisible text near point (Reveal mode).
+With a prefix argument ARG, enable Reveal mode if ARG is
+positive, and disable it otherwise.  If called from Lisp, enable
+Reveal mode if ARG is omitted or nil.
 
-Interactively, with no prefix argument, toggle the mode.
-With universal prefix ARG (or if ARG is nil) turn mode on.
-With zero or negative ARG turn mode off."
+Reveral mode is a buffer-local minor mode.  When enabled, it
+reveals invisible text around point."
   :group 'reveal
   :lighter (global-reveal-mode nil " Reveal")
   :keymap reveal-mode-map
@@ -207,12 +208,12 @@ With zero or negative ARG turn mode off."
 
 ;;;###autoload
 (define-minor-mode global-reveal-mode
-  "Toggle Reveal mode in all buffers on or off.
+  "Toggle Reveal mode in all buffers (Global Reveal mode).
 Reveal mode renders invisible text around point visible again.
 
-Interactively, with no prefix argument, toggle the mode.
-With universal prefix ARG (or if ARG is nil) turn mode on.
-With zero or negative ARG turn mode off."
+With a prefix argument ARG, enable Global Reveal mode if ARG is
+positive, and disable it otherwise.  If called from Lisp, enable
+the mode if ARG is omitted or nil."
   :global t :group 'reveal
   (setq-default reveal-mode global-reveal-mode)
   (if global-reveal-mode

@@ -73,7 +73,12 @@ and you have to scroll or press \\[recenter-top-bottom] to update the numbers."
 
 ;;;###autoload
 (define-minor-mode linum-mode
-  "Toggle display of line numbers in the left margin."
+  "Toggle display of line numbers in the left margin (Linum mode).
+With a prefix argument ARG, enable Linum mode if ARG is positive,
+and disable it otherwise.  If called from Lisp, enable the mode
+if ARG is omitted or nil.
+
+Linum mode is a buffer-local minor mode."
   :lighter ""                           ; for desktop.el
   (if linum-mode
       (progn
