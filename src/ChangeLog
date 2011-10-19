@@ -1,3 +1,9 @@
+2011-10-19  Eli Zaretskii  <eliz@gnu.org>
+
+	* xdisp.c (start_display): If the character at POS is displayed
+	via a display vector, reset IT->current.dpvec_index to zero.
+	(Bug#9771, part 2)
+
 2011-10-18  Chong Yidong  <cyd@gnu.org>
 
 	* xdisp.c (get_next_display_element): Handle U+2010 and U+2011

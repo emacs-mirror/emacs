@@ -2851,6 +2851,13 @@ start_display (struct it *it, struct window *w, struct text_pos pos)
 
 	      it->continuation_lines_width += it->current_x;
 	    }
+	  /* If the character at POS is displayed via a display
+	     vector, move_it_to above stops at the final glyph of
+	     IT->dpvec.  To make the caller redisplay that character
+	     again (a.k.a. start at POS), we need to reset the
+	     dpvec_index to the beginning of IT->dpvec.  */
+	  else if (it->current.dpvec_index >= 0)
+	    it->current.dpvec_index = 0;
 
 	  /* We're starting a new display line, not affected by the
 	     height of the continued line, so clear the appropriate
