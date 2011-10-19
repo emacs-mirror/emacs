@@ -866,7 +866,7 @@ stream.  Standard error output is discarded."
 		       (" M " . edited) ;; file text modified
 		       ("  *" . edited) ;; execute bit changed
 		       (" M*" . edited) ;; text modified + execute bit changed
-		       ;; FIXME: what about ignored files?
+		       ("I  " . ignored)
 		       (" D " . missing)
                        ;; For conflicts, should we list the .THIS/.BASE/.OTHER?
 		       ("C  " . conflict)
@@ -916,7 +916,7 @@ stream.  Standard error output is discarded."
               (push (list new-name 'edited
                           (vc-bzr-create-extra-fileinfo old-name)) result)))
            ;; do nothing for non existent files
-           ((eq translated 'not-found))
+           ((memq translated '(not-found ignored)))
            (t
             (push (list (file-relative-name
                          (buffer-substring-no-properties

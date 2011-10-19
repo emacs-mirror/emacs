@@ -1,3 +1,8 @@
+2011-10-19  Glenn Morris  <rgm@gnu.org>
+
+	* vc/vc-bzr.el (vc-bzr-after-dir-status):
+	Ignore ignored files.  (Bug#9726)
+
 2011-10-19  Chong Yidong  <cyd@gnu.org>
 
 	Doc fix for minor modes, stating that an omitted argument enables
