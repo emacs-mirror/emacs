@@ -1,3 +1,8 @@
+2011-10-19  Michael Albinus  <michael.albinus@gmx.de>
+
+	* net/tramp.el (tramp-connectable-p): Make a stronger check on a
+	running process.
+
 2011-10-19  Glenn Morris  <rgm@gnu.org>
 
 	* vc/vc-bzr.el (vc-bzr-after-dir-status):
