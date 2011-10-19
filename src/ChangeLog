@@ -2,6 +2,10 @@
 
 	* xdisp.c (start_display): If the character at POS is displayed
 	via a display vector, reset IT->current.dpvec_index to zero.
+	(try_window_reusing_current_matrix): If a line ends in a display
+	vector or the next line starts in a display vector, continue
+	redrawing the window even though the character position of
+	start_row was reached.
 	(Bug#9771, part 2)
 
 2011-10-18  Chong Yidong  <cyd@gnu.org>
