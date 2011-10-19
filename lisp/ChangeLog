@@ -1,3 +1,7 @@
+2011-10-19  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* vc/log-edit.el (log-edit-empty-buffer-p): Ignore empty headers.
+
 2011-10-19  Michael Albinus  <michael.albinus@gmx.de>
 
 	* net/tramp.el (tramp-connectable-p): Make a stronger check on a
