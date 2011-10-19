@@ -36,6 +36,7 @@
 ;; Function                           Browser     Earliest version
 ;; browse-url-mozilla                 Mozilla     Don't know
 ;; browse-url-firefox                 Firefox     Don't know (tried with 1.0.1)
+;; browse-url-chromium                Chromium    3.0
 ;; browse-url-galeon                  Galeon      Don't know
 ;; browse-url-epiphany                Epiphany    Don't know
 ;; browse-url-netscape                Netscape    1.1b1
@@ -230,6 +231,7 @@ regexp should probably be \".\" to specify a default browser."
 			 :value  browse-url-w3-gnudoit)
 	  (function-item :tag "Mozilla" :value  browse-url-mozilla)
 	  (function-item :tag "Firefox" :value browse-url-firefox)
+	  (function-item :tag "Chromium" :value browse-url-chromium)
 	  (function-item :tag "Galeon" :value  browse-url-galeon)
 	  (function-item :tag "Epiphany" :value  browse-url-epiphany)
 	  (function-item :tag "Netscape" :value  browse-url-netscape)
@@ -334,6 +336,22 @@ Defaults to the value of `browse-url-mozilla-arguments' at the time
 Defaults to the value of `browse-url-firefox-arguments' at the time
 `browse-url' is loaded."
   :type '(repeat (string :tag "Argument"))
+  :group 'browse-url)
+
+(defcustom browse-url-chromium-program
+  (let ((candidates '("chromium" "chromium-browser")))
+    (while (and candidates (not (executable-find (car candidates))))
+      (setq candidates (cdr candidates)))
+    (or (car candidates) "chromium"))
+  "The name by which to invoke Chromium."
+  :type 'string
+  :version "24.1"
+  :group 'browse-url)
+
+(defcustom browse-url-chromium-arguments nil
+  "A list of strings to pass to Chromium as arguments."
+  :type '(repeat (string :tag "Argument"))
+  :version "24.1"
   :group 'browse-url)
 
 (defcustom browse-url-galeon-program "galeon"
@@ -913,6 +931,7 @@ used instead of `browse-url-new-window-flag'."
     ((executable-find browse-url-gnome-moz-program) 'browse-url-gnome-moz)
     ((executable-find browse-url-mozilla-program) 'browse-url-mozilla)
     ((executable-find browse-url-firefox-program) 'browse-url-firefox)
+    ((executable-find browse-url-chromium-program) 'browse-url-chromium)
     ((executable-find browse-url-galeon-program) 'browse-url-galeon)
     ((executable-find browse-url-kde-program) 'browse-url-kde)
     ((executable-find browse-url-netscape-program) 'browse-url-netscape)
@@ -1139,6 +1158,22 @@ URL in a new window."
 	(apply 'start-process (concat "firefox " url) nil
 	       browse-url-firefox-program
 	       (append browse-url-firefox-startup-arguments (list url))))))
+
+;;;###autoload
+(defun browse-url-chromium (url &optional new-window)
+  "Ask the Chromium WWW browser to load URL.
+Default to the URL around or before point.  The strings in
+variable `browse-url-chromium-arguments' are also passed to
+Chromium."
+  (interactive (browse-url-interactive-arg "URL: "))
+  (setq url (browse-url-encode-url url))
+  (let* ((process-environment (browse-url-process-environment)))
+    (apply 'start-process
+	   (concat "chromium " url) nil
+	   browse-url-chromium-program
+	   (append
+	    browse-url-chromium-arguments
+	    (list url)))))
 
 ;;;###autoload
 (defun browse-url-galeon (url &optional new-window)
