@@ -1424,10 +1424,13 @@ See the variable `iswitchb-case' for details."
 
 ;;;###autoload
 (define-minor-mode iswitchb-mode
-  "Toggle Iswitchb global minor mode.
-With arg, turn Iswitchb mode on if ARG is positive, otherwise turn it off.
-This mode enables switching between buffers using substrings.  See
-`iswitchb' for details."
+  "Toggle Iswitchb mode.
+With a prefix argument ARG, enable Iswitchb mode if ARG is
+positive, and disable it otherwise.  If called from Lisp, enable
+the mode if ARG is omitted or nil.
+
+Iswitchb mode is a global minor mode that enables switching
+between buffers using substrings.  See `iswitchb' for details."
   nil nil iswitchb-global-map :global t :group 'iswitchb
   (if iswitchb-mode
       (add-hook 'minibuffer-setup-hook 'iswitchb-minibuffer-setup)

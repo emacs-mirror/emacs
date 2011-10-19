@@ -95,21 +95,22 @@ This is used when `longlines-show-hard-newlines' is on."
 
 ;;;###autoload
 (define-minor-mode longlines-mode
-  "Minor mode to wrap long lines.
-In Long Lines mode, long lines are wrapped if they extend beyond
-`fill-column'.  The soft newlines used for line wrapping will not
-show up when the text is yanked or saved to disk.
+  "Toggle Long Lines mode in this buffer.
+With a prefix argument ARG, enable Long Lines mode if ARG is
+positive, and disable it otherwise.  If called from Lisp, enable
+the mode if ARG is omitted or nil.
 
-With no argument, this command toggles Long Lines mode.
-With a prefix argument ARG, turn Long Lines minor mode on if ARG is positive,
-otherwise turn it off.
+When Long Lines mode is enabled, long lines are wrapped if they
+extend beyond `fill-column'.  The soft newlines used for line
+wrapping will not show up when the text is yanked or saved to
+disk.
 
-If the variable `longlines-auto-wrap' is non-nil, lines are automatically
-wrapped whenever the buffer is changed.  You can always call
-`fill-paragraph' to fill individual paragraphs.
+If the variable `longlines-auto-wrap' is non-nil, lines are
+automatically wrapped whenever the buffer is changed.  You can
+always call `fill-paragraph' to fill individual paragraphs.
 
-If the variable `longlines-show-hard-newlines' is non-nil, hard newlines
-are indicated with a symbol."
+If the variable `longlines-show-hard-newlines' is non-nil, hard
+newlines are indicated with a symbol."
   :group 'longlines :lighter " ll"
   (if longlines-mode
       ;; Turn on longlines mode

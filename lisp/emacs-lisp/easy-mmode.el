@@ -350,14 +350,16 @@ call another major mode in their body."
        (define-minor-mode ,global-mode
 	 ;; Very short lines to avoid too long lines in the generated
 	 ;; doc string.
-	 ,(format "Toggle %s in every possible buffer.
-With prefix ARG, turn %s on if and only if
-ARG is positive.
+	 ,(format "Toggle %s in all buffers.
+With prefix ARG, enable %s if ARG is positive;
+otherwise, disable it.  If called from Lisp, enable the mode if
+ARG is omitted or nil.
+
 %s is enabled in all buffers where
 \`%s' would do it.
 See `%s' for more information on %s."
-		  pretty-name pretty-global-name pretty-name turn-on
-		  mode pretty-name)
+		  pretty-name pretty-global-name
+		  pretty-name turn-on mode pretty-name)
 	 :global t ,@group ,@(nreverse extra-keywords)
 
 	 ;; Setup hook to handle future mode changes and new buffers.

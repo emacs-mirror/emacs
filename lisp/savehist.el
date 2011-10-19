@@ -170,15 +170,19 @@ minibuffer history.")
 
 ;;;###autoload
 (define-minor-mode savehist-mode
-  "Toggle savehist-mode.
-Positive ARG turns on `savehist-mode'.  When on, savehist-mode causes
-minibuffer history to be saved periodically and when exiting Emacs.
-When turned on for the first time in an Emacs session, it causes the
-previous minibuffer history to be loaded from `savehist-file'.
+  "Toggle saving of minibuffer history (Savehist mode).
+With a prefix argument ARG, enable Savehist mode if ARG is
+positive, and disable it otherwise.  If called from Lisp, enable
+the mode if ARG is omitted or nil.
+
+When Savehist mode is enabled, minibuffer history is saved
+periodically and when exiting Emacs.  When Savehist mode is
+enabled for the first time in an Emacs session, it loads the
+previous minibuffer history from `savehist-file'.
 
 This mode should normally be turned on from your Emacs init file.
-Calling it at any other time replaces your current minibuffer histories,
-which is probably undesirable."
+Calling it at any other time replaces your current minibuffer
+histories, which is probably undesirable."
   :global t
   (if (not savehist-mode)
       (savehist-uninstall)

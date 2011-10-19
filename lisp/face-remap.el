@@ -204,7 +204,7 @@ Each positive or negative step scales the default face height by this amount."
 (make-variable-buffer-local 'text-scale-mode-amount)
 
 (define-minor-mode text-scale-mode
-  "Minor mode for displaying buffer text in a larger/smaller font than usual.
+  "Minor mode for displaying buffer text in a larger/smaller font.
 
 The amount of scaling is determined by the variable
 `text-scale-mode-amount': one step scales the global default

@@ -114,12 +114,15 @@ Setting the variable with a customization buffer also takes effect."
 
 (defun get-scroll-bar-mode () scroll-bar-mode)
 (defsetf get-scroll-bar-mode set-scroll-bar-mode)
+
 (define-minor-mode scroll-bar-mode
-  "Toggle display of vertical scroll bars on all frames.
+  "Toggle vertical scroll bars on all frames (Scroll Bar mode).
+With a prefix argument ARG, enable Scroll Bar mode if ARG is
+positive, and disable it otherwise.  If called from Lisp, enable
+the mode if ARG is omitted or nil.
+
 This command applies to all frames that exist and frames to be
-created in the future.
-With a numeric argument, if the argument is positive
-turn on scroll bars; otherwise turn off scroll bars."
+created in the future."
   :variable (eq (get-scroll-bar-mode)
                 (or previous-scroll-bar-mode
                     default-frame-scroll-bars)))

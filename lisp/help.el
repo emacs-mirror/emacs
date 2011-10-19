@@ -977,13 +977,15 @@ function is called, the window to be resized is selected."
   :version "20.4")
 
 (define-minor-mode temp-buffer-resize-mode
-  "Toggle mode which makes windows smaller for temporary buffers.
-With prefix argument ARG, turn the resizing of windows displaying
-temporary buffers on if ARG is positive or off otherwise.
+  "Toggle auto-shrinking temp buffer windows (Temp Buffer Resize mode).
+With a prefix argument ARG, enable Temp Buffer Resize mode if ARG
+is positive, and disable it otherwise.  If called from Lisp,
+enable the mode if ARG is omitted or nil.
 
-This mode makes a window the right height for its contents, but
-never more than `temp-buffer-max-height' nor less than
-`window-min-height'.
+When Temp Buffer Resize mode is enabled, the windows in which we
+show a temporary buffer are automatically reduced in height to
+fit the buffer's contents, but never more than
+`temp-buffer-max-height' nor less than `window-min-height'.
 
 This mode is used by `help', `apropos' and `completion' buffers,
 and some others."

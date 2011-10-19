@@ -484,14 +484,15 @@ update which can wait for the next redisplay."
 ;;;###autoload
 (define-minor-mode display-time-mode
   "Toggle display of time, load level, and mail flag in mode lines.
-With a numeric arg, enable this display if arg is positive.
+With a prefix argument ARG, enable Display Time mode if ARG is
+positive, and disable it otherwise.  If called from Lisp, enable
+it if ARG is omitted or nil.
 
-When this display is enabled, it updates automatically every minute
-\(you can control the number of seconds between updates by
-customizing `display-time-interval').
-If `display-time-day-and-date' is non-nil, the current day and date
-are displayed as well.
-This runs the normal hook `display-time-hook' after each update."
+When Display Time mode is enabled, it updates every minute (you
+can control the number of seconds between updates by customizing
+`display-time-interval').  If `display-time-day-and-date' is
+non-nil, the current day and date are displayed as well.  This
+runs the normal hook `display-time-hook' after each update."
   :global t :group 'display-time
   (and display-time-timer (cancel-timer display-time-timer))
   (setq display-time-timer nil)

@@ -131,14 +131,16 @@ been set up by `minibuf-eldef-setup-minibuffer'."
 ;;;###autoload
 (define-minor-mode minibuffer-electric-default-mode
   "Toggle Minibuffer Electric Default mode.
-When active, minibuffer prompts that show a default value only show the
-default when it's applicable -- that is, when hitting RET would yield
-the default value.  If the user modifies the input such that hitting RET
-would enter a non-default value, the prompt is modified to remove the
-default indication.
+With a prefix argument ARG, enable Minibuffer Electric Default
+mode if ARG is positive, and disable it otherwise.  If called
+from Lisp, enable the mode if ARG is omitted or nil.
 
-With prefix argument ARG, turn on if positive, otherwise off.
-Returns non-nil if the new state is enabled."
+Minibuffer Electric Default mode is a global minor mode.  When
+enabled, minibuffer prompts that show a default value only show
+the default when it's applicable -- that is, when hitting RET
+would yield the default value.  If the user modifies the input
+such that hitting RET would enter a non-default value, the prompt
+is modified to remove the default indication."
   :global t
   :group 'minibuffer
   (if minibuffer-electric-default-mode

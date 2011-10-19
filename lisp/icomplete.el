@@ -172,9 +172,10 @@ except those on this list.")
 ;;;_ > icomplete-mode (&optional prefix)
 ;;;###autoload
 (define-minor-mode icomplete-mode
-  "Toggle incremental minibuffer completion for this Emacs session.
-With a numeric argument, turn Icomplete mode on if ARG is positive,
-otherwise turn it off."
+  "Toggle incremental minibuffer completion (Icomplete mode).
+With a prefix argument ARG, enable Icomplete mode if ARG is
+positive, and disable it otherwise.  If called from Lisp, enable
+the mode if ARG is omitted or nil."
   :global t :group 'icomplete
   (if icomplete-mode
       ;; The following is not really necessary after first time -

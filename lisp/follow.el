@@ -484,10 +484,13 @@ Used by `follow-window-size-change'.")
 (put 'follow-mode 'permanent-local t)
 ;;;###autoload
 (define-minor-mode follow-mode
-  "Minor mode that combines windows into one tall virtual window.
+  "Toggle Follow mode.
+With a prefix argument ARG, enable Follow mode if ARG is
+positive, and disable it otherwise.  If called from Lisp, enable
+the mode if ARG is omitted or nil.
 
-The feeling of a \"virtual window\" has been accomplished by the use
-of two major techniques:
+Follow mode is a minor mode that combines windows into one tall
+virtual window.  This is accomplished by two main techniques:
 
 * The windows always displays adjacent sections of the buffer.
   This means that whenever one window is moved, all the
