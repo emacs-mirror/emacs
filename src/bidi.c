@@ -2193,7 +2193,7 @@ bidi_level_of_next_char (struct bidi_it *bidi_it)
     }
 
   /* Resolve implicit levels, with a twist: PDFs get the embedding
-     level of the enbedding they terminate.  See below for the
+     level of the embedding they terminate.  See below for the
      reason.  */
   if (bidi_it->orig_type == PDF
       /* Don't do this if this formatting code didn't change the
