@@ -19966,10 +19966,13 @@
 
 2004-05-18  Reiner Steib  <Reiner.Steib@gmx.de>
 
+	* gnus-picon.el (gnus-picon-insert-glyph):
+	Add optional `nostring' argument.
+
+2004-05-18  Jesper Harder  <harder@ifa.au.dk>
+
 	* gnus-picon.el (gnus-picon-style): New variable.
-	(gnus-picon-insert-glyph): Add optional `nostring' argument.
 	(gnus-picon-transform-address): Support `gnus-picon-style'.
-	From Jesper Harder <harder@ifa.au.dk>.
 
 2004-05-18  Lars Magne Ingebrigtsen  <larsi@gnus.org>
 
