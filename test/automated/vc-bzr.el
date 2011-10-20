@@ -61,4 +61,41 @@
             (should (search-forward "unregistered" nil t))))
       (delete-directory tempdir t))))
 
+;; Not specific to bzr.
+(ert-deftest vc-bzr-test-bug9781 ()
+  "Test for http://debbugs.gnu.org/9781 ."
+  :expected-result (if (executable-find vc-bzr-program) :passed :failed)
+  (should (executable-find vc-bzr-program))
+  (let* ((tempdir (make-temp-file "vc-bzr-test" t))
+         (subdir (expand-file-name "subdir" tempdir))
+         (file (expand-file-name "file" tempdir))
+         (default-directory (file-name-as-directory tempdir)))
+    (unwind-protect
+        (progn
+          (call-process vc-bzr-program nil nil nil "init")
+          (make-directory subdir)
+          (with-temp-buffer
+            (insert "text")
+            (write-region nil nil file nil 'silent)
+            (write-region nil nil (expand-file-name "subfile" subdir)
+                          nil 'silent))
+          (call-process vc-bzr-program nil nil nil "add")
+          (call-process vc-bzr-program nil nil nil "commit" "-m" "Commit 1")
+          (call-process vc-bzr-program nil nil nil "remove" subdir)
+          (with-temp-buffer
+            (insert "different text")
+            (write-region nil nil file nil 'silent))
+          (vc-dir tempdir)
+          (while (vc-dir-busy)
+            (sit-for 0.1))
+          (vc-dir-mark-all-files t)
+          (let ((f (symbol-function 'y-or-n-p)))
+            (unwind-protect
+                (progn
+                  (fset 'y-or-n-p (lambda (prompt) t))
+                  (vc-next-action nil))
+              (fset 'y-or-n-p f)))
+          (should (get-buffer "*vc-log*")))
+      (delete-directory tempdir t))))
+
 ;;; vc-bzr.el ends here
