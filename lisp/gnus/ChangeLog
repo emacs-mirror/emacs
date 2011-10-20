@@ -13109,13 +13109,11 @@
 	(mml-secure-cache-passphrase): New user option.
 	(mml-secure-passphrase-cache-expiry): New user option.
 
-2006-07-24  Daiki Ueno  <ueno@unixuser.org>
+2006-07-24  David Smith  <davidsmith@acm.org>  (tiny change)
+	    Andreas Vögele  <andreas@altroot.de>   (tiny change)
 
-	* pgg-def.el (pgg-truncate-key-identifier): Truncate the key ID to 8
-	letters from the end.  Thanks to "David Smith" <davidsmith@acm.org> and
-	andreas@altroot.de (Andreas Vögele).
-
-	FIXME: Use `tiny change'?
+	* pgg-def.el (pgg-truncate-key-identifier):
+	Truncate the key ID to 8 letters from the end.
 
 2006-07-19  Andreas Seltenreich  <uwi7@rz.uni-karlsruhe.de>
 
