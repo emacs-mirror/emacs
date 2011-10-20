@@ -14,9 +14,9 @@
 	* nnir.el (gnus-registry-enabled): Defvar to keep the compiler happy.
 	* nnmairix.el (gnus-registry-enabled): Ditto.
 
-2011-10-17  Teodor Zlatanov  <tzz@lifelogs.com>
+2011-10-17  Dave Abrahams  <dave@boostpro.com>
 
-	* gnus-registry.el (gnus-registry-enabled): Add new variable.
+	* gnus-registry.el (gnus-registry-enabled): Add new variable. (Bug#9691)
 	(gnus-registry-install-shortcuts): Set `gnus-registry-install' to 'ask
 	only while we need to find out if it should be t or nil.
 	(gnus-registry-initialize): Don't set `gnus-registry-install' to t.
@@ -30,7 +30,6 @@
 	Use `gnus-registry-enabled' instead of `gnus-registry-install'.
 	* nnir.el (nnir-mode): Use `gnus-registry-enabled' instead of
 	`gnus-registry-install'.
-	From Dave Abrahams <dave@boostpro.com>.
 
 2011-10-17  Daiki Ueno  <ueno@unixuser.org>
 
