@@ -1,3 +1,13 @@
+2011-10-20  Chong Yidong  <cyd@gnu.org>
+
+	* custom.texi (Hooks, Init Examples):
+	* display.texi (Font Lock):
+	* fixit.texi (Spelling):
+	* rmail.texi (Rmail Display): Minor mode function with no arg now
+	enables it.
+
+	* fixit.texi (Spelling): Fix description of inline completion.
+
 2011-10-19  Chong Yidong  <cyd@gnu.org>
 
 	* search.texi (Repeat Isearch, Error in Isearch): Add kindex

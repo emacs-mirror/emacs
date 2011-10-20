@@ -213,12 +213,17 @@ complex processing.")
 
 ;;;###autoload
 (define-minor-mode refill-mode
-  "Toggle Refill minor mode.
-With prefix arg, turn Refill mode on if arg is positive, otherwise turn it off.
+  "Toggle automatic refilling (Refill mode).
+With a prefix argument ARG, enable Refill mode if ARG is
+positive, and disable it otherwise.  If called from Lisp, enable
+the mode if ARG is omitted or nil.
 
-When Refill mode is on, the current paragraph will be formatted when
-changes are made within it.  Self-inserting characters only cause
-refilling if they would cause auto-filling."
+Refill mode is a buffer-local minor mode.  When enabled, the
+current paragraph is refilled as you edit.  Self-inserting
+characters only cause refilling if they would cause
+auto-filling.
+
+For true \"word wrap\" behavior, use `visual-line-mode' instead."
   :group 'refill
   :lighter " Refill"
   :keymap '(("\177" . backward-delete-char-untabify))

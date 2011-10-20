@@ -104,14 +104,17 @@
 
 ;; Should keypad numbers send ordinary digits or distinct escape sequences?
 (define-minor-mode tvi970-set-keypad-mode
-  "Set the current mode of the TVI 970 numeric keypad.
-In ``numeric keypad mode'', the number keys on the keypad act as
-ordinary digits.  In ``alternate keypad mode'', the keys send distinct
-escape sequences, meaning that they can have their own bindings,
+  "Toggle alternate keypad mode on TVI 970 keypad.
+With a prefix argument ARG, enable the mode if ARG is positive,
+and disable it otherwise.  If called from Lisp, enable the mode
+if ARG is omitted or nil.
+
+In ``alternate keypad mode'', the keys send distinct escape
+sequences, meaning that they can have their own bindings,
 independent of the normal number keys.
-With no argument, toggle between the two possible modes.
-With a positive argument, select alternate keypad mode.
-With a negative argument, select numeric keypad mode."
+
+When disabled, the terminal enters ``numeric keypad mode'', in
+which the keypad's keys act as ordinary digits."
   :variable (terminal-parameter nil 'tvi970-keypad-numeric)
   (send-string-to-terminal
    (if (terminal-parameter nil 'tvi970-keypad-numeric) "\e=" "\e>")))

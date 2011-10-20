@@ -127,7 +127,10 @@ so that it is considered safe, see `enable-local-variables'.")
 
 ;;;###autoload
 (define-minor-mode bug-reference-mode
-  "Minor mode to buttonize bugzilla references in the current buffer."
+  "Toggle hyperlinking bug references in the buffer (Bug Reference mode).
+With a prefix argument ARG, enable Bug Reference mode if ARG is
+positive, and disable it otherwise.  If called from Lisp, enable
+the mode if ARG is omitted or nil."
   nil
   ""
   nil

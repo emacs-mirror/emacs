@@ -788,9 +788,14 @@ being set it is automatically widened."
 
 ;;;###autoload
 (define-minor-mode footnote-mode
-  "Toggle footnote minor mode.
-This minor mode provides footnote support for `message-mode'.  To get
-started, play around with the following keys:
+  "Toggle Footnote mode.
+With a prefix argument ARG, enable Footnote mode if ARG is
+positive, and disable it otherwise.  If called from Lisp, enable
+the mode if ARG is omitted or nil.
+
+Footnode mode is a buffer-local minor mode.  If enabled, it
+provides footnote support for `message-mode'.  To get started,
+play around with the following keys:
 \\{footnote-minor-mode-map}"
   :lighter    footnote-mode-line-string
   :keymap     footnote-minor-mode-map

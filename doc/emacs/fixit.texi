@@ -7,17 +7,14 @@
 @cindex typos, fixing
 @cindex mistakes, correcting
 
-  In this chapter we describe the commands that are especially useful
-when you catch a mistake in your text after you have made it, or
-change your mind while composing text on the fly.
-
-  The most fundamental command for correcting erroneous editing is the
-undo command @kbd{C-/} (which is also bound to @kbd{C-x u} and
-@kbd{C-_}).  This undoes a single command, or a part of a command (as
-in the case of @code{query-replace}), or several consecutive
-self-inserting characters.  Consecutive repetitions of @kbd{C-/} undo
-earlier and earlier changes, back to the limit of the undo information
-available.
+  In this chapter we describe commands that are useful when you catch
+a mistake while editing.  The most fundamental command for correcting
+erroneous editing is the undo command @kbd{C-/} (which is also bound
+to @kbd{C-x u} and @kbd{C-_}).  This undoes a single command, or a
+part of a command (as in the case of @code{query-replace}), or several
+consecutive character insertions.  Consecutive repetitions of
+@kbd{C-/} undo earlier and earlier changes, back to the limit of the
+undo information available.
 
   Aside from the commands described here, you can erase text using
 deletion commands such as @key{DEL} (@code{delete-backward-char}).
@@ -231,18 +228,19 @@ case-convert it and go on typing.  @xref{Case}.@refill
   This section describes the commands to check the spelling of a
 single word or of a portion of a buffer.  These commands only work if
 the spelling checker program Aspell, Ispell or Hunspell is installed.
-Aspell, Ispell or Hunspell are not part of Emacs, but one or the other
-is usually installed in GNU/Linux and other free operating systems.
+These programs are not part of Emacs, but one of them is usually
+installed in GNU/Linux and other free operating systems.
 @ifnottex
 @xref{Top, Aspell,, aspell, The Aspell Manual}.
 @end ifnottex
 
 @table @kbd
 @item M-$
-Check and correct spelling of the active region or the word at point
-(@code{ispell-word}).
+Check and correct spelling of the word at point (@code{ispell-word}).
+If the region is active, do it for all words in the region instead.
 @item M-x ispell
-Check and correct spelling in the active region or the entire buffer.
+Check and correct spelling of all words in the buffer.  If the region
+is active, do it for all words in the region instead.
 @item M-x ispell-buffer
 Check and correct spelling in the buffer.
 @item M-x ispell-region
@@ -355,14 +353,13 @@ Show the list of options.
 @end table
 
 @findex ispell-complete-word
-  In Text mode and related modes, the command @kbd{M-@key{TAB}}
-(@code{ispell-complete-word}) shows a list of completions based on
+  In Text mode and related modes, @kbd{M-@key{TAB}}
+(@code{ispell-complete-word}) performs in-buffer completion based on
 spelling correction.  Insert the beginning of a word, and then type
-@kbd{M-@key{TAB}}; the command displays a completion list window.  (If
-your window manager intercepts @kbd{M-@key{TAB}}, type @kbd{@key{ESC}
-@key{TAB}} or @kbd{C-M-i}.)  To choose one of the completions listed,
-click @kbd{Mouse-2} or @kbd{Mouse-1} fast on it, or move the cursor
-there in the completions window and type @key{RET}.  @xref{Text Mode}.
+@kbd{M-@key{TAB}}; this shows shows a list of completions.  (If your
+window manager intercepts @kbd{M-@key{TAB}}, type @kbd{@key{ESC}
+@key{TAB}} or @kbd{C-M-i}.)  Each completion is listed with a digit or
+character; type that digit or character to choose it.
 
 @cindex @code{ispell} program
 @findex ispell-kill-ispell
@@ -370,29 +367,27 @@ there in the completions window and type @key{RET}.  @xref{Text Mode}.
 to run, waiting for something to do, so that subsequent spell checking
 commands complete more quickly.  If you want to get rid of the
 process, use @kbd{M-x ispell-kill-ispell}.  This is not usually
-necessary, since the process uses no time except when you do spelling
-correction.
+necessary, since the process uses no processor time except when you do
+spelling correction.
 
 @vindex ispell-dictionary
 @vindex ispell-local-dictionary
 @vindex ispell-personal-dictionary
+@findex ispell-change-dictionary
+  Ispell, Aspell and Hunspell look up spelling in two dictionaries:
+the standard dictionary and your personal dictionary.  The standard
+dictionary is specified by the variable @code{ispell-local-dictionary}
+or, if that is @code{nil}, by the variable @code{ispell-dictionary}.
+If both are @code{nil}, the spelling program's default dictionary is
+used.  The command @kbd{M-x ispell-change-dictionary} sets the
+standard dictionary for the buffer and then restarts the subprocess,
+so that it will use a different standard dictionary.  Your personal
+dictionary is specified by the variable
+@code{ispell-personal-dictionary}.  If that is @code{nil}, the
+spelling program looks for a personal dictionary in a default
+location.
+
 @vindex ispell-complete-word-dict
-  Ispell, Aspell and Hunspell use two dictionaries together for spell checking:
-the standard dictionary and your private dictionary.  The standard
-dictionary is specified by @code{ispell-local-dictionary} or,
-if @code{nil}, by @code{ispell-dictionary}.  If both are @code{nil}
-the default dictionary is selected.  The command
-@kbd{M-x ispell-change-dictionary} sets the standard dictionary for
-the buffer and then restarts the subprocess, so that it will use a
-different standard dictionary.  Personal dictionary is specified by
-@code{ispell-personal-dictionary}.  If @code{nil}, default value is
-used.
-
-  Set variable @code{ispell-dictionary} to select a specific default
-dictionary for all your documents. Set variable
-@code{ispell-local-dictionary} in the local variables section to
-select a specific dictionary for a given document.
-
   A separate dictionary is used for word completion.  The variable
 @code{ispell-complete-word-dict} specifies the file name of this
 dictionary.  The completion dictionary must be different because it
@@ -400,16 +395,14 @@ cannot use root and affix information.  For some languages, there
 is a spell checking dictionary but no word completion dictionary.
 
 @cindex Flyspell mode
+@cindex mode, Flyspell
 @findex flyspell-mode
-@findex turn-on-flyspell
-  Flyspell mode is a fully-automatic way to check spelling as you edit
-in Emacs.  It operates by checking words as you change or insert them.
-When it finds a word that it does not recognize, it highlights that
-word.  This does not interfere with your editing, but when you see the
-highlighted word, you can move to it and fix it.  Type @kbd{M-x
-flyspell-mode} to enable or disable this mode in the current buffer.
-To enable Flyspell mode in all text mode buffers, add
-@code{turn-on-flyspell} to @code{text-mode-hook}.
+  Flyspell mode is a minor mode that performs automatic spell checking
+as you type.  When it finds a word that it does not recognize, it
+highlights that word.  Type @kbd{M-x flyspell-mode} to toggle Flyspell
+mode in the current buffer.  To enable Flyspell mode in all text mode
+buffers, add @code{flyspell-mode} to @code{text-mode-hook}.
+@xref{Hooks}.
 
   When Flyspell mode highlights a word as misspelled, you can click on
 it with @kbd{Mouse-2} to display a menu of possible corrections and

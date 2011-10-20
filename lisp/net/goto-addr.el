@@ -288,7 +288,7 @@ Also fontifies the buffer appropriately (see `goto-address-fontify-p' and
 
 ;;;###autoload
 (define-minor-mode goto-address-prog-mode
-  "Turn on `goto-address-mode', but only in comments and strings."
+  "Like `goto-address-mode', but only for comments and strings."
   nil
   ""
   nil

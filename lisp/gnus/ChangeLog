@@ -1,3 +1,9 @@
+2011-10-20  Chong Yidong  <cyd@gnu.org>
+
+	* gnus-cite.el (gnus-message-citation-mode): Doc fix (in Emacs 24,
+	calling a minor mode from Lisp with nil arg enables it, so we have to
+	make the working a bit ambiguous here).
+
 2011-10-18  Teodor Zlatanov  <tzz@lifelogs.com>
 
 	* gnus-util.el (gnus-bound-and-true-p): Macro for XEmacs compatibility.
@@ -8,9 +14,9 @@
 	* nnir.el (gnus-registry-enabled): Defvar to keep the compiler happy.
 	* nnmairix.el (gnus-registry-enabled): Ditto.
 
-2011-10-17  Teodor Zlatanov  <tzz@lifelogs.com>
+2011-10-17  Dave Abrahams  <dave@boostpro.com>
 
-	* gnus-registry.el (gnus-registry-enabled): Add new variable.
+	* gnus-registry.el (gnus-registry-enabled): Add new variable. (Bug#9691)
 	(gnus-registry-install-shortcuts): Set `gnus-registry-install' to 'ask
 	only while we need to find out if it should be t or nil.
 	(gnus-registry-initialize): Don't set `gnus-registry-install' to t.
@@ -24,7 +30,6 @@
 	Use `gnus-registry-enabled' instead of `gnus-registry-install'.
 	* nnir.el (nnir-mode): Use `gnus-registry-enabled' instead of
 	`gnus-registry-install'.
-	From Dave Abrahams <dave@boostpro.com>.
 
 2011-10-17  Daiki Ueno  <ueno@unixuser.org>
 
@@ -13104,13 +13109,11 @@
 	(mml-secure-cache-passphrase): New user option.
 	(mml-secure-passphrase-cache-expiry): New user option.
 
-2006-07-24  Daiki Ueno  <ueno@unixuser.org>
+2006-07-24  David Smith  <davidsmith@acm.org>  (tiny change)
+	    Andreas Vögele  <andreas@altroot.de>   (tiny change)
 
-	* pgg-def.el (pgg-truncate-key-identifier): Truncate the key ID to 8
-	letters from the end.  Thanks to "David Smith" <davidsmith@acm.org> and
-	andreas@altroot.de (Andreas Vögele).
-
-	FIXME: Use `tiny change'?
+	* pgg-def.el (pgg-truncate-key-identifier):
+	Truncate the key ID to 8 letters from the end.
 
 2006-07-19  Andreas Seltenreich  <uwi7@rz.uni-karlsruhe.de>
 
@@ -19806,7 +19809,7 @@
 
 	* dns.el (dns-read-type): Add support for SVR.  (small patch)
 
-2004-05-20  Teodor Zlatanov  <tzz@lifelogs.com>
+2004-05-20  Adam Sjøgren  <asjo@koldfront.dk>
 
 	* spam.el (spam-use-crm114, spam-crm114, spam-crm114-program)
 	(spam-crm114-header, spam-crm114-spam-switch)
@@ -19823,7 +19826,8 @@
 	(spam-crm114-unregister-spam-routine)
 	(spam-crm114-register-ham-routine)
 	(spam-crm114-unregister-ham-routine): Add CRM114 support.
-	From asjo@koldfront.dk (Adam Sjøgren).
+
+2004-05-20  Teodor Zlatanov  <tzz@lifelogs.com>
 
 	* gnus.el: Add spam-use-crm114.
 
@@ -19960,10 +19964,13 @@
 
 2004-05-18  Reiner Steib  <Reiner.Steib@gmx.de>
 
+	* gnus-picon.el (gnus-picon-insert-glyph):
+	Add optional `nostring' argument.
+
+2004-05-18  Jesper Harder  <harder@ifa.au.dk>
+
 	* gnus-picon.el (gnus-picon-style): New variable.
-	(gnus-picon-insert-glyph): Add optional `nostring' argument.
 	(gnus-picon-transform-address): Support `gnus-picon-style'.
-	From Jesper Harder <harder@ifa.au.dk>.
 
 2004-05-18  Lars Magne Ingebrigtsen  <larsi@gnus.org>
 
@@ -20222,13 +20229,10 @@
 	* spam-stat.el (spam-stat-score-buffer): Simplify mapcar usage.
 	Use mapc when appropriate.
 
-2004-04-22  Teodor Zlatanov  <tzz@lifelogs.com>
-
-	FIXME: Make separate entries for each person.
-
-	From Dan Christensen <jdc@uwo.ca>, asjo@koldfront.dk (Adam
-	Sjøgren), Wes Hardaker <wes@hardakers.net>, and Michael Shields
-	<shields@msrl.com>:
+2004-04-22  Dan Christensen  <jdc@uwo.ca>
+	    Adam Sjøgren  <asjo@koldfront.dk>
+	    Wes Hardaker  <wes@hardakers.net>
+	    Michael Shields  <shields@msrl.com>
 
 	* spam.el (spam-necessary-extra-headers): Get the extra headers we
 	may need for spam sorting and scoring.
@@ -20238,7 +20242,7 @@
 	sorting.
 	(spam-extra-header-to-number): Add function to get a score from a
 	header.
-	(spam-summary-score): Add function to  get a numeric score from the
+	(spam-summary-score): Add function to get a numeric score from the
 	headers.
 	(spam-generic-score): Fix function doc, was in wrong place.
 	(spam-initialize): Take symbols when it's run, and install the

@@ -2103,8 +2103,9 @@ This is true, if either the remote host is already connected, or if we are
 not in completion mode."
   (and (tramp-tramp-file-p filename)
        (with-parsed-tramp-file-name filename nil
-	 (or (get-buffer (tramp-buffer-name v))
-	     (not (tramp-completion-mode-p))))))
+	 (or (not (tramp-completion-mode-p))
+	     (let ((p (tramp-get-connection-process v)))
+	       (and p (processp p) (memq (process-status p) '(run open))))))))
 
 ;; Method, host name and user name completion.
 ;; `tramp-completion-dissect-file-name' returns a list of

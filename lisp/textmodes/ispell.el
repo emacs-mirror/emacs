@@ -3462,15 +3462,21 @@ available on the net."
 
 ;;;###autoload
 (define-minor-mode ispell-minor-mode
-  "Toggle Ispell minor mode.
-With prefix argument ARG, turn Ispell minor mode on if ARG is positive,
-otherwise turn it off.
+  "Toggle last-word spell checking (Ispell minor mode).
+With a prefix argument ARG, enable Ispell minor mode if ARG is
+positive, and disable it otherwise.  If called from Lisp, enable
+the mode if ARG is omitted or nil.
 
-In Ispell minor mode, pressing SPC or RET
-warns you if the previous word is incorrectly spelled.
+Ispell minor mode is a buffer-local mior mode.  When enabled,
+typing SPC or RET warns you if the previous word is incorrectly
+spelled.
 
-All the buffer-local variables and dictionaries are ignored -- to read
-them into the running ispell process, type \\[ispell-word] SPC."
+All the buffer-local variables and dictionaries are ignored.  To
+read them into the running ispell process, type \\[ispell-word]
+SPC.
+
+For spell-checking \"on the fly\", not just after typing SPC or
+RET, use `flyspell-mode'."
   nil " Spell" ispell-minor-keymap)
 
 (defun ispell-minor-check ()
