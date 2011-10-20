@@ -19811,7 +19811,7 @@
 
 	* dns.el (dns-read-type): Add support for SVR.  (small patch)
 
-2004-05-20  Teodor Zlatanov  <tzz@lifelogs.com>
+2004-05-20  Adam Sjøgren  <asjo@koldfront.dk>
 
 	* spam.el (spam-use-crm114, spam-crm114, spam-crm114-program)
 	(spam-crm114-header, spam-crm114-spam-switch)
@@ -19828,7 +19828,8 @@
 	(spam-crm114-unregister-spam-routine)
 	(spam-crm114-register-ham-routine)
 	(spam-crm114-unregister-ham-routine): Add CRM114 support.
-	From asjo@koldfront.dk (Adam Sjøgren).
+
+2004-05-20  Teodor Zlatanov  <tzz@lifelogs.com>
 
 	* gnus.el: Add spam-use-crm114.
 
