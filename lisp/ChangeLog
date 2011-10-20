@@ -1,3 +1,7 @@
+2011-10-20  Christoph Scholtes  <cschol2112@googlemail.com>
+
+	* emulation/cua-base.el (cua-set-mark): Fix case of string.
+
 2011-10-20  Chong Yidong  <cyd@gnu.org>
 
 	* emulation/cua-base.el (cua-mode):

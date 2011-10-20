@@ -1121,7 +1121,7 @@ With a double \\[universal-argument] prefix argument, unconditionally set mark."
 	(pop-to-mark-command)))
    ((and cua-toggle-set-mark mark-active)
     (cua--deactivate)
-    (message "Mark Cleared"))
+    (message "Mark cleared"))
    (t
     (push-mark-command nil nil)
     (setq cua--explicit-region-start t)
