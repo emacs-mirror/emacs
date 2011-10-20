@@ -1,3 +1,24 @@
+2011-10-20  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Time zone name fixes for non-ASCII locales (Bug#641, Bug#9794)
+	* editfns.c: Rewrite current-time-zone so that it invokes
+	the equivalent of (format-time-string "%Z") to get the time zone name.
+	This fixes a bug when the time zone name contains characters that
+	need converting from the system time locale to Emacs internal format.
+	This fixes a shortcoming that I introduced in my 1999-10-19 patch:
+	that patch fixed format-time-string to do the conversion, but
+	I forgot to fix current-time-zone.
+	(format_time_string): New function, containing most of
+	what Fformat_time_string used to contain.
+	(Fformat_time_string): Rewrite in terms of format_time_string.
+	This doesn't change this function's behavior.
+	(current-time-zone): Rewrite to use format_time_string.
+	This fixes the bug reported by Michael Schierl in
+	<http://lists.gnu.org/archive/html/emacs-devel/2007-06/msg00334.html>.
+	Jason Rumney's 2007-06-07 change worked around this bug, but
+	didn't fix it.
+	* systime.h (tzname, timezone): Remove no-longer-used declarations.
+
 2011-10-19  Eli Zaretskii  <eliz@gnu.org>
 
 	* xdisp.c (start_display): If the character at POS is displayed

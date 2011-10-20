@@ -1,3 +1,10 @@
+2011-10-20  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Time zone name fixes for non-ASCII locales (Bug#641, Bug#9794)
+	* configure.in (AC_STRUCT_TM, AC_STRUCT_TIMEZONE, HAVE_TM_GMTOFF):
+	Remove; no longer needed, now that we defer to strftime for time
+	zone names.
+
 2011-10-18  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* configure.in (GLIB_REQUIRED, GTK_REQUIRED): Set to 2.10 (Bug#9786).

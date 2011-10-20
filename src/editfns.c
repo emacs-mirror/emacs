@@ -85,6 +85,8 @@ extern Lisp_Object w32_get_internal_run_time (void);
 #endif
 
 static void time_overflow (void) NO_RETURN;
+static Lisp_Object format_time_string (char const *, ptrdiff_t, Lisp_Object,
+				       int, time_t *, struct tm **);
 static int tm_diff (struct tm *, struct tm *);
 static void update_buffer_properties (EMACS_INT, EMACS_INT);
 
@@ -1700,33 +1702,41 @@ For example, to produce full ISO 8601 format, use "%Y-%m-%dT%T%z".
 usage: (format-time-string FORMAT-STRING &optional TIME UNIVERSAL)  */)
   (Lisp_Object format_string, Lisp_Object timeval, Lisp_Object universal)
 {
-  time_t value;
+  time_t t;
+  struct tm *tm;
+
+  CHECK_STRING (format_string);
+  format_string = code_convert_string_norecord (format_string,
+						Vlocale_coding_system, 1);
+  return format_time_string (SSDATA (format_string), SBYTES (format_string),
+			     timeval, ! NILP (universal), &t, &tm);
+}
+
+static Lisp_Object
+format_time_string (char const *format, ptrdiff_t formatlen,
+		    Lisp_Object timeval, int ut, time_t *tval, struct tm **tmp)
+{
   ptrdiff_t size;
   int usec;
   int ns;
   struct tm *tm;
-  int ut = ! NILP (universal);
 
-  CHECK_STRING (format_string);
-
-  if (! (lisp_time_argument (timeval, &value, &usec)
+  if (! (lisp_time_argument (timeval, tval, &usec)
 	 && 0 <= usec && usec < 1000000))
     error ("Invalid time specification");
   ns = usec * 1000;
 
-  format_string = code_convert_string_norecord (format_string,
-						Vlocale_coding_system, 1);
-
   /* This is probably enough.  */
-  size = SBYTES (format_string);
+  size = formatlen;
   if (size <= (STRING_BYTES_BOUND - 50) / 6)
     size = size * 6 + 50;
 
   BLOCK_INPUT;
-  tm = ut ? gmtime (&value) : localtime (&value);
+  tm = ut ? gmtime (tval) : localtime (tval);
   UNBLOCK_INPUT;
   if (! tm)
     time_overflow ();
+  *tmp = tm;
 
   synchronize_system_time_locale ();
 
@@ -1737,9 +1747,7 @@ usage: (format-time-string FORMAT-STRING &optional TIME UNIVERSAL)  */)
 
       buf[0] = '\1';
       BLOCK_INPUT;
-      result = emacs_nmemftime (buf, size, SSDATA (format_string),
-				SBYTES (format_string),
-				tm, ut, ns);
+      result = emacs_nmemftime (buf, size, format, formatlen, tm, ut, ns);
       UNBLOCK_INPUT;
       if ((result > 0 && result < size) || (result == 0 && buf[0] == '\0'))
 	return code_convert_string_norecord (make_unibyte_string (buf, result),
@@ -1747,9 +1755,7 @@ usage: (format-time-string FORMAT-STRING &optional TIME UNIVERSAL)  */)
 
       /* If buffer was too small, make it bigger and try again.  */
       BLOCK_INPUT;
-      result = emacs_nmemftime (NULL, (size_t) -1,
-				SSDATA (format_string),
-				SBYTES (format_string),
+      result = emacs_nmemftime (NULL, (size_t) -1, format, formatlen,
 				tm, ut, ns);
       UNBLOCK_INPUT;
       if (STRING_BYTES_BOUND <= result)
@@ -1994,51 +2000,34 @@ the data it can't find.  */)
 {
   time_t value;
   struct tm *t;
-  struct tm gmt;
+  struct tm localtm;
+  struct tm *localt;
+  Lisp_Object zone_offset, zone_name;
 
-  if (!lisp_time_argument (specified_time, &value, NULL))
-    t = NULL;
-  else
-    {
-      BLOCK_INPUT;
-      t = gmtime (&value);
-      if (t)
-	{
-	  gmt = *t;
-	  t = localtime (&value);
-	}
-      UNBLOCK_INPUT;
-    }
+  zone_offset = Qnil;
+  zone_name = format_time_string ("%Z", sizeof "%Z" - 1, specified_time,
+				  0, &value, &localt);
+  localtm = *localt;
+  BLOCK_INPUT;
+  t = gmtime (&value);
+  UNBLOCK_INPUT;
 
   if (t)
     {
-      int offset = tm_diff (t, &gmt);
-      char *s = 0;
-      char buf[sizeof "+00" + INT_STRLEN_BOUND (int)];
-
-#ifdef HAVE_TM_ZONE
-      if (t->tm_zone)
-	s = (char *)t->tm_zone;
-#else /* not HAVE_TM_ZONE */
-#ifdef HAVE_TZNAME
-      if (t->tm_isdst == 0 || t->tm_isdst == 1)
-	s = tzname[t->tm_isdst];
-#endif
-#endif /* not HAVE_TM_ZONE */
-
-      if (!s)
+      int offset = tm_diff (&localtm, t);
+      zone_offset = make_number (offset);
+      if (SCHARS (zone_name) == 0)
 	{
 	  /* No local time zone name is available; use "+-NNNN" instead.  */
 	  int m = offset / 60;
 	  int am = offset < 0 ? - m : m;
+	  char buf[sizeof "+00" + INT_STRLEN_BOUND (int)];
 	  sprintf (buf, "%c%02d%02d", (offset < 0 ? '-' : '+'), am/60, am%60);
-	  s = buf;
+	  zone_name = build_string (buf);
 	}
-
-      return Fcons (make_number (offset), Fcons (build_string (s), Qnil));
     }
-  else
-    return Fmake_list (make_number (2), Qnil);
+
+  return list2 (zone_offset, zone_name);
 }
 
 /* This holds the value of `environ' produced by the previous
