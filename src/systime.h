@@ -38,17 +38,6 @@ typedef unsigned long Time;
 # endif
 #endif
 
-#ifdef HAVE_TZNAME
-#ifndef tzname		/* For SGI.  */
-extern char *tzname[];	/* RS6000 and others want it this way.  */
-#endif
-#endif
-
-/* SVr4 doesn't actually declare this in its #include files.  */
-#ifdef USG5_4
-extern time_t timezone;
-#endif
-
 /* On some configurations (hpux8.0, X11R4), sys/time.h and X11/Xos.h
    disagree about the name of the guard symbol.  */
 #ifdef HPUX
