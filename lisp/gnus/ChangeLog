@@ -20231,13 +20231,10 @@
 	* spam-stat.el (spam-stat-score-buffer): Simplify mapcar usage.
 	Use mapc when appropriate.
 
-2004-04-22  Teodor Zlatanov  <tzz@lifelogs.com>
-
-	FIXME: Make separate entries for each person.
-
-	From Dan Christensen <jdc@uwo.ca>, asjo@koldfront.dk (Adam
-	Sjøgren), Wes Hardaker <wes@hardakers.net>, and Michael Shields
-	<shields@msrl.com>:
+2004-04-22  Dan Christensen  <jdc@uwo.ca>
+	    Adam Sjøgren  <asjo@koldfront.dk>
+	    Wes Hardaker  <wes@hardakers.net>
+	    Michael Shields  <shields@msrl.com>
 
 	* spam.el (spam-necessary-extra-headers): Get the extra headers we
 	may need for spam sorting and scoring.
@@ -20247,7 +20244,7 @@
 	sorting.
 	(spam-extra-header-to-number): Add function to get a score from a
 	header.
-	(spam-summary-score): Add function to  get a numeric score from the
+	(spam-summary-score): Add function to get a numeric score from the
 	headers.
 	(spam-generic-score): Fix function doc, was in wrong place.
 	(spam-initialize): Take symbols when it's run, and install the
