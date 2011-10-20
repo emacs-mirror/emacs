@@ -4277,16 +4277,14 @@ Otherwise, just expand the file name."
 (defvar idlwave-shell-electric-debug-buffers nil)
 
 (define-minor-mode idlwave-shell-electric-debug-mode
-  "Toggle Electric Debug mode.
-With no argument, this command toggles the mode.
-Non-null prefix argument turns on the mode.
-Null prefix argument turns off the mode.
+  "Toggle Idlwave Shell Electric Debug mode.
+With a prefix argument ARG, enable the mode if ARG is positive,
+and disable it otherwise.  If called from Lisp, enable the mode
+if ARG is omitted or nil.
 
-When Electric Debug mode is enabled, the many debugging commands are
-available as single key sequences."
-nil
-" *Debugging*"
-idlwave-shell-electric-debug-mode-map)
+When Idlwave Shell Electric Debug mode is enabled, the Idlwave
+Shell debugging commands are available as single key sequences."
+  nil " *Debugging*" idlwave-shell-electric-debug-mode-map)
 
 (add-hook
  'idlwave-shell-electric-debug-mode-on-hook

@@ -503,7 +503,13 @@
 (put 'reftex-mode :menu-tag "RefTeX Mode")
 ;;;###autoload
 (define-minor-mode reftex-mode
-  "Minor mode with distinct support for \\label, \\ref and \\cite in LaTeX.
+  "Toggle RefTeX mode.
+With a prefix argument ARG, enable RefTeX mode if ARG is
+positive, and disable it otherwise.  If called from Lisp, enable
+the mode if ARG is omitted or nil.
+
+RefTeX mode is a buffer-local minor mode with distinct support
+for \\label, \\ref and \\cite in LaTeX.
 
 \\<reftex-mode-map>A Table of Contents of the entire (multifile) document with browsing
 capabilities is available with `\\[reftex-toc]'.

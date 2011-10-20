@@ -133,7 +133,15 @@
 
 ;;;###autoload
 (define-minor-mode mail-abbrevs-mode
-  "Non-nil means expand mail aliases as abbrevs, in certain message headers."
+  "Toggle abbrev expansion of mail aliases (Mail Abbrevs mode).
+With a prefix argument ARG, enable Mail Abbrevs mode if ARG is
+positive, and disable it otherwise.  If called from Lisp, enable
+the mode if ARG is omitted or nil.
+
+Mail Abbrevs mode is a global minor mode.  When enabled,
+abbrev-like expansion is performed when editing certain mail
+headers (those specified by `mail-abbrev-mode-regexp'), based on
+the entries in your `mail-personal-alias-file'."
   :global t
   :group 'mail-abbrev
   :version "20.3"

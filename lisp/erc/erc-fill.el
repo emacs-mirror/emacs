@@ -39,9 +39,12 @@
 ;;;###autoload (autoload 'erc-fill-mode "erc-fill" nil t)
 (erc-define-minor-mode erc-fill-mode
   "Toggle ERC fill mode.
-With numeric arg, turn ERC fill mode on if and only if arg is
-positive.  In ERC fill mode, messages in the channel buffers are
-filled."
+With a prefix argument ARG, enable ERC fill mode if ARG is
+positive, and disable it otherwise.  If called from Lisp, enable
+the mode if ARG is omitted or nil.
+
+ERC fill mode is a global minor mode.  When enabled, messages in
+the channel buffers are filled."
   nil nil nil
   :global t :group 'erc-fill
   (if erc-fill-mode

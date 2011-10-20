@@ -1,3 +1,37 @@
+2011-10-20  Chong Yidong  <cyd@gnu.org>
+
+	* emulation/cua-base.el (cua-mode):
+	* mail/footnote.el (footnote-mode):
+	* mail/mailabbrev.el (mail-abbrevs-mode):
+	* net/xesam.el (xesam-minor-mode):
+	* progmodes/bug-reference.el (bug-reference-mode):
+	* progmodes/cap-words.el (capitalized-words-mode):
+	* progmodes/compile.el (compilation-minor-mode)
+	(compilation-shell-minor-mode):
+	* progmodes/gud.el (gud-tooltip-mode):
+	* progmodes/hideif.el (hide-ifdef-mode):
+	* progmodes/idlw-shell.el (idlwave-shell-electric-debug-mode):
+	* progmodes/subword.el (subword-mode):
+	* progmodes/vhdl-mode.el (vhdl-electric-mode, vhdl-stutter-mode):
+	* progmodes/which-func.el (which-function-mode):
+	* term/tvi970.el (tvi970-set-keypad-mode):
+	* term/vt100.el (vt100-wide-mode):
+	* textmodes/flyspell.el (flyspell-mode):
+	* textmodes/ispell.el (ispell-minor-mode):
+	* textmodes/nroff-mode.el (nroff-electric-mode):
+	* textmodes/paragraphs.el (use-hard-newlines):
+	* textmodes/refill.el (refill-mode):
+	* textmodes/reftex.el (reftex-mode):
+	* textmodes/rst.el (rst-minor-mode):
+	* textmodes/sgml-mode.el (html-autoview-mode)
+	(sgml-electric-tag-pair-mode):
+	* textmodes/tex-mode.el (latex-electric-env-pair-mode):
+	* vc/diff-mode.el (diff-auto-refine-mode, diff-minor-mode):
+	* emulation/crisp.el (crisp-mode):
+	* emacs-lisp/eldoc.el (eldoc-mode):
+	* emacs-lisp/checkdoc.el (checkdoc-minor-mode): Doc fixes for new
+	minor mode behavior.
+
 2011-10-19  Juri Linkov  <juri@jurta.org>
 
 	* descr-text.el (describe-char): Add #x2010 and #x2011 to

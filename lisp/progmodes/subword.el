@@ -94,13 +94,19 @@
 
 ;;;###autoload
 (define-minor-mode subword-mode
-  "Mode enabling subword movement and editing keys.
-In spite of GNU Coding Standards, it is popular to name a symbol by
-mixing uppercase and lowercase letters, e.g. \"GtkWidget\",
-\"EmacsFrameClass\", \"NSGraphicsContext\", etc.  Here we call these
-mixed case symbols `nomenclatures'. Also, each capitalized (or
-completely uppercase) part of a nomenclature is called a `subword'.
-Here are some examples:
+  "Toggle subword movement and editing (Subword mode).
+With a prefix argument ARG, enable Subword mode if ARG is
+positive, and disable it otherwise.  If called from Lisp, enable
+the mode if ARG is omitted or nil.
+
+Subword mode is a buffer-local minor mode.  Enabling it remaps
+word-based editing commands to subword-based commands that handle
+symbols with mixed uppercase and lowercase letters,
+e.g. \"GtkWidget\", \"EmacsFrameClass\", \"NSGraphicsContext\".
+
+Here we call these mixed case symbols `nomenclatures'.  Each
+capitalized (or completely uppercase) part of a nomenclature is
+called a `subword'.  Here are some examples:
 
   Nomenclature           Subwords
   ===========================================================

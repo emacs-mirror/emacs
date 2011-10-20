@@ -1,3 +1,9 @@
+2011-10-20  Chong Yidong  <cyd@gnu.org>
+
+	* gnus-cite.el (gnus-message-citation-mode): Doc fix (in Emacs 24,
+	calling a minor mode from Lisp with nil arg enables it, so we have to
+	make the working a bit ambiguous here).
+
 2011-10-18  Teodor Zlatanov  <tzz@lifelogs.com>
 
 	* gnus-util.el (gnus-bound-and-true-p): Macro for XEmacs compatibility.

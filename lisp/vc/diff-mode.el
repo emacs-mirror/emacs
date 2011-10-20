@@ -225,9 +225,16 @@ when editing big diffs)."
   "Keymap for `diff-minor-mode'.  See also `diff-mode-shared-map'.")
 
 (define-minor-mode diff-auto-refine-mode
-  "Automatically highlight changes in detail as the user visits hunks.
-When transitioning from disabled to enabled,
-try to refine the current hunk, as well."
+  "Toggle automatic diff hunk highlighting (Diff Auto Refine mode).
+With a prefix argument ARG, enable Diff Auto Refine mode if ARG
+is positive, and disable it otherwise.  If called from Lisp,
+enable the mode if ARG is omitted or nil.
+
+Diff Auto Refine mode is a buffer-local minor mode used with
+`diff-mode'.  When enabled, Emacs automatically highlights
+changes in detail as the user visits hunks.  When transitioning
+from disabled to enabled, it tries to refine the current hunk, as
+well."
   :group 'diff-mode :init-value t :lighter nil ;; " Auto-Refine"
   (when diff-auto-refine-mode
     (condition-case-no-debug nil (diff-refine-hunk) (error nil))))
@@ -1306,7 +1313,11 @@ a diff with \\[diff-reverse-direction].
 
 ;;;###autoload
 (define-minor-mode diff-minor-mode
-  "Minor mode for viewing/editing context diffs.
+  "Toggle Diff minor mode.
+With a prefix argument ARG, enable Diff minor mode if ARG is
+positive, and disable it otherwise.  If called from Lisp, enable
+the mode if ARG is omitted or nil.
+
 \\{diff-minor-mode-map}"
   :group 'diff-mode :lighter " Diff"
   ;; FIXME: setup font-lock
