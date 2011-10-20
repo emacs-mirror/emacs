@@ -1,3 +1,7 @@
+2011-10-20  Glenn Morris  <rgm@gnu.org>
+
+	* vc/vc.el (vc-next-action): Handle removed directories. (Bug#9781)
+
 2011-10-20  Christoph Scholtes  <cschol2112@googlemail.com>
 
 	* emulation/cua-base.el (cua-set-mark): Fix case of string.

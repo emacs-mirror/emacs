@@ -1120,9 +1120,13 @@ merge in the changes into your working copy."
      ;; Files have local changes
      ((vc-compatible-state state 'edited)
       (let ((ready-for-commit files))
-	;; If files are edited but read-only, give user a chance to correct
+	;; If files are edited but read-only, give user a chance to correct.
 	(dolist (file files)
-	  (unless (file-writable-p file)
+	  ;; If committing a mix of removed and edited files, the
+	  ;; fileset has state = 'edited.  Rather than checking the
+	  ;; state of each individual file in the fileset, it seems
+	  ;; simplest to just check if the file exists.	 Bug#9781.
+	  (when (and (file-exists-p file) (not (file-writable-p file)))
 	    ;; Make the file+buffer read-write.
 	    (unless (y-or-n-p (format "%s is edited but read-only; make it writable and continue? " file))
 	      (error "Aborted"))
