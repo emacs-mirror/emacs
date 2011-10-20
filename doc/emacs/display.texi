@@ -703,16 +703,14 @@ file:
 (global-font-lock-mode 0)
 @end example
 
-@findex turn-on-font-lock
 @noindent
 If you have disabled Global Font Lock mode, you can still enable Font
 Lock for specific major modes by adding the function
-@code{turn-on-font-lock} to the mode hooks (@pxref{Hooks}).  For
-example, to enable Font Lock mode for editing C files, you can do
-this:
+@code{font-lock-mode} to the mode hooks (@pxref{Hooks}).  For example,
+to enable Font Lock mode for editing C files, you can do this:
 
 @example
-(add-hook 'c-mode-hook 'turn-on-font-lock)
+(add-hook 'c-mode-hook 'font-lock-mode)
 @end example
 
   Font Lock mode uses several specifically named faces to do its job,

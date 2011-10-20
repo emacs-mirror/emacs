@@ -770,7 +770,7 @@ here's how to set up a hook to turn on Auto Fill mode when entering
 Text mode and other modes based on Text mode:
 
 @example
-(add-hook 'text-mode-hook 'turn-on-auto-fill)
+(add-hook 'text-mode-hook 'auto-fill-mode)
 @end example
 
   Here is another example, showing how to use a hook to customize the
@@ -2174,8 +2174,7 @@ Turn off Line Number mode, a global minor mode.
 Turn on Auto Fill mode automatically in Text mode and related modes.
 
 @example
-(add-hook 'text-mode-hook
-  '(lambda () (auto-fill-mode 1)))
+(add-hook 'text-mode-hook 'auto-fill-mode)
 @end example
 
 This shows how to add a hook function to a normal hook variable
@@ -2183,19 +2182,9 @@ This shows how to add a hook function to a normal hook variable
 @code{lambda}, with a single-quote in front of it to make it a list
 constant rather than an expression.
 
-It's beyond the scope of this manual to explain Lisp functions, but for
-this example it is enough to know that the effect is to execute
-@code{(auto-fill-mode 1)} when Text mode is entered.  You can replace
-that with any other expression that you like, or with several
-expressions in a row.
-
-Emacs comes with a function named @code{turn-on-auto-fill} whose
-definition is @code{(lambda () (auto-fill-mode 1))}.  Thus, a simpler
-way to write the above example is as follows:
-
-@example
-(add-hook 'text-mode-hook 'turn-on-auto-fill)
-@end example
+It's beyond the scope of this manual to explain Lisp functions, but
+for this example it is enough to know that the effect is to execute
+the @code{auto-fill-mode} function when Text mode is entered.
 
 @item
 Load the installed Lisp library named @file{foo} (actually a file
