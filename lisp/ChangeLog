@@ -1,3 +1,8 @@
+2011-10-21  Ulrich Mueller  <ulm@gentoo.org>
+
+	* tar-mode.el (tar-grind-file-mode):
+	Fix handling of setuid/setgid, handle sticky bit.  (Bug#9817)
+
 2011-10-21  Chong Yidong  <cyd@gnu.org>
 
 	* progmodes/idlwave.el (idlwave-mode):
