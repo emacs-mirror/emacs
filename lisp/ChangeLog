@@ -1,3 +1,14 @@
+2011-10-21  Martin Rudalics  <rudalics@gmx.at>
+
+	* mouse.el (mouse-drag-window-above)
+	(mouse-drag-move-window-bottom, mouse-drag-move-window-top)
+	(mouse-drag-mode-line-1, mouse-drag-header-line)
+	(mouse-drag-vertical-line-rightward-window): Remove.
+	(mouse-drag-line): New function.
+	(mouse-drag-mode-line, mouse-drag-header-line)
+	(mouse-drag-vertical-line): Call mouse-drag-line.
+	* window.el (window-at-side-p, windows-at-side): New functions.
+
 2011-10-21  Ulrich Mueller  <ulm@gentoo.org>
 
 	* tar-mode.el (tar-grind-file-mode):
