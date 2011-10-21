@@ -189,7 +189,7 @@ is sometimes useful to have this information.
 
   @var{cs} describes the character set of the text in the buffer
 (@pxref{Coding Systems}).  If it is a dash (@samp{-}), that indicates
-no special character set handling (with the possible expection of
+no special character set handling (with the possible exception of
 end-of-line conventions, described in the next paragraph).  @samp{=}
 means no conversion whatsoever, and is usually used for files
 containing non-textual data.  Other characters represent various

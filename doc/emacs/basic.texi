@@ -367,7 +367,7 @@ the preceding newline, joining this line to the previous one.
   If, however, the region is active, @kbd{@key{DEL}} instead deletes
 the text in the region.  @xref{Mark}, for a description of the region.
 
-  On most keyboards, @key{DEL} is labelled @key{Backspace}, but we
+  On most keyboards, @key{DEL} is labeled @key{Backspace}, but we
 refer to it as @key{DEL} in this manual.  (Do not confuse @key{DEL}
 with the @key{Delete} key; we will discuss @key{Delete} momentarily.)
 On some text-only terminals, Emacs may not recognize the @key{DEL} key

@@ -1,3 +1,15 @@
+2011-10-21  Chong Yidong  <cyd@gnu.org>
+
+	* files.texi (File Names, Visiting, Interlocking): Copyedits.
+	(Backup Copying): backup-by-copying-when-mismatch is now t.
+	(Customize Save): Fix description of require-final-newline.
+	(Reverting): Note that revert-buffer can't be undone.  Mention VC.
+	(Auto Save Control): Clarify.
+	(File Archives): Add 7z.
+	(Remote Files): ange-ftp-make-backup-files defaults to nil.
+
+	* arevert-xtra.texi (Autorevert): Copyedits.
+
 2011-10-20  Chong Yidong  <cyd@gnu.org>
 
 	* custom.texi (Hooks, Init Examples):

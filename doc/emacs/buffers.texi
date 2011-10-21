@@ -245,7 +245,7 @@ value in each buffer and makes the buffer read-only if its value is
 non-@code{nil}.  If you have files under version control, you may find
 it convenient to bind @kbd{C-x C-q} to @code{vc-toggle-read-only}
 instead.  This will guard you against an operation that will confuse
-most modern version-conmtrol systems. @xref{Version Control}.
+most modern version-control systems. @xref{Version Control}.
 
 @findex rename-buffer
   @kbd{M-x rename-buffer} changes the name of the current buffer.  You
