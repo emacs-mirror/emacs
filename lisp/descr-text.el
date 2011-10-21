@@ -366,9 +366,10 @@ This function is semi-obsolete.  Use `get-char-code-property'."
       (list (mapconcat
 	     (lambda (x)
 	       (let* ((c (category-docstring x))
-		      (doc (if (string-match "\\`\\(.*?\\)\n\\(.*\\)\\'" c)
+		      (doc (if (string-match "\\`\\(.*?\\)\n" c)
 			       (propertize (match-string 1 c)
-					   'help-echo (match-string 2 c))
+                                           'help-echo
+                                           (substring c (1+ (match-end 1))))
 			     c)))
 		 (format "%c:%s" x doc)))
 	     mnemonics ", ")))))
@@ -605,7 +606,8 @@ as well as widgets, buttons, overlays, and text properties."
                              'trailing-whitespace)
                             ((and nobreak-char-display char (eq char '#xa0))
                              'nobreak-space)
-                            ((and nobreak-char-display char (eq char '#xad))
+                            ((and nobreak-char-display char
+				  (memq char '(#xad #x2010 #x2011)))
                              'escape-glyph)
                             ((and (< char 32) (not (memq char '(9 10))))
                              'escape-glyph)))))

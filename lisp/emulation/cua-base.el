@@ -1121,7 +1121,7 @@ With a double \\[universal-argument] prefix argument, unconditionally set mark."
 	(pop-to-mark-command)))
    ((and cua-toggle-set-mark mark-active)
     (cua--deactivate)
-    (message "Mark Cleared"))
+    (message "Mark cleared"))
    (t
     (push-mark-command nil nil)
     (setq cua--explicit-region-start t)
@@ -1531,16 +1531,17 @@ If ARG is the atom `-', scroll upward by nearly full screen."
 
 ;;;###autoload
 (define-minor-mode cua-mode
-  "Toggle CUA key-binding mode.
-When enabled, using shifted movement keys will activate the
-region (and highlight the region using `transient-mark-mode'),
-and typed text replaces the active selection.
+  "Toggle Common User Access style editing (CUA mode).
+With a prefix argument ARG, enable CUA mode if ARG is positive,
+and disable it otherwise.  If called from Lisp, enable the mode
+if ARG is omitted or nil.
 
-Also when enabled, you can use C-z, C-x, C-c, and C-v to undo,
-cut, copy, and paste in addition to the normal Emacs bindings.
-The C-x and C-c keys only do cut and copy when the region is
-active, so in most cases, they do not conflict with the normal
-function of these prefix keys.
+CUA mode is a global minor mode.  When enabled, typed text
+replaces the active selection, and you can use C-z, C-x, C-c, and
+C-v to undo, cut, copy, and paste in addition to the normal Emacs
+bindings.  The C-x and C-c keys only do cut and copy when the
+region is active, so in most cases, they do not conflict with the
+normal function of these prefix keys.
 
 If you really need to perform a command which starts with one of
 the prefix keys even when the region is active, you have three

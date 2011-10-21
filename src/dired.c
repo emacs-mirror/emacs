@@ -401,6 +401,7 @@ determined by the variable `completion-ignored-extensions', which see.  */)
   (Lisp_Object file, Lisp_Object directory, Lisp_Object predicate)
 {
   Lisp_Object handler;
+  directory = Fexpand_file_name (directory, Qnil);
 
   /* If the directory name has special constructs in it,
      call the corresponding file handler.  */
@@ -424,6 +425,7 @@ These are all file names in directory DIRECTORY which begin with FILE.  */)
   (Lisp_Object file, Lisp_Object directory)
 {
   Lisp_Object handler;
+  directory = Fexpand_file_name (directory, Qnil);
 
   /* If the directory name has special constructs in it,
      call the corresponding file handler.  */
@@ -474,7 +476,6 @@ file_name_completion (Lisp_Object file, Lisp_Object dirname, int all_flag, int v
   bestmatch = Qnil;
   encoded_file = encoded_dir = Qnil;
   GCPRO5 (file, dirname, bestmatch, encoded_file, encoded_dir);
-  dirname = Fexpand_file_name (dirname, Qnil);
   specbind (Qdefault_directory, dirname);
 
   /* Do completion on the encoded file name

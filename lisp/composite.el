@@ -728,12 +728,13 @@ This function is the default value of `auto-composition-function' (which see)."
 ;;;###autoload
 (define-minor-mode auto-composition-mode
   "Toggle Auto Composition mode.
-With ARG, turn Auto Composition mode off if and only if ARG is a non-positive
-number; if ARG is nil, toggle Auto Composition mode; anything else turns Auto
-Composition on.
+With a prefix argument ARG, enable Auto Composition mode if ARG
+is positive, and disable it otherwise.  If called from Lisp,
+enable the mode if ARG is omitted or nil.
 
-When Auto Composition is enabled, text characters are automatically composed
-by functions registered in `composition-function-table' (which see).
+When Auto Composition mode is enabled, text characters are
+automatically composed by functions registered in
+`composition-function-table'.
 
 You can use `global-auto-composition-mode' to turn on
 Auto Composition mode in all buffers (this is the default)."
@@ -744,10 +745,13 @@ Auto Composition mode in all buffers (this is the default)."
 
 ;;;###autoload
 (define-minor-mode global-auto-composition-mode
-  "Toggle Auto-Composition mode in every possible buffer.
-With prefix arg, turn Global-Auto-Composition mode on if and only if arg
-is positive.
-See `auto-composition-mode' for more information on Auto-Composition mode."
+  "Toggle Auto Composition mode in all buffers.
+With a prefix argument ARG, enable it if ARG is positive, and
+disable it otherwise.  If called from Lisp, enable it if ARG is
+omitted or nil.
+
+For more information on Auto Composition mode, see
+`auto-composition-mode' ."
   :variable (default-value 'auto-composition-mode))
 
 (defalias 'toggle-auto-composition 'auto-composition-mode)

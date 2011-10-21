@@ -2150,29 +2150,13 @@ See the Info node `(gnus)Fancy Mail Splitting' for more details."
 
     (defun spam-check-BBDB ()
       "Mail from people in the BBDB is classified as ham or non-spam"
-      (let ((who (message-fetch-field "from"))
-            bbdb-cache bbdb-hashtable)
-        (when spam-cache-lookups
-          (setq bbdb-cache (gethash 'spam-use-BBDB spam-caches))
-          (unless bbdb-cache
-            (setq bbdb-cache (make-vector 17 0)) ; a good starting hash value
-            ;; this is based on the expanded (bbdb-hashtable) macro
-            ;; without the debugging support
-            (with-current-buffer (bbdb-buffer)
-              (save-excursion
-                (save-window-excursion
-                  (bbdb-records nil t)
-                  (mapatoms
-                   (lambda (symbol)
-                     (intern (downcase (symbol-name symbol)) bbdb-cache))
-                   bbdb-hashtable))))
-            (puthash 'spam-use-BBDB bbdb-cache spam-caches)))
+      (let ((who (message-fetch-field "from")))
         (when who
           (setq who (nth 1 (gnus-extract-address-components who)))
           (if
-              (if spam-cache-lookups
-                  (intern-soft (downcase who) bbdb-cache)
-                (bbdb-search-simple nil who))
+              (if (fboundp 'bbdb-search)
+                  (bbdb-search (bbdb-records) who) ;; v3
+                (bbdb-search-simple nil who)) ;; v2
               t
             (if spam-use-BBDB-exclusive
                 spam-split-group

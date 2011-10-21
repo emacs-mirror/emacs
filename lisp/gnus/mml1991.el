@@ -282,13 +282,16 @@ Whether the passphrase is cached at all is controlled by
   (catch 'found
     (while keys
       (let ((pointer (epg-key-sub-key-list (car keys))))
-	(while pointer
-	  (if (and (memq usage (epg-sub-key-capability (car pointer)))
-		   (not (memq 'disabled (epg-sub-key-capability (car pointer))))
-		   (not (memq (epg-sub-key-validity (car pointer))
-			      '(revoked expired))))
-	      (throw 'found (car keys)))
-	  (setq pointer (cdr pointer))))
+	;; The primary key will be marked as disabled, when the entire
+	;; key is disabled (see 12 Field, Format of colon listings, in
+	;; gnupg/doc/DETAILS)
+	(unless (memq 'disabled (epg-sub-key-capability (car pointer)))
+	  (while pointer
+	    (if (and (memq usage (epg-sub-key-capability (car pointer)))
+		     (not (memq (epg-sub-key-validity (car pointer))
+				'(revoked expired))))
+		(throw 'found (car keys)))
+	    (setq pointer (cdr pointer)))))
       (setq keys (cdr keys)))))
 
 ;; XXX: since gpg --list-secret-keys does not return validity of each

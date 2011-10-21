@@ -773,7 +773,7 @@ if `inhibit-field-text-motion' is non-nil."
 (define-key ctl-x-map "\C-o" 'delete-blank-lines)
 (define-key esc-map " " 'just-one-space)
 (define-key esc-map "z" 'zap-to-char)
-(define-key esc-map "=" 'count-lines-region)
+(define-key esc-map "=" 'count-words-region)
 (define-key ctl-x-map "=" 'what-cursor-position)
 (define-key esc-map ":" 'eval-expression)
 ;; Define ESC ESC : like ESC : for people who type ESC ESC out of habit.
@@ -1103,9 +1103,9 @@ if `inhibit-field-text-motion' is non-nil."
   "Keymap for characters following C-c.")
 (define-key global-map "\C-c" 'mode-specific-command-prefix)
 
-(global-set-key [M-right]  'forward-word)
+(global-set-key [M-right]  'right-word)
 (define-key esc-map [right] 'forward-word)
-(global-set-key [M-left]   'backward-word)
+(global-set-key [M-left]   'left-word)
 (define-key esc-map [left] 'backward-word)
 ;; ilya@math.ohio-state.edu says these bindings are standard on PC editors.
 (global-set-key [C-right]  'right-word)

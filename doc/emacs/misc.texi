@@ -1531,8 +1531,8 @@ Specify a command to run if @code{emacsclient} fails to contact Emacs.
 This is useful when running @code{emacsclient} in a script.
 
 As a special exception, if @var{command} is the empty string, then
-@code{emacsclient} starts Emacs in daemon mode and then tries
-connecting again.
+@code{emacsclient} starts Emacs in daemon mode (as @command{emacs
+--daemon}) and then tries connecting again.
 
 @cindex @env{ALTERNATE_EDITOR} environment variable
 The environment variable @env{ALTERNATE_EDITOR} has the same effect as

@@ -677,8 +677,14 @@ An alternative value is \" . \", if you use a font with a narrow period."
     (put-text-property start end 'latex-env-pair t)))
 
 (define-minor-mode latex-electric-env-pair-mode
-  "Automatically update the \\end arg when editing the \\begin one.
-And vice-versa."
+  "Toggle Latex Electric Env Pair mode.
+With a prefix argument ARG, enable the mode if ARG is positive,
+and disable it otherwise.  If called from Lisp, enable it if ARG
+is omitted or nil.
+
+Latex Electric Env Pair mode is a buffer-local minor mode for use
+with `latex-mode'.  When enabled, typing a \\begin or \\end tag
+automatically inserts its partner."
   :lighter "/e"
   (if latex-electric-env-pair-mode
       (add-hook 'before-change-functions

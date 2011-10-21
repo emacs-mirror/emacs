@@ -358,8 +358,13 @@ See the Gnus manual for an explanation of the syntax used.")
 (defvar gnus-frame-split-p nil)
 
 (defun gnus-configure-windows (setting &optional force)
-  (if (window-configuration-p setting)
-      (set-window-configuration setting)
+  (cond
+   ((null setting)
+    ;; Do nothing.
+    )
+   ((window-configuration-p setting)
+    (set-window-configuration setting))
+   (t
     (setq gnus-current-window-configuration setting)
     (setq force (or force gnus-always-force-window-configuration))
     (let ((split (if (symbolp setting)
@@ -410,7 +415,7 @@ See the Gnus manual for an explanation of the syntax used.")
           (run-hooks 'gnus-configure-windows-hook)
           (when gnus-window-frame-focus
             (gnus-select-frame-set-input-focus
-             (window-frame gnus-window-frame-focus))))))))
+             (window-frame gnus-window-frame-focus)))))))))
 
 (defun gnus-delete-windows-in-gnusey-frames ()
   "Do a `delete-other-windows' in all frames that have Gnus windows."

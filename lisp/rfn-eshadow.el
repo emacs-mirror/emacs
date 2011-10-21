@@ -207,15 +207,17 @@ been set up by `rfn-eshadow-setup-minibuffer'."
     (error nil)))
 
 (define-minor-mode file-name-shadow-mode
-  "Toggle File-Name Shadow mode.
-When active, any part of a filename being read in the minibuffer
-that would be ignored (because the result is passed through
-`substitute-in-file-name') is given the properties in
-`file-name-shadow-properties', which can be used to make
-that portion dim, invisible, or otherwise less visually noticeable.
+  "Toggle file-name shadowing in minibuffers (File-Name Shadow mode).
+With a prefix argument ARG, enable File-Name Shadow mode if ARG
+is positive, and disable it otherwise.  If called from Lisp,
+enable the mode if ARG is omitted or nil.
 
-With prefix argument ARG, turn on if positive, otherwise off.
-Returns non-nil if the new state is enabled."
+File-Name Shadow mode is a global minor mode.  When enabled, any
+part of a filename being read in the minibuffer that would be
+ignored (because the result is passed through
+`substitute-in-file-name') is given the properties in
+`file-name-shadow-properties', which can be used to make that
+portion dim, invisible, or otherwise less visually noticeable."
   :global t
   ;; We'd like to use custom-initialize-set here so the setup is done
   ;; before dumping, but at the point where the defcustom is evaluated,

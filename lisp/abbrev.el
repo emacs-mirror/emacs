@@ -54,9 +54,12 @@ define global abbrevs instead."
 
 (define-minor-mode abbrev-mode
   "Toggle Abbrev mode in the current buffer.
-With optional argument ARG, turn abbrev mode on if ARG is
-positive, otherwise turn it off.  In Abbrev mode, inserting an
-abbreviation causes it to expand and be replaced by its expansion."
+With a prefix argument ARG, enable Abbrev mode if ARG is
+positive, and disable it otherwise.  If called from Lisp, enable
+Abbrev mode if ARG is omitted or nil.
+
+In Abbrev mode, inserting an abbreviation causes it to expand and
+be replaced by its expansion."
   ;; It's defined in C, this stops the d-m-m macro defining it again.
   :variable abbrev-mode)
 

@@ -101,10 +101,13 @@
 
 ;;;###autoload
 (define-minor-mode scroll-all-mode
-  "Toggle Scroll-All minor mode.
-With ARG, turn Scroll-All minor mode on if ARG is positive, off otherwise.
-When Scroll-All mode is on, scrolling commands entered in one window
-apply to all visible windows in the same frame."
+  "Toggle shared scrolling in same-frame windows (Scroll-All mode).
+With a prefix argument ARG, enable Scroll-All mode if ARG is
+positive, and disable it otherwise.  If called from Lisp, enable
+the mode if ARG is omitted or nil.
+
+When Scroll-All mode is enabled, scrolling commands invoked in
+one window apply to all visible windows in the same frame."
   nil " *SL*" nil
   :global t
   :group 'windows

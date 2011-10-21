@@ -393,7 +393,7 @@ static int live_symbol_p (struct mem_node *, void *);
 static int live_float_p (struct mem_node *, void *);
 static int live_misc_p (struct mem_node *, void *);
 static void mark_maybe_object (Lisp_Object);
-static void mark_memory (void *, void *, int);
+static void mark_memory (void *, void *);
 static void mem_init (void);
 static struct mem_node *mem_insert (void *, void *, enum mem_type);
 static void mem_insert_fixup (struct mem_node *);
@@ -490,19 +490,45 @@ buffer_memory_full (EMACS_INT nbytes)
 /* Check for overrun in malloc'ed buffers by wrapping a header and trailer
    around each block.
 
-   The header consists of 16 fixed bytes followed by sizeof (size_t) bytes
-   containing the original block size in little-endian order,
-   while the trailer consists of 16 fixed bytes.
+   The header consists of XMALLOC_OVERRUN_CHECK_SIZE fixed bytes
+   followed by XMALLOC_OVERRUN_SIZE_SIZE bytes containing the original
+   block size in little-endian order.  The trailer consists of
+   XMALLOC_OVERRUN_CHECK_SIZE fixed bytes.
 
    The header is used to detect whether this block has been allocated
-   through these functions -- as it seems that some low-level libc
-   functions may bypass the malloc hooks.
-*/
-
+   through these functions, as some low-level libc functions may
+   bypass the malloc hooks.  */
 
 #define XMALLOC_OVERRUN_CHECK_SIZE 16
 #define XMALLOC_OVERRUN_CHECK_OVERHEAD \
-  (2 * XMALLOC_OVERRUN_CHECK_SIZE + sizeof (size_t))
+  (2 * XMALLOC_OVERRUN_CHECK_SIZE + XMALLOC_OVERRUN_SIZE_SIZE)
+
+/* Define XMALLOC_OVERRUN_SIZE_SIZE so that (1) it's large enough to
+   hold a size_t value and (2) the header size is a multiple of the
+   alignment that Emacs needs for C types and for USE_LSB_TAG.  */
+#define XMALLOC_BASE_ALIGNMENT				\
+  offsetof (						\
+    struct {						\
+      union { long double d; intmax_t i; void *p; } u;	\
+      char c;						\
+    },							\
+    c)
+#ifdef USE_LSB_TAG
+/* A common multiple of the positive integers A and B.  Ideally this
+   would be the least common multiple, but there's no way to do that
+   as a constant expression in C, so do the best that we can easily do.  */
+# define COMMON_MULTIPLE(a, b) \
+    ((a) % (b) == 0 ? (a) : (b) % (a) == 0 ? (b) : (a) * (b))
+# define XMALLOC_HEADER_ALIGNMENT \
+    COMMON_MULTIPLE (1 << GCTYPEBITS, XMALLOC_BASE_ALIGNMENT)
+#else
+# define XMALLOC_HEADER_ALIGNMENT XMALLOC_BASE_ALIGNMENT
+#endif
+#define XMALLOC_OVERRUN_SIZE_SIZE				\
+   (((XMALLOC_OVERRUN_CHECK_SIZE + sizeof (size_t)		\
+      + XMALLOC_HEADER_ALIGNMENT - 1)				\
+     / XMALLOC_HEADER_ALIGNMENT * XMALLOC_HEADER_ALIGNMENT)	\
+    - XMALLOC_OVERRUN_CHECK_SIZE)
 
 static char const xmalloc_overrun_check_header[XMALLOC_OVERRUN_CHECK_SIZE] =
   { '\x9a', '\x9b', '\xae', '\xaf',
@@ -522,9 +548,9 @@ static void
 xmalloc_put_size (unsigned char *ptr, size_t size)
 {
   int i;
-  for (i = 0; i < sizeof (size_t); i++)
+  for (i = 0; i < XMALLOC_OVERRUN_SIZE_SIZE; i++)
     {
-      *--ptr = size & (1 << CHAR_BIT) - 1;
+      *--ptr = size & ((1 << CHAR_BIT) - 1);
       size >>= CHAR_BIT;
     }
 }
@@ -534,8 +560,8 @@ xmalloc_get_size (unsigned char *ptr)
 {
   size_t size = 0;
   int i;
-  ptr -= sizeof (size_t);
-  for (i = 0; i < sizeof (size_t); i++)
+  ptr -= XMALLOC_OVERRUN_SIZE_SIZE;
+  for (i = 0; i < XMALLOC_OVERRUN_SIZE_SIZE; i++)
     {
       size <<= CHAR_BIT;
       size += *ptr++;
@@ -579,7 +605,7 @@ overrun_check_malloc (size_t size)
   if (val && check_depth == 1)
     {
       memcpy (val, xmalloc_overrun_check_header, XMALLOC_OVERRUN_CHECK_SIZE);
-      val += XMALLOC_OVERRUN_CHECK_SIZE + sizeof (size_t);
+      val += XMALLOC_OVERRUN_CHECK_SIZE + XMALLOC_OVERRUN_SIZE_SIZE;
       xmalloc_put_size (val, size);
       memcpy (val + size, xmalloc_overrun_check_trailer,
 	      XMALLOC_OVERRUN_CHECK_SIZE);
@@ -603,7 +629,7 @@ overrun_check_realloc (POINTER_TYPE *block, size_t size)
   if (val
       && check_depth == 1
       && memcmp (xmalloc_overrun_check_header,
-		 val - XMALLOC_OVERRUN_CHECK_SIZE - sizeof (size_t),
+		 val - XMALLOC_OVERRUN_CHECK_SIZE - XMALLOC_OVERRUN_SIZE_SIZE,
 		 XMALLOC_OVERRUN_CHECK_SIZE) == 0)
     {
       size_t osize = xmalloc_get_size (val);
@@ -611,8 +637,8 @@ overrun_check_realloc (POINTER_TYPE *block, size_t size)
 		  XMALLOC_OVERRUN_CHECK_SIZE))
 	abort ();
       memset (val + osize, 0, XMALLOC_OVERRUN_CHECK_SIZE);
-      val -= XMALLOC_OVERRUN_CHECK_SIZE + sizeof (size_t);
-      memset (val, 0, XMALLOC_OVERRUN_CHECK_SIZE + sizeof (size_t));
+      val -= XMALLOC_OVERRUN_CHECK_SIZE + XMALLOC_OVERRUN_SIZE_SIZE;
+      memset (val, 0, XMALLOC_OVERRUN_CHECK_SIZE + XMALLOC_OVERRUN_SIZE_SIZE);
     }
 
   val = (unsigned char *) realloc ((POINTER_TYPE *)val, size + overhead);
@@ -620,7 +646,7 @@ overrun_check_realloc (POINTER_TYPE *block, size_t size)
   if (val && check_depth == 1)
     {
       memcpy (val, xmalloc_overrun_check_header, XMALLOC_OVERRUN_CHECK_SIZE);
-      val += XMALLOC_OVERRUN_CHECK_SIZE + sizeof (size_t);
+      val += XMALLOC_OVERRUN_CHECK_SIZE + XMALLOC_OVERRUN_SIZE_SIZE;
       xmalloc_put_size (val, size);
       memcpy (val + size, xmalloc_overrun_check_trailer,
 	      XMALLOC_OVERRUN_CHECK_SIZE);
@@ -640,7 +666,7 @@ overrun_check_free (POINTER_TYPE *block)
   if (val
       && check_depth == 1
       && memcmp (xmalloc_overrun_check_header,
-		 val - XMALLOC_OVERRUN_CHECK_SIZE - sizeof (size_t),
+		 val - XMALLOC_OVERRUN_CHECK_SIZE - XMALLOC_OVERRUN_SIZE_SIZE,
 		 XMALLOC_OVERRUN_CHECK_SIZE) == 0)
     {
       size_t osize = xmalloc_get_size (val);
@@ -648,12 +674,12 @@ overrun_check_free (POINTER_TYPE *block)
 		  XMALLOC_OVERRUN_CHECK_SIZE))
 	abort ();
 #ifdef XMALLOC_CLEAR_FREE_MEMORY
-      val -= XMALLOC_OVERRUN_CHECK_SIZE + sizeof (size_t);
+      val -= XMALLOC_OVERRUN_CHECK_SIZE + XMALLOC_OVERRUN_SIZE_SIZE;
       memset (val, 0xff, osize + XMALLOC_OVERRUN_CHECK_OVERHEAD);
 #else
       memset (val + osize, 0, XMALLOC_OVERRUN_CHECK_SIZE);
-      val -= XMALLOC_OVERRUN_CHECK_SIZE + sizeof (size_t);
-      memset (val, 0, XMALLOC_OVERRUN_CHECK_SIZE + sizeof (size_t));
+      val -= XMALLOC_OVERRUN_CHECK_SIZE + XMALLOC_OVERRUN_SIZE_SIZE;
+      memset (val, 0, XMALLOC_OVERRUN_CHECK_SIZE + XMALLOC_OVERRUN_SIZE_SIZE);
 #endif
     }
 
@@ -4045,7 +4071,7 @@ DEFUN ("gc-status", Fgc_status, Sgc_status, 0, 0, "",
 {
   Lisp_Object args[8], zombie_list = Qnil;
   EMACS_INT i;
-  for (i = 0; i < nzombies; i++)
+  for (i = 0; i < min (MAX_ZOMBIES, nzombies); i++)
     zombie_list = Fcons (zombies[i], zombie_list);
   args[0] = build_string ("%d GCs, avg live/zombies = %.2f/%.2f (%f%%), max %d/%d\nzombies: %S");
   args[1] = make_number (ngcs);
@@ -4209,14 +4235,25 @@ mark_maybe_pointer (void *p)
 }
 
 
+/* Alignment of Lisp_Object and pointer values.  Use offsetof, as it
+   sometimes returns a smaller alignment than GCC's __alignof__ and
+   mark_memory might miss objects if __alignof__ were used.  For
+   example, on x86 with WIDE_EMACS_INT, __alignof__ (Lisp_Object) is 8
+   but GC_LISP_OBJECT_ALIGNMENT should be 4.  */
+#ifndef GC_LISP_OBJECT_ALIGNMENT
+# define GC_LISP_OBJECT_ALIGNMENT offsetof (struct {char a; Lisp_Object b;}, b)
+#endif
+#define GC_POINTER_ALIGNMENT offsetof (struct {char a; void *b;}, b)
+
 /* Mark Lisp objects referenced from the address range START+OFFSET..END
    or END+OFFSET..START. */
 
 static void
-mark_memory (void *start, void *end, int offset)
+mark_memory (void *start, void *end)
 {
   Lisp_Object *p;
   void **pp;
+  int i;
 
 #if GC_MARK_STACK == GC_USE_GCPROS_CHECK_ZOMBIES
   nzombies = 0;
@@ -4232,8 +4269,9 @@ mark_memory (void *start, void *end, int offset)
     }
 
   /* Mark Lisp_Objects.  */
-  for (p = (Lisp_Object *) ((char *) start + offset); (void *) p < end; ++p)
-    mark_maybe_object (*p);
+  for (p = start; (void *) p < end; p++)
+    for (i = 0; i < sizeof *p; i += GC_LISP_OBJECT_ALIGNMENT)
+      mark_maybe_object (*(Lisp_Object *) ((char *) p + i));
 
   /* Mark Lisp data pointed to.  This is necessary because, in some
      situations, the C compiler optimizes Lisp objects away, so that
@@ -4253,8 +4291,9 @@ mark_memory (void *start, void *end, int offset)
      away.  The only reference to the life string is through the
      pointer `s'.  */
 
-  for (pp = (void **) ((char *) start + offset); (void *) pp < end; ++pp)
-    mark_maybe_pointer (*pp);
+  for (pp = start; (void *) pp < end; pp++)
+    for (i = 0; i < sizeof *pp; i += GC_POINTER_ALIGNMENT)
+      mark_maybe_pointer (*(void **) ((char *) pp + i));
 }
 
 /* setjmp will work with GCC unless NON_SAVING_SETJMP is defined in
@@ -4371,7 +4410,7 @@ dump_zombies (void)
 {
   int i;
 
-  fprintf (stderr, "\nZombies kept alive = %"pI":\n", nzombies);
+  fprintf (stderr, "\nZombies kept alive = %"pI"d:\n", nzombies);
   for (i = 0; i < min (MAX_ZOMBIES, nzombies); ++i)
     {
       fprintf (stderr, "  %d = ", i);
@@ -4428,15 +4467,11 @@ dump_zombies (void)
    pass starting at the start of the stack + 2.  Likewise, if the
    minimal alignment of Lisp_Objects on the stack is 1, four passes
    would be necessary, each one starting with one byte more offset
-   from the stack start.
-
-   The current code assumes by default that Lisp_Objects are aligned
-   equally on the stack.  */
+   from the stack start.  */
 
 static void
 mark_stack (void)
 {
-  int i;
   void *end;
 
 #ifdef HAVE___BUILTIN_UNWIND_INIT
@@ -4494,15 +4529,8 @@ mark_stack (void)
   /* This assumes that the stack is a contiguous region in memory.  If
      that's not the case, something has to be done here to iterate
      over the stack segments.  */
-#ifndef GC_LISP_OBJECT_ALIGNMENT
-#ifdef __GNUC__
-#define GC_LISP_OBJECT_ALIGNMENT __alignof__ (Lisp_Object)
-#else
-#define GC_LISP_OBJECT_ALIGNMENT sizeof (Lisp_Object)
-#endif
-#endif
-  for (i = 0; i < sizeof (Lisp_Object); i += GC_LISP_OBJECT_ALIGNMENT)
-    mark_memory (stack_base, end, i);
+  mark_memory (stack_base, end);
+
   /* Allow for marking a secondary stack, like the register stack on the
      ia64.  */
 #ifdef GC_MARK_SECONDARY_STACK

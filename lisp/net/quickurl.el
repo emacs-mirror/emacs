@@ -307,7 +307,7 @@ Also display a `message' saying what the URL was unless SILENT is non-nil."
   "Insert a URL based on LOOKUP.
 
 If not supplied LOOKUP is taken to be the word at point in the current
-buffer, this default action can be modifed via
+buffer, this default action can be modified via
 `quickurl-grab-lookup-function'."
   (interactive)
   (when (or lookup
@@ -402,7 +402,7 @@ is decided."
   "Browse the URL associated with LOOKUP.
 
 If not supplied LOOKUP is taken to be the word at point in the
-current buffer, this default action can be modifed via
+current buffer, this default action can be modified via
 `quickurl-grab-lookup-function'."
   (interactive)
   (when (or lookup

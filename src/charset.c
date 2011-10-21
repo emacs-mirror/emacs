@@ -1162,10 +1162,10 @@ usage: (define-charset-internal ...)  */)
 		     sizeof *charset_table);
 	  memcpy (new_table, charset_table, old_size * sizeof *new_table);
 	  charset_table = new_table;
-	  /* FIXME: Doesn't this leak memory?  The old charset_table becomes
-	     unreachable.  It could be that this is intentional, because the
-	     old charset table may be in a dumped emacs, and reallocating such
-	     a table may not work.  If the memory leak is intentional, a
+	  /* FIXME: This leaks memory, as the old charset_table becomes
+	     unreachable.  If the old charset table is charset_table_init
+	     then this leak is intentional; otherwise, it's unclear.
+	     If the latter memory leak is intentional, a
 	     comment should be added to explain this.  If not, the old
 	     charset_table should be freed, by passing it as the 1st argument
 	     to xpalloc and removing the memcpy.  */
@@ -2327,20 +2327,21 @@ init_charset_once (void)
 
 #ifdef emacs
 
+/* Allocate an initial charset table that is large enough to handle
+   Emacs while it is bootstrapping.  As of September 2011, the size
+   needs to be at least 166; make it a bit bigger to allow for future
+   expansion.
+
+   Don't make the value so small that the table is reallocated during
+   bootstrapping, as glibc malloc calls larger than just under 64 KiB
+   during an initial bootstrap wreak havoc after dumping; see the
+   M_MMAP_THRESHOLD value in alloc.c, plus there is a extra overhead
+   internal to glibc malloc and perhaps to Emacs malloc debugging.  */
+static struct charset charset_table_init[180];
+
 void
 syms_of_charset (void)
 {
-  /* Allocate an initial charset table that is just under 64 KiB in size.
-     This should be large enough so that the charset table need not be
-     reallocated during an initial bootstrap.  Allocating anything larger than
-     64 KiB in an initial run may not work, because glibc malloc might use
-     mmap for larger allocations, and these don't work well across dumped
-     systems.  */
-  enum {
-    initial_malloc_max = (1 << 16) - 1,
-    charset_table_size_init = initial_malloc_max / sizeof (struct charset)
-  };
-
   DEFSYM (Qcharsetp, "charsetp");
 
   DEFSYM (Qascii, "ascii");
@@ -2373,9 +2374,8 @@ syms_of_charset (void)
     Vcharset_hash_table = Fmake_hash_table (2, args);
   }
 
-  charset_table = (struct charset *) xmalloc (sizeof (struct charset)
-					      * charset_table_size_init);
-  charset_table_size = charset_table_size_init;
+  charset_table = charset_table_init;
+  charset_table_size = sizeof charset_table_init / sizeof *charset_table_init;
   charset_table_used = 0;
 
   defsubr (&Scharsetp);

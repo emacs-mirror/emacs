@@ -2851,6 +2851,13 @@ start_display (struct it *it, struct window *w, struct text_pos pos)
 
 	      it->continuation_lines_width += it->current_x;
 	    }
+	  /* If the character at POS is displayed via a display
+	     vector, move_it_to above stops at the final glyph of
+	     IT->dpvec.  To make the caller redisplay that character
+	     again (a.k.a. start at POS), we need to reset the
+	     dpvec_index to the beginning of IT->dpvec.  */
+	  else if (it->current.dpvec_index >= 0)
+	    it->current.dpvec_index = 0;
 
 	  /* We're starting a new display line, not affected by the
 	     height of the continued line, so clear the appropriate
@@ -3386,9 +3393,10 @@ compute_display_string_pos (struct text_pos *position,
 }
 
 /* Return the character position of the end of the display string that
-   started at CHARPOS.  A display string is either an overlay with
-   `display' property whose value is a string or a `display' text
-   property whose value is a string.  */
+   started at CHARPOS.  If there's no display string at CHARPOS,
+   return -1.  A display string is either an overlay with `display'
+   property whose value is a string or a `display' text property whose
+   value is a string.  */
 EMACS_INT
 compute_display_string_end (EMACS_INT charpos, struct bidi_string_data *string)
 {
@@ -3402,8 +3410,22 @@ compute_display_string_end (EMACS_INT charpos, struct bidi_string_data *string)
   if (charpos >= eob || (string->s && !STRINGP (object)))
     return eob;
 
+  /* It could happen that the display property or overlay was removed
+     since we found it in compute_display_string_pos above.  One way
+     this can happen is if JIT font-lock was called (through
+     handle_fontified_prop), and jit-lock-functions remove text
+     properties or overlays from the portion of buffer that includes
+     CHARPOS.  Muse mode is known to do that, for example.  In this
+     case, we return -1 to the caller, to signal that no display
+     string is actually present at CHARPOS.  See bidi_fetch_char for
+     how this is handled.
+
+     An alternative would be to never look for display properties past
+     it->stop_charpos.  But neither compute_display_string_pos nor
+     bidi_fetch_char that calls it know or care where the next
+     stop_charpos is.  */
   if (NILP (Fget_char_property (pos, Qdisplay, object)))
-    abort ();
+    return -1;
 
   /* Look forward for the first character where the `display' property
      changes.  */
@@ -4056,40 +4078,67 @@ handle_invisible_prop (struct it *it)
 	  /* The position newpos is now either ZV or on visible text.  */
 	  if (it->bidi_p && newpos < ZV)
 	    {
-	      /* With bidi iteration, the region of invisible text
-		 could start and/or end in the middle of a non-base
-		 embedding level.  Therefore, we need to skip
-		 invisible text using the bidi iterator, starting at
-		 IT's current position, until we find ourselves
-		 outside the invisible text.  Skipping invisible text
-		 _after_ bidi iteration avoids affecting the visual
-		 order of the displayed text when invisible properties
-		 are added or removed.  */
-	      if (it->bidi_it.first_elt && it->bidi_it.charpos < ZV)
+	      EMACS_INT bpos = CHAR_TO_BYTE (newpos);
+
+	      if (FETCH_BYTE (bpos) == '\n'
+		  || (newpos > BEGV && FETCH_BYTE (bpos - 1) == '\n'))
 		{
-		  /* If we were `reseat'ed to a new paragraph,
-		     determine the paragraph base direction.  We need
-		     to do it now because next_element_from_buffer may
-		     not have a chance to do it, if we are going to
-		     skip any text at the beginning, which resets the
-		     FIRST_ELT flag.  */
-		  bidi_paragraph_init (it->paragraph_embedding,
-				       &it->bidi_it, 1);
+		  /* If the invisible text ends on a newline or the
+		     character after a newline, we can avoid the
+		     costly, character by character, bidi iteration to
+		     newpos, and instead simply reseat the iterator
+		     there.  That's because all bidi reordering
+		     information is tossed at the newline.  This is a
+		     big win for modes that hide complete lines, like
+		     Outline, Org, etc.  (Implementation note: the
+		     call to reseat_1 is necessary, because it signals
+		     to the bidi iterator that it needs to reinit its
+		     internal information when the next element for
+		     display is requested.  */
+		  struct text_pos tpos;
+
+		  SET_TEXT_POS (tpos, newpos, bpos);
+		  reseat_1 (it, tpos, 0);
 		}
-	      do
+	      else	/* Must use the slow method.  */
 		{
-		  bidi_move_to_visually_next (&it->bidi_it);
+		  /* With bidi iteration, the region of invisible text
+		     could start and/or end in the middle of a
+		     non-base embedding level.  Therefore, we need to
+		     skip invisible text using the bidi iterator,
+		     starting at IT's current position, until we find
+		     ourselves outside the invisible text.  Skipping
+		     invisible text _after_ bidi iteration avoids
+		     affecting the visual order of the displayed text
+		     when invisible properties are added or
+		     removed.  */
+		  if (it->bidi_it.first_elt && it->bidi_it.charpos < ZV)
+		    {
+		      /* If we were `reseat'ed to a new paragraph,
+			 determine the paragraph base direction.  We
+			 need to do it now because
+			 next_element_from_buffer may not have a
+			 chance to do it, if we are going to skip any
+			 text at the beginning, which resets the
+			 FIRST_ELT flag.  */
+		      bidi_paragraph_init (it->paragraph_embedding,
+					   &it->bidi_it, 1);
+		    }
+		  do
+		    {
+		      bidi_move_to_visually_next (&it->bidi_it);
+		    }
+		  while (it->stop_charpos <= it->bidi_it.charpos
+			 && it->bidi_it.charpos < newpos);
+		  IT_CHARPOS (*it) = it->bidi_it.charpos;
+		  IT_BYTEPOS (*it) = it->bidi_it.bytepos;
+		  /* If we overstepped NEWPOS, record its position in
+		     the iterator, so that we skip invisible text if
+		     later the bidi iteration lands us in the
+		     invisible region again. */
+		  if (IT_CHARPOS (*it) >= newpos)
+		    it->prev_stop = newpos;
 		}
-	      while (it->stop_charpos <= it->bidi_it.charpos
-		     && it->bidi_it.charpos < newpos);
-	      IT_CHARPOS (*it) = it->bidi_it.charpos;
-	      IT_BYTEPOS (*it) = it->bidi_it.bytepos;
-	      /* If we overstepped NEWPOS, record its position in the
-		 iterator, so that we skip invisible text if later the
-		 bidi iteration lands us in the invisible region
-		 again. */
-	      if (IT_CHARPOS (*it) >= newpos)
-		it->prev_stop = newpos;
 	    }
 	  else
 	    {
@@ -6329,8 +6378,8 @@ get_next_display_element (struct it *it)
 	{
 	  Lisp_Object dv;
 	  struct charset *unibyte = CHARSET_FROM_ID (charset_unibyte);
-	  enum { char_is_other = 0, char_is_nbsp, char_is_soft_hyphen }
-	  nbsp_or_shy = char_is_other;
+	  int nonascii_space_p = 0;
+	  int nonascii_hyphen_p = 0;
 	  int c = it->c;	/* This is the character to display.  */
 
 	  if (! it->multibyte_p && ! ASCII_CHAR_P (c))
@@ -6382,10 +6431,15 @@ get_next_display_element (struct it *it)
 	      goto get_next;
 	    }
 
+	  /* If `nobreak-char-display' is non-nil, we display
+	     non-ASCII spaces and hyphens specially.  */
 	  if (! ASCII_CHAR_P (c) && ! NILP (Vnobreak_char_display))
-	    nbsp_or_shy = (c == 0xA0   ? char_is_nbsp
-			   : c == 0xAD ? char_is_soft_hyphen
-			   :             char_is_other);
+	    {
+	      if (c == 0xA0)
+		nonascii_space_p = 1;
+	      else if (c == 0xAD || c == 0x2010 || c == 0x2011)
+		nonascii_hyphen_p = 1;
+	    }
 
 	  /* Translate control characters into `\003' or `^C' form.
 	     Control characters coming from a display table entry are
@@ -6393,7 +6447,8 @@ get_next_display_element (struct it *it)
 	     the translation.  This could easily be changed but I
 	     don't believe that it is worth doing.
 
-	     NBSP and SOFT-HYPEN are property translated too.
+	     The characters handled by `nobreak-char-display' must be
+	     translated too.
 
 	     Non-printable characters and raw-byte characters are also
 	     translated to octal form.  */
@@ -6404,14 +6459,15 @@ get_next_display_element (struct it *it)
 		      && it->glyph_row
 		      && (it->glyph_row->mode_line_p || it->avoid_cursor_p))
 		  || (c != '\n' && c != '\t'))
-	       : (nbsp_or_shy
+	       : (nonascii_space_p
+		  || nonascii_hyphen_p
 		  || CHAR_BYTE8_P (c)
 		  || ! CHAR_PRINTABLE_P (c))))
 	    {
-	      /* C is a control character, NBSP, SOFT-HYPEN, raw-byte,
-		 or a non-printable character which must be displayed
-		 either as '\003' or as `^C' where the '\\' and '^'
-		 can be defined in the display table.  Fill
+	      /* C is a control character, non-ASCII space/hyphen,
+		 raw-byte, or a non-printable character which must be
+		 displayed either as '\003' or as `^C' where the '\\'
+		 and '^' can be defined in the display table.  Fill
 		 IT->ctl_chars with glyphs for what we have to
 		 display.  Then, set IT->dpvec to these glyphs.  */
 	      Lisp_Object gc;
@@ -6460,17 +6516,14 @@ get_next_display_element (struct it *it)
 		  goto display_control;
 		}
 
-	      /* Handle non-break space in the mode where it only gets
+	      /* Handle non-ascii space in the mode where it only gets
 		 highlighting.  */
 
-	      if (EQ (Vnobreak_char_display, Qt)
-		  && nbsp_or_shy == char_is_nbsp)
+	      if (nonascii_space_p && EQ (Vnobreak_char_display, Qt))
 		{
-		  /* Merge the no-break-space face into the current face.  */
+		  /* Merge `nobreak-space' into the current face.  */
 		  face_id = merge_faces (it->f, Qnobreak_space, 0,
 					 it->face_id);
-
-		  c = ' ';
 		  XSETINT (it->ctl_chars[0], ' ');
 		  ctl_len = 1;
 		  goto display_control;
@@ -6510,25 +6563,21 @@ get_next_display_element (struct it *it)
 		  last_escape_glyph_merged_face_id = face_id;
 		}
 
-	      /* Handle soft hyphens in the mode where they only get
-		 highlighting.  */
+	      /* Draw non-ASCII hyphen with just highlighting: */
 
-	      if (EQ (Vnobreak_char_display, Qt)
-		  && nbsp_or_shy == char_is_soft_hyphen)
+	      if (nonascii_hyphen_p && EQ (Vnobreak_char_display, Qt))
 		{
 		  XSETINT (it->ctl_chars[0], '-');
 		  ctl_len = 1;
 		  goto display_control;
 		}
 
-	      /* Handle non-break space and soft hyphen
-		 with the escape glyph.  */
+	      /* Draw non-ASCII space/hyphen with escape glyph: */
 
-	      if (nbsp_or_shy)
+	      if (nonascii_space_p || nonascii_hyphen_p)
 		{
 		  XSETINT (it->ctl_chars[0], escape_glyph);
-		  c = (nbsp_or_shy == char_is_nbsp ? ' ' : '-');
-		  XSETINT (it->ctl_chars[1], c);
+		  XSETINT (it->ctl_chars[1], nonascii_space_p ? ' ' : '-');
 		  ctl_len = 2;
 		  goto display_control;
 		}
@@ -7106,7 +7155,6 @@ get_visually_first_element (struct it *it)
     }
   else if (it->bidi_it.charpos == bob
 	   || (!string_p
-	       /* FIXME: Should support all Unicode line separators.  */
 	       && (FETCH_CHAR (it->bidi_it.bytepos - 1) == '\n'
 		   || FETCH_CHAR (it->bidi_it.bytepos) == '\n')))
     {
@@ -7880,7 +7928,9 @@ move_it_in_display_line_to (struct it *it,
   ((op & MOVE_TO_POS) != 0					\
    && BUFFERP (it->object)					\
    && (IT_CHARPOS (*it) == to_charpos				\
-       || (!it->bidi_p && IT_CHARPOS (*it) > to_charpos)	\
+       || ((!it->bidi_p						\
+	    || BIDI_AT_BASE_LEVEL (it->bidi_it))		\
+	   && IT_CHARPOS (*it) > to_charpos)			\
        || (it->what == IT_COMPOSITION				\
 	   && ((IT_CHARPOS (*it) > to_charpos			\
 		&& to_charpos >= it->cmp_it.charpos)		\
@@ -7912,7 +7962,13 @@ move_it_in_display_line_to (struct it *it,
       if ((op & MOVE_TO_POS) != 0
 	  && BUFFERP (it->object)
 	  && it->method == GET_FROM_BUFFER
-	  && ((!it->bidi_p && IT_CHARPOS (*it) > to_charpos)
+	  && (((!it->bidi_p
+		/* When the iterator is at base embedding level, we
+		   are guaranteed that characters are delivered for
+		   display in strictly increasing order of their
+		   buffer positions.  */
+		|| BIDI_AT_BASE_LEVEL (it->bidi_it))
+	       && IT_CHARPOS (*it) > to_charpos)
 	      || (it->bidi_p
 		  && (prev_method == GET_FROM_IMAGE
 		      || prev_method == GET_FROM_STRETCH
@@ -8719,7 +8775,10 @@ move_it_vertically_backward (struct it *it, int dy)
 	 reordering.  We want to get to the character position
 	 that is immediately after the newline of the previous
 	 line.  */
-      if (it->bidi_p && IT_CHARPOS (*it) > BEGV
+      if (it->bidi_p
+	  && !it->continuation_lines_width
+	  && !STRINGP (it->string)
+	  && IT_CHARPOS (*it) > BEGV
 	  && FETCH_BYTE (IT_BYTEPOS (*it) - 1) != '\n')
 	{
 	  EMACS_INT nl_pos =
@@ -12015,6 +12074,7 @@ hscroll_window_tree (Lisp_Object window)
 	    = (desired_cursor_row->enabled_p
 	       ? desired_cursor_row
 	       : current_cursor_row);
+	  int row_r2l_p = cursor_row->reversed_p;
 
 	  text_area_width = window_box_width (w, TEXT_AREA);
 
@@ -12022,11 +12082,31 @@ hscroll_window_tree (Lisp_Object window)
 	  h_margin = hscroll_margin * WINDOW_FRAME_COLUMN_WIDTH (w);
 
 	  if (!NILP (Fbuffer_local_value (Qauto_hscroll_mode, w->buffer))
-	      && ((XFASTINT (w->hscroll)
-		   && w->cursor.x <= h_margin)
-		  || (cursor_row->enabled_p
-		      && cursor_row->truncated_on_right_p
-		      && (w->cursor.x >= text_area_width - h_margin))))
+	      /* For left-to-right rows, hscroll when cursor is either
+		 (i) inside the right hscroll margin, or (ii) if it is
+		 inside the left margin and the window is already
+		 hscrolled. */
+	      && ((!row_r2l_p
+		   && ((XFASTINT (w->hscroll)
+			&& w->cursor.x <= h_margin)
+		       || (cursor_row->enabled_p
+			   && cursor_row->truncated_on_right_p
+			   && (w->cursor.x >= text_area_width - h_margin))))
+		  /* For right-to-left rows, the logic is similar,
+		     except that rules for scrolling to left and right
+		     are reversed.  E.g., if cursor.x <= h_margin, we
+		     need to hscroll "to the right" unconditionally,
+		     and that will scroll the screen to the left so as
+		     to reveal the next portion of the row.  */
+		  || (row_r2l_p
+		      && ((cursor_row->enabled_p
+			   /* FIXME: It is confusing to set the
+			      truncated_on_right_p flag when R2L rows
+			      are actually truncated on the left. */
+			   && cursor_row->truncated_on_right_p
+			   && w->cursor.x <= h_margin)
+			  || (XFASTINT (w->hscroll)
+			      && (w->cursor.x >= text_area_width - h_margin))))))
 	    {
 	      struct it it;
 	      int hscroll;
@@ -12061,7 +12141,9 @@ hscroll_window_tree (Lisp_Object window)
 				      ? (text_area_width - 4 * FRAME_COLUMN_WIDTH (it.f))
 				      : (text_area_width / 2))))
 		    	  / FRAME_COLUMN_WIDTH (it.f);
-	      else if (w->cursor.x >= text_area_width - h_margin)
+	      else if ((!row_r2l_p
+			&& w->cursor.x >= text_area_width - h_margin)
+		       || (row_r2l_p && w->cursor.x <= h_margin))
 		{
 		  if (hscroll_relative_p)
 		    wanted_x = text_area_width * (1 - hscroll_step_rel)
@@ -13801,21 +13883,7 @@ set_cursor_from_row (struct window *w, struct glyph_row *row,
 	      glyph--;
 	    }
 	}
-      else if (match_with_avoid_cursor
-	       /* A truncated row may not include PT among its
-		  character positions.  Setting the cursor inside the
-		  scroll margin will trigger recalculation of hscroll
-		  in hscroll_window_tree.  But if a display string
-		  covers point, defer to the string-handling code
-		  below to figure this out.  */
-	       || (!string_seen
-		   && ((row->truncated_on_left_p && pt_old < bpos_min)
-		       || (row->truncated_on_right_p && pt_old > bpos_max)
-		       /* Zero-width characters produce no glyphs.  */
-		       || (!empty_line_p
-			   && (row->reversed_p
-			       ? glyph_after > glyphs_end
-			       : glyph_after < glyphs_end)))))
+      else if (match_with_avoid_cursor)
 	{
 	  cursor = glyph_after;
 	  x = -1;
@@ -13955,6 +14023,26 @@ set_cursor_from_row (struct window *w, struct glyph_row *row,
 	      && STRINGP (end->object)
 	      && row->continued_p)
 	    return 0;
+	}
+      /* A truncated row may not include PT among its character positions.
+	 Setting the cursor inside the scroll margin will trigger
+	 recalculation of hscroll in hscroll_window_tree.  But if a
+	 display string covers point, defer to the string-handling
+	 code below to figure this out.  */
+      else if (row->truncated_on_left_p && pt_old < bpos_min)
+	{
+	  cursor = glyph_before;
+	  x = -1;
+	}
+      else if ((row->truncated_on_right_p && pt_old > bpos_max)
+	       /* Zero-width characters produce no glyphs.  */
+	       || (!empty_line_p
+		   && (row->reversed_p
+		       ? glyph_after > glyphs_end
+		       : glyph_after < glyphs_end)))
+	{
+	  cursor = glyph_after;
+	  x = -1;
 	}
     }
 
@@ -15990,13 +16078,20 @@ try_window_reusing_current_matrix (struct window *w)
 
 	      start_vpos = MATRIX_ROW_VPOS (start_row, w->current_matrix);
 	    }
-	  /* If we have reached alignment,
-	     we can copy the rest of the rows.  */
-	  if (IT_CHARPOS (it) == CHARPOS (start))
+	  /* If we have reached alignment, we can copy the rest of the
+	     rows.  */
+	  if (IT_CHARPOS (it) == CHARPOS (start)
+	      /* Don't accept "alignment" inside a display vector,
+		 since start_row could have started in the middle of
+		 that same display vector (thus their character
+		 positions match), and we have no way of telling if
+		 that is the case.  */
+	      && it.current.dpvec_index < 0)
 	    break;
 
 	  if (display_line (&it))
 	    last_text_row = it.glyph_row - 1;
+
 	}
 
       /* A value of current_y < last_visible_y means that we stopped
@@ -18349,9 +18444,10 @@ static int
 push_display_prop (struct it *it, Lisp_Object prop)
 {
   struct text_pos pos =
-    (it->method == GET_FROM_STRING) ? it->current.string_pos : it->current.pos;
+    STRINGP (it->string) ? it->current.string_pos : it->current.pos;
 
   xassert (it->method == GET_FROM_BUFFER
+	   || it->method == GET_FROM_DISPLAY_VECTOR
 	   || it->method == GET_FROM_STRING);
 
   /* We need to save the current buffer/string position, so it will be
@@ -18568,7 +18664,12 @@ find_row_edges (struct it *it, struct glyph_row *row,
 		    seen_this_string = 1;
 		}
 	      else
-		abort ();
+		/* If all the glyphs of the previous row were inserted
+		   by redisplay, it means the previous row was
+		   produced from a single newline, which is only
+		   possible if that newline came from the same string
+		   as the one which produced this ROW.  */
+		seen_this_string = 1;
 	    }
 	  else
 	    {
@@ -18584,7 +18685,7 @@ find_row_edges (struct it *it, struct glyph_row *row,
 		    seen_this_string = 1;
 		}
 	      else
-		abort ();
+		seen_this_string = 1;
 	    }
 	}
       /* Take note of each display string that covers a newline only
@@ -19401,6 +19502,7 @@ See also `bidi-paragraph-direction'.  */)
 	    bytepos--;
 	}
       bidi_init_it (pos, bytepos, FRAME_WINDOW_P (SELECTED_FRAME ()), &itb);
+      itb.paragraph_dir = NEUTRAL_DIR;
       itb.string.s = NULL;
       itb.string.lstring = Qnil;
       itb.string.bufpos = 0;
@@ -27913,12 +28015,18 @@ The face used for trailing whitespace is `trailing-whitespace'.  */);
   Vshow_trailing_whitespace = Qnil;
 
   DEFVAR_LISP ("nobreak-char-display", Vnobreak_char_display,
-    doc: /* *Control highlighting of nobreak space and soft hyphen.
-A value of t means highlight the character itself (for nobreak space,
-use face `nobreak-space').
-A value of nil means no highlighting.
-Other values mean display the escape glyph followed by an ordinary
-space or ordinary hyphen.  */);
+    doc: /* Control highlighting of non-ASCII space and hyphen chars.
+If the value is t, Emacs highlights non-ASCII chars which have the
+same appearance as an ASCII space or hyphen, using the `nobreak-space'
+or `escape-glyph' face respectively.
+
+U+00A0 (no-break space), U+00AD (soft hyphen), U+2010 (hyphen), and
+U+2011 (non-breaking hyphen) are affected.
+
+Any other non-nil value means to display these characters as a escape
+glyph followed by an ordinary space or hyphen.
+
+A value of nil means no special handling of these characters.  */);
   Vnobreak_char_display = Qt;
 
   DEFVAR_LISP ("void-text-area-pointer", Vvoid_text_area_pointer,

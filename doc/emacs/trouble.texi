@@ -53,10 +53,10 @@ a kill command that is taking a long time, either your text will
 @emph{all} still be in the buffer, or it will @emph{all} be in the
 kill ring, or maybe both.  If the region is active, @kbd{C-g}
 deactivates the mark, unless Transient Mark mode is off
-(@pxref{Persistent Mark}).  If you are in the middle of an incremental
-search, @kbd{C-g} does special things; it may take two successive
-@kbd{C-g} characters to get out of a search.  @xref{Incremental
-Search}, for details.
+(@pxref{Disabled Transient Mark}).  If you are in the middle of an
+incremental search, @kbd{C-g} does special things; it may take two
+successive @kbd{C-g} characters to get out of a search.
+@xref{Incremental Search}, for details.
 
   On MS-DOS, the character @kbd{C-@key{BREAK}} serves as a quit character
 like @kbd{C-g}.  The reason is that it is not feasible, on MS-DOS, to

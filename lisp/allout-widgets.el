@@ -486,13 +486,14 @@ happens in the buffer.")
 ;;;_   > define-minor-mode allout-widgets-mode (arg)
 ;;;###autoload
 (define-minor-mode allout-widgets-mode
-  "Allout-mode extension, providing graphical decoration of outline structure.
+  "Toggle Allout Widgets mode.
+With a prefix argument ARG, enable Allout Widgets mode if ARG is
+positive, and disable it otherwise.  If called from Lisp, enable
+the mode if ARG is omitted or nil.
 
-This is meant to operate along with allout-mode, via `allout-mode-hook'.
-
-If optional argument ARG is greater than 0, enable.
-If optional argument ARG is less than 0, disable.
-Anything else, toggle between active and inactive.
+Allout Widgets mode is an extension of Allout mode that provides
+graphical decoration of outline structure.  It is meant to
+operate along with `allout-mode', via `allout-mode-hook'.
 
 The graphics include:
 

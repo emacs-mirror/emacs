@@ -1796,7 +1796,7 @@ readevalloop (Lisp_Object readcharfun,
 
       /* Ignore whitespace here, so we can detect eof.  */
       if (c == ' ' || c == '\t' || c == '\n' || c == '\f' || c == '\r'
-	  || c == 0x8a0)  /* NBSP */
+	  || c == 0xa0)  /* NBSP */
 	goto read_next;
 
       if (!NILP (Vpurify_flag) && c == '(')
@@ -1966,7 +1966,7 @@ DEFUN ("read-from-string", Fread_from_string, Sread_from_string, 1, 3, 0,
        doc: /* Read one Lisp expression which is represented as text by STRING.
 Returns a cons: (OBJECT-READ . FINAL-STRING-INDEX).
 FINAL-STRING-INDEX is an integer giving the position of the next
- remaining chararacter in STRING.
+ remaining character in STRING.
 START and END optionally delimit a substring of STRING from which to read;
  they default to 0 and (length STRING) respectively.  */)
   (Lisp_Object string, Lisp_Object start, Lisp_Object end)
@@ -2210,7 +2210,7 @@ read_escape (Lisp_Object readcharfun, int stringp)
     case 'x':
       /* A hex escape, as in ANSI C.  */
       {
-	int i = 0;
+	unsigned int i = 0;
 	int count = 0;
 	while (1)
 	  {
@@ -2234,7 +2234,9 @@ read_escape (Lisp_Object readcharfun, int stringp)
 		UNREAD (c);
 		break;
 	      }
-	    if (MAX_CHAR < i)
+	    /* Allow hex escapes as large as ?\xfffffff, because some
+	       packages use them to denote characters with modifiers.  */
+	    if ((CHAR_META | (CHAR_META - 1)) < i)
 	      error ("Hex character out of range: \\x%x...", i);
 	    count += count < 3;
 	  }
@@ -2685,7 +2687,7 @@ read1 (register Lisp_Object readcharfun, int *pch, int first_in_list)
 	  uninterned_symbol = 1;
 	  c = READCHAR;
 	  if (!(c > 040
-		&& c != 0x8a0
+		&& c != 0xa0	/* NBSP */
 		&& (c >= 0200
 		    || strchr ("\"';()[]#`,", c) == NULL)))
 	    {
@@ -3033,7 +3035,7 @@ read1 (register Lisp_Object readcharfun, int *pch, int first_in_list)
     default:
     default_label:
       if (c <= 040) goto retry;
-      if (c == 0x8a0) /* NBSP */
+      if (c == 0xa0) /* NBSP */
 	goto retry;
 
     read_symbol:
@@ -3074,7 +3076,7 @@ read1 (register Lisp_Object readcharfun, int *pch, int first_in_list)
 	      c = READCHAR;
 	    }
 	  while (c > 040
-		 && c != 0x8a0 /* NBSP */
+		 && c != 0xa0 /* NBSP */
 		 && (c >= 0200
 		     || strchr ("\"';()[]#`,", c) == NULL));
 

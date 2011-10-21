@@ -116,14 +116,16 @@ get_doc_string (Lisp_Object filepos, int unibyte, int definition)
      If it is relative, combine it with Vdoc_directory.  */
 
   tem = Ffile_name_absolute_p (file);
+  file = ENCODE_FILE (file);
   if (NILP (tem))
     {
-      minsize = SCHARS (Vdoc_directory);
+      Lisp_Object docdir = ENCODE_FILE (Vdoc_directory);
+      minsize = SCHARS (docdir);
       /* sizeof ("../etc/") == 8 */
       if (minsize < 8)
 	minsize = 8;
       name = (char *) alloca (minsize + SCHARS (file) + 8);
-      strcpy (name, SSDATA (Vdoc_directory));
+      strcpy (name, SSDATA (docdir));
       strcat (name, SSDATA (file));
     }
   else
@@ -138,7 +140,7 @@ get_doc_string (Lisp_Object filepos, int unibyte, int definition)
       if (!NILP (Vpurify_flag))
 	{
 	  /* Preparing to dump; DOC file is probably not installed.
-	     So check in ../etc. */
+	     So check in ../etc.  */
 	  strcpy (name, "../etc/");
 	  strcat (name, SSDATA (file));
 

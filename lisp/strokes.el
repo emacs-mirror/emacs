@@ -1386,8 +1386,12 @@ If STROKES-MAP is not given, `strokes-global-map' will be used instead."
 
 ;;;###autoload
 (define-minor-mode strokes-mode
-  "Toggle Strokes global minor mode.\\<strokes-mode-map>
-With ARG, turn strokes on if and only if ARG is positive.
+  "Toggle Strokes mode, a global minor mode.
+With a prefix argument ARG, enable Strokes mode if ARG is
+positive, and disable it otherwise.  If called from Lisp, enable
+the mode if ARG is omitted or nil.
+
+\\<strokes-mode-map>
 Strokes are pictographic mouse gestures which invoke commands.
 Strokes are invoked with \\[strokes-do-stroke].  You can define
 new strokes with \\[strokes-global-set-stroke].  See also

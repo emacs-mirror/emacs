@@ -86,12 +86,12 @@ It will be passed one argument, which is the current value of
 
 ;; The mode for which font-lock was initialized, or nil if none.
 (defvar font-lock-major-mode)
+
 (define-minor-mode font-lock-mode
-  "Toggle Font Lock mode.
-With arg, turn Font Lock mode off if and only if arg is a non-positive
-number; if arg is nil, toggle Font Lock mode; anything else turns Font
-Lock on.
-\(Font Lock is also known as \"syntax highlighting\".)
+  "Toggle syntax highlighting in this buffer (Font Lock mode).
+With a prefix argument ARG, enable Font Lock mode if ARG is
+positive, and disable it otherwise.  If called from Lisp, enable
+the mode if ARG is omitted or nil.
 
 When Font Lock mode is enabled, text is fontified as you type it:
 

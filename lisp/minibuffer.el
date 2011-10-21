@@ -216,9 +216,13 @@ You should give VAR a non-nil `risky-local-variable' property."
           (setq ,var (,fun)))
         ,var))))
 
-(defun completion-table-case-fold (table string pred action)
-  (let ((completion-ignore-case t))
-    (complete-with-action action table string pred)))
+(defun completion-table-case-fold (table &optional dont-fold)
+  "Return new completion TABLE that is case insensitive.
+If DONT-FOLD is non-nil, return a completion table that is
+case sensitive instead."
+  (lambda (string pred action)
+    (let ((completion-ignore-case (not dont-fold)))
+      (complete-with-action action table string pred))))
 
 (defun completion-table-with-context (prefix table string pred action)
   ;; TODO: add `suffix' maybe?
@@ -468,6 +472,15 @@ ALL-COMPLETIONS is the function that lists the completions (it should
 follow the calling convention of `completion-all-completions'),
 and DOC describes the way this style of completion works.")
 
+(defconst completion--styles-type
+  `(repeat :tag "insert a new menu to add more styles"
+           (choice ,@(mapcar (lambda (x) (list 'const (car x)))
+                             completion-styles-alist))))
+(defconst completion--cycling-threshold-type
+  '(choice (const :tag "No cycling" nil)
+           (const :tag "Always cycle" t)
+           (integer :tag "Threshold")))
+
 (defcustom completion-styles
   ;; First, use `basic' because prefix completion has been the standard
   ;; for "ever" and works well in most cases, so using it first
@@ -482,31 +495,34 @@ and DOC describes the way this style of completion works.")
     ;; and simply add "bar" to the end of the result.
     emacs22)
   "List of completion styles to use.
-The available styles are listed in `completion-styles-alist'."
-  :type `(repeat (choice ,@(mapcar (lambda (x) (list 'const (car x)))
-                                   completion-styles-alist)))
+The available styles are listed in `completion-styles-alist'.
+
+Note that `completion-category-overrides' may override these
+styles for specific categories, such as files, buffers, etc."
+  :type completion--styles-type
   :group 'minibuffer
   :version "23.1")
 
 (defcustom completion-category-overrides
   '((buffer (styles . (basic substring))))
-  "List of overrides for specific categories.
+  "List of `completion-styles' overrides for specific categories.
 Each override has the shape (CATEGORY . ALIST) where ALIST is
 an association list that can specify properties such as:
 - `styles': the list of `completion-styles' to use for that category.
 - `cycle': the `completion-cycle-threshold' to use for that category."
-  :type `(alist :key-type (choice (const buffer)
+  :type `(alist :key-type (choice :tag "Category"
+				  (const buffer)
                                   (const file)
+                                  (const unicode-name)
                                   symbol)
           :value-type
-          (set
-           (cons (const style)
-                 (repeat ,@(mapcar (lambda (x) (list 'const (car x)))
-                                   completion-styles-alist)))
-           (cons (const cycle)
-                 (choice (const :tag "No cycling" nil)
-                         (const :tag "Always cycle" t)
-                         (integer :tag "Threshold"))))))
+          (set :tag "Properties to override"
+	   (cons :tag "Completion Styles"
+		 (const :tag "Select a style from the menu;" styles)
+		 ,completion--styles-type)
+           (cons :tag "Completion Cycling"
+		 (const :tag "Select one value from the menu." cycle)
+                 ,completion--cycling-threshold-type))))
 
 (defun completion--styles (metadata)
   (let* ((cat (completion-metadata-get metadata 'category))
@@ -580,7 +596,7 @@ Moves point to the end of the new text."
       (setq end (- end suffix-len))
       (setq newtext (substring newtext 0 (- suffix-len))))
     (goto-char beg)
-    (insert newtext)
+    (insert-and-inherit newtext)
     (delete-region (point) (+ (point) (- end beg)))
     (forward-char suffix-len)))
 
@@ -592,9 +608,7 @@ If nil, cycling is never used.
 If t, cycling is always used.
 If an integer, cycling is used as soon as there are fewer completion
 candidates than this number."
-  :type '(choice (const :tag "No cycling" nil)
-          (const :tag "Always cycle" t)
-          (integer :tag "Threshold")))
+  :type completion--cycling-threshold-type)
 
 (defun completion--cycle-threshold (metadata)
   (let* ((cat (completion-metadata-get metadata 'category))
@@ -913,9 +927,7 @@ If `minibuffer-completion-confirm' is `confirm-after-completion',
                      ;; file, so `try-completion' actually completes to
                      ;; that file.
                      (= (length string) (length compl)))
-            (goto-char end)
-            (insert compl)
-            (delete-region beg end))))
+            (completion--replace beg end compl))))
       (exit-minibuffer))
 
      ((memq minibuffer-completion-confirm '(confirm confirm-after-completion))
@@ -1775,59 +1787,60 @@ same as `substitute-in-file-name'."
 
 (defun completion-file-name-table (string pred action)
   "Completion table for file names."
-  (with-demoted-errors
-    (cond
-     ((eq action 'metadata) '(metadata (category . file)))
-     ((eq (car-safe action) 'boundaries)
-      (let ((start (length (file-name-directory string)))
-            (end (string-match-p "/" (cdr action))))
-        (list* 'boundaries
-               ;; if `string' is "C:" in w32, (file-name-directory string)
-               ;; returns "C:/", so `start' is 3 rather than 2.
-               ;; Not quite sure what is The Right Fix, but clipping it
-               ;; back to 2 will work for this particular case.  We'll
-               ;; see if we can come up with a better fix when we bump
-               ;; into more such problematic cases.
-               (min start (length string)) end)))
+  (condition-case nil
+      (cond
+       ((eq action 'metadata) '(metadata (category . file)))
+       ((eq (car-safe action) 'boundaries)
+        (let ((start (length (file-name-directory string)))
+              (end (string-match-p "/" (cdr action))))
+          (list* 'boundaries
+                 ;; if `string' is "C:" in w32, (file-name-directory string)
+                 ;; returns "C:/", so `start' is 3 rather than 2.
+                 ;; Not quite sure what is The Right Fix, but clipping it
+                 ;; back to 2 will work for this particular case.  We'll
+                 ;; see if we can come up with a better fix when we bump
+                 ;; into more such problematic cases.
+                 (min start (length string)) end)))
 
-     ((eq action 'lambda)
-      (if (zerop (length string))
-          nil    ;Not sure why it's here, but it probably doesn't harm.
-        (funcall (or pred 'file-exists-p) string)))
+       ((eq action 'lambda)
+        (if (zerop (length string))
+            nil          ;Not sure why it's here, but it probably doesn't harm.
+          (funcall (or pred 'file-exists-p) string)))
 
-     (t
-      (let* ((name (file-name-nondirectory string))
-             (specdir (file-name-directory string))
-             (realdir (or specdir default-directory)))
+       (t
+        (let* ((name (file-name-nondirectory string))
+               (specdir (file-name-directory string))
+               (realdir (or specdir default-directory)))
 
-        (cond
-         ((null action)
-          (let ((comp (file-name-completion name realdir pred)))
-            (if (stringp comp)
-                (concat specdir comp)
-              comp)))
+          (cond
+           ((null action)
+            (let ((comp (file-name-completion name realdir pred)))
+              (if (stringp comp)
+                  (concat specdir comp)
+                comp)))
 
-         ((eq action t)
-          (let ((all (file-name-all-completions name realdir)))
+           ((eq action t)
+            (let ((all (file-name-all-completions name realdir)))
 
-            ;; Check the predicate, if necessary.
-            (unless (memq pred '(nil file-exists-p))
-              (let ((comp ())
-                    (pred
-                     (if (eq pred 'file-directory-p)
-                         ;; Brute-force speed up for directory checking:
-                         ;; Discard strings which don't end in a slash.
-                         (lambda (s)
-                           (let ((len (length s)))
-                             (and (> len 0) (eq (aref s (1- len)) ?/))))
-                       ;; Must do it the hard (and slow) way.
-                       pred)))
-                (let ((default-directory (expand-file-name realdir)))
-                  (dolist (tem all)
-                    (if (funcall pred tem) (push tem comp))))
-                (setq all (nreverse comp))))
+              ;; Check the predicate, if necessary.
+              (unless (memq pred '(nil file-exists-p))
+                (let ((comp ())
+                      (pred
+                       (if (eq pred 'file-directory-p)
+                           ;; Brute-force speed up for directory checking:
+                           ;; Discard strings which don't end in a slash.
+                           (lambda (s)
+                             (let ((len (length s)))
+                               (and (> len 0) (eq (aref s (1- len)) ?/))))
+                         ;; Must do it the hard (and slow) way.
+                         pred)))
+                  (let ((default-directory (expand-file-name realdir)))
+                    (dolist (tem all)
+                      (if (funcall pred tem) (push tem comp))))
+                  (setq all (nreverse comp))))
 
-            all))))))))
+              all))))))
+    (file-error nil)))               ;PCM often calls with invalid directories.
 
 (defvar read-file-name-predicate nil
   "Current predicate used by `read-file-name-internal'.")

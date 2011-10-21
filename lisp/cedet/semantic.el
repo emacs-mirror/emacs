@@ -1055,8 +1055,10 @@ The possible elements of this list include the following:
 
 ;;;###autoload
 (define-minor-mode semantic-mode
-  "Toggle Semantic mode.
-With ARG, turn Semantic mode on if ARG is positive, off otherwise.
+  "Toggle parser features (Semantic mode).
+With a prefix argument ARG, enable Semantic mode if ARG is
+positive, and disable it otherwise.  If called from Lisp, enable
+Semantic mode if ARG is omitted or nil.
 
 In Semantic mode, Emacs parses the buffers you visit for their
 semantic content.  This information is used by a variety of

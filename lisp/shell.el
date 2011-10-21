@@ -381,7 +381,8 @@ This is used by `shell-dir-cookie-watcher' to try and use this info
 to track your current directory.  It can be used instead of or in addition
 to `dirtrack-mode'."
   :group 'shell
-  :type '(choice (const nil) regexp))
+  :type '(choice (const nil) regexp)
+  :version "24.1")
 
 (defun shell-parse-pcomplete-arguments ()
   "Parse whitespace separated arguments in the current region."
@@ -889,9 +890,13 @@ Environment variables are expanded, see function `substitute-in-file-name'."
 
 (defvaralias 'shell-dirtrack-mode 'shell-dirtrackp)
 (define-minor-mode shell-dirtrack-mode
-  "Turn directory tracking on and off in a shell buffer.
-The `dirtrack' package provides an alternative implementation of this
-feature - see the function `dirtrack-mode'."
+  "Toggle directory tracking in this shell buffer (Shell Dirtrack mode).
+With a prefix argument ARG, enable Shell Dirtrack mode if ARG is
+positive, and disable it otherwise.  If called from Lisp, enable
+the mode if ARG is omitted or nil.
+
+The `dirtrack' package provides an alternative implementation of
+this feature; see the function `dirtrack-mode'."
   nil nil nil
   (setq list-buffers-directory (if shell-dirtrack-mode default-directory))
   (if shell-dirtrack-mode

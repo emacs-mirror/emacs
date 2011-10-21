@@ -901,7 +901,7 @@ ones, in case fg and bg are nil."
 	       (url-is-cached (shr-encode-url url)))
 	  (funcall shr-put-image-function (shr-get-image-data url) alt))
 	 (t
-	  (insert alt)
+	  (insert alt " ")
 	  (when (and shr-ignore-cache
 		     (url-is-cached (shr-encode-url url)))
 	    (let ((file (url-cache-create-filename (shr-encode-url url))))
@@ -912,14 +912,15 @@ ones, in case fg and bg are nil."
 	       'url-queue-retrieve
 	     'url-retrieve)
 	   (shr-encode-url url) 'shr-image-fetched
-	   (list (current-buffer) start (point-marker))
+	   (list (current-buffer) start (set-marker (make-marker) (1- (point))))
 	   t)))
-	(put-text-property start (point) 'keymap shr-map)
-	(put-text-property start (point) 'shr-alt alt)
-	(put-text-property start (point) 'image-url url)
-	(put-text-property start (point) 'image-displayer
-			   (shr-image-displayer shr-content-function))
-	(put-text-property start (point) 'help-echo alt)
+	(when (zerop shr-table-depth) ;; We are not in a table.
+	  (put-text-property start (point) 'keymap shr-map)
+	  (put-text-property start (point) 'shr-alt alt)
+	  (put-text-property start (point) 'image-url url)
+	  (put-text-property start (point) 'image-displayer
+			     (shr-image-displayer shr-content-function))
+	  (put-text-property start (point) 'help-echo alt))
 	(setq shr-state 'image)))))
 
 (defun shr-tag-pre (cont)

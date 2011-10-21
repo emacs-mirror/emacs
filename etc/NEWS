@@ -51,6 +51,8 @@ This is not a new feature; only the configure flag is new.
 ---
 ** There is a new configure option --with-wide-int.
 With it, Emacs integers typically have 62 bits, even on 32-bit machines.
+On 32-bit hosts, this raises the limit on buffer sizes from about 512 MiB
+to about 2 GiB.
 
 ---
 ** New translation of the Emacs Tutorial in Hebrew is available.
@@ -96,26 +98,21 @@ and also when HOME is set to C:\ by default.
 
 *** shell-mode uses pcomplete rules, with the standard completion UI.
 
-*** Many packages have been changed to use completion-at-point rather than
-their own completion code.
+*** Many packages have been changed to use `completion-at-point'
+rather than their own completion code.
 
+*** `completion-at-point' now handles tags and semantic completion.
+---
 *** Completion in a non-minibuffer now tries to detect the end of completion
 and pops down the *Completions* buffer accordingly.
-
++++
 *** Completion can cycle, depending on completion-cycle-threshold.
-
++++
 *** New completion style `substring'.
-
++++
 *** Completion style can be set per-category `completion-category-overrides'.
-
++++
 *** Completion of buffers now uses substring completion by default.
-
-*** `completing-read' can be customized using the new variable
-`completing-read-function'.
-
-*** minibuffer-local-filename-must-match-map is not used any more.
-Instead, the bindings in minibuffer-local-filename-completion-map are combined
-with minibuffer-local-must-match-map.
 
 ** Mail changes
 
@@ -191,8 +188,8 @@ Text that includes characters from right-to-left (RTL) scripts, such
 as Arabic, Farsi, or Hebrew, is displayed in the correct visual order
 as expected by users of those scripts.  This display reordering is a
 "Full bidirectionality" class implementation of the Unicode
-Bidirectional Algorithm.  Buffers RTL text should look exactly the
-same as before.
+Bidirectional Algorithm.  Buffers with no RTL text should look exactly
+the same as before.
 
 For more information, see the node "Bidirectional Editing" in the
 Emacs Manual.
@@ -228,6 +225,10 @@ cannot be encoded by the `terminal-coding-system'.
 ---
 *** New input methods for Farsi: farsi and farsi-translit.
 
++++
+*** `nobreak-char-display' now also highlights Unicode hyphen chars
+(U+2010 and U+2011).
+
 ** Improved GTK integration
 
 *** GTK scroll-bars are now placed on the right by default.
@@ -241,10 +242,10 @@ is taken from the desktop settings.
 The frame-parameter tool-bar-position controls this.  It takes the values
 top, left, right or bottom.  The Options => Show/Hide menu has entries
 for this.
-
-*** The colors for selected text (the region face) are taken from the GTK
-theme when Emacs is built with GTK.
-
++++
+*** The colors for selected text (the `region' face) are taken from
+the GTK theme when Emacs is built with GTK.
++++
 *** Emacs uses GTK tooltips by default if built with GTK.  You can turn that
 off by customizing x-gtk-use-system-tooltips.
 
@@ -256,6 +257,7 @@ highlight strings that indicate failure, caution or successful operation.
 with Xft.  To change font, use the X resource font, for example:
 Emacs.pane.menubar.font:  Courier-12
 
++++
 ** On graphical displays, the mode-line no longer ends in dashes.
 Also, the first dash (which does not indicate anything) is just
 displayed as a space.
@@ -288,15 +290,19 @@ If you have code that adds something to kill-emacs-hook, you should
 consider if it is still appropriate to add it in the noninteractive case.
 
 ** Scrolling changes
-
++++
 *** New scrolling commands `scroll-up-command' and `scroll-down-command'
 (bound to C-v/[next] and M-v/[prior]) do not signal errors at top/bottom
 of buffer at first key-press (instead move to top/bottom of buffer)
-when a new variable `scroll-error-top-bottom' is non-nil.
+when `scroll-error-top-bottom' is non-nil.
+
++++
+*** New variable `scroll-error-top-bottom' (see above).
 
 *** New scrolling commands `scroll-up-line' and `scroll-down-line'
 scroll a line instead of full screen.
 
++++
 *** New property `scroll-command' should be set on a command's symbol to
 define it as a scroll command affected by `scroll-preserve-screen-position'.
 
@@ -393,7 +399,7 @@ instead of `switch-to-buffer' when selecting an item in the Buffers menu.
 modulo restrictions like window minimum sizes and fixed-size windows.
 
 *** The behavior of `display-buffer' is now customizable in detail.
-
++++
 **** New option `display-buffer-base-action' specifies a list of
 user-determined display "actions" (functions and optional arguments
 for choosing the displaying window).
@@ -401,6 +407,7 @@ for choosing the displaying window).
 This takes precedence over the default display action, which is
 specified by `display-buffer-fallback-action'.
 
++++
 **** New option `display-buffer-alist' maps buffer name regexps to
 display actions, taking precedence over `display-buffer-base-action'.
 
@@ -441,33 +448,35 @@ pops up *Messages*" feature, which can now easily be changed.
 +++
 *** C-y in Isearch is now bound to isearch-yank-kill, instead of
 isearch-yank-line.
----
++++
 *** M-y in Isearch is now bound to isearch-yank-pop, instead of
 isearch-yank-kill.
 +++
 *** M-s C-e in Isearch is now bound to isearch-yank-line.
 
 +++
-** New command `count-words-region'.  This does what you expect.
+** New commands `count-words-region' and `count-words'.
 
-** completion-at-point now handles tags and semantic completion.
+*** `count-lines-region' is now an alias for `count-words-region',
+bound to M-=, which shows the number of lines, words, and characters.
 
 ** The default value of `backup-by-copying-when-mismatch' is now t.
 
++++
 ** The command `just-one-space' (M-SPC), if given a negative argument,
 also deletes newlines around point.
 
 ** Deletion changes
-
++++
 *** New option `delete-active-region'.
 If non-nil, [delete] and DEL delete the region if it is active and no
 prefix argument is given.  If set to `kill', these commands kill
 instead.
-
++++
 *** New command `delete-forward-char', bound to [delete].
 This is meant for interactive use, and obeys `delete-active-region'.
 The command `delete-char' does not obey `delete-active-region'.
-
+---
 *** `delete-backward-char' is now a Lisp function.
 Apart from obeying `delete-active-region', its behavior is unchanged.
 However, the byte compiler now warns if it is called from Lisp; you
@@ -536,13 +545,10 @@ between applications.
 *** X clipboard managers are now supported.
 To inhibit this, change `x-select-enable-clipboard-manager' to nil.
 
++++
 ** New command `rectangle-number-lines', bound to `C-x r N', numbers
 the lines in the current rectangle.  With a prefix argument, this
 prompts for a number to count from and for a format string.
-
-** The command shell prompts for the shell path name, when the default
-directory is a remote file name and neither environment variable
-$ESHELL nor variable `explicit-shell-file-name' is set.
 
 +++
 ** The default value of redisplay-dont-change is now t
@@ -721,8 +727,17 @@ more variants, including Mercury, and a lot more.
 *** The command `rmail-epa-decrypt' decrypts OpenPGP data
 in the Rmail incoming message.
 
-** shell-mode can track your cwd by reading it from your prompt.
-Just set shell-dir-cookie-re to an appropriate regexp.
+** Shell mode
+
+*** Shell mode uses pcomplete rules, with the standard completion UI.
+
+*** The `shell' command prompts for the shell path name if the default
+directory is a remote file name and neither the environment variable
+$ESHELL nor the variable `explicit-shell-file-name' is set.
+
+*** New variable `shell-dir-cookie-re'.
+If set to an appropriate regexp, Shell mode can track your cwd by
+reading it from your prompt.
 
 ---
 ** SQL Mode enhancements.
@@ -835,6 +850,10 @@ binding `log-view-expanded-log-entry-function' to a suitable function.
 *** New command `vc-ediff' allows visual comparison of two revisions
 of a file similar to `vc-diff', but using ediff backend.
 
++++
+*** The option vc-initial-comment was removed in Emacs 23.2, but
+this was not advertised at the time.
+
 ** FIXME: xdg-open for browse-url and reportbug, 2010/08.
 
 ** Obsolete modes
@@ -864,6 +883,7 @@ They are superseded by shift-select-mode enabled by default in 23.1.
 
 * New Modes and Packages in Emacs 24.1
 
++++
 ** Occur Edit mode applies edits made in *Occur* buffers to the
 original buffers.  It is bound to "e" in Occur mode.
 
@@ -941,6 +961,7 @@ variable `menu-bar-mode'/`tool-bar-mode' to determine whether to create
 a menu-bar or tool-bar, respectively.  If the alist entries are added,
 they override the value of `menu-bar-mode'/`tool-bar-mode'.
 
++++
 ** Regions created by mouse dragging are now normal active regions,
 similar to the ones created by shift-selection.  In previous Emacs
 versions, these regions were delineated by `mouse-drag-overlay', which
@@ -1047,17 +1068,14 @@ split.  Any other value of SIDE will cause `split-window' to split the
 window into two side-by-side windows as before.
 
 +++
-*** `split-window-above-each-other' and `split-window-side-by-side'.
-The commands `split-window-vertically' and `split-window-horizontally'
-have been renamed to `split-window-above-each-other' and
-`split-window-side-by-side' respectively.  The old names are provided as
-aliases.
-
-+++
 *** Window resizing functions.
-A new standard function for resizing windows called `resize-window' has
+A new standard function for resizing windows called `window-resize' has
 been introduced.  This and all other functions for resizing windows no
 longer delete any windows when they become too small.
+
++++
+*** Deleting the selected window now selects the most recently selected
+live window on that frame instead.
 
 +++
 *** `adjust-window-trailing-edge' adjustments.
@@ -1107,6 +1125,11 @@ See the docstring of `display-buffer' for details.
 The behavior of `quit-window' has been changed in order to restore the
 state before the last buffer display operation in that window.
 
++++
+*** The new option `frame-auto-hide-function' lets you choose between
+iconfying or deleting a frame when burying a buffer shown in a dedicated
+frame or quitting a window showing a buffer in a frame of its own.
+
 ** Completion
 
 *** New variable completion-extra-properties used to specify extra properties
@@ -1127,6 +1150,14 @@ can specify various details of the data returned by `all-completions':
 - `display-sort-function' to specify how to sort entries in *Completions*.
 - `cycle-sort-function' to specify how to sort entries when cycling.
 
+*** minibuffer-local-filename-must-match-map is not used any more.
+Instead, the bindings in minibuffer-local-filename-completion-map are
+combined with minibuffer-local-must-match-map.
+
+*** New variable `completing-read-function' allows overriding the
+behavior of `completing-read'.
+
++++
 ** `glyphless-char-display' can now distinguish between graphical and
 text terminal display, via a char-table entry that is a cons cell.
 
@@ -1292,6 +1323,8 @@ Use `filter-buffer-substring-functions' instead.
 *** `byte-compile-disable-print-circle' is obsolete.
 
 *** `deferred-action-list' and `deferred-action-function' are obsolete.
++++
+*** `font-lock-maximum-size' is obsolete.
 
 
 * Changes in Emacs 24.1 on non-free operating systems

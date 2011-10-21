@@ -1450,8 +1450,8 @@ Each element in the list should be a list of strings or pairs
   (let ((map (make-sparse-keymap)))
     (suppress-keymap map)
     (set-keymap-parent map button-buffer-map)
-    (define-key map "\C-?" 'scroll-down)
-    (define-key map " " 'scroll-up)
+    (define-key map "\C-?" 'scroll-down-command)
+    (define-key map " " 'scroll-up-command)
     (define-key map "q" 'exit-splash-screen)
     map)
   "Keymap for splash screen buffer.")
@@ -2307,19 +2307,25 @@ A fancy display is used on graphic displays, normal otherwise."
 	    ;; abort later.
 	    (unless (frame-live-p (selected-frame)) (kill-emacs nil))))))
 
-    (when initial-buffer-choice
-      (cond ((eq initial-buffer-choice t)
-	     (switch-to-buffer (get-buffer-create "*scratch*")))
-	    ((stringp initial-buffer-choice)
-	     (find-file initial-buffer-choice))))
+    (when (eq initial-buffer-choice t)
+      ;; When initial-buffer-choice equals t make sure that *scratch*
+      ;; exists.
+      (get-buffer-create "*scratch*"))
 
     ;; If *scratch* exists and is empty, insert initial-scratch-message.
+    ;; Do this before switching to *scratch* below to handle bug#9605.
     (and initial-scratch-message
 	 (get-buffer "*scratch*")
 	 (with-current-buffer "*scratch*"
 	   (when (zerop (buffer-size))
 	     (insert initial-scratch-message)
 	     (set-buffer-modified-p nil))))
+
+    (when initial-buffer-choice
+      (cond ((eq initial-buffer-choice t)
+	     (switch-to-buffer (get-buffer-create "*scratch*")))
+	    ((stringp initial-buffer-choice)
+	     (find-file initial-buffer-choice))))
 
     (if (or inhibit-startup-screen
 	    initial-buffer-choice

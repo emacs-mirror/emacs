@@ -250,11 +250,11 @@ This should only be bound to mouse buttons 4 and 5."
 
 (defvar mwheel-installed-bindings nil)
 
-;; preloaded ;;;###autoload
 (define-minor-mode mouse-wheel-mode
-  "Toggle mouse wheel support.
-With prefix argument ARG, turn on if positive, otherwise off.
-Return non-nil if the new state is enabled."
+  "Toggle mouse wheel support (Mouse Wheel mode).
+With a prefix argument ARG, enable Mouse Wheel mode if ARG is
+positive, and disable it otherwise.  If called from Lisp, enable
+the mode if ARG is omitted or nil."
   :init-value t
   ;; We'd like to use custom-initialize-set here so the setup is done
   ;; before dumping, but at the point where the defcustom is evaluated,

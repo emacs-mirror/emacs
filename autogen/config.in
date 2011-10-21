@@ -420,9 +420,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 /* Define to 1 if you have the hesiod library (-lhesiod). */
 #undef HAVE_LIBHESIOD
 
-/* Define to 1 if you have the `intl' library (-lintl). */
-#undef HAVE_LIBINTL
-
 /* Define to 1 if you have the `k5crypto' library (-lk5crypto). */
 #undef HAVE_LIBK5CRYPTO
 
@@ -1273,6 +1270,9 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 /* Define to a type if <wchar.h> does not define. */
 #undef mbstate_t
 
+/* Define to `int' if <sys/types.h> does not define. */
+#undef mode_t
+
 /* Define to the name of the strftime replacement function. */
 #undef my_strftime
 
@@ -1469,9 +1469,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #  ifndef GC_SETJMP_WORKS
   /* GC_SETJMP_WORKS is nearly always appropriate for GCC.  */
 #    define GC_SETJMP_WORKS 1
-#  endif
-#  ifndef GC_LISP_OBJECT_ALIGNMENT
-#    define GC_LISP_OBJECT_ALIGNMENT (__alignof__ (Lisp_Object))
 #  endif
 #endif
 

@@ -270,8 +270,7 @@ VALUE is assumed to be a list of widgets."
 
 ;;;###autoload
 (define-minor-mode widget-minor-mode
-  "Togle minor mode for traversing widgets.
-With arg, turn widget mode on if and only if arg is positive."
+  "Minor mode for traversing widgets."
   :lighter " Widget")
 
 ;;; The End:

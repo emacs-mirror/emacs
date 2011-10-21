@@ -30,27 +30,6 @@ Installation
 Move nextstep/Emacs.app to any desired install location.
 
 
-Xcode
------
-
-On OS X Emacs can be built under Xcode.  You need to run "configure"
-as described above first.  There are two targets: 'temacs' and 'Emacs.app'.
-
-'temacs' will build the undumped emacs executable, and copy it and the
-*.o files to the src directory.  These steps are necessary so the next target
-works.
-
-'Emacs.app' uses "Run Script" build phases to assemble the Emacs.app bundle.
-It uses the 'ns-app' target in src/Makefile together with the 'install' target
-in the top level Makefile.
-
-The source files under the temacs target must list "pre-crt0" first
-and "lastfile" last, so that dumping works.
-
-(Note, under GNUstep, you CAN'T use ProjectCenter, since PC cannot work
-with files outside of its project directory.)
-
-
 Distributions and Universal Binaries
 ------------------------------------
 

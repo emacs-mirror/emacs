@@ -552,7 +552,8 @@ AFTER should be a single event type--a symbol or a character, not a sequence.
 
 Bindings are always added before any inherited map.
 
-The order of bindings in a keymap matters when it is used as a menu."
+The order of bindings in a keymap only matters when it is used as
+a menu, so this function is not useful for non-menu keymaps."
   (unless after (setq after t))
   (or (keymapp keymap)
       (signal 'wrong-type-argument (list 'keymapp keymap)))
@@ -2170,7 +2171,7 @@ keyboard-quit events while waiting for a valid input."
 	    (setq prompt (propertize prompt 'face 'minibuffer-prompt)))
 	  (setq char (let ((inhibit-quit inhibit-keyboard-quit))
 		       (read-key prompt)))
-	  (and show-help (buffer-live-p helpbuf)
+	  (and show-help (buffer-live-p (get-buffer helpbuf))
 	       (kill-buffer helpbuf))
 	  (cond
 	   ((not (numberp char)))
@@ -3002,7 +3003,7 @@ Instead it binds `standard-output' to that buffer, so that output
 generated with `prin1' and similar functions in BODY goes into
 the buffer.
 
-At the end of BODY, this marks buffer BUFNAME unmodifed and displays
+At the end of BODY, this marks buffer BUFNAME unmodified and displays
 it in a window, but does not select it.  The normal way to do this is
 by calling `display-buffer', then running `temp-buffer-show-hook'.
 However, if `temp-buffer-show-function' is non-nil, it calls that

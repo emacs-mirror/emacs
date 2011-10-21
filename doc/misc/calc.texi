@@ -27748,6 +27748,19 @@ the above example, entering the units expression @samp{100 km/hr} and
 typing @kbd{u c @key{RET}} (without specifying new units) produces
 @samp{27.7777777778 m/s}.
 
+@kindex u t
+@pindex calc-convert-temperature
+@cindex Temperature conversion
+The @kbd{u c} command treats temperature units (like @samp{degC} and
+@samp{K}) as relative temperatures.  For example, @kbd{u c} converts
+@samp{10 degC} to @samp{18 degF}: A change of 10 degrees Celsius
+corresponds to a change of 18 degrees Fahrenheit.  To convert absolute
+temperatures, you can use the @kbd{u t}
+(@code{calc-convert-temperature}) command.   The value on the stack
+must be a simple units expression with units of temperature only.
+This command would convert @samp{10 degC} to @samp{50 degF}, the
+equivalent temperature on the Fahrenheit scale.
+
 While many of Calc's conversion factors are exact, some are necessarily
 approximate.  If Calc is in fraction mode (@pxref{Fraction Mode}), then
 unit conversions will try to give exact, rational conversions, but it
@@ -27818,19 +27831,8 @@ The @kbd{u b} (@code{calc-base-units}) command is shorthand for
 stack into @code{base} units.  If @kbd{u s} does not simplify a
 units expression as far as you would like, try @kbd{u b}.
 
-The @kbd{u c} and @kbd{u b} commands treat temperature units (like
-@samp{degC} and @samp{K}) as relative temperatures.  For example,
-@kbd{u c} converts @samp{10 degC} to @samp{18 degF}: A change of 10
-degrees Celsius corresponds to a change of 18 degrees Fahrenheit.
-
-@kindex u t
-@pindex calc-convert-temperature
-@cindex Temperature conversion
-The @kbd{u t} (@code{calc-convert-temperature}) command converts
-absolute temperatures.  The value on the stack must be a simple units
-expression with units of temperature only.  This command would convert
-@samp{10 degC} to @samp{50 degF}, the equivalent temperature on the
-Fahrenheit scale.
+Like the @kbd{u c} command, the @kbd{u b} command treats temperature
+units as relative temperatures.
 
 @kindex u r
 @pindex calc-remove-units

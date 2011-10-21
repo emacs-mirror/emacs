@@ -1860,8 +1860,9 @@ The arguments STRING and PREDICATE are as in `try-completion',
 	  while (CONSP (bufs) && SREF (XCAR (bufs), 0) == ' ')
 	    bufs = XCDR (bufs);
 	  if (NILP (bufs))
-	    /* All bufs in `res' are internal, so don't trip them out.  */
-	    return res;
+	    return (EQ (Flength (res), Flength (Vbuffer_alist))
+		    /* If all bufs are internal don't strip them out.  */
+		    ? res : bufs);
 	  res = bufs;
 	  while (CONSP (XCDR (bufs)))
 	    if (SREF (XCAR (XCDR (bufs)), 0) == ' ')

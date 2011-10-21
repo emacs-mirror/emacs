@@ -386,7 +386,7 @@ uses the current buffer."
       (setq setup (not setup)))
     (when setup
       (erase-buffer)
-      (insert "Summary: ")
+      (insert "Summary: \nAuthor: ")
       (save-excursion (insert "\n\n")))
     (if mode
 	(funcall mode)
@@ -536,7 +536,7 @@ If you want to abort the commit, simply delete the buffer."
   (or (= (point-min) (point-max))
       (save-excursion
         (goto-char (point-min))
-        (while (and (looking-at "^\\(Summary: \\)?$")
+        (while (and (looking-at "^\\([a-zA-Z]+: \\)?$")
                     (zerop (forward-line 1))))
         (eobp))))
 

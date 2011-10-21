@@ -566,8 +566,8 @@ struct buffer
      Redisplay of this buffer is inhibited until it changes again.  */
   int display_error_modiff;
   /* The time at which we detected a failure to auto-save,
-     Or -1 if we didn't have a failure.  */
-  int auto_save_failure_time;
+     Or 0 if we didn't have a failure.  */
+  time_t auto_save_failure_time;
   /* Position in buffer at which display started
      the last time this buffer was displayed.  */
   EMACS_INT last_window_start;

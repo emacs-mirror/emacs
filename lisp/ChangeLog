@@ -1,3 +1,598 @@
+2011-10-21  Chong Yidong  <cyd@gnu.org>
+
+	* progmodes/idlwave.el (idlwave-mode):
+	* progmodes/vera-mode.el (vera-mode): Use
+	mode-require-final-newline.
+
+2011-10-20  Glenn Morris  <rgm@gnu.org>
+
+	* vc/vc.el (vc-next-action): Handle removed directories. (Bug#9781)
+
+2011-10-20  Christoph Scholtes  <cschol2112@googlemail.com>
+
+	* emulation/cua-base.el (cua-set-mark): Fix case of string.
+
+2011-10-20  Chong Yidong  <cyd@gnu.org>
+
+	* emulation/cua-base.el (cua-mode):
+	* mail/footnote.el (footnote-mode):
+	* mail/mailabbrev.el (mail-abbrevs-mode):
+	* net/xesam.el (xesam-minor-mode):
+	* progmodes/bug-reference.el (bug-reference-mode):
+	* progmodes/cap-words.el (capitalized-words-mode):
+	* progmodes/compile.el (compilation-minor-mode)
+	(compilation-shell-minor-mode):
+	* progmodes/gud.el (gud-tooltip-mode):
+	* progmodes/hideif.el (hide-ifdef-mode):
+	* progmodes/idlw-shell.el (idlwave-shell-electric-debug-mode):
+	* progmodes/subword.el (subword-mode):
+	* progmodes/vhdl-mode.el (vhdl-electric-mode, vhdl-stutter-mode):
+	* progmodes/which-func.el (which-function-mode):
+	* term/tvi970.el (tvi970-set-keypad-mode):
+	* term/vt100.el (vt100-wide-mode):
+	* textmodes/flyspell.el (flyspell-mode):
+	* textmodes/ispell.el (ispell-minor-mode):
+	* textmodes/nroff-mode.el (nroff-electric-mode):
+	* textmodes/paragraphs.el (use-hard-newlines):
+	* textmodes/refill.el (refill-mode):
+	* textmodes/reftex.el (reftex-mode):
+	* textmodes/rst.el (rst-minor-mode):
+	* textmodes/sgml-mode.el (html-autoview-mode)
+	(sgml-electric-tag-pair-mode):
+	* textmodes/tex-mode.el (latex-electric-env-pair-mode):
+	* vc/diff-mode.el (diff-auto-refine-mode, diff-minor-mode):
+	* emulation/crisp.el (crisp-mode):
+	* emacs-lisp/eldoc.el (eldoc-mode):
+	* emacs-lisp/checkdoc.el (checkdoc-minor-mode): Doc fixes for new
+	minor mode behavior.
+
+2011-10-19  Juri Linkov  <juri@jurta.org>
+
+	* descr-text.el (describe-char): Add #x2010 and #x2011 to
+	the list of hard-coded chars with escape-glyph face.
+
+2011-10-19  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* vc/log-edit.el (log-edit-empty-buffer-p): Ignore empty headers.
+
+2011-10-19  Michael Albinus  <michael.albinus@gmx.de>
+
+	* net/tramp.el (tramp-connectable-p): Make a stronger check on a
+	running process.
+
+2011-10-19  Glenn Morris  <rgm@gnu.org>
+
+	* vc/vc-bzr.el (vc-bzr-after-dir-status):
+	Ignore ignored files.  (Bug#9726)
+
+2011-10-19  Chong Yidong  <cyd@gnu.org>
+
+	Doc fix for minor modes, stating that an omitted argument enables
+	the mode unconditionally when called from Lisp.
+
+	* abbrev.el (abbrev-mode):
+	* allout.el (allout-mode):
+	* autoinsert.el (auto-insert-mode):
+	* autoarg.el (autoarg-mode, autoarg-kp-mode):
+	* autorevert.el (auto-revert-mode, auto-revert-tail-mode)
+	(global-auto-revert-mode):
+	* battery.el (display-battery-mode):
+	* composite.el (global-auto-composition-mode)
+	(auto-composition-mode):
+	* delsel.el (delete-selection-mode):
+	* desktop.el (desktop-save-mode):
+	* dired-x.el (dired-omit-mode):
+	* dirtrack.el (dirtrack-mode):
+	* doc-view.el (doc-view-minor-mode):
+	* double.el (double-mode):
+	* electric.el (electric-indent-mode, electric-pair-mode):
+	* emacs-lock.el (emacs-lock-mode):
+	* epa-hook.el (auto-encryption-mode):
+	* follow.el (follow-mode):
+	* font-core.el (font-lock-mode):
+	* frame.el (auto-raise-mode, auto-lower-mode, blink-cursor-mode):
+	* help.el (temp-buffer-resize-mode):
+	* hilit-chg.el (highlight-changes-mode)
+	(highlight-changes-visible-mode):
+	* hi-lock.el (hi-lock-mode):
+	* hl-line.el (hl-line-mode, global-hl-line-mode):
+	* icomplete.el (icomplete-mode):
+	* ido.el (ido-everywhere):
+	* image-file.el (auto-image-file-mode):
+	* image-mode.el (image-minor-mode):
+	* iswitchb.el (iswitchb-mode):
+	* jka-cmpr-hook.el (auto-compression-mode):
+	* linum.el (linum-mode):
+	* longlines.el (longlines-mode):
+	* master.el (master-mode):
+	* mb-depth.el (minibuffer-depth-indicate-mode):
+	* menu-bar.el (menu-bar-mode):
+	* minibuf-eldef.el (minibuffer-electric-default-mode):
+	* mouse-sel.el (mouse-sel-mode):
+	* msb.el (msb-mode):
+	* mwheel.el (mouse-wheel-mode):
+	* outline.el (outline-minor-mode):
+	* paren.el (show-paren-mode):
+	* recentf.el (recentf-mode):
+	* reveal.el (reveal-mode, global-reveal-mode):
+	* rfn-eshadow.el (file-name-shadow-mode):
+	* ruler-mode.el (ruler-mode):
+	* savehist.el (savehist-mode):
+	* scroll-all.el (scroll-all-mode):
+	* scroll-bar.el (scroll-bar-mode):
+	* server.el (server-mode):
+	* shell.el (shell-dirtrack-mode):
+	* simple.el (auto-fill-mode, transient-mark-mode)
+	(visual-line-mode, overwrite-mode, binary-overwrite-mode)
+	(line-number-mode, column-number-mode, size-indication-mode)
+	(auto-save-mode, normal-erase-is-backspace-mode, visible-mode):
+	* strokes.el (strokes-mode):
+	* time.el (display-time-mode):
+	* t-mouse.el (gpm-mouse-mode):
+	* tool-bar.el (tool-bar-mode):
+	* tooltip.el (tooltip-mode):
+	* type-break.el (type-break-mode-line-message-mode)
+	(type-break-query-mode):
+	* view.el (view-mode):
+	* whitespace.el (whitespace-mode, whitespace-newline-mode)
+	(global-whitespace-mode, global-whitespace-newline-mode):
+	* xt-mouse.el (xterm-mouse-mode): Doc fix.
+
+	* emacs-lisp/easy-mmode.el (define-globalized-minor-mode): Fix
+	autogenerated docstring.
+
+2011-10-19  Juri Linkov  <juri@jurta.org>
+
+	* net/browse-url.el (browse-url-can-use-xdg-open): Support LXDE
+	by checking environment variables "DESKTOP_SESSION" and
+	"XDG_CURRENT_DESKTOP".  (Bug#9779)
+
+2011-10-19  Juri Linkov  <juri@jurta.org>
+
+	* net/browse-url.el (browse-url-browser-function): Add "Chromium".
+	(browse-url-chromium-program, browse-url-chromium-arguments):
+	New defcustoms.
+	(browse-url-default-browser): Check for `browse-url-chromium' and
+	call `browse-url-chromium-program'.
+	(browse-url-chromium): New command.  (Bug#9779)
+
+2011-10-18  Juanma Barranquero  <lekktu@gmail.com>
+
+	* facemenu.el (list-colors-duplicates): On Windows, detect more
+	duplicates by assuming that only colors matching "^System" are
+	special "system colors".  (Bug#9722)
+
+2011-10-18  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* vc/log-edit.el (log-edit): Add "Author:" header to encourage people
+	to distinguish the author from the committer.
+
+2011-10-18  Michael Albinus  <michael.albinus@gmx.de>
+
+	* net/tramp.el (tramp-file-name-handler): Load Tramp packages silently.
+
+2011-10-18  Jirka Kosek  <jirka@kosek.cz>  (tiny change)
+
+	* international/mule.el (sgml-html-meta-auto-coding-function):
+	Add support for detecting encoding in HTML5 specified only as
+	<meta charset="UTF-8">.  Implementation just makes http-equiv and
+	content-type parts from HTML4 encoding string optional.  (Bug#9716)
+
+2011-10-18  Glenn Morris  <rgm@gnu.org>
+
+	* vc/vc.el (vc-initial-comment): Mark as obsolete.  (Bug#9745)
+
+2011-10-18  Chong Yidong  <cyd@gnu.org>
+
+	* faces.el (cursor): Doc fix.
+
+2011-10-17  Chong Yidong  <cyd@gnu.org>
+
+	* font-lock.el (font-lock-maximum-size): Mark as obsolete.
+
+2011-10-17  Ryan Barrett  <emacs@ryanb.org>  (tiny change)
+
+	* dirtrack.el (dirtrack): Support shell buffers with path
+	prefixes, e.g. tramp-based remote shells.  (Bug#9647)
+
+2011-10-17  Teodor Zlatanov  <tzz@lifelogs.com>
+
+	* json.el: Bump version to 1.3 and note change in History.
+	(json-alist-p, json-plist-p): Rewrite to avoid recursion.
+
+2011-10-17  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* comint.el (comint-insert-input, comint-send-input)
+	(comint-get-old-input-default, comint-backward-matching-input)
+	(comint-next-prompt): Use nil instead of `input' for field property of
+	past user input (bug#114).
+
+	* minibuffer.el (completion--replace): Inherit surrounding properties
+	(bug#114).
+	(minibuffer-complete-and-exit): Use it.
+
+	* comint.el (comint--table-subvert): Quote the all-completions output
+	(bug#9160).
+
+2011-10-17  Martin Rudalics  <rudalics@gmx.at>
+
+	* ido.el (ido-default-buffer-method): Remove redundant :type entry.
+
+	* menu-bar.el (menu-bar-file-menu): Add entry for making new
+	window on right of selected.  (Bug#9350) Reword other window
+	entries and separate them from frame entries.
+
+2011-10-15  Glenn Morris  <rgm@gnu.org>
+
+	* emacs-lisp/ert.el (ert--explain-equal-rec, ert-select-tests):
+	Doc fixes.
+
+2011-10-15  Chong Yidong  <cyd@stupidchicken.com>
+
+	* net/network-stream.el (network-stream-open-starttls):
+	Improve detection of failure due to lack of TLS support.
+
+	* mail/sendmail.el (sendmail-query-once): Tweak prompt message,
+	putting the input text in front and in bold.
+
+2011-10-14  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* pcmpl-unix.el (pcomplete/ssh): SSH does allow ganging.
+
+	* mpc.el (mpc-songs-jump-to): Don't burp if the user clicks in an
+	empty buffer.
+
+	* mouse.el (mouse-drag-mode-line-1): Modify the end-event we pushed on
+	unread-command-events rather than pushing yet-another event.
+
+2011-10-14  Eli Zaretskii  <eliz@gnu.org>
+
+	* mail/sendmail.el (sendmail-query-once): Improve the wording of
+	the explanation of the possible choices.  Make the options passed
+	to completing-read shorter.
+
+2011-10-13  Agustín Martín Domingo  <agustin.martin@hispalinux.es>
+
+	* textmodes/flyspell.el (flyspell-large-region): Make sure
+	extended character mode is used if defined (Bug#1339).
+
+2011-10-13  Eli Zaretskii  <eliz@gnu.org>
+
+	* simple.el (what-cursor-position): Fix the display of the
+	character info for LRE, LRO, RLE, and RLO characters by appending
+	an invisible PDF.
+
+2011-10-13  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* emacs-lisp/timer.el (with-timeout): Make sure we cancel the timer
+	even in case of error; add debug spec; simplify data flow.
+	(with-timeout-handler): Remove.
+
+2011-10-12  Michael Albinus  <michael.albinus@gmx.de>
+
+	Fix Bug#6019, Bug#9315.
+
+	* files.el (set-auto-mode): Call `file-name-sans-versions' for the
+	complete `buffer-file-name', the local file name part could look
+	remotely (for example on VMS).
+
+	* net/ange-ftp.el (ange-ftp-run-real-handler): Make it an alias of
+	`tramp-run-real-handler'.
+	(ange-ftp-fix-name-for-vms): Handle the case, where `name' is
+	already quoted by '"'.
+
+	* net/tramp.el (tramp-rfn-eshadow-update-overlay): Ignore errors.
+	Let `file-name-handler-alist' be nil, the local file name part
+	could look remotely (for example on VMS).
+
+2011-10-12  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* textmodes/flyspell.el (flyspell-word): Move with-local-quit
+	from here...
+	(flyspell-post-command-hook): ...to here.
+
+2011-10-11  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* mail/sendmail.el (send-mail-function): Don't use sendmail-query-once
+	if not needed.
+	(sendmail-query-once): Remove OS dependencies.  Make it a 3-way choice
+	using completion.  Protect against "slow" callers.
+	Remove the "message hack".
+
+2011-10-11  Juri Linkov  <juri@jurta.org>
+
+	* isearch.el (isearch-lazy-highlight-word): New variable.
+	(isearch-lazy-highlight-new-loop, isearch-lazy-highlight-search):
+	Use it.  (Bug#9727)
+
+2011-10-11  Glenn Morris  <rgm@gnu.org>
+
+	* progmodes/f90.el (f90-next-statement): Ignore preprocessor lines,
+	like f90-previous-statement does.
+
+2011-10-11  Thierry Volpiatto  <thierry.volpiatto@gmail.com>
+
+	* eshell/eshell.el (eshell-command): History should be saved
+	only in interactive use, to avoid error.
+
+2011-10-11  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* minibuffer.el (completion-file-name-table): Fix last change,
+	i.e. ignore normal errors but not the other ones.
+
+2011-10-10  Martin Rudalics  <rudalics@gmx.at>
+
+	* window.el (special-display-buffer-names)
+	(special-display-regexps): Remove some remnants of earlier
+	changes from doc-strings.
+	(quit-windows-on): New function.
+
+	* vc/vc.el (vc-revert, vc-rollback):
+	* vc/vc-dispatcher.el (vc-finish-logentry): Call quit-windows-on
+	instead of deleting windows.  (Bug#4557) (Bug#5310) (Bug#5556)
+	(Bug#6183) (Bug#7074) (Bug#7447)
+
+2011-10-09  Martin Rudalics  <rudalics@gmx.at>
+
+	* window.el (frame-auto-hide-function): Add version tag.
+	(Bug#9699)
+
+2011-10-09  Michael Albinus  <michael.albinus@gmx.de>
+
+	* net/tramp.el (tramp-file-name-handler): Add 'debug to the error
+	condition.
+
+2011-10-09  Leo Liu  <sdl.web@gmail.com>
+
+	* mail/smtpmail.el (smtpmail-send-data): Add a missing space.
+	(Bug#9701)
+
+2011-10-08  Glenn Morris  <rgm@gnu.org>
+
+	* progmodes/f90.el (f90-calculate-indent): Give preprocessor lines
+	before the first code statement zero indent.  (Bug#9690)
+
+2011-10-08  Chong Yidong  <cyd@stupidchicken.com>
+
+	* simple.el (count-words-region): Always count in the region.
+	Report the number of lines and characters too.
+	(count-words): New command, which counts in the buffer if the
+	region is inactive, as count-words-region used to.
+	(count-words--message): New function.  Handle plurals.
+	(count-lines-region): Make it an alias for count-words-region.
+
+	* bindings.el (esc-map): Replace count-lines-region with
+	count-words-region.
+
+2011-10-08  Martin Rudalics  <rudalics@gmx.at>
+
+	* window.el (window--delete): Delete dedicated frame
+	unconditionally when argument KILL is non-nil.  (Bug#9699)
+	(switch-to-buffer): Fix doc-string typo.
+
+2011-10-08  Thierry Volpiatto  <thierry.volpiatto@gmail.com>
+
+	* lisp/eshell/eshell.el (eshell-command): Avoid using hooks.
+
+2011-10-07  Chong Yidong  <cyd@stupidchicken.com>
+
+	* bindings.el ([M-left],[M-right]): Bind to left-word and
+	right-word respectively.
+
+2011-10-07  Glenn Morris  <rgm@gnu.org>
+
+	* cus-start.el (debug-on-quit): Fix custom type.
+
+2011-10-06  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* subr.el (define-key-after): Clarify that the function is not
+	useful for non-menu keymaps.
+
+	* progmodes/gdb-mi.el (gdb): Fix typo in doc string.
+
+2011-10-06  Thierry Volpiatto  <thierry.volpiatto@gmail.com>
+
+	* eshell/eshell.el (eshell-command): Enable `eshell-mode' only
+	in current minibuffer (Fix bug with recursive minibuffers).
+
+2011-10-06  Chong Yidong  <cyd@stupidchicken.com>
+
+	* progmodes/gdb-mi.el (gdb): Doc fix.
+
+2011-10-05  Martin Rudalics  <rudalics@gmx.at>
+
+	* window.el (frame-auto-hide-function): New option replacing
+	frame-auto-delete.  Suggested by Stefan Monnier.
+	(window--delete): Call frame-auto-hide-function instead of
+	investigating frame-auto-delete.
+	(window-point-1, set-window-point-1): New functions.
+	(window-in-direction, record-window-buffer, window-state-get-1)
+	(display-buffer-record-window): Use window-point-1 instead of
+	window-point.
+	(set-window-buffer-start-and-point): Use set-window-point-1.
+
+2011-10-05  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* emacs-lisp/edebug.el: Heed checkdoc recommendations.
+
+2011-10-05  Glenn Morris  <rgm@gnu.org>
+
+	* progmodes/perl-mode.el (perl-electric-terminator): Doc fix.
+	(perl-calculate-indent): Suppress scan errors.  (Bug#2205)
+
+2011-10-05  Leo Liu  <sdl.web@gmail.com>
+
+	* subr.el (read-char-choice): Fix argument to buffer-live-p which
+	works with buffer object.
+
+2011-10-05  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* mpc.el (mpc-tool-bar-map): Add labels.
+
+2011-10-04  Glenn Morris  <rgm@gnu.org>
+
+	* calendar/holidays.el (calendar-check-holidays): Doc fix.
+
+2011-10-04  Martin Rudalics  <rudalics@gmx.at>
+
+	* window.el (window--delete): New function.
+	(frame-auto-delete): Resuscitate option.
+	(bury-buffer, replace-buffer-in-windows)
+	(quit-window): Rewrite using window--delete.
+	(display-buffer-pop-up-frame, display-buffer-pop-up-window):
+	Pass display-buffer-mark-dedicated to window--display-buffer-2
+	(Bug#9639).
+
+2011-10-03  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* pcmpl-unix.el (pcomplete/scp): Don't assume pcomplete-all-entries
+	returns a list (bug#9554).  Add remote file name completion.
+	* comint.el (comint--table-subvert): Curry and get quote&unquote
+	functions as arguments.
+	(comint--complete-file-name-data): Adjust call accordingly.
+	* pcomplete.el (pcomplete--table-subvert): Remove.
+	(pcomplete-completions-at-point): Use comint--table-subvert instead.
+
+	* minibuffer.el (completion-table-case-fold): Use currying.
+	(completion--styles-type, completion--cycling-threshold-type):
+	New constants.
+	(completion-styles, completion-category-overrides)
+	(completion-cycle-threshold): Use them.
+	* pcomplete.el (pcomplete-completions-at-point): Adjust call to
+	completion-table-case-fold.
+
+2011-10-03  Stephen Berman  <stephen.berman@gmx.net>
+
+	* minibuffer.el (completion-category-overrides): Fix type of styles
+	and add more user friendly tags (bug#9660).
+
+2011-10-03  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* international/mule-cmds.el: Fix abuses of apply-partially (bug#9661).
+	(mule-input-method-string): New widget.
+	(default-input-method, language-info-custom-alist): Use it.
+
+2011-10-02  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* pcomplete.el: Require comint.
+	(pcomplete--common-suffix): Remove.
+	(pcomplete--common-quoted-suffix): Use comint--common-suffix instead.
+	(pcomplete--table-subvert): Sync with comint--table-subvert.
+	(pcomplete--entries): Use comint-completion-file-name-table.
+	* comint.el (comint-unquote-filename): Simplify.
+	(comint-completion-file-name-table): New function (bug#9616).
+	(comint--complete-file-name-data): Use it.
+
+	* pcmpl-gnu.el (pcmpl-gnu-with-file-buffer): New macro (bug#9643).
+	(pcmpl-gnu-tar-buffer): Remove.
+	(pcmpl-gnu-with-file-buffer): Use it to avoid leaving the tar's buffer
+	around.  Make sure pcomplete-suffix-list is only changed temporarily.
+	Don't look inside the tar's file if it's too large.
+
+2011-10-01  Chong Yidong  <cyd@stupidchicken.com>
+
+	* cus-edit.el (custom-mode-map):
+	* epa.el (epa-key-list-mode-map):
+	* man.el (Man-mode-map):
+	* startup.el (splash-screen-keymap):
+	* simple.el (special-mode-map): Use scroll-up-command and
+	scroll-down-command.
+
+	* progmodes/idlw-help.el (idlwave-help-mode-map):
+	* progmodes/ebrowse.el (ebrowse-electric-position-mode-map):
+	* net/newst-plainview.el (newsticker-mode-map):
+	* emulation/ws-mode.el (wordstar-mode-map):
+	* emulation/vi.el (vi-com-map):
+	* calc/calc-graph.el (calc-graph-show-dumb):
+	* term/sun.el (terminal-init-sun):
+	* term/ns-win.el (global-map):
+	* progmodes/grep.el (grep-mode-map):
+	* progmodes/ebrowse.el (ebrowse-electric-list-mode-map):
+	* mail/rmail.el (rmail-mode-map):
+	* progmodes/cpp.el (cpp-edit-mode-map): Likewise.
+
+	* custom.el (custom-safe-themes, load-theme): Treat value of t for
+	custom-safe-themes as special.
+
+2011-10-01  Julien Danjou  <julien@danjou.info>
+
+	* notifications.el (notifications-notify): Fix docstring.
+
+2011-10-01  Per Starbäck  <per@starback.se>
+
+	* pcmpl-gnu.el (pcomplete/tar): Fix tar-header-name call.  (Bug#9643)
+
+2011-09-30  Martin Rudalics  <rudalics@gmx.at>
+
+	* startup.el (command-line-1): Fix last fix by inserting
+	initial-scratch-message into *scratch* before displaying it.
+	(Bug#9605) and (Bug#9636)
+
+2011-09-29  Eli Zaretskii  <eliz@gnu.org>
+
+	* simple.el (line-move): If auto-hscroll-mode is disabled and the
+	window is hscrolled, move by logical lines.  (Bug#9607)
+	(line-move-visual): Update the doc string to the above effect.
+
+2011-09-29  Martin Rudalics  <rudalics@gmx.at>
+
+	* window.el (display-buffer-record-window): When WINDOW is the
+	selected window use `point' instead of `window-point'.  (Bug#9626)
+
+	* startup.el (command-line-1): Use insert-before-markers when
+	inserting initial-scratch-message.  (Bug#9605)
+
+	* help.el (help-window): Remove variable.
+
+2011-09-29  Glenn Morris  <rgm@gnu.org>
+
+	* pcmpl-cvs.el (pcomplete/cvs): Add "status" handler.
+
+2011-09-29  Juanma Barranquero  <lekktu@gmail.com>
+
+	* descr-text.el (describe-char-categories): Accept category
+	descriptions more than one line long.
+
+2011-09-28  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* simple.el (delete-trailing-whitespace): Fix last change.
+
+	* progmodes/perl-mode.el (perl-syntax-propertize-function):
+	Don't confuse "y => 3" as the beginning of a `y' operation.
+
+	* emacs-lisp/debug.el (debug-convert-byte-code): Don't assume the
+	object has more than 4 slots (bug#9613).
+
+2011-09-28  Juanma Barranquero  <lekktu@gmail.com>
+
+	* subr.el (with-output-to-temp-buffer):
+	* net/quickurl.el (quickurl, quickurl-browse-url):
+	Fix typos in docstrings.
+
+2011-09-27  Eli Zaretskii  <eliz@gnu.org>
+
+	* minibuffer.el (completion-styles)
+	(completion-category-overrides): Cross reference each other in doc
+	strings.
+
+2011-09-27  Glenn Morris  <rgm@gnu.org>
+
+	* pcmpl-cvs.el (pcmpl-cvs-entries): Update for Emacs 22.1 changes
+	to split-string.  (Bug#9606)
+
+2011-09-27  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* mail/smtpmail.el (smtpmail-via-smtp): Fix STARTTLS detection
+	(bug#9615).
+
+2011-09-27  Chong Yidong  <cyd@stupidchicken.com>
+
+	* emacs-lisp/package.el (list-packages): Fix echo area message.
+
+2011-09-27  Leo Liu  <sdl.web@gmail.com>
+
+	* ido.el (ido-read-internal): Accept cons cell HIST arg.
+
 2011-09-25  Michael Albinus  <michael.albinus@gmx.de>
 
 	* net/dbus.el (dbus-unregister-object): Don't release services for
@@ -34,8 +629,8 @@
 
 	* net/newst-reader.el (newsticker-html-renderer)
 	(newsticker-show-news): Automatically
-	load html rendering package if newsticker-html-renderer is
-	set. Fixes "Warning: defvar ignored because w3m-fill-column is
+	load html rendering package if newsticker-html-renderer is set.
+	Fixes "Warning: defvar ignored because w3m-fill-column is
 	let-bound" and the error "Symbol's value as variable is void:
 	w3m-fill-column".
 
@@ -478,7 +1073,7 @@
 
 	* help.el (describe-key-briefly): Copy previous standard-output change.
 
-2011-09-13  PJ Weisberg  <pj@irregularexpressions.net>  (tiny change)
+2011-09-13  PJ Weisberg  <pj@irregularexpressions.net>
 
 	* help.el (where-is): Respect non-standard standard-output.  (Bug#9030)
 

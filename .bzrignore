@@ -26,6 +26,7 @@ emacs-*/
 makefile
 Makefile
 Makefile.c
+./GNUmakefile.unix
 stamp-h1
 stamp_BLD
 subdirs.el
@@ -57,10 +58,13 @@ lib/stdio.h
 lib/stdint.h
 lib/stdlib.h
 lib/sys/
+lib/SYS
 lib/time.h
 lib/unistd.h
 lib/warn-on-use.h
+lib/alloca.in-h
 lib/getopt.in-h
+lib/signal.in-h
 lib/signal.h
 lib/stdbool.in-h
 lib/stddef.in-h

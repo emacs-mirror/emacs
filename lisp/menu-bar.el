@@ -92,17 +92,25 @@
                   :visible (fboundp 'make-frame-command)
                   :help ,(purecopy "Open a new frame")))
 
-    (define-key menu [one-window]
-      `(menu-item ,(purecopy "Remove Splits") delete-other-windows
-                  :enable (not (one-window-p t nil))
-                  :help ,(purecopy
-                          "Selected window grows to fill the whole frame")))
+    (define-key menu [separator-frame]
+      menu-bar-separator)
 
-    (define-key menu [split-window]
-      `(menu-item ,(purecopy "Split Window") split-window-vertically
+    (define-key menu [one-window]
+      `(menu-item ,(purecopy "Remove Other Windows") delete-other-windows
+                  :enable (not (one-window-p t nil))
+                  :help ,(purecopy "Make selected window fill whole frame")))
+
+    (define-key menu [new-window-on-right]
+      `(menu-item ,(purecopy "New Window on Right") split-window-side-by-side
                   :enable (and (menu-bar-menu-frame-live-and-visible-p)
                                (menu-bar-non-minibuffer-window-p))
-                  :help ,(purecopy "Split selected window in two windows")))
+                  :help ,(purecopy "Make new window on right of selected one")))
+
+    (define-key menu [new-window-below]
+      `(menu-item ,(purecopy "New Window Below") split-window-above-each-other
+                  :enable (and (menu-bar-menu-frame-live-and-visible-p)
+                               (menu-bar-non-minibuffer-window-p))
+                  :help ,(purecopy "Make new window below selected one")))
 
     (define-key menu [separator-window]
       menu-bar-separator)
@@ -433,7 +441,7 @@
 
 (defvar menu-bar-edit-menu
   (let ((menu (make-sparse-keymap "Edit")))
-    
+
     (define-key menu [props]
       `(menu-item ,(purecopy "Text Properties") facemenu-menu))
 
@@ -1645,7 +1653,7 @@ key, a click, or a menu-item")))
 
 (defvar menu-bar-search-documentation-menu
   (let ((menu (make-sparse-keymap "Search Documentation")))
-    
+
     (define-key menu [search-documentation-strings]
       `(menu-item ,(purecopy "Search Documentation Strings...") apropos-documentation
                   :help
@@ -2161,11 +2169,13 @@ It must accept a buffer as its only required argument.")
 		:help ,(purecopy "Put previous minibuffer history element in the minibuffer"))))
 
 (define-minor-mode menu-bar-mode
-  "Toggle display of a menu bar on each frame.
+  "Toggle display of a menu bar on each frame (Menu Bar mode).
+With a prefix argument ARG, enable Menu Bar mode if ARG is
+positive, and disable it otherwise.  If called from Lisp, enable
+Menu Bar mode if ARG is omitted or nil.
+
 This command applies to all frames that exist and frames to be
-created in the future.
-With a numeric argument, if the argument is positive,
-turn on menu bars; otherwise, turn off menu bars."
+created in the future."
   :init-value t
   :global t
   ;; It's defined in C/cus-start, this stops the d-m-m macro defining it again.

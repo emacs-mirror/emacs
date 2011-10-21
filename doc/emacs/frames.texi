@@ -93,7 +93,7 @@ clicked.
   Normally, Emacs does not distinguish between ordinary mouse clicks
 and clicks that select a frame.  When you click on a frame to select
 it, that also changes the selected window and cursor position
-according to the mouse click position.  On the X window system, you
+according to the mouse click position.  On the X Window System, you
 can change this behavior by setting the variable
 @code{x-mouse-click-focus-ignore-position} to @code{t}.  Then the
 first click selects the frame, but does not affect the selected window
@@ -299,7 +299,7 @@ you can access them without having to display the menu bar.
 
 @item S-Mouse-1
 This menu is for changing the default face within the window's buffer.
-@xref{Temporary Face Changes}.
+@xref{Text Scale}.
 @end table
 
 @node Mode Line Mouse
@@ -961,7 +961,7 @@ the left of each Emacs window, running the height of the
 window.@footnote{Placing it at the left is usually more useful with
 overlapping frames with text starting at the left margin.}
 
-  When Emacs is compiled with GTK+ support on the X window system, or
+  When Emacs is compiled with GTK+ support on the X Window System, or
 in operating systems such as Microsoft Windows or Mac OS, you can use
 the scroll bar as you do in other graphical applications.  If you
 click @kbd{Mouse-1} on the scroll bar's up and down buttons, that
@@ -971,7 +971,7 @@ the entire height of the window, like @kbd{M-v} and @kbd{C-v}
 respectively (@pxref{Moving Point}).  Dragging the inner box with
 @kbd{Mouse-1} scrolls the window continuously.
 
-  If Emacs is compiled without GTK+ support on the X window system,
+  If Emacs is compiled without GTK+ support on the X Window System,
 the scroll bar behaves differently.  The scroll bar's inner box is
 drawn to represent the portion of the buffer currently displayed, with
 the entire height of the scroll bar representing the entire length of
@@ -1185,6 +1185,13 @@ options for displaying tooltips, use @kbd{M-x customize-group
 @key{RET} tooltip @key{RET}}.  @xref{X Resources}, for information on
 customizing the windows that display tooltips.
 
+@vindex x-gtk-use-system-tooltips
+  If Emacs is built with GTK support, it displays tooltips via GTK,
+using the default appearance of GTK tooltips.  To disable this, change
+the variable @code{x-gtk-use-system-tooltips} to @code{nil}.  If you
+do this, or if Emacs is built without GTK support, the @code{tooltip}
+face specifies most attributes of the tooltip text.
+
 @node Mouse Avoidance
 @section Mouse Avoidance
 @cindex avoiding mouse in the way of your typing
@@ -1229,8 +1236,7 @@ raises the frame.
 
 @node Non-Window Terminals
 @section Non-Window Terminals
-@cindex non-window terminals
-@cindex single-frame terminals
+@cindex text-only terminal
 
   On a text-only terminal, Emacs can display only one Emacs frame at a
 time.  However, you can still create multiple Emacs frames, and switch

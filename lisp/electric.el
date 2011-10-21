@@ -241,8 +241,14 @@ Returns nil when we can't find this char."
 
 ;;;###autoload
 (define-minor-mode electric-indent-mode
-  "Automatically reindent lines of code when inserting particular chars.
-`electric-indent-chars' specifies the set of chars that should cause reindentation."
+  "Toggle on-the-fly reindentation (Electric Indent mode).
+With a prefix argument ARG, enable Electric Indent mode if ARG is
+positive, and disable it otherwise.  If called from Lisp, enable
+the mode if ARG is omitted or nil.
+
+Electric Indent mode is a global minor mode.  When enabled,
+reindentation is triggered whenever you insert a character listed
+in `electric-indent-chars'."
   :global t
   :group 'electricity
   (if electric-indent-mode
@@ -330,7 +336,14 @@ This can be convenient for people who find it easier to hit ) than C-f."
 
 ;;;###autoload
 (define-minor-mode electric-pair-mode
-  "Automatically pair-up parens when inserting an open paren."
+  "Toggle automatic parens pairing (Electric Pair mode).
+With a prefix argument ARG, enable Electric Pair mode if ARG is
+positive, and disable it otherwise.  If called from Lisp, enable
+the mode if ARG is omitted or nil.
+
+Electric Pair mode is a global minor mode.  When enabled, typing
+an open parenthesis automatically inserts the corresponding
+closing parenthesis.  \(Likewise for brackets, etc.)"
   :global t
   :group 'electricity
   (if electric-pair-mode

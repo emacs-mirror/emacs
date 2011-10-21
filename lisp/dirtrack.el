@@ -183,7 +183,11 @@ and ends with a forward slash."
 
 ;;;###autoload
 (define-minor-mode dirtrack-mode
-  "Enable or disable Dirtrack directory tracking in a shell buffer.
+  "Toggle directory tracking in shell buffers (Dirtrack mode).
+With a prefix argument ARG, enable Dirtrack mode if ARG is
+positive, and disable it otherwise.  If called from Lisp, enable
+the mode if ARG is omitted or nil.
+
 This method requires that your shell prompt contain the full
 current working directory at all times, and that `dirtrack-list'
 is set to match the prompt.  This is an alternative to
@@ -199,7 +203,7 @@ and similar commands which change the shell working directory."
 
 
 (define-minor-mode dirtrack-debug-mode
-  "Enable or disable Dirtrack debugging."
+  "Toggle Dirtrack debugging."
   nil nil nil
   (if dirtrack-debug-mode
       (display-buffer (get-buffer-create dirtrack-debug-buffer))))
@@ -227,7 +231,7 @@ If directory tracking does not seem to be working, you can use the
 function `dirtrack-debug-mode' to turn on debugging output."
   (unless (or (null dirtrack-mode)
               (eq (point) (point-min)))     ; no output?
-    (let (prompt-path
+    (let (prompt-path orig-prompt-path
 	  (current-dir default-directory)
 	  (dirtrack-regexp    (nth 0 dirtrack-list))
 	  (match-num	      (nth 1 dirtrack-list)))
@@ -243,8 +247,9 @@ function `dirtrack-debug-mode' to turn on debugging output."
           (if (not (> (length prompt-path) 0))
               (dirtrack-debug-message "Match is empty string")
             ;; Transform prompts into canonical forms
-            (setq prompt-path (funcall dirtrack-directory-function
-                                       prompt-path)
+            (setq orig-prompt-path (funcall dirtrack-directory-function
+                                            prompt-path)
+                  prompt-path (shell-prefixed-directory-name orig-prompt-path)
                   current-dir (funcall dirtrack-canonicalize-function
                                        current-dir))
             (dirtrack-debug-message
@@ -257,8 +262,9 @@ function `dirtrack-debug-mode' to turn on debugging output."
               ;; It's possible that Emacs will think the directory
               ;; won't exist (eg, rlogin buffers)
               (if (file-accessible-directory-p prompt-path)
-                  ;; Change directory
-                  (and (shell-process-cd prompt-path)
+                  ;; Change directory. shell-process-cd adds the prefix, so we
+                  ;; need to give it the original (un-prefixed) path.
+                  (and (shell-process-cd orig-prompt-path)
                        (run-hooks 'dirtrack-directory-change-hook)
                        (dirtrack-debug-message
                         (format "Changing directory to %s" prompt-path)))

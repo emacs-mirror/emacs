@@ -297,11 +297,17 @@ automatically inserts the matching closing request after point."
       (forward-char 1))))
 
 (define-minor-mode nroff-electric-mode
-  "Toggle `nroff-electric-newline' minor mode.
-`nroff-electric-newline' forces Emacs to check for an nroff request at the
-beginning of the line, and insert the matching closing request if necessary.
-This command toggles that mode (off->on, on->off), with an argument,
-turns it on if arg is positive, otherwise off."
+  "Toggle automatic nroff request pairing (Nroff Electric mode).
+With a prefix argument ARG, enable Nroff Electric mode if ARG is
+positive, and disable it otherwise.  If called from Lisp, enable
+the mode if ARG is omitted or nil.
+
+Nroff Electric mode is a buffer-local minor mode, for use with
+`nroff-mode'.  When enabled, Emacs checks for an nroff request at
+the beginning of the line, and inserts the matching closing
+request if necessary.  This command toggles that mode (off->on,
+on->off), with an argument, turns it on if arg is positive,
+otherwise off."
   :lighter " Electric"
   (or (derived-mode-p 'nroff-mode) (error "Must be in nroff mode")))
 

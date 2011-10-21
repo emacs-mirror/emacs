@@ -164,10 +164,14 @@ The text being displayed in the echo area is controlled by the variables
 
 ;;;###autoload
 (define-minor-mode display-battery-mode
-  "Display battery status information in the mode line.
-The text being displayed in the mode line is controlled by the variables
+  "Toggle battery status display in mode line (Display Battery mode).
+With a prefix argument ARG, enable Display Battery mode if ARG is
+positive, and disable it otherwise.  If called from Lisp, enable
+the mode if ARG is omitted or nil.
+
+The text displayed in the mode line is controlled by
 `battery-mode-line-format' and `battery-status-function'.
-The mode line will be updated automatically every `battery-update-interval'
+The mode line is be updated every `battery-update-interval'
 seconds."
   :global t :group 'battery
   (setq battery-mode-line-string "")

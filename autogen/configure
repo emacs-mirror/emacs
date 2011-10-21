@@ -669,11 +669,14 @@ REPLACE_FPURGE
 REPLACE_FPRINTF
 REPLACE_FOPEN
 REPLACE_FFLUSH
+REPLACE_FDOPEN
 REPLACE_FCLOSE
 REPLACE_DPRINTF
 HAVE_VDPRINTF
 HAVE_VASPRINTF
 HAVE_RENAMEAT
+HAVE_POPEN
+HAVE_PCLOSE
 HAVE_FTELLO
 HAVE_FSEEKO
 HAVE_DPRINTF
@@ -711,6 +714,7 @@ GNULIB_PRINTF_POSIX
 GNULIB_PRINTF
 GNULIB_POPEN
 GNULIB_PERROR
+GNULIB_PCLOSE
 GNULIB_OBSTACK_PRINTF_POSIX
 GNULIB_OBSTACK_PRINTF
 GNULIB_GETS
@@ -735,6 +739,7 @@ GNULIB_FOPEN
 GNULIB_FGETS
 GNULIB_FGETC
 GNULIB_FFLUSH
+GNULIB_FDOPEN
 GNULIB_FCLOSE
 GNULIB_DPRINTF
 NEXT_AS_FIRST_DIRECTIVE_STDDEF_H
@@ -755,6 +760,7 @@ NEXT_AS_FIRST_DIRECTIVE_STDARG_H
 NEXT_STDARG_H
 NEXT_AS_FIRST_DIRECTIVE_SIGNAL_H
 NEXT_SIGNAL_H
+REPLACE_RAISE
 REPLACE_PTHREAD_SIGMASK
 HAVE_SIGHANDLER_T
 HAVE_TYPE_VOLATILE_SIG_ATOMIC_T
@@ -762,11 +768,13 @@ HAVE_STRUCT_SIGACTION_SA_SIGACTION
 HAVE_SIGACTION
 HAVE_SIGINFO_T
 HAVE_SIGSET_T
+HAVE_RAISE
 HAVE_PTHREAD_SIGMASK
 HAVE_POSIX_SIGNALBLOCKING
 GNULIB_SIGACTION
 GNULIB_SIGPROCMASK
 GNULIB_SIGNAL_H_SIGPIPE
+GNULIB_RAISE
 GNULIB_PTHREAD_SIGMASK
 LIB_PTHREAD_SIGMASK
 REPLACE_TIMEGM
@@ -813,6 +821,7 @@ GNULIB_LSTAT
 GNULIB_LCHMOD
 GNULIB_FUTIMENS
 GNULIB_FSTATAT
+GNULIB_FSTAT
 GNULIB_FCHMODAT
 NEXT_AS_FIRST_DIRECTIVE_INTTYPES_H
 NEXT_INTTYPES_H
@@ -966,6 +975,7 @@ HAVE_DECL_GETUSERSHELL
 HAVE_DECL_GETPAGESIZE
 HAVE_DECL_GETLOGIN_R
 HAVE_DECL_GETDOMAINNAME
+HAVE_DECL_FDATASYNC
 HAVE_DECL_FCHDIR
 HAVE_DECL_ENVIRON
 HAVE_USLEEP
@@ -990,6 +1000,7 @@ HAVE_GETGROUPS
 HAVE_GETDTABLESIZE
 HAVE_FTRUNCATE
 HAVE_FSYNC
+HAVE_FDATASYNC
 HAVE_FCHOWNAT
 HAVE_FCHDIR
 HAVE_FACCESSAT
@@ -1032,6 +1043,7 @@ GNULIB_GETDOMAINNAME
 GNULIB_GETCWD
 GNULIB_FTRUNCATE
 GNULIB_FSYNC
+GNULIB_FDATASYNC
 GNULIB_FCHOWNAT
 GNULIB_FCHDIR
 GNULIB_FACCESSAT
@@ -1039,8 +1051,10 @@ GNULIB_EUIDACCESS
 GNULIB_ENVIRON
 GNULIB_DUP3
 GNULIB_DUP2
+GNULIB_DUP
 GNULIB_CLOSE
 GNULIB_CHOWN
+GNULIB_CHDIR
 GL_GENERATE_ALLOCA_H_FALSE
 GL_GENERATE_ALLOCA_H_TRUE
 ALLOCA_H
@@ -6944,7 +6958,7 @@ esac
   # Code from module nocrash:
   # Code from module pthread_sigmask:
   # Code from module readlink:
-  # Code from module signal:
+  # Code from module signal-h:
   # Code from module sigprocmask:
   # Code from module snippet/_Noreturn:
   # Code from module snippet/arg-nonnull:
@@ -6954,6 +6968,8 @@ esac
   # Code from module ssize_t:
   # Code from module stat:
   # Code from module stdarg:
+
+
 
   # Code from module stdbool:
   # Code from module stddef:
@@ -8787,116 +8803,6 @@ fi
 done
 
 
-{ $as_echo "$as_me:${as_lineno-$LINENO}: checking whether struct tm is in sys/time.h or time.h" >&5
-$as_echo_n "checking whether struct tm is in sys/time.h or time.h... " >&6; }
-if test "${ac_cv_struct_tm+set}" = set; then :
-  $as_echo_n "(cached) " >&6
-else
-  cat confdefs.h - <<_ACEOF >conftest.$ac_ext
-/* end confdefs.h.  */
-#include <sys/types.h>
-#include <time.h>
-
-int
-main ()
-{
-struct tm tm;
-				     int *p = &tm.tm_sec;
-				     return !p;
-  ;
-  return 0;
-}
-_ACEOF
-if ac_fn_c_try_compile "$LINENO"; then :
-  ac_cv_struct_tm=time.h
-else
-  ac_cv_struct_tm=sys/time.h
-fi
-rm -f core conftest.err conftest.$ac_objext conftest.$ac_ext
-fi
-{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_cv_struct_tm" >&5
-$as_echo "$ac_cv_struct_tm" >&6; }
-if test $ac_cv_struct_tm = sys/time.h; then
-
-$as_echo "#define TM_IN_SYS_TIME 1" >>confdefs.h
-
-fi
-
-ac_fn_c_check_member "$LINENO" "struct tm" "tm_zone" "ac_cv_member_struct_tm_tm_zone" "#include <sys/types.h>
-#include <$ac_cv_struct_tm>
-
-"
-if test "x$ac_cv_member_struct_tm_tm_zone" = x""yes; then :
-
-cat >>confdefs.h <<_ACEOF
-#define HAVE_STRUCT_TM_TM_ZONE 1
-_ACEOF
-
-
-fi
-
-if test "$ac_cv_member_struct_tm_tm_zone" = yes; then
-
-$as_echo "#define HAVE_TM_ZONE 1" >>confdefs.h
-
-else
-  ac_fn_c_check_decl "$LINENO" "tzname" "ac_cv_have_decl_tzname" "#include <time.h>
-"
-if test "x$ac_cv_have_decl_tzname" = x""yes; then :
-  ac_have_decl=1
-else
-  ac_have_decl=0
-fi
-
-cat >>confdefs.h <<_ACEOF
-#define HAVE_DECL_TZNAME $ac_have_decl
-_ACEOF
-
-  { $as_echo "$as_me:${as_lineno-$LINENO}: checking for tzname" >&5
-$as_echo_n "checking for tzname... " >&6; }
-if test "${ac_cv_var_tzname+set}" = set; then :
-  $as_echo_n "(cached) " >&6
-else
-  cat confdefs.h - <<_ACEOF >conftest.$ac_ext
-/* end confdefs.h.  */
-#include <time.h>
-#if !HAVE_DECL_TZNAME
-extern char *tzname[];
-#endif
-
-int
-main ()
-{
-return tzname[0][0];
-  ;
-  return 0;
-}
-_ACEOF
-if ac_fn_c_try_link "$LINENO"; then :
-  ac_cv_var_tzname=yes
-else
-  ac_cv_var_tzname=no
-fi
-rm -f core conftest.err conftest.$ac_objext \
-    conftest$ac_exeext conftest.$ac_ext
-fi
-{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_cv_var_tzname" >&5
-$as_echo "$ac_cv_var_tzname" >&6; }
-  if test $ac_cv_var_tzname = yes; then
-
-$as_echo "#define HAVE_TZNAME 1" >>confdefs.h
-
-  fi
-fi
-
-ac_fn_c_check_member "$LINENO" "struct tm" "tm_gmtoff" "ac_cv_member_struct_tm_tm_gmtoff" "#include <time.h>
-"
-if test "x$ac_cv_member_struct_tm_tm_gmtoff" = x""yes; then :
-
-$as_echo "#define HAVE_TM_GMTOFF 1" >>confdefs.h
-
-fi
-
 ac_fn_c_check_member "$LINENO" "struct ifreq" "ifr_flags" "ac_cv_member_struct_ifreq_ifr_flags" "$ac_includes_default
 #if HAVE_SYS_SOCKET_H
 #include <sys/socket.h>
@@ -10618,13 +10524,13 @@ XOpenDisplay ("foo");
 }
 _ACEOF
 if ac_fn_c_try_link "$LINENO"; then :
-  xlinux_first_failure=no
+  xgnu_linux_first_failure=no
 else
-  xlinux_first_failure=yes
+  xgnu_linux_first_failure=yes
 fi
 rm -f core conftest.err conftest.$ac_objext \
     conftest$ac_exeext conftest.$ac_ext
-    if test "${xlinux_first_failure}" = "yes"; then
+    if test "${xgnu_linux_first_failure}" = "yes"; then
       OLD_LD_SWITCH_X_SITE="$LD_SWITCH_X_SITE"
       OLD_C_SWITCH_X_SITE="$C_SWITCH_X_SITE"
       OLD_CPPFLAGS="$CPPFLAGS"
@@ -10645,13 +10551,13 @@ XOpenDisplay ("foo");
 }
 _ACEOF
 if ac_fn_c_try_link "$LINENO"; then :
-  xlinux_second_failure=no
+  xgnu_linux_second_failure=no
 else
-  xlinux_second_failure=yes
+  xgnu_linux_second_failure=yes
 fi
 rm -f core conftest.err conftest.$ac_objext \
     conftest$ac_exeext conftest.$ac_ext
-      if test "${xlinux_second_failure}" = "yes"; then
+      if test "${xgnu_linux_second_failure}" = "yes"; then
 	# If we get the same failure with -b, there is no use adding -b.
 	# So take it out.  This plays safe.
 	LD_SWITCH_X_SITE="$OLD_LD_SWITCH_X_SITE"
@@ -11124,8 +11030,8 @@ fi
 if test "$pkg_check_gtk" != "yes"; then
   HAVE_GTK=no
 if test "${with_gtk}" = "yes" || test "$USE_X_TOOLKIT" = "maybe"; then
-  GLIB_REQUIRED=2.6
-  GTK_REQUIRED=2.6
+  GLIB_REQUIRED=2.10
+  GTK_REQUIRED=2.10
   GTK_MODULES="gtk+-2.0 >= $GTK_REQUIRED glib-2.0 >= $GLIB_REQUIRED"
 
 
@@ -13674,6 +13580,7 @@ fi
 
 
 ### Use libxml (-lxml2) if available
+HAVE_LIBXML2=no
 if test "${with_xml2}" != "no"; then
   ### I'm not sure what the version number should be, so I just guessed.
 
@@ -14332,6 +14239,8 @@ done
 # than to expect to find it in ncurses.
 # Also we need tputs and friends to be able to build at all.
 have_tputs_et_al=true
+# Maybe curses should be tried earlier?
+# See http://debbugs.gnu.org/cgi/bugreport.cgi?bug=9736#35
 { $as_echo "$as_me:${as_lineno-$LINENO}: checking for library containing tputs" >&5
 $as_echo_n "checking for library containing tputs... " >&6; }
 if test "${ac_cv_search_tputs+set}" = set; then :
@@ -14356,7 +14265,7 @@ return tputs ();
   return 0;
 }
 _ACEOF
-for ac_lib in '' ncurses terminfo termcap; do
+for ac_lib in '' ncurses terminfo termcap curses; do
   if test -z "$ac_lib"; then
     ac_res="none required"
   else
@@ -14391,9 +14300,11 @@ else
 fi
 
 if test "$have_tputs_et_al" != true; then
-  as_fn_error "I couldn't find termcap functions (tputs and friends).
-Maybe some development libraries/packages are missing?  Try installing
-libncurses-dev(el), libterminfo-dev(el) or similar." "$LINENO" 5
+  as_fn_error "The required function \`tputs' was not found in any library.
+These libraries were tried: libncurses, libterminfo, libtermcap, libcurses.
+Please try installing whichever of these libraries is most appropriate
+for your system, together with its header files.
+For example, a libncurses-dev(el) or similar package." "$LINENO" 5
 fi
 # Must define this when any termcap library is found.
 
@@ -15273,54 +15184,6 @@ fi
 
 
 
-
-
-# Solaris requires -lintl if you want strerror (which calls dgettext)
-# to return localized messages.
-{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for dgettext in -lintl" >&5
-$as_echo_n "checking for dgettext in -lintl... " >&6; }
-if test "${ac_cv_lib_intl_dgettext+set}" = set; then :
-  $as_echo_n "(cached) " >&6
-else
-  ac_check_lib_save_LIBS=$LIBS
-LIBS="-lintl  $LIBS"
-cat confdefs.h - <<_ACEOF >conftest.$ac_ext
-/* end confdefs.h.  */
-
-/* Override any GCC internal prototype to avoid an error.
-   Use char because int might match the return type of a GCC
-   builtin and then its argument prototype would still apply.  */
-#ifdef __cplusplus
-extern "C"
-#endif
-char dgettext ();
-int
-main ()
-{
-return dgettext ();
-  ;
-  return 0;
-}
-_ACEOF
-if ac_fn_c_try_link "$LINENO"; then :
-  ac_cv_lib_intl_dgettext=yes
-else
-  ac_cv_lib_intl_dgettext=no
-fi
-rm -f core conftest.err conftest.$ac_objext \
-    conftest$ac_exeext conftest.$ac_ext
-LIBS=$ac_check_lib_save_LIBS
-fi
-{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_cv_lib_intl_dgettext" >&5
-$as_echo "$ac_cv_lib_intl_dgettext" >&6; }
-if test "x$ac_cv_lib_intl_dgettext" = x""yes; then :
-  cat >>confdefs.h <<_ACEOF
-#define HAVE_LIBINTL 1
-_ACEOF
-
-  LIBS="-lintl $LIBS"
-
-fi
 
 
 { $as_echo "$as_me:${as_lineno-$LINENO}: checking whether localtime caches TZ" >&5
@@ -16607,8 +16470,10 @@ $as_echo "#define HAVE_C99_STRTOLD 1" >>confdefs.h
   fi
 
 
+  GNULIB_CHDIR=0;
   GNULIB_CHOWN=0;
   GNULIB_CLOSE=0;
+  GNULIB_DUP=0;
   GNULIB_DUP2=0;
   GNULIB_DUP3=0;
   GNULIB_ENVIRON=0;
@@ -16616,6 +16481,7 @@ $as_echo "#define HAVE_C99_STRTOLD 1" >>confdefs.h
   GNULIB_FACCESSAT=0;
   GNULIB_FCHDIR=0;
   GNULIB_FCHOWNAT=0;
+  GNULIB_FDATASYNC=0;
   GNULIB_FSYNC=0;
   GNULIB_FTRUNCATE=0;
   GNULIB_GETCWD=0;
@@ -16658,6 +16524,7 @@ $as_echo "#define HAVE_C99_STRTOLD 1" >>confdefs.h
   HAVE_FACCESSAT=1;
   HAVE_FCHDIR=1;
   HAVE_FCHOWNAT=1;
+  HAVE_FDATASYNC=1;
   HAVE_FSYNC=1;
   HAVE_FTRUNCATE=1;
   HAVE_GETDTABLESIZE=1;
@@ -16682,6 +16549,7 @@ $as_echo "#define HAVE_C99_STRTOLD 1" >>confdefs.h
   HAVE_USLEEP=1;
   HAVE_DECL_ENVIRON=1;
   HAVE_DECL_FCHDIR=1;
+  HAVE_DECL_FDATASYNC=1;
   HAVE_DECL_GETDOMAINNAME=1;
   HAVE_DECL_GETLOGIN_R=1;
   HAVE_DECL_GETPAGESIZE=1;
@@ -16992,9 +16860,9 @@ _ACEOF
                    ;;
                esac
 
-               gl_absolute_header_sed='\#'"${gl_dirsep_regex}"'getopt.h#{
-                   s#.*"\(.*'"${gl_dirsep_regex}"'getopt.h\)".*#\1#
-                   s#^/[^/]#//&#
+               gl_absolute_header_sed='\|'"${gl_dirsep_regex}"'getopt.h|{
+                   s|.*"\(.*'"${gl_dirsep_regex}"'getopt.h\)".*|\1|
+                   s|^/[^/]|//&|
                    p
                    q
                  }'
@@ -17749,9 +17617,9 @@ _ACEOF
                    ;;
                esac
 
-               gl_absolute_header_sed='\#'"${gl_dirsep_regex}"'stdint.h#{
-                   s#.*"\(.*'"${gl_dirsep_regex}"'stdint.h\)".*#\1#
-                   s#^/[^/]#//&#
+               gl_absolute_header_sed='\|'"${gl_dirsep_regex}"'stdint.h|{
+                   s|.*"\(.*'"${gl_dirsep_regex}"'stdint.h\)".*|\1|
+                   s|^/[^/]|//&|
                    p
                    q
                  }'
@@ -18381,6 +18249,10 @@ _ACEOF
 
 
 
+          if test $BITSIZEOF_WINT_T -lt 32; then
+    BITSIZEOF_WINT_T=32
+  fi
+
     STDINT_H=stdint.h
   fi
 
@@ -18456,9 +18328,9 @@ _ACEOF
                    ;;
                esac
 
-               gl_absolute_header_sed='\#'"${gl_dirsep_regex}"'inttypes.h#{
-                   s#.*"\(.*'"${gl_dirsep_regex}"'inttypes.h\)".*#\1#
-                   s#^/[^/]#//&#
+               gl_absolute_header_sed='\|'"${gl_dirsep_regex}"'inttypes.h|{
+                   s|.*"\(.*'"${gl_dirsep_regex}"'inttypes.h\)".*|\1|
+                   s|^/[^/]|//&|
                    p
                    q
                  }'
@@ -18499,6 +18371,7 @@ $as_echo "#define GL_TRIGGER_STDC_LIMIT_MACROS 1" >>confdefs.h
 
 
      GNULIB_FCHMODAT=0;
+  GNULIB_FSTAT=0;
   GNULIB_FSTATAT=0;
   GNULIB_FUTIMENS=0;
   GNULIB_LCHMOD=0;
@@ -18612,11 +18485,13 @@ _ACEOF
 
 
   GNULIB_PTHREAD_SIGMASK=0;
+  GNULIB_RAISE=0;
   GNULIB_SIGNAL_H_SIGPIPE=0;
   GNULIB_SIGPROCMASK=0;
   GNULIB_SIGACTION=0;
     HAVE_POSIX_SIGNALBLOCKING=1;
   HAVE_PTHREAD_SIGMASK=1;
+  HAVE_RAISE=1;
   HAVE_SIGSET_T=1;
   HAVE_SIGINFO_T=1;
   HAVE_SIGACTION=1;
@@ -18626,6 +18501,7 @@ _ACEOF
 
   HAVE_SIGHANDLER_T=1;
   REPLACE_PTHREAD_SIGMASK=0;
+  REPLACE_RAISE=0;
 
 
 
@@ -18797,6 +18673,7 @@ $as_echo "#define HAVE_WCHAR_T 1" >>confdefs.h
 
   GNULIB_DPRINTF=0;
   GNULIB_FCLOSE=0;
+  GNULIB_FDOPEN=0;
   GNULIB_FFLUSH=0;
   GNULIB_FGETC=0;
   GNULIB_FGETS=0;
@@ -18821,6 +18698,7 @@ $as_echo "#define HAVE_WCHAR_T 1" >>confdefs.h
   GNULIB_GETS=0;
   GNULIB_OBSTACK_PRINTF=0;
   GNULIB_OBSTACK_PRINTF_POSIX=0;
+  GNULIB_PCLOSE=0;
   GNULIB_PERROR=0;
   GNULIB_POPEN=0;
   GNULIB_PRINTF=0;
@@ -18858,11 +18736,14 @@ $as_echo "#define HAVE_WCHAR_T 1" >>confdefs.h
   HAVE_DPRINTF=1;
   HAVE_FSEEKO=1;
   HAVE_FTELLO=1;
+  HAVE_PCLOSE=1;
+  HAVE_POPEN=1;
   HAVE_RENAMEAT=1;
   HAVE_VASPRINTF=1;
   HAVE_VDPRINTF=1;
   REPLACE_DPRINTF=0;
   REPLACE_FCLOSE=0;
+  REPLACE_FDOPEN=0;
   REPLACE_FFLUSH=0;
   REPLACE_FOPEN=0;
   REPLACE_FPRINTF=0;
@@ -18892,6 +18773,108 @@ $as_echo "#define HAVE_WCHAR_T 1" >>confdefs.h
   REPLACE_VPRINTF=0;
   REPLACE_VSNPRINTF=0;
   REPLACE_VSPRINTF=0;
+
+{ $as_echo "$as_me:${as_lineno-$LINENO}: checking whether struct tm is in sys/time.h or time.h" >&5
+$as_echo_n "checking whether struct tm is in sys/time.h or time.h... " >&6; }
+if test "${ac_cv_struct_tm+set}" = set; then :
+  $as_echo_n "(cached) " >&6
+else
+  cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+/* end confdefs.h.  */
+#include <sys/types.h>
+#include <time.h>
+
+int
+main ()
+{
+struct tm tm;
+				     int *p = &tm.tm_sec;
+				     return !p;
+  ;
+  return 0;
+}
+_ACEOF
+if ac_fn_c_try_compile "$LINENO"; then :
+  ac_cv_struct_tm=time.h
+else
+  ac_cv_struct_tm=sys/time.h
+fi
+rm -f core conftest.err conftest.$ac_objext conftest.$ac_ext
+fi
+{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_cv_struct_tm" >&5
+$as_echo "$ac_cv_struct_tm" >&6; }
+if test $ac_cv_struct_tm = sys/time.h; then
+
+$as_echo "#define TM_IN_SYS_TIME 1" >>confdefs.h
+
+fi
+
+ac_fn_c_check_member "$LINENO" "struct tm" "tm_zone" "ac_cv_member_struct_tm_tm_zone" "#include <sys/types.h>
+#include <$ac_cv_struct_tm>
+
+"
+if test "x$ac_cv_member_struct_tm_tm_zone" = x""yes; then :
+
+cat >>confdefs.h <<_ACEOF
+#define HAVE_STRUCT_TM_TM_ZONE 1
+_ACEOF
+
+
+fi
+
+if test "$ac_cv_member_struct_tm_tm_zone" = yes; then
+
+$as_echo "#define HAVE_TM_ZONE 1" >>confdefs.h
+
+else
+  ac_fn_c_check_decl "$LINENO" "tzname" "ac_cv_have_decl_tzname" "#include <time.h>
+"
+if test "x$ac_cv_have_decl_tzname" = x""yes; then :
+  ac_have_decl=1
+else
+  ac_have_decl=0
+fi
+
+cat >>confdefs.h <<_ACEOF
+#define HAVE_DECL_TZNAME $ac_have_decl
+_ACEOF
+
+  { $as_echo "$as_me:${as_lineno-$LINENO}: checking for tzname" >&5
+$as_echo_n "checking for tzname... " >&6; }
+if test "${ac_cv_var_tzname+set}" = set; then :
+  $as_echo_n "(cached) " >&6
+else
+  cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+/* end confdefs.h.  */
+#include <time.h>
+#if !HAVE_DECL_TZNAME
+extern char *tzname[];
+#endif
+
+int
+main ()
+{
+return tzname[0][0];
+  ;
+  return 0;
+}
+_ACEOF
+if ac_fn_c_try_link "$LINENO"; then :
+  ac_cv_var_tzname=yes
+else
+  ac_cv_var_tzname=no
+fi
+rm -f core conftest.err conftest.$ac_objext \
+    conftest$ac_exeext conftest.$ac_ext
+fi
+{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_cv_var_tzname" >&5
+$as_echo "$ac_cv_var_tzname" >&6; }
+  if test $ac_cv_var_tzname = yes; then
+
+$as_echo "#define HAVE_TZNAME 1" >>confdefs.h
+
+  fi
+fi
 
 
  ac_fn_c_check_member "$LINENO" "struct tm" "tm_gmtoff" "ac_cv_member_struct_tm_tm_gmtoff" "#include <time.h>
@@ -18976,6 +18959,17 @@ $as_echo "#define STAT_MACROS_BROKEN 1" >>confdefs.h
 fi
 
 
+
+ac_fn_c_check_type "$LINENO" "mode_t" "ac_cv_type_mode_t" "$ac_includes_default"
+if test "x$ac_cv_type_mode_t" = x""yes; then :
+
+else
+
+cat >>confdefs.h <<_ACEOF
+#define mode_t int
+_ACEOF
+
+fi
 
 { $as_echo "$as_me:${as_lineno-$LINENO}: checking for C/C++ restrict keyword" >&5
 $as_echo_n "checking for C/C++ restrict keyword... " >&6; }
@@ -19163,9 +19157,9 @@ _ACEOF
                    ;;
                esac
 
-               gl_absolute_header_sed='\#'"${gl_dirsep_regex}"'time.h#{
-                   s#.*"\(.*'"${gl_dirsep_regex}"'time.h\)".*#\1#
-                   s#^/[^/]#//&#
+               gl_absolute_header_sed='\|'"${gl_dirsep_regex}"'time.h|{
+                   s|.*"\(.*'"${gl_dirsep_regex}"'time.h\)".*|\1|
+                   s|^/[^/]|//&|
                    p
                    q
                  }'
@@ -19187,8 +19181,6 @@ $as_echo "$gl_cv_next_time_h" >&6; }
        gl_next_as_first_directive=$gl_cv_next_time_h
      fi
      NEXT_AS_FIRST_DIRECTIVE_TIME_H=$gl_next_as_first_directive
-
-
 
 
 
@@ -19398,6 +19390,7 @@ if test $HAVE_DUP2 = 0 || test $REPLACE_DUP2 = 1; then
 
 
   gl_LIBOBJS="$gl_LIBOBJS dup2.$ac_objext"
+
 
 fi
 
@@ -19799,9 +19792,9 @@ else
   HAVE_SYS_LOADAVG_H=0
 fi
 ac_fn_c_check_decl "$LINENO" "getloadavg" "ac_cv_have_decl_getloadavg" "#if HAVE_SYS_LOADAVG_H
-   # include <sys/loadavg.h>
-   #endif
-   #include <stdlib.h>
+    # include <sys/loadavg.h>
+    #endif
+    #include <stdlib.h>
 "
 if test "x$ac_cv_have_decl_getloadavg" = x""yes; then :
 
@@ -20710,9 +20703,9 @@ _ACEOF
                    ;;
                esac
 
-               gl_absolute_header_sed='\#'"${gl_dirsep_regex}"'signal.h#{
-                   s#.*"\(.*'"${gl_dirsep_regex}"'signal.h\)".*#\1#
-                   s#^/[^/]#//&#
+               gl_absolute_header_sed='\|'"${gl_dirsep_regex}"'signal.h|{
+                   s|.*"\(.*'"${gl_dirsep_regex}"'signal.h\)".*|\1|
+                   s|^/[^/]|//&|
                    p
                    q
                  }'
@@ -20954,9 +20947,9 @@ _ACEOF
                    ;;
                esac
 
-               gl_absolute_header_sed='\#'"${gl_dirsep_regex}"'stdarg.h#{
-                   s#.*"\(.*'"${gl_dirsep_regex}"'stdarg.h\)".*#\1#
-                   s#^/[^/]#//&#
+               gl_absolute_header_sed='\|'"${gl_dirsep_regex}"'stdarg.h|{
+                   s|.*"\(.*'"${gl_dirsep_regex}"'stdarg.h\)".*|\1|
+                   s|^/[^/]|//&|
                    p
                    q
                  }'
@@ -21154,9 +21147,9 @@ _ACEOF
                    ;;
                esac
 
-               gl_absolute_header_sed='\#'"${gl_dirsep_regex}"'stddef.h#{
-                   s#.*"\(.*'"${gl_dirsep_regex}"'stddef.h\)".*#\1#
-                   s#^/[^/]#//&#
+               gl_absolute_header_sed='\|'"${gl_dirsep_regex}"'stddef.h|{
+                   s|.*"\(.*'"${gl_dirsep_regex}"'stddef.h\)".*|\1|
+                   s|^/[^/]|//&|
                    p
                    q
                  }'
@@ -21224,9 +21217,9 @@ _ACEOF
                    ;;
                esac
 
-               gl_absolute_header_sed='\#'"${gl_dirsep_regex}"'stdio.h#{
-                   s#.*"\(.*'"${gl_dirsep_regex}"'stdio.h\)".*#\1#
-                   s#^/[^/]#//&#
+               gl_absolute_header_sed='\|'"${gl_dirsep_regex}"'stdio.h|{
+                   s|.*"\(.*'"${gl_dirsep_regex}"'stdio.h\)".*|\1|
+                   s|^/[^/]|//&|
                    p
                    q
                  }'
@@ -21316,9 +21309,9 @@ _ACEOF
                    ;;
                esac
 
-               gl_absolute_header_sed='\#'"${gl_dirsep_regex}"'stdlib.h#{
-                   s#.*"\(.*'"${gl_dirsep_regex}"'stdlib.h\)".*#\1#
-                   s#^/[^/]#//&#
+               gl_absolute_header_sed='\|'"${gl_dirsep_regex}"'stdlib.h|{
+                   s|.*"\(.*'"${gl_dirsep_regex}"'stdlib.h\)".*|\1|
+                   s|^/[^/]|//&|
                    p
                    q
                  }'
@@ -21573,9 +21566,9 @@ _ACEOF
                    ;;
                esac
 
-               gl_absolute_header_sed='\#'"${gl_dirsep_regex}"'sys/stat.h#{
-                   s#.*"\(.*'"${gl_dirsep_regex}"'sys/stat.h\)".*#\1#
-                   s#^/[^/]#//&#
+               gl_absolute_header_sed='\|'"${gl_dirsep_regex}"'sys/stat.h|{
+                   s|.*"\(.*'"${gl_dirsep_regex}"'sys/stat.h\)".*|\1|
+                   s|^/[^/]|//&|
                    p
                    q
                  }'
@@ -21600,6 +21593,8 @@ $as_echo "$gl_cv_next_sys_stat_h" >&6; }
        gl_next_as_first_directive=$gl_cv_next_sys_stat_h
      fi
      NEXT_AS_FIRST_DIRECTIVE_SYS_STAT_H=$gl_next_as_first_directive
+
+
 
 
 
@@ -21751,9 +21746,9 @@ _ACEOF
                    ;;
                esac
 
-               gl_absolute_header_sed='\#'"${gl_dirsep_regex}"'unistd.h#{
-                   s#.*"\(.*'"${gl_dirsep_regex}"'unistd.h\)".*#\1#
-                   s#^/[^/]#//&#
+               gl_absolute_header_sed='\|'"${gl_dirsep_regex}"'unistd.h|{
+                   s|.*"\(.*'"${gl_dirsep_regex}"'unistd.h\)".*|\1|
+                   s|^/[^/]|//&|
                    p
                    q
                  }'
@@ -21842,7 +21837,9 @@ if test $HAVE_POSIX_SIGNALBLOCKING = 0; then
 
   gl_LIBOBJS="$gl_LIBOBJS sigprocmask.$ac_objext"
 
-  :
+
+
+
 fi
 
 
@@ -21987,10 +21984,10 @@ fi
 
 
       gl_gnulib_enabled_stat=true
-      if $condition; then
+      if test $REPLACE_STAT = 1; then
         func_gl_gnulib_m4code_dosname
       fi
-      if $condition; then
+      if test $REPLACE_STAT = 1; then
         func_gl_gnulib_m4code_verify
       fi
     fi

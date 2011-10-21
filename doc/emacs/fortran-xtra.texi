@@ -479,7 +479,7 @@ variable @code{fortran-break-before-delimiters} is @code{nil}.
 Otherwise (and by default), the break comes before the delimiter.
 
   To enable Auto Fill in all Fortran buffers, add
-@code{turn-on-auto-fill} to @code{fortran-mode-hook}.
+@code{auto-fill-mode} to @code{fortran-mode-hook}.
 @iftex
 @xref{Hooks,,, emacs, the Emacs Manual}.
 @end iftex

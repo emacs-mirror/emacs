@@ -724,7 +724,7 @@ reset_buffer (register struct buffer *b)
   b->prevent_redisplay_optimizations_p = 1;
   BVAR (b, backed_up) = Qnil;
   BUF_AUTOSAVE_MODIFF (b) = 0;
-  b->auto_save_failure_time = -1;
+  b->auto_save_failure_time = 0;
   BVAR (b, auto_save_file_name) = Qnil;
   BVAR (b, read_only) = Qnil;
   b->overlays_before = NULL;
@@ -5448,9 +5448,7 @@ file I/O and the behavior of various editing commands.
 
 This variable is buffer-local but you cannot set it directly;
 use the function `set-buffer-multibyte' to change a buffer's representation.
-Changing its default value with `setq-default' is supported.
-See also variable `default-enable-multibyte-characters' and Info node
-`(elisp)Text Representations'.  */);
+See also Info node `(elisp)Text Representations'.  */);
   XSYMBOL (intern_c_string ("enable-multibyte-characters"))->constant = 1;
 
   DEFVAR_PER_BUFFER ("buffer-file-coding-system",

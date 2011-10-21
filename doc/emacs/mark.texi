@@ -16,19 +16,22 @@ The region always extends between point and the mark, no matter which
 one comes earlier in the text; each time you move point, the region
 changes.
 
+@cindex active region
   Setting the mark at a position in the text also @dfn{activates} it.
-When the mark is active, Emacs indicates the extent of the region by
-highlighting the text within it, using the @code{region} face
-(@pxref{Face Customization}).  After certain non-motion commands,
-including any command that changes the text in the buffer, Emacs
-automatically @dfn{deactivates} the mark; this turns off the
-highlighting.  You can also explicitly deactivate the mark at any
-time, by typing @kbd{C-g} (@pxref{Quitting}).
+When the mark is active, we say also that the region is active; Emacs
+indicates its extent by highlighting the text within it, using the
+@code{region} face (@pxref{Face Customization}).
 
-  This default behavior of the mark is known as Transient Mark mode.
+  After certain non-motion commands, including any command that
+changes the text in the buffer, Emacs automatically @dfn{deactivates}
+the mark; this turns off the highlighting.  You can also explicitly
+deactivate the mark at any time, by typing @kbd{C-g}
+(@pxref{Quitting}).
+
+  The above default behavior is known as Transient Mark mode.
 Disabling Transient Mark mode switches Emacs to an alternative
-behavior, in which the mark is always active, which was the default
-prior to Emacs 23.  @xref{Persistent Mark}.
+behavior, in which the region is usually not highlighted.
+@xref{Disabled Transient Mark}.
 
 @vindex highlight-nonselected-windows
   Setting the mark in one buffer has no effect on the marks in other
@@ -41,13 +44,13 @@ if the variable @code{highlight-nonselected-windows} is
 non-@code{nil}, each window highlights its own region.
 
 @menu
-* Setting Mark::        Commands to set the mark.
-* Marking Objects::     Commands to put region around textual units.
-* Using Region::        Summary of ways to operate on contents of the region.
-* Mark Ring::           Previous mark positions saved so you can go back there.
-* Global Mark Ring::    Previous mark positions in various buffers.
-* Shift Selection::     Using shifted cursor motion keys.
-* Persistent Mark::     Keeping the mark active all the time.
+* Setting Mark::            Commands to set the mark.
+* Marking Objects::         Commands to put region around textual units.
+* Using Region::            Summary of ways to operate on contents of the region.
+* Mark Ring::               Previous mark positions saved so you can go back there.
+* Global Mark Ring::        Previous mark positions in various buffers.
+* Shift Selection::         Using shifted cursor motion keys.
+* Disabled Transient Mark:: Leaving regions unhighlighted by default.
 @end menu
 
 @node Setting Mark
@@ -61,8 +64,8 @@ Set the mark at point, and activate it (@code{set-mark-command}).
 @item C-@@
 The same.
 @item C-x C-x
-Set the mark at point, and move point where the mark was
-(@code{exchange-point-and-mark}).
+Set the mark at point, and activate it; then move point where the mark
+used to be (@code{exchange-point-and-mark}).
 @item Drag-Mouse-1
 Set point and the mark around the text you drag across.
 @item Mouse-3
@@ -87,52 +90,71 @@ and activates it.  You can then move point away, leaving the mark
 behind.
 
   For example, suppose you wish to convert part of the buffer to upper
-case.  To accomplish this, go to the beginning of the desired text,
-type @kbd{C-@key{SPC}}, and move point until the desired portion of
-text is highlighted.  Now type @kbd{C-x C-u} (@code{upcase-region}).
-This converts the text in the region to upper case, and then
-deactivates the mark.
+case.  To accomplish this, go to one end of the desired text, type
+@kbd{C-@key{SPC}}, and move point until the desired portion of text is
+highlighted.  Now type @kbd{C-x C-u} (@code{upcase-region}).  This
+converts the text in the region to upper case, and then deactivates
+the mark.
+
+  Whenever the mark is active, you can deactivate it by typing
+@kbd{C-g} (@pxref{Quitting}).  Most commands that operate on the
+region also automatically deactivate the mark, like @kbd{C-x C-u} in
+the above example.
+
+  Instead of setting the mark in order to operate on a region, you can
+also use it to ``remember'' a position in the buffer (by typing
+@kbd{C-@key{SPC} C-@key{SPC}}), and later jump back there (by typing
+@kbd{C-u C-@key{SPC}}).  @xref{Mark Ring}, for details.
 
 @kindex C-x C-x
 @findex exchange-point-and-mark
   The command @kbd{C-x C-x} (@code{exchange-point-and-mark}) exchanges
-the positions of point and the mark, keeping the region unchanged.  If
-the mark is inactive, Emacs first reactivates the mark wherever it was
-last set.  @kbd{C-x C-x} is useful when you are satisfied with the
-position of point but want to move the other end of the region (where
-the mark is).  Using @kbd{C-x C-x} a second time, if necessary, puts
-the mark at the new position with point back at its original position.
+the positions of point and the mark.  @kbd{C-x C-x} is useful when you
+are satisfied with the position of point but want to move the other
+end of the region (where the mark is).  Using @kbd{C-x C-x} a second
+time, if necessary, puts the mark at the new position with point back
+at its original position.  Normally, if the mark is inactive, this
+command first reactivates the mark wherever it was last set, to ensure
+that the region is left highlighted.  However, if you call it with a
+prefix argument, it leaves the mark inactive and the region
+unhighlighted; you can use this to jump to the mark in a manner
+similar to @kbd{C-u C-@key{SPC}}.
 
   You can also set the mark with the mouse.  If you press the left
 mouse button (@kbd{down-mouse-1}) and drag the mouse across a range of
-text while holding down this button, this sets the mark where you
-first pressed the mouse button and puts point where you release it.
-Alternatively, clicking the right mouse button (@kbd{mouse-3}) sets
-the mark at point and then moves point to where you clicked.  Using
-the mouse to mark a region also copies the region into the kill ring
-(@pxref{Kill Ring}).  @xref{Mouse Commands}, for a more detailed
-description of these mouse commands.
+text, this sets the mark where you first pressed the mouse button and
+puts point where you release it.  Alternatively, clicking the right
+mouse button (@kbd{mouse-3}) sets the mark at point and then moves
+point to where you clicked.  @xref{Mouse Commands}, for a more
+detailed description of these mouse commands.
 
 @cindex shift-selection
   Finally, you can set the mark by holding down the shift key while
 typing certain cursor motion commands (such as @kbd{S-@key{right}},
-@kbd{S-C-f}, @kbd{S-C-n}, etc.)  This is referred to as
-@dfn{shift-selection}.  This sets the mark at point before moving
-point, but only if there is no active mark set via shift-selection.
-The mark set by mouse commands and by shift-selection behaves slightly
-differently from the usual mark: any subsequent unshifted cursor
-motion command deactivates it automatically.  For details, @xref{Shift
-Selection}.
+@kbd{S-C-f}, @kbd{S-C-n}, etc.)  This is called @dfn{shift-selection}.
+It sets the mark at point before moving point, but only if there is no
+active mark set via shift-selection.  The mark set by mouse commands
+and by shift-selection behaves slightly differently from the usual
+mark: any subsequent unshifted cursor motion command deactivates it
+automatically.  For details, @xref{Shift Selection}.
 
-  Whenever the mark is active, you can deactivate it by typing
-@kbd{C-g} (@pxref{Quitting}).  The mark is also automatically
-deactivated after certain non-motion commands.
+  Many commands that insert text, such as @kbd{C-y} (@code{yank}), set
+the mark at the other end of the inserted text, without activating it.
+This lets you easily return to that position (@pxref{Mark Ring}).  You
+can tell that a command does this when it shows @samp{Mark set} in the
+echo area.
+
+@cindex primary selection
+  Under X, every time the active region changes, Emacs saves the text
+in the region to the @dfn{primary selection}.  This lets you insert
+that text into other X applications with @kbd{mouse-2} clicks.
+@xref{Primary Selection}.
 
 @node Marking Objects
 @section Commands to Mark Textual Objects
 
 @cindex marking sections of text
-  Here are the commands for placing point and the mark around a textual
+  Here are commands for placing point and the mark around a textual
 object such as a word, list, paragraph or page:
 
 @table @kbd
@@ -156,41 +178,41 @@ Move point to the beginning of the buffer, and set mark at the end
 (@code{mark-whole-buffer}).
 @end table
 
+@kindex M-@@
 @findex mark-word
+  @kbd{M-@@} (@code{mark-word}) sets the mark at the end of the next
+word (@pxref{Words}, for information about words).  Repeated
+invocations of this command extend the region by advancing the mark
+one word at a time.  As an exception, if the mark is active and
+located before point, @kbd{M-@@} moves the mark backwards from its
+current position one word at a time.
+
+  This command also accepts a numeric argument @var{n}, which tells it
+to advance the mark by @var{n} words.  A negative argument moves the
+mark back by @var{n} words.
+
+@kindex C-M-@@
 @findex mark-sexp
-@kbd{M-@@} (@code{mark-word}) puts the mark at the end of the next
-word, while @kbd{C-M-@@} (@code{mark-sexp}) puts it at the end of the
-next balanced expression (@pxref{Expressions}).  These commands handle
-arguments just like @kbd{M-f} and @kbd{C-M-f}.
+  Similarly, @kbd{C-M-@@} (@code{mark-sexp}) puts the mark at the end
+of the next balanced expression (@pxref{Expressions}).  Repeated
+invocations extend the region to subsequent expressions, while
+positive or negative numeric arguments move the mark forward or
+backward by the specified number of expressions.
+
+   The other commands in the above list set both point and mark, so as
+to delimit an object in the buffer.  @kbd{M-h} (@code{mark-paragraph})
+marks paragraphs (@pxref{Paragraphs}), @kbd{C-M-h} (@code{mark-defun})
+marks top-level definitions (@pxref{Moving by Defuns}), and @kbd{C-x
+C-p} (@code{mark-page}) marks pages (@pxref{Pages}).  Repeated
+invocations again play the same role, extending the region to
+consecutive objects; similarly, numeric arguments specify how many
+objects to move the mark by.
 
 @kindex C-x h
 @findex mark-whole-buffer
-   The other commands in the above list set both point and mark, so as
-to delimit an object in the buffer.  @kbd{M-h} (@code{mark-paragraph})
-moves point to the beginning of the paragraph that surrounds or
-follows point, and sets the mark at the end of that paragraph
-(@pxref{Paragraphs}).  As a special exception, repeated invocations of
-@kbd{M-h} extend the region to subsequent paragraphs.  This is
-convenient for indenting, case-converting, or killing entire
-paragraphs.
-
-  The @kbd{M-h} command accepts prefix arguments.  If the argument's
-value is positive, @kbd{M-h} marks that many paragraphs starting with
-the one surrounding point; therefore, @kbd{C-u M-h} is equivalent to
-@kbd{M-h M-h M-h M-h}.  If the prefix argument is @minus{}@var{n},
-@kbd{M-h} marks @var{n} paragraphs running back from the one
-surrounding point; in this case, point moves forward to the end of
-that paragraph, and the mark goes at the start of the region.
-
-  Similarly, @kbd{C-M-h} (@code{mark-defun}) sets mark and point
-around major top-level definitions (@pxref{Moving by Defuns}), and
-@kbd{C-x C-p} (@code{mark-page}) does the same for pages
-(@pxref{Pages}).  These treat repeated invocations and prefix
-arguments similarly to @code{mark-paragraph}.
-
-  Finally, @kbd{C-x h} (@code{mark-whole-buffer}) sets up the entire
-buffer as the region, by putting point at the beginning and the mark
-at the end.  (In some programs this is called ``select all.'')
+@cindex select all
+  @kbd{C-x h} (@code{mark-whole-buffer}) sets up the entire buffer as
+the region, by putting point at the beginning and the mark at the end.
 
 @node Using Region
 @section Operating on the Region
@@ -215,7 +237,7 @@ Indent it with @kbd{C-x @key{TAB}} or @kbd{C-M-\} (@pxref{Indentation}).
 @item
 Fill it as text with @kbd{M-x fill-region} (@pxref{Filling}).
 @item
-Print hardcopy with @kbd{M-x print-region} (@pxref{Printing}).
+Check the spelling of words within it with @kbd{M-$} (@pxref{Spelling}).
 @item
 Evaluate it as Lisp code with @kbd{M-x eval-region} (@pxref{Lisp Eval}).
 @item
@@ -224,39 +246,56 @@ Save it in a register with @kbd{C-x r s} (@pxref{Registers}).
 Save it in a buffer or a file (@pxref{Accumulating Text}).
 @end itemize
 
-  Most commands that operate on the text in the region have the word
-@code{region} in their names.
-
   Some commands have a default behavior when the mark is inactive, but
-operate on the text in the region if the mark is active.  For example,
-@kbd{M-$} (@code{ispell-word}) normally checks the spelling of the
-word at point, but it checks the text in the region if the region is
-active (@pxref{Spelling}).  Normally, such commands use their default
+operate on the region if the mark is active.  For example, @kbd{M-$}
+(@code{ispell-word}) normally checks the spelling of the word at
+point, but it checks the text in the region if the mark is active
+(@pxref{Spelling}).  Normally, such commands use their default
 behavior if the region is empty (i.e., if mark and point are at the
 same position).  If you want them to operate on the empty region,
 change the variable @code{use-empty-active-region} to @code{t}.
 
+@vindex delete-active-region
+  As described in @ref{Erasing}, the @key{DEL}
+(@code{backward-delete-char}) and @key{delete}
+(@code{delete-forward-char}) commands also act this way.  If the mark
+is active, they delete the text in the region.  (As an exception, if
+you supply a numeric argument @var{n}, where @var{n} is not one, these
+commands delete @var{n} characters regardless of whether the mark is
+active).  If you change the variable @code{delete-active-region} to
+@code{nil}, then these commands don't act differently when the mark is
+active.  If you change the value to @code{kill}, these commands
+@dfn{kill} the region instead of deleting it (@pxref{Killing}).
+
+@vindex mark-even-if-inactive
+  Other commands always operate on the region, and have no default
+behavior.  Such commands usually have the word @code{region} in their
+names, like @kbd{C-w} (@code{kill-region}) and @code{C-x C-u}
+(@code{upcase-region}).  If the mark is inactive, they operate on the
+``inactive region''---that is, on the text between point and the
+position at which the mark was last set (@pxref{Mark Ring}).  To
+disable this behavior, change the variable
+@code{mark-even-if-inactive} to @code{nil}.  Then these commands will
+instead signal an error if the mark is inactive.
+
 @cindex Delete Selection mode
 @cindex mode, Delete Selection
 @findex delete-selection-mode
-  If you enable Delete Selection mode, a minor mode, then inserting
-text while the mark is active causes the selected text to be deleted
-first.  This also deactivates the mark.  Many graphical applications
-follow this convention, but Emacs does not.  To toggle Delete
-Selection mode on or off, type @kbd{M-x delete-selection-mode}.
-Another effect of this mode is that some keys, such as @key{DEL} and
-@kbd{C-d}, always kill the region if one exists.
+  By default, text insertion occurs normally even if the mark is
+active---for example, typing @kbd{a} inserts the character @samp{a},
+then deactivates the mark.  If you enable Delete Selection mode, a
+minor mode, then inserting text while the mark is active causes the
+text in the region to be deleted first.  To toggle Delete Selection
+mode on or off, type @kbd{M-x delete-selection-mode}.
 
 @node Mark Ring
 @section The Mark Ring
 
 @cindex mark ring
-  Aside from delimiting the region, the mark is also useful for
-remembering spots that you may want to go back to.  Each buffer
-remembers @code{mark-ring-max} previous locations of the mark, in the
-@dfn{mark ring}.  This defaults to 16 locations.
-
-Commands that set the mark also push the old mark onto this ring.
+  Each buffer remembers previous locations of the mark, in the
+@dfn{mark ring}.  Commands that set the mark also push the old mark
+onto this ring.  One of the uses of the mark ring is to remember spots
+that you may want to go back to.
 
 @table @kbd
 @item C-@key{SPC} C-@key{SPC}
@@ -267,15 +306,15 @@ of former marks.
 @end table
 
 @kindex C-SPC C-SPC
-  The command C-@key{SPC} C-@key{SPC} is handy when you want to use
-the mark to remember a position to which you may wish to return.  It
-pushes the current point onto the mark ring, without activating the
+  The command @kbd{C-@key{SPC} C-@key{SPC}} is handy when you want to
+use the mark to remember a position to which you may wish to return.
+It pushes the current point onto the mark ring, without activating the
 mark (which would cause Emacs to highlight the region).  This is
 actually two consecutive invocations of @kbd{C-@key{SPC}}
 (@code{set-mark-command}); the first @kbd{C-@key{SPC}} sets the mark,
 and the second @kbd{C-@key{SPC}} deactivates it.  (When Transient Mark
-mode is off, C-@key{SPC} C-@key{SPC} instead activates Transient Mark
-mode temporarily.  @xref{Persistent Mark}.)
+mode is off, @kbd{C-@key{SPC} C-@key{SPC}} instead activates Transient
+Mark mode temporarily; @pxref{Disabled Transient Mark}.)
 
 @kindex C-u C-SPC
   To return to a marked position, use @code{set-mark-command} with a
@@ -298,15 +337,10 @@ always stays in the same buffer.
 
 @vindex mark-ring-max
   The variable @code{mark-ring-max} specifies the maximum number of
-entries to keep in the mark ring.  If that many entries exist and
-another one is pushed, the earliest one in the list is discarded.  Repeating
-@kbd{C-u C-@key{SPC}} cycles through the positions currently in the
-ring.
-
-@vindex mark-even-if-inactive
-  If the variable @code{mark-even-if-inactive} is @code{nil}, commands
-can only use the mark and the region when it is active.  This variable
-is non-@code{nil} by default.
+entries to keep in the mark ring.  This defaults to 16 entries.  If
+that many entries exist and another one is pushed, the earliest one in
+the list is discarded.  Repeating @kbd{C-u C-@key{SPC}} cycles through
+the positions currently in the ring.
 
   If you want to move back to the same place over and over, the mark
 ring may not be convenient enough.  If so, you can record the position
@@ -337,10 +371,9 @@ you to earlier buffers and mark positions.
 
   If you hold down the shift key while typing a cursor motion command,
 this sets the mark before moving point, so that the region extends
-from the original position of point to its new position.  This
-feature, newly introduced in Emacs 23, is referred to as
-@dfn{shift-selection}.  It is similar to the way text is selected in
-other editors.
+from the original position of point to its new position.  This feature
+is referred to as @dfn{shift-selection}.  It is similar to the way
+text is selected in other editors.
 
   The mark set via shift-selection behaves a little differently from
 what we have described above.  Firstly, in addition to the usual ways
@@ -348,7 +381,7 @@ of deactivating the mark (such as changing the buffer text or typing
 @kbd{C-g}), the mark is deactivated by any @emph{unshifted} cursor
 motion command.  Secondly, any subsequent @emph{shifted} cursor motion
 command avoids setting the mark anew.  Therefore, a series of shifted
-cursor motion commands will continuously extend the region.
+cursor motion commands will continuously adjust the region.
 
   Shift-selection only works if the shifted cursor motion key is not
 already bound to a separate command (@pxref{Customization}).  For
@@ -363,57 +396,35 @@ using shifted cursor motion commands.  In either case, any unshifted
 cursor motion command deactivates the mark.
 
   To turn off shift-selection, set @code{shift-select-mode} to
-@code{nil}.  Doing this does not disable setting the mark via mouse
+@code{nil}.  Doing so does not disable setting the mark via mouse
 commands.
 
-@node Persistent Mark
-@section Persistent Marks
+@node Disabled Transient Mark
+@section Disabling Transient Mark Mode
 @cindex mode, Transient Mark
 @cindex Transient Mark mode
 @cindex highlighting region
 @cindex region highlighting
 @cindex Zmacs mode
-
-  By default, the mark is activated by setting it, and deactivated by
-most non-motion commands (including all commands that change the text
-in the buffer).  This behavior is called Transient Mark
-mode@footnote{It is also sometimes called @dfn{Zmacs mode}, because
-the Zmacs editor on the MIT Lisp Machine handled the mark in a similar
-way.}.
-
-  Turning off Transient Mark mode switches Emacs to an alternative
-mode of operation, which was the default prior to Emacs 23.  When
-Transient Mark mode is off, the mark is @emph{never} deactivated, but
-it can be set to different locations using commands such as
-@kbd{C-@key{SPC}}.  Emacs does not highlight the region, because that
-would be a nuisance.  As a special exception, the region is
-temporarily highlighted if you set it with the mouse (@pxref{Setting
-Mark}), or with shift-selection (@pxref{Shift Selection}).
-
 @findex transient-mark-mode
-  To turn off Transient Mark mode, type @kbd{M-x transient-mark-mode}.
-This command toggles the mode; you can use the same command to turn it
-on again.  You can also toggle Transient Mark mode using the
-@samp{Active Region Highlighting} menu item in the @samp{Options}
-menu.
 
-  Here are the details of how Emacs behaves when Transient Mark mode
-is off:
+  The default behavior of the mark and region, in which setting the
+mark activates it and highlights the region, is called Transient Mark
+mode.  This is a minor mode that is enabled by default.  It can be
+toggled with @kbd{M-x transient-mark-mode}, or with the @samp{Active
+Region Highlighting} menu item in the @samp{Options} menu.  Turning it
+off switches Emacs to an alternative mode of operation:
 
 @itemize @bullet
 @item
-Emacs does not show where the mark is located---you have to remember.
-The usual solution to this problem is to set the mark and then use it
-soon, before you forget where it is.  Alternatively, you can check the
-location of the mark by using @kbd{C-x C-x}, which exchanges the
-positions of the point and the mark (@pxref{Setting Mark}).
+Setting the mark, with commands like @kbd{C-@key{SPC}} or @kbd{C-x
+C-x}, does not highlight the region.  Therefore, you can't tell by
+looking where the mark is located; you have to remember.
 
-@item
-Many commands that insert text, such as @kbd{C-y} (@code{yank}),
-position point and the mark at opposite ends of the inserted text, so
-that the region consists of the text just inserted.  You can tell when
-a command sets the mark because it displays @samp{Mark set} in the
-echo area.
+The usual solution to this problem is to set the mark and then use it
+soon, before you forget where it is.  You can also check where the
+mark is by using @kbd{C-x C-x}, which exchanges the positions of the
+point and the mark (@pxref{Setting Mark}).
 
 @item
 Many commands that move point long distances, like @kbd{M-<} and
@@ -451,3 +462,7 @@ mode only until the mark is deactivated.  One reason you may want to
 use them is that some commands operate on the entire buffer instead of
 the region when Transient Mark mode is off.  Enabling Transient Mark
 mode momentarily gives you a way to use these commands on the region.
+
+  When you specify a region with the mouse (@pxref{Setting Mark}), or
+with shift-selection (@pxref{Shift Selection}), this likewise
+activates Transient Mark mode temporarily and highlights the region.

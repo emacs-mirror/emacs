@@ -1,3 +1,189 @@
+2011-10-20  Chong Yidong  <cyd@gnu.org>
+
+	* custom.texi (Hooks, Init Examples):
+	* display.texi (Font Lock):
+	* fixit.texi (Spelling):
+	* rmail.texi (Rmail Display): Minor mode function with no arg now
+	enables it.
+
+	* fixit.texi (Spelling): Fix description of inline completion.
+
+2011-10-19  Chong Yidong  <cyd@gnu.org>
+
+	* search.texi (Repeat Isearch, Error in Isearch): Add kindex
+	entries.
+	(Isearch Yank): Document isearch-yank-pop.
+	(Isearch Scroll): Refer to C-l instead of unbound `recenter'.
+	(Other Repeating Search): Document Occur Edit mode.
+
+2011-10-18  Chong Yidong  <cyd@gnu.org>
+
+	* display.texi (Fringes): Move overflow-newline-into-fringe here,
+	from Line Truncation node.
+	(Standard Faces): Note that only the background of the cursor face
+	has an effect.
+	(Cursor Display): Fix descriptions of cursor face
+	and bar cursor blinking.
+	(Text Display): Document nobreak-char-display more clearly.
+	(Line Truncation): Add xref to Split Window node.
+	(Display Custom): Don't bother documenting baud-rate or
+	no-redraw-on-reenter.
+
+	* search.texi (Slow Isearch): Node removed.
+
+2011-10-18  Glenn Morris  <rgm@gnu.org>
+
+	* maintaining.texi (Registering): Remove vc-initial-comment.  (Bug#9745)
+
+2011-10-18  Chong Yidong  <cyd@gnu.org>
+
+	* display.texi (Faces): Simplify discussion.  Move documentation
+	of list-faces-display here, from Standard Faces node.  Note
+	special role of `default' background.
+	(Standard Faces): Note special role of `default' background.  Note
+	that region face may be taken fom GTK.  Add xref to Text Display.
+	(Text Scale): Rename from "Temporary Face Changes".  Callers
+	changed.  Don't bother documenting variable-pitch-mode.
+	(Font Lock): Copyedits.  Remove font-lock-maximum-size.
+	(Useless Whitespace): Simplify description of
+	delete-trailing-whitespace.  Note active region case.
+	(Text Display): Fix description of escape-glyph face assignment.
+	Remove unibye mode discussion.  Update some parts for Unicode.
+	Move glyphless chars documentation to Lisp manual.
+
+	* frames.texi (Tooltips): Document x-gtk-use-system-tooltips.
+
+2011-10-15  Chong Yidong  <cyd@stupidchicken.com>
+
+	* display.texi (Scrolling): Tweak explanation of scroll direction.
+	(View Mode): Add index entries.
+
+	* killing.texi (Deletion): Document negative prefix arg to M-SPC.
+
+	* regs.texi (Text Registers): C-x r i does not activate the mark.
+	(Bookmarks): Document new default bookmark location.
+
+2011-10-13  Chong Yidong  <cyd@stupidchicken.com>
+
+	* killing.texi (Deletion): Add xref to Using Region.  Document
+	delete-forward-char.
+	(Yanking): Move yank-excluded-properties to Lisp manual.  Move C-y
+	description here.  Recommend C-u C-SPC for jumping to mark.
+	(Kill Ring): Move kill ring variable documentation here.
+	(Primary Selection): Copyedits.
+	(Rectangles): Document new command rectangle-number-lines.
+	(CUA Bindings): Note that this disables the mark-even-if-inactive
+	behavior for C-x and C-c.
+
+	* mark.texi (Mark): Mention "active region" terminology.
+	(Using Region): Document delete-active-region.
+
+2011-10-12  Chong Yidong  <cyd@stupidchicken.com>
+
+	* mark.texi (Mark): Clarify description of disabled Transient Mark
+	mode (Bug#9689).
+	(Setting Mark): Document prefix arg for C-x C-x.  Document primary
+	selection changes.  Mention that commands like C-y set the mark.
+	(Marking Objects): Add xref to Words node.  Note that mark-word
+	and mark-sexp also have the "extend region" behavior.
+	(Using Region): Mention M-$ in the table.  Document
+	mark-even-if-inactive here instead of in Mark Ring.
+	(Mark Ring): Move mark-even-if-inactive to Using Region.  Take
+	note of the "Mark Set" behavior.
+	(Disabled Transient Mark): Rename from "Persistent Mark"
+	(Bug#9688).  Callers changed.
+
+	* programs.texi (Expressions):
+	* text.texi (Words): Defer to Marking Objects for mark-word doc.
+
+2011-10-09  Chong Yidong  <cyd@stupidchicken.com>
+
+	* help.texi (Help, Help Summary): Eliminate the unnecessary "help
+	option" terminology.
+	(Key Help): Add command names.  Define "documentation string".
+	(Name Help): Remove an over-long joke.
+	(Apropos): Document prefix args.  Remove duplicated descriptions.
+	(Help Mode): Add C-c C-b to table.  Update TAB binding.
+	(Package Keywords): Rename from "Library by Keyword".  Describe
+	new package menu interface.
+	(Help Files, Help Echo): Tweak description.
+
+	* mini.texi (Completion Options): Add completion-cycle-threshold.
+	(Minibuffer History): Document numeric args to history commands.
+
+2011-10-08  Eli Zaretskii  <eliz@gnu.org>
+
+	* mule.texi (Bidirectional Editing): Correct some inaccuracies.
+
+2011-10-08  Chong Yidong  <cyd@stupidchicken.com>
+
+	* basic.texi (Position Info): Omit page commands.  Document
+	count-words-region and count-words.
+
+	* text.texi (Pages): Move what-page documentation here.
+
+2011-10-08  Chong Yidong  <cyd@stupidchicken.com>
+
+	* mini.texi (Minibuffer File): Minor copyedits.  Use xref to
+	Remote Files node instead of linking directly to the Tramp manual.
+	(Minibuffer Edit): Add xref to Blank Lines.
+	(Completion): Add xref to Symbol Completion.  Remove redundant
+	example, which is repeated in the next node.
+	(Completion Commands): Minor clarifications.
+	(Completion Styles): New node, split from Completion Commands.
+	Document substring and initials styles.
+	(Strict Completion): Remove information duplicated in other nodes.
+	(Completion Options): Consolidate case difference discussion here.
+
+	* help.texi (Help Mode): Fix kindex entries.
+
+	* files.texi (File Names): Add index entries.
+
+2011-10-07  Chong Yidong  <cyd@stupidchicken.com>
+
+	* basic.texi (Inserting Text): Add xref to Completion.  Add
+	ucs-insert example, and document prefix argument.
+	(Moving Point): Fix introduction; C-f/C-b are no longer equivalent
+	to left/right.  Tweak left-char and right-char descriptions.
+	M-left and M-right are now bound to left-word/right-word.
+	(Erasing): Document delete-forward-char.
+
+	* screen.texi (Screen, Menu Bar): Copyedits.
+	(Point): Remove duplicate paragraph on cursors, also in Screen.
+	(Mode Line): Trailing dashes no longer shown on X displays.
+
+	* frames.texi (Non-Window Terminals): Index just "text-only
+	terminal", which is used throughout the manual now.
+
+	* entering.texi (Entering Emacs): Define "startup screen".
+	Document window-splitting behavior with command-line inputs.
+	(Exiting): Remove obsolete paragraph about shells without suspend
+	functionality.
+
+	* commands.texi (User Input): Define "input event" more clearly.
+	(Keys): Add xref to Echo Area.
+	(Commands): Clarify relation between commands and functions.
+
+2011-10-06  Chong Yidong  <cyd@stupidchicken.com>
+
+	* misc.texi (emacsclient Options): Document how emacsclient runs
+	the Emacs daemon (Bug#9674).
+
+2011-10-01  Chong Yidong  <cyd@stupidchicken.com>
+
+	* basic.texi (Moving Point):
+	* custom.texi (Mouse Buttons):
+	* rmail.texi (Rmail Scrolling):
+	* search.texi (Isearch Scroll):
+
+	* display.texi (Scrolling): Replace scroll-up/down with
+	scroll-up/down-command.  Fix scroll-preserve-screen-position
+	description.  Document scroll-error-top-bottom.
+
+2011-09-30  Glenn Morris  <rgm@gnu.org>
+
+	* commands.texi (Keys): Whitespace fix.  (Bug#9635)
+
 2011-09-24  Chong Yidong  <cyd@stupidchicken.com>
 
 	* windows.texi (Pop Up Window): Defer discussion of window

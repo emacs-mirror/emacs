@@ -147,11 +147,14 @@ backward compatibility.")
 
 ;;;###autoload
 (define-minor-mode desktop-save-mode
-  "Toggle desktop saving mode.
-With numeric ARG, turn desktop saving on if ARG is positive, off
-otherwise.  If desktop saving is turned on, the state of Emacs is
-saved from one session to another.  See variable `desktop-save'
-and function `desktop-read' for details."
+  "Toggle desktop saving (Desktop Save mode).
+With a prefix argument ARG, enable Desktop Save mode if ARG is
+positive, and disable it otherwise.  If called from Lisp, enable
+the mode if ARG is omitted or nil.
+
+If Desktop Save mode is enabled, the state of Emacs is saved from
+one session to another.  See variable `desktop-save' and function
+`desktop-read' for details."
   :global t
   :group 'desktop)
 

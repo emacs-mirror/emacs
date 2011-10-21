@@ -1315,12 +1315,6 @@ AC_CHECK_HEADERS(net/if_dl.h, , , [AC_INCLUDES_DEFAULT
 AC_CHECK_FUNCS(getifaddrs freeifaddrs)
 
 dnl checks for structure members
-AC_STRUCT_TM
-AC_STRUCT_TIMEZONE
-AC_CHECK_MEMBER(struct tm.tm_gmtoff,
-		[AC_DEFINE(HAVE_TM_GMTOFF, 1,
-			   [Define to 1 if `tm_gmtoff' is member of `struct tm'.])],,
-		[#include <time.h>])
 AC_CHECK_MEMBERS([struct ifreq.ifr_flags, struct ifreq.ifr_hwaddr,
 		  struct ifreq.ifr_netmask, struct ifreq.ifr_broadaddr,
 		  struct ifreq.ifr_addr,
@@ -1792,9 +1786,9 @@ if test "${HAVE_X11}" = "yes"; then
     AC_MSG_CHECKING(whether X on GNU/Linux needs -b to link)
     AC_LINK_IFELSE([AC_LANG_PROGRAM([[]],
      [[XOpenDisplay ("foo");]])],
-     [xlinux_first_failure=no],
-     [xlinux_first_failure=yes])
-    if test "${xlinux_first_failure}" = "yes"; then
+     [xgnu_linux_first_failure=no],
+     [xgnu_linux_first_failure=yes])
+    if test "${xgnu_linux_first_failure}" = "yes"; then
       OLD_LD_SWITCH_X_SITE="$LD_SWITCH_X_SITE"
       OLD_C_SWITCH_X_SITE="$C_SWITCH_X_SITE"
       OLD_CPPFLAGS="$CPPFLAGS"
@@ -1805,9 +1799,9 @@ if test "${HAVE_X11}" = "yes"; then
       LIBS="$LIBS -b i486-linuxaout"
       AC_LINK_IFELSE([AC_LANG_PROGRAM([[]],
        [[XOpenDisplay ("foo");]])],
-       [xlinux_second_failure=no],
-       [xlinux_second_failure=yes])
-      if test "${xlinux_second_failure}" = "yes"; then
+       [xgnu_linux_second_failure=no],
+       [xgnu_linux_second_failure=yes])
+      if test "${xgnu_linux_second_failure}" = "yes"; then
 	# If we get the same failure with -b, there is no use adding -b.
 	# So take it out.  This plays safe.
 	LD_SWITCH_X_SITE="$OLD_LD_SWITCH_X_SITE"
@@ -1925,8 +1919,8 @@ fi
 if test "$pkg_check_gtk" != "yes"; then
   HAVE_GTK=no
 if test "${with_gtk}" = "yes" || test "$USE_X_TOOLKIT" = "maybe"; then
-  GLIB_REQUIRED=2.6
-  GTK_REQUIRED=2.6
+  GLIB_REQUIRED=2.10
+  GTK_REQUIRED=2.10
   GTK_MODULES="gtk+-2.0 >= $GTK_REQUIRED glib-2.0 >= $GLIB_REQUIRED"
 
   dnl Checks for libraries.
@@ -2772,11 +2766,15 @@ AC_CHECK_FUNCS(getpt)
 # than to expect to find it in ncurses.
 # Also we need tputs and friends to be able to build at all.
 have_tputs_et_al=true
-AC_SEARCH_LIBS(tputs, [ncurses terminfo termcap], , have_tputs_et_al=false)
+# Maybe curses should be tried earlier?
+# See http://debbugs.gnu.org/cgi/bugreport.cgi?bug=9736#35
+AC_SEARCH_LIBS(tputs, [ncurses terminfo termcap curses], , have_tputs_et_al=false)
 if test "$have_tputs_et_al" != true; then
-  AC_MSG_ERROR([I couldn't find termcap functions (tputs and friends).
-Maybe some development libraries/packages are missing?  Try installing
-libncurses-dev(el), libterminfo-dev(el) or similar.])
+  AC_MSG_ERROR([The required function `tputs' was not found in any library.
+These libraries were tried: libncurses, libterminfo, libtermcap, libcurses.
+Please try installing whichever of these libraries is most appropriate
+for your system, together with its header files.
+For example, a libncurses-dev(el) or similar package.])
 fi
 # Must define this when any termcap library is found.
 AC_DEFINE(HAVE_LIBNCURSES, 1,
@@ -3007,10 +3005,6 @@ AC_SUBST(CRYPTOLIB)
 AC_SUBST(KRB5LIB)
 AC_SUBST(DESLIB)
 AC_SUBST(KRB4LIB)
-
-# Solaris requires -lintl if you want strerror (which calls dgettext)
-# to return localized messages.
-AC_CHECK_LIB(intl, dgettext)
 
 AC_MSG_CHECKING(whether localtime caches TZ)
 AC_CACHE_VAL(emacs_cv_localtime_cache,
@@ -3662,9 +3656,6 @@ AH_BOTTOM([
 #  ifndef GC_SETJMP_WORKS
   /* GC_SETJMP_WORKS is nearly always appropriate for GCC.  */
 #    define GC_SETJMP_WORKS 1
-#  endif
-#  ifndef GC_LISP_OBJECT_ALIGNMENT
-#    define GC_LISP_OBJECT_ALIGNMENT (__alignof__ (Lisp_Object))
 #  endif
 #endif
 

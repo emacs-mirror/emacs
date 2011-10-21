@@ -2065,9 +2065,9 @@ terminal type to a different value."
     (((supports :underline t))
      :underline t)
     (t
-     ;; default to italic, even it doesn't appear to be supported,
-     ;; because in some cases the display engine will do it's own
-     ;; workaround (to `dim' on ttys)
+     ;; Default to italic, even if it doesn't appear to be supported,
+     ;; because in some cases the display engine will do its own
+     ;; workaround (to `dim' on ttys).
      :slant italic))
   "Basic italic face."
   :group 'basic-faces)
@@ -2366,6 +2366,10 @@ used to display the prompt text."
   '((((background light)) :background "black")
     (((background dark))  :background "white"))
   "Basic face for the cursor color under X.
+Currently, only the `:background' attribute is meaningful; all
+other attributes are ignored.  The cursor foreground color is
+taken from the background color of the underlying text.
+
 Note: Other faces cannot inherit from the cursor face."
   :version "21.1"
   :group 'cursor

@@ -30,9 +30,9 @@ Display a description of what register @var{r} contains.
 @end table
 
   @dfn{Bookmarks} record files and positions in them, so you can
-return to those positions when you look at the file again.
-Bookmarks are similar enough in spirit to registers that they
-seem to belong in this chapter.
+return to those positions when you look at the file again.  Bookmarks
+are similar in spirit to registers, so they are also documented in
+this chapter.
 
 @menu
 * Position Registers::       Saving positions in registers.
@@ -119,9 +119,9 @@ the region text to the text in the register instead of
 @kindex C-x r i
 @findex insert-register
   @kbd{C-x r i @var{r}} inserts in the buffer the text from register
-@var{r}.  Normally it leaves point before the text and places the mark
-after, but with a numeric argument (@kbd{C-u}) it puts point after the
-text and the mark before.
+@var{r}.  Normally it leaves point before the text and sets the mark
+after, without activating it.  With a numeric argument, it instead
+puts point after the text and the mark before.
 
 @node Rectangle Registers
 @section Saving Rectangles in Registers
@@ -143,12 +143,9 @@ Insert the rectangle stored in register @var{r} (if it contains a
 rectangle) (@code{insert-register}).
 @end table
 
-  The @kbd{C-x r i @var{r}} command inserts a text string if the
-register contains one, and inserts a rectangle if the register contains
-one.
-
-  See also the command @code{sort-columns}, which you can think of
-as sorting a rectangle.  @xref{Sorting}.
+  The @kbd{C-x r i @var{r}} (@code{insert-register}) command,
+previously documented in @ref{Text Registers}, inserts a rectangle
+rather than a a text string, if the register contains a rectangle.
 
 @node Configuration Registers
 @section Saving Window Configurations in Registers
@@ -281,12 +278,14 @@ you can use it to edit your bookmark definitions or annotate the
 bookmarks.  Type @kbd{C-h m} in the bookmark buffer for more
 information about its special editing commands.
 
-  When you kill Emacs, Emacs offers to save your bookmark values in your
-default bookmark file, @file{~/.emacs.bmk}, if you have changed any
-bookmark values.  You can also save the bookmarks at any time with the
-@kbd{M-x bookmark-save} command.  The bookmark commands load your
-default bookmark file automatically.  This saving and loading is how
-bookmarks persist from one Emacs session to the next.
+  When you kill Emacs, Emacs offers to save your bookmark values, if
+you have changed any bookmark values.  You can also save the bookmarks
+at any time with the @kbd{M-x bookmark-save} command.  Bookmarks are
+saved to the file @file{~/.emacs.d/bookmarks} (for compatibility with
+older versions of Emacs, if you have a file named @file{~/.emacs.bmk},
+that is used instead).  The bookmark commands load your default
+bookmark file automatically.  This saving and loading is how bookmarks
+persist from one Emacs session to the next.
 
 @vindex bookmark-save-flag
   If you set the variable @code{bookmark-save-flag} to 1, each command

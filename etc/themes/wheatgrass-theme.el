@@ -29,7 +29,7 @@ of green, brown, and blue.")
   (custom-theme-set-faces
    'wheatgrass
    `(default ((,class (:foreground "wheat" :background "black"))))
-   `(cursor ((,class (:foreground "black" :background "thistle"))))
+   `(cursor ((,class (:background "thistle"))))
    `(error ((,class (:foreground "salmon1"))))
    `(warning ((,class (:foreground "orange"))))
    `(success ((,class (:foreground "yellow green"))))

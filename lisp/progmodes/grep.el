@@ -245,8 +245,8 @@ See `compilation-error-screen-columns'"
 (defvar grep-mode-map
   (let ((map (make-sparse-keymap)))
     (set-keymap-parent map compilation-minor-mode-map)
-    (define-key map " " 'scroll-up)
-    (define-key map "\^?" 'scroll-down)
+    (define-key map " " 'scroll-up-command)
+    (define-key map "\^?" 'scroll-down-command)
     (define-key map "\C-c\C-f" 'next-error-follow-minor-mode)
 
     (define-key map "\r" 'compile-goto-error)  ;; ?

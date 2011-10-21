@@ -264,7 +264,7 @@ Basic Editing Commands
 * Basic Help::          Asking what a character does.
 * Blank Lines::         Making and deleting blank lines.
 * Continuation Lines::  How Emacs displays lines too wide for the screen.
-* Position Info::       What page, line, row, or column is point on?
+* Position Info::       What line, row, or column is point on?
 * Arguments::           Numeric arguments for repeating a command N times.
 * Repeating::           Repeating the previous command quickly.
 
@@ -282,6 +282,7 @@ Completion
 * Completion Example::  Examples of using completion.
 * Completion Commands:: A list of completion commands.
 * Strict Completion::   Different types of completion.
+* Completion Styles::   How completion matches are chosen.
 * Completion Options::  Options for completion.
 
 Help
@@ -291,10 +292,10 @@ Help
 * Name Help::           Asking about a command, variable or function name.
 * Apropos::             Asking what pertains to a given topic.
 * Help Mode::           Special features of Help mode and Help buffers.
-* Library Keywords::    Finding Lisp libraries by keywords (topics).
+* Package Keywords::    Finding Lisp libraries by keywords (topics).
 * Language Help::       Help relating to international language support.
 * Misc Help::           Other help commands.
-* Help Files::          Commands to display pre-written help files.
+* Help Files::          Commands to display auxilliary help files.
 * Help Echo::           Help on active text and tooltips (`balloon help').
 
 The Mark and the Region
@@ -305,7 +306,7 @@ The Mark and the Region
 * Mark Ring::           Previous mark positions saved so you can go back there.
 * Global Mark Ring::    Previous mark positions in various buffers.
 * Shift Selection::     Using shifted cursor motion keys.
-* Persistent Mark::     Keeping the mark active all the time.
+* Disabled Transient Mark:: Leaving regions unhighlighted by default.
 
 Killing and Moving Text
 
@@ -318,9 +319,9 @@ Killing and Moving Text
 
 Yanking
 
-* Kill Ring::           Where killed text is stored.  Basic yanking.
-* Appending Kills::     Several kills in a row all yank together.
+* Kill Ring::           Where killed text is stored.
 * Earlier Kills::       Yanking something killed some time ago.
+* Appending Kills::     Several kills in a row all yank together.
 
 Killing and Yanking on Graphical Displays
 
@@ -349,7 +350,7 @@ Controlling the Display
 * Follow Mode::            Follow mode lets two windows scroll as one.
 * Faces::                  How to change the display style using faces.
 * Standard Faces::         Emacs' predefined faces.
-* Temporary Face Changes:: Commands to temporarily modify the default text face
+* Text Scale::             Increasing or decreasing text size in a buffer.
 * Font Lock::              Minor mode for syntactic highlighting using faces.
 * Highlight Interactively:: Tell Emacs what text to highlight.
 * Fringes::                Enabling or disabling window fringes.
@@ -387,7 +388,6 @@ Incremental Search
                           or else edit the search string.
 * Isearch Scroll::      Scrolling during an incremental search.
 * Isearch Minibuffer::  Incremental search of the minibuffer history.
-* Slow Isearch::        Incremental search features for slow terminals.
 
 Replacement Commands
 

@@ -1,3 +1,51 @@
+2011-10-18  Chong Yidong  <cyd@gnu.org>
+
+	* display.texi (Glyphless Chars): New node.
+
+2011-10-13  Chong Yidong  <cyd@stupidchicken.com>
+
+	* text.texi (Yanking): Document yank-excluded-properties.
+
+	* package.texi (Packaging Basics): The commentary should say how
+	to begin using the package.
+
+2011-10-11  Martin Rudalics  <rudalics@gmx.at>
+
+	* windows.texi (Deleting Windows): Mention which window gets
+	selected when deleting the selected window.
+
+2011-10-09  Martin Rudalics  <rudalics@gmx.at>
+
+	* buffers.texi (The Buffer List): Describe how bury-buffer deals
+	with the selected window.
+	* windows.texi (Buffers and Windows): Reformulate text on how
+	replace-buffer-in-windows deals with a window.
+	(Quitting Windows): Describe how quit-window deals with a
+	standalone frame.  Describe new option frame-auto-hide-function.
+
+2011-10-08  Glenn Morris  <rgm@gnu.org>
+
+	* symbols.texi (Other Plists): Markup fix.  (Bug#9702)
+
+	* positions.texi (Excursions): Update warning message.
+
+2011-10-05  Chong Yidong  <cyd@stupidchicken.com>
+
+	* display.texi (Low-Level Font, Face Attributes, Font Lookup): Fix
+	Emacs manual xref (Bug#9675).
+
+2011-10-01  Chong Yidong  <cyd@stupidchicken.com>
+
+	* windows.texi (Textual Scrolling): Document scroll-up-command,
+	scroll-down-command, scroll-error-top-bottom, and the
+	scroll-command symbol property.
+	(Display Action Functions): Fix description of
+	display-buffer-pop-up-window.
+
+2011-09-28  Juanma Barranquero  <lekktu@gmail.com>
+
+	* windows.texi (Splitting Windows): Fix typos.
+
 2011-09-25  Martin Rudalics  <rudalics@gmx.at>
 
 	* windows.texi (Windows and Frames, Display Action Functions)

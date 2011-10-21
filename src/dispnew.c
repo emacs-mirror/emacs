@@ -5261,6 +5261,10 @@ buffer_posn_from_coords (struct window *w, int *x, int *y, struct display_pos *p
   CHARPOS (startp) = min (ZV, max (BEGV, CHARPOS (startp)));
   BYTEPOS (startp) = min (ZV_BYTE, max (BEGV_BYTE, BYTEPOS (startp)));
   start_display (&it, w, startp);
+  /* start_display takes into account the header-line row, but IT's
+     vpos still counts from the glyph row that includes the window's
+     start position.  Adjust for a possible header-line row.  */
+  it.vpos += WINDOW_WANTS_HEADER_LINE_P (w) ? 1 : 0;
 
   x0 = *x;
 

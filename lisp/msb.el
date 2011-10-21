@@ -1133,7 +1133,10 @@ variable `msb-menu-cond'."
 ;;;###autoload
 (define-minor-mode msb-mode
   "Toggle Msb mode.
-With arg, turn Msb mode on if and only if arg is positive.
+With a prefix argument ARG, enable Msb mode if ARG is positive,
+and disable it otherwise.  If called from Lisp, enable the mode
+if ARG is omitted or nil.
+
 This mode overrides the binding(s) of `mouse-buffer-menu' to provide a
 different buffer menu using the function `msb'."
   :global t :group 'msb

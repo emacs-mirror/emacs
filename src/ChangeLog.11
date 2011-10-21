@@ -4547,7 +4547,7 @@
 
 	* composite.c (composition_compute_stop_pos): In forward search,
 	pay attention to the possibility that some character after ENDPOS
-	will be composed with charactrs before ENDPOS.
+	will be composed with characters before ENDPOS.
 
 2010-08-24  Chong Yidong  <cyd@stupidchicken.com>
 

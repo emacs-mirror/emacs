@@ -193,7 +193,7 @@ formatting, and then moved afterward.")
      ;; size=3
      ((string-match "[^ ]=[^ ]" prev)
       (let ((attr  (nth 0 (split-string prev "=")))
-	    (value (nth 1 (split-string prev "="))))
+	    (value (substring prev (1+ (string-match "=" prev)))))
 	(setq attr-list (cons (list attr value) attr-list))))
      ;; size= 3
      ((string-match "[^ ]=\\'" prev)
@@ -204,7 +204,7 @@ formatting, and then moved afterward.")
        ;; size=3
        ((string-match "[^ ]=[^ ]" this)
 	(let ((attr  (nth 0 (split-string this "=")))
-	      (value (nth 1 (split-string this "="))))
+	      (value (substring prev (1+ (string-match "=" this)))))
 	  (setq attr-list (cons (list attr value) attr-list))))
        ;; size =3
        ((string-match "\\`=[^ ]" this)
@@ -358,7 +358,8 @@ formatting, and then moved afterward.")
     (delete-region p1 p4)
     (when href
       (goto-char p1)
-      (insert (substring href 1 -1 ))
+      (insert (if (string-match "\\`['\"].*['\"]\\'" href)
+		  (substring href 1 -1) href))
       (put-text-property p1 (point) 'face 'bold))))
 
 ;;

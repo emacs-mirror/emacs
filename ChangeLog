@@ -1,3 +1,60 @@
+2011-10-20  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Time zone name fixes for non-ASCII locales (Bug#641, Bug#9794)
+	* configure.in (AC_STRUCT_TM, AC_STRUCT_TIMEZONE, HAVE_TM_GMTOFF):
+	Remove; no longer needed, now that we defer to strftime for time
+	zone names.
+
+2011-10-18  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* configure.in (GLIB_REQUIRED, GTK_REQUIRED): Set to 2.10 (Bug#9786).
+
+2011-10-18  Chong Yidong  <cyd@gnu.org>
+
+	* make-dist: Remove Cocoa/Emacs.xcodeproj from distribution.
+
+2011-10-13  Glenn Morris  <rgm@gnu.org>
+
+	* configure.in: Also look for tputs in libcurses.  (Bug#9736)
+
+2011-10-12  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* configure.in: Remove check for -lintl (Bug#9713).
+	The check could break 'configure' on GNU/Linux with a (broken) libintl.
+	The check was helpful but not essential in Solaris 2.6 (1997),
+	and is no longer needed in Solaris 8 (2000).  Solaris 2.6 is
+	obsolete -- Sun dropped support for it in 2006 -- and without
+	access to that Silurian platform we can't maintain the code anyway.
+
+2011-10-07  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Merge from gnulib, fixing some 'configure' typos (Bug#9696).
+	* lib/signal.in.h, lib/sigprocmask.c, m4/gl-comp.m4:
+	* m4/gnulib-common.m4: Merge from gnulib.
+	Without this, 'configure' would say "func_gl_gnulib_m4code_pathmax:
+	command not found" on powerpc-apple-darwin9.8.0.
+
+	* configure.in (GC_LISP_OBJECT_ALIGNMENT): Remove.
+	This is now done by src/alloc.c.
+
+2011-10-02  Richard Stallman  <rms@gnu.org>
+
+	* configure.in: Rename xlinux_first_failure to xgnu_linux_first_failure
+	and xlinux_second_failure to xgnu_linux_second_failure.
+
+2011-09-29  Eli Zaretskii  <eliz@gnu.org>
+
+	* .bzrignore: Add ./GNUmakefile.unix, lib/SYS, lib/alloca.in-h,
+	lib/signal.in-h.
+
+	* config.bat: Rename GNUmakefile, so it is not run on MS-DOS.
+	Rename signal.in.h and alloca.in.h.
+
+2011-09-28  Eli Zaretskii  <eliz@gnu.org>
+
+	* INSTALL: Mention that m17n libraries and libotf are needed for
+	Arabic shaping.
+
 2011-09-26  Paul Eggert  <eggert@cs.ucla.edu>
 
 	Merge from gnulib, improving some licensing wording.

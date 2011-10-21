@@ -577,8 +577,7 @@ failed."
     (t x)))
 
 (defun ert--explain-equal-rec (a b)
-  "Returns a programmer-readable explanation of why A and B are not `equal'.
-
+  "Return a programmer-readable explanation of why A and B are not `equal'.
 Returns nil if they are."
   (if (not (equal (type-of a) (type-of b)))
       `(different-types ,a ,b)
@@ -1020,36 +1019,36 @@ t -- Always matches.
   (ert-test-result-type-p result (ert-test-expected-result-type test)))
 
 (defun ert-select-tests (selector universe)
-  "Return the tests that match SELECTOR.
+  "Return a list of tests that match SELECTOR.
 
-UNIVERSE specifies the set of tests to select from; it should be
-a list of tests, or t, which refers to all tests named by symbols
-in `obarray'.
+UNIVERSE specifies the set of tests to select from; it should be a list
+of tests, or t, which refers to all tests named by symbols in `obarray'.
 
-Returns the set of tests as a list.
+Valid SELECTORs:
 
-Valid selectors:
-
-nil -- Selects the empty set.
-t -- Selects UNIVERSE.
+nil  -- Selects the empty set.
+t    -- Selects UNIVERSE.
 :new -- Selects all tests that have not been run yet.
-:failed, :passed -- Select tests according to their most recent result.
+:failed, :passed       -- Select tests according to their most recent result.
 :expected, :unexpected -- Select tests according to their most recent result.
-a string -- Selects all tests that have a name that matches the string,
-            a regexp.
-a test -- Selects that test.
+a string -- A regular expression selecting all tests with matching names.
+a test   -- (i.e., an object of the ert-test data-type) Selects that test.
 a symbol -- Selects the test that the symbol names, errors if none.
-\(member TESTS...\) -- Selects TESTS, a list of tests or symbols naming tests.
+\(member TESTS...) -- Selects the elements of TESTS, a list of tests
+    or symbols naming tests.
 \(eql TEST\) -- Selects TEST, a test or a symbol naming a test.
-\(and SELECTORS...\) -- Selects the tests that match all SELECTORS.
-\(or SELECTORS...\) -- Selects the tests that match any SELECTOR.
-\(not SELECTOR\) -- Selects all tests that do not match SELECTOR.
+\(and SELECTORS...) -- Selects the tests that match all SELECTORS.
+\(or SELECTORS...)  -- Selects the tests that match any of the SELECTORS.
+\(not SELECTOR)     -- Selects all tests that do not match SELECTOR.
 \(tag TAG) -- Selects all tests that have TAG on their tags list.
-\(satisfies PREDICATE\) -- Selects all tests that satisfy PREDICATE.
+    A tag is an arbitrary label you can apply when you define a test.
+\(satisfies PREDICATE) -- Selects all tests that satisfy PREDICATE.
+    PREDICATE is a function that takes an ert-test object as argument,
+    and returns non-nil if it is selected.
 
 Only selectors that require a superset of tests, such
 as (satisfies ...), strings, :new, etc. make use of UNIVERSE.
-Selectors that do not, such as \(member ...\), just return the
+Selectors that do not, such as (member ...), just return the
 set implied by them without checking whether it is really
 contained in UNIVERSE."
   ;; This code needs to match the etypecase in
