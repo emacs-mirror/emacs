@@ -281,7 +281,7 @@ Completion
 
 * Completion Example::  Examples of using completion.
 * Completion Commands:: A list of completion commands.
-* Strict Completion::   Different types of completion.
+* Completion Exit::     Completion and minibuffer text submission.
 * Completion Styles::   How completion matches are chosen.
 * Completion Options::  Options for completion.
 

@@ -310,7 +310,6 @@ Key bindings:
   (set (make-local-variable 'comment-indent-function) 'c-comment-indent)
   (set (make-local-variable 'paragraph-start) "^$")
   (set (make-local-variable 'paragraph-separate) paragraph-start)
-  (set (make-local-variable 'require-final-newline) t)
   (set (make-local-variable 'indent-tabs-mode) nil)
   (set (make-local-variable 'indent-line-function) 'vera-indent-line)
   (set (make-local-variable 'parse-sexp-ignore-comments) t)

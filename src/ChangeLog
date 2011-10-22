@@ -1,3 +1,16 @@
+2011-10-20  Eli Zaretskii  <eliz@gnu.org>
+
+	* dispextern.h (struct bidi_it): New member next_en_type.
+
+	* bidi.c (bidi_line_init): Initialize the next_en_type member.
+	(bidi_resolve_explicit_1): When next_en_pos is valid for the
+	current character, check also for next_en_type being WEAK_EN.
+	(bidi_resolve_weak): Don't enter the expensive loop if the current
+	position is before next_en_pos.  Record the bidi type of the first
+	non-ET, non-BN character we find, in addition to its position.
+	(bidi_level_of_next_char): Invalidate next_en_type when
+	next_en_pos is over-stepped.
+
 2011-10-20  Paul Eggert  <eggert@cs.ucla.edu>
 
 	Time zone name fixes for non-ASCII locales (Bug#641, Bug#9794)

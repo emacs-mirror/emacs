@@ -1415,7 +1415,7 @@ to make the screen blink.
   The variable @code{echo-keystrokes} controls the echoing of multi-character
 keys; its value is the number of seconds of pause required to cause echoing
 to start, or zero, meaning don't echo at all.  The value takes effect when
-there is someting to echo.  @xref{Echo Area}.
+there is something to echo.  @xref{Echo Area}.
 
 @cindex mouse pointer
 @cindex hourglass pointer display

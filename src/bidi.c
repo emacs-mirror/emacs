@@ -849,6 +849,7 @@ bidi_line_init (struct bidi_it *bidi_it)
   /* Setting this to zero will force its recomputation the first time
      we need it for W5.  */
   bidi_it->next_en_pos = 0;
+  bidi_it->next_en_type = UNKNOWN_BT;
   bidi_it->next_for_ws.type = UNKNOWN_BT;
   bidi_set_sor_type (bidi_it,
 		     (bidi_it->paragraph_dir == R2L ? 1 : 0),
@@ -1437,7 +1438,8 @@ bidi_resolve_explicit_1 (struct bidi_it *bidi_it)
 	      }
 	  }
 	else if (bidi_it->prev.type_after_w1 == WEAK_EN /* W5/Retaining */
-		 || bidi_it->next_en_pos > bidi_it->charpos)
+		 || (bidi_it->next_en_pos > bidi_it->charpos
+		     && bidi_it->next_en_type == WEAK_EN))
 	  type = WEAK_EN;
 	break;
       case LRE:	/* X3 */
@@ -1473,7 +1475,8 @@ bidi_resolve_explicit_1 (struct bidi_it *bidi_it)
 	      }
 	  }
 	else if (bidi_it->prev.type_after_w1 == WEAK_EN /* W5/Retaining */
-		 || bidi_it->next_en_pos > bidi_it->charpos)
+		 || (bidi_it->next_en_pos > bidi_it->charpos
+		     && bidi_it->next_en_type == WEAK_EN))
 	  type = WEAK_EN;
 	break;
       case PDF:	/* X7 */
@@ -1499,7 +1502,8 @@ bidi_resolve_explicit_1 (struct bidi_it *bidi_it)
 	      }
 	  }
 	else if (bidi_it->prev.type_after_w1 == WEAK_EN /* W5/Retaining */
-		 || bidi_it->next_en_pos > bidi_it->charpos)
+		 || (bidi_it->next_en_pos > bidi_it->charpos
+		     && bidi_it->next_en_type == WEAK_EN))
 	  type = WEAK_EN;
 	break;
       default:
@@ -1731,10 +1735,15 @@ bidi_resolve_weak (struct bidi_it *bidi_it)
       else if (type == WEAK_ET	/* W5: ET with EN before or after it */
 	       || type == WEAK_BN)	/* W5/Retaining */
 	{
-	  if (bidi_it->prev.type_after_w1 == WEAK_EN /* ET/BN w/EN before it */
-	      || bidi_it->next_en_pos > bidi_it->charpos)
+	  if (bidi_it->prev.type_after_w1 == WEAK_EN) /* ET/BN w/EN before it */
 	    type = WEAK_EN;
-	  else if (bidi_it->next_en_pos >=0) /* W5: ET/BN with EN after it.  */
+	  else if (bidi_it->next_en_pos > bidi_it->charpos
+		   && bidi_it->next_en_type != WEAK_BN)
+	    {
+	      if (bidi_it->next_en_type == WEAK_EN) /* ET/BN with EN after it */
+		type = WEAK_EN;
+	    }
+	  else if (bidi_it->next_en_pos >=0)
 	    {
 	      EMACS_INT en_pos = bidi_it->charpos + bidi_it->nchars;
 	      const unsigned char *s = (STRINGP (bidi_it->string.lstring)
@@ -1763,25 +1772,27 @@ bidi_resolve_weak (struct bidi_it *bidi_it)
 		  en_pos = bidi_it->charpos;
 		  bidi_copy_it (bidi_it, &saved_it);
 		}
+	      /* Remember this position, to speed up processing of the
+		 next ETs.  */
+	      bidi_it->next_en_pos = en_pos;
 	      if (type_of_next == WEAK_EN)
 		{
 		  /* If the last strong character is AL, the EN we've
 		     found will become AN when we get to it (W2). */
-		  if (bidi_it->last_strong.type_after_w1 != STRONG_AL)
-		    {
-		      type = WEAK_EN;
-		      /* Remember this EN position, to speed up processing
-			 of the next ETs.  */
-		      bidi_it->next_en_pos = en_pos;
-		    }
+		  if (bidi_it->last_strong.type_after_w1 == STRONG_AL)
+		    type_of_next = WEAK_AN;
 		  else if (type == WEAK_BN)
 		    type = NEUTRAL_ON; /* W6/Retaining */
+		  else
+		    type = WEAK_EN;
 		}
 	      else if (type_of_next == NEUTRAL_B)
 		/* Record the fact that there are no more ENs from
 		   here to the end of paragraph, to avoid entering the
 		   loop above ever again in this paragraph.  */
 		bidi_it->next_en_pos = -1;
+	      /* Record the type of the character where we ended our search.  */
+	      bidi_it->next_en_type = type_of_next;
 	    }
 	}
     }
@@ -2053,7 +2064,10 @@ bidi_level_of_next_char (struct bidi_it *bidi_it)
 	bidi_it->next_for_neutral.type = UNKNOWN_BT;
       if (bidi_it->next_en_pos >= 0
 	  && bidi_it->charpos >= bidi_it->next_en_pos)
-	bidi_it->next_en_pos = 0;
+	{
+	  bidi_it->next_en_pos = 0;
+	  bidi_it->next_en_type = UNKNOWN_BT;
+	}
       if (bidi_it->next_for_ws.type != UNKNOWN_BT
 	  && bidi_it->charpos >= bidi_it->next_for_ws.charpos)
 	bidi_it->next_for_ws.type = UNKNOWN_BT;
@@ -2179,7 +2193,7 @@ bidi_level_of_next_char (struct bidi_it *bidi_it)
     }
 
   /* Resolve implicit levels, with a twist: PDFs get the embedding
-     level of the enbedding they terminate.  See below for the
+     level of the embedding they terminate.  See below for the
      reason.  */
   if (bidi_it->orig_type == PDF
       /* Don't do this if this formatting code didn't change the

@@ -736,7 +736,7 @@ insert rectangles, and commands to make blank rectangles.
 k} (@code{kill-rectangle}) to remove the text and and save it as the
 @dfn{last killed rectangle}.  In both cases, erasing the
 region-rectangle is like erasing the specified text on each line of
-the rectange; if there is any following text on the line, it moves
+the rectangle; if there is any following text on the line, it moves
 backwards to fill the gap.
 
   ``Killing'' a rectangle is not killing in the usual sense; the

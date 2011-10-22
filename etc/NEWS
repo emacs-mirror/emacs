@@ -272,7 +272,7 @@ context in their return values.
 
 *** The new functions file-selinux-context and set-file-selinux-context
 get and set the SELinux context of a file.
-
+---
 *** Tramp offers handlers for file-selinux-context and set-file-selinux-context
 for remote machines which support SELinux.
 
@@ -460,6 +460,7 @@ isearch-yank-kill.
 *** `count-lines-region' is now an alias for `count-words-region',
 bound to M-=, which shows the number of lines, words, and characters.
 
++++
 ** The default value of `backup-by-copying-when-mismatch' is now t.
 
 +++
@@ -560,6 +561,7 @@ updates later on, and Emacs appears to be unable to keep up.
 
 * Changes in Specialized Modes and Packages in Emacs 24.1
 
++++
 ** Archive Mode has basic support for browsing and updating 7z archives.
 
 ** browse-url has a new variable `browse-url-mailto-function'
@@ -804,12 +806,12 @@ additional details about each column.
 *** latex-electric-env-pair-mode keeps \begin..\end matched on the fly.
 
 ** Tramp
-
+---
 *** There exists a new inline access method "ksu" (kerberized su).
-
+---
 *** The following access methods are discontinued: "ssh1_old",
 "ssh2_old", "scp1_old", "scp2_old", "imap", "imaps" and "fish".
-
+---
 *** The option `ange-ftp-binary-file-name-regexp' has changed its
 default value to "".
 
