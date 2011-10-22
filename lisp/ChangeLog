@@ -12,7 +12,7 @@
 2011-10-22  Martin Rudalics  <rudalics@gmx.at>
 
 	* mouse.el (mouse-drag-line): Fix minibuffer resizing broken by
-	last fix.
+	last fix.  Use window-in-direction correctly.
 
 2011-10-21  Chong Yidong  <cyd@gnu.org>
 

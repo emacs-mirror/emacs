@@ -419,8 +419,9 @@ must be one of the symbols header, mode, or vertical."
     (cond
      ((eq line 'header)
       ;; Check whether header-line can be dragged at all.
-      (when (window-at-side-p window 'top)
-	(setq done t)))
+      (if (window-at-side-p window 'top)
+	  (setq done t)
+	(setq window (window-in-direction 'above window t))))
      ((eq line 'mode)
       ;; Check whether mode-line can be dragged at all.
       (when (and (window-at-side-p window 'bottom)
@@ -436,7 +437,7 @@ must be one of the symbols header, mode, or vertical."
 		window
 	      ;; If the scroll bar is on the start-event window's left,
 	      ;; adjust the window on the left of it.
-	      (window-in-direction 'left window)))))
+	      (window-in-direction 'left window t)))))
 
     ;; Start tracking.
     (track-mouse
