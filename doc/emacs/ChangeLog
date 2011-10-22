@@ -1,5 +1,9 @@
 2011-10-22  Chong Yidong  <cyd@gnu.org>
 
+	* windows.texi (Displaying Buffers): Fix broken lispref link.
+
+2011-10-22  Chong Yidong  <cyd@gnu.org>
+
 	* mini.texi (Minibuffer Exit): Rename from Strict Completion.
 	Move confirm-nonexistent-file-or-buffer discussion here.
 
