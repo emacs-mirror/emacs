@@ -406,6 +406,7 @@ must be one of the symbols header, mode, or vertical."
 		       (mouse-on-link-p start)))
 	 (enlarge-minibuffer
 	  (and (eq line 'mode)
+	       (not resize-mini-windows)
 	       (eq (window-frame minibuffer-window) frame)
 	       (not (one-window-p t frame))
 	       (= (nth 1 (window-edges minibuffer-window))
@@ -422,7 +423,8 @@ must be one of the symbols header, mode, or vertical."
 	(setq done t)))
      ((eq line 'mode)
       ;; Check whether mode-line can be dragged at all.
-      (when (window-at-side-p window 'bottom)
+      (when (and (window-at-side-p window 'bottom)
+		 (not enlarge-minibuffer))
 	(setq done t)))
      ((eq line 'vertical)
       ;; Get the window to adjust for the vertical case.
