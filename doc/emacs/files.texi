@@ -49,11 +49,18 @@ on file directories.
 
 @cindex default file name
   Many Emacs commands that operate on a file require you to specify
-the file name, using the minibuffer (@pxref{Minibuffer File}).  You
-can use @dfn{completion} to specify long file names
-(@pxref{Completion}); note that file name completion ignores file
-names whose extensions appear in the variable
+the file name, using the minibuffer (@pxref{Minibuffer File}).
+
+  While in the minibuffer, you can use the usual completion and
+history commands (@pxref{Minibuffer}).  Note that file name completion
+ignores file names whose extensions appear in the variable
 @code{completion-ignored-extensions} (@pxref{Completion Options}).
+Note also that most commands use ``permissive completion with
+confirmation'' for reading file names: you are allowed to submit a
+nonexistent file name, but if you type @key{RET} immediately after
+completing up to a nonexistent file name, Emacs prints
+@samp{[Confirm]} and you must type a second @key{RET} to confirm.
+@xref{Completion Exit}, for details.
 
 @cindex default directory
 @vindex default-directory
@@ -152,9 +159,9 @@ that you visit.
 @kindex C-x C-f
 @findex find-file
   To visit a file, type @kbd{C-x C-f} (@code{find-file}) and use the
-minibuffer to enter the name of the desired file (@pxref{File Names}).
-While in the minibuffer, you can abort the command by typing
-@kbd{C-g}.
+minibuffer to enter the name of the desired file.  While in the
+minibuffer, you can abort the command by typing @kbd{C-g}.  @xref{File
+Names}, for details about entering file names into minibuffers.
 
   If the specified file exists but the system does not allow you to
 read it, an error message is displayed in the echo area.  Otherwise,
@@ -212,25 +219,6 @@ name in the minibuffer, you need to type @kbd{C-q ?}.  @xref{Quoted
 File Names}, for information on how to visit a file whose name
 actually contains wildcard characters.  You can disable the wildcard
 feature by customizing @code{find-file-wildcards}.
-
-@cindex minibuffer confirmation
-@cindex confirming in the minibuffer
-@vindex confirm-nonexistent-file-or-buffer
-  When @key{TAB} completion results in a nonexistent file name and you
-type @key{RET} immediately to visit it, Emacs asks for confirmation;
-this is because it's possible that you expected completion to go
-further and give you an existing file's name.  The string
-@samp{[Confirm]} appears for a short time after the file name to
-indicate the need to confirm in this way.  Type @key{RET} to confirm
-and visit the nonexistent file.  The variable
-@code{confirm-nonexistent-file-or-buffer} controls whether Emacs asks
-for confirmation before visiting a new file.  The default value,
-@code{after-completion}, gives the behavior we have just described.
-If the value is @code{nil}, Emacs never asks for confirmation; for any
-other non-@code{nil} value, Emacs always asks for confirmation.  This
-variable also affects the @code{switch-to-buffer} command
-(@pxref{Select Buffer}).  @xref{Completion}, for more information
-about completion.
 
 @kindex C-x C-v
 @findex find-alternate-file
@@ -382,10 +370,10 @@ Wrote /u/rms/gnu/gnu.tasks
 @end example
 
 @noindent
-If the selected buffer is not modified (no changes have been made in it
-since the buffer was created or last saved), saving is not really done,
-because it would have no effect.  Instead, @kbd{C-x C-s} displays a message
-like this in the echo area:
+If the current buffer is not modified (no changes have been made in it
+since the buffer was created or last saved), saving is not really
+done, because it would have no effect.  Instead, @kbd{C-x C-s}
+displays a message like this in the echo area:
 
 @example
 (No changes need to be saved)

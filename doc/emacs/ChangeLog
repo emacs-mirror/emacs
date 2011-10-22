@@ -1,3 +1,14 @@
+2011-10-22  Chong Yidong  <cyd@gnu.org>
+
+	* mini.texi (Minibuffer Exit): Rename from Strict Completion.
+	Move confirm-nonexistent-file-or-buffer discussion here.
+
+	* files.texi (File Names, Visiting): Move detailed discussion of
+	minibuffer confirmation to Minibuffer Exit.
+
+	* buffers.texi (Buffers): Tweak mention of mail buffer name.
+	(Select Buffer): Move confirmation discussion to Minibuffer Exit.
+
 2011-10-21  Chong Yidong  <cyd@gnu.org>
 
 	* files.texi (File Names, Visiting, Interlocking): Copyedits.
