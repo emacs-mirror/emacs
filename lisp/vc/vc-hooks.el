@@ -648,22 +648,8 @@ this function."
 	       (throw 'found trial))))
        templates))))
 
-(defun vc-toggle-read-only (&optional verbose)
-  "Change read-only status of current buffer, perhaps via version control.
-
-If the buffer is visiting a file registered with version control,
-throw an error, because this is not a safe or really meaningful operation
-on any version-control system newer than RCS.
-
-Otherwise, just change the read-only flag of the buffer.
-
-If you bind this function to \\[toggle-read-only], then Emacs
-will properly intercept all attempts to toggle the read-only flag
-on version-controlled buffer."
-  (interactive "P")
-  (if (vc-backend buffer-file-name)
-      (error "Toggling the readability of a version controlled file is likely to wreak havoc")
-    (toggle-read-only)))
+(define-obsolete-function-alias
+  'vc-toggle-read-only 'toggle-read-only "24.1")
 
 (defun vc-default-make-version-backups-p (backend file)
   "Return non-nil if unmodified versions should be backed up locally.
