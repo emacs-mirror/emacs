@@ -1,5 +1,8 @@
 2011-10-23  Chong Yidong  <cyd@gnu.org>
 
+	* frames.texi (Scroll Bars): GTK uses right scroll bars now.
+	(Tool Bars): Copyedits.
+
 	* buffers.texi (Misc Buffer): Don't mention vc-toggle-read-only.
 
 2011-10-22  Chong Yidong  <cyd@gnu.org>
