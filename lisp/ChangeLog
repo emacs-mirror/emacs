@@ -1,3 +1,12 @@
+2011-10-23  Michael Albinus  <michael.albinus@gmx.de>
+
+	Sync with Tramp 2.2.3.
+
+	* net/tramp-cache.el (top): Pacify byte-compiler using
+	`init-file-user' and `site-run-file'.
+
+	* net/trampver.el: Update release number.
+
 2011-10-23  Chong Yidong  <cyd@gnu.org>
 
 	* files.el (toggle-read-only): Remove obsolete comment about
