@@ -853,7 +853,12 @@ binding `log-view-expanded-log-entry-function' to a suitable function.
 of a file similar to `vc-diff', but using ediff backend.
 
 +++
-*** The option vc-initial-comment was removed in Emacs 23.2, but
+*** The option `vc-initial-comment' was removed in Emacs 23.2, but
+this was not advertised at the time.
+
++++
+*** `vc-toggle-read-only' is an obsolete alias for `toggle-read-only'.
+Since Emacs 23, it has done the same thing as `toggle-read-only', but
 this was not advertised at the time.
 
 ** FIXME: xdg-open for browse-url and reportbug, 2010/08.

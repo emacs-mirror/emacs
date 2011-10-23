@@ -2456,7 +2456,7 @@ comment at the start of cc-engine.el for more info."
 		     (<= from (cdr c-state-brace-pair-desert)))
 	  ;; Only search what we absolutely need to:
 	  (if (and c-state-brace-pair-desert
-		   (> from (cdr c-state-brace-pair-desert)))
+		   (eq cache-pos (car c-state-brace-pair-desert)))
 	      (narrow-to-region (cdr c-state-brace-pair-desert) (point-max)))
 
 	  ;; In the next pair of nested loops, the inner one moves back past a
@@ -3127,6 +3127,33 @@ comment at the start of cc-engine.el for more info."
 (unless (fboundp 'c-real-parse-state)
   (fset 'c-real-parse-state (symbol-function 'c-parse-state)))
 (cc-bytecomp-defun c-real-parse-state)
+
+(defvar c-parse-state-state nil)
+(defun c-record-parse-state-state ()
+  (setq c-parse-state-state
+	(mapcar
+	 (lambda (arg)
+	   (cons arg (symbol-value arg)))
+	 '(c-state-cache
+	   c-state-cache-good-pos
+	   c-state-nonlit-pos-cache
+	   c-state-nonlit-pos-cache-limit
+	   c-state-brace-pair-desert
+	   c-state-point-min
+	   c-state-point-min-lit-type
+	   c-state-point-min-lit-start
+	   c-state-min-scan-pos
+	   c-state-old-cpp-beg
+	   c-state-old-cpp-end))))
+(defun c-replay-parse-state-state ()
+  (message
+   (concat "(setq "
+    (mapconcat
+     (lambda (arg)
+       (format "%s %s%s" (car arg) (if (atom (cdr arg)) "" "'") (cdr arg)))
+     c-parse-state-state "  ")
+    ")")))
+
 (defun c-debug-parse-state ()
   (let ((here (point)) (res1 (c-real-parse-state)) res2)
     (let ((c-state-cache nil)
@@ -3145,15 +3172,21 @@ comment at the start of cc-engine.el for more info."
       ;; The cache can actually go further back due to the ad-hoc way
       ;; the first paren is found, so try to whack off a bit of its
       ;; start before complaining.
-      (save-excursion
-	(goto-char (or (c-least-enclosing-brace res2) (point)))
-	(c-beginning-of-defun-1)
-	(while (not (or (bobp) (eq (char-after) ?{)))
-	  (c-beginning-of-defun-1))
-	(unless (equal (c-whack-state-before (point) res1) res2)
-	  (message (concat "c-parse-state inconsistency at %s: "
-			   "using cache: %s, from scratch: %s")
-		   here res1 res2))))
+      ;; (save-excursion
+      ;; 	(goto-char (or (c-least-enclosing-brace res2) (point)))
+      ;; 	(c-beginning-of-defun-1)
+      ;; 	(while (not (or (bobp) (eq (char-after) ?{)))
+      ;; 	  (c-beginning-of-defun-1))
+      ;; 	(unless (equal (c-whack-state-before (point) res1) res2)
+      ;; 	  (message (concat "c-parse-state inconsistency at %s: "
+      ;; 			   "using cache: %s, from scratch: %s")
+      ;; 		   here res1 res2)))
+      (message (concat "c-parse-state inconsistency at %s: "
+		       "using cache: %s, from scratch: %s")
+	       here res1 res2)
+      (message "Old state:")
+      (c-replay-parse-state-state))
+    (c-record-parse-state-state)
     res1))
 
 (defun c-toggle-parse-state-debug (&optional arg)

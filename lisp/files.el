@@ -4700,11 +4700,7 @@ and `view-read-only' is non-nil, enter view mode."
            (not (eq (get major-mode 'mode-class) 'special)))
       (view-mode-enter))
      (t (setq buffer-read-only (not buffer-read-only))
-        (force-mode-line-update)))
-    (if (memq (vc-backend buffer-file-name) '(RCS SCCS))
-        (message "%s" (substitute-command-keys
-                  (concat "File is under version-control; "
-                          "use \\[vc-next-action] to check in/out"))))))
+        (force-mode-line-update)))))
 
 (defun insert-file (filename)
   "Insert contents of file FILENAME into buffer after point.
