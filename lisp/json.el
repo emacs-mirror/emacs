@@ -3,7 +3,7 @@
 ;; Copyright (C) 2006-2011 Free Software Foundation, Inc.
 
 ;; Author: Edward O'Connor <ted@oconnor.cx>
-;; Version: 1.2
+;; Version: 1.3
 ;; Keywords: convenience
 
 ;; This file is part of GNU Emacs.
@@ -47,6 +47,7 @@
 ;;              other cleanups, bugfixes, and improvements.
 ;; 2006-12-29 - XEmacs support, from Aidan Kehoe <kehoea@parhasard.net>.
 ;; 2008-02-21 - Installed in GNU Emacs.
+;; 2011-10-17 - Patch `json-alist-p' and `json-plist-p' to avoid recursion -tzz
 
 ;;; Code:
 
@@ -108,16 +109,20 @@ this around your call to `json-read' instead of `setq'ing it.")
 
 (defun json-alist-p (list)
   "Non-null if and only if LIST is an alist."
-  (or (null list)
-      (and (consp (car list))
-           (json-alist-p (cdr list)))))
+  (while (consp list)
+    (setq list (if (consp (car list))
+                   (cdr list)
+                 'not-alist)))
+  (null list))
 
 (defun json-plist-p (list)
   "Non-null if and only if LIST is a plist."
-  (or (null list)
-      (and (keywordp (car list))
-           (consp (cdr list))
-           (json-plist-p (cddr list)))))
+  (while (consp list)
+    (setq list (if (and (keywordp (car list))
+                        (consp (cdr list)))
+                   (cddr list)
+                 'not-plist)))
+  (null list))
 
 ;; Reader utilities
 

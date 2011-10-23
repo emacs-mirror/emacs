@@ -176,14 +176,16 @@ Return a value appropriate for `kill-buffer-query-functions' (which see)."
 
 ;;;###autoload
 (define-minor-mode emacs-lock-mode
-    "Toggle Emacs Lock mode in the current buffer.
+  "Toggle Emacs Lock mode in the current buffer.
+If called with a plain prefix argument, ask for the locking mode
+to be used.  With any other prefix ARG, turn mode on if ARG is
+positive, off otherwise.  If called from Lisp, enable the mode if
+ARG is omitted or nil.
 
-With \\[universal-argument], ask for the locking mode to be used.
-With other prefix ARG, turn mode on if ARG is positive, off otherwise.
-
-Initially, if the user does not pass an explicit locking mode, it defaults
-to `emacs-lock-default-locking-mode' (which see); afterwards, the locking
-mode most recently set on the buffer is used instead.
+Initially, if the user does not pass an explicit locking mode, it
+defaults to `emacs-lock-default-locking-mode' (which see);
+afterwards, the locking mode most recently set on the buffer is
+used instead.
 
 When called from Elisp code, ARG can be any locking mode:
 

@@ -1242,7 +1242,9 @@ Example:
        (erc-define-minor-mode
 	,mode
 	,(format "Toggle ERC %S mode.
-With arg, turn ERC %S mode on if and only if arg is positive.
+With a prefix argument ARG, enable %s if ARG is positive,
+and disable it otherwise.  If called from Lisp, enable the mode
+if ARG is omitted or nil.
 %s" name name doc)
 	nil nil nil
 	:global ,(not local-p) :group (quote ,group)

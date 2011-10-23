@@ -398,8 +398,9 @@ To be used in hook functions."
 
 (define-minor-mode ede-minor-mode
   "Toggle EDE (Emacs Development Environment) minor mode.
-With non-nil argument ARG, enable EDE minor mode if ARG is
-positive; otherwise, disable it.
+With a prefix argument ARG, enable EDE minor mode if ARG is
+positive, and disable it otherwise.  If called from Lisp, enable
+EDE minor mode if ARG is omitted or nil.
 
 If this file is contained, or could be contained in an EDE
 controlled project, then this mode is activated automatically
@@ -458,8 +459,9 @@ ONOFF indicates enabling or disabling the mode."
 ;;;###autoload
 (define-minor-mode global-ede-mode
   "Toggle global EDE (Emacs Development Environment) mode.
-With non-nil argument ARG, enable global EDE mode if ARG is
-positive; otherwise, disable it.
+With a prefix argument ARG, enable global EDE mode if ARG is
+positive, and disable it otherwise.  If called from Lisp, enable
+the mode if ARG is omitted or nil.
 
 This global minor mode enables `ede-minor-mode' in all buffers in
 an EDE controlled project."
@@ -1176,16 +1178,6 @@ See also `ede-map-subprojects'."
   "For project THIS, map PROC to all targets and return if any non-nil.
 Return the first non-nil value returned by PROC."
   (eval (cons 'or (ede-map-targets this proc))))
-
-;;; VC Handling
-;;
-(defun ede-maybe-checkout (&optional buffer)
-  "Check BUFFER out of VC if necessary."
-  (save-excursion
-    (if buffer (set-buffer buffer))
-    (if (and buffer-read-only vc-mode
-	     (y-or-n-p "Checkout Makefile.am from VC? "))
-	(vc-toggle-read-only))))
 
 
 ;;; Some language specific methods.

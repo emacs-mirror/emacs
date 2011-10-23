@@ -1702,17 +1702,19 @@ valid values."
 ;;;###autoload
 (define-minor-mode allout-mode
 ;;;_    . Doc string:
-  "Toggle minor mode for controlling exposure and editing of text outlines.
+  "Toggle Allout outline mode.
+With a prefix argument ARG, enable Allout outline mode if ARG is
+positive, and disable it otherwise.  If called from Lisp, enable
+the mode if ARG is omitted or nil.
+
 \\<allout-mode-map-value>
-
-Allout outline mode always runs as a minor mode.
-
-Allout outline mode provides extensive outline oriented
-formatting and manipulation.  It enables structural editing of
-outlines, as well as navigation and exposure.  It also is
-specifically aimed at accommodating syntax-sensitive text like
-programming languages.  \(For example, see the allout code itself,
-which is organized as an allout outline.)
+Allout outline mode is a minor mode that provides extensive
+outline oriented formatting and manipulation.  It enables
+structural editing of outlines, as well as navigation and
+exposure.  It also is specifically aimed at accommodating
+syntax-sensitive text like programming languages.  \(For example,
+see the allout code itself, which is organized as an allout
+outline.)
 
 In addition to typical outline navigation and exposure, allout includes:
 

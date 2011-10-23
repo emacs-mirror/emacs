@@ -35,19 +35,23 @@
 
 (put 'use-hard-newlines 'permanent-local t)
 (define-minor-mode use-hard-newlines
-  "Minor mode to distinguish hard and soft newlines.
-When active, the functions `newline' and `open-line' add the
+  "Toggle distinguishing between hard and soft newlines.
+With a prefix argument ARG, enable the feature if ARG is
+positive, and disable it otherwise.  If called from Lisp, enable
+it if ARG is omitted or nil.
+
+When enabled, the functions `newline' and `open-line' add the
 text-property `hard' to newlines that they insert, and a line is
 only considered as a candidate to match `paragraph-start' or
 `paragraph-separate' if it follows a hard newline.
 
-Prefix argument says to turn mode on if positive, off if negative.
-When the mode is turned on, if there are newlines in the buffer but no hard
-newlines, ask the user whether to mark as hard any newlines preceding a
-`paragraph-start' line.  From a program, second arg INSERT specifies whether
-to do this; it can be `never' to change nothing, t or `always' to force
-marking, `guess' to try to do the right thing with no questions, nil
-or anything else to ask the user.
+When enabling, if there are newlines in the buffer but no hard
+newlines, ask the user whether to mark as hard any newlines
+preceding a `paragraph-start' line.  From a program, second arg
+INSERT specifies whether to do this; it can be `never' to change
+nothing, t or `always' to force marking, `guess' to try to do the
+right thing with no questions, nil or anything else to ask the
+user.
 
 Newlines not marked hard are called \"soft\", and are always internal
 to paragraphs.  The fill functions insert and delete only soft newlines."

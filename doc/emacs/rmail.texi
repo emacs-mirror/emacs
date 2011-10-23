@@ -1198,7 +1198,7 @@ Address mode:
 
 @c FIXME goto-addr.el commentary says to use goto-address instead.
 @smallexample
-(add-hook 'rmail-show-message-hook (lambda () (goto-address-mode 1)))
+(add-hook 'rmail-show-message-hook 'goto-address-mode)
 @end smallexample
 
 @noindent

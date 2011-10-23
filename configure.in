@@ -1315,12 +1315,6 @@ AC_CHECK_HEADERS(net/if_dl.h, , , [AC_INCLUDES_DEFAULT
 AC_CHECK_FUNCS(getifaddrs freeifaddrs)
 
 dnl checks for structure members
-AC_STRUCT_TM
-AC_STRUCT_TIMEZONE
-AC_CHECK_MEMBER(struct tm.tm_gmtoff,
-		[AC_DEFINE(HAVE_TM_GMTOFF, 1,
-			   [Define to 1 if `tm_gmtoff' is member of `struct tm'.])],,
-		[#include <time.h>])
 AC_CHECK_MEMBERS([struct ifreq.ifr_flags, struct ifreq.ifr_hwaddr,
 		  struct ifreq.ifr_netmask, struct ifreq.ifr_broadaddr,
 		  struct ifreq.ifr_addr,
@@ -1925,8 +1919,8 @@ fi
 if test "$pkg_check_gtk" != "yes"; then
   HAVE_GTK=no
 if test "${with_gtk}" = "yes" || test "$USE_X_TOOLKIT" = "maybe"; then
-  GLIB_REQUIRED=2.6
-  GTK_REQUIRED=2.6
+  GLIB_REQUIRED=2.10
+  GTK_REQUIRED=2.10
   GTK_MODULES="gtk+-2.0 >= $GTK_REQUIRED glib-2.0 >= $GLIB_REQUIRED"
 
   dnl Checks for libraries.

@@ -299,7 +299,7 @@ you can access them without having to display the menu bar.
 
 @item S-Mouse-1
 This menu is for changing the default face within the window's buffer.
-@xref{Temporary Face Changes}.
+@xref{Text Scale}.
 @end table
 
 @node Mode Line Mouse
@@ -1184,6 +1184,13 @@ wait before displaying a tooltip.  For additional customization
 options for displaying tooltips, use @kbd{M-x customize-group
 @key{RET} tooltip @key{RET}}.  @xref{X Resources}, for information on
 customizing the windows that display tooltips.
+
+@vindex x-gtk-use-system-tooltips
+  If Emacs is built with GTK support, it displays tooltips via GTK,
+using the default appearance of GTK tooltips.  To disable this, change
+the variable @code{x-gtk-use-system-tooltips} to @code{nil}.  If you
+do this, or if Emacs is built without GTK support, the @code{tooltip}
+face specifies most attributes of the tooltip text.
 
 @node Mouse Avoidance
 @section Mouse Avoidance

@@ -24,9 +24,8 @@ the file.
 
 2. When installing code written by someone else, the ChangeLog entry
 should be in the name of the author of the code, not the person who
-installs it.  I think it is helpful to put the author (if not yourself)
-in the commit log as well (you can also use bzr commit's "--author"
-option); and to not install any of your own changes in the same commit.
+installs it.  Also use bzr commit's "--author" option.
+Do not install any of your own changes in the same commit.
 
 3. With images, add the legal info to a README file in the directory
 containing the image.

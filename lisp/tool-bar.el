@@ -43,9 +43,10 @@
 ;; Deleting it means invoking this command won't work
 ;; when you are on a tty.  I hope that won't cause too much trouble -- rms.
 (define-minor-mode tool-bar-mode
-  "Toggle use of the tool bar.
-With a numeric argument, if the argument is positive, turn on the
-tool bar; otherwise, turn off the tool bar.
+  "Toggle the tool bar in all graphical frames (Tool Bar mode).
+With a prefix argument ARG, enable Tool Bar mode if ARG is
+positive, and disable it otherwise.  If called from Lisp, enable
+Tool Bar mode if ARG is omitted or nil.
 
 See `tool-bar-add-item' and `tool-bar-add-item-from-menu' for
 conveniently adding tool bar items."

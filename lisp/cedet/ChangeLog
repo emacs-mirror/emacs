@@ -1,3 +1,20 @@
+2011-10-23  Chong Yidong  <cyd@gnu.org>
+
+	* ede.el (ede-maybe-checkout): Function deleted;
+	vc-toggle-read-only does not do version control now.
+
+	* ede/util.el (ede-make-buffer-writable): Don't use
+	vc-toggle-read-only.
+
+	* ede/project-am.el (project-remove-file, project-add-file)
+	(project-new-target): Don't call ede-maybe-checkout.
+
+2011-10-19  Chong Yidong  <cyd@gnu.org>
+
+	* ede.el (ede-minor-mode,global-ede-mode):
+	* semantic.el (semantic-mode): Doc fix to reflect new
+	define-minor-mode calling behavior.
+
 2011-07-30  Chong Yidong  <cyd@stupidchicken.com>
 
 	* semantic/grammar.el (semantic-grammar-insert-defanalyzers): Fix

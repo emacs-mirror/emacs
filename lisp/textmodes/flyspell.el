@@ -469,12 +469,14 @@ See also `flyspell-duplicate-distance'."
 ;;;###autoload(defvar flyspell-mode nil)
 ;;;###autoload
 (define-minor-mode flyspell-mode
-  "Minor mode performing on-the-fly spelling checking.
-This spawns a single Ispell process and checks each word.
-The default flyspell behavior is to highlight incorrect words.
-With no argument, this command toggles Flyspell mode.
-With a prefix argument ARG, turn Flyspell minor mode on if ARG is positive,
-otherwise turn it off.
+  "Toggle on-the-fly spell checking (Flyspell mode).
+With a prefix argument ARG, enable Flyspell mode if ARG is
+positive, and disable it otherwise.  If called from Lisp, enable
+the mode if ARG is omitted or nil.
+
+Flyspell mode is a buffer-local minor mode.  When enabled, it
+spawns a single Ispell process and checks each word.  The default
+flyspell behavior is to highlight incorrect words.
 
 Bindings:
 \\[ispell-word]: correct words (using Ispell).

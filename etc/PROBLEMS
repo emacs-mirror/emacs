@@ -171,6 +171,14 @@ optimization.  To do this, configure Emacs with
 
  CFLAGS="-g -O2 -fno-optimize-sibling-calls" ./configure
 
+** Emacs compiled with GCC 4.6.1 crashes on MS-Windows when C-g is pressed
+
+This is known to happen when Emacs is compiled with MinGW GCC 4.6.1
+with the -O2 option (which is the default in the Windows build).  The
+reason is a bug in MinGW GCC 4.6.1; to work around, either add the
+`-fno-omit-frame-pointer' switch to GCC or compile without
+optimizations (`--no-opt' switch to the configure.bat script).
+
 ** Emacs crashes in x-popup-dialog.
 
 This can happen if the dialog widget cannot find the font it wants to

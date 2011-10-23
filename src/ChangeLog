@@ -1,4 +1,4 @@
-2011-10-17  Paul Eggert  <eggert@cs.ucla.edu>
+2011-10-23  Paul Eggert  <eggert@cs.ucla.edu>
 
 	Fix integer width and related bugs.
 	* alloc.c (pure_bytes_used_lisp, pure_bytes_used_non_lisp):
@@ -788,6 +788,83 @@
 	(struct scroll_bar): Use struct vectorlike_header
 	rather than rolling our own approximation.
 	(SCROLL_BAR_VEC_SIZE): Remove; not used.
+
+2011-10-20  Eli Zaretskii  <eliz@gnu.org>
+
+	* dispextern.h (struct bidi_it): New member next_en_type.
+
+	* bidi.c (bidi_line_init): Initialize the next_en_type member.
+	(bidi_resolve_explicit_1): When next_en_pos is valid for the
+	current character, check also for next_en_type being WEAK_EN.
+	(bidi_resolve_weak): Don't enter the expensive loop if the current
+	position is before next_en_pos.  Record the bidi type of the first
+	non-ET, non-BN character we find, in addition to its position.
+	(bidi_level_of_next_char): Invalidate next_en_type when
+	next_en_pos is over-stepped.
+
+2011-10-20  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Time zone name fixes for non-ASCII locales (Bug#641, Bug#9794)
+	* editfns.c: Rewrite current-time-zone so that it invokes
+	the equivalent of (format-time-string "%Z") to get the time zone name.
+	This fixes a bug when the time zone name contains characters that
+	need converting from the system time locale to Emacs internal format.
+	This fixes a shortcoming that I introduced in my 1999-10-19 patch:
+	that patch fixed format-time-string to do the conversion, but
+	I forgot to fix current-time-zone.
+	(format_time_string): New function, containing most of
+	what Fformat_time_string used to contain.
+	(Fformat_time_string): Rewrite in terms of format_time_string.
+	This doesn't change this function's behavior.
+	(current-time-zone): Rewrite to use format_time_string.
+	This fixes the bug reported by Michael Schierl in
+	<http://lists.gnu.org/archive/html/emacs-devel/2007-06/msg00334.html>.
+	Jason Rumney's 2007-06-07 change worked around this bug, but
+	didn't fix it.
+	* systime.h (tzname, timezone): Remove no-longer-used declarations.
+
+2011-10-19  Eli Zaretskii  <eliz@gnu.org>
+
+	* xdisp.c (start_display): If the character at POS is displayed
+	via a display vector, reset IT->current.dpvec_index to zero.
+	(try_window_reusing_current_matrix): If a line ends in a display
+	vector or the next line starts in a display vector, continue
+	redrawing the window even though the character position of
+	start_row was reached.
+	(Bug#9771, part 2)
+
+2011-10-18  Chong Yidong  <cyd@gnu.org>
+
+	* xdisp.c (get_next_display_element): Handle U+2010 and U+2011
+	with nobreak-char-display too.
+
+2011-10-18  Eli Zaretskii  <eliz@gnu.org>
+
+	Fix part 3 of bug#9771.
+	* bidi.c (bidi_line_init): Initialize next_en_pos to zero, not -1.
+	(bidi_resolve_neutral): Don't enter the expensive loop looking for
+	non-neutral characters if the current character is a paragraph
+	separator (a.k.a. Newline).  This avoids running the same
+	expensive loop twice, once when we consume the preceding newline
+	and the other time when the line actually needs to be displayed.
+	Avoid the loop when we see neutrals on the base embedding level
+	following a character whose directionality is the same as the
+	paragraph's.  This avoids running the expensive loop when a line
+	ends in a long sequence of neutrals, like control characters.
+	Add assertion against STRONG_AL type.  Slightly rearrange code
+	that determines the type of a neutral given the first non-neutral
+	that follows it.
+	(bidi_level_of_next_char): Set next_en_pos to zero when
+	invalidating its info.
+
+2011-10-17  Eli Zaretskii  <eliz@gnu.org>
+
+	* xdisp.c (push_display_prop): Determine whether to record string
+	or buffer position by IT->string, not by IT->method.  Allow
+	GET_FROM_DISPLAY_VECTOR as IT->method on entry.  (Bug#9771, part 4)
+	(move_it_vertically_backward): Don't look for character position
+	immediately after the newline when in a continuation line.
+	(Bug#9771, part 1)
 
 2011-10-15  Martin Rudalics  <rudalics@gmx.at>
 

@@ -841,7 +841,14 @@ Return non-nil if we skipped over matched tags."
     (delete-overlay (pop sgml-electric-tag-pair-overlays))))
 
 (define-minor-mode sgml-electric-tag-pair-mode
-  "Automatically update the closing tag when editing the opening one."
+  "Toggle SGML Electric Tag Pair mode.
+With a prefix argument ARG, enable the mode if ARG is positive,
+and disable it otherwise.  If called from Lisp, enable the mode
+if ARG is omitted or nil.
+
+SGML Electric Tag Pair mode is a buffer-local minor mode for use
+with `sgml-mode' and related maor modes.  When enabled, editing
+an opening markup tag automatically updates the closing tag."
   :lighter "/e"
   (if sgml-electric-tag-pair-mode
       (progn
@@ -2024,9 +2031,14 @@ The third `match-string' will be the used in the menu.")
     (nreverse toc-index)))
 
 (define-minor-mode html-autoview-mode
-  "Toggle automatic viewing via `browse-url-of-buffer' upon saving buffer.
-With positive prefix ARG always turns viewing on, with negative ARG always off.
-Can be used as a value for `html-mode-hook'."
+  "Toggle viewing of HTML files on save (HTML Autoview mode).
+With a prefix argument ARG, enable HTML Autoview mode if ARG is
+positive, and disable it otherwise.  If called from Lisp, enable
+the mode if ARG is omitted or nil.
+
+HTML Autoview mode is a buffer-local minor mode for use with
+`html-mode'.  If enabled, saving the file automatically runs
+`browse-url-of-buffer' to view it."
   nil nil nil
   :group 'sgml
   (if html-autoview-mode

@@ -606,7 +606,8 @@ as well as widgets, buttons, overlays, and text properties."
                              'trailing-whitespace)
                             ((and nobreak-char-display char (eq char '#xa0))
                              'nobreak-space)
-                            ((and nobreak-char-display char (eq char '#xad))
+                            ((and nobreak-char-display char
+				  (memq char '(#xad #x2010 #x2011)))
                              'escape-glyph)
                             ((and (< char 32) (not (memq char '(9 10))))
                              'escape-glyph)))))

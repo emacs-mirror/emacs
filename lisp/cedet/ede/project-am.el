@@ -214,7 +214,6 @@ OT is the object target.  DIR is the directory to start in."
 	       target (project-am-preferred-target-type (buffer-file-name)))))
     (ede-with-projectfile ot
       (makefile-move-to-macro (project-am-macro ot))
-      (ede-maybe-checkout)
       (makefile-end-of-command)
       (insert " " ofn)
       (makefile-fill-paragraph nil)
@@ -226,10 +225,6 @@ OT is the object target.  DIR is the directory to start in."
   "Remove the current buffer from any project targets."
   (ede-with-projectfile ot
     (makefile-move-to-macro (project-am-macro ot))
-    (if (and buffer-read-only vc-mode
-	     (y-or-n-p "Checkout Makefile.am from VC? "))
-	(vc-toggle-read-only t))
-    (ede-maybe-checkout)
     (makefile-navigate-macro (concat " *" (regexp-quote (ede-name fnnd))))
     (replace-match "" t t nil 0)
     (makefile-fill-paragraph nil)
@@ -271,7 +266,6 @@ buffer being in order to provide a smart default target type."
     (if (not ot) (error "Error creating target object %S" ntype))
     (ede-with-projectfile ot
       (goto-char (point-min))
-      (ede-maybe-checkout)
       (makefile-next-dependency)
       (if (= (point) (point-min))
 	  (goto-char (point-max))

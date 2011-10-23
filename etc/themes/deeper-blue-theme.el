@@ -37,7 +37,7 @@
    `(compilation-line-number ((,class (:foreground "LightGreen"))))
    `(cperl-array-face ((,class (:foreground "yellow2"))))
    `(cperl-hash-face ((,class (:foreground "coral1"))))
-   `(cursor ((,class (:background "green" :foreground "black"))))
+   `(cursor ((,class (:background "green"))))
    `(default ((,class (:background "#181a26" :foreground "gray80"))))
    `(diff-added ((,class (nil))))
    `(diff-changed ((,class (nil))))

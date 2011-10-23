@@ -39,11 +39,14 @@
 ;;; Switching tooltips on/off
 
 (define-minor-mode tooltip-mode
-  "Toggle Tooltip mode.
-With ARG, turn Tooltip mode on if and only if ARG is positive.
-When this minor mode is enabled, Emacs displays help text
-in a pop-up window for buttons and menu items that you put the mouse on.
-\(However, if `tooltip-use-echo-area' is non-nil, this and
+  "Toggle use of graphical tooltips (Tooltip mode).
+With a prefix argument ARG, enable Tooltip mode if ARG is
+positive, and disable it otherwise.  If called from Lisp, enable
+it if ARG is omitted or nil.
+
+When Tooltip mode is enabled, Emacs displays help text in a
+pop-up window for buttons and menu items that you put the mouse
+on.  \(However, if `tooltip-use-echo-area' is non-nil, this and
 all pop-up help appears in the echo area.)
 
 When Tooltip mode is disabled, Emacs displays one line of

@@ -372,300 +372,167 @@ This command must be bound to a mouse click."
 	(split-window-horizontally
 	 (min (max new-width first-col) last-col))))))
 
-(defun mouse-drag-window-above (window)
-  "Return the (or a) window directly above WINDOW.
-That means one whose bottom edge is at the same height as WINDOW's top edge."
-  (let ((start-top   (nth 1 (window-edges window)))
-        (start-left  (nth 0 (window-edges window)))
-        (start-right (nth 2 (window-edges window)))
-	(start-window window)
-	above-window)
-    (setq window (previous-window window 0))
-    (while (and (not above-window) (not (eq window start-window)))
-      (let ((left  (nth 0 (window-edges window)))
-            (right (nth 2 (window-edges window))))
-        (when (and (= (+ (window-height window) (nth 1 (window-edges window)))
-                      start-top)
-                   (or (and (<= left start-left)  (<= start-right right))
-                       (and (<= start-left left)  (<= left start-right))
-                       (and (<= start-left right) (<= right start-right))))
-          (setq above-window window)))
-      (setq window (previous-window window)))
-    above-window))
+;; `mouse-drag-line' is now the common routine for handling all line
+;; dragging events combining the earlier `mouse-drag-mode-line-1' and
+;; `mouse-drag-vertical-line'.  It should improve the behavior of line
+;; dragging wrt Emacs 23 as follows:
 
-(defun mouse-drag-move-window-bottom (window growth)
-  "Move the bottom of WINDOW up or down by GROWTH lines.
-Move it down if GROWTH is positive, or up if GROWTH is negative.
-If this would make WINDOW too short,
-shrink the window or windows above it to make room."
-  (condition-case nil
-      (adjust-window-trailing-edge window growth nil)
-    (error nil)))
+;; (1) Gratuitous error messages and restrictions have been (hopefully)
+;; removed.  (The help-echo that dragging the mode-line can resize a
+;; one-window-frame's window will still show through via bindings.el.)
 
-(defsubst mouse-drag-move-window-top (window growth)
-  "Move the top of WINDOW up or down by GROWTH lines.
-Move it down if GROWTH is positive, or up if GROWTH is negative.
-If this would make WINDOW too short, shrink the window or windows
-above it to make room."
-  ;; Moving the top of WINDOW is actually moving the bottom of the
-  ;; window above.
-  (let ((window-above (mouse-drag-window-above window)))
-    (and window-above
-	 (mouse-drag-move-window-bottom window-above (- growth)))))
+;; (2) No gratuitous selection of other windows should happen.  (This
+;; has not been completely fixed for mouse-autoselected windows yet.)
 
-(defun mouse-drag-mode-line-1 (start-event mode-line-p)
-  "Change the height of a window by dragging on the mode or header line.
-START-EVENT is the starting mouse-event of the drag action.
-MODE-LINE-P non-nil means dragging a mode line; nil means a header line."
+;; (3) Mouse clicks below a scroll-bar should pass through via unread
+;; command events.
+
+;; Note that `window-in-direction' replaces `mouse-drag-window-above'
+;; and `mouse-drag-vertical-line-rightward-window' with Emacs 24.1.
+(defun mouse-drag-line (start-event line)
+  "Drag some line with the mouse.
+START-EVENT is the starting mouse-event of the drag action.  LINE
+must be one of the symbols header, mode, or vertical."
   ;; Give temporary modes such as isearch a chance to turn off.
   (run-hooks 'mouse-leave-buffer-hook)
-  (let* ((done nil)
-	 (echo-keystrokes 0)
+  (let* ((echo-keystrokes 0)
 	 (start (event-start start-event))
-	 (start-event-window (posn-window start))
-	 (start-event-frame (window-frame start-event-window))
-	 (start-nwindows (count-windows t))
+	 (window (posn-window start))
+	 (frame (window-frame window))
+	 (minibuffer-window (minibuffer-window frame))
          (on-link (and mouse-1-click-follows-link
 		       (or mouse-1-click-in-non-selected-windows
-			   (eq (posn-window start) (selected-window)))
-                       (mouse-on-link-p start)))
-	 (minibuffer (frame-parameter nil 'minibuffer))
-	 should-enlarge-minibuffer event mouse y top bot edges wconfig growth)
+			   (eq window (selected-window)))
+		       (mouse-on-link-p start)))
+	 (enlarge-minibuffer
+	  (and (eq line 'mode)
+	       (not resize-mini-windows)
+	       (eq (window-frame minibuffer-window) frame)
+	       (not (one-window-p t frame))
+	       (= (nth 1 (window-edges minibuffer-window))
+		  (nth 3 (window-edges window)))))
+	 (which-side
+	  (and (eq line 'vertical)
+	       (or (cdr (assq 'vertical-scroll-bars (frame-parameters frame)))
+		   'right)))
+	 done event mouse growth dragged)
+    (cond
+     ((eq line 'header)
+      ;; Check whether header-line can be dragged at all.
+      (if (window-at-side-p window 'top)
+	  (setq done t)
+	(setq window (window-in-direction 'above window t))))
+     ((eq line 'mode)
+      ;; Check whether mode-line can be dragged at all.
+      (when (and (window-at-side-p window 'bottom)
+		 (not enlarge-minibuffer))
+	(setq done t)))
+     ((eq line 'vertical)
+      ;; Get the window to adjust for the vertical case.
+      (setq window
+	    (if (eq which-side 'right)
+		;; If the scroll bar is on the window's right or there's
+		;; no scroll bar at all, adjust the window where the
+		;; start-event occurred.
+		window
+	      ;; If the scroll bar is on the start-event window's left,
+	      ;; adjust the window on the left of it.
+	      (window-in-direction 'left window t)))))
+
+    ;; Start tracking.
     (track-mouse
-      (progn
-	;; if this is the bottommost ordinary window, then to
-	;; move its modeline the minibuffer must be enlarged.
-	(setq should-enlarge-minibuffer
-	      (and minibuffer
-		   mode-line-p
-		   (not (one-window-p t))
-		   (= (nth 1 (window-edges minibuffer))
-		      (nth 3 (window-edges start-event-window)))))
+      ;; Loop reading events and sampling the position of the mouse.
+      (while (not done)
+	(setq event (read-event))
+	(setq mouse (mouse-position))
+	;; Do nothing if
+	;;   - there is a switch-frame event.
+	;;   - the mouse isn't in the frame that we started in
+	;;   - the mouse isn't in any Emacs frame
+	;; Drag if
+	;;   - there is a mouse-movement event
+	;;   - there is a scroll-bar-movement event (??)
+	;;     (same as mouse movement for our purposes)
+	;; Quit if
+	;;   - there is a keyboard event or some other unknown event.
+	(cond
+	 ((not (consp event))
+	  (setq done t))
+	 ((memq (car event) '(switch-frame select-window))
+	  nil)
+	 ((not (memq (car event) '(mouse-movement scroll-bar-movement)))
+	  (when (consp event)
+	    ;; Do not unread a drag-mouse-1 event to avoid selecting
+	    ;; some other window.  For vertical line dragging do not
+	    ;; unread mouse-1 events either (but only if we dragged at
+	    ;; least once to allow mouse-1 clicks get through.
+	    (unless (and dragged
+			 (if (eq line 'vertical)
+			     (memq (car event) '(drag-mouse-1 mouse-1))
+			   (eq (car event) 'drag-mouse-1)))
+	      (push event unread-command-events)))
+	  (setq done t))
+	 ((or (not (eq (car mouse) frame)) (null (car (cdr mouse))))
+	  nil)
+	 ((eq line 'vertical)
+	  ;; Drag vertical divider (the calculations below are those
+	  ;; from Emacs 23).
+	  (setq growth
+		(- (- (cadr mouse)
+		      (if (eq which-side 'right) 0 2))
+		   (nth 2 (window-edges window))
+		   -1))
+	  (unless (zerop growth)
+	    ;; Remember that we dragged.
+	    (setq dragged t))
+	  (adjust-window-trailing-edge window growth t))
+	 (t
+	  ;; Drag horizontal divider (the calculations below are those
+	  ;; from Emacs 23).
+	  (setq growth
+		(if (eq line 'mode)
+		    (- (cddr mouse) (nth 3 (window-edges window)) -1)
+		  ;; The window's top includes the header line!
+		  (- (nth 3 (window-edges window)) (cddr mouse))))
 
-	;; loop reading events and sampling the position of
-	;; the mouse.
-	(while (not done)
-	  (setq event (read-event)
-		mouse (mouse-position))
+	  (unless (zerop growth)
+	    ;; Remember that we dragged.
+	    (setq dragged t))
 
-	  ;; do nothing if
-	  ;;   - there is a switch-frame event.
-	  ;;   - the mouse isn't in the frame that we started in
-	  ;;   - the mouse isn't in any Emacs frame
-	  ;; drag if
-	  ;;   - there is a mouse-movement event
-	  ;;   - there is a scroll-bar-movement event
-	  ;;     (same as mouse movement for our purposes)
-	  ;; quit if
-	  ;;   - there is a keyboard event or some other unknown event.
-	  (cond ((not (consp event))
-		 (setq done t))
+	  (cond
+	   (enlarge-minibuffer
+	    (adjust-window-trailing-edge window growth))
+	   ((eq line 'mode)
+	    (adjust-window-trailing-edge window growth))
+	   (t
+	    (adjust-window-trailing-edge window (- growth)))))))
 
-		((memq (car event) '(switch-frame select-window))
-		 nil)
-
-		((not (memq (car event) '(mouse-movement scroll-bar-movement)))
-		 (when (consp event)
-		   ;; Do not unread a drag-mouse-1 event since it will cause the
-		   ;; selection of the window above when dragging the modeline
-		   ;; above the selected window.
-		   (unless (eq (car event) 'drag-mouse-1)
-		     (push event unread-command-events)))
-		 (setq done t))
-
-		((not (eq (car mouse) start-event-frame))
-		 nil)
-
-		((null (car (cdr mouse)))
-		 nil)
-
-		(t
-		 (setq y (cdr (cdr mouse))
-		       edges (window-edges start-event-window)
-		       top (nth 1 edges)
-		       bot (nth 3 edges))
-
-		 ;; compute size change needed
-		 (cond (mode-line-p
-			(setq growth (- y bot -1)))
-		       (t	; header line
-			(when (< (- bot y) window-min-height)
-			  (setq y (- bot window-min-height)))
-			;; The window's top includes the header line!
-			(setq growth (- top y))))
-		 (setq wconfig (current-window-configuration))
-
-		 ;; Check for an error case.
-		 (when (and (/= growth 0)
-			    (not minibuffer)
-			    (one-window-p t))
-		   (error "Attempt to resize sole window"))
-
-                 ;; If we ever move, make sure we don't mistakenly treat
-                 ;; some unexpected `mouse-1' final event as a sign that
-                 ;; this whole drag was nothing more than a click.
-                 (if (/= growth 0) (setq on-link nil))
-
-		 ;; grow/shrink minibuffer?
-		 (if should-enlarge-minibuffer
-		     (unless resize-mini-windows
-		       (mouse-drag-move-window-bottom start-event-window growth))
-		   ;; no.  grow/shrink the selected window
-		   ;(message "growth = %d" growth)
-		   (if mode-line-p
-		       (mouse-drag-move-window-bottom start-event-window growth)
-		     (mouse-drag-move-window-top start-event-window growth)))
-
-		 ;; if this window's growth caused another
-		 ;; window to be deleted because it was too
-		 ;; short, rescind the change.
-		 ;;
-		 ;; if size change caused space to be stolen
-		 ;; from a window above this one, rescind the
-		 ;; change, but only if we didn't grow/shrink
-		 ;; the minibuffer.  minibuffer size changes
-		 ;; can cause all windows to shrink... no way
-		 ;; around it.
-		 (when (or (/= start-nwindows (count-windows t))
-			   (and (not should-enlarge-minibuffer)
-				(> growth 0)
-				mode-line-p
-				(/= top
-				    (nth 1 (window-edges
-					    ;; Choose right window.
-					    start-event-window)))))
-		   (set-window-configuration wconfig)))))
-
-        ;; Presumably if this was just a click, the last event should
-        ;; be `mouse-1', whereas if this did move the mouse, it should be
-        ;; a `drag-mouse-1'.  In any case `on-link' would have been nulled
-        ;; above if there had been any significant mouse movement.
-        (when (and on-link
-                   (eq 'mouse-1 (car-safe (car unread-command-events))))
-	  ;; If mouse-2 has never been done by the user, it doesn't
-	  ;; have the necessary property to be interpreted correctly.
-	  (put 'mouse-2 'event-kind 'mouse-click)
-          (setcar unread-command-events
-                  (cons 'mouse-2 (cdar unread-command-events))))))))
+      ;; Presumably, if this was just a click, the last event should be
+      ;; `mouse-1', whereas if this did move the mouse, it should be a
+      ;; `drag-mouse-1'.  `dragged' nil tells us that we never dragged
+      ;; and `on-link' tells us that there is a link to follow.
+      (when (and on-link (not dragged)
+		 (eq 'mouse-1 (car-safe (car unread-command-events))))
+	;; If mouse-2 has never been done by the user, it doesn't
+	;; have the necessary property to be interpreted correctly.
+	(put 'mouse-2 'event-kind 'mouse-click)
+	(setcar unread-command-events
+		(cons 'mouse-2 (cdar unread-command-events)))))))
 
 (defun mouse-drag-mode-line (start-event)
   "Change the height of a window by dragging on the mode line."
   (interactive "e")
-  (mouse-drag-mode-line-1 start-event t))
+  (mouse-drag-line start-event 'mode))
 
 (defun mouse-drag-header-line (start-event)
-  "Change the height of a window by dragging on the header line.
-Windows whose header-lines are at the top of the frame cannot be
-resized by dragging their header-line."
+  "Change the height of a window by dragging on the header line."
   (interactive "e")
-  ;; Changing the window's size by dragging its header-line when the
-  ;; header-line is at the top of the frame is somewhat strange,
-  ;; because the header-line doesn't move, so don't do it.
-  (let* ((start (event-start start-event))
-	 (window (posn-window start))
-	 (frame (window-frame window))
-	 (first-window (frame-first-window frame)))
-    (unless (or (eq window first-window)
-		(= (nth 1 (window-edges window))
-		   (nth 1 (window-edges first-window))))
-      (mouse-drag-mode-line-1 start-event nil))))
-
-
-(defun mouse-drag-vertical-line-rightward-window (window)
-  "Return a window that is immediately to the right of WINDOW, or nil."
-  (let ((bottom (nth 3 (window-inside-edges window)))
-	(left (nth 0 (window-inside-edges window)))
-	best best-right
-	(try (previous-window window)))
-    (while (not (eq try window))
-      (let ((try-top (nth 1 (window-inside-edges try)))
-	    (try-bottom (nth 3 (window-inside-edges try)))
-	    (try-right (nth 2 (window-inside-edges try))))
-	(if (and (< try-top bottom)
-		 (>= try-bottom bottom)
-		 (< try-right left)
-		 (or (null best-right) (> try-right best-right)))
-	    (setq best-right try-right best try)))
-      (setq try (previous-window try)))
-    best))
+  (mouse-drag-line start-event 'header))
 
 (defun mouse-drag-vertical-line (start-event)
   "Change the width of a window by dragging on the vertical line."
   (interactive "e")
-  ;; Give temporary modes such as isearch a chance to turn off.
-  (run-hooks 'mouse-leave-buffer-hook)
-  (let* ((done nil)
-	 (echo-keystrokes 0)
-	 (start-event-frame (window-frame (car (car (cdr start-event)))))
-	 (start-event-window (car (car (cdr start-event))))
-	 event mouse x left right edges growth
-	 (which-side
-	  (or (cdr (assq 'vertical-scroll-bars (frame-parameters start-event-frame)))
-	      'right)))
-    (cond
-     ((one-window-p t)
-      (error "Attempt to resize sole ordinary window"))
-     ((and (eq which-side 'right)
-	   (>= (nth 2 (window-inside-edges start-event-window))
-	       (frame-width start-event-frame)))
-      (error "Attempt to drag rightmost scrollbar"))
-     ((and (eq which-side 'left)
-	   (= (nth 0 (window-inside-edges start-event-window)) 0))
-      (error "Attempt to drag leftmost scrollbar")))
-    (track-mouse
-      (progn
-	;; loop reading events and sampling the position of
-	;; the mouse.
-	(while (not done)
-	  (setq event (read-event)
-		mouse (mouse-position))
-	  ;; do nothing if
-	  ;;   - there is a switch-frame event.
-	  ;;   - the mouse isn't in the frame that we started in
-	  ;;   - the mouse isn't in any Emacs frame
-	  ;; drag if
-	  ;;   - there is a mouse-movement event
-	  ;;   - there is a scroll-bar-movement event
-	  ;;     (same as mouse movement for our purposes)
-	  ;; quit if
-	  ;;   - there is a keyboard event or some other unknown event
-	  ;;     unknown event.
-	  (cond ((integerp event)
-		 (setq done t))
-		((memq (car event) '(switch-frame select-window))
-		 nil)
-		((not (memq (car event)
-			    '(mouse-movement scroll-bar-movement)))
-		 (if (consp event)
-		     (setq unread-command-events
-			   (cons event unread-command-events)))
-		 (setq done t))
-		((not (eq (car mouse) start-event-frame))
-		 nil)
-		((null (car (cdr mouse)))
-		 nil)
-		(t
-		 (let ((window
-			;; If the scroll bar is on the window's left,
-			;; adjust the window on the left.
-			(if (eq which-side 'right)
-			    start-event-window
-			  (mouse-drag-vertical-line-rightward-window
-			   start-event-window))))
-		   (setq x (- (car (cdr mouse))
-			      (if (eq which-side 'right) 0 2))
-			 edges (window-edges window)
-			 left (nth 0 edges)
-			 right (nth 2 edges))
-		   ;; scale back a move that would make the
-		   ;; window too thin.
-		   (if (< (- x left -1) window-min-width)
-		       (setq x (+ left window-min-width -1)))
-		   ;; compute size change needed
-		   (setq growth (- x right -1))
-		   (condition-case nil
-		       (adjust-window-trailing-edge window growth t)
-		     (error nil))))))))))
+  (mouse-drag-line start-event 'vertical))
 
 (defun mouse-set-point (event)
   "Move point to the position clicked on with the mouse.

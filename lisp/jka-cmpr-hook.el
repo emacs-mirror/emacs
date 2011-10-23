@@ -333,9 +333,14 @@ variables.  Setting this through Custom does that automatically."
   :group 'jka-compr)
 
 (define-minor-mode auto-compression-mode
-  "Toggle automatic file compression and uncompression.
-With prefix argument ARG, turn auto compression on if positive, else off.
-Return the new status of auto compression (non-nil means on)."
+  "Toggle Auto Compression mode.
+With a prefix argument ARG, enable Auto Compression mode if ARG
+is positive, and disable it otherwise.  If called from Lisp,
+enable the mode if ARG is omitted or nil.
+
+Auto Compression mode is a global minor mode.  When enabled,
+compressed files are automatically uncompressed for reading, and
+compressed when writing."
   :global t :init-value t :group 'jka-compr :version "22.1"
   (let* ((installed (jka-compr-installed-p))
 	 (flag auto-compression-mode))

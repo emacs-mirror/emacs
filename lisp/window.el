@@ -1084,6 +1084,35 @@ regardless of whether that buffer is current or not."
 	(goto-char pos))
     (set-window-point window pos)))
 
+(defun window-at-side-p (&optional window side)
+  "Return t if WINDOW is at SIDE of its containing frame.
+WINDOW can be any window and defaults to the selected one.  SIDE
+can be any of the symbols `left', `top', `right' or `bottom'.
+The default value nil is handled like `bottom'."
+  (setq window (window-normalize-any-window window))
+  (let ((edge
+	 (cond
+	  ((eq side 'left) 0)
+	  ((eq side 'top) 1)
+	  ((eq side 'right) 2)
+	  ((memq side '(bottom nil)) 3))))
+    (= (nth edge (window-edges window))
+       (nth edge (window-edges (frame-root-window window))))))
+
+(defun windows-at-side (&optional frame side)
+  "Return list of all windows on SIDE of FRAME.
+FRAME must be a live frame and defaults to the selected frame.
+SIDE can be any of the symbols `left', `top', `right' or
+`bottom'.  The default value nil is handled like `bottom'."
+  (setq frame (window-normalize-frame frame))
+  (let (windows)
+    (walk-window-tree
+     (lambda (window)
+       (when (window-at-side-p window side)
+	 (setq windows (cons window windows))))
+     frame)
+    (nreverse windows)))
+
 (defun window-in-direction-2 (window posn &optional horizontal)
   "Support function for `window-in-direction'."
   (if horizontal

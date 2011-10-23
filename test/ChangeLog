@@ -1,3 +1,9 @@
+2011-10-20  Glenn Morris  <rgm@gnu.org>
+
+	* automated/vc-bzr.el (vc-bzr-test-bug9781): New test.
+
+	* automated/vc-bzr.el: New file.
+
 2011-10-15  Glenn Morris  <rgm@gnu.org>
 
 	* automated/f90.el: New file.

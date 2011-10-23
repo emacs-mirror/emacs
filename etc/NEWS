@@ -51,6 +51,8 @@ This is not a new feature; only the configure flag is new.
 ---
 ** There is a new configure option --with-wide-int.
 With it, Emacs integers typically have 62 bits, even on 32-bit machines.
+On 32-bit hosts, this raises the limit on buffer sizes from about 512 MiB
+to about 2 GiB.
 
 ---
 ** New translation of the Emacs Tutorial in Hebrew is available.
@@ -107,9 +109,9 @@ and pops down the *Completions* buffer accordingly.
 *** Completion can cycle, depending on completion-cycle-threshold.
 +++
 *** New completion style `substring'.
-
++++
 *** Completion style can be set per-category `completion-category-overrides'.
-
++++
 *** Completion of buffers now uses substring completion by default.
 
 ** Mail changes
@@ -223,6 +225,10 @@ cannot be encoded by the `terminal-coding-system'.
 ---
 *** New input methods for Farsi: farsi and farsi-translit.
 
++++
+*** `nobreak-char-display' now also highlights Unicode hyphen chars
+(U+2010 and U+2011).
+
 ** Improved GTK integration
 
 *** GTK scroll-bars are now placed on the right by default.
@@ -236,10 +242,10 @@ is taken from the desktop settings.
 The frame-parameter tool-bar-position controls this.  It takes the values
 top, left, right or bottom.  The Options => Show/Hide menu has entries
 for this.
-
-*** The colors for selected text (the region face) are taken from the GTK
-theme when Emacs is built with GTK.
-
++++
+*** The colors for selected text (the `region' face) are taken from
+the GTK theme when Emacs is built with GTK.
++++
 *** Emacs uses GTK tooltips by default if built with GTK.  You can turn that
 off by customizing x-gtk-use-system-tooltips.
 
@@ -266,7 +272,7 @@ context in their return values.
 
 *** The new functions file-selinux-context and set-file-selinux-context
 get and set the SELinux context of a file.
-
+---
 *** Tramp offers handlers for file-selinux-context and set-file-selinux-context
 for remote machines which support SELinux.
 
@@ -442,7 +448,7 @@ pops up *Messages*" feature, which can now easily be changed.
 +++
 *** C-y in Isearch is now bound to isearch-yank-kill, instead of
 isearch-yank-line.
----
++++
 *** M-y in Isearch is now bound to isearch-yank-pop, instead of
 isearch-yank-kill.
 +++
@@ -454,6 +460,7 @@ isearch-yank-kill.
 *** `count-lines-region' is now an alias for `count-words-region',
 bound to M-=, which shows the number of lines, words, and characters.
 
++++
 ** The default value of `backup-by-copying-when-mismatch' is now t.
 
 +++
@@ -554,6 +561,7 @@ updates later on, and Emacs appears to be unable to keep up.
 
 * Changes in Specialized Modes and Packages in Emacs 24.1
 
++++
 ** Archive Mode has basic support for browsing and updating 7z archives.
 
 ** browse-url has a new variable `browse-url-mailto-function'
@@ -798,12 +806,12 @@ additional details about each column.
 *** latex-electric-env-pair-mode keeps \begin..\end matched on the fly.
 
 ** Tramp
-
+---
 *** There exists a new inline access method "ksu" (kerberized su).
-
+---
 *** The following access methods are discontinued: "ssh1_old",
 "ssh2_old", "scp1_old", "scp2_old", "imap", "imaps" and "fish".
-
+---
 *** The option `ange-ftp-binary-file-name-regexp' has changed its
 default value to "".
 
@@ -844,6 +852,15 @@ binding `log-view-expanded-log-entry-function' to a suitable function.
 *** New command `vc-ediff' allows visual comparison of two revisions
 of a file similar to `vc-diff', but using ediff backend.
 
++++
+*** The option `vc-initial-comment' was removed in Emacs 23.2, but
+this was not advertised at the time.
+
++++
+*** `vc-toggle-read-only' is an obsolete alias for `toggle-read-only'.
+Since Emacs 23, it has done the same thing as `toggle-read-only', but
+this was not advertised at the time.
+
 ** FIXME: xdg-open for browse-url and reportbug, 2010/08.
 
 ** Obsolete modes
@@ -873,6 +890,7 @@ They are superseded by shift-select-mode enabled by default in 23.1.
 
 * New Modes and Packages in Emacs 24.1
 
++++
 ** Occur Edit mode applies edits made in *Occur* buffers to the
 original buffers.  It is bound to "e" in Occur mode.
 
@@ -1146,6 +1164,7 @@ combined with minibuffer-local-must-match-map.
 *** New variable `completing-read-function' allows overriding the
 behavior of `completing-read'.
 
++++
 ** `glyphless-char-display' can now distinguish between graphical and
 text terminal display, via a char-table entry that is a cons cell.
 
@@ -1311,6 +1330,8 @@ Use `filter-buffer-substring-functions' instead.
 *** `byte-compile-disable-print-circle' is obsolete.
 
 *** `deferred-action-list' and `deferred-action-function' are obsolete.
++++
+*** `font-lock-maximum-size' is obsolete.
 
 
 * Changes in Emacs 24.1 on non-free operating systems

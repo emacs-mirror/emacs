@@ -56,8 +56,9 @@
 ;;;###autoload
 (define-minor-mode delete-selection-mode
   "Toggle Delete Selection mode.
-With prefix ARG, turn Delete Selection mode on if ARG is
-positive, off if ARG is not positive.
+With a prefix argument ARG, enable Delete Selection mode if ARG
+is positive, and disable it otherwise.  If called from Lisp,
+enable the mode if ARG is omitted or nil.
 
 When Delete Selection mode is enabled, Transient Mark mode is also
 enabled and typed text replaces the selection if the selection is

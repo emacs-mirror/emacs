@@ -1,3 +1,7 @@
+2011-10-18  Chong Yidong  <cyd@gnu.org>
+
+	* display.texi (Glyphless Chars): New node.
+
 2011-10-13  Chong Yidong  <cyd@stupidchicken.com>
 
 	* text.texi (Yanking): Document yank-excluded-properties.

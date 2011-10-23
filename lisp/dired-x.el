@@ -133,16 +133,20 @@ If nil, there is no maximum size."
   :group 'dired-x)
 
 (define-minor-mode dired-omit-mode
-  "Toggle Dired-Omit mode.
-With numeric ARG, enable Dired-Omit mode if ARG is positive, disable
-otherwise.  Enabling and disabling is buffer-local.
-If enabled, \"uninteresting\" files are not listed.
-Uninteresting files are those whose filenames match regexp `dired-omit-files',
-plus those ending with extensions in `dired-omit-extensions'.
+  "Toggle omission of uninteresting files in Dired (Dired-Omit mode).
+With a prefix argument ARG, enable Dired-Omit mode if ARG is
+positive, and disable it otherwise.  If called from Lisp, enable
+the mode if ARG is omitted or nil.
 
-To enable omitting in every Dired buffer, you can put in your ~/.emacs
+Dired-Omit mode is a buffer-local minor mode.  When enabled in a
+Dired buffer, Dired does not list files whose filenames match
+regexp `dired-omit-files', nor files ending with extensions in
+`dired-omit-extensions'.
 
-  (add-hook 'dired-mode-hook (lambda () (dired-omit-mode 1)))
+To enable omitting in every Dired buffer, you can put this in
+your init file:
+
+  (add-hook 'dired-mode-hook (lambda () (dired-omit-mode)))
 
 See Info node `(dired-x) Omitting Variables' for more information."
   :group 'dired-x

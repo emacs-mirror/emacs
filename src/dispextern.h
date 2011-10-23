@@ -1856,7 +1856,8 @@ struct bidi_it {
   struct bidi_saved_info next_for_neutral; /* surrounding characters for... */
   struct bidi_saved_info prev_for_neutral; /* ...resolving neutrals */
   struct bidi_saved_info next_for_ws; /* character after sequence of ws */
-  ptrdiff_t next_en_pos;	/* position of next EN char for ET */
+  ptrdiff_t next_en_pos;	/* pos. of next char for determining ET type */
+  bidi_type_t next_en_type;	/* type of char at next_en_pos */
   ptrdiff_t ignore_bn_limit;	/* position until which to ignore BNs */
   bidi_dir_t sor;		/* direction of start-of-run in effect */
   int scan_dir;			/* direction of text scan, 1: forw, -1: back */

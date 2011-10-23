@@ -847,10 +847,10 @@ by the global keymap (usually `mouse-yank-at-click')."
       ;; If pos is at the very end of a field, the mouse-click was
       ;; probably outside (to the right) of the field.
       (and (< pos (field-end pos))
-           (setq field (field-at-pos pos))
-	   (setq input (field-string-no-properties pos))))
-    (if (or (null comint-accum-marker)
-	    (not (eq field 'input)))
+	   (< (field-end pos) (point-max))
+           (progn (setq field (field-at-pos pos))
+		  (setq input (field-string-no-properties pos)))))
+    (if (or (null input) (null comint-accum-marker) field)
 	;; Fall back to the global definition if (i) the selected
 	;; buffer is not a comint buffer (which can happen if a
 	;; non-comint window was selected and we clicked in a comint
@@ -1803,8 +1803,7 @@ Similarly for Soar, Scheme, etc."
               (add-text-properties
                beg end
                '(mouse-face highlight
-                 help-echo "mouse-2: insert after prompt as new input"
-                 field input))))
+                 help-echo "mouse-2: insert after prompt as new input"))))
           (unless (or no-newline comint-use-prompt-regexp)
             ;; Cover the terminating newline
             (add-text-properties end (1+ end)
@@ -2153,7 +2152,7 @@ If `comint-use-prompt-regexp' is non-nil, then return
 the current line with any initial string matching the regexp
 `comint-prompt-regexp' removed."
   (let ((bof (field-beginning)))
-    (if (eq (get-char-property bof 'field) 'input)
+    (if (null (get-char-property bof 'field)) ;Not `output'.
 	(field-string-no-properties bof)
       (comint-bol)
       (buffer-substring-no-properties (point) (line-end-position)))))
@@ -2473,7 +2472,7 @@ If N is negative, find the next or Nth next match."
 	      (while (/= n 0)
 		(unless (re-search-backward regexp nil t dir)
 		  (error "Not found"))
-		(when (eq (get-char-property (point) 'field) 'input)
+		(unless (get-char-property (point) 'field)
 		  (setq n (- n dir))))
 	      (field-beginning))))
       (goto-char pos))))
@@ -2520,7 +2519,7 @@ text matching `comint-prompt-regexp'."
 		 (setq input-pos (point-max)))
 	       ;; stop iterating
 	       (setq n 0))
-	      ((eq (get-char-property pos 'field) 'input)
+	      ((null (get-char-property pos 'field))
 	       (setq n (if (< n 0) (1+ n) (1- n)))
 	       (setq input-pos pos))))
       (when input-pos
@@ -3079,9 +3078,9 @@ SS1 = (unquote SS2)."
 
 (defun comint--table-subvert (table s1 s2 &optional quote-fun unquote-fun)
   "Completion table that replaces the prefix S1 with S2 in STRING.
-When TABLE, S1 and S2 are provided by `apply-partially', the result
-is a completion table which completes strings of the form (concat S1 S)
-in the same way as TABLE completes strings of the form (concat S2 S)."
+The result is a completion table which completes strings of the
+form (concat S1 S) in the same way as TABLE completes strings of
+the form (concat S2 S)."
   (lambda (string pred action)
     (let* ((str (if (eq t (compare-strings string 0 (length s1) s1 nil nil
                                            completion-ignore-case))
@@ -3106,13 +3105,15 @@ in the same way as TABLE completes strings of the form (concat S2 S)."
          ((eq action t)
           (let ((bounds (completion-boundaries str table pred "")))
             (if (>= (car bounds) (length s2))
-                res
+                (if quote-fun (mapcar quote-fun res) res)
               (let ((re (concat "\\`"
                                 (regexp-quote (substring s2 (car bounds))))))
                 (delq nil
                       (mapcar (lambda (c)
                                 (if (string-match re c)
-                                    (substring c (match-end 0))))
+                                    (let ((str (substring c (match-end 0))))
+                                      (if quote-fun
+                                          (funcall quote-fun str) str))))
                               res))))))
          ;; E.g. action=nil and it's the only completion.
          (res))))))

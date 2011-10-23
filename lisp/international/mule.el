@@ -2403,8 +2403,8 @@ This function is intended to be added to `auto-coding-functions'."
     ;; (allowing for whitespace at bob).  Note: 'DOCTYPE NETSCAPE' is
     ;; useful for Mozilla bookmark files.
     (when (and (re-search-forward "\\`[[:space:]\n]*\\(<!doctype[[:space:]\n]+\\(html\\|netscape\\)\\|<html\\)" size t)
-	       (re-search-forward "<meta\\s-+http-equiv=[\"']?content-type[\"']?\\s-+content=[\"']text/\\sw+;\\s-*charset=\\(.+?\\)[\"']" size t))
-      (let* ((match (match-string 1))
+	       (re-search-forward "<meta\\s-+\\(http-equiv=[\"']?content-type[\"']?\\s-+content=[\"']text/\\sw+;\\s-*\\)?charset=[\"']?\\(.+?\\)[\"'\\s-/>]" size t))
+      (let* ((match (match-string 2))
 	     (sym (intern (downcase match))))
 	(if (coding-system-p sym)
 	    sym

@@ -1968,12 +1968,15 @@ Optional argument MINOR indicates this is called from
 
 ;;;###autoload
 (define-minor-mode compilation-shell-minor-mode
-  "Toggle compilation shell minor mode.
-With arg, turn compilation mode on if and only if arg is positive.
-In this minor mode, all the error-parsing commands of the
-Compilation major mode are available but bound to keys that don't
-collide with Shell mode.  See `compilation-mode'.
-Turning the mode on runs the normal hook `compilation-shell-minor-mode-hook'."
+  "Toggle Compilation Shell minor mode.
+With a prefix argument ARG, enable Compilation Shell minor mode
+if ARG is positive, and disable it otherwise.  If called from
+Lisp, enable the mode if ARG is omitted or nil.
+
+When Compilation Shell minor mode is enabled, all the
+error-parsing commands of the Compilation major mode are
+available but bound to keys that don't collide with Shell mode.
+See `compilation-mode'."
   nil " Shell-Compile"
   :group 'compilation
   (if compilation-shell-minor-mode
@@ -1982,11 +1985,14 @@ Turning the mode on runs the normal hook `compilation-shell-minor-mode-hook'."
 
 ;;;###autoload
 (define-minor-mode compilation-minor-mode
-  "Toggle compilation minor mode.
-With arg, turn compilation mode on if and only if arg is positive.
-In this minor mode, all the error-parsing commands of the
-Compilation major mode are available.  See `compilation-mode'.
-Turning the mode on runs the normal hook `compilation-minor-mode-hook'."
+  "Toggle Compilation minor mode.
+With a prefix argument ARG, enable Compilation minor mode if ARG
+is positive, and disable it otherwise.  If called from Lisp,
+enable the mode if ARG is omitted or nil.
+
+When Compilation minor mode is enabled, all the error-parsing
+commands of Compilation major mode are available.  See
+`compilation-mode'."
   nil " Compilation"
   :group 'compilation
   (if compilation-minor-mode

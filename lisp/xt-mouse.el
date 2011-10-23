@@ -199,8 +199,9 @@
 ;;;###autoload
 (define-minor-mode xterm-mouse-mode
   "Toggle XTerm mouse mode.
-With prefix arg, turn XTerm mouse mode on if arg is positive, otherwise turn
-it off.
+With a prefix argument ARG, enable XTerm mouse mode if ARG is
+positive, and disable it otherwise.  If called from Lisp, enable
+the mode if ARG is omitted or nil.
 
 Turn it on to use Emacs mouse commands, and off to use xterm mouse commands.
 This works in terminal emulators compatible with xterm.  It only

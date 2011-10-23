@@ -1224,13 +1224,8 @@ Returns nil if there is no such line before LIMIT, t otherwise."
     (autoload 'font-lock-set-defaults "font-lock")))
 
 (define-minor-mode gnus-message-citation-mode
-  "Toggle `gnus-message-citation-mode' in current buffer.
-This buffer local minor mode provides additional font-lock support for
-nested citations.
-With prefix ARG, turn `gnus-message-citation-mode' on if and only if ARG
-is positive.
-Automatically turn `font-lock-mode' on when `gnus-message-citation-mode'
-is turned on."
+  "Minor mode providing more font-lock support for nested citations.
+When enabled, it automatically turns on `font-lock-mode'."
   nil ;; init-value
   "" ;; lighter
   nil ;; keymap

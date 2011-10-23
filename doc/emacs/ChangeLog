@@ -1,3 +1,89 @@
+2011-10-23  Chong Yidong  <cyd@gnu.org>
+
+	* buffers.texi (Misc Buffer): Don't mention vc-toggle-read-only.
+
+2011-10-22  Chong Yidong  <cyd@gnu.org>
+
+	* windows.texi (Displaying Buffers): Fix broken lispref link.
+
+2011-10-22  Chong Yidong  <cyd@gnu.org>
+
+	* mini.texi (Minibuffer Exit): Rename from Strict Completion.
+	Move confirm-nonexistent-file-or-buffer discussion here.
+
+	* files.texi (File Names, Visiting): Move detailed discussion of
+	minibuffer confirmation to Minibuffer Exit.
+
+	* buffers.texi (Buffers): Tweak mention of mail buffer name.
+	(Select Buffer): Move confirmation discussion to Minibuffer Exit.
+
+2011-10-21  Chong Yidong  <cyd@gnu.org>
+
+	* files.texi (File Names, Visiting, Interlocking): Copyedits.
+	(Backup Copying): backup-by-copying-when-mismatch is now t.
+	(Customize Save): Fix description of require-final-newline.
+	(Reverting): Note that revert-buffer can't be undone.  Mention VC.
+	(Auto Save Control): Clarify.
+	(File Archives): Add 7z.
+	(Remote Files): ange-ftp-make-backup-files defaults to nil.
+
+	* arevert-xtra.texi (Autorevert): Copyedits.
+
+2011-10-20  Chong Yidong  <cyd@gnu.org>
+
+	* custom.texi (Hooks, Init Examples):
+	* display.texi (Font Lock):
+	* fixit.texi (Spelling):
+	* rmail.texi (Rmail Display): Minor mode function with no arg now
+	enables it.
+
+	* fixit.texi (Spelling): Fix description of inline completion.
+
+2011-10-19  Chong Yidong  <cyd@gnu.org>
+
+	* search.texi (Repeat Isearch, Error in Isearch): Add kindex
+	entries.
+	(Isearch Yank): Document isearch-yank-pop.
+	(Isearch Scroll): Refer to C-l instead of unbound `recenter'.
+	(Other Repeating Search): Document Occur Edit mode.
+
+2011-10-18  Chong Yidong  <cyd@gnu.org>
+
+	* display.texi (Fringes): Move overflow-newline-into-fringe here,
+	from Line Truncation node.
+	(Standard Faces): Note that only the background of the cursor face
+	has an effect.
+	(Cursor Display): Fix descriptions of cursor face
+	and bar cursor blinking.
+	(Text Display): Document nobreak-char-display more clearly.
+	(Line Truncation): Add xref to Split Window node.
+	(Display Custom): Don't bother documenting baud-rate or
+	no-redraw-on-reenter.
+
+	* search.texi (Slow Isearch): Node removed.
+
+2011-10-18  Glenn Morris  <rgm@gnu.org>
+
+	* maintaining.texi (Registering): Remove vc-initial-comment.  (Bug#9745)
+
+2011-10-18  Chong Yidong  <cyd@gnu.org>
+
+	* display.texi (Faces): Simplify discussion.  Move documentation
+	of list-faces-display here, from Standard Faces node.  Note
+	special role of `default' background.
+	(Standard Faces): Note special role of `default' background.  Note
+	that region face may be taken fom GTK.  Add xref to Text Display.
+	(Text Scale): Rename from "Temporary Face Changes".  Callers
+	changed.  Don't bother documenting variable-pitch-mode.
+	(Font Lock): Copyedits.  Remove font-lock-maximum-size.
+	(Useless Whitespace): Simplify description of
+	delete-trailing-whitespace.  Note active region case.
+	(Text Display): Fix description of escape-glyph face assignment.
+	Remove unibye mode discussion.  Update some parts for Unicode.
+	Move glyphless chars documentation to Lisp manual.
+
+	* frames.texi (Tooltips): Document x-gtk-use-system-tooltips.
+
 2011-10-15  Chong Yidong  <cyd@stupidchicken.com>
 
 	* display.texi (Scrolling): Tweak explanation of scroll direction.

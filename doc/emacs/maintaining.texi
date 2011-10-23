@@ -898,10 +898,11 @@ You can specify a different default by setting the variable
 numeric argument; then it reads the initial revision ID for this
 particular file using the minibuffer.
 
-@vindex vc-initial-comment
-  If @code{vc-initial-comment} is non-@code{nil}, @kbd{C-x v i} reads an
-initial comment to describe the purpose of this source file.  Reading
-the initial comment works like reading a log entry (@pxref{Log Buffer}).
+@c See http://debbugs.gnu.org/9745
+@c @vindex vc-initial-comment
+@c   If @code{vc-initial-comment} is non-@code{nil}, @kbd{C-x v i} reads an
+@c initial comment to describe the purpose of this source file.  Reading
+@c the initial comment works like reading a log entry (@pxref{Log Buffer}).
 
 @node VC Change Log
 @subsubsection VC Change Log

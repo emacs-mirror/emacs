@@ -36,8 +36,11 @@
 
 (nnoo-declare nnregistry)
 
+;; Suppress byte-compiler warning `reference to free variable'
+(defvar gnus-registry-enabled)
+
 (deffoo nnregistry-server-opened (server)
-  (eq gnus-registry-install t))
+  gnus-registry-enabled)
 
 (deffoo nnregistry-close-server (server)
   t)
@@ -46,7 +49,7 @@
   nil)
 
 (deffoo nnregistry-open-server (server &optional defs)
-  (eq gnus-registry-install t))
+  gnus-registry-enabled)
 
 (defvar nnregistry-within-nnregistry nil)
 

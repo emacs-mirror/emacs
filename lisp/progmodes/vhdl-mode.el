@@ -8029,12 +8029,16 @@ project is defined."
 
 (define-minor-mode vhdl-electric-mode
   "Toggle VHDL electric mode.
-Turn on if ARG positive, turn off if ARG negative, toggle if ARG zero or nil."
+With a prefix argument ARG, enable the mode if ARG is positive,
+and disable it otherwise.  If called from Lisp, enable it if ARG
+is omitted or nil."
   :global t)
 
 (define-minor-mode vhdl-stutter-mode
   "Toggle VHDL stuttering mode.
-Turn on if ARG positive, turn off if ARG negative, toggle if ARG zero or nil."
+With a prefix argument ARG, enable the mode if ARG is positive,
+and disable it otherwise.  If called from Lisp, enable it if ARG
+is omitted or nil."
   :global t)
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
