@@ -1,3 +1,7 @@
+2011-10-24  Glenn Morris  <rgm@gnu.org>
+
+	* emacs-lisp/easy-mmode.el (define-minor-mode): Doc fix.  (Bug#9819)
+
 2011-10-24  Michael Albinus  <michael.albinus@gmx.de>
 
 	* notifications.el: Add the requirement of a running D-Bus session
