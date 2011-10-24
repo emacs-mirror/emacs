@@ -6057,7 +6057,7 @@ parse_modifiers_uncached (Lisp_Object symbol, ptrdiff_t *modifier_end)
   modifiers = 0;
   name = SYMBOL_NAME (symbol);
 
-  for (i = 0; 2 <= SBYTES (name) - i; )
+  for (i = 0; i < SBYTES (name) - 1; )
     {
       ptrdiff_t this_mod_end = 0;
       int this_mod = 0;
