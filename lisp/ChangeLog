@@ -1,3 +1,8 @@
+2011-10-24  Michael Albinus  <michael.albinus@gmx.de>
+
+	* notifications.el: Add the requirement of a running D-Bus session
+	bus to the Commentary.
+
 2011-10-24  Juri Linkov  <juri@jurta.org>
 
 	* isearch.el (isearch-occur): Let-bind `search-spaces-regexp' to
