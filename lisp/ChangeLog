@@ -1,3 +1,8 @@
+2011-10-24  Juri Linkov  <juri@jurta.org>
+
+	* info.el (Info-following-node-name-re): Add newline to the list
+	of allowed characters for leading space.  (Bug#9824)
+
 2011-10-24  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* progmodes/octave-inf.el (inferior-octave-mode-map): Fix C-c C-h binding.
