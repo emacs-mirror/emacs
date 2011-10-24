@@ -553,7 +553,6 @@
 	(temp_output_buffer_setup, Fprin1_to_string, print_object):
 	Use ptrdiff_t, not int, to avoid needless 32-bit limit on 64-bit hosts.
 	(PRINTPREPARE): Use int, not ptrdiff_t, where int is wide enough.
-	(PRINTFINISH): Use SAFE_ALLOCA, not alloca.
 	(printchar, strout): Use xpalloc to catch size calculation overflow.
 	(Fexternal_debugging_output): Use CHECK_CHARACTER, not CHECK_NUMBER,
 	to avoid mishandling large integers.
