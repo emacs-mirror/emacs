@@ -2508,11 +2508,13 @@ read1 (register Lisp_Object readcharfun, int *pch, int first_in_list)
 		  ptrdiff_t size;
 
 		  tmp = read_vector (readcharfun, 0);
+		  size = ASIZE (tmp);
+		  if (size == 0)
+		    error ("Invalid size char-table");
 		  if (! RANGED_INTEGERP (1, AREF (tmp, 0), 3))
 		    error ("Invalid depth in char-table");
 		  depth = XINT (AREF (tmp, 0));
-		  size = ASIZE (tmp) - 2;
-		  if (chartab_size [depth] != size)
+		  if (chartab_size[depth] != size - 2)
 		    error ("Invalid size char-table");
 		  XSETPVECTYPE (XVECTOR (tmp), PVEC_SUB_CHAR_TABLE);
 		  return tmp;

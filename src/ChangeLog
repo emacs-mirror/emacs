@@ -1,4 +1,4 @@
-2011-10-23  Paul Eggert  <eggert@cs.ucla.edu>
+2011-10-24  Paul Eggert  <eggert@cs.ucla.edu>
 
 	Fix integer width and related bugs.
 	* alloc.c (pure_bytes_used_lisp, pure_bytes_used_non_lisp):
@@ -495,6 +495,7 @@
 	(openp): Check for out-of-range argument to 'access'.
 	(read1): Use int, not EMACS_INT, where int is wide enough.
 	Don't assume fixnum fits into int.
+	Fix off-by-one error that can read outside a buffer.
 	(read_filtered_event): Use duration_to_sec_usec
 	to do proper overflow checking on durations.
 	* macros.c (Fstart_kbd_macro): Use xpalloc to check for overflow
