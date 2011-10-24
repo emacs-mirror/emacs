@@ -229,9 +229,8 @@ have special commands to operate on the text; also by visiting a file
 whose access control says you cannot write it.
 
 @findex toggle-read-only
-  If you wish to make changes in a read-only buffer, use the command
-@kbd{C-x C-q} (@code{toggle-read-only}).  It makes a read-only buffer
-writable, and makes a writable buffer read-only.  This works by
+ The command @kbd{C-x C-q} (@code{toggle-read-only}) makes a read-only
+buffer writable, and makes a writable buffer read-only.  This works by
 setting the variable @code{buffer-read-only}, which has a local value
 in each buffer and makes the buffer read-only if its value is
 non-@code{nil}.

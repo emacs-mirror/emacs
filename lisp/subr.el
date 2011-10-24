@@ -116,8 +116,6 @@ BODY should be a list of Lisp expressions.
   ;; depend on backquote.el.
   (list 'function (cons 'lambda cdr)))
 
-;; Partial application of functions (similar to "currying").
-;; This function is here rather than in subr.el because it uses CL.
 (defun apply-partially (fun &rest args)
   "Return a function that is a partial application of FUN to ARGS.
 ARGS is a list of the first N arguments to pass to FUN.

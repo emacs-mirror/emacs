@@ -956,55 +956,43 @@ Parameters,,, elisp, The Emacs Lisp Reference Manual}.
 @cindex Scroll Bar mode
 @cindex mode, Scroll Bar
 
-  On graphical displays, Emacs normally makes a @dfn{scroll bar} at
-the left of each Emacs window, running the height of the
-window.@footnote{Placing it at the left is usually more useful with
-overlapping frames with text starting at the left margin.}
+  On graphical displays, there is a @dfn{scroll bar} on the side of
+each Emacs window.  Clicking @kbd{Mouse-1} on the scroll bar's up and
+down buttons scrolls the window by one line at a time.  Clicking
+@kbd{Mouse-1} above or below the scroll bar's inner box scrolls the
+window by nearly the entire height of the window, like @kbd{M-v} and
+@kbd{C-v} respectively (@pxref{Moving Point}).  Dragging the inner box
+scrolls continuously.
 
-  When Emacs is compiled with GTK+ support on the X Window System, or
-in operating systems such as Microsoft Windows or Mac OS, you can use
-the scroll bar as you do in other graphical applications.  If you
-click @kbd{Mouse-1} on the scroll bar's up and down buttons, that
-scrolls the window by one line at a time.  Clicking @kbd{Mouse-1}
-above or below the scroll bar's inner box scrolls the window by nearly
-the entire height of the window, like @kbd{M-v} and @kbd{C-v}
-respectively (@pxref{Moving Point}).  Dragging the inner box with
-@kbd{Mouse-1} scrolls the window continuously.
-
-  If Emacs is compiled without GTK+ support on the X Window System,
-the scroll bar behaves differently.  The scroll bar's inner box is
-drawn to represent the portion of the buffer currently displayed, with
-the entire height of the scroll bar representing the entire length of
-the buffer.  @kbd{Mouse-1} anywhere on the scroll bar scrolls forward
-like @kbd{C-v}, and @kbd{Mouse-3} scrolls backward like @kbd{M-v}.
-Clicking @kbd{Mouse-2} in the scroll bar lets you move or drag the
-inner box up and down.
-
-  You can also click @kbd{C-Mouse-2} in the scroll bar to split a
-window vertically.  The split occurs on the line where you click.
+  If Emacs is compiled on the X Window System without X toolkit
+support, the scroll bar behaves differently.  Clicking @kbd{Mouse-1}
+anywhere on the scroll bar scrolls forward like @kbd{C-v}, while
+@kbd{Mouse-3} scrolls backward like @kbd{M-v}.  Clicking @kbd{Mouse-2}
+in the scroll bar lets you drag the inner box up and down.
 
 @findex scroll-bar-mode
-@vindex scroll-bar-mode
-  You can toggle the use of the scroll bar with the command @kbd{M-x
-scroll-bar-mode}.  With a prefix argument, this command turns use of
-scroll bars on if and only if the argument is positive.  This command
-applies to all frames, including frames yet to be created.  Customize
-the variable @code{scroll-bar-mode} to control the use of scroll bars
-at startup.  You can use it to specify that they are placed at the
-right of windows if you prefer that.  You have to set this variable
-through the @samp{Customize} interface (@pxref{Easy Customization}),
-or it will not work properly.  You can also use the X resource
-@samp{verticalScrollBars} to control the initial setting of Scroll Bar
-mode.  @xref{Resources}.
-
 @findex toggle-scroll-bar
-  To enable or disable scroll bars for just the selected frame, use the
+  To toggle the use of scroll bars, type @kbd{M-x scroll-bar-mode}.
+This command applies to all frames, including frames yet to be
+created.  To toggle scroll bars for just the selected frame, use the
 command @kbd{M-x toggle-scroll-bar}.
+
+@vindex scroll-bar-mode
+  To control the use of scroll bars at startup, customize the variable
+@code{scroll-bar-mode}.  Its value should be either @code{right} (put
+scroll bars on the right side of windows), @code{left} (put them on
+the left), or @code{nil} (disable scroll bars).  By default, Emacs
+puts scroll bars on the right if it was compiled with GTK+ support on
+the X Window System, and on MS-Windows or Mac OS; Emacs puts scroll
+bars on the left if compiled on the X Window system without GTK+
+support (following the old convention for X applications).
 
 @vindex scroll-bar-width
 @cindex width of the scroll bar
-  You can control the scroll bar width by changing the value of the
-@code{scroll-bar-width} frame parameter.
+  You can also use the X resource @samp{verticalScrollBars} to enable
+or disable the scroll bars (@pxref{Resources}).  To control the scroll
+bar width, change the @code{scroll-bar-width} frame parameter
+(@pxref{Frame Parameters,,, elisp, The Emacs Lisp Reference Manual}).
 
 @node Wheeled Mice
 @section Scrolling With ``Wheeled'' Mice
@@ -1082,36 +1070,33 @@ menus' visual appearance.
 @cindex mode, Tool Bar
 @cindex icons, toolbar
 
-  The @dfn{tool bar} is a line (or lines) of icons at the top of the
-Emacs window, just below the menu bar.  You can click on these icons
-with the mouse to do various jobs.
+  On graphical displays, Emacs puts a @dfn{tool bar} at the top of
+each frame, just below the menu bar.  This is a row of icons which you
+can click on with the mouse to invoke various commands.
 
-  The global tool bar contains general commands.  Some major modes
-define their own tool bars to replace it.  A few ``special'' modes
-that are not designed for ordinary editing remove some items from the
-global tool bar.
-
-  Tool bars work only on a graphical display.  The tool bar uses colored
-XPM icons if Emacs was built with XPM support.  Otherwise, the tool
-bar uses monochrome icons (PBM or XBM format).
+  The global (default) tool bar contains general commands.  Some major
+modes define their own tool bars; whenever a buffer with such a major
+mode is current, the mode's tool bar replaces the global tool bar.
 
 @findex tool-bar-mode
 @vindex tool-bar-mode
-  You can turn display of tool bars on or off with @kbd{M-x
-tool-bar-mode} or by customizing the option @code{tool-bar-mode}.
+  To toggle the use of tool bars, type @kbd{M-x tool-bar-mode}.  This
+command applies to all frames, including frames yet to be created.  To
+control the use of tool bars at startup, customize the variable
+@code{tool-bar-mode}.
 
 @vindex tool-bar-style
 @cindex Tool Bar style
-  When Emacs is compiled with GTK+ support, tool bars can have text and images.
-Customize @code{tool-bar-style} to select style.  The default style is
-the same as for the desktop in the Gnome case.  If no default is found,
-the tool bar uses just images.
+  When Emacs is compiled with GTK+ support, each tool bar item can
+consist of an image, or a text label, or both.  By default, Emacs
+follows the Gnome desktop's tool bar style setting; if none is
+defined, it displays tool bar items as just images.  To impose a
+specific tool bar style, customize the variable @code{tool-bar-style}.
 
 @cindex Tool Bar position
-  You can also control the placement of the tool bar for the GTK+ tool bar
-with the frame parameter @code{tool-bar-position}.
-For a detailed description of frame parameters and customization,
-see @ref{Frame Parameters,,, elisp, The Emacs Lisp Reference Manual}.
+  You can also control the placement of the tool bar for the GTK+ tool
+bar with the frame parameter @code{tool-bar-position}.  @xref{Frame
+Parameters,,, elisp, The Emacs Lisp Reference Manual}.
 
 @node Dialog Boxes
 @section Using Dialog Boxes
@@ -1186,11 +1171,11 @@ options for displaying tooltips, use @kbd{M-x customize-group
 customizing the windows that display tooltips.
 
 @vindex x-gtk-use-system-tooltips
-  If Emacs is built with GTK support, it displays tooltips via GTK,
-using the default appearance of GTK tooltips.  To disable this, change
-the variable @code{x-gtk-use-system-tooltips} to @code{nil}.  If you
-do this, or if Emacs is built without GTK support, the @code{tooltip}
-face specifies most attributes of the tooltip text.
+  If Emacs is built with GTK+ support, it displays tooltips via GTK+,
+using the default appearance of GTK+ tooltips.  To disable this,
+change the variable @code{x-gtk-use-system-tooltips} to @code{nil}.
+If you do this, or if Emacs is built without GTK+ support, the
+@code{tooltip} face specifies most attributes of the tooltip text.
 
 @node Mouse Avoidance
 @section Mouse Avoidance

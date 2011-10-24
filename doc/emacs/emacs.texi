@@ -342,6 +342,7 @@ Registers
 Controlling the Display
 
 * Scrolling::              Commands to move text up and down in a window.
+* Recentering::            A scrolling command that centers the current line.
 * Auto Scrolling::         Redisplay scrolls text automatically when needed.
 * Horizontal Scrolling::   Moving text left and right in a window.
 * Narrowing::              Restricting display and editing to a portion
