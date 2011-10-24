@@ -554,8 +554,7 @@
 	Use ptrdiff_t, not int, to avoid needless 32-bit limit on 64-bit hosts.
 	(PRINTPREPARE): Use int, not ptrdiff_t, where int is wide enough.
 	(printchar, strout): Use xpalloc to catch size calculation overflow.
-	(Fexternal_debugging_output): Use CHECK_CHARACTER, not CHECK_NUMBER,
-	to avoid mishandling large integers.
+	(Fexternal_debugging_output): Don't overflow EMACS_INT->int conversion.
 	(print_error_message): Use SAFE_ALLOCA, not alloca.
 	(print_object): Use int, not EMACS_INT, where int is wide enough.
 	* process.c (Fdelete_process): Don't assume pid fits into EMACS_INT.

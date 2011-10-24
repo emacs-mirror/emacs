@@ -716,8 +716,8 @@ You can call print while debugging emacs, and pass it this function
 to make it write to the debugging output.  */)
   (Lisp_Object character)
 {
-  CHECK_CHARACTER (character);
-  putc ((int) XINT (character), stderr);
+  CHECK_NUMBER (character);
+  putc (XINT (character) & 0xFF, stderr);
 
 #ifdef WINDOWSNT
   /* Send the output to a debugger (nothing happens if there isn't one).  */
