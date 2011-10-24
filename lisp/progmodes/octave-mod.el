@@ -655,14 +655,6 @@ including a reproducible test case and send the message."
 
   (easy-menu-add octave-mode-menu)
   (octave-initialize-completions))
-
-(defvar info-lookup-mode)
-
-(defun octave-help ()
-  "Get help on Octave symbols from the Octave info files.
-Look up symbol in the function, operator and variable indices of the info files."
-  (let ((info-lookup-mode 'octave-mode))
-    (call-interactively 'info-lookup-symbol)))
 
 ;;; Miscellaneous useful functions
 

@@ -10380,7 +10380,8 @@ fi
 if test "$HAVE_PTHREAD" = yes; then
   case "${canonical}" in
     *-hpux*) ;;
-    *) LIB_PTHREAD="-lpthread" ;;
+    *) LIB_PTHREAD="-lpthread"
+       LIBS="$LIB_PTHREAD $LIBS" ;;
   esac
 
 $as_echo "#define HAVE_PTHREAD 1" >>confdefs.h

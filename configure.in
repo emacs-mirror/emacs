@@ -1723,7 +1723,8 @@ fi
 if test "$HAVE_PTHREAD" = yes; then
   case "${canonical}" in
     *-hpux*) ;;
-    *) LIB_PTHREAD="-lpthread" ;;
+    *) LIB_PTHREAD="-lpthread"
+       LIBS="$LIB_PTHREAD $LIBS" ;;
   esac
   AC_DEFINE(HAVE_PTHREAD, 1, [Define to 1 if you have pthread (-lpthread).])
 fi

@@ -68,7 +68,7 @@ mode, set this to (\"-q\" \"--traditional\")."
     (define-key map "\C-c\C-l" 'inferior-octave-dynamic-list-input-ring)
     (define-key map [menu-bar inout list-history]
       '("List Input History" . inferior-octave-dynamic-list-input-ring))
-    (define-key map "\C-c\C-h" 'octave-help)
+    (define-key map "\C-c\C-h" 'info-lookup-symbol)
     map)
   "Keymap used in Inferior Octave mode.")
 

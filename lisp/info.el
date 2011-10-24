@@ -2015,7 +2015,7 @@ Submatch 1 is the complete node name.
 Submatch 2 if non-nil is the parenthesized file name part of the node name.
 Submatch 3 is the local part of the node name.
 End of submatch 0, 1, and 3 are the same, so you can safely concat."
-  (concat "[ \t]*"			;Skip leading space.
+  (concat "[ \t\n]*"			;Skip leading space.
 	  "\\(\\(([^)]+)\\)?"	;Node name can start with a file name.
 	  "\\([" (or allowedchars "^,\t\n") "]*" ;Any number of allowed chars.
 	  "[" (or allowedchars "^,\t\n") " ]" ;The last char can't be a space.
