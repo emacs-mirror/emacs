@@ -1,5 +1,11 @@
 2011-10-24  Juri Linkov  <juri@jurta.org>
 
+	* isearch.el (isearch-occur): Let-bind `search-spaces-regexp' to
+	`search-whitespace-regexp' only when `isearch-regexp' is non-nil.
+	(Bug#9364)
+
+2011-10-24  Juri Linkov  <juri@jurta.org>
+
 	* info.el (Info-following-node-name-re): Add newline to the list
 	of allowed characters for leading space.  (Bug#9824)
 

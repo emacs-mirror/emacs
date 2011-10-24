@@ -1452,7 +1452,7 @@ string.  NLINES has the same meaning as in `occur'."
 	;; Set `search-upper-case' to nil to not call
 	;; `isearch-no-upper-case-p' in `occur-1'.
 	(search-upper-case nil)
-	(search-spaces-regexp search-whitespace-regexp))
+	(search-spaces-regexp (if isearch-regexp search-whitespace-regexp)))
     (occur regexp nlines)))
 
 (declare-function hi-lock-read-face-name "hi-lock" ())
