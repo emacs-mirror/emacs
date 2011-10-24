@@ -924,7 +924,6 @@ usage: (unibyte-string &rest BYTES)  */)
   (ptrdiff_t n, Lisp_Object *args)
 {
   ptrdiff_t i;
-  int c;
   unsigned char *buf, *p;
   Lisp_Object str;
   USE_SAFE_ALLOCA;
@@ -934,11 +933,8 @@ usage: (unibyte-string &rest BYTES)  */)
 
   for (i = 0; i < n; i++)
     {
-      CHECK_CHARACTER (args[i]);
-      c = XFASTINT (args[i]);
-      if (c >= 256)
-	args_out_of_range_3 (args[i], make_number (0), make_number (255));
-      *p++ = c;
+      CHECK_RANGED_INTEGER (0, args[i], 255);
+      *p++ = XINT (args[i]);
     }
 
   str = make_string_from_bytes ((char *) buf, n, p - buf);

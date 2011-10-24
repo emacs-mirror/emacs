@@ -106,7 +106,7 @@
 	(str_as_unibyte, str_to_unibyte, string_count_byte8)
 	(string_escape_byte8, Fget_byte):
 	Use ptrdiff_t, not EMACS_INT, where ptrdiff_t is wide enough.
-	(Funibyte_string): Use CHECK_CHARACTER, not CHECK_NATNUM, to
+	(Funibyte_string): Use CHECK_RANGED_INTEGER, not CHECK_NATNUM, to
 	avoid mishandling large integers.
 	* character.h: Adjust decls to match defn changes elsewhere.
 	* charset.c (load_charset_map_from_file, find_charsets_in_text)
