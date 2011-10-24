@@ -293,7 +293,7 @@ of buffer at first key-press (instead move to top/bottom of buffer)
 when `scroll-error-top-bottom' is non-nil.
 +++
 *** New variable `scroll-error-top-bottom' (see above).
-
++++
 *** New scrolling commands `scroll-up-line' and `scroll-down-line'
 scroll a line instead of full screen.
 +++

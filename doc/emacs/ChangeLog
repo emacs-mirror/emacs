@@ -1,3 +1,9 @@
+2011-10-24  Chong Yidong  <cyd@gnu.org>
+
+	* display.texi (Scrolling): Document scroll-up-line and
+	scroll-down-line.  Document scroll-command property.
+	(Recentering): New node, split off from Scrolling.
+
 2011-10-23  Chong Yidong  <cyd@gnu.org>
 
 	* frames.texi (Scroll Bars): GTK uses right scroll bars now.
