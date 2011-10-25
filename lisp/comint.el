@@ -2152,7 +2152,7 @@ If `comint-use-prompt-regexp' is non-nil, then return
 the current line with any initial string matching the regexp
 `comint-prompt-regexp' removed."
   (let (bof)
-    (if (and comint-use-prompt-regexp
+    (if (and (not comint-use-prompt-regexp)
              ;; Make sure we're in an input rather than output field.
              (null (get-char-property (setq bof (field-beginning)) 'field)))
 	(field-string-no-properties bof)
