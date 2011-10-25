@@ -1,3 +1,8 @@
+2011-10-25  Enami Tsugutomo  <tsugutomo.enami@jp.sony.com>
+
+	* sysdep.c (init_sys_modes): Fix the check for the controlling
+	terminal (Bug#6649).
+
 2011-10-20  Eli Zaretskii  <eliz@gnu.org>
 
 	* dispextern.h (struct bidi_it): New member next_en_type.
