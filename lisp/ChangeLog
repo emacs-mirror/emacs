@@ -1,3 +1,8 @@
+2011-10-25  Michael Albinus  <michael.albinus@gmx.de>
+
+	* net/tramp-sh.el (tramp-sh-handle-file-directory-p): Return t for
+	filenames "/method:foo:".
+
 2011-10-25  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* comint.el (comint-get-old-input-default): Fix use-prompt-regexp case
