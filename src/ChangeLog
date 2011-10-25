@@ -1,3 +1,8 @@
+2011-10-25  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* keyboard.c (test_undefined): New function (bug#9751).
+	(read_key_sequence): Use it to detect when a key is bound to `undefined'.
+
 2011-10-25  Enami Tsugutomo  <tsugutomo.enami@jp.sony.com>
 
 	* sysdep.c (init_sys_modes): Fix the check for the controlling
