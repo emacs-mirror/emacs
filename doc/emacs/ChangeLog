@@ -1,3 +1,8 @@
+2011-10-25  Glenn Morris  <rgm@gnu.org>
+
+	* abbrevs.texi (Saving Abbrevs):
+	quietly-read-abbrev-file is not a command.  (Bug#9866)
+
 2011-10-24  Chong Yidong  <cyd@gnu.org>
 
 	* display.texi (Scrolling): Document scroll-up-line and
