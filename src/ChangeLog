@@ -1,3 +1,7 @@
+2011-10-25  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* dispextern.h (Fcontrolling_tty_p): New decl (Bug#6649 part 2).
+
 2011-10-25  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* keyboard.c (test_undefined): New function (bug#9751).

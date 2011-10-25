@@ -1,3 +1,7 @@
+2011-10-25  Nali Toja  <nalitoja@gmail.com>  (tiny change)
+
+	* configure.in (HAVE_GNU_MAKE): Respect MAKE env-var.  (Bug#9868)
+
 2011-10-24  Paul Eggert  <eggert@cs.ucla.edu>
 
 	* configure.in (LIB_PTHREAD): Prepend -lpthread to LIBS (Bug#9852)
