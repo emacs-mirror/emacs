@@ -3346,6 +3346,7 @@ extern int tty_capable_p (struct tty_display_info *, unsigned, unsigned long, un
 extern void set_tty_color_mode (struct tty_display_info *, struct frame *);
 extern struct terminal *get_named_tty (const char *);
 EXFUN (Ftty_type, 1);
+EXFUN (Fcontrolling_tty_p, 1);
 extern void create_tty_output (struct frame *);
 extern struct terminal *init_tty (const char *, const char *, int);
 extern void tty_append_glyph (struct it *);

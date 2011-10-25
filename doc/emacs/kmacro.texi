@@ -147,7 +147,7 @@ beginning of the line and then executing the macro.
 @findex kmacro-start-macro
 @findex kmacro-end-macro
   In addition to the @key{F3} and @key{F4} commands described above,
-Emacs also supports an older set of keybindings for defining and
+Emacs also supports an older set of key bindings for defining and
 executing keyboard macros.  To begin a macro definition, type @kbd{C-x
 (} (@code{kmacro-start-macro}); as with @key{F3}, a prefix argument
 appends this definition to the last keyboard macro.  To end a macro

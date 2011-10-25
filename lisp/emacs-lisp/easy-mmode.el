@@ -94,8 +94,9 @@ Optional LIGHTER is displayed in the modeline when the mode is on.
 Optional KEYMAP is the default keymap bound to the mode keymap.
   If non-nil, it should be a variable name (whose value is a keymap),
   or an expression that returns either a keymap or a list of
-  arguments for `easy-mmode-define-keymap'.  If KEYMAP is not a symbol,
-  this also defines the variable MODE-map.
+  arguments for `easy-mmode-define-keymap'.  If you supply a KEYMAP
+  argument that is not a symbol, this macro defines the variable
+  MODE-map and gives it the value that KEYMAP specifies.
 
 BODY contains code to execute each time the mode is enabled or disabled.
   It is executed after toggling the mode, and before running MODE-hook.

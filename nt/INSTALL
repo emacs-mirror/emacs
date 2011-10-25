@@ -323,7 +323,7 @@
   For PNG images, we recommend to use versions 1.4.x and later of
   libpng, because previous versions had security issues.  You can find
   precompiled libraries and headers on the GTK download page for
-  Windows (http://www.gtk.org/download-windows.html).
+  Windows (http://www.gtk.org/download/win32.php).
 
   Versions 1.4.0 and later of libpng are binary incompatible with
   earlier versions, so Emacs will only look for libpng libraries which

@@ -1,4 +1,4 @@
-2011-10-24  Paul Eggert  <eggert@cs.ucla.edu>
+2011-10-25  Paul Eggert  <eggert@cs.ucla.edu>
 
 	Fix integer width and related bugs.
 	* alloc.c (pure_bytes_used_lisp, pure_bytes_used_non_lisp):
@@ -787,6 +787,20 @@
 	(struct scroll_bar): Use struct vectorlike_header
 	rather than rolling our own approximation.
 	(SCROLL_BAR_VEC_SIZE): Remove; not used.
+
+2011-10-25  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* dispextern.h (Fcontrolling_tty_p): New decl (Bug#6649 part 2).
+
+2011-10-25  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* keyboard.c (test_undefined): New function (bug#9751).
+	(read_key_sequence): Use it to detect when a key is bound to `undefined'.
+
+2011-10-25  Enami Tsugutomo  <tsugutomo.enami@jp.sony.com>
+
+	* sysdep.c (init_sys_modes): Fix the check for the controlling
+	terminal (Bug#6649).
 
 2011-10-20  Eli Zaretskii  <eliz@gnu.org>
 

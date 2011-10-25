@@ -30,6 +30,9 @@
 ;;
 ;;   (require 'notifications)
 
+;; For proper usage, Emacs must be started in an environment with an
+;; active D-Bus session bus.
+
 ;;; Code:
 (eval-when-compile
   (require 'cl))

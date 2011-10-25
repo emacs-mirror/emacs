@@ -854,6 +854,7 @@ void
 init_sys_modes (struct tty_display_info *tty_out)
 {
   struct emacs_tty tty;
+  Lisp_Object terminal;
 
   Vtty_erase_char = Qnil;
 
@@ -907,7 +908,9 @@ init_sys_modes (struct tty_display_info *tty_out)
       tty.main.c_cflag &= ~PARENB;/* Don't check parity */
     }
 #endif
-  if (tty_out->input == stdin)
+
+  XSETTERMINAL(terminal, tty_out->terminal);
+  if (!NILP (Fcontrolling_tty_p (terminal)))
     {
       tty.main.c_cc[VINTR] = quit_char;	/* C-g (usually) gives SIGINT */
       /* Set up C-g for both SIGQUIT and SIGINT.
