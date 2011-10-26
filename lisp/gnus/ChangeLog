@@ -1,3 +1,9 @@
+2011-10-26  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* message.el (message-completion-function): Make sure
+	message-tab-body-function is not attempted if one of
+	message-completion-alist fails to find a completion (bug#9158).
+
 2011-10-26  Daiki Ueno  <ueno@unixuser.org>
 
 	* mml.el (mml-quote-region): Quote <#secure> tag.
@@ -7,7 +13,7 @@
 
 	* gnus-cite.el (gnus-message-citation-mode): Doc fix (in Emacs 24,
 	calling a minor mode from Lisp with nil arg enables it, so we have to
-	make the working a bit ambiguous here).
+	make the wording a bit ambiguous here).
 
 2011-10-18  Teodor Zlatanov  <tzz@lifelogs.com>
 
