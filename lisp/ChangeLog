@@ -1,3 +1,12 @@
+2011-10-26  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* progmodes/octave-mod.el:
+	* progmodes/octave-inf.el: Update maintainer.
+
+2011-10-26  Chong Yidong  <cyd@gnu.org>
+
+	* subr.el (with-wrapper-hook): Rewrite doc.
+
 2011-10-25  Michael Albinus  <michael.albinus@gmx.de>
 
 	* net/tramp-sh.el (tramp-sh-handle-file-directory-p): Return t for

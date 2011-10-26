@@ -1,3 +1,7 @@
+2011-10-26  Chong Yidong  <cyd@gnu.org>
+
+	* modes.texi (Running Hooks): Document with-wrapper-hook.
+
 2011-10-18  Chong Yidong  <cyd@gnu.org>
 
 	* display.texi (Glyphless Chars): New node.
