@@ -2705,15 +2705,7 @@ system_process_attributes (Lisp_Object pid)
   struct gcpro gcpro1, gcpro2;
 
   CHECK_NUMBER_OR_FLOAT (pid);
-  if (FLOATP (pid))
-    {
-      double v = XFLOAT_DATA (pid);
-      if (! (TYPE_MINIMUM (pid_t) <= v && v < TYPE_MAXIMUM (pid_t) + 1.0))
-	return attrs;
-      proc_id = v;
-    }
-  else
-    proc_id = XINT (pid);
+  CONS_TO_INTEGER (pid, pid_t, proc_id);
   sprintf (procfn, "/proc/%"pMd, proc_id);
   if (stat (procfn, &st) < 0)
     return attrs;
@@ -2978,15 +2970,7 @@ system_process_attributes (Lisp_Object pid)
   struct gcpro gcpro1, gcpro2;
 
   CHECK_NUMBER_OR_FLOAT (pid);
-  if (FLOATP (pid))
-    {
-      double v = XFLOAT_DATA (pid);
-      if (! (TYPE_MINIMUM (pid_t) <= v && v < TYPE_MAXIMUM (pid_t) + 1.0))
-	return attrs;
-      proc_id = v;
-    }
-  else
-    proc_id = XINT (v);
+  CONS_TO_INTEGER (pid, pid_t, proc_id);
   sprintf (procfn, "/proc/%"pMd, proc_id);
   if (stat (procfn, &st) < 0)
     return attrs;

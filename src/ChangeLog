@@ -1,4 +1,4 @@
-2011-10-25  Paul Eggert  <eggert@cs.ucla.edu>
+2011-10-26  Paul Eggert  <eggert@cs.ucla.edu>
 
 	Fix integer width and related bugs.
 	* alloc.c (pure_bytes_used_lisp, pure_bytes_used_non_lisp):
@@ -627,8 +627,8 @@
 	Don't assume pid_t fits in int; on 64-bit AIX pid_t is 64-bit.
 	(emacs_read, emacs_write):
 	Use ptrdiff_t, not EMACS_INT, where ptrdiff_t is wide enough.
-	(system_process_attributes): Don't assume uid_t, gid_t, and
-	double all fit in int or even EMACS_INT.
+	(system_process_attributes): Don't assume uid_t, gid_t, EMACS_INT,
+	and double all fit in int.
 	* term.c (set_tty_color_mode):
 	Check that fixnums are in proper range for system types.
 	* termhooks.h (struct input_event):
