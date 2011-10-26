@@ -1,6 +1,6 @@
 2011-10-26  Juanma Barranquero  <lekktu@gmail.com>
 
-	* term/w32-win.el (w32-default-color-map): Declare obsolete.
+	* term/w32-win.el (w32-default-color-map): Declare obsolete.  (Bug#9785)
 
 2011-10-26  Michael Albinus  <michael.albinus@gmx.de>
 

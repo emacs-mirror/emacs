@@ -1522,7 +1522,7 @@ Valid actions are: readable, restore, read, kill, write."
 ;;;    (while all
 ;;;      (when (and (eq (car (car all)) 'bof)
 ;;;              (not (file-regular-p (nth 1 (car all)))))
-;;;     (message "File %s in saved parse info not avalable" (cdr (car all)))
+;;;     (message "File %s in saved parse info not available" (cdr (car all)))
 ;;;     (error "File not found"))
 ;;;      (setq all (cdr all))))
   )

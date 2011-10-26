@@ -1,3 +1,7 @@
+2011-10-26  Juanma Barranquero  <lekktu@gmail.com>
+
+	* emacs.texi (Top): Fix typo.
+
 2011-10-25  Glenn Morris  <rgm@gnu.org>
 
 	* abbrevs.texi (Saving Abbrevs):
