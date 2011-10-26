@@ -599,11 +599,7 @@
 	Use ptrdiff_t, not EMACS_INT, where ptrdiff_t is wide enough.
 	(Fplay_sound_internal):
 	Use ptrdiff_t, not int, to avoid needless 32-bit limit on 64-bit hosts.
-	* syntax.c (ST_COMMENT_STYLE, ST_STRING_STYLE):
-	In definitions, make it clearer that these values must be out of range
-	for the respective integer ranges.  This fixes a bug with
-	ST_STRING_STYLE and non-ASCII characters.
-	(struct lisp_parse_state, find_start_modiff)
+	* syntax.c (struct lisp_parse_state, find_start_modiff)
 	(Finternal_describe_syntax_value, scan_lists, scan_sexps_forward):
 	(Fparse_partial_sexp):
 	Don't assume fixnums can fit in int.

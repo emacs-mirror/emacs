@@ -94,8 +94,8 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
    string-ender-char to distinguish  comments/strings started by
    comment_fence and string_fence codes.  */
 
-#define ST_COMMENT_STYLE (SYNTAX_FLAGS_COMMENT_STYLE (~0, ~0) + 1)
-#define ST_STRING_STYLE (MAX_CHAR + 1)
+#define ST_COMMENT_STYLE (256 + 1)
+#define ST_STRING_STYLE (256 + 2)
 
 static Lisp_Object Qsyntax_table_p;
 static Lisp_Object Qsyntax_table, Qscan_error;
