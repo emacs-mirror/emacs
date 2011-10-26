@@ -1351,6 +1351,8 @@ with the USER_LIBS build variable.
 
 ** New make target `dist' to create binary distribution for MS Windows.
 
+** Function `w32-default-color-map' is now obsolete.
+
 ** On Nextstep/OSX, the menu bar can be hidden by customizing
 ns-auto-hide-menu-bar.
 
