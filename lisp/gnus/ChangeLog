@@ -1,3 +1,8 @@
+2011-10-26  Daiki Ueno  <ueno@unixuser.org>
+
+	* mml.el (mml-quote-region): Quote <#secure> tag.
+	(mml-generate-mime-1): Unquote <#secure> tag.
+
 2011-10-20  Chong Yidong  <cyd@gnu.org>
 
 	* gnus-cite.el (gnus-message-citation-mode): Doc fix (in Emacs 24,
@@ -18548,7 +18553,7 @@
 	gnus-requst-update-info with explicit code to sync the in-memory
 	info read flags with the marks being sync'd to the backend.
 
-	*gnus-util.el (gnus-pp): Add optional stream to match pp API.
+	* gnus-util.el (gnus-pp): Add optional stream to match pp API.
 
 2004-09-28  Teodor Zlatanov  <tzz@lifelogs.com>
 
