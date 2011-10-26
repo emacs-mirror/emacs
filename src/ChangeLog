@@ -1,6 +1,6 @@
 2011-10-26  Paul Eggert  <eggert@cs.ucla.edu>
 
-	Fix integer width and related bugs.
+	Fix integer width and related bugs (Bug#9874).
 	* alloc.c (pure_bytes_used_lisp, pure_bytes_used_non_lisp):
 	(allocate_vectorlike, buffer_memory_full, struct sdata, SDATA_SIZE)
 	(string_bytes, check_sblock, allocate_string_data):
