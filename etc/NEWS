@@ -1169,7 +1169,13 @@ must also be supplied.
 ** pre/post-command-hook are not reset to nil upon error.
 Instead, the offending function is removed.
 
-** New low-level function run-hook-wrapped.
+** New hook types
+
+*** New function `run-hook-wrapped' for running an abnormal hook by
+passing the hook functions as arguments to a "wrapping" function.
++++
+*** New macro `with-wrapper-hook' for running an abnormal hook as a
+set of "wrapping" filters, similar to around advice.
 
 ** `server-eval-at' is provided to allow evaluating forms on different
 Emacs server instances.
