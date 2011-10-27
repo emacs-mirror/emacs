@@ -1,5 +1,18 @@
 2011-10-27  Glenn Morris  <rgm@gnu.org>
 
+	* emacs-lisp/cl-extra.el (most-positive-float, most-negative-float)
+	(least-positive-float, least-negative-float)
+	(least-positive-normalized-float, least-negative-normalized-float)
+	(float-epsilon, float-negative-epsilon):
+	Remove unnecessary declarations.
+
+	* emacs-lisp/cl-extra.el (cl-float-limits): Add doc string.
+	* emacs-lisp/cl.el (most-positive-float, most-negative-float)
+	(least-positive-float, least-negative-float)
+	(least-positive-normalized-float, least-negative-normalized-float)
+	(float-epsilon, float-negative-epsilon): Add doc-strings,
+	based on those in cl.texi.
+
 	* files.el (set-visited-file-name): If the major-mode changed,
 	reload the local variables.  (Bug#9796)
 
