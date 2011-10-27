@@ -1,3 +1,8 @@
+2011-10-27  Glenn Morris  <rgm@gnu.org>
+
+	* files.el (set-visited-file-name): If the major-mode changed,
+	reload the local variables.  (Bug#9796)
+
 2011-10-27  Chong Yidong  <cyd@gnu.org>
 
 	* subr.el (change-major-mode-after-body-hook): New hook.
