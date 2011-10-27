@@ -1,5 +1,16 @@
 2011-10-27  Chong Yidong  <cyd@gnu.org>
 
+	* process.c (make_process): Set gnutls_state to NULL.
+
+	* gnutls.c (emacs_gnutls_deinit): Deinit the gnutls_state if it is
+	non-NULL, regardless of GNUTLS_INITSTAGE.
+	(Fgnutls_boot): Cleanups.  Call emacs_gnutls_deinit if we signal
+	an error.  Set process slots as soon as we allocate them.
+
+	* gnutls.h (GNUTLS_LOG, GNUTLS_LOG2): Fix macros.
+
+2011-10-27  Chong Yidong  <cyd@gnu.org>
+
 	* gnutls.c (emacs_gnutls_deinit): New function.  Deallocate
 	credentials structures as well as calling gnutls_deinit.
 	(Fgnutls_deinit, Fgnutls_boot): Use it.

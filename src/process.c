@@ -642,6 +642,7 @@ make_process (Lisp_Object name)
   p->gnutls_initstage = GNUTLS_STAGE_EMPTY;
   p->gnutls_log_level = 0;
   p->gnutls_p = 0;
+  p->gnutls_state = NULL;
   p->gnutls_x509_cred = NULL;
   p->gnutls_anon_cred = NULL;
 #endif
