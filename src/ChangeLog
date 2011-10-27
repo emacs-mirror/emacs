@@ -1,3 +1,10 @@
+2011-10-27  Juanma Barranquero  <lekktu@gmail.com>
+
+	* image.c (x_create_x_image_and_pixmap):
+	* w32.c (sys_rename, w32_delayed_load):
+	* w32font.c (fill_in_logfont):
+	* w32reg.c (x_get_string_resource): Silence compiler warnings.
+
 2011-10-26  Juanma Barranquero  <lekktu@gmail.com>
 
 	* w32fns.c (w32_default_color_map): New function,
