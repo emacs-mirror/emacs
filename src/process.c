@@ -5630,10 +5630,10 @@ Output from processes can arrive in between bunches.  */)
 
 /* Return the foreground process group for the tty/pty that
    the process P uses.  */
-static int
+static pid_t
 emacs_get_tty_pgrp (struct Lisp_Process *p)
 {
-  int gid = -1;
+  pid_t gid = -1;
 
 #ifdef TIOCGPGRP
   if (ioctl (p->infd, TIOCGPGRP, &gid) == -1 && ! NILP (p->tty_name))
@@ -5663,7 +5663,7 @@ return t unconditionally.  */)
 {
   /* Initialize in case ioctl doesn't exist or gives an error,
      in a way that will cause returning t.  */
-  int gid;
+  pid_t gid;
   Lisp_Object proc;
   struct Lisp_Process *p;
 
@@ -5704,7 +5704,7 @@ process_send_signal (Lisp_Object process, int signo, Lisp_Object current_group,
 {
   Lisp_Object proc;
   register struct Lisp_Process *p;
-  int gid;
+  pid_t gid;
   int no_pgrp = 0;
 
   proc = get_process (process);

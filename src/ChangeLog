@@ -574,6 +574,8 @@
 	(conv_lisp_to_sockaddr): Don't assume fixnums fit into int.
 	(Faccept_process_output): Use duration_to_sec_usec to do proper
 	overflow checking on durations.
+	(emacs_get_tty_pgrp, Fprocess_running_child_p, process_send_signal):
+	Don't assume pid_t fits in int.
 	* puresize.h (PURESIZE_RATIO): Shrink this to 8/6 on 32-bit hosts
 	configured --with-wide-int.
 	* scroll.c (calculate_scrolling, calculate_direct_scrolling)
