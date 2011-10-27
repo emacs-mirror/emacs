@@ -642,6 +642,9 @@ make_process (Lisp_Object name)
   p->gnutls_initstage = GNUTLS_STAGE_EMPTY;
   p->gnutls_log_level = 0;
   p->gnutls_p = 0;
+  p->gnutls_state = NULL;
+  p->gnutls_x509_cred = NULL;
+  p->gnutls_anon_cred = NULL;
 #endif
 
   /* If name is already in use, modify it until it is unused.  */
@@ -3866,6 +3869,11 @@ deactivate_process (Lisp_Object proc)
 {
   register int inchannel, outchannel;
   register struct Lisp_Process *p = XPROCESS (proc);
+
+#ifdef HAVE_GNUTLS
+  /* Delete GnuTLS structures in PROC, if any.  */
+  emacs_gnutls_deinit (proc);
+#endif /* HAVE_GNUTLS */
 
   inchannel  = p->infd;
   outchannel = p->outfd;

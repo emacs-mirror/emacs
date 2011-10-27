@@ -1,3 +1,42 @@
+2011-10-27  Glenn Morris  <rgm@gnu.org>
+
+	* emacs-lisp/cl-extra.el (most-positive-float, most-negative-float)
+	(least-positive-float, least-negative-float)
+	(least-positive-normalized-float, least-negative-normalized-float)
+	(float-epsilon, float-negative-epsilon):
+	Remove unnecessary declarations.
+
+	* emacs-lisp/cl-extra.el (cl-float-limits): Add doc string.
+	* emacs-lisp/cl.el (most-positive-float, most-negative-float)
+	(least-positive-float, least-negative-float)
+	(least-positive-normalized-float, least-negative-normalized-float)
+	(float-epsilon, float-negative-epsilon): Add doc-strings,
+	based on those in cl.texi.
+
+	* files.el (set-visited-file-name): If the major-mode changed,
+	reload the local variables.  (Bug#9796)
+
+2011-10-27  Chong Yidong  <cyd@gnu.org>
+
+	* subr.el (change-major-mode-after-body-hook): New hook.
+	(run-mode-hooks): Run it.
+
+	* emacs-lisp/easy-mmode.el (define-globalized-minor-mode): Use
+	change-major-mode-before-body-hook.
+
+	* simple.el (fundamental-mode):
+	* emacs-lisp/derived.el (define-derived-mode): Revert 2010-04-28
+	change introducing fundamental-mode-hook.
+
+2011-10-26  Juanma Barranquero  <lekktu@gmail.com>
+
+	* term/w32-win.el (w32-default-color-map): Declare obsolete.  (Bug#9785)
+
+2011-10-26  Michael Albinus  <michael.albinus@gmx.de>
+
+	* ido.el (ido-file-name-all-completions-1): Do not require
+	tramp.el explicitely.  (Bug#7583)
+
 2011-10-26  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* progmodes/octave-mod.el:
@@ -10,7 +49,7 @@
 2011-10-25  Michael Albinus  <michael.albinus@gmx.de>
 
 	* net/tramp-sh.el (tramp-sh-handle-file-directory-p): Return t for
-	filenames "/method:foo:".
+	filenames "/method:foo:".  (Bug#9793)
 
 2011-10-25  Stefan Monnier  <monnier@iro.umontreal.ca>
 
