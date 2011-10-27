@@ -1530,6 +1530,9 @@ if it is empty or a duplicate."
 (make-variable-buffer-local 'delayed-mode-hooks)
 (put 'delay-mode-hooks 'permanent-local t)
 
+(defvar change-major-mode-after-body-hook nil
+  "Normal hook run in major mode functions, before the mode hooks.")
+
 (defvar after-change-major-mode-hook nil
   "Normal hook run at the very end of major mode functions.")
 
@@ -1546,7 +1549,7 @@ FOO-mode-hook."
     ;; Normal case, just run the hook as before plus any delayed hooks.
     (setq hooks (nconc (nreverse delayed-mode-hooks) hooks))
     (setq delayed-mode-hooks nil)
-    (apply 'run-hooks hooks)
+    (apply 'run-hooks (cons 'change-major-mode-after-body-hook hooks))
     (run-hooks 'after-change-major-mode-hook)))
 
 (defmacro delay-mode-hooks (&rest body)

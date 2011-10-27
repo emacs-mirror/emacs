@@ -349,7 +349,8 @@ location."
 Other major modes are defined by comparison with this one."
   (interactive)
   (kill-all-local-variables)
-  (run-mode-hooks 'fundamental-mode-hook))
+  (unless delay-mode-hooks
+    (run-hooks 'after-change-major-mode-hook)))
 
 ;; Special major modes to view specially formatted data rather than files.
 

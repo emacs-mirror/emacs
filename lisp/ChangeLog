@@ -1,3 +1,15 @@
+2011-10-27  Chong Yidong  <cyd@gnu.org>
+
+	* subr.el (change-major-mode-after-body-hook): New hook.
+	(run-mode-hooks): Run it.
+
+	* emacs-lisp/easy-mmode.el (define-globalized-minor-mode): Use
+	change-major-mode-before-body-hook.
+
+	* simple.el (fundamental-mode):
+	* emacs-lisp/derived.el (define-derived-mode): Revert 2010-04-28
+	change introducing fundamental-mode-hook.
+
 2011-10-26  Juanma Barranquero  <lekktu@gmail.com>
 
 	* term/w32-win.el (w32-default-color-map): Declare obsolete.  (Bug#9785)
