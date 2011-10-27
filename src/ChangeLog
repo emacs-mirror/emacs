@@ -1,3 +1,10 @@
+2011-10-27  Juanma Barranquero  <lekktu@gmail.com>
+
+	* window.c (Fframe_root_window, Fframe_first_window, Fwindow_end)
+	(Fframe_selected_window, Ftemp_output_buffer_show, Fnext_window)
+	(Fdelete_window_internal, Fwindow_parameters): Fix typos in docstrings.
+	(Fmove_to_window_line): Doc fix.
+
 2011-10-27  Chong Yidong  <cyd@gnu.org>
 
 	* process.c (make_process): Set gnutls_state to NULL.
