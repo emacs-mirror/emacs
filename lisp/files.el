@@ -3682,7 +3682,11 @@ the old visited file has been renamed to the new name FILENAME."
 	  (get major-mode 'mode-class)
 	  ;; Don't change the mode if the local variable list specifies it.
 	  (hack-local-variables t)
-	  (set-auto-mode t))
+	  ;; TODO consider making normal-mode handle this case.
+	  (let ((old major-mode))
+	    (set-auto-mode t)
+	    (or (eq old major-mode)
+		(hack-local-variables))))
     (error nil)))
 
 (defun write-file (filename &optional confirm)

@@ -1218,15 +1218,22 @@ syntactic rules.
 
 ** frame-local variables cannot be let-bound any more.
 
+** Major and minor mode changes
 +++
-** prog-mode is a new major-mode meant to be the parent of programming mode.
-The prog-mode-hook it defines can be used to enable features for
-programming modes.  For example:
-(add-hook 'prog-mode-hook 'flyspell-prog-mode)
-enables on the fly spell checking for comments and strings for
-programming modes.
+*** `prog-mode' is a new major mode from which programming modes
+should be derived.
 
-** define-minor-mode accepts a new keyword :variable.
+**** `prog-mode-hook' can be used to enable features for programming
+modes, e.g. (add-hook 'prog-mode-hook 'flyspell-prog-mode) to enable
+on-the-fly spell checking for comments and strings.
+
+*** New hook `change-major-mode-after-body-hook', run by
+`run-mode-hooks' just before any other mode hooks.
+
+*** Enabled globalized minor modes can be disabled in specific modes,
+by running (FOO-mode-hook 0) via a mode hook.
+
+*** `define-minor-mode' accepts a new keyword :variable.
 
 +++
 ** `delete-file' and `delete-directory' now accept optional arg TRASH.
@@ -1350,6 +1357,8 @@ GnuTLS detection.
 with the USER_LIBS build variable.
 
 ** New make target `dist' to create binary distribution for MS Windows.
+
+** Function `w32-default-color-map' is now obsolete.
 
 ** On Nextstep/OSX, the menu bar can be hidden by customizing
 ns-auto-hide-menu-bar.

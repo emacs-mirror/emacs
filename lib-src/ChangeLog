@@ -1,3 +1,7 @@
+2011-10-27  Juanma Barranquero  <lekktu@gmail.com>
+
+	* emacsclient.c (w32_getenv): Silence compiler warnings.
+
 2011-09-07  Glenn Morris  <rgm@gnu.org>
 
 	* etags.c (Fortran_functions): Handle "elemental" functions.

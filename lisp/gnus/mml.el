@@ -525,7 +525,7 @@ If MML is non-nil, return the buffer up till the correspondent mml tag."
 		      ;; Remove quotes from quoted tags.
 		      (goto-char (point-min))
 		      (while (re-search-forward
-			      "<#!+/?\\(part\\|multipart\\|external\\|mml\\)"
+			      "<#!+/?\\(part\\|multipart\\|external\\|mml\\|secure\\)"
 			      nil t)
 			(delete-region (+ (match-beginning 0) 2)
 				       (+ (match-beginning 0) 3))))))
@@ -1232,7 +1232,7 @@ If not set, `default-directory' will be used."
       (goto-char (point-min))
       ;; Quote parts.
       (while (re-search-forward
-	      "<#!*/?\\(multipart\\|part\\|external\\|mml\\)" nil t)
+	      "<#!*/?\\(multipart\\|part\\|external\\|mml\\|secure\\)" nil t)
 	;; Insert ! after the #.
 	(goto-char (+ (match-beginning 0) 2))
 	(insert "!")))))

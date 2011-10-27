@@ -1,4 +1,4 @@
-2011-10-26  Paul Eggert  <eggert@cs.ucla.edu>
+2011-10-27  Paul Eggert  <eggert@cs.ucla.edu>
 
 	Fix integer width and related bugs (Bug#9874).
 	* alloc.c (pure_bytes_used_lisp, pure_bytes_used_non_lisp):
@@ -785,6 +785,46 @@
 	(struct scroll_bar): Use struct vectorlike_header
 	rather than rolling our own approximation.
 	(SCROLL_BAR_VEC_SIZE): Remove; not used.
+
+2011-10-27  Juanma Barranquero  <lekktu@gmail.com>
+
+	* window.c (Fframe_root_window, Fframe_first_window, Fwindow_end)
+	(Fframe_selected_window, Ftemp_output_buffer_show, Fnext_window)
+	(Fdelete_window_internal, Fwindow_parameters): Fix typos in docstrings.
+	(Fmove_to_window_line): Doc fix.
+
+2011-10-27  Chong Yidong  <cyd@gnu.org>
+
+	* process.c (make_process): Set gnutls_state to NULL.
+
+	* gnutls.c (emacs_gnutls_deinit): Deinit the gnutls_state if it is
+	non-NULL, regardless of GNUTLS_INITSTAGE.
+	(Fgnutls_boot): Cleanups.  Call emacs_gnutls_deinit if we signal
+	an error.  Set process slots as soon as we allocate them.
+
+	* gnutls.h (GNUTLS_LOG, GNUTLS_LOG2): Fix macros.
+
+2011-10-27  Chong Yidong  <cyd@gnu.org>
+
+	* gnutls.c (emacs_gnutls_deinit): New function.  Deallocate
+	credentials structures as well as calling gnutls_deinit.
+	(Fgnutls_deinit, Fgnutls_boot): Use it.
+
+	* process.c (make_process): Initialize GnuTLS credentials to NULL.
+	(deactivate_process): Call emacs_gnutls_deinit.
+
+2011-10-27  Juanma Barranquero  <lekktu@gmail.com>
+
+	* image.c (x_create_x_image_and_pixmap):
+	* w32.c (sys_rename, w32_delayed_load):
+	* w32font.c (fill_in_logfont):
+	* w32reg.c (x_get_string_resource): Silence compiler warnings.
+
+2011-10-26  Juanma Barranquero  <lekktu@gmail.com>
+
+	* w32fns.c (w32_default_color_map): New function,
+	extracted from Fw32_default_color_map.
+	(Fw32_default_color_map, Fx_open_connection): Use it.  (Bug#9785)
 
 2011-10-25  Paul Eggert  <eggert@cs.ucla.edu>
 

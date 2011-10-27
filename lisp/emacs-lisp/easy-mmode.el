@@ -368,11 +368,13 @@ See `%s' for more information on %s."
 	     (progn
 	       (add-hook 'after-change-major-mode-hook
 			 ',MODE-enable-in-buffers)
-	       (add-hook 'fundamental-mode-hook ',MODE-enable-in-buffers)
+	       (add-hook 'change-major-mode-after-body-hook
+			 ',MODE-enable-in-buffers)
 	       (add-hook 'find-file-hook ',MODE-check-buffers)
 	       (add-hook 'change-major-mode-hook ',MODE-cmhh))
 	   (remove-hook 'after-change-major-mode-hook ',MODE-enable-in-buffers)
-           (remove-hook 'fundamental-mode-hook ',MODE-enable-in-buffers)
+	   (remove-hook 'change-major-mode-after-body-hook
+			',MODE-enable-in-buffers)
 	   (remove-hook 'find-file-hook ',MODE-check-buffers)
 	   (remove-hook 'change-major-mode-hook ',MODE-cmhh))
 

@@ -175,10 +175,10 @@ WINDOW can be any window and defaults to the selected one.  */)
 }
 
 DEFUN ("frame-root-window", Fframe_root_window, Sframe_root_window, 0, 1, 0,
-       doc: /* Return the root window of FRAME_OR_WINDOW.
-If omitted, FRAME_OR_WINDOW defaults to the currently selected frame.
-Else if FRAME_OR_WINDOW denotes any window, return the root window of
-that window's frame.  If FRAME_OR_WINDOW denotes a live frame, return
+       doc: /* Return the root window of FRAME-OR-WINDOW.
+If omitted, FRAME-OR-WINDOW defaults to the currently selected frame.
+Else if FRAME-OR-WINDOW denotes any window, return the root window of
+that window's frame.  If FRAME-OR-WINDOW denotes a live frame, return
 the root window of that frame.  */)
   (Lisp_Object frame_or_window)
 {
@@ -220,10 +220,10 @@ WINDOW can be any window and defaults to the selected one.  */)
 
 /* Don't move this to window.el - this must be a safe routine.  */
 DEFUN ("frame-first-window", Fframe_first_window, Sframe_first_window, 0, 1, 0,
-       doc: /* Return the topmost, leftmost live window on FRAME_OR_WINDOW.
-If omitted, FRAME_OR_WINDOW defaults to the currently selected frame.
-Else if FRAME_OR_WINDOW denotes any window, return the first window of
-that window's frame.  If FRAME_OR_WINDOW denotes a live frame, return
+       doc: /* Return the topmost, leftmost live window on FRAME-OR-WINDOW.
+If omitted, FRAME-OR-WINDOW defaults to the currently selected frame.
+Else if FRAME-OR-WINDOW denotes any window, return the first window of
+that window's frame.  If FRAME-OR-WINDOW denotes a live frame, return
 the first window of that frame.  */)
   (Lisp_Object frame_or_window)
 {
@@ -254,10 +254,10 @@ the first window of that frame.  */)
 
 DEFUN ("frame-selected-window", Fframe_selected_window,
        Sframe_selected_window, 0, 1, 0,
-       doc: /* Return the selected window of FRAME_OR_WINDOW.
-If omitted, FRAME_OR_WINDOW defaults to the currently selected frame.
-Else if FRAME_OR_WINDOW denotes any window, return the selected window
-of that window's frame.  If FRAME_OR_WINDOW denotes a live frame, return
+       doc: /* Return the selected window of FRAME-OR-WINDOW.
+If omitted, FRAME-OR-WINDOW defaults to the currently selected frame.
+Else if FRAME-OR-WINDOW denotes any window, return the selected window
+of that window's frame.  If FRAME-OR-WINDOW denotes a live frame, return
 the selected window of that frame.  */)
   (Lisp_Object frame_or_window)
 {
@@ -1297,7 +1297,7 @@ WINDOW must be a live window and defaults to the selected one.
 This is updated by redisplay, when it runs to completion.
 Simply changing the buffer text or setting `window-start'
 does not update this value.
-Return nil if there is no recorded value.  \(This can happen if the
+Return nil if there is no recorded value.  (This can happen if the
 last redisplay of WINDOW was preempted, and did not finish.)
 If UPDATE is non-nil, compute the up-to-date position
 if it isn't already recorded.  */)
@@ -1689,7 +1689,7 @@ DEFUN ("window-parameters", Fwindow_parameters, Swindow_parameters,
        0, 1, 0,
        doc: /* Return the parameters of WINDOW and their values.
 WINDOW defaults to the selected window.  The return value is a list of
-elements of the form (PARAMETER . VALUE). */)
+elements of the form (PARAMETER . VALUE).  */)
   (Lisp_Object window)
 {
   return Fcopy_alist (decode_any_window (window)->window_parameters);
@@ -2194,7 +2194,7 @@ next_window (Lisp_Object window, Lisp_Object minibuf, Lisp_Object all_frames, in
 
 DEFUN ("next-window", Fnext_window, Snext_window, 0, 3, 0,
        doc: /* Return window following WINDOW in cyclic ordering of windows.
-WINDOW must be a live window and defaults to the selected one. The
+WINDOW must be a live window and defaults to the selected one.  The
 optional arguments MINIBUF and ALL-FRAMES specify the set of windows to
 consider.
 
@@ -3225,7 +3225,7 @@ temp_output_buffer_show (register Lisp_Object buf)
 DEFUN ("internal-temp-output-buffer-show",
        Ftemp_output_buffer_show, Stemp_output_buffer_show,
        1, 1, 0,
-       doc: /* Internal function for `with-output-to-temp-buffer''.  */)
+       doc: /* Internal function for `with-output-to-temp-buffer'.  */)
      (Lisp_Object buf)
 {
   temp_output_buffer_show (buf);
@@ -3846,8 +3846,8 @@ set correctly.  See the code of `split-window' for how this is done.  */)
 
 DEFUN ("delete-window-internal", Fdelete_window_internal, Sdelete_window_internal, 1, 1, 0,
        doc: /* Remove WINDOW from its frame.
-WINDOW defaults to the selected window.  Return nil. Signal an error
-when WINDOW is the only window on its frame.  */)
+WINDOW defaults to the selected window.  Return nil.
+Signal an error when WINDOW is the only window on its frame.  */)
      (register Lisp_Object window)
 {
   register Lisp_Object parent, sibling, frame, root;
@@ -5227,8 +5227,8 @@ any partial-height lines in the text display area.  */)
 DEFUN ("move-to-window-line", Fmove_to_window_line, Smove_to_window_line,
        1, 1, "P",
        doc: /* Position point relative to window.
-With no argument, position point at center of window.
-An argument specifies vertical position within the window;
+ARG nil means position point at center of window.
+Else, ARG specifies vertical position within the window;
 zero means top of window, negative means relative to bottom of window.  */)
   (Lisp_Object arg)
 {

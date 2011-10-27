@@ -635,9 +635,8 @@ colormap_t w32_color_map[] =
   {"LightGreen"                , PALETTERGB (144,238,144)},
 };
 
-DEFUN ("w32-default-color-map", Fw32_default_color_map, Sw32_default_color_map,
-       0, 0, 0, doc: /* Return the default color map.  */)
-  (void)
+static Lisp_Object
+w32_default_color_map (void)
 {
   int i;
   colormap_t *pc = w32_color_map;
@@ -656,6 +655,13 @@ DEFUN ("w32-default-color-map", Fw32_default_color_map, Sw32_default_color_map,
   UNBLOCK_INPUT;
 
   return (cmap);
+}
+
+DEFUN ("w32-default-color-map", Fw32_default_color_map, Sw32_default_color_map,
+       0, 0, 0, doc: /* Return the default color map.  */)
+  (void)
+{
+  return w32_default_color_map ();
 }
 
 static Lisp_Object
@@ -682,7 +688,6 @@ w32_color_map_lookup (char *colorname)
 
       QUIT;
     }
-
 
   UNBLOCK_INPUT;
 
@@ -4768,7 +4773,7 @@ terminate Emacs if we can't open the connection.
     UNGCPRO;
   }
   if (NILP (Vw32_color_map))
-    Vw32_color_map = Fw32_default_color_map ();
+    Vw32_color_map = w32_default_color_map ();
 
   /* Merge in system logical colors.  */
   add_system_logical_colors_to_map (&Vw32_color_map);
