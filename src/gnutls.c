@@ -464,6 +464,42 @@ gnutls_make_error (int err)
   return make_number (err);
 }
 
+Lisp_Object
+emacs_gnutls_deinit (Lisp_Object proc)
+{
+  int log_level;
+
+  CHECK_PROCESS (proc);
+
+  if (XPROCESS (proc)->gnutls_p == 0)
+    return Qnil;
+
+  log_level = XPROCESS (proc)->gnutls_log_level;
+
+  if (XPROCESS (proc)->gnutls_x509_cred)
+    {
+      GNUTLS_LOG (2, log_level, "Deallocating x509 credentials");
+      fn_gnutls_certificate_free_credentials (XPROCESS (proc)->gnutls_x509_cred);
+      XPROCESS (proc)->gnutls_x509_cred = NULL;
+    }
+
+  if (XPROCESS (proc)->gnutls_anon_cred)
+    {
+      GNUTLS_LOG (2, log_level, "Deallocating anon credentials");
+      fn_gnutls_anon_free_client_credentials (XPROCESS (proc)->gnutls_anon_cred);
+      XPROCESS (proc)->gnutls_anon_cred = NULL;
+    }
+
+  if (GNUTLS_INITSTAGE (proc) >= GNUTLS_STAGE_INIT)
+    {
+      fn_gnutls_deinit (XPROCESS (proc)->gnutls_state);
+      GNUTLS_INITSTAGE (proc) = GNUTLS_STAGE_INIT - 1;
+    }
+
+  XPROCESS (proc)->gnutls_p = 0;
+  return Qt;
+}
+
 DEFUN ("gnutls-get-initstage", Fgnutls_get_initstage, Sgnutls_get_initstage, 1, 1, 0,
        doc: /* Return the GnuTLS init stage of process PROC.
 See also `gnutls-boot'.  */)
@@ -551,18 +587,7 @@ DEFUN ("gnutls-deinit", Fgnutls_deinit, Sgnutls_deinit, 1, 1, 0,
 See also `gnutls-init'.  */)
   (Lisp_Object proc)
 {
-  gnutls_session_t state;
-
-  CHECK_PROCESS (proc);
-  state = XPROCESS (proc)->gnutls_state;
-
-  if (GNUTLS_INITSTAGE (proc) >= GNUTLS_STAGE_INIT)
-    {
-      fn_gnutls_deinit (state);
-      GNUTLS_INITSTAGE (proc) = GNUTLS_STAGE_INIT - 1;
-    }
-
-  return Qt;
+  return emacs_gnutls_deinit (proc);
 }
 
 DEFUN ("gnutls-available-p", Fgnutls_available_p, Sgnutls_available_p, 0, 0, 0,
@@ -733,9 +758,6 @@ one trustfile (usually a CA bundle).  */)
 
   c_hostname = SSDATA (hostname);
 
-  state = XPROCESS (proc)->gnutls_state;
-  XPROCESS (proc)->gnutls_p = 1;
-
   if (NUMBERP (loglevel))
     {
       fn_gnutls_global_set_log_function (gnutls_log_function);
@@ -749,40 +771,17 @@ one trustfile (usually a CA bundle).  */)
   if (! NILP (Fgnutls_errorp (global_init)))
     return global_init;
 
-  /* deinit and free resources.  */
-  if (GNUTLS_INITSTAGE (proc) >= GNUTLS_STAGE_CRED_ALLOC)
-    {
-      GNUTLS_LOG (1, max_log_level, "deallocating credentials");
+  /* Before allocating new credentials, deallocate any credentials
+     that PROC might already have.  */
+  emacs_gnutls_deinit (proc);
 
-      if (EQ (type, Qgnutls_x509pki))
-	{
-	  GNUTLS_LOG (2, max_log_level, "deallocating x509 credentials");
-	  x509_cred = XPROCESS (proc)->gnutls_x509_cred;
-	  fn_gnutls_certificate_free_credentials (x509_cred);
-	}
-      else if (EQ (type, Qgnutls_anon))
-	{
-	  GNUTLS_LOG (2, max_log_level, "deallocating anon credentials");
-	  anon_cred = XPROCESS (proc)->gnutls_anon_cred;
-	  fn_gnutls_anon_free_client_credentials (anon_cred);
-	}
-      else
-	{
-	  error ("unknown credential type");
-	  ret = GNUTLS_EMACS_ERROR_INVALID_TYPE;
-	}
-
-      if (GNUTLS_INITSTAGE (proc) >= GNUTLS_STAGE_INIT)
-	{
-	  GNUTLS_LOG (1, max_log_level, "deallocating x509 credentials");
-	  Fgnutls_deinit (proc);
-	}
-    }
-
+  /* Mark PROC as a GnuTLS process.  */
+  XPROCESS (proc)->gnutls_p = 1;
+  XPROCESS (proc)->gnutls_x509_cred = NULL;
+  XPROCESS (proc)->gnutls_anon_cred = NULL;
   GNUTLS_INITSTAGE (proc) = GNUTLS_STAGE_EMPTY;
 
   GNUTLS_LOG (1, max_log_level, "allocating credentials");
-
   if (EQ (type, Qgnutls_x509pki))
     {
       GNUTLS_LOG (2, max_log_level, "allocating x509 credentials");

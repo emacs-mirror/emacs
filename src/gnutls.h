@@ -60,6 +60,7 @@ emacs_gnutls_read (struct Lisp_Process *proc, char *buf, EMACS_INT nbyte);
 
 extern int emacs_gnutls_record_check_pending (gnutls_session_t state);
 extern void emacs_gnutls_transport_set_errno (gnutls_session_t state, int err);
+extern Lisp_Object emacs_gnutls_deinit (Lisp_Object);
 
 extern void syms_of_gnutls (void);
 

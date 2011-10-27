@@ -1,3 +1,12 @@
+2011-10-27  Chong Yidong  <cyd@gnu.org>
+
+	* gnutls.c (emacs_gnutls_deinit): New function.  Deallocate
+	credentials structures as well as calling gnutls_deinit.
+	(Fgnutls_deinit, Fgnutls_boot): Use it.
+
+	* process.c (make_process): Initialize GnuTLS credentials to NULL.
+	(deactivate_process): Call emacs_gnutls_deinit.
+
 2011-10-27  Juanma Barranquero  <lekktu@gmail.com>
 
 	* image.c (x_create_x_image_and_pixmap):
