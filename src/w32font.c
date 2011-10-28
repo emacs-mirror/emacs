@@ -216,6 +216,7 @@ w32_load_unicows_or_gdi32 (void)
     }
   else
     ret = LoadLibrary ("Gdi32.dll");
+  return ret;
 }
 
 /* The following 3 functions call the problematic "wide" APIs via
@@ -2721,4 +2722,3 @@ globals_of_w32font (void)
   g_b_init_get_text_metrics_w = 0;
   g_b_init_get_glyph_outline_w = 0;
 }
-

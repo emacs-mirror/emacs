@@ -1,3 +1,7 @@
+2011-10-28  Juanma Barranquero  <lekktu@gmail.com>
+
+	* w32font.c (w32_load_unicows_or_gdi32): Add missing return.
+
 2011-10-28  Eli Zaretskii  <eliz@gnu.org>
 
 	Fix Emacs on Windows 9X (bug#8562).  Thanks to oslsachem
