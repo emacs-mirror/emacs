@@ -1,3 +1,30 @@
+2011-10-28  Alan Mackenzie  <acm@muc.de>
+
+	Amend the handling of c-beginning/end-of-defun in nested declaration
+	scopes.
+
+	* cc-vars.el (c-defun-tactic): Move here from cc-langs.el.  Change it to a
+	defcustom.
+
+	* cc-mode.texi (Movement Commands): Document `c-defun-tactic'.  Document
+	the new handling of nested scopes for movement by defuns.
+
+	* cc-langs.el (c-defun-tactic): Move this variable to cc-vars.el.
+	(c-nonlabel-token-2-key): New variable for change in cc-engine.el.
+
+	* cc-engine.el (c-beginning-of-statement-1): Prevent "class foo : bar"
+	being spuriously recognized as a label.
+
+	* cc-cmds.el (c-narrow-to-most-enclosing-decl-block): Add parameter
+	`inclusive' (to include enclosing braces in the region).
+	(c-widen-to-enclosing-decl-scope): New function.
+	(c-while-widening-to-decl-block): New macro.
+	(c-beginning-of-defun, c-end-of-defun): Change algorithm to keep going
+	outward for defun boundaries, and correspondingly change symbol
+	`respect-enclosure' to `go-outward'.
+	(c-declaration-limits): Change algorithm to report only the "innermost"
+	defun's boundaries.
+
 2011-10-28  Deniz Dogan  <deniz@dogan.se>
 
 	* net/rcirc.el (rcirc-mode): Use hard newlines.

@@ -340,6 +340,20 @@ better with the \"do { ... } while \(0)\" trick)."
   :group 'c)
 (put 'c-syntactic-indentation-in-macros 'safe-local-variable 'booleanp)
 
+(defcustom c-defun-tactic 'go-outward
+  "*Whether functions are recognized inside, e.g., a class.
+This is used by `c-beginning-of-defun' and like functions.
+
+Its value is one of:
+ t           -- Functions are recognized only at the top level.
+ go-outward  -- Nested functions are also recognized.  Should a function
+                command hit the beginning/end of a nested scope, it will
+                carry on at the less nested level."
+  :type '(radio
+	  (const :tag "Functions are at the top-level" t)
+	  (const :tag "Functions are also recognized inside declaration scopes" go-outward))
+  :group 'c)
+
 (defcustom-c-stylevar c-comment-only-line-offset 0
   "*Extra offset for line which contains only the start of a comment.
 Can contain an integer or a cons cell of the form:
