@@ -1,3 +1,9 @@
+2011-10-28  Eli Zaretskii  <eliz@gnu.org>
+
+	* xdisp.c (note_mouse_highlight): Initialize `part', to avoid a
+	possible random value that matches one of those tested as
+	condition to clear the mouse face.
+
 2011-10-28  Chong Yidong  <cyd@gnu.org>
 
 	* xdisp.c (note_mouse_highlight): Fix use of uninitialized var.

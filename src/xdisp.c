@@ -26801,7 +26801,7 @@ void
 note_mouse_highlight (struct frame *f, int x, int y)
 {
   Mouse_HLInfo *hlinfo = MOUSE_HL_INFO (f);
-  enum window_part part;
+  enum window_part part = ON_NOTHING;
   Lisp_Object window;
   struct window *w;
   Cursor cursor = No_Cursor;
