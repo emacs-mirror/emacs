@@ -1008,6 +1008,7 @@ The buffer is expected to be narrowed to just the header of the message."
     (define-key map "\e\C-l" 'rmail-summary-by-labels)
     (define-key map "\e\C-r" 'rmail-summary-by-recipients)
     (define-key map "\e\C-s" 'rmail-summary-by-regexp)
+    (define-key map "\e\C-f" 'rmail-summary-by-senders)
     (define-key map "\e\C-t" 'rmail-summary-by-topic)
     (define-key map "m"      'rmail-mail)
     (define-key map "\em"    'rmail-retry-failure)

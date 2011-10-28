@@ -1,3 +1,7 @@
+2011-10-28  Mark Lillibridge  <mark.lillibridge@hp.com>  (tiny change)
+
+	* mail/rmail.el (rmail-mode-map): Add M-C-f as in rmailsum (bug#9802).
+
 2011-10-28  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* progmodes/gdb-mi.el: Warn the user when -i=mi is missing.
