@@ -4,9 +4,9 @@ See the end of the file for license conditions.
 		      Precompiled Distributions of
 			   Emacs for Windows
 
-			    Version 23.1
+			    Version 24.1
 
-			      July 29, 2009
+			      January 1, 2011
 
   This directory contains precompiled distributions for GNU Emacs on
   Windows (versions before Windows 95 and NT4 are not supported).
@@ -14,7 +14,7 @@ See the end of the file for license conditions.
   Free Software Foundation; the precompiled distributions are provided
   here for convenience since the majority of Windows users are not
   accustomed to compiling programs themselves.  Corresponding source
-  can be found in the parent directory in emacs-23.1.tar.gz.
+  can be found in the parent directory in emacs-24.1.tar.gz.
 
   If you have access to the World Wide Web, I would recommend pointing
   your favorite web browser to the following document (if you haven't
@@ -26,9 +26,9 @@ See the end of the file for license conditions.
 
   If you want to redistribute any of the precompiled distributions of
   Emacs, be careful to check the implications of the GPL.  For instance,
-  if you put the emacs-23.1-bin-i386.tar.gz file from this directory on
+  if you put the emacs-24.1-bin-i386.tar.gz file from this directory on
   an Internet site, you must arrange to distribute the source files of
-  the SAME version (i.e. ../emacs-23.1.tar.gz).
+  the SAME version (i.e. ../emacs-24.1.tar.gz).
 
   Making a link to our copy of the source is NOT sufficient, since we
   might upgrade to a new version while you are still distributing the
@@ -37,8 +37,8 @@ See the end of the file for license conditions.
 
 * Files in this directory
 
-  + emacs-23.1-bin-i386.zip
-    Windows binaries of Emacs-23.1, with all lisp code and documentation
+  + emacs-24.1-bin-i386.zip
+    Windows binaries of Emacs-24.1, with all lisp code and documentation
     included.
 
     Download this file if you want a single installation package, and
@@ -49,8 +49,8 @@ See the end of the file for license conditions.
     If you need the C source code at a later date, it will be safe to
     unpack the source distribution on top of this installation.
 
-  + emacs-23.1-barebin-i386.zip
-    Windows binaries of Emacs-23.1, without lisp code or documentation.
+  + emacs-24.1-barebin-i386.zip
+    Windows binaries of Emacs-24.1, without lisp code or documentation.
 
     Download this file if you already have the source distribution.
 
@@ -62,12 +62,18 @@ See the end of the file for license conditions.
     a basic Makefile for compiling with mingw32 and a .def file for
     generating a DLL with the appropriate exports in addition to the
     source code to provide the subset of functionality Emacs uses from
-    libXpm. This corresponds to the libXpm.dll in emacs-23.1-bin-i386.zip
-    and emacs-23.1-barebin-i386.zip.
+    libXpm. This corresponds to the libXpm.dll in emacs-24.1-bin-i386.zip
+    and emacs-24.1-barebin-i386.zip.
+
+* Prerequisites for running Emacs on Windows 9X
+
+  Using Emacs in GUI mode on Windows 95/98/Me requires the UNICOWS.DLL
+  dynamic library, which provides MSLU, the Microsoft Unicode Layer
+  for Windows 9X.  You can freely download it from the Microsoft site.
 
 * Image support
 
-  Emacs 23.1 contains support for images, however for most image formats
+  Emacs 24.1 contains support for images, however for most image formats
   supporting libraries are required.  This distribution has been tested
   with the libraries that are distributed with GTK for Windows, and the
   libraries found at http://gnuwin32.sourceforge.net/. The following image
@@ -119,7 +125,7 @@ See the end of the file for license conditions.
   Distributions for non-x86 platforms are no longer supplied. Older
   platforms supported by Windows NT no longer seem to be in demand,
   and Emacs is yet to be ported to 64 bit Windows platforms. If you
-  are willing to help port Emacs 23 to 64 bit versions of Windows,
+  are willing to help port Emacs 24 to 64 bit versions of Windows,
   your contribution will be welcome on the emacs-devel mailing list.
 
 * Unpacking distributions
@@ -227,7 +233,7 @@ See the end of the file for license conditions.
   This document serves as an FAQ and a source for further information
   about the Windows port and related software packages. Note that as
   most of the information in that FAQ is for earlier versions, so some
-  information may not be relevant to Emacs-23.1.
+  information may not be relevant to Emacs-24.1.
 
   In addition to the FAQ, there is a mailing list for discussing issues
   related to the Windows port of Emacs.  For information about the
