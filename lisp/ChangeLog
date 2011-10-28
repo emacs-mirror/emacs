@@ -1,3 +1,9 @@
+2011-10-28  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* progmodes/gdb-mi.el: Warn the user when -i=mi is missing.
+	(gdb--check-interpreter): New function.
+	(gdb): Use it.
+
 2011-10-27  Glenn Morris  <rgm@gnu.org>
 
 	* emacs-lisp/cl-extra.el (most-positive-float, most-negative-float)
@@ -21,8 +27,8 @@
 	* subr.el (change-major-mode-after-body-hook): New hook.
 	(run-mode-hooks): Run it.
 
-	* emacs-lisp/easy-mmode.el (define-globalized-minor-mode): Use
-	change-major-mode-before-body-hook.
+	* emacs-lisp/easy-mmode.el (define-globalized-minor-mode):
+	Use change-major-mode-before-body-hook.
 
 	* simple.el (fundamental-mode):
 	* emacs-lisp/derived.el (define-derived-mode): Revert 2010-04-28
