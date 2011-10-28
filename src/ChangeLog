@@ -1,3 +1,7 @@
+2011-10-28  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* window.c (make_window): Initialize phys_cursor_on_p.
+
 2011-10-28  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* lisp.h (struct Lisp_Symbol): Update comments.
