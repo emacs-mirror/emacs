@@ -1,22 +1,25 @@
 2011-10-28  Alan Mackenzie  <acm@muc.de>
 
+	* progmodes/cc-defs.el (c-version).  -> 5.32.2.
+
+2011-10-28  Alan Mackenzie  <acm@muc.de>
+
 	Amend the handling of c-beginning/end-of-defun in nested declaration
 	scopes.
 
-	* cc-vars.el (c-defun-tactic): Move here from cc-langs.el.  Change it to a
-	defcustom.
+	* progmodes/cc-vars.el (c-defun-tactic): Move here from
+	cc-langs.el.  Change it to a defcustom.
 
-	* cc-mode.texi (Movement Commands): Document `c-defun-tactic'.  Document
-	the new handling of nested scopes for movement by defuns.
-
-	* cc-langs.el (c-defun-tactic): Move this variable to cc-vars.el.
+	* progmodes/cc-langs.el (c-defun-tactic): Move this variable to
+	cc-vars.el.
 	(c-nonlabel-token-2-key): New variable for change in cc-engine.el.
 
-	* cc-engine.el (c-beginning-of-statement-1): Prevent "class foo : bar"
-	being spuriously recognized as a label.
+	* progmodes/cc-engine.el (c-beginning-of-statement-1): Prevent
+	"class foo : bar" being spuriously recognized as a label.
 
-	* cc-cmds.el (c-narrow-to-most-enclosing-decl-block): Add parameter
-	`inclusive' (to include enclosing braces in the region).
+	* progmodes/cc-cmds.el (c-narrow-to-most-enclosing-decl-block):
+	Add parameter `inclusive' (to include enclosing braces in the
+	region).
 	(c-widen-to-enclosing-decl-scope): New function.
 	(c-while-widening-to-decl-block): New macro.
 	(c-beginning-of-defun, c-end-of-defun): Change algorithm to keep going
@@ -34,38 +37,31 @@
 	Amend to indent and fontify macros "which include their own semicolon"
 	correctly, using the "virtual semicolon" mechanism.
 
-	* cc-defs.el: Update "virtual semicolon" comments.
+	* progmodes/cc-defs.el: Update "virtual semicolon" comments.
 
-	* cc-engine.el (c-crosses-statement-barrier-p): Recoded to scan one line at
-	at time rather than having \n and \r explicitly in c-stmt-delim-chars
+	* progmodes/cc-engine.el (c-crosses-statement-barrier-p): Recoded
+	to scan one line at at time rather than having \n and \r
+	explicitly in c-stmt-delim-chars
 	(for some modes, e.g. AWK).
 	(c-forward-label): Amend for virtual semicolons.
 	(c-at-macro-vsemi-p, c-macro-vsemi-status-unknown-p): New functions
 
-	* cc-fonts.el (c-font-lock-declarations): Take account of the new C macros.
+	* progmodes/cc-fonts.el (c-font-lock-declarations): Take account
+	of the new C macros.
 
-	* cc-langs.el (c-at-vsemi-p-fn, c-vsemi-status-unknown-p-fn): move to
-	earlier in the file.
+	* progmodes/cc-langs.el (c-at-vsemi-p-fn):
+	(c-vsemi-status-unknown-p-fn): move to earlier in the file.
 	(c-opt-cpp-symbol, c-line-comment-start-regexp): New language variables.
 	(c-opt-cpp-macro-define): Make into a full language variable.
 	(c-stmt-delim-chars, c-stmt-delim-chars-with-comma): Special value for
 	AWK Mode (including \n, \r) removed, no longer needed.
 
-	* cc-mode.el (c-mode, c++-mode, objc-mode): Invoke
-	c-make-macro-with-semi-re.  (Erroneously committed early, in previous
-	version, 5.259.)
+	* progmodes/cc-mode.el (c-mode, c++-mode, objc-mode): Invoke
+	c-make-macro-with-semi-re.
 
-	* cc-vars.el (c-macro-with-semi-re, c-macro-names-with-semicolon): New
-	variables.
+	* progmodes/cc-vars.el (c-macro-with-semi-re):
+	(c-macro-names-with-semicolon): New variables.
 	(c-make-macro-with-semi-re): New function
-
-	* cc-mode.texi (Indentation Commands): Mention "macros with semicolons".
-	(Other Special Indentations): Add an xref to "Macros with ;".
-	(Customizing Macros): Add stuff about syntax in macros.  Add an xref to
-	"Macros with ;".
-	(Macros with ;): New page.
-
-
 
 2011-10-28  Stefan Monnier  <monnier@iro.umontreal.ca>
 
