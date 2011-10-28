@@ -1,3 +1,7 @@
+2011-10-28  Deniz Dogan  <deniz@dogan.se>
+
+	* net/rcirc.el (rcirc-mode): Use hard newlines.
+
 2011-10-28  Alan Mackenzie  <acm@muc.de>
 
 	Amend to indent and fontify macros "which include their own semicolon"
