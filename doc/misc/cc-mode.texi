@@ -882,6 +882,8 @@ lines.
 @itemx @kbd{C-M-e} (@code{c-end-of-defun})
 @findex c-beginning-of-defun
 @findex c-end-of-defun
+@vindex c-defun-tactic
+@vindex defun-tactic (c-)
 
 Move to the beginning or end of the current or next function.  Other
 constructs (such as a structs or classes) which have a brace block
@@ -894,6 +896,15 @@ as a @code{struct}) which doesn't end at the brace.  These two
 commands try to leave point at the beginning of a line near the actual
 start or end of the function.  This occasionally causes point not to
 move at all.
+
+By default, these commands will recognize functions contained within a
+@dfn{declaration scope} such as a C++ @code{class} or @code{namespace}
+construct, should the point start inside it.  If @ccmode fails to find
+function beginnings or ends inside the current declaration scope, it
+will search the enclosing scopes.  If you want @ccmode to recognize
+functions only at the top level@footnote{this was @ccmode{}'s
+behaviour prior to version 5.32.}, set @code{c-defun-tatic} to
+@code{t}.
 
 These functions are analogous to the Emacs built-in commands
 @code{beginning-of-defun} and @code{end-of-defun}, except they
