@@ -162,7 +162,7 @@ extern int suppress_checking EXTERNALLY_VISIBLE;
 
 /* First, try and define DECL_ALIGN(type,var) which declares a static
    variable VAR of type TYPE with the added requirement that it be
-   TYPEBITS-aligned. */
+   TYPEBITS-aligned.  */
 #ifndef NO_DECL_ALIGN
 # ifndef DECL_ALIGN
 #  if HAVE_ATTRIBUTE_ALIGNED
@@ -1084,10 +1084,8 @@ enum symbol_redirect
   SYMBOL_PLAINVAL  = 4,
   SYMBOL_VARALIAS  = 1,
   SYMBOL_LOCALIZED = 2,
-  SYMBOL_FORWARDED   = 3
+  SYMBOL_FORWARDED = 3
 };
-
-/* In a symbol, the markbit of the plist is used as the gc mark bit */
 
 struct Lisp_Symbol
 {
@@ -1097,8 +1095,7 @@ struct Lisp_Symbol
      0 : it's a plain var, the value is in the `value' field.
      1 : it's a varalias, the value is really in the `alias' symbol.
      2 : it's a localized var, the value is in the `blv' object.
-     3 : it's a forwarding variable, the value is in `forward'.
-   */
+     3 : it's a forwarding variable, the value is in `forward'.  */
   enum symbol_redirect redirect : 3;
 
   /* Non-zero means symbol is constant, i.e. changing its value
@@ -1115,15 +1112,12 @@ struct Lisp_Symbol
   unsigned declared_special : 1;
 
   /* The symbol's name, as a Lisp string.
-
      The name "xname" is used to intentionally break code referring to
      the old field "name" of type pointer to struct Lisp_String.  */
   Lisp_Object xname;
 
-  /* Value of the symbol or Qunbound if unbound.  If this symbol is a
-     defvaralias, `alias' contains the symbol for which it is an
-     alias.  Use the SYMBOL_VALUE and SET_SYMBOL_VALUE macros to get
-     and set a symbol's value, to take defvaralias into account.  */
+  /* Value of the symbol or Qunbound if unbound.  Which alternative of the
+     union is used depends on the `redirect' field above.  */
   union {
     Lisp_Object value;
     struct Lisp_Symbol *alias;
@@ -1318,7 +1312,7 @@ struct Lisp_Misc_Any		/* Supertype of all Misc types.  */
   enum Lisp_Misc_Type type : 16;		/* = Lisp_Misc_??? */
   unsigned gcmarkbit : 1;
   int spacer : 15;
-  /* Make it as long as "Lisp_Free without padding". */
+  /* Make it as long as "Lisp_Free without padding".  */
   void *fill;
 };
 
@@ -3603,7 +3597,7 @@ extern void init_system_name (void);
 
 #define SWITCH_ENUM_CAST(x) (x)
 
-/* Use this to suppress gcc's warnings. */
+/* Use this to suppress gcc's warnings.  */
 #ifdef lint
 
 /* Use CODE only if lint checking is in effect.  */
