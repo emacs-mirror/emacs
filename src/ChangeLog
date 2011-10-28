@@ -1,3 +1,24 @@
+2011-10-28  Eli Zaretskii  <eliz@gnu.org>
+
+	Fix Emacs on Windows 9X (bug#8562).  Thanks to oslsachem
+	<oslsachem@gmail.com> for helping to debug this.
+
+	* w32font.c (g_b_init_is_w9x, g_b_init_get_outline_metrics_w)
+	(g_b_init_get_text_metrics_w, g_b_init_get_glyph_outline_w)
+	(g_b_init_get_glyph_outline_w): New static variables.
+	(GetOutlineTextMetricsW_Proc, GetTextMetricsW_Proc)
+	(GetGlyphOutlineW_Proc): New typedefs.
+	(w32_load_unicows_or_gdi32, get_outline_metrics_w)
+	(get_text_metrics_w, get_glyph_outline_w, globals_of_w32font): New
+	functions.
+	(w32font_open_internal, compute_metrics): Call
+	get_outline_metrics_w, get_text_metrics_w, and get_glyph_outline_w
+	instead of calling the "wide" APIs directly.
+
+	* emacs.c (main) [HAVE_NTGUI]: Call globals_of_w32font.
+
+	* w32.h (syms_of_w32font): Add prototype.
+
 2011-10-27  Juanma Barranquero  <lekktu@gmail.com>
 
 	* window.c (Fframe_root_window, Fframe_first_window, Fwindow_end)
