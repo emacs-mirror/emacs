@@ -73,7 +73,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include "nsterm.h"
 #endif
 
-/* Variables for blockinput.h: */
+/* Variables for blockinput.h:  */
 
 /* Non-zero if interrupt input is blocked right now.  */
 volatile int interrupt_input_blocked;
@@ -338,7 +338,7 @@ static Lisp_Object Qconfig_changed_event;
 Lisp_Object Qevent_kind;
 static Lisp_Object Qevent_symbol_elements;
 
-/* menu and tool bar item parts */
+/* Menu and tool bar item parts.  */
 static Lisp_Object Qmenu_enable;
 static Lisp_Object QCenable, QCvisible, QChelp, QCkeys, QCkey_sequence;
 Lisp_Object QCfilter;
@@ -835,7 +835,7 @@ recursive_edit_unwind (Lisp_Object buffer)
 
 
 #if 0  /* These two functions are now replaced with
-          temporarily_switch_to_single_kboard. */
+          temporarily_switch_to_single_kboard.  */
 static void
 any_kboard_state ()
 {
@@ -1038,7 +1038,7 @@ cmd_error (Lisp_Object data)
   Vquit_flag = Qnil;
 
   Vinhibit_quit = Qnil;
-#if 0 /* This shouldn't be necessary anymore. --lorentey */
+#if 0 /* This shouldn't be necessary anymore.  --lorentey  */
   if (command_loop_level == 0 && minibuf_level == 0)
     any_kboard_state ();
 #endif
@@ -1131,7 +1131,7 @@ command_loop (void)
 #if 0 /* This shouldn't be necessary anymore.  --lorentey  */
         /* Reset single_kboard in case top-level set it while
            evaluating an -f option, or we are stuck there for some
-           other reason. */
+           other reason.  */
         any_kboard_state ();
 #endif
 	internal_catch (Qtop_level, command_loop_2, Qnil);
@@ -1492,8 +1492,8 @@ command_loop_1 (void)
 	  if (!NILP (Vquit_flag))
 	    {
 	      Vexecuting_kbd_macro = Qt;
-	      QUIT;		/* Make some noise. */
-				/* Will return since macro now empty. */
+	      QUIT;		/* Make some noise.  */
+				/* Will return since macro now empty.  */
 	    }
 	}
 
@@ -1512,7 +1512,7 @@ command_loop_1 (void)
       Vdisable_point_adjustment = Qnil;
 
       /* Process filters and timers may have messed with deactivate-mark.
-	 reset it before we execute the command. */
+	 reset it before we execute the command.  */
       Vdeactivate_mark = Qnil;
 
       /* Remap command through active keymaps.  */
@@ -1552,7 +1552,7 @@ command_loop_1 (void)
 	}
       else
 	{
-	  /* Here for a command that isn't executed directly */
+	  /* Here for a command that isn't executed directly.  */
 
 #ifdef HAVE_WINDOW_SYSTEM
             int scount = SPECPDL_INDEX ();
@@ -1960,7 +1960,7 @@ void
 poll_for_input_1 (void)
 {
 /* Tell ns_read_socket() it is being called asynchronously so it can avoid
-   doing anything dangerous. */
+   doing anything dangerous.  */
 #ifdef HAVE_NS
   ++handling_signal;
 #endif
@@ -2000,7 +2000,7 @@ start_polling (void)
 #ifdef POLL_FOR_INPUT
   /* XXX This condition was (read_socket_hook && !interrupt_input),
      but read_socket_hook is not global anymore.  Let's pretend that
-     it's always set. */
+     it's always set.  */
   if (!interrupt_input)
     {
       /* Turn alarm handling on unconditionally.  It might have
@@ -2037,7 +2037,7 @@ input_polling_used (void)
 #ifdef POLL_FOR_INPUT
   /* XXX This condition was (read_socket_hook && !interrupt_input),
      but read_socket_hook is not global anymore.  Let's pretend that
-     it's always set. */
+     it's always set.  */
   return !interrupt_input;
 #else
   return 0;
@@ -2052,7 +2052,7 @@ stop_polling (void)
 #ifdef POLL_FOR_INPUT
   /* XXX This condition was (read_socket_hook && !interrupt_input),
      but read_socket_hook is not global anymore.  Let's pretend that
-     it's always set. */
+     it's always set.  */
   if (!interrupt_input)
     ++poll_suppress_count;
 #endif
@@ -2390,7 +2390,7 @@ read_char (int commandflag, ptrdiff_t nmaps, Lisp_Object *maps,
 	 real event came from.  Normally, a switch-frame event selects
 	 internal_last_event_frame after each command is read, but
 	 events read from a macro should never cause a new frame to be
-	 selected. */
+	 selected.  */
       Vlast_event_frame = internal_last_event_frame = Qmacro;
 
       /* Exit the macro if we are at the end.
@@ -2500,7 +2500,7 @@ read_char (int commandflag, ptrdiff_t nmaps, Lisp_Object *maps,
      Try this before the sit-for, because the sit-for
      would do the wrong thing if we are supposed to do
      menu prompting. If EVENT_HAS_PARAMETERS then we are reading
-     after a mouse event so don't try a minibuf menu. */
+     after a mouse event so don't try a minibuf menu.  */
   c = Qnil;
   if (nmaps > 0 && INTERACTIVE
       && !NILP (prev_event) && ! EVENT_HAS_PARAMETERS (prev_event)
@@ -4980,8 +4980,8 @@ static const char *const lispy_function_keys[] =
     "break",			/* 0xff6b */
 
     0, 0, 0, 0,
-    0, 0, 0, 0, "backtab", 0, 0, 0,		/* 0xff70... */
-    0, 0, 0, 0, 0, 0, 0, "kp-numlock",		/* 0xff78... */
+    0, 0, 0, 0, "backtab", 0, 0, 0,		/* 0xff70...  */
+    0, 0, 0, 0, 0, 0, 0, "kp-numlock",		/* 0xff78...  */
     "kp-space",			/* 0xff80 */	/* IsKeypadKey */
     0, 0, 0, 0, 0, 0, 0, 0,
     "kp-tab",			/* 0xff89 */
@@ -5093,14 +5093,14 @@ static Lisp_Object *const scroll_bar_parts[] = {
 static Lisp_Object button_down_location;
 
 /* Information about the most recent up-going button event:  Which
-   button, what location, and what time. */
+   button, what location, and what time.  */
 
 static int last_mouse_button;
 static int last_mouse_x;
 static int last_mouse_y;
 static Time button_down_time;
 
-/* The number of clicks in this multiple-click. */
+/* The number of clicks in this multiple-click.  */
 
 static int double_click_count;
 
@@ -5344,7 +5344,7 @@ make_lispy_event (struct input_event *event)
 
 #ifdef HAVE_NS
       /* NS_NONKEY_EVENTs are just like NON_ASCII_KEYSTROKE_EVENTs,
-	 except that they are non-key events (last-nonmenu-event is nil). */
+	 except that they are non-key events (last-nonmenu-event is nil).  */
     case NS_NONKEY_EVENT:
 #endif
 
@@ -5830,7 +5830,7 @@ make_lispy_event (struct input_event *event)
 				 Fcons (make_number (event->timestamp),
 					Fcons (part, Qnil)))));
 
-	/* Always treat scroll bar events as clicks. */
+	/* Always treat scroll bar events as clicks.  */
 	event->modifiers |= click_modifier;
 	event->modifiers &= ~up_modifier;
 
@@ -6694,7 +6694,7 @@ lucid_event_type_list_p (Lisp_Object object)
    If READABLE_EVENTS_FILTER_EVENTS is set in FLAGS, ignore internal
    events (FOCUS_IN_EVENT).
    If READABLE_EVENTS_IGNORE_SQUEEZABLES is set in FLAGS, ignore mouse
-   movements and toolkit scroll bar thumb drags. */
+   movements and toolkit scroll bar thumb drags.  */
 
 static void
 get_input_pending (int *addr, int flags)
@@ -6728,7 +6728,7 @@ gobble_input (int expected)
 #ifdef POLL_FOR_INPUT
   /* XXX This condition was (read_socket_hook && !interrupt_input),
      but read_socket_hook is not global anymore.  Let's pretend that
-     it's always set. */
+     it's always set.  */
   if (!interrupt_input && poll_suppress_count == 0)
     {
       SIGMASKTYPE mask;
@@ -6803,7 +6803,7 @@ read_avail_input (int expected)
   if (store_user_signal_events ())
     expected = 0;
 
-  /* Loop through the available terminals, and call their input hooks. */
+  /* Loop through the available terminals, and call their input hooks.  */
   t = terminal_list;
   while (t)
     {
@@ -6824,15 +6824,15 @@ read_avail_input (int expected)
               expected = 0;
             }
 
-          if (nr == -1)          /* Not OK to read input now. */
+          if (nr == -1)          /* Not OK to read input now.  */
             {
               err = 1;
             }
-          else if (nr == -2)          /* Non-transient error. */
+          else if (nr == -2)          /* Non-transient error.  */
             {
-              /* The terminal device terminated; it should be closed. */
+              /* The terminal device terminated; it should be closed.  */
 
-              /* Kill Emacs if this was our last terminal. */
+              /* Kill Emacs if this was our last terminal.  */
               if (!terminal_list->next_terminal)
                 /* Formerly simply reported no input, but that
                    sometimes led to a failure of Emacs to terminate.
@@ -6844,7 +6844,7 @@ read_avail_input (int expected)
                    alone in its group.  */
                 kill (getpid (), SIGHUP);
 
-              /* XXX Is calling delete_terminal safe here?  It calls delete_frame. */
+              /* XXX Is calling delete_terminal safe here?  It calls delete_frame.  */
 	      {
 		Lisp_Object tmp;
 		XSETTERMINAL (tmp, t);
@@ -6934,7 +6934,7 @@ tty_read_avail_input (struct terminal *terminal,
     return 0;
 #endif	/* subprocesses */
 
-  if (!terminal->name)		/* Don't read from a dead terminal. */
+  if (!terminal->name)		/* Don't read from a dead terminal.  */
     return 0;
 
   if (terminal->type != output_termcap
@@ -6942,15 +6942,15 @@ tty_read_avail_input (struct terminal *terminal,
     abort ();
 
   /* XXX I think the following code should be moved to separate hook
-     functions in system-dependent files. */
+     functions in system-dependent files.  */
 #ifdef WINDOWSNT
   return 0;
 #else /* not WINDOWSNT */
-  if (! tty->term_initted)      /* In case we get called during bootstrap. */
+  if (! tty->term_initted)      /* In case we get called during bootstrap.  */
     return 0;
 
   if (! tty->input)
-    return 0;                   /* The terminal is suspended. */
+    return 0;                   /* The terminal is suspended.  */
 
 #ifdef MSDOS
   n_to_read = dos_keysns ();
@@ -6976,7 +6976,7 @@ tty_read_avail_input (struct terminal *terminal,
                 Gpm_GetEvent closes gpm_fd and clears it to -1, which is why
 		we save it in `fd' so close_gpm can remove it from the
 		select masks.
-         gpm==-1 if a protocol error or EWOULDBLOCK; the latter is normal. */
+         gpm==-1 if a protocol error or EWOULDBLOCK; the latter is normal.  */
       while (gpm = Gpm_GetEvent (&event), gpm == 1) {
 	  nread += handle_one_term_event (tty, &event, &gpm_hold_quit);
       }
@@ -6996,7 +6996,7 @@ tty_read_avail_input (struct terminal *terminal,
   if (ioctl (fileno (tty->input), FIONREAD, &n_to_read) < 0)
     {
       if (! noninteractive)
-        return -2;          /* Close this terminal. */
+        return -2;          /* Close this terminal.  */
       else
         n_to_read = 0;
     }
@@ -7029,16 +7029,16 @@ tty_read_avail_input (struct terminal *terminal,
          process group won't get SIGHUP's at logout time.  BSDI adheres to
          this part standard and returns -1 from read (0) with errno==EIO
          when the control tty is taken away.
-         Jeffrey Honig <jch@bsdi.com> says this is generally safe. */
+         Jeffrey Honig <jch@bsdi.com> says this is generally safe.  */
       if (nread == -1 && errno == EIO)
-        return -2;          /* Close this terminal. */
+        return -2;          /* Close this terminal.  */
 #if defined (AIX) && defined (_BSD)
       /* The kernel sometimes fails to deliver SIGHUP for ptys.
          This looks incorrect, but it isn't, because _BSD causes
          O_NDELAY to be defined in fcntl.h as O_NONBLOCK,
          and that causes a value other than 0 when there is no input.  */
       if (nread == 0)
-        return -2;          /* Close this terminal. */
+        return -2;          /* Close this terminal.  */
 #endif
     }
   while (
@@ -7116,7 +7116,7 @@ tty_read_avail_input (struct terminal *terminal,
       buf.code = cbuf[i];
       /* Set the frame corresponding to the active tty.  Note that the
          value of selected_frame is not reliable here, redisplay tends
-         to temporarily change it. */
+         to temporarily change it.  */
       buf.frame_or_window = tty->top_frame;
       buf.arg = Qnil;
 
@@ -7139,7 +7139,7 @@ handle_async_input (void)
   pending_signals = pending_atimers;
 #endif
 /* Tell ns_read_socket() it is being called asynchronously so it can avoid
-   doing anything dangerous. */
+   doing anything dangerous.  */
 #ifdef HAVE_NS
   ++handling_signal;
 #endif
@@ -7197,7 +7197,7 @@ input_available_signal (int signo)
    This function exists so that the UNBLOCK_INPUT macro in
    blockinput.h can have some way to take care of input we put off
    dealing with, without assuming that every file which uses
-   UNBLOCK_INPUT also has #included the files necessary to get SIGIO. */
+   UNBLOCK_INPUT also has #included the files necessary to get SIGIO.  */
 void
 reinvoke_input_signal (void)
 {
@@ -7224,7 +7224,7 @@ struct user_signal_info
   struct user_signal_info *next;
 };
 
-/* List of user signals. */
+/* List of user signals.  */
 static struct user_signal_info *user_signals = NULL;
 
 void
@@ -7761,7 +7761,7 @@ parse_menu_item (Lisp_Object item, int inmenubar)
 		{
 		  tem = XCAR (item);
 		  if (SYMBOLP (tem) || STRINGP (tem) || VECTORP (tem))
-		    /* Be GC protected. Set keyhint to item instead of tem. */
+		    /* Be GC protected. Set keyhint to item instead of tem.  */
 		    keyhint = item;
 		}
 	      else if (EQ (tem, QCkeys))
@@ -7844,7 +7844,7 @@ parse_menu_item (Lisp_Object item, int inmenubar)
   if (inmenubar > 0)
     return 1;
 
-  { /* This is a command.  See if there is an equivalent key binding. */
+  { /* This is a command.  See if there is an equivalent key binding.  */
     Lisp_Object keyeq = AREF (item_properties, ITEM_PROPERTY_KEYEQ);
 
     /* The previous code preferred :key-sequence to :keys, so we
@@ -8400,7 +8400,7 @@ append_tool_bar_item (void)
    These are done in different ways, depending on how the input will be read.
    Menus using X are done after auto-saving in read-char, getting the input
    event from Fx_popup_menu; menus using the minibuf use read_char recursively
-   and do auto-saving in the inner call of read_char. */
+   and do auto-saving in the inner call of read_char.  */
 
 static Lisp_Object
 read_char_x_menu_prompt (ptrdiff_t nmaps, Lisp_Object *maps,
@@ -8620,14 +8620,14 @@ read_char_minibuf_menu_prompt (int commandflag,
 		  tem
 		    = XVECTOR (item_properties)->contents[ITEM_PROPERTY_KEYEQ];
 		  if (!NILP (tem))
-		    /* Insert equivalent keybinding. */
+		    /* Insert equivalent keybinding.  */
 		    s = concat2 (s, tem);
 #endif
 		  tem
 		    = XVECTOR (item_properties)->contents[ITEM_PROPERTY_TYPE];
 		  if (EQ (tem, QCradio) || EQ (tem, QCtoggle))
 		    {
-		      /* Insert button prefix. */
+		      /* Insert button prefix.  */
 		      Lisp_Object selected
 			= XVECTOR (item_properties)->contents[ITEM_PROPERTY_SELECTED];
 		      if (EQ (tem, QCradio))
@@ -8861,7 +8861,7 @@ keyremap_step (Lisp_Object *keybuf, int bufsize, volatile keyremap *fkey,
 
   /* If keybuf[fkey->start..fkey->end] is bound in the
      map and we're in a position to do the key remapping, replace it with
-     the binding and restart with fkey->start at the end. */
+     the binding and restart with fkey->start at the end.  */
   if ((VECTORP (next) || STRINGP (next)) && doit)
     {
       int len = XFASTINT (Flength (next));
@@ -9025,7 +9025,7 @@ read_key_sequence (Lisp_Object *keybuf, int bufsize, Lisp_Object prompt,
 
   /* Non-zero if we are trying to map a key by changing an upper-case
      letter to lower case, or a shifted function key to an unshifted
-     one. */
+     one.  */
   int shift_translated = 0;
 
   /* If we receive a `switch-frame' or `select-window' event in the middle of
@@ -9033,7 +9033,7 @@ read_key_sequence (Lisp_Object *keybuf, int bufsize, Lisp_Object prompt,
      While we're reading, we keep the event here.  */
   Lisp_Object delayed_switch_frame;
 
-  /* See the comment below... */
+  /* See the comment below...  */
 #if defined (GOBBLE_FIRST_EVENT)
   Lisp_Object first_event;
 #endif
@@ -9308,7 +9308,7 @@ read_key_sequence (Lisp_Object *keybuf, int bufsize, Lisp_Object prompt,
 		if (!found)
 		  {
 		    /* Don't touch interrupted_kboard when it's been
-		       deleted. */
+		       deleted.  */
 		    delayed_switch_frame = Qnil;
 		    goto replay_entire_sequence;
 		  }
@@ -9416,7 +9416,7 @@ read_key_sequence (Lisp_Object *keybuf, int bufsize, Lisp_Object prompt,
 	    {
 	      /* If we're at the beginning of a key sequence, and the caller
 		 says it's okay, go ahead and return this event.  If we're
-		 in the midst of a key sequence, delay it until the end. */
+		 in the midst of a key sequence, delay it until the end.  */
 	      if (t > 0 || !can_return_switch_frame)
 		{
 		  delayed_switch_frame = key;
@@ -9713,7 +9713,7 @@ read_key_sequence (Lisp_Object *keybuf, int bufsize, Lisp_Object prompt,
 		   Down-clicks are eliminated.
 		   Double-downs reduce to downs, then are eliminated.
 		   Triple-downs reduce to double-downs, then to downs,
-		     then are eliminated. */
+		     then are eliminated.  */
 	      if (modifiers & (down_modifier | drag_modifier
 			       | double_modifier | triple_modifier))
 		{
@@ -10822,7 +10822,7 @@ set_waiting_for_input (struct timeval *time_to_clear)
   waiting_for_input = 1;
 
   /* If handle_interrupt was called before and buffered a C-g,
-     make it run again now, to avoid timing error. */
+     make it run again now, to avoid timing error.  */
   if (!NILP (Vquit_flag))
     quit_throw_to_read_char ();
 }
@@ -10843,7 +10843,7 @@ clear_waiting_for_input (void)
 
 static void
 interrupt_signal (int signalnum)	/* If we don't have an argument, some */
-					/* compilers complain in signal calls. */
+					/* compilers complain in signal calls.  */
 {
   /* Must preserve main program's value of errno.  */
   int old_errno = errno;
@@ -10851,12 +10851,12 @@ interrupt_signal (int signalnum)	/* If we don't have an argument, some */
 
   SIGNAL_THREAD_CHECK (signalnum);
 
-  /* See if we have an active terminal on our controlling tty. */
+  /* See if we have an active terminal on our controlling tty.  */
   terminal = get_named_tty ("/dev/tty");
   if (!terminal)
     {
       /* If there are no frames there, let's pretend that we are a
-         well-behaving UN*X program and quit. */
+         well-behaving UN*X program and quit.  */
       Fkill_emacs (Qnil);
     }
   else
@@ -10884,7 +10884,7 @@ interrupt_signal (int signalnum)	/* If we don't have an argument, some */
 
    Otherwise it sets the Lisp variable quit-flag not-nil.  This causes
    eval to throw, when it gets a chance.  If quit-flag is already
-   non-nil, it stops the job right away. */
+   non-nil, it stops the job right away.  */
 
 static void
 handle_interrupt (void)
@@ -10893,7 +10893,7 @@ handle_interrupt (void)
 
   cancel_echoing ();
 
-  /* XXX This code needs to be revised for multi-tty support. */
+  /* XXX This code needs to be revised for multi-tty support.  */
   if (!NILP (Vquit_flag) && get_named_tty ("/dev/tty"))
     {
       /* If SIGINT isn't blocked, don't let us be interrupted by
@@ -11003,7 +11003,7 @@ handle_interrupt (void)
          wait_reading_process_output() under HAVE_NS because of the call
          to ns_select there (needed because otherwise events aren't picked up
          outside of polling since we don't get SIGIO like X and we don't have a
-         separate event loop thread like W32. */
+         separate event loop thread like W32.  */
 #ifndef HAVE_NS
   if (waiting_for_input && !echoing)
       quit_throw_to_read_char ();
@@ -11452,7 +11452,7 @@ init_keyboard (void)
          session may have multiple display types, so we always handle
          SIGINT.  There is special code in interrupt_signal to exit
          Emacs on SIGINT when there are no termcap frames on the
-         controlling terminal. */
+         controlling terminal.  */
       signal (SIGINT, interrupt_signal);
 #ifndef DOS_NT
       /* For systems with SysV TERMIO, C-g is set up for both SIGINT and
@@ -12249,7 +12249,7 @@ Currently, the only supported values for this
 variable are `sigusr1' and `sigusr2'.  */);
   Vdebug_on_event = intern_c_string ("sigusr2");
 
-  /* Create the initial keyboard. */
+  /* Create the initial keyboard.  */
   initial_kboard = (KBOARD *) xmalloc (sizeof (KBOARD));
   init_kboard (initial_kboard);
   /* Vwindow_system is left at t for now.  */

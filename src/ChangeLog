@@ -1,3 +1,7 @@
+2011-10-28  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* lisp.h (struct Lisp_Symbol): Update comments.
+
 2011-10-28  Juanma Barranquero  <lekktu@gmail.com>
 
 	* w32font.c (w32_load_unicows_or_gdi32): Add missing return.
@@ -13,10 +17,10 @@
 	(GetOutlineTextMetricsW_Proc, GetTextMetricsW_Proc)
 	(GetGlyphOutlineW_Proc): New typedefs.
 	(w32_load_unicows_or_gdi32, get_outline_metrics_w)
-	(get_text_metrics_w, get_glyph_outline_w, globals_of_w32font): New
-	functions.
-	(w32font_open_internal, compute_metrics): Call
-	get_outline_metrics_w, get_text_metrics_w, and get_glyph_outline_w
+	(get_text_metrics_w, get_glyph_outline_w, globals_of_w32font):
+	New functions.
+	(w32font_open_internal, compute_metrics):
+	Call get_outline_metrics_w, get_text_metrics_w, and get_glyph_outline_w
 	instead of calling the "wide" APIs directly.
 
 	* emacs.c (main) [HAVE_NTGUI]: Call globals_of_w32font.
@@ -43,8 +47,8 @@
 
 2011-10-27  Chong Yidong  <cyd@gnu.org>
 
-	* gnutls.c (emacs_gnutls_deinit): New function.  Deallocate
-	credentials structures as well as calling gnutls_deinit.
+	* gnutls.c (emacs_gnutls_deinit): New function.
+	Deallocate credentials structures as well as calling gnutls_deinit.
 	(Fgnutls_deinit, Fgnutls_boot): Use it.
 
 	* process.c (make_process): Initialize GnuTLS credentials to NULL.
