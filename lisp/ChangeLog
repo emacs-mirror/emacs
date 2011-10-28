@@ -1,3 +1,9 @@
+2011-10-28  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* vc/log-edit.el: Fill empty field rather than adding new one.
+	(log-edit-add-field): New function.
+	(log-edit-insert-changelog): Use it.
+
 2011-10-28  Mark Lillibridge  <mark.lillibridge@hp.com>  (tiny change)
 
 	* mail/rmail.el (rmail-mode-map): Add M-C-f as in rmailsum (bug#9802).
