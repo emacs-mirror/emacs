@@ -1,4 +1,22 @@
+2011-10-26  Juanma Barranquero  <lekktu@gmail.com>
+
+	* emacs.texi (Top): Fix typo.
+
+2011-10-25  Glenn Morris  <rgm@gnu.org>
+
+	* abbrevs.texi (Saving Abbrevs):
+	quietly-read-abbrev-file is not a command.  (Bug#9866)
+
+2011-10-24  Chong Yidong  <cyd@gnu.org>
+
+	* display.texi (Scrolling): Document scroll-up-line and
+	scroll-down-line.  Document scroll-command property.
+	(Recentering): New node, split off from Scrolling.
+
 2011-10-23  Chong Yidong  <cyd@gnu.org>
+
+	* frames.texi (Scroll Bars): GTK uses right scroll bars now.
+	(Tool Bars): Copyedits.
 
 	* buffers.texi (Misc Buffer): Don't mention vc-toggle-read-only.
 

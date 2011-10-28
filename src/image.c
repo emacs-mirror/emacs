@@ -2015,7 +2015,7 @@ x_create_x_image_and_pixmap (struct frame *f, int width, int height, int depth,
   /* Bitmaps with a depth less than 16 need a palette.  */
   /* BITMAPINFO structure already contains the first RGBQUAD.  */
   if (depth < 16)
-    palette_colors = 1 << depth - 1;
+    palette_colors = 1 << (depth - 1);
 
   *ximg = xmalloc (sizeof (XImage) + palette_colors * sizeof (RGBQUAD));
 

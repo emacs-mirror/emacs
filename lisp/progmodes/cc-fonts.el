@@ -1277,9 +1277,11 @@ casts and declarations are fontified.  Used on level 2 and higher."
 	 (when
 	  ;; The result of the form below is true when we don't recognize a
 	  ;; declaration or cast.
-	  (if (and (eq (get-text-property (point) 'face)
-		       'font-lock-keyword-face)
-		   (looking-at c-not-decl-init-keywords))
+	  (if (or (and (eq (get-text-property (point) 'face)
+			   'font-lock-keyword-face)
+		       (looking-at c-not-decl-init-keywords))
+		  (and c-macro-with-semi-re
+		       (looking-at c-macro-with-semi-re))) ; 2008-11-04
 	      ;; Don't do anything more if we're looking at a keyword that
 	      ;; can't start a declaration.
 	      t

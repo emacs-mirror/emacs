@@ -708,7 +708,7 @@
 (define-charset-alias 'cp866u 'cp1125)
 
 ;; Fixme: C.f. iconv, http://czyborra.com/charsets/codepages.html
-;; shows this as not ASCII comptaible, with various graphics in
+;; shows this as not ASCII compatible, with various graphics in
 ;; 0x01-0x1F.
 (define-charset 'cp437
   "CP437 (MS-DOS United States, Australia, New Zealand, South Africa)"

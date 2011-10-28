@@ -333,15 +333,51 @@ always returns nil."
 
 (defvar *random-state* (vector 'cl-random-state-tag -1 30 (cl-random-time)))
 
-;; The following are actually set by cl-float-limits.
-(defconst most-positive-float nil)
-(defconst most-negative-float nil)
-(defconst least-positive-float nil)
-(defconst least-negative-float nil)
-(defconst least-positive-normalized-float nil)
-(defconst least-negative-normalized-float nil)
-(defconst float-epsilon nil)
-(defconst float-negative-epsilon nil)
+(defconst most-positive-float nil
+  "The largest value that a Lisp float can hold.
+If your system supports infinities, this is the largest finite value.
+For IEEE machines, this is approximately 1.79e+308.
+Call `cl-float-limits' to set this.")
+
+(defconst most-negative-float nil
+  "The largest negative value that a Lisp float can hold.
+This is simply -`most-positive-float'.
+Call `cl-float-limits' to set this.")
+
+(defconst least-positive-float nil
+  "The smallest value greater than zero that a Lisp float can hold.
+For IEEE machines, it is about 4.94e-324 if denormals are supported,
+or 2.22e-308 if they are not.
+Call `cl-float-limits' to set this.")
+
+(defconst least-negative-float nil
+  "The smallest value less than zero that a Lisp float can hold.
+This is simply -`least-positive-float'.
+Call `cl-float-limits' to set this.")
+
+(defconst least-positive-normalized-float nil
+  "The smallest normalized Lisp float greater than zero.
+This is the smallest value for which IEEE denormalization does not lose
+precision.  For IEEE machines, this value is about 2.22e-308.
+For machines that do not support the concept of denormalization
+and gradual underflow, this constant equals `least-positive-float'.
+Call `cl-float-limits' to set this.")
+
+(defconst least-negative-normalized-float nil
+  "The smallest normalized Lisp float less than zero.
+This is simply -`least-positive-normalized-float'.
+Call `cl-float-limits' to set this.")
+
+(defconst float-epsilon nil
+  "The smallest positive float that adds to 1.0 to give a distinct value.
+Adding a number less than this to 1.0 returns 1.0 due to roundoff.
+For IEEE machines, epsilon is about 2.22e-16.
+Call `cl-float-limits' to set this.")
+
+(defconst float-negative-epsilon nil
+  "The smallest positive float that subtracts from 1.0 to give a distinct value.
+For IEEE machines, it is about 1.11e-16.
+Call `cl-float-limits' to set this.")
 
 
 ;;; Sequence functions.

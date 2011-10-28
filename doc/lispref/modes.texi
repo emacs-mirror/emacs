@@ -84,8 +84,9 @@ its value is just a single function, not a list of functions.
 @node Running Hooks
 @subsection Running Hooks
 
-  At the appropriate times, Emacs uses the @code{run-hooks} function
-and the other functions below to run particular hooks.
+  In this section, we document the @code{run-hooks} function, which is
+used to run a normal hook.  We also document the functions for running
+various kinds of abnormal hooks.
 
 @defun run-hooks &rest hookvars
 This function takes one or more normal hook variable names as
@@ -108,27 +109,48 @@ be run as well.
 @end defun
 
 @defun run-hook-with-args hook &rest args
-This function is the way to run an abnormal hook and always call all
-of the hook functions.  It calls each of the hook functions one by
-one, passing each of them the arguments @var{args}.
+This function runs an abnormal hook by calling all the hook functions in
+@var{hook}, passing each one the arguments @var{args}.
 @end defun
 
 @defun run-hook-with-args-until-failure hook &rest args
-This function is the way to run an abnormal hook until one of the hook
-functions fails.  It calls each of the hook functions, passing each of
-them the arguments @var{args}, until some hook function returns
-@code{nil}.  It then stops and returns @code{nil}.  If none of the
-hook functions return @code{nil}, it returns a non-@code{nil} value.
+This function runs an abnormal hook by calling each hook function in
+turn, stopping if one of them ``fails'' by returning @code{nil}.  Each
+hook function is passed the arguments @var{args}.  If this function
+stops because one of the hook functions fails, it returns @code{nil};
+otherwise it returns a non-@code{nil} value.
 @end defun
 
 @defun run-hook-with-args-until-success hook &rest args
-This function is the way to run an abnormal hook until a hook function
-succeeds.  It calls each of the hook functions, passing each of them
-the arguments @var{args}, until some hook function returns
-non-@code{nil}.  Then it stops, and returns whatever was returned by
-the last hook function that was called.  If all hook functions return
-@code{nil}, it returns @code{nil} as well.
+This function runs an abnormal hook by calling each hook function,
+stopping if one of them ``succeeds'' by returning a non-@code{nil}
+value.  Each hook function is passed the arguments @var{args}.  If this
+function stops because one of the hook functions returns a
+non-@code{nil} value, it returns that value; otherwise it returns
+@code{nil}.
 @end defun
+
+@defmac with-wrapper-hook hook args &rest body
+This macro runs the abnormal hook @code{hook} as a series of nested
+``wrapper functions'' around the @var{body} forms.  The effect is
+similar to nested @code{around} advices (@pxref{Around-Advice}).
+
+Each hook function must accept an argument list consisting of a function
+@var{fun}, followed by the additional arguments listed in @var{args}.
+The function @var{fun} passed to the very first hook function in
+@var{hook} does the same as @var{body}, if it is called with arguments
+@var{args}.  The @var{fun} passed to each successive hook function is
+constructed from all the preceding hook functions (and @var{body}); if
+this @var{fun} is called with arguments @var{args}, it does what the
+@code{with-wrapper-hook} call would if the preceding hook functions were
+the only ones in @var{hook}.
+
+In the function definition of the hook function, @var{fun} can be called
+any number of times (including not calling it at all).  This function
+definition is then used to construct the @var{fun} passed to the next
+hook function in @var{hook}, if any.  The last or ``outermost''
+@var{fun} is called once to produce the effect.
+@end defmac
 
 @node Setting Hooks
 @subsection Setting Hooks

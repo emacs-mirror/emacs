@@ -1871,7 +1871,7 @@
 
 	* org-list.el (org-list-separating-blank-lines-number): Fix
 	confusion between point and item beginning.  Now, if no
-	information is avalaible, truly follow user preference when it
+	information is available, truly follow user preference when it
 	inserts blank lines manually.
 	(org-list-insert-item): Send correct argument to the preceding
 	function.

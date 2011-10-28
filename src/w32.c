@@ -2892,12 +2892,12 @@ sys_rename (const char * oldname, const char * newname)
       int    i = 0;
 
       oldname = map_w32_filename (oldname, NULL);
-      if (o = strrchr (oldname, '\\'))
+      if ((o = strrchr (oldname, '\\')))
 	o++;
       else
 	o = (char *) oldname;
 
-      if (p = strrchr (temp, '\\'))
+      if ((p = strrchr (temp, '\\')))
 	p++;
       else
 	p = temp;
@@ -5756,7 +5756,7 @@ w32_delayed_load (Lisp_Object libraries, Lisp_Object library_id)
         for (dlls = XCDR (dlls); CONSP (dlls); dlls = XCDR (dlls))
           {
             CHECK_STRING_CAR (dlls);
-            if (library_dll = LoadLibrary (SDATA (XCAR (dlls))))
+            if ((library_dll = LoadLibrary (SDATA (XCAR (dlls)))))
               {
                 found = XCAR (dlls);
                 break;

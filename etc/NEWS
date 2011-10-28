@@ -230,14 +230,14 @@ cannot be encoded by the `terminal-coding-system'.
 (U+2010 and U+2011).
 
 ** Improved GTK integration
-
++++
 *** GTK scroll-bars are now placed on the right by default.
 Use `set-scroll-bar-mode' to change this.
-
++++
 *** GTK tool bars can have just text, just images or images and text.
 Customize `tool-bar-style' to choose style.  On a Gnome desktop, the default
 is taken from the desktop settings.
-
+---
 *** GTK tool bars can be placed on the left/right or top/bottom of the frame.
 The frame-parameter tool-bar-position controls this.  It takes the values
 top, left, right or bottom.  The Options => Show/Hide menu has entries
@@ -276,10 +276,6 @@ get and set the SELinux context of a file.
 *** Tramp offers handlers for file-selinux-context and set-file-selinux-context
 for remote machines which support SELinux.
 
-+++
-** The function format-time-string now supports the %N directive, for
-higher-resolution time stamps.
-
 ** Changes for exiting Emacs
 +++
 *** The function kill-emacs is now run upon receipt of the signals
@@ -295,24 +291,20 @@ consider if it is still appropriate to add it in the noninteractive case.
 (bound to C-v/[next] and M-v/[prior]) do not signal errors at top/bottom
 of buffer at first key-press (instead move to top/bottom of buffer)
 when `scroll-error-top-bottom' is non-nil.
-
 +++
 *** New variable `scroll-error-top-bottom' (see above).
-
++++
 *** New scrolling commands `scroll-up-line' and `scroll-down-line'
 scroll a line instead of full screen.
-
 +++
 *** New property `scroll-command' should be set on a command's symbol to
 define it as a scroll command affected by `scroll-preserve-screen-position'.
-
 +++
 *** If you customize `scroll-conservatively' to a value greater than 100,
 Emacs will never recenter point in the window when it scrolls due to
 cursor motion commands or commands that move point (e.f., `M-g M-g').
 Previously, you needed to use `most-positive-fixnum' as the value of
 `scroll-conservatively' to achieve the same effect.
-
 ---
 *** ``Aggressive'' scrolling now honors the scroll margins.
 If you customize `scroll-up-aggressively' or
@@ -374,7 +366,6 @@ Affected modes include dired, vc-dir, and log-edit.  For example,
 adding "(diff-mode . ((mode . whitespace)))" to .dir-locals.el will
 turn on `whitespace-mode' for *vc-diff* buffers.  Modes should call
 `hack-dir-local-variables-non-file-buffer' to support this.
-
 +++
 *** Using "mode: MINOR-MODE" to enable a minor mode is deprecated.
 Instead, use "eval: (minor-mode 1)".
@@ -1178,7 +1169,13 @@ must also be supplied.
 ** pre/post-command-hook are not reset to nil upon error.
 Instead, the offending function is removed.
 
-** New low-level function run-hook-wrapped.
+** New hook types
+
+*** New function `run-hook-wrapped' for running an abnormal hook by
+passing the hook functions as arguments to a "wrapping" function.
++++
+*** New macro `with-wrapper-hook' for running an abnormal hook as a
+set of "wrapping" filters, similar to around advice.
 
 ** `server-eval-at' is provided to allow evaluating forms on different
 Emacs server instances.
@@ -1191,6 +1188,10 @@ a file.
 Also the debugger can now "continue" from an error, which means it will jump
 to the error handler as if the debugger had not been invoked instead of
 jumping all the way to the top-level.
+
++++
+** The function format-time-string now supports the %N directive, for
+higher-resolution time stamps.
 
 ** New function `read-char-choice' reads a restricted set of characters,
 discarding any inputs not inside the set.
@@ -1217,15 +1218,22 @@ syntactic rules.
 
 ** frame-local variables cannot be let-bound any more.
 
+** Major and minor mode changes
 +++
-** prog-mode is a new major-mode meant to be the parent of programming mode.
-The prog-mode-hook it defines can be used to enable features for
-programming modes.  For example:
-(add-hook 'prog-mode-hook 'flyspell-prog-mode)
-enables on the fly spell checking for comments and strings for
-programming modes.
+*** `prog-mode' is a new major mode from which programming modes
+should be derived.
 
-** define-minor-mode accepts a new keyword :variable.
+**** `prog-mode-hook' can be used to enable features for programming
+modes, e.g. (add-hook 'prog-mode-hook 'flyspell-prog-mode) to enable
+on-the-fly spell checking for comments and strings.
+
+*** New hook `change-major-mode-after-body-hook', run by
+`run-mode-hooks' just before any other mode hooks.
+
+*** Enabled globalized minor modes can be disabled in specific modes,
+by running (FOO-mode-hook 0) via a mode hook.
+
+*** `define-minor-mode' accepts a new keyword :variable.
 
 +++
 ** `delete-file' and `delete-directory' now accept optional arg TRASH.
@@ -1349,6 +1357,8 @@ GnuTLS detection.
 with the USER_LIBS build variable.
 
 ** New make target `dist' to create binary distribution for MS Windows.
+
+** Function `w32-default-color-map' is now obsolete.
 
 ** On Nextstep/OSX, the menu bar can be hidden by customizing
 ns-auto-hide-menu-bar.

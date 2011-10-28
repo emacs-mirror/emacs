@@ -1154,42 +1154,65 @@ the line.  If this virtual semicolon is _at_ from, the function recognizes it.
 
 Note that this function might do hidden buffer changes.  See the
 comment at the start of cc-engine.el for more info."
-  (let ((skip-chars c-stmt-delim-chars)
-	lit-range)
-    (save-excursion
-      (catch 'done
-	(goto-char from)
-	(while (progn (skip-chars-forward skip-chars to)
-		      (< (point) to))
-	  (cond
-	   ((setq lit-range (c-literal-limits from)) ; Have we landed in a string/comment?
-	    (goto-char (cdr lit-range)))
-	   ((eq (char-after) ?:)
-	    (forward-char)
-	    (if (and (eq (char-after) ?:)
-		     (< (point) to))
-		;; Ignore scope operators.
-		(forward-char)
-	      (setq c-maybe-labelp (1- (point)))))
-	   ((eq (char-after) ??)
-	    ;; A question mark.  Can't be a label, so stop
-	    ;; looking for more : and ?.
-	    (setq c-maybe-labelp nil
-		  skip-chars (substring c-stmt-delim-chars 0 -2)))
-	   ((memq (char-after) '(?# ?\n ?\r)) ; A virtual semicolon?
-	    (if (and (eq (char-before) ?\\) (memq (char-after) '(?\n ?\r)))
-		(backward-char))
-	    (skip-chars-backward " \t" from)
-	    (if (c-at-vsemi-p)
-	        (throw 'done (point))
-	      (forward-line)))
-	   (t (throw 'done (point)))))
-	;; In trailing space after an as yet undetected virtual semicolon?
-	(c-backward-syntactic-ws from)
-	(if (and (< (point) to)
-		 (c-at-vsemi-p))
-	    (point)
-	  nil)))))
+  (let* ((skip-chars
+	  ;; If the current language has CPP macros, insert # into skip-chars.
+	  (if c-opt-cpp-symbol
+	      (concat (substring c-stmt-delim-chars 0 1) ; "^"
+		      c-opt-cpp-symbol			 ; usually "#"
+		      (substring c-stmt-delim-chars 1))	 ; e.g. ";{}?:"
+	    c-stmt-delim-chars))
+	 (non-skip-list
+	  (append (substring skip-chars 1) nil)) ; e.g. (?# ?\; ?{ ?} ?? ?:)
+	 lit-range vsemi-pos)
+    (save-restriction
+      (widen)
+      (save-excursion
+	(catch 'done
+	  (goto-char from)
+	  (while (progn (skip-chars-forward
+			 skip-chars
+			 (min to (c-point 'bonl)))
+			(< (point) to))
+	    (cond
+	     ;; Virtual semicolon?
+	     ((and (bolp)
+		   (save-excursion
+		     (progn
+		       (if (setq lit-range (c-literal-limits from)) ; Have we landed in a string/comment?
+			   (goto-char (car lit-range)))
+		       (c-backward-syntactic-ws) ; ? put a limit here, maybe?
+		       (setq vsemi-pos (point))
+		       (c-at-vsemi-p))))
+	      (throw 'done vsemi-pos))
+	     ;; In a string/comment?
+	     ((setq lit-range (c-literal-limits))
+	      (goto-char (cdr lit-range)))
+	     ((eq (char-after) ?:)
+	      (forward-char)
+	      (if (and (eq (char-after) ?:)
+		       (< (point) to))
+		  ;; Ignore scope operators.
+		  (forward-char)
+		(setq c-maybe-labelp (1- (point)))))
+	     ((eq (char-after) ??)
+	      ;; A question mark.  Can't be a label, so stop
+	      ;; looking for more : and ?.
+	      (setq c-maybe-labelp nil
+		    skip-chars (substring c-stmt-delim-chars 0 -2)))
+	     ;; At a CPP construct?
+	     ((and c-opt-cpp-symbol (looking-at c-opt-cpp-symbol)
+		   (save-excursion
+		     (forward-line 0)
+		     (looking-at c-opt-cpp-prefix)))
+	      (c-end-of-macro))
+	     ((memq (char-after) non-skip-list)
+	      (throw 'done (point)))))
+	  ;; In trailing space after an as yet undetected virtual semicolon?
+	  (c-backward-syntactic-ws from)
+	  (if (and (< (point) to)
+		   (c-at-vsemi-p))
+	      (point)
+	    nil))))))
 
 (defun c-at-statement-start-p ()
   "Return non-nil if the point is at the first token in a statement
@@ -7163,12 +7186,14 @@ comment at the start of cc-engine.el for more info."
 	   ;; Check that we're not after a token that can't precede a label.
 	   (or
 	    ;; Trivially succeeds when there's no preceding token.
+	    ;; Succeeds when we're at a virtual semicolon.
 	    (if preceding-token-end
 		(<= preceding-token-end (point-min))
 	      (save-excursion
 		(c-backward-syntactic-ws)
 		(setq preceding-token-end (point))
-		(bobp)))
+		(or (bobp)
+		    (c-at-vsemi-p))))
 
 	    ;; Check if we're after a label, if we're after a closing
 	    ;; paren that belong to statement, and with
@@ -8399,6 +8424,57 @@ comment at the start of cc-engine.el for more info."
 	(c-looking-at-inexpr-block (c-safe-position containing-sexp
 						    paren-state)
 				   containing-sexp)))))
+
+(defun c-at-macro-vsemi-p (&optional pos)
+  ;; Is there a "virtual semicolon" at POS or point?
+  ;; (See cc-defs.el for full details of "virtual semicolons".)
+  ;;
+  ;; This is true when point is at the last non syntactic WS position on the
+  ;; line, there is a macro call last on the line, and this particular macro's
+  ;; name is defined by the regexp `c-vs-macro-regexp' as not needing a
+  ;; semicolon.
+  (save-excursion
+    (save-restriction
+      (widen)
+      (if pos
+	  (goto-char pos)
+	(setq pos (point)))
+      (and
+       c-macro-with-semi-re
+       (not (c-in-literal))
+       (eq (skip-chars-backward " \t") 0)
+
+       ;; Check we've got nothing after this except comments and empty lines
+       ;; joined by escaped EOLs.
+       (skip-chars-forward " \t")	; always returns non-nil.
+       (progn
+	 (while			      ; go over 1 block comment per iteration.
+	     (and
+	      (looking-at "\\(\\\\[\n\r][ \t]*\\)*")
+	      (goto-char (match-end 0))
+	      (cond
+	       ((looking-at c-block-comment-start-regexp)
+		(and (forward-comment 1)
+		     (skip-chars-forward " \t"))) ; always returns non-nil
+	       ((looking-at c-line-comment-start-regexp)
+		(end-of-line)
+		nil)
+	       (t nil))))
+	 (eolp))
+	     
+       (goto-char pos)
+       (progn (c-backward-syntactic-ws)
+	      (eq (point) pos))
+
+       ;; Check for one of the listed macros being before point.
+       (or (not (eq (char-before) ?\)))
+	   (when (c-go-list-backward)
+	     (c-backward-syntactic-ws)
+	     t))
+       (c-simple-skip-symbol-backward)
+       (looking-at c-macro-with-semi-re)))))
+
+(defun c-macro-vsemi-status-unknown-p () t) ; See cc-defs.el.
 
 
 ;; `c-guess-basic-syntax' and the functions that precedes it below

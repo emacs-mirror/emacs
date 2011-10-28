@@ -645,6 +645,8 @@ a list of colors that the current display can handle."
                ;; text in menu entries) and `SystemWindowText' (the default
                ;; color w32 uses for the text in windows and dialogs) may
                ;; be the same display color and be adjacent in the list.
+               ;; These system colors all have names prefixed with "System",
+               ;; which is hardcoded in w32fns.c (SYSTEM_COLOR_PREFIX).
                ;; This makes them different to any other color.  Bug#9722
 	       (not (and (eq system-type 'windows-nt)
 			 (string-match-p "^System" (car (car l))))))
