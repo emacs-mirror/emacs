@@ -341,6 +341,11 @@ Line-Up Functions
 * Comment Line-Up::
 * Misc Line-Up::
 
+Customizing Macros
+
+* Macro Backslashes::           
+* Macros with ;::               
+
 @end detailmenu
 @end menu
 
@@ -655,6 +660,10 @@ expression, to some statements, or perhaps to whole functions, the
 syntactic recognition can be wrong.  @ccmode{} manages to figure it
 out correctly most of the time, though.
 
+Some macros, when invoked, ''have their own semicolon''.  To get the
+next line indented correctly, rather than as a continuation line,
+@xref{Macros with ;}.
+
 Reindenting large sections of code can take a long time.  When
 @ccmode{} reindents a region of code, it is essentially equivalent to
 hitting @key{TAB} on every line of the region.
@@ -882,6 +891,8 @@ lines.
 @itemx @kbd{C-M-e} (@code{c-end-of-defun})
 @findex c-beginning-of-defun
 @findex c-end-of-defun
+@vindex c-defun-tactic
+@vindex defun-tactic (c-)
 
 Move to the beginning or end of the current or next function.  Other
 constructs (such as a structs or classes) which have a brace block
@@ -894,6 +905,15 @@ as a @code{struct}) which doesn't end at the brace.  These two
 commands try to leave point at the beginning of a line near the actual
 start or end of the function.  This occasionally causes point not to
 move at all.
+
+By default, these commands will recognize functions contained within a
+@dfn{declaration scope} such as a C++ @code{class} or @code{namespace}
+construct, should the point start inside it.  If @ccmode fails to find
+function beginnings or ends inside the current declaration scope, it
+will search the enclosing scopes.  If you want @ccmode to recognize
+functions only at the top level@footnote{this was @ccmode{}'s
+behaviour prior to version 5.32.}, set @code{c-defun-tatic} to
+@code{t}.
 
 These functions are analogous to the Emacs built-in commands
 @code{beginning-of-defun} and @code{end-of-defun}, except they
@@ -6550,6 +6570,9 @@ custom line-up function associated with it.
 @section Other Special Indentations
 @comment !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
+To configure macros which you invoke without a terminating @samp{;},
+see @xref{Macros with ;}.
+
 Here are the remaining odds and ends regarding indentation:
 
 @defopt c-label-minimum-indentation
@@ -6601,6 +6624,13 @@ functions to this hook, not remove them.  @xref{Style Variables}.
 @cindex preprocessor directives
 @comment !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
+Preprocessor macros in C, C++, and Objective C (introduced by
+@code{#define}) have a syntax different from the main language---for
+example, a macro declaration is not terminated by a semicolon, and if
+it is more than a line long, line breaks in it must be escaped with
+backslashes.  @ccmode{} has some commands to manipulate these, see
+@ref{Macro Backslashes}.
+
 Normally, the lines in a multi-line macro are indented relative to
 each other as though they were code.  You can suppress this behavior
 by setting the following user option:
@@ -6611,6 +6641,28 @@ Enable syntactic analysis inside macros, which is the default.  If this
 is @code{nil}, all lines inside macro definitions are analyzed as
 @code{cpp-macro-cont}.
 @end defopt
+
+Because a macro can expand into anything at all, near where one is
+invoked @ccmode{} can only indent and fontify code heuristically.
+Sometimes it gets it wrong.  Usually you should try to design your
+macros so that they ''look like ordinary code'' when you invoke them.
+However, one situation is so common that @ccmode{} handles it
+specially: that is when certain macros needn't (or mustn't) be
+followed by a @samp{;}.  You need to configure @ccmode{} to handle
+these macros properly, see @ref{Macros with ;}.
+
+@comment !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+@menu
+* Macro Backslashes::           
+* Macros with ;::               
+@end menu
+
+@comment !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+@node     Macro Backslashes, Macros with ;, Custom Macros, Custom Macros
+@comment  node-name,  next,  previous,  up
+@section Customizing Macro Backslashes
+@cindex #define
+@comment !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
 @ccmode{} provides some tools to help keep the line continuation
 backslashes in macros neat and tidy.  Their precise action is
@@ -6652,6 +6704,62 @@ inserted backslashes are preceded by a single space, and backslashes
 get aligned only when you explicitly invoke the command
 @code{c-backslash-region} (@kbd{C-c C-\}).
 @end defopt
+
+@comment !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+@node Macros with ;,  , Macro Backslashes, Custom Macros
+@comment  node-name,  next,  previous,  up
+@section Macros with semicolons
+@cindex macros with semicolons
+@comment !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+Macros which needn't (or mustn't) be followed by a semicolon when you
+invoke them, @dfn{macros with semicolons}, are very common.  These can
+cause @ccmode{} to parse the next line wrongly as a
+@code{statement-cont} (@pxref{Function Symbols}) and thus mis-indent
+it.
+
+You can prevent this by specifying which macros have semicolons.  It
+doesn't matter whether or not such a macro has a parameter list:
+
+@defopt c-macro-names-with-semicolon
+@vindex macro-names-with-semicolon (c-)
+This buffer-local variable specifies which macros have semicolons.
+After setting its value, you need to call
+@code{c-make-macro-with-semi-re} for it to take effect.  It should be
+set to one of these values:
+
+@table @asis
+@item nil
+There are no macros with semicolons.
+@item a list of strings
+Each string is the name of a macro with a semicolon.  Only valid
+@code{#define} names are allowed here.  For example, to set the
+default value, you could write the following into your @file{.emacs}:
+
+@example
+(setq c-macro-names-with-semicolon
+      '("Q_OBJECT" "Q_PROPERTY" "Q_DECLARE" "Q_ENUMS"))
+@end example
+
+@item a regular expression
+This matches each symbol which is a macro with a semicolon.  It must
+not match any string which isn't a valid @code{#define} name.  For
+example:
+
+@example
+(setq c-macro-names-with-semicolon
+      "\\<\\(CLEAN_UP_AND_RETURN\\|Q_[[:upper:]]+\\)\\>")
+@end example
+@end table
+@end defopt
+
+@defun c-make-macro-with-semi-re
+@findex make-macro-with-semi-re (c-)
+Call this (non-interactive) function, which sets internal variables,
+each time you change the value of
+@code{c-macro-names-with-semicolon}.  It takes no arguments, and its
+return value has no meaning.  This function is called by @ccmode{}'s
+initialization code.
+@end defun
 
 @comment !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 @node    Odds and Ends, Sample .emacs File, Custom Macros, Top

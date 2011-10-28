@@ -593,6 +593,13 @@ to build the Fixes: header.")
 (put 'log-edit-rewrite-fixes 'safe-local-variable
      (lambda (v) (and (stringp (car-safe v)) (stringp (cdr v)))))
 
+(defun log-edit-add-field (field value)
+  (rfc822-goto-eoh)
+  (if (save-excursion (re-search-backward (concat "^" field ":\\([ \t]*\\)$")
+                                          nil t))
+      (replace-match (concat " " value) t t nil 1)
+    (insert field ": " value "\n" (if (looking-at "\n") "" "\n"))))
+
 (defun log-edit-insert-changelog (&optional use-first)
   "Insert a log message by looking at the ChangeLog.
 The idea is to write your ChangeLog entries first, and then use this
@@ -620,9 +627,7 @@ regardless of user name or time."
            (log-edit-insert-changelog-entries (log-edit-files)))))
     (log-edit-set-common-indentation)
     ;; Add an Author: field if appropriate.
-    (when author
-      (rfc822-goto-eoh)
-      (insert "Author: " author "\n" (if (looking-at "\n") "" "\n")))
+    (when author (log-edit-add-field "Author" author))
     ;; Add a Fixes: field if applicable.
     (when (consp log-edit-rewrite-fixes)
       (rfc822-goto-eoh)
@@ -632,8 +637,7 @@ regardless of user name or time."
               (fixes (match-substitute-replacement
                       (cdr log-edit-rewrite-fixes))))
           (delete-region start end)
-          (rfc822-goto-eoh)
-          (insert "Fixes: " fixes "\n" (if (looking-at "\n") "" "\n")))))
+          (log-edit-add-field "Fixes" fixes))))
     (and log-edit-strip-single-file-name
          (progn (rfc822-goto-eoh)
                 (if (looking-at "\n") (forward-char 1))

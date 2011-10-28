@@ -1,3 +1,84 @@
+2011-10-28  Alan Mackenzie  <acm@muc.de>
+
+	* progmodes/cc-defs.el (c-version).  -> 5.32.2.
+
+2011-10-28  Alan Mackenzie  <acm@muc.de>
+
+	Amend the handling of c-beginning/end-of-defun in nested declaration
+	scopes.
+
+	* progmodes/cc-vars.el (c-defun-tactic): Move here from
+	cc-langs.el.  Change it to a defcustom.
+
+	* progmodes/cc-langs.el (c-defun-tactic): Move this variable to
+	cc-vars.el.
+	(c-nonlabel-token-2-key): New variable for change in cc-engine.el.
+
+	* progmodes/cc-engine.el (c-beginning-of-statement-1): Prevent
+	"class foo : bar" being spuriously recognized as a label.
+
+	* progmodes/cc-cmds.el (c-narrow-to-most-enclosing-decl-block):
+	Add parameter `inclusive' (to include enclosing braces in the
+	region).
+	(c-widen-to-enclosing-decl-scope): New function.
+	(c-while-widening-to-decl-block): New macro.
+	(c-beginning-of-defun, c-end-of-defun): Change algorithm to keep going
+	outward for defun boundaries, and correspondingly change symbol
+	`respect-enclosure' to `go-outward'.
+	(c-declaration-limits): Change algorithm to report only the "innermost"
+	defun's boundaries.
+
+2011-10-28  Deniz Dogan  <deniz@dogan.se>
+
+	* net/rcirc.el (rcirc-mode): Use hard newlines.
+
+2011-10-28  Alan Mackenzie  <acm@muc.de>
+
+	Amend to indent and fontify macros "which include their own semicolon"
+	correctly, using the "virtual semicolon" mechanism.
+
+	* progmodes/cc-defs.el: Update "virtual semicolon" comments.
+
+	* progmodes/cc-engine.el (c-crosses-statement-barrier-p): Recoded
+	to scan one line at at time rather than having \n and \r
+	explicitly in c-stmt-delim-chars
+	(for some modes, e.g. AWK).
+	(c-forward-label): Amend for virtual semicolons.
+	(c-at-macro-vsemi-p, c-macro-vsemi-status-unknown-p): New functions
+
+	* progmodes/cc-fonts.el (c-font-lock-declarations): Take account
+	of the new C macros.
+
+	* progmodes/cc-langs.el (c-at-vsemi-p-fn):
+	(c-vsemi-status-unknown-p-fn): move to earlier in the file.
+	(c-opt-cpp-symbol, c-line-comment-start-regexp): New language variables.
+	(c-opt-cpp-macro-define): Make into a full language variable.
+	(c-stmt-delim-chars, c-stmt-delim-chars-with-comma): Special value for
+	AWK Mode (including \n, \r) removed, no longer needed.
+
+	* progmodes/cc-mode.el (c-mode, c++-mode, objc-mode): Invoke
+	c-make-macro-with-semi-re.
+
+	* progmodes/cc-vars.el (c-macro-with-semi-re):
+	(c-macro-names-with-semicolon): New variables.
+	(c-make-macro-with-semi-re): New function
+
+2011-10-28  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* vc/log-edit.el: Fill empty field rather than adding new one.
+	(log-edit-add-field): New function.
+	(log-edit-insert-changelog): Use it.
+
+2011-10-28  Mark Lillibridge  <mark.lillibridge@hp.com>  (tiny change)
+
+	* mail/rmail.el (rmail-mode-map): Add M-C-f as in rmailsum (bug#9802).
+
+2011-10-28  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* progmodes/gdb-mi.el: Warn the user when -i=mi is missing.
+	(gdb--check-interpreter): New function.
+	(gdb): Use it.
+
 2011-10-27  Glenn Morris  <rgm@gnu.org>
 
 	* emacs-lisp/cl-extra.el (most-positive-float, most-negative-float)
@@ -21,8 +102,8 @@
 	* subr.el (change-major-mode-after-body-hook): New hook.
 	(run-mode-hooks): Run it.
 
-	* emacs-lisp/easy-mmode.el (define-globalized-minor-mode): Use
-	change-major-mode-before-body-hook.
+	* emacs-lisp/easy-mmode.el (define-globalized-minor-mode):
+	Use change-major-mode-before-body-hook.
 
 	* simple.el (fundamental-mode):
 	* emacs-lisp/derived.el (define-derived-mode): Revert 2010-04-28

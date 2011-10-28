@@ -340,6 +340,20 @@ better with the \"do { ... } while \(0)\" trick)."
   :group 'c)
 (put 'c-syntactic-indentation-in-macros 'safe-local-variable 'booleanp)
 
+(defcustom c-defun-tactic 'go-outward
+  "*Whether functions are recognized inside, e.g., a class.
+This is used by `c-beginning-of-defun' and like functions.
+
+Its value is one of:
+ t           -- Functions are recognized only at the top level.
+ go-outward  -- Nested functions are also recognized.  Should a function
+                command hit the beginning/end of a nested scope, it will
+                carry on at the less nested level."
+  :type '(radio
+	  (const :tag "Functions are at the top-level" t)
+	  (const :tag "Functions are also recognized inside declaration scopes" go-outward))
+  :group 'c)
+
 (defcustom-c-stylevar c-comment-only-line-offset 0
   "*Extra offset for line which contains only the start of a comment.
 Can contain an integer or a cons cell of the form:
@@ -1608,6 +1622,54 @@ names)."))
 
 
 ;; Non-customizable variables, still part of the interface to CC Mode
+(defvar c-macro-with-semi-re nil
+  ;; Regular expression which matches a (#define'd) symbol whose expansion
+  ;; ends with a semicolon.
+  ;; 
+  ;; This variable should be set by `c-make-macros-with-semi-re' rather than
+  ;; directly.
+)
+(make-variable-buffer-local 'c-macro-with-semi-re)
+
+(defun c-make-macro-with-semi-re ()
+  ;; Convert `c-macro-names-with-semicolon' into the regexp
+  ;; `c-macro-with-semi-re' (or just copy it if it's already a re).
+  (setq c-macro-with-semi-re
+	(and
+	 c-opt-cpp-macro-define
+	 (cond
+	  ((stringp c-macro-names-with-semicolon)
+	   (copy-sequence c-macro-names-with-semicolon))
+	  ((consp c-macro-names-with-semicolon)
+	   (concat
+	    "\\<"
+	    (regexp-opt c-macro-names-with-semicolon)
+	    "\\>"))   ; N.B. the PAREN param of regexp-opt isn't supported by
+		      ; all XEmacsen.
+	  ((null c-macro-names-with-semicolon)
+	   nil)
+	  (t (error "c-make-macro-with-semi-re: invalid \
+c-macro-names-with-semicolon: %s"
+		    c-macro-names-with-semicolon))))))
+    
+(defvar c-macro-names-with-semicolon
+  '("Q_OBJECT" "Q_PROPERTY" "Q_DECLARE" "Q_ENUMS")
+  "List of #defined symbols whose expansion ends with a semicolon.
+Alternatively it can be a string, a regular expression which
+matches all such symbols.
+
+The \"symbols\" must be syntactically valid identifiers in the
+target language \(C, C++, Objective C), or \(as the case may be)
+the regular expression must match only valid identifiers.
+
+If you change this variable's value, call the function
+`c-make-macros-with-semi-re' to set the necessary internal
+variables.
+
+Note that currently \(2008-11-04) this variable is a prototype,
+and is likely to disappear or change its form soon.")
+(make-variable-buffer-local 'c-macro-names-with-semicolon)
+
 (defvar c-file-style nil
   "Variable interface for setting style via File Local Variables.
 In a file's Local Variable section, you can set this variable to a
