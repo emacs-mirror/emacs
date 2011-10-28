@@ -359,7 +359,7 @@ w32_getenv (char *envvar)
   char *value;
   DWORD dwType;
 
-  if (value = getenv (envvar))
+  if ((value = getenv (envvar)))
     /* Found in the environment.  strdup it, because values returned
        by getenv cannot be free'd.  */
     return xstrdup (value);
@@ -382,7 +382,7 @@ w32_getenv (char *envvar)
     {
       DWORD size;
 
-      if (size = ExpandEnvironmentStrings (value, NULL, 0))
+      if ((size = ExpandEnvironmentStrings (value, NULL, 0)))
 	{
 	  char *buffer = (char *) xmalloc (size);
 	  if (ExpandEnvironmentStrings (value, buffer, size))

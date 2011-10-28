@@ -9360,7 +9360,7 @@ if test "$GCC" = yes && test "$ac_enable_autodepend" = yes; then
    { $as_echo "$as_me:${as_lineno-$LINENO}: checking whether we are using GNU Make" >&5
 $as_echo_n "checking whether we are using GNU Make... " >&6; }
    HAVE_GNU_MAKE=no
-   testval=`make --version 2>/dev/null | grep 'GNU Make'`
+   testval=`${MAKE-make} --version 2>/dev/null | grep 'GNU Make'`
    if test "x$testval" != x; then
       HAVE_GNU_MAKE=yes
    else
@@ -10380,7 +10380,8 @@ fi
 if test "$HAVE_PTHREAD" = yes; then
   case "${canonical}" in
     *-hpux*) ;;
-    *) LIB_PTHREAD="-lpthread" ;;
+    *) LIB_PTHREAD="-lpthread"
+       LIBS="$LIB_PTHREAD $LIBS" ;;
   esac
 
 $as_echo "#define HAVE_PTHREAD 1" >>confdefs.h
@@ -22444,14 +22445,14 @@ echo
 
 if test "$HAVE_NS" = "yes"; then
    echo
-   echo "You must run \"make install\" in order to test the built application.
+   echo "You must run \"${MAKE-make} install\" in order to test the built application.
 The installed application will go to nextstep/Emacs.app and can be
 run or moved from there."
    if test "$EN_NS_SELF_CONTAINED" = "yes"; then
       echo "The application will be fully self-contained."
     else
       echo "The lisp resources for the application will be installed under ${prefix}.
-You may need to run \"make install\" with sudo.  The application will fail
+You may need to run \"${MAKE-make} install\" with sudo.  The application will fail
 to run if these resources are not installed."
    fi
    echo

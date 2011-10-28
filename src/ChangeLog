@@ -1,3 +1,57 @@
+2011-10-27  Juanma Barranquero  <lekktu@gmail.com>
+
+	* window.c (Fframe_root_window, Fframe_first_window, Fwindow_end)
+	(Fframe_selected_window, Ftemp_output_buffer_show, Fnext_window)
+	(Fdelete_window_internal, Fwindow_parameters): Fix typos in docstrings.
+	(Fmove_to_window_line): Doc fix.
+
+2011-10-27  Chong Yidong  <cyd@gnu.org>
+
+	* process.c (make_process): Set gnutls_state to NULL.
+
+	* gnutls.c (emacs_gnutls_deinit): Deinit the gnutls_state if it is
+	non-NULL, regardless of GNUTLS_INITSTAGE.
+	(Fgnutls_boot): Cleanups.  Call emacs_gnutls_deinit if we signal
+	an error.  Set process slots as soon as we allocate them.
+
+	* gnutls.h (GNUTLS_LOG, GNUTLS_LOG2): Fix macros.
+
+2011-10-27  Chong Yidong  <cyd@gnu.org>
+
+	* gnutls.c (emacs_gnutls_deinit): New function.  Deallocate
+	credentials structures as well as calling gnutls_deinit.
+	(Fgnutls_deinit, Fgnutls_boot): Use it.
+
+	* process.c (make_process): Initialize GnuTLS credentials to NULL.
+	(deactivate_process): Call emacs_gnutls_deinit.
+
+2011-10-27  Juanma Barranquero  <lekktu@gmail.com>
+
+	* image.c (x_create_x_image_and_pixmap):
+	* w32.c (sys_rename, w32_delayed_load):
+	* w32font.c (fill_in_logfont):
+	* w32reg.c (x_get_string_resource): Silence compiler warnings.
+
+2011-10-26  Juanma Barranquero  <lekktu@gmail.com>
+
+	* w32fns.c (w32_default_color_map): New function,
+	extracted from Fw32_default_color_map.
+	(Fw32_default_color_map, Fx_open_connection): Use it.  (Bug#9785)
+
+2011-10-25  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* dispextern.h (Fcontrolling_tty_p): New decl (Bug#6649 part 2).
+
+2011-10-25  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* keyboard.c (test_undefined): New function (bug#9751).
+	(read_key_sequence): Use it to detect when a key is bound to `undefined'.
+
+2011-10-25  Enami Tsugutomo  <tsugutomo.enami@jp.sony.com>
+
+	* sysdep.c (init_sys_modes): Fix the check for the controlling
+	terminal (Bug#6649).
+
 2011-10-20  Eli Zaretskii  <eliz@gnu.org>
 
 	* dispextern.h (struct bidi_it): New member next_en_type.

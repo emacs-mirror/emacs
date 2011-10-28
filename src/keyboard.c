@@ -8902,6 +8902,14 @@ keyremap_step (Lisp_Object *keybuf, int bufsize, volatile keyremap *fkey,
   return 0;
 }
 
+static int
+test_undefined (Lisp_Object binding)
+{
+  return (EQ (binding, Qundefined)
+	  || (!NILP (binding) && SYMBOLP (binding)
+	      && EQ (Fcommand_remapping (binding, Qnil, Qnil), Qundefined)));
+}
+
 /* Read a sequence of keys that ends with a non prefix character,
    storing it in KEYBUF, a buffer of size BUFSIZE.
    Prompt with PROMPT.
@@ -9852,7 +9860,9 @@ read_key_sequence (Lisp_Object *keybuf, int bufsize, Lisp_Object prompt,
 	    }
 	}
 
-      if (first_binding < nmaps && NILP (submaps[first_binding])
+      if (first_binding < nmaps
+	  && NILP (submaps[first_binding])
+	  && !test_undefined (defs[first_binding])
 	  && indec.start >= t)
 	/* There is a binding and it's not a prefix.
 	   (and it doesn't have any input-decode-map translation pending).
@@ -9879,7 +9889,9 @@ read_key_sequence (Lisp_Object *keybuf, int bufsize, Lisp_Object prompt,
 				  /* If there's a binding (i.e.
 				     first_binding >= nmaps) we don't want
 				     to apply this function-key-mapping.  */
-				  fkey.end + 1 == t && first_binding >= nmaps,
+				  fkey.end + 1 == t
+				  && (first_binding >= nmaps
+				      || test_undefined (defs[first_binding])),
 				  &diff, prompt);
 	    UNGCPRO;
 	    if (done)

@@ -1441,7 +1441,7 @@ parsed, and move point there (@code{semantic-complete-jump}).
 @kindex C-c , @key{SPC}
 Display a list of possible completions for the symbol at point
 (@code{semantic-complete-analyze-inline}).  This also activates a set
-of special keybindings for choosing a completion: @key{RET} accepts
+of special key bindings for choosing a completion: @key{RET} accepts
 the current completion, @kbd{M-n} and @kbd{M-p} cycle through possible
 completions, @key{TAB} completes as far as possible and then cycles,
 and @kbd{C-g} or any other key aborts completion.

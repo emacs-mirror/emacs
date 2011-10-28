@@ -49,9 +49,9 @@ typedef enum
 
 #define GNUTLS_PROCESS_USABLE(proc) (GNUTLS_INITSTAGE(proc) >= GNUTLS_STAGE_READY)
 
-#define GNUTLS_LOG(level, max, string) if (level <= max) { gnutls_log_function (level, "(Emacs) " string); }
+#define GNUTLS_LOG(level, max, string) do { if (level <= max) { gnutls_log_function (level, "(Emacs) " string); } } while (0)
 
-#define GNUTLS_LOG2(level, max, string, extra) if (level <= max) { gnutls_log_function2 (level, "(Emacs) " string, extra); }
+#define GNUTLS_LOG2(level, max, string, extra) do { if (level <= max) { gnutls_log_function2 (level, "(Emacs) " string, extra); } } while (0)
 
 extern EMACS_INT
 emacs_gnutls_write (struct Lisp_Process *proc, const char *buf, EMACS_INT nbyte);
@@ -60,6 +60,7 @@ emacs_gnutls_read (struct Lisp_Process *proc, char *buf, EMACS_INT nbyte);
 
 extern int emacs_gnutls_record_check_pending (gnutls_session_t state);
 extern void emacs_gnutls_transport_set_errno (gnutls_session_t state, int err);
+extern Lisp_Object emacs_gnutls_deinit (Lisp_Object);
 
 extern void syms_of_gnutls (void);
 

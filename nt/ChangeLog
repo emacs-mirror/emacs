@@ -1,3 +1,12 @@
+2011-10-25  Eli Zaretskii  <eliz@gnu.org>
+
+	* makefile.w32-in (dist): Don't put the top-level INSTALL into the
+	distribution.  (Bug#9861)
+
+2011-10-25  Christoph Scholtes  <cschol2112@googlemail.com>
+
+	* INSTALL: Update URL for GTK download page.
+
 2011-10-19  Eli Zaretskii  <eliz@gnu.org>
 
 	* config.nt (HAVE_TZNAME, HAVE_DECL_TZNAME): Define.

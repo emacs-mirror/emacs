@@ -464,6 +464,44 @@ gnutls_make_error (int err)
   return make_number (err);
 }
 
+Lisp_Object
+emacs_gnutls_deinit (Lisp_Object proc)
+{
+  int log_level;
+
+  CHECK_PROCESS (proc);
+
+  if (XPROCESS (proc)->gnutls_p == 0)
+    return Qnil;
+
+  log_level = XPROCESS (proc)->gnutls_log_level;
+
+  if (XPROCESS (proc)->gnutls_x509_cred)
+    {
+      GNUTLS_LOG (2, log_level, "Deallocating x509 credentials");
+      fn_gnutls_certificate_free_credentials (XPROCESS (proc)->gnutls_x509_cred);
+      XPROCESS (proc)->gnutls_x509_cred = NULL;
+    }
+
+  if (XPROCESS (proc)->gnutls_anon_cred)
+    {
+      GNUTLS_LOG (2, log_level, "Deallocating anon credentials");
+      fn_gnutls_anon_free_client_credentials (XPROCESS (proc)->gnutls_anon_cred);
+      XPROCESS (proc)->gnutls_anon_cred = NULL;
+    }
+
+  if (XPROCESS (proc)->gnutls_state)
+    {
+      fn_gnutls_deinit (XPROCESS (proc)->gnutls_state);
+      XPROCESS (proc)->gnutls_state = NULL;
+      if (GNUTLS_INITSTAGE (proc) >= GNUTLS_STAGE_INIT)
+	GNUTLS_INITSTAGE (proc) = GNUTLS_STAGE_INIT - 1;
+    }
+
+  XPROCESS (proc)->gnutls_p = 0;
+  return Qt;
+}
+
 DEFUN ("gnutls-get-initstage", Fgnutls_get_initstage, Sgnutls_get_initstage, 1, 1, 0,
        doc: /* Return the GnuTLS init stage of process PROC.
 See also `gnutls-boot'.  */)
@@ -551,18 +589,7 @@ DEFUN ("gnutls-deinit", Fgnutls_deinit, Sgnutls_deinit, 1, 1, 0,
 See also `gnutls-init'.  */)
   (Lisp_Object proc)
 {
-  gnutls_session_t state;
-
-  CHECK_PROCESS (proc);
-  state = XPROCESS (proc)->gnutls_state;
-
-  if (GNUTLS_INITSTAGE (proc) >= GNUTLS_STAGE_INIT)
-    {
-      fn_gnutls_deinit (state);
-      GNUTLS_INITSTAGE (proc) = GNUTLS_STAGE_INIT - 1;
-    }
-
-  return Qt;
+  return emacs_gnutls_deinit (proc);
 }
 
 DEFUN ("gnutls-available-p", Fgnutls_available_p, Sgnutls_available_p, 0, 0, 0,
@@ -622,7 +649,7 @@ emacs_gnutls_global_deinit (void)
 
 DEFUN ("gnutls-boot", Fgnutls_boot, Sgnutls_boot, 3, 3, 0,
        doc: /* Initialize GnuTLS client for process PROC with TYPE+PROPLIST.
-Currently only client mode is supported.  Returns a success/failure
+Currently only client mode is supported.  Return a success/failure
 value you can check with `gnutls-errorp'.
 
 TYPE is a symbol, either `gnutls-anon' or `gnutls-x509pki'.
@@ -673,23 +700,13 @@ one trustfile (usually a CA bundle).  */)
   (Lisp_Object proc, Lisp_Object type, Lisp_Object proplist)
 {
   int ret = GNUTLS_E_SUCCESS;
-
   int max_log_level = 0;
 
-  /* TODO: GNUTLS_X509_FMT_DER is also an option.  */
-  int file_format = GNUTLS_X509_FMT_PEM;
-
-  unsigned int gnutls_verify_flags = GNUTLS_VERIFY_ALLOW_X509_V1_CA_CRT;
-  gnutls_x509_crt_t gnutls_verify_cert;
-  unsigned int gnutls_verify_cert_list_size;
-  const gnutls_datum_t *gnutls_verify_cert_list;
-
   gnutls_session_t state;
-  gnutls_certificate_credentials_t x509_cred;
-  gnutls_anon_client_credentials_t anon_cred;
+  gnutls_certificate_credentials_t x509_cred = NULL;
+  gnutls_anon_client_credentials_t anon_cred = NULL;
   Lisp_Object global_init;
   char const *priority_string_ptr = "NORMAL"; /* default priority string.  */
-  Lisp_Object tail;
   unsigned int peer_verification;
   char* c_hostname;
 
@@ -701,7 +718,6 @@ one trustfile (usually a CA bundle).  */)
   /* Lisp_Object callbacks; */
   Lisp_Object loglevel;
   Lisp_Object hostname;
-  Lisp_Object verify_flags;
   /* Lisp_Object verify_error; */
   Lisp_Object verify_hostname_error;
   Lisp_Object prime_bits;
@@ -716,25 +732,24 @@ one trustfile (usually a CA bundle).  */)
       return gnutls_make_error (GNUTLS_EMACS_ERROR_NOT_LOADED);
     }
 
+  if (!EQ (type, Qgnutls_x509pki) && !EQ (type, Qgnutls_anon))
+    {
+      error ("Invalid GnuTLS credential type");
+      return gnutls_make_error (GNUTLS_EMACS_ERROR_INVALID_TYPE);
+    }
+
   hostname              = Fplist_get (proplist, QCgnutls_bootprop_hostname);
   priority_string       = Fplist_get (proplist, QCgnutls_bootprop_priority);
   trustfiles            = Fplist_get (proplist, QCgnutls_bootprop_trustfiles);
   keylist               = Fplist_get (proplist, QCgnutls_bootprop_keylist);
   crlfiles              = Fplist_get (proplist, QCgnutls_bootprop_crlfiles);
-  /* callbacks          = Fplist_get (proplist, QCgnutls_bootprop_callbacks); */
   loglevel              = Fplist_get (proplist, QCgnutls_bootprop_loglevel);
-  verify_flags          = Fplist_get (proplist, QCgnutls_bootprop_verify_flags);
-  /* verify_error       = Fplist_get (proplist, QCgnutls_bootprop_verify_error); */
   verify_hostname_error = Fplist_get (proplist, QCgnutls_bootprop_verify_hostname_error);
   prime_bits            = Fplist_get (proplist, QCgnutls_bootprop_min_prime_bits);
 
   if (!STRINGP (hostname))
     error ("gnutls-boot: invalid :hostname parameter");
-
   c_hostname = SSDATA (hostname);
-
-  state = XPROCESS (proc)->gnutls_state;
-  XPROCESS (proc)->gnutls_p = 1;
 
   if (NUMBERP (loglevel))
     {
@@ -749,82 +764,56 @@ one trustfile (usually a CA bundle).  */)
   if (! NILP (Fgnutls_errorp (global_init)))
     return global_init;
 
-  /* deinit and free resources.  */
-  if (GNUTLS_INITSTAGE (proc) >= GNUTLS_STAGE_CRED_ALLOC)
-    {
-      GNUTLS_LOG (1, max_log_level, "deallocating credentials");
+  /* Before allocating new credentials, deallocate any credentials
+     that PROC might already have.  */
+  emacs_gnutls_deinit (proc);
 
-      if (EQ (type, Qgnutls_x509pki))
-	{
-	  GNUTLS_LOG (2, max_log_level, "deallocating x509 credentials");
-	  x509_cred = XPROCESS (proc)->gnutls_x509_cred;
-	  fn_gnutls_certificate_free_credentials (x509_cred);
-	}
-      else if (EQ (type, Qgnutls_anon))
-	{
-	  GNUTLS_LOG (2, max_log_level, "deallocating anon credentials");
-	  anon_cred = XPROCESS (proc)->gnutls_anon_cred;
-	  fn_gnutls_anon_free_client_credentials (anon_cred);
-	}
-      else
-	{
-	  error ("unknown credential type");
-	  ret = GNUTLS_EMACS_ERROR_INVALID_TYPE;
-	}
-
-      if (GNUTLS_INITSTAGE (proc) >= GNUTLS_STAGE_INIT)
-	{
-	  GNUTLS_LOG (1, max_log_level, "deallocating x509 credentials");
-	  Fgnutls_deinit (proc);
-	}
-    }
-
+  /* Mark PROC as a GnuTLS process.  */
+  XPROCESS (proc)->gnutls_p = 1;
+  XPROCESS (proc)->gnutls_state = NULL;
+  XPROCESS (proc)->gnutls_x509_cred = NULL;
+  XPROCESS (proc)->gnutls_anon_cred = NULL;
+  XPROCESS (proc)->gnutls_cred_type = type;
   GNUTLS_INITSTAGE (proc) = GNUTLS_STAGE_EMPTY;
 
   GNUTLS_LOG (1, max_log_level, "allocating credentials");
-
   if (EQ (type, Qgnutls_x509pki))
     {
-      GNUTLS_LOG (2, max_log_level, "allocating x509 credentials");
-      x509_cred = XPROCESS (proc)->gnutls_x509_cred;
-      fn_gnutls_certificate_allocate_credentials (&x509_cred);
+      Lisp_Object verify_flags;
+      unsigned int gnutls_verify_flags = GNUTLS_VERIFY_ALLOW_X509_V1_CA_CRT;
 
+      GNUTLS_LOG (2, max_log_level, "allocating x509 credentials");
+      fn_gnutls_certificate_allocate_credentials (&x509_cred);
+      XPROCESS (proc)->gnutls_x509_cred = x509_cred;
+
+      verify_flags = Fplist_get (proplist, QCgnutls_bootprop_verify_flags);
       if (NUMBERP (verify_flags))
 	{
 	  gnutls_verify_flags = XINT (verify_flags);
 	  GNUTLS_LOG (2, max_log_level, "setting verification flags");
 	}
       else if (NILP (verify_flags))
-	{
-	  /* The default is already GNUTLS_VERIFY_ALLOW_X509_V1_CA_CRT.  */
-	  GNUTLS_LOG (2, max_log_level, "using default verification flags");
-	}
+	GNUTLS_LOG (2, max_log_level, "using default verification flags");
       else
-	{
-	  /* The default is already GNUTLS_VERIFY_ALLOW_X509_V1_CA_CRT.  */
-	  GNUTLS_LOG (2, max_log_level, "ignoring invalid verify-flags");
-	}
+	GNUTLS_LOG (2, max_log_level, "ignoring invalid verify-flags");
+
       fn_gnutls_certificate_set_verify_flags (x509_cred, gnutls_verify_flags);
     }
-  else if (EQ (type, Qgnutls_anon))
+  else /* Qgnutls_anon: */
     {
       GNUTLS_LOG (2, max_log_level, "allocating anon credentials");
-      anon_cred = XPROCESS (proc)->gnutls_anon_cred;
       fn_gnutls_anon_allocate_client_credentials (&anon_cred);
+      XPROCESS (proc)->gnutls_anon_cred = anon_cred;
     }
-  else
-    {
-      error ("unknown credential type");
-      ret = GNUTLS_EMACS_ERROR_INVALID_TYPE;
-    }
-
-  if (ret < GNUTLS_E_SUCCESS)
-    return gnutls_make_error (ret);
 
   GNUTLS_INITSTAGE (proc) = GNUTLS_STAGE_CRED_ALLOC;
 
   if (EQ (type, Qgnutls_x509pki))
     {
+      /* TODO: GNUTLS_X509_FMT_DER is also an option.  */
+      int file_format = GNUTLS_X509_FMT_PEM;
+      Lisp_Object tail;
+
       for (tail = trustfiles; !NILP (tail); tail = Fcdr (tail))
 	{
 	  Lisp_Object trustfile = Fcar (tail);
@@ -842,8 +831,8 @@ one trustfile (usually a CA bundle).  */)
 	    }
 	  else
 	    {
-	      error ("Sorry, GnuTLS can't use non-string trustfile %s",
-		     SDATA (trustfile));
+	      emacs_gnutls_deinit (proc);
+	      error ("Invalid trustfile");
 	    }
 	}
 
@@ -855,17 +844,15 @@ one trustfile (usually a CA bundle).  */)
 	      GNUTLS_LOG2 (1, max_log_level, "setting the CRL file: ",
 			   SSDATA (crlfile));
 	      ret = fn_gnutls_certificate_set_x509_crl_file
-		(x509_cred,
-		 SSDATA (crlfile),
-		 file_format);
+		(x509_cred, SSDATA (crlfile), file_format);
 
 	      if (ret < GNUTLS_E_SUCCESS)
 		return gnutls_make_error (ret);
 	    }
 	  else
 	    {
-	      error ("Sorry, GnuTLS can't use non-string CRL file %s",
-		     SDATA (crlfile));
+	      emacs_gnutls_deinit (proc);
+	      error ("Invalid CRL file");
 	    }
 	}
 
@@ -880,45 +867,31 @@ one trustfile (usually a CA bundle).  */)
 	      GNUTLS_LOG2 (1, max_log_level, "setting the client cert file: ",
 			   SSDATA (certfile));
 	      ret = fn_gnutls_certificate_set_x509_key_file
-		(x509_cred,
-		 SSDATA (certfile),
-		 SSDATA (keyfile),
-		 file_format);
+		(x509_cred, SSDATA (certfile), SSDATA (keyfile), file_format);
 
 	      if (ret < GNUTLS_E_SUCCESS)
 		return gnutls_make_error (ret);
 	    }
 	  else
 	    {
-	      if (STRINGP (keyfile))
-		error ("Sorry, GnuTLS can't use non-string client cert file %s",
-		       SDATA (certfile));
-	      else
-		error ("Sorry, GnuTLS can't use non-string client key file %s",
-		       SDATA (keyfile));
+	      emacs_gnutls_deinit (proc);
+	      error (STRINGP (keyfile) ? "Invalid client cert file"
+		     : "Invalid client key file");
 	    }
 	}
     }
 
   GNUTLS_INITSTAGE (proc) = GNUTLS_STAGE_FILES;
-
   GNUTLS_LOG (1, max_log_level, "gnutls callbacks");
-
   GNUTLS_INITSTAGE (proc) = GNUTLS_STAGE_CALLBACKS;
 
-#ifdef HAVE_GNUTLS_CALLBACK_CERTIFICATE_VERIFY
-#else
-#endif
+  /* Call gnutls_init here: */
 
   GNUTLS_LOG (1, max_log_level, "gnutls_init");
-
   ret = fn_gnutls_init (&state, GNUTLS_CLIENT);
-
+  XPROCESS (proc)->gnutls_state = state;
   if (ret < GNUTLS_E_SUCCESS)
     return gnutls_make_error (ret);
-
-  XPROCESS (proc)->gnutls_state = state;
-
   GNUTLS_INITSTAGE (proc) = GNUTLS_STAGE_INIT;
 
   if (STRINGP (priority_string))
@@ -934,46 +907,25 @@ one trustfile (usually a CA bundle).  */)
     }
 
   GNUTLS_LOG (1, max_log_level, "setting the priority string");
-
   ret = fn_gnutls_priority_set_direct (state,
 				       priority_string_ptr,
 				       NULL);
-
   if (ret < GNUTLS_E_SUCCESS)
     return gnutls_make_error (ret);
 
   GNUTLS_INITSTAGE (proc) = GNUTLS_STAGE_PRIORITY;
 
-  if (!EQ (prime_bits, Qnil))
-    {
-      fn_gnutls_dh_set_prime_bits (state, XUINT (prime_bits));
-    }
+  if (INTEGERP (prime_bits))
+    fn_gnutls_dh_set_prime_bits (state, XUINT (prime_bits));
 
-  if (EQ (type, Qgnutls_x509pki))
-    {
-      ret = fn_gnutls_credentials_set (state, GNUTLS_CRD_CERTIFICATE, x509_cred);
-    }
-  else if (EQ (type, Qgnutls_anon))
-    {
-      ret = fn_gnutls_credentials_set (state, GNUTLS_CRD_ANON, anon_cred);
-    }
-  else
-    {
-      error ("unknown credential type");
-      ret = GNUTLS_EMACS_ERROR_INVALID_TYPE;
-    }
-
+  ret = EQ (type, Qgnutls_x509pki)
+    ? fn_gnutls_credentials_set (state, GNUTLS_CRD_CERTIFICATE, x509_cred)
+    : fn_gnutls_credentials_set (state, GNUTLS_CRD_ANON, anon_cred);
   if (ret < GNUTLS_E_SUCCESS)
     return gnutls_make_error (ret);
 
-  XPROCESS (proc)->gnutls_anon_cred = anon_cred;
-  XPROCESS (proc)->gnutls_x509_cred = x509_cred;
-  XPROCESS (proc)->gnutls_cred_type = type;
-
   GNUTLS_INITSTAGE (proc) = GNUTLS_STAGE_CRED_SET;
-
   ret = emacs_gnutls_handshake (XPROCESS (proc));
-
   if (ret < GNUTLS_E_SUCCESS)
     return gnutls_make_error (ret);
 
@@ -984,69 +936,71 @@ one trustfile (usually a CA bundle).  */)
      gnutls_x509_crt_check_hostname() against :hostname.  */
 
   ret = fn_gnutls_certificate_verify_peers2 (state, &peer_verification);
-
   if (ret < GNUTLS_E_SUCCESS)
     return gnutls_make_error (ret);
 
   if (XINT (loglevel) > 0 && peer_verification & GNUTLS_CERT_INVALID)
-    message ("%s certificate could not be verified.",
-	     c_hostname);
+    message ("%s certificate could not be verified.", c_hostname);
 
- if (peer_verification & GNUTLS_CERT_REVOKED)
-   GNUTLS_LOG2 (1, max_log_level, "certificate was revoked (CRL):",
-		c_hostname);
+  if (peer_verification & GNUTLS_CERT_REVOKED)
+    GNUTLS_LOG2 (1, max_log_level, "certificate was revoked (CRL):",
+		 c_hostname);
 
- if (peer_verification & GNUTLS_CERT_SIGNER_NOT_FOUND)
-   GNUTLS_LOG2 (1, max_log_level, "certificate signer was not found:",
-		c_hostname);
+  if (peer_verification & GNUTLS_CERT_SIGNER_NOT_FOUND)
+    GNUTLS_LOG2 (1, max_log_level, "certificate signer was not found:",
+		 c_hostname);
 
- if (peer_verification & GNUTLS_CERT_SIGNER_NOT_CA)
-   GNUTLS_LOG2 (1, max_log_level, "certificate signer is not a CA:",
-		c_hostname);
+  if (peer_verification & GNUTLS_CERT_SIGNER_NOT_CA)
+    GNUTLS_LOG2 (1, max_log_level, "certificate signer is not a CA:",
+		 c_hostname);
 
- if (peer_verification & GNUTLS_CERT_INSECURE_ALGORITHM)
-   GNUTLS_LOG2 (1, max_log_level,
-		"certificate was signed with an insecure algorithm:",
-		c_hostname);
+  if (peer_verification & GNUTLS_CERT_INSECURE_ALGORITHM)
+    GNUTLS_LOG2 (1, max_log_level,
+		 "certificate was signed with an insecure algorithm:",
+		 c_hostname);
 
- if (peer_verification & GNUTLS_CERT_NOT_ACTIVATED)
-   GNUTLS_LOG2 (1, max_log_level, "certificate is not yet activated:",
-		c_hostname);
+  if (peer_verification & GNUTLS_CERT_NOT_ACTIVATED)
+    GNUTLS_LOG2 (1, max_log_level, "certificate is not yet activated:",
+		 c_hostname);
 
- if (peer_verification & GNUTLS_CERT_EXPIRED)
-   GNUTLS_LOG2 (1, max_log_level, "certificate has expired:",
-		c_hostname);
+  if (peer_verification & GNUTLS_CERT_EXPIRED)
+    GNUTLS_LOG2 (1, max_log_level, "certificate has expired:",
+		 c_hostname);
 
- if (peer_verification != 0)
-   {
-     if (NILP (verify_hostname_error))
-       {
-	 GNUTLS_LOG2 (1, max_log_level, "certificate validation failed:",
-		      c_hostname);
-       }
-     else
-       {
-	 error ("Certificate validation failed %s, verification code %d",
-		c_hostname, peer_verification);
-       }
-   }
+  if (peer_verification != 0)
+    {
+      if (NILP (verify_hostname_error))
+	GNUTLS_LOG2 (1, max_log_level, "certificate validation failed:",
+		     c_hostname);
+      else
+	{
+	  emacs_gnutls_deinit (proc);
+	  error ("Certificate validation failed %s, verification code %d",
+		 c_hostname, peer_verification);
+	}
+    }
 
   /* Up to here the process is the same for X.509 certificates and
      OpenPGP keys.  From now on X.509 certificates are assumed.  This
      can be easily extended to work with openpgp keys as well.  */
   if (fn_gnutls_certificate_type_get (state) == GNUTLS_CRT_X509)
     {
-      ret = fn_gnutls_x509_crt_init (&gnutls_verify_cert);
+      gnutls_x509_crt_t gnutls_verify_cert;
+      const gnutls_datum_t *gnutls_verify_cert_list;
+      unsigned int gnutls_verify_cert_list_size;
 
+      ret = fn_gnutls_x509_crt_init (&gnutls_verify_cert);
       if (ret < GNUTLS_E_SUCCESS)
 	return gnutls_make_error (ret);
 
       gnutls_verify_cert_list =
 	fn_gnutls_certificate_get_peers (state, &gnutls_verify_cert_list_size);
 
-      if (NULL == gnutls_verify_cert_list)
+      if (gnutls_verify_cert_list == NULL)
 	{
-	  error ("No x509 certificate was found!\n");
+	  fn_gnutls_x509_crt_deinit (gnutls_verify_cert);
+	  emacs_gnutls_deinit (proc);
+	  error ("No x509 certificate was found\n");
 	}
 
       /* We only check the first certificate in the given chain.  */
@@ -1063,18 +1017,15 @@ one trustfile (usually a CA bundle).  */)
       if (!fn_gnutls_x509_crt_check_hostname (gnutls_verify_cert, c_hostname))
 	{
 	  if (NILP (verify_hostname_error))
-	    {
-	      GNUTLS_LOG2 (1, max_log_level, "x509 certificate does not match:",
-			   c_hostname);
-	    }
+	    GNUTLS_LOG2 (1, max_log_level, "x509 certificate does not match:",
+			 c_hostname);
 	  else
 	    {
 	      fn_gnutls_x509_crt_deinit (gnutls_verify_cert);
-	      error ("The x509 certificate does not match \"%s\"",
-		     c_hostname);
+	      emacs_gnutls_deinit (proc);
+	      error ("The x509 certificate does not match \"%s\"", c_hostname);
 	    }
 	}
-
       fn_gnutls_x509_crt_deinit (gnutls_verify_cert);
     }
 

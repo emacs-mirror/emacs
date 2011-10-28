@@ -1916,10 +1916,10 @@ fill_in_logfont (FRAME_PTR f, LOGFONT *logfont, Lisp_Object font_spec)
       int spacing = XINT (tmp);
       if (spacing < FONT_SPACING_MONO)
 	logfont->lfPitchAndFamily
-	  = logfont->lfPitchAndFamily & 0xF0 | VARIABLE_PITCH;
+	  = (logfont->lfPitchAndFamily & 0xF0) | VARIABLE_PITCH;
       else
 	logfont->lfPitchAndFamily
-	  = logfont->lfPitchAndFamily & 0xF0 | FIXED_PITCH;
+	  = (logfont->lfPitchAndFamily & 0xF0) | FIXED_PITCH;
     }
 
   /* Process EXTRA info.  */

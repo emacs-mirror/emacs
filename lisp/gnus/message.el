@@ -7888,7 +7888,11 @@ those headers."
 		(let ((mail-abbrev-mode-regexp (caar alist)))
 		  (not (mail-abbrev-in-expansion-header-p))))
       (setq alist (cdr alist)))
-    (cdar alist)))
+    (when (cdar alist)
+      (lexical-let ((fun (cdar alist)))
+        ;; Even if completion fails, return a non-nil value, so as to avoid
+        ;; falling back to message-tab-body-function.
+        (lambda () (funcall fun) 'completion-attempted)))))
 
 (eval-and-compile
   (condition-case nil

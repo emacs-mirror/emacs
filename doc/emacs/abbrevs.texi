@@ -286,8 +286,6 @@ sessions.
 Write a file @var{file} describing all defined abbrevs.
 @item M-x read-abbrev-file @key{RET} @var{file} @key{RET}
 Read the file @var{file} and define abbrevs as specified therein.
-@item M-x quietly-read-abbrev-file @key{RET} @var{file} @key{RET}
-Similar but do not display a message about what is going on.
 @item M-x define-abbrevs
 Define abbrevs from definitions in current buffer.
 @item M-x insert-abbrevs

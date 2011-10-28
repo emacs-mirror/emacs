@@ -36,7 +36,7 @@ Support}), but we hope to improve it in the future.
 
   By default, the @key{alt} and @key{option} keys are the same as
 @key{Meta}.  The Mac @key{Cmd} key is the same as @key{Super}, and
-Emacs provides a set of keybindings using this modifier key that mimic
+Emacs provides a set of key bindings using this modifier key that mimic
 other Mac / GNUstep applications (@pxref{Mac / GNUstep Events}).  You
 can change these bindings in the usual way (@pxref{Key Bindings}).
 
