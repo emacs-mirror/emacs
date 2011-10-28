@@ -1,3 +1,8 @@
+2011-10-28  Eli Zaretskii  <eliz@gnu.org>
+
+	* README.W32: Mention UNICOWS.DLL as prerequisite for running
+	Emacs on Windows 9X.
+
 2011-10-25  Eli Zaretskii  <eliz@gnu.org>
 
 	* makefile.w32-in (dist): Don't put the top-level INSTALL into the
