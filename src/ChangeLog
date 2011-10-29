@@ -1,3 +1,8 @@
+2011-10-29  Glenn Morris  <rgm@gnu.org>
+
+	* process.c (wait_reading_process_output): Revert 2009-08-30 change.
+	Not clear what it was for, and it causes various bugs.  (Bug#9839)
+
 2011-10-28  Eli Zaretskii  <eliz@gnu.org>
 
 	* xdisp.c (note_mouse_highlight): Initialize `part', to avoid a
