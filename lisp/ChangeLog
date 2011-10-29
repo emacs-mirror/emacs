@@ -1,5 +1,8 @@
 2011-10-29  Chong Yidong  <cyd@gnu.org>
 
+	* textmodes/flyspell.el (flyspell-word): Fix char offset for
+	forged Ispell output (Bug#7904).
+
 	* emacs-lisp/package.el (package-refresh-contents): Add autoload.
 
 2011-10-28  Stefan Monnier  <monnier@iro.umontreal.ca>
