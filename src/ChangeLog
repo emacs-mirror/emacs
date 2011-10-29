@@ -1,3 +1,8 @@
+2011-10-29  Andreas Schwab  <schwab@linux-m68k.org>
+
+	* minibuf.c (read_minibuf_noninteractive): Allow reading empty
+	line.  (Bug#9903)
+
 2011-10-29  Glenn Morris  <rgm@gnu.org>
 
 	* process.c (wait_reading_process_output): Revert 2009-08-30 change.
