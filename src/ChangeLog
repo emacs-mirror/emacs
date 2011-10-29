@@ -1,3 +1,9 @@
+2011-10-29  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* alloc.c (which_symbols): Declare EXTERNALLY_VISIBLE,
+	so that this new function doesn't get optimized away by a
+	whole-program optimizer.  Make the 2nd arg EMACS_INT, not int.
+
 2011-10-29  Andreas Schwab  <schwab@linux-m68k.org>
 
 	* frame.h (MOUSE_HL_INFO): Remove excess parens.

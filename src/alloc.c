@@ -279,6 +279,7 @@ static void compact_small_strings (void);
 static void free_large_strings (void);
 static void sweep_strings (void);
 static void free_misc (Lisp_Object);
+extern Lisp_Object which_symbols (Lisp_Object, EMACS_INT) EXTERNALLY_VISIBLE;
 
 /* When scanning the C stack for live Lisp objects, Emacs keeps track
    of what memory allocated via lisp_malloc is intended for what
@@ -6254,7 +6255,7 @@ Frames, windows, buffers, and subprocesses count as vectors
    function.  This is used in gdbinit's `xwhichsymbols' command.  */
 
 Lisp_Object
-which_symbols (Lisp_Object obj, int find_max)
+which_symbols (Lisp_Object obj, EMACS_INT find_max)
 {
    struct symbol_block *sblk;
    int gc_count = inhibit_garbage_collection ();
