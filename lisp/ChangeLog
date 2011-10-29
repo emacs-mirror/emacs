@@ -1,5 +1,7 @@
 2011-10-29  Chong Yidong  <cyd@gnu.org>
 
+	* mouse.el (mouse-yank-primary): Push the mark (Bug#9894).
+
 	* textmodes/flyspell.el (flyspell-word): Fix char offset for
 	forged Ispell output (Bug#7904).
 

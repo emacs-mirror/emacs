@@ -1133,8 +1133,8 @@ regardless of where you click."
 
 (defun mouse-yank-primary (click)
   "Insert the primary selection at the position clicked on.
-Move point to the end of the inserted text.
-If `mouse-yank-at-point' is non-nil, insert at point
+Move point to the end of the inserted text, and set mark at
+beginning.  If `mouse-yank-at-point' is non-nil, insert at point
 regardless of where you click."
   (interactive "e")
   ;; Give temporary modes such as isearch a chance to turn off.
@@ -1162,9 +1162,10 @@ regardless of where you click."
 	  ;; FIXME: What about xterm-mouse-mode etc.?
 	  (t
 	   (x-get-selection 'PRIMARY)))))
-    (if primary
-        (insert primary)
-      (error "No selection is available"))))
+    (unless primary
+      (error "No selection is available"))
+    (push-mark (point))
+    (insert primary)))
 
 (defun mouse-kill-ring-save (click)
   "Copy the region between point and the mouse click in the kill ring.
