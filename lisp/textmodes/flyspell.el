@@ -1121,7 +1121,7 @@ misspelling and skips redundant spell-checking step."
                       (setq poss (ispell-parse-output (car ispell-filter)))))
               ;; Else, this was a known misspelling to begin with, and
               ;; we should forge an ispell return value.
-              (setq poss (list word 0 '() '())))
+              (setq poss (list word 1 nil nil)))
 	    (let ((res (cond ((eq poss t)
 			      ;; correct
 			      (setq flyspell-word-cache-result t)

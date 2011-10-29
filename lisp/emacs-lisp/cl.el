@@ -341,7 +341,7 @@ Call `cl-float-limits' to set this.")
 
 (defconst most-negative-float nil
   "The largest negative value that a Lisp float can hold.
-This is simply -`most-negative-float'.
+This is simply -`most-positive-float'.
 Call `cl-float-limits' to set this.")
 
 (defconst least-positive-float nil

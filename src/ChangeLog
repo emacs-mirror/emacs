@@ -1,4 +1,4 @@
-2011-10-27  Paul Eggert  <eggert@cs.ucla.edu>
+2011-10-29  Paul Eggert  <eggert@cs.ucla.edu>
 
 	Fix integer width and related bugs (Bug#9874).
 	* alloc.c (pure_bytes_used_lisp, pure_bytes_used_non_lisp):
@@ -786,6 +786,80 @@
 	rather than rolling our own approximation.
 	(SCROLL_BAR_VEC_SIZE): Remove; not used.
 
+2011-10-29  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* alloc.c (which_symbols): Declare EXTERNALLY_VISIBLE,
+	so that this new function doesn't get optimized away by a
+	whole-program optimizer.  Make the 2nd arg EMACS_INT, not int.
+
+2011-10-29  Andreas Schwab  <schwab@linux-m68k.org>
+
+	* frame.h (MOUSE_HL_INFO): Remove excess parens.
+
+2011-10-29  Eli Zaretskii  <eliz@gnu.org>
+
+	Fix the `xbytecode' command.
+	* .gdbinit (xprintbytestr): New command.
+	(xwhichsymbols): Renamed from `which'; all callers changed.
+	(xbytecode): Print the byte-code string as well.
+
+2011-10-29  Kim Storm  <storm@cua.dk>
+
+	* alloc.c (which_symbols): New function.
+
+2011-10-29  Andreas Schwab  <schwab@linux-m68k.org>
+
+	* minibuf.c (read_minibuf_noninteractive): Allow reading empty
+	line.  (Bug#9903)
+
+2011-10-29  Glenn Morris  <rgm@gnu.org>
+
+	* process.c (wait_reading_process_output): Revert 2009-08-30 change.
+	Not clear what it was for, and it causes various bugs.  (Bug#9839)
+
+2011-10-28  Eli Zaretskii  <eliz@gnu.org>
+
+	* xdisp.c (note_mouse_highlight): Initialize `part', to avoid a
+	possible random value that matches one of those tested as
+	condition to clear the mouse face.
+
+2011-10-28  Chong Yidong  <cyd@gnu.org>
+
+	* xdisp.c (note_mouse_highlight): Fix use of uninitialized var.
+
+2011-10-28  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* window.c (make_window): Initialize phys_cursor_on_p.
+
+2011-10-28  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* lisp.h (struct Lisp_Symbol): Update comments.
+
+2011-10-28  Juanma Barranquero  <lekktu@gmail.com>
+
+	* w32font.c (w32_load_unicows_or_gdi32): Add missing return.
+
+2011-10-28  Eli Zaretskii  <eliz@gnu.org>
+
+	Fix Emacs on Windows 9X (bug#8562).  Thanks to oslsachem
+	<oslsachem@gmail.com> for helping to debug this.
+
+	* w32font.c (g_b_init_is_w9x, g_b_init_get_outline_metrics_w)
+	(g_b_init_get_text_metrics_w, g_b_init_get_glyph_outline_w)
+	(g_b_init_get_glyph_outline_w): New static variables.
+	(GetOutlineTextMetricsW_Proc, GetTextMetricsW_Proc)
+	(GetGlyphOutlineW_Proc): New typedefs.
+	(w32_load_unicows_or_gdi32, get_outline_metrics_w)
+	(get_text_metrics_w, get_glyph_outline_w, globals_of_w32font):
+	New functions.
+	(w32font_open_internal, compute_metrics):
+	Call get_outline_metrics_w, get_text_metrics_w, and get_glyph_outline_w
+	instead of calling the "wide" APIs directly.
+
+	* emacs.c (main) [HAVE_NTGUI]: Call globals_of_w32font.
+
+	* w32.h (syms_of_w32font): Add prototype.
+
 2011-10-27  Juanma Barranquero  <lekktu@gmail.com>
 
 	* window.c (Fframe_root_window, Fframe_first_window, Fwindow_end)
@@ -806,8 +880,8 @@
 
 2011-10-27  Chong Yidong  <cyd@gnu.org>
 
-	* gnutls.c (emacs_gnutls_deinit): New function.  Deallocate
-	credentials structures as well as calling gnutls_deinit.
+	* gnutls.c (emacs_gnutls_deinit): New function.
+	Deallocate credentials structures as well as calling gnutls_deinit.
 	(Fgnutls_deinit, Fgnutls_boot): Use it.
 
 	* process.c (make_process): Initialize GnuTLS credentials to NULL.

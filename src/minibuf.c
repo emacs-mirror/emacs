@@ -251,7 +251,7 @@ read_minibuf_noninteractive (Lisp_Object map, Lisp_Object initial,
 
   while ((c = getchar ()) != '\n')
     {
-      if (c < 0)
+      if (c == EOF)
 	{
 	  if (errno != EINTR)
 	    break;
@@ -269,7 +269,7 @@ read_minibuf_noninteractive (Lisp_Object map, Lisp_Object initial,
 	}
     }
 
-  if (len)
+  if (len || c == '\n')
     {
       val = make_string (line, len);
       xfree (line);

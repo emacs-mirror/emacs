@@ -3321,6 +3321,7 @@ make_window (void)
   memset (&w->phys_cursor, 0, sizeof (w->phys_cursor));
   w->phys_cursor_type = -1;
   w->phys_cursor_width = -1;
+  w->phys_cursor_on_p = 0;
   w->last_cursor_off_p = w->cursor_off_p = 0;
   w->must_be_updated_p = 0;
   w->pseudo_window_p = 0;

@@ -93,7 +93,7 @@
 
 ;;; Variables also used at compile time.
 
-(defconst c-version "5.31.9"
+(defconst c-version "5.32.2"
   "CC Mode version number.")
 
 (defconst c-version-sym (intern c-version))
@@ -744,19 +744,20 @@ be after it."
 ;; V i r t u a l   S e m i c o l o n s
 ;;
 ;; In most CC Mode languages, statements are terminated explicitly by
-;; semicolons or closing braces.  In some of the CC modes (currently only AWK
-;; Mode (April 2004)), statements are (or can be) terminated by EOLs.  Such a
-;; statement is said to be terminated by a "virtual semicolon" (VS).  A
-;; statement terminated by an actual semicolon or brace is never considered to
-;; have a VS.
+;; semicolons or closing braces.  In some of the CC modes (currently AWK Mode
+;; and certain user-specified #define macros in C, C++, etc. (November 2008)),
+;; statements are (or can be) terminated by EOLs.  Such a statement is said to
+;; be terminated by a "virtual semicolon" (VS).  A statement terminated by an
+;; actual semicolon or brace is never considered to have a VS.
 ;;
 ;; The indentation engine (or whatever) tests for a VS at a specific position
 ;; by invoking the macro `c-at-vsemi-p', which in its turn calls the mode
 ;; specific function (if any) which is the value of the language variable
-;; `c-at-vsemi-p-fn'.  The actual details of what constitutes a VS in a
-;; language are thus encapsulated in code specific to that language
-;; (e.g. cc-awk.el).  `c-at-vsemi-p' returns non-nil if point (or the optional
-;; parameter POS) is at a VS, nil otherwise.
+;; `c-at-vsemi-p-fn'.  This function should only use "low-level" features of
+;; CC Mode, i.e. features which won't trigger infinite recursion.  ;-) The
+;; actual details of what constitutes a VS in a language are thus encapsulated
+;; in code specific to that language (e.g. cc-awk.el).  `c-at-vsemi-p' returns
+;; non-nil if point (or the optional parameter POS) is at a VS, nil otherwise.
 ;;
 ;; The language specific function might well do extensive analysis of the
 ;; source text, and may use a cacheing scheme to speed up repeated calls.

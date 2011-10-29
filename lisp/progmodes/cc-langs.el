@@ -509,6 +509,31 @@ parameters \(point-min), \(point-max) and <buffer size>."
 	       (c-lang-const c-before-font-lock-function))
 
 
+;;; Syntactic analysis ("virtual semicolons") for line-oriented languages (AWK).
+(c-lang-defconst c-at-vsemi-p-fn
+  "Contains a function \"Is there a virtual semicolon at POS or point?\".
+Such a function takes one optional parameter, a buffer position (defaults to
+point), and returns nil or t.  This variable contains nil for languages which
+don't have EOL terminated statements. "
+  t nil
+  (c c++ objc) 'c-at-macro-vsemi-p
+  awk 'c-awk-at-vsemi-p)
+(c-lang-defvar c-at-vsemi-p-fn (c-lang-const c-at-vsemi-p-fn))
+
+(c-lang-defconst c-vsemi-status-unknown-p-fn
+  "Contains a function \"are we unsure whether there is a virtual semicolon on this line?\".
+The (admittedly kludgey) purpose of such a function is to prevent an infinite
+recursion in c-beginning-of-statement-1 when point starts at a `while' token.
+The function MUST NOT UNDER ANY CIRCUMSTANCES call c-beginning-of-statement-1,
+even indirectly.  This variable contains nil for languages which don't have
+EOL terminated statements."
+  t nil
+  (c c++ objc) 'c-macro-vsemi-status-unknown-p
+  awk 'c-awk-vsemi-status-unknown-p)
+(c-lang-defvar c-vsemi-status-unknown-p-fn
+  (c-lang-const c-vsemi-status-unknown-p-fn))
+
+
 ;;; Lexer-level syntax (identifiers, tokens etc).
 
 (c-lang-defconst c-has-bitfields
@@ -737,6 +762,12 @@ literal are multiline."
 (c-lang-defvar c-multiline-string-start-char
   (c-lang-const c-multiline-string-start-char))
 
+(c-lang-defconst c-opt-cpp-symbol
+  "The symbol which starts preprocessor constructs when in the margin."
+  t "#"
+  (java awk) nil)
+(c-lang-defvar c-opt-cpp-symbol (c-lang-const c-opt-cpp-symbol))
+
 (c-lang-defconst c-opt-cpp-prefix
   "Regexp matching the prefix of a cpp directive in the languages that
 normally use that macro preprocessor.  Tested at bol or at boi.
@@ -785,6 +816,8 @@ file name in angle brackets or quotes."
 definition, or nil if the language doesn't have any."
   t (if (c-lang-const c-opt-cpp-prefix)
 	"define"))
+(c-lang-defvar c-opt-cpp-macro-define
+  (c-lang-const c-opt-cpp-macro-define))
 
 (c-lang-defconst c-opt-cpp-macro-define-start
   ;; Regexp matching everything up to the macro body of a cpp define, or the
@@ -1171,14 +1204,12 @@ operators."
   ;; optimize `c-crosses-statement-barrier-p' somewhat, it's assumed to
   ;; begin with "^" to negate the set.  If ? : operators should be
   ;; detected then the string must end with "?:".
-  t    "^;{}?:"
-  awk  "^;{}#\n\r?:") ; The newline chars gets special treatment.
+  t "^;{}?:")
 (c-lang-defvar c-stmt-delim-chars (c-lang-const c-stmt-delim-chars))
 
 (c-lang-defconst c-stmt-delim-chars-with-comma
   ;; Variant of `c-stmt-delim-chars' that additionally contains ','.
-  t    "^;,{}?:"
-  awk  "^;,{}\n\r?:") ; The newline chars gets special treatment.
+  t    "^;,{}?:")
 (c-lang-defvar c-stmt-delim-chars-with-comma
   (c-lang-const c-stmt-delim-chars-with-comma))
 
@@ -1238,7 +1269,6 @@ properly."
 	re)))
 (c-lang-defvar c-comment-start-regexp (c-lang-const c-comment-start-regexp))
 
-;;;; Added by ACM, 2003/9/18.
 (c-lang-defconst c-block-comment-start-regexp
   ;; Regexp which matches the start of a block comment (if such exists in the
   ;; language)
@@ -1247,6 +1277,15 @@ properly."
       "\\<\\>"))
 (c-lang-defvar c-block-comment-start-regexp
   (c-lang-const c-block-comment-start-regexp))
+
+(c-lang-defconst c-line-comment-start-regexp
+  ;; Regexp which matches the start of a line comment (if such exists in the
+  ;; language; it does in all 7 CC Mode languages).
+  t (if (c-lang-const c-line-comment-starter)
+	(regexp-quote (c-lang-const c-line-comment-starter))
+      "\\<\\>"))
+(c-lang-defvar c-line-comment-start-regexp
+	       (c-lang-const c-line-comment-start-regexp))
 
 (c-lang-defconst c-literal-start-regexp
   ;; Regexp to match the start of comments and string literals.
@@ -1473,29 +1512,6 @@ properly."
 	     "\\|")
 	    "\\)"))
 (c-lang-defvar c-syntactic-eol (c-lang-const c-syntactic-eol))
-
-
-;;; Syntactic analysis ("virtual semicolons") for line-oriented languages (AWK).
-(c-lang-defconst c-at-vsemi-p-fn
-  "Contains a function \"Is there a virtual semicolon at POS or point?\".
-Such a function takes one optional parameter, a buffer position (defaults to
-point), and returns nil or t.  This variable contains nil for languages which
-don't have EOL terminated statements. "
-  t nil
-  awk 'c-awk-at-vsemi-p)
-(c-lang-defvar c-at-vsemi-p-fn (c-lang-const c-at-vsemi-p-fn))
-
-(c-lang-defconst c-vsemi-status-unknown-p-fn
-  "Contains a function \"are we unsure whether there is a virtual semicolon on this line?\".
-The (admittedly kludgey) purpose of such a function is to prevent an infinite
-recursion in c-beginning-of-statement-1 when point starts at a `while' token.
-The function MUST NOT UNDER ANY CIRCUMSTANCES call c-beginning-of-statement-1,
-even indirectly.  This variable contains nil for languages which don't have
-EOL terminated statements."
-  t nil
-  awk 'c-awk-vsemi-status-unknown-p)
-(c-lang-defvar c-vsemi-status-unknown-p-fn
-  (c-lang-const c-vsemi-status-unknown-p-fn))
 
 
 ;;; Defun functions

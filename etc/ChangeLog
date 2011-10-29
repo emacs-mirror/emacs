@@ -1,3 +1,11 @@
+2011-10-29  Eli Zaretskii  <eliz@gnu.org>
+
+	* themes/wombat-theme.el: Add a coding cookie.  (Bug#9905)
+
+2011-10-29  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* NEWS: Document the disappearance of binding caches (bug#9899).
+
 2011-10-01  Juanma Barranquero  <lekktu@gmail.com>
 
 	* NEWS: Fix typo.  Remove duplicate info.

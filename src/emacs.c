@@ -1591,6 +1591,7 @@ Using an Emacs configured with --with-x-toolkit=lucid does not have this problem
       /* Initialization that must be done even if the global variable
 	 initialized is non zero.  */
 #ifdef HAVE_NTGUI
+      globals_of_w32font ();
       globals_of_w32fns ();
       globals_of_w32menu ();
       globals_of_w32select ();
