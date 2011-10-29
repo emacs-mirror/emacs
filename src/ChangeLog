@@ -5,6 +5,8 @@
 	(xwhichsymbols): Renamed from `which'; all callers changed.
 	(xbytecode): Print the byte-code string as well.
 
+2011-10-29  Kim Storm  <storm@cua.dk>
+
 	* alloc.c (which_symbols): New function.
 
 2011-10-29  Andreas Schwab  <schwab@linux-m68k.org>
