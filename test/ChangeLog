@@ -1,5 +1,8 @@
 2011-10-29  Ulf Jasper  <ulf.jasper@web.de>
 
+	* automated/newsticker-tests.el
+	(newsticker--group-manage-orphan-feeds): Use fset instead of flet.
+
 	* trunk/test/automated/newsticker-tests.el
 	(newsticker--group-manage-orphan-feeds): Prevent updating
 	newsticker treeview. Fixed bug#9763.
