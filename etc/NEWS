@@ -967,6 +967,9 @@ has now been removed.
 
 ** cl.el no longer provides `cl-19'.
 
+** The menu bar bindings's caches are not used any more.
+Use (where-is-internal <def> nil t) instead.
+
 ** The following obsolete functions and aliases were removed:
 comint-kill-output, decompose-composite-char, outline-visible,
 internal-find-face, internal-get-face, frame-update-faces,
