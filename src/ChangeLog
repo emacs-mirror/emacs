@@ -1,3 +1,7 @@
+2011-10-29  Andreas Schwab  <schwab@linux-m68k.org>
+
+	* frame.h (MOUSE_HL_INFO): Remove excess parens.
+
 2011-10-29  Eli Zaretskii  <eliz@gnu.org>
 
 	Fix the `xbytecode' command.
