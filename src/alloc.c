@@ -6250,6 +6250,55 @@ Frames, windows, buffers, and subprocesses count as vectors
   return Flist (8, consed);
 }
 
+/* Find at most FIND_MAX symbols which have OBJ as their value or
+   function.  This is used in gdbinit's `xwhichsymbols' command.  */
+
+Lisp_Object
+which_symbols (Lisp_Object obj, int find_max)
+{
+   struct symbol_block *sblk;
+   int gc_count = inhibit_garbage_collection ();
+   Lisp_Object found = Qnil;
+
+   if (!EQ (obj, Vdead))
+     {
+       for (sblk = symbol_block; sblk; sblk = sblk->next)
+	 {
+	   struct Lisp_Symbol *sym = sblk->symbols;
+	   int bn;
+
+	   for (bn = 0; bn < SYMBOL_BLOCK_SIZE; bn++, sym++)
+	     {
+	       Lisp_Object val;
+	       Lisp_Object tem;
+
+	       if (sblk == symbol_block && bn >= symbol_block_index)
+		 break;
+
+	       XSETSYMBOL (tem, sym);
+	       val = find_symbol_value (tem);
+	       if (EQ (val, obj)
+		   || EQ (sym->function, obj)
+		   || (!NILP (sym->function)
+		       && COMPILEDP (sym->function)
+		       && EQ (AREF (sym->function, COMPILED_BYTECODE), obj))
+		   || (!NILP (val)
+		       && COMPILEDP (val)
+		       && EQ (AREF (val, COMPILED_BYTECODE), obj)))
+		 {
+		   found = Fcons (tem, found);
+		   if (--find_max == 0)
+		     goto out;
+		 }
+	     }
+	 }
+     }
+
+  out:
+   unbind_to (gc_count, Qnil);
+   return found;
+}
+
 #ifdef ENABLE_CHECKING
 int suppress_checking;
 
