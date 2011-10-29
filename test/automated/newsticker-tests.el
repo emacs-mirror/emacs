@@ -139,7 +139,10 @@ Signals an error if something goes wrong."
   (let ((newsticker-groups '("Feeds"))
         (newsticker-url-list-defaults nil)
         (newsticker-url-list '(("feed1") ("feed2") ("feed3"))))
-    (newsticker--group-manage-orphan-feeds)
+    ;; prevent updating the treeview as it does not exist during fully
+    ;; automated tests
+    (flet ((newsticker--treeview-tree-update nil nil))
+      (newsticker--group-manage-orphan-feeds))
     (should (equal '("Feeds" "feed3" "feed2" "feed1")
                    newsticker-groups))))
 
