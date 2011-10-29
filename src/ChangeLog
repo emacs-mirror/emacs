@@ -1,3 +1,12 @@
+2011-10-29  Eli Zaretskii  <eliz@gnu.org>
+
+	Fix the `xbytecode' command.
+	* .gdbinit (xprintbytestr): New command.
+	(xwhichsymbols): Renamed from `which'; all callers changed.
+	(xbytecode): Print the byte-code string as well.
+
+	* alloc.c (which_symbols): New function.
+
 2011-10-29  Andreas Schwab  <schwab@linux-m68k.org>
 
 	* minibuf.c (read_minibuf_noninteractive): Allow reading empty
