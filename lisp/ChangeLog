@@ -1,5 +1,7 @@
 2011-10-29  Chong Yidong  <cyd@gnu.org>
 
+	* subr.el (y-or-n-p): Add code for batch mode (Bug#9818).
+
 	* mouse.el (mouse-yank-primary): Push the mark (Bug#9894).
 
 	* textmodes/flyspell.el (flyspell-word): Fix char offset for
