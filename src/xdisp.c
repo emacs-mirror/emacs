@@ -26835,14 +26835,14 @@ note_mouse_highlight (struct frame *f, int x, int y)
   /* Which window is that in?  */
   window = window_from_coordinates (f, x, y, &part, 1);
 
-  if (!NILP (hlinfo->mouse_face_window)
-      /* If displaying active text in another window, clear that.  */
-      && (!EQ (window, hlinfo->mouse_face_window)
-	  /* Also clear if we move out of text area in same window.  */
-	  || (!NILP (window)
-	      && part != ON_TEXT
-	      && part != ON_MODE_LINE
-	      && part != ON_HEADER_LINE)))
+  /* If displaying active text in another window, clear that.  */
+  if (! EQ (window, hlinfo->mouse_face_window)
+      /* Also clear if we move out of text area in same window.  */
+      || (!NILP (hlinfo->mouse_face_window)
+	  && !NILP (window)
+	  && part != ON_TEXT
+	  && part != ON_MODE_LINE
+	  && part != ON_HEADER_LINE))
     clear_mouse_face (hlinfo);
 
   /* Not on a window -> return.  */
