@@ -1,3 +1,18 @@
+2011-10-30  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* eshell/esh-cmd.el (eshell-rewrite-for-command): Don't modify the list
+	in place (bug#9907).
+	(eshell-subcommand-arg-values, eshell-rewrite-named-command)
+	(eshell-rewrite-if-command, eshell-rewrite-for-command)
+	(eshell-structure-basic-command, eshell-rewrite-while-command)
+	(eshell-invokify-arg, eshell-parse-pipeline, eshell-parse-command)
+	(eshell-parse-subcommand-argument, eshell-parse-lisp-argument)
+	(eshell-trap-errors, eshell-do-pipelines, eshell-do-eval)
+	(eshell-do-pipelines-synchronously, eshell-eval-command):
+	Use backquotes and prefer setq to set.
+	(eshell-lookup-function, function-p-func, eshell-functionp): Remove.
+	(eshell-macrop): Use functionp.
+
 2011-10-30  Chong Yidong  <cyd@gnu.org>
 
 	* emulation/viper-cmd.el (viper-exec-change): Use push-mark
