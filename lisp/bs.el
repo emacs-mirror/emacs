@@ -1414,8 +1414,7 @@ for buffer selection."
 	(bs--restore-window-config)
 	(setq bs--window-config-coming-from (current-window-configuration))
 	(when (> (window-height (selected-window)) 7)
-          (split-window-vertically)
-          (other-window 1)))
+          (select-window (split-window-below))))
       (bs-show-in-buffer liste)
       (bs-message-without-log "%s" (bs--current-config-message)))))
 

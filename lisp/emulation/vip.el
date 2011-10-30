@@ -1605,7 +1605,7 @@ used.  This behavior is controlled by the sign of prefix numeric value."
   "Show current buffer in two windows."
   (interactive)
   (delete-other-windows)
-  (split-window-vertically nil))
+  (split-window-below))
 
 
 ;; searching

@@ -1438,7 +1438,7 @@ project file."
       ;;  is going to have some relevant information.
       (if (or (not (string-match "gvd" (comint-arguments cmd 0 0)))
 	      (string-match "--tty" cmd))
-	  (split-window-vertically))
+	  (split-window-below))
       (switch-to-buffer buffer)
       )))
 
