@@ -196,7 +196,7 @@ narrower, explictly specify the SIZE argument of that function."
   :version "24.1"
   :group 'windows)
 
-(defun window-iso-combination-p (&optional window horizontal)
+(defun window-combination-p (&optional window horizontal)
   "If WINDOW is a vertical combination return WINDOW's first child.
 WINDOW can be any window and defaults to the selected one.
 Optional argument HORIZONTAL non-nil means return WINDOW's first
@@ -206,16 +206,16 @@ child if WINDOW is a horizontal combination."
       (window-left-child window)
     (window-top-child window)))
 
-(defsubst window-iso-combined-p (&optional window horizontal)
+(defsubst window-combined-p (&optional window horizontal)
   "Return non-nil if and only if WINDOW is vertically combined.
 WINDOW can be any window and defaults to the selected one.
 Optional argument HORIZONTAL non-nil means return non-nil if and
 only if WINDOW is horizontally combined."
   (setq window (window-normalize-any-window window))
   (let ((parent (window-parent window)))
-    (and parent (window-iso-combination-p parent horizontal))))
+    (and parent (window-combination-p parent horizontal))))
 
-(defun window-iso-combinations (&optional window horizontal)
+(defun window-combinations (&optional window horizontal)
   "Return largest number of vertically arranged subwindows of WINDOW.
 WINDOW can be any window and defaults to the selected one.
 Optional argument HORIZONTAL non-nil means to return the largest
@@ -225,14 +225,14 @@ number of horizontally arranged subwindows of WINDOW."
    ((window-live-p window)
     ;; If WINDOW is live, return 1.
     1)
-   ((window-iso-combination-p window horizontal)
+   ((window-combination-p window horizontal)
     ;; If WINDOW is iso-combined, return the sum of the values for all
     ;; subwindows of WINDOW.
     (let ((child (window-child window))
 	  (count 0))
       (while child
 	(setq count
-	      (+ (window-iso-combinations child horizontal)
+	      (+ (window-combinations child horizontal)
 		 count))
 	(setq child (window-right child)))
       count))
@@ -243,7 +243,7 @@ number of horizontally arranged subwindows of WINDOW."
 	  (count 1))
       (while child
 	(setq count
-	      (max (window-iso-combinations child horizontal)
+	      (max (window-combinations child horizontal)
 		   count))
 	(setq child (window-right child)))
       count))))
@@ -555,7 +555,7 @@ restrictions for that window only."
     (if sub
 	(let ((value 0))
 	  ;; WINDOW is an internal window.
-	  (if (window-iso-combined-p sub horizontal)
+	  (if (window-combined-p sub horizontal)
 	      ;; The minimum size of an iso-combination is the sum of
 	      ;; the minimum sizes of its subwindows.
 	      (while sub
@@ -669,7 +669,7 @@ doc-string of `window-sizable'."
     (catch 'fixed
       (if sub
 	  ;; WINDOW is an internal window.
-	  (if (window-iso-combined-p sub horizontal)
+	  (if (window-combined-p sub horizontal)
 	      ;; An iso-combination is fixed size if all its subwindows
 	      ;; are fixed-size.
 	      (progn
@@ -717,7 +717,7 @@ WINDOW can be resized in the desired direction.  The functions
     (let* ((parent (window-parent window))
 	   (sub (window-child parent)))
       (catch 'done
-	(if (window-iso-combined-p sub horizontal)
+	(if (window-combined-p sub horizontal)
 	    ;; In an iso-combination throw DELTA if we find at least one
 	    ;; subwindow and that subwindow is either not of fixed-size
 	    ;; or we can ignore fixed-sizeness.
@@ -797,7 +797,7 @@ least one other windows can be enlarged appropriately."
     (let* ((parent (window-parent window))
 	   (sub (window-child parent)))
       (catch 'fixed
-	(if (window-iso-combined-p sub horizontal)
+	(if (window-combined-p sub horizontal)
 	    ;; For an iso-combination calculate how much we can get from
 	    ;; other subwindows.
 	    (let ((skip (eq trail 'after)))
@@ -1498,7 +1498,7 @@ instead."
       (window--resize-reset frame horizontal)
       (window--resize-this-window window delta horizontal ignore t)
       (if (and (not (window-splits window))
-	       (window-iso-combined-p window horizontal)
+	       (window-combined-p window horizontal)
 	       (setq sibling (or (window-right window) (window-left window)))
 	       (window-sizable-p sibling (- delta) horizontal ignore))
 	  ;; If window-splits returns nil for WINDOW, WINDOW is part of
@@ -1819,7 +1819,7 @@ preferably only resize windows adjacent to EDGE."
   (when (window-parent window)
     (let* ((parent (window-parent window))
 	   (sub (window-child parent)))
-      (if (window-iso-combined-p sub horizontal)
+      (if (window-combined-p sub horizontal)
 	  ;; In an iso-combination try to extract DELTA from WINDOW's
 	  ;; siblings.
 	  (let ((first sub)
@@ -1935,7 +1935,7 @@ actually take effect."
   (let ((sub (window-child window)))
     (cond
      ((not sub))
-     ((window-iso-combined-p sub horizontal)
+     ((window-combined-p sub horizontal)
       ;; In an iso-combination resize subwindows according to their
       ;; normal sizes.
       (window--resize-subwindows
@@ -2010,7 +2010,7 @@ move it as far as possible in the desired direction."
 	(right window)
 	left this-delta min-delta max-delta failed)
     ;; Find the edge we want to move.
-    (while (and (or (not (window-iso-combined-p right horizontal))
+    (while (and (or (not (window-combined-p right horizontal))
 		    (not (window-right right)))
 		(setq right (window-parent right))))
     (cond
@@ -2029,7 +2029,7 @@ move it as far as possible in the desired direction."
 	      (or (window-left left)
 		  (progn
 		    (while (and (setq left (window-parent left))
-				(not (window-iso-combined-p left horizontal))))
+				(not (window-combined-p left horizontal))))
 		    (window-left left)))))
       (unless left
 	(if horizontal
@@ -2043,7 +2043,7 @@ move it as far as possible in the desired direction."
 	      (or (window-right right)
 		  (progn
 		    (while (and (setq right (window-parent right))
-				(not (window-iso-combined-p right horizontal))))
+				(not (window-combined-p right horizontal))))
 		    (window-right right)))))
       (unless right
 	(if horizontal
@@ -3142,7 +3142,7 @@ frame.  The selected window is not changed by this function."
 	     (resize
 	      (and window-splits (not window-nest)
 		   ;; Resize makes sense in iso-combinations only.
-		   (window-iso-combined-p window horizontal)))
+		   (window-combined-p window horizontal)))
 	     ;; `old-size' is the current size of WINDOW.
 	     (old-size (window-total-size window horizontal))
 	     ;; `new-size' is the specified or calculated size of the
@@ -3157,7 +3157,7 @@ frame.  The selected window is not changed by this function."
 			 (min (- parent-size
 				 (window-min-size parent horizontal))
 			      (/ parent-size
-				 (1+ (window-iso-combinations
+				 (1+ (window-combinations
 				      parent horizontal))))
 		       ;; Else try to give the new window half the size
 		       ;; of WINDOW (plus an eventual odd line).
@@ -3220,13 +3220,13 @@ frame.  The selected window is not changed by this function."
 	      ;; Make new-parent non-nil if we need a new parent window;
 	      ;; either because we want to nest or because WINDOW is not
 	      ;; iso-combined.
-	      (or window-nest (not (window-iso-combined-p window horizontal))))
+	      (or window-nest (not (window-combined-p window horizontal))))
 	(setq new-normal
 	      ;; Make new-normal the normal size of the new window.
 	      (cond
 	       (size (/ (float new-size) (if new-parent old-size parent-size)))
 	       (new-parent 0.5)
-	       (resize (/ 1.0 (1+ (window-iso-combinations parent horizontal))))
+	       (resize (/ 1.0 (1+ (window-combinations parent horizontal))))
 	       (t (/ (window-normal-size window horizontal) 2.0))))
 
 	(if resize
@@ -3359,7 +3359,8 @@ right, if any."
 ;; the smallest window).
 (defun balance-windows-2 (window horizontal)
   "Subroutine of `balance-windows-1'.
-WINDOW must be an iso-combination."
+WINDOW must be a vertical combination (horizontal if HORIZONTAL
+is non-nil."
   (let* ((first (window-child window))
 	 (sub first)
 	 (number-of-children 0)
@@ -3432,7 +3433,7 @@ WINDOW must be an iso-combination."
   "Subroutine of `balance-windows'."
   (if (window-child window)
       (let ((sub (window-child window)))
-	(if (window-iso-combined-p sub horizontal)
+	(if (window-combined-p sub horizontal)
 	    (balance-windows-2 window horizontal)
 	  (let ((size (window-new-total window)))
 	    (while sub
@@ -5281,14 +5282,8 @@ WINDOW was scrolled."
 WINDOW defaults to the selected window."
   (with-selected-window (or window (selected-window))
     (let ((edges (window-edges)))
-      ;; The following doesn't satisfy the doc-string's claim when
-      ;; window and previous-/next-window are not part of the same
-      ;; combination but still share a common edge.  Using
-      ;; `window-iso-combined-p' instead should handle that.
       (or (= (nth 2 edges) (nth 2 (window-edges (previous-window))))
 	  (= (nth 0 edges) (nth 0 (window-edges (next-window))))))))
-;; (make-obsolete
- ;; 'window-safely-shrinkable-p "use `window-iso-combined-p' instead." "24.1")
 
 (defun shrink-window-if-larger-than-buffer (&optional window)
   "Shrink height of WINDOW if its buffer doesn't need so many lines.
@@ -5308,7 +5303,7 @@ Return non-nil if the window was shrunk, nil otherwise."
   ;; Make sure that WINDOW is vertically combined and `point-min' is
   ;; visible (for whatever reason that's needed).  The remaining issues
   ;; should be taken care of by `fit-window-to-buffer'.
-  (when (and (window-iso-combined-p window)
+  (when (and (window-combined-p window)
 	     (pos-visible-in-window-p (point-min) window))
     (fit-window-to-buffer window (window-total-size window))))
 

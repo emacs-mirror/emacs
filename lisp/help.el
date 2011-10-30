@@ -1003,7 +1003,7 @@ than `window-min-height'.  Do nothing if the selected window is
 not vertically combined or some of its contents are scrolled out
 of view."
   (when (and (pos-visible-in-window-p (point-min))
-	     (window-iso-combined-p))
+	     (window-combined-p))
     (fit-window-to-buffer
      nil
      (if (functionp temp-buffer-max-height)

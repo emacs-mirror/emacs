@@ -1,3 +1,9 @@
+2011-10-30  Ulf Jasper  <ulf.jasper@web.de>
+
+	* automated/newsticker-tests.el
+	(newsticker--group-manage-orphan-feeds): Removed fsetting of
+	newsticker--treeview-tree-update.
+
 2011-10-29  Ulf Jasper  <ulf.jasper@web.de>
 
 	* automated/newsticker-tests.el

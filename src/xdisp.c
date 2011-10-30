@@ -14829,8 +14829,6 @@ try_cursor_movement (Lisp_Object window, struct text_pos startp, int *scroll_ste
 		 bidi-reordered rows.  */
 	      while (MATRIX_ROW_CONTINUATION_LINE_P (row))
 		{
-		  xassert (row->enabled_p);
-		  --row;
 		  /* If we hit the beginning of the displayed portion
 		     without finding the first row of a continued
 		     line, give up.  */
@@ -14839,7 +14837,8 @@ try_cursor_movement (Lisp_Object window, struct text_pos startp, int *scroll_ste
 		      rc = CURSOR_MOVEMENT_MUST_SCROLL;
 		      break;
 		    }
-
+		  xassert (row->enabled_p);
+		  --row;
 		}
 	    }
 	  if (must_scroll)

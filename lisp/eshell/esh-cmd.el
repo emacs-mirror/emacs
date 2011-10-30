@@ -480,19 +480,25 @@ implemented via rewriting, rather than as a function."
       (let ((body (car (last terms))))
 	(setcdr (last terms 2) nil)
 	`(let ((for-items
-                (append
-                 ,@(mapcar
-                    (lambda (elem)
-                      (if (listp elem)
-                          elem
-                        `(list ,elem)))
-                    (cdr (cddr terms)))))
+                ;; Apparently, eshell-do-eval only works for immutable
+                ;; let-bindings, i.e. we cannot use `setq' on `for-items'.
+                ;; Instead we store the list in the car of a cons-cell (which
+                ;; acts as a ref-cell) so we can setcar instead of setq.
+                (list
+                 (append
+                  ,@(mapcar
+                     (lambda (elem)
+                       (if (listp elem)
+                           elem
+                         `(list ,elem)))
+                     (cdr (cddr terms))))))
                (eshell-command-body '(nil))
                (eshell-test-body '(nil)))
-           (while (consp for-items)
-             (let ((,(intern (cadr terms)) (car for-items)))
-               (eshell-protect ,(eshell-invokify-arg body t)))
-             (setq for-items (cdr for-items)))
+           (while (consp (car for-items))
+             (let ((,(intern (cadr terms)) (caar for-items)))
+               (eshell-protect
+                ,(eshell-invokify-arg body t)))
+             (setcar for-items (cdar for-items)))
            (eshell-close-handles
             eshell-last-command-status
             (list 'quote eshell-last-command-result))))))
@@ -805,9 +811,9 @@ This is used on systems where `start-process' is not supported."
           (when (memq (car head) eshell-deferrable-commands)
             (ignore
              (setcar head
-                     (intern-soft
-                      (concat (symbol-name (car head)) "*"))))))
-       ;; The last process in the pipe should get its handles
+		       (intern-soft
+			(concat (symbol-name (car head)) "*"))))))
+	 ;; The last process in the pipe should get its handles
        ;; redirected as we found them before running the pipe.
        ,(if (null (cdr pipeline))
             `(progn
@@ -1031,7 +1037,10 @@ be finished later after the completion of an asynchronous subprocess."
 	(unless (car eshell-test-body)
 	  (setcar eshell-test-body (eshell-copy-tree (car args))))
 	(while (cadr (eshell-do-eval (car eshell-test-body)))
-	  (setcar eshell-command-body (eshell-copy-tree (cadr args)))
+	  (setcar eshell-command-body
+                  (if (cddr args)
+                      `(progn ,@(eshell-copy-tree (cdr args)))
+                    (eshell-copy-tree (cadr args))))
 	  (eshell-do-eval (car eshell-command-body) synchronous-p)
 	  (setcar eshell-command-body nil)
 	  (setcar eshell-test-body (eshell-copy-tree (car args))))
