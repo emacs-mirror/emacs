@@ -2362,7 +2362,7 @@ Argument GOLD-BINDING is the Emacs function to be bound to GOLD <KEY>."
   (edt-bind-gold-key-default  "\C-h" 'help-for-help); Just in case.
   (edt-bind-gold-key-default  [f1] 'help-for-help)
   (edt-bind-gold-key-default  [help] 'help-for-help)
-  (edt-bind-gold-key-default  "\C-\\" 'split-window-vertically)
+  (edt-bind-gold-key-default  "\C-\\" 'split-window-below)
 
   ;; GOLD bindings for regular keys.
   (edt-bind-gold-key-default "a" 'edt-key-not-assigned)

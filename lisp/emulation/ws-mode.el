@@ -95,9 +95,9 @@
     (define-key map "\C-r" 'set-fill-column)
     (define-key map "\C-u" 'keyboard-quit)
     (define-key map "wd" 'delete-other-windows)
-    (define-key map "wh" 'split-window-horizontally)
+    (define-key map "wh" 'split-window-right)
     (define-key map "wo" 'other-window)
-    (define-key map "wv" 'split-window-vertically)
+    (define-key map "wv" 'split-window-below)
     map)
   "")
 
@@ -257,9 +257,9 @@ The key bindings are:
   C-o r		set-fill-column
   C-o C-u	keyboard-quit
   C-o wd	delete-other-windows
-  C-o wh	split-window-horizontally
+  C-o wh	split-window-right
   C-o wo	other-window
-  C-o wv	split-window-vertically
+  C-o wv	split-window-below
 
   C-q 0		ws-find-marker-0
   C-q 1		ws-find-marker-1

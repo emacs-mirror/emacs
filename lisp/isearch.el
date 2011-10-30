@@ -1804,9 +1804,13 @@ Scroll-bar or mode-line events are processed appropriately."
 ;; Commands which change the window layout
 (put 'delete-other-windows 'isearch-scroll t)
 (put 'balance-windows 'isearch-scroll t)
+(put 'split-window-right 'isearch-scroll t)
+(put 'split-window-below 'isearch-scroll t)
+(put 'enlarge-window 'isearch-scroll t)
+
+;; Aliases for split-window-*
 (put 'split-window-vertically 'isearch-scroll t)
 (put 'split-window-horizontally 'isearch-scroll t)
-(put 'enlarge-window 'isearch-scroll t)
 
 ;; Universal argument commands
 (put 'universal-argument 'isearch-scroll t)

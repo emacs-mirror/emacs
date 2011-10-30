@@ -247,10 +247,10 @@ When called with a raw C-u prefix, rescan the document first."
 
       (unless unsplittable
         (if reftex-toc-split-windows-horizontally
-            (split-window-horizontally
+            (split-window-right
              (floor (* (window-width)
                        reftex-toc-split-windows-fraction)))
-          (split-window-vertically
+          (split-window-below
            (floor (* (window-height)
                      reftex-toc-split-windows-fraction)))))
 

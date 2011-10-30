@@ -1097,7 +1097,7 @@ See also `fortran-window-create-momentarily'."
            (scroll-bar-width (- (nth 2 window-edges)
                                 (car window-edges)
                                 (window-width))))
-      (split-window-horizontally (+ fortran-line-length scroll-bar-width)))
+      (split-window-right (+ fortran-line-length scroll-bar-width)))
     (other-window 1)
     (switch-to-buffer " fortran-window-extra" t)
     (select-window (previous-window))))
