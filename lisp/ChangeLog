@@ -1,3 +1,11 @@
+2011-10-30  Ulf Jasper  <ulf.jasper@web.de>
+
+	* net/newst-treeview.el: Remove "Time-stamp".
+	(newsticker--group-manage-orphan-feeds): Do not call
+	newsticker--treeview-tree-update.
+	(newsticker-treeview-update, newsticker-treeview): Call
+	newsticker--treeview-tree-update if necessary.
+
 2011-10-30  Martin Rudalics  <rudalics@gmx.at>
 
 	* window.el (window-iso-combination-p, window-iso-combined-p)
