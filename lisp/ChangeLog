@@ -1,3 +1,17 @@
+2011-10-30  Martin Rudalics  <rudalics@gmx.at>
+
+	* window.el (window-iso-combination-p, window-iso-combined-p)
+	(window-iso-combinations): Remove "iso-" infix.  Suggested by
+	Chong Yidong.
+	(window-min-size-1, window-size-fixed-1, window-min-delta-1)
+	(window-max-delta-1, window-resize, window--resize-siblings)
+	(window--resize-this-window, adjust-window-trailing-edge)
+	(split-window, balance-windows-1)
+	(shrink-window-if-larger-than-buffer):
+	* calendar/calendar.el (calendar-generate-window):
+	* help.el (resize-temp-buffer-window): Adjust callers
+	accordingly.
+
 2011-10-30  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* eshell/esh-cmd.el (eshell-rewrite-for-command): Don't modify the list
