@@ -1330,12 +1330,12 @@ display the generated calendar."
         ;; the right thing in that case.
         ;;
         ;; Is this a wide frame?  If so, split it horizontally.
-        (if (window-splittable-p t) (split-window-horizontally))
+        (if (window-splittable-p t) (split-window-right))
         (pop-to-buffer calendar-buffer)
         ;; Has the window already been split vertically?
         (when (and (not (window-dedicated-p))
                    (window-full-height-p))
-          (let ((win (split-window-vertically)))
+          (let ((win (split-window-below)))
             ;; In the upper window, show whatever was visible before.
             ;; This looks better than using other-buffer.
             (switch-to-buffer buff)

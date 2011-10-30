@@ -1,3 +1,33 @@
+2011-10-30  Chong Yidong  <cyd@gnu.org>
+
+	* window.el (split-window-below, split-window-right): Rename from
+	split-window-above-each-other and split-window-side-by-side
+	respectively.  All callers changed.
+	(split-window-sensibly, split-window-sensibly): Use them.
+	(split-window-keep-point): Doc fix.
+
+	* isearch.el: Add isearch-scroll property to split-window-below
+	and split-window-right.
+
+	* follow.el (follow-mode):
+	* vc/pcvs-util.el (cvs-pop-to-buffer-same-frame):
+	* progmodes/ada-xref.el (ada-gdb-application):
+	* emulation/vip.el (vip-buffer-in-two-windows):
+	* image-dired.el (image-dired-dired-with-window-configuration):
+	* dired-x.el (dired-do-find-marked-files):
+	* dired.el (dired-pop-to-buffer):
+	* bs.el (bs--show-with-configuration):
+	* vc/emerge.el (emerge-setup-windows):
+	* textmodes/two-column.el (2C-two-columns):
+	* textmodes/reftex-toc.el (reftex-toc):
+	* progmodes/gdb-mi.el (gdb-setup-windows):
+	* progmodes/fortran.el (fortran-window-create):
+	* net/newst-treeview.el (newsticker--treeview-window-init):
+	* emulation/ws-mode.el (wordstar-C-o-map, wordstar-mode):
+	* emulation/tpu-edt.el (tpu-gold-map):
+	* emulation/crisp.el (crisp-mode-map):
+	* calendar/calendar.el (calendar-basic-setup): Callers changed.
+
 2011-10-29  Chong Yidong  <cyd@gnu.org>
 
 	* subr.el (y-or-n-p): Add code for batch mode (Bug#9818).

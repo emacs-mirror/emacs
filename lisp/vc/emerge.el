@@ -1354,8 +1354,8 @@ Otherwise, the A or B file present is copied to the output file."
   (delete-other-windows)
   (switch-to-buffer merge-buffer)
   (emerge-refresh-mode-line)
-  (split-window-vertically)
-  (split-window-horizontally)
+  (split-window-below)
+  (split-window-right)
   (switch-to-buffer buffer-A)
   (if pos
       (goto-char (point-min)))
@@ -2121,7 +2121,7 @@ Use C-u l to reset the windows afterward."
   (delete-other-windows)
   (let ((temp-buffer-show-function
 	 (lambda (buf)
-	   (split-window-vertically)
+	   (split-window-below)
 	   (switch-to-buffer buf)
 	   (other-window 1))))
     (with-output-to-temp-buffer "*Help*"

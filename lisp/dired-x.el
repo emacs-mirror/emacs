@@ -1259,7 +1259,7 @@ Remaining lines go to bottom-most window.  The number of files that can be
 displayed this way is restricted by the height of the current window and
 `window-min-height'.
 
-To keep dired buffer displayed, type \\[split-window-vertically] first.
+To keep dired buffer displayed, type \\[split-window-below] first.
 To display just marked files, type \\[delete-other-windows] first."
   (interactive "P")
   (dired-simultaneous-find-file (dired-get-marked-files) noselect))

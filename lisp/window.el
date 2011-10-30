@@ -3262,39 +3262,28 @@ frame.  The selected window is not changed by this function."
 
 ;; I think this should be the default; I think people will prefer it--rms.
 (defcustom split-window-keep-point t
-  "If non-nil, \\[split-window-above-each-other] keeps the original point \
-in both children.
-This is often more convenient for editing.
-If nil, adjust point in each of the two windows to minimize redisplay.
-This is convenient on slow terminals, but point can move strangely.
-
-This option applies only to `split-window-above-each-other' and
-functions that call it.  `split-window' always keeps the original
-point in both children."
+  "If non-nil, \\[split-window-below] preserves point in the new window.
+If nil, adjust point in the two windows to minimize redisplay.
+This option applies only to `split-window-below' and functions
+that call it.  The low-level `split-window' function always keeps
+the original point in both windows."
   :type 'boolean
   :group 'windows)
 
-(defun split-window-above-each-other (&optional size)
-  "Split selected window into two windows, one above the other.
-The upper window gets SIZE lines and the lower one gets the rest.
-SIZE negative means the lower window gets -SIZE lines and the
-upper one the rest.  With no argument, split windows equally or
-close to it.  Both windows display the same buffer, now current.
+(defun split-window-below (&optional size)
+  "Split the selected window into two windows, one above the other.
+The selected window is above.  The newly split-off window is
+below, and displays the same buffer.  Return the new window.
 
-If the variable `split-window-keep-point' is non-nil, both new
-windows will get the same value of point as the selected window.
-This is often more convenient for editing.  The upper window is
-the selected window.
+If optional argument SIZE is omitted or nil, both windows get the
+same height, or close to it.  If SIZE is positive, the upper
+\(selected) window gets SIZE lines.  If SIZE is negative, the
+lower (new) window gets -SIZE lines.
 
-Otherwise, we choose window starts so as to minimize the amount of
-redisplay; this is convenient on slow terminals.  The new selected
-window is the one that the current value of point appears in.  The
-value of point can change if the text around point is hidden by the
-new mode line.
-
-Regardless of the value of `split-window-keep-point', the upper
-window is the original one and the return value is the new, lower
-window."
+If the variable `split-window-keep-point' is non-nil, both
+windows get the same value of point as the selected window.
+Otherwise, the window starts are chosen so as to minimize the
+amount of redisplay; this is convenient on slow terminals."
   (interactive "P")
   (let ((old-window (selected-window))
 	(old-point (point))
@@ -3328,19 +3317,21 @@ window."
 	(set-window-parameter new-window 'quit-restore quit-restore)))
     new-window))
 
-(defalias 'split-window-vertically 'split-window-above-each-other)
+(defalias 'split-window-vertically 'split-window-below)
 
-(defun split-window-side-by-side (&optional size)
-  "Split selected window into two windows side by side.
-The selected window becomes the left one and gets SIZE columns.
-SIZE negative means the right window gets -SIZE columns.
+(defun split-window-right (&optional size)
+  "Split the selected window into two side-by-side windows.
+The selected window is on the left.  The newly split-off window
+is on the right, and displays the same buffer.  Return the new
+window.
 
-SIZE includes the width of the window's scroll bar; if there are
-no scroll bars, it includes the width of the divider column to
-the window's right, if any.  SIZE omitted or nil means split
-window equally.
-
-The selected window remains selected.  Return the new window."
+If optional argument SIZE is omitted or nil, both windows get the
+same width, or close to it.  If SIZE is positive, the left-hand
+\(selected) window gets SIZE columns.  If SIZE is negative, the
+right-hand (new) window gets -SIZE columns.  Here, SIZE includes
+the width of the window's scroll bar; if there are no scroll
+bars, it includes the width of the divider column to the window's
+right, if any."
   (interactive "P")
   (let ((old-window (selected-window))
 	(size (and size (prefix-numeric-value size)))
@@ -3355,7 +3346,7 @@ The selected window remains selected.  Return the new window."
 	(set-window-parameter new-window 'quit-restore quit-restore)))
     new-window))
 
-(defalias 'split-window-horizontally 'split-window-side-by-side)
+(defalias 'split-window-horizontally 'split-window-right)
 
 ;;; Balancing windows.
 
@@ -4431,11 +4422,11 @@ split."
   (or (and (window-splittable-p window)
 	   ;; Split window vertically.
 	   (with-selected-window window
-	     (split-window-vertically)))
+	     (split-window-below)))
       (and (window-splittable-p window t)
 	   ;; Split window horizontally.
 	   (with-selected-window window
-	     (split-window-horizontally)))
+	     (split-window-right)))
       (and (eq window (frame-root-window (window-frame window)))
 	   (not (window-minibuffer-p window))
 	   ;; If WINDOW is the only window on its frame and is not the
@@ -4444,7 +4435,7 @@ split."
 	   (let ((split-height-threshold 0))
 	     (when (window-splittable-p window)
 	       (with-selected-window window
-		 (split-window-vertically)))))))
+		 (split-window-below)))))))
 
 (defun window--try-to-split-window (window)
   "Try to split WINDOW.
@@ -5741,8 +5732,8 @@ Otherwise, consult the value of `truncate-partial-width-windows'
 ;; change these.
 (define-key ctl-x-map "0" 'delete-window)
 (define-key ctl-x-map "1" 'delete-other-windows)
-(define-key ctl-x-map "2" 'split-window-above-each-other)
-(define-key ctl-x-map "3" 'split-window-side-by-side)
+(define-key ctl-x-map "2" 'split-window-below)
+(define-key ctl-x-map "3" 'split-window-right)
 (define-key ctl-x-map "o" 'other-window)
 (define-key ctl-x-map "^" 'enlarge-window)
 (define-key ctl-x-map "}" 'enlarge-window-horizontally)
