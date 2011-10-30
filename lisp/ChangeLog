@@ -1,5 +1,10 @@
 2011-10-30  Chong Yidong  <cyd@gnu.org>
 
+	* emulation/viper-cmd.el (viper-exec-change): Use push-mark
+	instead of set-mark (Bug#9810).
+
+2011-10-30  Chong Yidong  <cyd@gnu.org>
+
 	* window.el (split-window-below, split-window-right): Rename from
 	split-window-above-each-other and split-window-side-by-side
 	respectively.  All callers changed.
