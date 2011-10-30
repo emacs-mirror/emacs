@@ -1,4 +1,8 @@
-2011-10-30  Jan Djärv  <jan.h.d@swipnet.se>
+2011-10-30  Adam Sjøgren <asjo@koldfront.dk> (tiny change)
+
+	* xterm.c: Include X11/Xproto.h if HAVE_GTK3.
+	(x_error_handler): Ignore BadMatch for X_SetInputFocus for
+	HAVE_GTK3 (Bug#9869).
 
 	* gtkutil.c (xg_win_to_widget, xg_event_is_for_menubar): Initialize
 	type to GDK_NOTHING so valgrind does not complain (Bug#9901).

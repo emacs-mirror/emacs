@@ -93,6 +93,9 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 #ifdef USE_GTK
 #include "gtkutil.h"
+#ifdef HAVE_GTK3
+#include <X11/Xproto.h>
+#endif
 #endif
 
 #ifdef USE_LUCID
@@ -7869,6 +7872,15 @@ static void x_error_quitter (Display *, XErrorEvent *);
 static int
 x_error_handler (Display *display, XErrorEvent *event)
 {
+#ifdef HAVE_GTK3
+  if (event->error_code == BadMatch
+      && event->request_code == X_SetInputFocus
+      && event->minor_code == 0)
+    {
+      return 0;
+    }
+#endif
+
   if (x_error_message)
     x_error_catcher (display, event);
   else
