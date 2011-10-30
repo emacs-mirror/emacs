@@ -12,6 +12,7 @@
 	Use backquotes and prefer setq to set.
 	(eshell-lookup-function, function-p-func, eshell-functionp): Remove.
 	(eshell-macrop): Use functionp.
+	(eshell-do-eval): Handle multiple expressions in `while' body.
 
 2011-10-30  Chong Yidong  <cyd@gnu.org>
 
