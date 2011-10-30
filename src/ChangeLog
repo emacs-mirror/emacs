@@ -1,3 +1,8 @@
+2011-10-30  Eli Zaretskii  <eliz@gnu.org>
+
+	* xdisp.c (try_cursor_movement): Make sure ROW isn't decremented
+	past the beginning of the current glyph matrix.
+
 2011-10-30  Adam Sjøgren <asjo@koldfront.dk> (tiny change)
 
 	* xterm.c: Include X11/Xproto.h if HAVE_GTK3.
