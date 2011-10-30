@@ -1,5 +1,8 @@
 2011-10-30  Jan Djärv  <jan.h.d@swipnet.se>
 
+	* gtkutil.c (xg_win_to_widget, xg_event_is_for_menubar): Initialize
+	type to GDK_NOTHING so valgrind does not complain (Bug#9901).
+
 	* xterm.h (x_display_info): Add Xatom_net_wm_state_hidden (Bug#9893).
 
 	* xterm.c: Declare x_handle_net_wm_state to return int.
