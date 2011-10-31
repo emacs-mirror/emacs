@@ -297,7 +297,7 @@ for subdir in site-lisp \
 	      nt nt/inc nt/inc/sys nt/inc/arpa nt/inc/netinet nt/icons \
 	      `find etc lisp admin -type d` \
 	      doc doc/emacs doc/misc doc/man doc/lispref doc/lispintro \
-	      info m4 msdos autogen \
+	      info m4 msdos \
 	      nextstep nextstep/Cocoa nextstep/Cocoa/Emacs.base \
 	      nextstep/Cocoa/Emacs.base/Contents \
 	      nextstep/Cocoa/Emacs.base/Contents/Resources \
@@ -421,10 +421,6 @@ echo "Making links to \`msdos'"
  ln ChangeLog INSTALL README emacs.ico emacs.pif ../${tempdir}/msdos
  ln depfiles.bat inttypes.h ../${tempdir}/msdos
  ln is_exec.c sigaction.c mainmake.v2 sed*.inp ../${tempdir}/msdos)
-
-echo "Making links to \`autogen'"
-(cd autogen
- ln README config.in Makefile.in ../${tempdir}/autogen)
 
 echo "Making links to \`nextstep'"
 (cd nextstep
