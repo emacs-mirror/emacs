@@ -2408,8 +2408,8 @@ resultant list will be returned."
   "Match trailing spaces which do not contain the point at end of line."
   (let ((status t))
     (while (if (re-search-forward whitespace-trailing-regexp limit t)
-               (= whitespace-point (match-end 1)) ;; Loop if point at eol.
-	     (setq status nil)))                  ;; End of buffer.
+	       (= whitespace-point (match-end 1)) ;; loop if point at eol
+	     (setq status nil)))		  ;; end of buffer
     status))
 
 
