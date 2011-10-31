@@ -292,9 +292,6 @@ is `(valuefunc member)'."
   (autoload 'nnimap-make-thread-query "nnimap")
   (autoload 'gnus-registry-action "gnus-registry"))
 
-;; Suppress byte-compiler warning `reference to free variable'
-(defvar gnus-registry-enabled)
-
 (nnoo-declare nnir)
 (nnoo-define-basics nnir)
 

@@ -605,9 +605,6 @@ Other back ends might or might not work.")
 ;; Silence byte-compiler.
 (autoload 'gnus-registry-get-id-key "gnus-registry")
 
-;; Suppress byte-compiler warning `reference to free variable'
-(defvar gnus-registry-enabled)
-
 (deffoo nnmairix-request-set-mark (group actions &optional server)
   (when server
     (nnmairix-open-server server))
