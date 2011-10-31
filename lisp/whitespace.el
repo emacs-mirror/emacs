@@ -5,7 +5,7 @@
 ;; Author: Vinicius Jose Latorre <viniciusjl@ig.com.br>
 ;; Maintainer: Vinicius Jose Latorre <viniciusjl@ig.com.br>
 ;; Keywords: data, wp
-;; Version: 13.2.1
+;; Version: 13.2.2
 ;; X-URL: http://www.emacswiki.org/cgi-bin/wiki/ViniciusJoseLatorre
 
 ;; This file is part of GNU Emacs.
@@ -1102,10 +1102,14 @@ See also `whitespace-newline' and `whitespace-display-mappings'."
   :init-value nil
   :global     nil
   :group      'whitespace
-  (let ((whitespace-style '(face newline-mark newline)))
-    (whitespace-mode (if whitespace-newline-mode 1 -1))
-    ;; Sync states (running a batch job).
-    (setq whitespace-newline-mode whitespace-mode)))
+  (cond
+   (whitespace-newline-mode
+    (let ((whitespace-style '(face newline-mark newline)))
+      (whitespace-mode whitespace-newline-mode)))
+   (t
+    (whitespace-mode -1)))
+  ;; sync states (running a batch job)
+  (setq whitespace-newline-mode whitespace-mode))
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
