@@ -624,6 +624,7 @@ Don't call this function; it is for internal use only."
 (defun keymap--menu-item-with-binding (item binding)
   "Build a menu-item like ITEM but with its binding changed to BINDING."
   (cond
+   ((not (consp item)) binding)		;Not a menu-item.
    ((eq 'menu-item (car item))
     (setq item (copy-sequence item))
     (let ((tail (nthcdr 2 item)))

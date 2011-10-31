@@ -324,7 +324,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #define PACKAGE "emacs"
 
 /* Version number of package */
-#define VERSION "24.0.90"
+#define VERSION "24.0.91"
 
 /* Define to `__inline__' or `__inline' if that's what the C compiler
    calls it, or to nothing if 'inline' is not supported under any name.  */
