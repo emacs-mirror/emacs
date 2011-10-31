@@ -891,7 +891,6 @@ Appendices
 History
 
 * Gnus Versions::               What Gnus versions have been released.
-* Other Gnus Versions::         Other Gnus versions that also have been released.
 * Why?::                        What's the point of Gnus?
 * Compatibility::               Just how compatible is Gnus with @sc{gnus}?
 * Conformity::                  Gnus tries to conform to all standards.
@@ -26382,7 +26381,6 @@ renamed it back again to ``Gnus''.  But in mixed case.  ``Gnus'' vs.
 
 @menu
 * Gnus Versions::               What Gnus versions have been released.
-* Other Gnus Versions::         Other Gnus versions that also have been released.
 * Why?::                        What's the point of Gnus?
 * Compatibility::               Just how compatible is Gnus with @sc{gnus}?
 * Conformity::                  Gnus tries to conform to all standards.
@@ -26436,22 +26434,6 @@ If you happen upon a version of Gnus that has a prefixed name --
 Don't let it know that you're frightened.  Back away.  Slowly.  Whatever
 you do, don't run.  Walk away, calmly, until you're out of its reach.
 Find a proper released version of Gnus and snuggle up to that instead.
-
-
-@node Other Gnus Versions
-@subsection Other Gnus Versions
-@cindex Semi-gnus
-
-In addition to the versions of Gnus which have had their releases
-coordinated by Lars, one major development has been Semi-gnus from
-Japan.  It's based on a library called @acronym{SEMI}, which provides
-@acronym{MIME} capabilities.
-
-These Gnusae are based mainly on Gnus 5.6 and Pterodactyl Gnus.
-Collectively, they are called ``Semi-gnus'', and different strains are
-called T-gnus, ET-gnus, Nana-gnus and Chaos.  These provide powerful
-@acronym{MIME} and multilingualization things, especially important for
-Japanese users.
 
 
 @node Why?

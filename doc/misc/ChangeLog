@@ -1,3 +1,7 @@
+2011-10-31  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* gnus.texi (Other Gnus Versions): Remove.
+
 2011-10-28  Alan Mackenzie  <acm@muc.de>
 
 	* cc-mode.texi (Indentation Commands): Mention "macros with semicolons".
