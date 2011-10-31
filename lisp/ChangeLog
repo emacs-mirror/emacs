@@ -1,3 +1,8 @@
+2011-10-31  Andreas Schwab  <schwab@linux-m68k.org>
+
+	* subr.el (keymap--menu-item-with-binding): Ignore item if not a
+	menu-item.
+
 2011-10-30  Vinicius Jose Latorre  <viniciusjl@ig.com.br>
 
 	* whitespace.el: New version 13.2.2.
