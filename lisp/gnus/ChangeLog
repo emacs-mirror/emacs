@@ -1,5 +1,11 @@
 2011-10-31  Teodor Zlatanov  <tzz@lifelogs.com>
 
+	* gnus-util.el (gnus-bound-and-true-dumber-p): Define new, slower, dumb
+	function because `gnus-bound-and-true-p' doesn't work well in XEmacs
+	for reasons unknown.
+	* nnir.el: Use it.
+	* nnmairix.el: Use it.
+
 	* nnregistry.el: Remove unnecessary `gnus-registry-enabled' defvar.
 	* nnir.el: Ditto.
 	* nnmairix.el: Ditto.
