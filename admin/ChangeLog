@@ -1,3 +1,7 @@
+2011-10-31  David Engster  <deng@randomsample.de>
+
+	* grammars/bovine-grammar.el: Avoid using old-style backquotes.
+
 2011-10-28  Eli Zaretskii  <eliz@gnu.org>
 
 	* nt/README-ftp-server: Mention UNICOWS.DLL as prerequisite for

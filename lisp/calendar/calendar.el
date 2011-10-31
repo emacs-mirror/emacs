@@ -1373,7 +1373,7 @@ Optional integers MON and YR are used instead of today's date."
     ;; Don't do any window-related stuff if we weren't called from a
     ;; window displaying the calendar.
     (when in-calendar-window
-      (if (window-iso-combined-p)
+      (if (window-combined-p)
 	  ;; Adjust the window to exactly fit the displayed calendar.
 	  (fit-window-to-buffer nil nil calendar-minimum-window-height)
 	;; For a full height window or a window that is horizontally

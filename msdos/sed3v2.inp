@@ -49,4 +49,6 @@ s!^	\./!	!
 /^UTILITIES *=/,/^$/{
   s/movemail[^ ]* *//
 }
+/^insrcdir=/s/^.*$/\#&/
+/^	 *\$(insrcdir) ||/s,\$(insrcdir) ||,command.com /c if not exist $<,
 

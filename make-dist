@@ -419,6 +419,7 @@ echo "Making links to \`nt/icons'"
 echo "Making links to \`msdos'"
 (cd msdos
  ln ChangeLog INSTALL README emacs.ico emacs.pif ../${tempdir}/msdos
+ ln depfiles.bat inttypes.h ../${tempdir}/msdos
  ln is_exec.c sigaction.c mainmake.v2 sed*.inp ../${tempdir}/msdos)
 
 echo "Making links to \`nextstep'"

@@ -1,3 +1,57 @@
+2011-10-31  Andreas Schwab  <schwab@linux-m68k.org>
+
+	* subr.el (keymap--menu-item-with-binding): Ignore item if not a
+	menu-item.
+
+2011-10-30  Vinicius Jose Latorre  <viniciusjl@ig.com.br>
+
+	* whitespace.el: New version 13.2.2.
+	(whitespace-newline-mode): Disable properly.  Reported by Sarah
+	<EmacsWiki>.
+
+2011-10-30  Ulf Jasper  <ulf.jasper@web.de>
+
+	* net/newst-treeview.el: Remove "Time-stamp".
+	(newsticker--group-manage-orphan-feeds): Do not call
+	newsticker--treeview-tree-update.
+	(newsticker-treeview-update, newsticker-treeview): Call
+	newsticker--treeview-tree-update if necessary.
+
+2011-10-30  Martin Rudalics  <rudalics@gmx.at>
+
+	* window.el (window-iso-combination-p, window-iso-combined-p)
+	(window-iso-combinations): Remove "iso-" infix.  Suggested by
+	Chong Yidong.
+	(window-min-size-1, window-size-fixed-1, window-min-delta-1)
+	(window-max-delta-1, window-resize, window--resize-siblings)
+	(window--resize-this-window, adjust-window-trailing-edge)
+	(split-window, balance-windows-1)
+	(shrink-window-if-larger-than-buffer):
+	* calendar/calendar.el (calendar-generate-window):
+	* help.el (resize-temp-buffer-window): Adjust callers
+	accordingly.
+
+2011-10-30  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* eshell/esh-cmd.el (eshell-rewrite-for-command): Don't modify the list
+	in place (bug#9907).
+	(eshell-subcommand-arg-values, eshell-rewrite-named-command)
+	(eshell-rewrite-if-command, eshell-rewrite-for-command)
+	(eshell-structure-basic-command, eshell-rewrite-while-command)
+	(eshell-invokify-arg, eshell-parse-pipeline, eshell-parse-command)
+	(eshell-parse-subcommand-argument, eshell-parse-lisp-argument)
+	(eshell-trap-errors, eshell-do-pipelines, eshell-do-eval)
+	(eshell-do-pipelines-synchronously, eshell-eval-command):
+	Use backquotes and prefer setq to set.
+	(eshell-lookup-function, function-p-func, eshell-functionp): Remove.
+	(eshell-macrop): Use functionp.
+	(eshell-do-eval): Handle multiple expressions in `while' body.
+
+2011-10-30  Chong Yidong  <cyd@gnu.org>
+
+	* emulation/viper-cmd.el (viper-exec-change): Use push-mark
+	instead of set-mark (Bug#9810).
+
 2011-10-30  Chong Yidong  <cyd@gnu.org>
 
 	* window.el (split-window-below, split-window-right): Rename from
