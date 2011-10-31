@@ -22,7 +22,7 @@
 # FIXME: This file uses DOS EOLs.  Convert to Unix after 22.1 is out
 #        (and remove or replace this comment).
 
-VERSION		= 24.0.90
+VERSION		= 24.0.91
 
 TMP_DIST_DIR 	= emacs-$(VERSION)
 
