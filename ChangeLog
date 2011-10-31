@@ -1,3 +1,10 @@
+2011-10-31  Eli Zaretskii  <eliz@gnu.org>
+
+	* make-dist (tempdir): Create `autogen'.
+	(msdos): Add depfiles.bat and inttypes.h.
+	(autogen): Put README, config.in, and Makefile.in ionto the
+	distribution, they are needed for the MS-DOS build.
+
 2011-10-25  Nali Toja  <nalitoja@gmail.com>  (tiny change)
 
 	* configure.in (HAVE_GNU_MAKE): Respect MAKE env-var.  (Bug#9868)
