@@ -25875,10 +25875,10 @@ mouse_face_from_buffer_pos (Lisp_Object window,
 	r2 = next;
     }
   /* The rest of the display engine assumes that mouse_face_beg_row is
-     either above below mouse_face_end_row or identical to it.  But
-     with bidi-reordered continued lines, the row for START_CHARPOS
-     could be below the row for END_CHARPOS.  If so, swap the rows and
-     store them in correct order.  */
+     either above mouse_face_end_row or identical to it.  But with
+     bidi-reordered continued lines, the row for START_CHARPOS could
+     be below the row for END_CHARPOS.  If so, swap the rows and store
+     them in correct order.  */
   if (r1->y > r2->y)
     {
       struct glyph_row *tem = r2;
@@ -26030,8 +26030,7 @@ mouse_face_from_buffer_pos (Lisp_Object window,
 	 row, and also blanks and stretch glyphs inserted by
 	 extend_face_to_end_of_line.  */
       while (end > glyph
-	     && INTEGERP ((end - 1)->object)
-	     && (end - 1)->charpos <= 0)
+	     && INTEGERP ((end - 1)->object))
 	--end;
       /* Scan the rest of the glyph row from the end, looking for the
 	 first glyph that comes from BEFORE_STRING, AFTER_STRING, or
@@ -26077,8 +26076,7 @@ mouse_face_from_buffer_pos (Lisp_Object window,
       x = r2->x;
       end++;
       while (end < glyph
-	     && INTEGERP (end->object)
-	     && end->charpos <= 0)
+	     && INTEGERP (end->object))
 	{
 	  x += end->pixel_width;
 	  ++end;
