@@ -297,7 +297,7 @@
 	Fix bug #9560, sporadic wrong indentation; improve instrumentation
 	of c-parse-state.
 
-	* cc-engine.el (c-append-lower-brace-pair-to-state-cache):
+	* progmodes/cc-engine.el (c-append-lower-brace-pair-to-state-cache):
 	correct faulty logical expression.
 	(c-parse-state-state, c-record-parse-state-state):
 	(c-replay-parse-state-state): New defvar/defuns.
