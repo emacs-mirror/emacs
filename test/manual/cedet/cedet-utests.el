@@ -49,6 +49,7 @@
 ;;; Code:
 (defvar cedet-utest-test-alist
   '(
+    ("cedet versions" . cedet-version)
     ;;
     ;; COMMON
     ;;
