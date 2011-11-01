@@ -151,9 +151,9 @@ TUTORIAL.zh
 abbrevs.texi      
 ack.texi          
 anti.texi
-arevert-xtra.texi
+arevert-xtra.texi cyd
 basic.texi        cyd
-buffers.texi      
+buffers.texi      cyd
 building.texi     
 calendar.texi     
 cal-xtra.texi     
@@ -167,7 +167,7 @@ emacs.texi
 emacs-xtra.texi
 emerge-xtra.texi
 entering.texi     cyd
-files.texi        
+files.texi        cyd
 fixit.texi        
 fortran-xtra.texi 
 frames.texi       
@@ -175,7 +175,7 @@ glossary.texi
 help.texi         cyd
 indent.texi       
 killing.texi      cyd
-kmacro.texi       
+kmacro.texi       cyd
 macos.texi        
 maintaining.texi  
 major.texi        

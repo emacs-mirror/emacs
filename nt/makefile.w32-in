@@ -22,7 +22,7 @@
 # FIXME: This file uses DOS EOLs.  Convert to Unix after 22.1 is out
 #        (and remove or replace this comment).
 
-VERSION		= 24.0.90
+VERSION		= 24.0.91
 
 TMP_DIST_DIR 	= emacs-$(VERSION)
 
@@ -263,7 +263,6 @@ dist: install-bin
 	$(CP) "$(INSTALL_DIR)/COPYING" $(TMP_DIST_DIR)
 	$(CP) "$(INSTALL_DIR)/README" $(TMP_DIST_DIR)
 	$(CP) "$(INSTALL_DIR)/README.W32" $(TMP_DIST_DIR)
-	$(CP) "$(INSTALL_DIR)/INSTALL" $(TMP_DIST_DIR)
 	$(CP_DIR) "$(INSTALL_DIR)/bin" $(TMP_DIST_DIR)
 	$(CP_DIR) "$(INSTALL_DIR)/etc" $(TMP_DIST_DIR)
 	$(CP_DIR) "$(INSTALL_DIR)/info" $(TMP_DIST_DIR)

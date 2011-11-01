@@ -14829,8 +14829,6 @@ try_cursor_movement (Lisp_Object window, struct text_pos startp, int *scroll_ste
 		 bidi-reordered rows.  */
 	      while (MATRIX_ROW_CONTINUATION_LINE_P (row))
 		{
-		  xassert (row->enabled_p);
-		  --row;
 		  /* If we hit the beginning of the displayed portion
 		     without finding the first row of a continued
 		     line, give up.  */
@@ -14839,7 +14837,8 @@ try_cursor_movement (Lisp_Object window, struct text_pos startp, int *scroll_ste
 		      rc = CURSOR_MOVEMENT_MUST_SCROLL;
 		      break;
 		    }
-
+		  xassert (row->enabled_p);
+		  --row;
 		}
 	    }
 	  if (must_scroll)
@@ -26801,7 +26800,7 @@ void
 note_mouse_highlight (struct frame *f, int x, int y)
 {
   Mouse_HLInfo *hlinfo = MOUSE_HL_INFO (f);
-  enum window_part part;
+  enum window_part part = ON_NOTHING;
   Lisp_Object window;
   struct window *w;
   Cursor cursor = No_Cursor;
@@ -26835,11 +26834,14 @@ note_mouse_highlight (struct frame *f, int x, int y)
   /* Which window is that in?  */
   window = window_from_coordinates (f, x, y, &part, 1);
 
-  /* If we were displaying active text in another window, clear that.
-     Also clear if we move out of text area in same window.  */
+  /* If displaying active text in another window, clear that.  */
   if (! EQ (window, hlinfo->mouse_face_window)
-      || (part != ON_TEXT && part != ON_MODE_LINE && part != ON_HEADER_LINE
-	  && !NILP (hlinfo->mouse_face_window)))
+      /* Also clear if we move out of text area in same window.  */
+      || (!NILP (hlinfo->mouse_face_window)
+	  && !NILP (window)
+	  && part != ON_TEXT
+	  && part != ON_MODE_LINE
+	  && part != ON_HEADER_LINE))
     clear_mouse_face (hlinfo);
 
   /* Not on a window -> return.  */

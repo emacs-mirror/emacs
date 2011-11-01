@@ -1387,7 +1387,7 @@ as a Meta key and any number of multiple escapes are allowed."
 	(insert " ")(backward-char 1)))
   (if (= viper-com-point (point))
       (viper-forward-char-carefully))
-  (set-mark viper-com-point)
+  (push-mark viper-com-point)
   (if (eq m-com 'viper-next-line-at-bol)
       (viper-enlarge-region (mark t) (point)))
   (if (< (point) (mark t))
@@ -1396,8 +1396,7 @@ as a Meta key and any number of multiple escapes are allowed."
       (viper-backward-char-carefully)) ; give back the newline
   (if (eq viper-intermediate-command 'viper-repeat)
       (viper-change-subr (mark t) (point))
-    (viper-change (mark t) (point))
-    ))
+    (viper-change (mark t) (point))))
 
 ;; this is invoked by viper-substitute-line
 (defun viper-exec-Change (m-com com)

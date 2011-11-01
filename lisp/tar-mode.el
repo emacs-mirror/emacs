@@ -404,13 +404,19 @@ MODE should be an integer which is a file mode value."
   (string
    (if (zerop (logand 256 mode)) ?- ?r)
    (if (zerop (logand 128 mode)) ?- ?w)
-   (if (zerop (logand 1024 mode)) (if (zerop (logand  64 mode)) ?- ?x) ?s)
+   (if (zerop (logand 2048 mode))
+       (if (zerop (logand  64 mode)) ?- ?x)
+     (if (zerop (logand  64 mode)) ?S ?s))
    (if (zerop (logand  32 mode)) ?- ?r)
    (if (zerop (logand  16 mode)) ?- ?w)
-   (if (zerop (logand 2048 mode)) (if (zerop (logand   8 mode)) ?- ?x) ?s)
+   (if (zerop (logand 1024 mode))
+       (if (zerop (logand   8 mode)) ?- ?x)
+     (if (zerop (logand   8 mode)) ?S ?s))
    (if (zerop (logand   4 mode)) ?- ?r)
    (if (zerop (logand   2 mode)) ?- ?w)
-   (if (zerop (logand   1 mode)) ?- ?x)))
+   (if (zerop (logand 512 mode))
+       (if (zerop (logand   1 mode)) ?- ?x)
+     (if (zerop (logand   1 mode)) ?T ?t))))
 
 (defun tar-header-block-summarize (tar-hblock &optional mod-p)
   "Return a line similar to the output of `tar -vtf'."

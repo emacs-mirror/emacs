@@ -782,13 +782,12 @@ calling `image-dired-restore-window-configuration'."
     (dired dir)
     (delete-other-windows)
     (when (not arg)
-      (split-window-horizontally)
+      (split-window-right)
       (setq truncate-lines t)
       (save-excursion
         (other-window 1)
         (switch-to-buffer buf)
-        (split-window-vertically)
-        (other-window 1)
+        (select-window (split-window-below))
         (switch-to-buffer buf2)
         (other-window -2)))))
 

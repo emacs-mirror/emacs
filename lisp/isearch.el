@@ -1452,7 +1452,7 @@ string.  NLINES has the same meaning as in `occur'."
 	;; Set `search-upper-case' to nil to not call
 	;; `isearch-no-upper-case-p' in `occur-1'.
 	(search-upper-case nil)
-	(search-spaces-regexp search-whitespace-regexp))
+	(search-spaces-regexp (if isearch-regexp search-whitespace-regexp)))
     (occur regexp nlines)))
 
 (declare-function hi-lock-read-face-name "hi-lock" ())
@@ -1804,9 +1804,13 @@ Scroll-bar or mode-line events are processed appropriately."
 ;; Commands which change the window layout
 (put 'delete-other-windows 'isearch-scroll t)
 (put 'balance-windows 'isearch-scroll t)
+(put 'split-window-right 'isearch-scroll t)
+(put 'split-window-below 'isearch-scroll t)
+(put 'enlarge-window 'isearch-scroll t)
+
+;; Aliases for split-window-*
 (put 'split-window-vertically 'isearch-scroll t)
 (put 'split-window-horizontally 'isearch-scroll t)
-(put 'enlarge-window 'isearch-scroll t)
 
 ;; Universal argument commands
 (put 'universal-argument 'isearch-scroll t)

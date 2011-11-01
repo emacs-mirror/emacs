@@ -642,6 +642,9 @@ make_process (Lisp_Object name)
   p->gnutls_initstage = GNUTLS_STAGE_EMPTY;
   p->gnutls_log_level = 0;
   p->gnutls_p = 0;
+  p->gnutls_state = NULL;
+  p->gnutls_x509_cred = NULL;
+  p->gnutls_anon_cred = NULL;
 #endif
 
   /* If name is already in use, modify it until it is unused.  */
@@ -3867,6 +3870,11 @@ deactivate_process (Lisp_Object proc)
   register int inchannel, outchannel;
   register struct Lisp_Process *p = XPROCESS (proc);
 
+#ifdef HAVE_GNUTLS
+  /* Delete GnuTLS structures in PROC, if any.  */
+  emacs_gnutls_deinit (proc);
+#endif /* HAVE_GNUTLS */
+
   inchannel  = p->infd;
   outchannel = p->outfd;
 
@@ -4848,16 +4856,11 @@ wait_reading_process_output (int time_limit, int microsecs, int read_kbd,
 		 It can't hurt.  */
 	      else if (nread == -1 && errno == EIO)
 		{
-		  /* Clear the descriptor now, so we only raise the
-		     signal once.  Don't do this if `process' is only
-		     a pty.  */
-		  if (XPROCESS (proc)->pid != -2)
-		    {
-		      FD_CLR (channel, &input_wait_mask);
-		      FD_CLR (channel, &non_keyboard_wait_mask);
+		  /* Clear the descriptor now, so we only raise the signal once.  */
+		  FD_CLR (channel, &input_wait_mask);
+		  FD_CLR (channel, &non_keyboard_wait_mask);
 
-		      kill (getpid (), SIGCHLD);
-		    }
+		  kill (getpid (), SIGCHLD);
 		}
 #endif /* HAVE_PTYS */
 	      /* If we can detect process termination, don't consider the process

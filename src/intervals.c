@@ -1723,8 +1723,6 @@ graft_intervals_into_buffer (INTERVAL source, EMACS_INT position,
 	  BUF_INTERVALS (buffer)->position = BEG;
 	  BUF_INTERVALS (buffer)->up_obj = 1;
 
-	  /* Explicitly free the old tree here?  */
-
 	  return;
 	}
 

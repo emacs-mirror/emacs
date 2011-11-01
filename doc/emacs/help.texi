@@ -70,7 +70,7 @@ meanings for it, but they all support @key{F1} for help.)
 * Package Keywords::    Finding Lisp libraries by keywords (topics).
 * Language Help::       Help relating to international language support.
 * Misc Help::           Other help commands.
-* Help Files::          Commands to display auxilliary help files.
+* Help Files::          Commands to display auxiliary help files.
 * Help Echo::           Help on active text and tooltips (`balloon help').
 @end menu
 

@@ -101,13 +101,13 @@
                   :help ,(purecopy "Make selected window fill whole frame")))
 
     (define-key menu [new-window-on-right]
-      `(menu-item ,(purecopy "New Window on Right") split-window-side-by-side
+      `(menu-item ,(purecopy "New Window on Right") split-window-right
                   :enable (and (menu-bar-menu-frame-live-and-visible-p)
                                (menu-bar-non-minibuffer-window-p))
                   :help ,(purecopy "Make new window on right of selected one")))
 
     (define-key menu [new-window-below]
-      `(menu-item ,(purecopy "New Window Below") split-window-above-each-other
+      `(menu-item ,(purecopy "New Window Below") split-window-below
                   :enable (and (menu-bar-menu-frame-live-and-visible-p)
                                (menu-bar-non-minibuffer-window-p))
                   :help ,(purecopy "Make new window below selected one")))

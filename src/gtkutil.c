@@ -987,6 +987,7 @@ xg_win_to_widget (Display *dpy, Window wdesc)
     {
       GdkEvent event;
       event.any.window = gdkwin;
+      event.any.type = GDK_NOTHING;
       gwdesc = gtk_get_event_widget (&event);
     }
 
@@ -3254,6 +3255,7 @@ xg_event_is_for_menubar (FRAME_PTR f, XEvent *event)
   gw = gdk_x11_window_lookup_for_display (gdpy, event->xbutton.window);
   if (! gw) return 0;
   gevent.any.window = gw;
+  gevent.any.type = GDK_NOTHING;
   gwdesc = gtk_get_event_widget (&gevent);
   if (! gwdesc) return 0;
   if (! GTK_IS_MENU_BAR (gwdesc)

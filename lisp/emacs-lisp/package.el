@@ -1076,6 +1076,7 @@ similar to an entry in `package-alist'.  Save the cached copy to
 	(let ((version-control 'never))
 	  (save-buffer))))))
 
+;;;###autoload
 (defun package-refresh-contents ()
   "Download the ELPA archive description if needed.
 This informs Emacs about the latest versions of all packages, and

@@ -4,7 +4,7 @@
 
 ;; Author: Kurt Hornik <Kurt.Hornik@wu-wien.ac.at>
 ;; Author: John Eaton <jwe@octave.org>
-;; Maintainer: Kurt Hornik <Kurt.Hornik@wu-wien.ac.at>
+;; Maintainer: FSF
 ;; Keywords: languages
 
 ;; This file is part of GNU Emacs.
@@ -223,6 +223,7 @@ parenthetical grouping.")
     (define-key map "\C-c]" 'smie-close-block)
     (define-key map "\C-c/" 'smie-close-block)
     (define-key map "\C-c\C-f" 'octave-insert-defun)
+    ;; FIXME: free C-h so it can do the describe-prefix-bindings.
     (define-key map "\C-c\C-h" 'info-lookup-symbol)
     (define-key map "\C-c\C-il" 'octave-send-line)
     (define-key map "\C-c\C-ib" 'octave-send-block)
@@ -236,6 +237,7 @@ parenthetical grouping.")
     (define-key map "\C-c\C-i\C-f" 'octave-send-defun)
     (define-key map "\C-c\C-i\C-r" 'octave-send-region)
     (define-key map "\C-c\C-i\C-s" 'octave-show-process-buffer)
+    ;; FIXME: free C-h so it can do the describe-prefix-bindings.
     (define-key map "\C-c\C-i\C-h" 'octave-hide-process-buffer)
     (define-key map "\C-c\C-i\C-k" 'octave-kill-process)
     map)
@@ -655,14 +657,6 @@ including a reproducible test case and send the message."
 
   (easy-menu-add octave-mode-menu)
   (octave-initialize-completions))
-
-(defvar info-lookup-mode)
-
-(defun octave-help ()
-  "Get help on Octave symbols from the Octave info files.
-Look up symbol in the function, operator and variable indices of the info files."
-  (let ((info-lookup-mode 'octave-mode))
-    (call-interactively 'info-lookup-symbol)))
 
 ;;; Miscellaneous useful functions
 

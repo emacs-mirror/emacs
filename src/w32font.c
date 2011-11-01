@@ -145,6 +145,138 @@ struct font_callback_data
    style variations if the font name is not specified.  */
 static void list_all_matching_fonts (struct font_callback_data *);
 
+static BOOL g_b_init_is_w9x;
+static BOOL g_b_init_get_outline_metrics_w;
+static BOOL g_b_init_get_text_metrics_w;
+static BOOL g_b_init_get_glyph_outline_w;
+static BOOL g_b_init_get_glyph_outline_w;
+
+typedef UINT (WINAPI * GetOutlineTextMetricsW_Proc) (
+   HDC hdc,
+   UINT cbData,
+   LPOUTLINETEXTMETRICW lpotmw);
+typedef BOOL (WINAPI * GetTextMetricsW_Proc) (
+   HDC hdc,
+   LPTEXTMETRICW lptmw);
+typedef DWORD (WINAPI * GetGlyphOutlineW_Proc) (
+   HDC hdc,
+   UINT uChar,
+   UINT uFormat,
+   LPGLYPHMETRICS lpgm,
+   DWORD cbBuffer,
+   LPVOID lpvBuffer,
+   const MAT2 *lpmat2);
+
+/* Several "wide" functions we use to support the font backends are
+   unavailable on Windows 9X, unless UNICOWS.DLL is installed (their
+   versions in the default libraries are non-functional stubs).  On NT
+   and later systems, these functions are in GDI32.DLL.  The following
+   helper function attempts to load UNICOWS.DLL on Windows 9X, and
+   refuses to let Emacs start up if that library is not found.  On NT
+   and later versions, it simply loads GDI32.DLL, which should always
+   be available.  */
+static HMODULE
+w32_load_unicows_or_gdi32 (void)
+{
+  static BOOL is_9x = 0;
+  OSVERSIONINFO os_ver;
+  HMODULE ret;
+  if (g_b_init_is_w9x == 0)
+    {
+      g_b_init_is_w9x = 1;
+      ZeroMemory (&os_ver, sizeof (OSVERSIONINFO));
+      os_ver.dwOSVersionInfoSize = sizeof (OSVERSIONINFO);
+      if (GetVersionEx (&os_ver))
+	is_9x = (os_ver.dwPlatformId == VER_PLATFORM_WIN32_WINDOWS);
+    }
+  if (is_9x)
+    {
+      ret = LoadLibrary ("Unicows.dll");
+      if (!ret)
+	{
+	  int button;
+
+	  button = MessageBox (NULL,
+			       "Emacs cannot load the UNICOWS.DLL library.\n"
+			       "This library is essential for using Emacs\n"
+			       "on this system.  You need to install it.\n\n"
+			       "However, you can still use Emacs by invoking\n"
+			       "it with the '-nw' command-line option.\n\n"
+			       "Emacs will exit when you click OK.",
+			       "Emacs cannot load UNICOWS.DLL",
+			       MB_ICONERROR | MB_TASKMODAL
+			       | MB_SETFOREGROUND | MB_OK);
+	  switch (button)
+	    {
+	    case IDOK:
+	    default:
+	      exit (1);
+	    }
+	}
+    }
+  else
+    ret = LoadLibrary ("Gdi32.dll");
+  return ret;
+}
+
+/* The following 3 functions call the problematic "wide" APIs via
+   function pointers, to avoid linking against the non-standard
+   libunicows on W9X.  */
+static UINT WINAPI
+get_outline_metrics_w(HDC hdc, UINT cbData, LPOUTLINETEXTMETRICW lpotmw)
+{
+  static GetOutlineTextMetricsW_Proc s_pfn_Get_Outline_Text_MetricsW = NULL;
+  HMODULE hm_unicows = NULL;
+  if (g_b_init_get_outline_metrics_w == 0)
+    {
+      g_b_init_get_outline_metrics_w = 1;
+      hm_unicows = w32_load_unicows_or_gdi32 ();
+      if (hm_unicows)
+	s_pfn_Get_Outline_Text_MetricsW = (GetOutlineTextMetricsW_Proc)
+	  GetProcAddress (hm_unicows, "GetOutlineTextMetricsW");
+    }
+  if (s_pfn_Get_Outline_Text_MetricsW == NULL)
+    abort ();	/* cannot happen */
+  return s_pfn_Get_Outline_Text_MetricsW (hdc, cbData, lpotmw);
+}
+
+static BOOL WINAPI
+get_text_metrics_w(HDC hdc, LPTEXTMETRICW lptmw)
+{
+  static GetTextMetricsW_Proc s_pfn_Get_Text_MetricsW = NULL;
+  HMODULE hm_unicows = NULL;
+  if (g_b_init_get_text_metrics_w == 0)
+    {
+      g_b_init_get_text_metrics_w = 1;
+      hm_unicows = w32_load_unicows_or_gdi32 ();
+      if (hm_unicows)
+	s_pfn_Get_Text_MetricsW = (GetTextMetricsW_Proc)
+	  GetProcAddress (hm_unicows, "GetTextMetricsW");
+    }
+  if (s_pfn_Get_Text_MetricsW == NULL)
+    abort ();	/* cannot happen */
+  return s_pfn_Get_Text_MetricsW (hdc, lptmw);
+}
+
+static DWORD WINAPI
+get_glyph_outline_w (HDC hdc, UINT uChar, UINT uFormat, LPGLYPHMETRICS lpgm,
+		     DWORD cbBuffer, LPVOID lpvBuffer, const MAT2 *lpmat2)
+{
+  static GetGlyphOutlineW_Proc s_pfn_Get_Glyph_OutlineW = NULL;
+  HMODULE hm_unicows = NULL;
+  if (g_b_init_get_glyph_outline_w == 0)
+    {
+      g_b_init_get_glyph_outline_w = 1;
+      hm_unicows = w32_load_unicows_or_gdi32 ();
+      if (hm_unicows)
+	s_pfn_Get_Glyph_OutlineW = (GetGlyphOutlineW_Proc)
+	  GetProcAddress (hm_unicows, "GetGlyphOutlineW");
+    }
+  if (s_pfn_Get_Glyph_OutlineW == NULL)
+    abort ();	/* cannot happen */
+  return s_pfn_Get_Glyph_OutlineW (hdc, uChar, uFormat, lpgm, cbBuffer,
+				   lpvBuffer, lpmat2);
+}
 
 static int
 memq_no_quit (Lisp_Object elt, Lisp_Object list)
@@ -816,11 +948,11 @@ w32font_open_internal (FRAME_PTR f, Lisp_Object font_entity,
   old_font = SelectObject (dc, hfont);
 
   /* Try getting the outline metrics (only works for truetype fonts).  */
-  len = GetOutlineTextMetricsW (dc, 0, NULL);
+  len = get_outline_metrics_w (dc, 0, NULL);
   if (len)
     {
       metrics = (OUTLINETEXTMETRICW *) alloca (len);
-      if (GetOutlineTextMetricsW (dc, len, metrics))
+      if (get_outline_metrics_w (dc, len, metrics))
         memcpy (&w32_font->metrics, &metrics->otmTextMetrics,
 		sizeof (TEXTMETRICW));
       else
@@ -828,7 +960,7 @@ w32font_open_internal (FRAME_PTR f, Lisp_Object font_entity,
     }
 
   if (!metrics)
-    GetTextMetricsW (dc, &w32_font->metrics);
+    get_text_metrics_w (dc, &w32_font->metrics);
 
   w32_font->cached_metrics = NULL;
   w32_font->n_cache_blocks = 0;
@@ -1916,10 +2048,10 @@ fill_in_logfont (FRAME_PTR f, LOGFONT *logfont, Lisp_Object font_spec)
       int spacing = XINT (tmp);
       if (spacing < FONT_SPACING_MONO)
 	logfont->lfPitchAndFamily
-	  = logfont->lfPitchAndFamily & 0xF0 | VARIABLE_PITCH;
+	  = (logfont->lfPitchAndFamily & 0xF0) | VARIABLE_PITCH;
       else
 	logfont->lfPitchAndFamily
-	  = logfont->lfPitchAndFamily & 0xF0 | FIXED_PITCH;
+	  = (logfont->lfPitchAndFamily & 0xF0) | FIXED_PITCH;
     }
 
   /* Process EXTRA info.  */
@@ -2306,7 +2438,7 @@ compute_metrics (HDC dc, struct w32font_info *w32_font, unsigned int code,
   transform.eM11.value = 1;
   transform.eM22.value = 1;
 
-  if (GetGlyphOutlineW (dc, code, options, &gm, 0, NULL, &transform)
+  if (get_glyph_outline_w (dc, code, options, &gm, 0, NULL, &transform)
       != GDI_ERROR)
     {
       metrics->lbearing = gm.gmptGlyphOrigin.x;
@@ -2580,4 +2712,13 @@ versions of Windows) characters.  */);
 
   w32font_driver.type = Qgdi;
   register_font_driver (&w32font_driver, NULL);
+}
+
+void
+globals_of_w32font (void)
+{
+  g_b_init_is_w9x = 0;
+  g_b_init_get_outline_metrics_w = 0;
+  g_b_init_get_text_metrics_w = 0;
+  g_b_init_get_glyph_outline_w = 0;
 }

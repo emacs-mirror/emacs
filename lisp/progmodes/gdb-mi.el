@@ -43,21 +43,10 @@
 
 ;; M-x gdb will start the debugger.
 
-;; This file uses GDB/MI as the primary interface to GDB.  It is still under
-;; development and is part of a process to migrate Emacs from annotations (as
-;; used in gdb-ui.el) to GDB/MI.  It runs gdb with GDB/MI (-interp=mi) and
-;; access CLI using "-interpreter-exec console cli-command".  This code works
-;; without gdb-ui.el and uses MI tokens instead of queues. Eventually MI
-;; should be asynchronous.
-
-;; This mode will PARTLY WORK WITH RECENT GDB RELEASES (status in modeline
-;; doesn't update properly when execution commands are issued from GUD buffer)
-;; and WORKS BEST when GDB runs asynchronously: maint set linux-async on.
-;;
-;; You need development version of GDB 7.0 for the thread buffer to work.
-
-;; This file replaces gdb-ui.el and is for development with GDB.  Use the
-;; release branch of Emacs 22 for the latest version of gdb-ui.el.
+;; This file uses GDB/MI as the primary interface to GDB.  It runs gdb with
+;; GDB/MI (-interp=mi) and access CLI using "-interpreter-exec console
+;; cli-command".  This code works without gdb-ui.el and uses MI tokens instead
+;; of queues.  Eventually MI should be asynchronous.
 
 ;; Windows Platforms:
 
@@ -599,6 +588,22 @@ NOARG must be t when this macro is used outside `gud-def'"
     (concat (gdb-gud-context-command ,cmd1 ,noall) " " ,cmd2)
     ,(when (not noarg) 'arg)))
 
+(defun gdb--check-interpreter (proc string)
+  (unless (zerop (length string))
+    (let ((filter (process-get proc 'gud-normal-filter)))
+      (set-process-filter proc filter)
+      (unless (memq (aref string 0) '(?^ ?~ ?@ ?& ?* ?=))
+        ;; Apparently we're not running with -i=mi.
+        (let ((msg "Error: you did not specify -i=mi on GDB's command line!"))
+          (message msg)
+          (setq string (concat (propertize msg 'font-lock-face 'error)
+                               "\n" string)))
+        ;; Use the old gud-gbd filter, not because it works, but because it
+        ;; will properly display GDB's answers rather than hanging waiting for
+        ;; answers that aren't coming.
+        (set (make-local-variable 'gud-marker-filter) #'gud-gdb-marker-filter))
+      (funcall filter proc string))))
+
 ;;;###autoload
 (defun gdb (command-line)
   "Run gdb on program FILE in buffer *gud-FILE*.
@@ -665,6 +670,13 @@ detailed description of this mode.
      "Multiple debugging requires restarting in text command mode"))
   ;;
   (gud-common-init command-line nil 'gud-gdbmi-marker-filter)
+
+  ;; Setup a temporary process filter to warn when GDB was not started
+  ;; with -i=mi.
+  (let ((proc (get-buffer-process gud-comint-buffer)))
+    (process-put proc 'gud-normal-filter (process-filter proc))
+    (set-process-filter proc #'gdb--check-interpreter))
+
   (set (make-local-variable 'gud-minor-mode) 'gdbmi)
   (setq comint-input-sender 'gdb-send)
   (when (ring-empty-p comint-input-ring) ; cf shell-mode
@@ -4016,7 +4028,7 @@ window is dedicated."
   (let ((win0 (selected-window))
         (win1 (split-window nil ( / ( * (window-height) 3) 4)))
         (win2 (split-window nil ( / (window-height) 3)))
-        (win3 (split-window-horizontally)))
+        (win3 (split-window-right)))
     (gdb-set-window-buffer (gdb-locals-buffer-name) nil win3)
     (select-window win2)
     (set-window-buffer
@@ -4029,12 +4041,12 @@ window is dedicated."
          ;; can't find a source file.
          (list-buffers-noselect))))
     (setq gdb-source-window (selected-window))
-    (let ((win4 (split-window-horizontally)))
+    (let ((win4 (split-window-right)))
       (gdb-set-window-buffer
        (gdb-get-buffer-create 'gdb-inferior-io) nil win4))
     (select-window win1)
     (gdb-set-window-buffer (gdb-stack-buffer-name))
-    (let ((win5 (split-window-horizontally)))
+    (let ((win5 (split-window-right)))
       (gdb-set-window-buffer (if gdb-show-threads-by-default
                                  (gdb-threads-buffer-name)
                                (gdb-breakpoints-buffer-name))

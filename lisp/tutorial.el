@@ -298,7 +298,7 @@ LEFT and RIGHT are the elements to compare."
              (isearch-backward [?\C-r])
 
              ;; * MULTIPLE WINDOWS
-             (split-window-above-each-other [?\C-x ?2])
+             (split-window-below [?\C-x ?2])
              (scroll-other-window [?\C-\M-v])
              (other-window [?\C-x ?o])
              (find-file-other-window [?\C-x ?4 ?\C-f])

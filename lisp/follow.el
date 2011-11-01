@@ -509,7 +509,7 @@ and being able to use 144 lines instead of the normal 72... (your
 mileage may vary).
 
 To split one large window into two side-by-side windows, the commands
-`\\[split-window-horizontally]' or \
+`\\[split-window-right]' or \
 `M-x follow-delete-other-windows-and-split' can be used.
 
 Only windows displayed in the same frame follow each other.
@@ -662,7 +662,7 @@ in your `~/.emacs' file, replacing [f7] by your favourite key:
 			(< (prefix-numeric-value arg) 0))))
 	(start (window-start)))
     (delete-other-windows)
-    (split-window-horizontally)
+    (split-window-right)
     (if other
 	(progn
 	  (other-window 1)

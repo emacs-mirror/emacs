@@ -309,7 +309,7 @@ W4)} is @code{W6}.
 The following function is useful to determine whether a window is part
 of a vertical or horizontal combination.
 
-@defun window-iso-combined-p &optional window horizontal
+@defun window-combined-p &optional window horizontal
 This function returns non-@code{nil} if and only if @var{window} is
 vertically combined.  The argument @var{window} can specify any window
 and defaults to the selected one.  The actual return value is the first

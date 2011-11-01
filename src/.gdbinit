@@ -1245,20 +1245,36 @@ document xbacktrace
   an error was signaled.
 end
 
-define which
-  set debug_print (which_symbols ($arg0))
+define xprintbytestr
+  set $data = (char *) $arg0->data
+  printf "Bytecode: "
+  output/u ($arg0->size > 1000) ? 0 : ($data[0])@($arg0->size_byte < 0 ? $arg0->size & ~gdb_array_mark_flag : $arg0->size_byte)
 end
-document which
+document xprintbytestr
+  Print a string of byte code.
+end
+
+define xwhichsymbols
+  set $output_debug = print_output_debug_flag
+  set print_output_debug_flag = 0
+  set safe_debug_print (which_symbols ($arg0, $arg1))
+  set print_output_debug_flag = $output_debug
+end
+document xwhichsymbols
   Print symbols which references a given lisp object
   either as its symbol value or symbol function.
+  Call with two arguments: the lisp object and the
+  maximum number of symbols referencing it to produce.
 end
 
 define xbytecode
   set $bt = byte_stack_list
   while $bt
-    xgettype ($bt->byte_string)
-    printf "0x%x => ", $bt->byte_string
-    which $bt->byte_string
+    xgetptr $bt->byte_string
+    set $ptr = (struct Lisp_String *) $ptr
+    xprintbytestr $ptr
+    printf "\n0x%x => ", $bt->byte_string
+    xwhichsymbols $bt->byte_string 5
     set $bt = $bt->next
   end
 end

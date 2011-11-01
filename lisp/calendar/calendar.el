@@ -1330,12 +1330,12 @@ display the generated calendar."
         ;; the right thing in that case.
         ;;
         ;; Is this a wide frame?  If so, split it horizontally.
-        (if (window-splittable-p t) (split-window-horizontally))
+        (if (window-splittable-p t) (split-window-right))
         (pop-to-buffer calendar-buffer)
         ;; Has the window already been split vertically?
         (when (and (not (window-dedicated-p))
                    (window-full-height-p))
-          (let ((win (split-window-vertically)))
+          (let ((win (split-window-below)))
             ;; In the upper window, show whatever was visible before.
             ;; This looks better than using other-buffer.
             (switch-to-buffer buff)
@@ -1373,7 +1373,7 @@ Optional integers MON and YR are used instead of today's date."
     ;; Don't do any window-related stuff if we weren't called from a
     ;; window displaying the calendar.
     (when in-calendar-window
-      (if (window-iso-combined-p)
+      (if (window-combined-p)
 	  ;; Adjust the window to exactly fit the displayed calendar.
 	  (fit-window-to-buffer nil nil calendar-minimum-window-height)
 	;; For a full height window or a window that is horizontally

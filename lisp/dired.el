@@ -2879,7 +2879,7 @@ or \"* [3 files]\"."
 		      (window-splittable-p (selected-window)))
 		    ;; Try to split the selected window vertically if
 		    ;; that's possible.  (Bug#1806)
-		    (split-window-vertically))
+		    (split-window-below))
 	       ;; Otherwise, try to split WINDOW sensibly.
 	       (split-window-sensibly window))))
 	pop-up-frames)
@@ -4128,7 +4128,7 @@ instead.
 ;;;***
 
 ;;;### (autoloads (dired-do-relsymlink dired-jump-other-window dired-jump)
-;;;;;;  "dired-x" "dired-x.el" "0a19e4cb2cadf007be715af1035c9c36")
+;;;;;;  "dired-x" "dired-x.el" "ea7c74fbb7dddf43bb85875018cb59ad")
 ;;; Generated autoloads from dired-x.el
 
 (autoload 'dired-jump "dired-x" "\

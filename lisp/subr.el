@@ -116,8 +116,6 @@ BODY should be a list of Lisp expressions.
   ;; depend on backquote.el.
   (list 'function (cons 'lambda cdr)))
 
-;; Partial application of functions (similar to "currying").
-;; This function is here rather than in subr.el because it uses CL.
 (defun apply-partially (fun &rest args)
   "Return a function that is a partial application of FUN to ARGS.
 ARGS is a list of the first N arguments to pass to FUN.
@@ -626,6 +624,7 @@ Don't call this function; it is for internal use only."
 (defun keymap--menu-item-with-binding (item binding)
   "Build a menu-item like ITEM but with its binding changed to BINDING."
   (cond
+   ((not (consp item)) binding)		;Not a menu-item.
    ((eq 'menu-item (car item))
     (setq item (copy-sequence item))
     (let ((tail (nthcdr 2 item)))
@@ -1366,18 +1365,26 @@ All symbols are bound before the VALUEFORMs are evalled."
      ,@(mapcar (lambda (binder) `(setq ,@binder)) binders)
      ,@body))
 
-(defmacro with-wrapper-hook (var args &rest body)
-  "Run BODY wrapped with the VAR hook.
-VAR is a special hook: its functions are called with a first argument
-which is the \"original\" code (the BODY), so the hook function can wrap
-the original function, or call it any number of times (including not calling
-it at all).  This is similar to an `around' advice.
-VAR is normally a symbol (a variable) in which case it is treated like
-a hook, with a buffer-local and a global part.  But it can also be an
-arbitrary expression.
-ARGS is a list of variables which will be passed as additional arguments
-to each function, after the initial argument, and which the first argument
-expects to receive when called."
+(defmacro with-wrapper-hook (hook args &rest body)
+  "Run BODY, using wrapper functions from HOOK with additional ARGS.
+HOOK is an abnormal hook.  Each hook function in HOOK \"wraps\"
+around the preceding ones, like a set of nested `around' advices.
+
+Each hook function should accept an argument list consisting of a
+function FUN, followed by the additional arguments in ARGS.
+
+The FUN passed to the first hook function in HOOK performs BODY,
+if it is called with arguments ARGS.  The FUN passed to each
+successive hook function is defined based on the preceding hook
+functions; if called with arguments ARGS, it does what the
+`with-wrapper-hook' call would do if the preceding hook functions
+were the only ones present in HOOK.
+
+In the function definition of each hook function, FUN can be
+called any number of times (including not calling it at all).
+That function definition is then used to construct the FUN passed
+to the next hook function, if any.  The last (or \"outermost\")
+FUN is then called once."
   (declare (indent 2) (debug (form sexp body)))
   ;; We need those two gensyms because CL's lexical scoping is not available
   ;; for function arguments :-(
@@ -1406,11 +1413,11 @@ expects to receive when called."
                    ;; Once there are no more functions on the hook, run
                    ;; the original body.
                    (apply (lambda ,args ,@body) ,argssym)))))
-       (funcall ,runrestofhook ,var
+       (funcall ,runrestofhook ,hook
                 ;; The global part of the hook, if any.
-                ,(if (symbolp var)
-                     `(if (local-variable-p ',var)
-                          (default-value ',var)))
+                ,(if (symbolp hook)
+                     `(if (local-variable-p ',hook)
+                          (default-value ',hook)))
                 (list ,@args)))))
 
 (defun add-to-list (list-var element &optional append compare-fn)
@@ -1524,6 +1531,9 @@ if it is empty or a duplicate."
 (make-variable-buffer-local 'delayed-mode-hooks)
 (put 'delay-mode-hooks 'permanent-local t)
 
+(defvar change-major-mode-after-body-hook nil
+  "Normal hook run in major mode functions, before the mode hooks.")
+
 (defvar after-change-major-mode-hook nil
   "Normal hook run at the very end of major mode functions.")
 
@@ -1540,7 +1550,7 @@ FOO-mode-hook."
     ;; Normal case, just run the hook as before plus any delayed hooks.
     (setq hooks (nconc (nreverse delayed-mode-hooks) hooks))
     (setq delayed-mode-hooks nil)
-    (apply 'run-hooks hooks)
+    (apply 'run-hooks (cons 'change-major-mode-after-body-hook hooks))
     (run-hooks 'after-change-major-mode-hook)))
 
 (defmacro delay-mode-hooks (&rest body)
@@ -2253,11 +2263,25 @@ is nil and `use-dialog-box' is non-nil."
   ;; where all the keys were unbound (i.e. it somehow got triggered
   ;; within read-key, apparently).  I had to kill it.
   (let ((answer 'recenter))
-    (if (and (display-popup-menus-p)
-             (listp last-nonmenu-event)
-             use-dialog-box)
-        (setq answer
-              (x-popup-dialog t `(,prompt ("Yes" . act) ("No" . skip))))
+    (cond
+     (noninteractive
+      (setq prompt (concat prompt
+                           (if (eq ?\s (aref prompt (1- (length prompt))))
+                               "" " ")
+                           "(y or n) "))
+      (let ((temp-prompt prompt))
+	(while (not (memq answer '(act skip)))
+	  (let ((str (read-string temp-prompt)))
+	    (cond ((member str '("y" "Y")) (setq answer 'act))
+		  ((member str '("n" "N")) (setq answer 'skip))
+		  (t (setq temp-prompt (concat "Please answer y or n.  "
+					       prompt))))))))
+     ((and (display-popup-menus-p)
+	   (listp last-nonmenu-event)
+	   use-dialog-box)
+      (setq answer
+	    (x-popup-dialog t `(,prompt ("Yes" . act) ("No" . skip)))))
+     (t
       (setq prompt (concat prompt
                            (if (eq ?\s (aref prompt (1- (length prompt))))
                                "" " ")
@@ -2279,7 +2303,7 @@ is nil and `use-dialog-box' is non-nil."
              ((memq answer '(exit-prefix quit)) (signal 'quit nil) t)
              (t t)))
         (ding)
-        (discard-input)))
+        (discard-input))))
     (let ((ret (eq answer 'act)))
       (unless noninteractive
         (message "%s %s" prompt (if ret "y" "n")))

@@ -7,7 +7,6 @@
 ;; URL:         http://www.nongnu.org/newsticker
 ;; Created:     2007
 ;; Keywords:    News, RSS, Atom
-;; Time-stamp:  "13. Mai 2011, 20:56:49 (ulf)"
 ;; Package:     newsticker
 
 ;; ======================================================================
@@ -1193,7 +1192,8 @@ Arguments IGNORE are ignored."
 Note: does not update the layout."
   (interactive)
   (let ((cur-item (newsticker--treeview-get-selected-item)))
-    (newsticker--group-manage-orphan-feeds)
+    (if (newsticker--group-manage-orphan-feeds)
+      (newsticker--treeview-tree-update))
     (newsticker--treeview-list-update t)
     (newsticker--treeview-item-update)
     (newsticker--treeview-tree-update-tags)
@@ -1811,7 +1811,8 @@ Update teeview afterwards unless NO-UPDATE is non-nil."
 
 (defun newsticker--group-manage-orphan-feeds ()
   "Put unmanaged feeds into `newsticker-groups'.
-Remove obsolete feeds as well."
+Remove obsolete feeds as well.
+Return t if groups have changed, nil otherwise."
   (unless newsticker-groups
     (setq newsticker-groups '("Feeds")))
   (let ((new-feed nil)
@@ -1823,10 +1824,9 @@ Remove obsolete feeds as well."
           (append newsticker-url-list-defaults newsticker-url-list))
     (setq newsticker-groups
           (newsticker--group-remove-obsolete-feeds newsticker-groups))
-    (if (or new-feed
-            (not (= grouped-feeds
-                    (newsticker--count-grouped-feeds newsticker-groups))))
-        (newsticker--treeview-tree-update))))
+    (or new-feed
+        (not (= grouped-feeds
+                (newsticker--count-grouped-feeds newsticker-groups))))))
 
 ;; ======================================================================
 ;;; Modes
@@ -2018,10 +2018,10 @@ POS gives the position where EVENT occurred."
   (setq newsticker--treeview-windows nil)
   (setq newsticker--treeview-buffers nil)
   (delete-other-windows)
-  (split-window-horizontally newsticker-treeview-treewindow-width)
+  (split-window-right newsticker-treeview-treewindow-width)
   (add-to-list 'newsticker--treeview-windows (selected-window) t)
   (other-window 1)
-  (split-window-vertically newsticker-treeview-listwindow-height)
+  (split-window-below newsticker-treeview-listwindow-height)
   (add-to-list 'newsticker--treeview-windows (selected-window) t)
   (other-window 1)
   (add-to-list 'newsticker--treeview-windows (selected-window) t)
@@ -2036,7 +2036,8 @@ POS gives the position where EVENT occurred."
   (newsticker--treeview-frame-init)
   (newsticker--treeview-window-init)
   (newsticker--treeview-buffer-init)
-  (newsticker--group-manage-orphan-feeds)
+  (if (newsticker--group-manage-orphan-feeds)
+      (newsticker--treeview-tree-update))
   (newsticker--treeview-set-current-node newsticker--treeview-feed-tree)
   (newsticker-start t) ;; will start only if not running
   (newsticker-treeview-update)

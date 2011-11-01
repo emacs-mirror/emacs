@@ -1340,11 +1340,9 @@ this variable represents.")
 		    ovr-list))))))))
 
 
-(defvar ediff-toggle-read-only-function nil
-  "*Specifies the function to be used to toggle read-only.
-If nil, Ediff tries to deduce the function from the binding of C-x C-q.
-Normally, this is the `toggle-read-only' function, but, if version
-control is used, it could be `vc-toggle-read-only' or `rcs-toggle-read-only'.")
+(defvar ediff-toggle-read-only-function 'toggle-read-only
+  "Function to be used to toggle read-only status of the buffer.
+If nil, Ediff tries using the command bound to C-x C-q.")
 
 (defcustom ediff-make-buffers-readonly-at-startup nil
   "Make all variant buffers read-only when Ediff starts up.

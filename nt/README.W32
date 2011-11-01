@@ -50,6 +50,17 @@ See the end of the file for license conditions.
   directly from a CD or USB flash drive without copying or installing
   anything on the machine itself.
 
+* Prerequisites for Windows 9X
+
+  To run Emacs on Windows 9X (Windows 95/98/Me), you will need to have
+  the Microsoft Layer for Unicode (MSLU) installed.  It can be
+  downloaded from the Microsoft site, and comes in a form of a single
+  dynamic library called UNICOWS.DLL.  If this library is not
+  accessible to Emacs, it will pop up a dialog saying that it cannot
+  find the library, and will refuse to start up a GUI session.
+  (However, it is still possible to use Emacs in text mode, even
+  without UNICOWS.DLL, by invoking it as "emacs -nw", see below.)
+
 * Starting Emacs
 
   To run Emacs, simply select Emacs from the Start Menu, or invoke
@@ -75,7 +86,9 @@ See the end of the file for license conditions.
     it will pop up a command prompt window if run directly from Explorer.
 
   + runemacs.exe - A wrapper for running Emacs as a GUI application
-    without popping up a command prompt window.
+    without popping up a command prompt window.  If you create a
+    desktop shortcut for invoking Emacs, make it point to this
+    executable, not to emacs.exe.
 
   + emacsclient.exe - A command-line client program that can
     communicate with a running Emacs process.  See the `Emacs Server'
@@ -98,7 +111,7 @@ See the end of the file for license conditions.
 
   + ddeclient.exe - A tool for interacting with DDE servers.
 
-  + hexl.exe - A tool for converting files to hex dumps.  See the
+  + hexl.exe - A tool for producing hex dumps of binary files.  See the
     `Editing Binary Files' node of the Emacs manual.
 
   + movemail.exe - A helper application for safely moving mail from
@@ -193,6 +206,10 @@ See the end of the file for license conditions.
       there should be a file lisp\abbrevlist.elc; if this has been
       truncated to abbrevli.elc, your distribution has been corrupted
       while unpacking and Emacs will not start.
+
+    * On Windows 9X, make sure you have the UNICOWS.DLL library either
+      in the same directory where you have emacs.exe or in the
+      directory where system-wide DLLs are kept.
 
   If you believe you have unpacked the distributions correctly and are
   still encountering problems, see the section on Further Information

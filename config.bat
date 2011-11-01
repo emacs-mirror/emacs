@@ -156,9 +156,11 @@ rm -f epaths.tmp
 
 rem   Create "config.h"
 rm -f config.h2 config.tmp
-sed -e '' ../autogen/config.in > config.tmp
+if exist config.in sed -e '' config.in > config.tmp
+if exist ..\autogen\config.in sed -e '' ../autogen/config.in > config.tmp
 if "%X11%" == "" goto src4
-sed -f ../msdos/sed2x.inp < ..\autogen\config.in > config.tmp
+if exist config.in sed -f ../msdos/sed2x.inp < config.in > config.tmp
+if exist ..\autogen\config.in sed -f ../msdos/sed2x.inp < ..\autogen\config.in > config.tmp
 :src4
 sed -f ../msdos/sed2v2.inp <config.tmp >config.h2
 Rem See if DECL_ALIGN can be supported with this GCC
@@ -290,7 +292,8 @@ If Exist stdlib.in.h update stdlib.in.h stdlib.in-h
 If Exist sys_stat.in.h update sys_stat.in.h sys_stat.in-h
 If Exist time.in.h update time.in.h time.in-h
 If Exist unistd.in.h update unistd.in.h unistd.in-h
-sed -f ../msdos/sedlibcf.inp < ..\autogen\Makefile.in > makefile.tmp
+If Exist Makefile.in sed -f ../msdos/sedlibcf.inp < Makefile.in > makefile.tmp
+If Exist ..\autogen\Makefile.in sed -f ../msdos/sedlibcf.inp < ..\autogen\Makefile.in > makefile.tmp
 sed -f ../msdos/sedlibmk.inp < makefile.tmp > Makefile
 rm -f makefile.tmp
 Rem Create .Po files for new files in lib/

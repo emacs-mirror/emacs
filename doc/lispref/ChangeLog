@@ -1,3 +1,12 @@
+2011-10-30  Martin Rudalics  <rudalics@gmx.at>
+
+	* windows.texi (Windows and Frames): Remove "iso-" infix from
+	documentation of window-iso-combined-p.
+
+2011-10-26  Chong Yidong  <cyd@gnu.org>
+
+	* modes.texi (Running Hooks): Document with-wrapper-hook.
+
 2011-10-18  Chong Yidong  <cyd@gnu.org>
 
 	* display.texi (Glyphless Chars): New node.

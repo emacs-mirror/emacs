@@ -1994,6 +1994,9 @@ definitions to shadow the loaded ones for use in file byte-compilation."
       "Return the value of symbol VAR if it is bound, else nil."
       `(and (boundp (quote ,var)) ,var))))
 
+(defun gnus-bound-and-true-dumber-p (sym)
+  (and (boundp sym) (symbol-value sym)))
+
 (provide 'gnus-util)
 
 ;;; gnus-util.el ends here

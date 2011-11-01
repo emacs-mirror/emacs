@@ -720,7 +720,7 @@ See the documentation for `calculator-mode' for more information."
            ;; maybe leave two lines for our window because of the normal
            ;; `raised' modeline in Emacs 21
            (select-window
-            (split-window-vertically
+            (split-window-below
              ;; If the modeline might interfere with the calculator buffer,
              ;; use 3 lines instead.
              (if (and (fboundp 'face-attr-construct)

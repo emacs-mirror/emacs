@@ -85,6 +85,7 @@
 (define-obsolete-function-alias 'w32-select-font 'x-select-font "23.1")
 
 (defvar w32-color-map) ;; defined in w32fns.c
+(make-obsolete 'w32-default-color-map nil "24.1")
 
 (declare-function w32-send-sys-command "w32fns.c")
 (declare-function set-message-beep "w32console.c")

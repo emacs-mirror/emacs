@@ -219,11 +219,11 @@ is sometimes available in ordinary buffers too.  @xref{Symbol
 Completion}.
 
 @menu
-* Example: Completion Example.    Examples of using completion.
-* Commands: Completion Commands.  A list of completion commands.
-* Strict Completion::             Different types of completion.
-* Completion Styles::             How completion matches are chosen.
-* Options: Completion Options.    Options for completion.
+* Completion Example::       Examples of using completion.
+* Completion Commands::      A list of completion commands.
+* Completion Exit::          Completion and minibuffer text submission.
+* Completion Styles::        How completion matches are chosen.
+* Completion Options::       Options for completion.
 @end menu
 
 @node Completion Example
@@ -274,7 +274,7 @@ Complete up to one word from the minibuffer text before point
 arguments that often include spaces, such as file names.
 @item @key{RET}
 Submit the text in the minibuffer as the argument, possibly completing
-first (@code{minibuffer-complete-and-exit}).  @xref{Strict Completion}.
+first (@code{minibuffer-complete-and-exit}).  @xref{Completion Exit}.
 @item ?
 Display a list of completions (@code{minibuffer-completion-help}).
 @end table
@@ -337,42 +337,68 @@ While in the completion list buffer, this moves point to the previous
 completion alternative (@code{previous-completion}).
 @end table
 
-@node Strict Completion
-@subsection Strict Completion
+@node Completion Exit
+@subsection Completion Exit
 
-  There are three ways that the @key{RET}
-(@code{minibuffer-complete-and-exit}) completion command can act,
-depending on how the argument will be used.
+@kindex RET @r{(completion in minibuffer)}
+@findex minibuffer-complete-and-exit
+  When a command reads an argument using the minibuffer with
+completion, it also controls what happens when you type @key{RET}
+(@code{minibuffer-complete-and-exit}) to submit the argument.  There
+are four types of behavior:
 
 @itemize @bullet
 @item
-@dfn{Strict} completion accepts only known completion candidates.  For
-example, when @kbd{C-x k} reads the name of a buffer to kill, only the
-name of an existing buffer makes sense.  In strict completion,
-@key{RET} refuses to exit if the text in the minibuffer does not
-complete to an exact match.
+@dfn{Strict completion} accepts only exact completion matches.  Typing
+@key{RET} exits the minibuffer only if the minibuffer text is an exact
+match, or completes to one.  Otherwise, Emacs refuses to exit the
+minibuffer; instead it tries to complete, and if no completion can be
+done it momentarily displays @samp{[No match]} after the minibuffer
+text.  (You can still leave the minibuffer by typing @kbd{C-g} to
+cancel the command.)
+
+An example of a command that uses this behavior is @kbd{M-x}, since it
+is meaningless for it to accept a non-existent command name.
 
 @item
-@dfn{Cautious} completion is similar to strict completion, except that
-@key{RET} exits only if the text is an already exact match.
-Otherwise, @key{RET} does not exit, but it does complete the text.  If
-that completes to an exact match, a second @key{RET} will exit.
+@dfn{Cautious completion} is like strict completion, except @key{RET}
+exits only if the text is already an exact match.  If the text
+completes to an exact match, @key{RET} performs that completion but
+does not exit yet; you must type a second @key{RET} to exit.
 
 Cautious completion is used for reading file names for files that must
 already exist, for example.
 
 @item
-@dfn{Permissive} completion allows any input; the completion
-candidates are just suggestions.  For example, when @kbd{C-x C-f}
-reads the name of a file to visit, any file name is allowed, including
-nonexistent file (in case you want to create a file).  In permissive
-completion, @key{RET} does not complete, it just submits the argument
-as you have entered it.
-@end itemize
+@dfn{Permissive completion} allows any input; the completion
+candidates are just suggestions.  Typing @key{RET} does not complete,
+it just submits the argument as you have entered it.
 
-  Like the other completion commands, @key{RET} displays a list of all
-possible completions whenever it is supposed to complete but is unable
-to complete any further.
+@cindex minibuffer confirmation
+@cindex confirming in the minibuffer
+@item
+@dfn{Permissive completion with confirmation} is like permissive
+completion, with an exception: if you typed @key{TAB} and this
+completed the text up to some intermediate state (i.e. one that is not
+yet an exact completion match), typing @key{RET} right afterward does
+not submit the argument.  Instead, Emacs asks for confirmation by
+momentarily displaying @samp{[Confirm]} after the text; type @key{RET}
+again to confirm and submit the text.  This catches a common mistake,
+in which one types @key{RET} before realizing that @key{TAB} did not
+complete as far as desired.
+
+@vindex confirm-nonexistent-file-or-buffer
+You can tweak the confirmation behavior by customizing the variable
+@code{confirm-nonexistent-file-or-buffer}.  The default value,
+@code{after-completion}, gives the behavior we have just described.
+If you change it to @code{nil}, Emacs does not ask for confirmation,
+falling back on permissive completion.  If you change it to any other
+non-@code{nil} value, Emacs asks for confirmation whether or not the
+preceding command was @key{TAB}.
+
+This behavior is used by most commands that read file names, like
+@kbd{C-x C-f}, and commands that read buffer names, like @kbd{C-x b}.
+@end itemize
 
 @node Completion Styles
 @subsection How Completion Alternatives Are Chosen

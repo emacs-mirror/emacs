@@ -1242,11 +1242,12 @@ coding system, the result should be readable.
 @node Rmail Editing
 @section Editing Within a Message
 
-  Most of the usual Emacs keybindings are available in Rmail mode, though a
-few, such as @kbd{C-M-n} and @kbd{C-M-h}, are redefined by Rmail for
-other purposes.  However, the Rmail buffer is normally read only, and
-most of the letters are redefined as Rmail commands.  If you want to
-edit the text of a message, you must use the Rmail command @kbd{e}.
+  Most of the usual Emacs key bindings are available in Rmail mode,
+though a few, such as @kbd{C-M-n} and @kbd{C-M-h}, are redefined by
+Rmail for other purposes.  However, the Rmail buffer is normally read
+only, and most of the letters are redefined as Rmail commands.  If you
+want to edit the text of a message, you must use the Rmail command
+@kbd{e}.
 
 @table @kbd
 @item e

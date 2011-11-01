@@ -1179,16 +1179,6 @@ See also `ede-map-subprojects'."
 Return the first non-nil value returned by PROC."
   (eval (cons 'or (ede-map-targets this proc))))
 
-;;; VC Handling
-;;
-(defun ede-maybe-checkout (&optional buffer)
-  "Check BUFFER out of VC if necessary."
-  (save-excursion
-    (if buffer (set-buffer buffer))
-    (if (and buffer-read-only vc-mode
-	     (y-or-n-p "Checkout Makefile.am from VC? "))
-	(vc-toggle-read-only))))
-
 
 ;;; Some language specific methods.
 ;;

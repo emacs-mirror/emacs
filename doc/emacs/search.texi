@@ -268,8 +268,8 @@ use it (@pxref{Rebinding}).
 
 @vindex isearch-mode-map
   When incremental search is active, you can type @kbd{C-h C-h} to
-access interactive help options, including a list of special
-keybindings.  These keybindings are part of the keymap
+access interactive help options, including a list of special key
+bindings.  These key bindings are part of the keymap
 @code{isearch-mode-map} (@pxref{Keymaps}).
 
 @node Isearch Yank
@@ -371,7 +371,7 @@ wrap around, going from the last page to the first page or vice versa.
 When the current match is on a history element, that history element
 is pulled into the minibuffer.  If you exit the incremental search
 normally (e.g. by typing @key{RET}), it remains in the minibuffer
-afterwards.  Cancelling the search, with @kbd{C-g}, restores the
+afterwards.  Canceling the search, with @kbd{C-g}, restores the
 contents of the minibuffer when you began the search.
 
 @node Nonincremental Search

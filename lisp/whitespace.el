@@ -5,7 +5,7 @@
 ;; Author: Vinicius Jose Latorre <viniciusjl@ig.com.br>
 ;; Maintainer: Vinicius Jose Latorre <viniciusjl@ig.com.br>
 ;; Keywords: data, wp
-;; Version: 13.2.1
+;; Version: 13.2.2
 ;; X-URL: http://www.emacswiki.org/cgi-bin/wiki/ViniciusJoseLatorre
 
 ;; This file is part of GNU Emacs.
@@ -1103,9 +1103,10 @@ See also `whitespace-newline' and `whitespace-display-mappings'."
   :global     nil
   :group      'whitespace
   (let ((whitespace-style '(face newline-mark newline)))
-    (whitespace-mode (if whitespace-newline-mode 1 -1))
-    ;; Sync states (running a batch job).
-    (setq whitespace-newline-mode whitespace-mode)))
+    (whitespace-mode (if whitespace-newline-mode
+			 1 -1)))
+  ;; sync states (running a batch job)
+  (setq whitespace-newline-mode whitespace-mode))
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -2407,8 +2408,8 @@ resultant list will be returned."
   "Match trailing spaces which do not contain the point at end of line."
   (let ((status t))
     (while (if (re-search-forward whitespace-trailing-regexp limit t)
-               (= whitespace-point (match-end 1)) ;; Loop if point at eol.
-	     (setq status nil)))                  ;; End of buffer.
+	       (= whitespace-point (match-end 1)) ;; loop if point at eol
+	     (setq status nil)))		  ;; end of buffer
     status))
 
 

@@ -1594,17 +1594,14 @@ and gid of the corresponding user is taken.  Both parameters must be integers."
 
 (defun tramp-sh-handle-file-directory-p (filename)
   "Like `file-directory-p' for Tramp files."
-  ;; Care must be taken that this function returns `t' for symlinks
-  ;; pointing to directories.  Surely the most obvious implementation
-  ;; would be `test -d', but that returns false for such symlinks.
-  ;; CCC: Stefan Monnier says that `test -d' follows symlinks.  And
-  ;; I now think he's right.  So we could be using `test -d', couldn't
-  ;; we?
-  ;;
-  ;; Alternatives: `cd %s', `test -d %s'
   (with-parsed-tramp-file-name filename nil
-    (with-file-property v localname "file-directory-p"
-      (tramp-run-test "-d" filename))))
+    ;; `file-directory-p' is used as predicate for filename completion.
+    ;; Sometimes, when a connection is not established yet, it is
+    ;; desirable to return t immediately for "/method:foo:".  It can
+    ;; be expected that this is always a directory.
+    (or (zerop (length localname))
+	(with-file-property v localname "file-directory-p"
+	  (tramp-run-test "-d" filename)))))
 
 (defun tramp-sh-handle-file-writable-p (filename)
   "Like `file-writable-p' for Tramp files."

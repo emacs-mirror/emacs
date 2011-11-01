@@ -343,8 +343,8 @@ details.
 additionally select the displaying window so that you can begin
 editing its buffer.  The command @kbd{C-x `} (@code{next-error}) is
 one example (@pxref{Compilation Mode}).  Such commands work by calling
-@code{pop-to-buffer} internally.  @xref{Displaying Buffers,,Displaying
-Buffers in Windows, elisp, The Emacs Lisp Reference Manual}.
+@code{pop-to-buffer} internally.  @xref{Switching Buffers,,Switching
+to a Buffer in a Window, elisp, The Emacs Lisp Reference Manual}.
 
   Commands with names ending in @code{-other-window} behave like
 @code{display-buffer}, except that they never display in the selected

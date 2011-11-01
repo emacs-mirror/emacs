@@ -979,6 +979,7 @@ This number is independent of the number of lines in the buffer.")
   (set (make-local-variable 'rcirc-recent-quit-alist) nil)
   (set (make-local-variable 'rcirc-current-line) 0)
 
+  (use-hard-newlines t)
   (set (make-local-variable 'rcirc-short-buffer-name) nil)
   (set (make-local-variable 'rcirc-urls) nil)
 

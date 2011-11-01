@@ -553,7 +553,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
 	<key>CFBundleExecutable</key>
 	<string>Emacs</string>
 	<key>CFBundleGetInfoString</key>
-	<string>Emacs 24.0.90 Copyright (C) 2011 Free Software Foundation, Inc.</string>
+	<string>Emacs 24.0.91 Copyright (C) 2011 Free Software Foundation, Inc.</string>
 	<key>CFBundleIconFile</key>
 	<string>Emacs.icns</string>
 	<key>CFBundleIdentifier</key>
@@ -566,7 +566,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
 	<string>APPL</string>
 	<!-- This should be the emacs version number. -->
 	<key>CFBundleShortVersionString</key>
-	<string>24.0.90</string>
+	<string>24.0.91</string>
 	<key>CFBundleSignature</key>
 	<string>EMAx</string>
 	<!-- This SHOULD be a build number. -->

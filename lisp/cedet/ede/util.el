@@ -87,12 +87,7 @@ their sources to VERSION."
 If BUFFER isn't specified, use the current buffer."
   (save-excursion
     (if buffer (set-buffer buffer))
-    (if buffer-read-only
-	(if (and vc-mode
-		 (y-or-n-p (format "Check out %s? " (buffer-file-name))))
-	    (vc-toggle-read-only)
-	  (if (not vc-mode)
-	      (toggle-read-only -1))))))
+    (toggle-read-only -1)))
 
 (provide 'ede/util)
 

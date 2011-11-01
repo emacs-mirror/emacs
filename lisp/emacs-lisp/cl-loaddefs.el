@@ -10,7 +10,7 @@
 ;;;;;;  ceiling* floor* isqrt lcm gcd cl-progv-before cl-set-frame-visible-p
 ;;;;;;  cl-map-overlays cl-map-intervals cl-map-keymap-recursively
 ;;;;;;  notevery notany every some mapcon mapcan mapl maplist map
-;;;;;;  cl-mapcar-many equalp coerce) "cl-extra" "cl-extra.el" "26339d9571f9485bf34fa6d2ae38fc84")
+;;;;;;  cl-mapcar-many equalp coerce) "cl-extra" "cl-extra.el" "15a5e127e1c9c9c3d1f398963b66cde7")
 ;;; Generated autoloads from cl-extra.el
 
 (autoload 'coerce "cl-extra" "\
@@ -28,7 +28,7 @@ strings case-insensitively.
 \(fn X Y)" nil nil)
 
 (autoload 'cl-mapcar-many "cl-extra" "\
-Not documented
+
 
 \(fn CL-FUNC CL-SEQS)" nil nil)
 
@@ -84,27 +84,27 @@ Return true if PREDICATE is false of some element of SEQ or SEQs.
 (defalias 'cl-map-keymap 'map-keymap)
 
 (autoload 'cl-map-keymap-recursively "cl-extra" "\
-Not documented
+
 
 \(fn CL-FUNC-REC CL-MAP &optional CL-BASE)" nil nil)
 
 (autoload 'cl-map-intervals "cl-extra" "\
-Not documented
+
 
 \(fn CL-FUNC &optional CL-WHAT CL-PROP CL-START CL-END)" nil nil)
 
 (autoload 'cl-map-overlays "cl-extra" "\
-Not documented
+
 
 \(fn CL-FUNC &optional CL-BUFFER CL-START CL-END CL-ARG)" nil nil)
 
 (autoload 'cl-set-frame-visible-p "cl-extra" "\
-Not documented
+
 
 \(fn FRAME VAL)" nil nil)
 
 (autoload 'cl-progv-before "cl-extra" "\
-Not documented
+
 
 \(fn SYMS VALUES)" nil nil)
 
@@ -180,7 +180,11 @@ Return t if OBJECT is a random-state object.
 \(fn OBJECT)" nil nil)
 
 (autoload 'cl-float-limits "cl-extra" "\
-Not documented
+Initialize the Common Lisp floating-point parameters.
+This sets the values of: `most-positive-float', `most-negative-float',
+`least-positive-float', `least-negative-float', `float-epsilon',
+`float-negative-epsilon', `least-positive-normalized-float', and
+`least-negative-normalized-float'.
 
 \(fn)" nil nil)
 
@@ -228,12 +232,12 @@ PROPLIST is a list of the sort returned by `symbol-plist'.
 \(fn PROPLIST PROPNAME &optional DEFAULT)" nil nil)
 
 (autoload 'cl-set-getf "cl-extra" "\
-Not documented
+
 
 \(fn PLIST TAG VAL)" nil nil)
 
 (autoload 'cl-do-remf "cl-extra" "\
-Not documented
+
 
 \(fn PLIST TAG)" nil nil)
 
@@ -267,7 +271,7 @@ This also does some trivial optimizations to make the form prettier.
 \(fn FORM &optional ENV)" nil nil)
 
 (autoload 'cl-prettyexpand "cl-extra" "\
-Not documented
+
 
 \(fn FORM &optional FULL)" nil nil)
 

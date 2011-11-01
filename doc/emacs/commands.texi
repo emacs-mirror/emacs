@@ -46,7 +46,7 @@ are certain characters found on non-English keyboards
 @cindex M-
   Emacs also recognizes control characters that are entered using
 @dfn{modifier keys}.  Two commonly-used modifier keys are
-@key{Control} (usually labelled @key{Ctrl}), and @key{Meta} (usually
+@key{Control} (usually labeled @key{Ctrl}), and @key{Meta} (usually
 labeled @key{Alt})@footnote{We refer to @key{Alt} as @key{Meta} for
 historical reasons.}.  For example, @kbd{Control-a} is entered by
 holding down the @key{Ctrl} key while pressing @kbd{a}; we will refer
