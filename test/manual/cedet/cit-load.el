@@ -37,10 +37,6 @@
 
 (setq inhibit-splash-screen t)
 
-;; Fix bug in Emacs 21
-(when (< emacs-major-version 22)
-  (require 'semantic-c))
-
 ;; Disables all caches related to semantic DB so all
 ;; tests run as if we have bootstrapped CEDET for the
 ;; first time.
