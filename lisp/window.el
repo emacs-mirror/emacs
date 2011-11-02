@@ -5024,7 +5024,7 @@ nil, BUFFER-OR-NAME may be displayed in another window.
 
 Return the buffer switched to."
   (interactive
-   (list (read-buffer-to-switch "Switch to buffer: ") nil nil))
+   (list (read-buffer-to-switch "Switch to buffer: ") nil 'force-same-window))
   (let ((buffer (window-normalize-buffer-to-switch-to buffer-or-name)))
     (if (null force-same-window)
 	(pop-to-buffer buffer display-buffer--same-window-action norecord)

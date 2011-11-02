@@ -1,9 +1,12 @@
+2011-11-02  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* window.el (switch-to-buffer): Use `force-same-window' interactively.
+
 2011-11-02  Martin Rudalics  <rudalics@gmx.at>
 
 	* window.el (quit-window): Call unrecord-window-buffer after
 	showing another buffer in the window.  (Bug#9937)
-	(bury-buffer): Call switch-to-prev-buffer with second argument
-	'bury.
+	(bury-buffer): Call switch-to-prev-buffer with second argument `bury'.
 
 2011-11-02  Juanma Barranquero  <lekktu@gmail.com>
 
@@ -38,8 +41,8 @@
 2011-10-30  Martin Rudalics  <rudalics@gmx.at>
 
 	* window.el (window-iso-combination-p, window-iso-combined-p)
-	(window-iso-combinations): Remove "iso-" infix.  Suggested by
-	Chong Yidong.
+	(window-iso-combinations): Remove "iso-" infix.
+	Suggested by Chong Yidong.
 	(window-min-size-1, window-size-fixed-1, window-min-delta-1)
 	(window-max-delta-1, window-resize, window--resize-siblings)
 	(window--resize-this-window, adjust-window-trailing-edge)
@@ -139,8 +142,7 @@
 	Prevent "class foo : bar" being spuriously recognized as a label.
 
 	* progmodes/cc-cmds.el (c-narrow-to-most-enclosing-decl-block):
-	Add parameter `inclusive' (to include enclosing braces in the
-	region).
+	Add parameter `inclusive' (to include enclosing braces in the region).
 	(c-widen-to-enclosing-decl-scope): New function.
 	(c-while-widening-to-decl-block): New macro.
 	(c-beginning-of-defun, c-end-of-defun): Change algorithm to keep going
@@ -161,7 +163,7 @@
 	* progmodes/cc-defs.el: Update "virtual semicolon" comments.
 
 	* progmodes/cc-engine.el (c-crosses-statement-barrier-p):
-	Recoded to scan one line at at time rather than having \n and \r
+	Recode to scan one line at at time rather than having \n and \r
 	explicitly in c-stmt-delim-chars
 	(for some modes, e.g. AWK).
 	(c-forward-label): Amend for virtual semicolons.
@@ -171,8 +173,8 @@
 	of the new C macros.
 
 	* progmodes/cc-langs.el (c-at-vsemi-p-fn):
-	(c-vsemi-status-unknown-p-fn): move to earlier in the file.
-	(c-opt-cpp-symbol, c-line-comment-start-regexp): New language variables.
+	(c-vsemi-status-unknown-p-fn): Move to earlier in the file.
+	(c-opt-cpp-symbol, c-line-comment-start-regexp): New language vars.
 	(c-opt-cpp-macro-define): Make into a full language variable.
 	(c-stmt-delim-chars, c-stmt-delim-chars-with-comma): Special value for
 	AWK Mode (including \n, \r) removed, no longer needed.
@@ -232,7 +234,7 @@
 
 2011-10-26  Juanma Barranquero  <lekktu@gmail.com>
 
-	* term/w32-win.el (w32-default-color-map): Declare obsolete.  (Bug#9785)
+	* term/w32-win.el (w32-default-color-map): Declare obsolete (Bug#9785).
 
 2011-10-26  Michael Albinus  <michael.albinus@gmx.de>
 
@@ -280,7 +282,8 @@
 
 2011-10-24  Stefan Monnier  <monnier@iro.umontreal.ca>
 
-	* progmodes/octave-inf.el (inferior-octave-mode-map): Fix C-c C-h binding.
+	* progmodes/octave-inf.el (inferior-octave-mode-map):
+	Fix C-c C-h binding.
 	* progmodes/octave-mod.el (octave-help): Remove.
 
 2011-10-23  Michael Albinus  <michael.albinus@gmx.de>
