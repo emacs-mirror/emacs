@@ -1,3 +1,14 @@
+2011-11-02  Juanma Barranquero  <lekktu@gmail.com>
+
+	* vc/vc-bzr.el (vc-bzr-state, vc-bzr-after-dir-status):
+	Accept status with more than 9 shelves.  (Bug#9935)
+	Reported by Colin D Bennett <colin@gibibit.com>.
+
+2011-11-01  Martin Rudalics  <rudalics@gmx.at>
+
+	* help.el (with-help-window): Don't reference
+	temp-buffer-show-specifiers in doc-string.
+
 2011-10-31  Andreas Schwab  <schwab@linux-m68k.org>
 
 	* subr.el (keymap--menu-item-with-binding): Ignore item if not a
@@ -14,8 +25,8 @@
 	* net/newst-treeview.el: Remove "Time-stamp".
 	(newsticker--group-manage-orphan-feeds): Do not call
 	newsticker--treeview-tree-update.
-	(newsticker-treeview-update, newsticker-treeview): Call
-	newsticker--treeview-tree-update if necessary.
+	(newsticker-treeview-update, newsticker-treeview):
+	Call newsticker--treeview-tree-update if necessary.
 
 2011-10-30  Martin Rudalics  <rudalics@gmx.at>
 
@@ -28,8 +39,7 @@
 	(split-window, balance-windows-1)
 	(shrink-window-if-larger-than-buffer):
 	* calendar/calendar.el (calendar-generate-window):
-	* help.el (resize-temp-buffer-window): Adjust callers
-	accordingly.
+	* help.el (resize-temp-buffer-window): Adjust callers accordingly.
 
 2011-10-30  Stefan Monnier  <monnier@iro.umontreal.ca>
 
@@ -104,7 +114,7 @@
 
 2011-10-28  Alan Mackenzie  <acm@muc.de>
 
-	* progmodes/cc-defs.el (c-version).  -> 5.32.2.
+	* progmodes/cc-defs.el (c-version): -> 5.32.2.
 
 2011-10-28  Alan Mackenzie  <acm@muc.de>
 
@@ -292,7 +302,7 @@
 	Fix bug #9560, sporadic wrong indentation; improve instrumentation
 	of c-parse-state.
 
-	* cc-engine.el (c-append-lower-brace-pair-to-state-cache):
+	* progmodes/cc-engine.el (c-append-lower-brace-pair-to-state-cache):
 	correct faulty logical expression.
 	(c-parse-state-state, c-record-parse-state-state):
 	(c-replay-parse-state-state): New defvar/defuns.
@@ -334,7 +344,7 @@
 
 2011-10-20  Glenn Morris  <rgm@gnu.org>
 
-	* vc/vc.el (vc-next-action): Handle removed directories. (Bug#9781)
+	* vc/vc.el (vc-next-action): Handle removed directories.  (Bug#9781)
 
 2011-10-20  Christoph Scholtes  <cschol2112@googlemail.com>
 

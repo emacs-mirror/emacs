@@ -992,8 +992,8 @@ specific headers."
   (let ((def-dir default-directory)
 	(backend vc-dir-backend))
     (vc-set-mode-line-busy-indicator)
-    ;; Call the `dir-status-file' backend function.
-    ;; `dir-status-file' is supposed to be asynchronous.
+    ;; Call the `dir-status-files' backend function.
+    ;; `dir-status-files' is supposed to be asynchronous.
     ;; It should compute the results, and then call the function
     ;; passed as an argument in order to update the vc-dir buffer
     ;; with the results.

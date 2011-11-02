@@ -25813,7 +25813,7 @@ rows_from_pos_range (struct window *w,
    for the overlay or run of text properties specifying the mouse
    face.  BEFORE_STRING and AFTER_STRING, if non-nil, are a
    before-string and after-string that must also be highlighted.
-   COVER_STRING, if non-nil, is a display string that may cover some
+   DISP_STRING, if non-nil, is a display string that may cover some
    or all of the highlighted text.  */
 
 static void
@@ -25824,7 +25824,7 @@ mouse_face_from_buffer_pos (Lisp_Object window,
 			    ptrdiff_t end_charpos,
 			    Lisp_Object before_string,
 			    Lisp_Object after_string,
-			    Lisp_Object cover_string)
+			    Lisp_Object disp_string)
 {
   struct window *w = XWINDOW (window);
   struct glyph_row *first = MATRIX_FIRST_TEXT_ROW (w->current_matrix);
@@ -25833,7 +25833,7 @@ mouse_face_from_buffer_pos (Lisp_Object window,
   ptrdiff_t ignore, pos;
   int x;
 
-  xassert (NILP (cover_string) || STRINGP (cover_string));
+  xassert (NILP (disp_string) || STRINGP (disp_string));
   xassert (NILP (before_string) || STRINGP (before_string));
   xassert (NILP (after_string) || STRINGP (after_string));
 
@@ -25843,7 +25843,7 @@ mouse_face_from_buffer_pos (Lisp_Object window,
     r1 = MATRIX_ROW (w->current_matrix, XFASTINT (w->window_end_vpos));
   /* If the before-string or display-string contains newlines,
      rows_from_pos_range skips to its last row.  Move back.  */
-  if (!NILP (before_string) || !NILP (cover_string))
+  if (!NILP (before_string) || !NILP (disp_string))
     {
       struct glyph_row *prev;
       while ((prev = r1 - 1, prev >= first)
@@ -25855,7 +25855,7 @@ mouse_face_from_buffer_pos (Lisp_Object window,
 	  while (--glyph >= beg && INTEGERP (glyph->object));
 	  if (glyph < beg
 	      || !(EQ (glyph->object, before_string)
-		   || EQ (glyph->object, cover_string)))
+		   || EQ (glyph->object, disp_string)))
 	    break;
 	  r1 = prev;
 	}
@@ -25880,10 +25880,10 @@ mouse_face_from_buffer_pos (Lisp_Object window,
 	r2 = next;
     }
   /* The rest of the display engine assumes that mouse_face_beg_row is
-     either above below mouse_face_end_row or identical to it.  But
-     with bidi-reordered continued lines, the row for START_CHARPOS
-     could be below the row for END_CHARPOS.  If so, swap the rows and
-     store them in correct order.  */
+     either above mouse_face_end_row or identical to it.  But with
+     bidi-reordered continued lines, the row for START_CHARPOS could
+     be below the row for END_CHARPOS.  If so, swap the rows and store
+     them in correct order.  */
   if (r1->y > r2->y)
     {
       struct glyph_row *tem = r2;
@@ -25898,7 +25898,7 @@ mouse_face_from_buffer_pos (Lisp_Object window,
   hlinfo->mouse_face_end_row = MATRIX_ROW_VPOS (r2, w->current_matrix);
 
   /* For a bidi-reordered row, the positions of BEFORE_STRING,
-     AFTER_STRING, COVER_STRING, START_CHARPOS, and END_CHARPOS
+     AFTER_STRING, DISP_STRING, START_CHARPOS, and END_CHARPOS
      could be anywhere in the row and in any order.  The strategy
      below is to find the leftmost and the rightmost glyph that
      belongs to either of these 3 strings, or whose position is
@@ -25924,11 +25924,11 @@ mouse_face_from_buffer_pos (Lisp_Object window,
 	  x += glyph->pixel_width;
 
       /* Scan the glyph row, looking for BEFORE_STRING, AFTER_STRING,
-	 or COVER_STRING, and the first glyph from buffer whose
+	 or DISP_STRING, and the first glyph from buffer whose
 	 position is between START_CHARPOS and END_CHARPOS.  */
       for (; glyph < end
 	     && !INTEGERP (glyph->object)
-	     && !EQ (glyph->object, cover_string)
+	     && !EQ (glyph->object, disp_string)
 	     && !(BUFFERP (glyph->object)
 		  && (glyph->charpos >= start_charpos
 		      && glyph->charpos < end_charpos));
@@ -25975,11 +25975,11 @@ mouse_face_from_buffer_pos (Lisp_Object window,
 	  ;
 
       /* Scan the glyph row, looking for BEFORE_STRING, AFTER_STRING,
-	 or COVER_STRING, and the first glyph from buffer whose
+	 or DISP_STRING, and the first glyph from buffer whose
 	 position is between START_CHARPOS and END_CHARPOS.  */
       for (; glyph > end
 	     && !INTEGERP (glyph->object)
-	     && !EQ (glyph->object, cover_string)
+	     && !EQ (glyph->object, disp_string)
 	     && !(BUFFERP (glyph->object)
 		  && (glyph->charpos >= start_charpos
 		      && glyph->charpos < end_charpos));
@@ -26035,17 +26035,16 @@ mouse_face_from_buffer_pos (Lisp_Object window,
 	 row, and also blanks and stretch glyphs inserted by
 	 extend_face_to_end_of_line.  */
       while (end > glyph
-	     && INTEGERP ((end - 1)->object)
-	     && (end - 1)->charpos <= 0)
+	     && INTEGERP ((end - 1)->object))
 	--end;
       /* Scan the rest of the glyph row from the end, looking for the
 	 first glyph that comes from BEFORE_STRING, AFTER_STRING, or
-	 COVER_STRING, or whose position is between START_CHARPOS
+	 DISP_STRING, or whose position is between START_CHARPOS
 	 and END_CHARPOS */
       for (--end;
 	     end > glyph
 	     && !INTEGERP (end->object)
-	     && !EQ (end->object, cover_string)
+	     && !EQ (end->object, disp_string)
 	     && !(BUFFERP (end->object)
 		  && (end->charpos >= start_charpos
 		      && end->charpos < end_charpos));
@@ -26082,20 +26081,19 @@ mouse_face_from_buffer_pos (Lisp_Object window,
       x = r2->x;
       end++;
       while (end < glyph
-	     && INTEGERP (end->object)
-	     && end->charpos <= 0)
+	     && INTEGERP (end->object))
 	{
 	  x += end->pixel_width;
 	  ++end;
 	}
       /* Scan the rest of the glyph row from the end, looking for the
 	 first glyph that comes from BEFORE_STRING, AFTER_STRING, or
-	 COVER_STRING, or whose position is between START_CHARPOS
+	 DISP_STRING, or whose position is between START_CHARPOS
 	 and END_CHARPOS */
       for ( ;
 	     end < glyph
 	     && !INTEGERP (end->object)
-	     && !EQ (end->object, cover_string)
+	     && !EQ (end->object, disp_string)
 	     && !(BUFFERP (end->object)
 		  && (end->charpos >= start_charpos
 		      && end->charpos < end_charpos));
@@ -27092,7 +27090,7 @@ note_mouse_highlight (struct frame *f, int x, int y)
 	      /* The mouse-highlighting, if any, comes from an overlay
 		 or text property in the buffer.  */
 	      Lisp_Object buffer IF_LINT (= Qnil);
-	      Lisp_Object cover_string IF_LINT (= Qnil);
+	      Lisp_Object disp_string IF_LINT (= Qnil);
 
 	      if (STRINGP (object))
 		{
@@ -27106,13 +27104,13 @@ note_mouse_highlight (struct frame *f, int x, int y)
 		      mouse_face = get_char_property_and_overlay
 			(make_number (pos), Qmouse_face, w->buffer, &overlay);
 		      buffer = w->buffer;
-		      cover_string = object;
+		      disp_string = object;
 		    }
 		}
 	      else
 		{
 		  buffer = object;
-		  cover_string = Qnil;
+		  disp_string = Qnil;
 		}
 
 	      if (!NILP (mouse_face))
@@ -27164,7 +27162,7 @@ note_mouse_highlight (struct frame *f, int x, int y)
 					      XFASTINT (before),
 					      XFASTINT (after),
 					      before_string, after_string,
-					      cover_string);
+					      disp_string);
 		  cursor = No_Cursor;
 		}
 	    }

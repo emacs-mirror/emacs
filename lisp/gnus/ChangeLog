@@ -1,3 +1,17 @@
+2011-10-31  Teodor Zlatanov  <tzz@lifelogs.com>
+
+	* gnus-util.el (gnus-bound-and-true-dumber-p): Define new, slower, dumb
+	function because `gnus-bound-and-true-p' doesn't work well in XEmacs
+	for reasons unknown.
+	* nnir.el: Use it.
+	* nnmairix.el: Use it.
+
+	* nnregistry.el: Remove unnecessary `gnus-registry-enabled' defvar.
+	* nnir.el: Ditto.
+	* nnmairix.el: Ditto.
+
+	* gnus-registry.el (gnus-registry-enabled): Default to nil.
+
 2011-10-26  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* message.el (message-completion-function): Make sure
@@ -25,7 +39,7 @@
 	* nnir.el (gnus-registry-enabled): Defvar to keep the compiler happy.
 	* nnmairix.el (gnus-registry-enabled): Ditto.
 
-2011-10-17  Dave Abrahams  <dave@boostpro.com>
+2011-10-17  Dave Abrahams  <dave@boostpro.com>  (tiny change)
 
 	* gnus-registry.el (gnus-registry-enabled): Add new variable. (Bug#9691)
 	(gnus-registry-install-shortcuts): Set `gnus-registry-install' to 'ask

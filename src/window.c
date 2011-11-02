@@ -3186,10 +3186,7 @@ temp_output_buffer_show (register Lisp_Object buf)
     call1 (Vtemp_buffer_show_function, buf);
   else
     {
-      window = display_buffer (buf, Vtemp_buffer_show_specifiers, Qnil);
-      /* Reset Vtemp_buffer_show_specifiers immediately so it won't
-	 affect subsequent calls.  */
-      Vtemp_buffer_show_specifiers = Qnil;
+      window = display_buffer (buf, Qnil, Qnil);
 
       if (!EQ (XWINDOW (window)->frame, selected_frame))
 	Fmake_frame_visible (WINDOW_FRAME (XWINDOW (window)));
@@ -6461,16 +6458,6 @@ Used by `with-output-to-temp-buffer'.
 If this function is used, then it must do the entire job of showing
 the buffer; `temp-buffer-show-hook' is not run unless this function runs it.  */);
   Vtemp_buffer_show_function = Qnil;
-
-  DEFVAR_LISP ("temp-buffer-show-specifiers", Vtemp_buffer_show_specifiers,
-	       doc: /* Buffer display specifiers used by `with-output-to-temp-buffer'.
-These specifiers are passed by `with-output-to-temp-buffer' as second
-argument to `display-buffer'.  Applications should only let-bind this
-around a call to `with-output-to-temp-buffer'.
-
-For a description of buffer display specifiers see the variable
-`display-buffer-alist'.  */);
-  Vtemp_buffer_show_specifiers = Qnil;
 
   DEFVAR_LISP ("minibuffer-scroll-window", Vminibuf_scroll_window,
 	       doc: /* Non-nil means it is the window that C-M-v in minibuffer should scroll.  */);

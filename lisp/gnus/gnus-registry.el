@@ -164,7 +164,7 @@ nnmairix groups are specifically excluded because they are ephemeral."
                  (const :tag "Always Install" t)
                  (const :tag "Ask Me" ask)))
 
-(defvar gnus-registry-enabled)
+(defvar gnus-registry-enabled nil)
 
 (defvar gnus-summary-misc-menu) ;; Avoid byte compiler warning.
 
