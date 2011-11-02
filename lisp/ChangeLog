@@ -1,3 +1,10 @@
+2011-11-02  Martin Rudalics  <rudalics@gmx.at>
+
+	* window.el (quit-window): Call unrecord-window-buffer after
+	showing another buffer in the window.  (Bug#9937)
+	(bury-buffer): Call switch-to-prev-buffer with second argument
+	'bury.
+
 2011-11-02  Juanma Barranquero  <lekktu@gmail.com>
 
 	* vc/vc-bzr.el (vc-bzr-state, vc-bzr-after-dir-status):
