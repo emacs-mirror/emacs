@@ -25,8 +25,8 @@
 	* net/newst-treeview.el: Remove "Time-stamp".
 	(newsticker--group-manage-orphan-feeds): Do not call
 	newsticker--treeview-tree-update.
-	(newsticker-treeview-update, newsticker-treeview): Call
-	newsticker--treeview-tree-update if necessary.
+	(newsticker-treeview-update, newsticker-treeview):
+	Call newsticker--treeview-tree-update if necessary.
 
 2011-10-30  Martin Rudalics  <rudalics@gmx.at>
 
@@ -39,8 +39,7 @@
 	(split-window, balance-windows-1)
 	(shrink-window-if-larger-than-buffer):
 	* calendar/calendar.el (calendar-generate-window):
-	* help.el (resize-temp-buffer-window): Adjust callers
-	accordingly.
+	* help.el (resize-temp-buffer-window): Adjust callers accordingly.
 
 2011-10-30  Stefan Monnier  <monnier@iro.umontreal.ca>
 
@@ -115,7 +114,7 @@
 
 2011-10-28  Alan Mackenzie  <acm@muc.de>
 
-	* progmodes/cc-defs.el (c-version).  -> 5.32.2.
+	* progmodes/cc-defs.el (c-version): -> 5.32.2.
 
 2011-10-28  Alan Mackenzie  <acm@muc.de>
 
@@ -345,7 +344,7 @@
 
 2011-10-20  Glenn Morris  <rgm@gnu.org>
 
-	* vc/vc.el (vc-next-action): Handle removed directories. (Bug#9781)
+	* vc/vc.el (vc-next-action): Handle removed directories.  (Bug#9781)
 
 2011-10-20  Christoph Scholtes  <cschol2112@googlemail.com>
 
