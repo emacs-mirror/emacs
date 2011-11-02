@@ -1986,7 +1986,8 @@ definitions to shadow the loaded ones for use in file byte-compilation."
 	      (gnus-macroexpand-all expanded environment)))
 	form))))
 
-;; simple check, can be a macro but this way, although slow, it's really clear
+;; Simple check: can be a macro but this way, although slow, it's really clear.
+;; We don't use `bound-and-true-p' because it's not in XEmacs.
 (defun gnus-bound-and-true-p (sym)
   (and (boundp sym) (symbol-value sym)))
 

@@ -1,3 +1,8 @@
+2011-11-02  Teodor Zlatanov  <tzz@lifelogs.com>
+
+	* gnus-util.el (gnus-bound-and-true-p): Another comment to explain why
+	we don't use `bound-and-true-p'.
+
 2011-11-01  Teodor Zlatanov  <tzz@lifelogs.com>
 
 	* gnus-util.el (gnus-bound-and-true-p): Remove.
