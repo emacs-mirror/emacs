@@ -1986,15 +1986,8 @@ definitions to shadow the loaded ones for use in file byte-compilation."
 	      (gnus-macroexpand-all expanded environment)))
 	form))))
 
-(eval-when-compile
-  ;; This is unnecessary in the compiled version as it is a macro.
-  (if (fboundp 'bound-and-true-p)
-      (defalias 'gnus-bound-and-true-p 'bound-and-true-p)
-    (defmacro gnus-bound-and-true-p (var)
-      "Return the value of symbol VAR if it is bound, else nil."
-      `(and (boundp (quote ,var)) ,var))))
-
-(defun gnus-bound-and-true-dumber-p (sym)
+;; simple check, can be a macro but this way, although slow, it's really clear
+(defun gnus-bound-and-true-p (sym)
   (and (boundp sym) (symbol-value sym)))
 
 (provide 'gnus-util)

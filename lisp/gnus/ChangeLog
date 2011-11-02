@@ -1,3 +1,10 @@
+2011-11-01  Teodor Zlatanov  <tzz@lifelogs.com>
+
+	* gnus-util.el (gnus-bound-and-true-p): Remove.
+	(gnus-bound-and-true-dumber-p): Rename to `gnus-bound-and-true-p'.
+	* nnir.el: Use it.
+	* nnmairix.el: Use it.
+
 2011-10-31  Teodor Zlatanov  <tzz@lifelogs.com>
 
 	* gnus-util.el (gnus-bound-and-true-dumber-p): Define new, slower, dumb
