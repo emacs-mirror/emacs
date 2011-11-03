@@ -1,3 +1,10 @@
+2011-10-31  Eli Zaretskii  <eliz@gnu.org>
+
+	* config.bat: Use config.in and Makefile.in from src/ and lib/, if
+	they exist there, else from autogen/.
+
+	* make-dist (msdos): Add depfiles.bat and inttypes.h.
+
 2011-10-25  Nali Toja  <nalitoja@gmail.com>  (tiny change)
 
 	* configure.in (HAVE_GNU_MAKE): Respect MAKE env-var.  (Bug#9868)

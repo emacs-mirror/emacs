@@ -333,7 +333,7 @@ first and the associated buffer to its right."
   ;; first go to full width, so that we can certainly split into two windows
   (unless (window-full-width-p)
     (enlarge-window 99999 t))
-  (split-window-horizontally
+  (split-window-right
    (max window-min-width (min 2C-window-width
 			      (- (frame-width) window-min-width))))
   (if (2C-other)

@@ -156,7 +156,8 @@ telling Microsoft that."
 (defun url-cookie-expired-p (cookie)
   "Return non-nil if COOKIE is expired."
   (let ((exp (url-cookie-expires cookie)))
-    (and exp (> (float-time) (float-time (date-to-time exp))))))
+    (and (> (length exp) 0)
+	 (> (float-time) (float-time (date-to-time exp))))))
 
 (defun url-cookie-retrieve (host &optional localpart secure)
   "Retrieve all cookies for a specified HOST and LOCALPART."

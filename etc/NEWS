@@ -967,6 +967,9 @@ has now been removed.
 
 ** cl.el no longer provides `cl-19'.
 
+** The menu bar bindings's caches are not used any more.
+Use (where-is-internal <def> nil t) instead.
+
 ** The following obsolete functions and aliases were removed:
 comint-kill-output, decompose-composite-char, outline-visible,
 internal-find-face, internal-get-face, frame-update-faces,
@@ -1098,8 +1101,8 @@ selected window, signaling an error otherwise.  If nil, another window
 can be used, e.g. if the selected one is strongly dedicated.
 
 *** `split-window-vertically' and `split-window-horizontally' renamed
-to `split-window-above-each-other' and `split-window-side-by-side'
-respectively.  The old names are kept as aliases.
+to `split-window-below' and `split-window-right' respectively.
+The old names are kept as aliases.
 
 *** Display actions
 

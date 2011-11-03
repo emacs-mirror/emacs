@@ -1,4 +1,4 @@
-;;; srecode/insert --- Insert srecode templates to an output stream.
+;;; srecode/insert.el --- Insert srecode templates to an output stream.
 
 ;; Copyright (C) 2005, 2007-2011  Free Software Foundation, Inc.
 
@@ -911,7 +911,7 @@ this template instance."
 	  (setq active (cdr active)))
 	(when (not tmpl)
 	  ;; If it wasn't in this context, look to see if it
-	  ;; defines it's own context
+	  ;; defines its own context
 	  (setq tmpl (srecode-template-get-table (srecode-table)
 						 templatenamepart)))
 	)

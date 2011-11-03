@@ -605,9 +605,6 @@ Other back ends might or might not work.")
 ;; Silence byte-compiler.
 (autoload 'gnus-registry-get-id-key "gnus-registry")
 
-;; Suppress byte-compiler warning `reference to free variable'
-(defvar gnus-registry-enabled)
-
 (deffoo nnmairix-request-set-mark (group actions &optional server)
   (when server
     (nnmairix-open-server server))
@@ -1638,7 +1635,7 @@ search in raw mode."
 
 (defun nnmairix-determine-original-group-from-registry (mid)
   "Try to determinale original group for message-id MID from the registry."
-  (when (gnus-bound-and-true-p gnus-registry-enabled)
+  (when (gnus-bound-and-true-p 'gnus-registry-enabled)
     (unless (string-match "^<" mid)
       (set mid (concat "<" mid)))
     (unless (string-match ">$" mid)

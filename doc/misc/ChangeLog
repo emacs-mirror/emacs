@@ -1,3 +1,18 @@
+2011-10-31  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* gnus.texi (Other Gnus Versions): Remove.
+
+2011-10-28  Alan Mackenzie  <acm@muc.de>
+
+	* cc-mode.texi (Indentation Commands): Mention "macros with semicolons".
+	(Other Special Indentations): Add an xref to "Macros with ;".
+	(Customizing Macros): Add stuff about syntax in macros.  Add an xref to
+	"Macros with ;".
+	(Macros with ;): New page.
+
+	* cc-mode.texi (Movement Commands): Document `c-defun-tactic'.
+	Document the new handling of nested scopes for movement by defuns.
+
 2011-10-23  Michael Albinus  <michael.albinus@gmx.de>
 
 	Sync with Tramp 2.2.3.

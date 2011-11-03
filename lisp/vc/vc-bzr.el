@@ -444,7 +444,7 @@ If any error occurred in running `bzr status', then return nil."
       (let ((warnings (cdr result)))
         (when warnings
           ;; bzr 2.3.0 returns info about shelves, which is not really a warning
-          (when (string-match "[1-9]+ shel\\(f\\|ves\\) exists?\\..*?\n" warnings)
+          (when (string-match "[0-9]+ shel\\(f\\|ves\\) exists?\\..*?\n" warnings)
             (setq warnings (replace-match "" nil nil warnings)))
           (unless (string= warnings "")
             (message "Warnings in `bzr' output: %s" warnings))))
@@ -891,7 +891,7 @@ stream.  Standard error output is discarded."
       (goto-char (point-min))
       (while (not (eobp))
         ;; Bzr 2.3.0 added this if there are shelves.  (Bug#8170)
-        (unless (looking-at "[1-9]+ shel\\(f\\|ves\\) exists?\\.")
+        (unless (looking-at "[0-9]+ shel\\(f\\|ves\\) exists?\\.")
           (setq status-str
                 (buffer-substring-no-properties (point) (+ (point) 3)))
           (setq translated (cdr (assoc status-str translation)))

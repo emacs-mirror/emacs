@@ -88,7 +88,7 @@ try to split a new window instead."
 	(pop-up-frames nil))
     (or (let ((buf (get-buffer-window buf))) (and buf (select-window buf)))
 	(and pop-up-windows
-	     (ignore-errors (select-window (split-window-vertically)))
+	     (ignore-errors (select-window (split-window-below)))
 	     (switch-to-buffer buf))
 	(pop-to-buffer (current-buffer)))))
 

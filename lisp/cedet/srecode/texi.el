@@ -1,4 +1,4 @@
-;;; srecode-texi.el --- Srecode texinfo support.
+;;; srecode/texi.el --- Srecode texinfo support.
 
 ;; Copyright (C) 2008-2011 Free Software Foundation, Inc.
 

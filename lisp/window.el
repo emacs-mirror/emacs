@@ -196,7 +196,7 @@ narrower, explictly specify the SIZE argument of that function."
   :version "24.1"
   :group 'windows)
 
-(defun window-iso-combination-p (&optional window horizontal)
+(defun window-combination-p (&optional window horizontal)
   "If WINDOW is a vertical combination return WINDOW's first child.
 WINDOW can be any window and defaults to the selected one.
 Optional argument HORIZONTAL non-nil means return WINDOW's first
@@ -206,16 +206,16 @@ child if WINDOW is a horizontal combination."
       (window-left-child window)
     (window-top-child window)))
 
-(defsubst window-iso-combined-p (&optional window horizontal)
+(defsubst window-combined-p (&optional window horizontal)
   "Return non-nil if and only if WINDOW is vertically combined.
 WINDOW can be any window and defaults to the selected one.
 Optional argument HORIZONTAL non-nil means return non-nil if and
 only if WINDOW is horizontally combined."
   (setq window (window-normalize-any-window window))
   (let ((parent (window-parent window)))
-    (and parent (window-iso-combination-p parent horizontal))))
+    (and parent (window-combination-p parent horizontal))))
 
-(defun window-iso-combinations (&optional window horizontal)
+(defun window-combinations (&optional window horizontal)
   "Return largest number of vertically arranged subwindows of WINDOW.
 WINDOW can be any window and defaults to the selected one.
 Optional argument HORIZONTAL non-nil means to return the largest
@@ -225,14 +225,14 @@ number of horizontally arranged subwindows of WINDOW."
    ((window-live-p window)
     ;; If WINDOW is live, return 1.
     1)
-   ((window-iso-combination-p window horizontal)
+   ((window-combination-p window horizontal)
     ;; If WINDOW is iso-combined, return the sum of the values for all
     ;; subwindows of WINDOW.
     (let ((child (window-child window))
 	  (count 0))
       (while child
 	(setq count
-	      (+ (window-iso-combinations child horizontal)
+	      (+ (window-combinations child horizontal)
 		 count))
 	(setq child (window-right child)))
       count))
@@ -243,7 +243,7 @@ number of horizontally arranged subwindows of WINDOW."
 	  (count 1))
       (while child
 	(setq count
-	      (max (window-iso-combinations child horizontal)
+	      (max (window-combinations child horizontal)
 		   count))
 	(setq child (window-right child)))
       count))))
@@ -555,7 +555,7 @@ restrictions for that window only."
     (if sub
 	(let ((value 0))
 	  ;; WINDOW is an internal window.
-	  (if (window-iso-combined-p sub horizontal)
+	  (if (window-combined-p sub horizontal)
 	      ;; The minimum size of an iso-combination is the sum of
 	      ;; the minimum sizes of its subwindows.
 	      (while sub
@@ -669,7 +669,7 @@ doc-string of `window-sizable'."
     (catch 'fixed
       (if sub
 	  ;; WINDOW is an internal window.
-	  (if (window-iso-combined-p sub horizontal)
+	  (if (window-combined-p sub horizontal)
 	      ;; An iso-combination is fixed size if all its subwindows
 	      ;; are fixed-size.
 	      (progn
@@ -717,7 +717,7 @@ WINDOW can be resized in the desired direction.  The functions
     (let* ((parent (window-parent window))
 	   (sub (window-child parent)))
       (catch 'done
-	(if (window-iso-combined-p sub horizontal)
+	(if (window-combined-p sub horizontal)
 	    ;; In an iso-combination throw DELTA if we find at least one
 	    ;; subwindow and that subwindow is either not of fixed-size
 	    ;; or we can ignore fixed-sizeness.
@@ -797,7 +797,7 @@ least one other windows can be enlarged appropriately."
     (let* ((parent (window-parent window))
 	   (sub (window-child parent)))
       (catch 'fixed
-	(if (window-iso-combined-p sub horizontal)
+	(if (window-combined-p sub horizontal)
 	    ;; For an iso-combination calculate how much we can get from
 	    ;; other subwindows.
 	    (let ((skip (eq trail 'after)))
@@ -1498,7 +1498,7 @@ instead."
       (window--resize-reset frame horizontal)
       (window--resize-this-window window delta horizontal ignore t)
       (if (and (not (window-splits window))
-	       (window-iso-combined-p window horizontal)
+	       (window-combined-p window horizontal)
 	       (setq sibling (or (window-right window) (window-left window)))
 	       (window-sizable-p sibling (- delta) horizontal ignore))
 	  ;; If window-splits returns nil for WINDOW, WINDOW is part of
@@ -1819,7 +1819,7 @@ preferably only resize windows adjacent to EDGE."
   (when (window-parent window)
     (let* ((parent (window-parent window))
 	   (sub (window-child parent)))
-      (if (window-iso-combined-p sub horizontal)
+      (if (window-combined-p sub horizontal)
 	  ;; In an iso-combination try to extract DELTA from WINDOW's
 	  ;; siblings.
 	  (let ((first sub)
@@ -1935,7 +1935,7 @@ actually take effect."
   (let ((sub (window-child window)))
     (cond
      ((not sub))
-     ((window-iso-combined-p sub horizontal)
+     ((window-combined-p sub horizontal)
       ;; In an iso-combination resize subwindows according to their
       ;; normal sizes.
       (window--resize-subwindows
@@ -2010,7 +2010,7 @@ move it as far as possible in the desired direction."
 	(right window)
 	left this-delta min-delta max-delta failed)
     ;; Find the edge we want to move.
-    (while (and (or (not (window-iso-combined-p right horizontal))
+    (while (and (or (not (window-combined-p right horizontal))
 		    (not (window-right right)))
 		(setq right (window-parent right))))
     (cond
@@ -2029,7 +2029,7 @@ move it as far as possible in the desired direction."
 	      (or (window-left left)
 		  (progn
 		    (while (and (setq left (window-parent left))
-				(not (window-iso-combined-p left horizontal))))
+				(not (window-combined-p left horizontal))))
 		    (window-left left)))))
       (unless left
 	(if horizontal
@@ -2043,7 +2043,7 @@ move it as far as possible in the desired direction."
 	      (or (window-right right)
 		  (progn
 		    (while (and (setq right (window-parent right))
-				(not (window-iso-combined-p right horizontal))))
+				(not (window-combined-p right horizontal))))
 		    (window-right right)))))
       (unless right
 	(if horizontal
@@ -2852,7 +2852,7 @@ displayed there."
      (t
       ;; Switch to another buffer in window.
       (set-window-dedicated-p nil nil)
-      (switch-to-prev-buffer nil 'kill)))
+      (switch-to-prev-buffer nil 'bury)))
 
     ;; Always return nil.
     nil))
@@ -2985,7 +2985,6 @@ one.  If non-nil, reset `quit-restore' parameter to nil."
       (setq resize (with-current-buffer buffer
 		     (and temp-buffer-resize-mode
 			  (/= (nth 3 quad) (window-total-size window)))))
-      (unrecord-window-buffer window buffer)
       (set-window-dedicated-p window nil)
       (when resize
 	;; Try to resize WINDOW to its old height but don't signal an
@@ -2993,9 +2992,12 @@ one.  If non-nil, reset `quit-restore' parameter to nil."
 	(condition-case nil
 	    (window-resize window (- (nth 3 quad) (window-total-size window)))
 	  (error nil)))
-      ;; Restore WINDOW's previous buffer, window start and point.
+      ;; Restore WINDOW's previous buffer, start and point position.
       (set-window-buffer-start-and-point
        window (nth 0 quad) (nth 1 quad) (nth 2 quad))
+      ;; Unrecord WINDOW's buffer here (Bug#9937) to make sure it's not
+      ;; re-recorded by `set-window-buffer'.
+      (unrecord-window-buffer window buffer)
       ;; Reset the quit-restore parameter.
       (set-window-parameter window 'quit-restore nil)
       ;; Select old window.
@@ -3142,7 +3144,7 @@ frame.  The selected window is not changed by this function."
 	     (resize
 	      (and window-splits (not window-nest)
 		   ;; Resize makes sense in iso-combinations only.
-		   (window-iso-combined-p window horizontal)))
+		   (window-combined-p window horizontal)))
 	     ;; `old-size' is the current size of WINDOW.
 	     (old-size (window-total-size window horizontal))
 	     ;; `new-size' is the specified or calculated size of the
@@ -3157,7 +3159,7 @@ frame.  The selected window is not changed by this function."
 			 (min (- parent-size
 				 (window-min-size parent horizontal))
 			      (/ parent-size
-				 (1+ (window-iso-combinations
+				 (1+ (window-combinations
 				      parent horizontal))))
 		       ;; Else try to give the new window half the size
 		       ;; of WINDOW (plus an eventual odd line).
@@ -3220,13 +3222,13 @@ frame.  The selected window is not changed by this function."
 	      ;; Make new-parent non-nil if we need a new parent window;
 	      ;; either because we want to nest or because WINDOW is not
 	      ;; iso-combined.
-	      (or window-nest (not (window-iso-combined-p window horizontal))))
+	      (or window-nest (not (window-combined-p window horizontal))))
 	(setq new-normal
 	      ;; Make new-normal the normal size of the new window.
 	      (cond
 	       (size (/ (float new-size) (if new-parent old-size parent-size)))
 	       (new-parent 0.5)
-	       (resize (/ 1.0 (1+ (window-iso-combinations parent horizontal))))
+	       (resize (/ 1.0 (1+ (window-combinations parent horizontal))))
 	       (t (/ (window-normal-size window horizontal) 2.0))))
 
 	(if resize
@@ -3262,39 +3264,28 @@ frame.  The selected window is not changed by this function."
 
 ;; I think this should be the default; I think people will prefer it--rms.
 (defcustom split-window-keep-point t
-  "If non-nil, \\[split-window-above-each-other] keeps the original point \
-in both children.
-This is often more convenient for editing.
-If nil, adjust point in each of the two windows to minimize redisplay.
-This is convenient on slow terminals, but point can move strangely.
-
-This option applies only to `split-window-above-each-other' and
-functions that call it.  `split-window' always keeps the original
-point in both children."
+  "If non-nil, \\[split-window-below] preserves point in the new window.
+If nil, adjust point in the two windows to minimize redisplay.
+This option applies only to `split-window-below' and functions
+that call it.  The low-level `split-window' function always keeps
+the original point in both windows."
   :type 'boolean
   :group 'windows)
 
-(defun split-window-above-each-other (&optional size)
-  "Split selected window into two windows, one above the other.
-The upper window gets SIZE lines and the lower one gets the rest.
-SIZE negative means the lower window gets -SIZE lines and the
-upper one the rest.  With no argument, split windows equally or
-close to it.  Both windows display the same buffer, now current.
+(defun split-window-below (&optional size)
+  "Split the selected window into two windows, one above the other.
+The selected window is above.  The newly split-off window is
+below, and displays the same buffer.  Return the new window.
 
-If the variable `split-window-keep-point' is non-nil, both new
-windows will get the same value of point as the selected window.
-This is often more convenient for editing.  The upper window is
-the selected window.
+If optional argument SIZE is omitted or nil, both windows get the
+same height, or close to it.  If SIZE is positive, the upper
+\(selected) window gets SIZE lines.  If SIZE is negative, the
+lower (new) window gets -SIZE lines.
 
-Otherwise, we choose window starts so as to minimize the amount of
-redisplay; this is convenient on slow terminals.  The new selected
-window is the one that the current value of point appears in.  The
-value of point can change if the text around point is hidden by the
-new mode line.
-
-Regardless of the value of `split-window-keep-point', the upper
-window is the original one and the return value is the new, lower
-window."
+If the variable `split-window-keep-point' is non-nil, both
+windows get the same value of point as the selected window.
+Otherwise, the window starts are chosen so as to minimize the
+amount of redisplay; this is convenient on slow terminals."
   (interactive "P")
   (let ((old-window (selected-window))
 	(old-point (point))
@@ -3328,19 +3319,21 @@ window."
 	(set-window-parameter new-window 'quit-restore quit-restore)))
     new-window))
 
-(defalias 'split-window-vertically 'split-window-above-each-other)
+(defalias 'split-window-vertically 'split-window-below)
 
-(defun split-window-side-by-side (&optional size)
-  "Split selected window into two windows side by side.
-The selected window becomes the left one and gets SIZE columns.
-SIZE negative means the right window gets -SIZE columns.
+(defun split-window-right (&optional size)
+  "Split the selected window into two side-by-side windows.
+The selected window is on the left.  The newly split-off window
+is on the right, and displays the same buffer.  Return the new
+window.
 
-SIZE includes the width of the window's scroll bar; if there are
-no scroll bars, it includes the width of the divider column to
-the window's right, if any.  SIZE omitted or nil means split
-window equally.
-
-The selected window remains selected.  Return the new window."
+If optional argument SIZE is omitted or nil, both windows get the
+same width, or close to it.  If SIZE is positive, the left-hand
+\(selected) window gets SIZE columns.  If SIZE is negative, the
+right-hand (new) window gets -SIZE columns.  Here, SIZE includes
+the width of the window's scroll bar; if there are no scroll
+bars, it includes the width of the divider column to the window's
+right, if any."
   (interactive "P")
   (let ((old-window (selected-window))
 	(size (and size (prefix-numeric-value size)))
@@ -3355,7 +3348,7 @@ The selected window remains selected.  Return the new window."
 	(set-window-parameter new-window 'quit-restore quit-restore)))
     new-window))
 
-(defalias 'split-window-horizontally 'split-window-side-by-side)
+(defalias 'split-window-horizontally 'split-window-right)
 
 ;;; Balancing windows.
 
@@ -3368,7 +3361,8 @@ The selected window remains selected.  Return the new window."
 ;; the smallest window).
 (defun balance-windows-2 (window horizontal)
   "Subroutine of `balance-windows-1'.
-WINDOW must be an iso-combination."
+WINDOW must be a vertical combination (horizontal if HORIZONTAL
+is non-nil."
   (let* ((first (window-child window))
 	 (sub first)
 	 (number-of-children 0)
@@ -3441,7 +3435,7 @@ WINDOW must be an iso-combination."
   "Subroutine of `balance-windows'."
   (if (window-child window)
       (let ((sub (window-child window)))
-	(if (window-iso-combined-p sub horizontal)
+	(if (window-combined-p sub horizontal)
 	    (balance-windows-2 window horizontal)
 	  (let ((size (window-new-total window)))
 	    (while sub
@@ -4431,11 +4425,11 @@ split."
   (or (and (window-splittable-p window)
 	   ;; Split window vertically.
 	   (with-selected-window window
-	     (split-window-vertically)))
+	     (split-window-below)))
       (and (window-splittable-p window t)
 	   ;; Split window horizontally.
 	   (with-selected-window window
-	     (split-window-horizontally)))
+	     (split-window-right)))
       (and (eq window (frame-root-window (window-frame window)))
 	   (not (window-minibuffer-p window))
 	   ;; If WINDOW is the only window on its frame and is not the
@@ -4444,7 +4438,7 @@ split."
 	   (let ((split-height-threshold 0))
 	     (when (window-splittable-p window)
 	       (with-selected-window window
-		 (split-window-vertically)))))))
+		 (split-window-below)))))))
 
 (defun window--try-to-split-window (window)
   "Try to split WINDOW.
@@ -5030,7 +5024,7 @@ nil, BUFFER-OR-NAME may be displayed in another window.
 
 Return the buffer switched to."
   (interactive
-   (list (read-buffer-to-switch "Switch to buffer: ") nil nil))
+   (list (read-buffer-to-switch "Switch to buffer: ") nil 'force-same-window))
   (let ((buffer (window-normalize-buffer-to-switch-to buffer-or-name)))
     (if (null force-same-window)
 	(pop-to-buffer buffer display-buffer--same-window-action norecord)
@@ -5290,14 +5284,8 @@ WINDOW was scrolled."
 WINDOW defaults to the selected window."
   (with-selected-window (or window (selected-window))
     (let ((edges (window-edges)))
-      ;; The following doesn't satisfy the doc-string's claim when
-      ;; window and previous-/next-window are not part of the same
-      ;; combination but still share a common edge.  Using
-      ;; `window-iso-combined-p' instead should handle that.
       (or (= (nth 2 edges) (nth 2 (window-edges (previous-window))))
 	  (= (nth 0 edges) (nth 0 (window-edges (next-window))))))))
-;; (make-obsolete
- ;; 'window-safely-shrinkable-p "use `window-iso-combined-p' instead." "24.1")
 
 (defun shrink-window-if-larger-than-buffer (&optional window)
   "Shrink height of WINDOW if its buffer doesn't need so many lines.
@@ -5317,7 +5305,7 @@ Return non-nil if the window was shrunk, nil otherwise."
   ;; Make sure that WINDOW is vertically combined and `point-min' is
   ;; visible (for whatever reason that's needed).  The remaining issues
   ;; should be taken care of by `fit-window-to-buffer'.
-  (when (and (window-iso-combined-p window)
+  (when (and (window-combined-p window)
 	     (pos-visible-in-window-p (point-min) window))
     (fit-window-to-buffer window (window-total-size window))))
 
@@ -5741,8 +5729,8 @@ Otherwise, consult the value of `truncate-partial-width-windows'
 ;; change these.
 (define-key ctl-x-map "0" 'delete-window)
 (define-key ctl-x-map "1" 'delete-other-windows)
-(define-key ctl-x-map "2" 'split-window-above-each-other)
-(define-key ctl-x-map "3" 'split-window-side-by-side)
+(define-key ctl-x-map "2" 'split-window-below)
+(define-key ctl-x-map "3" 'split-window-right)
 (define-key ctl-x-map "o" 'other-window)
 (define-key ctl-x-map "^" 'enlarge-window)
 (define-key ctl-x-map "}" 'enlarge-window-horizontally)

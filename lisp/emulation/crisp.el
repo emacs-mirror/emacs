@@ -71,8 +71,8 @@
     (define-key map [(f2) (left)]    'shrink-window-horizontally)
     (define-key map [(f2) (right)]   'enlarge-window-horizontally)
     (define-key map [(f2) (up)]      'shrink-window)
-    (define-key map [(f3) (down)]    'split-window-vertically)
-    (define-key map [(f3) (right)]   'split-window-horizontally)
+    (define-key map [(f3) (down)]    'split-window-below)
+    (define-key map [(f3) (right)]   'split-window-right)
 
     (define-key map [(f4)]           'delete-window)
     (define-key map [(control f4)]   'delete-other-windows)

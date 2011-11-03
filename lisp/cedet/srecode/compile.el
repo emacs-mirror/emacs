@@ -103,7 +103,7 @@ stack is broken."
 ;; work, and the smaller, simple inserter object is saved in
 ;; the compiled templates.
 ;;
-;; See srecode-insert.el for the specialized classes.
+;; See srecode/insert.el for the specialized classes.
 ;;
 (defclass srecode-template-inserter (eieio-named)
   ((secondname :initarg :secondname

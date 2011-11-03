@@ -1,3 +1,18 @@
+2011-10-30  Ulf Jasper  <ulf.jasper@web.de>
+
+	* automated/newsticker-tests.el
+	(newsticker--group-manage-orphan-feeds): Removed fsetting of
+	newsticker--treeview-tree-update.
+
+2011-10-29  Ulf Jasper  <ulf.jasper@web.de>
+
+	* automated/newsticker-tests.el
+	(newsticker--group-manage-orphan-feeds): Use fset instead of flet.
+
+	* trunk/test/automated/newsticker-tests.el
+	(newsticker--group-manage-orphan-feeds): Prevent updating
+	newsticker treeview. Fixed bug#9763.
+
 2011-10-20  Glenn Morris  <rgm@gnu.org>
 
 	* automated/vc-bzr.el (vc-bzr-test-bug9781): New test.

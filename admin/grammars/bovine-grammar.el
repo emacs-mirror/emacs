@@ -109,6 +109,14 @@ NAME, ALIASCLASS, DEFINITION and ATTRIBUTES."
 ;; Cache of macro definitions currently in use.
 (defvar bovine--grammar-macros nil)
 
+;; Detect if we have an Emacs with newstyle unquotes allowed outside
+;; of backquote.
+;; This should probably be changed to a test to (= emacs-major-version 24)
+;; when it is released, but at the moment it might be possible that people
+;; are using an older snapshot.
+(defvar bovine--grammar-newstyle-unquote
+  (equal '(, test) (read ",test")))
+
 (defun bovine-grammar-expand-form (form quotemode &optional inplace)
   "Expand FORM into a new one suitable to the bovine parser.
 FORM is a list in which we are substituting.
@@ -142,6 +150,17 @@ expanded from elsewhere."
       (while form
         (setq first (car form)
               form  (cdr form))
+	;; Hack for dealing with new reading of unquotes outside of
+	;; backquote (introduced in rev. 102591 in emacs-bzr).
+	(when (and bovine--grammar-newstyle-unquote
+		   (listp first)
+		   (or (equal (car first) '\,)
+		       (equal (car first) '\,@)))
+	  (if (listp (cadr first))
+	      (setq form (append (cdr first) form)
+		    first (car first))
+	    (setq first (intern (concat (symbol-name (car first))
+					(symbol-name (cadr first)))))))
         (cond
          ((eq first nil)
           (when (and (not inlist) (not inplace))

@@ -1,3 +1,84 @@
+2011-11-03  Eli Zaretskii  <eliz@gnu.org>
+
+	* w32fns.c (unwind_create_frame): If needed, free the glyph
+	matrices of the partially constructed frame.  (Bug#9943)
+
+2011-11-01  Eli Zaretskii  <eliz@gnu.org>
+
+	* xdisp.c (mouse_face_from_buffer_pos): Fix a typo in a comment.
+	Don't stop backward scan on the continuation glyph, even though
+	its CHARPOS is positive.
+	(mouse_face_from_buffer_pos, note_mouse_highlight): Rename
+	cover_string to disp_string.
+
+2011-11-01  Martin Rudalics  <rudalics@gmx.at>
+
+	* window.c (temp_output_buffer_show): Don't use
+	Vtemp_buffer_show_specifiers.
+	(Vtemp_buffer_show_specifiers): Remove unused variable.
+
+2011-10-30  Eli Zaretskii  <eliz@gnu.org>
+
+	* xdisp.c (try_cursor_movement): Make sure ROW isn't decremented
+	past the beginning of the current glyph matrix.
+
+2011-10-30  Adam Sjøgren <asjo@koldfront.dk> (tiny change)
+
+	* xterm.c: Include X11/Xproto.h if HAVE_GTK3.
+	(x_error_handler): Ignore BadMatch for X_SetInputFocus for
+	HAVE_GTK3 (Bug#9869).
+
+	* gtkutil.c (xg_win_to_widget, xg_event_is_for_menubar): Initialize
+	type to GDK_NOTHING so valgrind does not complain (Bug#9901).
+
+	* xterm.h (x_display_info): Add Xatom_net_wm_state_hidden (Bug#9893).
+
+	* xterm.c: Declare x_handle_net_wm_state to return int.
+	(handle_one_xevent): Check if we are iconified but don't have
+	_NET_WM_STATE_HIDDEN.  If do, treat as deiconify (Bug#9893).
+	(get_current_wm_state): Return non-zero if not hidden,
+	check for _NET_WM_STATE_HIDDEN (Bug#9893).
+	(do_ewmh_fullscreen): Ignore return value from get_current_wm_state.
+	(x_handle_net_wm_state): Return what get_current_wm_state returns.
+	(x_term_init): Initialize dpyinfo->Xatom_net_wm_state_hidden.
+
+2011-10-29  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* alloc.c (which_symbols): Declare EXTERNALLY_VISIBLE,
+	so that this new function doesn't get optimized away by a
+	whole-program optimizer.  Make the 2nd arg EMACS_INT, not int.
+
+2011-10-29  Andreas Schwab  <schwab@linux-m68k.org>
+
+	* frame.h (MOUSE_HL_INFO): Remove excess parens.
+
+2011-10-29  Eli Zaretskii  <eliz@gnu.org>
+
+	Fix the `xbytecode' command.
+	* .gdbinit (xprintbytestr): New command.
+	(xwhichsymbols): Renamed from `which'; all callers changed.
+	(xbytecode): Print the byte-code string as well.
+
+2011-10-29  Kim Storm  <storm@cua.dk>
+
+	* alloc.c (which_symbols): New function.
+
+2011-10-29  Andreas Schwab  <schwab@linux-m68k.org>
+
+	* minibuf.c (read_minibuf_noninteractive): Allow reading empty
+	line.  (Bug#9903)
+
+2011-10-29  Glenn Morris  <rgm@gnu.org>
+
+	* process.c (wait_reading_process_output): Revert 2009-08-30 change.
+	Not clear what it was for, and it causes various bugs.  (Bug#9839)
+
+2011-10-28  Eli Zaretskii  <eliz@gnu.org>
+
+	* xdisp.c (note_mouse_highlight): Initialize `part', to avoid a
+	possible random value that matches one of those tested as
+	condition to clear the mouse face.
+
 2011-10-28  Chong Yidong  <cyd@gnu.org>
 
 	* xdisp.c (note_mouse_highlight): Fix use of uninitialized var.
