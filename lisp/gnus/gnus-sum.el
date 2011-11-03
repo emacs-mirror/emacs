@@ -5859,15 +5859,15 @@ If SELECT-ARTICLES, only select those articles from GROUP."
 			  (read-string
 			   (if only-read-p
 			       (format
-			      "How many articles from %s (available %d, default %d): "
-			      (gnus-group-decoded-name
-			       (gnus-group-real-name gnus-newsgroup-name))
-			      number default)
-			     (format
-				"How many articles from %s (%d available): "
+				"How many articles from %s (available %d, default %d): "
 				(gnus-group-decoded-name
 				 (gnus-group-real-name gnus-newsgroup-name))
-				default))
+				number default)
+			     (format
+			      "How many articles from %s (%d default): "
+			      (gnus-group-decoded-name
+			       (gnus-group-real-name gnus-newsgroup-name))
+			      default))
 			   nil
 			   nil
 			   (number-to-string default))))

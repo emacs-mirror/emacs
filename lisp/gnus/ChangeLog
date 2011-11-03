@@ -1,5 +1,10 @@
 2011-11-03  Lars Magne Ingebrigtsen  <larsi@gnus.org>
 
+	* gnus-sum.el (gnus-articles-to-read): Change wording in prompt to be
+	slightly clearer.
+
+2011-11-03  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
 	* message.el (message-send-and-exit): Document `arg'.
 
 2011-11-03  Stefan Monnier  <monnier@iro.umontreal.ca>
