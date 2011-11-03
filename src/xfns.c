@@ -2936,6 +2936,7 @@ unwind_create_frame (Lisp_Object frame)
 #endif
 
       x_free_frame_resources (f);
+      free_glyphs (f);
 
 #if GLYPH_DEBUG
       /* Check that reference counts are indeed correct.  */
