@@ -26892,7 +26892,7 @@ note_mouse_highlight (struct frame *f, int x, int y)
       && XFASTINT (w->last_modified) == BUF_MODIFF (b)
       && XFASTINT (w->last_overlay_modified) == BUF_OVERLAY_MODIFF (b))
     {
-      int hpos, vpos, dx, dy, area;
+      int hpos, vpos, dx, dy, area = LAST_AREA;
       EMACS_INT pos;
       struct glyph *glyph;
       Lisp_Object object;
