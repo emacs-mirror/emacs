@@ -1,3 +1,7 @@
+2011-11-03  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* nnimap.el (nnimap-open-connection-1): Use tcp-keealive if possible.
+
 2011-11-02  Teodor Zlatanov  <tzz@lifelogs.com>
 
 	* gnus-util.el (gnus-bound-and-true-p): Another comment to explain why
