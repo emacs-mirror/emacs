@@ -1,3 +1,8 @@
+2011-11-03  Alan Mackenzie  <acm@muc.de>
+
+	* progmodes/cc-langs.el (c-nonlabel-token-2-key): New variable for
+	change in cc-engine.el.
+
 2011-11-02  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* window.el (switch-to-buffer): Use `force-same-window' interactively.
@@ -136,7 +141,6 @@
 
 	* progmodes/cc-langs.el (c-defun-tactic): Move this variable to
 	cc-vars.el.
-	(c-nonlabel-token-2-key): New variable for change in cc-engine.el.
 
 	* progmodes/cc-engine.el (c-beginning-of-statement-1):
 	Prevent "class foo : bar" being spuriously recognized as a label.

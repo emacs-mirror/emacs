@@ -2,6 +2,7 @@
 
 	* w32fns.c (unwind_create_frame): If needed, free the glyph
 	matrices of the partially constructed frame.  (Bug#9943)
+	* xfns.c (unwind_create_frame): Likewise.
 
 2011-11-01  Eli Zaretskii  <eliz@gnu.org>
 
