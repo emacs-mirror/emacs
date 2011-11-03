@@ -1,4 +1,4 @@
-;;; ede.el --- customization of EDE projects.
+;;; ede/custom.el --- customization of EDE projects.
 
 ;; Copyright (C) 2010-2011  Free Software Foundation, Inc.
 

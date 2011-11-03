@@ -333,7 +333,7 @@ Used in completion."
 
 ;;;###autoload
 (define-overloadable-function semantic-find-tags-by-scope-protection (scopeprotection parent &optional table)
-  "Find all tags accessable by SCOPEPROTECTION.
+  "Find all tags accessible by SCOPEPROTECTION.
 SCOPEPROTECTION is a symbol which can be returned by the method
 `semantic-tag-protection'.  A hard-coded order is used to determine a match.
 PARENT is a tag representing the PARENT slot needed for

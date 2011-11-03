@@ -471,7 +471,7 @@ like this in your .emacs file:
   (ede-cpp-root-project \"NAME\" :file \"FILENAME\" :locate-fcn 'MYFCN)
 
 See the CEDET manual, the EDE manual, or the commentary in
-ede-cpp-root.el for more.
+ede/cpp-root.el for more.
 
 If you think this header tag is marked in error, you may need to do:
 

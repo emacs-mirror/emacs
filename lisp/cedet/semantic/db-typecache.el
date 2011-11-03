@@ -1,4 +1,4 @@
-;;; db-typecache.el --- Manage Datatypes
+;;; semantic/db-typecache.el --- Manage Datatypes
 
 ;; Copyright (C) 2007-2011 Free Software Foundation, Inc.
 
@@ -622,4 +622,4 @@ If there isn't one, create it.
 ;; generated-autoload-load-name: "semantic/db-typecache"
 ;; End:
 
-;;; semanticdb-typecache.el ends here
+;;; semantic/db-typecache.el ends here

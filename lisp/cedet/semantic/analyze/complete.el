@@ -28,7 +28,7 @@
 ;;
 ;;; History:
 ;;
-;; Code was moved here from semantic-analyze.el
+;; Code was moved here from semantic/analyze.el
 
 (require 'semantic/analyze)
 

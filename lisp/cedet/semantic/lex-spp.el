@@ -1,4 +1,4 @@
-;;; lex-spp.el --- Semantic Lexical Pre-processor
+;;; semantic/lex-spp.el --- Semantic Lexical Pre-processor
 
 ;; Copyright (C) 2006-2011  Free Software Foundation, Inc.
 
@@ -1230,4 +1230,4 @@ If BUFFER is not provided, use the current buffer."
 ;; generated-autoload-load-name: "semantic/lex-spp"
 ;; End:
 
-;;; semantic-lex-spp.el ends here
+;;; semantic/lex-spp.el ends here

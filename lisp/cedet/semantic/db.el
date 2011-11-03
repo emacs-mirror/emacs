@@ -229,7 +229,7 @@ it is in Emacs.")
 	    :documentation
 	    "List of `semanticdb-table' objects refering to this one.
 These aren't saved, but are instead recalculated after load.
-See the file semanticdb-ref.el for how this slot is used.")
+See the file semantic/db-ref.el for how this slot is used.")
    (pointmax :initarg :pointmax
 	     :initform nil
 	     :documentation "Size of buffer when written to disk.
@@ -441,7 +441,7 @@ Tools needing a per-file cache must subclass this, and then get one as
 needed.  Cache objects are identified in semanticdb by subclass.
 In order to keep your cache up to date, be sure to implement
 `semanticdb-synchronize', and `semanticdb-partial-synchronize'.
-See the file semantic-scope.el for an example."
+See the file semantic/scope.el for an example."
   :abstract t)
 
 (defmethod semanticdb-cache-get ((table semanticdb-abstract-table)
@@ -492,7 +492,7 @@ Tools needing a database cache must subclass this, and then get one as
 needed.  Cache objects are identified in semanticdb by subclass.
 In order to keep your cache up to date, be sure to implement
 `semanticdb-synchronize', and `semanticdb-partial-synchronize'.
-See the file semantic-scope.el for an example."
+See the file semantic/scope.el for an example."
   :abstract t)
 
 (defmethod semanticdb-cache-get ((db semanticdb-project-database)
