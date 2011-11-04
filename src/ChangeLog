@@ -1,6 +1,12 @@
+2011-11-04  Eli Zaretskii  <eliz@gnu.org>
+
+	* xdisp.c (note_mouse_highlight): If either of
+	previous/next-single-property-change returns nil, treat that as
+	the beginning or the end of the buffer.  (Bug#9955)
+
 2011-11-04  Jan Djärv  <jan.h.d@swipnet.se>
 
-	* gtkutil.c (xg_make_tool_item): Add callbacks of one of wimage or
+	* gtkutil.c (xg_make_tool_item): Add callbacks if one of wimage or
 	label is not null (Bug#9951).
 	(xg_tool_item_stale_p): Handle the fact that wimage and/or wlbl
 	may be NULL.
