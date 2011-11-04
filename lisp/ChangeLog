@@ -1,5 +1,10 @@
 2011-11-04  Eli Zaretskii  <eliz@gnu.org>
 
+	* mail/rmail.el (rmail-simplified-subject): Decode subject with
+	rfc2047-decode-string.
+	(rmail-mime-toggle-hidden): Declare to avoid byte-compilation
+	warnings.
+
 	* window.el (window-body-height, window-body-width): Mention in
 	the doc string that the return values are in frame's canonical
 	units.  (Bug#9949)
