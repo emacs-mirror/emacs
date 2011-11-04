@@ -1,3 +1,10 @@
+2011-11-04  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* gtkutil.c (xg_make_tool_item): Add callbacks of one of wimage or
+	label is not null (Bug#9951).
+	(xg_tool_item_stale_p): Handle the fact that wimage and/or wlbl
+	may be NULL.
+
 2011-11-04  Eli Zaretskii  <eliz@gnu.org>
 
 	* window.c (Fwindow_body_size): Mention in the doc string that the
