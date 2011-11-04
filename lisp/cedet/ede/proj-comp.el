@@ -83,7 +83,7 @@ For example, yacc/lex files need additional chain rules, or inferences.")
 	    :documentation
 	    "The commands used to execute this compiler.
 The object which uses this compiler will place these commands after
-it's rule definition.")
+its rule definition.")
    (autoconf :initarg :autoconf
 	     :initform nil
 	     :type list

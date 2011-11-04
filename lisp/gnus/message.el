@@ -4022,7 +4022,9 @@ The text will also be indented the normal way."
 ;;;
 
 (defun message-send-and-exit (&optional arg)
-  "Send message like `message-send', then, if no errors, exit from mail buffer."
+  "Send message like `message-send', then, if no errors, exit from mail buffer.
+The usage of ARG is defined by the instance that called Message.
+It should typically alter the sending method in some way or other."
   (interactive "P")
   (let ((buf (current-buffer))
 	(actions message-exit-actions))

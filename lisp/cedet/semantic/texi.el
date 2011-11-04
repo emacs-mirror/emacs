@@ -446,7 +446,7 @@ that start with that symbol."
 
 ;;; Parser Setup
 ;;
-;; In semantic-imenu.el, not part of Emacs.
+;; In semantic/imenu.el, not part of Emacs.
 (defvar semantic-imenu-expandable-tag-classes)
 (defvar semantic-imenu-bucketize-file)
 (defvar semantic-imenu-bucketize-type-members)
@@ -592,7 +592,7 @@ Note: TYPE not yet implemented."
 ;;       (error "Could not find documentation for %s" (semantic-tag-name tag)))
 ;;
 ;;     (require 'srecode)
-;;     (require 'srecode-texi)
+;;     (require 'srecode/texi)
 ;;
 ;;     ;; If we have a string, do the replacement.
 ;;     (delete-region (semantic-tag-start tag)

@@ -1,3 +1,46 @@
+2011-11-03  David Engster  <dengste@eml.cc>
+
+	* srecode.el:
+	* srecode/texi.el:
+	* srecode/template.el:
+	* srecode/java.el:
+	* srecode/insert.el:
+	* srecode/document.el:
+	* srecode/dictionary.el:
+	* srecode/compile.el:
+	* semantic/wisent/java-tags.el:
+	* semantic/texi.el:
+	* semantic/sort.el:
+	* semantic/lex-spp.el:
+	* semantic/idle.el:
+	* semantic/html.el:
+	* semantic/db-typecache.el:
+	* semantic/analyze/complete.el:
+	* ede/generic.el:
+	* ede/custom.el:
+	* ede/cpp-root.el:
+	* ede/base.el: Fix filenames in comments and headers.
+
+	* semantic/db-find.el:
+	* srecode/insert.el (srecode-insert-include-lookup):
+	* ede/proj-comp.el (ede-compilation-program): Fix it's -> its in
+	comments and docstrings.
+
+	* semantic/ctxt.el (semantic-end-of-context-default):
+	* semantic/find.el (semantic-find-tags-by-scope-protection):
+	* semantic/java.el (semantic-documentation-for-tag): Fix typos in
+	docstrings.
+
+	* semantic/db.el (semanticdb-table, semanticdb-abstract-cache)
+	(semanticdb-abstract-db-cache):
+	* semantic/decorate/include.el
+	(semantic-decoration-unknown-include-describe): Fix filenames in
+	docstring.
+
+	* semantic/ede-grammar.el (semantic-ede-grammar-compiler-wisent):
+	(semantic-ede-grammar-compiler-bovine): Fix requires that are
+	added to the grammar-make-script.
+
 2011-10-23  Chong Yidong  <cyd@gnu.org>
 
 	* ede.el (ede-maybe-checkout): Function deleted;

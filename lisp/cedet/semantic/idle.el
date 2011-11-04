@@ -1314,4 +1314,4 @@ mouse-3: popup context menu"
 ;; generated-autoload-load-name: "semantic/idle"
 ;; End:
 
-;;; semantic-idle.el ends here
+;;; semantic/idle.el ends here

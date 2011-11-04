@@ -1,3 +1,8 @@
+2011-11-03  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* url-cookie.el (url-cookie-expired-p): Protect against
+	zero-length cookie expiry dates.
+
 2011-10-19  Chong Yidong  <cyd@gnu.org>
 
 	* url-handlers.el (url-handler-mode): Doc fix.

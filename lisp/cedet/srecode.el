@@ -31,7 +31,7 @@
 ;;
 ;; Contemplation of the simplistic problem within the scope of
 ;; semantic showed that the solution was more complex than could
-;; possibly be handled in semantic-format.el.   Semantic Recode, or
+;; possibly be handled in semantic/format.el.   Semantic Recode, or
 ;; srecode is a rich API for generating code out of semantic tags, or
 ;; recoding the tags.
 ;;

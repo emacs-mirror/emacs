@@ -413,7 +413,7 @@ Specifying PARENT is useful for sub-sub projects relative to the root project."
 (defmethod ede-subproject-p ((proj ede-project))
   "Return non-nil if PROJ is a sub project."
   ;; @TODO - Use this in more places, and also pay attention to
-  ;; metasubproject in ede-proj.el
+  ;; metasubproject in ede/proj.el
   (ede-parent-project proj))
 
 

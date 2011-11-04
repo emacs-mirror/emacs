@@ -79,13 +79,13 @@
 ;;  The PATH argument is then the most interesting argument.  It can
 ;;  have these values:
 ;;
-;;    nil - Take the current buffer, and use it's include list
+;;    nil - Take the current buffer, and use its include list
 ;;    buffer - Use that buffer's include list.
 ;;    filename - Use that file's include list.  If the file is not
 ;;        in a buffer, see of there is a semanticdb table for it.  If
 ;;        not, read that file into a buffer.
 ;;    tag - Get that tag's buffer of file file.  See above.
-;;    table - Search that table, and it's include list.
+;;    table - Search that table, and its include list.
 ;;
 ;; Search Results:
 ;;

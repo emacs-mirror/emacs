@@ -1,4 +1,4 @@
-;;; srecode-dictionary.el --- Dictionary code for the semantic recoder.
+;;; srecode/dictionary.el --- Dictionary code for the semantic recoder.
 
 ;; Copyright (C) 2007-2011 Free Software Foundation, Inc.
 

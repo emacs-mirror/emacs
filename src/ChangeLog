@@ -1,3 +1,25 @@
+2011-11-03  Eli Zaretskii  <eliz@gnu.org>
+
+	* xdisp.c (note_mouse_highlight): Initialize `area'.  (Bug#9947)
+
+	* w32fns.c (unwind_create_frame): If needed, free the glyph
+	matrices of the partially constructed frame.  (Bug#9943)
+	* xfns.c (unwind_create_frame): Likewise.
+
+2011-11-01  Eli Zaretskii  <eliz@gnu.org>
+
+	* xdisp.c (mouse_face_from_buffer_pos): Fix a typo in a comment.
+	Don't stop backward scan on the continuation glyph, even though
+	its CHARPOS is positive.
+	(mouse_face_from_buffer_pos, note_mouse_highlight): Rename
+	cover_string to disp_string.
+
+2011-11-01  Martin Rudalics  <rudalics@gmx.at>
+
+	* window.c (temp_output_buffer_show): Don't use
+	Vtemp_buffer_show_specifiers.
+	(Vtemp_buffer_show_specifiers): Remove unused variable.
+
 2011-10-30  Eli Zaretskii  <eliz@gnu.org>
 
 	* xdisp.c (try_cursor_movement): Make sure ROW isn't decremented
