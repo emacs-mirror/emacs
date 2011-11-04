@@ -1294,6 +1294,8 @@ functions.  It's easiest to use these functions through
 STARTTLS opportunistically or use plain SSL, depending on your needs.
 
 Only versions 2.8.x and higher or GnuTLS have been tested.
+[FIXME: this statement needs clarifying, given that GnuTLS >= 2.6.6
+is the test used by configure.]
 
 *** gnutls-log-level
 Set `gnutls-log-level' higher than 0 to get debug output.  1 is for
