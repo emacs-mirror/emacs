@@ -397,6 +397,14 @@ textual parts.")
 	     (stream-type (plist-get props :type)))
 	(when (and stream (not (memq (process-status stream) '(open run))))
 	  (setq stream nil))
+
+        (when (and (fboundp 'set-network-process-option) ;; Not in XEmacs.
+                   (fboundp 'process-type) ;; Emacs 22 doesn't provide it.
+                   (eq (process-type stream) 'network))
+          ;; Use TCP-keepalive so that connections that pass through a NAT
+          ;; router don't hang when left idle.
+          (set-network-process-option stream :keepalive t))
+
 	(setf (nnimap-process nnimap-object) stream)
 	(setf (nnimap-stream-type nnimap-object) stream-type)
 	(if (not stream)

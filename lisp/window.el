@@ -972,7 +972,14 @@ The return value does not include WINDOW's mode line and header
 line, if any.  If a line at the bottom of the window is only
 partially visible, that line is included in the return value.  If
 you do not want to include a partially visible bottom line in the
-return value, use `window-text-height' instead."
+return value, use `window-text-height' instead.
+
+Note that the return value is measured in canonical units, i.e. for
+the default frame's face.  If the window shows some characters with
+non-default face, e.g., if the font of some characters is larger or
+smaller than the default font, the value returned by this function
+will not match the actual number of lines shown in the window.  To
+get the actual number of lines, use `posn-at-point'."
   (window-body-size window))
 
 (defsubst window-body-width (&optional window)
@@ -982,7 +989,14 @@ WINDOW must be a live window and defaults to the selected one.
 The return value does not include any vertical dividers or scroll
 bars owned by WINDOW.  On a window-system the return value does
 not include the number of columns used for WINDOW's fringes or
-display margins either."
+display margins either.
+
+Note that the return value is measured in canonical units, i.e. for
+the default frame's face.  If the window shows some characters with
+non-default face, e.g., if the font of some characters is larger or
+smaller than the default font, the value returned by this function
+will not match the actual number of characters per line shown in the
+window.  To get the actual number of columns, use `posn-at-point'."
   (window-body-size window t))
 
 ;; Eventually we should make `window-height' obsolete.
@@ -2852,7 +2866,7 @@ displayed there."
      (t
       ;; Switch to another buffer in window.
       (set-window-dedicated-p nil nil)
-      (switch-to-prev-buffer nil 'kill)))
+      (switch-to-prev-buffer nil 'bury)))
 
     ;; Always return nil.
     nil))
@@ -2985,7 +2999,6 @@ one.  If non-nil, reset `quit-restore' parameter to nil."
       (setq resize (with-current-buffer buffer
 		     (and temp-buffer-resize-mode
 			  (/= (nth 3 quad) (window-total-size window)))))
-      (unrecord-window-buffer window buffer)
       (set-window-dedicated-p window nil)
       (when resize
 	;; Try to resize WINDOW to its old height but don't signal an
@@ -2993,9 +3006,12 @@ one.  If non-nil, reset `quit-restore' parameter to nil."
 	(condition-case nil
 	    (window-resize window (- (nth 3 quad) (window-total-size window)))
 	  (error nil)))
-      ;; Restore WINDOW's previous buffer, window start and point.
+      ;; Restore WINDOW's previous buffer, start and point position.
       (set-window-buffer-start-and-point
        window (nth 0 quad) (nth 1 quad) (nth 2 quad))
+      ;; Unrecord WINDOW's buffer here (Bug#9937) to make sure it's not
+      ;; re-recorded by `set-window-buffer'.
+      (unrecord-window-buffer window buffer)
       ;; Reset the quit-restore parameter.
       (set-window-parameter window 'quit-restore nil)
       ;; Select old window.
@@ -5022,7 +5038,7 @@ nil, BUFFER-OR-NAME may be displayed in another window.
 
 Return the buffer switched to."
   (interactive
-   (list (read-buffer-to-switch "Switch to buffer: ") nil nil))
+   (list (read-buffer-to-switch "Switch to buffer: ") nil 'force-same-window))
   (let ((buffer (window-normalize-buffer-to-switch-to buffer-or-name)))
     (if (null force-same-window)
 	(pop-to-buffer buffer display-buffer--same-window-action norecord)

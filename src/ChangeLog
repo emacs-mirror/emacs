@@ -1,3 +1,16 @@
+2011-11-04  Eli Zaretskii  <eliz@gnu.org>
+
+	* window.c (Fwindow_body_size): Mention in the doc string that the
+	return value is in frame's canonical units.  (Bug#9949)
+
+2011-11-03  Eli Zaretskii  <eliz@gnu.org>
+
+	* xdisp.c (note_mouse_highlight): Initialize `area'.  (Bug#9947)
+
+	* w32fns.c (unwind_create_frame): If needed, free the glyph
+	matrices of the partially constructed frame.  (Bug#9943)
+	* xfns.c (unwind_create_frame): Likewise.
+
 2011-11-01  Eli Zaretskii  <eliz@gnu.org>
 
 	* xdisp.c (mouse_face_from_buffer_pos): Fix a typo in a comment.

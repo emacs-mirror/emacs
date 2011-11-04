@@ -37,7 +37,7 @@
 ;; Document has now been ported to srecode, using the semantic recoder
 ;; as the templating engine.
 
-;; This file combines srecode-document.el and srecode-document-vars.el
+;; This file combines srecode/document.el and srecode/document-vars.el
 ;; from the CEDET repository.
 
 (require 'srecode/args)

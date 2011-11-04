@@ -106,7 +106,7 @@ Return non-nil if there is no upper context."
   (let ((start (point)))
     (if (semantic-up-context)
 	t
-      ;; Go over the list, and back over the end parenthisis.
+      ;; Go over the list, and back over the end parenthesis.
       (condition-case nil
 	  (progn
 	    (forward-sexp 1)

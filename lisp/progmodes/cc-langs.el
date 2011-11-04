@@ -3012,6 +3012,14 @@ i.e. before \":\".  Only used if `c-recognize-colon-labels' is set."
   c++ (concat "\\s\(\\|" (c-lang-const c-nonlabel-token-key)))
 (c-lang-defvar c-nonlabel-token-key (c-lang-const c-nonlabel-token-key))
 
+(c-lang-defconst c-nonlabel-token-2-key
+  "Regexp matching things that can't occur two symbols before a colon in
+a label construct.  This catches C++'s inheritance construct \"class foo
+: bar\".  Only used if `c-recognize-colon-labels' is set."
+  t "\\<\\>"				; matches nothing
+  c++ (c-make-keywords-re t '("class")))
+(c-lang-defvar c-nonlabel-token-2-key (c-lang-const c-nonlabel-token-2-key))
+
 (c-lang-defconst c-opt-extra-label-key
   "Optional regexp matching labels.
 Normally, labels are detected according to `c-nonlabel-token-key',

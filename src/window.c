@@ -653,16 +653,25 @@ window_body_cols (struct window *w)
 }
 
 DEFUN ("window-body-size", Fwindow_body_size, Swindow_body_size, 0, 2, 0,
-       doc: /* Return the number of lines of WINDOW's body.
-WINDOW must be a live window and defaults to the selected one.  The
-return value does not include WINDOW's mode line and header line, if
-any.
+       doc: /* Return the number of lines or columns of WINDOW's body.
+WINDOW must be a live window and defaults to the selected one.
 
-Optional argument HORIZONTAL non-nil means return the number of columns
-of WINDOW's body.  In this case, the return value does not include any
-vertical dividers or scroll bars owned by WINDOW.  On a window-system
-the return value does not include the number of columns used for
-WINDOW's fringes or display margins either.  */)
+If the optional argument HORIZONTAL is omitted or nil, the function
+returns the number of WINDOW's lines, excluding the mode line and
+header line, if any.
+
+If HORIZONTAL is non-nil, the function returns the number of columns
+excluding any vertical dividers or scroll bars owned by WINDOW.  On a
+window-system the return value also excludes the number of columns
+used for WINDOW's fringes or display margins.
+
+Note that the return value is measured in canonical units, i.e. for
+the default frame's face.  If the window shows some characters with
+non-default face, e.g., if the font of some characters is larger or
+smaller than the default font, the value returned by this function
+will not match the actual number of lines or characters per line
+shown in the window.  To get the actual number of columns and lines,
+use `posn-at-point'.  */)
   (Lisp_Object window, Lisp_Object horizontal)
 {
   struct window *w = decode_any_window (window);

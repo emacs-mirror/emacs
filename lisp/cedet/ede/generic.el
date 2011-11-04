@@ -22,7 +22,7 @@
 ;;; Commentary:
 ;;
 ;; There are a lot of build systems out there, and EDE can't support
-;; them all fully.  The ede-generic.el system is the base for
+;; them all fully.  The ede/generic.el system is the base for
 ;; supporting alternate build systems in a simple way, automatically.
 ;;
 ;; The structure is for the ede-generic baseclass, which is augmented

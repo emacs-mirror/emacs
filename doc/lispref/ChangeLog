@@ -1,3 +1,9 @@
+2011-11-04  Eli Zaretskii  <eliz@gnu.org>
+
+	* windows.texi (Window Sizes): Mention in the doc string that the
+	return values of `window-body-height' and `window-body-width' are
+	in frame's canonical units.  (Bug#9949)
+
 2011-10-30  Martin Rudalics  <rudalics@gmx.at>
 
 	* windows.texi (Windows and Frames): Remove "iso-" infix from
