@@ -1,3 +1,11 @@
+2011-11-04  Eli Zaretskii  <eliz@gnu.org>
+
+	* runemacs.c (ensure_unicows_dll): New function, tries to load
+	UNICOWS.DLL on Windows 9X.
+	(WinMain): If ensure_unicows_dll fails to find UNICOWS.DLL,
+	display a dialog to the effect that Emacs cannot be started.
+	(Bug#8562)
+
 2011-10-28  Eli Zaretskii  <eliz@gnu.org>
 
 	* README.W32: Mention UNICOWS.DLL as prerequisite for running
