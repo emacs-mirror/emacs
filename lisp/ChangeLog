@@ -1,3 +1,9 @@
+2011-11-04  Eli Zaretskii  <eliz@gnu.org>
+
+	* window.el (window-body-height, window-body-width): Mention in
+	the doc string that the return values are in frame's canonical
+	units.  (Bug#9949)
+
 2011-11-03  Alan Mackenzie  <acm@muc.de>
 
 	* progmodes/cc-langs.el (c-nonlabel-token-2-key): New variable for

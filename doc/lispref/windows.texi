@@ -563,8 +563,18 @@ window's body width.
 
 @cindex body size of a window
 @cindex window body size
-The following functions retrieve height and width of the body of a live
-window:
+@cindex canonical units of window/frame size
+The following functions retrieve height and width of the body of a
+live window.  Note that the values these functions return are measured
+in @dfn{canonical units}, i.e.@: for the default frame's face.  If the
+window shows some characters with non-default face, e.g., if the font
+of some characters is larger or smaller than the default font, the
+values returned by these functions will not match the actual number of
+lines or characters per line shown in the window.  To get the actual
+number of columns and lines, move to the last character in the line
+(e.g., with @code{end-of-visual-line}) or to the last line of the
+window (e.g., with @code{window-end}), and use @code{posn-at-point} to
+find the line or column there.
 
 @defun window-body-size &optional window horizontal
 This function returns the number of lines of @var{window}'s text area.
