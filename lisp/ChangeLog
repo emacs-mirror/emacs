@@ -1,8 +1,24 @@
 2011-11-05  Chong Yidong  <cyd@gnu.org>
 
 	* window.el (window-valid-p): Rename from window-any-p.
-	(window-normalize-any-window, window-size-ignore)
-	(window-state-get): Callers changed.
+	(window-size-ignore, window-state-get): Callers changed.
+	(window-normalize-window): Rename from window-normalize-any-window.
+	New arg LIVE-ONLY, replacing window-normalize-live-window.
+	(window-normalize-live-window): Deleted.
+	(window-combination-p, window-combined-p, window-combinations)
+	(walk-window-subtree, window-atom-root, window-min-size)
+	(window-sizable, window-sizable-p, window-size-fixed-p)
+	(window-min-delta, window-max-delta, window-resizable)
+	(window-resizable-p, window-full-height-p, window-full-width-p)
+	(window-current-scroll-bars, window-point-1, set-window-point-1)
+	(window-at-side-p, window-in-direction, window-resize)
+	(adjust-window-trailing-edge, maximize-window, minimize-window)
+	(window-deletable-p, delete-window, delete-other-windows)
+	(record-window-buffer, unrecord-window-buffer)
+	(switch-to-prev-buffer, switch-to-next-buffer, window--delete)
+	(quit-window, split-window, window-state-put)
+	(set-window-text-height, fit-window-to-buffer)
+	(shrink-window-if-larger-than-buffer): Callers changed.
 
 2011-11-04  Eli Zaretskii  <eliz@gnu.org>
 
