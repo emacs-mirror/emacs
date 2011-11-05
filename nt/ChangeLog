@@ -1,5 +1,10 @@
 2011-11-05  Christoph Scholtes  <cschol2112@googlemail.com>
 
+	* inc/stdint.h (UINT64_MAX, UINT64_MIN, INT64_MIN, UINTMAX_MAX)
+	(UINTMAX_MIN, INTMAX_MAX, INTMAX_MIN, UINT32_MIN, UINT32_MAX)
+	(INT32_MIN, UINTMAX_MAX, UINTMAX_MIN, INTMAX_MAX, INTMAX_MIN)
+	(intmax_t, INT64_MAX): Add for MSVC.
+
 	* config.nt: (mode_t) [!__GNUC__]: Define mode_t for MSVC.
 
 2011-11-05  Eli Zaretskii  <eliz@gnu.org>
