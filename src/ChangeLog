@@ -1,5 +1,8 @@
 2011-11-05  Eli Zaretskii  <eliz@gnu.org>
 
+	* s/ms-w32.h (fstat, stat, utime): Move redirections to
+	"emacs"-only part.
+
 	* w32fns.c (x_create_tip_frame, Fx_create_frame): Rearrange
 	initialization code to keep similarity to xfns.c after changes
 	from 2011-11-05.

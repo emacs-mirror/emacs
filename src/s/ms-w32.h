@@ -191,6 +191,11 @@ struct sigaction {
 #include <sys/timeb.h>
 #include <sys/stat.h>
 #include <signal.h>
+
+/* MSVC gets link-time errors without these redirections.  */
+#define fstat(a, b) sys_fstat(a, b)
+#define stat(a, b)  sys_stat(a, b)
+#define utime       sys_utime
 #endif
 
 /* Calls that are emulated or shadowed.  */
@@ -279,16 +284,8 @@ typedef int pid_t;
 
 #if !defined (_MSC_VER) || (_MSC_VER < 1400)
 #define tzname    _tzname
+#undef  utime
 #define utime	  _utime
-#endif
-
-#ifdef _MSC_VER
-/* MSVC gets link-time errors without these redirections.  */
-#define fstat(a, b) sys_fstat(a, b)
-#define stat(a, b)  sys_stat(a, b)
-#if _MSC_VER >= 1400
-#define utime       sys_utime
-#endif
 #endif
 
 /* This is hacky, but is necessary to avoid warnings about macro
