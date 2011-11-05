@@ -345,11 +345,9 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 # define restrict
 #endif
 
-/* Define to `int' if <sys/types.h> does not define. */
-#ifdef __GNUC__
-/* No action required for gcc */
-#else /* MSVC */
-#define mode_t int
+/* `mode_t' is not defined for MSVC. Define. */
+#ifdef _MSC_VER
+typedef unsigned short mode_t;
 #endif
 
 /* A va_copy replacement for MSVC.  */
