@@ -1,3 +1,9 @@
+2011-11-05  Eli Zaretskii  <eliz@gnu.org>
+
+	* w32fns.c (x_create_tip_frame, Fx_create_frame): Rearrange
+	initialization code to keep similarity to xfns.c after changes
+	from 2011-11-05.
+
 2011-11-05  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* nsfns.m: Declare image_cache_refcount if GLYPH_DEBUG.
