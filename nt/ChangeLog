@@ -1,5 +1,7 @@
 2011-11-05  Eli Zaretskii  <eliz@gnu.org>
 
+	* config.nt (inline) [!__GNUC__]: Define to __inline for MSVC.
+
 	Support MSVC build with newer versions of Visual Studio.
 	* makefile.w32-in (clean-other-dirs-nmake)
 	(distclean-other-dirs-nmake, maintainer-clean-other-dirs-nmake):
