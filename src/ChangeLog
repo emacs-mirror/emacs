@@ -1,3 +1,11 @@
+2011-11-05  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* xfns.c (unwind_create_frame): Fix comment.
+	(Fx_create_frame, x_create_tip_frame): Move
+	terminal->reference_count++ just before making the frame
+	official. Move initialization of image_cache_refcount and
+	dpyinfo_refcount before calling init_frame_faces (Bug#9943).
+
 2011-11-05  Eli Zaretskii  <eliz@gnu.org>
 
 	Support MSVC build with newer versions of Visual Studio.
