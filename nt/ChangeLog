@@ -1,3 +1,21 @@
+2011-11-05  Eli Zaretskii  <eliz@gnu.org>
+
+	Support MSVC build with newer versions of Visual Studio.
+	* makefile.w32-in (clean-other-dirs-nmake)
+	(distclean-other-dirs-nmake, maintainer-clean-other-dirs-nmake):
+	Update for current structure of doc/ subdirectories.
+
+	* gmake.defs (OBJ0_c, OBJ1_c, OBJ2_c): New variables.
+
+	* INSTALL: Update for newer versions of MSVC.
+
+2011-11-05  Fabrice Popineau  <fabrice.popineau@supelec.fr> (tiny change)
+
+	Support MSVC build with newer versions of Visual Studio.
+	* nmake.defs (USE_CRT_DLL): Define to 1.
+	(libc, EMACS_EXTRA_C_FLAGS, SYS_LDFLAGS, ARCH_CFLAGS): Update values.
+	(D): New variable.
+
 2011-11-04  Eli Zaretskii  <eliz@gnu.org>
 
 	* runemacs.c (ensure_unicows_dll): New function, tries to load

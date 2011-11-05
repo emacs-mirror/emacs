@@ -1,3 +1,38 @@
+2011-11-05  Eli Zaretskii  <eliz@gnu.org>
+
+	Support MSVC build with newer versions of Visual Studio.
+	* makefile.w32-in (TAGS-gmake): Don't use $(patsubst ...), as
+	Nmake barfs on that.  Use $(OBJ*_c) variables instead, defined on
+	nt/gmake.defs.
+
+	* lisp.h (ENUM_BF): New macro, for enumerated types in bitfields,
+	which are not supported by MSVC.
+	(Lisp_Symbol, Lisp_Misc_Any, Lisp_Marker, Lisp_Misc_Overlay)
+	(Lisp_Save_Value, Lisp_Free): Use ENUM_BF for enumerated types in
+	bitfields.
+	(Lisp_Object) [USE_LISP_UNION_TYPE]: Use ENUM_BF for enumerated
+	types in bitfields.
+	(DEFUN) [_MSC_VER]: Define in a different way for MSVC.
+
+	* w32fns.c [_MSC_VER]: DECLARE_HANDLE for any MSVC version.
+
+2011-11-05  Fabrice Popineau  <fabrice.popineau@supelec.fr> (tiny change)
+
+	Support MSVC build with newer versions of Visual Studio.
+	* w32.c: Don't include w32api.h for MSVC.
+	(init_environment) [_MSC_VER]: Call sys_access, not _access.
+
+	* s/ms-w32.h <sigset_t, ssize_t> [_MSC_VER]: Typedefs for MSVC.
+	[_MSC_VER]: Include sys/timeb.h, sys/stat.h, and signal.h.
+	(fstat, stat, utime) [_MSC_VER]: Redirect to their sys_* cousins.
+	(malloc, free, realloc, calloc) [_MSC_VER]: Always redirect to the
+	e_* cousins.
+	(alloca) [_MSC_VER]: Define to _alloca.
+
+	* lisp.h (DECL_ALIGN) [_MSC_VER]: Define for MSVC.
+
+	* regex.c <re_char> [_MSC_VER]: A separate definition for MSVC.
+
 2011-11-04  Eli Zaretskii  <eliz@gnu.org>
 
 	* xdisp.c (note_mouse_highlight): If either of

@@ -140,8 +140,8 @@ struct MONITOR_INFO
     DWORD   dwFlags;
 };
 
-/* Reportedly, VS 6 does not have this in its headers.  */
-#if defined (_MSC_VER) && _MSC_VER < 1300
+/* Reportedly, MSVC does not have this in its headers.  */
+#ifdef _MSC_VER
 DECLARE_HANDLE(HMONITOR);
 #endif
 

@@ -348,11 +348,11 @@ TAGS-LISP: $(OBJ0) $(OBJ1) $(OBJ2)
 TAGS-gmake:
 	../lib-src/$(BLD)/etags.exe --include=TAGS-LISP --include=../nt/TAGS \
 	  --regex=@../nt/emacs-src.tags \
-	  $(patsubst $(BLD)%.$(O),$(CURDIR)%.c,$(OBJ0))
+	  $(OBJ0_c)
 	../lib-src/$(BLD)/etags.exe -a --regex=@../nt/emacs-src.tags \
-	  $(patsubst $(BLD)%.$(O),$(CURDIR)%.c,$(OBJ1))
+	  $(OBJ1_c)
 	../lib-src/$(BLD)/etags.exe -a --regex=@../nt/emacs-src.tags \
-	  $(patsubst $(BLD)%.$(O),$(CURDIR)%.c,$(OBJ2)) \
+	  $(OBJ2_c) \
 	  $(CURDIR)/*.h $(CURDIR)/m/intel386.h $(CURDIR)/s/ms-w32.h
 
 TAGS-nmake:

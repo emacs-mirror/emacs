@@ -168,6 +168,9 @@ extern int suppress_checking EXTERNALLY_VISIBLE;
 #  if HAVE_ATTRIBUTE_ALIGNED
 #   define DECL_ALIGN(type, var) \
      type __attribute__ ((__aligned__ (1 << GCTYPEBITS))) var
+#  elif defined(_MSC_VER)
+#   define DECL_ALIGN(type, var) \
+     type __declspec(align(1 << GCTYPEBITS)) var
 #  else
      /* What directives do other compilers use?  */
 #  endif
@@ -224,6 +227,15 @@ extern int suppress_checking EXTERNALLY_VISIBLE;
 #  define LISP_INT_TAG_P(x) (((x) & 6) == 0)
 # endif
 #endif
+
+/* Stolen from GDB.  The only known compiler that doesn't support
+   enums in bitfields is MSVC.  */
+#ifdef _MSC_VER
+#define ENUM_BF(TYPE) unsigned int
+#else
+#define ENUM_BF(TYPE) enum TYPE
+#endif
+
 
 enum Lisp_Type
   {
@@ -315,12 +327,12 @@ union Lisp_Object
 	/* Use explict signed, the signedness of a bit-field of type
 	   int is implementation defined.  */
 	signed EMACS_INT val  : VALBITS;
-	enum Lisp_Type type : GCTYPEBITS;
+	ENUM_BF (Lisp_Type) type : GCTYPEBITS;
       } s;
     struct
       {
 	EMACS_UINT val : VALBITS;
-	enum Lisp_Type type : GCTYPEBITS;
+	ENUM_BF (Lisp_Type) type : GCTYPEBITS;
       } u;
   }
 Lisp_Object;
@@ -336,14 +348,14 @@ union Lisp_Object
 
     struct
       {
-	enum Lisp_Type type : GCTYPEBITS;
+	ENUM_BF (Lisp_Type) type : GCTYPEBITS;
 	/* Use explict signed, the signedness of a bit-field of type
 	   int is implementation defined.  */
 	signed EMACS_INT val  : VALBITS;
       } s;
     struct
       {
-	enum Lisp_Type type : GCTYPEBITS;
+	ENUM_BF (Lisp_Type) type : GCTYPEBITS;
 	EMACS_UINT val : VALBITS;
       } u;
   }
@@ -1096,7 +1108,7 @@ struct Lisp_Symbol
      1 : it's a varalias, the value is really in the `alias' symbol.
      2 : it's a localized var, the value is in the `blv' object.
      3 : it's a forwarding variable, the value is in `forward'.  */
-  enum symbol_redirect redirect : 3;
+  ENUM_BF (symbol_redirect) redirect : 3;
 
   /* Non-zero means symbol is constant, i.e. changing its value
      should signal an error.  If the value is 3, then the var
@@ -1309,7 +1321,7 @@ struct Lisp_Hash_Table
 
 struct Lisp_Misc_Any		/* Supertype of all Misc types.  */
 {
-  enum Lisp_Misc_Type type : 16;		/* = Lisp_Misc_??? */
+  ENUM_BF (Lisp_Misc_Type) type : 16;		/* = Lisp_Misc_??? */
   unsigned gcmarkbit : 1;
   int spacer : 15;
   /* Make it as long as "Lisp_Free without padding".  */
@@ -1318,7 +1330,7 @@ struct Lisp_Misc_Any		/* Supertype of all Misc types.  */
 
 struct Lisp_Marker
 {
-  enum Lisp_Misc_Type type : 16;		/* = Lisp_Misc_Marker */
+  ENUM_BF (Lisp_Misc_Type) type : 16;		/* = Lisp_Misc_Marker */
   unsigned gcmarkbit : 1;
   int spacer : 13;
   /* This flag is temporarily used in the functions
@@ -1468,7 +1480,7 @@ struct Lisp_Overlay
    I.e. 9words plus 2 bits, 3words of which are for external linked lists.
 */
   {
-    enum Lisp_Misc_Type type : 16;	/* = Lisp_Misc_Overlay */
+    ENUM_BF (Lisp_Misc_Type) type : 16;	/* = Lisp_Misc_Overlay */
     unsigned gcmarkbit : 1;
     int spacer : 15;
     struct Lisp_Overlay *next;
@@ -1487,7 +1499,7 @@ struct Lisp_Kboard_Objfwd
    This type of object is used in the arg to record_unwind_protect.  */
 struct Lisp_Save_Value
   {
-    enum Lisp_Misc_Type type : 16;	/* = Lisp_Misc_Save_Value */
+    ENUM_BF (Lisp_Misc_Type) type : 16;	/* = Lisp_Misc_Save_Value */
     unsigned gcmarkbit : 1;
     int spacer : 14;
     /* If DOGC is set, POINTER is the address of a memory
@@ -1501,7 +1513,7 @@ struct Lisp_Save_Value
 /* A miscellaneous object, when it's on the free list.  */
 struct Lisp_Free
   {
-    enum Lisp_Misc_Type type : 16;	/* = Lisp_Misc_Free */
+    ENUM_BF (Lisp_Misc_Type) type : 16;	/* = Lisp_Misc_Free */
     unsigned gcmarkbit : 1;
     int spacer : 15;
     union Lisp_Misc *chain;
@@ -1896,13 +1908,23 @@ typedef struct {
 
 /* This version of DEFUN declares a function prototype with the right
    arguments, so we can catch errors with maxargs at compile-time.  */
-#define DEFUN(lname, fnname, sname, minargs, maxargs, intspec, doc) \
-  Lisp_Object fnname DEFUN_ARGS_ ## maxargs ;				\
-  static DECL_ALIGN (struct Lisp_Subr, sname) =				\
-    { PVEC_SUBR,							\
-      { .a ## maxargs = fnname },				\
-      minargs, maxargs, lname, intspec, 0};				\
-  Lisp_Object fnname
+#ifdef _MSC_VER
+#define DEFUN(lname, fnname, sname, minargs, maxargs, intspec, doc)	\
+   Lisp_Object fnname DEFUN_ARGS_ ## maxargs ;				\
+   static DECL_ALIGN (struct Lisp_Subr, sname) =			\
+     { PVEC_SUBR | (sizeof (struct Lisp_Subr) / sizeof (EMACS_INT)),	\
+      { (Lisp_Object (__cdecl *)(void))fnname },                        \
+       minargs, maxargs, lname, intspec, 0};				\
+   Lisp_Object fnname
+#else  /* not _MSC_VER */
+#define DEFUN(lname, fnname, sname, minargs, maxargs, intspec, doc)	\
+   Lisp_Object fnname DEFUN_ARGS_ ## maxargs ;				\
+   static DECL_ALIGN (struct Lisp_Subr, sname) =			\
+     { PVEC_SUBR,							\
+      { .a ## maxargs = fnname },					\
+       minargs, maxargs, lname, intspec, 0};				\
+   Lisp_Object fnname
+#endif
 
 /* Note that the weird token-substitution semantics of ANSI C makes
    this work for MANY and UNEVALLED.  */

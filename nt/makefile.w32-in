@@ -313,15 +313,15 @@ clean-other-dirs-nmake:
 	$(MAKE) $(MFLAGS) clean
 	cd ..\doc\lispintro
 	$(MAKE) $(MFLAGS) clean
-	cd ..\doc\lispref
+	cd ..\lispref
 	$(MAKE) $(MFLAGS) clean
-	cd ..\leim
+	cd ..\..\leim
 	$(MAKE) $(MFLAGS) clean
 	cd ..\doc\emacs
 	$(MAKE) $(MFLAGS) clean
-	cd ..\doc\misc
+	cd ..\misc
 	$(MAKE) $(MFLAGS) clean
-	cd ..\nt
+	cd ..\..\nt
 
 clean-other-dirs-gmake:
 	$(MAKE) $(MFLAGS) $(XMFLAGS) -C ../lib clean
@@ -381,13 +381,13 @@ distclean-other-dirs-nmake:
 	$(MAKE) $(MFLAGS) distclean
 	cd ..\doc\emacs
 	$(MAKE) $(MFLAGS) distclean
-	cd ..\doc\misc
+	cd ..\misc
 	$(MAKE) $(MFLAGS) distclean
-	cd ..\doc\lispintro
+	cd ..\lispintro
 	$(MAKE) $(MFLAGS) distclean
-	cd ..\doc\lispref
+	cd ..\lispref
 	$(MAKE) $(MFLAGS) distclean
-	cd ..\nt
+	cd ..\..\nt
 
 distclean-other-dirs-gmake:
 	$(MAKE) $(MFLAGS) $(XMFLAGS) -C ../lib distclean
@@ -415,13 +415,13 @@ maintainer-clean-other-dirs-nmake:
 	$(MAKE) $(MFLAGS) maintainer-clean
 	cd ..\doc\emacs
 	$(MAKE) $(MFLAGS) maintainer-clean
-	cd ..\doc\misc
+	cd ..\misc
 	$(MAKE) $(MFLAGS) maintainer-clean
-	cd ..\doc\lispintro
+	cd ..\lispintro
 	$(MAKE) $(MFLAGS) maintainer-clean
-	cd ..\doc\lispref
+	cd ..\lispref
 	$(MAKE) $(MFLAGS) maintainer-clean
-	cd ..\nt
+	cd ..\..\nt
 
 maintainer-clean-other-dirs-gmake:
 	$(MAKE) $(MFLAGS) $(XMFLAGS) -C ../lib maintainer-clean

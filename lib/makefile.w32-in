@@ -50,7 +50,9 @@ all:		stamp_BLD $(ALL)
 
 ### TAGS ###
 
-TAGS:
+FRC:
+
+TAGS: FRC
 	 ../lib-src/$(BLD)/etags.exe *.c *.h
 
 ### DEPENDENCIES ###

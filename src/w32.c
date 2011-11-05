@@ -94,7 +94,9 @@ typedef struct _MEMORY_STATUS_EX {
 
 #include <tlhelp32.h>
 #include <psapi.h>
+#ifndef _MSC_VER
 #include <w32api.h>
+#endif
 #if !defined (__MINGW32__) || __W32API_MAJOR_VERSION < 3 || (__W32API_MAJOR_VERSION == 3 && __W32API_MINOR_VERSION < 15)
 /* This either is not in psapi.h or guarded by higher value of
    _WIN32_WINNT than what we use.  w32api supplied with MinGW 3.15
@@ -1547,7 +1549,12 @@ init_environment (char ** argv)
 	 read-only filesystem, like CD-ROM or a write-protected floppy.
 	 The only way to be really sure is to actually create a file and
 	 see if it succeeds.  But I think that's too much to ask.  */
+#ifdef _MSC_VER
+      /* MSVC's _access crashes with D_OK.  */
+      if (tmp && sys_access (tmp, D_OK) == 0)
+#else
       if (tmp && _access (tmp, D_OK) == 0)
+#endif
 	{
 	  char * var = alloca (strlen (tmp) + 8);
 	  sprintf (var, "TMPDIR=%s", tmp);
