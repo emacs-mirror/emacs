@@ -1,3 +1,8 @@
+2011-11-05  Christoph Scholtes  <cschol2112@googlemail.com>
+
+	* makefile.w32-in ($(TEMACS), (gl-stamp)): Use $(THISDIR) to
+	support MSVC.
+
 2011-11-05  Jason Rumney  <jasonr@gnu.org>
 
 	* w32font.c (font_matches_spec): Filter out non-Japanese kana fonts.

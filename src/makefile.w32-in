@@ -177,7 +177,7 @@ temacs:         stamp_BLD $(TEMACS)
 $(TEMACS):      $(TLIB0) $(TLIB1) $(TLIB2) $(TLASTLIB) $(TOBJ) $(TRES) \
 		  ../nt/$(BLD)/addsection.exe $(GNULIB)
 	$(LINK) $(LINK_OUT)$(TEMACS_TMP) $(FULL_LINK_FLAGS) $(TOBJ) $(TRES) $(LIBS)
-	"../nt/$(BLD)/addsection" "$(TEMACS_TMP)" "$(TEMACS)" EMHEAP 21
+	"$(THISDIR)/../nt/$(BLD)/addsection" "$(TEMACS_TMP)" "$(TEMACS)" EMHEAP 21
 
 # These omit firstfile.${O}, but there's no documentation in there
 # anyways.
@@ -232,7 +232,7 @@ globals.h: gl-stamp
 
 gl-stamp: ../lib-src/$(BLD)/make-docfile.exe $(GLOBAL_SOURCES)
 	- $(DEL) gl-tmp
-	"../lib-src/$(BLD)/make-docfile" -d . -g $(SOME_MACHINE_OBJECTS) $(obj) > gl-tmp
+	"$(THISDIR)/../lib-src/$(BLD)/make-docfile" -d . -g $(SOME_MACHINE_OBJECTS) $(obj) > gl-tmp
 	cmd /c "fc /b gl-tmp globals.h >nul 2>&1 || $(CP) gl-tmp globals.h"
 	- $(DEL) gl-tmp
 	echo timestamp > $@
