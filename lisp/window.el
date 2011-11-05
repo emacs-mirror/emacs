@@ -100,8 +100,10 @@ be any window."
       (setq window (window-next-sibling window))))
   window)
 
-(defsubst window-any-p (object)
-  "Return t if OBJECT denotes a live or internal window."
+(defsubst window-valid-p (object)
+  "Return t if OBJECT denotes a live window or internal window.
+Otherwise, return nil; this includes the case where OBJECT is a
+deleted window."
   (and (windowp object)
        (or (window-buffer object) (window-child object))
        t))
@@ -135,7 +137,7 @@ FRAME must be a live frame and defaults to the selected frame."
 WINDOW must be a window that has not been deleted and defaults to
 the selected window."
   (if window
-      (if (window-any-p window)
+      (if (window-valid-p window)
 	  window
 	(error "%s is not a window" window))
     (selected-window)))
@@ -532,7 +534,7 @@ window).")
 
 (defsubst window-size-ignore (window ignore)
   "Return non-nil if IGNORE says to ignore size restrictions for WINDOW."
-  (if (window-any-p ignore) (eq window ignore) ignore))
+  (if (window-valid-p ignore) (eq window ignore) ignore))
 
 (defun window-min-size (&optional window horizontal ignore)
   "Return the minimum number of lines of WINDOW.
@@ -3677,7 +3679,7 @@ to put the state recorded here into an arbitrary window.  The
 value can be also stored on disk and read back in a new session."
   (setq window
 	(if window
-	    (if (window-any-p window)
+	    (if (window-valid-p window)
 		window
 	      (error "%s is not a live or internal window" window))
 	  (frame-root-window)))

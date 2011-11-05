@@ -1,3 +1,9 @@
+2011-11-05  Chong Yidong  <cyd@gnu.org>
+
+	* window.el (window-valid-p): Rename from window-any-p.
+	(window-normalize-any-window, window-size-ignore)
+	(window-state-get): Callers changed.
+
 2011-11-04  Eli Zaretskii  <eliz@gnu.org>
 
 	* mail/rmail.el (rmail-simplified-subject): Decode subject with
