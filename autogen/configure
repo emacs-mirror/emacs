@@ -11692,23 +11692,23 @@ fi
   else
      PKG_CONFIG_MIN_VERSION=0.9.0
      if $PKG_CONFIG --atleast-pkgconfig-version $PKG_CONFIG_MIN_VERSION; then
-        { $as_echo "$as_me:${as_lineno-$LINENO}: checking for gnutls >= 2.6.0" >&5
-$as_echo_n "checking for gnutls >= 2.6.0... " >&6; }
+        { $as_echo "$as_me:${as_lineno-$LINENO}: checking for gnutls >= 2.6.6" >&5
+$as_echo_n "checking for gnutls >= 2.6.6... " >&6; }
 
-        if $PKG_CONFIG --exists "gnutls >= 2.6.0" 2>&5; then
+        if $PKG_CONFIG --exists "gnutls >= 2.6.6" 2>&5; then
             { $as_echo "$as_me:${as_lineno-$LINENO}: result: yes" >&5
 $as_echo "yes" >&6; }
             succeeded=yes
 
             { $as_echo "$as_me:${as_lineno-$LINENO}: checking LIBGNUTLS_CFLAGS" >&5
 $as_echo_n "checking LIBGNUTLS_CFLAGS... " >&6; }
-            LIBGNUTLS_CFLAGS=`$PKG_CONFIG --cflags "gnutls >= 2.6.0"|sed -e 's,///*,/,g'`
+            LIBGNUTLS_CFLAGS=`$PKG_CONFIG --cflags "gnutls >= 2.6.6"|sed -e 's,///*,/,g'`
             { $as_echo "$as_me:${as_lineno-$LINENO}: result: $LIBGNUTLS_CFLAGS" >&5
 $as_echo "$LIBGNUTLS_CFLAGS" >&6; }
 
             { $as_echo "$as_me:${as_lineno-$LINENO}: checking LIBGNUTLS_LIBS" >&5
 $as_echo_n "checking LIBGNUTLS_LIBS... " >&6; }
-            LIBGNUTLS_LIBS=`$PKG_CONFIG --libs "gnutls >= 2.6.0"|sed -e 's,///*,/,g'`
+            LIBGNUTLS_LIBS=`$PKG_CONFIG --libs "gnutls >= 2.6.6"|sed -e 's,///*,/,g'`
             { $as_echo "$as_me:${as_lineno-$LINENO}: result: $LIBGNUTLS_LIBS" >&5
 $as_echo "$LIBGNUTLS_LIBS" >&6; }
         else
@@ -11718,7 +11718,7 @@ $as_echo "no" >&6; }
             LIBGNUTLS_LIBS=""
             ## If we have a custom action on failure, don't print errors, but
             ## do set a variable so people can do so.
-            LIBGNUTLS_PKG_ERRORS=`$PKG_CONFIG --errors-to-stdout --print-errors "gnutls >= 2.6.0"`
+            LIBGNUTLS_PKG_ERRORS=`$PKG_CONFIG --errors-to-stdout --print-errors "gnutls >= 2.6.6"`
 
         fi
 
@@ -22425,7 +22425,7 @@ echo "  Does Emacs use -ldbus?                                  ${HAVE_DBUS}"
 echo "  Does Emacs use -lgconf?                                 ${HAVE_GCONF}"
 echo "  Does Emacs use GSettings?                               ${HAVE_GSETTINGS}"
 echo "  Does Emacs use -lselinux?                               ${HAVE_LIBSELINUX}"
-echo "  Does Emacs use -lgnutls (2.6.x or higher)?              ${HAVE_GNUTLS}"
+echo "  Does Emacs use -lgnutls?                                ${HAVE_GNUTLS}"
 echo "  Does Emacs use -lxml2?                                  ${HAVE_LIBXML2}"
 
 echo "  Does Emacs use -lfreetype?                              ${HAVE_FREETYPE}"
