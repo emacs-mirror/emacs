@@ -1,3 +1,7 @@
+2011-11-05  Christoph Scholtes  <cschol2112@googlemail.com>
+
+	* config.nt: (mode_t) [!__GNUC__]: Define mode_t for MSVC.
+
 2011-11-05  Eli Zaretskii  <eliz@gnu.org>
 
 	* config.nt (inline) [!__GNUC__]: Define to __inline for MSVC.
