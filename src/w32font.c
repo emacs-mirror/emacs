@@ -1292,6 +1292,15 @@ font_matches_spec (DWORD type, NEWTEXTMETRICEX *font,
                     = font_supported_scripts (&font->ntmFontSig);
                   if (! memq_no_quit (val, support))
                     return 0;
+
+		  /* Avoid using non-Japanese fonts for Japanese, even
+		     if they claim they are capable, due to known
+		     breakage in Vista and Windows 7 fonts
+		     (bug#6029).  */
+		  if (EQ (val, Qkana)
+		      && (font->ntmTm.tmCharSet != SHIFTJIS_CHARSET
+			  || !(font->ntmFontSig.fsCsb[0] & CSB_JAPANESE)))
+		    return 0;
                 }
               else
                 {
@@ -1507,7 +1516,7 @@ add_font_entity_to_list (ENUMLOGFONTEX *logical_font,
   /* For uniscribe backend, consider only truetype or opentype fonts
      that have some unicode coverage.  */
   if (match_data->opentype_only
-      && ((!physical_font->ntmTm.ntmFlags & NTMFLAGS_OPENTYPE
+      && ((!(physical_font->ntmTm.ntmFlags & NTMFLAGS_OPENTYPE)
 	   && !(font_type & TRUETYPE_FONTTYPE))
 	  || !is_unicode))
     return 1;
@@ -1568,8 +1577,8 @@ add_font_entity_to_list (ENUMLOGFONTEX *logical_font,
 	 the bits for CJK ranges that include those characters.  */
       else if (EQ (spec_charset, Qunicode_sip))
 	{
-	  if (!physical_font->ntmFontSig.fsUsb[1] & 0x02000000
-	      || !physical_font->ntmFontSig.fsUsb[1] & 0x28000000)
+	  if (!(physical_font->ntmFontSig.fsUsb[1] & 0x02000000)
+	      || !(physical_font->ntmFontSig.fsUsb[1] & 0x28000000))
 	    return 1;
 	}
 
@@ -1577,8 +1586,16 @@ add_font_entity_to_list (ENUMLOGFONTEX *logical_font,
 
       /* If registry was specified, ensure it is reported as the same.  */
       if (!NILP (spec_charset))
-	ASET (entity, FONT_REGISTRY_INDEX, spec_charset);
-
+	{
+	  /* Avoid using non-Japanese fonts for Japanese, even if they
+	     claim they are capable, due to known breakage in Vista
+	     and Windows 7 fonts (bug#6029).  */
+	  if (logical_font->elfLogFont.lfCharSet == SHIFTJIS_CHARSET
+	      && !(physical_font->ntmFontSig.fsCsb[0] & CSB_JAPANESE))
+	    return 1;
+	  else
+	    ASET (entity, FONT_REGISTRY_INDEX, spec_charset);
+	}
       /* Otherwise if using the uniscribe backend, report ANSI and DEFAULT
 	 fonts as unicode and skip other charsets.  */
       else if (match_data->opentype_only)

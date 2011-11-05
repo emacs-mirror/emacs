@@ -1,3 +1,12 @@
+2011-11-05  Jason Rumney  <jasonr@gnu.org>
+
+	* w32font.c (font_matches_spec): Filter out non-Japanese kana fonts.
+	(add_font_entity_to_list): Filter out non-Japanese Shift-JIS
+	fonts (Bug#6029).
+	(add_font_entity_to_list): Fix logic errors in mixed boolean and
+	bitwise arithmetic preventing use of unicode-sip and non-truetype
+	opentype fonts.
+
 2011-11-05  Eli Zaretskii  <eliz@gnu.org>
 
 	* s/ms-w32.h (fstat, stat, utime): Move redirections to
@@ -2811,6 +2820,9 @@
 	ns_return_type.
 
 2011-07-08  Jason Rumney  <jasonr@gnu.org>
+
+	* w32term.c (x_make_frame_visible): Use SH_SHOWNORMAL rather than
+	SH_SHOW for hidden windows (Bug#5482).
 
 	* w32fns.c (w32_wnd_proc) [WM_TIMER, WM_SET_CURSOR]: Avoid using
 	frame struct members of non-existent frames (Bug#6284).
