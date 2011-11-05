@@ -1,5 +1,16 @@
 2011-11-05  Jan Djärv  <jan.h.d@swipnet.se>
 
+	* nsfns.m: Declare image_cache_refcount if GLYPH_DEBUG.
+	(unwind_create_frame): New function (Bug#9943).
+	(Fx_create_frame): Restructure code to be more similar to the one in
+	xfns.c.  Call record_unwind_protect with unwind_create_frame (Bug#9943).
+	Initialize image_cache_refcount if GLYPH_DEBUG (Bug#9943).
+	Move terminal->reference_count++ just before making the frame official
+	(Bug#9943).
+
+	* nsterm.m (x_free_frame_resources): New function.
+	(x_destroy_window): Move code to x_free_frame_resources.
+
 	* xfns.c (unwind_create_frame): Fix comment.
 	(Fx_create_frame, x_create_tip_frame): Move
 	terminal->reference_count++ just before making the frame
