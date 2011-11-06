@@ -1,3 +1,8 @@
+2011-11-06  Andreas Schwab  <schwab@linux-m68k.org>
+
+	* keyboard.c (interrupt_signal): Don't call kill-emacs while in
+	GC.
+
 2011-11-06  Eli Zaretskii  <eliz@gnu.org>
 
 	* xdisp.c (init_iterator, reseat_to_string): Don't set the
