@@ -1,3 +1,10 @@
+2011-11-06  Eli Zaretskii  <eliz@gnu.org>
+
+	* xdisp.c (init_iterator, reseat_to_string): Don't set the
+	iterator's bidi_p flag if Vpurify_flag is non-nil.  (Bug#9963)
+	(Fcurrent_bidi_paragraph_direction): If Vpurify_flag is non-nil,
+	return Qleft_to_right.
+
 2011-11-06  Chong Yidong  <cyd@gnu.org>
 
 	* window.c (Fwindow_live_p, Fwindow_frame, Fframe_root_window)
