@@ -1,3 +1,21 @@
+2011-11-06  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Fix some portability problems with 'inline'.
+	* dispextern.h (window_box, window_box_height, window_text_bottom_y)
+	(window_box_width, window_box_left, window_box_left_offset)
+	(window_box_right, window_box_right_offset): Declare extern.
+	Otherwise, these inline functions do not conform to C99 and
+	are miscompiled by Microsoft compilers.  Reported by Eli Zaretskii in
+	<http://lists.gnu.org/archive/html/emacs-devel/2011-11/msg00084.html>.
+	* intervals.c (adjust_intervals_for_insertion)
+	(adjust_intervals_for_deletion): Now extern, because otherwise the
+	extern inline functions 'offset_intervals' couldn't refer to it.
+	(static_offset_intervals): Remove.
+	(offset_intervals): Rewrite using the old contents of
+	static_offset_intervals.  The old version didn't conform to C99
+	because an extern inline function contained a reference to an
+	identifier with static linkage.
+
 2011-11-06  Andreas Schwab  <schwab@linux-m68k.org>
 
 	* keyboard.c (interrupt_signal): Don't call kill-emacs while in

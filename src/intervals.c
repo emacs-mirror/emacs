@@ -52,6 +52,11 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 #define TMEM(sym, set) (CONSP (set) ? ! NILP (Fmemq (sym, set)) : ! NILP (set))
 
+extern INTERVAL adjust_intervals_for_insertion (INTERVAL,
+						EMACS_INT, EMACS_INT);
+extern void adjust_intervals_for_deletion (struct buffer *,
+					   EMACS_INT, EMACS_INT);
+
 static Lisp_Object merge_properties_sticky (Lisp_Object, Lisp_Object);
 static INTERVAL merge_interval_right (INTERVAL);
 static INTERVAL reproduce_tree (INTERVAL, INTERVAL);
@@ -798,7 +803,7 @@ update_interval (register INTERVAL i, EMACS_INT pos)
    and check the hungry bits of both.  Then add the length going back up
    to the root.  */
 
-static INTERVAL
+INTERVAL
 adjust_intervals_for_insertion (INTERVAL tree, EMACS_INT position,
 				EMACS_INT length)
 {
@@ -859,7 +864,7 @@ adjust_intervals_for_insertion (INTERVAL tree, EMACS_INT position,
    interval.  Another possibility would be to create a new interval for
    this text, and make it have the merged properties of both ends.  */
 
-static INTERVAL
+INTERVAL
 adjust_intervals_for_insertion (INTERVAL tree,
 				EMACS_INT position, EMACS_INT length)
 {
@@ -1369,7 +1374,7 @@ interval_deletion_adjustment (register INTERVAL tree, register EMACS_INT from,
    text.  The deletion is effected at position START (which is a
    buffer position, i.e. origin 1).  */
 
-static void
+void
 adjust_intervals_for_deletion (struct buffer *buffer,
 			       EMACS_INT start, EMACS_INT length)
 {
@@ -1425,9 +1430,8 @@ adjust_intervals_for_deletion (struct buffer *buffer,
    compiler that does not allow calling a static function (here,
    adjust_intervals_for_deletion) from a non-static inline function.  */
 
-static inline void
-static_offset_intervals (struct buffer *buffer, EMACS_INT start,
-			 EMACS_INT length)
+inline void
+offset_intervals (struct buffer *buffer, EMACS_INT start, EMACS_INT length)
 {
   if (NULL_INTERVAL_P (BUF_INTERVALS (buffer)) || length == 0)
     return;
@@ -1439,12 +1443,6 @@ static_offset_intervals (struct buffer *buffer, EMACS_INT start,
       IF_LINT (if (length < - TYPE_MAXIMUM (EMACS_INT)) abort ();)
       adjust_intervals_for_deletion (buffer, start, -length);
     }
-}
-
-inline void
-offset_intervals (struct buffer *buffer, EMACS_INT start, EMACS_INT length)
-{
-  static_offset_intervals (buffer, start, length);
 }
 
 /* Merge interval I with its lexicographic successor. The resulting
