@@ -1,3 +1,9 @@
+2011-11-06  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
+
+	* xmenu.c (cleanup_widget_value_tree): New function.
+	(xmenu_show, xdialog_show): Use it in record_unwind_protect instead of
+	calling free_menubar_widget_value_tree directly (Bug#9830).
+
 2011-11-06  Paul Eggert  <eggert@cs.ucla.edu>
 
 	Fix some portability problems with 'inline'.

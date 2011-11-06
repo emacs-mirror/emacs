@@ -1604,6 +1604,17 @@ create_and_show_popup_menu (FRAME_PTR f, widget_value *first_wv,
 
 #endif /* not USE_GTK */
 
+static Lisp_Object
+cleanup_widget_value_tree (Lisp_Object arg)
+{
+  struct Lisp_Save_Value *p = XSAVE_VALUE (arg);
+  widget_value *wv = p->pointer;
+
+  free_menubar_widget_value_tree (wv);
+
+  return Qnil;
+}
+
 Lisp_Object
 xmenu_show (FRAME_PTR f, int x, int y, int for_click, int keymaps,
 	    Lisp_Object title, const char **error_name, Time timestamp)
@@ -1617,6 +1628,8 @@ xmenu_show (FRAME_PTR f, int x, int y, int for_click, int keymaps,
   int submenu_depth = 0;
 
   int first_pane;
+
+  int specpdl_count = SPECPDL_INDEX ();
 
   if (! FRAME_X_P (f))
     abort ();
@@ -1812,11 +1825,15 @@ xmenu_show (FRAME_PTR f, int x, int y, int for_click, int keymaps,
   /* No selection has been chosen yet.  */
   menu_item_selection = 0;
 
+  /* Make sure to free the widget_value objects we used to specify the
+     contents even with longjmp.  */
+  record_unwind_protect (cleanup_widget_value_tree,
+			 make_save_value (first_wv, 0));
+
   /* Actually create and show the menu until popped down.  */
   create_and_show_popup_menu (f, first_wv, x, y, for_click, timestamp);
 
-  /* Free the widget_value objects we used to specify the contents.  */
-  free_menubar_widget_value_tree (first_wv);
+  unbind_to (specpdl_count, Qnil);
 
   /* Find the selected item, and its pane, to return
      the proper value.  */
@@ -2003,6 +2020,8 @@ xdialog_show (FRAME_PTR f,
   /* 1 means we've seen the boundary between left-hand elts and right-hand.  */
   int boundary_seen = 0;
 
+  int specpdl_count = SPECPDL_INDEX ();
+
   if (! FRAME_X_P (f))
     abort ();
 
@@ -2116,11 +2135,15 @@ xdialog_show (FRAME_PTR f,
   /* No selection has been chosen yet.  */
   menu_item_selection = 0;
 
+  /* Make sure to free the widget_value objects we used to specify the
+     contents even with longjmp.  */
+  record_unwind_protect (cleanup_widget_value_tree,
+			 make_save_value (first_wv, 0));
+
   /* Actually create and show the dialog.  */
   create_and_show_dialog (f, first_wv);
 
-  /* Free the widget_value objects we used to specify the contents.  */
-  free_menubar_widget_value_tree (first_wv);
+  unbind_to (specpdl_count, Qnil);
 
   /* Find the selected item, and its pane, to return
      the proper value.  */
