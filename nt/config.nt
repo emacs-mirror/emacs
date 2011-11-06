@@ -328,8 +328,12 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 /* Define to `__inline__' or `__inline' if that's what the C compiler
    calls it, or to nothing if 'inline' is not supported under any name.  */
+#ifdef __GNUC__
 #ifndef __cplusplus
 #undef inline
+#endif
+#else  /* MSVC */
+#define inline __inline
 #endif
 
 /* Define to the equivalent of the C99 'restrict' keyword, or to
@@ -339,6 +343,11 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 # define restrict __restrict__
 #else
 # define restrict
+#endif
+
+/* `mode_t' is not defined for MSVC. Define. */
+#ifdef _MSC_VER
+typedef unsigned short mode_t;
 #endif
 
 /* A va_copy replacement for MSVC.  */

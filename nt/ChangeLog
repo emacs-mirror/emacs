@@ -1,3 +1,40 @@
+2011-11-05  Christoph Scholtes  <cschol2112@googlemail.com>
+
+	* inc/stdint.h (UINT64_MAX, UINT64_MIN, INT64_MIN, UINTMAX_MAX)
+	(UINTMAX_MIN, INTMAX_MAX, INTMAX_MIN, UINT32_MIN, UINT32_MAX)
+	(INT32_MIN, UINTMAX_MAX, UINTMAX_MIN, INTMAX_MAX, INTMAX_MIN)
+	(intmax_t, INT64_MAX): Add for MSVC.
+
+	* config.nt: (mode_t) [!__GNUC__]: Define mode_t for MSVC.
+
+2011-11-05  Eli Zaretskii  <eliz@gnu.org>
+
+	* config.nt (inline) [!__GNUC__]: Define to __inline for MSVC.
+
+	Support MSVC build with newer versions of Visual Studio.
+	* makefile.w32-in (clean-other-dirs-nmake)
+	(distclean-other-dirs-nmake, maintainer-clean-other-dirs-nmake):
+	Update for current structure of doc/ subdirectories.
+
+	* gmake.defs (OBJ0_c, OBJ1_c, OBJ2_c): New variables.
+
+	* INSTALL: Update for newer versions of MSVC.
+
+2011-11-05  Fabrice Popineau  <fabrice.popineau@supelec.fr> (tiny change)
+
+	Support MSVC build with newer versions of Visual Studio.
+	* nmake.defs (USE_CRT_DLL): Define to 1.
+	(libc, EMACS_EXTRA_C_FLAGS, SYS_LDFLAGS, ARCH_CFLAGS): Update values.
+	(D): New variable.
+
+2011-11-04  Eli Zaretskii  <eliz@gnu.org>
+
+	* runemacs.c (ensure_unicows_dll): New function, tries to load
+	UNICOWS.DLL on Windows 9X.
+	(WinMain): If ensure_unicows_dll fails to find UNICOWS.DLL,
+	display a dialog to the effect that Emacs cannot be started.
+	(Bug#8562)
+
 2011-10-28  Eli Zaretskii  <eliz@gnu.org>
 
 	* README.W32: Mention UNICOWS.DLL as prerequisite for running

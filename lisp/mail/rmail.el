@@ -194,6 +194,7 @@ please report it with \\[report-emacs-bug].")
 
 (declare-function mail-dont-reply-to "mail-utils" (destinations))
 (declare-function rmail-update-summary "rmailsum" (&rest ignore))
+(declare-function rmail-mime-toggle-hidden "rmailmm" ())
 
 (defun rmail-probe (prog)
   "Determine what flavor of movemail PROG is.
@@ -3262,6 +3263,7 @@ Interactively, empty argument means use same regexp used last time."
 Simplifying the subject means stripping leading and trailing whitespace,
 and typical reply prefixes such as Re:."
   (let ((subject (or (rmail-get-header "Subject" msgnum) "")))
+    (setq subject (rfc2047-decode-string subject))
     (if (string-match "\\`[ \t]+" subject)
 	(setq subject (substring subject (match-end 0))))
     (if (string-match rmail-reply-regexp subject)

@@ -164,7 +164,7 @@ static Lisp_Object last_mouse_motion_frame;
 static EmacsScroller *last_mouse_scroll_bar = nil;
 static struct frame *ns_updating_frame;
 static NSView *focus_view = NULL;
-static int ns_window_num =0;
+static int ns_window_num = 0;
 static NSRect uRect;
 static BOOL gsaved = NO;
 BOOL ns_in_resize = NO;
@@ -1123,12 +1123,10 @@ x_iconify_frame (struct frame *f)
   [[view window] miniaturize: NSApp];
 }
 
+/* Free X resources of frame F.  */
 
 void
-x_destroy_window (struct frame *f)
-/* --------------------------------------------------------------------------
-     External: Delete the window
-   -------------------------------------------------------------------------- */
+x_free_frame_resources (struct frame *f)
 {
   NSView *view = FRAME_NS_VIEW (f);
   struct ns_display_info *dpyinfo = FRAME_NS_DISPLAY_INFO (f);
@@ -1163,8 +1161,19 @@ x_destroy_window (struct frame *f)
   [[view window] close];
   [view release];
 
-  ns_window_num--;
   UNBLOCK_INPUT;
+}
+
+void
+x_destroy_window (struct frame *f)
+/* --------------------------------------------------------------------------
+     External: Delete the window
+   -------------------------------------------------------------------------- */
+{
+  NSTRACE (x_destroy_window);
+  check_ns ();
+  x_free_frame_resources (f);
+  ns_window_num--;
 }
 
 

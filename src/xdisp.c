@@ -27152,8 +27152,12 @@ note_mouse_highlight (struct frame *f, int x, int y)
 		    }
 
 		  mouse_face_from_buffer_pos (window, hlinfo, pos,
-					      XFASTINT (before),
-					      XFASTINT (after),
+					      NILP (before)
+					      ? 1
+					      : XFASTINT (before),
+					      NILP (after)
+					      ? BUF_Z (XBUFFER (buffer))
+					      : XFASTINT (after),
 					      before_string, after_string,
 					      disp_string);
 		  cursor = No_Cursor;

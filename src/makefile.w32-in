@@ -177,7 +177,7 @@ temacs:         stamp_BLD $(TEMACS)
 $(TEMACS):      $(TLIB0) $(TLIB1) $(TLIB2) $(TLASTLIB) $(TOBJ) $(TRES) \
 		  ../nt/$(BLD)/addsection.exe $(GNULIB)
 	$(LINK) $(LINK_OUT)$(TEMACS_TMP) $(FULL_LINK_FLAGS) $(TOBJ) $(TRES) $(LIBS)
-	"../nt/$(BLD)/addsection" "$(TEMACS_TMP)" "$(TEMACS)" EMHEAP 21
+	"$(THISDIR)/../nt/$(BLD)/addsection" "$(TEMACS_TMP)" "$(TEMACS)" EMHEAP 21
 
 # These omit firstfile.${O}, but there's no documentation in there
 # anyways.
@@ -232,7 +232,7 @@ globals.h: gl-stamp
 
 gl-stamp: ../lib-src/$(BLD)/make-docfile.exe $(GLOBAL_SOURCES)
 	- $(DEL) gl-tmp
-	"../lib-src/$(BLD)/make-docfile" -d . -g $(SOME_MACHINE_OBJECTS) $(obj) > gl-tmp
+	"$(THISDIR)/../lib-src/$(BLD)/make-docfile" -d . -g $(SOME_MACHINE_OBJECTS) $(obj) > gl-tmp
 	cmd /c "fc /b gl-tmp globals.h >nul 2>&1 || $(CP) gl-tmp globals.h"
 	- $(DEL) gl-tmp
 	echo timestamp > $@
@@ -348,11 +348,11 @@ TAGS-LISP: $(OBJ0) $(OBJ1) $(OBJ2)
 TAGS-gmake:
 	../lib-src/$(BLD)/etags.exe --include=TAGS-LISP --include=../nt/TAGS \
 	  --regex=@../nt/emacs-src.tags \
-	  $(patsubst $(BLD)%.$(O),$(CURDIR)%.c,$(OBJ0))
+	  $(OBJ0_c)
 	../lib-src/$(BLD)/etags.exe -a --regex=@../nt/emacs-src.tags \
-	  $(patsubst $(BLD)%.$(O),$(CURDIR)%.c,$(OBJ1))
+	  $(OBJ1_c)
 	../lib-src/$(BLD)/etags.exe -a --regex=@../nt/emacs-src.tags \
-	  $(patsubst $(BLD)%.$(O),$(CURDIR)%.c,$(OBJ2)) \
+	  $(OBJ2_c) \
 	  $(CURDIR)/*.h $(CURDIR)/m/intel386.h $(CURDIR)/s/ms-w32.h
 
 TAGS-nmake:

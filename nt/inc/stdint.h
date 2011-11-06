@@ -27,20 +27,34 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 /* Minimum definitions to allow compilation with tool chains where
    stdint.h is not available, e.g. Microsoft Visual Studio.  */
 
-typedef unsigned int uint32_t;
-#define INT32_MAX 2147483647
+#ifdef _WIN64
+typedef __int64 intptr_t;
+#define UINT64_MAX 18446744073709551616
+#define UINT64_MIN 0
 /* "i64" is the non-standard suffix used by MSVC for 64-bit constants.  */
 #define INT64_MAX 9223372036854775807i64
-
-#ifdef _WIN64
-  typedef __int64 intptr_t;
+#define INT64_MIN (~INT64_MAX)
 #define INTPTR_MAX INT64_MAX
+#define UINTMAX_MAX UINT64_MAX
+#define UINTMAX_MIN UINT64_MIN
+#define INTMAX_MAX INT64_MAX
+#define INTMAX_MIN INT64_MIN
 #else
-  typedef int intptr_t;
+typedef int intptr_t;
+typedef unsigned int uint32_t;
+#define UINT32_MAX 4294967296
+#define UINT32_MIN 0
+#define INT32_MAX 2147483647
+#define INT32_MIN (~INT32_MAX)
 #define INTPTR_MAX INT32_MAX
+#define UINTMAX_MAX UINT32_MAX
+#define UINTMAX_MIN UINT32_MIN
+#define INTMAX_MAX INT32_MAX
+#define INTMAX_MIN INT32_MIN
 #endif
 
 #define uintmax_t unsigned __int64
+#define intmax_t __int64
 #define PTRDIFF_MAX INTPTR_MAX
 
 #endif	/* !__GNUC__ */

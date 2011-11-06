@@ -5690,15 +5690,15 @@ x_make_frame_visible (struct frame *f)
 
       f->output_data.w32->asked_for_visible = 1;
 
-      /* The first of these seems to give more expected behavior, but
-         was added as a commented out line in Sept 1997, with the
-         second version remaining uncommented. There may have been
-         some problem with it that led to it not being enabled,
-         so the old version remains commented out below in case we
-         decide we need to go back to it [23.0.60 2008-06-09].  */
+      /* According to a report in emacs-devel 2008-06-03, SW_SHOWNORMAL
+	 causes unexpected behaviour when unminimizing frames that were
+	 previously maximised.  But only SW_SHOWNORMAL works properly for
+	 frames that were truely hidden (using make-frame-invisible), so
+	 we need it to avoid Bug#5482.  It seems that async_iconified
+	 is only set for minimised windows that are still visible, so
+         use that to determine the appropriate flag to pass ShowWindow.  */
       my_show_window (f, FRAME_W32_WINDOW (f),
-                      f->async_iconified ? SW_RESTORE : SW_SHOW);
-      /* my_show_window (f, FRAME_W32_WINDOW (f), SW_SHOWNORMAL);  */
+                      f->async_iconified ? SW_RESTORE : SW_SHOWNORMAL);
     }
 
   /* Synchronize to ensure Emacs knows the frame is visible
