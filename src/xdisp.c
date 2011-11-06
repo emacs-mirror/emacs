@@ -2763,9 +2763,13 @@ init_iterator (struct it *it, struct window *w,
       /* Do we need to reorder bidirectional text?  Not if this is a
 	 unibyte buffer: by definition, none of the single-byte
 	 characters are strong R2L, so no reordering is needed.  And
-	 bidi.c doesn't support unibyte buffers anyway.  */
+	 bidi.c doesn't support unibyte buffers anyway.  Also, don't
+	 reorder while we are loading loadup.el, since the tables of
+	 character properties needed for reordering are not yet
+	 available.  */
       it->bidi_p =
-	!NILP (BVAR (current_buffer, bidi_display_reordering))
+	NILP (Vpurify_flag)
+	&& !NILP (BVAR (current_buffer, bidi_display_reordering))
 	&& it->multibyte_p;
 
       /* If we are to reorder bidirectional text, init the bidi
@@ -6136,8 +6140,12 @@ reseat_to_string (struct it *it, const char *s, Lisp_Object string,
     it->multibyte_p = multibyte > 0;
 
   /* Bidirectional reordering of strings is controlled by the default
-     value of bidi-display-reordering.  */
-  it->bidi_p = !NILP (BVAR (&buffer_defaults, bidi_display_reordering));
+     value of bidi-display-reordering.  Don't try to reorder while
+     loading loadup.el, as the necessary character property tables are
+     not yet available.  */
+  it->bidi_p =
+    NILP (Vpurify_flag)
+    && !NILP (BVAR (&buffer_defaults, bidi_display_reordering));
 
   if (s == NULL)
     {
@@ -19460,7 +19468,10 @@ See also `bidi-paragraph-direction'.  */)
     }
 
   if (NILP (BVAR (buf, bidi_display_reordering))
-      || NILP (BVAR (buf, enable_multibyte_characters)))
+      || NILP (BVAR (buf, enable_multibyte_characters))
+      /* When we are loading loadup.el, the character property tables
+	 needed for bidi iteration are not yet available.  */
+      || !NILP (Vpurify_flag))
     return Qleft_to_right;
   else if (!NILP (BVAR (buf, bidi_paragraph_direction)))
     return BVAR (buf, bidi_paragraph_direction);

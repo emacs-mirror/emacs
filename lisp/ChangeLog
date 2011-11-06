@@ -1,3 +1,10 @@
+2011-11-06  Chong Yidong  <cyd@gnu.org>
+
+	* window.el (window-combination-p): Function deleted; its
+	side-effect is not used in any existing code.
+	(window-combinations, window-combined-p): Call window-*-child
+	directly.
+
 2011-11-05  Chong Yidong  <cyd@gnu.org>
 
 	* window.el (window-valid-p): Rename from window-any-p.

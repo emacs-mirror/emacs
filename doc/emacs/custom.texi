@@ -1774,7 +1774,7 @@ button, @code{mouse-2} for the next, and so on.  Here is how you can
 redefine the second mouse button to split the current window:
 
 @example
-(global-set-key [mouse-2] 'split-window-vertically)
+(global-set-key [mouse-2] 'split-window-below)
 @end example
 
   The symbols for drag events are similar, but have the prefix

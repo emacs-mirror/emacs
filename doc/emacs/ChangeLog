@@ -1,3 +1,20 @@
+2011-11-06  Chong Yidong  <cyd@gnu.org>
+
+	* windows.texi (Basic Window): Add xref to Cursor Display.
+	(Split Window): Document negative arg for splitting commands.
+	(Other Window): Document mouse-1 in text area of window.
+	(Change Window): Don't mention window attributes, since they
+	aren't defined.  C-x 1 can't be used with minibuffer windows.
+	Windows are no longer auto-deleted.
+	(Window Choice): Add xref to Choosing Window in Lisp manual.
+	(Window Convenience): Note that windmove disables shift-selection.
+	Move M-x compare-windows here from Other Window node.
+
+	* custom.texi (Mouse Buttons):
+	* search.texi (Isearch Scroll):
+	* windows.texi (Split Window): Use new names split-window-below
+	and split-window-right.
+
 2011-10-26  Juanma Barranquero  <lekktu@gmail.com>
 
 	* emacs.texi (Top): Fix typo.

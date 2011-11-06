@@ -1,3 +1,13 @@
+2011-11-06  Chong Yidong  <cyd@gnu.org>
+
+	* windows.texi (Basic Windows): Clarify various definitions.
+	Treat window-normalize-* as internal; don't document them.
+	(Windows and Frames): Various clarifications, e.g. non-live
+	windows also belong to frames.  Fix window-list description.
+	Simplify window nesting example.
+	(Splitting Windows, Window Configurations): Use
+	split-window-below.
+
 2011-11-04  Eli Zaretskii  <eliz@gnu.org>
 
 	* windows.texi (Window Sizes): Mention in the doc string that the

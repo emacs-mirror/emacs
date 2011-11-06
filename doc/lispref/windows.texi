@@ -50,215 +50,187 @@ is displayed in windows.
 @section Basic Concepts of Emacs Windows
 @cindex window
 
-A @dfn{window} in Emacs is the physical area of the screen in which a
-buffer is displayed, see @ref{Buffers}.  The term is also used to refer
-to a Lisp object that represents that screen area in Emacs Lisp.  It
-should be clear from the context which is meant.
+A @dfn{window} is a area of the screen which is used to display a
+buffer (@pxref{Buffers}).  In Emacs Lisp, windows are represented by a
+special Lisp object type.
 
 @cindex multiple windows
-  Emacs groups windows into frames; see @ref{Frames}.  Each frame always
-contains at least one window, but you can subdivide it into multiple,
-non-overlapping Emacs windows.  Users create multiple windows so they
-can look at several buffers at once.  Lisp libraries use multiple
-windows for a variety of reasons, but most often to display related
-information.  In Rmail, for example, you can move through a summary
-buffer in one window while the other window shows messages one at a time
-as they are reached.
+  Windows are grouped into frames (@pxref{Frames}).  Each frame
+contains at least one window; the user can subdivide it into multiple,
+non-overlapping windows to view several buffers at once.  Lisp
+programs can use multiple windows for a variety of purposes.  In
+Rmail, for example, you can view a summary of message titles in one
+window, and the contents of the selected message in another window.
 
 @cindex terminal screen
 @cindex screen of terminal
-  The meaning of ``window'' in Emacs is similar to what it means in the
-context of general-purpose window systems such as X, but not identical.
-The X Window System places X windows on the screen; Emacs uses one or
-more X windows as frames, and subdivides them into Emacs windows.  When
-you use Emacs on a character-only terminal, Emacs treats the whole
-terminal screen as one frame.
+  Emacs uses the word ``window'' with a different meaning than in
+graphical desktop environments and window systems, such as the X
+Window System.  When Emacs is run on X, each of its graphical X
+windows is an Emacs frame (containing one or more Emacs windows).
+When Emacs is run on a text-only terminal, the frame fills the entire
+terminal screen.
 
 @cindex tiled windows
-  Most window systems support arbitrarily located overlapping windows.
-In contrast, Emacs windows are @dfn{tiled}; they never overlap, and
-together they fill the whole screen or frame.  Because of the way in
-which Emacs creates new windows (@pxref{Splitting Windows}) and resizes
-them (@pxref{Resizing Windows}), not all conceivable tilings of windows
-on an Emacs frame are actually possible.
-
-  For practical purposes, a window exists only while it is displayed in
-a frame.  Once removed from the frame, the window is effectively deleted
-and should not be used, even though the Lisp object representing it
-might be still referenced from other Lisp objects; see @ref{Deleting
-Windows}.  Restoring a saved window configuration is the only way for a
-window no longer on the screen to come back to life; see @ref{Window
-Configurations}.
-
-@defun windowp object
-This function returns @code{t} if @var{object} is a window, @code{nil}
-otherwise.  It can return @code{t} if @var{object} denotes a window that
-has been deleted.
-@end defun
+  Unlike X windows, Emacs windows are @dfn{tiled}; they never overlap
+within the area of the frame.  When a window is created, resized, or
+deleted, the change in window space is taken from or given to the
+adjacent windows, so that the total area of the frame is unchanged.
 
 @cindex live windows
 @cindex internal windows
-   For historical reasons a window is considered @dfn{live} if and only
-if it currently displays a buffer; see @ref{Buffers and Windows}.  In
-order to show multiple windows within one and the same frame, Emacs
-organizes them in form of a tree called window tree; see @ref{Windows
-and Frames}.  The internal nodes of a window tree are called internal
-windows and are not considered live.  The leaf nodes of a window tree
-constitute the windows displaying buffers and only they will be called
-live here.
+  A @dfn{live window} is one that is actually displaying a buffer in a
+frame.  Such a window can be @dfn{deleted}, i.e. removed from the
+frame (@pxref{Deleting Windows}); then it is no longer live, but the
+Lisp object representing it might be still referenced from other Lisp
+objects.  A deleted window may be brought back to life by restoring a
+saved window configuration (@pxref{Window Configurations}).
+
+@defun windowp object
+This function returns @code{t} if @var{object} is a window (whether or
+not it is live).  Otherwise, it returns @code{nil}.
+@end defun
 
 @defun window-live-p object
 This function returns @code{t} if @var{object} is a live window and
-@code{nil} otherwise.  A live window is a window that displays a buffer.
+@code{nil} otherwise.  A live window is one that displays a buffer.
 @end defun
 
-@defun window-any-p object
-This function returns @code{t} if @var{object} denotes a live or an
-internal window and @code{nil} otherwise.  In particular, this function
-returns @code{nil} if @var{object} is a window that has been
-deleted.
+  The windows in each frame are organized into a @dfn{window tree}.
+@xref{Windows and Frames}.  The leaf nodes of each window tree are
+live windows---the ones actually displaying buffers.  The internal
+nodes of the window tree are internal windows, which are not live.
+You can distinguish internal windows from deleted windows with
+@code{window-valid-p}.
+
+@defun window-valid-p object
+This function returns @code{t} if @var{object} is a live window, or an
+internal window in a window tree.  Otherwise, it returns @code{nil},
+including for the case where @var{object} is a deleted window.
 @end defun
 
 @cindex selected window
-In each frame, at any time, one and only one window is designated as
-@dfn{selected within the frame}.  Also, at any time, one frame is the
-selected frame (@pxref{Input Focus}).  The window selected within the
-selected frame is the @dfn{selected window}.
-
-   The selected window is always a live window.  Its buffer is usually
-the current buffer (except when @code{set-buffer} has been used); see
-@ref{Current Buffer}.
+  In each frame, at any time, exactly one Emacs window is designated
+as @dfn{selected within the frame}.  For the selected frame, that
+window is called the @dfn{selected window}---the one in which most
+editing takes place, and in which the cursor for selected windows
+appears (@pxref{Cursor Parameters}).  The selected window's buffer is
+usually also the current buffer, except when @code{set-buffer} has
+been used (@pxref{Current Buffer}).  As for non-selected frames, the
+window selected within the frame becomes the selected window if the
+frame is ever selected.  @xref{Selecting Windows}.
 
 @defun selected-window
-This function returns the selected window.  This is the window in which
-the cursor for selected windows (@pxref{Cursor Parameters}) appears and
-to which many commands apply.
+This function returns the selected window (which is always a live
+window).
 @end defun
-
-The window handling functions can be roughly grouped into functions
-operating on live windows only and functions that accept any window as
-argument.  Many of these functions accept as argument the value
-@code{nil} to specify the selected window.  The two functions below can
-be used to ``normalize'' arguments specifying windows in a uniform
-manner.
-
-@defun window-normalize-any-window window
-This function returns the normalized value for @var{window} which can be
-any window that has not been deleted.  More precisely, if @var{window}
-is @code{nil}, it returns the selected window.  If @var{window} denotes
-a live or internal window, it returns that window.  Otherwise, this
-function signals an error.
-@end defun
-
-@defun window-normalize-live-window window
-This functions returns the normalized value for a live window
-@var{window}.  More precisely, if @var{window} is @code{nil}, it returns
-the selected window.  If @var{window} is a live window, it returns that
-window.  Otherwise, this function signals an error.
-@end defun
-
 
 @node Windows and Frames
 @section Windows and Frames
 
-Each window is part of one and only one frame (@pxref{Frames}); you can
-get that frame with the function described next.
+Each window belongs to exactly one frame (@pxref{Frames}).
 
 @defun window-frame window
-This function returns the frame that @var{window} is on.  The argument
-@var{window} can be any window and defaults to the selected one.
+This function returns the frame that the window @var{window} belongs
+to.  If @var{window} is @code{nil}, it defaults to the selected
+window.
 @end defun
 
-The following function returns a list of all live windows on a specific
-frame.
+@defun window-list &optional frame minibuffer window
+This function returns a list of live windows belonging to the frame
+@var{frame}.  If @var{frame} is omitted or @code{nil}, it defaults to
+the selected frame.
 
-@defun window-list &optional frame minibuf window
-This function returns a list of @var{frame}'s live windows, starting
-with @var{window}.  The optional argument @var{frame} has to denote a
-live frame and defaults to the selected frame.  The optional argument
-@var{window} has to denote a live window on the frame specified by
-@var{frame} and defaults to the selected one.
+The optional argument @var{minibuffer} specifies whether to include
+the minibuffer window in the returned list.  If @var{minibuffer} is
+@code{t}, the minibuffer window is included.  If @var{minibuffer} is
+@code{nil} or omitted, the minibuffer window is included only if it is
+active.  If @var{minibuffer} is neither @code{nil} nor @code{t}, the
+minibuffer window is never included.
 
-The argument @var{minibuf} specifies if the minibuffer window shall be
-included in the return value.  If @var{minibuf} is @code{t}, the result
-always includes the minibuffer window.  If @var{minibuf} is @code{nil}
-or omitted, that includes the minibuffer window only if it is active.
-If @var{minibuf} is neither @code{nil} nor @code{t}, the result never
-includes the minibuffer window.
+The optional argument @var{window}, if non-@code{nil}, should be a
+live window on the specified frame; then @var{window} will be the
+first element in the returned list.  If @var{window} is omitted or
+@code{nil}, the window selected within the frame is first element.
 @end defun
 
 @cindex window tree
-Windows within one and the same frame are organized in form of a tree
-called @dfn{window tree}.  The leaf nodes of a window tree constitute
-the windows visible to the user.  These are the windows associated with
-buffers and are usually called live windows.  The internal nodes of a
-window tree are needed for finding, traversing and displaying the live
-windows.
+@cindex root window
+  Windows in the same frame are organized into a @dfn{window tree},
+whose leaf nodes are the live windows.  The internal nodes of a window
+tree are not live; they exist for the purpose of organizing the
+relationships between live windows.  The root node of a window tree is
+called the @dfn{root window}.  It can be either a live window (if the
+frame has just one window), or an internal window.
 
-   A minibuffer window (@pxref{Minibuffer Windows}) is not considered
-part of its frame's window tree unless the frame is a minibuffer-only
-frame.  Most functions covered in this section accept, however, the
-minibuffer window as argument.  Also, the minibuffer window is listed by
-the function @code{window-tree} described at the end of this section.
-
-   A window tree is rooted at the root window of its frame.
+  A minibuffer window (@pxref{Minibuffer Windows}) is not part of its
+frame's window tree unless the frame is a minibuffer-only frame.
+Nonetheless, most of the functions in this section accept the
+minibuffer window as an argument.  Also, the function
+@code{window-tree} described at the end of this section lists the
+minibuffer window alongside the actual window tree.
 
 @defun frame-root-window &optional frame-or-window
-This function returns the root window of @var{frame-or-window}.  The
-argument @var{frame-or-window} has to denote either a window or a frame
-and defaults to the selected frame.  If @var{frame-or-window} denotes a
-window, the return value is the root window of that window's frame.
-This function always returns a window; a live window if the frame
-specified by @var{frame-or-window} contains no other live windows and an
-internal window otherwise.
+This function returns the root window for @var{frame-or-window}.  The
+argument @var{frame-or-window} should be either a window or a frame;
+if omitted or @code{nil}, it defaults to the selected frame.  If
+@var{frame-or-window} is a window, the return value is the root window
+of that window's frame.
 @end defun
 
-@cindex subwindow
-All other windows of a frame with the exception of the minibuffer window
-are subwindows of the frame's root window.  A window is considered a
-@dfn{subwindow} of another window if it occupies a part of that other
-window's screen area.
-
-The functions described next allow to access the members of a window
-tree and take an arbitrary window as argument.
+@cindex parent window
+@cindex child window
+@cindex sibling window
+  When a window is split, there are two live windows where previously
+there was one.  One of these is represented by the same Lisp window
+object as the original window, and the other is represented by a
+newly-created Lisp window object.  Both of these live windows become
+leaf nodes of the window tree, as @dfn{child windows} of a single
+internal window.  If necessary, Emacs automatically creates this
+internal window, which is also called the @dfn{parent window}, and
+assigns it to the appropriate position in the window tree.  A set of
+windows that share the same parent are called @dfn{siblings}.
 
 @cindex parent window
 @defun window-parent &optional window
-Return @var{window}'s parent in the window tree.  The optional argument
-@var{window} can denote an arbitrary window and defaults to the selected
-one.  The return value is @code{nil} if @var{window} is a minibuffer
-window or the root window of its frame and an internal window otherwise.
+This function returns the parent window of @var{window}.  If
+@var{window} is omitted or @code{nil}, it defaults to the selected
+window.  The return value is @code{nil} if @var{window} has no parent
+(i.e. it is a minibuffer window or the root window of its frame).
 @end defun
 
-@cindex child window
-   Parent windows do not appear on the screen.  The screen area of a
-parent window is the rectangular part of the window's frame occupied by
-the window's @dfn{child windows}, that is, the set of windows having
-that window as their parent.  Each parent window has at least two child
-windows, so there are no ``Matryoshka'' windows.  Minibuffer windows do
-not have child windows.
+  Each internal window always has at least two child windows.  If this
+number falls to one as a result of window deletion, Emacs
+automatically deletes the internal window, and its sole remaining
+child window takes its place in the window tree.
+
+  Each child window can be either a live window, or an internal window
+(which in turn would have its own child windows).  Therefore, each
+internal window can be thought of as occupying a certain rectangular
+@dfn{screen area}---the union of the areas occupied by the live
+windows that are ultimately descended from it.
 
 @cindex window combination
 @cindex vertical combination
 @cindex horizontal combination
-The children of any parent window form either a vertical or a horizontal
-combination of windows.  A @dfn{vertical combination} is a set of
-windows arranged one above each other.  A @dfn{horizontal combination}
-is a set of windows arranged side by side.  Consider the frame shown
-below (for simplicity we assume that the frame does not contain a
-minibuffer window):
+  For each internal window, the screen areas of the immediate children
+are arranged either vertically or horizontally (never both).  If the
+child windows are arranged one above the other, they are said to form
+a @dfn{vertical combination}; if they are arranged side by side, they
+are said to form a @dfn{horizontal combination}.  Consider the
+following example:
 
 @smallexample
 @group
      ______________________________________
     | ______  ____________________________ |
     ||      || __________________________ ||
-    ||      ||| ___________  ___________ |||
-    ||      ||||           ||           ||||
-    ||      ||||           ||           ||||
-    ||      ||||_____W6____||_____W7____||||
+    ||      |||                          |||
+    ||      |||                          |||
+    ||      |||                          |||
     ||      |||____________W4____________|||
     ||      || __________________________ ||
+    ||      |||                          |||
     ||      |||                          |||
     ||      |||____________W5____________|||
     ||__W2__||_____________W3_____________ |
@@ -267,91 +239,70 @@ minibuffer window):
 @end group
 @end smallexample
 
-The root window of the frame is @code{W1}---a horizontal combination of
-the live window @code{W2} and the internal window @code{W3}.  Hence
-@code{(window-parent W1)} is @code{nil} while @code{(window-parent W2)}
-and @code{(window-parent W3)} are both @code{W1}.
+@noindent
+The root window of this frame is an internal window, @code{W1}.  Its
+child windows form a horizontal combination, consisting of the live
+window @code{W2} and the internal window @code{W3}.  The child windows
+of @code{W3} form a vertical combination, consisting of the live
+windows @code{W4} and @code{W5}.  Hence, the live windows in this
+window tree are @code{W2} @code{W4}, and @code{W5}.
 
-   The internal window @code{W3} is a vertical combination of @code{W4}
-and the live window @code{W5}.  The internal window @code{W4} is a
-horizontal combination of the live windows @code{W6} and @code{W7}.  The
-windows you can actually see on the screen are @code{W2}, @code{W5},
-@code{W6} and @code{W7}.
+  The following functions can be used to retrieve a child window of an
+internal window, and the siblings of a child window.
 
-   For any parent window, the first child window can be retrieved by the
-functions given next.
-
-@defun window-top-child &optional window
-This function returns @var{window}'s first vertical child window.  The
-optional argument @var{window} can be an arbitrary window and defaults
-to the selected one.  The return value is @code{nil} if @var{window} is
-a live window or its children form a horizontal combination.  In the
-example above @code{(window-top-child W3)} is @code{W4} while
-@code{(window-top-child W4)} is @code{nil}.
+@defun window-top-child window
+This function returns the topmost child window of @var{window}, if
+@var{window} is an internal window whose children form a vertical
+combination.  For any other type of window, the return value is
+@code{nil}.
 @end defun
 
-@defun window-left-child &optional window
-This function returns @var{window}'s first horizontal child window.  The
-optional argument @var{window} can be an arbitrary window and defaults
-to the selected one.  The return value is @code{nil} if @var{window} is
-a live window or its children form a vertical combination.  In the
-example above @code{(window-left-child W4)} is @code{W6} while
-@code{(window-left-child W3)} is @code{nil}.
+@defun window-left-child window
+This function returns the leftmost child window of @var{window}, if
+@var{window} is an internal window whose children form a horizontal
+combination.  For any other type of window, the return value is
+@code{nil}.
 @end defun
 
 @defun window-child window
-This function return @var{window}'s first child window.  The return
-value is @code{nil} if @var{window} is a live window.  In the example
-above @code{(window-child W3)} is @code{W4} while @code{(window-child
-W4)} is @code{W6}.
+This function returns the first child window of the internal window
+@var{window}---the topmost child window for a vertical combination, or
+the leftmost child window for a horizontal combination.  If
+@var{window} is a live window, the return value is @code{nil}.
 @end defun
-
-The following function is useful to determine whether a window is part
-of a vertical or horizontal combination.
 
 @defun window-combined-p &optional window horizontal
-This function returns non-@code{nil} if and only if @var{window} is
-vertically combined.  The argument @var{window} can specify any window
-and defaults to the selected one.  The actual return value is the first
-vertical child of window.
+This function returns a non-@code{nil} value if and only if
+@var{window} is part of a vertical combination.  If @var{window} is
+omitted or nil, it defaults to the selected one.
 
-If the optional argument @var{horizontal} is non-@code{nil}, this means
-to return non-@code{nil} if and only if @var{window} is horizontally
-combined.  In this case, the return value is the first horizontal child
-of window.
+If the optional argument @var{horizontal} is non-@code{nil}, this
+means to return non-@code{nil} if and only if @var{window} is part of
+a horizontal combination.
 @end defun
 
-@cindex sibling window
-For any window that is part of a combination, the other windows in that
-combination are called the window's @dfn{siblings}.  The only windows
-that do not have siblings are root windows of frames and minibuffer
-windows.  A window's siblings can be retrieved with the following two
-functions.
-
 @defun window-next-sibling &optional window
-This function returns @var{window}'s next sibling.  The optional
-argument @var{window} can be an arbitrary window and defaults to the
-selected window.  It returns @code{nil} if @var{window} is the last
-child of its parent.  In our example @code{(window-next-sibling W2)} is
-@code{W3} while @code{(window-next-sibling W3)} is @code{nil}.
+This function returns the next sibling of the window @var{window}.  If
+omitted or @code{nil}, @var{window} defaults to the selected window.
+The return value is @code{nil} if @var{window} is the last child of
+its parent.
 @end defun
 
 @defun window-prev-sibling &optional window
-This function returns @var{window}'s previous sibling.  The optional
-argument @var{window} can be an arbitrary window and defaults to the
-selected window.  It returns @code{nil} if @var{window} is the first
-child of its parent. In our example @code{(window-prev-sibling W3)} is
-@code{W2} and @code{(window-prev-sibling W2)} is @code{nil}.
+This function returns the previous sibling of the window @var{window}.
+If omitted or @code{nil}, @var{window} defaults to the selected
+window.  The return value is @code{nil} if @var{window} is the first
+child of its parent.
 @end defun
 
-The functions @code{window-next-sibling} and @code{window-prev-sibling}
-should not be confused with the functions @code{next-window} and
-@code{previous-window} which respectively return the next and previous
-window in the cyclic ordering of windows, see @ref{Cyclic Window
-Ordering}.
+The functions @code{window-next-sibling} and
+@code{window-prev-sibling} should not be confused with the functions
+@code{next-window} and @code{previous-window} which respectively
+return the next and previous window in the cyclic ordering of windows
+(@pxref{Cyclic Window Ordering}).
 
-   In order to find the first live window on a frame, the following
-function can be used.
+  You can use the following functions to find the first live window on
+a frame, and to retrieve the entire window tree of a frame:
 
 @defun frame-first-window &optional frame-or-window
 This function returns the live window at the upper left corner of the
@@ -363,30 +314,26 @@ the assumption that the frame from our canonical example is selected
 @code{(frame-first-window)} returns @code{W2}.
 @end defun
 
-You can get the window tree of a frame with the following function.
-
-@cindex window tree
 @defun window-tree &optional frame
-This function returns the window tree for frame @var{frame}.  The
-optional argument @var{frame} must be a live frame and defaults to the
-selected one.
+This function returns a list representing the window tree for frame
+@var{frame}.  If @var{frame} is omitted or @code{nil}, it defaults to
+the selected frame.
 
 The return value is a list of the form @code{(@var{root} @var{mini})},
-where @var{root} represents the window tree of the frame's
-root window, and @var{mini} is the frame's minibuffer window.
+where @var{root} represents the window tree of the frame's root
+window, and @var{mini} is the frame's minibuffer window.
 
-If the root window is live, @var{root} specifies the root window and
-nothing else.  Otherwise, @var{root} is a list @code{(@var{dir}
-@var{edges} @var{w1} @var{w2} ...)} where @var{dir} is @code{nil} for a
-horizontal combination, and @code{t} for a vertical combination,
-@var{edges} gives the size and position of the combination, and the
-remaining elements are the child windows.  Each child window may again
-be a live window or a list representing a window combination, and so on.
-The @var{edges} element is a list @code{(@var{left}@var{ top}@var{
-right}@var{ bottom})} similar to the value returned by
-@code{window-edges}, see @ref{Coordinates and Windows}.
+If the root window is live, @var{root} is that window itself.
+Otherwise, @var{root} is a list @code{(@var{dir} @var{edges} @var{w1}
+@var{w2} ...)} where @var{dir} is @code{nil} for a horizontal
+combination and @code{t} for a vertical combination, @var{edges} gives
+the size and position of the combination, and the remaining elements
+are the child windows.  Each child window may again be a window object
+(for a live window) or a list with the same format as above (for an
+internal window).  The @var{edges} element is a list @code{(@var{left}
+@var{top} @var{right} @var{bottom})}, similar to the value returned by
+@code{window-edges} (@pxref{Coordinates and Windows}).
 @end defun
-
 
 @node Window Sizes
 @section Window Sizes
@@ -1566,7 +1513,7 @@ configuration.
 For interactive use, Emacs provides two commands which always split the
 selected window.
 
-@deffn Command split-window-above-each-other &optional size
+@deffn Command split-window-below &optional size
 This function splits the selected window into two windows, one above the
 other, leaving the upper of the two windows selected, with @var{size}
 lines.  (If @var{size} is negative, then the lower of the two windows
@@ -1582,16 +1529,16 @@ is the new, lower window.
 
 @defopt split-window-keep-point
 If this variable is non-@code{nil} (the default), then
-@code{split-window-above-each-other} behaves as described above.
+@code{split-window-below} behaves as described above.
 
-   If it is @code{nil}, then @code{split-window-above-each-other}
-adjusts point in each of the two windows to avoid scrolling.  (This is
-useful on slow terminals.)  It selects whichever window contains the
-screen line that point was previously on.  Other functions are not
-affected by this variable.
+   If it is @code{nil}, then @code{split-window-below} adjusts point
+in each of the two windows to avoid scrolling.  (This is useful on
+slow terminals.)  It selects whichever window contains the screen line
+that point was previously on.  Other functions are not affected by
+this variable.
 @end defopt
 
-@deffn Command split-window-side-by-side &optional size
+@deffn Command split-window-right &optional size
 This function splits the selected window into two windows
 side-by-side, leaving the selected window on the left with @var{size}
 columns.  If @var{size} is negative, the rightmost window gets
@@ -3689,7 +3636,7 @@ as @code{save-window-excursion}:
 @group
 (let ((config (current-window-configuration)))
   (unwind-protect
-      (progn (split-window-vertically nil)
+      (progn (split-window-below nil)
              @dots{})
     (set-window-configuration config)))
 @end group
