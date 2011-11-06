@@ -195,36 +195,35 @@ narrower, explictly specify the SIZE argument of that function."
   :version "24.1"
   :group 'windows)
 
-(defun window-combination-p (&optional window horizontal)
-  "If WINDOW is a vertical combination return WINDOW's first child.
-WINDOW can be any window and defaults to the selected one.
-Optional argument HORIZONTAL non-nil means return WINDOW's first
-child if WINDOW is a horizontal combination."
-  (setq window (window-normalize-window window))
-  (if horizontal
-      (window-left-child window)
-    (window-top-child window)))
-
 (defsubst window-combined-p (&optional window horizontal)
-  "Return non-nil if and only if WINDOW is vertically combined.
-WINDOW can be any window and defaults to the selected one.
-Optional argument HORIZONTAL non-nil means return non-nil if and
-only if WINDOW is horizontally combined."
+  "Return non-nil if WINDOW has siblings in a given direction.
+If WINDOW is omitted or nil, it defaults to the selected window.
+
+HORIZONTAL determines a direction for the window combination.
+If HORIZONTAL is omitted or nil, return non-nil if WINDOW is part
+of a vertical window combination.
+If HORIZONTAL is non-nil, return non-nil if WINDOW is part of a
+horizontal window combination."
   (setq window (window-normalize-window window))
   (let ((parent (window-parent window)))
-    (and parent (window-combination-p parent horizontal))))
+    (and parent
+	 (if horizontal
+	     (window-left-child parent)
+	   (window-top-child parent)))))
 
 (defun window-combinations (&optional window horizontal)
   "Return largest number of vertically arranged subwindows of WINDOW.
-WINDOW can be any window and defaults to the selected one.
-Optional argument HORIZONTAL non-nil means to return the largest
-number of horizontally arranged subwindows of WINDOW."
+If WINDOW is omitted or nil, it defaults to the selected window.
+If HORIZONTAL is non-nil, return the largest number of
+horizontally arranged subwindows of WINDOW."
   (setq window (window-normalize-window window))
   (cond
    ((window-live-p window)
     ;; If WINDOW is live, return 1.
     1)
-   ((window-combination-p window horizontal)
+   ((if horizontal
+	(window-left-child window)
+      (window-top-child window))
     ;; If WINDOW is iso-combined, return the sum of the values for all
     ;; subwindows of WINDOW.
     (let ((child (window-child window))

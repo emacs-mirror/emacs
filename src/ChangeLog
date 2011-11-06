@@ -1,3 +1,16 @@
+2011-11-06  Chong Yidong  <cyd@gnu.org>
+
+	* window.c (Fwindow_live_p, Fwindow_frame, Fframe_root_window)
+	(Fminibuffer_window, Fwindow_buffer, Fwindow_splits)
+	(Fset_window_splits, Fwindow_nest, Fset_window_nest)
+	(Fwindow_use_time, Fwindow_total_size, Fwindow_normal_size)
+	(Fwindow_new_normal, Fwindow_left_column, Fwindow_top_line)
+	(Fwindow_margins, Fwindow_fringes, Fwindow_scroll_bars)
+	(Fwindow_vscroll): Doc fix.
+	(Fwindow_top_child, Fwindow_left_child): Eliminate a nil default
+	argument, since it makes no sense to pass a live window and for
+	consistency with window-child.
+
 2011-11-05  Christoph Scholtes  <cschol2112@googlemail.com>
 
 	* makefile.w32-in ($(TEMACS), (gl-stamp)): Use $(THISDIR) to
