@@ -1038,7 +1038,7 @@ of the line.
 Functions are provided to return the parent, siblings or child windows
 of any window including internal windows (windows not associated with a
 buffer) in the window tree.
-
++++
 **** New function `window-valid-p' gives non-nil for live and internal
 windows.
 +++
