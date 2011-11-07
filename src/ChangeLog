@@ -1,3 +1,8 @@
+2011-11-07  Juanma Barranquero  <lekktu@gmail.com>
+
+	* lisp.h (syms_of_abbrev): Remove declaration.
+	Reported by CHENG Gao <chenggao@royau.me>.
+
 2011-11-07  Eli Zaretskii  <eliz@gnu.org>
 
 	* w32.c (check_windows_init_file): Don't look for term/w32-win.el

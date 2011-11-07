@@ -3155,10 +3155,6 @@ extern void syms_of_fileio (void);
 extern Lisp_Object make_temp_name (Lisp_Object, int);
 extern Lisp_Object Qdelete_file;
 
-/* Defined in abbrev.c */
-
-extern void syms_of_abbrev (void);
-
 /* Defined in search.c */
 extern void shrink_regexp_cache (void);
 EXFUN (Fstring_match, 3);
