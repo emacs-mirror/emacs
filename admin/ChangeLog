@@ -1,3 +1,7 @@
+2011-11-07  Juanma Barranquero  <lekktu@gmail.com>
+
+	* unidata/makefile.w32-in (clean): Remove bidimirror.h and biditype.h.
+
 2011-10-31  David Engster  <deng@randomsample.de>
 
 	* grammars/bovine-grammar.el: Avoid using old-style backquotes.

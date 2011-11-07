@@ -1,3 +1,34 @@
+2011-11-07  Juanma Barranquero  <lekktu@gmail.com>
+
+	* lisp.h (syms_of_abbrev): Remove declaration.
+	Reported by CHENG Gao <chenggao@royau.me>.
+
+2011-11-07  Eli Zaretskii  <eliz@gnu.org>
+
+	* w32.c (check_windows_init_file): Don't look for term/w32-win.el
+	if Vpurify_flag is non-nil.  Fixes a crash when running w32 build
+	of temacs in GUI mode.
+
+2011-11-07  Martin Rudalics  <rudalics@gmx.at>
+
+	* window.h: Declare delete_all_child_windows instead of
+	delete_all_subwindows.
+	* window.c (Fwindow_nest, Fset_window_nest)
+	(Fset_window_new_total, Fset_window_new_normal)
+	(Fwindow_resize_apply): Don't use term subwindow in doc-strings.
+	(delete_all_subwindows): Rename to delete_all_child_windows.
+	(Fdelete_other_windows_internal, Fset_window_configuration):
+	Call delete_all_child_windows instead of delete_all_subwindows.
+	* frame.c (delete_frame): Call delete_all_child_windows instead
+	of delete_all_subwindows.
+
+2011-11-07  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* alloc.c (DEADP): New macro, for porting to GNU/Hurd (Bug#9926).
+	This is also needed for porting to any host where GC_MARK_STACK is
+	not GC_MAKE_GCPROS_NOOPS.
+	(which_symbols): Use it.
+
 2011-11-07  Kenichi Handa  <handa@m17n.org>
 
 	* coding.c (coding_set_destination): Check coding->src_pos only

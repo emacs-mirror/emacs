@@ -504,8 +504,8 @@ DEFUN ("window-nest", Fwindow_nest, Swindow_nest, 0, 1, 0,
        doc: /* Return nest status of window WINDOW.
 If WINDOW is omitted or nil, it defaults to the selected window.
 
-If the return value is nil, subwindows of WINDOW can be recombined with
-WINDOW's siblings.  A return value of non-nil means that subwindows of
+If the return value is nil, child windows of WINDOW can be recombined with
+WINDOW's siblings.  A return value of non-nil means that child windows of
 WINDOW are never \(re-)combined with WINDOW's siblings.  */)
   (Lisp_Object window)
 {
@@ -516,8 +516,8 @@ DEFUN ("set-window-nest", Fset_window_nest, Sset_window_nest, 2, 2, 0,
        doc: /* Set nest status of window WINDOW to STATUS; return STATUS.
 If WINDOW is omitted or nil, it defaults to the selected window.
 
-If STATUS is nil, subwindows of WINDOW can be recombined with WINDOW's
-siblings.  STATUS non-nil means that subwindows of WINDOW are never
+If STATUS is nil, child windows of WINDOW can be recombined with WINDOW's
+siblings.  STATUS non-nil means that child windows of WINDOW are never
 \(re-)combined with WINDOW's siblings.  */)
   (Lisp_Object window, Lisp_Object status)
 {
@@ -2571,9 +2571,9 @@ DEFUN ("delete-other-windows-internal", Fdelete_other_windows_internal,
 Only the frame WINDOW is on is affected.  WINDOW may be any window and
 defaults to the selected one.
 
-Optional argument ROOT, if non-nil, must specify an internal window
-containing WINDOW as a subwindow.  If this is the case, replace ROOT by
-WINDOW and leave alone any windows not contained in ROOT.
+Optional argument ROOT, if non-nil, must specify an internal window such
+that WINDOW is in its window subtree.  If this is the case, replace ROOT
+by WINDOW and leave alone any windows not part of ROOT's subtree.
 
 When WINDOW is live try to reduce display jumps by keeping the text
 previously visible in WINDOW in the same place on the frame.  Doing this
@@ -2637,10 +2637,10 @@ window-start value is reasonable when this function is called.  */)
     }
   else
     {
-      /* See if the frame's selected window is a subwindow of WINDOW, by
-	 finding all the selected window's parents and comparing each
-	 one with WINDOW.  If it isn't we need a new selected window for
-	 this frame.  */
+      /* See if the frame's selected window is a part of the window
+	 subtree rooted at WINDOW, by finding all the selected window's
+	 parents and comparing each one with WINDOW.  If it isn't we
+	 need a new selected window for this frame.  */
       swindow = FRAME_SELECTED_WINDOW (f);
       while (1)
 	{
@@ -2676,7 +2676,7 @@ window-start value is reasonable when this function is called.  */)
 
   if (NILP (w->buffer))
     {
-      /* Resize subwindows vertically.  */
+      /* Resize child windows vertically.  */
       XSETINT (delta, XINT (r->total_lines) - XINT (w->total_lines));
       w->top_line = r->top_line;
       resize_root_window (window, delta, Qnil, Qnil);
@@ -2691,7 +2691,7 @@ window-start value is reasonable when this function is called.  */)
 	    resize_failed = 1;
 	}
 
-      /* Resize subwindows horizontally.  */
+      /* Resize child windows horizontally.  */
       if (!resize_failed)
 	{
 	  w->left_col = r->left_col;
@@ -2740,15 +2740,15 @@ window-start value is reasonable when this function is called.  */)
 	XWINDOW (w->parent)->hchild = sibling;
     }
 
-  /* Delete ROOT and all subwindows of ROOT.  */
+  /* Delete ROOT and all child windows of ROOT.  */
   if (!NILP (r->vchild))
     {
-      delete_all_subwindows (r->vchild);
+      delete_all_child_windows (r->vchild);
       r->vchild = Qnil;
     }
   else if (!NILP (r->hchild))
     {
-      delete_all_subwindows (r->hchild);
+      delete_all_child_windows (r->hchild);
       r->hchild = Qnil;
     }
 
@@ -3349,7 +3349,7 @@ Return SIZE.
 Optional argument ADD non-nil means add SIZE to the new total size of
 WINDOW and return the sum.
 
-Note: This function does not operate on any subwindows of WINDOW.  */)
+Note: This function does not operate on any child windows of WINDOW.  */)
      (Lisp_Object window, Lisp_Object size, Lisp_Object add)
 {
   struct window *w = decode_any_window (window);
@@ -3367,7 +3367,7 @@ DEFUN ("set-window-new-normal", Fset_window_new_normal, Sset_window_new_normal, 
        doc: /* Set new normal size of WINDOW to SIZE.
 Return SIZE.
 
-Note: This function does not operate on any subwindows of WINDOW.  */)
+Note: This function does not operate on any child windows of WINDOW.  */)
      (Lisp_Object window, Lisp_Object size)
 {
   struct window *w = decode_any_window (window);
@@ -3378,7 +3378,7 @@ Note: This function does not operate on any subwindows of WINDOW.  */)
 
 /* Return 1 if setting w->total_lines (w->total_cols if HORFLAG is
    non-zero) to w->new_total would result in correct heights (widths)
-   for window W and recursively all subwindows of W.
+   for window W and recursively all child windows of W.
 
    Note: This function does not check any of `window-fixed-size-p',
    `window-min-height' or `window-min-width'.  It does check that window
@@ -3393,7 +3393,7 @@ window_resize_check (struct window *w, int horflag)
     {
       c = XWINDOW (w->vchild);
       if (horflag)
-	/* All subwindows of W must have the same width as W.  */
+	/* All child windows of W must have the same width as W.  */
 	{
 	  while (c)
 	    {
@@ -3405,8 +3405,8 @@ window_resize_check (struct window *w, int horflag)
 	  return 1;
 	}
       else
-	/* The sum of the heights of the subwindows of W must equal W's
-	   height.  */
+	/* The sum of the heights of the child windows of W must equal
+	   W's height.  */
 	{
 	  int sum_of_sizes = 0;
 	  while (c)
@@ -3424,7 +3424,7 @@ window_resize_check (struct window *w, int horflag)
     {
       c = XWINDOW (w->hchild);
       if (horflag)
-	/* The sum of the widths of the subwindows of W must equal W's
+	/* The sum of the widths of the child windows of W must equal W's
 	   width.  */
 	{
 	  int sum_of_sizes = 0;
@@ -3438,7 +3438,7 @@ window_resize_check (struct window *w, int horflag)
 	  return (sum_of_sizes == XINT (w->new_total));
 	}
       else
-	/* All subwindows of W must have the same height as W.  */
+	/* All child windows of W must have the same height as W.  */
 	{
 	  while (c)
 	    {
@@ -3458,9 +3458,9 @@ window_resize_check (struct window *w, int horflag)
 }
 
 /* Set w->total_lines (w->total_cols if HORIZONTAL is non-zero) to
-   w->new_total for window W and recursively all subwindows of W.  Also
-   calculate and assign the new vertical (horizontal) start positions of
-   each of these windows.
+   w->new_total for window W and recursively all child windows of W.
+   Also calculate and assign the new vertical (horizontal) start
+   positions of each of these windows.
 
    This function does not perform any error checks.  Make sure you have
    run window_resize_check on W before applying this function.  */
@@ -3534,8 +3534,8 @@ Optional argument HORIZONTAL omitted or nil means apply requested height
 values.  HORIZONTAL non-nil means apply requested width values.
 
 This function checks whether the requested values sum up to a valid
-window layout, recursively assigns the new sizes of all subwindows and
-calculates and assigns the new start positions of these windows.
+window layout, recursively assigns the new sizes of all child windows
+and calculates and assigns the new start positions of these windows.
 
 Note: This function does not check any of `window-fixed-size-p',
 `window-min-height' or `window-min-width'.  All these checks have to
@@ -3931,12 +3931,12 @@ Signal an error when WINDOW is the only window on its frame.  */)
 
       if (!NILP (w->vchild))
 	{
-	  delete_all_subwindows (w->vchild);
+	  delete_all_child_windows (w->vchild);
 	  w->vchild = Qnil;
 	}
       else if (!NILP (w->hchild))
 	{
-	  delete_all_subwindows (w->hchild);
+	  delete_all_child_windows (w->hchild);
 	  w->hchild = Qnil;
 	}
       else if (!NILP (w->buffer))
@@ -5515,7 +5515,7 @@ the return value is nil.  Otherwise the value is t.  */)
 	 Save their current buffers in their height fields, since we may
 	 need it later, if a buffer saved in the configuration is now
 	 dead.  */
-      delete_all_subwindows (FRAME_ROOT_WINDOW (f));
+      delete_all_child_windows (FRAME_ROOT_WINDOW (f));
 
       for (k = 0; k < saved_windows->header.size; k++)
 	{
@@ -5729,10 +5729,10 @@ the return value is nil.  Otherwise the value is t.  */)
 }
 
 
-/* Delete all subwindows reachable via the next, vchild, and hchild
-   slots of WINDOW.  */
+/* Recursively delete all child windows reachable via the next, vchild,
+   and hchild slots of WINDOW.  */
 void
-delete_all_subwindows (Lisp_Object window)
+delete_all_child_windows (Lisp_Object window)
 {
   register struct window *w;
 
@@ -5740,18 +5740,18 @@ delete_all_subwindows (Lisp_Object window)
 
   if (!NILP (w->next))
     /* Delete WINDOW's siblings (we traverse postorderly).  */
-    delete_all_subwindows (w->next);
+    delete_all_child_windows (w->next);
 
   w->total_lines = w->buffer;       /* See Fset_window_configuration for excuse.  */
 
   if (!NILP (w->vchild))
     {
-      delete_all_subwindows (w->vchild);
+      delete_all_child_windows (w->vchild);
       w->vchild = Qnil;
     }
   else if (!NILP (w->hchild))
     {
-      delete_all_subwindows (w->hchild);
+      delete_all_child_windows (w->hchild);
       w->hchild = Qnil;
     }
   else if (!NILP (w->buffer))

@@ -1320,7 +1320,7 @@ delete_frame (Lisp_Object frame, Lisp_Object force)
 
   /* Mark all the windows that used to be on FRAME as deleted, and then
      remove the reference to them.  */
-  delete_all_subwindows (f->root_window);
+  delete_all_child_windows (f->root_window);
   f->root_window = Qnil;
 
   Vframe_list = Fdelq (frame, Vframe_list);

@@ -1,3 +1,24 @@
+2011-11-07  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* files.el (find-file): Always use selected-window.
+
+2011-11-07  Martin Rudalics  <rudalics@gmx.at>
+
+	* window.el (window-combinations): Make WINDOW argument
+	mandatory.  Rewrite doc-string.
+	(walk-window-subtree, window-atom-check, window-min-delta)
+	(window-max-delta, window--resize-this-window)
+	(window--resize-root-window-vertically, window-tree)
+	(balance-windows, window-state-put): Rewrite doc-strings as to
+	not mention the term "subwindow".
+	(window--resize-subwindows-skip-p): Rename to
+	window--resize-child-windows-skip-p.
+	(window--resize-subwindows-normal): Rename to
+	window--resize-child-windows-normal.
+	(window--resize-subwindows): Rename to
+	window--resize-child-windows.
+	(window-or-subwindow-p): Rename to window--in-subtree-p.
+
 2011-11-07  Mark Lillibridge  <mark.lillibridge@hp.com>  (tiny change)
 
 	* mail/rmail.el (rmail-get-new-mail, rmail-insert-inbox-text):
