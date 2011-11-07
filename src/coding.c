@@ -1043,7 +1043,7 @@ coding_set_destination (struct coding_system *coding)
 {
   if (BUFFERP (coding->dst_object))
     {
-      if (coding->src_pos < 0)
+      if (BUFFERP (coding->src_object) && coding->src_pos < 0)
 	{
 	  coding->destination = BEG_ADDR + coding->dst_pos_byte - BEG_BYTE;
 	  coding->dst_bytes = (GAP_END_ADDR

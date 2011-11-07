@@ -1,3 +1,14 @@
+2011-11-07  Kenichi Handa  <handa@m17n.org>
+
+	* coding.c (coding_set_destination): Check coding->src_pos only
+	when coding->src_object is a buffer (bug#9910).
+
+	* process.c (send_process): Set the member src_multibyte of coding
+	to 0 (bug#9911) when sending a unibyte text.
+
+	* callproc.c (Fcall_process): Set the member src_multibyte of
+	process_coding to 0 (bug#9912).
+
 2011-11-03  Eli Zaretskii  <eliz@gnu.org>
 
 	* xdisp.c (note_mouse_highlight): Initialize `area'.  (Bug#9947)
