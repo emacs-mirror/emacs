@@ -2914,7 +2914,7 @@ x_free_gcs (struct frame *f)
 
 
 /* Handler for signals raised during x_create_frame and
-   x_create_top_frame.  FRAME is the frame which is partially
+   x_create_tip_frame.  FRAME is the frame which is partially
    constructed.  */
 
 static Lisp_Object
@@ -3138,7 +3138,6 @@ This function is an internal primitive--use `make-frame' instead.  */)
   FRAME_CAN_HAVE_SCROLL_BARS (f) = 1;
 
   f->terminal = dpyinfo->terminal;
-  f->terminal->reference_count++;
 
   f->output_method = output_x_window;
   f->output_data.x = (struct x_output *) xmalloc (sizeof (struct x_output));
@@ -3308,6 +3307,12 @@ This function is an internal primitive--use `make-frame' instead.  */)
 					"scrollBarBackground",
 					"ScrollBarBackground", 0);
 
+#if GLYPH_DEBUG
+  image_cache_refcount =
+    FRAME_IMAGE_CACHE (f) ? FRAME_IMAGE_CACHE (f)->refcount : 0;
+  dpyinfo_refcount = dpyinfo->reference_count;
+#endif /* GLYPH_DEBUG */
+
   /* Init faces before x_default_parameter is called for scroll-bar
      parameters because that function calls x_set_scroll_bar_width,
      which calls change_frame_size, which calls Fset_window_buffer,
@@ -3315,11 +3320,6 @@ This function is an internal primitive--use `make-frame' instead.  */)
      end up in init_iterator with a null face cache, which should not
      happen.  */
   init_frame_faces (f);
-
-#if GLYPH_DEBUG
-  image_cache_refcount = FRAME_IMAGE_CACHE (f)->refcount;
-  dpyinfo_refcount = dpyinfo->reference_count;
-#endif /* GLYPH_DEBUG */
 
   /* The X resources controlling the menu-bar and tool-bar are
      processed specially at startup, and reflected in the mode
@@ -3364,6 +3364,7 @@ This function is an internal primitive--use `make-frame' instead.  */)
   x_make_gc (f);
 
   /* Now consider the frame official.  */
+  f->terminal->reference_count++;
   FRAME_X_DISPLAY_INFO (f)->reference_count++;
   Vframe_list = Fcons (frame, Vframe_list);
 
@@ -4594,7 +4595,6 @@ x_create_tip_frame (struct x_display_info *dpyinfo,
   record_unwind_protect (unwind_create_tip_frame, frame);
 
   f->terminal = dpyinfo->terminal;
-  f->terminal->reference_count++;
 
   /* By setting the output method, we're essentially saying that
      the frame is live, as per FRAME_LIVE_P.  If we get a signal
@@ -4716,6 +4716,12 @@ x_create_tip_frame (struct x_display_info *dpyinfo,
   x_default_parameter (f, parms, Qborder_color, build_string ("black"),
 		       "borderColor", "BorderColor", RES_TYPE_STRING);
 
+#if GLYPH_DEBUG
+  image_cache_refcount =
+    FRAME_IMAGE_CACHE (f) ? FRAME_IMAGE_CACHE (f)->refcount : 0;
+  dpyinfo_refcount = dpyinfo->reference_count;
+#endif /* GLYPH_DEBUG */
+
   /* Init faces before x_default_parameter is called for scroll-bar
      parameters because that function calls x_set_scroll_bar_width,
      which calls change_frame_size, which calls Fset_window_buffer,
@@ -4723,11 +4729,6 @@ x_create_tip_frame (struct x_display_info *dpyinfo,
      end up in init_iterator with a null face cache, which should not
      happen.  */
   init_frame_faces (f);
-
-#if GLYPH_DEBUG
-  image_cache_refcount = FRAME_IMAGE_CACHE (f)->refcount;
-  dpyinfo_refcount = dpyinfo->reference_count;
-#endif /* GLYPH_DEBUG */
 
   f->output_data.x->parent_desc = FRAME_X_DISPLAY_INFO (f)->root_window;
 
@@ -4834,14 +4835,16 @@ x_create_tip_frame (struct x_display_info *dpyinfo,
 
   UNGCPRO;
 
+  /* Now that the frame will be official, it counts as a reference to
+     its display and terminal.  */
+  FRAME_X_DISPLAY_INFO (f)->reference_count++;
+  f->terminal->reference_count++;
+
   /* It is now ok to make the frame official even if we get an error
      below.  And the frame needs to be on Vframe_list or making it
      visible won't work.  */
   Vframe_list = Fcons (frame, Vframe_list);
 
-  /* Now that the frame is official, it counts as a reference to
-     its display.  */
-  FRAME_X_DISPLAY_INFO (f)->reference_count++;
 
   /* Setting attributes of faces of the tooltip frame from resources
      and similar will increment face_change_count, which leads to the

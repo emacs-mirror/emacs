@@ -21,19 +21,32 @@
 
        cd nt
 
-  2. Run configure.bat.  From the COMMAND.COM/CMD.EXE command prompt:
+  2. Run configure.bat.
+
+  2a.If you use MSVC, set up the build environment by running the
+     SetEnv.cmd batch file from the appropriate SDK directory.  (Skip
+     this step if you are using MinGW.)  For example:
+
+       "C:\Program Files\Microsoft SDKs\Windows\v7.1\Bin\SetEnv.cmd" /x86 /Debug
+
+      if you are goiung to compile a debug version, or
+
+       "C:\Program Files\Microsoft SDKs\Windows\v7.1\Bin\SetEnv.cmd" /x86 /Release
+
+      if you are going to compile an optimized version.
+
+  2b.From the COMMAND.COM/CMD.EXE command prompt type:
 
        configure
 
-     from a Unixy shell prompt:
+     From a Unixy shell prompt:
 
        cmd /c configure.bat
      or
        command.com /c configure.bat
 
   3. Run the Make utility suitable for your environment.  If you build
-     with the Microsoft's Visual C compiler (but see notes about using
-     VC++ 8.0 and later below):
+     with the Microsoft's Visual C compiler:
 
        nmake
 
@@ -101,24 +114,21 @@
 * Supported development environments
 
   To compile Emacs, you will need either Microsoft Visual C++ 2.0, or
-  later up to 7.0, and nmake, or a Windows port of GCC 2.95 or later
-  with MinGW and W32 API support and a port of GNU Make.  You can use
-  the Cygwin ports of GCC, but Emacs requires the MinGW headers and
-  libraries to build (latest versions of the Cygwin toolkit, at least
-  since v1.3.3, include the MinGW headers and libraries as an integral
-  part).
-
-  Note that building Emacs with Visual Studio 2005 (VC++ 8.0) and
-  later is not supported at this time, due to changes introduced by
-  Microsoft into the libraries shipped with the compiler.
+  later and nmake, or a Windows port of GCC 2.95 or later with MinGW
+  and W32 API support and a port of GNU Make.  You can use the Cygwin
+  ports of GCC, but Emacs requires the MinGW headers and libraries to
+  build (latest versions of the Cygwin toolkit, at least since v1.3.3,
+  include the MinGW headers and libraries as an integral part).
 
   The rest of this file assumes you have a working development
-  environment.  If you just installed  such an environment, try
+  environment.  If you just installed such an environment, try
   building a trivial C "Hello world" program, and see if it works.  If
   it doesn't work, resolve that problem first!  If you use Microsoft
   Visual Studio .NET 2003, don't forget to run the VCVARS32.BAT batch
   file from the `Bin' subdirectory of the directory where you have
-  installed VS.NET.
+  installed VS.NET.  With other versions of MSVC, run the SetEnv.cmd
+  batch file from the `Bin' subdirectory of the directory where you
+  have the SDK installed.
 
   If you use the MinGW port of GCC and GNU Make to build Emacs, there
   are some compatibility issues wrt Make and the shell that is run by

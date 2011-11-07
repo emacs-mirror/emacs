@@ -1033,33 +1033,31 @@ directionality are not known in advance, without disrupting the layout
 of the line.
 
 ** Window changes
-
 +++
 *** Window tree functions are accessible in Elisp.
 Functions are provided to return the parent, siblings or child windows
 of any window including internal windows (windows not associated with a
 buffer) in the window tree.
-
 +++
-*** Window manipulation can deal with internal windows.
+**** New function `window-valid-p' gives non-nil for live and internal
+windows.
++++
+**** Window manipulation can deal with internal windows.
 Many window handling functions like `split-window', `delete-window', or
 `delete-other-windows' as well as the window resizing functions can now
 act on any window including internal ones.
-
 +++
 *** window-total-height/-width vs window-body-height/-width.
 The function `window-height' has been renamed to `window-total-height'
 and `window-width' has been renamed to `window-body-width'.  The old
 names are provided as aliases.  Two new functions `window-total-width'
 and `window-body-height' are provided.
-
 +++
 *** Window parameters specific to window handling functions.
 For each window you can specify a parameter to override the default
 behavior of a number of functions like `split-window', `delete-window'
 and `delete-other-windows'.  The variable `ignore-window-parameters'
 allows to ignore processing such parameters.
-
 +++
 *** New semantics of third argument of `split-window'.
 The third argument of `split-window' has been renamed to SIDE and can be
@@ -1067,17 +1065,14 @@ set to any of the values 'below, 'right, 'above, or 'left to make the
 new window appear on the corresponding side of the window that shall be
 split.  Any other value of SIDE will cause `split-window' to split the
 window into two side-by-side windows as before.
-
 +++
 *** Window resizing functions.
 A new standard function for resizing windows called `window-resize' has
 been introduced.  This and all other functions for resizing windows no
 longer delete any windows when they become too small.
-
 +++
 *** Deleting the selected window now selects the most recently selected
 live window on that frame instead.
-
 +++
 *** `adjust-window-trailing-edge' adjustments.
 `adjust-window-trailing-edge' can now deal with fixed-size windows and
@@ -1085,7 +1080,6 @@ is able to resize other windows if a window adjacent to the trailing
 edge cannot be shrunk any more.  This makes its behavior more similar to
 that of Emacs 21 without compromising, however, its inability to delete
 windows which was introduced in Emacs 22.
-
 +++
 *** Window-local buffer lists.
 Windows now have local buffer lists.  This means that removing a buffer
@@ -1093,17 +1087,16 @@ from display in a window will preferably show the buffer previously
 shown in that window with its previous window-start and window-point
 positions.  This also means that the same buffer may be automatically
 shown twice even if it already appears in another window.
-
 +++
 *** `switch-to-buffer' has a new optional argument FORCE-SAME-WINDOW,
 which if non-nil requires the buffer to be displayed in the currently
 selected window, signaling an error otherwise.  If nil, another window
 can be used, e.g. if the selected one is strongly dedicated.
-
++++
 *** `split-window-vertically' and `split-window-horizontally' renamed
 to `split-window-below' and `split-window-right' respectively.
 The old names are kept as aliases.
-
++++
 *** Display actions
 
 **** The second arg to `display-buffer' and `pop-to-buffer' is now
@@ -1294,6 +1287,8 @@ functions.  It's easiest to use these functions through
 STARTTLS opportunistically or use plain SSL, depending on your needs.
 
 Only versions 2.8.x and higher or GnuTLS have been tested.
+[FIXME: this statement needs clarifying, given that GnuTLS >= 2.6.6
+is the test used by configure.]
 
 *** gnutls-log-level
 Set `gnutls-log-level' higher than 0 to get debug output.  1 is for

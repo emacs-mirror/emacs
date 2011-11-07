@@ -9,6 +9,150 @@
 	* callproc.c (Fcall_process): Set the member src_multibyte of
 	process_coding to 0 (bug#9912).
 
+2011-11-06  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
+
+	* xmenu.c (cleanup_widget_value_tree): New function.
+	(xmenu_show, xdialog_show): Use it in record_unwind_protect instead of
+	calling free_menubar_widget_value_tree directly (Bug#9830).
+
+2011-11-06  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Fix some portability problems with 'inline'.
+	* dispextern.h (window_box, window_box_height, window_text_bottom_y)
+	(window_box_width, window_box_left, window_box_left_offset)
+	(window_box_right, window_box_right_offset): Declare extern.
+	Otherwise, these inline functions do not conform to C99 and
+	are miscompiled by Microsoft compilers.  Reported by Eli Zaretskii in
+	<http://lists.gnu.org/archive/html/emacs-devel/2011-11/msg00084.html>.
+	* intervals.c (adjust_intervals_for_insertion)
+	(adjust_intervals_for_deletion): Now extern, because otherwise the
+	extern inline functions 'offset_intervals' couldn't refer to it.
+	(static_offset_intervals): Remove.
+	(offset_intervals): Rewrite using the old contents of
+	static_offset_intervals.  The old version didn't conform to C99
+	because an extern inline function contained a reference to an
+	identifier with static linkage.
+
+2011-11-06  Andreas Schwab  <schwab@linux-m68k.org>
+
+	* keyboard.c (interrupt_signal): Don't call kill-emacs while in
+	GC.
+
+2011-11-06  Eli Zaretskii  <eliz@gnu.org>
+
+	* xdisp.c (init_iterator, reseat_to_string): Don't set the
+	iterator's bidi_p flag if Vpurify_flag is non-nil.  (Bug#9963)
+	(Fcurrent_bidi_paragraph_direction): If Vpurify_flag is non-nil,
+	return Qleft_to_right.
+
+2011-11-06  Chong Yidong  <cyd@gnu.org>
+
+	* window.c (Fwindow_live_p, Fwindow_frame, Fframe_root_window)
+	(Fminibuffer_window, Fwindow_buffer, Fwindow_splits)
+	(Fset_window_splits, Fwindow_nest, Fset_window_nest)
+	(Fwindow_use_time, Fwindow_total_size, Fwindow_normal_size)
+	(Fwindow_new_normal, Fwindow_left_column, Fwindow_top_line)
+	(Fwindow_margins, Fwindow_fringes, Fwindow_scroll_bars)
+	(Fwindow_vscroll): Doc fix.
+	(Fwindow_top_child, Fwindow_left_child): Eliminate a nil default
+	argument, since it makes no sense to pass a live window and for
+	consistency with window-child.
+
+2011-11-05  Christoph Scholtes  <cschol2112@googlemail.com>
+
+	* makefile.w32-in ($(TEMACS), (gl-stamp)): Use $(THISDIR) to
+	support MSVC.
+
+2011-11-05  Jason Rumney  <jasonr@gnu.org>
+
+	* w32font.c (font_matches_spec): Filter out non-Japanese kana fonts.
+	(add_font_entity_to_list): Filter out non-Japanese Shift-JIS
+	fonts (Bug#6029).
+	(add_font_entity_to_list): Fix logic errors in mixed boolean and
+	bitwise arithmetic preventing use of unicode-sip and non-truetype
+	opentype fonts.
+
+2011-11-05  Eli Zaretskii  <eliz@gnu.org>
+
+	* s/ms-w32.h (fstat, stat, utime): Move redirections to
+	"emacs"-only part.
+
+	* w32fns.c (x_create_tip_frame, Fx_create_frame): Rearrange
+	initialization code to keep similarity to xfns.c after changes
+	from 2011-11-05.
+
+2011-11-05  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* nsfns.m: Declare image_cache_refcount if GLYPH_DEBUG.
+	(unwind_create_frame): New function (Bug#9943).
+	(Fx_create_frame): Restructure code to be more similar to the one in
+	xfns.c.  Call record_unwind_protect with unwind_create_frame (Bug#9943).
+	Initialize image_cache_refcount if GLYPH_DEBUG (Bug#9943).
+	Move terminal->reference_count++ just before making the frame official
+	(Bug#9943).
+
+	* nsterm.m (x_free_frame_resources): New function.
+	(x_destroy_window): Move code to x_free_frame_resources.
+
+	* xfns.c (unwind_create_frame): Fix comment.
+	(Fx_create_frame, x_create_tip_frame): Move
+	terminal->reference_count++ just before making the frame
+	official. Move initialization of image_cache_refcount and
+	dpyinfo_refcount before calling init_frame_faces (Bug#9943).
+
+2011-11-05  Eli Zaretskii  <eliz@gnu.org>
+
+	Support MSVC build with newer versions of Visual Studio.
+	* makefile.w32-in (TAGS-gmake): Don't use $(patsubst ...), as
+	Nmake barfs on that.  Use $(OBJ*_c) variables instead, defined on
+	nt/gmake.defs.
+
+	* lisp.h (ENUM_BF): New macro, for enumerated types in bitfields,
+	which are not supported by MSVC.
+	(Lisp_Symbol, Lisp_Misc_Any, Lisp_Marker, Lisp_Misc_Overlay)
+	(Lisp_Save_Value, Lisp_Free): Use ENUM_BF for enumerated types in
+	bitfields.
+	(Lisp_Object) [USE_LISP_UNION_TYPE]: Use ENUM_BF for enumerated
+	types in bitfields.
+	(DEFUN) [_MSC_VER]: Define in a different way for MSVC.
+
+	* w32fns.c [_MSC_VER]: DECLARE_HANDLE for any MSVC version.
+
+2011-11-05  Fabrice Popineau  <fabrice.popineau@supelec.fr> (tiny change)
+
+	Support MSVC build with newer versions of Visual Studio.
+	* w32.c: Don't include w32api.h for MSVC.
+	(init_environment) [_MSC_VER]: Call sys_access, not _access.
+
+	* s/ms-w32.h <sigset_t, ssize_t> [_MSC_VER]: Typedefs for MSVC.
+	[_MSC_VER]: Include sys/timeb.h, sys/stat.h, and signal.h.
+	(fstat, stat, utime) [_MSC_VER]: Redirect to their sys_* cousins.
+	(malloc, free, realloc, calloc) [_MSC_VER]: Always redirect to the
+	e_* cousins.
+	(alloca) [_MSC_VER]: Define to _alloca.
+
+	* lisp.h (DECL_ALIGN) [_MSC_VER]: Define for MSVC.
+
+	* regex.c <re_char> [_MSC_VER]: A separate definition for MSVC.
+
+2011-11-04  Eli Zaretskii  <eliz@gnu.org>
+
+	* xdisp.c (note_mouse_highlight): If either of
+	previous/next-single-property-change returns nil, treat that as
+	the beginning or the end of the buffer.  (Bug#9955)
+
+2011-11-04  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* gtkutil.c (xg_make_tool_item): Add callbacks if one of wimage or
+	label is not null (Bug#9951).
+	(xg_tool_item_stale_p): Handle the fact that wimage and/or wlbl
+	may be NULL.
+
+2011-11-04  Eli Zaretskii  <eliz@gnu.org>
+
+	* window.c (Fwindow_body_size): Mention in the doc string that the
+	return value is in frame's canonical units.  (Bug#9949)
+
 2011-11-03  Eli Zaretskii  <eliz@gnu.org>
 
 	* xdisp.c (note_mouse_highlight): Initialize `area'.  (Bug#9947)
@@ -2741,6 +2885,9 @@
 	ns_return_type.
 
 2011-07-08  Jason Rumney  <jasonr@gnu.org>
+
+	* w32term.c (x_make_frame_visible): Use SH_SHOWNORMAL rather than
+	SH_SHOW for hidden windows (Bug#5482).
 
 	* w32fns.c (w32_wnd_proc) [WM_TIMER, WM_SET_CURSOR]: Avoid using
 	frame struct members of non-existent frames (Bug#6284).

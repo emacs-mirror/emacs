@@ -1,3 +1,13 @@
+2011-11-05  Eli Zaretskii  <eliz@gnu.org>
+
+	* lib/makefile.w32-in (FRC): New dummy target.
+	(TAGS): Depend on FRC.
+
+2011-11-04  Glenn Morris  <rgm@gnu.org>
+
+	* configure.in: Increase minimum GnuTLS version to 2.6.6. (Bug#9929)
+	Do not include GnuTLS version info in final summary message.
+
 2011-10-31  Eli Zaretskii  <eliz@gnu.org>
 
 	* config.bat: Use config.in and Makefile.in from src/ and lib/, if

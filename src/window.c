@@ -159,7 +159,8 @@ DEFUN ("windowp", Fwindowp, Swindowp, 1, 1, 0,
 
 DEFUN ("window-live-p", Fwindow_live_p, Swindow_live_p, 1, 1, 0,
        doc: /* Return t if OBJECT is a live window and nil otherwise.
-A live window is a window that displays a buffer.  */)
+A live window is a window that displays a buffer.
+Internal windows and deleted windows are not live.  */)
   (Lisp_Object object)
 {
   return WINDOW_LIVE_P (object) ? Qt : Qnil;
@@ -168,7 +169,7 @@ A live window is a window that displays a buffer.  */)
 /* Frames and windows.  */
 DEFUN ("window-frame", Fwindow_frame, Swindow_frame, 1, 1, 0,
        doc: /* Return the frame that window WINDOW is on.
-WINDOW can be any window and defaults to the selected one.  */)
+If WINDOW is omitted or nil, it defaults to the selected window.  */)
   (Lisp_Object window)
 {
   return decode_any_window (window)->frame;
@@ -177,9 +178,8 @@ WINDOW can be any window and defaults to the selected one.  */)
 DEFUN ("frame-root-window", Fframe_root_window, Sframe_root_window, 0, 1, 0,
        doc: /* Return the root window of FRAME-OR-WINDOW.
 If omitted, FRAME-OR-WINDOW defaults to the currently selected frame.
-Else if FRAME-OR-WINDOW denotes any window, return the root window of
-that window's frame.  If FRAME-OR-WINDOW denotes a live frame, return
-the root window of that frame.  */)
+With a frame argument, return that frame's root window.
+With a window argument, return the root window of that window's frame.  */)
   (Lisp_Object frame_or_window)
 {
   Lisp_Object window;
@@ -198,9 +198,8 @@ the root window of that frame.  */)
 }
 
 DEFUN ("minibuffer-window", Fminibuffer_window, Sminibuffer_window, 0, 1, 0,
-       doc: /* Return the window used now for minibuffers.
-If the optional argument FRAME is specified, return the minibuffer window
-used by that frame.  */)
+       doc: /* Return the minibuffer window for frame FRAME.
+If FRAME is omitted or nil, it defaults to the selected frame.  */)
   (Lisp_Object frame)
 {
   if (NILP (frame))
@@ -212,7 +211,7 @@ used by that frame.  */)
 DEFUN ("window-minibuffer-p", Fwindow_minibuffer_p,
        Swindow_minibuffer_p, 0, 1, 0,
        doc: /* Return non-nil if WINDOW is a minibuffer window.
-WINDOW can be any window and defaults to the selected one.  */)
+If WINDOW is omitted or nil, it defaults to the selected window.  */)
   (Lisp_Object window)
 {
   return MINI_WINDOW_P (decode_any_window (window)) ? Qt : Qnil;
@@ -409,44 +408,48 @@ buffer of the selected window before each command.  */)
 }
 
 DEFUN ("window-buffer", Fwindow_buffer, Swindow_buffer, 0, 1, 0,
-       doc: /* Return the buffer that WINDOW is displaying.
-WINDOW can be any window and defaults to the selected one.
-If WINDOW is an internal window return nil.  */)
+       doc: /* Return the buffer displayed in window WINDOW.
+If WINDOW is omitted or nil, it defaults to the selected window.
+Return nil for an internal window or a deleted window.  */)
   (Lisp_Object window)
 {
   return decode_any_window (window)->buffer;
 }
 
 DEFUN ("window-parent", Fwindow_parent, Swindow_parent, 0, 1, 0,
-       doc: /* Return WINDOW's parent window.
-WINDOW can be any window and defaults to the selected one.
-Return nil if WINDOW has no parent.  */)
+       doc: /* Return the parent window of window WINDOW.
+If WINDOW is omitted or nil, it defaults to the selected window.
+Return nil for a window with no parent (e.g. a root window).  */)
   (Lisp_Object window)
 {
   return decode_any_window (window)->parent;
 }
 
-DEFUN ("window-top-child", Fwindow_top_child, Swindow_top_child, 0, 1, 0,
-       doc: /* Return WINDOW's topmost child window.
-WINDOW can be any window and defaults to the selected one.
-Return nil if WINDOW is not a vertical combination.  */)
+DEFUN ("window-top-child", Fwindow_top_child, Swindow_top_child, 1, 1, 0,
+       doc: /* Return the topmost child window of window WINDOW.
+Return nil if WINDOW is a live window (live windows have no children).
+Return nil if WINDOW is an internal window whose children form a
+horizontal combination.  */)
   (Lisp_Object window)
 {
+  CHECK_WINDOW (window);
   return decode_any_window (window)->vchild;
 }
 
-DEFUN ("window-left-child", Fwindow_left_child, Swindow_left_child, 0, 1, 0,
-       doc: /* Return WINDOW's leftmost child window.
-WINDOW can be any window and defaults to the selected one.
-Return nil if WINDOW is not a horizontal combination.  */)
+DEFUN ("window-left-child", Fwindow_left_child, Swindow_left_child, 1, 1, 0,
+       doc: /* Return the leftmost child window of window WINDOW.
+Return nil if WINDOW is a live window (live windows have no children).
+Return nil if WINDOW is an internal window whose children form a
+vertical combination.  */)
   (Lisp_Object window)
 {
+  CHECK_WINDOW (window);
   return decode_any_window (window)->hchild;
 }
 
 DEFUN ("window-next-sibling", Fwindow_next_sibling, Swindow_next_sibling, 0, 1, 0,
-       doc: /* Return WINDOW's next sibling window.
-WINDOW can be any window and defaults to the selected one.
+       doc: /* Return the next sibling window of window WINDOW.
+If WINDOW is omitted or nil, it defaults to the selected window.
 Return nil if WINDOW has no next sibling.  */)
   (Lisp_Object window)
 {
@@ -454,8 +457,8 @@ Return nil if WINDOW has no next sibling.  */)
 }
 
 DEFUN ("window-prev-sibling", Fwindow_prev_sibling, Swindow_prev_sibling, 0, 1, 0,
-       doc: /* Return WINDOW's previous sibling window.
-WINDOW can be any window and defaults to the selected one.
+       doc: /* Return the previous sibling window of window WINDOW.
+If WINDOW is omitted or nil, it defaults to the selected window.
 Return nil if WINDOW has no previous sibling.  */)
   (Lisp_Object window)
 {
@@ -463,8 +466,8 @@ Return nil if WINDOW has no previous sibling.  */)
 }
 
 DEFUN ("window-splits", Fwindow_splits, Swindow_splits, 0, 1, 0,
-       doc: /* Return splits status for WINDOW.
-WINDOW can be any window and defaults to the selected one.
+       doc: /* Return splits status for the window WINDOW.
+If WINDOW is omitted or nil, it defaults to the selected window.
 
 If the value returned by this function is nil and WINDOW is resized, the
 corresponding space is preferably taken from (or given to) WINDOW's
@@ -479,9 +482,8 @@ WINDOW may resize all windows in the same combination.  */)
 }
 
 DEFUN ("set-window-splits", Fset_window_splits, Sset_window_splits, 2, 2, 0,
-       doc: /* Set splits status of WINDOW to STATUS.
-WINDOW can be any window and defaults to the selected one.  Return
-STATUS.
+       doc: /* Set splits status of window WINDOW to STATUS.
+If WINDOW is omitted or nil, it defaults to the selected window.
 
 If STATUS is nil and WINDOW is later resized, the corresponding space is
 preferably taken from (or given to) WINDOW's right sibling.  When WINDOW
@@ -499,8 +501,8 @@ windows in the same combination.  */)
 }
 
 DEFUN ("window-nest", Fwindow_nest, Swindow_nest, 0, 1, 0,
-       doc: /* Return nest status of WINDOW.
-WINDOW can be any window and defaults to the selected one.
+       doc: /* Return nest status of window WINDOW.
+If WINDOW is omitted or nil, it defaults to the selected window.
 
 If the return value is nil, subwindows of WINDOW can be recombined with
 WINDOW's siblings.  A return value of non-nil means that subwindows of
@@ -511,9 +513,8 @@ WINDOW are never \(re-)combined with WINDOW's siblings.  */)
 }
 
 DEFUN ("set-window-nest", Fset_window_nest, Sset_window_nest, 2, 2, 0,
-       doc: /* Set nest status of WINDOW to STATUS.
-WINDOW can be any window and defaults to the selected one.  Return
-STATUS.
+       doc: /* Set nest status of window WINDOW to STATUS; return STATUS.
+If WINDOW is omitted or nil, it defaults to the selected window.
 
 If STATUS is nil, subwindows of WINDOW can be recombined with WINDOW's
 siblings.  STATUS non-nil means that subwindows of WINDOW are never
@@ -528,22 +529,24 @@ siblings.  STATUS non-nil means that subwindows of WINDOW are never
 }
 
 DEFUN ("window-use-time", Fwindow_use_time, Swindow_use_time, 0, 1, 0,
-       doc: /* Return WINDOW's use time.
-WINDOW defaults to the selected window.  The window with the highest use
-time is the most recently selected one.  The window with the lowest use
-time is the least recently selected one.  */)
+       doc: /* Return the use time of window WINDOW.
+If WINDOW is omitted or nil, it defaults to the selected window.
+The window with the highest use time is the most recently selected
+one.  The window with the lowest use time is the least recently
+selected one.  */)
   (Lisp_Object window)
 {
   return decode_window (window)->use_time;
 }
 
 DEFUN ("window-total-size", Fwindow_total_size, Swindow_total_size, 0, 2, 0,
-       doc: /* Return the total number of lines of WINDOW.
-WINDOW can be any window and defaults to the selected one.  The return
-value includes WINDOW's mode line and header line, if any.  If WINDOW
-is internal, the return value is the sum of the total number of lines
-of WINDOW's child windows if these are vertically combined and the
-height of WINDOW's first child otherwise.
+       doc: /* Return the total number of lines of window WINDOW.
+If WINDOW is omitted or nil, it defaults to the selected window.
+
+The return value includes WINDOW's mode line and header line, if any.
+If WINDOW is internal, the return value is the sum of the total number
+of lines of WINDOW's child windows if these are vertically combined
+and the height of WINDOW's first child otherwise.
 
 Optional argument HORIZONTAL non-nil means return the total number of
 columns of WINDOW.  In this case the return value includes any vertical
@@ -560,17 +563,17 @@ first child otherwise.  */)
 }
 
 DEFUN ("window-new-total", Fwindow_new_total, Swindow_new_total, 0, 1, 0,
-       doc: /* Return new total size of WINDOW.
-WINDOW defaults to the selected window.   */)
+       doc: /* Return the new total size of window WINDOW.
+If WINDOW is omitted or nil, it defaults to the selected window.   */)
   (Lisp_Object window)
 {
   return decode_any_window (window)->new_total;
 }
 
 DEFUN ("window-normal-size", Fwindow_normal_size, Swindow_normal_size, 0, 2, 0,
-       doc: /* Return normal height of WINDOW.
-WINDOW can be any window and defaults to the selected one.  Optional
-argument HORIZONTAL non-nil means return normal width of WINDOW.  */)
+       doc: /* Return the normal height of window WINDOW.
+If WINDOW is omitted or nil, it defaults to the selected window.
+If HORIZONTAL is non-nil, return the normal width of WINDOW.  */)
   (Lisp_Object window, Lisp_Object horizontal)
 {
   if (NILP (horizontal))
@@ -580,24 +583,24 @@ argument HORIZONTAL non-nil means return normal width of WINDOW.  */)
 }
 
 DEFUN ("window-new-normal", Fwindow_new_normal, Swindow_new_normal, 0, 1, 0,
-       doc: /* Return new normal size of WINDOW.
-WINDOW can be any window and defaults to the selected one.   */)
+       doc: /* Return new normal size of window WINDOW.
+If WINDOW is omitted or nil, it defaults to the selected window.  */)
   (Lisp_Object window)
 {
   return decode_any_window (window)->new_normal;
 }
 
 DEFUN ("window-left-column", Fwindow_left_column, Swindow_left_column, 0, 1, 0,
-       doc: /* Return left column of WINDOW.
-WINDOW can be any window and defaults to the selected one.  */)
+       doc: /* Return left column of window WINDOW.
+If WINDOW is omitted or nil, it defaults to the selected window.  */)
   (Lisp_Object window)
 {
   return decode_any_window (window)->left_col;
 }
 
 DEFUN ("window-top-line", Fwindow_top_line, Swindow_top_line, 0, 1, 0,
-       doc: /* Return top line of WINDOW.
-WINDOW can be any window and defaults to the selected one.  */)
+       doc: /* Return top line of window WINDOW.
+If WINDOW is omitted or nil, it defaults to the selected window.  */)
   (Lisp_Object window)
 {
   return decode_any_window (window)->top_line;
@@ -653,16 +656,25 @@ window_body_cols (struct window *w)
 }
 
 DEFUN ("window-body-size", Fwindow_body_size, Swindow_body_size, 0, 2, 0,
-       doc: /* Return the number of lines of WINDOW's body.
-WINDOW must be a live window and defaults to the selected one.  The
-return value does not include WINDOW's mode line and header line, if
-any.
+       doc: /* Return the number of lines or columns of WINDOW's body.
+WINDOW must be a live window and defaults to the selected one.
 
-Optional argument HORIZONTAL non-nil means return the number of columns
-of WINDOW's body.  In this case, the return value does not include any
-vertical dividers or scroll bars owned by WINDOW.  On a window-system
-the return value does not include the number of columns used for
-WINDOW's fringes or display margins either.  */)
+If the optional argument HORIZONTAL is omitted or nil, the function
+returns the number of WINDOW's lines, excluding the mode line and
+header line, if any.
+
+If HORIZONTAL is non-nil, the function returns the number of columns
+excluding any vertical dividers or scroll bars owned by WINDOW.  On a
+window-system the return value also excludes the number of columns
+used for WINDOW's fringes or display margins.
+
+Note that the return value is measured in canonical units, i.e. for
+the default frame's face.  If the window shows some characters with
+non-default face, e.g., if the font of some characters is larger or
+smaller than the default font, the value returned by this function
+will not match the actual number of lines or characters per line
+shown in the window.  To get the actual number of columns and lines,
+use `posn-at-point'.  */)
   (Lisp_Object window, Lisp_Object horizontal)
 {
   struct window *w = decode_any_window (window);
@@ -2302,7 +2314,7 @@ window_list_1 (Lisp_Object window, Lisp_Object minibuf, Lisp_Object all_frames)
 DEFUN ("window-list", Fwindow_list, Swindow_list, 0, 3, 0,
        doc: /* Return a list of windows on FRAME, starting with WINDOW.
 FRAME nil or omitted means use the selected frame.
-WINDOW nil or omitted means use the selected window.
+WINDOW nil or omitted means use the window selected within FRAME.
 MINIBUF t means include the minibuffer window, even if it isn't active.
 MINIBUF nil or omitted means include the minibuffer window only
 if it's active.
@@ -5993,7 +6005,7 @@ means no margin.  */)
 DEFUN ("window-margins", Fwindow_margins, Swindow_margins,
        0, 1, 0,
        doc: /* Get width of marginal areas of window WINDOW.
-If WINDOW is omitted or nil, use the currently selected window.
+If WINDOW is omitted or nil, it defaults to the selected window.
 Value is a cons of the form (LEFT-WIDTH . RIGHT-WIDTH).
 If a marginal area does not exist, its width will be returned
 as nil.  */)
@@ -6057,7 +6069,7 @@ display marginal areas and the text area.  */)
 DEFUN ("window-fringes", Fwindow_fringes, Swindow_fringes,
        0, 1, 0,
        doc: /* Get width of fringes of window WINDOW.
-If WINDOW is omitted or nil, use the currently selected window.
+If WINDOW is omitted or nil, it defaults to the selected window.
 Value is a list of the form (LEFT-WIDTH RIGHT-WIDTH OUTSIDE-MARGINS).  */)
   (Lisp_Object window)
 {
@@ -6126,7 +6138,7 @@ Fourth parameter HORIZONTAL-TYPE is currently unused.  */)
 DEFUN ("window-scroll-bars", Fwindow_scroll_bars, Swindow_scroll_bars,
        0, 1, 0,
        doc: /* Get width and type of scroll bars of window WINDOW.
-If WINDOW is omitted or nil, use the currently selected window.
+If WINDOW is omitted or nil, it defaults to the selected window.
 Value is a list of the form (WIDTH COLS VERTICAL-TYPE HORIZONTAL-TYPE).
 If WIDTH is nil or TYPE is t, the window is using the frame's corresponding
 value.  */)
@@ -6149,7 +6161,7 @@ value.  */)
 
 DEFUN ("window-vscroll", Fwindow_vscroll, Swindow_vscroll, 0, 2, 0,
        doc: /* Return the amount by which WINDOW is scrolled vertically.
-Use the selected window if WINDOW is nil or omitted.
+If WINDOW is omitted or nil, it defaults to the selected window.
 Normally, value is a multiple of the canonical character height of WINDOW;
 optional second arg PIXELS-P means value is measured in pixels.  */)
   (Lisp_Object window, Lisp_Object pixels_p)

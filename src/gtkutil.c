@@ -4237,7 +4237,7 @@ xg_make_tool_item (FRAME_PTR f,
   gtk_container_add (GTK_CONTAINER (weventbox), wb);
   gtk_container_add (GTK_CONTAINER (ti), weventbox);
 
-  if (wimage)
+  if (wimage || label)
     {
       intptr_t ii = i;
       gpointer gi = (gpointer) ii;
@@ -4302,21 +4302,21 @@ xg_tool_item_stale_p (GtkWidget *wbutton, const char *stock_name,
   GtkWidget *wlbl = xg_get_tool_bar_widgets (vb, &wimage);
 
   /* Check if the tool icon matches.  */
-  if (stock_name)
+  if (stock_name && wimage)
     {
       old = g_object_get_data (G_OBJECT (wimage),
 			       XG_TOOL_BAR_STOCK_NAME);
       if (!old || strcmp (old, stock_name))
 	return 1;
     }
-  else if (icon_name)
+  else if (icon_name && wimage)
     {
       old = g_object_get_data (G_OBJECT (wimage),
 			       XG_TOOL_BAR_ICON_NAME);
       if (!old || strcmp (old, icon_name))
 	return 1;
     }
-  else
+  else if (wimage)
     {
       gpointer gold_img = g_object_get_data (G_OBJECT (wimage),
 					    XG_TOOL_BAR_IMAGE_DATA);
@@ -4331,7 +4331,7 @@ xg_tool_item_stale_p (GtkWidget *wbutton, const char *stock_name,
     return 1;
 
   /* Ensure label is correct.  */
-  if (label)
+  if (label && wlbl)
     gtk_label_set_text (GTK_LABEL (wlbl), label);
   return 0;
 }

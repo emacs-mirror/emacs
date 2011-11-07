@@ -193,6 +193,11 @@ OLE32		= -lole32
 UNISCRIBE	= -lusp10
 UUID		= -luuid
 
+# Used by src/makefile.w32-in, since Nmake barfs on $(func SOMETHING)
+OBJ0_c		= $(patsubst $(BLD)%.$(O),$(CURDIR)%.c,$(OBJ0))
+OBJ1_c		= $(patsubst $(BLD)%.$(O),$(CURDIR)%.c,$(OBJ1))
+OBJ2_c		= $(patsubst $(BLD)%.$(O),$(CURDIR)%.c,$(OBJ2))
+
 ifdef NOOPT
 DEBUG_CFLAGS	= -DEMACSDEBUG
 else

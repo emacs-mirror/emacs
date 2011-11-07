@@ -530,7 +530,11 @@ init_syntax_once (void)
 #define MIN(a, b) ((a) < (b) ? (a) : (b))
 
 /* Type of source-pattern and string chars.  */
+#ifdef _MSC_VER
+typedef unsigned char re_char;
+#else
 typedef const unsigned char re_char;
+#endif
 
 typedef char boolean;
 #define false 0
