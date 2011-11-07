@@ -1343,7 +1343,7 @@ automatically choosing a major mode, use \\[find-file-literally]."
   (let ((value (find-file-noselect filename nil nil wildcards)))
     (if (listp value)
 	(mapcar 'switch-to-buffer (nreverse value))
-      (switch-to-buffer value))))
+      (switch-to-buffer value nil 'force-same-window))))
 
 (defun find-file-other-window (filename &optional wildcards)
   "Edit file FILENAME, in another window.
