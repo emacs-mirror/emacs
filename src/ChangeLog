@@ -1,3 +1,10 @@
+2011-11-07  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* alloc.c (DEADP): New macro, for porting to GNU/Hurd (Bug#9926).
+	This is also needed for porting to any host where GC_MARK_STACK is
+	not GC_MAKE_GCPROS_NOOPS.
+	(which_symbols): Use it.
+
 2011-11-07  Kenichi Handa  <handa@m17n.org>
 
 	* coding.c (coding_set_destination): Check coding->src_pos only
