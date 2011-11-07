@@ -1,3 +1,9 @@
+2011-11-07  Eli Zaretskii  <eliz@gnu.org>
+
+	* w32.c (check_windows_init_file): Don't look for term/w32-win.el
+	if Vpurify_flag is non-nil.  Fixes a crash when running w32 build
+	of temacs in GUI mode.
+
 2011-11-07  Martin Rudalics  <rudalics@gmx.at>
 
 	* window.h: Declare delete_all_child_windows instead of
