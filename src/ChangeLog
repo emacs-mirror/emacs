@@ -1,3 +1,16 @@
+2011-11-07  Martin Rudalics  <rudalics@gmx.at>
+
+	* window.h: Declare delete_all_child_windows instead of
+	delete_all_subwindows.
+	* window.c (Fwindow_nest, Fset_window_nest)
+	(Fset_window_new_total, Fset_window_new_normal)
+	(Fwindow_resize_apply): Don't use term subwindow in doc-strings.
+	(delete_all_subwindows): Rename to delete_all_child_windows.
+	(Fdelete_other_windows_internal, Fset_window_configuration):
+	Call delete_all_child_windows instead of delete_all_subwindows.
+	* frame.c (delete_frame): Call delete_all_child_windows instead
+	of delete_all_subwindows.
+
 2011-11-07  Paul Eggert  <eggert@cs.ucla.edu>
 
 	* alloc.c (DEADP): New macro, for porting to GNU/Hurd (Bug#9926).

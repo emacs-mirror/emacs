@@ -719,7 +719,7 @@ Optional argument @var{noup} non-@code{nil} means don't go up in the
 window tree but try to steal or distribute the space needed for the
 resize operation among the other windows within @var{window}'s
 combination.  Optional argument @var{nodown} non-@code{nil} means don't
-check whether @var{window} itself and its subwindows can be resized.
+check whether @var{window} itself and its child windows can be resized.
 @end defun
 
 The function @code{window-resizable} does not change any window sizes.
@@ -1352,15 +1352,15 @@ windows only.
 
 @cindex nest status
 The @dfn{nest status} of a window specifies whether that window may be
-removed and its subwindows recombined with that window's siblings when
-such a sibling's subwindow is deleted.  The nest status is initially
-assigned by @code{split-window} from the current value of the variable
-@code{window-nest} (see above) and can be reset by the function
+removed and its child windows recombined with that window's siblings
+when such a sibling's child window is deleted.  The nest status is
+initially assigned by @code{split-window} from the current value of the
+variable @code{window-nest} (see above) and can be reset by the function
 @code{set-window-nest} (see below).
 
-If the return value is @code{nil}, subwindows of @var{window} may be
+If the return value is @code{nil}, child windows of @var{window} may be
 recombined with @var{window}'s siblings when a window gets deleted.  A
-return value of @code{nil} means that subwindows of @var{window} are
+return value of @code{nil} means that child windows of @var{window} are
 never (re-)combined with @var{window}'s siblings in such a case.
 @end defun
 
@@ -3740,7 +3740,7 @@ selected one.
 
 The optional argument @var{ignore} non-@code{nil} means to ignore
 minimum window sizes and fixed size restrictions.  If @var{ignore}
-equals @code{safe}, this means subwindows can get as small as one line
+equals @code{safe}, this means windows can get as small as one line
 and/or two columns.
 @end defun
 

@@ -1,3 +1,9 @@
+2011-11-07  Martin Rudalics  <rudalics@gmx.at>
+
+	* windows.texi (Resizing Windows, Splitting Windows)
+	(Window Configurations): Use "child window" instead of
+	"subwindow".
+
 2011-11-06  Chong Yidong  <cyd@gnu.org>
 
 	* windows.texi (Basic Windows): Clarify various definitions.

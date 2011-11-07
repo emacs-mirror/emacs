@@ -824,7 +824,7 @@ extern Lisp_Object window_from_coordinates (struct frame *, int, int,
                                             enum window_part *, int);
 EXFUN (Fwindow_dedicated_p, 1);
 extern void resize_frame_windows (struct frame *, int, int);
-extern void delete_all_subwindows (Lisp_Object);
+extern void delete_all_child_windows (Lisp_Object);
 extern void freeze_window_starts (struct frame *, int);
 extern void grow_mini_window (struct window *, int);
 extern void shrink_mini_window (struct window *);
