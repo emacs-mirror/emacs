@@ -10856,8 +10856,12 @@ interrupt_signal (int signalnum)	/* If we don't have an argument, some */
   if (!terminal)
     {
       /* If there are no frames there, let's pretend that we are a
-         well-behaving UN*X program and quit.  */
-      Fkill_emacs (Qnil);
+         well-behaving UN*X program and quit.  We cannot do that while
+         GC is in progress, though.  */
+      if (!gc_in_progress)
+	Fkill_emacs (Qnil);
+      else
+	Vquit_flag = Qt;
     }
   else
     {

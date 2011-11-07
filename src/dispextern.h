@@ -3006,14 +3006,14 @@ int resize_mini_window (struct window *, int);
 void set_vertical_scroll_bar (struct window *);
 #endif
 int try_window (Lisp_Object, struct text_pos, int);
-void window_box (struct window *, int, int *, int *, int *, int *);
-int window_box_height (struct window *);
-int window_text_bottom_y (struct window *);
-int window_box_width (struct window *, int);
-int window_box_left (struct window *, int);
-int window_box_left_offset (struct window *, int);
-int window_box_right (struct window *, int);
-int window_box_right_offset (struct window *, int);
+extern void window_box (struct window *, int, int *, int *, int *, int *);
+extern int window_box_height (struct window *);
+extern int window_text_bottom_y (struct window *);
+extern int window_box_width (struct window *, int);
+extern int window_box_left (struct window *, int);
+extern int window_box_left_offset (struct window *, int);
+extern int window_box_right (struct window *, int);
+extern int window_box_right_offset (struct window *, int);
 int estimate_mode_line_height (struct frame *, enum face_id);
 void pixel_to_glyph_coords (struct frame *, int, int, int *, int *,
                             NativeRectangle *, int);
