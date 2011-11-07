@@ -748,6 +748,7 @@ usage: (call-process PROGRAM &optional INFILE BUFFER DISPLAY &rest ARGS)  */)
 	val = raw_text_coding_system (val);
       setup_coding_system (val, &process_coding);
     }
+  process_coding.src_multibyte = 0;
 
   immediate_quit = 1;
   QUIT;

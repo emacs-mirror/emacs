@@ -5387,6 +5387,7 @@ send_process (volatile Lisp_Object proc, const char *volatile buf,
     }
   else
     {
+      coding->src_multibyte = 0;
       /* For sending a unibyte text, character code conversion should
 	 not take place but EOL conversion should.  So, setup raw-text
 	 or one of the subsidiary if we have not yet done it.  */
