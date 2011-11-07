@@ -2163,7 +2163,7 @@ unless @var{norecord} is non-@code{nil}.
 
   The command @code{display-buffer} flexibly chooses a window for
 display, and displays a specified buffer in that window.  It can be
-called interactively, via the key binding @kbd{C-x 4 o}.  It is also
+called interactively, via the key binding @kbd{C-x 4 C-o}.  It is also
 used as a subroutine by many functions and commands, including
 @code{switch-to-buffer} and @code{pop-to-buffer} (@pxref{Switching
 Buffers}).

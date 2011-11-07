@@ -1,3 +1,7 @@
+2011-11-07  Glenn Morris  <rgm@gnu.org>
+
+	* windows.texi (Choosing Window): Fix keybinding typo.
+
 2011-11-07  Martin Rudalics  <rudalics@gmx.at>
 
 	* windows.texi (Resizing Windows, Splitting Windows)
