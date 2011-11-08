@@ -772,7 +772,7 @@ tree but try to enlarge windows within WINDOW's combination only.
 
 Optional argument NODOWN non-nil means don't check whether WINDOW
 itself \(and its child windows) can be shrunk; check only whether
-at least one other windows can be enlarged appropriately."
+at least one other window can be enlarged appropriately."
   (setq window (window-normalize-window window))
   (let ((size (window-total-size window horizontal))
 	(minimum (window-min-size window horizontal ignore)))

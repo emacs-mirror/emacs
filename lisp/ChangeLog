@@ -14,6 +14,7 @@
 	* window.el (display-buffer-function, special-display-function):
 	Mention display-buffer-record-window but do not mention
 	help-setup parameter in doc-strings.
+	(window-min-delta): Fix doc-string typo.
 
 2011-11-08  Chong Yidong  <cyd@gnu.org>
 
