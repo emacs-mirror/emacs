@@ -4625,9 +4625,8 @@ See `display-buffer' for details."
   :group 'windows)
 
 (defconst display-buffer-fallback-action
-  '((display-buffer--maybe-same-window
+  '((display-buffer--maybe-same-window  ;FIXME: why isn't this redundant?
      display-buffer-reuse-window
-     display-buffer--special
      display-buffer--maybe-pop-up-frame-or-window
      display-buffer-use-some-window
      ;; If all else fails, pop up a new frame.
@@ -4658,7 +4657,6 @@ specified, e.g. by the user options `display-buffer-alist' or
 
 (defvar display-buffer--other-frame-action
   '((display-buffer-reuse-window
-     display-buffer--special
      display-buffer-pop-up-frame)
     (reusable-frames . 0)
     (inhibit-same-window . t))
@@ -4724,6 +4722,7 @@ search for a window that is already displaying the buffer.  See
       (let* ((user-action
 	      (display-buffer-assq-regexp (buffer-name buffer)
 					  display-buffer-alist))
+             (special-action (display-buffer--special-action buffer))
 	     ;; Extra actions from the arguments to this function:
 	     (extra-action
 	      (cons nil (append (if inhibit-same-window
@@ -4732,7 +4731,7 @@ search for a window that is already displaying the buffer.  See
 				    `((reusable-frames . ,frame))))))
 	     ;; Construct action function list and action alist.
 	     (actions (list display-buffer-overriding-action
-			    user-action action extra-action
+			    user-action special-action action extra-action
 			    display-buffer-base-action
 			    display-buffer-fallback-action))
 	     (functions (apply 'append
@@ -4815,7 +4814,7 @@ terminal if either of those variables is non-nil."
       (display-buffer-record-window 'reuse window buffer)
       (window--display-buffer-1 window))))
 
-(defun display-buffer--special (buffer alist)
+(defun display-buffer--special-action (buffer)
   "Try to display BUFFER using `special-display-function'.
 Call `special-display-p' on BUFFER's name, and if that returns
 non-nil, call `special-display-function' on BUFFER."
@@ -4824,8 +4823,10 @@ non-nil, call `special-display-function' on BUFFER."
        ;; parameters to pass to `special-display-function'.
        (let ((pars (special-display-p (buffer-name buffer))))
 	 (when pars
-	   (funcall special-display-function
-		    buffer (if (listp pars) pars))))))
+           (list (list #'display-buffer-reuse-window
+                       `(lambda (buffer _alist)
+                          (funcall special-display-function
+                                   buffer ',(if (listp pars) pars)))))))))
 
 (defun display-buffer-pop-up-frame (buffer alist)
   "Display BUFFER in a new frame.
@@ -4973,8 +4974,7 @@ the buffer.
 NORECORD, if non-nil means do not put this buffer at the front of
 the list of recently selected ones."
   (pop-to-buffer buffer
-		 '((display-buffer--special
-		    display-buffer-same-window)
+		 '(display-buffer-same-window
 		   (inhibit-same-window . nil))
 		 norecord))
 
@@ -5438,8 +5438,8 @@ by `recenter-positions'."
 
 ;;; Scrolling commands.
 
-;;; Scrolling commands which does not signal errors at top/bottom
-;;; of buffer at first key-press (instead moves to top/bottom
+;;; Scrolling commands which do not signal errors at top/bottom
+;;; of buffer at first key-press (instead move to top/bottom
 ;;; of buffer).
 
 (defcustom scroll-error-top-bottom nil

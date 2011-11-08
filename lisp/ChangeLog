@@ -1,3 +1,13 @@
+2011-11-08  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* window.el: Make special-display like display-buffer-alist (bug#9532).
+	(display-buffer--special-action): New function, morphed
+	from display-buffer--special.
+	(display-buffer): Use it to handle special-display-buffers at higher
+	priority (just after display-buffer-alist).
+	(display-buffer-fallback-action, display-buffer--other-frame-action)
+	(pop-to-buffer-same-window): Remove display-buffer--special.
+
 2011-11-07  Glenn Morris  <rgm@gnu.org>
 
 	* calendar/cal-menu.el (cal-menu-set-date-title):
