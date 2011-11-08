@@ -920,17 +920,16 @@ doc-string of `window-resizable'."
     (<= (window-resizable window delta horizontal ignore trail noup nodown)
 	delta)))
 
-(defsubst window-total-height (&optional window)
-  "Return the total number of lines of WINDOW.
-WINDOW can be any window and defaults to the selected one.  The
-return value includes WINDOW's mode line and header line, if any.
-If WINDOW is internal the return value is the sum of the total
-number of lines of WINDOW's child windows if these are vertically
-combined and the height of WINDOW's first child otherwise.
+(defun window-total-size (&optional window horizontal)
+  "Return the total height or width of window WINDOW.
+If WINDOW is omitted or nil, it defaults to the selected window.
 
-Note: This function does not take into account the value of
-`line-spacing' when calculating the number of lines in WINDOW."
-  (window-total-size window))
+If HORIZONTAL is omitted or nil, return the total height of
+WINDOW, in lines, like `window-total-height'.  Otherwise return
+the total width, in columns, like `window-total-width'."
+  (if horizontal
+      (window-total-width window)
+    (window-total-height window)))
 
 ;; Eventually we should make `window-height' obsolete.
 (defalias 'window-height 'window-total-height)
@@ -946,16 +945,6 @@ one."
   (= (window-total-size window)
      (window-total-size (frame-root-window window))))
 
-(defsubst window-total-width (&optional window)
-  "Return the total number of columns of WINDOW.
-WINDOW can be any window and defaults to the selected one.  The
-return value includes any vertical dividers or scrollbars of
-WINDOW.  If WINDOW is internal, the return value is the sum of
-the total number of columns of WINDOW's child windows if these
-are horizontally combined and the width of WINDOW's first child
-otherwise."
-  (window-total-size window t))
-
 (defsubst window-full-width-p (&optional window)
   "Return t if WINDOW is as wide as the containing frame.
 More precisely, return t if and only if the total width of WINDOW
@@ -965,40 +954,17 @@ WINDOW can be any window and defaults to the selected one."
   (= (window-total-size window t)
      (window-total-size (frame-root-window window) t)))
 
-(defsubst window-body-height (&optional window)
-  "Return the number of lines of WINDOW's body.
-WINDOW must be a live window and defaults to the selected one.
+(defun window-body-size (&optional window horizontal)
+  "Return the height or width of WINDOW's text area.
+If WINDOW is omitted or nil, it defaults to the selected window.
+Signal an error if the window is not live.
 
-The return value does not include WINDOW's mode line and header
-line, if any.  If a line at the bottom of the window is only
-partially visible, that line is included in the return value.  If
-you do not want to include a partially visible bottom line in the
-return value, use `window-text-height' instead.
-
-Note that the return value is measured in canonical units, i.e. for
-the default frame's face.  If the window shows some characters with
-non-default face, e.g., if the font of some characters is larger or
-smaller than the default font, the value returned by this function
-will not match the actual number of lines shown in the window.  To
-get the actual number of lines, use `posn-at-point'."
-  (window-body-size window))
-
-(defsubst window-body-width (&optional window)
-  "Return the number of columns of WINDOW's body.
-WINDOW must be a live window and defaults to the selected one.
-
-The return value does not include any vertical dividers or scroll
-bars owned by WINDOW.  On a window-system the return value does
-not include the number of columns used for WINDOW's fringes or
-display margins either.
-
-Note that the return value is measured in canonical units, i.e. for
-the default frame's face.  If the window shows some characters with
-non-default face, e.g., if the font of some characters is larger or
-smaller than the default font, the value returned by this function
-will not match the actual number of characters per line shown in the
-window.  To get the actual number of columns, use `posn-at-point'."
-  (window-body-size window t))
+If HORIZONTAL is omitted or nil, return the height of the text
+area, like `window-body-height'.  Otherwise, return the width of
+the text area, like `window-body-width'."
+  (if horizontal
+      (window-body-width window)
+    (window-body-height window)))
 
 ;; Eventually we should make `window-height' obsolete.
 (defalias 'window-width 'window-body-width)
@@ -3951,8 +3917,9 @@ means that the currently selected window is not acceptable.  It
 should choose or create a window, display the specified buffer in
 it, and return the window.
 
-The function specified here is responsible for setting the
-quit-restore and help-setup parameters of the window used."
+The specified function should call `display-buffer-record-window'
+with corresponding arguments to set up the quit-restore parameter
+of the window used."
   :type '(choice
 	  (const nil)
 	  (function :tag "function"))
@@ -4224,8 +4191,9 @@ A buffer is special when its name is either listed in
 `special-display-buffer-names' or matches a regexp in
 `special-display-regexps'.
 
-The function specified here is responsible for setting the
-quit-restore and help-setup parameters of the window used."
+The specified function should call `display-buffer-record-window'
+with corresponding arguments to set up the quit-restore parameter
+of the window used."
   :type 'function
   :group 'frames)
 
@@ -4625,9 +4593,8 @@ See `display-buffer' for details."
   :group 'windows)
 
 (defconst display-buffer-fallback-action
-  '((display-buffer--maybe-same-window
+  '((display-buffer--maybe-same-window  ;FIXME: why isn't this redundant?
      display-buffer-reuse-window
-     display-buffer--special
      display-buffer--maybe-pop-up-frame-or-window
      display-buffer-use-some-window
      ;; If all else fails, pop up a new frame.
@@ -4658,7 +4625,6 @@ specified, e.g. by the user options `display-buffer-alist' or
 
 (defvar display-buffer--other-frame-action
   '((display-buffer-reuse-window
-     display-buffer--special
      display-buffer-pop-up-frame)
     (reusable-frames . 0)
     (inhibit-same-window . t))
@@ -4724,6 +4690,7 @@ search for a window that is already displaying the buffer.  See
       (let* ((user-action
 	      (display-buffer-assq-regexp (buffer-name buffer)
 					  display-buffer-alist))
+             (special-action (display-buffer--special-action buffer))
 	     ;; Extra actions from the arguments to this function:
 	     (extra-action
 	      (cons nil (append (if inhibit-same-window
@@ -4732,7 +4699,7 @@ search for a window that is already displaying the buffer.  See
 				    `((reusable-frames . ,frame))))))
 	     ;; Construct action function list and action alist.
 	     (actions (list display-buffer-overriding-action
-			    user-action action extra-action
+			    user-action special-action action extra-action
 			    display-buffer-base-action
 			    display-buffer-fallback-action))
 	     (functions (apply 'append
@@ -4815,7 +4782,7 @@ terminal if either of those variables is non-nil."
       (display-buffer-record-window 'reuse window buffer)
       (window--display-buffer-1 window))))
 
-(defun display-buffer--special (buffer alist)
+(defun display-buffer--special-action (buffer)
   "Try to display BUFFER using `special-display-function'.
 Call `special-display-p' on BUFFER's name, and if that returns
 non-nil, call `special-display-function' on BUFFER."
@@ -4824,8 +4791,10 @@ non-nil, call `special-display-function' on BUFFER."
        ;; parameters to pass to `special-display-function'.
        (let ((pars (special-display-p (buffer-name buffer))))
 	 (when pars
-	   (funcall special-display-function
-		    buffer (if (listp pars) pars))))))
+           (list (list #'display-buffer-reuse-window
+                       `(lambda (buffer _alist)
+                          (funcall special-display-function
+                                   buffer ',(if (listp pars) pars)))))))))
 
 (defun display-buffer-pop-up-frame (buffer alist)
   "Display BUFFER in a new frame.
@@ -4973,8 +4942,7 @@ the buffer.
 NORECORD, if non-nil means do not put this buffer at the front of
 the list of recently selected ones."
   (pop-to-buffer buffer
-		 '((display-buffer--special
-		    display-buffer-same-window)
+		 '(display-buffer-same-window
 		   (inhibit-same-window . nil))
 		 norecord))
 
@@ -5438,8 +5406,8 @@ by `recenter-positions'."
 
 ;;; Scrolling commands.
 
-;;; Scrolling commands which does not signal errors at top/bottom
-;;; of buffer at first key-press (instead moves to top/bottom
+;;; Scrolling commands which do not signal errors at top/bottom
+;;; of buffer at first key-press (instead move to top/bottom
 ;;; of buffer).
 
 (defcustom scroll-error-top-bottom nil

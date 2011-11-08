@@ -1,3 +1,35 @@
+2011-11-08  thierry  <thierry.volpiatto@gmail.com>
+
+	* emacs-lisp/find-func.el (find-function-read): 
+	Fix incorrect use of default argument in `completing-read'.
+
+2011-11-08  Martin Rudalics  <rudalics@gmx.at>
+
+	* window.el (display-buffer-function, special-display-function):
+	Mention display-buffer-record-window but do not mention
+	help-setup parameter in doc-strings.
+
+2011-11-08  Chong Yidong  <cyd@gnu.org>
+
+	* window.el (window-total-height, window-total-width): Doc fix.
+	(window-body-size): Move from C.
+	(window-body-height, window-body-width): Move to C.
+
+2011-11-08  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* window.el: Make special-display like display-buffer-alist (bug#9532).
+	(display-buffer--special-action): New function, morphed
+	from display-buffer--special.
+	(display-buffer): Use it to handle special-display-buffers at higher
+	priority (just after display-buffer-alist).
+	(display-buffer-fallback-action, display-buffer--other-frame-action)
+	(pop-to-buffer-same-window): Remove display-buffer--special.
+
+2011-11-07  Glenn Morris  <rgm@gnu.org>
+
+	* calendar/cal-menu.el (cal-menu-set-date-title):
+	Do nothing if not in a calendar.  (Bug#9976)
+
 2011-11-07  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* files.el (find-file): Always use selected-window.

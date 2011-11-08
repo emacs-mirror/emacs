@@ -1,3 +1,11 @@
+2011-11-08  Chong Yidong  <cyd@gnu.org>
+
+	* window.c (Fwindow_left_column, Fwindow_top_line): Doc fix.
+	(Fwindow_body_height, Fwindow_body_width): Move from Lisp.  Signal
+	an error if not a live window.
+	(Fwindow_total_width, Fwindow_total_height): Move from Lisp.
+	(Fwindow_total_size, Fwindow_body_size): Move to Lisp.
+
 2011-11-07  Juanma Barranquero  <lekktu@gmail.com>
 
 	* lisp.h (syms_of_abbrev): Remove declaration.

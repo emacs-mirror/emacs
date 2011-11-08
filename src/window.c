@@ -539,27 +539,34 @@ selected one.  */)
   return decode_window (window)->use_time;
 }
 
-DEFUN ("window-total-size", Fwindow_total_size, Swindow_total_size, 0, 2, 0,
-       doc: /* Return the total number of lines of window WINDOW.
+DEFUN ("window-total-height", Fwindow_total_height, Swindow_total_height, 0, 1, 0,
+       doc: /* Return the total height, in lines, of window WINDOW.
 If WINDOW is omitted or nil, it defaults to the selected window.
 
-The return value includes WINDOW's mode line and header line, if any.
-If WINDOW is internal, the return value is the sum of the total number
-of lines of WINDOW's child windows if these are vertically combined
-and the height of WINDOW's first child otherwise.
+The return value includes the mode line and header line, if any.
+If WINDOW is an internal window, the total height is the height
+of the screen areas spanned by its children.
 
-Optional argument HORIZONTAL non-nil means return the total number of
-columns of WINDOW.  In this case the return value includes any vertical
-dividers or scrollbars of WINDOW.  If WINDOW is internal, the return
-value is the sum of the total number of columns of WINDOW's child
-windows if they are horizontally combined and the width of WINDOW's
-first child otherwise.  */)
-  (Lisp_Object window, Lisp_Object horizontal)
+On a graphical display, this total height is reported as an
+integer multiple of the default character height.  */)
+  (Lisp_Object window)
 {
-  if (NILP (horizontal))
-    return decode_any_window (window)->total_lines;
-  else
-    return decode_any_window (window)->total_cols;
+  return decode_any_window (window)->total_lines;
+}
+
+DEFUN ("window-total-width", Fwindow_total_width, Swindow_total_width, 0, 1, 0,
+       doc: /* Return the total width, in columns, of window WINDOW.
+If WINDOW is omitted or nil, it defaults to the selected window.
+
+The return value includes any vertical dividers or scroll bars
+belonging to WINDOW.  If WINDOW is an internal window, the total width
+is the width of the screen areas spanned by its children.
+
+On a graphical display, this total width is reported as an
+integer multiple of the default character width.  */)
+  (Lisp_Object window)
+{
+  return decode_any_window (window)->total_cols;
 }
 
 DEFUN ("window-new-total", Fwindow_new_total, Swindow_new_total, 0, 1, 0,
@@ -592,6 +599,10 @@ If WINDOW is omitted or nil, it defaults to the selected window.  */)
 
 DEFUN ("window-left-column", Fwindow_left_column, Swindow_left_column, 0, 1, 0,
        doc: /* Return left column of window WINDOW.
+This is the distance, in columns, between the left edge of WINDOW and
+the left edge of the frame's window area.  For instance, the return
+value is 0 if there is no window to the left of WINDOW.
+
 If WINDOW is omitted or nil, it defaults to the selected window.  */)
   (Lisp_Object window)
 {
@@ -600,6 +611,10 @@ If WINDOW is omitted or nil, it defaults to the selected window.  */)
 
 DEFUN ("window-top-line", Fwindow_top_line, Swindow_top_line, 0, 1, 0,
        doc: /* Return top line of window WINDOW.
+This is the distance, in lines, between the top of WINDOW and the top
+of the frame's window area.  For instance, the return value is 0 if
+there is no window above WINDOW.
+
 If WINDOW is omitted or nil, it defaults to the selected window.  */)
   (Lisp_Object window)
 {
@@ -655,34 +670,34 @@ window_body_cols (struct window *w)
   return width;
 }
 
-DEFUN ("window-body-size", Fwindow_body_size, Swindow_body_size, 0, 2, 0,
-       doc: /* Return the number of lines or columns of WINDOW's body.
-WINDOW must be a live window and defaults to the selected one.
+DEFUN ("window-body-height", Fwindow_body_height, Swindow_body_height, 0, 1, 0,
+       doc: /* Return the height, in lines, of WINDOW's text area.
+If WINDOW is omitted or nil, it defaults to the selected window.
+Signal an error if the window is not live.
 
-If the optional argument HORIZONTAL is omitted or nil, the function
-returns the number of WINDOW's lines, excluding the mode line and
-header line, if any.
-
-If HORIZONTAL is non-nil, the function returns the number of columns
-excluding any vertical dividers or scroll bars owned by WINDOW.  On a
-window-system the return value also excludes the number of columns
-used for WINDOW's fringes or display margins.
-
-Note that the return value is measured in canonical units, i.e. for
-the default frame's face.  If the window shows some characters with
-non-default face, e.g., if the font of some characters is larger or
-smaller than the default font, the value returned by this function
-will not match the actual number of lines or characters per line
-shown in the window.  To get the actual number of columns and lines,
-use `posn-at-point'.  */)
-  (Lisp_Object window, Lisp_Object horizontal)
+The returned height does not include the mode line or header line.
+On a graphical display, the height is expressed as an integer multiple
+of the default character height.  If a line at the bottom of the text
+area is only partially visible, that counts as a whole line; to
+exclude partially-visible lines, use `window-text-height'.  */)
+  (Lisp_Object window)
 {
-  struct window *w = decode_any_window (window);
+  struct window *w = decode_window (window);
+  return make_number (window_body_lines (w));
+}
 
-  if (NILP (horizontal))
-    return make_number (window_body_lines (w));
-  else
-    return make_number (window_body_cols (w));
+DEFUN ("window-body-width", Fwindow_body_width, Swindow_body_width, 0, 1, 0,
+       doc: /* Return the width, in columns, of WINDOW's text area.
+If WINDOW is omitted or nil, it defaults to the selected window.
+Signal an error if the window is not live.
+
+The return value does not include any vertical dividers, fringe or
+marginal areas, or scroll bars.  On a graphical display, the width is
+expressed as an integer multiple of the default character width.  */)
+  (Lisp_Object window)
+{
+  struct window *w = decode_window (window);
+  return make_number (window_body_cols (w));
 }
 
 DEFUN ("window-hscroll", Fwindow_hscroll, Swindow_hscroll, 0, 1, 0,
@@ -5218,10 +5233,10 @@ and redisplay normally--don't erase and redraw the frame.  */)
 DEFUN ("window-text-height", Fwindow_text_height, Swindow_text_height,
        0, 1, 0,
        doc: /* Return the height in lines of the text display area of WINDOW.
-WINDOW defaults to the selected window.
+If WINDOW is omitted or nil, it defaults to the selected window.
 
-The return value does not include the mode line, any header line, nor
-any partial-height lines in the text display area.  */)
+The returned height does not include the mode line, any header line,
+nor any partial-height lines at the bottom of the text area.  */)
   (Lisp_Object window)
 {
   struct window *w = decode_window (window);
@@ -6583,14 +6598,16 @@ function `window-nest' and altered by the function `set-window-nest'.  */);
   defsubr (&Swindow_use_time);
   defsubr (&Swindow_top_line);
   defsubr (&Swindow_left_column);
-  defsubr (&Swindow_total_size);
+  defsubr (&Swindow_total_height);
+  defsubr (&Swindow_total_width);
   defsubr (&Swindow_normal_size);
   defsubr (&Swindow_new_total);
   defsubr (&Swindow_new_normal);
   defsubr (&Sset_window_new_total);
   defsubr (&Sset_window_new_normal);
   defsubr (&Swindow_resize_apply);
-  defsubr (&Swindow_body_size);
+  defsubr (&Swindow_body_height);
+  defsubr (&Swindow_body_width);
   defsubr (&Swindow_hscroll);
   defsubr (&Sset_window_hscroll);
   defsubr (&Swindow_redisplay_end_trigger);
