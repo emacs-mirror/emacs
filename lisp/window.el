@@ -3917,8 +3917,9 @@ means that the currently selected window is not acceptable.  It
 should choose or create a window, display the specified buffer in
 it, and return the window.
 
-The function specified here is responsible for setting the
-quit-restore and help-setup parameters of the window used."
+The specified function should call `display-buffer-record-window'
+with corresponding arguments to set up the quit-restore parameter
+of the window used."
   :type '(choice
 	  (const nil)
 	  (function :tag "function"))
@@ -4190,8 +4191,9 @@ A buffer is special when its name is either listed in
 `special-display-buffer-names' or matches a regexp in
 `special-display-regexps'.
 
-The function specified here is responsible for setting the
-quit-restore and help-setup parameters of the window used."
+The specified function should call `display-buffer-record-window'
+with corresponding arguments to set up the quit-restore parameter
+of the window used."
   :type 'function
   :group 'frames)
 
