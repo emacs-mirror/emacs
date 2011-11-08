@@ -4,6 +4,10 @@
 	window-text-height.  Remove window-min-height and window-min-width
 	discussion, referring instead to Emacs manual.
 	(Splitting Windows, Resizing Windows): Add xref to Emacs manual.
+	(Resizing Windows): Simplify introduction.  Don't document
+	enlarge-window, shrink-window, enlarge-window-horizontally, and
+	shrink-window-horizontally; they are no longer preferred for
+	calling from Lisp, and are already documented in the Emacs manual.
 
 2011-11-07  Glenn Morris  <rgm@gnu.org>
 

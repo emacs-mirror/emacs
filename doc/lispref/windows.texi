@@ -274,7 +274,7 @@ the leftmost child window for a horizontal combination.  If
 @defun window-combined-p &optional window horizontal
 This function returns a non-@code{nil} value if and only if
 @var{window} is part of a vertical combination.  If @var{window} is
-omitted or nil, it defaults to the selected one.
+omitted or @code{nil}, it defaults to the selected one.
 
 If the optional argument @var{horizontal} is non-@code{nil}, this
 means to return non-@code{nil} if and only if @var{window} is part of
@@ -542,138 +542,74 @@ function @code{window-resizable}.  @xref{Resizing Windows}.
 @cindex changing window size
 @cindex window size, changing
 
-Emacs does not permit overlapping windows or gaps between windows, so
-changing the size of a window always affects at least one other window.
-When a frame contains just one window, that window can be resized only
-by resizing the window's frame.  The functions described below are
-therefore meaningful only in the context of a frame containing at least
-two windows.  The size of the corresponding frame never changes when
-invoking a function described in this section.
+  This section describes functions for resizing a window without
+changing the size of its frame.  Because live windows do not overlap,
+these functions are meaningful only on frames that contain two or more
+windows: resizing a window also changes the size of a neighboring
+window.  If there is just one window on a frame, its size cannot be
+changed except by resizing the frame (@pxref{Size and Position}).
 
-   The routines changing window sizes always operate in one dimension at
-a time.  This means that windows can be resized only either vertically
-or horizontally.  If a window shall be resized in both dimensions, it
-must be resized in one dimension first and in the other dimension
-afterwards.  If the second resize operation fails, the frame might end
-up in an unsatisfactory state.  To avoid such states, it might be useful
-to save the current window configuration (@pxref{Window Configurations})
-before attempting the first resize operation and restore the saved
-configuration in case the second resize operation fails.
-
-   Functions that resize windows are supposed to obey restrictions
-imposed by window minimum sizes and fixed-size windows, see @ref{Window
-Sizes}.  In order to determine whether resizing a specific window is
-possible in the first place, the following function can be used:
+  Except where noted, these functions also accept internal windows as
+arguments.  Resizing an internal window causes its child windows to be
+resized to fit the same space.
 
 @defun window-resizable window delta &optional horizontal ignore side noup nodown
 This function returns @var{delta} if the size of @var{window} can be
-changed vertically by @var{delta} lines.  Optional argument
-@var{horizontal} non-@code{nil} means to return @var{delta} if
-@var{window} can be resized horizontally by @var{delta} columns.  A
-return value of zero means that @var{window} is not resizable.
+changed vertically by @var{delta} lines.  If the optional argument
+@var{horizontal} is non-@code{nil}, it instead returns @var{delta} if
+@var{window} can be resized horizontally by @var{delta} columns.  It
+does not actually change the window size.
 
-If @var{delta} is a positive number, this means that @var{window} shall
-be enlarged by @var{delta} lines or columns.  If @var{window} cannot be
-enlarged by @var{delta} lines or columns, this function returns the
-maximum value in the range from 0 to @var{delta} by which @var{window}
-can be enlarged.
+If @var{window} is @code{nil}, it defaults to the selected window.
 
-If @var{delta} is a negative number, this means that @var{window} shall
-be shrunk by -@var{delta} lines or columns.  If @var{window} cannot be
-shrunk by -@var{delta} lines or columns, this function returns the
-minimum value in the range from @var{delta} to 0 that can be used for
-shrinking @var{window}.
+A positive value of @var{delta} enlarges the window by that number of
+lines or columns; a negative value of @var{delta} shrinks it.  If
+@var{delta} is non-zero, a return value of 0 means that the window
+cannot be resized.
 
-Normally, the customizable variables @code{window-min-height} and
-@code{window-min-width} specify the smallest allowable size of a
-window.  @xref{Change Window,,Deleting and Rearranging Windows,
-emacs, The GNU Emacs Manual}.  If resizing would result in making any
-window smaller than this, this function usually signals an error.
-However, if the optional argument @var{ignore} is non-@code{nil}, this
-function ignores @code{window-min-height} and @code{window-min-width},
-as well as @code{window-size-fixed}.  In that case, the minimum-height
-window consists of a header (if any), a mode line, plus a text area
-one line tall; the minimum-width window consists of any fringes,
-margins and scroll bar, plus a text area two columns wide.
+Normally, the variables @code{window-min-height} and
+@code{window-min-width} specify the smallest allowable window size.
+@xref{Change Window,, Deleting and Rearranging Windows, emacs, The GNU
+Emacs Manual}.  However, if the optional argument @var{ignore} is
+non-@code{nil}, this function ignores @code{window-min-height} and
+@code{window-min-width}, as well as @code{window-size-fixed}.
+Instead, it considers the minimum-height window to be one consisting
+of a header (if any), a mode line, plus a text area one line tall; and
+a minimum-width window as one consisting of fringes, margins, and
+scroll bar (if any), plus a text area two columns wide.
 
-If @var{ignore} denotes a window, this means to ignore restrictions for
-that window only.  If @var{ignore} equals the constant @code{safe}, this
-means a live window may get as small as one line or two columns.
-
-Optional argument @var{noup} non-@code{nil} means don't go up in the
-window tree but try to steal or distribute the space needed for the
-resize operation among the other windows within @var{window}'s
-combination.  Optional argument @var{nodown} non-@code{nil} means don't
-check whether @var{window} itself and its child windows can be resized.
+If the optional argument @var{noup} is non-@code{nil}, this function
+considers a resize operation that does not alter the window parent of
+@var{window}, only its siblings.  If the optional argument
+@var{nodown} is non-@code{nil}, it does not attempt to check whether
+@var{window} itself and its child windows can be resized.
 @end defun
-
-The function @code{window-resizable} does not change any window sizes.
-The following function does:
 
 @defun window-resize window delta &optional horizontal ignore
-This function resizes @var{window} vertically by @var{delta} lines.  The
-argument @var{window} can denote an arbitrary window and defaults to the
-selected one.  An attempt to resize the root window of a frame will
-raise an error.
+This function resizes @var{window} by @var{delta} increments.  If
+@var{horizontal} is @code{nil}, it changes the height by @var{delta}
+lines; otherwise, it changes the width by @var{delta} columns.  A
+positive @var{delta} means to enlarge the window, and a negative
+@var{delta} means to shrink it.
 
-Second argument @var{delta} a positive number means @var{window} shall
-be enlarged by @var{delta} lines.  If @var{delta} is negative, that
-means @var{window} shall be shrunk by -@var{delta} lines.
+If @var{window} is @code{nil}, it defaults to the selected window.  If
+the window cannot be resized as demanded, an error is signaled.
 
-Optional argument @var{horizontal} non-@code{nil} means to resize
-@var{window} horizontally by @var{delta} columns.  In this case a
-positive @var{delta} means enlarge @var{window} by @var{delta} columns.
-A negative @var{delta} means @var{window} shall be shrunk by
--@var{delta} columns.
+The optional argument @var{ignore} has the same meaning as for the
+function @code{window-resizable} above.
 
-Optional argument @var{ignore} has the same meaning as for the function
-@code{window-resizable} above.
-
-This function can simultaneously move two edges of WINDOW.  Exactly
-which edges of @var{window} are moved and which other windows are
-resized along with @var{window} is determined by the splits and nest
-status of the involved windows (@pxref{Splitting Windows}).  If only the
-low (right) edge of @var{window} shall be moved, the function
-@code{adjust-window-trailing-edge} described below should be used.
+The choice of which window edge this function alters depends on the
+splitting and nesting status of the involved windows; in some cases,
+it may alter both edges.  @xref{Splitting Windows}.  To resize by
+moving only the bottom or right edge of a window, use the function
+@code{adjust-window-trailing-edge}, below.
 @end defun
 
-The next four commands are simple interfaces to @code{window-resize}.
-They always operate on the selected window, never delete any window, and
-always raise an error when resizing would violate a restriction imposed
-by @code{window-min-height}, @code{window-min-width}, or
-@code{window-size-fixed}.
+@c The commands enlarge-window, enlarge-window-horizontally,
+@c shrink-window, and shrink-window-horizontally are documented in the
+@c Emacs manual.  They are not preferred for calling from Lisp.
 
-@deffn Command enlarge-window delta &optional horizontal
-This function makes the selected window @var{delta} lines taller.
-Interactively, if no argument is given, it makes the selected window one
-line taller.  If optional argument @var{horizontal} is non-@code{nil},
-it makes the selected window wider by @var{delta} columns.  If
-@var{delta} is negative, it shrinks the selected window by -@var{delta}
-lines or columns.  The return value is @code{nil}.
-@end deffn
-
-@deffn Command enlarge-window-horizontally delta
-This function makes the selected window @var{delta} columns wider.
-Interactively, if no argument is given, it makes the selected window one
-column wider.
-@end deffn
-
-@deffn Command shrink-window delta &optional horizontal
-This function makes the selected window @var{delta} lines smaller.
-Interactively, if no argument is given, it makes the selected window one
-line smaller.  If optional argument @var{horizontal} is non-@code{nil},
-it makes the selected window narrower by @var{delta} columns.  If
-@var{delta} is negative, it enlarges the selected window by -@var{delta}
-lines or columns.  The return value is @code{nil}.
-@end deffn
-
-@deffn Command shrink-window-horizontally delta
-This function makes the selected window @var{delta} columns narrower.
-Interactively, if no argument is given, it makes the selected window one
-column narrower.
-@end deffn
-
-The following function is useful for moving the line dividing two
+  The following function is useful for moving the line dividing two
 windows.
 
 @defun adjust-window-trailing-edge window delta &optional horizontal
@@ -1101,9 +1037,9 @@ configuration.
 @code{split-window}.
 
 @defopt window-splits
-If this variable is nil, the function @code{split-window} can split a
-window if and only if that window's screen estate is sufficiently large
-to accommodate both--itself and the new window.
+If this variable is @code{nil}, the function @code{split-window} can
+split a window if and only if that window's screen estate is
+sufficiently large to accommodate both--itself and the new window.
 
 If this variable is non-@code{nil}, @code{split-window} tries to resize
 all windows that are part of the same combination as the old window to
@@ -1488,11 +1424,11 @@ function, it calls that function with @var{window} as its sole argument.
 @end deffn
 
 @deffn Command delete-windows-on &optional buffer-or-name frame
-This function deletes all windows showing @var{buffer-or-name} and
-returns nil.  If there are no windows showing @var{buffer-or-name}, it
-does nothing.  The optional argument @var{buffer-or-name} may be a
-buffer or the name of an existing buffer and defaults to the current
-buffer.  Invoking this command on a minibuffer signals an error.
+This function deletes all windows showing @var{buffer-or-name}.  If
+there are no windows showing @var{buffer-or-name}, it does nothing.
+The optional argument @var{buffer-or-name} may be a buffer or the name
+of an existing buffer and defaults to the current buffer.  Invoking
+this command on a minibuffer signals an error.
 
 The function @code{delete-windows-on} operates by calling
 @code{delete-window} for each window showing @var{buffer-or-name}.  If a
@@ -2108,7 +2044,7 @@ The constant @code{display-buffer-fallback-action}.
 @noindent
 Each action function is called in turn, passing the buffer as the
 first argument and the combined action alist as the second argument,
-until one of the functions returns non-nil.
+until one of the functions returns non-@code{nil}.
 
 The argument @var{action} can also have a non-@code{nil}, non-list
 value.  This has the special meaning that the buffer should be
@@ -2159,7 +2095,7 @@ returns the window if it succeeds, and @code{nil} if it fails.
 This function tries to display @var{buffer} in the selected window.
 It fails if the selected window is a minibuffer window or is dedicated
 to another buffer (@pxref{Dedicated Windows}).  It also fails if
-@var{alist} has a non-nil @code{inhibit-same-window} entry.
+@var{alist} has a non-@code{nil} @code{inhibit-same-window} entry.
 @end defun
 
 @defun display-buffer-reuse-window buffer alist
