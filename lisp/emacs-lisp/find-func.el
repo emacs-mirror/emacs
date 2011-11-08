@@ -363,29 +363,23 @@ If TYPE is nil, insist on a symbol with a function definition.
 Otherwise TYPE should be `defvar' or `defface'.
 If TYPE is nil, defaults using `function-called-at-point',
 otherwise uses `variable-at-point'."
-  (let ((symb (if (null type)
-		  (function-called-at-point)
-		(if (eq type 'defvar)
-		    (variable-at-point)
-		  (variable-at-point t))))
-	(predicate (cdr (assq type '((nil . fboundp) (defvar . boundp)
-				     (defface . facep)))))
-	(prompt (cdr (assq type '((nil . "function") (defvar . "variable")
-				  (defface . "face")))))
-	(enable-recursive-minibuffers t)
-	val)
-    (if (equal symb 0)
-	(setq symb nil))
-    (setq val (completing-read
-	       (concat "Find "
-		       prompt
-		       (if symb
-			   (format " (default %s)" symb))
-		       ": ")
-	       obarray predicate t nil))
-    (list (if (equal val "")
-	      symb
-	    (intern val)))))
+  (let* ((symb1 (cond ((null type) (function-called-at-point))
+                      ((eq type 'defvar) (variable-at-point))
+                      (t (variable-at-point t))))
+         (symb  (unless (eq symb1 0) symb1))
+         (predicate (cdr (assq type '((nil . fboundp)
+                                      (defvar . boundp)
+                                      (defface . facep)))))
+         (prompt-type (cdr (assq type '((nil . "function")
+                                        (defvar . "variable")
+                                        (defface . "face")))))
+         (prompt (concat "Find " prompt-type
+                         (and symb (format " (default %s)" symb))
+                         ": "))
+         (enable-recursive-minibuffers t))
+    (list (intern (completing-read
+                   prompt obarray predicate
+                   t nil nil (and symb (symbol-name symb)))))))
 
 (defun find-function-do-it (symbol type switch-fn)
   "Find Emacs Lisp SYMBOL in a buffer and display it.
