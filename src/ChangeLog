@@ -1,5 +1,9 @@
 2011-11-08  Paul Eggert  <eggert@cs.ucla.edu>
 
+	* s/gnu.h (GC_MARK_STACK): Define to GC_MAKE_GCPROS_NOOPS (Bug#9926).
+
+2011-11-08  Paul Eggert  <eggert@cs.ucla.edu>
+
 	Avoid some portability problems by eschewing 'extern inline' functions.
 	The trivial performance wins aren't worth the portability hassles; see
 	<http://lists.gnu.org/archive/html/emacs-devel/2011-11/msg00084.html>
