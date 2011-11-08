@@ -1,6 +1,17 @@
+2011-11-08  Glenn Morris  <rgm@gnu.org>
+
+	* progmodes/delphi.el (delphi-mode-syntax-table):
+	Let define-derived-mode define a proper syntax table.  (Bug#9994)
+
+2011-11-08  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* window.el: Stay away from defsubst.
+	(window-list-no-nils): Remove.
+	(window-state-get-1, window-state-get): Use backquote instead.
+
 2011-11-08  thierry  <thierry.volpiatto@gmail.com>
 
-	* emacs-lisp/find-func.el (find-function-read): 
+	* emacs-lisp/find-func.el (find-function-read):
 	Fix incorrect use of default argument in `completing-read'.
 
 2011-11-08  Martin Rudalics  <rudalics@gmx.at>
@@ -8,6 +19,7 @@
 	* window.el (display-buffer-function, special-display-function):
 	Mention display-buffer-record-window but do not mention
 	help-setup parameter in doc-strings.
+	(window-min-delta): Fix doc-string typo.
 
 2011-11-08  Chong Yidong  <cyd@gnu.org>
 
