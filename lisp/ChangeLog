@@ -1,3 +1,9 @@
+2011-11-08  Chong Yidong  <cyd@gnu.org>
+
+	* window.el (window-total-height, window-total-width): Doc fix.
+	(window-body-size): Move from C.
+	(window-body-height, window-body-width): Move to C.
+
 2011-11-08  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* window.el: Make special-display like display-buffer-alist (bug#9532).

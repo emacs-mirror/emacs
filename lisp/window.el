@@ -920,17 +920,16 @@ doc-string of `window-resizable'."
     (<= (window-resizable window delta horizontal ignore trail noup nodown)
 	delta)))
 
-(defsubst window-total-height (&optional window)
-  "Return the total number of lines of WINDOW.
-WINDOW can be any window and defaults to the selected one.  The
-return value includes WINDOW's mode line and header line, if any.
-If WINDOW is internal the return value is the sum of the total
-number of lines of WINDOW's child windows if these are vertically
-combined and the height of WINDOW's first child otherwise.
+(defun window-total-size (&optional window horizontal)
+  "Return the total height or width of window WINDOW.
+If WINDOW is omitted or nil, it defaults to the selected window.
 
-Note: This function does not take into account the value of
-`line-spacing' when calculating the number of lines in WINDOW."
-  (window-total-size window))
+If HORIZONTAL is omitted or nil, return the total height of
+WINDOW, in lines, like `window-total-height'.  Otherwise return
+the total width, in columns, like `window-total-width'."
+  (if horizontal
+      (window-total-width window)
+    (window-total-height window)))
 
 ;; Eventually we should make `window-height' obsolete.
 (defalias 'window-height 'window-total-height)
@@ -946,16 +945,6 @@ one."
   (= (window-total-size window)
      (window-total-size (frame-root-window window))))
 
-(defsubst window-total-width (&optional window)
-  "Return the total number of columns of WINDOW.
-WINDOW can be any window and defaults to the selected one.  The
-return value includes any vertical dividers or scrollbars of
-WINDOW.  If WINDOW is internal, the return value is the sum of
-the total number of columns of WINDOW's child windows if these
-are horizontally combined and the width of WINDOW's first child
-otherwise."
-  (window-total-size window t))
-
 (defsubst window-full-width-p (&optional window)
   "Return t if WINDOW is as wide as the containing frame.
 More precisely, return t if and only if the total width of WINDOW
@@ -965,40 +954,17 @@ WINDOW can be any window and defaults to the selected one."
   (= (window-total-size window t)
      (window-total-size (frame-root-window window) t)))
 
-(defsubst window-body-height (&optional window)
-  "Return the number of lines of WINDOW's body.
-WINDOW must be a live window and defaults to the selected one.
+(defun window-body-size (&optional window horizontal)
+  "Return the height or width of WINDOW's text area.
+If WINDOW is omitted or nil, it defaults to the selected window.
+Signal an error if the window is not live.
 
-The return value does not include WINDOW's mode line and header
-line, if any.  If a line at the bottom of the window is only
-partially visible, that line is included in the return value.  If
-you do not want to include a partially visible bottom line in the
-return value, use `window-text-height' instead.
-
-Note that the return value is measured in canonical units, i.e. for
-the default frame's face.  If the window shows some characters with
-non-default face, e.g., if the font of some characters is larger or
-smaller than the default font, the value returned by this function
-will not match the actual number of lines shown in the window.  To
-get the actual number of lines, use `posn-at-point'."
-  (window-body-size window))
-
-(defsubst window-body-width (&optional window)
-  "Return the number of columns of WINDOW's body.
-WINDOW must be a live window and defaults to the selected one.
-
-The return value does not include any vertical dividers or scroll
-bars owned by WINDOW.  On a window-system the return value does
-not include the number of columns used for WINDOW's fringes or
-display margins either.
-
-Note that the return value is measured in canonical units, i.e. for
-the default frame's face.  If the window shows some characters with
-non-default face, e.g., if the font of some characters is larger or
-smaller than the default font, the value returned by this function
-will not match the actual number of characters per line shown in the
-window.  To get the actual number of columns, use `posn-at-point'."
-  (window-body-size window t))
+If HORIZONTAL is omitted or nil, return the height of the text
+area, like `window-body-height'.  Otherwise, return the width of
+the text area, like `window-body-width'."
+  (if horizontal
+      (window-body-width window)
+    (window-body-height window)))
 
 ;; Eventually we should make `window-height' obsolete.
 (defalias 'window-width 'window-body-width)
