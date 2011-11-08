@@ -1,6 +1,12 @@
+2011-11-08  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* window.el: Stay away from defsubst.
+	(window-list-no-nils): Remove.
+	(window-state-get-1, window-state-get): Use backquote instead.
+
 2011-11-08  thierry  <thierry.volpiatto@gmail.com>
 
-	* emacs-lisp/find-func.el (find-function-read): 
+	* emacs-lisp/find-func.el (find-function-read):
 	Fix incorrect use of default argument in `completing-read'.
 
 2011-11-08  Martin Rudalics  <rudalics@gmx.at>

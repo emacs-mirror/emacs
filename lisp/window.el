@@ -68,19 +68,19 @@ are not altered by this macro (unless they are altered in BODY)."
 ;; they don't substitute the selected window for nil), and they return
 ;; nil when WINDOW doesn't have a parent (like a frame's root window or
 ;; a minibuffer window).
-(defsubst window-right (window)
+(defun window-right (window)
   "Return WINDOW's right sibling.
 Return nil if WINDOW is the root window of its frame.  WINDOW can
 be any window."
   (and window (window-parent window) (window-next-sibling window)))
 
-(defsubst window-left (window)
+(defun window-left (window)
   "Return WINDOW's left sibling.
 Return nil if WINDOW is the root window of its frame.  WINDOW can
 be any window."
   (and window (window-parent window) (window-prev-sibling window)))
 
-(defsubst window-child (window)
+(defun window-child (window)
   "Return WINDOW's first child window."
   (or (window-top-child window) (window-left-child window)))
 
@@ -100,7 +100,7 @@ be any window."
       (setq window (window-next-sibling window))))
   window)
 
-(defsubst window-valid-p (object)
+(defun window-valid-p (object)
   "Return t if OBJECT denotes a live window or internal window.
 Otherwise, return nil; this includes the case where OBJECT is a
 deleted window."
@@ -108,7 +108,7 @@ deleted window."
        (or (window-buffer object) (window-child object))
        t))
 
-(defsubst window-normalize-buffer (buffer-or-name)
+(defun window-normalize-buffer (buffer-or-name)
   "Return buffer specified by BUFFER-OR-NAME.
 BUFFER-OR-NAME must be either a buffer or a string naming a live
 buffer and defaults to the current buffer."
@@ -123,7 +123,7 @@ buffer and defaults to the current buffer."
    (t
     (error "No such buffer %s" buffer-or-name))))
 
-(defsubst window-normalize-frame (frame)
+(defun window-normalize-frame (frame)
   "Return frame specified by FRAME.
 FRAME must be a live frame and defaults to the selected frame."
   (if frame
@@ -132,7 +132,7 @@ FRAME must be a live frame and defaults to the selected frame."
 	(error "%s is not a live frame" frame))
     (selected-frame)))
 
-(defsubst window-normalize-window (window &optional live-only)
+(defun window-normalize-window (window &optional live-only)
   "Return window specified by WINDOW.
 If WINDOW is nil, return `selected-window'.
 If WINDOW is a live window or internal window, return WINDOW;
@@ -195,7 +195,7 @@ narrower, explictly specify the SIZE argument of that function."
   :version "24.1"
   :group 'windows)
 
-(defsubst window-combined-p (&optional window horizontal)
+(defun window-combined-p (&optional window horizontal)
   "Return non-nil if WINDOW has siblings in a given direction.
 If WINDOW is omitted or nil, it defaults to the selected window.
 
@@ -530,7 +530,7 @@ unless it has no other choice \(like when deleting a neighboring
 window).")
 (make-variable-buffer-local 'window-size-fixed)
 
-(defsubst window-size-ignore (window ignore)
+(defun window-size-ignore (window ignore)
   "Return non-nil if IGNORE says to ignore size restrictions for WINDOW."
   (if (window-valid-p ignore) (eq window ignore) ignore))
 
@@ -655,7 +655,7 @@ restrictions for that window only."
       delta))
    (t 0)))
 
-(defsubst window-sizable-p (window delta &optional horizontal ignore)
+(defun window-sizable-p (window delta &optional horizontal ignore)
   "Return t if WINDOW can be resized by DELTA lines.
 For the meaning of the arguments of this function see the
 doc-string of `window-sizable'."
@@ -935,7 +935,7 @@ the total width, in columns, like `window-total-width'."
 (defalias 'window-height 'window-total-height)
 
 ;; See discussion in bug#4543.
-(defsubst window-full-height-p (&optional window)
+(defun window-full-height-p (&optional window)
   "Return t if WINDOW is as high as the containing frame.
 More precisely, return t if and only if the total height of
 WINDOW equals the total height of the root window of WINDOW's
@@ -945,7 +945,7 @@ one."
   (= (window-total-size window)
      (window-total-size (frame-root-window window))))
 
-(defsubst window-full-width-p (&optional window)
+(defun window-full-width-p (&optional window)
   "Return t if WINDOW is as wide as the containing frame.
 More precisely, return t if and only if the total width of WINDOW
 equals the total width of the root window of WINDOW's frame.
@@ -1501,7 +1501,7 @@ instead."
      (t
       (error "Cannot resize window %s" window)))))
 
-(defsubst window--resize-child-windows-skip-p (window)
+(defun window--resize-child-windows-skip-p (window)
   "Return non-nil if WINDOW shall be skipped by resizing routines."
   (memq (window-new-normal window) '(ignore stuck skip)))
 
@@ -2146,7 +2146,7 @@ WINDOW can be any window and defaults to the selected window."
   (window-resize window (- (window-min-delta window)))
   (window-resize window (- (window-min-delta window t)) t))
 
-(defsubst frame-root-window-p (window)
+(defun frame-root-window-p (window)
   "Return non-nil if WINDOW is the root window of its frame."
   (eq window (frame-root-window window)))
 
@@ -3019,7 +3019,7 @@ showing BUFFER-OR-NAME."
 	(unrecord-window-buffer window buffer)))))
 
 ;;; Splitting windows.
-(defsubst window-split-min-size (&optional horizontal)
+(defun window-split-min-size (&optional horizontal)
   "Return minimum height of any window when splitting windows.
 Optional argument HORIZONTAL non-nil means return minimum width."
   (if horizontal
@@ -3562,10 +3562,6 @@ specific buffers."
     ))
 
 ;;; Window states, how to get them and how to put them in a window.
-(defsubst window-list-no-nils (&rest args)
-  "Like LIST but do not add nil elements of ARGS."
-  (delq nil (apply 'list args)))
-
 (defvar window-state-ignored-parameters '(quit-restore)
   "List of window parameters ignored by `window-state-get'.")
 
@@ -3579,46 +3575,47 @@ specific buffers."
 	 (buffer (window-buffer window))
 	 (selected (eq window (selected-window)))
 	 (head
-	  (window-list-no-nils
-	   type
-	   (unless (window-next-sibling window) (cons 'last t))
-	   (cons 'total-height (window-total-size window))
-	   (cons 'total-width (window-total-size window t))
-	   (cons 'normal-height (window-normal-size window))
-	   (cons 'normal-width (window-normal-size window t))
-	   (cons 'splits (window-splits window))
-	   (cons 'nest (window-nest window))
-	   (let (list)
-	     (dolist (parameter (window-parameters window))
-	       (unless (memq (car parameter)
-			     window-state-ignored-parameters)
-		 (setq list (cons parameter list))))
-	     (unless (window-parameter window 'clone-of)
-	       ;; Make a clone-of parameter.
-	       (setq list (cons (cons 'clone-of window) list)))
-	     (when list
-	       (cons 'parameters list)))
-	   (when buffer
-	     ;; All buffer related things go in here - make the buffer
-	     ;; current when retrieving `point' and `mark'.
-	     (with-current-buffer (window-buffer window)
-	       (let ((point (window-point-1 window))
-		     (start (window-start window))
-		     (mark (mark)))
-		 (window-list-no-nils
-		  'buffer (buffer-name buffer)
-		  (cons 'selected selected)
-		  (when window-size-fixed (cons 'size-fixed window-size-fixed))
-		  (cons 'hscroll (window-hscroll window))
-		  (cons 'fringes (window-fringes window))
-		  (cons 'margins (window-margins window))
-		  (cons 'scroll-bars (window-scroll-bars window))
-		  (cons 'vscroll (window-vscroll window))
-		  (cons 'dedicated (window-dedicated-p window))
-		  (cons 'point (if markers (copy-marker point) point))
-		  (cons 'start (if markers (copy-marker start) start))
-		  (when mark
-		    (cons 'mark (if markers (copy-marker mark) mark)))))))))
+	  `(,type
+            ,@(unless (window-next-sibling window) `((last . t)))
+            (total-height . ,(window-total-size window))
+            (total-width . ,(window-total-size window t))
+            (normal-height . ,(window-normal-size window))
+            (normal-width . ,(window-normal-size window t))
+            (splits . ,(window-splits window))
+            (nest . ,(window-nest window))
+            ,@(let (list)
+                (dolist (parameter (window-parameters window))
+                  (unless (memq (car parameter)
+                                window-state-ignored-parameters)
+                    (setq list (cons parameter list))))
+                (unless (window-parameter window 'clone-of)
+                  ;; Make a clone-of parameter.
+                  (setq list (cons (cons 'clone-of window) list)))
+                (when list
+                  `((parameters . ,list))))
+            ,@(when buffer
+                ;; All buffer related things go in here - make the buffer
+                ;; current when retrieving `point' and `mark'.
+                (with-current-buffer (window-buffer window)
+                  (let ((point (window-point-1 window))
+                        (start (window-start window))
+                        (mark (mark)))
+                    `((buffer
+                       ,(buffer-name buffer)
+                       (selected . ,selected)
+                       ,@(when window-size-fixed
+                           `((size-fixed . ,window-size-fixed)))
+                       (hscroll . ,(window-hscroll window))
+                       (fringes . ,(window-fringes window))
+                       (margins . ,(window-margins window))
+                       (scroll-bars . ,(window-scroll-bars window))
+                       (vscroll . ,(window-vscroll window))
+                       (dedicated . ,(window-dedicated-p window))
+                       (point . ,(if markers (copy-marker point) point))
+                       (start . ,(if markers (copy-marker start) start))
+                       ,@(when mark
+                           `((mark . ,(if markers
+                                          (copy-marker mark) mark)))))))))))
 	 (tail
 	  (when (memq type '(vc hc))
 	    (let (list)
@@ -3654,16 +3651,15 @@ value can be also stored on disk and read back in a new session."
   (cons
    ;; Frame related things would go into a function, say `frame-state',
    ;; calling `window-state-get' to insert the frame's root window.
-   (window-list-no-nils
-    (cons 'min-height (window-min-size window))
-    (cons 'min-width (window-min-size window t))
-    (cons 'min-height-ignore (window-min-size window nil t))
-    (cons 'min-width-ignore (window-min-size window t t))
-    (cons 'min-height-safe (window-min-size window nil 'safe))
-    (cons 'min-width-safe (window-min-size window t 'safe))
-    ;; These are probably not needed.
-    (when (window-size-fixed-p window) (cons 'fixed-height t))
-    (when (window-size-fixed-p window t) (cons 'fixed-width t)))
+   `((min-height        . ,(window-min-size window))
+     (min-width         . ,(window-min-size window t))
+     (min-height-ignore . ,(window-min-size window nil t))
+     (min-width-ignore  . ,(window-min-size window t t))
+     (min-height-safe   . ,(window-min-size window nil 'safe))
+     (min-width-safe    . ,(window-min-size window t 'safe))
+     ;; These are probably not needed.
+     ,@(when (window-size-fixed-p window) `((fixed-height . t)))
+     ,@(when (window-size-fixed-p window t) `((fixed-width . t))))
    (window-state-get-1 window markers)))
 
 (defvar window-state-put-list nil
@@ -4172,6 +4168,7 @@ and (cdr ARGS) as second."
 		 (make-frame (append args special-display-frame-alist))))
 	      (window (frame-selected-window frame)))
 	 (display-buffer-record-window 'frame window buffer)
+         ;; FIXME: Use window--display-buffer-2?
 	 (set-window-buffer window buffer)
 	 ;; Reset list of WINDOW's previous buffers to nil.
 	 (set-window-prev-buffers window nil)
