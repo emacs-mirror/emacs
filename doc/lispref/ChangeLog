@@ -1,3 +1,10 @@
+2011-11-08  Chong Yidong  <cyd@gnu.org>
+
+	* windows.texi (Window Sizes): Copyedits.  Document
+	window-text-height.  Remove window-min-height and window-min-width
+	discussion, referring instead to Emacs manual.
+	(Splitting Windows, Resizing Windows): Add xref to Emacs manual.
+
 2011-11-07  Glenn Morris  <rgm@gnu.org>
 
 	* windows.texi (Choosing Window): Fix keybinding typo.
