@@ -1,3 +1,8 @@
+2011-11-08  Glenn Morris  <rgm@gnu.org>
+
+	* progmodes/delphi.el (delphi-mode-syntax-table):
+	Let define-derived-mode define a proper syntax table.  (Bug#9994)
+
 2011-11-08  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* window.el: Stay away from defsubst.
