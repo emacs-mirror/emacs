@@ -1,3 +1,23 @@
+2011-11-08  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Avoid some portability problems by eschewing 'extern inline' functions.
+	The trivial performance wins aren't worth the portability hassles; see
+	<http://lists.gnu.org/archive/html/emacs-devel/2011-11/msg00084.html>
+	et seq.
+	* dispextern.h (window_box, window_box_height, window_text_bottom_y)
+	(window_box_width, window_box_left, window_box_left_offset)
+	(window_box_right, window_box_right_offset): Undo previous change,
+	by removing the "extern"s.
+	* intervals.c (adjust_intervals_for_insertion)
+	(adjust_intervals_for_deletion): Undo previous change,
+	making these static again.
+	(offset_intervals, temp_set_point_both, temp_set_point)
+	(copy_intervals_to_string): No longer inline.
+	* xdisp.c (window_text_bottom_y, window_box_width)
+	(window_box_height, window_box_left_offset)
+	(window_box_right_offset, window_box_left, window_box_right)
+	(window_box): No longer inline.
+
 2011-11-08  Chong Yidong  <cyd@gnu.org>
 
 	* window.c (Fwindow_left_column, Fwindow_top_line): Doc fix.
