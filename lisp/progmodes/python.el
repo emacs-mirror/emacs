@@ -948,22 +948,12 @@ Finds end of innermost nested class or method definition."
   "Go to start of current statement.
 Accounts for continuation lines, multi-line strings, and
 multi-line bracketed expressions."
-  (beginning-of-line)
-  (python-beginning-of-string)
-  (let (point)
-    (while (and (python-continuation-line-p)
-		(if point
-		    (< (point) point)
-		  t))
-      (beginning-of-line)
+  (while
       (if (python-backslash-continuation-line-p)
-	  (progn
-	    (forward-line -1)
-	    (while (python-backslash-continuation-line-p)
-	      (forward-line -1)))
-	(python-beginning-of-string)
-	(python-skip-out))
-      (setq point (point))))
+          (progn (forward-line -1) t)
+        (beginning-of-line)
+        (or (python-beginning-of-string)
+            (python-skip-out))))
   (back-to-indentation))
 
 (defun python-skip-out (&optional forward syntax)
@@ -971,6 +961,7 @@ multi-line bracketed expressions."
 Skip forward if FORWARD is non-nil, else backward.
 If SYNTAX is non-nil it is the state returned by `syntax-ppss' at point.
 Return non-nil if and only if skipping was done."
+  ;; FIXME: Use syntax-ppss-toplevel-pos.
   (let ((depth (syntax-ppss-depth (or syntax (syntax-ppss))))
 	(forward (if forward -1 1)))
     (unless (zerop depth)

@@ -476,8 +476,8 @@ for modes derived from Text mode, like Mail mode."
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;; Section Decoration Adjusment
-;; ============================
+;; Section Decoration Adjustment
+;; =============================
 ;;
 ;; The following functions implement a smart automatic title sectioning feature.
 ;; The idea is that with the cursor sitting on a section title, we try to get as

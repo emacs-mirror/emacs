@@ -2484,7 +2484,7 @@ Argument GOLD-BINDING is the Emacs function to be bound to GOLD <KEY>."
   F10: Cut Rectangle
 G-F10: Paste Rectangle
   F11: ESC
-  F12: Begining of Line           +----------+----------+----------+----------+
+  F12: Beginning of Line          +----------+----------+----------+----------+
 G-F12: Delete Other Windows       |   GOLD   |   HELP   |  FNDNXT  |  DEL L   |
   F13: Delete to Begin of Word    |   (PF1)  |   (PF2)  |   (PF3)  |  (PF4)   |
  HELP: Keypad Help                |Mark Wisel|Desc Funct|   FIND   |  UND L   |

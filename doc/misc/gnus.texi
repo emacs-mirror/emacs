@@ -1001,7 +1001,7 @@ press @kbd{^} from the Group buffer to see it.  In the Server buffer,
 you can press @kbd{RET} on a defined server to see all the groups it
 serves (subscribed or not!).  You can also add or delete servers, edit
 a foreign server's definition, agentize or de-agentize a server, and
-do many other neat things.  @xref{Server Buffer}.  
+do many other neat things.  @xref{Server Buffer}.
 @xref{Foreign Groups}.  @xref{Agent Basics}.
 
 @vindex gnus-select-method
@@ -11805,7 +11805,7 @@ fit these criteria.
 
 To use this, make sure that you have @code{w3m} and @code{curl}
 installed.  If you have, then Gnus should display @acronym{HTML}
-automatically. 
+automatically.
 
 
 
@@ -21078,8 +21078,8 @@ as well.
 
 This chapter describes tools for searching groups and servers for
 articles matching a query and then retrieving those articles. Gnus
-provides a simpler mechanism for searching through articles in a summary buffer 
-to find those matching a pattern. @xref{Searching for Articles}. 
+provides a simpler mechanism for searching through articles in a summary buffer
+to find those matching a pattern. @xref{Searching for Articles}.
 
 @menu
 * nnir::                     Searching with various engines.
@@ -21110,7 +21110,7 @@ interface.
 
 The @code{nnimap} and @code{gmane} search engines should work with no
 configuration. Other engines require a local index that needs to be
-created and maintained outside of Gnus. 
+created and maintained outside of Gnus.
 
 
 @node Basic Usage
@@ -21150,7 +21150,7 @@ One more thing: individual search engines may have special search
 features. You can access these special features by giving a prefix-arg
 to @code{gnus-group-make-nnir-group}. If you are searching multiple
 groups with different search engines you will be prompted for the
-special search features for each engine separately. 
+special search features for each engine separately.
 
 
 @node Setting up nnir
@@ -21191,7 +21191,7 @@ named @code{home} you can use
 
 @lisp
 (setq gnus-secondary-select-methods
-      '((nnml "home" 
+      '((nnml "home"
          (nnimap-address "localhost")
          (nnir-search-engine namazu))))
 @end lisp
@@ -21216,9 +21216,9 @@ could change this to
 @node The imap Engine
 @subsubsection The imap Engine
 
-The @code{imap} engine requires no configuration. 
+The @code{imap} engine requires no configuration.
 
-Queries using the @code{imap} engine follow a simple query language. 
+Queries using the @code{imap} engine follow a simple query language.
 The search is always case-insensitive and supports the following
 features (inspired by the Google search input language):
 
@@ -21231,7 +21231,7 @@ operators must be written with all capital letters to be
 recognised. Also preceding a term with a - sign is equivalent to NOT
 term.
 
-@item Automatic AND queries 
+@item Automatic AND queries
 If you specify multiple words then they will be treated as an AND
 expression intended to match all components.
 
@@ -21264,7 +21264,7 @@ customize @code{nnir-imap-default-search-key}. For example to use
 @node The gmane Engine
 @subsubsection The gmane Engine
 
-The @code{gmane} engine requires no configuration. 
+The @code{gmane} engine requires no configuration.
 
 Gmane queries follow a simple query language:
 
@@ -21278,11 +21278,11 @@ recognised.
 @item Required and excluded terms
 + and - can be used to require or exclude terms, e.g. football -american
 
-@item Unicode handling 
+@item Unicode handling
 The search engine converts all text to utf-8, so searching should work
 in any language.
 
-@item Stopwords 
+@item Stopwords
 Common English words (like 'the' and 'a') are ignored by default. You
 can override this by prefixing such words with a + (e.g. +the) or
 enclosing the word in quotes (e.g. "the").
@@ -21345,7 +21345,7 @@ to get a group name. By default this is @code{$HOME/Mail}.
 Using the namazu engine requires creating and maintaining index files.
 One directory should contain all the index files, and nnir must be told
 where to find them by setting the @code{nnir-namazu-index-directory}
-variable.  
+variable.
 
 To work correctly the @code{nnir-namazu-remove-prefix} variable must
 also be correct. This is the prefix to remove from each file name
@@ -21408,7 +21408,7 @@ this command periodically, say every four hours.
 This engine is obsolete.
 
 @node Customizations
-@subsubsection Custimozations
+@subsubsection Customizations
 
 @table @code
 

@@ -704,8 +704,8 @@ window.  Optional argument HORIZONTAL non-nil means return
 non-nil if WINDOW's width is fixed.
 
 If this function returns nil, this does not necessarily mean that
-WINDOW can be resized in the desired direction.  The functions
-`window-resizable' and `window-resizable-p' will tell that."
+WINDOW can be resized in the desired direction.  The function
+`window-resizable' can tell that."
   (window-size-fixed-1
    (window-normalize-window window) horizontal))
 
@@ -865,14 +865,14 @@ only whether other windows can be shrunk appropriately."
     (window-max-delta-1 window 0 horizontal ignore trail noup)))
 
 ;; Make NOUP also inhibit the min-size check.
-(defun window-resizable (window delta &optional horizontal ignore trail noup nodown)
+(defun window--resizable (window delta &optional horizontal ignore trail noup nodown)
   "Return DELTA if WINDOW can be resized vertically by DELTA lines.
 Optional argument HORIZONTAL non-nil means return DELTA if WINDOW
 can be resized horizontally by DELTA columns.  A return value of
 zero means that WINDOW is not resizable.
 
 DELTA positive means WINDOW shall be enlarged by DELTA lines or
-columns.  If WINDOW cannot be enlarged by DELTA lines or columns
+columns.  If WINDOW cannot be enlarged by DELTA lines or columns,
 return the maximum value in the range 0..DELTA by which WINDOW
 can be enlarged.
 
@@ -894,11 +894,12 @@ of or below WINDOW can be shrunk.  Optional argument TRAIL
 shrunk.
 
 Optional argument NOUP non-nil means don't go up in the window
-tree but try to distribute the space among the other windows
-within WINDOW's combination.
+tree but check only whether space can be obtained from (or given
+to) WINDOW's siblings.
 
-Optional argument NODOWN non-nil means don't check whether WINDOW
-and its child windows can be resized."
+Optional argument NODOWN non-nil means don't go down in the
+window tree.  This means do not check whether resizing would
+violate size restrictions of WINDOW or its child windows."
   (setq window (window-normalize-window window))
   (cond
    ((< delta 0)
@@ -909,16 +910,41 @@ and its child windows can be resized."
 	 delta))
    (t 0)))
 
-(defun window-resizable-p (window delta &optional horizontal ignore trail noup nodown)
+(defun window--resizable-p (window delta &optional horizontal ignore trail noup nodown)
   "Return t if WINDOW can be resized vertically by DELTA lines.
 For the meaning of the arguments of this function see the
-doc-string of `window-resizable'."
+doc-string of `window--resizable'."
   (setq window (window-normalize-window window))
   (if (> delta 0)
-      (>= (window-resizable window delta horizontal ignore trail noup nodown)
+      (>= (window--resizable window delta horizontal ignore trail noup nodown)
 	  delta)
-    (<= (window-resizable window delta horizontal ignore trail noup nodown)
+    (<= (window--resizable window delta horizontal ignore trail noup nodown)
 	delta)))
+
+(defun window-resizable (window delta &optional horizontal ignore)
+  "Return DELTA if WINDOW can be resized vertically by DELTA lines.
+Optional argument HORIZONTAL non-nil means return DELTA if WINDOW
+can be resized horizontally by DELTA columns.  A return value of
+zero means that WINDOW is not resizable.
+
+DELTA positive means WINDOW shall be enlarged by DELTA lines or
+columns.  If WINDOW cannot be enlarged by DELTA lines or columns
+return the maximum value in the range 0..DELTA by which WINDOW
+can be enlarged.
+
+DELTA negative means WINDOW shall be shrunk by -DELTA lines or
+columns.  If WINDOW cannot be shrunk by -DELTA lines or columns,
+return the minimum value in the range DELTA..0 that can be used
+for shrinking WINDOW.
+
+Optional argument IGNORE non-nil means ignore any restrictions
+imposed by fixed size windows, `window-min-height' or
+`window-min-width' settings.  IGNORE a window means ignore
+restrictions for that window only.  IGNORE equal `safe' means
+live windows may get as small as `window-safe-min-height' lines
+and `window-safe-min-width' columns."
+  (setq window (window-normalize-window window))
+  (window--resizable window delta horizontal ignore))
 
 (defun window-total-size (&optional window horizontal)
   "Return the total height or width of window WINDOW.
@@ -1475,7 +1501,7 @@ instead."
       (error "Cannot resize the root window of a frame"))
      ((window-minibuffer-p window)
       (window--resize-mini-window window delta))
-     ((window-resizable-p window delta horizontal ignore)
+     ((window--resizable-p window delta horizontal ignore)
       (window--resize-reset frame horizontal)
       (window--resize-this-window window delta horizontal ignore t)
       (if (and (not (window-splits window))
@@ -1829,7 +1855,7 @@ preferably only resize windows adjacent to EDGE."
 	    ;; Set this-delta to what we can get from WINDOW's siblings.
 	    (if (= (- delta) (window-total-size window horizontal))
 		;; A deletion, presumably.  We must handle this case
-		;; specially since `window-resizable' can't be used.
+		;; specially since `window--resizable' can't be used.
 		(if this-delta
 		    ;; There's at least one resizable sibling we can
 		    ;; give WINDOW's size to.
@@ -1838,7 +1864,7 @@ preferably only resize windows adjacent to EDGE."
 		  (setq this-delta 0))
 	      ;; Any other form of resizing.
 	      (setq this-delta
-		    (window-resizable window delta horizontal ignore trail t)))
+		    (window--resizable window delta horizontal ignore trail t)))
 
 	    ;; Set other-delta to what we still have to get from
 	    ;; ancestor windows of parent.
@@ -1904,7 +1930,7 @@ resize only windows on the left or above EDGE.  If TRAIL equals
 preferably only resize windows adjacent to EDGE.
 
 This function recursively resizes WINDOW's child windows to fit the
-new size.  Make sure that WINDOW is `window-resizable' before
+new size.  Make sure that WINDOW is `window--resizable' before
 calling this function.  Note that this function does not resize
 siblings of WINDOW or WINDOW's parent window.  You have to
 eventually call `window-resize-apply' in order to make resizing
@@ -2044,7 +2070,7 @@ move it as far as possible in the desired direction."
 	  ;; Start resizing.
 	  (window--resize-reset frame horizontal)
 	  ;; Try to enlarge LEFT first.
-	  (setq this-delta (window-resizable left delta horizontal))
+	  (setq this-delta (window--resizable left delta horizontal))
 	  (unless (zerop this-delta)
 	    (window--resize-this-window
 	     left this-delta horizontal nil t 'before
@@ -2067,7 +2093,7 @@ move it as far as possible in the desired direction."
 	  ;; Start resizing.
 	  (window--resize-reset frame horizontal)
 	  ;; Try to enlarge RIGHT.
-	  (setq this-delta (window-resizable right (- delta) horizontal))
+	  (setq this-delta (window--resizable right (- delta) horizontal))
 	  (unless (zerop this-delta)
 	    (window--resize-this-window
 	     right this-delta horizontal nil t 'after
@@ -2098,7 +2124,7 @@ Return nil."
    ((zerop delta))
    ((window-size-fixed-p nil horizontal)
     (error "Selected window has fixed size"))
-   ((window-resizable-p nil delta horizontal)
+   ((window--resizable-p nil delta horizontal)
     (window-resize nil delta horizontal))
    (t
     (window-resize
@@ -2119,7 +2145,7 @@ Return nil."
    ((zerop delta))
    ((window-size-fixed-p nil horizontal)
     (error "Selected window has fixed size"))
-   ((window-resizable-p nil (- delta) horizontal)
+   ((window--resizable-p nil (- delta) horizontal)
     (window-resize nil (- delta) horizontal))
    (t
     (window-resize
@@ -2392,7 +2418,7 @@ non-side window, signal an error."
 	  (set-window-new-normal
 	   sibling (+ (window-normal-size sibling horizontal)
 		      (window-normal-size window horizontal))))
-	 ((window-resizable-p window (- size) horizontal nil nil nil t)
+	 ((window--resizable-p window (- size) horizontal nil nil nil t)
 	  ;; Can do without resizing fixed-size windows.
 	  (window--resize-siblings window (- size) horizontal))
 	 (t
@@ -3763,13 +3789,13 @@ value can be also stored on disk and read back in a new session."
 	      (let ((delta (- (cdr (assq 'total-height item))
 			      (window-total-height window)))
 		    window-size-fixed)
-		(when (window-resizable-p window delta)
+		(when (window--resizable-p window delta)
 		  (window-resize window delta)))
 	    ;; Else check whether the window is not high enough.
 	    (let* ((min-size (window-min-size window nil ignore))
 		   (delta (- min-size (window-total-size window))))
 	      (when (and (> delta 0)
-			 (window-resizable-p window delta nil ignore))
+			 (window--resizable-p window delta nil ignore))
 		(window-resize window delta nil ignore))))
 	  ;; Adjust horizontally.
 	  (if (memq window-size-fixed '(t width))
@@ -3777,13 +3803,13 @@ value can be also stored on disk and read back in a new session."
 	      (let ((delta (- (cdr (assq 'total-width item))
 			      (window-total-width window)))
 		    window-size-fixed)
-		(when (window-resizable-p window delta)
+		(when (window--resizable-p window delta)
 		  (window-resize window delta)))
 	    ;; Else check whether the window is not wide enough.
 	    (let* ((min-size (window-min-size window t ignore))
 		   (delta (- min-size (window-total-size window t))))
 	      (when (and (> delta 0)
-			 (window-resizable-p window delta t ignore))
+			 (window--resizable-p window delta t ignore))
 		(window-resize window delta t ignore))))
 	  ;; Set dedicated status.
 	  (set-window-dedicated-p window (cdr (assq 'dedicated state)))

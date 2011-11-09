@@ -284,6 +284,7 @@ This can be convenient for people who find it easier to hit ) than C-f."
 
 (defun electric-pair-post-self-insert-function ()
   (let* ((syntax (and (eq (char-before) last-command-event) ; Sanity check.
+                      electric-pair-mode
                       (let ((x (assq last-command-event electric-pair-pairs)))
                         (cond
                          (x (if (eq (car x) (cdr x)) ?\" ?\())

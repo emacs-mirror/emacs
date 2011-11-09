@@ -451,7 +451,7 @@ displays them, incorrectly, as separate from the modified glyphs.")
  ;; them, and the recipient's client is capable, they will get through,
  ;; though.
 
- ("_\"" "̈")	;; Centralised		 		U+0308
+ ("_\"" "̈")	;; Centralized		 		U+0308
  ("_+" "̟")	;; Advanced				U+031F
  ("_-" "̠")	;; Retracted				U+0320
  ("_/" "ˇ")	;; Rising tone				U+02C7

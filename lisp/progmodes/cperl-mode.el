@@ -6481,7 +6481,7 @@ are CPerl, PerlStyle, GNU, K&R, BSD, C++ and Whitesmith.
 The current value of style is memorized (unless there is a memorized
 data already), may be restored by `cperl-set-style-back'.
 
-Chosing \"Current\" style will not change style, so this may be used for
+Choosing \"Current\" style will not change style, so this may be used for
 side-effect of memorizing only.  Examples in `cperl-style-examples'."
   (interactive
    (let ((list (mapcar (function (lambda (elt) (list (car elt))))
