@@ -1,8 +1,14 @@
+2011-11-09  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* progmodes/compile.el: Better handle TABs (bug#9749).
+	(compilation-internal-error-properties)
+	(compilation-next-error-function): Obey the target buffer's
+	compilation-error-screen-columns.
+
 2011-11-09  Martin Rudalics  <rudalics@gmx.at>
 
 	* window.el (window-size-fixed-p): Rewrite doc-string.
-	(window-resizable-p): Rename to window--resizable-p.  Update
-	callers.
+	(window-resizable-p): Rename to window--resizable-p.  Update callers.
 	(window--resizable): New function.  Make all callers of
 	window-resizable call window--resizable instead.
 	(window-resizable): Rewrite in terms of window--resizable.
@@ -90,7 +96,7 @@
 	(window-size-ignore, window-state-get): Callers changed.
 	(window-normalize-window): Rename from window-normalize-any-window.
 	New arg LIVE-ONLY, replacing window-normalize-live-window.
-	(window-normalize-live-window): Deleted.
+	(window-normalize-live-window): Delete.
 	(window-combination-p, window-combined-p, window-combinations)
 	(walk-window-subtree, window-atom-root, window-min-size)
 	(window-sizable, window-sizable-p, window-size-fixed-p)
