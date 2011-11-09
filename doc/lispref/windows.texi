@@ -715,224 +715,66 @@ frame.  @var{window} can be any window and defaults to the selected one.
 @cindex splitting windows
 @cindex window splitting
 
-The functions described below are the primitives needed for creating a
-new window.  They do not accept a buffer as an argument.  Rather, they
-``split'' an existing window into two halves, both displaying the buffer
-previously visible in the window that was split.
+This section describes functions for creating a new window by
+@dfn{splitting} an existing one.
 
 @deffn Command split-window &optional window size side
-This function creates a new window adjacent to @var{window}.  It returns
-the new window which is always a live window.  The argument @var{window}
-can denote any window and defaults to the selected one.  This function
-does not change the selected window.
+This function creates a new live window next to the window
+@var{window}.  If @var{window} is omitted or @code{nil}, it defaults
+to the selected window.  That window is ``split'', and reduced in
+size.  The space is taken up by the new window, which is returned.
 
-Optional second argument @var{size} a positive number means make
-@var{window} @var{size} lines (or columns) tall.  If @var{size} is
-negative, make the new window @minus{}@var{size} lines (or columns)
-tall.  If @var{size} is omitted or @code{nil}, then @var{window} is
-divided evenly into two parts.  (If there is an odd line, it is
-allocated to the new window.)
+The optional second argument @var{size} determines the sizes of the
+@var{window} and/or the new window.  If it is omitted or @code{nil},
+both windows are given equal sizes; if there is an odd line, it is
+allocated to the new window.  If @var{size} is a positive number,
+@var{window} is given @var{size} lines (or columns, depending on the
+value of @var{side}).  If @var{size} is a negative number, the new
+window is given @minus{}@var{size} lines (or columns).
 
-Normally, the customizable variables @code{window-min-height} and
-@code{window-min-width} specify the smallest allowable size of a
-window.  @xref{Change Window,,Deleting and Rearranging Windows, emacs,
-The GNU Emacs Manual}.  If splitting would result in making a window
-smaller than this, this function usually signals an error.  However,
-if @var{size} is non-@code{nil} and valid, a new window of the
-requested size is created, provided it has enough space for a text
-area one line tall and/or two columns wide.
+If @var{size} is @code{nil}, this function obeys the variables
+@code{window-min-height} and @code{window-min-width}.  @xref{Change
+Window,,Deleting and Rearranging Windows, emacs, The GNU Emacs
+Manual}.  Thus, it signals an error if splitting would result in
+making a window smaller than those variables specify.  However, a
+non-@code{nil} value for @var{size} causes those variables to be
+ignored; in that case, the smallest allowable window is considered to
+be one that has space for a text area one line tall and/or two columns
+wide.
 
-Optional third argument @var{side} @code{nil} (or @code{below})
-specifies that the new window shall be located below @var{window}.  The
-value @code{above} means the new window will be located above
-@var{window}.  In both cases @var{size} specifies the new number of
-lines for @var{window} (or the new window if @var{size} is negative)
-including space reserved for the mode and/or header line.
+The optional third argument @var{side} determines the position of the
+new window relative to @var{window}.  If it is @code{nil} or
+@code{below}, the new window is placed below @var{window}.  If it is
+@code{above}, the new window is placed above @var{window}.  In both
+these cases, @var{size} specifies a total window height, in lines.
 
-If @var{side} is @code{t} or @code{right} the new window will be
-positioned on the right side of @var{window}.  The value @code{left}
-means the new window will be located on the left side of @var{window}.
-In both cases @var{size} specifies the new number of columns for
-@var{window} (or the new window provided @var{size} is negative)
-including space reserved for margins, fringes and the scroll bar or a
-divider column.
+If @var{side} is @code{t} or @code{right}, the new window is placed on
+the right of @var{window}.  If @var{side} is @code{left}, the new
+window is placed on the left of @var{window}.  In both these cases,
+@var{size} specifies a total window width, in columns.
 
-Any other non-@code{nil} value for @var{side} is currently handled like
-@code{t} (or @code{right}).  Since this might change in the future,
-application programs should refrain from using other values.
+If @var{window} is a live window, the new window inherits various
+properties from it, including margins and scroll bars.  If
+@var{window} is an internal window, the new window inherits the
+properties of the window selected within @var{window}'s frame.
 
-If @var{window} is live, properties of the new window like margins and
-scroll bars are inherited from @var{window}.  If @var{window} is an
-internal window, these properties, as well as the buffer shown in the
-new window, are inherited from the window selected on @var{window}'s
-frame.
-
-If @code{ignore-window-parameters} is non-@code{nil}, this function
-ignores window parameters (@pxref{Window Parameters}).  Otherwise, if
-the @code{split-window} parameter of @var{window} is @code{t}, it splits
-the window disregarding any other window parameters.  If the
-@code{split-window} parameter specifies a function, that function is
-called with the arguments @var{window}, @var{size}, and @var{side} to
-split @var{window}.  If that function is @code{ignore}, nothing is done.
+If the variable @code{ignore-window-parameters} is non-@code{nil}
+(@pxref{Window Parameters}), this function ignores window parameters.
+Otherwise, it consults the @code{split-window} parameter of
+@var{window}; if this is @code{t}, it splits the window disregarding
+any other window parameters.  If the @code{split-window} parameter
+specifies a function, that function is called with the arguments
+@var{window}, @var{size}, and @var{side} to split @var{window}, in
+lieu of the usual action of @code{split-window}.
 @end deffn
 
-The following example starts with one window on a screen that is 50
-lines high by 80 columns wide; then it splits the window.
+  As an example, we show a combination of @code{split-window} calls
+that yields the window configuration discussed in @ref{Windows and
+Frames}.  This example demonstrates splitting live windows as well as
+splitting internal windows.  We begin with a frame containing a single
+window (a live root window), which we denote by @var{W4}.  Calling
+@code{(split-window W3)} yields this window configuration:
 
-@smallexample
-@group
-(setq W1 (selected-window))
-     @result{} #<window 8 on windows.texi>
-(setq W2 (split-window W1 15))
-     @result{} #<window 28 on windows.texi>
-@end group
-@group
-(window-top-line W1)
-     @result{} 0
-(window-total-size W1)
-     @result{} 15
-(window-top-line W2)
-     @result{} 15
-@end group
-@end smallexample
-
-The screen looks like this:
-
-@smallexample
-@group
-         __________
-        |          |  line 0
-        |    W1    |
-        |__________|
-        |          |  line 15
-        |    W2    |
-        |__________|
-                      line 50
- column 0   column 80
-@end group
-@end smallexample
-
-Next, split the top window into two side-by-side windows:
-
-@smallexample
-@group
-(setq W3 (split-window W1 35 t))
-     @result{} #<window 32 on windows.texi>
-@end group
-@group
-(window-left-column W1)
-     @result{} 0
-(window-total-size W1 t)
-     @result{} 35
-(window-left-column W3)
-     @result{} 35
-@end group
-@end smallexample
-
-@need 3000
-Now the screen looks like this:
-
-@smallexample
-@group
-     column 35
-         __________
-        |    |     |  line 0
-        | W1 |  W3 |
-        |____|_____|
-        |          |  line 15
-        |    W2    |
-        |__________|
-                      line 50
- column 0   column 80
-@end group
-@end smallexample
-
-Normally, Emacs indicates the border between two side-by-side windows
-with a scroll bar (@pxref{Scroll Bars}), or with @samp{|} characters.  The
-display table can specify alternative border characters; see @ref{Display
-Tables}.
-
-Below we describe how @code{split-window} can be used to create the
-window configuration from our earlier example (@pxref{Windows and
-Frames}) and how internal windows are created for this purpose.  We
-start with a frame containing one live window @code{W2} (in the
-following scenarios window names are assigned in an arbitrary manner in
-order to match the names of the example).  Evaluating the form
-@code{(split-window W2 8 t)} creates a new internal window @code{W1}
-with two children---@code{W2} (the window we've split) and a new leaf
-window @code{W6}:
-@smallexample
-@group
-     ______________________________________
-    | ______  ____________________________ |
-    ||      ||                            ||
-    ||      ||                            ||
-    ||      ||                            ||
-    ||      ||                            ||
-    ||      ||                            ||
-    ||      ||                            ||
-    ||      ||                            ||
-    ||      ||                            ||
-    ||      ||                            ||
-    ||      ||                            ||
-    ||__W2__||_____________W6_____________ |
-    |__________________W1__________________|
-
-@end group
-@end smallexample
-
-Evaluating now @code{(split-window W6 -3)} creates another internal
-window @code{W3} with two children---@code{W6} and a new live window
-@code{W5}.  This leaves us with a vertically combined window @code{W3}
-embedded in the horizontally combined window @code{W1}:
-@smallexample
-@group
-     ______________________________________
-    | ______  ____________________________ |
-    ||      || __________________________ ||
-    ||      |||                          |||
-    ||      |||                          |||
-    ||      |||                          |||
-    ||      |||                          |||
-    ||      |||                          |||
-    ||      |||____________W6____________|||
-    ||      || __________________________ ||
-    ||      |||                          |||
-    ||      |||____________W5____________|||
-    ||__W2__||_____________W3_____________ |
-    |__________________W1__________________|
-
-@end group
-@end smallexample
-
-Finally, evaluating @code{(split-window W6 nil t)} should get us the
-desired configuration as depicted below.
-@smallexample
-@group
-     ______________________________________
-    | ______  ____________________________ |
-    ||      || __________________________ ||
-    ||      ||| ___________  ___________ |||
-    ||      ||||           ||           ||||
-    ||      ||||           ||           ||||
-    ||      ||||_____W6____||_____W7____||||
-    ||      |||____________W4____________|||
-    ||      || __________________________ ||
-    ||      |||                          |||
-    ||      |||____________W5____________|||
-    ||__W2__||_____________W3_____________ |
-    |__________________W1__________________|
-
-@end group
-@end smallexample
-
-The scenario sketched above is the standard way to obtain the desired
-configuration.  In Emacs 23 it was also the only way to do that since
-Emacs 23 didn't allow splitting internal windows.
-
-With Emacs 24 you can also proceed as follows: Split an initial window
-@code{W6} by evaluating @code{(split-window W6 -3)} to produce the
-following vertical combination:
 @smallexample
 @group
      ______________________________________
@@ -940,112 +782,64 @@ following vertical combination:
     ||                                    ||
     ||                                    ||
     ||                                    ||
-    ||                                    ||
-    ||                                    ||
-    ||                                    ||
-    ||                                    ||
-    ||_________________W6_________________||
-    | ____________________________________ |
-    ||                                    ||
-    ||_________________W5_________________||
-    |__________________W3__________________|
-
-@end group
-@end smallexample
-
-Evaluating now @code{(split-window (window-parent W6) -8 'left)} or,
-equivalently, @code{(split-window W3 -8 'left)} should now produce the
-penultimate configuration from the previous scenario from where we can
-continue as described before.
-
-   Another strategy starts with splitting an initial window @code{W6} by
-evaluating @code{(split-window W6 nil nil t)} with the following result:
-@smallexample
-@group
-     ______________________________________
-    | _________________  _________________ |
-    ||                 ||                 ||
-    ||                 ||                 ||
-    ||                 ||                 ||
-    ||                 ||                 ||
-    ||                 ||                 ||
-    ||                 ||                 ||
-    ||                 ||                 ||
-    ||                 ||                 ||
-    ||                 ||                 ||
-    ||                 ||                 ||
-    ||________W6_______||________W7_______||
-    |__________________W4__________________|
-
-@end group
-@end smallexample
-
-Evaluating now @code{(split-window W4 -3)} or @code{(split-window
-(window-parent W6) -3)} should get us a configuration as shown next.
-@smallexample
-@group
-     ______________________________________
-    | ____________________________________ |
-    || ________________  ________________ ||
-    |||                ||                |||
-    |||                ||                |||
-    |||                ||                |||
-    |||                ||                |||
-    |||                ||                |||
-    |||_______W6_______||________W7______|||
     ||_________________W4_________________||
     | ____________________________________ |
     ||                                    ||
+    ||                                    ||
+    ||                                    ||
     ||_________________W5_________________||
     |__________________W3__________________|
 
 @end group
 @end smallexample
 
-The desired configuration can be now obtained by evaluating
-@code{(split-window W3 -8 'left)} or, equivalently, @code{(split-window
-(window-parent W5) -8 'left)}.
+@noindent
+The @code{split-window} call has created a new live window, denoted by
+@var{W5}.  It has also created a new internal window, denoted by
+@var{W3}, which becomes the root window and the parent of both
+@var{W4} and @var{W5}.
 
-   For a final approach let's start with the configuration of two live
-windows @code{W6} and @code{W7} shown above.  If we now evaluate
-@code{(split-window W4 -8 'left)} or @code{(split-window (window-parent
-W6) -8 'left)} we get the following configuration.
+  Next, we call @code{(split-window W3 nil 'left)}, passing the
+internal window @var{W3} as the argument.  The result:
+
 @smallexample
 @group
      ______________________________________
     | ______  ____________________________ |
-    ||      || ____________  ____________ ||
-    ||      |||            ||            |||
-    ||      |||            ||            |||
-    ||      |||            ||            |||
-    ||      |||            ||            |||
-    ||      |||            ||            |||
-    ||      |||            ||            |||
-    ||      |||            ||            |||
-    ||      |||______W6____||______W7____|||
-    ||__W2__||_____________W4_____________||
+    ||      || __________________________ ||
+    ||      |||                          |||
+    ||      |||                          |||
+    ||      |||                          |||
+    ||      |||____________W4____________|||
+    ||      || __________________________ ||
+    ||      |||                          |||
+    ||      |||                          |||
+    ||      |||____________W5____________|||
+    ||__W2__||_____________W3_____________ |
     |__________________W1__________________|
-
 @end group
 @end smallexample
 
-Evaluating now @code{(split-window W4 -3)} or, for example,
-@code{(split-window (window-parent W6) -3)} should produce the desired
-configuration.
+@noindent
+A new live window, @var{W2}, is created to the left of @var{W3} (which
+encompasses the vertical window combination of @var{W4} and @var{W5}).
+A new internal window @var{W1} is also created, and becomes the new
+root window.
 
-  The two options described next can be used to tune the operation of
+  The following two options can be used to modify the operation of
 @code{split-window}.
 
 @defopt window-splits
-If this variable is @code{nil}, the function @code{split-window} can
-split a window if and only if that window's screen estate is
-sufficiently large to accommodate both--itself and the new window.
+If this variable is @code{nil}, @code{split-window} can only split a
+window (denoted by @var{window}) if @var{window}'s screen area is
+large enough to accommodate both itself and the new window.  This is
+the default.
 
-If this variable is non-@code{nil}, @code{split-window} tries to resize
-all windows that are part of the same combination as the old window to
-accommodate the new window.  Hence, the new window can be also created if
-the old window is of fixed size or too small to split (@pxref{Window
-Sizes}).
+If this variable is non-@code{nil}, @code{split-window} tries to
+resize all windows that are part of the same combination as
+@var{window}, in order to accommodate the new window.  In particular,
+this may allow @code{split-window} to succeed even if @var{window} is
+a fixed-size window or too small to ordinarily split.
 
 In any case, the value of this variable is assigned to the splits status
 of the new window and, provided old and new window form a new

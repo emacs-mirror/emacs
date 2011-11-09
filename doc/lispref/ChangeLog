@@ -1,3 +1,7 @@
+2011-11-09  Chong Yidong  <cyd@gnu.org>
+
+	* windows.texi (Splitting Windows): Simplify example.
+
 2011-11-08  Chong Yidong  <cyd@gnu.org>
 
 	* windows.texi (Window Sizes): Copyedits.  Document
