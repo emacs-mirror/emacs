@@ -1,5 +1,8 @@
 2011-11-09  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* electric.el (electric-pair-post-self-insert-function): Let user
+	turn it off buffer-locally (bug#9932).
+
 	* progmodes/python.el (python-beginning-of-statement):
 	Rewrite (bug#2703).
 
