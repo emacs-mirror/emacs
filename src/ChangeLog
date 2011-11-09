@@ -1,3 +1,8 @@
+2011-11-09  Chong Yidong  <cyd@gnu.org>
+
+	* window.c (Fwindow_inside_edges, Fwindow_inside_pixel_edges)
+	(Fwindow_inside_absolute_pixel_edges): Only allow live windows.
+
 2011-11-08  Paul Eggert  <eggert@cs.ucla.edu>
 
 	* s/gnu.h (GC_MARK_STACK): Define to GC_MAKE_GCPROS_NOOPS (Bug#9926).

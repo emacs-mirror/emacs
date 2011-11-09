@@ -859,7 +859,7 @@ The inside edges do not include the space used by the WINDOW's scroll
 bar, display margins, fringes, header line, and/or mode line.  */)
   (Lisp_Object window)
 {
-  register struct window *w = decode_any_window (window);
+  register struct window *w = decode_window (window);
 
   return list4 (make_number (WINDOW_BOX_LEFT_EDGE_COL (w)
 			     + WINDOW_LEFT_MARGIN_COLS (w)
@@ -874,9 +874,9 @@ bar, display margins, fringes, header line, and/or mode line.  */)
 }
 
 DEFUN ("window-inside-pixel-edges", Fwindow_inside_pixel_edges, Swindow_inside_pixel_edges, 0, 1, 0,
-       doc: /* Return a list of the edge pixel coordinates of WINDOW.
-The list has the form (LEFT TOP RIGHT BOTTOM), all relative to 0, 0 at
-the top left corner of the frame.
+       doc: /* Return a list of the edge pixel coordinates of WINDOW's text area.
+The list has the form (LEFT TOP RIGHT BOTTOM), all relative to (0,0)
+at the top left corner of the frame's window area.
 
 RIGHT is one more than the rightmost x position of WINDOW's text area.
 BOTTOM is one more than the bottommost y position of WINDOW's text area.
@@ -884,7 +884,7 @@ The inside edges do not include the space used by WINDOW's scroll bar,
 display margins, fringes, header line, and/or mode line.  */)
   (Lisp_Object window)
 {
-  register struct window *w = decode_any_window (window);
+  register struct window *w = decode_window (window);
 
   return list4 (make_number (WINDOW_BOX_LEFT_EDGE_X (w)
 			     + WINDOW_LEFT_MARGIN_WIDTH (w)
@@ -901,9 +901,9 @@ display margins, fringes, header line, and/or mode line.  */)
 DEFUN ("window-inside-absolute-pixel-edges",
        Fwindow_inside_absolute_pixel_edges,
        Swindow_inside_absolute_pixel_edges, 0, 1, 0,
-       doc: /* Return a list of the edge pixel coordinates of WINDOW.
-The list has the form (LEFT TOP RIGHT BOTTOM), all relative to 0, 0 at
-the top left corner of the display.
+       doc: /* Return a list of the edge pixel coordinates of WINDOW's text area.
+The list has the form (LEFT TOP RIGHT BOTTOM), all relative to (0,0)
+at the top left corner of the frame's window area.
 
 RIGHT is one more than the rightmost x position of WINDOW's text area.
 BOTTOM is one more than the bottommost y position of WINDOW's text area.
@@ -911,7 +911,7 @@ The inside edges do not include the space used by WINDOW's scroll bar,
 display margins, fringes, header line, and/or mode line.  */)
   (Lisp_Object window)
 {
-  register struct window *w = decode_any_window (window);
+  register struct window *w = decode_window (window);
   int add_x, add_y;
   calc_absolute_offset (w, &add_x, &add_y);
 
