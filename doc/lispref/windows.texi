@@ -375,13 +375,13 @@ Bars}).  At the top of the window is an optional header line
 line (@pxref{Mode Line Format}).
 
   Emacs provides several functions for finding the height and width of
-a window.  Most of these functions report the values as integer
-multiples of the default character height and width.  On a graphical
-display, the actual screen size of this default height and width are
-those specified by the frame's default font.  Hence, if the buffer
-contains text that is displayed in a different size, the reported
-height and width of the window may differ from the actual number of
-text lines or columns displayed in it.
+a window.  Except where noted, these heights and widths are reported
+as integer numbers of lines and columns respectively.  On a graphical
+display, each ``line'' and ``column'' actually corresponds to the
+height and width of a ``default'' character specified by the frame's
+default font.  Thus, if a window is displaying text with a different
+font or size, the reported height and width for that window may differ
+from the actual number of text lines or columns displayed within it.
 
 @cindex window height
 @cindex height of a window
@@ -534,6 +534,45 @@ can be resized in the desired direction.  To determine that, use the
 function @code{window-resizable}.  @xref{Resizing Windows}.
 @end defun
 
+  The following functions can be used to find a window's size and
+position in pixels.  Though mostly useful on graphical displays, they
+can also be called on text-only terminals, where the screen area of
+each text character is taken to be ``one pixel''.
+
+@defun window-pixel-edges &optional window
+This function return a list of pixel coordinates for the edges of
+@var{window}.  If @var{window} is omitted or @code{nil}, it defaults
+to the selected window.
+
+The return value has the form @code{(@var{left} @var{top} @var{right}
+@var{bottom})}.  The list elements are, respectively, the X coordinate
+of the left window edge, the Y coordinate of the top edge, one more
+than the X coordinate of the right edge, and one more than the Y
+coordinate of the bottom edge.  The origin coordinate @samp{(0,0)} is
+taken to be the top left corner of the frame's window area.
+
+These edge values include the space used by the window's scroll bar,
+margins, fringes, header line, and mode line, if any.
+@end defun
+
+@defun window-inside-pixel-edges &optional window
+This function is like @code{window-pixel-edges}, except that it
+returns the edge coordinates for the window's text area, rather than
+the edge coordinates for the window itself.  @var{window} must specify
+a live window.
+@end defun
+
+@defun window-absolute-pixel-edges &optional window
+This function is like @code{window-pixel-edges}, except that it
+returns the edge coordinates relative to the top left corner of the
+display screen.
+@end defun
+
+@defun window-inside-absolute-pixel-edges &optional window
+This function is like @code{window-inside-pixel-edges}, except that it
+returns the edge coordinates relative to the top left corner of the
+display screen.  @var{window} must specify a live window.
+@end defun
 
 @node Resizing Windows
 @section Resizing Windows
@@ -604,104 +643,85 @@ moving only the bottom or right edge of a window, use the function
 @c shrink-window, and shrink-window-horizontally are documented in the
 @c Emacs manual.  They are not preferred for calling from Lisp.
 
-  The following function is useful for moving the line dividing two
-windows.
-
 @defun adjust-window-trailing-edge window delta &optional horizontal
 This function moves @var{window}'s bottom edge by @var{delta} lines.
-Optional argument @var{horizontal} non-@code{nil} means to move
-@var{window}'s right edge by @var{delta} columns.  The argument
-@var{window} defaults to the selected window.
+If optional argument @var{horizontal} is non-@code{nil}, it instead
+moves the right edge by @var{delta} columns.  If @var{window} is
+@code{nil}, it defaults to the selected window.
 
-If @var{delta} is greater zero, this moves the edge downwards or to the
-right.  If @var{delta} is less than zero, this moves the edge upwards or
-to the left. If the edge can't be moved by @var{delta} lines or columns,
-it is moved as far as possible in the desired direction but no error is
-signaled.
+A positive @var{delta} moves the edge downwards or to the right; a
+negative @var{delta} moves it upwards or to the left.  If the edge
+cannot be moved as far as specified by @var{delta}, this function
+moves it as far as possible but does not signal a error.
 
 This function tries to resize windows adjacent to the edge that is
-moved.  Only if this is insufficient, it will also resize windows not
-adjacent to that edge.  As a consequence, if you move an edge in one
-direction and back in the other direction by the same amount, the
-resulting window configuration will not be necessarily identical to the
-one before the first move.  So if your intend to just resize
-@var{window}, you should not use this function but call
-@code{window-resize} (see above) instead.
+moved.  If this is not possible for some reason (e.g. if that adjacent
+window is fixed-size), it may resize other windows.
 @end defun
 
+  The following commands resize windows in more specific ways.  When
+called interactively, they act on the selected window.
+
 @deffn Command fit-window-to-buffer &optional window max-height min-height override
-This command makes @var{window} the right height to display its
-contents exactly.  The default for @var{window} is the selected window.
+This command adjusts the height of @var{window} to fit the text in it.
+It returns non-@code{nil} if it was able to resize @var{window}, and
+@code{nil} otherwise.  If @var{window} is omitted or @code{nil}, it
+defaults to the selected window.  Otherwise, it should be a live
+window.
 
-The optional argument @var{max-height} specifies the maximum total
-height the window is allowed to be; @code{nil} means use the maximum
-permissible height of a window on @var{window}'s frame.  The optional
-argument @var{min-height} specifies the minimum total height for the
-window; @code{nil} means use @code{window-min-height}.  All these height
-values include the mode line and/or header line.
+The optional argument @var{max-height}, if non-@code{nil}, specifies
+the maximum total height that this function can give @var{window}.
+The optional argument @var{min-height}, if no-@code{nil}, specifies
+the minimum total height that it can give, which overrides the
+variable @code{window-min-height}.
 
-If the optional argument @var{override} is non-@code{nil}, this means to
-ignore any restrictions imposed by @code{window-min-height} and
-@code{window-min-width} on the size of @var{window}.
-
-This function returns non-@code{nil} if it orderly resized @var{window},
-and @code{nil} otherwise.
+If the optional argument @var{override} is non-@code{nil}, this
+function ignores any size restrictions imposed by
+@code{window-min-height} and @code{window-min-width}.
 @end deffn
 
 @deffn Command shrink-window-if-larger-than-buffer &optional window
-This command shrinks @var{window} vertically to be as small as possible
-while still showing the full contents of its buffer---but not less than
-@code{window-min-height} lines.  The argument @var{window} must denote
-a live window and defaults to the selected one.
+This command attempts to reduce @var{window}'s height as much as
+possible while still showing its full buffer, but no less than
+@code{window-min-height} lines.  The return value is non-@code{nil} if
+the window was resized, and @code{nil} otherwise.  If @var{window} is
+omitted or @code{nil}, it defaults to the selected window.  Otherwise,
+it should be a live window.
 
-However, this command does nothing if the window is already too small to
-display the whole text of the buffer, or if part of the contents are
-currently scrolled off screen, or if the window is not the full width of
-its frame, or if the window is the only window in its frame.
-
-This command returns non-@code{nil} if it actually shrank the window
-and @code{nil} otherwise.
+This command does nothing if the window is already too short to
+display all of its buffer, or if any of the buffer is scrolled
+off-screen, or if the window is the only live window in its frame.
 @end deffn
 
 @cindex balancing window sizes
-Emacs provides two functions to balance windows, that is, to even out
-the sizes of all windows on the same frame.  The minibuffer window and
-fixed-size windows are not resized by these functions.
-
 @deffn Command balance-windows &optional window-or-frame
 This function balances windows in a way that gives more space to
 full-width and/or full-height windows.  If @var{window-or-frame}
 specifies a frame, it balances all windows on that frame.  If
-@var{window-or-frame} specifies a window, it balances that window and
-its siblings (@pxref{Windows and Frames}) only.
+@var{window-or-frame} specifies a window, it balances only that window
+and its siblings (@pxref{Windows and Frames}).
 @end deffn
 
 @deffn Command balance-windows-area
 This function attempts to give all windows on the selected frame
-approximately the same share of the screen area.  This means that
-full-width or full-height windows are not given more space than other
-windows.
+approximately the same share of the screen area.  Full-width or
+full-height windows are not given more space than other windows.
 @end deffn
 
 @cindex maximizing windows
-The following function can be used to give a window the maximum possible
-size without deleting other ones.
-
 @deffn Command maximize-window &optional window
-This function maximizes @var{window}.  More precisely, this makes
-@var{window} as large as possible without resizing its frame or deleting
-other windows.  @var{window} can be any window and defaults to the
-selected one.
+This function attempts to make @var{window} as large as possible, in
+both dimensions, without resizing its frame or deleting other windows.
+If @var{window} is omitted or @code{nil}, it defaults to the selected
+window.
 @end deffn
 
 @cindex minimizing windows
-To make a window as small as possible without deleting it the
-following function can be used.
-
 @deffn Command minimize-window &optional window
-This function minimizes @var{window}.  More precisely, this makes
-@var{window} as small as possible without deleting it or resizing its
-frame.  @var{window} can be any window and defaults to the selected one.
+This function attempts to make @var{window} as small as possible, in
+both dimensions, without deleting it or resizing its frame.  If
+@var{window} is omitted or @code{nil}, it defaults to the selected
+window.
 @end deffn
 
 
@@ -719,7 +739,7 @@ This function creates a new live window next to the window
 to the selected window.  That window is ``split'', and reduced in
 size.  The space is taken up by the new window, which is returned.
 
-The optional second argument @var{size} determines the sizes of the
+The optional second argument @var{size} determines the sizes of
 @var{window} and/or the new window.  If it is omitted or @code{nil},
 both windows are given equal sizes; if there is an odd line, it is
 allocated to the new window.  If @var{size} is a positive number,
@@ -765,10 +785,10 @@ lieu of the usual action of @code{split-window}.
 
   As an example, we show a combination of @code{split-window} calls
 that yields the window configuration discussed in @ref{Windows and
-Frames}.  This example demonstrates splitting live windows as well as
-splitting internal windows.  We begin with a frame containing a single
-window (a live root window), which we denote by @var{W4}.  Calling
-@code{(split-window W3)} yields this window configuration:
+Frames}.  This example demonstrates splitting a live window as well as
+splitting an internal window.  We begin with a frame containing a
+single window (a live root window), which we denote by @var{W4}.
+Calling @code{(split-window W3)} yields this window configuration:
 
 @smallexample
 @group
@@ -816,10 +836,9 @@ internal window @var{W3} as the argument.  The result:
 @end smallexample
 
 @noindent
-A new live window, @var{W2}, is created to the left of @var{W3} (which
-encompasses the vertical window combination of @var{W4} and @var{W5}).
-A new internal window @var{W1} is also created, and becomes the new
-root window.
+A new live window @var{W2} is created, to the left of the internal
+window @var{W3}.  A new internal window @var{W1} is created, becoming
+the new root window.
 
   The following two options can be used to modify the operation of
 @code{split-window}.

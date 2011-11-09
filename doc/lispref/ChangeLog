@@ -1,3 +1,11 @@
+2011-11-09  Chong Yidong  <cyd@gnu.org>
+
+	* windows.texi (Window Sizes): Document window-pixel-edges,
+	window-inside-pixel-edges. window-absolute-pixel-edges, and
+	window-inside-absolute-pixel-edges.
+	(Resizing Windows): shrink-window-if-larger-than-buffer works on
+	non-full-width windows.
+
 2011-11-09  Martin Rudalics  <rudalics@gmx.at>
 
 	* windows.texi (Resizing Windows): Rewrite documentation of
