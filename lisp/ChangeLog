@@ -14,6 +14,12 @@
 	(compilation-next-error-function): Obey the target buffer's
 	compilation-error-screen-columns.
 
+2011-11-09  Juanma Barranquero  <lekktu@gmail.com>
+
+	* progmodes/meta-mode.el: Remove obsolete comments.
+	(meta-right-comment-regexp, meta-ignore-comment-regexp):
+	Fix typos in docstrings.
+
 2011-11-09  Martin Rudalics  <rudalics@gmx.at>
 
 	* window.el (window-size-fixed-p): Rewrite doc-string.

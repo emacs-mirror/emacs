@@ -2155,7 +2155,7 @@ during jdb initialization depending on the value of
 		   string
 		   (concat "[ \t\n\r,\"" path-separator "]+")))))
 
-;; See comentary for other debugger's marker filters - there you will find
+;; See commentary for other debugger's marker filters - there you will find
 ;; important notes about STRING.
 (defun gud-jdb-marker-filter (string)
 
