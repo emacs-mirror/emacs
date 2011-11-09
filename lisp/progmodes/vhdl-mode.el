@@ -3510,7 +3510,7 @@ STRING are replaced by `-' and substrings are converted to lower case."
 			menu-list))
 	    (setq comp-alist (cdr comp-alist)))
 	  (setq menu-list (nreverse menu-list))
-	  (vhdl-menu-split menu-list "Compler")))
+	  (vhdl-menu-split menu-list "Compiler")))
       ["Use Local Error Regexp"
        (customize-set-variable 'vhdl-compile-use-local-error-regexp
 			       (not vhdl-compile-use-local-error-regexp))

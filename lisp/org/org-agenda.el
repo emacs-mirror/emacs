@@ -764,7 +764,7 @@ because you will take care of it on the day when scheduled."
   :group 'org-agenda-skip
   :group 'org-agenda-daily/weekly
   :type '(choice
-	  (const :tag "Alwas show prewarning" nil)
+	  (const :tag "Always show prewarning" nil)
 	  (const :tag "Remove prewarning if entry is scheduled" t)
 	  (integer :tag "Restart prewarning N days before deadline")))
 
@@ -1388,13 +1388,13 @@ When nil, such items are sorted as 0 minutes effort."
     (tags  . " %i %-12:c")
     (search . " %i %-12:c"))
   "Format specifications for the prefix of items in the agenda views.
-An alist with five entries, each for the different agenda types.  The 
-keys of the sublists are `agenda', `timeline', `todo', `search' and `tags'.  
+An alist with five entries, each for the different agenda types.  The
+keys of the sublists are `agenda', `timeline', `todo', `search' and `tags'.
 The values are format strings.
 
 This format works similar to a printf format, with the following meaning:
 
-  %c   the category of the item, \"Diary\" for entries from the diary, 
+  %c   the category of the item, \"Diary\" for entries from the diary,
        or as given by the CATEGORY keyword or derived from the file name
   %i   the icon category of the item, see `org-agenda-category-icon-alist'
   %T   the last tag of the item (ignore inherited tags, which come first)
@@ -1408,10 +1408,10 @@ contain two additional characters:  a question mark just after the `%'
 and a whitespace/punctuation character just before the final letter.
 
 If the first character after `%' is a question mark, the entire field
-will only be included if the corresponding value applies to the current 
-entry.  This is useful for fields which should have fixed width when 
-present, but zero width when absent.  For example, \"%?-12t\" will 
-result in a 12 character time field if a time of the day is specified, 
+will only be included if the corresponding value applies to the current
+entry.  This is useful for fields which should have fixed width when
+present, but zero width when absent.  For example, \"%?-12t\" will
+result in a 12 character time field if a time of the day is specified,
 but will completely disappear in entries which do not contain a time.
 
 If there is punctuation or whitespace character just before the final
@@ -1420,7 +1420,7 @@ the value is not empty.  For example, the format \"%-12:c\" leads to
 \"Diary: \" if the category is \"Diary\".  If the category were be
 empty, no additional colon would be inserted.
 
-The default value for the agenda sublist is \"  %-12:c%?-12t% s\", 
+The default value for the agenda sublist is \"  %-12:c%?-12t% s\",
 which means:
 
 - Indent the line with two space characters
@@ -1697,7 +1697,7 @@ For example, this value makes those two functions available:
     (?C bulk-cut))
 
 With selected entries in an agenda buffer, `B R' will call
-the custom function `set-category' on the selected entries.  
+the custom function `set-category' on the selected entries.
 Note that functions in this alist don't need to be quoted."
   :type 'alist
   :group 'org-agenda)
@@ -5003,9 +5003,9 @@ See also the user option `org-agenda-clock-consistency-checks'."
 		     "\\(-\\{1,3\\}\\(\\[.*?\\]\\)\\)?")) ; group 3 is second
 	 (tlstart 0.)
 	 (tlend 0.)
-	 (maxtime (org-hh:mm-string-to-minutes 
+	 (maxtime (org-hh:mm-string-to-minutes
 		   (or (plist-get pl :max-duration) "24:00")))
-	 (mintime (org-hh:mm-string-to-minutes 
+	 (mintime (org-hh:mm-string-to-minutes
 		   (or (plist-get pl :min-duration) 0)))
 	 (maxgap  (org-hh:mm-string-to-minutes
 		   ;; default 30:00 means never complain

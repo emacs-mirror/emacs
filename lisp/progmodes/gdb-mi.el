@@ -1965,7 +1965,7 @@ Sets `gdb-thread-number' to new id."
   (setq gud-running t)
   ;; GDB doesn't seem to respond to -thread-info before first stop or
   ;; thread exit (even in non-stop mode), so this is useless.
-  ;; Behaviour may change in the future.
+  ;; Behavior may change in the future.
   (gdb-emit-signal gdb-buf-publisher 'update-threads))
 
 ;; -break-insert -t didn't give a reason before gdb 6.9

@@ -689,7 +689,7 @@ The following commands are available:
       (dolist (key smime-keys)
 	(insert
 	 (format "\t\t%s: %s\n" (car key) (cadr key))))
-      (insert "\nTrusted Certificate Authoritys:\n")
+      (insert "\nTrusted Certificate Authorities:\n")
       (insert "\nKnown Certificates:\n"))))
 
 (defun smime ()

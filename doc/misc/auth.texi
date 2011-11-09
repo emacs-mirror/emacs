@@ -64,13 +64,13 @@ It is a way for multiple applications to share a single configuration
 
 @menu
 * Overview::                    Overview of the auth-source library.
-* Help for users::              
-* Secret Service API::          
-* Help for developers::         
-* GnuPG and EasyPG Assistant Configuration::  
-* Index::                       
-* Function Index::              
-* Variable Index::              
+* Help for users::
+* Secret Service API::
+* Help for developers::
+* GnuPG and EasyPG Assistant Configuration::
+* Index::
+* Function Index::
+* Variable Index::
 @end menu
 @end ifnottex
 
@@ -182,7 +182,7 @@ Here's a mixed example using two sources:
 If you don't customize @code{auth-sources}, you'll have to live with
 the defaults: any host and any port are looked up in the netrc
 file @code{~/.authinfo.gpg}, which is a GnuPG encrypted file
-(@pxref{GnuPG and EasyPG Assistant Configuration}).  
+(@pxref{GnuPG and EasyPG Assistant Configuration}).
 
 If that fails, the unencrypted netrc files @code{~/.authinfo} and
 @code{~/.netrc} will be used.
@@ -340,7 +340,7 @@ If you are using earlier versions of Emacs, you will need:
 @end lisp
 
 If you want your GnuPG passwords to be cached, set up @code{gpg-agent}
-or EasyPG Assitant
+or EasyPG Assistant
 (@pxref{Caching Passphrases, , Caching Passphrases, epa}).
 
 To quick start, here are some questions:
