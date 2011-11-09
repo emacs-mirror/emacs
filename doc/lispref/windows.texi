@@ -553,7 +553,7 @@ changed except by resizing the frame (@pxref{Size and Position}).
 arguments.  Resizing an internal window causes its child windows to be
 resized to fit the same space.
 
-@defun window-resizable window delta &optional horizontal ignore side noup nodown
+@defun window-resizable window delta &optional horizontal ignore
 This function returns @var{delta} if the size of @var{window} can be
 changed vertically by @var{delta} lines.  If the optional argument
 @var{horizontal} is non-@code{nil}, it instead returns @var{delta} if
@@ -562,10 +562,11 @@ does not actually change the window size.
 
 If @var{window} is @code{nil}, it defaults to the selected window.
 
-A positive value of @var{delta} enlarges the window by that number of
-lines or columns; a negative value of @var{delta} shrinks it.  If
-@var{delta} is non-zero, a return value of 0 means that the window
-cannot be resized.
+A positive value of @var{delta} means to check whether the window can be
+enlarged by that number of lines or columns; a negative value of
+@var{delta} means to check whether the window can be shrunk by that many
+lines or columns.  If @var{delta} is non-zero, a return value of 0 means
+that the window cannot be resized.
 
 Normally, the variables @code{window-min-height} and
 @code{window-min-width} specify the smallest allowable window size.
@@ -577,12 +578,6 @@ Instead, it considers the minimum-height window to be one consisting
 of a header (if any), a mode line, plus a text area one line tall; and
 a minimum-width window as one consisting of fringes, margins, and
 scroll bar (if any), plus a text area two columns wide.
-
-If the optional argument @var{noup} is non-@code{nil}, this function
-considers a resize operation that does not alter the window parent of
-@var{window}, only its siblings.  If the optional argument
-@var{nodown} is non-@code{nil}, it does not attempt to check whether
-@var{window} itself and its child windows can be resized.
 @end defun
 
 @defun window-resize window delta &optional horizontal ignore

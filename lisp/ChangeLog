@@ -1,3 +1,12 @@
+2011-11-09  Martin Rudalics  <rudalics@gmx.at>
+
+	* window.el (window-size-fixed-p): Rewrite doc-string.
+	(window-resizable-p): Rename to window--resizable-p.  Update
+	callers.
+	(window--resizable): New function.  Make all callers of
+	window-resizable call window--resizable instead.
+	(window-resizable): Rewrite in terms of window--resizable.
+
 2011-11-08  Glenn Morris  <rgm@gnu.org>
 
 	* progmodes/delphi.el (delphi-mode-syntax-table):

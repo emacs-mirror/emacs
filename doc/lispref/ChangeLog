@@ -1,3 +1,8 @@
+2011-11-09  Martin Rudalics  <rudalics@gmx.at>
+
+	* windows.texi (Resizing Windows): Rewrite documentation of
+	window-resizable.
+
 2011-11-09  Chong Yidong  <cyd@gnu.org>
 
 	* windows.texi (Splitting Windows): Simplify example.
