@@ -1,3 +1,8 @@
+2011-11-10  Glenn Morris  <rgm@gnu.org>
+
+	* buffers.texi (Read Only Buffers): Expand a bit on why
+	toggle-read-only should only be used interactively.  (Bug#7292)
+
 2011-11-09  Chong Yidong  <cyd@gnu.org>
 
 	* windows.texi (Window Sizes): Document window-pixel-edges,

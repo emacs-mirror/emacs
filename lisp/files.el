@@ -4686,7 +4686,15 @@ prints a message in the minibuffer.  Instead, use `set-buffer-modified-p'."
   "Change whether this buffer is read-only.
 With prefix argument ARG, make the buffer read-only if ARG is
 positive, otherwise make it writable.  If buffer is read-only
-and `view-read-only' is non-nil, enter view mode."
+and `view-read-only' is non-nil, enter view mode.
+
+This function is usually the wrong thing to use in a Lisp program.
+It can have side-effects beyond changing the read-only status of a buffer
+\(e.g., enabling view mode), and does not affect read-only regions that
+are caused by text properties.  To make a buffer read-only in Lisp code,
+set `buffer-read-only'.  To ignore read-only status (whether due to text
+properties or buffer state) and make changes, temporarily bind
+`inhibit-read-only'."
   (interactive "P")
   (if (and arg
            (if (> (prefix-numeric-value arg) 0) buffer-read-only
