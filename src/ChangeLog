@@ -1,3 +1,22 @@
+2011-11-10  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Standardize on VIRT_ADDR_VARIES behavior; otherwise, valgrind
+	does not work on some platforms.  Problem reported by Andreas Schwab in
+	<http://lists.gnu.org/archive/html/emacs-devel/2011-11/msg00081.html>.
+	* puresize.h (pure, PURE_P): Always behave as if VIRT_ADDR_VARIES
+	is set, removing the need for VIRT_ADDRESS_VARIES.
+	(PURE_P): Use a more-efficient implementation that needs just one
+	comparison, not two: on x86-64 with GCC 4.6.2, this cut down the
+	number of instructions from 6 (xorl, cmpq, jge, xorl, cmpq, setge)
+	to 4 (xorl, subq, cmpq, setbe).
+	* alloc.c (pure): Always extern now, since that's the
+	VIRT_ADDR_VARIES behavior.
+	(PURE_POINTER_P): Use a single comparison, not two, for
+	consistency with the new puresize.h.
+	* lisp.h (PNTR_COMPARISON_TYPE): Remove; no longer needed.
+	* m/ibms390.h, m/intel386.h, m/template.h, s/cygwin.h, s/hpux10-20.h:
+	Remove VIRT_ADDR_VARIES no longer needed.
+
 2011-11-09  Chong Yidong  <cyd@gnu.org>
 
 	* window.c (Fwindow_inside_edges, Fwindow_inside_pixel_edges)

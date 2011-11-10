@@ -203,9 +203,6 @@ static int malloc_hysteresis;
    remapping on more recent systems because this is less important
    nowadays than in the days of small memories and timesharing.  */
 
-#ifndef VIRT_ADDR_VARIES
-static
-#endif
 EMACS_INT pure[(PURESIZE + sizeof (EMACS_INT) - 1) / sizeof (EMACS_INT)] = {1,};
 #define PUREBEG (char *) pure
 
@@ -222,10 +219,7 @@ static ptrdiff_t pure_bytes_used_before_overflow;
 /* Value is non-zero if P points into pure space.  */
 
 #define PURE_POINTER_P(P)					\
-     (((PNTR_COMPARISON_TYPE) (P)				\
-       < (PNTR_COMPARISON_TYPE) ((char *) purebeg + pure_size))	\
-      && ((PNTR_COMPARISON_TYPE) (P)				\
-	  >= (PNTR_COMPARISON_TYPE) purebeg))
+  ((uintptr_t) (P) - (uintptr_t) purebeg <= pure_size)
 
 /* Index in pure at which next pure Lisp object will be allocated.. */
 

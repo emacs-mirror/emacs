@@ -100,14 +100,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
    header sections which lose when `static' is defined away, as it is
    on HP-UX.  (You get duplicate symbol errors on linking). */
 #undef _FILE_OFFSET_BITS
-
-/* Define VIRT_ADDR_VARIES if the virtual addresses of
-   pure and impure space as loaded can vary, and even their
-   relative order cannot be relied on.
-
-   Otherwise Emacs assumes that text space precedes data space,
-   numerically.  */
-#define VIRT_ADDR_VARIES
 
 /* The data segment on this machine always starts at address 0x40000000.  */
 #define DATA_SEG_BITS 0x40000000
