@@ -1,3 +1,10 @@
+2011-11-10  Glenn Morris  <rgm@gnu.org>
+
+	* emacs-lisp/bytecomp.el (byte-compile-interactive-only-functions):
+	Add toggle-read-only.  (Bug#7292)
+	* files.el (toggle-read-only): Mention that it should only
+	be used interactively.  (Bug#10006)
+
 2011-11-09  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* progmodes/compile.el (compilation-error-regexp-alist-alist):
