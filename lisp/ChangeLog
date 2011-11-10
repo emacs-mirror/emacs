@@ -1,5 +1,10 @@
 2011-11-10  Glenn Morris  <rgm@gnu.org>
 
+	* vc/vc-svn.el (vc-svn-create-repo, vc-svn-modify-change-comment):
+	Call svn via vc-svn-command rather than vc-do-command.
+	(vc-svn-command): Add --non-interactive.  (Bug#9993)
+	(vc-svn-update, vc-svn-merge-news): No need for --non-interactive.
+
 	* emacs-lisp/bytecomp.el (byte-compile-interactive-only-functions):
 	Add toggle-read-only.  (Bug#7292)
 	* files.el (toggle-read-only): Mention that it should only
