@@ -22121,6 +22121,12 @@ fill_composite_glyph_string (struct glyph_string *s, struct face *base_face,
     }
   s->cmp_to = i;
 
+  if (s->face == NULL)
+    {
+      s->face = base_face->ascii_face;
+      s->font = s->face->font;
+    }
+
   /* All glyph strings for the same composition has the same width,
      i.e. the width set for the first component of the composition.  */
   s->width = s->first_glyph->pixel_width;

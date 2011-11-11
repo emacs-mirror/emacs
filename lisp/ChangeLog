@@ -1,3 +1,8 @@
+2011-11-11  Glenn Morris  <rgm@gnu.org>
+
+	* subr.el (eval-after-load): If FILE is already loaded,
+	evaluate FORM before it gets wrapped in more stuff.  (Bug#10009)
+
 2011-11-10  Glenn Morris  <rgm@gnu.org>
 
 	* vc/vc-svn.el (vc-svn-create-repo, vc-svn-modify-change-comment):

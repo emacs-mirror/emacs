@@ -1797,30 +1797,29 @@ This function makes or adds to an entry on `after-load-alist'."
       (push elt after-load-alist))
     ;; Make sure `form' is evalled in the current lexical/dynamic code.
     (setq form `(funcall ',(eval `(lambda () ,form) lexical-binding)))
-    (when (symbolp regexp-or-feature)
-      ;; For features, the after-load-alist elements get run when `provide' is
-      ;; called rather than at the end of the file.  So add an indirection to
-      ;; make sure that `form' is really run "after-load" in case the provide
-      ;; call happens early.
-      (setq form
-            `(when load-file-name
-               (let ((fun (make-symbol "eval-after-load-helper")))
-                 (fset fun `(lambda (file)
-                              (if (not (equal file ',load-file-name))
-                                  nil
-                                (remove-hook 'after-load-functions ',fun)
-                                ,',form)))
-                 (add-hook 'after-load-functions fun)))))
-    ;; Add FORM to the element unless it's already there.
-    (unless (member form (cdr elt))
-      (nconc elt (purecopy (list form))))
-
     ;; Is there an already loaded file whose name (or `provide' name)
     ;; matches FILE?
-    (if (if (stringp file)
-	    (load-history-filename-element regexp-or-feature)
-	  (featurep file))
-	(eval form))))
+    (prog1 (if (if (stringp file)
+		   (load-history-filename-element regexp-or-feature)
+		 (featurep file))
+	       (eval form))
+      (when (symbolp regexp-or-feature)
+	;; For features, the after-load-alist elements get run when `provide' is
+	;; called rather than at the end of the file.  So add an indirection to
+	;; make sure that `form' is really run "after-load" in case the provide
+	;; call happens early.
+	(setq form
+	      `(when load-file-name
+		 (let ((fun (make-symbol "eval-after-load-helper")))
+		   (fset fun `(lambda (file)
+				(if (not (equal file ',load-file-name))
+				    nil
+				  (remove-hook 'after-load-functions ',fun)
+				  ,',form)))
+		   (add-hook 'after-load-functions fun)))))
+      ;; Add FORM to the element unless it's already there.
+      (unless (member form (cdr elt))
+	(nconc elt (purecopy (list form)))))))
 
 (defvar after-load-functions nil
   "Special hook run after loading a file.
