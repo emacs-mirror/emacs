@@ -27974,7 +27974,6 @@ syms_of_xdisp (void)
   DEFSYM (Qhollow, "hollow");
   DEFSYM (Qhand, "hand");
   DEFSYM (Qarrow, "arrow");
-  DEFSYM (Qtext, "text");
   DEFSYM (Qinhibit_free_realized_faces, "inhibit-free-realized-faces");
 
   list_of_error = Fcons (Fcons (intern_c_string ("error"),
