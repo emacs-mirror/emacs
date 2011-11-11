@@ -8961,7 +8961,7 @@ This expects NAME TYPE IDLWAVE-TWIN-CLASS to be bound to the right values."
     (nth 1 source)))
 
 (defun idlwave-downcase-safe (string)
-  "Donwcase if string, else return unchanged."
+  "Downcase if string, else return unchanged."
   (if (stringp string)
       (downcase string)
     string))

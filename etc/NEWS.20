@@ -2047,7 +2047,7 @@ standard fontset are created automatically.
 
 If you specify a default ASCII font with the `Font' resource or `-fn'
 argument, a fontset is generated from it.  This works by replacing the
-FOUNDARY, FAMILY, ADD_STYLE, and AVERAGE_WIDTH fields of the font name
+FOUNDRY, FAMILY, ADD_STYLE, and AVERAGE_WIDTH fields of the font name
 with `*' then using this to specify a fontset.  This fontset's short
 name is `fontset-startup'.
 

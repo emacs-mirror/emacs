@@ -427,7 +427,7 @@ See `semantic-edits-change-leaf-tag' for details on parents."
 	    ;; which must have a value by now.
 
 	    ;; Loop over the search list to find the preceding CDR.
-	    ;; Fortunatly, (car overlapped-tags) happens to be
+	    ;; Fortunately, (car overlapped-tags) happens to be
 	    ;; the first tag positionally.
 	    (let ((tokstart (semantic-tag-start (car overlapped-tags))))
 	      (while (and list-to-search

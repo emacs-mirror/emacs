@@ -75,7 +75,7 @@
 This is used by `semantic-mode' and `global-ede-mode'.")
 
 (defun cedet-version ()
-  "Display all active versions of CEDET and Dependant packages.
+  "Display all active versions of CEDET and Dependent packages.
 
 The PACKAGE column is the name of a given package from CEDET.
 

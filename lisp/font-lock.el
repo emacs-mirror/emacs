@@ -1742,7 +1742,7 @@ If SYNTACTIC-KEYWORDS is non-nil, it means these keywords are used for
 	 keyword)))
 
 (defun font-lock-eval-keywords (keywords)
-  "Evalulate KEYWORDS if a function (funcall) or variable (eval) name."
+  "Evaluate KEYWORDS if a function (funcall) or variable (eval) name."
   (if (listp keywords)
       keywords
     (font-lock-eval-keywords (if (fboundp keywords)
