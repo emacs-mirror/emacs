@@ -3,7 +3,9 @@
 	* window.el (windows-with-parameter): Remove unused function.
 	(windows-at-side): Rename to window-at-side-list.
 	(window-check, window-atom-check, window-atom-check-1)
-	(window-side-check): Prefix with "window--".
+	(window-side-check, window-size-ignore, window-size-fixed-1)
+	(window-in-direction-2): Prefix with "window--".
+	(window-tree-1): Rename to window--subtree, fix doc-string.
 
 2011-11-11  Glenn Morris  <rgm@gnu.org>
 
