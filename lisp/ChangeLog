@@ -1,3 +1,10 @@
+2011-11-11  Martin Rudalics  <rudalics@gmx.at>
+
+	* window.el (windows-with-parameter): Remove unused function.
+	(windows-at-side): Rename to window-at-side-list.
+	(window-check, window-atom-check, window-atom-check-1)
+	(window-side-check): Prefix with "window--".
+
 2011-11-11  Glenn Morris  <rgm@gnu.org>
 
 	* subr.el (eval-after-load): If FILE is already loaded,

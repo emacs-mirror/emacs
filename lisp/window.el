@@ -292,28 +292,6 @@ is unpredictable."
   (setq window (window-normalize-window window))
   (walk-window-tree-1 proc window any t))
 
-(defun windows-with-parameter (parameter &optional value frame any values)
-  "Return a list of all windows on FRAME with PARAMETER non-nil.
-FRAME defaults to the selected frame.  Optional argument VALUE
-non-nil means only return windows whose window-parameter value of
-PARAMETER equals VALUE \(comparison is done using `equal').
-Optional argument ANY non-nil means consider internal windows
-too.  Optional argument VALUES non-nil means return a list of cons
-cells whose car is the value of the parameter and whose cdr is
-the window."
-  (let (this-value windows)
-    (walk-window-tree
-     (lambda (window)
-       (when (and (setq this-value (window-parameter window parameter))
-		  (or (not value) (or (equal value this-value))))
-	   (setq windows
-		 (if values
-		     (cons (cons this-value window) windows)
-		   (cons window windows)))))
-     frame any)
-
-    (nreverse windows)))
-
 (defun window-with-parameter (parameter &optional value frame any)
   "Return first window on FRAME with PARAMETER non-nil.
 FRAME defaults to the selected frame.  Optional argument VALUE
@@ -353,8 +331,8 @@ WINDOW must be an internal window.  Return WINDOW."
      window t)
     window))
 
-(defun window-atom-check-1 (window)
-  "Subroutine of `window-atom-check'."
+(defun window--atom-check-1 (window)
+  "Subroutine of `window--atom-check'."
   (when window
     (if (window-parameter window 'window-atom)
 	(let ((count 0))
@@ -375,18 +353,18 @@ WINDOW must be an internal window.  Return WINDOW."
 	     window t)))
       ;; Check children.
       (unless (window-buffer window)
-	(window-atom-check-1 (window-left-child window))
-	(window-atom-check-1 (window-top-child window))))
+	(window--atom-check-1 (window-left-child window))
+	(window--atom-check-1 (window-top-child window))))
     ;; Check right sibling
-    (window-atom-check-1 (window-right window))))
+    (window--atom-check-1 (window-right window))))
 
-(defun window-atom-check (&optional frame)
+(defun window--atom-check (&optional frame)
   "Check atomicity of all windows on FRAME.
 FRAME defaults to the selected frame.  If an atomic window is
 wrongly configured, reset the atomicity of all its windows on
 FRAME to nil.  An atomic window is wrongly configured if it has
 no child windows or one of its child windows is not atomic."
-  (window-atom-check-1 (frame-root-window frame)))
+  (window--atom-check-1 (frame-root-window frame)))
 
 ;; Side windows.
 (defvar window-sides '(left top right bottom)
@@ -441,7 +419,7 @@ number of slots on that side."
      (integer :tag "Number" :value 3 :size 5)))
   :group 'windows)
 
-(defun window-side-check (&optional frame)
+(defun window--side-check (&optional frame)
   "Check the window-side parameter of all windows on FRAME.
 FRAME defaults to the selected frame.  If the configuration is
 invalid, reset all window-side parameters to nil.
@@ -512,11 +490,11 @@ A valid configuration has to preserve the following invariant:
 	 (set-window-parameter window 'window-side nil))
        frame t))))
 
-(defun window-check (&optional frame)
+(defun window--check (&optional frame)
   "Check atomic and side windows on FRAME.
 FRAME defaults to the selected frame."
-  (window-side-check frame)
-  (window-atom-check frame))
+  (window--side-check frame)
+  (window--atom-check frame))
 
 ;;; Window sizes.
 (defvar window-size-fixed nil
@@ -1106,7 +1084,7 @@ The default value nil is handled like `bottom'."
     (= (nth edge (window-edges window))
        (nth edge (window-edges (frame-root-window window))))))
 
-(defun windows-at-side (&optional frame side)
+(defun window-at-side-list (&optional frame side)
   "Return list of all windows on SIDE of FRAME.
 FRAME must be a live frame and defaults to the selected frame.
 SIDE can be any of the symbols `left', `top', `right' or
@@ -2379,7 +2357,7 @@ non-side window, signal an error."
 	 (function (window-parameter window 'delete-window))
 	 (parent (window-parent window))
 	 atom-root)
-    (window-check frame)
+    (window--check frame)
     (catch 'done
       ;; Handle window parameters.
       (cond
@@ -2433,7 +2411,7 @@ non-side window, signal an error."
 	  ;; not be selected, fix this here.
 	  (other-window -1 frame))
 	(run-window-configuration-change-hook frame)
-	(window-check frame)
+	(window--check frame)
 	;; Always return nil.
 	nil))))
 
@@ -2460,7 +2438,7 @@ window signal an error."
 	 (function (window-parameter window 'delete-other-windows))
 	 (window-side (window-parameter window 'window-side))
 	 atom-root side-main)
-    (window-check frame)
+    (window--check frame)
     (catch 'done
       (cond
        ;; Ignore window parameters if `ignore-window-parameters' is t or
@@ -2484,7 +2462,7 @@ window signal an error."
       (unless (eq window side-main)
 	(delete-other-windows-internal window side-main)
 	(run-window-configuration-change-hook frame)
-	(window-check frame))
+	(window--check frame))
       ;; Always return nil.
       nil)))
 
@@ -3111,7 +3089,7 @@ frame.  The selected window is not changed by this function."
 	 (window-nest window-nest)
 	 atom-root)
 
-    (window-check frame)
+    (window--check frame)
     (catch 'done
       (cond
        ;; Ignore window parameters if either `ignore-window-parameters'
@@ -3265,7 +3243,7 @@ frame.  The selected window is not changed by this function."
 	    (set-window-parameter new 'window-side window-side))
 
 	  (run-window-configuration-change-hook frame)
-	  (window-check frame)
+	  (window--check frame)
 	  ;; Always return the new window.
 	  new)))))
 
@@ -3885,7 +3863,7 @@ windows can get as small as `window-safe-min-height' and
 	(set-window-buffer window (current-buffer))
 	(window-state-put-1 state window nil totals)
 	(window-state-put-2 ignore))
-      (window-check frame))))
+      (window--check frame))))
 
 (defun display-buffer-record-window (type window buffer)
   "Record information for window used by `display-buffer'.
