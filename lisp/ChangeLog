@@ -1,3 +1,9 @@
+2011-11-11  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* electric.el (electric-indent-post-self-insert-function): Make it
+	possible for a char to only indent in some circumstances.
+	(electric-indent-mode): Simplify.
+
 2011-11-11  Martin Rudalics  <rudalics@gmx.at>
 
 	* window.el (windows-with-parameter): Remove unused function.
