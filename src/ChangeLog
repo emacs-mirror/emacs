@@ -1,3 +1,8 @@
+2011-11-11  Kenichi Handa  <handa@m17n.org>
+
+	* callproc.c (Fcall_process): Set the member dst_multibyte of
+	process_coding.
+
 2011-11-11  Johan Bockgård  <bojohan@gnu.org>
 
 	* xdisp.c (fill_composite_glyph_string): Always set s->face, to
