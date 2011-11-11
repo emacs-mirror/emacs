@@ -249,7 +249,7 @@ Return the defined symbol as a special spp lex token."
 						 (point))))
 	   )
 
-      ;; Only do argument checking if the paren was immediatly after
+      ;; Only do argument checking if the paren was immediately after
       ;; the macro name.
       (if with-args
 	  (semantic-lex-spp-first-token-arg-list (car raw-stream)))

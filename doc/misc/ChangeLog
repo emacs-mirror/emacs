@@ -1,3 +1,7 @@
+2011-11-11  Juanma Barranquero  <lekktu@gmail.com>
+
+	* semantic.texi (Tag handling): Fix typo.
+
 2011-10-31  Katsumi Yamaoka  <yamaoka@jpl.org>
 
 	* gnus.texi (Other Gnus Versions): Remove.

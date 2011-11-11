@@ -296,7 +296,7 @@ This mode provides a nice context menu on the include statements."
 	;; Set ourselves up for synchronization
 	(semanticdb-cache-get
 	 table 'semantic-decoration-unparsed-include-cache)
-	;; Add a dependancy.
+	;; Add a dependency.
 	(let ((table semanticdb-current-table))
 	  (semanticdb-add-reference table tag))
 	)

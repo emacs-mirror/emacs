@@ -27,7 +27,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
    1. Font family name.
 
-   2. Font foundary name.
+   2. Font foundry name.
 
    3. Relative proportionate width, aka character set width or set
    width (swidth), e.g. `semi-compressed'.

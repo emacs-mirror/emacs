@@ -1,3 +1,8 @@
+2011-11-11  Juanma Barranquero  <lekktu@gmail.com>
+
+	* progmodes/idlw-shell.el (idlwave-shell-make-new-bp-overlay):
+	* textmodes/sgml-mode.el (html-tag-help): Fix typos.
+
 2011-11-11  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* electric.el (electric-indent-post-self-insert-function): Make it
