@@ -443,7 +443,7 @@ of master file."
 (defvar test-dummy)
 (defun reftex-index-info (file)
   ;; Return an index entry for the current match.
-  ;; Carefull: This function expects the match-data to be still in place!
+  ;; Careful: This function expects the match-data to be still in place!
   (catch 'exit
     (let* ((macro (reftex-match-string 10))
            (bom (match-beginning 10))

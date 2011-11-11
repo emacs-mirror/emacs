@@ -52,5 +52,5 @@ charprop-CMD: unidata-gen.elc unidata.txt
 ${DSTDIR}/charprop.el: charprop-$(SHELLTYPE)
 
 clean:
-	- $(DEL) unidata-gen.elc unidata.txt biditype.h bidimirror.h
+	- $(DEL) unidata-gen.elc unidata.txt
 

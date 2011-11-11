@@ -954,7 +954,7 @@ static int coords_in_mouse_face_p (struct window *, int, int);
 
    This is the height of W minus the height of a mode line, if any.  */
 
-inline int
+int
 window_text_bottom_y (struct window *w)
 {
   int height = WINDOW_TOTAL_HEIGHT (w);
@@ -968,7 +968,7 @@ window_text_bottom_y (struct window *w)
    means return the total width of W, not including fringes to
    the left and right of the window.  */
 
-inline int
+int
 window_box_width (struct window *w, int area)
 {
   int cols = XFASTINT (w->total_cols);
@@ -1007,7 +1007,7 @@ window_box_width (struct window *w, int area)
 /* Return the pixel height of the display area of window W, not
    including mode lines of W, if any.  */
 
-inline int
+int
 window_box_height (struct window *w)
 {
   struct frame *f = XFRAME (w->frame);
@@ -1054,7 +1054,7 @@ window_box_height (struct window *w)
    area AREA of window W.  AREA < 0 means return the left edge of the
    whole window, to the right of the left fringe of W.  */
 
-inline int
+int
 window_box_left_offset (struct window *w, int area)
 {
   int x;
@@ -1086,7 +1086,7 @@ window_box_left_offset (struct window *w, int area)
    area AREA of window W.  AREA < 0 means return the right edge of the
    whole window, to the left of the right fringe of W.  */
 
-inline int
+int
 window_box_right_offset (struct window *w, int area)
 {
   return window_box_left_offset (w, area) + window_box_width (w, area);
@@ -1096,7 +1096,7 @@ window_box_right_offset (struct window *w, int area)
    area AREA of window W.  AREA < 0 means return the left edge of the
    whole window, to the right of the left fringe of W.  */
 
-inline int
+int
 window_box_left (struct window *w, int area)
 {
   struct frame *f = XFRAME (w->frame);
@@ -1116,7 +1116,7 @@ window_box_left (struct window *w, int area)
    area AREA of window W.  AREA < 0 means return the right edge of the
    whole window, to the left of the right fringe of W.  */
 
-inline int
+int
 window_box_right (struct window *w, int area)
 {
   return window_box_left (w, area) + window_box_width (w, area);
@@ -1129,7 +1129,7 @@ window_box_right (struct window *w, int area)
    coordinates of the upper-left corner of the box.  Return in
    *BOX_WIDTH, and *BOX_HEIGHT the pixel width and height of the box.  */
 
-inline void
+void
 window_box (struct window *w, int area, int *box_x, int *box_y,
 	    int *box_width, int *box_height)
 {

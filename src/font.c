@@ -162,7 +162,7 @@ static struct font_driver_list *font_driver_list;
 
 
 
-/* Creaters of font-related Lisp object.  */
+/* Creators of font-related Lisp object.  */
 
 static Lisp_Object
 font_make_spec (void)

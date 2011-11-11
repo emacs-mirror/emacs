@@ -429,7 +429,7 @@ static Lisp_Object Vccl_program_table;
 
 #define CCL_Extension		0x1F /* Extended CCL code
 					1:ExtendedCOMMNDRrrRRRrrrXXXXX
-					2:ARGUEMENT
+					2:ARGUMENT
 					3:...
 					------------------------------
 					extended_command (rrr,RRR,Rrr,ARGS)

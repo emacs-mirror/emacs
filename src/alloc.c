@@ -315,6 +315,7 @@ static POINTER_TYPE *lisp_malloc (size_t, enum mem_type);
    on free lists recognizable in O(1).  */
 
 static Lisp_Object Vdead;
+#define DEADP(x) EQ (x, Vdead)
 
 #ifdef GC_MALLOC_CHECK
 
@@ -410,6 +411,10 @@ static void check_gcpros (void);
 #endif
 
 #endif /* GC_MARK_STACK || GC_MALLOC_CHECK */
+
+#ifndef DEADP
+# define DEADP(x) 0
+#endif
 
 /* Recording what needs to be marked for gc.  */
 
@@ -6261,7 +6266,7 @@ which_symbols (Lisp_Object obj, EMACS_INT find_max)
    int gc_count = inhibit_garbage_collection ();
    Lisp_Object found = Qnil;
 
-   if (!EQ (obj, Vdead))
+   if (! DEADP (obj))
      {
        for (sblk = symbol_block; sblk; sblk = sblk->next)
 	 {

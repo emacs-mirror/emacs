@@ -32,7 +32,7 @@
 ;; This hack is mainly to show off the char table stuff.
 ;;
 ;; New entry points, `rot13', `rot13-string', and `rot13-region' that
-;; performs Ceasar cipher encrypt/decrypt on buffers and strings, was
+;; performs Caesar cipher encrypt/decrypt on buffers and strings, was
 ;; added by Simon Josefsson.
 
 ;;; Code:

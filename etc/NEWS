@@ -621,6 +621,10 @@ view-diary-entries, list-diary-entries, show-all-diary-entries
 inserted by the compilation filter function, when calling
 compilation-filter-hook.
 
+*** `compilation-error-screen-columns' is obeyed in the editing buffer.
+So programming language modes can set it, whereas previously only the value
+in the *compilation* buffer was used.
+
 ** Customize
 
 *** Customize buffers now contain a search field.

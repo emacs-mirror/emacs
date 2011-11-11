@@ -1721,10 +1721,12 @@ not be a new one).  It returns non-nil if it got any new messages."
 		(setq all-files (cdr all-files)))
 	      ;; Put them back in their original order.
 	      (setq files (nreverse files))
-	      ;; In case of brain damage caused by require-final-newline.
 	      (goto-char (point-max))
-	      (skip-chars-backward " \t\n")
-	      (delete-region (point) (point-max))
+	      ;; Make sure we end with a blank line unless there are
+	      ;; no messages, as required by mbox format (Bug#9974).
+	      (unless (bobp)
+		(while (not (looking-back "\n\n"))
+		  (insert "\n")))
 	      (setq found (or
 			   (rmail-get-new-mail-1 file-name files delete-files)
 			   found))))
@@ -2024,22 +2026,12 @@ Value is the size of the newly read mail after conversion."
 		  (rmail-unrmail-new-mail-maybe
 		   tofile
 		   (nth 1 (insert-file-contents tofile))))
-	    ;; Determine if a pair of newline message separators need
-	    ;; to be added to the new collection of messages.  This is
-	    ;; the case for all new message collections added to a
-	    ;; non-empty mail file.
-	    (unless (zerop size)
-	      (save-restriction
-		(let ((start (point-min)))
-		  (widen)
-		  (unless (eq start (point-min))
-		    (goto-char start)
-		    (insert "\n\n")
-		    (setq size (+ 2 size))))))
 	    (goto-char (point-max))
-	    (or (= (preceding-char) ?\n)
-		(zerop size)
-		(insert ?\n))
+	    ;; Make sure the read-in mbox data properly ends with a
+	    ;; blank line unless it is of size 0.
+	    (unless (zerop size)
+	      (while (not (looking-back "\n\n"))
+		(insert "\n")))
 	    (if (not (and rmail-preserve-inbox (string= file tofile)))
 		(setq delete-files (cons tofile delete-files)))))
       (message "")

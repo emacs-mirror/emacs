@@ -257,7 +257,7 @@ request.")
     (if (not (equal extra-headers ""))
 	(setq extra-headers (concat extra-headers "\r\n")))
 
-    ;; This was done with a call to `format'.  Concatting parts has
+    ;; This was done with a call to `format'.  Concatenating parts has
     ;; the advantage of keeping the parts of each header together and
     ;; allows us to elide null lines directly, at the cost of making
     ;; the layout less clear.

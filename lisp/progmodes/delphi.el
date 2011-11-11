@@ -1959,10 +1959,6 @@ comment block.  If not in a // comment, just does a normal newline."
     kmap)
   "Keymap used in Delphi mode.")
 
-(defvar delphi-mode-syntax-table nil
-  "Delphi mode's syntax table.  It is just a standard syntax table.
-This is ok since we do our own keyword/comment/string face coloring.")
-
 ;;;###autoload
 (define-derived-mode delphi-mode prog-mode "Delphi"
   "Major mode for editing Delphi code. \\<delphi-mode-map>

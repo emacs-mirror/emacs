@@ -157,7 +157,7 @@ of[ \t]+\"?\\([a-zA-Z]?:?[^\":\n]+\\)\"?:" 3 2 nil (1))
 
     (python-tracebacks-and-caml
      "^[ \t]*File \\(\"?\\)\\([^,\" \n\t<>]+\\)\\1, lines? \\([0-9]+\\)-?\\([0-9]+\\)?\\(?:$\\|,\
-\\(?: characters? \\([0-9]+\\)-?\\([0-9]+\\)?:\\)?\\([ \n]Warning:\\)?\\)"
+\\(?: characters? \\([0-9]+\\)-?\\([0-9]+\\)?:\\)?\\([ \n]Warning\\(?: [0-9]+\\)?:\\)?\\)"
      2 (3 . 4) (5 . 6) (7))
 
     (comma
@@ -1056,7 +1056,7 @@ FMTS is a list of format specs for transforming the file name.
           (cadr (compilation--file-struct->loc-tree file-struct)))
 	 (marker
           (if marker-line (compilation--loc->marker (cadr marker-line))))
-	 (compilation-error-screen-columns compilation-error-screen-columns)
+	 (screen-columns compilation-error-screen-columns)
 	 end-marker loc end-loc)
     (if (not (and marker (marker-buffer marker)))
 	(setq marker nil)		; no valid marker for this file
@@ -1064,16 +1064,21 @@ FMTS is a list of format specs for transforming the file name.
       (catch 'marker			; find nearest loc, at least one exists
 	(dolist (x (cddr (compilation--file-struct->loc-tree
                           file-struct)))	; Loop over remaining lines.
-	  (if (> (car x) loc)		; still bigger
+	  (if (> (car x) loc)		; Still bigger.
 	      (setq marker-line x)
 	    (if (> (- (or (car marker-line) 1) loc)
-		   (- loc (car x)))	; current line is nearer
+		   (- loc (car x)))	; Current line is nearer.
 		(setq marker-line x))
 	    (throw 'marker t))))
       (setq marker (compilation--loc->marker (cadr marker-line))
 	    marker-line (or (car marker-line) 1))
       (with-current-buffer (marker-buffer marker)
-	(save-excursion
+        (let ((screen-columns
+               ;; Obey the compilation-error-screen-columns of the target
+               ;; buffer if its major mode set it buffer-locally.
+               (if (local-variable-p 'compilation-error-screen-columns)
+                   compilation-error-screen-columns screen-columns)))
+          (save-excursion
 	  (save-restriction
 	    (widen)
 	    (goto-char (marker-position marker))
@@ -1081,17 +1086,15 @@ FMTS is a list of format specs for transforming the file name.
 	      (beginning-of-line (- (or end-line line) marker-line -1))
 	      (if (or (null end-col) (< end-col 0))
 		  (end-of-line)
-		(compilation-move-to-column
-		 end-col compilation-error-screen-columns))
+		(compilation-move-to-column end-col screen-columns))
 	      (setq end-marker (point-marker)))
 	    (beginning-of-line (if end-line
 				   (- line end-line -1)
 				 (- loc marker-line -1)))
 	    (if col
-		(compilation-move-to-column
-		 col compilation-error-screen-columns)
+		(compilation-move-to-column col screen-columns)
 	      (forward-to-indentation 0))
-	    (setq marker (point-marker))))))
+	    (setq marker (point-marker)))))))
 
     (setq loc (compilation-assq line (compilation--file-struct->loc-tree
                                       file-struct)))
@@ -2266,7 +2269,7 @@ This is the value of `next-error-function' in Compilation buffers."
   (interactive "p")
   (when reset
     (setq compilation-current-error nil))
-  (let* ((columns compilation-error-screen-columns) ; buffer's local value
+  (let* ((screen-columns compilation-error-screen-columns)
 	 (last 1)
 	 (msg (compilation-next-error (or n 1) nil
 				      (or compilation-current-error
@@ -2301,29 +2304,34 @@ This is the value of `next-error-function' in Compilation buffers."
            marker
            (caar (compilation--loc->file-struct loc))
            (cadr (car (compilation--loc->file-struct loc))))
-	(save-restriction
-	  (widen)
-	  (goto-char (point-min))
-	  ;; Treat file's found lines in forward order, 1 by 1.
-	  (dolist (line (reverse (cddr (compilation--loc->file-struct loc))))
-	    (when (car line)		; else this is a filename w/o a line#
-	      (beginning-of-line (- (car line) last -1))
-	      (setq last (car line)))
-	    ;; Treat line's found columns and store/update a marker for each.
-	    (dolist (col (cdr line))
-	      (if (compilation--loc->col col)
-		  (if (eq (compilation--loc->col col) -1)
-                      ;; Special case for range end.
-		      (end-of-line)
-		    (compilation-move-to-column (compilation--loc->col col)
-                                                columns))
-		(beginning-of-line)
-		(skip-chars-forward " \t"))
-	      (if (compilation--loc->marker col)
-                  (set-marker (compilation--loc->marker col) (point))
-		(setf (compilation--loc->marker col) (point-marker)))
-              ;; (setf (compilation--loc->timestamp col) timestamp)
-              )))))
+        (let ((screen-columns
+               ;; Obey the compilation-error-screen-columns of the target
+               ;; buffer if its major mode set it buffer-locally.
+               (if (local-variable-p 'compilation-error-screen-columns)
+                   compilation-error-screen-columns screen-columns)))
+          (save-restriction
+            (widen)
+            (goto-char (point-min))
+            ;; Treat file's found lines in forward order, 1 by 1.
+            (dolist (line (reverse (cddr (compilation--loc->file-struct loc))))
+              (when (car line)		; else this is a filename w/o a line#
+                (beginning-of-line (- (car line) last -1))
+                (setq last (car line)))
+              ;; Treat line's found columns and store/update a marker for each.
+              (dolist (col (cdr line))
+                (if (compilation--loc->col col)
+                    (if (eq (compilation--loc->col col) -1)
+                        ;; Special case for range end.
+                        (end-of-line)
+                      (compilation-move-to-column (compilation--loc->col col)
+                                                  screen-columns))
+                  (beginning-of-line)
+                  (skip-chars-forward " \t"))
+                (if (compilation--loc->marker col)
+                    (set-marker (compilation--loc->marker col) (point))
+                  (setf (compilation--loc->marker col) (point-marker)))
+                ;; (setf (compilation--loc->timestamp col) timestamp)
+                ))))))
     (compilation-goto-locus marker (compilation--loc->marker loc)
                             (compilation--loc->marker end-loc))
     (setf (compilation--loc->visited loc) t)))

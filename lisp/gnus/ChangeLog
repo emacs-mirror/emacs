@@ -18491,7 +18491,7 @@
 2004-10-05  Jesper Harder  <harder@ifa.au.dk>
 
 	* nnsoup.el (nnsoup-read-active-file): Use dolist, mapc or last
-	where approriate.
+	where appropriate.
 
 	* nnml.el (nnml-generate-active-info): do.
 

@@ -774,7 +774,7 @@ to their attributes."
 	   (cons
 	    (1+ (length "password"))
 	    (mapcar
-	     ;; Atribute names have a leading ":", which will be suppressed.
+	     ;; Attribute names have a leading ":", which will be suppressed.
 	     (lambda (attribute) (length (symbol-name (car attribute))))
 	     attributes)))))
     (cons

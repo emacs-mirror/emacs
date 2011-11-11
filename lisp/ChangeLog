@@ -1,3 +1,120 @@
+2011-11-11  Glenn Morris  <rgm@gnu.org>
+
+	* subr.el (eval-after-load): If FILE is already loaded,
+	evaluate FORM before it gets wrapped in more stuff.  (Bug#10009)
+
+2011-11-10  Glenn Morris  <rgm@gnu.org>
+
+	* vc/vc-svn.el (vc-svn-create-repo, vc-svn-modify-change-comment):
+	Call svn via vc-svn-command rather than vc-do-command.
+	(vc-svn-command): Add --non-interactive.  (Bug#9993)
+	(vc-svn-update, vc-svn-merge-news): No need for --non-interactive.
+
+	* emacs-lisp/bytecomp.el (byte-compile-interactive-only-functions):
+	Add toggle-read-only.  (Bug#7292)
+	* files.el (toggle-read-only): Mention that it should only
+	be used interactively.  (Bug#10006)
+
+2011-11-09  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* progmodes/compile.el (compilation-error-regexp-alist-alist):
+	Adjust regexp for OCaml warnings.
+
+	* electric.el (electric-pair-post-self-insert-function): Let user
+	turn it off buffer-locally (bug#9932).
+
+	* progmodes/python.el (python-beginning-of-statement):
+	Rewrite (bug#2703).
+
+	* progmodes/compile.el: Better handle TABs (bug#9749).
+	(compilation-internal-error-properties)
+	(compilation-next-error-function): Obey the target buffer's
+	compilation-error-screen-columns.
+
+2011-11-09  Juanma Barranquero  <lekktu@gmail.com>
+
+	* progmodes/meta-mode.el: Remove obsolete comments.
+	(meta-right-comment-regexp, meta-ignore-comment-regexp):
+	Fix typos in docstrings.
+
+2011-11-09  Martin Rudalics  <rudalics@gmx.at>
+
+	* window.el (window-size-fixed-p): Rewrite doc-string.
+	(window-resizable-p): Rename to window--resizable-p.  Update callers.
+	(window--resizable): New function.  Make all callers of
+	window-resizable call window--resizable instead.
+	(window-resizable): Rewrite in terms of window--resizable.
+
+2011-11-08  Glenn Morris  <rgm@gnu.org>
+
+	* progmodes/delphi.el (delphi-mode-syntax-table):
+	Let define-derived-mode define a proper syntax table.  (Bug#9994)
+
+2011-11-08  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* window.el: Stay away from defsubst.
+	(window-list-no-nils): Remove.
+	(window-state-get-1, window-state-get): Use backquote instead.
+
+2011-11-08  thierry  <thierry.volpiatto@gmail.com>
+
+	* emacs-lisp/find-func.el (find-function-read):
+	Fix incorrect use of default argument in `completing-read'.
+
+2011-11-08  Martin Rudalics  <rudalics@gmx.at>
+
+	* window.el (display-buffer-function, special-display-function):
+	Mention display-buffer-record-window but do not mention
+	help-setup parameter in doc-strings.
+	(window-min-delta): Fix doc-string typo.
+
+2011-11-08  Chong Yidong  <cyd@gnu.org>
+
+	* window.el (window-total-height, window-total-width): Doc fix.
+	(window-body-size): Move from C.
+	(window-body-height, window-body-width): Move to C.
+
+2011-11-08  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* window.el: Make special-display like display-buffer-alist (bug#9532).
+	(display-buffer--special-action): New function, morphed
+	from display-buffer--special.
+	(display-buffer): Use it to handle special-display-buffers at higher
+	priority (just after display-buffer-alist).
+	(display-buffer-fallback-action, display-buffer--other-frame-action)
+	(pop-to-buffer-same-window): Remove display-buffer--special.
+
+2011-11-07  Glenn Morris  <rgm@gnu.org>
+
+	* calendar/cal-menu.el (cal-menu-set-date-title):
+	Do nothing if not in a calendar.  (Bug#9976)
+
+2011-11-07  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* files.el (find-file): Always use selected-window.
+
+2011-11-07  Martin Rudalics  <rudalics@gmx.at>
+
+	* window.el (window-combinations): Make WINDOW argument
+	mandatory.  Rewrite doc-string.
+	(walk-window-subtree, window-atom-check, window-min-delta)
+	(window-max-delta, window--resize-this-window)
+	(window--resize-root-window-vertically, window-tree)
+	(balance-windows, window-state-put): Rewrite doc-strings as to
+	not mention the term "subwindow".
+	(window--resize-subwindows-skip-p): Rename to
+	window--resize-child-windows-skip-p.
+	(window--resize-subwindows-normal): Rename to
+	window--resize-child-windows-normal.
+	(window--resize-subwindows): Rename to
+	window--resize-child-windows.
+	(window-or-subwindow-p): Rename to window--in-subtree-p.
+
+2011-11-07  Mark Lillibridge  <mark.lillibridge@hp.com>  (tiny change)
+
+	* mail/rmail.el (rmail-get-new-mail, rmail-insert-inbox-text):
+	Ensure that mbox format messages end in two newlines (Bug#9974).
+
 2011-11-06  Chong Yidong  <cyd@gnu.org>
 
 	* window.el (window-combination-p): Function deleted; its
@@ -11,7 +128,7 @@
 	(window-size-ignore, window-state-get): Callers changed.
 	(window-normalize-window): Rename from window-normalize-any-window.
 	New arg LIVE-ONLY, replacing window-normalize-live-window.
-	(window-normalize-live-window): Deleted.
+	(window-normalize-live-window): Delete.
 	(window-combination-p, window-combined-p, window-combinations)
 	(walk-window-subtree, window-atom-root, window-min-size)
 	(window-sizable, window-sizable-p, window-size-fixed-p)

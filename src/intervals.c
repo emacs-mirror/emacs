@@ -52,11 +52,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 #define TMEM(sym, set) (CONSP (set) ? ! NILP (Fmemq (sym, set)) : ! NILP (set))
 
-extern INTERVAL adjust_intervals_for_insertion (INTERVAL,
-						EMACS_INT, EMACS_INT);
-extern void adjust_intervals_for_deletion (struct buffer *,
-					   EMACS_INT, EMACS_INT);
-
 static Lisp_Object merge_properties_sticky (Lisp_Object, Lisp_Object);
 static INTERVAL merge_interval_right (INTERVAL);
 static INTERVAL reproduce_tree (INTERVAL, INTERVAL);
@@ -803,7 +798,7 @@ update_interval (register INTERVAL i, EMACS_INT pos)
    and check the hungry bits of both.  Then add the length going back up
    to the root.  */
 
-INTERVAL
+static INTERVAL
 adjust_intervals_for_insertion (INTERVAL tree, EMACS_INT position,
 				EMACS_INT length)
 {
@@ -864,7 +859,7 @@ adjust_intervals_for_insertion (INTERVAL tree, EMACS_INT position,
    interval.  Another possibility would be to create a new interval for
    this text, and make it have the merged properties of both ends.  */
 
-INTERVAL
+static INTERVAL
 adjust_intervals_for_insertion (INTERVAL tree,
 				EMACS_INT position, EMACS_INT length)
 {
@@ -1374,7 +1369,7 @@ interval_deletion_adjustment (register INTERVAL tree, register EMACS_INT from,
    text.  The deletion is effected at position START (which is a
    buffer position, i.e. origin 1).  */
 
-void
+static void
 adjust_intervals_for_deletion (struct buffer *buffer,
 			       EMACS_INT start, EMACS_INT length)
 {
@@ -1430,7 +1425,7 @@ adjust_intervals_for_deletion (struct buffer *buffer,
    compiler that does not allow calling a static function (here,
    adjust_intervals_for_deletion) from a non-static inline function.  */
 
-inline void
+void
 offset_intervals (struct buffer *buffer, EMACS_INT start, EMACS_INT length)
 {
   if (NULL_INTERVAL_P (BUF_INTERVALS (buffer)) || length == 0)
@@ -1882,7 +1877,7 @@ lookup_char_property (Lisp_Object plist, register Lisp_Object prop, int textprop
 /* Set point in BUFFER "temporarily" to CHARPOS, which corresponds to
    byte position BYTEPOS.  */
 
-inline void
+void
 temp_set_point_both (struct buffer *buffer,
 		     EMACS_INT charpos, EMACS_INT bytepos)
 {
@@ -1902,7 +1897,7 @@ temp_set_point_both (struct buffer *buffer,
 
 /* Set point "temporarily", without checking any text properties.  */
 
-inline void
+void
 temp_set_point (struct buffer *buffer, EMACS_INT charpos)
 {
   temp_set_point_both (buffer, charpos,
@@ -2391,7 +2386,7 @@ copy_intervals (INTERVAL tree, EMACS_INT start, EMACS_INT length)
 
 /* Give STRING the properties of BUFFER from POSITION to LENGTH.  */
 
-inline void
+void
 copy_intervals_to_string (Lisp_Object string, struct buffer *buffer,
 			  EMACS_INT position, EMACS_INT length)
 {
