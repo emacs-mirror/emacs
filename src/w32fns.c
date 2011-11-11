@@ -3986,7 +3986,7 @@ unwind_create_frame (Lisp_Object frame)
   struct frame *f = XFRAME (frame);
 
   /* If frame is ``official'', nothing to do.  */
-  if (!CONSP (Vframe_list) || !EQ (XCAR (Vframe_list), frame))
+  if (NILP (Fmemq (frame, Vframe_list)))
     {
 #if GLYPH_DEBUG
       struct w32_display_info *dpyinfo = FRAME_W32_DISPLAY_INFO (f);

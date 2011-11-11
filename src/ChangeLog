@@ -1,3 +1,10 @@
+2011-11-11  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* xfns.c (unwind_create_frame):
+	* nsfns.m (unwind_create_frame):
+	* w32fns.c (unwind_create_frame): Use Fmemq to check if frame is in
+	Vframe_list (Bug#9999).
+
 2011-11-11  Dmitry Antipov  <dmantipov@yandex.ru>
 
  	* xdisp.c (syms_of_xdisp): Remove duplicated definition of Qtext.
