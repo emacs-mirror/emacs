@@ -2,6 +2,9 @@
 
 	* dispnew.c (scrolling_window): Fix incorrect indices in accessing
 	current_matrix and desired_matrix.  (Bug#9990)
+	(verify_row_hash) [XASSERTS]: New function.
+	(adjust_glyph_matrix, row_equal_p): Use it in xassert to verify
+	that the hash value of glyph rows is correct.
 
 2011-11-12  Martin Rudalics  <rudalics@gmx.at>
 
