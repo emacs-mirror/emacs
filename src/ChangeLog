@@ -1,3 +1,8 @@
+2011-11-12  Eli Zaretskii  <eliz@gnu.org>
+
+	* dispnew.c (scrolling_window): Fix incorrect indices in accessing
+	current_matrix and desired_matrix.  (Bug#9990)
+
 2011-11-12  Martin Rudalics  <rudalics@gmx.at>
 
 	* window.h (window): Remove splits slot.
