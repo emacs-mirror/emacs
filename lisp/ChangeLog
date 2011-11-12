@@ -1,3 +1,8 @@
+2011-11-12  Glenn Morris  <rgm@gnu.org>
+
+	* apropos.el (apropos-do-all, apropos-library, apropos-value)
+	(apropos-documentation): Doc fixes.
+
 2011-11-11  Juanma Barranquero  <lekktu@gmail.com>
 
 	* progmodes/idlw-shell.el (idlwave-shell-make-new-bp-overlay):
