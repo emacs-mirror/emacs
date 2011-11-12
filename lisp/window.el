@@ -1482,12 +1482,12 @@ instead."
      ((window--resizable-p window delta horizontal ignore)
       (window--resize-reset frame horizontal)
       (window--resize-this-window window delta horizontal ignore t)
-      (if (and (not (window-splits window))
+      (if (and (not window-splits)
 	       (window-combined-p window horizontal)
 	       (setq sibling (or (window-right window) (window-left window)))
 	       (window-sizable-p sibling (- delta) horizontal ignore))
-	  ;; If window-splits returns nil for WINDOW, WINDOW is part of
-	  ;; an iso-combination, and WINDOW's neighboring right or left
+	  ;; If window-splits is nil, WINDOW is part of an
+	  ;; iso-combination, and WINDOW's neighboring right or left
 	  ;; sibling can be resized as requested, resize that sibling.
 	  (let ((normal-delta
 		 (/ (float delta)
@@ -2389,8 +2389,7 @@ non-side window, signal an error."
 	     (sibling (or (window-left window) (window-right window))))
 	(window--resize-reset frame horizontal)
 	(cond
-	 ((and (not (window-splits window))
-	       sibling (window-sizable-p sibling size))
+	 ((and (not window-splits) sibling (window-sizable-p sibling size))
 	  ;; Resize WINDOW's sibling.
 	  (window--resize-this-window sibling size horizontal nil t)
 	  (set-window-new-normal
@@ -3585,7 +3584,6 @@ specific buffers."
             (total-width . ,(window-total-size window t))
             (normal-height . ,(window-normal-size window))
             (normal-width . ,(window-normal-size window t))
-            (splits . ,(window-splits window))
             (nest . ,(window-nest window))
             ,@(let (list)
                 (dolist (parameter (window-parameters window))
@@ -3740,7 +3738,6 @@ value can be also stored on disk and read back in a new session."
 	  (nest (cdr (assq 'nest item)))
 	  (parameters (cdr (assq 'parameters item)))
 	  (state (cdr (assq 'buffer item))))
-      (when splits (set-window-splits window splits))
       (when nest (set-window-nest window nest))
       ;; Process parameters.
       (when parameters
@@ -3828,7 +3825,7 @@ windows can get as small as `window-safe-min-height' and
 		  (cdr (assq 'total-width state)))))
 	 (min-height (cdr (assq 'min-height head)))
 	 (min-width (cdr (assq 'min-width head)))
-	 window-splits selected)
+	 selected)
     (if (and (not totals)
 	     (or (> min-height (window-total-size window))
 		 (> min-width (window-total-size window t)))

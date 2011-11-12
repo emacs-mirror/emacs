@@ -1,3 +1,14 @@
+2011-11-12  Martin Rudalics  <rudalics@gmx.at>
+
+	* window.h (window): Remove splits slot.
+	* window.c (Fwindow_splits, Fset_window_splits): Remove.
+	(Fdelete_other_windows_internal, make_parent_window)
+	(make_window, Fsplit_window_internal, Fdelete_window_internal)
+	(Fset_window_configuration, save_window_save): Don't deal with
+	split status of windows.
+	(saved_window): Remove splits slot.
+	(Vwindow_splits): Rewrite doc-string.
+
 2011-11-11  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* xfns.c (unwind_create_frame):

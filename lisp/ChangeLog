@@ -1,3 +1,10 @@
+2011-11-12  Martin Rudalics  <rudalics@gmx.at>
+
+	* window.el (window-resize, delete-window): Use window-splits
+	variable instead of function.
+	(window-state-get-1, window-state-put-2, window-state-put):
+	Don't deal with windows' splits status.
+
 2011-11-12  Glenn Morris  <rgm@gnu.org>
 
 	* apropos.el (apropos-do-all, apropos-library, apropos-value)
