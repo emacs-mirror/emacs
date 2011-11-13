@@ -92,7 +92,7 @@ Optional HEADERFCN should be called to insert a few bits of info first."
     (princ "Class ")
     (prin1 class)
     (terpri)
-    ;; Inheritence tree information
+    ;; Inheritance tree information
     (let ((pl (class-parents class)))
       (when pl
 	(princ " Inherits from ")
