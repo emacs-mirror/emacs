@@ -366,7 +366,7 @@ programming modes."
 	(define-key srecode-prefix-map oldkey nil)
 	)))
 
-  ;; Update Keybings
+  ;; Update Keybindings
   (let ((oldbinding (lookup-key srecode-prefix-map binding)))
 
     ;; During development, allow overrides.

@@ -959,7 +959,7 @@ IDL has currently stepped.")
   ;; Can not use history expansion because "!" is used for system variables.
   (setq comint-input-autoexpand nil)
   ;; (setq comint-input-ring-size 64)
-  
+
   (set (make-local-variable 'completion-ignore-case) t)
   (set (make-local-variable 'comint-completion-addsuffix) '("/" . ""))
   (setq comint-input-ignoredups t)
@@ -3707,7 +3707,7 @@ Existing overlays are recycled, in order to minimize consumption."
 (defun idlwave-shell-make-new-bp-overlay (&optional type disabled)
   "Make a new overlay for highlighting breakpoints.
 
-This stuff is strongly dependant upon the version of Emacs.  If TYPE
+This stuff is strongly dependent upon the version of Emacs.  If TYPE
 is passed, make an overlay of that type ('bp or 'bp-cond, currently
 only for glyphs)."
   (let ((ov (make-overlay 1 1))

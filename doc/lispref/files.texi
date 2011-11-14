@@ -2827,7 +2827,7 @@ If @code{file-remote-p} returns the same identifier for two different
 filenames, that means they are stored on the same file system and can
 be accessed locally with respect to each other.  This means, for
 example, that it is possible to start a remote process accessing both
-files at the same time.  Implementors of file handlers need to ensure
+files at the same time.  Implementers of file handlers need to ensure
 this principle is valid.
 
 @var{identification} specifies which part of the identifier shall be

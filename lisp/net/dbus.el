@@ -145,7 +145,7 @@ association to the service from D-Bus."
 	 (service (car value))
 	 (entry (gethash key dbus-registered-objects-table))
 	 ret)
-    ;; key has the structure (BUS INTERRFACE MEMBER).
+    ;; key has the structure (BUS INTERFACE MEMBER).
     ;; value has the structure (SERVICE PATH [HANDLER]).
     ;; entry has the structure ((UNAME SERVICE PATH MEMBER [RULE]) ...).
     ;; MEMBER is either a string (the handler), or a cons cell (a

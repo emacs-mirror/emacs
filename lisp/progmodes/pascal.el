@@ -227,7 +227,7 @@ will do all lineups."
   :type '(set :extra-offset 8
 	      (const :tag "Everything" all)
 	      (const :tag "Parameter lists" paramlist)
-	      (const :tag "Decalrations" declaration)
+	      (const :tag "Declarations" declaration)
 	      (const :tag "Case statements" case))
   :group 'pascal)
 

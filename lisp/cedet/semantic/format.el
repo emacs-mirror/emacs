@@ -291,7 +291,7 @@ local definitions."
   ;; Try and find a trail of parents from PARENT
   (let ((rlist (list parent))
 	)
-    ;; IMPLELEMENT ME!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+    ;; IMPLEMENT ME!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
     (reverse rlist)))
 
 (define-overloadable-function semantic-format-tag-canonical-name (tag &optional parent color)

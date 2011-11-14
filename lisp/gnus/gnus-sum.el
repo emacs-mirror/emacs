@@ -4727,7 +4727,7 @@ If LINE, insert the rebuilt thread starting on line LINE."
       (car headers))))
 
 (defun gnus-parent-headers (in-headers &optional generation)
-  "Return the headers of the GENERATIONeth parent of HEADERS."
+  "Return the headers of the GENERATIONth parent of HEADERS."
   (unless generation
     (setq generation 1))
   (let ((parent t)

@@ -8133,7 +8133,7 @@ parse_tool_bar_item (Lisp_Object key, Lisp_Object item)
   Lisp_Object caption;
   int i, have_label = 0;
 
-  /* Defininition looks like `(menu-item CAPTION BINDING PROPS...)'.
+  /* Definition looks like `(menu-item CAPTION BINDING PROPS...)'.
      Rule out items that aren't lists, don't start with
      `menu-item' or whose rest following `tool-bar-item' is not a
      list.  */

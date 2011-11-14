@@ -306,7 +306,7 @@ Files associated with tags.  Goto-tag, file for include, and file for
 a prototype.
 
 @item semantic-tag-ls.el
-Language dependant features of a tag, such as parent calculation, slot
+Language dependent features of a tag, such as parent calculation, slot
 protection, and other states like abstract, virtual, static, and leaf.
 
 @item semantic-dep.el

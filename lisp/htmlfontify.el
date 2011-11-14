@@ -432,8 +432,8 @@ and so on."
                                  (const :tag "Lucid Toolkit" lucid    )
                                  (const :tag "Motif Toolkit" motif    )))
 
-             (class      (choice (const :tag "Colour"        color    )
-                                 (const :tag "Greyscale"     grayscale)))
+             (class      (choice (const :tag "Color"         color    )
+                                 (const :tag "Grayscale"     grayscale)))
 
              (background (choice (const :tag "Dark"          dark     )
                                  (const :tag "Bright"        light    ))) ))

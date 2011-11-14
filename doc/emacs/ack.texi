@@ -99,7 +99,7 @@ ERC distribution).
 
 @item
 Scott Bender, Michael Brouwer, Christophe de Dinechin, Carl Edman,
-Christian Limpach and Adrian Robert developed and maintained the 
+Christian Limpach and Adrian Robert developed and maintained the
 NeXTstep port of Emacs.
 
 @item
@@ -576,7 +576,7 @@ Emacs.
 
 @item
 Karel Klí@v{c} contributed SELinux support, for preserving the
-Security-Enchanced Linux context of files on backup and copy.
+Security-Enhanced Linux context of files on backup and copy.
 
 @item
 Shuhei Kobayashi wrote @file{hex-util.el}, for operating on hexadecimal

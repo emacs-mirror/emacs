@@ -465,41 +465,6 @@ Return nil if WINDOW has no previous sibling.  */)
   return decode_any_window (window)->prev;
 }
 
-DEFUN ("window-splits", Fwindow_splits, Swindow_splits, 0, 1, 0,
-       doc: /* Return splits status for the window WINDOW.
-If WINDOW is omitted or nil, it defaults to the selected window.
-
-If the value returned by this function is nil and WINDOW is resized, the
-corresponding space is preferably taken from (or given to) WINDOW's
-right sibling.  When WINDOW is deleted, its space is given to its left
-sibling.
-
-If the value returned by this function is non-nil, resizing and deleting
-WINDOW may resize all windows in the same combination.  */)
-  (Lisp_Object window)
-{
-  return decode_any_window (window)->splits;
-}
-
-DEFUN ("set-window-splits", Fset_window_splits, Sset_window_splits, 2, 2, 0,
-       doc: /* Set splits status of window WINDOW to STATUS.
-If WINDOW is omitted or nil, it defaults to the selected window.
-
-If STATUS is nil and WINDOW is later resized, the corresponding space is
-preferably taken from (or given to) WINDOW's right sibling.  When WINDOW
-is deleted, its space is given to its left sibling.
-
-If STATUS is non-nil, resizing and deleting WINDOW may resize all
-windows in the same combination.  */)
-  (Lisp_Object window, Lisp_Object status)
-{
-  register struct window *w = decode_any_window (window);
-
-  w->splits = status;
-
-  return w->splits;
-}
-
 DEFUN ("window-nest", Fwindow_nest, Swindow_nest, 0, 1, 0,
        doc: /* Return nest status of window WINDOW.
 If WINDOW is omitted or nil, it defaults to the selected window.
@@ -2769,9 +2734,6 @@ window-start value is reasonable when this function is called.  */)
 
   replace_window (root, window, 1);
 
-  /* Reset WINDOW's splits status.  */
-  w->splits = Qnil;
-
   /* This must become SWINDOW anyway ....... */
   if (!NILP (w->buffer) && !resize_failed)
     {
@@ -3286,7 +3248,6 @@ make_parent_window (Lisp_Object window, int horflag)
   p->start = Qnil;
   p->pointm = Qnil;
   p->buffer = Qnil;
-  p->splits = Qnil;
   p->nest = Qnil;
   p->window_parameters = Qnil;
 }
@@ -3334,7 +3295,7 @@ make_window (void)
   w->start_at_line_beg = w->display_table = w->dedicated = Qnil;
   w->base_line_number = w->base_line_pos = w->region_showing = Qnil;
   w->column_number_displayed = w->redisplay_end_trigger = Qnil;
-  w->splits = w->nest = w->window_parameters = Qnil;
+  w->nest = w->window_parameters = Qnil;
   w->prev_buffers = w->next_buffers = Qnil;
   /* Initialize non-Lisp data.  */
   w->desired_matrix = w->current_matrix = 0;
@@ -3776,10 +3737,6 @@ set correctly.  See the code of `split-window' for how this is done.  */)
       p = XWINDOW (o->parent);
       /* Store value of `window-nest' in new parent's nest slot.  */
       p->nest = Vwindow_nest;
-      /* Have PARENT inherit splits slot value from OLD.  */
-      p->splits = o->splits;
-      /* Store value of `window-splits' in OLD's splits slot.  */
-      o->splits = Vwindow_splits;
       /* These get applied below.  */
       p->new_total = horflag ? o->total_cols : o->total_lines;
       p->new_normal = new_normal;
@@ -3829,9 +3786,6 @@ set correctly.  See the code of `split-window' for how this is done.  */)
   n->fringes_outside_margins = r->fringes_outside_margins;
   n->scroll_bar_width = r->scroll_bar_width;
   n->vertical_scroll_bar_type = r->vertical_scroll_bar_type;
-
-  /* Store `window-splits' in NEW's splits slot.  */
-  n->splits = Vwindow_splits;
 
   /* Directly assign orthogonal coordinates and sizes.  */
   if (horflag)
@@ -3972,7 +3926,6 @@ Signal an error when WINDOW is the only window on its frame.  */)
 	     PARENT (the nest slot is not inherited).  */
 	  s->normal_cols = p->normal_cols;
 	  s->normal_lines = p->normal_lines;
-	  s->splits = p->splits;
 	  /* Mark PARENT as deleted.  */
 	  p->vchild = p->hchild = Qnil;
 	  /* Try to merge SIBLING into its new parent.  */
@@ -5359,7 +5312,7 @@ struct saved_window
   Lisp_Object left_margin_cols, right_margin_cols;
   Lisp_Object left_fringe_width, right_fringe_width, fringes_outside_margins;
   Lisp_Object scroll_bar_width, vertical_scroll_bar_type, dedicated;
-  Lisp_Object splits, nest, window_parameters;
+  Lisp_Object nest, window_parameters;
 };
 
 #define SAVED_WINDOW_N(swv,n) \
@@ -5590,7 +5543,6 @@ the return value is nil.  Otherwise the value is t.  */)
 	  w->scroll_bar_width = p->scroll_bar_width;
 	  w->vertical_scroll_bar_type = p->vertical_scroll_bar_type;
 	  w->dedicated = p->dedicated;
-	  w->splits = p->splits;
 	  w->nest = p->nest;
 	  w->window_parameters = p->window_parameters;
 	  XSETFASTINT (w->last_modified, 0);
@@ -5869,7 +5821,6 @@ save_window_save (Lisp_Object window, struct Lisp_Vector *vector, int i)
       p->scroll_bar_width = w->scroll_bar_width;
       p->vertical_scroll_bar_type = w->vertical_scroll_bar_type;
       p->dedicated = w->dedicated;
-      p->splits = w->splits;
       p->nest = w->nest;
       p->window_parameters = w->window_parameters;
       if (!NILP (w->buffer))
@@ -6333,7 +6284,7 @@ freeze_window_starts (struct frame *f, int freeze_p)
    and the like.
 
    This ignores a couple of things like the dedicatedness status of
-   window, splits, nest and the like.  This might have to be fixed.  */
+   window, nest and the like.  This might have to be fixed.  */
 
 int
 compare_window_configurations (Lisp_Object configuration1, Lisp_Object configuration2, int ignore_positions)
@@ -6545,16 +6496,7 @@ variable is non-nil, splitting a window may resize all windows in the
 same combination.  This also allows to split a window that is otherwise
 too small or of fixed size.
 
-The value of this variable is also assigned to the split status of the
-new window and, provided the old and new window form a new combination,
-to the window that was split as well.  The split status of a window can
-be retrieved with the function `window-splits' and altered by the
-function `set-window-splits'.
-
-If the value of the variable `window-nest' is non-nil, the space for the
-new window is exclusively taken from the window that shall be split, but
-the split status of the window that is split as well as that of the new
-window are still set to the value of this variable.  */);
+This variable takes no effect if `window-nest' is non-nil.  */);
   Vwindow_splits = Qnil;
 
   DEFVAR_LISP ("window-nest", Vwindow_nest,
@@ -6591,8 +6533,6 @@ function `window-nest' and altered by the function `set-window-nest'.  */);
   defsubr (&Swindow_left_child);
   defsubr (&Swindow_next_sibling);
   defsubr (&Swindow_prev_sibling);
-  defsubr (&Swindow_splits);
-  defsubr (&Sset_window_splits);
   defsubr (&Swindow_nest);
   defsubr (&Sset_window_nest);
   defsubr (&Swindow_use_time);

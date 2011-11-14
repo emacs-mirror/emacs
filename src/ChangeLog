@@ -1,4 +1,4 @@
-2011-11-10  Paul Eggert  <eggert@cs.ucla.edu>
+2011-11-14  Paul Eggert  <eggert@cs.ucla.edu>
 
 	Standardize on VIRT_ADDR_VARIES behavior; otherwise, valgrind
 	does not work on some platforms.  Problem reported by Andreas Schwab in
@@ -16,6 +16,51 @@
 	* lisp.h (PNTR_COMPARISON_TYPE): Remove; no longer needed.
 	* m/ibms390.h, m/intel386.h, m/template.h, s/cygwin.h, s/hpux10-20.h:
 	Remove VIRT_ADDR_VARIES no longer needed.
+
+2011-11-12  Eli Zaretskii  <eliz@gnu.org>
+
+	* makefile.w32-in (HEAPSIZE): New variable, allows to build temacs
+	with user-defined heap size.  Bump the default size of the temacs
+	heap to 27MB, to avoid memory warning when running temacs.
+	($(TEMACS)): Use HEAPSIZE instead of a hardcoded value.
+
+	* dispnew.c (scrolling_window): Fix incorrect indices in accessing
+	current_matrix and desired_matrix.  (Bug#9990)
+	(verify_row_hash) [XASSERTS]: New function.
+	(adjust_glyph_matrix, row_equal_p): Use it in xassert to verify
+	that the hash value of glyph rows is correct.
+
+2011-11-12  Martin Rudalics  <rudalics@gmx.at>
+
+	* window.h (window): Remove splits slot.
+	* window.c (Fwindow_splits, Fset_window_splits): Remove.
+	(Fdelete_other_windows_internal, make_parent_window)
+	(make_window, Fsplit_window_internal, Fdelete_window_internal)
+	(Fset_window_configuration, save_window_save): Don't deal with
+	split status of windows.
+	(saved_window): Remove splits slot.
+	(Vwindow_splits): Rewrite doc-string.
+
+2011-11-11  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* xfns.c (unwind_create_frame):
+	* nsfns.m (unwind_create_frame):
+	* w32fns.c (unwind_create_frame): Use Fmemq to check if frame is in
+	Vframe_list (Bug#9999).
+
+2011-11-11  Dmitry Antipov  <dmantipov@yandex.ru>
+
+ 	* xdisp.c (syms_of_xdisp): Remove duplicated definition of Qtext.
+
+2011-11-11  Kenichi Handa  <handa@m17n.org>
+
+	* callproc.c (Fcall_process): Set the member dst_multibyte of
+	process_coding.
+
+2011-11-11  Johan Bockgård  <bojohan@gnu.org>
+
+	* xdisp.c (fill_composite_glyph_string): Always set s->face, to
+	avoid a crash (bug#9496).
 
 2011-11-09  Chong Yidong  <cyd@gnu.org>
 

@@ -1,3 +1,52 @@
+2011-11-14  Glenn Morris  <rgm@gnu.org>
+
+	* progmodes/executable.el
+	(executable-make-buffer-file-executable-if-script-p):
+	Handle file-modes returning nil.
+
+	* mail/rmail.el (rmail-no-mail-p): Remove mode-line N/M indicator.
+
+	* mail/rmailsum.el (rmail-summary, rmail-new-summary)
+	(rmail-new-summary-1): Allow empty summaries.  (Bug#9964)
+	(rmail-new-summary): Remember that rmail-summary-buffer is buffer-local.
+
+2011-11-12  Martin Rudalics  <rudalics@gmx.at>
+
+	* window.el (window-resize, delete-window): Use window-splits
+	variable instead of function.
+	(window-state-get-1, window-state-put-2, window-state-put):
+	Don't deal with windows' splits status.
+
+2011-11-12  Glenn Morris  <rgm@gnu.org>
+
+	* apropos.el (apropos-do-all, apropos-library, apropos-value)
+	(apropos-documentation): Doc fixes.
+
+2011-11-11  Juanma Barranquero  <lekktu@gmail.com>
+
+	* progmodes/idlw-shell.el (idlwave-shell-make-new-bp-overlay):
+	* textmodes/sgml-mode.el (html-tag-help): Fix typos.
+
+2011-11-11  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* electric.el (electric-indent-post-self-insert-function): Make it
+	possible for a char to only indent in some circumstances.
+	(electric-indent-mode): Simplify.
+
+2011-11-11  Martin Rudalics  <rudalics@gmx.at>
+
+	* window.el (windows-with-parameter): Remove unused function.
+	(windows-at-side): Rename to window-at-side-list.
+	(window-check, window-atom-check, window-atom-check-1)
+	(window-side-check, window-size-ignore, window-size-fixed-1)
+	(window-in-direction-2): Prefix with "window--".
+	(window-tree-1): Rename to window--subtree, fix doc-string.
+
+2011-11-11  Glenn Morris  <rgm@gnu.org>
+
+	* subr.el (eval-after-load): If FILE is already loaded,
+	evaluate FORM before it gets wrapped in more stuff.  (Bug#10009)
+
 2011-11-10  Glenn Morris  <rgm@gnu.org>
 
 	* vc/vc-svn.el (vc-svn-create-repo, vc-svn-modify-change-comment):

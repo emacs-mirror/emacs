@@ -29,7 +29,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 #ifdef _WIN64
 typedef __int64 intptr_t;
-#define UINT64_MAX 18446744073709551616
+#define UINT64_MAX 18446744073709551615
 #define UINT64_MIN 0
 /* "i64" is the non-standard suffix used by MSVC for 64-bit constants.  */
 #define INT64_MAX 9223372036854775807i64
@@ -42,7 +42,7 @@ typedef __int64 intptr_t;
 #else
 typedef int intptr_t;
 typedef unsigned int uint32_t;
-#define UINT32_MAX 4294967296
+#define UINT32_MAX 4294967295
 #define UINT32_MIN 0
 #define INT32_MAX 2147483647
 #define INT32_MIN (~INT32_MAX)

@@ -1,3 +1,7 @@
+2011-11-11  Juanma Barranquero  <lekktu@gmail.com>
+
+	* org-plot.el (org-plot/gnuplot-to-grid-data): Fix typo in docstring.
+
 2011-09-27  Eli Zaretskii  <eliz@gnu.org>
 
 	* org.el (org-mode): Force left-to-right paragraphs in Org
@@ -1965,7 +1969,7 @@
 
 2011-07-28  Carsten Dominik  <carsten.dominik@gmail.com>
 
-	* org-latex.el (org-export-latex-preprocess): Protect index string
+	* org-latex.el (org-export-latex-preprocess): Protect index string.
 
 2011-07-28  Carsten Dominik  <carsten.dominik@gmail.com>
 
@@ -2119,11 +2123,11 @@
 	(org-bibtex-headline): Make use of new
 	`org-bibtex-export-arbitrary-fields' and `org-bibtex-key-property'
 	variables.
-	(org-bibtex-autokey):  Make use of new `org-bibtex-key-property'
+	(org-bibtex-autokey): Make use of new `org-bibtex-key-property'
 	variable.
-	(org-bibtex-fleshout):  Make use of new `org-bibtex-key-property'
+	(org-bibtex-fleshout): Make use of new `org-bibtex-key-property'
 	variable.
-	(org-bibtex-write):  Make use of new `org-bibtex-key-property'
+	(org-bibtex-write): Make use of new `org-bibtex-key-property'
 	variable.
 
 2011-07-28  Eric Schulte  <schulte.eric@gmail.com>
@@ -2247,7 +2251,7 @@
 2011-07-28  Manuel Giraud  <manuel.giraud@univ-nantes.fr>
 
 	* org-html.el (org-html-handle-links): Add an alternate for inline
-	images
+	images.
 
 2011-07-28  Carsten Dominik  <carsten.dominik@gmail.com>
 
@@ -2293,7 +2297,7 @@
 
 	* ob-python.el (org-babel-python-evaluate-external-process): Allow
 	parsing as a table in the case of ":results output table".
-	(org-babel-python-evaluate-session):   Allow parsing as a table in
+	(org-babel-python-evaluate-session): Allow parsing as a table in
 	the case of ":results output table".
 
 2011-07-28  Carsten Dominik  <carsten.dominik@gmail.com>
@@ -2343,7 +2347,7 @@
 
 	* org.el (org-set-font-lock-defaults): Be more strict when
 	recognizing description items, and do not fontify wrong cases
-	like: "- term ::description" or "1. term :: description"
+	like: "- term ::description" or "1. term :: description".
 
 2011-07-28  Nicolas Goaziou  <n.goaziou@gmail.com>
 
@@ -2894,12 +2898,12 @@
 2011-07-28  Bernt Hansen  <bernt@norang.ca>
 
 	* org-clock.el (org-clock-in): Allow clocking in new tasks
-	inserted before the current clocking task
+	inserted before the current clocking task.
 
 2011-07-28  Bernt Hansen  <bernt@norang.ca>
 
 	* org-clock.el (org-clock-in): Set default clocking task when
-	already clocking the task
+	already clocking the task.
 
 2011-07-28  Nicolas Goaziou  <n.goaziou@gmail.com>
 
@@ -3045,7 +3049,7 @@
 2011-07-28  Bastien Guerry  <bzg@gnu.org>
 
 	* org.el (org-refile-get-targets): Rename from
-	`org-get-refile-targets.'
+	`org-get-refile-targets'.
 
 2011-07-28  Bastien Guerry  <bzg@gnu.org>
 
@@ -3727,7 +3731,7 @@
 	(org-in-item-p,org-list-struct,org-list-parse-list): Apply change.
 
 	* org-exp.el (org-export-mark-list-end)
-	(org-export-mark-list-properties): Apply change
+	(org-export-mark-list-properties): Apply change.
 
 	* org-latex.el (org-export-latex-lists): Apply change.  Also
 	prevent items with org-example property to be considered as real
@@ -4774,7 +4778,7 @@
 	* ob-tangle.el (org-babel-spec-to-string): Adding "noweb" as a
 	linking comment type
 	(org-babel-tangle-comment-links): Returns comment links for the
-	source code block at point
+	source code block at point.
 
 2011-07-28  Bastien Guerry  <bzg@gnu.org>
 
@@ -4855,7 +4859,7 @@
 
 	* org-capture.el (org-capture-templates): Add %f and %F escapes
 	(org-capture): Add more information to capture property list
-	(org-capture-fill-template): Handle %f and %F escapes
+	(org-capture-fill-template): Handle %f and %F escapes.
 
 2011-07-28  David Maus  <dmaus@ictsoc.de>
 
@@ -5003,7 +5007,7 @@
 	output file.
 
 	* ob-sass.el (org-babel-execute:sass): Return nil if result has
-	been written to file
+	been written to file.
 
 2011-07-28  Dan Davison  <dandavison7@gmail.com>
 
@@ -16833,7 +16837,7 @@
 
 	* org-agenda.el (org-format-agenda-item)
 	(org-agenda-filter-make-matcher): Make sure tags are stored and
-	compared donwcased.
+	compared downcased.
 
 2008-10-26  Carsten Dominik  <dominik@science.uva.nl>
 

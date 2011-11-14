@@ -421,7 +421,7 @@ Optional argument POINT is where to look for the environment."
   texinfo-mode (context)
   "List smart completions at point.
 Since texinfo is not a programming language the default version is not
-useful.  Insted, look at the current symbol.  If it is a command
+useful.  Instead, look at the current symbol.  If it is a command
 do primitive texinfo built ins.  If not, use ispell to lookup words
 that start with that symbol."
   (let ((prefix (car (oref context :prefix)))

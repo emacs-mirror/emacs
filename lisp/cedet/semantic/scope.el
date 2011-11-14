@@ -426,7 +426,7 @@ implicit \"object\"."
 
     ;; Collect all the types (class, etc) that are in our heratage.
     ;; These are types that we can extract members from, not those
-    ;; delclared in using statements, or the like.
+    ;; declared in using statements, or the like.
     ;; Get the PARENTS including nesting scope for this location.
     (while parentlist
       (oset miniscope scope currentscope)

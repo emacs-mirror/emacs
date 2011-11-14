@@ -292,28 +292,6 @@ is unpredictable."
   (setq window (window-normalize-window window))
   (walk-window-tree-1 proc window any t))
 
-(defun windows-with-parameter (parameter &optional value frame any values)
-  "Return a list of all windows on FRAME with PARAMETER non-nil.
-FRAME defaults to the selected frame.  Optional argument VALUE
-non-nil means only return windows whose window-parameter value of
-PARAMETER equals VALUE \(comparison is done using `equal').
-Optional argument ANY non-nil means consider internal windows
-too.  Optional argument VALUES non-nil means return a list of cons
-cells whose car is the value of the parameter and whose cdr is
-the window."
-  (let (this-value windows)
-    (walk-window-tree
-     (lambda (window)
-       (when (and (setq this-value (window-parameter window parameter))
-		  (or (not value) (or (equal value this-value))))
-	   (setq windows
-		 (if values
-		     (cons (cons this-value window) windows)
-		   (cons window windows)))))
-     frame any)
-
-    (nreverse windows)))
-
 (defun window-with-parameter (parameter &optional value frame any)
   "Return first window on FRAME with PARAMETER non-nil.
 FRAME defaults to the selected frame.  Optional argument VALUE
@@ -353,8 +331,8 @@ WINDOW must be an internal window.  Return WINDOW."
      window t)
     window))
 
-(defun window-atom-check-1 (window)
-  "Subroutine of `window-atom-check'."
+(defun window--atom-check-1 (window)
+  "Subroutine of `window--atom-check'."
   (when window
     (if (window-parameter window 'window-atom)
 	(let ((count 0))
@@ -375,18 +353,18 @@ WINDOW must be an internal window.  Return WINDOW."
 	     window t)))
       ;; Check children.
       (unless (window-buffer window)
-	(window-atom-check-1 (window-left-child window))
-	(window-atom-check-1 (window-top-child window))))
+	(window--atom-check-1 (window-left-child window))
+	(window--atom-check-1 (window-top-child window))))
     ;; Check right sibling
-    (window-atom-check-1 (window-right window))))
+    (window--atom-check-1 (window-right window))))
 
-(defun window-atom-check (&optional frame)
+(defun window--atom-check (&optional frame)
   "Check atomicity of all windows on FRAME.
 FRAME defaults to the selected frame.  If an atomic window is
 wrongly configured, reset the atomicity of all its windows on
 FRAME to nil.  An atomic window is wrongly configured if it has
 no child windows or one of its child windows is not atomic."
-  (window-atom-check-1 (frame-root-window frame)))
+  (window--atom-check-1 (frame-root-window frame)))
 
 ;; Side windows.
 (defvar window-sides '(left top right bottom)
@@ -441,7 +419,7 @@ number of slots on that side."
      (integer :tag "Number" :value 3 :size 5)))
   :group 'windows)
 
-(defun window-side-check (&optional frame)
+(defun window--side-check (&optional frame)
   "Check the window-side parameter of all windows on FRAME.
 FRAME defaults to the selected frame.  If the configuration is
 invalid, reset all window-side parameters to nil.
@@ -512,11 +490,11 @@ A valid configuration has to preserve the following invariant:
 	 (set-window-parameter window 'window-side nil))
        frame t))))
 
-(defun window-check (&optional frame)
+(defun window--check (&optional frame)
   "Check atomic and side windows on FRAME.
 FRAME defaults to the selected frame."
-  (window-side-check frame)
-  (window-atom-check frame))
+  (window--side-check frame)
+  (window--atom-check frame))
 
 ;;; Window sizes.
 (defvar window-size-fixed nil
@@ -530,7 +508,7 @@ unless it has no other choice \(like when deleting a neighboring
 window).")
 (make-variable-buffer-local 'window-size-fixed)
 
-(defun window-size-ignore (window ignore)
+(defun window--size-ignore (window ignore)
   "Return non-nil if IGNORE says to ignore size restrictions for WINDOW."
   (if (window-valid-p ignore) (eq window ignore) ignore))
 
@@ -571,7 +549,7 @@ restrictions for that window only."
 	  value)
       (with-current-buffer (window-buffer window)
 	(cond
-	 ((and (not (window-size-ignore window ignore))
+	 ((and (not (window--size-ignore window ignore))
 	       (window-size-fixed-p window horizontal))
 	  ;; The minimum size of a fixed size window is its size.
 	  (window-total-size window horizontal))
@@ -600,7 +578,7 @@ restrictions for that window only."
 		  (ceiling (or (frame-parameter frame 'scroll-bar-width) 14)
 			   (frame-char-width)))
 		 (t 0)))
-	     (if (and (not (window-size-ignore window ignore))
+	     (if (and (not (window--size-ignore window ignore))
 		      (numberp window-min-width))
 		 window-min-width
 	       0))))
@@ -610,7 +588,7 @@ restrictions for that window only."
 	  (max (+ window-safe-min-height
 		  (if header-line-format 1 0)
 		  (if mode-line-format 1 0))
-	       (if (and (not (window-size-ignore window ignore))
+	       (if (and (not (window--size-ignore window ignore))
 			(numberp window-min-height))
 		   window-min-height
 		 0))))))))
@@ -647,7 +625,7 @@ restrictions for that window only."
     (max (- (window-min-size window horizontal ignore)
 	    (window-total-size window horizontal))
 	 delta))
-   ((window-size-ignore window ignore)
+   ((window--size-ignore window ignore)
     delta)
    ((> delta 0)
     (if (window-size-fixed-p window horizontal)
@@ -664,7 +642,7 @@ doc-string of `window-sizable'."
       (>= (window-sizable window delta horizontal ignore) delta)
     (<= (window-sizable window delta horizontal ignore) delta)))
 
-(defun window-size-fixed-1 (window horizontal)
+(defun window--size-fixed-1 (window horizontal)
   "Internal function for `window-size-fixed-p'."
   (let ((sub (window-child window)))
     (catch 'fixed
@@ -675,7 +653,7 @@ doc-string of `window-sizable'."
 	      ;; windows are fixed-size.
 	      (progn
 		(while sub
-		  (unless (window-size-fixed-1 sub horizontal)
+		  (unless (window--size-fixed-1 sub horizontal)
 		    ;; We found a non-fixed-size child window, so
 		    ;; WINDOW's size is not fixed.
 		    (throw 'fixed nil))
@@ -686,7 +664,7 @@ doc-string of `window-sizable'."
 	    ;; An ortho-combination is fixed-size if at least one of its
 	    ;; child windows is fixed-size.
 	    (while sub
-	      (when (window-size-fixed-1 sub horizontal)
+	      (when (window--size-fixed-1 sub horizontal)
 		;; We found a fixed-size child window, so WINDOW's size
 		;; is fixed.
 		(throw 'fixed t))
@@ -706,7 +684,7 @@ non-nil if WINDOW's width is fixed.
 If this function returns nil, this does not necessarily mean that
 WINDOW can be resized in the desired direction.  The function
 `window-resizable' can tell that."
-  (window-size-fixed-1
+  (window--size-fixed-1
    (window-normalize-window window) horizontal))
 
 (defun window-min-delta-1 (window delta &optional horizontal ignore trail noup)
@@ -728,7 +706,7 @@ WINDOW can be resized in the desired direction.  The function
 		 ((eq sub window)
 		  (setq skip (eq trail 'before)))
 		 (skip)
-		 ((and (not (window-size-ignore window ignore))
+		 ((and (not (window--size-ignore window ignore))
 		       (window-size-fixed-p sub horizontal)))
 		 (t
 		  ;; We found a non-fixed-size child window.
@@ -817,7 +795,7 @@ at least one other window can be enlarged appropriately."
 	  ;; child window is fixed-size.
 	  (while sub
 	    (when (and (not (eq sub window))
-		       (not (window-size-ignore sub ignore))
+		       (not (window--size-ignore sub ignore))
 		       (window-size-fixed-p sub horizontal))
 	      (throw 'fixed delta))
 	    (setq sub (window-right sub))))
@@ -856,7 +834,7 @@ Optional argument NODOWN non-nil means do not check whether
 WINDOW itself \(and its child windows) can be enlarged; check
 only whether other windows can be shrunk appropriately."
   (setq window (window-normalize-window window))
-  (if (and (not (window-size-ignore window ignore))
+  (if (and (not (window--size-ignore window ignore))
 	   (not nodown) (window-size-fixed-p window horizontal))
       ;; With IGNORE and NOWDON nil return zero if WINDOW has fixed
       ;; size.
@@ -1106,7 +1084,7 @@ The default value nil is handled like `bottom'."
     (= (nth edge (window-edges window))
        (nth edge (window-edges (frame-root-window window))))))
 
-(defun windows-at-side (&optional frame side)
+(defun window-at-side-list (&optional frame side)
   "Return list of all windows on SIDE of FRAME.
 FRAME must be a live frame and defaults to the selected frame.
 SIDE can be any of the symbols `left', `top', `right' or
@@ -1120,7 +1098,7 @@ SIDE can be any of the symbols `left', `top', `right' or
      frame)
     (nreverse windows)))
 
-(defun window-in-direction-2 (window posn &optional horizontal)
+(defun window--in-direction-2 (window posn &optional horizontal)
   "Support function for `window-in-direction'."
   (if horizontal
       (let ((top (window-top-line window)))
@@ -1190,7 +1168,7 @@ IGNORE, when non-nil means a window can be returned even if its
 		  ;; W is to the left or right of WINDOW but does not
 		  ;; cover POSN.
 		  (setq best-diff-2-new
-			(window-in-direction-2 w posn hor))
+			(window--in-direction-2 w posn hor))
 		  (or (< best-diff-2-new best-diff-2)
 		      (and (= best-diff-2-new best-diff-2)
 			   (if (eq direction 'left)
@@ -1215,7 +1193,7 @@ IGNORE, when non-nil means a window can be returned even if its
 		      (and (eq direction 'below) (<= last w-top)))
 		  ;; W is above or below WINDOW but does not cover POSN.
 		  (setq best-diff-2-new
-			(window-in-direction-2 w posn hor))
+			(window--in-direction-2 w posn hor))
 		  (or (< best-diff-2-new best-diff-2)
 		      (and (= best-diff-2-new best-diff-2)
 			   (if (eq direction 'above)
@@ -1504,12 +1482,12 @@ instead."
      ((window--resizable-p window delta horizontal ignore)
       (window--resize-reset frame horizontal)
       (window--resize-this-window window delta horizontal ignore t)
-      (if (and (not (window-splits window))
+      (if (and (not window-splits)
 	       (window-combined-p window horizontal)
 	       (setq sibling (or (window-right window) (window-left window)))
 	       (window-sizable-p sibling (- delta) horizontal ignore))
-	  ;; If window-splits returns nil for WINDOW, WINDOW is part of
-	  ;; an iso-combination, and WINDOW's neighboring right or left
+	  ;; If window-splits is nil, WINDOW is part of an
+	  ;; iso-combination, and WINDOW's neighboring right or left
 	  ;; sibling can be resized as requested, resize that sibling.
 	  (let ((normal-delta
 		 (/ (float delta)
@@ -1844,7 +1822,7 @@ preferably only resize windows adjacent to EDGE."
 		;; Make sure this sibling is left alone when
 		;; resizing its siblings.
 		(set-window-new-normal sub 'ignore))
-	       ((or (window-size-ignore sub ignore)
+	       ((or (window--size-ignore sub ignore)
 		    (not (window-size-fixed-p sub horizontal)))
 		;; Set this-delta to t to signal that we found a sibling
 		;; of WINDOW whose size is not fixed.
@@ -2176,9 +2154,9 @@ WINDOW can be any window and defaults to the selected window."
   "Return non-nil if WINDOW is the root window of its frame."
   (eq window (frame-root-window window)))
 
-(defun window-tree-1 (window &optional next)
-  "Return window tree rooted at WINDOW.
-Optional argument NEXT non-nil means include windows right
+(defun window--subtree (window &optional next)
+  "Return window subtree rooted at WINDOW.
+Optional argument NEXT non-nil means include WINDOW's right
 siblings in the return value.
 
 See the documentation of `window-tree' for a description of the
@@ -2190,10 +2168,10 @@ return value."
 	     (cond
 	      ((window-top-child window)
 	       (cons t (cons (window-edges window)
-			     (window-tree-1 (window-top-child window) t))))
+			     (window--subtree (window-top-child window) t))))
 	      ((window-left-child window)
 	       (cons nil (cons (window-edges window)
-			       (window-tree-1 (window-left-child window) t))))
+			       (window--subtree (window-left-child window) t))))
 	      (t window))
 	     list))
       (setq window (when next (window-next-sibling window))))
@@ -2215,7 +2193,7 @@ Each of the child windows may again be a window or a list
 representing a window split, and so on.  EDGES is a list \(LEFT
 TOP RIGHT BOTTOM) as returned by `window-edges'."
   (setq frame (window-normalize-frame frame))
-  (window-tree-1 (frame-root-window frame) t))
+  (window--subtree (frame-root-window frame) t))
 
 (defun other-window (count &optional all-frames)
   "Select another window in cyclic ordering of windows.
@@ -2379,7 +2357,7 @@ non-side window, signal an error."
 	 (function (window-parameter window 'delete-window))
 	 (parent (window-parent window))
 	 atom-root)
-    (window-check frame)
+    (window--check frame)
     (catch 'done
       ;; Handle window parameters.
       (cond
@@ -2411,8 +2389,7 @@ non-side window, signal an error."
 	     (sibling (or (window-left window) (window-right window))))
 	(window--resize-reset frame horizontal)
 	(cond
-	 ((and (not (window-splits window))
-	       sibling (window-sizable-p sibling size))
+	 ((and (not window-splits) sibling (window-sizable-p sibling size))
 	  ;; Resize WINDOW's sibling.
 	  (window--resize-this-window sibling size horizontal nil t)
 	  (set-window-new-normal
@@ -2433,7 +2410,7 @@ non-side window, signal an error."
 	  ;; not be selected, fix this here.
 	  (other-window -1 frame))
 	(run-window-configuration-change-hook frame)
-	(window-check frame)
+	(window--check frame)
 	;; Always return nil.
 	nil))))
 
@@ -2460,7 +2437,7 @@ window signal an error."
 	 (function (window-parameter window 'delete-other-windows))
 	 (window-side (window-parameter window 'window-side))
 	 atom-root side-main)
-    (window-check frame)
+    (window--check frame)
     (catch 'done
       (cond
        ;; Ignore window parameters if `ignore-window-parameters' is t or
@@ -2484,7 +2461,7 @@ window signal an error."
       (unless (eq window side-main)
 	(delete-other-windows-internal window side-main)
 	(run-window-configuration-change-hook frame)
-	(window-check frame))
+	(window--check frame))
       ;; Always return nil.
       nil)))
 
@@ -3111,7 +3088,7 @@ frame.  The selected window is not changed by this function."
 	 (window-nest window-nest)
 	 atom-root)
 
-    (window-check frame)
+    (window--check frame)
     (catch 'done
       (cond
        ;; Ignore window parameters if either `ignore-window-parameters'
@@ -3265,7 +3242,7 @@ frame.  The selected window is not changed by this function."
 	    (set-window-parameter new 'window-side window-side))
 
 	  (run-window-configuration-change-hook frame)
-	  (window-check frame)
+	  (window--check frame)
 	  ;; Always return the new window.
 	  new)))))
 
@@ -3607,7 +3584,6 @@ specific buffers."
             (total-width . ,(window-total-size window t))
             (normal-height . ,(window-normal-size window))
             (normal-width . ,(window-normal-size window t))
-            (splits . ,(window-splits window))
             (nest . ,(window-nest window))
             ,@(let (list)
                 (dolist (parameter (window-parameters window))
@@ -3762,7 +3738,6 @@ value can be also stored on disk and read back in a new session."
 	  (nest (cdr (assq 'nest item)))
 	  (parameters (cdr (assq 'parameters item)))
 	  (state (cdr (assq 'buffer item))))
-      (when splits (set-window-splits window splits))
       (when nest (set-window-nest window nest))
       ;; Process parameters.
       (when parameters
@@ -3850,7 +3825,7 @@ windows can get as small as `window-safe-min-height' and
 		  (cdr (assq 'total-width state)))))
 	 (min-height (cdr (assq 'min-height head)))
 	 (min-width (cdr (assq 'min-width head)))
-	 window-splits selected)
+	 selected)
     (if (and (not totals)
 	     (or (> min-height (window-total-size window))
 		 (> min-width (window-total-size window t)))
@@ -3885,7 +3860,7 @@ windows can get as small as `window-safe-min-height' and
 	(set-window-buffer window (current-buffer))
 	(window-state-put-1 state window nil totals)
 	(window-state-put-2 ignore))
-      (window-check frame))))
+      (window--check frame))))
 
 (defun display-buffer-record-window (type window buffer)
   "Record information for window used by `display-buffer'.

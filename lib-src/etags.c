@@ -6097,7 +6097,7 @@ readline (linebuffer *lbp, FILE *stream)
   lineno += 1;			/* increment global line number */
   charno += result;		/* increment global char number */
 
-  /* Honour #line directives. */
+  /* Honor #line directives. */
   if (!no_line_directive)
     {
       static bool discard_until_line_directive;

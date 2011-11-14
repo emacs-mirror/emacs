@@ -173,7 +173,7 @@ This restores file, but without its history (`bzr log file' will be
 very short).  This is because file gets re-added with a new file-id
 (use `bzr file-id file' to see the id).
 
-Insteading of adding the file, try:
+Instead of adding the file, try:
 
 bzr revert -rN file; bzr commit
 

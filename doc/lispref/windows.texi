@@ -855,42 +855,13 @@ resize all windows that are part of the same combination as
 this may allow @code{split-window} to succeed even if @var{window} is
 a fixed-size window or too small to ordinarily split.
 
-In any case, the value of this variable is assigned to the splits status
-of the new window and, provided old and new window form a new
-combination, of the old window as well.  The splits status of a window
-can be retrieved by invoking the function @code{window-splits} and
-altered by the function @code{set-window-splits} described next.
+Also if this variable is non-@code{nil}, subsequent resizing and
+deleting @var{window} will usually affect @emph{all} windows in
+@var{window}'s combination.
 
-If @code{window-nest} (see below) is non-@code{nil}, the space for the
-new window is exclusively taken from the old window, but the splits
-status of the involved windows is nevertheless set as described here.
+The setting of this variable has no effect if @code{window-nest} (see
+below) is non-@code{nil}.
 @end defopt
-
-@defun window-splits &optional window
-This function returns the splits status of @var{window}.  The argument
-@var{window} can be any window and defaults to the selected one.
-
-@cindex splits status
-The @dfn{splits status} of a window specifies how resizing and deleting
-that window may affect the size of other windows in the same window
-combination.  More precisely, if @var{window}'s splits status is
-@code{nil} and @var{window} is resized, the corresponding space is
-preferably taken from (or given to) @var{window}'s right sibling.  When
-@var{window} is deleted, its space is given to its left sibling.  If
-@var{window}'s splits status is non-@code{nil}, resizing and deleting
-@var{window} may resize @emph{all} windows in @var{window}'s
-combination.
-
-The splits status is initially set by @code{split-window}
-from the current value of the variable @code{window-splits} (see above)
-and can be reset by the function @code{set-window-splits} (see below).
-@end defun
-
-@defun set-window-splits window &optional status
-This function sets the splits status (see above) of @var{window} to
-@var{status}.  The argument @var{window} can be any window and defaults
-to the selected one.  The return value is @var{status}.
-@end defun
 
 To illustrate the use of @code{window-splits} consider the following
 window configuration:
@@ -1208,12 +1179,11 @@ window parameters.  If the @code{delete-window} parameter specifies a
 function, that function is called with @var{window} as its sole
 argument.
 
-If the splits status of @var{window} (@pxref{Splitting Windows}) is
-@code{nil}, the space @var{window} took up is given to its left sibling
-if such a window exists and to its right sibling otherwise.  If the
-splits status of @var{window} is non-@code{nil}, its space is
-proportionally distributed among the remaining windows in the same
-combination.
+If @code{window-splits} (@pxref{Splitting Windows}) is @code{nil}, the
+space @var{window} took up is given to its left sibling if such a window
+exists and to its right sibling otherwise.  If @code{window-splits} is
+non-@code{nil}, the space of @var{window} is proportionally distributed
+among the remaining windows in the same combination.
 @end deffn
 
 @deffn Command delete-other-windows &optional window
