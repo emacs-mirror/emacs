@@ -19382,8 +19382,17 @@ display_line (struct it *it)
       overlay_arrow_seen = 1;
     }
 
+  /* Highlight trailing whitespace.  */
+  if (!NILP (Vshow_trailing_whitespace))
+    highlight_trailing_whitespace (it->f, it->glyph_row);
+
   /* Compute pixel dimensions of this line.  */
   compute_line_metrics (it);
+
+  /* Implementation note: No changes in the glyphs of ROW or in their
+     faces can be done past this point, because compute_line_metrics
+     computes ROW's hash value and stores it within the glyph_row
+     structure.  */
 
   /* Record whether this row ends inside an ellipsis.  */
   row->ends_in_ellipsis_p
@@ -19418,10 +19427,6 @@ display_line (struct it *it)
       && PT <= MATRIX_ROW_END_CHARPOS (row)
       && cursor_row_p (row))
     set_cursor_from_row (it->w, row, it->w->desired_matrix, 0, 0, 0, 0);
-
-  /* Highlight trailing whitespace.  */
-  if (!NILP (Vshow_trailing_whitespace))
-    highlight_trailing_whitespace (it->f, it->glyph_row);
 
   /* Prepare for the next line.  This line starts horizontally at (X
      HPOS) = (0 0).  Vertical positions are incremented.  As a

@@ -1,3 +1,11 @@
+2011-11-14  Eli Zaretskii  <eliz@gnu.org>
+
+	* xdisp.c (display_line): Move the call to
+	highlight_trailing_whitespace before the call to
+	compute_line_metrics, since the latter needs to see the final
+	faces of all the glyphs to compute ROW's hash value.  Fixes
+	assertion violations in row_equal_p.  (Bug#10035)
+
 2011-11-14  Juanma Barranquero  <lekktu@gmail.com>
 
 	* w32proc.c (reader_thread): Don't check pending input if cp->fd < 0,
