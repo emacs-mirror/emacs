@@ -1,5 +1,7 @@
 2011-11-14  Glenn Morris  <rgm@gnu.org>
 
+	* mail/rmail.el (rmail-no-mail-p): Remove mode-line N/M indicator.
+
 	* mail/rmailsum.el (rmail-summary, rmail-new-summary)
 	(rmail-new-summary-1): Allow empty summaries.  (Bug#9964)
 	(rmail-new-summary): Remember that rmail-summary-buffer is buffer-local.

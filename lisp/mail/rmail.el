@@ -2602,6 +2602,8 @@ Ask the user whether to add that list name to `mail-mailing-lists'."
   "Return nil if there is mail, else \"No mail.\"."
   (if (zerop rmail-total-messages)
       (save-excursion
+	;; Eg we deleted all the messages, so remove the old N/M mark.
+	(with-current-buffer rmail-buffer (setq mode-line-process nil))
 	(with-current-buffer rmail-view-buffer
 	  (erase-buffer)
 	  "No mail."))))
