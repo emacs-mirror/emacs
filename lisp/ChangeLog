@@ -1,3 +1,9 @@
+2011-11-14  Glenn Morris  <rgm@gnu.org>
+
+	* mail/rmailsum.el (rmail-summary, rmail-new-summary)
+	(rmail-new-summary-1): Allow empty summaries.  (Bug#9964)
+	(rmail-new-summary): Remember that rmail-summary-buffer is buffer-local.
+
 2011-11-12  Martin Rudalics  <rudalics@gmx.at>
 
 	* window.el (window-resize, delete-window): Use window-splits
