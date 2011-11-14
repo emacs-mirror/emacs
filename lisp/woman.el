@@ -1439,7 +1439,7 @@ The cdr of each alist element is the path-index / filename."
 	  (push (woman-topic-all-completions-1 dir path-index)
 		files))
       (setq path-index (1+ path-index)))
-    ;; Uniquefy topics:
+    ;; Uniquify topics:
     ;; Concatenate all lists with a single nconc call to
     ;; avoid retraversing the first lists repeatedly  -- dak
     (woman-topic-all-completions-merge

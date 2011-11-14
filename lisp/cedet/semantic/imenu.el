@@ -393,7 +393,7 @@ Optional argument PARENT is a tag parent of STREAM."
 					semantic-imenu-bucketize-file)
 				   (semantic-create-imenu-index-1 parts tag)
 				 (semantic-create-imenu-subindex parts))))
-			  ;; Only add a *definition* if we have a postion
+			  ;; Only add a *definition* if we have a position
 			  ;; in that type tag.
 			  (if (semantic-tag-with-position-p tag)
 			      (cons

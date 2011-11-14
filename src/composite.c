@@ -1307,7 +1307,7 @@ composition_reseat_it (struct composition_it *cmp_it, EMACS_INT charpos, EMACS_I
 	      if (cmp_it->lookback == 0)
 		goto no_composition;
 	      lgstring = Qnil;
-	      /* Try to find a shorter compostion that starts after CPOS.  */
+	      /* Try to find a shorter composition that starts after CPOS.  */
 	      composition_compute_stop_pos (cmp_it, charpos, bytepos, cpos,
 					    string);
 	      if (cmp_it->ch == -2 || cmp_it->stop_pos < charpos)

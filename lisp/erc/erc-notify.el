@@ -46,7 +46,7 @@ status change."
   :type '(repeat string))
 
 (defcustom erc-notify-interval 60
-  "*Time interval (in seconds) for checking online status of notificated
+  "*Time interval (in seconds) for checking online status of notified
 people."
   :group 'erc-notify
   :type 'integer)
@@ -197,11 +197,11 @@ nick from `erc-last-ison' to prevent any further notifications."
 ;;;###autoload
 (defun erc-cmd-NOTIFY (&rest args)
   "Change `erc-notify-list' or list current notify-list members online.
-Without args, list the current list of notificated people online,
+Without args, list the current list of notified people online,
 with args, toggle notify status of people."
   (cond
    ((null args)
-    ;; Print current notificated people (online)
+    ;; Print current notified people (online)
     (let ((ison (erc-with-server-buffer erc-last-ison)))
       (if (not ison)
 	  (erc-display-message

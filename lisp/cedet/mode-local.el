@@ -656,7 +656,7 @@ SYMBOL is a function that can be overridden."
      table)
     ;; Print symbols by type
     (when us
-      (princ "\n  !! Unpecified symbols\n")
+      (princ "\n  !! Unspecified symbols\n")
       (mapc 'mode-local-print-binding us))
     (when mc
       (princ "\n  ** Mode local constants\n")

@@ -97,7 +97,7 @@ Said object must support `semantic-reset' methods.")
   (when (semantic-find-tags-by-class 'type new-tags)
     ;; Reset our index
     (oset tc filestream nil)
-    t ;; Return true, our core file tags have changed in a relavant way.
+    t ;; Return true, our core file tags have changed in a relevant way.
     )
 
   ;; NO CODE HERE

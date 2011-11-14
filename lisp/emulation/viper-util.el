@@ -1112,7 +1112,7 @@ Otherwise return the normal value."
        lis)))
 
 
-;; Smoothes out the difference between Emacs' unread-command-events
+;; Smooths out the difference between Emacs' unread-command-events
 ;; and XEmacs unread-command-event.  Arg is a character, an event, a list of
 ;; events or a sequence of keys.
 ;;

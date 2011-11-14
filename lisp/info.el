@@ -3328,7 +3328,7 @@ Return a list of matches where each element is in the format
 	(Info-directory)
 	;; current-node and current-file are nil when they invoke info-apropos
 	;; as the first Info command, i.e. info-apropos loads info.el.  In that
-	;; case, we use (DIR)Top instead, to avoid signalling an error after
+	;; case, we use (DIR)Top instead, to avoid signaling an error after
 	;; the search is complete.
 	(when (null current-node)
 	  (setq current-file Info-current-file)

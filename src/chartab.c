@@ -758,7 +758,7 @@ map_sub_char_table (void (*c_function) (Lisp_Object, Lisp_Object, Lisp_Object),
 {
   /* Depth of TABLE.  */
   int depth;
-  /* Minimum and maxinum characters covered by TABLE. */
+  /* Minimum and maximum characters covered by TABLE. */
   int min_char, max_char;
   /* Number of characters covered by one element of TABLE.  */
   int chars_in_block;

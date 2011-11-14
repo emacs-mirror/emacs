@@ -1023,7 +1023,7 @@ VERSION is of the format (Major . Minor)"
 
 
 (defvar prolog-mode-hook nil
-  "List of functions to call after the prolog mode has initialised.")
+  "List of functions to call after the prolog mode has initialized.")
 
 (unless (fboundp 'prog-mode)
   (defalias 'prog-mode 'fundamental-mode))
@@ -1090,7 +1090,7 @@ Actually this is just customized `prolog-mode'."
     map))
 
 (defvar prolog-inferior-mode-hook nil
-  "List of functions to call after the inferior prolog mode has initialised.")
+  "List of functions to call after the inferior prolog mode has initialized.")
 
 (defvar prolog-inferior-error-regexp-alist
   '(;; GNU Prolog used to not follow the GNU standard format.

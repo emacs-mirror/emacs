@@ -2344,7 +2344,7 @@ Anything else means consider all windows on WINDOW's frame and no
 others.
 
 If WINDOW is not on the list of windows returned, some other window will
-be listed first but no error is signalled.  */)
+be listed first but no error is signaled.  */)
   (Lisp_Object window, Lisp_Object minibuf, Lisp_Object all_frames)
 {
   return window_list_1 (window, minibuf, all_frames);

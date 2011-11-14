@@ -412,7 +412,7 @@ implicit \"object\"."
 	  ))
       (setq typelist (cdr typelist)))
 
-    ;; Loop over the types (which should be sorted by postion
+    ;; Loop over the types (which should be sorted by position)
     ;; adding to the scopelist as we go, and using the scopelist
     ;; for additional searching!
     (while typelist2
@@ -424,7 +424,7 @@ implicit \"object\"."
 			  currentscope))
       (setq typelist2 (cdr typelist2)))
 
-    ;; Collect all the types (class, etc) that are in our heratage.
+    ;; Collect all the types (class, etc) that are in our heritage.
     ;; These are types that we can extract members from, not those
     ;; declared in using statements, or the like.
     ;; Get the PARENTS including nesting scope for this location.

@@ -2709,7 +2709,7 @@ either is ok to parse as a non-comment, or `verilog-insert' was used."
 	(remove-text-properties (point-min) (point-max) '(v-cmt nil))
 	(verilog-scan-region (point-min) (point-max))
 	(setq verilog-scan-cache-tick (buffer-chars-modified-tick))
-	(when verilog-debug (message "Scaning... done"))))))
+	(when verilog-debug (message "Scanning... done"))))))
 
 (defun verilog-inside-comment-p ()
   "Check if point inside a comment.
@@ -5128,7 +5128,7 @@ Set point to where line starts."
     continued))
 
 (defun verilog-backward-token ()
-  "Step backward token, returing true if this is a continued line."
+  "Step backward token, returning true if this is a continued line."
   (interactive)
   (verilog-backward-syntactic-ws)
   (cond
@@ -11958,7 +11958,7 @@ Files are checked based on `verilog-library-flags'."
     (mouse-set-point event)
     (verilog-load-file-at-point t)))
 
-;; ffap isn't useable for Verilog mode. It uses library paths.
+;; ffap isn't usable for Verilog mode. It uses library paths.
 ;; so define this function to do more or less the same as ffap
 ;; but first resolve filename...
 (defun verilog-load-file-at-point (&optional warn)

@@ -676,7 +676,7 @@ controls whether case is significant."
 ;; v2 SMI TEXTUAL-CONVENTION macro template
 ;;
 (tempo-define-template "snmpv2-textual-convention"
-  '(> (P "Texual Convention Type: ") " ::= TEXTUAL-CONVENTION" n>
+  '(> (P "Textual Convention Type: ") " ::= TEXTUAL-CONVENTION" n>
     "STATUS  "
     (if tempo-interactive
         (snmp-completing-read "Status: " snmp-mode-status-list nil t)

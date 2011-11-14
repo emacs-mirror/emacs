@@ -734,7 +734,7 @@ To get complete usage, invoke \"emacs -batch -f batch-titdic-convert -h\"."
 ;; dictionary in the buffer DICBUF.  The input method name of the
 ;; Quail package is NAME, and the title string is TITLE.
 
-;; TSANG-P is non-nil, genereate $(06AQo(B input method.  Otherwise
+;; TSANG-P is non-nil, generate $(06AQo(B input method.  Otherwise
 ;; generate $(0X|/y(B (simple version of $(06AQo(B).  If BIG5-P is non-nil, the
 ;; input method is for inputting Big5 characters.  Otherwise the input
 ;; method is for inputting CNS characters.

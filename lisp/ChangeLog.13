@@ -1673,7 +1673,7 @@
 	x-resolve-font-name.
 	(x-complement-fontset-spec): Never prepend an ASCII font.
 	(create-fontset-from-fontset-spec): If a fontset of the same name
-	already exists, override it instead of signalling an error.  Don't
+	already exists, override it instead of signaling an error.  Don't
 	turn `ascii' into `latin'.  Don't update fontset-alias-alist here.
 
 	* international/mule-conf.el (unicode-bmp): Delete duplicated

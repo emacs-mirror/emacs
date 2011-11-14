@@ -3516,7 +3516,7 @@
 2003-04-23  Stefan Monnier  <monnier@cs.yale.edu>
 
 	* newcomment.el (comment-normalize-vars): Prompt the user for
-	the comment-start to use rather than signalling an error.  Fix regexp.
+	the comment-start to use rather than signaling an error.  Fix regexp.
 	(uncomment-region): Don't leave half-removed comment markers.
 
 2003-04-23  Richard M. Stallman  <rms@gnu.org>

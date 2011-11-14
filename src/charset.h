@@ -153,7 +153,7 @@ struct charset
   /* Dimension of the charset: 1, 2, 3, or 4.  */
   int dimension;
 
-  /* Byte code range of each dimension.  <code_space>[4N] is a mininum
+  /* Byte code range of each dimension.  <code_space>[4N] is a minimum
      byte code of the (N+1)th dimension, <code_space>[4N+1] is a
      maximum byte code of the (N+1)th dimension, <code_space>[4N+2] is
      (<code_space>[4N+1] - <code_space>[4N] + 1), <code_space>[4N+3]
@@ -199,14 +199,14 @@ struct charset
   /* The method for encoding/decoding characters of the charset.  */
   enum charset_method method;
 
-  /* Mininum and Maximum code points of the charset.  */
+  /* Minimum and Maximum code points of the charset.  */
   unsigned min_code, max_code;
 
   /* Offset value used by macros CODE_POINT_TO_INDEX and
       INDEX_TO_CODE_POINT. .  */
   unsigned char_index_offset;
 
-  /* Mininum and Maximum character codes of the charset.  If the
+  /* Minimum and Maximum character codes of the charset.  If the
      charset is compatible with ASCII, min_char is a minimum non-ASCII
      character of the charset.  If the method of charset is
      CHARSET_METHOD_OFFSET, even if the charset is unified, min_char

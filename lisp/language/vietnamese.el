@@ -28,7 +28,7 @@
 
 ;;; Commentary:
 
-;; For Vietnames, the character sets VISCII, VSCII and TCVN-5712 are
+;; For Vietnamese, the character sets VISCII, VSCII and TCVN-5712 are
 ;; supported.
 
 ;;; Code:

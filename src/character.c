@@ -969,7 +969,7 @@ character is a target to get a byte value.  In this case, POSITION, if
 non-nil, is an index of a target character in the string.
 
 If the current buffer (or STRING) is multibyte, and the target
-character is not ASCII nor 8-bit character, an error is signalled.  */)
+character is not ASCII nor 8-bit character, an error is signaled.  */)
   (Lisp_Object position, Lisp_Object string)
 {
   int c;

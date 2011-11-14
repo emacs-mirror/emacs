@@ -436,7 +436,7 @@ The root dictionary is usually for a current or active insertion."
 
 ;;; COMPOUND VALUE METHODS
 ;;
-;; Compound values must provide at least the toStriong method
+;; Compound values must provide at least the toString method
 ;; for use in converting the compound value into sometehing insertable.
 
 (defmethod srecode-compound-toString ((cp srecode-dictionary-compound-value)

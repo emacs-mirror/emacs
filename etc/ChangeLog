@@ -1,3 +1,7 @@
+2011-11-14  Juanma Barranquero  <lekktu@gmail.com>
+
+	* MAILINGLISTS: Fix typo.
+
 2011-10-29  Eli Zaretskii  <eliz@gnu.org>
 
 	* themes/wombat-theme.el: Add a coding cookie.  (Bug#9905)

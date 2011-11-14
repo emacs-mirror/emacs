@@ -1182,7 +1182,7 @@ run processes remotely.
 matches a regexp.
 
 *** The value of comment-style now defaults to `indent'.
-Thefore, comment-start markers are inserted at the current indentation
+Therefore, comment-start markers are inserted at the current indentation
 of the region to comment, rather than the leftmost column.
 
 *** The new commands `pp-macroexpand-expression' and
@@ -2529,4 +2529,3 @@ Local variables:
 mode: outline
 paragraph-separate: "[ 	]*$"
 end:
-

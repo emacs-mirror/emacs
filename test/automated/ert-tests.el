@@ -228,7 +228,7 @@ failed or if there was a problem."
                   :form (error "Foo")
                   :condition (error "Foo")
                   :fail-reason
-                  "the error signalled did not have the expected type"))))))
+                  "the error signaled did not have the expected type"))))))
   ;; Error of the expected type.
   (let* ((error nil)
          (test (make-ert-test
@@ -258,7 +258,7 @@ failed or if there was a problem."
                   :form (signal arith-error nil)
                   :condition (arith-error)
                   :fail-reason
-                  "the error signalled did not have the expected type"))))))
+                  "the error signaled did not have the expected type"))))))
   (let ((test (make-ert-test
                :body (lambda ()
                        (should-error (signal 'arith-error nil)
@@ -275,7 +275,7 @@ failed or if there was a problem."
                   :form (signal arith-error nil)
                   :condition (arith-error)
                   :fail-reason
-                  "the error signalled did not have the expected type"))))))
+                  "the error signaled did not have the expected type"))))))
   (let ((test (make-ert-test
                :body (lambda ()
                        (should-error (signal 'singularity-error nil)
@@ -292,7 +292,7 @@ failed or if there was a problem."
                   :form (signal singularity-error nil)
                   :condition (singularity-error)
                   :fail-reason
-                  "the error signalled was a subtype of the expected type")))))
+                  "the error signaled was a subtype of the expected type")))))
     ))
 
 (defmacro ert--test-my-list (&rest args)

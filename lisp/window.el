@@ -5409,7 +5409,7 @@ by `recenter-positions'."
 ;;; of buffer).
 
 (defcustom scroll-error-top-bottom nil
-  "Move point to top/bottom of buffer before signalling a scrolling error.
+  "Move point to top/bottom of buffer before signaling a scrolling error.
 A value of nil means just signal an error if no more scrolling possible.
 A value of t means point moves to the beginning or the end of the buffer
 \(depending on scrolling direction) when no more scrolling possible.

@@ -2681,7 +2681,7 @@ When this variable is set to t, the date/time prompt will not let
 you specify dates outside the 1970-2037 range, so it is certain that
 these dates will work in whatever version of Emacs you are
 running, and also that you can move a file from one Emacs implementation
-to another.  WHenever Org is forcing the year for you, it will display
+to another.  Whenever Org is forcing the year for you, it will display
 a message and beep.
 
 When this variable is nil, Org will check if the date is

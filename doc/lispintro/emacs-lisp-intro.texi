@@ -8200,7 +8200,7 @@ The command \\[yank] can retrieve it from there. @dots{} "
      ;;    it will be set in an error
      (setq this-command 'kill-region)
      ;;    Finally, in the then-part, send a message if you may copy
-     ;;    the text to the kill ring without signally an error, but
+     ;;    the text to the kill ring without signaling an error, but
      ;;    don't if you may not.
 @end group
 @group

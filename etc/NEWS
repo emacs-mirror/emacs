@@ -172,7 +172,7 @@ server should listen.
 *** New emacsclient argument --frame-parameters can be used to set the
 frame parameters of a newly-created graphical frame.
 +++
-*** If emacsclient shuts down as a result of Emacs signalling an
+*** If emacsclient shuts down as a result of Emacs signaling an
 error, its exit status is 1.
 +++
 *** New emacsclient argument --parent-id ID.
@@ -1243,7 +1243,7 @@ argument is supplied (see Trash changes, above).
 
 ** `facemenu-read-color' is now an alias for `read-color'.
 The command `read-color' now requires a match for a color name or RGB
-triplet, instead of signalling an error if the user provides a invalid
+triplet, instead of signaling an error if the user provides a invalid
 input.
 
 ** Tool-bars can display separators.

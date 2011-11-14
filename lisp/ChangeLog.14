@@ -7913,7 +7913,7 @@
 	ignored while matching, replace the entire filename with completion.
 
 	* textmodes/flyspell.el (flyspell-check-pre-word-p): Make sure
-	flyspell-pre-point is valid to avoid signalling an error in
+	flyspell-pre-point is valid to avoid signaling an error in
 	post-command-hook.
 
 2008-08-26  Johan Bockgård  <bojohan@gnu.org>
@@ -20567,4 +20567,3 @@ See ChangeLog.13 for earlier changes.
 
   You should have received a copy of the GNU General Public License
   along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
-

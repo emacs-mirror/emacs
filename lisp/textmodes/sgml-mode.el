@@ -1558,7 +1558,7 @@ LCON is the lexical context, if any."
 
 (defun sgml-guess-indent ()
   "Guess an appropriate value for `sgml-basic-offset'.
-Base the guessed identation level on the first indented tag in the buffer.
+Base the guessed indentation level on the first indented tag in the buffer.
 Add this to `sgml-mode-hook' for convenience."
   (interactive)
   (save-excursion
