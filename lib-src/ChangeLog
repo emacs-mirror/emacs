@@ -1,3 +1,7 @@
+2011-11-14  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* Makefile.in (all): Make sure "all" is the first target.
+
 2011-10-27  Juanma Barranquero  <lekktu@gmail.com>
 
 	* emacsclient.c (w32_getenv): Silence compiler warnings.
