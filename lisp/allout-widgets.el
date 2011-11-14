@@ -1465,7 +1465,7 @@ recursive operation."
 
   :from           nil                   ; item beginning - marker
   :to             nil                   ; item end - marker
-  :span-overlay   nil   ; overlay by which actual postion is determined
+  :span-overlay   nil   ; overlay by which actual position is determined
 
   ;; also serves as guide-end:
   :icon-start     nil

@@ -19139,7 +19139,7 @@
 	(font_rescale_ratio): New function.
 	(split_font_name): If NUMERIC_P is nonzero, set font->rescale_ratio.
 	(better_font_p): On comparing point sized, pay attention to
-	recale_ratio member of fonts.
+	rescale_ratio member of fonts.
 	(build_scalable_font_name): Reflect font->rescale_ratio in the
 	font name.
 	(syms_of_xfaces): Declare Vface_font_rescale_alist as a Lisp variable.
@@ -22780,7 +22780,7 @@
 2002-07-23  Kenichi Handa  <handa@etl.go.jp>
 
 	* xdisp.c (face_before_or_after_it_pos):
-	Call FETCH_MULTIBYTE_CHAR with byte postion, not char position.
+	Call FETCH_MULTIBYTE_CHAR with byte position, not char position.
 
 2002-07-22  Juanma Barranquero  <lektu@terra.es>
 

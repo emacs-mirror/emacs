@@ -7824,7 +7824,7 @@ imagemagick_load_image (struct frame *f, struct image *img,
 
   if (imagemagick_rendermethod == 1)
     {
-      /* Magicexportimage is normaly faster than pixelpushing.  This
+      /* Magicexportimage is normally faster than pixelpushing.  This
          method is also well tested. Some aspects of this method are
          ad-hoc and needs to be more researched. */
       int imagedepth = 24;/*MagickGetImageDepth(image_wand);*/

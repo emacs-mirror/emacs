@@ -610,7 +610,7 @@
 	'utils) (mh-require-cl) calls:
 
 	  (eval-when-compile (require 'mh-acros))
-          (mh-require-cl)
+	  (mh-require-cl)
 
 2004-08-10  Bill Wohler  <wohler@newt.com>
 
@@ -1960,8 +1960,8 @@
 	switch between available variants.
 	(mh-variants): Available MH variants are described in this variable.
 	(mh-variant-in-use, mh-variant-p): Developers may check which
-        variant is currently in use with the variable `mh-variant-in-use'
-        or the function `mh-variant-p'.
+	variant is currently in use with the variable `mh-variant-in-use'
+	or the function `mh-variant-p'.
 
 2003-08-15  Bill Wohler  <wohler@newt.com>
 
@@ -5959,7 +5959,7 @@
 	to allow the user a customizable variable which will turn off
 	folders based completion.
 	(mh-prompt-for-folder): Use mh-folder-completing-read to read in
-	the folder name with hierachical completion (closes SF #664821).
+	the folder name with hierarchical completion (closes SF #664821).
 
 	* mh-speed.el (mh-speed-folders, mh-speed-folders-cache)
 	(mh-speed-folders-actual): Moved to mh-utils.el as mh-sub-folders,
@@ -8162,7 +8162,7 @@
 
 2002-10-24  Bill Wohler  <wohler@newt.com>
 
-        * mh-e is completely checkdoc clean now.
+	* mh-e is completely checkdoc clean now.
 
 	* mh-utils.el (mh-clean-message-header-flag): Renamed from
 	mh-clean-message-header.
@@ -9213,7 +9213,7 @@
 	font, you may set this variable to expand the single reply
 	button into three buttons that won't lead to minibuffer prompt
 	about who to reply to.
-        (mh-folder-tool-bar-map): Use mh-tool-bar-reply-3-buttons to
+	(mh-folder-tool-bar-map): Use mh-tool-bar-reply-3-buttons to
 	decide how many buttons to use for replying.
 
 	* mh-mime.el (mh-file-mime-type-substitutions)
@@ -10456,10 +10456,10 @@
 
 2001-12-04  Eric Ding  <ericding@alum.mit.edu>
 
-        * mh-e.el: changes to face colors on dark backgrounds.
-        (mh-folder-followup-face): change to LightGoldenRod.
-        (mh-folder-date-face): change to snow3.
-        (mh-folder-msg-number-face): change to snow4.
+	* mh-e.el: changes to face colors on dark backgrounds.
+	(mh-folder-followup-face): change to LightGoldenRod.
+	(mh-folder-date-face): change to snow3.
+	(mh-folder-msg-number-face): change to snow4.
 
 2001-12-04  Bill Wohler  <wohler@newt.com>
 
@@ -11336,7 +11336,7 @@
 	typically have 70 lines in my Emacs frame, so having a default of
 	4 was silly for my case.
 	* mh-e.el (mh-update-sequences): Check for nil value of
-        mh-current-folder, which happens if mh-summary-height < 4
+	mh-current-folder, which happens if mh-summary-height < 4
 	although I haven't tracked doen why that happens.
 
 2001-10-22  Peter S Galbraith  <psg@debian.org>

@@ -484,7 +484,7 @@ See `rmail-mime-entity' for the detail."
       (insert "\n"))))
 
 (defun rmail-mime-find-header-encoding (header)
-  "Retun the last coding system used to decode HEADER.
+  "Return the last coding system used to decode HEADER.
 HEADER is a header component of a MIME-entity object (see
 `rmail-mime-entity')."
   (with-temp-buffer
@@ -1332,7 +1332,7 @@ attachments as specfied by `rmail-mime-attachment-dirs-alist'."
 	  (if (consp rmail-mime-coding-system)
 	      ;; Decoding is done by rfc2047-decode-region only for a
 	      ;; header.  But, as the used coding system may have been
-	      ;; overriden by mm-charset-override-alist, we can't
+	      ;; overridden by mm-charset-override-alist, we can't
 	      ;; trust (car rmail-mime-coding-system).  So, here we
 	      ;; try the decoding again with mm-charset-override-alist
 	      ;; bound to nil.

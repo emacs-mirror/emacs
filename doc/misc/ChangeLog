@@ -1,3 +1,8 @@
+2011-11-14  Juanma Barranquero  <lekktu@gmail.com>
+
+	* ediff.texi (Hooks):
+	* sem-user.texi (Semanticdb Roots): Fix typo.
+
 2011-11-11  Juanma Barranquero  <lekktu@gmail.com>
 
 	* semantic.texi (Tag handling): Fix typo.
@@ -300,7 +305,7 @@
 
 2011-08-15  Eric Schulte  <schulte.eric@gmail.com>
 
-	* org.texi (Evaluating code blocks):  Expanded discussion of
+	* org.texi (Evaluating code blocks): Expanded discussion of
 	#+call: line syntax.
 	(Header arguments in function calls): Expanded discussion of
 	#+call: line syntax.

@@ -1207,7 +1207,7 @@ This hook can be used to alter bindings in Ediff's keymap,
 @code{ediff-mode-map}.  These hooks are
 run right after the default bindings are set but before
 @code{ediff-load-hook}.  The regular user needs not be concerned with this
-hook---it is provided for implementors of other Emacs packages built on top
+hook---it is provided for implementers of other Emacs packages built on top
 of Ediff.
 
 @item ediff-before-setup-windows-hook

@@ -253,7 +253,7 @@ one with the `xr' package."
 
 (defun reftex-translate (files search-re translate-alist error-fmt test)
   ;; In FILES, look for SEARCH-RE and replace match 1 of it with
-  ;; its association in TRANSLATE-ALSIT.
+  ;; its association in TRANSLATE-ALIST.
   ;; If we do not find an association and TEST is non-nil, query
   ;; to ignore the problematic string.
   ;; If TEST is nil, it is ignored without query.

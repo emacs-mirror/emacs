@@ -3807,7 +3807,7 @@ Nuances:
             ;;(if doing-beginning (goto-char doing-beginning))
             (if (not (bobp))
                 ;; We insert a newline char rather than using open-line to
-                ;; avoid rear-stickiness inheritence of read-only property.
+                ;; avoid rear-stickiness inheritance of read-only property.
                 (progn (if (and (not (> depth ref-depth))
                                 (not before))
                            (open-line 1)

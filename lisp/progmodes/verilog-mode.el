@@ -5128,7 +5128,7 @@ Set point to where line starts."
     continued))
 
 (defun verilog-backward-token ()
-  "Step backward token, returing true if this is a continued line."
+  "Step backward token, returning true if this is a continued line."
   (interactive)
   (verilog-backward-syntactic-ws)
   (cond

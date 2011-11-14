@@ -162,8 +162,8 @@ static struct
   /* 1 iff the following table is used for encoder.  */
   short for_encoder;
 
-  /* When the following table is used for encoding, mininum and
-     maxinum character of the current charset.  */
+  /* When the following table is used for encoding, minimum and
+     maximum character of the current charset.  */
   int min_char, max_char;
 
   /* A Unicode character correspoinding to the code indice 0 (i.e. the

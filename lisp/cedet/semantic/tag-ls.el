@@ -41,7 +41,7 @@
 
 (define-overloadable-function semantic-tag-calculate-parent (tag)
   "Attempt to calculate the parent of TAG.
-The default behavior (if not overriden with `tag-calculate-parent')
+The default behavior (if not overridden with `tag-calculate-parent')
 is to search a buffer found with TAG, and if externally defined,
 search locally, then semanticdb for that tag (when enabled.)")
 

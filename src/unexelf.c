@@ -1019,7 +1019,7 @@ temacs:
 	  /* The conditional bit below was in Oliva's original code
 	     (1999-08-25) and seems to have been dropped by mistake
 	     subsequently.  It prevents a crash at startup under X in
-	     `IRIX64 6.5 6.5.17m', whether compiled on that relase or
+	     `IRIX64 6.5 6.5.17m', whether compiled on that release or
 	     an earlier one.  It causes no trouble on the other ELF
 	     platforms I could test (Irix 6.5.15m, Solaris 8, Debian
 	     Potato x86, Debian Woody SPARC); however, it's reported

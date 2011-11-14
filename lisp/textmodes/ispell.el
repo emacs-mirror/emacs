@@ -2284,7 +2284,7 @@ Otherwise the variable `ispell-grep-command' contains the command used to
 search for the words (usually egrep).
 
 Optional second argument contains the dictionary to use; the default is
-`ispell-alternate-dictionary', overriden by `ispell-complete-word-dict'
+`ispell-alternate-dictionary', overridden by `ispell-complete-word-dict'
 if defined."
   ;; We don't use the filter for this function, rather the result is written
   ;; into a buffer.  Hence there is no need to save the filter values.

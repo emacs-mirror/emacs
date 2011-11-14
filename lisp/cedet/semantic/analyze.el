@@ -476,7 +476,7 @@ If called interactively, display interesting information about POSITION
 in a separate buffer.
 Returns an object based on symbol `semantic-analyze-context'.
 
-This function can be overriden with the symbol `analyze-context'.
+This function can be overridden with the symbol `analyze-context'.
 When overriding this function, your override will be called while
 cursor is at POSITION.  In addition, your function will not be called
 if a cached copy of the return object is found."

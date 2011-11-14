@@ -1702,7 +1702,7 @@ static Lisp_Object auto_fontset_alist;
 /* Number of automatically created fontsets.  */
 static printmax_t num_auto_fontsets;
 
-/* Retun a fontset synthesized from FONT-OBJECT.  This is called from
+/* Return a fontset synthesized from FONT-OBJECT.  This is called from
    x_new_font when FONT-OBJECT is used for the default ASCII font of a
    frame, and the returned fontset is used for the default fontset of
    that frame.  The fontset specifies a font of the same registry as

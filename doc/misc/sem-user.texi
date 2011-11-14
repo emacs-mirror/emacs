@@ -382,7 +382,7 @@ them yourself.
 @deffn Option semanticdb-project-roots
 The value of this variable is a list of directories (strings) that are
 project roots.  All subdirectories of a project root are considered
-part of the same project.  This variable can be overriden by
+part of the same project.  This variable can be overridden by
 @code{semanticdb-project-root-functions}.
 @end deffn
 

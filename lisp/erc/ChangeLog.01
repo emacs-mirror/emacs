@@ -457,7 +457,7 @@
 	* erc.el 1.95: * Reduction patch 2
 	  This time, we move the input ring handling into erc-ring.el
 	  Remember that you need (require 'erc-ring) in your .emacs to get the input handling as a feature
-	  And remeber, that you don't need it if you don't use input ring :-)
+	  And remember, that you don't need it if you don't use input ring :-)
 
 	* erc-ring.el 1.1: * Initial checkin
 

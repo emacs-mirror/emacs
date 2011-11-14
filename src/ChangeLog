@@ -44,7 +44,7 @@
 
 2011-11-11  Dmitry Antipov  <dmantipov@yandex.ru>
 
- 	* xdisp.c (syms_of_xdisp): Remove duplicated definition of Qtext.
+	* xdisp.c (syms_of_xdisp): Remove duplicated definition of Qtext.
 
 2011-11-11  Kenichi Handa  <handa@m17n.org>
 

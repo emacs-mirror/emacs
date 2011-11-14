@@ -70,7 +70,7 @@
 ;; subclasses `ede-generic-target'.  The slots `shortname' and
 ;; `extension' should be given new initial values.
 ;;
-;; Optionally, any target method used by EDE can then be overriden.
+;; Optionally, any target method used by EDE can then be overridden.
 ;; The ede-generic-target-c-cpp has some example methods setting up
 ;; the pre-processor map and system include path.
 ;;
