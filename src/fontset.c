@@ -1788,7 +1788,7 @@ update_auto_fontset_alist (Lisp_Object font_object, Lisp_Object fontset)
 /* Return a cons (FONT-OBJECT . GLYPH-CODE).
    FONT-OBJECT is the font for the character at POSITION in the current
    buffer.  This is computed from all the text properties and overlays
-   that apply to POSITION.  POSTION may be nil, in which case,
+   that apply to POSITION.  POSITION may be nil, in which case,
    FONT-SPEC is the font for displaying the character CH with the
    default face.
 

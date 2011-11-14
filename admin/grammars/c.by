@@ -734,7 +734,7 @@ builtintype
 
 ;; Klaus Berndl: This parses also nonsense like "const volatile int
 ;; const volatile const const volatile a ..." but IMHO nobody writes
-;; such code. Normaly we shoud define a rule like typeformbase-mode
+;; such code. Normally we should define a rule like typeformbase-mode
 ;; which exactly defines the different allowed cases and combinations
 ;; of declmods (minus the CVDECLMOD) typeformbase and cv-declmods so
 ;; we could recognize more invalid code but IMHO this is not worth the

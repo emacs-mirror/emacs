@@ -1092,7 +1092,7 @@ Optional argument STAR and REF indicate the number of * and & in the typedef."
 	      ;; `throws' as a common name for things that toss
 	      ;; exceptions about.
 	      :throws (nth 5 tokenpart)
-	      ;; Reemtrant is a C++ thingy.  Add it here
+	      ;; Reentrant is a C++ thingy.  Add it here
 	      :reentrant-flag (if (member "reentrant" (nth 6 tokenpart)) t)
 	      ;; A function post-const is funky.  Try stuff
 	      :methodconst-flag (if (member "const" (nth 6 tokenpart)) t)

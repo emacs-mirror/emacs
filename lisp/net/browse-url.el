@@ -389,7 +389,7 @@ Defaults to the value of `browse-url-epiphany-arguments' at the time
   :type '(repeat (string :tag "Argument"))
   :group 'browse-url)
 
-;; GNOME means of invoking either Mozilla or Netrape.
+;; GNOME means of invoking either Mozilla or Netscape.
 (defvar browse-url-gnome-moz-program "gnome-moz-remote")
 
 (defcustom browse-url-gnome-moz-arguments '()

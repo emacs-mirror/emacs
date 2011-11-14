@@ -3287,7 +3287,7 @@ w32_mouse_position (FRAME_PTR *fp, int insist, Lisp_Object *bar_window,
 
 /* Handle mouse button event on the tool-bar of frame F, at
    frame-relative coordinates X/Y.  EVENT_TYPE is either ButtionPress
-   or ButtonRelase.  */
+   or ButtonRelease.  */
 
 static void
 w32_handle_tool_bar_click (struct frame *f, struct input_event *button_event)

@@ -1762,7 +1762,7 @@ ccl_driver (struct ccl_program *ccl, int *source, int *destination, int src_size
 
 	case CCL_STAT_QUIT:
 	  if (! ccl->quit_silently)
-	    sprintf (msg, "\nCCL: Quited.");
+	    sprintf (msg, "\nCCL: Quitted.");
 	  break;
 
 	default:

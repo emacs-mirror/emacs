@@ -862,7 +862,7 @@ instead."
 	  (let ((tab (car (car tmp)))
 		(tags (cdr (car tmp))))
 	    (dolist (T tags)
-	      ;; Normilzation gives specialty database tables a chance
+	      ;; Normalization gives specialty database tables a chance
 	      ;; to convert into a more stable tag format.
 	      (let* ((norm (semanticdb-normalize-one-tag tab T))
 		     (ntab (car norm))

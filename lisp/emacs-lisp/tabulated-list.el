@@ -321,7 +321,7 @@ This mode is usually not used directly; instead, other major
 modes are derived from it, using `define-derived-mode'.
 
 In this major mode, the buffer is divided into multiple columns,
-which are labelled using the header line.  Each non-empty line
+which are labeled using the header line.  Each non-empty line
 belongs to one \"entry\", and the entries can be sorted according
 to their column values.
 

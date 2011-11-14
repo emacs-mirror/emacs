@@ -2100,7 +2100,7 @@ cell of the form ( 'DIRLIST . 'FILELIST )."
   (if (= index 0)
       ;; If the shown files variable has extra directories, then
       ;; it is our responsibility to redraw them all
-      ;; Luckilly, the nature of inserting items into this list means
+      ;; Luckily, the nature of inserting items into this list means
       ;; that by reversing it, we can easilly go in the right order
       (let ((sf (cdr (reverse speedbar-shown-directories))))
 	(setq speedbar-shown-directories

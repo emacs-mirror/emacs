@@ -146,8 +146,8 @@ These languages are supported with the Latin-3 (ISO-8859-3) character set:
 	     (input-method . "latin-4-postfix")
 	     (documentation . "\
 These languages are supported with the Latin-4 (ISO-8859-4) character set:
- Danish, English, Estonian, Finnish, German, Greenlandic, Lappish,
- Latvian, Lithuanian, and Norwegian."))
+ Danish, English, Estonian, Finnish, German, Greenlandic, Latvian,
+ Lithuanian, Norwegian, and Sami."))
  '("European"))
 
 
@@ -226,7 +226,7 @@ See also the Turkish environment."))
   "ISO 2022 based 8-bit encoding for Latin-8 (MIME:ISO-8859-14)."
   :coding-type 'charset
   ;; `W' for `Welsh', since `C' for `Celtic' is taken.
-  :mnemonic ?W				
+  :mnemonic ?W
   :charset-list '(iso-8859-14)
   :mime-charset 'iso-8859-14)
 
@@ -610,7 +610,7 @@ method and applying Turkish case rules for the characters i, I, $(D)E(B, $(D*
 (define-coding-system 'mac-roman
   "Mac Roman Encoding (MIME:MACINTOSH)."
   :coding-type 'charset
-  :mnemonic ?M 
+  :mnemonic ?M
   :charset-list '(mac-roman)
   :mime-charset 'macintosh)
 
