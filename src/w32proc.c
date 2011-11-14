@@ -241,7 +241,8 @@ reader_thread (void *arg)
 
   /* We have to wait for the go-ahead before we can start */
   if (cp == NULL
-      || WaitForSingleObject (cp->char_consumed, INFINITE) != WAIT_OBJECT_0)
+      || WaitForSingleObject (cp->char_consumed, INFINITE) != WAIT_OBJECT_0
+      || cp->fd < 0)
     return 1;
 
   for (;;)
@@ -2319,4 +2320,3 @@ where the performance impact may be noticeable even on modern hardware.  */);
   staticpro (&Vw32_valid_codepages);
 }
 /* end of w32proc.c */
-
