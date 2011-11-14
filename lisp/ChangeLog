@@ -1,5 +1,9 @@
 2011-11-14  Glenn Morris  <rgm@gnu.org>
 
+	* progmodes/executable.el
+	(executable-make-buffer-file-executable-if-script-p):
+	Handle file-modes returning nil.
+
 	* mail/rmail.el (rmail-no-mail-p): Remove mode-line N/M indicator.
 
 	* mail/rmailsum.el (rmail-summary, rmail-new-summary)
