@@ -40,7 +40,7 @@ void
 usage (const char *progname)
 {
   fprintf (stderr, "Usage %s options\n", progname);
-  fprintf (stderr, "-n NCOLORS  allcoate NCOLORS colors\n");
+  fprintf (stderr, "-n NCOLORS  allocate NCOLORS colors\n");
   exit (1);
 }
 
@@ -111,4 +111,3 @@ main (int argc, char **argv)
   XCloseDisplay (dpy);
   return 0;
 }
-

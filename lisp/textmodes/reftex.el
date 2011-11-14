@@ -1568,7 +1568,7 @@ Valid actions are: readable, restore, read, kill, write."
 ;;; Finding files
 
 (defun reftex-locate-file (file type master-dir &optional die)
-  "Find FILE of type TYPE in MASTER-DIR or on the path associcted with TYPE.
+  "Find FILE of type TYPE in MASTER-DIR or on the path associated with TYPE.
 If the file does not have any of the valid extensions for TYPE,
 try first the default extension and only then the naked file name.
 When DIE is non-nil, throw an error if file not found."
@@ -2254,7 +2254,7 @@ IGNORE-WORDS List of words which should be removed from the string."
 (defvar font-lock-defaults-computed)
 (defun reftex-fontify-select-label-buffer (parent-buffer)
   ;; Fontify the `*RefTeX Select*' buffer.  Buffer is temporarily renamed to
-  ;; start with none-SPC char, beacuse Font-Lock otherwise refuses operation.
+  ;; start with none-SPC char, because Font-Lock otherwise refuses operation.
   (run-hook-with-args 'reftex-pre-refontification-functions
                       parent-buffer 'reftex-ref)
   (let* ((oldname (buffer-name))

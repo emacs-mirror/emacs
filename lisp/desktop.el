@@ -1176,7 +1176,7 @@ directory DIRNAME."
 	  (setq desktop-buffer-fail-count (1+ desktop-buffer-fail-count))
 	  (setq result nil))
 	;; Restore buffer list order with new buffer at end. Don't change
-	;; the order for old desktop files (old desktop module behaviour).
+	;; the order for old desktop files (old desktop module behavior).
 	(unless (< desktop-file-version 206)
 	  (mapc 'bury-buffer buffer-list)
 	  (when result (bury-buffer result)))

@@ -5144,7 +5144,7 @@ the corresponding glyph code.  If ENCODING is a char-table, looking up
 the table by a character gives the corresponding glyph code.
 
 REPERTORY specifies a repertory of characters supported by the font.
-If REPERTORY is a charset, all characters beloging to the charset are
+If REPERTORY is a charset, all characters belonging to the charset are
 supported.  If REPERTORY is a char-table, all characters who have a
 non-nil value in the table are supported.  If REPERTORY is nil, Emacs
 gets the repertory information by an opened font and ENCODING.  */);

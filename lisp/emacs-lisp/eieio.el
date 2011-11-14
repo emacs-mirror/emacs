@@ -958,7 +958,7 @@ if default value is nil."
 	  (progn
 	    (eieio-perform-slot-validation-for-default a type value skipnil)
 	    ;; Here we have found a :class version of a slot.  This
-	    ;; requires a very different aproach.
+	    ;; requires a very different approach.
 	    (aset newc class-class-allocation-a (cons a (aref newc class-class-allocation-a)))
 	    (aset newc class-class-allocation-doc (cons doc (aref newc class-class-allocation-doc)))
 	    (aset newc class-class-allocation-type (cons type (aref newc class-class-allocation-type)))
@@ -2563,7 +2563,7 @@ This is usually a symbol that starts with `:'."
 
 ;;;
 ;; We want all objects created by EIEIO to have some default set of
-;; behaviours so we can create object utilities, and allow various
+;; behaviors so we can create object utilities, and allow various
 ;; types of error checking.  To do this, create the default EIEIO
 ;; class, and when no parent class is specified, use this as the
 ;; default.  (But don't store it in the other classes as the default,

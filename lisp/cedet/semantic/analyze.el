@@ -302,7 +302,7 @@ Optional argument THROWSYM specifies a symbol the throw on non-recoverable error
 				     (mapcar 'semantic-tag-type-members
 					     tagtype))))
 			 (oset miniscope fullscope rawscope)))
-		     ;; Now analayze the type to remove metatypes.
+		     ;; Now analyze the type to remove metatypes.
 		     (or (semantic-analyze-type tmp miniscope)
 			 tmp))
 		    (t

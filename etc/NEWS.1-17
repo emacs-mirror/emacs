@@ -1074,7 +1074,7 @@ Another `t' switches back to the usual display.
 
 * Rmail commands `a' and `k' set message attributes.
 `a' adds an attribute and `k' removes one.  You specify
-the attrbute by name.  You can specify either a built-in
+the attribute by name.  You can specify either a built-in
 flag such as "deleted" or "filed", or a user-defined keyword
 (anything not recognized as built-in).
 
@@ -2530,4 +2530,3 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
 Local variables:
 mode: text
 end:
-

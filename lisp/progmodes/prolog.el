@@ -151,7 +151,7 @@
 ;;     (`prolog-electric-dot-full-predicate-template', defaults to t
 ;;     since it seems quicker to me to just type those commata).  A
 ;;     trivial adaptation of a patch by Markus Triska.
-;;  o  Improved the behaviour of electric if-then-else to only skip
+;;  o  Improved the behavior of electric if-then-else to only skip
 ;;     forward if the parenthesis/semicolon is preceded by
 ;;     whitespace.  Once more a trivial adaptation of a patch by
 ;;     Markus Triska.

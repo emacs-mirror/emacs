@@ -384,7 +384,7 @@ be found."
 ;;------------------------------------------------------------
 
 (define-overloadable-function semantic-analyze-scoped-tags (typelist parentlist)
-  "Return accessable tags when TYPELIST and PARENTLIST is in scope.
+  "Return accessible tags when TYPELIST and PARENTLIST is in scope.
 Tags returned are not in the global name space, but are instead
 scoped inside a class or namespace.  Such items can be referenced
 without use of \"object.function()\" style syntax due to an

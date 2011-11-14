@@ -882,7 +882,7 @@ safe_alloca_unwind (Lisp_Object arg)
 
 /* Like malloc but used for allocating Lisp data.  NBYTES is the
    number of bytes to allocate, TYPE describes the intended use of the
-   allcated memory block (for strings, for conses, ...).  */
+   allocated memory block (for strings, for conses, ...).  */
 
 #ifndef USE_LSB_TAG
 static void *lisp_malloc_loser;

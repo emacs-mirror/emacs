@@ -2088,7 +2088,7 @@ w32_key_to_modifier (int key)
       key_mapping = Qnil;
     }
 
-  /* NB. This code runs in the input thread, asychronously to the lisp
+  /* NB. This code runs in the input thread, asynchronously to the lisp
      thread, so we must be careful to ensure access to lisp data is
      thread-safe.  The following code is safe because the modifier
      variable values are updated atomically from lisp and symbols are

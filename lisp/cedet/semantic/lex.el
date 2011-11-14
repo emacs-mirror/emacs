@@ -1437,7 +1437,7 @@ Return either a paren token or a semantic list token depending on
 ;;; Comment lexer
 ;;
 ;; Predefined lexers that could be used instead of creating new
-;; analyers.
+;; analyzers.
 
 (define-lex semantic-comment-lexer
   "A simple lexical analyzer that handles comments.

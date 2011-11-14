@@ -2573,7 +2573,7 @@ Also refontify when necessary."
 	(setq whitespace-display-table-was-local t
 	      whitespace-display-table
 	      (copy-sequence buffer-display-table))
-	;; asure `buffer-display-table' is unique
+	;; Assure `buffer-display-table' is unique
 	;; when two or more windows are visible.
 	(setq buffer-display-table
 	      (copy-sequence buffer-display-table)))

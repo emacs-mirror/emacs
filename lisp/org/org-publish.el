@@ -191,7 +191,7 @@ sitemap of files or summary page for a given project.
                            display folders first or last, respectively.
                            Any other value will mix files and folders.
   :sitemap-sort-files      The site map is normally sorted alphabetically.
-                           You can change this behaviour setting this to
+                           You can change this behavior setting this to
                            `chronologically', `anti-chronologically' or nil.
   :sitemap-ignore-case     Should sorting be case-sensitive?  Default nil.
 
@@ -1114,7 +1114,7 @@ so that the file including them will be republished as well."
       (let ((ctime (org-publish-cache-ctime-of-src filename)))
 	(or (< pstamp ctime)
 	    (when included-files-ctime
-	      (not (null (delq nil (mapcar (lambda(ct) (< ctime ct)) 
+	      (not (null (delq nil (mapcar (lambda(ct) (< ctime ct))
 					   included-files-ctime))))))))))
 
 (defun org-publish-cache-set-file-property (filename property value &optional project-name)

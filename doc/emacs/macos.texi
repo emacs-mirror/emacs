@@ -120,7 +120,7 @@ Useful in this context is the listing of all faces obtained by @key{M-x}
 
 @subsection Open files by dragging to an Emacs window
 
-The default behaviour when a user drags files from another application
+The default behavior when a user drags files from another application
 into an Emacs frame is to insert the contents of all the dragged files
 into the current buffer.  To remap the @code{ns-drag-file} event to
 open the dragged files in the current frame use the following line:

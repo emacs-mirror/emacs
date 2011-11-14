@@ -11217,7 +11217,7 @@ changes.  Such blocking occurs when:
 		     (forward-line 1)
 		     (re-search-forward org-not-done-heading-regexp pos t))
 	    (throw 'dont-block nil))  ; block, there is an older sibling not done.
-	  ;; Search further up the hierarchy, to see if an anchestor is blocked
+	  ;; Search further up the hierarchy, to see if an ancestor is blocked
 	  (while t
 	    (goto-char parent-pos)
 	    (if (not (looking-at org-not-done-heading-regexp))

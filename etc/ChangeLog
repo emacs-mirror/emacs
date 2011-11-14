@@ -375,7 +375,7 @@
 
 2011-01-04  Jan Moringen  <jan.moringen@uni-bielefeld.de>
 
-	* NEWS: Extended behaviour of dbus-register-{method,property}.
+	* NEWS: Extended behavior of dbus-register-{method,property}.
 
 2011-01-02  Kenichi Handa  <handa@m17n.org>
 

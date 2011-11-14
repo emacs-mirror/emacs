@@ -349,7 +349,7 @@ This file also provides support for @code{semanticdb-minor-mode},
 which automatically associates files with tables in databases so that
 tags are @emph{saved} while a buffer is not in memory.
 
-The database and tables both also provide applicate cache information,
+The database and tables both also provide applicable cache information,
 and cache flushing system.  The semanticdb search routines use caches
 to save datastructures that are complex to calculate.
 

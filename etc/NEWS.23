@@ -2102,7 +2102,7 @@ function to use for searching in `query-replace-regexp',
 *** New keymap `search-map' bound to `M-s' provides global bindings
 for search related commands.
 
-*** New keymap `multi-query-replace-map' contains additonal keys bound
+*** New keymap `multi-query-replace-map' contains additional keys bound
 to `automatic-all' and `exit-current' for multi-buffer interactive replacement.
 
 *** The variable `inhibit-changing-match-data', if non-nil, prevents

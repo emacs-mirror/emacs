@@ -709,7 +709,7 @@ ARGVALUES are values for any arg list, or nil."
 
 ;;; Symbol Is Macro
 ;;
-;; An analyser that will push tokens from a macro in place
+;; An analyzer that will push tokens from a macro in place
 ;; of the macro symbol.
 ;;
 (defun semantic-lex-spp-anlyzer-do-replace (sym val beg end)

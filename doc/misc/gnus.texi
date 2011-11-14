@@ -18001,7 +18001,7 @@ see the event's date.
   @code{gnus-diary} provides two supplemental user formats to be used in
 summary line formats.  @code{D} corresponds to a formatted time string
 for the next occurrence of the event (e.g. ``Sat, Sep 22 01, 12:00''),
-while @code{d} corresponds to an approximative remaining time until the
+while @code{d} corresponds to an approximate remaining time until the
 next occurrence of the event (e.g. ``in 6 months, 1 week'').
 
   For example, here's how Joe's birthday is displayed in my

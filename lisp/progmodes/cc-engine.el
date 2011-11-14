@@ -988,7 +988,7 @@ comment at the start of cc-engine.el for more info."
 			 ;; Just gone back over an ordinary symbol of some sort?
 			 (t (c-crosses-statement-barrier-p
 			     (point) maybe-after-boundary-pos))))
-	
+
 		  (when boundary-pos
 		    (setq pptok ptok
 			  ptok tok
@@ -1065,7 +1065,7 @@ comment at the start of cc-engine.el for more info."
 		    pos tok) ; always non-nil
 	      )		     ; end of (catch loop ....)
 	  )		     ; end of sexp-at-a-time (while ....)
-	
+
 	;; If the stack isn't empty there might be errors to report.
 	(while stack
 	  (if (and (vectorp saved-pos) (eq (length saved-pos) 3))
@@ -1795,7 +1795,7 @@ comment at the start of cc-engine.el for more info."
 	rung-is-marked simple-ws-beg cmt-skip-pos)
 
     ;; Skip simple horizontal ws and do a quick check on the preceding
-    ;; character to see if it's anying that can't end syntactic ws, so we can
+    ;; character to see if it's anything that can't end syntactic ws, so we can
     ;; bail out early in the majority of cases when there just are a few ws
     ;; chars.  Newlines are complicated in the backward direction, so we can't
     ;; skip over them.
@@ -4051,7 +4051,7 @@ comment at the start of cc-engine.el for more info."
 		     ;; a relevant match.
 		     (goto-char pos)
 		     nil))))))
-	     
+
 	  (> (point)
 	     (progn
 	       ;; Skip syntactic ws afterwards so that we don't stop at the
@@ -6277,7 +6277,7 @@ comment at the start of cc-engine.el for more info."
   ;;      car ^                                     ^ point
   ;;     Foo::Foo (int b) : Base (b) {}
   ;; car ^                ^ point
-  ;; 
+  ;;
   ;;   The cdr of the return value is non-nil when a
   ;;   `c-typedef-decl-kwds' specifier is found in the declaration.
   ;;   Specifically it is a dotted pair (A . B) where B is t when a
@@ -6285,7 +6285,7 @@ comment at the start of cc-engine.el for more info."
   ;;   other `c-typedef-decl-kwds' (e.g. class, struct, enum)
   ;;   specifier is present.  I.e., (some of) the declared
   ;;   identifier(s) are types.
-  ;; 
+  ;;
   ;; If a cast is parsed:
   ;;
   ;;   The point is left at the first token after the closing paren of
@@ -8461,7 +8461,7 @@ comment at the start of cc-engine.el for more info."
 		nil)
 	       (t nil))))
 	 (eolp))
-	     
+
        (goto-char pos)
        (progn (c-backward-syntactic-ws)
 	      (eq (point) pos))
@@ -8922,7 +8922,7 @@ comment at the start of cc-engine.el for more info."
       ;; FIXME: Should use c-add-stmt-syntax, but it's not yet
       ;; template aware.
       (c-add-syntax 'template-args-cont (point) placeholder))
-     
+
      ;; CASE D: continued statement.
      (t
       (c-beginning-of-statement-1 containing-sexp)

@@ -2217,7 +2217,7 @@ Return position where LINE begins."
 (defun gdb-mapcar* (function &rest seqs)
   "Apply FUNCTION to each element of SEQS, and make a list of the results.
 If there are several SEQS, FUNCTION is called with that many
-arugments, and mapping stops as sson as the shortest list runs
+arguments, and mapping stops as sson as the shortest list runs
 out."
   (let ((shortest (apply #'min (mapcar #'length seqs))))
     (mapcar (lambda (i)
@@ -3428,7 +3428,7 @@ breakpoints buffer."
         (error "Not recognized as break/watchpoint line")))))
 
 
-;; Frames buffer.  This displays a perpetually correct bactrack trace.
+;; Frames buffer.  This displays a perpetually correct backtrack trace.
 ;;
 (def-gdb-trigger-and-handler
   gdb-invalidate-frames (gdb-current-context-command "-stack-list-frames")

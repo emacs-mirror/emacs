@@ -78,7 +78,7 @@ Text Rendering and Font Handling
 nsfont.m implements the font driver, responsible for managing fonts and
 rendering text.  Fonts are obtained through NSFontManager.  Rendering must be
 done at a low level due to emacs' fine control over this process, therefore
-there are different approachs under Cocoa and GNUstep.  Under GNUstep, the
+there are different approaches under Cocoa and GNUstep.  Under GNUstep, the
 original NeXT Display PostScript (DPS) APIs are available and used.  Under
 Cocoa, these were removed and Quartz drawing functions replaced them.
 
@@ -156,4 +156,3 @@ EmacsPrefsController : NSObject
 EmacsSavePanel : NSSavePanel
 EmacsOpenPanel : NSOpenPanel
   - utility override for panel notifications
-

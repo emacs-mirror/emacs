@@ -142,7 +142,7 @@ This information is useful, but it takes screen space away from file names."
 
 ;; The Tar data is made up of bytes and better manipulated as bytes
 ;; and can be very large, so insert/delete can be costly.  The summary we
-;; want to display may contain non-ascci chars, of course, so we'd like it
+;; want to display may contain non-ascii chars, of course, so we'd like it
 ;; to be multibyte.  We used to keep both in the same buffer and switch
 ;; from/to uni/multibyte.  But this had several downsides:
 ;; - set-buffer-multibyte has an O(N^2) worst case that tends to be triggered

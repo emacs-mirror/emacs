@@ -1060,7 +1060,7 @@ cmd_error_internal (Lisp_Object data, const char *context)
   struct frame *sf = SELECTED_FRAME ();
 
   /* The immediate context is not interesting for Quits,
-     since they are asyncronous.  */
+     since they are asynchronous.  */
   if (EQ (XCAR (data), Qquit))
     Vsignaling_function = Qnil;
 

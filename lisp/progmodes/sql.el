@@ -672,7 +672,7 @@ highlighted properly when you open them."
   :safe 'symbolp)
 (defvaralias 'sql-dialect 'sql-product)
 
-;; misc customization of sql.el behaviour
+;; misc customization of sql.el behavior
 
 (defcustom sql-electric-stuff nil
   "Treat some input as electric.
@@ -3600,12 +3600,12 @@ The list is maintained in SQL interactive buffers.")
                 (setq has-schema (and
                                   (>= (length (car names)) schema-len)
                                   (string= schema-dot
-                                           (downcase (substring (car names) 
+                                           (downcase (substring (car names)
                                                                 0 schema-len))))
                       names (cdr names)))
               (unless has-schema
                 (sql-build-completions schema)))))
-        
+
         ;; Try to find the completion
         (cond
          ((not predicate)
@@ -3951,7 +3951,7 @@ is specified in the connection settings."
                        ;; interactive session
                        (eval `(let ((sql-connection ,connection)
                                      (,param-var ',rem-params))
-                                (sql-product-interactive sql-product 
+                                (sql-product-interactive sql-product
                                                          new-name)))))
 
             (message "SQL Connection <%s> does not exist" connection)
@@ -3981,16 +3981,16 @@ optionally is saved to the user's init file."
 
     (if connection
         (message "This session was started by a connection; it's already been saved.")
-      
+
       (let ((login (sql-get-product-feature product :sqli-login))
             (alist sql-connection-alist)
             connect)
-        
+
         ;; Remove the existing connection if the user says so
         (when (and (assoc name alist)
                    (yes-or-no-p (format "Replace connection definition <%s>? " name)))
           (setq alist (assq-delete-all name alist)))
-        
+
         ;; Add the new connection if it doesn't exist
         (if (assoc name alist)
             (message "Connection <%s> already exists" name)
@@ -4747,8 +4747,8 @@ Try to set `comint-output-filter-functions' like this:
     (sql-redirect sqlbuf "\\t off")
     (when (not (string= a "aligned"))
       (sql-redirect sqlbuf "\\a"))
-    
-    ;; Return the list of table names (public schema name can be omitted) 
+
+    ;; Return the list of table names (public schema name can be omitted)
     (mapcar (lambda (tbl)
               (if (string= (car tbl) "public")
                   (cadr tbl)

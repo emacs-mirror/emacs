@@ -73,7 +73,7 @@ Some useful context values used by the provided srecode templates are:
   )
 
 (defun srecode-calculate-nearby-things ()
-  ;; NOTE: May need to add bounes to this FCN
+  ;; NOTE: May need to add bounds to this FCN
   "Calculate the CONTEXT type items nearby the current point.
 Assume that what we want to insert next is based on what is just
 before point.  If there is nothing, then assume it is whatever is

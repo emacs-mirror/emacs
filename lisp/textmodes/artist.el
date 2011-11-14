@@ -2263,7 +2263,7 @@ Returns a DIRECTION, a number 0--7, coded as follows:
 
 
 ;; Things for drawing lines in all directions.
-;; The line drawing engine is the eight-point alrogithm.
+;; The line drawing engine is the eight-point algorithm.
 ;;
 ;; A line is here a list of (x y saved-char new-char)s.
 ;;

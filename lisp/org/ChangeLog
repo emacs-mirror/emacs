@@ -7163,7 +7163,7 @@
 	src blocks.
 	(org-speed-command-default-hook): The default hook for
 	org-speed-command-hook.  Factored out from org-self-insert-command
-	and mimics existing behaviour.
+	and mimics existing behavior.
 	(org-self-insert-command): Modified to use org-speed-command-hook.
 
 2010-11-11  Carsten Dominik  <carsten.dominik@gmail.com>
@@ -10577,7 +10577,7 @@
 	a list of symbols specifying which of the special keywords #+DATE,
 	#+AUTHOR, #+EMAIL and #+TITLE should be hidden by font lock.
 	(org-fontify-meta-lines-and-blocks): Changes to font-lock code
-	implementing new faces and hiding behaviour.
+	implementing new faces and hiding behavior.
 
 	* org-faces.el (org-document-title): New face for #+TITLE lines.
 	(org-document-info): New face for #+DATE, #+AUTHOR, #+EMAIL lines.
@@ -16482,14 +16482,14 @@
 2008-11-23  Carsten Dominik  <carsten.dominik@gmail.com>
 
 	* org-export-latex.el (org-export-latex-subcontent):
-	Interprete target aliases as additonal labels.
+	Interprete target aliases as additional labels.
 
 	* org-exp.el (org-export-target-aliases): New variable.
 	(org-export-preprocess-string)
 	(org-export-handle-invisible-targets): Fill the alias alist.
 	(org-export-as-html): Remove the &nbsp; from the anchor, and also
 	assign an id.
-	(org-html-level-start): Insert the target aliases as additonal
+	(org-html-level-start): Insert the target aliases as additional
 	anchors.
 
 	* org.el (org-edit-fixed-width-region): Fix bug when starting a new

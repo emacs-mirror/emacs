@@ -249,7 +249,7 @@ qualified name, i.e., it contains DOMAIN.
 APROTOCOL stands for the network protocol family ADDRESS is
 encoded (`zeroconf-avahi-protocol-inet4' means INET4,
 `zeroconf-avahi-protocol-inet6' means INET6).  It can be
-different from PROTOCOL, when an adrress resolution has been
+different from PROTOCOL, when an address resolution has been
 requested for another protocol family but the default one.
 
 ADDRESS is the service address, encoded according to the

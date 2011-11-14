@@ -2299,7 +2299,7 @@
 2009-08-25  Michael Albinus  <michael.albinus@gmx.de>
 
 	* dbus.texi (Bus names): Add optional parameter TIMEOUT to dbus-ping.
-	Describe autostart behaviour of dbus-ping.
+	Describe autostart behavior of dbus-ping.
 	(Synchronous Methods, Asynchronous Methods): Use English numeric format
 	for timeout values.
 	(Top): Remove footnote saying D-Bus is not enabled by

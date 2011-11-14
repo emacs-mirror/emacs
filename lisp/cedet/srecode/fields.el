@@ -101,7 +101,7 @@ Has virtual :start and :end initializers.")
 	    ))
 
     ;; Create a temporary overlay now.  We have to use an overlay and
-    ;; not a marker becaues of the in-front insertion rules.  The rules
+    ;; not a marker because of the in-front insertion rules.  The rules
     ;; are backward from what is wanted while typing.
     (setq olay (make-overlay start end (current-buffer) t nil))
     (overlay-put olay 'srecode-init-only t)

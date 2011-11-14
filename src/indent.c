@@ -1675,7 +1675,7 @@ compute_motion (EMACS_INT from, EMACS_INT fromvpos, EMACS_INT fromhpos, int did_
     val_compute_motion.prevhpos = contin_hpos;
   else
     val_compute_motion.prevhpos = prev_hpos;
-  /* We alalways handle all of them here; none of them remain to do.  */
+  /* We always handle all of them here; none of them remain to do.  */
   val_compute_motion.ovstring_chars_done = 0;
 
   /* Nonzero if have just continued a line */
