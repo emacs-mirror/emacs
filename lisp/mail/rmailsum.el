@@ -411,7 +411,8 @@ nil for FUNCTION means all messages."
     (with-current-buffer rmail-buffer
       (setq rmail-summary-buffer (rmail-new-summary-1 desc redo func args)
 	    ;; r-s-b is buffer-local.
-	    sumbuf rmail-summary-buffer))
+	    sumbuf rmail-summary-buffer
+	    mesg rmail-current-message))
     ;; Now display the summary buffer and go to the right place in it.
     (unless was-in-summary
       (if (and (one-window-p)

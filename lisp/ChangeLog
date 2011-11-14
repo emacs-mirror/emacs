@@ -4,6 +4,8 @@
 	(executable-make-buffer-file-executable-if-script-p):
 	Handle file-modes returning nil.
 
+	* mail/rmailsum.el (rmail-new-summary): Preserve message number.
+
 	* mail/rmail.el (rmail-no-mail-p): Remove mode-line N/M indicator.
 
 	* mail/rmailsum.el (rmail-summary, rmail-new-summary)
