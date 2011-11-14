@@ -802,7 +802,7 @@ font_expand_wildcards (Lisp_Object *field, int n)
   struct {
     /* Minimum possible field.  */
     int from;
-    /* Maxinum possible field.  */
+    /* Maximum possible field.  */
     int to;
     /* Bit mask of possible field.  Nth bit corresponds to Nth field.  */
     int mask;

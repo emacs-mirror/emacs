@@ -161,7 +161,7 @@ in the Emacs distribution.  Type @kbd{C-h C-f} to read the FAQ; type
 @cindex @key{BACKSPACE} vs @key{DEL}
 @cindex usual erasure key
 
-  Every keyboard has a large key, usually labelled @key{Backspace},
+  Every keyboard has a large key, usually labeled @key{Backspace},
 which is ordinarily used to erase the last character that you typed.
 We call this key @dfn{the usual erasure key}.  In Emacs, it is
 supposed to be equivalent to @key{DEL}.

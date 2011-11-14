@@ -759,7 +759,7 @@ Possible return values:
    (indirect-function 'smie-op-left)
    halfsexp))
 
-;;; Miscellanous commands using the precedence parser.
+;;; Miscellaneous commands using the precedence parser.
 
 (defun smie-backward-sexp-command (&optional n)
   "Move backward through N logical elements."

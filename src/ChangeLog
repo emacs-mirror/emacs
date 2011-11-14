@@ -1,3 +1,8 @@
+2011-11-14  Juanma Barranquero  <lekktu@gmail.com>
+
+	* w32proc.c (reader_thread): Don't check pending input if cp->fd < 0,
+	just return (bug#10044).
+
 2011-11-12  Eli Zaretskii  <eliz@gnu.org>
 
 	* makefile.w32-in (HEAPSIZE): New variable, allows to build temacs

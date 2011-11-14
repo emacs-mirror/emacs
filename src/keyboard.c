@@ -8782,7 +8782,7 @@ typedef struct keyremap
   /* Positions [START, END) in the key sequence buffer
      are the key that we have scanned so far.
      Those events are the ones that we will replace
-     if PAREHT maps them into a key sequence.  */
+     if PARENT maps them into a key sequence.  */
   int start, end;
 } keyremap;
 

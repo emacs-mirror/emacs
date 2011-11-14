@@ -483,7 +483,7 @@ section or ? for an ask variable."
 
 	(if (> start (point))
 	    ;; If our starting point is after the found point, that
-	    ;; means we are not inside the macro.  Retur nil.
+	    ;; means we are not inside the macro.  Return nil.
 	    nil
 	  ;; We are inside the macro, extract the text so far.
 	  (let* ((macroend (match-beginning 0))

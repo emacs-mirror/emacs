@@ -908,7 +908,7 @@ Derek Upham: changed nxml-mode.el
 
 Detlev Zundel: wrote re-builder.el
 
-Devon Sean Mccullough: changed comint.el
+Devon Sean McCullough: changed comint.el
 
 Dhruva Krishnamurthy: changed makefile.w32-in emacsclient.c fontset.c
   sound.c w32proc.c

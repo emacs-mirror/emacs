@@ -1132,7 +1132,7 @@ the `--debug-init' option to view a complete error backtrace."
 		  (eq orig-enable-multibyte (default-value
 					      'enable-multibyte-characters)))
 	;; Init file changed to unibyte.  Reset existing multibyte
-	;; buffers (probably *scratch*, *Messages*, *Minibuff-0*).
+	;; buffers (probably *scratch*, *Messages*, *Minibuf-0*).
 	;; Arguably this should only be done if they're free of
 	;; multibyte characters.
 	(mapc (lambda (buffer)

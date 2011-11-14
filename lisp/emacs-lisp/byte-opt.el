@@ -527,7 +527,7 @@
 	   ;; However, don't actually bother calling `ignore'.
 	   `(prog1 nil . ,(mapcar 'byte-optimize-form (cdr form))))
 
-          ;; Neeeded as long as we run byte-optimize-form after cconv.
+          ;; Needed as long as we run byte-optimize-form after cconv.
           ((eq fn 'internal-make-closure) form)
 
           ((byte-code-function-p fn)

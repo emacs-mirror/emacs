@@ -50,7 +50,7 @@ All listed sources are included in the distribution.")
 
 (defvar ede-misc-source
   (ede-sourcecode "ede-misc-source"
-		  :name "Miscelaneous"
+		  :name "Miscellaneous"
 		  :sourcepattern ".*")
   "Miscellaneous field definition.")
 

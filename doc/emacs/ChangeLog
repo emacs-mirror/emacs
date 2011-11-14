@@ -1711,7 +1711,7 @@
 	(Table of Resources): Document fontBackend resource.
 
 	* trouble.texi (Quitting): Add other undo bindings to table.
-	(DEL Does Not Delete): Note that the erasure key is usually labelled
+	(DEL Does Not Delete): Note that the erasure key is usually labeled
 	"Backspace".  Remove discussion of obscure Xmodmap issue.
 
 2009-05-07  Chong Yidong  <cyd@stupidchicken.com>

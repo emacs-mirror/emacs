@@ -2437,7 +2437,7 @@ in the coord."
     point-list))
 
 ;; artist-save-chars-under-point-list
-;; Remebers the chars that were there before we did draw the line.
+;; Remembers the chars that were there before we did draw the line.
 ;; Returns point-list.
 ;;
 (defun artist-save-chars-under-point-list (point-list)

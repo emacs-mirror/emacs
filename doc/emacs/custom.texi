@@ -82,7 +82,7 @@ under it.  It looks like this, in part:
 @group
 /- Emacs group: Customization of the One True Editor. -------------\
       [State]: visible group members are all at standard values.
-   
+
    See also [Manual].
 
 [Editing] : Basic text editing facilities.
@@ -547,7 +547,7 @@ such collections from one computer to another.
   To define a Custom theme, use @kbd{M-x customize-create-theme},
 which brings up a buffer named @samp{*New Custom Theme*}.  At the top
 of the buffer is an editable field where you can specify the name of
-the theme.  Click on the button labelled @samp{Insert Variable} to add
+the theme.  Click on the button labeled @samp{Insert Variable} to add
 a variable to the theme, and click on @samp{Insert Face} to add a
 face.  You can edit these values in the @samp{*New Custom Theme*}
 buffer like in an ordinary Customize buffer.  To remove an option from
@@ -1068,7 +1068,7 @@ other context has no special meaning.
 well as the major modes; in fact, you can use it more than once, first
 to set the major mode and then to enable minor modes which are
 specific to particular buffers.  Using @code{mode} for minor modes
-is deprecated, though---instead, use @code{eval: (minor-mode 1)}. 
+is deprecated, though---instead, use @code{eval: (minor-mode 1)}.
 
   Often, however, it is a mistake to enable minor modes in file local
 variables.  Most minor modes, like Auto Fill mode, represent individual user
@@ -1646,7 +1646,7 @@ ways to use these modifiers; the key labeled @key{Alt} on most
 keyboards usually issues the @key{Meta} modifier, not @key{Alt}.  The
 standard key bindings in Emacs do not include any characters with
 these modifiers.  However, you can customize Emacs to assign meanings
-to them.  The modifier bits are labelled as @samp{s-}, @samp{H-} and
+to them.  The modifier bits are labeled as @samp{s-}, @samp{H-} and
 @samp{A-} respectively.
 
   Even if your keyboard lacks these additional modifier keys, you can

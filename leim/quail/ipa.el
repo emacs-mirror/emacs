@@ -170,7 +170,7 @@ incorrectly, as separate from the modified glyphs.")
  ("a~" "ã")	;; Low central unrounded vowel, nasal	U+00E3
  ("o~" "õ")	;; Upper-mid back rounded vowel, nasal	U+00F5
  ("u~" "ũ")	;; High back rounded vowel, nasal	U+0169
- ("~" "̃")	;; +Nasalised modifier			U+0303
+ ("~" "̃")	;; +Nasalized modifier			U+0303
  (":" "ː")	;; +Long modifier			U+02D0
  ("-" "̩")	;; +Syllabic modifier			U+0329
  ("." "̣")	;; +Retroflex modifier			U+0323

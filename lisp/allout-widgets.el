@@ -1632,7 +1632,7 @@ We return the item-widget corresponding to the item at point."
 (defun allout-redecorate-item (item-widget)
   "Resituate ITEM-WIDGET decorations, disregarding context.
 
-Use this to redecorate only the item, when you know that it's
+Use this to redecorate only the item, when you know that its
 situation with respect to siblings, parent, and offspring is
 unchanged from its last decoration.  Use
 `allout-decorate-item-and-context' instead to reassess and adjust

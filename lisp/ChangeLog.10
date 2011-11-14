@@ -9383,7 +9383,7 @@
 
 2002-10-06  Glenn Morris  <gmorris@ast.cam.ac.uk>
 
-	* progmodes/fortran.el (fortran-beginning-do): Ignore labelled DO
+	* progmodes/fortran.el (fortran-beginning-do): Ignore labeled DO
 	loops.
 
 2002-10-05  Stefan Monnier  <monnier@cs.yale.edu>
@@ -23550,4 +23550,3 @@ See ChangeLog.9 for earlier changes.
 
   You should have received a copy of the GNU General Public License
   along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
-

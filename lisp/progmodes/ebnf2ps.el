@@ -5037,7 +5037,7 @@ killed after process termination."
 		(when gen-func
 		  (setq error-msg "EMPTY RULES"
 			tree      (ebnf-eliminate-empty-rules tree))
-		  (setq error-msg "OPTMIZE"
+		  (setq error-msg "OPTIMIZE"
 			tree      (ebnf-optimize tree))
 		  (setq error-msg "DIMENSIONS"
 			tree      (ebnf-dimensions tree))

@@ -1961,7 +1961,7 @@ place.  It affects how `mail-extract-address-components' works."
        ("gw" "Guinea-Bissau")
        ("gy" "Guyana")
        ("hk" "Hong Kong")
-       ("hm" "Heard Island and Mcdonald Islands")
+       ("hm" "Heard Island and McDonald Islands")
        ("hn" "Honduras")
        ("hr" "Croatia"		"Croatia (Hrvatska)")
        ("ht" "Haiti")

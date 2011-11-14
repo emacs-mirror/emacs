@@ -524,7 +524,7 @@ C-_ や C-x u は数値引数を繰り返し回数と解釈します。
 
 >> "foo" という名のファイルを作りましょう。C-x C-f foo <Return> です。
    何か文章を入れ、編集し、C-x C-s で "foo" をセーブして下さい。
-   最後に C-x C-f TUTORIAL.ja <Retrun> とタイプし
+   最後に C-x C-f TUTORIAL.ja <Return> とタイプし
    入門ガイドに戻りましょう。
 
 Emacs はファイルの内容をバッファ（buffer）と呼ばれるものの中に格納して
@@ -890,7 +890,7 @@ ESC はそれ自体が一つの文字で修飾キーではないからです。
 
 >> M-x make-frame <Return> とタイプして、新しいフレームが表示されるの
    を確認しましょう。
-   
+
 元のフレームでやっていたことはなんでもこの新しいフレームでもできます。
 最初のフレームとその後に作られるフレームで違いはありません。
 
@@ -1083,4 +1083,3 @@ GNU Emacs to your friends.  Help stamp out software obstructionism
 ;;; Local Variables:
 ;;; coding: iso-2022-jp
 ;;; End:
-
