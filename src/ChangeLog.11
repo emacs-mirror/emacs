@@ -11972,7 +11972,7 @@
 
 	* image.c (xbm_read_bitmap_data): New arg inhibit_image_error.
 	(xbm_load_image): Caller changed.
-	(xbm_file_p): Avoid signalling an image_error (Bug#4107).
+	(xbm_file_p): Avoid signaling an image_error (Bug#4107).
 
 2009-08-13  Nick Roberts  <nickrob@snap.net.nz>
 
@@ -16658,7 +16658,7 @@
 2008-08-20  Chong Yidong  <cyd@stupidchicken.com>
 
 	* xselect.c (x_get_foreign_selection): Return nil if desired
-	selection could not be obtained, instead of signalling an error.
+	selection could not be obtained, instead of signaling an error.
 
 2008-08-20  David Reitter  <david.reitter@gmail.com>
 

@@ -3876,7 +3876,7 @@
 	for list)" (bug#6475).
 
 	* files.el (file-expand-wildcards): Ignore non-readable
-	sub-directories while trying to find matches instead of signalling
+	sub-directories while trying to find matches instead of signaling
 	an error (bug#6297).
 
 	* man.el (Man-reference-regexp): Allow matching possible

@@ -608,7 +608,7 @@ of parsing.  The default is @code{t}.
 @node Debugging Idle Time Issues
 @subsection Debugging Idle Time Issues
 
-If you see an error signalled during idle time, it could be an
+If you see an error signaled during idle time, it could be an
 indication of a more serious issue elsewhere.  It is not enough to
 enable @code{debug-on-error}, because the idle scheduler inhibits the
 debugger.  Instead, use the following commands to debug the error:

@@ -7561,7 +7561,7 @@
 	* pcvs-util.el (cvs-get-buffer-create): Obey `noreuse' even if `name'
 	doesn't look like a file name.
 
-	* complete.el (PC-expand-many-files): Avoid signalling an error when
+	* complete.el (PC-expand-many-files): Avoid signaling an error when
 	the current directory doesn't exist.  Reported by Michaël Cadilhac.
 
 2006-08-02  Andreas Schwab  <schwab@suse.de>
@@ -33362,4 +33362,3 @@ See ChangeLog.11 for earlier changes.
 
   You should have received a copy of the GNU General Public License
   along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
-

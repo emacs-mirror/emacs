@@ -209,7 +209,7 @@ whose extension is @file{.ads}, it will take the first available file
 that ends with either @file{.adb}, @file{_b.ada} or
 @file{.body}.
 
-Simililarly, if Ada mode is looking for a spec, it will look for
+Similarly, if Ada mode is looking for a spec, it will look for
 @file{.ads} or @file{_s.ada}.
 
 If the filename is not derived from the Ada name following the GNAT

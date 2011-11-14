@@ -5020,7 +5020,7 @@
 	with code implementing the writing of graohical output to file.
 	(org-babel-execute:R): Use `org-babel-R-graphical-output-file' to
 	determine whether R is taking responsibility for writing output to
-	file; if so, this is signalled to ob.el by returning a nil result.
+	file; if so, this is signaled to ob.el by returning a nil result.
 
 2011-07-28  Dan Davison  <dandavison7@gmail.com>
 
@@ -18037,4 +18037,3 @@
 
   You should have received a copy of the GNU General Public License
   along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
-

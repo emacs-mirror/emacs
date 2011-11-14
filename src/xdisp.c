@@ -23627,7 +23627,7 @@ produce_stretch_glyph (struct it *it)
     {
       width = it->last_visible_x - it->current_x;
 #ifdef HAVE_WINDOW_SYSTEM
-      /* Subtact one more pixel from the stretch width, but only on
+      /* Subtract one more pixel from the stretch width, but only on
 	 GUI frames, since on a TTY each glyph is one "pixel" wide.  */
       width -= FRAME_WINDOW_P (it->f);
 #endif

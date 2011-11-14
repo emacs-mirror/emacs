@@ -2071,7 +2071,7 @@ Call with point at the end of the message."
 (defun rmail-add-mbox-headers ()
   "Validate the RFC2822 format for the new messages.
 Point should be at the first new message.
-An error is signalled if the new messages are not RFC2822
+An error is signaled if the new messages are not RFC2822
 compliant.
 Unless an Rmail attribute header already exists, add it to the
 new messages.  Return the number of new messages."
@@ -2440,7 +2440,7 @@ Output a helpful message unless NOMSG is non-nil."
 	;; the entry for message N+1, which marks
 	;; the end of message N.  (N = number of messages).
 	(setq messages-head (list (point-marker)))
-	(setq messages-after-point 
+	(setq messages-after-point
 	      (or (rmail-set-message-counters-counter (min (point) point-save))
 		  0))
 
@@ -3096,7 +3096,7 @@ but probably is garbage."
     ;; correspond to the lines in the inbox file.
     (goto-char (point-min))
     (if header-field
-	(progn 
+	(progn
 	  (re-search-forward (concat "^" (regexp-quote header-field)) nil t)
 	  (forward-line line-number-within))
       (search-forward "\n\n" nil t)

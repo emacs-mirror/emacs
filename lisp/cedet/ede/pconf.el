@@ -149,7 +149,7 @@ don't do it.  A value of nil means to just do it.")
 	  ))))
 
 (defmethod ede-proj-configure-recreate ((this ede-proj-project))
-  "Delete project THISes configure script and start over."
+  "Delete project THIS's configure script and start over."
   (if (not (ede-proj-configure-file this))
       (error "Could not determine configure.ac for %S" (object-name this)))
   (let ((b (get-file-buffer (ede-proj-configure-file this))))

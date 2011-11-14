@@ -11215,7 +11215,7 @@
 	* bindings.el (complete-symbol): Move into minibuffer.el.
 
 	* minibuffer.el (complete-tag): Move from etags.el.  If tags
-	completion cannot be performed, return nil instead of signalling
+	completion cannot be performed, return nil instead of signaling
 	an error.
 	(completion-at-point): Make it an alias for complete-symbol.
 	(complete-symbol): Move from bindings.el, and replace with the
@@ -13311,7 +13311,7 @@
 
 2010-01-29  Chong Yidong  <cyd@stupidchicken.com>
 
-	* dirtrack.el (dirtrack): Warn instead of signalling error if the
+	* dirtrack.el (dirtrack): Warn instead of signaling error if the
 	regexp is incorrect (Bug#5476).
 
 2010-01-29  Michael Albinus  <michael.albinus@gmx.de>

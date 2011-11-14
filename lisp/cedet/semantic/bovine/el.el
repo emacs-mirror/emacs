@@ -534,9 +534,9 @@ Optional argument NOSNARF is ignored."
 		     (t
 		      (setq d (documentation-property
 			       sym 'variable-documentation)))))
-	     ;; Label it as system doc.. perhaps just for debugging
+	     ;; Label it as system doc. perhaps just for debugging
 	     ;; purposes.
-	     (if d (setq d (concat "Sytem Doc: \n" d)))
+	     (if d (setq d (concat "System Doc: \n" d)))
 	     ))
       )
 

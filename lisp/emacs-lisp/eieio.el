@@ -395,7 +395,7 @@ It creates an autoload function for CNAME's constructor."
 	  (aset newc class-parent (cons SC (aref newc class-parent)))
 	  )
 
-	;; turn this into a useable self-pointing symbol
+	;; turn this into a usable self-pointing symbol
 	(set cname cname)
 
 	;; Store the new class vector definition into the symbol.  We need to
@@ -509,7 +509,7 @@ See `defclass' for more information."
 	;; save parent in child
 	(aset newc class-parent (list eieio-default-superclass))))
 
-    ;; turn this into a useable self-pointing symbol
+    ;; turn this into a usable self-pointing symbol
     (set cname cname)
 
     ;; These two tests must be created right away so we can have self-

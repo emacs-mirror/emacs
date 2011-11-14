@@ -2969,7 +2969,7 @@ A prefix argument acts as a repeat count.  With a negative argument,
 move backward across a preprocessor conditional.
 
 If there aren't enough conditionals after \(or before) point, an
-error is signalled.
+error is signaled.
 
 \"#elif\" is treated like \"#else\" followed by \"#if\", except that
 the nesting level isn't changed when tracking subconditionals.
@@ -4094,7 +4094,7 @@ command to conveniently insert and align the necessary backslashes."
 ;		    (or (<= (- (cdr c-lit-limits) 2) (point))
 ; 2010-10-17  Construct removed.
 ;		    (or (< (- (cdr c-lit-limits) 2) (point))
-		    (and 
+		    (and
 		     (search-forward-regexp
 		      (concat "\\=[ \t]*\\(" c-current-comment-prefix "\\)")
 		      (- (cdr c-lit-limits) 2) t)

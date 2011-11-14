@@ -486,7 +486,7 @@ TYPE. The resulting list has the format
   (nth 9 (zeroconf-resolve-service service)))
 
 
-;;; Services signalling.
+;;; Services signaling.
 
 ;; Register for the service type browser.  Service registrations will
 ;; happen in `zeroconf-service-type-browser-handler', when there is an

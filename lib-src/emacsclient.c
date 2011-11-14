@@ -1193,7 +1193,7 @@ handle_sigtstp (int signalnum)
     send_to_emacs (emacs_socket, "-suspend \n");
 
   /* Unblock this signal and call the default handler by temporarily
-     changing the handler and resignalling. */
+     changing the handler and resignaling.  */
   sigprocmask (SIG_BLOCK, NULL, &set);
   sigdelset (&set, signalnum);
   signal (signalnum, SIG_DFL);

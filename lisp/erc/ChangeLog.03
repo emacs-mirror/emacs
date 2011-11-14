@@ -323,7 +323,7 @@
 
 	* erc.el 1.559 (erc-modules): Add some more symbols to the set
 
-	* erc.el 1.558 (erc-modules):	* erc.el 1.558 (erc-modules): Add :greedy t to the set in 
+	* erc.el 1.558 (erc-modules):	* erc.el 1.558 (erc-modules): Add :greedy t to the set in
 
 	* erc-dcc.el 1.77:
 	More autoloads which make dcc autoload upon ctcp dcc query received.
@@ -744,7 +744,7 @@
 
 2003-04-27  Damien Elmes  <erc@repose.cx>
 
-	* erc.el 1.522:	* erc.el 1.522: erc-modules: added 
+	* erc.el 1.522:	* erc.el 1.522: erc-modules: added
 
 2003-04-27  Alex Schroeder  <alex@gnu.org>
 
@@ -1232,7 +1232,7 @@
 
 2003-01-19  Mario Lang  <mlang@delysid.org>
 
-	* debian/README.Debian 1.6, debian/changelog 1.20, debian/scripts/install 1.11, 
+	* debian/README.Debian 1.6, debian/changelog 1.20, debian/scripts/install 1.11,
 	  debian/scripts/startup.erc 1.4, Makefile 1.13:
 	Prepare for 20030119 debian package
 
@@ -1609,7 +1609,7 @@
 	POS in any case, otherwise, linewrap occurs.
 
 	* erc-dcc.el 1.56:
-	* Fixed the unibyte-multibyte problem (now a dcc get buffer is (set-buffer-multibyte nil), 
+	* Fixed the unibyte-multibyte problem (now a dcc get buffer is (set-buffer-multibyte nil),
 	  and saves correctly (tried with 21.3.50). Thanks to Eli for suggesting it!
 	* Added :start-time plist property/value to GET handling so that we can calculate elapsed-time.
 	* Some (unwind-protect (progn (set-buffer ...) ...)) constructs replaced with (with-current-buffer ...)
@@ -1691,12 +1691,12 @@
 
 2003-01-11  Mario Lang  <mlang@delysid.org>
 
-	* erc-dcc.el 1.48:	* erc-dcc.el 1.48: * (erc-dcc-do-LIST-command): Fix 
+	* erc-dcc.el 1.48:	* erc-dcc.el 1.48: * (erc-dcc-do-LIST-command): Fix
 
 	* erc-dcc.el 1.47:
 	* buffer-local variables erc-dcc-sent-marker and erc-dcc-send-confirmed marker removed
 	  Keep This info in erc-dcc-member :sent and :confirmed plist values
-	* :	* :buffer plist for :type 'SEND removed, since we can get this with (marker-buffer 
+	* :	* :buffer plist for :type 'SEND removed, since we can get this with (marker-buffer
 	* erc-dcc-send-connect-hook: New hook, defaults to erc-dcc-send-block and erc-dcc-send-connected, which now prints a msg...
 
 	* erc-dcc.el 1.46:
@@ -1985,7 +1985,7 @@
 	(erc-server-PRIVMSG-or-NOTICE): Capitalized first word in message to user.
 
 	* erc.el 1.409 (erc-scroll-to-bottom):
-	Temporarilly bind resize-mini-windows to nil so that
+	Temporarily bind resize-mini-windows to nil so that
 	    users who have it set to a non-nil value will not suffer from premature
 	    minibuffer shrinkage due to the below recenter call.  I have no idea why
 	    this works, but it solves the problem, and has no negative side effects.
@@ -2160,4 +2160,3 @@ See ChangeLog.02 for earlier changes.
 ;; Local Variables:
 ;; coding: utf-8
 ;; End:
-

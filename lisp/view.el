@@ -925,7 +925,7 @@ for highlighting the match that is found."
 
 (defun view-search (times regexp)
   ;; This function does the job for all the View-search- commands.
-  ;; Search for the TIMESt match for REGEXP.  If TIMES is negative
+  ;; Search for the TIMESth match for REGEXP.  If TIMES is negative
   ;; search backwards.  If REGEXP is nil use `view-last-regexp'.
   ;; Characters "!" and "@" have a special meaning at the beginning of
   ;; REGEXP and are removed from REGEXP before the search "!" means

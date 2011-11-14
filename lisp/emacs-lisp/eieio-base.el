@@ -54,7 +54,7 @@ not been set, use values from the parent."
 
 (defmethod slot-unbound ((object eieio-instance-inheritor) class slot-name fn)
   "If a slot OBJECT in this CLASS is unbound, try to inherit, or throw a signal.
-SLOT-NAME is the offending slot.  FN is the function signalling the error."
+SLOT-NAME is the offending slot.  FN is the function signaling the error."
   (if (slot-boundp object 'parent-instance)
       ;; It may not look like it, but this line recurses back into this
       ;; method if the parent instance's slot is unbound.

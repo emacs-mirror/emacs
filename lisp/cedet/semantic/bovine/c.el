@@ -240,7 +240,7 @@ Return the defined symbol as a special spp lex token."
 			(goto-char (match-end 0))
 			(looking-at "(")))
 	   (semantic-lex-spp-replacements-enabled nil)
-	   ;; Temporarilly override the lexer to include
+	   ;; Temporarily override the lexer to include
 	   ;; special items needed inside a macro
 	   (semantic-lex-analyzer #'semantic-cpp-lexer)
 	   (raw-stream

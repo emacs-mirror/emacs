@@ -160,9 +160,9 @@
 
 	* debian/control 1.3: integrated erc-speak back into erc
 
-	* debian/maint/conffiles 1.3, debian/maint/conffiles.in 1.2, debian/maint/postinst 1.3, 
-	  debian/maint/postinst.in 1.2, debian/maint/prerm 1.3, debian/maint/prerm.in 1.2, 
-	  debian/scripts/install 1.3, debian/scripts/install.in 1.3, debian/scripts/remove 1.3, 
+	* debian/maint/conffiles 1.3, debian/maint/conffiles.in 1.2, debian/maint/postinst 1.3,
+	  debian/maint/postinst.in 1.2, debian/maint/prerm 1.3, debian/maint/prerm.in 1.2,
+	  debian/scripts/install 1.3, debian/scripts/install.in 1.3, debian/scripts/remove 1.3,
 	  debian/scripts/remove.in 1.2, debian/scripts/startup.erc-speak 1.2:
 	since erc-speak is gone, resurrect the static files, and update them to support the latest erc
 
@@ -220,7 +220,7 @@
 	* erc.el 1.149:
 	* Applied antifuchs/mhp patches, the latest on erc-help, unmodified
 	* New variable: erc-reuse-buffers default to t.
-	* Modified erc-generate-new-buffer-name to use it. it checks if server and port are the same, 
+	* Modified erc-generate-new-buffer-name to use it. it checks if server and port are the same,
 	  then one can assume thats the same channel/query target again.
 
 2001-11-23  Mario Lang  <mlang@delysid.org>
@@ -238,7 +238,7 @@
 
 	* erc.el 1.146: * New local variable, erc-announced-server-name
 	* erc-mode-line-format supports a new symbol, target-and/or-server
-	* The mode-line displays the announced server name now (for autojoin later..., 
+	* The mode-line displays the announced server name now (for autojoin later...,
 	  greets Adam)
 	* New macro, erc-server-hook-list for a nice way to define the defcustoms of the erc-server-*-hook's
 	  Thanks go to the guy from #emacs who helped with that
@@ -603,11 +603,11 @@
 
 	* debian/control 1.2: added the new erc-speak package
 
-	* debian/README.erc-speak 1.1, debian/maint/postinst.in 1.1, debian/maint/prerm.in 1.1, 
+	* debian/README.erc-speak 1.1, debian/maint/postinst.in 1.1, debian/maint/prerm.in 1.1,
 	  debian/scripts/install.in 1.1, debian/scripts/remove.in 1.1:
 	new file
 
-	* debian/maint/postinst 1.2, debian/maint/prerm 1.2, debian/scripts/install 1.2, 
+	* debian/maint/postinst 1.2, debian/maint/prerm 1.2, debian/scripts/install 1.2,
 	  debian/scripts/remove 1.2:
 	removed, superseded by its .in counterpart
 
@@ -625,7 +625,7 @@
 2001-10-23  Mario Lang  <mlang@delysid.org>
 
 	* erc-speak.el 1.14:
-	* Added a new personality for channel name announcement, This makes streams of flooded channels much easier to listen to, 
+	* Added a new personality for channel name announcement, This makes streams of flooded channels much easier to listen to,
 	  especially if you are on more than one channel simultaneously.
 
 	* erc.el 1.75:
@@ -643,7 +643,7 @@
 	* Removed now really obsolete code. Package size reduced by 50%
 
 	* erc-speak.el 1.10:
-	* Very important fix! Now erc-speak is really complete. Messages don't get cut anymore. Be sure to use auditory icons, 
+	* Very important fix! Now erc-speak is really complete. Messages don't get cut anymore. Be sure to use auditory icons,
 	  it's reallllly cool now!!!
 
 	* erc-speak.el 1.9: *** empty log message ***
@@ -655,9 +655,9 @@
 
 	* debian/changelog 1.2: oops, silly typo
 
-	* debian/changelog 1.1, debian/control 1.1, debian/copyright 1.1, 
-	  debian/maint/conffiles 1.1, debian/maint/postinst 1.1, debian/maint/prerm 1.1, 
-	  debian/rules 1.1, debian/scripts/install 1.1, debian/scripts/remove 1.1, 
+	* debian/changelog 1.1, debian/control 1.1, debian/copyright 1.1,
+	  debian/maint/conffiles 1.1, debian/maint/postinst 1.1, debian/maint/prerm 1.1,
+	  debian/rules 1.1, debian/scripts/install 1.1, debian/scripts/remove 1.1,
 	  debian/scripts/startup 1.1:
 	initial check-in
 
@@ -666,7 +666,7 @@
 	* erc.el 1.73:
 	* Changed erc-insert-hook to get two arguments, START and END of the region
 	  which got inserted. CAREFUL! This could break stuff, but it makes the hook
-	  much more useable.
+	  much more usable.
 
 	* erc.el 1.72:
 	* Made erc-smiley a new option, currently set to t to showoff this feature. :)
@@ -830,7 +830,7 @@
 	* Fix for custom problem with :must-match on XEmacs (thanks shapr)
 	* Added /COUNTRY command using (what-domain) from package mail-extr (shapr)
 	* Fix for case-sensitivity problem with pals (they are now all downcased)
-	* Different (erc-version) function which now can take prefix argument to insert the version information into the current buffer, 
+	* Different (erc-version) function which now can take prefix argument to insert the version information into the current buffer,
 	  instead of just displaying it in the minibuffer.
 
 2001-09-10  Mario Lang  <mlang@delysid.org>
@@ -1055,4 +1055,3 @@
 ;; Local Variables:
 ;; coding: utf-8
 ;; End:
-

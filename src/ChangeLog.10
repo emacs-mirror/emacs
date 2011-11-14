@@ -5133,7 +5133,7 @@
 	it can be called in a signal handler.
 	(x_catch_errors_unwind): Function deleted.
 	(x_uncatch_errors): Deallocate last x_error_message_stack struct.
-	(x_check_errors): Call x_uncatch_errors before signalling error.
+	(x_check_errors): Call x_uncatch_errors before signaling error.
 
 	(x_load_font, x_term_init, XTmouse_position, handle_one_xevent)
 	(x_connection_closed, x_list_fonts): Use new versions of
@@ -27928,4 +27928,3 @@ See ChangeLog.9 for earlier changes.
 
   You should have received a copy of the GNU General Public License
   along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
-

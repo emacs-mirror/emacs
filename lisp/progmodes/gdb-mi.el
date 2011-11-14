@@ -350,7 +350,7 @@ automatically.
 
 This setting is used in non-stop mode only. In all-stop mode,
 Emacs always switches to the thread which caused the stop."
-  ;; exited, exited-normally and exited-signalled are not
+  ;; exited, exited-normally and exited-signaled are not
   ;; thread-specific stop reasons and therefore are not included in
   ;; this list
   :type '(choice

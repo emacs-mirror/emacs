@@ -234,7 +234,7 @@ code for the event, and your personal domain name."
   "Enable icalendar debug messages.")
 
 ;; ======================================================================
-;; NO USER SERVICABLE PARTS BELOW THIS LINE
+;; NO USER SERVICEABLE PARTS BELOW THIS LINE
 ;; ======================================================================
 
 (defconst icalendar--weekday-array ["SU" "MO" "TU" "WE" "TH" "FR" "SA"])
@@ -915,7 +915,7 @@ would be \"pm\"."
   "Export diary file to iCalendar format.
 All diary entries in the file DIARY-FILENAME are converted to iCalendar
 format.  The result is appended to the file ICAL-FILENAME."
-  (interactive "FExport diary data from file: 
+  (interactive "FExport diary data from file:
 Finto iCalendar file: ")
   (save-current-buffer
     (set-buffer (find-file diary-filename))
@@ -1557,9 +1557,9 @@ entries.  ENTRY-MAIN is the first line of the diary entry."
 
 (defun icalendar--convert-float-to-ical (nonmarker entry-main)
   "Convert float diary entry to icalendar format -- partially unsupported!
-  
+
   FIXME! DAY from diary-float yet unimplemented.
-  
+
   NONMARKER is a regular expression matching the start of non-marking
   entries.  ENTRY-MAIN is the first line of the diary entry."
   (if (string-match (concat nonmarker "%%\\((diary-float .+\\) ?$") entry-main)
@@ -1794,8 +1794,8 @@ Argument ICAL-FILENAME output iCalendar file.
 Argument DIARY-FILENAME input `diary-file'.
 Optional argument NON-MARKING determines whether events are created as
 non-marking or not."
-  (interactive "fImport iCalendar data from file: 
-Finto diary file: 
+  (interactive "fImport iCalendar data from file:
+Finto diary file:
 p")
   ;; clean up the diary file
   (save-current-buffer

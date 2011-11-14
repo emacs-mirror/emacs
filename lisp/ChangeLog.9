@@ -135,7 +135,7 @@
 
 	* net/ange-ftp.el (ange-ftp-raw-send-cmd, ange-ftp-wait-not-busy):
 	Use with-current-buffer.
-	(ange-ftp-cd): New arg `noerror' to prevent signalling an error.
+	(ange-ftp-cd): New arg `noerror' to prevent signaling an error.
 	(ange-ftp-send-cmd): If a `cd' is used (because of a space in the
 	filename), catch any error that occurs in `ange-ftp-cd'.
 	If an error happened, don't bother sending `cmd' at all.
@@ -12638,7 +12638,7 @@
 	(vc-rcs-diff): Only pass `2' to vc-do-command if necessary and
 	just do a recursive call if we need to retry.
 	(vc-rcs-checkout): Handle the case where rcs is missing by making
-	the buffer read-write if requested and re-signalling the error.
+	the buffer read-write if requested and re-signaling the error.
 
 	* vc-cvs.el (vc-cvs-diff): Remove unused and unsupported argument CMP.
 

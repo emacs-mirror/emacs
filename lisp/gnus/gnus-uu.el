@@ -41,7 +41,7 @@
   :group 'gnus)
 
 (defgroup gnus-extract-view nil
-  "Viewwing extracted files."
+  "Viewing extracted files."
   :group 'gnus-extract)
 
 (defgroup gnus-extract-archive nil

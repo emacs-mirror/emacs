@@ -7206,7 +7206,7 @@ If these don't exist, a letter in the string is automatically selected."
 ;;----------------------------------------------------------------------
 
 ;;; ------------------------------------------------------------------------
-;;; Stucture parsing code, and code to manage class info
+;;; Structure parsing code, and code to manage class info
 
 ;;
 ;; - Go again over the documentation how to write a completion

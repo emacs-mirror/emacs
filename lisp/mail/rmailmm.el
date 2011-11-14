@@ -882,7 +882,7 @@ The other arguments are the same as `rmail-mime-multipart-handler'."
 	     ;; We're handling what's left of a truncated message.
 	     (setq next (point-max-marker)))
 	    (t
-	     ;; The original code signalled an error as below, but
+	     ;; The original code signaled an error as below, but
 	     ;; this line may be a boundary of nested multipart.  So,
 	     ;; we just set `next' to nil to skip this line
 	     ;; (rmail-mm-get-boundary-error-message
