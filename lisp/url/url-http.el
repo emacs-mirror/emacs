@@ -1255,7 +1255,11 @@ CBARGS as the arguments."
 	(url-http-end-of-document-sentinel proc why))
        ((string= (substring why 0 4) "open")
 	(setq url-http-connection-opened t)
-	(process-send-string proc (url-http-create-request)))
+	(condition-case error
+	    (process-send-string proc (url-http-create-request))
+	  (file-error
+	   (setq url-http-connection-opened nil)
+	   (message "HTTP error: %s" error))))
        (t
 	(setf (car url-callback-arguments)
 	      (nconc (list :error (list 'error 'connection-failed why
