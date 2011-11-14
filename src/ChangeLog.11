@@ -7949,7 +7949,7 @@
 2010-05-11  Karel Klíč  <kklic@redhat.com>
 
 	* ftfont.c: Fix incorrect parentheses of #if condition for
-	definining M17N_FLT_USE_NEW_FEATURE.
+	defining M17N_FLT_USE_NEW_FEATURE.
 
 2010-05-11  Glenn Morris  <rgm@gnu.org>
 
@@ -25474,7 +25474,7 @@
 
 	* term.c (terminal_encode_buffer): Make externally visible.
 
-	* makefile.w32-in: Add character.h dependancies.
+	* makefile.w32-in: Add character.h dependencies.
 	(character.o, chartab.o): New targets.
 
 2008-02-01  Kenichi Handa  <handa@m17n.org>
@@ -29718,7 +29718,7 @@
 	* keyboard.c (restore_kboard_configuration): Only define when
 	MULTI_KBOARD defined.
 
-	* makefile.w32-in: Update dependancies from Makefile.in.
+	* makefile.w32-in: Update dependencies from Makefile.in.
 	(OBJ1): Add terminal.$(O)
 
 	* term.c (dissociate_if_controlling_tty) [WINDOWSNT]:

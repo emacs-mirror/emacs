@@ -2929,7 +2929,7 @@ unwind_create_frame (Lisp_Object frame)
     return Qnil;
 
   /* If frame is ``official'', nothing to do.  */
-  if (!CONSP (Vframe_list) || !EQ (XCAR (Vframe_list), frame))
+  if (NILP (Fmemq (frame, Vframe_list)))
     {
 #if GLYPH_DEBUG && XASSERTS
       struct x_display_info *dpyinfo = FRAME_X_DISPLAY_INFO (f);

@@ -18374,7 +18374,7 @@
 	(tar-summarize-buffer): Don't clear the modified-p bit if it wasn't
 	cleared before.  Obey default-enable-multibyte-characters.
 	Use mapconcat.  Simplify setting of tar-header-offset.
-	(tar-mode-map): Move initialization inside delcaration.
+	(tar-mode-map): Move initialization inside declaration.
 	(tar-flag-deleted): Use `abs'.
 	(tar-expunge-internal): Remove unused var `line'.
 	(tar-expunge-internal): Don't hardcode point-min==1.

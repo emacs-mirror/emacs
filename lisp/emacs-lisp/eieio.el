@@ -1,5 +1,5 @@
 ;;; eieio.el --- Enhanced Implementation of Emacs Interpreted Objects
-;;;              or maybe Eric's Implementation of Emacs Intrepreted Objects
+;;;              or maybe Eric's Implementation of Emacs Interpreted Objects
 
 ;; Copyright (C) 1995-1996, 1998-2011  Free Software Foundation, Inc.
 

@@ -417,7 +417,7 @@ See also `conf-space-mode', `conf-colon-mode', `conf-javaprop-mode',
     (run-mode-hooks 'conf-mode-hook)))
 
 (defun conf-mode-initialize (comment &optional font-lock)
-  "Intitializations for sub-modes of conf-mode.
+  "Initializations for sub-modes of conf-mode.
 COMMENT initializes `comment-start' and `comment-start-skip'.
 The optional arg FONT-LOCK is the value for FONT-LOCK-KEYWORDS."
   (set (make-local-variable 'comment-start) comment)

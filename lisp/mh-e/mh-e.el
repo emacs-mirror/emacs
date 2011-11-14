@@ -2447,7 +2447,7 @@ of citations entirely, choose \"None\"."
     "Followup-To:"                      ; RFC 1036
     "For-Approval:"                     ; http://people.dsv.su.se/~jpalme/ietf/mail-headers/
     "For-Comment:"                      ; http://people.dsv.su.se/~jpalme/ietf/mail-headers/
-    "For-Handdling:"                    ; http://people.dsv.su.se/~jpalme/ietf/mail-headers/
+    "For-Handling:"                     ; http://people.dsv.su.se/~jpalme/ietf/mail-headers/
     "Forwarded:"                        ; MH
     "From "                             ; sendmail
     "Generate-Delivery-Report:"         ; RFC 2156

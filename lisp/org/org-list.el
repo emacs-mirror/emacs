@@ -70,12 +70,12 @@
 ;; (a few thousand lines long).  Thus, code should follow the rule :
 ;; "collect once, use many".  As a corollary, it is usally a bad idea
 ;; to use directly an interactive function inside the code, as those,
-;; being independant entities, read the whole list structure another
+;; being independent entities, read the whole list structure another
 ;; time.
 
 ;;; Code:
 
-(eval-when-compile 
+(eval-when-compile
   (require 'cl))
 (require 'org-macs)
 (require 'org-compat)

@@ -1,3 +1,7 @@
+2011-11-13  Christoph Scholtes  <cschol2112@googlemail.com>
+
+	* inc/stdint.h (UINT64_MAX, UINT32_MAX): Fix values.
+
 2011-11-05  Christoph Scholtes  <cschol2112@googlemail.com>
 
 	* inc/stdint.h (UINT64_MAX, UINT64_MIN, INT64_MIN, UINTMAX_MAX)

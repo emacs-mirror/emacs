@@ -20,7 +20,7 @@
 
 # Commentary:
 
-# Genereate a translation table for CP51932 (EUC-JP of MicroSoft Version).
+# Generate a translation table for CP51932 (EUC-JP of MicroSoft Version).
 # It maps invalid JISX0208 code points used by CP51932 to Unicode.
 # 4th field of the input has these meanings:
 #   0: JISX0208 characters.

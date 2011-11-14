@@ -317,7 +317,7 @@
 			(match-beginning ,(car highlight))
 			(match-end ,(car highlight))
 			,(elt highlight 1))))
-		;; highlight is an "ANCHORED HIGHLIGHER" of the form
+		;; highlight is an "ANCHORED HIGHLIGHTER" of the form
 		;; (ANCHORED-MATCHER PRE-FORM POST-FORM SUBEXP-HIGHLIGHTERS...)
 		(when (nth 3 highlight)
 		  (error "Match highlights currently not supported in %s"
