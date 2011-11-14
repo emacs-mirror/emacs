@@ -4,6 +4,9 @@
 	(executable-make-buffer-file-executable-if-script-p):
 	Handle file-modes returning nil.
 
+	* mail/rmailsum.el (rmail-summary): Remove movement to beginning of
+	message - not necessary, and causes problems.  (Bug#9831)
+
 	* mail/rmailsum.el (rmail-new-summary): Preserve message number.
 
 	* mail/rmail.el (rmail-no-mail-p): Remove mode-line N/M indicator.

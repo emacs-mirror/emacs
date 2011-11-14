@@ -268,10 +268,7 @@ Setting this option to nil might speed up the generation of summaries."
 (defun rmail-summary ()
   "Display a summary of all messages, one line per message."
   (interactive)
-  (rmail-new-summary "All" '(rmail-summary) nil)
-  (unless (or (zerop (buffer-size))		; empty summary
-	      (get-buffer-window rmail-buffer))
-    (rmail-summary-beginning-of-message)))
+  (rmail-new-summary "All" '(rmail-summary) nil))
 
 ;;;###autoload
 (defun rmail-summary-by-labels (labels)
