@@ -357,13 +357,17 @@ The value is a vector [INDEX HEADER TAGLINE BODY END], where
   (dolist (child (rmail-mime-entity-children entity))
     (rmail-mime-raw-mode child)))
 
-(defun rmail-mime-toggle-raw (entity)
-  "Toggle on and off the raw display mode of MIME-entity ENTITY."
+(defun rmail-mime-toggle-raw (&optional state)
+  "Toggle on and off the raw display mode of MIME-entity at point.
+With optional argument STATE, force the specified display mode.
+Use `raw' for raw mode, and any other non-nil value for decoded mode."
   (let* ((pos (if (eobp) (1- (point-max)) (point)))
 	 (entity (get-text-property pos 'rmail-mime-entity))
 	 (current (aref (rmail-mime-entity-display entity) 0))
 	 (segment (rmail-mime-entity-segment pos entity)))
-    (if (not (eq (aref current 0) 'raw))
+    (if (or (eq state 'raw)
+	    (and (not state)
+		 (not (eq (aref current 0) 'raw))))
 	;; Enter the raw mode.
 	(rmail-mime-raw-mode entity)
       ;; Enter the shown mode.
@@ -1265,35 +1269,35 @@ available."
   (setq font-lock-defaults '(rmail-font-lock-keywords t t nil nil)))
 
 ;;;###autoload
-(defun rmail-mime (&optional arg)
-  "Toggle displaying of a MIME message.
+(defun rmail-mime (&optional arg state)
+  "Toggle the display of a MIME message.
 
 The actual behavior depends on the value of `rmail-enable-mime'.
 
-If `rmail-enable-mime' is non-nil (default), this command changes the
-display of a MIME message between decoded presentation form and raw data.
+If `rmail-enable-mime' is non-nil (the default), this command toggles
+the display of a MIME message between decoded presentation form and
+raw data.  With optional prefix argument ARG, it toggles the display only
+of the MIME entity at point, if there is one.  The optional argument
+STATE forces a particular display state, rather than toggling.
+`raw' forces raw mode, any other non-nil value forces decoded mode.
 
-With ARG, toggle the display of the current MIME entity only.
-
-If `rmail-enable-mime' is nil, this creates a temporary
-\"*RMAIL*\" buffer holding a decoded copy of the message.  Inline
-content-types are handled according to
-`rmail-mime-media-type-handlers-alist'.  By default, this
-displays text and multipart messages, and offers to download
-attachments as specified by `rmail-mime-attachment-dirs-alist'."
-  (interactive "P")
+If `rmail-enable-mime' is nil, this creates a temporary \"*RMAIL*\"
+buffer holding a decoded copy of the message. Inline content-types are
+handled according to `rmail-mime-media-type-handlers-alist'.
+By default, this displays text and multipart messages, and offers to
+download attachments as specified by `rmail-mime-attachment-dirs-alist'.
+The arguments ARG and STATE have no effect in this case."
+  (interactive (list current-prefix-arg nil))
   (if rmail-enable-mime
       (with-current-buffer rmail-buffer
 	(if (rmail-mime-message-p)
 	    (let ((rmail-mime-mbox-buffer rmail-view-buffer)
 		  (rmail-mime-view-buffer rmail-buffer)
-		  (entity (get-text-property (point) 'rmail-mime-entity)))
-	      (if arg
-		  (if entity
-		      (rmail-mime-toggle-raw entity))
-		(goto-char (point-min))
-		(rmail-mime-toggle-raw
-		 (get-text-property (point) 'rmail-mime-entity))))
+		  (entity (get-text-property
+			   (progn
+			     (or arg (goto-char (point-min)))
+			     (point)) 'rmail-mime-entity)))
+	      (if (or (not arg) entity) (rmail-mime-toggle-raw state)))
 	  (message "Not a MIME message")))
     (let* ((data (rmail-apply-in-message rmail-current-message 'buffer-string))
 	   (buf (get-buffer-create "*RMAIL*"))
