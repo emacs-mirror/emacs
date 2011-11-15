@@ -7,6 +7,9 @@
 
 2011-11-15  Glenn Morris  <rgm@gnu.org>
 
+	* term/ns-win.el (mode-line-frame-identification):
+	Leave it alone.  (Bug#10051)
+
 	* simple.el (mark-whole-buffer): Doc fix.  (Bug#10023)
 
 	* mail/rmailout.el (rmail-output-to-rmail-buffer):
