@@ -1319,7 +1319,7 @@ attachments as specified by `rmail-mime-attachment-dirs-alist'."
 	 message type disposition encoding))
 
 (defun rmail-show-mime ()
-  "Function to set in `rmail-show-mime-function' (which see)."
+  "Function to use for the value of `rmail-show-mime-function'."
   (let ((entity (rmail-mime-parse))
 	(rmail-mime-mbox-buffer rmail-buffer)
 	(rmail-mime-view-buffer rmail-view-buffer)

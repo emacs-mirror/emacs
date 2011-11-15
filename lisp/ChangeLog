@@ -1,3 +1,13 @@
+2011-11-15  Glenn Morris  <rgm@gnu.org>
+
+	* mail/rmail.el (rmail-file-coding-system): It's only ever used
+	in a boolean sense, so just make it a boolean, and fix the doc.
+	(rmail-show-mime-function, rmail-mime-feature)
+	(rmail-require-mime-maybe): Doc fixes.
+	(rmail-show-message-1): Check rmail-show-mime-function is non-nil.
+
+	* mail/rmailmm.el (rmail-show-mime): Doc fix.
+
 2011-11-15  Juanma Barranquero  <lekktu@gmail.com>
 
 	* epg.el (epg-start-decrypt, epg-start-verify, epg-start-sign)
