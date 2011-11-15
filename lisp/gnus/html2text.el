@@ -410,7 +410,7 @@ fashion, quite close to pure guess-work. It does work in some cases though."
   (while (re-search-forward "^<br>$" nil t)
     (delete-region (match-beginning 0) (match-end 0)))
   ;; Removing lonely <br> on a single line, if they are left intact we
-  ;; dont have any paragraphs at all.
+  ;; don't have any paragraphs at all.
   (goto-char (point-min))
   (while (not (eobp))
     (let ((p1 (point)))

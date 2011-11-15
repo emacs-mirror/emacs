@@ -316,7 +316,7 @@ See `semantic-edits-change-leaf-tag' for details on parents."
 		  (setq list-to-search nil)))
 	;; Search list is nil.
 	))
-    ;; If we have a search list, lets go.  Otherwise nothing.
+    ;; If we have a search list, let's go.  Otherwise nothing.
     (while (and list-to-search (not found))
       (if (cdr list-to-search)
           ;; We end when the start of the CDR is after the end of our

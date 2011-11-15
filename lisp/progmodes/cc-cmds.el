@@ -1042,7 +1042,7 @@ reindented unless `c-syntactic-indentation' is nil.
 		  (setcar (car elem) 'label))
 	      (setq elem (cdr elem)))
 	    ;; some language elements can only be determined by checking
-	    ;; the following line.  Lets first look for ones that can be
+	    ;; the following line.  Let's first look for ones that can be
 	    ;; found when looking on the line with the colon
 	    (setq newlines
 		  (and c-auto-newline

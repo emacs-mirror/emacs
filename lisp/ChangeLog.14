@@ -6724,7 +6724,7 @@
 	(rx-check-any): Return result as a list.  Don't convert chars to
 	strings.  Don't prepend "\\" to "^".  Don't search for close bracket.
 	Check char category string.  Call rx-form instead of rx-to-string.
-	(rx-any): Rebuid to complete the function.
+	(rx-any): Rebuild to complete the function.
 	(rx-check-not): Fix char category regexp pattern string.
 	Call rx-form instead of rx-to-string.
 	(rx-not): Call rx-form instead of rx-to-string.  Convert "[^]" to

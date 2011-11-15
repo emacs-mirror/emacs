@@ -63,7 +63,7 @@ DIR is the directory to search from."
     (if proj
 	(ede-up-directory (file-name-directory
 			   (oref proj :file)))
-      ;; No pre-existing project.  Lets take a wild-guess if we have
+      ;; No pre-existing project.  Let's take a wild-guess if we have
       ;; an Emacs project here.
       (when (string-match "emacs[^/]*" dir)
 	(let ((base (substring dir 0 (match-end 0))))
@@ -121,7 +121,7 @@ Return nil if there isn't one.
 Argument DIR is the directory it is created for.
 ROOTPROJ is nil, since there is only one project."
   (or (ede-emacs-file-existing dir)
-      ;; Doesn't already exist, so lets make one.
+      ;; Doesn't already exist, so let's make one.
       (let* ((vertuple (ede-emacs-version dir)))
 	(ede-emacs-project (car vertuple)
 			   :name (car vertuple)

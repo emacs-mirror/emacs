@@ -3058,7 +3058,7 @@
 	* net/tramp-sh.el (tramp-sh-handle-start-file-process):
 	Protect buffer-modified value.  (Bug#7557)
 
-2010-12-13   Jan Moringen  <jmoringe@techfak.uni-bielefeld.de>
+2010-12-13  Jan Moringen  <jmoringe@techfak.uni-bielefeld.de>
 
 	* log-edit.el (log-edit-changelog-entries):
 	Regexp quote filename.  (Bug#7505)
@@ -12985,7 +12985,7 @@
 	file has no read permissions for the owner, there might be
 	problems otherwise.  Reported by Ole Laursen <olau@iola.dk>.
 
-22010-02-18  Glenn Morris  <rgm@gnu.org>
+2010-02-18  Glenn Morris  <rgm@gnu.org>
 
 	* emacs-lisp/authors.el (authors-renamed-files-alist):
 	Add entries for INSTALL.CVS.
@@ -13597,7 +13597,7 @@
 	* textmodes/artist.el (artist-compute-popup-menu-table):
 	Remove duplicated words in doc-strings.
 
-2010-01-15   David Abrahams  <dave@boostpro.com>  (tiny change)
+2010-01-15  David Abrahams  <dave@boostpro.com>  (tiny change)
 
 	* net/mairix.el (mairix-widget-send-query): Send -1 instead of nil
 	to mairix-search to suppress threading (Bug#5342).

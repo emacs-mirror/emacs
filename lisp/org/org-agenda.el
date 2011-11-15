@@ -5059,7 +5059,7 @@ See also the user option `org-agenda-clock-consistency-checks'."
 			      (/ (- tlend ts) 60))
 		face (or (plist-get pl :overlap-face) face)))
 	 ((and (> tlend 0) (> ts (+ tlend (* 60 maxgap))))
-	  ;; There is a gap, lets see if we need to report it
+	  ;; There is a gap, let's see if we need to report it
 	  (unless (org-agenda-check-clock-gap tlend ts gapok)
 	    (setq issue (format "Clocking gap: %d minutes"
 				  (/ (- ts tlend) 60))

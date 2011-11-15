@@ -2011,7 +2011,7 @@ minibuffer and the selected frame has no other windows)."
                 (set-window-dedicated-p win t))
 	      (quail-minibuffer-message
 	       (format " [%s]" current-input-method-title)))
-	  ;; Show the guidance in the next line of the currrent
+	  ;; Show the guidance in the next line of the current
 	  ;; minibuffer.
 	  (quail-minibuffer-message
 	   (format "  [%s]\n%s"

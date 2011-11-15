@@ -1,11 +1,13 @@
 2011-11-15  Juanma Barranquero  <lekktu@gmail.com>
 
-	* ede.texi (project-am-texinfo): Fix typo.
+	* ede.texi (project-am-texinfo):
+	* gnus.texi (Sending or Not Sending):
+	* org.texi (Template elements): Fix typos.
 
 2011-11-14  Juanma Barranquero  <lekktu@gmail.com>
 
 	* ediff.texi (Hooks):
-	* sem-user.texi (Semanticdb Roots): Fix typo.
+	* sem-user.texi (Semanticdb Roots): Fix typos.
 
 2011-11-11  Juanma Barranquero  <lekktu@gmail.com>
 

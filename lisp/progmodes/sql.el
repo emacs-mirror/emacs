@@ -1595,7 +1595,7 @@ to add functions and PL/SQL keywords.")
 "cast" "ceil" "chartorowid" "chr" "cluster_id" "cluster_probability"
 "cluster_set" "coalesce" "collect" "compose" "concat" "convert" "corr"
 "corr_k" "corr_s" "cos" "cosh" "count" "covar_pop" "covar_samp"
-"cube_table" "cume_dist" "currrent_date" "currrent_timestamp" "cv"
+"cube_table" "cume_dist" "current_date" "current_timestamp" "cv"
 "dataobj_to_partition" "dbtimezone" "decode" "decompose" "deletexml"
 "dense_rank" "depth" "deref" "dump" "empty_blob" "empty_clob"
 "existsnode" "exp" "extract" "extractvalue" "feature_id" "feature_set"

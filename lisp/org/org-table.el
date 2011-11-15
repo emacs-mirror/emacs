@@ -2204,7 +2204,7 @@ For all numbers larger than LIMIT, shift them by DELTA."
 		     (string-match "^[a-zA-Z][a-zA-Z0-9]*$" field))
 	      (push (cons field v) org-table-local-parameters)
 	      (push (list field line col) org-table-named-field-locations))))
-      ;; Analyse the line types
+      ;; Analyze the line types
       (goto-char beg)
       (setq org-table-current-begin-line (org-current-line)
 	    org-table-current-begin-pos (point)
@@ -2432,7 +2432,7 @@ not overwrite the stored one."
 		      duration-output-format nil
 		      fmt (replace-match "" t t fmt)))
 	    (if (string-match "t" fmt)
-		(setq duration t 
+		(setq duration t
 		      duration-output-format org-table-duration-custom-format
 		      numbers t
 		      fmt (replace-match "" t t fmt)))
@@ -2500,7 +2500,7 @@ not overwrite the stored one."
 	;; Insert complex ranges
 	(while (and (string-match org-table-range-regexp form)
 		    (> (length (match-string 0 form)) 1))
-	  (setq formrg (save-match-data 
+	  (setq formrg (save-match-data
 			 (org-table-get-range (match-string 0 form) nil n0)))
 	  (setq formrpl
 		(save-match-data
@@ -4723,4 +4723,3 @@ list of the fields in the rectangle ."
 
 
 ;;; org-table.el ends here
-

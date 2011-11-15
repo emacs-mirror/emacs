@@ -115,7 +115,7 @@ Completion options are calculated with `semantic-analyze-possible-completions'."
       (if (null syms)
 	  (if (semantic-analyze-context-p a)
 	      ;; This is a clever hack.  If we were unable to find any
-	      ;; smart completions, lets divert to how senator derives
+	      ;; smart completions, let's divert to how senator derives
 	      ;; completions.
 	      ;;
 	      ;; This is a way of making this fcn more useful since
@@ -251,8 +251,8 @@ Completion options are calculated with `semantic-analyze-possible-completions'."
   "Jump to DEST, a Semantic tag.
 This helper manages the mark, buffer switching, and pulsing."
   ;; We have a tag, but in C++, we usually get a prototype instead
-  ;; because of header files.  Lets try to find the actual
-  ;; implementaion instead.
+  ;; because of header files.  Let's try to find the actual
+  ;; implementation instead.
   (when (semantic-tag-prototype-p dest)
     (let* ((refs (semantic-analyze-tag-references dest))
 	   (impl (semantic-analyze-refs-impl refs t))

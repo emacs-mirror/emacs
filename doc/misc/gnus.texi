@@ -18105,7 +18105,7 @@ mail sending with @code{nndiary}:
 @itemize @bullet
 @item
 @code{nndiary} is a @emph{real} mail back end.  You really send real diary
-messsages for real.  This means for instance that you can give
+messages for real.  This means for instance that you can give
 appointments to anybody (provided they use Gnus and @code{nndiary}) by
 sending the diary message to them as well.
 @item

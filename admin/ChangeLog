@@ -1,3 +1,7 @@
+2011-11-15  Juanma Barranquero  <lekktu@gmail.com>
+
+	* make-emacs: Fix typo.
+
 2011-11-07  Juanma Barranquero  <lekktu@gmail.com>
 
 	* unidata/makefile.w32-in (clean): Remove bidimirror.h and biditype.h.

@@ -1,3 +1,16 @@
+2011-11-15  Juanma Barranquero  <lekktu@gmail.com>
+
+	* allout.el (allout-encryption-plaintext-sanitization-regexps):
+	* frame.el (display-mm-dimensions-alist):
+	* outline.el (outline-mode-menu-bar-map, outline-move-subtree-up)
+	(outline-move-subtree-down):
+	* net/newst-treeview.el (newsticker--treeview-do-get-node-of-feed)
+	(newsticker--treeview-do-get-node):
+	* net/quickurl.el (quickurl-list-buffer-name):
+	* progmodes/dcl-mode.el (dcl-mode):
+	* progmodes/gdb-mi.el (gdb-mapcar*):
+	* progmodes/sql.el (sql-mode-oracle-font-lock-keywords): Fix typos.
+
 2011-11-15  Glenn Morris  <rgm@gnu.org>
 
 	* mail/rmail.el (rmail-file-coding-system): It's only ever used
@@ -491,7 +504,7 @@
 2011-10-26  Michael Albinus  <michael.albinus@gmx.de>
 
 	* ido.el (ido-file-name-all-completions-1): Do not require
-	tramp.el explicitely.  (Bug#7583)
+	tramp.el explicitly.  (Bug#7583)
 
 2011-10-26  Stefan Monnier  <monnier@iro.umontreal.ca>
 

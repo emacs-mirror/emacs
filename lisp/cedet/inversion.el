@@ -419,7 +419,7 @@ INSTALLDIR path."
           ;;(message "%S added to `load-path'" default-directory)
           (add-to-list 'load-path default-directory))
 	;; We get to this point iff we do not accept or there is no
-	;; system file.  Lets check the version of what we just
+	;; system file.  Let's check the version of what we just
 	;; installed... just to be safe.
 	(let ((newver (inversion-find-version package)))
 	  (if (not newver)

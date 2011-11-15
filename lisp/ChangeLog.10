@@ -3318,7 +3318,7 @@
 	ada-prj.el are now defined in this package, which makes it easier to
 	edit menus.
 	(ada-narrow-to-defun): Add support for `narrow-to-region'.
-	No longer explicitely load ada-xref.el and ada-prj.el.  Use autoload
+	No longer explicitly load ada-xref.el and ada-prj.el.  Use autoload
 	statements instead.
 
 	* progmodes/ada-xref.el (ada-gnatls-args): New variable.

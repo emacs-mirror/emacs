@@ -338,7 +338,7 @@ PRE-LEN is used in the after mode for the length of the changed text."
 	   (inhibit-modification-hooks t)
 	   )
       ;; Sometimes a field is deleted, but we might still get a stray
-      ;; event.  Lets just ignore those events.
+      ;; event.  Let's just ignore those events.
       (when (slot-boundp field 'overlay)
 	;; First, fixup the two overlays, in case they got confused.
 	(let ((main (oref field overlay))

@@ -72,7 +72,7 @@ Build Emacs.
  --gprof		make Emacs for profiling
  --union-type		define USE_LISP_UNION_TYPE (bad for GDB)
  --malloc-check		define GC_MALLOC_CHECK
- --no-mcheck		dont define GC_MCHECK
+ --no-mcheck		don't define GC_MCHECK
  --wall			compile with -Wall
  --gcc3			use GCC 3.0 (30% slower compilation, slower code)
  --trace-selection	print traces in xselect.c

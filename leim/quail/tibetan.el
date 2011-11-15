@@ -427,7 +427,7 @@
 
     1. Vowel 'a' should be typed explicitly by the key 'A'.
        This is really inconvenient. But to make the coding
-       scheme clear, it is desirable to have an explicite
+       scheme clear, it is desirable to have an explicit
        vowel sign for 'a'.
     2. Tsheg is assigned to SPC key. You can input a space
        by typing '>'.

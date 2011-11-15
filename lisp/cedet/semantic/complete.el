@@ -1618,7 +1618,7 @@ Display mechanism using tooltip for a list of possible completions.")
 		 (string= (this-command-keys) "\C-i"))
 	    (oset obj typing-count (1+ typing-count)))
 	;; At this point, we know we have too many items.
-	;; Lets be brave, and truncate l
+	;; Let's be brave, and truncate l
 	(setcdr (nthcdr (oref obj max-tags) l) nil)
 	(setq msg (mapconcat 'identity l "\n"))
 	(cond

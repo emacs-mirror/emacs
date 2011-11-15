@@ -5418,8 +5418,8 @@ If no internal viewer is available, use an external viewer."
 
 (defun gnus-article-part-wrapper (n function &optional no-handle interactive)
   "Call FUNCTION on MIME part N.
-Unless NO-HANDLE, call FUNCTION with N-th MIME handle as it's only argument.
-If INTERACTIVE, call FUNCTION interactivly."
+Unless NO-HANDLE, call FUNCTION with N-th MIME handle as its only argument.
+If INTERACTIVE, call FUNCTION interactively."
   (let (window frame)
     ;; Check whether the article is displayed.
     (unless (and (gnus-buffer-live-p gnus-article-buffer)

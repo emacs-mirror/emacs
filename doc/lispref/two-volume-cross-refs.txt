@@ -87,7 +87,7 @@ to create             elisp2-aux-vol-added
 insert elisp2-aux-vol-added into vol1.aux  (append)
 insert elisp1-aux-vol-added into vol2.aux  (prepend)
 
-(so you dont have to do it again)
+(so you don't have to do it again)
 % cp vol1.aux elisp1-aux-ready
 % cp vol2.aux elisp2-aux-ready
 
@@ -120,7 +120,7 @@ Be sure that .fn file has no blank lines.
 % texindex vol1.fn
 % texindex vol2.fn
 
-(so you dont have to do it again)
+(so you don't have to do it again)
 % cp vol1.fns elisp1-fns-2vol-ready
 % cp vol2.fns elisp2-fns-2vol-ready
 

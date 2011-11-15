@@ -659,7 +659,7 @@ Strip out duplicates, and recurse on variables."
       ;; their object still exists!
       ;; FIGURE THIS OUT
       (project-am-expand-subdirlist 'csubprojexpanded csubproj)
-      ;; Ok, now lets look at all our sub-projects.
+      ;; Ok, now let's look at all our sub-projects.
       (mapc (lambda (sp)
 	      (let* ((subdir (file-name-as-directory
 			      (expand-file-name

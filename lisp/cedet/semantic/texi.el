@@ -579,7 +579,7 @@ Note: TYPE not yet implemented."
 ;; 	    (setq doctag (if docstring sourcetag nil))))
 ;; 	  (setq tags (cdr tags)))))
 ;;     ;; If we found a prototype of the function that has some doc, but not the
-;;     ;; actual function, lets make due with that.
+;;     ;; actual function, let's make due with that.
 ;;     (if (not docstring)
 ;; 	(cond ((stringp docstringvar)
 ;; 	       (setq docstring docstringvar

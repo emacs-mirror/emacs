@@ -103,7 +103,7 @@ If TAB is nil, then always return t."
   (let ((proj (oref tab :project)))
     ;; Return t if the project wasn't set.
     (if (not proj) t
-      ;; If the project directory was set, lets check it.
+      ;; If the project directory was set, let's check it.
       (let ((dd (expand-file-name default-directory))
 	    (projexp (regexp-quote (directory-file-name proj))))
 	(if (string-match (concat "^" projexp) dd)
