@@ -4494,26 +4494,25 @@ With prefix argument N moves forward N messages with these labels.
 
 ;;;***
 
-;;;### (autoloads (rmail-mime) "rmailmm" "rmailmm.el" "5d992206e382290d07ad7d9a2bf250c9")
+;;;### (autoloads (rmail-mime) "rmailmm" "rmailmm.el" "a79f498959deded8fa9d88a7dca93bc0")
 ;;; Generated autoloads from rmailmm.el
 
 (autoload 'rmail-mime "rmailmm" "\
 Toggle displaying of a MIME message.
 
-The actualy behavior depends on the value of `rmail-enable-mime'.
+The actual behavior depends on the value of `rmail-enable-mime'.
 
-If `rmail-enable-mime' is t (default), this command change the
-displaying of a MIME message between decoded presentation form
-and raw data.
+If `rmail-enable-mime' is non-nil (default), this command changes the
+display of a MIME message between decoded presentation form and raw data.
 
-With ARG, toggle the displaying of the current MIME entity only.
+With ARG, toggle the display of the current MIME entity only.
 
 If `rmail-enable-mime' is nil, this creates a temporary
 \"*RMAIL*\" buffer holding a decoded copy of the message.  Inline
 content-types are handled according to
 `rmail-mime-media-type-handlers-alist'.  By default, this
 displays text and multipart messages, and offers to download
-attachments as specfied by `rmail-mime-attachment-dirs-alist'.
+attachments as specified by `rmail-mime-attachment-dirs-alist'.
 
 \(fn &optional ARG)" t nil)
 
