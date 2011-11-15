@@ -1,3 +1,8 @@
+2011-11-15  Eli Zaretskii  <eliz@gnu.org>
+
+	* nt/README-ftp-server: Update the information about PNG
+	libraries.
+
 2011-11-15  Juanma Barranquero  <lekktu@gmail.com>
 
 	* make-emacs: Fix typo.

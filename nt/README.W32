@@ -129,7 +129,7 @@ See the end of the file for license conditions.
 
   Emacs can also support some other image formats with appropriate
   libraries.  These libraries are all available as part of GTK
-  download for Windows (http://www.gtk.org/download-windows.html), or
+  download for Windows (http://www.gtk.org/download/win32.php), or
   from the GnuWin32 project.  Emacs will find them if the directory
   they are installed in is on the PATH.
 
