@@ -2565,7 +2565,7 @@
 	* gnus-sum.el (gnus-user-date): Rename back from
 	gnus-summary-user-date since user code refers to it.
 
-	* shr.el (shr-render-td): Store the actual background colour used.
+	* shr.el (shr-render-td): Store the actual background color used.
 
 	* message.el (message-setup-1): Don't bind the constant
 	-forbidden-properties.
@@ -2653,9 +2653,9 @@
 
 2011-02-01  Lars Ingebrigtsen  <larsi@gnus.org>
 
-	* shr.el (shr-render-td): Only do colours at the final rendering.
+	* shr.el (shr-render-td): Only do colors at the final rendering.
 	Should be slightly faster.
-	(shr-insert-table): Fix up TD background colours when doing the
+	(shr-insert-table): Fix up TD background colors when doing the
 	vertical padding.
 
 	* gnus-art.el (article-date-ut): Protect against articles with no Date
@@ -2783,7 +2783,7 @@
 
 2011-01-27  Lars Ingebrigtsen  <larsi@gnus.org>
 
-	* shr.el (shr-put-color): Special-case background colours: Do put them
+	* shr.el (shr-put-color): Special-case background colors: Do put them
 	at the blank parts at the front of the lines.
 
 	* gnus-draft.el (gnus-draft-clear-marks): New function to be run as an
@@ -3788,7 +3788,7 @@
 
 2010-11-25  Lars Magne Ingebrigtsen  <larsi@gnus.org>
 
-	* shr-color.el (shr-color-visible): Don't bug out if the colour names
+	* shr-color.el (shr-color-visible): Don't bug out if the color names
 	don't exist.
 
 2010-11-25  Katsumi Yamaoka  <yamaoka@jpl.org>
@@ -3860,7 +3860,7 @@
 
 2010-11-24  Lars Magne Ingebrigtsen  <larsi@gnus.org>
 
-	* shr.el (shr-color-check): Protect against non-existent colour names.
+	* shr.el (shr-color-check): Protect against non-existent color names.
 
 2010-11-24  Julien Danjou  <julien@danjou.info>
 
@@ -3886,7 +3886,7 @@
 2010-11-23  Lars Magne Ingebrigtsen  <larsi@gnus.org>
 
 	* shr.el (shr-insert-color-overlay): Split stuff like
-	"#444444 !important" to find the real colour.
+	"#444444 !important" to find the real color.
 	(shr-tag-font): Resurrect shr-tag-font again, since it's needed to
 	parse <font color="red"> entries.
 
@@ -5997,15 +5997,15 @@
 	highlight again, so that the highlight is correct.
 
 	* gnus-picon.el (gnus-picon): Remove again.
-	(gnus-picon-create-glyph): Set the background XPM colour explicitly.
+	(gnus-picon-create-glyph): Set the background XPM color explicitly.
 
 	* gnus-art.el (gnus-treatment-function-alist): Insert picons after
-	doing the header highlightling, so that the background colour of the
+	doing the header highlightling, so that the background color of the
 	picon is correct.
 
 	* gnus-picon.el (gnus-picon-xbm): Remove obsolete face.
 	(gnus-picon): Ditto.
-	(gnus-picon): Reinstate.  The background colour for picons is white.
+	(gnus-picon): Reinstate.  The background color for picons is white.
 	(gnus-picon-insert-glyph): Make the background white.
 
 	* nnml.el (nnml-open-nov): Don't return dead buffers.
@@ -7417,7 +7417,7 @@
 	UTF-8.  This seems to fix problems with some German web feeds.
 
 	* gnus.el (gnus-group-startup-message): Put the xpm version of the logo
-	at the top so that the proper colours are applied.
+	at the top so that the proper colors are applied.
 
 	* gnus-art.el (gnus-article-view-part): Doc fix.
 

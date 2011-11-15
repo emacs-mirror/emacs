@@ -588,7 +588,7 @@ parse_str_as_multibyte (const unsigned char *str, EMACS_INT len,
 }
 
 /* Arrange unibyte text at STR of NBYTES bytes as a multibyte text.
-   It actually converts only such 8-bit characters that don't contruct
+   It actually converts only such 8-bit characters that don't construct
    a multibyte sequence to multibyte forms of Latin-1 characters.  If
    NCHARS is nonzero, set *NCHARS to the number of characters in the
    text.  It is assured that we can use LEN bytes at STR as a work

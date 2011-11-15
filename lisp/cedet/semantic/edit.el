@@ -595,7 +595,7 @@ This function is for internal use by `semantic-edits-incremental-parser'."
 	       ;; Feb 06 -
 	       ;; IDed when the first cache-list tag is after
 	       ;; our change, meaning there is nothing before
-	       ;; the chnge.
+	       ;; the change.
                ((> (semantic-tag-start (car cache-list))
                    (semantic-overlay-end (car changes)))
 		(setq last-cond "Beginning of buffer")

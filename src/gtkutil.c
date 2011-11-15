@@ -891,7 +891,7 @@ xg_frame_resized (FRAME_PTR f, int pixelwidth, int pixelheight)
     }
 }
 
-/* Resize the outer window of frame F after chainging the height.
+/* Resize the outer window of frame F after changing the height.
    COLUMNS/ROWS is the size the edit area shall have after the resize.  */
 
 void

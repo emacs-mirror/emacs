@@ -1847,7 +1847,7 @@ find the errors."
    ))
 
 (defconst verilog-auto-end-comment-lines-re
-  ;; Matches to names in this list cause auto-end-commentation
+  ;; Matches to names in this list cause auto-end-commenting
   (concat "\\("
 	  verilog-directive-re "\\)\\|\\("
 	  (eval-when-compile

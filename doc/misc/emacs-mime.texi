@@ -1048,7 +1048,7 @@ occurs.
 
 You can customize the value of the @code{mml-enable-flowed} variable
 to enable or disable the flowed encoding usage when newline
-characteres are present in the buffer.
+characters are present in the buffer.
 
 On decoding flowed text, lines with soft newline characters are filled
 together and wrapped after the column decided by

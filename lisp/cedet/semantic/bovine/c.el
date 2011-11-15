@@ -1128,7 +1128,7 @@ Optional PARENT and COLOR are ignored."
 
 (define-mode-local-override semantic-format-tag-canonical-name
   c-mode (tag &optional parent color)
-  "Create a cannonical name for TAG.
+  "Create a canonical name for TAG.
 PARENT specifies a parent class.
 COLOR indicates that the text should be type colorized.
 Enhances the base class to search for the entire parent

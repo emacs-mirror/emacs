@@ -53,7 +53,7 @@ These are the special commands of this mode:
     s -- Select the server at point.
     t -- Transpose the server at point and the previous one
     q -- Commit the changes and quit.
-    x -- Quit without commiting the changes."
+    x -- Quit without committing the changes."
   (interactive)
   (kill-all-local-variables)
   (setq major-mode 'eudc-hotlist-mode)

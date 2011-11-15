@@ -7665,7 +7665,7 @@ has its own article buffer.
 This implies that it's not possible to have more than one article buffer
 in a group at a time.  But sometimes you might want to display all the
 latest emails from your mother, your father, your aunt, your uncle and
-your 17 cousins to coordinate the next christmas party.
+your 17 cousins to coordinate the next Christmas party.
 
 That's where sticky articles come in handy.  A sticky article buffer
 basically is a normal article buffer, but it won't be reused when you

@@ -221,7 +221,7 @@ something without an implementation."
 
 (define-overloadable-function semantic-tag-full-name (tag &optional stream-or-buffer)
   "Return the fully qualified name of TAG in the package hierarchy.
-STREAM-OR-BUFFER can be anything convertable by `semantic-something-to-stream',
+STREAM-OR-BUFFER can be anything convertible by `semantic-something-to-stream',
 but must be a toplevel semantic tag stream that contains TAG.
 A Package Hierarchy is defined in UML by the way classes and methods
 are organized on disk.  Some language use this concept such that a

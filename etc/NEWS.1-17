@@ -1090,7 +1090,7 @@ the messages should have.
 * Interface to MH mail system.
 
 mh-e is a front end for GNU emacs and the MH mail system.  It
-provides a friendly and convient interface to the MH commands.
+provides a friendly and convenient interface to the MH commands.
 
 To read mail, invoke mh-rmail.  This will inc new mail and display the
 scan listing on the screen.  To see a summary of the mh-e commands,

@@ -339,7 +339,7 @@ See `compilation-error-screen-columns'"
   "The most recent grep buffer.
 A grep buffer becomes most recent when you select Grep mode in it.
 Notice that using \\[next-error] or \\[compile-goto-error] modifies
-`complation-last-buffer' rather than `grep-last-buffer'.")
+`compilation-last-buffer' rather than `grep-last-buffer'.")
 
 ;;;###autoload
 (defconst grep-regexp-alist

@@ -163,7 +163,7 @@
 ;; Font-Lock
 
 ;; font-lock is used to highlight the first matching buffer.  To
-;; switch this off, set (setq iswitchb-use-faces nil).  Colouring of
+;; switch this off, set (setq iswitchb-use-faces nil).  Coloring of
 ;; the matching buffer name was suggested by Carsten Dominik
 ;; (dominik@strw.leidenuniv.nl)
 

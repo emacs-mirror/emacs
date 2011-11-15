@@ -336,7 +336,7 @@
 ;;           for FQM files if you're a VM user
 ;;         change buffer-substring calls to buffer-substring-no-properties for
 ;;           speed-up (suggested by Howard Melman <howard@silverstream.com>)
-;;         feedmail-sendmail-f-doesnt-sell-me-out to contol "-f" in call to sendmail
+;;         feedmail-sendmail-f-doesnt-sell-me-out to control "-f" in call to sendmail
 ;;           in feedmail-buffer-to-sendmail
 ;;         better trapping of odd conditions during the running of the queue;
 ;;           thanks to Yigal Hochberg for helping me test much of this by remote
@@ -2410,7 +2410,7 @@ mapped to mostly alphanumerics for safety."
 	(a-re-dtcb  "^\\(To\\|Cc\\|Bcc\\):")
 	(a-re-dtc   "^\\(To\\|Cc\\):")
 	(a-re-db    "^Bcc:")
-	;; to get a temporary changable copy
+	;; to get a temporary changeable copy
 	(mail-header-separator mail-header-separator)
 	)
     (unwind-protect

@@ -599,7 +599,7 @@ struct font_driver
 
   /* Optional.
      Store bitmap data for glyph-code CODE of FONT in BITMAP.  It is
-     intended that this method is callled from the other font-driver
+     intended that this method is called from the other font-driver
      for actual drawing.  */
   int (*get_bitmap) (struct font *font, unsigned code,
                      struct font_bitmap *bitmap,

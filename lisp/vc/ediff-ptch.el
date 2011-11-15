@@ -635,7 +635,7 @@ optional argument, then use it."
 ;; Traditional patch has weird return codes.
 ;; GNU and Posix return 1 if some hanks failed and 2 in case of trouble.
 ;; 0 is a good code in all cases.
-;; We'll do the concervative thing.
+;; We'll do the conservative thing.
 (defun ediff-patch-return-code-ok (code)
   (eq code 0))
 ;;;  (if (eq (ediff-test-patch-utility) 'traditional)

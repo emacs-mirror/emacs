@@ -1482,7 +1482,7 @@ the last cache point coordinate."
 	   (cons (cons command func-symbol)
 		 table-command-remap-alist))))
  '(center-line
-   conter-region
+   center-region
    center-paragraph
    fill-paragraph))
 

@@ -6,7 +6,7 @@ See the end of the file for license conditions.
 
 		   The charset map files directory
 
-This directory contains two kinds of charse map files; verbatim copies
+This directory contains two kinds of charset map files; verbatim copies
 (or their compressed versions) of files freely available in the
 Internet, and newly created files based on freely available
 information.

@@ -106,7 +106,7 @@ called in a dereference sequence.")
    (prefixclass :initarg :prefixclass
 		:type list
 		:documentation "Tag classes expected at this context.
-These are clases for tags, such as 'function, or 'variable.")
+These are classes for tags, such as 'function, or 'variable.")
    (prefixtypes :initarg :prefixtypes
 	   :type list
 	   :documentation "List of tags defining types for :prefix.

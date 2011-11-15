@@ -463,7 +463,7 @@ Return a bovination list to use."
 	  ;; Try an Emacs 22 fcn.  This throws errors.
 	  (find-library-name (semantic-tag-name tag))
 	(error
-	 (message "semantic: connot find source file %s"
+	 (message "semantic: cannot find source file %s"
 		  (semantic-tag-name tag))))
     ;; No handy function available.  (Older Emacsen)
     (let* ((lib (locate-library (semantic-tag-name tag)))

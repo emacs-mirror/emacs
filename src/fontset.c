@@ -1088,7 +1088,7 @@ fontset_pattern_regexp (Lisp_Object pattern)
 	    nescs++;
 	}
 
-      /* If PATTERN is not full XLFD we conert "*" to ".*".  Otherwise
+      /* If PATTERN is not full XLFD we convert "*" to ".*".  Otherwise
 	 we convert "*" to "[^-]*" which is much faster in regular
 	 expression matching.  */
       if (ndashes < 14)

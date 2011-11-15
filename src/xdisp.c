@@ -28447,7 +28447,7 @@ To add a prefix to continuation lines, use `wrap-prefix'.  */);
   DEFVAR_INT ("overline-margin", overline_margin,
 	       doc: /* *Space between overline and text, in pixels.
 The default value is 2: the height of the overline (1 pixel) plus 1 pixel
-margin to the caracter height.  */);
+margin to the character height.  */);
   overline_margin = 2;
 
   DEFVAR_INT ("underline-minimum-offset",

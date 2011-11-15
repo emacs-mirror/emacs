@@ -3535,7 +3535,7 @@
 	Also clean up the code slightly.
 
 	* progmodes/grep.el (rgrep): Don't bind `process-connection-type',
-	because that makes the colours go away.
+	because that makes the colors go away.
 
 	* mail/sendmail.el (send-mail-function): Change the default to
 	`sendmail-query-once'.

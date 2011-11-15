@@ -78,7 +78,7 @@
 ;;   (secrets-create-collection "my collection")
 
 ;; There exists a special collection called "session", which has the
-;; lifetime of the corrresponding client session (aka Emacs'
+;; lifetime of the corresponding client session (aka Emacs'
 ;; lifetime).  It is created automatically when Emacs uses the Secret
 ;; Service interface, and it is deleted when Emacs is killed.
 ;; Therefore, it can be used to store and retrieve secret items

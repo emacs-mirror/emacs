@@ -2323,7 +2323,7 @@ of (COLUMN-NUMBER . LINE) pairs."
     (indent-rigidly
      mbeg mend
 
-     ;; Find the next tab after the leftmost columnt.
+     ;; Find the next tab after the leftmost column.
      (let ((tab (funcall find-next-fun tabs leftmostcol)))
 
        (if tab

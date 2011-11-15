@@ -574,7 +574,7 @@ FUNCTION must return non-nil if an element of STREAM will be included
 in the new list.
 
 If optional argument SEARCH-PARTS is non-nil, all sub-parts of tags
-are searched.  The overloadable function `semantic-tag-componenets' is
+are searched.  The overloadable function `semantic-tag-components' is
 used for the searching child lists.  If SEARCH-PARTS is the symbol
 'positiononly, then only children that have positional information are
 searched.
