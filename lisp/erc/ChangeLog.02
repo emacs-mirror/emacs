@@ -1373,7 +1373,7 @@
 
 	* erc-menu.el 1.8:
 	* changed how we check if we should activate "Track hidden channels" and
-	  whether it should be selected - fixes a bug Xemacs where whole menu bar
+	  whether it should be selected - fixes a bug XEmacs where whole menu bar
 	  does not work if menu is loaded
 
 	* erc-menu.el 1.7:
@@ -1545,7 +1545,7 @@
 
 	* added s461 to english catalog
 
-	* fixed bug where Xemacs would not quit if erc-quit-reason was
+	* fixed bug where XEmacs would not quit if erc-quit-reason was
 	  set to erc-quit-reason-various and assoc-default was not defined
 
 2002-06-04  Andreas Fuchs  <asf@void.at>

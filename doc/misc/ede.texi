@@ -3273,7 +3273,7 @@ Return the default macro to 'edit' for this object type.
 @end deffn
 
 @deffn Method project-compile-target-command :AFTER this
-Default target t- use when compling a texinfo file.
+Default target t- use when compiling a texinfo file.
 @end deffn
 
 @deffn Method ede-documentation :AFTER this

@@ -1,3 +1,9 @@
+2011-11-15  Juanma Barranquero  <lekktu@gmail.com>
+
+	* shr-color.el (shr-color-visible-distance-min)
+	(shr-color-relative-to-absolute, set-minimum-interval)
+	(shr-color-visible): Fix typos.
+
 2011-11-03  Lars Magne Ingebrigtsen  <larsi@gnus.org>
 
 	* gnus-sum.el (gnus-articles-to-read): Change wording in prompt to be

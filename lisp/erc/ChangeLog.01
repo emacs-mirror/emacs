@@ -826,7 +826,7 @@
 	* (erc-complete-nick): Add ": " only if one completes directly after the erc-prompt, otherwise, add just one space
 
 	* erc.el 1.47:
-	* Changed menu-definition to use easymenu (hopefully this now works under Xemacs)
+	* Changed menu-definition to use easymenu (hopefully this now works under XEmacs)
 	* Fix for custom problem with :must-match on XEmacs (thanks shapr)
 	* Added /COUNTRY command using (what-domain) from package mail-extr (shapr)
 	* Fix for case-sensitivity problem with pals (they are now all downcased)

@@ -292,7 +292,7 @@ STRING should be given if the last search was by `string-match' on STRING."
   "Filter `easy-menu-define' MENU to support new features."
   (cond ((not (featurep 'xemacs))
 	 menu) ;; GNU Emacs - passthru
-	;; Xemacs doesn't support :help.  Strip it.
+	;; XEmacs doesn't support :help.  Strip it.
 	;; Recursively filter the a submenu
 	((listp menu)
 	 (mapcar 'verilog-easy-menu-filter menu))
@@ -737,7 +737,7 @@ See `compilation-error-regexp-alist' for the formatting.  For Emacs 22+.")
 (defvar verilog-error-regexp-xemacs-alist
   ;; Emacs form is '((v-tool "re" 1 2) ...)
   ;; XEmacs form is '(verilog ("re" 1 2) ...)
-  ;; So we can just map from Emacs to Xemacs
+  ;; So we can just map from Emacs to XEmacs
   (cons 'verilog (mapcar 'cdr verilog-error-regexp-emacs-alist))
   "List of regexps for Verilog compilers.
 See `compilation-error-regexp-alist-alist' for the formatting.  For XEmacs.")

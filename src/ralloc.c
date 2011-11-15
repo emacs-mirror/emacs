@@ -219,13 +219,13 @@ find_heap (POINTER address)
    If enough space is not presently available in our reserve, this means
    getting more page-aligned space from the system.  If the returned space
    is not contiguous to the last heap, allocate a new heap, and append it
+   to the heap list.
 
-   obtain does not try to keep track of whether space is in use
-   or not in use.  It just returns the address of SIZE bytes that
-   fall within a single heap.  If you call obtain twice in a row
-   with the same arguments, you typically get the same value.
-   to the heap list.  It's the caller's responsibility to keep
-   track of what space is in use.
+   obtain does not try to keep track of whether space is in use or not
+   in use.  It just returns the address of SIZE bytes that fall within a
+   single heap.  If you call obtain twice in a row with the same arguments,
+   you typically get the same value.  It's the caller's responsibility to
+   keep track of what space is in use.
 
    Return the address of the space if all went well, or zero if we couldn't
    allocate the memory.  */
@@ -389,7 +389,7 @@ find_bloc (POINTER *ptr)
   while (p != NIL_BLOC)
     {
       /* Consistency check. Don't return inconsistent blocs.
-	 Don't abort here, as callers might be expecting this,  but
+	 Don't abort here, as callers might be expecting this, but
 	 callers that always expect a bloc to be returned should abort
 	 if one isn't to avoid a memory corruption bug that is
 	 difficult to track down.  */
@@ -1180,7 +1180,7 @@ r_alloc_reset_variable (POINTER *old, POINTER *new)
 
   /* Find the bloc that corresponds to the data pointed to by pointer.
      find_bloc cannot be used, as it has internal consistency checks
-     which fail when the variable needs reseting.  */
+     which fail when the variable needs resetting.  */
   while (bloc != NIL_BLOC)
     {
       if (bloc->data == *new)

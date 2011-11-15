@@ -1,3 +1,10 @@
+2011-11-15  Juanma Barranquero  <lekktu@gmail.com>
+
+	* epg.el (epg-start-decrypt, epg-start-verify, epg-start-sign)
+	(epg-start-encrypt, epg-start-export-keys, epg-start-import-keys)
+	(epg-start-receive-keys, epg-start-delete-keys, epg-start-sign-keys)
+	(epg-start-generate-key, epg-context-set-progress-callback): Fix typos.
+
 2011-11-15  Glenn Morris  <rgm@gnu.org>
 
 	* simple.el (mark-whole-buffer): Doc fix.  (Bug#10023)

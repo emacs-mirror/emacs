@@ -2525,7 +2525,7 @@ Outermost is first."
 (defun allout-mark-active-p ()
   "True if the mark is currently or always active."
   ;; `(cond (boundp...))' (or `(if ...)') invokes special byte-compiler
-  ;; provisions, at least in fsf emacs to prevent warnings about lack of,
+  ;; provisions, at least in GNU Emacs to prevent warnings about lack of,
   ;; eg, region-active-p.
   (cond ((boundp 'mark-active)
          mark-active)

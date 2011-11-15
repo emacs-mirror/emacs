@@ -637,7 +637,7 @@ SYMBOL is a function that can be overridden."
 
 (defun mode-local-print-bindings (table)
   "Print bindings in TABLE."
-  (let (us ;; List of unpecified symbols
+  (let (us ;; List of unspecified symbols
         mc ;; List of mode local constants
         mv ;; List of mode local variables
         ov ;; List of overloaded functions
