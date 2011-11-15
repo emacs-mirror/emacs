@@ -1600,7 +1600,8 @@
 
 	* erc-dcc.el 1.57: * erc-dcc-ipv4-regexp: New constant
 	* (erc-ip-to-decimal): Use it.
-	* erc-dcc-host:valid-regexp erc-dcc-ipv4-regexp:	* erc-dcc-host: :type
+	* erc-dcc-host:valid-regexp erc-dcc-ipv4-regexp:
+	* erc-dcc-host: :type
 	* (pcomplete/erc-mode/DCC): Add completion for GET and CLOSE.
 	* Some docstring/comment fixes.
 
@@ -1610,7 +1611,7 @@
 
 	* erc-dcc.el 1.56:
 	* Fixed the unibyte-multibyte problem (now a dcc get buffer is (set-buffer-multibyte nil),
-	  and saves correctly (tried with 21.3.50). Thanks to Eli for suggesting it!
+	  and saves correctly (tried with 21.3.50)). Thanks to Eli for suggesting it!
 	* Added :start-time plist property/value to GET handling so that we can calculate elapsed-time.
 	* Some (unwind-protect (progn (set-buffer ...) ...)) constructs replaced with (with-current-buffer ...)
 

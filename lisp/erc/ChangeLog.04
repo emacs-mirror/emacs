@@ -136,7 +136,7 @@
 2004-12-14  Diane Murray  <disumu@x3y2z1.net>
 
 	* erc.el: The last change to `erc-mode-line-format' introduced a
-	bug in Xemacs - it can't handle the #(" "...) strings at all.  The
+	bug in XEmacs - it can't handle the #(" "...) strings at all.  The
 	following changes fix the bug and simplify the mode-line handling
 	considerably.  (erc-mode-line-format): Now defined as a string
 	which will be formatted using `format-spec' and take the place of

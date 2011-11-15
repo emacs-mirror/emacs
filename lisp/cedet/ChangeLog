@@ -1,3 +1,7 @@
+2011-11-15  Juanma Barranquero  <lekktu@gmail.com>
+
+	* ede/project-am.el (project-compile-target-command): Fix typo.
+
 2011-11-14  Juanma Barranquero  <lekktu@gmail.com>
 
 	* ede/auto.el (ede-project-autoload):

@@ -871,7 +871,7 @@ Otherwise return the normal value."
     (abbreviate-file-name file)))
 
 ;; Sit for VAL milliseconds.  XEmacs doesn't support the millisecond arg
-;; in sit-for, so this function smoothes out the differences.
+;; in sit-for, so this function smooths out the differences.
 (defsubst viper-sit-for-short (val &optional nodisp)
   (sit-for (/ val 1000.0) nodisp))
 

@@ -1,3 +1,20 @@
+2011-11-15  Juanma Barranquero  <lekktu@gmail.com>
+
+	* epg.el (epg-start-decrypt, epg-start-verify, epg-start-sign)
+	(epg-start-encrypt, epg-start-export-keys, epg-start-import-keys)
+	(epg-start-receive-keys, epg-start-delete-keys, epg-start-sign-keys)
+	(epg-start-generate-key, epg-context-set-progress-callback): Fix typos.
+
+2011-11-15  Glenn Morris  <rgm@gnu.org>
+
+	* term/ns-win.el (mode-line-frame-identification):
+	Leave it alone.  (Bug#10051)
+
+	* simple.el (mark-whole-buffer): Doc fix.  (Bug#10023)
+
+	* mail/rmailout.el (rmail-output-to-rmail-buffer):
+	Handle empty buffers.  (Bug#9978)
+
 2011-11-14  Juanma Barranquero  <lekktu@gmail.com>
 
 	* international/mule.el (define-charset):

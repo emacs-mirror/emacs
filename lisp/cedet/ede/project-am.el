@@ -836,7 +836,7 @@ nil means that this buffer belongs to no-one."
   (oref this :name))
 
 (defmethod project-compile-target-command ((this project-am-texinfo))
-  "Default target t- use when compling a texinfo file."
+  "Default target t- use when compiling a texinfo file."
   (let ((n (oref this :name)))
     (if (string-match "\\.texi?\\(nfo\\)?" n)
 	(setq n (replace-match ".info" t t n)))

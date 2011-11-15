@@ -3289,7 +3289,7 @@
 	(mh-tick-add-overlay, mh-tick-remove-overlay, mh-notate-tick):
 	These functions aren't needed any more, since overlays aren't used
 	any more. Also overlays aren't portable to XEmacs, so nasty
-	conditional code that used overlays in Emacs and extents in Xemacs
+	conditional code that used overlays in Emacs and extents in XEmacs
 	have been eliminated.
 	(mh-toggle-tick): Generalize it to work on a range of messages
 	like the other interactive messages.
@@ -9445,7 +9445,7 @@
 	Non-fatal depencencies on the mm-decode, mm-uu and mm-view
 	libraries.
 
-2002-07-15  Satyaki Das <satyaki@theforce.stanford.edu>
+2002-07-15  Satyaki Das  <satyaki@theforce.stanford.edu>
 
 	* mh-utils.el (mh-require, mh-autoload): Remove these macros.
 	(mh-decode-mime): Initialized to t iff the mm-decode library is
@@ -9455,8 +9455,8 @@
 2002-07-15  Mark D Baushke  <mdb@gnu.org>
 
 	* mh-utils.el (mh-update-scan-format): Rewrite for compatibility
-	with Xemacs as replace-match appears not to have identical
-	functionality with FSF emacs.
+	with XEmacs as replace-match appears not to have identical
+	functionality with GNU Emacs.
 	(mh-scan-msg-format-regexp): Deleted. This regexp is now hardcoded
 	into the mh-update-scan-format function.
 
@@ -10337,7 +10337,7 @@
 	arguments in XEmacs.
 	(mh-send-letter): sendmail-coding-system not bound in XEmacs.
 	(mh-send-letter): default-buffer-file-coding-system not bound in
-	Xemacs.
+	XEmacs.
 
 	* mh-e.el (mh-delete-msg, mh-refile-msg, mh-undo):
 	transient-mark-mode not bound in XEmacs.  The feature of

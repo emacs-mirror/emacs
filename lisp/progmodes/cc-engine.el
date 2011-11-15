@@ -2032,7 +2032,7 @@ comment at the start of cc-engine.el for more info."
 (defconst c-state-cache-too-far 5000)
 ;; A maximum comfortable scanning distance, e.g. between
 ;; `c-state-cache-good-pos' and "HERE" (where we call c-parse-state).  When
-;; this distance is exceeded, we take "emergency meausures", e.g. by clearing
+;; this distance is exceeded, we take "emergency measures", e.g. by clearing
 ;; the cache and starting again from point-min or a beginning of defun.  This
 ;; value can be tuned for efficiency or set to a lower value for testing.
 
@@ -4219,9 +4219,9 @@ comment at the start of cc-engine.el for more info."
 ;; complicated anyway.  In this case, lim is only used to detect
 ;; cpp directives.
 ;;
-;; Note that there is a bug in Xemacs's buffer-syntactic-context when used in
+;; Note that there is a bug in XEmacs's buffer-syntactic-context when used in
 ;; conjunction with syntax-table-properties.  The bug is present in, e.g.,
-;; Xemacs 21.4.4.  It manifested itself thus:
+;; XEmacs 21.4.4.  It manifested itself thus:
 ;;
 ;; Starting with an empty AWK Mode buffer, type
 ;; /regexp/ {<C-j>
@@ -4235,7 +4235,7 @@ comment at the start of cc-engine.el for more info."
 ;;
 ;; The workaround for this is for the AWK Mode initialisation to switch the
 ;; defalias for c-in-literal to c-slow-in-literal.  This will slow down other
-;; cc-modes in Xemacs whenever an awk-buffer has been initialised.
+;; cc-modes in XEmacs whenever an awk-buffer has been initialised.
 ;;
 ;; (Alan Mackenzie, 2003/4/30).
 

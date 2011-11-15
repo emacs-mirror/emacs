@@ -878,6 +878,7 @@ KILLFLAG is set if N was explicitly specified."
 
 (defun mark-whole-buffer ()
   "Put point at beginning and mark at end of buffer.
+If narrowing is in effect, only uses the accessible part of the buffer.
 You probably should not use this function in Lisp programs;
 it is usually a mistake for a Lisp function to use any subroutine
 that uses or sets the mark."
