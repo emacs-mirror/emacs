@@ -7,6 +7,12 @@
 
 2011-11-15  Glenn Morris  <rgm@gnu.org>
 
+	* mail/rmailmm.el (rmail-mime-entity, rmail-mime-entity-segment)
+	(rmail-mime-shown-mode, rmail-mime-hidden-mode, rmail-mime-raw-mode)
+	(rmail-mime-toggle-hidden, rmail-mime-insert-tagline)
+	(rmail-mime-insert-header, rmail-mime-handle, rmail-mime-parse)
+	(rmail-mime, rmail-show-mime): Doc fixes.
+
 	* term/ns-win.el (mode-line-frame-identification):
 	Leave it alone.  (Bug#10051)
 
