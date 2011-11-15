@@ -155,7 +155,7 @@ MIME entities.")
 (defun rmail-mime-entity (type disposition transfer-encoding
 			       display header tagline body children handler
 			       &optional truncated)
-  "Retrun a newly created MIME-entity object from arguments.
+  "Return a newly created MIME-entity object from arguments.
 
 A MIME-entity is a vector of 10 elements:
 
@@ -180,16 +180,16 @@ The corresponding TYPE argument must be:
   \(\"boundary\" . \"----=_NextPart_000_0104_01C617E4.BDEC4C40\"))
 
 TRANSFER-ENCODING corresponds to MIME header
-Content-Transfer-Encoding, and is a lowercased string.
+Content-Transfer-Encoding, and is a lower-case string.
 
 DISPLAY is a vector [CURRENT NEW], where CURRENT indicates how
-the header, tagline, and body of the entity are displayed now,
-and NEW indicates how their displaying should be updated.
-Both elements are vector [HEADER-DISPLAY TAGLINE-DISPLAY BODY-DISPLAY],
-where each element is a symbol for the corresponding item that
-has these values:
+the header, tag line, and body of the entity are displayed now,
+and NEW indicates how their display should be updated.
+Both elements are vectors [HEADER-DISPLAY TAGLINE-DISPLAY BODY-DISPLAY],
+where each constituent element is a symbol for the corresponding
+item with these values:
   nil: not displayed
-  t: displayed by the decoded presentation form
+  t:   displayed by the decoded presentation form
   raw: displayed by the raw MIME data (for the header and body only)
 
 HEADER and BODY are vectors [BEG END DISPLAY-FLAG], where BEG and
@@ -201,11 +201,11 @@ presentation form.
 TAGLINE is a vector [TAG BULK-DATA DISPLAY-FLAG], where TAG is a
 string indicating the depth and index number of the entity,
 BULK-DATA is a cons (SIZE . TYPE) indicating the size and type of
-an attached data, DISPLAY-FLAG non-nil means that the tagline is,
-by default, displayed.
+an attached data, DISPLAY-FLAG non-nil means that the tag line is
+displayed by default.
 
 CHILDREN is a list of child MIME-entities.  A \"multipart/*\"
-entity have one or more children.  A \"message/rfc822\" entity
+entity has one or more children.  A \"message/rfc822\" entity
 has just one child.  Any other entity has no child.
 
 HANDLER is a function to insert the entity according to DISPLAY.
@@ -284,10 +284,10 @@ TRUNCATED is non-nil if the text of this entity was truncated."
 (defun rmail-mime-entity-segment (pos &optional entity)
   "Return a vector describing the displayed region of a MIME-entity at POS.
 Optional 2nd argument ENTITY is the MIME-entity at POS.
-The value is a vector [ INDEX HEADER TAGLINE BODY END], where
-  INDEX: index into the returned vector indicating where POS is (1..3).
+The value is a vector [INDEX HEADER TAGLINE BODY END], where
+  INDEX: index into the returned vector indicating where POS is (1..3)
   HEADER: the position of the beginning of a header
-  TAGLINE: the position of the beginning of a tagline
+  TAGLINE: the position of the beginning of a tag line
   BODY: the position of the beginning of a body
   END: the position of the end of the entity."
   (save-excursion
@@ -331,7 +331,7 @@ The value is a vector [ INDEX HEADER TAGLINE BODY END], where
 	(vector index beg tagline-beg body-beg end)))))
 
 (defun rmail-mime-shown-mode (entity)
-  "Make MIME-entity ENTITY displayed by the default way."
+  "Make MIME-entity ENTITY display in the default way."
   (let ((new (aref (rmail-mime-entity-display entity) 1)))
     (aset new 0 (aref (rmail-mime-entity-header entity) 2))
     (aset new 1 (aref (rmail-mime-entity-tagline entity) 2))
@@ -340,7 +340,7 @@ The value is a vector [ INDEX HEADER TAGLINE BODY END], where
     (rmail-mime-shown-mode child)))
 
 (defun rmail-mime-hidden-mode (entity)
-  "Make MIME-entity ENTITY displayed in the hidden mode."
+  "Make MIME-entity ENTITY display in hidden mode."
   (let ((new (aref (rmail-mime-entity-display entity) 1)))
     (aset new 0 nil)
     (aset new 1 t)
@@ -349,7 +349,7 @@ The value is a vector [ INDEX HEADER TAGLINE BODY END], where
     (rmail-mime-hidden-mode child)))
 
 (defun rmail-mime-raw-mode (entity)
-  "Make MIME-entity ENTITY displayed in the raw mode."
+  "Make MIME-entity ENTITY display in raw mode."
   (let ((new (aref (rmail-mime-entity-display entity) 1)))
     (aset new 0 'raw)
     (aset new 1 nil)
@@ -376,7 +376,7 @@ The value is a vector [ INDEX HEADER TAGLINE BODY END], where
 	(restore-buffer-modified-p modified)))))
 
 (defun rmail-mime-toggle-hidden ()
-  "Hide or show the body of MIME-entity at point."
+  "Hide or show the body of the MIME-entity at point."
   (interactive)
   (when (rmail-mime-message-p)
     (let* ((rmail-mime-mbox-buffer rmail-view-buffer)
@@ -424,7 +424,7 @@ The value is a vector [ INDEX HEADER TAGLINE BODY END], where
 
 (defun rmail-mime-insert-tagline (entity &rest item-list)
   "Insert a tag line for MIME-entity ENTITY.
-ITEM-LIST is a list of strings or button-elements (list) to be added
+ITEM-LIST is a list of strings or button-elements (list) to add
 to the tag line."
   (insert "\n[")
   (let ((tag (aref (rmail-mime-entity-tagline entity) 0)))
@@ -464,7 +464,7 @@ to the tag line."
 (defun rmail-mime-insert-header (header)
   "Decode and insert a MIME-entity header HEADER in the current buffer.
 HEADER is a vector [BEG END DEFAULT-STATUS].
-See `rmail-mime-entity' for the detail."
+See `rmail-mime-entity' for details."
   (let ((pos (point))
 	(last-coding-system-used nil))
     (save-restriction
@@ -1011,7 +1011,7 @@ point should be at the beginning of the body.
 
 CONTENT-TYPE, CONTENT-DISPOSITION, and CONTENT-TRANSFER-ENCODING
 are the values of the respective parsed headers.  The latter should
-be downcased.  The parsed headers for CONTENT-TYPE and CONTENT-DISPOSITION
+be lower-case.  The parsed headers for CONTENT-TYPE and CONTENT-DISPOSITION
 have the form
 
   \(VALUE . ALIST)
@@ -1196,7 +1196,7 @@ modified."
 
 (defun rmail-mime-parse ()
   "Parse the current Rmail message as a MIME message.
-The value is a MIME-entiy object (see `rmail-mime-entity').
+The value is a MIME-entity object (see `rmail-mime-entity').
 If an error occurs, return an error message string."
   (let ((rmail-mime-mbox-buffer (if (rmail-buffers-swapped-p)
 				    rmail-view-buffer
@@ -1268,20 +1268,19 @@ available."
 (defun rmail-mime (&optional arg)
   "Toggle displaying of a MIME message.
 
-The actualy behavior depends on the value of `rmail-enable-mime'.
+The actual behavior depends on the value of `rmail-enable-mime'.
 
-If `rmail-enable-mime' is t (default), this command change the
-displaying of a MIME message between decoded presentation form
-and raw data.
+If `rmail-enable-mime' is non-nil (default), this command changes the
+display of a MIME message between decoded presentation form and raw data.
 
-With ARG, toggle the displaying of the current MIME entity only.
+With ARG, toggle the display of the current MIME entity only.
 
 If `rmail-enable-mime' is nil, this creates a temporary
 \"*RMAIL*\" buffer holding a decoded copy of the message.  Inline
 content-types are handled according to
 `rmail-mime-media-type-handlers-alist'.  By default, this
 displays text and multipart messages, and offers to download
-attachments as specfied by `rmail-mime-attachment-dirs-alist'."
+attachments as specified by `rmail-mime-attachment-dirs-alist'."
   (interactive "P")
   (if rmail-enable-mime
       (with-current-buffer rmail-buffer
@@ -1315,7 +1314,7 @@ attachments as specfied by `rmail-mime-attachment-dirs-alist'."
       (view-buffer buf))))
 
 (defun rmail-mm-get-boundary-error-message (message type disposition encoding)
-  "Return MESSAGE with more information on the main mime components."
+  "Return MESSAGE with more information on the main MIME components."
   (error "%s; type: %s; disposition: %s; encoding: %s"
 	 message type disposition encoding))
 

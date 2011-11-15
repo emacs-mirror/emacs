@@ -1677,7 +1677,7 @@ When the lexer encounters the open-paren delimiter \"(\":
 ;;; Lexical Safety
 ;;
 ;; The semantic lexers, unlike other lexers, can throw errors on
-;; unbalanced syntax.  Since editing is all about changeging test
+;; unbalanced syntax.  Since editing is all about changing text
 ;; we need to provide a convenient way to protect against syntactic
 ;; inequalities.
 

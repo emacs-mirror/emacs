@@ -313,7 +313,7 @@ TEXT TOKEN and INDENT are the details."
     (save-excursion (speedbar-stealthy-updates))
     (semantic-go-to-tag token parent)
     (switch-to-buffer (current-buffer))
-    ;; Reset the timer with a new timeout when cliking a file
+    ;; Reset the timer with a new timeout when clicking a file
     ;; in case the user was navigating directories, we can cancel
     ;; that other timer.
     ;; (speedbar-set-timer dframe-update-speed)

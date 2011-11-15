@@ -2533,7 +2533,7 @@ instead of `dired-actual-switches'."
       (if (and (> count 1) (called-interactively-p 'interactive))
 	  (message "Buffer includes %d directories" count)))
     ;; We don't need to sort it because it is in buffer order per
-    ;; constructionem.  Return new alist:
+    ;; construction.  Return new alist:
     dired-subdir-alist))
 
 (defun dired-alist-add-1 (dir new-marker)

@@ -42,7 +42,7 @@
 ;; in typewriters for ages but it has been superseded on desktops by
 ;; a variation of this layout, implemented in M$ Windows software.
 ;; The Windows layout is greatly preferred because of the comma and
-;; period being placed more conviniently and, of course, because of
+;; period being placed more conveniently and, of course, because of
 ;; the popularity of Windows software. This layout is a common option
 ;; in X Windows and console layouts for GNU/Linux.  [See
 ;; `russian-computer' below.]
@@ -163,7 +163,7 @@
 ;; commented out because quail-update-leim-list-file ignores
 ;; commented-out lines.
 (if nil
-    (quail-define-package 
+    (quail-define-package
      "cyrillic-jcuken" "Russian" ",L69(B" nil
      ",L9FC:5=(B Russian typewriter layout (ISO 8859-5 encoding)."))
 

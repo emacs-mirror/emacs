@@ -5377,8 +5377,8 @@ send_process (volatile Lisp_Object proc, const char *volatile buf,
 	     sending a multibyte text, thus we must encode it by the
 	     original coding system specified for the current process.
 
-	     Another reason we comming here is that the coding system
-	     was just complemented and new one was returned by
+	     Another reason we come here is that the coding system
+	     was just complemented and a new one was returned by
 	     complement_process_encoding_system.  */
 	  setup_coding_system (p->encode_coding_system, coding);
 	  Vlast_coding_system_used = p->encode_coding_system;

@@ -588,7 +588,7 @@ A string or a list of strings is returned."
 		  (filter &optional host attributes attrsonly withdn))
 
 (defun smime-cert-by-ldap-1 (mail host)
-  "Get cetificate for MAIL from the ldap server at HOST."
+  "Get certificate for MAIL from the ldap server at HOST."
   (let ((ldapresult
 	 (funcall
 	  (if (featurep 'xemacs)

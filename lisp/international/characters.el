@@ -466,7 +466,7 @@ with L, LRE, or LRO Unicode bidi character type.")
 
 ;; Tai Viet
 (let ((deflist '(;; chars	syntax	category
-		 ((?ꪀ.  ?ꪯ)	"w"	?0) ; cosonant
+		 ((?ꪀ.  ?ꪯ)	"w"	?0) ; consonant
 		 ("ꪱꪵꪶ"		"w"	?1) ; vowel base
 		 ((?ꪹ . ?ꪽ)	"w"	?1) ; vowel base
 		 ("ꪰꪲꪳꪷꪸꪾ"	"w"	?2) ; vowel upper

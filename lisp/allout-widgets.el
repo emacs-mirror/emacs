@@ -1245,7 +1245,7 @@ Optional FROM-DEPTH is for internal use."
 (defun allout-range-overlaps (from to ranges)
   "Return a pair indicating overlap of FROM and TO subtree range in RANGES.
 
-First element of result indicates whether candadate range FROM, TO
+First element of result indicates whether candidate range FROM, TO
 overlapped any of the existing ranges.
 
 Second element of result is a new version of RANGES incorporating the

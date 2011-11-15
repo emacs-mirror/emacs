@@ -116,7 +116,7 @@
 ;; Version 1.22:
 ;;  o  Allowed both 'swipl' and 'pl' as names for the SWI Prolog
 ;;     interpreter.
-;;  o  Atoms that start a line are not blindly coloured as
+;;  o  Atoms that start a line are not blindly colored as
 ;;     predicates.  Instead we check that they are followed by ( or
 ;;     :- first.  Patch suggested by Guy Wiener.
 ;; Version 1.21:

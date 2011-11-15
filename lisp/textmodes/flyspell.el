@@ -1446,7 +1446,7 @@ The buffer to mark them in is `flyspell-large-region-buffer'."
 			     ;; is used, string is a TeX command
 			     ;; (char before beginning of word is
 			     ;; backslash) and none of the previous
-			     ;; contitions match
+			     ;; conditions match.
 			     (and (not ispell-really-aspell)
 				  (save-excursion
 				    (goto-char (- (nth 1 found-list) 1))

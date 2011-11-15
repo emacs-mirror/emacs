@@ -632,7 +632,7 @@ with `.' followed by extensions, followed by full-filenames."
 	(setq regex2 (concat regex2 (if regex2 "\\|" "") (car extlist))))
       (setq extlist (cdr extlist)))
     ;; concat all the sub-exressions together, making sure all types
-    ;; of parts exist during concatination.
+    ;; of parts exist during concatenation.
     (concat "\\("
 	    (if regex1 (concat "\\(\\.\\(" regex1 "\\)\\)") "")
 	    (if (and regex1 regex2) "\\|" "")
@@ -2219,7 +2219,7 @@ passes some tests."
 	;; Go through all our bins  Stick singles into our
 	;; junk-list, everything else as sublsts in work-list.
 	;; If two neighboring lists are both small, make a grouped
-	;; group combinding those two sub-lists.
+	;; group combining those two sub-lists.
 	(setq diff-idx 0)
 	(while (> 256 diff-idx)
 	  ;; The bins contents are currently in forward order.
@@ -3327,7 +3327,7 @@ current indentation level."
     (speedbar-find-file-in-frame (concat cdd text))
     (speedbar-stealthy-updates)
     (run-hooks 'speedbar-visiting-file-hook)
-    ;; Reset the timer with a new timeout when cliking a file
+    ;; Reset the timer with a new timeout when clicking a file
     ;; in case the user was navigating directories, we can cancel
     ;; that other timer.
     (speedbar-set-timer dframe-update-speed))
@@ -3447,7 +3447,7 @@ INDENT is the current indentation level."
       (select-frame f))
     (speedbar-find-file-in-frame file)
     (save-excursion (speedbar-stealthy-updates))
-    ;; Reset the timer with a new timeout when cliking a file
+    ;; Reset the timer with a new timeout when clicking a file
     ;; in case the user was navigating directories, we can cancel
     ;; that other timer.
     (speedbar-set-timer dframe-update-speed)

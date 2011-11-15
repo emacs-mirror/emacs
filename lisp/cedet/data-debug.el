@@ -955,7 +955,7 @@ we move to."
 
 (defun data-debug-line-expandable-p ()
   "Return non-nil if the current line is expandable.
-Lines that are not expandable are assumed to not be contractable."
+Lines that are not expandable are assumed to not be contractible."
   (not (get-text-property (point) 'ddebug-noexpand)))
 
 (defun data-debug-expand-current-line ()

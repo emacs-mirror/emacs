@@ -371,7 +371,7 @@ struct frame
      if greater than 1, then the frame is obscured - we still consider
      it to be "visible" as seen from lisp, but we don't bother
      updating it.  We must take care to garbage the frame when it
-     ceaces to be obscured though.
+     ceases to be obscured though.
 
      iconified is nonzero if the frame is currently iconified.
 

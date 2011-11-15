@@ -428,7 +428,7 @@ Argument COMMAND is the command to use for compiling the target."
 If a given set of projects has already been loaded, then do nothing
 but return the project for the directory given.
 Optional ROOTPROJ is the root EDE project."
-  (let* ((ede-constructiong t)
+  (let* ((ede-constructing t)
 	 (amo (object-assoc (expand-file-name "Makefile.am" directory)
 			    'file ede-projects)))
     (when (not amo)

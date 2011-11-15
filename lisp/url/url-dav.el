@@ -909,7 +909,7 @@ Returns nil if URL contains no name starting with FILE."
       ;; Only one file and FILE matches it exactly...
       t)
      (t
-      ;; Need to figure out the longest string that they have in commmon
+      ;; Need to figure out the longest string that they have in common
       (setq matches (sort matches (lambda (a b) (> (length a) (length b)))))
       (let ((n (length file))
 	    (searching t)

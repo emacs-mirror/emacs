@@ -258,7 +258,7 @@
 ;; The highlighting of matching items is controlled via ido-use-faces.
 ;; The faces used are ido-first-match, ido-only-match and
 ;; ido-subdir.
-;; Colouring of the matching item was suggested by
+;; Coloring of the matching item was suggested by
 ;; Carsten Dominik (dominik@strw.leidenuniv.nl).
 
 ;; Replacement for read-buffer and read-file-name
@@ -3152,7 +3152,7 @@ for first matching file."
 ;;; CREATE LIST OF ALL CURRENT FILES
 
 (defun ido-all-completions ()
-  ;; Return unsorted list of all competions.
+  ;; Return unsorted list of all completions.
   (let ((ido-process-ignore-lists nil)
 	(ido-directory-too-big nil))
     (cond

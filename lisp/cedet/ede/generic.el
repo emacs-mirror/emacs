@@ -46,7 +46,7 @@
 ;; Since these projects are all so increadibly generic, a user will
 ;; need to configure some aspects of the project by hand.  In order to
 ;; enable this without configuring the project objects directly (which
-;; are auto-generated) a special ede-generic-confg object is defined to
+;; are auto-generated) a special ede-generic-config object is defined to
 ;; hold the basics.  Generic projects will identify and use these
 ;; config files.
 ;;
@@ -105,7 +105,7 @@
 		  :group (default build)
 		  :documentation
 		  "Command used for debugging this project.")
-   ;; C target customixations
+   ;; C target customizations
    (c-include-path :initarg :c-include-path
 		   :initform nil
 		   :type list

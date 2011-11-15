@@ -553,7 +553,7 @@ data from a running system:
 @node Methods and Signal
 @section Applying the functionality.
 
-Methods and signals are the communicatione means to D-Bus.  The
+Methods and signals are the communication means to D-Bus.  The
 following functions return their specifications.
 
 @defun dbus-introspect-get-method-names bus service path interface

@@ -118,7 +118,7 @@
 ;; (setq pixel-vertical-clip-threshold 30)
 
 
-;; The correct way to configurate Follow mode, or any other mode for
+;; The correct way to configure Follow mode, or any other mode for
 ;; that matter, is to create one or more functions that do
 ;; whatever you would like to do.  These functions are then added to
 ;; a hook.
@@ -894,7 +894,7 @@ Returns (end-pos end-of-buffer-p)"
 		  (save-restriction
 		    ;; Fix a mis-feature in `vertical-motion':
 		    ;; The start of the window is assumed to
-		    ;; coinside with the start of a line.
+		    ;; coincide with the start of a line.
 		    (narrow-to-region (point) (point-max))
 		    (not (= height (vertical-motion height))))))
 	  (list (point) buffer-end-p))))))
@@ -1064,7 +1064,7 @@ Return the selected window."
 ;; it wasn't just moved here. (I.e. M-> shall not unconditionally place
 ;; the point in the selected window.)
 ;;
-;; (Compatibility cludge: in Emacs `window-end' is equal to `point-max';
+;; (Compatibility kludge: in Emacs `window-end' is equal to `point-max';
 ;; in XEmacs, it is equal to `point-max + 1'. Should I really bother
 ;; checking `window-end' now when I check `end-of-buffer' explicitly?)
 

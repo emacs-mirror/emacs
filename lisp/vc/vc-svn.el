@@ -706,7 +706,7 @@ information about FILENAME and return its status."
   (vc-svn-command buf 'async file "annotate" (if rev (concat "-r" rev))))
 
 (defun vc-svn-annotate-time-of-rev (rev)
-  ;; Arbitrarily assume 10 commmits per day.
+  ;; Arbitrarily assume 10 commits per day.
   (/ (string-to-number rev) 10.0))
 
 (defvar vc-annotate-parent-rev)

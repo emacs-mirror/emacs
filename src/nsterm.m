@@ -4503,7 +4503,7 @@ ns_term_shutdown (int sig)
   //ns_app_active=YES;
 
   ns_update_auto_hide_menu_bar ();
-  // No constrining takes place when the application is not active.
+  // No constraining takes place when the application is not active.
   ns_constrain_all_frames ();
 }
 - (void)applicationDidResignActive: (NSNotification *)notification

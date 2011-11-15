@@ -1295,7 +1295,7 @@ LIMIT defaults to point."
 ;; Like (up-list -1), but only considers lists that end nearby"
 (defun js--up-nearby-list ()
   (save-restriction
-    ;; Look at a very small region so our compuation time doesn't
+    ;; Look at a very small region so our computation time doesn't
     ;; explode in pathological cases.
     (narrow-to-region (max (point-min) (- (point) 500)) (point))
     (up-list -1)))

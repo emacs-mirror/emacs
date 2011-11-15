@@ -2924,7 +2924,7 @@ is better to limit inheritance to certain tags using the variables
 	  (const :tag "List them, indented with leading dots" indented)))
 
 (defcustom org-tags-sort-function nil
-  "When set, tags are sorted using this function as a comparator."
+  "When set, tags are sorted using this comparison function."
   :group 'org-tags
   :type '(choice
 	  (const :tag "No sorting" nil)
@@ -5549,7 +5549,7 @@ Use `org-reduced-level' to remove the effect of `org-odd-levels'."
 
 (defvar org-font-lock-set-keywords-hook nil
   "Functions that can manipulate `org-font-lock-extra-keywords'.
-This is calles after `org-font-lock-extra-keywords' is defined, but before
+This is called after `org-font-lock-extra-keywords' is defined, but before
 it is installed to be used by font lock.  This can be useful if something
 needs to be inserted at a specific position in the font-lock sequence.")
 

@@ -60,7 +60,7 @@
 ;; form.  Single-line form is used when the outline state is hide-children
 ;; or there are no child sections; multi-line form is used otherwise.
 ;; There are two flavors of single-line form: with children and without.
-;; The with-childen flavor is used when there are child sections.
+;; The with-children flavor is used when there are child sections.
 ;; Single line with children looks like
 ;;    <+section>A section title...</>
 ;; Single line without children looks like

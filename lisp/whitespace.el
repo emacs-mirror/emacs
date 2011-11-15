@@ -525,7 +525,7 @@ evaluated instead of indentation::space value.
 
 One reason for not visualize spaces via faces (if `face' is not
 included in `whitespace-style') is to use exclusively for
-cleanning up a buffer.  See `whitespace-cleanup' and
+cleaning up a buffer.  See `whitespace-cleanup' and
 `whitespace-cleanup-region' for documentation.
 
 See also `whitespace-display-mappings' for documentation."

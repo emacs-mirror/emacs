@@ -2331,7 +2331,7 @@ comment at the start of cc-engine.el for more info."
   ;;
   ;; If there aren't enough opening paren/brace/brackets, return the position
   ;; of the outermost one found, or HERE- if there are none.  If there are no
-  ;; closeing p/b/bs between HERE+ and TOP, return HERE-.  HERE-/+ and TOP
+  ;; closing p/b/bs between HERE+ and TOP, return HERE-.  HERE-/+ and TOP
   ;; must not be inside literals.  Only the accessible portion of the buffer
   ;; will be scanned.
 

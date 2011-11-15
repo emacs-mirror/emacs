@@ -925,7 +925,7 @@ IDL has currently stepped.")
    \\[idlwave-shell-print] or \\[idlwave-shell-mouse-print] with the
    mouse, help, \\[idlwave-shell-help-expression] or
    \\[idlwave-shell-mouse-help] with the mouse, or with a
-   configureable set of custom examine commands using
+   configurable set of custom examine commands using
    \\[idlwave-shell-examine-select].  The mouse examine commands can
    also work by click and drag, to select an expression for
    examination.

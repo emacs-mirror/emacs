@@ -26,7 +26,7 @@
 ;; This package create two new modes: thumbs-mode and thumbs-view-image-mode.
 ;; It is used for basic browsing and viewing of images from within Emacs.
 ;; Minimal image manipulation functions are also available via external
-;; programs.  If you want to do more complex tasks like categorise and tag
+;; programs.  If you want to do more complex tasks like categorize and tag
 ;; your images, use image-dired.el
 ;;
 ;; The 'convert' program from 'ImageMagick'
