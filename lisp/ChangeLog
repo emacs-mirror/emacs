@@ -1,3 +1,8 @@
+2011-11-15  Glenn Morris  <rgm@gnu.org>
+
+	* mail/rmailout.el (rmail-output-to-rmail-buffer):
+	Handle empty buffers.  (Bug#9978)
+
 2011-11-14  Juanma Barranquero  <lekktu@gmail.com>
 
 	* international/mule.el (define-charset):
