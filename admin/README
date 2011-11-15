@@ -18,7 +18,7 @@ Living list of activities that must be completed before the next release.
 
 ** make-tarball.txt
 
-Instructions to create pretest or release tarballs, annoucements, etc.
+Instructions to create pretest or release tarballs, announcements, etc.
 
 ** admin.el
 
@@ -88,4 +88,3 @@ Local variables:
 mode: outline
 paragraph-separate: "[ 	]*$"
 end:
-

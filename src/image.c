@@ -8781,7 +8781,7 @@ syms_of_image (void)
      operation on GNU/Linux of calling dump-emacs after loading some images.  */
   image_types = NULL;
 
-  /* Must be defined now becase we're going to update it below, while
+  /* Must be defined now because we're going to update it below, while
      defining the supported image types.  */
   DEFVAR_LISP ("image-types", Vimage_types,
     doc: /* List of potentially supported image types.

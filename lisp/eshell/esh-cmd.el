@@ -247,7 +247,7 @@ will have to visit the file 'eshell-cmd.el' and run the command
   '(eshell-named-command
     eshell-lisp-command
     eshell-process-identity)
-  "A list of functions which might return an ansychronous process.
+  "A list of functions which might return an asynchronous process.
 If they return a process object, execution of the calling Eshell
 command will wait for completion (in the background) before finishing
 the command."

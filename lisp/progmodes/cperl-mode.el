@@ -902,7 +902,7 @@ the settings present before the switch.
 9) When doing indentation of control constructs, may correct
 line-breaks/spacing between elements of the construct.
 
-10) Uses a linear-time algorith for indentation of regions (on Emaxen with
+10) Uses a linear-time algorithm for indentation of regions (on Emaxen with
 capable syntax engines).
 
 11) Syntax-highlight, indentation, sexp-recognition inside regular expressions.

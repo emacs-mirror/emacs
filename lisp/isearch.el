@@ -2243,7 +2243,7 @@ If there is no completion possible, say so and continue searching."
 ;; Searching
 
 (defvar isearch-search-fun-function nil
-  "Overrides the default `isearch-search-fun' behaviour.
+  "Overrides the default `isearch-search-fun' behavior.
 This variable's value should be a function, which will be called
 with no arguments, and should return a function that takes three
 arguments: STRING, BOUND, and NOERROR.

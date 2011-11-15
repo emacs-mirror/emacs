@@ -811,8 +811,8 @@ not account for verb parts."
 	    (if (string-match (car (car al)) (downcase ts))
 		(progn
 		  (setq newstr (concat newstr (cdr (car al))))
-		  ;; don't terminate because we may actuall have 2 words
-		  ;; next to eachother we didn't identify before
+		  ;; don't terminate because we may actually have 2 words
+		  ;; next to each other we didn't identify before
 		  (setq llow t)))
 	    (setq al (cdr al)))
 	  (if (not llow) (setq newstr (concat newstr ts)))

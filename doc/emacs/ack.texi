@@ -206,7 +206,7 @@ use it, Snake and Tetris.
 
 @item
 Andrew Cohen wrote @file{spam-wash.el}, to decode and clean email before
-it is analysed for spam.
+it is analyzed for spam.
 
 @item
 Georges Brun-Cottan and Stefan Monnier wrote @file{easy-mmode.el}, a

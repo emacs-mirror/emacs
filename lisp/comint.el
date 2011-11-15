@@ -3442,7 +3442,7 @@ Also print a message when redirection is completed."
   :group 'comint
   :type 'boolean)
 
-;; Directly analagous to comint-preoutput-filter-functions
+;; Directly analogous to comint-preoutput-filter-functions
 (defvar comint-redirect-filter-functions nil
   "List of functions to call before inserting redirected process output.
 Each function gets one argument, a string containing the text received

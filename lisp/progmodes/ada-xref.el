@@ -1747,7 +1747,7 @@ Information is extracted from the ali file."
 
     (unless declaration-found
 
-      ;; Since we alread know the number of the file, search for a direct
+      ;; Since we already know the number of the file, search for a direct
       ;; reference to it
       (goto-char (point-min))
       (set 'declaration-found t)

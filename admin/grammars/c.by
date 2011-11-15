@@ -1105,7 +1105,7 @@ fun-or-proto-end
     ( t )
   | semantic-list
     ( nil )
- ;; Here is an anoying feature of C++ pure virtual methods
+ ;; Here is an annoying feature of C++ pure virtual methods
   | EQUAL ZERO SEMICOLON
     ( :pure-virtual-flag )
   | fun-try-end

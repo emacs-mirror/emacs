@@ -245,7 +245,7 @@ placement bugs in old versions of Emacs."
 ;; Actually, the whole subject of the minibuffer edge of the frame is
 ;; rather messy.  It turns out that with a sufficiently large delta,
 ;; we can fly off the bottom edge of the frame and miss the minibuffer
-;; altogther.  This, I think, is never right: if there's a minibuffer
+;; altogether.  This, I think, is never right: if there's a minibuffer
 ;; and you're not in it, and you move down, the minibuffer should be
 ;; in your way.
 ;;

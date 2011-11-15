@@ -33,7 +33,7 @@
 
 (defvar reftex-toc-mode-map
   (let ((map (make-sparse-keymap)))
-    
+
     (define-key map (if (featurep 'xemacs) [(button2)] [(mouse-2)])
       'reftex-toc-mouse-goto-line-and-hide)
     (define-key map [follow-link] 'mouse-face)
@@ -660,7 +660,7 @@ point."
     (setq msg
           (catch 'exit
             (if (reftex-region-active-p)
-                ;; A region is dangerous, check if we have a brandnew scan,
+                ;; A region is dangerous, check if we have a brand new scan,
                 ;; to make sure we are not missing any section statements.
                 (if (not (reftex-toc-check-docstruct))
                     (reftex-toc-load-all-files-for-promotion)   ;; exits

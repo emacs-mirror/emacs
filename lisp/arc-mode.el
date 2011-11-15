@@ -1036,7 +1036,7 @@ using `make-temp-file', and the generated name is returned."
 	  (setq archive-file-name-coding-system file-name-coding)
 	  (if (and
 	       (null
-		(let (;; We may have to encode file name arguement for
+		(let (;; We may have to encode the file name argument for
 		      ;; external programs.
 		      (coding-system-for-write
 		       (and enable-multibyte-characters

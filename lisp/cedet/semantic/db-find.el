@@ -918,7 +918,7 @@ but should be good enough for debugging assertions."
 			 result
 			 " ")
 	      ">")
-    ;; Longer results should have an abreviated form.
+    ;; Longer results should have an abbreviated form.
     (format "#<FIND RESULT %d TAGS in %d FILES>"
 	    (semanticdb-find-result-length result)
 	    (length result))))

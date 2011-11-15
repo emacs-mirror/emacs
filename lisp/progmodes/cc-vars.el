@@ -963,7 +963,7 @@ this is `c-lineup-ObjC-method-call', which would align it like:
 	[foo blahBlahBlah: fred
 	     thisIsTooDamnLong: barney
 
-This behaviour can be overridden by customizing the indentation of
+This behavior can be overridden by customizing the indentation of
 `objc-method-call-cont' in the \"objc\" style."
   :type 'integer
   :group 'c)

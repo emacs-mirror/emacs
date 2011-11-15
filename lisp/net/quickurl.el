@@ -26,7 +26,7 @@
 ;;
 ;; This package provides a simple method of inserting a URL based on the
 ;; text at point in the current buffer. This is part of an on-going effort
-;; to increase the information I provide people while reducing the ammount
+;; to increase the information I provide people while reducing the amount
 ;; of typing I need to do. No-doubt there are undiscovered Emacs packages
 ;; out there that do all of this and do it better, feel free to point me to
 ;; them, in the mean time I'm having fun playing with Emacs Lisp.

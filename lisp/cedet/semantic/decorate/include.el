@@ -459,7 +459,7 @@ to add the path to Semantic's search.
 If this is an include file that belongs to your project, then you may
 need to update `semanticdb-project-roots' or better yet, use `ede'
 to manage your project.  See the ede manual for projects that will
-wrap existing project code for Semantic's benifit.
+wrap existing project code for Semantic's benefit.
 ")
 
       (when (or (eq mm 'c++-mode) (eq mm 'c-mode))

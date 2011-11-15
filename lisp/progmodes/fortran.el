@@ -29,7 +29,7 @@
 ;; form.  For editing Fortran 90 free format source, use `f90-mode'
 ;; (f90.el).  It is meant to support the GNU Fortran language
 ;; implemented by g77 (its extensions to Fortran77 and
-;; interpretations, e.g. of blackslash in strings).
+;; interpretations, e.g. of backslash in strings).
 
 ;;; History:
 

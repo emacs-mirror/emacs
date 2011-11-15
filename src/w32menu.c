@@ -1443,7 +1443,7 @@ add_menu_item (HMENU menu, widget_value *wv, HMENU item)
               out_string = (char *) local_alloc (strlen (wv->name) + 1);
               strcpy (out_string, wv->name);
 #ifdef MENU_DEBUG
-	      DebPrint ("Menu: allocing %ld for owner-draw", out_string);
+	      DebPrint ("Menu: allocating %ld for owner-draw", out_string);
 #endif
 	      fuFlags = MF_OWNERDRAW | MF_DISABLED;
 	    }

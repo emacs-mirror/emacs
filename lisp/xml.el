@@ -540,7 +540,7 @@ Leave point at the first non-blank character after the tag."
 	(replace-regexp-in-string "\\s-\\{2,\\}" " " string)
 	(let ((expansion (xml-substitute-special string)))
 	  (unless (stringp expansion)
-					; We say this is the constraint.  It is acctually that
+					; We say this is the constraint.  It is actually that neither
 					; external entities nor "<" can be in an attribute value.
 	    (error "XML: (Not Well-Formed) Entities in attributes cannot expand into elements"))
 	  (push (cons name expansion) attlist)))

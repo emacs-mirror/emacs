@@ -5691,7 +5691,7 @@ x_make_frame_visible (struct frame *f)
       f->output_data.w32->asked_for_visible = 1;
 
       /* According to a report in emacs-devel 2008-06-03, SW_SHOWNORMAL
-	 causes unexpected behaviour when unminimizing frames that were
+	 causes unexpected behavior when unminimizing frames that were
 	 previously maximised.  But only SW_SHOWNORMAL works properly for
 	 frames that were truely hidden (using make-frame-invisible), so
 	 we need it to avoid Bug#5482.  It seems that async_iconified

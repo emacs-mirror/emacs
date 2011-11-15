@@ -52,7 +52,7 @@
 ;; reading mail/USENET.
 
 ;; In the message itself, quoted mail messages from different people
-;; are color coordinated, with high contrast beteen citations that are
+;; are color coordinated, with high contrast between citations that are
 ;; close to each other in the heirarchy, so it is less likely that one
 ;; misunderstands who said what in a long conversation.
 

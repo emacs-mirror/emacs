@@ -1356,7 +1356,7 @@ for you.  Add this function to `mail-send-hook' with something like this:
 	(add-hook 'mail-send-hook 'feedmail-mail-send-hook-splitter)
 
 Then add the functions you want called to either `feedmail-mail-send-hook-queued'
-or `feedmail-mail-send-hook', as apprpriate.  The distinction is that
+or `feedmail-mail-send-hook', as appropriate.  The distinction is that
 `feedmail-mail-send-hook' will be called when you send mail from a composition
 buffer (typically by typing C-c C-c), whether the message is sent immediately
 or placed in the queue or drafts directory.  `feedmail-mail-send-hook-queued' is

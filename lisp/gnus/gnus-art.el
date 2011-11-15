@@ -1559,7 +1559,7 @@ node `(gnus)Gravatars' for details."
 	  gnus-treat-from-picon
           gnus-treat-from-gravatar
           gnus-treat-mail-gravatar)
-      ;; If there's much decoration, the user might prefer a boundery.
+      ;; If there's much decoration, the user might prefer a boundary.
       'head
     nil)
   "Draw a boundary at the end of the headers.

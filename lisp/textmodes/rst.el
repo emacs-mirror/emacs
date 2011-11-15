@@ -2475,7 +2475,7 @@ first of a paragraph."
 ;;------------------------------------------------------------------------------
 
 ;; FIXME: these next functions should become part of a larger effort to redo the
-;; bullets in bulletted lists.  The enumerate would just be one of the possible
+;; bullets in bulleted lists.  The enumerate would just be one of the possible
 ;; outputs.
 ;;
 ;; FIXME: TODO we need to do the enumeration removal as well.

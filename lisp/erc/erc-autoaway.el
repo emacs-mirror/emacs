@@ -263,7 +263,7 @@ exceeds `erc-autoaway-idle-seconds'."
   "Set the away state globally.
 
 If NOTEST is specified, do not check to see whether there is an
-activer server buffer available."
+active server buffer available."
   ;; Note that the idle timer runs, even when Emacs is inactive.  In
   ;; order to prevent flooding when we connect, we test for an
   ;; existing process.
@@ -284,4 +284,3 @@ activer server buffer available."
 ;; indent-tabs-mode: t
 ;; tab-width: 8
 ;; End:
-

@@ -199,7 +199,7 @@ Completion options are calculated with `semantic-analyze-possible-completions'."
 	)
     (if pf
 	(message "%s" (semantic-format-tag-summarize pf nil t))
-      (message "No summary info availalble"))))
+      (message "No summary info available"))))
 
 ;;; Variants
 ;;
@@ -245,7 +245,7 @@ Completion options are calculated with `semantic-analyze-possible-completions'."
 ;; Jump to a destination based on the local context.
 ;;
 ;; This shows how to use the analyzer context, and the
-;; analyer references objects to choose a good destination.
+;; analyzer references objects to choose a good destination.
 
 (defun semantic-ia--fast-jump-helper (dest)
   "Jump to DEST, a Semantic tag.

@@ -1127,7 +1127,7 @@ It assumes that it is called from within the control buffer."
 
 ;; Revise the mode line to display which difference we have selected
 ;; Also resets modelines of buffers A/B, since they may be clobbered by
-;; anothe invocations of Ediff.
+;; other invocations of Ediff.
 (defun ediff-refresh-mode-lines ()
   (let (buf-A-state-diff buf-B-state-diff buf-C-state-diff buf-C-state-merge)
 

@@ -1820,7 +1820,7 @@
 
 2011-03-15  Lars Magne Ingebrigtsen  <larsi@gnus.org>
 
-	* gnus-sum.el (gnus-articles-to-read): Revert back to old behaviour if
+	* gnus-sum.el (gnus-articles-to-read): Revert back to old behavior if
 	we're selecting a group with unread articles.
 
 	* nnimap.el (nnimap-open-connection-1): Allow `network-only', too.
@@ -4557,7 +4557,7 @@
 
 	* shr.el (shr-put-image): Use point even if only inserting text.
 	(shr-put-image): Save excursion when inserting alt text on non-graphic
-	display, so the behaviour is the same when we are on a graphic display.
+	display, so the behavior is the same when we are on a graphic display.
 
 	* nnir.el (nnir-run-swish-e): Remove hyrex support.
 
@@ -5178,7 +5178,7 @@
 	bidning gnus-agent variables.
 
 	* shr.el (shr-render-td): Use a cache for the table rendering function
-	to avoid getting an exponential rendering behaviour in nested tables.
+	to avoid getting an exponential rendering behavior in nested tables.
 	(shr-insert): Rework the line-breaking algorithm.
 	(shr-insert): Don't leave trailing spaces.
 	(shr-insert-table): Also insert empty TDs.
@@ -6783,7 +6783,7 @@
 
 	* gnus-start.el (gnus-get-unread-articles): Allow the backends to
 	update the group info.  This makes the nndraft groups, for instance, go
-	back to their old behaviour.
+	back to their old behavior.
 
 	* gnus-sum.el (gnus-select-newsgroup): Indent.
 
@@ -7175,7 +7175,7 @@
 
 	* gnus-agent.el (gnus-agent-auto-agentize-methods): Change the default
 	so that nnimap methods aren't agentized by default.  There's apparently
-	many problems related to agent/imap behaviour.
+	many problems related to agent/imap behavior.
 
 	* gnus-art.el (gnus-article-copy-string): New command and key binding.
 
@@ -7220,7 +7220,7 @@
 	storage than before.
 
 	* gnus.el (gnus-refer-article-method): Change default to 'current.
-	When referring an article, the common behaviour is to refer it from the
+	When referring an article, the common behavior is to refer it from the
 	current select method, not the native select method.  The chances of
 	the native select method having the message in question is rather slim
 	these days.
@@ -7236,7 +7236,7 @@
 	* gnus-sum.el (gnus-summary-goto-unread): Change default to nil, so
 	that commands like `d' (and the like) go to the next line in the
 	buffer, instead of the next unread article.  I think this is the
-	behaviour that is most natural for most users.
+	behavior that is most natural for most users.
 	(gnus-single-article-buffer): Change default to nil, so that people can
 	have as many article buffers open as they have summary buffer.  I think
 	this is the most natural way for the groups to behave.
@@ -16517,7 +16517,7 @@
 2005-06-16  Arne Jørgensen  <arne@arnested.dk>
 
 	* smime.el (smime-cert-by-ldap-1): Detect PEM format without
-	header by looking for magic "MII" at the beginnig.
+	header by looking for magic "MII" at the beginning.
 
 2005-06-16  Miles Bader  <miles@gnu.org>
 

@@ -1492,7 +1492,7 @@ check_face_name (LOGFONT *font, char *full_name)
 
 
 /* Callback function for EnumFontFamiliesEx.
- * Checks if a font matches everything we are trying to check agaist,
+ * Checks if a font matches everything we are trying to check against,
  * and if so, adds it to a list. Both the data we are checking against
  * and the list to which the fonts are added are passed in via the
  * lparam argument, in the form of a font_callback_data struct. */

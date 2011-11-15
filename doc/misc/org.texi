@@ -3883,7 +3883,7 @@ special faces for some of them.  This can be done using the variable
 @end lisp
 
 While using a list with face properties as shown for CANCELED @emph{should}
-work, this does not aways seem to be the case.  If necessary, define a
+work, this does not always seem to be the case.  If necessary, define a
 special face and use that.  A string is interpreted as a color.  The variable
 @code{org-faces-easy-properties} determines if that color is interpreted as a
 foreground or a background color.
@@ -5664,7 +5664,7 @@ an item:
 @orgcmd{C-c C-d,org-deadline}
 Insert @samp{DEADLINE} keyword along with a stamp.  The insertion will happen
 in the line directly following the headline.  Any CLOSED timestamp will be
-removed.  When called with a prefix arg, an existing deadline will be removed 
+removed.  When called with a prefix arg, an existing deadline will be removed
 from the entry.  Depending on the variable @code{org-log-redeadline}@footnote{with corresponding
 @code{#+STARTUP} keywords @code{logredeadline}, @code{lognoteredeadline},
 and @code{nologredeadline}}, a note will be taken when changing an existing

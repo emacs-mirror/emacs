@@ -1250,7 +1250,7 @@ be carried out at the same time:
 4) Use lbxproxy on the remote end of the connection.  This is an interface
    to the low bandwidth X extension in most modern X servers, which
    improves performance dramatically, at the slight expense of correctness
-   of the X protocol.  lbxproxy acheives the performance gain by grouping
+   of the X protocol.  lbxproxy achieves the performance gain by grouping
    several X requests in one TCP packet and sending them off together,
    instead of requiring a round-trip for each X request in a separate
    packet.  The switches that seem to work best for emacs are:

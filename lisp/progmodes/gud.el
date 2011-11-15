@@ -2102,7 +2102,7 @@ extension EXTN.  Normally EXTN is given as the regular expression
 	massaged-args)))
 
 ;; Search for an association with P, a fully qualified class name, in
-;; gud-jdb-class-source-alist.  The asssociation gives the fully
+;; gud-jdb-class-source-alist.  The association gives the fully
 ;; qualified file name of the source file which produced the class.
 (defun gud-jdb-find-source-file (p)
   (cdr (assoc p gud-jdb-class-source-alist)))

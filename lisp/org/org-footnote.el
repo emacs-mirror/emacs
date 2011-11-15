@@ -574,7 +574,7 @@ normalized footnotes towards the end of the pre-processing buffer.
 Some exporters like docbook, odt, etc. expect that footnote
 definitions be available before any references to them.  Such
 exporters can let bind `org-footnote-insert-pos-for-preprocessor' to
-symbol 'point-min to achieve the desired behaviour.
+symbol 'point-min to achieve the desired behavior.
 
 Additional note on `org-footnote-insert-pos-for-preprocessor':
 1. This variable has not effect when FOR-PREPROCESSOR is nil.

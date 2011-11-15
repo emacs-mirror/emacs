@@ -393,7 +393,7 @@ FORM is of the form `(and FORM1 ...)'."
 (defun rx-anything (form)
   "Match any character."
   (if (consp form)
-      (error "rx `anythng' syntax error: %s" form))
+      (error "rx `anything' syntax error: %s" form))
   (rx-or (list 'or 'not-newline ?\n)))
 
 

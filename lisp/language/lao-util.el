@@ -372,7 +372,7 @@ indicate the place to embed a consonant.
 
 Optional WITH-MAA-SAKOD-RULE is a rule to re-order and modify VOWEL
 follwoing a consonant and preceding a maa-sakod character.  If it is
-nil, NO-MAA-SAKOD-RULE is used.  The maa-sakod character is alwasy
+nil, NO-MAA-SAKOD-RULE is used.  The maa-sakod character is always
 appended at the tail.
 
 For instance, rule `(\"(1`WM(B\" (?(1`(B t ?(1W(B ?(1M(B))' tells that this vowel

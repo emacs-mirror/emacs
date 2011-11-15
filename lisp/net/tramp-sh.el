@@ -4307,7 +4307,7 @@ connection if a previous connection has died for some reason."
 			 (tramp-compat-temporary-file-directory)))))
 		     spec)
 
-		;; Add arguments for asynchrononous processes.
+		;; Add arguments for asynchronous processes.
 		(when (and process-name async-args)
 		  (setq login-args (append async-args login-args)))
 

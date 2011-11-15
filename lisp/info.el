@@ -264,7 +264,7 @@ Before leaving the initial Info node, where isearch was started,
 it fails once with the error message [initial node], and with
 subsequent C-s/C-r continues through other nodes without failing
 with this error message in other nodes.  When isearch fails for
-the rest of the manual, it wraps aroung the whole manual and
+the rest of the manual, it wraps around the whole manual and
 restarts the search from the top/final node depending on
 search direction.
 
