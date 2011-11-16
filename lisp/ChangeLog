@@ -20,22 +20,15 @@
 
 2011-11-16  Ken Manheimer  <ken.manheimer@gmail.com>
 
-	* allout-widgets.el: (file metadata): Attribute copyright to FSF
-	and collapse date sequence, obscure author/maintainer email
-	address better, remove extra version line, track relocation of
-	author's allout webpage.
+	* allout.el, allout-widgets.el (file metadata): Attribute copyright to
+	FSF and collapse date sequence, obscure author/maintainer email address
+	better, remove extra version line, track relocation of author's webpage.
 
-	* allout.el: (file metadata): Attribute copyright to FSF
-	and collapse date sequence, obscure author/maintainer email
-	address better, track relocation of author's allout webpage.
-
-2011-11-16  Ken Manheimer  <ken.manheimer@gmail.com>
-
-	* python.el (python-pdbtrack-stack-entry-regexp)
-	(python-pdbtrack-input-prompt, python-pdbtrack-track-stack-file):
-	Adjust to recognize ipdb as well as regular python pdb prompts.
-	Adjustments shamelessly taken exactly as suggested in EmacsWiki
-	page: http://www.emacswiki.org/PythonProgrammingInEmacs#toc14
+	* progmodes/python.el (python-pdbtrack-input-prompt)
+	(python-pdbtrack-track-stack-file): Adjust to recognize ipdb as well as
+	regular python pdb prompts.  Adjustments shamelessly taken exactly as
+	suggested in EmacsWiki page (tiny change):
+	http://www.emacswiki.org/PythonProgrammingInEmacs#toc14
 
 2011-11-16  Juanma Barranquero  <lekktu@gmail.com>
 
@@ -86,7 +79,6 @@
 	which wasn't being used.  Add optional arg to force given state.
 	(rmail-mime): Add optional arg to force given state.
 
->>>>>>> MERGE-SOURCE
 2011-11-15  Juanma Barranquero  <lekktu@gmail.com>
 
 	* allout.el (allout-encryption-plaintext-sanitization-regexps):
