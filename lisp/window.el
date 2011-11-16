@@ -3083,9 +3083,9 @@ frame.  The selected window is not changed by this function."
 	 (parent (window-parent window))
 	 (function (window-parameter window 'split-window))
 	 (window-side (window-parameter window 'window-side))
-	 ;; Rebind `window-nest' since in some cases we may have to
-	 ;; override its value.
-	 (window-nest window-nest)
+	 ;; Rebind `window-combination-limit' since in some cases we may
+	 ;; have to override its value.
+	 (window-combination-limit window-combination-limit)
 	 atom-root)
 
     (window--check frame)
@@ -3109,15 +3109,15 @@ frame.  The selected window is not changed by this function."
 		 (or (not parent)
 		     (not (window-parameter parent 'window-side))))
 	;; WINDOW is a side root window.  To make sure that a new parent
-	;; window gets created set `window-nest' to t.
-	(setq window-nest t))
+	;; window gets created set `window-combination-limit' to t.
+	(setq window-combination-limit t))
 
       (when (and window-splits size (> size 0))
 	;; If `window-splits' is non-nil and SIZE is a non-negative
 	;; integer, we cannot reasonably resize other windows.  Rather
-	;; bind `window-nest' to t to make sure that subsequent window
-	;; deletions are handled correctly.
-	(setq window-nest t))
+	;; bind `window-combination-limit' to t to make sure that
+	;; subsequent window deletions are handled correctly.
+	(setq window-combination-limit t))
 
       (let* ((parent-size
 	      ;; `parent-size' is the size of WINDOW's parent, provided
@@ -3126,7 +3126,7 @@ frame.  The selected window is not changed by this function."
 	     ;; `resize' non-nil means we are supposed to resize other
 	     ;; windows in WINDOW's combination.
 	     (resize
-	      (and window-splits (not window-nest)
+	      (and window-splits (not window-combination-limit)
 		   ;; Resize makes sense in iso-combinations only.
 		   (window-combined-p window horizontal)))
 	     ;; `old-size' is the current size of WINDOW.
@@ -3206,7 +3206,8 @@ frame.  The selected window is not changed by this function."
 	      ;; Make new-parent non-nil if we need a new parent window;
 	      ;; either because we want to nest or because WINDOW is not
 	      ;; iso-combined.
-	      (or window-nest (not (window-combined-p window horizontal))))
+	      (or window-combination-limit
+		  (not (window-combined-p window horizontal))))
 	(setq new-normal
 	      ;; Make new-normal the normal size of the new window.
 	      (cond
@@ -3584,7 +3585,7 @@ specific buffers."
             (total-width . ,(window-total-size window t))
             (normal-height . ,(window-normal-size window))
             (normal-width . ,(window-normal-size window t))
-            (nest . ,(window-nest window))
+            (combination-limit . ,(window-combination-limit window))
             ,@(let (list)
                 (dolist (parameter (window-parameters window))
                   (unless (memq (car parameter)
@@ -3709,9 +3710,11 @@ value can be also stored on disk and read back in a new session."
 				     window-safe-min-width)))
 
 	      (if (window-sizable-p window (- size) horizontal 'safe)
-		  (let* ((window-nest (assq 'nest item)))
-		    ;; We must inherit the nesting, otherwise we might mess
-		    ;; up handling of atomic and side window.
+		  (let* ((window-combination-limit
+			  (assq 'combination-limit item)))
+		    ;; We must inherit the combiantion limit, otherwise
+		    ;; we might mess up handling of atomic and side
+		    ;; window.
 		    (setq new (split-window window size horizontal)))
 		;; Give up if we can't resize window down to safe sizes.
 		(error "Cannot resize window %s" window))
@@ -3735,10 +3738,11 @@ value can be also stored on disk and read back in a new session."
   (dolist (item window-state-put-list)
     (let ((window (car item))
 	  (splits (cdr (assq 'splits item)))
-	  (nest (cdr (assq 'nest item)))
+	  (combination-limit (cdr (assq 'combination-limit item)))
 	  (parameters (cdr (assq 'parameters item)))
 	  (state (cdr (assq 'buffer item))))
-      (when nest (set-window-nest window nest))
+      (when combination-limit
+	(set-window-combination-limit window combination-limit))
       ;; Process parameters.
       (when parameters
 	(dolist (parameter parameters)

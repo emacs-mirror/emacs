@@ -1,3 +1,11 @@
+2011-11-16  Martin Rudalics  <rudalics@gmx.at>
+
+	* window.el (split-window, window-state-get-1)
+	(window-state-put-1, window-state-put-2): Rename occurrences of
+	window-nest to window-combination-limit.
+	* cus-start.el (window-nest): Rename to
+	window-combination-limit.
+
 2011-11-16  Chong Yidong  <cyd@gnu.org>
 
 	* progmodes/autoconf.el (autoconf-mode): Fix comment-start-skip

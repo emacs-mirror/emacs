@@ -1,3 +1,14 @@
+2011-11-16  Martin Rudalics  <rudalics@gmx.at>
+
+	* window.h (window): Rename slot "nest" to "combination_limit".
+	* window.c (Fwindow_nest): Rename to Fwindow_combination_limit.
+	(Fset_window_nest): Rename to Fset_window_combination_limit.
+	(Vwindow_nest): Rename to Vwindow_combination_limit.
+	(recombine_windows, make_parent_window, make_window)
+	(Fsplit_window_internal, saved_window)
+	(Fset_window_configuration, save_window_save): Rename all
+	occurrences of window_nest to window_combination_limit.
+
 2011-11-15  Juanma Barranquero  <lekktu@gmail.com>
 
 	* image.c (imagemagick_load_image): Fix typo.
