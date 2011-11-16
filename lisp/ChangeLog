@@ -1,3 +1,12 @@
+2011-11-16  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* tmm.el (tmm-prompt): Use minibuffer-with-setup-hook (bug#10053).
+	`completing-read' will remove *Completions* and will preserve
+	current-buffer for us.
+	(tmm-add-prompt): Users of *Completions* will always (re)set its
+	major mode.
+	(tmm-old-comp-map): Remove.
+
 2011-11-16  Glenn Morris  <rgm@gnu.org>
 
 	* mail/rmailedit.el: Require rmailmm when compiling.
