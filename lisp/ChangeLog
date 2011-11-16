@@ -1,3 +1,11 @@
+2011-11-16  Ken Manheimer  <ken.manheimer@gmail.com>
+
+	* python.el (python-pdbtrack-stack-entry-regexp)
+	(python-pdbtrack-input-prompt, python-pdbtrack-track-stack-file):
+	Adjust to recognize ipdb as well as regular python pdb prompts.
+	Adjustments shamelessly taken exactly as suggested in EmacsWiki
+	page: http://www.emacswiki.org/PythonProgrammingInEmacs#toc14
+
 2011-11-16  Juanma Barranquero  <lekktu@gmail.com>
 
 	* expand.el (expand-pos, expand-index, expand-point):
@@ -47,6 +55,7 @@
 	which wasn't being used.  Add optional arg to force given state.
 	(rmail-mime): Add optional arg to force given state.
 
+>>>>>>> MERGE-SOURCE
 2011-11-15  Juanma Barranquero  <lekktu@gmail.com>
 
 	* allout.el (allout-encryption-plaintext-sanitization-regexps):
