@@ -3503,7 +3503,7 @@ Don't read buffer-local settings or word lists."
 	     '(
 	       ;; Don't spell check signatures
 	       "^-- $"
-	       ;; Matches postscript files.
+	       ;; Matches PostScript files.
 	       ;;"^%!PS-Adobe-[123].0"
 	       ;; Matches uuencoded text
 	       ;;"^begin [0-9][0-9][0-9] .*\nM.*\nM.*\nM"

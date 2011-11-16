@@ -325,7 +325,7 @@ typically due to pilot errors and should thus be in debug-ignored-errors.
 
 ** Beefed-up syntax-tables.
 *** recognize multi-character syntactic entities like `begin' and `end'.
-*** nested string-delimiters (for Postscript's (foo(bar)baz) strings).
+*** nested string-delimiters (for PostScript's (foo(bar)baz) strings).
 *** support for infix operators (with precedence).
 *** support for the $ (paired delimiter) in parse-partial-sexp.
 *** support for hook-chars whose effect on the parsing-state is specified

@@ -939,7 +939,7 @@ IDL has currently stepped.")
    -------------------------------
    Info documentation for this package is available.  Use \\[idlwave-info]
    to display (complain to your sysadmin if that does not work).
-   For Postscript and HTML versions of the documentation, check IDLWAVE's
+   For PostScript and HTML versions of the documentation, check IDLWAVE's
    homepage at URL `http://idlwave.org'.
    IDLWAVE has customize support - see the group `idlwave'.
 

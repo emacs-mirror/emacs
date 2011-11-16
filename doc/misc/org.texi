@@ -8262,7 +8262,7 @@ This is a globally available command, and also available in the agenda menu.
 @vindex org-agenda-exporter-settings
 Write the agenda view to a file.  Depending on the extension of the selected
 file name, the view will be exported as HTML (extension @file{.html} or
-@file{.htm}), Postscript (extension @file{.ps}), PDF (extension @file{.pdf}),
+@file{.htm}), PostScript (extension @file{.ps}), PDF (extension @file{.pdf}),
 and plain text (any other extension).  When called with a @kbd{C-u} prefix
 argument, immediately open the newly created file.  Use the variable
 @code{org-agenda-exporter-settings} to set options for @file{ps-print} and
@@ -8477,9 +8477,9 @@ yourself.
 If you are away from your computer, it can be very useful to have a printed
 version of some agenda views to carry around.  Org-mode can export custom
 agenda views as plain text, HTML@footnote{You need to install Hrvoje Niksic's
-@file{htmlize.el}.}, Postscript, PDF@footnote{To create PDF output, the
+@file{htmlize.el}.}, PostScript, PDF@footnote{To create PDF output, the
 ghostscript @file{ps2pdf} utility must be installed on the system.  Selecting
-a PDF file will also create the postscript file.}, and iCalendar files.  If
+a PDF file will also create the PostScript file.}, and iCalendar files.  If
 you want to do this only occasionally, use the command
 
 @table @kbd
@@ -8489,7 +8489,7 @@ you want to do this only occasionally, use the command
 @vindex org-agenda-exporter-settings
 Write the agenda view to a file.  Depending on the extension of the selected
 file name, the view will be exported as HTML (extension @file{.html} or
-@file{.htm}), Postscript (extension @file{.ps}), iCalendar (extension
+@file{.htm}), PostScript (extension @file{.ps}), iCalendar (extension
 @file{.ics}), or plain text (any other extension).  Use the variable
 @code{org-agenda-exporter-settings} to set options for @file{ps-print} and
 for @file{htmlize} to be used during export, for example
@@ -8542,7 +8542,7 @@ The extension of the file name determines the type of export.  If it is
 @file{.html}, Org-mode will use the @file{htmlize.el} package to convert
 the buffer to HTML and save it to this file name.  If the extension is
 @file{.ps}, @code{ps-print-buffer-with-faces} is used to produce
-Postscript output.  If the extension is @file{.ics}, iCalendar export is
+PostScript output.  If the extension is @file{.ics}, iCalendar export is
 run export over all files that were used to construct the agenda, and
 limit the export to entries listed in the agenda.  Any other
 extension produces a plain ASCII file.
@@ -8573,7 +8573,7 @@ set options for the export commands.  For example:
 @end lisp
 
 @noindent
-This command sets two options for the Postscript exporter, to make it
+This command sets two options for the PostScript exporter, to make it
 print in two columns in landscape format---the resulting page can be cut
 in two and then used in a paper agenda.  The remaining settings modify
 the agenda prefix to omit category and scheduling information, and

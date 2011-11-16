@@ -1,3 +1,7 @@
+2011-11-16  Juanma Barranquero  <lekktu@gmail.com>
+
+	* emacs-lisp-intro.texi (etags): Fix typo.
+
 2011-03-07  Chong Yidong  <cyd@stupidchicken.com>
 
 	* Version 23.3 released.

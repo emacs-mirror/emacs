@@ -1846,7 +1846,7 @@ DEFUN ("ns-emacs-info-panel", Fns_emacs_info_panel, Sns_emacs_info_panel,
 
 
 DEFUN ("ns-font-name", Fns_font_name, Sns_font_name, 1, 1, 0,
-       doc: /* Determine font postscript or family name for font NAME.
+       doc: /* Determine font PostScript or family name for font NAME.
 NAME should be a string containing either the font name or an XLFD
 font descriptor.  If string contains `fontset' and not
 `fontset-startup', it is left alone. */)

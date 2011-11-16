@@ -22110,7 +22110,7 @@
 1996-09-27  Jacques Duthen  <duthen@cegelec-red.fr>
 
 	* ps-print.el
-	(ps-print-prologue-1): Fix bug in postscript comment lines.
+	(ps-print-prologue-1): Fix bug in PostScript comment lines.
 	(ps-nb-pages): Call ps-setup _before_ switching to the other
 	buffer, because of buffer variables.
 
@@ -22123,7 +22123,7 @@
 	(ps-page-height-i, ps-page-width-i): Variables deleted.
 	(ps-print-prologue): Variable deleted.
 	(ps-print-prologue-1, ps-print-prologue-2): New variables.
-	Major rewrite of the postscript code to handle landscape mode,
+	Major rewrite of the PostScript code to handle landscape mode,
 	multiple columns and new font management.
 	(ps-landscape-mode, ps-number-of-columns, ps-inter-column): New
 	variables.
@@ -22136,7 +22136,7 @@
 	(ps-header-font, ps-landscape-page-height): New internal variables.
 	(ps-top-margin): Change its semantics.  It is now really the top
 	margin, not anymore twice the top margin.
-	(/ReportAllFontInfo): New postscript function to get all the font
+	(/ReportAllFontInfo): New PostScript function to get all the font
 	families of the printer.
 	(ps-setup): New function.
 	(ps-line-lengths, ps-nb-pages-buffer, ps-nb-pages-region): New

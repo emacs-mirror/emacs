@@ -1,6 +1,9 @@
 2011-11-16  Juanma Barranquero  <lekktu@gmail.com>
 
 	* killing.texi (Rectangles):
+	* misc.texi (Document View):
+	* modes.texi (Choosing Modes):
+	* msdog.texi (Windows Fonts):
 	* regs.texi (Rectangle Registers):
 	* search.texi (Isearch Yank): Fix typos.
 

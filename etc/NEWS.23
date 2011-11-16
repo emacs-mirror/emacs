@@ -1235,8 +1235,8 @@ details, see the commentary in doc-view.el.
 
 PDF and DVI files are now opened in Doc View mode by default.
 
-In Postcript mode, C-c C-c launches Doc View minor mode for viewing
-the postscript file.
+In PostScript mode, C-c C-c launches Doc View minor mode for viewing
+the PostScript file.
 
 ** EasyPG provides an interface to the GNU Privacy Guard (GnuPG).
 It includes a GnuPG keyring browser, cryptographic operations on

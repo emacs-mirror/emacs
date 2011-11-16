@@ -82,7 +82,7 @@ This is a compatibility function for different Emacsen."
 			 (list lpr-switches)
 		       lpr-switches)))
 	     " ")
-  "Shell command (including switches) used to print Postscript files.")
+  "Shell command (including switches) used to print PostScript files.")
 
 ;; Postpone using defcustom for this as it's so big and we essentially
 ;; have to have two copies of the data around then.  Perhaps just

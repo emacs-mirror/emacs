@@ -156,7 +156,7 @@ and `org-agenda-entry-text-maxlines'."
   "Non-nil means export org-links as descriptive links in agenda added text.
 This variable applies to the text added to the agenda when
 `org-agenda-add-entry-text-maxlines' is larger than 0.
-When this variable nil, the URL will (also) be shown."
+When this variable is nil, the URL will (also) be shown."
   :group 'org-agenda
   :type 'boolean)
 
@@ -339,7 +339,7 @@ agenda dispatcher \\[org-agenda].  Each entry is a list like this:
 
 key      The key (one or more characters as a string) to be associated
          with the command.
-desc     A description of the command, when omitted or nil, a default
+desc     A description of the command; when omitted or nil, a default
          description is built using MATCH.
 type     The command type, any of the following symbols:
           agenda      The daily/weekly agenda.
@@ -354,7 +354,7 @@ type     The command type, any of the following symbols:
 match    What to search for:
           - a single keyword for TODO keyword searches
           - a tags match expression for tags searches
-          - a word search expression for text searches.
+          - a word search expression for text searches
           - a regular expression for occur searches
           For all other commands, this should be the empty string.
 settings  A list of option settings, similar to that in a let form, so like
@@ -363,7 +363,7 @@ settings  A list of option settings, similar to that in a let form, so like
 files     A list of files file to write the produced agenda buffer to
           with the command `org-store-agenda-views'.
           If a file name ends in \".html\", an HTML version of the buffer
-          is written out.  If it ends in \".ps\", a postscript version is
+          is written out.  If it ends in \".ps\", a PostScript version is
           produced.  Otherwise, only the plain text is written to the file.
 
 You can also define a set of commands, to create a composite agenda buffer.
@@ -2744,8 +2744,8 @@ This ensures the export commands can easily use it."
 (defun org-write-agenda (file &optional open nosettings)
   "Write the current buffer (an agenda view) as a file.
 Depending on the extension of the file name, plain text (.txt),
-HTML (.html or .htm) or Postscript (.ps) is produced.
-If the extension is .ics, run icalendar export over all files used
+HTML (.html or .htm) or PostScript (.ps) is produced.
+If the extension is .ics, run iCalendar export over all files used
 to construct the agenda and limit the export to entries listed in the
 agenda now.
 With prefix argument OPEN, open the new file immediately.
@@ -2793,7 +2793,7 @@ higher priority settings."
 	      ((string-match "\\.ps\\'" file)
 	       (require 'ps-print)
 	       (ps-print-buffer-with-faces file)
-	       (message "Postscript written to %s" file))
+	       (message "PostScript written to %s" file))
 	      ((string-match "\\.pdf\\'" file)
 	       (require 'ps-print)
 	       (ps-print-buffer-with-faces
@@ -2997,7 +2997,7 @@ removed from the entry content.  Currently only `planning' is allowed here."
 	     (member (point) (cdr a)))))))
 
 (defun org-check-for-org-mode ()
-  "Make sure current buffer is in org-mode.  Error if not."
+  "Make sure current buffer is in Org-mode.  Error if not."
   (or (org-mode-p)
       (error "Cannot execute org-mode agenda command on buffer in %s"
 	     major-mode)))
@@ -3715,9 +3715,9 @@ given in `org-agenda-start-on-weekday'."
 (defvar org-todo-only nil)
 
 (defvar org-search-syntax-table nil
-  "Special syntax table for org-mode search.
-In this table, we have single quotes not as word constituents, to
-that when \"+Ameli\" is searched as a work, it will also match \"Ameli's\"")
+  "Special syntax table for Org-mode search.
+In this table, we have single quotes not as word constituents, so
+that when \"+Ameli\" is searched as a word, it will also match \"Ameli's\"")
 
 (defun org-search-syntax-table ()
   (unless org-search-syntax-table
@@ -4425,7 +4425,7 @@ date.  It also removes lines that contain only whitespace."
 	   (setq string (org-modify-diary-entry-string string))))))
 
 (defun org-modify-diary-entry-string (string)
-  "Add text properties to string, allowing org-mode to act on it."
+  "Add text properties to string, allowing Org-mode to act on it."
   (org-add-props string nil
     'mouse-face 'highlight
     'help-echo (if buffer-file-name

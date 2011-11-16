@@ -1,3 +1,23 @@
+2011-11-16  Juanma Barranquero  <lekktu@gmail.com>
+
+	* menu-bar.el (menu-bar-file-menu):
+	* printing.el (pr-ps-utility):
+	* calendar/icalendar.el (icalendar, icalendar--convert-tz-offset)
+	(icalendar--convert-to-ical, icalendar--convert-ordinary-to-ical)
+	(icalendar--convert-weekly-to-ical, icalendar--convert-yearly-to-ical)
+	(icalendar--convert-sexp-to-ical, icalendar--convert-block-to-ical)
+	(icalendar--convert-float-to-ical, icalendar--convert-date-to-ical)
+	(icalendar--convert-cyclic-to-ical)
+	(icalendar--convert-anniversary-to-ical, icalendar-import-buffer)
+	(icalendar--convert-ical-to-diary)
+	(icalendar--convert-recurring-to-diary)
+	(icalendar--convert-non-recurring-all-day-to-diary)
+	(icalendar-import-format-sample):
+	* progmodes/idlw-shell.el (idlwave-shell-mode):
+	* progmodes/vhdl-mode.el (vhdl-mode, vhdl-print-two-column)
+	(vhdl-print-customize-faces, vhdl-mode, vhdl-ps-print-settings)
+	(vhdl-ps-print-init): Fix typos.
+
 2011-11-16  Ken Manheimer  <ken.manheimer@gmail.com>
 
 	* allout-widgets.el: (file metadata): Attribute copyright to FSF
@@ -497,7 +517,7 @@
 	* progmodes/cc-defs.el: Update "virtual semicolon" comments.
 
 	* progmodes/cc-engine.el (c-crosses-statement-barrier-p):
-	Recode to scan one line at time rather than having \n and \r
+	Recode to scan one line at a time rather than having \n and \r
 	explicitly in c-stmt-delim-chars (for some modes, e.g. AWK).
 	(c-forward-label): Amend for virtual semicolons.
 	(c-at-macro-vsemi-p, c-macro-vsemi-status-unknown-p): New functions.

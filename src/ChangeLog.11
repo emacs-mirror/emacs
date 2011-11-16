@@ -23551,7 +23551,7 @@
 	STORE_XCHARB a valid l-value.
 
 	* w32term.c (w32_native_per_char_metric): Swap width and rbearing
-	calculations for non-Truetype fonts.
+	calculations for non-TrueType fonts.
 	(x_draw_glyph_string): Sync with xterm.c.
 	(x_draw_glyph_string_foreground) [USE_FONT_BACKEND]:
 	Remove redundant code.

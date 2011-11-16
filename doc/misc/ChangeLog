@@ -1,3 +1,7 @@
+2011-11-16  Juanma Barranquero  <lekktu@gmail.com>
+
+	* org.texi (Agenda commands, Exporting Agenda Views): Fix typos.
+
 2011-11-15  Juanma Barranquero  <lekktu@gmail.com>
 
 	* ede.texi (project-am-texinfo):

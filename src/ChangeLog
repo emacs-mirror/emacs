@@ -1,6 +1,7 @@
 2011-11-16  Juanma Barranquero  <lekktu@gmail.com>
 
-	* window.c (syms_of_window) <window-combination-limit>: Fix typo.
+	* nsfns.m (Fns_font_name):
+	* window.c (syms_of_window) <window-combination-limit>: Fix typos.
 
 2011-11-16  Martin Rudalics  <rudalics@gmx.at>
 

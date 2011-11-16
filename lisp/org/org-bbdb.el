@@ -357,7 +357,7 @@ This is used by Org to re-create the anniversary hash table."
 	  (bbdb-record-name (car (bbdb-completing-read-record "Name: ")))))
 
 (defun org-bbdb-anniv-export-ical ()
-  "Extract anniversaries from BBDB and convert them to icalendar format."
+  "Extract anniversaries from BBDB and convert them to iCalendar format."
   (require 'bbdb)
   (require 'diary-lib)
   (unless (hash-table-p org-bbdb-anniv-hash)

@@ -2339,7 +2339,7 @@
 	skips encoded regions.  Allow user to skip saving Fcc messages with
 	large attachments.  Fixed region skipping bug with multi-line
 	comments - e.g.  tex $ regions spanning multiple lines.
-	Added support for postscript and uuencoded regions.
+	Added support for PostScript and uuencoded regions.
 	Redundant dictionary file names purged.
 	Dictionary definition field name changed from "Character Set"
 	to "Coding System".  Fixed bug in reloading dictionaries.
@@ -2374,7 +2374,7 @@
 	(ispell-valid-dictionary-list): New function returning all valid
 	dictionaries on machine.
 	(ispell-checking-message): Documentation string improved.
-	(ispell-skip-region-alist): Add uuencoded and postscript region
+	(ispell-skip-region-alist): Add uuencoded and PostScript region
 	skipping.  Improve http/e-mail/file regexp to not match `/.\w'.
 	(ispell-html-skip-alists): New variable for html region support.
 	(ispell-send-string): Remove redundant xemacs check.
@@ -2402,7 +2402,7 @@
 	html skipping pushed to alists.
 	(ispell-get-line): Add support for multi-line comment regions.
 	(ispell): Check that variables to continue spelling are bound.
-	(ispell-message-text-end): Postscript and uuencoded regions now
+	(ispell-message-text-end): PostScript and uuencoded regions now
 	supported as MIME regions, rather than as end-of-message region.
 	(ispell-mime-multipartp): New function supporting MIME.
 	(ispell-mime-skip-part): New function supporting MIME.

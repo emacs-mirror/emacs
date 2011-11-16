@@ -447,7 +447,7 @@ struct nsfont_info
 {
   struct font font;
 
-  char *name;  /* postscript name, uniquely identifies on NS systems */
+  char *name;  /* PostScript name, uniquely identifies on NS systems */
   float width;  /* this and following metrics stored as float rather than int */
   float height;
   float underpos;

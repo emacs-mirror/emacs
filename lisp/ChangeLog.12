@@ -938,7 +938,7 @@
 2007-03-20  David Kastrup  <dak@gnu.org>
 
 	* files.el (magic-mode-alist): Require literal "%!PS" string for
-	magic postscript file detection.
+	magic PostScript file detection.
 
 2007-03-20  Richard Stallman  <rms@gnu.org>
 
