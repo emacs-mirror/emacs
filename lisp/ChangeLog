@@ -1,3 +1,11 @@
+2011-11-16  Glenn Morris  <rgm@gnu.org>
+
+	* mail/rmailedit.el: Require rmailmm when compiling.
+	(rmail-old-mime-state): New declaration.
+	(rmail-edit-current-message): If editing a mime message,
+	edit the "raw" message from the mbox buffer.
+	(rmail-cease-edit): Handle mime messages.  (Bug#9840)
+
 2011-11-15  Glenn Morris  <rgm@gnu.org>
 
 	* mail/rmailmm.el (rmail-mime-toggle-raw): Remove entity arg,
