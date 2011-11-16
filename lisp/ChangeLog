@@ -1,5 +1,16 @@
 2011-11-16  Ken Manheimer  <ken.manheimer@gmail.com>
 
+	* allout-widgets.el: (file metadata): Attribute copyright to FSF
+	and collapse date sequence, obscure author/maintainer email
+	address better, remove extra version line, track relocation of
+	author's allout webpage.
+
+	* allout.el: (file metadata): Attribute copyright to FSF
+	and collapse date sequence, obscure author/maintainer email
+	address better, track relocation of author's allout webpage.
+
+2011-11-16  Ken Manheimer  <ken.manheimer@gmail.com>
+
 	* python.el (python-pdbtrack-stack-entry-regexp)
 	(python-pdbtrack-input-prompt, python-pdbtrack-track-stack-file):
 	Adjust to recognize ipdb as well as regular python pdb prompts.
