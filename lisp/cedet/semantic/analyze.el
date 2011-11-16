@@ -287,7 +287,7 @@ Optional argument THROWSYM specifies a symbol the throw on non-recoverable error
 
     ;; For the middle entries
     (while s
-      ;; Using the tag found in TMP, lets find the tag
+      ;; Using the tag found in TMP, let's find the tag
       ;; representing the full typeographic information of its
       ;; type, and use that to determine the search context for
       ;; (car s)

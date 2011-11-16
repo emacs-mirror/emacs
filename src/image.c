@@ -7552,7 +7552,7 @@ imagemagick_image_p (Lisp_Object object)
 }
 
 /* The GIF library also defines DrawRectangle, but its never used in Emacs.
-   Therefore rename the function so it doesnt collide with ImageMagick.  */
+   Therefore rename the function so it doesn't collide with ImageMagick.  */
 #define DrawRectangle DrawRectangleGif
 #include <wand/MagickWand.h>
 
@@ -7841,7 +7841,7 @@ imagemagick_load_image (struct frame *f, struct image *img,
 	}
 
 
-      /* Oddly, the below code doesnt seem to work:*/
+      /* Oddly, the below code doesn't seem to work:*/
       /* switch(ximg->bitmap_unit){ */
       /* case 8: */
       /*   pixelwidth=CharPixel; */
@@ -7870,7 +7870,7 @@ imagemagick_load_image (struct frame *f, struct image *img,
 			       /*&(img->pixmap));*/
 			       ximg->data);
 #else
-      image_error ("You dont have MagickExportImagePixels, upgrade ImageMagick!",
+      image_error ("You don't have MagickExportImagePixels, upgrade ImageMagick!",
 		   Qnil, Qnil);
 #endif
     }

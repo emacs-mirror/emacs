@@ -2302,7 +2302,7 @@ comment at the start of cc-engine.el for more info."
 ;; `c-parse-state', or nil.
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;; Defuns which analyse the buffer, yet don't change `c-state-cache'.
+;; Defuns which analyze the buffer, yet don't change `c-state-cache'.
 (defun c-get-fallback-scan-pos (here)
   ;; Return a start position for building `c-state-cache' from
   ;; scratch.  This will be at the top level, 2 defuns back.

@@ -515,7 +515,7 @@ Optional argument NOSNARF is ignored."
   (let ((d (semantic-tag-docstring tag)))
     (when (not d)
       (cond ((semantic-tag-with-position-p tag)
-	     ;; Doc isn't in the tag itself.  Lets pull it out of the
+	     ;; Doc isn't in the tag itself.  Let's pull it out of the
 	     ;; sources.
 	     (let ((semantic-elisp-store-documentation-in-tag t))
 	       (setq tag (with-current-buffer (semantic-tag-buffer tag)

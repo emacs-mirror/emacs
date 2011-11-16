@@ -189,7 +189,7 @@ in your ~/.emacs (after loading/requiring quickurl).")
   "Local keymap for a `quickurl-list-mode' buffer.")
 
 (defvar quickurl-list-buffer-name "*quickurl-list*"
-  "Name for the URL listinig buffer.")
+  "Name for the URL listing buffer.")
 
 (defvar quickurl-list-last-buffer nil
   "`current-buffer' when `quickurl-list' was called.")

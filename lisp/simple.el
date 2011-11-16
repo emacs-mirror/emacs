@@ -4324,7 +4324,7 @@ lines when the window is horizontally scrolled."
 	  (when (> rbot 0)
 	    (set-window-vscroll nil (+ vs (min rbot (frame-char-height))) t)))
 	 ;; If cursor just entered the bottom scroll margin, move forward,
-	 ;; but also vscroll one line so redisplay wont recenter.
+	 ;; but also vscroll one line so redisplay won't recenter.
 	 ((and (> vpos 0)
 	       (= py (min (- (window-text-height) scroll-margin 1)
 			  (1- vpos))))

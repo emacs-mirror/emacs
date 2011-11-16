@@ -13808,7 +13808,7 @@
 
 2009-08-06  Bastien Guerry  <bzg@altern.org>
 
-	* org.el (org-special-ctrl-a/e): Explicitely bind the value
+	* org.el (org-special-ctrl-a/e): Explicitly bind the value
 	'reversed for this option to the "true line boundary first"
 	behavior.
 	(org-tags-match-list-sublevels): Document the 'indented value for
@@ -16482,7 +16482,7 @@
 2008-11-23  Carsten Dominik  <carsten.dominik@gmail.com>
 
 	* org-export-latex.el (org-export-latex-subcontent):
-	Interprete target aliases as additional labels.
+	Interpret target aliases as additional labels.
 
 	* org-exp.el (org-export-target-aliases): New variable.
 	(org-export-preprocess-string)
@@ -17290,7 +17290,7 @@
 	(org-edit-fixed-width-region): Also try
 	`org-edit-fixed-width-region'.
 	(org-edit-fixed-width-region-mode): New option.
-	(org-activate-code): Only interprete lines starting with colon
+	(org-activate-code): Only interpret lines starting with colon
 	plus a space as example lines.
 
 	* org-remember.el (org-remember-templates): Add nil instead of

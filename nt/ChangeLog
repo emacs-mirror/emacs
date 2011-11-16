@@ -1,3 +1,7 @@
+2011-11-15  Eli Zaretskii  <eliz@gnu.org>
+
+	* README.W32: Update the GTK Windows download URL for libpng.
+
 2011-11-13  Christoph Scholtes  <cschol2112@googlemail.com>
 
 	* inc/stdint.h (UINT64_MAX, UINT32_MAX): Fix values.

@@ -1122,7 +1122,7 @@ See also the variable `org-reverse-note-order'."
   (condition-case nil
       (require 'remember)
     (error
-     ;; Lets install our own micro version of remember
+     ;; Let's install our own micro version of remember
      (defvar remember-register ?R)
      (defvar remember-mode-hook nil)
      (defvar remember-handler-functions nil)
@@ -1153,4 +1153,3 @@ See also the variable `org-reverse-note-order'."
 
 
 ;;; org-remember.el ends here
-

@@ -1593,7 +1593,7 @@ case "${window_system}" in
       athena | lucid ) USE_X_TOOLKIT=LUCID ;;
       motif ) USE_X_TOOLKIT=MOTIF ;;
       gtk ) with_gtk=yes
-dnl Dont set this for GTK.  A lot of tests below assumes Xt when
+dnl Don't set this for GTK.  A lot of tests below assumes Xt when
 dnl USE_X_TOOLKIT is set.
             USE_X_TOOLKIT=none ;;
       gtk3 ) with_gtk3=yes

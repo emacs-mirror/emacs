@@ -739,7 +739,7 @@ any decorated referring includes.")
   "Refresh any highlighting in buffers referred to by TABLE.
 If TABLE is not in a buffer, do nothing."
   ;; This cache removal may seem odd in that we are "creating one", but
-  ;; since we cant get in the fcn unless one exists, this ought to be
+  ;; since we can't get in the fcn unless one exists, this ought to be
   ;; ok.
   (let ((c (semanticdb-cache-get
 	    table 'semantic-decoration-unparsed-include-cache)))

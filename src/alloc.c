@@ -1412,7 +1412,7 @@ uninterrupt_malloc (void)
 #ifdef DOUG_LEA_MALLOC
   pthread_mutexattr_t attr;
 
-  /*  GLIBC has a faster way to do this, but lets keep it portable.
+  /*  GLIBC has a faster way to do this, but let's keep it portable.
       This is according to the Single UNIX Specification.  */
   pthread_mutexattr_init (&attr);
   pthread_mutexattr_settype (&attr, PTHREAD_MUTEX_RECURSIVE);

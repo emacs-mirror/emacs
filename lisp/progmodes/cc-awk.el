@@ -718,7 +718,7 @@
   ;; This function does hidden buffer changes.
   (let ((/point (point)))
     (goto-char anchor)
-    ;; Analyse the line to find out what the / is.
+    ;; Analyze the line to find out what the / is.
     (if (if anchor-state-/div
             (not (search-forward-regexp c-awk-regexp-sign-re (1+ /point) t))
           (search-forward-regexp c-awk-div-sign-re (1+ /point) t))
@@ -847,7 +847,7 @@
 
 ;; Awk regexps written with help from Peter Galbraith
 ;; <galbraith@mixing.qc.dfo.ca>.
-;; Take GNU Emacs's 'words out of the following regexp-opts.  They dont work
+;; Take GNU Emacs's 'words out of the following regexp-opts.  They don't work
 ;; in XEmacs 21.4.4.  acm 2002/9/19.
 (defconst awk-font-lock-keywords
   (eval-when-compile

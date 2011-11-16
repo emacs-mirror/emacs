@@ -37,7 +37,6 @@
 ;;; The following will be localized, added only to pacify the compiler.
 (defvar tmm-short-cuts)
 (defvar tmm-old-mb-map nil)
-(defvar tmm-old-comp-map)
 (defvar tmm-c-prompt nil)
 (defvar tmm-km-list)
 (defvar tmm-next-shortcut-digit)
@@ -98,7 +97,7 @@ See the documentation for `tmm-prompt'."
 
 (defcustom tmm-mid-prompt "==>"
   "String to insert between shortcut and menu item.
-If nil, there will be no shortcuts. It should not consist only of spaces,
+If nil, there will be no shortcuts.  It should not consist only of spaces,
 or else the correct item might not be found in the `*Completions*' buffer."
   :type 'string
   :group 'tmm)
@@ -158,7 +157,7 @@ Its value should be an event that has a binding in MENU."
   (let ((gl-str "Menu bar")  ;; The menu bar itself is not a menu keymap
 					; so it doesn't have a name.
 	tmm-km-list out history history-len tmm-table-undef tmm-c-prompt
-	tmm-old-mb-map tmm-old-comp-map tmm-short-cuts
+	tmm-old-mb-map tmm-short-cuts
 	chosen-string choice
 	(not-menu (not (keymapp menu))))
     (run-hooks 'activate-menubar-hook)
@@ -219,23 +218,16 @@ Its value should be an event that has a binding in MENU."
 	     (setq history-len (length history))
 	     (setq history (append history history history history))
 	     (setq tmm-c-prompt (nth (- history-len 1 index-of-default) history))
-	     (add-hook 'minibuffer-setup-hook 'tmm-add-prompt)
-	     (if default-item
-		 (setq out (car (nth index-of-default tmm-km-list)))
-	       (save-excursion
-		 (unwind-protect
-		     (setq out
-			   (completing-read
-			    (concat gl-str
-				    " (up/down to change, PgUp to menu): ")
-			    tmm-km-list nil t nil
-			    (cons 'history
-				  (- (* 2 history-len) index-of-default))))
-                   (remove-hook 'minibuffer-setup-hook 'tmm-add-prompt)
-                   (if (get-buffer "*Completions*")
-                       (with-current-buffer "*Completions*"
-                         (use-local-map tmm-old-comp-map)
-                         (bury-buffer (current-buffer)))))))))
+             (setq out
+                   (if default-item
+                       (car (nth index-of-default tmm-km-list))
+                     (minibuffer-with-setup-hook #'tmm-add-prompt
+                       (completing-read
+                        (concat gl-str
+                                " (up/down to change, PgUp to menu): ")
+                        tmm-km-list nil t nil
+                        (cons 'history
+                              (- (* 2 history-len) index-of-default))))))))
       (setq choice (cdr (assoc out tmm-km-list)))
       (and (null choice)
 	   (> (length out) (length tmm-c-prompt))
@@ -270,7 +262,7 @@ Its value should be an event that has a binding in MENU."
 	     choice)))))
 
 (defun tmm-add-shortcuts (list)
-  "Adds shortcuts to cars of elements of the list.
+  "Add shortcuts to cars of elements of the list.
 Takes a list of lists with a string as car, returns list with
 shortcuts added to these cars.
 Stores a list of all the shortcuts in the free variable `tmm-short-cuts'."
@@ -362,7 +354,6 @@ Stores a list of all the shortcuts in the free variable `tmm-short-cuts'."
     (set-buffer-modified-p nil)))
 
 (defun tmm-add-prompt ()
-  (remove-hook 'minibuffer-setup-hook 'tmm-add-prompt)
   (add-hook 'minibuffer-exit-hook 'tmm-delete-map nil t)
   (unless tmm-c-prompt
     (error "No active menu entries"))
@@ -387,9 +378,7 @@ Stores a list of all the shortcuts in the free variable `tmm-short-cuts'."
   (save-selected-window
     (other-window 1)			; Electric-pop-up-window does
 					; not work in minibuffer
-    (Electric-pop-up-window "*Completions*")
-    (with-current-buffer "*Completions*"
-      (setq tmm-old-comp-map (tmm-define-keys nil))))
+    (Electric-pop-up-window "*Completions*"))
   (insert tmm-c-prompt))
 
 (defun tmm-delete-map ()
@@ -424,16 +413,18 @@ Stores a list of all the shortcuts in the free variable `tmm-short-cuts'."
 	  (exit-minibuffer)))))
 
 (defun tmm-goto-completions ()
+  "Jump to the completions buffer."
   (interactive)
   (let ((prompt-end (minibuffer-prompt-end)))
     (setq tmm-c-prompt (buffer-substring prompt-end (point-max)))
+    ;; FIXME: Why?
     (delete-region prompt-end (point-max)))
   (switch-to-buffer-other-window "*Completions*")
   (search-forward tmm-c-prompt)
   (search-backward tmm-c-prompt))
 
 (defun tmm-get-keymap (elt &optional in-x-menu)
-  "Prepends (DOCSTRING EVENT BINDING) to free variable `tmm-km-list'.
+  "Prepend (DOCSTRING EVENT BINDING) to free variable `tmm-km-list'.
 The values are deduced from the argument ELT, that should be an
 element of keymap, an `x-popup-menu' argument, or an element of
 `x-popup-menu' argument (when IN-X-MENU is not-nil).

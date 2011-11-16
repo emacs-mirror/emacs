@@ -542,8 +542,8 @@ Each set is a vector of the form:
 (defvar isearch-string "")  ; The current search string.
 (defvar isearch-message "") ; text-char-description version of isearch-string
 
-(defvar isearch-message-prefix-add nil) ; Additonal text for the message prefix
-(defvar isearch-message-suffix-add nil) ; Additonal text for the message suffix
+(defvar isearch-message-prefix-add nil) ; Additional text for the message prefix
+(defvar isearch-message-suffix-add nil) ; Additional text for the message suffix
 
 (defvar isearch-success t)	; Searching is currently successful.
 (defvar isearch-error nil)	; Error message for failed search.

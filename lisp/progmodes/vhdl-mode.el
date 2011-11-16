@@ -2131,7 +2131,7 @@ Ignore byte-compiler warnings you might see."
   (if (fboundp 'start-itimer)
       (start-itimer "vhdl-mode" function secs repeat t)
 ;    (run-with-idle-timer secs repeat function)))
-    ;; explicitely activate timer (necessary when Emacs is already idle)
+    ;; explicitly activate timer (necessary when Emacs is already idle)
     (aset (run-with-idle-timer secs repeat function) 0 nil)))
 
 (defun vhdl-warning-when-idle (&rest args)

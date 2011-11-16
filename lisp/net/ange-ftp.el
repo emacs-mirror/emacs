@@ -4027,7 +4027,7 @@ E.g.,
 	      (concat bestmatch "/")
 	    bestmatch)))))
 
-;; Put these lines uncommmented in your .emacs if you want C-r to refresh
+;; Put these lines uncommented in your .emacs if you want C-r to refresh
 ;; ange-ftp's cache whilst doing filename completion.
 ;;
 ;;(define-key minibuffer-local-completion-map "\C-r" 'ange-ftp-re-read-dir)
@@ -4507,7 +4507,7 @@ NEWNAME should be the name to give the new compressed or uncompressed file.")
     ;; We used to follow symlinks on `file' here.  Apparently it was done
     ;; because some FTP servers react to "ls foo" by listing the symlink foo
     ;; rather than the directory it points to.  Now that ange-ftp-ls uses
-    ;; "cd foo; ls" instead, this is not necesssary any more.
+    ;; "cd foo; ls" instead, this is not necessary any more.
     (let ((beg (point))
 	  (end (point-marker)))
       (set-marker-insertion-type end t)

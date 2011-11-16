@@ -1,3 +1,54 @@
+2011-11-16  Chong Yidong  <cyd@gnu.org>
+
+	* progmodes/autoconf.el (autoconf-mode): Fix comment-start-skip
+	regexp (Bug#10033).
+
+2011-11-16  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* tmm.el (tmm-prompt): Use minibuffer-with-setup-hook (bug#10053).
+	`completing-read' will remove *Completions* and will preserve
+	current-buffer for us.
+	(tmm-add-prompt): Users of *Completions* will always (re)set its
+	major mode.
+	(tmm-old-comp-map): Remove.
+
+2011-11-16  Glenn Morris  <rgm@gnu.org>
+
+	* mail/rmailedit.el: Require rmailmm when compiling.
+	(rmail-old-mime-state): New declaration.
+	(rmail-edit-current-message): If editing a mime message,
+	edit the "raw" message from the mbox buffer.
+	(rmail-cease-edit): Handle mime messages.  (Bug#9840)
+
+2011-11-15  Glenn Morris  <rgm@gnu.org>
+
+	* mail/rmailmm.el (rmail-mime-toggle-raw): Remove entity arg,
+	which wasn't being used.  Add optional arg to force given state.
+	(rmail-mime): Add optional arg to force given state.
+
+2011-11-15  Juanma Barranquero  <lekktu@gmail.com>
+
+	* allout.el (allout-encryption-plaintext-sanitization-regexps):
+	* frame.el (display-mm-dimensions-alist):
+	* outline.el (outline-mode-menu-bar-map, outline-move-subtree-up)
+	(outline-move-subtree-down):
+	* net/newst-treeview.el (newsticker--treeview-do-get-node-of-feed)
+	(newsticker--treeview-do-get-node):
+	* net/quickurl.el (quickurl-list-buffer-name):
+	* progmodes/dcl-mode.el (dcl-mode):
+	* progmodes/gdb-mi.el (gdb-mapcar*):
+	* progmodes/sql.el (sql-mode-oracle-font-lock-keywords): Fix typos.
+
+2011-11-15  Glenn Morris  <rgm@gnu.org>
+
+	* mail/rmail.el (rmail-file-coding-system): It's only ever used
+	in a boolean sense, so just make it a boolean, and fix the doc.
+	(rmail-show-mime-function, rmail-mime-feature)
+	(rmail-require-mime-maybe): Doc fixes.
+	(rmail-show-message-1): Check rmail-show-mime-function is non-nil.
+
+	* mail/rmailmm.el (rmail-show-mime): Doc fix.
+
 2011-11-15  Juanma Barranquero  <lekktu@gmail.com>
 
 	* epg.el (epg-start-decrypt, epg-start-verify, epg-start-sign)
@@ -481,7 +532,7 @@
 2011-10-26  Michael Albinus  <michael.albinus@gmx.de>
 
 	* ido.el (ido-file-name-all-completions-1): Do not require
-	tramp.el explicitely.  (Bug#7583)
+	tramp.el explicitly.  (Bug#7583)
 
 2011-10-26  Stefan Monnier  <monnier@iro.umontreal.ca>
 

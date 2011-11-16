@@ -1,5 +1,6 @@
 2011-11-15  Juanma Barranquero  <lekktu@gmail.com>
 
+	* gnus-art.el (gnus-article-part-wrapper):
 	* shr-color.el (shr-color-visible-distance-min)
 	(shr-color-relative-to-absolute, set-minimum-interval)
 	(shr-color-visible): Fix typos.

@@ -285,11 +285,11 @@ Should be called narrowed to the head of the message."
 		       mail-parse-charset)
 		  (mm-encode-coding-region (point) (point-max)
 					   mail-parse-charset)))
-	     ;; We get this when CC'ing messsages to newsgroups with
+	     ;; We get this when CC'ing messages to newsgroups with
 	     ;; 8-bit names.  The group name mail copy just got
 	     ;; unconditionally encoded.  Previously, it would ask
 	     ;; whether to encode, which was quite confusing for the
-	     ;; user.  If the new behavior is wrong, tell me. I have
+	     ;; user.  If the new behavior is wrong, tell me.  I have
 	     ;; left the old code commented out below.
 	     ;; -- Per Abrahamsen <abraham@dina.kvl.dk> Date: 2001-10-07.
 	     ;; Modified by Dave Love, with the commented-out code changed

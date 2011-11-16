@@ -280,7 +280,7 @@ inserted dictionaries."
 	  (progn
 	    (srecode-dictionary-show-section new "FIRST")
 	    (srecode-dictionary-show-section new "LAST"))
-	;; Not the very first one.  Lets clean up CAR.
+	;; Not the very first one.  Let's clean up CAR.
 	(let ((tail (car (last ov))))
 	  (srecode-dictionary-hide-section tail "LAST")
 	  (srecode-dictionary-show-section tail "NOTLAST")

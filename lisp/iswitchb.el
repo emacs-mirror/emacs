@@ -1110,7 +1110,7 @@ Return the modified list with the last element prepended to it."
 	  (if (fboundp 'set-buffer-major-mode)
 	      (set-buffer-major-mode newbufcreated))
 	  (iswitchb-visit-buffer newbufcreated))
-      ;; else wont create new buffer
+      ;; else won't create new buffer
       (message "no buffer matching `%s'" buf))))
 
 (defun iswitchb-window-buffer-p  (buffer)

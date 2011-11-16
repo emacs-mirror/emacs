@@ -688,7 +688,7 @@ on the menu bar.
               (TeX-master-file t)
             (error (buffer-file-name))))
          ((fboundp 'tex-main-file) (tex-main-file)) ; Emacs LaTeX mode
-         ((boundp 'TeX-master)       ; The variable is defined - lets use it.
+         ((boundp 'TeX-master)       ; The variable is defined - let's use it.
           (cond
            ((eq TeX-master t)
             (buffer-file-name))
@@ -1612,7 +1612,7 @@ When DIE is non-nil, throw an error if file not found."
 (defun reftex-find-file-externally (file type &optional master-dir)
   ;; Use external program to find FILE.
   ;; The program is taken from `reftex-external-file-finders'.
-  ;; Interprete relative path definitions starting from MASTER-DIR.
+  ;; Interpret relative path definitions starting from MASTER-DIR.
   (let ((default-directory (or master-dir default-directory))
         (prg (cdr (assoc type reftex-external-file-finders)))
         out)
@@ -2058,7 +2058,7 @@ When DIE is non-nil, throw an error if file not found."
                (with-current-buffer buf
                  (run-hooks 'reftex-initialize-temporary-buffers))))
 
-           ;; Lets see if we got a license to kill :-|
+           ;; Let's see if we got a license to kill :-|
            (and mark-to-kill
                 (add-to-list 'reftex-buffers-to-kill buf))
 

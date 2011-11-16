@@ -2217,7 +2217,7 @@ Return position where LINE begins."
 (defun gdb-mapcar* (function &rest seqs)
   "Apply FUNCTION to each element of SEQS, and make a list of the results.
 If there are several SEQS, FUNCTION is called with that many
-arguments, and mapping stops as sson as the shortest list runs
+arguments, and mapping stops as soon as the shortest list runs
 out."
   (let ((shortest (apply #'min (mapcar #'length seqs))))
     (mapcar (lambda (i)

@@ -1305,7 +1305,7 @@
 	* (erc-current-logfile): call expand-file-name, so that downcase doesn't mess up ~
 
 	* erc.el 1.459: * (erc-mode): Define a proper case-table.
-	* (erc-downcase): just call downcase for now, lets see if the case-table is portable, if yes, we'll remove all erc-downcase references anyway...
+	* (erc-downcase): just call downcase for now, let's see if the case-table is portable, if yes, we'll remove all erc-downcase references anyway...
 
 	* erc-button.el 1.43: * (erc-button-add-buttons): regex-quote the nick
 

@@ -473,7 +473,7 @@ found tag to be loaded."
 	;;       find a type/namespace because everything else is excluded.
 
 	;; If this is not the last entry from the list, then it
-	;; must be a type or a namespace.  Lets double check.
+	;; must be a type or a namespace.  Let's double check.
 	(when (cdr type)
 
 	  ;; From above, there is only one tag in ans, and we prefer
@@ -511,7 +511,7 @@ found tag to be loaded."
 	  ;; This won't liven up the tag since we have a copy, but
 	  ;; we ought to be able to get there and go to the right line.
 	  (find-file-noselect lastfile)
-	;; We don't want to find-file match, so instead lets
+	;; We don't want to find-file match, so instead let's
 	;; push the filename onto the return tag.
 	(when lastans
 	  (setq lastans (semantic-tag-copy lastans nil lastfile))

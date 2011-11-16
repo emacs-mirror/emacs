@@ -1537,7 +1537,7 @@ Entries must be symbols that are bound to the desired values.
 Each value can be a regexp or a list with a regexp followed by a
 substitution string.  If it's just a regexp, all its matches are removed
 before the text is encrypted.  If it's a regexp and a substitution, the
-substition is used against the regexp matches, a la `replace-match'.")
+substitution is used against the regexp matches, a la `replace-match'.")
 (make-variable-buffer-local 'allout-encryption-text-removal-regexps)
 ;;;_   = allout-encryption-ciphertext-rejection-regexps
 (defvar allout-encryption-ciphertext-rejection-regexps nil
@@ -3822,7 +3822,7 @@ Nuances:
                        (if (and (not (eobp))
                                 (or (not (bolp))
                                     (and (not (bobp))
-                                         ;; bolp doesnt detect concealed
+                                         ;; bolp doesn't detect concealed
                                          ;; trailing newlines, compensate:
                                          (save-excursion
                                            (forward-char -1)

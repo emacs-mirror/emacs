@@ -431,7 +431,7 @@ Optional argument COLOR means highlight the prototype with font-lock colors."
 	 (doc (semantic-tag-docstring tag buf)))
     (when (and (not doc) (not buf) fname)
       ;; If there is no doc, and no buffer, but we have a filename,
-      ;; lets try again.
+      ;; let's try again.
       (save-match-data
 	(setq buf (find-file-noselect fname)))
       (setq doc (semantic-tag-docstring tag buf)))

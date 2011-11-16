@@ -227,7 +227,7 @@ their id stays constant."
         (string= (widget-get node1 :tag) (widget-get node2 :tag)))))
 
 (defun newsticker--treeview-do-get-node-of-feed (feed-name startnode)
-   "Recursivly search node for feed FEED-NAME starting from STARTNODE."
+   "Recursively search node for feed FEED-NAME starting from STARTNODE."
    ;;(message "%s/%s" feed-name (widget-get startnode :nt-feed))
    (if (string= feed-name (or (widget-get startnode :nt-feed)
                               (widget-get startnode :nt-vfeed)))
@@ -245,7 +245,7 @@ their id stays constant."
                                               newsticker--treeview-vfeed-tree)))
 
 (defun newsticker--treeview-do-get-node (id startnode)
-   "Recursivly search node with ID starting from STARTNODE."
+   "Recursively search node with ID starting from STARTNODE."
    (if (newsticker--treeview-ids-eq id (widget-get startnode :nt-id))
        (throw 'found startnode)
      (let ((children (widget-get startnode :children)))

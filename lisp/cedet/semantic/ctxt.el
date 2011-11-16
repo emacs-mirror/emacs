@@ -410,7 +410,7 @@ Depends on `semantic-type-relation-separator-character'."
 	  ;; Set our end point.
 	  (setq end (point))
 
-	  ;; Now that we have gotten started, lets do the rest.
+	  ;; Now that we have gotten started, let's do the rest.
 	  (condition-case nil
 	      (while (save-excursion
 		       (forward-char -1)

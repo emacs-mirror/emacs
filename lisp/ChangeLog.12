@@ -764,7 +764,7 @@
 	Fix calls to get-buffer-window to find windows in other frames.
 	Reported by David Hansen <david.hansen@gmx.net>.
 
-2007-03-27   Kevin Ryde  <user42@zip.com.au>
+2007-03-27  Kevin Ryde  <user42@zip.com.au>
 
 	* info.el (Info-display-images-node): On a text-only terminal,
 	show the "text" or "alt" parts of the image blobs.

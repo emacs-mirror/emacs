@@ -459,7 +459,7 @@ other than :table."
       (setq cache (cdr cache)))
     (if obj
 	obj ;; Just return it.
-      ;; No object, lets create a new one and return that.
+      ;; No object, let's create a new one and return that.
       (setq obj (funcall desired-class "Cache" :table table))
       (object-add-to-list table 'cache obj)
       obj)))
@@ -510,7 +510,7 @@ other than :table."
       (setq cache (cdr cache)))
     (if obj
 	obj ;; Just return it.
-      ;; No object, lets create a new one and return that.
+      ;; No object, let's create a new one and return that.
       (setq obj (funcall desired-class "Cache" :db db))
       (object-add-to-list db 'cache obj)
       obj)))
@@ -941,7 +941,7 @@ DONTLOAD does not affect the creation of new database objects."
 	  (setq fullfile (file-truename file))
 	  )
 
-	;; If we have a table, but no fullfile, that's ok.  Lets get the filename
+	;; If we have a table, but no fullfile, that's ok.  Let's get the filename
 	;; from the table which is pre-truenamed.
 	(when (and (not fullfile) tab)
 	  (setq fullfile (semanticdb-full-filename tab)))

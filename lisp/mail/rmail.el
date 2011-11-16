@@ -631,27 +631,20 @@ Element N specifies the summary line for message N+1.")
 This is set to nil by default.")
 
 (defcustom rmail-enable-mime t
-  "If non-nil, RMAIL uses MIME features.
-If the value is t, RMAIL automatically shows MIME decoded message.
-If the value is neither t nor nil, RMAIL does not show MIME decoded message
-until a user explicitly requires it.
-
-Even if the value is non-nil, you can't use MIME features
-unless the feature specified by `rmail-mime-feature' is available."
-  :type '(choice (const :tag "on" t)
-		 (const :tag "off" nil)
-		 (other :tag "when asked" ask))
+  "If non-nil, RMAIL automatically displays decoded MIME messages.
+For this to work, the feature specified by `rmail-mime-feature' must
+be available."
+  :type 'boolean
   :version "23.3"
   :group 'rmail)
 
 (defvar rmail-enable-mime-composing t
   "*If non-nil, RMAIL uses `rmail-insert-mime-forwarded-message-function' to forward.")
 
-;; FIXME unused.
 (defvar rmail-show-mime-function nil
-  "Function to show MIME decoded message of RMAIL file.
+  "Function of no argument called to show a decoded MIME message.
 This function is called when `rmail-enable-mime' is non-nil.
-It is called with no argument.")
+The package providing MIME support should set this.")
 
 ;;;###autoload
 (defvar rmail-insert-mime-forwarded-message-function nil
@@ -687,7 +680,7 @@ where MSG is the message number, REGEXP is the regular
 expression, LIMIT is the position specifying the end of header.")
 
 (defvar rmail-mime-feature 'rmailmm
-  "Feature to require to load MIME support in Rmail.
+  "Feature to require for MIME support in Rmail.
 When starting Rmail, if `rmail-enable-mime' is non-nil,
 this feature is required with `require'.
 
@@ -837,10 +830,10 @@ isn't provided."
        (display-warning
 	'rmail
 	(format "Although MIME support is requested
-by setting `rmail-enable-mime' to non-nil, the required feature
+through `rmail-enable-mime' being non-nil, the required feature
 `%s' (the value of `rmail-mime-feature')
 is not available in the current session.
-So, the MIME support is turned off for the moment."
+So, MIME support is turned off for the moment."
 		rmail-mime-feature)
 	:warning)
        (setq rmail-enable-mime nil)))))
@@ -2700,6 +2693,7 @@ The current mail message becomes the message displayed."
 	  ;; inspect this value to determine how to toggle.
 	  (set (make-local-variable 'rmail-header-style) header-style))
 	(if (and rmail-enable-mime
+		 rmail-show-mime-function
 		 (re-search-forward "mime-version: 1.0" nil t))
 	    (let ((rmail-buffer mbox-buf)
 		  (rmail-view-buffer view-buf))
@@ -4500,28 +4494,29 @@ With prefix argument N moves forward N messages with these labels.
 
 ;;;***
 
-;;;### (autoloads (rmail-mime) "rmailmm" "rmailmm.el" "5d992206e382290d07ad7d9a2bf250c9")
+;;;### (autoloads (rmail-mime) "rmailmm" "rmailmm.el" "6296f0170a37670c49a88a1b92d78187")
 ;;; Generated autoloads from rmailmm.el
 
 (autoload 'rmail-mime "rmailmm" "\
-Toggle displaying of a MIME message.
+Toggle the display of a MIME message.
 
-The actualy behavior depends on the value of `rmail-enable-mime'.
+The actual behavior depends on the value of `rmail-enable-mime'.
 
-If `rmail-enable-mime' is t (default), this command change the
-displaying of a MIME message between decoded presentation form
-and raw data.
+If `rmail-enable-mime' is non-nil (the default), this command toggles
+the display of a MIME message between decoded presentation form and
+raw data.  With optional prefix argument ARG, it toggles the display only
+of the MIME entity at point, if there is one.  The optional argument
+STATE forces a particular display state, rather than toggling.
+`raw' forces raw mode, any other non-nil value forces decoded mode.
 
-With ARG, toggle the displaying of the current MIME entity only.
+If `rmail-enable-mime' is nil, this creates a temporary \"*RMAIL*\"
+buffer holding a decoded copy of the message. Inline content-types are
+handled according to `rmail-mime-media-type-handlers-alist'.
+By default, this displays text and multipart messages, and offers to
+download attachments as specified by `rmail-mime-attachment-dirs-alist'.
+The arguments ARG and STATE have no effect in this case.
 
-If `rmail-enable-mime' is nil, this creates a temporary
-\"*RMAIL*\" buffer holding a decoded copy of the message.  Inline
-content-types are handled according to
-`rmail-mime-media-type-handlers-alist'.  By default, this
-displays text and multipart messages, and offers to download
-attachments as specfied by `rmail-mime-attachment-dirs-alist'.
-
-\(fn &optional ARG)" t nil)
+\(fn &optional ARG STATE)" t nil)
 
 ;;;***
 

@@ -6393,7 +6393,7 @@ like this:
 @node Template elements, Template expansion, Capture templates, Capture templates
 @subsubsection Template elements
 
-Now lets look at the elements of a template definition.  Each entry in
+Now let's look at the elements of a template definition.  Each entry in
 @code{org-capture-templates} is a list with the following items:
 
 @table @var

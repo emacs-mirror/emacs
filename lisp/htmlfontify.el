@@ -1768,7 +1768,7 @@ hyperlinks as appropriate."
   "Return a list of files under DIRECTORY.
 Strips any leading \"./\" from each filename."
   ;;(message "hfy-list-files");;DBUG
-  ;; FIXME: this changes the dir of the currrent buffer.  Is that right??
+  ;; FIXME: this changes the dir of the current buffer.  Is that right??
   (cd directory)
   (mapcar (lambda (F) (if (string-match "^./\\(.*\\)" F) (match-string 1 F) F))
           (split-string (shell-command-to-string hfy-find-cmd))) )

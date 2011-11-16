@@ -133,7 +133,7 @@
 Return nil if there isn't one.
 Argument DIR is the directory it is created for.
 ROOTPROJ is nil, since there is only one project."
-  ;; Doesn't already exist, so lets make one.
+  ;; Doesn't already exist, so let's make one.
   (let* ((alobj ede-constructing)
 	 (this nil))
     (when (not alobj) (error "Cannot load generic project without the autoload instance"))

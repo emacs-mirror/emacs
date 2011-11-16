@@ -379,7 +379,7 @@ returned, and it will be stored in `secrets-session-path'."
 (defun secrets-prompt-handler (&rest args)
   "Handler for signals emitted by `secrets-interface-prompt'."
   ;; An empty object path is always identified as `secrets-empty-path'
-  ;; or `nil'.  Either we set it explicitely, or it is returned by the
+  ;; or `nil'.  Either we set it explicitly, or it is returned by the
   ;; "Completed" signal.
   (if (car args) ;; dismissed
       (setq secrets-prompt-signal (list secrets-empty-path))

@@ -11855,7 +11855,7 @@
 	(org-agenda-files): Ignore non-existing files.
 	(org-agenda-skip-unavailable-files): New variable.
 	(org-ellipsis): All a face as value.
-	(org-mode): Interprete the face value of `org-ellipsis'.
+	(org-mode): Interpret the face value of `org-ellipsis'.
 	(org-archive-save-context-info): New option.
 	(org-archive-subtree): Store context info in archived entry.
 	(org-fast-tag-selection-can-set-todo-state): New variable.
@@ -11890,7 +11890,7 @@
 	(org-set-regexps-and-options): Use `org-remove-keyword-keys'.
 	(org-remove-keyword-keys): New function.
 
-2007-08-30  Jari Aalto  <jari.aalto@cante.net>  (tiny change)
+2007-08-30  Jari Aalto  <jari.aalto@cante.net>
 
 	* progmodes/grep.el (grep-find-ignored-directories):
 	Add monotone _MTN bookkeeping directory in workspaces.

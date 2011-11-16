@@ -553,7 +553,7 @@ See `defclass' for more information."
       (put cname 'cl-deftype-handler
 	   (list 'lambda () `(list 'satisfies (quote ,csym)))))
 
-    ;; before adding new slots, lets add all the methods and classes
+    ;; before adding new slots, let's add all the methods and classes
     ;; in from the parent class
     (eieio-copy-parents-into-subclass newc superclasses)
 
@@ -826,7 +826,7 @@ if default value is nil."
   ;; Make sure we duplicate those items that are sequences.
   (condition-case nil
       (if (sequencep d) (setq d (copy-sequence d)))
-    ;; This copy can fail on a cons cell with a non-cons in the cdr.  Lets skip it if it doesn't work.
+    ;; This copy can fail on a cons cell with a non-cons in the cdr.  Let's skip it if it doesn't work.
     (error nil))
   (if (sequencep type) (setq type (copy-sequence type)))
   (if (sequencep cust) (setq cust (copy-sequence cust)))
@@ -1470,7 +1470,7 @@ created by the :initarg tag."
 	 (c (eieio-slot-name-index class obj slot)))
     (if (not c)
 	;; It might be missing because it is a :class allocated slot.
-	;; Lets check that info out.
+	;; Let's check that info out.
 	(if (setq c (eieio-class-slot-name-index class slot))
 	    ;; Oref that slot.
 	    (aref (aref (class-v class) class-class-allocation-values) c)
@@ -1503,7 +1503,7 @@ Fills in OBJ's SLOT with its default value."
 	 (c (eieio-slot-name-index cl obj slot)))
     (if (not c)
 	;; It might be missing because it is a :class allocated slot.
-	;; Lets check that info out.
+	;; Let's check that info out.
 	(if (setq c
 		  (eieio-class-slot-name-index cl slot))
 	    ;; Oref that slot.
@@ -1549,7 +1549,7 @@ Fills in OBJ's SLOT with VALUE."
   (let ((c (eieio-slot-name-index (object-class-fast obj) obj slot)))
     (if (not c)
 	;; It might be missing because it is a :class allocated slot.
-	;; Lets check that info out.
+	;; Let's check that info out.
 	(if (setq c
 		  (eieio-class-slot-name-index (aref obj object-class) slot))
 	    ;; Oset that slot.
@@ -1581,7 +1581,7 @@ Fills in the default value in CLASS' in SLOT with VALUE."
 	 (c (eieio-slot-name-index class nil slot)))
     (if (not c)
 	;; It might be missing because it is a :class allocated slot.
-	;; Lets check that info out.
+	;; Let's check that info out.
 	(if (setq c (eieio-class-slot-name-index class slot))
 	    (progn
 	      ;; Oref that slot.
@@ -3051,7 +3051,7 @@ Optional argument GROUP is the sub-group of slots to display.
 
 ;;;### (autoloads (eieio-help-mode-augmentation-maybee eieio-describe-generic
 ;;;;;;  eieio-describe-constructor eieio-describe-class eieio-browse)
-;;;;;;  "eieio-opt" "eieio-opt.el" "1bed0a56310f402683419139ebc18d7f")
+;;;;;;  "eieio-opt" "eieio-opt.el" "4fb6625c3a007438aab4e8e77b6c73c2")
 ;;; Generated autoloads from eieio-opt.el
 
 (autoload 'eieio-browse "eieio-opt" "\
