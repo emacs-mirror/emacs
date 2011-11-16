@@ -435,7 +435,7 @@ REVERSE (non-nil means reverse order), BEG and END (region to sort)."
                            (skip-chars-forward " \t\n")
                            ))
 
-               ;; ENDRECFUN is is called with point within the record.
+               ;; ENDRECFUN is called with point within the record.
                ;; It should move point to the end of the record.
 	       (function (lambda ()
                            (if (re-search-forward

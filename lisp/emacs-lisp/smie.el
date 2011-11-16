@@ -130,7 +130,7 @@
 ;; - a 2 dimensional precedence table (key word "prec2"), is a 2D
 ;;   table recording the precedence relation (can be `<', `=', `>', or
 ;;   nil) between each pair of tokens.
-;; - a precedence-level table (key word "grammar"), which is a alist
+;; - a precedence-level table (key word "grammar"), which is an alist
 ;;   giving for each token its left and right precedence level (a
 ;;   number or nil).  This is used in `smie-grammar'.
 ;; The prec2 tables are only intermediate data structures: the source

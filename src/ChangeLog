@@ -1,3 +1,7 @@
+2011-11-16  Juanma Barranquero  <lekktu@gmail.com>
+
+	* window.c (syms_of_window) <window-combination-limit>: Fix typo.
+
 2011-11-16  Martin Rudalics  <rudalics@gmx.at>
 
 	* window.h (window): Rename slot "nest" to "combination_limit".
@@ -259,7 +263,7 @@
 
 	* w32fns.c [_MSC_VER]: DECLARE_HANDLE for any MSVC version.
 
-2011-11-05  Fabrice Popineau  <fabrice.popineau@supelec.fr> (tiny change)
+2011-11-05  Fabrice Popineau  <fabrice.popineau@supelec.fr>  (tiny change)
 
 	Support MSVC build with newer versions of Visual Studio.
 	* w32.c: Don't include w32api.h for MSVC.
@@ -321,7 +325,7 @@
 	* xdisp.c (try_cursor_movement): Make sure ROW isn't decremented
 	past the beginning of the current glyph matrix.
 
-2011-10-30  Adam Sjøgren <asjo@koldfront.dk> (tiny change)
+2011-10-30  Adam Sjøgren  <asjo@koldfront.dk>  (tiny change)
 
 	* xterm.c: Include X11/Xproto.h if HAVE_GTK3.
 	(x_error_handler): Ignore BadMatch for X_SetInputFocus for
@@ -3049,7 +3053,7 @@
 	* nsselect.m (ns_string_from_pasteboard): Don't use deprecated methods
 	cString and lossyCString on OSX >= 10.4
 
-	* nsmenu.m (fillWithWidgetValue): Don't use depercated method
+	* nsmenu.m (fillWithWidgetValue): Don't use deprecated method
 	sizeToFit on OSX >= 10.2.
 
 	* nsimage.m (allocInitFromFile): Don't use deprecated method

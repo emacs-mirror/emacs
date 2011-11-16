@@ -1,3 +1,9 @@
+2011-11-16  Juanma Barranquero  <lekktu@gmail.com>
+
+	* semantic/lex.el (semantic-lex-tokens):
+	* semantic/tag-ls.el (semantic-tag-protected-p):
+	* srecode/mode.el (srecode-prefix-map): Fix typos.
+
 2011-11-15  Juanma Barranquero  <lekktu@gmail.com>
 
 	* ede/project-am.el (project-compile-target-command): Fix typo.

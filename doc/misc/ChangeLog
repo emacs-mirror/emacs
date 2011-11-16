@@ -73,7 +73,7 @@
 
 	Release MH-E manual version 8.3.
 
-	* mh-e.texi: (VERSION, EDITION, UPDATED, UPDATE-MONTH): Update for
+	* mh-e.texi (VERSION, EDITION, UPDATED, UPDATE-MONTH): Update for
 	release 8.3.
 	(Preface): Updated support information.
 	(From Bill Wohler): Reset text to original version. As a

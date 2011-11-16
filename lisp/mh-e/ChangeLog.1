@@ -1484,7 +1484,7 @@
 	* mh-alias.el (Commentary): Removed as it is now in the manual.
 	(mh-alias-system-aliases): Moved here from mh-customize.el. By
 	definition, "system" definitions are not user-visible, and user
-	filenames are in the the Aliasfile: profile component, so this
+	filenames are in the Aliasfile: profile component, so this
 	variable really shouldn't be a defcustom.
 	(mh-alias-tstamp, mh-alias-filenames, mh-alias-reload)
 	(mh-alias-add-alias, mh-alias-grab-from-field)
@@ -4533,7 +4533,7 @@
 
 	* mh-xemacs-toolbar.el: Remove the code since that gets generated
 	when mh-tool-bar-define is expanded.
-	(mh-xemacs-icon-map): A alist to map GNU Emacs icon names to the
+	(mh-xemacs-icon-map): An alist to map GNU Emacs icon names to the
 	actual icons to be used in XEmacs. This is used in
 	mh-tool-bar-define.
 
@@ -5022,7 +5022,7 @@
 	* mh-utils.el (mh-truncate-log-buffer): Modify the function to
 	return the current size of mh-log-buffer. Also we are now a bit
 	more careful in adding separators between consecutive messages.
-	(mh-exec-cmd): Fix a bug where the the log buffer would be
+	(mh-exec-cmd): Fix a bug where the log buffer would be
 	displayed even if no error happened in the current command but
 	the log buffer had messages from a previous error.
 
@@ -8594,7 +8594,7 @@
 	mail-header-separator.
 	(mh-send-letter): The default BCC encapsulation will make a MIME
 	message unreadable.  If we are running nmh and the letter contains
-	a Bcc: and a Content-Type: field, add the -mime switch to to the
+	a Bcc: and a Content-Type: field, add the -mime switch to the
 	arguments to send.
 
 2002-10-21  Peter S Galbraith  <psg@debian.org>
@@ -9610,7 +9610,7 @@
 2002-06-27  Satyaki Das  <satyaki@theforce.stanford.edu>
 
 	* mh-e.el (mh-next-undeleted-msg): Get rid of optional arg
-	reverse-p. If there are no more undeleted messages the the point
+	reverse-p. If there are no more undeleted messages the point
 	remains at its original position and a message is produced (closes
 	SF #494304).
 	(mh-previous-undeleted-msg): Change similar to
@@ -11049,7 +11049,7 @@
 	line, starting with Re:
 	(mh-scan-body-regexp):
 	Regexp matching the message body beginning displayed in scan lines.
-	(mh-scan.font-lock-regexp): Regexp matching output of the the
+	(mh-scan.font-lock-regexp): Regexp matching output of the
 	optional scan.font-lock format file.
 	(mh-folder-font-lock-keywords): New font-lock for folder-mode that
 	uses the above regexps.

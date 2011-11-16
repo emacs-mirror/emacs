@@ -105,8 +105,8 @@
 ;; should be loaded before the ada-mode, which will then setup some variables
 ;; to improve the support for Ada code.
 ;; Here is the list of these modes:
-;;   `which-function-mode': Display the name of the subprogram the cursor is
-;;      in in the mode line.
+;;   `which-function-mode': Display in the modeline the name of the subprogram
+;;      the cursor is in.
 ;;   `outline-mode': Provides the capability to collapse or expand the code
 ;;      for specific language constructs, for instance if you want to hide the
 ;;      code corresponding to a subprogram

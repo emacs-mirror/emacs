@@ -1,3 +1,8 @@
+2011-11-16  Juanma Barranquero  <lekktu@gmail.com>
+
+	* registry.el (registry-lookup, registry-lookup-breaks-before-lexbind):
+	Fix typos.
+
 2011-11-15  Juanma Barranquero  <lekktu@gmail.com>
 
 	* gnus-art.el (gnus-article-part-wrapper):
@@ -4429,7 +4434,7 @@
 	gnus-original-article-buffer is alive.
 
 	* nndoc.el (nndoc-dissect-buffer): Reverse the order of the articles to
-	reflect the order they're in in the digest.
+	reflect the order they are in the digest.
 
 	* gnus.el (gnus-group-startup-message): Move point to the start of the
 	buffer.

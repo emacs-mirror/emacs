@@ -1,3 +1,9 @@
+2011-11-16  Juanma Barranquero  <lekktu@gmail.com>
+
+	* org-agenda.el (org-create-marker-find-array):
+	* org-bibtex.el (org-bibtex-fields):
+	* org-list.el (org-list-insert-item): Fix typos.
+
 2011-11-11  Juanma Barranquero  <lekktu@gmail.com>
 
 	* org-plot.el (org-plot/gnuplot-to-grid-data): Fix typo in docstring.
@@ -3499,7 +3505,7 @@
 	* org.el (org-set-autofill-regexps): Use `org-item-re' in
 	`paragraph-start' to recognize alphabetical lists.
 	(org-fill-paragraph): Enforce a pre-computed fill-prefix before
-	calling `fill-paragraph' when point in in an item.  Also prevent
+	calling `fill-paragraph' when point is in an item.  Also prevent
 	paragraphs getting merged into an adjacent list upon filling.
 	(org-adaptive-fill-function): Make sure to determine real
 	fill-prefix for auto-fill.
@@ -11440,7 +11446,7 @@
 	package.
 
 	* org-latex.el (org-export-latex-tables): Only add a caption when
-	macro in in longtable environments if one has been defined.
+	macro is in longtable environments if one has been defined.
 
 	* org-html.el (org-export-as-html): Only take title from buffer if
 	not exporting body-only.

@@ -8855,7 +8855,7 @@
 	(org-get-indentation): New optional argument LINE.
 	(org-fix-indentation, org-remove-tabs): New functions.
 	(org-export-as-ascii, org-ascii-level-start): Determine and apply
-	correct indentation for headlines that are converted it items.
+	correct indentation for headlines that are converted to items.
 	(org-skip-comments): Remove table lines that contain narrowing
 	cookies but no other non-empty fields.
 	(org-set-tags): Allow groups of mutually exclusive tags.
@@ -16884,7 +16884,7 @@
 	* progmodes/cc-fonts.el (c-font-lock-complex-decl-prepare)
 	(c-font-lock-declarators, c-font-lock-declarations)
 	(c-complex-decl-matchers, c-basic-matchers-after): Use a text
-	property to mark the items in in declarator lists to handle
+	property to mark the items in declarator lists to handle
 	refontification inside multiline declarations better.
 
 	* progmodes/cc-fonts.el (c-font-lock-declarations): Recognize a

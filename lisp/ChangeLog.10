@@ -4332,7 +4332,7 @@
 
 2003-04-01  Stefan Monnier  <monnier@cs.yale.edu>
 
-	* progmodes/asm-mode.el	(asm-mode-syntax-table): Setup entries
+	* progmodes/asm-mode.el (asm-mode-syntax-table): Setup entries
 	that do not depend on asm-comment-char.
 	(asm-mode-map): Declare and init at the same time.
 	(asm-code-level-empty-comment-pattern)
@@ -9632,7 +9632,7 @@
 	named ucs-translation-table-for-decode vacant.  If FOR-ENCODE is
 	non-nil, make a proper char-table populates the translation table
 	name utf-translation-table-for-encode.  Call register-char-codings
-	for all mule-utf-* to to reset their status to the original.
+	for all mule-utf-* to reset their status to the original.
 	(unify-8859-on-encoding-mode): Call ucs-unify-8859 and
 	ucs-fragment-8859 with fixed arguments.  Set the version to 21.3.
 	(unify-8859-on-decoding-mode): Likewise.  Remove dependency.
@@ -10545,7 +10545,7 @@
 
 2002-09-22  Kai Großjohann  <grossjoh@ls6.informatik.uni-dortmund.de>
 
-	* dired.el (dired-insert-directory): Always add "--dired" to to
+	* dired.el (dired-insert-directory): Always add "--dired" to
 	SWITCHES for remote files.
 	* files.el (insert-directory): Comment saying that "--dired"
 	might be in the SWITCHES.
@@ -11617,7 +11617,7 @@
 	* emacs-lisp/bytecomp.el (byte-compile-warning-prefix):
 	Decide here whether to print which form we're compiling.
 	If we do that, still print file and line.  Make file name
-	relative to default-directory.	Print fewer newlines.
+	relative to default-directory.  Print fewer newlines.
 	(byte-compile-log-file): Print something even if no file.
 	Print messages for entering and leaving directories,
 	and set default-directory.
@@ -12899,7 +12899,7 @@
 	* timer.el (timer-inc-time): Doc fix.
 
 	* replace.el (keep-lines, flush-lines): Interactively report
-	read-only error	before reading regexp argument.
+	read-only error before reading regexp argument.
 
 	* dabbrev.el (dabbrev--search): Use inhibit-point-motion-hooks.
 
@@ -21105,12 +21105,12 @@
 	so that the next undo after an error will not begin redoing.
 
 	* simple.el (shell-command): Doc fix.
-	(shell-command-on-region): If there is output an an error,
+	(shell-command-on-region): If there is output and an error,
 	add "...Shell command failed" to the output.
 
 2001-12-13  David Ponce  <david@dponce.com>
 
-	* ruler-mode.el	(ruler-mode-left-fringe-cols): Variable removed.
+	* ruler-mode.el (ruler-mode-left-fringe-cols): Variable removed.
 	(ruler-mode-left-fringe-cols): Function replaced by more efficient
 	implementation `ruler-mode-extra-left-cols'.
 	(ruler-mode-ruler): Use above new function.  Take into account

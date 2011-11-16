@@ -13,7 +13,7 @@
 	(INT32_MIN, UINTMAX_MAX, UINTMAX_MIN, INTMAX_MAX, INTMAX_MIN)
 	(intmax_t, INT64_MAX): Add for MSVC.
 
-	* config.nt: (mode_t) [!__GNUC__]: Define mode_t for MSVC.
+	* config.nt (mode_t) [!__GNUC__]: Define mode_t for MSVC.
 
 2011-11-05  Eli Zaretskii  <eliz@gnu.org>
 
@@ -28,7 +28,7 @@
 
 	* INSTALL: Update for newer versions of MSVC.
 
-2011-11-05  Fabrice Popineau  <fabrice.popineau@supelec.fr> (tiny change)
+2011-11-05  Fabrice Popineau  <fabrice.popineau@supelec.fr>  (tiny change)
 
 	Support MSVC build with newer versions of Visual Studio.
 	* nmake.defs (USE_CRT_DLL): Define to 1.

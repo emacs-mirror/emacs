@@ -1,3 +1,16 @@
+2011-11-16  Juanma Barranquero  <lekktu@gmail.com>
+
+	* expand.el (expand-pos, expand-index, expand-point):
+	Remove redundant info from docstring.
+	(expand-add-abbrevs): Doc fix.
+	(expand-c-sample-expand-list, expand-sample-lisp-mode-expand-list)
+	(expand-sample-perl-mode-expand-list): Fix typos.
+
+	* net/dbus.el (dbus-event-member-name):
+	* play/5x5.el (5x5-solve-rotate-left, 5x5-solver-output):
+	* term/pc-win.el (msdos-create-frame-with-faces):
+	* textmodes/texinfmt.el (texinfo-format-image): Fix typos.
+
 2011-11-16  Martin Rudalics  <rudalics@gmx.at>
 
 	* window.el (split-window, window-state-get-1)
@@ -464,11 +477,10 @@
 	* progmodes/cc-defs.el: Update "virtual semicolon" comments.
 
 	* progmodes/cc-engine.el (c-crosses-statement-barrier-p):
-	Recode to scan one line at at time rather than having \n and \r
-	explicitly in c-stmt-delim-chars
-	(for some modes, e.g. AWK).
+	Recode to scan one line at time rather than having \n and \r
+	explicitly in c-stmt-delim-chars (for some modes, e.g. AWK).
 	(c-forward-label): Amend for virtual semicolons.
-	(c-at-macro-vsemi-p, c-macro-vsemi-status-unknown-p): New functions
+	(c-at-macro-vsemi-p, c-macro-vsemi-status-unknown-p): New functions.
 
 	* progmodes/cc-fonts.el (c-font-lock-declarations): Take account
 	of the new C macros.
@@ -485,7 +497,7 @@
 
 	* progmodes/cc-vars.el (c-macro-with-semi-re):
 	(c-macro-names-with-semicolon): New variables.
-	(c-make-macro-with-semi-re): New function
+	(c-make-macro-with-semi-re): New function.
 
 2011-10-28  Stefan Monnier  <monnier@iro.umontreal.ca>
 
@@ -2558,13 +2570,13 @@
 
 2011-08-20  Alan Mackenzie  <acm@muc.de>
 
-	* Fontify CPP expressions correctly when starting in the middle of
+	Fontify CPP expressions correctly when starting in the middle of
 	such a construct.  Mainly for when jit-lock etc. starts a chunk
 	here.
 
-	* progmodes/cc-fonts.el (c-font-lock-context): new buffer local
+	* progmodes/cc-fonts.el (c-font-lock-context): New buffer local
 	variable.
-	(c-make-font-lock-search-form): new function, extracted from
+	(c-make-font-lock-search-form): New function, extracted from
 	c-make-font-lock-search-function.
 	(c-make-font-lock-search-function): Use the above function.
 	(c-make-font-lock-context-search-function): New function.
@@ -2895,7 +2907,7 @@
 
 	* progmodes/cc-fonts.el (c-font-lock-declarations): Jump over the
 	QT keyword "more" to prevent "more slots: ...." being spuriously
-	parsed as a bitfield declaraion.
+	parsed as a bitfield declaration.
 
 	* progmodes/cc-engine.el (c-beginning-of-statement-1):
 	Refactor and enhance to handle bitfield declarations.
@@ -5640,7 +5652,7 @@
 
 	* image-mode.el (image-toggle-display-image): Ensure that the
 	image spec passed to the animate timer is the same object as in
-	the the buffer's display property (Bug#6981).
+	the buffer's display property (Bug#6981).
 	(image-transform-properties): Doc fix.
 
 	* image.el (image-animate-max-time): Default to nil.

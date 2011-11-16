@@ -6506,7 +6506,7 @@ This variable takes no effect if `window-combination-limit' is non-nil.  */);
 	       doc: /* Non-nil means splitting a window makes a new parent window.
 If this variable is nil, splitting a window will create a new parent
 window only if the window has no parent window or the window shall
-become a combination orthogonal to the one it it is part of.
+become a combination orthogonal to the one it is part of.
 
 If this variable is t, splitting a window always creates a new parent
 window.  If all splits behave this way, each frame's window tree is a
@@ -6515,7 +6515,7 @@ sibling.
 
 Other values are reserved for future use.
 
-The value of this variable is also assigned to the combination_limit
+The value of this variable is also assigned to the combination-limit
 status of the new parent window.  The combination-limit status of a
 window can be retrieved via the function `window-combination-limit' and
 altered by the function `set-window-combination-limit'.  */);

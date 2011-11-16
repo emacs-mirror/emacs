@@ -1,3 +1,9 @@
+2011-11-16  Juanma Barranquero  <lekktu@gmail.com>
+
+	* killing.texi (Rectangles):
+	* regs.texi (Rectangle Registers):
+	* search.texi (Isearch Yank): Fix typos.
+
 2011-11-06  Chong Yidong  <cyd@gnu.org>
 
 	* windows.texi (Basic Window): Add xref to Cursor Display.

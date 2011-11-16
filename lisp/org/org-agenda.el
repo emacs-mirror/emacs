@@ -2972,7 +2972,7 @@ removed from the entry content.  Currently only `planning' is allowed here."
     (nreverse markers)))
 
 (defun org-create-marker-find-array (marker-list)
-  "Create a alist of files names with all marker positions in that file."
+  "Create an alist of files names with all marker positions in that file."
   (let (f tbl m a p)
     (while (setq m (pop marker-list))
       (setq p (marker-position m)

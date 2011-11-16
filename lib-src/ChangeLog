@@ -5134,7 +5134,7 @@
 
 1996-03-15  Anders Lindgren  <andersl@csd.uu.se>
 
-	* etags.c: Prolog language totaly rewritten.
+	* etags.c: Prolog language totally rewritten.
 	(Prolog_functions): Rewritten from scratch.
 	(skip_comment, prolog_getit): Removed.
 	(prolog_skip_comment): New function, like old skip_comment.
