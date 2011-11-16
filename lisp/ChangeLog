@@ -1,3 +1,8 @@
+2011-11-16  Chong Yidong  <cyd@gnu.org>
+
+	* progmodes/autoconf.el (autoconf-mode): Fix comment-start-skip
+	regexp (Bug#10033).
+
 2011-11-16  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* tmm.el (tmm-prompt): Use minibuffer-with-setup-hook (bug#10053).

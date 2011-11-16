@@ -3051,7 +3051,7 @@ Optional argument GROUP is the sub-group of slots to display.
 
 ;;;### (autoloads (eieio-help-mode-augmentation-maybee eieio-describe-generic
 ;;;;;;  eieio-describe-constructor eieio-describe-class eieio-browse)
-;;;;;;  "eieio-opt" "eieio-opt.el" "1bed0a56310f402683419139ebc18d7f")
+;;;;;;  "eieio-opt" "eieio-opt.el" "4fb6625c3a007438aab4e8e77b6c73c2")
 ;;; Generated autoloads from eieio-opt.el
 
 (autoload 'eieio-browse "eieio-opt" "\

@@ -4494,27 +4494,29 @@ With prefix argument N moves forward N messages with these labels.
 
 ;;;***
 
-;;;### (autoloads (rmail-mime) "rmailmm" "rmailmm.el" "a79f498959deded8fa9d88a7dca93bc0")
+;;;### (autoloads (rmail-mime) "rmailmm" "rmailmm.el" "6296f0170a37670c49a88a1b92d78187")
 ;;; Generated autoloads from rmailmm.el
 
 (autoload 'rmail-mime "rmailmm" "\
-Toggle displaying of a MIME message.
+Toggle the display of a MIME message.
 
 The actual behavior depends on the value of `rmail-enable-mime'.
 
-If `rmail-enable-mime' is non-nil (default), this command changes the
-display of a MIME message between decoded presentation form and raw data.
+If `rmail-enable-mime' is non-nil (the default), this command toggles
+the display of a MIME message between decoded presentation form and
+raw data.  With optional prefix argument ARG, it toggles the display only
+of the MIME entity at point, if there is one.  The optional argument
+STATE forces a particular display state, rather than toggling.
+`raw' forces raw mode, any other non-nil value forces decoded mode.
 
-With ARG, toggle the display of the current MIME entity only.
+If `rmail-enable-mime' is nil, this creates a temporary \"*RMAIL*\"
+buffer holding a decoded copy of the message. Inline content-types are
+handled according to `rmail-mime-media-type-handlers-alist'.
+By default, this displays text and multipart messages, and offers to
+download attachments as specified by `rmail-mime-attachment-dirs-alist'.
+The arguments ARG and STATE have no effect in this case.
 
-If `rmail-enable-mime' is nil, this creates a temporary
-\"*RMAIL*\" buffer holding a decoded copy of the message.  Inline
-content-types are handled according to
-`rmail-mime-media-type-handlers-alist'.  By default, this
-displays text and multipart messages, and offers to download
-attachments as specified by `rmail-mime-attachment-dirs-alist'.
-
-\(fn &optional ARG)" t nil)
+\(fn &optional ARG STATE)" t nil)
 
 ;;;***
 
