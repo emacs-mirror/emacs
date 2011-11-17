@@ -3702,8 +3702,8 @@ set correctly.  See the code of `split-window' for how this is done.  */)
     error ("Attempt to split minibuffer window");
   else if (XINT (total_size) < (horflag ? 2 : 1))
     error ("Size of new window too small (after split)");
-  else if (!combination_limit && !NILP (Vwindow_splits))
-    /* `window-splits' non-nil means try to resize OLD's siblings
+  else if (!combination_limit && !NILP (Vwindow_combination_resize))
+    /* `window-combination-resize' non-nil means try to resize OLD's siblings
        proportionally.  */
     {
       p = XWINDOW (o->parent);
@@ -6491,16 +6491,20 @@ will redraw the entire frame; the special value `tty' causes the
 frame to be redrawn only if it is a tty frame.  */);
   Vrecenter_redisplay = Qtty;
 
-  DEFVAR_LISP ("window-splits", Vwindow_splits,
-	       doc: /* Non-nil means splitting windows is handled specially.
+  DEFVAR_LISP ("window-combination-resize", Vwindow_combination_resize,
+	       doc: /* Non-nil means resize window combinations proportionally.
 If this variable is nil, splitting a window gets the entire screen space
-for displaying the new window from the window to split.  If this
-variable is non-nil, splitting a window may resize all windows in the
-same combination.  This also allows to split a window that is otherwise
-too small or of fixed size.
+for displaying the new window from the window to split.  Deleting and
+resizing a windwo preferably resizes one adjacent window only.
+
+If this variable is non-nil, splitting a window tries to get the space
+proportionally from all windows in the same combination.  This also
+allows to split a window that is otherwise too small or of fixed size.
+Resizing and deleting a window proportionally resize all windows in the
+same combination.
 
 This variable takes no effect if `window-combination-limit' is non-nil.  */);
-  Vwindow_splits = Qnil;
+  Vwindow_combination_resize = Qnil;
 
   DEFVAR_LISP ("window-combination-limit", Vwindow_combination_limit,
 	       doc: /* Non-nil means splitting a window makes a new parent window.

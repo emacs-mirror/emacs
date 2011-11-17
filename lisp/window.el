@@ -1482,11 +1482,11 @@ instead."
      ((window--resizable-p window delta horizontal ignore)
       (window--resize-reset frame horizontal)
       (window--resize-this-window window delta horizontal ignore t)
-      (if (and (not window-splits)
+      (if (and (not window-combination-resize)
 	       (window-combined-p window horizontal)
 	       (setq sibling (or (window-right window) (window-left window)))
 	       (window-sizable-p sibling (- delta) horizontal ignore))
-	  ;; If window-splits is nil, WINDOW is part of an
+	  ;; If window-combination-resize is nil, WINDOW is part of an
 	  ;; iso-combination, and WINDOW's neighboring right or left
 	  ;; sibling can be resized as requested, resize that sibling.
 	  (let ((normal-delta
@@ -2389,7 +2389,8 @@ non-side window, signal an error."
 	     (sibling (or (window-left window) (window-right window))))
 	(window--resize-reset frame horizontal)
 	(cond
-	 ((and (not window-splits) sibling (window-sizable-p sibling size))
+	 ((and (not window-combination-resize)
+	       sibling (window-sizable-p sibling size))
 	  ;; Resize WINDOW's sibling.
 	  (window--resize-this-window sibling size horizontal nil t)
 	  (set-window-new-normal
@@ -3112,11 +3113,11 @@ frame.  The selected window is not changed by this function."
 	;; window gets created set `window-combination-limit' to t.
 	(setq window-combination-limit t))
 
-      (when (and window-splits size (> size 0))
-	;; If `window-splits' is non-nil and SIZE is a non-negative
-	;; integer, we cannot reasonably resize other windows.  Rather
-	;; bind `window-combination-limit' to t to make sure that
-	;; subsequent window deletions are handled correctly.
+      (when (and window-combination-resize size (> size 0))
+	;; If `window-combination-resize' is non-nil and SIZE is a
+	;; non-negative integer, we cannot reasonably resize other
+	;; windows.  Rather bind `window-combination-limit' to t to make
+	;; sure that subsequent window deletions are handled correctly.
 	(setq window-combination-limit t))
 
       (let* ((parent-size
@@ -3126,7 +3127,7 @@ frame.  The selected window is not changed by this function."
 	     ;; `resize' non-nil means we are supposed to resize other
 	     ;; windows in WINDOW's combination.
 	     (resize
-	      (and window-splits (not window-combination-limit)
+	      (and window-combination-resize (not window-combination-limit)
 		   ;; Resize makes sense in iso-combinations only.
 		   (window-combined-p window horizontal)))
 	     ;; `old-size' is the current size of WINDOW.
