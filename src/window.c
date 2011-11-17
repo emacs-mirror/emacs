@@ -6495,7 +6495,7 @@ frame to be redrawn only if it is a tty frame.  */);
 	       doc: /* Non-nil means resize window combinations proportionally.
 If this variable is nil, splitting a window gets the entire screen space
 for displaying the new window from the window to split.  Deleting and
-resizing a windwo preferably resizes one adjacent window only.
+resizing a window preferably resizes one adjacent window only.
 
 If this variable is non-nil, splitting a window tries to get the space
 proportionally from all windows in the same combination.  This also

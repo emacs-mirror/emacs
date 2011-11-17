@@ -1,3 +1,7 @@
+2011-11-17  Juanma Barranquero  <lekktu@gmail.com>
+
+	* window.c (syms_of_window) <window-combination-resize>: Fix typo.
+
 2011-11-17  Martin Rudalics  <rudalics@gmx.at>
 
 	* window.c (Vwindow_splits): Rename to

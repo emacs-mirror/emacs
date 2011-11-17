@@ -1,3 +1,19 @@
+2011-11-17  Juanma Barranquero  <lekktu@gmail.com>
+
+	* textmodes/reftex-toc.el (reftex-toc-return-marker, reftex-toc-help)
+	(reftex-toc, reftex-toc, reftex-toc-dframe-p, reftex-toc-next-heading)
+	(reftex-toc-previous-heading, reftex-toc-max-level)
+	(reftex-toc-goto-line-and-hide, reftex-toc-show-calling-point)
+	(reftex-toc-quit, reftex-toc-revert, reftex-toc-jump)
+	(reftex-toc-do-promote, reftex-toc-promote-prepare)
+	(reftex-toc-promote-action, reftex-toc-extract-section-number)
+	(reftex-toc-load-all-files-for-promotion, reftex-toc-rename-label)
+	(reftex-toc-rename-label, reftex-toc-visit-location)
+	(reftex-toc-visit-location, reftex-toggle-auto-toc-recenter)
+	(reftex-toggle-auto-toc-recenter, reftex-toggle-auto-toc-recenter)
+	(reftex-make-separate-toc-frame): Fix typos, and use TOC consistently,
+	leaving "*toc*" only for references to the buffer.
+
 2011-11-17  Martin Rudalics  <rudalics@gmx.at>
 
 	* window.el (window-resize, delete-window, split-window):
