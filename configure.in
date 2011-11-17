@@ -1348,7 +1348,7 @@ AH_TEMPLATE(POINTER_TYPE,
 	    [Define as `void' if your compiler accepts `void *'; otherwise
 	     define as `char'.])dnl
 
-dnl Check for endianess
+dnl Check for endianness.
 AC_C_BIGENDIAN
 
 AC_CACHE_CHECK([for  __attribute__ ((__aligned__ (expr)))],

@@ -705,7 +705,8 @@ Those words in `idlwave-completion-help-links' have links.  The
 	     ;; we kill the help frame before the return-frame is selected.
 	     ;; To protect the workings, we wait for up to one second
 	     ;; and check if the return-frame *is* now selected.
-	     ;; This is marked "eperimental" since we are not sure when its OK.
+	     ;; This is marked "experimental" since we are not sure when
+	     ;; it's OK.
 	     (let ((maxtime 1.0) (time 0.) (step 0.1))
 	       (select-frame idlwave-help-return-frame)
 	       (while (and (sit-for step)

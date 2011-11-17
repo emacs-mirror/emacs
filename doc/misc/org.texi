@@ -6216,7 +6216,7 @@ not started at exactly the right moment.
 @kindex ;
 
 Calling @code{org-timer-set-timer} from an Org-mode buffer runs a countdown
-timer.  Use @kbd{;} from agenda buffers, @key{C-c C-x ;} everwhere else.
+timer.  Use @kbd{;} from agenda buffers, @key{C-c C-x ;} everywhere else.
 
 @code{org-timer-set-timer} prompts the user for a duration and displays a
 countdown timer in the modeline.  @code{org-timer-default-timer} sets the

@@ -16735,7 +16735,7 @@
 	* progmodes/cc-cmds.el (c-beginning-of-statement (and
 	subfunctions)): Adapt c-\(back\|forward\)-over-illiterals such
 	that movement over macros and code are rigorously separated from
-	eachother.  Correct a few incidental bugs.
+	each other.  Correct a few incidental bugs.
 
 	* progmodes/cc-cmds.el: Restructure c-beginning-of-statement:
 	Improve its doc-string.  Improve the handling of certain specific cases.

@@ -161,7 +161,7 @@
                        "[ \t\f]+\\(\\sw+\\|\\s_+\\|\\s.+\\)")
                '((1 font-lock-keyword-face)
                  (2 font-lock-function-name-face)))
-         ;; binary macro defintions: <leveldef> x operator y
+         ;; binary macro definitions: <leveldef> x operator y
          (cons (concat "\\<" macro-keywords-2 "\\>"
                        "[ \t\f]+\\(\\sw+\\)"
                        "[ \t\f]*\\(\\sw+\\|\\s.+\\)"

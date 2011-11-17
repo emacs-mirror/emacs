@@ -42,7 +42,7 @@
 ;; - For XEmacs 21.x, you need to install the RefTeX plug-in package
 ;;   available from the XEmacs distribution sites.
 ;; - If you have downloaded this file from the maintainers webpage, follow
-;;   the instructions in the INSTALL file of the distrubution.
+;;   the instructions in the INSTALL file of the distribution.
 ;;
 ;; To turn RefTeX Mode on and off in a buffer, use `M-x reftex-mode'.
 ;;

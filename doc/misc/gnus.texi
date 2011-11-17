@@ -26756,7 +26756,7 @@ Sudish Joseph---innumerable bug fixes.
 Ilja Weis---@file{gnus-topic.el}.
 
 @item
-Steven L. Baur---lots and lots and lots of bugs detections and fixes.
+Steven L. Baur---lots and lots and lots of bug detection and fixes.
 
 @item
 Vladimir Alexiev---the refcard and reference booklets.

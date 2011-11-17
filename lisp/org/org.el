@@ -1482,7 +1482,7 @@ in the search text."
   :type '(choice
 	  (const :tag "Use fuzy text search" nil)
 	  (const :tag "Match only exact headline" t)
-	  (const :tag "Match extact headline or query to create it"
+	  (const :tag "Match exact headline or query to create it"
 		 query-to-create)))
 
 (defcustom org-link-frame-setup
@@ -5052,7 +5052,7 @@ The time stamps may be either active or inactive.")
 (defvar org-emph-face nil)
 
 (defun org-do-emphasis-faces (limit)
-  "Run through the buffer and add overlays to emphasised strings."
+  "Run through the buffer and add overlays to emphasized strings."
   (let (rtn a)
     (while (and (not rtn) (re-search-forward org-emph-re limit t))
       (if (not (= (char-after (match-beginning 3))
@@ -14835,7 +14835,7 @@ user."
       (setq ans (replace-match (format "%04d-%02d-%02d\\5" year month day)
 			       t nil ans)))
 
-    ;; Help matching dottet european dates
+    ;; Help matching dotted european dates
     (when (string-match
 	   "^ *\\(3[01]\\|0?[1-9]\\|[12][0-9]\\)\\. ?\\(0?[1-9]\\|1[012]\\)\\. ?\\([1-9][0-9][0-9][0-9]\\)?" ans)
       (setq year (if (match-end 3)

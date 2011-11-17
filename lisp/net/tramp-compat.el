@@ -412,7 +412,7 @@ element is not omitted."
   (program &optional infile destination display &rest args)
   "Calls `call-process' on the local host.
 This is needed because for some Emacs flavors Tramp has
-defadviced `call-process' to behave like `process-file'.  The
+defadvised `call-process' to behave like `process-file'.  The
 Lisp error raised when PROGRAM is nil is trapped also, returning 1."
   (let ((default-directory
 	  (if (file-remote-p default-directory)

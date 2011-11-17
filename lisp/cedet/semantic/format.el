@@ -603,7 +603,7 @@ This associates a symbol, such as 'public with the st ring \"+\".")
   "Convert PROTECTION-SYMBOL to a string for UML.
 By default, uses `semantic-format-tag-protection-symbol-to-string-assoc-list'
 to convert.
-By defaul character returns are:
+By default character returns are:
   public    -- +
   private   -- -
   protected -- #.

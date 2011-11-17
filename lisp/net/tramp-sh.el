@@ -549,7 +549,7 @@ as given in your `~/.profile'."
   "*List of environment variables to be set on the remote host.
 
 Each element should be a string of the form ENVVARNAME=VALUE.  An
-entry ENVVARNAME= diables the corresponding environment variable,
+entry ENVVARNAME= disables the corresponding environment variable,
 which might have been set in the init files like ~/.profile.
 
 Special handling is applied to the PATH environment, which should

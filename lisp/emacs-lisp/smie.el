@@ -1579,8 +1579,9 @@ KEYWORDS are additional arguments, which can use the following keywords:
                      (while (setq closer (pop closers))
                        (unless (and closers
                                     ;; FIXME: this eliminates prefixes of other
-                                    ;; closers, but we should probably elimnate
-                                    ;; prefixes of other keywords as well.
+                                    ;; closers, but we should probably
+                                    ;; eliminate prefixes of other keywords
+                                    ;; as well.
                                     (string-prefix-p closer (car closers)))
                          (push (aref closer (1- (length closer))) triggers)))
                      (delete-dups triggers)))))))

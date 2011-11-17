@@ -776,7 +776,7 @@
       (setq anchor (point))
       (search-forward-regexp c-awk-harmless-string*-here-re nil t)
       ;; We are now looking at either a " or a /.
-      ;; Do our thing on the string, regexp or divsion sign.
+      ;; Do our thing on the string, regexp or division sign.
       (setq anchor-state-/div
             (if (looking-at "_?\"")
                 (c-awk-syntax-tablify-string)

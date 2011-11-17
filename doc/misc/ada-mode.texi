@@ -184,7 +184,7 @@ convention, where file names are a simple modification of the Ada
 names, and the extension for specs and bodies are
 @samp{.ads} and @samp{.adb}, respectively.
 
-Ada mode uses the file extentions to allow moving from a package body
+Ada mode uses the file extensions to allow moving from a package body
 to the corresponding spec and back.
 
 Ada mode supports a list of alternative file extensions for specs and bodies.

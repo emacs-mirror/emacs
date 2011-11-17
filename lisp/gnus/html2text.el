@@ -123,7 +123,7 @@ If this list contains the element \"font\".")
 This is an alist where each dotted pair consists of a tag, and then
 the name of a function to be called when this tag is found.  The
 function is called with the arguments p1, p2, p3 and p4. These are
-demontrated below:
+demonstrated below:
 
 \"<b> This is bold text </b>\"
  ^   ^                 ^    ^

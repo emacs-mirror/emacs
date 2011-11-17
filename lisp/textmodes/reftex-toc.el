@@ -470,7 +470,7 @@ Label context is only displayed when the labels are there as well."
 (defun reftex-toc-max-level (arg)
   "Set the maximum level of toc lines in this buffer to value of prefix ARG.
 When no prefix is given, set the max level to a large number, so that all
-levels are shown.  For eaxample, to set the level to 3, type `3 m'."
+levels are shown.  For example, to set the level to 3, type `3 m'."
   (interactive "P")
   (setq reftex-toc-max-level (if arg
                                  (prefix-numeric-value arg)
@@ -850,7 +850,7 @@ When finished, we exit with an error message."
 (defun reftex-toc-rename-label ()
   "Rename the currently selected label in the *TOC* buffer.
 This launches a global search and replace in order to rename a label.
-Renaming a label is hardly ever necessary - the only exeption is after
+Renaming a label is hardly ever necessary - the only exception is after
 promotion/demotion in connection with a package like fancyref, where the
 label prefix determines the wording of a reference."
   (interactive)

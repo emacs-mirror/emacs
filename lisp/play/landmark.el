@@ -1584,7 +1584,7 @@ If the game is finished, this command requests for another game."
 
 ;;;_  - something which doesn't work
 ; no-a-worka!!
-;(defum landmark-sum-list (list)
+;(defun landmark-sum-list (list)
 ;  (if (> (length list) 0)
 ;      (+ (car list) (landmark-sum-list (cdr list)))
 ;    0))

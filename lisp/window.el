@@ -3432,7 +3432,7 @@ is non-nil."
   "Balance the sizes of windows of WINDOW-OR-FRAME.
 WINDOW-OR-FRAME is optional and defaults to the selected frame.
 If WINDOW-OR-FRAME denotes a frame, balance the sizes of all
-windows of that frame.  If WINDOW-OR-FRAME denots a window,
+windows of that frame.  If WINDOW-OR-FRAME denotes a window,
 recursively balance the sizes of all child windows of that
 window."
   (interactive)

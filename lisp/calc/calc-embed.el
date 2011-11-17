@@ -125,7 +125,7 @@
   "The mode settings for Calc buffer when put in embedded mode.")
 
 (defun calc-embedded-save-original-modes ()
-  "Save the current Calc modes when entereding embedded mode."
+  "Save the current Calc modes when entering embedded mode."
   (let ((calcbuf (save-excursion
                    (calc-create-buffer)
                    (current-buffer)))
@@ -144,7 +144,7 @@
               (let ((var (cdr (car v))))
                 (unless (memq var '(the-language the-display-just))
                   (setq modes
-                        (cons (cons var (symbol-value var)) 
+                        (cons (cons var (symbol-value var))
                               modes))))
               (setq v (cdr v))))
           (setq calc-embedded-original-modes (cons lang modes)))
@@ -182,7 +182,7 @@
             (calc-set-mode-line))))
     (setq calc-embedded-original-modes nil)))
 
-;; The variables calc-embed-outer-top, calc-embed-outer-bot, 
+;; The variables calc-embed-outer-top, calc-embed-outer-bot,
 ;; calc-embed-top and calc-embed-bot are
 ;; local to calc-do-embedded, calc-embedded-mark-formula,
 ;; calc-embedded-duplicate, calc-embedded-new-formula and
@@ -195,7 +195,7 @@
 
 ;; The variable calc-embed-arg is local to calc-do-embedded,
 ;; calc-embedded-update-formula, calc-embedded-edit and
-;; calc-do-embedded-activate, but is used by 
+;; calc-do-embedded-activate, but is used by
 ;; calc-embedded-make-info, which is called by the above
 ;; functions.
 (defvar calc-embed-arg)
@@ -208,14 +208,14 @@
 
 ;; The following is to take care of any minor modes which override
 ;; a Calc command.
-(defvar calc-override-minor-modes-map 
+(defvar calc-override-minor-modes-map
   (make-sparse-keymap)
   "A list of keybindings that might be overwritten by minor modes.")
 
 ;; Add any keys that might be overwritten here.
 (define-key calc-override-minor-modes-map "`" 'calc-edit)
 
-(defvar calc-override-minor-modes 
+(defvar calc-override-minor-modes
   (cons t calc-override-minor-modes-map))
 
 (defun calc-do-embedded (calc-embed-arg end obeg oend)
@@ -279,7 +279,7 @@
       (calc-embedded-save-original-modes)
       (or calc-embedded-globals
 	  (calc-find-globals))
-      (setq info 
+      (setq info
             (calc-embedded-make-info (point) nil t calc-embed-arg end obeg oend))
       (if (eq (car-safe (aref info 8)) 'error)
 	  (progn
@@ -564,7 +564,7 @@ The command \\[yank] can retrieve it from there."
     (goto-char calc-embed-outer-bot)
     (insert "\n")
     (setq new-top (point))
-    (insert-buffer-substring (current-buffer) 
+    (insert-buffer-substring (current-buffer)
                              calc-embed-outer-top calc-embed-outer-bot)
     (goto-char (+ new-top (- calc-embed-top calc-embed-outer-top)))
     (let ((calc-embedded-quiet (if already t 'x)))
@@ -659,7 +659,7 @@ The command \\[yank] can retrieve it from there."
 	    (equal (symbol-value (car (car v))) value))
 	  (progn
 	    (setq changed t)
-	    (if temp (setq calc-embed-prev-modes 
+	    (if temp (setq calc-embed-prev-modes
                            (cons (cons (car (car v))
                                        (symbol-value (car (car v))))
                                  calc-embed-prev-modes)))
@@ -809,12 +809,12 @@ The command \\[yank] can retrieve it from there."
     (list modes emodes pmodes)))
 
 ;; The variable calc-embed-vars-used is local to calc-embedded-make-info,
-;; calc-embedded-evaluate-expr and calc-embedded-update, but is 
+;; calc-embedded-evaluate-expr and calc-embedded-update, but is
 ;; used by calc-embedded-find-vars, which is called by the above functions.
 (defvar calc-embed-vars-used)
 
 (defun calc-embedded-make-info (point cbuf fresh &optional
-				      calc-embed-top calc-embed-bot 
+				      calc-embed-top calc-embed-bot
                                       calc-embed-outer-top calc-embed-outer-bot)
   (let* ((bufentry (assq (current-buffer) calc-embedded-active))
 	 (found bufentry)
@@ -831,7 +831,7 @@ The command \\[yank] can retrieve it from there."
                (newform (assoc major-mode calc-embedded-open-close-formula-alist))
                (newword (assoc major-mode calc-embedded-word-regexp-alist))
                (newplain (assoc major-mode calc-embedded-open-close-plain-alist))
-               (newnewform 
+               (newnewform
                 (assoc major-mode calc-embedded-open-close-new-formula-alist))
                (newmode (assoc major-mode calc-embedded-open-close-mode-alist)))
            (when newann
@@ -874,9 +874,9 @@ The command \\[yank] can retrieve it from there."
       (aset info 1 (or cbuf (save-excursion
 			      (calc-create-buffer)
 			      (current-buffer)))))
-    (if (and 
+    (if (and
          (or (integerp calc-embed-top) (equal calc-embed-top '(4)))
-         (not calc-embed-bot))  
+         (not calc-embed-bot))
                                         ; started with a user-supplied argument
 	(progn
           (if (equal calc-embed-top '(4))
@@ -1157,7 +1157,7 @@ The command \\[yank] can retrieve it from there."
 	       (if need-display
 		   (calc-embedded-set-justify (cdr (car calc-embed-prev-modes)))))
 	      (t
-	       (set (car (car calc-embed-prev-modes)) 
+	       (set (car (car calc-embed-prev-modes))
                     (cdr (car calc-embed-prev-modes)))))
 	(setq calc-embed-prev-modes (cdr calc-embed-prev-modes))))))
 

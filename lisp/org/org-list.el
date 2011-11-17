@@ -681,7 +681,7 @@ Assume point is at an item."
 	      (cond
 	       ((<= (point) lim-up)
 		;; At upward limit: if we ended at an item, store it,
-		;; else dimiss useless data recorded above BEG-CELL.
+		;; else dismiss useless data recorded above BEG-CELL.
 		;; Jump to part 2.
 		(throw 'exit
 		       (setq itm-lst

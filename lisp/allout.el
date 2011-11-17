@@ -1544,7 +1544,7 @@ substitution is used against the regexp matches, a la `replace-match'.")
   "Variable for regexps matching plaintext to remove before encryption.
 
 This is used to detect strings in encryption results that would
-register as allout mode structural elements, for exmple, as a
+register as allout mode structural elements, for example, as a
 topic prefix.
 
 Entries must be symbols that are bound to the desired regexp values.
@@ -3543,7 +3543,7 @@ PRIOR-BULLET.)
 Fifth arg, NUMBER-CONTROL, matters only if `allout-numbered-bullet'
 is non-nil *and* no specific INSTEAD was specified.  Then
 NUMBER-CONTROL non-nil forces prefix to either numbered or
-denumbered format, depending on the value of the sixth arg, INDEX.
+unnumbered format, depending on the value of the sixth arg, INDEX.
 
 \(Note that NUMBER-CONTROL does *not* apply to level 1 topics.  Sorry...)
 

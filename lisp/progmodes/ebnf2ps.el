@@ -2084,7 +2084,7 @@ special."
   "*Specify extra width for arrow shape drawing.
 
 The extra width is used to avoid that the arrowhead and the terminal border
-overlap.  It depens on `ebnf-arrow-shape' and `ebnf-line-width'."
+overlap.  It depends on `ebnf-arrow-shape' and `ebnf-line-width'."
   :type 'number
   :version "22"
   :group 'ebnf-shape)

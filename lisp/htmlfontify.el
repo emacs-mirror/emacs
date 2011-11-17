@@ -586,7 +586,7 @@ If a window system is unavailable, calls `hfy-fallback-colour-values'."
 (defvar hfy-cperl-mode-kludged-p nil)
 
 (defun hfy-kludge-cperl-mode ()
-  "CPerl mode does its damndest not to do some of its fontification when not
+  "CPerl mode does its damnedest not to do some of its fontification when not
 in a windowing system - try to trick it..."
   (if (not hfy-cperl-mode-kludged-p)
       (progn (if (not window-system)
@@ -1773,7 +1773,7 @@ Strips any leading \"./\" from each filename."
   (mapcar (lambda (F) (if (string-match "^./\\(.*\\)" F) (match-string 1 F) F))
           (split-string (shell-command-to-string hfy-find-cmd))) )
 
-;; strip the filename off, return a directiry name
+;; strip the filename off, return a directory name
 ;; not a particularly thorough implementaion, but it will be
 ;; fed pretty carefully, so it should be Ok:
 (defun hfy-dirname (file)

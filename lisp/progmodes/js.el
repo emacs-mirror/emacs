@@ -3352,7 +3352,7 @@ If one hasn't been set, or if it's stale, prompt for a new one."
   ;; etc. and produce maddening "unbalanced parenthesis" errors.
   ;; When we attempt to find the error and scroll to the portion of
   ;; the buffer containing the problem, JIT-lock will apply the
-  ;; correct syntax to the regular expresion literal and the problem
+  ;; correct syntax to the regular expression literal and the problem
   ;; will mysteriously disappear.
   ;; FIXME: We should actually do this fontification lazily by adding
   ;; calls to syntax-propertize wherever it's really needed.

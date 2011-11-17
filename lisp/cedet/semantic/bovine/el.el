@@ -823,7 +823,7 @@ In Emacs Lisp this is easily defined by parenthesis bounding."
   (&optional point)
   "Return a list of tag classes allowed at POINT.
 Emacs Lisp knows much more about the class of the tag needed to perform
-completion than some languages.  We distincly know if we are to be a
+completion than some languages.  We distinctly know if we are to be a
 function name, variable name, or any type of symbol.  We could identify
 fields and such to, but that is for some other day."
   (save-excursion

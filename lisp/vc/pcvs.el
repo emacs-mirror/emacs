@@ -620,7 +620,7 @@ If non-nil, NEW means to create a new buffer no matter what."
 	 (str (car hf))
 	 (done "")
 	 (tin (ewoc-nth cvs-cookies 0)))
-    ;; look for the first *real* fileinfo (to determine emptyness)
+    ;; look for the first *real* fileinfo (to determine emptiness)
     (while
 	(and tin
 	     (memq (cvs-fileinfo->type (ewoc-data tin))

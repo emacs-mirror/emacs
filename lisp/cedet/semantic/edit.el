@@ -537,7 +537,7 @@ This function is for internal use by `semantic-edits-incremental-parser'."
       ;; We want to take some set of changes, and group them
       ;; together into a small change group. One change forces
       ;; a reparse of a larger region (the size of some set of
-      ;; tags it encompases.)  It may contain several tags.
+      ;; tags it encompasses.)  It may contain several tags.
       ;; That region may have other changes in it (several small
       ;; changes in one function, for example.)
       ;; Optimize for the simple cases here, but try to handle

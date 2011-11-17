@@ -119,7 +119,7 @@
      (1 font-lock-type-face))
     ;; Built-ins.  (The next three blocks are from
     ;; `__builtin__.__dict__.keys()' in Python 2.7)  These patterns
-    ;; are debateable, but they at least help to spot possible
+    ;; are debatable, but they at least help to spot possible
     ;; shadowing of builtins.
     (,(rx symbol-start (or
 	  ;; exceptions

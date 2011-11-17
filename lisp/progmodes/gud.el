@@ -3387,7 +3387,7 @@ This event can be examined by forms in `gud-tooltip-display'.")
 
 (defun gud-tooltip-dereference (&optional arg)
   "Toggle whether tooltips should show `* expr' or `expr'.
-With arg, dereference expr if ARG is positive, otherwise do not derereference."
+With arg, dereference expr if ARG is positive, otherwise do not dereference."
  (interactive "P")
   (setq gud-tooltip-dereference
 	(if (null arg)

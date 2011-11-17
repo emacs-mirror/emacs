@@ -2296,7 +2296,7 @@ filesystems via ange-ftp.  */);
 	       doc: /* Non-nil means attempt to fake realistic inode values.
 This works by hashing the truename of files, and should detect
 aliasing between long and short (8.3 DOS) names, but can have
-false positives because of hash collisions.  Note that determing
+false positives because of hash collisions.  Note that determining
 the truename of a file can be slow.  */);
   Vw32_generate_fake_inodes = Qnil;
 #endif

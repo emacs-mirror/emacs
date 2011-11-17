@@ -93,7 +93,7 @@
 
 (defvar animation-buffer-name nil
   "*String naming the default buffer for animations.
-When nil animations dipslayed in the buffer named *Animation*.")
+When nil animations displayed in the buffer named *Animation*.")
 
 ;;;###autoload
 (defun animate-string (string vpos &optional hpos)

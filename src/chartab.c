@@ -1196,7 +1196,7 @@ uniprop_table_uncompress (Lisp_Object table, int idx)
 }
 
 
-/* Decode VALUE as an elemnet of char-table TABLE.  */
+/* Decode VALUE as an element of char-table TABLE.  */
 
 static Lisp_Object
 uniprop_decode_value_run_length (Lisp_Object table, Lisp_Object value)

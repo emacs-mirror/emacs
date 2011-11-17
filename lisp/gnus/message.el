@@ -2503,7 +2503,7 @@ Return the number of headers removed."
      (point-max)))
   (goto-char (point-min)))
 
-;; FIXME: clarify diffference: message-narrow-to-head,
+;; FIXME: clarify difference: message-narrow-to-head,
 ;; message-narrow-to-headers-or-head, message-narrow-to-headers
 (defun message-narrow-to-head ()
   "Narrow the buffer to the head of the message.

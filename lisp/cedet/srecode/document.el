@@ -720,7 +720,7 @@ allocating something based on its type."
   "Convert tag or string PARAM into a name,comment pair.
 Optional COMMENTLIST is list of previously existing comments to
 use instead in alist form.  If the name doesn't appear in the list of
-standard names, then englishify it instead."
+standard names, then english it instead."
   (let ((cmt "")
 	(aso srecode-document-autocomment-param-alist)
 	(fnd nil)

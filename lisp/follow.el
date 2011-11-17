@@ -560,7 +560,7 @@ Keys specific to Follow mode:
 
 ;; `scroll-up' and `-down', but for windows in Follow mode.
 ;;
-;; Almost like the real thing, excpet when the cursor ends up outside
+;; Almost like the real thing, except when the cursor ends up outside
 ;; the top or bottom...  In our case however, we end up outside the
 ;; window and hence we are recenterd.  Should we let `recenter' handle
 ;; the point position we would never leave the selected window.  To do

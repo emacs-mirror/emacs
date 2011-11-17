@@ -83,7 +83,7 @@
 ;; work properly.  If you don't know what custom is all about and want
 ;; to edit your user option elisp variables the old fashioned way,
 ;; just imagine that all the "defcustom" stuff you see below is really
-;; "defvar", and ignore everthing else.  For info about custom, see
+;; "defvar", and ignore everything else.  For info about custom, see
 ;; <URL:http://www.dina.kvl.dk/~abraham/custom/>.
 ;;
 ;; This code does in elisp a superset of the stuff that used to be done

@@ -6120,7 +6120,7 @@ handle_one_xevent (struct x_display_info *dpyinfo, XEvent *eventptr,
           {
             /* Gnome shell does not iconify us when C-z is pressed.  It hides
                the frame.  So if our state says we aren't hidden anymore,
-               treat is as deiconfied.  */
+               treat it as deiconified.  */
             if (! f->async_iconified)
               SET_FRAME_GARBAGED (f);
             f->async_visible = 1;
