@@ -8832,7 +8832,7 @@ comment at the start of cc-engine.el for more info."
        ;; CASE B.4: Continued statement with block open.  The most
        ;; accurate analysis is perhaps `statement-cont' together with
        ;; `block-open' but we play DWIM and use `substatement-open'
-       ;; instead.  The rationaly is that this typically is a macro
+       ;; instead.  The rationale is that this typically is a macro
        ;; followed by a block which makes it very similar to a
        ;; statement with a substatement block.
        (t

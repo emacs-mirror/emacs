@@ -1,14 +1,13 @@
 ;; allout-widgets.el --- Visually highlight allout outline structure.
 
-;; Copyright (C) 2005, 2006, 2007, 2008, 2009, 2010, 2011 Ken Manheimer
+;; Copyright (C) 2005-2011 Free Software Foundation, Inc.
 
-;; Author: Ken Manheimer <ken dot manheimer at gmail dot com>
-;; Maintainer: Ken Manheimer <ken dot manheimer at gmail dot com>
+;; Author: Ken Manheimer <ken dot manheimer at gmail...>
+;; Maintainer: Ken Manheimer <ken dot manheimer at gmail...>
 ;; Version: 1.0
 ;; Created: Dec 2005
-;; Version: 1.0
 ;; Keywords: outlines
-;; Website: http://myriadicity.net/Sundry/EmacsAllout
+;; Website: http://myriadicity.net/software-and-systems/craft/emacs-allout
 
 ;;; Commentary:
 

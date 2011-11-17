@@ -16,7 +16,7 @@
 	* international/fontset.el (script-representative-chars): Add cham
 	and tai-viet.
 	(setup-default-fontset): Add iso10646-1 font for latin and ipa.
-	Add fontconfig spec for cjk-misc.  Explicitly specify font font
+	Add fontconfig spec for cjk-misc.  Explicitly specify font
 	for U+E000..U+F8FF.
 
 	* international/characters.el (script-list): Add cham.
@@ -16414,7 +16414,7 @@
 2007-05-16  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* files.el (magic-mode-alist, magic-fallback-mode-alist):
-	Move the *ml, Postscript, and XmCD entries to the fallback part.
+	Move the *ml, PostScript, and XmCD entries to the fallback part.
 
 	* files.el (magic-fallback-mode-alist):
 	Rename from file-start-mode-alist.

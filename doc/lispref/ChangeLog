@@ -1,3 +1,8 @@
+2011-11-16  Martin Rudalics  <rudalics@gmx.at>
+
+	* windows.texi (Resizing Windows, Splitting Windows): Rename
+	occurrences of window-nest to window-combination-limit.
+
 2011-11-14  Juanma Barranquero  <lekktu@gmail.com>
 
 	* intro.texi (Lisp History): Fix typo.

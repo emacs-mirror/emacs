@@ -98,7 +98,7 @@ See `semantic-tag-protection'."
     prot))
 
 (defun semantic-tag-protected-p (tag protection &optional parent)
-  "Non-nil if TAG is is protected.
+  "Non-nil if TAG is protected.
 PROTECTION is a symbol which can be returned by the method
 `semantic-tag-protection'.
 PARENT is the parent data type which contains TAG.
@@ -106,7 +106,7 @@ PARENT is the parent data type which contains TAG.
 For these PROTECTIONs, true is returned if TAG is:
 @table @asis
 @item nil
-  Always true
+  Always true.
 @item  private
   True if nil.
 @item protected

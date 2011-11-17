@@ -550,7 +550,7 @@ element matches `python-python-command'."
   "^> \\(.*\\)(\\([0-9]+\\))\\([?a-zA-Z0-9_<>]+\\)()"
   "Regular expression pdbtrack uses to find a stack trace entry.")
 
-(defconst python-pdbtrack-input-prompt "\n[(<]*[Pp]db[>)]+ "
+(defconst python-pdbtrack-input-prompt "\n[(<]*[Ii]?[Pp]db[>)]+ "
   "Regular expression pdbtrack uses to recognize a pdb prompt.")
 
 (defconst python-pdbtrack-track-range 10000
@@ -2583,6 +2583,7 @@ find it."
         (if (not (string-match (concat python-pdbtrack-input-prompt "$") block))
             (python-pdbtrack-overlay-arrow nil)
 
+          (setq block (ansi-color-filter-apply block))
           (setq target (python-pdbtrack-get-source-buffer block))
 
           (if (stringp target)

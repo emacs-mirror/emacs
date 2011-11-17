@@ -632,11 +632,12 @@ the window cannot be resized as demanded, an error is signaled.
 The optional argument @var{ignore} has the same meaning as for the
 function @code{window-resizable} above.
 
-The choice of which window edge this function alters depends on the
-splitting and nesting status of the involved windows; in some cases,
-it may alter both edges.  @xref{Splitting Windows}.  To resize by
-moving only the bottom or right edge of a window, use the function
-@code{adjust-window-trailing-edge}, below.
+The choice of which window edges this function alters depends on the
+values of the option @code{window-splits} and the combination-limit
+status of the involved windows; in some cases, it may alter both edges.
+@xref{Splitting Windows}.  To resize by moving only the bottom or right
+edge of a window, use the function @code{adjust-window-trailing-edge},
+below.
 @end defun
 
 @c The commands enlarge-window, enlarge-window-horizontally,
@@ -859,8 +860,8 @@ Also if this variable is non-@code{nil}, subsequent resizing and
 deleting @var{window} will usually affect @emph{all} windows in
 @var{window}'s combination.
 
-The setting of this variable has no effect if @code{window-nest} (see
-below) is non-@code{nil}.
+The setting of this variable has no effect if
+@code{window-combination-limit} (see below) is non-@code{nil}.
 @end defopt
 
 To illustrate the use of @code{window-splits} consider the following
@@ -931,34 +932,36 @@ height:
 @end group
 @end smallexample
 
-@defopt window-nest
+@defopt window-combination-limit
 If this variable is @code{nil}, @code{split-window} creates a new parent
 window if and only if the old window has no parent window or shall be
 split orthogonally to the combination it is part of.  If this variable
-is non-@code{nil}, @code{split-window} always creates a new parent
-window.  If this variable is always non-@code{nil}, a frame's window
-tree is a binary tree so every window but the frame's root window has
-exactly one sibling.
+is @code{t}, @code{split-window} always creates a new parent window.  If
+this variable is always @code{t}, a frame's window tree is a binary tree
+so every window but the frame's root window has exactly one sibling.
+Other values are reserved for future use.
 
-The value of this variable is also assigned to the nest status of the
-new parent window.  The nest status of any window can be retrieved via
-the function @code{window-nest} and altered by the function
-@code{set-window-nest}, see below.
+The value of this variable is also assigned to the combination-limit
+status of the new parent window.  The combination-limit status of any
+window can be retrieved via the function @code{window-combination-limit}
+and altered by the function @code{set-window-combination-limit}, see
+below.
 @end defopt
 
-@defun window-nest &optional window
-This function returns the nest status of @var{window}.  The argument
-@var{window} can be any window and defaults to the selected one.  Note,
-however, that the nest status is currently meaningful for internal
-windows only.
+@defun window-combination-limit &optional window
+This function returns the combination-limit status of @var{window}.  The
+argument @var{window} can be any window and defaults to the selected
+one.  Note, however, that the combination-limit status is currently
+meaningful for internal windows only.
 
-@cindex nest status
-The @dfn{nest status} of a window specifies whether that window may be
-removed and its child windows recombined with that window's siblings
-when such a sibling's child window is deleted.  The nest status is
-initially assigned by @code{split-window} from the current value of the
-variable @code{window-nest} (see above) and can be reset by the function
-@code{set-window-nest} (see below).
+@cindex combination-limit status
+The @dfn{combination-limit status} of a window specifies whether that
+window may be removed and its child windows recombined with that
+window's siblings when such a sibling's child window is deleted.  The
+combination-limit status is initially assigned by @code{split-window}
+from the current value of the variable @code{window-combination-limit}
+(see above) and can be reset by the function
+@code{set-window-combination-limit} (see below).
 
 If the return value is @code{nil}, child windows of @var{window} may be
 recombined with @var{window}'s siblings when a window gets deleted.  A
@@ -966,16 +969,17 @@ return value of @code{nil} means that child windows of @var{window} are
 never (re-)combined with @var{window}'s siblings in such a case.
 @end defun
 
-@defun set-window-nest window &optional status
-This functions sets the nest status (see above) of @var{window} to
-@var{status}.  The argument @var{window} can be any window and defaults
-to the selected one.  Note that setting the nest status is meaningful
-for internal windows only.  The return value is @var{status}.
+@defun set-window-combination-limit window &optional status
+This functions sets the combination-limit status (see above) of
+@var{window} to @var{status}.  The argument @var{window} can be any
+window and defaults to the selected one.  Note that setting the
+combination-limit status is meaningful for internal windows only.  The
+return value is @var{status}.
 @end defun
 
-To illustrate the use of @code{window-nest} consider the following
-configuration (throughout the following examples we shall assume that
-@code{window-splits} invariantly is @code{nil}).
+To illustrate the use of @code{window-combination-limit} consider the
+following configuration (throughout the following examples we shall
+assume that @code{window-splits} invariantly is @code{nil}).
 @smallexample
 @group
      ______________________________________
@@ -997,7 +1001,8 @@ configuration (throughout the following examples we shall assume that
 @end smallexample
 
 Splitting @code{W2} into two windows above each other with
-@code{window-nest} equal @code{nil} will get you a configuration like:
+@code{window-combination-limit} equal @code{nil} will get you a
+configuration like:
 @smallexample
 @group
      ______________________________________
@@ -1064,9 +1069,9 @@ follows:
 
 Hence, with respect to the initial configuration, window @code{W2} has
 grown at the expense of window @code{W3}.  If, however, in the initial
-configuration you had split @code{W2} with @code{window-nest} bound to
-@code{t}, a new internal window @code{W5} would have been created as
-depicted below.
+configuration you had split @code{W2} with
+@code{window-combination-limit} bound to @code{t}, a new internal window
+@code{W5} would have been created as depicted below.
 @smallexample
 @group
      ______________________________________

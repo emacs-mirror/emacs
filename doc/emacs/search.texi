@@ -309,7 +309,7 @@ search remains case-insensitive.
 @findex isearch-yank-char
   @kbd{C-M-w} (@code{isearch-del-char}) deletes the last character
 from the search string, and @kbd{C-M-y} (@code{isearch-yank-char})
-appends the character after point to the the search string.  An
+appends the character after point to the search string.  An
 alternative method to add the character after point is to enter the
 minibuffer with @kbd{M-e} (@pxref{Repeat Isearch}) and type @kbd{C-f}
 at the end of the search string in the minibuffer.

@@ -1,3 +1,7 @@
+2011-11-16  Juanma Barranquero  <lekktu@gmail.com>
+
+	* etags.1: Fix typo.
+
 2011-10-06  Chong Yidong  <cyd@stupidchicken.com>
 
 	* emacsclient.1: Document how -a "" starts the daemon.

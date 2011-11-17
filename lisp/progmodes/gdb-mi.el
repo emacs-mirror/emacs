@@ -25,7 +25,7 @@
 
 ;;; Credits:
 
-;; This file was written by by Nick Roberts following the general design
+;; This file was written by Nick Roberts following the general design
 ;; used in gdb-ui.el for Emacs 22.1 - 23.1.  It is currently being developed
 ;; by Dmitry Dzhus <dima@sphinx.net.ru> as part of the Google Summer
 ;; of Code 2009 Project "Emacs GDB/MI migration".

@@ -1,3 +1,9 @@
+2011-11-16  Juanma Barranquero  <lekktu@gmail.com>
+
+	* automated/icalendar-tests.el (icalendar-tests--get-ical-event)
+	(icalendar-tests--test-export, icalendar-tests--do-test-export):
+	* cedet/srecode-tests.el (srecode-field-utest-impl): Fix typo.
+
 2011-10-30  Ulf Jasper  <ulf.jasper@web.de>
 
 	* automated/newsticker-tests.el

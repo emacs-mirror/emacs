@@ -2,12 +2,12 @@
 
 ;; Copyright (C) 1992-1994, 2001-2011  Free Software Foundation, Inc.
 
-;; Author: Ken Manheimer <ken dot manheimer at gmail dot com>
-;; Maintainer: Ken Manheimer <ken dot manheimer at gmail dot com>
+;; Author: Ken Manheimer <ken dot manheimer at gmail...>
+;; Maintainer: Ken Manheimer <ken dot manheimer at gmail...>
 ;; Created: Dec 1991 -- first release to usenet
 ;; Version: 2.3
 ;; Keywords: outlines, wp, languages, PGP, GnuPG
-;; Website: http://myriadicity.net/Sundry/EmacsAllout
+;; Website: http://myriadicity.net/software-and-systems/craft/emacs-allout
 
 ;; This file is part of GNU Emacs.
 

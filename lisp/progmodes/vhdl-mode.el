@@ -58,7 +58,7 @@
 ;;   - Word/keyword completion
 ;;   - Block commenting
 ;;   - Code fixing/alignment/beautification
-;;   - Postscript printing
+;;   - PostScript printing
 ;;   - VHDL'87/'93 and VHDL-AMS supported
 ;;   - Comprehensive menu
 ;;   - Fully customizable
@@ -1752,7 +1752,7 @@ NOTE: Activate the new setting in a VHDL buffer by using the menu entry
 
 (defcustom vhdl-print-two-column t
   "*Non-nil means print code in two columns and landscape format.
-Adjusts settings in a way that postscript printing (\"File\" menu, `ps-print')
+Adjusts settings in a way that PostScript printing (\"File\" menu, `ps-print')
 prints VHDL files in a nice two-column landscape style.
 
 NOTE: Activate the new setting by restarting Emacs.
@@ -1761,7 +1761,7 @@ NOTE: Activate the new setting by restarting Emacs.
   :group 'vhdl-print)
 
 (defcustom vhdl-print-customize-faces t
-  "*Non-nil means use an optimized set of faces for postscript printing.
+  "*Non-nil means use an optimized set of faces for PostScript printing.
 
 NOTE: Activate the new setting by restarting Emacs.
       Overrides `ps-print' settings locally."
@@ -4567,10 +4567,10 @@ Usage:
 
 
   PRINTING:
-    Postscript printing with different faces (an optimized set of faces is
+    PostScript printing with different faces (an optimized set of faces is
     used if `vhdl-print-customize-faces' is non-nil) or colors \(if
     `ps-print-color-p' is non-nil) is possible using the standard Emacs
-    postscript printing commands.  Option `vhdl-print-two-column' defines
+    PostScript printing commands.  Option `vhdl-print-two-column' defines
     appropriate default settings for nice landscape two-column printing.
     The paper format can be set by option `ps-paper-type'.  Do not forget to
     switch `ps-print-color-p' to nil for printing on black-and-white
@@ -12913,10 +12913,10 @@ This does background highlighting of translate-off regions.")
   (font-lock-mode t))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;; Initialization for postscript printing
+;; Initialization for PostScript printing
 
 (defun vhdl-ps-print-settings ()
-  "Initialize custom face and page settings for postscript printing."
+  "Initialize custom face and page settings for PostScript printing."
   ;; define custom face settings
   (unless (or (not vhdl-print-customize-faces)
 	      ps-print-color-p)
@@ -12951,7 +12951,7 @@ This does background highlighting of translate-off regions.")
       (set (make-local-variable 'ps-right-margin) 40.0))))
 
 (defun vhdl-ps-print-init ()
-  "Initialize postscript printing."
+  "Initialize PostScript printing."
   (if (featurep 'xemacs)
       (when (boundp 'ps-print-color-p)
 	(vhdl-ps-print-settings))

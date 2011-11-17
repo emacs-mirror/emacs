@@ -401,7 +401,7 @@ since it could result in memory overflow and make Emacs crash."
 		       (const :tag "Only on ttys" :value tty)
 		       (other :tag "Always" t)) "23.1")
 	     (window-splits windows boolean "24.1")
-	     (window-nest windows boolean "24.1")
+	     (window-combination-limit windows boolean "24.1")
 	     ;; xdisp.c
 	     (show-trailing-whitespace whitespace-faces boolean nil
 				       :safe booleanp)

@@ -566,7 +566,7 @@ template-type
     (TYPE-TAG $2 "class" nil nil )
   | STRUCT symbol
     (TYPE-TAG $2 "struct" nil nil )
- ;; TODO: Klaus Berndl: For the moment is is ok, that we parse the C++
+ ;; TODO: Klaus Berndl: For the moment it is ok, that we parse the C++
  ;; keyword typename as a class....
   | TYPENAME symbol
     (TYPE-TAG $2 "class" nil nil)

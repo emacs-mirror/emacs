@@ -2529,7 +2529,7 @@ gnus-summary-show-article-from-menu-as-charset-%s" cs))))
 	      ["Unshar and save" gnus-uu-decode-unshar-and-save t]
 	      ["Save" gnus-uu-decode-save t]
 	      ["Binhex" gnus-uu-decode-binhex t]
-	      ["Postscript" gnus-uu-decode-postscript t]
+	      ["PostScript" gnus-uu-decode-postscript t]
 	      ["All MIME parts" gnus-summary-save-parts t])
 	     ("Cache"
 	      ["Enter article" gnus-cache-enter-article t]

@@ -1237,7 +1237,7 @@ delete_frame (Lisp_Object frame, Lisp_Object force)
   else
     {
 #ifdef HAVE_X_WINDOWS
-      /* Also, save clipboard to the the clipboard manager.  */
+      /* Also, save clipboard to the clipboard manager.  */
       x_clipboard_manager_save_frame (frame);
 #endif
 

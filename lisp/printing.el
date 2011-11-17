@@ -4667,7 +4667,7 @@ bottom."
   "Interactively select a PostScript utility."
   (interactive)
   (pr-menu-set-utility-title
-   (pr-complete-alist "Postscript utility"
+   (pr-complete-alist "PostScript utility"
 		      pr-ps-utility-alist pr-ps-utility)))
 
 

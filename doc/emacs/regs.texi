@@ -145,7 +145,7 @@ rectangle) (@code{insert-register}).
 
   The @kbd{C-x r i @var{r}} (@code{insert-register}) command,
 previously documented in @ref{Text Registers}, inserts a rectangle
-rather than a a text string, if the register contains a rectangle.
+rather than a text string, if the register contains a rectangle.
 
 @node Configuration Registers
 @section Saving Window Configurations in Registers

@@ -151,7 +151,7 @@
   "Local keymap for the 5x5 game.")
 
 (5x5-defvar-local 5x5-solver-output nil
-  "List that is is the output of an arithmetic solver.
+  "List that is the output of an arithmetic solver.
 
 This list L is such that
 
@@ -816,9 +816,8 @@ solution that is presented is the one that needs least number of
 strokes --- other solutions can be viewed by rotating through the
 list. The list of solution is ordered by number of strokes, so
 rotating left just after calling `5x5-solve-suggest' will show
-the the solution with second least number of strokes, while
-rotating right will show the solution with greatest number of
-strokes."
+the solution with second least number of strokes, while rotating
+right will show the solution with greatest number of strokes."
   (interactive "P")
   (let ((len  (length 5x5-solver-output)))
     (when (>= len 3)

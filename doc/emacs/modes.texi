@@ -368,7 +368,7 @@ compares the text at the start of the buffer to the variable
 @code{magic-mode-alist}, described above, except that is consulted
 only after @code{auto-mode-alist}.  By default,
 @code{magic-fallback-mode-alist} contains forms that check for image
-files, HTML/XML/SGML files, and Postscript files.
+files, HTML/XML/SGML files, and PostScript files.
 
 @vindex major-mode
   Once a major mode is chosen, Emacs sets the value of the variable

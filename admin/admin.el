@@ -330,7 +330,7 @@ the @import directive."
 
 (defun manual-dvi (texi-file dest ps-dest)
   "Run texi2dvi on TEXI-FILE, emitting dvi output to DEST.
-Also generate postscript output in PS-DEST."
+Also generate PostScript output in PS-DEST."
   (call-process "texi2dvi" nil nil nil texi-file "-o" dest)
   (call-process "dvips" nil nil nil dest "-o" ps-dest)
   (call-process "gzip" nil nil nil dest)

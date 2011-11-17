@@ -646,7 +646,7 @@ Uses the pick method described in `mh-pick-execute-search'."
 
 (defun mh-pick-parse-search-buffer ()
   "Parse the search buffer contents.
-The function returns a alist. The car of each element is either
+The function returns an alist. The car of each element is either
 the header name to search in or nil to search the whole message.
 The cdr of the element is the pattern to search."
   (save-excursion
