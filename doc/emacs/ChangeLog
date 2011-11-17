@@ -1,3 +1,7 @@
+2011-11-17  Glenn Morris  <rgm@gnu.org>
+
+	* regs.texi (Bookmarks): Small fixes related to saving.  (Bug#10058)
+
 2011-11-16  Juanma Barranquero  <lekktu@gmail.com>
 
 	* killing.texi (Rectangles):
