@@ -411,7 +411,7 @@ the value will be inserted right after the documentclass statement."
 
 
 ;; Functions to initialize and post-process
-;; These fuctions will be hooked into various places in the export process
+;; These functions will be hooked into various places in the export process
 
 (defun org-beamer-initialize-open-trackers ()
   "Reset variables that track if certain environments are open during export."

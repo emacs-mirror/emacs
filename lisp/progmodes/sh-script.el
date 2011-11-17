@@ -985,7 +985,7 @@ Find all the unescaped \" characters within said subshell, remembering that
 subshells can nest."
   ;; FIXME: This can (and often does) match multiple lines, yet it makes no
   ;; effort to handle multiline cases correctly, so it ends up being
-  ;; rather flakey.
+  ;; rather flaky.
   (when (eq ?\" (nth 3 (syntax-ppss))) ; Check we matched an opening quote.
     ;; bingo we have a $( or a ` inside a ""
     (let (;; `state' can be: double-quote, backquote, code.

@@ -10127,7 +10127,7 @@
 2007-10-08  Richard Stallman  <rms@gnu.org>
 
 	* wid-edit.el (widget-specify-button): Don't merge mouse-face with
-	neighbouring buttons.
+	neighboring buttons.
 
 2007-10-08  Andreas Schwab  <schwab@suse.de>
 
@@ -10151,7 +10151,7 @@
 2007-10-08  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* wid-edit.el (widget-image-insert): Don't merge mouse-face with
-	neighbouring buttons.
+	neighboring buttons.
 
 	* progmodes/compile.el (compilation-error-regexp-alist-alist):
 	Recognize gcc's use of "note" for informational messages.

@@ -174,7 +174,7 @@ delete_child (child_process *cp)
 	  cp->status = STATUS_READ_ERROR;
 	  SetEvent (cp->char_consumed);
 #if 0
-          /* We used to forceably terminate the thread here, but it
+          /* We used to forcibly terminate the thread here, but it
              is normally unnecessary, and in abnormal cases, the worst that
              will happen is we have an extra idle thread hanging around
              waiting for the zombie process.  */

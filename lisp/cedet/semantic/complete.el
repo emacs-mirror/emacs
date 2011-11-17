@@ -54,7 +54,7 @@
 ;;
 ;; Here, we will treat each section separately (excluding D)
 ;; They can then be strung together in user-visible commands to
-;; fulfil specific needs.
+;; fulfill specific needs.
 ;;
 ;; COLLECTORS:
 ;;

@@ -783,11 +783,11 @@ Return new buffer position."
       (newsticker--buffer-set-uptodate nil)
       (newsticker--ticker-text-setup)
       (newsticker-buffer-update)
-      ;; go back to where we came frome
+      ;; Go back to where we came from.
       (goto-char pos)
       (end-of-line)
       (newsticker--buffer-goto '(feed) nil t))))
-  
+
 (defun newsticker-mark-all-items-at-point-as-read ()
   "Mark all items as read and clear ticker contents."
   (interactive)

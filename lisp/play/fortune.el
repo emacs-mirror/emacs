@@ -52,7 +52,7 @@
 ;;	  (lambda ()
 ;;	     (define-key gnus-article-mode-map "i" 'fortune-from-region)))
 ;; which allows marking a region and then pressing "i" so that the marked
-;; region will be automatically added to my favourite fortune-file.
+;; region will be automatically added to my favorite fortune-file.
 
 ;;; Code:
 

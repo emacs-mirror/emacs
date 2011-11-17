@@ -996,7 +996,7 @@ with no confirmation.
 view-buffer selects the named buffer, view-file finds the named file; the
 resulting buffer is placed into view-mode (a recursive edit).  The normal
 emacs commands are not available.  Instead a set of special commands is
-provided which faclitate moving around in the buffer, searching and
+provided which facilitate moving around in the buffer, searching and
 scrolling by screenfuls.  Exiting view-mode returns to the buffer in which
 the view-file or view-buffer command was given.
 Type ? or h when viewing for a complete list of view commands.

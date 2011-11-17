@@ -535,7 +535,7 @@ that the symbol of the saver function, which is specified by
 
 ;; Note that "Rmail format" is mbox since Emacs 23, but Babyl before.
 (defcustom gnus-default-article-saver 'gnus-summary-save-in-rmail
-  "A function to save articles in your favourite format.
+  "A function to save articles in your favorite format.
 The function will be called by way of the `gnus-summary-save-article'
 command, and friends such as `gnus-summary-save-article-rmail'.
 

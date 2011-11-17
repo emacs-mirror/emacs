@@ -221,7 +221,7 @@
 
 (defcustom org-bibtex-prefix nil
   "Optional prefix for all bibtex property names.
-For example setting to 'BIB_' would allow interoperability with fireforg."
+For example setting to 'BIB_' would allow interoperability with Fireforg."
   :group 'org-bibtex
   :type  'string)
 

@@ -3491,7 +3491,7 @@ redraw_overlapping_rows (struct window *w, int yb)
 	      if (row->used[RIGHT_MARGIN_AREA])
 		rif->fix_overlapping_area (w, row, RIGHT_MARGIN_AREA, overlaps);
 
-	      /* Record in neighbour rows that ROW overwrites part of
+	      /* Record in neighbor rows that ROW overwrites part of
 		 their display.  */
 	      if (overlaps & OVERLAPS_PRED)
 		MATRIX_ROW (w->current_matrix, i - 1)->overlapped_p = 1;

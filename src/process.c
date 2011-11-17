@@ -3120,7 +3120,7 @@ usage: (make-network-process &rest ARGS)  */)
     {
       struct hostent *host_info_ptr;
 
-      /* gethostbyname may fail with TRY_AGAIN, but we don't honour that,
+      /* gethostbyname may fail with TRY_AGAIN, but we don't honor that,
 	 as it may `hang' Emacs for a very long time.  */
       immediate_quit = 1;
       QUIT;

@@ -20702,11 +20702,11 @@
 	(free_frame_menubar): Only compile if not USE_GTK.  GTK version
 	is in gtkutil.c.
 	(popup_selection_callback): New version for USE_GTK.
-	(create_and_show_popup_menu): New fuction, one USE_GTK version and
+	(create_and_show_popup_menu): New function, one USE_GTK version and
 	one USE_X_TOOLKIT version.
 	(xmenu_show): Call create_and_show_popup_menu.
 	(dialog_selection_callback): New version for USE_GTK.
-	(create_and_show_dialog): New fuction, one USE_GTK version and
+	(create_and_show_dialog): New function, one USE_GTK version and
 	one USE_X_TOOLKIT version.
 	(xdialog_show): Call create_and_show_dialog.
 

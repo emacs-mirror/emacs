@@ -2553,7 +2553,7 @@ If the traceback target file path is invalid, we look for the
 most recently visited python-mode buffer which either has the
 name of the current function or class, or which defines the
 function or class.  This is to provide for scripts not in the
-local filesytem (e.g., Zope's 'Script \(Python)', but it's not
+local file system (e.g., Zope's 'Script \(Python)', but it's not
 Zope specific).  If you put a copy of the script in a buffer
 named for the script and activate python-mode, then pdbtrack will
 find it."

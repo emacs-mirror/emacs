@@ -360,7 +360,7 @@ commands in `hfy-etags-cmd-alist'."
   :type '(repeat symbol))
 
 (defun hfy-which-etags ()
-  "Return a string indicating which flavour of etags we are using."
+  "Return a string indicating which flavor of etags we are using."
   (let ((v (shell-command-to-string (concat hfy-etags-bin " --version"))))
     (cond ((string-match "exube" v) "exuberant ctags")
           ((string-match "GNU E" v) "emacs etags"    )) ))

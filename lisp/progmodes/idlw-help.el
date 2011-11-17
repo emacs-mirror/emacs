@@ -991,7 +991,7 @@ on a line.  Then `NAME:' must be followed by the routine name on the
 same or the next line.  When KEYWORD is non-nil, looks first for a
 `KEYWORDS' section.  It is amazing how inconsisten this is through
 some IDL libraries I have seen.  We settle for a line containing an
-upper case \"KEYWORD\" string.  If this line is not fould we search
+upper case \"KEYWORD\" string.  If this line is not found we search
 for the keyword anyway to increase the hit-rate
 
 When one of these sections exists we check for a line starting with any of

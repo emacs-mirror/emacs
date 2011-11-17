@@ -9419,7 +9419,7 @@
 	(org-insert-labeled-timestamps-at-point): New option.
 	(org-cycle, org-occur, org-scan-tags): Use `org-overview' instead
 	of `hide-sublevels 1', in case the first headline is not level 1.
-	(org-overview, org-content): New fuction.
+	(org-overview, org-content): New function.
 	(org-cycle-global-status, org-cycle-subtree-status): Make these
 	variables buffer-local.
 	(org-global-cycle): New command.

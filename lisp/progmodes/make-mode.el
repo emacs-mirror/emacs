@@ -532,7 +532,7 @@ not be enclosed in { } or ( )."
 ;; should return an exit status of zero if the target `foo' is
 ;; up to date and a nonzero exit status otherwise.
 ;; Many makes can do this although the docs/manpages do not mention
-;; it. Try it with your favourite one.  GNU make, System V make, and
+;; it. Try it with your favorite one.  GNU make, System V make, and
 ;; Dennis Vadura's DMake have no problems.
 ;; Set the variable `makefile-brave-make' to the name of the
 ;; make utility that does this on your system.

@@ -954,7 +954,7 @@ font_expand_wildcards (Lisp_Object *field, int n)
 	}
     }
 
-  /* Decide all fileds from restrictions in RANGE.  */
+  /* Decide all fields from restrictions in RANGE.  */
   for (i = j = 0; i < n ; i++)
     {
       if (j < range[i].from)

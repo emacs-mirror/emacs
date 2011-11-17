@@ -3557,7 +3557,7 @@ number is used as the index for the numbered prefix (allowing, eg,
 sequential renumbering to not require this function counting back the
 index for each successive sibling)."
 ;;;_    . Code:
-  ;; The options are ordered in likely frequence of use, most common
+  ;; The options are ordered in likely frequency of use, most common
   ;; highest, least lowest.  Ie, more likely to be doing prefix
   ;; adjustments than soliciting, and yet more than numbering.
   ;; Current prefix is least dominant, but most likely to be commonly

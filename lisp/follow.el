@@ -652,7 +652,7 @@ the rightmost is selected.  If ARG is nil, the leftmost window is
 selected if the original window is the first one in the frame.
 
 To bind this command to a hotkey, place the following line
-in your `~/.emacs' file, replacing [f7] by your favourite key:
+in your `~/.emacs' file, replacing [f7] by your favorite key:
     (global-set-key [f7] 'follow-delete-other-windows-and-split)"
   (interactive "P")
   (let ((other (or (and (null arg)
