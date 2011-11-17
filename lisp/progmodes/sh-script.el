@@ -889,7 +889,7 @@ See `sh-feature'.")
          font-lock-variable-name-face))
 
     (rc sh-append es)
-    (bash sh-append shell ("\\$(\\(\\sw+\\)" (1 'sh-quoted-exec t) ))
+    (bash sh-append sh ("\\$(\\(\\sw+\\)" (1 'sh-quoted-exec t) ))
     (sh sh-append shell
 	;; Variable names.
 	("\\$\\({#?\\)?\\([[:alpha:]_][[:alnum:]_]*\\|[-#?@!]\\)" 2

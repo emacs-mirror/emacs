@@ -1,3 +1,8 @@
+2011-11-17  Glenn Morris  <rgm@gnu.org>
+
+	* progmodes/sh-script.el (sh-font-lock-keywords-var):
+	Make bash entry derive from sh entry, not shell entry.
+
 2011-11-16  Michael Albinus  <michael.albinus@gmx.de>
 
 	* net/tramp.el (tramp-handle-file-truename): Cache only the local
