@@ -4240,6 +4240,7 @@ add_row_entry (struct glyph_row *row)
   ptrdiff_t i = row->hash % row_table_size;
 
   entry = row_table[i];
+  xassert (entry || verify_row_hash (row));
   while (entry && !row_equal_p (entry->row, row, 1))
     entry = entry->next;
 

@@ -4,6 +4,7 @@
 	hash values of the two rows.
 	(copy_row_except_pointers): Preserve the used[] arrays and the
 	hash values of the two rows.  (Bug#10035)
+	(add_row_entry): Add xassert to verify that ROW's hash code is valid.
 
 	* xdisp.c (row_hash): New function, body extracted from
 	compute_line_metrics.
