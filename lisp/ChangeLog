@@ -1,5 +1,8 @@
 2011-11-18  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* progmodes/cc-engine.el (c-remove-stale-state-cache-backwards):
+	Don't hardcode point-min==1.
+
 	* eshell/esh-cmd.el (eshell-do-eval): Handle `setq' (bug#9907).
 	(eshell-rewrite-for-command): Remove workaround.
 	(eshell-do-pipelines, eshell-do-pipelines-synchronously)
