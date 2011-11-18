@@ -102,7 +102,7 @@ Reports is as ham when HAM is set."
       (customize-set-variable
        spam-report-resend-to
        (read-from-minibuffer "email address to resend SPAM/HAM to? ")))
-    ;; This is ganked from the `gnus-summary-resend-message' function.
+    ;; This is yanked from the `gnus-summary-resend-message' function.
     ;; It involves rendering the SPAM, which is undesirable, but there does
     ;; not seem to be a nicer way to achieve this.
     ;; select this particular article

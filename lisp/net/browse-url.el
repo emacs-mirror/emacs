@@ -100,7 +100,7 @@
 ;; <URL:ftp://ftp.lysator.liu.se/pub/sgml>; hm--html-menus can be used
 ;; with this.
 
-;; This package generalises function html-previewer-process in Marc
+;; This package generalizes function html-previewer-process in Marc
 ;; Andreessen's html-mode (LCD modes/html-mode.el.Z).  See also the
 ;; ffap.el package.  The huge hyperbole package also contains similar
 ;; functions.

@@ -348,7 +348,7 @@ file_for_image (Lisp_Object image)
 
 /* For the image defined in IMG, make and return a GtkImage.  For displays with
    8 planes or less we must make a GdkPixbuf and apply the mask manually.
-   Otherwise the highlightning and dimming the tool bar code in GTK does
+   Otherwise the highlighting and dimming the tool bar code in GTK does
    will look bad.  For display with more than 8 planes we just use the
    pixmap and mask directly.  For monochrome displays, GTK doesn't seem
    able to use external pixmaps, it looks bad whatever we do.

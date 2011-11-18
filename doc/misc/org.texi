@@ -15533,7 +15533,7 @@ chapter about publishing.
 @i{Jambunathan K} contributed the OpenDocumentText exporter.
 @item
 @i{Sebastien Vauban} reported many issues with LaTeX and BEAMER export and
-enabled source code highlighling in Gnus.
+enabled source code highlighting in Gnus.
 @item
 @i{Stefan Vollmar} organized a video-recorded talk at the
 Max-Planck-Institute for Neurology.  He also inspired the creation of a

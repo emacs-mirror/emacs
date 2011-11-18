@@ -267,7 +267,7 @@ If nil, use `temporary-file-directory'."
       . (1 font-lock-function-name-face))
     '("/\\w+" . font-lock-variable-name-face)
     (cons ps-mode-operators 'font-lock-keyword-face)))
-  "High level highliting for PostScript mode.")
+  "High level highlighting for PostScript mode.")
 
 (defconst ps-mode-font-lock-keywords ps-mode-font-lock-keywords-1
   "Default expressions to highlight in PostScript mode.")

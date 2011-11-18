@@ -6069,7 +6069,7 @@ killed after process termination."
 
 
 (defun ebnf-make-terminal1 (name gen-func dim-func)
-  (vector gen-func			; 0 generatore
+  (vector gen-func			; 0 generator
 	  'ignore			; 1 width fun
 	  dim-func			; 2 dimension fun
 	  0.0				; 3 entry

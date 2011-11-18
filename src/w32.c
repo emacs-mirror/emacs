@@ -3403,7 +3403,7 @@ stat (const char * path, struct stat * buf)
 			   FILE_FLAG_BACKUP_SEMANTICS, NULL))
          != INVALID_HANDLE_VALUE)
     {
-      /* This is more accurate in terms of gettting the correct number
+      /* This is more accurate in terms of getting the correct number
 	 of links, but is quite slow (it is noticeable when Emacs is
 	 making a list of file name completions). */
       BY_HANDLE_FILE_INFORMATION info;

@@ -364,7 +364,7 @@ newsgroups, set the variable to nil in `gnus-select-group-hook'."
 This variable can either be the symbols `first' (place point on the
 first subject), `unread' (place point on the subject line of the first
 unread article), `best' (place point on the subject line of the
-higest-scored article), `unseen' (place point on the subject line of
+highest-scored article), `unseen' (place point on the subject line of
 the first unseen article), `unseen-or-unread' (place point on the subject
 line of the first unseen article or, if all articles have been seen, on the
 subject line of the first unread article), or a function to be called to

@@ -1486,7 +1486,7 @@ remap_menubar (XlwMenuWidget mw)
   if (new_selection && !new_selection->enabled)
     new_selection = NULL;
 
-  /* Call callback when the hightlighted item changes.  */
+  /* Call callback when the highlighted item changes.  */
   if (old_selection || new_selection)
     XtCallCallbackList ((Widget)mw, mw->menu.highlight,
 			(XtPointer) new_selection);

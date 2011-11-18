@@ -55,7 +55,7 @@
 
 ;; 0.3 (2007-03-11)
 ;;     - Renamed shift modes and thus names of score files. All
-;;       highscores are lost, unless you rename the score files from
+;;       high scores are lost, unless you rename the score files from
 ;;       bubbles-shift-... to bubbles-...!
 ;;     - Bugfixes: Check for successful image creation.
 ;;                 Disable menus and counter when game is over.
