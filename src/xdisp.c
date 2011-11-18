@@ -17950,6 +17950,9 @@ insert_left_trunc_glyphs (struct it *it)
 }
 
 /* Compute the hash code for ROW.  */
+#if !XASSERTS
+static
+#endif
 unsigned
 row_hash (struct glyph_row *row)
 {
