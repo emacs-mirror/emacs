@@ -1359,6 +1359,13 @@ delete_frame (Lisp_Object frame, Lisp_Object force)
     /* If needed, delete the terminal that this frame was on.
        (This must be done after the frame is killed.) */
     terminal->reference_count--;
+#ifdef USE_GTK
+    /* FIXME: Deleting the terminal crashes emacs because of a GTK
+       bug.
+       http://lists.gnu.org/archive/html/emacs-devel/2011-10/msg00363.html */
+    if (terminal->reference_count == 0 && terminal->type == output_x_window)
+      terminal->reference_count = 1;
+#endif /* USE_GTK */
     if (terminal->reference_count == 0)
       {
 	Lisp_Object tmp;

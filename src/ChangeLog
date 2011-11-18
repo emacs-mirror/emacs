@@ -1,3 +1,8 @@
+2011-11-18  Tassilo Horn  <tassilo@member.fsf.org>
+
+	* frame.c (delete_frame): Don't delete the terminal when the last
+	X frame is closed if emacs is built with GTK toolkit.
+
 2011-11-17  Juanma Barranquero  <lekktu@gmail.com>
 
 	* window.c (syms_of_window) <window-combination-resize>: Fix typo.
