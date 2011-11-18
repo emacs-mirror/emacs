@@ -149,7 +149,7 @@ from the Local Variables list ignoring the input argument VALUE."
 
 	(goto-char (point-max))
 	(let ((comment-style 'plain)
-	      (comment-start (or comment-start ";;; ")))
+	      (comment-start (or comment-start ";; ")))
 	  (comment-region
 	   (prog1 (setq beg (point))
 	     (insert "\nLocal Variables:\nEnd:\n"))
