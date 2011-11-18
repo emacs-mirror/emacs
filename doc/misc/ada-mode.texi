@@ -1357,7 +1357,7 @@ specifies the casing of one word or word fragment. Comments may be
 included, separated from the word by a space.
 
 If the word starts with an asterisk (@key{*}), it defines the casing
-af a word fragment (or ``substring''); part of a word between two
+as a word fragment (or ``substring''); part of a word between two
 underscores or word boundary.
 
 For example:
