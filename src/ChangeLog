@@ -1,3 +1,8 @@
+2011-11-18  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* intervals.c: Fix grafting over the whole buffer (bug#10071).
+	(graft_intervals_into_buffer): Simplify.
+
 2011-11-18  Eli Zaretskii  <eliz@gnu.org>
 
 	* dispnew.c (swap_glyph_pointers): Swap the used[] arrays and the
@@ -394,7 +399,7 @@
 
 	Fix the `xbytecode' command.
 	* .gdbinit (xprintbytestr): New command.
-	(xwhichsymbols): Renamed from `which'; all callers changed.
+	(xwhichsymbols): Rename from `which'; all callers changed.
 	(xbytecode): Print the byte-code string as well.
 
 2011-10-29  Kim Storm  <storm@cua.dk>
