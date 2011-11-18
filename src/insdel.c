@@ -1316,7 +1316,7 @@ replace_range (EMACS_INT from, EMACS_INT to, Lisp_Object new,
 
   UNGCPRO;
 
-  /* Make args be valid */
+  /* Make args be valid.  */
   if (from < BEGV)
     from = BEGV;
   if (to > ZV)

@@ -69,13 +69,23 @@
 ;;     (exp ("IF" exp "ELSE" exp "END") ("CASE" cases "END"))
 ;;     (cases (cases "ELSE" insts) ...)
 ;;   The IF-rule implies ELSE=END and the CASE-rule implies ELSE>END.
-;;   FIXME: we could try to resolve such conflicts automatically by changing
-;;   the way BNF rules such as the IF-rule is handled.  I.e. rather than
-;;   IF=ELSE and ELSE=END, we could turn them into IF<ELSE and ELSE>END
-;;   and IF=END,
+;;   This can be resolved simply with:
+;;     (exp ("IF" expelseexp "END") ("CASE" cases "END"))
+;;     (expelseexp (exp) (exp "ELSE" exp))
+;;     (cases (cases "ELSE" insts) ...)
+;; - Another source of conflict is when a terminator/separator is used to
+;;   terminate elements at different levels, as in:
+;;     (decls ("VAR" vars) (decls "," decls))
+;;     (vars (id) (vars "," vars))
+;;   often these can be resolved by making the lexer distinguish the two
+;;   kinds of commas, e.g. based on the following token.
 
 ;; TODO & BUGS:
 ;;
+;; - We could try to resolve conflicts such as the IFexpELSEexpEND -vs-
+;;   CASE(casesELSEexp)END automatically by changing the way BNF rules such as
+;;   the IF-rule is handled.  I.e. rather than IF=ELSE and ELSE=END, we could
+;;   turn them into IF<ELSE and ELSE>END and IF=END.
 ;; - Using the structural information SMIE gives us, it should be possible to
 ;;   implement a `smie-align' command that would automatically figure out what
 ;;   there is to align and how to do it (something like: align the token of
@@ -106,6 +116,10 @@
 ;;   scanning from "Module" should not stop at a spurious "end").
 
 ;;; Code:
+
+;; FIXME:
+;; - smie-indent-comment doesn't interact well with mis-indented lines (where
+;;   the indent rules don't do what the user wants).  Not sure what to do.
 
 (eval-when-compile (require 'cl))
 
@@ -138,6 +152,8 @@
 ;; turns them into a levels table, which is what's used by the rest of
 ;; the SMIE code.
 
+(defvar smie-warning-count 0)
+
 (defun smie-set-prec2tab (table x y val &optional override)
   (assert (and x y))
   (let* ((key (cons x y))
@@ -149,7 +165,8 @@
             ;; be able to distinguish the two cases so that overrides
             ;; don't hide real conflicts.
             (puthash key (gethash key override) table)
-          (display-warning 'smie (format "Conflict: %s %s/%s %s" x old val y)))
+          (display-warning 'smie (format "Conflict: %s %s/%s %s" x old val y))
+          (incf smie-warning-count))
       (puthash key val table))))
 
 (put 'smie-precs->prec2 'pure t)
@@ -193,21 +210,54 @@ one of those elements share the same precedence level and associativity."
       prec2)))
 
 (put 'smie-bnf->prec2 'pure t)
-(defun smie-bnf->prec2 (bnf &rest precs)
+(defun smie-bnf->prec2 (bnf &rest resolvers)
+  "Convert the BNF grammar into a prec2 table.
+BNF is a list of nonterminal definitions of the form:
+  \(NONTERM RHS1 RHS2 ...)
+where each RHS is a (non-empty) list of terminals (aka tokens) or non-terminals.
+Not all grammars are accepted:
+- an RHS cannot be an empty list (this is not needed, since SMIE allows all
+  non-terminals to match the empty string anyway).
+- an RHS cannot have 2 consecutive non-terminals: between each non-terminal
+  needs to be a terminal (aka token).  This is a fundamental limitation of
+  the parsing technology used (operator precedence grammar).
+Additionally, conflicts can occur:
+- The returned prec2 table holds constraints between pairs of
+  token, and for any given pair only one constraint can be
+  present, either: T1 < T2, T1 = T2, or T1 > T2.
+- A token can either be an `opener' (something similar to an open-paren),
+  a `closer' (like a close-paren), or `neither' of the two (e.g. an infix
+  operator, or an inner token like \"else\").
+Conflicts can be resolved via RESOLVERS, which is a list of elements that can
+be either:
+- a precs table (see `smie-precs->prec2') to resolve conflicting constraints,
+- a constraint (T1 REL T2) where REL is one of = < or >."
   ;; FIXME: Add repetition operator like (repeat <separator> <elems>).
   ;; Maybe also add (or <elem1> <elem2>...) for things like
   ;; (exp (exp (or "+" "*" "=" ..) exp)).
   ;; Basically, make it EBNF (except for the specification of a separator in
   ;; the repetition, maybe).
-  (let ((nts (mapcar 'car bnf))         ;Non-terminals
-        (first-ops-table ())
-        (last-ops-table ())
-        (first-nts-table ())
-        (last-nts-table ())
-        (prec2 (make-hash-table :test 'equal))
-        (override (apply 'smie-merge-prec2s
-                         (mapcar 'smie-precs->prec2 precs)))
-        again)
+  (let* ((nts (mapcar 'car bnf))        ;Non-terminals.
+         (first-ops-table ())
+         (last-ops-table ())
+         (first-nts-table ())
+         (last-nts-table ())
+         (smie-warning-count 0)
+         (prec2 (make-hash-table :test 'equal))
+         (override
+          (let ((precs ())
+                (over (make-hash-table :test 'equal)))
+            (dolist (resolver resolvers)
+              (cond
+               ((and (= 3 (length resolver)) (memq (nth 1 resolver) '(= < >)))
+                (smie-set-prec2tab
+                 over (nth 0 resolver) (nth 2 resolver) (nth 1 resolver)))
+               ((memq (caar resolver) '(left right assoc nonassoc))
+                (push resolver precs))
+               (t (error "Unknown resolver %S" resolver))))
+            (apply #'smie-merge-prec2s over
+                   (mapcar 'smie-precs->prec2 precs))))
+         again)
     (dolist (rules bnf)
       (let ((nt (car rules))
             (last-ops ())
@@ -287,8 +337,11 @@ one of those elements share the same precedence level and associativity."
           (setq rhs (cdr rhs)))))
     ;; Keep track of which tokens are openers/closer, so they can get a nil
     ;; precedence in smie-prec2->grammar.
-    (puthash :smie-open/close-alist (smie-bnf-classify bnf) prec2)
-    (puthash :smie-closer-alist (smie-bnf-closer-alist bnf) prec2)
+    (puthash :smie-open/close-alist (smie-bnf--classify bnf) prec2)
+    (puthash :smie-closer-alist (smie-bnf--closer-alist bnf) prec2)
+    (if (> smie-warning-count 0)
+        (display-warning
+         'smie (format "Total: %d warnings" smie-warning-count)))
     prec2))
 
 ;; (defun smie-prec2-closer-alist (prec2 include-inners)
@@ -343,7 +396,7 @@ one of those elements share the same precedence level and associativity."
 ;;                openers)
 ;;       alist)))
 
-(defun smie-bnf-closer-alist (bnf &optional no-inners)
+(defun smie-bnf--closer-alist (bnf &optional no-inners)
   ;; We can also build this closer-alist table from a prec2 table,
   ;; but it takes more work, and the order is unpredictable, which
   ;; is a problem for smie-close-block.
@@ -371,37 +424,33 @@ from the table, e.g. the table will not include things like (\"if\" . \"else\").
                 (pushnew (cons (car rhs) term) alist :test #'equal)))))))
     (nreverse alist)))
 
-(defun smie-bnf-classify (bnf)
+(defun smie-bnf--set-class (table token class)
+  (let ((prev (gethash token table class)))
+    (puthash token
+             (cond
+              ((eq prev class) class)
+              ((eq prev t) t) ;Non-terminal.
+              (t (display-warning
+                  'smie
+                  (format "token %s is both %s and %s" token class prev))
+                 'neither))
+             table)))
+
+(defun smie-bnf--classify (bnf)
   "Return a table classifying terminals.
-Each terminal can either be an `opener', a `closer', or neither."
+Each terminal can either be an `opener', a `closer', or `neither'."
   (let ((table (make-hash-table :test #'equal))
-        (nts (mapcar #'car bnf))
         (alist '()))
     (dolist (category bnf)
-      (puthash (car category) 'neither table) ;Remove non-terminals.
+      (puthash (car category) t table)) ;Mark non-terminals.
+    (dolist (category bnf)
       (dolist (rhs (cdr category))
         (if (null (cdr rhs))
-            (puthash (pop rhs) 'neither table)
-          (let ((first (pop rhs)))
-            (puthash first
-                     (if (memq (gethash first table) '(nil opener))
-                         'opener
-                       (unless (member first nts)
-                         (error "SMIE: token %s is both opener and non-opener"
-                                first))
-                       'neither)
-                     table))
-          (while (cdr rhs)
-            (puthash (pop rhs) 'neither table)) ;Remove internals.
-          (let ((last (pop rhs)))
-            (puthash last
-                     (if (memq (gethash last table) '(nil closer))
-                         'closer
-                       (unless (member last nts)
-                         (error "SMIE: token %s is both closer and non-closer"
-                                last))
-                       'neither)
-                     table)))))
+            (smie-bnf--set-class table (pop rhs) 'neither)
+          (smie-bnf--set-class table (pop rhs) 'opener)
+          (while (cdr rhs)              ;Remove internals.
+            (smie-bnf--set-class table (pop rhs) 'neither))
+          (smie-bnf--set-class table (pop rhs) 'closer))))
     (maphash (lambda (tok v)
                (when (memq v '(closer opener))
                  (push (cons tok v) alist)))
@@ -692,8 +741,22 @@ Possible return values:
                    ;; Keep looking as long as we haven't matched the
                    ;; topmost operator.
                    (levels
-                    (if (numberp (funcall op-forw toklevels))
-                        (push toklevels levels)))
+                    (cond
+                     ((numberp (funcall op-forw toklevels))
+                      (push toklevels levels))
+                     ;; FIXME: For some languages, we can express the grammar
+                     ;; OK, but next-sexp doesn't stop where we'd want it to.
+                     ;; E.g. in SML, we'd want to stop right in front of
+                     ;; "local" if we're scanning (both forward and backward)
+                     ;; from a "val/fun/..." at the same level.
+                     ;; Same for Pascal/Modula2's "procedure" w.r.t
+                     ;; "type/var/const".
+                     ;;
+                     ;; ((and (functionp (cadr (funcall op-forw toklevels)))
+                     ;;       (funcall (cadr (funcall op-forw toklevels))
+                     ;;                levels))
+                     ;;  (setq levels nil))
+                     ))
                    ;; We matched the topmost operator.  If the new operator
                    ;; is the last in the corresponding BNF rule, we're done.
                    ((not (numberp (funcall op-forw toklevels)))
@@ -980,7 +1043,7 @@ function should return nil for arguments it does not expect.
 
 OFFSET can be:
 nil				use the default indentation rule.
-`(column . COLUMN)		indent to column COLUMN.
+\(column . COLUMN)		indent to column COLUMN.
 NUMBER				offset by NUMBER, relative to a base token
 				which is the current token for :after and
 				its parent for :before.

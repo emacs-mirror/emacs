@@ -480,25 +480,20 @@ implemented via rewriting, rather than as a function."
       (let ((body (car (last terms))))
 	(setcdr (last terms 2) nil)
 	`(let ((for-items
-                ;; Apparently, eshell-do-eval only works for immutable
-                ;; let-bindings, i.e. we cannot use `setq' on `for-items'.
-                ;; Instead we store the list in the car of a cons-cell (which
-                ;; acts as a ref-cell) so we can setcar instead of setq.
-                (list
-                 (append
-                  ,@(mapcar
-                     (lambda (elem)
-                       (if (listp elem)
-                           elem
-                         `(list ,elem)))
-                     (cdr (cddr terms))))))
+                (append
+                 ,@(mapcar
+                    (lambda (elem)
+                      (if (listp elem)
+                          elem
+                        `(list ,elem)))
+                    (cdr (cddr terms)))))
                (eshell-command-body '(nil))
                (eshell-test-body '(nil)))
-           (while (consp (car for-items))
-             (let ((,(intern (cadr terms)) (caar for-items)))
+           (while (consp for-items)
+             (let ((,(intern (cadr terms)) (car for-items)))
                (eshell-protect
                 ,(eshell-invokify-arg body t)))
-             (setcar for-items (cdar for-items)))
+             (setq for-items (cdr for-items)))
            (eshell-close-handles
             eshell-last-command-status
             (list 'quote eshell-last-command-result))))))
@@ -766,9 +761,8 @@ This macro calls itself recursively, with NOTFIRST non-nil."
     `(eshell-copy-handles
       (progn
 	,(when (cdr pipeline)
-	   `(let (nextproc)
-              (setq nextproc
-                    (eshell-do-pipelines (quote ,(cdr pipeline)) t))
+	   `(let ((nextproc
+		   (eshell-do-pipelines (quote ,(cdr pipeline)) t)))
               (eshell-set-output-handle ,eshell-output-handle
                                         'append nextproc)
               (eshell-set-output-handle ,eshell-error-handle
@@ -796,10 +790,9 @@ This macro calls itself recursively, with NOTFIRST non-nil."
 Output of each command is passed as input to the next one in the pipeline.
 This is used on systems where `start-process' is not supported."
   (when (setq pipeline (cadr pipeline))
-    `(let (result)
+    `(progn
        ,(when (cdr pipeline)
-          `(let (output-marker)
-             (setq output-marker ,(point-marker))
+          `(let ((output-marker ,(point-marker)))
              (eshell-set-output-handle ,eshell-output-handle
                                        'append output-marker)
              (eshell-set-output-handle ,eshell-error-handle
@@ -811,21 +804,21 @@ This is used on systems where `start-process' is not supported."
           (when (memq (car head) eshell-deferrable-commands)
             (ignore
              (setcar head
-		       (intern-soft
-			(concat (symbol-name (car head)) "*"))))))
-	 ;; The last process in the pipe should get its handles
+                     (intern-soft
+                      (concat (symbol-name (car head)) "*"))))))
+       ;; The last process in the pipe should get its handles
        ;; redirected as we found them before running the pipe.
        ,(if (null (cdr pipeline))
             `(progn
                (setq eshell-current-handles tail-handles)
                (setq eshell-in-pipeline-p nil)))
-       (setq result ,(car pipeline))
-       ;; tailproc gets the result of the last successful process in
-       ;; the pipeline.
-       (setq tailproc (or result tailproc))
-       ,(if (cdr pipeline)
-            `(eshell-do-pipelines-synchronously (quote ,(cdr pipeline))))
-       result)))
+       (let ((result ,(car pipeline)))
+         ;; tailproc gets the result of the last successful process in
+         ;; the pipeline.
+         (setq tailproc (or result tailproc))
+         ,(if (cdr pipeline)
+              `(eshell-do-pipelines-synchronously (quote ,(cdr pipeline))))
+         result))))
 
 (defalias 'eshell-process-identity 'identity)
 
@@ -890,8 +883,7 @@ Returns a string comprising the output from the command."
 	 (eshell-print "errors\n"))
      (if eshell-debug-command
 	 (eshell-print "commands\n")))
-    ((or (string= (car args) "-h")
-	 (string= (car args) "--help"))
+    ((member (car args) '("-h" "--help"))
      (eshell-print "usage: eshell-debug [kinds]
 
 This command is used to aid in debugging problems related to Eshell
@@ -1091,6 +1083,11 @@ be finished later after the completion of an asynchronous subprocess."
 	  (eshell-manipulate "handling special form"
 	    (setcar args `(eshell-do-eval ',(car args) ,synchronous-p))))
 	(eval form))
+       ((eq (car form) 'setq)
+	(if (cddr args) (error "Unsupported form (setq X1 E1 X2 E2..)"))
+        (eshell-manipulate "evaluating arguments to setq"
+          (setcar (cdr args) (eshell-do-eval (cadr args) synchronous-p)))
+	(list 'quote (eval form)))
        (t
 	(if (and args (not (memq (car form) '(run-hooks))))
 	    (eshell-manipulate
@@ -1127,11 +1124,12 @@ be finished later after the completion of an asynchronous subprocess."
 	  ;; Thus, aliases can even contain references to asynchronous
 	  ;; sub-commands, and things will still work out as they
 	  ;; should.
-	  (let (result new-form)
-	    (if (setq new-form
-		      (catch 'eshell-replace-command
-			(ignore
-			 (setq result (eval form)))))
+	  (let* (result
+                 (new-form
+                  (catch 'eshell-replace-command
+                    (ignore
+                     (setq result (eval form))))))
+	    (if new-form
 		(progn
 		  (eshell-manipulate "substituting replacement form"
 		    (setcar form (car new-form))
@@ -1247,25 +1245,23 @@ or an external command."
 PRINTER and ERRPRINT are functions to use for printing regular
 messages, and errors.  FORM-P should be non-nil if FUNC-OR-FORM
 represent a lisp form; ARGS will be ignored in that case."
-  (let (result)
-    (eshell-condition-case err
-	(progn
-	  (setq result
-		(save-current-buffer
-		  (if form-p
-		      (eval func-or-form)
-		    (apply func-or-form args))))
-	  (and result (funcall printer result))
-	  result)
-      (error
-       (let ((msg (error-message-string err)))
-	 (if (and (not form-p)
-		  (string-match "^Wrong number of arguments" msg)
-		  (fboundp 'eldoc-get-fnsym-args-string))
-	     (let ((func-doc (eldoc-get-fnsym-args-string func-or-form)))
-	       (setq msg (format "usage: %s" func-doc))))
-	 (funcall errprint msg))
-       nil))))
+  (eshell-condition-case err
+      (let ((result
+             (save-current-buffer
+               (if form-p
+                   (eval func-or-form)
+                 (apply func-or-form args)))))
+        (and result (funcall printer result))
+        result)
+    (error
+     (let ((msg (error-message-string err)))
+       (if (and (not form-p)
+                (string-match "^Wrong number of arguments" msg)
+                (fboundp 'eldoc-get-fnsym-args-string))
+           (let ((func-doc (eldoc-get-fnsym-args-string func-or-form)))
+             (setq msg (format "usage: %s" func-doc))))
+       (funcall errprint msg))
+     nil)))
 
 (defsubst eshell-apply* (printer errprint func args)
   "Call FUNC, with ARGS, trapping errors and return them as output.

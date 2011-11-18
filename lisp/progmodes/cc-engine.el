@@ -2820,7 +2820,7 @@ comment at the start of cc-engine.el for more info."
 					; or `here' itself.
 	here- here+		     ; start/end of macro around HERE, or HERE
 	(here-bol (c-point 'bol here))
-	(too-far-back (max (- here c-state-cache-too-far) 1)))
+	(too-far-back (max (- here c-state-cache-too-far) (point-min))))
 
     ;; Remove completely irrelevant entries from `c-state-cache'.
     (while (and c-state-cache
@@ -2964,9 +2964,9 @@ comment at the start of cc-engine.el for more info."
 	    c-state-cache-good-pos nil
 	    c-state-min-scan-pos nil)
 
-;;; Truncate `c-state-cache' and set `c-state-cache-good-pos' to a value below
-;;; `here'.  To maintain its consistency, we may need to insert a new brace
-;;; pair.
+    ;; Truncate `c-state-cache' and set `c-state-cache-good-pos' to a value
+    ;; below `here'.  To maintain its consistency, we may need to insert a new
+    ;; brace pair.
     (let ((here-bol (c-point 'bol here))
 	  too-high-pa		  ; recorded {/(/[ next above here, or nil.
 	  dropped-cons		  ; was the last removed element a brace pair?
