@@ -1534,7 +1534,7 @@ is a regular expression for matching the lines with items."
 
 (defvar rst-preferred-bullets
   '(?- ?* ?+)
-  "List of favourite bullets to set for straightening bullets.")
+  "List of favorite bullets to set for straightening bullets.")
 
 (defun rst-straighten-bullets-region (beg end)
   "Make all the bulleted list items in the region consistent.

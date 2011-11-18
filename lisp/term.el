@@ -294,7 +294,7 @@
 ;;   # Notice that the ^[ character is an ESC, not two chars.  You can
 ;;   # get it in various ways, for example by typing
 ;;   # echo -e '\033' > escape.file
-;;   # or by using your favourite editor
+;;   # or by using your favorite editor
 ;;
 ;; 		foreach temp (cd pushd)
 ;; 			alias $temp "$temp \!* ; echo 'AnSiTc' $cwd_hack"

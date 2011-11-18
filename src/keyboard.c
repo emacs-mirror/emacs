@@ -932,7 +932,7 @@ pop_kboard (void)
   state later.
 
   If Emacs is already in single_kboard mode, and F's keyboard is
-  locked, then this function will throw an errow.  */
+  locked, then this function will throw an error.  */
 
 void
 temporarily_switch_to_single_kboard (struct frame *f)
@@ -5393,7 +5393,7 @@ make_lispy_event (struct input_event *event)
 	  || !lispy_function_keys[event->code - FUNCTION_KEY_OFFSET])
 	{
 	  /* We need to use an alist rather than a vector as the cache
-	     since we can't make a vector long enuf.  */
+	     since we can't make a vector long enough.  */
 	  if (NILP (KVAR (current_kboard, system_key_syms)))
 	    KVAR (current_kboard, system_key_syms) = Fcons (Qnil, Qnil);
 	  return modify_event_symbol (event->code,

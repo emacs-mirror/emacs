@@ -3642,7 +3642,7 @@
 	(lang_names): Add a NULL member for every entry, added an entry
 	for makefiles.
 	(Makefile_targets): New function.
-	(Texinfo_nodes): Rename from Texinfo_fuctions and made
+	(Texinfo_nodes): Rename from Texinfo_functions and made
 	it conformant to the style of the rest of the code.
 
 2001-01-13  Gerd Moellmann  <gerd@gnu.org>

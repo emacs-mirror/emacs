@@ -2487,7 +2487,7 @@ If FRAME is omitted, the selected frame is used.  The exact value
 of the result depends on the window-system and toolkit in use:
 
 In the Gtk+ version of Emacs, it includes only any window (including
-the minibuffer or eacho area), mode line, and header line.  It does not
+the minibuffer or echo area), mode line, and header line.  It does not
 include the tool bar or menu bar.
 
 With the Motif or Lucid toolkits, it also includes the tool bar (but

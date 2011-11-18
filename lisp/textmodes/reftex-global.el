@@ -230,7 +230,7 @@ one with the `xr' package."
     ;; Save all document buffers before this operation
     (reftex-save-all-document-buffers)
 
-    ;; First test to check for erros
+    ;; First test to check for errors.
     (setq n (reftex-translate
              files search-re translate-alist error-fmt 'test))
 

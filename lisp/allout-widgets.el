@@ -49,7 +49,7 @@
 ;; systematically couple overlays, graphics, and other features with
 ;; allout-governed text.
 
-;;;_: Code (structured with comments that delinieate an allout outline)
+;;;_: Code (structured with comments that delineate an allout outline)
 
 ;;;_ : General Environment
 (require 'allout)
@@ -810,7 +810,7 @@ Optional RECURSING is for internal use, to limit recursion."
                       (forward-char -1)))))))
 
     (error
-     ;; zero work list so we don't get stuck futily retrying.
+     ;; zero work list so we don't get stuck futilely retrying.
      ;; error recording done by allout-widgets-hook-error-handler.
      (setq allout-widgets-changes-record nil))))
 ;;;_   , major change handlers:

@@ -4,7 +4,7 @@
 
 ;; Author: Morten Welinder <terra@diku.dk>
 ;; Keywords: convenience
-;; Favourite-brand-of-beer: None, I hate beer.
+;; Favorite-brand-of-beer: None, I hate beer.
 
 ;; This file is part of GNU Emacs.
 

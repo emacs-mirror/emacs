@@ -1163,7 +1163,8 @@ If OTHER-FRAME is non-nil, display the cross-reference in another frame."
 
 (defun ada-goto-declaration-other-frame (pos)
   "Display the declaration of the identifier around POS.
-The declation is shown in another frame if `ada-xref-other-buffer' is non-nil."
+The declaration is shown in another frame if `ada-xref-other-buffer' is
+non-nil."
   (interactive "d")
   (ada-goto-declaration pos t))
 

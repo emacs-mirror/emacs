@@ -998,7 +998,7 @@ copy_keymap_item (Lisp_Object elt)
     }
   else
     {
-      /* It may be an old fomat menu item.
+      /* It may be an old format menu item.
 	 Skip the optional menu string.  */
       if (STRINGP (XCAR (tem)))
 	{

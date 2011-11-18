@@ -936,7 +936,7 @@ with the dictionaries found in the dictionary."
   (if (srecode-dictionary-lookup-name dictionary (oref sti :object-name))
       ;; If we have a value, then call the next method
       (srecode-insert-method-helper sti dictionary 'includedtemplate)
-    ;; If we don't have a special dictitonary, then just insert with the
+    ;; If we don't have a special dictionary, then just insert with the
     ;; current dictionary.
     (srecode-insert-subtemplate sti dictionary 'includedtemplate))
   )

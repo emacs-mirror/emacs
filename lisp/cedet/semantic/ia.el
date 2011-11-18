@@ -119,7 +119,7 @@ Completion options are calculated with `semantic-analyze-possible-completions'."
 	      ;; completions.
 	      ;;
 	      ;; This is a way of making this fcn more useful since
-	      ;; the smart completion engine sometimes failes.
+	      ;; the smart completion engine sometimes fails.
 	      (semantic-complete-symbol))
 	;; Use try completion to seek a common substring.
 	(let ((tc (try-completion (or pre "")  syms)))

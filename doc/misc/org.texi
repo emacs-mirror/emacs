@@ -6216,7 +6216,7 @@ not started at exactly the right moment.
 @kindex ;
 
 Calling @code{org-timer-set-timer} from an Org-mode buffer runs a countdown
-timer.  Use @kbd{;} from agenda buffers, @key{C-c C-x ;} everwhere else.
+timer.  Use @kbd{;} from agenda buffers, @key{C-c C-x ;} everywhere else.
 
 @code{org-timer-set-timer} prompts the user for a duration and displays a
 countdown timer in the modeline.  @code{org-timer-default-timer} sets the
@@ -15533,7 +15533,7 @@ chapter about publishing.
 @i{Jambunathan K} contributed the OpenDocumentText exporter.
 @item
 @i{Sebastien Vauban} reported many issues with LaTeX and BEAMER export and
-enabled source code highlighling in Gnus.
+enabled source code highlighting in Gnus.
 @item
 @i{Stefan Vollmar} organized a video-recorded talk at the
 Max-Planck-Institute for Neurology.  He also inspired the creation of a

@@ -322,7 +322,7 @@ default value is @code{(links uid gid)} i.e.@: all the 3 optional
 attributes are displayed.
 
 @vindex ls-lisp-emulation
-  The variable @code{ls-lisp-emulation} controls the flavour of the
+  The variable @code{ls-lisp-emulation} controls the flavor of the
 @code{ls} emulation by setting the defaults for the 3 options
 described above: @code{ls-lisp-ignore-case},
 @code{ls-lisp-dirs-first}, and @code{ls-lisp-verbosity}.  The value of

@@ -1,3 +1,9 @@
+2011-11-17  Martin Rudalics  <rudalics@gmx.at>
+
+	* windows.texi (Resizing Windows, Splitting Windows)
+	(Deleting Windows): Use term window-combination-resize instead
+	of window-splits.
+
 2011-11-16  Martin Rudalics  <rudalics@gmx.at>
 
 	* windows.texi (Resizing Windows, Splitting Windows): Rename

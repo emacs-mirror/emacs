@@ -1837,7 +1837,7 @@ after indenting."
     (and (< (point) pos)
          (goto-char pos))
     (if auto-fill-function
-        ;; GM NO-UPDATE not honoured, since this calls f90-update-line.
+        ;; GM NO-UPDATE not honored, since this calls f90-update-line.
         (f90-do-auto-fill)
       (or no-update (f90-update-line)))
     (set-marker pos nil)))

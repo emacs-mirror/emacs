@@ -1,3 +1,37 @@
+2011-11-17  Glenn Morris  <rgm@gnu.org>
+
+	* emacs-lisp/autoload.el (autoload-generate-file-autoloads):
+	Ignore buffer-local generated-autoload-file if it is the same
+	as the global value.  (Bug#10049)
+
+2011-11-17  Juanma Barranquero  <lekktu@gmail.com>
+
+	* textmodes/reftex-toc.el (reftex-toc-return-marker, reftex-toc-help)
+	(reftex-toc, reftex-toc, reftex-toc-dframe-p, reftex-toc-next-heading)
+	(reftex-toc-previous-heading, reftex-toc-max-level)
+	(reftex-toc-goto-line-and-hide, reftex-toc-show-calling-point)
+	(reftex-toc-quit, reftex-toc-revert, reftex-toc-jump)
+	(reftex-toc-do-promote, reftex-toc-promote-prepare)
+	(reftex-toc-promote-action, reftex-toc-extract-section-number)
+	(reftex-toc-load-all-files-for-promotion, reftex-toc-rename-label)
+	(reftex-toc-rename-label, reftex-toc-visit-location)
+	(reftex-toc-visit-location, reftex-toggle-auto-toc-recenter)
+	(reftex-toggle-auto-toc-recenter, reftex-toggle-auto-toc-recenter)
+	(reftex-make-separate-toc-frame): Fix typos, and use TOC consistently,
+	leaving "*toc*" only for references to the buffer.
+
+2011-11-17  Martin Rudalics  <rudalics@gmx.at>
+
+	* window.el (window-resize, delete-window, split-window):
+	Replace window-splits by window-combination-resize.
+	* cus-start.el (window-splits): Replace by
+	window-combination-resize.
+
+2011-11-17  Glenn Morris  <rgm@gnu.org>
+
+	* progmodes/sh-script.el (sh-font-lock-keywords-var):
+	Make bash entry derive from sh entry, not shell entry.
+
 2011-11-16  Michael Albinus  <michael.albinus@gmx.de>
 
 	* net/tramp.el (tramp-handle-file-truename): Cache only the local

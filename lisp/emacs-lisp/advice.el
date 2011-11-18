@@ -664,8 +664,8 @@
 
 ;; @@@ Enabling automatic advice activation:
 ;; =========================================
-;; Automatic advice activation is enabled by default. It can be disabled by
-;; doint `M-x ad-stop-advice' and enabled again with `M-x ad-start-advice'.
+;; Automatic advice activation is enabled by default. It can be disabled with
+;; `M-x ad-stop-advice' and enabled again with `M-x ad-start-advice'.
 
 ;; @@ Caching of advised definitions:
 ;; ==================================

@@ -72,7 +72,7 @@
 ;; * nndiary-get-new-mail, nndiary-mail-source and nndiary-split-methods:
 ;;   NNDiary has some experimental parts, in the sense Gnus normally uses only
 ;;   one mail back ends for mail retreival and splitting. This back end is
-;;   also an attempt to make it behave differently. For Gnus developpers: as
+;;   also an attempt to make it behave differently. For Gnus developers: as
 ;;   you can see if you snarf into the code, that was not a very difficult
 ;;   thing to do. Something should be done about the respooling breakage
 ;;   though.

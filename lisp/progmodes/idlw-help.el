@@ -705,7 +705,8 @@ Those words in `idlwave-completion-help-links' have links.  The
 	     ;; we kill the help frame before the return-frame is selected.
 	     ;; To protect the workings, we wait for up to one second
 	     ;; and check if the return-frame *is* now selected.
-	     ;; This is marked "eperimental" since we are not sure when its OK.
+	     ;; This is marked "experimental" since we are not sure when
+	     ;; it's OK.
 	     (let ((maxtime 1.0) (time 0.) (step 0.1))
 	       (select-frame idlwave-help-return-frame)
 	       (while (and (sit-for step)
@@ -990,7 +991,7 @@ on a line.  Then `NAME:' must be followed by the routine name on the
 same or the next line.  When KEYWORD is non-nil, looks first for a
 `KEYWORDS' section.  It is amazing how inconsisten this is through
 some IDL libraries I have seen.  We settle for a line containing an
-upper case \"KEYWORD\" string.  If this line is not fould we search
+upper case \"KEYWORD\" string.  If this line is not found we search
 for the keyword anyway to increase the hit-rate
 
 When one of these sections exists we check for a line starting with any of

@@ -17799,7 +17799,7 @@
 	(org-local-logging): New function.
 	(org-columns-open-link): Fix bug with opening link in column view.
 	(org-local-logging): New function.
-	(org-todo): Make sure that LOGGING properties are honoured.
+	(org-todo): Make sure that LOGGING properties are honored.
 	(org-todo-keywords): Improve docstring.
 	(org-startup-options): Cleanup startup options.
 	(org-set-regexps-and-options): Process the "!" markers.

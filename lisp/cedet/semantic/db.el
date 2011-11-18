@@ -606,7 +606,7 @@ The file associated with OBJ does not need to be in a buffer."
   ;; The lexical table should be good too.
   (when (featurep 'semantic/lex-spp)
     (oset table lexical-table (semantic-lex-spp-save-table)))
-  ;; this implies dirtyness
+  ;; this implies dirtiness
   (semanticdb-set-dirty table)
 
   ;; Synchronize the index

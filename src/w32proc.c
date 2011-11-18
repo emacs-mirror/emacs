@@ -174,7 +174,7 @@ delete_child (child_process *cp)
 	  cp->status = STATUS_READ_ERROR;
 	  SetEvent (cp->char_consumed);
 #if 0
-          /* We used to forceably terminate the thread here, but it
+          /* We used to forcibly terminate the thread here, but it
              is normally unnecessary, and in abnormal cases, the worst that
              will happen is we have an extra idle thread hanging around
              waiting for the zombie process.  */
@@ -2296,7 +2296,7 @@ filesystems via ange-ftp.  */);
 	       doc: /* Non-nil means attempt to fake realistic inode values.
 This works by hashing the truename of files, and should detect
 aliasing between long and short (8.3 DOS) names, but can have
-false positives because of hash collisions.  Note that determing
+false positives because of hash collisions.  Note that determining
 the truename of a file can be slow.  */);
   Vw32_generate_fake_inodes = Qnil;
 #endif

@@ -305,7 +305,7 @@ SPC, 6, 3, 4, or 7 specifing a tone (SPC:$(0?v(N(B, 6:$(0Dm(N(B, 3:$(0&9Vy
 	       (cond ((looking-at "PROMPT:[ \t]*")
 		      (goto-char (match-end 0))
 		      (setq tit-prompt (tit-read-key-value))
-		      ;; Some TIT dictionaies that are encoded by
+		      ;; Some TIT dictionaries that are encoded by
 		      ;; euc-china contains invalid character at the tail.
 		      (let* ((last (aref tit-prompt (1- (length tit-prompt))))
 			     (split (split-char last)))

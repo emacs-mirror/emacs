@@ -348,7 +348,7 @@ file_for_image (Lisp_Object image)
 
 /* For the image defined in IMG, make and return a GtkImage.  For displays with
    8 planes or less we must make a GdkPixbuf and apply the mask manually.
-   Otherwise the highlightning and dimming the tool bar code in GTK does
+   Otherwise the highlighting and dimming the tool bar code in GTK does
    will look bad.  For display with more than 8 planes we just use the
    pixmap and mask directly.  For monochrome displays, GTK doesn't seem
    able to use external pixmaps, it looks bad whatever we do.
@@ -1423,7 +1423,7 @@ get_dialog_title (char key)
 /* Callback for dialogs that get WM_DELETE_WINDOW.  We pop down
    the dialog, but return TRUE so the event does not propagate further
    in GTK.  This prevents GTK from destroying the dialog widget automatically
-   and we can always destrou the widget manually, regardles of how
+   and we can always destroy the widget manually, regardless of how
    it was popped down (button press or WM_DELETE_WINDOW).
    W is the dialog widget.
    EVENT is the GdkEvent that represents WM_DELETE_WINDOW (not used).
@@ -2294,7 +2294,7 @@ tearoff_activate (GtkWidget *widget, gpointer client_data)
 
 
 /* Create a menu item widget, and connect the callbacks.
-   ITEM decribes the menu item.
+   ITEM describes the menu item.
    F is the frame the created menu belongs to.
    SELECT_CB is the callback to use when a menu item is selected.
    HIGHLIGHT_CB is the callback to call when entering/leaving menu items.

@@ -560,7 +560,7 @@ Keys specific to Follow mode:
 
 ;; `scroll-up' and `-down', but for windows in Follow mode.
 ;;
-;; Almost like the real thing, excpet when the cursor ends up outside
+;; Almost like the real thing, except when the cursor ends up outside
 ;; the top or bottom...  In our case however, we end up outside the
 ;; window and hence we are recenterd.  Should we let `recenter' handle
 ;; the point position we would never leave the selected window.  To do
@@ -652,7 +652,7 @@ the rightmost is selected.  If ARG is nil, the leftmost window is
 selected if the original window is the first one in the frame.
 
 To bind this command to a hotkey, place the following line
-in your `~/.emacs' file, replacing [f7] by your favourite key:
+in your `~/.emacs' file, replacing [f7] by your favorite key:
     (global-set-key [f7] 'follow-delete-other-windows-and-split)"
   (interactive "P")
   (let ((other (or (and (null arg)

@@ -571,7 +571,7 @@ in the Fortran entry in `hs-special-modes-alist'.")
    ;; An alternative is to match on THEN at a line end, eg:
    ;;   ".*)[ \t]*then[ \t]*\\($\\|!\\)"
    ;; This would also match ELSE branches, though. This does not seem
-   ;; right to me, because then one has neighbouring blocks that are
+   ;; right to me, because then one has neighboring blocks that are
    ;; not nested in each other.
    "\\(if[ \t]*(\\(.*\\|"
    ".*\n\\([^if]*\\([^i].\\|.[^f]\\|.\\>\\)\\)\\)\\<then\\|"

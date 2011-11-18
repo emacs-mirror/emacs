@@ -152,7 +152,7 @@ local host, so if you want to use `~' in those commands, you should
 choose a shell here which groks tilde expansion.  `/bin/sh' normally
 does not understand tilde expansion.
 
-For encoding and deocding, commands like the following are executed:
+For encoding and decoding, commands like the following are executed:
 
     /bin/sh -c COMMAND < INPUT > OUTPUT
 

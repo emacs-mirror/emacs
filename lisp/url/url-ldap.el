@@ -173,7 +173,7 @@ URL can be a URL string, or a URL vector of the type returned by
 	(if attributes
 	    (setq attributes (mapcar 'url-unhex-string (split-string attributes ","))))
 
-	;; Parse out the exentions
+	;; Parse out the extensions.
 	(if extensions
 	    (setq extensions (mapcar (lambda (ext)
 				       (if (string-match "\\([^=]*\\)=\\(.*\\)" ext)

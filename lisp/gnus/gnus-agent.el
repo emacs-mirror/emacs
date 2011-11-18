@@ -1130,7 +1130,7 @@ article's mark is toggled."
 		   (setq alist (cdr alist)))
 		  ((> a h)
                    ;; Headers that are not in the alist should be
-                   ;; fictious (see nnagent-retrieve-headers); they
+                   ;; fictitious (see nnagent-retrieve-headers); they
                    ;; imply that this article isn't in the agent.
 		   (gnus-agent-append-to-list tail-undownloaded h)
 		   (gnus-agent-append-to-list tail-unfetched    h)

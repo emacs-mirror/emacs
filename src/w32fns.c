@@ -6709,7 +6709,7 @@ DEFUN ("default-printer-name", Fdefault_printer_name, Sdefault_printer_name,
       ClosePrinter (hPrn);
       return Qnil;
     }
-  /* Call GetPrinter again with big enouth memory block */
+  /* Call GetPrinter again with big enough memory block.  */
   err = GetPrinter (hPrn, 2, (LPBYTE)ppi2, dwNeeded, &dwReturned);
   ClosePrinter (hPrn);
   if (!err)

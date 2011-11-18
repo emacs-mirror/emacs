@@ -337,7 +337,7 @@
     ("(" . "$(7!l(B")
     ("0" . "$(7!P(B")
     (")" . "$(7!m(B")
-;;; ("-" ) ; enphatic, not yet supported
+;;; ("-" ) ; emphatic, not yet supported
 ;;; ("_" ) ; id.
 ;;; ("=" ) ; special sign, not yet supported
     ("+" . "$(7!A(B")

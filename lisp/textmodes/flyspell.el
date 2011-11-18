@@ -715,7 +715,7 @@ not the very same deplacement command."
   (remove-hook 'after-change-functions 'flyspell-after-change-function t)
   (remove-hook 'hack-local-variables-hook
 	       (function flyspell-hack-local-variables-hook) t)
-  ;; we remove all the flyspell hilightings
+  ;; we remove all the flyspell highlightings
   (flyspell-delete-all-overlays)
   ;; we have to erase pre cache variables
   (setq flyspell-pre-buffer nil)

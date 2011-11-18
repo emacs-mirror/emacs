@@ -620,7 +620,7 @@ if large.  You can use `Info-split' to do this manually."
    "var{\\|"
    "w{\\|"
    "xref{\\|"
-   "@-\\|"    ; @- is a descretionary hyphen (not an accent) (a noop).
+   "@-\\|"    ; @- is a discretionary hyphen (not an accent) (a noop).
    texinfo-accent-commands
    "\\)"
    )

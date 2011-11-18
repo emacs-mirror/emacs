@@ -68,7 +68,7 @@
 ;;
 ;; Markus Kuhn <Markus.Kuhn@cl.cam.ac.uk> for pointing me to ECMA-48.
 ;;
-;; Stefan Monnier <foo@acm.com> explaing obscure font-lock stuff and
+;; Stefan Monnier <foo@acm.com> for explaining obscure font-lock stuff and for
 ;; code suggestions.
 
 

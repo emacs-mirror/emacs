@@ -330,7 +330,7 @@ w32font_list (Lisp_Object frame, Lisp_Object font_spec)
 
 /* w32 implementation of match for font backend.
    Return a font entity most closely matching with FONT_SPEC on
-   FRAME.  The closeness is detemined by the font backend, thus
+   FRAME.  The closeness is determined by the font backend, thus
    `face-font-selection-order' is ignored here.  */
 static Lisp_Object
 w32font_match (Lisp_Object frame, Lisp_Object font_spec)

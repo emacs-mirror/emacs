@@ -202,7 +202,7 @@ associated with a buffer or parent."
 					      :size 20)
 		   :origin   origin)))
 	;; Only set up the default variables if we are being built
-	;; directroy for a particular buffer.
+	;; directly for a particular buffer.
 	(when initfrombuff
 	  ;; Variables from the table we are inserting from.
 	  ;; @todo - get a better tree of tables.

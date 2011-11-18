@@ -597,7 +597,7 @@ Note: TYPE not yet implemented."
 ;;     ;; If we have a string, do the replacement.
 ;;     (delete-region (semantic-tag-start tag)
 ;; 		   (semantic-tag-end tag))
-;;     ;; Use useful functions from the docaument library.
+;;     ;; Use useful functions from the document library.
 ;;    (srecode-texi-insert-tag-as-doc doctag)
 ;;    ;(semantic-insert-foreign-tag doctag)
 ;;     ))

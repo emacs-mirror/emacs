@@ -1,3 +1,14 @@
+2011-11-17  Juanma Barranquero  <lekktu@gmail.com>
+
+	* window.c (syms_of_window) <window-combination-resize>: Fix typo.
+
+2011-11-17  Martin Rudalics  <rudalics@gmx.at>
+
+	* window.c (Vwindow_splits): Rename to
+	Vwindow_combination_resize.  Suggested by Juri Linkov.
+	(Fsplit_window_internal): Use Vwindow_combination_resize instead
+	of Vwindow_splits.
+
 2011-11-16  Juanma Barranquero  <lekktu@gmail.com>
 
 	* nsfns.m (Fns_font_name):

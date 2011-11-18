@@ -631,7 +631,7 @@ with `.' followed by extensions, followed by full-filenames."
 			       (substring (car extlist) 1)))
 	(setq regex2 (concat regex2 (if regex2 "\\|" "") (car extlist))))
       (setq extlist (cdr extlist)))
-    ;; concat all the sub-exressions together, making sure all types
+    ;; Concatenate all the subexpressions together, making sure all types
     ;; of parts exist during concatenation.
     (concat "\\("
 	    (if regex1 (concat "\\(\\.\\(" regex1 "\\)\\)") "")
@@ -2105,7 +2105,7 @@ cell of the form ( 'DIRLIST . 'FILELIST )."
       (let ((sf (cdr (reverse speedbar-shown-directories))))
 	(setq speedbar-shown-directories
 	      (list (expand-file-name default-directory)))
-	;; exand them all as we find them
+	;; Expand them all as we find them.
 	(while sf
 	  (if (speedbar-goto-this-file (car sf))
 	      (progn
@@ -3292,7 +3292,7 @@ With universal argument ARG, flush cached data."
 Optional argument ARG indicates that any cache should be flushed."
   (interactive "P")
   (speedbar-expand-line arg)
-  ;; Now, inside the area expaded here, expand all subnodes of
+  ;; Now, inside the area expanded here, expand all subnodes of
   ;; the same descendant type.
   (save-excursion
     (speedbar-next 1) ;; Move into the list.

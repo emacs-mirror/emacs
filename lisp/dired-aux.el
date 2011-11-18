@@ -347,7 +347,7 @@ This calls touch."
 		  ;; Do the operation and record failures.
 		  failures (nconc (apply function (append args pending))
 				  failures)
-		  ;; Transfer the elemens of PENDING onto PAST
+		  ;; Transfer the elements of PENDING onto PAST
 		  ;; and clear it out.  Now PAST contains the first N files
 		  ;; specified (for some N), and FILES contains the rest.
 		  past (nconc past pending)
@@ -1490,7 +1490,7 @@ ARG as in `dired-get-marked-files'.
 Optional arg MARKER-CHAR as in `dired-create-files'.
 Optional arg OP1 is an alternate form for OPERATION if there is
   only one file.
-Optional arg HOW-TO determiness how to treat the target.
+Optional arg HOW-TO determines how to treat the target.
   If HOW-TO is nil, use `file-directory-p' to determine if the
    target is a directory.  If so, the marked file(s) are created
    inside that directory.  Otherwise, the target is a plain file;

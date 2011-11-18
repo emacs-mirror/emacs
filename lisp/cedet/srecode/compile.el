@@ -62,7 +62,7 @@
    (dictionary :initarg :dictionary
 	       :type (or null srecode-dictionary)
 	       :documentation
-	       "List of section dictinaries.
+	       "List of section dictionaries.
 The compiled template can contain lists of section dictionaries,
 or values that are expected to be passed down into different
 section macros.  The template section dictionaries are merged in with

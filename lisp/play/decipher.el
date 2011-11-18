@@ -672,7 +672,7 @@ X: A B C D E F G H I J K L M N O P Q R S T U V W X Y Z *  11   14   9%
      1 1                 1       2   1   1     2       5   7
 This says that X comes before D once, and after B once.  X begins 5
 words, and ends 3 words (`*' represents a space).  X comes before 8
-different letters, after 7 differerent letters, and is next to a total
+different letters, after 7 different letters, and is next to a total
 of 11 different letters.  It occurs 14 times, making up 9% of the
 ciphertext."
   (interactive (list (upcase (following-char))))

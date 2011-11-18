@@ -681,7 +681,7 @@ Assume point is at an item."
 	      (cond
 	       ((<= (point) lim-up)
 		;; At upward limit: if we ended at an item, store it,
-		;; else dimiss useless data recorded above BEG-CELL.
+		;; else dismiss useless data recorded above BEG-CELL.
 		;; Jump to part 2.
 		(throw 'exit
 		       (setq itm-lst
@@ -1177,7 +1177,7 @@ some heuristics to guess the result."
        ;; When `org-blank-before-new-entry' says so, it is 1.
        ((eq insert-blank-p t) 1)
        ;; `plain-list-item' is 'auto.  Count blank lines separating
-       ;; neighbours items in list.
+       ;; neighboring items in list.
        (t (let ((next-p (org-list-get-next-item item struct prevs)))
 	    (cond
 	     ;; Is there a next item?

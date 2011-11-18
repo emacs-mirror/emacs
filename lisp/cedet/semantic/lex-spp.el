@@ -639,7 +639,7 @@ and what valid VAL values are."
 
 ;;; Macro Merging
 ;;
-;; Used when token streams from different macros include eachother.
+;; Used when token streams from different macros include each other.
 ;; Merged macro streams perform in place replacements.
 
 (defun semantic-lex-spp-merge-streams (raw-stream)

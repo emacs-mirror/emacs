@@ -399,7 +399,7 @@ Returns the tag list, or t for an error."
     (if (listp out)
 	(condition-case nil
 	    (progn
-	      ;; This brings externally defind methods into
+	      ;; This brings externally defined methods into
 	      ;; their classes, and creates meta classes for
 	      ;; orphans.
 	      (setq out (semantic-adopt-external-members out))

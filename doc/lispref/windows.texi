@@ -633,11 +633,11 @@ The optional argument @var{ignore} has the same meaning as for the
 function @code{window-resizable} above.
 
 The choice of which window edges this function alters depends on the
-values of the option @code{window-splits} and the combination-limit
-status of the involved windows; in some cases, it may alter both edges.
-@xref{Splitting Windows}.  To resize by moving only the bottom or right
-edge of a window, use the function @code{adjust-window-trailing-edge},
-below.
+values of the option @code{window-combination-resize} and the
+combination-limit status of the involved windows; in some cases, it may
+alter both edges.  @xref{Splitting Windows}.  To resize by moving only
+the bottom or right edge of a window, use the function
+@code{adjust-window-trailing-edge}, below.
 @end defun
 
 @c The commands enlarge-window, enlarge-window-horizontally,
@@ -844,7 +844,7 @@ the new root window.
   The following two options can be used to modify the operation of
 @code{split-window}.
 
-@defopt window-splits
+@defopt window-combination-resize
 If this variable is @code{nil}, @code{split-window} can only split a
 window (denoted by @var{window}) if @var{window}'s screen area is
 large enough to accommodate both itself and the new window.  This is
@@ -864,8 +864,8 @@ The setting of this variable has no effect if
 @code{window-combination-limit} (see below) is non-@code{nil}.
 @end defopt
 
-To illustrate the use of @code{window-splits} consider the following
-window configuration:
+To illustrate the use of @code{window-combination-resize} consider the
+following window configuration:
 @smallexample
 @group
      ______________________________________
@@ -886,8 +886,9 @@ window configuration:
 @end group
 @end smallexample
 
-Splitting window @code{W3} with @code{window-splits} @code{nil}
-produces a configuration where the size of @code{W2} remains unchanged:
+Splitting window @code{W3} with @code{window-combination-resize}
+@code{nil} produces a configuration where the size of @code{W2} remains
+unchanged:
 @smallexample
 @group
      ______________________________________
@@ -908,10 +909,8 @@ produces a configuration where the size of @code{W2} remains unchanged:
 @end group
 @end smallexample
 
-Splitting @code{W3} with @code{window-splits} non-@code{nil} instead
-produces a configuration where all windows have approximately the same
-height:
-
+Splitting @code{W3} with @code{window-combination-resize} non-@code{nil}
+instead steals the space for @code{W4} from both @code{W2} and @code{W3}:
 @smallexample
 @group
      ______________________________________
@@ -979,7 +978,7 @@ return value is @var{status}.
 
 To illustrate the use of @code{window-combination-limit} consider the
 following configuration (throughout the following examples we shall
-assume that @code{window-splits} invariantly is @code{nil}).
+assume that @code{window-combination-resize} invariantly is @code{nil}).
 @smallexample
 @group
      ______________________________________
@@ -1184,11 +1183,12 @@ window parameters.  If the @code{delete-window} parameter specifies a
 function, that function is called with @var{window} as its sole
 argument.
 
-If @code{window-splits} (@pxref{Splitting Windows}) is @code{nil}, the
-space @var{window} took up is given to its left sibling if such a window
-exists and to its right sibling otherwise.  If @code{window-splits} is
-non-@code{nil}, the space of @var{window} is proportionally distributed
-among the remaining windows in the same combination.
+If @code{window-combination-resize} (@pxref{Splitting Windows}) is
+@code{nil}, the space @var{window} took up is given to its left sibling
+if such a window exists and to its right sibling otherwise.  If
+@code{window-combination-resize} is non-@code{nil}, the space of
+@var{window} is proportionally distributed among the remaining windows
+in the same combination.
 @end deffn
 
 @deffn Command delete-other-windows &optional window

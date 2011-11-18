@@ -628,7 +628,7 @@ file_name_completion (Lisp_Object file, Lisp_Object dirname, int all_flag, int v
 
 	  if (includeall && !canexclude)
 	    { /* If we have one non-excludable file, we want to exclude the
-		 excudable files.  */
+		 excludable files.  */
 	      includeall = 0;
 	      /* Throw away any previous excludable match found.  */
 	      bestmatch = Qnil;

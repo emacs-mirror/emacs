@@ -307,7 +307,7 @@ If it is \\[universal-argument] \\[universal-argument], behave just
 See `cvs-prefix-set' for further description of the behavior."))
        (defvar ,cps
 	 (let ((defaults ,defaults))
-	   ;; sanity ensurance
+	   ;; sanity insurance
 	   (unless (>= (length defaults) cvs-prefix-number)
 	     (setq defaults (append defaults
 				    (make-list (1- cvs-prefix-number)

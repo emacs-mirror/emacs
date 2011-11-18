@@ -29,7 +29,7 @@
 
        "C:\Program Files\Microsoft SDKs\Windows\v7.1\Bin\SetEnv.cmd" /x86 /Debug
 
-      if you are goiung to compile a debug version, or
+      if you are going to compile a debug version, or
 
        "C:\Program Files\Microsoft SDKs\Windows\v7.1\Bin\SetEnv.cmd" /x86 /Release
 
@@ -268,7 +268,7 @@
   "Error in --cflags argument: ... Backslashes and quotes cannot be
   used with --cflags.  Please use forward slashes for filenames and
   paths (e.g. when passing directories to -I)."
-  
+
   N.B.  It is normal to see a few error messages output while configure
   is running, when gcc support is being tested.  These cannot be
   suppressed because of limitations in the Windows 9X command.com shell.
