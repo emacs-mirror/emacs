@@ -1,5 +1,14 @@
 2011-11-18  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* emacs-lisp/smie.el: Improve warnings and conflict detection.
+	(smie-warning-count): New var.
+	(smie-set-prec2tab): Use it.
+	(smie-bnf->prec2): Improve warnings.  Add docstring.
+	(smie-bnf--closer-alist): Rename from smie-bnf-closer-alist.
+	(smie-bnf--set-class): New function.
+	(smie-bnf--classify): Rename from smie-bnf-classify.  Rewrite to fix
+	corner case.
+
 	* progmodes/compile.el: Obey compilation-first-column in dest buffer.
 	(compilation-error-properties, compilation-move-to-column):
 	Handle compilation-first-column while in the target buffer.
