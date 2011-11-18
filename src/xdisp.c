@@ -17949,6 +17949,23 @@ insert_left_trunc_glyphs (struct it *it)
     }
 }
 
+/* Compute the hash code for ROW.  */
+unsigned
+row_hash (struct glyph_row *row)
+{
+  int area, k;
+  unsigned hashval = 0;
+
+  for (area = LEFT_MARGIN_AREA; area < LAST_AREA; ++area)
+    for (k = 0; k < row->used[area]; ++k)
+      hashval = ((((hashval << 4) + (hashval >> 24)) & 0x0fffffff)
+		  + row->glyphs[area][k].u.val
+		  + row->glyphs[area][k].face_id
+		  + row->glyphs[area][k].padding_p
+		  + (row->glyphs[area][k].type << 2));
+
+  return hashval;
+}
 
 /* Compute the pixel height and width of IT->glyph_row.
 
@@ -18035,17 +18052,7 @@ compute_line_metrics (struct it *it)
     }
 
   /* Compute a hash code for this row.  */
-  {
-    int area, i;
-    row->hash = 0;
-    for (area = LEFT_MARGIN_AREA; area < LAST_AREA; ++area)
-      for (i = 0; i < row->used[area]; ++i)
-	row->hash = ((((row->hash << 4) + (row->hash >> 24)) & 0x0fffffff)
-		     + row->glyphs[area][i].u.val
-		     + row->glyphs[area][i].face_id
-		     + row->glyphs[area][i].padding_p
-		     + (row->glyphs[area][i].type << 2));
-  }
+  row->hash = row_hash (row);
 
   it->max_ascent = it->max_descent = 0;
   it->max_phys_ascent = it->max_phys_descent = 0;

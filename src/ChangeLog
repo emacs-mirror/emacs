@@ -1,3 +1,20 @@
+2011-11-18  Eli Zaretskii  <eliz@gnu.org>
+
+	* dispnew.c (swap_glyph_pointers): Swap the used[] arrays and the
+	hash values of the two rows.
+	(copy_row_except_pointers): Preserve the used[] arrays and the
+	hash values of the two rows.  (Bug#10035)
+
+	* xdisp.c (row_hash): New function, body extracted from
+	compute_line_metrics.
+	(compute_line_metrics): Call row_hash, instead of computing the
+	hash code inline.
+
+	* dispnew.c (verify_row_hash): Call row_hash for computing the
+	hash code of a row, instead of duplicating code from xdisp.c.
+
+	* dispextern.h (row_hash): Add prototype.
+
 2011-11-18  Tassilo Horn  <tassilo@member.fsf.org>
 
 	* frame.c (delete_frame): Don't delete the terminal when the last
