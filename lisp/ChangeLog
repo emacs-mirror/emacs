@@ -1,5 +1,11 @@
 2011-11-18  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* eshell/esh-cmd.el (eshell-do-eval): Handle `setq' (bug#9907).
+	(eshell-rewrite-for-command): Remove workaround.
+	(eshell-do-pipelines, eshell-do-pipelines-synchronously)
+	(eshell-do-eval, eshell-exec-lisp): Avoid gratuitous setq.
+	* eshell/esh-util.el (eshell-condition-case, eshell-for): Use declare.
+
 	* files-x.el (modify-file-local-variable): Obey commenting conventions.
 
 2011-11-17  Glenn Morris  <rgm@gnu.org>
