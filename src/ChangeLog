@@ -1,3 +1,9 @@
+2011-11-18  Chong Yidong  <cyd@gnu.org>
+
+	* window.c (Fwindow_combination_limit): Make first argument
+	non-optional, since it is meaningless for live windows like the
+	selected window.
+
 2011-11-18  Dmitry Antipov  <dmantipov@yandex.ru>
 
 	* keymap.c (Fwhere_is_internal): Add missing RETURN_UNGCPROs.

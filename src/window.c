@@ -465,10 +465,8 @@ Return nil if WINDOW has no previous sibling.  */)
   return decode_any_window (window)->prev;
 }
 
-DEFUN ("window-combination-limit", Fwindow_combination_limit, Swindow_combination_limit, 0, 1, 0,
+DEFUN ("window-combination-limit", Fwindow_combination_limit, Swindow_combination_limit, 1, 1, 0,
        doc: /* Return combination limit of window WINDOW.
-If WINDOW is omitted or nil, it defaults to the selected window.
-
 If the return value is nil, child windows of WINDOW can be recombined with
 WINDOW's siblings.  A return value of t means that child windows of
 WINDOW are never \(re-)combined with WINDOW's siblings.  */)
@@ -479,8 +477,6 @@ WINDOW are never \(re-)combined with WINDOW's siblings.  */)
 
 DEFUN ("set-window-combination-limit", Fset_window_combination_limit, Sset_window_combination_limit, 2, 2, 0,
        doc: /* Set combination limit of window WINDOW to STATUS; return STATUS.
-If WINDOW is omitted or nil, it defaults to the selected window.
-
 If STATUS is nil, child windows of WINDOW can be recombined with
 WINDOW's siblings.  STATUS t means that child windows of WINDOW are
 never \(re-)combined with WINDOW's siblings.  Other values are reserved
