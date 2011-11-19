@@ -1,3 +1,7 @@
+2011-11-19  Andreas Schwab  <schwab@linux-m68k.org>
+
+	* language/european.el (macintosh): Define as alias for mac-roman.
+
 2011-11-19  Eli Zaretskii  <eliz@gnu.org>
 
 	* mail/rmailmm.el (rmail-mime-display-header)
