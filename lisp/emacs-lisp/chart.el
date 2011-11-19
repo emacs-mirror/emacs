@@ -169,7 +169,7 @@ Make sure the width/height is correct."
 	      :initform t)
    (name-face :initarg :name-face
 	      :initform 'bold)
-   (labels-face :initarg :lables-face
+   (labels-face :initarg :labels-face
 		:initform 'italic)
    (chart :initarg :chart
 	  :initform nil)

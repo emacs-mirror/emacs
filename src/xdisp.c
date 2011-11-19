@@ -15031,7 +15031,7 @@ redisplay_window (Lisp_Object window, int just_this_one_p)
   int current_matrix_up_to_date_p = 0;
   int used_current_matrix_p = 0;
   /* This is less strict than current_matrix_up_to_date_p.
-     It indictes that the buffer contents and narrowing are unchanged.  */
+     It indicates that the buffer contents and narrowing are unchanged.  */
   int buffer_unchanged_p = 0;
   int temp_scroll_step = 0;
   int count = SPECPDL_INDEX ();

@@ -1368,7 +1368,7 @@ downloaded into the agent."
           ;; disable the set read each time this server is opened.
           ;; NOTE: Opening this group will restore the valid local
           ;; range but it will also expand the local range to
-          ;; incompass the new active range.
+          ;; encompass the new active range.
           (gnus-agent-set-local group agent-min (1- active-min)))))))
 
 (defun gnus-agent-save-group-info (method group active)

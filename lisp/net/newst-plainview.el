@@ -1574,7 +1574,7 @@ property to '(<nt-type>-<nt-age> <nt-type> <nt-age>)."
       (while (and (setq pos2 (next-single-property-change pos1 'nt-type))
                   (<= pos2 end)
                   (> pos2 pos1))
-        ;; must shift one char to the left in order to handle inivisible
+        ;; must shift one char to the left in order to handle invisible
         ;; newlines, motion in invisible text areas and all that correctly
         (put-text-property (1- pos1) (1- pos2)
                            'invisible

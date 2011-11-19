@@ -1623,7 +1623,7 @@ We return the item-widget corresponding to the item at point."
 
       (set-buffer-modified-p was-modified)
       (goto-char steady-point)
-      ;; must null the marker or the buffer gets clogged with impedence:
+      ;; must null the marker or the buffer gets clogged with impedance:
       (set-marker steady-point nil)
 
       item-widget)))

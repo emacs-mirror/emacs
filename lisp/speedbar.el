@@ -35,7 +35,7 @@ this version is not backward compatible to 0.14 or earlier.")
 ;;
 ;;; Customizing and Developing for speedbar
 ;;
-;; Please see the speedbar manual for informaion.
+;; Please see the speedbar manual for information.
 ;;
 ;;; Notes:
 ;;
@@ -1004,7 +1004,7 @@ supported at a time.
 		     #'speedbar-frame-mode
 		     (if (featurep 'xemacs)
 			 (append speedbar-frame-plist
-				 ;; This is a hack to get speedbar to iconfiy
+				 ;; This is a hack to get speedbar to iconify
 				 ;; with the selected frame.
 				 (list 'parent (selected-frame)))
 		       speedbar-frame-parameters)

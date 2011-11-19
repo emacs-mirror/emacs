@@ -549,7 +549,7 @@ Taichi Kawabata added support for Devanagari script and the Indian
 languages, and wrote @file{ucs-normalize.el} for Unicode normalization.
 
 @item
-Taro Kawagishi implented the MD4 Message Digest Algorithm in Lisp; and
+Taro Kawagishi implemented the MD4 Message Digest Algorithm in Lisp; and
 wrote @file{ntlm.el} and @file{sasl-ntlm.el} for NT LanManager
 authentication support.
 

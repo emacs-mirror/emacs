@@ -721,7 +721,7 @@ should be shown to the user."
 	  ;; The request could not be completed due to a conflict with
 	  ;; the current state of the resource.  This code is only
 	  ;; allowed in situations where it is expected that the user
-	  ;; mioght be able to resolve the conflict and resubmit the
+	  ;; might be able to resolve the conflict and resubmit the
 	  ;; request.  The response body SHOULD include enough
 	  ;; information for the user to recognize the source of the
 	  ;; conflict.

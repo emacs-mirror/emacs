@@ -61,7 +61,7 @@ developing GNU and promoting software freedom.''
 @node Top, What is Eshell?, (dir), (dir)
 @top Eshell
 
-Eshell is a shell-like command interpretor
+Eshell is a shell-like command interpreter
 implemented in Emacs Lisp.  It invokes no external processes except for
 those requested by the user.  It is intended to be a functional
 replacement for command shells such as @command{bash}, @command{zsh},

@@ -1122,7 +1122,7 @@ casts and declarations are fontified.  Used on level 2 and higher."
 			  (char-after (match-beginning 1))))
 
       (if types
-	  ;; Register and fontify the identifer as a type.
+	  ;; Register and fontify the identifier as a type.
 	  (let ((c-promote-possible-types t))
 	    (goto-char id-start)
 	    (c-forward-type))

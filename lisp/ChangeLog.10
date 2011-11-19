@@ -11680,7 +11680,7 @@
 2002-08-27  Francesco Potortì  <pot@gnu.org>
 
 	* net/ange-ftp.el (ange-ftp-skip-msgs): Skip the 530 response
-	given by vsFTPd when accessed with a kerberised FTP client.
+	given by vsFTPd when accessed with a kerberized FTP client.
 
 2002-08-27  Richard M. Stallman  <rms@gnu.org>
 

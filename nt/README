@@ -34,7 +34,7 @@
 
   + emacsclient.exe - A command-line client program that can
     communicate with a running Emacs process. See the `Emacs Server'
-    node of the Emacs manul.
+    node of the Emacs manual.
 
   + emacsclientw.exe - A version of emacsclient that does not open
     a command-line window.

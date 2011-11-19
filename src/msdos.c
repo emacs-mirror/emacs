@@ -1342,7 +1342,7 @@ static void
 IT_copy_glyphs (int xfrom, int xto, size_t len, int ypos)
 {
   /* The offsets of source and destination relative to the
-     conventional memorty selector.  */
+     conventional memory selector.  */
   int from = 2 * (xfrom + screen_size_X * ypos) + ScreenPrimary;
   int to = 2 * (xto + screen_size_X * ypos) + ScreenPrimary;
 

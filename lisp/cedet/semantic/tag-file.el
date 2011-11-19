@@ -125,7 +125,7 @@ Depends on `semantic-dependency-include-path' for searching.  Always searches
 	  (tag-fname nil))
       (cond ((semantic-tag-in-buffer-p tag)
 	     ;; If the tag has an overlay and buffer associated with it,
-	     ;; switch to that buffer so that we get the right override metohds.
+	     ;; switch to that buffer so that we get the right override methods.
 	     (set-buffer (semantic-tag-buffer tag)))
 	    ((semantic-tag-file-name tag)
 	     ;; If it didn't have a buffer, but does have a file

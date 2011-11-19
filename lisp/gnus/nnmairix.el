@@ -204,7 +204,7 @@
 (add-hook 'gnus-summary-mode-hook 'nnmairix-summary-mode-hook)
 
 ;; ;;;###autoload
-;; (defun nnmairix-initalize (&optional force)
+;; (defun nnmairix-initialize (&optional force)
 ;;   (interactive "P")
 ;;   (if (not (or (file-readable-p "~/.mairixrc")
 ;; 	       force))
@@ -512,7 +512,7 @@ Other back ends might or might not work.")
        ;; Everything else is an error
        (t
 	(nnheader-report
-	 'nnmairix "Error running marix. See buffer %s for details"
+	 'nnmairix "Error running mairix. See buffer %s for details"
 	 nnmairix-mairix-output-buffer)
 	nil))))))
 

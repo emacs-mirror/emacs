@@ -1900,7 +1900,7 @@ set_point (EMACS_INT charpos)
    current buffer, and the invisible property has a `stickiness' such that
    inserting a character at position POS would inherit the property it,
    return POS + ADJ, otherwise return POS.  If TEST_INTANG is non-zero,
-   then intangibility is required as well as invisibleness.
+   then intangibility is required as well as invisibility.
 
    TEST_OFFS should be either 0 or -1, and ADJ should be either 1 or -1.
 

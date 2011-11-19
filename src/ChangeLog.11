@@ -13149,7 +13149,7 @@
 	(ftfont_has_char): Special handling of `ja' and `ko' adstyle.
 
 	* font.c (font_sort_entites): Change the meaning of the arg
-	BEST-ONLY.  Don't optimize for VEC of lenght 1.
+	BEST-ONLY.  Don't optimize for VEC of length 1.
 	(font_select_entity): Just return the value of font_sort_entites.
 
 	* xfaces.c (merge_face_vectors): Reflect font properties in

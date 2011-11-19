@@ -2796,7 +2796,7 @@
 2010-12-29  Karl Fogel  <kfogel@red-bean.com>
 
 	* saveplace.el (save-place-alist-to-file): Save list sorted and
-	pretty-printed, so that it is mergeable by line-based text merging,
+	pretty-printed, so that it is mergable by line-based text merging,
 	as suggested by Iain Dalton <iain.dalton {_AT_} gmail.com>.
 
 2010-12-28  Ken Manheimer  <ken.manheimer@gmail.com>
@@ -5376,7 +5376,7 @@
 
 2010-10-21  Lars Magne Ingebrigtsen  <larsi@gnus.org>
 
-	* newcomment.el (comment-dwim): Fix the intentation in the doc string.
+	* newcomment.el (comment-dwim): Fix the indentation in the doc string.
 
 2010-10-21  Michael Albinus  <michael.albinus@gmx.de>
 

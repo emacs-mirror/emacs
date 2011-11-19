@@ -22,7 +22,7 @@
 
 ;; This file contains wrapper functions for a wide range of mail
 ;; parsing functions.  The idea is that there are low-level libraries
-;; that impement according to various specs (RFC2231, DRUMS, USEFOR),
+;; that implement according to various specs (RFC2231, DRUMS, USEFOR),
 ;; but that programmers that want to parse some header (say,
 ;; Content-Type) will want to use the latest spec.
 ;;

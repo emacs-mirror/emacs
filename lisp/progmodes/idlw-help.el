@@ -989,7 +989,7 @@ This function expects a more or less standard routine header.  In
 particlar it looks for the `NAME:' tag, either with a colon, or alone
 on a line.  Then `NAME:' must be followed by the routine name on the
 same or the next line.  When KEYWORD is non-nil, looks first for a
-`KEYWORDS' section.  It is amazing how inconsisten this is through
+`KEYWORDS' section.  It is amazing how inconsistent this is through
 some IDL libraries I have seen.  We settle for a line containing an
 upper case \"KEYWORD\" string.  If this line is not found we search
 for the keyword anyway to increase the hit-rate

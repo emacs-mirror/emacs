@@ -2094,7 +2094,7 @@ extension EXTN.  Normally EXTN is given as the regular expression
 
 	;; By this point the current directory is all screwed up.  Maybe we
 	;; could fix things and re-invoke gud-common-init, but for now I think
-	;; issueing the error is good enough.
+	;; issuing the error is good enough.
 	(if user-error
 	    (progn
 	      (kill-buffer (current-buffer))

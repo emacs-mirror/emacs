@@ -13137,7 +13137,7 @@
 	* print.c: Include dispextern.h.
 	(printchar, strout): Use message_buf.
 
-	* sysdep.c (get_screen_size): Don't use MscreenWidth, MscreenLenght.
+	* sysdep.c (get_screen_size): Don't use MscreenWidth, MscreenLength.
 	* term.c: Likewise.
 
 	* scroll.c (CalcIDCosts, CalcIDCosts1, CalcLID): These now take a
@@ -13147,7 +13147,7 @@
 	(do_scrolling): Use alloca for queue.
 
 	* dispnew.c (remake_screen_structures): Allocate message_buf.
-	Don't use MscreenWidth, MscreenLenght.
+	Don't use MscreenWidth, MscreenLength.
 
 	* xdisp.c: bf_cur replaced with current_buffer.
 	Calls to SetBfx deleted.

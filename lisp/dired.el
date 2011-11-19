@@ -704,7 +704,7 @@ Don't use that together with FILTER."
 
 (defun dired-file-name-at-point ()
   "Try to get a file name at point in the current dired buffer.
-This hook is inteneded to be put in `file-name-at-point-functions'."
+This hook is intended to be put in `file-name-at-point-functions'."
   (let ((filename (dired-get-filename nil t)))
     (when filename
       (if (file-directory-p filename)

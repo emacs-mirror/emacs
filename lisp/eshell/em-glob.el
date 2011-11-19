@@ -90,7 +90,7 @@ This option slows down recursive glob processing by quite a bit."
 
 (defcustom eshell-error-if-no-glob nil
   "If non-nil, it is an error for a glob pattern not to match.
- This mimcs the behavior of zsh if non-nil, but bash if nil."
+ This mimics the behavior of zsh if non-nil, but bash if nil."
   :type 'boolean
   :group 'eshell-glob)
 

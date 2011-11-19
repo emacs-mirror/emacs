@@ -1608,7 +1608,7 @@
 ;; fii
 ;;
 ;; Now we advise `fii' to use an optional second argument that controls the
-;; amount of incrementation. A list following the (optional) position
+;; amount of incrementing. A list following the (optional) position
 ;; argument of the advice will be interpreted as an argument list
 ;; specification. This means you cannot specify an empty argument list, and
 ;; why would you want to anyway?

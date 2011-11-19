@@ -946,7 +946,7 @@ with the dictionaries found in the dictionary."
 ;; It will first insert the included template, then insert the embedded
 ;; template wherever the $^$ in the included template was.
 ;;
-;; Since it uses dual inheretance, it will magically get the end-matching
+;; Since it uses dual inheritance, it will magically get the end-matching
 ;; behavior of #, with the including feature of >.
 ;;
 (defclass srecode-template-inserter-include-wrap (srecode-template-inserter-include srecode-template-inserter-section-start)

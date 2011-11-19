@@ -826,7 +826,7 @@ the 4 file locations can be clicked on and jumped to."
 ;; to be considered as part of a word or not.
 ;; Some characters may have multiple meanings depending on the context:
 ;;  - ' is either the beginning of a constant character or an attribute
-;;  - # is either part of a based litteral or a gnatprep statement.
+;;  - # is either part of a based literal or a gnatprep statement.
 ;;  - " starts a string, but not if inside a constant character.
 ;;  - ( and ) should be ignored if inside a constant character.
 ;; Thus their syntax property is changed automatically, and we can still use

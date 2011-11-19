@@ -4184,7 +4184,7 @@ static Boolean xaw3d_arrow_scroll;
 
 /* Whether the drag scrolling maintains the mouse at the top of the
    thumb.  If not, resizing the thumb needs to be done more carefully
-   to avoid jerkyness.  */
+   to avoid jerkiness.  */
 
 static Boolean xaw3d_pick_top;
 

@@ -391,7 +391,7 @@ undoes the expansion."
 	      lst)))
 
 ;; Check if current buffer matches any atom or regexp in LST.
-;; Atoms are interpreted as major modes, strings as regexps mathing the name.
+;; Atoms are interpreted as major modes, strings as regexps matching the name.
 (defun he-buffer-member (lst)
   (or (memq major-mode lst)
       (progn

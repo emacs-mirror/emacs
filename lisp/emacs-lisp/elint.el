@@ -296,7 +296,7 @@ If necessary, this first calls `elint-initialize'."
   (elint-display-log)
   (elint-set-mode-line t)
   (mapc 'elint-top-form (elint-update-env))
-  ;; Tell the user we're finished.  This is terribly klugy: we set
+  ;; Tell the user we're finished.  This is terribly kludgy: we set
     ;; elint-top-form-logged so elint-log-message doesn't print the
     ;; ** top form ** header...
   (elint-set-mode-line)
