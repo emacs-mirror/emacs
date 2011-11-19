@@ -465,10 +465,8 @@ Return nil if WINDOW has no previous sibling.  */)
   return decode_any_window (window)->prev;
 }
 
-DEFUN ("window-combination-limit", Fwindow_combination_limit, Swindow_combination_limit, 0, 1, 0,
+DEFUN ("window-combination-limit", Fwindow_combination_limit, Swindow_combination_limit, 1, 1, 0,
        doc: /* Return combination limit of window WINDOW.
-If WINDOW is omitted or nil, it defaults to the selected window.
-
 If the return value is nil, child windows of WINDOW can be recombined with
 WINDOW's siblings.  A return value of t means that child windows of
 WINDOW are never \(re-)combined with WINDOW's siblings.  */)
@@ -479,8 +477,6 @@ WINDOW are never \(re-)combined with WINDOW's siblings.  */)
 
 DEFUN ("set-window-combination-limit", Fset_window_combination_limit, Sset_window_combination_limit, 2, 2, 0,
        doc: /* Set combination limit of window WINDOW to STATUS; return STATUS.
-If WINDOW is omitted or nil, it defaults to the selected window.
-
 If STATUS is nil, child windows of WINDOW can be recombined with
 WINDOW's siblings.  STATUS t means that child windows of WINDOW are
 never \(re-)combined with WINDOW's siblings.  Other values are reserved
@@ -5777,13 +5773,30 @@ get_phys_cursor_glyph (struct window *w)
 {
   struct glyph_row *row;
   struct glyph *glyph;
+  int hpos = w->phys_cursor.hpos;
 
-  if (w->phys_cursor.vpos >= 0
-      && w->phys_cursor.vpos < w->current_matrix->nrows
-      && (row = MATRIX_ROW (w->current_matrix, w->phys_cursor.vpos),
-	  row->enabled_p)
-      && row->used[TEXT_AREA] > w->phys_cursor.hpos)
-    glyph = row->glyphs[TEXT_AREA] + w->phys_cursor.hpos;
+  if (!(w->phys_cursor.vpos >= 0
+	&& w->phys_cursor.vpos < w->current_matrix->nrows))
+    return NULL;
+
+  row = MATRIX_ROW (w->current_matrix, w->phys_cursor.vpos);
+  if (!row->enabled_p)
+    return NULL;
+
+  if (w->hscroll)
+    {
+      /* When the window is hscrolled, cursor hpos can legitimately be
+	 out of bounds, but we draw the cursor at the corresponding
+	 window margin in that case.  */
+      if (!row->reversed_p && hpos < 0)
+	hpos = 0;
+      if (row->reversed_p && hpos >= row->used[TEXT_AREA])
+	hpos = row->used[TEXT_AREA] - 1;
+    }
+
+  if (row->used[TEXT_AREA] > hpos
+      && 0 <= hpos)
+    glyph = row->glyphs[TEXT_AREA] + hpos;
   else
     glyph = NULL;
 

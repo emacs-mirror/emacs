@@ -70,7 +70,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #define IS_DRIVE(x) isalpha ((unsigned char) (x))
 #endif
 /* Need to lower-case the drive letter, or else expanded
-   filenames will sometimes compare inequal, because
+   filenames will sometimes compare unequal, because
    `expand-file-name' doesn't always down-case the drive letter.  */
 #define DRIVE_LETTER(x) (tolower ((unsigned char) (x)))
 #endif

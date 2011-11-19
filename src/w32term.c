@@ -4506,7 +4506,7 @@ w32_read_socket (struct terminal *terminal, int expected,
 	    }
 
 	  /* If window has been obscured or exposed by another window
-	     being maximised or minimised/restored, then recheck
+	     being maximized or minimized/restored, then recheck
 	     visibility of all frames.  Direct changes to our own
 	     windows get handled by WM_SIZE.  */
 #if 0
@@ -5692,10 +5692,10 @@ x_make_frame_visible (struct frame *f)
 
       /* According to a report in emacs-devel 2008-06-03, SW_SHOWNORMAL
 	 causes unexpected behavior when unminimizing frames that were
-	 previously maximised.  But only SW_SHOWNORMAL works properly for
+	 previously maximized.  But only SW_SHOWNORMAL works properly for
 	 frames that were truely hidden (using make-frame-invisible), so
 	 we need it to avoid Bug#5482.  It seems that async_iconified
-	 is only set for minimised windows that are still visible, so
+	 is only set for minimized windows that are still visible, so
          use that to determine the appropriate flag to pass ShowWindow.  */
       my_show_window (f, FRAME_W32_WINDOW (f),
                       f->async_iconified ? SW_RESTORE : SW_SHOWNORMAL);

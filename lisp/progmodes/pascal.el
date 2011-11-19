@@ -414,7 +414,7 @@ no args, if that value is non-nil."
       (electric-pascal-terminate-line)))
 
 (defun electric-pascal-colon ()
-  "Insert `:' and do all indentions except line indent on this line."
+  "Insert `:' and do all indentations except line indent on this line."
   (interactive)
   (insert last-command-event)
   ;; Do nothing if within string.

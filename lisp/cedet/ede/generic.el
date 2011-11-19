@@ -43,7 +43,7 @@
 ;;
 ;; Customization:
 ;;
-;; Since these projects are all so increadibly generic, a user will
+;; Since these projects are all so incredibly generic, a user will
 ;; need to configure some aspects of the project by hand.  In order to
 ;; enable this without configuring the project objects directly (which
 ;; are auto-generated) a special ede-generic-config object is defined to

@@ -1774,7 +1774,7 @@ Strips any leading \"./\" from each filename."
           (split-string (shell-command-to-string hfy-find-cmd))) )
 
 ;; strip the filename off, return a directory name
-;; not a particularly thorough implementaion, but it will be
+;; not a particularly thorough implementation, but it will be
 ;; fed pretty carefully, so it should be Ok:
 (defun hfy-dirname (file)
   "Return everything preceding the last \"/\" from a relative filename FILE,

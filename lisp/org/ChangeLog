@@ -14739,7 +14739,7 @@
 
 2009-08-06  Carsten Dominik  <carsten.dominik@gmail.com>
 
-	* org.el (org-sort-entries-or-items): Match TODO keywrds
+	* org.el (org-sort-entries-or-items): Match TODO keywords
 	case-sensitively, when sorting.
 	(org-priority): Do not match TODO keywords with wrong case.
 

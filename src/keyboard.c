@@ -10137,7 +10137,7 @@ will read just one key sequence.  */)
 			 ! NILP (can_return_switch_frame), 0);
 
 #if 0  /* The following is fine for code reading a key sequence and
-	  then proceeding with a lenghty computation, but it's not good
+	  then proceeding with a lengthy computation, but it's not good
 	  for code reading keys in a loop, like an input method.  */
 #ifdef HAVE_WINDOW_SYSTEM
   if (display_hourglass_p)

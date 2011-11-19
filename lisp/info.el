@@ -231,6 +231,12 @@ want to set `Info-refill-paragraphs'."
 		 (const :tag "Replace tag and hide reference" t)
 		 (const :tag "Hide tag and reference" hide)
 		 (other :tag "Only replace tag" tag))
+  :set (lambda (sym val)
+	 (set sym val)
+	 (dolist (buffer (buffer-list))
+	   (with-current-buffer buffer
+	     (when (eq major-mode 'Info-mode)
+	       (revert-buffer t t)))))
   :group 'info)
 
 (defcustom Info-refill-paragraphs nil
@@ -811,10 +817,6 @@ otherwise, that defaults to `Top'."
 	   (concat default-directory (buffer-name))))
   (Info-find-node-2 nil nodename))
 
-;; It's perhaps a bit nasty to kill the *info* buffer to force a re-read,
-;; but at least it keeps this routine (which is for makeinfo-buffer and
-;; Info-revert-buffer-function) out of the way of normal operations.
-;;
 (defun Info-revert-find-node (filename nodename)
   "Go to an Info node FILENAME and NODENAME, re-reading disk contents.
 When *info* is already displaying FILENAME and NODENAME, the window position
@@ -822,27 +824,23 @@ is preserved, if possible."
   (or (eq major-mode 'Info-mode) (switch-to-buffer "*info*"))
   (let ((old-filename Info-current-file)
 	(old-nodename Info-current-node)
-	(old-buffer-name (buffer-name))
+	(window-selected (eq (selected-window) (get-buffer-window)))
 	(pcolumn      (current-column))
 	(pline        (count-lines (point-min) (line-beginning-position)))
 	(wline        (count-lines (point-min) (window-start)))
-	(old-history-forward Info-history-forward)
-	(old-history  Info-history)
 	(new-history  (and Info-current-file
 			   (list Info-current-file Info-current-node (point)))))
-    (kill-buffer (current-buffer))
-    (switch-to-buffer (or old-buffer-name "*info*"))
-    (Info-mode)
+    ;; When `Info-current-file' is nil, `Info-find-node-2' rereads the file.
+    (setq Info-current-file nil)
     (Info-find-node filename nodename)
-    (setq Info-history-forward old-history-forward)
-    (setq Info-history old-history)
     (if (and (equal old-filename Info-current-file)
 	     (equal old-nodename Info-current-node))
 	(progn
 	  ;; note goto-line is no good, we want to measure from point-min
-	  (goto-char (point-min))
-	  (forward-line wline)
-	  (set-window-start (selected-window) (point))
+	  (when window-selected
+	    (goto-char (point-min))
+	    (forward-line wline)
+	    (set-window-start (selected-window) (point)))
 	  (goto-char (point-min))
 	  (forward-line pline)
 	  (move-to-column pcolumn))
@@ -1087,7 +1085,7 @@ a case-insensitive match is tried."
                      ;; Add anchors to the history too
                      (setq Info-history-list
                            (cons new-history
-                                 (delete new-history Info-history-list))))
+                                 (remove new-history Info-history-list))))
                    (goto-char anchorpos))
                   ((numberp Info-point-loc)
                    (forward-line (- Info-point-loc 2))
@@ -1514,7 +1512,7 @@ escaped (\\\",\\\\)."
 	;; Add a new unique history item to full history list
 	(let ((new-history (list Info-current-file Info-current-node)))
 	  (setq Info-history-list
-		(cons new-history (delete new-history Info-history-list)))
+		(cons new-history (remove new-history Info-history-list)))
 	  (setq Info-history-forward nil))
 	(if (not (eq Info-fontify-maximum-menu-size nil))
             (Info-fontify-node))
@@ -1846,7 +1844,9 @@ If DIRECTION is `backward', search in the reverse direction."
 		    (setq list nil)))
 	      (if found
 		  (message "")
-		(signal 'search-failed (list regexp))))
+		(signal 'search-failed (if isearch-mode
+					   (list regexp "end of the manual")
+					 (list regexp)))))
 	  (if (not found)
 	      (progn (Info-read-subfile osubfile)
 		     (goto-char opoint)
@@ -2153,7 +2153,7 @@ If SAME-FILE is non-nil, do not move to a different Info file."
   (insert "Recently Visited Nodes\n")
   (insert "**********************\n\n")
   (insert "* Menu:\n\n")
-  (let ((hl (delete '("*History*" "Top") Info-history-list)))
+  (let ((hl (remove '("*History*" "Top") Info-history-list)))
     (while hl
       (let ((file (nth 0 (car hl)))
 	    (node (nth 1 (car hl))))

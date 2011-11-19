@@ -417,7 +417,7 @@ of the window will resize all windows in the same combination as well.
 
 +++
 *** New commands `maximize-window' and `minimize-window'.
-These maximize and minize the size of a window within its frame.
+These maximize and minimize the size of a window within its frame.
 
 +++
 *** New commands `switch-to-prev-buffer' and `switch-to-next-buffer'.
@@ -1126,7 +1126,7 @@ state before the last buffer display operation in that window.
 
 +++
 *** The new option `frame-auto-hide-function' lets you choose between
-iconfying or deleting a frame when burying a buffer shown in a dedicated
+iconifying or deleting a frame when burying a buffer shown in a dedicated
 frame or quitting a window showing a buffer in a frame of its own.
 
 ** Completion

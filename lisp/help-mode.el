@@ -141,7 +141,7 @@ The format is (FUNCTION ARGS...).")
   'help-function 'describe-character-set
   'help-echo (purecopy "mouse-2, RET: describe this character set"))
 
-;; make some more ideosyncratic button types
+;; Make some more idiosyncratic button types.
 
 (define-button-type 'help-symbol
   :supertype 'help-xref

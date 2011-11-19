@@ -87,7 +87,7 @@
 ;;   to turn it off.
 
 
-;; The command `follow-delete-other-windows-and-split' maximises the
+;; The command `follow-delete-other-windows-and-split' maximizes the
 ;; visible area of the current buffer.
 ;;
 ;; I recommend adding it, and `follow-mode', to hotkeys in the global

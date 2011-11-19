@@ -984,7 +984,7 @@ DIARY OF CHANGES
    wrt foreground/background process groups.)
 
 -- There is a flicker during the startup of `emacs -nw'; it's as if
-   the terminal is initialized, reset and then initialialized again.
+   the terminal is initialized, reset and then initialized again.
    Debug this.  (Hint: narrow_foreground_group is called twice during
    startup.)
 

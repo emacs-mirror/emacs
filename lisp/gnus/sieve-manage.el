@@ -1,4 +1,4 @@
-;;; sieve-manage.el --- Implementation of the managesive protocol in elisp
+;;; sieve-manage.el --- Implementation of the managesieve protocol in elisp
 
 ;; Copyright (C) 2001-2011  Free Software Foundation, Inc.
 

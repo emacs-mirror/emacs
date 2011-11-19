@@ -344,7 +344,7 @@ Uses known macro tables in SPP to determine what block to skip."
 		 (string= sym "0"))
 	    (and ifdef (not (semantic-lex-spp-symbol-p sym)))
 	    (and ifndef (semantic-lex-spp-symbol-p sym)))
-	;; The if indecates to skip this preprocessor section
+	;; The if indicates to skip this preprocessor section.
 	(let ((pt nil))
 	  ;; (message "%s %s yes" ift sym)
 	  (beginning-of-line)
@@ -650,7 +650,7 @@ as for the parent."
 		(setq depth 0)
 
 		;; This is a copy of semantic-parse-region-default where we
-		;; are doing something special with the lexication of the
+		;; are doing something special with the lexing of the
 		;; contents of the semantic-list token.  Stuff not used by C
 		;; removed.
 		(let ((tokstream

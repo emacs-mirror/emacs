@@ -2364,7 +2364,7 @@ comment at the start of cc-engine.el for more info."
 
 (defun c-parse-state-get-strategy (here good-pos)
   ;; Determine the scanning strategy for adjusting `c-parse-state', attempting
-  ;; to minimise the amount of scanning.  HERE is the pertinent position in
+  ;; to minimize the amount of scanning.  HERE is the pertinent position in
   ;; the buffer, GOOD-POS is a position where `c-state-cache' (possibly with
   ;; its head trimmed) is known to be good, or nil if there is no such
   ;; position.
@@ -2788,7 +2788,7 @@ comment at the start of cc-engine.el for more info."
   ;;
   ;; This function must only be called only when (> `c-state-cache-good-pos'
   ;; HERE).  Usually the gap between CACHE-POS and HERE is large.  It is thus
-  ;; optimised to eliminate (or minimise) scanning between these two
+  ;; optimised to eliminate (or minimize) scanning between these two
   ;; positions.
   ;;
   ;; Return a three element list (GOOD-POS SCAN-BACK-POS FWD-FLAG), where:
@@ -5052,7 +5052,7 @@ comment at the start of cc-engine.el for more info."
 ;; The strategy now (2010-01) adopted is to mark and unmark < and
 ;; > IN MATCHING PAIRS ONLY.  [Previously, they were marked
 ;; individually when their context so indicated.  This gave rise to
-;; intractible problems when one of a matching pair was deleted, or
+;; intractable problems when one of a matching pair was deleted, or
 ;; pulled into a literal.]
 ;;
 ;; At each buffer change, the syntax-table properties are removed in a
@@ -5965,7 +5965,7 @@ comment at the start of cc-engine.el for more info."
   ;;     `*-font-lock-extra-types');
   ;;   o - 'prefix if it's a known prefix of a type;
   ;;   o - 'found if it's a type that matches one in `c-found-types';
-  ;;   o - 'maybe if it's an identfier that might be a type; or
+  ;;   o - 'maybe if it's an identifier that might be a type; or
   ;;   o -  nil if it can't be a type (the point isn't moved then).
   ;;
   ;; The point is assumed to be at the beginning of a token.

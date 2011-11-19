@@ -649,7 +649,7 @@ Solutions are sorted from least to greatest Hamming weight."
 	   ;; 23x25 is a diagonal of 1, and the two last columns are a
 	   ;; base of kernel of transferm.
 	   ;;
-	   ;; base-change must be by construction inversible.
+	   ;; base-change must be by construction invertible.
 	   (base-change
 	    (5x5-log
 	     "p"

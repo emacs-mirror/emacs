@@ -7786,7 +7786,7 @@ imagemagick_load_image (struct frame *f, struct image *img,
           goto imagemagick_error;
         }
 
-      /* Copy imagegmagick image to x with primitive yet robust pixel
+      /* Copy imagemagick image to x with primitive yet robust pixel
          pusher loop.  This has been tested a lot with many different
          images.  */
 

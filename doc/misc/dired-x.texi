@@ -476,7 +476,7 @@ in your @code{dired-mode-hook}.
 This Dired-X feature is obsolete as of Emacs 24.1.  The standard Emacs
 directory local variables mechanism (@pxref{Directory
 Variables,,,emacs,The Gnu Emacs manual}) replaces it.  For an example of
-the new mechanims, @pxref{Omitting Variables}.
+the new mechanisms, @pxref{Omitting Variables}.
 
 When Dired visits a directory, it looks for a file whose name is the
 value of variable @code{dired-local-variables-file} (default: @file{.dired}).

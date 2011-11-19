@@ -943,7 +943,7 @@ struct Lisp_Vector
 
 /* Compute A OP B, using the unsigned comparison operator OP.  A and B
    should be integer expressions.  This is not the same as
-   mathemeatical comparison; for example, UNSIGNED_CMP (0, <, -1)
+   mathematical comparison; for example, UNSIGNED_CMP (0, <, -1)
    returns 1.  For efficiency, prefer plain unsigned comparison if A
    and B's sizes both fit (after integer promotion).  */
 #define UNSIGNED_CMP(a, op, b)						\

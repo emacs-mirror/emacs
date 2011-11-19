@@ -483,7 +483,7 @@ that start with that symbol."
 ;; This section provides specialized access into texinfo files.
 ;; Because texinfo files often directly refer to functions and programs
 ;; it is useful to access the texinfo file from the C code for document
-;; maintainance.
+;; maintenance.
 (defun semantic-texi-associated-files (&optional buffer)
   "Find texinfo files associated with BUFFER."
   (save-excursion

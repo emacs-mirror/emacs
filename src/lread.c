@@ -3984,7 +3984,7 @@ init_obarray (void)
   Qnil = intern_c_string ("nil");
 
   /* Fmake_symbol inits fields of new symbols with Qunbound and Qnil,
-     so those two need to be fixed manally.  */
+     so those two need to be fixed manually.  */
   SET_SYMBOL_VAL (XSYMBOL (Qunbound), Qunbound);
   XSYMBOL (Qunbound)->function = Qunbound;
   XSYMBOL (Qunbound)->plist = Qnil;

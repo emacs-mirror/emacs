@@ -326,7 +326,7 @@ typedef struct regexp
   struct re_pattern_buffer *pat; /* the compiled pattern */
   struct re_registers regs;	/* re registers */
   bool error_signaled;		/* already signaled for this regexp */
-  bool force_explicit_name;	/* do not allow implict tag name */
+  bool force_explicit_name;	/* do not allow implicit tag name */
   bool ignore_case;		/* ignore case when matching */
   bool multi_line;		/* do a multi-line match on the whole file */
 } regexp;

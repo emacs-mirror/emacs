@@ -1162,11 +1162,10 @@ The following additional command keys are active while editing.
 
 	  (unwind-protect
 	      (let* ((message-log-max nil)
-		     ;; Protect global value of search rings from updating
-		     ;; by `read-from-minibuffer'.  It should be updated only
-		     ;; by `isearch-update-ring' in `isearch-done', not here.
-		     (search-ring search-ring)
-		     (regexp-search-ring regexp-search-ring)
+		     ;; Don't add a new search string to the search ring here
+		     ;; in `read-from-minibuffer'. It should be added only
+		     ;; by `isearch-update-ring' called from `isearch-done'.
+		     (history-add-new-input nil)
 		     ;; Binding minibuffer-history-symbol to nil is a work-around
 		     ;; for some incompatibility with gmhist.
 		     (minibuffer-history-symbol))
@@ -2674,25 +2673,27 @@ by other Emacs features."
     ;; something important did indeed change
     (lazy-highlight-cleanup t) ;kill old loop & remove overlays
     (setq isearch-lazy-highlight-error isearch-error)
-    (when (not isearch-error)
-      (setq isearch-lazy-highlight-start-limit beg
-	    isearch-lazy-highlight-end-limit end)
-      (setq isearch-lazy-highlight-window       (selected-window)
-            isearch-lazy-highlight-window-start (window-start)
-            isearch-lazy-highlight-window-end   (window-end)
-            isearch-lazy-highlight-start        (point)
-            isearch-lazy-highlight-end          (point)
-            isearch-lazy-highlight-wrapped      nil
-            isearch-lazy-highlight-last-string  isearch-string
-	    isearch-lazy-highlight-case-fold-search isearch-case-fold-search
-	    isearch-lazy-highlight-regexp       isearch-regexp
-	    isearch-lazy-highlight-space-regexp search-whitespace-regexp
-	    isearch-lazy-highlight-word         isearch-word
-	    isearch-lazy-highlight-forward      isearch-forward)
+    ;; It used to check for `(not isearch-error)' here, but actually
+    ;; lazy-highlighting might find matches to highlight even when
+    ;; `isearch-error' is non-nil.  (Bug#9918)
+    (setq isearch-lazy-highlight-start-limit beg
+	  isearch-lazy-highlight-end-limit end)
+    (setq isearch-lazy-highlight-window       (selected-window)
+	  isearch-lazy-highlight-window-start (window-start)
+	  isearch-lazy-highlight-window-end   (window-end)
+	  isearch-lazy-highlight-start        (point)
+	  isearch-lazy-highlight-end          (point)
+	  isearch-lazy-highlight-wrapped      nil
+	  isearch-lazy-highlight-last-string  isearch-string
+	  isearch-lazy-highlight-case-fold-search isearch-case-fold-search
+	  isearch-lazy-highlight-regexp       isearch-regexp
+	  isearch-lazy-highlight-space-regexp search-whitespace-regexp
+	  isearch-lazy-highlight-word         isearch-word
+	  isearch-lazy-highlight-forward      isearch-forward)
       (unless (equal isearch-string "")
 	(setq isearch-lazy-highlight-timer
 	      (run-with-idle-timer lazy-highlight-initial-delay nil
-				   'isearch-lazy-highlight-update))))))
+				   'isearch-lazy-highlight-update)))))
 
 (defun isearch-lazy-highlight-search ()
   "Search ahead for the next or previous match, for lazy highlighting.

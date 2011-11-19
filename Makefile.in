@@ -666,7 +666,7 @@ install-etc: mkdir
 ### Install LEIM files.  Although they are machine-independent, we
 ### have separate target here instead of including it in
 ### `install-arch-indep'.  People who extracted LEIM files after they
-### insalled Emacs itself can install only LEIM files by this target.
+### installed Emacs itself can install only LEIM files by this target.
 install-leim: leim/Makefile mkdir
 	cd leim; $(MAKE) install
 

@@ -2188,7 +2188,7 @@ you can set `feedmail-queue-reminder-alist' to nil."
 	    (if (or (eq user-sez ?\C-m) (eq user-sez ?\C-j) (eq user-sez ?y))
 		(setq user-sez d-char))
 	    ;; these char-to-int things are because of some
-	    ;; incomprensible difference between the two in
+	    ;; incomprehensible difference between the two in
 	    ;; byte-compiled stuff between Emacs and XEmacs
 	    ;; (well, I'm sure someone could comprehend it,
 	    ;; but I say 'uncle')

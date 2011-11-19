@@ -608,7 +608,7 @@
 ;; layout.  In fact, Microsoft shipped for a while a layout that was lacking
 ;; two characters, precisely the "GHE_WITH_UPTURN" and the apostrophe.  The
 ;; latest versions of Windows software do have the "GHE_WITH_UPTURN" in the
-;; ukrainian keyborad layout but the apostrophe is still not there, whereas
+;; ukrainian keyboard layout but the apostrophe is still not there, whereas
 ;; there is one letter, "Cyrillic_YO", not used in ukrainian.  Ukrainians
 ;; normally replace the "Cyrillic_YO" by the apostrophe sign and live
 ;; happily with this little change.  [See "ukrainian-computer" below.]

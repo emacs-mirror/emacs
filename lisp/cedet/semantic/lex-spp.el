@@ -1067,7 +1067,7 @@ of type `spp-macro-undef' is to be created."
 ;;
 ;; These analyzers help a language define how include files
 ;; are identified.  These are ONLY for languages that perform
-;; an actual textual includesion, and not for imports.
+;; an actual textual inclusion, and not for imports.
 ;;
 ;; This section is supposed to allow the macros from the headers to be
 ;; added to the local dynamic macro table, but that hasn't been

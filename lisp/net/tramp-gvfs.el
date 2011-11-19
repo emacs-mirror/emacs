@@ -39,7 +39,7 @@
 ;; Consequently, GNU Emacs 23.1 with enabled D-Bus bindings is a
 ;; precondition.
 
-;; The GVFS D-Bus interface is said to be instable.  There are even no
+;; The GVFS D-Bus interface is said to be unstable.  There are even no
 ;; introspection data.  The interface, as discovered during
 ;; development time, is given in respective comments.
 

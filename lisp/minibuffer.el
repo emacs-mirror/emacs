@@ -2427,7 +2427,7 @@ PATTERN is as returned by `completion-pcm--string->pattern'."
   "Find all completions for STRING at POINT in TABLE, satisfying PRED.
 POINT is a position inside STRING.
 FILTER is a function applied to the return value, that can be used, e.g. to
-filter out additional entries (because TABLE migth not obey PRED)."
+filter out additional entries (because TABLE might not obey PRED)."
   (unless filter (setq filter 'identity))
   (let* ((beforepoint (substring string 0 point))
          (afterpoint (substring string point))

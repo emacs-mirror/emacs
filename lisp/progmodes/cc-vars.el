@@ -420,7 +420,7 @@ If a LINE-TYPE is missing, then \\[indent-for-comment] indents the comment
 according to `comment-column'.
 
 Note that a non-nil value on `c-indent-comments-syntactically-p'
-overrides this variable, so empty lines are indentented syntactically
+overrides this variable, so empty lines are indented syntactically
 in that case, i.e. as if \\[c-indent-command] was used instead."
   :type
   (let ((space '(cons :tag "space"

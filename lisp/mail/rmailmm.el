@@ -281,13 +281,20 @@ TRUNCATED is non-nil if the text of this entity was truncated."
 
 (define-button-type 'rmail-mime-save 'action 'rmail-mime-save)
 
+;; Display options returned by rmail-mime-entity-display.
+;; Value is on of nil, t, raw.
+(defsubst rmail-mime-display-header (disp)  (aref disp 0))
+(defsubst rmail-mime-display-tagline (disp) (aref disp 1))
+(defsubst rmail-mime-display-body (disp)    (aref disp 2))
+
 (defun rmail-mime-entity-segment (pos &optional entity)
   "Return a vector describing the displayed region of a MIME-entity at POS.
 Optional 2nd argument ENTITY is the MIME-entity at POS.
 The value is a vector [INDEX HEADER TAGLINE BODY END], where
   INDEX: index into the returned vector indicating where POS is (1..3)
   HEADER: the position of the beginning of a header
-  TAGLINE: the position of the beginning of a tag line
+  TAGLINE: the position of the beginning of a tag line, including
+           the newline that precedes it
   BODY: the position of the beginning of a body
   END: the position of the end of the entity."
   (save-excursion
@@ -305,21 +312,32 @@ The value is a vector [INDEX HEADER TAGLINE BODY END], where
 	    (index 1)
 	    tagline-beg body-beg end)
 	(goto-char beg)
-	(if (aref current 0)
+	;; If the header is displayed, get past it to the tagline.
+	(if (rmail-mime-display-header current)
 	    (search-forward "\n\n" nil t))
 	(setq tagline-beg (point))
 	(if (>= pos tagline-beg)
 	    (setq index 2))
-	(if (aref current 1)
-	    (forward-line 1))
+	;; If the tagline is displayed, get past it to the body.
+	(if (rmail-mime-display-tagline current)
+	    ;; The next foward-line call must be in sync with how
+	    ;; `rmail-mime-insert-tagline' formats the tagline.  The
+	    ;; body begins after the empty line that ends the tagline.
+	    (forward-line 3))
 	(setq body-beg (point))
 	(if (>= pos body-beg)
 	    (setq index 3))
-	(if (aref current 2)
+	;; If the body is displayed, find its end.
+	(if (rmail-mime-display-body current)
 	    (let ((tag (aref (rmail-mime-entity-tagline entity) 0))
 		  tag2)
 	      (setq end (next-single-property-change beg 'rmail-mime-entity
 						     nil (point-max)))
+	      ;; `tag' is either an empty string or "/n" where n is
+	      ;; the number of the part of the multipart MIME message.
+	      ;; The loop below finds the next location whose
+	      ;; `rmail-mime-entity' property specifies a tag of a
+	      ;; different value.
 	      (while (and (< end (point-max))
 			  (setq entity (get-text-property end 'rmail-mime-entity)
 				tag2 (aref (rmail-mime-entity-tagline entity) 0))
@@ -367,7 +385,7 @@ Use `raw' for raw mode, and any other non-nil value for decoded mode."
 	 (segment (rmail-mime-entity-segment pos entity)))
     (if (or (eq state 'raw)
 	    (and (not state)
-		 (not (eq (aref current 0) 'raw))))
+		 (not (eq (rmail-mime-display-header current) 'raw))))
 	;; Enter the raw mode.
 	(rmail-mime-raw-mode entity)
       ;; Enter the shown mode.
@@ -389,7 +407,7 @@ Use `raw' for raw mode, and any other non-nil value for decoded mode."
 	   (entity (get-text-property pos 'rmail-mime-entity))
 	   (current (aref (rmail-mime-entity-display entity) 0))
 	   (segment (rmail-mime-entity-segment pos entity)))
-      (if (aref current 2)
+      (if (rmail-mime-display-body current)
 	  ;; Enter the hidden mode.
 	  (progn
 	    ;; If point is in the body part, move it to the tagline
@@ -430,12 +448,15 @@ Use `raw' for raw mode, and any other non-nil value for decoded mode."
   "Insert a tag line for MIME-entity ENTITY.
 ITEM-LIST is a list of strings or button-elements (list) to add
 to the tag line."
+  ;; Precede the tagline by an empty line to make it a separate
+  ;; paragraph, so that it is aligned to the left margin of the window
+  ;; even if preceded by a right-to-left paragraph.
   (insert "\n[")
   (let ((tag (aref (rmail-mime-entity-tagline entity) 0)))
     (if (> (length tag) 0) (insert (substring tag 1) ":")))
   (insert (car (rmail-mime-entity-type entity)) " ")
   (insert-button (let ((new (aref (rmail-mime-entity-display entity) 1)))
-		   (if (aref new 2) "Hide" "Show"))
+		   (if (rmail-mime-display-body new) "Hide" "Show"))
 		 :type 'rmail-mime-toggle
 		 'help-echo "mouse-2, RET: Toggle show/hide")
   (dolist (item item-list)
@@ -443,6 +464,9 @@ to the tag line."
       (if (stringp item)
 	  (insert item)
 	(apply 'insert-button item))))
+  ;; Follow the tagline by an empty line to make it a separate
+  ;; paragraph, so that the paragraph direction of the following text
+  ;; is determined based on that text.
   (insert "]\n\n"))
 
 (defun rmail-mime-update-tagline (entity)
@@ -463,7 +487,9 @@ to the tag line."
     (delete-region (button-start button) (point))
     (put-text-property (point) (button-end button) 'rmail-mime-entity entity)
     (restore-buffer-modified-p modified)
-    (forward-line 1)))
+    ;; The following call to forward-line must be in sync with how
+    ;; rmail-mime-insert-tagline formats the tagline.
+    (forward-line 2)))
 
 (defun rmail-mime-insert-header (header)
   "Decode and insert a MIME-entity header HEADER in the current buffer.
@@ -557,28 +583,32 @@ HEADER is a header component of a MIME-entity object (see
 	  (delete-region (point-min) (point-max))))
 
     ;; header
-    (if (eq (aref current 0) (aref new 0))
+    (if (eq (rmail-mime-display-header current)
+	    (rmail-mime-display-header new))
 	(goto-char (aref segment 2))
-      (if (aref current 0)
+      (if (rmail-mime-display-header current)
 	  (delete-char (- (aref segment 2) (aref segment 1))))
-      (if (aref new 0)
+      (if (rmail-mime-display-header new)
 	  (rmail-mime-insert-header header)))
     ;; tagline
-    (if (eq (aref current 1) (aref new 1))
-	(if (or (not (aref current 1))
-		(eq (aref current 2) (aref new 2)))
+    (if (eq (rmail-mime-display-tagline current)
+	    (rmail-mime-display-tagline new))
+	(if (or (not (rmail-mime-display-tagline current))
+		(eq (rmail-mime-display-body current)
+		    (rmail-mime-display-body new)))
 	    (forward-char (- (aref segment 3) (aref segment 2)))
 	  (rmail-mime-update-tagline entity))
-      (if (aref current 1)
+      (if (rmail-mime-display-tagline current)
 	  (delete-char (- (aref segment 3) (aref segment 2))))
-      (if (aref new 1)
+      (if (rmail-mime-display-tagline new)
 	  (rmail-mime-insert-tagline entity)))
     ;; body
-    (if (eq (aref current 2) (aref new 2))
+    (if (eq (rmail-mime-display-body current)
+	    (rmail-mime-display-body new))
 	(forward-char (- (aref segment 4) (aref segment 3)))
-      (if (aref current 2)
+      (if (rmail-mime-display-body current)
 	  (delete-char (- (aref segment 4) (aref segment 3))))
-      (if (aref new 2)
+      (if (rmail-mime-display-body new)
 	  (rmail-mime-insert-decoded-text entity)))
     (put-text-property beg (point) 'rmail-mime-entity entity)))
 
@@ -726,22 +756,25 @@ directly."
     (setq beg (point))
 
     ;; header
-    (if (eq (aref current 0) (aref new 0))
+    (if (eq (rmail-mime-display-header current)
+	    (rmail-mime-display-header new))
 	(goto-char (aref segment 2))
-      (if (aref current 0)
+      (if (rmail-mime-display-header current)
 	  (delete-char (- (aref segment 2) (aref segment 1))))
-      (if (aref new 0)
+      (if (rmail-mime-display-header new)
 	  (rmail-mime-insert-header header)))
 
     ;; tagline
-    (if (eq (aref current 1) (aref new 1))
-	(if (or (not (aref current 1))
-		(eq (aref current 2) (aref new 2)))
+    (if (eq (rmail-mime-display-tagline current)
+	    (rmail-mime-display-tagline new))
+	(if (or (not (rmail-mime-display-tagline current))
+		(eq (rmail-mime-display-body current)
+		    (rmail-mime-display-body new)))
 	    (forward-char (- (aref segment 3) (aref segment 2)))
 	  (rmail-mime-update-tagline entity))
-      (if (aref current 1)
+      (if (rmail-mime-display-tagline current)
 	  (delete-char (- (aref segment 3) (aref segment 2))))
-      (if (aref new 1)
+      (if (rmail-mime-display-tagline new)
 	  (rmail-mime-insert-tagline
 	   entity
 	   " Save:"
@@ -764,11 +797,12 @@ directly."
 	   ;; 	     'image-data data))
 	   )))
     ;; body
-    (if (eq (aref current 2) (aref new 2))
+    (if (eq (rmail-mime-display-body current)
+	    (rmail-mime-display-body new))
 	(forward-char (- (aref segment 4) (aref segment 3)))
-      (if (aref current 2)
+      (if (rmail-mime-display-body current)
 	  (delete-char (- (aref segment 4) (aref segment 3))))
-      (if (aref new 2)
+      (if (rmail-mime-display-body new)
 	  (cond ((eq (cdr bulk-data) 'text)
 		 (rmail-mime-insert-decoded-text entity))
 		((cdr bulk-data)
@@ -978,27 +1012,31 @@ This is the epilogue.  It is also to be ignored."))
 	(beg (point))
 	(segment (rmail-mime-entity-segment (point) entity)))
     ;; header
-    (if (eq (aref current 0) (aref new 0))
+    (if (eq (rmail-mime-display-header current)
+	    (rmail-mime-display-header new))
 	(goto-char (aref segment 2))
-      (if (aref current 0)
+      (if (rmail-mime-display-header current)
 	  (delete-char (- (aref segment 2) (aref segment 1))))
-      (if (aref new 0)
+      (if (rmail-mime-display-header new)
 	  (rmail-mime-insert-header header)))
     ;; tagline
-    (if (eq (aref current 1) (aref new 1))
-	(if (or (not (aref current 1))
-		(eq (aref current 2) (aref new 2)))
+    (if (eq (rmail-mime-display-tagline current)
+	    (rmail-mime-display-tagline new))
+	(if (or (not (rmail-mime-display-tagline current))
+		(eq (rmail-mime-display-body current)
+		    (rmail-mime-display-body new)))
 	    (forward-char (- (aref segment 3) (aref segment 2)))
 	  (rmail-mime-update-tagline entity))
-      (if (aref current 1)
+      (if (rmail-mime-display-tagline current)
 	  (delete-char (- (aref segment 3) (aref segment 2))))
-      (if (aref new 1)
+      (if (rmail-mime-display-tagline new)
 	  (rmail-mime-insert-tagline entity)))
 
     (put-text-property beg (point) 'rmail-mime-entity entity)
 
     ;; body
-    (if (eq (aref current 2) (aref new 2))
+    (if (eq (rmail-mime-display-body current)
+	    (rmail-mime-display-body new))
 	(forward-char (- (aref segment 4) (aref segment 3)))
       (dolist (child (rmail-mime-entity-children entity))
 	(rmail-mime-insert child)))
@@ -1228,7 +1266,7 @@ This function will be called recursively if multiple parts are
 available."
   (let ((current (aref (rmail-mime-entity-display entity) 0))
 	(new (aref (rmail-mime-entity-display entity) 1)))
-    (if (not (eq (aref new 0) 'raw))
+    (if (not (eq (rmail-mime-display-header new) 'raw))
 	;; Not a raw-mode.  Each handler should handle it.
 	(funcall (rmail-mime-entity-handler entity) entity)
       (let ((header (rmail-mime-entity-header entity))
@@ -1237,14 +1275,15 @@ available."
 	    (beg (point))
 	    (segment (rmail-mime-entity-segment (point) entity)))
 	;; header
-	(if (eq (aref current 0) (aref new 0))
+	(if (eq (rmail-mime-display-header current)
+		(rmail-mime-display-header new))
 	    (goto-char (aref segment 2))
-	  (if (aref current 0)
+	  (if (rmail-mime-display-header current)
 	      (delete-char (- (aref segment 2) (aref segment 1))))
 	  (insert-buffer-substring rmail-mime-mbox-buffer
 				     (aref header 0) (aref header 1)))
 	;; tagline
-	(if (aref current 1)
+	(if (rmail-mime-display-tagline current)
 	    (delete-char (- (aref segment 3) (aref segment 2))))
 	;; body
 	(let ((children (rmail-mime-entity-children entity)))
@@ -1253,9 +1292,10 @@ available."
 		(put-text-property beg (point) 'rmail-mime-entity entity)
 		(dolist (child children)
 		  (rmail-mime-insert child)))
-	    (if (eq (aref current 2) (aref new 2))
+	    (if (eq (rmail-mime-display-body current)
+		    (rmail-mime-display-body new))
 		(forward-char (- (aref segment 4) (aref segment 3)))
-	      (if (aref current 2)
+	      (if (rmail-mime-display-body current)
 		(delete-char (- (aref segment 4) (aref segment 3))))
 	      (insert-buffer-substring rmail-mime-mbox-buffer
 				       (aref body 0) (aref body 1))

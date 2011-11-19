@@ -114,7 +114,7 @@
 
 (defvar rxvt-alternatives-map
   (let ((map (make-sparse-keymap)))
-    ;; The terminal intialization C code file might have initialized
+    ;; The terminal initialization C code file might have initialized
     ;; function keys F11->F42 from the termcap/terminfo information.  On
     ;; a PC-style keyboard these keys correspond to
     ;; MODIFIER-FUNCTION_KEY, where modifier is S-, C-, C-S-.  The

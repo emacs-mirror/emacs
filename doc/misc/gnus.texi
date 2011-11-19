@@ -30030,7 +30030,7 @@ this:
 @subsection Score File Syntax
 
 Score files are meant to be easily parseable, but yet extremely
-mallable.  It was decided that something that had the same read syntax
+malleable.  It was decided that something that had the same read syntax
 as an Emacs Lisp list would fit that spec.
 
 Here's a typical score file:

@@ -69,7 +69,7 @@ int continuation_symbol () { };
 
 int tail (int q) {}
 
-/* TEST: macros used impropertly. */
+/* TEST: macros used improperly */
 
 int tail_fcn(int q);
 
@@ -98,7 +98,7 @@ namespace foo { namespace bar {
 
     int foo_bar_func(int a) { }
 
-  } 
+  }
 }
 
 /* TEST: The VC++ macro hack. */
@@ -115,4 +115,3 @@ int MACROA () {
 
 
 /* End */
-

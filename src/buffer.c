@@ -4439,7 +4439,7 @@ static int mmap_initialized_p;
 #define MMAP_ALLOCATED_P(start, end) 1
 #endif
 
-/* Perform necessary intializations for the use of mmap.  */
+/* Perform necessary initializations for the use of mmap.  */
 
 static void
 mmap_init (void)

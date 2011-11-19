@@ -126,7 +126,7 @@ html parser.  PNT is the new point to set."
 NAME is the name of this section.
 MEMBERS is a list of semantic tags representing the elements that make
 up this section.
-LEVEL is the levelling level.
+LEVEL is the leveling level.
 START and END define the location of data described by the tag."
   (let ((anchorp (eq level 11)))
     (append (semantic-tag name

@@ -122,7 +122,7 @@ RESULT is a string."
     ("read" . "Reads from")
     ("reset" . "Resets the parameters and returns")
     ("scan" . "Scans the ")
-    ("setup\\|init\\(iallize\\)?" . "Initializes the ")
+    ("setup\\|init\\(ialize\\)?" . "Initializes the ")
     ("select" . "Chooses the ")
     ("send" . "Sends a")
     ("re?c\\(v\\|ieves?\\)" . "Receives a ")
