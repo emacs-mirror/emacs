@@ -1,3 +1,14 @@
+2011-11-19  Eli Zaretskii  <eliz@gnu.org>
+
+	* xdisp.c (x_write_glyphs, draw_phys_cursor_glyph)
+	(erase_phys_cursor, update_window_cursor, show_mouse_face)
+	(cursor_in_mouse_face_p): If the cursor position is out of bounds,
+	behave as if the cursor position were at the window margin.
+
+	* window.c (get_phys_cursor_glyph): If the window is hscrolled,
+	and the cursor position is out of bounds, behave as if the cursor
+	position were at the window margin.  (Bug#10075)
+
 2011-11-18  Chong Yidong  <cyd@gnu.org>
 
 	* window.c (Fwindow_combination_limit): Make first argument

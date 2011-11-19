@@ -24671,9 +24671,17 @@ x_produce_glyphs (struct it *it)
 void
 x_write_glyphs (struct glyph *start, int len)
 {
-  int x, hpos;
+  int x, hpos, chpos = updated_window->phys_cursor.hpos;
 
   xassert (updated_window && updated_row);
+  /* When the window is hscrolled, cursor hpos can legitimately be out
+     of bounds, but we draw the cursor at the corresponding window
+     margin in that case.  */
+  if (!updated_row->reversed_p && chpos < 0)
+    chpos = 0;
+  if (updated_row->reversed_p && chpos >= updated_row->used[TEXT_AREA])
+    chpos = updated_row->used[TEXT_AREA] - 1;
+
   BLOCK_INPUT;
 
   /* Write glyphs.  */
@@ -24688,8 +24696,8 @@ x_write_glyphs (struct glyph *start, int len)
   if (updated_area == TEXT_AREA
       && updated_window->phys_cursor_on_p
       && updated_window->phys_cursor.vpos == output_cursor.vpos
-      && updated_window->phys_cursor.hpos >= hpos
-      && updated_window->phys_cursor.hpos < hpos + len)
+      && chpos >= hpos
+      && chpos < hpos + len)
     updated_window->phys_cursor_on_p = 0;
 
   UNBLOCK_INPUT;
@@ -25199,8 +25207,17 @@ draw_phys_cursor_glyph (struct window *w, struct glyph_row *row,
     {
       int on_p = w->phys_cursor_on_p;
       int x1;
-      x1 = draw_glyphs (w, w->phys_cursor.x, row, TEXT_AREA,
-			w->phys_cursor.hpos, w->phys_cursor.hpos + 1,
+      int hpos = w->phys_cursor.hpos;
+
+      /* When the window is hscrolled, cursor hpos can legitimately be
+	 out of bounds, but we draw the cursor at the corresponding
+	 window margin in that case.  */
+      if (!row->reversed_p && hpos < 0)
+	hpos = 0;
+      if (row->reversed_p && hpos >= row->used[TEXT_AREA])
+	hpos = row->used[TEXT_AREA] - 1;
+
+      x1 = draw_glyphs (w, w->phys_cursor.x, row, TEXT_AREA, hpos, hpos + 1,
 			hl, 0);
       w->phys_cursor_on_p = on_p;
 
@@ -25287,6 +25304,14 @@ erase_phys_cursor (struct window *w)
        ? (w->phys_cursor.hpos < 0)
        : (w->phys_cursor.hpos >= cursor_row->used[TEXT_AREA])))
     goto mark_cursor_off;
+
+  /* When the window is hscrolled, cursor hpos can legitimately be out
+     of bounds, but we draw the cursor at the corresponding window
+     margin in that case.  */
+  if (!cursor_row->reversed_p && hpos < 0)
+    hpos = 0;
+  if (cursor_row->reversed_p && hpos >= cursor_row->used[TEXT_AREA])
+    hpos = cursor_row->used[TEXT_AREA] - 1;
 
   /* If the cursor is in the mouse face area, redisplay that when
      we clear the cursor.  */
@@ -25431,8 +25456,26 @@ update_window_cursor (struct window *w, int on)
      of being deleted.  */
   if (w->current_matrix)
     {
+      int hpos = w->phys_cursor.hpos;
+      int vpos = w->phys_cursor.vpos;
+      struct glyph_row *row;
+
+      if (vpos >= w->current_matrix->nrows
+	  || hpos >= w->current_matrix->matrix_w)
+	return;
+
+      row = MATRIX_ROW (w->current_matrix, vpos);
+
+      /* When the window is hscrolled, cursor hpos can legitimately be
+	 out of bounds, but we draw the cursor at the corresponding
+	 window margin in that case.  */
+      if (!row->reversed_p && hpos < 0)
+	hpos = 0;
+      if (row->reversed_p && hpos >= row->used[TEXT_AREA])
+	hpos = row->used[TEXT_AREA] - 1;
+
       BLOCK_INPUT;
-      display_and_set_cursor (w, on, w->phys_cursor.hpos, w->phys_cursor.vpos,
+      display_and_set_cursor (w, on, hpos, vpos,
 			      w->phys_cursor.x, w->phys_cursor.y);
       UNBLOCK_INPUT;
     }
@@ -25602,9 +25645,18 @@ show_mouse_face (Mouse_HLInfo *hlinfo, enum draw_glyphs_face draw)
       if (FRAME_WINDOW_P (f)
 	  && phys_cursor_on_p && !w->phys_cursor_on_p)
 	{
+	  int hpos = w->phys_cursor.hpos;
+
+	  /* When the window is hscrolled, cursor hpos can legitimately be
+	     out of bounds, but we draw the cursor at the corresponding
+	     window margin in that case.  */
+	  if (!row->reversed_p && hpos < 0)
+	    hpos = 0;
+	  if (row->reversed_p && hpos >= row->used[TEXT_AREA])
+	    hpos = row->used[TEXT_AREA] - 1;
+
 	  BLOCK_INPUT;
-	  display_and_set_cursor (w, 1,
-				  w->phys_cursor.hpos, w->phys_cursor.vpos,
+	  display_and_set_cursor (w, 1, hpos, w->phys_cursor.vpos,
 				  w->phys_cursor.x, w->phys_cursor.y);
 	  UNBLOCK_INPUT;
 	}
@@ -25703,7 +25755,19 @@ coords_in_mouse_face_p (struct window *w, int hpos, int vpos)
 int
 cursor_in_mouse_face_p (struct window *w)
 {
-  return coords_in_mouse_face_p (w, w->phys_cursor.hpos, w->phys_cursor.vpos);
+  int hpos = w->phys_cursor.hpos;
+  int vpos = w->phys_cursor.vpos;
+  struct glyph_row *row = MATRIX_ROW (w->current_matrix, vpos);
+
+  /* When the window is hscrolled, cursor hpos can legitimately be out
+     of bounds, but we draw the cursor at the corresponding window
+     margin in that case.  */
+  if (!row->reversed_p && hpos < 0)
+    hpos = 0;
+  if (row->reversed_p && hpos >= row->used[TEXT_AREA])
+    hpos = row->used[TEXT_AREA] - 1;
+
+  return coords_in_mouse_face_p (w, hpos, vpos);
 }
 
 

@@ -5773,13 +5773,30 @@ get_phys_cursor_glyph (struct window *w)
 {
   struct glyph_row *row;
   struct glyph *glyph;
+  int hpos = w->phys_cursor.hpos;
 
-  if (w->phys_cursor.vpos >= 0
-      && w->phys_cursor.vpos < w->current_matrix->nrows
-      && (row = MATRIX_ROW (w->current_matrix, w->phys_cursor.vpos),
-	  row->enabled_p)
-      && row->used[TEXT_AREA] > w->phys_cursor.hpos)
-    glyph = row->glyphs[TEXT_AREA] + w->phys_cursor.hpos;
+  if (!(w->phys_cursor.vpos >= 0
+	&& w->phys_cursor.vpos < w->current_matrix->nrows))
+    return NULL;
+
+  row = MATRIX_ROW (w->current_matrix, w->phys_cursor.vpos);
+  if (!row->enabled_p)
+    return NULL;
+
+  if (w->hscroll)
+    {
+      /* When the window is hscrolled, cursor hpos can legitimately be
+	 out of bounds, but we draw the cursor at the corresponding
+	 window margin in that case.  */
+      if (!row->reversed_p && hpos < 0)
+	hpos = 0;
+      if (row->reversed_p && hpos >= row->used[TEXT_AREA])
+	hpos = row->used[TEXT_AREA] - 1;
+    }
+
+  if (row->used[TEXT_AREA] > hpos
+      && 0 <= hpos)
+    glyph = row->glyphs[TEXT_AREA] + hpos;
   else
     glyph = NULL;
 
