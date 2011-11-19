@@ -246,51 +246,51 @@ windows horizontally arranged within WINDOW."
 	(setq child (window-right child)))
       count))))
 
-(defun walk-window-tree-1 (proc walk-window-tree-window any &optional sub-only)
+(defun walk-window-tree-1 (fun walk-window-tree-window any &optional sub-only)
   "Helper function for `walk-window-tree' and `walk-window-subtree'."
   (let (walk-window-tree-buffer)
     (while walk-window-tree-window
       (setq walk-window-tree-buffer
 	    (window-buffer walk-window-tree-window))
       (when (or walk-window-tree-buffer any)
-	(funcall proc walk-window-tree-window))
+	(funcall fun walk-window-tree-window))
       (unless walk-window-tree-buffer
 	(walk-window-tree-1
-	 proc (window-left-child walk-window-tree-window) any)
+	 fun (window-left-child walk-window-tree-window) any)
 	(walk-window-tree-1
-	 proc (window-top-child walk-window-tree-window) any))
+	 fun (window-top-child walk-window-tree-window) any))
       (if sub-only
 	  (setq walk-window-tree-window nil)
 	(setq walk-window-tree-window
 	      (window-right walk-window-tree-window))))))
 
-(defun walk-window-tree (proc &optional frame any)
-  "Run function PROC on each live window of FRAME.
-PROC must be a function with one argument - a window.  FRAME must
+(defun walk-window-tree (fun &optional frame any)
+  "Run function FUN on each live window of FRAME.
+FUN must be a function with one argument - a window.  FRAME must
 be a live frame and defaults to the selected one.  ANY, if
-non-nil means to run PROC on all live and internal windows of
+non-nil means to run FUN on all live and internal windows of
 FRAME.
 
 This function performs a pre-order, depth-first traversal of the
-window tree.  If PROC changes the window tree, the result is
+window tree.  If FUN changes the window tree, the result is
 unpredictable."
   (let ((walk-window-tree-frame (window-normalize-frame frame)))
     (walk-window-tree-1
-     proc (frame-root-window walk-window-tree-frame) any)))
+     fun (frame-root-window walk-window-tree-frame) any)))
 
-(defun walk-window-subtree (proc &optional window any)
-  "Run function PROC on the subtree of windows rooted at WINDOW.
-WINDOW defaults to the selected window.  PROC must be a function
-with one argument - a window.  By default, run PROC only on live
+(defun walk-window-subtree (fun &optional window any)
+  "Run function FUN on the subtree of windows rooted at WINDOW.
+WINDOW defaults to the selected window.  FUN must be a function
+with one argument - a window.  By default, run FUN only on live
 windows of the subtree.  If the optional argument ANY is non-nil,
-run PROC on all live and internal windows of the subtree.  If
-WINDOW is live, run PROC on WINDOW only.
+run FUN on all live and internal windows of the subtree.  If
+WINDOW is live, run FUN on WINDOW only.
 
 This function performs a pre-order, depth-first traversal of the
-subtree rooted at WINDOW.  If PROC changes that tree, the result
+subtree rooted at WINDOW.  If FUN changes that tree, the result
 is unpredictable."
   (setq window (window-normalize-window window))
-  (walk-window-tree-1 proc window any t))
+  (walk-window-tree-1 fun window any t))
 
 (defun window-with-parameter (parameter &optional value frame any)
   "Return first window on FRAME with PARAMETER non-nil.
@@ -997,9 +997,9 @@ taken into account."
 	    (setq hor (cdr fcsb)))))
     (cons vert hor)))
 
-(defun walk-windows (proc &optional minibuf all-frames)
-  "Cycle through all live windows, calling PROC for each one.
-PROC must specify a function with a window as its sole argument.
+(defun walk-windows (fun &optional minibuf all-frames)
+  "Cycle through all live windows, calling FUN for each one.
+FUN must specify a function with a window as its sole argument.
 The optional arguments MINIBUF and ALL-FRAMES specify the set of
 windows to include in the walk.
 
@@ -1041,7 +1041,7 @@ windows nor the buffer list."
     (when (framep all-frames)
       (select-window (frame-first-window all-frames) 'norecord))
     (dolist (walk-windows-window (window-list-1 nil minibuf all-frames))
-      (funcall proc walk-windows-window))))
+      (funcall fun walk-windows-window))))
 
 (defun window-point-1 (&optional window)
   "Return value of WINDOW's point.
@@ -3677,8 +3677,7 @@ value can be also stored on disk and read back in a new session."
      ((eq type 'leaf)
       ;; For a leaf window just add unprocessed entries to
       ;; `window-state-put-list'.
-      (setq window-state-put-list
-	    (cons (cons window state) window-state-put-list)))
+      (push (cons window state) window-state-put-list))
      ((memq type '(vc hc))
       (let* ((horizontal (eq type 'hc))
 	     (total (window-total-size window horizontal))
