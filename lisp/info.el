@@ -1846,7 +1846,9 @@ If DIRECTION is `backward', search in the reverse direction."
 		    (setq list nil)))
 	      (if found
 		  (message "")
-		(signal 'search-failed (list regexp))))
+		(signal 'search-failed (if isearch-mode
+					   (list regexp "end of the manual")
+					 (list regexp)))))
 	  (if (not found)
 	      (progn (Info-read-subfile osubfile)
 		     (goto-char opoint)

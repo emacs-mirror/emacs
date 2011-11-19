@@ -1,5 +1,20 @@
 2011-11-19  Juri Linkov  <juri@jurta.org>
 
+	* isearch.el (isearch-lazy-highlight-new-loop):
+	Remove condition `(not isearch-error)'.  (Bug#9918)
+
+	* misearch.el (multi-isearch-search-fun): Add condition
+	`(not bound)' to ignore lazy-highlighting search.
+	Add the search-failed message "end of multi" when the end of
+	multi-sequence is reached.  Uncapitalize the search-failed
+	message "Repeat for next buffer".
+
+	* info.el (Info-search): Add the search-failed message
+	"end of the manual" when the end of the manual is reached
+	in Isearch mode.
+
+2011-11-19  Juri Linkov  <juri@jurta.org>
+
 	* info.el (Info-find-node-2, Info-select-node, Info-history-find-node):
 	Use non-destructive `remove' instead of `delete' because
 	`Info-history-list' stored to `Info-isearch-initial-history-list' in

@@ -2673,25 +2673,27 @@ by other Emacs features."
     ;; something important did indeed change
     (lazy-highlight-cleanup t) ;kill old loop & remove overlays
     (setq isearch-lazy-highlight-error isearch-error)
-    (when (not isearch-error)
-      (setq isearch-lazy-highlight-start-limit beg
-	    isearch-lazy-highlight-end-limit end)
-      (setq isearch-lazy-highlight-window       (selected-window)
-            isearch-lazy-highlight-window-start (window-start)
-            isearch-lazy-highlight-window-end   (window-end)
-            isearch-lazy-highlight-start        (point)
-            isearch-lazy-highlight-end          (point)
-            isearch-lazy-highlight-wrapped      nil
-            isearch-lazy-highlight-last-string  isearch-string
-	    isearch-lazy-highlight-case-fold-search isearch-case-fold-search
-	    isearch-lazy-highlight-regexp       isearch-regexp
-	    isearch-lazy-highlight-space-regexp search-whitespace-regexp
-	    isearch-lazy-highlight-word         isearch-word
-	    isearch-lazy-highlight-forward      isearch-forward)
+    ;; It used to check for `(not isearch-error)' here, but actually
+    ;; lazy-highlighting might find matches to highlight even when
+    ;; `isearch-error' is non-nil.  (Bug#9918)
+    (setq isearch-lazy-highlight-start-limit beg
+	  isearch-lazy-highlight-end-limit end)
+    (setq isearch-lazy-highlight-window       (selected-window)
+	  isearch-lazy-highlight-window-start (window-start)
+	  isearch-lazy-highlight-window-end   (window-end)
+	  isearch-lazy-highlight-start        (point)
+	  isearch-lazy-highlight-end          (point)
+	  isearch-lazy-highlight-wrapped      nil
+	  isearch-lazy-highlight-last-string  isearch-string
+	  isearch-lazy-highlight-case-fold-search isearch-case-fold-search
+	  isearch-lazy-highlight-regexp       isearch-regexp
+	  isearch-lazy-highlight-space-regexp search-whitespace-regexp
+	  isearch-lazy-highlight-word         isearch-word
+	  isearch-lazy-highlight-forward      isearch-forward)
       (unless (equal isearch-string "")
 	(setq isearch-lazy-highlight-timer
 	      (run-with-idle-timer lazy-highlight-initial-delay nil
-				   'isearch-lazy-highlight-update))))))
+				   'isearch-lazy-highlight-update)))))
 
 (defun isearch-lazy-highlight-search ()
   "Search ahead for the next or previous match, for lazy highlighting.
