@@ -1,3 +1,9 @@
+2011-11-19  Juri Linkov  <juri@jurta.org>
+
+	* info.el (Info-finder-find-node): Use `package--builtins' instead
+	of `package-alist'.  Use node names formed by the pattern "Keyword "
+	and the keyword name.
+
 2011-11-19  Andreas Schwab  <schwab@linux-m68k.org>
 
 	* progmodes/sh-script.el (sh-assignment-regexp): Add entry for

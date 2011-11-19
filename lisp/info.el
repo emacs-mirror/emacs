@@ -3403,7 +3403,7 @@ Build a menu of the possible matches."
 (declare-function finder-unknown-keywords "finder" ())
 (declare-function lm-commentary "lisp-mnt" (&optional file))
 (defvar finder-keywords-hash)
-(defvar package-alist)                  ; finder requires package
+(defvar package--builtins)		; finder requires package
 
 (defun Info-finder-find-node (_filename nodename &optional _no-going-back)
   "Finder-specific implementation of `Info-find-node-2'."
@@ -3417,14 +3417,14 @@ Build a menu of the possible matches."
     (insert "***************\n\n")
     (insert "* Menu:\n\n")
     (dolist (assoc (append '((all . "All package info")
-			     (unknown . "unknown keywords"))
+			     (unknown . "Unknown keywords"))
 			   finder-known-keywords))
       (let ((keyword (car assoc)))
 	(insert (format "* %s %s.\n"
 			(concat (symbol-name keyword) ": "
-				"kw:" (symbol-name keyword) ".")
+				"Keyword " (symbol-name keyword) ".")
 			(cdr assoc))))))
-   ((equal nodename "unknown")
+   ((equal nodename "Keyword unknown")
     ;; Display unknown keywords
     (insert (format "\n\^_\nFile: %s,  Node: %s,  Up: Top\n\n"
 		    Info-finder-file nodename))
@@ -3434,24 +3434,29 @@ Build a menu of the possible matches."
     (mapc
      (lambda (assoc)
        (insert (format "* %-14s %s.\n"
-		       (concat (symbol-name (car assoc)) "::")
+		       (concat (symbol-name (car assoc)) ": "
+			       "Keyword " (symbol-name (car assoc)) ".")
 		       (cdr assoc))))
      (finder-unknown-keywords)))
-   ((equal nodename "all")
+   ((equal nodename "Keyword all")
     ;; Display all package info.
     (insert (format "\n\^_\nFile: %s,  Node: %s,  Up: Top\n\n"
 		    Info-finder-file nodename))
     (insert "Finder Package Info\n")
     (insert "*******************\n\n")
-    (dolist (package package-alist)
-      (insert (format "%s - %s\n"
-		      (format "*Note %s::" (nth 0 package))
-		      (nth 1 package)))))
-   ((string-match "\\`kw:" nodename)
+    (insert "* Menu:\n\n")
+    (let (desc)
+      (dolist (package package--builtins)
+	(setq desc (cdr-safe package))
+	(when (vectorp desc)
+	  (insert (format "* %-16s %s.\n"
+			  (concat (symbol-name (car package)) "::")
+			  (aref desc 2)))))))
+   ((string-match "\\`Keyword " nodename)
     (setq nodename (substring nodename (match-end 0)))
     ;; Display packages that match the keyword
     ;; or the list of keywords separated by comma.
-    (insert (format "\n\^_\nFile: %s,  Node: kw:%s,  Up: Top\n\n"
+    (insert (format "\n\^_\nFile: %s,  Node: Keyword %s,  Up: Top\n\n"
 		    Info-finder-file nodename))
     (insert "Finder Packages\n")
     (insert "***************\n\n")
@@ -3463,11 +3468,11 @@ Build a menu of the possible matches."
 			       (split-string nodename ",[ \t\n]*" t)
 			     (list nodename))))
 	  hits desc)
-      (dolist (kw keywords)
-	(push (copy-tree (gethash kw finder-keywords-hash)) hits))
+      (dolist (keyword keywords)
+	(push (copy-tree (gethash keyword finder-keywords-hash)) hits))
       (setq hits (delete-dups (apply 'append hits)))
       (dolist (package hits)
-	(setq desc (cdr-safe (assq package package-alist)))
+	(setq desc (cdr-safe (assq package package--builtins)))
 	(when (vectorp desc)
 	  (insert (format "* %-16s %s.\n"
 			  (concat (symbol-name package) "::")
