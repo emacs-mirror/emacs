@@ -1087,7 +1087,7 @@ a case-insensitive match is tried."
                      ;; Add anchors to the history too
                      (setq Info-history-list
                            (cons new-history
-                                 (delete new-history Info-history-list))))
+                                 (remove new-history Info-history-list))))
                    (goto-char anchorpos))
                   ((numberp Info-point-loc)
                    (forward-line (- Info-point-loc 2))
@@ -1514,7 +1514,7 @@ escaped (\\\",\\\\)."
 	;; Add a new unique history item to full history list
 	(let ((new-history (list Info-current-file Info-current-node)))
 	  (setq Info-history-list
-		(cons new-history (delete new-history Info-history-list)))
+		(cons new-history (remove new-history Info-history-list)))
 	  (setq Info-history-forward nil))
 	(if (not (eq Info-fontify-maximum-menu-size nil))
             (Info-fontify-node))
@@ -2153,7 +2153,7 @@ If SAME-FILE is non-nil, do not move to a different Info file."
   (insert "Recently Visited Nodes\n")
   (insert "**********************\n\n")
   (insert "* Menu:\n\n")
-  (let ((hl (delete '("*History*" "Top") Info-history-list)))
+  (let ((hl (remove '("*History*" "Top") Info-history-list)))
     (while hl
       (let ((file (nth 0 (car hl)))
 	    (node (nth 1 (car hl))))
