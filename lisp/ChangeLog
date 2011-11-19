@@ -1,3 +1,18 @@
+2011-11-19  Eli Zaretskii  <eliz@gnu.org>
+
+	* mail/rmailmm.el (rmail-mime-display-header)
+	(rmail-mime-display-tagline, rmail-mime-display-body): New defsubsts.
+	(rmail-mime-entity-segment, rmail-mime-toggle-raw)
+	(rmail-mime-toggle-hidden, rmail-mime-insert-text)
+	(rmail-mime-insert-bulk, rmail-mime-insert-multipart)
+	(rmail-mime-insert, rmail-mime-insert-tagline): Use them instead
+	of a raw aref.
+	(rmail-mime-entity-segment): To get past the tagline, move forward
+	2 more lines, to account for the 2 empty lines that precede and
+	follow the line with the buttons.
+	(rmail-mime-update-tagline): Move one more line, to get past the
+	empty line that follows the buttons in the tagline.  (Bug#9520)
+
 2011-11-19  Martin Rudalics  <rudalics@gmx.at>
 
 	* window.el (window-max-delta-1, window-min-delta-1)
