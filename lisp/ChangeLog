@@ -1,3 +1,9 @@
+2011-11-19  Eli Zaretskii  <eliz@gnu.org>
+
+	* simple.el (line-move): Force movement by logical lines for any
+	hscrolled window, not only when auto-hscroll-mode is on.
+	(line-move-visual): Update doc string to that effect.  (Bug#10076)
+
 2011-11-19  Andreas Schwab  <schwab@linux-m68k.org>
 
 	* language/european.el (macintosh): Define as alias for mac-roman.
