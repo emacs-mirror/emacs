@@ -1,5 +1,17 @@
 2011-11-19  Juri Linkov  <juri@jurta.org>
 
+	* info.el (Info-hide-note-references): Add `:set' tag to `defcustom'
+	that calls `revert-buffer' on all Info buffers.  (Bug#9915)
+	(Info-revert-find-node): Remove let-bindings `old-buffer-name',
+	`old-history', `old-history-forward'.  Add let-binding
+	`window-selected'.  Remove calls to `kill-buffer',
+	`switch-to-buffer' and `Info-mode'.  Set `Info-current-file' to nil
+	before calling `Info-find-node', so `Info-find-node-2' will reread
+	the Info file.  Restore window positions only when `window-selected'
+	is non-nil.
+
+2011-11-19  Juri Linkov  <juri@jurta.org>
+
 	* isearch.el (isearch-lazy-highlight-new-loop):
 	Remove condition `(not isearch-error)'.  (Bug#9918)
 
