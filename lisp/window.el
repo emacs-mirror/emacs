@@ -524,10 +524,10 @@ imposed by fixed size windows, `window-min-height' or
 windows may get as small as `window-safe-min-height' lines and
 `window-safe-min-width' columns.  IGNORE a window means ignore
 restrictions for that window only."
-  (window-min-size-1
+  (window--min-size-1
    (window-normalize-window window) horizontal ignore))
 
-(defun window-min-size-1 (window horizontal ignore)
+(defun window--min-size-1 (window horizontal ignore)
   "Internal function of `window-min-size'."
   (let ((sub (window-child window)))
     (if sub
@@ -538,13 +538,13 @@ restrictions for that window only."
 	      ;; the minimum sizes of its child windows.
 	      (while sub
 		(setq value (+ value
-			       (window-min-size-1 sub horizontal ignore)))
+			       (window--min-size-1 sub horizontal ignore)))
 		(setq sub (window-right sub)))
 	    ;; The minimum size of an ortho-combination is the maximum of
 	    ;; the minimum sizes of its child windows.
 	    (while sub
 	      (setq value (max value
-			       (window-min-size-1 sub horizontal ignore)))
+			       (window--min-size-1 sub horizontal ignore)))
 	      (setq sub (window-right sub))))
 	  value)
       (with-current-buffer (window-buffer window)
@@ -687,7 +687,7 @@ WINDOW can be resized in the desired direction.  The function
   (window--size-fixed-1
    (window-normalize-window window) horizontal))
 
-(defun window-min-delta-1 (window delta &optional horizontal ignore trail noup)
+(defun window--min-delta-1 (window delta &optional horizontal ignore trail noup)
   "Internal function for `window-min-delta'."
   (if (not (window-parent window))
       ;; If we can't go up, return zero.
@@ -723,7 +723,7 @@ WINDOW can be resized in the desired direction.  The function
 	    (setq sub (window-right sub))))
 	(if noup
 	    delta
-	  (window-min-delta-1 parent delta horizontal ignore trail))))))
+	  (window--min-delta-1 parent delta horizontal ignore trail))))))
 
 (defun window-min-delta (&optional window horizontal ignore trail noup nodown)
   "Return number of lines by which WINDOW can be shrunk.
@@ -757,7 +757,7 @@ at least one other window can be enlarged appropriately."
     (cond
      (nodown
       ;; If NODOWN is t, try to recover the entire size of WINDOW.
-      (window-min-delta-1 window size horizontal ignore trail noup))
+      (window--min-delta-1 window size horizontal ignore trail noup))
      ((= size minimum)
       ;; If NODOWN is nil and WINDOW's size is already at its minimum,
       ;; there's nothing to recover.
@@ -765,10 +765,10 @@ at least one other window can be enlarged appropriately."
      (t
       ;; Otherwise, try to recover whatever WINDOW is larger than its
       ;; minimum size.
-      (window-min-delta-1
+      (window--min-delta-1
        window (- size minimum) horizontal ignore trail noup)))))
 
-(defun window-max-delta-1 (window delta &optional horizontal ignore trail noup)
+(defun window--max-delta-1 (window delta &optional horizontal ignore trail noup)
   "Internal function of `window-max-delta'."
   (if (not (window-parent window))
       ;; Can't go up.  Return DELTA.
@@ -804,7 +804,7 @@ at least one other window can be enlarged appropriately."
 	    delta
 	  ;; Else try with parent of WINDOW, passing the DELTA we
 	  ;; recovered so far.
-	  (window-max-delta-1 parent delta horizontal ignore trail))))))
+	  (window--max-delta-1 parent delta horizontal ignore trail))))))
 
 (defun window-max-delta (&optional window horizontal ignore trail noup nodown)
   "Return maximum number of lines WINDOW by which WINDOW can be enlarged.
@@ -840,7 +840,7 @@ only whether other windows can be shrunk appropriately."
       ;; size.
       0
     ;; WINDOW has no fixed size.
-    (window-max-delta-1 window 0 horizontal ignore trail noup)))
+    (window--max-delta-1 window 0 horizontal ignore trail noup)))
 
 ;; Make NOUP also inhibit the min-size check.
 (defun window--resizable (window delta &optional horizontal ignore trail noup nodown)
@@ -2039,8 +2039,8 @@ move it as far as possible in the desired direction."
       ;; two windows we want to resize.
       (cond
        ((> delta 0)
-	(setq max-delta (window-max-delta-1 left 0 horizontal nil 'after))
-	(setq min-delta (window-min-delta-1 right (- delta) horizontal nil 'before))
+	(setq max-delta (window--max-delta-1 left 0 horizontal nil 'after))
+	(setq min-delta (window--min-delta-1 right (- delta) horizontal nil 'before))
 	(when (or (< max-delta delta) (> min-delta (- delta)))
 	  ;; We can't get the whole DELTA - move as far as possible.
 	  (setq delta (min max-delta (- min-delta))))
@@ -2062,8 +2062,8 @@ move it as far as possible in the desired direction."
 	       (window-left-column right)
 	     (window-top-line right)))))
        ((< delta 0)
-	(setq max-delta (window-max-delta-1 right 0 horizontal nil 'before))
-	(setq min-delta (window-min-delta-1 left delta horizontal nil 'after))
+	(setq max-delta (window--max-delta-1 right 0 horizontal nil 'before))
+	(setq min-delta (window--min-delta-1 left delta horizontal nil 'after))
 	(when (or (< max-delta (- delta)) (> min-delta delta))
 	  ;; We can't get the whole DELTA - move as far as possible.
 	  (setq delta (max (- max-delta) min-delta)))
@@ -3570,7 +3570,7 @@ specific buffers."
 (defvar window-state-ignored-parameters '(quit-restore)
   "List of window parameters ignored by `window-state-get'.")
 
-(defun window-state-get-1 (window &optional markers)
+(defun window--state-get-1 (window &optional markers)
   "Helper function for `window-state-get'."
   (let* ((type
 	  (cond
@@ -3625,7 +3625,7 @@ specific buffers."
 	    (let (list)
 	      (setq window (window-child window))
 	      (while window
-		(setq list (cons (window-state-get-1 window markers) list))
+		(setq list (cons (window--state-get-1 window markers) list))
 		(setq window (window-right window)))
 	      (nreverse list)))))
     (append head tail)))
@@ -3664,12 +3664,12 @@ value can be also stored on disk and read back in a new session."
      ;; These are probably not needed.
      ,@(when (window-size-fixed-p window) `((fixed-height . t)))
      ,@(when (window-size-fixed-p window t) `((fixed-width . t))))
-   (window-state-get-1 window markers)))
+   (window--state-get-1 window markers)))
 
 (defvar window-state-put-list nil
   "Helper variable for `window-state-put'.")
 
-(defun window-state-put-1 (state &optional window ignore totals)
+(defun window--state-put-1 (state &optional window ignore totals)
   "Helper function for `window-state-put'."
   (let ((type (car state)))
     (setq state (cdr state))
@@ -3689,7 +3689,7 @@ value can be also stored on disk and read back in a new session."
 	  ;; real window that we want to fill with what we find here.
 	  (when (memq (car item) '(leaf vc hc))
 	    (if (assq 'last item)
-		;; The last child window.  Below `window-state-put-1'
+		;; The last child window.  Below `window--state-put-1'
 		;; will put into it whatever ITEM has in store.
 		(setq new nil)
 	      ;; Not the last child window, prepare for splitting
@@ -3730,11 +3730,11 @@ value can be also stored on disk and read back in a new session."
 
 	    ;; Now process the current window (either the one we've just
 	    ;; split or the last child of its parent).
-	    (window-state-put-1 item window ignore totals)
+	    (window--state-put-1 item window ignore totals)
 	    ;; Continue with the last window split off.
 	    (setq window new))))))))
 
-(defun window-state-put-2 (ignore)
+(defun window--state-put-2 (ignore)
   "Helper function for `window-state-put'."
   (dolist (item window-state-put-list)
     (let ((window (car item))
@@ -3860,11 +3860,11 @@ windows can get as small as `window-safe-min-height' and
       ;; Work on the windows of a temporary buffer to make sure that
       ;; splitting proceeds regardless of any buffer local values of
       ;; `window-size-fixed'.  Release that buffer after the buffers of
-      ;; all live windows have been set by `window-state-put-2'.
+      ;; all live windows have been set by `window--state-put-2'.
       (with-temp-buffer
 	(set-window-buffer window (current-buffer))
-	(window-state-put-1 state window nil totals)
-	(window-state-put-2 ignore))
+	(window--state-put-1 state window nil totals)
+	(window--state-put-2 ignore))
       (window--check frame))))
 
 (defun display-buffer-record-window (type window buffer)

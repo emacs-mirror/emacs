@@ -1,3 +1,9 @@
+2011-11-19  Martin Rudalics  <rudalics@gmx.at>
+
+	* window.el (window-max-delta-1, window-min-delta-1)
+	(window-min-size-1, window-state-get-1, window-state-put-1)
+	(window-state-put-2): Use "window--" prefix.
+
 2011-11-18  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* emacs-lisp/smie.el: Improve warnings and conflict detection.
