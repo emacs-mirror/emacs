@@ -1,3 +1,9 @@
+2011-11-19  Juri Linkov  <juri@jurta.org>
+
+	* isearch.el (isearch-edit-string): Let-bind `history-add-new-input'
+	to nil instead of binding `search-ring' and `regexp-search-ring'.
+	(Bug#9185)
+
 2011-11-19  Eli Zaretskii  <eliz@gnu.org>
 
 	* simple.el (line-move): Force movement by logical lines for any

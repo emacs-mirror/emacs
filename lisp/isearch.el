@@ -1162,11 +1162,10 @@ The following additional command keys are active while editing.
 
 	  (unwind-protect
 	      (let* ((message-log-max nil)
-		     ;; Protect global value of search rings from updating
-		     ;; by `read-from-minibuffer'.  It should be updated only
-		     ;; by `isearch-update-ring' in `isearch-done', not here.
-		     (search-ring search-ring)
-		     (regexp-search-ring regexp-search-ring)
+		     ;; Don't add a new search string to the search ring here
+		     ;; in `read-from-minibuffer'. It should be added only
+		     ;; by `isearch-update-ring' called from `isearch-done'.
+		     (history-add-new-input nil)
 		     ;; Binding minibuffer-history-symbol to nil is a work-around
 		     ;; for some incompatibility with gmhist.
 		     (minibuffer-history-symbol))
