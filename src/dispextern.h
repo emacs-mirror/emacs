@@ -3127,9 +3127,7 @@ void w32_init_fringe (struct redisplay_interface *);
 void w32_reset_fringes (void);
 #endif
 
-#if XASSERTS
 extern unsigned row_hash (struct glyph_row *);
-#endif
 
 /* Defined in image.c */
 
