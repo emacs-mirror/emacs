@@ -513,9 +513,6 @@ unless the current buffer is a scratch buffer."
 
 ;;;; Frame-related functions.
 
-;; Don't show the frame name; that's redundant with Nextstep.
-(setq-default mode-line-frame-identification '("  "))
-
 ;; nsterm.m
 (defvar ns-alternate-modifier)
 (defvar ns-right-alternate-modifier)

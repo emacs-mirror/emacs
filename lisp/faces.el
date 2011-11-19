@@ -2457,7 +2457,7 @@ It is used for characters of no fonts too."
 ;;; Manipulating font names.
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-;; This is here for compatibilty with Emacs 20.2.  For example,
+;; This is here for compatibility with Emacs 20.2.  For example,
 ;; international/fontset.el uses x-resolve-font-name.  The following
 ;; functions are not used in the face implementation itself.
 

@@ -89,7 +89,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #undef HAVE_RANDOM
 
 
-/* Rainer Malzbender <rainer@displaytech.com> says definining
+/* Rainer Malzbender <rainer@displaytech.com> says defining
    HAVE_XRMSETDATABASE allows Emacs to compile on HP-UX 10.20 using GCC.  */
 #ifndef HAVE_XRMSETDATABASE
 #define HAVE_XRMSETDATABASE

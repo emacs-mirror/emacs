@@ -135,7 +135,7 @@
 
 	* net/ange-ftp.el (ange-ftp-raw-send-cmd, ange-ftp-wait-not-busy):
 	Use with-current-buffer.
-	(ange-ftp-cd): New arg `noerror' to prevent signalling an error.
+	(ange-ftp-cd): New arg `noerror' to prevent signaling an error.
 	(ange-ftp-send-cmd): If a `cd' is used (because of a space in the
 	filename), catch any error that occurs in `ange-ftp-cd'.
 	If an error happened, don't bother sending `cmd' at all.
@@ -1754,7 +1754,7 @@
 	number, column number and buffer-percent part of the mode-line.
 
 	* image.el (image-type-regexps): Allow whitespace at the start
-	of the image data for XPM, XBM and Postscript, which are
+	of the image data for XPM, XBM and PostScript, which are
 	text files.
 	(image-jpeg-p): Correct calculation of next field offset.
 
@@ -2030,7 +2030,7 @@
 	Do not bind locally the uniquify-possibly-resolvable flag.  Use the
 	cached proposed name is possible.
 	(uniquify-get-proposed-name): Arguments changed, callers changed.
-	(uniquify-rationalize-conflicting-sublist): Explicitely reset the
+	(uniquify-rationalize-conflicting-sublist): Explicitly reset the
 	uniquify-possibly-resolvable flag, which is no more bound locally.
 	(uniquify-rename-buffer): Do not set the old unrationalised-buffer
 	flag, which does not exist any more.
@@ -2628,7 +2628,7 @@
 
 2001-07-06  Vinicius Jose Latorre  <vinicius@cpqd.com.br>
 
-	* ps-print.el: Use locale dependant date to print date in header.
+	* ps-print.el: Use locale dependent date to print date in header.
 	Doc fix.
 	(ps-print-version): New version number (6.5.3).
 	(ps-right-header, ps-right-footer): Initialization and doc fix.
@@ -5955,7 +5955,7 @@
 2001-01-29  Gerd Moellmann  <gerd@gnu.org>
 
 	* menu-bar.el (menu-bar-files-menu): Add menu items for
-	Postscript printing in black and white.
+	PostScript printing in black and white.
 
 	* mail/rmail.el (rmail-ignored-headers): Add X-Sign, X-BeenThere,
 	X-Mailman-Version, Precedence, List-Help, List-Post,
@@ -10569,7 +10569,7 @@
 2000-10-10  Dave Love  <fx@gnu.org>
 
 	* toolbar/tool-bar.el (tool-bar-add-item)
-	(tool-bar-add-item-from-menu): Don't favour XPM icons on mono display.
+	(tool-bar-add-item-from-menu): Don't favor XPM icons on mono display.
 
 	* toolbar/attach.pbm, toolbar/cancel.pbm, toolbar/close.pbm:
 	* toolbar/copy.pbm, toolbar/cut.pbm, toolbar/exit.pbm:
@@ -12638,7 +12638,7 @@
 	(vc-rcs-diff): Only pass `2' to vc-do-command if necessary and
 	just do a recursive call if we need to retry.
 	(vc-rcs-checkout): Handle the case where rcs is missing by making
-	the buffer read-write if requested and re-signalling the error.
+	the buffer read-write if requested and re-signaling the error.
 
 	* vc-cvs.el (vc-cvs-diff): Remove unused and unsupported argument CMP.
 
@@ -14191,7 +14191,7 @@
 
 	* international/ja-dic-cnv.el: Renamed from skkdic-cnv.el.
 	Provide ja-dic-cnv instead of skkdic-cnv.
-	(ja-dic-filename): Renamed from skkdic-filename.  Referers changed.
+	(ja-dic-filename): Renamed from skkdic-filename.  Referrers changed.
 	(iso-2022-7bit-short): Add safe-charsets property.
 	(skkdic-convert-postfix): Search Japanese chou-on character in
 	addition to Hiragana character.
@@ -17396,7 +17396,7 @@
 
 2000-05-25  Kenichi Handa  <handa@etl.go.jp>
 
-	* international/mule-conf.el: Specify CHARSET-ID explicitely for
+	* international/mule-conf.el: Specify CHARSET-ID explicitly for
 	private charsets.
 	(mule-unicode-0100-24ff, japanese-jisx0213-1,
 	japanese-jisx0213-2): New charsets.
@@ -20709,4 +20709,3 @@ See ChangeLog.8 for earlier changes.
 
   You should have received a copy of the GNU General Public License
   along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
-

@@ -523,7 +523,7 @@ LOCATION can be one of 'random, 'left-right, or 'top-bottom."
 	    (funcall f 'default frame)))))
 
 (defun dframe-detach (frame-var cache-var buffer-var)
-  "Detatch the frame in symbol FRAME-VAR.
+  "Detach the frame in symbol FRAME-VAR.
 CACHE-VAR and BUFFER-VAR are symbols as in `dframe-frame-mode'"
   (with-current-buffer (symbol-value buffer-var)
     (rename-buffer (buffer-name) t)

@@ -61,12 +61,12 @@
   (oset st lastdict dict))
 
 (defmethod srecode-extract-state-set-anchor ((st srecode-extract-state))
-  "Reset the achor point on extract state ST."
+  "Reset the anchor point on extract state ST."
   (oset st anchor (point)))
 
 (defmethod srecode-extract-state-extract ((st srecode-extract-state)
 					  endpoint)
-  "Perform an extraction on the extract state ST with ENDPOITNT.
+  "Perform an extraction on the extract state ST with ENDPOINT.
 If there was no waiting inserter, do nothing."
   (when (oref st lastinserter)
     (save-match-data

@@ -348,7 +348,7 @@ file_for_image (Lisp_Object image)
 
 /* For the image defined in IMG, make and return a GtkImage.  For displays with
    8 planes or less we must make a GdkPixbuf and apply the mask manually.
-   Otherwise the highlightning and dimming the tool bar code in GTK does
+   Otherwise the highlighting and dimming the tool bar code in GTK does
    will look bad.  For display with more than 8 planes we just use the
    pixmap and mask directly.  For monochrome displays, GTK doesn't seem
    able to use external pixmaps, it looks bad whatever we do.
@@ -891,7 +891,7 @@ xg_frame_resized (FRAME_PTR f, int pixelwidth, int pixelheight)
     }
 }
 
-/* Resize the outer window of frame F after chainging the height.
+/* Resize the outer window of frame F after changing the height.
    COLUMNS/ROWS is the size the edit area shall have after the resize.  */
 
 void
@@ -1423,7 +1423,7 @@ get_dialog_title (char key)
 /* Callback for dialogs that get WM_DELETE_WINDOW.  We pop down
    the dialog, but return TRUE so the event does not propagate further
    in GTK.  This prevents GTK from destroying the dialog widget automatically
-   and we can always destrou the widget manually, regardles of how
+   and we can always destroy the widget manually, regardless of how
    it was popped down (button press or WM_DELETE_WINDOW).
    W is the dialog widget.
    EVENT is the GdkEvent that represents WM_DELETE_WINDOW (not used).
@@ -2294,7 +2294,7 @@ tearoff_activate (GtkWidget *widget, gpointer client_data)
 
 
 /* Create a menu item widget, and connect the callbacks.
-   ITEM decribes the menu item.
+   ITEM describes the menu item.
    F is the frame the created menu belongs to.
    SELECT_CB is the callback to use when a menu item is selected.
    HIGHLIGHT_CB is the callback to call when entering/leaving menu items.
@@ -4237,7 +4237,7 @@ xg_make_tool_item (FRAME_PTR f,
   gtk_container_add (GTK_CONTAINER (weventbox), wb);
   gtk_container_add (GTK_CONTAINER (ti), weventbox);
 
-  if (wimage)
+  if (wimage || label)
     {
       intptr_t ii = i;
       gpointer gi = (gpointer) ii;
@@ -4301,21 +4301,21 @@ xg_tool_item_stale_p (GtkWidget *wbutton, const char *stock_name,
   GtkWidget *wlbl = xg_get_tool_bar_widgets (vb, &wimage);
 
   /* Check if the tool icon matches.  */
-  if (stock_name)
+  if (stock_name && wimage)
     {
       old = g_object_get_data (G_OBJECT (wimage),
 			       XG_TOOL_BAR_STOCK_NAME);
       if (!old || strcmp (old, stock_name))
 	return 1;
     }
-  else if (icon_name)
+  else if (icon_name && wimage)
     {
       old = g_object_get_data (G_OBJECT (wimage),
 			       XG_TOOL_BAR_ICON_NAME);
       if (!old || strcmp (old, icon_name))
 	return 1;
     }
-  else
+  else if (wimage)
     {
       gpointer gold_img = g_object_get_data (G_OBJECT (wimage),
 					    XG_TOOL_BAR_IMAGE_DATA);
@@ -4330,7 +4330,7 @@ xg_tool_item_stale_p (GtkWidget *wbutton, const char *stock_name,
     return 1;
 
   /* Ensure label is correct.  */
-  if (label)
+  if (label && wlbl)
     gtk_label_set_text (GTK_LABEL (wlbl), label);
   return 0;
 }

@@ -925,7 +925,7 @@ IDL has currently stepped.")
    \\[idlwave-shell-print] or \\[idlwave-shell-mouse-print] with the
    mouse, help, \\[idlwave-shell-help-expression] or
    \\[idlwave-shell-mouse-help] with the mouse, or with a
-   configureable set of custom examine commands using
+   configurable set of custom examine commands using
    \\[idlwave-shell-examine-select].  The mouse examine commands can
    also work by click and drag, to select an expression for
    examination.
@@ -939,7 +939,7 @@ IDL has currently stepped.")
    -------------------------------
    Info documentation for this package is available.  Use \\[idlwave-info]
    to display (complain to your sysadmin if that does not work).
-   For Postscript and HTML versions of the documentation, check IDLWAVE's
+   For PostScript and HTML versions of the documentation, check IDLWAVE's
    homepage at URL `http://idlwave.org'.
    IDLWAVE has customize support - see the group `idlwave'.
 
@@ -959,7 +959,7 @@ IDL has currently stepped.")
   ;; Can not use history expansion because "!" is used for system variables.
   (setq comint-input-autoexpand nil)
   ;; (setq comint-input-ring-size 64)
-  
+
   (set (make-local-variable 'completion-ignore-case) t)
   (set (make-local-variable 'comint-completion-addsuffix) '("/" . ""))
   (setq comint-input-ignoredups t)
@@ -3707,7 +3707,7 @@ Existing overlays are recycled, in order to minimize consumption."
 (defun idlwave-shell-make-new-bp-overlay (&optional type disabled)
   "Make a new overlay for highlighting breakpoints.
 
-This stuff is strongly dependant upon the version of Emacs.  If TYPE
+This stuff is strongly dependent upon the version of Emacs.  If TYPE
 is passed, make an overlay of that type ('bp or 'bp-cond, currently
 only for glyphs)."
   (let ((ov (make-overlay 1 1))

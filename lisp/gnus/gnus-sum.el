@@ -364,7 +364,7 @@ newsgroups, set the variable to nil in `gnus-select-group-hook'."
 This variable can either be the symbols `first' (place point on the
 first subject), `unread' (place point on the subject line of the first
 unread article), `best' (place point on the subject line of the
-higest-scored article), `unseen' (place point on the subject line of
+highest-scored article), `unseen' (place point on the subject line of
 the first unseen article), `unseen-or-unread' (place point on the subject
 line of the first unseen article or, if all articles have been seen, on the
 subject line of the first unread article), or a function to be called to
@@ -2529,7 +2529,7 @@ gnus-summary-show-article-from-menu-as-charset-%s" cs))))
 	      ["Unshar and save" gnus-uu-decode-unshar-and-save t]
 	      ["Save" gnus-uu-decode-save t]
 	      ["Binhex" gnus-uu-decode-binhex t]
-	      ["Postscript" gnus-uu-decode-postscript t]
+	      ["PostScript" gnus-uu-decode-postscript t]
 	      ["All MIME parts" gnus-summary-save-parts t])
 	     ("Cache"
 	      ["Enter article" gnus-cache-enter-article t]
@@ -4727,7 +4727,7 @@ If LINE, insert the rebuilt thread starting on line LINE."
       (car headers))))
 
 (defun gnus-parent-headers (in-headers &optional generation)
-  "Return the headers of the GENERATIONeth parent of HEADERS."
+  "Return the headers of the GENERATIONth parent of HEADERS."
   (unless generation
     (setq generation 1))
   (let ((parent t)
@@ -5859,15 +5859,15 @@ If SELECT-ARTICLES, only select those articles from GROUP."
 			  (read-string
 			   (if only-read-p
 			       (format
-			      "How many articles from %s (available %d, default %d): "
-			      (gnus-group-decoded-name
-			       (gnus-group-real-name gnus-newsgroup-name))
-			      number default)
-			     (format
-				"How many articles from %s (%d available): "
+				"How many articles from %s (available %d, default %d): "
 				(gnus-group-decoded-name
 				 (gnus-group-real-name gnus-newsgroup-name))
-				default))
+				number default)
+			     (format
+			      "How many articles from %s (%d default): "
+			      (gnus-group-decoded-name
+			       (gnus-group-real-name gnus-newsgroup-name))
+			      default))
 			   nil
 			   nil
 			   (number-to-string default))))

@@ -1299,7 +1299,7 @@ Each element of the alist has the form (display . (width . height)),
 e.g. (\":0.0\" . (287 . 215)).
 
 If `display' equals t, it specifies dimensions for all graphical
-displays not explicitely specified."
+displays not explicitly specified."
   :version "22.1"
   :type '(alist :key-type (choice (string :tag "Display name")
 				  (const :tag "Default" t))

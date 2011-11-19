@@ -59,7 +59,7 @@ IMAGESPEC is the image data, and DOCSTRING is documentation for the image."
 	   (defimage ,variable ,imagespec ,docstring)
 	   (put (quote ,variable) 'ezimage t)))
 
-;; This hack is for the ezimage install which has an icons direcory for
+;; This hack is for the ezimage install which has an icons directory for
 ;; the default icons to be used.
 ;; (add-to-list 'load-path
 ;; 	     (concat (file-name-directory
@@ -257,9 +257,9 @@ Optional argument STRING is a string upon which to add text properties."
 	   (a (assoc bt ezimage-expand-image-button-alist)))
       ;; Regular images (created with `insert-image' are intangible
       ;; which (I suppose) make them more compatible with XEmacs 21.
-      ;; Unfortunatly, there is a giant pile o code dependent on the
+      ;; Unfortunately, there is a giant pile of code dependent on the
       ;; underlying text.  This means if we leave it tangible, then I
-      ;; don't have to change said giant piles o code.
+      ;; don't have to change said giant piles of code.
       (if (and a (symbol-value (cdr a)))
 	  (ezimage-insert-over-text (symbol-value (cdr a))
 				    start

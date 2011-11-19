@@ -631,8 +631,8 @@ with `.' followed by extensions, followed by full-filenames."
 			       (substring (car extlist) 1)))
 	(setq regex2 (concat regex2 (if regex2 "\\|" "") (car extlist))))
       (setq extlist (cdr extlist)))
-    ;; concat all the sub-exressions together, making sure all types
-    ;; of parts exist during concatination.
+    ;; Concatenate all the subexpressions together, making sure all types
+    ;; of parts exist during concatenation.
     (concat "\\("
 	    (if regex1 (concat "\\(\\.\\(" regex1 "\\)\\)") "")
 	    (if (and regex1 regex2) "\\|" "")
@@ -2100,12 +2100,12 @@ cell of the form ( 'DIRLIST . 'FILELIST )."
   (if (= index 0)
       ;; If the shown files variable has extra directories, then
       ;; it is our responsibility to redraw them all
-      ;; Luckilly, the nature of inserting items into this list means
+      ;; Luckily, the nature of inserting items into this list means
       ;; that by reversing it, we can easilly go in the right order
       (let ((sf (cdr (reverse speedbar-shown-directories))))
 	(setq speedbar-shown-directories
 	      (list (expand-file-name default-directory)))
-	;; exand them all as we find them
+	;; Expand them all as we find them.
 	(while sf
 	  (if (speedbar-goto-this-file (car sf))
 	      (progn
@@ -2219,7 +2219,7 @@ passes some tests."
 	;; Go through all our bins  Stick singles into our
 	;; junk-list, everything else as sublsts in work-list.
 	;; If two neighboring lists are both small, make a grouped
-	;; group combinding those two sub-lists.
+	;; group combining those two sub-lists.
 	(setq diff-idx 0)
 	(while (> 256 diff-idx)
 	  ;; The bins contents are currently in forward order.
@@ -3292,7 +3292,7 @@ With universal argument ARG, flush cached data."
 Optional argument ARG indicates that any cache should be flushed."
   (interactive "P")
   (speedbar-expand-line arg)
-  ;; Now, inside the area expaded here, expand all subnodes of
+  ;; Now, inside the area expanded here, expand all subnodes of
   ;; the same descendant type.
   (save-excursion
     (speedbar-next 1) ;; Move into the list.
@@ -3327,7 +3327,7 @@ current indentation level."
     (speedbar-find-file-in-frame (concat cdd text))
     (speedbar-stealthy-updates)
     (run-hooks 'speedbar-visiting-file-hook)
-    ;; Reset the timer with a new timeout when cliking a file
+    ;; Reset the timer with a new timeout when clicking a file
     ;; in case the user was navigating directories, we can cancel
     ;; that other timer.
     (speedbar-set-timer dframe-update-speed))
@@ -3447,7 +3447,7 @@ INDENT is the current indentation level."
       (select-frame f))
     (speedbar-find-file-in-frame file)
     (save-excursion (speedbar-stealthy-updates))
-    ;; Reset the timer with a new timeout when cliking a file
+    ;; Reset the timer with a new timeout when clicking a file
     ;; in case the user was navigating directories, we can cancel
     ;; that other timer.
     (speedbar-set-timer dframe-update-speed)

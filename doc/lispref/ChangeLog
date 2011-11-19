@@ -1,3 +1,82 @@
+2011-11-17  Martin Rudalics  <rudalics@gmx.at>
+
+	* windows.texi (Resizing Windows, Splitting Windows)
+	(Deleting Windows): Use term window-combination-resize instead
+	of window-splits.
+
+2011-11-16  Martin Rudalics  <rudalics@gmx.at>
+
+	* windows.texi (Resizing Windows, Splitting Windows): Rename
+	occurrences of window-nest to window-combination-limit.
+
+2011-11-14  Juanma Barranquero  <lekktu@gmail.com>
+
+	* intro.texi (Lisp History): Fix typo.
+
+2011-11-12  Martin Rudalics  <rudalics@gmx.at>
+
+	* windows.texi (Splitting Windows, Deleting Windows): Remove
+	references to splits status of windows.
+
+2011-11-10  Glenn Morris  <rgm@gnu.org>
+
+	* buffers.texi (Read Only Buffers): Expand a bit on why
+	toggle-read-only should only be used interactively.  (Bug#7292)
+
+2011-11-09  Chong Yidong  <cyd@gnu.org>
+
+	* windows.texi (Window Sizes): Document window-pixel-edges,
+	window-inside-pixel-edges, window-absolute-pixel-edges, and
+	window-inside-absolute-pixel-edges.
+	(Resizing Windows): shrink-window-if-larger-than-buffer works on
+	non-full-width windows.
+
+2011-11-09  Martin Rudalics  <rudalics@gmx.at>
+
+	* windows.texi (Resizing Windows): Rewrite documentation of
+	window-resizable.
+
+2011-11-09  Chong Yidong  <cyd@gnu.org>
+
+	* windows.texi (Splitting Windows): Simplify example.
+
+2011-11-08  Chong Yidong  <cyd@gnu.org>
+
+	* windows.texi (Window Sizes): Copyedits.  Document
+	window-text-height.  Remove window-min-height and window-min-width
+	discussion, referring instead to Emacs manual.
+	(Splitting Windows, Resizing Windows): Add xref to Emacs manual.
+	(Resizing Windows): Simplify introduction.  Don't document
+	enlarge-window, shrink-window, enlarge-window-horizontally, and
+	shrink-window-horizontally; they are no longer preferred for
+	calling from Lisp, and are already documented in the Emacs manual.
+
+2011-11-07  Glenn Morris  <rgm@gnu.org>
+
+	* windows.texi (Choosing Window): Fix keybinding typo.
+
+2011-11-07  Martin Rudalics  <rudalics@gmx.at>
+
+	* windows.texi (Resizing Windows, Splitting Windows)
+	(Window Configurations): Use "child window" instead of
+	"subwindow".
+
+2011-11-06  Chong Yidong  <cyd@gnu.org>
+
+	* windows.texi (Basic Windows): Clarify various definitions.
+	Treat window-normalize-* as internal; don't document them.
+	(Windows and Frames): Various clarifications, e.g. non-live
+	windows also belong to frames.  Fix window-list description.
+	Simplify window nesting example.
+	(Splitting Windows, Window Configurations): Use
+	split-window-below.
+
+2011-11-04  Eli Zaretskii  <eliz@gnu.org>
+
+	* windows.texi (Window Sizes): Mention in the doc string that the
+	return values of `window-body-height' and `window-body-width' are
+	in frame's canonical units.  (Bug#9949)
+
 2011-10-30  Martin Rudalics  <rudalics@gmx.at>
 
 	* windows.texi (Windows and Frames): Remove "iso-" infix from
@@ -1048,9 +1127,9 @@
 	* commands.texi (Misc Events): Add cross-references to where
 	POSITION of a mouse event is described in detail.
 
-2010-08-08  Christoph  <cschol2112@googlemail.com>
+2010-08-08  Christoph Scholtes  <cschol2112@googlemail.com>
 
-	* control.texi (Handling Errors) <error-message-string>: Fix arg name.
+	* control.texi (Handling Errors)  <error-message-string>: Fix arg name.
 
 2010-08-08  Juanma Barranquero  <lekktu@gmail.com>
 

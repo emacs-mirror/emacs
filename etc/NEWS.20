@@ -696,7 +696,7 @@ pasting operations.
 ** You can specify the printer to use for commands that do printing by
 setting the variable `printer-name'.  Just what a printer name looks
 like depends on your operating system.  You can specify a different
-printer for the Postscript printing commands by setting
+printer for the PostScript printing commands by setting
 `ps-printer-name'.
 
 ** Emacs now supports on-the-fly spell checking by the means of a
@@ -2047,7 +2047,7 @@ standard fontset are created automatically.
 
 If you specify a default ASCII font with the `Font' resource or `-fn'
 argument, a fontset is generated from it.  This works by replacing the
-FOUNDARY, FAMILY, ADD_STYLE, and AVERAGE_WIDTH fields of the font name
+FOUNDRY, FAMILY, ADD_STYLE, and AVERAGE_WIDTH fields of the font name
 with `*' then using this to specify a fontset.  This fontset's short
 name is `fontset-startup'.
 
@@ -3494,9 +3494,9 @@ not by default.  Use --members to turn this feature on.
 *** Java is tagged like C++.  In addition, "extends" and "implements"
 constructs are tagged.  Files are recognized by the extension .java.
 
-*** Etags can now handle programs written in Postscript.  Files are
-recognized by the extensions .ps and .pdb (Postscript with C syntax).
-In Postscript, tags are lines that start with a slash.
+*** Etags can now handle programs written in PostScript.  Files are
+recognized by the extensions .ps and .pdb (PostScript with C syntax).
+In PostScript, tags are lines that start with a slash.
 
 *** Etags now handles Objective C and Objective C++ code.  The usual C and
 C++ tags are recognized in these languages; in addition, etags

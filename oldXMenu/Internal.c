@@ -968,7 +968,7 @@ _XMRefreshSelection(register Display *display, register XMenu *menu, register XM
             /*
 	     * Using BOX mode.
              * Since most drawing routines with arbitrary width lines
-	     * are slow compared to raster-ops lets use a raster-op to
+	     * are slow compared to raster-ops let's use a raster-op to
 	     * draw the boxes.
              */
 

@@ -73,10 +73,11 @@ See the end of the file for license conditions.
 
 * Image support
 
-  Emacs 24.1 contains support for images, however for most image formats
-  supporting libraries are required.  This distribution has been tested
-  with the libraries that are distributed with GTK for Windows, and the
-  libraries found at http://gnuwin32.sourceforge.net/. The following image
+  Emacs 24.1 contains support for images, however for most image
+  formats supporting libraries are required.  This distribution has
+  been tested with the libraries that are distributed with GTK for
+  Windows (http://www.gtk.org/download/win32.php), and the libraries
+  found at http://gnuwin32.sourceforge.net/. The following image
   formats are supported:
 
       PBM/PGM/PPM: Supported natively by Emacs. This format is used for
@@ -87,12 +88,16 @@ See the end of the file for license conditions.
       can be replaced by other versions with the name xpm4.dll,
       libxpm-nox4.dll or libxpm.dll.
 
-      PNG: requires the PNG reference library 1.2 or later, which will
-      be named libpng13d.dll, libpng13.dll, libpng12d.dll, libpng12.dll
-      or libpng.dll. LibPNG requires zlib, which should come from the same
-      source as you got libpng.
+      PNG: requires the PNG reference library 1.4 or later, which will
+      be named libpng14.dll or libpng14-14.dll.  LibPNG requires zlib,
+      which should come from the same source as you got libpng.
+      Starting with Emacs 23.3, the precompiled Emacs binaries are
+      built with libpng 1.4.x and later, and are incompatible with
+      earlier versions of libpng DLLs.  So if you have libpng 1.2.x,
+      the PNG support will not work, and you will have to download
+      newer versions.
 
-      JPEG: requires the Independant JPEG Group's libjpeg 6b or later,
+      JPEG: requires the Independent JPEG Group's libjpeg 6b or later,
       which will be called jpeg62.dll, libjpeg.dll, jpeg-62.dll or jpeg.dll.
 
       TIFF: requires libTIFF 3.0 or later, which will be called libtiff3.dll

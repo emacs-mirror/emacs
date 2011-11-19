@@ -909,7 +909,7 @@ Optional ROOTRETURN will return the root project for DIR."
 	;; recomment as we go
 	;;nil
 	))
-     ;; Do nothing if we are buiding an EDE project already
+     ;; Do nothing if we are building an EDE project already.
      (ede-constructing
       nil)
      ;; Load in the project in question.

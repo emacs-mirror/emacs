@@ -2885,11 +2885,11 @@
 2009-01-25  Craig Markwardt  <cbmarkwardt@gmail.com>
 
 	* calendar/icalendar.el (icalendar-uid-format): New defcustom
-	variable to allow the user to choose icalendar UID format.
+	variable to allow the user to choose iCalendar UID format.
 	(icalendar--diarytime-to-isotime): Bug fix, now times in the range
 	12:00am-12:59am are correctly converted to 0000-0059, instead of 12pm.
 	(icalendar-export-region, icalendar--create-uid): Use custom
-	function to compute icalendar UID for each entry.
+	function to compute iCalendar UID for each entry.
 	(icalendar--parse-summary-and-rest): Bug fix for parsing of lines
 	with description, location, etc. fields (need to keep active count
 	of fields encountered).  Another bug fix to the regex that matches
@@ -6724,7 +6724,7 @@
 	(rx-check-any): Return result as a list.  Don't convert chars to
 	strings.  Don't prepend "\\" to "^".  Don't search for close bracket.
 	Check char category string.  Call rx-form instead of rx-to-string.
-	(rx-any): Rebuid to complete the function.
+	(rx-any): Rebuild to complete the function.
 	(rx-check-not): Fix char category regexp pattern string.
 	Call rx-form instead of rx-to-string.
 	(rx-not): Call rx-form instead of rx-to-string.  Convert "[^]" to
@@ -7913,7 +7913,7 @@
 	ignored while matching, replace the entire filename with completion.
 
 	* textmodes/flyspell.el (flyspell-check-pre-word-p): Make sure
-	flyspell-pre-point is valid to avoid signalling an error in
+	flyspell-pre-point is valid to avoid signaling an error in
 	post-command-hook.
 
 2008-08-26  Johan Bockgård  <bojohan@gnu.org>
@@ -17799,7 +17799,7 @@
 	(org-local-logging): New function.
 	(org-columns-open-link): Fix bug with opening link in column view.
 	(org-local-logging): New function.
-	(org-todo): Make sure that LOGGING properties are honoured.
+	(org-todo): Make sure that LOGGING properties are honored.
 	(org-todo-keywords): Improve docstring.
 	(org-startup-options): Cleanup startup options.
 	(org-set-regexps-and-options): Process the "!" markers.
@@ -20567,4 +20567,3 @@ See ChangeLog.13 for earlier changes.
 
   You should have received a copy of the GNU General Public License
   along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
-

@@ -5133,7 +5133,7 @@
 	it can be called in a signal handler.
 	(x_catch_errors_unwind): Function deleted.
 	(x_uncatch_errors): Deallocate last x_error_message_stack struct.
-	(x_check_errors): Call x_uncatch_errors before signalling error.
+	(x_check_errors): Call x_uncatch_errors before signaling error.
 
 	(x_load_font, x_term_init, XTmouse_position, handle_one_xevent)
 	(x_connection_closed, x_list_fonts): Use new versions of
@@ -19139,7 +19139,7 @@
 	(font_rescale_ratio): New function.
 	(split_font_name): If NUMERIC_P is nonzero, set font->rescale_ratio.
 	(better_font_p): On comparing point sized, pay attention to
-	recale_ratio member of fonts.
+	rescale_ratio member of fonts.
 	(build_scalable_font_name): Reflect font->rescale_ratio in the
 	font name.
 	(syms_of_xfaces): Declare Vface_font_rescale_alist as a Lisp variable.
@@ -20702,11 +20702,11 @@
 	(free_frame_menubar): Only compile if not USE_GTK.  GTK version
 	is in gtkutil.c.
 	(popup_selection_callback): New version for USE_GTK.
-	(create_and_show_popup_menu): New fuction, one USE_GTK version and
+	(create_and_show_popup_menu): New function, one USE_GTK version and
 	one USE_X_TOOLKIT version.
 	(xmenu_show): Call create_and_show_popup_menu.
 	(dialog_selection_callback): New version for USE_GTK.
-	(create_and_show_dialog): New fuction, one USE_GTK version and
+	(create_and_show_dialog): New function, one USE_GTK version and
 	one USE_X_TOOLKIT version.
 	(xdialog_show): Call create_and_show_dialog.
 
@@ -22780,7 +22780,7 @@
 2002-07-23  Kenichi Handa  <handa@etl.go.jp>
 
 	* xdisp.c (face_before_or_after_it_pos):
-	Call FETCH_MULTIBYTE_CHAR with byte postion, not char position.
+	Call FETCH_MULTIBYTE_CHAR with byte position, not char position.
 
 2002-07-22  Juanma Barranquero  <lektu@terra.es>
 
@@ -27928,4 +27928,3 @@ See ChangeLog.9 for earlier changes.
 
   You should have received a copy of the GNU General Public License
   along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
-

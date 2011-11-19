@@ -62,11 +62,11 @@
    (dictionary :initarg :dictionary
 	       :type (or null srecode-dictionary)
 	       :documentation
-	       "List of section dictinaries.
+	       "List of section dictionaries.
 The compiled template can contain lists of section dictionaries,
 or values that are expected to be passed down into different
 section macros.  The template section dictionaries are merged in with
-any incomming dictionaries values.")
+any incoming dictionaries values.")
    (binding :initarg :binding
 	    :documentation
 	    "Preferred keybinding for this template in `srecode-minor-mode-map'.")
@@ -103,7 +103,7 @@ stack is broken."
 ;; work, and the smaller, simple inserter object is saved in
 ;; the compiled templates.
 ;;
-;; See srecode-insert.el for the specialized classes.
+;; See srecode/insert.el for the specialized classes.
 ;;
 (defclass srecode-template-inserter (eieio-named)
   ((secondname :initarg :secondname
@@ -552,7 +552,7 @@ A list of defined variables VARS provides a variable table."
 	  (when (not hs)
 	    (setq hs (make-hash-table :test 'equal :size 20))
 	    (puthash context hs contexthash))
-	  ;; Put into that contenxt's hash.
+	  ;; Put into that context's hash.
 	  (puthash objname (car lp) hs)
 	  )
 

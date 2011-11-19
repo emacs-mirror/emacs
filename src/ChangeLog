@@ -1,4 +1,4 @@
-2011-11-02  Paul Eggert  <eggert@cs.ucla.edu>
+2011-11-18  Paul Eggert  <eggert@cs.ucla.edu>
 
 	Fix integer width and related bugs (Bug#9874).
 	* alloc.c (pure_bytes_used_lisp, pure_bytes_used_non_lisp):
@@ -786,6 +786,358 @@
 	rather than rolling our own approximation.
 	(SCROLL_BAR_VEC_SIZE): Remove; not used.
 
+2011-11-18  Dmitry Antipov  <dmantipov@yandex.ru>
+
+	* keymap.c (Fwhere_is_internal): Add missing RETURN_UNGCPROs.
+
+2011-11-18  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* intervals.c: Fix grafting over the whole buffer (bug#10071).
+	(graft_intervals_into_buffer): Simplify.
+
+2011-11-18  Eli Zaretskii  <eliz@gnu.org>
+
+	* dispnew.c (swap_glyph_pointers): Swap the used[] arrays and the
+	hash values of the two rows.
+	(copy_row_except_pointers): Preserve the used[] arrays and the
+	hash values of the two rows.  (Bug#10035)
+	(add_row_entry): Add xassert to verify that ROW's hash code is valid.
+
+	* xdisp.c (row_hash): New function, body extracted from
+	compute_line_metrics.
+	(compute_line_metrics): Call row_hash, instead of computing the
+	hash code inline.
+
+	* dispnew.c (verify_row_hash): Call row_hash for computing the
+	hash code of a row, instead of duplicating code from xdisp.c.
+
+	* dispextern.h (row_hash): Add prototype.
+
+2011-11-18  Tassilo Horn  <tassilo@member.fsf.org>
+
+	* frame.c (delete_frame): Don't delete the terminal when the last
+	X frame is closed if emacs is built with GTK toolkit.
+
+2011-11-17  Juanma Barranquero  <lekktu@gmail.com>
+
+	* window.c (syms_of_window) <window-combination-resize>: Fix typo.
+
+2011-11-17  Martin Rudalics  <rudalics@gmx.at>
+
+	* window.c (Vwindow_splits): Rename to
+	Vwindow_combination_resize.  Suggested by Juri Linkov.
+	(Fsplit_window_internal): Use Vwindow_combination_resize instead
+	of Vwindow_splits.
+
+2011-11-16  Juanma Barranquero  <lekktu@gmail.com>
+
+	* nsfns.m (Fns_font_name):
+	* window.c (syms_of_window) <window-combination-limit>: Fix typos.
+
+2011-11-16  Martin Rudalics  <rudalics@gmx.at>
+
+	* window.h (window): Rename slot "nest" to "combination_limit".
+	* window.c (Fwindow_nest): Rename to Fwindow_combination_limit.
+	(Fset_window_nest): Rename to Fset_window_combination_limit.
+	(Vwindow_nest): Rename to Vwindow_combination_limit.
+	(recombine_windows, make_parent_window, make_window)
+	(Fsplit_window_internal, saved_window)
+	(Fset_window_configuration, save_window_save): Rename all
+	occurrences of window_nest to window_combination_limit.
+
+2011-11-15  Juanma Barranquero  <lekktu@gmail.com>
+
+	* image.c (imagemagick_load_image): Fix typo.
+
+2011-11-14  Eli Zaretskii  <eliz@gnu.org>
+
+	* xdisp.c (display_line): Move the call to
+	highlight_trailing_whitespace before the call to
+	compute_line_metrics, since the latter needs to see the final
+	faces of all the glyphs to compute ROW's hash value.  Fixes
+	assertion violations in row_equal_p.  (Bug#10035)
+
+2011-11-14  Juanma Barranquero  <lekktu@gmail.com>
+
+	* w32proc.c (reader_thread): Don't check pending input if cp->fd < 0,
+	just return (bug#10044).
+
+2011-11-12  Eli Zaretskii  <eliz@gnu.org>
+
+	* makefile.w32-in (HEAPSIZE): New variable, allows to build temacs
+	with user-defined heap size.  Bump the default size of the temacs
+	heap to 27MB, to avoid memory warning when running temacs.
+	($(TEMACS)): Use HEAPSIZE instead of a hardcoded value.
+
+	* dispnew.c (scrolling_window): Fix incorrect indices in accessing
+	current_matrix and desired_matrix.  (Bug#9990)
+	(verify_row_hash) [XASSERTS]: New function.
+	(adjust_glyph_matrix, row_equal_p): Use it in xassert to verify
+	that the hash value of glyph rows is correct.
+
+2011-11-12  Martin Rudalics  <rudalics@gmx.at>
+
+	* window.h (window): Remove splits slot.
+	* window.c (Fwindow_splits, Fset_window_splits): Remove.
+	(Fdelete_other_windows_internal, make_parent_window)
+	(make_window, Fsplit_window_internal, Fdelete_window_internal)
+	(Fset_window_configuration, save_window_save): Don't deal with
+	split status of windows.
+	(saved_window): Remove splits slot.
+	(Vwindow_splits): Rewrite doc-string.
+
+2011-11-11  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* xfns.c (unwind_create_frame):
+	* nsfns.m (unwind_create_frame):
+	* w32fns.c (unwind_create_frame): Use Fmemq to check if frame is in
+	Vframe_list (Bug#9999).
+
+2011-11-11  Dmitry Antipov  <dmantipov@yandex.ru>
+
+	* xdisp.c (syms_of_xdisp): Remove duplicated definition of Qtext.
+
+2011-11-11  Kenichi Handa  <handa@m17n.org>
+
+	* callproc.c (Fcall_process): Set the member dst_multibyte of
+	process_coding.
+
+2011-11-11  Johan Bockgård  <bojohan@gnu.org>
+
+	* xdisp.c (fill_composite_glyph_string): Always set s->face, to
+	avoid a crash (bug#9496).
+
+2011-11-09  Chong Yidong  <cyd@gnu.org>
+
+	* window.c (Fwindow_inside_edges, Fwindow_inside_pixel_edges)
+	(Fwindow_inside_absolute_pixel_edges): Only allow live windows.
+
+2011-11-08  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* s/gnu.h (GC_MARK_STACK): Define to GC_MAKE_GCPROS_NOOPS (Bug#9926).
+
+2011-11-08  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Avoid some portability problems by eschewing 'extern inline' functions.
+	The trivial performance wins aren't worth the portability hassles; see
+	<http://lists.gnu.org/archive/html/emacs-devel/2011-11/msg00084.html>
+	et seq.
+	* dispextern.h (window_box, window_box_height, window_text_bottom_y)
+	(window_box_width, window_box_left, window_box_left_offset)
+	(window_box_right, window_box_right_offset): Undo previous change,
+	by removing the "extern"s.
+	* intervals.c (adjust_intervals_for_insertion)
+	(adjust_intervals_for_deletion): Undo previous change,
+	making these static again.
+	(offset_intervals, temp_set_point_both, temp_set_point)
+	(copy_intervals_to_string): No longer inline.
+	* xdisp.c (window_text_bottom_y, window_box_width)
+	(window_box_height, window_box_left_offset)
+	(window_box_right_offset, window_box_left, window_box_right)
+	(window_box): No longer inline.
+
+2011-11-08  Chong Yidong  <cyd@gnu.org>
+
+	* window.c (Fwindow_left_column, Fwindow_top_line): Doc fix.
+	(Fwindow_body_height, Fwindow_body_width): Move from Lisp.  Signal
+	an error if not a live window.
+	(Fwindow_total_width, Fwindow_total_height): Move from Lisp.
+	(Fwindow_total_size, Fwindow_body_size): Move to Lisp.
+
+2011-11-07  Juanma Barranquero  <lekktu@gmail.com>
+
+	* lisp.h (syms_of_abbrev): Remove declaration.
+	Reported by CHENG Gao <chenggao@royau.me>.
+
+2011-11-07  Eli Zaretskii  <eliz@gnu.org>
+
+	* w32.c (check_windows_init_file): Don't look for term/w32-win.el
+	if Vpurify_flag is non-nil.  Fixes a crash when running w32 build
+	of temacs in GUI mode.
+
+2011-11-07  Martin Rudalics  <rudalics@gmx.at>
+
+	* window.h: Declare delete_all_child_windows instead of
+	delete_all_subwindows.
+	* window.c (Fwindow_nest, Fset_window_nest)
+	(Fset_window_new_total, Fset_window_new_normal)
+	(Fwindow_resize_apply): Don't use term subwindow in doc-strings.
+	(delete_all_subwindows): Rename to delete_all_child_windows.
+	(Fdelete_other_windows_internal, Fset_window_configuration):
+	Call delete_all_child_windows instead of delete_all_subwindows.
+	* frame.c (delete_frame): Call delete_all_child_windows instead
+	of delete_all_subwindows.
+
+2011-11-07  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* alloc.c (DEADP): New macro, for porting to GNU/Hurd (Bug#9926).
+	This is also needed for porting to any host where GC_MARK_STACK is
+	not GC_MAKE_GCPROS_NOOPS.
+	(which_symbols): Use it.
+
+2011-11-07  Kenichi Handa  <handa@m17n.org>
+
+	* coding.c (coding_set_destination): Check coding->src_pos only
+	when coding->src_object is a buffer (bug#9910).
+
+	* process.c (send_process): Set the member src_multibyte of coding
+	to 0 (bug#9911) when sending a unibyte text.
+
+	* callproc.c (Fcall_process): Set the member src_multibyte of
+	process_coding to 0 (bug#9912).
+
+2011-11-06  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
+
+	* xmenu.c (cleanup_widget_value_tree): New function.
+	(xmenu_show, xdialog_show): Use it in record_unwind_protect instead of
+	calling free_menubar_widget_value_tree directly (Bug#9830).
+
+2011-11-06  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Fix some portability problems with 'inline'.
+	* dispextern.h (window_box, window_box_height, window_text_bottom_y)
+	(window_box_width, window_box_left, window_box_left_offset)
+	(window_box_right, window_box_right_offset): Declare extern.
+	Otherwise, these inline functions do not conform to C99 and
+	are miscompiled by Microsoft compilers.  Reported by Eli Zaretskii in
+	<http://lists.gnu.org/archive/html/emacs-devel/2011-11/msg00084.html>.
+	* intervals.c (adjust_intervals_for_insertion)
+	(adjust_intervals_for_deletion): Now extern, because otherwise the
+	extern inline functions 'offset_intervals' couldn't refer to it.
+	(static_offset_intervals): Remove.
+	(offset_intervals): Rewrite using the old contents of
+	static_offset_intervals.  The old version didn't conform to C99
+	because an extern inline function contained a reference to an
+	identifier with static linkage.
+
+2011-11-06  Andreas Schwab  <schwab@linux-m68k.org>
+
+	* keyboard.c (interrupt_signal): Don't call kill-emacs while in
+	GC.
+
+2011-11-06  Eli Zaretskii  <eliz@gnu.org>
+
+	* xdisp.c (init_iterator, reseat_to_string): Don't set the
+	iterator's bidi_p flag if Vpurify_flag is non-nil.  (Bug#9963)
+	(Fcurrent_bidi_paragraph_direction): If Vpurify_flag is non-nil,
+	return Qleft_to_right.
+
+2011-11-06  Chong Yidong  <cyd@gnu.org>
+
+	* window.c (Fwindow_live_p, Fwindow_frame, Fframe_root_window)
+	(Fminibuffer_window, Fwindow_buffer, Fwindow_splits)
+	(Fset_window_splits, Fwindow_nest, Fset_window_nest)
+	(Fwindow_use_time, Fwindow_total_size, Fwindow_normal_size)
+	(Fwindow_new_normal, Fwindow_left_column, Fwindow_top_line)
+	(Fwindow_margins, Fwindow_fringes, Fwindow_scroll_bars)
+	(Fwindow_vscroll): Doc fix.
+	(Fwindow_top_child, Fwindow_left_child): Eliminate a nil default
+	argument, since it makes no sense to pass a live window and for
+	consistency with window-child.
+
+2011-11-05  Christoph Scholtes  <cschol2112@googlemail.com>
+
+	* makefile.w32-in ($(TEMACS), (gl-stamp)): Use $(THISDIR) to
+	support MSVC.
+
+2011-11-05  Jason Rumney  <jasonr@gnu.org>
+
+	* w32font.c (font_matches_spec): Filter out non-Japanese kana fonts.
+	(add_font_entity_to_list): Filter out non-Japanese Shift-JIS
+	fonts (Bug#6029).
+	(add_font_entity_to_list): Fix logic errors in mixed boolean and
+	bitwise arithmetic preventing use of unicode-sip and non-truetype
+	opentype fonts.
+
+2011-11-05  Eli Zaretskii  <eliz@gnu.org>
+
+	* s/ms-w32.h (fstat, stat, utime): Move redirections to
+	"emacs"-only part.
+
+	* w32fns.c (x_create_tip_frame, Fx_create_frame): Rearrange
+	initialization code to keep similarity to xfns.c after changes
+	from 2011-11-05.
+
+2011-11-05  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* nsfns.m: Declare image_cache_refcount if GLYPH_DEBUG.
+	(unwind_create_frame): New function (Bug#9943).
+	(Fx_create_frame): Restructure code to be more similar to the one in
+	xfns.c.  Call record_unwind_protect with unwind_create_frame (Bug#9943).
+	Initialize image_cache_refcount if GLYPH_DEBUG (Bug#9943).
+	Move terminal->reference_count++ just before making the frame official
+	(Bug#9943).
+
+	* nsterm.m (x_free_frame_resources): New function.
+	(x_destroy_window): Move code to x_free_frame_resources.
+
+	* xfns.c (unwind_create_frame): Fix comment.
+	(Fx_create_frame, x_create_tip_frame): Move
+	terminal->reference_count++ just before making the frame
+	official. Move initialization of image_cache_refcount and
+	dpyinfo_refcount before calling init_frame_faces (Bug#9943).
+
+2011-11-05  Eli Zaretskii  <eliz@gnu.org>
+
+	Support MSVC build with newer versions of Visual Studio.
+	* makefile.w32-in (TAGS-gmake): Don't use $(patsubst ...), as
+	Nmake barfs on that.  Use $(OBJ*_c) variables instead, defined on
+	nt/gmake.defs.
+
+	* lisp.h (ENUM_BF): New macro, for enumerated types in bitfields,
+	which are not supported by MSVC.
+	(Lisp_Symbol, Lisp_Misc_Any, Lisp_Marker, Lisp_Misc_Overlay)
+	(Lisp_Save_Value, Lisp_Free): Use ENUM_BF for enumerated types in
+	bitfields.
+	(Lisp_Object) [USE_LISP_UNION_TYPE]: Use ENUM_BF for enumerated
+	types in bitfields.
+	(DEFUN) [_MSC_VER]: Define in a different way for MSVC.
+
+	* w32fns.c [_MSC_VER]: DECLARE_HANDLE for any MSVC version.
+
+2011-11-05  Fabrice Popineau  <fabrice.popineau@supelec.fr>  (tiny change)
+
+	Support MSVC build with newer versions of Visual Studio.
+	* w32.c: Don't include w32api.h for MSVC.
+	(init_environment) [_MSC_VER]: Call sys_access, not _access.
+
+	* s/ms-w32.h <sigset_t, ssize_t> [_MSC_VER]: Typedefs for MSVC.
+	[_MSC_VER]: Include sys/timeb.h, sys/stat.h, and signal.h.
+	(fstat, stat, utime) [_MSC_VER]: Redirect to their sys_* cousins.
+	(malloc, free, realloc, calloc) [_MSC_VER]: Always redirect to the
+	e_* cousins.
+	(alloca) [_MSC_VER]: Define to _alloca.
+
+	* lisp.h (DECL_ALIGN) [_MSC_VER]: Define for MSVC.
+
+	* regex.c <re_char> [_MSC_VER]: A separate definition for MSVC.
+
+2011-11-04  Eli Zaretskii  <eliz@gnu.org>
+
+	* xdisp.c (note_mouse_highlight): If either of
+	previous/next-single-property-change returns nil, treat that as
+	the beginning or the end of the buffer.  (Bug#9955)
+
+2011-11-04  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* gtkutil.c (xg_make_tool_item): Add callbacks if one of wimage or
+	label is not null (Bug#9951).
+	(xg_tool_item_stale_p): Handle the fact that wimage and/or wlbl
+	may be NULL.
+
+2011-11-04  Eli Zaretskii  <eliz@gnu.org>
+
+	* window.c (Fwindow_body_size): Mention in the doc string that the
+	return value is in frame's canonical units.  (Bug#9949)
+
+2011-11-03  Eli Zaretskii  <eliz@gnu.org>
+
+	* xdisp.c (note_mouse_highlight): Initialize `area'.  (Bug#9947)
+
+	* w32fns.c (unwind_create_frame): If needed, free the glyph
+	matrices of the partially constructed frame.  (Bug#9943)
+	* xfns.c (unwind_create_frame): Likewise.
+
 2011-11-01  Eli Zaretskii  <eliz@gnu.org>
 
 	* xdisp.c (mouse_face_from_buffer_pos): Fix a typo in a comment.
@@ -805,7 +1157,7 @@
 	* xdisp.c (try_cursor_movement): Make sure ROW isn't decremented
 	past the beginning of the current glyph matrix.
 
-2011-10-30  Adam Sjøgren <asjo@koldfront.dk> (tiny change)
+2011-10-30  Adam Sjøgren  <asjo@koldfront.dk>  (tiny change)
 
 	* xterm.c: Include X11/Xproto.h if HAVE_GTK3.
 	(x_error_handler): Ignore BadMatch for X_SetInputFocus for
@@ -839,7 +1191,7 @@
 
 	Fix the `xbytecode' command.
 	* .gdbinit (xprintbytestr): New command.
-	(xwhichsymbols): Renamed from `which'; all callers changed.
+	(xwhichsymbols): Rename from `which'; all callers changed.
 	(xbytecode): Print the byte-code string as well.
 
 2011-10-29  Kim Storm  <storm@cua.dk>
@@ -3511,6 +3863,9 @@
 
 2011-07-08  Jason Rumney  <jasonr@gnu.org>
 
+	* w32term.c (x_make_frame_visible): Use SH_SHOWNORMAL rather than
+	SH_SHOW for hidden windows (Bug#5482).
+
 	* w32fns.c (w32_wnd_proc) [WM_TIMER, WM_SET_CURSOR]: Avoid using
 	frame struct members of non-existent frames (Bug#6284).
 
@@ -3530,7 +3885,7 @@
 	* nsselect.m (ns_string_from_pasteboard): Don't use deprecated methods
 	cString and lossyCString on OSX >= 10.4
 
-	* nsmenu.m (fillWithWidgetValue): Don't use depercated method
+	* nsmenu.m (fillWithWidgetValue): Don't use deprecated method
 	sizeToFit on OSX >= 10.2.
 
 	* nsimage.m (allocInitFromFile): Don't use deprecated method

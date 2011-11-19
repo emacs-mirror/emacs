@@ -25,7 +25,7 @@
 
 ;;; Credits:
 
-;; This file was written by by Nick Roberts following the general design
+;; This file was written by Nick Roberts following the general design
 ;; used in gdb-ui.el for Emacs 22.1 - 23.1.  It is currently being developed
 ;; by Dmitry Dzhus <dima@sphinx.net.ru> as part of the Google Summer
 ;; of Code 2009 Project "Emacs GDB/MI migration".
@@ -350,7 +350,7 @@ automatically.
 
 This setting is used in non-stop mode only. In all-stop mode,
 Emacs always switches to the thread which caused the stop."
-  ;; exited, exited-normally and exited-signalled are not
+  ;; exited, exited-normally and exited-signaled are not
   ;; thread-specific stop reasons and therefore are not included in
   ;; this list
   :type '(choice
@@ -1965,7 +1965,7 @@ Sets `gdb-thread-number' to new id."
   (setq gud-running t)
   ;; GDB doesn't seem to respond to -thread-info before first stop or
   ;; thread exit (even in non-stop mode), so this is useless.
-  ;; Behaviour may change in the future.
+  ;; Behavior may change in the future.
   (gdb-emit-signal gdb-buf-publisher 'update-threads))
 
 ;; -break-insert -t didn't give a reason before gdb 6.9
@@ -2217,7 +2217,7 @@ Return position where LINE begins."
 (defun gdb-mapcar* (function &rest seqs)
   "Apply FUNCTION to each element of SEQS, and make a list of the results.
 If there are several SEQS, FUNCTION is called with that many
-arugments, and mapping stops as sson as the shortest list runs
+arguments, and mapping stops as soon as the shortest list runs
 out."
   (let ((shortest (apply #'min (mapcar #'length seqs))))
     (mapcar (lambda (i)
@@ -3428,7 +3428,7 @@ breakpoints buffer."
         (error "Not recognized as break/watchpoint line")))))
 
 
-;; Frames buffer.  This displays a perpetually correct bactrack trace.
+;; Frames buffer.  This displays a perpetually correct backtrack trace.
 ;;
 (def-gdb-trigger-and-handler
   gdb-invalidate-frames (gdb-current-context-command "-stack-list-frames")

@@ -32,7 +32,7 @@
 ;;
 ;; Also SQL evaluation generally takes place inside of a database.
 ;;
-;; For now lets just allow a generic ':cmdline' header argument.
+;; For now let's just allow a generic ':cmdline' header argument.
 ;;
 ;; TODO:
 ;;
@@ -40,7 +40,7 @@
 ;; - add more useful header arguments (user, passwd, database, etc...)
 ;; - support for more engines (currently only supports mysql)
 ;; - what's a reasonable way to drop table data into SQL?
-;; 
+;;
 
 ;;; Code:
 (require 'ob)

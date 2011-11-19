@@ -71,7 +71,7 @@
     ;; caml
     ("File \"foobar.ml\", lines 5-8, characters 20-155: blah blah"
      1 (19 . 155) (5 . 8) "foobar.ml")
-    ("File \"F:\\ocaml\\sorting.ml\", line 65, characters 2-145:"
+    ("File \"F:\\ocaml\\sorting.ml\", line 65, characters 2-145:\nWarning 26: unused variable equ."
      1 (1 . 145) 65 "F:\\ocaml\\sorting.ml")
     ("File \"/usr/share/gdesklets/display/TargetGauge.py\", line 41, in add_children"
      1 nil 41 "/usr/share/gdesklets/display/TargetGauge.py")

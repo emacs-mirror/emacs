@@ -2358,7 +2358,7 @@ This is used so that they can be compared with `eq', which is needed for
         (let* ((currenttime (float-time))
                (last-time (- currenttime (car mpc-last-seek-time))))
           (if (< last-time (* 0.9 repeat-delay))
-              nil ;; Trottle
+              nil ;; Throttle
             (let* ((status (if (< last-time 1.0)
                                mpc-status (mpc-cmd-status)))
                    (songid (cdr (assq 'songid status)))

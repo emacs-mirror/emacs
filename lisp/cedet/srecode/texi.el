@@ -1,4 +1,4 @@
-;;; srecode-texi.el --- Srecode texinfo support.
+;;; srecode/texi.el --- Srecode texinfo support.
 
 ;; Copyright (C) 2008-2011 Free Software Foundation, Inc.
 
@@ -231,7 +231,7 @@ This is to take advantage of TeXinfo's markup symbols."
     (if buffer
 	(progn (set-buffer buffer)
 	       (srecode-texi-texify-docstring string))
-      ;; Else, no buffer, so lets do something else
+      ;; Else, no buffer, so let's do something else
       (with-mode-local texinfo-mode
 	(srecode-texi-texify-docstring string)))))
 

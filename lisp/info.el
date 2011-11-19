@@ -264,7 +264,7 @@ Before leaving the initial Info node, where isearch was started,
 it fails once with the error message [initial node], and with
 subsequent C-s/C-r continues through other nodes without failing
 with this error message in other nodes.  When isearch fails for
-the rest of the manual, it wraps aroung the whole manual and
+the rest of the manual, it wraps around the whole manual and
 restarts the search from the top/final node depending on
 search direction.
 
@@ -3328,7 +3328,7 @@ Return a list of matches where each element is in the format
 	(Info-directory)
 	;; current-node and current-file are nil when they invoke info-apropos
 	;; as the first Info command, i.e. info-apropos loads info.el.  In that
-	;; case, we use (DIR)Top instead, to avoid signalling an error after
+	;; case, we use (DIR)Top instead, to avoid signaling an error after
 	;; the search is complete.
 	(when (null current-node)
 	  (setq current-file Info-current-file)

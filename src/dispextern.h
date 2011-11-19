@@ -3126,6 +3126,9 @@ void compute_fringe_widths (struct frame *, int);
 void w32_init_fringe (struct redisplay_interface *);
 void w32_reset_fringes (void);
 #endif
+
+extern unsigned row_hash (struct glyph_row *);
+
 /* Defined in image.c */
 
 #ifdef HAVE_WINDOW_SYSTEM

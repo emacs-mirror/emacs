@@ -787,7 +787,7 @@ SKIPNAMES is a list of names to remove from NAME-CONTENTS"
 (defun semantic-utest-kill-indicator ( killme insertme)
   "Kill the line with KILLME on it and insert INSERTME in its place."
   (goto-char (point-min))
-;  (re-search-forward (concat "/\\*" indicator "\\*/")); JAVE this isnt generic enough for different lagnuages
+;  (re-search-forward (concat "/\\*" indicator "\\*/")); JAVE this isn't generic enough for different languages
   (re-search-forward killme)
   (beginning-of-line)
   (setq semantic-utest-last-kill-pos (point))
@@ -812,7 +812,7 @@ SKIPNAMES is a list of names to remove from NAME-CONTENTS"
 (defun semantic-utest-last-invalid (name-contents names-removed killme insertme)
   "Make the last fcn invalid."
   (semantic-utest-kill-indicator killme insertme)
-;  (semantic-utest-verify-names name-contents names-removed); verify its gone ;new validator doesnt handle skipnames yet
+;  (semantic-utest-verify-names name-contents names-removed); verify its gone ;new validator doesn't handle skipnames yet
   (semantic-utest-unkill-indicator);put back killed stuff
   )
 

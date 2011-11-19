@@ -109,7 +109,15 @@ RC		= rc
 RC_OUT		= -Fo
 RC_INCLUDE	= -i
 
-libc		= libc.lib
+USE_CRT_DLL	= 1
+
+!ifdef USE_CRT_DLL
+libc		= msvcrt$(D).lib
+EMACS_EXTRA_C_FLAGS= -D_DLL -D_MT -DUSE_CRT_DLL=1
+!else
+libc		= libcmt$(D).lib
+EMACS_EXTRA_C_FLAGS= -D_MT
+!endif
 baselibs	=
 O		= obj
 A		= lib
@@ -146,9 +154,13 @@ CFLAGS          = -I. $(ARCH_CFLAGS) \
 		  $(DEBUG_CFLAGS) $(CHECKING_CFLAGS) $(USER_CFLAGS) $(LOCAL_FLAGS)
 ESC_CFLAGS      = -I. $(ARCH_CFLAGS) \
 		  $(DEBUG_CFLAGS) $(CHECKING_CFLAGS) $(ESC_USER_CFLAGS) $(LOCAL_FLAGS)
-EMACS_EXTRA_C_FLAGS =
 
-SYS_LDFLAGS	= -nologo -release -incremental:no -version:3.10 -swaprun:cd -swaprun:net setargv.obj
+#SYS_LDFLAGS	= -nologo -release -incremental:no -version:3.10 -swaprun:cd -swaprun:net setargv.obj
+!ifdef NOOPT
+SYS_LDFLAGS	= -nologo -manifest -dynamicbase:no -debug -incremental:no -version:3.10 -swaprun:cd -swaprun:net setargv.obj
+!else
+SYS_LDFLAGS	= -nologo -manifest -dynamicbase:no -release -incremental:no -version:3.10 -swaprun:cd -swaprun:net setargv.obj
+!endif
 
 # see comments in allocate_heap in w32heap.c before changing any of the
 # -stack, -heap, or -base settings.
@@ -184,16 +196,20 @@ DEL_TREE	= rm -r
 !ifdef NODEBUG
 DEBUG_FLAG =
 DEBUG_LINK =
+D =
 !else
 DEBUG_FLAG = -Zi
-DEBUG_LINK = -debug:full
+DEBUG_LINK = -debug
+D = d
 !endif
 
 !if "$(ARCH)" == "i386"
 !ifdef NOOPT
-ARCH_CFLAGS     = -nologo -c -Zel -W2 -H63 -Od -G3d -Zp8 $(DEBUG_FLAG)
+#ARCH_CFLAGS     = -nologo -c -Zel -W2 -H63 -Od -G3d -Zp8 $(DEBUG_FLAG)
+ARCH_CFLAGS     = -nologo -D_X86_=1 -c -Zl -Zp8 -W2 -Od -Gd $(DEBUG_FLAG)
 !else
-ARCH_CFLAGS     = -nologo -c -Zel -W2 -H63 -Oxsb2 -Oy- -G6dF -Zp8 $(DEBUG_FLAG)
+#ARCH_CFLAGS     = -nologo -c -Zel -W2 -H63 -Oxsb2 -Oy- -G6dF -Zp8 $(DEBUG_FLAG)
+ARCH_CFLAGS     = -nologo -D_X86_=1 -c -Zl -Zp8 -W2 -Oi -Ot -Oy- -Ob2 -GF -Gy -Gd $(DEBUG_FLAG)
 !endif
 ARCH_LDFLAGS	= $(SYS_LDFLAGS)
 

@@ -491,7 +491,7 @@ For compatibility with Semantic 1.x it defaults to `semantic-flex'.")
     (symbol)
     (whitespace)
     )
-  "An alist of of semantic token types.
+  "An alist of semantic token types.
 As of December 2001 (semantic 1.4beta13), this variable is not used in
 any code.  The only use is to refer to the doc-string from elsewhere.
 
@@ -1437,7 +1437,7 @@ Return either a paren token or a semantic list token depending on
 ;;; Comment lexer
 ;;
 ;; Predefined lexers that could be used instead of creating new
-;; analyers.
+;; analyzers.
 
 (define-lex semantic-comment-lexer
   "A simple lexical analyzer that handles comments.
@@ -1677,7 +1677,7 @@ When the lexer encounters the open-paren delimiter \"(\":
 ;;; Lexical Safety
 ;;
 ;; The semantic lexers, unlike other lexers, can throw errors on
-;; unbalanced syntax.  Since editing is all about changeging test
+;; unbalanced syntax.  Since editing is all about changing text
 ;; we need to provide a convenient way to protect against syntactic
 ;; inequalities.
 
@@ -1758,7 +1758,7 @@ If there is no error, then the last value of FORMS is returned."
 (semantic-alias-obsolete 'semantic-flex-map-keywords 'semantic-lex-map-keywords "23.2")
 (semantic-alias-obsolete 'semantic-flex-keywords 'semantic-lex-keywords "23.2")
 (semantic-alias-obsolete 'semantic-flex-buffer 'semantic-lex-buffer "23.2")
-(semantic-alias-obsolete 'semantic-flex-list   'semantic-lex-list "23.2")
+(semantic-alias-obsolete 'semantic-flex-list 'semantic-lex-list "23.2")
 
 ;; This simple scanner uses the syntax table to generate a stream of
 ;; simple tokens of the form:
@@ -1769,7 +1769,7 @@ If there is no error, then the last value of FORMS is returned."
 ;; objects boundary.
 
 (defvar semantic-flex-tokens semantic-lex-tokens
-  "An alist of of semantic token types.
+  "An alist of semantic token types.
 See variable `semantic-lex-tokens'.")
 
 (defvar semantic-flex-unterminated-syntax-end-function

@@ -21,7 +21,7 @@
 
 ;;; Commentary:
 
-;; This file contain utilities to facilate upload, download and
+;; This file contain utilities to facilitate upload, download and
 ;; general management of sieve scripts.  Currently only the
 ;; Managesieve protocol is supported (using sieve-manage.el), but when
 ;; (useful) alternatives become available, they might be supported as

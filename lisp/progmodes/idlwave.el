@@ -605,7 +605,7 @@ The value of this variable may be nil to inhibit display, or an integer to
 indicate the maximum number of classes to display.
 
 On XEmacs, a full list of classes will also be placed into a `help-echo'
-property on the competion items, so that the list of classes for the current
+property on the completion items, so that the list of classes for the current
 item is displayed in the echo area.  If the value of this variable is a
 negative integer, the `help-echo' property will be suppressed."
   :group 'idlwave-completion
@@ -7206,7 +7206,7 @@ If these don't exist, a letter in the string is automatically selected."
 ;;----------------------------------------------------------------------
 
 ;;; ------------------------------------------------------------------------
-;;; Stucture parsing code, and code to manage class info
+;;; Structure parsing code, and code to manage class info
 
 ;;
 ;; - Go again over the documentation how to write a completion
@@ -8961,7 +8961,7 @@ This expects NAME TYPE IDLWAVE-TWIN-CLASS to be bound to the right values."
     (nth 1 source)))
 
 (defun idlwave-downcase-safe (string)
-  "Donwcase if string, else return unchanged."
+  "Downcase if string, else return unchanged."
   (if (stringp string)
       (downcase string)
     string))

@@ -51,7 +51,7 @@
 ;; Currently, RMail, Gnus (with mbox files), and VM are supported as
 ;; mail programs, but it is pretty easy to interface it with other
 ;; ones as well.  Please see the docs and the source for details.
-;; In a nutshell: include your favourite mail program in
+;; In a nutshell: include your favorite mail program in
 ;; `mairix-mail-program' and write functions for
 ;; `mairix-display-functions' and `mairix-get-mail-header-functions'.
 ;; If you have written such functions for your Emacs mail program of
@@ -945,4 +945,3 @@ Use cursor keys or C-n,C-p to select next/previous search.\n\n")
 (provide 'mairix)
 
 ;;; mairix.el ends here
-

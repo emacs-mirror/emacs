@@ -248,7 +248,7 @@ Emacs bug 6581 at URL `http://debbugs.gnu.org/cgi/bugreport.cgi?bug=6581'."
     ;; We disallow nil since `ert-test-at-point' and related functions
     ;; want to return a test name, but also need an out-of-band value
     ;; on failure.  Nil is the most natural out-of-band value; using 0
-    ;; or "" or signalling an error would be too awkward.
+    ;; or "" or signaling an error would be too awkward.
     ;;
     ;; Note that nil is still a valid value for the `name' slot in
     ;; ert-test objects.  It designates an anonymous test.
@@ -448,7 +448,7 @@ arguments: INNER-FORM and FORM-DESCRIPTION-FORM, where INNER-FORM
 is an expression equivalent to FORM, and FORM-DESCRIPTION-FORM is
 an expression that returns a description of FORM.  INNER-EXPANDER
 should return code that calls INNER-FORM and performs the checks
-and error signalling specific to the particular variant of
+and error signaling specific to the particular variant of
 `should'.  The code that INNER-EXPANDER returns must not call
 FORM-DESCRIPTION-FORM before it has called INNER-FORM."
   (lexical-let ((inner-expander inner-expander))
@@ -489,17 +489,17 @@ Returns nil."
 
 Determines whether CONDITION matches TYPE and EXCLUDE-SUBTYPES,
 and aborts the current test as failed if it doesn't."
-  (let ((signalled-conditions (get (car condition) 'error-conditions))
+  (let ((signaled-conditions (get (car condition) 'error-conditions))
         (handled-conditions (etypecase type
                               (list type)
                               (symbol (list type)))))
-    (assert signalled-conditions)
-    (unless (ert--intersection signalled-conditions handled-conditions)
+    (assert signaled-conditions)
+    (unless (ert--intersection signaled-conditions handled-conditions)
       (ert-fail (append
                  (funcall form-description-fn)
                  (list
                   :condition condition
-                  :fail-reason (concat "the error signalled did not"
+                  :fail-reason (concat "the error signaled did not"
                                        " have the expected type")))))
     (when exclude-subtypes
       (unless (member (car condition) handled-conditions)
@@ -507,7 +507,7 @@ and aborts the current test as failed if it doesn't."
                    (funcall form-description-fn)
                    (list
                     :condition condition
-                    :fail-reason (concat "the error signalled was a subtype"
+                    :fail-reason (concat "the error signaled was a subtype"
                                          " of the expected type"))))))))
 
 ;; FIXME: The expansion will evaluate the keyword args (if any) in
@@ -515,7 +515,7 @@ and aborts the current test as failed if it doesn't."
 (defmacro* should-error (form &rest keys &key type exclude-subtypes)
   "Evaluate FORM and check that it signals an error.
 
-The error signalled needs to match TYPE.  TYPE should be a list
+The error signaled needs to match TYPE.  TYPE should be a list
 of condition names.  (It can also be a non-nil symbol, which is
 equivalent to a singleton list containing that symbol.)  If
 EXCLUDE-SUBTYPES is nil, the error matches TYPE if one of its
@@ -523,7 +523,7 @@ condition names is an element of TYPE.  If EXCLUDE-SUBTYPES is
 non-nil, the error matches TYPE if it is an element of TYPE.
 
 If the error matches, returns (ERROR-SYMBOL . DATA) from the
-error.  If not, or if no error was signalled, abort the test as
+error.  If not, or if no error was signaled, abort the test as
 failed."
   (unless type (setq type ''error))
   (ert--expand-should
@@ -2120,7 +2120,7 @@ To be used in the ERT results buffer."
 
 EWOC-FN specifies the direction and should be either `ewoc-prev'
 or `ewoc-next'.  If there are no more nodes in that direction, an
-error is signalled with the message ERROR-MESSAGE."
+error is signaled with the message ERROR-MESSAGE."
   (loop
    (setq node (funcall ewoc-fn ert--results-ewoc node))
    (when (null node)

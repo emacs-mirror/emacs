@@ -160,7 +160,7 @@ I use the following two bash scripts to handle my Emacs sessions:
 
 name="$1"
 shift
-    
+
 if [ -z "$name" ]; then
     echo "Usage: connect_emacs <name> <args>..." >&2
     exit 1
@@ -184,7 +184,7 @@ screendir="/var/run/screen/S-$USER"
 serverdir="/tmp/emacs$UID"
 emacs=/usr/bin/emacs-multi-tty # Or wherever you installed your multi-tty Emacs
 
-if [ -z "$name" ]; then 
+if [ -z "$name" ]; then
     echo "Usage: preload_emacs <name> [<waitp>]" >&2
     exit 1
 fi
@@ -314,7 +314,7 @@ THINGS TO DO
    Emacs with GTK support.  If you want to play around with GTK
    multidisplay (and don't mind core dumps), you can edit src/config.h
    and define HAVE_GTK_MULTIDISPLAY there by hand.
-   
+
 	http://bugzilla.gnome.org/show_bug.cgi?id=85715
 
    Update: Han reports that GTK+ version 2.8.9 almost gets display
@@ -414,7 +414,7 @@ THINGS TO DO
    sometimes; Emacs does not respond to stimuli from other keyboards.
    At least a beep or a message would be important, if the single-mode
    is still required to prevent interference.  (Reported by Dan
-   Nicolaescu.)  
+   Nicolaescu.)
 
    Update: selecting a region with the mouse enables single_kboard
    under X.  This is very confusing.
@@ -542,7 +542,7 @@ THINGS TO DO
    are not useful; before starting work on DOS support, revert to
    pristine, pre-multi-tty versions.
 
-** Fix Windows support. Currently bootstraping works on w32, but Emacs
+** Fix Windows support. Currently bootstrapping works on w32, but Emacs
    crashes on startup and none of the multi-tty features are
    implemented. Many XXX comments mark things that probably need
    updating, ChangeLogs will help in spotting changes to X specific
@@ -1026,7 +1026,7 @@ DIARY OF CHANGES
    settings as Emacs itself.  This may lead to bogus results in a
    multi-locale setup. (E.g., while logging in from a remote client
    with a different locale.)
-   (Update after new bugreport by Friedrich Delgado Friedrichs: 
+   (Update after new bugreport by Friedrich Delgado Friedrichs:
    (at least) the structs terminal_coding and keyboard_coding in
    coding.c must be moved to struct display, and the Lisp interface
    [set-]keyboard-coding-system must be adapted for the change.)
@@ -1088,7 +1088,7 @@ DIARY OF CHANGES
 -- Miles Bader suggests that C-x C-c on an emacsclient frame should
    only close the frame, not exit the entire Emacs session.  Update:
    see above for a function that does this.  Maybe this should be the
-   new default?  
+   new default?
 
    (Done.  This is the new default.  No complaints so far.)
 
@@ -1131,7 +1131,7 @@ DIARY OF CHANGES
    from exiting Emacs. (Reported by Mnemonikk on freenode.)
 
    (Done, I hope.)
-   
+
 
 -- Having {reset,init}_all_sys_modes in set-input-mode breaks arrow
    keys on non-selected terminals under screen, and sometimes on other
@@ -1157,7 +1157,7 @@ DIARY OF CHANGES
 	> Cursor mode. Applications have to send the smkx and rmkx terminfo
 	> strings to switch between the 2 modes. So Emacs (and emacsclient) have
 	> to send smkx when initializing and rmkx when quitting (or on
-	> suspend). 
+	> suspend).
 
    (I think patch-370 fixed this.)
 
@@ -1166,7 +1166,7 @@ DIARY OF CHANGES
 
 	emacs
 		M-x server-start
-	
+
 	# From another xterm:
 	emacsclient -e '(y-or-n-p "Do you want me to crash? ")'
 		# Notice how the answer ends up in the *scratch* buffer
@@ -1205,7 +1205,7 @@ DIARY OF CHANGES
    it is not recognized correctly.  May be related to the bug below.
 
    (Seems to have been fixed as a side effect of patch-434.  "The bug
-   below" was the set-input-mode madness.)  
+   below" was the set-input-mode madness.)
 
    (Update: this bug was fixed for good in patch-449.  It was tracked
    down to a bug in `read_key_sequence': it failed to reinitialize its
@@ -1359,4 +1359,3 @@ GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License
 along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
-

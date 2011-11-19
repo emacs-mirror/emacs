@@ -1575,7 +1575,7 @@ password handling. Consider @command{ssh-agent} for @option{ssh}-like
 methods, or @command{pageant} for @option{plink}-like methods.
 
 However, if you cannot apply such native password handling,
-@value{tramp} offers altenatives.
+@value{tramp} offers alternatives.
 
 
 @anchor{Using an authentication file}

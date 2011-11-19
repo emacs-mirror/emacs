@@ -1,3 +1,7 @@
+2011-11-14  Juanma Barranquero  <lekktu@gmail.com>
+
+	* MAILINGLISTS: Fix typo.
+
 2011-10-29  Eli Zaretskii  <eliz@gnu.org>
 
 	* themes/wombat-theme.el: Add a coding cookie.  (Bug#9905)
@@ -371,7 +375,7 @@
 
 2011-01-04  Jan Moringen  <jan.moringen@uni-bielefeld.de>
 
-	* NEWS: Extended behaviour of dbus-register-{method,property}.
+	* NEWS: Extended behavior of dbus-register-{method,property}.
 
 2011-01-02  Kenichi Handa  <handa@m17n.org>
 
@@ -4103,7 +4107,7 @@
 
 2002-02-01  ShengHuo ZHU  <zsh@cs.rochester.edu>
 
-	* gnus.xpm: Remove garbages.
+	* gnus.xpm: Remove garbage.
 
 2002-01-27  Pavel Janík  <Pavel@Janik.cz>
 

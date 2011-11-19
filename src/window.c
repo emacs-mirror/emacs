@@ -159,7 +159,8 @@ DEFUN ("windowp", Fwindowp, Swindowp, 1, 1, 0,
 
 DEFUN ("window-live-p", Fwindow_live_p, Swindow_live_p, 1, 1, 0,
        doc: /* Return t if OBJECT is a live window and nil otherwise.
-A live window is a window that displays a buffer.  */)
+A live window is a window that displays a buffer.
+Internal windows and deleted windows are not live.  */)
   (Lisp_Object object)
 {
   return WINDOW_LIVE_P (object) ? Qt : Qnil;
@@ -168,7 +169,7 @@ A live window is a window that displays a buffer.  */)
 /* Frames and windows.  */
 DEFUN ("window-frame", Fwindow_frame, Swindow_frame, 1, 1, 0,
        doc: /* Return the frame that window WINDOW is on.
-WINDOW can be any window and defaults to the selected one.  */)
+If WINDOW is omitted or nil, it defaults to the selected window.  */)
   (Lisp_Object window)
 {
   return decode_any_window (window)->frame;
@@ -177,9 +178,8 @@ WINDOW can be any window and defaults to the selected one.  */)
 DEFUN ("frame-root-window", Fframe_root_window, Sframe_root_window, 0, 1, 0,
        doc: /* Return the root window of FRAME-OR-WINDOW.
 If omitted, FRAME-OR-WINDOW defaults to the currently selected frame.
-Else if FRAME-OR-WINDOW denotes any window, return the root window of
-that window's frame.  If FRAME-OR-WINDOW denotes a live frame, return
-the root window of that frame.  */)
+With a frame argument, return that frame's root window.
+With a window argument, return the root window of that window's frame.  */)
   (Lisp_Object frame_or_window)
 {
   Lisp_Object window;
@@ -198,9 +198,8 @@ the root window of that frame.  */)
 }
 
 DEFUN ("minibuffer-window", Fminibuffer_window, Sminibuffer_window, 0, 1, 0,
-       doc: /* Return the window used now for minibuffers.
-If the optional argument FRAME is specified, return the minibuffer window
-used by that frame.  */)
+       doc: /* Return the minibuffer window for frame FRAME.
+If FRAME is omitted or nil, it defaults to the selected frame.  */)
   (Lisp_Object frame)
 {
   if (NILP (frame))
@@ -212,7 +211,7 @@ used by that frame.  */)
 DEFUN ("window-minibuffer-p", Fwindow_minibuffer_p,
        Swindow_minibuffer_p, 0, 1, 0,
        doc: /* Return non-nil if WINDOW is a minibuffer window.
-WINDOW can be any window and defaults to the selected one.  */)
+If WINDOW is omitted or nil, it defaults to the selected window.  */)
   (Lisp_Object window)
 {
   return MINI_WINDOW_P (decode_any_window (window)) ? Qt : Qnil;
@@ -409,44 +408,48 @@ buffer of the selected window before each command.  */)
 }
 
 DEFUN ("window-buffer", Fwindow_buffer, Swindow_buffer, 0, 1, 0,
-       doc: /* Return the buffer that WINDOW is displaying.
-WINDOW can be any window and defaults to the selected one.
-If WINDOW is an internal window return nil.  */)
+       doc: /* Return the buffer displayed in window WINDOW.
+If WINDOW is omitted or nil, it defaults to the selected window.
+Return nil for an internal window or a deleted window.  */)
   (Lisp_Object window)
 {
   return decode_any_window (window)->buffer;
 }
 
 DEFUN ("window-parent", Fwindow_parent, Swindow_parent, 0, 1, 0,
-       doc: /* Return WINDOW's parent window.
-WINDOW can be any window and defaults to the selected one.
-Return nil if WINDOW has no parent.  */)
+       doc: /* Return the parent window of window WINDOW.
+If WINDOW is omitted or nil, it defaults to the selected window.
+Return nil for a window with no parent (e.g. a root window).  */)
   (Lisp_Object window)
 {
   return decode_any_window (window)->parent;
 }
 
-DEFUN ("window-top-child", Fwindow_top_child, Swindow_top_child, 0, 1, 0,
-       doc: /* Return WINDOW's topmost child window.
-WINDOW can be any window and defaults to the selected one.
-Return nil if WINDOW is not a vertical combination.  */)
+DEFUN ("window-top-child", Fwindow_top_child, Swindow_top_child, 1, 1, 0,
+       doc: /* Return the topmost child window of window WINDOW.
+Return nil if WINDOW is a live window (live windows have no children).
+Return nil if WINDOW is an internal window whose children form a
+horizontal combination.  */)
   (Lisp_Object window)
 {
+  CHECK_WINDOW (window);
   return decode_any_window (window)->vchild;
 }
 
-DEFUN ("window-left-child", Fwindow_left_child, Swindow_left_child, 0, 1, 0,
-       doc: /* Return WINDOW's leftmost child window.
-WINDOW can be any window and defaults to the selected one.
-Return nil if WINDOW is not a horizontal combination.  */)
+DEFUN ("window-left-child", Fwindow_left_child, Swindow_left_child, 1, 1, 0,
+       doc: /* Return the leftmost child window of window WINDOW.
+Return nil if WINDOW is a live window (live windows have no children).
+Return nil if WINDOW is an internal window whose children form a
+vertical combination.  */)
   (Lisp_Object window)
 {
+  CHECK_WINDOW (window);
   return decode_any_window (window)->hchild;
 }
 
 DEFUN ("window-next-sibling", Fwindow_next_sibling, Swindow_next_sibling, 0, 1, 0,
-       doc: /* Return WINDOW's next sibling window.
-WINDOW can be any window and defaults to the selected one.
+       doc: /* Return the next sibling window of window WINDOW.
+If WINDOW is omitted or nil, it defaults to the selected window.
 Return nil if WINDOW has no next sibling.  */)
   (Lisp_Object window)
 {
@@ -454,123 +457,96 @@ Return nil if WINDOW has no next sibling.  */)
 }
 
 DEFUN ("window-prev-sibling", Fwindow_prev_sibling, Swindow_prev_sibling, 0, 1, 0,
-       doc: /* Return WINDOW's previous sibling window.
-WINDOW can be any window and defaults to the selected one.
+       doc: /* Return the previous sibling window of window WINDOW.
+If WINDOW is omitted or nil, it defaults to the selected window.
 Return nil if WINDOW has no previous sibling.  */)
   (Lisp_Object window)
 {
   return decode_any_window (window)->prev;
 }
 
-DEFUN ("window-splits", Fwindow_splits, Swindow_splits, 0, 1, 0,
-       doc: /* Return splits status for WINDOW.
-WINDOW can be any window and defaults to the selected one.
+DEFUN ("window-combination-limit", Fwindow_combination_limit, Swindow_combination_limit, 0, 1, 0,
+       doc: /* Return combination limit of window WINDOW.
+If WINDOW is omitted or nil, it defaults to the selected window.
 
-If the value returned by this function is nil and WINDOW is resized, the
-corresponding space is preferably taken from (or given to) WINDOW's
-right sibling.  When WINDOW is deleted, its space is given to its left
-sibling.
-
-If the value returned by this function is non-nil, resizing and deleting
-WINDOW may resize all windows in the same combination.  */)
-  (Lisp_Object window)
-{
-  return decode_any_window (window)->splits;
-}
-
-DEFUN ("set-window-splits", Fset_window_splits, Sset_window_splits, 2, 2, 0,
-       doc: /* Set splits status of WINDOW to STATUS.
-WINDOW can be any window and defaults to the selected one.  Return
-STATUS.
-
-If STATUS is nil and WINDOW is later resized, the corresponding space is
-preferably taken from (or given to) WINDOW's right sibling.  When WINDOW
-is deleted, its space is given to its left sibling.
-
-If STATUS is non-nil, resizing and deleting WINDOW may resize all
-windows in the same combination.  */)
-  (Lisp_Object window, Lisp_Object status)
-{
-  register struct window *w = decode_any_window (window);
-
-  w->splits = status;
-
-  return w->splits;
-}
-
-DEFUN ("window-nest", Fwindow_nest, Swindow_nest, 0, 1, 0,
-       doc: /* Return nest status of WINDOW.
-WINDOW can be any window and defaults to the selected one.
-
-If the return value is nil, subwindows of WINDOW can be recombined with
-WINDOW's siblings.  A return value of non-nil means that subwindows of
+If the return value is nil, child windows of WINDOW can be recombined with
+WINDOW's siblings.  A return value of t means that child windows of
 WINDOW are never \(re-)combined with WINDOW's siblings.  */)
   (Lisp_Object window)
 {
-  return decode_any_window (window)->nest;
+  return decode_any_window (window)->combination_limit;
 }
 
-DEFUN ("set-window-nest", Fset_window_nest, Sset_window_nest, 2, 2, 0,
-       doc: /* Set nest status of WINDOW to STATUS.
-WINDOW can be any window and defaults to the selected one.  Return
-STATUS.
+DEFUN ("set-window-combination-limit", Fset_window_combination_limit, Sset_window_combination_limit, 2, 2, 0,
+       doc: /* Set combination limit of window WINDOW to STATUS; return STATUS.
+If WINDOW is omitted or nil, it defaults to the selected window.
 
-If STATUS is nil, subwindows of WINDOW can be recombined with WINDOW's
-siblings.  STATUS non-nil means that subwindows of WINDOW are never
-\(re-)combined with WINDOW's siblings.  */)
+If STATUS is nil, child windows of WINDOW can be recombined with
+WINDOW's siblings.  STATUS t means that child windows of WINDOW are
+never \(re-)combined with WINDOW's siblings.  Other values are reserved
+for future use.  */)
   (Lisp_Object window, Lisp_Object status)
 {
   register struct window *w = decode_any_window (window);
 
-  w->nest = status;
+  w->combination_limit = status;
 
-  return w->nest;
+  return w->combination_limit;
 }
 
 DEFUN ("window-use-time", Fwindow_use_time, Swindow_use_time, 0, 1, 0,
-       doc: /* Return WINDOW's use time.
-WINDOW defaults to the selected window.  The window with the highest use
-time is the most recently selected one.  The window with the lowest use
-time is the least recently selected one.  */)
+       doc: /* Return the use time of window WINDOW.
+If WINDOW is omitted or nil, it defaults to the selected window.
+The window with the highest use time is the most recently selected
+one.  The window with the lowest use time is the least recently
+selected one.  */)
   (Lisp_Object window)
 {
   return decode_window (window)->use_time;
 }
 
-DEFUN ("window-total-size", Fwindow_total_size, Swindow_total_size, 0, 2, 0,
-       doc: /* Return the total number of lines of WINDOW.
-WINDOW can be any window and defaults to the selected one.  The return
-value includes WINDOW's mode line and header line, if any.  If WINDOW
-is internal, the return value is the sum of the total number of lines
-of WINDOW's child windows if these are vertically combined and the
-height of WINDOW's first child otherwise.
+DEFUN ("window-total-height", Fwindow_total_height, Swindow_total_height, 0, 1, 0,
+       doc: /* Return the total height, in lines, of window WINDOW.
+If WINDOW is omitted or nil, it defaults to the selected window.
 
-Optional argument HORIZONTAL non-nil means return the total number of
-columns of WINDOW.  In this case the return value includes any vertical
-dividers or scrollbars of WINDOW.  If WINDOW is internal, the return
-value is the sum of the total number of columns of WINDOW's child
-windows if they are horizontally combined and the width of WINDOW's
-first child otherwise.  */)
-  (Lisp_Object window, Lisp_Object horizontal)
+The return value includes the mode line and header line, if any.
+If WINDOW is an internal window, the total height is the height
+of the screen areas spanned by its children.
+
+On a graphical display, this total height is reported as an
+integer multiple of the default character height.  */)
+  (Lisp_Object window)
 {
-  if (NILP (horizontal))
-    return decode_any_window (window)->total_lines;
-  else
-    return decode_any_window (window)->total_cols;
+  return decode_any_window (window)->total_lines;
+}
+
+DEFUN ("window-total-width", Fwindow_total_width, Swindow_total_width, 0, 1, 0,
+       doc: /* Return the total width, in columns, of window WINDOW.
+If WINDOW is omitted or nil, it defaults to the selected window.
+
+The return value includes any vertical dividers or scroll bars
+belonging to WINDOW.  If WINDOW is an internal window, the total width
+is the width of the screen areas spanned by its children.
+
+On a graphical display, this total width is reported as an
+integer multiple of the default character width.  */)
+  (Lisp_Object window)
+{
+  return decode_any_window (window)->total_cols;
 }
 
 DEFUN ("window-new-total", Fwindow_new_total, Swindow_new_total, 0, 1, 0,
-       doc: /* Return new total size of WINDOW.
-WINDOW defaults to the selected window.   */)
+       doc: /* Return the new total size of window WINDOW.
+If WINDOW is omitted or nil, it defaults to the selected window.   */)
   (Lisp_Object window)
 {
   return decode_any_window (window)->new_total;
 }
 
 DEFUN ("window-normal-size", Fwindow_normal_size, Swindow_normal_size, 0, 2, 0,
-       doc: /* Return normal height of WINDOW.
-WINDOW can be any window and defaults to the selected one.  Optional
-argument HORIZONTAL non-nil means return normal width of WINDOW.  */)
+       doc: /* Return the normal height of window WINDOW.
+If WINDOW is omitted or nil, it defaults to the selected window.
+If HORIZONTAL is non-nil, return the normal width of WINDOW.  */)
   (Lisp_Object window, Lisp_Object horizontal)
 {
   if (NILP (horizontal))
@@ -580,24 +556,32 @@ argument HORIZONTAL non-nil means return normal width of WINDOW.  */)
 }
 
 DEFUN ("window-new-normal", Fwindow_new_normal, Swindow_new_normal, 0, 1, 0,
-       doc: /* Return new normal size of WINDOW.
-WINDOW can be any window and defaults to the selected one.   */)
+       doc: /* Return new normal size of window WINDOW.
+If WINDOW is omitted or nil, it defaults to the selected window.  */)
   (Lisp_Object window)
 {
   return decode_any_window (window)->new_normal;
 }
 
 DEFUN ("window-left-column", Fwindow_left_column, Swindow_left_column, 0, 1, 0,
-       doc: /* Return left column of WINDOW.
-WINDOW can be any window and defaults to the selected one.  */)
+       doc: /* Return left column of window WINDOW.
+This is the distance, in columns, between the left edge of WINDOW and
+the left edge of the frame's window area.  For instance, the return
+value is 0 if there is no window to the left of WINDOW.
+
+If WINDOW is omitted or nil, it defaults to the selected window.  */)
   (Lisp_Object window)
 {
   return decode_any_window (window)->left_col;
 }
 
 DEFUN ("window-top-line", Fwindow_top_line, Swindow_top_line, 0, 1, 0,
-       doc: /* Return top line of WINDOW.
-WINDOW can be any window and defaults to the selected one.  */)
+       doc: /* Return top line of window WINDOW.
+This is the distance, in lines, between the top of WINDOW and the top
+of the frame's window area.  For instance, the return value is 0 if
+there is no window above WINDOW.
+
+If WINDOW is omitted or nil, it defaults to the selected window.  */)
   (Lisp_Object window)
 {
   return decode_any_window (window)->top_line;
@@ -652,25 +636,34 @@ window_body_cols (struct window *w)
   return width;
 }
 
-DEFUN ("window-body-size", Fwindow_body_size, Swindow_body_size, 0, 2, 0,
-       doc: /* Return the number of lines of WINDOW's body.
-WINDOW must be a live window and defaults to the selected one.  The
-return value does not include WINDOW's mode line and header line, if
-any.
+DEFUN ("window-body-height", Fwindow_body_height, Swindow_body_height, 0, 1, 0,
+       doc: /* Return the height, in lines, of WINDOW's text area.
+If WINDOW is omitted or nil, it defaults to the selected window.
+Signal an error if the window is not live.
 
-Optional argument HORIZONTAL non-nil means return the number of columns
-of WINDOW's body.  In this case, the return value does not include any
-vertical dividers or scroll bars owned by WINDOW.  On a window-system
-the return value does not include the number of columns used for
-WINDOW's fringes or display margins either.  */)
-  (Lisp_Object window, Lisp_Object horizontal)
+The returned height does not include the mode line or header line.
+On a graphical display, the height is expressed as an integer multiple
+of the default character height.  If a line at the bottom of the text
+area is only partially visible, that counts as a whole line; to
+exclude partially-visible lines, use `window-text-height'.  */)
+  (Lisp_Object window)
 {
-  struct window *w = decode_any_window (window);
+  struct window *w = decode_window (window);
+  return make_number (window_body_lines (w));
+}
 
-  if (NILP (horizontal))
-    return make_number (window_body_lines (w));
-  else
-    return make_number (window_body_cols (w));
+DEFUN ("window-body-width", Fwindow_body_width, Swindow_body_width, 0, 1, 0,
+       doc: /* Return the width, in columns, of WINDOW's text area.
+If WINDOW is omitted or nil, it defaults to the selected window.
+Signal an error if the window is not live.
+
+The return value does not include any vertical dividers, fringe or
+marginal areas, or scroll bars.  On a graphical display, the width is
+expressed as an integer multiple of the default character width.  */)
+  (Lisp_Object window)
+{
+  struct window *w = decode_window (window);
+  return make_number (window_body_cols (w));
 }
 
 DEFUN ("window-hscroll", Fwindow_hscroll, Swindow_hscroll, 0, 1, 0,
@@ -832,7 +825,7 @@ The inside edges do not include the space used by the WINDOW's scroll
 bar, display margins, fringes, header line, and/or mode line.  */)
   (Lisp_Object window)
 {
-  register struct window *w = decode_any_window (window);
+  register struct window *w = decode_window (window);
 
   return list4 (make_number (WINDOW_BOX_LEFT_EDGE_COL (w)
 			     + WINDOW_LEFT_MARGIN_COLS (w)
@@ -847,9 +840,9 @@ bar, display margins, fringes, header line, and/or mode line.  */)
 }
 
 DEFUN ("window-inside-pixel-edges", Fwindow_inside_pixel_edges, Swindow_inside_pixel_edges, 0, 1, 0,
-       doc: /* Return a list of the edge pixel coordinates of WINDOW.
-The list has the form (LEFT TOP RIGHT BOTTOM), all relative to 0, 0 at
-the top left corner of the frame.
+       doc: /* Return a list of the edge pixel coordinates of WINDOW's text area.
+The list has the form (LEFT TOP RIGHT BOTTOM), all relative to (0,0)
+at the top left corner of the frame's window area.
 
 RIGHT is one more than the rightmost x position of WINDOW's text area.
 BOTTOM is one more than the bottommost y position of WINDOW's text area.
@@ -857,7 +850,7 @@ The inside edges do not include the space used by WINDOW's scroll bar,
 display margins, fringes, header line, and/or mode line.  */)
   (Lisp_Object window)
 {
-  register struct window *w = decode_any_window (window);
+  register struct window *w = decode_window (window);
 
   return list4 (make_number (WINDOW_BOX_LEFT_EDGE_X (w)
 			     + WINDOW_LEFT_MARGIN_WIDTH (w)
@@ -874,9 +867,9 @@ display margins, fringes, header line, and/or mode line.  */)
 DEFUN ("window-inside-absolute-pixel-edges",
        Fwindow_inside_absolute_pixel_edges,
        Swindow_inside_absolute_pixel_edges, 0, 1, 0,
-       doc: /* Return a list of the edge pixel coordinates of WINDOW.
-The list has the form (LEFT TOP RIGHT BOTTOM), all relative to 0, 0 at
-the top left corner of the display.
+       doc: /* Return a list of the edge pixel coordinates of WINDOW's text area.
+The list has the form (LEFT TOP RIGHT BOTTOM), all relative to (0,0)
+at the top left corner of the frame's window area.
 
 RIGHT is one more than the rightmost x position of WINDOW's text area.
 BOTTOM is one more than the bottommost y position of WINDOW's text area.
@@ -884,7 +877,7 @@ The inside edges do not include the space used by WINDOW's scroll bar,
 display margins, fringes, header line, and/or mode line.  */)
   (Lisp_Object window)
 {
-  register struct window *w = decode_any_window (window);
+  register struct window *w = decode_window (window);
   int add_x, add_y;
   calc_absolute_offset (w, &add_x, &add_y);
 
@@ -1888,7 +1881,7 @@ recombine_windows (Lisp_Object window)
 
   w = XWINDOW (window);
   parent = w->parent;
-  if (!NILP (parent) && NILP (w->nest))
+  if (!NILP (parent) && NILP (w->combination_limit))
     {
       p = XWINDOW (parent);
       if (((!NILP (p->vchild) && !NILP (w->vchild))
@@ -2303,7 +2296,7 @@ window_list_1 (Lisp_Object window, Lisp_Object minibuf, Lisp_Object all_frames)
 DEFUN ("window-list", Fwindow_list, Swindow_list, 0, 3, 0,
        doc: /* Return a list of windows on FRAME, starting with WINDOW.
 FRAME nil or omitted means use the selected frame.
-WINDOW nil or omitted means use the selected window.
+WINDOW nil or omitted means use the window selected within FRAME.
 MINIBUF t means include the minibuffer window, even if it isn't active.
 MINIBUF nil or omitted means include the minibuffer window only
 if it's active.
@@ -2353,7 +2346,7 @@ Anything else means consider all windows on WINDOW's frame and no
 others.
 
 If WINDOW is not on the list of windows returned, some other window will
-be listed first but no error is signalled.  */)
+be listed first but no error is signaled.  */)
   (Lisp_Object window, Lisp_Object minibuf, Lisp_Object all_frames)
 {
   return window_list_1 (window, minibuf, all_frames);
@@ -2560,9 +2553,9 @@ DEFUN ("delete-other-windows-internal", Fdelete_other_windows_internal,
 Only the frame WINDOW is on is affected.  WINDOW may be any window and
 defaults to the selected one.
 
-Optional argument ROOT, if non-nil, must specify an internal window
-containing WINDOW as a subwindow.  If this is the case, replace ROOT by
-WINDOW and leave alone any windows not contained in ROOT.
+Optional argument ROOT, if non-nil, must specify an internal window such
+that WINDOW is in its window subtree.  If this is the case, replace ROOT
+by WINDOW and leave alone any windows not part of ROOT's subtree.
 
 When WINDOW is live try to reduce display jumps by keeping the text
 previously visible in WINDOW in the same place on the frame.  Doing this
@@ -2626,10 +2619,10 @@ window-start value is reasonable when this function is called.  */)
     }
   else
     {
-      /* See if the frame's selected window is a subwindow of WINDOW, by
-	 finding all the selected window's parents and comparing each
-	 one with WINDOW.  If it isn't we need a new selected window for
-	 this frame.  */
+      /* See if the frame's selected window is a part of the window
+	 subtree rooted at WINDOW, by finding all the selected window's
+	 parents and comparing each one with WINDOW.  If it isn't we
+	 need a new selected window for this frame.  */
       swindow = FRAME_SELECTED_WINDOW (f);
       while (1)
 	{
@@ -2665,7 +2658,7 @@ window-start value is reasonable when this function is called.  */)
 
   if (NILP (w->buffer))
     {
-      /* Resize subwindows vertically.  */
+      /* Resize child windows vertically.  */
       XSETINT (delta, XINT (r->total_lines) - XINT (w->total_lines));
       w->top_line = r->top_line;
       resize_root_window (window, delta, Qnil, Qnil);
@@ -2680,7 +2673,7 @@ window-start value is reasonable when this function is called.  */)
 	    resize_failed = 1;
 	}
 
-      /* Resize subwindows horizontally.  */
+      /* Resize child windows horizontally.  */
       if (!resize_failed)
 	{
 	  w->left_col = r->left_col;
@@ -2729,22 +2722,19 @@ window-start value is reasonable when this function is called.  */)
 	XWINDOW (w->parent)->hchild = sibling;
     }
 
-  /* Delete ROOT and all subwindows of ROOT.  */
+  /* Delete ROOT and all child windows of ROOT.  */
   if (!NILP (r->vchild))
     {
-      delete_all_subwindows (r->vchild);
+      delete_all_child_windows (r->vchild);
       r->vchild = Qnil;
     }
   else if (!NILP (r->hchild))
     {
-      delete_all_subwindows (r->hchild);
+      delete_all_child_windows (r->hchild);
       r->hchild = Qnil;
     }
 
   replace_window (root, window, 1);
-
-  /* Reset WINDOW's splits status.  */
-  w->splits = Qnil;
 
   /* This must become SWINDOW anyway ....... */
   if (!NILP (w->buffer) && !resize_failed)
@@ -3260,8 +3250,7 @@ make_parent_window (Lisp_Object window, int horflag)
   p->start = Qnil;
   p->pointm = Qnil;
   p->buffer = Qnil;
-  p->splits = Qnil;
-  p->nest = Qnil;
+  p->combination_limit = Qnil;
   p->window_parameters = Qnil;
 }
 
@@ -3308,7 +3297,7 @@ make_window (void)
   w->start_at_line_beg = w->display_table = w->dedicated = Qnil;
   w->base_line_number = w->base_line_pos = w->region_showing = Qnil;
   w->column_number_displayed = w->redisplay_end_trigger = Qnil;
-  w->splits = w->nest = w->window_parameters = Qnil;
+  w->combination_limit = w->window_parameters = Qnil;
   w->prev_buffers = w->next_buffers = Qnil;
   /* Initialize non-Lisp data.  */
   w->desired_matrix = w->current_matrix = 0;
@@ -3338,7 +3327,7 @@ Return SIZE.
 Optional argument ADD non-nil means add SIZE to the new total size of
 WINDOW and return the sum.
 
-Note: This function does not operate on any subwindows of WINDOW.  */)
+Note: This function does not operate on any child windows of WINDOW.  */)
      (Lisp_Object window, Lisp_Object size, Lisp_Object add)
 {
   struct window *w = decode_any_window (window);
@@ -3356,7 +3345,7 @@ DEFUN ("set-window-new-normal", Fset_window_new_normal, Sset_window_new_normal, 
        doc: /* Set new normal size of WINDOW to SIZE.
 Return SIZE.
 
-Note: This function does not operate on any subwindows of WINDOW.  */)
+Note: This function does not operate on any child windows of WINDOW.  */)
      (Lisp_Object window, Lisp_Object size)
 {
   struct window *w = decode_any_window (window);
@@ -3367,7 +3356,7 @@ Note: This function does not operate on any subwindows of WINDOW.  */)
 
 /* Return 1 if setting w->total_lines (w->total_cols if HORFLAG is
    non-zero) to w->new_total would result in correct heights (widths)
-   for window W and recursively all subwindows of W.
+   for window W and recursively all child windows of W.
 
    Note: This function does not check any of `window-fixed-size-p',
    `window-min-height' or `window-min-width'.  It does check that window
@@ -3382,7 +3371,7 @@ window_resize_check (struct window *w, int horflag)
     {
       c = XWINDOW (w->vchild);
       if (horflag)
-	/* All subwindows of W must have the same width as W.  */
+	/* All child windows of W must have the same width as W.  */
 	{
 	  while (c)
 	    {
@@ -3394,8 +3383,8 @@ window_resize_check (struct window *w, int horflag)
 	  return 1;
 	}
       else
-	/* The sum of the heights of the subwindows of W must equal W's
-	   height.  */
+	/* The sum of the heights of the child windows of W must equal
+	   W's height.  */
 	{
 	  int sum_of_sizes = 0;
 	  while (c)
@@ -3413,7 +3402,7 @@ window_resize_check (struct window *w, int horflag)
     {
       c = XWINDOW (w->hchild);
       if (horflag)
-	/* The sum of the widths of the subwindows of W must equal W's
+	/* The sum of the widths of the child windows of W must equal W's
 	   width.  */
 	{
 	  int sum_of_sizes = 0;
@@ -3427,7 +3416,7 @@ window_resize_check (struct window *w, int horflag)
 	  return (sum_of_sizes == XINT (w->new_total));
 	}
       else
-	/* All subwindows of W must have the same height as W.  */
+	/* All child windows of W must have the same height as W.  */
 	{
 	  while (c)
 	    {
@@ -3447,9 +3436,9 @@ window_resize_check (struct window *w, int horflag)
 }
 
 /* Set w->total_lines (w->total_cols if HORIZONTAL is non-zero) to
-   w->new_total for window W and recursively all subwindows of W.  Also
-   calculate and assign the new vertical (horizontal) start positions of
-   each of these windows.
+   w->new_total for window W and recursively all child windows of W.
+   Also calculate and assign the new vertical (horizontal) start
+   positions of each of these windows.
 
    This function does not perform any error checks.  Make sure you have
    run window_resize_check on W before applying this function.  */
@@ -3523,8 +3512,8 @@ Optional argument HORIZONTAL omitted or nil means apply requested height
 values.  HORIZONTAL non-nil means apply requested width values.
 
 This function checks whether the requested values sum up to a valid
-window layout, recursively assigns the new sizes of all subwindows and
-calculates and assigns the new start positions of these windows.
+window layout, recursively assigns the new sizes of all child windows
+and calculates and assigns the new start positions of these windows.
 
 Note: This function does not check any of `window-fixed-size-p',
 `window-min-height' or `window-min-width'.  All these checks have to
@@ -3681,7 +3670,7 @@ set correctly.  See the code of `split-window' for how this is done.  */)
   int horflag
     /* HORFLAG is 1 when we split side-by-side, 0 otherwise.  */
     = EQ (side, Qt) || EQ (side, Qleft) || EQ (side, Qright);
-  int do_nest = 0;
+  int combination_limit = 0;
 
   CHECK_WINDOW (old);
   o = XWINDOW (old);
@@ -3690,11 +3679,11 @@ set correctly.  See the code of `split-window' for how this is done.  */)
 
   CHECK_NUMBER (total_size);
 
-  /* Set do_nest to 1 if we have to make a new parent window.  We do
-     that if either `window-nest' is non-nil, or OLD has no parent, or
-     OLD is ortho-combined.  */
-  do_nest =
-    !NILP (Vwindow_nest)
+  /* Set combination_limit to 1 if we have to make a new parent window.
+     We do that if either `window-combination-limit' is t, or OLD has no
+     parent, or OLD is ortho-combined.  */
+  combination_limit =
+    !NILP (Vwindow_combination_limit)
     || NILP (o->parent)
     || NILP (horflag
 	     ? (XWINDOW (o->parent)->hchild)
@@ -3714,8 +3703,8 @@ set correctly.  See the code of `split-window' for how this is done.  */)
     error ("Attempt to split minibuffer window");
   else if (XINT (total_size) < (horflag ? 2 : 1))
     error ("Size of new window too small (after split)");
-  else if (!do_nest && !NILP (Vwindow_splits))
-    /* `window-splits' non-nil means try to resize OLD's siblings
+  else if (!combination_limit && !NILP (Vwindow_combination_resize))
+    /* `window-combination-resize' non-nil means try to resize OLD's siblings
        proportionally.  */
     {
       p = XWINDOW (o->parent);
@@ -3739,7 +3728,7 @@ set correctly.  See the code of `split-window' for how this is done.  */)
     }
 
   /* This is our point of no return. */
-  if (do_nest)
+  if (combination_limit)
     {
       /* Save the old value of o->normal_cols/lines.  It gets corrupted
 	 by make_parent_window and we need it below for assigning it to
@@ -3748,12 +3737,9 @@ set correctly.  See the code of `split-window' for how this is done.  */)
 
       make_parent_window (old, horflag);
       p = XWINDOW (o->parent);
-      /* Store value of `window-nest' in new parent's nest slot.  */
-      p->nest = Vwindow_nest;
-      /* Have PARENT inherit splits slot value from OLD.  */
-      p->splits = o->splits;
-      /* Store value of `window-splits' in OLD's splits slot.  */
-      o->splits = Vwindow_splits;
+      /* Store value of `window-combination-limit' in new parent's
+	 combination_limit slot.  */
+      p->combination_limit = Vwindow_combination_limit;
       /* These get applied below.  */
       p->new_total = horflag ? o->total_cols : o->total_lines;
       p->new_normal = new_normal;
@@ -3803,9 +3789,6 @@ set correctly.  See the code of `split-window' for how this is done.  */)
   n->fringes_outside_margins = r->fringes_outside_margins;
   n->scroll_bar_width = r->scroll_bar_width;
   n->vertical_scroll_bar_type = r->vertical_scroll_bar_type;
-
-  /* Store `window-splits' in NEW's splits slot.  */
-  n->splits = Vwindow_splits;
 
   /* Directly assign orthogonal coordinates and sizes.  */
   if (horflag)
@@ -3920,12 +3903,12 @@ Signal an error when WINDOW is the only window on its frame.  */)
 
       if (!NILP (w->vchild))
 	{
-	  delete_all_subwindows (w->vchild);
+	  delete_all_child_windows (w->vchild);
 	  w->vchild = Qnil;
 	}
       else if (!NILP (w->hchild))
 	{
-	  delete_all_subwindows (w->hchild);
+	  delete_all_child_windows (w->hchild);
 	  w->hchild = Qnil;
 	}
       else if (!NILP (w->buffer))
@@ -3943,10 +3926,9 @@ Signal an error when WINDOW is the only window on its frame.  */)
 	  /* Put SIBLING into PARENT's place.  */
 	  replace_window (parent, sibling, 0);
 	  /* Have SIBLING inherit the following three slot values from
-	     PARENT (the nest slot is not inherited).  */
+	     PARENT (the combination_limit slot is not inherited).  */
 	  s->normal_cols = p->normal_cols;
 	  s->normal_lines = p->normal_lines;
-	  s->splits = p->splits;
 	  /* Mark PARENT as deleted.  */
 	  p->vchild = p->hchild = Qnil;
 	  /* Try to merge SIBLING into its new parent.  */
@@ -5208,10 +5190,10 @@ and redisplay normally--don't erase and redraw the frame.  */)
 DEFUN ("window-text-height", Fwindow_text_height, Swindow_text_height,
        0, 1, 0,
        doc: /* Return the height in lines of the text display area of WINDOW.
-WINDOW defaults to the selected window.
+If WINDOW is omitted or nil, it defaults to the selected window.
 
-The return value does not include the mode line, any header line, nor
-any partial-height lines in the text display area.  */)
+The returned height does not include the mode line, any header line,
+nor any partial-height lines at the bottom of the text area.  */)
   (Lisp_Object window)
 {
   struct window *w = decode_window (window);
@@ -5334,7 +5316,7 @@ struct saved_window
   Lisp_Object left_margin_cols, right_margin_cols;
   Lisp_Object left_fringe_width, right_fringe_width, fringes_outside_margins;
   Lisp_Object scroll_bar_width, vertical_scroll_bar_type, dedicated;
-  Lisp_Object splits, nest, window_parameters;
+  Lisp_Object combination_limit, window_parameters;
 };
 
 #define SAVED_WINDOW_N(swv,n) \
@@ -5505,7 +5487,7 @@ the return value is nil.  Otherwise the value is t.  */)
 	 Save their current buffers in their height fields, since we may
 	 need it later, if a buffer saved in the configuration is now
 	 dead.  */
-      delete_all_subwindows (FRAME_ROOT_WINDOW (f));
+      delete_all_child_windows (FRAME_ROOT_WINDOW (f));
 
       for (k = 0; k < saved_windows->header.size; k++)
 	{
@@ -5565,8 +5547,7 @@ the return value is nil.  Otherwise the value is t.  */)
 	  w->scroll_bar_width = p->scroll_bar_width;
 	  w->vertical_scroll_bar_type = p->vertical_scroll_bar_type;
 	  w->dedicated = p->dedicated;
-	  w->splits = p->splits;
-	  w->nest = p->nest;
+	  w->combination_limit = p->combination_limit;
 	  w->window_parameters = p->window_parameters;
 	  XSETFASTINT (w->last_modified, 0);
 	  XSETFASTINT (w->last_overlay_modified, 0);
@@ -5719,10 +5700,10 @@ the return value is nil.  Otherwise the value is t.  */)
 }
 
 
-/* Delete all subwindows reachable via the next, vchild, and hchild
-   slots of WINDOW.  */
+/* Recursively delete all child windows reachable via the next, vchild,
+   and hchild slots of WINDOW.  */
 void
-delete_all_subwindows (Lisp_Object window)
+delete_all_child_windows (Lisp_Object window)
 {
   register struct window *w;
 
@@ -5730,18 +5711,18 @@ delete_all_subwindows (Lisp_Object window)
 
   if (!NILP (w->next))
     /* Delete WINDOW's siblings (we traverse postorderly).  */
-    delete_all_subwindows (w->next);
+    delete_all_child_windows (w->next);
 
   w->total_lines = w->buffer;       /* See Fset_window_configuration for excuse.  */
 
   if (!NILP (w->vchild))
     {
-      delete_all_subwindows (w->vchild);
+      delete_all_child_windows (w->vchild);
       w->vchild = Qnil;
     }
   else if (!NILP (w->hchild))
     {
-      delete_all_subwindows (w->hchild);
+      delete_all_child_windows (w->hchild);
       w->hchild = Qnil;
     }
   else if (!NILP (w->buffer))
@@ -5844,8 +5825,7 @@ save_window_save (Lisp_Object window, struct Lisp_Vector *vector, int i)
       p->scroll_bar_width = w->scroll_bar_width;
       p->vertical_scroll_bar_type = w->vertical_scroll_bar_type;
       p->dedicated = w->dedicated;
-      p->splits = w->splits;
-      p->nest = w->nest;
+      p->combination_limit = w->combination_limit;
       p->window_parameters = w->window_parameters;
       if (!NILP (w->buffer))
 	{
@@ -5995,7 +5975,7 @@ means no margin.  */)
 DEFUN ("window-margins", Fwindow_margins, Swindow_margins,
        0, 1, 0,
        doc: /* Get width of marginal areas of window WINDOW.
-If WINDOW is omitted or nil, use the currently selected window.
+If WINDOW is omitted or nil, it defaults to the selected window.
 Value is a cons of the form (LEFT-WIDTH . RIGHT-WIDTH).
 If a marginal area does not exist, its width will be returned
 as nil.  */)
@@ -6059,7 +6039,7 @@ display marginal areas and the text area.  */)
 DEFUN ("window-fringes", Fwindow_fringes, Swindow_fringes,
        0, 1, 0,
        doc: /* Get width of fringes of window WINDOW.
-If WINDOW is omitted or nil, use the currently selected window.
+If WINDOW is omitted or nil, it defaults to the selected window.
 Value is a list of the form (LEFT-WIDTH RIGHT-WIDTH OUTSIDE-MARGINS).  */)
   (Lisp_Object window)
 {
@@ -6128,7 +6108,7 @@ Fourth parameter HORIZONTAL-TYPE is currently unused.  */)
 DEFUN ("window-scroll-bars", Fwindow_scroll_bars, Swindow_scroll_bars,
        0, 1, 0,
        doc: /* Get width and type of scroll bars of window WINDOW.
-If WINDOW is omitted or nil, use the currently selected window.
+If WINDOW is omitted or nil, it defaults to the selected window.
 Value is a list of the form (WIDTH COLS VERTICAL-TYPE HORIZONTAL-TYPE).
 If WIDTH is nil or TYPE is t, the window is using the frame's corresponding
 value.  */)
@@ -6151,7 +6131,7 @@ value.  */)
 
 DEFUN ("window-vscroll", Fwindow_vscroll, Swindow_vscroll, 0, 2, 0,
        doc: /* Return the amount by which WINDOW is scrolled vertically.
-Use the selected window if WINDOW is nil or omitted.
+If WINDOW is omitted or nil, it defaults to the selected window.
 Normally, value is a multiple of the canonical character height of WINDOW;
 optional second arg PIXELS-P means value is measured in pixels.  */)
   (Lisp_Object window, Lisp_Object pixels_p)
@@ -6308,7 +6288,8 @@ freeze_window_starts (struct frame *f, int freeze_p)
    and the like.
 
    This ignores a couple of things like the dedicatedness status of
-   window, splits, nest and the like.  This might have to be fixed.  */
+   window, combination_limit and the like.  This might have to be
+   fixed.  */
 
 int
 compare_window_configurations (Lisp_Object configuration1, Lisp_Object configuration2, int ignore_positions)
@@ -6512,41 +6493,39 @@ will redraw the entire frame; the special value `tty' causes the
 frame to be redrawn only if it is a tty frame.  */);
   Vrecenter_redisplay = Qtty;
 
-  DEFVAR_LISP ("window-splits", Vwindow_splits,
-	       doc: /* Non-nil means splitting windows is handled specially.
+  DEFVAR_LISP ("window-combination-resize", Vwindow_combination_resize,
+	       doc: /* Non-nil means resize window combinations proportionally.
 If this variable is nil, splitting a window gets the entire screen space
-for displaying the new window from the window to split.  If this
-variable is non-nil, splitting a window may resize all windows in the
-same combination.  This also allows to split a window that is otherwise
-too small or of fixed size.
+for displaying the new window from the window to split.  Deleting and
+resizing a window preferably resizes one adjacent window only.
 
-The value of this variable is also assigned to the split status of the
-new window and, provided the old and new window form a new combination,
-to the window that was split as well.  The split status of a window can
-be retrieved with the function `window-splits' and altered by the
-function `set-window-splits'.
+If this variable is non-nil, splitting a window tries to get the space
+proportionally from all windows in the same combination.  This also
+allows to split a window that is otherwise too small or of fixed size.
+Resizing and deleting a window proportionally resize all windows in the
+same combination.
 
-If the value of the variable `window-nest' is non-nil, the space for the
-new window is exclusively taken from the window that shall be split, but
-the split status of the window that is split as well as that of the new
-window are still set to the value of this variable.  */);
-  Vwindow_splits = Qnil;
+This variable takes no effect if `window-combination-limit' is non-nil.  */);
+  Vwindow_combination_resize = Qnil;
 
-  DEFVAR_LISP ("window-nest", Vwindow_nest,
+  DEFVAR_LISP ("window-combination-limit", Vwindow_combination_limit,
 	       doc: /* Non-nil means splitting a window makes a new parent window.
 If this variable is nil, splitting a window will create a new parent
 window only if the window has no parent window or the window shall
-become a combination orthogonal to the one it it is part of.
+become a combination orthogonal to the one it is part of.
 
-If this variable is non-nil, splitting a window always creates a new
-parent window.  If all splits behave this way, each frame's window tree
-is a binary tree and every window but the frame's root window has
-exactly one sibling.
+If this variable is t, splitting a window always creates a new parent
+window.  If all splits behave this way, each frame's window tree is a
+binary tree and every window but the frame's root window has exactly one
+sibling.
 
-The value of this variable is also assigned to the nest status of the
-new parent window.  The nest status of a window can be retrieved via the
-function `window-nest' and altered by the function `set-window-nest'.  */);
-  Vwindow_nest = Qnil;
+Other values are reserved for future use.
+
+The value of this variable is also assigned to the combination-limit
+status of the new parent window.  The combination-limit status of a
+window can be retrieved via the function `window-combination-limit' and
+altered by the function `set-window-combination-limit'.  */);
+  Vwindow_combination_limit = Qnil;
 
   defsubr (&Sselected_window);
   defsubr (&Sminibuffer_window);
@@ -6566,21 +6545,21 @@ function `window-nest' and altered by the function `set-window-nest'.  */);
   defsubr (&Swindow_left_child);
   defsubr (&Swindow_next_sibling);
   defsubr (&Swindow_prev_sibling);
-  defsubr (&Swindow_splits);
-  defsubr (&Sset_window_splits);
-  defsubr (&Swindow_nest);
-  defsubr (&Sset_window_nest);
+  defsubr (&Swindow_combination_limit);
+  defsubr (&Sset_window_combination_limit);
   defsubr (&Swindow_use_time);
   defsubr (&Swindow_top_line);
   defsubr (&Swindow_left_column);
-  defsubr (&Swindow_total_size);
+  defsubr (&Swindow_total_height);
+  defsubr (&Swindow_total_width);
   defsubr (&Swindow_normal_size);
   defsubr (&Swindow_new_total);
   defsubr (&Swindow_new_normal);
   defsubr (&Sset_window_new_total);
   defsubr (&Sset_window_new_normal);
   defsubr (&Swindow_resize_apply);
-  defsubr (&Swindow_body_size);
+  defsubr (&Swindow_body_height);
+  defsubr (&Swindow_body_width);
   defsubr (&Swindow_hscroll);
   defsubr (&Sset_window_hscroll);
   defsubr (&Swindow_redisplay_end_trigger);

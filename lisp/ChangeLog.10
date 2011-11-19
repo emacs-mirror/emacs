@@ -2339,7 +2339,7 @@
 	skips encoded regions.  Allow user to skip saving Fcc messages with
 	large attachments.  Fixed region skipping bug with multi-line
 	comments - e.g.  tex $ regions spanning multiple lines.
-	Added support for postscript and uuencoded regions.
+	Added support for PostScript and uuencoded regions.
 	Redundant dictionary file names purged.
 	Dictionary definition field name changed from "Character Set"
 	to "Coding System".  Fixed bug in reloading dictionaries.
@@ -2374,7 +2374,7 @@
 	(ispell-valid-dictionary-list): New function returning all valid
 	dictionaries on machine.
 	(ispell-checking-message): Documentation string improved.
-	(ispell-skip-region-alist): Add uuencoded and postscript region
+	(ispell-skip-region-alist): Add uuencoded and PostScript region
 	skipping.  Improve http/e-mail/file regexp to not match `/.\w'.
 	(ispell-html-skip-alists): New variable for html region support.
 	(ispell-send-string): Remove redundant xemacs check.
@@ -2402,7 +2402,7 @@
 	html skipping pushed to alists.
 	(ispell-get-line): Add support for multi-line comment regions.
 	(ispell): Check that variables to continue spelling are bound.
-	(ispell-message-text-end): Postscript and uuencoded regions now
+	(ispell-message-text-end): PostScript and uuencoded regions now
 	supported as MIME regions, rather than as end-of-message region.
 	(ispell-mime-multipartp): New function supporting MIME.
 	(ispell-mime-skip-part): New function supporting MIME.
@@ -3318,7 +3318,7 @@
 	ada-prj.el are now defined in this package, which makes it easier to
 	edit menus.
 	(ada-narrow-to-defun): Add support for `narrow-to-region'.
-	No longer explicitely load ada-xref.el and ada-prj.el.  Use autoload
+	No longer explicitly load ada-xref.el and ada-prj.el.  Use autoload
 	statements instead.
 
 	* progmodes/ada-xref.el (ada-gnatls-args): New variable.
@@ -3516,7 +3516,7 @@
 2003-04-23  Stefan Monnier  <monnier@cs.yale.edu>
 
 	* newcomment.el (comment-normalize-vars): Prompt the user for
-	the comment-start to use rather than signalling an error.  Fix regexp.
+	the comment-start to use rather than signaling an error.  Fix regexp.
 	(uncomment-region): Don't leave half-removed comment markers.
 
 2003-04-23  Richard M. Stallman  <rms@gnu.org>
@@ -4332,7 +4332,7 @@
 
 2003-04-01  Stefan Monnier  <monnier@cs.yale.edu>
 
-	* progmodes/asm-mode.el	(asm-mode-syntax-table): Setup entries
+	* progmodes/asm-mode.el (asm-mode-syntax-table): Setup entries
 	that do not depend on asm-comment-char.
 	(asm-mode-map): Declare and init at the same time.
 	(asm-code-level-empty-comment-pattern)
@@ -9383,7 +9383,7 @@
 
 2002-10-06  Glenn Morris  <gmorris@ast.cam.ac.uk>
 
-	* progmodes/fortran.el (fortran-beginning-do): Ignore labelled DO
+	* progmodes/fortran.el (fortran-beginning-do): Ignore labeled DO
 	loops.
 
 2002-10-05  Stefan Monnier  <monnier@cs.yale.edu>
@@ -9632,7 +9632,7 @@
 	named ucs-translation-table-for-decode vacant.  If FOR-ENCODE is
 	non-nil, make a proper char-table populates the translation table
 	name utf-translation-table-for-encode.  Call register-char-codings
-	for all mule-utf-* to to reset their status to the original.
+	for all mule-utf-* to reset their status to the original.
 	(unify-8859-on-encoding-mode): Call ucs-unify-8859 and
 	ucs-fragment-8859 with fixed arguments.  Set the version to 21.3.
 	(unify-8859-on-decoding-mode): Likewise.  Remove dependency.
@@ -10545,7 +10545,7 @@
 
 2002-09-22  Kai Großjohann  <grossjoh@ls6.informatik.uni-dortmund.de>
 
-	* dired.el (dired-insert-directory): Always add "--dired" to to
+	* dired.el (dired-insert-directory): Always add "--dired" to
 	SWITCHES for remote files.
 	* files.el (insert-directory): Comment saying that "--dired"
 	might be in the SWITCHES.
@@ -11617,7 +11617,7 @@
 	* emacs-lisp/bytecomp.el (byte-compile-warning-prefix):
 	Decide here whether to print which form we're compiling.
 	If we do that, still print file and line.  Make file name
-	relative to default-directory.	Print fewer newlines.
+	relative to default-directory.  Print fewer newlines.
 	(byte-compile-log-file): Print something even if no file.
 	Print messages for entering and leaving directories,
 	and set default-directory.
@@ -12899,7 +12899,7 @@
 	* timer.el (timer-inc-time): Doc fix.
 
 	* replace.el (keep-lines, flush-lines): Interactively report
-	read-only error	before reading regexp argument.
+	read-only error before reading regexp argument.
 
 	* dabbrev.el (dabbrev--search): Use inhibit-point-motion-hooks.
 
@@ -21105,12 +21105,12 @@
 	so that the next undo after an error will not begin redoing.
 
 	* simple.el (shell-command): Doc fix.
-	(shell-command-on-region): If there is output an an error,
+	(shell-command-on-region): If there is output and an error,
 	add "...Shell command failed" to the output.
 
 2001-12-13  David Ponce  <david@dponce.com>
 
-	* ruler-mode.el	(ruler-mode-left-fringe-cols): Variable removed.
+	* ruler-mode.el (ruler-mode-left-fringe-cols): Variable removed.
 	(ruler-mode-left-fringe-cols): Function replaced by more efficient
 	implementation `ruler-mode-extra-left-cols'.
 	(ruler-mode-ruler): Use above new function.  Take into account
@@ -23550,4 +23550,3 @@ See ChangeLog.9 for earlier changes.
 
   You should have received a copy of the GNU General Public License
   along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
-

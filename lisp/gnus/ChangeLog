@@ -1,3 +1,44 @@
+2011-11-16  Juanma Barranquero  <lekktu@gmail.com>
+
+	* gnus-sum.el (gnus-summary-make-menu-bar):
+	* gnus-uu.el (gnus-uu-decode-postscript)
+	(gnus-uu-decode-postscript-and-save):
+	* mailcap.el (mailcap-print-command):
+	* registry.el (registry-lookup, registry-lookup-breaks-before-lexbind):
+	Fix typos.
+
+2011-11-15  Juanma Barranquero  <lekktu@gmail.com>
+
+	* gnus-art.el (gnus-article-part-wrapper):
+	* shr-color.el (shr-color-visible-distance-min)
+	(shr-color-relative-to-absolute, set-minimum-interval)
+	(shr-color-visible): Fix typos.
+
+2011-11-03  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* gnus-sum.el (gnus-articles-to-read): Change wording in prompt to be
+	slightly clearer.
+
+2011-11-03  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* message.el (message-send-and-exit): Document `arg'.
+
+2011-11-03  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* nnimap.el (nnimap-open-connection-1): Use tcp-keealive if possible.
+
+2011-11-02  Teodor Zlatanov  <tzz@lifelogs.com>
+
+	* gnus-util.el (gnus-bound-and-true-p): Another comment to explain why
+	we don't use `bound-and-true-p'.
+
+2011-11-01  Teodor Zlatanov  <tzz@lifelogs.com>
+
+	* gnus-util.el (gnus-bound-and-true-p): Remove.
+	(gnus-bound-and-true-dumber-p): Rename to `gnus-bound-and-true-p'.
+	* nnir.el: Use it.
+	* nnmairix.el: Use it.
+
 2011-10-31  Teodor Zlatanov  <tzz@lifelogs.com>
 
 	* gnus-util.el (gnus-bound-and-true-dumber-p): Define new, slower, dumb
@@ -1795,7 +1836,7 @@
 
 2011-03-15  Lars Magne Ingebrigtsen  <larsi@gnus.org>
 
-	* gnus-sum.el (gnus-articles-to-read): Revert back to old behaviour if
+	* gnus-sum.el (gnus-articles-to-read): Revert back to old behavior if
 	we're selecting a group with unread articles.
 
 	* nnimap.el (nnimap-open-connection-1): Allow `network-only', too.
@@ -2534,7 +2575,7 @@
 	* gnus-sum.el (gnus-user-date): Rename back from
 	gnus-summary-user-date since user code refers to it.
 
-	* shr.el (shr-render-td): Store the actual background colour used.
+	* shr.el (shr-render-td): Store the actual background color used.
 
 	* message.el (message-setup-1): Don't bind the constant
 	-forbidden-properties.
@@ -2622,9 +2663,9 @@
 
 2011-02-01  Lars Ingebrigtsen  <larsi@gnus.org>
 
-	* shr.el (shr-render-td): Only do colours at the final rendering.
+	* shr.el (shr-render-td): Only do colors at the final rendering.
 	Should be slightly faster.
-	(shr-insert-table): Fix up TD background colours when doing the
+	(shr-insert-table): Fix up TD background colors when doing the
 	vertical padding.
 
 	* gnus-art.el (article-date-ut): Protect against articles with no Date
@@ -2752,7 +2793,7 @@
 
 2011-01-27  Lars Ingebrigtsen  <larsi@gnus.org>
 
-	* shr.el (shr-put-color): Special-case background colours: Do put them
+	* shr.el (shr-put-color): Special-case background colors: Do put them
 	at the blank parts at the front of the lines.
 
 	* gnus-draft.el (gnus-draft-clear-marks): New function to be run as an
@@ -3757,7 +3798,7 @@
 
 2010-11-25  Lars Magne Ingebrigtsen  <larsi@gnus.org>
 
-	* shr-color.el (shr-color-visible): Don't bug out if the colour names
+	* shr-color.el (shr-color-visible): Don't bug out if the color names
 	don't exist.
 
 2010-11-25  Katsumi Yamaoka  <yamaoka@jpl.org>
@@ -3829,7 +3870,7 @@
 
 2010-11-24  Lars Magne Ingebrigtsen  <larsi@gnus.org>
 
-	* shr.el (shr-color-check): Protect against non-existent colour names.
+	* shr.el (shr-color-check): Protect against non-existent color names.
 
 2010-11-24  Julien Danjou  <julien@danjou.info>
 
@@ -3855,7 +3896,7 @@
 2010-11-23  Lars Magne Ingebrigtsen  <larsi@gnus.org>
 
 	* shr.el (shr-insert-color-overlay): Split stuff like
-	"#444444 !important" to find the real colour.
+	"#444444 !important" to find the real color.
 	(shr-tag-font): Resurrect shr-tag-font again, since it's needed to
 	parse <font color="red"> entries.
 
@@ -4397,7 +4438,7 @@
 	gnus-original-article-buffer is alive.
 
 	* nndoc.el (nndoc-dissect-buffer): Reverse the order of the articles to
-	reflect the order they're in in the digest.
+	reflect the order they are in the digest.
 
 	* gnus.el (gnus-group-startup-message): Move point to the start of the
 	buffer.
@@ -4532,7 +4573,7 @@
 
 	* shr.el (shr-put-image): Use point even if only inserting text.
 	(shr-put-image): Save excursion when inserting alt text on non-graphic
-	display, so the behaviour is the same when we are on a graphic display.
+	display, so the behavior is the same when we are on a graphic display.
 
 	* nnir.el (nnir-run-swish-e): Remove hyrex support.
 
@@ -5153,7 +5194,7 @@
 	bidning gnus-agent variables.
 
 	* shr.el (shr-render-td): Use a cache for the table rendering function
-	to avoid getting an exponential rendering behaviour in nested tables.
+	to avoid getting an exponential rendering behavior in nested tables.
 	(shr-insert): Rework the line-breaking algorithm.
 	(shr-insert): Don't leave trailing spaces.
 	(shr-insert-table): Also insert empty TDs.
@@ -5966,15 +6007,15 @@
 	highlight again, so that the highlight is correct.
 
 	* gnus-picon.el (gnus-picon): Remove again.
-	(gnus-picon-create-glyph): Set the background XPM colour explicitly.
+	(gnus-picon-create-glyph): Set the background XPM color explicitly.
 
 	* gnus-art.el (gnus-treatment-function-alist): Insert picons after
-	doing the header highlightling, so that the background colour of the
+	doing the header highlightling, so that the background color of the
 	picon is correct.
 
 	* gnus-picon.el (gnus-picon-xbm): Remove obsolete face.
 	(gnus-picon): Ditto.
-	(gnus-picon): Reinstate.  The background colour for picons is white.
+	(gnus-picon): Reinstate.  The background color for picons is white.
 	(gnus-picon-insert-glyph): Make the background white.
 
 	* nnml.el (nnml-open-nov): Don't return dead buffers.
@@ -6758,7 +6799,7 @@
 
 	* gnus-start.el (gnus-get-unread-articles): Allow the backends to
 	update the group info.  This makes the nndraft groups, for instance, go
-	back to their old behaviour.
+	back to their old behavior.
 
 	* gnus-sum.el (gnus-select-newsgroup): Indent.
 
@@ -7150,7 +7191,7 @@
 
 	* gnus-agent.el (gnus-agent-auto-agentize-methods): Change the default
 	so that nnimap methods aren't agentized by default.  There's apparently
-	many problems related to agent/imap behaviour.
+	many problems related to agent/imap behavior.
 
 	* gnus-art.el (gnus-article-copy-string): New command and key binding.
 
@@ -7195,7 +7236,7 @@
 	storage than before.
 
 	* gnus.el (gnus-refer-article-method): Change default to 'current.
-	When referring an article, the common behaviour is to refer it from the
+	When referring an article, the common behavior is to refer it from the
 	current select method, not the native select method.  The chances of
 	the native select method having the message in question is rather slim
 	these days.
@@ -7211,7 +7252,7 @@
 	* gnus-sum.el (gnus-summary-goto-unread): Change default to nil, so
 	that commands like `d' (and the like) go to the next line in the
 	buffer, instead of the next unread article.  I think this is the
-	behaviour that is most natural for most users.
+	behavior that is most natural for most users.
 	(gnus-single-article-buffer): Change default to nil, so that people can
 	have as many article buffers open as they have summary buffer.  I think
 	this is the most natural way for the groups to behave.
@@ -7386,7 +7427,7 @@
 	UTF-8.  This seems to fix problems with some German web feeds.
 
 	* gnus.el (gnus-group-startup-message): Put the xpm version of the logo
-	at the top so that the proper colours are applied.
+	at the top so that the proper colors are applied.
 
 	* gnus-art.el (gnus-article-view-part): Doc fix.
 
@@ -16492,7 +16533,7 @@
 2005-06-16  Arne Jørgensen  <arne@arnested.dk>
 
 	* smime.el (smime-cert-by-ldap-1): Detect PEM format without
-	header by looking for magic "MII" at the beginnig.
+	header by looking for magic "MII" at the beginning.
 
 2005-06-16  Miles Bader  <miles@gnu.org>
 
@@ -18466,7 +18507,7 @@
 2004-10-05  Jesper Harder  <harder@ifa.au.dk>
 
 	* nnsoup.el (nnsoup-read-active-file): Use dolist, mapc or last
-	where approriate.
+	where appropriate.
 
 	* nnml.el (nnml-generate-active-info): do.
 
@@ -20021,7 +20062,7 @@
 	* mail-source.el (mail-source-delete-crash-box): Refactor.
 	(mail-source-fetch): Use it.
 	(mail-source-fetch-file): Ditto.
-	(mail-source-fetch-directory): Run postscript in loop.
+	(mail-source-fetch-directory): Run PostScript in loop.
 	(mail-source-fetch-pop): Delete.
 	(mail-source-fetch-maildir): Ditto.
 	(mail-source-fetch-imap): Ditto.

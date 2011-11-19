@@ -107,7 +107,7 @@ the extent 'intangible' property does not exist."
   "Hook used in modification hooks to prevent modification.
 Allows deletion of the entire text.
 Argument OVERLAY, AFTER, START, END, and LEN are passed in by the system."
-  ;; Stolen blithly from cpp.el in Emacs 21.1
+  ;; Stolen blithely from cpp.el in Emacs 21.1
   (if (and (not after)
 	   (or (< (semantic-overlay-start overlay) start)
 	       (> (semantic-overlay-end overlay) end)))

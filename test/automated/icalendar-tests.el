@@ -39,7 +39,7 @@
 ;; ======================================================================
 
 (defun icalendar-tests--get-ical-event (ical-string)
-  "Return icalendar event for ICAL-STRING."
+  "Return iCalendar event for ICAL-STRING."
   (save-excursion
     (with-temp-buffer
       (insert ical-string)
@@ -219,7 +219,7 @@ END:VTIMEZONE
     (should (string=  "\nDTSTART;VALUE=DATE:20100215\nDTEND;VALUE=DATE:20100216"
                       (car result)))
     (should (string= "subject" (cadr result)))
-  
+
     ;; with time
     (setq result (icalendar--convert-ordinary-to-ical
                   "&?" "&2010 2 15 12:34-23:45 s"))
@@ -424,7 +424,7 @@ END:VEVENT
 Argument INPUT-ISO iso style diary string.
 Argument INPUT-EUROPEAN european style diary string.
 Argument INPUT-AMERICAN american style diary string.
-Argument EXPECTED-OUTPUT expected icalendar result string.
+Argument EXPECTED-OUTPUT expected iCalendar result string.
 
 European style input data must use german month names.  American
 and ISO style input data must use english month names."
@@ -467,7 +467,7 @@ and ISO style input data must use english month names."
 (defun icalendar-tests--do-test-export (input expected-output)
   "Actually perform export test.
 Argument INPUT input diary string.
-Argument EXPECTED-OUTPUT expected icalendar result string."
+Argument EXPECTED-OUTPUT expected iCalendar result string."
   (let ((temp-file (make-temp-file "icalendar-tests-ics")))
     (unwind-protect
 	(progn
@@ -732,7 +732,7 @@ DTSTART;VALUE=DATE-TIME:20030919"
    "&9/19/2003 non-recurring allday\n")
   (icalendar-tests--test-import
    ;; do not remove the trailing blank after "long"!
-   "SUMMARY:long 
+   "SUMMARY:long
  summary
 DTSTART;VALUE=DATE:20030919"
    "&2003/9/19 long summary\n"
@@ -1041,7 +1041,7 @@ SUMMARY:event-1
    "&2011/7/23 event-1\n"
    "&23/7/2011 event-1\n"
    "&7/23/2011 event-1\n")
-  
+
   (icalendar-tests--test-import
    "BEGIN:VCALENDAR
 PRODID:-//Emacs//NONSGML icalendar.el//EN
@@ -1111,7 +1111,7 @@ Argument INPUT icalendar event string."
 	(progn
 	  ;; step 1: import
 	  (icalendar-import-buffer temp-diary t t)
-	  
+
 	  ;; step 2: export what was just imported
 	  (save-excursion
 	    (find-file temp-diary)
@@ -1399,7 +1399,7 @@ SUMMARY:may 30 - June 1: ee")
    "DTSTART;VALUE=DATE:20050606
 DTEND;VALUE=DATE:20050609
 SUMMARY:ff")
-  
+
   ;; export 2004-10-28 anniversary entries
   (icalendar-tests--test-export
    nil

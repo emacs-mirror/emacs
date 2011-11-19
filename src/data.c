@@ -2028,7 +2028,7 @@ DEFUN ("indirect-function", Findirect_function, Sindirect_function, 1, 2, 0,
 If OBJECT is not a symbol, just return it.  Otherwise, follow all
 function indirections to find the final function binding and return it.
 If the final symbol in the chain is unbound, signal a void-function error.
-Optional arg NOERROR non-nil means to return nil instead of signalling.
+Optional arg NOERROR non-nil means to return nil instead of signaling.
 Signal a cyclic-function-indirection error if there is a loop in the
 function chain of symbols.  */)
   (register Lisp_Object object, Lisp_Object noerror)

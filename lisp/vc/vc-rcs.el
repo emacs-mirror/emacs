@@ -1399,7 +1399,7 @@ The `:insn' key is a keyword to distinguish it as a vc-rcs.el extension."
               ;; `incg' or `buffer-substring-no-properties'.  (This is
               ;; for speed; strictly speaking, it is sufficient to use
               ;; only the former since it behaves identically to the
-              ;; latter in the absense of "@@".)
+              ;; latter in the absence of "@@".)
               sub)
           (flet ((incg (beg end) (let ((b beg) (e end) @-holes)
                                    (while (and asc (< (car asc) e))

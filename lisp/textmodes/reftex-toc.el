@@ -33,7 +33,7 @@
 
 (defvar reftex-toc-mode-map
   (let ((map (make-sparse-keymap)))
-    
+
     (define-key map (if (featurep 'xemacs) [(button2)] [(mouse-2)])
       'reftex-toc-mouse-goto-line-and-hide)
     (define-key map [follow-link] 'mouse-face)
@@ -170,15 +170,15 @@ Here are all local bindings.
 
 
 (defvar reftex-toc-return-marker (make-marker)
-  "Marker which makes it possible to return from toc to old position.")
+  "Marker which makes it possible to return from TOC to old position.")
 
 (defconst reftex-toc-help
 "                      AVAILABLE KEYS IN TOC BUFFER
                       ============================
 n / p      next-line / previous-line
 SPC        Show the corresponding location of the LaTeX document.
-TAB        Goto the location and keep the *toc* window.
-RET        Goto the location and hide the *toc* window (also on mouse-2).
+TAB        Goto the location and keep the TOC window.
+RET        Goto the location and hide the TOC window (also on mouse-2).
 < / >      Promote / Demote section, or all sections in region.
 C-c >      Display Index. With prefix arg, restrict index to current section.
 q / k      Hide/Kill *toc* buffer, return to position of reftex-toc command.
@@ -287,7 +287,7 @@ SPC=view TAB=goto RET=goto+hide [q]uit [r]escan [l]abels [f]ollow [x]r [?]Help
       (setq offset
             (reftex-insert-docstruct
              this-buf
-             t ; include toc
+             t ; include TOC
              reftex-toc-include-labels
              reftex-toc-include-index-entries
              reftex-toc-include-file-boundaries
@@ -296,7 +296,7 @@ SPC=view TAB=goto RET=goto+hide [q]uit [r]escan [l]abels [f]ollow [x]r [?]Help
              nil ; commented
              here-I-am
              ""     ; xr-prefix
-             t      ; a toc buffer
+             t      ; a TOC buffer
              ))
 
       (run-hooks 'reftex-display-copied-context-hook)
@@ -391,7 +391,7 @@ SPC=view TAB=goto RET=goto+hide [q]uit [r]escan [l]abels [f]ollow [x]r [?]Help
                 (frame-parameter  frame 'name))
               "RefTeX TOC Frame")))
     (if (and res error)
-        (error "This frame is view-only.  Use `C-c =' to create toc window for commands"))
+        (error "This frame is view-only.  Use `C-c =' to create TOC window for commands"))
     res))
 
 (defun reftex-toc-show-help ()
@@ -421,14 +421,14 @@ SPC=view TAB=goto RET=goto+hide [q]uit [r]escan [l]abels [f]ollow [x]r [?]Help
   (goto-char (or (previous-single-property-change (point) :data)
                  (point))))
 (defun reftex-toc-next-heading (&optional arg)
-  "Move to next table of contentes line."
+  "Move to next table of contents line."
   (interactive "p")
   (when (featurep 'xemacs) (setq zmacs-region-stays t))
   (end-of-line)
   (re-search-forward "^ " nil t arg)
   (beginning-of-line))
 (defun reftex-toc-previous-heading (&optional arg)
-  "Move to previous table of contentes line."
+  "Move to previous table of contents line."
   (interactive "p")
   (when (featurep 'xemacs) (setq zmacs-region-stays t))
   (re-search-backward "^ " nil t arg))
@@ -468,9 +468,9 @@ Label context is only displayed when the labels are there as well."
   (setq reftex-toc-include-context (not reftex-toc-include-context))
   (reftex-toc-revert))
 (defun reftex-toc-max-level (arg)
-  "Set the maximum level of toc lines in this buffer to value of prefix ARG.
+  "Set the maximum level of TOC lines in this buffer to value of prefix ARG.
 When no prefix is given, set the max level to a large number, so that all
-levels are shown.  For eaxample, to set the level to 3, type `3 m'."
+levels are shown.  For example, to set the level to 3, type `3 m'."
   (interactive "P")
   (setq reftex-toc-max-level (if arg
                                  (prefix-numeric-value arg)
@@ -484,23 +484,23 @@ levels are shown.  For eaxample, to set the level to 3, type `3 m'."
   (reftex-toc-dframe-p nil 'error)
   (reftex-toc-visit-location))
 (defun reftex-toc-goto-line-and-hide ()
-  "Go to document location in other window.  Hide the *toc* window."
+  "Go to document location in other window.  Hide the TOC window."
   (interactive)
   (reftex-toc-dframe-p nil 'error)
   (reftex-toc-visit-location 'hide))
 (defun reftex-toc-goto-line ()
-  "Go to document location in other window. *toc* window stays."
+  "Go to document location in other window.  TOC window stays."
   (interactive)
   (reftex-toc-dframe-p nil 'error)
   (reftex-toc-visit-location t))
 (defun reftex-toc-mouse-goto-line-and-hide (ev)
-  "Go to document location in other window.  Hide the *toc* window."
+  "Go to document location in other window.  Hide the TOC window."
   (interactive "e")
   (mouse-set-point ev)
   (reftex-toc-dframe-p nil 'error)
   (reftex-toc-visit-location 'hide))
 (defun reftex-toc-show-calling-point ()
-  "Show point where reftex-toc was called from."
+  "Show point where `reftex-toc' was called from."
   (interactive)
   (reftex-toc-dframe-p nil 'error)
   (let ((this-window (selected-window)))
@@ -512,8 +512,8 @@ levels are shown.  For eaxample, to set the level to 3, type `3 m'."
           (recenter '(4)))
       (select-window this-window))))
 (defun reftex-toc-quit ()
-  "Hide the *toc* window and do not move point.
-If the toc window is the only window on the dedicated TOC frame, the frame
+  "Hide the TOC window and do not move point.
+If the TOC window is the only window on the dedicated TOC frame, the frame
 is destroyed."
   (interactive)
   (if (and (one-window-p)
@@ -584,7 +584,7 @@ With prefix arg 1, restrict index to the section at point."
     (reftex-toc)))
 
 (defun reftex-toc-revert (&rest ignore)
-  "Regenerate the *toc* from the internal lists."
+  "Regenerate the TOC from the internal lists."
   (interactive)
   (let ((unsplittable
          (if (fboundp 'frame-property)
@@ -618,7 +618,7 @@ With prefix arg 1, restrict index to the section at point."
 
 (defun reftex-toc-jump (arg)
   "Jump to a specific section.  E.g. '3 z' jumps to section 3.
-Useful for large TOC's."
+Useful for large TOCs."
   (interactive "P")
   (goto-char (point-min))
   (re-search-forward
@@ -642,7 +642,7 @@ Useful for large TOC's."
   (interactive "p")
   (reftex-toc-do-promote -1))
 (defun reftex-toc-do-promote (delta)
-  "Workhorse for reftex-toc-promote and reftex-to-demote.
+  "Workhorse for `reftex-toc-promote' and `reftex-toc-demote'.
 Changes the level of sections in the current region, or just the section at
 point."
   ;; We should not do anything unless we are sure this is going to work for
@@ -660,7 +660,7 @@ point."
     (setq msg
           (catch 'exit
             (if (reftex-region-active-p)
-                ;; A region is dangerous, check if we have a brandnew scan,
+                ;; A region is dangerous, check if we have a brand new scan,
                 ;; to make sure we are not missing any section statements.
                 (if (not (reftex-toc-check-docstruct))
                     (reftex-toc-load-all-files-for-promotion)   ;; exits
@@ -728,8 +728,8 @@ point."
               deactivate-mark nil)))))
 
 (defun reftex-toc-promote-prepare (x delta)
-  "Look at a toc entry and see if we could pro/demote it.
-This function prepares everything for the changes, but does not do it.
+  "Look at a TOC entry and see if we could pro/demote it.
+This function prepares everything for the change, but does not do it.
 The return value is a list with information needed when doing the
 promotion/demotion later.  DELTA is the level change."
   (let* ((data (car x))
@@ -779,7 +779,7 @@ promotion/demotion later.  DELTA is the level change."
       (error "Cannot %smote \\%s" pro-or-de name))))
 
 (defun reftex-toc-promote-action (x)
-  "Change the level of a toc entry.
+  "Change the level of a TOC entry.
 PRO-OR-DE is assumed to be dynamically scoped into this function."
   (let* ((data (car x))
          (name (nth 1 x))
@@ -792,7 +792,7 @@ PRO-OR-DE is assumed to be dynamically scoped into this function."
         (error "Fatal error during %smotion" pro-or-de)))))
 
 (defun reftex-toc-extract-section-number (entry)
-  "Get the numbering of a toc entry, for message purposes."
+  "Get the numbering of a TOC entry, for message purposes."
   (if (string-match "\\s-*\\(\\S-+\\)" (nth 2 (car entry)))
       (match-string 1 (nth 2 (car entry)))
     "?"))
@@ -838,7 +838,7 @@ if these sets are sorted blocks in the alist."
 (defun reftex-toc-load-all-files-for-promotion ()
   "Make sure all files of the document are being visited by buffers,
 and that the scanning info is absolutely up to date.
-We do this by rescanning with reftex-keep-temporary-buffers bound to t.
+We do this by rescanning with `reftex-keep-temporary-buffers' bound to t.
 The variable PRO-OR-DE is assumed to be dynamically scoped into this function.
 When finished, we exit with an error message."
   (let ((reftex-keep-temporary-buffers t))
@@ -848,9 +848,9 @@ When finished, we exit with an error message."
            "TOC had to be updated first.  Please check selection and repeat the command.")))
 
 (defun reftex-toc-rename-label ()
-  "Rename the currently selected label in the *TOC* buffer.
+  "Rename the currently selected label in the *toc* buffer.
 This launches a global search and replace in order to rename a label.
-Renaming a label is hardly ever necessary - the only exeption is after
+Renaming a label is hardly ever necessary - the only exception is after
 promotion/demotion in connection with a package like fancyref, where the
 label prefix determines the wording of a reference."
   (interactive)
@@ -861,7 +861,7 @@ label prefix determines the wording of a reference."
     (setq newlabel (read-string (format "Rename label \"%s\" to:" label)))
     (if (assoc newlabel (symbol-value reftex-docstruct-symbol))
         (if (not (y-or-n-p
-                  (format "Label '%s' exists. Use anyway? " label)))
+                  (format "Label '%s' exists.  Use anyway? " label)))
             (error "Abort")))
     (save-excursion
       (save-window-excursion
@@ -875,10 +875,10 @@ label prefix determines the wording of a reference."
 
 
 (defun reftex-toc-visit-location (&optional final no-revisit)
-  ;; Visit the tex file corresponding to the toc entry on the current line.
+  ;; Visit the tex file corresponding to the TOC entry on the current line.
   ;; If FINAL is t, stay there
-  ;; If FINAL is 'hide, hide the *toc* window.
-  ;; Otherwise, move cursor back into *toc* window.
+  ;; If FINAL is 'hide, hide the TOC window.
+  ;; Otherwise, move cursor back into TOC window.
   ;; NO-REVISIT means don't visit files, just use live buffers.
   ;; This function is pretty clever about finding back a section heading,
   ;; even if the buffer is not live, or things like outline, x-symbol etc.
@@ -888,7 +888,7 @@ label prefix determines the wording of a reference."
          (toc-window (selected-window))
          show-window show-buffer match)
 
-    (unless toc (error "Don't know which toc line to visit"))
+    (unless toc (error "Don't know which TOC line to visit"))
 
     (cond
 
@@ -1012,8 +1012,8 @@ label prefix determines the wording of a reference."
          (reftex-toc-recenter))))
 
 (defun reftex-toggle-auto-toc-recenter ()
-  "Toggle the automatic recentering of the toc window.
-When active, leaving point idle will make the toc window jump to the correct
+  "Toggle the automatic recentering of the TOC window.
+When active, leaving point idle will make the TOC window jump to the correct
 section."
   (interactive)
   (if reftex-toc-auto-recenter-timer
@@ -1022,7 +1022,7 @@ section."
             (delete-itimer reftex-toc-auto-recenter-timer)
           (cancel-timer reftex-toc-auto-recenter-timer))
         (setq reftex-toc-auto-recenter-timer nil)
-        (message "Automatic recentering of toc windwo was turned off"))
+        (message "Automatic recentering of TOC window was turned off"))
     (setq reftex-toc-auto-recenter-timer
           (if (featurep 'xemacs)
               (start-itimer "RefTeX Idle Timer for recenter"
@@ -1030,7 +1030,7 @@ section."
                             reftex-idle-time reftex-idle-time t)
             (run-with-idle-timer
              reftex-idle-time t 'reftex-recenter-toc-when-idle)))
-    (message "Automatic recentering of toc window was turned on")))
+    (message "Automatic recentering of TOC window was turned on")))
 
 (defun reftex-toc-toggle-dedicated-frame ()
   "Toggle the display of a separate frame for the TOC.
@@ -1052,7 +1052,7 @@ always show the current section in connection with the option
       (reftex-make-separate-toc-frame))))
 
 (defun reftex-make-separate-toc-frame ()
-  ;; Create a new fame showing only the toc buffer.
+  ;; Create a new fame showing only the TOC buffer.
   (let ((current-frame (selected-frame))
         (current-window (selected-window))
         (current-toc-window (get-buffer-window "*toc*" 'visible))

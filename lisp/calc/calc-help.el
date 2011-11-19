@@ -683,7 +683,7 @@ C-w  Describe how there is no warranty for Calc."
   (calc-do-prefix-help
    '("Pack, Unpack, Identity, Diagonal, indeX, Build"
      "Row, Column, Subvector; Length; Find; Mask, Expand"
-     "Tranpose, Arrange, reVerse; Head, Kons; rNorm"
+     "Transpose, Arrange, reVerse; Head, Kons; rNorm"
      "SHIFT + Det, & (inverse), LUD, Trace, conJtrn, Cross"
      "SHIFT + Sort, Grade, Histogram; cNorm"
      "SHIFT + Apply, Map, Reduce, accUm, Inner-, Outer-prod"

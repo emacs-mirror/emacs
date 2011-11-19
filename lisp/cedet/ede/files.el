@@ -101,7 +101,7 @@ of the anchor file for the project."
 		 (setq ans SP)
 	       (ede-find-subproject-for-directory SP dir)))))
 	ans)
-    ;; We can use inodes, so lets try it.
+    ;; We can use inodes, so let's try it.
     (let ((ans nil)
 	  (inode (ede--inode-for-dir dir)))
       (ede-map-subprojects

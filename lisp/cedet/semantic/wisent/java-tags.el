@@ -77,7 +77,7 @@ This function override `get-local-variables'."
 ;;;; Semantic integration of the Java LALR parser
 ;;;;
 
-;; In semantic-imenu.el, not part of Emacs.
+;; In semantic/imenu.el, not part of Emacs.
 (defvar semantic-imenu-summary-function)
 
 ;;;###autoload

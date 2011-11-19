@@ -518,7 +518,7 @@ It would look like this:
 (defun MY-LOAD (dir)
   "Load a project of type `cpp-root' for the directory DIR.
 Return nil if there isn't one."
-  ;; Use your preferred constructin method here.
+  ;; Use your preferred construction method here.
   (ede-cpp-root-project "NAME" :file (expand-file-name "FILE" dir)
                                :locate-fcn 'MYFCN)
   )
@@ -3273,7 +3273,7 @@ Return the default macro to 'edit' for this object type.
 @end deffn
 
 @deffn Method project-compile-target-command :AFTER this
-Default target t- use when compling a texinfo file.
+Default target t- use when compiling a texinfo file.
 @end deffn
 
 @deffn Method ede-documentation :AFTER this
@@ -3370,7 +3370,7 @@ Type: @code{(or null string)} @*
 Default Value: @code{nil}
 
 Emacs regex matching auxiliary source code this target accepts.
-Aux source are source code files needed for compilation, which are not comiled
+Aux source are source code files needed for compilation, which are not compiled
 themselves.
 @refill
 

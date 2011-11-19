@@ -1182,7 +1182,7 @@ run processes remotely.
 matches a regexp.
 
 *** The value of comment-style now defaults to `indent'.
-Thefore, comment-start markers are inserted at the current indentation
+Therefore, comment-start markers are inserted at the current indentation
 of the region to comment, rather than the leftmost column.
 
 *** The new commands `pp-macroexpand-expression' and
@@ -1235,8 +1235,8 @@ details, see the commentary in doc-view.el.
 
 PDF and DVI files are now opened in Doc View mode by default.
 
-In Postcript mode, C-c C-c launches Doc View minor mode for viewing
-the postscript file.
+In PostScript mode, C-c C-c launches Doc View minor mode for viewing
+the PostScript file.
 
 ** EasyPG provides an interface to the GNU Privacy Guard (GnuPG).
 It includes a GnuPG keyring browser, cryptographic operations on
@@ -2102,7 +2102,7 @@ function to use for searching in `query-replace-regexp',
 *** New keymap `search-map' bound to `M-s' provides global bindings
 for search related commands.
 
-*** New keymap `multi-query-replace-map' contains additonal keys bound
+*** New keymap `multi-query-replace-map' contains additional keys bound
 to `automatic-all' and `exit-current' for multi-buffer interactive replacement.
 
 *** The variable `inhibit-changing-match-data', if non-nil, prevents
@@ -2529,4 +2529,3 @@ Local variables:
 mode: outline
 paragraph-separate: "[ 	]*$"
 end:
-

@@ -317,7 +317,7 @@
 			(match-beginning ,(car highlight))
 			(match-end ,(car highlight))
 			,(elt highlight 1))))
-		;; highlight is an "ANCHORED HIGHLIGHER" of the form
+		;; highlight is an "ANCHORED HIGHLIGHTER" of the form
 		;; (ANCHORED-MATCHER PRE-FORM POST-FORM SUBEXP-HIGHLIGHTERS...)
 		(when (nth 3 highlight)
 		  (error "Match highlights currently not supported in %s"
@@ -1103,7 +1103,7 @@ casts and declarations are fontified.  Used on level 2 and higher."
 	      (<= (point) limit))
 
 	    ;; Search syntactically to the end of the declarator (";",
-	    ;; ",", a closen paren, eob etc) or to the beginning of an
+	    ;; ",", a closing paren, eob etc) or to the beginning of an
 	    ;; initializer or function prototype ("=" or "\\s\(").
 	    ;; Note that the open paren will match array specs in
 	    ;; square brackets, and we treat them as initializers too.

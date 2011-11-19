@@ -530,7 +530,11 @@ init_syntax_once (void)
 #define MIN(a, b) ((a) < (b) ? (a) : (b))
 
 /* Type of source-pattern and string chars.  */
+#ifdef _MSC_VER
+typedef unsigned char re_char;
+#else
 typedef const unsigned char re_char;
+#endif
 
 typedef char boolean;
 #define false 0
@@ -633,7 +637,7 @@ typedef enum
   on_failure_jump_nastyloop,
 
 	/* A smart `on_failure_jump' used for greedy * and + operators.
-	   It analyses the loop before which it is put and if the
+	   It analyzes the loop before which it is put and if the
 	   loop does not require backtracking, it changes itself to
 	   `on_failure_keep_string_jump' and short-circuits the loop,
 	   else it just defaults to changing itself into `on_failure_jump'.

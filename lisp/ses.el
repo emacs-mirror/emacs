@@ -43,7 +43,7 @@
 ;; working fine in most cases, however failed in some cases of several path
 ;; racing together.
 ;;
-;; The current algorithm is based on Dijksta algorithm.  The ``cycle length'' is
+;; The current algorithm is based on Dijkstra's algorithm.  The cycle length is
 ;; stored in some cell property. In order not to reset in all cells such
 ;; property at each update, the cycle length is stored in this property along
 ;; with some update attempt id that is incremented at each update. The current
@@ -980,7 +980,7 @@ if the cell's value is unchanged and FORCE is nil."
 	(error "Circular references: %s" ses--deferred-recalc))
       (message " "))
     ;; Can't use save-excursion here: if the cell under point is updated,
-    ;; save-excusion's marker will move past the cell.
+    ;; save-excursion's marker will move past the cell.
     (goto-char pos)))
 
 
@@ -3204,7 +3204,7 @@ By passing in REST some flags one can configure the way the range
 is read and how it is formatted.
 
 In the sequel we assume that cells A1, B1, A2 B2 have respective values
-1 2 3 and 4 for examplication.
+1 2 3 and 4.
 
 Readout direction is specified by a `>v', '`>^', `<v', `<^',
 `v>', `v<', `^>', `^<' flag. For historical reasons, in absence
@@ -3230,7 +3230,7 @@ vector or a matrix depending on the number of rows, `*1' will
 flatten the result to a one row vector, and `*2' will make a
 matrix whatever the number of rows.
 
-Warning: interaction with Calc is expermimental and may produce
+Warning: interaction with Calc is experimental and may produce
 confusing results if you are not aware of Calc data format. Use
 `math-format-value' as a printer for Calc objects."
   (let (result-row

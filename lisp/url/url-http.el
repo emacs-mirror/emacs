@@ -257,7 +257,7 @@ request.")
     (if (not (equal extra-headers ""))
 	(setq extra-headers (concat extra-headers "\r\n")))
 
-    ;; This was done with a call to `format'.  Concatting parts has
+    ;; This was done with a call to `format'.  Concatenating parts has
     ;; the advantage of keeping the parts of each header together and
     ;; allows us to elide null lines directly, at the cost of making
     ;; the layout less clear.
@@ -702,7 +702,7 @@ should be shown to the user."
 	 (not-acceptable		; 406
 	  ;; The resource identified by the request is only capable of
 	  ;; generating response entities which have content
-	  ;; characteristics nota cceptable according to the accept
+	  ;; characteristics not acceptable according to the accept
 	  ;; headers sent in the request.
 	  (setq success t))
 	 (proxy-authentication-required ; 407
@@ -1092,7 +1092,7 @@ the end of the document."
 	    (url-http-activate-callback)))
 	 ((string= "CONNECT" url-http-method)
 	  ;; A CONNECT request is finished, but we cannot stick this
-	  ;; back on the free connectin list
+	  ;; back on the free connection list
 	  (url-http-debug "CONNECT request must have headers only.")
 	  (when (url-http-parse-headers)
 	    (url-http-activate-callback)))
@@ -1255,7 +1255,11 @@ CBARGS as the arguments."
 	(url-http-end-of-document-sentinel proc why))
        ((string= (substring why 0 4) "open")
 	(setq url-http-connection-opened t)
-	(process-send-string proc (url-http-create-request)))
+	(condition-case error
+	    (process-send-string proc (url-http-create-request))
+	  (file-error
+	   (setq url-http-connection-opened nil)
+	   (message "HTTP error: %s" error))))
        (t
 	(setf (car url-callback-arguments)
 	      (nconc (list :error (list 'error 'connection-failed why

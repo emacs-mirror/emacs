@@ -86,6 +86,12 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #define IS_ANY_SEP(_c_) (IS_DIRECTORY_SEP (_c_) || IS_DEVICE_SEP (_c_))
 
 #include <sys/types.h>
+
+#ifdef _MSC_VER
+typedef unsigned long sigset_t;
+typedef int ssize_t;
+#endif
+
 struct sigaction {
   int sa_flags;
   void (*sa_handler)(int);
@@ -181,6 +187,17 @@ struct sigaction {
 
 #ifdef emacs
 
+#ifdef _MSC_VER
+#include <sys/timeb.h>
+#include <sys/stat.h>
+#include <signal.h>
+
+/* MSVC gets link-time errors without these redirections.  */
+#define fstat(a, b) sys_fstat(a, b)
+#define stat(a, b)  sys_stat(a, b)
+#define utime       sys_utime
+#endif
+
 /* Calls that are emulated or shadowed.  */
 #undef access
 #define access  sys_access
@@ -267,6 +284,7 @@ typedef int pid_t;
 
 #if !defined (_MSC_VER) || (_MSC_VER < 1400)
 #define tzname    _tzname
+#undef  utime
 #define utime	  _utime
 #endif
 
@@ -317,13 +335,17 @@ extern char *get_emacs_configuration_options (void);
 #define _WINSOCK_H
 
 /* Defines size_t and alloca ().  */
-#ifdef USE_CRT_DLL
+#if (defined(_MSC_VER) && defined(emacs)) || defined(USE_CRT_DLL)
 #define malloc e_malloc
 #define free   e_free
 #define realloc e_realloc
 #define calloc e_calloc
 #endif
+#ifdef _MSC_VER
+#define alloca _alloca
+#else
 #include <malloc.h>
+#endif
 
 #include <sys/stat.h>
 

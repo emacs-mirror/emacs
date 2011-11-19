@@ -117,7 +117,7 @@
     ;; We need to populate 'time' with
     ;; (SEC MIN HOUR DAY MON YEAR DOW DST TZ)
 
-    ;; Nobody else handles iso8601 correctly, lets do it ourselves.
+    ;; Nobody else handles iso8601 correctly, let's do it ourselves.
     (when (string-match date-re date-string re-start)
       (setq year (string-to-number (match-string 1 date-string))
 	    month (string-to-number (match-string 2 date-string))
@@ -430,7 +430,7 @@ added to this list, so most requests can just pass in nil."
   ;; Take care of the default value for depth...
   (setq depth (or depth 0))
 
-  ;; Now lets translate it into something webdav can understand.
+  ;; Now let's translate it into something webdav can understand.
   (if (< depth 0)
       (setq depth "Infinity")
     (setq depth (int-to-string depth)))
@@ -762,7 +762,7 @@ files in the collection as well."
 	    (setq status (plist-get (cdr result) 'DAV:status))
 	    (if (not (url-dav-http-success-p status))
 		(signal 'file-error (list "Removing old name"
-					  "Errror removing"
+					  "Error removing"
 					  (car result) status))))
 	  props))
   nil)
@@ -909,7 +909,7 @@ Returns nil if URL contains no name starting with FILE."
       ;; Only one file and FILE matches it exactly...
       t)
      (t
-      ;; Need to figure out the longest string that they have in commmon
+      ;; Need to figure out the longest string that they have in common
       (setq matches (sort matches (lambda (a b) (> (length a) (length b)))))
       (let ((n (length file))
 	    (searching t)

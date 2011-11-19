@@ -321,7 +321,7 @@ relocate_offset (DWORD offset,
    variables, because of dumping.]
 
    We could potentially generate the relocation data ourselves by making
-   two versions of temacs, one with an extra dummmy section before
+   two versions of temacs, one with an extra dummy section before
    EMHEAP to offset it, and then compare the dumped executables from
    both.  That is a lot of work though, and it doesn't solve the problem
    of dumped pointers to static variables, which also can be relocated.
@@ -825,4 +825,3 @@ main (int argc, char **argv)
 }
 
 /* eof */
-

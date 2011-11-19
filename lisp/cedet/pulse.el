@@ -77,7 +77,7 @@ this flag is ignored."
      (:background "#AAAA33"))
     (((class color) (background light))
      (:background "#FFFFAA")))
-  "*Face used at beginning of a highight."
+  "*Face used at beginning of a highlight."
   :group 'pulse)
 
 (defface pulse-highlight-face

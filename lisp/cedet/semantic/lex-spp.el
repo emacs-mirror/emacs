@@ -1,4 +1,4 @@
-;;; lex-spp.el --- Semantic Lexical Pre-processor
+;;; semantic/lex-spp.el --- Semantic Lexical Pre-processor
 
 ;; Copyright (C) 2006-2011  Free Software Foundation, Inc.
 
@@ -639,7 +639,7 @@ and what valid VAL values are."
 
 ;;; Macro Merging
 ;;
-;; Used when token streams from different macros include eachother.
+;; Used when token streams from different macros include each other.
 ;; Merged macro streams perform in place replacements.
 
 (defun semantic-lex-spp-merge-streams (raw-stream)
@@ -709,7 +709,7 @@ ARGVALUES are values for any arg list, or nil."
 
 ;;; Symbol Is Macro
 ;;
-;; An analyser that will push tokens from a macro in place
+;; An analyzer that will push tokens from a macro in place
 ;; of the macro symbol.
 ;;
 (defun semantic-lex-spp-anlyzer-do-replace (sym val beg end)
@@ -1230,4 +1230,4 @@ If BUFFER is not provided, use the current buffer."
 ;; generated-autoload-load-name: "semantic/lex-spp"
 ;; End:
 
-;;; semantic-lex-spp.el ends here
+;;; semantic/lex-spp.el ends here

@@ -21,7 +21,7 @@
 
 ;;; Commentary:
 ;;
-;; NOTE: ede-cpp-root.el has been commented so as to also make it
+;; NOTE: ede/cpp-root.el has been commented so as to also make it
 ;;       useful for learning how to make similar project types.
 ;;
 ;; Not everyone can use automake, or an EDE project type.  For

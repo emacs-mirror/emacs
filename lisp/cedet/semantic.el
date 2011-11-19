@@ -1015,7 +1015,7 @@ Throw away all the old tags, and recreate the tag database."
 		:visible semantic-mode
 		:button (:toggle . global-semanticdb-minor-mode))))
 
-;; The `semantic-mode' command, in conjuction with the
+;; The `semantic-mode' command, in conjunction with the
 ;; `semantic-default-submodes' variable, toggles Semantic's various
 ;; auxiliary minor modes.
 

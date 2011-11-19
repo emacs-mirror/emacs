@@ -313,7 +313,7 @@ TEXT TOKEN and INDENT are the details."
     (save-excursion (speedbar-stealthy-updates))
     (semantic-go-to-tag token parent)
     (switch-to-buffer (current-buffer))
-    ;; Reset the timer with a new timeout when cliking a file
+    ;; Reset the timer with a new timeout when clicking a file
     ;; in case the user was navigating directories, we can cancel
     ;; that other timer.
     ;; (speedbar-set-timer dframe-update-speed)
@@ -399,7 +399,7 @@ Returns the tag list, or t for an error."
     (if (listp out)
 	(condition-case nil
 	    (progn
-	      ;; This brings externally defind methods into
+	      ;; This brings externally defined methods into
 	      ;; their classes, and creates meta classes for
 	      ;; orphans.
 	      (setq out (semantic-adopt-external-members out))

@@ -96,7 +96,7 @@ This option is ignored if `semantic-imenu-bucketize-file' is nil."
 (defcustom semantic-imenu-bucketize-type-members t
   "*Non-nil if members of a type should be grouped into buckets.
 A nil value means to keep them in the same order.
-Overriden to nil if `semantic-imenu-bucketize-file' is nil."
+Overridden to nil if `semantic-imenu-bucketize-file' is nil."
   :group 'semantic-imenu
   :type 'boolean)
 (make-variable-buffer-local 'semantic-imenu-bucketize-type-members)
@@ -393,7 +393,7 @@ Optional argument PARENT is a tag parent of STREAM."
 					semantic-imenu-bucketize-file)
 				   (semantic-create-imenu-index-1 parts tag)
 				 (semantic-create-imenu-subindex parts))))
-			  ;; Only add a *definition* if we have a postion
+			  ;; Only add a *definition* if we have a position
 			  ;; in that type tag.
 			  (if (semantic-tag-with-position-p tag)
 			      (cons

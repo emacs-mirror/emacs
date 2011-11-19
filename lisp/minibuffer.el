@@ -51,7 +51,7 @@
 ;; - choose-completion doesn't know how to quote the text it inserts.
 ;;   E.g. it fails to double the dollars in file-name completion, or
 ;;   to backslash-escape spaces and other chars in comint completion.
-;;   - when completing ~/tmp/fo$$o, the highligting in *Completions*
+;;   - when completing ~/tmp/fo$$o, the highlighting in *Completions*
 ;;     is off by one position.
 ;;   - all code like PCM which relies on all-completions to match
 ;;     its argument gets confused because all-completions returns unquoted

@@ -443,7 +443,7 @@ of master file."
 (defvar test-dummy)
 (defun reftex-index-info (file)
   ;; Return an index entry for the current match.
-  ;; Carefull: This function expects the match-data to be still in place!
+  ;; Careful: This function expects the match-data to be still in place!
   (catch 'exit
     (let* ((macro (reftex-match-string 10))
            (bom (match-beginning 10))
@@ -711,7 +711,7 @@ of master file."
                                    context)
                  (when (and (not appendix)
                             (>= (string-to-char (match-string 2)) ?A))
-                   ;; Just entered the appendex.  Get out.
+                   ;; Just entered the appendix.  Get out.
                    (throw 'exit nil))
 
                  ;; Change the section number.

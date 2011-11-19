@@ -237,7 +237,7 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 ;; If zeroconf is enabled, all CUPS printers can be detected.  The
-;; "Postscript printer" menu will be modified dynamically, as printers
+;; "PostScript printer" menu will be modified dynamically, as printers
 ;; are added or removed.
 
 ;; Preconditions:
@@ -257,7 +257,7 @@
 (require 'printing)
 (require 'zeroconf)
 
-;; Add a Postscript printer to the "Postscript printer" menu.
+;; Add a PostScript printer to the "PostScript printer" menu.
 (defun ps-add-printer (service)
   (let ((name (zeroconf-service-name service))
 	(text (zeroconf-service-txt service))
@@ -267,7 +267,7 @@
     ;; `text' is an array of key=value strings like ("Duplex=T" "Copies=T").
     (dolist (string text)
       (let ((split (split-string string "=" t)))
-	;; If it is a Postscript printer, there must be a string like
+	;; If it is a PostScript printer, there must be a string like
 	;; "pdl=application/postscript,application/vnd.hp-PCL,...".
 	(when (and (string-equal "pdl" (car split))
 		   (string-match "application/postscript" (cadr split)))
@@ -288,7 +288,7 @@
 				    "-H" (format "%s:%s" addr port))))
       (pr-update-menus t))))
 
-;; Remove a printer from the "Postscript printer" menu.
+;; Remove a printer from the "PostScript printer" menu.
 (defun ps-remove-printer (service)
   (setq pr-ps-printer-alist
 	(delete (assoc (intern (zeroconf-service-name service))

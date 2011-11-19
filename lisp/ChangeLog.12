@@ -764,7 +764,7 @@
 	Fix calls to get-buffer-window to find windows in other frames.
 	Reported by David Hansen <david.hansen@gmx.net>.
 
-2007-03-27   Kevin Ryde  <user42@zip.com.au>
+2007-03-27  Kevin Ryde  <user42@zip.com.au>
 
 	* info.el (Info-display-images-node): On a text-only terminal,
 	show the "text" or "alt" parts of the image blobs.
@@ -938,7 +938,7 @@
 2007-03-20  David Kastrup  <dak@gnu.org>
 
 	* files.el (magic-mode-alist): Require literal "%!PS" string for
-	magic postscript file detection.
+	magic PostScript file detection.
 
 2007-03-20  Richard Stallman  <rms@gnu.org>
 
@@ -7561,7 +7561,7 @@
 	* pcvs-util.el (cvs-get-buffer-create): Obey `noreuse' even if `name'
 	doesn't look like a file name.
 
-	* complete.el (PC-expand-many-files): Avoid signalling an error when
+	* complete.el (PC-expand-many-files): Avoid signaling an error when
 	the current directory doesn't exist.  Reported by Michaël Cadilhac.
 
 2006-08-02  Andreas Schwab  <schwab@suse.de>
@@ -8855,7 +8855,7 @@
 	(org-get-indentation): New optional argument LINE.
 	(org-fix-indentation, org-remove-tabs): New functions.
 	(org-export-as-ascii, org-ascii-level-start): Determine and apply
-	correct indentation for headlines that are converted it items.
+	correct indentation for headlines that are converted to items.
 	(org-skip-comments): Remove table lines that contain narrowing
 	cookies but no other non-empty fields.
 	(org-set-tags): Allow groups of mutually exclusive tags.
@@ -9419,7 +9419,7 @@
 	(org-insert-labeled-timestamps-at-point): New option.
 	(org-cycle, org-occur, org-scan-tags): Use `org-overview' instead
 	of `hide-sublevels 1', in case the first headline is not level 1.
-	(org-overview, org-content): New fuction.
+	(org-overview, org-content): New function.
 	(org-cycle-global-status, org-cycle-subtree-status): Make these
 	variables buffer-local.
 	(org-global-cycle): New command.
@@ -16735,7 +16735,7 @@
 	* progmodes/cc-cmds.el (c-beginning-of-statement (and
 	subfunctions)): Adapt c-\(back\|forward\)-over-illiterals such
 	that movement over macros and code are rigorously separated from
-	eachother.  Correct a few incidental bugs.
+	each other.  Correct a few incidental bugs.
 
 	* progmodes/cc-cmds.el: Restructure c-beginning-of-statement:
 	Improve its doc-string.  Improve the handling of certain specific cases.
@@ -16884,7 +16884,7 @@
 	* progmodes/cc-fonts.el (c-font-lock-complex-decl-prepare)
 	(c-font-lock-declarators, c-font-lock-declarations)
 	(c-complex-decl-matchers, c-basic-matchers-after): Use a text
-	property to mark the items in in declarator lists to handle
+	property to mark the items in declarator lists to handle
 	refontification inside multiline declarations better.
 
 	* progmodes/cc-fonts.el (c-font-lock-declarations): Recognize a
@@ -18374,7 +18374,7 @@
 	(tar-summarize-buffer): Don't clear the modified-p bit if it wasn't
 	cleared before.  Obey default-enable-multibyte-characters.
 	Use mapconcat.  Simplify setting of tar-header-offset.
-	(tar-mode-map): Move initialization inside delcaration.
+	(tar-mode-map): Move initialization inside declaration.
 	(tar-flag-deleted): Use `abs'.
 	(tar-expunge-internal): Remove unused var `line'.
 	(tar-expunge-internal): Don't hardcode point-min==1.
@@ -33362,4 +33362,3 @@ See ChangeLog.11 for earlier changes.
 
   You should have received a copy of the GNU General Public License
   along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
-

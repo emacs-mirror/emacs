@@ -185,7 +185,7 @@ typedef struct _xmenu {
     Window parent;		/* Menu's parent window. */
     int width;			/* Overall menu width. */
     int height;			/* Overall menu height. */
-    int x_pos;			/* Oveall menu origin. */
+    int x_pos;			/* Overall menu origin. */
     int y_pos;			/* Overall menu origin. */
     Cursor mouse_cursor;	/* Mouse cursor raster. */
     XAssocTable *assoc_tab;	/* XMWindow association table. */

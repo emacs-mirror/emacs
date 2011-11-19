@@ -41,7 +41,7 @@ enum composition_method {
   COMPOSITION_NO
 };
 
-/* Maximum number of compoments a single composition can have.  */
+/* Maximum number of components a single composition can have.  */
 #define MAX_COMPOSITION_COMPONENTS 16
 
 /* These macros access information about a composition that

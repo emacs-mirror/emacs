@@ -56,7 +56,7 @@ If nosnarf if 'lex, then only return the lex token."
 	  ;; Check just before the definition.
 	  (when (semantic-tag-with-position-p tag)
 	    (semantic-documentation-comment-preceeding-tag tag nosnarf))
-	  ;;  Lets look for comments either after the definition, but before code:
+	  ;;  Let's look for comments either after the definition, but before code:
 	  ;; Not sure yet.  Fill in something clever later....
 	  nil))))))
 

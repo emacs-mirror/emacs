@@ -963,7 +963,7 @@ a slash is appended to it.
 * Undo can clear modified-flag.
 
 If you undo changes in a buffer back to a state in which the
-buffer was not considered "modified", then it is labelled as
+buffer was not considered "modified", then it is labeled as
 once again "unmodified".
 
 * M-x run-lisp.
@@ -996,7 +996,7 @@ with no confirmation.
 view-buffer selects the named buffer, view-file finds the named file; the
 resulting buffer is placed into view-mode (a recursive edit).  The normal
 emacs commands are not available.  Instead a set of special commands is
-provided which faclitate moving around in the buffer, searching and
+provided which facilitate moving around in the buffer, searching and
 scrolling by screenfuls.  Exiting view-mode returns to the buffer in which
 the view-file or view-buffer command was given.
 Type ? or h when viewing for a complete list of view commands.
@@ -1074,7 +1074,7 @@ Another `t' switches back to the usual display.
 
 * Rmail commands `a' and `k' set message attributes.
 `a' adds an attribute and `k' removes one.  You specify
-the attrbute by name.  You can specify either a built-in
+the attribute by name.  You can specify either a built-in
 flag such as "deleted" or "filed", or a user-defined keyword
 (anything not recognized as built-in).
 
@@ -1090,7 +1090,7 @@ the messages should have.
 * Interface to MH mail system.
 
 mh-e is a front end for GNU emacs and the MH mail system.  It
-provides a friendly and convient interface to the MH commands.
+provides a friendly and convenient interface to the MH commands.
 
 To read mail, invoke mh-rmail.  This will inc new mail and display the
 scan listing on the screen.  To see a summary of the mh-e commands,
@@ -1612,7 +1612,7 @@ Changes in Emacs 13
  The string "../lisp" now adds to the front of the load-path
  used for searching for Lisp files during Emacs initialization.
  It used to replace the path specified in paths.h entirely.
- Now the directory ../lisp is searched first and the directoris
+ Now the directory ../lisp is searched first and the directories
  specified in paths.h are searched afterward.
 
 
@@ -1670,7 +1670,7 @@ Changes in Emacs 1.12
  the string, it is used unchanged.
 
  One way this feature can be used is to fix bad keyboard
- designes.  For example, on some terminals, Delete is
+ designs.  For example, on some terminals, Delete is
  Shift-Underscore.  Since Delete is a more useful character
  than Underscore, it is an improvement to make the unshifted
  character Delete and the shifted one Underscore.  This can
@@ -2423,7 +2423,7 @@ Changes in Emacs 1.1
  or show the text or subheadings under each heading line
  independently.  Hidden text or subheadings are invisibly
  attached to the end of the preceding heading line, so that
- if you kill the hading line and yank it back elsewhere
+ if you kill the heading line and yank it back elsewhere
  all the invisible lines accompany it.
 
   All editing commands treat hidden outline-mode lines
@@ -2446,7 +2446,7 @@ Changes in Emacs 1.1
  containing *'s, etc, all processed by the shell).  Also, you
  can dired more than one directory; dired names the buffer
  according to the filespec or directory name.  Reinvoking
- dired on a directory already direded just switches back to
+ dired on a directory already diredded just switches back to
  the same directory used last time; do M-x revert if you want
  to read in the current contents of the directory.
 
@@ -2530,4 +2530,3 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
 Local variables:
 mode: text
 end:
-

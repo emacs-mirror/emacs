@@ -118,7 +118,7 @@
     ;; function keys F11->F42 from the termcap/terminfo information.  On
     ;; a PC-style keyboard these keys correspond to
     ;; MODIFIER-FUNCTION_KEY, where modifier is S-, C-, C-S-.  The
-    ;; code here subsitutes the corresponding defintions in
+    ;; code here subsitutes the corresponding definitions in
     ;; function-key-map.  This substitution is needed because if a key
     ;; definition if found in function-key-map, there are no further
     ;; lookups in other keymaps.

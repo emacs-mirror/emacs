@@ -1317,7 +1317,7 @@ interval_deletion_adjustment (register INTERVAL tree, register ptrdiff_t from,
   if (NULL_INTERVAL_P (tree))
     return 0;
 
-  /* Left branch */
+  /* Left branch.  */
   if (relative_position < LEFT_TOTAL_LENGTH (tree))
     {
       ptrdiff_t subtract = interval_deletion_adjustment (tree->left,
@@ -1327,7 +1327,7 @@ interval_deletion_adjustment (register INTERVAL tree, register ptrdiff_t from,
       CHECK_TOTAL_LENGTH (tree);
       return subtract;
     }
-  /* Right branch */
+  /* Right branch.  */
   else if (relative_position >= (TOTAL_LENGTH (tree)
 				 - RIGHT_TOTAL_LENGTH (tree)))
     {
@@ -1425,9 +1425,8 @@ adjust_intervals_for_deletion (struct buffer *buffer,
    compiler that does not allow calling a static function (here,
    adjust_intervals_for_deletion) from a non-static inline function.  */
 
-static inline void
-static_offset_intervals (struct buffer *buffer, ptrdiff_t start,
-			 ptrdiff_t length)
+void
+offset_intervals (struct buffer *buffer, ptrdiff_t start, ptrdiff_t length)
 {
   if (NULL_INTERVAL_P (BUF_INTERVALS (buffer)) || length == 0)
     return;
@@ -1439,12 +1438,6 @@ static_offset_intervals (struct buffer *buffer, ptrdiff_t start,
       IF_LINT (if (length < - TYPE_MAXIMUM (ptrdiff_t)) abort ();)
       adjust_intervals_for_deletion (buffer, start, -length);
     }
-}
-
-inline void
-offset_intervals (struct buffer *buffer, ptrdiff_t start, ptrdiff_t length)
-{
-  static_offset_intervals (buffer, start, length);
 }
 
 /* Merge interval I with its lexicographic successor. The resulting
@@ -1706,54 +1699,37 @@ graft_intervals_into_buffer (INTERVAL source, ptrdiff_t position,
 				 Qnil, buf, 0);
 	}
       if (! NULL_INTERVAL_P (BUF_INTERVALS (buffer)))
-	/* Shouldn't be necessary.  -stef  */
+	/* Shouldn't be necessary.  --Stef  */
 	BUF_INTERVALS (buffer) = balance_an_interval (BUF_INTERVALS (buffer));
       return;
     }
 
-  if (NULL_INTERVAL_P (tree))
-    {
-      /* The inserted text constitutes the whole buffer, so
+  eassert (length == TOTAL_LENGTH (source));
+
+  if ((BUF_Z (buffer) - BUF_BEG (buffer)) == length)
+    {  /* The inserted text constitutes the whole buffer, so
 	 simply copy over the interval structure.  */
-      if ((BUF_Z (buffer) - BUF_BEG (buffer)) == TOTAL_LENGTH (source))
-	{
 	  Lisp_Object buf;
 	  XSETBUFFER (buf, buffer);
 	  BUF_INTERVALS (buffer) = reproduce_tree_obj (source, buf);
-	  BUF_INTERVALS (buffer)->position = BEG;
-	  BUF_INTERVALS (buffer)->up_obj = 1;
-
+      BUF_INTERVALS (buffer)->position = BUF_BEG (buffer);
+      eassert (BUF_INTERVALS (buffer)->up_obj == 1);
 	  return;
 	}
-
-      /* Create an interval tree in which to place a copy
+  else if (NULL_INTERVAL_P (tree))
+    { /* Create an interval tree in which to place a copy
 	 of the intervals of the inserted string.  */
-      {
 	Lisp_Object buf;
 	XSETBUFFER (buf, buffer);
 	tree = create_root_interval (buf);
       }
-    }
-  else if (TOTAL_LENGTH (tree) == TOTAL_LENGTH (source))
-    /* If the buffer contains only the new string, but
-       there was already some interval tree there, then it may be
-       some zero length intervals.  Eventually, do something clever
-       about inserting properly.  For now, just waste the old intervals.  */
-    {
-      BUF_INTERVALS (buffer) = reproduce_tree (source, INTERVAL_PARENT (tree));
-      BUF_INTERVALS (buffer)->position = BEG;
-      BUF_INTERVALS (buffer)->up_obj = 1;
-      /* Explicitly free the old tree here.  */
-
-      return;
-    }
   /* Paranoia -- the text has already been added, so this buffer
      should be of non-zero length.  */
   else if (TOTAL_LENGTH (tree) == 0)
     abort ();
 
   this = under = find_interval (tree, position);
-  if (NULL_INTERVAL_P (under))	/* Paranoia */
+  if (NULL_INTERVAL_P (under))	/* Paranoia.  */
     abort ();
   over = find_interval (source, interval_start_pos (source));
 
@@ -1884,7 +1860,7 @@ lookup_char_property (Lisp_Object plist, register Lisp_Object prop, int textprop
 /* Set point in BUFFER "temporarily" to CHARPOS, which corresponds to
    byte position BYTEPOS.  */
 
-inline void
+void
 temp_set_point_both (struct buffer *buffer,
 		     ptrdiff_t charpos, ptrdiff_t bytepos)
 {
@@ -1904,7 +1880,7 @@ temp_set_point_both (struct buffer *buffer,
 
 /* Set point "temporarily", without checking any text properties.  */
 
-inline void
+void
 temp_set_point (struct buffer *buffer, ptrdiff_t charpos)
 {
   temp_set_point_both (buffer, charpos,
@@ -2393,7 +2369,7 @@ copy_intervals (INTERVAL tree, ptrdiff_t start, ptrdiff_t length)
 
 /* Give STRING the properties of BUFFER from POSITION to LENGTH.  */
 
-inline void
+void
 copy_intervals_to_string (Lisp_Object string, struct buffer *buffer,
 			  ptrdiff_t position, ptrdiff_t length)
 {

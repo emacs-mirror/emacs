@@ -549,7 +549,7 @@ as given in your `~/.profile'."
   "*List of environment variables to be set on the remote host.
 
 Each element should be a string of the form ENVVARNAME=VALUE.  An
-entry ENVVARNAME= diables the corresponding environment variable,
+entry ENVVARNAME= disables the corresponding environment variable,
 which might have been set in the init files like ~/.profile.
 
 Special handling is applied to the PATH environment, which should
@@ -1058,106 +1058,110 @@ target of the symlink differ."
 (defun tramp-sh-handle-file-truename (filename &optional counter prev-dirs)
   "Like `file-truename' for Tramp files."
   (with-parsed-tramp-file-name (expand-file-name filename) nil
-    (with-file-property v localname "file-truename"
-      (let ((result nil))			; result steps in reverse order
-	(tramp-message v 4 "Finding true name for `%s'" filename)
-	(cond
-	 ;; Use GNU readlink --canonicalize-missing where available.
-	 ((tramp-get-remote-readlink v)
-	  (setq result
-		(tramp-send-command-and-read
-		 v
-		 (format "echo \"\\\"`%s --canonicalize-missing %s`\\\"\""
-			 (tramp-get-remote-readlink v)
-			 (tramp-shell-quote-argument localname)))))
+    (tramp-make-tramp-file-name method user host
+      (with-file-property v localname "file-truename"
+	(let ((result nil))			; result steps in reverse order
+	  (tramp-message v 4 "Finding true name for `%s'" filename)
+	  (cond
+	   ;; Use GNU readlink --canonicalize-missing where available.
+	   ((tramp-get-remote-readlink v)
+	    (setq result
+		  (tramp-send-command-and-read
+		   v
+		   (format "echo \"\\\"`%s --canonicalize-missing %s`\\\"\""
+			   (tramp-get-remote-readlink v)
+			   (tramp-shell-quote-argument localname)))))
 
-	 ;; Use Perl implementation.
-	 ((and (tramp-get-remote-perl v)
-	       (tramp-get-connection-property v "perl-file-spec" nil)
-	       (tramp-get-connection-property v "perl-cwd-realpath" nil))
-	  (tramp-maybe-send-script
-	   v tramp-perl-file-truename "tramp_perl_file_truename")
-	  (setq result
-		(tramp-send-command-and-read
-		 v
-		 (format "tramp_perl_file_truename %s"
-			 (tramp-shell-quote-argument localname)))))
+	   ;; Use Perl implementation.
+	   ((and (tramp-get-remote-perl v)
+		 (tramp-get-connection-property v "perl-file-spec" nil)
+		 (tramp-get-connection-property v "perl-cwd-realpath" nil))
+	    (tramp-maybe-send-script
+	     v tramp-perl-file-truename "tramp_perl_file_truename")
+	    (setq result
+		  (tramp-send-command-and-read
+		   v
+		   (format "tramp_perl_file_truename %s"
+			   (tramp-shell-quote-argument localname)))))
 
-	 ;; Do it yourself.  We bind `directory-sep-char' here for
-	 ;; XEmacs on Windows, which would otherwise use backslash.
-	 (t (let* ((directory-sep-char ?/)
-		   (steps (tramp-compat-split-string localname "/"))
-		   (localnamedir (tramp-run-real-handler
-				  'file-name-as-directory (list localname)))
-		   (is-dir (string= localname localnamedir))
-		   (thisstep nil)
-		   (numchase 0)
-		   ;; Don't make the following value larger than
-		   ;; necessary.  People expect an error message in a
-		   ;; timely fashion when something is wrong;
-		   ;; otherwise they might think that Emacs is hung.
-		   ;; Of course, correctness has to come first.
-		   (numchase-limit 20)
-		   symlink-target)
-	      (while (and steps (< numchase numchase-limit))
-		(setq thisstep (pop steps))
-		(tramp-message
-		 v 5 "Check %s"
-		 (mapconcat 'identity
-			    (append '("") (reverse result) (list thisstep))
-			    "/"))
-		(setq symlink-target
-		      (nth 0 (file-attributes
-			      (tramp-make-tramp-file-name
-			       method user host
-			       (mapconcat 'identity
-					  (append '("")
-						  (reverse result)
-						  (list thisstep))
-					  "/")))))
-		(cond ((string= "." thisstep)
-		       (tramp-message v 5 "Ignoring step `.'"))
-		      ((string= ".." thisstep)
-		       (tramp-message v 5 "Processing step `..'")
-		       (pop result))
-		      ((stringp symlink-target)
-		       ;; It's a symlink, follow it.
-		       (tramp-message v 5 "Follow symlink to %s" symlink-target)
-		       (setq numchase (1+ numchase))
-		       (when (file-name-absolute-p symlink-target)
-			 (setq result nil))
-		       ;; If the symlink was absolute, we'll get a string like
-		       ;; "/user@host:/some/target"; extract the
-		       ;; "/some/target" part from it.
-		       (when (tramp-tramp-file-p symlink-target)
-			 (unless (tramp-equal-remote filename symlink-target)
-			   (tramp-error
-			    v 'file-error
-			    "Symlink target `%s' on wrong host" symlink-target))
-			 (setq symlink-target localname))
-		       (setq steps
-			     (append (tramp-compat-split-string
-				      symlink-target "/")
-				     steps)))
-		      (t
-		       ;; It's a file.
-		       (setq result (cons thisstep result)))))
-	      (when (>= numchase numchase-limit)
-		(tramp-error
-		 v 'file-error
-		 "Maximum number (%d) of symlinks exceeded" numchase-limit))
-	      (setq result (reverse result))
-	      ;; Combine list to form string.
-	      (setq result
-		    (if result
-			(mapconcat 'identity (cons "" result) "/")
-		      "/"))
-	      (when (and is-dir (or (string= "" result)
-				    (not (string= (substring result -1) "/"))))
-		(setq result (concat result "/"))))))
+	   ;; Do it yourself.  We bind `directory-sep-char' here for
+	   ;; XEmacs on Windows, which would otherwise use backslash.
+	   (t (let* ((directory-sep-char ?/)
+		     (steps (tramp-compat-split-string localname "/"))
+		     (localnamedir (tramp-run-real-handler
+				    'file-name-as-directory (list localname)))
+		     (is-dir (string= localname localnamedir))
+		     (thisstep nil)
+		     (numchase 0)
+		     ;; Don't make the following value larger than
+		     ;; necessary.  People expect an error message in
+		     ;; a timely fashion when something is wrong;
+		     ;; otherwise they might think that Emacs is hung.
+		     ;; Of course, correctness has to come first.
+		     (numchase-limit 20)
+		     symlink-target)
+		(while (and steps (< numchase numchase-limit))
+		  (setq thisstep (pop steps))
+		  (tramp-message
+		   v 5 "Check %s"
+		   (mapconcat 'identity
+			      (append '("") (reverse result) (list thisstep))
+			      "/"))
+		  (setq symlink-target
+			(nth 0 (file-attributes
+				(tramp-make-tramp-file-name
+				 method user host
+				 (mapconcat 'identity
+					    (append '("")
+						    (reverse result)
+						    (list thisstep))
+					    "/")))))
+		  (cond ((string= "." thisstep)
+			 (tramp-message v 5 "Ignoring step `.'"))
+			((string= ".." thisstep)
+			 (tramp-message v 5 "Processing step `..'")
+			 (pop result))
+			((stringp symlink-target)
+			 ;; It's a symlink, follow it.
+			 (tramp-message
+			  v 5 "Follow symlink to %s" symlink-target)
+			 (setq numchase (1+ numchase))
+			 (when (file-name-absolute-p symlink-target)
+			   (setq result nil))
+			 ;; If the symlink was absolute, we'll get a
+			 ;; string like "/user@host:/some/target";
+			 ;; extract the "/some/target" part from it.
+			 (when (tramp-tramp-file-p symlink-target)
+			   (unless (tramp-equal-remote filename symlink-target)
+			     (tramp-error
+			      v 'file-error
+			      "Symlink target `%s' on wrong host"
+			      symlink-target))
+			   (setq symlink-target localname))
+			 (setq steps
+			       (append (tramp-compat-split-string
+					symlink-target "/")
+				       steps)))
+			(t
+			 ;; It's a file.
+			 (setq result (cons thisstep result)))))
+		(when (>= numchase numchase-limit)
+		  (tramp-error
+		   v 'file-error
+		   "Maximum number (%d) of symlinks exceeded" numchase-limit))
+		(setq result (reverse result))
+		;; Combine list to form string.
+		(setq result
+		      (if result
+			  (mapconcat 'identity (cons "" result) "/")
+			"/"))
+		(when (and is-dir
+			   (or (string= "" result)
+			       (not (string= (substring result -1) "/"))))
+		  (setq result (concat result "/"))))))
 
-        (tramp-message v 4 "True name of `%s' is `%s'" filename result)
-        (tramp-make-tramp-file-name method user host result)))))
+	  (tramp-message v 4 "True name of `%s' is `%s'" localname result)
+	  result)))))
 
 ;; Basic functions.
 
@@ -4307,7 +4311,7 @@ connection if a previous connection has died for some reason."
 			 (tramp-compat-temporary-file-directory)))))
 		     spec)
 
-		;; Add arguments for asynchrononous processes.
+		;; Add arguments for asynchronous processes.
 		(when (and process-name async-args)
 		  (setq login-args (append async-args login-args)))
 

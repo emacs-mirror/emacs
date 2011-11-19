@@ -1,4 +1,4 @@
-;;; srecode/insert --- Insert srecode templates to an output stream.
+;;; srecode/insert.el --- Insert srecode templates to an output stream.
 
 ;; Copyright (C) 2005, 2007-2011  Free Software Foundation, Inc.
 
@@ -255,7 +255,7 @@ ST can be a class, or an object."
       (let ((c (oref st code)))
 	(srecode-push st)
 	(srecode-insert-code-stream c dictionary))
-    ;; Poping the stack is protected
+    ;; Popping the stack is protected.
     (srecode-pop st)))
 
 (defun srecode-insert-code-stream (code dictionary)
@@ -911,7 +911,7 @@ this template instance."
 	  (setq active (cdr active)))
 	(when (not tmpl)
 	  ;; If it wasn't in this context, look to see if it
-	  ;; defines it's own context
+	  ;; defines its own context
 	  (setq tmpl (srecode-template-get-table (srecode-table)
 						 templatenamepart)))
 	)
@@ -936,7 +936,7 @@ with the dictionaries found in the dictionary."
   (if (srecode-dictionary-lookup-name dictionary (oref sti :object-name))
       ;; If we have a value, then call the next method
       (srecode-insert-method-helper sti dictionary 'includedtemplate)
-    ;; If we don't have a special dictitonary, then just insert with the
+    ;; If we don't have a special dictionary, then just insert with the
     ;; current dictionary.
     (srecode-insert-subtemplate sti dictionary 'includedtemplate))
   )

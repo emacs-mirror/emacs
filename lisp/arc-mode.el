@@ -4,7 +4,7 @@
 
 ;; Author: Morten Welinder <terra@gnu.org>
 ;; Keywords: files archives msdog editing major-mode
-;; Favourite-brand-of-beer: None, I hate beer.
+;; Favorite-brand-of-beer: None, I hate beer.
 
 ;; This file is part of GNU Emacs.
 
@@ -75,7 +75,7 @@
 ;;
 ;; LZH         A series of (header,file).  Headers are checksummed.  No
 ;;             interaction among members.
-;;             Headers come in three flavours called level 0, 1 and 2 headers.
+;;             Headers come in three flavors called level 0, 1 and 2 headers.
 ;;             Level 2 header is free of DOS specific restrictions and most
 ;;             prevalently used.  Also level 1 and 2 headers consist of base
 ;;             and extension headers.  For more details see
@@ -1036,7 +1036,7 @@ using `make-temp-file', and the generated name is returned."
 	  (setq archive-file-name-coding-system file-name-coding)
 	  (if (and
 	       (null
-		(let (;; We may have to encode file name arguement for
+		(let (;; We may have to encode the file name argument for
 		      ;; external programs.
 		      (coding-system-for-write
 		       (and enable-multibyte-characters

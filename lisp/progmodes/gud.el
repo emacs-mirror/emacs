@@ -2016,7 +2016,7 @@ extension EXTN.  Normally EXTN is given as the regular expression
 	   ((looking-at "final")
 	    (forward-char 5))
 
-	   ;; Move point past a ClassDeclaraction, but save the class
+	   ;; Move point past a ClassDeclaration, but save the class
 	   ;; Identifier.
 	   ((looking-at "class")
 	    (forward-char 5)
@@ -2102,7 +2102,7 @@ extension EXTN.  Normally EXTN is given as the regular expression
 	massaged-args)))
 
 ;; Search for an association with P, a fully qualified class name, in
-;; gud-jdb-class-source-alist.  The asssociation gives the fully
+;; gud-jdb-class-source-alist.  The association gives the fully
 ;; qualified file name of the source file which produced the class.
 (defun gud-jdb-find-source-file (p)
   (cdr (assoc p gud-jdb-class-source-alist)))
@@ -2155,7 +2155,7 @@ during jdb initialization depending on the value of
 		   string
 		   (concat "[ \t\n\r,\"" path-separator "]+")))))
 
-;; See comentary for other debugger's marker filters - there you will find
+;; See commentary for other debugger's marker filters - there you will find
 ;; important notes about STRING.
 (defun gud-jdb-marker-filter (string)
 
@@ -3387,7 +3387,7 @@ This event can be examined by forms in `gud-tooltip-display'.")
 
 (defun gud-tooltip-dereference (&optional arg)
   "Toggle whether tooltips should show `* expr' or `expr'.
-With arg, dereference expr if ARG is positive, otherwise do not derereference."
+With arg, dereference expr if ARG is positive, otherwise do not dereference."
  (interactive "P")
   (setq gud-tooltip-dereference
 	(if (null arg)

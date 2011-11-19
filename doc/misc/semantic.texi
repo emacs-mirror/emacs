@@ -306,7 +306,7 @@ Files associated with tags.  Goto-tag, file for include, and file for
 a prototype.
 
 @item semantic-tag-ls.el
-Language dependant features of a tag, such as parent calculation, slot
+Language dependent features of a tag, such as parent calculation, slot
 protection, and other states like abstract, virtual, static, and leaf.
 
 @item semantic-dep.el
@@ -349,7 +349,7 @@ This file also provides support for @code{semanticdb-minor-mode},
 which automatically associates files with tables in databases so that
 tags are @emph{saved} while a buffer is not in memory.
 
-The database and tables both also provide applicate cache information,
+The database and tables both also provide applicable cache information,
 and cache flushing system.  The semanticdb search routines use caches
 to save datastructures that are complex to calculate.
 
@@ -606,7 +606,7 @@ Emacs Lisp.  It is an LALR parser suitable for complex languages.
 @c LocalWords: concat concocting const constantness ctxt Decl defcustom
 @c LocalWords: deffn deffnx defun defvar destructor's dfn diff dir
 @c LocalWords: doc docstring EDE EIEIO elisp emacsman emph enum
-@c LocalWords: eq Exp EXPANDFULL expresssion fn foo func funcall
+@c LocalWords: eq Exp EXPANDFULL expression fn foo func funcall
 @c LocalWords: ia ids iff ifinfo imenu imenus init int isearch itemx java kbd
 @c LocalWords: keymap keywordtable lang languagemode lexer lexing Ludlam
 @c LocalWords: menubar metaparent metaparents min minibuffer Misc mode's

@@ -140,8 +140,8 @@ struct MONITOR_INFO
     DWORD   dwFlags;
 };
 
-/* Reportedly, VS 6 does not have this in its headers.  */
-#if defined (_MSC_VER) && _MSC_VER < 1300
+/* Reportedly, MSVC does not have this in its headers.  */
+#ifdef _MSC_VER
 DECLARE_HANDLE(HMONITOR);
 #endif
 
@@ -2088,7 +2088,7 @@ w32_key_to_modifier (int key)
       key_mapping = Qnil;
     }
 
-  /* NB. This code runs in the input thread, asychronously to the lisp
+  /* NB. This code runs in the input thread, asynchronously to the lisp
      thread, so we must be careful to ensure access to lisp data is
      thread-safe.  The following code is safe because the modifier
      variable values are updated atomically from lisp and symbols are
@@ -3977,7 +3977,7 @@ x_make_gc (struct frame *f)
 
 
 /* Handler for signals raised during x_create_frame and
-   x_create_top_frame.  FRAME is the frame which is partially
+   x_create_tip_frame.  FRAME is the frame which is partially
    constructed.  */
 
 static Lisp_Object
@@ -3986,13 +3986,14 @@ unwind_create_frame (Lisp_Object frame)
   struct frame *f = XFRAME (frame);
 
   /* If frame is ``official'', nothing to do.  */
-  if (!CONSP (Vframe_list) || !EQ (XCAR (Vframe_list), frame))
+  if (NILP (Fmemq (frame, Vframe_list)))
     {
 #if GLYPH_DEBUG
       struct w32_display_info *dpyinfo = FRAME_W32_DISPLAY_INFO (f);
 #endif
 
       x_free_frame_resources (f);
+      free_glyphs (f);
 
 #if GLYPH_DEBUG
       /* Check that reference counts are indeed correct.  */
@@ -4134,7 +4135,6 @@ This function is an internal primitive--use `make-frame' instead.  */)
   FRAME_CONFIG_SCROLL_BAR_WIDTH (f) = GetSystemMetrics (SM_CXVSCROLL);
 
   f->terminal = dpyinfo->terminal;
-  f->terminal->reference_count++;
 
   f->output_method = output_w32;
   f->output_data.w32 =
@@ -4153,7 +4153,8 @@ This function is an internal primitive--use `make-frame' instead.  */)
   /* With FRAME_X_DISPLAY_INFO set up, this unwind-protect is safe.  */
   record_unwind_protect (unwind_create_frame, frame);
 #if GLYPH_DEBUG
-  image_cache_refcount = FRAME_IMAGE_CACHE (f)->refcount;
+  image_cache_refcount =
+    FRAME_IMAGE_CACHE (f) ? FRAME_IMAGE_CACHE (f)->refcount : 0;
   dpyinfo_refcount = dpyinfo->reference_count;
 #endif /* GLYPH_DEBUG */
 
@@ -4286,6 +4287,7 @@ This function is an internal primitive--use `make-frame' instead.  */)
   x_make_gc (f);
 
   /* Now consider the frame official.  */
+  f->terminal->reference_count++;
   FRAME_W32_DISPLAY_INFO (f)->reference_count++;
   Vframe_list = Fcons (frame, Vframe_list);
 
@@ -5228,7 +5230,6 @@ x_create_tip_frame (struct w32_display_info *dpyinfo,
      from this point on, x_destroy_window might screw up reference
      counts etc.  */
   f->terminal = dpyinfo->terminal;
-  f->terminal->reference_count++;
   f->output_method = output_w32;
   f->output_data.w32 =
     (struct w32_output *) xmalloc (sizeof (struct w32_output));
@@ -5238,7 +5239,8 @@ x_create_tip_frame (struct w32_display_info *dpyinfo,
   f->icon_name = Qnil;
 
 #if GLYPH_DEBUG
-  image_cache_refcount = FRAME_IMAGE_CACHE (f)->refcount;
+  image_cache_refcount =
+    FRAME_IMAGE_CACHE ? FRAME_IMAGE_CACHE (f)->refcount : 0;
   dpyinfo_refcount = dpyinfo->reference_count;
 #endif /* GLYPH_DEBUG */
   FRAME_KBOARD (f) = kb;
@@ -5379,14 +5381,15 @@ x_create_tip_frame (struct w32_display_info *dpyinfo,
 
   UNGCPRO;
 
+  /* Now that the frame is official, it counts as a reference to
+     its display.  */
+  FRAME_W32_DISPLAY_INFO (f)->reference_count++;
+  f->terminal->reference_count++;
+
   /* It is now ok to make the frame official even if we get an error
      below.  And the frame needs to be on Vframe_list or making it
      visible won't work.  */
   Vframe_list = Fcons (frame, Vframe_list);
-
-  /* Now that the frame is official, it counts as a reference to
-     its display.  */
-  FRAME_W32_DISPLAY_INFO (f)->reference_count++;
 
   /* Setting attributes of faces of the tooltip frame from resources
      and similar will increment face_change_count, which leads to the
@@ -6706,7 +6709,7 @@ DEFUN ("default-printer-name", Fdefault_printer_name, Sdefault_printer_name,
       ClosePrinter (hPrn);
       return Qnil;
     }
-  /* Call GetPrinter again with big enouth memory block */
+  /* Call GetPrinter again with big enough memory block.  */
   err = GetPrinter (hPrn, 2, (LPBYTE)ppi2, dwNeeded, &dwReturned);
   ClosePrinter (hPrn);
   if (!err)

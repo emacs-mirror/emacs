@@ -1,14 +1,13 @@
 ;; allout-widgets.el --- Visually highlight allout outline structure.
 
-;; Copyright (C) 2005, 2006, 2007, 2008, 2009, 2010, 2011 Ken Manheimer
+;; Copyright (C) 2005-2011 Free Software Foundation, Inc.
 
-;; Author: Ken Manheimer <ken dot manheimer at gmail dot com>
-;; Maintainer: Ken Manheimer <ken dot manheimer at gmail dot com>
+;; Author: Ken Manheimer <ken dot manheimer at gmail...>
+;; Maintainer: Ken Manheimer <ken dot manheimer at gmail...>
 ;; Version: 1.0
 ;; Created: Dec 2005
-;; Version: 1.0
 ;; Keywords: outlines
-;; Website: http://myriadicity.net/Sundry/EmacsAllout
+;; Website: http://myriadicity.net/software-and-systems/craft/emacs-allout
 
 ;;; Commentary:
 
@@ -50,7 +49,7 @@
 ;; systematically couple overlays, graphics, and other features with
 ;; allout-governed text.
 
-;;;_: Code (structured with comments that delinieate an allout outline)
+;;;_: Code (structured with comments that delineate an allout outline)
 
 ;;;_ : General Environment
 (require 'allout)
@@ -811,7 +810,7 @@ Optional RECURSING is for internal use, to limit recursion."
                       (forward-char -1)))))))
 
     (error
-     ;; zero work list so we don't get stuck futily retrying.
+     ;; zero work list so we don't get stuck futilely retrying.
      ;; error recording done by allout-widgets-hook-error-handler.
      (setq allout-widgets-changes-record nil))))
 ;;;_   , major change handlers:
@@ -1245,7 +1244,7 @@ Optional FROM-DEPTH is for internal use."
 (defun allout-range-overlaps (from to ranges)
   "Return a pair indicating overlap of FROM and TO subtree range in RANGES.
 
-First element of result indicates whether candadate range FROM, TO
+First element of result indicates whether candidate range FROM, TO
 overlapped any of the existing ranges.
 
 Second element of result is a new version of RANGES incorporating the
@@ -1465,7 +1464,7 @@ recursive operation."
 
   :from           nil                   ; item beginning - marker
   :to             nil                   ; item end - marker
-  :span-overlay   nil   ; overlay by which actual postion is determined
+  :span-overlay   nil   ; overlay by which actual position is determined
 
   ;; also serves as guide-end:
   :icon-start     nil
@@ -1632,7 +1631,7 @@ We return the item-widget corresponding to the item at point."
 (defun allout-redecorate-item (item-widget)
   "Resituate ITEM-WIDGET decorations, disregarding context.
 
-Use this to redecorate only the item, when you know that it's
+Use this to redecorate only the item, when you know that its
 situation with respect to siblings, parent, and offspring is
 unchanged from its last decoration.  Use
 `allout-decorate-item-and-context' instead to reassess and adjust

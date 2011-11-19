@@ -518,7 +518,7 @@ struct coding_system
 #define CODING_REQUIRE_DETECTION_MASK		0x1000
 #define CODING_RESET_AT_BOL_MASK		0x2000
 
-/* Return 1 if the coding context CODING requires annotaion
+/* Return 1 if the coding context CODING requires annotation
    handling.  */
 #define CODING_REQUIRE_ANNOTATION(coding) \
   ((coding)->common_flags & CODING_ANNOTATION_MASK)

@@ -68,7 +68,7 @@
 ;;   MULE charset, Emacs can display a single MULE charset with the
 ;;   glyphs of the current codepage.  When Emacs starts on DOS, it
 ;;   automatically sets its default coding systems for file I/O and
-;;   terminal output according to the currend DOS codepage, given by
+;;   terminal output according to the current DOS codepage, given by
 ;;   the `dos-codepage' variable.
 ;;
 ;;   This leaves us with the problem of displaying character sets

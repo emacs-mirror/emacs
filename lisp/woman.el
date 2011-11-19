@@ -1439,8 +1439,8 @@ The cdr of each alist element is the path-index / filename."
 	  (push (woman-topic-all-completions-1 dir path-index)
 		files))
       (setq path-index (1+ path-index)))
-    ;; Uniquefy topics:
-    ;; Concate all lists with a single nconc call to
+    ;; Uniquify topics:
+    ;; Concatenate all lists with a single nconc call to
     ;; avoid retraversing the first lists repeatedly  -- dak
     (woman-topic-all-completions-merge
      (apply #'nconc files))))
@@ -2023,7 +2023,7 @@ Optional argument REDRAW, if non-nil, forces mode line to be updated."
 ;; Both advices are disabled because "a file in Emacs should not put
 ;; advice on a function in Emacs" (see Info node "(elisp)Advising
 ;; Functions").  Counting the formatting time is useful for
-;; developping, but less applicable for daily use.  The advice for
+;; developing, but less applicable for daily use.  The advice for
 ;; `Man-getpage-in-background' can be discarded, because the
 ;; key-binding in `woman-mode-map' has been remapped to call `woman'
 ;; but `man'.  Michael Albinus <michael.albinus@gmx.de>

@@ -95,7 +95,7 @@ THISDIR		= .
 ifdef USING_SH
 sh_output := $(shell echo [Please ignore a syntax error on the next line - it is intentional] 1>&2)
 sh_output := $(shell echo foo")
-# This single quote " is to fix fintification due to previous line
+# This single quote " is to fix fontification due to previous line
 ifeq "$(sh_output)" ""
 NEW_CYGWIN = 1
 endif
@@ -192,6 +192,11 @@ WINSPOOL	= -lwinspool
 OLE32		= -lole32
 UNISCRIBE	= -lusp10
 UUID		= -luuid
+
+# Used by src/makefile.w32-in, since Nmake barfs on $(func SOMETHING)
+OBJ0_c		= $(patsubst $(BLD)%.$(O),$(CURDIR)%.c,$(OBJ0))
+OBJ1_c		= $(patsubst $(BLD)%.$(O),$(CURDIR)%.c,$(OBJ1))
+OBJ2_c		= $(patsubst $(BLD)%.$(O),$(CURDIR)%.c,$(OBJ2))
 
 ifdef NOOPT
 DEBUG_CFLAGS	= -DEMACSDEBUG
@@ -306,4 +311,3 @@ export XMFLAGS
 
 $(BLD)/%.o: %.c
 		$(CC) $(CFLAGS) $(CC_OUT)$@ $<
-

@@ -71,8 +71,8 @@ parsing different languages.")
      "@for loadpath in . ${LOADPATH}; do \\"
      "   echo \"(add-to-list 'load-path \\\"$$loadpath\\\")\" >> grammar-make-script; \\"
      "done;"
-     "@echo \"(require 'semantic-load)\" >> grammar-make-script"
-     "@echo \"(require 'semantic-grammar)\" >> grammar-make-script"
+     "@echo \"(require 'semantic/load)\" >> grammar-make-script"
+     "@echo \"(require 'semantic/grammar)\" >> grammar-make-script"
      ;; "@echo \"(setq debug-on-error t)\" >> grammar-make-script"
      "\"$(EMACS)\" -batch --no-site-file -l grammar-make-script -f semantic-grammar-batch-build-packages $^"
      )
@@ -101,8 +101,8 @@ parsing different languages.")
      "@for loadpath in . ${LOADPATH}; do \\"
      "   echo \"(add-to-list 'load-path \\\"$$loadpath\\\")\" >> grammar-make-script; \\"
      "done;"
-     "@echo \"(require 'semantic-load)\" >> grammar-make-script"
-     "@echo \"(require 'semantic-grammar)\" >> grammar-make-script"
+     "@echo \"(require 'semantic/load)\" >> grammar-make-script"
+     "@echo \"(require 'semantic/grammar)\" >> grammar-make-script"
      ;; "@echo \"(setq debug-on-error t)\" >> grammar-make-script"
      "\"$(EMACS)\" -batch --no-site-file -l grammar-make-script -f semantic-grammar-batch-build-packages $^"
      )

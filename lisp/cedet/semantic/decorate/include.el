@@ -296,7 +296,7 @@ This mode provides a nice context menu on the include statements."
 	;; Set ourselves up for synchronization
 	(semanticdb-cache-get
 	 table 'semantic-decoration-unparsed-include-cache)
-	;; Add a dependancy.
+	;; Add a dependency.
 	(let ((table semanticdb-current-table))
 	  (semanticdb-add-reference table tag))
 	)
@@ -459,7 +459,7 @@ to add the path to Semantic's search.
 If this is an include file that belongs to your project, then you may
 need to update `semanticdb-project-roots' or better yet, use `ede'
 to manage your project.  See the ede manual for projects that will
-wrap existing project code for Semantic's benifit.
+wrap existing project code for Semantic's benefit.
 ")
 
       (when (or (eq mm 'c++-mode) (eq mm 'c-mode))
@@ -471,7 +471,7 @@ like this in your .emacs file:
   (ede-cpp-root-project \"NAME\" :file \"FILENAME\" :locate-fcn 'MYFCN)
 
 See the CEDET manual, the EDE manual, or the commentary in
-ede-cpp-root.el for more.
+ede/cpp-root.el for more.
 
 If you think this header tag is marked in error, you may need to do:
 
@@ -739,7 +739,7 @@ any decorated referring includes.")
   "Refresh any highlighting in buffers referred to by TABLE.
 If TABLE is not in a buffer, do nothing."
   ;; This cache removal may seem odd in that we are "creating one", but
-  ;; since we cant get in the fcn unless one exists, this ought to be
+  ;; since we can't get in the fcn unless one exists, this ought to be
   ;; ok.
   (let ((c (semanticdb-cache-get
 	    table 'semantic-decoration-unparsed-include-cache)))

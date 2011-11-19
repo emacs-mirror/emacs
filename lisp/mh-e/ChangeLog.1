@@ -610,7 +610,7 @@
 	'utils) (mh-require-cl) calls:
 
 	  (eval-when-compile (require 'mh-acros))
-          (mh-require-cl)
+	  (mh-require-cl)
 
 2004-08-10  Bill Wohler  <wohler@newt.com>
 
@@ -691,7 +691,7 @@
 	variable `mh-scan-date-regexp'.
 
 	* mh-customize.el (mh-auto-fields-prompt-flag): Made reference to
-	`mh-auto-fileds-lists'.
+	`mh-auto-fields-lists'.
 	(mh-forward-hook): Fixed docstring typo.
 
 2004-08-07  Bill Wohler  <wohler@newt.com>
@@ -832,7 +832,7 @@
 	and byte-compiles all the source files with a single instance of
 	XEmacs.
 	(dist): Added $(MH-E-XEMACS-SRC) to tarball.
-	(AUTO_PRELOADS): Removed, in favour of 'AUTOLOAD_PACKAGE_NAME' and
+	(AUTO_PRELOADS): Removed, in favor of 'AUTOLOAD_PACKAGE_NAME' and
 	'AUTOLOAD_FILE'.
 	(AUTOLOAD_PACKAGE_NAME): New.
 	(AUTOLOAD_FILE): New.
@@ -1257,7 +1257,7 @@
 
 	* Makefile (XEMACS_OPTIONS): Add '-no-autoloads' to give a cleaner
 	build environment.
-	(AUTO_PRELOADS): Removed, in favour of 'AUTOLOAD_PACKAGE_NAME' and
+	(AUTO_PRELOADS): Removed, in favor of 'AUTOLOAD_PACKAGE_NAME' and
 	'AUTOLOAD_FILE'.
 	(AUTOLOAD_PACKAGE_NAME): New.
 	(AUTOLOAD_FILE): New.
@@ -1469,7 +1469,7 @@
 
 	* mh-mime.el (mh-mml-secure-message-sign-pgpmime): Add an optional
 	dontsign argument to remove an existing secure message directive.
-	Update the docstring -- this fuction does not allow for
+	Update the docstring -- this function does not allow for
 	encrypt/sign, just sign directives.
 
 	* mh-mime.el (mh-mml-secure-message-sign-pgpmime): Use
@@ -1484,7 +1484,7 @@
 	* mh-alias.el (Commentary): Removed as it is now in the manual.
 	(mh-alias-system-aliases): Moved here from mh-customize.el. By
 	definition, "system" definitions are not user-visible, and user
-	filenames are in the the Aliasfile: profile component, so this
+	filenames are in the Aliasfile: profile component, so this
 	variable really shouldn't be a defcustom.
 	(mh-alias-tstamp, mh-alias-filenames, mh-alias-reload)
 	(mh-alias-add-alias, mh-alias-grab-from-field)
@@ -1960,8 +1960,8 @@
 	switch between available variants.
 	(mh-variants): Available MH variants are described in this variable.
 	(mh-variant-in-use, mh-variant-p): Developers may check which
-        variant is currently in use with the variable `mh-variant-in-use'
-        or the function `mh-variant-p'.
+	variant is currently in use with the variable `mh-variant-in-use'
+	or the function `mh-variant-p'.
 
 2003-08-15  Bill Wohler  <wohler@newt.com>
 
@@ -3289,7 +3289,7 @@
 	(mh-tick-add-overlay, mh-tick-remove-overlay, mh-notate-tick):
 	These functions aren't needed any more, since overlays aren't used
 	any more. Also overlays aren't portable to XEmacs, so nasty
-	conditional code that used overlays in Emacs and extents in Xemacs
+	conditional code that used overlays in Emacs and extents in XEmacs
 	have been eliminated.
 	(mh-toggle-tick): Generalize it to work on a range of messages
 	like the other interactive messages.
@@ -4533,7 +4533,7 @@
 
 	* mh-xemacs-toolbar.el: Remove the code since that gets generated
 	when mh-tool-bar-define is expanded.
-	(mh-xemacs-icon-map): A alist to map GNU Emacs icon names to the
+	(mh-xemacs-icon-map): An alist to map GNU Emacs icon names to the
 	actual icons to be used in XEmacs. This is used in
 	mh-tool-bar-define.
 
@@ -5022,7 +5022,7 @@
 	* mh-utils.el (mh-truncate-log-buffer): Modify the function to
 	return the current size of mh-log-buffer. Also we are now a bit
 	more careful in adding separators between consecutive messages.
-	(mh-exec-cmd): Fix a bug where the the log buffer would be
+	(mh-exec-cmd): Fix a bug where the log buffer would be
 	displayed even if no error happened in the current command but
 	the log buffer had messages from a previous error.
 
@@ -5130,7 +5130,7 @@
 
 	* mh-utils.el (mh-face-display-function): Fix bug that was
 	corrupting xface images when displayed with XEmacs' internal
-	xface image support.  Also make XEmacs honour 'mh-show-xface-face'
+	xface image support.  Also make XEmacs honor 'mh-show-xface-face'
 	when using internal xface image support.
 
 2003-02-12  Peter S Galbraith  <psg@debian.org>
@@ -5959,7 +5959,7 @@
 	to allow the user a customizable variable which will turn off
 	folders based completion.
 	(mh-prompt-for-folder): Use mh-folder-completing-read to read in
-	the folder name with hierachical completion (closes SF #664821).
+	the folder name with hierarchical completion (closes SF #664821).
 
 	* mh-speed.el (mh-speed-folders, mh-speed-folders-cache)
 	(mh-speed-folders-actual): Moved to mh-utils.el as mh-sub-folders,
@@ -8048,7 +8048,7 @@
 2002-10-26  Peter S Galbraith  <psg@debia.org>
 
 	* mh-comp.el (mh-search-addr-regexp, mh-re-search-to-cc): Remove
-	`mh-re-search-to-cc' in favour of more generalized new function
+	`mh-re-search-to-cc' in favor of more generalized new function
 	`mh-search-addr-regexp'.
 	(mh-insert-mail-followup-to): Use it.
 
@@ -8162,7 +8162,7 @@
 
 2002-10-24  Bill Wohler  <wohler@newt.com>
 
-        * mh-e is completely checkdoc clean now.
+	* mh-e is completely checkdoc clean now.
 
 	* mh-utils.el (mh-clean-message-header-flag): Renamed from
 	mh-clean-message-header.
@@ -8594,7 +8594,7 @@
 	mail-header-separator.
 	(mh-send-letter): The default BCC encapsulation will make a MIME
 	message unreadable.  If we are running nmh and the letter contains
-	a Bcc: and a Content-Type: field, add the -mime switch to to the
+	a Bcc: and a Content-Type: field, add the -mime switch to the
 	arguments to send.
 
 2002-10-21  Peter S Galbraith  <psg@debian.org>
@@ -9213,7 +9213,7 @@
 	font, you may set this variable to expand the single reply
 	button into three buttons that won't lead to minibuffer prompt
 	about who to reply to.
-        (mh-folder-tool-bar-map): Use mh-tool-bar-reply-3-buttons to
+	(mh-folder-tool-bar-map): Use mh-tool-bar-reply-3-buttons to
 	decide how many buttons to use for replying.
 
 	* mh-mime.el (mh-file-mime-type-substitutions)
@@ -9445,7 +9445,7 @@
 	Non-fatal depencencies on the mm-decode, mm-uu and mm-view
 	libraries.
 
-2002-07-15  Satyaki Das <satyaki@theforce.stanford.edu>
+2002-07-15  Satyaki Das  <satyaki@theforce.stanford.edu>
 
 	* mh-utils.el (mh-require, mh-autoload): Remove these macros.
 	(mh-decode-mime): Initialized to t iff the mm-decode library is
@@ -9455,8 +9455,8 @@
 2002-07-15  Mark D Baushke  <mdb@gnu.org>
 
 	* mh-utils.el (mh-update-scan-format): Rewrite for compatibility
-	with Xemacs as replace-match appears not to have identical
-	functionality with FSF emacs.
+	with XEmacs as replace-match appears not to have identical
+	functionality with GNU Emacs.
 	(mh-scan-msg-format-regexp): Deleted. This regexp is now hardcoded
 	into the mh-update-scan-format function.
 
@@ -9610,7 +9610,7 @@
 2002-06-27  Satyaki Das  <satyaki@theforce.stanford.edu>
 
 	* mh-e.el (mh-next-undeleted-msg): Get rid of optional arg
-	reverse-p. If there are no more undeleted messages the the point
+	reverse-p. If there are no more undeleted messages the point
 	remains at its original position and a message is produced (closes
 	SF #494304).
 	(mh-previous-undeleted-msg): Change similar to
@@ -10337,7 +10337,7 @@
 	arguments in XEmacs.
 	(mh-send-letter): sendmail-coding-system not bound in XEmacs.
 	(mh-send-letter): default-buffer-file-coding-system not bound in
-	Xemacs.
+	XEmacs.
 
 	* mh-e.el (mh-delete-msg, mh-refile-msg, mh-undo):
 	transient-mark-mode not bound in XEmacs.  The feature of
@@ -10456,10 +10456,10 @@
 
 2001-12-04  Eric Ding  <ericding@alum.mit.edu>
 
-        * mh-e.el: changes to face colors on dark backgrounds.
-        (mh-folder-followup-face): change to LightGoldenRod.
-        (mh-folder-date-face): change to snow3.
-        (mh-folder-msg-number-face): change to snow4.
+	* mh-e.el: changes to face colors on dark backgrounds.
+	(mh-folder-followup-face): change to LightGoldenRod.
+	(mh-folder-date-face): change to snow3.
+	(mh-folder-msg-number-face): change to snow4.
 
 2001-12-04  Bill Wohler  <wohler@newt.com>
 
@@ -11049,7 +11049,7 @@
 	line, starting with Re:
 	(mh-scan-body-regexp):
 	Regexp matching the message body beginning displayed in scan lines.
-	(mh-scan.font-lock-regexp): Regexp matching output of the the
+	(mh-scan.font-lock-regexp): Regexp matching output of the
 	optional scan.font-lock format file.
 	(mh-folder-font-lock-keywords): New font-lock for folder-mode that
 	uses the above regexps.
@@ -11336,7 +11336,7 @@
 	typically have 70 lines in my Emacs frame, so having a default of
 	4 was silly for my case.
 	* mh-e.el (mh-update-sequences): Check for nil value of
-        mh-current-folder, which happens if mh-summary-height < 4
+	mh-current-folder, which happens if mh-summary-height < 4
 	although I haven't tracked doen why that happens.
 
 2001-10-22  Peter S Galbraith  <psg@debian.org>

@@ -355,7 +355,7 @@ else the global value will be modified."
 (defvar byte-compile-interactive-only-functions
   '(beginning-of-buffer end-of-buffer replace-string replace-regexp
     insert-file insert-buffer insert-file-literally previous-line next-line
-    goto-line comint-run delete-backward-char)
+    goto-line comint-run delete-backward-char toggle-read-only)
   "List of commands that are not meant to be called from Lisp.")
 
 (defvar byte-compile-not-obsolete-vars nil
@@ -743,7 +743,7 @@ BYTES and PC are updated after evaluating all the arguments."
 
 (defmacro byte-compile-push-bytecode-const2 (opcode const2 bytes pc)
   "Push OPCODE and the two-byte constant CONST2 onto BYTES, and add 3 to PC.
-CONST2 may be evaulated multiple times."
+CONST2 may be evaluated multiple times."
   `(byte-compile-push-bytecodes ,opcode (logand ,const2 255) (lsh ,const2 -8)
 				,bytes ,pc))
 

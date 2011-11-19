@@ -330,7 +330,7 @@ struct x_display_info
   ptrdiff_t x_dnd_atoms_length;
 
   /* Extended window manager hints, Atoms supported by the window manager and
-     atoms for settig the window type.  */
+     atoms for setting the window type.  */
   Atom Xatom_net_supported, Xatom_net_supporting_wm_check;
   Atom *net_supported_atoms;
   int nr_net_supported_atoms;

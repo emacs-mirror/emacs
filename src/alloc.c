@@ -315,6 +315,7 @@ static POINTER_TYPE *lisp_malloc (size_t, enum mem_type);
    on free lists recognizable in O(1).  */
 
 static Lisp_Object Vdead;
+#define DEADP(x) EQ (x, Vdead)
 
 #ifdef GC_MALLOC_CHECK
 
@@ -410,6 +411,10 @@ static void check_gcpros (void);
 #endif
 
 #endif /* GC_MARK_STACK || GC_MALLOC_CHECK */
+
+#ifndef DEADP
+# define DEADP(x) 0
+#endif
 
 /* Recording what needs to be marked for gc.  */
 
@@ -877,7 +882,7 @@ safe_alloca_unwind (Lisp_Object arg)
 
 /* Like malloc but used for allocating Lisp data.  NBYTES is the
    number of bytes to allocate, TYPE describes the intended use of the
-   allcated memory block (for strings, for conses, ...).  */
+   allocated memory block (for strings, for conses, ...).  */
 
 #ifndef USE_LSB_TAG
 static void *lisp_malloc_loser;
@@ -1407,7 +1412,7 @@ uninterrupt_malloc (void)
 #ifdef DOUG_LEA_MALLOC
   pthread_mutexattr_t attr;
 
-  /*  GLIBC has a faster way to do this, but lets keep it portable.
+  /*  GLIBC has a faster way to do this, but let's keep it portable.
       This is according to the Single UNIX Specification.  */
   pthread_mutexattr_init (&attr);
   pthread_mutexattr_settype (&attr, PTHREAD_MUTEX_RECURSIVE);
@@ -6262,7 +6267,7 @@ which_symbols (Lisp_Object obj, EMACS_INT find_max)
    ptrdiff_t gc_count = inhibit_garbage_collection ();
    Lisp_Object found = Qnil;
 
-   if (!EQ (obj, Vdead))
+   if (! DEADP (obj))
      {
        for (sblk = symbol_block; sblk; sblk = sblk->next)
 	 {

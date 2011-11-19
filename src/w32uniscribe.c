@@ -507,7 +507,7 @@ uniscribe_encode_char (struct font *font, int c)
           if (SUCCEEDED (result) && nglyphs == 1)
             {
 	      /* Some fonts return .notdef glyphs instead of failing.
-	         (Truetype spec reserves glyph code 0 for .notdef)  */
+	         (TrueType spec reserves glyph code 0 for .notdef)  */
 	      if (glyphs[0])
 		code = glyphs[0];
             }
@@ -961,4 +961,3 @@ syms_of_w32uniscribe (void)
 
   register_font_driver (&uniscribe_font_driver, NULL);
 }
-

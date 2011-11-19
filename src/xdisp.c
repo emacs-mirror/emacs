@@ -954,7 +954,7 @@ static int coords_in_mouse_face_p (struct window *, int, int);
 
    This is the height of W minus the height of a mode line, if any.  */
 
-inline int
+int
 window_text_bottom_y (struct window *w)
 {
   int height = WINDOW_TOTAL_HEIGHT (w);
@@ -968,7 +968,7 @@ window_text_bottom_y (struct window *w)
    means return the total width of W, not including fringes to
    the left and right of the window.  */
 
-inline int
+int
 window_box_width (struct window *w, int area)
 {
   int cols = XFASTINT (w->total_cols);
@@ -1007,7 +1007,7 @@ window_box_width (struct window *w, int area)
 /* Return the pixel height of the display area of window W, not
    including mode lines of W, if any.  */
 
-inline int
+int
 window_box_height (struct window *w)
 {
   struct frame *f = XFRAME (w->frame);
@@ -1054,7 +1054,7 @@ window_box_height (struct window *w)
    area AREA of window W.  AREA < 0 means return the left edge of the
    whole window, to the right of the left fringe of W.  */
 
-inline int
+int
 window_box_left_offset (struct window *w, int area)
 {
   int x;
@@ -1086,7 +1086,7 @@ window_box_left_offset (struct window *w, int area)
    area AREA of window W.  AREA < 0 means return the right edge of the
    whole window, to the left of the right fringe of W.  */
 
-inline int
+int
 window_box_right_offset (struct window *w, int area)
 {
   return window_box_left_offset (w, area) + window_box_width (w, area);
@@ -1096,7 +1096,7 @@ window_box_right_offset (struct window *w, int area)
    area AREA of window W.  AREA < 0 means return the left edge of the
    whole window, to the right of the left fringe of W.  */
 
-inline int
+int
 window_box_left (struct window *w, int area)
 {
   struct frame *f = XFRAME (w->frame);
@@ -1116,7 +1116,7 @@ window_box_left (struct window *w, int area)
    area AREA of window W.  AREA < 0 means return the right edge of the
    whole window, to the left of the right fringe of W.  */
 
-inline int
+int
 window_box_right (struct window *w, int area)
 {
   return window_box_left (w, area) + window_box_width (w, area);
@@ -1129,7 +1129,7 @@ window_box_right (struct window *w, int area)
    coordinates of the upper-left corner of the box.  Return in
    *BOX_WIDTH, and *BOX_HEIGHT the pixel width and height of the box.  */
 
-inline void
+void
 window_box (struct window *w, int area, int *box_x, int *box_y,
 	    int *box_width, int *box_height)
 {
@@ -2766,9 +2766,13 @@ init_iterator (struct it *it, struct window *w,
       /* Do we need to reorder bidirectional text?  Not if this is a
 	 unibyte buffer: by definition, none of the single-byte
 	 characters are strong R2L, so no reordering is needed.  And
-	 bidi.c doesn't support unibyte buffers anyway.  */
+	 bidi.c doesn't support unibyte buffers anyway.  Also, don't
+	 reorder while we are loading loadup.el, since the tables of
+	 character properties needed for reordering are not yet
+	 available.  */
       it->bidi_p =
-	!NILP (BVAR (current_buffer, bidi_display_reordering))
+	NILP (Vpurify_flag)
+	&& !NILP (BVAR (current_buffer, bidi_display_reordering))
 	&& it->multibyte_p;
 
       /* If we are to reorder bidirectional text, init the bidi
@@ -6144,8 +6148,12 @@ reseat_to_string (struct it *it, const char *s, Lisp_Object string,
     it->multibyte_p = multibyte > 0;
 
   /* Bidirectional reordering of strings is controlled by the default
-     value of bidi-display-reordering.  */
-  it->bidi_p = !NILP (BVAR (&buffer_defaults, bidi_display_reordering));
+     value of bidi-display-reordering.  Don't try to reorder while
+     loading loadup.el, as the necessary character property tables are
+     not yet available.  */
+  it->bidi_p =
+    NILP (Vpurify_flag)
+    && !NILP (BVAR (&buffer_defaults, bidi_display_reordering));
 
   if (s == NULL)
     {
@@ -17948,6 +17956,23 @@ insert_left_trunc_glyphs (struct it *it)
     }
 }
 
+/* Compute the hash code for ROW.  */
+unsigned
+row_hash (struct glyph_row *row)
+{
+  int area, k;
+  unsigned hashval = 0;
+
+  for (area = LEFT_MARGIN_AREA; area < LAST_AREA; ++area)
+    for (k = 0; k < row->used[area]; ++k)
+      hashval = ((((hashval << 4) + (hashval >> 24)) & 0x0fffffff)
+		  + row->glyphs[area][k].u.val
+		  + row->glyphs[area][k].face_id
+		  + row->glyphs[area][k].padding_p
+		  + (row->glyphs[area][k].type << 2));
+
+  return hashval;
+}
 
 /* Compute the pixel height and width of IT->glyph_row.
 
@@ -18034,17 +18059,7 @@ compute_line_metrics (struct it *it)
     }
 
   /* Compute a hash code for this row.  */
-  {
-    int area, i;
-    row->hash = 0;
-    for (area = LEFT_MARGIN_AREA; area < LAST_AREA; ++area)
-      for (i = 0; i < row->used[area]; ++i)
-	row->hash = ((((row->hash << 4) + (row->hash >> 24)) & 0x0fffffff)
-		     + row->glyphs[area][i].u.val
-		     + row->glyphs[area][i].face_id
-		     + row->glyphs[area][i].padding_p
-		     + (row->glyphs[area][i].type << 2));
-  }
+  row->hash = row_hash (row);
 
   it->max_ascent = it->max_descent = 0;
   it->max_phys_ascent = it->max_phys_descent = 0;
@@ -19381,8 +19396,17 @@ display_line (struct it *it)
       overlay_arrow_seen = 1;
     }
 
+  /* Highlight trailing whitespace.  */
+  if (!NILP (Vshow_trailing_whitespace))
+    highlight_trailing_whitespace (it->f, it->glyph_row);
+
   /* Compute pixel dimensions of this line.  */
   compute_line_metrics (it);
+
+  /* Implementation note: No changes in the glyphs of ROW or in their
+     faces can be done past this point, because compute_line_metrics
+     computes ROW's hash value and stores it within the glyph_row
+     structure.  */
 
   /* Record whether this row ends inside an ellipsis.  */
   row->ends_in_ellipsis_p
@@ -19417,10 +19441,6 @@ display_line (struct it *it)
       && PT <= MATRIX_ROW_END_CHARPOS (row)
       && cursor_row_p (row))
     set_cursor_from_row (it->w, row, it->w->desired_matrix, 0, 0, 0, 0);
-
-  /* Highlight trailing whitespace.  */
-  if (!NILP (Vshow_trailing_whitespace))
-    highlight_trailing_whitespace (it->f, it->glyph_row);
 
   /* Prepare for the next line.  This line starts horizontally at (X
      HPOS) = (0 0).  Vertical positions are incremented.  As a
@@ -19467,7 +19487,10 @@ See also `bidi-paragraph-direction'.  */)
     }
 
   if (NILP (BVAR (buf, bidi_display_reordering))
-      || NILP (BVAR (buf, enable_multibyte_characters)))
+      || NILP (BVAR (buf, enable_multibyte_characters))
+      /* When we are loading loadup.el, the character property tables
+	 needed for bidi iteration are not yet available.  */
+      || !NILP (Vpurify_flag))
     return Qleft_to_right;
   else if (!NILP (BVAR (buf, bidi_paragraph_direction)))
     return BVAR (buf, bidi_paragraph_direction);
@@ -22045,7 +22068,7 @@ get_glyph_face_and_encoding (struct frame *f, struct glyph *glyph,
 
 
 /* Get glyph code of character C in FONT in the two-byte form CHAR2B.
-   Retunr 1 if FONT has a glyph for C, otherwise return 0.  */
+   Return 1 if FONT has a glyph for C, otherwise return 0.  */
 
 static inline int
 get_char_glyph_code (int c, struct font *font, XChar2b *char2b)
@@ -22116,6 +22139,12 @@ fill_composite_glyph_string (struct glyph_string *s, struct face *base_face,
       ++s->nchars;
     }
   s->cmp_to = i;
+
+  if (s->face == NULL)
+    {
+      s->face = base_face->ascii_face;
+      s->font = s->face->font;
+    }
 
   /* All glyph strings for the same composition has the same width,
      i.e. the width set for the first component of the composition.  */
@@ -23612,7 +23641,7 @@ produce_stretch_glyph (struct it *it)
     {
       width = it->last_visible_x - it->current_x;
 #ifdef HAVE_WINDOW_SYSTEM
-      /* Subtact one more pixel from the stretch width, but only on
+      /* Subtract one more pixel from the stretch width, but only on
 	 GUI frames, since on a TTY each glyph is one "pixel" wide.  */
       width -= FRAME_WINDOW_P (it->f);
 #endif
@@ -26899,7 +26928,7 @@ note_mouse_highlight (struct frame *f, int x, int y)
       && XFASTINT (w->last_modified) == BUF_MODIFF (b)
       && XFASTINT (w->last_overlay_modified) == BUF_OVERLAY_MODIFF (b))
     {
-      int hpos, vpos, dx, dy, area;
+      int hpos, vpos, dx, dy, area = LAST_AREA;
       ptrdiff_t pos;
       struct glyph *glyph;
       Lisp_Object object;
@@ -27159,8 +27188,12 @@ note_mouse_highlight (struct frame *f, int x, int y)
 		    }
 
 		  mouse_face_from_buffer_pos (window, hlinfo, pos,
-					      XFASTINT (before),
-					      XFASTINT (after),
+					      NILP (before)
+					      ? 1
+					      : XFASTINT (before),
+					      NILP (after)
+					      ? BUF_Z (XBUFFER (buffer))
+					      : XFASTINT (after),
 					      before_string, after_string,
 					      disp_string);
 		  cursor = No_Cursor;
@@ -27960,7 +27993,6 @@ syms_of_xdisp (void)
   DEFSYM (Qhollow, "hollow");
   DEFSYM (Qhand, "hand");
   DEFSYM (Qarrow, "arrow");
-  DEFSYM (Qtext, "text");
   DEFSYM (Qinhibit_free_realized_faces, "inhibit-free-realized-faces");
 
   list_of_error = Fcons (Fcons (intern_c_string ("error"),
@@ -28429,7 +28461,7 @@ To add a prefix to continuation lines, use `wrap-prefix'.  */);
   DEFVAR_INT ("overline-margin", overline_margin,
 	       doc: /* *Space between overline and text, in pixels.
 The default value is 2: the height of the overline (1 pixel) plus 1 pixel
-margin to the caracter height.  */);
+margin to the character height.  */);
   overline_margin = 2;
 
   DEFVAR_INT ("underline-minimum-offset",

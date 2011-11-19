@@ -462,7 +462,7 @@ x_session_initialize (struct x_display_info *dpyinfo)
       Vx_session_id = build_string (client_id);
 
 #ifdef USE_GTK
-      /* GTK creats a leader window by itself, but we need to tell
+      /* GTK creates a leader window by itself, but we need to tell
          it about our client_id.  */
       gdk_x11_set_sm_client_id (client_id);
 #else

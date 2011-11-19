@@ -11,7 +11,7 @@
 @c ---------
 @c <<<< For hard copy printing, this file is now
 @c      set for smallbook, which works for all sizes
-@c      of paper, and with Postscript figures >>>>
+@c      of paper, and with PostScript figures >>>>
 @set smallbook
 @ifset smallbook
 @smallbook
@@ -357,7 +357,7 @@ every node in every chapter.
 * Conclusion::                  Now you have the basics.
 * the-the::                     An appendix: how to find reduplicated words.
 * Kill Ring::                   An appendix: how the kill ring works.
-* Full Graph::                  How to create a graph with labelled axes.
+* Full Graph::                  How to create a graph with labeled axes.
 * Free Software and Free Manuals::
 * GNU Free Documentation License::
 * Index::
@@ -793,9 +793,9 @@ The @code{current-kill} Function
 * Digression concerning error::  How to mislead humans, but not computers.
 * Determining the Element::
 
-A Graph with Labelled Axes
+A Graph with Labeled Axes
 
-* Labelled Example::
+* Labeled Example::
 * print-graph Varlist::         @code{let} expression in @code{print-graph}.
 * print-Y-axis::                Print a label for the vertical axis.
 * print-X-axis::                Print a horizontal label.
@@ -1023,7 +1023,7 @@ the command in parentheses, like this: @kbd{M-C-\}
 invoke the command; this is called @dfn{rebinding}.  @xref{Keymaps, ,
 Keymaps}.)  The abbreviation @kbd{M-C-\} means that you type your
 @key{META} key, @key{CTRL} key and @key{\} key all at the same time.
-(On many modern keyboards the @key{META} key is labelled
+(On many modern keyboards the @key{META} key is labeled
 @key{ALT}.)
 Sometimes a combination like this is called a keychord, since it is
 similar to the way you play a chord on a piano.  If your keyboard does
@@ -1031,7 +1031,7 @@ not have a @key{META} key, the @key{ESC} key prefix is used in place
 of it.  In this case, @kbd{M-C-\} means that you press and release your
 @key{ESC} key and then type the @key{CTRL} key and the @key{\} key at
 the same time.  But usually @kbd{M-C-\} means press the @key{CTRL} key
-along with the key that is labelled @key{ALT} and, at the same time,
+along with the key that is labeled @key{ALT} and, at the same time,
 press the @key{\} key.
 
 In addition to typing a lone keychord, you can prefix what you type
@@ -4749,7 +4749,7 @@ type in the name of the function whose source code you want to see,
 such as @code{mark-whole-buffer}, and then type @key{RET}.  Emacs will
 switch buffers and display the source code for the function on your
 screen.  To switch back to your current buffer, type @kbd{C-x b
-@key{RET}}.  (On some keyboards, the @key{META} key is labelled
+@key{RET}}.  (On some keyboards, the @key{META} key is labeled
 @key{ALT}.)
 
 @c !!! 22.1.1 tags table location in this paragraph
@@ -8200,7 +8200,7 @@ The command \\[yank] can retrieve it from there. @dots{} "
      ;;    it will be set in an error
      (setq this-command 'kill-region)
      ;;    Finally, in the then-part, send a message if you may copy
-     ;;    the text to the kill ring without signally an error, but
+     ;;    the text to the kill ring without signaling an error, but
      ;;    don't if you may not.
 @end group
 @group
@@ -13656,7 +13656,7 @@ list of supported languages.
 
 The @code{etags} program handles more than 20 languages, including
 Emacs Lisp, Common Lisp, Scheme, C, C++, Ada, Fortran, HTML, Java,
-LaTeX, Pascal, Perl, Postscript, Python, TeX, Texinfo, makefiles, and
+LaTeX, Pascal, Perl, PostScript, Python, TeX, Texinfo, makefiles, and
 most assemblers.  The program has no switches for specifying the
 language; it recognizes the language in an input file according to its
 file name and contents.
@@ -16962,7 +16962,7 @@ For this reason, I have written enhancements to the basic
 @code{print-graph-body} function that automatically print labels for
 the horizontal and vertical axes.  Since the label printing functions
 do not contain much new material, I have placed their description in
-an appendix.  @xref{Full Graph, , A Graph with Labelled Axes}.
+an appendix.  @xref{Full Graph, , A Graph with Labeled Axes}.
 
 @node Line Graph Exercise,  , Printed Axes, Readying a Graph
 @section Exercise
@@ -19447,7 +19447,7 @@ whether the kill ring is full or empty.  This is an act of
 exploration.
 
 From the human point of view, the act of exploration and discovery is
-not necessarily an error, and therefore should not be labelled as one,
+not necessarily an error, and therefore should not be labeled as one,
 even in the bowels of a computer.  As it is, the code in Emacs implies
 that a human who is acting virtuously, by exploring his or her
 environment, is making an error.  This is bad.  Even though the computer
@@ -19760,25 +19760,25 @@ as @code{kill-ring-yank-pointer} do not use this library, possibly
 because they were written earlier.
 
 @node Full Graph, Free Software and Free Manuals, Kill Ring, Top
-@appendix A Graph with Labelled Axes
+@appendix A Graph with Labeled Axes
 
 Printed axes help you understand a graph.  They convey scale.  In an
 earlier chapter (@pxref{Readying a Graph, ,  Readying a Graph}), we
 wrote the code to print the body of a graph.  Here we write the code
-for printing and labelling vertical and horizontal axes, along with the
+for printing and labeling vertical and horizontal axes, along with the
 body itself.
 
 @menu
-* Labelled Example::
+* Labeled Example::
 * print-graph Varlist::         @code{let} expression in @code{print-graph}.
 * print-Y-axis::                Print a label for the vertical axis.
 * print-X-axis::                Print a horizontal label.
 * Print Whole Graph::           The function to print a complete graph.
 @end menu
 
-@node Labelled Example, print-graph Varlist, Full Graph, Full Graph
+@node Labeled Example, print-graph Varlist, Full Graph, Full Graph
 @ifnottex
-@unnumberedsec Labelled Example Graph
+@unnumberedsec Labeled Example Graph
 @end ifnottex
 
 Since insertions fill a buffer to the right and below point, the new
@@ -19821,9 +19821,9 @@ Here is an example of how a finished graph should look:
 @end smallexample
 
 @noindent
-In this graph, both the vertical and the horizontal axes are labelled
+In this graph, both the vertical and the horizontal axes are labeled
 with numbers.  However, in some graphs, the horizontal axis is time
-and would be better labelled with months, like this:
+and would be better labeled with months, like this:
 
 @smallexample
 @group
@@ -19838,9 +19838,9 @@ and would be better labelled with months, like this:
 @end smallexample
 
 Indeed, with a little thought, we can easily come up with a variety of
-vertical and horizontal labelling schemes.  Our task could become
+vertical and horizontal labeling schemes.  Our task could become
 complicated.  But complications breed confusion.  Rather than permit
-this, it is better choose a simple labelling scheme for our first
+this, it is better choose a simple labeling scheme for our first
 effort, and to modify or replace it later.
 
 @need 1200
@@ -19864,7 +19864,7 @@ These considerations suggest the following outline for the
 We can work on each part of the @code{print-graph} function definition
 in turn.
 
-@node print-graph Varlist, print-Y-axis, Labelled Example, Full Graph
+@node print-graph Varlist, print-Y-axis, Labeled Example, Full Graph
 @comment  node-name,  next,  previous,  up
 @appendixsec The @code{print-graph} Varlist
 @cindex @code{print-graph} varlist
@@ -20391,7 +20391,7 @@ blank spaces and also separated according to the value of the variable
 The value of the variable @code{X-axis-label-spacing} should itself be
 measured in units of @code{symbol-width}, since you may want to change
 the width of the symbols that you are using to print the body of the
-graph without changing the ways the graph is labelled.
+graph without changing the ways the graph is labeled.
 
 @menu
 * Similarities differences::    Much like @code{print-Y-axis}, but not exactly.
@@ -20722,7 +20722,7 @@ Emacs will print the horizontal axis like this:
 Now we are nearly ready to print the whole graph.
 
 The function to print the graph with the proper labels follows the
-outline we created earlier (@pxref{Full Graph, , A Graph with Labelled
+outline we created earlier (@pxref{Full Graph, , A Graph with Labeled
 Axes}), but with additions.
 
 @need 1250
@@ -20857,7 +20857,7 @@ Finally, the code for the @code{print-graph} function:
 ;;; @r{Final version.}
 (defun print-graph
   (numbers-list &optional vertical-step)
-  "Print labelled bar graph of the NUMBERS-LIST.
+  "Print labeled bar graph of the NUMBERS-LIST.
 The numbers-list consists of the Y-axis values.
 @end group
 
@@ -21478,7 +21478,7 @@ each column."
 @group
 (defun print-graph
   (numbers-list &optional vertical-step horizontal-step)
-  "Print labelled bar graph of the NUMBERS-LIST.
+  "Print labeled bar graph of the NUMBERS-LIST.
 The numbers-list consists of the Y-axis values.
 @end group
 
@@ -21979,7 +21979,7 @@ each column."
 @group
 (defun print-graph
   (numbers-list &optional vertical-step horizontal-step)
-  "Print labelled bar graph of the NUMBERS-LIST.
+  "Print labeled bar graph of the NUMBERS-LIST.
 The numbers-list consists of the Y-axis values.
 @end group
 
@@ -22275,4 +22275,3 @@ airplane.
 @c @end iftex
 
 @bye
-

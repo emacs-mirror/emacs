@@ -1558,7 +1558,7 @@ LCON is the lexical context, if any."
 
 (defun sgml-guess-indent ()
   "Guess an appropriate value for `sgml-basic-offset'.
-Base the guessed identation level on the first indented tag in the buffer.
+Base the guessed indentation level on the first indented tag in the buffer.
 Add this to `sgml-mode-hook' for convenience."
   (interactive)
   (save-excursion
@@ -1872,7 +1872,7 @@ This takes effect when first loading the library.")
     ("dir" . "Directory list (obsolete)")
     ("div" . "Generic block-level container")
     ("dl" . "Definition list")
-    ("dt" . "Term to be definined")
+    ("dt" . "Term to be defined")
     ("em" . "Emphasized")
     ("embed" . "Embedded data in foreign format")
     ("fig" . "Figure")
@@ -1897,7 +1897,7 @@ This takes effect when first loading the library.")
     ("input" . "Form input field")
     ("ins" . "Inserted text")
     ("isindex" . "Input field for index search")
-    ("kbd" . "Keybard example face")
+    ("kbd" . "Keyboard example face")
     ("lang" . "Natural language")
     ("li" . "List item")
     ("link" . "Link relationship")

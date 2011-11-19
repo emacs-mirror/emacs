@@ -1729,7 +1729,7 @@ projects to define project-specific structures.  It also enables the
 use of etags and TAGS files for languages not supported by etags.
 
 The Emacs manual section on Tags contains explanations and examples
-for Emacs's DEFVAR, VHDL, Cobol, Postscript and TCL.
+for Emacs's DEFVAR, VHDL, Cobol, PostScript and TCL.
 
 ** Various mode-specific commands that used to be bound to C-c LETTER
 have been moved.

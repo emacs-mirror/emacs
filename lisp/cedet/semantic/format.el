@@ -291,7 +291,7 @@ local definitions."
   ;; Try and find a trail of parents from PARENT
   (let ((rlist (list parent))
 	)
-    ;; IMPLELEMENT ME!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+    ;; IMPLEMENT ME!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
     (reverse rlist)))
 
 (define-overloadable-function semantic-format-tag-canonical-name (tag &optional parent color)
@@ -431,7 +431,7 @@ Optional argument COLOR means highlight the prototype with font-lock colors."
 	 (doc (semantic-tag-docstring tag buf)))
     (when (and (not doc) (not buf) fname)
       ;; If there is no doc, and no buffer, but we have a filename,
-      ;; lets try again.
+      ;; let's try again.
       (save-match-data
 	(setq buf (find-file-noselect fname)))
       (setq doc (semantic-tag-docstring tag buf)))
@@ -603,7 +603,7 @@ This associates a symbol, such as 'public with the st ring \"+\".")
   "Convert PROTECTION-SYMBOL to a string for UML.
 By default, uses `semantic-format-tag-protection-symbol-to-string-assoc-list'
 to convert.
-By defaul character returns are:
+By default character returns are:
   public    -- +
   private   -- -
   protected -- #.

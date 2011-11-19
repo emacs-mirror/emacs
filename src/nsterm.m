@@ -164,7 +164,7 @@ static Lisp_Object last_mouse_motion_frame;
 static EmacsScroller *last_mouse_scroll_bar = nil;
 static struct frame *ns_updating_frame;
 static NSView *focus_view = NULL;
-static int ns_window_num =0;
+static int ns_window_num = 0;
 static NSRect uRect;
 static BOOL gsaved = NO;
 BOOL ns_in_resize = NO;
@@ -1123,12 +1123,10 @@ x_iconify_frame (struct frame *f)
   [[view window] miniaturize: NSApp];
 }
 
+/* Free X resources of frame F.  */
 
 void
-x_destroy_window (struct frame *f)
-/* --------------------------------------------------------------------------
-     External: Delete the window
-   -------------------------------------------------------------------------- */
+x_free_frame_resources (struct frame *f)
 {
   NSView *view = FRAME_NS_VIEW (f);
   struct ns_display_info *dpyinfo = FRAME_NS_DISPLAY_INFO (f);
@@ -1163,8 +1161,19 @@ x_destroy_window (struct frame *f)
   [[view window] close];
   [view release];
 
-  ns_window_num--;
   UNBLOCK_INPUT;
+}
+
+void
+x_destroy_window (struct frame *f)
+/* --------------------------------------------------------------------------
+     External: Delete the window
+   -------------------------------------------------------------------------- */
+{
+  NSTRACE (x_destroy_window);
+  check_ns ();
+  x_free_frame_resources (f);
+  ns_window_num--;
 }
 
 
@@ -3026,7 +3035,7 @@ ns_dumpglyphs_image (struct glyph_string *s, NSRect r)
       /* Currently on NS img->mask is always 0. Since
          get_window_cursor_type specifies a hollow box cursor when on
          a non-masked image we never reach this clause. But we put it
-         in in antipication of better support for image masks on
+         in in anticipation of better support for image masks on
          NS. */
       tdCol = ns_lookup_indexed_color (NS_FACE_FOREGROUND (face), s->f);
     }
@@ -4494,7 +4503,7 @@ ns_term_shutdown (int sig)
   //ns_app_active=YES;
 
   ns_update_auto_hide_menu_bar ();
-  // No constrining takes place when the application is not active.
+  // No constraining takes place when the application is not active.
   ns_constrain_all_frames ();
 }
 - (void)applicationDidResignActive: (NSNotification *)notification

@@ -129,7 +129,7 @@ See the end of the file for license conditions.
 
   Emacs can also support some other image formats with appropriate
   libraries.  These libraries are all available as part of GTK
-  download for Windows (http://www.gtk.org/download-windows.html), or
+  download for Windows (http://www.gtk.org/download/win32.php), or
   from the GnuWin32 project.  Emacs will find them if the directory
   they are installed in is on the PATH.
 
@@ -142,7 +142,7 @@ See the end of the file for license conditions.
       the PNG support will not work, and you will have to download
       newer versions.
 
-      JPEG: requires the Independant JPEG Group's libjpeg 6b or later,
+      JPEG: requires the Independent JPEG Group's libjpeg 6b or later,
       which will be called jpeg62.dll, libjpeg.dll, jpeg-62.dll or jpeg.dll.
 
       TIFF: requires libTIFF 3.0 or later, which will be called libtiff3.dll

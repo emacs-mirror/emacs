@@ -16,7 +16,7 @@
 	* international/fontset.el (script-representative-chars): Add cham
 	and tai-viet.
 	(setup-default-fontset): Add iso10646-1 font for latin and ipa.
-	Add fontconfig spec for cjk-misc.  Explicitly specify font font
+	Add fontconfig spec for cjk-misc.  Explicitly specify font
 	for U+E000..U+F8FF.
 
 	* international/characters.el (script-list): Add cham.
@@ -1673,7 +1673,7 @@
 	x-resolve-font-name.
 	(x-complement-fontset-spec): Never prepend an ASCII font.
 	(create-fontset-from-fontset-spec): If a fontset of the same name
-	already exists, override it instead of signalling an error.  Don't
+	already exists, override it instead of signaling an error.  Don't
 	turn `ascii' into `latin'.  Don't update fontset-alias-alist here.
 
 	* international/mule-conf.el (unicode-bmp): Delete duplicated
@@ -10127,7 +10127,7 @@
 2007-10-08  Richard Stallman  <rms@gnu.org>
 
 	* wid-edit.el (widget-specify-button): Don't merge mouse-face with
-	neighbouring buttons.
+	neighboring buttons.
 
 2007-10-08  Andreas Schwab  <schwab@suse.de>
 
@@ -10151,7 +10151,7 @@
 2007-10-08  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* wid-edit.el (widget-image-insert): Don't merge mouse-face with
-	neighbouring buttons.
+	neighboring buttons.
 
 	* progmodes/compile.el (compilation-error-regexp-alist-alist):
 	Recognize gcc's use of "note" for informational messages.
@@ -11855,7 +11855,7 @@
 	(org-agenda-files): Ignore non-existing files.
 	(org-agenda-skip-unavailable-files): New variable.
 	(org-ellipsis): All a face as value.
-	(org-mode): Interprete the face value of `org-ellipsis'.
+	(org-mode): Interpret the face value of `org-ellipsis'.
 	(org-archive-save-context-info): New option.
 	(org-archive-subtree): Store context info in archived entry.
 	(org-fast-tag-selection-can-set-todo-state): New variable.
@@ -11890,7 +11890,7 @@
 	(org-set-regexps-and-options): Use `org-remove-keyword-keys'.
 	(org-remove-keyword-keys): New function.
 
-2007-08-30  Jari Aalto  <jari.aalto@cante.net>  (tiny change)
+2007-08-30  Jari Aalto  <jari.aalto@cante.net>
 
 	* progmodes/grep.el (grep-find-ignored-directories):
 	Add monotone _MTN bookkeeping directory in workspaces.
@@ -16414,7 +16414,7 @@
 2007-05-16  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* files.el (magic-mode-alist, magic-fallback-mode-alist):
-	Move the *ml, Postscript, and XmCD entries to the fallback part.
+	Move the *ml, PostScript, and XmCD entries to the fallback part.
 
 	* files.el (magic-fallback-mode-alist):
 	Rename from file-start-mode-alist.

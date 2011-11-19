@@ -144,7 +144,7 @@ These are symbols with hooklike values whose names don't end in
 pertinent symbols.")
 
 (defvar unload-function-defs-list nil
-  "List of defintions in the Lisp library being unloaded.
+  "List of definitions in the Lisp library being unloaded.
 
 This is meant to be used by `FEATURE-unload-function'; see the
 documentation of `unload-feature' for details.")

@@ -429,7 +429,7 @@ static Lisp_Object Vccl_program_table;
 
 #define CCL_Extension		0x1F /* Extended CCL code
 					1:ExtendedCOMMNDRrrRRRrrrXXXXX
-					2:ARGUEMENT
+					2:ARGUMENT
 					3:...
 					------------------------------
 					extended_command (rrr,RRR,Rrr,ARGS)
@@ -484,7 +484,7 @@ static Lisp_Object Vccl_program_table;
    If the element is t or lambda, finish without changing reg[rrr].
    If the element is a number, set reg[rrr] to the number and finish.
 
-   Detail of the map structure is descibed in the comment for
+   Detail of the map structure is described in the comment for
    CCL_MapMultiple below.  */
 
 #define CCL_IterateMultipleMap	0x10 /* Iterate multiple maps
@@ -1762,7 +1762,7 @@ ccl_driver (struct ccl_program *ccl, int *source, int *destination, int src_size
 
 	case CCL_STAT_QUIT:
 	  if (! ccl->quit_silently)
-	    sprintf (msg, "\nCCL: Quited.");
+	    sprintf (msg, "\nCCL: Quitted.");
 	  break;
 
 	default:
@@ -1808,7 +1808,7 @@ ccl_driver (struct ccl_program *ccl, int *source, int *destination, int src_size
 
 /* Resolve symbols in the specified CCL code (Lisp vector).  This
    function converts symbols of code conversion maps and character
-   translation tables embeded in the CCL code into their ID numbers.
+   translation tables embedded in the CCL code into their ID numbers.
 
    The return value is a new vector in which all symbols are resolved,
    Qt if resolving of some symbol failed,

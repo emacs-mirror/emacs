@@ -748,10 +748,11 @@ of the list (comparison is done with @code{eq}).
 
 @deffn Command toggle-read-only &optional arg
 This command toggles whether the current buffer is read-only.  It is
-intended for interactive use; do not use it in programs.  At any given
-point in a program, you should know whether you want the read-only flag
-on or off; so you can set @code{buffer-read-only} explicitly to the
-proper value, @code{t} or @code{nil}.
+intended for interactive use; do not use it in programs (it may have
+side-effects, such as enabling View mode, and does not affect
+read-only text properties).  To change the read-only state of a buffer in
+a program, explicitly set @code{buffer-read-only} to the proper value.
+To temporarily ignore a read-only state, bind @code{inhibit-read-only}.
 
 If @var{arg} is non-@code{nil}, it should be a raw prefix argument.
 @code{toggle-read-only} sets @code{buffer-read-only} to @code{t} if

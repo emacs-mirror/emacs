@@ -360,7 +360,7 @@ commands in `hfy-etags-cmd-alist'."
   :type '(repeat symbol))
 
 (defun hfy-which-etags ()
-  "Return a string indicating which flavour of etags we are using."
+  "Return a string indicating which flavor of etags we are using."
   (let ((v (shell-command-to-string (concat hfy-etags-bin " --version"))))
     (cond ((string-match "exube" v) "exuberant ctags")
           ((string-match "GNU E" v) "emacs etags"    )) ))
@@ -432,8 +432,8 @@ and so on."
                                  (const :tag "Lucid Toolkit" lucid    )
                                  (const :tag "Motif Toolkit" motif    )))
 
-             (class      (choice (const :tag "Colour"        color    )
-                                 (const :tag "Greyscale"     grayscale)))
+             (class      (choice (const :tag "Color"         color    )
+                                 (const :tag "Grayscale"     grayscale)))
 
              (background (choice (const :tag "Dark"          dark     )
                                  (const :tag "Bright"        light    ))) ))
@@ -586,7 +586,7 @@ If a window system is unavailable, calls `hfy-fallback-colour-values'."
 (defvar hfy-cperl-mode-kludged-p nil)
 
 (defun hfy-kludge-cperl-mode ()
-  "CPerl mode does its damndest not to do some of its fontification when not
+  "CPerl mode does its damnedest not to do some of its fontification when not
 in a windowing system - try to trick it..."
   (if (not hfy-cperl-mode-kludged-p)
       (progn (if (not window-system)
@@ -1768,12 +1768,12 @@ hyperlinks as appropriate."
   "Return a list of files under DIRECTORY.
 Strips any leading \"./\" from each filename."
   ;;(message "hfy-list-files");;DBUG
-  ;; FIXME: this changes the dir of the currrent buffer.  Is that right??
+  ;; FIXME: this changes the dir of the current buffer.  Is that right??
   (cd directory)
   (mapcar (lambda (F) (if (string-match "^./\\(.*\\)" F) (match-string 1 F) F))
           (split-string (shell-command-to-string hfy-find-cmd))) )
 
-;; strip the filename off, return a directiry name
+;; strip the filename off, return a directory name
 ;; not a particularly thorough implementaion, but it will be
 ;; fed pretty carefully, so it should be Ok:
 (defun hfy-dirname (file)

@@ -294,7 +294,7 @@
 ;;   # Notice that the ^[ character is an ESC, not two chars.  You can
 ;;   # get it in various ways, for example by typing
 ;;   # echo -e '\033' > escape.file
-;;   # or by using your favourite editor
+;;   # or by using your favorite editor
 ;;
 ;; 		foreach temp (cd pushd)
 ;; 			alias $temp "$temp \!* ; echo 'AnSiTc' $cwd_hack"
@@ -4249,7 +4249,7 @@ special identifiers such as COM1."
   "History of serial ports used by `serial-read-name'.")
 
 (defvar serial-speed-history
-  ;; Initialised with reasonable values for newbies.
+  ;; Initialized with reasonable values for newbies.
   (list "9600" ;; Given twice because 9600 b/s is the most common speed
         "1200" "2400" "4800" "9600" "14400" "19200"
         "28800" "38400" "57600" "115200")

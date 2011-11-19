@@ -27,52 +27,16 @@
 ;;
 ;; This Emacs Lisp package provides a major mode for editing Metafont
 ;; or MetaPost sources.  It includes all the necessary code to set up
-;; a major mode including an approriate syntax table, keymap, and a
+;; a major mode including an appropriate syntax table, keymap, and a
 ;; mode-specific pull-down menu.  It also provides a sophisticated set
 ;; of font-lock patterns, a fancy indentation function adapted from
 ;; AUCTeX's latex.el, and some basic mode-specific editing functions
 ;; such as functions to move to the beginning or end of the enclosing
 ;; environment, or to mark, re-indent, or comment-out environments.
 ;; On the other hand, it doesn't yet provide any functionality for
-;; running Metafont or MetaPost in a shell buffer form within Emacs,
+;; running Metafont or MetaPost in a shell buffer from within Emacs,
 ;; but such functionality might be added later, either as part of this
 ;; package or as a separate Emacs Lisp package.
-
-;; Installation:
-;;
-;; An interface to running Metafont or MetaPost as a shell process
-;; from within Emacs is currently under development as a separate
-;; Emacs Lisp package (meta-buf.el).  In order to have that package
-;; loaded automatically when first entering Metafont or MetaPost mode,
-;; you might use the load-hook provided in this package by adding
-;; these lines to your startup file:
-;;
-;;  (add-hook 'meta-mode-load-hook
-;;            (lambda () (require 'meta-buf)))
-;;
-;; The add-on package loaded this way may in turn make use of the
-;; mode-hooks provided in this package to activate additional features
-;; when entering Metafont or MetaPost mode.
-
-;; Font Lock Support:
-;;
-;; If you are using global-font-lock-mode (introduced in Emacs 19.31),
-;; fontification in Metafont and/or MetaPost mode will be activated
-;; automatically.  To speed up fontification for the rather complex
-;; patterns used in these modes, it may be a good idea to activate
-;; lazy-lock as a font-lock-support-mode (introduced in Emacs 19.32)
-;; by adding these lines to your startup file:
-;;
-;;  (global-font-lock-mode t)
-;;  (setq font-lock-support-mode 'lazy-lock-mode)
-;;
-;; If you are using an older version of Emacs, which doesn't provide
-;; global-font-lock-mode or font-lock-support-mode, you can also
-;; activate fontification in Metafont and/or MetaPost mode by adding
-;; the following lines to your startup file:
-;;
-;;  (add-hook 'meta-common-mode-hook 'turn-on-font-lock)
-;;  (add-hook 'meta-common-mode-hook 'turn-on-lazy-lock)
 
 ;; Customization:
 ;;
@@ -88,10 +52,6 @@
 
 ;; Availability:
 ;;
-;; This package is currently available via my "TeX Software" WWW page:
-;;
-;;  http://www.thphy.uni-duesseldorf.de/~vieth/subjects/tex/software.html
-;;
 ;; As of this version 1.0, this package will be uploaded to CTAN
 ;; archives, where it shall find a permanent home, presumably in
 ;; tex-archive/support/emacs-modes.  It will also be submitted for
@@ -104,7 +64,7 @@
 ;; v 0.2 -- 1997/02/03  UV  Improved and debugged font-lock patterns.
 ;;                          Added indent-line-function for TAB.
 ;; v 0.3 -- 1997/02/17  UV  Improved font-lock patterns and syntax table.
-;;                          Improved and debbuged indentation function.
+;;                          Improved and debugged indentation function.
 ;; v 0.4 -- 1997/02/18  UV  Added functions to indent regions for M-C-q,
 ;;                          also added a preliminary mode-specific menu.
 ;; v 0.5 -- 1997/02/19  UV  Added functions to skip to next or previous
@@ -201,7 +161,7 @@
                        "[ \t\f]+\\(\\sw+\\|\\s_+\\|\\s.+\\)")
                '((1 font-lock-keyword-face)
                  (2 font-lock-function-name-face)))
-         ;; binary macro defintions: <leveldef> x operator y
+         ;; binary macro definitions: <leveldef> x operator y
          (cons (concat "\\<" macro-keywords-2 "\\>"
                        "[ \t\f]+\\(\\sw+\\)"
                        "[ \t\f]*\\(\\sw+\\|\\s.+\\)"
@@ -513,13 +473,13 @@ If the list was changed, sort the list and remove duplicates first."
   :group 'meta-font)
 
 (defcustom meta-right-comment-regexp nil
-  "Regexp matching comments that should be placed to the right margin."
+  "Regexp matching comments that should be placed on the right margin."
   :type '(choice regexp
 		 (const :tag "None" nil))
   :group 'meta-font)
 
 (defcustom meta-ignore-comment-regexp "%[^%]"
-  "Regexp matching comments that whose indentation should not be touched."
+  "Regexp matching comments whose indentation should not be touched."
   :type 'regexp
   :group 'meta-font)
 
@@ -740,7 +700,7 @@ If the list was changed, sort the list and remove duplicates first."
 
 
 (defun meta-beginning-of-defun (&optional arg)
-  "Move backward to beginnning of a defun in Metafont or MetaPost code.
+  "Move backward to beginning of a defun in Metafont or MetaPost code.
 With numeric argument, do it that many times.
 Negative arg -N means move forward to Nth following beginning of defun.
 Returns t unless search stops due to beginning or end of buffer."

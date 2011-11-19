@@ -240,7 +240,7 @@ Return the defined symbol as a special spp lex token."
 			(goto-char (match-end 0))
 			(looking-at "(")))
 	   (semantic-lex-spp-replacements-enabled nil)
-	   ;; Temporarilly override the lexer to include
+	   ;; Temporarily override the lexer to include
 	   ;; special items needed inside a macro
 	   (semantic-lex-analyzer #'semantic-cpp-lexer)
 	   (raw-stream
@@ -249,7 +249,7 @@ Return the defined symbol as a special spp lex token."
 						 (point))))
 	   )
 
-      ;; Only do argument checking if the paren was immediatly after
+      ;; Only do argument checking if the paren was immediately after
       ;; the macro name.
       (if with-args
 	  (semantic-lex-spp-first-token-arg-list (car raw-stream)))
@@ -1092,7 +1092,7 @@ Optional argument STAR and REF indicate the number of * and & in the typedef."
 	      ;; `throws' as a common name for things that toss
 	      ;; exceptions about.
 	      :throws (nth 5 tokenpart)
-	      ;; Reemtrant is a C++ thingy.  Add it here
+	      ;; Reentrant is a C++ thingy.  Add it here
 	      :reentrant-flag (if (member "reentrant" (nth 6 tokenpart)) t)
 	      ;; A function post-const is funky.  Try stuff
 	      :methodconst-flag (if (member "const" (nth 6 tokenpart)) t)
@@ -1128,7 +1128,7 @@ Optional PARENT and COLOR are ignored."
 
 (define-mode-local-override semantic-format-tag-canonical-name
   c-mode (tag &optional parent color)
-  "Create a cannonical name for TAG.
+  "Create a canonical name for TAG.
 PARENT specifies a parent class.
 COLOR indicates that the text should be type colorized.
 Enhances the base class to search for the entire parent

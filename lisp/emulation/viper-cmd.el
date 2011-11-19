@@ -1599,7 +1599,7 @@ as a Meta key and any number of multiple escapes are allowed."
 ;; call viper-execute-com to execute viper-exec-change, which eventually will
 ;; call viper-change to invoke the replace mode on the region.
 ;;
-;; The var viper-d-com is set to (M-COM VAL COM REG INSETED-TEXT COMMAND-KEYS)
+;; The var viper-d-com is set to (M-COM VAL COM REG INSERTED-TEXT COMMAND-KEYS)
 ;; via a call to viper-set-destructive-command, for later use by viper-repeat.
 (defun viper-execute-com (m-com val com)
   (let ((reg viper-use-register))

@@ -83,7 +83,7 @@ For example, yacc/lex files need additional chain rules, or inferences.")
 	    :documentation
 	    "The commands used to execute this compiler.
 The object which uses this compiler will place these commands after
-it's rule definition.")
+its rule definition.")
    (autoconf :initarg :autoconf
 	     :initform nil
 	     :type list
@@ -149,7 +149,7 @@ belonging to the target name.")
 	  :type list
 	  :custom (repeat string)
 	  :documentation "Scripts to execute.
-These scripst will be executed in sh (Unless the SHELL variable is overriden).
+These scripts will be executed in sh (Unless the SHELL variable is overridden).
 Do not prefix with TAB.
 Each individual element of this list can be either a string, or
 a lambda function.  (The custom element does not yet express that.")

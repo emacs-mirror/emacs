@@ -638,7 +638,7 @@ These properties are determined by the Image mode variables
 `image-transform-resize' and `image-transform-rotation'.  The
 return value is suitable for appending to an image spec.
 
-Recaling and rotation properties only take effect if Emacs is
+Rescaling and rotation properties only take effect if Emacs is
 compiled with ImageMagick support."
   (when (or image-transform-resize
 	    (not (equal image-transform-rotation 0.0)))

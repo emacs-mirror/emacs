@@ -7949,7 +7949,7 @@
 2010-05-11  Karel Klíč  <kklic@redhat.com>
 
 	* ftfont.c: Fix incorrect parentheses of #if condition for
-	definining M17N_FLT_USE_NEW_FEATURE.
+	defining M17N_FLT_USE_NEW_FEATURE.
 
 2010-05-11  Glenn Morris  <rgm@gnu.org>
 
@@ -11972,7 +11972,7 @@
 
 	* image.c (xbm_read_bitmap_data): New arg inhibit_image_error.
 	(xbm_load_image): Caller changed.
-	(xbm_file_p): Avoid signalling an image_error (Bug#4107).
+	(xbm_file_p): Avoid signaling an image_error (Bug#4107).
 
 2009-08-13  Nick Roberts  <nickrob@snap.net.nz>
 
@@ -16658,7 +16658,7 @@
 2008-08-20  Chong Yidong  <cyd@stupidchicken.com>
 
 	* xselect.c (x_get_foreign_selection): Return nil if desired
-	selection could not be obtained, instead of signalling an error.
+	selection could not be obtained, instead of signaling an error.
 
 2008-08-20  David Reitter  <david.reitter@gmail.com>
 
@@ -23551,7 +23551,7 @@
 	STORE_XCHARB a valid l-value.
 
 	* w32term.c (w32_native_per_char_metric): Swap width and rbearing
-	calculations for non-Truetype fonts.
+	calculations for non-TrueType fonts.
 	(x_draw_glyph_string): Sync with xterm.c.
 	(x_draw_glyph_string_foreground) [USE_FONT_BACKEND]:
 	Remove redundant code.
@@ -25474,7 +25474,7 @@
 
 	* term.c (terminal_encode_buffer): Make externally visible.
 
-	* makefile.w32-in: Add character.h dependancies.
+	* makefile.w32-in: Add character.h dependencies.
 	(character.o, chartab.o): New targets.
 
 2008-02-01  Kenichi Handa  <handa@m17n.org>
@@ -26748,7 +26748,7 @@
 2008-02-01  Kenichi Handa  <handa@m17n.org>
 
 	* xdisp.c (face_before_or_after_it_pos):
-	Call FETCH_MULTIBYTE_CHAR with byte postion, not char position.
+	Call FETCH_MULTIBYTE_CHAR with byte position, not char position.
 
 2008-02-01  Kenichi Handa  <handa@m17n.org>
 
@@ -29718,7 +29718,7 @@
 	* keyboard.c (restore_kboard_configuration): Only define when
 	MULTI_KBOARD defined.
 
-	* makefile.w32-in: Update dependancies from Makefile.in.
+	* makefile.w32-in: Update dependencies from Makefile.in.
 	(OBJ1): Add terminal.$(O)
 
 	* term.c (dissociate_if_controlling_tty) [WINDOWSNT]:

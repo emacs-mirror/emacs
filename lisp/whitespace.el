@@ -525,7 +525,7 @@ evaluated instead of indentation::space value.
 
 One reason for not visualize spaces via faces (if `face' is not
 included in `whitespace-style') is to use exclusively for
-cleanning up a buffer.  See `whitespace-cleanup' and
+cleaning up a buffer.  See `whitespace-cleanup' and
 `whitespace-cleanup-region' for documentation.
 
 See also `whitespace-display-mappings' for documentation."
@@ -2573,7 +2573,7 @@ Also refontify when necessary."
 	(setq whitespace-display-table-was-local t
 	      whitespace-display-table
 	      (copy-sequence buffer-display-table))
-	;; asure `buffer-display-table' is unique
+	;; Assure `buffer-display-table' is unique
 	;; when two or more windows are visible.
 	(setq buffer-display-table
 	      (copy-sequence buffer-display-table)))

@@ -83,7 +83,7 @@
 ;; work properly.  If you don't know what custom is all about and want
 ;; to edit your user option elisp variables the old fashioned way,
 ;; just imagine that all the "defcustom" stuff you see below is really
-;; "defvar", and ignore everthing else.  For info about custom, see
+;; "defvar", and ignore everything else.  For info about custom, see
 ;; <URL:http://www.dina.kvl.dk/~abraham/custom/>.
 ;;
 ;; This code does in elisp a superset of the stuff that used to be done
@@ -336,7 +336,7 @@
 ;;           for FQM files if you're a VM user
 ;;         change buffer-substring calls to buffer-substring-no-properties for
 ;;           speed-up (suggested by Howard Melman <howard@silverstream.com>)
-;;         feedmail-sendmail-f-doesnt-sell-me-out to contol "-f" in call to sendmail
+;;         feedmail-sendmail-f-doesnt-sell-me-out to control "-f" in call to sendmail
 ;;           in feedmail-buffer-to-sendmail
 ;;         better trapping of odd conditions during the running of the queue;
 ;;           thanks to Yigal Hochberg for helping me test much of this by remote
@@ -1356,7 +1356,7 @@ for you.  Add this function to `mail-send-hook' with something like this:
 	(add-hook 'mail-send-hook 'feedmail-mail-send-hook-splitter)
 
 Then add the functions you want called to either `feedmail-mail-send-hook-queued'
-or `feedmail-mail-send-hook', as apprpriate.  The distinction is that
+or `feedmail-mail-send-hook', as appropriate.  The distinction is that
 `feedmail-mail-send-hook' will be called when you send mail from a composition
 buffer (typically by typing C-c C-c), whether the message is sent immediately
 or placed in the queue or drafts directory.  `feedmail-mail-send-hook-queued' is
@@ -2410,7 +2410,7 @@ mapped to mostly alphanumerics for safety."
 	(a-re-dtcb  "^\\(To\\|Cc\\|Bcc\\):")
 	(a-re-dtc   "^\\(To\\|Cc\\):")
 	(a-re-db    "^Bcc:")
-	;; to get a temporary changable copy
+	;; to get a temporary changeable copy
 	(mail-header-separator mail-header-separator)
 	)
     (unwind-protect

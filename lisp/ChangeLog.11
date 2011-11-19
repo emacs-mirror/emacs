@@ -5283,7 +5283,7 @@
 	(disabled-command-function): Function renamed from
 	`disabled-command-hook'.  Adapt code to name change of the variable.
 
-2004-08-07  Satyaki Das  <satyaki@theforce.stanford.edu>  (tiny change)
+2004-08-07  Satyaki Das  <satyaki@theforce.stanford.edu>
 
 	* simple.el (completion-root-regexp): New defvar.
 	(completion-setup-function): Use it instead of a literal string.

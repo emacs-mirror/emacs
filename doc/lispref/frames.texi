@@ -2414,7 +2414,7 @@ This function returns the ``vendor'' that provided the X server
 software (as a string).  Really this means whoever distributes the X
 server.
 
-When the developers of X labelled software distributors as
+When the developers of X labeled software distributors as
 ``vendors,'' they showed their false assumption that no system could
 ever be developed and distributed noncommercially.
 @end defun
@@ -2430,4 +2430,3 @@ This variable's value is @code{t} if no X window manager is in use.
 The functions @code{x-pixel-width} and @code{x-pixel-height} return the
 width and height of an X Window frame, measured in pixels.
 @end ignore
-

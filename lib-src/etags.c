@@ -611,7 +611,7 @@ using `--declarations'.";
 static const char *Cplusplus_suffixes [] =
   { "C", "c++", "cc", "cpp", "cxx", "H", "h++", "hh", "hpp", "hxx",
     "M",			/* Objective C++ */
-    "pdb",			/* Postscript with C syntax */
+    "pdb",			/* PostScript with C syntax */
     NULL };
 static const char Cplusplus_help [] =
 "In C++ code, all the tag constructs of C code are tagged.  (Use\n\
@@ -4846,7 +4846,7 @@ Lua_functions (FILE *inf)
 
 
 /*
- * Postscript tags
+ * PostScript tags
  * Just look for lines where the first character is '/'
  * Also look at "defineps" for PSWrap
  * Ideas by:
@@ -6097,7 +6097,7 @@ readline (linebuffer *lbp, FILE *stream)
   lineno += 1;			/* increment global line number */
   charno += result;		/* increment global char number */
 
-  /* Honour #line directives. */
+  /* Honor #line directives. */
   if (!no_line_directive)
     {
       static bool discard_until_line_directive;

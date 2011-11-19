@@ -4617,7 +4617,7 @@
 	* lisp.h (detect_coding_system): Prototype adjusted.
 
 	* coding.c (ONE_MORE_BYTE_CHECK_MULTIBYTE): New macro.
-	(detect_coding_emacs_mule, detect_coding_iso2022,)
+	(detect_coding_emacs_mule, detect_coding_iso2022)
 	(detect_coding_sjis, detect_coding_big5, detect_coding_utf_8)
 	(detect_coding_utf_16, detect_coding_ccl): Make them static.
 	New argument MULTIBYTEP.  Callers changed.
@@ -8409,7 +8409,7 @@
 	(encode_coding_iso2022): New local variable safe_chars.  Check
 	unsafe chars.
 	(setup_coding_system): Delete the code to initialize
-	coding->safe_charses.
+	coding->safe_charsets.
 	(intersection, find_safe_codings): New functions.
 	(Ffind_coding_systems_region_internal): New function.
 	(syms_of_coding): Defsubr it.  Initialize Qsafe_chars,

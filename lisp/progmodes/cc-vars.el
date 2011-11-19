@@ -963,7 +963,7 @@ this is `c-lineup-ObjC-method-call', which would align it like:
 	[foo blahBlahBlah: fred
 	     thisIsTooDamnLong: barney
 
-This behaviour can be overridden by customizing the indentation of
+This behavior can be overridden by customizing the indentation of
 `objc-method-call-cont' in the \"objc\" style."
   :type 'integer
   :group 'c)
@@ -1327,7 +1327,7 @@ Here is the current list of valid syntactic element symbols:
  statement-case-open    -- The first line in a case block starting with brace.
  substatement           -- The first line after an if/while/for/do/else.
  substatement-open      -- The brace that opens a substatement block.
- substatement-label     -- Labelled line after an if/while/for/do/else.
+ substatement-label     -- Labeled line after an if/while/for/do/else.
  case-label             -- A \"case\" or \"default\" label.
  access-label           -- C++ private/protected/public access label.
  label                  -- Any ordinary label.
@@ -1625,7 +1625,7 @@ names)."))
 (defvar c-macro-with-semi-re nil
   ;; Regular expression which matches a (#define'd) symbol whose expansion
   ;; ends with a semicolon.
-  ;; 
+  ;;
   ;; This variable should be set by `c-make-macros-with-semi-re' rather than
   ;; directly.
 )
@@ -1651,7 +1651,7 @@ names)."))
 	  (t (error "c-make-macro-with-semi-re: invalid \
 c-macro-names-with-semicolon: %s"
 		    c-macro-names-with-semicolon))))))
-    
+
 (defvar c-macro-names-with-semicolon
   '("Q_OBJECT" "Q_PROPERTY" "Q_DECLARE" "Q_ENUMS")
   "List of #defined symbols whose expansion ends with a semicolon.

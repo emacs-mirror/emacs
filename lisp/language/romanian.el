@@ -35,7 +35,7 @@
 	      (unibyte-display . iso-8859-2)
 	      (tutorial . "TUTORIAL.ro")
 	      (sample-text . "Bunã ziua, bine aþi venit!")
-	      (documentation . "Rmoanian environment using Latin-2 encoding.
+	      (documentation . "Romanian environment using Latin-2 encoding.
 An environment for generic Latin-10 encoding is also available."))
  '("European"))
 

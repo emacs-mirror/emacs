@@ -165,7 +165,7 @@ Change them to use report-emacs-bug.
 like make-backup-file-name-function for non-numeric backup files.
 
 ** `dired-mode' should specify the semantics of `buffer-modified-p' for
-dired buffers and DTRT WRT `auto-revert-mode'. 
+dired buffers and DTRT WRT `auto-revert-mode'.
 
 ** Check uses of prin1 for error-handling.
 http://lists.gnu.org/archive/html/emacs-devel/2008-08/msg00456.html
@@ -325,7 +325,7 @@ typically due to pilot errors and should thus be in debug-ignored-errors.
 
 ** Beefed-up syntax-tables.
 *** recognize multi-character syntactic entities like `begin' and `end'.
-*** nested string-delimiters (for Postscript's (foo(bar)baz) strings).
+*** nested string-delimiters (for PostScript's (foo(bar)baz) strings).
 *** support for infix operators (with precedence).
 *** support for the $ (paired delimiter) in parse-partial-sexp.
 *** support for hook-chars whose effect on the parsing-state is specified
@@ -1043,7 +1043,7 @@ was an error in the namespace URI.
 
 **** Better recovery from ill-formed XML declarations.
 
-*** Useability improvements
+*** Usability improvements
 
 **** Should print a "Parsing..." message during long movements.
 
@@ -1243,4 +1243,3 @@ GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License
 along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
-

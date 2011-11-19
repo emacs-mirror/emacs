@@ -54,7 +54,7 @@
 ;;
 ;; Here, we will treat each section separately (excluding D)
 ;; They can then be strung together in user-visible commands to
-;; fulfil specific needs.
+;; fulfill specific needs.
 ;;
 ;; COLLECTORS:
 ;;
@@ -891,7 +891,7 @@ making the action of homing in on a token faster.")
 This completion is calculated and saved for future use.")
    (last-whitespace-completion :type (or null string)
 			       :documentation "The last whitespace completion.
-For partial completion, SPC will disabiguate over whitespace type
+For partial completion, SPC will disambiguate over whitespace type
 characters.  This is the last calculated version.")
    (current-exact-match :type list
 			:protection :protected
@@ -1353,7 +1353,7 @@ to click on the items to aid in completion.")
 (defmethod semantic-displayor-show-request ((obj semantic-displayor-traditional))
   "A request to show the current tags table."
 
-  ;; NOTE TO SELF.  Find the character to type next, and emphesize it.
+  ;; NOTE TO SELF.  Find the character to type next, and emphasize it.
 
   (with-output-to-temp-buffer "*Completions*"
     (display-completion-list
@@ -1377,7 +1377,7 @@ given tag, by highlighting its location.")
    )
   "Abstract displayor supporting `focus'.
 A displayor which has the ability to focus in on one tag.
-Focusing is a way of differentiationg between multiple tags
+Focusing is a way of differentiating among multiple tags
 which have the same name."
   :abstract t)
 
@@ -1618,7 +1618,7 @@ Display mechanism using tooltip for a list of possible completions.")
 		 (string= (this-command-keys) "\C-i"))
 	    (oset obj typing-count (1+ typing-count)))
 	;; At this point, we know we have too many items.
-	;; Lets be brave, and truncate l
+	;; Let's be brave, and truncate l
 	(setcdr (nthcdr (oref obj max-tags) l) nil)
 	(setq msg (mapconcat 'identity l "\n"))
 	(cond

@@ -1,3 +1,22 @@
+2011-11-16  Juanma Barranquero  <lekktu@gmail.com>
+
+	* org.texi (Agenda commands, Exporting Agenda Views): Fix typos.
+
+2011-11-15  Juanma Barranquero  <lekktu@gmail.com>
+
+	* ede.texi (project-am-texinfo):
+	* gnus.texi (Sending or Not Sending):
+	* org.texi (Template elements): Fix typos.
+
+2011-11-14  Juanma Barranquero  <lekktu@gmail.com>
+
+	* ediff.texi (Hooks):
+	* sem-user.texi (Semanticdb Roots): Fix typos.
+
+2011-11-11  Juanma Barranquero  <lekktu@gmail.com>
+
+	* semantic.texi (Tag handling): Fix typo.
+
 2011-10-31  Katsumi Yamaoka  <yamaoka@jpl.org>
 
 	* gnus.texi (Other Gnus Versions): Remove.
@@ -58,7 +77,7 @@
 
 	Release MH-E manual version 8.3.
 
-	* mh-e.texi: (VERSION, EDITION, UPDATED, UPDATE-MONTH): Update for
+	* mh-e.texi (VERSION, EDITION, UPDATED, UPDATE-MONTH): Update for
 	release 8.3.
 	(Preface): Updated support information.
 	(From Bill Wohler): Reset text to original version. As a
@@ -296,7 +315,7 @@
 
 2011-08-15  Eric Schulte  <schulte.eric@gmail.com>
 
-	* org.texi (Evaluating code blocks):  Expanded discussion of
+	* org.texi (Evaluating code blocks): Expanded discussion of
 	#+call: line syntax.
 	(Header arguments in function calls): Expanded discussion of
 	#+call: line syntax.
@@ -2290,7 +2309,7 @@
 2009-08-25  Michael Albinus  <michael.albinus@gmx.de>
 
 	* dbus.texi (Bus names): Add optional parameter TIMEOUT to dbus-ping.
-	Describe autostart behaviour of dbus-ping.
+	Describe autostart behavior of dbus-ping.
 	(Synchronous Methods, Asynchronous Methods): Use English numeric format
 	for timeout values.
 	(Top): Remove footnote saying D-Bus is not enabled by

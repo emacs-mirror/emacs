@@ -258,13 +258,8 @@ struct window
        must run the redisplay-end-trigger-hook.  */
     Lisp_Object redisplay_end_trigger;
 
-    /* Non-nil means deleting or resizing this window distributes
-       space among all windows in the same combination.  */
-    Lisp_Object splits;
-
-    /* Non-nil means this window's child windows are never
-       (re-)combined.  */
-    Lisp_Object nest;
+    /* t means this window's child windows are not (re-)combined.  */
+    Lisp_Object combination_limit;
 
     /* Alist of <buffer, window-start, window-point> triples listing
        buffers previously shown in this window.  */
@@ -824,7 +819,7 @@ extern Lisp_Object window_from_coordinates (struct frame *, int, int,
                                             enum window_part *, int);
 EXFUN (Fwindow_dedicated_p, 1);
 extern void resize_frame_windows (struct frame *, int, int);
-extern void delete_all_subwindows (Lisp_Object);
+extern void delete_all_child_windows (Lisp_Object);
 extern void freeze_window_starts (struct frame *, int);
 extern void grow_mini_window (struct window *, int);
 extern void shrink_mini_window (struct window *);

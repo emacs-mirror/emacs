@@ -145,7 +145,7 @@ association to the service from D-Bus."
 	 (service (car value))
 	 (entry (gethash key dbus-registered-objects-table))
 	 ret)
-    ;; key has the structure (BUS INTERRFACE MEMBER).
+    ;; key has the structure (BUS INTERFACE MEMBER).
     ;; value has the structure (SERVICE PATH [HANDLER]).
     ;; entry has the structure ((UNAME SERVICE PATH MEMBER [RULE]) ...).
     ;; MEMBER is either a string (the handler), or a cons cell (a
@@ -505,7 +505,7 @@ not well formed."
 
 (defun dbus-event-member-name (event)
   "Return the member name the event is coming from.
-It is either a signal name or a method name. The result is is a
+It is either a signal name or a method name. The result is a
 string.  EVENT is a D-Bus event, see `dbus-check-event'.  This
 function raises a `dbus-error' signal in case the event is not
 well formed."

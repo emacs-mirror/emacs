@@ -194,7 +194,7 @@ Any other value is treated as t."
 		 :tag "Column Formating"
 		 (const :tag "No Formating" nil)
 		 (const :tag "Column Alignment" t)
-		 (const :tag "Separator Aligment" separator)
+		 (const :tag "Separator Alignment" separator)
 		 (const :tag "Column Padding" padding))
   :group 'columns)
 

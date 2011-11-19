@@ -382,7 +382,7 @@ them yourself.
 @deffn Option semanticdb-project-roots
 The value of this variable is a list of directories (strings) that are
 project roots.  All subdirectories of a project root are considered
-part of the same project.  This variable can be overriden by
+part of the same project.  This variable can be overridden by
 @code{semanticdb-project-root-functions}.
 @end deffn
 
@@ -608,7 +608,7 @@ of parsing.  The default is @code{t}.
 @node Debugging Idle Time Issues
 @subsection Debugging Idle Time Issues
 
-If you see an error signalled during idle time, it could be an
+If you see an error signaled during idle time, it could be an
 indication of a more serious issue elsewhere.  It is not enough to
 enable @code{debug-on-error}, because the idle scheduler inhibits the
 debugger.  Instead, use the following commands to debug the error:

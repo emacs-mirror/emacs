@@ -1,3 +1,7 @@
+2011-11-14  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* Makefile.in (all): Make sure "all" is the first target.
+
 2011-10-27  Juanma Barranquero  <lekktu@gmail.com>
 
 	* emacsclient.c (w32_getenv): Silence compiler warnings.
@@ -3638,7 +3642,7 @@
 	(lang_names): Add a NULL member for every entry, added an entry
 	for makefiles.
 	(Makefile_targets): New function.
-	(Texinfo_nodes): Rename from Texinfo_fuctions and made
+	(Texinfo_nodes): Rename from Texinfo_functions and made
 	it conformant to the style of the rest of the code.
 
 2001-01-13  Gerd Moellmann  <gerd@gnu.org>
@@ -4630,9 +4634,9 @@
 
 1997-05-12  Francesco Potortì  <F.Potorti@cnuce.cnr.it>
 
-	* etags.c (Cplusplus_suffixes): .pdb is Postscript with C syntax.
-	(Postscript_suffixes): .ps is Postscript.
-	(lang_names): Add Postscript.
+	* etags.c (Cplusplus_suffixes): .pdb is PostScript with C syntax.
+	(Postscript_suffixes): .ps is PostScript.
+	(lang_names): Add postscript.
 	(Postscript_functions): New function.
 	(TEX_decode_env): Close minor memory leak.
 	(just_read_file): Correct the char number of the tag.
@@ -5130,7 +5134,7 @@
 
 1996-03-15  Anders Lindgren  <andersl@csd.uu.se>
 
-	* etags.c: Prolog language totaly rewritten.
+	* etags.c: Prolog language totally rewritten.
 	(Prolog_functions): Rewritten from scratch.
 	(skip_comment, prolog_getit): Removed.
 	(prolog_skip_comment): New function, like old skip_comment.

@@ -427,7 +427,7 @@ datasets."
 
 (defun semantic-idle-scheduler-work-parse-neighboring-files ()
   "Parse all the files in similar directories to buffers being edited."
-  ;; Lets check to see if EDE matters.
+  ;; Let's check to see if EDE matters.
   (let ((ede-auto-add-method 'never))
     (dolist (a auto-mode-alist)
       (when (eq (cdr a) major-mode)
@@ -1314,4 +1314,4 @@ mouse-3: popup context menu"
 ;; generated-autoload-load-name: "semantic/idle"
 ;; End:
 
-;;; semantic-idle.el ends here
+;;; semantic/idle.el ends here

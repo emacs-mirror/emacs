@@ -1,4 +1,4 @@
-;;; ede.el --- customization of EDE projects.
+;;; ede/custom.el --- customization of EDE projects.
 
 ;; Copyright (C) 2010-2011  Free Software Foundation, Inc.
 
@@ -40,7 +40,7 @@
 
 ;;; Customization Commands
 ;;
-;; These commands initialize custoization of EDE control objects.
+;; These commands initialize customization of EDE control objects.
 
 ;;;###autoload
 (defun ede-customize-project ()

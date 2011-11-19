@@ -157,7 +157,7 @@ There are currently two built-in format functions:
 ;; I just ignore it.
 ;;;###autoload
 (defun gnus-user-format-function-d (header)
-  ;; Returns an aproximative delay string for the next occurrence of this
+  ;; Return an approximate delay string for the next occurrence of this
   ;; message. The delay is given only in the first non zero unit.
   ;; Code partly stolen from article-make-date-line
   (let* ((extras (mail-header-extra header))

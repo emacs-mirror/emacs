@@ -1,4 +1,4 @@
-;;; sort.el --- Utilities for sorting and re-arranging tag tables.
+;;; semantic/sort.el --- Utilities for sorting and re-arranging tag tables.
 
 ;;; Copyright (C) 1999-2005, 2007-2011 Free Software Foundation, Inc.
 
@@ -27,7 +27,7 @@
 ;; purposes.  Re-organization may be alphabetical, or even a complete
 ;; reorganization of parents and children.
 ;;
-;; Originally written in semantic-util.el
+;; Originally written in semantic/util.el
 ;;
 
 (require 'semantic)
@@ -565,4 +565,4 @@ See `semantic-tag-external-class' for details."
 ;; generated-autoload-load-name: "semantic/sort"
 ;; End:
 
-;;; semantic-sort.el ends here
+;;; semantic/sort.el ends here

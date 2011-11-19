@@ -409,7 +409,7 @@ If there is no registered search engine at all, the function returns `nil'."
 	(setq vendor-id (xesam-get-property engine "vendor.id")
 	      hit-fields (xesam-get-property engine "hit.fields"))
 
-	;; Ususally, `hit.fields' shall describe supported fields.
+	;; Usually, `hit.fields' shall describe supported fields.
 	;; That is not the case now, so we set it ourselves.
 	;; Hopefully, this will change later.
 	(setq hit-fields

@@ -252,7 +252,7 @@ no further processing).  URL is either a string or a parsed URL."
             ;; interrupt it before it got a chance to handle process input.
             ;; `sleep-for' was tried but it lead to other forms of
             ;; hanging.  --Stef
-            (unless (or (with-local-quit 
+            (unless (or (with-local-quit
 			  (accept-process-output proc))
 			(null proc))
               ;; accept-process-output returned nil, maybe because the process
@@ -290,7 +290,7 @@ no further processing).  URL is either a string or a parsed URL."
   ;; These requires could advantageously be moved to url-mm-callback or
   ;; turned into autoloads, but I suspect that it would introduce some bugs
   ;; because loading those files from a process sentinel or filter may
-  ;; result in some undesirable carner cases.
+  ;; result in some undesirable corner cases.
   (require 'mm-decode)
   (require 'mm-view)
   (url-retrieve url 'url-mm-callback nil))

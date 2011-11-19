@@ -79,13 +79,13 @@
 ;;  The PATH argument is then the most interesting argument.  It can
 ;;  have these values:
 ;;
-;;    nil - Take the current buffer, and use it's include list
+;;    nil - Take the current buffer, and use its include list
 ;;    buffer - Use that buffer's include list.
 ;;    filename - Use that file's include list.  If the file is not
 ;;        in a buffer, see of there is a semanticdb table for it.  If
 ;;        not, read that file into a buffer.
 ;;    tag - Get that tag's buffer of file file.  See above.
-;;    table - Search that table, and it's include list.
+;;    table - Search that table, and its include list.
 ;;
 ;; Search Results:
 ;;
@@ -862,7 +862,7 @@ instead."
 	  (let ((tab (car (car tmp)))
 		(tags (cdr (car tmp))))
 	    (dolist (T tags)
-	      ;; Normilzation gives specialty database tables a chance
+	      ;; Normalization gives specialty database tables a chance
 	      ;; to convert into a more stable tag format.
 	      (let* ((norm (semanticdb-normalize-one-tag tab T))
 		     (ntab (car norm))
@@ -918,7 +918,7 @@ but should be good enough for debugging assertions."
 			 result
 			 " ")
 	      ">")
-    ;; Longer results should have an abreviated form.
+    ;; Longer results should have an abbreviated form.
     (format "#<FIND RESULT %d TAGS in %d FILES>"
 	    (semanticdb-find-result-length result)
 	    (length result))))

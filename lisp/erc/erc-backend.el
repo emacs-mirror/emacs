@@ -79,7 +79,7 @@
 
 ;;; TODO:
 
-;; o Generalise the display-line code so that we can use it to
+;; o Generalize the display-line code so that we can use it to
 ;;   display the stuff we send, as well as the stuff we receive.
 ;;   Then, move all display-related code into another backend-like
 ;;   file, erc-display.el, say.
@@ -2000,4 +2000,3 @@ See `erc-display-error-notice'." nil
 ;; Local Variables:
 ;; indent-tabs-mode: nil
 ;; End:
-

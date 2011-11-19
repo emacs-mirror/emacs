@@ -57,18 +57,18 @@ and various tools for secure communication.  PGG also provides a simple
 user interface to encrypt, decrypt, sign, and verify MIME messages.
 
 @ifnottex
-@insertcopying 
+@insertcopying
 @end ifnottex
 
 @menu
 * Overview::                    What PGG is.
 * Prerequisites::               Complicated stuff you may have to do.
 * How to use::                  Getting started quickly.
-* Architecture::                
-* Parsing OpenPGP packets::     
+* Architecture::
+* Parsing OpenPGP packets::
 * GNU Free Documentation License:: The license for this documentation.
-* Function Index::              
-* Variable Index::              
+* Function Index::
+* Variable Index::
 @end menu
 
 @node Overview
@@ -137,10 +137,10 @@ list autoload setting for desired functions as follows.
 @end lisp
 
 @menu
-* User Commands::               
-* Selecting an implementation::  
-* Caching passphrase::          
-* Default user identity::       
+* User Commands::
+* Selecting an implementation::
+* Caching passphrase::
+* Default user identity::
 @end menu
 
 @node User Commands
@@ -358,13 +358,13 @@ singleton object wrapped with the luna object system.
 
 Since PGG was designed for accessing and developing PGP functionality,
 the architecture had to be designed not just for interoperability but
-also for extensiblity.  In this chapter we explore the architecture
+also for extensibility.  In this chapter we explore the architecture
 while finding out how to write the PGG back end.
 
 @menu
-* Initializing::                
-* Back end methods::             
-* Getting output::              
+* Initializing::
+* Back end methods::
+* Getting output::
 @end menu
 
 @node Initializing

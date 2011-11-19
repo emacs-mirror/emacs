@@ -22,7 +22,7 @@
 ;; You should have received a copy of the GNU General Public License
 ;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
 
-;;; Comentary:
+;;; Commentary:
 
 ;; Functionalities
 ;; ---------------
@@ -229,7 +229,7 @@
 ;; As stated in Murphy's law, it took longer than expected to develop the
 ;; very first version of Japanese input subsystem in NEmacs (Nihongo
 ;; Emacs).  So the subsystem was named "TAMAGO", which is an acronym of
-;; "TAkusan Matasete GOmennasai" (Sorry to have kept you waiting so
+;; "TAkusan Matasete GOmen-nasai" (Sorry to have kept you waiting so
 ;; long).  "Tamago" as a Japanese word means "egg", so the word "egg" was
 ;; also used for related filenames and function names.
 

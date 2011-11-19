@@ -66,9 +66,22 @@
 
 ;; I see a degradation of maybe 10-20% only.
 (defcustom apropos-do-all nil
-  "Whether the apropos commands should do more.
+  "Non nil means apropos commands will search more extensively.
+This may be slower.  This option affects the following commands:
 
-Slows them down more or less.  Set this non-nil if you have a fast machine."
+`apropos-variable' will search all variables, not just user variables.
+`apropos-command' will also search non-interactive functions.
+`apropos' will search all symbols, not just functions, variables, faces,
+and those with property lists.
+`apropos-value' will also search in property lists and functions.
+`apropos-documentation' will search all documentation strings, not just
+those in the etc/DOC documentation file.
+
+This option only controls the default behavior.  Each of the above
+commands also has an optional argument to request a more extensive search.
+
+Additionally, this option makes the function `apropos-library'
+include key-binding information in its output."
   :group 'apropos
   :type 'boolean)
 
@@ -582,7 +595,8 @@ Returns list of symbols and documentation found."
 (defun apropos-library (file)
   "List the variables and functions defined by library FILE.
 FILE should be one of the libraries currently loaded and should
-thus be found in `load-history'."
+thus be found in `load-history'.  If `apropos-do-all' is non-nil,
+the output includes key-bindings of commands."
   (interactive
    (let* ((libs (delq nil (mapcar 'car load-history)))
           (libs
@@ -693,7 +707,9 @@ search for matches for that word as a substring.  If it is a list of words,
 search for matches for any two (or more) of those words.
 
 With \\[universal-argument] prefix, or if `apropos-do-all' is non-nil, also looks
-at the function and at the names and values of properties.
+at function definitions (arguments, documentation and body) and at the
+names and values of properties.
+
 Returns list of symbols and values found."
   (interactive (list (apropos-read-pattern "value")
 		     current-prefix-arg))
@@ -738,10 +754,14 @@ or a regexp (using some regexp special characters).  If it is a word,
 search for matches for that word as a substring.  If it is a list of words,
 search for matches for any two (or more) of those words.
 
-With \\[universal-argument] prefix, or if `apropos-do-all' is non-nil, also use
-documentation that is not stored in the documentation file and show key
-bindings.
+Note that by default this command only searches in the file specified by
+`internal-doc-file-name'; i.e., the etc/DOC file.  With \\[universal-argument] prefix,
+or if `apropos-do-all' is non-nil, it searches all currently defined
+documentation strings.
+
 Returns list of symbols and documentation found."
+  ;; The doc used to say that DO-ALL includes key-bindings info in the
+  ;; output, but I cannot see that that is true.
   (interactive (list (apropos-read-pattern "documentation")
 		     current-prefix-arg))
   (apropos-parse-pattern pattern)
@@ -1032,7 +1052,7 @@ If non-nil TEXT is a string that will be printed as a heading."
                        ;; omitting any that contain a buffer or a frame.
                        ;; FIXME: Why omit keys that contain buffers and
                        ;; frames?  This looks like a bad workaround rather
-                       ;; than a proper fix.  Does anybod know what problem
+                       ;; than a proper fix.  Does anybody know what problem
                        ;; this is trying to address?  --Stef
                        (dolist (key keys)
                          (let ((i 0)

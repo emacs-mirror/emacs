@@ -236,7 +236,7 @@ for @var{regexp}.
 @cindex DVI file
 @cindex PDF file
 @cindex PS file
-@cindex Postscript file
+@cindex PostScript file
 @cindex OpenDocument file
 @cindex Microsoft Office file
 @cindex DocView mode
@@ -244,7 +244,7 @@ for @var{regexp}.
 @cindex document viewer (DocView)
 @findex doc-view-mode
 
-DocView mode (@code{doc-view-mode}) is a viewer for DVI, Postscript
+DocView mode (@code{doc-view-mode}) is a viewer for DVI, PostScript
 (PS), PDF, OpenDocument, and Microsoft Office documents.  It provides
 features such as slicing, zooming, and searching inside documents.  It
 works by converting the document to a set of images using the
@@ -257,16 +257,16 @@ displaying those images.
 @findex doc-view-toggle-display
 @findex doc-view-toggle-display
 @cindex doc-view-minor-mode
-  When you visit a document file with the exception of Postscript
+  When you visit a document file with the exception of PostScript
 files, Emacs automatically switches to DocView mode if possible
 @footnote{The needed external tools for this document type have to be
 available, emacs needs to run in a graphical frame, and PNG image
 support has to be compiled into emacs.  If any of these requirements
 is not fulfilled, DocView falls back to an appropriate mode.}.  When
-you visit a Postscript file, Emacs switches to PS mode, a major mode
-for editing Postscript files as text; however, it also enables DocView
+you visit a PostScript file, Emacs switches to PS mode, a major mode
+for editing PostScript files as text; however, it also enables DocView
 minor mode, so you can type @kbd{C-c C-c} to view the document with
-DocView.  (PDF and DVI files, unlike Postscript files, are not usually
+DocView.  (PDF and DVI files, unlike PostScript files, are not usually
 human-editable.)  In either case, repeating @kbd{C-c C-c}
 (@code{doc-view-toggle-display}) toggles between DocView and the file
 text.

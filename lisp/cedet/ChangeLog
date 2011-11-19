@@ -1,3 +1,64 @@
+2011-11-16  Juanma Barranquero  <lekktu@gmail.com>
+
+	* semantic/lex.el (semantic-lex-tokens):
+	* semantic/tag-ls.el (semantic-tag-protected-p):
+	* srecode/mode.el (srecode-prefix-map): Fix typos.
+
+2011-11-15  Juanma Barranquero  <lekktu@gmail.com>
+
+	* ede/project-am.el (project-compile-target-command): Fix typo.
+
+2011-11-14  Juanma Barranquero  <lekktu@gmail.com>
+
+	* ede/auto.el (ede-project-autoload):
+	* ede/proj-comp.el (ede-makefile-rule):
+	* semantic/analyze.el (semantic-analyze-current-context):
+	* semantic/ctxt.el (semantic-get-local-variables):
+	* semantic/tag-ls.el (semantic-tag-calculate-parent): Fix typos.
+
+2011-11-03  David Engster  <dengste@eml.cc>
+
+	* srecode.el:
+	* srecode/texi.el:
+	* srecode/template.el:
+	* srecode/java.el:
+	* srecode/insert.el:
+	* srecode/document.el:
+	* srecode/dictionary.el:
+	* srecode/compile.el:
+	* semantic/wisent/java-tags.el:
+	* semantic/texi.el:
+	* semantic/sort.el:
+	* semantic/lex-spp.el:
+	* semantic/idle.el:
+	* semantic/html.el:
+	* semantic/db-typecache.el:
+	* semantic/analyze/complete.el:
+	* ede/generic.el:
+	* ede/custom.el:
+	* ede/cpp-root.el:
+	* ede/base.el: Fix filenames in comments and headers.
+
+	* semantic/db-find.el:
+	* srecode/insert.el (srecode-insert-include-lookup):
+	* ede/proj-comp.el (ede-compilation-program): Fix it's -> its in
+	comments and docstrings.
+
+	* semantic/ctxt.el (semantic-end-of-context-default):
+	* semantic/find.el (semantic-find-tags-by-scope-protection):
+	* semantic/java.el (semantic-documentation-for-tag): Fix typos in
+	docstrings.
+
+	* semantic/db.el (semanticdb-table, semanticdb-abstract-cache)
+	(semanticdb-abstract-db-cache):
+	* semantic/decorate/include.el
+	(semantic-decoration-unknown-include-describe): Fix filenames in
+	docstring.
+
+	* semantic/ede-grammar.el (semantic-ede-grammar-compiler-wisent):
+	(semantic-ede-grammar-compiler-bovine): Fix requires that are
+	added to the grammar-make-script.
+
 2011-10-23  Chong Yidong  <cyd@gnu.org>
 
 	* ede.el (ede-maybe-checkout): Function deleted;
@@ -401,7 +462,7 @@
 	* semantic/decorate/include.el
 	(semantic-decoration-on-unknown-includes): Change light bgcolor.
 	(semantic-decoration-on-includes-highlight-default): Check that
-	the include tag has a postion.
+	the include tag has a position.
 
 	* semantic/complete.el (semantic-collector-local-members):
 	(semantic-complete-read-tag-local-members)
@@ -504,7 +565,7 @@
 	(semantic-analyzer-debug-missing-innertype): Change "prefix" to
 	"symbol" in messages.
 
-	* semantic/analyze/refs.el: (semantic-analyze-refs-impl)
+	* semantic/analyze/refs.el (semantic-analyze-refs-impl)
 	(semantic-analyze-refs-proto): When calculating value, make sure
 	the found tag is 'similar' to the originating tag.
 	(semantic--analyze-refs-find-tags-with-parent): Attempt to

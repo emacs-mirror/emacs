@@ -124,7 +124,7 @@
 ;;	target integral is not complete (and the time limit has not run out)
 ;;	choose an incomplete integral from the cache and, for every integral
 ;;	appearing in its RHS's, add those integrals to the cache using the
-;;	same substitition, parts, etc. rules.  The cache should be organized
+;;	same substitution, parts, etc. rules.  The cache should be organized
 ;;	as a priority queue, choosing the "simplest" incomplete integral at
 ;;	each step, or choosing randomly among equally simple integrals.
 ;;	Simplicity equals small size, and few steps removed from the original
@@ -428,7 +428,7 @@ in normal mode."
   nil
   "If non-nil, use a separate face to indicate selected sub-formulas.
 If `calc-show-selections' is non-nil, then selected sub-formulas are shown
-by displaying the rest of the formula in `calc-nonselected-face'.  
+by displaying the rest of the formula in `calc-nonselected-face'.
 If `calc-show-selections' is nil, then selected sub-formulas are shown
 by displaying the sub-formula in `calc-selected-face'."
   :group 'calc
@@ -446,14 +446,14 @@ by displaying the sub-formula in `calc-selected-face'."
   :group 'calc
   :type '(string))
 
-(defcustom calc-note-threshold "1" 
+(defcustom calc-note-threshold "1"
   "The number of cents that a frequency should be near a note
 to be identified as that note."
   :type 'string
   :group 'calc)
 
 (defface calc-nonselected-face
-  '((t :inherit shadow       
+  '((t :inherit shadow
        :slant italic))
   "Face used to show the non-selected portion of a formula."
   :group 'calc)

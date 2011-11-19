@@ -1130,7 +1130,7 @@ article's mark is toggled."
 		   (setq alist (cdr alist)))
 		  ((> a h)
                    ;; Headers that are not in the alist should be
-                   ;; fictious (see nnagent-retrieve-headers); they
+                   ;; fictitious (see nnagent-retrieve-headers); they
                    ;; imply that this article isn't in the agent.
 		   (gnus-agent-append-to-list tail-undownloaded h)
 		   (gnus-agent-append-to-list tail-unfetched    h)
@@ -3613,7 +3613,7 @@ articles in every agentized group? "))
                                 (setq r d
                                       d (directory-file-name d)))
                               ;; if ANY ancestor was NOT in keep hash and
-                              ;; it it's already in to-remove, add it to
+                              ;; it's already in to-remove, add it to
                               ;; to-remove.
                               (if (and r
                                        (not (member r to-remove)))

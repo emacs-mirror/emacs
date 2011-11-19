@@ -1343,7 +1343,7 @@ automatically choosing a major mode, use \\[find-file-literally]."
   (let ((value (find-file-noselect filename nil nil wildcards)))
     (if (listp value)
 	(mapcar 'switch-to-buffer (nreverse value))
-      (switch-to-buffer value))))
+      (switch-to-buffer value nil 'force-same-window))))
 
 (defun find-file-other-window (filename &optional wildcards)
   "Edit file FILENAME, in another window.
@@ -2603,7 +2603,7 @@ we don't actually set it to the same mode the buffer already has."
 		   (if (looking-at auto-mode-interpreter-regexp)
 		       (match-string 2)
 		     ""))
-	    ;; Map interpreter name to a mode, signalling we're done at the
+	    ;; Map interpreter name to a mode, signaling we're done at the
 	    ;; same time.
 	    done (assoc (file-name-nondirectory mode)
 			interpreter-mode-alist))
@@ -4686,7 +4686,15 @@ prints a message in the minibuffer.  Instead, use `set-buffer-modified-p'."
   "Change whether this buffer is read-only.
 With prefix argument ARG, make the buffer read-only if ARG is
 positive, otherwise make it writable.  If buffer is read-only
-and `view-read-only' is non-nil, enter view mode."
+and `view-read-only' is non-nil, enter view mode.
+
+This function is usually the wrong thing to use in a Lisp program.
+It can have side-effects beyond changing the read-only status of a buffer
+\(e.g., enabling view mode), and does not affect read-only regions that
+are caused by text properties.  To make a buffer read-only in Lisp code,
+set `buffer-read-only'.  To ignore read-only status (whether due to text
+properties or buffer state) and make changes, temporarily bind
+`inhibit-read-only'."
   (interactive "P")
   (if (and arg
            (if (> (prefix-numeric-value arg) 0) buffer-read-only
@@ -6492,7 +6500,7 @@ Otherwise, trash FILENAME using the freedesktop.org conventions,
 				 (setq tries 0 success t))
 			     (file-already-exists nil))
 		     (setq tries (1- tries))
-		     ;; Uniqify new-fn.  (Some file managers do not
+		     ;; Uniquify new-fn.  (Some file managers do not
 		     ;; like Emacs-style backup file names---e.g. bug
 		     ;; 170956 in Konqueror bug tracker.)
 		     (setq new-fn (make-temp-name (concat base-fn "_")))))

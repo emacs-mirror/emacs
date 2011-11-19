@@ -463,7 +463,7 @@ Return a bovination list to use."
 	  ;; Try an Emacs 22 fcn.  This throws errors.
 	  (find-library-name (semantic-tag-name tag))
 	(error
-	 (message "semantic: connot find source file %s"
+	 (message "semantic: cannot find source file %s"
 		  (semantic-tag-name tag))))
     ;; No handy function available.  (Older Emacsen)
     (let* ((lib (locate-library (semantic-tag-name tag)))
@@ -515,7 +515,7 @@ Optional argument NOSNARF is ignored."
   (let ((d (semantic-tag-docstring tag)))
     (when (not d)
       (cond ((semantic-tag-with-position-p tag)
-	     ;; Doc isn't in the tag itself.  Lets pull it out of the
+	     ;; Doc isn't in the tag itself.  Let's pull it out of the
 	     ;; sources.
 	     (let ((semantic-elisp-store-documentation-in-tag t))
 	       (setq tag (with-current-buffer (semantic-tag-buffer tag)
@@ -534,9 +534,9 @@ Optional argument NOSNARF is ignored."
 		     (t
 		      (setq d (documentation-property
 			       sym 'variable-documentation)))))
-	     ;; Label it as system doc.. perhaps just for debugging
+	     ;; Label it as system doc. perhaps just for debugging
 	     ;; purposes.
-	     (if d (setq d (concat "Sytem Doc: \n" d)))
+	     (if d (setq d (concat "System Doc: \n" d)))
 	     ))
       )
 
@@ -823,7 +823,7 @@ In Emacs Lisp this is easily defined by parenthesis bounding."
   (&optional point)
   "Return a list of tag classes allowed at POINT.
 Emacs Lisp knows much more about the class of the tag needed to perform
-completion than some languages.  We distincly know if we are to be a
+completion than some languages.  We distinctly know if we are to be a
 function name, variable name, or any type of symbol.  We could identify
 fields and such to, but that is for some other day."
   (save-excursion

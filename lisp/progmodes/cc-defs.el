@@ -555,7 +555,7 @@ certain situations."
   `(c-forward-sexp ,(if (numberp count) (- count) `(- ,count))))
 
 (defmacro c-safe-scan-lists (from count depth &optional limit)
-  "Like `scan-lists' but returns nil instead of signalling errors
+  "Like `scan-lists' but returns nil instead of signaling errors
 for unbalanced parens.
 
 A limit for the search may be given.  FROM is assumed to be on the
@@ -760,7 +760,7 @@ be after it."
 ;; non-nil if point (or the optional parameter POS) is at a VS, nil otherwise.
 ;;
 ;; The language specific function might well do extensive analysis of the
-;; source text, and may use a cacheing scheme to speed up repeated calls.
+;; source text, and may use a caching scheme to speed up repeated calls.
 ;;
 ;; The "virtual semicolon" lies just after the last non-ws token on the line.
 ;; Like POINT, it is considered to lie between two characters.  For example,
@@ -784,7 +784,7 @@ be after it."
 ;; `c-beginning-of-statement-1'.  `c-vsemi-status-unknown-p' may not itself
 ;; call `c-beginning-of-statement-1'.
 ;;
-;; The macro `c-vsemi-status-unknown-p' will typically check the cacheing
+;; The macro `c-vsemi-status-unknown-p' will typically check the caching
 ;; scheme used by the `c-at-vsemi-p-fn', hence the name - the status is
 ;; "unknown" if there is no cache entry current for the line.
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;

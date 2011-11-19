@@ -12,7 +12,7 @@
 @section Frequently Asked Questions
 
 @menu
-* FAQ - Changes::                           
+* FAQ - Changes::
 * FAQ - Introduction::                       About Gnus and this FAQ.
 * FAQ 1 - Installation FAQ::                 Installation of Gnus.
 * FAQ 2 - Startup / Group buffer::           Start up questions and the
@@ -37,7 +37,7 @@
 
 This is the new Gnus Frequently Asked Questions list.
 
-Please submit features and suggestions to the 
+Please submit features and suggestions to the
 @email{ding@@gnus.org, ding list}.
 
 @node FAQ - Changes
@@ -166,7 +166,7 @@ package system might not be up to date (e.g. Gnus 5.9 bundled with Emacs
 21 is outdated).
 You can get the latest released version of Gnus from
 @uref{http://www.gnus.org/dist/gnus.tar.gz}
-or via anonymous FTP from 
+or via anonymous FTP from
 @uref{ftp://ftp.gnus.org/pub/gnus/gnus.tar.gz}.
 
 @node FAQ 1-4
@@ -176,7 +176,7 @@ What to do with the tarball now?
 
 @subsubheading Answer
 
-Untar it via @samp{tar xvzf gnus.tar.gz} and do the common 
+Untar it via @samp{tar xvzf gnus.tar.gz} and do the common
 @samp{./configure; make; make install} circle.
 (under MS-Windows either get the Cygwin environment from
 @uref{http://www.cygwin.com}
@@ -344,7 +344,7 @@ hit @samp{C-y}.
 @subsection Getting Messages
 
 @menu
-* FAQ 3-1::     I just installed Gnus, started it via  @samp{M-x gnus} 
+* FAQ 3-1::     I just installed Gnus, started it via  @samp{M-x gnus}
                 but it only says "nntp (news) open error", what to do?
 * FAQ 3-2::     I'm working under Windows and have no idea what
                 ~/.gnus.el means.
@@ -369,8 +369,8 @@ hit @samp{C-y}.
 @node FAQ 3-1
 @subsubheading Question 3.1
 
-I just installed Gnus, started it via 
-@samp{M-x gnus} 
+I just installed Gnus, started it via
+@samp{M-x gnus}
 but it only says "nntp (news) open error", what to do?
 
 @subsubheading Answer
@@ -396,14 +396,14 @@ I'm working under Windows and have no idea what ~/.gnus.el means.
 The ~/ means the home directory where Gnus and Emacs look
 for the configuration files.  However, you don't really
 need to know what this means, it suffices that Emacs knows
-what it means :-) You can type 
-@samp{C-x C-f ~/.gnus.el RET } 
+what it means :-) You can type
+@samp{C-x C-f ~/.gnus.el RET }
 (yes, with the forward slash, even on Windows), and
 Emacs will open the right file for you.  (It will most
 likely be new, and thus empty.)
 However, I'd discourage you from doing so, since the
 directory Emacs chooses will most certainly not be what
-you want, so let's do it the correct way. 
+you want, so let's do it the correct way.
 The first thing you've got to do is to
 create a suitable directory (no blanks in directory name
 please) e.g. c:\myhome. Then you must set the environment
@@ -442,7 +442,7 @@ machine news.yourprovider.net login YourUserName password YourPassword
 .
 Make sure that the file isn't readable to others if you
 work on a OS which is capable of doing so.  (Under Unix
-say 
+say
 @example
 chmod 600 ~/.authinfo
 @end example
@@ -477,13 +477,13 @@ post on this server as well as I am, what's that?
 
 Some providers allow restricted anonymous access and full
 access only after authorization. To make Gnus send authinfo
-to those servers append 
+to those servers append
 
 @example
 force yes
 @end example
 @noindent
- 
+
 to the line for those servers in ~/.authinfo.
 
 @node FAQ 3-6
@@ -774,7 +774,7 @@ When I enter a group, all read messages are gone. How to view them again?
 
 @subsubheading Answer
 
-If you enter the group by saying  
+If you enter the group by saying
 @samp{RET}
 in group buffer with point over the group, only unread and ticked messages are loaded. Say
 @samp{C-u RET}
@@ -787,13 +787,13 @@ Loading only unread messages can be annoying if you have threaded view enabled, 
 (setq gnus-fetch-old-headers 'some)
 @end example
 @noindent
- 
+
 in ~/.gnus.el to load enough old articles to prevent teared threads, replace 'some with t to load
-all articles (Warning: Both settings enlarge the amount of data which is 
+all articles (Warning: Both settings enlarge the amount of data which is
 fetched when you enter a group and slow down the process of entering a group).
 
-If you already use Gnus 5.10, you can say 
-@samp{/o N} 
+If you already use Gnus 5.10, you can say
+@samp{/o N}
 In summary buffer to load the last N messages, this feature is not available in 5.8.8
 
 If you don't want all old messages, but the parent of the message you're just reading,
@@ -822,9 +822,9 @@ How to view the headers of a message?
 
 @subsubheading Answer
 
-Say @samp{t} 
+Say @samp{t}
 to show all headers, one more
-@samp{t} 
+@samp{t}
 hides them again.
 
 @node FAQ 4-4
@@ -834,10 +834,10 @@ How to view the raw unformatted message?
 
 @subsubheading Answer
 
-Say 
-@samp{C-u g} 
+Say
+@samp{C-u g}
 to show the raw message
-@samp{g} 
+@samp{g}
 returns to normal view.
 
 @node FAQ 4-5
@@ -873,7 +873,7 @@ Say
 
 @example
 (eval-after-load "mm-decode"
- '(progn 
+ '(progn
       (add-to-list 'mm-discouraged-alternatives "text/html")
       (add-to-list 'mm-discouraged-alternatives "text/richtext")))
 @end example
@@ -1042,7 +1042,7 @@ back ends. Gnus thinks "highest-article-number -
 lowest-article-number = total-number-of-articles". This
 works OK for Usenet groups, but if you delete and move
 many messages in mail groups, this fails. To cure the
-symptom, enter the group via @samp{C-u RET} 
+symptom, enter the group via @samp{C-u RET}
 (this makes Gnus get all messages), then
 hit @samp{M P b} to mark all messages and
 then say @samp{B m name.of.group} to move
@@ -1162,7 +1162,7 @@ general rule (regular expression .*) which denotes where
 articles should go which don't match any other rule. If
 the folder doesn't exist yet, it will be created as soon
 as an article lands there.  By default the mail will be
-send to all groups whose rules match. If you 
+send to all groups whose rules match. If you
 don't want that (you probably don't want), say
 
 @example
@@ -1203,7 +1203,7 @@ from using them):
     ("Spam" "^CC: .*azzrael@@t-online.invalid")
     ("Spam" "^X-Mailer-Version: 1.50 BETA")
     ("Uni" "^\\(CC:\\|To:\\).*localpart@@uni-koblenz.invalid.*")
-    ("Inbox" "^\\(CC:\\|To:\\).*\\(my\ name\\|address@@one.invalid\\|adress@@two.invalid\\)")
+    ("Inbox" "^\\(CC:\\|To:\\).*\\(my\ name\\|address@@one.invalid\\|address@@two.invalid\\)")
     ("Spam" "")))
 @end example
 @noindent
@@ -1393,13 +1393,13 @@ You can use ispell.el to spell-check stuff in Emacs. So the
 first thing to do is to make sure that you've got either
 @uref{http://fmg-www.cs.ucla.edu/fmg-members/geoff/ispell.html, ispell}
 or @uref{http://aspell.sourceforge.net/, aspell}
-installed and in your Path. Then you need 
+installed and in your Path. Then you need
 @uref{http://www.kdstevens.com/~stevens/ispell-page.html, ispell.el}
-and for on-the-fly spell-checking 
+and for on-the-fly spell-checking
 @uref{http://www-sop.inria.fr/members/Manuel.Serrano/flyspell/flyspell.html, flyspell.el}.
-Ispell.el is shipped with Emacs and available through the XEmacs package system, 
-flyspell.el is shipped with Emacs and part of XEmacs text-modes package which is 
-available through the package system, so there should be no need to install them 
+Ispell.el is shipped with Emacs and available through the XEmacs package system,
+flyspell.el is shipped with Emacs and part of XEmacs text-modes package which is
+available through the package system, so there should be no need to install them
 manually.
 
 Ispell.el assumes you use ispell, if you choose aspell say
@@ -1408,7 +1408,7 @@ Ispell.el assumes you use ispell, if you choose aspell say
 (setq ispell-program-name "aspell")
 @end example
 @noindent
- 
+
 in your Emacs configuration file.
 
 If you want your outgoing messages to be spell-checked, say
@@ -1445,7 +1445,7 @@ Yes, say something like
               (ispell-change-dictionary "english")))))
 @end example
 @noindent
- 
+
 in ~/.gnus.el. Change "^de\\." and "deutsch8" to something
 that suits your needs.
 
@@ -1472,7 +1472,7 @@ cause Gnus to insert the full address for you. See the
 node "Mail Aliases" in Message (not Gnus) manual for
 details.
 
-However, what you really want is the Insidious Big Brother 
+However, what you really want is the Insidious Big Brother
 Database bbdb. Get it through the XEmacs package system or from
 @uref{http://bbdb.sourceforge.net/, bbdb's homepage}.
 Now place the following in ~/.gnus.el, to activate bbdb for Gnus:
@@ -1488,7 +1488,7 @@ place them in ~/.emacs:
 
 @example
 (require 'bbdb)
-;;If you don't live in Northern America, you should disable the 
+;;If you don't live in Northern America, you should disable the
 ;;syntax check for telephone numbers by saying
 (setq bbdb-north-american-phone-numbers-p nil)
 ;;Tell bbdb about your email address:
@@ -1529,7 +1529,7 @@ X-Face. So fire up some image manipulation program (say
 Gimp), open the image you want to include, cut out the
 relevant part, reduce color depth to 1 bit, resize to
 48*48 and save as bitmap. Now you should get the compface
-package from 
+package from
 @uref{ftp://ftp.cs.indiana.edu:/pub/faces/, this site}.
 and create the actual X-face by saying
 
@@ -1539,7 +1539,7 @@ cat file.face | sed 's/\\/\\\\/g;s/\"/\\\"/g;' > file.face.quoted
 @end example
 @noindent
 
-If you can't use compface, there's an online X-face converter at 
+If you can't use compface, there's an online X-face converter at
 @uref{http://www.dairiki.org/xface/}.
 If you use MS Windows, you could also use the WinFace program from
 @uref{http://www.xs4all.nl/~walterln/winface/}.
@@ -1668,7 +1668,7 @@ by saying:
 @noindent
 
 in ~/.gnus.el.  If you use Gnus 5.9 or earlier, you can use this
-instead (works for newer versions as well): 
+instead (works for newer versions as well):
 
 @example
 (eval-after-load "message"
@@ -1961,12 +1961,12 @@ receives the mail you write from Gnus and sends them
 when you're online.
 
 Let's talk about Unix systems first: For the news part,
-the easiest solution is a small nntp server like 
+the easiest solution is a small nntp server like
 @uref{http://www.leafnode.org/, Leafnode} or
 @uref{http://infa.abo.fi/~patrik/sn/, sn},
 of course you can also install a full featured news
-server like 
-@uref{http://www.isc.org/products/INN/, inn}. 
+server like
+@uref{http://www.isc.org/products/INN/, inn}.
 Then you want to fetch your Mail, popular choices
 are @uref{http://www.catb.org/~esr/fetchmail/, fetchmail}
 and @uref{http://pyropus.ca/software/getmail/, getmail}.
@@ -1978,8 +1978,8 @@ sending part: This can be done with every MTA like
 @uref{http://www.exim.org/, exim} or
 @uref{http://www.qmail.org/, qmail}.
 
-On windows boxes I'd vote for 
-@uref{http://www.tglsoft.de/, Hamster}, 
+On windows boxes I'd vote for
+@uref{http://www.tglsoft.de/, Hamster},
 it's a small freeware, open-source program which fetches
 your mail and news from remote servers and offers them
 to Gnus (or any other mail and/or news reader) via nntp
@@ -2136,7 +2136,7 @@ Which mailing lists and newsgroups are there?
 @subsubheading Answer
 
 There's the newsgroup gnu.emacs.gnus (also available as
-@uref{http://dir.gmane.org/gmane.emacs.gnus.user, 
+@uref{http://dir.gmane.org/gmane.emacs.gnus.user,
 gmane.emacs.gnus.user}) which deals with general Gnus
 questions.  If you have questions about development versions of
 Gnus, you should better ask on the ding mailing list, see below.
@@ -2149,7 +2149,7 @@ de.comm.software.gnus.
 
 The ding mailing list (ding@@gnus.org) deals with development of
 Gnus. You can read the ding list via NNTP, too under the name
-@uref{http://dir.gmane.org/gmane.emacs.gnus.general, 
+@uref{http://dir.gmane.org/gmane.emacs.gnus.general,
 gmane.emacs.gnus.general} from news.gmane.org.
 
 @node FAQ 8-5
@@ -2160,7 +2160,7 @@ Where to report bugs?
 @subsubheading Answer
 
 Say @samp{M-x gnus-bug}, this will start
-a message to the 
+a message to the
 @email{bugs@@gnus.org, gnus bug mailing list}
 including information about your environment which make
 it easier to help you.
@@ -2237,7 +2237,7 @@ building of summary say
 
 at the bottom of your ~/.gnus.el, this will make gnus
 byte-compile things like
-gnus-summary-line-format. 
+gnus-summary-line-format.
 then you could increase the value of gc-cons-threshold
 by saying something like
 
@@ -2254,7 +2254,7 @@ recent GNU Emacs, you should say
 (setq gnus-use-correct-string-widths nil)
 @end example
 @noindent
- 
+
 in ~/.gnus.el (thanks to Jesper harder for the last
 two suggestions). Finally if you are still using 5.8.8
 or 5.9 and experience speed problems with summary

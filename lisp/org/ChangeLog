@@ -1,3 +1,19 @@
+2011-11-16  Juanma Barranquero  <lekktu@gmail.com>
+
+	* org-agenda.el (org-agenda-add-entry-text-descriptive-links)
+	(org-agenda-custom-commands, org-write-agenda, org-check-for-org-mode)
+	(org-search-syntax-table, org-modify-diary-entry-string)
+	(org-write-agenda):
+	* org-bbdb.el (org-bbdb-anniv-export-ical):
+	* org-bibtex.el (org-bibtex-fields):
+	* org-icalendar.el (org-icalendar-date-time-format):
+	* org-latex.el (org-export-latex-inline-image-extensions):
+	* org-list.el (org-list-insert-item): Fix typos.
+
+2011-11-11  Juanma Barranquero  <lekktu@gmail.com>
+
+	* org-plot.el (org-plot/gnuplot-to-grid-data): Fix typo in docstring.
+
 2011-09-27  Eli Zaretskii  <eliz@gnu.org>
 
 	* org.el (org-mode): Force left-to-right paragraphs in Org
@@ -51,7 +67,7 @@
 
 2011-07-28  Bastien Guerry  <bzg@gnu.org>
 
-	* org-publish.el (org-publish-index-generate-theindex): rename
+	* org-publish.el (org-publish-index-generate-theindex): Rename
 	from `org-publish-index-generate-theindex.inc'.  Use the file
 	theindex.org directly instead of including theindex.inc.
 	(org-publish-projects): Don't delete .orgx files.
@@ -131,7 +147,7 @@
 
 2011-07-28  Nicolas Goaziou  <n.goaziou@gmail.com>
 
-	* org.el (org-timestamp-change): keep point in the same category
+	* org.el (org-timestamp-change): Keep point in the same category
 	when updating a time-stamp.  This requires to be careful, as,
 	depending on the locale, name of day might change of length during
 	the process.
@@ -582,7 +598,7 @@
 
 2011-07-28  Nicolas Goaziou  <n.goaziou@gmail.com>
 
-	* org.el (org-in-block-p): new function.
+	* org.el (org-in-block-p): New function.
 
 	* org-footnote.el (org-footnote-forbidden-blocks): New variable.
 	(org-footnote-in-valid-context-p): New function.
@@ -876,131 +892,131 @@
 
 2011-07-28  Nicolas Goaziou  <n.goaziou@gmail.com>
 
-	* org-footnote.el (org-footnote-action): offer to create
+	* org-footnote.el (org-footnote-action): Offer to create
 	definition when none is found.
 
 2011-07-28  Nicolas Goaziou  <n.goaziou@gmail.com>
 
-	* org-footnote.el (org-footnote-re): avoid matching inactive
+	* org-footnote.el (org-footnote-re): Avoid matching inactive
 	time-stamps or check-box cookies.
-	(org-footnote-next-reference-or-definition): adapt to the new regexp.
+	(org-footnote-next-reference-or-definition): Adapt to the new regexp.
 
 2011-07-28  Nicolas Goaziou  <n.goaziou@gmail.com>
 
-	* org-exp.el (org-export-preprocess-string): if the last subtree
+	* org-exp.el (org-export-preprocess-string): If the last subtree
 	is commented, footnotes inserted during normalizing at the end of
 	the buffer may get deleted. This patch ensures deletion comes
 	first, normalization second.
 
 2011-07-28  Nicolas Goaziou  <n.goaziou@gmail.com>
 
-	* org-exp.el (org-export-footnotes-data): change docstring.
-	(org-export-footnotes-seen): renamed from
+	* org-exp.el (org-export-footnotes-data): Change docstring.
+	(org-export-footnotes-seen): Rename from
 	org-export-footnotes-markers.
 
-	* org-ascii.el (org-export-as-ascii): apply change.
+	* org-ascii.el (org-export-as-ascii): Apply change.
 
-	* org-docbook.el (org-export-as-docbook): apply change.
+	* org-docbook.el (org-export-as-docbook): Apply change.
 
-	* org-footnote.el (org-footnote-normalize): apply change.
+	* org-footnote.el (org-footnote-normalize): Apply change.
 
-	* org-html.el (org-export-as-html): apply change.
+	* org-html.el (org-export-as-html): Apply change.
 
-	* org-latex.el (org-export-as-latex): apply change.
+	* org-latex.el (org-export-as-latex): Apply change.
 
 2011-07-28  Nicolas Goaziou  <n.goaziou@gmail.com>
 
-	* org-latex.el (org-export-latex-preprocess): rely on
+	* org-latex.el (org-export-latex-preprocess): Rely on
 	`org-export-footnotes-markers' to retreive definition of the
 	current footnote during export.
 
 2011-07-28  Nicolas Goaziou  <n.goaziou@gmail.com>
 
-	* org-footnote.el (org-footnote-normalize): remember footnotes
+	* org-footnote.el (org-footnote-normalize): Remember footnotes
 	seen so far by the exporter when choosing the new marker.
 
 2011-07-28  Nicolas Goaziou  <n.goaziou@gmail.com>
 
-	* org-footnote.el (org-footnote-normalize): make use of
+	* org-footnote.el (org-footnote-normalize): Make use of
 	`org-footnote-insert-pos-for-preprocessor'.
 
 2011-07-28  Nicolas Goaziou  <n.goaziou@gmail.com>
 
-	* org-footnote.el (org-footnote-normalize): add `org-footnote'
+	* org-footnote.el (org-footnote-normalize): Add `org-footnote'
 	property to footnote markers when preparing for exportation.
 
-	* org-html.el (org-export-as-html): read new property to decide
+	* org-html.el (org-export-as-html): Read new property to decide
 	when to export a footnote.
 
-	* org-docbook.el (org-export-as-docbook): read new property to
+	* org-docbook.el (org-export-as-docbook): Read new property to
 	decide when to export a footnote.
 
-	* org-latex.el (org-export-latex-preprocess): ensure footnote at
+	* org-latex.el (org-export-latex-preprocess): Ensure footnote at
 	column 0 cannot end a list containing it by adding
 	`original-indentation' property to it.
 
 2011-07-28  Nicolas Goaziou  <n.goaziou@gmail.com>
 
-	* org-exp.el (org-export-preprocess-string): normalize footnotes
+	* org-exp.el (org-export-preprocess-string): Normalize footnotes
 	before marking lists ending.
 
-	* org-latex.el (org-export-latex-preprocess): work with labels as
+	* org-latex.el (org-export-latex-preprocess): Work with labels as
 	strings and not as numbers.
 
 2011-07-28  Nicolas Goaziou  <n.goaziou@gmail.com>
 
-	* org-docbook.el (org-export-docbook-footnote-separator): new
-	variable
-	(org-export-as-docbook): add a separator between footnotes.
-
-	* org-html.el (org-export-html-footnote-separator): new variable.
-	(org-export-as-html): add a separator between footnotes.
-
-	* org-latex.el (org-export-latex-footnote-separator): new
+	* org-docbook.el (org-export-docbook-footnote-separator): New
 	variable.
-	(org-export-latex-preprocess): add a separator between footnotes.
+	(org-export-as-docbook): Add a separator between footnotes.
+
+	* org-html.el (org-export-html-footnote-separator): New variable.
+	(org-export-as-html): Add a separator between footnotes.
+
+	* org-latex.el (org-export-latex-footnote-separator): New
+	variable.
+	(org-export-latex-preprocess): Add a separator between footnotes.
 
 2011-07-28  Nicolas Goaziou  <n.goaziou@gmail.com>
 
 	* org-exp.el (org-export-footnotes-markers)
-	(org-export-footnotes-data): new variables.
-	(org-export-preprocess-string): use a more explicit argument.
+	(org-export-footnotes-data): New variables.
+	(org-export-preprocess-string): Use a more explicit argument.
 
 2011-07-28  Nicolas Goaziou  <n.goaziou@gmail.com>
 
-	* org-footnote.el (org-footnote-goto-definition): now, determining
+	* org-footnote.el (org-footnote-goto-definition): Now, determining
 	if point is at a footnote reference is entirely determined by
 	`org-footnote-at-reference-p'. No need to check if pattern isn't
 	at beginning of the line elsewhere.
 
 2011-07-28  Nicolas Goaziou  <n.goaziou@gmail.com>
 
-	* org-footnote.el (org-footnote-next-reference-or-definition): new
+	* org-footnote.el (org-footnote-next-reference-or-definition): New
 	function.
 
-	* org.el (org-activate-footnote-links): activate the whole
+	* org.el (org-activate-footnote-links): Activate the whole
 	footnote, but only fontify its label.
 
 2011-07-28  Nicolas Goaziou  <n.goaziou@gmail.com>
 
-	* org-footnote.el (org-footnote-normalize): make use of changes to
+	* org-footnote.el (org-footnote-normalize): Make use of changes to
 	`org-footnote-at-reference-p' and creation of various functions..
 	Also comment code.
-	(org-footnote-get-next-reference, org-footnote-delete-references,
-	org-footnote-delete-definitions): new functions
-	(org-footnote-goto-previous-reference, org-footnote-all-labels,
-	org-insert-footnote-reference-near-definition, org-footnote-delete):
-	rewrite to use org-footnote-get-next-reference.
+	(org-footnote-get-next-reference, org-footnote-delete-references)
+	(org-footnote-delete-definitions): New functions.
+	(org-footnote-goto-previous-reference, org-footnote-all-labels)
+	(org-insert-footnote-reference-near-definition, org-footnote-delete):
+	Rewrite to use org-footnote-get-next-reference.
 
 2011-07-28  Nicolas Goaziou  <n.goaziou@gmail.com>
 
-	* org-footnote.el (org-footnote-re): don't end an inline footnote
+	* org-footnote.el (org-footnote-re): Don't end an inline footnote
 	at unrelated closing square brackets.
-	(org-footnote-at-reference-p): improve accuracy of the function to
+	(org-footnote-at-reference-p): Improve accuracy of the function to
 	determine if point is at a reference and to extract definition of an
 	inline footnote.
-	(org-footnote-all-labels, org-footnote-action, org-footnote-delete,
-	org-footnote-auto-adjust-maybe): make use of previous function.
+	(org-footnote-all-labels, org-footnote-action, org-footnote-delete)
+	(org-footnote-auto-adjust-maybe): Make use of previous function.
 
 2011-07-28  Bastien Guerry  <bzg@gnu.org>
 
@@ -1054,14 +1070,14 @@
 
 2011-07-28  Nicolas Goaziou  <n.goaziou@gmail.com>
 
-	* org-list.el (org-cycle-item-indentation): cycling back to
+	* org-list.el (org-cycle-item-indentation): Cycling back to
 	original position deleted any additional information in the item,
 	like a counter or a tag.
 
 2011-07-28  Pieter Praet  <pieter@praet.org>
 
 	* org-crypt.el (org-crypt-disable-auto-save): New defcustom.
-	(org-decrypt-entry): before decrypting, check whether
+	(org-decrypt-entry): Before decrypting, check whether
 	`auto-save-mode' is enabled for the current buffer, and act on it
 	according to how `org-crypt-disable-auto-save' is set.  Remove
 	comment re "encrypt[ing] Org auto-saved buffers".  Remove on-init
@@ -1245,29 +1261,29 @@
 
 2011-07-28  Eric Schulte  <schulte.eric@gmail.com>
 
-	* ob-C.el (ob-tangle): initialize variable from `ob-tangle'.
+	* ob-C.el (ob-tangle): Initialize variable from `ob-tangle'.
 
-	* ob-asymptote.el (ob-tangle): initialize variable from `ob-tangle'.
+	* ob-asymptote.el (ob-tangle): Initialize variable from `ob-tangle'.
 
-	* ob-awk.el (ob-tangle): initialize variable from `ob-tangle'.
+	* ob-awk.el (ob-tangle): Initialize variable from `ob-tangle'.
 
-	* ob-clojure.el (ob-tangle): initialize variable from `ob-tangle'.
+	* ob-clojure.el (ob-tangle): Initialize variable from `ob-tangle'.
 
-	* ob-haskell.el (ob-tangle): initialize variable from `ob-tangle'.
+	* ob-haskell.el (ob-tangle): Initialize variable from `ob-tangle'.
 
-	* ob-latex.el (ob-tangle): initialize variable from `ob-tangle'.
+	* ob-latex.el (ob-tangle): Initialize variable from `ob-tangle'.
 
-	* ob-lisp.el (ob-tangle): initialize variable from `ob-tangle'.
+	* ob-lisp.el (ob-tangle): Initialize variable from `ob-tangle'.
 
-	* ob-ocaml.el (ob-tangle): initialize variable from `ob-tangle'.
+	* ob-ocaml.el (ob-tangle): Initialize variable from `ob-tangle'.
 
-	* ob-perl.el (ob-tangle): initialize variable from `ob-tangle'.
+	* ob-perl.el (ob-tangle): Initialize variable from `ob-tangle'.
 
-	* ob-python.el (ob-tangle): initialize variable from `ob-tangle'.
+	* ob-python.el (ob-tangle): Initialize variable from `ob-tangle'.
 
-	* ob-ruby.el (ob-tangle): initialize variable from `ob-tangle'.
+	* ob-ruby.el (ob-tangle): Initialize variable from `ob-tangle'.
 
-	* ob-tangle.el (ob-tangle): initialize variable from `ob-tangle'.
+	* ob-tangle.el (ob-tangle): Initialize variable from `ob-tangle'.
 
 2011-07-28  Eric Schulte  <schulte.eric@gmail.com>
 
@@ -1290,12 +1306,12 @@
 
 2011-07-28  Nicolas Goaziou  <n.goaziou@gmail.com>
 
-	* org-list.el (org-reset-checkbox-state-subtree): make the command
+	* org-list.el (org-reset-checkbox-state-subtree): Make the command
 	more robust, and correctly update check-boxes in the whole
 	sub-tree.
-	(org-update-checkbox-count): fix bug accumulating count of checkboxes
+	(org-update-checkbox-count): Fix bug accumulating count of checkboxes
 	when walking a subtree.
-	(org-update-checkbox-count-maybe): add an optional argument passed to
+	(org-update-checkbox-count-maybe): Add an optional argument passed to
 	org-update-checkbox-count.
 
 2011-07-28  Ted Zlatanov  <tzz@lifelogs.com>
@@ -1321,9 +1337,9 @@
 
 2011-07-28  Nicolas Goaziou  <n.goaziou@gmail.com>
 
-	* org-list.el (org-list-parse-list): replace transitional
+	* org-list.el (org-list-parse-list): Replace transitional
 	check-boxes with "[CBTRANS]" string during parsing.
-	(org-list-to-generic): use the new property `:cbtrans' to configure
+	(org-list-to-generic): Use the new property `:cbtrans' to configure
 	export string for transitional check-boxes.
 
 2011-07-28  Carsten Dominik  <carsten.dominik@gmail.com>
@@ -1965,7 +1981,7 @@
 
 2011-07-28  Carsten Dominik  <carsten.dominik@gmail.com>
 
-	* org-latex.el (org-export-latex-preprocess): Protect index string
+	* org-latex.el (org-export-latex-preprocess): Protect index string.
 
 2011-07-28  Carsten Dominik  <carsten.dominik@gmail.com>
 
@@ -2119,11 +2135,11 @@
 	(org-bibtex-headline): Make use of new
 	`org-bibtex-export-arbitrary-fields' and `org-bibtex-key-property'
 	variables.
-	(org-bibtex-autokey):  Make use of new `org-bibtex-key-property'
+	(org-bibtex-autokey): Make use of new `org-bibtex-key-property'
 	variable.
-	(org-bibtex-fleshout):  Make use of new `org-bibtex-key-property'
+	(org-bibtex-fleshout): Make use of new `org-bibtex-key-property'
 	variable.
-	(org-bibtex-write):  Make use of new `org-bibtex-key-property'
+	(org-bibtex-write): Make use of new `org-bibtex-key-property'
 	variable.
 
 2011-07-28  Eric Schulte  <schulte.eric@gmail.com>
@@ -2247,7 +2263,7 @@
 2011-07-28  Manuel Giraud  <manuel.giraud@univ-nantes.fr>
 
 	* org-html.el (org-html-handle-links): Add an alternate for inline
-	images
+	images.
 
 2011-07-28  Carsten Dominik  <carsten.dominik@gmail.com>
 
@@ -2293,7 +2309,7 @@
 
 	* ob-python.el (org-babel-python-evaluate-external-process): Allow
 	parsing as a table in the case of ":results output table".
-	(org-babel-python-evaluate-session):   Allow parsing as a table in
+	(org-babel-python-evaluate-session): Allow parsing as a table in
 	the case of ":results output table".
 
 2011-07-28  Carsten Dominik  <carsten.dominik@gmail.com>
@@ -2343,7 +2359,7 @@
 
 	* org.el (org-set-font-lock-defaults): Be more strict when
 	recognizing description items, and do not fontify wrong cases
-	like: "- term ::description" or "1. term :: description"
+	like: "- term ::description" or "1. term :: description".
 
 2011-07-28  Nicolas Goaziou  <n.goaziou@gmail.com>
 
@@ -2789,7 +2805,7 @@
 
 2011-07-28  Bastien Guerry  <bzg@gnu.org>
 
-	* org-html.el (org-export-as-html): fix export of email.
+	* org-html.el (org-export-as-html): Fix export of email.
 
 2011-07-28  Eric Schulte  <schulte.eric@gmail.com>
 
@@ -2810,11 +2826,11 @@
 
 2011-07-28  Bastien Guerry  <bzg@gnu.org>
 
-	* org-crypt.el: remove useless TODO in comments.
+	* org-crypt.el: Remove useless TODO in comments.
 
 2011-07-28  Bastien Guerry  <bzg@gnu.org>
 
-	* org-html.el (org-export-as-html): the default postamble now only
+	* org-html.el (org-export-as-html): The default postamble now only
 	export a date paragraph if `org-export-time-stamp-file' is
 	non-nil.
 
@@ -2894,12 +2910,12 @@
 2011-07-28  Bernt Hansen  <bernt@norang.ca>
 
 	* org-clock.el (org-clock-in): Allow clocking in new tasks
-	inserted before the current clocking task
+	inserted before the current clocking task.
 
 2011-07-28  Bernt Hansen  <bernt@norang.ca>
 
 	* org-clock.el (org-clock-in): Set default clocking task when
-	already clocking the task
+	already clocking the task.
 
 2011-07-28  Nicolas Goaziou  <n.goaziou@gmail.com>
 
@@ -2920,9 +2936,9 @@
 
 2011-07-28  Manuel Giraud  <manuel.giraud@univ-nantes.fr>
 
-	* org-html.el (org-format-org-table-html): fix anchors in HTML
+	* org-html.el (org-format-org-table-html): Fix anchors in HTML
 	export (thanks to <aankhen@gmail.com>)
-	(org-html-protect): fix a  bug that prevents some target to be
+	(org-html-protect): Fix a  bug that prevents some target to be
 	rendered correctly.
 
 2011-07-28  Bastien Guerry  <bzg@gnu.org>
@@ -3007,15 +3023,15 @@
 
 2011-07-28  Bastien Guerry  <bzg@gnu.org>
 
-	* org-capture.el (org-capture-put-target-region-and-position): New
-	function to store information about the target buffer.
+	* org-capture.el (org-capture-put-target-region-and-position):
+	New function to store information about the target buffer.
 	(org-capture-set-target-location): Use it.
-	(org-capture-finalize): restore the target buffer in its
+	(org-capture-finalize): Restore the target buffer in its
 	possibly narrowed state.  Also restore the cursor position.
 
 2011-07-28  Bastien Guerry  <bzg@gnu.org>
 
-	* org-crypt.el (auto-save-default): make sure entries are
+	* org-crypt.el (auto-save-default): Make sure entries are
 	encrypted before auto-saving.
 
 2011-07-28  Nicolas Goaziou  <n.goaziou@gmail.com>
@@ -3031,7 +3047,7 @@
 
 2011-07-28  Nicolas Goaziou  <n.goaziou@gmail.com>
 
-	* org.el (org-narrow-to-subtree): ensure `org-back-to-heading'
+	* org.el (org-narrow-to-subtree): Ensure `org-back-to-heading'
 	will move point to a real heading and not an inline task by
 	wraping function into a `org-with-limited-levels' macro.
 
@@ -3045,7 +3061,7 @@
 2011-07-28  Bastien Guerry  <bzg@gnu.org>
 
 	* org.el (org-refile-get-targets): Rename from
-	`org-get-refile-targets.'
+	`org-get-refile-targets'.
 
 2011-07-28  Bastien Guerry  <bzg@gnu.org>
 
@@ -3055,7 +3071,7 @@
 
 2011-07-28  Bastien Guerry  <bzg@gnu.org>
 
-	* org-table.el (org-table-fix-formulas-confirm): new custom
+	* org-table.el (org-table-fix-formulas-confirm): New custom
 	variable.
 	(org-table-insert-column, org-table-delete-column)
 	(org-table-move-column, org-table-move-row)
@@ -3085,14 +3101,14 @@
 
 2011-07-28  Lawrence Mitchell  <wence@gmx.li>
 
-	* org-latex.el: place \title \author \date before
+	* org-latex.el: Place \title \author \date before
 	\begin{document}.
 
 2011-07-28  Bastien Guerry  <bzg@gnu.org>
 
 	* org-html.el (org-export-html-preamble)
-	(org-export-html-postamble): now default to `nil'.
-	(org-export-as-html): when :html-pre/postamble is nil, fall
+	(org-export-html-postamble): Now default to `nil'.
+	(org-export-as-html): When :html-pre/postamble is nil, fall
 	back on the default pre/postamble, which depends on the
 	:author-info, :email-info, :creator-info options.
 
@@ -3113,7 +3129,7 @@
 
 2011-07-28  Bastien Guerry  <bzg@gnu.org>
 
-	* org.el (org-move-subtree-down): leave the cursor at the same
+	* org.el (org-move-subtree-down): Leave the cursor at the same
 	column we were at.
 
 2011-07-28  Bastien Guerry  <bzg@gnu.org>
@@ -3126,7 +3142,7 @@
 
 2011-07-28  Bastien Guerry  <bzg@gnu.org>
 
-	* org-exp.el (org-export-remove-headline-metadata): bugfix: don't
+	* org-exp.el (org-export-remove-headline-metadata): Bugfix: don't
 	case-fold-search to avoid mixing TODO keywords with real headline
 	words.
 
@@ -3152,7 +3168,7 @@
 2011-07-28  Bastien Guerry  <bzg@gnu.org>
 
 	* org-html.el (org-export-html-postamble-format)
-	(org-export-html-preamble-format): explain how to escape the
+	(org-export-html-preamble-format): Explain how to escape the
 	`%' character.
 
 2011-07-28  Bastien Guerry  <bzg@gnu.org>
@@ -3329,14 +3345,14 @@
 2011-07-28  Eric Schulte  <schulte.eric@gmail.com>
 
 	* ob-latex.el (org-babel-execute:latex): Add imagemagick options,
-	and for file types other than png and pdf it uses imagemagick to
-	convert a compiled pdf file to the desired file type.
-	(convert-pdf): Convert a pdf file to a new file type using
+	and for file types other than png and PDF it uses imagemagick to
+	convert a compiled PDF file to the desired file type.
+	(convert-pdf): Convert a PDF file to a new file type using
 	imagemagick.
 
 2011-07-28  Puneeth Chaganti  <punchagan@gmail.com>
 
-	* org-capture.el (org-capture-fill-template): fix bug with the
+	* org-capture.el (org-capture-fill-template): Fix bug with the
 	display of interactive prompt in templates expansion.
 
 2011-07-28  Reiner Steib  <reiner.steib@gmx.de>
@@ -3495,7 +3511,7 @@
 	* org.el (org-set-autofill-regexps): Use `org-item-re' in
 	`paragraph-start' to recognize alphabetical lists.
 	(org-fill-paragraph): Enforce a pre-computed fill-prefix before
-	calling `fill-paragraph' when point in in an item.  Also prevent
+	calling `fill-paragraph' when point is in an item.  Also prevent
 	paragraphs getting merged into an adjacent list upon filling.
 	(org-adaptive-fill-function): Make sure to determine real
 	fill-prefix for auto-fill.
@@ -3593,7 +3609,7 @@
 
 2011-07-28  Nicolas Goaziou  <n.goaziou@gmail.com>
 
-	* org-list.el (org-list-struct): when a line has org-example
+	* org-list.el (org-list-struct): When a line has org-example
 	property, skip the entire block.  This is needed during export,
 	for example when src blocks in org markup contain lists, and are
 	returned verbatim because org isn't in the list of interpreted
@@ -3702,7 +3718,7 @@
 	* org-capture.el (org-capture-place-item): Reflect changes to
 	`org-item-beginning-re'.
 
-	* org-docbook.el (org-export-docbook-list-line): handle New type
+	* org-docbook.el (org-export-docbook-list-line): Handle New type
 	of items.
 
 	* org-exp.el (org-export-mark-list-end)
@@ -3727,7 +3743,7 @@
 	(org-in-item-p,org-list-struct,org-list-parse-list): Apply change.
 
 	* org-exp.el (org-export-mark-list-end)
-	(org-export-mark-list-properties): Apply change
+	(org-export-mark-list-properties): Apply change.
 
 	* org-latex.el (org-export-latex-lists): Apply change.  Also
 	prevent items with org-example property to be considered as real
@@ -4161,7 +4177,7 @@
 
 2011-07-28  Bastien Guerry  <bzg@gnu.org>
 
-	* org-html.el (org-export-as-html): expand the HTML title.
+	* org-html.el (org-export-as-html): Expand the HTML title.
 
 2011-07-28  Bastien Guerry  <bzg@gnu.org>
 
@@ -4774,7 +4790,7 @@
 	* ob-tangle.el (org-babel-spec-to-string): Adding "noweb" as a
 	linking comment type
 	(org-babel-tangle-comment-links): Returns comment links for the
-	source code block at point
+	source code block at point.
 
 2011-07-28  Bastien Guerry  <bzg@gnu.org>
 
@@ -4855,7 +4871,7 @@
 
 	* org-capture.el (org-capture-templates): Add %f and %F escapes
 	(org-capture): Add more information to capture property list
-	(org-capture-fill-template): Handle %f and %F escapes
+	(org-capture-fill-template): Handle %f and %F escapes.
 
 2011-07-28  David Maus  <dmaus@ictsoc.de>
 
@@ -4941,7 +4957,7 @@
 
 2011-07-28  Nicolas Goaziou  <n.goaziou@gmail.com>
 
-	* org-exp.el (org-export-mark-list-ending): insert additional
+	* org-exp.el (org-export-mark-list-ending): Insert additional
 	newline characters if end-list-marker is at a wrong position.
 
 2011-07-28  Eric Schulte  <schulte.eric@gmail.com>
@@ -5003,7 +5019,7 @@
 	output file.
 
 	* ob-sass.el (org-babel-execute:sass): Return nil if result has
-	been written to file
+	been written to file.
 
 2011-07-28  Dan Davison  <dandavison7@gmail.com>
 
@@ -5016,7 +5032,7 @@
 	with code implementing the writing of graohical output to file.
 	(org-babel-execute:R): Use `org-babel-R-graphical-output-file' to
 	determine whether R is taking responsibility for writing output to
-	file; if so, this is signalled to ob.el by returning a nil result.
+	file; if so, this is signaled to ob.el by returning a nil result.
 
 2011-07-28  Dan Davison  <dandavison7@gmail.com>
 
@@ -5782,7 +5798,7 @@
 
 2010-12-11  Nicolas Goaziou  <n.goaziou@gmail.com>
 
-	* org-exp.el (org-export-preprocess-string): delaying code block
+	* org-exp.el (org-export-preprocess-string): Delay code block
 	processing a bit to allow correct list parsing in the export string.
 
 2010-12-11  Christopher Allan Webber  <cwebber@dustycloud.org>
@@ -5839,7 +5855,7 @@
 
 2010-12-11  Eric Schulte  <schulte.eric@gmail.com>
 
-	* ob-lob.el (org-babel-lob-get-info): including pass-through
+	* ob-lob.el (org-babel-lob-get-info): Include pass-through
 	header arguments in results variable header argument string.
 
 2010-12-11  David Maus  <dmaus@ictsoc.de>
@@ -5863,7 +5879,7 @@
 
 2010-12-11  Nicolas Goaziou  <n.goaziou@gmail.com>
 
-	* org.el (org-indent-line-function): simplify code and remove bug that
+	* org.el (org-indent-line-function): Simplify code and remove bug that
 	would insert a tab at the beginning of the line when trying to
 	indent the item.
 
@@ -5887,7 +5903,7 @@
 
 2010-12-11  Eric Schulte  <schulte.eric@gmail.com>
 
-	* ob-calc.el (org-babel-execute:calc): support for variables --
+	* ob-calc.el (org-babel-execute:calc): Support for variables --
 	converts :var variables in calc variables.
 
 2010-12-11  Carsten Dominik  <carsten.dominik@gmail.com>
@@ -7159,7 +7175,7 @@
 	src blocks.
 	(org-speed-command-default-hook): The default hook for
 	org-speed-command-hook.  Factored out from org-self-insert-command
-	and mimics existing behaviour.
+	and mimics existing behavior.
 	(org-self-insert-command): Modified to use org-speed-command-hook.
 
 2010-11-11  Carsten Dominik  <carsten.dominik@gmail.com>
@@ -7465,7 +7481,7 @@
 
 2010-11-11  Eric Schulte  <schulte.eric@gmail.com>
 
-	* ob-tangle.el: autoload org-babel-tangle-lang-exts from ob-tangle.
+	* ob-tangle.el: Autoload org-babel-tangle-lang-exts from ob-tangle.
 
 2010-11-11  Dan Davison  <davison@stats.ox.ac.uk>
 
@@ -8058,7 +8074,7 @@
 2010-11-11  Nicolas Goaziou  <n.goaziou@gmail.com>
 
 	* org-list.el (org-insert-item-internal): Guessing of blank lines
-	number is made by looking at neighbours items, if any.
+	number is made by looking at neighboring items, if any.
 
 2010-11-11  Nicolas Goaziou  <n.goaziou@gmail.com>
 
@@ -8427,7 +8443,7 @@
 
 2010-11-11  Eric Schulte  <schulte.eric@gmail.com>
 
-	* ob-scheme.el: very preliminary support for evaluating scheme
+	* ob-scheme.el: Very preliminary support for evaluating scheme
 	code blocks.
 
 	* org.el (org-babel-load-languages): Adding scheme.
@@ -8537,7 +8553,7 @@
 
 	* ob-latex.el (org-babel-execute:latex): Adding new ":fit" and
 	":border" header arguments which both use the "preview" latex
-	package to fit the resulting pdf image to the figure.
+	package to fit the resulting PDF image to the figure.
 
 2010-11-11  David Maus  <dmaus@ictsoc.de>
 
@@ -8596,8 +8612,8 @@
 
 2010-11-11  David Maus  <dmaus@ictsoc.de>
 
-	* org-agenda.el (org-write-agenda): Delete postscript file after
-	creating conversion to pdf.
+	* org-agenda.el (org-write-agenda): Delete PostScript file after
+	creating conversion to PDF.
 
 2010-11-11  David Maus  <dmaus@ictsoc.de>
 
@@ -10573,7 +10589,7 @@
 	a list of symbols specifying which of the special keywords #+DATE,
 	#+AUTHOR, #+EMAIL and #+TITLE should be hidden by font lock.
 	(org-fontify-meta-lines-and-blocks): Changes to font-lock code
-	implementing new faces and hiding behaviour.
+	implementing new faces and hiding behavior.
 
 	* org-faces.el (org-document-title): New face for #+TITLE lines.
 	(org-document-info): New face for #+DATE, #+AUTHOR, #+EMAIL lines.
@@ -11436,7 +11452,7 @@
 	package.
 
 	* org-latex.el (org-export-latex-tables): Only add a caption when
-	macro in in longtable environments if one has been defined.
+	macro is in longtable environments if one has been defined.
 
 	* org-html.el (org-export-as-html): Only take title from buffer if
 	not exporting body-only.
@@ -13804,7 +13820,7 @@
 
 2009-08-06  Bastien Guerry  <bzg@altern.org>
 
-	* org.el (org-special-ctrl-a/e): Explicitely bind the value
+	* org.el (org-special-ctrl-a/e): Explicitly bind the value
 	'reversed for this option to the "true line boundary first"
 	behavior.
 	(org-tags-match-list-sublevels): Document the 'indented value for
@@ -15555,7 +15571,7 @@
 	* org.el (org-agenda-tags-todo-honor-ignore-options):
 	Declare variable.
 
-	* org-table.el (org-table-insert-hline): Fix typo in fuction call
+	* org-table.el (org-table-insert-hline): Fix typo in function call
 	to `backward-char'.
 
 	* org-exp.el (org-export-as-html): Remove the initial space from
@@ -16478,14 +16494,14 @@
 2008-11-23  Carsten Dominik  <carsten.dominik@gmail.com>
 
 	* org-export-latex.el (org-export-latex-subcontent):
-	Interprete target aliases as additonal labels.
+	Interpret target aliases as additional labels.
 
 	* org-exp.el (org-export-target-aliases): New variable.
 	(org-export-preprocess-string)
 	(org-export-handle-invisible-targets): Fill the alias alist.
 	(org-export-as-html): Remove the &nbsp; from the anchor, and also
 	assign an id.
-	(org-html-level-start): Insert the target aliases as additonal
+	(org-html-level-start): Insert the target aliases as additional
 	anchors.
 
 	* org.el (org-edit-fixed-width-region): Fix bug when starting a new
@@ -16833,7 +16849,7 @@
 
 	* org-agenda.el (org-format-agenda-item)
 	(org-agenda-filter-make-matcher): Make sure tags are stored and
-	compared donwcased.
+	compared downcased.
 
 2008-10-26  Carsten Dominik  <dominik@science.uva.nl>
 
@@ -17048,7 +17064,7 @@
 	* org.el (org-entry-get-multivalued-property)
 	(org-entry-protect-space, org-entry-restore-space):
 	New functions.
-	(org-file-apps-defaults-macosx): Let postscript files be opened by
+	(org-file-apps-defaults-macosx): Let PostScript files be opened by
 	preview.
 	(org-time-stamp-inactive): Call `org-time-stamp'.
 	(org-time-stamp): New argument `inactive'.  Also edit inacive
@@ -17286,7 +17302,7 @@
 	(org-edit-fixed-width-region): Also try
 	`org-edit-fixed-width-region'.
 	(org-edit-fixed-width-region-mode): New option.
-	(org-activate-code): Only interprete lines starting with colon
+	(org-activate-code): Only interpret lines starting with colon
 	plus a space as example lines.
 
 	* org-remember.el (org-remember-templates): Add nil instead of
@@ -18033,4 +18049,3 @@
 
   You should have received a copy of the GNU General Public License
   along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
-

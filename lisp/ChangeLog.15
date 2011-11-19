@@ -2252,7 +2252,7 @@
 	Use define-derived-mode.
 	* textmodes/reftex-index.el (reftex-index-phrases-mode-map)
 	(reftex-index-mode-map): Rename from reftex-index(-phrases)-map.
-	Move init into delcaration.
+	Move init into declaration.
 	(reftex-index-mode, reftex-index-phrases-mode):
 	Use define-derived-mode.
 	* speedbar.el (speedbar-mode-syntax-table): Renaqme from
@@ -3058,7 +3058,7 @@
 	* net/tramp-sh.el (tramp-sh-handle-start-file-process):
 	Protect buffer-modified value.  (Bug#7557)
 
-2010-12-13   Jan Moringen  <jmoringe@techfak.uni-bielefeld.de>
+2010-12-13  Jan Moringen  <jmoringe@techfak.uni-bielefeld.de>
 
 	* log-edit.el (log-edit-changelog-entries):
 	Regexp quote filename.  (Bug#7505)
@@ -5815,7 +5815,7 @@
 	querying the password for.
 
 	* ibuffer.el (ibuffer-visit-buffer): To mimick list-buffers
-	behaviour, don't bury the ibuffer buffer when visiting other buffers.
+	behavior, don't bury the ibuffer buffer when visiting other buffers.
 
 2010-10-08  Chong Yidong  <cyd@stupidchicken.com>
 
@@ -11215,7 +11215,7 @@
 	* bindings.el (complete-symbol): Move into minibuffer.el.
 
 	* minibuffer.el (complete-tag): Move from etags.el.  If tags
-	completion cannot be performed, return nil instead of signalling
+	completion cannot be performed, return nil instead of signaling
 	an error.
 	(completion-at-point): Make it an alias for complete-symbol.
 	(complete-symbol): Move from bindings.el, and replace with the
@@ -12221,7 +12221,7 @@
 
 2010-03-27  Nick Roberts  <nickrob@snap.net.nz>
 
-	Restore GDB/MI fuctionality removed by r99212.
+	Restore GDB/MI functionality removed by r99212.
 	* progmodes/gdb-mi.el: Restore.
 	* progmodes/gdb-ui.el: Remove.
 	* progmodes/gud.el: Re-accommodate for gdb-mi.el.
@@ -12985,7 +12985,7 @@
 	file has no read permissions for the owner, there might be
 	problems otherwise.  Reported by Ole Laursen <olau@iola.dk>.
 
-22010-02-18  Glenn Morris  <rgm@gnu.org>
+2010-02-18  Glenn Morris  <rgm@gnu.org>
 
 	* emacs-lisp/authors.el (authors-renamed-files-alist):
 	Add entries for INSTALL.CVS.
@@ -13311,7 +13311,7 @@
 
 2010-01-29  Chong Yidong  <cyd@stupidchicken.com>
 
-	* dirtrack.el (dirtrack): Warn instead of signalling error if the
+	* dirtrack.el (dirtrack): Warn instead of signaling error if the
 	regexp is incorrect (Bug#5476).
 
 2010-01-29  Michael Albinus  <michael.albinus@gmx.de>
@@ -13597,7 +13597,7 @@
 	* textmodes/artist.el (artist-compute-popup-menu-table):
 	Remove duplicated words in doc-strings.
 
-2010-01-15   David Abrahams  <dave@boostpro.com>  (tiny change)
+2010-01-15  David Abrahams  <dave@boostpro.com>  (tiny change)
 
 	* net/mairix.el (mairix-widget-send-query): Send -1 instead of nil
 	to mairix-search to suppress threading (Bug#5342).

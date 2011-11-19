@@ -50,215 +50,187 @@ is displayed in windows.
 @section Basic Concepts of Emacs Windows
 @cindex window
 
-A @dfn{window} in Emacs is the physical area of the screen in which a
-buffer is displayed, see @ref{Buffers}.  The term is also used to refer
-to a Lisp object that represents that screen area in Emacs Lisp.  It
-should be clear from the context which is meant.
+A @dfn{window} is a area of the screen which is used to display a
+buffer (@pxref{Buffers}).  In Emacs Lisp, windows are represented by a
+special Lisp object type.
 
 @cindex multiple windows
-  Emacs groups windows into frames; see @ref{Frames}.  Each frame always
-contains at least one window, but you can subdivide it into multiple,
-non-overlapping Emacs windows.  Users create multiple windows so they
-can look at several buffers at once.  Lisp libraries use multiple
-windows for a variety of reasons, but most often to display related
-information.  In Rmail, for example, you can move through a summary
-buffer in one window while the other window shows messages one at a time
-as they are reached.
+  Windows are grouped into frames (@pxref{Frames}).  Each frame
+contains at least one window; the user can subdivide it into multiple,
+non-overlapping windows to view several buffers at once.  Lisp
+programs can use multiple windows for a variety of purposes.  In
+Rmail, for example, you can view a summary of message titles in one
+window, and the contents of the selected message in another window.
 
 @cindex terminal screen
 @cindex screen of terminal
-  The meaning of ``window'' in Emacs is similar to what it means in the
-context of general-purpose window systems such as X, but not identical.
-The X Window System places X windows on the screen; Emacs uses one or
-more X windows as frames, and subdivides them into Emacs windows.  When
-you use Emacs on a character-only terminal, Emacs treats the whole
-terminal screen as one frame.
+  Emacs uses the word ``window'' with a different meaning than in
+graphical desktop environments and window systems, such as the X
+Window System.  When Emacs is run on X, each of its graphical X
+windows is an Emacs frame (containing one or more Emacs windows).
+When Emacs is run on a text-only terminal, the frame fills the entire
+terminal screen.
 
 @cindex tiled windows
-  Most window systems support arbitrarily located overlapping windows.
-In contrast, Emacs windows are @dfn{tiled}; they never overlap, and
-together they fill the whole screen or frame.  Because of the way in
-which Emacs creates new windows (@pxref{Splitting Windows}) and resizes
-them (@pxref{Resizing Windows}), not all conceivable tilings of windows
-on an Emacs frame are actually possible.
-
-  For practical purposes, a window exists only while it is displayed in
-a frame.  Once removed from the frame, the window is effectively deleted
-and should not be used, even though the Lisp object representing it
-might be still referenced from other Lisp objects; see @ref{Deleting
-Windows}.  Restoring a saved window configuration is the only way for a
-window no longer on the screen to come back to life; see @ref{Window
-Configurations}.
-
-@defun windowp object
-This function returns @code{t} if @var{object} is a window, @code{nil}
-otherwise.  It can return @code{t} if @var{object} denotes a window that
-has been deleted.
-@end defun
+  Unlike X windows, Emacs windows are @dfn{tiled}; they never overlap
+within the area of the frame.  When a window is created, resized, or
+deleted, the change in window space is taken from or given to the
+adjacent windows, so that the total area of the frame is unchanged.
 
 @cindex live windows
 @cindex internal windows
-   For historical reasons a window is considered @dfn{live} if and only
-if it currently displays a buffer; see @ref{Buffers and Windows}.  In
-order to show multiple windows within one and the same frame, Emacs
-organizes them in form of a tree called window tree; see @ref{Windows
-and Frames}.  The internal nodes of a window tree are called internal
-windows and are not considered live.  The leaf nodes of a window tree
-constitute the windows displaying buffers and only they will be called
-live here.
+  A @dfn{live window} is one that is actually displaying a buffer in a
+frame.  Such a window can be @dfn{deleted}, i.e. removed from the
+frame (@pxref{Deleting Windows}); then it is no longer live, but the
+Lisp object representing it might be still referenced from other Lisp
+objects.  A deleted window may be brought back to life by restoring a
+saved window configuration (@pxref{Window Configurations}).
+
+@defun windowp object
+This function returns @code{t} if @var{object} is a window (whether or
+not it is live).  Otherwise, it returns @code{nil}.
+@end defun
 
 @defun window-live-p object
 This function returns @code{t} if @var{object} is a live window and
-@code{nil} otherwise.  A live window is a window that displays a buffer.
+@code{nil} otherwise.  A live window is one that displays a buffer.
 @end defun
 
-@defun window-any-p object
-This function returns @code{t} if @var{object} denotes a live or an
-internal window and @code{nil} otherwise.  In particular, this function
-returns @code{nil} if @var{object} is a window that has been
-deleted.
+  The windows in each frame are organized into a @dfn{window tree}.
+@xref{Windows and Frames}.  The leaf nodes of each window tree are
+live windows---the ones actually displaying buffers.  The internal
+nodes of the window tree are internal windows, which are not live.
+You can distinguish internal windows from deleted windows with
+@code{window-valid-p}.
+
+@defun window-valid-p object
+This function returns @code{t} if @var{object} is a live window, or an
+internal window in a window tree.  Otherwise, it returns @code{nil},
+including for the case where @var{object} is a deleted window.
 @end defun
 
 @cindex selected window
-In each frame, at any time, one and only one window is designated as
-@dfn{selected within the frame}.  Also, at any time, one frame is the
-selected frame (@pxref{Input Focus}).  The window selected within the
-selected frame is the @dfn{selected window}.
-
-   The selected window is always a live window.  Its buffer is usually
-the current buffer (except when @code{set-buffer} has been used); see
-@ref{Current Buffer}.
+  In each frame, at any time, exactly one Emacs window is designated
+as @dfn{selected within the frame}.  For the selected frame, that
+window is called the @dfn{selected window}---the one in which most
+editing takes place, and in which the cursor for selected windows
+appears (@pxref{Cursor Parameters}).  The selected window's buffer is
+usually also the current buffer, except when @code{set-buffer} has
+been used (@pxref{Current Buffer}).  As for non-selected frames, the
+window selected within the frame becomes the selected window if the
+frame is ever selected.  @xref{Selecting Windows}.
 
 @defun selected-window
-This function returns the selected window.  This is the window in which
-the cursor for selected windows (@pxref{Cursor Parameters}) appears and
-to which many commands apply.
+This function returns the selected window (which is always a live
+window).
 @end defun
-
-The window handling functions can be roughly grouped into functions
-operating on live windows only and functions that accept any window as
-argument.  Many of these functions accept as argument the value
-@code{nil} to specify the selected window.  The two functions below can
-be used to ``normalize'' arguments specifying windows in a uniform
-manner.
-
-@defun window-normalize-any-window window
-This function returns the normalized value for @var{window} which can be
-any window that has not been deleted.  More precisely, if @var{window}
-is @code{nil}, it returns the selected window.  If @var{window} denotes
-a live or internal window, it returns that window.  Otherwise, this
-function signals an error.
-@end defun
-
-@defun window-normalize-live-window window
-This functions returns the normalized value for a live window
-@var{window}.  More precisely, if @var{window} is @code{nil}, it returns
-the selected window.  If @var{window} is a live window, it returns that
-window.  Otherwise, this function signals an error.
-@end defun
-
 
 @node Windows and Frames
 @section Windows and Frames
 
-Each window is part of one and only one frame (@pxref{Frames}); you can
-get that frame with the function described next.
+Each window belongs to exactly one frame (@pxref{Frames}).
 
 @defun window-frame window
-This function returns the frame that @var{window} is on.  The argument
-@var{window} can be any window and defaults to the selected one.
+This function returns the frame that the window @var{window} belongs
+to.  If @var{window} is @code{nil}, it defaults to the selected
+window.
 @end defun
 
-The following function returns a list of all live windows on a specific
-frame.
+@defun window-list &optional frame minibuffer window
+This function returns a list of live windows belonging to the frame
+@var{frame}.  If @var{frame} is omitted or @code{nil}, it defaults to
+the selected frame.
 
-@defun window-list &optional frame minibuf window
-This function returns a list of @var{frame}'s live windows, starting
-with @var{window}.  The optional argument @var{frame} has to denote a
-live frame and defaults to the selected frame.  The optional argument
-@var{window} has to denote a live window on the frame specified by
-@var{frame} and defaults to the selected one.
+The optional argument @var{minibuffer} specifies whether to include
+the minibuffer window in the returned list.  If @var{minibuffer} is
+@code{t}, the minibuffer window is included.  If @var{minibuffer} is
+@code{nil} or omitted, the minibuffer window is included only if it is
+active.  If @var{minibuffer} is neither @code{nil} nor @code{t}, the
+minibuffer window is never included.
 
-The argument @var{minibuf} specifies if the minibuffer window shall be
-included in the return value.  If @var{minibuf} is @code{t}, the result
-always includes the minibuffer window.  If @var{minibuf} is @code{nil}
-or omitted, that includes the minibuffer window only if it is active.
-If @var{minibuf} is neither @code{nil} nor @code{t}, the result never
-includes the minibuffer window.
+The optional argument @var{window}, if non-@code{nil}, should be a
+live window on the specified frame; then @var{window} will be the
+first element in the returned list.  If @var{window} is omitted or
+@code{nil}, the window selected within the frame is first element.
 @end defun
 
 @cindex window tree
-Windows within one and the same frame are organized in form of a tree
-called @dfn{window tree}.  The leaf nodes of a window tree constitute
-the windows visible to the user.  These are the windows associated with
-buffers and are usually called live windows.  The internal nodes of a
-window tree are needed for finding, traversing and displaying the live
-windows.
+@cindex root window
+  Windows in the same frame are organized into a @dfn{window tree},
+whose leaf nodes are the live windows.  The internal nodes of a window
+tree are not live; they exist for the purpose of organizing the
+relationships between live windows.  The root node of a window tree is
+called the @dfn{root window}.  It can be either a live window (if the
+frame has just one window), or an internal window.
 
-   A minibuffer window (@pxref{Minibuffer Windows}) is not considered
-part of its frame's window tree unless the frame is a minibuffer-only
-frame.  Most functions covered in this section accept, however, the
-minibuffer window as argument.  Also, the minibuffer window is listed by
-the function @code{window-tree} described at the end of this section.
-
-   A window tree is rooted at the root window of its frame.
+  A minibuffer window (@pxref{Minibuffer Windows}) is not part of its
+frame's window tree unless the frame is a minibuffer-only frame.
+Nonetheless, most of the functions in this section accept the
+minibuffer window as an argument.  Also, the function
+@code{window-tree} described at the end of this section lists the
+minibuffer window alongside the actual window tree.
 
 @defun frame-root-window &optional frame-or-window
-This function returns the root window of @var{frame-or-window}.  The
-argument @var{frame-or-window} has to denote either a window or a frame
-and defaults to the selected frame.  If @var{frame-or-window} denotes a
-window, the return value is the root window of that window's frame.
-This function always returns a window; a live window if the frame
-specified by @var{frame-or-window} contains no other live windows and an
-internal window otherwise.
+This function returns the root window for @var{frame-or-window}.  The
+argument @var{frame-or-window} should be either a window or a frame;
+if omitted or @code{nil}, it defaults to the selected frame.  If
+@var{frame-or-window} is a window, the return value is the root window
+of that window's frame.
 @end defun
 
-@cindex subwindow
-All other windows of a frame with the exception of the minibuffer window
-are subwindows of the frame's root window.  A window is considered a
-@dfn{subwindow} of another window if it occupies a part of that other
-window's screen area.
-
-The functions described next allow to access the members of a window
-tree and take an arbitrary window as argument.
+@cindex parent window
+@cindex child window
+@cindex sibling window
+  When a window is split, there are two live windows where previously
+there was one.  One of these is represented by the same Lisp window
+object as the original window, and the other is represented by a
+newly-created Lisp window object.  Both of these live windows become
+leaf nodes of the window tree, as @dfn{child windows} of a single
+internal window.  If necessary, Emacs automatically creates this
+internal window, which is also called the @dfn{parent window}, and
+assigns it to the appropriate position in the window tree.  A set of
+windows that share the same parent are called @dfn{siblings}.
 
 @cindex parent window
 @defun window-parent &optional window
-Return @var{window}'s parent in the window tree.  The optional argument
-@var{window} can denote an arbitrary window and defaults to the selected
-one.  The return value is @code{nil} if @var{window} is a minibuffer
-window or the root window of its frame and an internal window otherwise.
+This function returns the parent window of @var{window}.  If
+@var{window} is omitted or @code{nil}, it defaults to the selected
+window.  The return value is @code{nil} if @var{window} has no parent
+(i.e. it is a minibuffer window or the root window of its frame).
 @end defun
 
-@cindex child window
-   Parent windows do not appear on the screen.  The screen area of a
-parent window is the rectangular part of the window's frame occupied by
-the window's @dfn{child windows}, that is, the set of windows having
-that window as their parent.  Each parent window has at least two child
-windows, so there are no ``Matryoshka'' windows.  Minibuffer windows do
-not have child windows.
+  Each internal window always has at least two child windows.  If this
+number falls to one as a result of window deletion, Emacs
+automatically deletes the internal window, and its sole remaining
+child window takes its place in the window tree.
+
+  Each child window can be either a live window, or an internal window
+(which in turn would have its own child windows).  Therefore, each
+internal window can be thought of as occupying a certain rectangular
+@dfn{screen area}---the union of the areas occupied by the live
+windows that are ultimately descended from it.
 
 @cindex window combination
 @cindex vertical combination
 @cindex horizontal combination
-The children of any parent window form either a vertical or a horizontal
-combination of windows.  A @dfn{vertical combination} is a set of
-windows arranged one above each other.  A @dfn{horizontal combination}
-is a set of windows arranged side by side.  Consider the frame shown
-below (for simplicity we assume that the frame does not contain a
-minibuffer window):
+  For each internal window, the screen areas of the immediate children
+are arranged either vertically or horizontally (never both).  If the
+child windows are arranged one above the other, they are said to form
+a @dfn{vertical combination}; if they are arranged side by side, they
+are said to form a @dfn{horizontal combination}.  Consider the
+following example:
 
 @smallexample
 @group
      ______________________________________
     | ______  ____________________________ |
     ||      || __________________________ ||
-    ||      ||| ___________  ___________ |||
-    ||      ||||           ||           ||||
-    ||      ||||           ||           ||||
-    ||      ||||_____W6____||_____W7____||||
+    ||      |||                          |||
+    ||      |||                          |||
+    ||      |||                          |||
     ||      |||____________W4____________|||
     ||      || __________________________ ||
+    ||      |||                          |||
     ||      |||                          |||
     ||      |||____________W5____________|||
     ||__W2__||_____________W3_____________ |
@@ -267,91 +239,70 @@ minibuffer window):
 @end group
 @end smallexample
 
-The root window of the frame is @code{W1}---a horizontal combination of
-the live window @code{W2} and the internal window @code{W3}.  Hence
-@code{(window-parent W1)} is @code{nil} while @code{(window-parent W2)}
-and @code{(window-parent W3)} are both @code{W1}.
+@noindent
+The root window of this frame is an internal window, @code{W1}.  Its
+child windows form a horizontal combination, consisting of the live
+window @code{W2} and the internal window @code{W3}.  The child windows
+of @code{W3} form a vertical combination, consisting of the live
+windows @code{W4} and @code{W5}.  Hence, the live windows in this
+window tree are @code{W2} @code{W4}, and @code{W5}.
 
-   The internal window @code{W3} is a vertical combination of @code{W4}
-and the live window @code{W5}.  The internal window @code{W4} is a
-horizontal combination of the live windows @code{W6} and @code{W7}.  The
-windows you can actually see on the screen are @code{W2}, @code{W5},
-@code{W6} and @code{W7}.
+  The following functions can be used to retrieve a child window of an
+internal window, and the siblings of a child window.
 
-   For any parent window, the first child window can be retrieved by the
-functions given next.
-
-@defun window-top-child &optional window
-This function returns @var{window}'s first vertical child window.  The
-optional argument @var{window} can be an arbitrary window and defaults
-to the selected one.  The return value is @code{nil} if @var{window} is
-a live window or its children form a horizontal combination.  In the
-example above @code{(window-top-child W3)} is @code{W4} while
-@code{(window-top-child W4)} is @code{nil}.
+@defun window-top-child window
+This function returns the topmost child window of @var{window}, if
+@var{window} is an internal window whose children form a vertical
+combination.  For any other type of window, the return value is
+@code{nil}.
 @end defun
 
-@defun window-left-child &optional window
-This function returns @var{window}'s first horizontal child window.  The
-optional argument @var{window} can be an arbitrary window and defaults
-to the selected one.  The return value is @code{nil} if @var{window} is
-a live window or its children form a vertical combination.  In the
-example above @code{(window-left-child W4)} is @code{W6} while
-@code{(window-left-child W3)} is @code{nil}.
+@defun window-left-child window
+This function returns the leftmost child window of @var{window}, if
+@var{window} is an internal window whose children form a horizontal
+combination.  For any other type of window, the return value is
+@code{nil}.
 @end defun
 
 @defun window-child window
-This function return @var{window}'s first child window.  The return
-value is @code{nil} if @var{window} is a live window.  In the example
-above @code{(window-child W3)} is @code{W4} while @code{(window-child
-W4)} is @code{W6}.
+This function returns the first child window of the internal window
+@var{window}---the topmost child window for a vertical combination, or
+the leftmost child window for a horizontal combination.  If
+@var{window} is a live window, the return value is @code{nil}.
 @end defun
-
-The following function is useful to determine whether a window is part
-of a vertical or horizontal combination.
 
 @defun window-combined-p &optional window horizontal
-This function returns non-@code{nil} if and only if @var{window} is
-vertically combined.  The argument @var{window} can specify any window
-and defaults to the selected one.  The actual return value is the first
-vertical child of window.
+This function returns a non-@code{nil} value if and only if
+@var{window} is part of a vertical combination.  If @var{window} is
+omitted or @code{nil}, it defaults to the selected one.
 
-If the optional argument @var{horizontal} is non-@code{nil}, this means
-to return non-@code{nil} if and only if @var{window} is horizontally
-combined.  In this case, the return value is the first horizontal child
-of window.
+If the optional argument @var{horizontal} is non-@code{nil}, this
+means to return non-@code{nil} if and only if @var{window} is part of
+a horizontal combination.
 @end defun
 
-@cindex sibling window
-For any window that is part of a combination, the other windows in that
-combination are called the window's @dfn{siblings}.  The only windows
-that do not have siblings are root windows of frames and minibuffer
-windows.  A window's siblings can be retrieved with the following two
-functions.
-
 @defun window-next-sibling &optional window
-This function returns @var{window}'s next sibling.  The optional
-argument @var{window} can be an arbitrary window and defaults to the
-selected window.  It returns @code{nil} if @var{window} is the last
-child of its parent.  In our example @code{(window-next-sibling W2)} is
-@code{W3} while @code{(window-next-sibling W3)} is @code{nil}.
+This function returns the next sibling of the window @var{window}.  If
+omitted or @code{nil}, @var{window} defaults to the selected window.
+The return value is @code{nil} if @var{window} is the last child of
+its parent.
 @end defun
 
 @defun window-prev-sibling &optional window
-This function returns @var{window}'s previous sibling.  The optional
-argument @var{window} can be an arbitrary window and defaults to the
-selected window.  It returns @code{nil} if @var{window} is the first
-child of its parent. In our example @code{(window-prev-sibling W3)} is
-@code{W2} and @code{(window-prev-sibling W2)} is @code{nil}.
+This function returns the previous sibling of the window @var{window}.
+If omitted or @code{nil}, @var{window} defaults to the selected
+window.  The return value is @code{nil} if @var{window} is the first
+child of its parent.
 @end defun
 
-The functions @code{window-next-sibling} and @code{window-prev-sibling}
-should not be confused with the functions @code{next-window} and
-@code{previous-window} which respectively return the next and previous
-window in the cyclic ordering of windows, see @ref{Cyclic Window
-Ordering}.
+The functions @code{window-next-sibling} and
+@code{window-prev-sibling} should not be confused with the functions
+@code{next-window} and @code{previous-window} which respectively
+return the next and previous window in the cyclic ordering of windows
+(@pxref{Cyclic Window Ordering}).
 
-   In order to find the first live window on a frame, the following
-function can be used.
+  You can use the following functions to find the first live window on
+a frame, and to retrieve the entire window tree of a frame:
 
 @defun frame-first-window &optional frame-or-window
 This function returns the live window at the upper left corner of the
@@ -363,43 +314,38 @@ the assumption that the frame from our canonical example is selected
 @code{(frame-first-window)} returns @code{W2}.
 @end defun
 
-You can get the window tree of a frame with the following function.
-
-@cindex window tree
 @defun window-tree &optional frame
-This function returns the window tree for frame @var{frame}.  The
-optional argument @var{frame} must be a live frame and defaults to the
-selected one.
+This function returns a list representing the window tree for frame
+@var{frame}.  If @var{frame} is omitted or @code{nil}, it defaults to
+the selected frame.
 
 The return value is a list of the form @code{(@var{root} @var{mini})},
-where @var{root} represents the window tree of the frame's
-root window, and @var{mini} is the frame's minibuffer window.
+where @var{root} represents the window tree of the frame's root
+window, and @var{mini} is the frame's minibuffer window.
 
-If the root window is live, @var{root} specifies the root window and
-nothing else.  Otherwise, @var{root} is a list @code{(@var{dir}
-@var{edges} @var{w1} @var{w2} ...)} where @var{dir} is @code{nil} for a
-horizontal combination, and @code{t} for a vertical combination,
-@var{edges} gives the size and position of the combination, and the
-remaining elements are the child windows.  Each child window may again
-be a live window or a list representing a window combination, and so on.
-The @var{edges} element is a list @code{(@var{left}@var{ top}@var{
-right}@var{ bottom})} similar to the value returned by
-@code{window-edges}, see @ref{Coordinates and Windows}.
+If the root window is live, @var{root} is that window itself.
+Otherwise, @var{root} is a list @code{(@var{dir} @var{edges} @var{w1}
+@var{w2} ...)} where @var{dir} is @code{nil} for a horizontal
+combination and @code{t} for a vertical combination, @var{edges} gives
+the size and position of the combination, and the remaining elements
+are the child windows.  Each child window may again be a window object
+(for a live window) or a list with the same format as above (for an
+internal window).  The @var{edges} element is a list @code{(@var{left}
+@var{top} @var{right} @var{bottom})}, similar to the value returned by
+@code{window-edges} (@pxref{Coordinates and Windows}).
 @end defun
-
 
 @node Window Sizes
 @section Window Sizes
 @cindex window size
 @cindex size of window
 
-Emacs windows are rectangular.  The structure of a live window can be
-roughly sketched as follows:
+  The following schematic shows the structure of a live window:
 
 @smallexample
 @group
-         _________________________________________ 
-      ^ |______________ Header Line_______________| 
+         _________________________________________
+      ^ |______________ Header Line_______________|
       | |LS|LF|LM|                       |RM|RF|RS| ^
       | |  |  |  |                       |  |  |  | |
  Window |  |  |  |       Text Area       |  |  |  | Window
@@ -415,287 +361,218 @@ roughly sketched as follows:
 @end smallexample
 
 @cindex window body
+@cindex text area of a window
 @cindex body of a window
-The text area constitutes the body of the window.  In its most simple
-form, a window consists of its body alone.  LS and RS stand for the left
-and right scroll bar (@pxref{Scroll Bars}) respectively.  Only one of
-them can be present at any time.  LF and RF denote the left and right
-fringe, see @ref{Fringes}.  LM and RM, finally, stand for the left and
-right display margin, see @ref{Display Margins}.  The header line, if
-present, is located above theses areas, the mode line below, see
-@ref{Mode Line Format}.
+  At the center of the window is the @dfn{text area}, or @dfn{body},
+where the buffer text is displayed.  On each side of the text area is
+a series of vertical areas; from innermost to outermost, these are the
+left and right margins, denoted by LM and RM in the schematic
+(@pxref{Display Margins}); the left and right fringes, denoted by LF
+and RF (@pxref{Fringes}); and the left or right scroll bar, only one of
+which is present at any time, denoted by LS and RS (@pxref{Scroll
+Bars}).  At the top of the window is an optional header line
+(@pxref{Header Lines}), and at the bottom of the window is the mode
+line (@pxref{Mode Line Format}).
+
+  Emacs provides several functions for finding the height and width of
+a window.  Except where noted, these heights and widths are reported
+as integer numbers of lines and columns respectively.  On a graphical
+display, each ``line'' and ``column'' actually corresponds to the
+height and width of a ``default'' character specified by the frame's
+default font.  Thus, if a window is displaying text with a different
+font or size, the reported height and width for that window may differ
+from the actual number of text lines or columns displayed within it.
 
 @cindex window height
-@cindex total window height
 @cindex height of a window
 @cindex total height of a window
-The @dfn{total height of a window} is specified as the total number of
-lines occupied by the window.  Any mode or header line is included in a
-window's total height.  For an internal window, the total height is
-calculated recursively from the total heights of its child windows.
-
 @cindex window width
-@cindex total window width
 @cindex width of a window
 @cindex total width of a window
-The @dfn{total width of a window} denotes the total number of columns of
-the window.  Any scroll bar and the column of @samp{|} characters that
-separate the window from its right sibling are included in a window's
-total width.  On a window-system, fringes and display margins are
-included in a window's total width too.  For an internal window, the
-total width is calculated recursively from the total widths of its child
-windows.
-
-@cindex total size of a window
-@cindex total window size
-The following function is the standard interface for getting the total
-size of any window:
-
-@defun window-total-size &optional window &optional horizontal
-This function returns the total number of lines of @var{window}.  The
-argument @var{window} can denote any window and defaults to the selected
-one.  If @var{window} is live, the return value includes any header or
-mode lines of @var{window}.  If @var{window} is internal, the return
-value is the sum of the total heights of @var{window}'s child windows
-provided these are vertically combined and the height of @var{window}'s
-first child if they are horizontally combined.
-
-   If the optional argument @var{horizontal} is non-@code{nil}, this
-function returns the total number of columns of @var{window}.  If
-@var{window} is live, the return value includes any vertical divider
-column or scroll bars of @var{window}.  On a window-system, the return
-value includes the space occupied by any margins and fringes of
-@var{window} too.  If @var{window} is internal, the return value is the
-sum of the total widths of @var{window}'s child windows provided these
-are horizontally combined and the width of @var{window}'s first child
-otherwise.
-@end defun
-
-Alternatively, the following two functions can be used to retrieve
-either the total height or the total width of a window:
+  The @dfn{total height} of a window is the distance between the top
+and bottom of the window, including the header line (if one exists)
+and the mode line.  The @dfn{total width} of a window is the distance
+between the left and right edges of the mode line.  Note that the
+height of a frame is not the same as the height of its windows, since
+a frame may also contain an echo area, menu bar, and tool bar
+(@pxref{Size and Position}).
 
 @defun window-total-height &optional window
-This function returns the total number of lines of @var{window}.
-@var{window} can be any window and defaults to the selected one.  The
-return value includes @var{window}'s mode line and header line, if any.
-If @var{window} is internal the return value is the sum of heights of
-@var{window}'s child windows for a vertical combination and the height
-of @var{window}'s first child otherwise.
+This function returns the total height, in lines, of the window
+@var{window}.  If @var{window} is omitted or @code{nil}, it defaults
+to the selected window.  If @var{window} is an internal window, the
+return value is the total height occupied by its descendant windows.
 @end defun
 
 @defun window-total-width &optional window
-This function returns the total number of columns of @var{window}.
-@var{window} can be any window and defaults to the selected one.  The
-return value includes any vertical dividers or scrollbars of
-@var{window}.  On a window-system the return value also includes the
-space occupied by any margins and fringes of @var{window}.  If
-@var{window} is internal, the return value is the sum of the widths of
-@var{window}'s child windows for a horizontal combination and the width
-of @var{window}'s first child otherwise.
+This function returns the total width, in columns, of the window
+@var{window}.  If @var{window} is omitted or @code{nil}, it defaults
+to the selected window.  If @var{window} is internal, the return value
+is the total width occupied by its descendant windows.
 @end defun
 
-The total height of any window is usually less than the height of the
-window's frame, because the latter may also include the minibuffer
-window.  Depending on the toolkit in use, the frame height can also
-include the menu bar and the tool bar (@pxref{Size and Position}).
-Therefore, in general it is not straightforward to compare window and
-frame heights.  The following function is useful to determine whether
-there are no other windows above or below a specified window.
-
-@cindex full-height window
-@defun window-full-height-p &optional window
-This function returns non-@code{nil} if there is no other window above
-or below @var{window} on the containing frame.  More precisely, this
-function returns @code{t} if and only if the total height of
-@var{window} equals the total height of the root window (@pxref{Windows
-and Frames}) of @var{window}'s frame.  The @var{window} argument may
-denote any window and defaults to the selected one.
+@defun window-total-size &optional window horizontal
+This function returns either the total height or width of the window
+@var{window}.  If @var{horizontal} is omitted or @code{nil}, this is
+equivalent to calling @code{window-total-height} for @var{window};
+otherwise it is equivalent to calling @code{window-total-width} for
+@var{window}.
 @end defun
 
 @cindex full-width window
-The following function can be used to determine whether there are no
-other windows on the left or right of a specified window.
+@cindex full-height window
+  The following functions can be used to determine whether a given
+window has any adjacent windows.
 
-@defun window-full-width-p &optional window
-This function returns non-@code{nil} if there are no other windows on
-the left or right of @var{window}; @code{nil} otherwise.  More
-precisely, this function returns @code{t} if and only if the total width
-of @var{window} equals the total width of the root window
-(@pxref{Windows and Frames}) of @var{window}'s frame.  The @var{window}
-argument may denote any window and defaults to the selected one.
+@defun window-full-height-p &optional window
+This function returns non-@code{nil} if @var{window} has no other
+window above or below it in its frame, i.e. its total height equals
+the total height of the root window on that frame.  If @var{window} is
+omitted or @code{nil}, it defaults to the selected window.
 @end defun
 
-@cindex top line of window
-@cindex left column of window
-  The windows of a frame are unambiguously characterized by the
-combination of their top line and left column within that frame.
+@defun window-full-width-p &optional window
+This function returns non-@code{nil} if @var{window} has no other
+window to the left or right in its frame, i.e. its total width equals
+that of the root window on that frame.  If @var{window} is omitted or
+@code{nil}, it defaults to the selected window.
+@end defun
+
+@cindex window position
+  The following functions can be used to determine the position of a
+window relative to the window area of its frame:
 
 @defun window-top-line &optional window
-This function returns the top line of @var{window}.  The argument
-@var{window} can denote any window and defaults to the selected one.
+This function returns the distance, in lines, between the top of
+@var{window} and the top of the frame's window area.  For instance,
+the return value is 0 if there is no window above @var{window}.  If
+@var{window} is omitted or @code{nil}, it defaults to the selected
+window.
 @end defun
 
 @defun window-left-column &optional window
-This function returns the left column of @var{window}.  The argument
-@var{window} can denote any window and defaults to the selected one.
+This function returns the distance, in columns, between the left edge
+of @var{window} and the left edge of the frame's window area.  For
+instance, the return value is 0 if there is no window to the left of
+@var{window}.  If @var{window} is omitted or @code{nil}, it defaults
+to the selected window.
 @end defun
-
-For a frame displaying one window only, that window's top line and left
-column are both zero.  When a frame displays a window @var{WB} below a
-window @var{WA}, the top line of @var{WB} can be calculated by adding
-the total height of @var{WA} to the top line of @var{WA}.  When a frame
-displays a window @var{WR} on the right of a window @var{WL}, the left
-column of @var{WR} can be calculated by adding the total width of
-@var{WL} to the left column of @var{WL}.
 
 @cindex window body height
 @cindex body height of a window
-The @dfn{body height of a window} is specified as the total number of
-lines occupied by the window's text area.  Mode or header lines are not
-included in a window's body height.
-
 @cindex window body width
 @cindex body width of a window
-The @dfn{body width of a window} denotes the total number of columns
-occupied by the window's text area.  Scroll bars or columns of @samp{|}
-characters that separate side-by-side windows are not included in a
-window's body width.
-
 @cindex body size of a window
 @cindex window body size
-The following functions retrieve height and width of the body of a live
-window:
-
-@defun window-body-size &optional window horizontal
-This function returns the number of lines of @var{window}'s text area.
-@var{window} must be a live window and defaults to the selected one.
-The return value does not count any mode or header line of @var{window}.
-
-Optional argument @var{horizontal} non-@code{nil} means to return the
-number of columns of @var{window}'s text area.  In this case the return
-value does not include any vertical divider or scroll bar owned by
-@var{window}.  On a window-system the return value does not include the
-number of columns used for @var{window}'s fringes or display margins
-either.
-@end defun
+  The @dfn{body height} of a window is the height of its text area,
+which does not include the mode or header line.  Similarly, the
+@dfn{body width} is the width of the text area, which does not include
+the scroll bar, fringes, or margins.
 
 @defun window-body-height &optional window
-This function returns the number of lines of @var{window}'s body.
-@var{window} must be a live window and defaults to the selected one.
+This function returns the body height, in lines, of the window
+@var{window}.  If @var{window} is omitted or @code{nil}, it defaults
+to the selected window; otherwise it must be a live window.
 
-The return value does not include @var{window}'s mode line and header
-line, if any.  If a line at the bottom of the window is only partially
-visible, that line is included in the return value.  If you do not
-want to include a partially visible bottom line in the return value,
-use @code{window-text-height} instead.
+If there is a partially-visible line at the bottom of the text area,
+that counts as a whole line; to exclude such a partially-visible line,
+use @code{window-text-height}, below.
 @end defun
 
 @defun window-body-width &optional window
-This function returns the number of columns of @var{window}'s body.
-@var{window} must be a live window and defaults to the selected one.
-
-The return value does not include any vertical dividers or scroll bars
-owned by @var{window}.  On a window-system the return value does not
-include the number of columns used for @var{window}'s fringes or
-display margins either.
+This function returns the body width, in columns, of the window
+@var{window}.  If @var{window} is omitted or @code{nil}, it defaults
+to the selected window; otherwise it must be a live window.
 @end defun
 
-The following functions have been used in earlier versions of Emacs.
-They are still supported but due to the confusing nomenclature they
-should not be used any more in future code.
-
-@defun window-height &optional window
-This function is an alias for `window-total-height', see above.
+@defun window-body-size &optional window horizontal
+This function returns the body height or body width of @var{window}.
+If @var{horizontal} is omitted or @code{nil}, it is equivalent to
+calling @code{window-body-height} for @var{window}; otherwise it is
+equivalent to calling @code{window-body-width}.
 @end defun
 
-@defun window-width &optional window
-This function is an alias for `window-body-width', see above.
+@defun window-text-height &optional window
+This function is like @code{window-body-height}, except that any
+partially-visible line at the bottom of the text area is not counted.
 @end defun
 
-@cindex minimum window size
-  The following two options constrain the sizes of windows to a minimum
-height and width.  Their values are honored when windows are split
-(@pxref{Splitting Windows}) or resized (@pxref{Resizing Windows}).  Any
-request to make a window smaller than specified here will usually result
-in an error.
-
-@defopt window-min-height
-The value of this variable specifies how short a window may be.  The
-value is measured in line units and has to account for any header or
-mode line.  The default value for this option is @code{4}.  Values less
-than @code{1} are ignored.
-@end defopt
-
-@defopt window-min-width
-The value of this variable specifies how narrow a window may be.  The
-value is measured in characters and includes any margins, fringes,
-scroll bar and vertical divider column.  The default value for this
-option is @code{10}.  A value less than @code{2} is ignored.
-@end defopt
-
-Applications should not rebind these variables.  To shrink a specific
-window to a height or width less than the one specified here, they
-should rather invoke @code{window-resize} (@pxref{Resizing Windows})
-with a non-@code{nil} @var{ignore} argument.  The function
-@code{split-window} (@pxref{Splitting Windows}) can make a window
-smaller than specified here by calling it with a non-@code{nil}
-@var{size} argument.  Interactively, the values specified here cannot be
-overridden.
-
-   Earlier versions of Emacs could delete a window when its size dropped
-below @code{window-min-height} or @code{window-min-width}.  As a rule,
-the current version of Emacs does no more delete windows by side-effect.
-The only exception to this rule are requests to resize a frame which may
-implicitly delete windows when they do not fit on the frame any more,
-see @ref{Size and Position}.
-
-   The size of a window can be fixed which means that it cannot be split
-(@pxref{Splitting Windows}) or resized (@pxref{Resizing Windows}).
+  For compatibility with previous versions of Emacs,
+@code{window-height} is an alias for @code{window-body-height}, and
+@code{window-width} is an alias for @code{window-body-width}.  These
+aliases are considered obsolete and will be removed in the future.
 
 @cindex fixed-size window
+  Commands that change the size of windows (@pxref{Resizing Windows}),
+or split them (@pxref{Splitting Windows}), obey the variables
+@code{window-min-height} and @code{window-min-width}, which specify
+the smallest allowable window height and width.  @xref{Change
+Window,,Deleting and Rearranging Windows, emacs, The GNU Emacs
+Manual}.  They also obey the variable @code{window-size-fixed}, with
+which a window can be @dfn{fixed} in size:
+
 @defvar window-size-fixed
-If this variable is non-@code{nil}, in a given buffer, then the size of
-any window displaying that buffer remains fixed unless you either
-explicitly change it or Emacs has no other choice.
+If this buffer-local variable is non-@code{nil}, the size of any
+window displaying the buffer cannot normally be changed.  Deleting a
+window or changing the frame's size may still change its size, if
+there is no choice.
 
 If the value is @code{height}, then only the window's height is fixed;
 if the value is @code{width}, then only the window's width is fixed.
 Any other non-@code{nil} value fixes both the width and the height.
-
-This variable automatically becomes buffer-local when set.
 @end defvar
 
-Commands supposed to explicitly change the size of windows such as
-@code{enlarge-window} (@pxref{Resizing Windows}) get an error if they
-had to change a window size which is fixed.  Other functions like
-@code{window-resize} (@pxref{Resizing Windows}) have an optional
-@var{ignore} argument which allows to change the size of fixed-size
-windows.
-
-   Deleting a window or changing a frame's size may change the size of a
-fixed-size window, if there is no other alternative.
-
-   The height of a vertical combination of windows cannot be changed
-when the height of all these windows is fixed.  Its width cannot be
-changed if the width of at least one of these windows is fixed.
-Similarly, the width of a horizontal combination of windows cannot be
-changed when the width of all these windows is fixed.  Its height cannot
-be changed if the height of at least one of these windows is fixed.
-
-   The next function allows to check whether the size of an arbitrary           
-window is fixed.
-
 @defun window-size-fixed-p &optional window horizontal
-This function returns non-@code{nil} if @var{window}'s height is fixed.
-The argument @var{window} can be an arbitrary window and defaults to the
-selected one.  Optional argument @var{horizontal} non-@code{nil} means
-return non-@code{nil} if @var{window}'s width is fixed.
+This function returns a non-@code{nil} value if @var{window}'s height
+is fixed.  If @var{window} is omitted or @code{nil}, it defaults to
+the selected window.  If the optional argument @var{horizontal} is
+non-@code{nil}, the return value is non-@code{nil} if @var{window}'s
+width is fixed.
 
-If this function returns @code{nil}, this does not necessarily mean that
-@var{window} can be resized in the desired direction.  The function
-@code{window-resizable} (@pxref{Resizing Windows}) can tell that.
+A @code{nil} return value does not necessarily mean that @var{window}
+can be resized in the desired direction.  To determine that, use the
+function @code{window-resizable}.  @xref{Resizing Windows}.
 @end defun
 
+  The following functions can be used to find a window's size and
+position in pixels.  Though mostly useful on graphical displays, they
+can also be called on text-only terminals, where the screen area of
+each text character is taken to be ``one pixel''.
+
+@defun window-pixel-edges &optional window
+This function return a list of pixel coordinates for the edges of
+@var{window}.  If @var{window} is omitted or @code{nil}, it defaults
+to the selected window.
+
+The return value has the form @code{(@var{left} @var{top} @var{right}
+@var{bottom})}.  The list elements are, respectively, the X coordinate
+of the left window edge, the Y coordinate of the top edge, one more
+than the X coordinate of the right edge, and one more than the Y
+coordinate of the bottom edge.  The origin coordinate @samp{(0,0)} is
+taken to be the top left corner of the frame's window area.
+
+These edge values include the space used by the window's scroll bar,
+margins, fringes, header line, and mode line, if any.
+@end defun
+
+@defun window-inside-pixel-edges &optional window
+This function is like @code{window-pixel-edges}, except that it
+returns the edge coordinates for the window's text area, rather than
+the edge coordinates for the window itself.  @var{window} must specify
+a live window.
+@end defun
+
+@defun window-absolute-pixel-edges &optional window
+This function is like @code{window-pixel-edges}, except that it
+returns the edge coordinates relative to the top left corner of the
+display screen.
+@end defun
+
+@defun window-inside-absolute-pixel-edges &optional window
+This function is like @code{window-inside-pixel-edges}, except that it
+returns the edge coordinates relative to the top left corner of the
+display screen.  @var{window} must specify a live window.
+@end defun
 
 @node Resizing Windows
 @section Resizing Windows
@@ -704,231 +581,148 @@ If this function returns @code{nil}, this does not necessarily mean that
 @cindex changing window size
 @cindex window size, changing
 
-Emacs does not permit overlapping windows or gaps between windows, so
-changing the size of a window always affects at least one other window.
-When a frame contains just one window, that window can be resized only
-by resizing the window's frame.  The functions described below are
-therefore meaningful only in the context of a frame containing at least
-two windows.  The size of the corresponding frame never changes when
-invoking a function described in this section.
+  This section describes functions for resizing a window without
+changing the size of its frame.  Because live windows do not overlap,
+these functions are meaningful only on frames that contain two or more
+windows: resizing a window also changes the size of a neighboring
+window.  If there is just one window on a frame, its size cannot be
+changed except by resizing the frame (@pxref{Size and Position}).
 
-   The routines changing window sizes always operate in one dimension at
-a time.  This means that windows can be resized only either vertically
-or horizontally.  If a window shall be resized in both dimensions, it
-must be resized in one dimension first and in the other dimension
-afterwards.  If the second resize operation fails, the frame might end
-up in an unsatisfactory state.  To avoid such states, it might be useful
-to save the current window configuration (@pxref{Window Configurations})
-before attempting the first resize operation and restore the saved
-configuration in case the second resize operation fails.
+  Except where noted, these functions also accept internal windows as
+arguments.  Resizing an internal window causes its child windows to be
+resized to fit the same space.
 
-   Functions that resize windows are supposed to obey restrictions
-imposed by window minimum sizes and fixed-size windows, see @ref{Window
-Sizes}.  In order to determine whether resizing a specific window is
-possible in the first place, the following function can be used:
-
-@defun window-resizable window delta &optional horizontal ignore side noup nodown
+@defun window-resizable window delta &optional horizontal ignore
 This function returns @var{delta} if the size of @var{window} can be
-changed vertically by @var{delta} lines.  Optional argument
-@var{horizontal} non-@code{nil} means to return @var{delta} if
-@var{window} can be resized horizontally by @var{delta} columns.  A
-return value of zero means that @var{window} is not resizable.
+changed vertically by @var{delta} lines.  If the optional argument
+@var{horizontal} is non-@code{nil}, it instead returns @var{delta} if
+@var{window} can be resized horizontally by @var{delta} columns.  It
+does not actually change the window size.
 
-If @var{delta} is a positive number, this means that @var{window} shall
-be enlarged by @var{delta} lines or columns.  If @var{window} cannot be
-enlarged by @var{delta} lines or columns, this function returns the
-maximum value in the range from 0 to @var{delta} by which @var{window}
-can be enlarged.
+If @var{window} is @code{nil}, it defaults to the selected window.
 
-If @var{delta} is a negative number, this means that @var{window} shall
-be shrunk by -@var{delta} lines or columns.  If @var{window} cannot be
-shrunk by -@var{delta} lines or columns, this function returns the
-minimum value in the range from @var{delta} to 0 that can be used for
-shrinking @var{window}.
+A positive value of @var{delta} means to check whether the window can be
+enlarged by that number of lines or columns; a negative value of
+@var{delta} means to check whether the window can be shrunk by that many
+lines or columns.  If @var{delta} is non-zero, a return value of 0 means
+that the window cannot be resized.
 
-Optional argument @var{ignore} non-@code{nil} means ignore any
-restrictions imposed by the variables @code{window-min-height} or
-@code{window-min-width} and @code{window-size-fixed}.  In this case the
-minimum height of a window is specified as the minimum number of lines
-that allow viewing any header or mode line and at least one line of the
-text area of window.  The minimum width of a window includes any
-fringes, margins and the scroll bar as well as two text columns.
-
-If @var{ignore} denotes a window, this means to ignore restrictions for
-that window only.  If @var{ignore} equals the constant @code{safe}, this
-means a live window may get as small as one line or two columns.
-
-Optional argument @var{noup} non-@code{nil} means don't go up in the
-window tree but try to steal or distribute the space needed for the
-resize operation among the other windows within @var{window}'s
-combination.  Optional argument @var{nodown} non-@code{nil} means don't
-check whether @var{window} itself and its subwindows can be resized.
+Normally, the variables @code{window-min-height} and
+@code{window-min-width} specify the smallest allowable window size.
+@xref{Change Window,, Deleting and Rearranging Windows, emacs, The GNU
+Emacs Manual}.  However, if the optional argument @var{ignore} is
+non-@code{nil}, this function ignores @code{window-min-height} and
+@code{window-min-width}, as well as @code{window-size-fixed}.
+Instead, it considers the minimum-height window to be one consisting
+of a header (if any), a mode line, plus a text area one line tall; and
+a minimum-width window as one consisting of fringes, margins, and
+scroll bar (if any), plus a text area two columns wide.
 @end defun
-
-The function @code{window-resizable} does not change any window sizes.
-The following function does:
 
 @defun window-resize window delta &optional horizontal ignore
-This function resizes @var{window} vertically by @var{delta} lines.  The
-argument @var{window} can denote an arbitrary window and defaults to the
-selected one.  An attempt to resize the root window of a frame will
-raise an error.
+This function resizes @var{window} by @var{delta} increments.  If
+@var{horizontal} is @code{nil}, it changes the height by @var{delta}
+lines; otherwise, it changes the width by @var{delta} columns.  A
+positive @var{delta} means to enlarge the window, and a negative
+@var{delta} means to shrink it.
 
-Second argument @var{delta} a positive number means @var{window} shall
-be enlarged by @var{delta} lines.  If @var{delta} is negative, that
-means @var{window} shall be shrunk by -@var{delta} lines.
+If @var{window} is @code{nil}, it defaults to the selected window.  If
+the window cannot be resized as demanded, an error is signaled.
 
-Optional argument @var{horizontal} non-@code{nil} means to resize
-@var{window} horizontally by @var{delta} columns.  In this case a
-positive @var{delta} means enlarge @var{window} by @var{delta} columns.
-A negative @var{delta} means @var{window} shall be shrunk by
--@var{delta} columns.
+The optional argument @var{ignore} has the same meaning as for the
+function @code{window-resizable} above.
 
-Optional argument @var{ignore} has the same meaning as for the function
-@code{window-resizable} above.
-
-This function can simultaneously move two edges of WINDOW.  Exactly
-which edges of @var{window} are moved and which other windows are
-resized along with @var{window} is determined by the splits and nest
-status of the involved windows (@pxref{Splitting Windows}).  If only the
-low (right) edge of @var{window} shall be moved, the function
-@code{adjust-window-trailing-edge} described below should be used.
+The choice of which window edges this function alters depends on the
+values of the option @code{window-combination-resize} and the
+combination-limit status of the involved windows; in some cases, it may
+alter both edges.  @xref{Splitting Windows}.  To resize by moving only
+the bottom or right edge of a window, use the function
+@code{adjust-window-trailing-edge}, below.
 @end defun
 
-The next four commands are simple interfaces to @code{window-resize}.
-They always operate on the selected window, never delete any window, and
-always raise an error when resizing would violate a restriction imposed
-by @code{window-min-height}, @code{window-min-width}, or
-@code{window-size-fixed}.
-
-@deffn Command enlarge-window delta &optional horizontal
-This function makes the selected window @var{delta} lines taller.
-Interactively, if no argument is given, it makes the selected window one
-line taller.  If optional argument @var{horizontal} is non-@code{nil},
-it makes the selected window wider by @var{delta} columns.  If
-@var{delta} is negative, it shrinks the selected window by -@var{delta}
-lines or columns.  The return value is @code{nil}.
-@end deffn
-
-@deffn Command enlarge-window-horizontally delta
-This function makes the selected window @var{delta} columns wider.
-Interactively, if no argument is given, it makes the selected window one
-column wider.
-@end deffn
-
-@deffn Command shrink-window delta &optional horizontal
-This function makes the selected window @var{delta} lines smaller.
-Interactively, if no argument is given, it makes the selected window one
-line smaller.  If optional argument @var{horizontal} is non-@code{nil},
-it makes the selected window narrower by @var{delta} columns.  If
-@var{delta} is negative, it enlarges the selected window by -@var{delta}
-lines or columns.  The return value is @code{nil}.
-@end deffn
-
-@deffn Command shrink-window-horizontally delta
-This function makes the selected window @var{delta} columns narrower.
-Interactively, if no argument is given, it makes the selected window one
-column narrower.
-@end deffn
-
-The following function is useful for moving the line dividing two
-windows.
+@c The commands enlarge-window, enlarge-window-horizontally,
+@c shrink-window, and shrink-window-horizontally are documented in the
+@c Emacs manual.  They are not preferred for calling from Lisp.
 
 @defun adjust-window-trailing-edge window delta &optional horizontal
 This function moves @var{window}'s bottom edge by @var{delta} lines.
-Optional argument @var{horizontal} non-@code{nil} means to move
-@var{window}'s right edge by @var{delta} columns.  The argument
-@var{window} defaults to the selected window.
+If optional argument @var{horizontal} is non-@code{nil}, it instead
+moves the right edge by @var{delta} columns.  If @var{window} is
+@code{nil}, it defaults to the selected window.
 
-If @var{delta} is greater zero, this moves the edge downwards or to the
-right.  If @var{delta} is less than zero, this moves the edge upwards or
-to the left. If the edge can't be moved by @var{delta} lines or columns,
-it is moved as far as possible in the desired direction but no error is
-signalled.
+A positive @var{delta} moves the edge downwards or to the right; a
+negative @var{delta} moves it upwards or to the left.  If the edge
+cannot be moved as far as specified by @var{delta}, this function
+moves it as far as possible but does not signal a error.
 
 This function tries to resize windows adjacent to the edge that is
-moved.  Only if this is insufficient, it will also resize windows not
-adjacent to that edge.  As a consequence, if you move an edge in one
-direction and back in the other direction by the same amount, the
-resulting window configuration will not be necessarily identical to the
-one before the first move.  So if your intend to just resize
-@var{window}, you should not use this function but call
-@code{window-resize} (see above) instead.
+moved.  If this is not possible for some reason (e.g. if that adjacent
+window is fixed-size), it may resize other windows.
 @end defun
 
+  The following commands resize windows in more specific ways.  When
+called interactively, they act on the selected window.
+
 @deffn Command fit-window-to-buffer &optional window max-height min-height override
-This command makes @var{window} the right height to display its
-contents exactly.  The default for @var{window} is the selected window.
+This command adjusts the height of @var{window} to fit the text in it.
+It returns non-@code{nil} if it was able to resize @var{window}, and
+@code{nil} otherwise.  If @var{window} is omitted or @code{nil}, it
+defaults to the selected window.  Otherwise, it should be a live
+window.
 
-The optional argument @var{max-height} specifies the maximum total
-height the window is allowed to be; @code{nil} means use the maximum
-permissible height of a window on @var{window}'s frame.  The optional
-argument @var{min-height} specifies the minimum toatl height for the
-window; @code{nil} means use @code{window-min-height}.  All these height
-values include the mode line and/or header line.
+The optional argument @var{max-height}, if non-@code{nil}, specifies
+the maximum total height that this function can give @var{window}.
+The optional argument @var{min-height}, if no-@code{nil}, specifies
+the minimum total height that it can give, which overrides the
+variable @code{window-min-height}.
 
-If the optional argument @var{override} is non-@code{nil}, this means to
-ignore any restrictions imposed by @code{window-min-height} and
-@code{window-min-width} on the size of @var{window}.
-
-This function returns non-@code{nil} if it orderly resized @var{window},
-and @code{nil} otherwise.
+If the optional argument @var{override} is non-@code{nil}, this
+function ignores any size restrictions imposed by
+@code{window-min-height} and @code{window-min-width}.
 @end deffn
 
 @deffn Command shrink-window-if-larger-than-buffer &optional window
-This command shrinks @var{window} vertically to be as small as possible
-while still showing the full contents of its buffer---but not less than
-@code{window-min-height} lines.  The argument @var{window} must denote
-a live window and defaults to the selected one.
+This command attempts to reduce @var{window}'s height as much as
+possible while still showing its full buffer, but no less than
+@code{window-min-height} lines.  The return value is non-@code{nil} if
+the window was resized, and @code{nil} otherwise.  If @var{window} is
+omitted or @code{nil}, it defaults to the selected window.  Otherwise,
+it should be a live window.
 
-However, this command does nothing if the window is already too small to
-display the whole text of the buffer, or if part of the contents are
-currently scrolled off screen, or if the window is not the full width of
-its frame, or if the window is the only window in its frame.
-
-This command returns non-@code{nil} if it actually shrank the window
-and @code{nil} otherwise.
+This command does nothing if the window is already too short to
+display all of its buffer, or if any of the buffer is scrolled
+off-screen, or if the window is the only live window in its frame.
 @end deffn
 
 @cindex balancing window sizes
-Emacs provides two functions to balance windows, that is, to even out
-the sizes of all windows on the same frame.  The minibuffer window and
-fixed-size windows are not resized by these functions.
-
 @deffn Command balance-windows &optional window-or-frame
 This function balances windows in a way that gives more space to
 full-width and/or full-height windows.  If @var{window-or-frame}
 specifies a frame, it balances all windows on that frame.  If
-@var{window-or-frame} specifies a window, it balances that window and
-its siblings (@pxref{Windows and Frames}) only.
+@var{window-or-frame} specifies a window, it balances only that window
+and its siblings (@pxref{Windows and Frames}).
 @end deffn
 
 @deffn Command balance-windows-area
 This function attempts to give all windows on the selected frame
-approximately the same share of the screen area.  This means that
-full-width or full-height windows are not given more space than other
-windows.
+approximately the same share of the screen area.  Full-width or
+full-height windows are not given more space than other windows.
 @end deffn
 
 @cindex maximizing windows
-The following function can be used to give a window the maximum possible
-size without deleting other ones.
-
 @deffn Command maximize-window &optional window
-This function maximizes @var{window}.  More precisely, this makes
-@var{window} as large as possible without resizing its frame or deleting
-other windows.  @var{window} can be any window and defaults to the
-selected one.
+This function attempts to make @var{window} as large as possible, in
+both dimensions, without resizing its frame or deleting other windows.
+If @var{window} is omitted or @code{nil}, it defaults to the selected
+window.
 @end deffn
 
 @cindex minimizing windows
-To make a window as small as possible without deleting it the
-following function can be used.
-
 @deffn Command minimize-window &optional window
-This function minimizes @var{window}.  More precisely, this makes
-@var{window} as small as possible without deleting it or resizing its
-frame.  @var{window} can be any window and defaults to the selected one.
+This function attempts to make @var{window} as small as possible, in
+both dimensions, without deleting it or resizing its frame.  If
+@var{window} is omitted or @code{nil}, it defaults to the selected
+window.
 @end deffn
 
 
@@ -937,174 +731,93 @@ frame.  @var{window} can be any window and defaults to the selected one.
 @cindex splitting windows
 @cindex window splitting
 
-The functions described below are the primitives needed for creating a
-new window.  They do not accept a buffer as an argument.  Rather, they
-``split'' an existing window into two halves, both displaying the buffer
-previously visible in the window that was split.
+This section describes functions for creating a new window by
+@dfn{splitting} an existing one.
 
 @deffn Command split-window &optional window size side
-This function creates a new window adjacent to @var{window}.  It returns
-the new window which is always a live window.  The argument @var{window}
-can denote any window and defaults to the selected one.  This function
-does not change the selected window.
+This function creates a new live window next to the window
+@var{window}.  If @var{window} is omitted or @code{nil}, it defaults
+to the selected window.  That window is ``split'', and reduced in
+size.  The space is taken up by the new window, which is returned.
 
-Optional second argument @var{size} a positive number means make
-@var{window} @var{size} lines (or columns) tall.  If @var{size} is
-negative, make the new window @minus{}@var{size} lines (or columns)
-tall.  If @var{size} is omitted or @code{nil}, then @var{window} is
-divided evenly into two parts.  (If there is an odd line, it is
-allocated to the new window.)
+The optional second argument @var{size} determines the sizes of
+@var{window} and/or the new window.  If it is omitted or @code{nil},
+both windows are given equal sizes; if there is an odd line, it is
+allocated to the new window.  If @var{size} is a positive number,
+@var{window} is given @var{size} lines (or columns, depending on the
+value of @var{side}).  If @var{size} is a negative number, the new
+window is given @minus{}@var{size} lines (or columns).
 
-If splitting would result in making a window smaller than
-@code{window-min-height} or @code{window-min-width} (@pxref{Window
-Sizes}), this function usually signals an error.  However, if @var{size}
-is non-@code{nil} and valid, a new window of the requested size is
-created.  (A size value would be invalid if it assigned less than one
-line or less than two columns to the new window.)
+If @var{size} is @code{nil}, this function obeys the variables
+@code{window-min-height} and @code{window-min-width}.  @xref{Change
+Window,,Deleting and Rearranging Windows, emacs, The GNU Emacs
+Manual}.  Thus, it signals an error if splitting would result in
+making a window smaller than those variables specify.  However, a
+non-@code{nil} value for @var{size} causes those variables to be
+ignored; in that case, the smallest allowable window is considered to
+be one that has space for a text area one line tall and/or two columns
+wide.
 
-Optional third argument @var{side} @code{nil} (or @code{below})
-specifies that the new window shall be located below @var{window}.  The
-value @code{above} means the new window will be located above
-@var{window}.  In both cases @var{size} specifies the new number of
-lines for @var{window} (or the new window if @var{size} is negative)
-including space reserved for the mode and/or header line.
+The optional third argument @var{side} determines the position of the
+new window relative to @var{window}.  If it is @code{nil} or
+@code{below}, the new window is placed below @var{window}.  If it is
+@code{above}, the new window is placed above @var{window}.  In both
+these cases, @var{size} specifies a total window height, in lines.
 
-If @var{side} is @code{t} or @code{right} the new window will be
-positioned on the right side of @var{window}.  The value @code{left}
-means the new window will be located on the left side of @var{window}.
-In both cases @var{size} specifies the new number of columns for
-@var{window} (or the new window provided @var{size} is negative)
-including space reserved for margins, fringes and the scroll bar or a
-divider column.
+If @var{side} is @code{t} or @code{right}, the new window is placed on
+the right of @var{window}.  If @var{side} is @code{left}, the new
+window is placed on the left of @var{window}.  In both these cases,
+@var{size} specifies a total window width, in columns.
 
-Any other non-@code{nil} value for @var{side} is currently handled like
-@code{t} (or @code{right}).  Since this might change in the future,
-application programs should refrain from using other values.
+If @var{window} is a live window, the new window inherits various
+properties from it, including margins and scroll bars.  If
+@var{window} is an internal window, the new window inherits the
+properties of the window selected within @var{window}'s frame.
 
-If @var{window} is live, properties of the new window like margins and
-scroll bars are inherited from @var{window}.  If @var{window} is an
-internal window, these properties, as well as the buffer shown in the
-new window, are inherited from the window selected on @var{window}'s
-frame.
-
-If @code{ignore-window-parameters} is non-@code{nil}, this function
-ignores window parameters (@pxref{Window Parameters}).  Otherwise, if
-the @code{split-window} parameter of @var{window} is @code{t}, it splits
-the window disregarding any other window parameters.  If the
-@code{split-window} parameter specifies a function, that function is
-called with the arguments @var{window}, @var{size}, and @var{side} to
-split @var{window}.  If that function is @code{ignore}, nothing is done.
+If the variable @code{ignore-window-parameters} is non-@code{nil}
+(@pxref{Window Parameters}), this function ignores window parameters.
+Otherwise, it consults the @code{split-window} parameter of
+@var{window}; if this is @code{t}, it splits the window disregarding
+any other window parameters.  If the @code{split-window} parameter
+specifies a function, that function is called with the arguments
+@var{window}, @var{size}, and @var{side} to split @var{window}, in
+lieu of the usual action of @code{split-window}.
 @end deffn
 
-The following example starts with one window on a screen that is 50
-lines high by 80 columns wide; then it splits the window.
+  As an example, we show a combination of @code{split-window} calls
+that yields the window configuration discussed in @ref{Windows and
+Frames}.  This example demonstrates splitting a live window as well as
+splitting an internal window.  We begin with a frame containing a
+single window (a live root window), which we denote by @var{W4}.
+Calling @code{(split-window W3)} yields this window configuration:
 
-@smallexample
-@group
-(setq W1 (selected-window))
-     @result{} #<window 8 on windows.texi>
-(setq W2 (split-window W1 15))
-     @result{} #<window 28 on windows.texi>
-@end group
-@group
-(window-top-line W1)
-     @result{} 0
-(window-total-size W1)
-     @result{} 15
-(window-top-line W2)
-     @result{} 15
-@end group
-@end smallexample
-
-The screen looks like this:
-
-@smallexample
-@group
-         __________
-        |          |  line 0
-        |    W1    |
-        |__________|
-        |          |  line 15
-        |    W2    |
-        |__________|
-                      line 50
- column 0   column 80
-@end group
-@end smallexample
-
-Next, split the top window into two side-by-side windows:
-
-@smallexample
-@group
-(setq W3 (split-window W1 35 t))
-     @result{} #<window 32 on windows.texi>
-@end group
-@group
-(window-left-column W1)
-     @result{} 0
-(window-total-size W1 t)
-     @result{} 35
-(window-left-column W3)
-     @result{} 35
-@end group
-@end smallexample
-
-@need 3000
-Now the screen looks like this:
-
-@smallexample
-@group
-     column 35
-         __________
-        |    |     |  line 0
-        | W1 |  W3 |
-        |____|_____|
-        |          |  line 15
-        |    W2    |
-        |__________|
-                      line 50
- column 0   column 80
-@end group
-@end smallexample
-
-Normally, Emacs indicates the border between two side-by-side windows
-with a scroll bar (@pxref{Scroll Bars}), or with @samp{|} characters.  The
-display table can specify alternative border characters; see @ref{Display
-Tables}.
-
-Below we describe how @code{split-window} can be used to create the
-window configuration from our earlier example (@pxref{Windows and
-Frames}) and how internal windows are created for this purpose.  We
-start with a frame containing one live window @code{W2} (in the
-following scenarios window names are assigned in an arbitrary manner in
-order to match the names of the example).  Evaluating the form
-@code{(split-window W2 8 t)} creates a new internal window @code{W1}
-with two children---@code{W2} (the window we've split) and a new leaf
-window @code{W6}:
 @smallexample
 @group
      ______________________________________
-    | ______  ____________________________ |
-    ||      ||                            ||
-    ||      ||                            ||
-    ||      ||                            ||
-    ||      ||                            ||
-    ||      ||                            ||
-    ||      ||                            ||
-    ||      ||                            ||
-    ||      ||                            ||
-    ||      ||                            ||
-    ||      ||                            ||
-    ||__W2__||_____________W6_____________ |
-    |__________________W1__________________|
+    | ____________________________________ |
+    ||                                    ||
+    ||                                    ||
+    ||                                    ||
+    ||_________________W4_________________||
+    | ____________________________________ |
+    ||                                    ||
+    ||                                    ||
+    ||                                    ||
+    ||_________________W5_________________||
+    |__________________W3__________________|
 
 @end group
 @end smallexample
 
-Evaluating now @code{(split-window W6 -3)} creates another internal
-window @code{W3} with two children---@code{W6} and a new live window
-@code{W5}.  This leaves us with a vertically combined window @code{W3}
-embedded in the horizontally combined window @code{W1}:
+@noindent
+The @code{split-window} call has created a new live window, denoted by
+@var{W5}.  It has also created a new internal window, denoted by
+@var{W3}, which becomes the root window and the parent of both
+@var{W4} and @var{W5}.
+
+  Next, we call @code{(split-window W3 nil 'left)}, passing the
+internal window @var{W3} as the argument.  The result:
+
 @smallexample
 @group
      ______________________________________
@@ -1113,199 +826,46 @@ embedded in the horizontally combined window @code{W1}:
     ||      |||                          |||
     ||      |||                          |||
     ||      |||                          |||
-    ||      |||                          |||
-    ||      |||                          |||
-    ||      |||____________W6____________|||
-    ||      || __________________________ ||
-    ||      |||                          |||
-    ||      |||____________W5____________|||
-    ||__W2__||_____________W3_____________ |
-    |__________________W1__________________|
-
-@end group
-@end smallexample
-
-Finally, evaluating @code{(split-window W6 nil t)} should get us the
-desired configuration as depicted below.
-@smallexample
-@group
-     ______________________________________
-    | ______  ____________________________ |
-    ||      || __________________________ ||
-    ||      ||| ___________  ___________ |||
-    ||      ||||           ||           ||||
-    ||      ||||           ||           ||||
-    ||      ||||_____W6____||_____W7____||||
     ||      |||____________W4____________|||
     ||      || __________________________ ||
     ||      |||                          |||
+    ||      |||                          |||
     ||      |||____________W5____________|||
     ||__W2__||_____________W3_____________ |
     |__________________W1__________________|
-
 @end group
 @end smallexample
 
-The scenario sketched above is the standard way to obtain the desired
-configuration.  In Emacs 23 it was also the only way to do that since
-Emacs 23 did't allow splitting internal windows.
+@noindent
+A new live window @var{W2} is created, to the left of the internal
+window @var{W3}.  A new internal window @var{W1} is created, becoming
+the new root window.
 
-With Emacs 24 you can also proceed as follows: Split an initial window
-@code{W6} by evaluating @code{(split-window W6 -3)} to produce the
-following vertical combination:
-@smallexample
-@group
-     ______________________________________
-    | ____________________________________ |
-    ||                                    ||
-    ||                                    ||
-    ||                                    ||
-    ||                                    ||
-    ||                                    ||
-    ||                                    ||
-    ||                                    ||
-    ||_________________W6_________________||
-    | ____________________________________ |
-    ||                                    ||
-    ||_________________W5_________________||
-    |__________________W3__________________|
-
-@end group
-@end smallexample
-
-Evaluating now @code{(split-window (window-parent W6) -8 'left)} or,
-equivalently, @code{(split-window W3 -8 'left)} should now produce the
-penultimate configuration from the previous scenario from where we can
-continue as described before.
-
-   Another strategy starts with splitting an initial window @code{W6} by
-evaluating @code{(split-window W6 nil nil t)} with the following result:
-@smallexample
-@group
-     ______________________________________
-    | _________________  _________________ |
-    ||                 ||                 ||
-    ||                 ||                 ||
-    ||                 ||                 ||
-    ||                 ||                 ||
-    ||                 ||                 ||
-    ||                 ||                 ||
-    ||                 ||                 ||
-    ||                 ||                 ||
-    ||                 ||                 ||
-    ||                 ||                 ||
-    ||________W6_______||________W7_______||
-    |__________________W4__________________|
-
-@end group
-@end smallexample
-
-Evaluating now @code{(split-window W4 -3)} or @code{(split-window
-(window-parent W6) -3)} should get us a configuration as shown next.
-@smallexample
-@group
-     ______________________________________
-    | ____________________________________ |
-    || ________________  ________________ ||
-    |||                ||                |||
-    |||                ||                |||
-    |||                ||                |||
-    |||                ||                |||
-    |||                ||                |||
-    |||_______W6_______||________W7______|||
-    ||_________________W4_________________||
-    | ____________________________________ |
-    ||                                    ||
-    ||_________________W5_________________||
-    |__________________W3__________________|
-
-@end group
-@end smallexample
-
-The desired configuration can be now obtained by evaluating
-@code{(split-window W3 -8 'left)} or, equivalently, @code{(split-window
-(window-parent W5) -8 'left)}.
-
-   For a final approach let's start with the configuration of two live
-windows @code{W6} and @code{W7} shown above.  If we now evaluate
-@code{(split-window W4 -8 'left)} or @code{(split-window (window-parent
-W6) -8 'left)} we get the following configuration.
-@smallexample
-@group
-     ______________________________________
-    | ______  ____________________________ |
-    ||      || ____________  ____________ ||
-    ||      |||            ||            |||
-    ||      |||            ||            |||
-    ||      |||            ||            |||
-    ||      |||            ||            |||
-    ||      |||            ||            |||
-    ||      |||            ||            |||
-    ||      |||            ||            |||
-    ||      |||______W6____||______W7____|||
-    ||__W2__||_____________W4_____________||
-    |__________________W1__________________|
-
-@end group
-@end smallexample
-
-Evaluating now @code{(split-window W4 -3)} or, for example,
-@code{(split-window (window-parent W6) -3)} should produce the desired
-configuration.
-
-  The two options described next can be used to tune the operation of
+  The following two options can be used to modify the operation of
 @code{split-window}.
 
-@defopt window-splits
-If this variable is nil, the function @code{split-window} can split a
-window if and only if that window's screen estate is sufficiently large
-to accommodate both--itself and the new window.
+@defopt window-combination-resize
+If this variable is @code{nil}, @code{split-window} can only split a
+window (denoted by @var{window}) if @var{window}'s screen area is
+large enough to accommodate both itself and the new window.  This is
+the default.
 
-If this variable is non-@code{nil}, @code{split-window} tries to resize
-all windows that are part of the same combination as the old window to
-accommodate the new window.  Hence, the new window can be also created if
-the old window is of fixed size or too small to split (@pxref{Window
-Sizes}).
+If this variable is non-@code{nil}, @code{split-window} tries to
+resize all windows that are part of the same combination as
+@var{window}, in order to accommodate the new window.  In particular,
+this may allow @code{split-window} to succeed even if @var{window} is
+a fixed-size window or too small to ordinarily split.
 
-In any case, the value of this variable is assigned to the splits status
-of the new window and, provided old and new window form a new
-combination, of the old window as well.  The splits status of a window
-can be retrieved by invoking the function @code{window-splits} and
-altered by the function @code{set-window-splits} described next.
+Also if this variable is non-@code{nil}, subsequent resizing and
+deleting @var{window} will usually affect @emph{all} windows in
+@var{window}'s combination.
 
-If @code{window-nest} (see below) is non-@code{nil}, the space for the
-new window is exclusively taken from the old window, but the splits
-status of the involved windows is nevertheless set as described here.
+The setting of this variable has no effect if
+@code{window-combination-limit} (see below) is non-@code{nil}.
 @end defopt
 
-@defun window-splits &optional window
-This function returns the splits status of @var{window}.  The argument
-@var{window} can be any window and defaults to the selected one.
-
-@cindex splits status
-The @dfn{splits status} of a window specifies how resizing and deleting
-that window may affect the size of other windows in the same window
-combination.  More precisely, if @var{window}'s splits status is
-@code{nil} and @var{window} is resized, the corresponding space is
-preferably taken from (or given to) @var{window}'s right sibling.  When
-@var{window} is deleted, its space is given to its left sibling.  If
-@var{window}'s splits status is non-@code{nil}, resizing and deleting
-@var{window} may resize @emph{all} windows in @var{window}'s
-combination.
-
-The splits status is initially set by @code{split-window}
-from the current value of the variable @code{window-splits} (see above)
-and can be reset by the function @code{set-window-splits} (see below).
-@end defun
-
-@defun set-window-splits window &optional status
-This function sets the splits status (see above) of @var{window} to
-@var{status}.  The argument @var{window} can be any window and defaults
-to the selected one.  The return value is @var{status}.
-@end defun
-
-To illustrate the use of @code{window-splits} consider the following
-window configuration:
+To illustrate the use of @code{window-combination-resize} consider the
+following window configuration:
 @smallexample
 @group
      ______________________________________
@@ -1326,8 +886,9 @@ window configuration:
 @end group
 @end smallexample
 
-Splitting window @code{W3} with @code{window-splits} @code{nil}
-produces a configuration where the size of @code{W2} remains unchanged:
+Splitting window @code{W3} with @code{window-combination-resize}
+@code{nil} produces a configuration where the size of @code{W2} remains
+unchanged:
 @smallexample
 @group
      ______________________________________
@@ -1348,10 +909,8 @@ produces a configuration where the size of @code{W2} remains unchanged:
 @end group
 @end smallexample
 
-Splitting @code{W3} with @code{window-splits} non-@code{nil} instead
-produces a configuration where all windows have approximately the same
-height:
-
+Splitting @code{W3} with @code{window-combination-resize} non-@code{nil}
+instead steals the space for @code{W4} from both @code{W2} and @code{W3}:
 @smallexample
 @group
      ______________________________________
@@ -1372,51 +931,54 @@ height:
 @end group
 @end smallexample
 
-@defopt window-nest
+@defopt window-combination-limit
 If this variable is @code{nil}, @code{split-window} creates a new parent
 window if and only if the old window has no parent window or shall be
 split orthogonally to the combination it is part of.  If this variable
-is non-@code{nil}, @code{split-window} always creates a new parent
-window.  If this variable is always non-@code{nil}, a frame's window
-tree is a binary tree so every window but the frame's root window has
-exactly one sibling.
+is @code{t}, @code{split-window} always creates a new parent window.  If
+this variable is always @code{t}, a frame's window tree is a binary tree
+so every window but the frame's root window has exactly one sibling.
+Other values are reserved for future use.
 
-The value of this variable is also assigned to the nest status of the
-new parent window.  The nest status of any window can be retrieved via
-the function @code{window-nest} and altered by the function
-@code{set-window-nest}, see below.
+The value of this variable is also assigned to the combination-limit
+status of the new parent window.  The combination-limit status of any
+window can be retrieved via the function @code{window-combination-limit}
+and altered by the function @code{set-window-combination-limit}, see
+below.
 @end defopt
 
-@defun window-nest &optional window
-This function returns the nest status of @var{window}.  The argument
-@var{window} can be any window and defaults to the selected one.  Note,
-however, that the nest status is currently meaningful for internal
-windows only.
+@defun window-combination-limit &optional window
+This function returns the combination-limit status of @var{window}.  The
+argument @var{window} can be any window and defaults to the selected
+one.  Note, however, that the combination-limit status is currently
+meaningful for internal windows only.
 
-@cindex nest status
-The @dfn{nest status} of a window specifies whether that window may be
-removed and its subwindows recombined with that window's siblings when
-such a sibling's subwindow is deleted.  The nest status is initially
-assigned by @code{split-window} from the current value of the variable
-@code{window-nest} (see above) and can be reset by the function
-@code{set-window-nest} (see below).
+@cindex combination-limit status
+The @dfn{combination-limit status} of a window specifies whether that
+window may be removed and its child windows recombined with that
+window's siblings when such a sibling's child window is deleted.  The
+combination-limit status is initially assigned by @code{split-window}
+from the current value of the variable @code{window-combination-limit}
+(see above) and can be reset by the function
+@code{set-window-combination-limit} (see below).
 
-If the return value is @code{nil}, subwindows of @var{window} may be
+If the return value is @code{nil}, child windows of @var{window} may be
 recombined with @var{window}'s siblings when a window gets deleted.  A
-return value of @code{nil} means that subwindows of @var{window} are
+return value of @code{nil} means that child windows of @var{window} are
 never (re-)combined with @var{window}'s siblings in such a case.
 @end defun
 
-@defun set-window-nest window &optional status
-This functions sets the nest status (see above) of @var{window} to
-@var{status}.  The argument @var{window} can be any window and defaults
-to the selected one.  Note that setting the nest status is meaningful
-for internal windows only.  The return value is @var{status}.
+@defun set-window-combination-limit window &optional status
+This functions sets the combination-limit status (see above) of
+@var{window} to @var{status}.  The argument @var{window} can be any
+window and defaults to the selected one.  Note that setting the
+combination-limit status is meaningful for internal windows only.  The
+return value is @var{status}.
 @end defun
 
-To illustrate the use of @code{window-nest} consider the following
-configuration (throughout the following examples we shall assume that
-@code{window-splits} invariantly is @code{nil}).
+To illustrate the use of @code{window-combination-limit} consider the
+following configuration (throughout the following examples we shall
+assume that @code{window-combination-resize} invariantly is @code{nil}).
 @smallexample
 @group
      ______________________________________
@@ -1438,7 +1000,8 @@ configuration (throughout the following examples we shall assume that
 @end smallexample
 
 Splitting @code{W2} into two windows above each other with
-@code{window-nest} equal @code{nil} will get you a configuration like:
+@code{window-combination-limit} equal @code{nil} will get you a
+configuration like:
 @smallexample
 @group
      ______________________________________
@@ -1505,9 +1068,9 @@ follows:
 
 Hence, with respect to the initial configuration, window @code{W2} has
 grown at the expense of window @code{W3}.  If, however, in the initial
-configuration you had split @code{W2} with @code{window-nest} bound to
-@code{t}, a new internal window @code{W5} would have been created as
-depicted below.
+configuration you had split @code{W2} with
+@code{window-combination-limit} bound to @code{t}, a new internal window
+@code{W5} would have been created as depicted below.
 @smallexample
 @group
      ______________________________________
@@ -1556,7 +1119,7 @@ configuration.
 For interactive use, Emacs provides two commands which always split the
 selected window.
 
-@deffn Command split-window-above-each-other &optional size
+@deffn Command split-window-below &optional size
 This function splits the selected window into two windows, one above the
 other, leaving the upper of the two windows selected, with @var{size}
 lines.  (If @var{size} is negative, then the lower of the two windows
@@ -1572,16 +1135,16 @@ is the new, lower window.
 
 @defopt split-window-keep-point
 If this variable is non-@code{nil} (the default), then
-@code{split-window-above-each-other} behaves as described above.
+@code{split-window-below} behaves as described above.
 
-   If it is @code{nil}, then @code{split-window-above-each-other}
-adjusts point in each of the two windows to avoid scrolling.  (This is
-useful on slow terminals.)  It selects whichever window contains the
-screen line that point was previously on.  Other functions are not
-affected by this variable.
+   If it is @code{nil}, then @code{split-window-below} adjusts point
+in each of the two windows to avoid scrolling.  (This is useful on
+slow terminals.)  It selects whichever window contains the screen line
+that point was previously on.  Other functions are not affected by
+this variable.
 @end defopt
 
-@deffn Command split-window-side-by-side &optional size
+@deffn Command split-window-right &optional size
 This function splits the selected window into two windows
 side-by-side, leaving the selected window on the left with @var{size}
 columns.  If @var{size} is negative, the rightmost window gets
@@ -1620,12 +1183,12 @@ window parameters.  If the @code{delete-window} parameter specifies a
 function, that function is called with @var{window} as its sole
 argument.
 
-If the splits status of @var{window} (@pxref{Splitting Windows}) is
+If @code{window-combination-resize} (@pxref{Splitting Windows}) is
 @code{nil}, the space @var{window} took up is given to its left sibling
-if such a window exists and to its right sibling otherwise.  If the
-splits status of @var{window} is non-@code{nil}, its space is
-proportionally distributed among the remaining windows in the same
-combination.
+if such a window exists and to its right sibling otherwise.  If
+@code{window-combination-resize} is non-@code{nil}, the space of
+@var{window} is proportionally distributed among the remaining windows
+in the same combination.
 @end deffn
 
 @deffn Command delete-other-windows &optional window
@@ -1644,11 +1207,11 @@ function, it calls that function with @var{window} as its sole argument.
 @end deffn
 
 @deffn Command delete-windows-on &optional buffer-or-name frame
-This function deletes all windows showing @var{buffer-or-name} and
-returns nil.  If there are no windows showing @var{buffer-or-name}, it
-does nothing.  The optional argument @var{buffer-or-name} may be a
-buffer or the name of an existing buffer and defaults to the current
-buffer.  Invoking this command on a minibuffer signals an error.
+This function deletes all windows showing @var{buffer-or-name}.  If
+there are no windows showing @var{buffer-or-name}, it does nothing.
+The optional argument @var{buffer-or-name} may be a buffer or the name
+of an existing buffer and defaults to the current buffer.  Invoking
+this command on a minibuffer signals an error.
 
 The function @code{delete-windows-on} operates by calling
 @code{delete-window} for each window showing @var{buffer-or-name}.  If a
@@ -1876,7 +1439,7 @@ This function does not select a window that has a non-@code{nil}
 @end deffn
 
 The following function returns a copy of the list of windows in the
-cyclic odering.
+cyclic ordering.
 
 @defun window-list-1 &optional window &optional minibuf &optional all_frames
 This function returns a list of live windows.  The optional arguments
@@ -1886,7 +1449,7 @@ in the list.  See the description of @code{next-window} for details.
 The optional argument @var{window} specifies the first window to list
 and defaults to the selected window.  If @var{window} is not on the list
 of windows returned, some other window will be listed first but no error
-is signalled.
+is signaled.
 @end defun
 
 The functions described below use @code{window-list-1} for generating a
@@ -1999,7 +1562,7 @@ This function makes @var{window} display @var{buffer-or-name} and
 returns @code{nil}.  The argument @var{window} has to denote a live
 window and defaults to the selected one.  The argument
 @var{buffer-or-name} must specify a buffer or the name of an existing
-buffer.  An error is signalled when @var{window} is @dfn{strongly}
+buffer.  An error is signaled when @var{window} is @dfn{strongly}
 dedicated to its buffer (@pxref{Dedicated Windows}) and does not already
 display @var{buffer-or-name}.
 
@@ -2086,7 +1649,7 @@ If a window displaying @var{buffer-or-name} is dedicated
 (@pxref{Dedicated Windows}) and is not the only window on its frame,
 that window is deleted.  If that window is the only window on its frame
 and there are other frames on the frame's terminal, that frame is dealt
-with by the function spcecified by @code{frame-auto-hide-function}
+with by the function specified by @code{frame-auto-hide-function}
 (@pxref{Quitting Windows}).  Otherwise, the buffer provided by the
 function @code{switch-to-prev-buffer} (@pxref{Window History}) is
 displayed in the window instead.
@@ -2206,7 +1769,7 @@ unless @var{norecord} is non-@code{nil}.
 
   The command @code{display-buffer} flexibly chooses a window for
 display, and displays a specified buffer in that window.  It can be
-called interactively, via the key binding @kbd{C-x 4 o}.  It is also
+called interactively, via the key binding @kbd{C-x 4 C-o}.  It is also
 used as a subroutine by many functions and commands, including
 @code{switch-to-buffer} and @code{pop-to-buffer} (@pxref{Switching
 Buffers}).
@@ -2264,7 +1827,7 @@ The constant @code{display-buffer-fallback-action}.
 @noindent
 Each action function is called in turn, passing the buffer as the
 first argument and the combined action alist as the second argument,
-until one of the functions returns non-nil.
+until one of the functions returns non-@code{nil}.
 
 The argument @var{action} can also have a non-@code{nil}, non-list
 value.  This has the special meaning that the buffer should be
@@ -2315,7 +1878,7 @@ returns the window if it succeeds, and @code{nil} if it fails.
 This function tries to display @var{buffer} in the selected window.
 It fails if the selected window is a minibuffer window or is dedicated
 to another buffer (@pxref{Dedicated Windows}).  It also fails if
-@var{alist} has a non-nil @code{inhibit-same-window} entry.
+@var{alist} has a non-@code{nil} @code{inhibit-same-window} entry.
 @end defun
 
 @defun display-buffer-reuse-window buffer alist
@@ -3324,7 +2887,7 @@ This function scrolls the text in the selected window so that point is
 displayed at a specified vertical position within the window.  It does
 not ``move point'' with respect to the text.
 
-If @var{count} is a nonnegative number, that puts the line containing
+If @var{count} is a non-negative number, that puts the line containing
 point @var{count} lines down from the top of the window.  If
 @var{count} is a negative number, then it counts upward from the
 bottom of the window, so that @minus{}1 stands for the last usable
@@ -3679,7 +3242,7 @@ as @code{save-window-excursion}:
 @group
 (let ((config (current-window-configuration)))
   (unwind-protect
-      (progn (split-window-vertically nil)
+      (progn (split-window-below nil)
              @dots{})
     (set-window-configuration config)))
 @end group
@@ -3783,7 +3346,7 @@ selected one.
 
 The optional argument @var{ignore} non-@code{nil} means to ignore
 minimum window sizes and fixed size restrictions.  If @var{ignore}
-equals @code{safe}, this means subwindows can get as small as one line
+equals @code{safe}, this means windows can get as small as one line
 and/or two columns.
 @end defun
 

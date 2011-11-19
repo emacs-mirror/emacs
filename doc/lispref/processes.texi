@@ -420,7 +420,7 @@ remote files.
 Per default, this variable is always set to @code{t}, meaning that a
 call of @code{process-file} could potentially change any file on a
 remote host.  When set to @code{nil}, a file handler could optimize
-its behaviour with respect to remote file attributes caching.
+its behavior with respect to remote file attributes caching.
 
 This variable should never be changed by @code{setq}.  Instead of, it
 shall be set only by let-binding.

@@ -434,7 +434,7 @@
 	for Emacs 20.4 and the earlier versions.
 	(ps-mule-init-external-library): Just require a feature for
 	external libraries.
-	(ps-mule-prologue): Postscript code modified for new composition.
+	(ps-mule-prologue): PostScript code modified for new composition.
 	(ps-mule-find-wrappoint): New arg COMPOSITION.
 	(ps-mule-plot-string): Delete code for composite characters.
 	(ps-mule-plot-composition): New function.
@@ -447,7 +447,7 @@
 	(ps-mule-plot-rule-cmpchar, ps-mule-plot-cmpchar,
 	ps-mule-prepare-cmpchar-font): Deleted.
 	(ps-mule-string-encoding): New arg NO-SETFONT.
-	(ps-mule-bitmap-prologue): In Postscript code of BuildGlyphCommon,
+	(ps-mule-bitmap-prologue): In PostScript code of BuildGlyphCommon,
 	check Composing, not Cmpchar.
 	(ps-mule-initialize): Set ps-mule-composition-prologue-generated
 	to nil.
@@ -3475,8 +3475,8 @@
 	(reftex-process-string): Preserve default directory.
 	(reftex-label-alist-builtin): Changed prefixes of endnote and footnote.
 	Also the magic words.
-	(reftex-reference): Interprete new option `reftex-fref-is-default'.
-	(reftex-replace-prefix-escapes): Interprete new `%S' format.
+	(reftex-reference): Interpret new option `reftex-fref-is-default'.
+	(reftex-replace-prefix-escapes): Interpret new `%S' format.
 	(reftex-toc-mouse-view-line): Command removed (had no binding).
 	(reftex-everything-regexp): New function.
 	(reftex-nearest-match): Made better.
@@ -8317,7 +8317,7 @@
 1998-11-11  Sam Steingold  <sds@goems.com>
 
 	* inf-lisp.el (switch-to-lisp): If no inferior lisp present, call
-	`run-lisp' instead of signalling an error.
+	`run-lisp' instead of signaling an error.
 
 1998-11-11  Karl Heuer  <kwzh@gnu.org>
 
@@ -9750,11 +9750,11 @@
 	* international/mule.el (charset-description): Doc fix.
 
 	* language/chinese.el, language/cyrillic.el, language/czech.el,
-	language/devanagari.el, language/ethiopic.el,
-	language/european.el, language/hebrew.el, language/indian.el,
-	language/japanese.el, language/korean.el, language/lao.el,
-	language/slovak.el, language/thai.el, language/tibetan.el,
-	language/vietnamese.el:
+	* language/devanagari.el, language/ethiopic.el,
+	* language/european.el, language/hebrew.el, language/indian.el,
+	* language/japanese.el, language/korean.el, language/lao.el,
+	* language/slovak.el, language/thai.el, language/tibetan.el,
+	* language/vietnamese.el:
 	Add coding: local variable, to avoid bootstrapping problem
 	if you need to recompile all the Lisp files using interpreted code.
 
@@ -10009,4 +10009,3 @@ See ChangeLog.7 for earlier changes.
 
   You should have received a copy of the GNU General Public License
   along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
-

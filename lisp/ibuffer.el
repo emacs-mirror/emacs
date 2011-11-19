@@ -2504,7 +2504,7 @@ Other commands:
 
 ** Information on Filtering:
 
- You can filter your ibuffer view via different critera.  Each Ibuffer
+ You can filter your ibuffer view via different criteria.  Each Ibuffer
 buffer has its own stack of active filters.  For example, suppose you
 are working on an Emacs Lisp project.  You can create an Ibuffer
 buffer displays buffers in just `emacs-lisp' modes via

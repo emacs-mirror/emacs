@@ -267,7 +267,7 @@ If nil, use `temporary-file-directory'."
       . (1 font-lock-function-name-face))
     '("/\\w+" . font-lock-variable-name-face)
     (cons ps-mode-operators 'font-lock-keyword-face)))
-  "High level highliting for PostScript mode.")
+  "High level highlighting for PostScript mode.")
 
 (defconst ps-mode-font-lock-keywords ps-mode-font-lock-keywords-1
   "Default expressions to highlight in PostScript mode.")
@@ -624,7 +624,7 @@ Typing \\<ps-run-mode-map>\\[ps-run-goto-error] when the cursor is at the number
 (defun ps-mode-target-column ()
   "To what column should text on current line be indented?
 
-Identation is increased if the last token on the current line
+Indentation is increased if the last token on the current line
 defines the beginning of a group. These tokens are:  {  [  <<"
   (save-excursion
     (beginning-of-line)

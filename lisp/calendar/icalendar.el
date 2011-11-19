@@ -112,7 +112,7 @@
 ;; Customizables
 ;; ======================================================================
 (defgroup icalendar nil
-  "Icalendar support."
+  "iCalendar support."
   :prefix "icalendar-"
   :group 'calendar)
 
@@ -234,7 +234,7 @@ code for the event, and your personal domain name."
   "Enable icalendar debug messages.")
 
 ;; ======================================================================
-;; NO USER SERVICABLE PARTS BELOW THIS LINE
+;; NO USER SERVICEABLE PARTS BELOW THIS LINE
 ;; ======================================================================
 
 (defconst icalendar--weekday-array ["SU" "MO" "TU" "WE" "TH" "FR" "SA"])
@@ -474,9 +474,9 @@ The strings are suitable for assembling into a TZ variable."
 		    (week (if (eq day -1)
 			      byday
 			    (substring byday 0 -2))))
-               ;; "Translate" the icalendar way to specify the last
+               ;; "Translate" the iCalendar way to specify the last
                ;; (sun|mon|...)day in month to the tzset way.
-               (if (string= week "-1")  ; last day as icalendar calls it
+               (if (string= week "-1")  ; last day as iCalendar calls it
                    (setq week "5"))     ; last day as tzset calls it
 	       (concat "M" bymonth "." week "." (if (eq day -1) "0"
 						  (int-to-string day))
@@ -907,7 +907,7 @@ would be \"pm\"."
                                               "\\\\," "," string)))))
 
 ;; ======================================================================
-;; Export -- convert emacs-diary to icalendar
+;; Export -- convert emacs-diary to iCalendar
 ;; ======================================================================
 
 ;;;###autoload
@@ -915,7 +915,7 @@ would be \"pm\"."
   "Export diary file to iCalendar format.
 All diary entries in the file DIARY-FILENAME are converted to iCalendar
 format.  The result is appended to the file ICAL-FILENAME."
-  (interactive "FExport diary data from file: 
+  (interactive "FExport diary data from file:
 Finto iCalendar file: ")
   (save-current-buffer
     (set-buffer (find-file diary-filename))
@@ -1063,7 +1063,7 @@ FExport diary data into iCalendar file: ")
     found-error))
 
 (defun icalendar--convert-to-ical (nonmarker entry-main)
-  "Convert a diary entry to icalendar format.
+  "Convert a diary entry to iCalendar format.
 NONMARKER is a regular expression matching the start of non-marking
 entries.  ENTRY-MAIN is the first line of the diary entry."
   (or
@@ -1194,7 +1194,7 @@ Returns an alist."
 
 ;; subroutines for icalendar-export-region
 (defun icalendar--convert-ordinary-to-ical (nonmarker entry-main)
-  "Convert \"ordinary\" diary entry to icalendar format.
+  "Convert \"ordinary\" diary entry to iCalendar format.
 NONMARKER is a regular expression matching the start of non-marking
 entries.  ENTRY-MAIN is the first line of the diary entry."
   (if (string-match
@@ -1291,7 +1291,7 @@ Returns day number."
     result))
 
 (defun icalendar--convert-weekly-to-ical (nonmarker entry-main)
-  "Convert weekly diary entry to icalendar format.
+  "Convert weekly diary entry to iCalendar format.
 NONMARKER is a regular expression matching the start of non-marking
 entries.  ENTRY-MAIN is the first line of the diary entry."
   (if (and (string-match (concat nonmarker
@@ -1373,7 +1373,7 @@ entries.  ENTRY-MAIN is the first line of the diary entry."
     nil))
 
 (defun icalendar--convert-yearly-to-ical (nonmarker entry-main)
-  "Convert yearly diary entry to icalendar format.
+  "Convert yearly diary entry to iCalendar format.
 NONMARKER is a regular expression matching the start of non-marking
 entries.  ENTRY-MAIN is the first line of the diary entry."
   (if (string-match (concat nonmarker
@@ -1453,7 +1453,7 @@ entries.  ENTRY-MAIN is the first line of the diary entry."
     nil))
 
 (defun icalendar--convert-sexp-to-ical (nonmarker entry-main)
-  "Convert complex sexp diary entry to icalendar format -- unsupported!
+  "Convert complex sexp diary entry to iCalendar format -- unsupported!
 
 FIXME!
 
@@ -1480,7 +1480,7 @@ entries.  ENTRY-MAIN is the first line of the diary entry."
          nil)))
 
 (defun icalendar--convert-block-to-ical (nonmarker entry-main)
-  "Convert block diary entry to icalendar format.
+  "Convert block diary entry to iCalendar format.
 NONMARKER is a regular expression matching the start of non-marking
 entries.  ENTRY-MAIN is the first line of the diary entry."
   (if (string-match (concat nonmarker
@@ -1556,10 +1556,10 @@ entries.  ENTRY-MAIN is the first line of the diary entry."
     nil))
 
 (defun icalendar--convert-float-to-ical (nonmarker entry-main)
-  "Convert float diary entry to icalendar format -- partially unsupported!
-  
+  "Convert float diary entry to iCalendar format -- partially unsupported!
+
   FIXME! DAY from diary-float yet unimplemented.
-  
+
   NONMARKER is a regular expression matching the start of non-marking
   entries.  ENTRY-MAIN is the first line of the diary entry."
   (if (string-match (concat nonmarker "%%\\((diary-float .+\\) ?$") entry-main)
@@ -1619,7 +1619,7 @@ entries.  ENTRY-MAIN is the first line of the diary entry."
     nil))
 
 (defun icalendar--convert-date-to-ical (nonmarker entry-main)
-  "Convert `diary-date' diary entry to icalendar format -- unsupported!
+  "Convert `diary-date' diary entry to iCalendar format -- unsupported!
 
 FIXME!
 
@@ -1635,7 +1635,7 @@ entries.  ENTRY-MAIN is the first line of the diary entry."
     nil))
 
 (defun icalendar--convert-cyclic-to-ical (nonmarker entry-main)
-  "Convert `diary-cyclic' diary entry to icalendar format.
+  "Convert `diary-cyclic' diary entry to iCalendar format.
 NONMARKER is a regular expression matching the start of non-marking
 entries.  ENTRY-MAIN is the first line of the diary entry."
   (if (string-match (concat nonmarker
@@ -1709,7 +1709,7 @@ entries.  ENTRY-MAIN is the first line of the diary entry."
     nil))
 
 (defun icalendar--convert-anniversary-to-ical (nonmarker entry-main)
-  "Convert `diary-anniversary' diary entry to icalendar format.
+  "Convert `diary-anniversary' diary entry to iCalendar format.
 NONMARKER is a regular expression matching the start of non-marking
 entries.  ENTRY-MAIN is the first line of the diary entry."
   (if (string-match (concat nonmarker
@@ -1783,7 +1783,7 @@ entries.  ENTRY-MAIN is the first line of the diary entry."
     nil))
 
 ;; ======================================================================
-;; Import -- convert icalendar to emacs-diary
+;; Import -- convert iCalendar to emacs-diary
 ;; ======================================================================
 
 ;;;###autoload
@@ -1794,8 +1794,8 @@ Argument ICAL-FILENAME output iCalendar file.
 Argument DIARY-FILENAME input `diary-file'.
 Optional argument NON-MARKING determines whether events are created as
 non-marking or not."
-  (interactive "fImport iCalendar data from file: 
-Finto diary file: 
+  (interactive "fImport iCalendar data from file:
+Finto diary file:
 p")
   ;; clean up the diary file
   (save-current-buffer
@@ -1825,19 +1825,19 @@ buffer `*icalendar-errors*'."
   (interactive)
   (save-current-buffer
     ;; prepare ical
-    (message "Preparing icalendar...")
+    (message "Preparing iCalendar...")
     (set-buffer (icalendar--get-unfolded-buffer (current-buffer)))
     (goto-char (point-min))
-    (message "Preparing icalendar...done")
+    (message "Preparing iCalendar...done")
     (if (re-search-forward "^BEGIN:VCALENDAR\\s-*$" nil t)
         (let (ical-contents ical-errors)
           ;; read ical
-          (message "Reading icalendar...")
+          (message "Reading iCalendar...")
           (beginning-of-line)
           (setq ical-contents (icalendar--read-element nil nil))
-          (message "Reading icalendar...done")
+          (message "Reading iCalendar...done")
           ;; convert ical
-          (message "Converting icalendar...")
+          (message "Converting iCalendar...")
           (setq ical-errors (icalendar--convert-ical-to-diary
                              ical-contents
                              diary-file do-not-ask non-marking))
@@ -1848,11 +1848,11 @@ buffer `*icalendar-errors*'."
                 (save-current-buffer
                   (set-buffer b)
                   (save-buffer)))))
-          (message "Converting icalendar...done")
+          (message "Converting iCalendar...done")
           ;; return t if no error occurred
           (not ical-errors))
       (message
-       "Current buffer does not contain icalendar contents!")
+       "Current buffer does not contain iCalendar contents!")
       ;; return nil, i.e. import did not work
       nil)))
 
@@ -2056,12 +2056,12 @@ written into the buffer `*icalendar-errors*'."
           (set-buffer (get-buffer-create "*icalendar-errors*"))
           (erase-buffer)
           (insert error-string)))
-    (message "Converting icalendar...done")
+    (message "Converting iCalendar...done")
     found-error))
 
 ;; subroutines for importing
 (defun icalendar--convert-recurring-to-diary (e dtstart-dec start-t end-t)
-  "Convert recurring icalendar event E to diary format.
+  "Convert recurring iCalendar event E to diary format.
 
 DTSTART-DEC is the DTSTART property of E.
 START-T is the event's start time in diary format.
@@ -2274,7 +2274,7 @@ END-T is the event's end time in diary format."
     result))
 
 (defun icalendar--convert-non-recurring-all-day-to-diary (event start-d end-d)
-  "Convert non-recurring icalendar EVENT to diary format.
+  "Convert non-recurring iCalendar EVENT to diary format.
 
 DTSTART is the decoded DTSTART property of E.
 Argument START-D gives the first day.
@@ -2339,7 +2339,7 @@ the entry."
 ;; Examples
 ;; ======================================================================
 (defun icalendar-import-format-sample (event)
-  "Example function for formatting an icalendar EVENT."
+  "Example function for formatting an iCalendar EVENT."
   (format (concat "SUMMARY=`%s' DESCRIPTION=`%s' LOCATION=`%s' ORGANIZER=`%s' "
                   "STATUS=`%s' URL=`%s' CLASS=`%s'")
           (or (icalendar--get-event-property event 'SUMMARY) "")

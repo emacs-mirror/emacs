@@ -71,7 +71,7 @@
     ;; / can delimit regexes or be a division operator.  By default we assume
     ;; that it is a division sign, and fix the regexp operator cases with
     ;; `font-lock-syntactic-keywords'.
-    (modify-syntax-entry ?/ "." st)     ; ACM 2002/4/27.  
+    (modify-syntax-entry ?/ "." st)     ; ACM 2002/4/27.
     (modify-syntax-entry ?* "." st)
     (modify-syntax-entry ?+ "." st)
     (modify-syntax-entry ?- "." st)
@@ -195,7 +195,7 @@
 ;;   Matches the inside of an AWK regexp (i.e. without the enclosing /s)
 (defconst c-awk-regexp-without-end-re
   (concat "/" c-awk-regexp-innards-re))
-;; Matches an AWK regexp up to, but not including, any terminating /. 
+;; Matches an AWK regexp up to, but not including, any terminating /.
 (defconst c-awk-one-line-possibly-open-regexp-re
   (concat "/\\(" c-awk-non-eol-esc-pair-re
 	  "\\|" c-awk-regexp-one-line-possibly-open-char-list-re
@@ -256,7 +256,7 @@
 
 
 ;; ACM, 2002/5/29:
-;; 
+;;
 ;; The next section of code is about determining whether or not an AWK
 ;; statement is complete or not.  We use this to indent the following line.
 ;; The determination is pretty straightforward in C, where a statement ends
@@ -382,7 +382,7 @@
   ;;  Kludge: If c-backward-syntactic-ws gets stuck at a BOL, it is likely
   ;;  that the previous line contains an unterminated string (without \).  In
   ;;  this case, assume that the previous line's c-awk-NL-prop is a $.
-  ;; 
+  ;;
   ;;  POINT MUST BE AT THE START OF A LINE when calling this function.  This
   ;;  is to ensure that the various backward-comment functions will work
   ;;  properly.
@@ -425,13 +425,13 @@
   ;; Calculate and set the value of the c-awk-NL-prop on the immediately
   ;; preceding EOL.  This may also involve doing the same for several
   ;; preceding EOLs.
-  ;; 
+  ;;
   ;; NOTE that if the property was already set, we return it without
   ;; recalculation.  (This is by accident rather than design.)
-  ;; 
+  ;;
   ;; Return the property which got set (or was already set) on the previous
   ;; line.  Return nil if we hit BOB.
-  ;; 
+  ;;
   ;; See c-awk-after-if-for-while-condition-p for a description of DO-LIM.
   ;;
   ;; This function might do hidden buffer changes.
@@ -492,7 +492,7 @@
   ;; if necessary. (As a special case, the property doesn't get set on an
   ;; empty line at EOB (there's no position to set the property on), but the
   ;; function returns the property value an EOL would have got.)
-  ;; 
+  ;;
   ;; See c-awk-after-if-for-while-condition-p for a description of DO-LIM.
   ;;
   ;; This function might do hidden buffer changes.
@@ -566,7 +566,7 @@
   ;; this, a new newline inserted after an old newline (e.g. by C-j) would
   ;; inherit any c-awk-NL-prop from the old newline.  This would be a Bad
   ;; Thing.  This function's action is required by c-put-char-property.
-  (if (and (boundp 'text-property-default-nonsticky) ; doesn't exist in Xemacs
+  (if (and (boundp 'text-property-default-nonsticky) ; doesn't exist in XEmacs
            (not (assoc 'c-awk-NL-prop text-property-default-nonsticky)))
       (setq text-property-default-nonsticky
             (cons '(c-awk-NL-prop . t) text-property-default-nonsticky))))
@@ -611,7 +611,7 @@
 ;; Go back to the start of the (apparent) current line (or the start of the
 ;; line containing POS), returning the buffer position of that point.  I.e.,
 ;; go back to the last line which doesn't have an escaped EOL before it.
-;; 
+;;
 ;; This is guaranteed to be "safe" for syntactic analysis, i.e. outwith any
 ;; comment, string or regexp.  IT MAY WELL BE that this function should not be
 ;; executed on a narrowed buffer.
@@ -718,7 +718,7 @@
   ;; This function does hidden buffer changes.
   (let ((/point (point)))
     (goto-char anchor)
-    ;; Analyse the line to find out what the / is.
+    ;; Analyze the line to find out what the / is.
     (if (if anchor-state-/div
             (not (search-forward-regexp c-awk-regexp-sign-re (1+ /point) t))
           (search-forward-regexp c-awk-div-sign-re (1+ /point) t))
@@ -776,7 +776,7 @@
       (setq anchor (point))
       (search-forward-regexp c-awk-harmless-string*-here-re nil t)
       ;; We are now looking at either a " or a /.
-      ;; Do our thing on the string, regexp or divsion sign.
+      ;; Do our thing on the string, regexp or division sign.
       (setq anchor-state-/div
             (if (looking-at "_?\"")
                 (c-awk-syntax-tablify-string)
@@ -823,14 +823,14 @@
 ;; Don't overlook the possibility of the buffer change being the "recapturing"
 ;; of a previously escaped newline.
 
-;; ACM 2008-02-05: 
+;; ACM 2008-02-05:
 (defun c-awk-extend-and-syntax-tablify-region (beg end old-len)
   ;; Expand the region (BEG END) as needed to (c-new-BEG c-new-END) then put
   ;; `syntax-table' properties on this region.
   ;;
   ;; This function is called from an after-change function, BEG END and
   ;; OLD-LEN being the standard parameters.
-  ;; 
+  ;;
   ;; Point is undefined both before and after this function call, the buffer
   ;; has been widened, and match-data saved.  The return value is ignored.
   ;;
@@ -847,8 +847,8 @@
 
 ;; Awk regexps written with help from Peter Galbraith
 ;; <galbraith@mixing.qc.dfo.ca>.
-;; Take GNU Emacs's 'words out of the following regexp-opts.  They dont work
-;; in Xemacs 21.4.4.  acm 2002/9/19.
+;; Take GNU Emacs's 'words out of the following regexp-opts.  They don't work
+;; in XEmacs 21.4.4.  acm 2002/9/19.
 (defconst awk-font-lock-keywords
   (eval-when-compile
     (list

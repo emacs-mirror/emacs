@@ -379,7 +379,7 @@ eshell/sudo is a compiled Lisp function in `em-unix.el'
 sudo is an alias, defined as "*sudo $*"
 @end example
 
-Some of the built-in commands have a special behaviour in Eshell:
+Some of the built-in commands have a special behavior in Eshell:
 
 @table @code
 

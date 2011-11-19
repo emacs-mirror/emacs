@@ -1402,7 +1402,7 @@ Using an Emacs configured with --with-x-toolkit=lucid does not have this problem
 #endif
 
   /* argmatch must not be used after here,
-     except when bulding temacs
+     except when building temacs
      because the -d argument has not been skipped in skip_args.  */
 
 #ifdef MSDOS

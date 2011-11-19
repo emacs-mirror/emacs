@@ -634,7 +634,7 @@ SORT-PRED if desired."
 	    (setq extlst (cons s extlst)
 		  cntlst (cons 1 cntlst)))))
       (setq flst (cdr flst)))
-    ;; Lets create the chart!
+    ;; Let's create the chart!
     (chart-bar-quickie 'vertical "Files Extension Distribution"
 		       extlst "File Extensions"
 		       cntlst "# of occurrences"
@@ -693,7 +693,7 @@ SORT-PRED if desired."
 		     ;(car (nth 5 data)) ; floats are Emacs only
 		     ;(cdr (nth 5 data))
 		     )))
-    ;; Lets create the chart!
+    ;; Let's create the chart!
     (chart-bar-quickie 'vertical "Emacs Runtime Storage Usage"
 		       names "Storage Items"
 		       nums "Objects")))
@@ -710,7 +710,7 @@ SORT-PRED if desired."
     (if (fboundp 'x-display-list)
 	(setq names (append names '("x-displays"))
 	      nums (append nums (list (length (x-display-list))))))
-    ;; Lets create the chart!
+    ;; Let's create the chart!
     (chart-bar-quickie 'vertical "Emacs List Size Chart"
 		       names "Various Lists"
 		       nums "Objects")))

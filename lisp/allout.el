@@ -2,12 +2,12 @@
 
 ;; Copyright (C) 1992-1994, 2001-2011  Free Software Foundation, Inc.
 
-;; Author: Ken Manheimer <ken dot manheimer at gmail dot com>
-;; Maintainer: Ken Manheimer <ken dot manheimer at gmail dot com>
+;; Author: Ken Manheimer <ken dot manheimer at gmail...>
+;; Maintainer: Ken Manheimer <ken dot manheimer at gmail...>
 ;; Created: Dec 1991 -- first release to usenet
 ;; Version: 2.3
 ;; Keywords: outlines, wp, languages, PGP, GnuPG
-;; Website: http://myriadicity.net/Sundry/EmacsAllout
+;; Website: http://myriadicity.net/software-and-systems/craft/emacs-allout
 
 ;; This file is part of GNU Emacs.
 
@@ -1537,14 +1537,14 @@ Entries must be symbols that are bound to the desired values.
 Each value can be a regexp or a list with a regexp followed by a
 substitution string.  If it's just a regexp, all its matches are removed
 before the text is encrypted.  If it's a regexp and a substitution, the
-substition is used against the regexp matches, a la `replace-match'.")
+substitution is used against the regexp matches, a la `replace-match'.")
 (make-variable-buffer-local 'allout-encryption-text-removal-regexps)
 ;;;_   = allout-encryption-ciphertext-rejection-regexps
 (defvar allout-encryption-ciphertext-rejection-regexps nil
   "Variable for regexps matching plaintext to remove before encryption.
 
 This is used to detect strings in encryption results that would
-register as allout mode structural elements, for exmple, as a
+register as allout mode structural elements, for example, as a
 topic prefix.
 
 Entries must be symbols that are bound to the desired regexp values.
@@ -2525,7 +2525,7 @@ Outermost is first."
 (defun allout-mark-active-p ()
   "True if the mark is currently or always active."
   ;; `(cond (boundp...))' (or `(if ...)') invokes special byte-compiler
-  ;; provisions, at least in fsf emacs to prevent warnings about lack of,
+  ;; provisions, at least in GNU Emacs to prevent warnings about lack of,
   ;; eg, region-active-p.
   (cond ((boundp 'mark-active)
          mark-active)
@@ -3543,7 +3543,7 @@ PRIOR-BULLET.)
 Fifth arg, NUMBER-CONTROL, matters only if `allout-numbered-bullet'
 is non-nil *and* no specific INSTEAD was specified.  Then
 NUMBER-CONTROL non-nil forces prefix to either numbered or
-denumbered format, depending on the value of the sixth arg, INDEX.
+unnumbered format, depending on the value of the sixth arg, INDEX.
 
 \(Note that NUMBER-CONTROL does *not* apply to level 1 topics.  Sorry...)
 
@@ -3557,7 +3557,7 @@ number is used as the index for the numbered prefix (allowing, eg,
 sequential renumbering to not require this function counting back the
 index for each successive sibling)."
 ;;;_    . Code:
-  ;; The options are ordered in likely frequence of use, most common
+  ;; The options are ordered in likely frequency of use, most common
   ;; highest, least lowest.  Ie, more likely to be doing prefix
   ;; adjustments than soliciting, and yet more than numbering.
   ;; Current prefix is least dominant, but most likely to be commonly
@@ -3807,7 +3807,7 @@ Nuances:
             ;;(if doing-beginning (goto-char doing-beginning))
             (if (not (bobp))
                 ;; We insert a newline char rather than using open-line to
-                ;; avoid rear-stickiness inheritence of read-only property.
+                ;; avoid rear-stickiness inheritance of read-only property.
                 (progn (if (and (not (> depth ref-depth))
                                 (not before))
                            (open-line 1)
@@ -3822,7 +3822,7 @@ Nuances:
                        (if (and (not (eobp))
                                 (or (not (bolp))
                                     (and (not (bobp))
-                                         ;; bolp doesnt detect concealed
+                                         ;; bolp doesn't detect concealed
                                          ;; trailing newlines, compensate:
                                          (save-excursion
                                            (forward-char -1)
@@ -5473,7 +5473,7 @@ header and body.  The elements of that list are:
 				     "invalid format" format))))
 		 (list depth prefix strings))
 		    result))
-	;; Reasses format, if any:
+	;; Reassess format, if any:
 	(if (and format (listp format))
 	    (cond ((= new-depth depth)
 		   (setq format (cons (1+ (car format))

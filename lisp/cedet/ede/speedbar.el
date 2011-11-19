@@ -297,7 +297,7 @@ INDENT is the current indentation level."
   (let ((file (ede-find-nearest-file-line)))
     (speedbar-find-file-in-frame file)
     (save-excursion (speedbar-stealthy-updates))
-    ;; Reset the timer with a new timeout when cliking a file
+    ;; Reset the timer with a new timeout when clicking a file
     ;; in case the user was navigating directories, we can cancel
     ;; that other timer.
 ;    (speedbar-set-timer speedbar-update-speed)

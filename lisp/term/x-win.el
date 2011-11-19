@@ -1226,7 +1226,7 @@ The value nil is the same as the list (UTF8_STRING COMPOUND_TEXT STRING)."
         (if (string= clip-text "") (setq clip-text nil))
 
         ;; Check the CLIPBOARD selection for 'newness', is it different
-        ;; from what we remebered them to be last time we did a
+        ;; from what we remembered them to be last time we did a
         ;; cut/paste operation.
         (setq clip-text
               (cond ;; check clipboard
@@ -1243,7 +1243,7 @@ The value nil is the same as the list (UTF8_STRING COMPOUND_TEXT STRING)."
       (when x-select-enable-primary
 	(setq primary-text (x-selection-value-internal 'PRIMARY))
 	;; Check the PRIMARY selection for 'newness', is it different
-	;; from what we remebered them to be last time we did a
+	;; from what we remembered them to be last time we did a
 	;; cut/paste operation.
 	(setq primary-text
 	      (cond ;; check primary selection

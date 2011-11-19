@@ -828,7 +828,7 @@ paren_classes
   ;
 
 ;; In general, the base class can be specified by a general expression
-;; which evalue to a class object, i.e., base classes are not just names!
+;; which evaluates to a class object, i.e., base classes are not just names!
 ;; However base classes are names in most cases.  Thus the
 ;; non-terminals below work only with simple names.  Even if the
 ;; parser can parse general expressions, I don't see much benefit in

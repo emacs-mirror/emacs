@@ -542,8 +542,8 @@ Each set is a vector of the form:
 (defvar isearch-string "")  ; The current search string.
 (defvar isearch-message "") ; text-char-description version of isearch-string
 
-(defvar isearch-message-prefix-add nil) ; Additonal text for the message prefix
-(defvar isearch-message-suffix-add nil) ; Additonal text for the message suffix
+(defvar isearch-message-prefix-add nil) ; Additional text for the message prefix
+(defvar isearch-message-suffix-add nil) ; Additional text for the message suffix
 
 (defvar isearch-success t)	; Searching is currently successful.
 (defvar isearch-error nil)	; Error message for failed search.
@@ -2243,7 +2243,7 @@ If there is no completion possible, say so and continue searching."
 ;; Searching
 
 (defvar isearch-search-fun-function nil
-  "Overrides the default `isearch-search-fun' behaviour.
+  "Overrides the default `isearch-search-fun' behavior.
 This variable's value should be a function, which will be called
 with no arguments, and should return a function that takes three
 arguments: STRING, BOUND, and NOERROR.

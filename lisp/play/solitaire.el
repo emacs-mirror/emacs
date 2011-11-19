@@ -190,7 +190,7 @@ That's all.  Here's the board after two moves:
 
 		o   o   o
 
-Pick your favourite shortcuts:
+Pick your favorite shortcuts:
 
 \\{solitaire-mode-map}"
 

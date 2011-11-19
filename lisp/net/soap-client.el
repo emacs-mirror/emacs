@@ -32,7 +32,7 @@
 ;; `soap-invoke' method passing it the WSDL, the service name, the operation
 ;; you wish to invoke and any required parameters.
 ;;
-;; Idealy, the service you want to access will have some documentation about
+;; Ideally, the service you want to access will have some documentation about
 ;; the operations it supports.  If it does not, you can try using
 ;; `soap-inspect' to browse the WSDL document and see the available operations
 ;; and their parameters.
@@ -373,7 +373,7 @@ binding) but the same name."
 
 (defstruct (soap-sequence-type (:include soap-element))
   parent                                ; OPTIONAL WSDL-TYPE name
-  elements                              ; LIST of SOAP-SEQUCENCE-ELEMENT
+  elements                              ; LIST of SOAP-SEQUENCE-ELEMENT
   )
 
 (defstruct (soap-array-type (:include soap-element))

@@ -26,7 +26,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
      of the (`int') argument, suitable for display in an Emacs buffer.
 
    . For %s and %c, when field width is specified (e.g., %25s), it accounts for
-     the diplay width of each character, according to char-width-table.  That
+     the display width of each character, according to char-width-table.  That
      is, it does not assume that each character takes one column on display.
 
    . If the size of the buffer is not enough to produce the formatted string in

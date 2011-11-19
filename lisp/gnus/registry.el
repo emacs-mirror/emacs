@@ -149,7 +149,7 @@
 
   (defmethod registry-lookup ((db registry-db) keys)
     "Search for KEYS in the registry-db THIS.
-Returns a alist of the key followed by the entry in a list, not a cons cell."
+Returns an alist of the key followed by the entry in a list, not a cons cell."
     (let ((data (oref db :data)))
       (delq nil
 	    (mapcar
@@ -160,7 +160,7 @@ Returns a alist of the key followed by the entry in a list, not a cons cell."
 
   (defmethod registry-lookup-breaks-before-lexbind ((db registry-db) keys)
     "Search for KEYS in the registry-db THIS.
-Returns a alist of the key followed by the entry in a list, not a cons cell."
+Returns an alist of the key followed by the entry in a list, not a cons cell."
     (let ((data (oref db :data)))
       (delq nil
 	    (loop for key in keys

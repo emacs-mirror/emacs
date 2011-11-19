@@ -156,7 +156,7 @@ and `org-agenda-entry-text-maxlines'."
   "Non-nil means export org-links as descriptive links in agenda added text.
 This variable applies to the text added to the agenda when
 `org-agenda-add-entry-text-maxlines' is larger than 0.
-When this variable nil, the URL will (also) be shown."
+When this variable is nil, the URL will (also) be shown."
   :group 'org-agenda
   :type 'boolean)
 
@@ -339,7 +339,7 @@ agenda dispatcher \\[org-agenda].  Each entry is a list like this:
 
 key      The key (one or more characters as a string) to be associated
          with the command.
-desc     A description of the command, when omitted or nil, a default
+desc     A description of the command; when omitted or nil, a default
          description is built using MATCH.
 type     The command type, any of the following symbols:
           agenda      The daily/weekly agenda.
@@ -354,7 +354,7 @@ type     The command type, any of the following symbols:
 match    What to search for:
           - a single keyword for TODO keyword searches
           - a tags match expression for tags searches
-          - a word search expression for text searches.
+          - a word search expression for text searches
           - a regular expression for occur searches
           For all other commands, this should be the empty string.
 settings  A list of option settings, similar to that in a let form, so like
@@ -363,7 +363,7 @@ settings  A list of option settings, similar to that in a let form, so like
 files     A list of files file to write the produced agenda buffer to
           with the command `org-store-agenda-views'.
           If a file name ends in \".html\", an HTML version of the buffer
-          is written out.  If it ends in \".ps\", a postscript version is
+          is written out.  If it ends in \".ps\", a PostScript version is
           produced.  Otherwise, only the plain text is written to the file.
 
 You can also define a set of commands, to create a composite agenda buffer.
@@ -764,7 +764,7 @@ because you will take care of it on the day when scheduled."
   :group 'org-agenda-skip
   :group 'org-agenda-daily/weekly
   :type '(choice
-	  (const :tag "Alwas show prewarning" nil)
+	  (const :tag "Always show prewarning" nil)
 	  (const :tag "Remove prewarning if entry is scheduled" t)
 	  (integer :tag "Restart prewarning N days before deadline")))
 
@@ -1388,13 +1388,13 @@ When nil, such items are sorted as 0 minutes effort."
     (tags  . " %i %-12:c")
     (search . " %i %-12:c"))
   "Format specifications for the prefix of items in the agenda views.
-An alist with five entries, each for the different agenda types.  The 
-keys of the sublists are `agenda', `timeline', `todo', `search' and `tags'.  
+An alist with five entries, each for the different agenda types.  The
+keys of the sublists are `agenda', `timeline', `todo', `search' and `tags'.
 The values are format strings.
 
 This format works similar to a printf format, with the following meaning:
 
-  %c   the category of the item, \"Diary\" for entries from the diary, 
+  %c   the category of the item, \"Diary\" for entries from the diary,
        or as given by the CATEGORY keyword or derived from the file name
   %i   the icon category of the item, see `org-agenda-category-icon-alist'
   %T   the last tag of the item (ignore inherited tags, which come first)
@@ -1408,10 +1408,10 @@ contain two additional characters:  a question mark just after the `%'
 and a whitespace/punctuation character just before the final letter.
 
 If the first character after `%' is a question mark, the entire field
-will only be included if the corresponding value applies to the current 
-entry.  This is useful for fields which should have fixed width when 
-present, but zero width when absent.  For example, \"%?-12t\" will 
-result in a 12 character time field if a time of the day is specified, 
+will only be included if the corresponding value applies to the current
+entry.  This is useful for fields which should have fixed width when
+present, but zero width when absent.  For example, \"%?-12t\" will
+result in a 12 character time field if a time of the day is specified,
 but will completely disappear in entries which do not contain a time.
 
 If there is punctuation or whitespace character just before the final
@@ -1420,7 +1420,7 @@ the value is not empty.  For example, the format \"%-12:c\" leads to
 \"Diary: \" if the category is \"Diary\".  If the category were be
 empty, no additional colon would be inserted.
 
-The default value for the agenda sublist is \"  %-12:c%?-12t% s\", 
+The default value for the agenda sublist is \"  %-12:c%?-12t% s\",
 which means:
 
 - Indent the line with two space characters
@@ -1697,7 +1697,7 @@ For example, this value makes those two functions available:
     (?C bulk-cut))
 
 With selected entries in an agenda buffer, `B R' will call
-the custom function `set-category' on the selected entries.  
+the custom function `set-category' on the selected entries.
 Note that functions in this alist don't need to be quoted."
   :type 'alist
   :group 'org-agenda)
@@ -2744,8 +2744,8 @@ This ensures the export commands can easily use it."
 (defun org-write-agenda (file &optional open nosettings)
   "Write the current buffer (an agenda view) as a file.
 Depending on the extension of the file name, plain text (.txt),
-HTML (.html or .htm) or Postscript (.ps) is produced.
-If the extension is .ics, run icalendar export over all files used
+HTML (.html or .htm) or PostScript (.ps) is produced.
+If the extension is .ics, run iCalendar export over all files used
 to construct the agenda and limit the export to entries listed in the
 agenda now.
 With prefix argument OPEN, open the new file immediately.
@@ -2793,7 +2793,7 @@ higher priority settings."
 	      ((string-match "\\.ps\\'" file)
 	       (require 'ps-print)
 	       (ps-print-buffer-with-faces file)
-	       (message "Postscript written to %s" file))
+	       (message "PostScript written to %s" file))
 	      ((string-match "\\.pdf\\'" file)
 	       (require 'ps-print)
 	       (ps-print-buffer-with-faces
@@ -2972,7 +2972,7 @@ removed from the entry content.  Currently only `planning' is allowed here."
     (nreverse markers)))
 
 (defun org-create-marker-find-array (marker-list)
-  "Create a alist of files names with all marker positions in that file."
+  "Create an alist of files names with all marker positions in that file."
   (let (f tbl m a p)
     (while (setq m (pop marker-list))
       (setq p (marker-position m)
@@ -2997,7 +2997,7 @@ removed from the entry content.  Currently only `planning' is allowed here."
 	     (member (point) (cdr a)))))))
 
 (defun org-check-for-org-mode ()
-  "Make sure current buffer is in org-mode.  Error if not."
+  "Make sure current buffer is in Org-mode.  Error if not."
   (or (org-mode-p)
       (error "Cannot execute org-mode agenda command on buffer in %s"
 	     major-mode)))
@@ -3715,9 +3715,9 @@ given in `org-agenda-start-on-weekday'."
 (defvar org-todo-only nil)
 
 (defvar org-search-syntax-table nil
-  "Special syntax table for org-mode search.
-In this table, we have single quotes not as word constituents, to
-that when \"+Ameli\" is searched as a work, it will also match \"Ameli's\"")
+  "Special syntax table for Org-mode search.
+In this table, we have single quotes not as word constituents, so
+that when \"+Ameli\" is searched as a word, it will also match \"Ameli's\"")
 
 (defun org-search-syntax-table ()
   (unless org-search-syntax-table
@@ -4425,7 +4425,7 @@ date.  It also removes lines that contain only whitespace."
 	   (setq string (org-modify-diary-entry-string string))))))
 
 (defun org-modify-diary-entry-string (string)
-  "Add text properties to string, allowing org-mode to act on it."
+  "Add text properties to string, allowing Org-mode to act on it."
   (org-add-props string nil
     'mouse-face 'highlight
     'help-echo (if buffer-file-name
@@ -5003,9 +5003,9 @@ See also the user option `org-agenda-clock-consistency-checks'."
 		     "\\(-\\{1,3\\}\\(\\[.*?\\]\\)\\)?")) ; group 3 is second
 	 (tlstart 0.)
 	 (tlend 0.)
-	 (maxtime (org-hh:mm-string-to-minutes 
+	 (maxtime (org-hh:mm-string-to-minutes
 		   (or (plist-get pl :max-duration) "24:00")))
-	 (mintime (org-hh:mm-string-to-minutes 
+	 (mintime (org-hh:mm-string-to-minutes
 		   (or (plist-get pl :min-duration) 0)))
 	 (maxgap  (org-hh:mm-string-to-minutes
 		   ;; default 30:00 means never complain
@@ -5059,7 +5059,7 @@ See also the user option `org-agenda-clock-consistency-checks'."
 			      (/ (- tlend ts) 60))
 		face (or (plist-get pl :overlap-face) face)))
 	 ((and (> tlend 0) (> ts (+ tlend (* 60 maxgap))))
-	  ;; There is a gap, lets see if we need to report it
+	  ;; There is a gap, let's see if we need to report it
 	  (unless (org-agenda-check-clock-gap tlend ts gapok)
 	    (setq issue (format "Clocking gap: %d minutes"
 				  (/ (- ts tlend) 60))

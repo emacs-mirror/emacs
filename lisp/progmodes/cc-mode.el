@@ -484,7 +484,7 @@ that requires a literal mode spec at compile time."
   (make-local-variable 'comment-start)
   (make-local-variable 'comment-end)
   (make-local-variable 'comment-start-skip)
-  
+
   (make-local-variable 'paragraph-start)
   (make-local-variable 'paragraph-separate)
   (make-local-variable 'paragraph-ignore-fill-prefix)
@@ -660,7 +660,7 @@ compatible with old code; callers should always specify it."
       (when (eq (car elt) 'c-file-style)
 	(setq cownt (1+ cownt))))
     cownt))
-							  
+
 (defun c-before-hack-hook ()
   "Set the CC Mode style and \"offsets\" when in the buffer's local variables.
 They are set only when, respectively, the pseudo variables
@@ -860,7 +860,7 @@ Note that the style variables are always made local to the buffer."
   ;; (i) Extend the font lock region to cover all changed preprocessor
   ;; regions; it does this by setting the variables `c-new-BEG' and
   ;; `c-new-END' to the new boundaries.
-  ;; 
+  ;;
   ;; (ii) "Neutralize" every preprocessor line wholly or partially in the
   ;; extended changed region.  "Restore" lines which were CPP lines before the
   ;; change and are no longer so; these can be located from the Buffer local
@@ -1562,7 +1562,7 @@ Key bindings:
   (c-common-init 'awk-mode)
   (c-awk-unstick-NL-prop)
 
-  ;; Prevent Xemacs's buffer-syntactic-context being used.  See the comment
+  ;; Prevent XEmacs's buffer-syntactic-context being used.  See the comment
   ;; in cc-engine.el, just before (defun c-fast-in-literal ...
   (defalias 'c-in-literal 'c-slow-in-literal)
 

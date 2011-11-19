@@ -2263,7 +2263,7 @@ Returns a DIRECTION, a number 0--7, coded as follows:
 
 
 ;; Things for drawing lines in all directions.
-;; The line drawing engine is the eight-point alrogithm.
+;; The line drawing engine is the eight-point algorithm.
 ;;
 ;; A line is here a list of (x y saved-char new-char)s.
 ;;
@@ -2437,7 +2437,7 @@ in the coord."
     point-list))
 
 ;; artist-save-chars-under-point-list
-;; Remebers the chars that were there before we did draw the line.
+;; Remembers the chars that were there before we did draw the line.
 ;; Returns point-list.
 ;;
 (defun artist-save-chars-under-point-list (point-list)
@@ -2514,7 +2514,7 @@ This function returns a point-list."
 
 
 ;;
-;; functions for accessing endoints and elements in object requiring
+;; functions for accessing endpoints and elements in object requiring
 ;; 2 endpoints
 ;;
 
@@ -3582,7 +3582,7 @@ FILL-INFO is a list of vectors on the form [X Y ELLIPSE-WIDTH-ON-THIS-LINE]."
          (width (abs (- x2 x1)))
 	 (height (abs (- y2 y1)))
 	 ;; When drawing our circle, we want it to through the cursor
-	 ;; just as when drawing the ellispe, but we have to take
+	 ;; just as when drawing the ellipse, but we have to take
 	 ;; care for the aspect-ratio.
 	 ;; The equation for the ellipse  (where a is the x-radius and
 	 ;; b is the y-radius):
