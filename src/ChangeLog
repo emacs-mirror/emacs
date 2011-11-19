@@ -1,9 +1,3 @@
-2011-11-18  Paul Eggert  <eggert@cs.ucla.edu>
-
-	Fix minor problems found by static checking.
-	* dispextern.h, xdisp.c (row_hash): Declare extern only if XASSERTS.
-	* dispnew.c (verify_row_hash): Now static.
-
 2011-11-18  Dmitry Antipov  <dmantipov@yandex.ru>
 
 	* keymap.c (Fwhere_is_internal): Add missing RETURN_UNGCPROs.
