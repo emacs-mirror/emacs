@@ -431,7 +431,7 @@ margin_glyphs_to_reserve (struct window *w, int total_glyphs, Lisp_Object margin
 
 #if XASSERTS
 /* Return non-zero if ROW's hash value is correct, zero if not.  */
-int
+static int
 verify_row_hash (struct glyph_row *row)
 {
   return row->hash == row_hash (row);
