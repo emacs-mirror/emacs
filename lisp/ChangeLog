@@ -1,3 +1,11 @@
+2011-11-20  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* emacs-lisp/bytecomp.el: Silence obsolete warnings more reliably.
+	(byte-compile-global-not-obsolete-vars): New var.
+	(byte-compile-check-variable, byte-compile-make-obsolete-variable):
+	Use it.
+	(byte-compile-warn-obsolete): Align text with the one in *Help*.
+
 2011-11-20  Juanma Barranquero  <lekktu@gmail.com>
 
 	* progmodes/cwarn.el (cwarn-is-enabled, cwarn-font-lock-keywords):
