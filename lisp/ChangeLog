@@ -1,3 +1,7 @@
+2011-11-20  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* vc/pcvs-util.el (cvs-pop-to-buffer-same-frame): Use force-same-window.
+
 2011-11-20  Juanma Barranquero  <lekktu@gmail.com>
 
 	* descr-text.el (describe-char-unicode-data):
