@@ -5783,7 +5783,7 @@ get_phys_cursor_glyph (struct window *w)
   if (!row->enabled_p)
     return NULL;
 
-  if (w->hscroll)
+  if (XINT (w->hscroll))
     {
       /* When the window is hscrolled, cursor hpos can legitimately be
 	 out of bounds, but we draw the cursor at the corresponding

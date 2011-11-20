@@ -1,3 +1,7 @@
+2011-11-20  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* window.c (get_phys_cursor_glyph): Fix Lisp_Object/int mixup.
+
 2011-11-20  Juanma Barranquero  <lekktu@gmail.com>
 
 	* nsfont.m (syms_of_nsfont) <ns-reg-to-script>: Fix typo.
