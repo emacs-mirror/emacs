@@ -1,5 +1,7 @@
 2011-11-20  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* electric.el (electric-indent-mode): Fix last change (too optimistic).
+
 	* emacs-lisp/bytecomp.el: Silence obsolete warnings more reliably.
 	(byte-compile-global-not-obsolete-vars): New var.
 	(byte-compile-check-variable, byte-compile-make-obsolete-variable):
