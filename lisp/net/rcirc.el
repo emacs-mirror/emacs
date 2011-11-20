@@ -659,7 +659,7 @@ Functions are called with PROCESS and SENTINEL arguments.")
 (defun rcirc-disconnect-buffer (&optional buffer)
   (with-current-buffer (or buffer (current-buffer))
     ;; set rcirc-target to nil for each channel so cleanup
-    ;; doesnt happen when we reconnect
+    ;; doesn't happen when we reconnect
     (setq rcirc-target nil)
     (setq mode-line-process ":disconnected")))
 

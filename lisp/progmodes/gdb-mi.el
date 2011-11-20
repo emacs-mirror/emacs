@@ -74,7 +74,7 @@
 ;; GDB in Emacs on Mac OSX works best with FSF GDB as Apple have made
 ;; some changes to the version that they include as part of Mac OSX.
 ;; This requires GDB version 7.0 or later (estimated release date Aug 2009)
-;; as earlier versions don not compile on Mac OSX.
+;; as earlier versions do not compile on Mac OSX.
 
 ;;; Known Bugs:
 
@@ -3578,7 +3578,7 @@ member."
       (gud-basic-call
        (concat  "-gdb-set variable " var " = " value)))))
 
-;; Dont display values of arrays or structures.
+;; Don't display values of arrays or structures.
 ;; These can be expanded using gud-watch.
 (defun gdb-locals-handler-custom ()
   (let ((locals-list (bindat-get-field (gdb-json-partial-output) 'locals))

@@ -402,7 +402,7 @@
 
 2009-06-24  Kenichi Handa  <handa@m17n.org>
 
-	* charsets/mapconv: For the UNICODE format files, do reverse sort
+	* charsets/mapconv: For the Unicode format files, do reverse sort
 	and don't compact the map.  This is to prefer the first one in the
 	duplicated mappings (e.g. 0x20->U+0020, 0x20->U+00A0).
 

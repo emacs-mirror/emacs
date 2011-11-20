@@ -5,7 +5,9 @@
 
 	* ede.texi (ede-compilation-program, ede-compiler, ede-linker):
 	* eieio.texi (Customizing):
-	* gnus-news.texi: Fix typos.
+	* gnus.texi (Article Washing):
+	* gnus-news.texi:
+	* sem-user.texi (Smart Jump): Fix typos.
 
 2011-11-16  Juanma Barranquero  <lekktu@gmail.com>
 

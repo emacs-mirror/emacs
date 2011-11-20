@@ -1219,7 +1219,7 @@ simple_dialog_show (FRAME_PTR f, Lisp_Object contents, Lisp_Object header)
      is_simple_dialog, we don't need to worry about checking contents
      to see what type of dialog to use.  */
 
-  /* Use unicode if possible, so any language can be displayed.  */
+  /* Use Unicode if possible, so any language can be displayed.  */
   if (unicode_message_box)
     {
       WCHAR *text, *title;
@@ -1476,7 +1476,7 @@ add_menu_item (HMENU menu, widget_value *wv, HMENU item)
 					  utf16_string);
       if (!return_value)
 	{
-	  /* On W9x/ME, unicode menus are not supported, though AppendMenuW
+	  /* On W9x/ME, Unicode menus are not supported, though AppendMenuW
 	     apparently does exist at least in some cases and appears to be
 	     stubbed out to do nothing.  out_string is UTF-8, but since
 	     our standard menus are in English and this is only going to
@@ -1486,7 +1486,7 @@ add_menu_item (HMENU menu, widget_value *wv, HMENU item)
 	    AppendMenu (menu, fuFlags,
 			item != NULL ? (UINT) item: (UINT) wv->call_data,
 			out_string);
-	  /* Don't use unicode menus in future.  */
+	  /* Don't use Unicode menus in future.  */
 	  unicode_append_menu = NULL;
 	}
 

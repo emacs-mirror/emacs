@@ -1,3 +1,7 @@
+2011-11-20  Juanma Barranquero  <lekktu@gmail.com>
+
+	* org.el (org-link-unescape, org-link-unescape-compound): Fix typos.
+
 2011-11-20  Andreas Schwab  <schwab@linux-m68k.org>
 
 	* org-list.el (org-list-send-item): Use sort instead of sort*.
@@ -4173,7 +4177,7 @@
 
 2011-07-28  David Maus  <dmaus@ictsoc.de>
 
-	* org.el (org-link-escape): New unicode aware percent encoding
+	* org.el (org-link-escape): New Unicode aware percent encoding
 	algorithm.
 
 2011-07-28  Sebastian Rose  <sebastian_rose@gmx.de>
@@ -4181,7 +4185,7 @@
 	* org-protocol.el (org-protocol-unhex-single-byte-sequence): New
 	function.  Decode hex-encoded singly byte sequences.
 	(org-protocol-unhex-compound): Use new function if decoding sequence
-	as unicode character failed.
+	as Unicode character failed.
 
 2011-07-28  Bastien Guerry  <bzg@gnu.org>
 
@@ -14394,7 +14398,7 @@
 2009-08-06  Carsten Dominik  <carsten.dominik@gmail.com>
 
 	* org.el (org-edit-src-code, org-edit-fixed-width-region): Use a
-	better bufer-generating mechanism.
+	better buffer-generating mechanism.
 	(org-edit-src-find-buffer): New function.
 
 	* org-icalendar.el (org-print-icalendar-entries): Don't check for

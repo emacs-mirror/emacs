@@ -2016,7 +2016,7 @@
 2003-05-28  Andreas Schwab  <schwab@suse.de>
 
 	* descr-text.el (describe-char): Use `char' instead of
-	`(char-after)'.  Fix display of unicode.
+	`(char-after)'.  Fix display of Unicode.
 
 2003-05-28  Nick Roberts  <nick@nick.uklinux.net>
 
@@ -2429,8 +2429,8 @@
 2003-05-21  Dave Love  <fx@gnu.org>
 
 	* descr-text.el (unicodedata-file): New.
-	(unicode-data): New (adapted from unicode branch).
-	(describe-char): Use it.  Print char's unicode differently.
+	(unicode-data): New (adapted from Unicode branch).
+	(describe-char): Use it.  Print char's Unicode code point differently.
 	Avoid elements with null cadr when formatting list.  Clarify error
 	message when used in Help buffer.
 	(button): Require when compiling.
@@ -17991,7 +17991,7 @@
 	* international/ucs-tables.el (ucs-unify-8859, ucs-fragment-8859):
 	Use unify-8859-on-decoding-mode.
 	(unify-8859-on-decoding-mode): Also set translation-table-for-input.
-	(ucs-insert): Give an error if the unicode char can't be created.
+	(ucs-insert): Give an error if the Unicode char can't be created.
 
 	* pcvs-parse.el (cvs-parse-table): Be a bit more lenient.
 	(cvs-parse-status): Handle the "used to have a conflict" marker.
@@ -19206,7 +19206,7 @@
 	* language/cyril-util.el (cyrillic-encode-koi8-r-char)
 	(cyrillic-encode-alternativnyj-char): Get translation tables from
 	symbol properties, not as variables.
-	(standard-display-cyrillic-translit): Include unicodes.
+	(standard-display-cyrillic-translit): Include Unicode characters.
 
 2002-02-06  Kim F. Storm  <storm@cua.dk>
 

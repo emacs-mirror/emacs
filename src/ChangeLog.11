@@ -4839,7 +4839,7 @@
 
 2010-08-13  Jason Rumney  <jasonr@gnu.org>
 
-	* w32menu.c (simple_dialog_show): Use unicode message box if available.
+	* w32menu.c (simple_dialog_show): Use Unicode message box if available.
 	(MessageBoxW_Proc): New function typedef.
 	(unicode-message-box): New function pointer.
 	(globals_of_w32menu): Import it from user32.dll.  (Bug#5629)
@@ -8991,8 +8991,8 @@
 2010-04-13  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* gtkutil.c (xg_set_geometry): Set geometry for PPosition also.
-	(x_wm_set_size_hint): Dont set position flags, gtk_window_parse_geometry
-	does that.
+	(x_wm_set_size_hint): Don't set position flags,
+	gtk_window_parse_geometry does that.
 
 	* xfns.c (Fx_create_frame, x_create_tip_frame): Set default border width
 	to zero.
@@ -9864,8 +9864,8 @@
 
 2010-01-27  Jason Rumney  <jasonr@gnu.org>
 
-	* w32inevt.c (w32_kbd_patch_key): Save the unicode character.
-	(key_event): Use unicode for characters 128 and higher (Bug#4567).
+	* w32inevt.c (w32_kbd_patch_key): Save the Unicode character.
+	(key_event): Use Unicode for characters 128 and higher (Bug#4567).
 
 2010-01-27  Kenichi Handa  <handa@m17n.org>
 
@@ -11541,7 +11541,7 @@
 	(syms_of_nsfont): Declare it.
 	(ns_registry_to_script): New function.
 	(ns_get_req_script): Call it.
-	(ns_findfonts): Don't give up on non-unicode registry.
+	(ns_findfonts): Don't give up on non-Unicode registry.
 
 	* font.c (DEFAULT_ENCODING) [HAVE_NS]: Remove special case.
 
@@ -17147,10 +17147,10 @@
 
 2008-07-30  Jason Rumney  <jasonr@gnu.org>
 
-	* w32font.h (struct w32font_info): Use unicode version of textmetrics.
+	* w32font.h (struct w32font_info): Use Unicode version of textmetrics.
 
-	* w32font.c (w32font_encode_char): Leave as unicode if in range.
-	(w32font_open_internal): Get unicode version of textmetrics.
+	* w32font.c (w32font_encode_char): Leave as Unicode if in range.
+	(w32font_open_internal): Get Unicode version of textmetrics.
 	Don't enable or disable glyph indices here.
 	(w32font_open): Disable use of glyph indices.
 
@@ -19178,7 +19178,7 @@
 2008-06-10  Jason Rumney  <jasonr@gnu.org>
 
 	* w32uniscribe.c (add_opentype_font_name_to_list):
-	Skip non unicode fonts.
+	Skip non Unicode fonts.
 
 2008-06-10  Chong Yidong  <cyd@stupidchicken.com>
 
@@ -19647,7 +19647,7 @@
 	`raster' specified.
 	(add_font_entity_to_list): Allow non-opentype truetype fonts back
 	in the uniscribe backend, but disallow any font that has no
-	unicode subrange support.
+	Unicode subrange support.
 
 2008-05-29  Juanma Barranquero  <lekktu@gmail.com>
 
@@ -21813,8 +21813,8 @@
 2008-03-06  Jason Rumney  <jasonr@gnu.org>
 
 	* w32font.c (w32_registry): Take font_type argument.  Use ANSI
-	when charset not specified.  Only translate ANSI to unicode when
-	font_type is truetype.
+	when charset not specified.  Only translate ANSI to Unicode when
+	font_type is TrueType.
 	(w32font_coverage_ok): New function.
 	(add_font_entity_to_list): Use it to filter unsuitable fonts.
 
@@ -23463,10 +23463,10 @@
 	(w32font_list, w32font_match): Use it.
 	(w32font_open): Don't populate subranges.
 	(w32font_has_char): Use script Lisp symbols, not subrange bitmask.
-	(w32font_encode_char): Always return unicode code-point as-is.
+	(w32font_encode_char): Always return Unicode code-point as-is.
 	(w32font_text_extents): Supply a transformation matrix to
 	GetGlyphOutline.  Never look up by glyph index.  Avoid looping
-	twice.  Use unicode version of GetTexExtentPoint32 instead of
+	twice.  Use Unicode version of GetTexExtentPoint32 instead of
 	glyph index version.
 	(set_fonts_frame): Remove.
 	(w32_enumfont_pattern_entity): Add frame parameter, use it to
@@ -25425,16 +25425,16 @@
 	(pfnGetFontUnicodeRanges): New dynamically loaded function.
 	(w32_initialize): Try to load it.
 	(x_get_font_repertory): Use it if available.
-	(w32_encode_char): Add shortcut for unicode output.
+	(w32_encode_char): Add shortcut for Unicode output.
 
 	* w32fns.c (w32_load_system_font): Default charset to -1.
-	(x_to_w32_charset): Match all fonts for unicode.
+	(x_to_w32_charset): Match all fonts for Unicode.
 	(w32_to_x_charset): New parameter matching.  Don't return partial
 	or wildcard charsets.
 	(w32_to_all_x_charsets): Don't return partial or wildcard charsets.
-	(w32_codepage_for_font): Return CP_UNICODE for unicode.
+	(w32_codepage_for_font): Return CP_UNICODE for Unicode.
 	(w32_to_x_font): Match charset to real charset.
-	(enum_font_cb2): Always list unicode versions.
+	(enum_font_cb2): Always list Unicode versions.
 
 	* makefile.w32-in (temacs): Increase EMHEAP.
 
@@ -25458,7 +25458,7 @@
 
 	* w32fns.c (Fx_create_frame, x_create_tip_frame): Use new version
 	of x_new_fontset.
-	(w32_load_system_font): Initialize charset as unicode.
+	(w32_load_system_font): Initialize charset as Unicode.
 	font_info.encoding becomes encoding_type.
 	(w32_to_x_font): Use decode_coding_c_string in place of decode_coding.
 	(x_to_w32_font): Use encode_coding_object in place of encode_coding.
@@ -27685,7 +27685,7 @@
 	* xterm.c (handle_one_xevent): Revert to counting chars not bytes.
 
 	* w32term.c (w32_read_socket) <WM_CHAR>: Decode characters outside
-	the unicode range available in MULE by locale-coding-system.
+	the Unicode range available in MULE by locale-coding-system.
 	Improve dbcs lead byte detection.  Set event timestamp and modifiers
 	earlier.
 
@@ -30873,7 +30873,7 @@
 2007-06-17  Jason Rumney  <jasonr@gnu.org>
 
 	* w32menu.c (add_menu_item): Don't use multibyte string functions on
-	unicode strings.
+	Unicode strings.
 
 2007-06-16  Juanma Barranquero  <lekktu@gmail.com>
 

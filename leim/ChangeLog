@@ -1,3 +1,7 @@
+2011-11-20  Juanma Barranquero  <lekktu@gmail.com>
+
+	* quail/hangul.el (hangul-character): Fix typo.
+
 2011-09-27  Jambunathan K  <kjambunathan@gmail.com>
 
 	* quail/indian.el (quail-tamil-itrans-misc-table): Delete it.

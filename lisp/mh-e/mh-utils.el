@@ -488,7 +488,7 @@ no effect."
 ;; The car of folder is the name, and the cdr is either t or some
 ;; sort of count that I do not understand. It's too small to be the
 ;; number of messages in the sub-folders and too large to be the
-;; number of sub-folders. XXX"
+;; number of sub-folders. XXX
   `(if (cdr ,folder)
        t
      nil))

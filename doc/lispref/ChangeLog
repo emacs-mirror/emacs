@@ -2255,7 +2255,7 @@
 	(Future Local Variables): Node deleted.
 
 	* objects.texi (General Escape Syntax): Update explanation of
-	unicode escape syntax.
+	Unicode escape syntax.
 
 2009-02-23  Chong Yidong  <cyd@stupidchicken.com>
 

@@ -669,7 +669,7 @@ It ignores whitespaces, newlines and comments."
   wisent-java-tags-wy--<symbol>-regexp-analyzer
   wisent-java-tags-wy--<punctuation>-string-analyzer
   wisent-java-tags-wy--<block>-block-analyzer
-  ;; In theory, unicode chars should be turned into normal chars
+  ;; In theory, Unicode chars should be turned into normal chars
   ;; and then combined into regular ascii keywords and text.  This
   ;; analyzer just keeps these things from making the lexer go boom.
   wisent-java-tags-wy--<unicode>-regexp-analyzer

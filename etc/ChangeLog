@@ -1413,7 +1413,7 @@
 
 2008-02-01  Kenichi Handa  <handa@m17n.org>
 
-	* HELLO: Remove non-unicode character from Tibetan text.
+	* HELLO: Remove non-Unicode character from Tibetan text.
 
 2008-02-01  Miles Bader  <miles@gnu.org>
 

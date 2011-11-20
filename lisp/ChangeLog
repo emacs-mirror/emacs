@@ -1,3 +1,11 @@
+2011-11-20  Juanma Barranquero  <lekktu@gmail.com>
+
+	* descr-text.el (describe-char-unicode-data):
+	* json.el (json-string-escape):
+	* mail/footnote.el (footnote-unicode-string, footnote-unicode-regexp)
+	(Footnote-unicode, Footnote-style-p):
+	* net/ntlm.el (ntlm-get-password-hashes): Fix typos.
+
 2011-11-20  Chong Yidong  <cyd@gnu.org>
 
 	* window.el (replace-buffer-in-windows): Restore interactive spec.

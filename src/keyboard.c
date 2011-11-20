@@ -4813,7 +4813,7 @@ const char *const lispy_function_keys[] =
     "ico-00",        /* VK_ICO_00         0xE4 */
     0,               /* VK_PROCESSKEY     0xE5 - used by IME */
     "ico-clear",     /* VK_ICO_CLEAR      0xE6 */
-    0,               /* VK_PACKET         0xE7  - used to pass unicode chars */
+    0,               /* VK_PACKET         0xE7  - used to pass Unicode chars */
     0,               /*                   0xE8 */
     "reset",         /* VK_OEM_RESET      0xE9 */
     "jump",          /* VK_OEM_JUMP       0xEA */

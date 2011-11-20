@@ -1269,7 +1269,7 @@ Tested with swish-e-2.0.1 on Windows NT 4.0."
           ;; nnir-search failure reason is in this buffer, show it if
           ;; the user wants it.
           (when (> gnus-verbose 6)
-            (display-buffer nnir-tmp-buffer)))) ;; FIXME: Dont clear buffer !
+            (display-buffer nnir-tmp-buffer)))) ;; FIXME: Don't clear buffer !
       (message "Doing hyrex-search query \"%s\"...done" qstring)
       (sit-for 0)
       ;; nnir-search returns:

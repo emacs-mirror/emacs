@@ -1985,7 +1985,7 @@ Also updates the variables `artist-draw-min-y' and `artist-draw-max-y'."
   "Retrieve a replacement for character C from `artist-replacement-table'.
 The replacement is used to convert tabs and new-lines to spaces."
   ;; Characters may be outside the range of the `artist-replacement-table',
-  ;; for example if they are unicode code points >= 256.
+  ;; for example if they are Unicode code points >= 256.
   ;; Check so we don't attempt to access the array out of its bounds,
   ;; assuming no such character needs to be replaced.
   (if (< c (length artist-replacement-table))

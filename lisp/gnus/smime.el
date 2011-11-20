@@ -99,7 +99,7 @@
 ;;
 ;; I would include pointers to introductory text on concepts used in
 ;; this library here, but the material I've read are so horrible I
-;; don't want to recomend them.
+;; don't want to recommend them.
 ;;
 ;; Why can't someone write a simple introduction to all this stuff?
 ;; Until then, much of this resemble security by obscurity.

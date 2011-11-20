@@ -1741,8 +1741,8 @@
 
 	* outline.el (hide-sublevels): Keep empty last line, if available.
 
-	* buff-menu.el (list-buffers-noselect): Use explicit unicode code
-	rather than the corresponding unicode char, to make the code
+	* buff-menu.el (list-buffers-noselect): Use explicit Unicode code
+	rather than the corresponding Unicode char, to make the code
 	more readable.
 
 2007-02-19  Juanma Barranquero  <lekktu@gmail.com>

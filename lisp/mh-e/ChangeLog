@@ -352,7 +352,7 @@
 
 2008-06-20  Stephen Eglen  <stephen@gnu.org>
 
-	* mh-show.el (mh-defun-show-buffer): Use `...' rather than than
+	* mh-show.el (mh-defun-show-buffer): Use `...' rather than
 	"..." in generated docstrings.
 
 2008-06-12  Glenn Morris  <rgm@gnu.org>

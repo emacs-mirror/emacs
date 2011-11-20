@@ -880,7 +880,7 @@ command, like this:
 @end example
 @end defun
 
-These commands are often more accurate than than the @code{find-tag}
+These commands are often more accurate than the @code{find-tag}
 command (@pxref{Tags,,,emacs,Emacs manual}), because the Semantic
 Analyzer is context-sensitive.
 

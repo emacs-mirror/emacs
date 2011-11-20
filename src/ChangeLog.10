@@ -18755,7 +18755,7 @@
 
 2003-05-21  Dave Love  <fx@gnu.org>
 
-	[Merged from unicode branch.]
+	[Merged from Unicode branch.]
 
 	* xfns.c (x_window, x_window): Use use_xim.
 

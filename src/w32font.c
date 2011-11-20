@@ -462,7 +462,7 @@ w32font_has_char (Lisp_Object entity, int c)
    Return a glyph code of FONT for character C (Unicode code point).
    If FONT doesn't have such a glyph, return FONT_INVALID_CODE.
 
-   For speed, the gdi backend uses unicode (Emacs calls encode_char
+   For speed, the gdi backend uses Unicode (Emacs calls encode_char
    far too often for it to be efficient). But we still need to detect
    which characters are not supported by the font.
   */
@@ -620,7 +620,7 @@ w32font_text_extents (struct font *font, unsigned *code,
       total_width = size.cx;
     }
 
-  /* On 95/98/ME, only some unicode functions are available, so fallback
+  /* On 95/98/ME, only some Unicode functions are available, so fallback
      on doing a dummy draw to find the total width.  */
   if (!total_width)
     {
@@ -1153,7 +1153,7 @@ w32_enumfont_pattern_entity (Lisp_Object frame,
   else
     ASET (entity, FONT_SIZE_INDEX, make_number (0));
 
-  /* Cache unicode codepoints covered by this font, as there is no other way
+  /* Cache Unicode codepoints covered by this font, as there is no other way
      of getting this information easily.  */
   if (font_type & TRUETYPE_FONTTYPE)
     {
@@ -1514,7 +1514,7 @@ add_font_entity_to_list (ENUMLOGFONTEX *logical_font,
   /* Skip non matching fonts.  */
 
   /* For uniscribe backend, consider only truetype or opentype fonts
-     that have some unicode coverage.  */
+     that have some Unicode coverage.  */
   if (match_data->opentype_only
       && ((!(physical_font->ntmTm.ntmFlags & NTMFLAGS_OPENTYPE)
 	   && !(font_type & TRUETYPE_FONTTYPE))
@@ -1557,7 +1557,7 @@ add_font_entity_to_list (ENUMLOGFONTEX *logical_font,
       Lisp_Object spec_charset = AREF (match_data->orig_font_spec,
 				       FONT_REGISTRY_INDEX);
 
-      /* iso10646-1 fonts must contain unicode mapping tables.  */
+      /* iso10646-1 fonts must contain Unicode mapping tables.  */
       if (EQ (spec_charset, Qiso10646_1))
 	{
 	  if (!is_unicode)
@@ -1572,7 +1572,7 @@ add_font_entity_to_list (ENUMLOGFONTEX *logical_font,
 	      && !(physical_font->ntmFontSig.fsUsb[0] & 0x007F001F))
 	    return 1;
 	}
-      /* unicode-sip fonts must contain characters in unicode plane 2.
+      /* unicode-sip fonts must contain characters in Unicode plane 2.
 	 so look for bit 57 (surrogates) in the Unicode subranges, plus
 	 the bits for CJK ranges that include those characters.  */
       else if (EQ (spec_charset, Qunicode_sip))
@@ -1597,7 +1597,7 @@ add_font_entity_to_list (ENUMLOGFONTEX *logical_font,
 	    ASET (entity, FONT_REGISTRY_INDEX, spec_charset);
 	}
       /* Otherwise if using the uniscribe backend, report ANSI and DEFAULT
-	 fonts as unicode and skip other charsets.  */
+	 fonts as Unicode and skip other charsets.  */
       else if (match_data->opentype_only)
 	{
 	  if (logical_font->elfLogFont.lfCharSet == ANSI_CHARSET
@@ -1640,7 +1640,7 @@ x_to_w32_charset (char * lpcs)
   if (strncmp (lpcs, "*-#", 3) == 0)
     return atoi (lpcs + 3);
 
-  /* All Windows fonts qualify as unicode.  */
+  /* All Windows fonts qualify as Unicode.  */
   if (!strncmp (lpcs, "iso10646", 8))
     return DEFAULT_CHARSET;
 
@@ -1925,7 +1925,7 @@ w32_registry (LONG w32_charset, DWORD font_type)
 {
   char *charset;
 
-  /* If charset is defaulted, charset is unicode or unknown, depending on
+  /* If charset is defaulted, charset is Unicode or unknown, depending on
      font type.  */
   if (w32_charset == DEFAULT_CHARSET)
     return font_type == TRUETYPE_FONTTYPE ? Qiso10646_1 : Qunknown;
@@ -2080,7 +2080,7 @@ fill_in_logfont (FRAME_PTR f, LOGFONT *logfont, Lisp_Object font_spec)
         {
           Lisp_Object key, val;
           key = XCAR (tmp), val = XCDR (tmp);
-          /* Only use QCscript if charset is not provided, or is unicode
+          /* Only use QCscript if charset is not provided, or is Unicode
              and a single script is specified.  This is rather crude,
              and is only used to narrow down the fonts returned where
              there is a definite match.  Some scripts, such as latin, han,

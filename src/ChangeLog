@@ -1,3 +1,7 @@
+2011-11-20  Juanma Barranquero  <lekktu@gmail.com>
+
+	* nsfont.m (syms_of_nsfont) <ns-reg-to-script>: Fix typo.
+
 2011-11-20  Martin Rudalics  <rudalics@gmx.at>
 
 	* window.c (Fset_window_combination_limit): Rename argument

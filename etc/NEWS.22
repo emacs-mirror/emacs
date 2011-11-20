@@ -1275,7 +1275,7 @@ coding system.
 of a file.
 
 *** New command `ucs-insert' inserts a character specified by its
-unicode.
+Unicode code point or character name.
 
 *** New command quail-show-key shows what key (or key sequence) to type
 in the current input method to input a character at point.

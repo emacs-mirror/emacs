@@ -166,7 +166,7 @@ this around your call to `json-read' instead of `setq'ing it.")
 (put 'json-number-format 'error-conditions
      '(json-number-format json-error error))
 
-(put 'json-string-escape 'error-message "Bad unicode escape")
+(put 'json-string-escape 'error-message "Bad Unicode escape")
 (put 'json-string-escape 'error-conditions
      '(json-string-escape json-error error))
 

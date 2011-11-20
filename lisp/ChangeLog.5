@@ -475,8 +475,8 @@
 	* viper.el (vip-put-back, vip-Put-back): Now emulate Vi's behavior
 	more closely.
 
-	* viper.el (vip-line): No longer not bombs out.
-	(vip-exec-shift) now preserves the point.
+	* viper.el (vip-line): No longer bombs out.
+	(vip-exec-shift): Now preserves the point.
 
 	* viper.el: Fixed the behavior of the Vi commands M, L, G, yw, dg, etc.
 
@@ -2880,7 +2880,7 @@
 
 1995-03-02  Simon Marshall  <simon@duality.gnu.ai.mit.edu>
 
-	* font-lock.el (font-lock-maximum-decoration) New variable.
+	* font-lock.el (font-lock-maximum-decoration): New variable.
 	(font-lock-after-fontify-buffer-hook): New variable.
 	(font-lock-fontify-buffer): Run it after fontifying.
 	(font-lock-thing-lock-cleanup): New function to turn things off.
@@ -4133,7 +4133,7 @@
 
 	* startup.el (command-line-1): Handle -f with kbd macro.
 
-	* msb.el (mouse-select-buffer) Handle an aborted selection.
+	* msb.el (mouse-select-buffer): Handle an aborted selection.
 
 1995-01-11  Richard Stallman  <rms@mole.gnu.ai.mit.edu>
 
@@ -4522,7 +4522,7 @@
 	* gud.el (gdb): Correct tbreak doc string.
 	(gud-mode): Define a Gud menu.
 	(gdb): Set debugger-specific menu entries.
-	(sdb) (dbx) (xdb): Likewise.
+	(sdb, dbx, xdb): Likewise.
 
 1994-12-22  Richard Stallman  <rms@mole.gnu.ai.mit.edu>
 
@@ -6861,7 +6861,7 @@
 	(Man-mode-map): Changed the meanings of ",", ".", "q".  Added new
 	keys ">", "<", "k".
 	(Man-page-mode-string): Function deleted.
-	(Man-init-defvars): New function used for initialising the system
+	(Man-init-defvars): New function used for initializing the system
 	and environment dependent variables Man-fontify-manpage-flag,
 	Man-uses-untabify, Man-sed-script, Man-filter-list.
 	(Man-delete-trailing-newlines): Function deleted.
@@ -8114,9 +8114,9 @@
 	Modified to work with remote and compressed files.
 
 	* ediff.el (ediff-read-file-name, ediff-buffers): Better defaults.
-	(ediff-read-file-name) Handle OS/2.
+	(ediff-read-file-name): Handle OS/2.
 
-	* ediff.el (ediff-forward-word-function) New function.
+	* ediff.el (ediff-forward-word-function): New function.
 	(ediff-wordify-function): Variable deleted.
 	(ediff-toggle-regexp-match, ediff-hide-regexp-matches): New functions.
 	(ediff-focus-on-regexp-matches): New function.
@@ -8813,7 +8813,7 @@
 	(gnus-uu-ask-to-save-file): New function.
 
 	* gnus-uu.el (gnus-uu-interactive-set-up-windows): New function.
-	(gnus-uu-interactive-scan-directory) New function.
+	(gnus-uu-interactive-scan-directory): New function.
 	(gnus-uu-interactive-rescan-directory): New function.
 	(gnus-uu-ignore-files-by-name, gnus-uu-ignore-files-by-type): New vars.
 	(gnus-uu-interactive-execute): Change directory to work dir before
