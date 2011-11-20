@@ -826,7 +826,7 @@ while (0)
    : (charset = CHARSET_FROM_ID ((id)), DECODE_CHAR (charset, (code))))
 
 /* Encode character C by some of charsets in CHARSET_LIST.  Set ID to
-   the id of the used charset, ENCODED to the resulf of encoding.
+   the id of the used charset, ENCODED to the result of encoding.
    Assume that we can use the variable `charset'.  */
 
 #define CCL_ENCODE_CHAR(c, charset_list, id, encoded)		\

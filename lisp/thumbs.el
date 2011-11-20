@@ -235,7 +235,7 @@ reached."
       (setq dirsize (- dirsize (car (cdar files-list))))
       (setq files-list (cdr files-list)))))
 
-;; Check the thumbsnail directory size and clean it if necessary.
+;; Check the thumbnail directory size and clean it if necessary.
 (when thumbs-thumbsdir-auto-clean
   (thumbs-cleanup-thumbsdir))
 

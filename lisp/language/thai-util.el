@@ -124,7 +124,7 @@
 	   (?ใ vowel-base "VOWEL SIGN SARA MAI MUAN")			; 0xE3
 	   (?ไ vowel-base "VOWEL SIGN SARA MAI MALAI")			; 0xE4
 	   (?ๅ vowel-base "LAK KHANG YAO")				; 0xE5
-	   (?ๆ special "MAI YAMOK (repetion)")				; 0xE6
+	   (?ๆ special "MAI YAMOK (repetition)")			; 0xE6
 	   (?็ sign-upper "VOWEL SIGN MAI TAI KHU N/S-T")		; 0xE7
 	   (?่ tone "TONE MAI EK N/S-T")				; 0xE8
 	   (?้ tone "TONE MAI THO N/S-T")				; 0xE9

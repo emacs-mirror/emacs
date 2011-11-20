@@ -1277,7 +1277,7 @@ versions of Emacs."
 	  "----"
 	  ["Ispell PODs" cperl-pod-spell
 	   ;; Better not to update syntaxification here:
-	   ;; debugging syntaxificatio can be broken by this???
+	   ;; debugging syntaxification can be broken by this???
 	   (or
 	    (get-text-property (point-min) 'in-pod)
 	    (< (progn

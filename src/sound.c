@@ -267,7 +267,7 @@ struct sound
      read from the start of a sound file.  */
   char *header;
 
-  /* Number of bytes raed from sound file.  This is always <=
+  /* Number of bytes read from sound file.  This is always <=
      MAX_SOUND_HEADER_BYTES.  */
   int header_size;
 

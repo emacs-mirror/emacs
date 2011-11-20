@@ -7199,7 +7199,7 @@
 
 2010-06-27  Chong Yidong  <cyd@stupidchicken.com>
 
-	* xfns.c (Fx_create_frame): Don't consult X resouces when setting
+	* xfns.c (Fx_create_frame): Don't consult X resources when setting
 	menu-bar-lines and tool-bar-lines.  Use menu-bar-mode and
 	tool-bar-mode, which are now set using these X resources at
 	startup, to determine the defaults (Bug#2249).
@@ -29136,7 +29136,7 @@
 
 	* lisp.h (defvar_per_buffer, DEFVAR_PER_BUFFER):
 	* lread.c (defvar_per_buffer):
-	* abbrev.c (syms_of_abbrev) <local-abbrev-tabl>: Move to buffer.c.
+	* abbrev.c (syms_of_abbrev) <local-abbrev-table>: Move to buffer.c.
 
 	* window.c (candidate_window_p): Only consider as visible frames that
 	are on the same terminal.

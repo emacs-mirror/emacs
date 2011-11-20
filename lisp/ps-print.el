@@ -5372,9 +5372,9 @@ Where:
 KIND is a valid value of `ps-n-up-filling'.
 XCOL YCOL are the relative position for the next column.
 XLIN YLIN are the relative position for the beginning of next line.
-REPEAT is the number of repetions for external loop.
-END is the number of repetions for internal loop and also the number of pages in
-    a row.
+REPEAT is the number of repetitions for external loop.
+END is the number of repetitions for internal loop and also the number
+    of pages in a row.
 XSTART YSTART are the relative position for the first page in a sheet.")
 
 

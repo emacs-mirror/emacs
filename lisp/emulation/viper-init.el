@@ -205,7 +205,7 @@ designated buffers.")
 
 (viper-deflocalvar viper-insert-diehard-minor-mode nil
   "Minor mode that simulates Vi very closely.
-Not recommened, except for the novice user.")
+Not recommended, except for the novice user.")
 
 (viper-deflocalvar viper-insert-kbd-minor-mode nil
 "Minor mode for Ex command macros Insert state.
@@ -679,7 +679,7 @@ to a new place after repeating previous Vi command."
   :group 'viper-search)
 
 (defcustom viper-search-scroll-threshold 2
-  "*If search lands within this threshnold from the window top/bottom,
+  "*If search lands within this threshold from the window top/bottom,
 the window will be scrolled up or down appropriately, to reveal context.
 If you want Viper search to behave as usual in Vi, set this variable to a
 negative number."

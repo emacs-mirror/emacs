@@ -1449,7 +1449,7 @@ The template may still contain \"%?\" for cursor positioning."
       (goto-char (point-min))
       (while (looking-at "[ \t]*\n") (replace-match ""))
       (if (re-search-forward "[ \t\n]*\\'" nil t) (replace-match "\n"))
-      ;; Return the expanded tempate and kill the temporary buffer
+      ;; Return the expanded template and kill the temporary buffer
       (untabify (point-min) (point-max))
       (set-buffer-modified-p nil)
       (prog1 (buffer-string) (kill-buffer (current-buffer))))))

@@ -943,7 +943,7 @@ opening the first frame (e.g. open a connection to an X server).")
   (normal-erase-is-backspace-setup-frame)
 
   ;; Register default TTY colors for the case the terminal hasn't a
-  ;; terminal init file.  We do this regardles of whether the terminal
+  ;; terminal init file.  We do this regardless of whether the terminal
   ;; supports colors or not and regardless the current display type,
   ;; since users can connect to color-capable terminals and also
   ;; switch color support on or off in mid-session by setting the

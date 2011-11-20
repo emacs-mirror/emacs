@@ -2641,7 +2641,7 @@ in the buffer and column1 and column2 are table column numbers."
 	    (prog1 (org-trim (org-table-get-field c1))
 	      (if highlight (org-table-highlight-rectangle (point) (point)))))
 	;; A range, return a vector
-	;; First sort the numbers to get a regular ractangle
+	;; First sort the numbers to get a regular rectangle
 	(if (< r2 r1) (setq tmp r1 r1 r2 r2 tmp))
 	(if (< c2 c1) (setq tmp c1 c1 c2 c2 tmp))
 	(if corners-only

@@ -82,7 +82,7 @@ don't do it.  A value of nil means to just do it.")
 		      (directory-file-name
 		       (ede-subproject-relative-path sp top-level-project-local)))))
 	    (when (string= dir "./") (setq dir ""))
-	    ;; Use concat, because expand-file-name removes the relativeness.
+	    ;; Use concat, because expand-file-name removes the relativity.
 	    (concat dir "Makefile") )))))
     ;;
     ;; NOTE TO SELF.  TURN THIS INTO THE OFFICIAL LIST

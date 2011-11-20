@@ -133,7 +133,7 @@ from a file."
     font-lock-unfontify-region-function
     kill-buffer-query-functions kill-emacs-query-functions
     lisp-indent-function mouse-position-function
-    redisplaylay-end-trigger-functions suspend-tty-functions
+    redisplay-end-trigger-functions suspend-tty-functions
     temp-buffer-show-function window-scroll-functions
     window-size-change-functions write-contents-functions
     write-file-functions write-region-annotate-functions)

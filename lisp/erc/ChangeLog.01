@@ -93,7 +93,7 @@
 
 	* erc.el 1.166:
 	* erc-insert-hook: Changed strategy completely, no start end parameters any more.
-	We narrow-to-region now, thats much cleaner.
+	We narrow-to-region now, that's much cleaner.
 	* rename erc-fill-region to erc-fill and change the autoload
 	** You'll probably need to restart Emacs
 
@@ -221,7 +221,7 @@
 	* Applied antifuchs/mhp patches, the latest on erc-help, unmodified
 	* New variable: erc-reuse-buffers default to t.
 	* Modified erc-generate-new-buffer-name to use it. it checks if server and port are the same,
-	  then one can assume thats the same channel/query target again.
+	  then one can assume that's the same channel/query target again.
 
 2001-11-23  Mario Lang  <mlang@delysid.org>
 
@@ -415,7 +415,7 @@
 	* erc.el 1.104: only some code beautification
 
 	* erc-imenu.el 1.2:
-	remove add-hook call, thats done in erc.el now for autoloadability
+	remove add-hook call, that's done in erc.el now for autoloadability
 
 	* erc.el 1.103: * Make erc-imenu autoloadable
 

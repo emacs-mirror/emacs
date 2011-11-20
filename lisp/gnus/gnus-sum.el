@@ -1657,7 +1657,7 @@ For example:
 
 This variable is a list of FUNCTION or (REGEXP . FUNCTION).  If item
 is FUNCTION, FUNCTION will be apply to all newsgroups.  If item is a
-\(REGEXP . FUNCTION), FUNCTION will be only apply to thes newsgroups
+\(REGEXP . FUNCTION), FUNCTION will be applied only to the newsgroups
 whose names match REGEXP.
 
 For example:

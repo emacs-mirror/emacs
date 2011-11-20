@@ -649,7 +649,7 @@ This function is for internal use by `semantic-edits-incremental-parser'."
                     parent-tag (aref tmp 2))
               ;; We can calculate parse begin/end by checking
               ;; out what is in TAGS.  The one near start is
-              ;; always first.  Make sure the reprase includes
+              ;; always first.  Make sure the reparse includes
               ;; the `whitespace' around the snarfed tags.
               ;; Since cache-list is positioned properly, use it
               ;; to find that boundary.
@@ -707,7 +707,7 @@ This function is for internal use by `semantic-edits-incremental-parser'."
       ;; since that is how the multi-tag parser works.  Grab
       ;; the reparse symbol from the first of the returned tags.
       ;;
-      ;; Feb '06 - If repase-symbol is nil, then they are top level
+      ;; Feb '06 - If reparse-symbol is nil, then they are top level
       ;;     tags.  (I'm guessing.)  Is this right?
       (setq reparse-symbol
             (semantic--tag-get-property (car (or tags cache-list))

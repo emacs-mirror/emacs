@@ -161,7 +161,7 @@ be just a string in some circumstances.")
 (defclass semantic-analyze-context-return (semantic-analyze-context)
   () ; No extra data.
   "Analysis class for return data.
-Return data methods identify the requred type by the return value
+Return data methods identify the required type by the return value
 of the parent function.")
 
 ;;; METHODS

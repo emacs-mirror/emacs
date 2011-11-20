@@ -919,7 +919,7 @@ That is the value of the attribute `:system-flag'."
   "Return a filename representation of TAG.
 The default action is to return the `semantic-tag-name'.
 Some languages do not use full filenames in their include statements.
-Override this method to translate the code represenation
+Override this method to translate the code representation
 into a filename.  (A relative filename if necessary.)
 
 See `semantic-dependency-tag-file' to expand an include

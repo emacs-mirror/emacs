@@ -23,7 +23,7 @@
 
 ;;; Commentary:
 
-;; This package provides all interactive commands which are releated
+;; This package provides all interactive commands which are related
 ;; to Tramp.
 
 ;;; Code:

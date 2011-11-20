@@ -1980,7 +1980,7 @@ Make backspaces delete the previous character."
               ;; The point should float after any insertion we do.
 	      (saved-point (copy-marker (point) t)))
 
-	  ;; We temporarly remove any buffer narrowing, in case the
+	  ;; We temporarily remove any buffer narrowing, in case the
 	  ;; process mark is outside of the restriction
 	  (save-restriction
 	    (widen)

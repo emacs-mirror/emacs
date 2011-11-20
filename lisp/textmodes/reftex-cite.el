@@ -76,7 +76,7 @@
   (get 'reftex-default-bibliography :reftex-expanded))
 
 (defun reftex-bib-or-thebib ()
-  ;; Tests if BibTeX or \begin{tehbibliography} should be used for the
+  ;; Tests if BibTeX or \begin{thebibliography} should be used for the
   ;; citation
   ;; Find the bof of the current file
   (let* ((docstruct (symbol-value reftex-docstruct-symbol))

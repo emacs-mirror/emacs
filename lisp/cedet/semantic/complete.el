@@ -1478,7 +1478,7 @@ one in the source buffer."
 	 (tag (cdr nt))
 	 (table (car nt))
 	)
-    ;; If we fail to normalize, resete.
+    ;; If we fail to normalize, reset.
     (when (not tag) (setq table rtable tag rtag))
     ;; Do the focus.
     (let ((buf (or (semantic-tag-buffer tag)

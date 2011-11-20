@@ -5484,7 +5484,7 @@ non-nil.
 ** M-x revert-buffer no longer offers to revert from a recent auto-save
 file unless you give it a prefix argument.  Otherwise it always
 reverts from the real file regardless of whether there has been an
-auto-save since thenm.  (Reverting from the auto-save file is no longer
+auto-save since then.  (Reverting from the auto-save file is no longer
 very useful now that the undo capacity is larger.)
 
 ** M-x recover-file no longer turns off Auto Save mode when it reads

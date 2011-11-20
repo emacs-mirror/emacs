@@ -887,7 +887,7 @@ but in this case, it is best to treat it as a novel or as a travel guide
 to a country not yet visited: interesting, but not the same as being
 there.
 
-Much of this introduction is dedicated to walk-throughs or guided tours
+Much of this introduction is dedicated to walkthroughs or guided tours
 of code used in GNU Emacs.  These tours are designed for two purposes:
 first, to give you familiarity with real, working code (code you use
 every day); and, second, to give you familiarity with the way Emacs

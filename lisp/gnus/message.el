@@ -7167,7 +7167,7 @@ header line with the old Message-ID."
 
 (defun message-wash-subject (subject)
   "Remove junk like \"Re:\", \"(fwd)\", etc. added to subject string SUBJECT.
-Previous forwarders, replyers, etc. may add it."
+Previous forwarders, repliers, etc. may add it."
   (with-temp-buffer
     (insert subject)
     (goto-char (point-min))

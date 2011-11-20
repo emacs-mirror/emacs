@@ -612,7 +612,7 @@ headers look like comments in the programming language.  It will also use
 the comment-start string, with an '_' appended, for `allout-primary-bullet'.
 
 String values are used as literals, not regular expressions, so
-do not escape any regulare-expression characters.
+do not escape any regular-expression characters.
 
 Value t means to first check for assoc value in `allout-mode-leaders'
 alist, then use comment-start string, if any, then use default (`.').

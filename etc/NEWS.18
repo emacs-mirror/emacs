@@ -1303,7 +1303,7 @@ changing the file's uid or gid.
 
 The default value of this variable is `nil', because usually it is
 useful to have the uid of a file change according to who edited it
-last.  I recommend thet this variable be left normally `nil' and
+last.  I recommend that this variable be left normally `nil' and
 changed with a local variables list in those particular files where
 the uid needs to be preserved.
 

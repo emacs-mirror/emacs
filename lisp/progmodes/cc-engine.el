@@ -893,7 +893,7 @@ comment at the start of cc-engine.el for more info."
 			  ((eq sym 'while)
 			   ;; Is this a real while, or a do-while?
 			   ;; The next `when' triggers unless we are SURE that
-			   ;; the `while' is not the tailend of a `do-while'.
+			   ;; the `while' is not the tail end of a `do-while'.
 			   (when (or (not pptok)
 				     (memq (char-after pptok) delims)
 				     ;; The following kludge is to prevent
@@ -9784,7 +9784,7 @@ comment at the start of cc-engine.el for more info."
 	  (c-beginning-of-statement-1 containing-sexp)
 	  (c-add-stmt-syntax 'statement nil t containing-sexp paren-state))
 
-	 ;;CASE 5N: We are at a tompmost continuation line and the only
+	 ;;CASE 5N: We are at a topmost continuation line and the only
 	 ;;preceding items are annotations.
 	 ((and (c-major-mode-is 'java-mode)
 	       (setq placeholder (point))

@@ -359,7 +359,7 @@ the new configuration."
 (defun ede-generic-new-autoloader (internal-name external-name
 						 projectfile class)
   "Add a new EDE Autoload instance for identifying a generic project.
-INTERNAL-NAME is a long name that identifies thsi project type.
+INTERNAL-NAME is a long name that identifies this project type.
 EXTERNAL-NAME is a shorter human readable name to describe the project.
 PROJECTFILE is a file name that identifies a project of this type to EDE, such as
 a Makefile, or SConstruct file.

@@ -113,7 +113,7 @@ xlwMenuTranslations [] =
 <KeyUp>:          key()\n\
 ";
 
-/* FIXME: Space should toggle toggleable menu item but not remove the menu
+/* FIXME: Space should toggle togglable menu item but not remove the menu
    so you can toggle the next one without entering the menu again.  */
 
 /* FIXME: Should ESC close one level of menu structure or the complete menu?  */
