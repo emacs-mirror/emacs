@@ -416,7 +416,6 @@ case "${canonical}" in
     opsys=gnu-linux
     case ${canonical} in
       alpha*)	machine=alpha ;;
-      s390-*)	machine=ibms390 ;;
       s390x-*)	machine=ibms390x ;;
       powerpc*)	machine=macppc ;;
       sparc*)	machine=sparc ;;

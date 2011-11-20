@@ -1,3 +1,7 @@
+2011-11-20  Andreas Schwab  <schwab@linux-m68k.org>
+
+	* configure.in: Remove reference to src/m/ibms390.h.
+
 2011-11-13  Glenn Morris  <rgm@gnu.org>
 
 	* INSTALL: Tiny updates for disk space used during installation.

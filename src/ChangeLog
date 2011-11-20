@@ -1,3 +1,8 @@
+2011-11-20  Andreas Schwab  <schwab@linux-m68k.org>
+
+	* m/ibms390.h: Remove.
+	* m/ibms390x.h: Don't include "ibms390.h".
+
 2011-11-20  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* fileio.c (Finsert_file_contents): Add missing gcpro1 variable.
