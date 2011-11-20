@@ -392,7 +392,7 @@ DATA is displayed to the user and should state the reason of the failure."
          ;; compiling doesn't depend on cl and thus doesn't need an
          ;; environment arg for `macroexpand'.
          (if (fboundp 'cl-macroexpand)
-             ;; Suppress warning about run-time call to cl funtion: we
+             ;; Suppress warning about run-time call to cl function: we
              ;; only call it if it's fboundp.
              (with-no-warnings
                (cl-macroexpand form (and (boundp 'cl-macro-environment)

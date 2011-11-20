@@ -1,3 +1,8 @@
+2011-11-20  Juanma Barranquero  <lekktu@gmail.com>
+
+	* casetab.c (Fset_case_table):
+	* charset.c (Fcharset_after): Fix typos.
+
 2011-11-20  Paul Eggert  <eggert@cs.ucla.edu>
 
 	Standardize on VIRT_ADDR_VARIES behavior (Bug#10042).

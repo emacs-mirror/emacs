@@ -2666,7 +2666,7 @@ consistent mnemonics were realized that should make it easier to
 remember key bindings.
 
 Added new sub-keymaps for folder commands, sequence commands,
-extraction commands, and digest commands which begin with with F, S,
+extraction commands, and digest commands which begin with F, S,
 X, and D, respectively. These sub-keymaps allowed some consistency
 (e.g., especially with l(ist) and k(ill)).
 

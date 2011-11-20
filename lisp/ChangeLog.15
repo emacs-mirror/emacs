@@ -13225,7 +13225,7 @@
 2010-02-04  Michael Albinus  <michael.albinus@gmx.de>
 
 	* dired.el (dired-revert): If DIRED-DIRECTORY is a cons cell, call
-	`dired-uncache' for every elemnt which is an absolute file name.
+	`dired-uncache' for every element which is an absolute file name.
 
 	* net/tramp.el (tramp-handle-dired-uncache): When DIR is not a
 	directory, handle its directory component.

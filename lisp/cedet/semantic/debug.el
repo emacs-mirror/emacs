@@ -519,22 +519,22 @@ down to your parser later."
   )
 
 (defmethod semantic-debug-parser-go ((parser semantic-debug-parser))
-  "Continue executiong in this PARSER until the next breakpoint."
+  "Continue execution in this PARSER until the next breakpoint."
   (setq semantic-debug-user-command 'go)
   )
 
 (defmethod semantic-debug-parser-fail ((parser semantic-debug-parser))
-  "Continue executiong in this PARSER until the next breakpoint."
+  "Continue execution in this PARSER until the next breakpoint."
   (setq semantic-debug-user-command 'fail)
   )
 
 (defmethod semantic-debug-parser-quit ((parser semantic-debug-parser))
-  "Continue executiong in this PARSER until the next breakpoint."
+  "Continue execution in this PARSER until the next breakpoint."
   (setq semantic-debug-user-command 'quit)
   )
 
 (defmethod semantic-debug-parser-abort ((parser semantic-debug-parser))
-  "Continue executiong in this PARSER until the next breakpoint."
+  "Continue execution in this PARSER until the next breakpoint."
   (setq semantic-debug-user-command 'abort)
   )
 

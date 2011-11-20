@@ -956,7 +956,7 @@ This is a no-op in XEmacs."
 
 (defun mm-charset-after (&optional pos)
   "Return charset of a character in current buffer at position POS.
-If POS is nil, it defauls to the current point.
+If POS is nil, it defaults to the current point.
 If POS is out of range, the value is nil.
 If the charset is `composition', return the actual one."
   (let ((char (char-after pos)) charset)

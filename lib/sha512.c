@@ -58,7 +58,7 @@ static const unsigned char fillbuf[128] = { 0x80, 0 /* , 0, 0, ...  */ };
 
 /*
   Takes a pointer to a 512 bit block of data (eight 64 bit ints) and
-  intializes it to the start constants of the SHA512 algorithm.  This
+  initializes it to the start constants of the SHA512 algorithm.  This
   must be called before using hash in the call to sha512_hash
 */
 void

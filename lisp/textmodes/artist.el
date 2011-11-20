@@ -2338,7 +2338,7 @@ Octant are numbered 1--8, anti-clockwise as:
 	  5
 	6))))
 
-;; Some inline funtions for creating, setting and reading
+;; Some inline functions for creating, setting and reading
 ;; members of a coordinate
 ;;
 

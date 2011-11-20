@@ -1,3 +1,8 @@
+2011-11-20  Juanma Barranquero  <lekktu@gmail.com>
+
+	* compile.texi (Compiler Errors):
+	* help.texi (Help Functions): Fix typos.
+
 2011-11-19  Chong Yidong  <cyd@gnu.org>
 
 	* windows.texi (Splitting Windows): Clarify role of window

@@ -49,7 +49,7 @@
 ;; Unicode character means a character in one of the Mule charsets
 ;; ascii, latin-iso8859-1, mule-unicode-0100-24ff,
 ;; mule-unicode-2500-33ff, mule-unicode-e000-ffff, eight-bit-control
-;; or a character translateable to such a character (i.e a character
+;; or a character translatable to such a character (i.e a character
 ;; for which `encode-char' will return non-nil).
 ;;
 ;; Using unify-8859-on-decoding-mode is probably a good idea here

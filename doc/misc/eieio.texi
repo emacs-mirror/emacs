@@ -1212,9 +1212,9 @@ This method does nothing by default, but that may change in the future.
 This would be the best way to make your objects persistent when using
 in-place editing.
 
-@section Widget extention
+@section Widget extension
 
-When widgets are being created, one new widget extention has been added,
+When widgets are being created, one new widget extension has been added,
 called the @code{:slotofchoices}.  When this occurs in a widget
 definition, all elements after it are removed, and the slot is specifies
 is queried and converted into a series of constants.

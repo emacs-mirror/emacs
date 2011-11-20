@@ -1,3 +1,12 @@
+2011-11-20  Juanma Barranquero  <lekktu@gmail.com>
+
+	* gnus-coding.texi (Gnus Maintenance Guide):
+	Rename from "Gnus Maintainance Guide".
+
+	* ede.texi (ede-compilation-program, ede-compiler, ede-linker):
+	* eieio.texi (Customizing):
+	* gnus-news.texi: Fix typos.
+
 2011-11-16  Juanma Barranquero  <lekktu@gmail.com>
 
 	* org.texi (Agenda commands, Exporting Agenda Views): Fix typos.

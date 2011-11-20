@@ -170,7 +170,7 @@ respective allout-mode keybinding variables, `allout-command-prefix',
   ;; the function value keymap of allout-mode-map is used in
   ;; minor-mode-map-alist - update it:
   (fset allout-mode-map allout-mode-map-value))
-;;;_  * intialize the mode map:
+;;;_  * initialize the mode map:
 ;; ensure that allout-mode-map has some setting even if allout-mode hasn't
 ;; been invoked:
 (allout-compose-and-institute-keymap)

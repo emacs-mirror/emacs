@@ -51,7 +51,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
    A note about references to UAX#9 rules: if the reference says
    something like "X9/Retaining", it means that you need to refer to
-   rule X9 and to its modifications decribed in the "Implementation
+   rule X9 and to its modifications described in the "Implementation
    Notes" section of UAX#9, under "Retaining Format Codes".  */
 
 #include <config.h>

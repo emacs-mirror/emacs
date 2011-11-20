@@ -97,8 +97,8 @@ use the same autoconf form.")
    (objectextention :initarg :objectextention
 		    :type string
 		    :documentation
-		    "A string which is the extention used for object files.
-For example, C code uses .o on unix, and Emacs Lisp uses .elc.")
+		    "A string which is the extension used for object files.
+For example, C code uses .o on Unix, and Emacs Lisp uses .elc.")
    )
   "A program used to compile or link a program via a Makefile.
 Contains everything needed to output code into a Makefile, or autoconf

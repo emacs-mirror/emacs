@@ -27,7 +27,7 @@
 (declare-function inversion-check-version "inversion")
 
 (defvar cedet-global-min-version "5.0"
-  "Minimum version of GNU global required.")
+  "Minimum version of GNU Global required.")
 
 (defcustom cedet-global-command "global"
   "Command name for the GNU Global executable."
@@ -131,8 +131,8 @@ If a default starting DIR is not specified, the current buffer's
 
 (defun cedet-gnu-global-version-check (&optional noerror)
   "Check the version of the installed GNU Global command.
-If optional programatic argument NOERROR is non-nil, then
-instead of throwing an error if Global isn't available, then
+If optional programmatic argument NOERROR is non-nil,
+then instead of throwing an error if Global isn't available,
 return nil."
   (interactive)
   (require 'inversion)

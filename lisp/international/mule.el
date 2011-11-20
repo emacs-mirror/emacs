@@ -1572,7 +1572,7 @@ of `ctext-non-standard-encodings-alist'.")
 ;; character in CHARSET is encoded using extended segment.  In the
 ;; latter case, a character in CHARSET is encoded using normal ISO2022
 ;; designation sequence.  If a character is not in any of CHARSETs, it
-;; is encoded using UTF-8 encoding extention.
+;; is encoded using UTF-8 encoding extension.
 
 (defun ctext-non-standard-encodings-table ()
   (let* ((table (append ctext-non-standard-encodings
@@ -1656,7 +1656,7 @@ in-place."
 		      (insert 2)))
 		;; Encode this range as characters in CHARSET.
 		(put-text-property last-pos (point) 'charset charset))
-	    ;; Encode this range using UTF-8 encoding extention.
+	    ;; Encode this range using UTF-8 encoding extension.
 	    (encode-coding-region last-pos (point) 'mule-utf-8)
 	    (save-excursion
 	      (goto-char last-pos)

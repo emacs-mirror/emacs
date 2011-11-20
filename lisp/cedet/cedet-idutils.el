@@ -84,7 +84,7 @@ Note: Scope is not yet supported."
 
 (defun cedet-idutils-fnid-call (flags)
   "Call ID Utils fnid with the list of FLAGS.
-Return the created buffer with with program output."
+Return the created buffer with program output."
   (let ((b (get-buffer-create "*CEDET fnid*"))
 	(cd default-directory)
 	)
@@ -112,7 +112,7 @@ Return the created buffer with with program output."
 
 (defun cedet-idutils-mkid-call (flags)
   "Call ID Utils mkid with the list of FLAGS.
-Return the created buffer with with program output."
+Return the created buffer with program output."
   (let ((b (get-buffer-create "*CEDET mkid*"))
 	(cd default-directory)
 	)
@@ -163,8 +163,8 @@ the error code."
 
 (defun cedet-idutils-version-check (&optional noerror)
   "Check the version of the installed ID Utils command.
-If optional programatic argument NOERROR is non-nil, then
-instead of throwing an error if Global isn't available, then
+If optional programmatic argument NOERROR is non-nil,
+then instead of throwing an error if Global isn't available,
 return nil."
   (interactive)
   (require 'inversion)

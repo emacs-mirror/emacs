@@ -8765,7 +8765,7 @@ x_wait_for_event (struct frame *f, int eventtype)
   pending_event_wait.f = f;
   pending_event_wait.eventtype = eventtype;
 
-  /* Set timeout to 0.1 second.  Hopefully not noticable.
+  /* Set timeout to 0.1 second.  Hopefully not noticeable.
      Maybe it should be configurable.  */
   EMACS_SET_SECS_USECS (tmo, 0, 100000);
   EMACS_GET_TIME (tmo_at);

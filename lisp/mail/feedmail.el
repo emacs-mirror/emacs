@@ -2261,9 +2261,9 @@ the counts."
   (while (string-match feedmail-queue-slug-suspect-regexp slug) (setq slug (replace-match "-" nil nil slug)))
   ;; collapse multiple hyphens to one
   (while (string-match "--+" slug) (setq slug (replace-match "-" nil nil slug)))
-  ;; for tidyness, peel off leading hyphens
+  ;; for tidiness, peel off leading hyphens
   (if (string-match "^-*" slug) (setq slug (replace-match "" nil nil slug)))
-  ;; for tidyness, peel off trailing hyphens
+  ;; for tidiness, peel off trailing hyphens
   (if (string-match "-*$" slug) (setq slug (replace-match "" nil nil slug)))
   slug
   )

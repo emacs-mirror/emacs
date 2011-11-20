@@ -1,3 +1,10 @@
+2011-11-20  Juanma Barranquero  <lekktu@gmail.com>
+
+	* progmodes/cwarn.el (cwarn-is-enabled, cwarn-font-lock-keywords):
+	* progmodes/pascal.el (electric-pascal-equal):
+	* textmodes/reftex-dcr.el (reftex-view-crossref-from-bibtex):
+	* xml.el (xml-substitute-special): Fix typos.
+
 2011-11-20  Glenn Morris  <rgm@gnu.org>
 
 	* mail/rmail.el (rmail-enable-mime-composing): Make it a defcustom.

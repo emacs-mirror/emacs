@@ -2082,7 +2082,7 @@ that case, find the charset from what supported by that coding system.  */)
 DEFUN ("charset-after", Fcharset_after, Scharset_after, 0, 1, 0,
        doc: /*
 Return charset of a character in the current buffer at position POS.
-If POS is nil, it defauls to the current point.
+If POS is nil, it defaults to the current point.
 If POS is out of range, the value is nil.  */)
   (Lisp_Object pos)
 {

@@ -6089,7 +6089,7 @@
 	shrink below the minimum, this code would only try to delete it if
 	it had a parent.  Well, even if the window doesn't have a parent,
 	you want Fdelete_window to signal an error, since you're trying to
-	resize one of the undeleteable windows into nothingness.  So call
+	resize one of the undeletable windows into nothingness.  So call
 	Fdelete_window even if the window doesn't have a parent.
 
 	* window.c (MINSIZE): Add kludge so that the minibuffer is always

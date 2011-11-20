@@ -1,3 +1,27 @@
+2011-11-20  Juanma Barranquero  <lekktu@gmail.com>
+
+	* cedet-cscope.el (cedet-cscope-version-check):
+	* cedet-global.el (cedet-global-min-version)
+	(cedet-gnu-global-version-check):
+	* cedet.el (cedet-version):
+	* data-debug.el (data-debug-prev, data-debug-contract-current-line):
+	* ede.el (ede-buffer-belongs-to-project-p, ede-auto-add-to-target)
+	(ede-new, ede-invoke-method, project-edit-file-target, project-rescan)
+	(ede-add-project-to-global-list, ede-map-all-subprojects):
+	* inversion.el (inversion-check-version):
+	* mode-local.el (mode-local-map-file-buffers, define-child-mode)
+	(define-overloadable-function):
+	* pulse.el (pulse-flag, pulse):
+	* semantic.el (semantic-elapsed-time, semantic-parse-region)
+	(navigate-menu):
+	* ede/proj-comp.el (ede-compilation-program):
+	* semantic/debug.el (semantic-debug-parser-go)
+	(semantic-debug-parser-fail, semantic-debug-parser-quit)
+	(semantic-debug-parser-abort):
+	* semantic/idle.el (semantic-idle-core-handler):
+	* semantic/bovine/debug.el (semantic-bovine-debug-error-frame):
+	Fix typos.
+
 2011-11-16  Juanma Barranquero  <lekktu@gmail.com>
 
 	* semantic/lex.el (semantic-lex-tokens):

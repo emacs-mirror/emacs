@@ -1,3 +1,7 @@
+2011-11-20  Juanma Barranquero  <lekktu@gmail.com>
+
+	* org-table.el (org-table-line-to-dline): Fix typo.
+
 2011-11-16  Juanma Barranquero  <lekktu@gmail.com>
 
 	* org-agenda.el (org-agenda-add-entry-text-descriptive-links)
@@ -6185,8 +6189,8 @@
 2010-11-11  Carsten Dominik  <carsten.dominik@gmail.com>
 
 	* org-indent.el (org-indent-add-properties):
-	Use `with-silent-modificatons'.
-	(org-indent-remove-properties): Use `with-silent-modificatons'.
+	Use `with-silent-modifications'.
+	(org-indent-remove-properties): Use `with-silent-modifications'.
 
 2010-11-11  Carsten Dominik  <carsten.dominik@gmail.com>
 
@@ -13637,7 +13641,7 @@
 2009-08-06  Carsten Dominik  <carsten.dominik@gmail.com>
 
 	* org.el (org-remove-empty-overlays-at)
-	(org-clean-visibility-after-subtree-move): New functons.
+	(org-clean-visibility-after-subtree-move): New functions.
 	(org-move-subtree-down): Simplify cleanup of display.
 
 2009-08-06  Carsten Dominik  <carsten.dominik@gmail.com>
@@ -15201,7 +15205,7 @@
 
 	* org-exp.el (org-export-as-html): Use IDs in the correct way.
 
-	* org.el (org-uuidgen-p): New funtion.
+	* org.el (org-uuidgen-p): New function.
 
 	* org-agenda.el (org-agenda-fontify-priorities): New default value
 	`cookies'.
@@ -17067,7 +17071,7 @@
 	(org-file-apps-defaults-macosx): Let PostScript files be opened by
 	preview.
 	(org-time-stamp-inactive): Call `org-time-stamp'.
-	(org-time-stamp): New argument `inactive'.  Also edit inacive
+	(org-time-stamp): New argument `inactive'.  Also edit inactive
 	stamps.  Convert time stamp type.
 	(org-open-file): Interpret the `default' value for the `command'
 	in `org-file-apps'.

@@ -1892,7 +1892,7 @@ boyer_moore (EMACS_INT n, unsigned char *base_pat,
 			       || CHAR_HEAD_P (cursor[1]))
 			      && (CHAR_HEAD_P (cursor[0])
 				  /* Check if this is the last byte of
-				     a translable character.  */
+				     a translatable character.  */
 				  || (translate_prev_byte1 == cursor[-1]
 				      && (CHAR_HEAD_P (translate_prev_byte1)
 					  || (translate_prev_byte2 == cursor[-2]
@@ -1991,7 +1991,7 @@ boyer_moore (EMACS_INT n, unsigned char *base_pat,
 			   || CHAR_HEAD_P (ptr[1]))
 			  && (CHAR_HEAD_P (ptr[0])
 			      /* Check if this is the last byte of a
-				 translable character.  */
+				 translatable character.  */
 			      || (translate_prev_byte1 == ptr[-1]
 				  && (CHAR_HEAD_P (translate_prev_byte1)
 				      || (translate_prev_byte2 == ptr[-2]

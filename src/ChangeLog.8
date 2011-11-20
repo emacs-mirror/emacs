@@ -2723,7 +2723,7 @@
 	(CURSOR_FACE_ID, MOUSE_FACE_ID): New.
 
 	* xfaces.c (Qscroll_bar, Qcursor, Qborder, Qmouse): New.
-	(syms_of_xfaces): Intialize new symbols.
+	(syms_of_xfaces): Initialize new symbols.
 
 	* fns.c (Fmakehash): Take one argument, test, make all the
 	rest keyword arguments.
@@ -9227,7 +9227,7 @@
 	* xdisp.c (store_frame_title_char): New function to store a
 	single character for the frame title with re-allocation of
 	frame_title_buf.
-	(init_xdisp): Intialize frame_title_.* variables to null.
+	(init_xdisp): Initialize frame_title_.* variables to null.
 
 	* dispnew.c (quit_error_check): Removed.
 
@@ -12321,7 +12321,7 @@
 	(enumfont_t): Remove unused head pointer.
 	(enum_font_cb2): Dereference elfLogFont.
 	(w32_list_bdf_fonts): New function.
-	(w32_list_fonts): Use one_w32_dispay_info instead of insisting on
+	(w32_list_fonts): Use one_w32_display_info instead of insisting on
 	valid frame.  Remove MessageBox.  Support BDF fonts.
 	(Fw32_find_bdf_fonts): New function.
 	(syms_of_w32fns): Add Vw32_bdf_filename_alist and

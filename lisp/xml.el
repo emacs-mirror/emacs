@@ -756,7 +756,7 @@ This follows the rule [28] in the XML specifications."
 ;;*******************************************************************
 
 (defun xml-substitute-special (string)
-  "Return STRING, after subsituting entity references."
+  "Return STRING, after substituting entity references."
   ;; This originally made repeated passes through the string from the
   ;; beginning, which isn't correct, since then either "&amp;amp;" or
   ;; "&#38;amp;" won't DTRT.
