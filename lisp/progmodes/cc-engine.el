@@ -2548,7 +2548,7 @@ comment at the start of cc-engine.el for more info."
 			c-state-cache)))
 	;; N.B.  This defsubst codes one method for the simple, normal case,
 	;; and a more sophisticated, slower way for the general case.  Don't
-	;; eliminate this defsubst - it's a speed optimisation.
+	;; eliminate this defsubst - it's a speed optimization.
 	(c-append-lower-brace-pair-to-state-cache (1- bra+1)))))
 
 (defun c-append-to-state-cache (from)
@@ -2788,7 +2788,7 @@ comment at the start of cc-engine.el for more info."
   ;;
   ;; This function must only be called only when (> `c-state-cache-good-pos'
   ;; HERE).  Usually the gap between CACHE-POS and HERE is large.  It is thus
-  ;; optimised to eliminate (or minimize) scanning between these two
+  ;; optimized to eliminate (or minimize) scanning between these two
   ;; positions.
   ;;
   ;; Return a three element list (GOOD-POS SCAN-BACK-POS FWD-FLAG), where:
@@ -4233,9 +4233,9 @@ comment at the start of cc-engine.el for more info."
 ;; fails to take account of the change of the s-t property on the opening / to
 ;; "string", and reports that the { is within a string started by the second /.
 ;;
-;; The workaround for this is for the AWK Mode initialisation to switch the
+;; The workaround for this is for the AWK Mode initialization to switch the
 ;; defalias for c-in-literal to c-slow-in-literal.  This will slow down other
-;; cc-modes in XEmacs whenever an awk-buffer has been initialised.
+;; cc-modes in XEmacs whenever an awk-buffer has been initialized.
 ;;
 ;; (Alan Mackenzie, 2003/4/30).
 
@@ -4904,7 +4904,7 @@ comment at the start of cc-engine.el for more info."
 	    (setq cfd-prop-match nil))
 
 	(when (/= cfd-macro-end 0)
-	  ;; Restore limits if we did macro narrowment above.
+	  ;; Restore limits if we did macro narrowing above.
 	  (narrow-to-region (point-min) cfd-buffer-end)))
 
       (goto-char cfd-continue-pos)
@@ -7100,7 +7100,7 @@ comment at the start of cc-engine.el for more info."
   ;;   colon).  Currently (2006-03), this applies only to Objective C's
   ;;   keywords "@private", "@protected", and "@public".  Returns t.
   ;;
-  ;; One of the things which will NOT be recognised as a label is a bit-field
+  ;; One of the things which will NOT be recognized as a label is a bit-field
   ;; element of a struct, something like "int foo:5".
   ;;
   ;; The end of the label is taken to be just after the colon, or the end of
@@ -9582,7 +9582,7 @@ comment at the start of cc-engine.el for more info."
 	    (c-add-syntax 'inher-cont (c-point 'boi)))
 
 	   ;; CASE 5D.5: Continuation of the "expression part" of a
-	   ;; top level construct.  Or, perhaps, an unrecognised construct.
+	   ;; top level construct.  Or, perhaps, an unrecognized construct.
 	   (t
 	    (while (and (setq placeholder (point))
 			(eq (car (c-beginning-of-decl-1 containing-sexp))
@@ -9593,7 +9593,7 @@ comment at the start of cc-engine.el for more info."
 			(< (point) placeholder)))
 	    (c-add-stmt-syntax
 	     (cond
-	      ((eq (point) placeholder) 'statement) ; unrecognised construct
+	      ((eq (point) placeholder) 'statement) ; unrecognized construct
 	      ;; A preceding comma at the top level means that a
 	      ;; new variable declaration starts here.  Use
 	      ;; topmost-intro-cont for it, for consistency with

@@ -3033,7 +3033,7 @@
 	more people.
 
 	* cus-edit.el (custom-file): When running under emacs -q, always
-	refuse to save the customisations, even if the .emacs file doesn't
+	refuse to save the customizations, even if the .emacs file doesn't
 	exist.
 
 	* info.el: Remove the `Info-beginning-of-buffer' function

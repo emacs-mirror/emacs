@@ -5896,7 +5896,7 @@
 	* eval.c (Feval, Ffuncall): Use the new names.
 
 	* lisp.h (struct Lisp_Subr): Rename `am' to aMANY and add aUNEVALLED.
-	(DEFUN): Add braces around the union initialisation and use ## to
+	(DEFUN): Add braces around the union initialization and use ## to
 	specify the right union alternative and avoid a cast.
 
 2010-07-18  Juanma Barranquero  <lekktu@gmail.com>
@@ -9266,7 +9266,7 @@
 
 	Get rid of the direct_output optimizations.
 	* keyboard.c (nonundocount): Remove extern declaration.
-	(command_loop_1): Remove brittle optimisation for cheap and
+	(command_loop_1): Remove brittle optimization for cheap and
 	common operations.
 	* xdisp.c (redisplay_internal): Don't bother checking
 	redisplay_performed_directly_p any more.
@@ -12481,7 +12481,7 @@
 
 	* dbusbind.c (XD_SYMBOL_TO_DBUS_TYPE): Convert macro into function
 	xd_symbol_to_dbus_type.  With Solaris 2.11, it was said to compile
-	for hours, when optimzation is enabled.
+	for hours, when optimization is enabled.
 	(xd_signature, xd_append_arg, xd_retrieve_arg, xd_initialize)
 	(xd_read_message): Make them static.
 
@@ -16072,7 +16072,7 @@
 2008-09-07  Andreas Schwab  <schwab@suse.de>
 
 	* callproc.c (Fcall_process): Don't hold references to string data
-	across garbage collection.  Move initialisation of new_argv down
+	across garbage collection.  Move initialization of new_argv down
 	to avoid compiler bug.
 
 2008-09-07  Roland Winkler  <Roland.Winkler@physik.uni-erlangen.de>
@@ -19248,7 +19248,7 @@
 	* w32menu.c (Fx_popup_menu): Unwind protect while building menu.
 	(parse_single_submenu): Remove.
 	(digest_single_submenu): Remove.
-	(syms_of_w32menu): Don't initialise variables that have moved
+	(syms_of_w32menu): Don't initialize variables that have moved
 	to menu.c.
 	(set_frame_menubar): Sync with version in xmenu.c.
 	(w32_menu_show): Sync with xmenu_show in xmenu.c.
@@ -21290,7 +21290,7 @@
 	(CACHE_BLOCKSIZE): New constants.
 
 	* w32font.c (Qja, Qko, Qzh): New symbols.
-	(syms_of_w32font): Initialise them.
+	(syms_of_w32font): Initialize them.
 	(font_matches_spec): Use them to filter by language.
 	(recompute_cached_metrics): Remove function.
 	(compute_metrics, clear_cached_metrics): New functions.
@@ -29651,7 +29651,7 @@
 
 	* callproc.c (child_setup, getenv_internal): Use the
 	display-environment-variable and term-environment-variable frame params.
-	(set_initial_environment): Initialise Vprocess_environment.
+	(set_initial_environment): Initialize Vprocess_environment.
 
 	* config.in: Disable multi-keyboard support on a mac.
 
@@ -31298,7 +31298,7 @@
 	(term_mouse_highlight, term_mouse_movement, term_mouse_position)
 	(term_mouse_click, handle_one_term_event, Fterm_open_connection)
 	(Fterm_close_connection): New functions.
-	(term_init): Initialise mouse_face_window.
+	(term_init): Initialize mouse_face_window.
 
 2007-05-19  Chong Yidong  <cyd@stupidchicken.com>
 

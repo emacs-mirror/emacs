@@ -111,9 +111,9 @@
 ;; setup a lot easier.
 ;;
 ;; folding.el by Jamie Lokier <u90jl@ecs.ox.ac.uk> supports folding by
-;; recognising special marker text in you file.
+;; recognizing special marker text in you file.
 ;;
-;; c-outline.el (by me) provides outline-mode support to recognise `C'
+;; c-outline.el (by me) provides outline-mode support to recognize `C'
 ;; statements as outline headings, so with foldout you can have a folding `C'
 ;; code editor without having to put in start- and end-of-fold markers.  This
 ;; is a real winner!

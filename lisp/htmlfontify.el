@@ -1,4 +1,4 @@
-;;; htmlfontify.el --- htmlise a buffer/source tree with optional hyperlinks
+;;; htmlfontify.el --- htmlize a buffer/source tree with optional hyperlinks
 
 ;; Copyright (C) 2002-2003, 2009-2011  Free Software Foundation, Inc.
 
@@ -10,7 +10,7 @@
 ;; Author: Vivek Dasmohapatra <vivek@etla.org>
 ;; Maintainer: Vivek Dasmohapatra <vivek@etla.org>
 ;; Created: 2002-01-05
-;; Description: htmlise a buffer/source tree with optional hyperlinks
+;; Description: htmlize a buffer/source tree with optional hyperlinks
 ;; URL: http://rtfm.etla.org/emacs/htmlfontify/
 ;; Compatibility: Emacs23, Emacs22
 ;; Incompatibility: Emacs19, Emacs20, Emacs21
@@ -1576,7 +1576,7 @@ FILE, if set, is the file name."
       (delete-overlay rovl))
     (copy-to-buffer html-buffer (point-min) (point-max))
     (set-buffer     html-buffer)
-    ;; rip out props that could interfere with our htmlisation of the buffer:
+    ;; rip out props that could interfere with our htmlization of the buffer:
     (remove-text-properties (point-min) (point-max) hfy-ignored-properties)
     ;; Apply overlay invisible spec
     (setq orig-ovls
@@ -2026,13 +2026,13 @@ FILE is the specific file we are rendering."
         (hash-entry nil) (tag-string nil) (tag-line   nil)
         (tag-point  nil) (new-entry  nil) (etags-file nil))
 
-    ;; (re)initialise the tag reverse map:
+    ;; (re)initialize the tag reverse map:
     (if trmap-cache (setq trmap-hash (cadr trmap-cache))
       (setq trmap-hash (make-hash-table :test 'equal))
       (setq hfy-tags-rmap (list (list srcdir trmap-hash) hfy-tags-rmap)))
     (clrhash trmap-hash)
 
-    ;; (re)initialise the tag cache:
+    ;; (re)initialize the tag cache:
     (if cache-entry (setq cache-hash (cadr cache-entry))
       (setq cache-hash (make-hash-table :test 'equal))
       (setq hfy-tags-cache (list (list srcdir cache-hash) hfy-tags-cache)))

@@ -519,7 +519,7 @@ exist to customize these feature for different Lisp implementations.
 
 ** C-x p now disabled.
 
-The command C-x p, a nonrecomended command which narrows to the current
+The command C-x p, a nonrecommended command which narrows to the current
 page, is now initially disabled like C-x n.
 
 * Dealing with files.
@@ -1620,4 +1620,3 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
 Local variables:
 mode: text
 end:
-

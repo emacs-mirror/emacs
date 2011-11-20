@@ -61,14 +61,14 @@
 ;;
 ;;      The TODO list file has a special format and some auxiliary
 ;;      information, which will be added by the todo-show function if
-;;      it attempts to visit an un-initialised file.  Hence it is
+;;      it attempts to visit an un-initialized file.  Hence it is
 ;;      recommended to use the todo-show function for the first time,
-;;      in order to initialise the file, but it is not necessary
+;;      in order to initialize the file, but it is not necessary
 ;;      afterwards.
 ;;
 ;;      As these commands are quite long to type, I would recommend
 ;;      the addition of two bindings to your to your global keymap.  I
-;;      personally have the following in my initialisation file:
+;;      personally have the following in my initialization file:
 ;;
 ;;          (global-set-key "\C-ct" 'todo-show)  ; switch to TODO buffer
 ;;	    (global-set-key "\C-ci" 'todo-insert-item) ; insert new item

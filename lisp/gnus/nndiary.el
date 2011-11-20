@@ -55,7 +55,7 @@
 
 ;; * nnoo. NNDiary is very similar to nnml. This makes the idea of using nnoo
 ;;   (to derive nndiary from nnml) natural. However, my experience with nnoo
-;;   is that for reasonably complex back ends like this one, noo is a burden
+;;   is that for reasonably complex back ends like this one, nnoo is a burden
 ;;   rather than an help. It's tricky to use, not everything can be inherited,
 ;;   what can be inherited and when is not very clear, and you've got to be
 ;;   very careful because a little mistake can fuck up your other back ends,
@@ -1320,7 +1320,7 @@ all.  This may very well take some time.")
       (or minute (setq minute 59))
       (or hour (setq hour 23))
       ;; I'll just compute all possible values and test them by decreasing
-      ;; order until one succeeds. This is probably quide rude, but I got
+      ;; order until one succeeds. This is probably quite rude, but I got
       ;; bored in finding a good algorithm for doing that ;-)
       ;; ### FIXME: remove identical entries.
       (let ((dom-list (nth 2 sched))

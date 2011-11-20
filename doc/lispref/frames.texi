@@ -953,7 +953,7 @@ variable, Emacs uses the latter.  By default,
 The @code{alpha} frame parameter can also be a cons cell
 @code{(@samp{active} . @samp{inactive})}, where @samp{active} is the
 opacity of the frame when it is selected, and @samp{inactive} is the
-opactity when it is not selected.
+opacity when it is not selected.
 @end table
 
 The following frame parameters are semi-obsolete in that they are

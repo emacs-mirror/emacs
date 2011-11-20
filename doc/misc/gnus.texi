@@ -21228,7 +21228,7 @@ features (inspired by the Google search input language):
 AND, OR, and NOT are supported, and parentheses can be used to control
 operator precedence, e.g. (emacs OR xemacs) AND linux. Note that
 operators must be written with all capital letters to be
-recognised. Also preceding a term with a - sign is equivalent to NOT
+recognized. Also preceding a term with a - sign is equivalent to NOT
 term.
 
 @item Automatic AND queries
@@ -21273,7 +21273,7 @@ Gmane queries follow a simple query language:
 AND, OR, NOT (or AND NOT), and XOR are supported, and brackets can be
 used to control operator precedence, e.g. (emacs OR xemacs) AND linux.
 Note that operators must be written with all capital letters to be
-recognised.
+recognized.
 
 @item Required and excluded terms
 + and - can be used to require or exclude terms, e.g. football -american

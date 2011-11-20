@@ -368,7 +368,7 @@ Optional argument PARENT is a tag parent of STREAM."
                      semantic-imenu-expandable-tag-classes)
 	       children
                )
-          ;; to keep an homogeneous menu organisation, type menu items
+          ;; to keep an homogeneous menu organization, type menu items
           ;; always have a sub-menu with at least the *definition*
           ;; item (even if the tag has no type components)
 	  (progn

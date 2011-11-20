@@ -3232,7 +3232,7 @@ FORCE is equivalent to setting the expiration predicates to true."
 
 	 ;; Convert the keep lists to elements that look like (article#
 	 ;; nil keep_flag nil) then append it to the expanded dlist
-	 ;; These statements are sorted by ascending precidence of the
+	 ;; These statements are sorted by ascending precedence of the
 	 ;; keep_flag.
 	 (setq dlist (nconc dlist
 			    (mapcar (lambda (e)

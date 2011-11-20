@@ -1315,7 +1315,7 @@ Newlines in the data are escaped."
 	      (setq formula (cadr formula)))
 	  (if (eq (car-safe printer) 'ses-safe-printer)
 	      (setq printer (cadr printer)))
-	  ;; This is noticably faster than (format "%S %S %S %S %S")
+	  ;; This is noticeably faster than (format "%S %S %S %S %S")
 	  (setq text    (concat "(ses-cell "
 				(symbol-name sym)
 				" "
@@ -2720,7 +2720,7 @@ When inserting cells, the formulas are usually relocated to keep the same
 relative references to neighboring cells.  This is best if the formulas
 generally refer to other cells within the yanked text.  You can use the C-u
 prefix to specify insertion without relocation, which is best when the
-formulas refer to cells outsite the yanked text.
+formulas refer to cells outside the yanked text.
 
 When inserting formulas, the text is treated as a string constant if it doesn't
 make sense as a sexp or would otherwise be considered a symbol.  Use 'sym to

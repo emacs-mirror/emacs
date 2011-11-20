@@ -14189,7 +14189,7 @@
 2008-04-19  Nick Roberts  <nickrob@snap.net.nz>
 
 	* progmodes/gdb-ui.el (gdb-thread-indicator): New variable.
-	(gdb-init-1): Initialise it.
+	(gdb-init-1): Initialize it.
 	(gdb-annotation-rules): New entry for "new-thread".
 	(gdb-thread-identification): New function to customize
 	mode-line-buffer-identification.
@@ -15994,11 +15994,11 @@
 2008-04-02  Alan Mackenzie  <acm@muc.de>
 
 	* progmodes/cc-cmds.el (c-defun-name, c-cpp-define-name):
-	New optimised functions to get the name of the current defun/macro.
+	New optimized functions to get the name of the current defun/macro.
 
 	* add-log.el (add-log-current-defun): Move the functionality which
 	gets the current function name for C like modes to cc-cmds.el,
-	thus optimising for speed.
+	thus optimizing for speed.
 
 2008-04-02  Chong Yidong  <cyd@stupidchicken.com>
 
@@ -19392,7 +19392,7 @@
 	* progmodes/cc-mode.el (c-basic-common-init): C and ObjC now use
 	syntax-table text properties.
 	(c-common-init): Call language specific before/after-change
-	functions at mode initialisation.
+	functions at mode initialization.
 	(c-new-BEG, c-new-END, c-old-BOM, c-old-EOM): New variables.
 	(c-extend-region-for-CPP, c-neutralize-CPP-line)
 	(c-neutralize-syntax-in-CPP): New functions.

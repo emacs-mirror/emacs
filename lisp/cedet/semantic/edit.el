@@ -392,7 +392,7 @@ See `semantic-edits-change-leaf-tag' for details on parents."
 	      ;; There are no tags left, and all tags originally
 	      ;; found are encompassed by the change.  Setup our list
 	      ;; from the cache
-	      (setq list-to-search semantic--buffer-cache);; We have a tag ouside the list.  Check for
+	      (setq list-to-search semantic--buffer-cache);; We have a tag outside the list.  Check for
 	    ;; We know we have a parent because it would
 	    ;; completely cover the change.  A tag can only
 	    ;; do that if it is a parent after we get here.

@@ -183,7 +183,7 @@ incorrectly, as separate from the modified glyphs.")
 	 "˚"])	;; +Unexploded modifier			U+02DA
  ("<r>" "ʳ")	;; +Rhotacized modifier			U+02B3
  ("<w>" "ʷ")	;; +Labialized modifier			U+02B7
- ("<?>" "ʱ")	;; +Murmured modififer			U+02B1
+ ("<?>" "ʱ")	;; +Murmured modifier			U+02B1
 
  ("b<trl>" "ʙ")	;; Bilabial trill			U+0299
  ("b`" "ɓ")	;; Bilabial implosive			U+0253
@@ -465,8 +465,8 @@ displays them, incorrectly, as separate from the modified glyphs.")
  ("_}" "̚")	;; No audible release			U+031A
  ;; ` is alternatively; retroflexion in consonants
  ("`" "˞")	;; Rhotacization in vowels		U+02DE
- ("_~" "̃")	;; Nasalisation				U+0303
- ("~" "̃")	;; Nasalisation				U+0303
+ ("_~" "̃")	;; Nasalization				U+0303
+ ("~" "̃")	;; Nasalization				U+0303
  ("_A" "̘")	;; Advanced tongue root			U+0318
  ("_a" "̺")	;; Apical				U+033A
  ("_B" "̏")	;; Extra low tone			U+030F

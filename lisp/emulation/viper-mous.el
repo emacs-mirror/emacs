@@ -95,7 +95,7 @@ considered related."
 
 ;; remembers prefix argument to pass along to commands invoked by second
 ;; click.
-;; This is needed because in Emacs (not XEmacs), assigning to preix-arg
+;; This is needed because in Emacs (not XEmacs), assigning to prefix-arg
 ;; causes Emacs to count the second click as if it was a single click
 (defvar viper-global-prefix-argument nil)
 

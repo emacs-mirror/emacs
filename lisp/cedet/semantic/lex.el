@@ -1362,11 +1362,11 @@ Return either a paren token or a semantic list token depending on
     ))
 
 (define-lex-simple-regex-analyzer semantic-lex-open-paren
-  "Detect and create an open parenthisis token."
+  "Detect and create an open parenthesis token."
   "\\s(" 'open-paren 0  (setq semantic-lex-current-depth (1+ semantic-lex-current-depth)))
 
 (define-lex-simple-regex-analyzer semantic-lex-close-paren
-  "Detect and create a close paren token."
+  "Detect and create a close parenthesis token."
   "\\s)" 'close-paren 0 (setq semantic-lex-current-depth (1- semantic-lex-current-depth)))
 
 (define-lex-regex-analyzer semantic-lex-string

@@ -1793,7 +1793,7 @@ Update teeview afterwards unless NO-UPDATE is non-nil."
     result))
 
 (defun newsticker--group-remove-obsolete-feeds (group)
-  "Recursively remove obselete feeds from GROUP."
+  "Recursively remove obsolete feeds from GROUP."
   (let ((result nil)
         (urls (append newsticker-url-list newsticker-url-list-defaults)))
     (mapc (lambda (g)

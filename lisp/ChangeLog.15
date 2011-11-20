@@ -2790,7 +2790,7 @@
 	* net/tramp-gw.el:
 	* net/tramp-imap.el:
 	* net/tramp-sh.el:
-	* net/tramp-smb.el: Add tramp-autoload cookie for initialisation
+	* net/tramp-smb.el: Add tramp-autoload cookie for initialization
 	code of `tramp-default-method-alist' and `tramp-default-user-alist'.
 
 2010-12-29  Karl Fogel  <kfogel@red-bean.com>
@@ -7632,7 +7632,7 @@
 	(post-self-insert-hook): Use it.
 
 	* emacs-lisp/pcase.el (pcase-split-memq):
-	Fix overenthusiastic optimisation.
+	Fix overenthusiastic optimization.
 	(pcase-u1): Handle the case of a lambda pred.
 
 2010-08-31  Kenichi Handa  <handa@m17n.org>
@@ -9381,7 +9381,7 @@
 
 	Fix an indentation bug:
 
-	* progmodes/cc-mode.el (c-common-init): Initialise c-new-BEG/END.
+	* progmodes/cc-mode.el (c-common-init): Initialize c-new-BEG/END.
 	(c-neutralize-syntax-in-and-mark-CPP): c-new-BEG/END: Take account
 	of existing values.
 
@@ -14596,7 +14596,7 @@
 2009-12-05  Kevin Ryde  <user42@zip.com.au>
 
 	* textmodes/sgml-mode.el (sgml-lexical-context):
-	Recognise comment-start-skip to comment-end-skip as comment (Bug#4781).
+	Recognize comment-start-skip to comment-end-skip as comment (Bug#4781).
 
 2009-12-05  Juri Linkov  <juri@jurta.org>
 

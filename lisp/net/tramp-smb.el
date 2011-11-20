@@ -480,7 +480,7 @@ PRESERVE-UID-GID and PRESERVE-SELINUX-CONTEXT are completely ignored."
     ;; Dissect NAME.
     (with-parsed-tramp-file-name name nil
       ;; Tilde expansion if necessary.  We use the user name as share,
-      ;; which is offen the case in domains.
+      ;; which is often the case in domains.
       (when (string-match "\\`/?~\\([^/]*\\)" localname)
 	(setq localname
 	      (replace-match

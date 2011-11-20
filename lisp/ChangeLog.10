@@ -1036,13 +1036,13 @@
 
 2003-06-29  Nick Roberts  <nick@nick.uklinux.net>
 
-	* gdb-ui.el (gdb-display-number-end): Don't re-initialise local
+	* gdb-ui.el (gdb-display-number-end): Don't re-initialize local
 	variables to preserve array slices.
 	(gdb-array-slice): Rename gdb-mouse-array-slice.
 	(gdb-array-slice): Interactive function bound to "\r" for text
 	terminals.
 	(gdb-view-source): Rename gdb-view-source-function.
-	Set uninitialised variables (defvars) to nil.
+	Set uninitialized variables (defvars) to nil.
 
 2003-06-29  Kai Großjohann  <kai.grossjohann@gmx.net>
 
@@ -2149,7 +2149,7 @@
 
 2003-05-25  Kevin Ryde  <user42@zip.com.au>
 
-	* info-look.el (autoconf-mode setups): Recognise AH_ and AU_ entries
+	* info-look.el (autoconf-mode setups): Recognize AH_ and AU_ entries
 	in "(autoconf)Autoconf Macro Index".  Add "(autoconf)M4 Macro Index"
 	and "(autoconf)Autotest Macro Index".  Remove duplicate copy of
 	"(automake)Macro and Variable Index".  Keep automake after all
@@ -14917,7 +14917,7 @@
 
 2002-05-14  Francesco Potortì  <pot@gnu.org>
 
-	* shell.el (shell-mode): Make second part of initialisation
+	* shell.el (shell-mode): Make second part of initialization
 	depend on whether comint-input-ring is empty, rather than depend
 	on it being nil.
 
@@ -22669,7 +22669,7 @@
 
 	Suggested by Kalle Olavi Niemitalo <kon@iki.fi>:
 
-	* vc-hooks.el (vc-error-occured): Backquotified.
+	* vc-hooks.el (vc-error-occurred): Backquotified.
 	(vc-file-prop-obarray): Use prime length for better efficiency.
 
 	* vc.el (vc-clear-context): Fill obarray with 0, not nil.

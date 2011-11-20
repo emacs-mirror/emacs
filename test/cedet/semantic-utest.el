@@ -170,7 +170,7 @@ def fun2(a,b,c): #1
 
 
 )
-;  "pyhon test case. notice that python is indentation sensitive
+;  "python test case. notice that python is indentation sensitive
 
 
 (defvar semantic-utest-Python-name-contents

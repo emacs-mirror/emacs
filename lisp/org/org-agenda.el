@@ -1619,7 +1619,7 @@ Where CATEGORY-REGEXP is a regexp matching the categories where
 the icon should be displayed.
 FILE-OR-DATA either a file path or a string containing image data.
 
-The other fields can be omited safely if not needed:
+The other fields can be omitted safely if not needed:
 TYPE indicates the image type.
 DATA-P is a boolean indicating whether the FILE-OR-DATA string is
 image data.

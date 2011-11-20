@@ -89,7 +89,7 @@
 ;;         comint-strip-ctrl-m		Remove trailing ^Ms from output
 ;;
 ;; The shell mode hook is shell-mode-hook
-;; comint-prompt-regexp is initialised to shell-prompt-pattern, for backwards
+;; comint-prompt-regexp is initialized to shell-prompt-pattern, for backwards
 ;; compatibility.
 
 ;; Read the rest of this file for more information.

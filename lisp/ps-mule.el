@@ -1010,7 +1010,7 @@ the sequence."
 	  ps-mule-external-libraries))
 
 (defun ps-mule-encode-header-string (string fonttag)
-  "Generate PostScript code for ploting STRING by font FONTTAG.
+  "Generate PostScript code for plotting STRING by font FONTTAG.
 FONTTAG should be a string \"/h0\", \"/h1\", \"/L0\", or \"/H0\".
 Any other value is treated as \"/H0\"."
   (with-temp-buffer

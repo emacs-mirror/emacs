@@ -1040,7 +1040,7 @@ relative to `erc-track-switch-direction'"
 		   ((oldest leastactive)
 		    (- (length erc-modified-channels-alist) arg))
 		   (t (1- arg))))
-    ;; normalise out of range user input
+    ;; normalize out of range user input
     (cond ((>= offset (length erc-modified-channels-alist))
 	   (setq offset (1- (length erc-modified-channels-alist))))
 	  ((< offset 0)
@@ -1075,4 +1075,3 @@ switch back to the last non-ERC buffer visited.  Next is defined by
 ;; indent-tabs-mode: t
 ;; tab-width: 8
 ;; End:
-

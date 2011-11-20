@@ -66,7 +66,7 @@ A sample value might look like: `\\(_P\\|_PROTO\\)'.")
 (defvar cc-imenu-c++-generic-expression
   `(
     ;; Try to match ::operator definitions first. Otherwise `X::operator new ()'
-    ;; will be incorrectly recognised as function `new ()' because the regexps
+    ;; will be incorrectly recognized as function `new ()' because the regexps
     ;; work by backtracking from the end of the definition.
     (nil
      ,(concat

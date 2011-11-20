@@ -184,7 +184,7 @@ static int xd_in_read_queued_messages = 0;
 #endif
 
 /* This was a macro.  On Solaris 2.11 it was said to compile for
-   hours, when optimzation is enabled.  So we have transferred it into
+   hours, when optimization is enabled.  So we have transferred it into
    a function.  */
 /* Determine the DBusType of a given Lisp symbol.  OBJECT must be one
    of the predefined D-Bus type symbols.  */

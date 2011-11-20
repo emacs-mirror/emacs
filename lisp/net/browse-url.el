@@ -138,7 +138,7 @@
 ;; M-x browse-url-of-dired-file RET
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;; Customisation (~/.emacs)
+;; Customization (~/.emacs)
 
 ;; To see what variables are available for customization, type
 ;; `M-x set-variable browse-url TAB'.  Better, use
@@ -190,7 +190,7 @@
 ;;
 ;;	(add-hook 'browse-url-of-file-hook 'browse-url-netscape-reload)
 
-;; You may also want to customise browse-url-netscape-arguments, e.g.
+;; You may also want to customize browse-url-netscape-arguments, e.g.
 ;;	(setq browse-url-netscape-arguments '("-install"))
 ;;
 ;; or similarly for the other browsers.

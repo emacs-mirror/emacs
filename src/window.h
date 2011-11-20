@@ -268,7 +268,7 @@ struct window
     /* List of buffers re-shown in this window.  */
     Lisp_Object next_buffers;
 
-    /* An alist with parameteres.  */
+    /* An alist with parameters.  */
     Lisp_Object window_parameters;
 
     /* No Lisp data may follow below this point without changing

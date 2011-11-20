@@ -398,7 +398,7 @@ CALLBACK expects (ENTRIES &optional MORE-TO-COME); see
 	 (with-temp-buffer
 	   (insert-file-contents rej)
 	   (goto-char (point-min))
-	   (looking-at "Conflicts occured, diff3 conflict markers left in file\\.")))))
+	   (looking-at "Conflicts occurred, diff3 conflict markers left in file\\.")))))
 
 (defun vc-arch-delete-rej-if-obsolete ()
   "For use in `after-save-hook'."

@@ -4950,7 +4950,7 @@ the list of recently selected ones."
 
 (defun read-buffer-to-switch (prompt)
   "Read the name of a buffer to switch to, prompting with PROMPT.
-Return the neame of the buffer as a string.
+Return the name of the buffer as a string.
 
 This function is intended for the `switch-to-buffer' family of
 commands since these need to omit the name of the current buffer

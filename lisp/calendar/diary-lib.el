@@ -147,7 +147,7 @@ See the documentation for the function `diary-list-sexp-entries'."
 Nil means there are no comments.  The diary does not display
 parts of entries that are inside comments.  You can use comments
 for whatever you like, e.g. for meta-data that packages such as
-`appt.el' can use.  Comments may not span mutliple lines, and there
+`appt.el' can use.  Comments may not span multiple lines, and there
 can be only one comment on any line.
 See also `diary-comment-end'."
   :version "24.1"

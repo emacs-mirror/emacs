@@ -2962,7 +2962,7 @@ x_default_font_parameter (struct frame *f, Lisp_Object parms)
 
   if (NILP (font_param))
     {
-      /* System font should take precedendce over X resources.  We suggest this
+      /* System font should take precedence over X resources.  We suggest this
          regardless of font-use-system-font because .emacs may not have been
          read yet.  */
       const char *system_font = xsettings_get_system_font ();

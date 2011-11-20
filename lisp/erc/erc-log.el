@@ -50,7 +50,7 @@
 ;;       erc-log-write-after-send t
 ;;       erc-log-write-after-insert t)
 ;;
-;; If you only want to save logs for some buffers, customise the
+;; If you only want to save logs for some buffers, customize the
 ;; variable `erc-enable-logging'.
 
 ;; How it works:
@@ -450,4 +450,3 @@ You can save every individual message by putting this function on
 ;; indent-tabs-mode: t
 ;; tab-width: 8
 ;; End:
-

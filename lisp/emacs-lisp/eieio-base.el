@@ -178,7 +178,7 @@ only one object ever exists."
 ;; calculate path names relative to a given instance.  This will
 ;; make the saved object location independent by converting all file
 ;; references to be relative to the directory the object is saved to.
-;; You must call `eieio-peristent-path-relative' on each file name
+;; You must call `eieio-persistent-path-relative' on each file name
 ;; saved in your object.
 (defclass eieio-persistent ()
   ((file :initarg :file

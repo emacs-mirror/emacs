@@ -122,12 +122,12 @@ new_child (void)
 
   for (cp = child_procs + (child_proc_count-1); cp >= child_procs; cp--)
     if (!CHILD_ACTIVE (cp))
-      goto Initialise;
+      goto Initialize;
   if (child_proc_count == MAX_CHILDREN)
     return NULL;
   cp = &child_procs[child_proc_count++];
 
- Initialise:
+ Initialize:
   memset (cp, 0, sizeof (*cp));
   cp->fd = -1;
   cp->pid = -1;
@@ -821,7 +821,7 @@ sys_spawnve (int mode, char *cmdname, char **argv, char **envp)
 
      The w32 GNU-based library from Cygnus doubles quotes to escape
      them, while MSVC uses backslash for escaping.  (Actually the MSVC
-     startup code does attempt to recognise doubled quotes and accept
+     startup code does attempt to recognize doubled quotes and accept
      them, but gets it wrong and ends up requiring three quotes to get a
      single embedded quote!)  So by default we decide whether to use
      quote or backslash as the escape character based on whether the

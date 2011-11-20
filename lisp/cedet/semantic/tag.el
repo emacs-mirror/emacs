@@ -1162,7 +1162,7 @@ This function is for internal use only."
        (semantic-tag-components-with-overlays tag)))))
 
 (defun semantic--tag-unlink-cache-from-buffer ()
-  "Convert all tags in the current cache to use overlay proxys.
+  "Convert all tags in the current cache to use overlay proxies.
 This function is for internal use only."
   (require 'semantic)
   (semantic--tag-unlink-list-from-buffer

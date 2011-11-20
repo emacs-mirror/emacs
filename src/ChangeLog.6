@@ -1182,7 +1182,7 @@
 	support in sys_select.
 
 	(term_ntproc): New function.
-	(init_ntproc): New function to initialise socket support and make
+	(init_ntproc): New function to initialize socket support and make
 	initial std handles non-inheritable.  Also ensure stdin, stdout
 	and stderr have valid handles so that pipes and sockets can't
 	inadvertently use fd 0, 1, or 2.
@@ -1440,7 +1440,7 @@
 	Correctly detect when default_directory is absolute.
 	Be strict when looking for MSDOS drive specifier; defer calling
 	getdefdir.  Ignore drive specifier if name now has UNC prefix.
-	Correctly recognise if name is not absolute when trying simple
+	Correctly recognize if name is not absolute when trying simple
 	method to expand; return original string if possible.
 	Skip dir sep after ~ or ~user.
 	Use getpwnam instead of HOME for ~user on NT.

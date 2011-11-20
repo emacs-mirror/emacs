@@ -1445,7 +1445,7 @@ pos_visible_p (struct window *w, EMACS_INT charpos, int *x, int *y,
 		     position is CHARPOS.  For the contingency that we
 		     didn't, and stopped at the first newline from the
 		     display string, move back over the glyphs
-		     prfoduced from the string, until we find the
+		     produced from the string, until we find the
 		     rightmost glyph not from the string.  */
 		  if (IT_CHARPOS (it3) != charpos && EQ (it3.object, string))
 		    {
@@ -14109,7 +14109,7 @@ set_cursor_from_row (struct window *w, struct glyph_row *row,
 	      || (STRINGP (g1->object)
 		  && (!NILP (Fget_char_property (make_number (g1->charpos),
 						Qcursor, g1->object))
-		      /* pevious candidate is from the same display
+		      /* previous candidate is from the same display
 			 string as this one, and the display string
 			 came from a text property */
 		      || (EQ (g1->object, glyph->object)
@@ -17020,7 +17020,7 @@ try_window_id (struct window *w)
   last_unchanged_at_beg_row = find_last_unchanged_at_beg_row (w);
   if (last_unchanged_at_beg_row)
     {
-      /* Avoid starting to display in the moddle of a character, a TAB
+      /* Avoid starting to display in the middle of a character, a TAB
 	 for instance.  This is easier than to set up the iterator
 	 exactly, and it's not a frequent case, so the additional
 	 effort wouldn't really pay off.  */

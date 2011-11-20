@@ -5790,7 +5790,7 @@ returns nil."
 
          ;; vc dired listings provide the state or blanks between file
          ;; permissions and date.  The state is always surrounded by
-         ;; parantheses:
+         ;; parentheses:
          ;; -rw-r--r-- (modified) 2005-10-22 21:25 files.el
          ;; This is not supported yet.
     (purecopy (concat "\\([0-9][BkKMGTPEZY]? " iso

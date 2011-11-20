@@ -122,7 +122,7 @@
 ;; t               IN          | INBOX
 ;; t               In          | [No match]
 
-;;; Customisation
+;;; Customization
 
 ;; See the User Variables section below for easy ways to change the
 ;; functionality of the program.  These are accessible using the

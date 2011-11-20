@@ -127,7 +127,7 @@ xg_set_screen (GtkWidget *w, FRAME_PTR f)
 
    Returns non-zero if display could be opened, zero if display could not
    be opened, and less than zero if the GTK version doesn't support
-   multipe displays.  */
+   multiple displays.  */
 
 void
 xg_display_open (char *display_name, Display **dpy)
@@ -4262,7 +4262,7 @@ xg_make_tool_item (FRAME_PTR f,
 #endif
       gtk_tool_item_set_homogeneous (ti, FALSE);
 
-      /* Callback to save modifyer mask (Shift/Control, etc).  GTK makes
+      /* Callback to save modifier mask (Shift/Control, etc).  GTK makes
          no distinction based on modifiers in the activate callback,
          so we have to do it ourselves.  */
       g_signal_connect (wb, "button-release-event",

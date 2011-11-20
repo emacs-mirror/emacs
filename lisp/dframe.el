@@ -96,7 +96,7 @@
 ;;   dframe-track-mouse, dframe-help-echo-function --
 ;;    These variables need to be set to functions that display info
 ;;    based on the mouse's position.
-;;   Text propert 'help-echo, set to `dframe-help-echo', which will
+;;   Text property 'help-echo, set to `dframe-help-echo', which will
 ;;    call `dframe-help-echo-function'.
 ;;   Have a `-click' function, it can call `dframe-quick-mouse' for
 ;;    positioning.  If the variable `dframe-power-click' is non-nil,
@@ -136,7 +136,7 @@ This is nil for terminals, since updating a frame in a terminal
 is not useful to the user.")
 
 (defcustom dframe-update-speed
-  (if (featurep 'xemacs) 2		; 1 is too obrusive in XEmacs
+  (if (featurep 'xemacs) 2		; 1 is too obtrusive in XEmacs
     1)
   "Idle time in seconds needed before dframe will update itself.
 Updates occur to allow dframe to display directory information

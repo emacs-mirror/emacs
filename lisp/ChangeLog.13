@@ -36,7 +36,7 @@
 2008-02-01  Vinicius Jose Latorre  <viniciusjl@ig.com.br>
 
 	* ps-print.el: Some face attributes (like :strike-through) were not
-	being recognised.  Reported by Leo <sdl.web@gmail.com>.
+	being recognized.  Reported by Leo <sdl.web@gmail.com>.
 	(ps-print-version): New version 7.3.2.
 	(ps-screen-to-bit-face): Fix code.  Call ps-face-strikeout-p,
 	ps-face-overline-p and ps-face-box-p functions.
@@ -4137,7 +4137,7 @@
 2008-01-14  Alan Mackenzie  <acm@muc.de>
 
 	* progmodes/cc-engine.el (c-guess-basic-syntax): Prevent a macro
-	call inside a struct being recognised as a K&R argument.
+	call inside a struct being recognized as a K&R argument.
 
 2008-01-14  Stefan Monnier  <monnier@iro.umontreal.ca>
 
@@ -12544,7 +12544,7 @@
 	a weird set-buffer&prog1 combination.
 
 	* emacs-lisp/byte-opt.el (byte-optimize-if): Move `progn' out of the
-	test so as to optimise cases where the `progn's result is constant.
+	test so as to optimize cases where the `progn's result is constant.
 
 2007-08-23  Thien-Thi Nguyen  <ttn@gnuvola.org>
 
@@ -13845,7 +13845,7 @@
 2007-07-24  Alan Mackenzie  <acm@muc.de>
 
 	* emacs-lisp/bytecomp.el (byte-compile-from-buffer):
-	Initialise byte-compile-unresolved-functions before rather than
+	Initialize byte-compile-unresolved-functions before rather than
 	after a compilation.
 	(byte-compile-unresolved-functions): Amplify doc string.
 
@@ -15917,7 +15917,7 @@
 	* help-mode.el (help-xref-forward-stack)
 	(help-xref-stack-forward-item, help-forward-label): New variables.
 	(help-forward): New button type.
-	(help-setup-xref): Initialise help-xref-forward-stack.
+	(help-setup-xref): Initialize help-xref-forward-stack.
 	(help-make-xrefs): Add forward button, if appropriate.
 	(help-xref-go-back): Push item on forward stack.
 	(help-xref-go-forward, help-go-forward): New functions.
