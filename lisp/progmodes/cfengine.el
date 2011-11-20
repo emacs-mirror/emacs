@@ -24,7 +24,7 @@
 ;;; Commentary:
 
 ;; Provides support for editing GNU Cfengine files, including
-;; font-locking, Imenu and indention, but with no special keybindings.
+;; font-locking, Imenu and indentation, but with no special keybindings.
 
 ;; The CFEngine 3.x support doesn't have Imenu support but patches are
 ;; welcome.

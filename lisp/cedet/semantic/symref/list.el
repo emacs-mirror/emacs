@@ -24,7 +24,7 @@
 ;; Provide a simple user facing API to finding symbol references.
 ;;
 ;; This UI is the base of some refactoring tools.  For any refactor,
-;; the user will execture [FIXME what?] `semantic-symref' in a tag.
+;; the user will execute `semantic-symref' in a tag.
 ;; Once that data is collected, the output will be listed in a buffer.
 ;; In the output buffer, the user can then initiate different
 ;; refactoring operations.
@@ -103,7 +103,7 @@ Display the references in`semantic-symref-results-mode'."
     (when (not res) (error "No references found"))
     (semantic-symref-result-get-tags res t)
     (message "Gathering References...done")
-    ;; Build a refrences buffer.
+    ;; Build a references buffer.
     (let ((buff (get-buffer-create
 		 (format "*Symref %s" str)))
 	  )

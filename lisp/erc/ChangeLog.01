@@ -399,7 +399,7 @@
 
 	* erc.el 1.107: * Tijs van Bakel's work from 10th Nov. merged in
 	* My additions to that idea merged in too
-	Basicly, this is a major rewrite, if you are scared and want avoid problems,
+	Basically, this is a major rewrite, if you are scared and want avoid problems,
 	stay at your current version. It seems fairly stable though.
 	That changed? erc-buffer-name handling was completely rewritten,
 	and erc-buffer-list local variable handling removed.

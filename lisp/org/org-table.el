@@ -1302,7 +1302,7 @@ However, when FORCE is non-nil, create new columns if necessary."
 (defun org-table-line-to-dline (line &optional above)
   "Turn a buffer line number into a data line number.
 If there is no data line in this line, return nil.
-If there is no matching dline (most likely te refrence was a hline), the
+If there is no matching dline (most likely the reference was a hline), the
 first dline below it is used.  When ABOVE is non-nil, the one above is used."
   (catch 'exit
     (let ((ll (length org-table-dlines))

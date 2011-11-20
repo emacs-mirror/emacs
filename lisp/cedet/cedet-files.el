@@ -83,7 +83,7 @@ specific conversions during tests."
 	  (setq file (concat driveletter ":"
 			     (substring file (match-end 1))))))
 
-      ;; Handle the \\file\name nomenclature on some windows boxes.
+      ;; Handle the \\file\name nomenclature on some Windows boxes.
       (when (string-match "^!" file)
 	(setq file (concat "//" (substring file 1)))))
     file))

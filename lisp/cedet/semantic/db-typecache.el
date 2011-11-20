@@ -368,7 +368,7 @@ a master list."
 		  (semanticdb-typecache-merge-streams
 		   incstream
 		   ;; Getting the cache from this table will also cause this
-		   ;; file to update its cache from its decendents.
+		   ;; file to update its cache from its descendants.
 		   ;;
 		   ;; In theory, caches are only built for most includes
 		   ;; only once (in the loop before this one), so this ends

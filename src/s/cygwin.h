@@ -91,9 +91,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
    why it needed to be changed.  */
 #define GC_MARK_STACK GC_MAKE_GCPROS_NOOPS
 
-/* Virtual addresses of pure and impure space can vary, as on Windows.  */
-#define VIRT_ADDR_VARIES
-
 /* Emacs supplies its own malloc, but glib (part of Gtk+) calls
    memalign and on Cygwin, that becomes the Cygwin-supplied memalign.
    As malloc is not the Cygwin malloc, the Cygwin memalign always

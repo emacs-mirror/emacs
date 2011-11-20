@@ -361,7 +361,7 @@ will display info in the echo area."
   "View location in a LaTeX document which cites the BibTeX entry at point.
 Since BibTeX files can be used by many LaTeX documents, this function
 prompts upon first use for a buffer in RefTeX mode.  To reset this
-link to a document, call the function with with a prefix arg.
+link to a document, call the function with a prefix arg.
 Calling this function several times find successive citation locations."
   (interactive "P")
   (when arg

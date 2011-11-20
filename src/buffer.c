@@ -4400,7 +4400,7 @@ static int mmap_fd_1;
 
 static int mmap_page_size;
 
-/* 1 means mmap has been intialized.  */
+/* 1 means mmap has been initialized.  */
 
 static int mmap_initialized_p;
 

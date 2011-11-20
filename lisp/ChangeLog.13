@@ -14943,7 +14943,7 @@
 2007-07-05  Thien-Thi Nguyen  <ttn@gnuvola.org>
 
 	* Makefile.in (bootstrap-prepare): When copying from
-	ldefs-boot.el, make sure loaddefs.el is writeable.
+	ldefs-boot.el, make sure loaddefs.el is writable.
 
 	(bootstrap-prepare): Make $(lisp)/ps-print.el
 	and $(lisp)/emacs-lisp/cl-loaddefs.el writable, as well.

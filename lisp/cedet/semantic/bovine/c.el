@@ -1591,7 +1591,7 @@ DO NOT return the list of tags encompassing point."
 	(setq tagreturn (cons (semantic-tag-type (car (semanticdb-find-result-nth tmp idx))) tagreturn))
 	(setq idx (1+ idx)))
       )
-    ;; Use the encompased types around point to also look for using statements.
+    ;; Use the encompassed types around point to also look for using statements.
     ;;(setq tagreturn (cons "bread_name" tagreturn))
     (while (cdr tagsaroundpoint)  ; don't search the last one
       (setq tmp (semantic-find-tags-by-class 'using (semantic-tag-components (car tagsaroundpoint))))

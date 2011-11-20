@@ -299,7 +299,7 @@ If nil, use the value of `vc-diff-switches'.  If t, use no switches."
       ids)))
 
 (defun vc-mtn-revision-completion-table (files)
-  ;; TODO: Implement completion for for selectors
+  ;; TODO: Implement completion for selectors
   ;; TODO: Implement completion for composite selectors.
   (lexical-let ((files files))
     ;; What about using `files'?!?  --Stef

@@ -221,7 +221,7 @@ the evaluated constant value at compile time."
     ;;
     ;; OPS either has the structure of `c-operators', is a single
     ;; group in `c-operators', or is a plain list of operators.
-    ;; 
+    ;;
     ;; OPGROUP-FILTER specifies how to select the operator groups.  It
     ;; can be t to choose all groups, a list of group type symbols
     ;; (such as 'prefix) to accept, or a function which will be called

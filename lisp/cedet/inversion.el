@@ -216,14 +216,14 @@ not an indication of new features or bug fixes."
 	)))
 
 (defun inversion-check-version (version incompatible-version
-					minimum &rest reserved)
+                                minimum &rest reserved)
   "Check that a given version meets the minimum requirement.
 VERSION, INCOMPATIBLE-VERSION and MINIMUM are of similar format to
 return entries of `inversion-decode-version', or a classic version
 string.	 INCOMPATIBLE-VERSION can be nil.
 RESERVED arguments are kept for a later use.
 Return:
-- nil if everything is ok
+- nil if everything is ok.
 - 'outdated if VERSION is less than MINIMUM.
 - 'incompatible if VERSION is not backward compatible with MINIMUM.
 - t if the check failed."
@@ -374,7 +374,7 @@ Return nil when VERSION-STRING was not found."
       (with-temp-buffer
 	;; The 3000 is a bit arbitrary, but should cut down on
 	;; fileio as version info usually is at the very top
-	;; of a file.  AFter a long commentary could be bad.
+	;; of a file.  After a long commentary could be bad.
 	(insert-file-contents-literally file nil 0 3000)
 	(goto-char (point-min))
 	(when (re-search-forward (format tag package 'version) nil t)

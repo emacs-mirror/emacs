@@ -277,7 +277,7 @@ contrast, `package-user-dir' contains packages for personal use."
   :version "24.1")
 
 ;; The value is precomputed in finder-inf.el, but don't load that
-;; until it's needed (i.e. when `package-intialize' is called).
+;; until it's needed (i.e. when `package-initialize' is called).
 (defvar package--builtins nil
   "Alist of built-in packages.
 The actual value is initialized by loading the library

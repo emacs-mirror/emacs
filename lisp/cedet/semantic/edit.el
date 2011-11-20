@@ -549,7 +549,7 @@ This function is for internal use by `semantic-edits-incremental-parser'."
                       ;; is not the first change for this
                       ;; iteration, and it starts before the end
                       ;; of current parse region, then it is
-                      ;; encompased within the bounds of tags
+                      ;; encompassed within the bounds of tags
                       ;; modified by the previous iteration's
                       ;; change.
                       (< (semantic-overlay-start (car changes))

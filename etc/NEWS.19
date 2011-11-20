@@ -1828,7 +1828,7 @@ c-fill-paragraph's behavior.
 containing an open brace just after a case/default label.
 
 *** New variable, c-progress-interval, which controls minibuffer update
-message displays during long re-indention.  This is a new feature
+message displays during long re-indentation.  This is a new feature
 which prints percentage complete messages at specified intervals.
 
 ** Makefile mode changes.

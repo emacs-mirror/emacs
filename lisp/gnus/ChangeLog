@@ -1,3 +1,7 @@
+2011-11-20  Juanma Barranquero  <lekktu@gmail.com>
+
+	* mm-util.el (mm-charset-after): Fix typo.
+
 2011-11-16  Juanma Barranquero  <lekktu@gmail.com>
 
 	* gnus-sum.el (gnus-summary-make-menu-bar):
@@ -2849,7 +2853,7 @@
 
 2011-01-24  Lars Ingebrigtsen  <larsi@gnus.org>
 
-	* shr.el (shr-expand-newlines): Proof of concept implemantation of boxy
+	* shr.el (shr-expand-newlines): Proof of concept implementation of boxy
 	backgrounds.
 	(shr-expand-newlines): Switch to using overlays to enable kill'n'yank
 	in a more sensible manner.
@@ -19398,7 +19402,7 @@
 	* gnus-group.el (gnus-group-get-new-news-this-group):
 	Don't update info that isn't there.
 
-2004-06-29  Ilya N. Golubev  <gin@mo.msk.ru>.
+2004-06-29  Ilya N. Golubev  <gin@mo.msk.ru>
 
 	* mm-util.el (mm-mime-mule-charset-alist): Add the windows-1251
 	entry.

@@ -147,7 +147,7 @@ then the equivalent line in ~/.authinfo would be
 
 **** The variable `smtpmail-starttls-credentials' has been removed.
 
-If you had that set, then then you need to put
+If you had that set, then you need to put
 
   machine smtp.whatever.foo port 25 key "~/.my_smtp_tls.key" cert "~/.my_smtp_tls.cert"
 

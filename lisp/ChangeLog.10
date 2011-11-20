@@ -374,7 +374,7 @@
 	the function is advised in cc-defs.  However, that advice
 	doesn't help if the autoloads are updated in an old (X)Emacs
 	with this version of CC Mode, but I believe it's unlikely that
-	anyone does that when CC Mode isn't distributed with with it.
+	anyone does that when CC Mode isn't distributed with it.
 
 	* progmodes/cc-defs.el (add-to-list): Add advice to get the
 	optional third append argument in older (X)Emacsen.
@@ -2440,7 +2440,7 @@
 
 	* gdb-ui.el (gud-gdba-command-name): Use -noasync option for Gdb
 	with MS windows.
-	(gdb-display-end): Only make buffer writeable temporarily.
+	(gdb-display-end): Only make buffer writable temporarily.
 	Move "View" submenu up one level.
 
 2003-05-21  Nick Roberts  <nick@nick.uklinux.net>
@@ -9827,7 +9827,7 @@
 	(uniquify-delay-rationalize-file-buffer-names): Remove useless check.
 	(kill-buffer-hook): Don't change globally.
 
-2002-09-27  Stefan Monnier  <monnier@cs.yale.edu>.
+2002-09-27  Stefan Monnier  <monnier@cs.yale.edu>
 
 	* calc/calc.el (calc-bug-address, calc-scan-for-dels, calc-stack)
 	(calc-stack-top, calc-always-load-extensions)
@@ -20778,7 +20778,7 @@
 	* Makefile.in (distclean): Remove Makefile in the build
 	directory, not in the source directory.
 
-2001-12-21  Simon Josefsson  <jas@extundo.com>.
+2001-12-21  Simon Josefsson  <jas@extundo.com>
 
 	* mail/smtpmail.el (smtpmail-send-queued-mail):
 	Use with-temp-buffer instead of find-file-noselect, and bind

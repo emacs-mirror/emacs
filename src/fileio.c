@@ -62,7 +62,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 #ifdef DOS_NT
 /* On Windows, drive letters must be alphabetic - on DOS, the Netware
-   redirector allows the six letters between 'Z' and 'a' as well. */
+   redirector allows the six letters between 'Z' and 'a' as well.  */
 #ifdef MSDOS
 #define IS_DRIVE(x) ((x) >= 'A' && (x) <= 'z')
 #endif
@@ -3686,6 +3686,7 @@ variable `last-coding-system-used' to the coding system actually used.  */)
       int this_count = SPECPDL_INDEX ();
       int multibyte = ! NILP (BVAR (current_buffer, enable_multibyte_characters));
       Lisp_Object conversion_buffer;
+      struct gcpro gcpro1;
 
       conversion_buffer = code_conversion_save (1, multibyte);
 
@@ -3706,7 +3707,7 @@ variable `last-coding-system-used' to the coding system actually used.  */)
 	{
 	  /* We read one bunch by one (READ_BUF_SIZE bytes) to allow
 	     quitting while reading a huge while.  */
-	  /* try is reserved in some compilers (Microsoft C) */
+	  /* `try'' is reserved in some compilers (Microsoft C).  */
 	  EMACS_INT trytry = min (total - how_much,
 				  READ_BUF_SIZE - unprocessed);
 

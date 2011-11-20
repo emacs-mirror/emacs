@@ -689,7 +689,7 @@
 	* autogen/Makefile.in: Add auto-updated generated files.
 	* autogen.sh: No longer a no-op, now it tests for autotools
 	and runs them as necessary.
-	* configure.in: Defaule maintainer-mode to on.
+	* configure.in: Default maintainer-mode to on.
 	* aclocal.m4, configure, lib/Makefile.in: Remove files.
 
 2011-03-13  Paul Eggert  <eggert@cs.ucla.edu>
@@ -9711,7 +9711,7 @@
 	paths.h.in, Makefile.in in src.
 
 	* configure: Delete .tmp files before creating them; don't bother
-	trying to make final targets writeable first, since it won't
+	trying to make final targets writable first, since it won't
 	matter to move-if-change.
 
 1992-05-19  Jim Blandy  (jimb@pogo.cs.oberlin.edu)
