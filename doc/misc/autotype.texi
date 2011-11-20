@@ -156,7 +156,7 @@ the point is normally left after that skeleton is inserted (@pxref{Using
 Skeletons}).  The point (@pxref{(emacs)Point}) is left at the next
 interesting spot in the skeleton instead.
 
-  A negative prefix means to do something similar with that many precedingly
+  A negative prefix means to do something similar with that many previously
 marked interregions (@pxref{(emacs)Mark}).  In the simplest case, if you type
 @kbd{M--} just before issuing the skeleton command, that will wrap the
 skeleton around the current region, just like a positive argument would have

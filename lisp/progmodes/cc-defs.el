@@ -774,7 +774,7 @@ be after it."
 ;; In addition to `c-at-vsemi-p-fn', a mode may need to supply a function for
 ;; `c-vsemi-status-unknown-p-fn'.  The macro `c-vsemi-status-unknown-p' is a
 ;; rather recondite kludge.  It exists because the function
-;; `c-beginning-of-statement-1' sometimes tests for VSs as an optimisation,
+;; `c-beginning-of-statement-1' sometimes tests for VSs as an optimization,
 ;; but `c-at-vsemi-p' might well need to call `c-beginning-of-statement-1' in
 ;; its calculations, thus potentially leading to infinite recursion.
 ;;
@@ -1249,7 +1249,7 @@ been put there by c-put-char-property.  POINT remains unchanged."
 ;; which introduces a CPP construct and every EOL (or EOB, or character
 ;; preceding //, etc.) which terminates it.  We can instantly "comment
 ;; out" all CPP constructs by giving `c-cpp-delimiter' a syntax-table
-;; propery '(14) (generic comment delimiter).
+;; property '(14) (generic comment delimiter).
 (defmacro c-set-cpp-delimiters (beg end)
   ;; This macro does a hidden buffer change.
   `(progn

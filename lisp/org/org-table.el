@@ -51,7 +51,7 @@
 (defvar orgtbl-after-send-table-hook nil
   "Hook for functions attaching to `C-c C-c', if the table is sent.
 This can be used to add additional functionality after the table is sent
-to the receiver position, othewise, if table is not sent, the functions
+to the receiver position, otherwise, if table is not sent, the functions
 are not run.")
 
 (defcustom orgtbl-optimized (eq org-enable-table-editor 'optimized)

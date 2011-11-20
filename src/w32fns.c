@@ -2262,7 +2262,7 @@ w32_msg_pump (deferred_msg * msg_buf)
                  some third party shell extensions can cause it to be used in
                  system dialogs, which causes a crash if it is not initialized.
                  This is a known bug in Windows, which was fixed long ago, but
-                 the patch for XP is not publically available until XP SP3,
+                 the patch for XP is not publicly available until XP SP3,
                  and older versions will never be patched.  */
               CoInitialize (NULL);
 	      w32_createwindow ((struct frame *) msg.wParam);
@@ -2880,7 +2880,7 @@ w32_wnd_proc (HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 		      key.dwControlKeyState = modifiers;
 
 		      add = w32_kbd_patch_key (&key);
-		      /* 0 means an unrecognised keycode, negative means
+		      /* 0 means an unrecognized keycode, negative means
 			 dead key.  Ignore both.  */
 		      while (--add >= 0)
 			{

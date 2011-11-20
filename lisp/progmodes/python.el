@@ -1122,7 +1122,7 @@ don't move and return nil.  Otherwise return t."
 
 ;;;; Imenu.
 
-;; For possibily speeding this up, here's the top of the ELP profile
+;; For possibly speeding this up, here's the top of the ELP profile
 ;; for rescanning pydoc.py (2.2k lines, 90kb):
 ;; Function Name                         Call Count  Elapsed Time  Average Time
 ;; ====================================  ==========  =============  ============

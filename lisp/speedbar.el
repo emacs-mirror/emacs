@@ -471,7 +471,7 @@ Possible values are:
  'trim - trim large directories to only show the last few.
  nil   - no trimming."
   :group 'speedbar
-  :type '(radio (const :tag "Span large directories over mutiple lines."
+  :type '(radio (const :tag "Span large directories over multiple lines."
 		       span)
 		(const :tag "Trim large directories to only show the last few."
 		       trim)

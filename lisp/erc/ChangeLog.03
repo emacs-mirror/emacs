@@ -1425,7 +1425,7 @@
 	reference argument directly - no string matching
 
 	* erc.el 1.445 (erc-extract-command-from-line):
-	hmm, thinko in the canonicalisation. should
+	hmm, thinko in the canonicalization. should
 	    be fixed
 
 2003-01-16  Francis Litterio  <franl@users.sourceforge.net>

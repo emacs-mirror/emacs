@@ -863,7 +863,7 @@ fields and such to, but that is for some other day."
 In Emacs Lisp, a prototype for something may start (autoload ...).
 This is certainly not expected if this is used to display a summary.
 Make up something else.  When we go to write something that needs
-a real Emacs Lisp protype, we can fix it then."
+a real Emacs Lisp prototype, we can fix it then."
   (let ((class (semantic-tag-class tag))
 	(name (semantic-format-tag-name tag parent color))
 	)

@@ -1168,7 +1168,7 @@ containing the executable being debugged."
 ;; appears to indicate a breakpoint.  Then we prod the dbx sub-process
 ;; to output the information we want with a combination of the
 ;; `printf' and `file' commands as a pseudo marker which we can
-;; recognise next time through the marker-filter.  This would be like
+;; recognize next time through the marker-filter.  This would be like
 ;; the gdb marker but you can't get the file name without a newline...
 ;; Note that gud-remove won't work since Irix dbx expects a breakpoint
 ;; number rather than a line number etc.  Maybe this could be made to
@@ -1689,7 +1689,7 @@ and source-file directory for your debugger."
 ;;    Run jdb (like this): jdb
 ;;
 ;; type any jdb switches followed by the name of the class you'd like to debug.
-;; Supply a fully qualfied classname (these do not have the ".class" extension)
+;; Supply a fully qualified classname (these don't have the ".class" extension)
 ;; for the name of the class to debug (e.g. "COM.the-kind.ddavies.CoolClass").
 ;; See the known problems section below for restrictions when specifying jdb
 ;; command line switches (search forward for '-classpath').

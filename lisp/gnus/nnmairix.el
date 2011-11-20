@@ -333,7 +333,7 @@ can happen are wrong marks in nnmairix groups."
   "Use only the registry for determining original group(s).
 If set to t, nnmairix will only use the registry for determining
 the original group(s) of an article (which is also necessary for
-propapagting marks).  If set to nil, it will also try to determine
+propagating marks).  If set to nil, it will also try to determine
 the group from an additional mairix search which might be slow
 when propagating lots of marks."
   :version "23.1"

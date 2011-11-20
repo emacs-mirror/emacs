@@ -26,7 +26,7 @@
 
 ;; Sometimes the fastest way to get something done is just to lean on a key;
 ;; moving forward through a series of words by leaning on M-f is an example.
-;; But 'forward-page is orthodoxily bound to C-x ], so moving forward through
+;; But 'forward-page is orthodoxly bound to C-x ], so moving forward through
 ;; several pages requires
 ;;   Loop until desired page is reached:
 ;;     Hold down control key with left pinkie.

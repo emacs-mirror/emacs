@@ -1025,7 +1025,7 @@ Output must be in semanticdb Find result format."
   ((obj semantic-collector-abstract) prefix)
   "For OBJ, do whatepsace completion based on PREFIX.
 This implies that if there are two completions, one matching
-the test \"preifx\\>\", and one not, the one matching the full
+the test \"prefix\\>\", and one not, the one matching the full
 word version of PREFIX will be chosen, and that text returned.
 This function requires that `semantic-collector-calculate-completions'
 has been run first."

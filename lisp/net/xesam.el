@@ -88,7 +88,7 @@
 ;;
 ;;   (setq xesam-query-type 'fulltext-query)
 ;;
-;; Another option to be customised is the number of hits to be
+;; Another option to be customized is the number of hits to be
 ;; presented at once.
 ;;
 ;;   (setq xesam-hits-per-page 50)

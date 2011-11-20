@@ -512,7 +512,7 @@ with L, LRE, or LRO Unicode bidi character type.")
   ;; relating Unicode categories to Emacs syntax codes.
 
   ;; NBSP isn't semantically interchangeable with other whitespace chars,
-  ;; so it's more like punctation.
+  ;; so it's more like punctuation.
   (set-case-syntax ?  "." tbl)
   (set-case-syntax ?¡ "." tbl)
   (set-case-syntax ?¦ "_" tbl)

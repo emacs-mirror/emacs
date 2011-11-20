@@ -419,7 +419,7 @@
 	(list 'frac 1 denom))
     1))
 
-;;; Compute the GCD of two monovariate polynomial lists.
+;;; Compute the GCD of two univariate polynomial lists.
 ;;; Knuth section 4.6.1, algorithm C.
 (defun math-poly-gcd-coefs (u v)
   (let ((d (math-poly-gcd (math-poly-gcd-list u)

@@ -3692,7 +3692,7 @@ VI. Customization:
 	  "\n\n
 The printing interface buffer has the same functionality as the printing menu.
 The major difference is that the states (like sending PostScript generated to a
-file, n-up printing, etc.) are set and saved between priting buffer
+file, n-up printing, etc.) are set and saved between printing buffer
 activation.  Also, the landscape, duplex and tumble values are the same for
 PostScript file and directory/buffer/region/mode processing; using menu, there
 are different value sets for PostScript file and directory/buffer/region/mode

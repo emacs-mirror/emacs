@@ -2195,7 +2195,7 @@ list that represents a doc string reference.
 	   (byte-compile-keep-pending form)))))
 
 ;; Functions and variables with doc strings must be output separately,
-;; so make-docfile can recognise them.  Most other things can be output
+;; so make-docfile can recognize them.  Most other things can be output
 ;; as byte-code.
 
 (put 'autoload 'byte-hunk-handler 'byte-compile-file-form-autoload)

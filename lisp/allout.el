@@ -825,7 +825,7 @@ formatted copy."
 (defcustom allout-encrypt-unencrypted-on-saves t
   "If non-nil, topics pending encryption are encrypted during buffer saves.
 
-This provents file-system exposure of un-encrypted contents of
+This prevents file-system exposure of un-encrypted contents of
 items marked for encryption.
 
 When non-nil, if the topic currently being edited is decrypted,
@@ -2283,7 +2283,7 @@ If topic has no offspring, then the next sibling with offspring will
 determine whether or not this one is determined to be aberrant.
 
 If true, then the allout-recent-* settings are calibrated on the
-offspring that qaulifies it as aberrant, ie with depth that
+offspring that qualifies it as aberrant, ie with depth that
 exceeds the topic by more than one."
 
   ;; This is most clearly understood when considering standard-prefix-leader

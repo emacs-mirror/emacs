@@ -5535,7 +5535,7 @@ When COORDINATE is omitted or nil the point in current buffer is assumed in plac
    table-cell-info-lu-coordinate))
 
 (defun table--offset-coordinate (coordinate offset &optional negative)
-  "Return the offseted COORDINATE by OFFSET.
+  "Return the offset COORDINATE by OFFSET.
 When optional NEGATIVE is non-nil offsetting direction is negative."
   (cons (if negative (- (car coordinate) (car offset))
 	  (+ (car coordinate) (car offset)))

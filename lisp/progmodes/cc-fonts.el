@@ -1040,7 +1040,7 @@ casts and declarations are fontified.  Used on level 2 and higher."
 	;; Inside the following "condition form", we move forward over the
 	;; declarator's identifier up as far as any opening bracket (for array
 	;; size) or paren (for parameters of function-type) or brace (for
-	;; array/struct initialisation) or "=" or terminating delimiter
+	;; array/struct initialization) or "=" or terminating delimiter
 	;; (e.g. "," or ";" or "}").
 	(and
 	    pos

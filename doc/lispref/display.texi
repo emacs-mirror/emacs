@@ -4546,7 +4546,7 @@ you may prefer to use a different one for a given image type (which
 @c FIXME how is this priority determined?
 loader will be used in practice depends on the priority of the loaders).
 @c FIXME why are these uppercase when image-types is lower-case?
-@c FIXME what are the possibe options?  Are these actually file extensions?
+@c FIXME what are the possible options?  Are these actually file extensions?
 For example, if you never want to use the ImageMagick loader to use
 JPEG files, add @code{JPG} to this list.
 

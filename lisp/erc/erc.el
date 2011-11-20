@@ -5797,7 +5797,7 @@ If it doesn't exist, create it."
   "Give information about the nickname at `point'.
 
 If called interactively, give a human readable message in the
-minibuffer.  If called programatically, return the corresponding
+minibuffer.  If called programmatically, return the corresponding
 entry of `channel-members'."
   (interactive)
   (require 'thingatpt)

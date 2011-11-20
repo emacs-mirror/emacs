@@ -1152,7 +1152,7 @@
 
 1987-07-29  Richard Mlynarik  (mly@prep)
 
-	* lread.c (init_read): Initialise load_in_progress.
+	* lread.c (init_read): Initialize load_in_progress.
 
 1987-07-28  Richard M. Stallman  (rms@prep)
 
@@ -2251,7 +2251,7 @@
 1987-01-16  Richard Mlynarik  (mly@prep)
 
 	* xfns.c (Fx_set_{background,cursor,mouse}_color):
-	Initialise save_color.
+	Initialize save_color.
 
 	* fileio.c, search.c, sysdep.c, filelock.c, editfns.c, process.c:
 	Delete/replace unused/conditionalised variables
@@ -3002,7 +3002,7 @@
 1986-11-18  Richard Mlynarik  (mly@prep)
 
 	* emacs.c (main):
-	Giving `inhibit_x_windows' an initialisation loses;
+	Giving `inhibit_x_windows' an initialization loses;
 	do it explicitly.
 
 	* xfns.c (Fx_rubber_band):
@@ -3291,7 +3291,7 @@
 1986-11-03  Richard Mlynarik  (mly@prep)
 
 	* xterm.c (stufflines):
-	Initialise signal mask.
+	Initialize signal mask.
 
 	* xterm.h:
 	Add definition of sigmask
@@ -3346,7 +3346,7 @@
 	New function.
 
 	* window.c (Fset_window_hscroll):
-	Don't inhibit redisplay optimisations if hscroll is same.
+	Don't inhibit redisplay optimizations if hscroll is same.
 
 	* ymakefile:
 	rm ../etc/DOC to avoid make-docfile overwriting any files which
@@ -3358,7 +3358,7 @@
 	VMS changes from Sasaki
 
 	* termcap.c (tgetent):
-	Make sure `indirect' initialised.
+	Make sure `indirect' initialized.
 
 	* xfns.c (grey_p and callers):
 	New function to compensate for ugly chauvinistic American
@@ -3496,7 +3496,7 @@
 	core-dump)
 
 	Dike out global-minor-modes.  This wasn't actually being used by
-	anything (due to a bug) and wasn't even being initialised!
+	anything (due to a bug) and wasn't even being initialized!
 	minor-mode-alist does what this thought it was doing.
 
 1986-10-11  Richard Mlynarik  (mly@prep)

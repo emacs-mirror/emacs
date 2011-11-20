@@ -2178,7 +2178,7 @@ function does not require the declaration to contain a brace block."
 	   (end (1- (cdr range)))
 	   (here-filler		   ; matches WS and escaped newlines at point.
 	    "\\=\\([ \t\n\r\f]\\|\\\\[\n\r]\\)*")
-	   ;; Enhance paragraph-start and paragraph-separate also to recognise
+	   ;; Enhance paragraph-start and paragraph-separate also to recognize
 	   ;; blank lines terminated by escaped EOLs.  IT MAY WELL BE that
 	   ;; these values should be customizable user options, or something.
 	   (paragraph-start c-string-par-start)
@@ -2234,7 +2234,7 @@ function does not require the declaration to contain a brace block."
   (save-match-data
     (let* ((here (point))
 	   last
-	   ;; Enhance paragraph-start and paragraph-separate to recognise
+	   ;; Enhance paragraph-start and paragraph-separate to recognize
 	   ;; blank lines terminated by escaped EOLs.
 	   (paragraph-start c-string-par-start)
 	   (paragraph-separate c-string-par-separate)

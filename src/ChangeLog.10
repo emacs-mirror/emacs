@@ -6387,7 +6387,7 @@
 2005-11-20  Nick Roberts  <nickrob@snap.net.nz>
 
 	* lisp.h: Use typedef when Lisp_Object is EMACS_INT so that
-	this type is recognised when debugging.
+	this type is recognized when debugging.
 
 2005-11-19  Andreas Schwab  <schwab@suse.de>
 
@@ -13398,7 +13398,7 @@
 2004-07-04  John Paul Wallington  <jpw@gnu.org>
 
 	* fileio.c (read_file_name_completion_ignore_case): New variable.
-	(syms_of_fileio): Declare and initialise it.
+	(syms_of_fileio): Declare and initialize it.
 	(Fread_file_name): Bind `completion-ignore-case' to respect it.
 
 2004-07-03  Eli Zaretskii  <eliz@gnu.org>

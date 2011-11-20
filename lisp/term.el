@@ -2122,7 +2122,7 @@ If this takes us past the end of the current line, don't skip at all."
   "Is point after the process output marker?"
   ;; Since output could come into the buffer after we looked at the point
   ;; but before we looked at the process marker's value, we explicitly
-  ;; serialise.  This is just because I don't know whether or not Emacs
+  ;; serialize.  This is just because I don't know whether or not Emacs
   ;; services input during execution of lisp commands.
   (let ((proc-pos (marker-position
 		   (process-mark (get-buffer-process (current-buffer))))))
@@ -3890,7 +3890,7 @@ if KIND is 1, erase from home to point; else erase from home to point-max."
   (goto-char (point-max))
   (recenter -1))
 
-;;; Do the user's customisation...
+;;; Do the user's customization...
 
 (defvar term-load-hook nil
   "This hook is run when term is loaded in.

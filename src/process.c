@@ -1414,7 +1414,7 @@ usage: (start-process NAME BUFFER PROGRAM &rest PROGRAM-ARGS)  */)
 	  val = XCDR (Vdefault_process_coding_system);
       }
     XPROCESS (proc)->encode_coding_system = val;
-    /* Note: At this momemnt, the above coding system may leave
+    /* Note: At this moment, the above coding system may leave
        text-conversion or eol-conversion unspecified.  They will be
        decided after we read output from the process and decode it by
        some coding system, or just before we actually send a text to

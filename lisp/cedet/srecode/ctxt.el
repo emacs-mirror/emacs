@@ -64,7 +64,7 @@ Some useful context values used by the provided srecode templates are:
      \"comment\"  - In a comment in a block of code
      -- these items show up at the end of the context list. --
      \"public\", \"protected\", \"private\" -
-                  In or near a section of public/pritected/private entries.
+                  In or near a section of public/protected/private entries.
   \"code\" - In a block of code.
      \"string\" - In a string in a block of code
      \"comment\"  - In a comment in a block of code

@@ -421,7 +421,7 @@ local variables, and tag lists in scope for various reasons, such as
 C++ using statements.
 
 @item semanticdb-typecache.el
-The typecache is part of @code{semanticdb}, but is used primarilly by
+The typecache is part of @code{semanticdb}, but is used primarily by
 the analyzer to look up datatypes and complex names.  The typecache is
 bound across source files and builds a master lookup table for data
 type names.

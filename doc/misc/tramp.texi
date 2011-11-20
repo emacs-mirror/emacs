@@ -3180,7 +3180,7 @@ names:
  '("^/xy" . "@trampfn{ssh, news, news.my.domain, /opt/news/etc/}"))
 @end lisp
 
-This shortens the file openening command to @kbd{C-x C-f /xy
+This shortens the file opening command to @kbd{C-x C-f /xy
 @key{RET}}.  The disadvantage is, again, that you cannot edit the file
 name, because the expansion happens after entering the file name only.
 

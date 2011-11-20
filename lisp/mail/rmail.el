@@ -638,8 +638,11 @@ be available."
   :version "23.3"
   :group 'rmail)
 
-(defvar rmail-enable-mime-composing t
-  "*If non-nil, RMAIL uses `rmail-insert-mime-forwarded-message-function' to forward.")
+(defcustom rmail-enable-mime-composing t
+  "If non-nil, use `rmail-insert-mime-forwarded-message-function' to forward."
+  :type 'boolean
+  :version "24.1"			; nil -> t
+  :group 'rmail)
 
 (defvar rmail-show-mime-function nil
   "Function of no argument called to show a decoded MIME message.
@@ -649,8 +652,8 @@ The package providing MIME support should set this.")
 ;;;###autoload
 (defvar rmail-insert-mime-forwarded-message-function nil
   "Function to insert a message in MIME format so it can be forwarded.
-This function is called if `rmail-enable-mime' or
-`rmail-enable-mime-composing' is non-nil.
+This function is called if `rmail-enable-mime' and
+`rmail-enable-mime-composing' are non-nil.
 It is called with one argument FORWARD-BUFFER, which is a
 buffer containing the message to forward.  The current buffer
 is the outgoing mail buffer.")
@@ -681,12 +684,17 @@ expression, LIMIT is the position specifying the end of header.")
 
 (defvar rmail-mime-feature 'rmailmm
   "Feature to require for MIME support in Rmail.
-When starting Rmail, if `rmail-enable-mime' is non-nil,
-this feature is required with `require'.
+When starting Rmail, if `rmail-enable-mime' is non-nil, this
+feature is loaded with `require'.  The default value is `rmailmm'.
 
-The default value is `rmailmm'")
+The library should set the variable `rmail-show-mime-function'
+to an appropriate value, and optionally also set
+`rmail-search-mime-message-function',
+`rmail-search-mime-header-function',
+`rmail-insert-mime-forwarded-message-function', and
+`rmail-insert-mime-resent-message-function'.")
 
-;; FIXME this is unused.
+;; FIXME this is unused since 23.1.
 (defvar rmail-decode-mime-charset t
   "*Non-nil means a message is decoded by MIME's charset specification.
 If this variable is nil, or the message has not MIME specification,
@@ -695,6 +703,9 @@ the message is decoded as normal way.
 If the variable `rmail-enable-mime' is non-nil, this variable is
 ignored, and all the decoding work is done by a feature specified by
 the variable `rmail-mime-feature'.")
+
+(make-obsolete-variable 'rmail-decode-mime-charset
+			"it does nothing." "23.1")
 
 (defvar rmail-mime-charset-pattern
   (concat "^content-type:[ \t]*text/plain;"
@@ -3128,10 +3139,9 @@ but probably is garbage."
   ;; This is adequate because its only caller, rmail-search,
   ;; unswaps the buffers.
   (goto-char (rmail-msgbeg msg))
-  (if rmail-enable-mime
-      (if rmail-search-mime-message-function
-          (funcall rmail-search-mime-message-function msg regexp)
-        (error "You must set `rmail-search-mime-message-function'"))
+  (if (and rmail-enable-mime
+	   rmail-search-mime-message-function)
+      (funcall rmail-search-mime-message-function msg regexp)
     (re-search-forward regexp (rmail-msgend msg) t)))
 
 (defvar rmail-search-last-regexp nil)
@@ -3798,7 +3808,8 @@ see the documentation of `rmail-resend'."
 	    ;; Insert after header separator--before signature if any.
 	    (rfc822-goto-eoh)
 	    (forward-line 1)
-	    (if (and rmail-enable-mime rmail-enable-mime-composing)
+	    (if (and rmail-enable-mime rmail-enable-mime-composing
+		     rmail-insert-mime-forwarded-message-function)
 		(prog1
 		    (funcall rmail-insert-mime-forwarded-message-function
 			     forward-buffer)
@@ -3854,10 +3865,9 @@ typically for purposes of moderating a list."
     (unwind-protect
 	(with-current-buffer tembuf
 	  ;;>> Copy message into temp buffer
-	  (if rmail-enable-mime
-              (if rmail-insert-mime-resent-message-function
+	  (if (and rmail-enable-mime
+		   rmail-insert-mime-resent-message-function)
                   (funcall rmail-insert-mime-resent-message-function mailbuf)
-                (error "You must set `rmail-insert-mime-resent-message-function'"))
 	    (insert-buffer-substring mailbuf))
 	  (goto-char (point-min))
 	  ;; Delete any Sender field, since that's not specifiable.

@@ -986,7 +986,7 @@ describes the correct routine - even if the keyword description cannot
 be found.  TYPE is ignored.
 
 This function expects a more or less standard routine header.  In
-particlar it looks for the `NAME:' tag, either with a colon, or alone
+particular it looks for the `NAME:' tag, either with a colon, or alone
 on a line.  Then `NAME:' must be followed by the routine name on the
 same or the next line.  When KEYWORD is non-nil, looks first for a
 `KEYWORDS' section.  It is amazing how inconsistent this is through

@@ -823,7 +823,7 @@ detailed description of this mode.
   (run-hooks 'gdb-mode-hook))
 
 (defun gdb-init-1 ()
-  ;; (re-)initialise
+  ;; (re-)initialize
   (setq gdb-selected-frame nil
 	gdb-frame-number nil
         gdb-thread-number nil

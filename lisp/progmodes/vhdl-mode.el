@@ -16857,7 +16857,7 @@ User Options
 `vhdl-configuration-file-name': (new)
   Specify how the configuration file name is obtained.
 `vhdl-compose-configuration-name': (new)
-  Specify how the configuration name is optained.
+  Specify how the configuration name is obtained.
 `vhdl-compose-configuration-create-file': (new)
   Specify whether a new file should be created for a configuration.
 `vhdl-compose-configuration-hierarchical': (new)

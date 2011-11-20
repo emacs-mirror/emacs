@@ -332,7 +332,7 @@
 	decoding nnimap groups.
 
 	* gnus.el (gnus-variable-list): Don't save `gnus-format-specs' in the
-	newsrc file.  It doesn't seem like an important optimisation any more.
+	newsrc file.  It doesn't seem like an important optimization any more.
 
 2011-09-10  Dave Abrahams  <dave@boostpro.com>  (tiny change)
 
@@ -985,7 +985,7 @@
 	* nnimap.el (nnimap-process-expiry-targets): Say what target we're
 	expiring articles to.
 
-	* mm-util.el (mm-charset-to-coding-system): Recognise all ANSI.x3.4
+	* mm-util.el (mm-charset-to-coding-system): Recognize all ANSI.x3.4
 	variations as ASCII (bug#5458).
 
 2011-06-30  Katsumi Yamaoka  <yamaoka@jpl.org>
@@ -4504,7 +4504,7 @@
 
 2010-10-30  Lars Magne Ingebrigtsen  <larsi@gnus.org>
 
-	* shr.el (shr-tag-span): Drop colorisation of regions since we don't
+	* shr.el (shr-tag-span): Drop colorization of regions since we don't
 	control the background color.
 	(shr-tag-img): Ignore very small web bug type images.
 	(shr-put-image): Add help-echo alt texts to the images.
@@ -11860,7 +11860,7 @@
 
 	* message.el (message-font-lock-keywords): Use message-header-xheader
 	face for "X-Foo", its apparent intended purpose.  Move "X-" pattern
-	ahead of the anything pattern, to get it recognised.
+	ahead of the anything pattern, to get it recognized.
 
 2007-05-12  Michaël Cadilhac  <michael@cadilhac.name>
 
@@ -14905,7 +14905,7 @@
 	(nnweb-request-list): Don't list bogus groups.  There can only be one.
 	(nnweb-request-create-group): Don't use ARGS.
 	(nnweb-possibly-change-server, nnweb-request-group): Remove some
-	initialisations.  Let nnoo do the work.
+	initializations.  Let nnoo do the work.
 
 2006-01-31  Katsumi Yamaoka  <yamaoka@jpl.org>
 

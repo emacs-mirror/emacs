@@ -262,7 +262,7 @@ can handle the @menu environment.")
       (let ((parenthetical (semantic-up-context-default))
 	    )
 	(when (not parenthetical)
-	  ;; We are in parenthises.  Are they the types of parens
+	  ;; We are in parentheses.  Are they the types of parens
 	  ;; belonging to a texinfo construct?
 	  (forward-word -1)
 	  (when (looking-at "@\\w+{")

@@ -567,6 +567,7 @@ This is buffer-local in every such buffer.")
   '((csh . "\\<\\([[:alnum:]_]+\\)\\(\\[.+\\]\\)?[ \t]*[-+*/%^]?=")
     ;; actually spaces are only supported in let/(( ... ))
     (ksh88 . "\\<\\([[:alnum:]_]+\\)\\(\\[.+\\]\\)?[ \t]*\\([-+*/%&|~^]\\|<<\\|>>\\)?=")
+    (bash . "\\<\\([[:alnum:]_]+\\)\\(\\[.+\\]\\)?\\+?=")
     (rc . "\\<\\([[:alnum:]_*]+\\)[ \t]*=")
     (sh . "\\<\\([[:alnum:]_]+\\)="))
   "Regexp for the variable name and what may follow in an assignment.

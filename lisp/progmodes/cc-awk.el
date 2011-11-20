@@ -231,7 +231,7 @@
 ;; to foul things up.
 (defconst c-awk-non-arith-op-bra-re
   "[[\(&=:!><,?;'~|]")
-;;   Matches an openeing BRAcket ,round or square, or any operator character
+;;   Matches an opening BRAcket, round or square, or any operator character
 ;; apart from +,-,/,*,%.  For the purpose at hand (detecting a / which is a
 ;; regexp bracket) these arith ops are unnecessary and a pain, because of "++"
 ;; and "--".

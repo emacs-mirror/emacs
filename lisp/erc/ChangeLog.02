@@ -343,7 +343,7 @@
 2002-12-14  Damien Elmes  <erc@repose.cx>
 
 	* erc.el 1.361:
-	last-peers: initialise to a cons. thanks to Francis Litterio
+	last-peers: initialize to a cons. thanks to Francis Litterio
 	    <franl@world.std.com> for the patch
 
 	* erc.el 1.360:
@@ -2616,4 +2616,3 @@ See ChangeLog.01 for earlier changes.
 ;; Local Variables:
 ;; coding: utf-8
 ;; End:
-

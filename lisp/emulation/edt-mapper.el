@@ -151,7 +151,7 @@
 ;;; Logic in simple.el maps some of these unassigned function keys to
 ;;; ordinary typing keys.  Where this is the case, a call to
 ;;; read-key-sequence, below, does not return the name of the function
-;;; key pressd by the user but, instead, it returns the name of the
+;;; key pressed by the user but, instead, it returns the name of the
 ;;; key to which it has been mapped.  It needs to know the name of the
 ;;; key pressed by the user. As a workaround, we assign a function to
 ;;; each of the unassigned function keys of interest, here.  These

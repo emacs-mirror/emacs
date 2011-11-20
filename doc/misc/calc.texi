@@ -10666,7 +10666,7 @@ and displayed in any radix just like integers and fractions.  Since a
 float that is entered in a radix other that 10 will be converted to
 decimal, the number that Calc stores may not be exactly the number that
 was entered, it will be the closest decimal approximation given the
-current precison.  The notation @samp{@var{radix}#@var{ddd}.@var{ddd}}
+current precision.  The notation @samp{@var{radix}#@var{ddd}.@var{ddd}}
 is a floating-point number whose digits are in the specified radix.
 Note that the @samp{.}  is more aptly referred to as a ``radix point''
 than as a decimal point in this case.  The number @samp{8#123.4567} is

@@ -111,7 +111,7 @@ WinMain (HINSTANCE hSelf, HINSTANCE hPrev, LPSTR cmdline, int nShow)
 #endif
 
   /* Append original arguments if any; first look for arguments we
-     recognise (-wait, -high, and -low), and apply them ourselves.  */
+     recognize (-wait, -high, and -low), and apply them ourselves.  */
   while (cmdline[0] == '-' || cmdline[0] == '/')
     {
       if (strncmp (cmdline+1, "wait", 4) == 0)

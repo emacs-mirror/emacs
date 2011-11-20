@@ -201,7 +201,7 @@ in your ~/.emacs (after loading/requiring quickurl).")
   (listp (cdr url)))
 
 (defun quickurl-make-url (keyword url &optional comment)
-  "Create a URL from KEYWORD, URL and (optionaly) COMMENT."
+  "Create a URL from KEYWORD, URL and (optionally) COMMENT."
   (if (and comment (not (zerop (length comment))))
       (list keyword url comment)
     (cons keyword url)))

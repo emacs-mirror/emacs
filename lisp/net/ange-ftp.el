@@ -46,7 +46,7 @@
 ;; Extended filename syntax:
 ;;
 ;; The default extended filename syntax is '/user@host:name', where the
-;; 'user@' part may be omitted.  This syntax can be customised to a certain
+;; 'user@' part may be omitted.  This syntax can be customized to a certain
 ;; extent by changing ange-ftp-name-format.  There are limitations.
 ;; The `host' part has an optional suffix `#port' which may be used to
 ;; specify a non-default port number for the connexion.
@@ -1665,7 +1665,7 @@ good, skip, fatal, or unknown."
               (ange-ftp-process-handle-line line proc)
             ;; If we've seen a potential error message and it
             ;; hasn't been cancelled by a good message before
-            ;; seeing a propt, then the error was real.
+            ;; seeing a prompt, then the error was real.
             (delete-process proc)
             (setq ange-ftp-process-busy nil
                   ange-ftp-process-result-line ange-ftp-pending-error-line))))

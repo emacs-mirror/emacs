@@ -12100,7 +12100,7 @@ This variable is keyboard-local.  */);
 Function key definitions that apply to all terminal devices should go
 here.  If a mapping is defined in both the current
 `local-function-key-map' binding and this variable, then the local
-definition will take precendence.  */);
+definition will take precedence.  */);
   Vfunction_key_map = Fmake_sparse_keymap (Qnil);
 
   DEFVAR_LISP ("key-translation-map", Vkey_translation_map,

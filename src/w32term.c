@@ -5576,7 +5576,7 @@ x_raise_frame (struct frame *f)
      input focus anyway (so the window with focus will never be
      completely obscured) - if not, then just moving the mouse over it
      is sufficient to give it focus.  On Windows, the user must actually
-     click on the frame (preferrably the title bar so as not to move
+     click on the frame (preferably the title bar so as not to move
      point), which is more awkward.  Also, no other Windows program
      raises a window to the top but leaves another window (possibly now
      completely obscured) with input focus.
@@ -6164,7 +6164,7 @@ w32_term_init (Lisp_Object display_name, char *xrm_option, char *resource_name)
   dpyinfo->has_palette = GetDeviceCaps (hdc, RASTERCAPS) & RC_PALETTE;
   ReleaseDC (NULL, hdc);
 
-  /* initialise palette with white and black */
+  /* initialize palette with white and black */
   {
     XColor color;
     w32_defined_color (0, "white", &color, 1);

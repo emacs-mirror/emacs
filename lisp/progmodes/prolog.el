@@ -169,7 +169,7 @@
 ;;     package requirements.
 ;; Version 1.13:
 ;;  o  Removed the use of `map-char-table' in `prolog-build-case-strings'
-;;     which appears to cause prblems in (at least) Emacs 23.0.0.1.
+;;     which appears to cause problems in (at least) Emacs 23.0.0.1.
 ;;  o  Added if-then-else indentation + corresponding electric
 ;;     characters.  New customization: `prolog-electric-if-then-else-flag'
 ;;  o  Align support (requires `align').  New customization:
@@ -391,7 +391,7 @@ Otherwise indent to `prolog-indent-width'."
 
 (defcustom prolog-left-indent-regexp "\\(;\\|\\*?->\\)"
   "*Regexp for character sequences after which next line is indented.
-Next line after such a regexp is indented to the opening paranthesis level."
+Next line after such a regexp is indented to the opening parenthesis level."
   :group 'prolog-indentation
   :type 'regexp)
 
