@@ -1,3 +1,9 @@
+2011-11-20  Martin Rudalics  <rudalics@gmx.at>
+
+	* window.c (Fset_window_combination_limit): Rename argument
+	STATUS to LIMIT.
+	(Vwindow_combination_limit): Remove "status" from doc-string.
+
 2011-11-20  Andreas Schwab  <schwab@linux-m68k.org>
 
 	* m/ibms390.h: Remove.

@@ -476,16 +476,16 @@ WINDOW are never \(re-)combined with WINDOW's siblings.  */)
 }
 
 DEFUN ("set-window-combination-limit", Fset_window_combination_limit, Sset_window_combination_limit, 2, 2, 0,
-       doc: /* Set combination limit of window WINDOW to STATUS; return STATUS.
-If STATUS is nil, child windows of WINDOW can be recombined with
-WINDOW's siblings.  STATUS t means that child windows of WINDOW are
+       doc: /* Set combination limit of window WINDOW to LIMIT; return LIMIT.
+If LIMIT is nil, child windows of WINDOW can be recombined with
+WINDOW's siblings.  LIMIT t means that child windows of WINDOW are
 never \(re-)combined with WINDOW's siblings.  Other values are reserved
 for future use.  */)
-  (Lisp_Object window, Lisp_Object status)
+  (Lisp_Object window, Lisp_Object limit)
 {
   register struct window *w = decode_any_window (window);
 
-  w->combination_limit = status;
+  w->combination_limit = limit;
 
   return w->combination_limit;
 }
@@ -6532,10 +6532,10 @@ sibling.
 
 Other values are reserved for future use.
 
-The value of this variable is also assigned to the combination-limit
-status of the new parent window.  The combination-limit status of a
-window can be retrieved via the function `window-combination-limit' and
-altered by the function `set-window-combination-limit'.  */);
+The value of this variable is also assigned to the combination limit of
+the new parent window.  The combination limit of a window can be
+retrieved via the function `window-combination-limit' and altered by the
+function `set-window-combination-limit'.  */);
   Vwindow_combination_limit = Qnil;
 
   defsubr (&Sselected_window);
