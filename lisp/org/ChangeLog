@@ -1,3 +1,7 @@
+2011-11-20  Andreas Schwab  <schwab@linux-m68k.org>
+
+	* org-list.el (org-list-send-item): Use sort instead of sort*.
+
 2011-11-20  Juanma Barranquero  <lekktu@gmail.com>
 
 	* org-table.el (org-table-line-to-dline): Fix typo.
