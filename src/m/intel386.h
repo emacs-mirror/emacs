@@ -19,7 +19,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 
 #ifdef WINDOWSNT
-#define VIRT_ADDR_VARIES
 #define DATA_START 	get_data_start ()
 #endif
 
@@ -28,4 +27,3 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 /* we cannot get the maximum address for brk */
 #define ULIMIT_BREAK_VALUE (32*1024*1024)
 #endif
-
