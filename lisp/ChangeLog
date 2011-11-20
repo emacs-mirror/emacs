@@ -1,3 +1,7 @@
+2011-11-20  Chong Yidong  <cyd@gnu.org>
+
+	* window.el (replace-buffer-in-windows): Restore interactive spec.
+
 2011-11-20  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* electric.el (electric-indent-mode): Fix last change (too optimistic).
