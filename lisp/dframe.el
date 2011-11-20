@@ -82,7 +82,7 @@
 ;;       c) If successful (your -frame variable has a value), call
 ;;          timer setup if applicable.
 ;;   your-frame-reposition- -- Function to call from after-create-hook to
-;;     reposition your frame with `dframe-repsoition-frame'.
+;;     reposition your frame with `dframe-reposition-frame'.
 ;;   your-mode -- Set up the major mode of the buffer for your app.
 ;;     Set these variables: dframe-track-mouse-function,
 ;;                          dframe-help-echo-function,
@@ -726,7 +726,7 @@ who requested the timer.  NULL-ON-ERROR is ignored."
   (if timeout
       (add-to-list 'dframe-client-functions fn)
     (setq dframe-client-functions (delete fn dframe-client-functions)))
-  ;; Now decided what to do about the timout.
+  ;; Now decided what to do about the timeout.
   (if (or
        ;; We have a timer, restart the timer with the new time.
        timeout

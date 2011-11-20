@@ -1179,7 +1179,7 @@ the generated Quail package is saved."
       (setq tail (cdr tail)))))
 
 (defun batch-miscdic-convert ()
-  "Run `miscdic-convert' on the files remaing on the command line.
+  "Run `miscdic-convert' on the files remaining on the command line.
 Use this from the command line, with `-batch';
 it won't work in an interactive Emacs.
 If there's an argument \"-dir\", the next argument specifies a directory

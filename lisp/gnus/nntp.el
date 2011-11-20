@@ -1681,7 +1681,7 @@ password contained in '~/.nntp-authinfo'."
         ;; for the first available article.  Obviously, a client can
         ;; use that entry to avoid making unnecessary requests.  The
         ;; only problem is for a client that assumes that the response
-        ;; will always be within the requested ranage.  For such a
+        ;; will always be within the requested range.  For such a
         ;; client, we can get N copies of the same entry (one for each
         ;; XOVER command sent to the server).
 

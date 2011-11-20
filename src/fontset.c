@@ -905,7 +905,7 @@ face_suitable_for_char_p (struct face *face, int c)
 
 
 /* Return ID of face suitable for displaying character C on frame F.
-   FACE must be reazlied for ASCII characters in advance.  Called from
+   FACE must be realized for ASCII characters in advance.  Called from
    the macro FACE_FOR_CHAR.  */
 
 int

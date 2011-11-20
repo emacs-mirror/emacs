@@ -5914,7 +5914,7 @@ the tool bar buttons.  */);
   x_gtk_whole_detached_tool_bar = 0;
 
   DEFVAR_BOOL ("x-gtk-use-system-tooltips", x_gtk_use_system_tooltips,
-    doc: /* *If non-nil with a Gtk+ built Emacs, the Gtk+ toolip is used.
+    doc: /* *If non-nil with a Gtk+ built Emacs, the Gtk+ tooltip is used.
 Otherwise use Emacs own tooltip implementation.
 When using Gtk+ tooltips, the tooltip face is not used.  */);
   x_gtk_use_system_tooltips = 1;

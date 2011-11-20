@@ -562,7 +562,7 @@ Keys specific to Follow mode:
 ;;
 ;; Almost like the real thing, except when the cursor ends up outside
 ;; the top or bottom...  In our case however, we end up outside the
-;; window and hence we are recenterd.  Should we let `recenter' handle
+;; window and hence we are recentered.  Should we let `recenter' handle
 ;; the point position we would never leave the selected window.  To do
 ;; it ourselves we would need to do our own redisplay, which is easier
 ;; said than done.  (Why didn't I do a real display abstraction from

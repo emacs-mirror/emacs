@@ -122,7 +122,7 @@
 %put DELETE summary "delete <object>;"
 
 ;; Despite this, this parser can find templates by ignoring the TEMPLATE
-;; keyword, and finding the class/method being templateized.
+;; keyword, and finding the class/method being templatized.
 %token TEMPLATE "template"
 %put TEMPLATE summary "template <class TYPE ...> TYPE_OR_FUNCTION"
 

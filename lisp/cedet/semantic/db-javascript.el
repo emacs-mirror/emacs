@@ -137,7 +137,7 @@ Create one of our special tables that can act as an intermediary."
 
 (defmethod semanticdb-get-tags ((table semanticdb-table-javascript ))
   "Return the list of tags belonging to TABLE."
-  ;; NOTE: Omniscient databases probably don't want to keep large tabes
+  ;; NOTE: Omniscient databases probably don't want to keep large tables
   ;;       lolly-gagging about.  Keep internal Emacs tables empty and
   ;;       refer to alternate databases when you need something.
   semanticdb-javascript-tags)

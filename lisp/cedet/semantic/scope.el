@@ -303,7 +303,7 @@ are from nesting data types."
 		   (miniscope (semantic-scope-cache "mini"))
 		   ptag)
 
-	      ;; Find the next entry in the refereneced type for
+	      ;; Find the next entry in the referenced type for
 	      ;; our function, and append to return list till our
 	      ;; returnlist is empty.
 	      (while snlist

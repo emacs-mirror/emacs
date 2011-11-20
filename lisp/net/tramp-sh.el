@@ -4905,7 +4905,7 @@ If no corresponding command is found, nil is returned."
 
 (defun tramp-get-inline-coding (vec prop size)
   "Return the coding command related to PROP.
-PROP is either `remote-encoding', `remode-decoding',
+PROP is either `remote-encoding', `remote-decoding',
 `local-encoding' or `local-decoding'.
 
 SIZE is the length of the file to be coded.  Depending on SIZE,

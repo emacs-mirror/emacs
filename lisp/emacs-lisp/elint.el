@@ -335,7 +335,7 @@ Will be local in linted buffers.")
 Is measured in buffer-modified-ticks and is local in linted buffers.")
 
 ;; This is a minor optimization.  It is local to every buffer, and so
-;; does not prevent recursive requirs.  It does not list the requires
+;; does not prevent recursive requires.  It does not list the requires
 ;; of requires.
 (defvar elint-features nil
   "List of all libraries this buffer has required, or that have been provided.")

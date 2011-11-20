@@ -3008,7 +3008,7 @@ Valid parameters PARAMS are:
 
 Alternatively, each parameter can also be a form returning
 a string.  These sexp can use keywords `counter' and `depth',
-reprensenting respectively counter associated to the current
+representing respectively counter associated to the current
 item, and depth of the current sub-list, starting at 0.
 Obviously, `counter' is only available for parameters applying to
 items."

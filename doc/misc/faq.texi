@@ -627,7 +627,7 @@ translations of the reference card into several languages; look for
 files named @file{etc/refcards/@var{lang}-refcard.*}, where @var{lang}
 is a two-letter code of the language.  For example, the German version
 of the reference card is in the files @file{etc/refcards/de-refcard.tex}
-and @file{etc/recards/de-refcard.pdf}.
+and @file{etc/refcards/de-refcard.pdf}.
 
 @item
 There are many other commands in Emacs for getting help and

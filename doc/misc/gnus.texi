@@ -25471,7 +25471,7 @@ Write @code{spam-check-blackbox} if Blackbox can check incoming mail.
 
 Write @code{spam-blackbox-register-routine} and
 @code{spam-blackbox-unregister-routine} using the bogofilter
-register/unregister routines as a start, or other restister/unregister
+register/unregister routines as a start, or other register/unregister
 routines more appropriate to Blackbox, if Blackbox can
 register/unregister spam and ham.
 

@@ -1925,7 +1925,7 @@ frame parameters in PARAMETERS."
 	  (progn
 	    ;; Initialize faces from face spec and custom theme.
 	    (face-spec-recalc face frame)
-	    ;; X resouces for the default face are applied during
+	    ;; X resources for the default face are applied during
 	    ;; `x-create-frame'.
 	    (and (not (eq face 'default)) window-system-p
 		 (make-face-x-resource-internal face frame))

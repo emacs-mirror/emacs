@@ -954,7 +954,7 @@ now.
 			     (nth 1 (car names)) ; name
 			     "typedef"
 			     (semantic-tag-type-members tag)
-			     ;; parent is just tbe name of what
+			     ;; parent is just the name of what
 			     ;; is passed down as a tag.
 			     (list
 			      (semantic-tag-name

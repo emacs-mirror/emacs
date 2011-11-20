@@ -413,7 +413,7 @@ and can take a long time."
    (unless (boundp 'viper-mode)
      (setq viper-mode nil))  ;; avoid viper.el ask about viperizing
    (unless (boundp 'gnus-registry-install)
-     (setq gnus-registry-install nil))  ;; avoid gnus-registery.el querying
+     (setq gnus-registry-install nil))  ;; avoid gnus-registry.el querying
 
    (mapatoms
     (lambda (symbol)

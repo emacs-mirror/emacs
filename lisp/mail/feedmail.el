@@ -1010,7 +1010,7 @@ If it contains a \"%s\", that will be replaced with the value of
 
 
 (defcustom feedmail-ask-before-queue-reprompt "FQM: Please type q, i, d, or e; or ? for help [%s]: "
-  "A string which will be used for repompting after invalid input.
+  "A string which will be used for reprompting after invalid input.
 If it contains a \"%s\", that will be replaced with the value of
 `feedmail-ask-before-queue-default'."
   :group 'feedmail-queue

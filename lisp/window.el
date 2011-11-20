@@ -2920,6 +2920,7 @@ window.
 
 This function removes the buffer denoted by BUFFER-OR-NAME from
 all window-local buffer lists."
+  (interactive "bBuffer to replace: ")
   (let ((buffer (window-normalize-buffer buffer-or-name)))
     (dolist (window (window-list-1 nil nil t))
       (if (eq (window-buffer window) buffer)

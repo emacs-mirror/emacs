@@ -239,7 +239,7 @@ IMAGESPEC is the image data, and DOCSTRING is documentation for the image."
     ("[ ]" . ezimage-page)
     ("{+}" . ezimage-box-plus)
     ("{-}" . ezimage-box-minus)
-    ;; Some vaguely representitive entries
+    ;; Some vaguely representative entries
     ("*" . ezimage-checkout)
     ("#" . ezimage-object)
     ("!" . ezimage-object-out-of-date)

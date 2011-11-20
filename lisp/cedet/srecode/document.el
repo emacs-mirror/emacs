@@ -698,7 +698,7 @@ allocating something based on its type."
 				 (cdr (car al)))))
 	    (setq al nil)))
       (setq al (cdr al)))
-    ;; add tailers to names which are obviously returning something.
+    ;; add trailers to names which are obviously returning something.
     (if tailit
 	(progn
 	  (setq al srecode-document-autocomment-return-last-alist)

@@ -2363,7 +2363,7 @@ xg_create_one_menuitem (widget_value *item,
    HIGHLIGHT_CB is the callback to call when entering/leaving menu items.
    POP_UP_P is non-zero if we shall create a popup menu.
    MENU_BAR_P is non-zero if we shall create a menu bar.
-   ADD_TEAROFF_P is non-zero if we shall add a teroff menu item.  Ignored
+   ADD_TEAROFF_P is non-zero if we shall add a tearoff menu item.  Ignored
    if MENU_BAR_P is non-zero.
    TOPMENU is the topmost GtkWidget that others shall be placed under.
    It may be NULL, in that case we create the appropriate widget

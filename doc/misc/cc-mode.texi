@@ -912,7 +912,7 @@ construct, should the point start inside it.  If @ccmode fails to find
 function beginnings or ends inside the current declaration scope, it
 will search the enclosing scopes.  If you want @ccmode to recognize
 functions only at the top level@footnote{this was @ccmode{}'s
-behavior prior to version 5.32.}, set @code{c-defun-tatic} to
+behavior prior to version 5.32.}, set @code{c-defun-tactic} to
 @code{t}.
 
 These functions are analogous to the Emacs built-in commands

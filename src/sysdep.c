@@ -1663,7 +1663,7 @@ init_signals (void)
       sys_siglist[SIGQUIT] = "Quit";
 # endif
 # ifdef SIGRETRACT
-      sys_siglist[SIGRETRACT] = "Need to relinguish monitor mode";
+      sys_siglist[SIGRETRACT] = "Need to relinquish monitor mode";
 # endif
 # ifdef SIGSAK
       sys_siglist[SIGSAK] = "Secure attention";
