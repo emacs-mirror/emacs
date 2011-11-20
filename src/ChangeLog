@@ -1,3 +1,8 @@
+2011-11-20  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* fileio.c (Finsert_file_contents): Add missing gcpro1 variable.
+	Suggested by Dmitry Antipov <dmantipov@yandex.ru>.
+
 2011-11-20  Juanma Barranquero  <lekktu@gmail.com>
 
 	* casetab.c (Fset_case_table):
