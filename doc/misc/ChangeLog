@@ -1,3 +1,8 @@
+2011-11-20  Glenn Morris  <rgm@gnu.org>
+
+	* gnus.texi (Group Information):
+	Remove gnus-group-fetch-faq, command deleted 2010-09-24.
+
 2011-11-20  Juanma Barranquero  <lekktu@gmail.com>
 
 	* gnus-coding.texi (Gnus Maintenance Guide):

@@ -4491,23 +4491,6 @@ news.
 @table @kbd
 
 
-@item H f
-@kindex H f (Group)
-@findex gnus-group-fetch-faq
-@vindex gnus-group-faq-directory
-@cindex FAQ
-@cindex ange-ftp
-Try to fetch the @acronym{FAQ} for the current group
-(@code{gnus-group-fetch-faq}).  Gnus will try to get the @acronym{FAQ}
-from @code{gnus-group-faq-directory}, which is usually a directory on
-a remote machine.  This variable can also be a list of directories.
-In that case, giving a prefix to this command will allow you to choose
-between the various sites.  @code{ange-ftp} (or @code{efs}) will be
-used for fetching the file.
-
-If fetching from the first site is unsuccessful, Gnus will attempt to go
-through @code{gnus-group-faq-directory} and try to open them one by one.
-
 @item H d
 @itemx C-c C-d
 @c @icon{gnus-group-describe-group}
