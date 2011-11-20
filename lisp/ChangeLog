@@ -1,3 +1,14 @@
+2011-11-20  Glenn Morris  <rgm@gnu.org>
+
+	* mail/rmail.el (rmail-enable-mime-composing): Make it a defcustom.
+	(rmail-insert-mime-forwarded-message-function, rmail-mime-feature):
+	Doc fixes.
+	(rmail-decode-mime-charset): Mark as obsolete.
+
+	* mail/rmailsum.el (rmail-message-regexp-p-1):
+	* mail/rmail.el (rmail-search-message, rmail-forward, rmail-resend):
+	Before using mime functions, check they are set.  (Bug#10077)
+
 2011-11-19  Juri Linkov  <juri@jurta.org>
 
 	* info.el (Info-finder-find-node): Use `package--builtins' instead

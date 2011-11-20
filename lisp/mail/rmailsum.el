@@ -342,10 +342,9 @@ Emacs will list the message in the summary."
 (defun rmail-message-regexp-p-1 (msg regexp)
   ;; Search functions can expect to start from the beginning.
   (narrow-to-region (point) (save-excursion (search-forward "\n\n") (point)))
-  (if rmail-enable-mime
-      (if rmail-search-mime-header-function
-	  (funcall rmail-search-mime-header-function msg regexp (point))
-	(error "You must set `rmail-search-mime-header-function'"))
+  (if (and rmail-enable-mime
+	   rmail-search-mime-header-function)
+      (funcall rmail-search-mime-header-function msg regexp (point))
     (re-search-forward regexp nil t)))
 
 ;;;###autoload
