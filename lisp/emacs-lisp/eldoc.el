@@ -434,7 +434,7 @@ In the absence of INDEX, just call `eldoc-docstring-format-sym-doc'."
 	  nil
 	(list (eldoc-current-symbol) argument-index)))))
 
-;; Move to the beginnig of current sexp.  Return the number of nested
+;; Move to the beginning of current sexp.  Return the number of nested
 ;; sexp the point was over or after.
 (defun eldoc-beginning-of-sexp ()
   (let ((parse-sexp-ignore-comments t)

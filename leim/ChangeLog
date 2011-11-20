@@ -1,4 +1,4 @@
-2011-09-27  Jambunathan K <kjambunathan@gmail.com>
+2011-09-27  Jambunathan K  <kjambunathan@gmail.com>
 
 	* quail/indian.el (quail-tamil-itrans-misc-table): Delete it.
 	(quail-tamil-itrans-numerics-and-symbols-table)
@@ -251,7 +251,7 @@
 	* quail/hangul.el (hangul-im-keymap): Add binding of key
 	Hangul_Hanja.
 
-2009-05-04   Simon Leinen  <simon.leinen@switch.ch>  (tiny change)
+2009-05-04  Simon Leinen  <simon.leinen@switch.ch>  (tiny change)
 
 	* Makefile.in (install): Avoid using $$(..) construct, for Solaris
 	compatibility.

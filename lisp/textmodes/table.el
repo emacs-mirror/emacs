@@ -1482,7 +1482,7 @@ the last cache point coordinate."
 	   (cons (cons command func-symbol)
 		 table-command-remap-alist))))
  '(center-line
-   conter-region
+   center-region
    center-paragraph
    fill-paragraph))
 
@@ -5535,7 +5535,7 @@ When COORDINATE is omitted or nil the point in current buffer is assumed in plac
    table-cell-info-lu-coordinate))
 
 (defun table--offset-coordinate (coordinate offset &optional negative)
-  "Return the offseted COORDINATE by OFFSET.
+  "Return the offset COORDINATE by OFFSET.
 When optional NEGATIVE is non-nil offsetting direction is negative."
   (cons (if negative (- (car coordinate) (car offset))
 	  (+ (car coordinate) (car offset)))

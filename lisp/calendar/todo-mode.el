@@ -31,7 +31,7 @@
 ;;	TODO is a major mode for EMACS which offers functionality to
 ;;	treat most lines in one buffer as a list of items one has to
 ;;	do.  There are facilities to add new items, which are
-;;	categorised, to edit or even delete items from the buffer.
+;;	categorized, to edit or even delete items from the buffer.
 ;;	The buffer contents are currently compatible with the diary,
 ;;	so that the list of todo-items will show up in the FANCY diary
 ;;	mode.
@@ -61,14 +61,14 @@
 ;;
 ;;      The TODO list file has a special format and some auxiliary
 ;;      information, which will be added by the todo-show function if
-;;      it attempts to visit an un-initialised file.  Hence it is
+;;      it attempts to visit an un-initialized file.  Hence it is
 ;;      recommended to use the todo-show function for the first time,
-;;      in order to initialise the file, but it is not necessary
+;;      in order to initialize the file, but it is not necessary
 ;;      afterwards.
 ;;
 ;;      As these commands are quite long to type, I would recommend
 ;;      the addition of two bindings to your to your global keymap.  I
-;;      personally have the following in my initialisation file:
+;;      personally have the following in my initialization file:
 ;;
 ;;          (global-set-key "\C-ct" 'todo-show)  ; switch to TODO buffer
 ;;	    (global-set-key "\C-ci" 'todo-insert-item) ; insert new item
@@ -536,7 +536,7 @@ Use `todo-categories' instead.")
     (unless (zerop (buffer-size buf))
       (and (null todo-categories)
 	   (null todo-cats)
-	   (error "Error in %s: File is non-empty but contains no category" 
+	   (error "Error in %s: File is non-empty but contains no category"
 		  todo-file-do)))
     (unless cat (setq cat (read-from-minibuffer prompt)))
     (with-current-buffer buf

@@ -72,7 +72,7 @@ An empty list disables VC altogether."
   :group 'vc)
 
 ;; Note: we don't actually have a darcs back end yet.
-;; Also, Meta-CVS (corresponsding to MCVS) is unsupported.
+;; Also, Meta-CVS (corresponding to MCVS) is unsupported.
 (defcustom vc-directory-exclusion-list (purecopy '("SCCS" "RCS" "CVS" "MCVS"
 					 ".svn" ".git" ".hg" ".bzr"
 					 "_MTN" "_darcs" "{arch}"))
@@ -456,8 +456,8 @@ For registered files, the value returned is one of:
   'edited            The working file has been edited by the user.  If
                      locking is used for the file, this state means that
                      the current version is locked by the calling user.
-                     This status should *not* be reported for files 
-                     which have a changed mtime but the same content 
+                     This status should *not* be reported for files
+                     which have a changed mtime but the same content
                      as the repo copy.
 
   USER               The current version of the working file is locked by

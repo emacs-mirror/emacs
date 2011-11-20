@@ -1,3 +1,16 @@
+2011-11-17  Glenn Morris  <rgm@gnu.org>
+
+	* regs.texi (Bookmarks): Small fixes related to saving.  (Bug#10058)
+
+2011-11-16  Juanma Barranquero  <lekktu@gmail.com>
+
+	* killing.texi (Rectangles):
+	* misc.texi (Document View):
+	* modes.texi (Choosing Modes):
+	* msdog.texi (Windows Fonts):
+	* regs.texi (Rectangle Registers):
+	* search.texi (Isearch Yank): Fix typos.
+
 2011-11-06  Chong Yidong  <cyd@gnu.org>
 
 	* windows.texi (Basic Window): Add xref to Cursor Display.
@@ -1226,7 +1239,8 @@
 
 2010-03-27  Nick Roberts  <nickrob@snap.net.nz>
 
-	doc/emacs/building.texi: Describe restored GDB/MI fuctionality removed by r99212.
+	doc/emacs/building.texi: Describe restored GDB/MI functionality
+	removed by r99212.
 	doc/emacs/emacs.texi: Update node names for building.texi.
 
 2010-03-24  Glenn Morris  <rgm@gnu.org>
@@ -1711,7 +1725,7 @@
 	(Table of Resources): Document fontBackend resource.
 
 	* trouble.texi (Quitting): Add other undo bindings to table.
-	(DEL Does Not Delete): Note that the erasure key is usually labelled
+	(DEL Does Not Delete): Note that the erasure key is usually labeled
 	"Backspace".  Remove discussion of obscure Xmodmap issue.
 
 2009-05-07  Chong Yidong  <cyd@stupidchicken.com>

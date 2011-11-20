@@ -2962,7 +2962,7 @@ x_default_font_parameter (struct frame *f, Lisp_Object parms)
 
   if (NILP (font_param))
     {
-      /* System font should take precedendce over X resources.  We suggest this
+      /* System font should take precedence over X resources.  We suggest this
          regardless of font-use-system-font because .emacs may not have been
          read yet.  */
       const char *system_font = xsettings_get_system_font ();
@@ -3691,7 +3691,7 @@ If omitted or nil, that stands for the selected frame's display.  */)
 
 DEFUN ("x-server-vendor", Fx_server_vendor, Sx_server_vendor, 0, 1, 0,
        doc: /* Return the "vendor ID" string of the X server of display TERMINAL.
-\(Labelling every distributor as a "vendor" embodies the false assumption
+\(Labeling every distributor as a "vendor" embodies the false assumption
 that operating systems cannot be developed and distributed noncommercially.)
 The optional argument TERMINAL specifies which display to ask about.
 TERMINAL should be a terminal object, a frame or a display name (a string).

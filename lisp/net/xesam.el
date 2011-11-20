@@ -88,7 +88,7 @@
 ;;
 ;;   (setq xesam-query-type 'fulltext-query)
 ;;
-;; Another option to be customised is the number of hits to be
+;; Another option to be customized is the number of hits to be
 ;; presented at once.
 ;;
 ;;   (setq xesam-hits-per-page 50)
@@ -409,7 +409,7 @@ If there is no registered search engine at all, the function returns `nil'."
 	(setq vendor-id (xesam-get-property engine "vendor.id")
 	      hit-fields (xesam-get-property engine "hit.fields"))
 
-	;; Ususally, `hit.fields' shall describe supported fields.
+	;; Usually, `hit.fields' shall describe supported fields.
 	;; That is not the case now, so we set it ourselves.
 	;; Hopefully, this will change later.
 	(setq hit-fields

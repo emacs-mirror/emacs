@@ -7552,7 +7552,7 @@ imagemagick_image_p (Lisp_Object object)
 }
 
 /* The GIF library also defines DrawRectangle, but its never used in Emacs.
-   Therefore rename the function so it doesnt collide with ImageMagick.  */
+   Therefore rename the function so it doesn't collide with ImageMagick.  */
 #define DrawRectangle DrawRectangleGif
 #include <wand/MagickWand.h>
 
@@ -7754,7 +7754,7 @@ imagemagick_load_image (struct frame *f, struct image *img,
     }
 
   /* Finally we are done manipulating the image.  Figure out the
-     resulting width/height and transfer ownerwship to Emacs.  */
+     resulting width/height and transfer ownership to Emacs.  */
   height = MagickGetImageHeight (image_wand);
   width = MagickGetImageWidth (image_wand);
 
@@ -7786,7 +7786,7 @@ imagemagick_load_image (struct frame *f, struct image *img,
           goto imagemagick_error;
         }
 
-      /* Copy imagegmagick image to x with primitive yet robust pixel
+      /* Copy imagemagick image to x with primitive yet robust pixel
          pusher loop.  This has been tested a lot with many different
          images.  */
 
@@ -7824,7 +7824,7 @@ imagemagick_load_image (struct frame *f, struct image *img,
 
   if (imagemagick_rendermethod == 1)
     {
-      /* Magicexportimage is normaly faster than pixelpushing.  This
+      /* Magicexportimage is normally faster than pixelpushing.  This
          method is also well tested. Some aspects of this method are
          ad-hoc and needs to be more researched. */
       int imagedepth = 24;/*MagickGetImageDepth(image_wand);*/
@@ -7841,7 +7841,7 @@ imagemagick_load_image (struct frame *f, struct image *img,
 	}
 
 
-      /* Oddly, the below code doesnt seem to work:*/
+      /* Oddly, the below code doesn't seem to work:*/
       /* switch(ximg->bitmap_unit){ */
       /* case 8: */
       /*   pixelwidth=CharPixel; */
@@ -7870,7 +7870,7 @@ imagemagick_load_image (struct frame *f, struct image *img,
 			       /*&(img->pixmap));*/
 			       ximg->data);
 #else
-      image_error ("You dont have MagickExportImagePixels, upgrade ImageMagick!",
+      image_error ("You don't have MagickExportImagePixels, upgrade ImageMagick!",
 		   Qnil, Qnil);
 #endif
     }
@@ -8781,7 +8781,7 @@ syms_of_image (void)
      operation on GNU/Linux of calling dump-emacs after loading some images.  */
   image_types = NULL;
 
-  /* Must be defined now becase we're going to update it below, while
+  /* Must be defined now because we're going to update it below, while
      defining the supported image types.  */
   DEFVAR_LISP ("image-types", Vimage_types,
     doc: /* List of potentially supported image types.

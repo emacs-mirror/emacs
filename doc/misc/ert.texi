@@ -389,7 +389,7 @@ This checks that dividing one by zero signals an error of type
 @code{arith-error}.  The @code{:type} argument to @code{should-error}
 is optional; if absent, any type of error is accepted.
 @code{should-error} returns an error description of the error that was
-signalled, to allow additional checks to be made.  The error
+signaled, to allow additional checks to be made.  The error
 description has the format @code{(ERROR-SYMBOL . DATA)}.
 
 There is no @code{should-not-error} macro since tests that signal an
@@ -748,7 +748,7 @@ explanation function.
 
 Both @code{ert-run-tests-interactively} and @code{ert-run-tests-batch}
 are implemented on top of the lower-level test handling code in the
-sections of @file{ert.el} labelled ``Facilities for running a single test'',
+sections of @file{ert.el} labeled ``Facilities for running a single test'',
 ``Test selectors'', and ``Facilities for running a whole set of tests''.
 
 If you want to write code that works with ERT tests, you should take a

@@ -155,7 +155,7 @@ not align (only setting space according to `conf-assignment-space')."
     (modify-syntax-entry ?/  ". 124" table)
     (modify-syntax-entry ?*  ". 23b" table)
     table)
-  "Syntax table in use in Java prperties buffers.")
+  "Syntax table in use in Java properties buffers.")
 
 (defvar conf-ppd-mode-syntax-table
   (let ((table (make-syntax-table conf-mode-syntax-table)))

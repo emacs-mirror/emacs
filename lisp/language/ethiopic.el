@@ -61,7 +61,7 @@
 	      (features ethio-util)
 	      (sample-text . "ፊደል")
 	      (documentation .
-"This language envrironment provides these function key bindings:
+"This language environment provides these function key bindings:
     [f3]   ethio-fidel-to-sera-buffer
     [S-f3] ethio-fidel-to-sera-region
     [C-f3] ethio-fidel-to-sera-marker

@@ -55,7 +55,7 @@ struct ftxfont_frame_data
 {
   /* Background and foreground colors.  */
   XColor colors[2];
-  /* GCs interporationg the above colors.  gcs[0] is for a color
+  /* GCs interpolating the above colors.  gcs[0] is for a color
    closest to BACKGROUND, and gcs[5] is for a color closest to
    FOREGROUND.  */
   GC gcs[6];

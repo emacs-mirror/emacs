@@ -2084,7 +2084,7 @@ special."
   "*Specify extra width for arrow shape drawing.
 
 The extra width is used to avoid that the arrowhead and the terminal border
-overlap.  It depens on `ebnf-arrow-shape' and `ebnf-line-width'."
+overlap.  It depends on `ebnf-arrow-shape' and `ebnf-line-width'."
   :type 'number
   :version "22"
   :group 'ebnf-shape)
@@ -5037,7 +5037,7 @@ killed after process termination."
 		(when gen-func
 		  (setq error-msg "EMPTY RULES"
 			tree      (ebnf-eliminate-empty-rules tree))
-		  (setq error-msg "OPTMIZE"
+		  (setq error-msg "OPTIMIZE"
 			tree      (ebnf-optimize tree))
 		  (setq error-msg "DIMENSIONS"
 			tree      (ebnf-dimensions tree))
@@ -6069,7 +6069,7 @@ killed after process termination."
 
 
 (defun ebnf-make-terminal1 (name gen-func dim-func)
-  (vector gen-func			; 0 generatore
+  (vector gen-func			; 0 generator
 	  'ignore			; 1 width fun
 	  dim-func			; 2 dimension fun
 	  0.0				; 3 entry

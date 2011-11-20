@@ -1267,7 +1267,7 @@ This function is an internal primitive--use `make-frame' instead.  */)
 #endif
 
   init_frame_faces (f);
-  
+
   /* The resources controlling the menu-bar and tool-bar are
      processed specially at startup, and reflected in the mode
      variables; ignore them here.  */
@@ -1656,7 +1656,7 @@ If omitted or nil, the selected frame's display is used.  */)
 
 DEFUN ("x-display-backing-store", Fx_display_backing_store,
        Sx_display_backing_store, 0, 1, 0,
-       doc: /* Return whether the Nexstep display DISPLAY supports backing store.
+       doc: /* Return whether the Nextstep display DISPLAY supports backing store.
 The value may be `buffered', `retained', or `non-retained'.
 DISPLAY should be a frame, the display name as a string, or a terminal ID.
 If omitted or nil, the selected frame's display is used.  */)
@@ -1846,7 +1846,7 @@ DEFUN ("ns-emacs-info-panel", Fns_emacs_info_panel, Sns_emacs_info_panel,
 
 
 DEFUN ("ns-font-name", Fns_font_name, Sns_font_name, 1, 1, 0,
-       doc: /* Determine font postscript or family name for font NAME.
+       doc: /* Determine font PostScript or family name for font NAME.
 NAME should be a string containing either the font name or an XLFD
 font descriptor.  If string contains `fontset' and not
 `fontset-startup', it is left alone. */)

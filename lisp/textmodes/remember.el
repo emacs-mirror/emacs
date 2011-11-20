@@ -113,7 +113,7 @@
 ;;  - Allowing particular views of the initially amorphous data pool
 ;;    (ala the Xanadu concept).
 ;;
-;;  - Storage of the data in a manner most appopriate to that data,
+;;  - Storage of the data in a manner most appropriate to that data,
 ;;    such as keeping address-book type information in BBDB, etc.
 ;;
 ;; * Using "remember"

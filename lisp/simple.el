@@ -878,6 +878,7 @@ KILLFLAG is set if N was explicitly specified."
 
 (defun mark-whole-buffer ()
   "Put point at beginning and mark at end of buffer.
+If narrowing is in effect, only uses the accessible part of the buffer.
 You probably should not use this function in Lisp programs;
 it is usually a mistake for a Lisp function to use any subroutine
 that uses or sets the mark."
@@ -2408,7 +2409,7 @@ and only used if a buffer is displayed."
 					    1))
 				   1)))
 			 ;; Don't use the echo area if the output buffer is
-			 ;; already dispayed in the selected frame.
+			 ;; already displayed in the selected frame.
 			 (not (get-buffer-window (current-buffer))))
 		    ;; Echo area
 		    (goto-char (point-max))
@@ -2657,7 +2658,7 @@ value passed."
 Per default, this variable is always set to `t', meaning that a
 call of `process-file' could potentially change any file on a
 remote host.  When set to `nil', a file handler could optimize
-its behaviour with respect to remote file attributes caching.
+its behavior with respect to remote file attributes caching.
 
 This variable should never be changed by `setq'.  Instead of, it
 shall be set only by let-binding.")
@@ -4276,8 +4277,8 @@ into account variable-width characters and line continuation.
 If nil, `line-move' moves point by logical lines.
 A non-nil setting of `goal-column' overrides the value of this variable
 and forces movement by logical lines.
-Disabling `auto-hscroll-mode' also overrides forces movement by logical
-lines when the window is horizontally scrolled."
+A window that is  horizontally scrolled also forces movement by logical
+lines."
   :type 'boolean
   :group 'editing-basics
   :version "23.1")
@@ -4323,7 +4324,7 @@ lines when the window is horizontally scrolled."
 	  (when (> rbot 0)
 	    (set-window-vscroll nil (+ vs (min rbot (frame-char-height))) t)))
 	 ;; If cursor just entered the bottom scroll margin, move forward,
-	 ;; but also vscroll one line so redisplay wont recenter.
+	 ;; but also vscroll one line so redisplay won't recenter.
 	 ((and (> vpos 0)
 	       (= py (min (- (window-text-height) scroll-margin 1)
 			  (1- vpos))))
@@ -4357,12 +4358,10 @@ lines when the window is horizontally scrolled."
     (if (and line-move-visual
 	     ;; Display-based column are incompatible with goal-column.
 	     (not goal-column)
-	     ;; When auto-hscroll-mode is turned off and the text in
-	     ;; the window is scrolled to the left, display-based
-	     ;; motion doesn't make sense (because each logical line
-	     ;; occupies exactly one screen line).
-	     (not (and (null auto-hscroll-mode)
-		       (> (window-hscroll) 0))))
+	     ;; When the text in the window is scrolled to the left,
+	     ;; display-based motion doesn't make sense (because each
+	     ;; logical line occupies exactly one screen line).
+	     (not (> (window-hscroll) 0)))
 	(line-move-visual arg noerror)
       (line-move-1 arg noerror to-end))))
 

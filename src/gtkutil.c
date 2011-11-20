@@ -127,7 +127,7 @@ xg_set_screen (GtkWidget *w, FRAME_PTR f)
 
    Returns non-zero if display could be opened, zero if display could not
    be opened, and less than zero if the GTK version doesn't support
-   multipe displays.  */
+   multiple displays.  */
 
 void
 xg_display_open (char *display_name, Display **dpy)
@@ -348,7 +348,7 @@ file_for_image (Lisp_Object image)
 
 /* For the image defined in IMG, make and return a GtkImage.  For displays with
    8 planes or less we must make a GdkPixbuf and apply the mask manually.
-   Otherwise the highlightning and dimming the tool bar code in GTK does
+   Otherwise the highlighting and dimming the tool bar code in GTK does
    will look bad.  For display with more than 8 planes we just use the
    pixmap and mask directly.  For monochrome displays, GTK doesn't seem
    able to use external pixmaps, it looks bad whatever we do.
@@ -891,7 +891,7 @@ xg_frame_resized (FRAME_PTR f, int pixelwidth, int pixelheight)
     }
 }
 
-/* Resize the outer window of frame F after chainging the height.
+/* Resize the outer window of frame F after changing the height.
    COLUMNS/ROWS is the size the edit area shall have after the resize.  */
 
 void
@@ -1423,7 +1423,7 @@ get_dialog_title (char key)
 /* Callback for dialogs that get WM_DELETE_WINDOW.  We pop down
    the dialog, but return TRUE so the event does not propagate further
    in GTK.  This prevents GTK from destroying the dialog widget automatically
-   and we can always destrou the widget manually, regardles of how
+   and we can always destroy the widget manually, regardless of how
    it was popped down (button press or WM_DELETE_WINDOW).
    W is the dialog widget.
    EVENT is the GdkEvent that represents WM_DELETE_WINDOW (not used).
@@ -2294,7 +2294,7 @@ tearoff_activate (GtkWidget *widget, gpointer client_data)
 
 
 /* Create a menu item widget, and connect the callbacks.
-   ITEM decribes the menu item.
+   ITEM describes the menu item.
    F is the frame the created menu belongs to.
    SELECT_CB is the callback to use when a menu item is selected.
    HIGHLIGHT_CB is the callback to call when entering/leaving menu items.
@@ -4262,7 +4262,7 @@ xg_make_tool_item (FRAME_PTR f,
 #endif
       gtk_tool_item_set_homogeneous (ti, FALSE);
 
-      /* Callback to save modifyer mask (Shift/Control, etc).  GTK makes
+      /* Callback to save modifier mask (Shift/Control, etc).  GTK makes
          no distinction based on modifiers in the activate callback,
          so we have to do it ourselves.  */
       g_signal_connect (wb, "button-release-event",

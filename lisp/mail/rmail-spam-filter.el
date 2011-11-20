@@ -317,7 +317,7 @@ it from rmail file.  Called for each new message retrieved by
           ;; that this email is spam, output the email to the spam
           ;; rmail file, mark the email for deletion, leave the
           ;; while loop and return nil so that an rmail summary line
-          ;; wont be displayed for this message: (FIXME ?)
+          ;; won't be displayed for this message: (FIXME ?)
           (if (and (car maybe-spam) (cdr maybe-spam))
               (setq exit-while-loop t)
             ;; Else, spam was not yet found, proceed to next element
@@ -554,4 +554,4 @@ checks to see if the old format is used, and updates it if necessary."
 
 (provide 'rmail-spam-filter)
 
-;;; rmail-spam-fitler ends here
+;;; rmail-spam-filter ends here

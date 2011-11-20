@@ -2088,7 +2088,7 @@ w32_key_to_modifier (int key)
       key_mapping = Qnil;
     }
 
-  /* NB. This code runs in the input thread, asychronously to the lisp
+  /* NB. This code runs in the input thread, asynchronously to the lisp
      thread, so we must be careful to ensure access to lisp data is
      thread-safe.  The following code is safe because the modifier
      variable values are updated atomically from lisp and symbols are
@@ -2262,7 +2262,7 @@ w32_msg_pump (deferred_msg * msg_buf)
                  some third party shell extensions can cause it to be used in
                  system dialogs, which causes a crash if it is not initialized.
                  This is a known bug in Windows, which was fixed long ago, but
-                 the patch for XP is not publically available until XP SP3,
+                 the patch for XP is not publicly available until XP SP3,
                  and older versions will never be patched.  */
               CoInitialize (NULL);
 	      w32_createwindow ((struct frame *) msg.wParam);
@@ -2880,7 +2880,7 @@ w32_wnd_proc (HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 		      key.dwControlKeyState = modifiers;
 
 		      add = w32_kbd_patch_key (&key);
-		      /* 0 means an unrecognised keycode, negative means
+		      /* 0 means an unrecognized keycode, negative means
 			 dead key.  Ignore both.  */
 		      while (--add >= 0)
 			{
@@ -6709,7 +6709,7 @@ DEFUN ("default-printer-name", Fdefault_printer_name, Sdefault_printer_name,
       ClosePrinter (hPrn);
       return Qnil;
     }
-  /* Call GetPrinter again with big enouth memory block */
+  /* Call GetPrinter again with big enough memory block.  */
   err = GetPrinter (hPrn, 2, (LPBYTE)ppi2, dwNeeded, &dwReturned);
   ClosePrinter (hPrn);
   if (!err)

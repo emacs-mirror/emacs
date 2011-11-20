@@ -202,7 +202,7 @@ associated with a buffer or parent."
 					      :size 20)
 		   :origin   origin)))
 	;; Only set up the default variables if we are being built
-	;; directroy for a particular buffer.
+	;; directly for a particular buffer.
 	(when initfrombuff
 	  ;; Variables from the table we are inserting from.
 	  ;; @todo - get a better tree of tables.
@@ -280,7 +280,7 @@ inserted dictionaries."
 	  (progn
 	    (srecode-dictionary-show-section new "FIRST")
 	    (srecode-dictionary-show-section new "LAST"))
-	;; Not the very first one.  Lets clean up CAR.
+	;; Not the very first one.  Let's clean up CAR.
 	(let ((tail (car (last ov))))
 	  (srecode-dictionary-hide-section tail "LAST")
 	  (srecode-dictionary-show-section tail "NOTLAST")
@@ -436,7 +436,7 @@ The root dictionary is usually for a current or active insertion."
 
 ;;; COMPOUND VALUE METHODS
 ;;
-;; Compound values must provide at least the toStriong method
+;; Compound values must provide at least the toString method
 ;; for use in converting the compound value into sometehing insertable.
 
 (defmethod srecode-compound-toString ((cp srecode-dictionary-compound-value)

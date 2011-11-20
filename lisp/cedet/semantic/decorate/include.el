@@ -459,7 +459,7 @@ to add the path to Semantic's search.
 If this is an include file that belongs to your project, then you may
 need to update `semanticdb-project-roots' or better yet, use `ede'
 to manage your project.  See the ede manual for projects that will
-wrap existing project code for Semantic's benifit.
+wrap existing project code for Semantic's benefit.
 ")
 
       (when (or (eq mm 'c++-mode) (eq mm 'c-mode))
@@ -739,7 +739,7 @@ any decorated referring includes.")
   "Refresh any highlighting in buffers referred to by TABLE.
 If TABLE is not in a buffer, do nothing."
   ;; This cache removal may seem odd in that we are "creating one", but
-  ;; since we cant get in the fcn unless one exists, this ought to be
+  ;; since we can't get in the fcn unless one exists, this ought to be
   ;; ok.
   (let ((c (semanticdb-cache-get
 	    table 'semantic-decoration-unparsed-include-cache)))

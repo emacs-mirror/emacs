@@ -226,7 +226,7 @@ struct sound_device
   /* Close device SD.  */
   void (* close) (struct sound_device *sd);
 
-  /* Configure SD accoring to device-dependent parameters.  */
+  /* Configure SD according to device-dependent parameters.  */
   void (* configure) (struct sound_device *device);
 
   /* Choose a device-dependent format for outputting sound S.  */

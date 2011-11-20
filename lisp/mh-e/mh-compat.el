@@ -1,4 +1,4 @@
-;;; mh-compat.el --- make MH-E compatibile with various versions of Emacs
+;;; mh-compat.el --- make MH-E compatible with various versions of Emacs
 
 ;; Copyright (C) 2006-2011  Free Software Foundation, Inc.
 

@@ -29,7 +29,7 @@
 ;; they can be run, but ocaml code can also be run through an
 ;; interactive interpreter.
 ;;
-;; For now lets only allow evaluation using the ocaml interpreter.
+;; For now let's only allow evaluation using the ocaml interpreter.
 
 ;;; Requirements:
 
@@ -99,7 +99,7 @@
    (lambda (pair) (format "let %s = %s;;" (car pair)
 			  (org-babel-ocaml-elisp-to-ocaml (cdr pair))))
    (mapcar #'cdr (org-babel-get-header params :var))))
-  
+
 (defun org-babel-ocaml-elisp-to-ocaml (val)
   "Return a string of ocaml code which evaluates to VAL."
   (if (listp val)

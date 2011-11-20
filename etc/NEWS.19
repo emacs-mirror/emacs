@@ -1729,7 +1729,7 @@ projects to define project-specific structures.  It also enables the
 use of etags and TAGS files for languages not supported by etags.
 
 The Emacs manual section on Tags contains explanations and examples
-for Emacs's DEFVAR, VHDL, Cobol, Postscript and TCL.
+for Emacs's DEFVAR, VHDL, Cobol, PostScript and TCL.
 
 ** Various mode-specific commands that used to be bound to C-c LETTER
 have been moved.
@@ -4288,7 +4288,7 @@ filename completion in comint mode apply, together with a variable
 controlling whether to restrict possible completions to only files
 that are executable (`shell-command-execonly').
 
-The input history is initialised from the file name given in the
+The input history is initialized from the file name given in the
 variable `shell-input-ring-file-name'--normally `.history' in your
 home directory.
 

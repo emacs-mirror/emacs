@@ -289,7 +289,7 @@ Argument OBJ is the object to write."
 	(when (and (boundp semantic-show-unmatched-syntax-mode)
 		   semantic-show-unmatched-syntax-mode)
 	  ;; Only do this if the user runs unmatched syntax
-	  ;; mode display enties.
+	  ;; mode display entries.
 	  (oset obj unmatched-syntax
 		(semantic-show-unmatched-lex-tokens-fetch))
 	  )

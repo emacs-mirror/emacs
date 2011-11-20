@@ -711,7 +711,7 @@ of master file."
                                    context)
                  (when (and (not appendix)
                             (>= (string-to-char (match-string 2)) ?A))
-                   ;; Just entered the appendex.  Get out.
+                   ;; Just entered the appendix.  Get out.
                    (throw 'exit nil))
 
                  ;; Change the section number.

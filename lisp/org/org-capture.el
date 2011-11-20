@@ -372,7 +372,7 @@ to avoid conflicts with other active capture processes."
   (plist-get (if local org-capture-current-plist org-capture-plist) prop))
 
 (defun org-capture-member (prop &optional local)
-  "Is PROP a preperty in `org-capture-plist'.
+  "Is PROP a property in `org-capture-plist'.
 When LOCAL is set, use the local variable `org-capture-current-plist',
 this is necessary after initialization of the capture process,
 to avoid conflicts with other active capture processes."

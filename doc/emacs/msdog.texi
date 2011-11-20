@@ -322,7 +322,7 @@ default value is @code{(links uid gid)} i.e.@: all the 3 optional
 attributes are displayed.
 
 @vindex ls-lisp-emulation
-  The variable @code{ls-lisp-emulation} controls the flavour of the
+  The variable @code{ls-lisp-emulation} controls the flavor of the
 @code{ls} emulation by setting the defaults for the 3 options
 described above: @code{ls-lisp-ignore-case},
 @code{ls-lisp-dirs-first}, and @code{ls-lisp-verbosity}.  The value of
@@ -868,7 +868,7 @@ and @code{uniscribe} font backends are supported on Windows.  The
 @code{gdi} font backend is available on all versions of Windows, and
 supports all fonts that are natively supported by Windows.  The
 @code{uniscribe} font backend is available on Windows 2000 and later,
-and supports Truetype and Opentype fonts.  Some languages requiring
+and supports TrueType and OpenType fonts.  Some languages requiring
 complex layout can only be properly supported by the uniscribe
 backend.  By default, both backends are enabled if supported, with
 @code{uniscribe} taking priority over @code{gdi}.
@@ -914,7 +914,7 @@ as a fallback with the font family left unspecified.
 @vindex w32-charset-info-alist
 @item registry
 Specifies the character set registry that the font is
-expected to cover.  Most Truetype and Opentype fonts will be unicode fonts
+expected to cover.  Most TrueType and OpenType fonts will be unicode fonts
 that cover several national character sets, but you can narrow down the
 selection of fonts to those that support a particular character set by
 using a specific registry from @code{w32-charset-info-alist} here.

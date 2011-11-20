@@ -77,7 +77,7 @@
 ;;   M-x global-auto-revert-mode RET
 ;;
 ;; To activate Global Auto-Revert Mode every time Emacs is started
-;; customise the option `global-auto-revert-mode' or the following
+;; customize the option `global-auto-revert-mode' or the following
 ;; line could be added to your ~/.emacs:
 ;;   (global-auto-revert-mode 1)
 ;;

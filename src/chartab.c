@@ -747,7 +747,7 @@ equivalent and can be merged.  It defaults to `equal'.  */)
    ARG is passed to C_FUNCTION when that is called.
 
    It returns the value of last character covered by TABLE (not the
-   value inheritted from the parent), and by side-effect, the car part
+   value inherited from the parent), and by side-effect, the car part
    of RANGE is updated to the minimum character C where C and all the
    following characters in TABLE have the same value.  */
 
@@ -758,7 +758,7 @@ map_sub_char_table (void (*c_function) (Lisp_Object, Lisp_Object, Lisp_Object),
 {
   /* Depth of TABLE.  */
   int depth;
-  /* Minimum and maxinum characters covered by TABLE. */
+  /* Minimum and maximum characters covered by TABLE. */
   int min_char, max_char;
   /* Number of characters covered by one element of TABLE.  */
   int chars_in_block;
@@ -1196,7 +1196,7 @@ uniprop_table_uncompress (Lisp_Object table, int idx)
 }
 
 
-/* Decode VALUE as an elemnet of char-table TABLE.  */
+/* Decode VALUE as an element of char-table TABLE.  */
 
 static Lisp_Object
 uniprop_decode_value_run_length (Lisp_Object table, Lisp_Object value)

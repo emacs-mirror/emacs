@@ -110,7 +110,7 @@
   :group 'games)
 
 (defcustom bruce-phrases-file "~/bruce.lines"
-  "Keep your favourite phrases here."
+  "Keep your favorite phrases here."
   :type 'file
   :group 'bruce)
 

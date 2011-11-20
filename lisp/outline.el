@@ -144,10 +144,10 @@ in the file it applies to."
 		  :help "Promote headings higher up the tree"))
     (define-key map [headings move-subtree-down]
       '(menu-item "Move Subtree Down" outline-move-subtree-down
-		  :help "Move the currrent subtree down past arg headlines of the same level"))
+		  :help "Move the current subtree down past arg headlines of the same level"))
     (define-key map [headings move-subtree-up]
       '(menu-item "Move Subtree Up" outline-move-subtree-up
-		  :help "Move the currrent subtree up past arg headlines of the same level"))
+		  :help "Move the current subtree up past arg headlines of the same level"))
     (define-key map [headings copy]
       '(menu-item "Copy to Kill Ring" outline-headers-as-kill
 		  :enable mark-active
@@ -642,12 +642,12 @@ the match data is set appropriately."
 ;; Vertical tree motion
 
 (defun outline-move-subtree-up (&optional arg)
-  "Move the currrent subtree up past ARG headlines of the same level."
+  "Move the current subtree up past ARG headlines of the same level."
   (interactive "p")
   (outline-move-subtree-down (- arg)))
 
 (defun outline-move-subtree-down (&optional arg)
-  "Move the currrent subtree down past ARG headlines of the same level."
+  "Move the current subtree down past ARG headlines of the same level."
   (interactive "p")
   (let ((movfunc (if (> arg 0) 'outline-get-next-sibling
 		   'outline-get-last-sibling))

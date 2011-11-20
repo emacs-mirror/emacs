@@ -1,3 +1,13 @@
+2011-11-15  Juanma Barranquero  <lekktu@gmail.com>
+
+	* url-dav.el (url-dav-delete-file): Fix typo.
+
+2011-11-14  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* url-http.el (url-http-async-sentinel): If the server hangs up
+	while we're talking to it, just `message' the error instead of
+	throwing an error.
+
 2011-11-03  Lars Magne Ingebrigtsen  <larsi@gnus.org>
 
 	* url-cookie.el (url-cookie-expired-p): Protect against

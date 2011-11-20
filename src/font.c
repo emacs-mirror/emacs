@@ -802,7 +802,7 @@ font_expand_wildcards (Lisp_Object *field, int n)
   struct {
     /* Minimum possible field.  */
     int from;
-    /* Maxinum possible field.  */
+    /* Maximum possible field.  */
     int to;
     /* Bit mask of possible field.  Nth bit corresponds to Nth field.  */
     int mask;
@@ -954,7 +954,7 @@ font_expand_wildcards (Lisp_Object *field, int n)
 	}
     }
 
-  /* Decide all fileds from restrictions in RANGE.  */
+  /* Decide all fields from restrictions in RANGE.  */
   for (i = j = 0; i < n ; i++)
     {
       if (j < range[i].from)
@@ -5144,7 +5144,7 @@ the corresponding glyph code.  If ENCODING is a char-table, looking up
 the table by a character gives the corresponding glyph code.
 
 REPERTORY specifies a repertory of characters supported by the font.
-If REPERTORY is a charset, all characters beloging to the charset are
+If REPERTORY is a charset, all characters belonging to the charset are
 supported.  If REPERTORY is a char-table, all characters who have a
 non-nil value in the table are supported.  If REPERTORY is nil, Emacs
 gets the repertory information by an opened font and ENCODING.  */);

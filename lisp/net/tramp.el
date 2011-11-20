@@ -152,7 +152,7 @@ local host, so if you want to use `~' in those commands, you should
 choose a shell here which groks tilde expansion.  `/bin/sh' normally
 does not understand tilde expansion.
 
-For encoding and deocding, commands like the following are executed:
+For encoding and decoding, commands like the following are executed:
 
     /bin/sh -c COMMAND < INPUT > OUTPUT
 
@@ -3851,7 +3851,7 @@ Only works for Bourne-like shells."
 ;;   expects English?  Or just to set LC_MESSAGES to "C" if Tramp
 ;;   expects only English messages?  (Juri Linkov)
 ;; * Make shadowfile.el grok Tramp filenames.  (Bug#4526, Bug#4846)
-;; * I was wondering it it would be possible to use tramp even if I'm
+;; * I was wondering if it would be possible to use tramp even if I'm
 ;;   actually using sshfs.  But when I launch a command I would like
 ;;   to get it executed on the remote machine where the files really
 ;;   are.  (Andrea Crotti)

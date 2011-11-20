@@ -151,7 +151,7 @@ local variable."
 
 ;;; Usage
 ;;
-;; Unlike other tables, an omniscent database does not need to
+;; Unlike other tables, an omniscient database does not need to
 ;; be associated with a path.  Use this routine to always add ourselves
 ;; to a search list.
 (define-mode-local-override semanticdb-find-translate-path javascript-mode

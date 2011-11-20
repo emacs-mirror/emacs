@@ -1040,7 +1040,7 @@ casts and declarations are fontified.  Used on level 2 and higher."
 	;; Inside the following "condition form", we move forward over the
 	;; declarator's identifier up as far as any opening bracket (for array
 	;; size) or paren (for parameters of function-type) or brace (for
-	;; array/struct initialisation) or "=" or terminating delimiter
+	;; array/struct initialization) or "=" or terminating delimiter
 	;; (e.g. "," or ";" or "}").
 	(and
 	    pos
@@ -1103,7 +1103,7 @@ casts and declarations are fontified.  Used on level 2 and higher."
 	      (<= (point) limit))
 
 	    ;; Search syntactically to the end of the declarator (";",
-	    ;; ",", a closen paren, eob etc) or to the beginning of an
+	    ;; ",", a closing paren, eob etc) or to the beginning of an
 	    ;; initializer or function prototype ("=" or "\\s\(").
 	    ;; Note that the open paren will match array specs in
 	    ;; square brackets, and we treat them as initializers too.
@@ -1122,7 +1122,7 @@ casts and declarations are fontified.  Used on level 2 and higher."
 			  (char-after (match-beginning 1))))
 
       (if types
-	  ;; Register and fontify the identifer as a type.
+	  ;; Register and fontify the identifier as a type.
 	  (let ((c-promote-possible-types t))
 	    (goto-char id-start)
 	    (c-forward-type))

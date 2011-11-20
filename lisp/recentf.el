@@ -567,7 +567,7 @@ menu-elements (no sub-menu)."
   (if (and l (functionp filter))
       (let ((case-fold-search recentf-case-fold-search)
             elts others)
-        ;; split L into two sub-listes, one of sub-menus elements and
+        ;; split L into two sub-lists, one of sub-menus elements and
         ;; another of single menu elements.
         (dolist (elt l)
           (if (recentf-sub-menu-element-p elt)

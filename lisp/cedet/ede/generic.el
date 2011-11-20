@@ -43,10 +43,10 @@
 ;;
 ;; Customization:
 ;;
-;; Since these projects are all so increadibly generic, a user will
+;; Since these projects are all so incredibly generic, a user will
 ;; need to configure some aspects of the project by hand.  In order to
 ;; enable this without configuring the project objects directly (which
-;; are auto-generated) a special ede-generic-confg object is defined to
+;; are auto-generated) a special ede-generic-config object is defined to
 ;; hold the basics.  Generic projects will identify and use these
 ;; config files.
 ;;
@@ -70,7 +70,7 @@
 ;; subclasses `ede-generic-target'.  The slots `shortname' and
 ;; `extension' should be given new initial values.
 ;;
-;; Optionally, any target method used by EDE can then be overriden.
+;; Optionally, any target method used by EDE can then be overridden.
 ;; The ede-generic-target-c-cpp has some example methods setting up
 ;; the pre-processor map and system include path.
 ;;
@@ -105,7 +105,7 @@
 		  :group (default build)
 		  :documentation
 		  "Command used for debugging this project.")
-   ;; C target customixations
+   ;; C target customizations
    (c-include-path :initarg :c-include-path
 		   :initform nil
 		   :type list
@@ -133,7 +133,7 @@
 Return nil if there isn't one.
 Argument DIR is the directory it is created for.
 ROOTPROJ is nil, since there is only one project."
-  ;; Doesn't already exist, so lets make one.
+  ;; Doesn't already exist, so let's make one.
   (let* ((alobj ede-constructing)
 	 (this nil))
     (when (not alobj) (error "Cannot load generic project without the autoload instance"))
@@ -249,7 +249,7 @@ All directories need at least one target.")
   "EDE Generic Project target for Misc files.
 All directories need at least one target.")
 
-;;; Automatic target aquisition.
+;;; Automatic target acquisition.
 (defun ede-generic-find-matching-target (class dir targets)
   "Find a target that is a CLASS and is in DIR in the list of TARGETS."
   (let ((match nil))

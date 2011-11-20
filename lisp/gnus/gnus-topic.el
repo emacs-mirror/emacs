@@ -430,7 +430,7 @@ inheritance."
 					regexp list-topic topic-level)
   "List all newsgroups with unread articles of level LEVEL or lower.
 Use the `gnus-group-topics' to sort the groups.
-If PREDICTE is a function, list groups that the function returns non-nil;
+If PREDICATE is a function, list groups that the function returns non-nil;
 if it is t, list groups that have no unread articles.
 If LOWEST is non-nil, list all newsgroups of level LOWEST or higher."
   (set-buffer gnus-group-buffer)

@@ -260,13 +260,13 @@ Calc user interface as before (either C-x * C or C-x * K; initially C-x * C).
                                                       (length msg)) 32)
                                       "  [?=MORE]")
                             ""))))))))
-  
+
 
 
 
 ;;;; Stack and buffer management.
 
-;; The variable calc-last-why-command is set in calc-do-handly-whys
+;; The variable calc-last-why-command is set in calc-do-handle-whys
 ;; and used in calc-why (in calc-stuff.el).
 (defvar calc-last-why-command)
 

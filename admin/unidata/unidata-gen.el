@@ -158,7 +158,7 @@
 ;; DEFAULT: the default value of the property.  It may have the form
 ;;   (VAL0 (FROM1 TO1 VAL1) ...) which indicates that the default
 ;;   value is VAL0 except for characters in the ranges specified by
-;;   FROMn and TOn (incusive).  The default value of characters
+;;   FROMn and TOn (inclusive).  The default value of characters
 ;;   between FROMn and TOn is VALn.
 ;; VAL-LIST: list of specially ordered property values
 

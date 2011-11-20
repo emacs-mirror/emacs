@@ -2885,11 +2885,11 @@
 2009-01-25  Craig Markwardt  <cbmarkwardt@gmail.com>
 
 	* calendar/icalendar.el (icalendar-uid-format): New defcustom
-	variable to allow the user to choose icalendar UID format.
+	variable to allow the user to choose iCalendar UID format.
 	(icalendar--diarytime-to-isotime): Bug fix, now times in the range
 	12:00am-12:59am are correctly converted to 0000-0059, instead of 12pm.
 	(icalendar-export-region, icalendar--create-uid): Use custom
-	function to compute icalendar UID for each entry.
+	function to compute iCalendar UID for each entry.
 	(icalendar--parse-summary-and-rest): Bug fix for parsing of lines
 	with description, location, etc. fields (need to keep active count
 	of fields encountered).  Another bug fix to the regex that matches
@@ -6724,7 +6724,7 @@
 	(rx-check-any): Return result as a list.  Don't convert chars to
 	strings.  Don't prepend "\\" to "^".  Don't search for close bracket.
 	Check char category string.  Call rx-form instead of rx-to-string.
-	(rx-any): Rebuid to complete the function.
+	(rx-any): Rebuild to complete the function.
 	(rx-check-not): Fix char category regexp pattern string.
 	Call rx-form instead of rx-to-string.
 	(rx-not): Call rx-form instead of rx-to-string.  Convert "[^]" to
@@ -7913,7 +7913,7 @@
 	ignored while matching, replace the entire filename with completion.
 
 	* textmodes/flyspell.el (flyspell-check-pre-word-p): Make sure
-	flyspell-pre-point is valid to avoid signalling an error in
+	flyspell-pre-point is valid to avoid signaling an error in
 	post-command-hook.
 
 2008-08-26  Johan Bockgård  <bojohan@gnu.org>
@@ -13629,7 +13629,7 @@
 	(completion-emacs22-try-completion): Place cursor after the /, as was
 	done in Emacs-22's minibuffer-complete-word.
 	Fix bug reported by David Hansen <david.hansen@gmx.net>.
-	(completion-emacs22-try-completion): Merge all mergeable text rather
+	(completion-emacs22-try-completion): Merge all mergable text rather
 	than just /.
 	(completion-pcm--delim-wild-regex): New var.
 	(completion-pcm-word-delimiters): New custom.
@@ -14189,7 +14189,7 @@
 2008-04-19  Nick Roberts  <nickrob@snap.net.nz>
 
 	* progmodes/gdb-ui.el (gdb-thread-indicator): New variable.
-	(gdb-init-1): Initialise it.
+	(gdb-init-1): Initialize it.
 	(gdb-annotation-rules): New entry for "new-thread".
 	(gdb-thread-identification): New function to customize
 	mode-line-buffer-identification.
@@ -15994,11 +15994,11 @@
 2008-04-02  Alan Mackenzie  <acm@muc.de>
 
 	* progmodes/cc-cmds.el (c-defun-name, c-cpp-define-name):
-	New optimised functions to get the name of the current defun/macro.
+	New optimized functions to get the name of the current defun/macro.
 
 	* add-log.el (add-log-current-defun): Move the functionality which
 	gets the current function name for C like modes to cc-cmds.el,
-	thus optimising for speed.
+	thus optimizing for speed.
 
 2008-04-02  Chong Yidong  <cyd@stupidchicken.com>
 
@@ -17799,7 +17799,7 @@
 	(org-local-logging): New function.
 	(org-columns-open-link): Fix bug with opening link in column view.
 	(org-local-logging): New function.
-	(org-todo): Make sure that LOGGING properties are honoured.
+	(org-todo): Make sure that LOGGING properties are honored.
 	(org-todo-keywords): Improve docstring.
 	(org-startup-options): Cleanup startup options.
 	(org-set-regexps-and-options): Process the "!" markers.
@@ -19392,7 +19392,7 @@
 	* progmodes/cc-mode.el (c-basic-common-init): C and ObjC now use
 	syntax-table text properties.
 	(c-common-init): Call language specific before/after-change
-	functions at mode initialisation.
+	functions at mode initialization.
 	(c-new-BEG, c-new-END, c-old-BOM, c-old-EOM): New variables.
 	(c-extend-region-for-CPP, c-neutralize-CPP-line)
 	(c-neutralize-syntax-in-CPP): New functions.
@@ -20567,4 +20567,3 @@ See ChangeLog.13 for earlier changes.
 
   You should have received a copy of the GNU General Public License
   along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
-

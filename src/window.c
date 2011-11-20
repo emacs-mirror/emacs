@@ -465,32 +465,29 @@ Return nil if WINDOW has no previous sibling.  */)
   return decode_any_window (window)->prev;
 }
 
-DEFUN ("window-nest", Fwindow_nest, Swindow_nest, 0, 1, 0,
-       doc: /* Return nest status of window WINDOW.
-If WINDOW is omitted or nil, it defaults to the selected window.
-
+DEFUN ("window-combination-limit", Fwindow_combination_limit, Swindow_combination_limit, 1, 1, 0,
+       doc: /* Return combination limit of window WINDOW.
 If the return value is nil, child windows of WINDOW can be recombined with
-WINDOW's siblings.  A return value of non-nil means that child windows of
+WINDOW's siblings.  A return value of t means that child windows of
 WINDOW are never \(re-)combined with WINDOW's siblings.  */)
   (Lisp_Object window)
 {
-  return decode_any_window (window)->nest;
+  return decode_any_window (window)->combination_limit;
 }
 
-DEFUN ("set-window-nest", Fset_window_nest, Sset_window_nest, 2, 2, 0,
-       doc: /* Set nest status of window WINDOW to STATUS; return STATUS.
-If WINDOW is omitted or nil, it defaults to the selected window.
-
-If STATUS is nil, child windows of WINDOW can be recombined with WINDOW's
-siblings.  STATUS non-nil means that child windows of WINDOW are never
-\(re-)combined with WINDOW's siblings.  */)
+DEFUN ("set-window-combination-limit", Fset_window_combination_limit, Sset_window_combination_limit, 2, 2, 0,
+       doc: /* Set combination limit of window WINDOW to STATUS; return STATUS.
+If STATUS is nil, child windows of WINDOW can be recombined with
+WINDOW's siblings.  STATUS t means that child windows of WINDOW are
+never \(re-)combined with WINDOW's siblings.  Other values are reserved
+for future use.  */)
   (Lisp_Object window, Lisp_Object status)
 {
   register struct window *w = decode_any_window (window);
 
-  w->nest = status;
+  w->combination_limit = status;
 
-  return w->nest;
+  return w->combination_limit;
 }
 
 DEFUN ("window-use-time", Fwindow_use_time, Swindow_use_time, 0, 1, 0,
@@ -1879,7 +1876,7 @@ recombine_windows (Lisp_Object window)
 
   w = XWINDOW (window);
   parent = w->parent;
-  if (!NILP (parent) && NILP (w->nest))
+  if (!NILP (parent) && NILP (w->combination_limit))
     {
       p = XWINDOW (parent);
       if (((!NILP (p->vchild) && !NILP (w->vchild))
@@ -2344,7 +2341,7 @@ Anything else means consider all windows on WINDOW's frame and no
 others.
 
 If WINDOW is not on the list of windows returned, some other window will
-be listed first but no error is signalled.  */)
+be listed first but no error is signaled.  */)
   (Lisp_Object window, Lisp_Object minibuf, Lisp_Object all_frames)
 {
   return window_list_1 (window, minibuf, all_frames);
@@ -3248,7 +3245,7 @@ make_parent_window (Lisp_Object window, int horflag)
   p->start = Qnil;
   p->pointm = Qnil;
   p->buffer = Qnil;
-  p->nest = Qnil;
+  p->combination_limit = Qnil;
   p->window_parameters = Qnil;
 }
 
@@ -3295,7 +3292,7 @@ make_window (void)
   w->start_at_line_beg = w->display_table = w->dedicated = Qnil;
   w->base_line_number = w->base_line_pos = w->region_showing = Qnil;
   w->column_number_displayed = w->redisplay_end_trigger = Qnil;
-  w->nest = w->window_parameters = Qnil;
+  w->combination_limit = w->window_parameters = Qnil;
   w->prev_buffers = w->next_buffers = Qnil;
   /* Initialize non-Lisp data.  */
   w->desired_matrix = w->current_matrix = 0;
@@ -3668,7 +3665,7 @@ set correctly.  See the code of `split-window' for how this is done.  */)
   int horflag
     /* HORFLAG is 1 when we split side-by-side, 0 otherwise.  */
     = EQ (side, Qt) || EQ (side, Qleft) || EQ (side, Qright);
-  int do_nest = 0;
+  int combination_limit = 0;
 
   CHECK_WINDOW (old);
   o = XWINDOW (old);
@@ -3677,11 +3674,11 @@ set correctly.  See the code of `split-window' for how this is done.  */)
 
   CHECK_NUMBER (total_size);
 
-  /* Set do_nest to 1 if we have to make a new parent window.  We do
-     that if either `window-nest' is non-nil, or OLD has no parent, or
-     OLD is ortho-combined.  */
-  do_nest =
-    !NILP (Vwindow_nest)
+  /* Set combination_limit to 1 if we have to make a new parent window.
+     We do that if either `window-combination-limit' is t, or OLD has no
+     parent, or OLD is ortho-combined.  */
+  combination_limit =
+    !NILP (Vwindow_combination_limit)
     || NILP (o->parent)
     || NILP (horflag
 	     ? (XWINDOW (o->parent)->hchild)
@@ -3701,8 +3698,8 @@ set correctly.  See the code of `split-window' for how this is done.  */)
     error ("Attempt to split minibuffer window");
   else if (XINT (total_size) < (horflag ? 2 : 1))
     error ("Size of new window too small (after split)");
-  else if (!do_nest && !NILP (Vwindow_splits))
-    /* `window-splits' non-nil means try to resize OLD's siblings
+  else if (!combination_limit && !NILP (Vwindow_combination_resize))
+    /* `window-combination-resize' non-nil means try to resize OLD's siblings
        proportionally.  */
     {
       p = XWINDOW (o->parent);
@@ -3726,7 +3723,7 @@ set correctly.  See the code of `split-window' for how this is done.  */)
     }
 
   /* This is our point of no return. */
-  if (do_nest)
+  if (combination_limit)
     {
       /* Save the old value of o->normal_cols/lines.  It gets corrupted
 	 by make_parent_window and we need it below for assigning it to
@@ -3735,8 +3732,9 @@ set correctly.  See the code of `split-window' for how this is done.  */)
 
       make_parent_window (old, horflag);
       p = XWINDOW (o->parent);
-      /* Store value of `window-nest' in new parent's nest slot.  */
-      p->nest = Vwindow_nest;
+      /* Store value of `window-combination-limit' in new parent's
+	 combination_limit slot.  */
+      p->combination_limit = Vwindow_combination_limit;
       /* These get applied below.  */
       p->new_total = horflag ? o->total_cols : o->total_lines;
       p->new_normal = new_normal;
@@ -3923,7 +3921,7 @@ Signal an error when WINDOW is the only window on its frame.  */)
 	  /* Put SIBLING into PARENT's place.  */
 	  replace_window (parent, sibling, 0);
 	  /* Have SIBLING inherit the following three slot values from
-	     PARENT (the nest slot is not inherited).  */
+	     PARENT (the combination_limit slot is not inherited).  */
 	  s->normal_cols = p->normal_cols;
 	  s->normal_lines = p->normal_lines;
 	  /* Mark PARENT as deleted.  */
@@ -5312,7 +5310,7 @@ struct saved_window
   Lisp_Object left_margin_cols, right_margin_cols;
   Lisp_Object left_fringe_width, right_fringe_width, fringes_outside_margins;
   Lisp_Object scroll_bar_width, vertical_scroll_bar_type, dedicated;
-  Lisp_Object nest, window_parameters;
+  Lisp_Object combination_limit, window_parameters;
 };
 
 #define SAVED_WINDOW_N(swv,n) \
@@ -5543,7 +5541,7 @@ the return value is nil.  Otherwise the value is t.  */)
 	  w->scroll_bar_width = p->scroll_bar_width;
 	  w->vertical_scroll_bar_type = p->vertical_scroll_bar_type;
 	  w->dedicated = p->dedicated;
-	  w->nest = p->nest;
+	  w->combination_limit = p->combination_limit;
 	  w->window_parameters = p->window_parameters;
 	  XSETFASTINT (w->last_modified, 0);
 	  XSETFASTINT (w->last_overlay_modified, 0);
@@ -5775,13 +5773,30 @@ get_phys_cursor_glyph (struct window *w)
 {
   struct glyph_row *row;
   struct glyph *glyph;
+  int hpos = w->phys_cursor.hpos;
 
-  if (w->phys_cursor.vpos >= 0
-      && w->phys_cursor.vpos < w->current_matrix->nrows
-      && (row = MATRIX_ROW (w->current_matrix, w->phys_cursor.vpos),
-	  row->enabled_p)
-      && row->used[TEXT_AREA] > w->phys_cursor.hpos)
-    glyph = row->glyphs[TEXT_AREA] + w->phys_cursor.hpos;
+  if (!(w->phys_cursor.vpos >= 0
+	&& w->phys_cursor.vpos < w->current_matrix->nrows))
+    return NULL;
+
+  row = MATRIX_ROW (w->current_matrix, w->phys_cursor.vpos);
+  if (!row->enabled_p)
+    return NULL;
+
+  if (w->hscroll)
+    {
+      /* When the window is hscrolled, cursor hpos can legitimately be
+	 out of bounds, but we draw the cursor at the corresponding
+	 window margin in that case.  */
+      if (!row->reversed_p && hpos < 0)
+	hpos = 0;
+      if (row->reversed_p && hpos >= row->used[TEXT_AREA])
+	hpos = row->used[TEXT_AREA] - 1;
+    }
+
+  if (row->used[TEXT_AREA] > hpos
+      && 0 <= hpos)
+    glyph = row->glyphs[TEXT_AREA] + hpos;
   else
     glyph = NULL;
 
@@ -5821,7 +5836,7 @@ save_window_save (Lisp_Object window, struct Lisp_Vector *vector, int i)
       p->scroll_bar_width = w->scroll_bar_width;
       p->vertical_scroll_bar_type = w->vertical_scroll_bar_type;
       p->dedicated = w->dedicated;
-      p->nest = w->nest;
+      p->combination_limit = w->combination_limit;
       p->window_parameters = w->window_parameters;
       if (!NILP (w->buffer))
 	{
@@ -6284,7 +6299,8 @@ freeze_window_starts (struct frame *f, int freeze_p)
    and the like.
 
    This ignores a couple of things like the dedicatedness status of
-   window, nest and the like.  This might have to be fixed.  */
+   window, combination_limit and the like.  This might have to be
+   fixed.  */
 
 int
 compare_window_configurations (Lisp_Object configuration1, Lisp_Object configuration2, int ignore_positions)
@@ -6488,32 +6504,39 @@ will redraw the entire frame; the special value `tty' causes the
 frame to be redrawn only if it is a tty frame.  */);
   Vrecenter_redisplay = Qtty;
 
-  DEFVAR_LISP ("window-splits", Vwindow_splits,
-	       doc: /* Non-nil means splitting windows is handled specially.
+  DEFVAR_LISP ("window-combination-resize", Vwindow_combination_resize,
+	       doc: /* Non-nil means resize window combinations proportionally.
 If this variable is nil, splitting a window gets the entire screen space
-for displaying the new window from the window to split.  If this
-variable is non-nil, splitting a window may resize all windows in the
-same combination.  This also allows to split a window that is otherwise
-too small or of fixed size.
+for displaying the new window from the window to split.  Deleting and
+resizing a window preferably resizes one adjacent window only.
 
-This variable takes no effect if `window-nest' is non-nil.  */);
-  Vwindow_splits = Qnil;
+If this variable is non-nil, splitting a window tries to get the space
+proportionally from all windows in the same combination.  This also
+allows to split a window that is otherwise too small or of fixed size.
+Resizing and deleting a window proportionally resize all windows in the
+same combination.
 
-  DEFVAR_LISP ("window-nest", Vwindow_nest,
+This variable takes no effect if `window-combination-limit' is non-nil.  */);
+  Vwindow_combination_resize = Qnil;
+
+  DEFVAR_LISP ("window-combination-limit", Vwindow_combination_limit,
 	       doc: /* Non-nil means splitting a window makes a new parent window.
 If this variable is nil, splitting a window will create a new parent
 window only if the window has no parent window or the window shall
-become a combination orthogonal to the one it it is part of.
+become a combination orthogonal to the one it is part of.
 
-If this variable is non-nil, splitting a window always creates a new
-parent window.  If all splits behave this way, each frame's window tree
-is a binary tree and every window but the frame's root window has
-exactly one sibling.
+If this variable is t, splitting a window always creates a new parent
+window.  If all splits behave this way, each frame's window tree is a
+binary tree and every window but the frame's root window has exactly one
+sibling.
 
-The value of this variable is also assigned to the nest status of the
-new parent window.  The nest status of a window can be retrieved via the
-function `window-nest' and altered by the function `set-window-nest'.  */);
-  Vwindow_nest = Qnil;
+Other values are reserved for future use.
+
+The value of this variable is also assigned to the combination-limit
+status of the new parent window.  The combination-limit status of a
+window can be retrieved via the function `window-combination-limit' and
+altered by the function `set-window-combination-limit'.  */);
+  Vwindow_combination_limit = Qnil;
 
   defsubr (&Sselected_window);
   defsubr (&Sminibuffer_window);
@@ -6533,8 +6556,8 @@ function `window-nest' and altered by the function `set-window-nest'.  */);
   defsubr (&Swindow_left_child);
   defsubr (&Swindow_next_sibling);
   defsubr (&Swindow_prev_sibling);
-  defsubr (&Swindow_nest);
-  defsubr (&Sset_window_nest);
+  defsubr (&Swindow_combination_limit);
+  defsubr (&Sset_window_combination_limit);
   defsubr (&Swindow_use_time);
   defsubr (&Swindow_top_line);
   defsubr (&Swindow_left_column);

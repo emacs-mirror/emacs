@@ -80,7 +80,7 @@ Emacs, the Emacs manual is often the best starting point.
 
 @ifnottex
 @insertcopying
-@end ifnottex 
+@end ifnottex
 
 @menu
 * FAQ notation::
@@ -368,7 +368,7 @@ only be known if and when a judge rules on its validity and scope.
 There has never been a copyright infringement case involving the GPL to
 set any precedents.  Although legal actions have been brought against
 companies for violating the terms of the GPL, so far all have been
-settled out of court (in favour of the plaintiffs).  Please take any
+settled out of court (in favor of the plaintiffs).  Please take any
 discussion regarding this issue to the newsgroup
 @uref{news:gnu.misc.discuss}, which was created to hold the extensive
 flame wars on the subject.

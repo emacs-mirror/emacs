@@ -74,7 +74,7 @@
 ;; session, it is likely that they are experiencing a spelling
 ;; difficulty associated with a certain command.  To combat this,
 ;; Eshell will offer to automatically define an alias for that
-;; mispelled command, once a given tolerance threshold has been
+;; misspelled command, once a given tolerance threshold has been
 ;; reached.
 
 ;; Whenever the same bad command name is encountered

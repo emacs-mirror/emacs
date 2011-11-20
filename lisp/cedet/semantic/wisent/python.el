@@ -108,7 +108,7 @@ line ends at the end of the buffer, leave the point there."
 (defun wisent-python-forward-line-skip-indented ()
   "Move point to the next logical line, skipping indented lines.
 That is the next line whose indentation is less than or equal to the
-identation of the current line."
+indentation of the current line."
   (let ((indent (current-indentation)))
     (while (progn (wisent-python-forward-line)
                   (and (not (eobp))
@@ -291,7 +291,7 @@ To be implemented for Python!  For now just return nil."
    ;; Character used to separation a parent/child relationship
    semantic-type-relation-separator-character '(".")
    semantic-command-separation-character ";"
-   ;; The following is no more necessary as semantic-lex is overriden
+   ;; The following is no more necessary as semantic-lex is overridden
    ;; in python-mode.
    ;; semantic-lex-analyzer 'wisent-python-lexer
 

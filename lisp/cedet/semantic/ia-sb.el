@@ -36,7 +36,7 @@
     nil
   (setq semantic-ia-sb-key-map (speedbar-make-specialized-keymap))
 
-  ;; Basic featuers.
+  ;; Basic features.
   (define-key semantic-ia-sb-key-map "\C-m" 'speedbar-edit-line)
   (define-key semantic-ia-sb-key-map "I" 'semantic-ia-sb-show-tag-info)
   )

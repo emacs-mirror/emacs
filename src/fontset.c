@@ -1088,7 +1088,7 @@ fontset_pattern_regexp (Lisp_Object pattern)
 	    nescs++;
 	}
 
-      /* If PATTERN is not full XLFD we conert "*" to ".*".  Otherwise
+      /* If PATTERN is not full XLFD we convert "*" to ".*".  Otherwise
 	 we convert "*" to "[^-]*" which is much faster in regular
 	 expression matching.  */
       if (ndashes < 14)
@@ -1346,7 +1346,7 @@ accumulate_script_ranges (Lisp_Object arg, Lisp_Object range, Lisp_Object val)
 
    In FONTSET, set FONT_DEF in a fashion specified by ADD for
    characters in RANGE and ranges in SCRIPT_RANGE_LIST before RANGE.
-   The consumed ranges are poped up from SCRIPT_RANGE_LIST, and the
+   The consumed ranges are popped up from SCRIPT_RANGE_LIST, and the
    new SCRIPT_RANGE_LIST is stored in ARG.
 
    If ASCII is nil, don't set FONT_DEF for ASCII characters.  It is
@@ -1702,7 +1702,7 @@ static Lisp_Object auto_fontset_alist;
 /* Number of automatically created fontsets.  */
 static printmax_t num_auto_fontsets;
 
-/* Retun a fontset synthesized from FONT-OBJECT.  This is called from
+/* Return a fontset synthesized from FONT-OBJECT.  This is called from
    x_new_font when FONT-OBJECT is used for the default ASCII font of a
    frame, and the returned fontset is used for the default fontset of
    that frame.  The fontset specifies a font of the same registry as
@@ -1788,7 +1788,7 @@ update_auto_fontset_alist (Lisp_Object font_object, Lisp_Object fontset)
 /* Return a cons (FONT-OBJECT . GLYPH-CODE).
    FONT-OBJECT is the font for the character at POSITION in the current
    buffer.  This is computed from all the text properties and overlays
-   that apply to POSITION.  POSTION may be nil, in which case,
+   that apply to POSITION.  POSITION may be nil, in which case,
    FONT-SPEC is the font for displaying the character CH with the
    default face.
 

@@ -432,7 +432,7 @@
   (define-key calc-mode-map "ls" 'calc-spn)
   (define-key calc-mode-map "lm" 'calc-midi)
   (define-key calc-mode-map "lf" 'calc-freq)
-  
+
   (define-key calc-mode-map "l?" 'calc-l-prefix-help)
 
   (define-key calc-mode-map "m" nil)
@@ -2867,7 +2867,7 @@ If X is not an error form, return 1."
 	   (memq (nth 2 expr) '(var-inf var-uinf var-nan)))))
 
 ;; The variable math-integral-cache is originally declared in calcalg2.el,
-;; but is set by math-defintegral and math-definitegral2.
+;; but is set by math-defintegral and math-defintegral-2.
 (defvar math-integral-cache)
 
 (defmacro math-defintegral (funcs &rest code)

@@ -839,7 +839,7 @@ voice);
         b) Can lineup vertically \"middles\" of rows, like `=' in
                 a  = b;
                 cc = d;
-        c) Can insert spaces where this impoves readability (in one
+        c) Can insert spaces where this improves readability (in one
                 interactive sweep over the buffer);
         d) Has support for imenu, including:
                 1) Separate unordered list of \"interesting places\";
@@ -902,7 +902,7 @@ the settings present before the switch.
 9) When doing indentation of control constructs, may correct
 line-breaks/spacing between elements of the construct.
 
-10) Uses a linear-time algorith for indentation of regions (on Emaxen with
+10) Uses a linear-time algorithm for indentation of regions (on Emaxen with
 capable syntax engines).
 
 11) Syntax-highlight, indentation, sexp-recognition inside regular expressions.
@@ -927,7 +927,7 @@ syntax-parsing routines, and marks them up so that either
 
     A1) CPerl may work around these deficiencies (for big chunks, mostly
         PODs and HERE-documents), or
-    A2) On capable Emaxen CPerl will use improved syntax-handlings
+    A2) On capable Emaxen CPerl will use improved syntax-handling
 	which reads mark-up hints directly.
 
     The scan in case A2 is much more comprehensive, thus may be slower.
@@ -1304,7 +1304,7 @@ versions of Emacs."
 		   (get-text-property (point) 'syntax-type))
 		 '(here-doc pod))]
 	  "----"
-	  ["CPerl pretty print (exprmntl)" cperl-ps-print
+	  ["CPerl pretty print (experimental)" cperl-ps-print
 	   (fboundp 'ps-extend-face-list)]
 	  "----"
 	  ["Syntaxify region" cperl-find-pods-heres-region
@@ -1512,7 +1512,7 @@ the last)."
 (defvar cperl-font-locking nil)
 
 ;; NB as it stands the code in cperl-mode assumes this only has one
-;; element. If Xemacs 19 support were dropped, this could all be simplified.
+;; element. If XEmacs 19 support were dropped, this could all be simplified.
 (defvar cperl-compilation-error-regexp-alist
   ;; This look like a paranoiac regexp: could anybody find a better one? (which WORKS).
   '(("^[^\n]* \\(file\\|at\\) \\([^ \t\n]+\\) [^\n]*line \\([0-9]+\\)[\\., \n]"
@@ -2801,7 +2801,7 @@ Will not look before LIM."
 				 (skip-chars-forward " \t")
 				 (if (memq (char-after (point))
 					   (append "#\n" nil))
-				     nil ; Can't use intentation of this line...
+				     nil ; Can't use indentation of this line...
 				   (point)))
 			     (skip-chars-forward " \t")
 			     (point)))
@@ -4540,7 +4540,7 @@ the sections using `cperl-pod-head-face', `cperl-pod-face',
 				       (forward-char 2))
 				(and (eq (following-char) ?\] )
 				     (forward-char 1)))
-			      (setq REx-subgr-end qtag)	;EndOf smart-highlighed
+			      (setq REx-subgr-end qtag)	;End smart-highlighted
 			      ;; Apparently, I can't put \] into a charclass
 			      ;; in m]]: m][\\\]\]] produces [\\]]
 ;;; POSIX?  [:word:] [:^word:] only inside []
@@ -5793,7 +5793,7 @@ indentation and initial hashes.  Behaves usually outside of comment."
 	    ;;			   "\\|")
 	    '("-[rwxoRWXOezsfdlpSbctugkTBMAC]\\>\\([ \t]+_\\>\\)?" 0
 	      font-lock-function-name-face keep) ; Not very good, triggers at "[a-z]"
-	    ;; This highlights declarations and definitions differenty.
+	    ;; This highlights declarations and definitions differently.
 	    ;; We do not try to highlight in the case of attributes:
 	    ;; it is already done by `cperl-find-pods-heres'
 	    (list (concat "\\<sub"
@@ -8946,7 +8946,7 @@ do extra unwind via `cperl-unwind-to-safe'."
 ;; Called when any modification is made to buffer text.
 (defun cperl-after-change-function (beg end old-len)
   ;; We should have been informed about changes by `font-lock'.  Since it
-  ;; does not inform as which calls are defered, do it ourselves
+  ;; does not inform as which calls are deferred, do it ourselves
   (if cperl-syntax-done-to
       (setq cperl-syntax-done-to (min cperl-syntax-done-to beg))))
 

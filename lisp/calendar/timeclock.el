@@ -407,7 +407,7 @@ discover the reason."
     (if arg
 	(run-hooks 'timeclock-done-hook))))
 
-;; Should today-only be removed in favour of timeclock-relative? - gm
+;; Should today-only be removed in favor of timeclock-relative? - gm
 (defsubst timeclock-workday-remaining (&optional today-only)
   "Return the number of seconds until the workday is complete.
 The amount returned is relative to the value of `timeclock-workday'.
@@ -547,7 +547,7 @@ non-nil, the amount returned will be relative to past time worked."
 
 (defalias 'timeclock-seconds-to-time 'seconds-to-time)
 
-;; Should today-only be removed in favour of timeclock-relative? - gm
+;; Should today-only be removed in favor of timeclock-relative? - gm
 (defsubst timeclock-when-to-leave (&optional today-only)
   "Return a time value representing the end of today's workday.
 If TODAY-ONLY is non-nil, the value returned will be relative only to
@@ -569,7 +569,7 @@ This string is relative to the value of `timeclock-workday'.  If
 SHOW-SECONDS is non-nil, the value printed/returned will include
 seconds.  If TODAY-ONLY is non-nil, the value returned will be
 relative only to the time worked today, and not to past time."
-  ;; Should today-only be removed in favour of timeclock-relative? - gm
+  ;; Should today-only be removed in favor of timeclock-relative? - gm
   (interactive)
   (let* ((then (timeclock-when-to-leave today-only))
 	 (string

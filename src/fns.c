@@ -3252,7 +3252,7 @@ DEFUN ("base64-decode-string", Fbase64_decode_string, Sbase64_decode_string,
   return decoded_string;
 }
 
-/* Base64-decode the data at FROM of LENGHT bytes into TO.  If
+/* Base64-decode the data at FROM of LENGTH bytes into TO.  If
    MULTIBYTE is nonzero, the decoded result should be in multibyte
    form.  If NCHARS_RETRUN is not NULL, store the number of produced
    characters in *NCHARS_RETURN.  */

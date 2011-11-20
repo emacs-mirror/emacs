@@ -4431,7 +4431,7 @@ static int mmap_initialized_p;
    is currently mapped.  Used to prevent overwriting an existing
    memory mapping.
 
-   Default is to conservativly assume the address range is occupied by
+   Default is to conservatively assume the address range is occupied by
    something else.  This can be overridden by system configuration
    files if system-specific means to determine this exists.  */
 
@@ -4439,7 +4439,7 @@ static int mmap_initialized_p;
 #define MMAP_ALLOCATED_P(start, end) 1
 #endif
 
-/* Perform necessary intializations for the use of mmap.  */
+/* Perform necessary initializations for the use of mmap.  */
 
 static void
 mmap_init (void)

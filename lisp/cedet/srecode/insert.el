@@ -255,7 +255,7 @@ ST can be a class, or an object."
       (let ((c (oref st code)))
 	(srecode-push st)
 	(srecode-insert-code-stream c dictionary))
-    ;; Poping the stack is protected
+    ;; Popping the stack is protected.
     (srecode-pop st)))
 
 (defun srecode-insert-code-stream (code dictionary)
@@ -936,7 +936,7 @@ with the dictionaries found in the dictionary."
   (if (srecode-dictionary-lookup-name dictionary (oref sti :object-name))
       ;; If we have a value, then call the next method
       (srecode-insert-method-helper sti dictionary 'includedtemplate)
-    ;; If we don't have a special dictitonary, then just insert with the
+    ;; If we don't have a special dictionary, then just insert with the
     ;; current dictionary.
     (srecode-insert-subtemplate sti dictionary 'includedtemplate))
   )
@@ -946,7 +946,7 @@ with the dictionaries found in the dictionary."
 ;; It will first insert the included template, then insert the embedded
 ;; template wherever the $^$ in the included template was.
 ;;
-;; Since it uses dual inheretance, it will magically get the end-matching
+;; Since it uses dual inheritance, it will magically get the end-matching
 ;; behavior of #, with the including feature of >.
 ;;
 (defclass srecode-template-inserter-include-wrap (srecode-template-inserter-include srecode-template-inserter-section-start)

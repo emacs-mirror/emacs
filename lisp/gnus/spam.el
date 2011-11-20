@@ -156,7 +156,7 @@ last rule in your split configuration."
   :group 'spam)
 
 (defcustom spam-autodetect-recheck-messages nil
-  "Should spam.el recheck all meessages when autodetecting?
+  "Should spam.el recheck all messages when autodetecting?
 Normally this is nil, so only unseen messages will be checked."
   :type 'boolean
   :group 'spam)

@@ -89,7 +89,7 @@
 ;;         comint-strip-ctrl-m		Remove trailing ^Ms from output
 ;;
 ;; The shell mode hook is shell-mode-hook
-;; comint-prompt-regexp is initialised to shell-prompt-pattern, for backwards
+;; comint-prompt-regexp is initialized to shell-prompt-pattern, for backwards
 ;; compatibility.
 
 ;; Read the rest of this file for more information.
@@ -293,7 +293,7 @@ Value is a list of strings, which may be nil."
 		   (getenv "ESHELL") shell-file-name))
 	 (name (file-name-nondirectory prog)))
     ;; Tell bash not to use readline, except for bash 1.x which
-    ;; doesn't grook --noediting.  Bash 1.x has -nolineediting, but
+    ;; doesn't grok --noediting.  Bash 1.x has -nolineediting, but
     ;; process-send-eof cannot terminate bash if we use it.
     (if (and (not purify-flag)
 	     (equal name "bash")

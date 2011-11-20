@@ -1,8 +1,310 @@
+2011-11-20  Glenn Morris  <rgm@gnu.org>
+
+	* mail/rmail.el (rmail-enable-mime-composing): Make it a defcustom.
+	(rmail-insert-mime-forwarded-message-function, rmail-mime-feature):
+	Doc fixes.
+	(rmail-decode-mime-charset): Mark as obsolete.
+
+	* mail/rmailsum.el (rmail-message-regexp-p-1):
+	* mail/rmail.el (rmail-search-message, rmail-forward, rmail-resend):
+	Before using mime functions, check they are set.  (Bug#10077)
+
+2011-11-19  Juri Linkov  <juri@jurta.org>
+
+	* info.el (Info-finder-find-node): Use `package--builtins' instead
+	of `package-alist'.  Use node names formed by the pattern "Keyword "
+	and the keyword name.
+
+2011-11-19  Andreas Schwab  <schwab@linux-m68k.org>
+
+	* progmodes/sh-script.el (sh-assignment-regexp): Add entry for
+	bash.
+
+2011-11-19  Juri Linkov  <juri@jurta.org>
+
+	* info.el (Info-hide-note-references): Add `:set' tag to `defcustom'
+	that calls `revert-buffer' on all Info buffers.  (Bug#9915)
+	(Info-revert-find-node): Remove let-bindings `old-buffer-name',
+	`old-history', `old-history-forward'.  Add let-binding
+	`window-selected'.  Remove calls to `kill-buffer',
+	`switch-to-buffer' and `Info-mode'.  Set `Info-current-file' to nil
+	before calling `Info-find-node', so `Info-find-node-2' will reread
+	the Info file.  Restore window positions only when `window-selected'
+	is non-nil.
+
+2011-11-19  Juri Linkov  <juri@jurta.org>
+
+	* isearch.el (isearch-lazy-highlight-new-loop):
+	Remove condition `(not isearch-error)'.  (Bug#9918)
+
+	* misearch.el (multi-isearch-search-fun): Add condition
+	`(not bound)' to ignore lazy-highlighting search.
+	Add the search-failed message "end of multi" when the end of
+	multi-sequence is reached.  Uncapitalize the search-failed
+	message "Repeat for next buffer".
+
+	* info.el (Info-search): Add the search-failed message
+	"end of the manual" when the end of the manual is reached
+	in Isearch mode.
+
+2011-11-19  Juri Linkov  <juri@jurta.org>
+
+	* info.el (Info-find-node-2, Info-select-node, Info-history-find-node):
+	Use non-destructive `remove' instead of `delete' because
+	`Info-history-list' stored to `Info-isearch-initial-history-list' in
+	`Info-isearch-start' might need to be restored in `Info-isearch-end'.
+
+2011-11-19  Juri Linkov  <juri@jurta.org>
+
+	* isearch.el (isearch-edit-string): Let-bind `history-add-new-input'
+	to nil instead of binding `search-ring' and `regexp-search-ring'.
+	(Bug#9185)
+
+2011-11-19  Eli Zaretskii  <eliz@gnu.org>
+
+	* simple.el (line-move): Force movement by logical lines for any
+	hscrolled window, not only when auto-hscroll-mode is on.
+	(line-move-visual): Update doc string to that effect.  (Bug#10076)
+
+2011-11-19  Andreas Schwab  <schwab@linux-m68k.org>
+
+	* language/european.el (macintosh): Define as alias for mac-roman.
+
+2011-11-19  Eli Zaretskii  <eliz@gnu.org>
+
+	* mail/rmailmm.el (rmail-mime-display-header)
+	(rmail-mime-display-tagline, rmail-mime-display-body): New defsubsts.
+	(rmail-mime-entity-segment, rmail-mime-toggle-raw)
+	(rmail-mime-toggle-hidden, rmail-mime-insert-text)
+	(rmail-mime-insert-bulk, rmail-mime-insert-multipart)
+	(rmail-mime-insert, rmail-mime-insert-tagline): Use them instead
+	of a raw aref.
+	(rmail-mime-entity-segment): To get past the tagline, move forward
+	2 more lines, to account for the 2 empty lines that precede and
+	follow the line with the buttons.
+	(rmail-mime-update-tagline): Move one more line, to get past the
+	empty line that follows the buttons in the tagline.  (Bug#9520)
+
+2011-11-19  Martin Rudalics  <rudalics@gmx.at>
+
+	* window.el (window-max-delta-1, window-min-delta-1)
+	(window-min-size-1, window-state-get-1, window-state-put-1)
+	(window-state-put-2): Use "window--" prefix.
+
+2011-11-18  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* emacs-lisp/smie.el: Improve warnings and conflict detection.
+	(smie-warning-count): New var.
+	(smie-set-prec2tab): Use it.
+	(smie-bnf->prec2): Improve warnings.  Add docstring.
+	(smie-bnf--closer-alist): Rename from smie-bnf-closer-alist.
+	(smie-bnf--set-class): New function.
+	(smie-bnf--classify): Rename from smie-bnf-classify.  Rewrite to fix
+	corner case.
+
+	* progmodes/compile.el: Obey compilation-first-column in dest buffer.
+	(compilation-error-properties, compilation-move-to-column):
+	Handle compilation-first-column while in the target buffer.
+
+	* progmodes/cc-engine.el (c-remove-stale-state-cache-backwards):
+	Don't hardcode point-min==1.
+
+	* eshell/esh-cmd.el (eshell-do-eval): Handle `setq' (bug#9907).
+	(eshell-rewrite-for-command): Remove workaround.
+	(eshell-do-pipelines, eshell-do-pipelines-synchronously)
+	(eshell-do-eval, eshell-exec-lisp): Avoid gratuitous setq.
+	* eshell/esh-util.el (eshell-condition-case, eshell-for): Use declare.
+
+	* files-x.el (modify-file-local-variable): Obey commenting conventions.
+
+2011-11-17  Glenn Morris  <rgm@gnu.org>
+
+	* emacs-lisp/autoload.el (autoload-generate-file-autoloads):
+	Ignore buffer-local generated-autoload-file if it is the same
+	as the global value.  (Bug#10049)
+
+2011-11-17  Juanma Barranquero  <lekktu@gmail.com>
+
+	* textmodes/reftex-toc.el (reftex-toc-return-marker, reftex-toc-help)
+	(reftex-toc, reftex-toc, reftex-toc-dframe-p, reftex-toc-next-heading)
+	(reftex-toc-previous-heading, reftex-toc-max-level)
+	(reftex-toc-goto-line-and-hide, reftex-toc-show-calling-point)
+	(reftex-toc-quit, reftex-toc-revert, reftex-toc-jump)
+	(reftex-toc-do-promote, reftex-toc-promote-prepare)
+	(reftex-toc-promote-action, reftex-toc-extract-section-number)
+	(reftex-toc-load-all-files-for-promotion, reftex-toc-rename-label)
+	(reftex-toc-rename-label, reftex-toc-visit-location)
+	(reftex-toc-visit-location, reftex-toggle-auto-toc-recenter)
+	(reftex-toggle-auto-toc-recenter, reftex-toggle-auto-toc-recenter)
+	(reftex-make-separate-toc-frame): Fix typos, and use TOC consistently,
+	leaving "*toc*" only for references to the buffer.
+
+2011-11-17  Martin Rudalics  <rudalics@gmx.at>
+
+	* window.el (window-resize, delete-window, split-window):
+	Replace window-splits by window-combination-resize.
+	* cus-start.el (window-splits): Replace by
+	window-combination-resize.
+
+2011-11-17  Glenn Morris  <rgm@gnu.org>
+
+	* progmodes/sh-script.el (sh-font-lock-keywords-var):
+	Make bash entry derive from sh entry, not shell entry.
+
+2011-11-16  Michael Albinus  <michael.albinus@gmx.de>
+
+	* net/tramp.el (tramp-handle-file-truename): Cache only the local
+	file name.
+
+	* net/tramp-cache.el (tramp-flush-file-property): Flush also
+	properties of linked files.  (Bug#9879)
+
+2011-11-16  Juanma Barranquero  <lekktu@gmail.com>
+
+	* menu-bar.el (menu-bar-file-menu):
+	* printing.el (pr-ps-utility):
+	* calendar/icalendar.el (icalendar, icalendar--convert-tz-offset)
+	(icalendar--convert-to-ical, icalendar--convert-ordinary-to-ical)
+	(icalendar--convert-weekly-to-ical, icalendar--convert-yearly-to-ical)
+	(icalendar--convert-sexp-to-ical, icalendar--convert-block-to-ical)
+	(icalendar--convert-float-to-ical, icalendar--convert-date-to-ical)
+	(icalendar--convert-cyclic-to-ical)
+	(icalendar--convert-anniversary-to-ical, icalendar-import-buffer)
+	(icalendar--convert-ical-to-diary)
+	(icalendar--convert-recurring-to-diary)
+	(icalendar--convert-non-recurring-all-day-to-diary)
+	(icalendar-import-format-sample):
+	* progmodes/idlw-shell.el (idlwave-shell-mode):
+	* progmodes/vhdl-mode.el (vhdl-mode, vhdl-print-two-column)
+	(vhdl-print-customize-faces, vhdl-mode, vhdl-ps-print-settings)
+	(vhdl-ps-print-init): Fix typos.
+
+2011-11-16  Ken Manheimer  <ken.manheimer@gmail.com>
+
+	* allout.el, allout-widgets.el (file metadata): Attribute copyright to
+	FSF and collapse date sequence, obscure author/maintainer email address
+	better, remove extra version line, track relocation of author's webpage.
+
+	* progmodes/python.el (python-pdbtrack-input-prompt)
+	(python-pdbtrack-track-stack-file): Adjust to recognize ipdb as well as
+	regular python pdb prompts.  Adjustments shamelessly taken exactly as
+	suggested in EmacsWiki page (tiny change):
+	http://www.emacswiki.org/PythonProgrammingInEmacs#toc14
+
+2011-11-16  Juanma Barranquero  <lekktu@gmail.com>
+
+	* expand.el (expand-pos, expand-index, expand-point):
+	Remove redundant info from docstring.
+	(expand-add-abbrevs): Doc fix.
+	(expand-c-sample-expand-list, expand-sample-lisp-mode-expand-list)
+	(expand-sample-perl-mode-expand-list): Fix typos.
+
+	* net/dbus.el (dbus-event-member-name):
+	* play/5x5.el (5x5-solve-rotate-left, 5x5-solver-output):
+	* term/pc-win.el (msdos-create-frame-with-faces):
+	* textmodes/texinfmt.el (texinfo-format-image): Fix typos.
+
+2011-11-16  Martin Rudalics  <rudalics@gmx.at>
+
+	* window.el (split-window, window-state-get-1)
+	(window-state-put-1, window-state-put-2): Rename occurrences of
+	window-nest to window-combination-limit.
+	* cus-start.el (window-nest): Rename to
+	window-combination-limit.
+
+2011-11-16  Chong Yidong  <cyd@gnu.org>
+
+	* progmodes/autoconf.el (autoconf-mode): Fix comment-start-skip
+	regexp (Bug#10033).
+
+2011-11-16  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* tmm.el (tmm-prompt): Use minibuffer-with-setup-hook (bug#10053).
+	`completing-read' will remove *Completions* and will preserve
+	current-buffer for us.
+	(tmm-add-prompt): Users of *Completions* will always (re)set its
+	major mode.
+	(tmm-old-comp-map): Remove.
+
+2011-11-16  Glenn Morris  <rgm@gnu.org>
+
+	* mail/rmailedit.el: Require rmailmm when compiling.
+	(rmail-old-mime-state): New declaration.
+	(rmail-edit-current-message): If editing a mime message,
+	edit the "raw" message from the mbox buffer.
+	(rmail-cease-edit): Handle mime messages.  (Bug#9840)
+
+2011-11-15  Glenn Morris  <rgm@gnu.org>
+
+	* mail/rmailmm.el (rmail-mime-toggle-raw): Remove entity arg,
+	which wasn't being used.  Add optional arg to force given state.
+	(rmail-mime): Add optional arg to force given state.
+
+2011-11-15  Juanma Barranquero  <lekktu@gmail.com>
+
+	* allout.el (allout-encryption-plaintext-sanitization-regexps):
+	* frame.el (display-mm-dimensions-alist):
+	* outline.el (outline-mode-menu-bar-map, outline-move-subtree-up)
+	(outline-move-subtree-down):
+	* net/newst-treeview.el (newsticker--treeview-do-get-node-of-feed)
+	(newsticker--treeview-do-get-node):
+	* net/quickurl.el (quickurl-list-buffer-name):
+	* progmodes/dcl-mode.el (dcl-mode):
+	* progmodes/gdb-mi.el (gdb-mapcar*):
+	* progmodes/sql.el (sql-mode-oracle-font-lock-keywords): Fix typos.
+
+2011-11-15  Glenn Morris  <rgm@gnu.org>
+
+	* mail/rmail.el (rmail-file-coding-system): It's only ever used
+	in a boolean sense, so just make it a boolean, and fix the doc.
+	(rmail-show-mime-function, rmail-mime-feature)
+	(rmail-require-mime-maybe): Doc fixes.
+	(rmail-show-message-1): Check rmail-show-mime-function is non-nil.
+
+	* mail/rmailmm.el (rmail-show-mime): Doc fix.
+
+2011-11-15  Juanma Barranquero  <lekktu@gmail.com>
+
+	* epg.el (epg-start-decrypt, epg-start-verify, epg-start-sign)
+	(epg-start-encrypt, epg-start-export-keys, epg-start-import-keys)
+	(epg-start-receive-keys, epg-start-delete-keys, epg-start-sign-keys)
+	(epg-start-generate-key, epg-context-set-progress-callback): Fix typos.
+
+2011-11-15  Glenn Morris  <rgm@gnu.org>
+
+	* mail/rmailmm.el (rmail-mime-entity, rmail-mime-entity-segment)
+	(rmail-mime-shown-mode, rmail-mime-hidden-mode, rmail-mime-raw-mode)
+	(rmail-mime-toggle-hidden, rmail-mime-insert-tagline)
+	(rmail-mime-insert-header, rmail-mime-handle, rmail-mime-parse)
+	(rmail-mime, rmail-show-mime): Doc fixes.
+
+	* term/ns-win.el (mode-line-frame-identification):
+	Leave it alone.  (Bug#10051)
+
+	* simple.el (mark-whole-buffer): Doc fix.  (Bug#10023)
+
+	* mail/rmailout.el (rmail-output-to-rmail-buffer):
+	Handle empty buffers.  (Bug#9978)
+
+2011-11-14  Juanma Barranquero  <lekktu@gmail.com>
+
+	* international/mule.el (define-charset):
+	* mail/rmailmm.el (rmail-mime-find-header-encoding):
+	* progmodes/prolog.el (prolog-mode-hook, prolog-inferior-mode-hook):
+	* progmodes/verilog-mode.el (verilog-backward-token):
+	* textmodes/ispell.el (lookup-words):
+	* textmodes/sgml-mode.el (sgml-guess-indent): Fix typos.
+
 2011-11-14  Glenn Morris  <rgm@gnu.org>
 
 	* progmodes/executable.el
 	(executable-make-buffer-file-executable-if-script-p):
 	Handle file-modes returning nil.
+
+	* mail/rmailsum.el (rmail-summary): Remove movement to beginning of
+	message - not necessary, and causes problems.  (Bug#9831)
+
+	* mail/rmailsum.el (rmail-new-summary): Preserve message number.
 
 	* mail/rmail.el (rmail-no-mail-p): Remove mode-line N/M indicator.
 
@@ -368,11 +670,10 @@
 	* progmodes/cc-defs.el: Update "virtual semicolon" comments.
 
 	* progmodes/cc-engine.el (c-crosses-statement-barrier-p):
-	Recode to scan one line at at time rather than having \n and \r
-	explicitly in c-stmt-delim-chars
-	(for some modes, e.g. AWK).
+	Recode to scan one line at a time rather than having \n and \r
+	explicitly in c-stmt-delim-chars (for some modes, e.g. AWK).
 	(c-forward-label): Amend for virtual semicolons.
-	(c-at-macro-vsemi-p, c-macro-vsemi-status-unknown-p): New functions
+	(c-at-macro-vsemi-p, c-macro-vsemi-status-unknown-p): New functions.
 
 	* progmodes/cc-fonts.el (c-font-lock-declarations): Take account
 	of the new C macros.
@@ -389,7 +690,7 @@
 
 	* progmodes/cc-vars.el (c-macro-with-semi-re):
 	(c-macro-names-with-semicolon): New variables.
-	(c-make-macro-with-semi-re): New function
+	(c-make-macro-with-semi-re): New function.
 
 2011-10-28  Stefan Monnier  <monnier@iro.umontreal.ca>
 
@@ -444,7 +745,7 @@
 2011-10-26  Michael Albinus  <michael.albinus@gmx.de>
 
 	* ido.el (ido-file-name-all-completions-1): Do not require
-	tramp.el explicitely.  (Bug#7583)
+	tramp.el explicitly.  (Bug#7583)
 
 2011-10-26  Stefan Monnier  <monnier@iro.umontreal.ca>
 
@@ -2462,13 +2763,13 @@
 
 2011-08-20  Alan Mackenzie  <acm@muc.de>
 
-	* Fontify CPP expressions correctly when starting in the middle of
+	Fontify CPP expressions correctly when starting in the middle of
 	such a construct.  Mainly for when jit-lock etc. starts a chunk
 	here.
 
-	* progmodes/cc-fonts.el (c-font-lock-context): new buffer local
+	* progmodes/cc-fonts.el (c-font-lock-context): New buffer local
 	variable.
-	(c-make-font-lock-search-form): new function, extracted from
+	(c-make-font-lock-search-form): New function, extracted from
 	c-make-font-lock-search-function.
 	(c-make-font-lock-search-function): Use the above function.
 	(c-make-font-lock-context-search-function): New function.
@@ -2732,7 +3033,7 @@
 	more people.
 
 	* cus-edit.el (custom-file): When running under emacs -q, always
-	refuse to save the customisations, even if the .emacs file doesn't
+	refuse to save the customizations, even if the .emacs file doesn't
 	exist.
 
 	* info.el: Remove the `Info-beginning-of-buffer' function
@@ -2799,7 +3100,7 @@
 
 	* progmodes/cc-fonts.el (c-font-lock-declarations): Jump over the
 	QT keyword "more" to prevent "more slots: ...." being spuriously
-	parsed as a bitfield declaraion.
+	parsed as a bitfield declaration.
 
 	* progmodes/cc-engine.el (c-beginning-of-statement-1):
 	Refactor and enhance to handle bitfield declarations.
@@ -3498,7 +3799,7 @@
 	Also clean up the code slightly.
 
 	* progmodes/grep.el (rgrep): Don't bind `process-connection-type',
-	because that makes the colours go away.
+	because that makes the colors go away.
 
 	* mail/sendmail.el (send-mail-function): Change the default to
 	`sendmail-query-once'.
@@ -3871,7 +4172,7 @@
 	for list)" (bug#6475).
 
 	* files.el (file-expand-wildcards): Ignore non-readable
-	sub-directories while trying to find matches instead of signalling
+	sub-directories while trying to find matches instead of signaling
 	an error (bug#6297).
 
 	* man.el (Man-reference-regexp): Allow matching possible
@@ -5544,7 +5845,7 @@
 
 	* image-mode.el (image-toggle-display-image): Ensure that the
 	image spec passed to the animate timer is the same object as in
-	the the buffer's display property (Bug#6981).
+	the buffer's display property (Bug#6981).
 	(image-transform-properties): Doc fix.
 
 	* image.el (image-animate-max-time): Default to nil.
@@ -5626,7 +5927,7 @@
 2011-05-28  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* minibuffer.el (completion--capf-wrapper): Check applicability before
-	retuning non-nil for non-exclusive completion data.
+	returning non-nil for non-exclusive completion data.
 	* progmodes/etags.el (tags-completion-at-point-function):
 	* info-look.el (info-lookup-completions-at-point): Mark as
 	non-exclusive.

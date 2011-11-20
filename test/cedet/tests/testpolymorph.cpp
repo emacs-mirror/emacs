@@ -50,7 +50,7 @@ namespace fcn_poly {
 
 }
 
-// Test 3 - Methods w/ differet arg lists.
+// Test 3 - Methods w/ different arg lists.
 class meth_poly {
 public:
   int pm_meth(void) {
@@ -128,4 +128,3 @@ namespace template_multiple_spec {
 
 
 // End of polymorphism test file.
-

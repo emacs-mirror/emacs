@@ -204,7 +204,7 @@ When nil of the empty string, use the abbreviation retrieved from Emacs."
   (if org-icalendar-use-UTC-date-time
       ":%Y%m%dT%H%M%SZ"
     ":%Y%m%dT%H%M%S")
-  "Format-string for exporting icalendar DATE-TIME.
+  "Format-string for exporting iCalendar DATE-TIME.
 See `format-time-string' for a full documentation.  The only
 difference is that `org-icalendar-timezone' is used for %Z.
 

@@ -32,7 +32,7 @@
 ;; In `iso-accents-mode', pseudo accent characters are used to
 ;; introduce accented keys.  The pseudo-accent characters are:
 ;;
-;;   '  (minute)    -> actue accent
+;;   '  (minute)    -> acute accent
 ;;   `  (backtick)  -> grave accent
 ;;   "  (second)    -> diaeresis
 ;;   ^  (caret)     -> circumflex

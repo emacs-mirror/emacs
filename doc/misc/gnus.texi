@@ -7665,7 +7665,7 @@ has its own article buffer.
 This implies that it's not possible to have more than one article buffer
 in a group at a time.  But sometimes you might want to display all the
 latest emails from your mother, your father, your aunt, your uncle and
-your 17 cousins to coordinate the next christmas party.
+your 17 cousins to coordinate the next Christmas party.
 
 That's where sticky articles come in handy.  A sticky article buffer
 basically is a normal article buffer, but it won't be reused when you
@@ -18001,7 +18001,7 @@ see the event's date.
   @code{gnus-diary} provides two supplemental user formats to be used in
 summary line formats.  @code{D} corresponds to a formatted time string
 for the next occurrence of the event (e.g. ``Sat, Sep 22 01, 12:00''),
-while @code{d} corresponds to an approximative remaining time until the
+while @code{d} corresponds to an approximate remaining time until the
 next occurrence of the event (e.g. ``in 6 months, 1 week'').
 
   For example, here's how Joe's birthday is displayed in my
@@ -18105,7 +18105,7 @@ mail sending with @code{nndiary}:
 @itemize @bullet
 @item
 @code{nndiary} is a @emph{real} mail back end.  You really send real diary
-messsages for real.  This means for instance that you can give
+messages for real.  This means for instance that you can give
 appointments to anybody (provided they use Gnus and @code{nndiary}) by
 sending the diary message to them as well.
 @item
@@ -21228,7 +21228,7 @@ features (inspired by the Google search input language):
 AND, OR, and NOT are supported, and parentheses can be used to control
 operator precedence, e.g. (emacs OR xemacs) AND linux. Note that
 operators must be written with all capital letters to be
-recognised. Also preceding a term with a - sign is equivalent to NOT
+recognized. Also preceding a term with a - sign is equivalent to NOT
 term.
 
 @item Automatic AND queries
@@ -21273,7 +21273,7 @@ Gmane queries follow a simple query language:
 AND, OR, NOT (or AND NOT), and XOR are supported, and brackets can be
 used to control operator precedence, e.g. (emacs OR xemacs) AND linux.
 Note that operators must be written with all capital letters to be
-recognised.
+recognized.
 
 @item Required and excluded terms
 + and - can be used to require or exclude terms, e.g. football -american
@@ -26756,7 +26756,7 @@ Sudish Joseph---innumerable bug fixes.
 Ilja Weis---@file{gnus-topic.el}.
 
 @item
-Steven L. Baur---lots and lots and lots of bugs detections and fixes.
+Steven L. Baur---lots and lots and lots of bug detection and fixes.
 
 @item
 Vladimir Alexiev---the refcard and reference booklets.
@@ -30030,7 +30030,7 @@ this:
 @subsection Score File Syntax
 
 Score files are meant to be easily parseable, but yet extremely
-mallable.  It was decided that something that had the same read syntax
+malleable.  It was decided that something that had the same read syntax
 as an Emacs Lisp list would fit that spec.
 
 Here's a typical score file:

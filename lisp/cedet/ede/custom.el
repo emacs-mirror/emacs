@@ -40,7 +40,7 @@
 
 ;;; Customization Commands
 ;;
-;; These commands initialize custoization of EDE control objects.
+;; These commands initialize customization of EDE control objects.
 
 ;;;###autoload
 (defun ede-customize-project ()

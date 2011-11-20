@@ -1,3 +1,15 @@
+2011-11-16  Juanma Barranquero  <lekktu@gmail.com>
+
+	* admin.el (manual-dvi): Fix typo.
+
+2011-11-15  Eli Zaretskii  <eliz@gnu.org>
+
+	* nt/README-ftp-server: Update the information about PNG libraries.
+
+2011-11-15  Juanma Barranquero  <lekktu@gmail.com>
+
+	* make-emacs: Fix typo.
+
 2011-11-07  Juanma Barranquero  <lekktu@gmail.com>
 
 	* unidata/makefile.w32-in (clean): Remove bidimirror.h and biditype.h.

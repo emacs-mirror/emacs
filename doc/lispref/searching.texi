@@ -1213,7 +1213,7 @@ match data around it, to prevent it from being overwritten.
 
   Notice that all functions are allowed to overwrite the match data
 unless they're explicitly documented not to do so.  A consequence is
-that functions that are run implictly in the background
+that functions that are run implicitly in the background
 (@pxref{Timers}, and @ref{Idle Timers}) should likely save and restore
 the match data explicitly.
 

@@ -3,7 +3,7 @@
 function res = tcomp (fn)
   %% res = tcomp (fn)
   %%     imports components and rearranges them.
-	 
+
   if nargin ~= 1
     print_usage()
   end
@@ -36,7 +36,7 @@ function res = tcomp (fn)
 endfunction
 
 ## Copyright (C) 2005, 2006, 2007, 2008, 2009 S�ren Hauberg
-## 
+##
 ## This file is part of Octave.
 ##
 ## Octave is free software; you can redistribute it and/or modify it
@@ -73,16 +73,16 @@ endfunction
 ##
 ## @table @code
 ## @item -nodeps
-## The package manager will disable the dependency checking.  That way it 
-## is possible to install a package even if it depends on another package 
+## The package manager will disable the dependency checking.  That way it
+## is possible to install a package even if it depends on another package
 ## that's not installed on the system.  @strong{Use this option with care.}
 ##
 ## @item -noauto
-## The package manager will not automatically load the installed package 
+## The package manager will not automatically load the installed package
 ## when starting Octave, even if the package requests that it is.
 ##
 ## @item -auto
-## The package manager will automatically load the installed package when 
+## The package manager will automatically load the installed package when
 ## starting Octave, even if the package requests that it isn't.
 ##
 ## @item -local
@@ -93,7 +93,7 @@ endfunction
 ## system privileges
 ##
 ## @item -verbose
-## The package manager will print the output of all of the commands that are 
+## The package manager will print the output of all of the commands that are
 ## performed.
 ## @end table
 ##
@@ -205,7 +205,7 @@ endfunction
 ## pkg global_list
 ## @end example
 ## @item rebuild
-## Rebuilds the package database from the installed directories.  This can 
+## Rebuilds the package database from the installed directories.  This can
 ## be used in cases where for some reason the package database is corrupted.
 ## It can also take the @code{-auto} and @code{-noauto} options to allow the
 ## autoloading state of a package to be changed.  For example
@@ -227,7 +227,7 @@ endfunction
 ## @noindent
 ## where @code{builddir} is the name of a directory where the temporary
 ## installation will be produced and the binary packages will be found.
-## The options @code{-verbose} and @code{-nodeps} are respected, while 
+## The options @code{-verbose} and @code{-nodeps} are respected, while
 ## the other options are ignored.
 ## @end table
 ## @end deftypefn
@@ -259,7 +259,7 @@ function [local_packages, global_packages] = pkg (varargin)
 
   available_actions = {"list", "install", "uninstall", "load", ...
 		       "unload", "prefix", "local_list", ...
-		       "global_list", "rebuild", "build","describe"}; 
+		       "global_list", "rebuild", "build","describe"};
   ## Handle input
   if (length (varargin) == 0 || ! iscellstr (varargin))
     print_usage ();
@@ -321,14 +321,14 @@ function [local_packages, global_packages] = pkg (varargin)
       if (length (files) == 0)
 	error ("you must specify at least one filename when calling 'pkg install'");
       endif
-      install (files, deps, auto, prefix, archprefix, verbose, local_list, 
+      install (files, deps, auto, prefix, archprefix, verbose, local_list,
 	       global_list, global_install);
 
     case "uninstall"
       if (length (files) == 0)
 	error ("you must specify at least one package when calling 'pkg uninstall'");
       endif
-      uninstall (files, deps, verbose, local_list, 
+      uninstall (files, deps, verbose, local_list,
 		 global_list, global_install);
 
     case "load"
@@ -406,7 +406,7 @@ function [local_packages, global_packages] = pkg (varargin)
 
     case "rebuild"
       if (global_install)
-	global_packages = rebuild (prefix, archprefix, global_list, files, 
+	global_packages = rebuild (prefix, archprefix, global_list, files,
 				   auto, verbose);
 	global_packages = save_order (global_packages);
 	save (global_list, "global_packages");
@@ -414,7 +414,7 @@ function [local_packages, global_packages] = pkg (varargin)
 	  local_packages = global_packages;
 	endif
       else
-	local_packages = rebuild (prefix, archprefix, local_list, files, auto, 
+	local_packages = rebuild (prefix, archprefix, local_list, files, auto,
 				  verbose);
 	local_packages = save_order (local_packages);
 	save (local_list, "local_packages");
@@ -450,7 +450,7 @@ function [local_packages, global_packages] = pkg (varargin)
 	otherwise
 	  error ("you can request at most two outputs when calling 'pkg describe'");
       endswitch
-      
+
     otherwise
       error ("you must specify a valid action for 'pkg'. See 'help pkg' for details");
   endswitch
@@ -529,7 +529,7 @@ function descriptions = rebuild (prefix, archprefix, list, files, auto, verbose)
     endfor
     if (! isempty (dup))
       descriptions (dup) = [];
-    endif  
+    endif
   endif
 endfunction
 
@@ -555,7 +555,7 @@ function build (files, handle_deps, autoload, verbose)
   endif
   files(1) = [];
   buildlist = fullfile (builddir, "octave_packages");
-  install (files, handle_deps, autoload, installdir, installdir, verbose, 
+  install (files, handle_deps, autoload, installdir, installdir, verbose,
 	   buildlist, "", false);
   unwind_protect
     repackage (builddir, buildlist);
@@ -570,7 +570,7 @@ function build (files, handle_deps, autoload, verbose)
   end_unwind_protect
 endfunction
 
-function install (files, handle_deps, autoload, prefix, archprefix, verbose, 
+function install (files, handle_deps, autoload, prefix, archprefix, verbose,
 		  local_list, global_list, global_install)
 
   ## Check that the directory in prefix exist. If it doesn't: create it!
@@ -583,10 +583,10 @@ function install (files, handle_deps, autoload, prefix, archprefix, verbose,
   endif
 
   ## Get the list of installed packages.
-  [local_packages, global_packages] = installed_packages (local_list, 
+  [local_packages, global_packages] = installed_packages (local_list,
 							  global_list);
 
-  installed_pkgs_lst = {local_packages{:}, global_packages{:}};        
+  installed_pkgs_lst = {local_packages{:}, global_packages{:}};
 
   if (global_install)
     packages = global_packages;
@@ -599,7 +599,7 @@ function install (files, handle_deps, autoload, prefix, archprefix, verbose,
   try
     ## Warn about non existent files.
     for i = 1:length (files)
-      if (isempty (glob(files{i}))) 
+      if (isempty (glob(files{i})))
 	warning ("file %s does not exist", files{i});
       endif
     endfor
@@ -652,32 +652,32 @@ function install (files, handle_deps, autoload, prefix, archprefix, verbose,
 	  packdir = fullfile (pwd(), dirlist{3});
 	endif
 	packdirs{end+1} = packdir;
-	
+
 	## Make sure the package contains necessary files.
 	verify_directory (packdir);
-	
+
 	## Read the DESCRIPTION file.
 	filename = fullfile (packdir, "DESCRIPTION");
 	desc = get_description (filename);
-	
+
 	## Verify that package name corresponds with filename.
-	[dummy, nm] = fileparts (tgz); 
+	[dummy, nm] = fileparts (tgz);
 	if ((length (nm) >= length (desc.name))
 	    && ! strcmp (desc.name, nm(1:length(desc.name))))
-	  error ("package name '%s' doesn't correspond to its filename '%s'", 
+	  error ("package name '%s' doesn't correspond to its filename '%s'",
 		 desc.name, nm);
 	endif
-	
+
 	## Set default installation directory.
 	desc.dir = fullfile (prefix, cstrcat (desc.name, "-", desc.version));
-	
-	## Set default architectire dependent installation directory.
+
+	## Set default architecture dependent installation directory.
 	desc.archprefix = fullfile (archprefix, cstrcat (desc.name, "-",
 							 desc.version));
-	
+
 	## Save desc.
 	descriptions{end+1} = desc;
-	
+
 	## Are any of the new packages already installed?
 	## If so we'll remove the old version.
 	for j = 1:length (packages)
@@ -705,14 +705,14 @@ function install (files, handle_deps, autoload, prefix, archprefix, verbose,
       if (global_install)
 	## Global installation is not allowed to have dependencies on locally
 	## installed packages.
-	idx1 = complement (packages_to_uninstall, 
+	idx1 = complement (packages_to_uninstall,
 			   1:length(global_packages));
 	pseudo_installed_packages = {global_packages{idx1}, ...
 				     descriptions{idx2}};
       else
-	idx1 = complement (packages_to_uninstall, 
+	idx1 = complement (packages_to_uninstall,
 			   1:length(local_packages));
-	pseudo_installed_packages = {local_packages{idx1}, ... 
+	pseudo_installed_packages = {local_packages{idx1}, ...
 				     global_packages{:}, ...
 				     descriptions{idx2}};
       endif
@@ -755,10 +755,10 @@ function install (files, handle_deps, autoload, prefix, archprefix, verbose,
   try
     for i = packages_to_uninstall
       if (global_install)
-	uninstall ({global_packages{i}.name}, false, verbose, local_list, 
+	uninstall ({global_packages{i}.name}, false, verbose, local_list,
 		   global_list, global_install);
       else
-	uninstall ({local_packages{i}.name}, false, verbose, local_list, 
+	uninstall ({local_packages{i}.name}, false, verbose, local_list,
 		   global_list, global_install);
       endif
     endfor
@@ -809,7 +809,7 @@ function install (files, handle_deps, autoload, prefix, archprefix, verbose,
   ## requested that it is, then mark the package as autoloaded.
   for i = length (descriptions):-1:1
     if (autoload > 0 || (autoload == 0 && isautoload (descriptions(i))))
-      fclose (fopen (fullfile (descriptions{i}.dir, "packinfo", 
+      fclose (fopen (fullfile (descriptions{i}.dir, "packinfo",
 			       ".autoload"), "wt"));
       descriptions{i}.autoload = 1;
     endif
@@ -872,10 +872,10 @@ function install (files, handle_deps, autoload, prefix, archprefix, verbose,
   endif
 endfunction
 
-function uninstall (pkgnames, handle_deps, verbose, local_list, 
+function uninstall (pkgnames, handle_deps, verbose, local_list,
 		    global_list, global_install)
   ## Get the list of installed packages.
-  [local_packages, global_packages] = installed_packages(local_list, 
+  [local_packages, global_packages] = installed_packages(local_list,
 							 global_list);
   if (global_install)
     installed_pkgs_lst = {local_packages{:}, global_packages{:}};
@@ -996,13 +996,13 @@ function uninstall (pkgnames, handle_deps, verbose, local_list,
 
 endfunction
 
-function [pkg_desc_list, flag] = describe (pkgnames, verbose, 
+function [pkg_desc_list, flag] = describe (pkgnames, verbose,
 					   local_list, global_list)
 
   ## Get the list of installed packages.
   installed_pkgs_lst = installed_packages(local_list, global_list);
   num_packages = length (installed_pkgs_lst);
-  
+
 
   describe_all = false;
   if (any (strcmp ("all", pkgnames)))
@@ -1043,7 +1043,7 @@ function [pkg_desc_list, flag] = describe (pkgnames, verbose,
       non_inst_str = sprintf (" %s ", pkgnames{non_inst});
       error ("some packages are not installed: %s", non_inst_str);
     else
-      pkg_desc_list{non_inst} = struct ("name", {}, "description",  
+      pkg_desc_list{non_inst} = struct ("name", {}, "description",
 					{}, "provides", {});
     endif
   endif
@@ -1052,7 +1052,7 @@ function [pkg_desc_list, flag] = describe (pkgnames, verbose,
     for i = 1:num_pkgnames
       print_package_description (pkg_desc_list{i}.name,
 				 pkg_desc_list{i}.version,
-				 pkg_desc_list{i}.provides,  
+				 pkg_desc_list{i}.provides,
 				 pkg_desc_list{i}.description,
 				 flag{i}, verbose);
     endfor
@@ -1069,12 +1069,12 @@ function [pkg_idx_struct] = parse_pkg_idx (packdir)
 
   if (! exist (index_file, "file"))
     error ("could not find any INDEX file in directory %s, try 'pkg rebuild all' to generate missing INDEX files", packdir);
-  endif    
+  endif
 
-  
+
   [fid, msg] = fopen (index_file, "r");
   if (fid == -1)
-    error ("the INDEX file %s could not be read: %s", 
+    error ("the INDEX file %s could not be read: %s",
 	   index_file, msg);
   endif
 
@@ -1089,7 +1089,7 @@ function [pkg_idx_struct] = parse_pkg_idx (packdir)
 
   while (! feof (fid) || line != -1)
     if (! any (! isspace (line)) || line(1) == "#" || any (line == "="))
-    ## Comments,  blank lines or comments about unimplemented 
+    ## Comments,  blank lines or comments about unimplemented
     ## functions: do nothing
     ## FIXME: probably comments and pointers to external functions
     ## could be treated better when printing to screen?
@@ -1114,7 +1114,7 @@ function [pkg_idx_struct] = parse_pkg_idx (packdir)
   fclose (fid);
 endfunction
 
-function print_package_description (pkg_name, pkg_ver, pkg_idx_struct, 
+function print_package_description (pkg_name, pkg_ver, pkg_idx_struct,
 				    pkg_desc, status, verbose)
 
   printf ("---\nPackage name:\n\t%s\n", pkg_name);
@@ -1122,7 +1122,7 @@ function print_package_description (pkg_name, pkg_ver, pkg_idx_struct,
   printf ("Short description:\n\t%s\n", pkg_desc);
   printf ("Status:\n\t%s\n", status);
   if (verbose)
-    printf ("---\nProvides:\n");    
+    printf ("---\nProvides:\n");
     for i = 1:length(pkg_idx_struct)
       if (! isempty (pkg_idx_struct{i}.functions))
 	printf ("%s\n", pkg_idx_struct{i}.category);
@@ -1177,26 +1177,26 @@ function repackage (builddir, buildlist)
 	  unlink (fullfile (pack.name, "inst", "PKG_DEL"));
 	endif
 	if (exist (fullfile (archdir, "PKG_ADD"), "file"))
-	  movefile (fullfile (archdir, "PKG_ADD"), 
+	  movefile (fullfile (archdir, "PKG_ADD"),
 		    fullfile (pack.name, "PKG_ADD"));
 	endif
 	if (exist (fullfile (archdir, "PKG_DEL"), "file"))
-	  movefile (fullfile (archdir, "PKG_DEL"), 
-		    fullfile (pack.name, "PKG_DEL")); 
+	  movefile (fullfile (archdir, "PKG_DEL"),
+		    fullfile (pack.name, "PKG_DEL"));
 	endif
       else
 	if (exist (fullfile (pack.name, "inst", "PKG_ADD"), "file"))
-	  movefile (fullfile (pack.name, "inst", "PKG_ADD"), 
+	  movefile (fullfile (pack.name, "inst", "PKG_ADD"),
 		    fullfile (pack.name, "PKG_ADD"));
-	endif 
+	endif
 	if (exist (fullfile (pack.name, "inst", "PKG_DEL"), "file"))
-	  movefile (fullfile (pack.name, "inst", "PKG_DEL"), 
-		    fullfile (pack.name, "PKG_DEL")); 
-	endif	
-      endif	
+	  movefile (fullfile (pack.name, "inst", "PKG_DEL"),
+		    fullfile (pack.name, "PKG_DEL"));
+	endif
+      endif
       tfile = cstrcat (pack.name, "-", pack.version, ".tar");
       tar (tfile, pack.name);
-      try 
+      try
 	gzip (tfile);
 	unlink (tfile);
       catch
@@ -1231,7 +1231,7 @@ function prepare_installation (desc, packdir)
     wd = pwd ();
     try
       cd (packdir);
-      pre_install (desc); 
+      pre_install (desc);
       cd (wd);
     catch
       cd (wd);
@@ -1245,13 +1245,13 @@ function prepare_installation (desc, packdir)
     [status, msg] = mkdir (inst_dir);
     if (status != 1)
       rm_rf (desc.dir);
-      error ("the 'inst' directory did not exist and could not be created: %s", 
+      error ("the 'inst' directory did not exist and could not be created: %s",
 	     msg);
     endif
   endif
 endfunction
 
-function configure_make (desc, packdir, verbose)   
+function configure_make (desc, packdir, verbose)
   ## Perform ./configure, make, make install in "src".
   if (exist (fullfile (packdir, "src"), "dir"))
     src = fullfile (packdir, "src");
@@ -1362,7 +1362,7 @@ function configure_make (desc, packdir, verbose)
 	    printf (" %s", archdependent{:});
 	    printf (" %s\n", archdir);
 	  endif
-	  if (! exist (archdir, "dir")) 
+	  if (! exist (archdir, "dir"))
 	    mkdir (archdir);
 	  endif
 	  [status, output] = copyfile (archdependent, archdir);
@@ -1398,8 +1398,8 @@ endfunction
 function create_pkgadddel (desc, packdir, nm, global_install)
   instpkg = fullfile (desc.dir, nm);
   instfid = fopen (instpkg, "wt");
-  ## If it is exists, most of the  PKG_* file should go into the 
-  ## architecture dependent directory so that the autoload/mfilename 
+  ## If it is exists, most of the  PKG_* file should go into the
+  ## architecture dependent directory so that the autoload/mfilename
   ## commands work as expected. The only part that doesn't is the
   ## part in the main directory.
   archdir = fullfile (getarchprefix (desc), cstrcat (desc.name, "-",
@@ -1465,7 +1465,7 @@ function copy_files (desc, packdir, global_install)
   if (! exist (desc.dir, "dir"))
     [status, output] = mkdir (desc.dir);
     if (status != 1)
-      error ("couldn't create installation directory %s : %s", 
+      error ("couldn't create installation directory %s : %s",
 	     desc.dir, output);
     endif
   endif
@@ -1493,32 +1493,32 @@ function copy_files (desc, packdir, global_install)
               [status, output] = mkdir (octm3);
               if (status != 1)
                 rm_rf (desc.dir);
-                error ("couldn't create installation directory %s : %s", 
+                error ("couldn't create installation directory %s : %s",
                        octm3, output);
               endif
             endif
             [status, output] = mkdir (octm2);
             if (status != 1)
               rm_rf (desc.dir);
-              error ("couldn't create installation directory %s : %s", 
+              error ("couldn't create installation directory %s : %s",
                      octm2, output);
             endif
           endif
           [status, output] = mkdir (octm1);
           if (status != 1)
             rm_rf (desc.dir);
-            error ("couldn't create installation directory %s : %s", 
+            error ("couldn't create installation directory %s : %s",
                    octm1, output);
           endif
         endif
         [status, output] = mkdir (octfiledir);
         if (status != 1)
           rm_rf (desc.dir);
-          error ("couldn't create installation directory %s : %s", 
+          error ("couldn't create installation directory %s : %s",
 		 octfiledir, output);
         endif
       endif
-      [status, output] = movefile (fullfile (desc.dir, getarch (), "*"), 
+      [status, output] = movefile (fullfile (desc.dir, getarch (), "*"),
 				   octfiledir);
       rm_rf (fullfile (desc.dir, getarch ()));
 
@@ -1753,7 +1753,7 @@ function deps_cell = fix_depends (depends)
       version  = fix_version (parts{2});
 
     ## If no version is specified for the dependency
-    ## we say that the version should be greater than 
+    ## we say that the version should be greater than
     ## or equal to "0.0.0".
     else
       package = tolower (strip (dep));
@@ -1813,7 +1813,7 @@ function write_index (desc, dir, index_file, global_install)
     if (err)
       error ("couldn't read directory %s: %s", tmpdir, msg);
     endif
-    files = [files; files2];    
+    files = [files; files2];
   endif
 
   functions = {};
@@ -1910,7 +1910,7 @@ function [out1, out2] = installed_packages (local_list, global_list)
   endfor
   if (! isempty(dup))
     installed_pkgs_lst(dup) = [];
-  endif  
+  endif
 
   ## Now check if the package is loaded.
   tmppath = strrep (path(), "\\", "/");
@@ -1957,9 +1957,9 @@ function [out1, out2] = installed_packages (local_list, global_list)
   h1 = "Package Name";
   h2 = "Version";
   h3 = "Installation directory";
-  max_name_length = length (h1); 
+  max_name_length = length (h1);
   max_version_length = length (h2);
-  names = cell (num_packages, 1); 
+  names = cell (num_packages, 1);
   for i = 1:num_packages
     max_name_length = max (max_name_length,
 			   length (installed_pkgs_lst{i}.name));
@@ -1996,7 +1996,7 @@ function [out1, out2] = installed_packages (local_list, global_list)
       first_char = length (cur_dir) - max_dir_length + 4;
       first_filesep = strfind (cur_dir(first_char:end), filesep());
       if (! isempty (first_filesep))
-        cur_dir = cstrcat ("...", 
+        cur_dir = cstrcat ("...",
 			   cur_dir((first_char + first_filesep(1) - 1):end));
       else
         cur_dir = cstrcat ("...", cur_dir(first_char:end));
@@ -2026,7 +2026,7 @@ function load_packages (files, handle_deps, local_list, global_list)
   if (length (files) == 1 && strcmp (files{1}, "all"))
     idx = [1:length(installed_pkgs_lst)];
   ## Load auto.
-  elseif (length (files) == 1 && strcmp (files{1}, "auto")) 
+  elseif (length (files) == 1 && strcmp (files{1}, "auto"))
     idx = [];
     for i = 1:length (installed_pkgs_lst)
       if (exist (fullfile (pdirs{i}, "packinfo", ".autoload"), "file"))
@@ -2162,7 +2162,7 @@ endfunction
 
 function archprefix = getarchprefix (desc, global_install)
   if ((nargin == 2 && global_install) || (nargin < 2 && issuperuser ()))
-    archprefix = fullfile (octave_config_info ("libexecdir"), "octave", 
+    archprefix = fullfile (octave_config_info ("libexecdir"), "octave",
 			   "packages", cstrcat(desc.name, "-", desc.version));
   else
     archprefix = desc.dir;
@@ -2207,7 +2207,7 @@ function newdesc = save_order (desc)
   newdesc = {};
   for i = 1 : length(desc)
     deps = desc{i}.depends;
-    if (isempty (deps) || (length (deps) == 1 && 
+    if (isempty (deps) || (length (deps) == 1 &&
 			   strcmp(deps{1}.package, "octave")))
       newdesc {end + 1} = desc{i};
     else
@@ -2220,7 +2220,7 @@ function newdesc = save_order (desc)
           endif
         endfor
       endfor
-      if (! isempty (tmpdesc))					     
+      if (! isempty (tmpdesc))
         newdesc = {newdesc{:}, save_order(tmpdesc){:}, desc{i}};
       else
         newdesc{end+1} = desc{i};
@@ -2278,7 +2278,7 @@ function idx = load_package_dirs (lidx, idx, handle_deps, installed_pkgs_lst)
     else
       if (handle_deps)
         deps = installed_pkgs_lst{i}.depends;
-        if ((length (deps) > 1) || (length (deps) == 1 && 
+        if ((length (deps) > 1) || (length (deps) == 1 &&
 	  			    ! strcmp(deps{1}.package, "octave")))
           tmplidx = [];
           for k = 1 : length (deps)
@@ -2289,7 +2289,7 @@ function idx = load_package_dirs (lidx, idx, handle_deps, installed_pkgs_lst)
               endif
             endfor
           endfor
-          idx = load_package_dirs (tmplidx, idx, handle_deps, 
+          idx = load_package_dirs (tmplidx, idx, handle_deps,
 				   installed_pkgs_lst);
         endif
       endif

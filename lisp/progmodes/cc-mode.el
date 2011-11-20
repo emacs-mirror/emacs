@@ -293,7 +293,7 @@ control).  See \"cc-mode.el\" for more info."
   ;; replaces `fill-paragraph' and does the adaption before calling
   ;; `fill-paragraph-function', and we have to mask comments etc
   ;; before that.  Also, `c-fill-paragraph' chains on to
-  ;; `fill-paragraph' and the value on `fill-parapgraph-function' to
+  ;; `fill-paragraph' and the value on `fill-paragraph-function' to
   ;; do the actual filling work.
   (substitute-key-definition 'fill-paragraph 'c-fill-paragraph
 			     c-mode-base-map global-map)
@@ -484,7 +484,7 @@ that requires a literal mode spec at compile time."
   (make-local-variable 'comment-start)
   (make-local-variable 'comment-end)
   (make-local-variable 'comment-start-skip)
-  
+
   (make-local-variable 'paragraph-start)
   (make-local-variable 'paragraph-separate)
   (make-local-variable 'paragraph-ignore-fill-prefix)
@@ -505,7 +505,7 @@ that requires a literal mode spec at compile time."
   ;; doesn't work with filladapt but it's better than nothing.
   (set (make-local-variable 'fill-paragraph-function) 'c-fill-paragraph)
 
-  ;; Initialise the cache of brace pairs, and opening braces/brackets/parens.
+  ;; Initialize the cache of brace pairs, and opening braces/brackets/parens.
   (c-state-cache-init)
 
   (when (or c-recognize-<>-arglists
@@ -587,7 +587,7 @@ that requires a literal mode spec at compile time."
   (add-hook 'after-change-functions 'c-after-change nil t)
   (set (make-local-variable 'font-lock-extend-after-change-region-function)
  	'c-extend-after-change-region))	; Currently (2009-05) used by all
-			; lanaguages with #define (C, C++,; ObjC), and by AWK.
+			; languages with #define (C, C++,; ObjC), and by AWK.
 
 (defun c-setup-doc-comment-style ()
   "Initialize the variables that depend on the value of `c-doc-comment-style'."
@@ -660,7 +660,7 @@ compatible with old code; callers should always specify it."
       (when (eq (car elt) 'c-file-style)
 	(setq cownt (1+ cownt))))
     cownt))
-							  
+
 (defun c-before-hack-hook ()
   "Set the CC Mode style and \"offsets\" when in the buffer's local variables.
 They are set only when, respectively, the pseudo variables
@@ -860,7 +860,7 @@ Note that the style variables are always made local to the buffer."
   ;; (i) Extend the font lock region to cover all changed preprocessor
   ;; regions; it does this by setting the variables `c-new-BEG' and
   ;; `c-new-END' to the new boundaries.
-  ;; 
+  ;;
   ;; (ii) "Neutralize" every preprocessor line wholly or partially in the
   ;; extended changed region.  "Restore" lines which were CPP lines before the
   ;; change and are no longer so; these can be located from the Buffer local
@@ -1562,7 +1562,7 @@ Key bindings:
   (c-common-init 'awk-mode)
   (c-awk-unstick-NL-prop)
 
-  ;; Prevent Xemacs's buffer-syntactic-context being used.  See the comment
+  ;; Prevent XEmacs's buffer-syntactic-context being used.  See the comment
   ;; in cc-engine.el, just before (defun c-fast-in-literal ...
   (defalias 'c-in-literal 'c-slow-in-literal)
 

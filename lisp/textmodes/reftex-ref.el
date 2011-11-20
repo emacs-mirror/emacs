@@ -206,7 +206,7 @@ This function is controlled by the settings of reftex-insert-label-flags."
                          (if naked "Naked Label: " "Label: ")
                          default))
 
-            ;; Lets make sure that this is a valid label
+            ;; Let's make sure that this is a valid label
             (cond
 
              ((string-match (concat "\\`\\(" (regexp-quote prefix)

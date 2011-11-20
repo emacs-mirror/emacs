@@ -145,7 +145,7 @@ rectangle) (@code{insert-register}).
 
   The @kbd{C-x r i @var{r}} (@code{insert-register}) command,
 previously documented in @ref{Text Registers}, inserts a rectangle
-rather than a a text string, if the register contains a rectangle.
+rather than a text string, if the register contains a rectangle.
 
 @node Configuration Registers
 @section Saving Window Configurations in Registers
@@ -278,7 +278,7 @@ you can use it to edit your bookmark definitions or annotate the
 bookmarks.  Type @kbd{C-h m} in the bookmark buffer for more
 information about its special editing commands.
 
-  When you kill Emacs, Emacs offers to save your bookmark values, if
+  When you kill Emacs, Emacs saves your bookmarks, if
 you have changed any bookmark values.  You can also save the bookmarks
 at any time with the @kbd{M-x bookmark-save} command.  Bookmarks are
 saved to the file @file{~/.emacs.d/bookmarks} (for compatibility with
@@ -290,9 +290,10 @@ persist from one Emacs session to the next.
 @vindex bookmark-save-flag
   If you set the variable @code{bookmark-save-flag} to 1, each command
 that sets a bookmark will also save your bookmarks; this way, you
-don't lose any bookmark values even if Emacs crashes.  (The value, if
+don't lose any bookmark values even if Emacs crashes.  The value, if
 a number, says how many bookmark modifications should go by between
-saving.)
+saving.  If you set this variable to @code{nil}, Emacs only
+saves bookmarks if you explicitly use @kbd{M-x bookmark-save}.
 
 @vindex bookmark-search-size
   Bookmark position values are saved with surrounding context, so that

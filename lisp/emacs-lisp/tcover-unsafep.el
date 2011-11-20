@@ -100,7 +100,7 @@
       . (risky-local-variable format-alist))
     ( (setq buffer-display-count (delete-file "x"))
       . (function delete-file))
-    ;;These are actualy safe (they signal errors)
+    ;;These are actually safe (they signal errors)
     ( (apply '(x) '(1 2 3))
       . (function (x)))
     ( (let (((x))) 1)

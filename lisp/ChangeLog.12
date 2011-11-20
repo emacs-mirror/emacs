@@ -764,7 +764,7 @@
 	Fix calls to get-buffer-window to find windows in other frames.
 	Reported by David Hansen <david.hansen@gmx.net>.
 
-2007-03-27   Kevin Ryde  <user42@zip.com.au>
+2007-03-27  Kevin Ryde  <user42@zip.com.au>
 
 	* info.el (Info-display-images-node): On a text-only terminal,
 	show the "text" or "alt" parts of the image blobs.
@@ -938,7 +938,7 @@
 2007-03-20  David Kastrup  <dak@gnu.org>
 
 	* files.el (magic-mode-alist): Require literal "%!PS" string for
-	magic postscript file detection.
+	magic PostScript file detection.
 
 2007-03-20  Richard Stallman  <rms@gnu.org>
 
@@ -2823,7 +2823,7 @@
 2007-01-01  Alan Mackenzie  <acm@muc.de>
 
 	* progmodes/cc-engine.el (c-guess-basic-syntax, case 5N):
-	Check the format of c-state-cache is valid for an optimisation before
+	Check the format of c-state-cache is valid for an optimization before
 	using it.
 
 	* progmodes/cc-engine.el (c-guess-basic-syntax): New case 5Q "we
@@ -2840,11 +2840,11 @@
 	* progmodes/cc-cmds.el (c-context-line-break): Don't indent the
 	new line after an escaped EOL in a string.
 
-	* progmodes/cc-engine.el (c-forward-label): Recognise "foo:" as a
+	* progmodes/cc-engine.el (c-forward-label): Recognize "foo:" as a
 	label when it directly follows "else", "do", ....
 
 	* progmodes/cc-engine.el (c-backward-<>-arglist): Tolerate empty
-	angle brackets (as seen in "explicit specialisations" of C++
+	angle brackets (as seen in "explicit specializations" of C++
 	templates).
 
 	* progmodes/cc-vars.el (c-indentation-style): Mention c-file-style
@@ -2871,7 +2871,7 @@
 	* progmodes/cc-cmds.el (c-electric-slash): Extend the handling of
 	clean-up comment-close-slash also to work when there's a comment
 	terminator on the line.
-	(c-beginning-of-defun, c-end-of-defun): Refactor and optimise
+	(c-beginning-of-defun, c-end-of-defun): Refactor and optimize
 	these for large arg - only take account of top level {..}, except
 	for initial and final adjustments.  M-- C-M-[ae] now go to the
 	right defuns when the starting point is between defuns.  They use
@@ -3257,7 +3257,7 @@
 
 2006-12-17  Alan Mackenzie  <acm@muc.de>
 
-	* emacs-lisp/lisp.el (beginning-of-defun-raw): Optimise (for
+	* emacs-lisp/lisp.el (beginning-of-defun-raw): Optimize (for
 	speed) the case when open-paren-in-column-0-is-defun-start is nil.
 	Based on code by Martin Rudalics.
 
@@ -4124,7 +4124,7 @@
 2006-11-15  Simon Marshall  <simon@gnu.org>
 
 	* progmodes/cc-fonts.el (c-font-lock-declarators): Use c-at-toplevel-p
-	to recognise "T t()" as a function declaration, rather than a
+	to recognize "T t()" as a function declaration, rather than a
 	variable instantiation, iff at the top-level or inside a class
 	declaration.  Suggested by Feng Li <fengli@gmail.com>.
 
@@ -7561,7 +7561,7 @@
 	* pcvs-util.el (cvs-get-buffer-create): Obey `noreuse' even if `name'
 	doesn't look like a file name.
 
-	* complete.el (PC-expand-many-files): Avoid signalling an error when
+	* complete.el (PC-expand-many-files): Avoid signaling an error when
 	the current directory doesn't exist.  Reported by Michaël Cadilhac.
 
 2006-08-02  Andreas Schwab  <schwab@suse.de>
@@ -8722,7 +8722,7 @@
 
 	* progmodes/gdb-ui.el (gdb-same-frame): New option.
 	(gud-old-arrow, gdb-frame-begin, gdb-printing): New variables.
-	(gdb-init-1): Initialise them.
+	(gdb-init-1): Initialize them.
 	(gdb-starting): Reset gdb-printing.
 	(gdb-starting): Save value of gud-overlay-arrow-position.
 	(gdb-frame-begin): Set gdb-frame-begin, gdb-printing.
@@ -8855,7 +8855,7 @@
 	(org-get-indentation): New optional argument LINE.
 	(org-fix-indentation, org-remove-tabs): New functions.
 	(org-export-as-ascii, org-ascii-level-start): Determine and apply
-	correct indentation for headlines that are converted it items.
+	correct indentation for headlines that are converted to items.
 	(org-skip-comments): Remove table lines that contain narrowing
 	cookies but no other non-empty fields.
 	(org-set-tags): Allow groups of mutually exclusive tags.
@@ -9419,7 +9419,7 @@
 	(org-insert-labeled-timestamps-at-point): New option.
 	(org-cycle, org-occur, org-scan-tags): Use `org-overview' instead
 	of `hide-sublevels 1', in case the first headline is not level 1.
-	(org-overview, org-content): New fuction.
+	(org-overview, org-content): New function.
 	(org-cycle-global-status, org-cycle-subtree-status): Make these
 	variables buffer-local.
 	(org-global-cycle): New command.
@@ -10937,7 +10937,7 @@
 
 2006-04-10  Nick Roberts  <nickrob@snap.net.nz>
 
-	* progmodes/gdb-ui.el (gdb-init-1): Re-initialise gdb-main-file to nil.
+	* progmodes/gdb-ui.el (gdb-init-1): Re-initialize gdb-main-file to nil.
 	(gdb-get-version): Make it work for pre "interpreter mi" (GDB 5.3?).
 	(gdb-setup-windows): Put something in source window if we can't find
 	the source file.
@@ -16153,7 +16153,7 @@
 	much cruft in cc-awk.el, cc-cmds.el and cc-engine.el to clear out.
 	* progmodes/cc-cmds.el:
 	(c-ascertain-adjacent-literal): In the backwards direction, now
-	recognises AWK regexp delimiters as string delimiters.
+	recognizes AWK regexp delimiters as string delimiters.
 	(c-after-statement-terminator-p): Adapt for virtual semicolons;
 	check more rigorously for "end of macro".
 	(c-back-over-illiterals, c-forward-over-illiterals): Adapt for
@@ -16280,7 +16280,7 @@
 
 	* progmodes/cc-cmds.el, cc-styles.el, cc-vars.el: New variables
 	c-string-par-start/separate c-sentence-end-with-esc-eol,
-	initialised in c-setup-paragraph-variables, used in string
+	initialized in c-setup-paragraph-variables, used in string
 	scanning subroutines of c-beginning-of-statement.
 
 	* progmodes/cc-cmds.el (c-electric-brace): Don't delete a comment
@@ -16735,7 +16735,7 @@
 	* progmodes/cc-cmds.el (c-beginning-of-statement (and
 	subfunctions)): Adapt c-\(back\|forward\)-over-illiterals such
 	that movement over macros and code are rigorously separated from
-	eachother.  Correct a few incidental bugs.
+	each other.  Correct a few incidental bugs.
 
 	* progmodes/cc-cmds.el: Restructure c-beginning-of-statement:
 	Improve its doc-string.  Improve the handling of certain specific cases.
@@ -16884,7 +16884,7 @@
 	* progmodes/cc-fonts.el (c-font-lock-complex-decl-prepare)
 	(c-font-lock-declarators, c-font-lock-declarations)
 	(c-complex-decl-matchers, c-basic-matchers-after): Use a text
-	property to mark the items in in declarator lists to handle
+	property to mark the items in declarator lists to handle
 	refontification inside multiline declarations better.
 
 	* progmodes/cc-fonts.el (c-font-lock-declarations): Recognize a
@@ -22315,7 +22315,7 @@
 	* ibuf-ext.el (ibuffer-auto-update-changed):
 	Use `frame-or-buffer-changed-p' to check whether we need to update.
 	(ibuffer-auto-mode): Don't advise `get-buffer-create' and
-	`kill-buffer'.  Initialise `ibuffer-auto-buffers-changed'
+	`kill-buffer'.  Initialize `ibuffer-auto-buffers-changed'
 	as a `frame-or-buffer-changed-p' state vector instead.
 
 2005-08-27  Romain Francoise  <romain@orebokech.com>
@@ -33362,4 +33362,3 @@ See ChangeLog.11 for earlier changes.
 
   You should have received a copy of the GNU General Public License
   along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
-

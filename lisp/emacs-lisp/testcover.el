@@ -509,7 +509,7 @@ eliminated by adding more test cases."
       (set-buffer-modified-p changed))))
 
 (defun testcover-mark-all (&optional buffer)
-  "Mark all forms in BUFFER that did not get completley tested during
+  "Mark all forms in BUFFER that did not get completely tested during
 coverage tests.  This function creates many overlays."
   (interactive "bMark forms in buffer: ")
   (if buffer

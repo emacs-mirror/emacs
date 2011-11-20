@@ -555,7 +555,7 @@ certain situations."
   `(c-forward-sexp ,(if (numberp count) (- count) `(- ,count))))
 
 (defmacro c-safe-scan-lists (from count depth &optional limit)
-  "Like `scan-lists' but returns nil instead of signalling errors
+  "Like `scan-lists' but returns nil instead of signaling errors
 for unbalanced parens.
 
 A limit for the search may be given.  FROM is assumed to be on the
@@ -760,7 +760,7 @@ be after it."
 ;; non-nil if point (or the optional parameter POS) is at a VS, nil otherwise.
 ;;
 ;; The language specific function might well do extensive analysis of the
-;; source text, and may use a cacheing scheme to speed up repeated calls.
+;; source text, and may use a caching scheme to speed up repeated calls.
 ;;
 ;; The "virtual semicolon" lies just after the last non-ws token on the line.
 ;; Like POINT, it is considered to lie between two characters.  For example,
@@ -774,7 +774,7 @@ be after it."
 ;; In addition to `c-at-vsemi-p-fn', a mode may need to supply a function for
 ;; `c-vsemi-status-unknown-p-fn'.  The macro `c-vsemi-status-unknown-p' is a
 ;; rather recondite kludge.  It exists because the function
-;; `c-beginning-of-statement-1' sometimes tests for VSs as an optimisation,
+;; `c-beginning-of-statement-1' sometimes tests for VSs as an optimization,
 ;; but `c-at-vsemi-p' might well need to call `c-beginning-of-statement-1' in
 ;; its calculations, thus potentially leading to infinite recursion.
 ;;
@@ -784,7 +784,7 @@ be after it."
 ;; `c-beginning-of-statement-1'.  `c-vsemi-status-unknown-p' may not itself
 ;; call `c-beginning-of-statement-1'.
 ;;
-;; The macro `c-vsemi-status-unknown-p' will typically check the cacheing
+;; The macro `c-vsemi-status-unknown-p' will typically check the caching
 ;; scheme used by the `c-at-vsemi-p-fn', hence the name - the status is
 ;; "unknown" if there is no cache entry current for the line.
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -1249,7 +1249,7 @@ been put there by c-put-char-property.  POINT remains unchanged."
 ;; which introduces a CPP construct and every EOL (or EOB, or character
 ;; preceding //, etc.) which terminates it.  We can instantly "comment
 ;; out" all CPP constructs by giving `c-cpp-delimiter' a syntax-table
-;; propery '(14) (generic comment delimiter).
+;; property '(14) (generic comment delimiter).
 (defmacro c-set-cpp-delimiters (beg end)
   ;; This macro does a hidden buffer change.
   `(progn

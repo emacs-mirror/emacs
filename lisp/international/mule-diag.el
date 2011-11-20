@@ -958,7 +958,7 @@ the current buffer."
 	(insert "\n  ---<fallback to the default of the default fontset>---")
 	(put-text-property (line-beginning-position) (point) 'face 'highlight)))
       (if (and start1 end2)
-	  ;; Reoder the printed information to match with the font
+	  ;; Reorder the printed information to match with the font
 	  ;; searching strategy; i.e. FONTSET, the default fontset,
 	  ;; default of FONTSET, default of the default fontset.
 	  (transpose-regions start1 end1 start2 end2))

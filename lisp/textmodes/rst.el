@@ -1534,7 +1534,7 @@ is a regular expression for matching the lines with items."
 
 (defvar rst-preferred-bullets
   '(?- ?* ?+)
-  "List of favourite bullets to set for straightening bullets.")
+  "List of favorite bullets to set for straightening bullets.")
 
 (defun rst-straighten-bullets-region (beg end)
   "Make all the bulleted list items in the region consistent.
@@ -2323,7 +2323,7 @@ of (COLUMN-NUMBER . LINE) pairs."
     (indent-rigidly
      mbeg mend
 
-     ;; Find the next tab after the leftmost columnt.
+     ;; Find the next tab after the leftmost column.
      (let ((tab (funcall find-next-fun tabs leftmostcol)))
 
        (if tab
@@ -2475,7 +2475,7 @@ first of a paragraph."
 ;;------------------------------------------------------------------------------
 
 ;; FIXME: these next functions should become part of a larger effort to redo the
-;; bullets in bulletted lists.  The enumerate would just be one of the possible
+;; bullets in bulleted lists.  The enumerate would just be one of the possible
 ;; outputs.
 ;;
 ;; FIXME: TODO we need to do the enumeration removal as well.

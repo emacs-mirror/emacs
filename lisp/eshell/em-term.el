@@ -24,7 +24,7 @@
 ;; At the moment, eshell is stream-based in its interactive input and
 ;; output.  This means that full-screen commands, such as "vi" or
 ;; "lynx", will not display correctly.  These are therefore thought of
-;; as "visual" programs.  In order to run these progrem under Emacs,
+;; as "visual" programs.  In order to run these programs under Emacs,
 ;; Eshell uses the term.el package, and invokes them in a separate
 ;; buffer, giving the illusion that Eshell itself is allowing these
 ;; visual processes to execute.

@@ -3582,7 +3582,7 @@ that that variable is buffer-local to the summary buffers."
 		 (equal (nth 1 m1) (nth 1 m2)))))))
 
 (defsubst gnus-sloppily-equal-method-parameters (m1 m2)
-  ;; Check parameters for sloppy equalness.
+  ;; Check parameters for sloppy equality.
   (let ((p1 (copy-sequence (cddr m1)))
 	(p2 (copy-sequence (cddr m2)))
 	e1 e2)

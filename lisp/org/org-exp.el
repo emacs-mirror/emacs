@@ -2922,7 +2922,7 @@ to the value of `temporary-file-directory'."
 	  (org-load-modules-maybe)
 	  (unless org-local-vars
 	    (setq org-local-vars (org-get-local-variables)))
-	  (eval ;; convert to fmt -- mimicing `org-run-like-in-org-mode'
+	  (eval ;; convert to fmt -- mimicking `org-run-like-in-org-mode'
 	   (list 'let org-local-vars
 		 (list (intern (format "org-export-as-%s" fmt))
 		       nil nil nil ''string t))))

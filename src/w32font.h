@@ -20,8 +20,8 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #define EMACS_W32FONT_H
 
 
-/* Bit 17 of ntmFlags in NEWTEXTMETRIC is set for Postscript OpenType fonts,
-   bit 18 for Truetype OpenType fonts, bit 20 for Type1 fonts.  */
+/* Bit 17 of ntmFlags in NEWTEXTMETRIC is set for PostScript OpenType fonts,
+   bit 18 for TrueType OpenType fonts, bit 20 for Type1 fonts.  */
 #ifndef NTM_PS_OPENTYPE
 #define NTM_PS_OPENTYPE 0x00020000
 #endif
@@ -84,4 +84,3 @@ int uniscribe_check_otf (LOGFONT *font, Lisp_Object otf_spec);
 Lisp_Object intern_font_name (char *);
 
 #endif
-

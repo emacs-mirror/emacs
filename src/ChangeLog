@@ -1,4 +1,4 @@
-2011-11-14  Paul Eggert  <eggert@cs.ucla.edu>
+2011-11-20  Paul Eggert  <eggert@cs.ucla.edu>
 
 	Standardize on VIRT_ADDR_VARIES behavior; otherwise, valgrind
 	does not work on some platforms.  Problem reported by Andreas Schwab in
@@ -16,6 +16,99 @@
 	* lisp.h (PNTR_COMPARISON_TYPE): Remove; no longer needed.
 	* m/ibms390.h, m/intel386.h, m/template.h, s/cygwin.h, s/hpux10-20.h:
 	Remove VIRT_ADDR_VARIES no longer needed.
+
+2011-11-19  Eli Zaretskii  <eliz@gnu.org>
+
+	* xdisp.c (x_write_glyphs, draw_phys_cursor_glyph)
+	(erase_phys_cursor, update_window_cursor, show_mouse_face)
+	(cursor_in_mouse_face_p): If the cursor position is out of bounds,
+	behave as if the cursor position were at the window margin.
+
+	* window.c (get_phys_cursor_glyph): If the window is hscrolled,
+	and the cursor position is out of bounds, behave as if the cursor
+	position were at the window margin.  (Bug#10075)
+
+2011-11-18  Chong Yidong  <cyd@gnu.org>
+
+	* window.c (Fwindow_combination_limit): Make first argument
+	non-optional, since it is meaningless for live windows like the
+	selected window.
+
+2011-11-18  Dmitry Antipov  <dmantipov@yandex.ru>
+
+	* keymap.c (Fwhere_is_internal): Add missing RETURN_UNGCPROs.
+
+2011-11-18  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* intervals.c: Fix grafting over the whole buffer (bug#10071).
+	(graft_intervals_into_buffer): Simplify.
+
+2011-11-18  Eli Zaretskii  <eliz@gnu.org>
+
+	* dispnew.c (swap_glyph_pointers): Swap the used[] arrays and the
+	hash values of the two rows.
+	(copy_row_except_pointers): Preserve the used[] arrays and the
+	hash values of the two rows.  (Bug#10035)
+	(add_row_entry): Add xassert to verify that ROW's hash code is valid.
+
+	* xdisp.c (row_hash): New function, body extracted from
+	compute_line_metrics.
+	(compute_line_metrics): Call row_hash, instead of computing the
+	hash code inline.
+
+	* dispnew.c (verify_row_hash): Call row_hash for computing the
+	hash code of a row, instead of duplicating code from xdisp.c.
+
+	* dispextern.h (row_hash): Add prototype.
+
+2011-11-18  Tassilo Horn  <tassilo@member.fsf.org>
+
+	* frame.c (delete_frame): Don't delete the terminal when the last
+	X frame is closed if emacs is built with GTK toolkit.
+
+2011-11-17  Juanma Barranquero  <lekktu@gmail.com>
+
+	* window.c (syms_of_window) <window-combination-resize>: Fix typo.
+
+2011-11-17  Martin Rudalics  <rudalics@gmx.at>
+
+	* window.c (Vwindow_splits): Rename to
+	Vwindow_combination_resize.  Suggested by Juri Linkov.
+	(Fsplit_window_internal): Use Vwindow_combination_resize instead
+	of Vwindow_splits.
+
+2011-11-16  Juanma Barranquero  <lekktu@gmail.com>
+
+	* nsfns.m (Fns_font_name):
+	* window.c (syms_of_window) <window-combination-limit>: Fix typos.
+
+2011-11-16  Martin Rudalics  <rudalics@gmx.at>
+
+	* window.h (window): Rename slot "nest" to "combination_limit".
+	* window.c (Fwindow_nest): Rename to Fwindow_combination_limit.
+	(Fset_window_nest): Rename to Fset_window_combination_limit.
+	(Vwindow_nest): Rename to Vwindow_combination_limit.
+	(recombine_windows, make_parent_window, make_window)
+	(Fsplit_window_internal, saved_window)
+	(Fset_window_configuration, save_window_save): Rename all
+	occurrences of window_nest to window_combination_limit.
+
+2011-11-15  Juanma Barranquero  <lekktu@gmail.com>
+
+	* image.c (imagemagick_load_image): Fix typo.
+
+2011-11-14  Eli Zaretskii  <eliz@gnu.org>
+
+	* xdisp.c (display_line): Move the call to
+	highlight_trailing_whitespace before the call to
+	compute_line_metrics, since the latter needs to see the final
+	faces of all the glyphs to compute ROW's hash value.  Fixes
+	assertion violations in row_equal_p.  (Bug#10035)
+
+2011-11-14  Juanma Barranquero  <lekktu@gmail.com>
+
+	* w32proc.c (reader_thread): Don't check pending input if cp->fd < 0,
+	just return (bug#10044).
 
 2011-11-12  Eli Zaretskii  <eliz@gnu.org>
 
@@ -50,7 +143,7 @@
 
 2011-11-11  Dmitry Antipov  <dmantipov@yandex.ru>
 
- 	* xdisp.c (syms_of_xdisp): Remove duplicated definition of Qtext.
+	* xdisp.c (syms_of_xdisp): Remove duplicated definition of Qtext.
 
 2011-11-11  Kenichi Handa  <handa@m17n.org>
 
@@ -250,7 +343,7 @@
 
 	* w32fns.c [_MSC_VER]: DECLARE_HANDLE for any MSVC version.
 
-2011-11-05  Fabrice Popineau  <fabrice.popineau@supelec.fr> (tiny change)
+2011-11-05  Fabrice Popineau  <fabrice.popineau@supelec.fr>  (tiny change)
 
 	Support MSVC build with newer versions of Visual Studio.
 	* w32.c: Don't include w32api.h for MSVC.
@@ -312,7 +405,7 @@
 	* xdisp.c (try_cursor_movement): Make sure ROW isn't decremented
 	past the beginning of the current glyph matrix.
 
-2011-10-30  Adam Sjøgren <asjo@koldfront.dk> (tiny change)
+2011-10-30  Adam Sjøgren  <asjo@koldfront.dk>  (tiny change)
 
 	* xterm.c: Include X11/Xproto.h if HAVE_GTK3.
 	(x_error_handler): Ignore BadMatch for X_SetInputFocus for
@@ -346,7 +439,7 @@
 
 	Fix the `xbytecode' command.
 	* .gdbinit (xprintbytestr): New command.
-	(xwhichsymbols): Renamed from `which'; all callers changed.
+	(xwhichsymbols): Rename from `which'; all callers changed.
 	(xbytecode): Print the byte-code string as well.
 
 2011-10-29  Kim Storm  <storm@cua.dk>
@@ -3040,7 +3133,7 @@
 	* nsselect.m (ns_string_from_pasteboard): Don't use deprecated methods
 	cString and lossyCString on OSX >= 10.4
 
-	* nsmenu.m (fillWithWidgetValue): Don't use depercated method
+	* nsmenu.m (fillWithWidgetValue): Don't use deprecated method
 	sizeToFit on OSX >= 10.2.
 
 	* nsimage.m (allocInitFromFile): Don't use deprecated method

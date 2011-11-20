@@ -356,7 +356,7 @@ query by itself and Emacs can intercept them."
 PROGRESS-CALLBACK is either a function, or a cons-cell whose
 car is a function and cdr is a callback data.
 
-The function gets five arguments: the context, the operation
+The function gets six arguments: the context, the operation
 description, the character to display a progress unit, the
 current amount done, the total amount to be done, and the
 callback data (if any)."
@@ -2031,7 +2031,7 @@ CIPHER must be a file data object.
 
 If you use this function, you will need to wait for the completion of
 `epg-gpg-program' by using `epg-wait-for-completion' and call
-`epg-reset' to clear a temporaly output file.
+`epg-reset' to clear a temporary output file.
 If you are unsure, use synchronous version of this function
 `epg-decrypt-file' or `epg-decrypt-string' instead."
   (unless (epg-data-file cipher)
@@ -2097,7 +2097,7 @@ For a normal or a cleartext signature, SIGNED-TEXT should be nil.
 
 If you use this function, you will need to wait for the completion of
 `epg-gpg-program' by using `epg-wait-for-completion' and call
-`epg-reset' to clear a temporaly output file.
+`epg-reset' to clear a temporary output file.
 If you are unsure, use synchronous version of this function
 `epg-verify-file' or `epg-verify-string' instead."
   (epg-context-set-operation context 'verify)
@@ -2195,7 +2195,7 @@ Otherwise, it makes a cleartext signature.
 
 If you use this function, you will need to wait for the completion of
 `epg-gpg-program' by using `epg-wait-for-completion' and call
-`epg-reset' to clear a temporaly output file.
+`epg-reset' to clear a temporary output file.
 If you are unsure, use synchronous version of this function
 `epg-sign-file' or `epg-sign-string' instead."
   (epg-context-set-operation context 'sign)
@@ -2299,7 +2299,7 @@ If RECIPIENTS is nil, it performs symmetric encryption.
 
 If you use this function, you will need to wait for the completion of
 `epg-gpg-program' by using `epg-wait-for-completion' and call
-`epg-reset' to clear a temporaly output file.
+`epg-reset' to clear a temporary output file.
 If you are unsure, use synchronous version of this function
 `epg-encrypt-file' or `epg-encrypt-string' instead."
   (epg-context-set-operation context 'encrypt)
@@ -2414,7 +2414,7 @@ If RECIPIENTS is nil, it performs symmetric encryption."
 
 If you use this function, you will need to wait for the completion of
 `epg-gpg-program' by using `epg-wait-for-completion' and call
-`epg-reset' to clear a temporaly output file.
+`epg-reset' to clear a temporary output file.
 If you are unsure, use synchronous version of this function
 `epg-export-keys-to-file' or `epg-export-keys-to-string' instead."
   (epg-context-set-operation context 'export-keys)
@@ -2457,7 +2457,7 @@ KEYS is a data object.
 
 If you use this function, you will need to wait for the completion of
 `epg-gpg-program' by using `epg-wait-for-completion' and call
-`epg-reset' to clear a temporaly output file.
+`epg-reset' to clear a temporary output file.
 If you are unsure, use synchronous version of this function
 `epg-import-keys-from-file' or `epg-import-keys-from-string' instead."
   (epg-context-set-operation context 'import-keys)
@@ -2498,7 +2498,7 @@ KEY-ID-LIST is a list of key IDs.
 
 If you use this function, you will need to wait for the completion of
 `epg-gpg-program' by using `epg-wait-for-completion' and call
-`epg-reset' to clear a temporaly output file.
+`epg-reset' to clear a temporary output file.
 If you are unsure, use synchronous version of this function
 `epg-receive-keys' instead."
   (epg-context-set-operation context 'receive-keys)
@@ -2526,7 +2526,7 @@ KEYS is a list of key IDs"
 
 If you use this function, you will need to wait for the completion of
 `epg-gpg-program' by using `epg-wait-for-completion' and call
-`epg-reset' to clear a temporaly output file.
+`epg-reset' to clear a temporary output file.
 If you are unsure, use synchronous version of this function
 `epg-delete-keys' instead."
   (epg-context-set-operation context 'delete-keys)
@@ -2558,7 +2558,7 @@ If you are unsure, use synchronous version of this function
 
 If you use this function, you will need to wait for the completion of
 `epg-gpg-program' by using `epg-wait-for-completion' and call
-`epg-reset' to clear a temporaly output file.
+`epg-reset' to clear a temporary output file.
 If you are unsure, use synchronous version of this function
 `epg-sign-keys' instead."
   (epg-context-set-operation context 'sign-keys)
@@ -2593,7 +2593,7 @@ PARAMETERS specifies parameters for the key.
 
 If you use this function, you will need to wait for the completion of
 `epg-gpg-program' by using `epg-wait-for-completion' and call
-`epg-reset' to clear a temporaly output file.
+`epg-reset' to clear a temporary output file.
 If you are unsure, use synchronous version of this function
 `epg-generate-key-from-file' or `epg-generate-key-from-string' instead."
   (epg-context-set-operation context 'generate-key)

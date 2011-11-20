@@ -637,7 +637,7 @@ extern void x_delete_display (struct w32_display_info *dpyinfo);
 
 /* Keypad command key support.  W32 doesn't have virtual keys defined
    for the function keys on the keypad (they are mapped to the standard
-   fuction keys), so we define our own.  */
+   function keys), so we define our own.  */
 #define VK_NUMPAD_BEGIN		0x92
 #define VK_NUMPAD_CLEAR		(VK_NUMPAD_BEGIN + 0)
 #define VK_NUMPAD_ENTER		(VK_NUMPAD_BEGIN + 1)

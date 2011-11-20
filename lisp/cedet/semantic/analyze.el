@@ -106,7 +106,7 @@ called in a dereference sequence.")
    (prefixclass :initarg :prefixclass
 		:type list
 		:documentation "Tag classes expected at this context.
-These are clases for tags, such as 'function, or 'variable.")
+These are classes for tags, such as 'function, or 'variable.")
    (prefixtypes :initarg :prefixtypes
 	   :type list
 	   :documentation "List of tags defining types for :prefix.
@@ -287,7 +287,7 @@ Optional argument THROWSYM specifies a symbol the throw on non-recoverable error
 
     ;; For the middle entries
     (while s
-      ;; Using the tag found in TMP, lets find the tag
+      ;; Using the tag found in TMP, let's find the tag
       ;; representing the full typeographic information of its
       ;; type, and use that to determine the search context for
       ;; (car s)
@@ -302,7 +302,7 @@ Optional argument THROWSYM specifies a symbol the throw on non-recoverable error
 				     (mapcar 'semantic-tag-type-members
 					     tagtype))))
 			 (oset miniscope fullscope rawscope)))
-		     ;; Now analayze the type to remove metatypes.
+		     ;; Now analyze the type to remove metatypes.
 		     (or (semantic-analyze-type tmp miniscope)
 			 tmp))
 		    (t
@@ -476,7 +476,7 @@ If called interactively, display interesting information about POSITION
 in a separate buffer.
 Returns an object based on symbol `semantic-analyze-context'.
 
-This function can be overriden with the symbol `analyze-context'.
+This function can be overridden with the symbol `analyze-context'.
 When overriding this function, your override will be called while
 cursor is at POSITION.  In addition, your function will not be called
 if a cached copy of the return object is found."

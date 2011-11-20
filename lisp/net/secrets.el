@@ -78,7 +78,7 @@
 ;;   (secrets-create-collection "my collection")
 
 ;; There exists a special collection called "session", which has the
-;; lifetime of the corrresponding client session (aka Emacs'
+;; lifetime of the corresponding client session (aka Emacs'
 ;; lifetime).  It is created automatically when Emacs uses the Secret
 ;; Service interface, and it is deleted when Emacs is killed.
 ;; Therefore, it can be used to store and retrieve secret items
@@ -379,7 +379,7 @@ returned, and it will be stored in `secrets-session-path'."
 (defun secrets-prompt-handler (&rest args)
   "Handler for signals emitted by `secrets-interface-prompt'."
   ;; An empty object path is always identified as `secrets-empty-path'
-  ;; or `nil'.  Either we set it explicitely, or it is returned by the
+  ;; or `nil'.  Either we set it explicitly, or it is returned by the
   ;; "Completed" signal.
   (if (car args) ;; dismissed
       (setq secrets-prompt-signal (list secrets-empty-path))
@@ -431,7 +431,7 @@ returned, and it will be stored in `secrets-session-path'."
    (secrets-get-collections)))
 
 (defun secrets-collection-path (collection)
-  "Return the object path of collection labelled COLLECTION.
+  "Return the object path of collection labeled COLLECTION.
 If COLLECTION is nil, return the session collection path.
 If there is no such COLLECTION, return nil."
   (or
@@ -454,7 +454,7 @@ If there is no such COLLECTION, return nil."
 	 (throw 'collection-found collection-path))))))
 
 (defun secrets-create-collection (collection)
-  "Create collection labelled COLLECTION if it doesn't exist.
+  "Create collection labeled COLLECTION if it doesn't exist.
 Return the D-Bus object path for collection."
   (let ((collection-path (secrets-collection-path collection)))
     ;; Create the collection.
@@ -480,7 +480,7 @@ For the time being, only the alias \"default\" is supported."
    "Label"))
 
 (defun secrets-set-alias (collection alias)
-  "Set ALIAS as alias of collection labelled COLLECTION.
+  "Set ALIAS as alias of collection labeled COLLECTION.
 For the time being, only the alias \"default\" is supported."
   (let ((collection-path (secrets-collection-path collection)))
     (unless (secrets-empty-path collection-path)
@@ -497,7 +497,7 @@ For the time being, only the alias \"default\" is supported."
    alias :object-path secrets-empty-path))
 
 (defun secrets-unlock-collection (collection)
-  "Unlock collection labelled COLLECTION.
+  "Unlock collection labeled COLLECTION.
 If successful, return the object path of the collection."
   (let ((collection-path (secrets-collection-path collection)))
     (unless (secrets-empty-path collection-path)
@@ -509,7 +509,7 @@ If successful, return the object path of the collection."
     collection-path))
 
 (defun secrets-delete-collection (collection)
-  "Delete collection labelled COLLECTION."
+  "Delete collection labeled COLLECTION."
   (let ((collection-path (secrets-collection-path collection)))
     (unless (secrets-empty-path collection-path)
       (secrets-prompt
@@ -636,7 +636,7 @@ The object path of the created item is returned."
 	(car result)))))
 
 (defun secrets-item-path (collection item)
-  "Return the object path of item labelled ITEM in COLLECTION.
+  "Return the object path of item labeled ITEM in COLLECTION.
 If there is no such item, return nil."
   (let ((collection-path (secrets-unlock-collection collection)))
     (catch 'item-found
@@ -645,7 +645,7 @@ If there is no such item, return nil."
 	  (throw 'item-found item-path))))))
 
 (defun secrets-get-secret (collection item)
-  "Return the secret of item labelled ITEM in COLLECTION.
+  "Return the secret of item labeled ITEM in COLLECTION.
 If there is no such item, return nil."
   (let ((item-path (secrets-item-path collection item)))
     (unless (secrets-empty-path item-path)
@@ -656,7 +656,7 @@ If there is no such item, return nil."
 	 "GetSecret" :object-path secrets-session-path))))))
 
 (defun secrets-get-attributes (collection item)
-  "Return the lookup attributes of item labelled ITEM in COLLECTION.
+  "Return the lookup attributes of item labeled ITEM in COLLECTION.
 If there is no such item, or the item has no attributes, return nil."
   (unless (stringp collection) (setq collection "default"))
   (let ((item-path (secrets-item-path collection item)))
@@ -669,7 +669,7 @@ If there is no such item, or the item has no attributes, return nil."
 	secrets-interface-item "Attributes")))))
 
 (defun secrets-get-attribute (collection item attribute)
-  "Return the value of ATTRIBUTE of item labelled ITEM in COLLECTION.
+  "Return the value of ATTRIBUTE of item labeled ITEM in COLLECTION.
 If there is no such item, or the item doesn't own this attribute, return nil."
   (cdr (assoc attribute (secrets-get-attributes collection item))))
 

@@ -1035,7 +1035,7 @@ textual parts.")
 				 ((eq action 'set) ""))
 				(mapconcat #'identity flags " ")))))))
 	;; Wait for the last command to complete to avoid later
-	;; syncronisation problems with the stream.
+	;; synchronization problems with the stream.
 	(when sequence
 	  (nnimap-wait-for-response sequence))))))
 

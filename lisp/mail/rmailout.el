@@ -377,11 +377,12 @@ display message number MSG."
     (rmail-maybe-set-message-counters)
     ;; Insert the new message after the last old message.
     (widen)
-    ;; Make sure the last old message ends with a blank line.
-    (goto-char (point-max))
-    (rmail-ensure-blank-line)
-    ;; Insert the new message at the end.
-    (narrow-to-region (point-max) (point-max))
+    (unless (zerop (buffer-size))
+      ;; Make sure the last old message ends with a blank line.
+      (goto-char (point-max))
+      (rmail-ensure-blank-line)
+      ;; Insert the new message at the end.
+      (narrow-to-region (point-max) (point-max)))
     (insert-buffer-substring tembuf)
     (rmail-count-new-messages t)
     ;; FIXME should re-use existing windows.

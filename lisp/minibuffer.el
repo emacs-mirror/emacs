@@ -51,7 +51,7 @@
 ;; - choose-completion doesn't know how to quote the text it inserts.
 ;;   E.g. it fails to double the dollars in file-name completion, or
 ;;   to backslash-escape spaces and other chars in comint completion.
-;;   - when completing ~/tmp/fo$$o, the highligting in *Completions*
+;;   - when completing ~/tmp/fo$$o, the highlighting in *Completions*
 ;;     is off by one position.
 ;;   - all code like PCM which relies on all-completions to match
 ;;     its argument gets confused because all-completions returns unquoted
@@ -2427,7 +2427,7 @@ PATTERN is as returned by `completion-pcm--string->pattern'."
   "Find all completions for STRING at POINT in TABLE, satisfying PRED.
 POINT is a position inside STRING.
 FILTER is a function applied to the return value, that can be used, e.g. to
-filter out additional entries (because TABLE migth not obey PRED)."
+filter out additional entries (because TABLE might not obey PRED)."
   (unless filter (setq filter 'identity))
   (let* ((beforepoint (substring string 0 point))
          (afterpoint (substring string point))

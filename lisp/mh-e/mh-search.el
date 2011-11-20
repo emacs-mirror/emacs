@@ -646,7 +646,7 @@ Uses the pick method described in `mh-pick-execute-search'."
 
 (defun mh-pick-parse-search-buffer ()
   "Parse the search buffer contents.
-The function returns a alist. The car of each element is either
+The function returns an alist. The car of each element is either
 the header name to search in or nil to search the whole message.
 The cdr of the element is the pattern to search."
   (save-excursion
@@ -1791,7 +1791,7 @@ PROC is used to convert the value to actual data."
 ;; To add support for your favorite checksum program add a clause to
 ;; the cond statement in mh-checksum-choose. This should set the
 ;; variable mh-checksum-cmd to the command line needed to run the
-;; checsum program and should set mh-checksum-parser to a function
+;; checksum program and should set mh-checksum-parser to a function
 ;; which returns a cons cell containing the message number and
 ;; checksum string.
 

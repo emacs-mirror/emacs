@@ -3287,7 +3287,7 @@ w32_mouse_position (FRAME_PTR *fp, int insist, Lisp_Object *bar_window,
 
 /* Handle mouse button event on the tool-bar of frame F, at
    frame-relative coordinates X/Y.  EVENT_TYPE is either ButtionPress
-   or ButtonRelase.  */
+   or ButtonRelease.  */
 
 static void
 w32_handle_tool_bar_click (struct frame *f, struct input_event *button_event)
@@ -4506,7 +4506,7 @@ w32_read_socket (struct terminal *terminal, int expected,
 	    }
 
 	  /* If window has been obscured or exposed by another window
-	     being maximised or minimised/restored, then recheck
+	     being maximized or minimized/restored, then recheck
 	     visibility of all frames.  Direct changes to our own
 	     windows get handled by WM_SIZE.  */
 #if 0
@@ -5576,7 +5576,7 @@ x_raise_frame (struct frame *f)
      input focus anyway (so the window with focus will never be
      completely obscured) - if not, then just moving the mouse over it
      is sufficient to give it focus.  On Windows, the user must actually
-     click on the frame (preferrably the title bar so as not to move
+     click on the frame (preferably the title bar so as not to move
      point), which is more awkward.  Also, no other Windows program
      raises a window to the top but leaves another window (possibly now
      completely obscured) with input focus.
@@ -5691,11 +5691,11 @@ x_make_frame_visible (struct frame *f)
       f->output_data.w32->asked_for_visible = 1;
 
       /* According to a report in emacs-devel 2008-06-03, SW_SHOWNORMAL
-	 causes unexpected behaviour when unminimizing frames that were
-	 previously maximised.  But only SW_SHOWNORMAL works properly for
+	 causes unexpected behavior when unminimizing frames that were
+	 previously maximized.  But only SW_SHOWNORMAL works properly for
 	 frames that were truely hidden (using make-frame-invisible), so
 	 we need it to avoid Bug#5482.  It seems that async_iconified
-	 is only set for minimised windows that are still visible, so
+	 is only set for minimized windows that are still visible, so
          use that to determine the appropriate flag to pass ShowWindow.  */
       my_show_window (f, FRAME_W32_WINDOW (f),
                       f->async_iconified ? SW_RESTORE : SW_SHOWNORMAL);
@@ -6164,7 +6164,7 @@ w32_term_init (Lisp_Object display_name, char *xrm_option, char *resource_name)
   dpyinfo->has_palette = GetDeviceCaps (hdc, RASTERCAPS) & RC_PALETTE;
   ReleaseDC (NULL, hdc);
 
-  /* initialise palette with white and black */
+  /* initialize palette with white and black */
   {
     XColor color;
     w32_defined_color (0, "white", &color, 1);

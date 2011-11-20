@@ -1494,7 +1494,7 @@ be determined."
     (or (not image)
 	(if (featurep 'xemacs)
 	    ;; XEmacs' glyphs can actually tell us about their width, so
-	    ;; lets be nice and smart about them.
+	    ;; let's be nice and smart about them.
 	    (or mm-inline-large-images
 		(and (<= (glyph-width image) (window-pixel-width))
 		     (<= (glyph-height image) (window-pixel-height))))

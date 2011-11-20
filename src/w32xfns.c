@@ -188,7 +188,7 @@ get_next_msg (W32Msg * lpmsg, BOOL bWait)
       }
 
       nQueue--;
-      /* Consolidate WM_PAINT messages to optimise redrawing.  */
+      /* Consolidate WM_PAINT messages to optimize redrawing.  */
       if (lpmsg->msg.message == WM_PAINT && nQueue)
         {
           int_msg * lpCur = lpHead;
@@ -441,4 +441,3 @@ void
 x_sync (void *f)
 {
 }
-

@@ -584,7 +584,7 @@ Converts all symbols into the objects to be used."
       link)))
 
 
-;;; Target type specific autogenerating gobbldegook.
+;;; Target type specific autogenerating gobbledygook.
 ;;
 
 (defun ede-proj-makefile-type (&optional proj)

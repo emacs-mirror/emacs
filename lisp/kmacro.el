@@ -1020,7 +1020,7 @@ following additional answers: `insert', `insert-1', `replace', `replace-1',
 	  (setq executing-kbd-macro-index (- executing-kbd-macro-index (length unread-command-events))
 		next-index executing-kbd-macro-index)))))
 
-    ;; Query the user; stop macro exection temporarily
+    ;; Query the user; stop macro execution temporarily.
     (let ((macro executing-kbd-macro)
 	  (executing-kbd-macro nil)
 	  (defining-kbd-macro nil))

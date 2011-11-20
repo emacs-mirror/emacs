@@ -2363,7 +2363,7 @@ Return an alist of (TYPE MATCH)."
     result))
 
 (defun widget-checklist-validate (widget)
-  ;; Ticked chilren must be valid.
+  ;; Ticked children must be valid.
   (let ((children (widget-get widget :children))
 	child button found)
     (while (and children (not found))

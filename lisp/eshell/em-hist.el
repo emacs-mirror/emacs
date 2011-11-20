@@ -609,7 +609,7 @@ See also `eshell-read-history'."
 					   history))))
 		 (setq index (1- index)))
 	       (let ((fhist (list t)))
-		 ;; uniqify the list, but preserve the order
+		 ;; uniquify the list, but preserve the order
 		 (while history
 		   (unless (member (car history) fhist)
 		     (nconc fhist (list (car history))))

@@ -1948,7 +1948,7 @@
 	Add support for loading the files that contain :version when doing
 	`customize-changed-options' so it can know which variables have
 	changed even in files that were not loaded at the time it was called.
-	* cus-edit.el (customize-changed-options): Remeber all the
+	* cus-edit.el (customize-changed-options): Remember all the
 	versions and load the corresponding files before we show the
 	customization buffer.  Change the sorting to show the groups first
 	in the customization buffer.
@@ -4923,10 +4923,10 @@
 	(fortran-blink-matching-if, fortran-blink-matching-do)
 	(fortran-indent-new-line): Bind case-fold-search.
 	(fortran-end-do, fortran-beginning-do, fortran-end-if)
-	(fortran-beginning-if): Bind case-fold-search.  Allow labelled blocks.
+	(fortran-beginning-if): Bind case-fold-search.  Allow labeled blocks.
 	Use fortran-end-prog-re.
 	(fortran-if-start-re): New variable.
-	(fortran-calculate-indent): Allow labelled blocks.  Simplify the conds.
+	(fortran-calculate-indent): Allow labeled blocks.  Simplify the conds.
 	Make select case indentation work.
 	(fortran-is-in-string-p): Ignore Emacs 18 bug kluge.
 	(fortran-fill): Allow double quotes in check for string.
@@ -6526,7 +6526,7 @@
 
 	* bibtex.el (bibtex-autokey-get-titles): Non capitalized title words
 	are used for key generation as well.
-	(bibtex-member-of-regexp): Case is honoured for matches now.
+	(bibtex-member-of-regexp): Case is honored for matches now.
 	(bibtex-autokey-titleword-ignore): Added entries provide compatibility
 	to former behavior.
 
@@ -6815,9 +6815,9 @@
 	`reftex-no-include-regexps'.
 	(reftex-no-include-regexps): New option.
 	(reftex-do-parse): Initialize appendix flag.
-	(reftex-parse-from-file): Interprete appendix.
+	(reftex-parse-from-file): Interpret appendix.
 	(reftex-section-info): Use changed version of reftex-section-number.
-	(reftex-where-am-I): Interprete appendix match.
+	(reftex-where-am-I): Interpret appendix match.
 	(reftex-init-section-numbers): New arg: appendix.
 	(reftex-section-number): Treat appendix enumeration.
 	(reftex-toc-external): Improved message.
@@ -11240,7 +11240,7 @@
 	(reftex-cite-comment-format): New variable.
 	(reftex-cite-punctuation): New variable.
 	(reftex-make-master-buffer): Changed name of master buffer,
-	removed interactive.  Runs a hook on the buffer.  Interprete
+	removed interactive.  Runs a hook on the buffer.  Interpret
 	TEXINPUTS environment variable.  Allow naked argument for \input.
 	Master buffer is now in fundamental mode.
 	(reftex-access-scan-info): Name of master buffer changed.
@@ -11264,9 +11264,9 @@
 	(reftex-allow-for-ctrl-m): New function.
 	(reftex-label-info-update): Allow more general label commands.
 	(reftex-label-info): New parameter derive.
-	(reftex-short-context): Interprete integer parse as nth arg of macro.
+	(reftex-short-context): Interpret integer parse as nth arg of macro.
 	(reftex-nth-parens-substring): New function.
-	(reftex-select-item): Interprete the new 'cnt text property.
+	(reftex-select-item): Interpret the new 'cnt text property.
 	(reftex-pop-to-label): Allow more general label commands.
 	(reftex-nicify-text): Allow more general label commands.
 	(reftex-toc): Remember previous window configuration.  Use text
@@ -21766,9 +21766,9 @@
 
 	* f90.el (f90-no-block-limit): Fixed bug for indentation of
 	elsewhere and elseif.
-	(f90-looking-at-where-or-forall): Now allows for labelled forall
+	(f90-looking-at-where-or-forall): Now allows for labeled forall
 	and where statements.
-	(f90-font-lock-keywords-2): New highlighting for labelled where
+	(f90-font-lock-keywords-2): New highlighting for labeled where
 	and forall.  Fixed small bug with else highlighting.
 	(f90-fill-region): Moved indentation to f90-break-line.
 	(f90-break-line): Will now always indent the second line.
@@ -22110,7 +22110,7 @@
 1996-09-27  Jacques Duthen  <duthen@cegelec-red.fr>
 
 	* ps-print.el
-	(ps-print-prologue-1): Fix bug in postscript comment lines.
+	(ps-print-prologue-1): Fix bug in PostScript comment lines.
 	(ps-nb-pages): Call ps-setup _before_ switching to the other
 	buffer, because of buffer variables.
 
@@ -22123,7 +22123,7 @@
 	(ps-page-height-i, ps-page-width-i): Variables deleted.
 	(ps-print-prologue): Variable deleted.
 	(ps-print-prologue-1, ps-print-prologue-2): New variables.
-	Major rewrite of the postscript code to handle landscape mode,
+	Major rewrite of the PostScript code to handle landscape mode,
 	multiple columns and new font management.
 	(ps-landscape-mode, ps-number-of-columns, ps-inter-column): New
 	variables.
@@ -22136,7 +22136,7 @@
 	(ps-header-font, ps-landscape-page-height): New internal variables.
 	(ps-top-margin): Change its semantics.  It is now really the top
 	margin, not anymore twice the top margin.
-	(/ReportAllFontInfo): New postscript function to get all the font
+	(/ReportAllFontInfo): New PostScript function to get all the font
 	families of the printer.
 	(ps-setup): New function.
 	(ps-line-lengths, ps-nb-pages-buffer, ps-nb-pages-region): New
@@ -23123,4 +23123,3 @@ See ChangeLog.6 for earlier changes.
 
   You should have received a copy of the GNU General Public License
   along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
-

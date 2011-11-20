@@ -1013,11 +1013,11 @@ POS and RES.")
             (setq col (funcall col))
           (and
            (setq col (match-string-no-properties col))
-           (setq col (- (string-to-number col) compilation-first-column)))))
+           (setq col (string-to-number col)))))
     (if (and end-col (functionp end-col))
         (setq end-col (funcall end-col))
       (if (and end-col (setq end-col (match-string-no-properties end-col)))
-          (setq end-col (- (string-to-number end-col) compilation-first-column -1))
+          (setq end-col (- (string-to-number end-col) -1))
         (if end-line (setq end-col -1))))
     (if (consp type)			; not a static type, check what it is.
 	(setq type (or (and (car type) (match-end (car type)) 1)
@@ -1037,6 +1037,7 @@ POS and RES.")
   "Go to column COL on the current line.
 If SCREEN is non-nil, columns are screen columns, otherwise, they are
 just char-counts."
+  (setq col (- col compilation-first-column))
   (if screen
       (move-to-column (max col 0))
     (goto-char (min (+ (line-beginning-position) col) (line-end-position)))))

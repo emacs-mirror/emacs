@@ -1,4 +1,4 @@
-;;; htmlfontify.el --- htmlise a buffer/source tree with optional hyperlinks
+;;; htmlfontify.el --- htmlize a buffer/source tree with optional hyperlinks
 
 ;; Copyright (C) 2002-2003, 2009-2011  Free Software Foundation, Inc.
 
@@ -10,7 +10,7 @@
 ;; Author: Vivek Dasmohapatra <vivek@etla.org>
 ;; Maintainer: Vivek Dasmohapatra <vivek@etla.org>
 ;; Created: 2002-01-05
-;; Description: htmlise a buffer/source tree with optional hyperlinks
+;; Description: htmlize a buffer/source tree with optional hyperlinks
 ;; URL: http://rtfm.etla.org/emacs/htmlfontify/
 ;; Compatibility: Emacs23, Emacs22
 ;; Incompatibility: Emacs19, Emacs20, Emacs21
@@ -360,7 +360,7 @@ commands in `hfy-etags-cmd-alist'."
   :type '(repeat symbol))
 
 (defun hfy-which-etags ()
-  "Return a string indicating which flavour of etags we are using."
+  "Return a string indicating which flavor of etags we are using."
   (let ((v (shell-command-to-string (concat hfy-etags-bin " --version"))))
     (cond ((string-match "exube" v) "exuberant ctags")
           ((string-match "GNU E" v) "emacs etags"    )) ))
@@ -586,7 +586,7 @@ If a window system is unavailable, calls `hfy-fallback-colour-values'."
 (defvar hfy-cperl-mode-kludged-p nil)
 
 (defun hfy-kludge-cperl-mode ()
-  "CPerl mode does its damndest not to do some of its fontification when not
+  "CPerl mode does its damnedest not to do some of its fontification when not
 in a windowing system - try to trick it..."
   (if (not hfy-cperl-mode-kludged-p)
       (progn (if (not window-system)
@@ -1576,7 +1576,7 @@ FILE, if set, is the file name."
       (delete-overlay rovl))
     (copy-to-buffer html-buffer (point-min) (point-max))
     (set-buffer     html-buffer)
-    ;; rip out props that could interfere with our htmlisation of the buffer:
+    ;; rip out props that could interfere with our htmlization of the buffer:
     (remove-text-properties (point-min) (point-max) hfy-ignored-properties)
     ;; Apply overlay invisible spec
     (setq orig-ovls
@@ -1768,13 +1768,13 @@ hyperlinks as appropriate."
   "Return a list of files under DIRECTORY.
 Strips any leading \"./\" from each filename."
   ;;(message "hfy-list-files");;DBUG
-  ;; FIXME: this changes the dir of the currrent buffer.  Is that right??
+  ;; FIXME: this changes the dir of the current buffer.  Is that right??
   (cd directory)
   (mapcar (lambda (F) (if (string-match "^./\\(.*\\)" F) (match-string 1 F) F))
           (split-string (shell-command-to-string hfy-find-cmd))) )
 
-;; strip the filename off, return a directiry name
-;; not a particularly thorough implementaion, but it will be
+;; strip the filename off, return a directory name
+;; not a particularly thorough implementation, but it will be
 ;; fed pretty carefully, so it should be Ok:
 (defun hfy-dirname (file)
   "Return everything preceding the last \"/\" from a relative filename FILE,
@@ -2026,13 +2026,13 @@ FILE is the specific file we are rendering."
         (hash-entry nil) (tag-string nil) (tag-line   nil)
         (tag-point  nil) (new-entry  nil) (etags-file nil))
 
-    ;; (re)initialise the tag reverse map:
+    ;; (re)initialize the tag reverse map:
     (if trmap-cache (setq trmap-hash (cadr trmap-cache))
       (setq trmap-hash (make-hash-table :test 'equal))
       (setq hfy-tags-rmap (list (list srcdir trmap-hash) hfy-tags-rmap)))
     (clrhash trmap-hash)
 
-    ;; (re)initialise the tag cache:
+    ;; (re)initialize the tag cache:
     (if cache-entry (setq cache-hash (cadr cache-entry))
       (setq cache-hash (make-hash-table :test 'equal))
       (setq hfy-tags-cache (list (list srcdir cache-hash) hfy-tags-cache)))

@@ -1,3 +1,26 @@
+2011-11-19  Chong Yidong  <cyd@gnu.org>
+
+	* windows.texi (Splitting Windows): Clarify role of window
+	parameters in split-window.  Shorten the example.
+	(Deleting Windows): Rewrite intro to handle internal windows.  Fix
+	delete-windows-on doc.
+	(Selecting Windows): Copyedits.
+
+2011-11-17  Martin Rudalics  <rudalics@gmx.at>
+
+	* windows.texi (Resizing Windows, Splitting Windows)
+	(Deleting Windows): Use term window-combination-resize instead
+	of window-splits.
+
+2011-11-16  Martin Rudalics  <rudalics@gmx.at>
+
+	* windows.texi (Resizing Windows, Splitting Windows): Rename
+	occurrences of window-nest to window-combination-limit.
+
+2011-11-14  Juanma Barranquero  <lekktu@gmail.com>
+
+	* intro.texi (Lisp History): Fix typo.
+
 2011-11-12  Martin Rudalics  <rudalics@gmx.at>
 
 	* windows.texi (Splitting Windows, Deleting Windows): Remove

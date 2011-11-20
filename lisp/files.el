@@ -2603,7 +2603,7 @@ we don't actually set it to the same mode the buffer already has."
 		   (if (looking-at auto-mode-interpreter-regexp)
 		       (match-string 2)
 		     ""))
-	    ;; Map interpreter name to a mode, signalling we're done at the
+	    ;; Map interpreter name to a mode, signaling we're done at the
 	    ;; same time.
 	    done (assoc (file-name-nondirectory mode)
 			interpreter-mode-alist))
@@ -5790,7 +5790,7 @@ returns nil."
 
          ;; vc dired listings provide the state or blanks between file
          ;; permissions and date.  The state is always surrounded by
-         ;; parantheses:
+         ;; parentheses:
          ;; -rw-r--r-- (modified) 2005-10-22 21:25 files.el
          ;; This is not supported yet.
     (purecopy (concat "\\([0-9][BkKMGTPEZY]? " iso
@@ -6500,7 +6500,7 @@ Otherwise, trash FILENAME using the freedesktop.org conventions,
 				 (setq tries 0 success t))
 			     (file-already-exists nil))
 		     (setq tries (1- tries))
-		     ;; Uniqify new-fn.  (Some file managers do not
+		     ;; Uniquify new-fn.  (Some file managers do not
 		     ;; like Emacs-style backup file names---e.g. bug
 		     ;; 170956 in Konqueror bug tracker.)
 		     (setq new-fn (make-temp-name (concat base-fn "_")))))

@@ -149,8 +149,8 @@ incorrectly, as separate from the modified glyphs.")
  ("P" "ɸ")	;; Voiceless bilabial fricative		U+0278
  ("Q" "ɣ")	;; Voiced velar fricative		U+0263
  ("R" ["ʀ"	;; Alveolar trill			U+0280
-       "ɚ"])    ;; Rhotacised schwa			U+025A
- ("@<r>" "ɚ")	;; Mid central rhotacised vowel		U+025A
+       "ɚ"])    ;; Rhotacized schwa			U+025A
+ ("@<r>" "ɚ")	;; Mid central rhotacized vowel		U+025A
  ("S" "ʃ")	;; Voiceless postalveolar fricative	U+0283
  ("tS" ["ʧ"	;; Voiceless postalveolar affricate	U+02A7
 	"tʃ"	;;                               U+0074 U+0283
@@ -170,20 +170,20 @@ incorrectly, as separate from the modified glyphs.")
  ("a~" "ã")	;; Low central unrounded vowel, nasal	U+00E3
  ("o~" "õ")	;; Upper-mid back rounded vowel, nasal	U+00F5
  ("u~" "ũ")	;; High back rounded vowel, nasal	U+0169
- ("~" "̃")	;; +Nasalised modifier			U+0303
+ ("~" "̃")	;; +Nasalized modifier			U+0303
  (":" "ː")	;; +Long modifier			U+02D0
  ("-" "̩")	;; +Syllabic modifier			U+0329
  ("." "̣")	;; +Retroflex modifier			U+0323
  ("`" "ʼ")	;; +Ejective modifier			U+02BC
  ("[" "̪")	;; +Dental modifier			U+032A
- (";" "ʲ")	;; +Palatalised modifier		U+02B2
- ("<H>" "̴")	;; +Pharyngealised modifier		U+0334
+ (";" "ʲ")	;; +Palatalized modifier		U+02B2
+ ("<H>" "̴")	;; +Pharyngealized modifier		U+0334
  ("<h>" "ʰ")	;; +Aspirated modifier			U+02B0
  ("<o>" ["̥"	;; +Voiceless modifier			U+0325
 	 "˚"])	;; +Unexploded modifier			U+02DA
- ("<r>" "ʳ")	;; +Rhotacised modifier			U+02B3
- ("<w>" "ʷ")	;; +Labialised modifier			U+02B7
- ("<?>" "ʱ")	;; +Murmured modififer			U+02B1
+ ("<r>" "ʳ")	;; +Rhotacized modifier			U+02B3
+ ("<w>" "ʷ")	;; +Labialized modifier			U+02B7
+ ("<?>" "ʱ")	;; +Murmured modifier			U+02B1
 
  ("b<trl>" "ʙ")	;; Bilabial trill			U+0299
  ("b`" "ɓ")	;; Bilabial implosive			U+0253
@@ -237,7 +237,7 @@ incorrectly, as separate from the modified glyphs.")
  ("u\"" "ʉ")	;; High central rounded vowel		U+0289
  ("@<umd>" "ɘ")	;; Upper-mid central unrounded vowel	U+0258
 
- ("R<umd>" "ɝ")	;; Upper-mid central rhotacised vowel	U+025D
+ ("R<umd>" "ɝ")	;; Upper-mid central rhotacized vowel	U+025D
 
  ("@." "ɵ")	;; Mid central rounded vowel		U+0275
  ("V\"" "ɜ")	;; Lower-mid central unrounded vowel	U+025C
@@ -416,7 +416,7 @@ displays them, incorrectly, as separate from the modified glyphs.")
  (":\\" "ˑ")	;; Half-long				U+02D1
  ("@" "ə")	;; Schwa				U+0259
  ("@\\" "ɘ")	;; Close-mid central unrounded vowel	U+0258
- ("@`" "ɚ")	;; Rhotacised schwa			U+025A
+ ("@`" "ɚ")	;; Rhotacized schwa			U+025A
  ("{" "æ")	;; Near-open front unrounded vowel	U+00E6
  ("}" "ʉ")	;; Close central rounded vowel		U+0289
  ("1" "ɨ")	;; Close central unrounded vowel	U+0268
@@ -424,7 +424,7 @@ displays them, incorrectly, as separate from the modified glyphs.")
  ("3" "ɜ")	;; Open-mid central unrounded vowel	U+025C
  ("3\\" "ɞ")	;; Open-mid central rounded vowel	U+025E
  ("4" "ɾ")	;; Alveolar flap			U+027E
- ("5" "ɫ")	;; Velarised alveolar lateral approximant	U+026B
+ ("5" "ɫ")	;; Velarized alveolar lateral approximant	U+026B
  ("6" "ɐ")	;; Near-open central vowel 		U+0250
  ("7" "ɤ")	;; Close-mid back unrounded vowel	U+0264
  ("8" "ɵ")	;; Close-mid central rounded vowel	U+0275
@@ -459,31 +459,31 @@ displays them, incorrectly, as separate from the modified glyphs.")
  ("_=" "̩")	;; Syllabic				U+0329
  ("=" "̩")	;; Syllabic				U+0329
  ("_>" "ʼ")	;; Ejective				U+02BC
- ("_?\\" "ˤ")	;; Pharyngealised			U+02E4
+ ("_?\\" "ˤ")	;; Pharyngealized			U+02E4
  ("_\\" "ˆ")	;; Falling Tone				U+02C6
  ("_^" "̯")	;; Non-syllabic				U+032F
  ("_}" "̚")	;; No audible release			U+031A
  ;; ` is alternatively; retroflexion in consonants
  ("`" "˞")	;; Rhotacization in vowels		U+02DE
- ("_~" "̃")	;; Nasalisation				U+0303
- ("~" "̃")	;; Nasalisation				U+0303
+ ("_~" "̃")	;; Nasalization				U+0303
+ ("~" "̃")	;; Nasalization				U+0303
  ("_A" "̘")	;; Advanced tongue root			U+0318
  ("_a" "̺")	;; Apical				U+033A
  ("_B" "̏")	;; Extra low tone			U+030F
  ;; _B_L omitted, no Unicode code point for "low rising tone."
  ("_c" "̜")	;; Less rounded				U+031C
  ("_d" "̪")	;; Dental				U+032A
- ("_e" "̴")	;; Velarised or pharyngeal		U+0334
+ ("_e" "̴")	;; Velarized or pharyngeal		U+0334
 
  ("<F>" "↙")	;; Global fall; SOUTH EAST ARROW; may be a bit smaller than
 		;; intended.
  ("_F" "̂")	;; Falling tone				U+0302
- ("_G" "ˠ")	;; Velarised				U+02E0
+ ("_G" "ˠ")	;; Velarized				U+02E0
  ("_H" "́")	;; High tone				U+0301
  ;; "_H_T omitted, no Unicode code point for "high rising tone"
  ("_h" "ʰ")	;; Aspirated				U+02B0
- ("_j" "ʲ")	;; Palatalised				U+02B2
- ("'" "ʲ")	;; Palatalised				U+02B2
+ ("_j" "ʲ")	;; Palatalized				U+02B2
+ ("'" "ʲ")	;; Palatalized				U+02B2
  ("_k" "̰")	;; Creaky voice				U+0330
  ("_L" "̀")	;; Low tone				U+0300
  ("_l" "ˡ")	;; Lateral release			U+02E1
@@ -501,9 +501,9 @@ displays them, incorrectly, as separate from the modified glyphs.")
  ("_T" "̋")	;; Extra high tone			U+030B
  ("_t" "̤")	;; Breathy voice			U+0324
  ("_v" "̬")	;; Voiced				U+032C
- ("_w" "ʷ")	;; Labialised				U+02B7
+ ("_w" "ʷ")	;; Labialized				U+02B7
  ("_X" "̆")	;; Extra-short				U+0306
- ("_x" "̽"))	;; Mid-centralised			U+033D
+ ("_x" "̽"))	;; Mid-centralized			U+033D
 
 ;; Putting in place rules for the implosives like for the others above
 ;; breaks the "_<diacritic>" rules for b, d, g, G and J a little--you need

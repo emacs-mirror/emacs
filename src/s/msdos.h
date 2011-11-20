@@ -119,7 +119,7 @@ You lose; /* Emacs for DOS must be compiled with DJGPP */
 #ifdef HAVE_X_WINDOWS
 /* We need a little extra space, see ../../lisp/loadup.el and the
    commentary below, in the non-X branch.  The 140KB number was
-   measured on GNU/Linux and on MS-WIndows.  */
+   measured on GNU/Linux and on MS-Windows.  */
 #define SYSTEM_PURESIZE_EXTRA (-170000+140000)
 #else
 /* We need a little extra space, see ../../lisp/loadup.el.
@@ -138,4 +138,3 @@ You lose; /* Emacs for DOS must be compiled with DJGPP */
    registers relevant for conservative garbage collection in the jmp_buf.  */
 #define GC_SETJMP_WORKS 1
 #define GC_MARK_STACK GC_MAKE_GCPROS_NOOPS
-

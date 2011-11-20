@@ -71,7 +71,7 @@
     (end-of-line)
     (= (preceding-char) ?\\)))
 
-;;; Programatic editing of a Makefile
+;;; Programmatic editing of a Makefile
 ;;
 (defun makefile-move-to-macro (macro &optional next)
   "Move to the definition of MACRO.  Return t if found.

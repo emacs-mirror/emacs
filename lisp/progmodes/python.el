@@ -119,7 +119,7 @@
      (1 font-lock-type-face))
     ;; Built-ins.  (The next three blocks are from
     ;; `__builtin__.__dict__.keys()' in Python 2.7)  These patterns
-    ;; are debateable, but they at least help to spot possible
+    ;; are debatable, but they at least help to spot possible
     ;; shadowing of builtins.
     (,(rx symbol-start (or
 	  ;; exceptions
@@ -550,7 +550,7 @@ element matches `python-python-command'."
   "^> \\(.*\\)(\\([0-9]+\\))\\([?a-zA-Z0-9_<>]+\\)()"
   "Regular expression pdbtrack uses to find a stack trace entry.")
 
-(defconst python-pdbtrack-input-prompt "\n[(<]*[Pp]db[>)]+ "
+(defconst python-pdbtrack-input-prompt "\n[(<]*[Ii]?[Pp]db[>)]+ "
   "Regular expression pdbtrack uses to recognize a pdb prompt.")
 
 (defconst python-pdbtrack-track-range 10000
@@ -1122,7 +1122,7 @@ don't move and return nil.  Otherwise return t."
 
 ;;;; Imenu.
 
-;; For possibily speeding this up, here's the top of the ELP profile
+;; For possibly speeding this up, here's the top of the ELP profile
 ;; for rescanning pydoc.py (2.2k lines, 90kb):
 ;; Function Name                         Call Count  Elapsed Time  Average Time
 ;; ====================================  ==========  =============  ============
@@ -2553,7 +2553,7 @@ If the traceback target file path is invalid, we look for the
 most recently visited python-mode buffer which either has the
 name of the current function or class, or which defines the
 function or class.  This is to provide for scripts not in the
-local filesytem (e.g., Zope's 'Script \(Python)', but it's not
+local file system (e.g., Zope's 'Script \(Python)', but it's not
 Zope specific).  If you put a copy of the script in a buffer
 named for the script and activate python-mode, then pdbtrack will
 find it."
@@ -2583,6 +2583,7 @@ find it."
         (if (not (string-match (concat python-pdbtrack-input-prompt "$") block))
             (python-pdbtrack-overlay-arrow nil)
 
+          (setq block (ansi-color-filter-apply block))
           (setq target (python-pdbtrack-get-source-buffer block))
 
           (if (stringp target)

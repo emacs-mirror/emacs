@@ -988,7 +988,7 @@ comment at the start of cc-engine.el for more info."
 			 ;; Just gone back over an ordinary symbol of some sort?
 			 (t (c-crosses-statement-barrier-p
 			     (point) maybe-after-boundary-pos))))
-	
+
 		  (when boundary-pos
 		    (setq pptok ptok
 			  ptok tok
@@ -1065,7 +1065,7 @@ comment at the start of cc-engine.el for more info."
 		    pos tok) ; always non-nil
 	      )		     ; end of (catch loop ....)
 	  )		     ; end of sexp-at-a-time (while ....)
-	
+
 	;; If the stack isn't empty there might be errors to report.
 	(while stack
 	  (if (and (vectorp saved-pos) (eq (length saved-pos) 3))
@@ -1795,7 +1795,7 @@ comment at the start of cc-engine.el for more info."
 	rung-is-marked simple-ws-beg cmt-skip-pos)
 
     ;; Skip simple horizontal ws and do a quick check on the preceding
-    ;; character to see if it's anying that can't end syntactic ws, so we can
+    ;; character to see if it's anything that can't end syntactic ws, so we can
     ;; bail out early in the majority of cases when there just are a few ws
     ;; chars.  Newlines are complicated in the backward direction, so we can't
     ;; skip over them.
@@ -2032,7 +2032,7 @@ comment at the start of cc-engine.el for more info."
 (defconst c-state-cache-too-far 5000)
 ;; A maximum comfortable scanning distance, e.g. between
 ;; `c-state-cache-good-pos' and "HERE" (where we call c-parse-state).  When
-;; this distance is exceeded, we take "emergency meausures", e.g. by clearing
+;; this distance is exceeded, we take "emergency measures", e.g. by clearing
 ;; the cache and starting again from point-min or a beginning of defun.  This
 ;; value can be tuned for efficiency or set to a lower value for testing.
 
@@ -2302,7 +2302,7 @@ comment at the start of cc-engine.el for more info."
 ;; `c-parse-state', or nil.
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;; Defuns which analyse the buffer, yet don't change `c-state-cache'.
+;; Defuns which analyze the buffer, yet don't change `c-state-cache'.
 (defun c-get-fallback-scan-pos (here)
   ;; Return a start position for building `c-state-cache' from
   ;; scratch.  This will be at the top level, 2 defuns back.
@@ -2331,7 +2331,7 @@ comment at the start of cc-engine.el for more info."
   ;;
   ;; If there aren't enough opening paren/brace/brackets, return the position
   ;; of the outermost one found, or HERE- if there are none.  If there are no
-  ;; closeing p/b/bs between HERE+ and TOP, return HERE-.  HERE-/+ and TOP
+  ;; closing p/b/bs between HERE+ and TOP, return HERE-.  HERE-/+ and TOP
   ;; must not be inside literals.  Only the accessible portion of the buffer
   ;; will be scanned.
 
@@ -2364,7 +2364,7 @@ comment at the start of cc-engine.el for more info."
 
 (defun c-parse-state-get-strategy (here good-pos)
   ;; Determine the scanning strategy for adjusting `c-parse-state', attempting
-  ;; to minimise the amount of scanning.  HERE is the pertinent position in
+  ;; to minimize the amount of scanning.  HERE is the pertinent position in
   ;; the buffer, GOOD-POS is a position where `c-state-cache' (possibly with
   ;; its head trimmed) is known to be good, or nil if there is no such
   ;; position.
@@ -2548,7 +2548,7 @@ comment at the start of cc-engine.el for more info."
 			c-state-cache)))
 	;; N.B.  This defsubst codes one method for the simple, normal case,
 	;; and a more sophisticated, slower way for the general case.  Don't
-	;; eliminate this defsubst - it's a speed optimisation.
+	;; eliminate this defsubst - it's a speed optimization.
 	(c-append-lower-brace-pair-to-state-cache (1- bra+1)))))
 
 (defun c-append-to-state-cache (from)
@@ -2788,7 +2788,7 @@ comment at the start of cc-engine.el for more info."
   ;;
   ;; This function must only be called only when (> `c-state-cache-good-pos'
   ;; HERE).  Usually the gap between CACHE-POS and HERE is large.  It is thus
-  ;; optimised to eliminate (or minimise) scanning between these two
+  ;; optimized to eliminate (or minimize) scanning between these two
   ;; positions.
   ;;
   ;; Return a three element list (GOOD-POS SCAN-BACK-POS FWD-FLAG), where:
@@ -2820,7 +2820,7 @@ comment at the start of cc-engine.el for more info."
 					; or `here' itself.
 	here- here+		     ; start/end of macro around HERE, or HERE
 	(here-bol (c-point 'bol here))
-	(too-far-back (max (- here c-state-cache-too-far) 1)))
+	(too-far-back (max (- here c-state-cache-too-far) (point-min))))
 
     ;; Remove completely irrelevant entries from `c-state-cache'.
     (while (and c-state-cache
@@ -2964,9 +2964,9 @@ comment at the start of cc-engine.el for more info."
 	    c-state-cache-good-pos nil
 	    c-state-min-scan-pos nil)
 
-;;; Truncate `c-state-cache' and set `c-state-cache-good-pos' to a value below
-;;; `here'.  To maintain its consistency, we may need to insert a new brace
-;;; pair.
+    ;; Truncate `c-state-cache' and set `c-state-cache-good-pos' to a value
+    ;; below `here'.  To maintain its consistency, we may need to insert a new
+    ;; brace pair.
     (let ((here-bol (c-point 'bol here))
 	  too-high-pa		  ; recorded {/(/[ next above here, or nil.
 	  dropped-cons		  ; was the last removed element a brace pair?
@@ -4051,7 +4051,7 @@ comment at the start of cc-engine.el for more info."
 		     ;; a relevant match.
 		     (goto-char pos)
 		     nil))))))
-	     
+
 	  (> (point)
 	     (progn
 	       ;; Skip syntactic ws afterwards so that we don't stop at the
@@ -4219,9 +4219,9 @@ comment at the start of cc-engine.el for more info."
 ;; complicated anyway.  In this case, lim is only used to detect
 ;; cpp directives.
 ;;
-;; Note that there is a bug in Xemacs's buffer-syntactic-context when used in
+;; Note that there is a bug in XEmacs's buffer-syntactic-context when used in
 ;; conjunction with syntax-table-properties.  The bug is present in, e.g.,
-;; Xemacs 21.4.4.  It manifested itself thus:
+;; XEmacs 21.4.4.  It manifested itself thus:
 ;;
 ;; Starting with an empty AWK Mode buffer, type
 ;; /regexp/ {<C-j>
@@ -4233,9 +4233,9 @@ comment at the start of cc-engine.el for more info."
 ;; fails to take account of the change of the s-t property on the opening / to
 ;; "string", and reports that the { is within a string started by the second /.
 ;;
-;; The workaround for this is for the AWK Mode initialisation to switch the
+;; The workaround for this is for the AWK Mode initialization to switch the
 ;; defalias for c-in-literal to c-slow-in-literal.  This will slow down other
-;; cc-modes in Xemacs whenever an awk-buffer has been initialised.
+;; cc-modes in XEmacs whenever an awk-buffer has been initialized.
 ;;
 ;; (Alan Mackenzie, 2003/4/30).
 
@@ -4904,7 +4904,7 @@ comment at the start of cc-engine.el for more info."
 	    (setq cfd-prop-match nil))
 
 	(when (/= cfd-macro-end 0)
-	  ;; Restore limits if we did macro narrowment above.
+	  ;; Restore limits if we did macro narrowing above.
 	  (narrow-to-region (point-min) cfd-buffer-end)))
 
       (goto-char cfd-continue-pos)
@@ -5052,7 +5052,7 @@ comment at the start of cc-engine.el for more info."
 ;; The strategy now (2010-01) adopted is to mark and unmark < and
 ;; > IN MATCHING PAIRS ONLY.  [Previously, they were marked
 ;; individually when their context so indicated.  This gave rise to
-;; intractible problems when one of a matching pair was deleted, or
+;; intractable problems when one of a matching pair was deleted, or
 ;; pulled into a literal.]
 ;;
 ;; At each buffer change, the syntax-table properties are removed in a
@@ -5965,7 +5965,7 @@ comment at the start of cc-engine.el for more info."
   ;;     `*-font-lock-extra-types');
   ;;   o - 'prefix if it's a known prefix of a type;
   ;;   o - 'found if it's a type that matches one in `c-found-types';
-  ;;   o - 'maybe if it's an identfier that might be a type; or
+  ;;   o - 'maybe if it's an identifier that might be a type; or
   ;;   o -  nil if it can't be a type (the point isn't moved then).
   ;;
   ;; The point is assumed to be at the beginning of a token.
@@ -6277,7 +6277,7 @@ comment at the start of cc-engine.el for more info."
   ;;      car ^                                     ^ point
   ;;     Foo::Foo (int b) : Base (b) {}
   ;; car ^                ^ point
-  ;; 
+  ;;
   ;;   The cdr of the return value is non-nil when a
   ;;   `c-typedef-decl-kwds' specifier is found in the declaration.
   ;;   Specifically it is a dotted pair (A . B) where B is t when a
@@ -6285,7 +6285,7 @@ comment at the start of cc-engine.el for more info."
   ;;   other `c-typedef-decl-kwds' (e.g. class, struct, enum)
   ;;   specifier is present.  I.e., (some of) the declared
   ;;   identifier(s) are types.
-  ;; 
+  ;;
   ;; If a cast is parsed:
   ;;
   ;;   The point is left at the first token after the closing paren of
@@ -7100,7 +7100,7 @@ comment at the start of cc-engine.el for more info."
   ;;   colon).  Currently (2006-03), this applies only to Objective C's
   ;;   keywords "@private", "@protected", and "@public".  Returns t.
   ;;
-  ;; One of the things which will NOT be recognised as a label is a bit-field
+  ;; One of the things which will NOT be recognized as a label is a bit-field
   ;; element of a struct, something like "int foo:5".
   ;;
   ;; The end of the label is taken to be just after the colon, or the end of
@@ -8461,7 +8461,7 @@ comment at the start of cc-engine.el for more info."
 		nil)
 	       (t nil))))
 	 (eolp))
-	     
+
        (goto-char pos)
        (progn (c-backward-syntactic-ws)
 	      (eq (point) pos))
@@ -8832,7 +8832,7 @@ comment at the start of cc-engine.el for more info."
        ;; CASE B.4: Continued statement with block open.  The most
        ;; accurate analysis is perhaps `statement-cont' together with
        ;; `block-open' but we play DWIM and use `substatement-open'
-       ;; instead.  The rationaly is that this typically is a macro
+       ;; instead.  The rationale is that this typically is a macro
        ;; followed by a block which makes it very similar to a
        ;; statement with a substatement block.
        (t
@@ -8922,7 +8922,7 @@ comment at the start of cc-engine.el for more info."
       ;; FIXME: Should use c-add-stmt-syntax, but it's not yet
       ;; template aware.
       (c-add-syntax 'template-args-cont (point) placeholder))
-     
+
      ;; CASE D: continued statement.
      (t
       (c-beginning-of-statement-1 containing-sexp)
@@ -9582,7 +9582,7 @@ comment at the start of cc-engine.el for more info."
 	    (c-add-syntax 'inher-cont (c-point 'boi)))
 
 	   ;; CASE 5D.5: Continuation of the "expression part" of a
-	   ;; top level construct.  Or, perhaps, an unrecognised construct.
+	   ;; top level construct.  Or, perhaps, an unrecognized construct.
 	   (t
 	    (while (and (setq placeholder (point))
 			(eq (car (c-beginning-of-decl-1 containing-sexp))
@@ -9593,7 +9593,7 @@ comment at the start of cc-engine.el for more info."
 			(< (point) placeholder)))
 	    (c-add-stmt-syntax
 	     (cond
-	      ((eq (point) placeholder) 'statement) ; unrecognised construct
+	      ((eq (point) placeholder) 'statement) ; unrecognized construct
 	      ;; A preceding comma at the top level means that a
 	      ;; new variable declaration starts here.  Use
 	      ;; topmost-intro-cont for it, for consistency with

@@ -1871,7 +1871,7 @@ Mark is left at original location."
      tex-old-error-file-name 2 nil 1 1
      (2 compilation-warning-face))
     ;; Included files get output as (<file> ...).
-    ;; FIXME: there tend to be a crapload of them at the beginning of the
+    ;; FIXME: there tend to be a boatload of them at the beginning of the
     ;; output which aren't that interesting.  Maybe we should filter out
     ;; all the file name that start with /usr/share?
     ;; ("(\\.?/\\([^() \n]+\\)" 1 nil nil 0)

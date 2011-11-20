@@ -637,7 +637,7 @@ typedef enum
   on_failure_jump_nastyloop,
 
 	/* A smart `on_failure_jump' used for greedy * and + operators.
-	   It analyses the loop before which it is put and if the
+	   It analyzes the loop before which it is put and if the
 	   loop does not require backtracking, it changes itself to
 	   `on_failure_keep_string_jump' and short-circuits the loop,
 	   else it just defaults to changing itself into `on_failure_jump'.

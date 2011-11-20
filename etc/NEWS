@@ -172,7 +172,7 @@ server should listen.
 *** New emacsclient argument --frame-parameters can be used to set the
 frame parameters of a newly-created graphical frame.
 +++
-*** If emacsclient shuts down as a result of Emacs signalling an
+*** If emacsclient shuts down as a result of Emacs signaling an
 error, its exit status is 1.
 +++
 *** New emacsclient argument --parent-id ID.
@@ -403,20 +403,21 @@ specified by `display-buffer-fallback-action'.
 display actions, taking precedence over `display-buffer-base-action'.
 
 +++
-*** New option `window-nest'.
-The new option `window-nest' allows to return the space obtained for
-resizing or creating a window more reliably to the window from which
-such space was obtained.
+*** New option `window-combination-limit'.
+The new option `window-combination-limit' allows to return the space
+obtained for resizing or creating a window more reliably to the window
+from which such space was obtained.
 
 +++
-*** New option `window-splits'.
-The new option `window-splits' allows to split a window that otherwise
-cannot be split because it's too small by stealing space from other
-windows in the same combination.
+*** New option `window-combination-resize'.
+The new option `window-combination-resize' allows to split a window that
+otherwise cannot be split because it's too small by stealing space from
+other windows in the same combination.  Subsequent resizing or deletion
+of the window will resize all windows in the same combination as well.
 
 +++
 *** New commands `maximize-window' and `minimize-window'.
-These maximize and minize the size of a window within its frame.
+These maximize and minimize the size of a window within its frame.
 
 +++
 *** New commands `switch-to-prev-buffer' and `switch-to-next-buffer'.
@@ -1125,7 +1126,7 @@ state before the last buffer display operation in that window.
 
 +++
 *** The new option `frame-auto-hide-function' lets you choose between
-iconfying or deleting a frame when burying a buffer shown in a dedicated
+iconifying or deleting a frame when burying a buffer shown in a dedicated
 frame or quitting a window showing a buffer in a frame of its own.
 
 ** Completion
@@ -1243,7 +1244,7 @@ argument is supplied (see Trash changes, above).
 
 ** `facemenu-read-color' is now an alias for `read-color'.
 The command `read-color' now requires a match for a color name or RGB
-triplet, instead of signalling an error if the user provides a invalid
+triplet, instead of signaling an error if the user provides a invalid
 input.
 
 ** Tool-bars can display separators.

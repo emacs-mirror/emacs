@@ -919,7 +919,7 @@
 1999-11-28  Eli Zaretskii  <eliz@is.elta.co.il>
 
 	* charset.c (Fmake_char_internal): Print the charset ID when
-	signalling an error.
+	signaling an error.
 
 	* emacs.c (synchronize_locale): Avoid compiler warnings about
 	pointer type mismatch.
@@ -2196,7 +2196,7 @@
 
 1999-09-14  Gerd Moellmann  <gerd@gnu.org>
 
-	* sound.c (Fplay_sound): Remove usused variables.
+	* sound.c (Fplay_sound): Remove unused variables.
 	(be2hs): Put in #if 0 because it's currently not used.
 
 1999-09-14  Ken Raeburn  <raeburn@gnu.org>
@@ -7367,7 +7367,7 @@
 
 	* xfaces.c (free_font): Removed.
 	(load_face_font_or_fontset): Renamed from load_font.
-	(load_face_font_or_fontset): Use message2 instead of signalling.
+	(load_face_font_or_fontset): Use message2 instead of signaling.
 	(load_color): Likewise.
 	(load_pixmap): Likewise.
 
@@ -13266,7 +13266,7 @@
 
 	* charset.c (Fchar_bytes): Doc fix.
 	(char_bytes): Fix returned value to match returned type.
-	(syms_of_charset): Fix type clash in initialisation of
+	(syms_of_charset): Fix type clash in initialization of
 	Vauto_fill_chars.
 
 1998-10-29  Geoff Voelker  <voelker@cs.washington.edu>
@@ -13429,7 +13429,7 @@
 	`x-list-fonts.c'.
 	(w32_get_font_info, w32_query_font, w32_find_ccl_program): New
 	functions for fontset support - adapted from x_ equivalents.
-	(syms_of_w32fns): New lisp variables initialised.  Function
+	(syms_of_w32fns): New lisp variables initialized.  Function
 	pointers for fontset.c set up.
 
 	* w32term.c: Include fontset.h.  Define codepage macros.

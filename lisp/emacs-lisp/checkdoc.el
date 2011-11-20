@@ -2118,7 +2118,7 @@ before using the Ispell engine on it."
 	      ;; Find out how we spell-check this word.
 	      (if (or
 		   ;; All caps w/ option th, or s tacked on the end
-		   ;; for pluralization or numberthness.
+		   ;; for pluralization or number.
 		   (string-match "^[A-Z][A-Z]+\\(s\\|th\\)?$" word)
 		   (looking-at "}") ; a keymap expression
 		   )

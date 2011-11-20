@@ -3057,7 +3057,7 @@ generate_inode_val (const char * name)
   unsigned hash;
 
   /* Get the truly canonical filename, if it exists.  (Note: this
-     doesn't resolve aliasing due to subst commands, or recognise hard
+     doesn't resolve aliasing due to subst commands, or recognize hard
      links.  */
   if (!w32_get_long_filename ((char *)name, fullname, MAX_PATH))
     abort ();
@@ -3403,7 +3403,7 @@ stat (const char * path, struct stat * buf)
 			   FILE_FLAG_BACKUP_SEMANTICS, NULL))
          != INVALID_HANDLE_VALUE)
     {
-      /* This is more accurate in terms of gettting the correct number
+      /* This is more accurate in terms of getting the correct number
 	 of links, but is quite slow (it is noticeable when Emacs is
 	 making a list of file name completions). */
       BY_HANDLE_FILE_INFORMATION info;
@@ -5845,7 +5845,7 @@ term_ntproc (void)
 void
 init_ntproc (void)
 {
-  /* Initialise the socket interface now if available and requested by
+  /* Initialize the socket interface now if available and requested by
      the user by defining PRELOAD_WINSOCK; otherwise loading will be
      delayed until open-network-stream is called (w32-has-winsock can
      also be used to dynamically load or reload winsock).

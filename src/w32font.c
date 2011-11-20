@@ -330,7 +330,7 @@ w32font_list (Lisp_Object frame, Lisp_Object font_spec)
 
 /* w32 implementation of match for font backend.
    Return a font entity most closely matching with FONT_SPEC on
-   FRAME.  The closeness is detemined by the font backend, thus
+   FRAME.  The closeness is determined by the font backend, thus
    `face-font-selection-order' is ignored here.  */
 static Lisp_Object
 w32font_match (Lisp_Object frame, Lisp_Object font_spec)
@@ -1284,8 +1284,8 @@ font_matches_spec (DWORD type, NEWTEXTMETRICEX *font,
             {
               /* Only truetype fonts will have information about what
                  scripts they support.  This probably means the user
-                 will have to force Emacs to use raster, postscript
-                 or atm fonts for non-ASCII text.  */
+                 will have to force Emacs to use raster, PostScript
+                 or ATM fonts for non-ASCII text.  */
               if (type & TRUETYPE_FONTTYPE)
                 {
                   Lisp_Object support
@@ -1464,7 +1464,7 @@ check_face_name (LOGFONT *font, char *full_name)
   /* Helvetica is mapped to Arial in Windows, but if a Type-1 Helvetica is
      installed, we run into problems with the Uniscribe backend which tries
      to avoid non-truetype fonts, and ends up mixing the Type-1 Helvetica
-     with Arial's characteristics, since that attempt to use Truetype works
+     with Arial's characteristics, since that attempt to use TrueType works
      some places, but not others.  */
   if (!xstrcasecmp (font->lfFaceName, "helvetica"))
     {
@@ -1492,7 +1492,7 @@ check_face_name (LOGFONT *font, char *full_name)
 
 
 /* Callback function for EnumFontFamiliesEx.
- * Checks if a font matches everything we are trying to check agaist,
+ * Checks if a font matches everything we are trying to check against,
  * and if so, adds it to a list. Both the data we are checking against
  * and the list to which the fonts are added are passed in via the
  * lparam argument, in the form of a font_callback_data struct. */

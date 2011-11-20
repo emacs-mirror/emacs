@@ -446,7 +446,7 @@ This behavior may be disabled by customizing the option
 
 ** Polish, Czech, German, and French translations of Emacs' reference card
 have been added.  They are named `pl-refcard.tex', `cs-refcard.tex',
-`de-refcard.tex' and `fr-refcard.tex'.  Postscript files are included.
+`de-refcard.tex' and `fr-refcard.tex'.  PostScript files are included.
 
 ** An `Emacs Survival Guide', etc/survival.tex, is available.
 
@@ -850,7 +850,7 @@ default).
 *** If Emacs was invoked with the `-q' or `--no-init-file' options, it
 does not allow you to save customizations in your `~/.emacs' init
 file.  This is because saving customizations from such a session would
-wipe out all the other customizationss you might have on your init
+wipe out all the other customizations you might have on your init
 file.
 
 ** If Emacs was invoked with the `-q' or `--no-init-file' options, it
@@ -2189,7 +2189,7 @@ variables are tagged.
 
 *** New language Python: def and class at the beginning of a line are tags.
 
-*** .ss files are Scheme files, .pdb is Postscript with C syntax, .psw is
+*** .ss files are Scheme files, .pdb is PostScript with C syntax, .psw is
 for PSWrap.
 
 ** Changes in etags.el

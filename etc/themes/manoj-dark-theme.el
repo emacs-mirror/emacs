@@ -37,7 +37,7 @@
 ;; (blueish) or mail (greenish), have states (large number of under
 ;; messages, normal, and empty). The large number unread groups have
 ;; highest luminance (appear brighter), and the empty one have lower
-;; luminance (appear greyer), but have the same chroma and saturation.
+;; luminance (appear grayer), but have the same chroma and saturation.
 ;; Sub states and group priorities are rendered using a color series
 ;; which has constant luminance and saturation, and vary in hue by a
 ;; constant separation -- so all the related groups have the same
@@ -52,8 +52,8 @@
 ;; reading mail/USENET.
 
 ;; In the message itself, quoted mail messages from different people
-;; are color coordinated, with high contrast beteen citations that are
-;; close to each other in the heirarchy, so it is less likely that one
+;; are color coordinated, with high contrast between citations that are
+;; close to each other in the hierarchy, so it is less likely that one
 ;; misunderstands who said what in a long conversation.
 
 ;; The following scheme covers programming languages, Gnus, Erc, mail,

@@ -704,7 +704,7 @@ Don't use that together with FILTER."
 
 (defun dired-file-name-at-point ()
   "Try to get a file name at point in the current dired buffer.
-This hook is inteneded to be put in `file-name-at-point-functions'."
+This hook is intended to be put in `file-name-at-point-functions'."
   (let ((filename (dired-get-filename nil t)))
     (when filename
       (if (file-directory-p filename)
@@ -1025,7 +1025,7 @@ BEG..END is the line where the file info is located."
   ;; spaces there (and within the filename as well, of course).
   (save-excursion
     (let (file file-col other other-col)
-      ;; Check that there is indeed a file, and that there is anoter adjacent
+      ;; Check that there is indeed a file, and that there is another adjacent
       ;; file with which to align, and that additional spaces are needed to
       ;; align the filenames.
       (when (and (setq file (progn (goto-char beg)
@@ -3667,7 +3667,7 @@ Ask means pop up a menu for the user to select one of copy, move or link."
 ;;;;;;  dired-run-shell-command dired-do-shell-command dired-do-async-shell-command
 ;;;;;;  dired-clean-directory dired-do-print dired-do-touch dired-do-chown
 ;;;;;;  dired-do-chgrp dired-do-chmod dired-compare-directories dired-backup-diff
-;;;;;;  dired-diff) "dired-aux" "dired-aux.el" "0ffe89ae728efb341dfacff6c85e2ba4")
+;;;;;;  dired-diff) "dired-aux" "dired-aux.el" "2026ac587f0d9e893bae7662ff9d9318")
 ;;; Generated autoloads from dired-aux.el
 
 (autoload 'dired-diff "dired-aux" "\

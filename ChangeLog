@@ -2393,7 +2393,7 @@
 
 	* BUGS: Use new binding of view-emacs-problems.
 
-2009-05-04   Simon Leinen  <simon.leinen@switch.ch>  (tiny change)
+2009-05-04  Simon Leinen  <simon.leinen@switch.ch>  (tiny change)
 
 	* Makefile.in (install-arch-dep): Avoid using $$(..) construct,
 	for Solaris compatibility.

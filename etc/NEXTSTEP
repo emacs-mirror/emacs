@@ -38,7 +38,7 @@ meantime.
 Release History
 ---------------
 
-1990-1992	1.0-3.0 (?)	Michael Brouwer's socket/terminal communication 
+1990-1992	1.0-3.0 (?)	Michael Brouwer's socket/terminal communication
 				based version (GUI ran as a separate process.)
 
 1993/10/25	3.0.1		Last (?) release of Brouwer version.  Supports
@@ -126,7 +126,7 @@ Release History
 				rendering for synthetic italic fonts.  Further
 				improved menu parsing.  Use system highlight
 				color.  Added previous- and next-mark history
-				navigation commmands bound to M-p,M-n.
+				navigation commands bound to M-p,M-n.
 				Miscellaneous bug fixes.
 
 2005/08/04	8.0-rc5		All internal string handling changed to UTF-8.
@@ -146,7 +146,7 @@ Release History
 				handling now added.  Transparency (e.g., M-x
 				set-background-color ARGB88FFFFFF) improved:
 				only the background is made transparent.
-				Cursor drawing glitches fixed.  Preferences 
+				Cursor drawing glitches fixed.  Preferences
 				handling improved.  Fixed some portability
 				problems on Tiger and Puma.
 
@@ -185,7 +185,7 @@ Release History
 				rendering, pasting, Color panel.  Added function
 				ns-set-background-alpha to work around
 				inability to customize with numeric colors.
-				
+
 2006/12/24	9.0-rc1		Reworked font handling and text rendering to
 				use Kenichi Handa's new font back-end system.
 				Font sets are now supported and automatically

@@ -26,21 +26,21 @@
 
 ;; This takes a piece of Elisp code, and eliminates all free variables from
 ;; lambda expressions.  The user entry points are cconv-closure-convert and
-;; cconv-closure-convert-toplevel(for toplevel forms).
+;; cconv-closure-convert-toplevel (for toplevel forms).
 ;; All macros should be expanded beforehand.
 ;;
 ;; Here is a brief explanation how this code works.
-;; Firstly, we analyse the tree by calling cconv-analyse-form.
+;; Firstly, we analyze the tree by calling cconv-analyse-form.
 ;; This function finds all mutated variables, all functions that are suitable
 ;; for lambda lifting and all variables captured by closure. It passes the tree
 ;; once, returning a list of three lists.
 ;;
-;; Then we calculate the intersection of first and third lists returned by
+;; Then we calculate the intersection of the first and third lists returned by
 ;; cconv-analyse form to find all mutated variables that are captured by
 ;; closure.
 
 ;; Armed with this data, we call cconv-closure-convert-rec, that rewrites the
-;; tree recursivly, lifting lambdas where possible, building closures where it
+;; tree recursively, lifting lambdas where possible, building closures where it
 ;; is needed and eliminating mutable variables used in closure.
 ;;
 ;; We do following replacements :
@@ -142,7 +142,7 @@ Returns a form where all lambdas don't have any free variables."
   (let ((cconv-freevars-alist '())
 	(cconv-lambda-candidates '())
 	(cconv-captured+mutated '()))
-    ;; Analyse form - fill these variables with new information.
+    ;; Analyze form - fill these variables with new information.
     (cconv-analyse-form form '())
     (setq cconv-freevars-alist (nreverse cconv-freevars-alist))
     (cconv-convert form nil nil))) ; Env initially empty.
@@ -581,7 +581,7 @@ FORM is the parent form that binds this var."
 
 (defun cconv-analyse-form (form env)
   "Find mutated variables and variables captured by closure.
-Analyse lambdas if they are suitable for lambda lifting.
+Analyze lambdas if they are suitable for lambda lifting.
 - FORM is a piece of Elisp code after macroexpansion.
 - ENV is an alist mapping each enclosing lexical variable to its info.
    I.e. each element has the form (VAR . (READ MUTATED CAPTURED CALLED)).

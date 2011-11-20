@@ -2478,7 +2478,7 @@ of citations entirely, choose \"None\"."
     "Original-NNTP-"                    ; mail to news
     "Original-Path:"                    ; mail to news
     "Original-Received:"                ; mail to news
-    "Original-Recipt:"                  ; RFC 2298
+    "Original-Recipient:"               ; RFC 2298
     "Original-To:"                      ; mail to news
     "Original-X-"                       ; mail to news
     "Origination-Client:"               ; http://people.dsv.su.se/~jpalme/ietf/mail-headers/

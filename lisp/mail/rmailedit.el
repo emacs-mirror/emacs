@@ -78,6 +78,7 @@ This function runs the hooks `text-mode-hook' and `rmail-edit-mode-hook'.
 
 
 (defvar rmail-old-text)
+(defvar rmail-old-mime-state)
 (defvar rmail-old-pruned nil
   "Non-nil means the message being edited originally had pruned headers.")
 (put 'rmail-old-pruned 'permanent-local t)
@@ -85,6 +86,10 @@ This function runs the hooks `text-mode-hook' and `rmail-edit-mode-hook'.
 (defvar rmail-old-headers nil
   "Holds the headers of this message before editing started.")
 (put 'rmail-old-headers 'permanent-local t)
+
+;; Everything we use from here is a defsubst.
+(eval-when-compile
+  (require 'rmailmm))
 
 ;;;###autoload
 (defun rmail-edit-current-message ()
@@ -96,6 +101,28 @@ This function runs the hooks `text-mode-hook' and `rmail-edit-mode-hook'.
   (make-local-variable 'rmail-old-pruned)
   (setq rmail-old-pruned (rmail-msg-is-pruned))
   (rmail-edit-mode)
+  (set (make-local-variable 'rmail-old-mime-state)
+       (and rmail-enable-mime
+	    ;; If you use something else, you are on your own.
+	    (eq rmail-mime-feature 'rmailmm)
+	    (rmail-mime-message-p)
+	    (let ((entity (get-text-property (point-min) 'rmail-mime-entity)))
+	      ;; rmailmm has got its hands on the message.
+	      ;; Even if the message is in `raw' state, boundaries etc
+	      ;; are still missing.  All we can do is insert the real
+	      ;; raw message.  (Bug#9840)
+	      (when (and entity
+			 (not (equal "text/plain"
+				     (car (rmail-mime-entity-type entity)))))
+		(let ((inhibit-read-only t))
+		  (erase-buffer)
+		  (insert-buffer-substring
+		   rmail-view-buffer
+		   (aref (rmail-mime-entity-header entity) 0)
+		   (aref (rmail-mime-entity-body entity) 1)))
+		(goto-char (point-min))
+		;; t = decoded; raw = raw.
+		(aref (aref (rmail-mime-entity-display entity) 0) 0)))))
   (make-local-variable 'rmail-old-text)
   (setq rmail-old-text
 	(save-restriction
@@ -134,7 +161,10 @@ This function runs the hooks `text-mode-hook' and `rmail-edit-mode-hook'.
       (error "There must be a blank line at the end of the headers"))
   ;; Disguise any "From " lines so they don't start a new message.
   (goto-char (point-min))
-  (or rmail-old-pruned (forward-line 1))
+  ;; This tries to skip the mbox From.  FIXME less fragile to go to EOH?
+  (if (or rmail-old-mime-state
+	  (not rmail-old-pruned))
+      (forward-line 1))
   (while (re-search-forward "^>*From " nil t)
     (beginning-of-line)
     (insert ">")
@@ -145,6 +175,7 @@ This function runs the hooks `text-mode-hook' and `rmail-edit-mode-hook'.
   (rmail-ensure-blank-line)
   (let ((old rmail-old-text)
 	(pruned rmail-old-pruned)
+	(mime-state rmail-old-mime-state)
 	;; People who know what they are doing might have modified the
 	;; buffer's encoding if editing the message included inserting
 	;; characters that were unencodable by the original message's
@@ -256,7 +287,9 @@ This function runs the hooks `text-mode-hook' and `rmail-edit-mode-hook'.
 ;;;    (if (boundp 'rmail-summary-vector)
 ;;;	(aset rmail-summary-vector (1- rmail-current-message) nil))
     (rmail-show-message)
-    (rmail-toggle-header (if pruned 1 0)))
+    (rmail-toggle-header (if pruned 1 0))
+    ;; Restore mime display state.
+    (and mime-state (rmail-mime nil mime-state)))
   (run-hooks 'rmail-mode-hook))
 
 (defun rmail-abort-edit ()

@@ -81,7 +81,7 @@ template gapsomething :blank
 ----
 
 template inlinetext
-"Insert text that has no nelines"
+"Insert text that has no newlines"
 ----
  *In the middle* 
 ----

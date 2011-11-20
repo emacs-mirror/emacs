@@ -384,7 +384,7 @@ passphrase cache or user."
     (pgg-process-when-success)))
 
 (defun pgg-gpg-update-agent ()
-  "Try to connet to gpg-agent and send UPDATESTARTUPTTY."
+  "Try to connect to gpg-agent and send UPDATESTARTUPTTY."
   (if (fboundp 'make-network-process)
       (let* ((agent-info (getenv "GPG_AGENT_INFO"))
 	     (socket (and agent-info

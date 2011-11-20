@@ -1285,7 +1285,7 @@ in the directory specified by `te-terminfo-directory'."
 	;; Rename it to the desired name.
 	;; We use this roundabout approach
 	;; to avoid any risk of writing a name that
-	;; was michievouslyt set up as a symlink.
+	;; was mischievously set up as a symlink.
 	(rename-file temp-file file-name))
       ;; Now compile that source to make the binary that the
       ;; programs actually use.

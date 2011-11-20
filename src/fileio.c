@@ -70,7 +70,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #define IS_DRIVE(x) isalpha ((unsigned char) (x))
 #endif
 /* Need to lower-case the drive letter, or else expanded
-   filenames will sometimes compare inequal, because
+   filenames will sometimes compare unequal, because
    `expand-file-name' doesn't always down-case the drive letter.  */
 #define DRIVE_LETTER(x) (tolower ((unsigned char) (x)))
 #endif
@@ -338,7 +338,7 @@ Given a Unix syntax file name, returns a string ending in slash.  */)
 
   while (p != beg && !IS_DIRECTORY_SEP (p[-1])
 #ifdef DOS_NT
-	 /* only recognise drive specifier at the beginning */
+	 /* only recognize drive specifier at the beginning */
 	 && !(p[-1] == ':'
 	      /* handle the "/:d:foo" and "/:foo" cases correctly  */
 	      && ((p == beg + 2 && !IS_DIRECTORY_SEP (*beg))
@@ -401,7 +401,7 @@ or the entire name if it contains no slash.  */)
 
   while (p != beg && !IS_DIRECTORY_SEP (p[-1])
 #ifdef DOS_NT
-	 /* only recognise drive specifier at beginning */
+	 /* only recognize drive specifier at beginning */
 	 && !(p[-1] == ':'
 	      /* handle the "/:d:foo" case correctly  */
 	      && (p == beg + 2 || (p == beg + 4 && IS_DIRECTORY_SEP (*beg))))

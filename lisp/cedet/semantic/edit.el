@@ -316,7 +316,7 @@ See `semantic-edits-change-leaf-tag' for details on parents."
 		  (setq list-to-search nil)))
 	;; Search list is nil.
 	))
-    ;; If we have a search list, lets go.  Otherwise nothing.
+    ;; If we have a search list, let's go.  Otherwise nothing.
     (while (and list-to-search (not found))
       (if (cdr list-to-search)
           ;; We end when the start of the CDR is after the end of our
@@ -392,7 +392,7 @@ See `semantic-edits-change-leaf-tag' for details on parents."
 	      ;; There are no tags left, and all tags originally
 	      ;; found are encompassed by the change.  Setup our list
 	      ;; from the cache
-	      (setq list-to-search semantic--buffer-cache);; We have a tag ouside the list.  Check for
+	      (setq list-to-search semantic--buffer-cache);; We have a tag outside the list.  Check for
 	    ;; We know we have a parent because it would
 	    ;; completely cover the change.  A tag can only
 	    ;; do that if it is a parent after we get here.
@@ -537,7 +537,7 @@ This function is for internal use by `semantic-edits-incremental-parser'."
       ;; We want to take some set of changes, and group them
       ;; together into a small change group. One change forces
       ;; a reparse of a larger region (the size of some set of
-      ;; tags it encompases.)  It may contain several tags.
+      ;; tags it encompasses.)  It may contain several tags.
       ;; That region may have other changes in it (several small
       ;; changes in one function, for example.)
       ;; Optimize for the simple cases here, but try to handle
@@ -595,7 +595,7 @@ This function is for internal use by `semantic-edits-incremental-parser'."
 	       ;; Feb 06 -
 	       ;; IDed when the first cache-list tag is after
 	       ;; our change, meaning there is nothing before
-	       ;; the chnge.
+	       ;; the change.
                ((> (semantic-tag-start (car cache-list))
                    (semantic-overlay-end (car changes)))
 		(setq last-cond "Beginning of buffer")

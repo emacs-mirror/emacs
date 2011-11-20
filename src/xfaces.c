@@ -4189,12 +4189,12 @@ prepare_face_for_display (struct frame *f, struct face *face)
 static int
 color_distance (XColor *x, XColor *y)
 {
-  /* This formula is from a paper title `Colour metric' by Thiadmer Riemersma.
+  /* This formula is from a paper titled `Colour metric' by Thiadmer Riemersma.
      Quoting from that paper:
 
 	 This formula has results that are very close to L*u*v* (with the
 	 modified lightness curve) and, more importantly, it is a more even
-	 algorithm: it does not have a range of colours where it suddenly
+	 algorithm: it does not have a range of colors where it suddenly
 	 gives far from optimal results.
 
      See <http://www.compuphase.com/cmetric.htm> for more info.  */

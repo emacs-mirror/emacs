@@ -287,11 +287,11 @@ Configuration Basics
 
 Styles
 
-* Built-in Styles::             
-* Choosing a Style::            
-* Adding Styles::               
-* Guessing the Style::          
-* File Styles::                 
+* Built-in Styles::
+* Choosing a Style::
+* Adding Styles::
+* Guessing the Style::
+* File Styles::
 
 Customizing Auto-newlines
 
@@ -311,19 +311,19 @@ Indentation Engine Basics
 
 Syntactic Symbols
 
-* Function Symbols::            
-* Class Symbols::               
-* Conditional Construct Symbols::  
-* Switch Statement Symbols::    
-* Brace List Symbols::          
-* External Scope Symbols::      
-* Paren List Symbols::          
-* Literal Symbols::             
-* Multiline Macro Symbols::     
-* Objective-C Method Symbols::  
+* Function Symbols::
+* Class Symbols::
+* Conditional Construct Symbols::
+* Switch Statement Symbols::
+* Brace List Symbols::
+* External Scope Symbols::
+* Paren List Symbols::
+* Literal Symbols::
+* Multiline Macro Symbols::
+* Objective-C Method Symbols::
 * Java Symbols::
-* Statement Block Symbols::     
-* K&R Symbols::                 
+* Statement Block Symbols::
+* K&R Symbols::
 
 Customizing Indentation
 
@@ -343,8 +343,8 @@ Line-Up Functions
 
 Customizing Macros
 
-* Macro Backslashes::           
-* Macros with ;::               
+* Macro Backslashes::
+* Macros with ;::
 
 @end detailmenu
 @end menu
@@ -912,7 +912,7 @@ construct, should the point start inside it.  If @ccmode fails to find
 function beginnings or ends inside the current declaration scope, it
 will search the enclosing scopes.  If you want @ccmode to recognize
 functions only at the top level@footnote{this was @ccmode{}'s
-behaviour prior to version 5.32.}, set @code{c-defun-tatic} to
+behavior prior to version 5.32.}, set @code{c-defun-tatic} to
 @code{t}.
 
 These functions are analogous to the Emacs built-in commands
@@ -1173,7 +1173,7 @@ Full details on how these minor modes work are at @ref{Electric Keys},
 and @ref{Indentation Engine Basics}.
 
 You can toggle each of these minor modes on and off, and you can
-configure @ccmode{} so that it starts up with your favourite
+configure @ccmode{} so that it starts up with your favorite
 combination of them (@pxref{Sample .emacs File}).  By default, when
 you initialize a buffer, electric mode and syntactic-indentation mode
 are enabled but the other two modes are disabled.
@@ -2537,11 +2537,11 @@ As an alternative to writing a style definition yourself, you can have
 already formatted piece of your code, @ref{Guessing the Style}.
 
 @menu
-* Built-in Styles::             
-* Choosing a Style::            
-* Adding Styles::               
-* Guessing the Style::          
-* File Styles::                 
+* Built-in Styles::
+* Choosing a Style::
+* Adding Styles::
+* Guessing the Style::
+* File Styles::
 @end menu
 
 @comment !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -4266,19 +4266,19 @@ Java.  @ref{Java Symbols}.
 @end table
 
 @menu
-* Function Symbols::            
-* Class Symbols::               
-* Conditional Construct Symbols::  
-* Switch Statement Symbols::    
-* Brace List Symbols::          
-* External Scope Symbols::      
-* Paren List Symbols::          
-* Literal Symbols::             
-* Multiline Macro Symbols::     
-* Objective-C Method Symbols::  
+* Function Symbols::
+* Class Symbols::
+* Conditional Construct Symbols::
+* Switch Statement Symbols::
+* Brace List Symbols::
+* External Scope Symbols::
+* Paren List Symbols::
+* Literal Symbols::
+* Multiline Macro Symbols::
+* Objective-C Method Symbols::
 * Java Symbols::
-* Statement Block Symbols::     
-* K&R Symbols::                 
+* Statement Block Symbols::
+* K&R Symbols::
 @end menu
 
 @comment !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -6653,8 +6653,8 @@ these macros properly, see @ref{Macros with ;}.
 
 @comment !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 @menu
-* Macro Backslashes::           
-* Macros with ;::               
+* Macro Backslashes::
+* Macros with ;::
 @end menu
 
 @comment !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!

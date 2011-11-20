@@ -51,7 +51,7 @@
 (defvar orgtbl-after-send-table-hook nil
   "Hook for functions attaching to `C-c C-c', if the table is sent.
 This can be used to add additional functionality after the table is sent
-to the receiver position, othewise, if table is not sent, the functions
+to the receiver position, otherwise, if table is not sent, the functions
 are not run.")
 
 (defcustom orgtbl-optimized (eq org-enable-table-editor 'optimized)
@@ -1302,7 +1302,7 @@ However, when FORCE is non-nil, create new columns if necessary."
 (defun org-table-line-to-dline (line &optional above)
   "Turn a buffer line number into a data line number.
 If there is no data line in this line, return nil.
-If there is no matchin dline (most likely te refrence was a hline), the
+If there is no matching dline (most likely te refrence was a hline), the
 first dline below it is used.  When ABOVE is non-nil, the one above is used."
   (catch 'exit
     (let ((ll (length org-table-dlines))
@@ -2204,7 +2204,7 @@ For all numbers larger than LIMIT, shift them by DELTA."
 		     (string-match "^[a-zA-Z][a-zA-Z0-9]*$" field))
 	      (push (cons field v) org-table-local-parameters)
 	      (push (list field line col) org-table-named-field-locations))))
-      ;; Analyse the line types
+      ;; Analyze the line types
       (goto-char beg)
       (setq org-table-current-begin-line (org-current-line)
 	    org-table-current-begin-pos (point)
@@ -2432,7 +2432,7 @@ not overwrite the stored one."
 		      duration-output-format nil
 		      fmt (replace-match "" t t fmt)))
 	    (if (string-match "t" fmt)
-		(setq duration t 
+		(setq duration t
 		      duration-output-format org-table-duration-custom-format
 		      numbers t
 		      fmt (replace-match "" t t fmt)))
@@ -2500,7 +2500,7 @@ not overwrite the stored one."
 	;; Insert complex ranges
 	(while (and (string-match org-table-range-regexp form)
 		    (> (length (match-string 0 form)) 1))
-	  (setq formrg (save-match-data 
+	  (setq formrg (save-match-data
 			 (org-table-get-range (match-string 0 form) nil n0)))
 	  (setq formrpl
 		(save-match-data
@@ -2901,7 +2901,7 @@ known that the table will be realigned a little later anyway."
 
 (defun org-table-iterate (&optional arg)
   "Recalculate the table until it does not change anymore.
-The maximun number of iterations is 10, but you can chose a different value
+The maximum number of iterations is 10, but you can chose a different value
 with the prefix ARG."
   (interactive "P")
   (let ((imax (if arg (prefix-numeric-value arg) 10))
@@ -4723,4 +4723,3 @@ list of the fields in the rectangle ."
 
 
 ;;; org-table.el ends here
-

@@ -60,7 +60,7 @@ This document is Copyright (C) DJ Delorie and may be distributed
 verbatim, but changing it is not allowed.
 
 Source code copyright DJ Delorie is distributed under the terms of the
-GNU General Public Licence, with the following exceptions:
+GNU General Public License, with the following exceptions:
 
 * Sources used to build crt0.o, gcrt0.o, libc.a, libdbg.a, and
   libemu.a are distributed under the terms of the GNU Library General
@@ -68,7 +68,7 @@ GNU General Public Licence, with the following exceptions:
 
 * Any existing copyright or authorship information in any given source
   file must remain intact.  If you modify a source file, a notice to that
-  effect must be added to the authorship information in the source file. 
+  effect must be added to the authorship information in the source file.
 
 * Runtime binaries, as provided by DJ in DJGPP, may be distributed
   without sources ONLY if the recipient is given sufficient information

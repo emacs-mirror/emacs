@@ -25,7 +25,7 @@
 ;; Version: 1.17
 ;; X-URL: http://www.geekware.de/software/emacs
 ;;
-;; The bs-package contains a main function bs-show for poping up a
+;; The bs-package contains a main function bs-show for popping up a
 ;; buffer in a way similar to `list-buffers' and `electric-buffer-list':
 ;; The new buffer offers a Buffer Selection Menu for manipulating
 ;; the buffer list and buffers.

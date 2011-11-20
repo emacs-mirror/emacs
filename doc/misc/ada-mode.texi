@@ -184,7 +184,7 @@ convention, where file names are a simple modification of the Ada
 names, and the extension for specs and bodies are
 @samp{.ads} and @samp{.adb}, respectively.
 
-Ada mode uses the file extentions to allow moving from a package body
+Ada mode uses the file extensions to allow moving from a package body
 to the corresponding spec and back.
 
 Ada mode supports a list of alternative file extensions for specs and bodies.
@@ -209,7 +209,7 @@ whose extension is @file{.ads}, it will take the first available file
 that ends with either @file{.adb}, @file{_b.ada} or
 @file{.body}.
 
-Simililarly, if Ada mode is looking for a spec, it will look for
+Similarly, if Ada mode is looking for a spec, it will look for
 @file{.ads} or @file{_s.ada}.
 
 If the filename is not derived from the Ada name following the GNAT
@@ -1357,7 +1357,7 @@ specifies the casing of one word or word fragment. Comments may be
 included, separated from the word by a space.
 
 If the word starts with an asterisk (@key{*}), it defines the casing
-af a word fragemnt (or ``substring''); part of a word between two
+as a word fragment (or ``substring''); part of a word between two
 underscores or word boundary.
 
 For example:

@@ -123,7 +123,7 @@ If this list contains the element \"font\".")
 This is an alist where each dotted pair consists of a tag, and then
 the name of a function to be called when this tag is found.  The
 function is called with the arguments p1, p2, p3 and p4. These are
-demontrated below:
+demonstrated below:
 
 \"<b> This is bold text </b>\"
  ^   ^                 ^    ^
@@ -410,7 +410,7 @@ fashion, quite close to pure guess-work. It does work in some cases though."
   (while (re-search-forward "^<br>$" nil t)
     (delete-region (match-beginning 0) (match-end 0)))
   ;; Removing lonely <br> on a single line, if they are left intact we
-  ;; dont have any paragraphs at all.
+  ;; don't have any paragraphs at all.
   (goto-char (point-min))
   (while (not (eobp))
     (let ((p1 (point)))

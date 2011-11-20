@@ -284,11 +284,11 @@ The functions come in the following groups.
   :type 'character
   :group 'ogonek)
 (defcustom ogonek-prefix-from-encoding "iso8859-2"
-  "Encoding in the source file subject to prefixifation."
+  "Encoding in the source file subject to prefixation."
   :type ogonek-encoding-choices
   :group 'ogonek)
 (defcustom ogonek-prefix-to-encoding "iso8859-2"
-  "Encoding in the target file subject to deprefixifation."
+  "Encoding in the target file subject to deprefixation."
   :type ogonek-encoding-choices
   :group 'ogonek)
 

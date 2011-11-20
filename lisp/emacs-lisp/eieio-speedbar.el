@@ -282,7 +282,7 @@ Add one of the child classes to this class to the parent list of a class."
   :abstract t)
 
 
-;;; Methods to eieio-speedbar-* which do not need to be overriden
+;;; Methods to eieio-speedbar-* which do not need to be overridden
 ;;
 (defmethod eieio-speedbar-make-tag-line ((object eieio-speedbar)
 					 depth)
@@ -409,7 +409,7 @@ Optional DEPTH is the depth we start at."
 	default-directory))))
 
 
-;;; Methods to the eieio-speedbar-* classes which need to be overriden.
+;;; Methods to the eieio-speedbar-* classes which need to be overridden.
 ;;
 (defmethod eieio-speedbar-object-children ((object eieio-speedbar))
   "Return a list of children to be displayed in speedbar.

@@ -122,7 +122,7 @@ RESULT is a string."
     ("read" . "Reads from")
     ("reset" . "Resets the parameters and returns")
     ("scan" . "Scans the ")
-    ("setup\\|init\\(iallize\\)?" . "Initializes the ")
+    ("setup\\|init\\(ialize\\)?" . "Initializes the ")
     ("select" . "Chooses the ")
     ("send" . "Sends a")
     ("re?c\\(v\\|ieves?\\)" . "Receives a ")
@@ -167,7 +167,7 @@ doesn't always work correctly."
     ("str\\(ing\\)?" . "string")
     ("use?r" . "user")
     ("num\\(ber\\)?" . "number")
-    ("\\(^\\|\\s-\\)id\\($\\|\\s-\\)" . "Identifier") ;complex cause ;commen sylable
+    ("\\(^\\|\\s-\\)id\\($\\|\\s-\\)" . "Identifier") ;complex cause ;common sylable
     )
   "List of common English abbreviations or full words.
 These are nouns (as opposed to verbs) for use in creating expanded
@@ -720,7 +720,7 @@ allocating something based on its type."
   "Convert tag or string PARAM into a name,comment pair.
 Optional COMMENTLIST is list of previously existing comments to
 use instead in alist form.  If the name doesn't appear in the list of
-standard names, then englishify it instead."
+standard names, then english it instead."
   (let ((cmt "")
 	(aso srecode-document-autocomment-param-alist)
 	(fnd nil)
@@ -811,8 +811,8 @@ not account for verb parts."
 	    (if (string-match (car (car al)) (downcase ts))
 		(progn
 		  (setq newstr (concat newstr (cdr (car al))))
-		  ;; don't terminate because we may actuall have 2 words
-		  ;; next to eachother we didn't identify before
+		  ;; don't terminate because we may actually have 2 words
+		  ;; next to each other we didn't identify before
 		  (setq llow t)))
 	    (setq al (cdr al)))
 	  (if (not llow) (setq newstr (concat newstr ts)))

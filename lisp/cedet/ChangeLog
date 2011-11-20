@@ -1,3 +1,21 @@
+2011-11-16  Juanma Barranquero  <lekktu@gmail.com>
+
+	* semantic/lex.el (semantic-lex-tokens):
+	* semantic/tag-ls.el (semantic-tag-protected-p):
+	* srecode/mode.el (srecode-prefix-map): Fix typos.
+
+2011-11-15  Juanma Barranquero  <lekktu@gmail.com>
+
+	* ede/project-am.el (project-compile-target-command): Fix typo.
+
+2011-11-14  Juanma Barranquero  <lekktu@gmail.com>
+
+	* ede/auto.el (ede-project-autoload):
+	* ede/proj-comp.el (ede-makefile-rule):
+	* semantic/analyze.el (semantic-analyze-current-context):
+	* semantic/ctxt.el (semantic-get-local-variables):
+	* semantic/tag-ls.el (semantic-tag-calculate-parent): Fix typos.
+
 2011-11-03  David Engster  <dengste@eml.cc>
 
 	* srecode.el:
@@ -444,7 +462,7 @@
 	* semantic/decorate/include.el
 	(semantic-decoration-on-unknown-includes): Change light bgcolor.
 	(semantic-decoration-on-includes-highlight-default): Check that
-	the include tag has a postion.
+	the include tag has a position.
 
 	* semantic/complete.el (semantic-collector-local-members):
 	(semantic-complete-read-tag-local-members)
@@ -547,7 +565,7 @@
 	(semantic-analyzer-debug-missing-innertype): Change "prefix" to
 	"symbol" in messages.
 
-	* semantic/analyze/refs.el: (semantic-analyze-refs-impl)
+	* semantic/analyze/refs.el (semantic-analyze-refs-impl)
 	(semantic-analyze-refs-proto): When calculating value, make sure
 	the found tag is 'similar' to the originating tag.
 	(semantic--analyze-refs-find-tags-with-parent): Attempt to

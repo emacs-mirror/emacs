@@ -1285,7 +1285,7 @@ expressions; a `progn' form will be returned enclosing these forms."
   ;; Wrap a form, usually a defining form, but any evaluated one.
   ;; If speclist is non-nil, this is being called by edebug-defining-form.
   ;; Otherwise it is being called from edebug-read-and-maybe-wrap-form1.
-  ;; This is a hack, but I havent figured out a simpler way yet.
+  ;; This is a hack, but I haven't figured out a simpler way yet.
   (let* ((form-data-entry (edebug-get-form-data-entry form-begin form-end))
 	 ;; Set this marker before parsing.
 	 (edebug-form-begin-marker

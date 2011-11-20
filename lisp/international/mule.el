@@ -120,14 +120,14 @@ MAX-N is the maximum byte value of that.
 
 `:min-code'
 
-VALUE must be an integer specifying the mininum code point of the
+VALUE must be an integer specifying the minimum code point of the
 charset.  If omitted, it is calculated from `:code-space'.  VALUE may
 be a cons (HIGH . LOW), where HIGH is the most significant 16 bits of
 the code point and LOW is the least significant 16 bits.
 
 `:max-code'
 
-VALUE must be an integer specifying the maxinum code point of the
+VALUE must be an integer specifying the maximum code point of the
 charset.  If omitted, it is calculated from `:code-space'.  VALUE may
 be a cons (HIGH . LOW), where HIGH is the most significant 16 bits of
 the code point and LOW is the least significant 16 bits.
@@ -1566,7 +1566,7 @@ of `ctext-non-standard-encodings-alist'.")
 
 ;; Return an alist of CHARSET vs CTEXT-USAGE-INFO generated from
 ;; `ctext-non-standard-encodings' and a list specified by the key
-;; `ctext-non-standard-encodings' for the currrent language
+;; `ctext-non-standard-encodings' for the current language
 ;; environment.  CTEXT-USAGE-INFO is one of the element of
 ;; `ctext-non-standard-encodings-alist' or nil.  In the former case, a
 ;; character in CHARSET is encoded using extended segment.  In the

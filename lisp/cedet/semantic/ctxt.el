@@ -154,7 +154,7 @@ Return non-nil if there is no upper context."
 (define-overloadable-function semantic-get-local-variables (&optional point)
   "Get the local variables based on POINT's context.
 Local variables are returned in Semantic tag format.
-This can be overriden with `get-local-variables'."
+This can be overridden with `get-local-variables'."
   ;; Disable parsing messages
   (let ((semantic--progress-reporter nil))
     (save-excursion
@@ -410,7 +410,7 @@ Depends on `semantic-type-relation-separator-character'."
 	  ;; Set our end point.
 	  (setq end (point))
 
-	  ;; Now that we have gotten started, lets do the rest.
+	  ;; Now that we have gotten started, let's do the rest.
 	  (condition-case nil
 	      (while (save-excursion
 		       (forward-char -1)

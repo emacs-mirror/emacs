@@ -1399,7 +1399,7 @@ See also \\[mh-mh-to-mime]."
     ("mailto")          ; RFC1738 Electronic mail address
     ("news")            ; RFC1738 Usenet news
     ("nntp")            ; RFC1738 Usenet news using NNTP access
-    ("propspero")       ; RFC1738 Prospero Directory Service
+    ("prospero")        ; RFC1738 Prospero Directory Service
     ("telnet")          ; RFC1738 Telnet
     ("tftp")            ; RFC2046 Trivial File Transfer Protocol
     ("url")             ; RFC2017 URL scheme MIME access-type Protocol

@@ -335,7 +335,7 @@ Currently supported methods:
 `socks': Connect through a socks server;
 `tls': Connect with TLS;
 `ssl': Connect with SSL (deprecated, use `tls' instead);
-`native': Connect directy."
+`native': Connect directly."
   :type '(radio (const :tag "Telnet to gateway host" :value telnet)
 		(const :tag "Rlogin to gateway host" :value rlogin)
 		(const :tag "Use SOCKS proxy" :value socks)

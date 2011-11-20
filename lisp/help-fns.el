@@ -256,7 +256,7 @@ if the variable `help-downcase-arguments' is non-nil."
               ;; so let's skip over it
               (search-backward "(")
               (goto-char (scan-sexps (point) 1)))))
-        ;; Highlight aguments in the USAGE string
+        ;; Highlight arguments in the USAGE string
         (setq usage (help-do-arg-highlight (buffer-string) args))
         ;; Highlight arguments in the DOC string
         (setq doc (and doc (help-do-arg-highlight doc args))))))

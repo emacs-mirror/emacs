@@ -19,7 +19,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 /* We introduce new member `tab_offset'.  We need it because of the
    existence of wide-column characters.  There is a case that the
    line-break occurs at a wide-column character and the number of
-   colums of the line gets less than width.
+   columns of the line gets less than width.
 
    Example (where W_ stands for a wide-column character):
 	     ----------
@@ -73,5 +73,3 @@ int disptab_matches_widthtab (struct Lisp_Char_Table *disptab,
 /* Recompute BUF's width table, using the display table DISPTAB.  */
 void recompute_width_table (struct buffer *buf,
                             struct Lisp_Char_Table *disptab);
-
-
