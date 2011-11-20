@@ -1,3 +1,9 @@
+2011-11-20  Bill Wohler  <wohler@newt.com>
+
+	* Release MH-E version 8.3.1.
+
+	* mh-e.el (Version, mh-version): Update for release 8.3.1.
+
 2011-11-20  Juanma Barranquero  <lekktu@gmail.com>
 
 	* mh-utils.el (mh-folder-list): Fix typo.
