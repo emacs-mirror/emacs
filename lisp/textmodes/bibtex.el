@@ -3941,7 +3941,7 @@ If `bibtex-files' is non-nil, search all these files.
 Otherwise the search is limited to the current buffer.
 Return position of entry if CROSSREF-KEY is found or nil otherwise.
 If CROSSREF-KEY is in the same buffer like current entry but before it
-an error is signaled.  If NOERRER is non-nil this error is suppressed.
+an error is signaled.  If NOERROR is non-nil this error is suppressed.
 Optional arg PNT is the position of the referencing entry.  It defaults
 to position of point.  If optional arg SPLIT is non-nil, split window
 so that both the referencing and the crossrefed entry are displayed.

@@ -963,7 +963,7 @@ a slash is appended to it.
 * Undo can clear modified-flag.
 
 If you undo changes in a buffer back to a state in which the
-buffer was not considered "modified", then it is labelled as
+buffer was not considered "modified", then it is labeled as
 once again "unmodified".
 
 * M-x run-lisp.

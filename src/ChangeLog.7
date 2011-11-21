@@ -592,7 +592,7 @@
 
 	* coding.h (Qemacs_mule): Extern it.
 
-	* process.c (init_process): Initilize Vdefault_process_coding_system.
+	* process.c (init_process): Initialize Vdefault_process_coding_system.
 
 1998-06-26  Kenichi Handa  <handa@etl.go.jp>
 
@@ -972,7 +972,7 @@
 
 1998-06-01  Ken'ichi Handa  <handa@melange.gnu.org>
 
-	* coding.c (detect_coding_mask): Initilize local variable C.
+	* coding.c (detect_coding_mask): Initialize local variable C.
 
 1998-06-01  Richard Stallman  <rms@gnu.org>
 
@@ -6317,7 +6317,7 @@
 	(ENCODE_ISO_CHARACTER_DIMENSION2): Likewise.
 	(safe_terminal_coding): New variable.
 	(Fset_safe_terminal_coding_system_internal): New function.
-	(init_coding_once): Initilize safe_terminal_coding.
+	(init_coding_once): Initialize safe_terminal_coding.
 	(syms_of_coding): Declare set-safe-terminal-coding-system as a
 	Lisp function.
 
@@ -7399,7 +7399,7 @@
 
 1997-06-18  Kenichi Handa  <handa@etl.go.jp>
 
-	* coding.c (detect_coding_iso2022): Initilize mask correctly.
+	* coding.c (detect_coding_iso2022): Initialize mask correctly.
 
 	* fns.c (concat): Pay attention to multibyte characters when
 	TARGET_TYPE is Lisp_String.

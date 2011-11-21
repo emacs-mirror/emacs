@@ -1,3 +1,8 @@
+2011-11-12  Martin Rudalics  <rudalics@gmx.at>
+
+	* windows.texi (Splitting Windows, Deleting Windows): Remove
+	references to splits status of windows.
+
 2011-11-10  Glenn Morris  <rgm@gnu.org>
 
 	* buffers.texi (Read Only Buffers): Expand a bit on why

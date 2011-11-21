@@ -2929,7 +2929,7 @@ unwind_create_frame (Lisp_Object frame)
     return Qnil;
 
   /* If frame is ``official'', nothing to do.  */
-  if (!CONSP (Vframe_list) || !EQ (XCAR (Vframe_list), frame))
+  if (NILP (Fmemq (frame, Vframe_list)))
     {
 #if GLYPH_DEBUG && XASSERTS
       struct x_display_info *dpyinfo = FRAME_X_DISPLAY_INFO (f);
@@ -3691,7 +3691,7 @@ If omitted or nil, that stands for the selected frame's display.  */)
 
 DEFUN ("x-server-vendor", Fx_server_vendor, Sx_server_vendor, 0, 1, 0,
        doc: /* Return the "vendor ID" string of the X server of display TERMINAL.
-\(Labelling every distributor as a "vendor" embodies the false assumption
+\(Labeling every distributor as a "vendor" embodies the false assumption
 that operating systems cannot be developed and distributed noncommercially.)
 The optional argument TERMINAL specifies which display to ask about.
 TERMINAL should be a terminal object, a frame or a display name (a string).

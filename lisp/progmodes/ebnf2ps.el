@@ -4007,7 +4007,7 @@ See documentation for `ebnf-terminal-shape', `ebnf-non-terminal-shape' and
 /#ebnf2ps#dict 230 dict def
 #ebnf2ps#dict begin
 
-% Initiliaze variables to avoid name-conflicting with document variables.
+% Initialize variables to avoid name-conflicting with document variables.
 % This is the case when using `bind' operator.
 /-fillp-		0 def		/h		0 def
 /-ox-			0 def		/half		0 def
@@ -5037,7 +5037,7 @@ killed after process termination."
 		(when gen-func
 		  (setq error-msg "EMPTY RULES"
 			tree      (ebnf-eliminate-empty-rules tree))
-		  (setq error-msg "OPTMIZE"
+		  (setq error-msg "OPTIMIZE"
 			tree      (ebnf-optimize tree))
 		  (setq error-msg "DIMENSIONS"
 			tree      (ebnf-dimensions tree))

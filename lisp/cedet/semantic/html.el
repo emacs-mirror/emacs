@@ -61,7 +61,7 @@
 (define-mode-local-override semantic-parse-region
   html-mode (&rest ignore)
   "Parse the current html buffer for semantic tags.
-INGNORE any arguments.  Always parse the whole buffer.
+IGNORE any arguments.  Always parse the whole buffer.
 Each tag returned is of the form:
  (\"NAME\" section (:members CHILDREN))
 or

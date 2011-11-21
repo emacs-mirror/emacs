@@ -43,7 +43,7 @@
 ;; working fine in most cases, however failed in some cases of several path
 ;; racing together.
 ;;
-;; The current algorithm is based on Dijksta algorithm.  The ``cycle length'' is
+;; The current algorithm is based on Dijkstra's algorithm.  The cycle length is
 ;; stored in some cell property. In order not to reset in all cells such
 ;; property at each update, the cycle length is stored in this property along
 ;; with some update attempt id that is incremented at each update. The current

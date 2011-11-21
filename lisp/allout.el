@@ -5473,7 +5473,7 @@ header and body.  The elements of that list are:
 				     "invalid format" format))))
 		 (list depth prefix strings))
 		    result))
-	;; Reasses format, if any:
+	;; Reassess format, if any:
 	(if (and format (listp format))
 	    (cond ((= new-depth depth)
 		   (setq format (cons (1+ (car format))

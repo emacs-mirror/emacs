@@ -22049,7 +22049,7 @@ get_glyph_face_and_encoding (struct frame *f, struct glyph *glyph,
 
 
 /* Get glyph code of character C in FONT in the two-byte form CHAR2B.
-   Retunr 1 if FONT has a glyph for C, otherwise return 0.  */
+   Return 1 if FONT has a glyph for C, otherwise return 0.  */
 
 static inline int
 get_char_glyph_code (int c, struct font *font, XChar2b *char2b)
@@ -27974,7 +27974,6 @@ syms_of_xdisp (void)
   DEFSYM (Qhollow, "hollow");
   DEFSYM (Qhand, "hand");
   DEFSYM (Qarrow, "arrow");
-  DEFSYM (Qtext, "text");
   DEFSYM (Qinhibit_free_realized_faces, "inhibit-free-realized-faces");
 
   list_of_error = Fcons (Fcons (intern_c_string ("error"),

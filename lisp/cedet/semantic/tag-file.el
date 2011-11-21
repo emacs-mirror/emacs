@@ -154,7 +154,7 @@ Depends on `semantic-dependency-include-path' for searching.  Always searches
 	  (setq result
 		;; I don't have a plan for refreshing tags with a dependency
 		;; stuck on them somehow.  I'm thinking that putting a cache
-		;; onto the dependancy finding with a hash table might be best.
+		;; onto the dependency finding with a hash table might be best.
 		;;(if (semantic--tag-get-property tag 'dependency-file)
 		;;  (semantic--tag-get-property tag 'dependency-file)
 		(:override

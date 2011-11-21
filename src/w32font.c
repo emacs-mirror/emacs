@@ -2221,7 +2221,7 @@ font_supported_scripts (FONTSIGNATURE * sig)
      so don't need to mark them separately.  */
   /* 1: Latin-1 supplement, 2: Latin Extended A, 3: Latin Extended B.  */
   SUBRANGE (4, Qphonetic);
-  /* 5: Spacing and tone modifiers, 6: Combining Diacriticals.  */
+  /* 5: Spacing and tone modifiers, 6: Combining Diacritical Marks.  */
   SUBRANGE (7, Qgreek);
   SUBRANGE (8, Qcoptic);
   SUBRANGE (9, Qcyrillic);
@@ -2311,7 +2311,7 @@ font_supported_scripts (FONTSIGNATURE * sig)
   /* 115: Saurashtra, 116: Kayah Li, 117: Rejang.  */
   SUBRANGE (118, Qcham);
   /* 119: Ancient symbols, 120: Phaistos Disc.  */
-  /* 121: Carian, Lycian, Lydian, 122: Dominos, Mah Jong tiles.  */
+  /* 121: Carian, Lycian, Lydian, 122: Dominoes, Mahjong tiles.  */
   /* 123-127: Reserved.  */
 
   /* There isn't really a main symbol range, so include symbol if any

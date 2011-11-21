@@ -1,3 +1,7 @@
+2011-11-13  Glenn Morris  <rgm@gnu.org>
+
+	* INSTALL: Tiny updates for disk space used during installation.
+
 2011-11-05  Eli Zaretskii  <eliz@gnu.org>
 
 	* lib/makefile.w32-in (FRC): New dummy target.

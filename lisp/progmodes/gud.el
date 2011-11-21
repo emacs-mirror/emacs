@@ -2016,7 +2016,7 @@ extension EXTN.  Normally EXTN is given as the regular expression
 	   ((looking-at "final")
 	    (forward-char 5))
 
-	   ;; Move point past a ClassDeclaraction, but save the class
+	   ;; Move point past a ClassDeclaration, but save the class
 	   ;; Identifier.
 	   ((looking-at "class")
 	    (forward-char 5)

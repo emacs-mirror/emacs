@@ -4923,10 +4923,10 @@
 	(fortran-blink-matching-if, fortran-blink-matching-do)
 	(fortran-indent-new-line): Bind case-fold-search.
 	(fortran-end-do, fortran-beginning-do, fortran-end-if)
-	(fortran-beginning-if): Bind case-fold-search.  Allow labelled blocks.
+	(fortran-beginning-if): Bind case-fold-search.  Allow labeled blocks.
 	Use fortran-end-prog-re.
 	(fortran-if-start-re): New variable.
-	(fortran-calculate-indent): Allow labelled blocks.  Simplify the conds.
+	(fortran-calculate-indent): Allow labeled blocks.  Simplify the conds.
 	Make select case indentation work.
 	(fortran-is-in-string-p): Ignore Emacs 18 bug kluge.
 	(fortran-fill): Allow double quotes in check for string.
@@ -21766,9 +21766,9 @@
 
 	* f90.el (f90-no-block-limit): Fixed bug for indentation of
 	elsewhere and elseif.
-	(f90-looking-at-where-or-forall): Now allows for labelled forall
+	(f90-looking-at-where-or-forall): Now allows for labeled forall
 	and where statements.
-	(f90-font-lock-keywords-2): New highlighting for labelled where
+	(f90-font-lock-keywords-2): New highlighting for labeled where
 	and forall.  Fixed small bug with else highlighting.
 	(f90-fill-region): Moved indentation to f90-break-line.
 	(f90-break-line): Will now always indent the second line.
@@ -23123,4 +23123,3 @@ See ChangeLog.6 for earlier changes.
 
   You should have received a copy of the GNU General Public License
   along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
-

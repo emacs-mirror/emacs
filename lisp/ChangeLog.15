@@ -2252,7 +2252,7 @@
 	Use define-derived-mode.
 	* textmodes/reftex-index.el (reftex-index-phrases-mode-map)
 	(reftex-index-mode-map): Rename from reftex-index(-phrases)-map.
-	Move init into delcaration.
+	Move init into declaration.
 	(reftex-index-mode, reftex-index-phrases-mode):
 	Use define-derived-mode.
 	* speedbar.el (speedbar-mode-syntax-table): Renaqme from

@@ -344,7 +344,7 @@ This function is explicit for adding to `eshell-parse-argument-hook'."
 	      (pcomplete-here))))
 
 (defun eshell/env (&rest args)
-  "Implemention of `env' in Lisp."
+  "Implementation of `env' in Lisp."
   (eshell-init-print-buffer)
   (eshell-eval-using-options
    "env" args

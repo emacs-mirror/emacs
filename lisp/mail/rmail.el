@@ -2602,6 +2602,8 @@ Ask the user whether to add that list name to `mail-mailing-lists'."
   "Return nil if there is mail, else \"No mail.\"."
   (if (zerop rmail-total-messages)
       (save-excursion
+	;; Eg we deleted all the messages, so remove the old N/M mark.
+	(with-current-buffer rmail-buffer (setq mode-line-process nil))
 	(with-current-buffer rmail-view-buffer
 	  (erase-buffer)
 	  "No mail."))))
@@ -4599,7 +4601,7 @@ If prefix argument REVERSE is non-nil, sorts in reverse order.
 
 ;;;### (autoloads (rmail-summary-by-senders rmail-summary-by-topic
 ;;;;;;  rmail-summary-by-regexp rmail-summary-by-recipients rmail-summary-by-labels
-;;;;;;  rmail-summary) "rmailsum" "rmailsum.el" "3817e21639db697abe5832d3223ecfc2")
+;;;;;;  rmail-summary) "rmailsum" "rmailsum.el" "4d1366228363803cd5b4fc60e7ad469e")
 ;;; Generated autoloads from rmailsum.el
 
 (autoload 'rmail-summary "rmailsum" "\

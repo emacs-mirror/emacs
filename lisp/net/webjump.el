@@ -235,7 +235,7 @@
      "www.faqs.org/faqs/")
     ("RTFM Usenet FAQs by Group" .
      "ftp://rtfm.mit.edu/pub/usenet-by-group/")
-    ("RTFM Usenet FAQs by Hierachy" .
+    ("RTFM Usenet FAQs by Hierarchy" .
      "ftp://rtfm.mit.edu/pub/usenet-by-hierarchy/")
     ("X Consortium Archive" . "ftp.x.org")
 

@@ -24,6 +24,9 @@ ALL = emacs
 # Set EMACSLOADPATH correctly (in case already defined in environment).
 EMACSLOADPATH=$(CURDIR)/../lisp
 
+# Size in MBs of the static heap in temacs.exe.
+HEAPSIZE = 27
+
 #
 # HAVE_CONFIG_H is required by some generic gnu sources stuck into
 # the emacs source tree.
@@ -177,7 +180,7 @@ temacs:         stamp_BLD $(TEMACS)
 $(TEMACS):      $(TLIB0) $(TLIB1) $(TLIB2) $(TLASTLIB) $(TOBJ) $(TRES) \
 		  ../nt/$(BLD)/addsection.exe $(GNULIB)
 	$(LINK) $(LINK_OUT)$(TEMACS_TMP) $(FULL_LINK_FLAGS) $(TOBJ) $(TRES) $(LIBS)
-	"$(THISDIR)/../nt/$(BLD)/addsection" "$(TEMACS_TMP)" "$(TEMACS)" EMHEAP 21
+	"$(THISDIR)/../nt/$(BLD)/addsection" "$(TEMACS_TMP)" "$(TEMACS)" EMHEAP $(HEAPSIZE)
 
 # These omit firstfile.${O}, but there's no documentation in there
 # anyways.

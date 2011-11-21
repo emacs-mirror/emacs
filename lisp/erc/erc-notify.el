@@ -88,7 +88,7 @@ strings."
 (defun erc-notify-install-message-catalogs ()
   (erc-define-catalog
    'english
-   '((notify_current . "Notificated people online: %l")
+   '((notify_current . "Notified people online: %l")
      (notify_list    . "Current notify list: %l")
      (notify_on      . "Detected %n on IRC network %m")
      (notify_off     . "%n has left IRC network %m"))))
@@ -250,4 +250,3 @@ with args, toggle notify status of people."
 ;; indent-tabs-mode: t
 ;; tab-width: 8
 ;; End:
-

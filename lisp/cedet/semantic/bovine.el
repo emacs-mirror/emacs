@@ -240,7 +240,7 @@ list of semantic tokens found."
                           matchlist nil) ;;generate exit condition
                     (if (not end)
                         (setq out nil)))
-                  ;; Nothin?
+                  ;; Nothing?
                   ))
               (setq result
                     (if (eq s starting-stream)

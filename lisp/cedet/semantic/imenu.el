@@ -96,7 +96,7 @@ This option is ignored if `semantic-imenu-bucketize-file' is nil."
 (defcustom semantic-imenu-bucketize-type-members t
   "*Non-nil if members of a type should be grouped into buckets.
 A nil value means to keep them in the same order.
-Overriden to nil if `semantic-imenu-bucketize-file' is nil."
+Overridden to nil if `semantic-imenu-bucketize-file' is nil."
   :group 'semantic-imenu
   :type 'boolean)
 (make-variable-buffer-local 'semantic-imenu-bucketize-type-members)

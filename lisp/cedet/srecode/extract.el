@@ -66,7 +66,7 @@
 
 (defmethod srecode-extract-state-extract ((st srecode-extract-state)
 					  endpoint)
-  "Perform an extraction on the extract state ST with ENDPOITNT.
+  "Perform an extraction on the extract state ST with ENDPOINT.
 If there was no waiting inserter, do nothing."
   (when (oref st lastinserter)
     (save-match-data

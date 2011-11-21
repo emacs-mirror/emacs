@@ -748,7 +748,7 @@ explanation function.
 
 Both @code{ert-run-tests-interactively} and @code{ert-run-tests-batch}
 are implemented on top of the lower-level test handling code in the
-sections of @file{ert.el} labelled ``Facilities for running a single test'',
+sections of @file{ert.el} labeled ``Facilities for running a single test'',
 ``Test selectors'', and ``Facilities for running a whole set of tests''.
 
 If you want to write code that works with ERT tests, you should take a
