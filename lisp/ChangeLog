@@ -1,6 +1,11 @@
+2011-11-21  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* emacs-lisp/autoload.el (autoload-generate-file-autoloads): Simplify.
+
 2011-11-20  Stefan Monnier  <monnier@iro.umontreal.ca>
 
-	* vc/pcvs-util.el (cvs-pop-to-buffer-same-frame): Use force-same-window.
+	* vc/pcvs-util.el (cvs-pop-to-buffer-same-frame):
+	Use force-same-window.
 
 2011-11-20  Juanma Barranquero  <lekktu@gmail.com>
 
