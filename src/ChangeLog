@@ -1,3 +1,7 @@
+2011-11-21  Chong Yidong  <cyd@gnu.org>
+
+	* window.c (Fnext_window, Fprevious_window): Doc fix.
+
 2011-11-20  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* window.c (get_phys_cursor_glyph): Fix Lisp_Object/int mixup.

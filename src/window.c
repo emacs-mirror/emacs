@@ -2181,7 +2181,7 @@ next_window (Lisp_Object window, Lisp_Object minibuf, Lisp_Object all_frames, in
 
 
 DEFUN ("next-window", Fnext_window, Snext_window, 0, 3, 0,
-       doc: /* Return window following WINDOW in cyclic ordering of windows.
+       doc: /* Return live window after WINDOW in the cyclic ordering of windows.
 WINDOW must be a live window and defaults to the selected one.  The
 optional arguments MINIBUF and ALL-FRAMES specify the set of windows to
 consider.
@@ -2220,7 +2220,7 @@ windows, eventually ending up back at the window you started with.
 
 
 DEFUN ("previous-window", Fprevious_window, Sprevious_window, 0, 3, 0,
-       doc: /* Return window preceding WINDOW in cyclic ordering of windows.
+       doc: /* Return live window before WINDOW in the cyclic ordering of windows.
 WINDOW must be a live window and defaults to the selected one.  The
 optional arguments MINIBUF and ALL-FRAMES specify the set of windows to
 consider.

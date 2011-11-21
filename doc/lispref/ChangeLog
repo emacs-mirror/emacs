@@ -1,3 +1,16 @@
+2011-11-21  Chong Yidong  <cyd@gnu.org>
+
+	* windows.texi (Splitting Windows): Fix error in documentation of
+	window-combination-limit.
+	(Cyclic Window Ordering): Minor fixes to next-window,
+	one-window-p, and get-lru-window docs.  Don't document
+	window-list-1.
+	(Buffers and Windows): Copyedits.
+	(Choosing Window): Document special handling of special-display-*.
+	(Choosing Window Options): Fix display-buffer-reuse-frames doc.
+	Don't document even-window-heights, which is going away.  Clarify
+	which options are obeyed by which action functions.
+
 2011-11-20  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* display.texi (Invisible Text): Clarify point adjustment (bug#10072).
