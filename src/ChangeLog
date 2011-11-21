@@ -1,3 +1,7 @@
+2011-11-21  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* xterm.c (x_clear_frame): Reinstate the XClearWindow call.
+
 2011-11-21  Chong Yidong  <cyd@gnu.org>
 
 	* window.c (Fnext_window, Fprevious_window): Doc fix.
