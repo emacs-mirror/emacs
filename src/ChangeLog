@@ -2,6 +2,7 @@
 
 	* process.c (wait_reading_process_output): Fix asynchrounous
 	GnuTLS socket handling on some versions of the GnuTLS library.
+	(wait_reading_process_output): Add comment and URL.
 
 2011-11-21  Jan Djärv  <jan.h.d@swipnet.se>
 
