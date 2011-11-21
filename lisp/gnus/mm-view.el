@@ -566,6 +566,8 @@
 		     (face-property 'default prop) (current-buffer))))
 	      (delete-region ,(point-min-marker) ,(point-max-marker)))))))))
 
+;; Shut up byte-compiler.
+(defvar font-lock-mode-hook)
 (defun mm-display-inline-fontify (handle &optional mode)
   "Insert HANDLE inline fontifying with MODE.
 If MODE is not set, try to find mode automatically."
@@ -597,25 +599,25 @@ If MODE is not set, try to find mode automatically."
 		    (t
 		     text)))
       (require 'font-lock)
-      (let ((font-lock-maximum-size nil)
-	    ;; Disable support modes, e.g., jit-lock, lazy-lock, etc.
-	    (font-lock-mode-hook nil)
-	    (font-lock-support-mode nil)
-	    ;; I find font-lock a bit too verbose.
-	    (font-lock-verbose nil))
+      ;; I find font-lock a bit too verbose.
+      (let ((font-lock-verbose nil))
+	;; Disable support modes, e.g., jit-lock, lazy-lock, etc.
+	(set (make-local-variable 'font-lock-mode-hook) nil)
+	(set (make-local-variable 'font-lock-support-mode) nil)
         (setq buffer-file-name (mm-handle-filename handle))
         (set (make-local-variable 'enable-local-variables) nil)
-        (if mode
-            (funcall mode)
-	  (let ((auto-mode-alist
-		 (delq (rassq 'doc-view-mode-maybe auto-mode-alist)
-		       (copy-sequence auto-mode-alist))))
-	    (set-auto-mode)))
-	;; The mode function might have already turned on font-lock.
-        ;; Do not fontify if the guess mode is fundamental.
-	(unless (or (symbol-value 'font-lock-mode)
-                    (eq major-mode 'fundamental-mode))
-	  (font-lock-fontify-buffer)))
+	(with-demoted-errors
+	  (if mode
+	      (funcall mode)
+	    (let ((auto-mode-alist
+		   (delq (rassq 'doc-view-mode-maybe auto-mode-alist)
+			 (copy-sequence auto-mode-alist))))
+	      (set-auto-mode)))
+	  ;; The mode function might have already turned on font-lock.
+	  ;; Do not fontify if the guess mode is fundamental.
+	  (unless (or (symbol-value 'font-lock-mode)
+		      (eq major-mode 'fundamental-mode))
+	    (font-lock-fontify-buffer))))
       ;; By default, XEmacs font-lock uses non-duplicable text
       ;; properties.  This code forces all the text properties
       ;; to be copied along with the text.

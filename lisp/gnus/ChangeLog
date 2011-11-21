@@ -1,3 +1,10 @@
+2011-11-21  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* mm-view.el (mm-display-inline-fontify): Make the font-lock variables
+	buffer-local instead of binding them to avoid warnings.  Also demote
+	errors (bug#10063).
+	(font-lock-mode-hook): Shut up byte compiler.
+
 2011-11-20  Juanma Barranquero  <lekktu@gmail.com>
 
 	* mm-util.el (mm-charset-after): Fix typo.
