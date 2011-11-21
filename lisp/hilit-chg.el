@@ -480,7 +480,7 @@ This is the opposite of `hilit-chg-hide-changes'."
 (defun hilit-chg-make-ov (prop start end)
   (or prop
       (error "hilit-chg-make-ov: prop is nil"))
-  ;; For the region create overlays with a distincive face
+  ;; For the region create overlays with a distinctive face
   ;; and the text property 'hilit-chg.
   (let ((ov (make-overlay start end))
 	(face (if (eq prop 'hilit-chg-delete)

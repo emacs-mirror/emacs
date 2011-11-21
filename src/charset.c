@@ -162,8 +162,8 @@ static struct
   /* 1 iff the following table is used for encoder.  */
   short for_encoder;
 
-  /* When the following table is used for encoding, mininum and
-     maxinum character of the current charset.  */
+  /* When the following table is used for encoding, minimum and
+     maximum character of the current charset.  */
   int min_char, max_char;
 
   /* A Unicode character correspoinding to the code indice 0 (i.e. the
@@ -2082,7 +2082,7 @@ that case, find the charset from what supported by that coding system.  */)
 DEFUN ("charset-after", Fcharset_after, Scharset_after, 0, 1, 0,
        doc: /*
 Return charset of a character in the current buffer at position POS.
-If POS is nil, it defauls to the current point.
+If POS is nil, it defaults to the current point.
 If POS is out of range, the value is nil.  */)
   (Lisp_Object pos)
 {

@@ -980,7 +980,7 @@ if the cell's value is unchanged and FORCE is nil."
 	(error "Circular references: %s" ses--deferred-recalc))
       (message " "))
     ;; Can't use save-excursion here: if the cell under point is updated,
-    ;; save-excusion's marker will move past the cell.
+    ;; save-excursion's marker will move past the cell.
     (goto-char pos)))
 
 
@@ -1315,7 +1315,7 @@ Newlines in the data are escaped."
 	      (setq formula (cadr formula)))
 	  (if (eq (car-safe printer) 'ses-safe-printer)
 	      (setq printer (cadr printer)))
-	  ;; This is noticably faster than (format "%S %S %S %S %S")
+	  ;; This is noticeably faster than (format "%S %S %S %S %S")
 	  (setq text    (concat "(ses-cell "
 				(symbol-name sym)
 				" "
@@ -2720,7 +2720,7 @@ When inserting cells, the formulas are usually relocated to keep the same
 relative references to neighboring cells.  This is best if the formulas
 generally refer to other cells within the yanked text.  You can use the C-u
 prefix to specify insertion without relocation, which is best when the
-formulas refer to cells outsite the yanked text.
+formulas refer to cells outside the yanked text.
 
 When inserting formulas, the text is treated as a string constant if it doesn't
 make sense as a sexp or would otherwise be considered a symbol.  Use 'sym to
@@ -3204,7 +3204,7 @@ By passing in REST some flags one can configure the way the range
 is read and how it is formatted.
 
 In the sequel we assume that cells A1, B1, A2 B2 have respective values
-1 2 3 and 4 for examplication.
+1 2 3 and 4.
 
 Readout direction is specified by a `>v', '`>^', `<v', `<^',
 `v>', `v<', `^>', `^<' flag. For historical reasons, in absence
@@ -3230,7 +3230,7 @@ vector or a matrix depending on the number of rows, `*1' will
 flatten the result to a one row vector, and `*2' will make a
 matrix whatever the number of rows.
 
-Warning: interaction with Calc is expermimental and may produce
+Warning: interaction with Calc is experimental and may produce
 confusing results if you are not aware of Calc data format. Use
 `math-format-value' as a printer for Calc objects."
   (let (result-row

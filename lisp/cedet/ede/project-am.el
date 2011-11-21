@@ -284,7 +284,7 @@ buffer being in order to provide a smart default target type."
 		(progn (forward-line -1)
 		       (end-of-line)
 		       (insert "\n"))
-	      ;; If the above search fails, thats ok.  We'd just want to be at
+	      ;; If the above search fails, that's ok.  We'd just want to be at
 	      ;; point-min anyway.
 	      )
 	    (makefile-insert-macro (car (cdr (cdr ntype))))))
@@ -428,7 +428,7 @@ Argument COMMAND is the command to use for compiling the target."
 If a given set of projects has already been loaded, then do nothing
 but return the project for the directory given.
 Optional ROOTPROJ is the root EDE project."
-  (let* ((ede-constructiong t)
+  (let* ((ede-constructing t)
 	 (amo (object-assoc (expand-file-name "Makefile.am" directory)
 			    'file ede-projects)))
     (when (not amo)
@@ -659,7 +659,7 @@ Strip out duplicates, and recurse on variables."
       ;; their object still exists!
       ;; FIGURE THIS OUT
       (project-am-expand-subdirlist 'csubprojexpanded csubproj)
-      ;; Ok, now lets look at all our sub-projects.
+      ;; Ok, now let's look at all our sub-projects.
       (mapc (lambda (sp)
 	      (let* ((subdir (file-name-as-directory
 			      (expand-file-name
@@ -836,7 +836,7 @@ nil means that this buffer belongs to no-one."
   (oref this :name))
 
 (defmethod project-compile-target-command ((this project-am-texinfo))
-  "Default target t- use when compling a texinfo file."
+  "Default target t- use when compiling a texinfo file."
   (let ((n (oref this :name)))
     (if (string-match "\\.texi?\\(nfo\\)?" n)
 	(setq n (replace-match ".info" t t n)))

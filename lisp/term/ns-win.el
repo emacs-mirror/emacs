@@ -513,9 +513,6 @@ unless the current buffer is a scratch buffer."
 
 ;;;; Frame-related functions.
 
-;; Don't show the frame name; that's redundant with Nextstep.
-(setq-default mode-line-frame-identification '("  "))
-
 ;; nsterm.m
 (defvar ns-alternate-modifier)
 (defvar ns-right-alternate-modifier)
@@ -665,7 +662,7 @@ See the documentation of `create-fontset-from-fontset-spec' for the format.")
 (defvar ns-reg-to-script)               ; nsfont.m
 
 ;; This maps font registries (not exposed by NS APIs for font selection) to
-;; unicode scripts (which can be mapped to unicode character ranges which are).
+;; Unicode scripts (which can be mapped to Unicode character ranges which are).
 ;; See ../international/fontset.el
 (setq ns-reg-to-script
       '(("iso8859-1" . latin)

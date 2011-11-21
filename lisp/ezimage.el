@@ -59,7 +59,7 @@ IMAGESPEC is the image data, and DOCSTRING is documentation for the image."
 	   (defimage ,variable ,imagespec ,docstring)
 	   (put (quote ,variable) 'ezimage t)))
 
-;; This hack is for the ezimage install which has an icons direcory for
+;; This hack is for the ezimage install which has an icons directory for
 ;; the default icons to be used.
 ;; (add-to-list 'load-path
 ;; 	     (concat (file-name-directory
@@ -239,7 +239,7 @@ IMAGESPEC is the image data, and DOCSTRING is documentation for the image."
     ("[ ]" . ezimage-page)
     ("{+}" . ezimage-box-plus)
     ("{-}" . ezimage-box-minus)
-    ;; Some vaguely representitive entries
+    ;; Some vaguely representative entries
     ("*" . ezimage-checkout)
     ("#" . ezimage-object)
     ("!" . ezimage-object-out-of-date)

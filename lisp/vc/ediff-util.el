@@ -452,7 +452,7 @@ to invocation.")
       (if ediff-3way-job
 	  (ediff-with-current-buffer ediff-buffer-C
 	    (ediff-nuke-selective-display)
-	    ;; the merge bufer should never be narrowed
+	    ;; the merge buffer should never be narrowed
 	    ;; (it can happen if it is on rmail-mode or similar)
 	    (if (ediff-with-current-buffer control-buffer ediff-merge-job)
 		(widen))

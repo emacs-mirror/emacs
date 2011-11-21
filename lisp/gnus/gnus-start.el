@@ -1678,7 +1678,7 @@ If SCAN, request a scan of that group as well."
 
     ;; Sort the methods based so that the primary and secondary
     ;; methods come first.  This is done for legacy reasons to try to
-    ;; ensure that side-effect behaviour doesn't change from previous
+    ;; ensure that side-effect behavior doesn't change from previous
     ;; Gnus versions.
     (setq type-cache
 	  (sort (nreverse type-cache)

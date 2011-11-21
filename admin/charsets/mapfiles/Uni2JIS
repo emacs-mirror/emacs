@@ -26,7 +26,7 @@
 #			where XXXX is the code point.  Including all these
 #			names in this file increases its size substantially
 #			and needlessly.  The token "<CJK>" is used for the
-#			name of these chracters.  If necessary, it can be
+#			name of these characters.  If necessary, it can be
 #			expanded algorithmically by a parser or editor.
 #
 #	The entries are in Unicode order.

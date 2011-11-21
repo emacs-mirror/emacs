@@ -887,7 +887,7 @@ known to be unchanged since the last complete redisplay.
 @item unchanged_modified
 @itemx overlay_unchanged_modified
 The values of @code{modiff} and @code{overlay_modiff}, respectively,
-after the last compelete redisplay.  If their current values match
+after the last complete redisplay.  If their current values match
 @code{modiff} or @code{overlay_modiff}, that means
 @code{beg_unchanged} and @code{end_unchanged} contain no useful
 information.

@@ -28,7 +28,7 @@
 ;; complements, and computing CIEDE2000 color distances.
 ;;
 ;; Supported color representations include RGB (red, green, blue), HSV
-;; (hue, saturation, value), HSL (hue, saturation, luminence), sRGB,
+;; (hue, saturation, value), HSL (hue, saturation, luminance), sRGB,
 ;; CIE XYZ, and CIE L*a*b* color components.
 
 ;;; Code:

@@ -161,7 +161,7 @@
                        "[ \t\f]+\\(\\sw+\\|\\s_+\\|\\s.+\\)")
                '((1 font-lock-keyword-face)
                  (2 font-lock-function-name-face)))
-         ;; binary macro defintions: <leveldef> x operator y
+         ;; binary macro definitions: <leveldef> x operator y
          (cons (concat "\\<" macro-keywords-2 "\\>"
                        "[ \t\f]+\\(\\sw+\\)"
                        "[ \t\f]*\\(\\sw+\\|\\s.+\\)"
@@ -700,7 +700,7 @@ If the list was changed, sort the list and remove duplicates first."
 
 
 (defun meta-beginning-of-defun (&optional arg)
-  "Move backward to beginnning of a defun in Metafont or MetaPost code.
+  "Move backward to beginning of a defun in Metafont or MetaPost code.
 With numeric argument, do it that many times.
 Negative arg -N means move forward to Nth following beginning of defun.
 Returns t unless search stops due to beginning or end of buffer."

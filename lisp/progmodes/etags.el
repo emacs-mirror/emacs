@@ -1144,7 +1144,7 @@ error message."
 	  (setq order tag-order))
 	;; We throw out on match, so only get here if there were no matches.
 	;; Clear out the markers we use to avoid duplicate matches so they
-	;; don't slow down editting and are immediately available for GC.
+	;; don't slow down editing and are immediately available for GC.
 	(while tag-lines-already-matched
 	  (set-marker (car tag-lines-already-matched) nil nil)
 	  (setq tag-lines-already-matched (cdr tag-lines-already-matched)))
@@ -1191,7 +1191,7 @@ error message."
     ;; Note: there is a small inefficiency in find-buffer-visiting :
     ;;   truename is computed even if not needed. Not too sure about this
     ;;   but I suspect truename computation accesses the disk.
-    ;;   It is maybe a good idea to optimise this find-buffer-visiting.
+    ;;   It is maybe a good idea to optimize this find-buffer-visiting.
     ;; An alternative would be to use only get-file-buffer
     ;; but this looks less "sure" to find the buffer for the file.
     (while (and (not the-buffer) buffer-search-extensions)

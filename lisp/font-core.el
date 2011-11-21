@@ -210,7 +210,7 @@ this function onto `change-major-mode-hook'."
 ;; A few people have hassled in the past for a way to make it easier to turn on
 ;; Font Lock mode, without the user needing to know for which modes s/he has to
 ;; turn it on, perhaps the same way hilit19.el/hl319.el does.  I've always
-;; balked at that way, as I see it as just re-moulding the same problem in
+;; balked at that way, as I see it as just re-molding the same problem in
 ;; another form.  That is; some person would still have to keep track of which
 ;; modes (which may not even be distributed with Emacs) support Font Lock mode.
 ;; The list would always be out of date.  And that person might have to be me.

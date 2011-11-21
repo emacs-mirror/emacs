@@ -1251,7 +1251,7 @@ screen Emacs frame.
 In all-stop mode, whenever your program stops, @emph{all} threads of
 execution stop.  Likewise, whenever you restart the program, all
 threads start executing.  @xref{All-Stop Mode, , All-Stop Mode, gdb,
-The GNU debugger}.  You can enable this behaviour in Emacs by setting
+The GNU debugger}.  You can enable this behavior in Emacs by setting
 @code{gdb-non-stop-setting} to @code{nil} before starting a debugging
 session.
 

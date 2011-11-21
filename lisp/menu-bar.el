@@ -116,21 +116,21 @@
       menu-bar-separator)
 
     (define-key menu [ps-print-region]
-      `(menu-item ,(purecopy "Postscript Print Region (B+W)") ps-print-region
+      `(menu-item ,(purecopy "PostScript Print Region (B+W)") ps-print-region
                   :enable mark-active
                   :help ,(purecopy "Pretty-print marked region in black and white to PostScript printer")))
     (define-key menu [ps-print-buffer]
-      `(menu-item ,(purecopy "Postscript Print Buffer (B+W)") ps-print-buffer
+      `(menu-item ,(purecopy "PostScript Print Buffer (B+W)") ps-print-buffer
                   :enable (menu-bar-menu-frame-live-and-visible-p)
                   :help ,(purecopy "Pretty-print current buffer in black and white to PostScript printer")))
     (define-key menu [ps-print-region-faces]
-      `(menu-item ,(purecopy "Postscript Print Region")
+      `(menu-item ,(purecopy "PostScript Print Region")
                   ps-print-region-with-faces
                   :enable mark-active
                   :help ,(purecopy
                           "Pretty-print marked region to PostScript printer")))
     (define-key menu [ps-print-buffer-faces]
-      `(menu-item ,(purecopy "Postscript Print Buffer")
+      `(menu-item ,(purecopy "PostScript Print Buffer")
                   ps-print-buffer-with-faces
                   :enable (menu-bar-menu-frame-live-and-visible-p)
                   :help ,(purecopy "Pretty-print current buffer to PostScript printer")))
@@ -445,7 +445,7 @@
     (define-key menu [props]
       `(menu-item ,(purecopy "Text Properties") facemenu-menu))
 
-    ;; ns-win.el said: Add spell for platorm consistency.
+    ;; ns-win.el said: Add spell for platform consistency.
     (if (featurep 'ns)
         (define-key menu [spell]
           `(menu-item ,(purecopy "Spell") ispell-menu-map)))

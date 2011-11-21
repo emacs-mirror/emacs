@@ -36,7 +36,7 @@
 ;; So, to get the value:
 ;; (when (url-future-completed-p future) (url-future-value future))
 
-;; See the ERT tests and the code for futher details.
+;; See the ERT tests and the code for further details.
 
 ;;; Code:
 

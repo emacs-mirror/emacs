@@ -715,7 +715,7 @@ not the very same deplacement command."
   (remove-hook 'after-change-functions 'flyspell-after-change-function t)
   (remove-hook 'hack-local-variables-hook
 	       (function flyspell-hack-local-variables-hook) t)
-  ;; we remove all the flyspell hilightings
+  ;; we remove all the flyspell highlightings
   (flyspell-delete-all-overlays)
   ;; we have to erase pre cache variables
   (setq flyspell-pre-buffer nil)
@@ -1446,7 +1446,7 @@ The buffer to mark them in is `flyspell-large-region-buffer'."
 			     ;; is used, string is a TeX command
 			     ;; (char before beginning of word is
 			     ;; backslash) and none of the previous
-			     ;; contitions match
+			     ;; conditions match.
 			     (and (not ispell-really-aspell)
 				  (save-excursion
 				    (goto-char (- (nth 1 found-list) 1))

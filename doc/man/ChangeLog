@@ -1,3 +1,7 @@
+2011-11-16  Juanma Barranquero  <lekktu@gmail.com>
+
+	* etags.1: Fix typo.
+
 2011-10-06  Chong Yidong  <cyd@stupidchicken.com>
 
 	* emacsclient.1: Document how -a "" starts the daemon.
@@ -18,7 +22,7 @@
 
 	* Version 23.3 released.
 
-2011-01-02  Jari Aalto  <jari.aalto@cante.net>  (tiny change)
+2011-01-02  Jari Aalto  <jari.aalto@cante.net>
 
 	* emacsclient.1: Arrange options alphabetically (Bug#7620).
 

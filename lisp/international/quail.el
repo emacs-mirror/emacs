@@ -2011,7 +2011,7 @@ minibuffer and the selected frame has no other windows)."
                 (set-window-dedicated-p win t))
 	      (quail-minibuffer-message
 	       (format " [%s]" current-input-method-title)))
-	  ;; Show the guidance in the next line of the currrent
+	  ;; Show the guidance in the next line of the current
 	  ;; minibuffer.
 	  (quail-minibuffer-message
 	   (format "  [%s]\n%s"
@@ -2701,7 +2701,7 @@ KEY BINDINGS FOR CONVERSION
 
 (put 'quail-decode-map 'char-table-extra-slots 0)
 
-;; Generate a halfly-cooked decode map (char-table) for the current
+;; Generate a half-cooked decode map (char-table) for the current
 ;; Quail map.  An element for a character C is a key string or a list
 ;; of a key strings to type to input C.  The lenth of key string is at
 ;; most 2.  If it is 2, more keys may be required to input C.
@@ -2974,7 +2974,7 @@ of each directory."
       (if (not (re-search-forward leim-list-entry-regexp nil t))
 	  nil
 
-	;; Remove garbages after the header.
+	;; Remove garbage after the header.
 	(goto-char (match-beginning 0))
 	(if (< pos (point))
 	    (delete-region pos (point)))

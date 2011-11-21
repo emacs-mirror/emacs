@@ -259,7 +259,7 @@
 (defvar ex-addresses nil)
 
 ;; This flag is supposed to be set only by `#', `print', and `list',
-;; none of which is implemented.  So, it and the pices of the code it
+;; none of which is implemented.  So, it and the pieces of the code it
 ;; controls are dead weight.  We keep it just in case this might be
 ;; needed in the future.
 (defvar ex-flag nil)

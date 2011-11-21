@@ -675,7 +675,7 @@ Included databases are filtered based on `semanticdb-find-default-throttle'."
      ;;
      ;; NOTE: Not used if EDE is active!
      ((and (semanticdb-find-throttle-active-p 'project)
-	   ;; And dont do this if it is a system include.  Not supported by all languages,
+	   ;; And don't do this if it is a system include.  Not supported by all languages,
 	   ;; but when it is, this is a nice fast way to skip this step.
 	   (not (semantic-tag-include-system-p includetag))
 	   ;; Don't do this if we have an EDE project.
@@ -918,7 +918,7 @@ but should be good enough for debugging assertions."
 			 result
 			 " ")
 	      ">")
-    ;; Longer results should have an abreviated form.
+    ;; Longer results should have an abbreviated form.
     (format "#<FIND RESULT %d TAGS in %d FILES>"
 	    (semanticdb-find-result-length result)
 	    (length result))))

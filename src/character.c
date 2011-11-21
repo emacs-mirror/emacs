@@ -588,7 +588,7 @@ parse_str_as_multibyte (const unsigned char *str, EMACS_INT len,
 }
 
 /* Arrange unibyte text at STR of NBYTES bytes as a multibyte text.
-   It actually converts only such 8-bit characters that don't contruct
+   It actually converts only such 8-bit characters that don't construct
    a multibyte sequence to multibyte forms of Latin-1 characters.  If
    NCHARS is nonzero, set *NCHARS to the number of characters in the
    text.  It is assured that we can use LEN bytes at STR as a work
@@ -669,7 +669,7 @@ str_as_multibyte (unsigned char *str, EMACS_INT len, EMACS_INT nbytes,
 }
 
 /* Parse unibyte string at STR of LEN bytes, and return the number of
-   bytes it may ocupy when converted to multibyte string by
+   bytes it may occupy when converted to multibyte string by
    `str_to_multibyte'.  */
 
 EMACS_INT
@@ -969,7 +969,7 @@ character is a target to get a byte value.  In this case, POSITION, if
 non-nil, is an index of a target character in the string.
 
 If the current buffer (or STRING) is multibyte, and the target
-character is not ASCII nor 8-bit character, an error is signalled.  */)
+character is not ASCII nor 8-bit character, an error is signaled.  */)
   (Lisp_Object position, Lisp_Object string)
 {
   int c;

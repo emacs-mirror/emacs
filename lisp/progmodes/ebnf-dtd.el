@@ -515,7 +515,7 @@
 ;; -----
 ;;
 ;; At moment, only the `<!ELEMENT' generates a syntactic chart.  The
-;; `<!ATTLIST', `<!NOTATION' and `<!ENTITY' are syntacticly checked but they
+;; `<!ATTLIST', `<!NOTATION' and `<!ENTITY' are syntactically checked but they
 ;; don't generate a syntactic chart.
 ;;
 ;; Besides the syntax above, ebnf-dtd also accepts a `pure' dtd file.  An

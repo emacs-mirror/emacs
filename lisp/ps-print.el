@@ -5372,9 +5372,9 @@ Where:
 KIND is a valid value of `ps-n-up-filling'.
 XCOL YCOL are the relative position for the next column.
 XLIN YLIN are the relative position for the beginning of next line.
-REPEAT is the number of repetions for external loop.
-END is the number of repetions for internal loop and also the number of pages in
-    a row.
+REPEAT is the number of repetitions for external loop.
+END is the number of repetitions for internal loop and also the number
+    of pages in a row.
 XSTART YSTART are the relative position for the first page in a sheet.")
 
 
@@ -6658,7 +6658,7 @@ If FACE is not a valid face name, use default face."
 ;; But autoload them here to make the separation invisible.
 
 ;;;### (autoloads (ps-mule-end-job ps-mule-begin-job ps-mule-initialize
-;;;;;;  ps-multibyte-buffer) "ps-mule" "ps-mule.el" "cf055ee6ba398da614a675dc25bdb123")
+;;;;;;  ps-multibyte-buffer) "ps-mule" "ps-mule.el" "afb9022f2e1e366c51672aa11a3bd76f")
 ;;; Generated autoloads from ps-mule.el
 
 (defvar ps-multibyte-buffer nil "\

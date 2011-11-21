@@ -1414,7 +1414,7 @@ usage: (start-process NAME BUFFER PROGRAM &rest PROGRAM-ARGS)  */)
 	  val = XCDR (Vdefault_process_coding_system);
       }
     XPROCESS (proc)->encode_coding_system = val;
-    /* Note: At this momemnt, the above coding system may leave
+    /* Note: At this moment, the above coding system may leave
        text-conversion or eol-conversion unspecified.  They will be
        decided after we read output from the process and decode it by
        some coding system, or just before we actually send a text to
@@ -3120,7 +3120,7 @@ usage: (make-network-process &rest ARGS)  */)
     {
       struct hostent *host_info_ptr;
 
-      /* gethostbyname may fail with TRY_AGAIN, but we don't honour that,
+      /* gethostbyname may fail with TRY_AGAIN, but we don't honor that,
 	 as it may `hang' Emacs for a very long time.  */
       immediate_quit = 1;
       QUIT;
@@ -5377,8 +5377,8 @@ send_process (volatile Lisp_Object proc, const char *volatile buf,
 	     sending a multibyte text, thus we must encode it by the
 	     original coding system specified for the current process.
 
-	     Another reason we comming here is that the coding system
-	     was just complemented and new one was returned by
+	     Another reason we come here is that the coding system
+	     was just complemented and a new one was returned by
 	     complement_process_encoding_system.  */
 	  setup_coding_system (p->encode_coding_system, coding);
 	  Vlast_coding_system_used = p->encode_coding_system;

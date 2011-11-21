@@ -1361,7 +1361,7 @@ if it is a string, only list groups matching REGEXP."
 					; We list groups with unread articles
 		       (and gnus-list-groups-with-ticked-articles
 			    (cdr (assq 'tick (gnus-info-marks info))))
-					; And groups with tickeds
+					; And groups with ticked articles
 		       ;; Check for permanent visibility.
 		       (and gnus-permanently-visible-groups
 			    (string-match gnus-permanently-visible-groups

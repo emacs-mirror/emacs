@@ -115,11 +115,11 @@ Completion options are calculated with `semantic-analyze-possible-completions'."
       (if (null syms)
 	  (if (semantic-analyze-context-p a)
 	      ;; This is a clever hack.  If we were unable to find any
-	      ;; smart completions, lets divert to how senator derives
+	      ;; smart completions, let's divert to how senator derives
 	      ;; completions.
 	      ;;
 	      ;; This is a way of making this fcn more useful since
-	      ;; the smart completion engine sometimes failes.
+	      ;; the smart completion engine sometimes fails.
 	      (semantic-complete-symbol))
 	;; Use try completion to seek a common substring.
 	(let ((tc (try-completion (or pre "")  syms)))
@@ -199,7 +199,7 @@ Completion options are calculated with `semantic-analyze-possible-completions'."
 	)
     (if pf
 	(message "%s" (semantic-format-tag-summarize pf nil t))
-      (message "No summary info availalble"))))
+      (message "No summary info available"))))
 
 ;;; Variants
 ;;
@@ -245,14 +245,14 @@ Completion options are calculated with `semantic-analyze-possible-completions'."
 ;; Jump to a destination based on the local context.
 ;;
 ;; This shows how to use the analyzer context, and the
-;; analyer references objects to choose a good destination.
+;; analyzer references objects to choose a good destination.
 
 (defun semantic-ia--fast-jump-helper (dest)
   "Jump to DEST, a Semantic tag.
 This helper manages the mark, buffer switching, and pulsing."
   ;; We have a tag, but in C++, we usually get a prototype instead
-  ;; because of header files.  Lets try to find the actual
-  ;; implementaion instead.
+  ;; because of header files.  Let's try to find the actual
+  ;; implementation instead.
   (when (semantic-tag-prototype-p dest)
     (let* ((refs (semantic-analyze-tag-references dest))
 	   (impl (semantic-analyze-refs-impl refs t))

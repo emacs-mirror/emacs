@@ -136,8 +136,8 @@
 
     (define-key map "\e[Z" [?\S-\t])
     (define-key map "\e[072q" [?\C-\t])
-    ;; This only works if you remove the M-TAB keybing from the system.4Dwmrc
-    ;; our your ~/.4Dwmrc, if you use the 4Dwm window manager.
+    ;; This only works if you remove the M-TAB keybinding from the system.4Dwmrc
+    ;; or your ~/.4Dwmrc, if you use the 4Dwm window manager.
     (define-key map "\e[073q" [?\M-\t])
 
     (define-key map "\e[074q" [?\M-q])

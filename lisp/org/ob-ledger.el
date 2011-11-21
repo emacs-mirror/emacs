@@ -30,7 +30,7 @@
 ;;
 ;; 1) there is no such thing as a "session" in ledger
 ;;
-;; 2) we are generally only going to return output from the leger program
+;; 2) we are generally only going to return output from the ledger program
 ;;
 ;; 3) we are adding the "cmdline" header argument
 ;;

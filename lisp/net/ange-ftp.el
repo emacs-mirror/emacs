@@ -46,7 +46,7 @@
 ;; Extended filename syntax:
 ;;
 ;; The default extended filename syntax is '/user@host:name', where the
-;; 'user@' part may be omitted.  This syntax can be customised to a certain
+;; 'user@' part may be omitted.  This syntax can be customized to a certain
 ;; extent by changing ange-ftp-name-format.  There are limitations.
 ;; The `host' part has an optional suffix `#port' which may be used to
 ;; specify a non-default port number for the connexion.
@@ -721,7 +721,7 @@ parenthesized expressions in REGEXP for the components (in that order)."
 	  "^local:\\|^Trying\\|^125 \\|^550-\\|^221 .*oodbye\\|"
           "^500 .*AUTH\\|^KERBEROS\\|"
           "^504 Unknown security mechanism\\|"
-	  "^530 Please login with USER and PASS\\|" ; non kerberised vsFTPd
+	  "^530 Please login with USER and PASS\\|" ; non kerberized vsFTPd
 	  "^534 Kerberos Authentication not enabled\\|"
 	  "^22[789] .*[Pp]assive\\|^200 EPRT\\|^500 .*EPRT")
   "Regular expression matching FTP messages that can be ignored."
@@ -1665,7 +1665,7 @@ good, skip, fatal, or unknown."
               (ange-ftp-process-handle-line line proc)
             ;; If we've seen a potential error message and it
             ;; hasn't been cancelled by a good message before
-            ;; seeing a propt, then the error was real.
+            ;; seeing a prompt, then the error was real.
             (delete-process proc)
             (setq ange-ftp-process-busy nil
                   ange-ftp-process-result-line ange-ftp-pending-error-line))))
@@ -4027,7 +4027,7 @@ E.g.,
 	      (concat bestmatch "/")
 	    bestmatch)))))
 
-;; Put these lines uncommmented in your .emacs if you want C-r to refresh
+;; Put these lines uncommented in your .emacs if you want C-r to refresh
 ;; ange-ftp's cache whilst doing filename completion.
 ;;
 ;;(define-key minibuffer-local-completion-map "\C-r" 'ange-ftp-re-read-dir)
@@ -4507,7 +4507,7 @@ NEWNAME should be the name to give the new compressed or uncompressed file.")
     ;; We used to follow symlinks on `file' here.  Apparently it was done
     ;; because some FTP servers react to "ls foo" by listing the symlink foo
     ;; rather than the directory it points to.  Now that ange-ftp-ls uses
-    ;; "cd foo; ls" instead, this is not necesssary any more.
+    ;; "cd foo; ls" instead, this is not necessary any more.
     (let ((beg (point))
 	  (end (point-marker)))
       (set-marker-insertion-type end t)

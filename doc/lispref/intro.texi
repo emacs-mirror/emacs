@@ -101,7 +101,7 @@ for other purposes as well, such as writing editing commands.
   Dozens of Lisp implementations have been built over the years, each
 with its own idiosyncrasies.  Many of them were inspired by Maclisp,
 which was written in the 1960s at MIT's Project MAC.  Eventually the
-implementors of the descendants of Maclisp came together and developed a
+implementers of the descendants of Maclisp came together and developed a
 standard for Lisp systems, called Common Lisp.  In the meantime, Gerry
 Sussman and Guy Steele at MIT developed a simplified but very powerful
 dialect of Lisp, called Scheme.

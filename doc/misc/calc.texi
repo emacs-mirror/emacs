@@ -90,7 +90,7 @@
 This file documents Calc, the GNU Emacs calculator.
 @end ifinfo
 @ifnotinfo
-This file documents Calc, the GNU Emacs calculator, included with 
+This file documents Calc, the GNU Emacs calculator, included with
 GNU Emacs @value{EMACSVER}.
 @end ifnotinfo
 
@@ -324,7 +324,7 @@ need to know.
 @c @cindex Marginal notes
 Every Calc keyboard command is listed in the Calc Summary, and also
 in the Key Index.  Algebraic functions, @kbd{M-x} commands, and
-variables also have their own indices.  
+variables also have their own indices.
 @c @texline Each
 @c @infoline In the printed manual, each
 @c paragraph that is referenced in the Key or Function Index is marked
@@ -338,7 +338,7 @@ the @kbd{h i} key sequence.  Outside of the Calc window, you can press
 command @kbd{C-x * t} will jump to the Tutorial and start Calc if
 necessary.  Pressing @kbd{h s} or @kbd{C-x * s} will take you directly
 to the Calc Summary.  Within Calc, you can also go to the part of the
-manual describing any Calc key, function, or variable using 
+manual describing any Calc key, function, or variable using
 @w{@kbd{h k}}, @kbd{h f}, or @kbd{h v}, respectively.  @xref{Help Commands}.
 
 @ifnottex
@@ -437,12 +437,12 @@ Delete, and Space keys.
 then the command to operate on the numbers.
 
 @noindent
-Type @kbd{2 @key{RET} 3 + Q} to compute 
+Type @kbd{2 @key{RET} 3 + Q} to compute
 @texline @math{\sqrt{2+3} = 2.2360679775}.
 @infoline the square root of 2+3, which is 2.2360679775.
 
 @noindent
-Type @kbd{P 2 ^} to compute 
+Type @kbd{P 2 ^} to compute
 @texline @math{\pi^2 = 9.86960440109}.
 @infoline the value of `pi' squared, 9.86960440109.
 
@@ -461,14 +461,14 @@ conventional ``algebraic'' notation.  To enter an algebraic formula,
 use the apostrophe key.
 
 @noindent
-Type @kbd{' sqrt(2+3) @key{RET}} to compute 
+Type @kbd{' sqrt(2+3) @key{RET}} to compute
 @texline @math{\sqrt{2+3}}.
 @infoline the square root of 2+3.
 
 @noindent
-Type @kbd{' pi^2 @key{RET}} to enter 
+Type @kbd{' pi^2 @key{RET}} to enter
 @texline @math{\pi^2}.
-@infoline `pi' squared.  
+@infoline `pi' squared.
 To evaluate this symbolic formula as a number, type @kbd{=}.
 
 @noindent
@@ -526,10 +526,10 @@ the upper-leftmost @samp{1} and set the mark, then move to just after
 the lower-right @samp{8} and press @kbd{C-x * r}.
 
 @noindent
-Type @kbd{v t} to transpose this 
+Type @kbd{v t} to transpose this
 @texline @math{3\times2}
-@infoline 3x2 
-matrix into a 
+@infoline 3x2
+matrix into a
 @texline @math{2\times3}
 @infoline 2x3
 matrix.  Type @w{@kbd{v u}} to unpack the rows into two separate
@@ -605,7 +605,7 @@ there are Quick mode, Keypad mode, and Embedded mode.
 
 @noindent
 On most systems, you can type @kbd{C-x *} to start the Calculator.
-The key sequence @kbd{C-x *} is bound to the command @code{calc-dispatch}, 
+The key sequence @kbd{C-x *} is bound to the command @code{calc-dispatch},
 which can be rebound if convenient (@pxref{Customizing Calc}).
 
 When you press @kbd{C-x *}, Emacs waits for you to press a second key to
@@ -1154,9 +1154,9 @@ its initial state:  Empty stack, and initial mode settings.
 @noindent
 Calc was originally started as a two-week project to occupy a lull
 in the author's schedule.  Basically, a friend asked if I remembered
-the value of 
+the value of
 @texline @math{2^{32}}.
-@infoline @expr{2^32}.  
+@infoline @expr{2^32}.
 I didn't offhand, but I said, ``that's easy, just call up an
 @code{xcalc}.''  @code{Xcalc} duly reported that the answer to our
 question was @samp{4.294967e+09}---with no way to see the full ten
@@ -1213,7 +1213,7 @@ algebra system for microcomputers.
 Many people have contributed to Calc by reporting bugs and suggesting
 features, large and small.  A few deserve special mention:  Tim Peters,
 who helped develop the ideas that led to the selection commands, rewrite
-rules, and many other algebra features; 
+rules, and many other algebra features;
 @texline Fran\c{c}ois
 @infoline Francois
 Pinard, who contributed an early prototype of the Calc Summary appendix
@@ -1226,7 +1226,7 @@ Randal Schwartz, who suggested the @code{calc-eval} function; Juha
 Sarlin, who first worked out how to split Calc into quickly-loading
 parts; Bob Weiner, who helped immensely with the Lucid Emacs port; and
 Robert J. Chassell, who suggested the Calc Tutorial and exercises as
-well as many other things.  
+well as many other things.
 
 @cindex Bibliography
 @cindex Knuth, Art of Computer Programming
@@ -1472,9 +1472,9 @@ Here's the first exercise:  What will the keystrokes @kbd{1 @key{RET} 2
 multiplication.)  Figure it out by hand, then try it with Calc to see
 if you're right.  @xref{RPN Answer 1, 1}. (@bullet{})
 
-(@bullet{}) @strong{Exercise 2.}  Compute 
+(@bullet{}) @strong{Exercise 2.}  Compute
 @texline @math{(2\times4) + (7\times9.4) + {5\over4}}
-@infoline @expr{2*4 + 7*9.5 + 5/4} 
+@infoline @expr{2*4 + 7*9.5 + 5/4}
 using the stack.  @xref{RPN Answer 2, 2}. (@bullet{})
 
 The @key{DEL} key is called Backspace on some keyboards.  It is
@@ -1889,7 +1889,7 @@ intermediate results of a calculation as you go along.  You can
 accomplish this in Calc by performing your calculation as a series
 of algebraic entries, using the @kbd{$} sign to tie them together.
 In an algebraic formula, @kbd{$} represents the number on the top
-of the stack.  Here, we perform the calculation 
+of the stack.  Here, we perform the calculation
 @texline @math{\sqrt{2\times4+1}},
 @infoline @expr{sqrt(2*4+1)},
 which on a traditional calculator would be done by pressing
@@ -2149,7 +2149,7 @@ key.  If you type a prefix key by accident, you can press @kbd{C-g}
 to cancel it.  (In fact, you can press @kbd{C-g} to cancel almost
 anything in Emacs.)  To get help on a prefix key, press that key
 followed by @kbd{?}.  Some prefixes have several lines of help,
-so you need to press @kbd{?} repeatedly to see them all.  
+so you need to press @kbd{?} repeatedly to see them all.
 You can also type @kbd{h h} to see all the help at once.
 
 Try pressing @kbd{t ?} now.  You will see a line of the form,
@@ -2550,13 +2550,13 @@ angle is measured in degrees.  For example,
 
 @noindent
 The shift-@kbd{S} command computes the sine of an angle.  The sine
-of 45 degrees is 
+of 45 degrees is
 @texline @math{\sqrt{2}/2};
-@infoline @expr{sqrt(2)/2}; 
+@infoline @expr{sqrt(2)/2};
 squaring this yields @expr{2/4 = 0.5}.  However, there has been a slight
-roundoff error because the representation of 
+roundoff error because the representation of
 @texline @math{\sqrt{2}/2}
-@infoline @expr{sqrt(2)/2} 
+@infoline @expr{sqrt(2)/2}
 wasn't exact.  The @kbd{c 1} command is a handy way to clean up numbers
 in this case; it temporarily reduces the precision by one digit while it
 re-rounds the number on the top of the stack.
@@ -2595,9 +2595,9 @@ either radians or degrees, depending on the current angular mode.
 @end smallexample
 
 @noindent
-Here we compute the Inverse Sine of 
+Here we compute the Inverse Sine of
 @texline @math{\sqrt{0.5}},
-@infoline @expr{sqrt(0.5)}, 
+@infoline @expr{sqrt(0.5)},
 first in radians, then in degrees.
 
 Use @kbd{c d} and @kbd{c r} to convert a number from radians to degrees
@@ -2783,9 +2783,9 @@ logarithm).  These can be modified by the @kbd{I} (inverse) and
 @kbd{H} (hyperbolic) prefix keys.
 
 Let's compute the sine and cosine of an angle, and verify the
-identity 
+identity
 @texline @math{\sin^2x + \cos^2x = 1}.
-@infoline @expr{sin(x)^2 + cos(x)^2 = 1}.  
+@infoline @expr{sin(x)^2 + cos(x)^2 = 1}.
 We'll arbitrarily pick @mathit{-64} degrees as a good value for @expr{x}.
 With the angular mode set to degrees (type @w{@kbd{m d}}), do:
 
@@ -2806,7 +2806,7 @@ You can of course do these calculations to any precision you like.)
 Remember, @kbd{f h} is the @code{calc-hypot}, or square-root of sum
 of squares, command.
 
-Another identity is 
+Another identity is
 @texline @math{\displaystyle\tan x = {\sin x \over \cos x}}.
 @infoline @expr{tan(x) = sin(x) / cos(x)}.
 @smallexample
@@ -2871,7 +2871,7 @@ the top two stack elements right after the @kbd{U U}, then a pair of
 A similar identity is supposed to hold for hyperbolic sines and cosines,
 except that it is the @emph{difference}
 @texline @math{\cosh^2x - \sinh^2x}
-@infoline @expr{cosh(x)^2 - sinh(x)^2} 
+@infoline @expr{cosh(x)^2 - sinh(x)^2}
 that always equals one.  Let's try to verify this identity.
 
 @smallexample
@@ -2993,7 +2993,7 @@ factorial function defined in terms of Euler's Gamma function
 @end smallexample
 
 @noindent
-Here we verify the identity 
+Here we verify the identity
 @texline @math{n! = \Gamma(n+1)}.
 @infoline @expr{@var{n}!@: = gamma(@var{n}+1)}.
 
@@ -3283,11 +3283,11 @@ rows in the matrix is different from the number of elements in the
 vector.
 
 (@bullet{}) @strong{Exercise 1.}  Use @samp{*} to sum along the rows
-of the above 
+of the above
 @texline @math{2\times3}
-@infoline 2x3 
+@infoline 2x3
 matrix to get @expr{[6, 15]}.  Now use @samp{*} to sum along the columns
-to get @expr{[5, 7, 9]}. 
+to get @expr{[5, 7, 9]}.
 @xref{Matrix Answer 1, 1}. (@bullet{})
 
 @cindex Identity matrix
@@ -3432,7 +3432,7 @@ the matrix and vector.  If we multiplied in the other order, Calc would
 assume the vector was a row vector in order to make the dimensions
 come out right, and the answer would be incorrect.  If you
 don't feel safe letting Calc take either interpretation of your
-vectors, use explicit 
+vectors, use explicit
 @texline @math{N\times1}
 @infoline Nx1
 or
@@ -3482,9 +3482,9 @@ on the left by the transpose of @expr{A}:
 @tex
 $A^T A \, X = A^T B$, where $A^T$ is the transpose \samp{trn(A)}.
 @end tex
-Now 
+Now
 @texline @math{A^T A}
-@infoline @expr{trn(A)*A} 
+@infoline @expr{trn(A)*A}
 is a square matrix so a solution is possible.  It turns out that the
 @expr{X} vector you compute in this way will be a ``least-squares''
 solution, which can be regarded as the ``closest'' solution to the set
@@ -3577,9 +3577,9 @@ other a plain number.)  In the final step, we take the square root
 of each element.
 
 (@bullet{}) @strong{Exercise 1.}  Compute a vector of powers of two
-from 
+from
 @texline @math{2^{-4}}
-@infoline @expr{2^-4} 
+@infoline @expr{2^-4}
 to @expr{2^4}.  @xref{List Answer 1, 1}. (@bullet{})
 
 You can also @dfn{reduce} a binary operator across a vector.
@@ -3780,9 +3780,9 @@ $$ m = {N \sum x y - \sum x \sum y  \over
 @end tex
 
 @noindent
-where 
+where
 @texline @math{\sum x}
-@infoline @expr{sum(x)} 
+@infoline @expr{sum(x)}
 represents the sum of all the values of @expr{x}.  While there is an
 actual @code{sum} function in Calc, it's easier to sum a vector using a
 simple reduction.  First, let's compute the four different sums that
@@ -3883,9 +3883,9 @@ $$ b = {\sum y - m \sum x \over N} $$
 @end group
 @end smallexample
 
-Let's ``plot'' this straight line approximation, 
+Let's ``plot'' this straight line approximation,
 @texline @math{y \approx m x + b},
-@infoline @expr{m x + b}, 
+@infoline @expr{m x + b},
 and compare it with the original data.
 
 @smallexample
@@ -3959,7 +3959,7 @@ Next, let's add the line we got from our least-squares fit.
 (If you are reading this tutorial on-line while running Calc, typing
 @kbd{g a} may cause the tutorial to disappear from its window and be
 replaced by a buffer named @samp{*Gnuplot Commands*}.  The tutorial
-will reappear when you terminate GNUPLOT by typing @kbd{g q}.) 
+will reappear when you terminate GNUPLOT by typing @kbd{g q}.)
 @end ifinfo
 
 @smallexample
@@ -4138,7 +4138,7 @@ command to enable multi-line display of vectors.)
 @c [fix-ref Numerical Solutions]
 (@bullet{}) @strong{Exercise 8.}  Compute a list of values of Bessel's
 @texline @math{J_1(x)}
-@infoline @expr{J1} 
+@infoline @expr{J1}
 function @samp{besJ(1,x)} for @expr{x} from 0 to 5 in steps of 0.25.
 Find the value of @expr{x} (from among the above set of values) for
 which @samp{besJ(1,x)} is a maximum.  Use an ``automatic'' method,
@@ -4150,7 +4150,7 @@ of thing automatically; @pxref{Numerical Solutions}.)
 @cindex Digits, vectors of
 (@bullet{}) @strong{Exercise 9.}  You are given an integer in the range
 @texline @math{0 \le N < 10^m}
-@infoline @expr{0 <= N < 10^m} 
+@infoline @expr{0 <= N < 10^m}
 for @expr{m=12} (i.e., an integer of less than
 twelve digits).  Convert this integer into a vector of @expr{m}
 digits, each in the range from 0 to 9.  In vector-of-digits notation,
@@ -4164,12 +4164,12 @@ to try is 25129925999.  @xref{List Answer 9, 9}. (@bullet{})
 happened?  How would you do this test?  @xref{List Answer 10, 10}. (@bullet{})
 
 (@bullet{}) @strong{Exercise 11.}  The area of a circle of radius one
-is @cpi{}.  The area of the 
+is @cpi{}.  The area of the
 @texline @math{2\times2}
 @infoline 2x2
 square that encloses that circle is 4.  So if we throw @var{n} darts at
 random points in the square, about @cpiover{4} of them will land inside
-the circle.  This gives us an entertaining way to estimate the value of 
+the circle.  This gives us an entertaining way to estimate the value of
 @cpi{}.  The @w{@kbd{k r}}
 command picks a random number between zero and the value on the stack.
 We could get a random floating-point number between @mathit{-1} and 1 by typing
@@ -4183,12 +4183,12 @@ points lie inside the unit circle.  Hint:  Use the @kbd{v b} command.
 another way to calculate @cpi{}.  Say you have an infinite field
 of vertical lines with a spacing of one inch.  Toss a one-inch matchstick
 onto the field.  The probability that the matchstick will land crossing
-a line turns out to be 
+a line turns out to be
 @texline @math{2/\pi}.
-@infoline @expr{2/pi}.  
+@infoline @expr{2/pi}.
 Toss 100 matchsticks to estimate @cpi{}.  (If you want still more fun,
 the probability that the GCD (@w{@kbd{k g}}) of two large integers is
-one turns out to be 
+one turns out to be
 @texline @math{6/\pi^2}.
 @infoline @expr{6/pi^2}.
 That provides yet another way to estimate @cpi{}.)
@@ -4488,7 +4488,7 @@ a 60% chance that the result is correct within 0.59 degrees.
 @cindex Torus, volume of
 (@bullet{}) @strong{Exercise 7.}  The volume of a torus (a donut shape) is
 @texline @math{2 \pi^2 R r^2}
-@infoline @w{@expr{2 pi^2 R r^2}} 
+@infoline @w{@expr{2 pi^2 R r^2}}
 where @expr{R} is the radius of the circle that
 defines the center of the tube and @expr{r} is the radius of the tube
 itself.  Suppose @expr{R} is 20 cm and @expr{r} is 4 cm, each known to
@@ -4569,7 +4569,7 @@ In this last step, Calc has divided by 5 modulo 24; i.e., it has found a
 new number which, when multiplied by 5 modulo 24, produces the original
 number, 21.  If @var{m} is prime and the divisor is not a multiple of
 @var{m}, it is always possible to find such a number.  For non-prime
-@var{m} like 24, it is only sometimes possible. 
+@var{m} like 24, it is only sometimes possible.
 
 @smallexample
 @group
@@ -4587,7 +4587,7 @@ that arises in the second one.
 
 @cindex Fermat, primality test of
 (@bullet{}) @strong{Exercise 10.}  A theorem of Pierre de Fermat
-says that 
+says that
 @texline @w{@math{x^{n-1} \bmod n = 1}}
 @infoline @expr{x^(n-1) mod n = 1}
 if @expr{n} is a prime number and @expr{x} is an integer less than
@@ -4615,9 +4615,9 @@ of day on the stack as an HMS/modulo form.
 This calculation tells me it is six hours and 22 minutes until midnight.
 
 (@bullet{}) @strong{Exercise 11.}  A rule of thumb is that one year
-is about 
+is about
 @texline @math{\pi \times 10^7}
-@infoline @w{@expr{pi * 10^7}} 
+@infoline @w{@expr{pi * 10^7}}
 seconds.  What time will it be that many seconds from right now?
 @xref{Types Answer 11, 11}. (@bullet{})
 
@@ -5093,18 +5093,18 @@ One way to do it is again with vector mapping and reduction:
 @end smallexample
 
 (@bullet{}) @strong{Exercise 3.}  Find the integral from 1 to @expr{y}
-of 
+of
 @texline @math{x \sin \pi x}
-@infoline @w{@expr{x sin(pi x)}} 
+@infoline @w{@expr{x sin(pi x)}}
 (where the sine is calculated in radians).  Find the values of the
 integral for integers @expr{y} from 1 to 5.  @xref{Algebra Answer 3,
 3}. (@bullet{})
 
 Calc's integrator can do many simple integrals symbolically, but many
 others are beyond its capabilities.  Suppose we wish to find the area
-under the curve 
+under the curve
 @texline @math{\sin x \ln x}
-@infoline @expr{sin(x) ln(x)} 
+@infoline @expr{sin(x) ln(x)}
 over the same range of @expr{x}.  If you entered this formula and typed
 @kbd{a i x @key{RET}} (don't bother to try this), Calc would work for a
 long time but would be unable to find a solution.  In fact, there is no
@@ -5242,10 +5242,10 @@ $$ h (f(a) + f(a+h) + f(a+2h) + f(a+3h) + \cdots
 \afterdisplay
 @end tex
 
-Compute the integral from 1 to 2 of 
+Compute the integral from 1 to 2 of
 @texline @math{\sin x \ln x}
-@infoline @expr{sin(x) ln(x)} 
-using Simpson's rule with 10 slices.  
+@infoline @expr{sin(x) ln(x)}
+using Simpson's rule with 10 slices.
 @xref{Algebra Answer 4, 4}. (@bullet{})
 
 Calc has a built-in @kbd{a I} command for doing numerical integration.
@@ -5396,7 +5396,7 @@ having to retype it.
 
 To edit a variable, type @kbd{s e} and the variable name, use regular
 Emacs editing commands as necessary, then type @kbd{C-c C-c} to store
-the edited value back into the variable. 
+the edited value back into the variable.
 You can also use @w{@kbd{s e}} to create a new variable if you wish.
 
 Notice that the first time you use each rule, Calc puts up a ``compiling''
@@ -5780,7 +5780,7 @@ in @samp{a + 1} for @samp{x} in the defining formula.
 @tindex Si
 (@bullet{}) @strong{Exercise 1.}  The ``sine integral'' function
 @texline @math{{\rm Si}(x)}
-@infoline @expr{Si(x)} 
+@infoline @expr{Si(x)}
 is defined as the integral of @samp{sin(t)/t} for
 @expr{t = 0} to @expr{x} in radians.  (It was invented because this
 integral has no solution in terms of basic functions; if you give it
@@ -5857,9 +5857,9 @@ the following functions:
 
 @enumerate
 @item
-Compute 
+Compute
 @texline @math{\displaystyle{\sin x \over x}},
-@infoline @expr{sin(x) / x}, 
+@infoline @expr{sin(x) / x},
 where @expr{x} is the number on the top of the stack.
 
 @item
@@ -5923,15 +5923,15 @@ key if you have one, makes a copy of the number in level 2.)
 @cindex Golden ratio
 @cindex Phi, golden ratio
 A fascinating property of the Fibonacci numbers is that the @expr{n}th
-Fibonacci number can be found directly by computing 
+Fibonacci number can be found directly by computing
 @texline @math{\phi^n / \sqrt{5}}
 @infoline @expr{phi^n / sqrt(5)}
-and then rounding to the nearest integer, where 
+and then rounding to the nearest integer, where
 @texline @math{\phi} (``phi''),
-@infoline @expr{phi}, 
-the ``golden ratio,'' is 
+@infoline @expr{phi},
+the ``golden ratio,'' is
 @texline @math{(1 + \sqrt{5}) / 2}.
-@infoline @expr{(1 + sqrt(5)) / 2}. 
+@infoline @expr{(1 + sqrt(5)) / 2}.
 (For convenience, this constant is available from the @code{phi}
 variable, or the @kbd{I H P} command.)
 
@@ -5946,19 +5946,19 @@ variable, or the @kbd{I H P} command.)
 
 @cindex Continued fractions
 (@bullet{}) @strong{Exercise 5.}  The @dfn{continued fraction}
-representation of 
+representation of
 @texline @math{\phi}
-@infoline @expr{phi} 
-is 
+@infoline @expr{phi}
+is
 @texline @math{1 + 1/(1 + 1/(1 + 1/( \ldots )))}.
 @infoline @expr{1 + 1/(1 + 1/(1 + 1/( ...@: )))}.
 We can compute an approximate value by carrying this however far
-and then replacing the innermost 
+and then replacing the innermost
 @texline @math{1/( \ldots )}
-@infoline @expr{1/( ...@: )} 
+@infoline @expr{1/( ...@: )}
 by 1.  Approximate
 @texline @math{\phi}
-@infoline @expr{phi} 
+@infoline @expr{phi}
 using a twenty-term continued fraction.
 @xref{Programming Answer 5, 5}. (@bullet{})
 
@@ -6056,9 +6056,9 @@ survive past the @kbd{Z '} command.
 The @dfn{Bernoulli numbers} are a sequence with the interesting
 property that all of the odd Bernoulli numbers are zero, and the
 even ones, while difficult to compute, can be roughly approximated
-by the formula 
+by the formula
 @texline @math{\displaystyle{2 n! \over (2 \pi)^n}}.
-@infoline @expr{2 n!@: / (2 pi)^n}.  
+@infoline @expr{2 n!@: / (2 pi)^n}.
 Let's write a keyboard macro to compute (approximate) Bernoulli numbers.
 (Calc has a command, @kbd{k b}, to compute exact Bernoulli numbers, but
 this command is very slow for large @expr{n} since the higher Bernoulli
@@ -6166,7 +6166,7 @@ Z`                      ;; calc-kbd-push     (Save local values)
 0                       ;; calc digits       (Push a zero onto the stack)
 st                      ;; calc-store-into   (Store it in the following variable)
 1                       ;; calc quick variable  (Quick variable q1)
-1                       ;; calc digits       (Initial value for the loop) 
+1                       ;; calc digits       (Initial value for the loop)
 TAB                     ;; calc-roll-down    (Swap initial and final)
 Z(                      ;; calc-kbd-for      (Begin the "for" loop)
 &                       ;; calc-inv          (Take the reciprocal)
@@ -6193,10 +6193,10 @@ Press @kbd{C-c C-c} to finish editing and return to the Calculator.
 
 The @file{edmacro} package defines a handy @code{read-kbd-macro} command
 which reads the current region of the current buffer as a sequence of
-keystroke names, and defines that sequence on the @kbd{X} 
+keystroke names, and defines that sequence on the @kbd{X}
 (and @kbd{C-x e}) key.  Because this is so useful, Calc puts this
 command on the @kbd{C-x * m} key.  Try reading in this macro in the
-following form:  Press @kbd{C-@@} (or @kbd{C-@key{SPC}}) at 
+following form:  Press @kbd{C-@@} (or @kbd{C-@key{SPC}}) at
 one end of the text below, then type @kbd{C-x * m} at the other.
 
 @example
@@ -6230,12 +6230,12 @@ $$ x_{\rm new} = x - {f(x) \over f^{\prime}(x)} $$
 where @expr{f'(x)} is the derivative of @expr{f}.  The @expr{x}
 values will quickly converge to a solution, i.e., eventually
 @texline @math{x_{\rm new}}
-@infoline @expr{new_x} 
+@infoline @expr{new_x}
 and @expr{x} will be equal to within the limits
 of the current precision.  Write a program which takes a formula
 involving the variable @expr{x}, and an initial guess @expr{x_0},
 on the stack, and produces a value of @expr{x} for which the formula
-is zero.  Use it to find a solution of 
+is zero.  Use it to find a solution of
 @texline @math{\sin(\cos x) = 0.5}
 @infoline @expr{sin(cos(x)) = 0.5}
 near @expr{x = 4.5}.  (Use angles measured in radians.)  Note that
@@ -6245,12 +6245,12 @@ method when it is able.  @xref{Programming Answer 8, 8}. (@bullet{})
 @cindex Digamma function
 @cindex Gamma constant, Euler's
 @cindex Euler's gamma constant
-(@bullet{}) @strong{Exercise 9.}  The @dfn{digamma} function 
+(@bullet{}) @strong{Exercise 9.}  The @dfn{digamma} function
 @texline @math{\psi(z) (``psi'')}
 @infoline @expr{psi(z)}
-is defined as the derivative of 
+is defined as the derivative of
 @texline @math{\ln \Gamma(z)}.
-@infoline @expr{ln(gamma(z))}.  
+@infoline @expr{ln(gamma(z))}.
 For large values of @expr{z}, it can be approximated by the infinite sum
 
 @ifnottex
@@ -6267,9 +6267,9 @@ $$
 @end tex
 
 @noindent
-where 
+where
 @texline @math{\sum}
-@infoline @expr{sum} 
+@infoline @expr{sum}
 represents the sum over @expr{n} from 1 to infinity
 (or to some limit high enough to give the desired accuracy), and
 the @code{bern} function produces (exact) Bernoulli numbers.
@@ -6277,27 +6277,27 @@ While this sum is not guaranteed to converge, in practice it is safe.
 An interesting mathematical constant is Euler's gamma, which is equal
 to about 0.5772.  One way to compute it is by the formula,
 @texline @math{\gamma = -\psi(1)}.
-@infoline @expr{gamma = -psi(1)}.  
+@infoline @expr{gamma = -psi(1)}.
 Unfortunately, 1 isn't a large enough argument
 for the above formula to work (5 is a much safer value for @expr{z}).
-Fortunately, we can compute 
+Fortunately, we can compute
 @texline @math{\psi(1)}
-@infoline @expr{psi(1)} 
-from 
+@infoline @expr{psi(1)}
+from
 @texline @math{\psi(5)}
-@infoline @expr{psi(5)} 
-using the recurrence 
+@infoline @expr{psi(5)}
+using the recurrence
 @texline @math{\psi(z+1) = \psi(z) + {1 \over z}}.
-@infoline @expr{psi(z+1) = psi(z) + 1/z}.  
-Your task:  Develop a program to compute 
+@infoline @expr{psi(z+1) = psi(z) + 1/z}.
+Your task:  Develop a program to compute
 @texline @math{\psi(z)};
-@infoline @expr{psi(z)}; 
+@infoline @expr{psi(z)};
 it should ``pump up'' @expr{z}
 if necessary to be greater than 5, then use the above summation
 formula.  Use looping commands to compute the sum.  Use your function
-to compute 
+to compute
 @texline @math{\gamma}
-@infoline @expr{gamma} 
+@infoline @expr{gamma}
 to twelve decimal places.  (Calc has a built-in command
 for Euler's constant, @kbd{I P}, which you can use to check your answer.)
 @xref{Programming Answer 9, 9}. (@bullet{})
@@ -6470,7 +6470,7 @@ This section includes answers to all the exercises in the Calc tutorial.
 @noindent
 @kbd{1 @key{RET} 2 @key{RET} 3 @key{RET} 4 + * -}
 
-The result is 
+The result is
 @texline @math{1 - (2 \times (3 + 4)) = -13}.
 @infoline @expr{1 - (2 * (3 + 4)) = -13}.
 
@@ -6481,9 +6481,9 @@ The result is
 @texline @math{2\times4 + 7\times9.5 + {5\over4} = 75.75}
 @infoline @expr{2*4 + 7*9.5 + 5/4 = 75.75}
 
-After computing the intermediate term 
+After computing the intermediate term
 @texline @math{2\times4 = 8},
-@infoline @expr{2*4 = 8}, 
+@infoline @expr{2*4 = 8},
 you can leave that result on the stack while you compute the second
 term.  With both of these results waiting on the stack you can then
 compute the final term, then press @kbd{+ +} to add everything up.
@@ -6790,7 +6790,7 @@ Dividing two integers that are larger than the current precision may
 give a floating-point result that is inaccurate even when rounded
 down to an integer.  Consider @expr{123456789 / 2} when the current
 precision is 6 digits.  The true answer is @expr{61728394.5}, but
-with a precision of 6 this will be rounded to 
+with a precision of 6 this will be rounded to
 @texline @math{12345700.0/2.0 = 61728500.0}.
 @infoline @expr{12345700.@: / 2.@: = 61728500.}.
 The result, when converted to an integer, will be off by 106.
@@ -6900,18 +6900,18 @@ Type @kbd{d N} to return to Normal display mode afterwards.
 @subsection Matrix Tutorial Exercise 3
 
 @noindent
-To solve 
+To solve
 @texline @math{A^T A \, X = A^T B},
-@infoline @expr{trn(A) * A * X = trn(A) * B}, 
+@infoline @expr{trn(A) * A * X = trn(A) * B},
 first we compute
 @texline @math{A' = A^T A}
-@infoline @expr{A2 = trn(A) * A} 
-and 
+@infoline @expr{A2 = trn(A) * A}
+and
 @texline @math{B' = A^T B};
-@infoline @expr{B2 = trn(A) * B}; 
-now, we have a system 
+@infoline @expr{B2 = trn(A) * B};
+now, we have a system
 @texline @math{A' X = B'}
-@infoline @expr{A2 * X = B2} 
+@infoline @expr{A2 * X = B2}
 which we can solve using Calc's @samp{/} command.
 
 @ifnottex
@@ -6942,7 +6942,7 @@ $$
 The first step is to enter the coefficient matrix.  We'll store it in
 quick variable number 7 for later reference.  Next, we compute the
 @texline @math{B'}
-@infoline @expr{B2} 
+@infoline @expr{B2}
 vector.
 
 @smallexample
@@ -6958,9 +6958,9 @@ vector.
 @end smallexample
 
 @noindent
-Now we compute the matrix 
+Now we compute the matrix
 @texline @math{A'}
-@infoline @expr{A2} 
+@infoline @expr{A2}
 and divide.
 
 @smallexample
@@ -6979,16 +6979,16 @@ and divide.
 (The actual computed answer will be slightly inexact due to
 round-off error.)
 
-Notice that the answers are similar to those for the 
+Notice that the answers are similar to those for the
 @texline @math{3\times3}
 @infoline 3x3
-system solved in the text.  That's because the fourth equation that was 
+system solved in the text.  That's because the fourth equation that was
 added to the system is almost identical to the first one multiplied
 by two.  (If it were identical, we would have gotten the exact same
-answer since the 
+answer since the
 @texline @math{4\times3}
 @infoline 4x3
-system would be equivalent to the original 
+system would be equivalent to the original
 @texline @math{3\times3}
 @infoline 3x3
 system.)
@@ -7064,7 +7064,7 @@ $$ m \times x + b \times 1 = y $$
 \afterdisplay
 @end tex
 
-Thus we want a 
+Thus we want a
 @texline @math{19\times2}
 @infoline 19x2
 matrix with our @expr{x} vector as one column and
@@ -7083,12 +7083,12 @@ we combine the two columns to form our @expr{A} matrix.
 @end smallexample
 
 @noindent
-Now we compute 
+Now we compute
 @texline @math{A^T y}
-@infoline @expr{trn(A) * y} 
-and 
+@infoline @expr{trn(A) * y}
+and
 @texline @math{A^T A}
-@infoline @expr{trn(A) * A} 
+@infoline @expr{trn(A) * A}
 and divide.
 
 @smallexample
@@ -7114,9 +7114,9 @@ and divide.
 @end group
 @end smallexample
 
-Since we were solving equations of the form 
+Since we were solving equations of the form
 @texline @math{m \times x + b \times 1 = y},
-@infoline @expr{m*x + b*1 = y}, 
+@infoline @expr{m*x + b*1 = y},
 these numbers should be @expr{m} and @expr{b}, respectively.  Sure
 enough, they agree exactly with the result computed using @kbd{V M} and
 @kbd{V R}!
@@ -7177,9 +7177,9 @@ then raise the number to that power.)
 @subsection List Tutorial Exercise 4
 
 @noindent
-A number @expr{j} is a divisor of @expr{n} if 
+A number @expr{j} is a divisor of @expr{n} if
 @texline @math{n \mathbin{\hbox{\code{\%}}} j = 0}.
-@infoline @samp{n % j = 0}.  
+@infoline @samp{n % j = 0}.
 The first step is to get a vector that identifies the divisors.
 
 @smallexample
@@ -7248,9 +7248,9 @@ so that the mapping operation works; no prime factor will ever be
 zero, so adding zeros on the left and right is safe.  From then on
 the job is pretty straightforward.
 
-Incidentally, Calc provides the 
+Incidentally, Calc provides the
 @texline @dfn{M@"obius} @math{\mu}
-@infoline @dfn{Moebius mu} 
+@infoline @dfn{Moebius mu}
 function which is zero if and only if its argument is square-free.  It
 would be a much more convenient way to do the above test in practice.
 
@@ -7282,7 +7282,7 @@ exercise and type @kbd{1 -} to subtract one from all the elements.
 The numbers down the lefthand edge of the list we desire are called
 the ``triangular numbers'' (now you know why!).  The @expr{n}th
 triangular number is the sum of the integers from 1 to @expr{n}, and
-can be computed directly by the formula 
+can be computed directly by the formula
 @texline @math{n (n+1) \over 2}.
 @infoline @expr{n * (n+1) / 2}.
 
@@ -7378,7 +7378,7 @@ A way to isolate the maximum value is to compute the maximum using
 
 @noindent
 It's a good idea to verify, as in the last step above, that only
-one value is equal to the maximum.  (After all, a plot of 
+one value is equal to the maximum.  (After all, a plot of
 @texline @math{\sin x}
 @infoline @expr{sin(x)}
 might have many points all equal to the maximum value, 1.)
@@ -7650,12 +7650,12 @@ return to full-sized display of vectors.
 This problem can be made a lot easier by taking advantage of some
 symmetries.  First of all, after some thought it's clear that the
 @expr{y} axis can be ignored altogether.  Just pick a random @expr{x}
-component for one end of the match, pick a random direction 
+component for one end of the match, pick a random direction
 @texline @math{\theta},
 @infoline @expr{theta},
-and see if @expr{x} and 
+and see if @expr{x} and
 @texline @math{x + \cos \theta}
-@infoline @expr{x + cos(theta)} 
+@infoline @expr{x + cos(theta)}
 (which is the @expr{x} coordinate of the other endpoint) cross a line.
 The lines are at integer coordinates, so this happens when the two
 numbers surround an integer.
@@ -7670,9 +7670,9 @@ In fact, since the field of lines is infinite we can choose the
 coordinates 0 and 1 for the lines on either side of the leftmost
 endpoint.  The rightmost endpoint will be between 0 and 1 if the
 match does not cross a line, or between 1 and 2 if it does.  So:
-Pick random @expr{x} and 
+Pick random @expr{x} and
 @texline @math{\theta},
-@infoline @expr{theta}, 
+@infoline @expr{theta},
 compute
 @texline @math{x + \cos \theta},
 @infoline @expr{x + cos(theta)},
@@ -8997,7 +8997,7 @@ Each of these functions can be computed using the stack, or using
 algebraic entry, whichever way you prefer:
 
 @noindent
-Computing 
+Computing
 @texline @math{\displaystyle{\sin x \over x}}:
 @infoline @expr{sin(x) / x}:
 
@@ -9068,7 +9068,7 @@ C-x ( ' [0, 1; 1, 1] ^ ($-1) * [1, 1] @key{RET} v u @key{DEL} C-x )
 
 @noindent
 This program is quite efficient because Calc knows how to raise a
-matrix (or other value) to the power @expr{n} in only 
+matrix (or other value) to the power @expr{n} in only
 @texline @math{\log_2 n}
 @infoline @expr{log(n,2)}
 steps.  For example, this program can compute the 1000th Fibonacci
@@ -9122,7 +9122,7 @@ harmonic number is 4.02.
 
 @noindent
 The first step is to compute the derivative @expr{f'(x)} and thus
-the formula 
+the formula
 @texline @math{\displaystyle{x - {f(x) \over f'(x)}}}.
 @infoline @expr{x - f(x)/f'(x)}.
 
@@ -9239,12 +9239,12 @@ method (among others) to look for numerical solutions to any equation.
 @noindent
 The first step is to adjust @expr{z} to be greater than 5.  A simple
 ``for'' loop will do the job here.  If @expr{z} is less than 5, we
-reduce the problem using 
+reduce the problem using
 @texline @math{\psi(z) = \psi(z+1) - 1/z}.
 @infoline @expr{psi(z) = psi(z+1) - 1/z}.  We go
-on to compute 
+on to compute
 @texline @math{\psi(z+1)},
-@infoline @expr{psi(z+1)}, 
+@infoline @expr{psi(z+1)},
 and remember to add back a factor of @expr{-1/z} when we're done.  This
 step is repeated until @expr{z > 5}.
 
@@ -9283,7 +9283,7 @@ are exactly equal, not just equal to within the current precision.)
 @end group
 @end smallexample
 
-Now we compute the initial part of the sum:  
+Now we compute the initial part of the sum:
 @texline @math{\ln z - {1 \over 2z}}
 @infoline @expr{ln(z) - 1/2z}
 minus the adjustment factor.
@@ -9326,9 +9326,9 @@ up the value of @expr{2 n}.  (Calc does have a summation command,
 @end group
 @end smallexample
 
-This is the value of 
+This is the value of
 @texline @math{-\gamma},
-@infoline @expr{- gamma}, 
+@infoline @expr{- gamma},
 with a slight bit of roundoff error.  To get a full 12 digits, let's use
 a higher precision:
 
@@ -9361,9 +9361,9 @@ C-x )
 
 @noindent
 Taking the derivative of a term of the form @expr{x^n} will produce
-a term like 
+a term like
 @texline @math{n x^{n-1}}.
-@infoline @expr{n x^(n-1)}.  
+@infoline @expr{n x^(n-1)}.
 Taking the derivative of a constant
 produces zero.  From this it is easy to see that the @expr{n}th
 derivative of a polynomial, evaluated at @expr{x = 0}, will equal the
@@ -9652,7 +9652,7 @@ still exists and is updated silently.  @xref{Trail Commands}.
 @mindex @null
 @end ignore
 In most installations, the @kbd{C-x * c} key sequence is a more
-convenient way to start the Calculator.  Also, @kbd{C-x * *} 
+convenient way to start the Calculator.  Also, @kbd{C-x * *}
 is a synonym for @kbd{C-x * c} unless you last used Calc
 in its Keypad mode.
 
@@ -9908,9 +9908,9 @@ additional notes from the summary that apply to this command.
 The @kbd{h f} (@code{calc-describe-function}) command looks up an
 algebraic function or a command name in the Calc manual.  Enter an
 algebraic function name to look up that function in the Function
-Index or enter a command name beginning with @samp{calc-} to look it 
+Index or enter a command name beginning with @samp{calc-} to look it
 up in the Command Index.  This command will also look up operator
-symbols that can appear in algebraic formulas, like @samp{%} and 
+symbols that can appear in algebraic formulas, like @samp{%} and
 @samp{=>}.
 
 @kindex h v
@@ -10038,7 +10038,7 @@ During numeric entry, the only editing key available is @key{DEL}.
 @cindex Formulas, entering
 The @kbd{'} (@code{calc-algebraic-entry}) command can be used to enter
 calculations in algebraic form.  This is accomplished by typing the
-apostrophe key, ', followed by the expression in standard format:  
+apostrophe key, ', followed by the expression in standard format:
 
 @example
 ' 2+3*4 @key{RET}.
@@ -10047,7 +10047,7 @@ apostrophe key, ', followed by the expression in standard format:
 @noindent
 This will compute
 @texline @math{2+(3\times4) = 14}
-@infoline @expr{2+(3*4) = 14} 
+@infoline @expr{2+(3*4) = 14}
 and push it on the stack.  If you wish you can
 ignore the RPN aspect of Calc altogether and simply enter algebraic
 expressions in this way.  You may want to use @key{DEL} every so often to
@@ -10453,9 +10453,9 @@ is greater than this, it will recompute @cpi{} using a series
 approximation.  This value will not need to be recomputed ever again
 unless you raise the precision still further.  Many operations such as
 logarithms and sines make use of similarly cached values such as
-@cpiover{4} and 
+@cpiover{4} and
 @texline @math{\ln 2}.
-@infoline @expr{ln(2)}.  
+@infoline @expr{ln(2)}.
 The visible effect of caching is that
 high-precision computations may seem to do extra work the first time.
 Other things cached include powers of two (for the binary arithmetic
@@ -10612,10 +10612,10 @@ form).  The numerator and denominator always use the same radix.
 A floating-point number or @dfn{float} is a number stored in scientific
 notation.  The number of significant digits in the fractional part is
 governed by the current floating precision (@pxref{Precision}).  The
-range of acceptable values is from 
+range of acceptable values is from
 @texline @math{10^{-3999999}}
-@infoline @expr{10^-3999999} 
-(inclusive) to 
+@infoline @expr{10^-3999999}
+(inclusive) to
 @texline @math{10^{4000000}}
 @infoline @expr{10^4000000}
 (exclusive), plus the corresponding negative values and zero.
@@ -10666,7 +10666,7 @@ and displayed in any radix just like integers and fractions.  Since a
 float that is entered in a radix other that 10 will be converted to
 decimal, the number that Calc stores may not be exactly the number that
 was entered, it will be the closest decimal approximation given the
-current precison.  The notation @samp{@var{radix}#@var{ddd}.@var{ddd}}
+current precision.  The notation @samp{@var{radix}#@var{ddd}.@var{ddd}}
 is a floating-point number whose digits are in the specified radix.
 Note that the @samp{.}  is more aptly referred to as a ``radix point''
 than as a decimal point in this case.  The number @samp{8#123.4567} is
@@ -10690,18 +10690,18 @@ polar.  The default format is rectangular, displayed in the form
 Rectangular complex numbers can also be displayed in @samp{@var{a}+@var{b}i}
 notation; @pxref{Complex Formats}.
 
-Polar complex numbers are displayed in the form 
+Polar complex numbers are displayed in the form
 @texline `@tfn{(}@var{r}@tfn{;}@math{\theta}@tfn{)}'
 @infoline `@tfn{(}@var{r}@tfn{;}@var{theta}@tfn{)}'
-where @var{r} is the nonnegative magnitude and 
+where @var{r} is the nonnegative magnitude and
 @texline @math{\theta}
-@infoline @var{theta} 
-is the argument or phase angle.  The range of 
+@infoline @var{theta}
+is the argument or phase angle.  The range of
 @texline @math{\theta}
-@infoline @var{theta} 
+@infoline @var{theta}
 depends on the current angular mode (@pxref{Angular Modes}); it is
 generally between @mathit{-180} and @mathit{+180} degrees or the equivalent range
-in radians. 
+in radians.
 
 Complex numbers are entered in stages using incomplete objects.
 @xref{Incomplete Objects}.
@@ -10742,9 +10742,9 @@ really mean is that @expr{1 / x}, as @expr{x} becomes larger and
 larger, becomes arbitrarily close to zero.  So you can imagine
 that if @expr{x} got ``all the way to infinity,'' then @expr{1 / x}
 would go all the way to zero.  Similarly, when they say that
-@samp{exp(inf) = inf}, they mean that 
+@samp{exp(inf) = inf}, they mean that
 @texline @math{e^x}
-@infoline @expr{exp(x)} 
+@infoline @expr{exp(x)}
 grows without bound as @expr{x} grows.  The symbol @samp{-inf} likewise
 stands for an infinitely negative real value; for example, we say that
 @samp{exp(-inf) = 0}.  You can have an infinity pointing in any
@@ -10839,7 +10839,7 @@ of its elements.
 @end ignore
 @tindex vec
 Algebraic functions for building vectors include @samp{vec(a, b, c)}
-to build @samp{[a, b, c]}, @samp{cvec(a, n, m)} to build an 
+to build @samp{[a, b, c]}, @samp{cvec(a, n, m)} to build an
 @texline @math{n\times m}
 @infoline @var{n}x@var{m}
 matrix of @samp{a}s, and @samp{index(n)} to build a vector of integers
@@ -11184,9 +11184,9 @@ there is no solution to this equation (which can happen only when
 division is left in symbolic form.  Other operations, such as square
 roots, are not yet supported for modulo forms.  (Note that, although
 @w{`@tfn{(}@var{a} @tfn{mod} @var{M}@tfn{)^.5}'} will compute a ``modulo square root''
-in the sense of reducing 
+in the sense of reducing
 @texline @math{\sqrt a}
-@infoline @expr{sqrt(a)} 
+@infoline @expr{sqrt(a)}
 modulo @expr{M}, this is not a useful definition from the
 number-theoretical point of view.)
 
@@ -11220,11 +11220,11 @@ The algebraic function @samp{makemod(a, m)} builds the modulo form
 @cindex Standard deviations
 An @dfn{error form} is a number with an associated standard
 deviation, as in @samp{2.3 +/- 0.12}.  The notation
-@texline `@var{x} @tfn{+/-} @math{\sigma}' 
-@infoline `@var{x} @tfn{+/-} sigma' 
+@texline `@var{x} @tfn{+/-} @math{\sigma}'
+@infoline `@var{x} @tfn{+/-} sigma'
 stands for an uncertain value which follows
 a normal or Gaussian distribution of mean @expr{x} and standard
-deviation or ``error'' 
+deviation or ``error''
 @texline @math{\sigma}.
 @infoline @expr{sigma}.
 Both the mean and the error can be either numbers or
@@ -11235,7 +11235,7 @@ regular number by the Calculator.
 
 All arithmetic and transcendental functions accept error forms as input.
 Operations on the mean-value part work just like operations on regular
-numbers.  The error part for any function @expr{f(x)} (such as 
+numbers.  The error part for any function @expr{f(x)} (such as
 @texline @math{\sin x}
 @infoline @expr{sin(x)})
 is defined by the error of @expr{x} times the derivative of @expr{f}
@@ -11267,35 +11267,35 @@ Consult a good text on error analysis for a discussion of the proper use
 of standard deviations.  Actual errors often are neither Gaussian-distributed
 nor uncorrelated, and the above formulas are valid only when errors
 are small.  As an example, the error arising from
-@texline `@tfn{sin(}@var{x} @tfn{+/-} @math{\sigma}@tfn{)}' 
-@infoline `@tfn{sin(}@var{x} @tfn{+/-} @var{sigma}@tfn{)}' 
-is 
-@texline `@math{\sigma} @tfn{abs(cos(}@var{x}@tfn{))}'.  
-@infoline `@var{sigma} @tfn{abs(cos(}@var{x}@tfn{))}'.  
+@texline `@tfn{sin(}@var{x} @tfn{+/-} @math{\sigma}@tfn{)}'
+@infoline `@tfn{sin(}@var{x} @tfn{+/-} @var{sigma}@tfn{)}'
+is
+@texline `@math{\sigma} @tfn{abs(cos(}@var{x}@tfn{))}'.
+@infoline `@var{sigma} @tfn{abs(cos(}@var{x}@tfn{))}'.
 When @expr{x} is close to zero,
 @texline @math{\cos x}
-@infoline @expr{cos(x)} 
-is close to one so the error in the sine is close to 
+@infoline @expr{cos(x)}
+is close to one so the error in the sine is close to
 @texline @math{\sigma};
 @infoline @expr{sigma};
-this makes sense, since 
+this makes sense, since
 @texline @math{\sin x}
-@infoline @expr{sin(x)} 
+@infoline @expr{sin(x)}
 is approximately @expr{x} near zero, so a given error in @expr{x} will
 produce about the same error in the sine.  Likewise, near 90 degrees
 @texline @math{\cos x}
-@infoline @expr{cos(x)} 
+@infoline @expr{cos(x)}
 is nearly zero and so the computed error is
 small:  The sine curve is nearly flat in that region, so an error in @expr{x}
-has relatively little effect on the value of 
+has relatively little effect on the value of
 @texline @math{\sin x}.
-@infoline @expr{sin(x)}.  
+@infoline @expr{sin(x)}.
 However, consider @samp{sin(90 +/- 1000)}.  The cosine of 90 is zero, so
 Calc will report zero error!  We get an obviously wrong result because
 we have violated the small-error approximation underlying the error
 analysis.  If the error in @expr{x} had been small, the error in
 @texline @math{\sin x}
-@infoline @expr{sin(x)} 
+@infoline @expr{sin(x)}
 would indeed have been negligible.
 
 @ignore
@@ -11402,14 +11402,14 @@ contain zero inside them Calc is forced to give the result,
 
 While it may seem that intervals and error forms are similar, they are
 based on entirely different concepts of inexact quantities.  An error
-form 
-@texline `@var{x} @tfn{+/-} @math{\sigma}' 
-@infoline `@var{x} @tfn{+/-} @var{sigma}' 
+form
+@texline `@var{x} @tfn{+/-} @math{\sigma}'
+@infoline `@var{x} @tfn{+/-} @var{sigma}'
 means a variable is random, and its value could
-be anything but is ``probably'' within one 
-@texline @math{\sigma} 
-@infoline @var{sigma} 
-of the mean value @expr{x}. An interval 
+be anything but is ``probably'' within one
+@texline @math{\sigma}
+@infoline @var{sigma}
+of the mean value @expr{x}. An interval
 `@tfn{[}@var{a} @tfn{..@:} @var{b}@tfn{]}' means a
 variable's value is unknown, but guaranteed to lie in the specified
 range.  Error forms are statistical or ``average case'' approximations;
@@ -11641,7 +11641,7 @@ the C-style ``if'' operator @samp{a?b:c} [@code{if}];
 @samp{=>} [@code{evalto}].
 
 Note that, unlike in usual computer notation, multiplication binds more
-strongly than division:  @samp{a*b/c*d} is equivalent to 
+strongly than division:  @samp{a*b/c*d} is equivalent to
 @texline @math{a b \over c d}.
 @infoline @expr{(a*b)/(c*d)}.
 
@@ -11858,13 +11858,13 @@ next higher level. For example, with @samp{10 20 30 40 50} on the
 stack and the point on the line containing @samp{30}, @kbd{C-x C-t}
 creates @samp{10 20 40 30 50}.  More generally, @kbd{C-x C-t} acts on
 the stack objects determined by the current point (and mark) similar
-to how the text-mode command @code{transpose-lines} acts on 
+to how the text-mode command @code{transpose-lines} acts on
 lines.  With argument @var{n}, @kbd{C-x C-t} will move the stack object
 at the level above the current point and move it past N other objects;
 for example, with @samp{10 20 30 40 50} on the stack and the point on
-the line containing @samp{30}, @kbd{C-u 2 C-x C-t} creates 
+the line containing @samp{30}, @kbd{C-u 2 C-x C-t} creates
 @samp{10 40 20 30 50}. With an argument of 0, @kbd{C-x C-t} will switch
-the stack objects at the levels determined by the point and the mark. 
+the stack objects at the levels determined by the point and the mark.
 
 @node Editing Stack Entries, Trail Commands, Stack Manipulation, Stack and Trail
 @section Editing Stack Entries
@@ -12056,7 +12056,7 @@ the stack contains the arguments and the result: @samp{2 3 5}.
 With the exception of keyboard macros, this works for all commands that
 take arguments off the stack. (To avoid potentially unpleasant behavior,
 a @kbd{K} prefix before a keyboard macro will be ignored.  A @kbd{K}
-prefix called @emph{within} the keyboard macro will still take effect.)  
+prefix called @emph{within} the keyboard macro will still take effect.)
 As another example, @kbd{K a s} simplifies a formula, pushing the
 simplified version of the formula onto the stack after the original
 formula (rather than replacing the original formula).  Note that you
@@ -12064,7 +12064,7 @@ could get the same effect by typing @kbd{@key{RET} a s}, copying the
 formula and then simplifying the copy. One difference is that for a very
 large formula the time taken to format the intermediate copy in
 @kbd{@key{RET} a s} could be noticeable; @kbd{K a s} would avoid this
-extra work. 
+extra work.
 
 Even stack manipulation commands are affected.  @key{TAB} works by
 popping two values and pushing them back in the opposite order,
@@ -12155,7 +12155,7 @@ discussion of the @code{calc-settings-file} variable; @pxref{Customizing Calc}.
 If the file name you give is your user init file (typically
 @file{~/.emacs}), @kbd{m F} will not automatically load the new file.  This
 is because your user init file may contain other things you don't want
-to reread.  You can give 
+to reread.  You can give
 a numeric prefix argument of 1 to @kbd{m F} to force it to read the
 file no matter what.  Conversely, an argument of @mathit{-1} tells
 @kbd{m F} @emph{not} to read the new file.  An argument of 2 or @mathit{-2}
@@ -12274,7 +12274,7 @@ corresponding base command (@code{calc-sin} in this case).
 @pindex calc-option
 The @kbd{O} key (@code{calc-option}) sets another flag, the
 @dfn{Option Flag}, which also can alter the subsequent Calc command in
-various ways. 
+various ways.
 
 The Inverse, Hyperbolic and Option flags apply only to the next
 Calculator command, after which they are automatically cleared.  (They
@@ -12366,7 +12366,7 @@ result cannot be expressed as an integer.  In some cases you would
 rather get an exact fractional answer.  One way to accomplish this is
 to use the @kbd{:} (@code{calc-fdiv}) [@code{fdiv}] command, which
 divides the two integers on the top of the stack to produce a fraction:
-@kbd{6 @key{RET} 4 :} produces @expr{3:2} even though 
+@kbd{6 @key{RET} 4 :} produces @expr{3:2} even though
 @kbd{6 @key{RET} 4 /} produces @expr{1.5}.
 
 @kindex m f
@@ -13155,11 +13155,11 @@ represent the integer and no more.  The @kbd{d z} (@code{calc-leading-zeros})
 command causes integers to be padded out with leading zeros according to the
 current binary word size.  (@xref{Binary Functions}, for a discussion of
 word size.)  If the absolute value of the word size is @expr{w}, all integers
-are displayed with at least enough digits to represent 
+are displayed with at least enough digits to represent
 @texline @math{2^w-1}
-@infoline @expr{(2^w)-1} 
+@infoline @expr{(2^w)-1}
 in the current radix.  (Larger integers will still be displayed in their
-entirety.) 
+entirety.)
 
 @cindex Two's complements
 Calc can display @expr{w}-bit integers using two's complement
@@ -13181,7 +13181,7 @@ the integers from @expr{0} to
 are represented by themselves and the integers from
 @texline @math{-2^{w-1}}
 @infoline @expr{-2^(w-1)}
-to @expr{-1} are represented by the integers from 
+to @expr{-1} are represented by the integers from
 @texline @math{2^{w-1}}
 @infoline @expr{2^(w-1)}
 to @expr{2^w-1} (the integer @expr{k} is represented by @expr{k+2^w}).
@@ -13190,7 +13190,7 @@ Calc will display a two's complement integer by the radix (either
 representation (including any leading zeros necessary to include all
 @expr{w} bits).  In a two's complement display mode, numbers that
 are not displayed in two's complement notation (i.e., that aren't
-integers from  
+integers from
 @texline @math{-2^{w-1}}
 @infoline @expr{-2^(w-1)}
 to
@@ -14095,13 +14095,13 @@ the @samp{$} sign has the same meaning it always does in algebraic
 formulas (a reference to an existing entry on the stack).
 
 Complex numbers are displayed as in @samp{3 + 4i}.  Fractions and
-quotients are written using @code{\over} in @TeX{} mode (as in 
+quotients are written using @code{\over} in @TeX{} mode (as in
 @code{@{a \over b@}}) and @code{\frac} in La@TeX{} mode (as in
 @code{\frac@{a@}@{b@}});  binomial coefficients are written with
 @code{\choose} in @TeX{} mode (as in @code{@{a \choose b@}}) and
 @code{\binom} in La@TeX{} mode (as in @code{\binom@{a@}@{b@}}).
 Interval forms are written with @code{\ldots}, and error forms are
-written with @code{\pm}. Absolute values are written as in 
+written with @code{\pm}. Absolute values are written as in
 @samp{|x + 1|}, and the floor and ceiling functions are written with
 @code{\lfloor}, @code{\rfloor}, etc. The words @code{\left} and
 @code{\right} are ignored when reading formulas in @TeX{} and La@TeX{}
@@ -14114,10 +14114,10 @@ and La@TeX{} have special names (like @code{\sin}) will use curly braces
 instead of parentheses for very simple arguments.  During input, curly
 braces and parentheses work equally well for grouping, but when the
 document is formatted the curly braces will be invisible.  Thus the
-printed result is 
+printed result is
 @texline @math{\sin{2 x}}
-@infoline @expr{sin 2x} 
-but 
+@infoline @expr{sin 2x}
+but
 @texline @math{\sin(2 + x)}.
 @infoline @expr{sin(2 + x)}.
 
@@ -14131,7 +14131,7 @@ italic letters in the printed document.  If you invoke @kbd{d T} or
 @kbd{d L} with a positive numeric prefix argument, names of more than
 one character will instead be enclosed in a protective commands that
 will prevent them from being typeset in the math italics; they will be
-written @samp{\hbox@{@var{name}@}} in @TeX{} mode and 
+written @samp{\hbox@{@var{name}@}} in @TeX{} mode and
 @samp{\text@{@var{name}@}} in La@TeX{} mode.  The
 @samp{\hbox@{ @}} and @samp{\text@{ @}} notations are ignored during
 reading.  If you use a negative prefix argument, such function names are
@@ -14143,7 +14143,7 @@ any @TeX{} mode.)
 
 During reading, text of the form @samp{\matrix@{ ...@: @}} is replaced
 by @samp{[ ...@: ]}.  The same also applies to @code{\pmatrix} and
-@code{\bmatrix}.  In La@TeX{} mode this also applies to 
+@code{\bmatrix}.  In La@TeX{} mode this also applies to
 @samp{\begin@{matrix@} ... \end@{matrix@}},
 @samp{\begin@{bmatrix@} ... \end@{bmatrix@}},
 @samp{\begin@{pmatrix@} ... \end@{pmatrix@}}, as well as
@@ -14151,12 +14151,12 @@ by @samp{[ ...@: ]}.  The same also applies to @code{\pmatrix} and
 The symbol @samp{&} is interpreted as a comma,
 and the symbols @samp{\cr} and @samp{\\} are interpreted as semicolons.
 During output, matrices are displayed in @samp{\matrix@{ a & b \\ c & d@}}
-format in @TeX{} mode and in 
+format in @TeX{} mode and in
 @samp{\begin@{pmatrix@} a & b \\ c & d \end@{pmatrix@}} format in
 La@TeX{} mode; you may need to edit this afterwards to change to your
 preferred matrix form.  If you invoke @kbd{d T} or @kbd{d L} with an
 argument of 2 or -2, then matrices will be displayed in two-dimensional
-form, such as 
+form, such as
 
 @example
 \begin@{pmatrix@}
@@ -14300,25 +14300,25 @@ in Calc, @TeX{}, La@TeX{} and @dfn{eqn} (described in the next section):
 @example
 Calc      TeX           LaTeX         eqn
 ----      ---           -----         ---
-acute     \acute        \acute        
-Acute                   \Acute        
+acute     \acute        \acute
+Acute                   \Acute
 bar       \bar          \bar          bar
 Bar                     \Bar
-breve     \breve        \breve        
-Breve                   \Breve        
-check     \check        \check        
-Check                   \Check        
+breve     \breve        \breve
+Breve                   \Breve
+check     \check        \check
+Check                   \Check
 dddot                   \dddot
 ddddot                  \ddddot
 dot       \dot          \dot          dot
 Dot                     \Dot
 dotdot    \ddot         \ddot         dotdot
-DotDot                  \Ddot         
+DotDot                  \Ddot
 dyad                                  dyad
-grave     \grave        \grave        
-Grave                   \Grave        
+grave     \grave        \grave
+Grave                   \Grave
 hat       \hat          \hat          hat
-Hat                     \Hat          
+Hat                     \Hat
 Prime                                 prime
 tilde     \tilde        \tilde        tilde
 Tilde                   \Tilde
@@ -14363,7 +14363,7 @@ reading is:
 
 Note that, because these symbols are ignored, reading a @TeX{} or
 La@TeX{} formula into Calc and writing it back out may lose spacing and
-font information. 
+font information.
 
 Also, the ``discretionary multiplication sign'' @samp{\*} is read
 the same as @samp{*}.
@@ -14542,7 +14542,7 @@ are treated the same as curly braces: @samp{sqrt "1+x"} is equivalent to
 of quotes in @dfn{eqn}, but it is good enough for most uses.
 
 Accent codes (@samp{@var{x} dot}) are handled by treating them as
-function calls (@samp{dot(@var{x})}) internally.  
+function calls (@samp{dot(@var{x})}) internally.
 @xref{TeX and LaTeX Language Modes}, for a table of these accent
 functions.  The @code{prime} accent is treated specially if it occurs on
 a variable or function name: @samp{f prime prime @w{( x prime )}} is
@@ -14572,7 +14572,7 @@ if the matrix justification mode so specifies.
 The @kbd{d Y} (@code{calc-yacas-language}) command selects the
 conventions of Yacas, a free computer algebra system.  While the
 operators and functions in Yacas are similar to those of Calc, the names
-of built-in functions in Yacas are capitalized.  The Calc formula 
+of built-in functions in Yacas are capitalized.  The Calc formula
 @samp{sin(2 x)}, for example, is entered and displayed @samp{Sin(2 x)}
 in Yacas mode,  and `@samp{arcsin(x^2)} is @samp{ArcSin(x^2)} in Yacas
 mode.  Complex numbers are written  are written @samp{3 + 4 I}.
@@ -14581,9 +14581,9 @@ The standard special constants are written @code{Pi}, @code{E},
 represents both @code{inf} and @code{uinf}, and @code{Undefined}
 represents @code{nan}.
 
-Certain operators on functions, such as @code{D} for differentiation 
+Certain operators on functions, such as @code{D} for differentiation
 and @code{Integrate} for integration, take a prefix form in Yacas.  For
-example, the derivative of @w{@samp{e^x sin(x)}} can be computed with 
+example, the derivative of @w{@samp{e^x sin(x)}} can be computed with
 @w{@samp{D(x) Exp(x)*Sin(x)}}.
 
 Other notable differences between Yacas and standard Calc expressions
@@ -14602,7 +14602,7 @@ use square brackets.  If, for example, @samp{A} represents the list
 The @kbd{d X} (@code{calc-maxima-language}) command selects the
 conventions of Maxima, another free computer algebra system.  The
 function names in Maxima are similar, but not always identical, to Calc.
-For example, instead of @samp{arcsin(x)}, Maxima will use 
+For example, instead of @samp{arcsin(x)}, Maxima will use
 @samp{asin(x)}.  Complex numbers are written @samp{3 + 4 %i}.  The
 standard special constants are written @code{%pi},  @code{%e},
 @code{%i}, @code{%phi} and @code{%gamma}.  In Maxima,  @code{inf} means
@@ -14610,8 +14610,8 @@ the same as in Calc, but @code{infinity} represents Calc's @code{uinf}.
 
 Underscores as well as percent signs are allowed in function and
 variable names in Maxima mode.  The underscore again is equivalent to
-the @samp{#} in Normal mode, and the percent sign is equivalent to 
-@samp{o'o}.  
+the @samp{#} in Normal mode, and the percent sign is equivalent to
+@samp{o'o}.
 
 Maxima uses square brackets for lists and vectors, and matrices are
 written as calls to the function @code{matrix}, given the row vectors of
@@ -14629,7 +14629,7 @@ conventions of Giac, another free computer algebra system.  The function
 names in Giac are similar to Maxima.  Complex numbers are written
 @samp{3 + 4 i}.  The standard special constants in Giac are the same as
 in Calc, except that @code{infinity} represents both Calc's @code{inf}
-and @code{uinf}. 
+and @code{uinf}.
 
 Underscores are allowed in function and variable names in Giac mode.
 Brackets are used for subscripts.  In Giac, indexing of lists begins at
@@ -15786,9 +15786,9 @@ Command is @kbd{m p}.
 @item
 Matrix/Scalar mode.  Default value is @mathit{-1}.  Value is 0 for Scalar
 mode, @mathit{-2} for Matrix mode, @mathit{-3} for square Matrix mode,
-or @var{N} for  
+or @var{N} for
 @texline @math{N\times N}
-@infoline @var{N}x@var{N} 
+@infoline @var{N}x@var{N}
 Matrix mode.  Command is @kbd{m v}.
 
 @item
@@ -16178,7 +16178,7 @@ whereas @w{@samp{[-2 ..@: 3] ^ 2}} is @samp{[0 ..@: 9]}.
 @mindex @null
 @end ignore
 @tindex /
-The @kbd{/} (@code{calc-divide}) command divides two numbers.  
+The @kbd{/} (@code{calc-divide}) command divides two numbers.
 
 When combining multiplication and division in an algebraic formula, it
 is good style to use parentheses to distinguish between possible
@@ -16187,7 +16187,7 @@ interpretations; the expression @samp{a/b*c} should be written
 parentheses, Calc will interpret @samp{a/b*c} as @samp{a/(b*c)}, since
 in algebraic entry Calc gives division a lower precedence than
 multiplication. (This is not standard across all computer languages, and
-Calc may change the precedence depending on the language mode being used.  
+Calc may change the precedence depending on the language mode being used.
 @xref{Language Modes}.)  This default ordering can be changed by setting
 the customizable variable @code{calc-multiplication-has-precedence} to
 @code{nil} (@pxref{Customizing Calc}); this will give multiplication and
@@ -16373,7 +16373,7 @@ all the arguments.)
 The @kbd{f M} (@code{calc-mant-part}) [@code{mant}] function extracts
 the ``mantissa'' part @expr{m} of its floating-point argument; @kbd{f X}
 (@code{calc-xpon-part}) [@code{xpon}] extracts the ``exponent'' part
-@expr{e}.  The original number is equal to 
+@expr{e}.  The original number is equal to
 @texline @math{m \times 10^e},
 @infoline @expr{m * 10^e},
 where @expr{m} is in the interval @samp{[1.0 ..@: 10.0)} except that
@@ -16406,9 +16406,9 @@ floating-point numbers, the change is by one unit in the last place.
 For example, incrementing @samp{12.3456} when the current precision
 is 6 digits yields @samp{12.3457}.  If the current precision had been
 8 digits, the result would have been @samp{12.345601}.  Incrementing
-@samp{0.0} produces 
+@samp{0.0} produces
 @texline @math{10^{-p}},
-@infoline @expr{10^-p}, 
+@infoline @expr{10^-p},
 where @expr{p} is the current
 precision.  These operations are defined only on integers and floats.
 With numeric prefix arguments, they change the number by @expr{n} units.
@@ -16852,7 +16852,7 @@ The last two arguments default to zero if omitted.
 The @kbd{t J} (@code{calc-julian}) [@code{julian}] command converts
 a date form into a Julian day count, which is the number of days
 since noon (GMT) on Jan 1, 4713 BC.  A pure date is converted to an
-integer Julian count representing noon of that day.  A date/time form 
+integer Julian count representing noon of that day.  A date/time form
 is converted to an exact floating-point Julian count, adjusted to
 interpret the date form in the current time zone but the Julian
 day count in Greenwich Mean Time.  A numeric prefix argument allows
@@ -17294,12 +17294,12 @@ With no arguments, @code{calc-time-zone} or @samp{tzone()} will by
 default get the time zone and daylight saving information from the
 calendar (@pxref{Daylight Saving,Calendar/Diary,The Calendar and the Diary,
 emacs,The GNU Emacs Manual}).  To use a different time zone, or if the
-calendar does not give the desired result, you can set the Calc variable 
+calendar does not give the desired result, you can set the Calc variable
 @code{TimeZone} (which is by default @code{nil}) to an appropriate
 time zone name.  (The easiest way to do this is to edit the
 @code{TimeZone} variable using Calc's @kbd{s T} command, then use the
 @kbd{s p} (@code{calc-permanent-variable}) command to save the value of
-@code{TimeZone} permanently.)  
+@code{TimeZone} permanently.)
 If the time zone given by @code{TimeZone} is a generalized time zone,
 e.g., @code{EGT}, Calc examines the date being converted to tell whether
 to use standard or daylight saving time.  But if the current time zone
@@ -17311,12 +17311,12 @@ from the calendar.
 
 The @kbd{t J} and @code{t U} commands with no numeric prefix
 arguments do the same thing as @samp{tzone()}; namely, use the
-information from the calendar if @code{TimeZone} is @code{nil}, 
+information from the calendar if @code{TimeZone} is @code{nil},
 otherwise use the time zone given by @code{TimeZone}.
 
 @vindex math-daylight-savings-hook
 @findex math-std-daylight-savings
-When Calc computes the daylight saving information itself (i.e., when 
+When Calc computes the daylight saving information itself (i.e., when
 the @code{TimeZone} variable is set), it will by default consider
 daylight saving time to begin at 2 a.m.@: on the second Sunday of March
 (for years from 2007 on) or on the last Sunday in April (for years
@@ -17392,7 +17392,7 @@ falls in this hour results in a time value for the following hour,
 from 3 a.m.@: to 4 a.m.  At the end of daylight saving time, the
 hour from 1 a.m.@: to 2 a.m.@: repeats itself; converting a date/time
 form that falls in this hour results in a time value for the first
-manifestation of that time (@emph{not} the one that occurs one hour 
+manifestation of that time (@emph{not} the one that occurs one hour
 later).
 
 If @code{math-daylight-savings-hook} is @code{nil}, then the
@@ -17995,12 +17995,12 @@ particular, negative arguments are converted to positive integers modulo
 @expr{2^w} by all binary functions.
 
 If the word size is negative, binary operations produce twos-complement
-integers from 
+integers from
 @texline @math{-2^{-w-1}}
-@infoline @expr{-(2^(-w-1))} 
-to 
+@infoline @expr{-(2^(-w-1))}
+to
 @texline @math{2^{-w-1}-1}
-@infoline @expr{2^(-w-1)-1} 
+@infoline @expr{2^(-w-1)-1}
 inclusive.  Either mode accepts inputs in any range; the sign of
 @expr{w} affects only the results produced.
 
@@ -18182,13 +18182,13 @@ flag keys must be used to get some of these functions from the keyboard.
 One miscellaneous command is shift-@kbd{P} (@code{calc-pi}), which pushes
 the value of @cpi{} (at the current precision) onto the stack.  With the
 Hyperbolic flag, it pushes the value @expr{e}, the base of natural logarithms.
-With the Inverse flag, it pushes Euler's constant 
+With the Inverse flag, it pushes Euler's constant
 @texline @math{\gamma}
-@infoline @expr{gamma} 
+@infoline @expr{gamma}
 (about 0.5772).  With both Inverse and Hyperbolic, it
-pushes the ``golden ratio'' 
+pushes the ``golden ratio''
 @texline @math{\phi}
-@infoline @expr{phi} 
+@infoline @expr{phi}
 (about 1.618).  (At present, Euler's constant is not available
 to unlimited precision; Calc knows only the first 100 digits.)
 In Symbolic mode, these commands push the
@@ -18266,7 +18266,7 @@ The @kbd{H L} (@code{calc-log10}) [@code{log10}] command computes the common
 (base-10) logarithm of a number.  (With the Inverse flag [@code{exp10}],
 it raises ten to a given power.)  Note that the common logarithm of a
 complex number is computed by taking the natural logarithm and dividing
-by 
+by
 @texline @math{\ln10}.
 @infoline @expr{ln(10)}.
 
@@ -18278,7 +18278,7 @@ by
 The @kbd{B} (@code{calc-log}) [@code{log}] command computes a logarithm
 to any base.  For example, @kbd{1024 @key{RET} 2 B} produces 10, since
 @texline @math{2^{10} = 1024}.
-@infoline @expr{2^10 = 1024}.  
+@infoline @expr{2^10 = 1024}.
 In certain cases like @samp{log(3,9)}, the result
 will be either @expr{1:2} or @expr{0.5} depending on the current Fraction
 mode setting.  With the Inverse flag [@code{alog}], this command is
@@ -18300,11 +18300,11 @@ integer arithmetic is used; otherwise, this is equivalent to
 @tindex expm1
 The @kbd{f E} (@code{calc-expm1}) [@code{expm1}] command computes
 @texline @math{e^x - 1},
-@infoline @expr{exp(x)-1}, 
+@infoline @expr{exp(x)-1},
 but using an algorithm that produces a more accurate
-answer when the result is close to zero, i.e., when 
+answer when the result is close to zero, i.e., when
 @texline @math{e^x}
-@infoline @expr{exp(x)} 
+@infoline @expr{exp(x)}
 is close to one.
 
 @kindex f L
@@ -18312,7 +18312,7 @@ is close to one.
 @tindex lnp1
 The @kbd{f L} (@code{calc-lnp1}) [@code{lnp1}] command computes
 @texline @math{\ln(x+1)},
-@infoline @expr{ln(x+1)}, 
+@infoline @expr{ln(x+1)},
 producing a more accurate answer when @expr{x} is close to zero.
 
 @node Trigonometric and Hyperbolic Functions, Advanced Math Functions, Logarithmic Functions, Scientific Functions
@@ -18515,9 +18515,9 @@ The @kbd{f g} (@code{calc-gamma}) [@code{gamma}] command computes the Euler
 gamma function.  For positive integer arguments, this is related to the
 factorial function:  @samp{gamma(n+1) = fact(n)}.  For general complex
 arguments the gamma function can be defined by the following definite
-integral:  
+integral:
 @texline @math{\Gamma(a) = \int_0^\infty t^{a-1} e^t dt}.
-@infoline @expr{gamma(a) = integ(t^(a-1) exp(t), t, 0, inf)}.  
+@infoline @expr{gamma(a) = integ(t^(a-1) exp(t), t, 0, inf)}.
 (The actual implementation uses far more efficient computational methods.)
 
 @kindex f G
@@ -18549,7 +18549,7 @@ integral:
 @tindex gammaG
 The @kbd{f G} (@code{calc-inc-gamma}) [@code{gammaP}] command computes
 the incomplete gamma function, denoted @samp{P(a,x)}.  This is defined by
-the integral, 
+the integral,
 @texline @math{P(a,x) = \left( \int_0^x t^{a-1} e^t dt \right) / \Gamma(a)}.
 @infoline @expr{gammaP(a,x) = integ(t^(a-1) exp(t), t, 0, x) / gamma(a)}.
 This implies that @samp{gammaP(a,inf) = 1} for any @expr{a} (see the
@@ -18583,7 +18583,7 @@ You can obtain these using the \kbd{H f G} [\code{gammag}] and
 The @kbd{f b} (@code{calc-beta}) [@code{beta}] command computes the
 Euler beta function, which is defined in terms of the gamma function as
 @texline @math{B(a,b) = \Gamma(a) \Gamma(b) / \Gamma(a+b)},
-@infoline @expr{beta(a,b) = gamma(a) gamma(b) / gamma(a+b)}, 
+@infoline @expr{beta(a,b) = gamma(a) gamma(b) / gamma(a+b)},
 or by
 @texline @math{B(a,b) = \int_0^1 t^{a-1} (1-t)^{b-1} dt}.
 @infoline @expr{beta(a,b) = integ(t^(a-1) (1-t)^(b-1), t, 0, 1)}.
@@ -18606,7 +18606,7 @@ un-normalized version [@code{betaB}].
 @tindex erf
 @tindex erfc
 The @kbd{f e} (@code{calc-erf}) [@code{erf}] command computes the
-error function 
+error function
 @texline @math{\hbox{erf}(x) = {2 \over \sqrt{\pi}} \int_0^x e^{-t^2} dt}.
 @infoline @expr{erf(x) = 2 integ(exp(-(t^2)), t, 0, x) / sqrt(pi)}.
 The complementary error function @kbd{I f e} (@code{calc-erfc}) [@code{erfc}]
@@ -18784,9 +18784,9 @@ The @kbd{k r} (@code{calc-random}) [@code{random}] command produces
 random numbers of various sorts.
 
 Given a positive numeric prefix argument @expr{M}, it produces a random
-integer @expr{N} in the range 
+integer @expr{N} in the range
 @texline @math{0 \le N < M}.
-@infoline @expr{0 <= N < M}.  
+@infoline @expr{0 <= N < M}.
 Each possible value @expr{N} appears with equal probability.
 
 With no numeric prefix argument, the @kbd{k r} command takes its argument
@@ -18794,17 +18794,17 @@ from the stack instead.  Once again, if this is a positive integer @expr{M}
 the result is a random integer less than @expr{M}.  However, note that
 while numeric prefix arguments are limited to six digits or so, an @expr{M}
 taken from the stack can be arbitrarily large.  If @expr{M} is negative,
-the result is a random integer in the range 
+the result is a random integer in the range
 @texline @math{M < N \le 0}.
 @infoline @expr{M < N <= 0}.
 
 If the value on the stack is a floating-point number @expr{M}, the result
-is a random floating-point number @expr{N} in the range 
+is a random floating-point number @expr{N} in the range
 @texline @math{0 \le N < M}
 @infoline @expr{0 <= N < M}
-or 
+or
 @texline @math{M < N \le 0},
-@infoline @expr{M < N <= 0}, 
+@infoline @expr{M < N <= 0},
 according to the sign of @expr{M}.
 
 If @expr{M} is zero, the result is a Gaussian-distributed random real
@@ -18812,14 +18812,14 @@ number; the distribution has a mean of zero and a standard deviation
 of one.  The algorithm used generates random numbers in pairs; thus,
 every other call to this function will be especially fast.
 
-If @expr{M} is an error form 
+If @expr{M} is an error form
 @texline @math{m} @code{+/-} @math{\sigma}
-@infoline @samp{m +/- s} 
-where @var{m} and 
+@infoline @samp{m +/- s}
+where @var{m} and
 @texline @math{\sigma}
-@infoline @var{s} 
+@infoline @var{s}
 are both real numbers, the result uses a Gaussian distribution with mean
-@var{m} and standard deviation 
+@var{m} and standard deviation
 @texline @math{\sigma}.
 @infoline @var{s}.
 
@@ -18932,9 +18932,9 @@ generators that are typically used to implement @code{random}.
 
 If @code{RandSeed} contains an integer, Calc uses this integer to
 seed an ``additive congruential'' method (Knuth's algorithm 3.2.2A,
-computing 
+computing
 @texline @math{X_{n-55} - X_{n-24}}.
-@infoline @expr{X_n-55 - X_n-24}).  
+@infoline @expr{X_n-55 - X_n-24}).
 This method expands the seed
 value into a large table which is maintained internally; the variable
 @code{RandSeed} is changed from, e.g., 42 to the vector @expr{[42]}
@@ -18970,18 +18970,18 @@ value.
 To create a random floating-point number with precision @var{p}, Calc
 simply creates a random @var{p}-digit integer and multiplies by
 @texline @math{10^{-p}}.
-@infoline @expr{10^-p}.  
+@infoline @expr{10^-p}.
 The resulting random numbers should be very clean, but note
 that relatively small numbers will have few significant random digits.
 In other words, with a precision of 12, you will occasionally get
-numbers on the order of 
+numbers on the order of
 @texline @math{10^{-9}}
-@infoline @expr{10^-9} 
-or 
+@infoline @expr{10^-9}
+or
 @texline @math{10^{-10}},
-@infoline @expr{10^-10}, 
+@infoline @expr{10^-10},
 but those numbers will only have two or three random digits since they
-correspond to small integers times 
+correspond to small integers times
 @texline @math{10^{-12}}.
 @infoline @expr{10^-12}.
 
@@ -19032,7 +19032,7 @@ numbers.
 @tindex egcd
 The @kbd{k E} (@code{calc-extended-gcd}) [@code{egcd}] command computes
 the GCD of two integers @expr{x} and @expr{y} and returns a vector
-@expr{[g, a, b]} where 
+@expr{[g, a, b]} where
 @texline @math{g = \gcd(x,y) = a x + b y}.
 @infoline @expr{g = gcd(x,y) = a x + b y}.
 
@@ -19119,11 +19119,11 @@ functions.
 @tindex stir1
 @tindex stir2
 The @kbd{k s} (@code{calc-stirling-number}) [@code{stir1}] command
-computes a Stirling number of the first 
+computes a Stirling number of the first
 @texline kind@tie{}@math{n \brack m},
 @infoline kind,
 given two integers @expr{n} and @expr{m} on the stack.  The @kbd{H k s}
-[@code{stir2}] command computes a Stirling number of the second 
+[@code{stir2}] command computes a Stirling number of the second
 @texline kind@tie{}@math{n \brace m}.
 @infoline kind.
 These are the number of @expr{m}-cycle permutations of @expr{n} objects,
@@ -19202,7 +19202,7 @@ analogously finds the next prime less than a given number.
 @pindex calc-totient
 @tindex totient
 The @kbd{k t} (@code{calc-totient}) [@code{totient}] command computes the
-Euler ``totient'' 
+Euler ``totient''
 @texline function@tie{}@math{\phi(n)},
 @infoline function,
 the number of integers less than @expr{n} which
@@ -19277,7 +19277,7 @@ recover the original arguments but substitute a new value for @expr{x}.)
 @tindex ltpc
 The @samp{utpc(x,v)} function uses the chi-square distribution with
 @texline @math{\nu}
-@infoline @expr{v} 
+@infoline @expr{v}
 degrees of freedom.  It is the probability that a model is
 correct if its chi-square statistic is @expr{x}.
 
@@ -19293,10 +19293,10 @@ correct if its chi-square statistic is @expr{x}.
 @end ignore
 @tindex ltpf
 The @samp{utpf(F,v1,v2)} function uses the F distribution, used in
-various statistical tests.  The parameters 
+various statistical tests.  The parameters
 @texline @math{\nu_1}
-@infoline @expr{v1} 
-and 
+@infoline @expr{v1}
+and
 @texline @math{\nu_2}
 @infoline @expr{v2}
 are the degrees of freedom in the numerator and denominator,
@@ -19314,9 +19314,9 @@ respectively, used in computing the statistic @expr{F}.
 @end ignore
 @tindex ltpn
 The @samp{utpn(x,m,s)} function uses a normal (Gaussian) distribution
-with mean @expr{m} and standard deviation 
+with mean @expr{m} and standard deviation
 @texline @math{\sigma}.
-@infoline @expr{s}.  
+@infoline @expr{s}.
 It is the probability that such a normal-distributed random variable
 would exceed @expr{x}.
 
@@ -19347,20 +19347,20 @@ Poisson random events will occur.
 @end ignore
 @tindex ltpt
 The @samp{utpt(t,v)} function uses the Student's ``t'' distribution
-with 
+with
 @texline @math{\nu}
-@infoline @expr{v} 
+@infoline @expr{v}
 degrees of freedom.  It is the probability that a
 t-distributed random variable will be greater than @expr{t}.
-(Note:  This computes the distribution function 
+(Note:  This computes the distribution function
 @texline @math{A(t|\nu)}
 @infoline @expr{A(t|v)}
-where 
+where
 @texline @math{A(0|\nu) = 1}
-@infoline @expr{A(0|v) = 1} 
-and 
+@infoline @expr{A(0|v) = 1}
+and
 @texline @math{A(\infty|\nu) \to 0}.
-@infoline @expr{A(inf|v) -> 0}.  
+@infoline @expr{A(inf|v) -> 0}.
 The @code{UTPT} operation on the HP-48 uses a different definition which
 returns half of Calc's value:  @samp{UTPT(t,v) = .5*utpt(t,v)}.)
 
@@ -19670,7 +19670,7 @@ prefix, if specified, must match the size of the vector.  If the value on
 the stack is a scalar, it is used for each element on the diagonal, and
 the prefix argument is required.
 
-To build a constant square matrix, e.g., a 
+To build a constant square matrix, e.g., a
 @texline @math{3\times3}
 @infoline 3x3
 matrix filled with ones, use @kbd{0 M-3 v d 1 +}, i.e., build a zero
@@ -19911,7 +19911,7 @@ command.
 With the Hyperbolic flag, @kbd{H v l} [@code{mdims}] computes a vector
 of the dimensions of a vector, matrix, or higher-order object.  For
 example, @samp{mdims([[a,b,c],[d,e,f]])} returns @samp{[2, 3]} since
-its argument is a 
+its argument is a
 @texline @math{2\times3}
 @infoline 2x3
 matrix.
@@ -19945,17 +19945,17 @@ If the number of columns does not evenly divide the number of elements
 in the vector, the last row will be short and the result will not be
 suitable for use as a matrix.  For example, with the matrix
 @samp{[[1, 2], @w{[3, 4]}]} on the stack, @kbd{v a 4} produces
-@samp{[[1, 2, 3, 4]]} (a 
+@samp{[[1, 2, 3, 4]]} (a
 @texline @math{1\times4}
 @infoline 1x4
-matrix), @kbd{v a 1} produces @samp{[[1], [2], [3], [4]]} (a 
+matrix), @kbd{v a 1} produces @samp{[[1], [2], [3], [4]]} (a
 @texline @math{4\times1}
 @infoline 4x1
-matrix), @kbd{v a 2} produces @samp{[[1, 2], [3, 4]]} (the original 
+matrix), @kbd{v a 2} produces @samp{[[1, 2], [3, 4]]} (the original
 @texline @math{2\times2}
 @infoline 2x2
 matrix), @w{@kbd{v a 3}} produces @samp{[[1, 2, 3], [4]]} (not a
-matrix), and @kbd{v a 0} produces the flattened list 
+matrix), and @kbd{v a 0} produces the flattened list
 @samp{[1, 2, @w{3, 4}]}.
 
 @cindex Sorting data
@@ -20040,9 +20040,9 @@ If no prefix is given, then you will be prompted for a vector which
 will be used to determine the bins. (If a positive integer is given at
 this prompt, it will be still treated as if it were given as a
 prefix.)  Each bin will consist of the interval of numbers closest to
-the corresponding number of this new vector; if the vector 
-@expr{[a, b, c, ...]} is entered at the prompt, the bins will be 
-@expr{(-inf, (a+b)/2]}, @expr{((a+b)/2, (b+c)/2]}, etc.  The result of 
+the corresponding number of this new vector; if the vector
+@expr{[a, b, c, ...]} is entered at the prompt, the bins will be
+@expr{(-inf, (a+b)/2]}, @expr{((a+b)/2, (b+c)/2]}, etc.  The result of
 this command will be a vector counting how many elements of the
 original vector are in each bin.
 
@@ -20313,10 +20313,10 @@ and only if it is in both of the input sets.  Thus if the input
 sets are disjoint, i.e., if they share no common elements, the result
 will be the empty vector @samp{[]}.  Note that the characters @kbd{V}
 and @kbd{^} were chosen to be close to the conventional mathematical
-notation for set 
+notation for set
 @texline union@tie{}(@math{A \cup B})
 @infoline union
-and 
+and
 @texline intersection@tie{}(@math{A \cap B}).
 @infoline intersection.
 
@@ -20432,7 +20432,7 @@ the same set.  The set may include positive infinity, but must
 not include any negative numbers.  The input is interpreted as a
 set of integers in the sense of @kbd{V F} (@code{vfloor}).  Beware
 that a simple input like @samp{[100]} can result in a huge integer
-representation 
+representation
 @texline (@math{2^{100}}, a 31-digit integer, in this case).
 @infoline (@expr{2^100}, a 31-digit integer, in this case).
 
@@ -20544,10 +20544,10 @@ plus or minus infinity.
 @cindex Mean of data values
 The @kbd{u M} (@code{calc-vector-mean}) [@code{vmean}] command
 computes the average (arithmetic mean) of the data values.
-If the inputs are error forms 
+If the inputs are error forms
 @texline @math{x \pm \sigma},
-@infoline @samp{x +/- s}, 
-this is the weighted mean of the @expr{x} values with weights 
+@infoline @samp{x +/- s},
+this is the weighted mean of the @expr{x} values with weights
 @texline @math{1 /\sigma^2}.
 @infoline @expr{1 / s^2}.
 @tex
@@ -20558,9 +20558,9 @@ If the inputs are not error forms, this is simply the sum of the
 values divided by the count of the values.
 
 Note that a plain number can be considered an error form with
-error 
+error
 @texline @math{\sigma = 0}.
-@infoline @expr{s = 0}.  
+@infoline @expr{s = 0}.
 If the input to @kbd{u M} is a mixture of
 plain numbers and error forms, the result is the mean of the
 plain numbers, ignoring all values with non-zero errors.  (By the
@@ -20662,7 +20662,7 @@ for a vector of numbers simply by using the @kbd{A} command.
 @cindex Standard deviation
 @cindex Sample statistics
 The @kbd{u S} (@code{calc-vector-sdev}) [@code{vsdev}] command
-computes the standard 
+computes the standard
 @texline deviation@tie{}@math{\sigma}
 @infoline deviation
 of the data values.  If the values are error forms, the errors are used
@@ -20677,9 +20677,9 @@ $$ \sigma^2 = {1 \over N - 1} \sum (x_i - \mu)^2 $$
 This function also applies to distributions.  The standard deviation
 of a single error form is simply the error part.  The standard deviation
 of a continuous interval happens to equal the difference between the
-limits, divided by 
+limits, divided by
 @texline @math{\sqrt{12}}.
-@infoline @expr{sqrt(12)}.  
+@infoline @expr{sqrt(12)}.
 The standard deviation of an integer interval is the same as the
 standard deviation of a vector of those integers.
 
@@ -20714,7 +20714,7 @@ population standard deviation of the equivalent vector of integers.
 The @kbd{H u S} (@code{calc-vector-variance}) [@code{vvar}] and
 @kbd{H I u S} (@code{calc-vector-pop-variance}) [@code{vpvar}]
 commands compute the variance of the data values.  The variance
-is the 
+is the
 @texline square@tie{}@math{\sigma^2}
 @infoline square
 of the standard deviation, i.e., the sum of the
@@ -20738,7 +20738,7 @@ The functions in this section take two arguments, which must be
 vectors of equal size.  The vectors are each flattened in the same
 way as by the single-variable statistical functions.  Given a numeric
 prefix argument of 1, these functions instead take one object from
-the stack, which must be an 
+the stack, which must be an
 @texline @math{N\times2}
 @infoline Nx2
 matrix of data values.  Once again, variable names can be used in place
@@ -20996,7 +20996,7 @@ be prompted for the number of arguments to use.
 If any argument to @kbd{V M} is a matrix, the operator is normally mapped
 across all elements of the matrix.  For example, given the matrix
 @expr{[[1, -2, 3], [-4, 5, -6]]}, @kbd{V M A} takes six absolute values to
-produce another 
+produce another
 @texline @math{3\times2}
 @infoline 3x2
 matrix, @expr{[[1, 2, 3], [4, 5, 6]]}.
@@ -21612,8 +21612,8 @@ entire four-term sum.
 @pindex calc-break-selections
 The @kbd{j b} (@code{calc-break-selections}) command controls a mode
 in which the ``deep structure'' of these associative formulas shows
-through.  Calc actually stores the above formulas as 
-@samp{((a + b) - c) + d} and @samp{x * (y * z)}.  (Note that for certain 
+through.  Calc actually stores the above formulas as
+@samp{((a + b) - c) + d} and @samp{x * (y * z)}.  (Note that for certain
 obscure reasons, by default Calc treats multiplication as
 right-associative.)  Once you have enabled @kbd{j b} mode, selecting
 with the cursor on the @samp{-} sign would only select the @samp{a + b -
@@ -22098,7 +22098,7 @@ of a quotient you can call it with a zero prefix: @kbd{C-u 0 j *}.  For
 example, if the formula on the stack is @samp{1 / (sqrt(a) + 1)}, you may
 wish to eliminate the square root in the denominator by multiplying
 the top and bottom by @samp{sqrt(a) - 1}.  If you did this simply by using
-a simple @kbd{j *} command, you would get 
+a simple @kbd{j *} command, you would get
 @samp{(sqrt(a)-1)/ (sqrt(a) (sqrt(a) - 1) + sqrt(a) - 1)}.  Instead,
 you would probably want to use @kbd{C-u 0 j *}, which would expand the
 bottom and give you the desired result @samp{(sqrt(a)-1)/(a-1)}.  More
@@ -22405,7 +22405,7 @@ The most basic default simplification is the evaluation of functions.
 For example, @expr{2 + 3} is evaluated to @expr{5}, and @expr{@tfn{sqrt}(9)}
 is evaluated to @expr{3}.  Evaluation does not occur if the arguments
 to a function are somehow of the wrong type @expr{@tfn{tan}([2,3,4])}),
-range (@expr{@tfn{tan}(90)}), or number (@expr{@tfn{tan}(3,5)}), 
+range (@expr{@tfn{tan}(90)}), or number (@expr{@tfn{tan}(3,5)}),
 or if the function name is not recognized (@expr{@tfn{f}(5)}), or if
 Symbolic mode (@pxref{Symbolic Mode}) prevents evaluation
 (@expr{@tfn{sqrt}(2)}).
@@ -22452,7 +22452,7 @@ Arithmetic operators like @kbd{+} and @kbd{*} always take two
 arguments in Calc's internal form.  Sums and products of three or
 more terms are arranged by the associative law of algebra into
 a left-associative form for sums, @expr{((a + b) + c) + d}, and
-(by default) a right-associative form for products, 
+(by default) a right-associative form for products,
 @expr{a * (b * (c * d))}.  Formulas like @expr{(a + b) + (c + d)} are
 rearranged to left-associative form, though this rarely matters since
 Calc's algebra commands are designed to hide the inner structure of sums
@@ -22533,7 +22533,7 @@ The product @expr{a (b + c)} is distributed over the sum only if
 rewritten to @expr{a (c - b)}.
 
 The distributive law of products and powers is used for adjacent
-terms of the product: @expr{x^a x^b} goes to 
+terms of the product: @expr{x^a x^b} goes to
 @texline @math{x^{a+b}}
 @infoline @expr{x^(a+b)}
 where @expr{a} is a number, or an implicit 1 (as in @expr{x}),
@@ -22544,9 +22544,9 @@ If the sum of the powers is zero, the product is simplified to
 @expr{1} or to @samp{idn(1)} if Matrix mode is enabled.
 
 The product of a negative power times anything but another negative
-power is changed to use division:  
+power is changed to use division:
 @texline @math{x^{-2} y}
-@infoline @expr{x^(-2) y} 
+@infoline @expr{x^(-2) y}
 goes to @expr{y / x^2} unless Matrix mode is
 in effect and neither @expr{x} nor @expr{y} are scalar (in which
 case it is considered unsafe to rearrange the order of the terms).
@@ -22568,13 +22568,13 @@ The quotient @expr{x / 0} is left unsimplified or changed to an
 infinite quantity, as directed by the current infinite mode.
 @xref{Infinite Mode}.
 
-The expression 
+The expression
 @texline @math{a / b^{-c}}
-@infoline @expr{a / b^(-c)} 
+@infoline @expr{a / b^(-c)}
 is changed to @expr{a b^c}, where @expr{-c} is any negative-looking
-power.  Also, @expr{1 / b^c} is changed to 
+power.  Also, @expr{1 / b^c} is changed to
 @texline @math{b^{-c}}
-@infoline @expr{b^(-c)} 
+@infoline @expr{b^(-c)}
 for any power @expr{c}.
 
 Also, @expr{(-a) / b} and @expr{a / (-b)} go to @expr{-(a/b)};
@@ -22614,22 +22614,22 @@ are distributed to @expr{a^c b^c}, @expr{a^c / b^c} only if @expr{c}
 is an integer, or if either @expr{a} or @expr{b} are nonnegative
 real numbers.  Powers of powers @expr{(a^b)^c} are simplified to
 @texline @math{a^{b c}}
-@infoline @expr{a^(b c)} 
+@infoline @expr{a^(b c)}
 only when @expr{c} is an integer and @expr{b c} also
 evaluates to an integer.  Without these restrictions these simplifications
 would not be safe because of problems with principal values.
-(In other words, 
+(In other words,
 @texline @math{((-3)^{1/2})^2}
-@infoline @expr{((-3)^1:2)^2} 
+@infoline @expr{((-3)^1:2)^2}
 is safe to simplify, but
 @texline @math{((-3)^2)^{1/2}}
-@infoline @expr{((-3)^2)^1:2} 
+@infoline @expr{((-3)^2)^1:2}
 is not.)  @xref{Declarations}, for ways to inform Calc that your
 variables satisfy these requirements.
 
 As a special case of this rule, @expr{@tfn{sqrt}(x)^n} is simplified to
 @texline @math{x^{n/2}}
-@infoline @expr{x^(n/2)} 
+@infoline @expr{x^(n/2)}
 only for even integers @expr{n}.
 
 If @expr{a} is known to be real, @expr{b} is an even integer, and
@@ -22642,13 +22642,13 @@ for any negative-looking expression @expr{-a}.
 
 Square roots @expr{@tfn{sqrt}(x)} generally act like one-half powers
 @texline @math{x^{1:2}}
-@infoline @expr{x^1:2} 
+@infoline @expr{x^1:2}
 for the purposes of the above-listed simplifications.
 
-Also, note that 
+Also, note that
 @texline @math{1 / x^{1:2}}
-@infoline @expr{1 / x^1:2} 
-is changed to 
+@infoline @expr{1 / x^1:2}
+is changed to
 @texline @math{x^{-1:2}},
 @infoline @expr{x^(-1:2)},
 but @expr{1 / @tfn{sqrt}(x)} is left alone.
@@ -22660,9 +22660,9 @@ but @expr{1 / @tfn{sqrt}(x)} is left alone.
 Generic identity matrices (@pxref{Matrix Mode}) are simplified by the
 following rules:  @expr{@tfn{idn}(a) + b} to @expr{a + b} if @expr{b}
 is provably scalar, or expanded out if @expr{b} is a matrix;
-@expr{@tfn{idn}(a) + @tfn{idn}(b)} to @expr{@tfn{idn}(a + b)}; 
-@expr{-@tfn{idn}(a)} to @expr{@tfn{idn}(-a)}; @expr{a @tfn{idn}(b)} to 
-@expr{@tfn{idn}(a b)} if @expr{a} is provably scalar, or to @expr{a b} 
+@expr{@tfn{idn}(a) + @tfn{idn}(b)} to @expr{@tfn{idn}(a + b)};
+@expr{-@tfn{idn}(a)} to @expr{@tfn{idn}(-a)}; @expr{a @tfn{idn}(b)} to
+@expr{@tfn{idn}(a b)} if @expr{a} is provably scalar, or to @expr{a b}
 if @expr{a} is provably non-scalar;  @expr{@tfn{idn}(a) @tfn{idn}(b)} to
 @expr{@tfn{idn}(a b)}; analogous simplifications for quotients involving
 @code{idn}; and @expr{@tfn{idn}(a)^n} to @expr{@tfn{idn}(a^n)} where
@@ -22683,7 +22683,7 @@ The expression @expr{@tfn{abs}(-x)} changes to @expr{@tfn{abs}(x)}.
 The expression @expr{@tfn{abs}(@tfn{abs}(x))} changes to
 @expr{@tfn{abs}(x)};  in fact, @expr{@tfn{abs}(x)} changes to @expr{x} or
 @expr{-x} if @expr{x} is provably nonnegative or nonpositive
-(@pxref{Declarations}). 
+(@pxref{Declarations}).
 
 While most functions do not recognize the variable @code{i} as an
 imaginary number, the @code{arg} function does handle the two cases
@@ -22693,7 +22693,7 @@ The expression @expr{@tfn{conj}(@tfn{conj}(x))} simplifies to @expr{x}.
 Various other expressions involving @code{conj}, @code{re}, and
 @code{im} are simplified, especially if some of the arguments are
 provably real or involve the constant @code{i}.  For example,
-@expr{@tfn{conj}(a + b i)} is changed to 
+@expr{@tfn{conj}(a + b i)} is changed to
 @expr{@tfn{conj}(a) - @tfn{conj}(b) i},  or to @expr{a - b i} if @expr{a}
 and @expr{b} are known to be real.
 
@@ -22836,7 +22836,7 @@ several ways.  (Note that these will be left unevaluated only in
 Symbolic mode.)  First, square integer or rational factors are
 pulled out so that @expr{@tfn{sqrt}(8)} is rewritten as
 @texline @math{2\,@tfn{sqrt}(2)}.
-@infoline @expr{2 sqrt(2)}.  
+@infoline @expr{2 sqrt(2)}.
 Conceptually speaking this implies factoring the argument into primes
 and moving pairs of primes out of the square root, but for reasons of
 efficiency Calc only looks for primes up to 29.
@@ -22879,7 +22879,7 @@ declared to be an integer.
 Trigonometric functions are simplified in several ways.  Whenever a
 products of two trigonometric functions can be replaced by a single
 function, the replacement is made; for example,
-@expr{@tfn{tan}(x) @tfn{cos}(x)} is simplified to @expr{@tfn{sin}(x)}. 
+@expr{@tfn{tan}(x) @tfn{cos}(x)} is simplified to @expr{@tfn{sin}(x)}.
 Reciprocals of trigonometric functions are replaced by their reciprocal
 function; for example, @expr{1/@tfn{sec}(x)} is simplified to
 @expr{@tfn{cos}(x)}.  The corresponding simplifications for the
@@ -22887,7 +22887,7 @@ hyperbolic functions are also handled.
 
 Trigonometric functions of their inverse functions are
 simplified. The expression @expr{@tfn{sin}(@tfn{arcsin}(x))} is
-simplified to @expr{x}, and similarly for @code{cos} and @code{tan}.  
+simplified to @expr{x}, and similarly for @code{cos} and @code{tan}.
 Trigonometric functions of inverses of different trigonometric
 functions can also be simplified, as in @expr{@tfn{sin}(@tfn{arccos}(x))}
 to @expr{@tfn{sqrt}(1 - x^2)}.
@@ -22905,30 +22905,30 @@ No simplifications for inverse trigonometric and hyperbolic
 functions are known, except for negative arguments of @code{arcsin},
 @code{arctan}, @code{arcsinh}, and @code{arctanh}.  Note that
 @expr{@tfn{arcsin}(@tfn{sin}(x))} can @emph{not} safely change to
-@expr{x}, since this only correct within an integer multiple of 
+@expr{x}, since this only correct within an integer multiple of
 @texline @math{2 \pi}
-@infoline @expr{2 pi} 
+@infoline @expr{2 pi}
 radians or 360 degrees.  However, @expr{@tfn{arcsinh}(@tfn{sinh}(x))} is
 simplified to @expr{x} if @expr{x} is known to be real.
 
 Several simplifications that apply to logarithms and exponentials
-are that @expr{@tfn{exp}(@tfn{ln}(x))}, 
+are that @expr{@tfn{exp}(@tfn{ln}(x))},
 @texline @tfn{e}@math{^{\ln(x)}},
-@infoline @expr{e^@tfn{ln}(x)}, 
+@infoline @expr{e^@tfn{ln}(x)},
 and
 @texline @math{10^{{\rm log10}(x)}}
-@infoline @expr{10^@tfn{log10}(x)} 
+@infoline @expr{10^@tfn{log10}(x)}
 all reduce to @expr{x}.  Also, @expr{@tfn{ln}(@tfn{exp}(x))}, etc., can
 reduce to @expr{x} if @expr{x} is provably real.  The form
 @expr{@tfn{exp}(x)^y} is simplified to @expr{@tfn{exp}(x y)}.  If @expr{x}
-is a suitable multiple of 
-@texline @math{\pi i} 
+is a suitable multiple of
+@texline @math{\pi i}
 @infoline @expr{pi i}
 (as described above for the trigonometric functions), then
 @expr{@tfn{exp}(x)} or @expr{e^x} will be expanded.  Finally,
 @expr{@tfn{ln}(x)} is simplified to a form involving @code{pi} and
 @code{i} where @expr{x} is provably negative, positive imaginary, or
-negative imaginary. 
+negative imaginary.
 
 The error functions @code{erf} and @code{erfc} are simplified when
 their arguments are negative-looking or are calls to the @code{conj}
@@ -23006,18 +23006,18 @@ values of @expr{x} in a certain range; outside that range, values
 are folded down to the 360-degree range that the inverse trigonometric
 functions always produce.
 
-Powers of powers @expr{(x^a)^b} are simplified to 
+Powers of powers @expr{(x^a)^b} are simplified to
 @texline @math{x^{a b}}
 @infoline @expr{x^(a b)}
 for all @expr{a} and @expr{b}.  These results will be valid only
-in a restricted range of @expr{x}; for example, in 
+in a restricted range of @expr{x}; for example, in
 @texline @math{(x^2)^{1:2}}
 @infoline @expr{(x^2)^1:2}
 the powers cancel to get @expr{x}, which is valid for positive values
 of @expr{x} but not for negative or complex values.
 
 Similarly, @expr{@tfn{sqrt}(x^a)} and @expr{@tfn{sqrt}(x)^a} are both
-simplified (possibly unsafely) to 
+simplified (possibly unsafely) to
 @texline @math{x^{a/2}}.
 @infoline @expr{x^(a/2)}.
 
@@ -23027,7 +23027,7 @@ Forms like @expr{@tfn{sqrt}(1 - sin(x)^2)} are simplified to, e.g.,
 
 Arguments of square roots are partially factored to look for
 squared terms that can be extracted.  For example,
-@expr{@tfn{sqrt}(a^2 b^3 + a^3 b^2)} simplifies to 
+@expr{@tfn{sqrt}(a^2 b^3 + a^3 b^2)} simplifies to
 @expr{a b @tfn{sqrt}(a+b)}.
 
 The simplifications of @expr{@tfn{ln}(@tfn{exp}(x))},
@@ -23093,9 +23093,9 @@ number for an answer, then the quotient simplifies to that number.
 
 For powers and square roots, the ``unsafe'' simplifications
 @expr{(a b)^c} to @expr{a^c b^c}, @expr{(a/b)^c} to @expr{a^c / b^c},
-and @expr{(a^b)^c} to 
+and @expr{(a^b)^c} to
 @texline @math{a^{b c}}
-@infoline @expr{a^(b c)} 
+@infoline @expr{a^(b c)}
 are done if the powers are real numbers.  (These are safe in the context
 of units because all numbers involved can reasonably be assumed to be
 real.)
@@ -23108,12 +23108,12 @@ according to the previous paragraph.  For example, @samp{acre^1.5}
 is simplified by noting that @expr{1.5 = 3:2}, that @samp{acre}
 is defined in terms of @samp{m^2}, and that the 2 in the power of
 @code{m} is a multiple of 2 in @expr{3:2}.  Thus, @code{acre^1.5} is
-replaced by approximately 
+replaced by approximately
 @texline @math{(4046 m^2)^{1.5}}
-@infoline @expr{(4046 m^2)^1.5}, 
-which is then changed to 
+@infoline @expr{(4046 m^2)^1.5},
+which is then changed to
 @texline @math{4046^{1.5} \, (m^2)^{1.5}},
-@infoline @expr{4046^1.5 (m^2)^1.5}, 
+@infoline @expr{4046^1.5 (m^2)^1.5},
 then to @expr{257440 m^3}.
 
 The functions @code{float}, @code{frac}, @code{clean}, @code{abs},
@@ -23401,7 +23401,7 @@ answer!
 
 If you use the @code{deriv} function directly in an algebraic formula,
 you can write @samp{deriv(f,x,x0)} which represents the derivative
-of @expr{f} with respect to @expr{x}, evaluated at the point 
+of @expr{f} with respect to @expr{x}, evaluated at the point
 @texline @math{x=x_0}.
 @infoline @expr{x=x0}.
 
@@ -23441,7 +23441,7 @@ respect to a prompted-for variable.  The integrator is not guaranteed to
 work for all integrable functions, but it is able to integrate several
 large classes of formulas.  In particular, any polynomial or rational
 function (a polynomial divided by a polynomial) is acceptable.
-(Rational functions don't have to be in explicit quotient form, however; 
+(Rational functions don't have to be in explicit quotient form, however;
 @texline @math{x/(1+x^{-2})}
 @infoline @expr{x/(1+x^-2)}
 is not strictly a quotient of polynomials, but it is equivalent to
@@ -23472,7 +23472,7 @@ integral $\int_a^b f(x) \, dx$.
 
 Please note that the current implementation of Calc's integrator sometimes
 produces results that are significantly more complex than they need to
-be.  For example, the integral Calc finds for 
+be.  For example, the integral Calc finds for
 @texline @math{1/(x+\sqrt{x^2+1})}
 @infoline @expr{1/(x+sqrt(x^2+1))}
 is several times more complicated than the answer Mathematica
@@ -23480,11 +23480,11 @@ returns for the same input, although the two forms are numerically
 equivalent.  Also, any indefinite integral should be considered to have
 an arbitrary constant of integration added to it, although Calc does not
 write an explicit constant of integration in its result.  For example,
-Calc's solution for 
+Calc's solution for
 @texline @math{1/(1+\tan x)}
-@infoline @expr{1/(1+tan(x))} 
+@infoline @expr{1/(1+tan(x))}
 differs from the solution given in the @emph{CRC Math Tables} by a
-constant factor of  
+constant factor of
 @texline @math{\pi i / 2}
 @infoline @expr{pi i / 2},
 due to a different choice of constant of integration.
@@ -23544,9 +23544,9 @@ in your @code{IntegRules}.
 @tindex Ei
 As a more serious example, the expression @samp{exp(x)/x} cannot be
 integrated in terms of the standard functions, so the ``exponential
-integral'' function 
+integral'' function
 @texline @math{{\rm Ei}(x)}
-@infoline @expr{Ei(x)} 
+@infoline @expr{Ei(x)}
 was invented to describe it.
 We can get Calc to do this integral in terms of a made-up @code{Ei}
 function by adding the rule @samp{[integtry(exp(x)/x, x) := Ei(x)]}
@@ -23717,18 +23717,18 @@ form @expr{X = 0}.
 
 This command also works for inequalities, as in @expr{y < 3x + 6}.
 Some inequalities cannot be solved where the analogous equation could
-be; for example, solving 
+be; for example, solving
 @texline @math{a < b \, c}
-@infoline @expr{a < b c} 
+@infoline @expr{a < b c}
 for @expr{b} is impossible
 without knowing the sign of @expr{c}.  In this case, @kbd{a S} will
-produce the result 
+produce the result
 @texline @math{b \mathbin{\hbox{\code{!=}}} a/c}
-@infoline @expr{b != a/c} 
+@infoline @expr{b != a/c}
 (using the not-equal-to operator) to signify that the direction of the
-inequality is now unknown.  The inequality 
+inequality is now unknown.  The inequality
 @texline @math{a \le b \, c}
-@infoline @expr{a <= b c} 
+@infoline @expr{a <= b c}
 is not even partially solved.  @xref{Declarations}, for a way to tell
 Calc that the signs of the variables in a formula are in fact known.
 
@@ -24186,13 +24186,13 @@ value of the variable which minimizes the formula's value, along
 with the minimum value itself.
 
 Note that this command looks for a @emph{local} minimum.  Many functions
-have more than one minimum; some, like 
+have more than one minimum; some, like
 @texline @math{x \sin x},
-@infoline @expr{x sin(x)}, 
+@infoline @expr{x sin(x)},
 have infinitely many.  In fact, there is no easy way to define the
-``global'' minimum of 
+``global'' minimum of
 @texline @math{x \sin x}
-@infoline @expr{x sin(x)} 
+@infoline @expr{x sin(x)}
 but Calc can still locate any particular local minimum
 for you.  Calc basically goes downhill from the initial guess until it
 finds a point at which the function's value is greater both to the left
@@ -24271,7 +24271,7 @@ to be determined.  For a typical set of measured data there will be
 no single @expr{m} and @expr{b} that exactly fit the data; in this
 case, Calc chooses values of the parameters that provide the closest
 possible fit.  The model formula can be entered in various ways after
-the key sequence @kbd{a F} is pressed.  
+the key sequence @kbd{a F} is pressed.
 
 If the letter @kbd{P} is pressed after @kbd{a F} but before the model
 description is entered, the data as well as the model formula will be
@@ -24319,7 +24319,7 @@ the @dfn{parameters} of the model.
 
 The @kbd{a F} command takes the data set to be fitted from the stack.
 By default, it expects the data in the form of a matrix.  For example,
-for a linear or polynomial fit, this would be a 
+for a linear or polynomial fit, this would be a
 @texline @math{2\times N}
 @infoline 2xN
 matrix where the first row is a list of @expr{x} values and the second
@@ -24327,10 +24327,10 @@ row has the corresponding @expr{y} values.  For the multilinear fit
 shown above, the matrix would have four rows (@expr{x_1}, @expr{x_2},
 @expr{x_3}, and @expr{y}, respectively).
 
-If you happen to have an 
+If you happen to have an
 @texline @math{N\times2}
 @infoline Nx2
-matrix instead of a 
+matrix instead of a
 @texline @math{2\times N}
 @infoline 2xN
 matrix, just press @kbd{v t} first to transpose the matrix.
@@ -24425,13 +24425,13 @@ $$ \chi^2 = \sum_{i=1}^N (y_i - (a + b x_i))^2 $$
 which is clearly zero if @expr{a + b x} exactly fits all data points,
 and increases as various @expr{a + b x_i} values fail to match the
 corresponding @expr{y_i} values.  There are several reasons why the
-summand is squared, one of them being to ensure that 
+summand is squared, one of them being to ensure that
 @texline @math{\chi^2 \ge 0}.
 @infoline @expr{chi^2 >= 0}.
 Least-squares fitting simply chooses the values of @expr{a} and @expr{b}
-for which the error 
+for which the error
 @texline @math{\chi^2}
-@infoline @expr{chi^2} 
+@infoline @expr{chi^2}
 is as small as possible.
 
 Other kinds of models do the same thing but with a different model
@@ -24593,9 +24593,9 @@ contain error forms.  The data values must either all include errors
 or all be plain numbers.  Error forms can go anywhere but generally
 go on the numbers in the last row of the data matrix.  If the last
 row contains error forms
-@texline `@var{y_i}@w{ @tfn{+/-} }@math{\sigma_i}', 
-@infoline `@var{y_i}@w{ @tfn{+/-} }@var{sigma_i}', 
-then the 
+@texline `@var{y_i}@w{ @tfn{+/-} }@math{\sigma_i}',
+@infoline `@var{y_i}@w{ @tfn{+/-} }@var{sigma_i}',
+then the
 @texline @math{\chi^2}
 @infoline @expr{chi^2}
 statistic is now,
@@ -24617,9 +24617,9 @@ the fitting operation.
 
 If there are error forms on other rows of the data matrix, all the
 errors for a given data point are combined; the square root of the
-sum of the squares of the errors forms the 
+sum of the squares of the errors forms the
 @texline @math{\sigma_i}
-@infoline @expr{sigma_i} 
+@infoline @expr{sigma_i}
 used for the data point.
 
 Both @kbd{a F} and @kbd{H a F} can accept error forms in the input
@@ -24627,19 +24627,19 @@ matrix, although if you are concerned about error analysis you will
 probably use @kbd{H a F} so that the output also contains error
 estimates.
 
-If the input contains error forms but all the 
+If the input contains error forms but all the
 @texline @math{\sigma_i}
-@infoline @expr{sigma_i} 
+@infoline @expr{sigma_i}
 values are the same, it is easy to see that the resulting fitted model
-will be the same as if the input did not have error forms at all 
+will be the same as if the input did not have error forms at all
 @texline (@math{\chi^2}
 @infoline (@expr{chi^2}
-is simply scaled uniformly by 
+is simply scaled uniformly by
 @texline @math{1 / \sigma^2},
-@infoline @expr{1 / sigma^2}, 
+@infoline @expr{1 / sigma^2},
 which doesn't affect where it has a minimum).  But there @emph{will} be
 a difference in the estimated errors of the coefficients reported by
-@kbd{H a F}. 
+@kbd{H a F}.
 
 Consult any text on statistical modeling of data for a discussion
 of where these error estimates come from and how they should be
@@ -24671,18 +24671,18 @@ will have length @expr{M = d+1} with the constant term first.
 The covariance matrix @expr{C} computed from the fit.  This is
 an @var{m}x@var{m} symmetric matrix; the diagonal elements
 @texline @math{C_{jj}}
-@infoline @expr{C_j_j} 
-are the variances 
+@infoline @expr{C_j_j}
+are the variances
 @texline @math{\sigma_j^2}
-@infoline @expr{sigma_j^2} 
+@infoline @expr{sigma_j^2}
 of the parameters.  The other elements are covariances
-@texline @math{\sigma_{ij}^2} 
-@infoline @expr{sigma_i_j^2} 
+@texline @math{\sigma_{ij}^2}
+@infoline @expr{sigma_i_j^2}
 that describe the correlation between pairs of parameters.  (A related
-set of numbers, the @dfn{linear correlation coefficients} 
+set of numbers, the @dfn{linear correlation coefficients}
 @texline @math{r_{ij}},
 @infoline @expr{r_i_j},
-are defined as 
+are defined as
 @texline @math{\sigma_{ij}^2 / \sigma_i \, \sigma_j}.)
 @infoline @expr{sigma_i_j^2 / sigma_i sigma_j}.)
 
@@ -24693,35 +24693,35 @@ will instead be an empty vector; this is always the case for the
 polynomial and multilinear fits described so far.
 
 @item
-The value of 
+The value of
 @texline @math{\chi^2}
-@infoline @expr{chi^2} 
+@infoline @expr{chi^2}
 for the fit, calculated by the formulas shown above.  This gives a
 measure of the quality of the fit; statisticians consider
 @texline @math{\chi^2 \approx N - M}
-@infoline @expr{chi^2 = N - M} 
+@infoline @expr{chi^2 = N - M}
 to indicate a moderately good fit (where again @expr{N} is the number of
 data points and @expr{M} is the number of parameters).
 
 @item
 A measure of goodness of fit expressed as a probability @expr{Q}.
 This is computed from the @code{utpc} probability distribution
-function using 
+function using
 @texline @math{\chi^2}
-@infoline @expr{chi^2} 
+@infoline @expr{chi^2}
 with @expr{N - M} degrees of freedom.  A
 value of 0.5 implies a good fit; some texts recommend that often
 @expr{Q = 0.1} or even 0.001 can signify an acceptable fit.  In
-particular, 
+particular,
 @texline @math{\chi^2}
-@infoline @expr{chi^2} 
+@infoline @expr{chi^2}
 statistics assume the errors in your inputs
 follow a normal (Gaussian) distribution; if they don't, you may
 have to accept smaller values of @expr{Q}.
 
 The @expr{Q} value is computed only if the input included error
 estimates.  Otherwise, Calc will report the symbol @code{nan}
-for @expr{Q}.  The reason is that in this case the 
+for @expr{Q}.  The reason is that in this case the
 @texline @math{\chi^2}
 @infoline @expr{chi^2}
 value has effectively been used to estimate the original errors
@@ -24763,7 +24763,7 @@ Power law.  @mathit{a x^b y^c}.
 @item q
 Quadratic.  @mathit{a + b (x-c)^2 + d (x-e)^2}.
 @item g
-Gaussian.  
+Gaussian.
 @texline @math{{a \over b \sqrt{2 \pi}} \exp\left( -{1 \over 2} \left( x - c \over b \right)^2 \right)}.
 @infoline @mathit{(a / b sqrt(2 pi)) exp(-0.5*((x-c)/b)^2)}.
 @item s
@@ -24788,7 +24788,7 @@ the parameter values from the vector that is placed in the trail.)
 
 All models except Gaussian, logistics, Hubbert and polynomials can
 generalize as shown to any number of independent variables.  Also, all
-the built-in models except for the logistic and Hubbert curves have an 
+the built-in models except for the logistic and Hubbert curves have an
 additive or multiplicative parameter shown as @expr{a} in the above table
 which can be replaced by zero or one, as appropriate, by typing @kbd{h}
 before the model key.
@@ -24893,9 +24893,9 @@ form @samp{arcsin(y) = a t + b}.  The @code{arcsin} function always
 returns results in the range from @mathit{-90} to 90 degrees (or the
 equivalent range in radians).  Suppose you had data that you
 believed to represent roughly three oscillations of a sine wave,
-so that the argument of the sine might go from zero to 
+so that the argument of the sine might go from zero to
 @texline @math{3\times360}
-@infoline @mathit{3*360} 
+@infoline @mathit{3*360}
 degrees.
 The above model would appear to be a good way to determine the
 true frequency and phase of the sine wave, but in practice it
@@ -24955,18 +24955,18 @@ ln(y) = ln(a) + b ln(x)
 @end example
 
 @noindent
-which matches the desired form with 
+which matches the desired form with
 @texline @math{Y = \ln(y)},
-@infoline @expr{Y = ln(y)}, 
+@infoline @expr{Y = ln(y)},
 @texline @math{A = \ln(a)},
 @infoline @expr{A = ln(a)},
-@expr{F = 1}, @expr{B = b}, and 
+@expr{F = 1}, @expr{B = b}, and
 @texline @math{G = \ln(x)}.
-@infoline @expr{G = ln(x)}.  
+@infoline @expr{G = ln(x)}.
 Calc thus computes the logarithms of your @expr{y} and @expr{x} values,
-does a linear fit for @expr{A} and @expr{B}, then solves to get 
-@texline @math{a = \exp(A)} 
-@infoline @expr{a = exp(A)} 
+does a linear fit for @expr{A} and @expr{B}, then solves to get
+@texline @math{a = \exp(A)}
+@infoline @expr{a = exp(A)}
 and @expr{b = B}.
 
 Another interesting example is the ``quadratic'' model, which can
@@ -25015,7 +25015,7 @@ from the list of parameters when you answer the variables prompt.
 
 A last desperate step would be to use the general-purpose
 @code{minimize} function rather than @code{fit}.  After all, both
-functions solve the problem of minimizing an expression (the 
+functions solve the problem of minimizing an expression (the
 @texline @math{\chi^2}
 @infoline @expr{chi^2}
 sum) by adjusting certain parameters in the expression.  The @kbd{a F}
@@ -25026,9 +25026,9 @@ command can do the same thing by brute force.
 A compromise would be to pick out a few parameters without which the
 fit is linearizable, and use @code{minimize} on a call to @code{fit}
 which efficiently takes care of the rest of the parameters.  The thing
-to be minimized would be the value of 
+to be minimized would be the value of
 @texline @math{\chi^2}
-@infoline @expr{chi^2} 
+@infoline @expr{chi^2}
 returned as the fifth result of the @code{xfit} function:
 
 @smallexample
@@ -25086,13 +25086,13 @@ of the sum of the squares of the errors.  It then changes @expr{x}
 and @expr{y} to be plain numbers, and makes @expr{z} into an error
 form with this combined error.  The @expr{Y(x,y,z)} part of the
 linearized model is evaluated, and the result should be an error
-form.  The error part of that result is used for 
+form.  The error part of that result is used for
 @texline @math{\sigma_i}
-@infoline @expr{sigma_i} 
-for the data point.  If for some reason @expr{Y(x,y,z)} does not return 
-an error form, the combined error from @expr{z} is used directly for 
+@infoline @expr{sigma_i}
+for the data point.  If for some reason @expr{Y(x,y,z)} does not return
+an error form, the combined error from @expr{z} is used directly for
 @texline @math{\sigma_i}.
-@infoline @expr{sigma_i}.  
+@infoline @expr{sigma_i}.
 Finally, @expr{z} is also stripped of its error
 for use in computing @expr{F(x,y,z)}, @expr{G(x,y,z)} and so on;
 the righthand side of the linearized model is computed in regular
@@ -25104,7 +25104,7 @@ depends only on the dependent variable @expr{z}, and in fact is
 often simply equal to @expr{z}.  For common cases like polynomials
 and multilinear models, the combined error is simply used as the
 @texline @math{\sigma}
-@infoline @expr{sigma} 
+@infoline @expr{sigma}
 for the data point with no further ado.)
 
 @tex
@@ -25481,7 +25481,7 @@ this would be a division by zero.  But at @expr{k = k_0}, this
 formula works out to the indeterminate form @expr{0 / 0}, which
 Calc will not assume is zero.  Better would be to use
 @samp{(k != k_0) ? 1/(k-k_0) : 0}; the @samp{? :} operator does
-an ``if-then-else'' test:  This expression says, ``if 
+an ``if-then-else'' test:  This expression says, ``if
 @texline @math{k \ne k_0},
 @infoline @expr{k != k_0},
 then @expr{1/(k-k_0)}, else zero.''  Now the formula @expr{1/(k-k_0)}
@@ -26496,16 +26496,16 @@ f(a b) := a f(b) :: real(a)]} is stored in variable @samp{linearF},
 then the rule set @samp{[f(0) := 0, import(linearF)]} will apply
 all three rules.  It is possible to modify the imported rules
 slightly:  @samp{import(x, v1, x1, v2, x2, @dots{})} imports
-the rule set @expr{x} with all occurrences of 
+the rule set @expr{x} with all occurrences of
 @texline @math{v_1},
-@infoline @expr{v1}, 
-as either a variable name or a function name, replaced with 
+@infoline @expr{v1},
+as either a variable name or a function name, replaced with
 @texline @math{x_1}
-@infoline @expr{x1} 
-and so on.  (If 
+@infoline @expr{x1}
+and so on.  (If
 @texline @math{v_1}
-@infoline @expr{v1} 
-is used as a function name, then 
+@infoline @expr{v1}
+is used as a function name, then
 @texline @math{x_1}
 @infoline @expr{x1}
 must be either a function name itself or a @w{@samp{< >}} nameless
@@ -27609,7 +27609,7 @@ the keyboard macro @kbd{' tri($) @key{RET}} to make a command that applies
 @code{tri} to the value on the top of the stack.  @xref{Programming}.
 
 @cindex Quaternions
-The following rule set, contributed by 
+The following rule set, contributed by
 @texline Fran\c cois
 @infoline Francois
 Pinard, implements @dfn{quaternions}, a generalization of the concept of
@@ -27764,9 +27764,9 @@ equivalent temperature on the Fahrenheit scale.
 While many of Calc's conversion factors are exact, some are necessarily
 approximate.  If Calc is in fraction mode (@pxref{Fraction Mode}), then
 unit conversions will try to give exact, rational conversions, but it
-isn't always possible.  Given @samp{55 mph} in fraction mode, typing 
-@kbd{u c m/s @key{RET}} produces  @samp{15367:625 m/s}, for example, 
-while typing @kbd{u c au/yr @key{RET}} produces 
+isn't always possible.  Given @samp{55 mph} in fraction mode, typing
+@kbd{u c m/s @key{RET}} produces  @samp{15367:625 m/s}, for example,
+while typing @kbd{u c au/yr @key{RET}} produces
 @samp{5.18665819999e-3 au/yr}.
 
 If the units you request are inconsistent with the original units, the
@@ -27994,7 +27994,7 @@ defined by the @TeX{} typesetting system:  @samp{72.27 texpt = 1 in}.
 Other units used by @TeX{} are available; they are @code{texpc} (a pica),
 @code{texbp} (a ``big point'', equal to a standard point which is larger
 than the point used by @TeX{}), @code{texdd} (a Didot point),
-@code{texcc} (a Cicero) and @code{texsp} (a scaled @TeX{} point, 
+@code{texcc} (a Cicero) and @code{texsp} (a scaled @TeX{} point,
 all dimensions representable in @TeX{} are multiples of this value).
 
 When Calc is using the @TeX{} or La@TeX{} language mode (@pxref{TeX
@@ -28131,17 +28131,17 @@ The units @code{dB} (decibels) and @code{Np} (nepers) are logarithmic
 units which are manipulated differently than standard units.  Calc
 provides commands to work with these logarithmic units.
 
-Decibels and nepers are used to measure power quantities as well as 
+Decibels and nepers are used to measure power quantities as well as
 field quantities (quantities whose squares are proportional to power);
 these two types of quantities are handled slightly different from each
 other.  By default the Calc commands work as if power quantities are
 being used; with the @kbd{H} prefix the Calc commands work as if field
 quantities are being used.
 
-The decibel level of a power 
+The decibel level of a power
 @infoline @math{P1},
 @texline @math{P_1},
-relative to a reference power 
+relative to a reference power
 @infoline @math{P0},
 @texline @math{P_0},
 is defined to be
@@ -28151,10 +28151,10 @@ is defined to be
 one-tenth of a bel. The bel, named after Alexander Graham Bell, was
 considered to be too large of a unit and was effectively replaced by
 the decibel.)  If @math{F} is a field quantity with power
-@math{P=k F^2}, then a reference quantity of 
+@math{P=k F^2}, then a reference quantity of
 @infoline @math{F0}
 @texline @math{F_0}
-would correspond to a power of 
+would correspond to a power of
 @infoline @math{P0=k F0^2}.
 @texline @math{P_{0}=kF_{0}^2}.
 If
@@ -28163,7 +28163,7 @@ If
 then
 
 @ifnottex
-@example 
+@example
 10 log10(P1/P0) = 10 log10(F1^2/F0^2) = 20 log10(F1/F0).
 @end example
 @end ifnottex
@@ -28175,42 +28175,42 @@ $$ 10 \log_{10}(P_1/P_0) = 10 \log_{10}(F_1^2/F_0^2) = 20
 @noindent
 In order to get the same decibel level regardless of whether a field
 quantity or the corresponding power quantity is used,  the decibel
-level of a field quantity 
+level of a field quantity
 @infoline @math{F1},
-@texline @math{F_1}, 
-relative to a reference 
+@texline @math{F_1},
+relative to a reference
 @infoline @math{F0},
-@texline @math{F_0}, 
+@texline @math{F_0},
 is defined as
 @infoline @math{20 log10(F1/F0) dB}.
 @texline @math{20 \log_{10}(F_{1}/F_{0}) {\rm dB}}.
-For example, the decibel value of a sound pressure level of 
+For example, the decibel value of a sound pressure level of
 @infoline @math{60 uPa}
 @texline @math{60 \mu{\rm Pa}}
-relative to 
+relative to
 @infoline @math{20 uPa}
 @texline @math{20 \mu{\rm Pa}}
-(the threshhold of human hearing) is 
+(the threshold of human hearing) is
 @infoline @math{20 log10(60 uPa/ 20 uPa) dB = 20 log10(3) dB},
 @texline  @math{20 \log_{10}(60 \mu{\rm Pa}/20 \mu{\rm Pa}) {\rm dB} = 20 \log_{10}(3) {\rm dB}},
-which is about 
+which is about
 @infoline @math{9.54 dB}.
 @texline @math{9.54 {\rm dB}}.
 Note that in taking the ratio, the original units cancel and so these
-logarithmic units are dimensionless. 
+logarithmic units are dimensionless.
 
 Nepers (named after John Napier, who is credited with inventing the
 logarithm) are similar to bels except they use natural logarithms instead
-of common logarithms.  The neper level of a power 
+of common logarithms.  The neper level of a power
 @infoline @math{P1},
 @texline @math{P_1},
-relative to a reference power 
+relative to a reference power
 @infoline @math{P0},
 @texline @math{P_0},
 is
 @infoline @math{(1/2) ln(P1/P0) Np}.
 @texline @math{(1/2) \ln(P_1/P_0) {\rm Np}}.
-The neper level of a field 
+The neper level of a field
 @infoline @math{F1},
 @texline @math{F_1},
 relative to a reference field
@@ -28223,13 +28223,13 @@ is
 @vindex calc-lu-power-reference
 @vindex calc-lu-field-reference
 For power quantities, Calc uses
-@infoline @math{1 mW} 
+@infoline @math{1 mW}
 @texline @math{1 {\rm mW}}
-as the default reference quantity; this default can be changed by changing 
+as the default reference quantity; this default can be changed by changing
 the value of the customizable variable
 @code{calc-lu-power-reference} (@pxref{Customizing Calc}).
-For field quantities, Calc uses 
-@infoline @math{20 uPa} 
+For field quantities, Calc uses
+@infoline @math{20 uPa}
 @texline @math{20 \mu{\rm Pa}}
 as the default reference quantity; this is the value used in acoustics
 which is where decibels are commonly encountered.  This default can be
@@ -28247,9 +28247,9 @@ command computes the power quantity corresponding to a given number of
 logarithmic units. With the capital @kbd{O} prefix, @kbd{O l q}, the
 reference level will be read from the top of the stack. (In an
 algebraic formula, @code{lupquant} can be given an optional second
-argument which will be used for the reference level.) For example, 
-@code{20 dB @key{RET} l q} will return @code{100 mW}; 
-@code{20 dB @key{RET} 4 W @key{RET} O l q} will return @code{400 W}.   
+argument which will be used for the reference level.) For example,
+@code{20 dB @key{RET} l q} will return @code{100 mW};
+@code{20 dB @key{RET} 4 W @key{RET} O l q} will return @code{400 W}.
 The @kbd{H l q} [@code{lufquant}] command behaves like @kbd{l q} but
 computes field quantities instead of power quantities.
 
@@ -28288,13 +28288,13 @@ the reference level can be given as an optional second argument.
 @tindex lufdiv
 The sum of two power or field quantities doesn't correspond to the sum
 of the corresponding decibel or neper levels.  If the powers
-corresponding to decibel levels 
-@infoline @math{D1} 
-@texline @math{D_1} 
-and 
-@infoline @math{D2} 
-@texline @math{D_2} 
-are added, the corresponding decibel level ``sum'' will be 
+corresponding to decibel levels
+@infoline @math{D1}
+@texline @math{D_1}
+and
+@infoline @math{D2}
+@texline @math{D_2}
+are added, the corresponding decibel level ``sum'' will be
 
 @ifnottex
 @example
@@ -28338,7 +28338,7 @@ $$ D + 10 \log_{10}(N) {\rm dB},$$
 
 @noindent
 if a field quantity is multiplied by @math{N} the corresponding decibel level
-will be 
+will be
 
 @ifnottex
 @example
@@ -28375,31 +28375,31 @@ operating on notes.
 Scientific pitch notation refers to a note by giving a letter
 A through G, possibly followed by a flat or sharp) with a subscript
 indicating an octave number.  Each octave starts with C and ends with
-B and 
+B and
 @c increasing each note by a semitone will result
 @c in the sequence @expr{C}, @expr{C} sharp, @expr{D}, @expr{E} flat, @expr{E},
 @c @expr{F}, @expr{F} sharp, @expr{G}, @expr{A} flat, @expr{A}, @expr{B}
-@c flat and @expr{B}.  
+@c flat and @expr{B}.
 the octave numbered 0 was chosen to correspond to the lowest
 audible frequency.  Using this system, middle C (about 261.625 Hz)
 corresponds to the note @expr{C} in octave 4 and is denoted
 @expr{C_4}.  Any frequency can be described by giving a note plus an
 offset in cents (where a cent is a ratio of frequencies so that a
-semitone consists of 100 cents). 
+semitone consists of 100 cents).
 
 The midi note number system assigns numbers to notes so that
 @expr{C_(-1)} corresponds to the midi note number 0 and @expr{G_9}
 corresponds to the midi note number 127.   A midi controller can have
 up to 128 keys and each midi note number from  0 to 127 corresponds to
-a possible key. 
+a possible key.
 
 @kindex l s
 @pindex calc-spn
 @tindex spn
 The @kbd{l s} (@code{calc-spn}) [@code{spn}] command converts either
 a frequency or a midi number to scientific pitch notation.  For
-example, @code{500 Hz} gets converted to 
-@code{B_4 + 21.3094853649 cents} and @code{84} to @code{C_6}. 
+example, @code{500 Hz} gets converted to
+@code{B_4 + 21.3094853649 cents} and @code{84} to @code{C_6}.
 
 
 @kindex l m
@@ -28464,7 +28464,7 @@ The @kbd{s s} (@code{calc-store}) command stores the value at the top of
 the stack into a specified variable.  It prompts you to enter the
 name of the variable.  If you press a single digit, the value is stored
 immediately in one of the ``quick'' variables @code{q0} through
-@code{q9}.  Or you can enter any variable name.  
+@code{q9}.  Or you can enter any variable name.
 
 @kindex s t
 @pindex calc-store-into
@@ -28554,12 +28554,12 @@ and @kbd{s ]} which decrease or increase a variable by one.
 All the arithmetic stores accept the Inverse prefix to reverse the
 order of the operands.  If @expr{v} represents the contents of the
 variable, and @expr{a} is the value drawn from the stack, then regular
-@w{@kbd{s -}} assigns 
+@w{@kbd{s -}} assigns
 @texline @math{v \coloneq v - a},
-@infoline @expr{v := v - a}, 
+@infoline @expr{v := v - a},
 but @kbd{I s -} assigns
 @texline @math{v \coloneq a - v}.
-@infoline @expr{v := a - v}.  
+@infoline @expr{v := a - v}.
 While @kbd{I s *} might seem pointless, it is
 useful if matrix multiplication is involved.  Actually, all the
 arithmetic stores use formulas designed to behave usefully both
@@ -28668,7 +28668,7 @@ magic property is preserved, however, when a variable is copied with
 @kindex s k
 @pindex calc-copy-special-constant
 If one of the ``special constants'' is redefined (or undefined) so that
-it no longer has its magic property, the property can be restored with 
+it no longer has its magic property, the property can be restored with
 @kbd{s k} (@code{calc-copy-special-constant}).  This command will prompt
 for a special constant and a variable to store it in, and so a special
 constant can be stored in any variable.  Here, the special constant that
@@ -28850,7 +28850,7 @@ explicitly naming them in an @kbd{s p} command.)
 The @kbd{s i} (@code{calc-insert-variables}) command writes
 the values of all Calc variables into a specified buffer.
 The variables are written with the prefix @code{var-} in the form of
-Lisp @code{setq} commands 
+Lisp @code{setq} commands
 which store the values in string form.  You can place these commands
 in your Calc init file (or @file{.emacs}) if you wish, though in this case it
 would be easier to use @kbd{s p @key{RET}}.  (Note that @kbd{s i}
@@ -29159,9 +29159,9 @@ In the first case, ``x'' and ``y'' are each vectors (not necessarily of
 the same length); either or both may instead be interval forms.  The
 ``z'' value must be a matrix with the same number of rows as elements
 in ``x'', and the same number of columns as elements in ``y''.  The
-result is a surface plot where 
+result is a surface plot where
 @texline @math{z_{ij}}
-@infoline @expr{z_ij} 
+@infoline @expr{z_ij}
 is the height of the point
 at coordinate @expr{(x_i, y_j)} on the surface.  The 3D graph will
 be displayed from a certain default viewpoint; you can change this
@@ -29270,9 +29270,9 @@ that don't have common ``x'' values.  (Of course, the range of ``x''
 values covered by all the curves ought to be roughly the same if
 they are to look nice on the same graph.)
 
-For example, to plot 
+For example, to plot
 @texline @math{\sin n x}
-@infoline @expr{sin(n x)} 
+@infoline @expr{sin(n x)}
 for integers @expr{n}
 from 1 to 5, you could use @kbd{v x} to create a vector of integers
 (@expr{n}), then @kbd{V M '} or @kbd{V M $} to map @samp{sin(n x)}
@@ -29510,8 +29510,8 @@ available for any device.
 The @kbd{g S} (@code{calc-graph-point-style}) command similarly turns
 the symbols at the data points on or off, or sets the point style.
 If you turn both lines and points off, the data points will show as
-tiny dots.  If the ``y'' values being plotted contain error forms and 
-the connecting lines are turned off, then this command will also turn 
+tiny dots.  If the ``y'' values being plotted contain error forms and
+the connecting lines are turned off, then this command will also turn
 the error bars on or off.
 
 @cindex @code{LineStyles} variable
@@ -29563,7 +29563,7 @@ terminals with no special graphics facilities.  It writes a crude
 picture of the graph composed of characters like @code{-} and @code{|}
 to a buffer called @samp{*Gnuplot Trail*}, which Calc then displays.
 The graph is made the same size as the Emacs screen, which on most
-dumb terminals will be 
+dumb terminals will be
 @texline @math{80\times24}
 @infoline 80x24
 characters.  The graph is displayed in
@@ -29820,7 +29820,7 @@ difference.)
 @pindex calc-prepend-to-register
 @pindex calc-append-to-register
 @cindex Registers
-An alternative to killing and yanking stack entries is using 
+An alternative to killing and yanking stack entries is using
 registers in Calc.  Saving stack entries in registers is like
 saving text in normal Emacs registers; although, like Calc's kill
 commands, register commands always operate on whole stack
@@ -29935,7 +29935,7 @@ separately as a matrix element.  If a line contained
 would correctly split the line into two error forms.
 
 @xref{Matrix Functions}, to see how to pull the matrix apart into its
-constituent rows and columns.  (If it is a 
+constituent rows and columns.  (If it is a
 @texline @math{1\times1}
 @infoline 1x1
 matrix, just hit @kbd{v u} (@code{calc-unpack}) twice.)
@@ -30273,7 +30273,7 @@ same limit as last time.
 
 @key{INV GCD} computes the LCM (least common multiple) function.
 
-@key{INV FACT} is the gamma function.  
+@key{INV FACT} is the gamma function.
 @texline @math{\Gamma(x) = (x-1)!}.
 @infoline @expr{gamma(x) = (x-1)!}.
 
@@ -30490,7 +30490,7 @@ Similarly, Calc will use @TeX{} language for @code{tex-mode},
 @code{plain-tex-mode} and @code{context-mode}, C language for
 @code{c-mode} and @code{c++-mode}, FORTRAN language for
 @code{fortran-mode} and @code{f90-mode}, Pascal for @code{pascal-mode},
-and eqn for @code{nroff-mode} (@pxref{Customizing Calc}).  
+and eqn for @code{nroff-mode} (@pxref{Customizing Calc}).
 These can be overridden with Calc's mode
 changing commands (@pxref{Mode Settings in Embedded Mode}).  If no
 suitable language is available, Calc will continue with its current language.
@@ -30670,13 +30670,13 @@ version.
 
 Plain formulas are preceded and followed by @samp{%%%} signs
 by default.  This notation has the advantage that the @samp{%}
-character begins a comment in @TeX{} and La@TeX{}, so if your formula is 
+character begins a comment in @TeX{} and La@TeX{}, so if your formula is
 embedded in a @TeX{} or La@TeX{} document its plain version will be
 invisible in the final printed copy.  Certain major modes have different
-delimiters to ensure that the ``plain'' version will be 
-in a comment for those modes, also.  
+delimiters to ensure that the ``plain'' version will be
+in a comment for those modes, also.
 See @ref{Customizing Embedded Mode} to see how to change the ``plain''
-formula delimiters. 
+formula delimiters.
 
 There are several notations which Calc's parser for ``big''
 formatted formulas can't yet recognize.  In particular, it can't
@@ -31178,7 +31178,7 @@ We would have to go down to the other formula and press @kbd{C-x * u}
 on it in order to get it to notice the new annotation.
 
 Two more mode-recording modes selectable by @kbd{m R} are available
-which are also available outside of Embedded mode.  
+which are also available outside of Embedded mode.
 (@pxref{General Mode Commands}.) They are @code{Save},  in which mode
 settings are recorded permanently in your Calc init file (the file given
 by the variable @code{calc-settings-file}, typically @file{~/.emacs.d/calc.el})
@@ -31195,11 +31195,11 @@ for @code{Save} have no effect.
 
 @noindent
 You can modify Embedded mode's behavior by setting various Lisp
-variables described here.  These variables are customizable 
+variables described here.  These variables are customizable
 (@pxref{Customizing Calc}), or you can use @kbd{M-x set-variable}
 or @kbd{M-x edit-options} to adjust a variable on the fly.
 (Another possibility would be to use a file-local variable annotation at
-the end of the file; 
+the end of the file;
 @pxref{File Variables, , Local Variables in Files, emacs, the Emacs manual}.)
 Many of the variables given mentioned here can be set to depend on the
 major mode of the editing buffer (@pxref{Customizing Calc}).
@@ -31334,7 +31334,7 @@ Calc never scans for this string; Calc always looks for the
 annotation itself.  But this is the string that is inserted before
 the opening bracket when Calc adds an annotation on its own.
 The default is @code{"% "}, but may be different for different major
-modes. 
+modes.
 
 @vindex calc-embedded-close-mode
 The @code{calc-embedded-close-mode} variable is a string which
@@ -31459,7 +31459,7 @@ without its key binding, type @kbd{M-x} and enter a function name.  (The
 (If the command you give implies a function, the function will be saved,
 and if the function has any display formats, those will be saved, but
 not the other way around:  Saving a function will not save any commands
-or key bindings associated with the function.) 
+or key bindings associated with the function.)
 
 @kindex Z E
 @pindex calc-user-define-edit
@@ -31542,7 +31542,7 @@ Once you have bound your keyboard macro to a key, you can use
 @cindex Keyboard macros, editing
 The @kbd{Z E} (@code{calc-user-define-edit}) command on a key that has
 been defined by a keyboard macro tries to use the @code{edmacro} package
-edit the macro.  Type @kbd{C-c C-c} to finish editing and update 
+edit the macro.  Type @kbd{C-c C-c} to finish editing and update
 the definition stored on the key, or, to cancel the edit, kill the
 buffer with @kbd{C-x k}.
 The special characters @code{RET}, @code{LFD}, @code{TAB}, @code{SPC},
@@ -31552,7 +31552,7 @@ sequences, written in all uppercase, as must the prefixes @code{C-} and
 copied verbatim into the keyboard macro.  Basically, the notation is the
 same as is used in all of this manual's examples, except that the manual
 takes some liberties with spaces: When we say @kbd{' [1 2 3] @key{RET}},
-we take it for granted that it is clear we really mean 
+we take it for granted that it is clear we really mean
 @kbd{' [1 @key{SPC} 2 @key{SPC} 3] @key{RET}}.
 
 @kindex C-x * m
@@ -31823,7 +31823,7 @@ prompt for the @kbd{Z #} command; it will not play any role in any
 subsequent calculations.)  This command allows your keyboard macros to
 accept numbers or formulas as interactive input.
 
-As an example, 
+As an example,
 @kbd{2 @key{RET} "Power: " @key{RET} Z # 3 @key{RET} ^} will prompt for
 input with ``Power: '' in the minibuffer, then return 2 to the provided
 power.  (The response to the prompt that's given, 3 in this example,
@@ -31900,7 +31900,7 @@ The third prompt is for an algebraic function name.  The default is to
 use the same name as the command name but without the @samp{calc-}
 prefix.  (If this is of the form @samp{User-m}, the hyphen is removed so
 it won't be taken for a minus sign in algebraic formulas.)
-This is the name you will use if you want to enter your 
+This is the name you will use if you want to enter your
 new function in an algebraic formula.  Suppose we enter @kbd{yow @key{RET}}.
 Then the new function can be invoked by pushing two numbers on the
 stack and typing @kbd{z m} or @kbd{x spam}, or by entering the algebraic
@@ -32695,7 +32695,7 @@ same thing with a single division by 512.
 @end ignore
 @tindex mysin
 A somewhat limited sine function could be defined as follows, using the
-well-known Taylor series expansion for 
+well-known Taylor series expansion for
 @texline @math{\sin x}:
 @infoline @samp{sin(x)}:
 
@@ -35241,7 +35241,7 @@ to use a different prefix, you can put
 @end example
 
 @noindent
-in your .emacs file.  
+in your .emacs file.
 (@xref{Key Bindings,,Customizing Key Bindings,emacs,
 The GNU Emacs Manual}, for more information on binding keys.)
 A convenient way to start Calc is with @kbd{C-x * *}; to make it equally
@@ -35269,7 +35269,7 @@ to see how regular expressions work.
 @defvar calc-settings-file
 The variable @code{calc-settings-file} holds the file name in
 which commands like @kbd{m m} and @kbd{Z P} store ``permanent''
-definitions.  
+definitions.
 If @code{calc-settings-file} is not your user init file (typically
 @file{~/.emacs}) and if the variable @code{calc-loaded-settings-file} is
 @code{nil}, then Calc will automatically load your settings file (if it
@@ -35314,7 +35314,7 @@ enabled, it will try to use the current major mode to
 determine what language should be used.  (This can be overridden using
 Calc's mode changing commands, @xref{Mode Settings in Embedded Mode}.)
 The variable @code{calc-language-alist} consists of a list of pairs of
-the form  @code{(@var{MAJOR-MODE} . @var{LANGUAGE})}; for example, 
+the form  @code{(@var{MAJOR-MODE} . @var{LANGUAGE})}; for example,
 @code{(latex-mode . latex)} is one such pair.  If Calc embedded is
 activated in a buffer whose major mode is @var{MAJOR-MODE}, it will set itself
 to use the language @var{LANGUAGE}.
@@ -35342,7 +35342,7 @@ what formulas @kbd{C-x * a} will activate in a buffer.  It is a
 regular expression, and when activating embedded formulas with
 @kbd{C-x * a}, it will tell Calc that what follows is a formula to be
 activated.  (Calc also uses other patterns to find formulas, such as
-@samp{=>} and @samp{:=}.)  
+@samp{=>} and @samp{:=}.)
 
 The default pattern is @code{"%Embed\n\\(% .*\n\\)*"}, which checks
 for @samp{%Embed} followed by any number of lines beginning with
@@ -35367,7 +35367,7 @@ It consists of a list of pairs of the form @code{(@var{MAJOR-MODE} .
     (texinfo-mode . "@@c Embed\n\\(@@c .*\n\\)*"))
 @end example
 Any major modes added to @code{calc-embedded-announce-formula-alist}
-should also be added to @code{calc-embedded-open-close-plain-alist} 
+should also be added to @code{calc-embedded-open-close-plain-alist}
 and @code{calc-embedded-open-close-mode-alist}.
 @end defvar
 
@@ -35378,7 +35378,7 @@ See @ref{Customizing Embedded Mode}.@*
 The variables @code{calc-embedded-open-formula} and
 @code{calc-embedded-close-formula} control the region that Calc will
 activate as a formula when Embedded mode is entered with @kbd{C-x * e}.
-They are regular expressions; 
+They are regular expressions;
 Calc normally scans backward and forward in the buffer for the
 nearest text matching these regular expressions to be the ``formula
 delimiters''.
@@ -35403,7 +35403,7 @@ The variable @code{calc-embedded-open-close-formula-alist} is used to
 set @code{calc-embedded-open-formula} and
 @code{calc-embedded-close-formula} to different regular
 expressions depending on the major mode of the editing buffer.
-It consists of a list of lists of the form 
+It consists of a list of lists of the form
 @code{(@var{MAJOR-MODE}  @var{OPEN-FORMULA-REGEXP}
 @var{CLOSE-FORMULA-REGEXP})}, and its default value is
 @code{nil}.
@@ -35422,7 +35422,7 @@ The default value of @code{calc-embedded-word-regexp} is
 The variable @code{calc-embedded-word-regexp-alist} is used to
 set @code{calc-embedded-word-regexp} to a different regular
 expression depending on the major mode of the editing buffer.
-It consists of a list of lists of the form 
+It consists of a list of lists of the form
 @code{(@var{MAJOR-MODE}  @var{WORD-REGEXP})}, and its default value is
 @code{nil}.
 @end defvar
@@ -35437,8 +35437,8 @@ formulas.  Note that these are actual strings, not regular
 expressions, because Calc must be able to write these string into a
 buffer as well as to recognize them.
 
-The default string for @code{calc-embedded-open-plain} is 
-@code{"%%% "}, note the trailing space.  The default string for 
+The default string for @code{calc-embedded-open-plain} is
+@code{"%%% "}, note the trailing space.  The default string for
 @code{calc-embedded-close-plain} is @code{" %%%\n"}, without
 the trailing newline here, the first line of a Big mode formula
 that followed might be shifted over with respect to the other lines.
@@ -35447,7 +35447,7 @@ The variable @code{calc-embedded-open-close-plain-alist} is used to
 set @code{calc-embedded-open-plain} and
 @code{calc-embedded-close-plain} to different strings
 depending on the major mode of the editing buffer.
-It consists of a list of lists of the form 
+It consists of a list of lists of the form
 @code{(@var{MAJOR-MODE}  @var{OPEN-PLAIN-STRING}
 @var{CLOSE-PLAIN-STRING})}, and its default value is
 @example
@@ -35490,7 +35490,7 @@ The variable @code{calc-embedded-open-close-new-formula-alist} is used to
 set @code{calc-embedded-open-new-formula} and
 @code{calc-embedded-close-new-formula} to different strings
 depending on the major mode of the editing buffer.
-It consists of a list of lists of the form 
+It consists of a list of lists of the form
 @code{(@var{MAJOR-MODE}  @var{OPEN-NEW-FORMULA-STRING}
 @var{CLOSE-NEW-FORMULA-STRING})}, and its default value is
 @code{nil}.
@@ -35508,7 +35508,7 @@ necessary to add them to user-written annotations.
 
 The default value of @code{calc-embedded-open-mode} is @code{"% "}
 and the default value of @code{calc-embedded-close-mode} is
-@code{"\n"}.  
+@code{"\n"}.
 If you change the value of @code{calc-embedded-close-mode}, it is a good
 idea still to end with a newline so that mode annotations will appear on
 lines by themselves.
@@ -35517,7 +35517,7 @@ The variable @code{calc-embedded-open-close-mode-alist} is used to
 set @code{calc-embedded-open-mode} and
 @code{calc-embedded-close-mode} to different strings
 expressions depending on the major mode of the editing buffer.
-It consists of a list of lists of the form 
+It consists of a list of lists of the form
 @code{(@var{MAJOR-MODE}  @var{OPEN-MODE-STRING}
 @var{CLOSE-MODE-STRING})}, and its default value is
 @example
@@ -35548,7 +35548,7 @@ units.
 
 The default value of @code{calc-lu-power-reference} is @code{"mW"}
 and the default value of @code{calc-lu-field-reference} is
-@code{"20 uPa"}.  
+@code{"20 uPa"}.
 @end defvar
 
 @defvar calc-note-threshold
@@ -35564,15 +35564,15 @@ The default value of @code{calc-note-threshold} is 1.
 @defvarx calc-selected-face
 @defvarx calc-nonselected-face
 See @ref{Displaying Selections}.@*
-The variable @code{calc-highlight-selections-with-faces} 
+The variable @code{calc-highlight-selections-with-faces}
 determines how selected sub-formulas are distinguished.
-If @code{calc-highlight-selections-with-faces} is nil, then 
+If @code{calc-highlight-selections-with-faces} is nil, then
 a selected sub-formula is distinguished either by changing every
 character not part of the sub-formula with a dot or by changing every
-character in the sub-formula with a @samp{#} sign.  
+character in the sub-formula with a @samp{#} sign.
 If @code{calc-highlight-selections-with-faces} is t,
 then a selected sub-formula is distinguished either by displaying the
-non-selected portion of the formula with @code{calc-nonselected-face} 
+non-selected portion of the formula with @code{calc-nonselected-face}
 or by displaying the selected sub-formula with
 @code{calc-nonselected-face}.
 @end defvar
@@ -36651,9 +36651,9 @@ input data set.  Each entry may be a single value or a vector of values.
 
 @c 20
 @item
-With a prefix argument of 1, take a single 
+With a prefix argument of 1, take a single
 @texline @var{n}@math{\times2}
-@infoline @mathit{@var{N}x2} 
+@infoline @mathit{@var{N}x2}
 matrix from the stack instead of two separate data vectors.
 
 @c 21
@@ -36754,7 +36754,7 @@ Variable name may be a single digit or a full name.
 
 @c 30
 @item
-Editing occurs in a separate buffer.  Press @kbd{C-c C-c} (or 
+Editing occurs in a separate buffer.  Press @kbd{C-c C-c} (or
 @key{LFD}, or in some cases @key{RET}) to finish the edit, or kill the
 buffer with @kbd{C-x k} to cancel the edit.  The @key{LFD} key prevents evaluation
 of the result of the edit.
@@ -36854,7 +36854,7 @@ to evaluate variables.
 @item
 The variable is replaced by the formula shown on the right.  The
 Inverse flag reverses the order of the operands, e.g., @kbd{I s - x}
-assigns 
+assigns
 @texline @math{x \coloneq a-x}.
 @infoline @expr{x := a-x}.
 

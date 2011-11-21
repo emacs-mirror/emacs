@@ -55,7 +55,7 @@ goal
 
 %%
 (define-lex wisent-{{TARGETMODE}}-lexer
-  "Lexical analzer to handle {{TARGETMODE}} buffers."
+  "Lexical analyzer to handle {{TARGETMODE}} buffers."
   ;; semantic-lex-newline
   semantic-lex-ignore-whitespace
   semantic-lex-ignore-newline

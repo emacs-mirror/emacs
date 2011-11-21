@@ -943,7 +943,7 @@ struct Lisp_Vector
 
 /* Compute A OP B, using the unsigned comparison operator OP.  A and B
    should be integer expressions.  This is not the same as
-   mathemeatical comparison; for example, UNSIGNED_CMP (0, <, -1)
+   mathematical comparison; for example, UNSIGNED_CMP (0, <, -1)
    returns 1.  For efficiency, prefer plain unsigned comparison if A
    and B's sizes both fit (after integer promotion).  */
 #define UNSIGNED_CMP(a, op, b)						\
@@ -1877,9 +1877,6 @@ typedef struct {
     CHECK_NATNUM (tmp);			\
     XSETCDR ((x), tmp);			\
   } while (0)
-
-/* Cast pointers to this type to compare them.  */
-#define PNTR_COMPARISON_TYPE uintptr_t
 
 /* Define a built-in function for calling from Lisp.
  `lname' should be the name to give the function in Lisp,

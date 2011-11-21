@@ -42,7 +42,7 @@
 ;; - For XEmacs 21.x, you need to install the RefTeX plug-in package
 ;;   available from the XEmacs distribution sites.
 ;; - If you have downloaded this file from the maintainers webpage, follow
-;;   the instructions in the INSTALL file of the distrubution.
+;;   the instructions in the INSTALL file of the distribution.
 ;;
 ;; To turn RefTeX Mode on and off in a buffer, use `M-x reftex-mode'.
 ;;
@@ -688,7 +688,7 @@ on the menu bar.
               (TeX-master-file t)
             (error (buffer-file-name))))
          ((fboundp 'tex-main-file) (tex-main-file)) ; Emacs LaTeX mode
-         ((boundp 'TeX-master)       ; The variable is defined - lets use it.
+         ((boundp 'TeX-master)       ; The variable is defined - let's use it.
           (cond
            ((eq TeX-master t)
             (buffer-file-name))
@@ -1568,7 +1568,7 @@ Valid actions are: readable, restore, read, kill, write."
 ;;; Finding files
 
 (defun reftex-locate-file (file type master-dir &optional die)
-  "Find FILE of type TYPE in MASTER-DIR or on the path associcted with TYPE.
+  "Find FILE of type TYPE in MASTER-DIR or on the path associated with TYPE.
 If the file does not have any of the valid extensions for TYPE,
 try first the default extension and only then the naked file name.
 When DIE is non-nil, throw an error if file not found."
@@ -1612,7 +1612,7 @@ When DIE is non-nil, throw an error if file not found."
 (defun reftex-find-file-externally (file type &optional master-dir)
   ;; Use external program to find FILE.
   ;; The program is taken from `reftex-external-file-finders'.
-  ;; Interprete relative path definitions starting from MASTER-DIR.
+  ;; Interpret relative path definitions starting from MASTER-DIR.
   (let ((default-directory (or master-dir default-directory))
         (prg (cdr (assoc type reftex-external-file-finders)))
         out)
@@ -2058,7 +2058,7 @@ When DIE is non-nil, throw an error if file not found."
                (with-current-buffer buf
                  (run-hooks 'reftex-initialize-temporary-buffers))))
 
-           ;; Lets see if we got a license to kill :-|
+           ;; Let's see if we got a license to kill :-|
            (and mark-to-kill
                 (add-to-list 'reftex-buffers-to-kill buf))
 
@@ -2254,7 +2254,7 @@ IGNORE-WORDS List of words which should be removed from the string."
 (defvar font-lock-defaults-computed)
 (defun reftex-fontify-select-label-buffer (parent-buffer)
   ;; Fontify the `*RefTeX Select*' buffer.  Buffer is temporarily renamed to
-  ;; start with none-SPC char, beacuse Font-Lock otherwise refuses operation.
+  ;; start with none-SPC char, because Font-Lock otherwise refuses operation.
   (run-hook-with-args 'reftex-pre-refontification-functions
                       parent-buffer 'reftex-ref)
   (let* ((oldname (buffer-name))

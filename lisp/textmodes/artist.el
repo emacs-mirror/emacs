@@ -1985,7 +1985,7 @@ Also updates the variables `artist-draw-min-y' and `artist-draw-max-y'."
   "Retrieve a replacement for character C from `artist-replacement-table'.
 The replacement is used to convert tabs and new-lines to spaces."
   ;; Characters may be outside the range of the `artist-replacement-table',
-  ;; for example if they are unicode code points >= 256.
+  ;; for example if they are Unicode code points >= 256.
   ;; Check so we don't attempt to access the array out of its bounds,
   ;; assuming no such character needs to be replaced.
   (if (< c (length artist-replacement-table))
@@ -2263,7 +2263,7 @@ Returns a DIRECTION, a number 0--7, coded as follows:
 
 
 ;; Things for drawing lines in all directions.
-;; The line drawing engine is the eight-point alrogithm.
+;; The line drawing engine is the eight-point algorithm.
 ;;
 ;; A line is here a list of (x y saved-char new-char)s.
 ;;
@@ -2338,7 +2338,7 @@ Octant are numbered 1--8, anti-clockwise as:
 	  5
 	6))))
 
-;; Some inline funtions for creating, setting and reading
+;; Some inline functions for creating, setting and reading
 ;; members of a coordinate
 ;;
 
@@ -2514,7 +2514,7 @@ This function returns a point-list."
 
 
 ;;
-;; functions for accessing endoints and elements in object requiring
+;; functions for accessing endpoints and elements in object requiring
 ;; 2 endpoints
 ;;
 
@@ -3582,7 +3582,7 @@ FILL-INFO is a list of vectors on the form [X Y ELLIPSE-WIDTH-ON-THIS-LINE]."
          (width (abs (- x2 x1)))
 	 (height (abs (- y2 y1)))
 	 ;; When drawing our circle, we want it to through the cursor
-	 ;; just as when drawing the ellispe, but we have to take
+	 ;; just as when drawing the ellipse, but we have to take
 	 ;; care for the aspect-ratio.
 	 ;; The equation for the ellipse  (where a is the x-radius and
 	 ;; b is the y-radius):

@@ -620,7 +620,7 @@ if large.  You can use `Info-split' to do this manually."
    "var{\\|"
    "w{\\|"
    "xref{\\|"
-   "@-\\|"    ; @- is a descretionary hyphen (not an accent) (a noop).
+   "@-\\|"    ; @- is a discretionary hyphen (not an accent) (a noop).
    texinfo-accent-commands
    "\\)"
    )
@@ -2194,7 +2194,7 @@ This command is executed when texinfmt sees @item inside @multitable."
 
 (put 'image 'texinfo-format 'texinfo-format-image)
 (defun texinfo-format-image ()
-  "Insert an image from an an file ending in .txt.
+  "Insert an image from a file ending in .txt.
 Use only the FILENAME arg; for Info, ignore the other arguments to @image."
   (let ((args (texinfo-format-parse-args))
 	filename)
@@ -3909,11 +3909,11 @@ Default is to leave paragraph indentation as is."
 ;;; @set, @clear, @ifset, @ifclear
 
 ;; If a flag is set with @set FLAG, then text between @ifset and @end
-;; ifset is formatted normally, but if the flag is is cleared with
+;; ifset is formatted normally, but if the flag is cleared with
 ;; @clear FLAG, then the text is not formatted; it is ignored.
 
 ;; If a flag is cleared with @clear FLAG, then text between @ifclear
-;; and @end ifclear is formatted normally, but if the flag is is set with
+;; and @end ifclear is formatted normally, but if the flag is set with
 ;; @set FLAG, then the text is not formatted; it is ignored.  @ifclear
 ;; is the opposite of @ifset.
 

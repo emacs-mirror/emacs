@@ -54,7 +54,7 @@
   :type 'boolean)
 
 (defcustom gnus-use-frames-on-any-display nil
-  "*If non-nil, frames on all displays will be considered useable by Gnus.
+  "*If non-nil, frames on all displays will be considered usable by Gnus.
 When nil, only frames on the same display as the selected frame will be
 used to display Gnus windows."
   :version "22.1"

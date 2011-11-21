@@ -56,7 +56,7 @@ developing GNU and promoting software freedom.''
 @top Supercite
 @comment  node-name,  next,  previous,  up
 
-@insertcopying 
+@insertcopying
 
 The manual is divided
 into the following chapters.
@@ -1877,7 +1877,7 @@ been continuously added through the comments and suggestions of the
 Supercite mailing list participants.
 
 With version 3, Supercite underwent an almost complete rewrite,
-benefitting in a number of ways, including vast improvements in the
+benefiting in a number of ways, including vast improvements in the
 speed of performance, a big reduction in size of the code and in the use
 of Emacs resources, and a much cleaner and flexible internal
 architecture.  Most of this work was internal and not of very great

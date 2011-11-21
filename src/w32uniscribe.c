@@ -469,7 +469,7 @@ uniscribe_encode_char (struct font *font, int c)
 
   /* Non BMP characters must be handled by the uniscribe shaping
      engine as GDI functions (except blindly displaying lines of
-     unicode text) and the promising looking ScriptGetCMap do not
+     Unicode text) and the promising looking ScriptGetCMap do not
      convert surrogate pairs to glyph indexes correctly.  */
     {
       items = (SCRIPT_ITEM *) alloca (sizeof (SCRIPT_ITEM) * 2 + 1);
@@ -507,7 +507,7 @@ uniscribe_encode_char (struct font *font, int c)
           if (SUCCEEDED (result) && nglyphs == 1)
             {
 	      /* Some fonts return .notdef glyphs instead of failing.
-	         (Truetype spec reserves glyph code 0 for .notdef)  */
+	         (TrueType spec reserves glyph code 0 for .notdef)  */
 	      if (glyphs[0])
 		code = glyphs[0];
             }
@@ -581,7 +581,7 @@ add_opentype_font_name_to_list (ENUMLOGFONTEX *logical_font,
       && font_type != TRUETYPE_FONTTYPE)
     return 1;
 
-  /* Skip fonts that have no unicode coverage.  */
+  /* Skip fonts that have no Unicode coverage.  */
   if (!physical_font->ntmFontSig.fsUsb[3]
       && !physical_font->ntmFontSig.fsUsb[2]
       && !physical_font->ntmFontSig.fsUsb[1]
@@ -961,4 +961,3 @@ syms_of_w32uniscribe (void)
 
   register_font_driver (&uniscribe_font_driver, NULL);
 }
-

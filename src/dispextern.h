@@ -2649,11 +2649,11 @@ struct redisplay_interface
   void (*flush_display) (struct frame *f);
 
   /* Flush the display of frame F if non-NULL.  This is called
-     during redisplay, and should be NULL on systems which flushes
+     during redisplay, and should be NULL on systems which flush
      automatically before reading input.  */
   void (*flush_display_optional) (struct frame *f);
 
-  /* Clear the mouse hightlight in window W, if there is any.  */
+  /* Clear the mouse highlight in window W, if there is any.  */
   void (*clear_window_mouse_face) (struct window *w);
 
   /* Set *LEFT and *RIGHT to the left and right overhang of GLYPH on
@@ -3126,6 +3126,9 @@ void compute_fringe_widths (struct frame *, int);
 void w32_init_fringe (struct redisplay_interface *);
 void w32_reset_fringes (void);
 #endif
+
+extern unsigned row_hash (struct glyph_row *);
+
 /* Defined in image.c */
 
 #ifdef HAVE_WINDOW_SYSTEM

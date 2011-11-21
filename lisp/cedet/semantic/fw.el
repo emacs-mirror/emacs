@@ -251,7 +251,7 @@ later installation should be done in MODE hook."
 
 (defmacro semantic-exit-on-input (symbol &rest forms)
   "Using SYMBOL as an argument to `throw', execute FORMS.
-If FORMS includes a call to `semantic-thow-on-input', then
+If FORMS includes a call to `semantic-throw-on-input', then
 if a user presses any key during execution, this form macro
 will exit with the value passed to `semantic-throw-on-input'.
 If FORMS completes, then the return value is the same as `progn'."

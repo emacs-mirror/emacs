@@ -26,7 +26,7 @@
 ;; This package create two new modes: thumbs-mode and thumbs-view-image-mode.
 ;; It is used for basic browsing and viewing of images from within Emacs.
 ;; Minimal image manipulation functions are also available via external
-;; programs.  If you want to do more complex tasks like categorise and tag
+;; programs.  If you want to do more complex tasks like categorize and tag
 ;; your images, use image-dired.el
 ;;
 ;; The 'convert' program from 'ImageMagick'
@@ -92,7 +92,7 @@ When it reaches that size (in bytes), a warning is sent."
   :group 'thumbs)
 
 ;; Unfortunately Windows XP has a program called CONVERT.EXE in
-;; C:/WINDOWS/SYSTEM32/ for partioning NTFS system.  So Emacs
+;; C:/WINDOWS/SYSTEM32/ for partitioning NTFS systems.  So Emacs
 ;; can find the one in your ImageMagick directory, you need to
 ;; customize this value to the absolute filename.
 (defcustom thumbs-conversion-program
@@ -235,7 +235,7 @@ reached."
       (setq dirsize (- dirsize (car (cdar files-list))))
       (setq files-list (cdr files-list)))))
 
-;; Check the thumbsnail directory size and clean it if necessary.
+;; Check the thumbnail directory size and clean it if necessary.
 (when thumbs-thumbsdir-auto-clean
   (thumbs-cleanup-thumbsdir))
 

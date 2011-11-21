@@ -258,9 +258,8 @@ struct window
        must run the redisplay-end-trigger-hook.  */
     Lisp_Object redisplay_end_trigger;
 
-    /* Non-nil means this window's child windows are never
-       (re-)combined.  */
-    Lisp_Object nest;
+    /* t means this window's child windows are not (re-)combined.  */
+    Lisp_Object combination_limit;
 
     /* Alist of <buffer, window-start, window-point> triples listing
        buffers previously shown in this window.  */
@@ -269,7 +268,7 @@ struct window
     /* List of buffers re-shown in this window.  */
     Lisp_Object next_buffers;
 
-    /* An alist with parameteres.  */
+    /* An alist with parameters.  */
     Lisp_Object window_parameters;
 
     /* No Lisp data may follow below this point without changing

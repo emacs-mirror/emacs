@@ -512,7 +512,7 @@ Variables controlling indentation style and extra features:
  dcl-block-begin-regexp
  dcl-block-end-regexp
     Regexps that match command lines that begin and end, respectively,
-    a block of commmand lines that will be given extra indentation.
+    a block of command lines that will be given extra indentation.
     Command lines between THEN-ELSE-ENDIF are always indented; these variables
     make it possible to define other places to indent.
     Set to nil to disable this feature.

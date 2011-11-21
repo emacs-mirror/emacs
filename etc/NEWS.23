@@ -843,7 +843,7 @@ shared with older Emacsen.
 
 *** There is a new charset implementation with many new charsets.
 See M-x list-character-sets.  New charsets can be defined conveniently
-as tables of unicodes.
+as tables of Unicode code points.
 
 *** There are new language environments for Chinese-GBK,
 Chinese-GB18030, Khmer, Bengali, Punjabi, Gujarati, Oriya, Telugu,
@@ -1182,7 +1182,7 @@ run processes remotely.
 matches a regexp.
 
 *** The value of comment-style now defaults to `indent'.
-Thefore, comment-start markers are inserted at the current indentation
+Therefore, comment-start markers are inserted at the current indentation
 of the region to comment, rather than the leftmost column.
 
 *** The new commands `pp-macroexpand-expression' and
@@ -1235,8 +1235,8 @@ details, see the commentary in doc-view.el.
 
 PDF and DVI files are now opened in Doc View mode by default.
 
-In Postcript mode, C-c C-c launches Doc View minor mode for viewing
-the postscript file.
+In PostScript mode, C-c C-c launches Doc View minor mode for viewing
+the PostScript file.
 
 ** EasyPG provides an interface to the GNU Privacy Guard (GnuPG).
 It includes a GnuPG keyring browser, cryptographic operations on
@@ -1837,7 +1837,7 @@ for the list of extra keys that are available.
 
 ** BDF fonts no longer supported on MS-Windows.
 The font backend was completely rewritten for this release.  The focus
-on Windows has been getting acceptable performance and full unicode
+on Windows has been getting acceptable performance and full Unicode
 support, including complex script shaping for native Windows fonts.  A
 rewrite of the BDF font support has not happened due to lack of time
 and developers.  If demand still exists for such a backend even with
@@ -2102,7 +2102,7 @@ function to use for searching in `query-replace-regexp',
 *** New keymap `search-map' bound to `M-s' provides global bindings
 for search related commands.
 
-*** New keymap `multi-query-replace-map' contains additonal keys bound
+*** New keymap `multi-query-replace-map' contains additional keys bound
 to `automatic-all' and `exit-current' for multi-buffer interactive replacement.
 
 *** The variable `inhibit-changing-match-data', if non-nil, prevents
@@ -2529,4 +2529,3 @@ Local variables:
 mode: outline
 paragraph-separate: "[ 	]*$"
 end:
-

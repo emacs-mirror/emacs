@@ -741,7 +741,7 @@ If command is repeated at same position, delete the rectangle."
   ;; We try to reuse overlays where possible because this is more efficient
   ;; and results in less flicker.
   ;; If cua--rectangle-virtual-edges is nil and the buffer contains tabs or short lines,
-  ;; the higlighted region may not be perfectly rectangular.
+  ;; the highlighted region may not be perfectly rectangular.
   (let ((deactivate-mark deactivate-mark)
         (old cua--rectangle-overlays)
         (new nil)

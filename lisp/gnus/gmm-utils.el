@@ -140,7 +140,7 @@ This is a copy of the `lazy' widget in Emacs 22.1 provided for compatibility."
 ;;   :mouse-2 command-on-mouse-2-press
 ;;   :mouse-3 command-on-mouse-3-press) ;; typically a menu of related commands
 ;;
-;; Combinations of mouse-[23] plus shift and/or controll might be overkill.
+;; Combinations of mouse-[23] plus shift and/or control might be overkill.
 ;;
 ;; Then use (plist-get rs-command :none), (plist-get rs-command :shift)
 

@@ -1,3 +1,18 @@
+2011-11-20  Bill Wohler  <wohler@newt.com>
+
+	* Release MH-E version 8.3.1.
+
+	* mh-e.el (Version, mh-version): Update for release 8.3.1.
+
+2011-11-20  Juanma Barranquero  <lekktu@gmail.com>
+
+	* mh-utils.el (mh-folder-list): Fix typo.
+	(mh-children-p): Move part of the docstring to a comment.
+
+2011-11-16  Juanma Barranquero  <lekktu@gmail.com>
+
+	* mh-search.el (mh-pick-parse-search-buffer): Fix typo.
+
 2011-09-20  Bill Wohler  <wohler@newt.com>
 
 	Release MH-E version 8.3.
@@ -40,7 +55,7 @@
 	switch-to-buffer. The previous change which used pop-to-buffer
 	produced the wrong behavior.
 
-2011-07-12  Henrique Martins  <henrique@martins.cc>   (tiny change)
+2011-07-12  Henrique Martins  <henrique@martins.cc>  (tiny change)
 
 	* mh-xface.el (mh-picon-get-image): Remove quote from block
 	argument.
@@ -343,7 +358,7 @@
 
 2008-06-20  Stephen Eglen  <stephen@gnu.org>
 
-	* mh-show.el (mh-defun-show-buffer): Use `...' rather than than
+	* mh-show.el (mh-defun-show-buffer): Use `...' rather than
 	"..." in generated docstrings.
 
 2008-06-12  Glenn Morris  <rgm@gnu.org>

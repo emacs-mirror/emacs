@@ -36,7 +36,7 @@
 ;; links to these 'tagged' destinations, allowing seamless navigation between
 ;; multiple org-mode files. Topics can be created in any org mode file and
 ;; will always be found by plain links from other files. Other file types
-;; recognised by ctags (source code files, latex files, etc) will also be
+;; recognized by ctags (source code files, latex files, etc) will also be
 ;; available as destinations for plain links, and similarly, org-mode links
 ;; will be available as tags from source files. Finally, the function
 ;; `org-ctags-find-tag-interactive' lets you choose any known tag, using
@@ -64,19 +64,19 @@
 ;; with the same name as the link; then, if unsuccessful, ask the user if
 ;; he/she wants to rebuild the 'TAGS' database and try again; then ask if
 ;; the user wishes to append 'tag' as a new toplevel heading at the end of
-;; the buffer; and finally, defer to org's default behaviour which is to
+;; the buffer; and finally, defer to org's default behavior which is to
 ;; search the entire text of the current buffer for 'tag'.
 ;;
-;; This behaviour can be modified by changing the value of
+;; This behavior can be modified by changing the value of
 ;; ORG-CTAGS-OPEN-LINK-FUNCTIONS. For example I have the following in my
-;; .emacs, which describes the same behaviour as the above paragraph with
+;; .emacs, which describes the same behavior as the above paragraph with
 ;; one difference:
 ;;
 ;; (setq org-ctags-open-link-functions
 ;;       '(org-ctags-find-tag
 ;;         org-ctags-ask-rebuild-tags-file-then-find-tag
 ;;         org-ctags-ask-append-topic
-;;         org-ctags-fail-silently))  ; <-- prevents org default behaviour
+;;         org-ctags-fail-silently))  ; <-- prevents org default behavior
 ;;
 ;;
 ;; Usage

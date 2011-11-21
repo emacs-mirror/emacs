@@ -733,7 +733,7 @@ insert rectangles, and commands to make blank rectangles.
 @findex delete-rectangle
   There are two ways to erase the text in a rectangle: @kbd{C-x r d}
 (@code{delete-rectangle}) to delete the text outright, or @kbd{C-x r
-k} (@code{kill-rectangle}) to remove the text and and save it as the
+k} (@code{kill-rectangle}) to remove the text and save it as the
 @dfn{last killed rectangle}.  In both cases, erasing the
 region-rectangle is like erasing the specified text on each line of
 the rectangle; if there is any following text on the line, it moves

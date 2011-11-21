@@ -11,7 +11,7 @@
 @c ---------
 @c <<<< For hard copy printing, this file is now
 @c      set for smallbook, which works for all sizes
-@c      of paper, and with Postscript figures >>>>
+@c      of paper, and with PostScript figures >>>>
 @set smallbook
 @ifset smallbook
 @smallbook
@@ -887,7 +887,7 @@ but in this case, it is best to treat it as a novel or as a travel guide
 to a country not yet visited: interesting, but not the same as being
 there.
 
-Much of this introduction is dedicated to walk-throughs or guided tours
+Much of this introduction is dedicated to walkthroughs or guided tours
 of code used in GNU Emacs.  These tours are designed for two purposes:
 first, to give you familiarity with real, working code (code you use
 every day); and, second, to give you familiarity with the way Emacs
@@ -8200,7 +8200,7 @@ The command \\[yank] can retrieve it from there. @dots{} "
      ;;    it will be set in an error
      (setq this-command 'kill-region)
      ;;    Finally, in the then-part, send a message if you may copy
-     ;;    the text to the kill ring without signally an error, but
+     ;;    the text to the kill ring without signaling an error, but
      ;;    don't if you may not.
 @end group
 @group
@@ -13656,7 +13656,7 @@ list of supported languages.
 
 The @code{etags} program handles more than 20 languages, including
 Emacs Lisp, Common Lisp, Scheme, C, C++, Ada, Fortran, HTML, Java,
-LaTeX, Pascal, Perl, Postscript, Python, TeX, Texinfo, makefiles, and
+LaTeX, Pascal, Perl, PostScript, Python, TeX, Texinfo, makefiles, and
 most assemblers.  The program has no switches for specifying the
 language; it recognizes the language in an input file according to its
 file name and contents.

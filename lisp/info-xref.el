@@ -313,7 +313,7 @@ should be harmless."
   (interactive)
   (info-xref-check-list (info-xref-all-info-files)))
 
-;; An alternative for geting only top-level files here would be to simply
+;; An alternative for getting only top-level files here would be to simply
 ;; return all files and have info-xref-check-list not follow "Indirect:".
 ;; The current way seems better because it (potentially) gets the proper
 ;; top-level filename into the error messages, and suppresses duplicate "not
@@ -413,7 +413,7 @@ and can take a long time."
    (unless (boundp 'viper-mode)
      (setq viper-mode nil))  ;; avoid viper.el ask about viperizing
    (unless (boundp 'gnus-registry-install)
-     (setq gnus-registry-install nil))  ;; avoid gnus-registery.el querying
+     (setq gnus-registry-install nil))  ;; avoid gnus-registry.el querying
 
    (mapatoms
     (lambda (symbol)

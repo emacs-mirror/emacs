@@ -63,7 +63,7 @@ and `org-remember-default-headline'.  To force prompting anyway, use
 \\[universal-argument] \\[org-remember-finalize] to file the note.
 
 When this variable is nil, \\[org-remember-finalize] gives you the prompts, and
-\\[universal-argument] \\[org-remember-finalize] triggers the fasttrack."
+\\[universal-argument] \\[org-remember-finalize] triggers the fast track."
   :group 'org-remember
   :type 'boolean)
 
@@ -1122,7 +1122,7 @@ See also the variable `org-reverse-note-order'."
   (condition-case nil
       (require 'remember)
     (error
-     ;; Lets install our own micro version of remember
+     ;; Let's install our own micro version of remember
      (defvar remember-register ?R)
      (defvar remember-mode-hook nil)
      (defvar remember-handler-functions nil)
@@ -1153,4 +1153,3 @@ See also the variable `org-reverse-note-order'."
 
 
 ;;; org-remember.el ends here
-

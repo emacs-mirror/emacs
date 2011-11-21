@@ -134,7 +134,7 @@
 ;; terminal-initialization function.  Also, our handling of reverse
 ;; video is slightly different.
 (defun msdos-create-frame-with-faces (&optional parameters)
-  "Create an frame on MS-DOS display.
+  "Create a frame on MS-DOS display.
 Optional frame parameters PARAMETERS specify the frame parameters.
 Parameters not specified by PARAMETERS are taken from
 `default-frame-alist'.  If either PARAMETERS or `default-frame-alist'

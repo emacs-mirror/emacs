@@ -5283,7 +5283,7 @@
 	(disabled-command-function): Function renamed from
 	`disabled-command-hook'.  Adapt code to name change of the variable.
 
-2004-08-07  Satyaki Das  <satyaki@theforce.stanford.edu>  (tiny change)
+2004-08-07  Satyaki Das  <satyaki@theforce.stanford.edu>
 
 	* simple.el (completion-root-regexp): New defvar.
 	(completion-setup-function): Use it instead of a literal string.
@@ -6884,7 +6884,7 @@
 
 2004-05-22  Richard M. Stallman  <rms@gnu.org>
 
-	* textmodes/paragraphs.el (sentence-end): Match unicode curly quotes
+	* textmodes/paragraphs.el (sentence-end): Match Unicode curly quotes
 	as a close quote.
 
 	* textmodes/bibtex.el: Use assoc-string, not assoc-ignore-case.
@@ -7074,7 +7074,7 @@
 2004-05-14  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* descr-text.el (describe-char-unicode-data)
-	(describe-char-unicodedata-file): Re-enable the unicode code now that
+	(describe-char-unicodedata-file): Re-enable the Unicode code now that
 	the licensing issues have been cleared in the unicode-4 license.
 	(describe-text-properties-1): Remove unused `overlay' var.
 	(describe-char): Remove unused var `buffer'.

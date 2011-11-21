@@ -30,7 +30,7 @@ XMenuAddSelection(Display *display, register XMenu *menu, register int p_num, ch
     register XMSelect *sel;	/* Newly created selection. */
 
 
-    int label_length;		/* Label lenght in characters. */
+    int label_length;		/* Label length in characters. */
     int label_width;		/* Label width in pixels. */
 
     /*

@@ -25,7 +25,7 @@
 
 ;;; Credits:
 
-;; This file was written by by Nick Roberts following the general design
+;; This file was written by Nick Roberts following the general design
 ;; used in gdb-ui.el for Emacs 22.1 - 23.1.  It is currently being developed
 ;; by Dmitry Dzhus <dima@sphinx.net.ru> as part of the Google Summer
 ;; of Code 2009 Project "Emacs GDB/MI migration".
@@ -74,7 +74,7 @@
 ;; GDB in Emacs on Mac OSX works best with FSF GDB as Apple have made
 ;; some changes to the version that they include as part of Mac OSX.
 ;; This requires GDB version 7.0 or later (estimated release date Aug 2009)
-;; as earlier versions don not compile on Mac OSX.
+;; as earlier versions do not compile on Mac OSX.
 
 ;;; Known Bugs:
 
@@ -350,7 +350,7 @@ automatically.
 
 This setting is used in non-stop mode only. In all-stop mode,
 Emacs always switches to the thread which caused the stop."
-  ;; exited, exited-normally and exited-signalled are not
+  ;; exited, exited-normally and exited-signaled are not
   ;; thread-specific stop reasons and therefore are not included in
   ;; this list
   :type '(choice
@@ -823,7 +823,7 @@ detailed description of this mode.
   (run-hooks 'gdb-mode-hook))
 
 (defun gdb-init-1 ()
-  ;; (re-)initialise
+  ;; (re-)initialize
   (setq gdb-selected-frame nil
 	gdb-frame-number nil
         gdb-thread-number nil
@@ -2217,7 +2217,7 @@ Return position where LINE begins."
 (defun gdb-mapcar* (function &rest seqs)
   "Apply FUNCTION to each element of SEQS, and make a list of the results.
 If there are several SEQS, FUNCTION is called with that many
-arugments, and mapping stops as sson as the shortest list runs
+arguments, and mapping stops as soon as the shortest list runs
 out."
   (let ((shortest (apply #'min (mapcar #'length seqs))))
     (mapcar (lambda (i)
@@ -3428,7 +3428,7 @@ breakpoints buffer."
         (error "Not recognized as break/watchpoint line")))))
 
 
-;; Frames buffer.  This displays a perpetually correct bactrack trace.
+;; Frames buffer.  This displays a perpetually correct backtrack trace.
 ;;
 (def-gdb-trigger-and-handler
   gdb-invalidate-frames (gdb-current-context-command "-stack-list-frames")
@@ -3578,7 +3578,7 @@ member."
       (gud-basic-call
        (concat  "-gdb-set variable " var " = " value)))))
 
-;; Dont display values of arrays or structures.
+;; Don't display values of arrays or structures.
 ;; These can be expanded using gud-watch.
 (defun gdb-locals-handler-custom ()
   (let ((locals-list (bindat-get-field (gdb-json-partial-output) 'locals))

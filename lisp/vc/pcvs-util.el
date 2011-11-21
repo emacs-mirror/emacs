@@ -89,7 +89,7 @@ try to split a new window instead."
     (or (let ((buf (get-buffer-window buf))) (and buf (select-window buf)))
 	(and pop-up-windows
 	     (ignore-errors (select-window (split-window-below)))
-	     (switch-to-buffer buf))
+	     (switch-to-buffer buf nil 'force-same-window))
 	(pop-to-buffer (current-buffer)))))
 
 (defun cvs-bury-buffer (buf &optional mainbuf)
@@ -307,7 +307,7 @@ If it is \\[universal-argument] \\[universal-argument], behave just
 See `cvs-prefix-set' for further description of the behavior."))
        (defvar ,cps
 	 (let ((defaults ,defaults))
-	   ;; sanity ensurance
+	   ;; sanity insurance
 	   (unless (>= (length defaults) cvs-prefix-number)
 	     (setq defaults (append defaults
 				    (make-list (1- cvs-prefix-number)

@@ -41,7 +41,7 @@
 
 (define-overloadable-function semantic-tag-calculate-parent (tag)
   "Attempt to calculate the parent of TAG.
-The default behavior (if not overriden with `tag-calculate-parent')
+The default behavior (if not overridden with `tag-calculate-parent')
 is to search a buffer found with TAG, and if externally defined,
 search locally, then semanticdb for that tag (when enabled.)")
 
@@ -98,7 +98,7 @@ See `semantic-tag-protection'."
     prot))
 
 (defun semantic-tag-protected-p (tag protection &optional parent)
-  "Non-nil if TAG is is protected.
+  "Non-nil if TAG is protected.
 PROTECTION is a symbol which can be returned by the method
 `semantic-tag-protection'.
 PARENT is the parent data type which contains TAG.
@@ -106,7 +106,7 @@ PARENT is the parent data type which contains TAG.
 For these PROTECTIONs, true is returned if TAG is:
 @table @asis
 @item nil
-  Always true
+  Always true.
 @item  private
   True if nil.
 @item protected
@@ -221,7 +221,7 @@ something without an implementation."
 
 (define-overloadable-function semantic-tag-full-name (tag &optional stream-or-buffer)
   "Return the fully qualified name of TAG in the package hierarchy.
-STREAM-OR-BUFFER can be anything convertable by `semantic-something-to-stream',
+STREAM-OR-BUFFER can be anything convertible by `semantic-something-to-stream',
 but must be a toplevel semantic tag stream that contains TAG.
 A Package Hierarchy is defined in UML by the way classes and methods
 are organized on disk.  Some language use this concept such that a

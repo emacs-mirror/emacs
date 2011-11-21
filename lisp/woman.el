@@ -1439,7 +1439,7 @@ The cdr of each alist element is the path-index / filename."
 	  (push (woman-topic-all-completions-1 dir path-index)
 		files))
       (setq path-index (1+ path-index)))
-    ;; Uniquefy topics:
+    ;; Uniquify topics:
     ;; Concatenate all lists with a single nconc call to
     ;; avoid retraversing the first lists repeatedly  -- dak
     (woman-topic-all-completions-merge
@@ -2023,7 +2023,7 @@ Optional argument REDRAW, if non-nil, forces mode line to be updated."
 ;; Both advices are disabled because "a file in Emacs should not put
 ;; advice on a function in Emacs" (see Info node "(elisp)Advising
 ;; Functions").  Counting the formatting time is useful for
-;; developping, but less applicable for daily use.  The advice for
+;; developing, but less applicable for daily use.  The advice for
 ;; `Man-getpage-in-background' can be discarded, because the
 ;; key-binding in `woman-mode-map' has been remapped to call `woman'
 ;; but `man'.  Michael Albinus <michael.albinus@gmx.de>
@@ -2558,7 +2558,7 @@ REQUEST is the invoking directive without the leading dot."
      ;; ((looking-at "[te]") (setq c nil))   ; reject t(roff) and e(ven page)
      ((looking-at "[ntoe]")
       (setq c (memq (following-char) woman-if-conditions-true)))
-     ;; Unrecognised letter so reject:
+     ;; Unrecognized letter so reject:
      ((looking-at "[A-Za-z]") (setq c nil)
       (WoMan-warn "%s %s -- unrecognized condition name rejected!"
 		  request (match-string 0)))
@@ -3697,7 +3697,7 @@ expression in parentheses.  Leaves point after the value."
                               (setq woman-request (match-string 1)))))
             ;; Delete request or macro name:
             (woman-delete-match 0))
-           ;; Unrecognised request:
+           ;; Unrecognized request:
            ((prog1 nil
               ;; (WoMan-warn ".%s request ignored!" woman-request)
               (WoMan-warn-ignored woman-request "ignored!")

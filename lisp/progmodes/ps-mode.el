@@ -267,7 +267,7 @@ If nil, use `temporary-file-directory'."
       . (1 font-lock-function-name-face))
     '("/\\w+" . font-lock-variable-name-face)
     (cons ps-mode-operators 'font-lock-keyword-face)))
-  "High level highliting for PostScript mode.")
+  "High level highlighting for PostScript mode.")
 
 (defconst ps-mode-font-lock-keywords ps-mode-font-lock-keywords-1
   "Default expressions to highlight in PostScript mode.")
@@ -713,7 +713,7 @@ defines the beginning of a group. These tokens are:  {  [  <<"
   (ps-mode-r-balance ">>"))
 
 (defun ps-mode-r-balance (right)
-  "Adjust indentification if point after RIGHT."
+  "Adjust indenting if point after RIGHT."
   (if ps-mode-auto-indent
       (save-excursion
 	(when (re-search-backward (concat "^[ \t]*" (regexp-quote right) "\\=") nil t)

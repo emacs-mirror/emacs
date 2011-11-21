@@ -170,7 +170,7 @@ def fun2(a,b,c): #1
 
 
 )
-;  "pyhon test case. notice that python is indentation sensitive
+;  "python test case. notice that python is indentation sensitive
 
 
 (defvar semantic-utest-Python-name-contents
@@ -622,7 +622,7 @@ INSERTME is the text to be inserted after the deletion."
   )
 
 ;look at http://mfgames.com/linux/csharp-mode
-(defun semantic-utest-Csharp() ;; hmm i dont even know how to edit a scharp file. need a csharp mode implementation i suppose
+(defun semantic-utest-Csharp() ;; hmm i don't even know how to edit a scharp file. need a csharp mode implementation i suppose
   (interactive)
   (if (fboundp 'csharp-mode)
       (semantic-utest-generic "C#" (semantic-utest-fname "csharptest.cs") semantic-utest-Csharp-buffer-contents  semantic-utest-Csharp-name-contents   '("fun2") "//1" "//deleted line")
@@ -787,7 +787,7 @@ SKIPNAMES is a list of names to remove from NAME-CONTENTS"
 (defun semantic-utest-kill-indicator ( killme insertme)
   "Kill the line with KILLME on it and insert INSERTME in its place."
   (goto-char (point-min))
-;  (re-search-forward (concat "/\\*" indicator "\\*/")); JAVE this isnt generic enough for different lagnuages
+;  (re-search-forward (concat "/\\*" indicator "\\*/")); JAVE this isn't generic enough for different languages
   (re-search-forward killme)
   (beginning-of-line)
   (setq semantic-utest-last-kill-pos (point))
@@ -812,7 +812,7 @@ SKIPNAMES is a list of names to remove from NAME-CONTENTS"
 (defun semantic-utest-last-invalid (name-contents names-removed killme insertme)
   "Make the last fcn invalid."
   (semantic-utest-kill-indicator killme insertme)
-;  (semantic-utest-verify-names name-contents names-removed); verify its gone ;new validator doesnt handle skipnames yet
+;  (semantic-utest-verify-names name-contents names-removed); verify its gone ;new validator doesn't handle skipnames yet
   (semantic-utest-unkill-indicator);put back killed stuff
   )
 

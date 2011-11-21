@@ -62,7 +62,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 #ifdef DOS_NT
 /* On Windows, drive letters must be alphabetic - on DOS, the Netware
-   redirector allows the six letters between 'Z' and 'a' as well. */
+   redirector allows the six letters between 'Z' and 'a' as well.  */
 #ifdef MSDOS
 #define IS_DRIVE(x) ((x) >= 'A' && (x) <= 'z')
 #endif
@@ -70,7 +70,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #define IS_DRIVE(x) isalpha ((unsigned char) (x))
 #endif
 /* Need to lower-case the drive letter, or else expanded
-   filenames will sometimes compare inequal, because
+   filenames will sometimes compare unequal, because
    `expand-file-name' doesn't always down-case the drive letter.  */
 #define DRIVE_LETTER(x) (tolower ((unsigned char) (x)))
 #endif
@@ -338,7 +338,7 @@ Given a Unix syntax file name, returns a string ending in slash.  */)
 
   while (p != beg && !IS_DIRECTORY_SEP (p[-1])
 #ifdef DOS_NT
-	 /* only recognise drive specifier at the beginning */
+	 /* only recognize drive specifier at the beginning */
 	 && !(p[-1] == ':'
 	      /* handle the "/:d:foo" and "/:foo" cases correctly  */
 	      && ((p == beg + 2 && !IS_DIRECTORY_SEP (*beg))
@@ -401,7 +401,7 @@ or the entire name if it contains no slash.  */)
 
   while (p != beg && !IS_DIRECTORY_SEP (p[-1])
 #ifdef DOS_NT
-	 /* only recognise drive specifier at beginning */
+	 /* only recognize drive specifier at beginning */
 	 && !(p[-1] == ':'
 	      /* handle the "/:d:foo" case correctly  */
 	      && (p == beg + 2 || (p == beg + 4 && IS_DIRECTORY_SEP (*beg))))
@@ -3686,6 +3686,7 @@ variable `last-coding-system-used' to the coding system actually used.  */)
       int this_count = SPECPDL_INDEX ();
       int multibyte = ! NILP (BVAR (current_buffer, enable_multibyte_characters));
       Lisp_Object conversion_buffer;
+      struct gcpro gcpro1;
 
       conversion_buffer = code_conversion_save (1, multibyte);
 
@@ -3706,7 +3707,7 @@ variable `last-coding-system-used' to the coding system actually used.  */)
 	{
 	  /* We read one bunch by one (READ_BUF_SIZE bytes) to allow
 	     quitting while reading a huge while.  */
-	  /* try is reserved in some compilers (Microsoft C) */
+	  /* `try'' is reserved in some compilers (Microsoft C).  */
 	  EMACS_INT trytry = min (total - how_much,
 				  READ_BUF_SIZE - unprocessed);
 

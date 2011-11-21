@@ -4184,7 +4184,7 @@ static Boolean xaw3d_arrow_scroll;
 
 /* Whether the drag scrolling maintains the mouse at the top of the
    thumb.  If not, resizing the thumb needs to be done more carefully
-   to avoid jerkyness.  */
+   to avoid jerkiness.  */
 
 static Boolean xaw3d_pick_top;
 
@@ -6120,7 +6120,7 @@ handle_one_xevent (struct x_display_info *dpyinfo, XEvent *eventptr,
           {
             /* Gnome shell does not iconify us when C-z is pressed.  It hides
                the frame.  So if our state says we aren't hidden anymore,
-               treat is as deiconfied.  */
+               treat it as deiconified.  */
             if (! f->async_iconified)
               SET_FRAME_GARBAGED (f);
             f->async_visible = 1;
@@ -8765,7 +8765,7 @@ x_wait_for_event (struct frame *f, int eventtype)
   pending_event_wait.f = f;
   pending_event_wait.eventtype = eventtype;
 
-  /* Set timeout to 0.1 second.  Hopefully not noticable.
+  /* Set timeout to 0.1 second.  Hopefully not noticeable.
      Maybe it should be configurable.  */
   EMACS_SET_SECS_USECS (tmo, 0, 100000);
   EMACS_GET_TIME (tmo_at);

@@ -64,7 +64,7 @@ Some useful context values used by the provided srecode templates are:
      \"comment\"  - In a comment in a block of code
      -- these items show up at the end of the context list. --
      \"public\", \"protected\", \"private\" -
-                  In or near a section of public/pritected/private entries.
+                  In or near a section of public/protected/private entries.
   \"code\" - In a block of code.
      \"string\" - In a string in a block of code
      \"comment\"  - In a comment in a block of code
@@ -73,7 +73,7 @@ Some useful context values used by the provided srecode templates are:
   )
 
 (defun srecode-calculate-nearby-things ()
-  ;; NOTE: May need to add bounes to this FCN
+  ;; NOTE: May need to add bounds to this FCN
   "Calculate the CONTEXT type items nearby the current point.
 Assume that what we want to insert next is based on what is just
 before point.  If there is nothing, then assume it is whatever is

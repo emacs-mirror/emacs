@@ -11099,7 +11099,7 @@ the rightmost is selected.  If ARG is nil, the leftmost window is
 selected if the original window is the first one in the frame.
 
 To bind this command to a hotkey, place the following line
-in your `~/.emacs' file, replacing [f7] by your favourite key:
+in your `~/.emacs' file, replacing [f7] by your favorite key:
     (global-set-key [f7] 'follow-delete-other-windows-and-split)
 
 \(fn &optional ARG)" t nil)
@@ -20621,7 +20621,7 @@ normalized footnotes towards the end of the pre-processing buffer.
 Some exporters like docbook, odt, etc. expect that footnote
 definitions be available before any references to them.  Such
 exporters can let bind `org-footnote-insert-pos-for-preprocessor' to
-symbol 'point-min to achieve the desired behaviour.
+symbol 'point-min to achieve the desired behavior.
 
 Additional note on `org-footnote-insert-pos-for-preprocessor':
 1. This variable has not effect when FOR-PREPROCESSOR is nil.
@@ -26109,7 +26109,7 @@ That's all.  Here's the board after two moves:
 
 		o   o   o
 
-Pick your favourite shortcuts:
+Pick your favorite shortcuts:
 
 \\{solitaire-mode-map}
 

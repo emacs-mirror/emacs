@@ -613,6 +613,7 @@ method and applying Turkish case rules for the characters i, I, $(D)E(B, $(D*
   :mnemonic ?M
   :charset-list '(mac-roman)
   :mime-charset 'macintosh)
+(define-coding-system-alias 'macintosh 'mac-roman)
 
 (define-coding-system 'next
   "NeXTstep encoding"

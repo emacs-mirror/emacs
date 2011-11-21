@@ -296,7 +296,7 @@ If necessary, this first calls `elint-initialize'."
   (elint-display-log)
   (elint-set-mode-line t)
   (mapc 'elint-top-form (elint-update-env))
-  ;; Tell the user we're finished.  This is terribly klugy: we set
+  ;; Tell the user we're finished.  This is terribly kludgy: we set
     ;; elint-top-form-logged so elint-log-message doesn't print the
     ;; ** top form ** header...
   (elint-set-mode-line)
@@ -335,7 +335,7 @@ Will be local in linted buffers.")
 Is measured in buffer-modified-ticks and is local in linted buffers.")
 
 ;; This is a minor optimization.  It is local to every buffer, and so
-;; does not prevent recursive requirs.  It does not list the requires
+;; does not prevent recursive requires.  It does not list the requires
 ;; of requires.
 (defvar elint-features nil
   "List of all libraries this buffer has required, or that have been provided.")

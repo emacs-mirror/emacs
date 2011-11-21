@@ -582,7 +582,7 @@ See also the descriptions of the variables
 	    (narrow-to-region p (point))
 	    (robin-invert-region (point-min) (point-max) "ethiopic-sera")
 
-	    ;; ethio-quote-vowel-alwyas
+	    ;; ethio-quote-vowel-always
 	    (goto-char (point-min))
 	    (while (re-search-forward "'[eauio]" nil t)
 	      (save-excursion

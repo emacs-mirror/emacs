@@ -1168,7 +1168,7 @@ containing the executable being debugged."
 ;; appears to indicate a breakpoint.  Then we prod the dbx sub-process
 ;; to output the information we want with a combination of the
 ;; `printf' and `file' commands as a pseudo marker which we can
-;; recognise next time through the marker-filter.  This would be like
+;; recognize next time through the marker-filter.  This would be like
 ;; the gdb marker but you can't get the file name without a newline...
 ;; Note that gud-remove won't work since Irix dbx expects a breakpoint
 ;; number rather than a line number etc.  Maybe this could be made to
@@ -1689,7 +1689,7 @@ and source-file directory for your debugger."
 ;;    Run jdb (like this): jdb
 ;;
 ;; type any jdb switches followed by the name of the class you'd like to debug.
-;; Supply a fully qualfied classname (these do not have the ".class" extension)
+;; Supply a fully qualified classname (these don't have the ".class" extension)
 ;; for the name of the class to debug (e.g. "COM.the-kind.ddavies.CoolClass").
 ;; See the known problems section below for restrictions when specifying jdb
 ;; command line switches (search forward for '-classpath').
@@ -2094,7 +2094,7 @@ extension EXTN.  Normally EXTN is given as the regular expression
 
 	;; By this point the current directory is all screwed up.  Maybe we
 	;; could fix things and re-invoke gud-common-init, but for now I think
-	;; issueing the error is good enough.
+	;; issuing the error is good enough.
 	(if user-error
 	    (progn
 	      (kill-buffer (current-buffer))
@@ -2102,7 +2102,7 @@ extension EXTN.  Normally EXTN is given as the regular expression
 	massaged-args)))
 
 ;; Search for an association with P, a fully qualified class name, in
-;; gud-jdb-class-source-alist.  The asssociation gives the fully
+;; gud-jdb-class-source-alist.  The association gives the fully
 ;; qualified file name of the source file which produced the class.
 (defun gud-jdb-find-source-file (p)
   (cdr (assoc p gud-jdb-class-source-alist)))
@@ -3387,7 +3387,7 @@ This event can be examined by forms in `gud-tooltip-display'.")
 
 (defun gud-tooltip-dereference (&optional arg)
   "Toggle whether tooltips should show `* expr' or `expr'.
-With arg, dereference expr if ARG is positive, otherwise do not derereference."
+With arg, dereference expr if ARG is positive, otherwise do not dereference."
  (interactive "P")
   (setq gud-tooltip-dereference
 	(if (null arg)

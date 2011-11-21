@@ -1163,7 +1163,8 @@ If OTHER-FRAME is non-nil, display the cross-reference in another frame."
 
 (defun ada-goto-declaration-other-frame (pos)
   "Display the declaration of the identifier around POS.
-The declation is shown in another frame if `ada-xref-other-buffer' is non-nil."
+The declaration is shown in another frame if `ada-xref-other-buffer' is
+non-nil."
   (interactive "d")
   (ada-goto-declaration pos t))
 
@@ -1747,7 +1748,7 @@ Information is extracted from the ali file."
 
     (unless declaration-found
 
-      ;; Since we alread know the number of the file, search for a direct
+      ;; Since we already know the number of the file, search for a direct
       ;; reference to it
       (goto-char (point-min))
       (set 'declaration-found t)

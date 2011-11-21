@@ -271,7 +271,7 @@ struct byte_stack
 /* A list of currently active byte-code execution value stacks.
    Fbyte_code adds an entry to the head of this list before it starts
    processing byte-code, and it removed the entry again when it is
-   done.  Signalling an error truncates the list analoguous to
+   done.  Signaling an error truncates the list analogous to
    gcprolist.  */
 
 struct byte_stack *byte_stack_list;

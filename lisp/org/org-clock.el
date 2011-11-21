@@ -1261,7 +1261,7 @@ line and position cursor in that line."
 	    (and (re-search-forward org-property-end-re nil t)
 		 (goto-char (match-beginning 0))))
 	(throw 'exit t))
-      ;; Lets count the CLOCK lines
+      ;; Let's count the CLOCK lines
       (goto-char beg)
       (while (re-search-forward re end t)
 	(setq first (or first (match-beginning 0))
@@ -2125,7 +2125,7 @@ the currently selected interval size."
   "Write out a clock table at position IPOS in the current buffer.
 TABLES is a list of tables with clocking data as produced by
 `org-clock-get-table-data'.  PARAMS is the parameter property list obtained
-from the dynamic block defintion."
+from the dynamic block definition."
   ;; This function looks quite complicated, mainly because there are a
   ;; lot of options which can add or remove columns.  I have massively
   ;; commented this function, the I hope it is understandable.  If
@@ -2641,4 +2641,3 @@ The details of what will be saved are regulated by the variable
 
 
 ;;; org-clock.el ends here
-

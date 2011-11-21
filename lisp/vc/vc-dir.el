@@ -1021,7 +1021,7 @@ specific headers."
                             (lambda (info)
 			      ;; The state for directory entries might
 			      ;; have been changed to 'up-to-date,
-			      ;; reset it, othewise it will be removed when doing 'x'
+			      ;; reset it, otherwise it will be removed when doing 'x'
 			      ;; next time.
 			      ;; FIXME: There should be a more elegant way to do this.
 			      (when (and (vc-dir-fileinfo->directory info)

@@ -311,7 +311,7 @@ special character that is not itself a backslash."
 		  (char-to-string (char-before))))
 	;; allow \\<RET> to mean a literal "\" character followed by a
 	;; normal return, rather than a backslash followed by a line
-	;; continuator (i.e., "\\ + \n" rather than "\ + \\n").  This
+	;; continuation (i.e., "\\ + \n" rather than "\ + \\n").  This
 	;; is necessary because backslashes in Eshell are not special
 	;; unless they either precede something special, or precede a
 	;; backslash that precedes something special.  (Mainly this is

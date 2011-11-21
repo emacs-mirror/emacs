@@ -135,8 +135,8 @@ the error code."
 
 (defun cedet-cscope-version-check (&optional noerror)
   "Check the version of the installed CScope command.
-If optional programatic argument NOERROR is non-nil, then
-instead of throwing an error if CScope isn't available, then
+If optional programmatic argument NOERROR is non-nil,
+then instead of throwing an error if CScope isn't available,
 return nil."
   (interactive)
   (require 'inversion)

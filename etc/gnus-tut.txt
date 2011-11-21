@@ -188,7 +188,7 @@ remove all hilit code from all the Gnus hooks
 (`gnus-group-prepare-hook', `gnus-summary-prepare-hook' and
 `gnus-summary-article-hook').  (Well, at the very least the first
 two.)  Gnus provides various integrated functions for highlighting,
-which are both faster and more accurated.
+which are both faster and more accurate.
 
 There is absolutely no chance, whatsoever, of getting Gnus to work
 with Emacs 18.  It won't even work on Emacsen older than Emacs
@@ -288,5 +288,3 @@ me the patches, but one can't have everything.
 
 If you have any questions on usage, the "ding@ifi.uio.no" mailing list
 is where to post the questions.
-
-

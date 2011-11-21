@@ -64,71 +64,71 @@ struct interval
   Lisp_Object plist;
 };
 
-/* These are macros for dealing with the interval tree. */
+/* These are macros for dealing with the interval tree.  */
 
-/* Size of the structure used to represent an interval */
+/* Size of the structure used to represent an interval.  */
 #define INTERVAL_SIZE (sizeof (struct interval))
 
-/* Size of a pointer to an interval structure */
+/* Size of a pointer to an interval structure.  */
 #define INTERVAL_PTR_SIZE (sizeof (struct interval *))
 
 #define NULL_INTERVAL_P(i) ((i) == NULL_INTERVAL)
 
-/* True if this interval has no right child. */
+/* True if this interval has no right child.  */
 #define NULL_RIGHT_CHILD(i) ((i)->right == NULL_INTERVAL)
 
-/* True if this interval has no left child. */
+/* True if this interval has no left child.  */
 #define NULL_LEFT_CHILD(i) ((i)->left == NULL_INTERVAL)
 
-/* True if this interval has no parent. */
+/* True if this interval has no parent.  */
 #define NULL_PARENT(i) ((i)->up_obj || (i)->up.interval == 0)
 
-/* True if this interval is the left child of some other interval. */
+/* True if this interval is the left child of some other interval.  */
 #define AM_LEFT_CHILD(i) (! NULL_PARENT (i) \
 			  && INTERVAL_PARENT (i)->left == (i))
 
-/* True if this interval is the right child of some other interval. */
+/* True if this interval is the right child of some other interval.  */
 #define AM_RIGHT_CHILD(i) (! NULL_PARENT (i) \
 			   && INTERVAL_PARENT (i)->right == (i))
 
-/* True if this interval has no children. */
+/* True if this interval has no children.  */
 #define LEAF_INTERVAL_P(i) ((i)->left == NULL_INTERVAL \
 			    && (i)->right == NULL_INTERVAL)
 
-/* True if this interval has no parent and is therefore the root. */
+/* True if this interval has no parent and is therefore the root.  */
 #define ROOT_INTERVAL_P(i) (NULL_PARENT (i))
 
-/* True if this interval is the only interval in the interval tree. */
+/* True if this interval is the only interval in the interval tree.  */
 #define ONLY_INTERVAL_P(i) (ROOT_INTERVAL_P ((i)) && LEAF_INTERVAL_P ((i)))
 
-/* True if this interval has both left and right children. */
+/* True if this interval has both left and right children.  */
 #define BOTH_KIDS_P(i) ((i)->left != NULL_INTERVAL     \
 			&& (i)->right != NULL_INTERVAL)
 
 /* The total size of all text represented by this interval and all its
-   children in the tree.   This is zero if the interval is null. */
+   children in the tree.   This is zero if the interval is null.  */
 #define TOTAL_LENGTH(i) ((i) == NULL_INTERVAL ? 0 : (i)->total_length)
 
-/* The size of text represented by this interval alone. */
+/* The size of text represented by this interval alone.  */
 #define LENGTH(i) ((i) == NULL_INTERVAL ? 0 : (TOTAL_LENGTH ((i))          \
 					       - TOTAL_LENGTH ((i)->right) \
 					       - TOTAL_LENGTH ((i)->left)))
 
 /* The position of the character just past the end of I.  Note that
-   the position cache i->position must be valid for this to work. */
+   the position cache i->position must be valid for this to work.  */
 #define INTERVAL_LAST_POS(i) ((i)->position + LENGTH ((i)))
 
-/* The total size of the left subtree of this interval. */
+/* The total size of the left subtree of this interval.  */
 #define LEFT_TOTAL_LENGTH(i) ((i)->left ? (i)->left->total_length : 0)
 
-/* The total size of the right subtree of this interval. */
+/* The total size of the right subtree of this interval.  */
 #define RIGHT_TOTAL_LENGTH(i) ((i)->right ? (i)->right->total_length : 0)
 
 
-/* These macros are for dealing with the interval properties. */
+/* These macros are for dealing with the interval properties.  */
 
 /* True if this is a default interval, which is the same as being null
-   or having no properties. */
+   or having no properties.  */
 #define DEFAULT_INTERVAL_P(i) (NULL_INTERVAL_P (i) || EQ ((i)->plist, Qnil))
 
 /* Test what type of parent we have.  Three possibilities: another
@@ -169,7 +169,7 @@ struct interval
     }					     \
   while (0)
 
-/* Reset this interval to its vanilla, or no-property state. */
+/* Reset this interval to its vanilla, or no-property state.  */
 #define RESET_INTERVAL(i) \
 { \
     (i)->total_length = (i)->position = 0;    \
@@ -181,7 +181,7 @@ struct interval
     (i)->plist = Qnil;         	              \
 }
 
-/* Copy the cached property values of interval FROM to interval TO. */
+/* Copy the cached property values of interval FROM to interval TO.  */
 #define COPY_INTERVAL_CACHE(from,to) \
 { \
   (to)->write_protect = (from)->write_protect; \
@@ -190,7 +190,7 @@ struct interval
   (to)->rear_sticky = (from)->rear_sticky;     \
 }
 
-/* Copy only the set bits of FROM's cache. */
+/* Copy only the set bits of FROM's cache.  */
 #define MERGE_INTERVAL_CACHE(from,to) \
 { \
   if ((from)->write_protect) (to)->write_protect = 1; \
@@ -201,18 +201,18 @@ struct interval
 
 /* Macro determining whether the properties of an interval being
    inserted should be merged with the properties of the text where
-   they are being inserted. */
+   they are being inserted.  */
 #define MERGE_INSERTIONS(i) 1
 
 /* Macro determining if an invisible interval should be displayed
-   as a special glyph, or not at all. */
+   as a special glyph, or not at all.  */
 #define DISPLAY_INVISIBLE_GLYPH(i) 0
 
-/* Is this interval visible?  Replace later with cache access */
+/* Is this interval visible?  Replace later with cache access.  */
 #define INTERVAL_VISIBLE_P(i) \
   (! NULL_INTERVAL_P (i) && NILP (textget ((i)->plist, Qinvisible)))
 
-/* Is this interval writable?  Replace later with cache access */
+/* Is this interval writable?  Replace later with cache access.  */
 #define INTERVAL_WRITABLE_P(i)					\
   (! NULL_INTERVAL_P (i)					\
    && (NILP (textget ((i)->plist, Qread_only))			\
@@ -222,7 +222,7 @@ struct interval
 	    : !NILP (Vinhibit_read_only)))))			\
 
 /* Macros to tell whether insertions before or after this interval
-   should stick to it. */
+   should stick to it.  */
 /* Replace later with cache access */
 /*#define FRONT_STICKY_P(i) ((i)->front_sticky != 0)
   #define END_STICKY_P(i) ((i)->rear_sticky != 0)*/
@@ -245,11 +245,11 @@ struct interval
    ? !NILP (prop)						\
    : invisible_p (prop, BVAR (current_buffer, invisibility_spec)))
 
-/* Declared in alloc.c */
+/* Declared in alloc.c.  */
 
 extern INTERVAL make_interval (void);
 
-/* Declared in intervals.c */
+/* Declared in intervals.c.  */
 
 extern INTERVAL create_root_interval (Lisp_Object);
 extern void copy_properties (INTERVAL, INTERVAL);
@@ -288,12 +288,12 @@ extern INTERVAL validate_interval_range (Lisp_Object, Lisp_Object *,
                                          Lisp_Object *, int);
 extern INTERVAL interval_of (EMACS_INT, Lisp_Object);
 
-/* Defined in xdisp.c */
+/* Defined in xdisp.c.  */
 extern int invisible_p (Lisp_Object, Lisp_Object);
 
-/* Declared in textprop.c */
+/* Declared in textprop.c.  */
 
-/* Types of hooks. */
+/* Types of hooks.  */
 extern Lisp_Object Qpoint_left;
 extern Lisp_Object Qpoint_entered;
 extern Lisp_Object Qmodification_hooks;
@@ -301,11 +301,11 @@ extern Lisp_Object Qcategory;
 extern Lisp_Object Qlocal_map;
 extern Lisp_Object Qkeymap;
 
-/* Visual properties text (including strings) may have. */
+/* Visual properties text (including strings) may have.  */
 extern Lisp_Object Qfont;
 extern Lisp_Object Qinvisible, Qintangible;
 
-/* Sticky properties */
+/* Sticky properties.  */
 extern Lisp_Object Qfront_sticky, Qrear_nonsticky;
 
 EXFUN (Fget_char_property, 3);

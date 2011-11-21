@@ -121,7 +121,7 @@ store_font_name_changed (const char *newfont)
 }
 #endif /* HAVE_XFT */
 
-/* Map TOOL_BAR_STYLE from a string to its correspinding Lisp value.
+/* Map TOOL_BAR_STYLE from a string to its corresponding Lisp value.
    Return Qnil if TOOL_BAR_STYLE is not known.  */
 
 static Lisp_Object

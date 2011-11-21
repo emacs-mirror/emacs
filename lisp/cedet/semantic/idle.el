@@ -245,7 +245,7 @@ And also manages services that depend on tag values."
         ;; services.  Stop on keypress.
 
 	;; NOTE ON COMMENTED SAFE HERE
-	;; We used to not execute the services if the buffer wsa
+	;; We used to not execute the services if the buffer was
 	;; unparseable.  We now assume that they are lexically
 	;; safe to do, because we have marked the buffer unparseable
 	;; if there was a problem.
@@ -254,11 +254,11 @@ And also manages services that depend on tag values."
 	  (save-excursion
 	    (semantic-throw-on-input 'idle-queue)
 	    (when semantic-idle-scheduler-verbose-flag
-	      (message "IDLE: execture service %s..." service))
+	      (message "IDLE: execute service %s..." service))
 	    (semantic-safe (format "Idle Service Error %s: %%S" service)
 	      (funcall service))
 	    (when semantic-idle-scheduler-verbose-flag
-	      (message "IDLE: execture service %s...done" service))
+	      (message "IDLE: execute service %s...done" service))
 	    )))
 	;;)
       ;; Finally loop over remaining buffers, trying to update them as
@@ -427,7 +427,7 @@ datasets."
 
 (defun semantic-idle-scheduler-work-parse-neighboring-files ()
   "Parse all the files in similar directories to buffers being edited."
-  ;; Lets check to see if EDE matters.
+  ;; Let's check to see if EDE matters.
   (let ((ede-auto-add-method 'never))
     (dolist (a auto-mode-alist)
       (when (eq (cdr a) major-mode)

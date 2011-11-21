@@ -1,3 +1,7 @@
+2011-11-20  Andreas Schwab  <schwab@linux-m68k.org>
+
+	* configure.in: Remove reference to src/m/ibms390.h.
+
 2011-11-13  Glenn Morris  <rgm@gnu.org>
 
 	* INSTALL: Tiny updates for disk space used during installation.
@@ -689,7 +693,7 @@
 	* autogen/Makefile.in: Add auto-updated generated files.
 	* autogen.sh: No longer a no-op, now it tests for autotools
 	and runs them as necessary.
-	* configure.in: Defaule maintainer-mode to on.
+	* configure.in: Default maintainer-mode to on.
 	* aclocal.m4, configure, lib/Makefile.in: Remove files.
 
 2011-03-13  Paul Eggert  <eggert@cs.ucla.edu>
@@ -2393,7 +2397,7 @@
 
 	* BUGS: Use new binding of view-emacs-problems.
 
-2009-05-04   Simon Leinen  <simon.leinen@switch.ch>  (tiny change)
+2009-05-04  Simon Leinen  <simon.leinen@switch.ch>  (tiny change)
 
 	* Makefile.in (install-arch-dep): Avoid using $$(..) construct,
 	for Solaris compatibility.
@@ -9711,7 +9715,7 @@
 	paths.h.in, Makefile.in in src.
 
 	* configure: Delete .tmp files before creating them; don't bother
-	trying to make final targets writeable first, since it won't
+	trying to make final targets writable first, since it won't
 	matter to move-if-change.
 
 1992-05-19  Jim Blandy  (jimb@pogo.cs.oberlin.edu)

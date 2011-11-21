@@ -29,7 +29,7 @@
 ;; form.  For editing Fortran 90 free format source, use `f90-mode'
 ;; (f90.el).  It is meant to support the GNU Fortran language
 ;; implemented by g77 (its extensions to Fortran77 and
-;; interpretations, e.g. of blackslash in strings).
+;; interpretations, e.g. of backslash in strings).
 
 ;;; History:
 
@@ -571,7 +571,7 @@ in the Fortran entry in `hs-special-modes-alist'.")
    ;; An alternative is to match on THEN at a line end, eg:
    ;;   ".*)[ \t]*then[ \t]*\\($\\|!\\)"
    ;; This would also match ELSE branches, though. This does not seem
-   ;; right to me, because then one has neighbouring blocks that are
+   ;; right to me, because then one has neighboring blocks that are
    ;; not nested in each other.
    "\\(if[ \t]*(\\(.*\\|"
    ".*\n\\([^if]*\\([^i].\\|.[^f]\\|.\\>\\)\\)\\)\\<then\\|"

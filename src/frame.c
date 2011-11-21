@@ -374,7 +374,7 @@ make_frame (int mini_p)
 
     /* Use set_window_buffer, not Fset_window_buffer, and don't let
        hooks be run by it.  The reason is that the whole frame/window
-       arrangement is not yet fully intialized at this point.  Windows
+       arrangement is not yet fully initialized at this point.  Windows
        don't have the right size, glyph matrices aren't initialized
        etc.  Running Lisp functions at this point surely ends in a
        SEGV.  */
@@ -1237,7 +1237,7 @@ delete_frame (Lisp_Object frame, Lisp_Object force)
   else
     {
 #ifdef HAVE_X_WINDOWS
-      /* Also, save clipboard to the the clipboard manager.  */
+      /* Also, save clipboard to the clipboard manager.  */
       x_clipboard_manager_save_frame (frame);
 #endif
 
@@ -1359,6 +1359,13 @@ delete_frame (Lisp_Object frame, Lisp_Object force)
     /* If needed, delete the terminal that this frame was on.
        (This must be done after the frame is killed.) */
     terminal->reference_count--;
+#ifdef USE_GTK
+    /* FIXME: Deleting the terminal crashes emacs because of a GTK
+       bug.
+       http://lists.gnu.org/archive/html/emacs-devel/2011-10/msg00363.html */
+    if (terminal->reference_count == 0 && terminal->type == output_x_window)
+      terminal->reference_count = 1;
+#endif /* USE_GTK */
     if (terminal->reference_count == 0)
       {
 	Lisp_Object tmp;
@@ -1705,7 +1712,7 @@ If omitted, FRAME defaults to the currently selected frame.  */)
 }
 
 /* Update the display_time slot of the buffers shown in WINDOW
-   and all its descendents.  */
+   and all its descendants.  */
 
 static void
 make_frame_visible_1 (Lisp_Object window)
@@ -2487,7 +2494,7 @@ If FRAME is omitted, the selected frame is used.  The exact value
 of the result depends on the window-system and toolkit in use:
 
 In the Gtk+ version of Emacs, it includes only any window (including
-the minibuffer or eacho area), mode line, and header line.  It does not
+the minibuffer or echo area), mode line, and header line.  It does not
 include the tool bar or menu bar.
 
 With the Motif or Lucid toolkits, it also includes the tool bar (but

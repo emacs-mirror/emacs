@@ -81,7 +81,7 @@ Setting this to nil is offered as an aid to debugging only."
 Numeric form is tested using the regular expression
 `eshell-number-regexp'.
 
-NOTE: If you find that numeric conversions are intefering with the
+NOTE: If you find that numeric conversions are interfering with the
 specification of filenames (for example, in calling `find-file', or
 some other Lisp function that deals with files, not numbers), add the
 following in your .emacs file:
@@ -140,13 +140,12 @@ function `string-to-number'."
 (defmacro eshell-condition-case (tag form &rest handlers)
   "If `eshell-handle-errors' is non-nil, this is `condition-case'.
 Otherwise, evaluates FORM with no error handling."
+  (declare (indent 2))
   (if eshell-handle-errors
       `(condition-case ,tag
 	   ,form
 	 ,@handlers)
     form))
-
-(put 'eshell-condition-case 'lisp-indent-function 2)
 
 (defun eshell-find-delimiter
   (open close &optional bound reverse-p backslash-p)
@@ -275,14 +274,14 @@ Prepend remote identification of `default-directory', if any."
     text))
 
 (defmacro eshell-for (for-var for-list &rest forms)
-  "Iterate through a list"
+  "Iterate through a list."
+  (declare (indent 2))
   `(let ((list-iter ,for-list))
      (while list-iter
        (let ((,for-var (car list-iter)))
 	 ,@forms)
        (setq list-iter (cdr list-iter)))))
 
-(put 'eshell-for 'lisp-indent-function 2)
 
 (make-obsolete 'eshell-for 'dolist "24.1")
 

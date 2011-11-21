@@ -178,7 +178,7 @@ instead of the host name declared in TARGET-VEC."
 	   (tramp-file-name-host gw-vec)))
 	 ;; Declare the SOCKS server to be used.
 	 (socks-server
-	  (list "Tramp tempory socks server list"
+	  (list "Tramp temporary socks server list"
 		;; Host name.
 		(tramp-file-name-real-host gw-vec)
 		;; Port number.

@@ -78,7 +78,7 @@
 ;;   (secrets-create-collection "my collection")
 
 ;; There exists a special collection called "session", which has the
-;; lifetime of the corrresponding client session (aka Emacs'
+;; lifetime of the corresponding client session (aka Emacs'
 ;; lifetime).  It is created automatically when Emacs uses the Secret
 ;; Service interface, and it is deleted when Emacs is killed.
 ;; Therefore, it can be used to store and retrieve secret items
@@ -379,7 +379,7 @@ returned, and it will be stored in `secrets-session-path'."
 (defun secrets-prompt-handler (&rest args)
   "Handler for signals emitted by `secrets-interface-prompt'."
   ;; An empty object path is always identified as `secrets-empty-path'
-  ;; or `nil'.  Either we set it explicitely, or it is returned by the
+  ;; or `nil'.  Either we set it explicitly, or it is returned by the
   ;; "Completed" signal.
   (if (car args) ;; dismissed
       (setq secrets-prompt-signal (list secrets-empty-path))

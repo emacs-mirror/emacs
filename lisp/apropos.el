@@ -1052,7 +1052,7 @@ If non-nil TEXT is a string that will be printed as a heading."
                        ;; omitting any that contain a buffer or a frame.
                        ;; FIXME: Why omit keys that contain buffers and
                        ;; frames?  This looks like a bad workaround rather
-                       ;; than a proper fix.  Does anybod know what problem
+                       ;; than a proper fix.  Does anybody know what problem
                        ;; this is trying to address?  --Stef
                        (dolist (key keys)
                          (let ((i 0)

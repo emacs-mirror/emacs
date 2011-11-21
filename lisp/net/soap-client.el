@@ -373,7 +373,7 @@ binding) but the same name."
 
 (defstruct (soap-sequence-type (:include soap-element))
   parent                                ; OPTIONAL WSDL-TYPE name
-  elements                              ; LIST of SOAP-SEQUCENCE-ELEMENT
+  elements                              ; LIST of SOAP-SEQUENCE-ELEMENT
   )
 
 (defstruct (soap-array-type (:include soap-element))

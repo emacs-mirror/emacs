@@ -1275,7 +1275,7 @@ coding system.
 of a file.
 
 *** New command `ucs-insert' inserts a character specified by its
-unicode.
+Unicode code point or character name.
 
 *** New command quail-show-key shows what key (or key sequence) to type
 in the current input method to input a character at point.
@@ -3356,7 +3356,7 @@ contracts or expands the line under the cursor.
 *** The new commands `speedbar-expand-line-descendants' and
 `speedbar-contract-line-descendants', bound to `[' and `]'
 respectively, expand and contract the line under cursor with all of
-its descendents.
+its descendants.
 
 *** The new user option `speedbar-use-tool-tips-flag', if non-nil,
 means to display tool-tips for speedbar items.

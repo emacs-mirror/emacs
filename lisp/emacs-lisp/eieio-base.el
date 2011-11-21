@@ -54,7 +54,7 @@ not been set, use values from the parent."
 
 (defmethod slot-unbound ((object eieio-instance-inheritor) class slot-name fn)
   "If a slot OBJECT in this CLASS is unbound, try to inherit, or throw a signal.
-SLOT-NAME is the offending slot.  FN is the function signalling the error."
+SLOT-NAME is the offending slot.  FN is the function signaling the error."
   (if (slot-boundp object 'parent-instance)
       ;; It may not look like it, but this line recurses back into this
       ;; method if the parent instance's slot is unbound.
@@ -178,7 +178,7 @@ only one object ever exists."
 ;; calculate path names relative to a given instance.  This will
 ;; make the saved object location independent by converting all file
 ;; references to be relative to the directory the object is saved to.
-;; You must call `eieio-peristent-path-relative' on each file name
+;; You must call `eieio-persistent-path-relative' on each file name
 ;; saved in your object.
 (defclass eieio-persistent ()
   ((file :initarg :file

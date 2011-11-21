@@ -605,7 +605,7 @@ The value of this variable may be nil to inhibit display, or an integer to
 indicate the maximum number of classes to display.
 
 On XEmacs, a full list of classes will also be placed into a `help-echo'
-property on the competion items, so that the list of classes for the current
+property on the completion items, so that the list of classes for the current
 item is displayed in the echo area.  If the value of this variable is a
 negative integer, the `help-echo' property will be suppressed."
   :group 'idlwave-completion
@@ -5789,7 +5789,7 @@ end
     (setq idlwave-idlwave_routine_info-compiled t))
 
   ;; Restore if necessary.  Must use execute to hide lame routine_info
-  ;; errors on undefinded routine
+  ;; errors on undefined routine
   (idlwave-shell-send-command
    (format "if execute(\"_v=routine_info('idlwave_routine_info',/SOURCE)\") eq 0 then restore,'%s' else if _v.path eq '' then restore,'%s'"
 	   idlwave-shell-temp-rinfo-save-file
@@ -7206,7 +7206,7 @@ If these don't exist, a letter in the string is automatically selected."
 ;;----------------------------------------------------------------------
 
 ;;; ------------------------------------------------------------------------
-;;; Stucture parsing code, and code to manage class info
+;;; Structure parsing code, and code to manage class info
 
 ;;
 ;; - Go again over the documentation how to write a completion

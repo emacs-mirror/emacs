@@ -434,18 +434,7 @@ margin_glyphs_to_reserve (struct window *w, int total_glyphs, Lisp_Object margin
 int
 verify_row_hash (struct glyph_row *row)
 {
-  int area, k;
-  unsigned row_hash = 0;
-
-  for (area = LEFT_MARGIN_AREA; area < LAST_AREA; ++area)
-    for (k = 0; k < row->used[area]; ++k)
-      row_hash = ((((row_hash << 4) + (row_hash >> 24)) & 0x0fffffff)
-		  + row->glyphs[area][k].u.val
-		  + row->glyphs[area][k].face_id
-		  + row->glyphs[area][k].padding_p
-		  + (row->glyphs[area][k].type << 2));
-
-  return row_hash == row->hash;
+  return row->hash == row_hash (row);
 }
 #endif
 
@@ -1083,37 +1072,55 @@ swap_glyphs_in_rows (struct glyph_row *a, struct glyph_row *b)
 
 #endif /* 0 */
 
-/* Exchange pointers to glyph memory between glyph rows A and B.  */
+/* Exchange pointers to glyph memory between glyph rows A and B.  Also
+   exchange the used[] array and the hash values of the rows, because
+   these should all go together for the row's hash value to be
+   correct.  */
 
 static inline void
 swap_glyph_pointers (struct glyph_row *a, struct glyph_row *b)
 {
   int i;
+  unsigned hash_tem = a->hash;
+
   for (i = 0; i < LAST_AREA + 1; ++i)
     {
       struct glyph *temp = a->glyphs[i];
+      short used_tem = a->used[i];
+
       a->glyphs[i] = b->glyphs[i];
       b->glyphs[i] = temp;
+      a->used[i] = b->used[i];
+      b->used[i] = used_tem;
     }
+  a->hash = b->hash;
+  b->hash = hash_tem;
 }
 
 
 /* Copy glyph row structure FROM to glyph row structure TO, except
-   that glyph pointers in the structures are left unchanged.  */
+   that glyph pointers, the `used' counts, and the hash values in the
+   structures are left unchanged.  */
 
 static inline void
 copy_row_except_pointers (struct glyph_row *to, struct glyph_row *from)
 {
   struct glyph *pointers[1 + LAST_AREA];
+  short used[1 + LAST_AREA];
+  unsigned hashval;
 
   /* Save glyph pointers of TO.  */
   memcpy (pointers, to->glyphs, sizeof to->glyphs);
+  memcpy (used, to->used, sizeof to->used);
+  hashval = to->hash;
 
   /* Do a structure assignment.  */
   *to = *from;
 
   /* Restore original pointers of TO.  */
   memcpy (to->glyphs, pointers, sizeof to->glyphs);
+  memcpy (to->used, used, sizeof to->used);
+  to->hash = hashval;
 }
 
 
@@ -3491,7 +3498,7 @@ redraw_overlapping_rows (struct window *w, int yb)
 	      if (row->used[RIGHT_MARGIN_AREA])
 		rif->fix_overlapping_area (w, row, RIGHT_MARGIN_AREA, overlaps);
 
-	      /* Record in neighbour rows that ROW overwrites part of
+	      /* Record in neighbor rows that ROW overwrites part of
 		 their display.  */
 	      if (overlaps & OVERLAPS_PRED)
 		MATRIX_ROW (w->current_matrix, i - 1)->overlapped_p = 1;
@@ -4233,6 +4240,7 @@ add_row_entry (struct glyph_row *row)
   ptrdiff_t i = row->hash % row_table_size;
 
   entry = row_table[i];
+  xassert (entry || verify_row_hash (row));
   while (entry && !row_equal_p (entry->row, row, 1))
     entry = entry->next;
 

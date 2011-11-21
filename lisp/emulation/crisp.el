@@ -34,7 +34,7 @@
 ;; you put (setq crisp-load-scroll-all t) in your .emacs before
 ;; loading this package.  If this feature is enabled, it will bind
 ;; meta-f1 to the scroll-all mode toggle.  The scroll-all package
-;; duplicates the scroll-alling feature in CRiSP.
+;; duplicates the scroll-all feature in CRiSP.
 
 ;; Also, the default keybindings for brief/CRiSP override the M-x
 ;; key to exit the editor.  If you don't like this functionality, you

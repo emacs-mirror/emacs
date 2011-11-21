@@ -523,7 +523,7 @@ The optional NOMODIFY argument suppresses the extra search."
   ;; (ffap-file-remote-p "/ffap.el:80")
   (or (and ffap-ftp-regexp
 	   (string-match ffap-ftp-regexp filename)
-	   ;; Convert "/host.com://dir" to "/host:/dir", to handle a dieing
+	   ;; Convert "/host.com://dir" to "/host:/dir", to handle a dying
 	   ;; practice of advertising ftp files as "host.dom://filename".
 	   (if (string-match "//" filename)
 	       ;; (replace-match "/" nil nil filename)

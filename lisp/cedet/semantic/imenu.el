@@ -368,7 +368,7 @@ Optional argument PARENT is a tag parent of STREAM."
                      semantic-imenu-expandable-tag-classes)
 	       children
                )
-          ;; to keep an homogeneous menu organisation, type menu items
+          ;; to keep an homogeneous menu organization, type menu items
           ;; always have a sub-menu with at least the *definition*
           ;; item (even if the tag has no type components)
 	  (progn
@@ -393,7 +393,7 @@ Optional argument PARENT is a tag parent of STREAM."
 					semantic-imenu-bucketize-file)
 				   (semantic-create-imenu-index-1 parts tag)
 				 (semantic-create-imenu-subindex parts))))
-			  ;; Only add a *definition* if we have a postion
+			  ;; Only add a *definition* if we have a position
 			  ;; in that type tag.
 			  (if (semantic-tag-with-position-p tag)
 			      (cons

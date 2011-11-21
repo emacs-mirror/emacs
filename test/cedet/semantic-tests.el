@@ -54,7 +54,7 @@ All systems are different.  Ask questions along the way."
 	      (y-or-n-p "New database created.  Reload system databases? ")
 	    (y-or-n-p "Load in all system databases? "))
       (semanticdb-load-ebrowse-caches)))
-  ;; Ok, databases were creatd.  Lets try some searching.
+  ;; Ok, databases were created.  Let's try some searching.
   (when (not (or (eq major-mode 'c-mode)
 		 (eq major-mode 'c++-mode)))
     (error "Please make your default buffer be a C or C++ file, then
@@ -387,4 +387,3 @@ gcc version 2.95.2 19991024 (release)"
   (let ((semantic-gcc-test-strings (list (semantic-gcc-query "gcc" "-v"))))
     (semantic-gcc-test-output-parser))
   )
-

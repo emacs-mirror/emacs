@@ -916,7 +916,7 @@ E.g.: &aacute; -> á"
   ("&theta;" ?\θ) ;; GREEK SMALL LETTER THETA
   ("&Theta;" ?\Θ) ;; GREEK CAPITAL LETTER THETA
   ("&thetas;" ?\θ) ;; GREEK SMALL LETTER THETA
-  ("&thetasyLsymbol;" ?\ϑ) ;; GREEK THETA SYMBOL
+  ("&thetasym;" ?\ϑ) ;; GREEK THETA SYMBOL
   ("&thetav;" ?\ϑ) ;; GREEK THETA SYMBOL
   ("&THgr;" ?\Θ) ;; GREEK CAPITAL LETTER THETA
   ("&thgr;" ?\θ) ;; GREEK SMALL LETTER THETA

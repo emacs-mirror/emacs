@@ -260,15 +260,23 @@ reindentation is triggered whenever you insert a character listed
 in `electric-indent-chars'."
   :global t
   :group 'electricity
-  (if electric-indent-mode
-      (add-hook 'post-self-insert-hook
-                #'electric-indent-post-self-insert-function
-                ;; post-self-insert-hooks interact in non-trivial ways.
-                ;; It turns out that electric-indent-mode generally works
-                ;; better last.
-                'append)
-    (remove-hook 'post-self-insert-hook
-                 #'electric-indent-post-self-insert-function)))
+  (if (not electric-indent-mode)
+      (remove-hook 'post-self-insert-hook
+                   #'electric-indent-post-self-insert-function)
+    ;; post-self-insert-hooks interact in non-trivial ways.
+    ;; It turns out that electric-indent-mode generally works better if run
+    ;; late, but still before blink-paren.
+    (add-hook 'post-self-insert-hook
+              #'electric-indent-post-self-insert-function
+              'append)
+    ;; FIXME: Ugly!
+    (let ((bp (memq #'blink-paren-post-self-insert-function
+                    (default-value 'post-self-insert-hook))))
+      (when (memq #'electric-indent-post-self-insert-function bp)
+        (setcar bp #'electric-indent-post-self-insert-function)
+        (setcdr bp (cons #'blink-paren-post-self-insert-function
+                         (delq #'electric-indent-post-self-insert-function
+                               (cdr bp))))))))
 
 ;; Electric pairing.
 

@@ -36,7 +36,7 @@
 ;;
 ;; `pulse-momentary-highlight-one-line' - Pulse a single line at POINT.
 ;; `pulse-momentary-highlight-region' - Pulse a region.
-;; `pulse-momentary-highlight-overlay' - Pulse an overlay
+;; `pulse-momentary-highlight-overlay' - Pulse an overlay.
 ;;      These three functions will just blink the specified area if
 ;;      the version of Emacs you are using doesn't support pulsing.
 ;;
@@ -65,7 +65,7 @@ background color.
 If the value is nil, highlight with an unchanging color until a
 key is pressed.
 If the value is `never', do no coloring at all.
-Any other value means to the default pulsing behavior.
+Any other value means to do the default pulsing behavior.
 
 If `pulse-flag' is non-nil, but `pulse-available-p' is nil, then
 this flag is ignored."
@@ -77,7 +77,7 @@ this flag is ignored."
      (:background "#AAAA33"))
     (((class color) (background light))
      (:background "#FFFFAA")))
-  "*Face used at beginning of a highight."
+  "*Face used at beginning of a highlight."
   :group 'pulse)
 
 (defface pulse-highlight-face
@@ -163,7 +163,7 @@ Return t if there is more drift to do, nil if completed."
 
 (defun pulse (&optional face)
   "Pulse the colors on our highlight face.
-If optional FACE is provide, reset the face to FACE color,
+If optional FACE is provided, reset the face to FACE color,
 instead of `pulse-highlight-start-face'.
 Be sure to call `pulse-reset-face' after calling pulse."
   (unwind-protect

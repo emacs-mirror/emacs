@@ -748,7 +748,7 @@ syms_of_ntterm (void)
 	       doc: /* Non-nil means make terminal frames use the full screen buffer dimensions.
 This is desirable when running Emacs over telnet.
 A value of nil means use the current console window dimensions; this
-may be preferrable when working directly at the console with a large
+may be preferable when working directly at the console with a large
 scroll-back buffer.  */);
   w32_use_full_screen_buffer = 0;
 
@@ -757,4 +757,3 @@ scroll-back buffer.  */);
   defsubr (&Sset_cursor_size);
   defsubr (&Sset_message_beep);
 }
-

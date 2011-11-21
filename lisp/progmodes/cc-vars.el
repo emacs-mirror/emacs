@@ -420,7 +420,7 @@ If a LINE-TYPE is missing, then \\[indent-for-comment] indents the comment
 according to `comment-column'.
 
 Note that a non-nil value on `c-indent-comments-syntactically-p'
-overrides this variable, so empty lines are indentented syntactically
+overrides this variable, so empty lines are indented syntactically
 in that case, i.e. as if \\[c-indent-command] was used instead."
   :type
   (let ((space '(cons :tag "space"
@@ -963,7 +963,7 @@ this is `c-lineup-ObjC-method-call', which would align it like:
 	[foo blahBlahBlah: fred
 	     thisIsTooDamnLong: barney
 
-This behaviour can be overridden by customizing the indentation of
+This behavior can be overridden by customizing the indentation of
 `objc-method-call-cont' in the \"objc\" style."
   :type 'integer
   :group 'c)

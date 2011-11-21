@@ -219,7 +219,7 @@ warn instead."
 
 ;JAVE this just instantiates a default empty ebrowse struct?
 ; how would new instances wind up here?
-; the ebrowse class isnt singleton, unlike the emacs lisp one
+; the ebrowse class isn't singleton, unlike the emacs lisp one
 (defvar-mode-local c++-mode semanticdb-project-system-databases
   ()
   "Search Ebrowse for symbols.")
@@ -296,7 +296,7 @@ If there is no database for DIRECTORY available, then
 	(when (string= (oref (car dbs) reference-directory) directory)
 	  (setq found (car dbs))))
       (setq dbs (cdr dbs)))
-    ;;STATIC means DBE cant be used as object, only as a class
+    ;;STATIC means DBE can't be used as object, only as a class
     (let* ((ebrowse-data (semanticdb-ebrowse-get-ebrowse-structure directory))
 	   (dat (car (cdr ebrowse-data)))
 	   (ebd (car dat))
@@ -331,7 +331,7 @@ If there is no database for DIRECTORY available, then
 ;JAVE what it actually seems to do is split the original tree in "tables" associated with files
 ; im not sure it actually works:
 ;   the filename slot sometimes gets to be nil,
-;      apparently for classes which definition cant be found, yet needs to be included in the tree
+;      apparently for classes which definition can't be found, yet needs to be included in the tree
 ;      like library baseclasses
 ;   a file can define several classes
   (let ((T (car (cdr data))));1st comes a header, then the tree

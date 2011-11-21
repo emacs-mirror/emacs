@@ -535,7 +535,7 @@ that the symbol of the saver function, which is specified by
 
 ;; Note that "Rmail format" is mbox since Emacs 23, but Babyl before.
 (defcustom gnus-default-article-saver 'gnus-summary-save-in-rmail
-  "A function to save articles in your favourite format.
+  "A function to save articles in your favorite format.
 The function will be called by way of the `gnus-summary-save-article'
 command, and friends such as `gnus-summary-save-article-rmail'.
 
@@ -1559,7 +1559,7 @@ node `(gnus)Gravatars' for details."
 	  gnus-treat-from-picon
           gnus-treat-from-gravatar
           gnus-treat-mail-gravatar)
-      ;; If there's much decoration, the user might prefer a boundery.
+      ;; If there's much decoration, the user might prefer a boundary.
       'head
     nil)
   "Draw a boundary at the end of the headers.
@@ -5418,8 +5418,8 @@ If no internal viewer is available, use an external viewer."
 
 (defun gnus-article-part-wrapper (n function &optional no-handle interactive)
   "Call FUNCTION on MIME part N.
-Unless NO-HANDLE, call FUNCTION with N-th MIME handle as it's only argument.
-If INTERACTIVE, call FUNCTION interactivly."
+Unless NO-HANDLE, call FUNCTION with N-th MIME handle as its only argument.
+If INTERACTIVE, call FUNCTION interactively."
   (let (window frame)
     ;; Check whether the article is displayed.
     (unless (and (gnus-buffer-live-p gnus-article-buffer)

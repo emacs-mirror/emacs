@@ -103,7 +103,7 @@
 ;;
 ;; When the client mode adds a local vc-mode-line-hook to a buffer, it
 ;; will be called with the buffer file name as argument whenever the
-;; dispatcher resynchs the buffer.
+;; dispatcher resyncs the buffer.
 
 ;; To do:
 ;;

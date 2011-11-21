@@ -1589,7 +1589,7 @@ when constructing the set of constraints."
 (defvar mpc--changed-selection)
 
 (defun mpc-reorder (&optional nodeactivate)
-  "Reorder entries based on thre currently active selections.
+  "Reorder entries based on the currently active selections.
 I.e. split the current browser buffer into a first part containing the
 entries included in the selection, then a separator, and then the entries
 not included in the selection.
@@ -2358,7 +2358,7 @@ This is used so that they can be compared with `eq', which is needed for
         (let* ((currenttime (float-time))
                (last-time (- currenttime (car mpc-last-seek-time))))
           (if (< last-time (* 0.9 repeat-delay))
-              nil ;; Trottle
+              nil ;; Throttle
             (let* ((status (if (< last-time 1.0)
                                mpc-status (mpc-cmd-status)))
                    (songid (cdr (assq 'songid status)))

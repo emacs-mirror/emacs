@@ -17,8 +17,6 @@ GNU General Public License for more details.
 You should have received a copy of the GNU General Public License
 along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
-#include "ibms390.h"
-
 #define BITS_PER_LONG 64
 #define BITS_PER_EMACS_INT 64
 

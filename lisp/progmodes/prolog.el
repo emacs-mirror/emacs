@@ -116,7 +116,7 @@
 ;; Version 1.22:
 ;;  o  Allowed both 'swipl' and 'pl' as names for the SWI Prolog
 ;;     interpreter.
-;;  o  Atoms that start a line are not blindly coloured as
+;;  o  Atoms that start a line are not blindly colored as
 ;;     predicates.  Instead we check that they are followed by ( or
 ;;     :- first.  Patch suggested by Guy Wiener.
 ;; Version 1.21:
@@ -151,7 +151,7 @@
 ;;     (`prolog-electric-dot-full-predicate-template', defaults to t
 ;;     since it seems quicker to me to just type those commata).  A
 ;;     trivial adaptation of a patch by Markus Triska.
-;;  o  Improved the behaviour of electric if-then-else to only skip
+;;  o  Improved the behavior of electric if-then-else to only skip
 ;;     forward if the parenthesis/semicolon is preceded by
 ;;     whitespace.  Once more a trivial adaptation of a patch by
 ;;     Markus Triska.
@@ -169,7 +169,7 @@
 ;;     package requirements.
 ;; Version 1.13:
 ;;  o  Removed the use of `map-char-table' in `prolog-build-case-strings'
-;;     which appears to cause prblems in (at least) Emacs 23.0.0.1.
+;;     which appears to cause problems in (at least) Emacs 23.0.0.1.
 ;;  o  Added if-then-else indentation + corresponding electric
 ;;     characters.  New customization: `prolog-electric-if-then-else-flag'
 ;;  o  Align support (requires `align').  New customization:
@@ -391,7 +391,7 @@ Otherwise indent to `prolog-indent-width'."
 
 (defcustom prolog-left-indent-regexp "\\(;\\|\\*?->\\)"
   "*Regexp for character sequences after which next line is indented.
-Next line after such a regexp is indented to the opening paranthesis level."
+Next line after such a regexp is indented to the opening parenthesis level."
   :group 'prolog-indentation
   :type 'regexp)
 
@@ -1023,7 +1023,7 @@ VERSION is of the format (Major . Minor)"
 
 
 (defvar prolog-mode-hook nil
-  "List of functions to call after the prolog mode has initialised.")
+  "List of functions to call after the prolog mode has initialized.")
 
 (unless (fboundp 'prog-mode)
   (defalias 'prog-mode 'fundamental-mode))
@@ -1090,7 +1090,7 @@ Actually this is just customized `prolog-mode'."
     map))
 
 (defvar prolog-inferior-mode-hook nil
-  "List of functions to call after the inferior prolog mode has initialised.")
+  "List of functions to call after the inferior prolog mode has initialized.")
 
 (defvar prolog-inferior-error-regexp-alist
   '(;; GNU Prolog used to not follow the GNU standard format.

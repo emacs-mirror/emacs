@@ -161,7 +161,7 @@ useful information:
 		(progn (goto-char end) (regi-pos 'bonl))
 		(progn (goto-char start) (regi-pos 'bol)))))
 
-	;; lets find the special tags and remove them from the working
+	;; let's find the special tags and remove them from the working
 	;; frame. note that only the last special tag is used.
 	(mapc
 	 (function

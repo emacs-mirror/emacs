@@ -48,7 +48,7 @@ SYSTEM_MALLOC	Use the system library's malloc.
 subprocesses    System can use subprocesses (for M-x shell for example).  Defined by default, only MSDOS undefines it.
 USE_LISP_UNION_TYPE Define it in lisp.h to make Lisp_Object be a union type instead of the default int.
 
-** System specific macros, decribed in detail in src/s/template.h
+** System specific macros, described in detail in src/s/template.h
 CLASH_DETECTION
 COFF
 FIRST_PTY_LETTER
@@ -57,9 +57,6 @@ INTERRUPT_INPUT
 NARROWPROTO
 SEPCHAR
 SYSTEM_TYPE
-
-** Machine specific macros, decribed in detail in src/m/template.h
-VIRT_ADDR_VARIES
 
 ** Misc macros
 USER_FULL_NAME   If defined, overrides the default pw->pw_gecos for getting at the full user name.  Only MSDOS overrides the default.

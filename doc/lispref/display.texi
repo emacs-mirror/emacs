@@ -870,15 +870,21 @@ ignore invisible newlines if @code{line-move-ignore-invisible} is
 non-@code{nil} (the default), but only because they are explicitly
 programmed to do so.
 
-  However, if a command ends with point inside or immediately before
-invisible text, the main editing loop moves point further forward or
-further backward (in the same direction that the command already moved
-it) until that condition is no longer true.  Thus, if the command
-moved point back into an invisible range, Emacs moves point back to
-the beginning of that range, and then back one more character.  If the
-command moved point forward into an invisible range, Emacs moves point
-forward up to the first visible character that follows the invisible
-text.
+  However, if a command ends with point inside or at the boundary of invisible
+text, the main editing loop moves point to one of the two ends of the invisible
+text.  Which end to move to is chosen based on the following factors: make sure
+that the overall movement of the command is still in the same direction, and
+prefer a position where an inserted char would not inherit the @code{invisible}
+property.  Additionally, if the text is not replaced by an ellipsis and the
+command only moved within the invisible text, then point is moved one extra
+character so as to try and reflect the command's movement by a visible movement
+of the cursor.
+
+  Thus, if the command moved point back to an invisible range (with the usual
+stickiness), Emacs moves point back to the beginning of that range.  If the
+command moved point forward into an invisible range, Emacs moves point forward
+to the first visible character that follows the invisible text and then forward
+one more character.
 
   Incremental search can make invisible overlays visible temporarily
 and/or permanently when a match includes invisible text.  To enable
@@ -4546,7 +4552,7 @@ you may prefer to use a different one for a given image type (which
 @c FIXME how is this priority determined?
 loader will be used in practice depends on the priority of the loaders).
 @c FIXME why are these uppercase when image-types is lower-case?
-@c FIXME what are the possibe options?  Are these actually file extensions?
+@c FIXME what are the possible options?  Are these actually file extensions?
 For example, if you never want to use the ImageMagick loader to use
 JPEG files, add @code{JPG} to this list.
 

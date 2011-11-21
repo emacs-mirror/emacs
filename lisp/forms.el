@@ -1295,7 +1295,7 @@ Commands:                        Equivalent keys in read-only mode:
   )
 
 (defun forms--mode-menu-ro (map)
-;;; Menu initialisation
+;;; Menu initialization
 ;  (define-key map [menu-bar] (make-sparse-keymap))
   (define-key map [menu-bar forms]
     (cons "Forms" (make-sparse-keymap "Forms")))
@@ -1341,7 +1341,7 @@ Commands:                        Equivalent keys in read-only mode:
   (put 'forms-delete-record 'menu-enable '(not forms-read-only))
 )
 (defun forms--mode-menu-edit (map)
-;;; Menu initialisation
+;;; Menu initialization
 ;  (define-key map [menu-bar] (make-sparse-keymap))
   (define-key map [menu-bar forms]
     (cons "Forms" (make-sparse-keymap "Forms")))

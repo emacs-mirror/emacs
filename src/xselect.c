@@ -2355,7 +2355,7 @@ x_fill_property_data (Display *dpy, Lisp_Object data, void *ret, int format)
    F is the frame to be used to look up X atoms if the TYPE is XA_ATOM.
    DATA is a C array of values to be converted.
    TYPE is the type of the data.  Only XA_ATOM is special, it converts
-   each number in DATA to its corresponfing X atom as a symbol.
+   each number in DATA to its corresponding X atom as a symbol.
    FORMAT is 8, 16 or 32 and gives the size in bits for each C value to
    be stored in RET.
    SIZE is the number of elements in DATA.

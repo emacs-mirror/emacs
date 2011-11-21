@@ -177,7 +177,7 @@ It is filled with some text."
 
       (mapc (lambda (T)
 	      (when (slot-boundp T 'overlay)
-		(error "Overlay did not clear off of of field %s"
+		(error "Overlay did not clear off of field %s"
 		       (object-name T))))
 	    fields)
 

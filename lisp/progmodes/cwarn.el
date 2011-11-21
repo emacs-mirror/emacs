@@ -210,16 +210,16 @@ This function is designed to be added to hooks, for example:
 
 (defun cwarn-is-enabled (mode &optional feature)
   "Non-nil if CWarn FEATURE is enabled for MODE.
-feature is an atom representing one construction to highlight.
+FEATURE is an atom representing one construction to highlight.
 
 Check if any feature is enabled for MODE if no feature is specified.
 
 The valid features are described by the variable
 `cwarn-font-lock-feature-keywords-alist'."
-  (let ((mode-configuraion (assq mode cwarn-configuration)))
-    (and mode-configuraion
+  (let ((mode-configuration (assq mode cwarn-configuration)))
+    (and mode-configuration
 	 (or (null feature)
-	     (let ((list-or-t (nth 1 mode-configuraion)))
+	     (let ((list-or-t (nth 1 mode-configuration)))
 	       (or (eq list-or-t t)
 		   (if (eq (car-safe list-or-t) 'not)
 		       (not (memq feature (cdr list-or-t)))
@@ -235,7 +235,7 @@ The valid features are described by the variable
     (eq (char-after) ?#)))
 
 (defun cwarn-font-lock-keywords (addp)
-  "Install/Remove keywords into current buffer.
+  "Install/remove keywords into current buffer.
 If ADDP is non-nil, install else remove."
   (dolist (pair cwarn-font-lock-feature-keywords-alist)
     (let ((feature (car pair))

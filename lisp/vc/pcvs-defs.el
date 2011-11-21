@@ -502,7 +502,7 @@ It is expected to call the function.")
   (if (or (null cvs-version)
           (or (>= (cdr cvs-version) 10) (> (car cvs-version) 1)))
       ;; Supposedly some recent versions of CVS output some directory info
-      ;; as they recurse downthe tree, but it's not good enough in the case
+      ;; as they recurse down the tree, but it's not good enough in the case
       ;; where we run "cvs status foo bar/foo".
       '("status")
     t)

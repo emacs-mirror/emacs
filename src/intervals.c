@@ -1317,7 +1317,7 @@ interval_deletion_adjustment (register INTERVAL tree, register EMACS_INT from,
   if (NULL_INTERVAL_P (tree))
     return 0;
 
-  /* Left branch */
+  /* Left branch.  */
   if (relative_position < LEFT_TOTAL_LENGTH (tree))
     {
       EMACS_INT subtract = interval_deletion_adjustment (tree->left,
@@ -1327,7 +1327,7 @@ interval_deletion_adjustment (register INTERVAL tree, register EMACS_INT from,
       CHECK_TOTAL_LENGTH (tree);
       return subtract;
     }
-  /* Right branch */
+  /* Right branch.  */
   else if (relative_position >= (TOTAL_LENGTH (tree)
 				 - RIGHT_TOTAL_LENGTH (tree)))
     {
@@ -1699,54 +1699,37 @@ graft_intervals_into_buffer (INTERVAL source, EMACS_INT position,
 				 Qnil, buf, 0);
 	}
       if (! NULL_INTERVAL_P (BUF_INTERVALS (buffer)))
-	/* Shouldn't be necessary.  -stef  */
+	/* Shouldn't be necessary.  --Stef  */
 	BUF_INTERVALS (buffer) = balance_an_interval (BUF_INTERVALS (buffer));
       return;
     }
 
-  if (NULL_INTERVAL_P (tree))
-    {
-      /* The inserted text constitutes the whole buffer, so
+  eassert (length == TOTAL_LENGTH (source));
+
+  if ((BUF_Z (buffer) - BUF_BEG (buffer)) == length)
+    {  /* The inserted text constitutes the whole buffer, so
 	 simply copy over the interval structure.  */
-      if ((BUF_Z (buffer) - BUF_BEG (buffer)) == TOTAL_LENGTH (source))
-	{
 	  Lisp_Object buf;
 	  XSETBUFFER (buf, buffer);
 	  BUF_INTERVALS (buffer) = reproduce_tree_obj (source, buf);
-	  BUF_INTERVALS (buffer)->position = BEG;
-	  BUF_INTERVALS (buffer)->up_obj = 1;
-
+      BUF_INTERVALS (buffer)->position = BUF_BEG (buffer);
+      eassert (BUF_INTERVALS (buffer)->up_obj == 1);
 	  return;
 	}
-
-      /* Create an interval tree in which to place a copy
+  else if (NULL_INTERVAL_P (tree))
+    { /* Create an interval tree in which to place a copy
 	 of the intervals of the inserted string.  */
-      {
 	Lisp_Object buf;
 	XSETBUFFER (buf, buffer);
 	tree = create_root_interval (buf);
       }
-    }
-  else if (TOTAL_LENGTH (tree) == TOTAL_LENGTH (source))
-    /* If the buffer contains only the new string, but
-       there was already some interval tree there, then it may be
-       some zero length intervals.  Eventually, do something clever
-       about inserting properly.  For now, just waste the old intervals.  */
-    {
-      BUF_INTERVALS (buffer) = reproduce_tree (source, INTERVAL_PARENT (tree));
-      BUF_INTERVALS (buffer)->position = BEG;
-      BUF_INTERVALS (buffer)->up_obj = 1;
-      /* Explicitly free the old tree here.  */
-
-      return;
-    }
   /* Paranoia -- the text has already been added, so this buffer
      should be of non-zero length.  */
   else if (TOTAL_LENGTH (tree) == 0)
     abort ();
 
   this = under = find_interval (tree, position);
-  if (NULL_INTERVAL_P (under))	/* Paranoia */
+  if (NULL_INTERVAL_P (under))	/* Paranoia.  */
     abort ();
   over = find_interval (source, interval_start_pos (source));
 
@@ -1917,7 +1900,7 @@ set_point (EMACS_INT charpos)
    current buffer, and the invisible property has a `stickiness' such that
    inserting a character at position POS would inherit the property it,
    return POS + ADJ, otherwise return POS.  If TEST_INTANG is non-zero,
-   then intangibility is required as well as invisibleness.
+   then intangibility is required as well as invisibility.
 
    TEST_OFFS should be either 0 or -1, and ADJ should be either 1 or -1.
 

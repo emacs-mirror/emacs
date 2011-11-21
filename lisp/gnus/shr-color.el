@@ -41,7 +41,7 @@ Must be between 0 and 100."
 
 (defcustom shr-color-visible-distance-min 5
   "Minimum color distance between two colors to be considered visible.
-This value is used to compare result for `ciede2000'. Its an
+This value is used to compare result for `ciede2000'.  It's an
 absolute value without any unit."
   :group 'shr
   :type 'integer)
@@ -198,7 +198,8 @@ absolute value without any unit."
 Each entry should have the form (COLOR-NAME . HEXADECIMAL-COLOR).")
 
 (defun shr-color-relative-to-absolute (number)
-  "Convert a relative NUMBER to absolute. If NUMBER is absolute, return NUMBER.
+  "Convert a relative NUMBER to absolute.
+If NUMBER is absolute, return NUMBER.
 This will convert \"80 %\" to 204, \"100 %\" to 255 but \"123\" to \"123\"."
   (let ((string-length (- (length number) 1)))
     ;; Is this a number with %?
@@ -269,7 +270,7 @@ Like rgb() or hsl()."
 (defun set-minimum-interval (val1 val2 min max interval &optional fixed)
   "Set minimum interval between VAL1 and VAL2 to INTERVAL.
 The values are bound by MIN and MAX.
-If FIXED is t, then val1 will not be touched."
+If FIXED is t, then VAL1 will not be touched."
   (let ((diff (abs (- val1 val2))))
     (unless (>= diff interval)
       (if fixed
@@ -319,10 +320,10 @@ If FIXED is t, then val1 will not be touched."
 
 (defun shr-color-visible (bg fg &optional fixed-background)
   "Check that BG and FG colors are visible if they are drawn on each other.
-Return (bg fg) if they are. If they are too similar, two new
+Return (bg fg) if they are.  If they are too similar, two new
 colors are returned instead.
 If FIXED-BACKGROUND is set, and if the color are not visible, a
-new background color will not be computed. Only the foreground
+new background color will not be computed.  Only the foreground
 color will be adapted to be visible on BG."
   ;; Convert fg and bg to CIE Lab
   (let ((fg-norm (color-name-to-rgb fg))
@@ -334,7 +335,7 @@ color will be adapted to be visible on BG."
 	     (bg-lab (apply 'color-srgb-to-lab bg-norm))
 	     ;; Compute color distance using CIE DE 2000
 	     (fg-bg-distance (color-cie-de2000 fg-lab bg-lab))
-	     ;; Compute luminance distance (substract L component)
+	     ;; Compute luminance distance (subtract L component)
 	     (luminance-distance (abs (- (car fg-lab) (car bg-lab)))))
 	(if (and (>= fg-bg-distance shr-color-visible-distance-min)
 		 (>= luminance-distance shr-color-visible-luminance-min))

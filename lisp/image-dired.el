@@ -469,7 +469,7 @@ For more information, see the documentation for
 If non-nil, using `image-dired-next-line-and-display' and
 `image-dired-previous-line-and-display' will leave a trail of thumbnail
 images in the thumbnail buffer.  If you enable this and want to clean
-the thumbnail buffer because it is filled with too many thumbmnails,
+the thumbnail buffer because it is filled with too many thumbnails,
 just call `image-dired-display-thumb' to display only the image at point.
 This value can be toggled using `image-dired-toggle-append-browsing'."
   :type 'boolean
@@ -1605,7 +1605,7 @@ With prefix argument ARG, create thumbnails even if they already exist
        (setq thumb-name (image-dired-thumb-name curr-file))
        ;; If the user overrides the exist check, we must clear the
        ;; image cache so that if the user wants to display the
-       ;; thumnail, it is not fetched from cache.
+       ;; thumbnail, it is not fetched from cache.
        (if arg
            (clear-image-cache))
        (if (or (not (file-exists-p thumb-name))
@@ -2043,7 +2043,7 @@ function.  The result is a couple of new files in
      files)))
 
 (defun image-dired-display-next-thumbnail-original ()
-  "In thubnail buffer, move to next thumbnail and display the image."
+  "In thumbnail buffer, move to next thumbnail and display the image."
   (interactive)
   (image-dired-forward-image)
   (image-dired-display-thumbnail-original-image))

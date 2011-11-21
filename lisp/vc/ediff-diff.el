@@ -1292,7 +1292,7 @@ delimiter regions"))
 Used for splitting difference regions into individual words.")
 (make-variable-buffer-local 'ediff-forward-word-function)
 
-;; \240 is unicode symbol for nonbreakable whitespace
+;; \240 is Unicode symbol for nonbreakable whitespace
 (defvar ediff-whitespace " \n\t\f\r\240"
   "*Characters constituting white space.
 These characters are ignored when differing regions are split into words.")

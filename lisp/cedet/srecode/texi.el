@@ -231,7 +231,7 @@ This is to take advantage of TeXinfo's markup symbols."
     (if buffer
 	(progn (set-buffer buffer)
 	       (srecode-texi-texify-docstring string))
-      ;; Else, no buffer, so lets do something else
+      ;; Else, no buffer, so let's do something else
       (with-mode-local texinfo-mode
 	(srecode-texi-texify-docstring string)))))
 

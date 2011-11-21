@@ -206,7 +206,7 @@ Return t if the height of the tree has shrunk."
 
 Return cons cell (SHRUNK . DATA), where SHRUNK is t if the
 height of the tree has shrunk and nil otherwise, and DATA is
-the releted data."
+the related data."
   (let ((br (avl-tree--node-branch root branch)))
     (cond
      ;; DATA not in tree.

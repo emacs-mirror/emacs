@@ -394,7 +394,7 @@ as `function' will leave point where code might be inserted."
 	(srecode-semantic-apply-tag-to-dict tagobj dict)))
 
     ;; Insert dict-entries into the dictionary LAST so that previous
-    ;; items can be overriden.
+    ;; items can be overridden.
     (let ((entries dict-entries))
       (while entries
 	(srecode-dictionary-set-value dict

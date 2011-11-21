@@ -932,7 +932,7 @@ pop_kboard (void)
   state later.
 
   If Emacs is already in single_kboard mode, and F's keyboard is
-  locked, then this function will throw an errow.  */
+  locked, then this function will throw an error.  */
 
 void
 temporarily_switch_to_single_kboard (struct frame *f)
@@ -1060,7 +1060,7 @@ cmd_error_internal (Lisp_Object data, const char *context)
   struct frame *sf = SELECTED_FRAME ();
 
   /* The immediate context is not interesting for Quits,
-     since they are asyncronous.  */
+     since they are asynchronous.  */
   if (EQ (XCAR (data), Qquit))
     Vsignaling_function = Qnil;
 
@@ -4813,7 +4813,7 @@ const char *const lispy_function_keys[] =
     "ico-00",        /* VK_ICO_00         0xE4 */
     0,               /* VK_PROCESSKEY     0xE5 - used by IME */
     "ico-clear",     /* VK_ICO_CLEAR      0xE6 */
-    0,               /* VK_PACKET         0xE7  - used to pass unicode chars */
+    0,               /* VK_PACKET         0xE7  - used to pass Unicode chars */
     0,               /*                   0xE8 */
     "reset",         /* VK_OEM_RESET      0xE9 */
     "jump",          /* VK_OEM_JUMP       0xEA */
@@ -5393,7 +5393,7 @@ make_lispy_event (struct input_event *event)
 	  || !lispy_function_keys[event->code - FUNCTION_KEY_OFFSET])
 	{
 	  /* We need to use an alist rather than a vector as the cache
-	     since we can't make a vector long enuf.  */
+	     since we can't make a vector long enough.  */
 	  if (NILP (KVAR (current_kboard, system_key_syms)))
 	    KVAR (current_kboard, system_key_syms) = Fcons (Qnil, Qnil);
 	  return modify_event_symbol (event->code,
@@ -10137,7 +10137,7 @@ will read just one key sequence.  */)
 			 ! NILP (can_return_switch_frame), 0);
 
 #if 0  /* The following is fine for code reading a key sequence and
-	  then proceeding with a lenghty computation, but it's not good
+	  then proceeding with a lengthy computation, but it's not good
 	  for code reading keys in a loop, like an input method.  */
 #ifdef HAVE_WINDOW_SYSTEM
   if (display_hourglass_p)
@@ -12100,7 +12100,7 @@ This variable is keyboard-local.  */);
 Function key definitions that apply to all terminal devices should go
 here.  If a mapping is defined in both the current
 `local-function-key-map' binding and this variable, then the local
-definition will take precendence.  */);
+definition will take precedence.  */);
   Vfunction_key_map = Fmake_sparse_keymap (Qnil);
 
   DEFVAR_LISP ("key-translation-map", Vkey_translation_map,

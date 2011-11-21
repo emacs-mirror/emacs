@@ -61,7 +61,7 @@
 	(define-key km (format "%c" k) 'srecode-bind-insert)
 	(setq k (1+ k))))
     km)
-  "Keymap used behind the srecode prefix key in in srecode minor mode.")
+  "Keymap used behind the srecode prefix key in srecode minor mode.")
 
 (defvar srecode-menu-bar
   (list

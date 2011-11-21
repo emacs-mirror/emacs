@@ -146,7 +146,7 @@ If ADVANCE is non-nil, move forward by one line afterwards."
 (defvar tabulated-list-glyphless-char-display
   (let ((table (make-char-table 'glyphless-char-display nil)))
     (set-char-table-parent table glyphless-char-display)
-    ;; Some text terminals can't display the unicode arrows; be safe.
+    ;; Some text terminals can't display the Unicode arrows; be safe.
     (aset table 9650 (cons nil "^"))
     (aset table 9660 (cons nil "v"))
     table)

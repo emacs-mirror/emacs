@@ -133,7 +133,7 @@ from a file."
     font-lock-unfontify-region-function
     kill-buffer-query-functions kill-emacs-query-functions
     lisp-indent-function mouse-position-function
-    redisplaylay-end-trigger-functions suspend-tty-functions
+    redisplay-end-trigger-functions suspend-tty-functions
     temp-buffer-show-function window-scroll-functions
     window-size-change-functions write-contents-functions
     write-file-functions write-region-annotate-functions)
@@ -144,7 +144,7 @@ These are symbols with hooklike values whose names don't end in
 pertinent symbols.")
 
 (defvar unload-function-defs-list nil
-  "List of defintions in the Lisp library being unloaded.
+  "List of definitions in the Lisp library being unloaded.
 
 This is meant to be used by `FEATURE-unload-function'; see the
 documentation of `unload-feature' for details.")

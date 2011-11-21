@@ -1925,7 +1925,7 @@ frame parameters in PARAMETERS."
 	  (progn
 	    ;; Initialize faces from face spec and custom theme.
 	    (face-spec-recalc face frame)
-	    ;; X resouces for the default face are applied during
+	    ;; X resources for the default face are applied during
 	    ;; `x-create-frame'.
 	    (and (not (eq face 'default)) window-system-p
 		 (make-face-x-resource-internal face frame))
@@ -2457,7 +2457,7 @@ It is used for characters of no fonts too."
 ;;; Manipulating font names.
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-;; This is here for compatibilty with Emacs 20.2.  For example,
+;; This is here for compatibility with Emacs 20.2.  For example,
 ;; international/fontset.el uses x-resolve-font-name.  The following
 ;; functions are not used in the face implementation itself.
 

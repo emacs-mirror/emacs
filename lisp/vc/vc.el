@@ -2690,7 +2690,7 @@ log entries should be gathered."
       (substring rev 0 index))))
 
 (defun vc-default-responsible-p (backend file)
-  "Indicate whether BACKEND is reponsible for FILE.
+  "Indicate whether BACKEND is responsible for FILE.
 The default is to return nil always."
   nil)
 

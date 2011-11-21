@@ -411,7 +411,7 @@ the value will be inserted right after the documentclass statement."
 
 
 ;; Functions to initialize and post-process
-;; These fuctions will be hooked into various places in the export process
+;; These functions will be hooked into various places in the export process
 
 (defun org-beamer-initialize-open-trackers ()
   "Reset variables that track if certain environments are open during export."
@@ -451,7 +451,7 @@ The effect is that these values will be accessible during export."
      ((stringp org-beamer-frame-level-now)
       (setq org-beamer-frame-level-now
 	    (string-to-number org-beamer-frame-level-now))))
-    ;; Find the header additons, most likely theme commands
+    ;; Find the header additions, most likely theme commands
     (setq org-beamer-header-extra
 	  (or (and (org-region-active-p)
 		   (save-excursion
