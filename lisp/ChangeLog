@@ -1,3 +1,9 @@
+2011-11-21  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* emacs-lisp/cl-indent.el (common-lisp-loop-part-indentation):
+	Tell the caller that the next line needs recomputation, even
+	though it doesn't start a sexp (bug#10094).
+
 2011-11-21  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* emacs-lisp/autoload.el (autoload-generate-file-autoloads): Simplify.
