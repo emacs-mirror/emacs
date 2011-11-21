@@ -149,10 +149,10 @@ the minibuffer window in the returned list.  If @var{minibuffer} is
 active.  If @var{minibuffer} is neither @code{nil} nor @code{t}, the
 minibuffer window is never included.
 
-The optional argument @var{window}, if non-@code{nil}, should be a
-live window on the specified frame; then @var{window} will be the
-first element in the returned list.  If @var{window} is omitted or
-@code{nil}, the window selected within the frame is first element.
+The optional argument @var{window}, if non-@code{nil}, should be a live
+window on the specified frame; then @var{window} will be the first
+element in the returned list.  If @var{window} is omitted or @code{nil},
+the window selected within the frame is the first element.
 @end defun
 
 @cindex window tree
@@ -792,7 +792,7 @@ yields the window configuration discussed in @ref{Windows and Frames}.
 This example demonstrates splitting a live window as well as splitting
 an internal window.  We begin with a frame containing a single window
 (a live root window), which we denote by @var{W4}.  Calling
-@code{(split-window W3)} yields this window configuration:
+@code{(split-window W4)} yields this window configuration:
 
 @smallexample
 @group

@@ -1,3 +1,8 @@
+2011-11-21  Martin Rudalics  <rudalics@gmx.at>
+
+	* windows.texi (Windows and Frames, Splitting Windows): Fix
+	typos.
+
 2011-11-21  Chong Yidong  <cyd@gnu.org>
 
 	* windows.texi (Splitting Windows): Fix error in documentation of
