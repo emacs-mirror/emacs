@@ -1,3 +1,8 @@
+2011-11-21  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* process.c (wait_reading_process_output): Fix asynchrounous
+	GnuTLS socket handling on some versions of the GnuTLS library.
+
 2011-11-21  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* xterm.c (x_clear_frame): Reinstate the XClearWindow call.
