@@ -1,3 +1,8 @@
+2011-11-21  Juri Linkov  <juri@jurta.org>
+
+	* calc/calc.el (calc-read-key-sequence): Let-bind `input-method-function'
+	to nil.  (Bug#10018)
+
 2011-11-21  Lars Magne Ingebrigtsen  <larsi@gnus.org>
 
 	* emacs-lisp/cl-indent.el (common-lisp-loop-part-indentation):

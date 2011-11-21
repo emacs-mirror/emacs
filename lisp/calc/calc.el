@@ -1235,7 +1235,8 @@ Used by `calc-user-invocation'.")
 	(glob (current-global-map))
 	(loc (current-local-map)))
     (or (input-pending-p) (message "%s" prompt))
-    (let ((key (calc-read-key t)))
+    (let ((key (calc-read-key t))
+	  (input-method-function nil))
       (calc-unread-command (cdr key))
       (unwind-protect
 	  (progn
