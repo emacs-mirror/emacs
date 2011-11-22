@@ -1,5 +1,8 @@
 2011-11-22  Glenn Morris  <rgm@gnu.org>
 
+	* configure.in (EMACSDATA, EMACSDOC): If set, print, since they can
+	have confusing effects on the build.  (Bug#6401)
+
 	* Makefile.in (install-arch-dep): Tweak previous change.
 
 2011-11-22  Yavor Doganov  <yavor@gnu.org>
