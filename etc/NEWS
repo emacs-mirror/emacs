@@ -1327,6 +1327,8 @@ as well as those in the -*- line.
 
 ** keymaps can inherit from multiple parents.
 
+** `debug-on-event' lets you debug Emacs when stuck because of inhibit-quit.
+
 +++
 ** New reader macro ## which stands for the empty symbol.
 This means that the empty symbol can now be read back.  Also, #: by itself
