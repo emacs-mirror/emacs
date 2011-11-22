@@ -1,3 +1,12 @@
+2011-11-22  Eli Zaretskii  <eliz@gnu.org>
+
+	* dispnew.c (adjust_glyph_matrix): Don't verify hash code of mode-
+	and header-lines, as they don't have one computed for them.
+	(Bug#10098)
+
+	* .gdbinit (prow): Make displayed values more self-explaining.
+	Add row's hash code.
+
 2011-11-21  Lars Magne Ingebrigtsen  <larsi@gnus.org>
 
 	* process.c (wait_reading_process_output): Fix asynchrounous

@@ -311,9 +311,8 @@ define prowx
   printf "y=%d x=%d pwid=%d", $row->y, $row->x, $row->pixel_width
   printf " a+d=%d+%d=%d", $row->ascent, $row->height-$row->ascent, $row->height
   printf " phys=%d+%d=%d", $row->phys_ascent, $row->phys_height-$row->phys_ascent, $row->phys_height
-  printf " vis=%d", $row->visible_height
-  printf "  L=%d T=%d R=%d", $row->used[0], $row->used[1], $row->used[2]
-  printf "\n"
+  printf " vis=%d\n", $row->visible_height
+  printf "used=(LMargin=%d,Text=%d,RMargin=%d) Hash=%d\n", $row->used[0], $row->used[1], $row->used[2], $row->hash
   printf "start=%d end=%d", $row->start.pos.charpos, $row->end.pos.charpos
   if ($row->enabled_p)
     printf " ENA"
