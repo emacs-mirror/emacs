@@ -685,7 +685,14 @@ Server mode runs a process that accepts commands from the
 
 (defun server-eval-and-print (expr proc)
   "Eval EXPR and send the result back to client PROC."
-  (let ((v (eval (car (read-from-string expr)))))
+  ;; While we're running asynchronously (from a process filter), it is likely
+  ;; that the emacsclient command was run in response to a user
+  ;; action, so the user probably knows that Emacs is processing this
+  ;; emacsclient request, so if we get a C-g it's likely that the user
+  ;; intended it to interrupt us rather than interrupt whatever Emacs
+  ;; was doing before it started handling the process filter.
+  ;; Hence `with-local-quit' (bug#6585).
+  (let ((v (with-local-quit (eval (car (read-from-string expr))))))
     (when proc
       (with-temp-buffer
         (let ((standard-output (current-buffer)))
