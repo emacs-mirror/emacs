@@ -4497,7 +4497,9 @@ commands:
 (defun gnus-article-setup-buffer ()
   "Initialize the article buffer."
   (let* ((name (if gnus-single-article-buffer "*Article*"
-		 (concat "*Article " gnus-newsgroup-name "*")))
+		 (concat "*Article "
+			 (gnus-group-decoded-name gnus-newsgroup-name)
+			 "*")))
 	 (original
 	  (progn (string-match "\\*Article" name)
 		 (concat " *Original Article"
