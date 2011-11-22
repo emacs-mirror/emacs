@@ -612,23 +612,6 @@ HEADER is a header component of a MIME-entity object (see
 	  (rmail-mime-insert-decoded-text entity)))
     (put-text-property beg (point) 'rmail-mime-entity entity)))
 
-;; FIXME move to the test/ directory?
-(defun test-rmail-mime-handler ()
-  "Test of a mail using no MIME parts at all."
-  (let ((mail "To: alex@gnu.org
-Content-Type: text/plain; charset=koi8-r
-Content-Transfer-Encoding: 8bit
-MIME-Version: 1.0
-
-\372\304\322\301\327\323\324\327\325\312\324\305\41"))
-    (switch-to-buffer (get-buffer-create "*test*"))
-    (erase-buffer)
-    (set-buffer-multibyte nil)
-    (insert mail)
-    (rmail-mime-show t)
-    (set-buffer-multibyte t)))
-
-
 (defun rmail-mime-insert-image (entity)
   "Decode and insert the image body of MIME-entity ENTITY."
   (let* ((content-type (car (rmail-mime-entity-type entity)))
@@ -813,27 +796,6 @@ directly."
 		 (rmail-mime-insert-decoded-text entity)))))
     (put-text-property beg (point) 'rmail-mime-entity entity)))
 
-(defun test-rmail-mime-bulk-handler ()
-  "Test of a mail used as an example in RFC 2183."
-  (let ((mail "Content-Type: image/jpeg
-Content-Disposition: attachment; filename=genome.jpeg;
-  modification-date=\"Wed, 12 Feb 1997 16:29:51 -0500\";
-Content-Description: a complete map of the human genome
-Content-Transfer-Encoding: base64
-
-iVBORw0KGgoAAAANSUhEUgAAADAAAAAwCAMAAABg3Am1AAAABGdBTUEAALGPC/xhBQAAAAZQ
-TFRF////AAAAVcLTfgAAAPZJREFUeNq9ldsOwzAIQ+3//+l1WlvA5ZLsoUiTto4TB+ISoAjy
-+ITfRBfcAmgRFFeAm+J6uhdKdFhFWUgDkFsK0oUp/9G2//Kj7Jx+5tSKOdBscgUYiKHRS/me
-WATQdRUvAK0Bnmshmtn79PpaLBbbOZkjKvRnjRZoRswOkG1wFchKew2g9wXVJVZL/m4+B+vv
-9AxQQR2Q33SgAYJzzVACdAWjAfRYzYFO9n6SLnydtQHSMxYDMAKqZ/8FS/lTK+zuq3CtK64L
-UDwbgUEAUmk2Zyg101d6PhCDySgAvTvDgKiuOrc4dLxUb7UMnhGIexyI+d6U+ABuNAP4Simx
-lgAAAABJRU5ErkJggg==
-"))
-    (switch-to-buffer (get-buffer-create "*test*"))
-    (erase-buffer)
-    (insert mail)
-    (rmail-mime-show)))
-
 (defun rmail-mime-multipart-handler (content-type
 				     content-disposition
 				     content-transfer-encoding)
@@ -970,37 +932,6 @@ The other arguments are the same as `rmail-mime-multipart-handler'."
 		(aset (rmail-mime-entity-body child) 2 nil)
 		(rmail-mime-hidden-mode child)))))
       entities)))
-
-(defun test-rmail-mime-multipart-handler ()
-  "Test of a mail used as an example in RFC 2046."
-  (let ((mail "From: Nathaniel Borenstein <nsb@bellcore.com>
-To: Ned Freed <ned@innosoft.com>
-Date: Sun, 21 Mar 1993 23:56:48 -0800 (PST)
-Subject: Sample message
-MIME-Version: 1.0
-Content-type: multipart/mixed; boundary=\"simple boundary\"
-
-This is the preamble.  It is to be ignored, though it
-is a handy place for composition agents to include an
-explanatory note to non-MIME conformant readers.
-
---simple boundary
-
-This is implicitly typed plain US-ASCII text.
-It does NOT end with a linebreak.
---simple boundary
-Content-type: text/plain; charset=us-ascii
-
-This is explicitly typed plain US-ASCII text.
-It DOES end with a linebreak.
-
---simple boundary--
-
-This is the epilogue.  It is also to be ignored."))
-    (switch-to-buffer (get-buffer-create "*test*"))
-    (erase-buffer)
-    (insert mail)
-    (rmail-mime-show t)))
 
 (defun rmail-mime-insert-multipart (entity)
   "Presentation handler for a multipart MIME entity."
