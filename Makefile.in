@@ -474,10 +474,10 @@ install-arch-dep: mkdir
 	    if test -d share/emacs ; then dir=share/emacs/*/*; $(MV_DIRS); fi;\
 	    if test -d share/info ; then dir=share/info; $(MV_DIRS) ; fi ; \
 	    rm -fr share ) ; \
-	  ( cd ${ns_appbindir}libexec ; dir=emacs/*/*/* ; $(MV_DIRS); \
-	    rm -fr emacs ) ; \
-	  ( cd ${ns_appbindir}bin ; rm -f emacs emacs-24* ; \
-	    ln -sf ../libexec/* .) ; \
+	  ( cd ${ns_appbindir} ; \
+	    if test -d libexec; then cd libexec ; dir=emacs/*/*/* ; \
+	    $(MV_DIRS); rm -fr emacs; \
+	    cd ../bin; rm -f emacs emacs-24*; ln -sf ../libexec/* . ; fi ) ; \
 	else true ; fi
 
 ## FIXME is the emacs-24* bit above really necessary and correct?

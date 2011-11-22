@@ -1,3 +1,12 @@
+2011-11-22  Yavor Doganov  <yavor@gnu.org>
+
+	Do not install arch-dependent files in the app bundle if
+	--disable-ns-self-contained is requested.  (Bug#1335)
+	* configure.in (exec_prefix, libexecdir): Define relative to
+	`ns_appbindir' only if configured for a self-contained app.
+	* Makefile.in (install-arch-dep): Test for the existence of
+	libexec in the Emacs.app bundle before executing commands.
+
 2011-11-20  Andreas Schwab  <schwab@linux-m68k.org>
 
 	* configure.in: Remove reference to src/m/ibms390.h.

@@ -1568,10 +1568,10 @@ if test "${HAVE_NS}" = yes; then
   window_system=nextstep
   with_xft=no
   # set up packaging dirs
-  exec_prefix=${ns_appbindir}
-  libexecdir=${ns_appbindir}/libexec
   if test "${EN_NS_SELF_CONTAINED}" = yes; then
      prefix=${ns_appresdir}
+     exec_prefix=${ns_appbindir}
+     libexecdir=${ns_appbindir}/libexec
   fi
   ns_frag=$srcdir/src/ns.mk
   NS_OBJ="fontset.o fringe.o image.o"
