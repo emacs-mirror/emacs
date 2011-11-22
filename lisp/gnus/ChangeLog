@@ -1,3 +1,8 @@
+2011-11-22  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* shr.el (shr-table-horizontal-line): Revert infinite loops introduced
+	by Paul Eggert's spellfixes two days ago.
+
 2011-11-21  Lars Magne Ingebrigtsen  <larsi@gnus.org>
 
 	* mm-view.el (mm-display-inline-fontify): Make the font-lock variables
