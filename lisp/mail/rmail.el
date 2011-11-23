@@ -3786,6 +3786,8 @@ which is an element of rmail-msgref-vector."
 With prefix argument, \"resend\" the message instead of forwarding it;
 see the documentation of `rmail-resend'."
   (interactive "P")
+  (if (zerop rmail-current-message)
+      (error "No message to forward"))
   (if resend
       (call-interactively 'rmail-resend)
     (let ((forward-buffer rmail-buffer)

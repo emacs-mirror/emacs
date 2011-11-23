@@ -1,5 +1,10 @@
 2011-11-23  Glenn Morris  <rgm@gnu.org>
 
+	* mail/rmail.el (rmail-forward):
+	* mail/rmailkwd.el (rmail-set-label):
+	* mail/rmailout.el (rmail-output, rmail-output-as-seen)
+	(rmail-output-body-to-file): Give error if no message.  (Bug#10082)
+
 	* mail/rmail.el (rmail-current-message): Doc fix.
 
 	* mail/rmail.el (rmail-message-filter): Mark as obsolete.  (Bug#2624)
