@@ -1,3 +1,7 @@
+2011-11-23  Mark Lillibridge  <mark.lillibridge@hp.com>  (tiny change)
+
+	* mail/unrmail.el (unrmail): Always add blank line.  (Bug#7743)
+
 2011-11-23  Glenn Morris  <rgm@gnu.org>
 
 	* mail/rmail.el (rmail-forward):
