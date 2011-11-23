@@ -446,7 +446,11 @@ Return non-nil if and only if FILE adds no autoloads to OUTFILE
 		    generated-autoload-load-name
 		  (autoload-file-load-name absfile)))
           (when (and outfile
-                     (not (equal outfile (autoload-generated-file))))
+                     (not
+		      (if (memq system-type '(ms-dos windows-nt))
+			  (equal (downcase outfile)
+				 (downcase (autoload-generated-file)))
+			(equal outfile (autoload-generated-file)))))
             (setq otherbuf t))
           (save-excursion
             (save-restriction

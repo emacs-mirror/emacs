@@ -1,3 +1,9 @@
+2011-11-23  Eli Zaretskii  <eliz@gnu.org>
+
+	* emacs-lisp/autoload.el (autoload-generate-file-autoloads): On
+	MS-DOS and MS-Windows, compare with loaddefs.el
+	case-insensitively.
+
 2011-11-23  Mark Lillibridge  <mark.lillibridge@hp.com>  (tiny change)
 
 	* mail/unrmail.el (unrmail): Always add blank line.  (Bug#7743)
