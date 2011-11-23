@@ -1052,6 +1052,7 @@ window_relative_x_coord (struct window *w, enum window_part part, int x)
 DEFUN ("coordinates-in-window-p", Fcoordinates_in_window_p,
        Scoordinates_in_window_p, 2, 2, 0,
        doc: /* Return non-nil if COORDINATES are in WINDOW.
+WINDOW must be a live window.
 COORDINATES is a cons of the form (X . Y), X and Y being distances
 measured in characters from the upper-left corner of the frame.
 \(0 . 0) denotes the character in the upper left corner of the
@@ -1073,7 +1074,7 @@ If they are in the windows's left or right marginal areas, `left-margin'\n\
   int x, y;
   Lisp_Object lx, ly;
 
-  CHECK_WINDOW (window);
+  CHECK_LIVE_WINDOW (window);
   w = XWINDOW (window);
   f = XFRAME (w->frame);
   CHECK_CONS (coordinates);

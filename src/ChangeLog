@@ -1,3 +1,7 @@
+2011-11-23  Chong Yidong  <cyd@gnu.org>
+
+	* window.c (Fcoordinates_in_window_p): Accept only live windows.
+
 2011-11-23  Martin Rudalics  <rudalics@gmx.at>
 
 	* buffer.c (Fkill_buffer): Run replace_buffer_in_windows before
