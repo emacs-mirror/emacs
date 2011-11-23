@@ -154,7 +154,7 @@
 ;;	follow-delete-other-windows-and-split	 C-c . 1
 ;;		Maximize the visible area of the current buffer,
 ;;		and enter Follow mode. 	This is a very convenient
-;;		way to start Follow mode, hence we recomend that
+;;		way to start Follow mode, hence we recommend that
 ;;		this command be added to the global keymap.
 ;;
 ;;	follow-recenter				 C-c . C-l

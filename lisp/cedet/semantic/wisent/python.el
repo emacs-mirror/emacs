@@ -43,7 +43,7 @@
 ;; The 'r' prefix means raw, i.e., normal backslash substitutions are
 ;; to be suppressed.  For example, r"01\n34" is a string with six
 ;; characters 0, 1, \, n, 3 and 4.  The 'u' prefix means the following
-;; string is a unicode.
+;; string is Unicode.
 (defconst wisent-python-string-re
   (concat (regexp-opt '("r" "u" "ur" "R" "U" "UR" "Ur" "uR") t)
           "?['\"]")

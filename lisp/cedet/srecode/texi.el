@@ -244,7 +244,7 @@ that class.
  `function' => @dfn{function}
  `variable' => @code{variable}
  `class'    => @code{class} @xref{class}
- `unknown'  => @code{unknonwn}
+ `unknown'  => @code{unknown}
  \"text\"     => ``text''
  'quoteme   => @code{quoteme}
  non-nil    => non-@code{nil}

@@ -1439,7 +1439,7 @@ This function returns, destructively, the new list structure."
 	;; 1.1. Remove the item just created in structure.
 	(setq struct (delete (assq new-item struct) struct))
 	;; 1.2. Copy ITEM and any of its sub-items at NEW-ITEM.
-	(setq struct (sort*
+	(setq struct (sort
 		      (append
 		       struct
 		       (mapcar (lambda (e)

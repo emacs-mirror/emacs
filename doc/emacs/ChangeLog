@@ -1,3 +1,12 @@
+2011-11-21  Chong Yidong  <cyd@gnu.org>
+
+	* mark.texi (Global Mark Ring): Fix description of global mark
+	ring (Bug#10032).
+
+2011-11-20  Juanma Barranquero  <lekktu@gmail.com>
+
+	* msdog.texi (Windows Fonts): Fix typo.
+
 2011-11-17  Glenn Morris  <rgm@gnu.org>
 
 	* regs.texi (Bookmarks): Small fixes related to saving.  (Bug#10058)

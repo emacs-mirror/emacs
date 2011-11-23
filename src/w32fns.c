@@ -2943,7 +2943,7 @@ w32_wnd_proc (HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
       break;
 
     case WM_IME_CHAR:
-      /* If we can't get the IME result as unicode, use default processing,
+      /* If we can't get the IME result as Unicode, use default processing,
          which will at least allow characters decodable in the system locale
          get through.  */
       if (!get_composition_string_fn)
@@ -3711,7 +3711,7 @@ w32_wnd_proc (HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
       if (w32_system_caret_hwnd == NULL)
 	{
 	  /* Use the default caret width, and avoid changing it
-	     unneccesarily, as it confuses screen reader software.  */
+	     unnecessarily, as it confuses screen reader software.  */
 	  w32_system_caret_hwnd = hwnd;
 	  CreateCaret (hwnd, NULL, 0,
 		       w32_system_caret_height);

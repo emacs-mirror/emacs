@@ -1811,7 +1811,7 @@ or as help on variables `cperl-tips', `cperl-problems',
 	       (funcall f))
 	   (make-local-variable 'compilation-error-regexp-alist)
 	   (push 'cperl compilation-error-regexp-alist)))
-	((boundp 'compilation-error-regexp-alist);; xmeacs 19.x
+	((boundp 'compilation-error-regexp-alist);; xemacs 19.x
 	 (make-local-variable 'compilation-error-regexp-alist)
 	 (set 'compilation-error-regexp-alist
 	       (append cperl-compilation-error-regexp-alist

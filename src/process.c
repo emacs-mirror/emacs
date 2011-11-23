@@ -4620,15 +4620,43 @@ wait_reading_process_output (int time_limit, int microsecs, int read_kbd,
              some data in the TCP buffers so that select works, but
              with custom pull/push functions we need to check if some
              data is available in the buffers manually.  */
-          if (nfds == 0 &&
-              wait_proc && wait_proc->gnutls_p /* Check for valid process.  */
-              /* Do we have pending data?  */
-              && emacs_gnutls_record_check_pending (wait_proc->gnutls_state) > 0)
-          {
-              nfds = 1;
-              /* Set to Available.  */
-              FD_SET (wait_proc->infd, &Available);
-          }
+          if (nfds == 0)
+	    {
+	      if (! wait_proc)
+		{
+		  /* We're not waiting on a specific process, so loop
+		     through all the channels and check for data.
+		     This is a workaround needed for some versions of
+		     the gnutls library -- 2.12.14 has been confirmed
+		     to need it.  See
+		     http://comments.gmane.org/gmane.emacs.devel/145074 */
+		  struct Lisp_Process *proc;
+		  for (channel = 0; channel < MAXDESC; ++channel)
+		    {
+		      if (! NILP (chan_process[channel]) &&
+			  (proc = XPROCESS (chan_process[channel])) != NULL &&
+			  proc->gnutls_p &&
+			  proc->infd &&
+			  emacs_gnutls_record_check_pending (proc->gnutls_state) > 0)
+			{
+			  nfds++;
+			  FD_SET (proc->infd, &Available);
+			}
+		    }
+		}
+	      else
+		{
+		  /* Check this specific channel. */
+		  if (wait_proc->gnutls_p && /* Check for valid process.  */
+		      /* Do we have pending data?  */
+		      emacs_gnutls_record_check_pending (wait_proc->gnutls_state) > 0)
+		    {
+		      nfds = 1;
+		      /* Set to Available.  */
+		      FD_SET (wait_proc->infd, &Available);
+		    }
+		}
+	    }
 #endif
 	}
 

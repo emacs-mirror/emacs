@@ -709,7 +709,7 @@ consult.
 
 ** The Landmark game is now invoked with `landmark', not `lm'.
 
-** MH-E has been upgraded to MH-E version 8.3.
+** MH-E has been upgraded to MH-E version 8.3.1.
 See MH-E-NEWS for details.
 
 ** Modula-2 mode provides auto-indentation.
@@ -1326,6 +1326,8 @@ as well as those in the -*- line.
 ** rx.el has a new `group-n' construct for explicitly numbered groups.
 
 ** keymaps can inherit from multiple parents.
+
+** `debug-on-event' lets you debug Emacs when stuck because of inhibit-quit.
 
 +++
 ** New reader macro ## which stands for the empty symbol.

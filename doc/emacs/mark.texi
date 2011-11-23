@@ -354,9 +354,12 @@ Positions in Registers}).
 @vindex global-mark-ring-max
   In addition to the ordinary mark ring that belongs to each buffer,
 Emacs has a single @dfn{global mark ring}.  Each time you set a mark,
-in any buffer, this is recorded in the global mark ring in addition to
-the current buffer's own mark ring.  The length of this ring can be
-controlled by @code{global-mark-ring-max}, and is 16 by default.
+this is recorded in the global mark ring in addition to the current
+buffer's own mark ring, if you have switched buffers since the
+previous mark setting.  Hence, the global mark ring records a sequence
+of buffers that you have been in, and, for each buffer, a place where
+you set the mark.  The length of the global mark ring is controlled by
+@code{global-mark-ring-max}, and is 16 by default.
 
 @kindex C-x C-@key{SPC}
 @findex pop-global-mark

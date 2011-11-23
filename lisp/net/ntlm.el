@@ -102,8 +102,8 @@ is not given."
 	    (md4-pack-int16 ld)	;domain field, count field
 	    (md4-pack-int16 ld)	;domain field, max count field
 	    (md4-pack-int32 (cons 0 off-d)) ;domain field, offset field
-	    user			;bufer field
-	    domain		;bufer field
+	    user			;buffer field
+	    domain		;buffer field
 	    )))
 
 (eval-when-compile
@@ -207,16 +207,16 @@ by PASSWORD-HASHES.  PASSWORD-HASHES should be a return value of
 	    ;; buffer field
 	    lmRespData			;lmResponse, 24 bytes
 	    ntRespData			;ntResponse, 24 bytes
-	    (ntlm-ascii2unicode domain	;unicode domain string, 2*ld bytes
+	    (ntlm-ascii2unicode domain	;Unicode domain string, 2*ld bytes
 				(length domain)) ;
-	    (ntlm-ascii2unicode user	;unicode user string, 2*lu bytes
+	    (ntlm-ascii2unicode user	;Unicode user string, 2*lu bytes
 				(length user)) ;
-	    (ntlm-ascii2unicode user	;unicode user string, 2*lu bytes
+	    (ntlm-ascii2unicode user	;Unicode user string, 2*lu bytes
 				(length user)) ;
 	    )))
 
 (defun ntlm-get-password-hashes (password)
-  "Return a pair of SMB hash and NT MD4 hash of the given password PASSWORD"
+  "Return a pair of SMB hash and NT MD4 hash of the given password PASSWORD."
   (list (ntlm-smb-passwd-hash password)
 	(ntlm-md4hash password)))
 
@@ -526,7 +526,7 @@ into a Unicode string.  PASSWD is truncated to 128 bytes if longer."
     (setq len (length passwd))
     (if (> len 128)
 	(setq len 128))
-    ;; Password must be converted to NT unicode
+    ;; Password must be converted to NT Unicode
     (setq wpwd (ntlm-ascii2unicode passwd len))
     ;; Calculate length in bytes
     (setq len (* len 2))

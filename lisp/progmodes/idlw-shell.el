@@ -1844,7 +1844,7 @@ file name."
     (cond
      ((file-regular-p file2) file2)
      ((file-regular-p file1) file1)
-     ;; If we cannot veryfy the existence of the file, we return the shorter
+     ;; If we cannot verify the existence of the file, we return the shorter
      ;; name.  The idea behind this is that this may be a relative file name
      ;; and our idea about the current working directory may be wrong.
      ;; If it is a relative file name, it hopefully is short.

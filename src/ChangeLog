@@ -1,3 +1,50 @@
+2011-11-23  Chong Yidong  <cyd@gnu.org>
+
+	* xdisp.c (compute_stop_pos): Check validity of end_charpos before
+	using it (Bug#5984).
+
+2011-11-22  Eli Zaretskii  <eliz@gnu.org>
+
+	* dispnew.c (adjust_glyph_matrix): Don't verify hash code of mode-
+	and header-lines, as they don't have one computed for them.
+	(Bug#10098)
+
+	* .gdbinit (prow): Make displayed values more self-explaining.
+	Add row's hash code.
+
+2011-11-21  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* process.c (wait_reading_process_output): Fix asynchrounous
+	GnuTLS socket handling on some versions of the GnuTLS library.
+	(wait_reading_process_output): Add comment and URL.
+
+2011-11-21  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* xterm.c (x_clear_frame): Reinstate the XClearWindow call.
+
+2011-11-21  Chong Yidong  <cyd@gnu.org>
+
+	* window.c (Fnext_window, Fprevious_window): Doc fix.
+
+2011-11-20  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* window.c (get_phys_cursor_glyph): Fix Lisp_Object/int mixup.
+
+2011-11-20  Juanma Barranquero  <lekktu@gmail.com>
+
+	* nsfont.m (syms_of_nsfont) <ns-reg-to-script>: Fix typo.
+
+2011-11-20  Martin Rudalics  <rudalics@gmx.at>
+
+	* window.c (Fset_window_combination_limit): Rename argument
+	STATUS to LIMIT.
+	(Vwindow_combination_limit): Remove "status" from doc-string.
+
+2011-11-20  Andreas Schwab  <schwab@linux-m68k.org>
+
+	* m/ibms390.h: Remove.
+	* m/ibms390x.h: Don't include "ibms390.h".
+
 2011-11-20  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* fileio.c (Finsert_file_contents): Add missing gcpro1 variable.
@@ -7042,7 +7089,7 @@
 
 2011-04-08  T.V. Raman  <tv.raman.tv@gmail.com>  (tiny change)
 
-	* xml.c (parse_region): Avoid creating spurious whiespace nodes.
+	* xml.c (parse_region): Avoid creating spurious whitespace nodes.
 
 2011-04-08  Chong Yidong  <cyd@stupidchicken.com>
 

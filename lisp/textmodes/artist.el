@@ -1985,7 +1985,7 @@ Also updates the variables `artist-draw-min-y' and `artist-draw-max-y'."
   "Retrieve a replacement for character C from `artist-replacement-table'.
 The replacement is used to convert tabs and new-lines to spaces."
   ;; Characters may be outside the range of the `artist-replacement-table',
-  ;; for example if they are unicode code points >= 256.
+  ;; for example if they are Unicode code points >= 256.
   ;; Check so we don't attempt to access the array out of its bounds,
   ;; assuming no such character needs to be replaced.
   (if (< c (length artist-replacement-table))
@@ -3215,7 +3215,7 @@ X1, Y1.  An endpoint is a cons pair, (ENDPOINT-X . ENDPOINT-Y)."
 ;;         2|     |
 ;;         3+-----+
 ;;
-;;   We will then pop (0,0) and remove the left-most vertival line while
+;;   We will then pop (0,0) and remove the left-most vertical line while
 ;;   pushing the lower left corner (0,3) on the stack, and so on until
 ;;   the entire rectangle is vaporized.
 ;;

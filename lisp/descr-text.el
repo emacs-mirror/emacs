@@ -221,7 +221,7 @@ At the time of writing it is at the URL
 		 file))
 
 (defun describe-char-unicode-data (char)
-  "Return a list of Unicode data for unicode CHAR.
+  "Return a list of Unicode data for Unicode CHAR.
 Each element is a list of a property description and the property value.
 The list is null if CHAR isn't found in `describe-char-unicodedata-file'.
 This function is semi-obsolete.  Use `get-char-code-property'."

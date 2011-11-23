@@ -1023,7 +1023,7 @@ Output must be in semanticdb Find result format."
 
 (defmethod semantic-collector-try-completion-whitespace
   ((obj semantic-collector-abstract) prefix)
-  "For OBJ, do whatepsace completion based on PREFIX.
+  "For OBJ, do whitespace completion based on PREFIX.
 This implies that if there are two completions, one matching
 the test \"prefix\\>\", and one not, the one matching the full
 word version of PREFIX will be chosen, and that text returned.

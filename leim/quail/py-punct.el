@@ -8,7 +8,7 @@
 
 ;; Author: Ken'ichi HANDA <handa@etl.go.jp>
 
-;; Keywords: multilingual, input method, Chienese
+;; Keywords: multilingual, input method, Chinese
 
 ;; This file is part of GNU Emacs.
 

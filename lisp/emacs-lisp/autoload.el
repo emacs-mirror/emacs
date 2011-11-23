@@ -512,15 +512,7 @@ Return non-nil if and only if FILE adds no autoloads to OUTFILE
 
           (when output-start
             (let ((secondary-autoloads-file-buf
-                   (if (local-variable-p 'generated-autoload-file)
-                       (current-buffer))))
-	      ;; Ignore a buffer-local setting if it points to the
-	      ;; global value.  Otherwise we end up writing a mix of md5s
-	      ;; and time-stamps to the global file.  (Bug#10049)
-	      (and secondary-autoloads-file-buf
-		   outfile
-		   (not otherbuf)
-		   (setq secondary-autoloads-file-buf nil))
+                   (if otherbuf (current-buffer))))
               (with-current-buffer (marker-buffer output-start)
                 (save-excursion
                   ;; Insert the section-header line which lists the file name

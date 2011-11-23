@@ -209,7 +209,7 @@ extern int x_display_pixel_width (struct w32_display_info *);
    the information that is specific to W32 windows.  */
 
 /* Put some things in x_output for compatibility.
-   NTEMACS_TODO: Move all common things here to eliminate unneccesary
+   NTEMACS_TODO: Move all common things here to eliminate unnecessary
    diffs between X and w32 code.  */
 struct x_output
 {

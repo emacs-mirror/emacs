@@ -631,7 +631,7 @@ fontset_find_font (Lisp_Object fontset, int c, struct face *face, int id, int fa
 	    {
 	      /* Something strange happened, perhaps because of a
 		 Font-backend problem.  Too avoid crashing, record
-		 that this spec is unsable.  It may be better to find
+		 that this spec is unusable.  It may be better to find
 		 another font of the same spec, but currently we don't
 		 have such an API.  */
 	      RFONT_DEF_SET_FACE (rfont_def, -1);

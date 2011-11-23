@@ -315,7 +315,7 @@
 	* language/ethio-util.el:
 	* international/characters.el: Use utf-8 rather than utf-8-emacs
 	since it works as well and has the advantage of working with
-	non-unicode versions of Emacs.
+	non-Unicode versions of Emacs.
 
 	* international/encoded-kb.el (encoded-kbd-setup-display): Use the new
 	multi-tty code, which includes the previous local change.
@@ -1171,7 +1171,7 @@
 
 	* international/encoded-kb.el (encoded-kbd-self-insert-charset)
 	(encoded-kbd-self-insert-utf-8, encoded-kbd-setup-keymap)
-	(encoded-kbd-mode): Adjust code merged from trunk for unicode branch.
+	(encoded-kbd-mode): Adjust code merged from trunk for Unicode branch.
 
 2008-02-01  Kenichi Handa  <handa@m17n.org>
 
@@ -1668,7 +1668,7 @@
 2008-02-01  Kenichi Handa  <handa@m17n.org>
 
 	* international/fontset.el: Enable the default fontset to use
-	unicode fonts for ASCII characters.
+	Unicode fonts for ASCII characters.
 	(x-decompose-font-name): Don't try to resolve PATTERN by
 	x-resolve-font-name.
 	(x-complement-fontset-spec): Never prepend an ASCII font.
@@ -2331,9 +2331,9 @@
 	New coding systems.
 	("Chinese-GBK"): New environment.
 
-	* language/thai-util.el: Remove redundant unicodes in category-setting.
-
-	* language/lao-util.el: Remove redundant unicodes in category-setting.
+	* language/thai-util.el:
+	* language/lao-util.el: Remove redundant Unicode characters
+	in category-setting.
 
 	* international/mule-conf.el (japanese-jisx0213-1)
 	(japanese-jisx0213-2): Add unify-map.
@@ -2358,7 +2358,8 @@
 
 	* language/cyril-util.el (cyrillic-encode-koi8-r-char)
 	(cyrillic-encode-alternativnyj-char): Fix.
-	(standard-display-cyrillic-translit): Remove redundant unicodes.
+	(standard-display-cyrillic-translit):
+	Remove redundant Unicode characters.
 
 2008-02-01  Dave Love  <fx@gnu.org>
 
@@ -2417,7 +2418,7 @@
 	lengths of the pair.
 
 	* international/characters.el: Add Vietnamese category to
-	equivalent unicodes.
+	equivalent Unicode characters.
 
 2008-02-01  Dave Love  <fx@gnu.org>
 
@@ -2518,7 +2519,7 @@
 	(print-designation): Partial re-write.
 	(describe-coding-system): Deal with iso-2022 designations, flags.
 	Fix shift_jis case.
-	(describe-char-after): Use characterp.  Print explicit unicode.
+	(describe-char-after): Use characterp.  Print explicit Unicode code point.
 	Remove some obsolete code.
 	(print-coding-system-briefly): Fix printing aliases.
 	(print-coding-system): Use coding-system-aliases.
@@ -2587,7 +2588,7 @@
 
 	* Makefile.in: Cancel the 2008-02-01 change of mine.
 
-	* international/fontset.el: Add setting for unicode font at the
+	* international/fontset.el: Add setting for Unicode font at the
 	end of the default fontset.
 
 2008-02-01  Dave Love  <fx@gnu.org>
@@ -2742,7 +2743,7 @@
 
 	* international/ja-dic-utl.el (skkdic-jisx0208-hiragana-block):
 	Fix the initial value to specify character range of
-	japanese-jisx0208, not unicode.
+	japanese-jisx0208, not Unicode.
 
 	* international/characters.el: Set syntax/category for
 	japanese-jisx0208.
@@ -6265,7 +6266,7 @@
 	delete .elc files.
 
 	* nxml/char-name/unicode: Move to etc/nxml/.
-	* nxml/nxml-uchnm.el (top-level): Adapt for moved unicode files.
+	* nxml/nxml-uchnm.el (top-level): Adapt for moved Unicode files.
 
 	* nxml/nxml-enc.el (xmltok-get-declared-encoding-position):
 	Declare as a function.
@@ -15910,7 +15911,7 @@
 2007-06-08  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* textmodes/css-mode.el (css-navigation-syntax-table):
-	Use set-char-table-range so it also works in the unicode branch.
+	Use set-char-table-range so it also works in the Unicode branch.
 
 2007-06-08  Nick Roberts  <nickrob@snap.net.nz>
 

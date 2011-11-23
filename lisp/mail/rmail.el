@@ -4504,7 +4504,7 @@ With prefix argument N moves forward N messages with these labels.
 
 ;;;***
 
-;;;### (autoloads (rmail-mime) "rmailmm" "rmailmm.el" "3aa9747bf925bd2cd450f4b1f9c7cd03")
+;;;### (autoloads (rmail-mime) "rmailmm" "rmailmm.el" "5ecb69456c4d86a4e905eb3008602a95")
 ;;; Generated autoloads from rmailmm.el
 
 (autoload 'rmail-mime "rmailmm" "\
@@ -4606,7 +4606,7 @@ If prefix argument REVERSE is non-nil, sorts in reverse order.
 
 ;;;### (autoloads (rmail-summary-by-senders rmail-summary-by-topic
 ;;;;;;  rmail-summary-by-regexp rmail-summary-by-recipients rmail-summary-by-labels
-;;;;;;  rmail-summary) "rmailsum" "rmailsum.el" "35e07b0a5ea8e41971f31a8780eba6bb")
+;;;;;;  rmail-summary) "rmailsum" "rmailsum.el" "1375d6512b953c0d7c3bde52192f4055")
 ;;; Generated autoloads from rmailsum.el
 
 (autoload 'rmail-summary "rmailsum" "\

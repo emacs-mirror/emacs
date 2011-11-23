@@ -34631,7 +34631,7 @@ the derivative is evaluated at the value of @var{var}; otherwise, the
 derivative is left in terms of @var{var}.  If the expression contains
 functions for which no derivative formula is known, new derivative
 functions are invented by adding primes to the names; @pxref{Calculus}.
-However, if @var{symb} is non-@code{nil}, the presence of undifferentiable
+However, if @var{symb} is non-@code{nil}, the presence of nondifferentiable
 functions in @var{expr} instead cancels the whole differentiation, and
 @code{deriv} returns @code{nil} instead.
 

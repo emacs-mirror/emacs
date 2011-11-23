@@ -205,7 +205,7 @@ of the scroll bar itself.  That depends on to what extent toolkit
 scroll bars are extensible.
 
 ** Provide user-friendly ways to list all available font families,
-   list fonts, display a font as a sample, etc.  [fx is looking at
+  list fonts, display a font as a sample, etc.  [fx is looking at
   multilingual font selection for the Unicode branch of Emacs.]
 
 ** Provide a convenient way to select a color with the mouse.
@@ -635,7 +635,7 @@ up on top of all others
 
 *** Other / Low Priority:
 
-**** Better recognition of unicode scripts / Greek / composition.
+**** Better recognition of Unicode scripts / Greek / composition.
 
 **** Undo for color-drag face customization.
 

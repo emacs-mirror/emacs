@@ -268,7 +268,7 @@ projects.
 
 Some project modes do not have a project file, but directly read a
 Makefile or other existing file.  Instead of directly editing the
-object, you can edit the file by typine @kbd{C-c . e}
+object, you can edit the file by typing @kbd{C-c . e}
 (@code{ede-edit-file-target}).  You should ``rescan'' the project
 afterwards (@pxref{Miscellaneous commands}).
 

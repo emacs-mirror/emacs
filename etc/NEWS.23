@@ -843,7 +843,7 @@ shared with older Emacsen.
 
 *** There is a new charset implementation with many new charsets.
 See M-x list-character-sets.  New charsets can be defined conveniently
-as tables of unicodes.
+as tables of Unicode code points.
 
 *** There are new language environments for Chinese-GBK,
 Chinese-GB18030, Khmer, Bengali, Punjabi, Gujarati, Oriya, Telugu,
@@ -1837,7 +1837,7 @@ for the list of extra keys that are available.
 
 ** BDF fonts no longer supported on MS-Windows.
 The font backend was completely rewritten for this release.  The focus
-on Windows has been getting acceptable performance and full unicode
+on Windows has been getting acceptable performance and full Unicode
 support, including complex script shaping for native Windows fonts.  A
 rewrite of the BDF font support has not happened due to lack of time
 and developers.  If demand still exists for such a backend even with

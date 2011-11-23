@@ -366,7 +366,7 @@ See also `ps-mule-font-info-database-bdf'.")
 ;; character is printed by which FONT-SPEC.  It has one extra slot
 ;; whose value is an alist of the form:
 ;;	(CHARSET . FONT-SPEC)
-;; FONT-SPEC is a vecotr of the form:
+;; FONT-SPEC is a vector of the form:
 ;;	(ID FONT-SRC FONT-NAME ENCODING EXTRA)
 (defvar ps-mule-font-spec-tables nil)
 

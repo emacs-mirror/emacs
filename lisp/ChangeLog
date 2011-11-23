@@ -1,3 +1,41 @@
+2011-11-22  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* server.el (server-eval-and-print): Allow C-g (bug#6585).
+
+2011-11-22  Glenn Morris  <rgm@gnu.org>
+
+	* mail/rmailmm.el (test-rmail-mime-handler)
+	(test-rmail-mime-bulk-handler)
+	(test-rmail-mime-multipart-handler): Move tests to test/ directory.
+
+2011-11-21  Juri Linkov  <juri@jurta.org>
+
+	* calc/calc.el (calc-read-key-sequence): Let-bind `input-method-function'
+	to nil.  (Bug#10018)
+
+2011-11-21  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* emacs-lisp/cl-indent.el (common-lisp-loop-part-indentation):
+	Tell the caller that the next line needs recomputation, even
+	though it doesn't start a sexp (bug#10094).
+
+2011-11-21  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* emacs-lisp/autoload.el (autoload-generate-file-autoloads): Simplify.
+
+2011-11-20  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* vc/pcvs-util.el (cvs-pop-to-buffer-same-frame):
+	Use force-same-window.
+
+2011-11-20  Juanma Barranquero  <lekktu@gmail.com>
+
+	* descr-text.el (describe-char-unicode-data):
+	* json.el (json-string-escape):
+	* mail/footnote.el (footnote-unicode-string, footnote-unicode-regexp)
+	(Footnote-unicode, Footnote-style-p):
+	* net/ntlm.el (ntlm-get-password-hashes): Fix typos.
+
 2011-11-20  Chong Yidong  <cyd@gnu.org>
 
 	* window.el (replace-buffer-in-windows): Restore interactive spec.

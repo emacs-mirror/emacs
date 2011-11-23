@@ -2818,7 +2818,7 @@
 
 	* tool-bar.el (tool-bar-setup): Remove :enable conditions, which
 	are handled by the menu-bar entries.  As before, don't use
-	:visibile to avoid changing the tool-bar.
+	:visible to avoid changing the tool-bar.
 
 2010-12-27  Michael Albinus  <michael.albinus@gmx.de>
 

@@ -34,11 +34,11 @@ has its own value of point.
 
 @cindex selected window
   At any time, one Emacs window is the @dfn{selected window}; the
-buffer this window is displaying is the current buffer.  Each window
-has its own value of point.  On graphical displays, the point is
-indicated by a solid blinking cursor in the selected window, and by a
-hollow box in non-selected windows.  On text-only terminals, the
-cursor is drawn only in the selected window.  @xref{Cursor Display}.
+buffer this window is displaying is the current buffer.  On graphical
+displays, the point is indicated by a solid blinking cursor in the
+selected window, and by a hollow box in non-selected windows.  On
+text-only terminals, the cursor is drawn only in the selected window.
+@xref{Cursor Display}.
 
   Commands to move point affect the value of point for the selected
 Emacs window only.  They do not change the value of point in other

@@ -1549,7 +1549,7 @@ behavior, change `python-remove-cwd-from-path' to nil."
 			      (if path (concat path path-separator))
 			      data-directory)
 		      process-environment))
-               ;; If we use a pipe, unicode characters are not printed
+               ;; If we use a pipe, Unicode characters are not printed
                ;; correctly (Bug#5794) and IPython does not work at
                ;; all (Bug#5390).
 	       (process-connection-type t))

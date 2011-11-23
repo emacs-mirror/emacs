@@ -992,7 +992,7 @@ if default value is nil."
 	      ;; EML - Note: the only reason to override a class bound slot
 	      ;;       is to change the default, so allow unbound in.
 
-	      ;; If we have a repeat, only update the vlaue...
+	      ;; If we have a repeat, only update the value...
 	      (eieio-perform-slot-validation-for-default a tp value skipnil)
 	      (setcar dp value))
 

@@ -1,3 +1,7 @@
+2011-11-22  Glenn Morris  <rgm@gnu.org>
+
+	* rmailmm.el: New file, split from lisp/mail/rmailmm.el.
+
 2011-11-20  Juanma Barranquero  <lekktu@gmail.com>
 
 	* cedet/semantic-utest-c.el (semantic-utest-c-comparisons): Fix typo.

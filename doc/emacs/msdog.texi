@@ -914,7 +914,7 @@ as a fallback with the font family left unspecified.
 @vindex w32-charset-info-alist
 @item registry
 Specifies the character set registry that the font is
-expected to cover.  Most TrueType and OpenType fonts will be unicode fonts
+expected to cover.  Most TrueType and OpenType fonts will be Unicode fonts
 that cover several national character sets, but you can narrow down the
 selection of fonts to those that support a particular character set by
 using a specific registry from @code{w32-charset-info-alist} here.
@@ -936,9 +936,9 @@ Options specific to @code{GDI} fonts:
 @table @code
 
 @cindex font scripts (MS Windows)
-@cindex font unicode subranges (MS Windows)
+@cindex font Unicode subranges (MS Windows)
 @item script
-Specifies a unicode subrange the font should support.
+Specifies a Unicode subrange the font should support.
 
 The following scripts are recognized on Windows: @code{latin}, @code{greek},
 @code{coptic}, @code{cyrillic}, @code{armenian}, @code{hebrew}, @code{arabic},
