@@ -1,3 +1,8 @@
+2011-11-23  Chong Yidong  <cyd@gnu.org>
+
+	* xdisp.c (compute_stop_pos): Check validity of end_charpos before
+	using it (Bug#5984).
+
 2011-11-22  Eli Zaretskii  <eliz@gnu.org>
 
 	* dispnew.c (adjust_glyph_matrix): Don't verify hash code of mode-

@@ -3166,13 +3166,11 @@ compute_stop_pos (struct it *it)
   Lisp_Object object, limit, position;
   EMACS_INT charpos, bytepos;
 
-  /* If nowhere else, stop at the end.  */
-  it->stop_charpos = it->end_charpos;
-
   if (STRINGP (it->string))
     {
       /* Strings are usually short, so don't limit the search for
 	 properties.  */
+      it->stop_charpos = it->end_charpos;
       object = it->string;
       limit = Qnil;
       charpos = IT_STRING_CHARPOS (*it);
@@ -3181,6 +3179,12 @@ compute_stop_pos (struct it *it)
   else
     {
       EMACS_INT pos;
+
+      /* If end_charpos is out of range for some reason, such as a
+	 misbehaving display function, rationalize it (Bug#5984).  */
+      if (it->end_charpos > ZV)
+	it->end_charpos = ZV;
+      it->stop_charpos = it->end_charpos;
 
       /* If next overlay change is in front of the current stop pos
 	 (which is IT->end_charpos), stop there.  Note: value of
