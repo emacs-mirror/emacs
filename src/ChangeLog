@@ -1,3 +1,8 @@
+2011-11-23  Martin Rudalics  <rudalics@gmx.at>
+
+	* buffer.c (Fkill_buffer): Run replace_buffer_in_windows before
+	making another buffer current.  (Bug#10114)
+
 2011-11-23  Glenn Morris  <rgm@gnu.org>
 
 	* font.c (font_find_for_lface) [HAVE_NS]: Ignore case.  (Bug#2526)

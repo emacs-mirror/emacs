@@ -1526,7 +1526,13 @@ with SIGHUP.  */)
       UNGCPRO;
     }
 
-  /* Make this buffer not be current.
+  /* Run replace_buffer_in_windows before making another buffer current
+     since set-window-buffer-start-and-point will refuse to make another
+     buffer current if the selected window does not show the current
+     buffer.  (Bug#10114) */
+  replace_buffer_in_windows (buffer);
+
+     /* Make this buffer not be current.
      In the process, notice if this is the sole visible buffer
      and give up if so.  */
   if (b == current_buffer)
@@ -1566,7 +1572,6 @@ with SIGHUP.  */)
 
   /* These may run Lisp code and into infinite loops (if someone
      insisted on circular lists) so allow quitting here.  */
-  replace_buffer_in_windows (buffer);
   frames_discard_buffer (buffer);
 
   clear_charpos_cache (b);
