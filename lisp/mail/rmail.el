@@ -482,12 +482,17 @@ still the current message in the Rmail buffer.")
 ;; It's not clear what it should do now, since there is nothing that
 ;; records when a message is shown for the first time (unseen is not
 ;; necessarily the same thing).
+;; See http://lists.gnu.org/archive/html/emacs-devel/2009-03/msg00013.html
 (defcustom rmail-message-filter nil
   "If non-nil, a filter function for new messages in RMAIL.
 Called with region narrowed to the message, including headers,
 before obeying `rmail-ignored-headers'."
   :group 'rmail-headers
   :type '(choice (const nil) function))
+
+(make-obsolete-variable 'rmail-message-filter
+			"it is not used (try `rmail-show-message-hook')."
+			"23.1")
 
 (defcustom rmail-automatic-folder-directives nil
   "List of directives specifying where to put a message.
