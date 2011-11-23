@@ -53,17 +53,17 @@ fit these criteria."
   :group 'shr
   :type 'regexp)
 
-(defcustom shr-table-horizontal-line ? 	; space
+(defcustom shr-table-horizontal-line ?\s
   "Character used to draw horizontal table lines."
   :group 'shr
   :type 'character)
 
-(defcustom shr-table-vertical-line ? 	; space
+(defcustom shr-table-vertical-line ?\s
   "Character used to draw vertical table lines."
   :group 'shr
   :type 'character)
 
-(defcustom shr-table-corner ? 		; space
+(defcustom shr-table-corner ?\s
   "Character used to draw table corners."
   :group 'shr
   :type 'character)
