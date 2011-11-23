@@ -1003,7 +1003,7 @@ Used by `calc-user-invocation'.")
 (defvar calc-quick-prev-results nil
   "Previous results from Quick Calc.")
 (defvar calc-said-hello nil
-  "Non-nil if the welcomd message has been displayed.")
+  "Non-nil if the welcome message has been displayed.")
 (defvar calc-executing-macro nil
   "Non-nil if a keyboard macro is executing from the \"K\" key.")
 (defvar calc-any-selections nil

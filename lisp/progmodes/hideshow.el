@@ -194,9 +194,9 @@
 ;;     Unfortunately, these workarounds do not restore hideshow state.
 ;;     If someone figures out a better way, please let me know.
 
-;; * Correspondance
+;; * Correspondence
 ;;
-;; Correspondance welcome; please indicate version number.  Send bug
+;; Correspondence welcome; please indicate version number.  Send bug
 ;; reports and inquiries to <ttn@gnu.org>.
 
 ;; * Thanks

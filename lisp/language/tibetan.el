@@ -424,7 +424,7 @@
     ))
 
 ;;; alist for Tibetan composite vowels (long i, vocalic r, etc.)
-;;; New varialble. created by Tomabechi 2000/06/08
+;;; New variable. created by Tomabechi 2000/06/08
 (defconst tibetan-composite-vowel-alist
   '(;; LONG A
     ;; ("$(7"R(B" . ((bc . tc) ?$(7"R(B))
@@ -604,7 +604,7 @@ This also matches some punctuation characters which need conversion.")
 (defvar tibetan-decomposed-temp nil)
 
 ;; For automatic composition.
-(set-char-table-range 
+(set-char-table-range
  composition-function-table '(#xF00 . #xFD1)
  (list (vector tibetan-composable-pattern 0 'font-shape-gstring)))
 

@@ -1143,7 +1143,7 @@ preceding cell has spilled over."
 	(setq x (concat text (if (< maxcol ses--numcols) " " "\n")))
 	;; We use set-text-properties to prevent a wacky print function from
 	;; inserting rogue properties, and to ensure that the keymap property is
-	;; inherited (is it a bug that only unpropertied strings actually
+	;; inherited (is it a bug that only unpropertized strings actually
 	;; inherit from surrounding text?)
 	(set-text-properties 0 (length x) nil x)
 	(insert-and-inherit x)
@@ -1371,7 +1371,7 @@ first reference is found."
     result-so-far)
 
 (defsubst ses-relocate-symbol (sym rowcol startrow startcol rowincr colincr)
-  "Relocate one symbol SYM, whichs corresponds to ROWCOL (a cons of ROW and
+  "Relocate one symbol SYM, which corresponds to ROWCOL (a cons of ROW and
 COL).  Cells starting at (STARTROW,STARTCOL) are being shifted
 by (ROWINCR,COLINCR)."
   (let ((row (car rowcol))

@@ -254,7 +254,7 @@ Optional argument THROWSYM specifies a symbol the throw on non-recoverable error
 	(fname nil)
 	(miniscope (when scope (clone scope)))
 	)
-    ;; First order check.  Is this wholely contained in the typecache?
+    ;; First order check.  Is this wholly contained in the typecache?
     (setq tmp (semanticdb-typecache-find sequence))
 
     (if tmp

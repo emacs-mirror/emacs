@@ -2626,7 +2626,7 @@ VALUE is computed by evaluating the rest of LINE in Lisp."
 (defun erc-cmd-default (line)
   "Fallback command.
 
-Commands for which no erc-cmd-xxx exists, are tunnelled through
+Commands for which no erc-cmd-xxx exists, are tunneled through
 this function.  LINE is sent to the server verbatim, and
 therefore has to contain the command itself as well."
   (erc-log (format "cmd: DEFAULT: %s" line))

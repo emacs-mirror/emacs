@@ -5084,7 +5084,7 @@
 
 2006-02-26  Chong Yidong  <cyd@stupidchicken.com>
 
-	* xterm.h, xterm.c (x_uncatch_errors): Delete unneccessary argument.
+	* xterm.h, xterm.c (x_uncatch_errors): Delete unnecessary argument.
 
 	* xterm.c (x_load_font, x_term_init, XTmouse_position)
 	(handle_one_xevent, x_connection_closed, x_list_fonts):

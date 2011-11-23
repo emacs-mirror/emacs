@@ -7089,7 +7089,7 @@
 
 2011-04-08  T.V. Raman  <tv.raman.tv@gmail.com>  (tiny change)
 
-	* xml.c (parse_region): Avoid creating spurious whiespace nodes.
+	* xml.c (parse_region): Avoid creating spurious whitespace nodes.
 
 2011-04-08  Chong Yidong  <cyd@stupidchicken.com>
 

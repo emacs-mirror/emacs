@@ -3215,7 +3215,7 @@ X1, Y1.  An endpoint is a cons pair, (ENDPOINT-X . ENDPOINT-Y)."
 ;;         2|     |
 ;;         3+-----+
 ;;
-;;   We will then pop (0,0) and remove the left-most vertival line while
+;;   We will then pop (0,0) and remove the left-most vertical line while
 ;;   pushing the lower left corner (0,3) on the stack, and so on until
 ;;   the entire rectangle is vaporized.
 ;;

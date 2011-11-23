@@ -452,7 +452,7 @@ continue processing recursively."
 	 ;; If val is nil, that's probably wrong.
 	 ;; Found a system header case where this was true.
 	 ((null val) "")
-	 ;; Debug wierd stuff.
+	 ;; Debug weird stuff.
 	 (t (debug)))
 	))
      ((stringp txt)

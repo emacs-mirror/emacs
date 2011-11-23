@@ -2635,7 +2635,7 @@ delete this buffer in another session as well."
     ))
 
 ;; Kill the variant buffer, according to user directives (ask, kill
-;; unconditionaly, keep)
+;; unconditionally, keep)
 ;; BUFF is the buffer, BUFF-TYPE is either 'A, or 'B, 'C, 'Ancestor
 (defun ediff-dispose-of-variant-according-to-user (buff bufftype ask keep-variants)
   ;; if this is indirect buffer, kill it and substitute with direct buf

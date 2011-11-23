@@ -164,7 +164,7 @@
 ;;     with the original form).  My code on the matter was improved
 ;;     considerably by Markus Triska.
 ;;  o  Fixed `prolog-insert-spaces-after-paren' (which used an
-;;     unitialized variable).
+;;     uninitialized variable).
 ;;  o  Minor changes to clean up the code and avoid some implicit
 ;;     package requirements.
 ;; Version 1.13:
@@ -691,7 +691,7 @@ nil means send actual operating system end of file."
 (defcustom prolog-use-standard-consult-compile-method-flag t
   "*Non-nil means use the standard compilation method.
 Otherwise the new compilation method will be used.  This
-utilises a special compilation buffer with the associated
+utilizes a special compilation buffer with the associated
 features such as parsing of error messages and automatically
 jumping to the source code responsible for the error.
 

@@ -215,7 +215,7 @@
   "List to hold parsed bibtex entries.")
 
 (defcustom org-bibtex-autogen-keys nil
-  "Set to a truthy value to use `bibtex-generate-autokey' to generate keys."
+  "Set to a truth value to use `bibtex-generate-autokey' to generate keys."
   :group 'org-bibtex
   :type  'boolean)
 

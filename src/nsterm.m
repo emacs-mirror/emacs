@@ -3075,7 +3075,7 @@ ns_dumpglyphs_image (struct glyph_string *s, NSRect r)
 
   /* If there is no mask, the background won't be seen,
      so draw a rectangle on the image for the cursor.
-     Do this for all images, getting trancparency right is not reliable.  */
+     Do this for all images, getting transparency right is not reliable.  */
   if (s->hl == DRAW_CURSOR)
     {
       int thickness = abs (s->img->relief);

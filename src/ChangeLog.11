@@ -11805,7 +11805,7 @@
 	* coding.c (encode_coding_utf_16): Fix checking of a Unicode
 	character.
 
-	* cmds.c (Fself_insert_command): Avoid unnecessay
+	* cmds.c (Fself_insert_command): Avoid unnecessary
 	unibyte->multibyte conversion.  (Bug#4240)  (Bug#4037)
 
 2009-08-26  Dan Nicolaescu  <dann@ics.uci.edu>

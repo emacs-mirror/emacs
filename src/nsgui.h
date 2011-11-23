@@ -65,7 +65,7 @@ typedef struct _XCharStruct
   int descent;
 } XCharStruct;
 
-/* Fake tructure from Xlib.h to represent two-byte characters.  */
+/* Fake structure from Xlib.h to represent two-byte characters.  */
 #ifndef __OBJC__
 typedef unsigned short unichar;
 #endif
@@ -202,4 +202,3 @@ typedef struct _NSRect  { NSPoint origin; NSSize size; } NSRect;
 #define PWinGravity	(1L << 9) /* program specified window gravity */
 
 #endif  /* __NSGUI_H__ */
-

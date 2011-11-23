@@ -1694,7 +1694,7 @@ ARG is ignored, and is there for compatibility with `capitalize-word' only."
 (defun ada-no-auto-case (&optional _arg)
   "Do nothing.  ARG is ignored.
 This function can be used for the auto-casing variables in Ada mode, to
-adapt to unusal auto-casing schemes.  Since it does nothing, you can for
+adapt to unusual auto-casing schemes.  Since it does nothing, you can for
 instance use it for `ada-case-identifier' if you don't want any special
 auto-casing for identifiers, whereas keywords have to be lower-cased.
 See also `ada-auto-case' to disable auto casing altogether."

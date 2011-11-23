@@ -1553,7 +1553,7 @@ those `/' is discarded.  */)
   if (p)
     /* Start over with the new string, so we check the file-name-handler
        again.  Important with filenames like "/home/foo//:/hello///there"
-       which whould substitute to "/:/hello///there" rather than "/there".  */
+       which would substitute to "/:/hello///there" rather than "/there".  */
     return Fsubstitute_in_file_name
       (make_specified_string (p, -1, endp - p, multibyte));
 

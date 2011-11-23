@@ -469,7 +469,7 @@ Point is moved to just past the fill prefix on the first line."
 
   (goto-char from)
   (if enable-multibyte-characters
-      ;; Delete unnecessay newlines surrounded by words.  The
+      ;; Delete unnecessary newlines surrounded by words.  The
       ;; character category `|' means that we can break a line at the
       ;; character.  And, char-table
       ;; `fill-nospace-between-words-table' tells how to concatenate

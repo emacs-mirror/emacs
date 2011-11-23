@@ -3100,7 +3100,7 @@ Return the start point of the new topic if successful, nil otherwise.
 
 Costs more than regular `allout-next-sibling' for short traversals:
 
- - we have to check the prior (next, if travelling backwards)
+ - we have to check the prior (next, if traveling backwards)
    item to confirm connectivity with the prior topic, and
  - if confirmed, we have to reestablish the allout-recent-* settings with
    some extra navigation

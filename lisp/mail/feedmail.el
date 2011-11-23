@@ -2026,7 +2026,7 @@ backup file names and the like)."
 	      (if (looking-at ".*\r\n.*\r\n")
 		  (while (search-forward "\r\n" nil t)
 		    (replace-match "\n" nil t)))
-;;		   ;; work around text-vs-binary wierdness
+;;		   ;; work around text-vs-binary weirdness
 ;;		   ;; if we don't find the normal M-H-S, try reading the file a different way
 ;; 		   (if (not (feedmail-find-eoh t))
 ;;			   (let ((file-name-buffer-file-type-alist nil) (default-buffer-file-type nil))

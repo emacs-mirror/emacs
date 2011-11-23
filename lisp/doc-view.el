@@ -124,7 +124,7 @@
 ;; (except the tooltip) if the next match is on the same page.
 
 ;; And it's much slower than the current search facility, because
-;; isearch really searches for each step forward or backward wheras
+;; isearch really searches for each step forward or backward whereas
 ;; the current approach searches once and then it knows to which
 ;; pages to jump.
 

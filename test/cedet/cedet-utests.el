@@ -96,7 +96,7 @@
   "Non-nil when CEDET-utest is running all the tests.")
 
 (defun cedet-utest (&optional exit-on-error)
-  "Run the CEDET unittests.
+  "Run the CEDET unit tests.
 EXIT-ON-ERROR causes the test suite to exit on an error, instead
 of just logging the error."
   (interactive)

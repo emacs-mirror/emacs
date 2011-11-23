@@ -13,7 +13,7 @@
 %
 %   latex gnus-refcard.tex &&
 %   dvips -t letter -f gnus-refcard.dvi > gnus-refcard.ps
-%   
+%
 %   latex '\def\booklettrue{}\def\letterpapertrue{}\input{gnus-refcard}' &&
 %   mv gnus-refcard.dvi gnus-booklet.dvi &&
 %   dvips -t letter -f gnus-booklet.dvi > gnus-booklet.ps
@@ -35,16 +35,16 @@
 
 \ifthenelse{\isundefined{\booklettrue}}{% ifcard %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
   % Reference Card
-  
+
   \def\Guide{Card}\def\guide{card}
   \def\logoscale{0.25}
-  
+
   % Page setup for the refcard:
-  
+
   % \setlength{\textwidth}{7.26in} \setlength{\textheight}{10in}
   % \setlength{\topmargin}{-1.0in}
   % % the same settings work for A4, although there is a bit of space at the
-  % % top and bottom of the page. 
+  % % top and bottom of the page.
   % \setlength{\oddsidemargin}{-0.5in} \setlength{\evensidemargin}{-0.5in}
 
   \ifthenelse{\isundefined{\letterpapertrue}}{
@@ -52,19 +52,19 @@
   }{
     \geometry{hmargin=20mm,tmargin=10mm,bmargin=12mm}
   }
-  
+
 }{ %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
   % Reference Booklet
-  
+
   \def\Guide{Booklet}\def\guide{booklet}
   \def\logoscale{0.5}% FIXME: too large for 2up printing?  --rsteib
-  
+
   \ifthenelse{\isundefined{\letterpapertrue}}{
     \geometry{a5paper,hmargin=10mm,tmargin=10mm,bmargin=4mm}
   }{
     \geometry{a5paper,hmargin=20mm,tmargin=10mm,bmargin=4mm}
   }
-  
+
   \def\sec{\section}
   \def\subsec{\subsection}
   \def\subsubsec{\subsubsection}
@@ -73,7 +73,7 @@
   \par\vspace*{\fill}\pagebreak}
 }%ifbooklet% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-% \input{gnusref} % % % % % % % % % % % % % % % % % % % % % % % % % %  
+% \input{gnusref} % % % % % % % % % % % % % % % % % % % % % % % % % %
 %% include file for the Gnus refcard and booklet
 
 \def\progver{5.11} % program version
@@ -218,7 +218,7 @@
       \hline
       \multicolumn{2}{|p{\markdblcolwidth}|}{{\bf ``Read'' Marks.}
         All these marks appear in the first column of the summary line, and so
-        are mutually exclusive.}\\ 
+        are mutually exclusive.}\\
       \hline
       ` ' & (M-u, M SPC, M c) Not read.\\
       !   & (!, M !, M t) Ticked (interesting).\\
@@ -284,7 +284,7 @@
               [Prefix: use group under point to find posting-style].\\
     b       & Find {\bf bogus} groups and delete them.\\
     c       & Mark all unticked articles in group as read ({\bf catch-up}).
-    [p/p]\\ 
+    [p/p]\\
     g       & Check the server for new articles ({\bf get}). [level]\\
     M-g     & Check the server for new articles in this group ({\bf get}). [p/p]\\
     j       & {\bf Jump} to a group.\\
@@ -292,14 +292,14 @@
               [Prefix: use group under point to find posting-style].\\
     n       & Go to the {\bf next} group with unread articles. [distance]\\
     M-n     & Go to the {\bf next} group on the same or lower level.
-    [distance]\\ 
+    [distance]\\
     p       & (DEL) Go to the {\bf previous} group with unread articles.
-    [distance]\\ 
-    M-p     & Go to the {\bf previous} group on the same or lower level. [distance]\\ 
+    [distance]\\
+    M-p     & Go to the {\bf previous} group on the same or lower level. [distance]\\
     q       & {\bf Quit} Gnus.\\
     r       & Re-read the init file ({\bf reset}).\\
     s       & {\bf Save} `.newsrc.eld' file (and `.newsrc' if
-    `gnus-save-newsrc-file').\\ 
+    `gnus-save-newsrc-file').\\
     z       & Suspend (kill all buffers of) Gnus.\\
     B       & {\bf Browse} a foreign server.\\
     C       & Mark all articles in this group as read ({\bf Catch-up}). [p/p]\\
@@ -312,7 +312,7 @@
     M-c     & Clear data from group (marks and list of read articles). \\
     C-c C-s & {\bf Sort} the groups by name, number of unread articles, or level
     (depending on `gnus-group-sort-function').\\
-    C-c C-x & Run all expirable articles in group through the {\bf expiry} 
+    C-c C-x & Run all expirable articles in group through the {\bf expiry}
     process.\\
     C-c M-C-x & Run all articles in all groups through the {\bf expiry} process.\\
     C-c M-g & Activate all {\bf groups}.\\
@@ -324,7 +324,7 @@
     ange-ftp). [Prefix: query for group]\\
     H v     & (V) Display the Gnus {\bf version} number.\\
     H d     & (C-c C-d) Show the {\bf description} of this group
-    [Prefix: re-read from server].\\ 
+    [Prefix: re-read from server].\\
     M-d     & {\bf Describe} all groups. [Prefix: re-read from server]\\
     D g     & Regenerate a Sieve script from group parameters.\\
     D u     & Regenerate Sieve script and {\bf upload} to server.\\
@@ -334,17 +334,17 @@
 \newcommand{\ListGroups}{%
   {\esamepage
     \begin{keys}{A M}
-      A d     & (C-c C-M-a) List all groups whose names or {\bf descriptions} match a regexp.\\ 
+      A d     & (C-c C-M-a) List all groups whose names or {\bf descriptions} match a regexp.\\
       A k     & (C-c C-l) List all {\bf killed} groups.
       [Prefix: look at active-file from server]\\
       A l     & List all groups on a specific level.
       [Prefix: also list groups with no unread articles]\\
       A a     & (C-c C-a) List all groups whose names match a regexp
-      ({\bf apropos}).\\ 
+      ({\bf apropos}).\\
       A A     & List the server's active-file.\\
       A M     & List groups that {\bf match} a regexp.\\
-      A m     & List groups that {\bf match} a regexp and have unread articles. 
-      [level]\\ 
+      A m     & List groups that {\bf match} a regexp and have unread articles.
+      [level]\\
       A s     & (l) List all {\bf subscribed} groups with unread articles.
       [level; 5 and lower is the default]\\
       A u     & (L) List all groups (including read and {\bf unsubscribed}).
@@ -354,7 +354,7 @@
       A ?     & List all groups with dormant articles. [level]\\
     \end{keys}
   }
-  
+
   \newcommand{\CreateEditGroups}{%
     {\esamepage
       The select methods are indicated in parentheses.\\*
@@ -404,8 +404,8 @@
       M m     & (\#) Set the process {\bf mark} on this group. [scope]\\
       M r     & Mark all groups matching regular expression.\\
       M u     & (M-\#) Remove process mark from this group ({\bf unmark}).
-      [scope]\\ 
-      M U     & Remove the process mark from all groups (\textbf{umark all}).\\
+      [scope]\\
+      M U     & Remove the process mark from all groups (\textbf{unmark all}).\\
       M w     & Mark all groups in the current region. [prefix: unmark]\\
       M b     & Mark all groups in the {\bf buffer}. [prefix: unmark]\\
     \end{keys}}
@@ -427,7 +427,7 @@
         T DEL   & Delete an empty topic.\\
         T \#    & Mark all groups in the current topic with the process-mark.\\
         T M-\#  & Remove the process-mark from all groups in the current topic.\\
-        T TAB   & (TAB) Indent current topic [Prefix: unindent].\\ 
+        T TAB   & (TAB) Indent current topic [Prefix: unindent].\\
         M-TAB   & Unindent the current topic.\\
         RET     & (SPC) Either unfold topic or enter group [level].\\
         T s     & {\bf Show} the current topic. [Prefix: show permanently]\\
@@ -478,7 +478,7 @@
     {\esamepage
       \begin{keys}{M-RET}
         SPC     & (A SPC, A n) Select an article, scroll it one page, move to the
-        next one.\\ 
+        next one.\\
         DEL     & (A DEL, A p, b) Scroll this article one page back. [distance]\\
         RET     & (A RET) Scroll this article one line forward. [distance]\\
         M-RET   & (A M-RET) Scroll this article one line backward. [distance]\\
@@ -490,9 +490,9 @@
         M-\&    & Execute a command on all articles having the process mark.\\
                                 %
         M-n     & (G M-n) Go to {\bf next} summary line of unread article.
-        [distance]\\ 
-        M-p     & (G M-p) Go to {\bf previous} summary line of an unread article. 
-        [distance]\\ 
+        [distance]\\
+        M-p     & (G M-p) Go to {\bf previous} summary line of an unread article.
+        [distance]\\
         M-s     & {\bf Search} through all subsequent articles for a regexp.\\
         M-r     & Search through all previous articles for a regexp.\\
                                 %
@@ -519,7 +519,7 @@
         M-C-d   & Like C-d, but open several documents in nndoc-groups, wrapped
         in an nnvirtual group [p/p]\\
                                 %
-        A g     & (g) (Re)fetch this article ({\bf get}). [Prefix: get raw version]\\ 
+        A g     & (g) (Re)fetch this article ({\bf get}). [Prefix: get raw version]\\
         A r     & (\^{}, A \^{}) Fetch the parent(s) of this article.
         [Prefix: if positive fetch \textit{n} ancestors;
         negative: fetch only the \textit{n}th ancestor]\\
@@ -541,7 +541,7 @@
       prefix selects which part to operate on. If the point is placed over a
       MIME button in the article buffer, use the corresponding bindings for the
       article buffer instead.
-      
+
       \begin{keys}{W M w}
         K v      & (b, W M b) {\bf View} the MIME-part.\\
         K o      & {\bf Save} the MIME part.\\
@@ -597,7 +597,7 @@
         B t     & {\bf Trace} the fancy splitting patterns applied to this article.\\
         B w     & (e) Edit this article.\\
         B M-C-e & {\bf Expunge} (delete from disk) all expirable articles in this group
-        (!). [p/p]\\ 
+        (!). [p/p]\\
         K E     & {\bf Encrypt} article body. [p/p]\\
       \end{keys}
       }
@@ -665,7 +665,7 @@
         W 6     & Translate a base64 article.\\
         W a     & Strip certain {\bf headers} from body.\\
         W b     & Make Message-IDs and URLs in the article mouse-clickable
-        {\bf buttons}.\\  
+        {\bf buttons}.\\
         W c     & Translate CRLF-pairs to LF and then remaining CR's to LF's.\\
         W d     & Treat {\bf dumbquotes}.\\
         W e     & Treat {\bf emphasized} text.\\
@@ -698,7 +698,7 @@
       }
     }
 
-  \newcommand{\BlankAndWhitespace}{% 
+  \newcommand{\BlankAndWhitespace}{%
     {\esamepage
       \begin{keys}{W E w}
         W E l   & Strip blank {\bf lines} from the beginning of the article.\\
@@ -715,7 +715,7 @@
       }
     }
 
-  \newcommand{\Picons}{% 
+  \newcommand{\Picons}{%
     {\esamepage
       \begin{keys}{W D D}
         W D s   & (W g) Display {\bf smilies}.\\
@@ -729,7 +729,7 @@
       }
     }
 
-  \newcommand{\TimeAndDate}{% 
+  \newcommand{\TimeAndDate}{%
     {\esamepage
       \begin{keys}{W T u}
         W T u   & (W T z) Display the article timestamp in GMT ({\bf UT, ZULU}).\\
@@ -739,7 +739,7 @@
         W T e   & Display the time {\bf elapsed} since it was sent.\\
         W T o   & Display the {\bf original} timestamp.\\
         W T p   & Display the date in format that's {\bf
-          pronounceable} in English.\\        
+          pronounceable} in English.\\
       \end{keys}
       }
     }
@@ -793,26 +793,26 @@
     {\esamepage
       \begin{keys}{M M-C-r}
         d       & (M d, M r) Mark this article as read and move to the next one.
-        [scope]\\ 
+        [scope]\\
         D       & Mark this article as read and move to previous one. [scope]\\
         !       & (u, M !, M t) Tick this article (mark it as interesting) and move
         to the next one. [scope]\\
-        U       & Tick this article and move to the previous one. [scope]\\ 
+        U       & Tick this article and move to the previous one. [scope]\\
         M ?     & (?) Mark this article as dormant (only followups are
-        interesting). [scope]\\ 
+        interesting). [scope]\\
         M D     & Show all {\bf dormant} articles (normally they are hidden unless they
         have any followups).\\
         M M-D   & Hide all {\bf dormant} articles.\\
         C-w     & Mark all articles between point and mark as read.\\
         M-u     & (M SPC, M c) Clear all marks from this article and move to the next
-        one. [scope]\\ 
+        one. [scope]\\
         M-U     & Clear all marks from this article and move to the previous one.
         [scope]\\
                                 %
         M e     & (E, M x) Mark this article as {\bf expirable}. [scope]\\
                                 %
         M k     & (k) {\bf Kill} all articles with same subject, select
-        next unread one.\\ 
+        next unread one.\\
         M K     & (C-k) {\bf Kill} all articles with the same subject as this one.\\
                                 %
         M C     & {\bf Catch-up} the articles that are not ticked and not dormant.\\
@@ -842,7 +842,7 @@
   }
 
 \newcommand{\ProcessMark}{%
-  {\esamepage 
+  {\esamepage
     These commands set and remove the process mark (\#). You only need to use
     it if the set of articles you want to operate on is non-contiguous. Else
     use a numeric prefix.\\*
@@ -929,7 +929,7 @@
                                 %After
                                 %editing the article, send it by pressing C-c C-c.  If you are in a
                                 %foreign group and want to post the article using the foreign server, give
-                                %a prefix to C-c C-c.\\* 
+                                %a prefix to C-c C-c.\\*
     \begin{keys}{S O m}
       S p     & (a) {\bf Post} an article to this group.\\
       S f     & (f) Post a {\bf followup} to this article.\\
@@ -965,7 +965,7 @@
                                 %
       S O m   & Digest these series and forward by {\bf mail}. [p/p]\\
       S O p   & Digest these series and forward as a {\bf post} to a newsgroup.
-      [p/p]\\ 
+      [p/p]\\
                                 %
       S u     & {\bf Uuencode} a file and post it as a series.\\
     \end{keys}
@@ -1036,8 +1036,8 @@
     \quad \B{l}ifetime: t)emporary, p)ermanent, i)mmediate.
 
     If you type the second letter in uppercase, the remaining two are assumed
-    to be s)ubstring and t)emporary. 
-    If you type the third letter in uppercase, the last one is assumed to be 
+    to be s)ubstring and t)emporary.
+    If you type the third letter in uppercase, the last one is assumed to be
     t)emporary.
 
     \quad Extra keys for manual editing of a score file:\\*
@@ -1057,7 +1057,7 @@
     archives, they are expanded and gathered in a new group.\\*
     \begin{keys}{X p}
       X b     & Un-{\bf binhex} these series. [p/p]\\
-      X o     & Simply {\bf output} these series (no decoding). [p/p]\\ 
+      X o     & Simply {\bf output} these series (no decoding). [p/p]\\
       X p     & Unpack these {\bf postscript} series. [p/p]\\
       X s     & Un-{\bf shar} these series. [p/p]\\
       X u     & {\bf Uudecode} these series. [p/p]\\
@@ -1259,7 +1259,7 @@
     }
   }
 
-% end   {gnusref} % % % % % % % % % % % % % % % % % % % % % % % % % %  
+% end   {gnusref} % % % % % % % % % % % % % % % % % % % % % % % % % %
 
 
 % o some things might not be updated: scoring and server modes, maybe more
@@ -1333,7 +1333,7 @@
     \SortSummary
     \subsection*{Score (Value) Commands}
     \Scoring
-    
+
 \ifthenelse{\isundefined{\booklettrue}}{% ifcard %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
   \subsection*{Output Articles}
   \OutputArticles
@@ -1343,7 +1343,7 @@
 
     \subsection*{MIME operations from the Summary-Buffer}
     \MIMESummary
-    
+
 \ifthenelse{\isundefined{\booklettrue}}{}{% ifbooklet %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
   \subsection*{Extract Series (Uudecode etc)}
   \ExtractSeries
@@ -1354,7 +1354,7 @@
 %
     \subsection*{Post, Followup, Reply, Forward, Cancel}
     \PostReplyetc
-    
+
 \ifthenelse{\isundefined{\booklettrue}}{\newpage}{}% newpage ifcard
 
       \subsection*{Message Composition}

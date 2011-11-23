@@ -43,7 +43,7 @@
 ;; Important caveat, when deciding the cursor/'grey keys' keycodes I had to
 ;; make a choice: on my Linux box this choice allows me to run all the
 ;; ncurses applications without problems but make these keys
-;; uncomprehensible to all the cursesX programs.  Your mileage may vary so
+;; incomprehensible to all the cursesX programs.  Your mileage may vary so
 ;; you may consider changing the default 'emulation'.  Just search for this
 ;; piece of code and modify it as you like:
 ;;

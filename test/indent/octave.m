@@ -19,7 +19,7 @@ function res = tcomp (fn)
   pop = x(:,1:10)(:);
     ## Here and below, we test if the indentation aligns with a previous
     ## fixindented line.  This is important so as to make it easier for the
-    ## user to verride some indentation somewhere, and also because it
+    ## user to override some indentation somewhere, and also because it
     ## reflects the fact that the indentation decision is taken with a minimum
     ## amount of work (i.e. in the present case, without having to walk back
     ## until the `function' line).

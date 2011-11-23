@@ -220,7 +220,7 @@ non-nil, byte-compiles each function after instrumenting."
 (defun testcover-reinstrument (form)
   "Reinstruments FORM to use testcover instead of edebug.  This
 function modifies the list that FORM points to.  Result is nil if
-FORM should return multiple vlues, t if should always return same
+FORM should return multiple values, t if should always return same
 value, 'maybe if either is acceptable."
   (let ((fun (car-safe form))
 	id val)

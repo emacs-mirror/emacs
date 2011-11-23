@@ -3711,7 +3711,7 @@ w32_wnd_proc (HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
       if (w32_system_caret_hwnd == NULL)
 	{
 	  /* Use the default caret width, and avoid changing it
-	     unneccesarily, as it confuses screen reader software.  */
+	     unnecessarily, as it confuses screen reader software.  */
 	  w32_system_caret_hwnd = hwnd;
 	  CreateCaret (hwnd, NULL, 0,
 		       w32_system_caret_height);
