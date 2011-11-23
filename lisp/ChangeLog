@@ -240,11 +240,11 @@
 
 2011-11-16  Michael Albinus  <michael.albinus@gmx.de>
 
-	* net/tramp.el (tramp-handle-file-truename): Cache only the local
-	file name.
-
 	* net/tramp-cache.el (tramp-flush-file-property): Flush also
 	properties of linked files.  (Bug#9879)
+
+	* net/tramp-sh.el (tramp-sh-handle-file-truename): Cache only the
+	local file name.
 
 2011-11-16  Juanma Barranquero  <lekktu@gmail.com>
 
