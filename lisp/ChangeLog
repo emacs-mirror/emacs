@@ -4,6 +4,10 @@
 
 2011-11-23  Glenn Morris  <rgm@gnu.org>
 
+	* mail/rmail.el (rmail-message-filter, rmail-auto-file): Doc fixes.
+	(rmail-auto-file): Ignore case in the "special" field names,
+	as mail-fetch-field does for all others.
+
 	* mail/rmail.el (rmail-forward):
 	* mail/rmailkwd.el (rmail-set-label):
 	* mail/rmailout.el (rmail-output, rmail-output-as-seen)
