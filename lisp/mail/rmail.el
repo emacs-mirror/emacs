@@ -4484,7 +4484,7 @@ Edit the contents of this message.
 
 ;;;### (autoloads (rmail-next-labeled-message rmail-previous-labeled-message
 ;;;;;;  rmail-read-label rmail-kill-label rmail-add-label) "rmailkwd"
-;;;;;;  "rmailkwd.el" "08c288c88cfe7be50830122c064e3884")
+;;;;;;  "rmailkwd.el" "ec13237a2b0a9e9c1893e38d36b11134")
 ;;; Generated autoloads from rmailkwd.el
 
 (autoload 'rmail-add-label "rmailkwd" "\
