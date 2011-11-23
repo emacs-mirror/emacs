@@ -557,7 +557,9 @@ In a summary buffer, this holds the RMAIL buffer it is a summary for.")
 ;; Message counters and markers.  Deleted flags.
 
 (defvar rmail-current-message nil
-  "Integer specifying the message currently being displayed in this folder.")
+  "Integer specifying the message currently being displayed in this folder.
+Counts messages from 1 to `rmail-total-messages'.  A value of 0
+means there are no messages in the folder.")
 (put 'rmail-current-message 'permanent-local t)
 
 (defvar rmail-total-messages nil
