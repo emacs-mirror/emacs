@@ -4,6 +4,9 @@
 
 2011-11-23  Glenn Morris  <rgm@gnu.org>
 
+	* paths.el (rmail-file-name): Reformat the doc-string so that it
+	is picked up.
+
 	* mail/rmail.el (rmail-message-filter, rmail-auto-file): Doc fixes.
 	(rmail-auto-file): Ignore case in the "special" field names,
 	as mail-fetch-field does for all others.

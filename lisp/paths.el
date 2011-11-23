@@ -132,8 +132,12 @@ should be set to `(system-name)'.")
 *The name of your organization, as a string.
 The `ORGANIZATION' environment variable is used instead if defined.")
 
-(defcustom rmail-file-name (purecopy "~/RMAIL") "\
-Name of user's primary mail file."
+;; This is a defcustom, which make-docfile does not recognize in
+;; uncompiled Lisp code.  If we use the "\ method of writing the doc,
+;; it does not get a doc string.  Somehow if we write it in the "wrong"
+;; (ie normal) way (as below), it does...  See also remote-shell-program.
+(defcustom rmail-file-name (purecopy "~/RMAIL")
+  "Name of user's primary mail file."
   :type 'string
   :group 'rmail
   :version "21.1")
