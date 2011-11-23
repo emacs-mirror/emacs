@@ -3160,14 +3160,7 @@ font_find_for_lface (FRAME_PTR f, Lisp_Object *attrs, Lisp_Object spec, int c)
   else
     {
       Lisp_Object alters
-	= Fassoc_string (val, Vface_alternative_font_family_alist,
-                         /* Font family names are case-sensitive under NS. */
-#ifndef HAVE_NS
-			 Qt
-#else
-			 Qnil
-#endif
-			 );
+	= Fassoc_string (val, Vface_alternative_font_family_alist, Qt);
 
       if (! NILP (alters))
 	{

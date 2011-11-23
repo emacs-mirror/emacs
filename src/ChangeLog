@@ -1,3 +1,7 @@
+2011-11-23  Glenn Morris  <rgm@gnu.org>
+
+	* font.c (font_find_for_lface) [HAVE_NS]: Ignore case.  (Bug#2526)
+
 2011-11-23  Chong Yidong  <cyd@gnu.org>
 
 	* xdisp.c (compute_stop_pos): Check validity of end_charpos before
