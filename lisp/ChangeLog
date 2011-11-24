@@ -1,3 +1,7 @@
+2011-11-24  Glenn Morris  <rgm@gnu.org>
+
+	* version.el (emacs-build-system): Give it a doc-string.
+
 2011-11-24  Juri Linkov  <juri@jurta.org>
 
 	* view.el (view-buffer): Revert revno:105285 from 2011-07-19 (bug#8615).

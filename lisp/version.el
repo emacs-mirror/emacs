@@ -1,4 +1,4 @@
-;;; version.el --- record version number of Emacs -*- no-byte-compile: t -*-
+;;; version.el --- record version number of Emacs
 
 ;; Copyright (C) 1985, 1992, 1994-1995, 1999-2011
 ;;   Free Software Foundation, Inc.
@@ -40,7 +40,8 @@ This variable first existed in version 19.23.")
 (defconst emacs-build-time (current-time) "\
 Time at which Emacs was dumped out.")
 
-(defconst emacs-build-system (system-name))
+(defconst emacs-build-system (system-name) "\
+Name of the system on which Emacs was built.")
 
 (defun emacs-version (&optional here) "\
 Return string describing the version of Emacs that is running.
@@ -83,8 +84,9 @@ to the system configuration; look at `system-configuration' instead."
     (purecopy (concat "\n$Id: " (subst-char-in-string ?\n ?\s (emacs-version))
 		      " $\n")))
 
-;;Local variables:
-;;version-control: never
-;;End:
+;; Local Variables:
+;; version-control: never
+;; no-byte-compile: t
+;; End:
 
 ;;; version.el ends here
