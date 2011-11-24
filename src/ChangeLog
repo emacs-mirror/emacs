@@ -1,3 +1,8 @@
+2011-11-24  Juri Linkov  <juri@jurta.org>
+
+	* image.c (imagemagick_load_image): Move `MagickSetResolution' down
+	after the `MagickPingImage' call.  (Bug#10112)
+
 2011-11-23  Chong Yidong  <cyd@gnu.org>
 
 	* window.c (Fcoordinates_in_window_p): Accept only live windows.
