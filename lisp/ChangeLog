@@ -1,3 +1,8 @@
+2011-11-24  Glenn Morris  <rgm@gnu.org>
+
+	* mail/rmailmm.el (rmail-mime): When rmail-enable-mime is non-nil,
+	if called on a non-mime message just toggle the headers.  (Bug#8006)
+
 2011-11-24  Juanma Barranquero  <lekktu@gmail.com>
 
 	* allout.el (allout-setup, allout-auto-save-temporarily-disabled)
