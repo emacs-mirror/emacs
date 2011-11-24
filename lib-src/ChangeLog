@@ -1,3 +1,7 @@
+2011-11-24  Glenn Morris  <rgm@gnu.org>
+
+	* make-docfile.c (scan_lisp_file): Treat defcustom like defvar.
+
 2011-11-14  Dan Nicolaescu  <dann@ics.uci.edu>
 
 	* Makefile.in (all): Make sure "all" is the first target.
