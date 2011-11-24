@@ -1451,12 +1451,12 @@ Set this variable before loading BibTeX mode."
 (defvar bibtex-field-braces-opt nil
   "Optimized value of `bibtex-field-braces-alist'.
 Created by `bibtex-field-re-init'.
-It is a an alist with elements (FIELD . REGEXP).")
+It is an alist with elements (FIELD . REGEXP).")
 
 (defvar bibtex-field-strings-opt nil
   "Optimized value of `bibtex-field-strings-alist'.
 Created by `bibtex-field-re-init'.
-It is a an alist with elements (FIELD RULE1 RULE2 ...),
+It is an alist with elements (FIELD RULE1 RULE2 ...),
 where each RULE is (REGEXP . TO-STR).")
 
 (defvar bibtex-pop-previous-search-point nil

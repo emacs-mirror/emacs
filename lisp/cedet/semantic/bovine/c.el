@@ -298,7 +298,7 @@ Moves completely over balanced #if blocks."
 	;; @TODO - can we use the new c-scan-conditionals
 	(c-forward-conditional 1))
        ((looking-at "^\\s-*#\\s-*elif")
-	;; We need to let the preprocessor analize this one.
+	;; We need to let the preprocessor analyze this one.
 	(beginning-of-line)
 	(setq done t)
 	)

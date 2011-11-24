@@ -1,3 +1,7 @@
+2011-11-24  Juanma Barranquero  <lekktu@gmail.com>
+
+	* gnus-group.el (gnus-group-highlight): Fix typo.
+
 2011-11-24  Adam W  <adam_w67@yahoo.com>  (tiny change)
 
 	* mail-source.el (mail-source-fetch-maildir): Don't expect the return
@@ -2277,7 +2281,7 @@
 	* gnus-art.el (gnus-article-next-page-1): Because customized mode-line
 	face with line-width greater than zero will cause RET in gnus summary
 	buffer to scroll down article page-wise because auto vscroll happens,
-	it should be temporalily disabled when doing a scroll-up.
+	it should be temporally disabled when doing a scroll-up.
 
 2011-02-19  Lars Ingebrigtsen  <larsi@gnus.org>
 
@@ -11700,7 +11704,7 @@
 	(nntp-open-marks): Decode group names when bootstrapping marks.
 
 	* rfc2047.el (rfc2047-encode-message-header): Make XEmacs decode
-	Newsgroups and Folowup-To headers.
+	Newsgroups and Followup-To headers.
 
 2007-07-13  Katsumi Yamaoka  <yamaoka@jpl.org>
 

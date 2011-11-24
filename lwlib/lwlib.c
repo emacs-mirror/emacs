@@ -1156,9 +1156,9 @@ lw_get_widget_value_for_widget (widget_instance *instance, Widget w)
 /* To forbid recursive calls */
 static Boolean lwlib_updating;
 
-/* This function can be used as a an XtCallback for the widgets that get
-  modified to update other instances of the widgets.  Closure should be the
-  widget_instance. */
+/* This function can be used as an XtCallback for the widgets that get
+   modified to update other instances of the widgets.  Closure should be the
+   widget_instance. */
 void
 lw_internal_update_other_instances (Widget widget,
                                     XtPointer closure,

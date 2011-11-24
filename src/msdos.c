@@ -1558,7 +1558,7 @@ IT_set_terminal_window (struct frame *f, int foo)
 {
 }
 
-/* Remember the screen colors of the curent frame, to serve as the
+/* Remember the screen colors of the current frame, to serve as the
    default colors for newly-created frames.  */
 DEFUN ("msdos-remember-default-colors", Fmsdos_remember_default_colors,
        Smsdos_remember_default_colors, 1, 1, 0,

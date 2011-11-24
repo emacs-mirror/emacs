@@ -4522,7 +4522,7 @@ The actual non-nil value of this variable will be copied to the
 
 (defun window-normalize-buffer-to-display (buffer-or-name)
   "Normalize BUFFER-OR-NAME argument for buffer display functions.
-If BUFFER-OR-NAME is nil, return the curent buffer.  Else, if a
+If BUFFER-OR-NAME is nil, return the current buffer.  Else, if a
 buffer specified by BUFFER-OR-NAME exists, return that buffer.
 If no such buffer exists, create a buffer with the name
 BUFFER-OR-NAME and return that buffer."

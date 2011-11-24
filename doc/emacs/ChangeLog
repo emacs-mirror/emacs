@@ -1,3 +1,7 @@
+2011-11-24  Juanma Barranquero  <lekktu@gmail.com>
+
+	* display.texi (Font Lock): Fix typo.
+
 2011-11-24  Glenn Morris  <rgm@gnu.org>
 
 	* rmail.texi (Rmail Output):

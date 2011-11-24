@@ -1745,7 +1745,7 @@ and source-file directory for your debugger."
 ;; All the .java files in the directories in gud-jdb-directories are
 ;; syntactically analyzed each time gud jdb is invoked.  It would be
 ;; nice to keep as much information as possible between runs.  It would
-;; be really nice to analyze the files only as neccessary (when the
+;; be really nice to analyze the files only as necessary (when the
 ;; source needs to be displayed.)  I'm not sure to what extent the former
 ;; can be accomplished and I'm not sure the latter can be done at all
 ;; since I don't know of any general way to tell which .class files are

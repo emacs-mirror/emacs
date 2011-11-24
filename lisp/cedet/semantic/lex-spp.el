@@ -821,7 +821,7 @@ STR occurs in the current buffer between BEG and END."
 ;; a macro.
 
 (defun semantic-lex-spp-first-token-arg-list (token)
-  "If TOKEN is a semantic-list, turn it into a an SPP ARG LIST."
+  "If TOKEN is a semantic-list, turn it into an SPP ARG LIST."
   (when (and (consp token)
 	     (symbolp (car token))
 	     (eq 'semantic-list (car token)))
