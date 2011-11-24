@@ -1,3 +1,7 @@
+2011-11-24  Glenn Morris  <rgm@gnu.org>
+
+	* gnus.texi, smtpmail.texi: Fix case of "GnuTLS".
+
 2011-11-24  Juanma Barranquero  <lekktu@gmail.com>
 
 	* makefile.w32-in: Update dependencies.

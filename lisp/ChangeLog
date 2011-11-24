@@ -1,5 +1,7 @@
 2011-11-24  Glenn Morris  <rgm@gnu.org>
 
+	* net/tls.el: Fix case of "GnuTLS".
+
 	* paths.el (rmail-file-name): Format doc-string for make-docfile.
 
 	* version.el (emacs-build-system): Give it a doc-string.

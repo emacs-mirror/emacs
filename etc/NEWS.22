@@ -2558,10 +2558,10 @@ is nil).
 
 *** Minor Improvements
 
-**** The STARTTLS wrapper (starttls.el) can now use GNUTLS
+**** The STARTTLS wrapper (starttls.el) can now use GnuTLS
 instead of the OpenSSL based `starttls' tool.  For backwards
 compatibility, it prefers `starttls', but you can toggle
-`starttls-use-gnutls' to switch to GNUTLS (or simply remove the
+`starttls-use-gnutls' to switch to GnuTLS (or simply remove the
 `starttls' tool).
 
 **** Do not allow debugger output history variable to grow without bounds.
