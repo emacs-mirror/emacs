@@ -59,9 +59,10 @@ If nil, use the value of `vc-diff-switches'.  If t, use no switches."
   (setq vc-handled-backends (delq 'Mtn vc-handled-backends)))
 
 ;;;###autoload
-(defconst vc-mtn-admin-dir "_MTN")
+(defconst vc-mtn-admin-dir "_MTN" "Name of the monotone directory.")
 ;;;###autoload
-(defconst vc-mtn-admin-format (concat vc-mtn-admin-dir "/format"))
+(defconst vc-mtn-admin-format (concat vc-mtn-admin-dir "/format")
+  "Name of the monotone directory's format file.")
 
 ;;;###autoload (defun vc-mtn-registered (file)
 ;;;###autoload   (if (vc-find-root file vc-mtn-admin-format)

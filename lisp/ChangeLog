@@ -1,5 +1,14 @@
 2011-11-24  Glenn Morris  <rgm@gnu.org>
 
+	* lpr.el (lpr-windows-system, lpr-lp-system):
+	* mail/binhex.el (binhex-begin-line):
+	* progmodes/grep.el (grep-history, grep-find-history):
+	* textmodes/flyspell.el:
+	* vc/pcvs-defs.el (cvs-global-menu):
+	* vc/vc-bzr.el (vc-bzr-admin-checkout-format-file):
+	* vc/vc-mtn.el (vc-mtn-admin-dir, vc-mtn-admin-format):
+	* vc/vc-cvs.el (vc-cvs-registered): Give them basic doc-strings.
+
 	* net/tls.el: Fix case of "GnuTLS".
 
 	* paths.el (rmail-file-name): Format doc-string for make-docfile.
