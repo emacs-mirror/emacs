@@ -1,3 +1,8 @@
+2011-11-24  Glenn Morris  <rgm@gnu.org>
+
+	* rmail.texi (Rmail Output):
+	Mention rmail-automatic-folder-directives.  (Bug#9657)
+
 2011-11-21  Chong Yidong  <cyd@gnu.org>
 
 	* mark.texi (Global Mark Ring): Fix description of global mark

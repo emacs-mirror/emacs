@@ -571,6 +571,22 @@ the file name to use, or more generally it may be any Lisp expression
 that returns a file name as a string.  @code{rmail-output-file-alist}
 applies to both @kbd{o} and @kbd{C-o}.
 
+@vindex rmail-automatic-folder-directives
+Rmail can automatically save messages from your primary Rmail file
+(the one that @code{rmail-file-name} specifies) to other files, based
+on the value of the variable @code{rmail-automatic-folder-directives}.
+This variable is a list of elements (@samp{directives}) that say which
+messages to save where.  Each directive is a list consisting of an
+output file, followed by one or more pairs of a header name and a regular
+expression.  If a message has a header matching the specified regular
+expression, that message is saved to the given file.  If the directive
+has more than one header entry, all must match.  Rmail checks directives
+when it shows a message from the file @code{rmail-file-name}, and
+applies the first that matches (if any).  If the output file is
+@code{nil}, the message is deleted, not saved.  For example, you can use
+this feature to save messages from a particular address, or with a
+particular subject, to a dedicated file.
+
 @node Rmail Labels
 @section Labels
 @cindex label (Rmail)
