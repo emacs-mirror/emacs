@@ -1,3 +1,8 @@
+2011-11-25  Martin Rudalics  <rudalics@gmx.at>
+
+	* windows.texi (Splitting Windows): Fix description of
+	window-combination-limit.  Suggested by Eli Zaretskii.
+
 2011-11-23  Chong Yidong  <cyd@gnu.org>
 
 	* windows.texi (Window Sizes): Move window-top-line,
