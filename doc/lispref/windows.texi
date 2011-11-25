@@ -890,8 +890,9 @@ direction as the existing window combination (otherwise, a new
 internal window is created anyway).  The default is @code{nil}.  Other
 values are reserved for future use.
 
-Thus, if the value is always @code{t}, each window tree is a binary
-tree: each window except the root window has exactly one sibling.
+Thus, if the value of this variable is at all times @code{t}, then at
+all times every window tree is a binary tree (a tree where each window
+except the root window has exactly one sibling).
 
 Furthermore, @code{split-window} calls
 @code{set-window-combination-limit} on the newly-created internal

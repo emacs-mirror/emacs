@@ -4275,7 +4275,7 @@
 	stops with an error and Emacs does not compile with those things in.
 	Besides, declare-function is not defined in XEmacs.
 
-	* ediff-util.el (eqiff-quit): Autoraise minibuffer.
+	* ediff-util.el (ediff-quit): Autoraise minibuffer.
 
 	* ediff-diff.el (ediff-convert-fine-diffs-to-overlays): Make it a defun.
 
@@ -7393,7 +7393,7 @@
 
 	* help-mode.el (help-mode): Set view-exit-action to bury the
 	buffer instead of fiddling with windows.  Simplify code.
-	(help-mode-finish): When help-window eqs t set it to the selected
+	(help-mode-finish): When help-window equals t set it to the selected
 	window and have with-help-window set up view-return-to-alist.
 	(help-buffer): Add autoload cookie.
 

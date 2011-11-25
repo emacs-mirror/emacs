@@ -1,3 +1,17 @@
+2011-11-25  Chong Yidong  <cyd@gnu.org>
+
+	* frames.texi (Frames): Rewrite introduction.
+	(Mouse Commands): Default for mouse-drag-copy-region is now t.
+	Mouse-3 does not copy to kill ring by default.  DEL does not
+	behave specially for mouse commands any more.
+	(Mouse References): Document mouse-1-click-follows-link more
+	thoroughly.
+	(Menu Mouse Clicks): Move footnote to the main text and add xref
+	to Init Rebinding node.
+	(Mode Line Mouse): Mouse-3 on the mode-line does not bury buffer.
+
+	* files.texi (Visiting): `C-x 5 f' works on ttys too.
+
 2011-11-24  Juanma Barranquero  <lekktu@gmail.com>
 
 	* display.texi (Font Lock): Fix typo.

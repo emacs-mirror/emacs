@@ -1,3 +1,13 @@
+2011-11-25  Eli Zaretskii  <eliz@gnu.org>
+
+	* xdisp.c (redisplay_window): If cursor row is not fully visible
+	after recentering, and scroll-conservatively is set to a large
+	number, scroll window by a few more lines to make the cursor fully
+	visible and out of scroll-margin.  (Bug#10105)
+	(start_display): Don't move to the next line if the display should
+	start at a newline that is part of a display vector or an overlay
+	string.  (Bug#10119)
+
 2011-11-24  Juri Linkov  <juri@jurta.org>
 
 	* image.c (imagemagick_load_image): Move `MagickSetResolution' down
@@ -7723,7 +7733,7 @@
 	* keyboard.c (Fcommand_execute, Fsuspend_emacs, safe_run_hooks_1):
 	Use Frun_hooks.
 	(command_loop_1): Use Frun_hooks.  Call safe_run_hooks
-	unconditionnaly since it does the check itself.
+	unconditionally since it does the check itself.
 
 2011-03-23  Paul Eggert  <eggert@cs.ucla.edu>
 

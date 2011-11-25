@@ -6065,7 +6065,7 @@
 
 2010-10-03  Teodor Zlatanov  <tzz@lifelogs.com>
 
-	* net/gnutls.el: Improve docs.  Remove starttls and ssl emulation.
+	* net/gnutls.el: Improve docs.  Remove STARTTLS and SSL emulation.
 	Provide only `open-gnutls-stream' (formerly `open-ssl-stream') and
 	`gnutls-negotiate' (formerly `starttls-negotiate').
 	Remove trivial wrapper `starttls-open-stream'.
@@ -6217,7 +6217,7 @@
 
 2010-10-01  Lars Magne Ingebrigtsen  <larsi@gnus.org>
 
-	* net/tls.el (tls-starttls-switches): Give up on using starttls with
+	* net/tls.el (tls-starttls-switches): Give up on using STARTTLS with
 	gnutls-cli.
 	(tls-program): Add --insecure to be consistent with the defaults from
 	openssl s_client.  Now all three commands are insecure.

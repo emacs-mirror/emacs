@@ -108,7 +108,7 @@ trust and key files, and priority string."
            trustfiles crlfiles keylist min-prime-bits
            verify-flags verify-error verify-hostname-error
            &allow-other-keys)
-  "Negotiate a SSL/TLS connection.  Returns proc. Signals gnutls-error.
+  "Negotiate a SSL/TLS connection.  Returns proc.  Signals gnutls-error.
 
 Note arguments are passed CL style, :type TYPE instead of just TYPE.
 
