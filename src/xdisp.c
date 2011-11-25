@@ -15043,7 +15043,6 @@ redisplay_window (Lisp_Object window, int just_this_one_p)
   int centering_position = -1;
   int last_line_misfit = 0;
   EMACS_INT beg_unchanged, end_unchanged;
-  int scrolling_up;
 
   SET_TEXT_POS (lpoint, PT, PT_BYTE);
   opoint = lpoint;
@@ -15559,6 +15558,7 @@ redisplay_window (Lisp_Object window, int just_this_one_p)
 	: 0;
       EMACS_INT margin_pos = CHARPOS (startp);
       Lisp_Object aggressive;
+      int scrolling_up;
 
       /* If there is a scroll margin at the top of the window, find
 	 its character position.  */
@@ -15730,8 +15730,9 @@ redisplay_window (Lisp_Object window, int just_this_one_p)
 	    scroll_margin > 0
 	    ? min (scroll_margin, WINDOW_TOTAL_LINES (w) / 4)
 	    : 0;
+	  int move_down = w->cursor.vpos >= WINDOW_TOTAL_LINES (w) / 2;
 
-	  move_it_by_lines (&it, scrolling_up ? margin + 1 : margin -1);
+	  move_it_by_lines (&it, move_down ? margin + 1 : -(margin + 1));
 	  clear_glyph_matrix (w->desired_matrix);
 	  if (1 == try_window (window, it.current.pos,
 			       TRY_WINDOW_CHECK_MARGINS))
