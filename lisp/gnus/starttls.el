@@ -35,7 +35,7 @@
 ;; and the second one is Simon Josefsson's starttls.el which uses
 ;; "gnutls-cli" from GnuTLS.
 ;;
-;; If "starttls" is available, it is prefered by the code over
+;; If "starttls" is available, it is preferred by the code over
 ;; "gnutls-cli", for backwards compatibility.  Use
 ;; `starttls-use-gnutls' to toggle between implementations if you have
 ;; both tools installed.  It is recommended to use GnuTLS, though, as

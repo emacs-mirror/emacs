@@ -2674,7 +2674,7 @@
 
 	Follow MH-E Developers Guide conventions.  Use `' quotes for Help
 	hyperlinks such as symbols, Info nodes, or URLs.  Use \" quotes for
-	everything else.  Otherwise, you can accidently get links to
+	everything else.  Otherwise, you can accidentally get links to
 	nonsense symbols.
 
 2005-12-22  Bill Wohler  <wohler@newt.com>
@@ -3456,4 +3456,3 @@
 ;; sentence-end-double-space: nil
 ;; add-log-time-zone-rule: t
 ;; End:
-

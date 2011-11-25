@@ -28,7 +28,7 @@
 ;; Created: Feb. 17. 1997
 
 ;; History:
-;; 1997.03.13 Support for inputting special signs and punctuations added.
+;; 1997.03.13 Support for inputting special signs and punctuation added.
 ;;            (Only Ext. Wylie input)
 
 ;;; Commentary:
@@ -56,7 +56,7 @@
     (if (string-match "^-[dy]" quail-current-key)
 	(setq quail-current-key (substring quail-current-key 1)))
     (let ((str (tibetan-transcription-to-tibetan quail-current-key)))
-      ;; If quail-current-key is for punctuations, it can't be
+      ;; If quail-current-key is for punctuation, it can't be
       ;; transcribed by tibetan-transcription-to-tibetan, thus STR
       ;; contains ASCII string now.  In that case, use the current
       ;; characters set in quail-current-str.
@@ -80,7 +80,7 @@
   '(("-d" . "$(7"2(B")
     ("-y" . "$(7"B(B")))
 
-;; Punctuations are not transcribed.
+;; Punctuation characters are not transcribed.
 
 (defconst tibetan-wylie-punctuation-alist
    '(("."  . " ")

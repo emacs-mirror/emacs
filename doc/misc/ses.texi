@@ -446,7 +446,7 @@ list.
 execute when starting SES mode for a buffer).
 
 The variable @code{safe-functions} is a list of possibly-unsafe
-functions to be treated as safe when analysing formulas and printers.
+functions to be treated as safe when analyzing formulas and printers.
 @xref{Virus protection}.  Before customizing @code{safe-functions},
 think about how much you trust the person who's suggesting this
 change.  The value @code{t} turns off all anti-virus protection.  A

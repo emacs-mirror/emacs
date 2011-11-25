@@ -419,7 +419,7 @@ inserting something.  When this is @code{nil}, inserting is only done with
 @kbd{M-x auto-insert}.  When this is @code{function}, you are queried
 whenever @code{auto-insert} is called as a function, such as when Emacs
 visits an empty file and you have set the above-mentioned hook.  Otherwise
-you are alway queried.
+you are always queried.
 
 @vindex auto-insert-prompt
   When querying, the variable @code{auto-insert-prompt}'s value is used as a
@@ -510,7 +510,7 @@ inserting or updating the magic number.  When this is @code{nil} updating
 is only done with @kbd{M-x executable-set-magic}.  When this is
 @code{function} you are queried whenever @code{executable-set-magic} is
 called as a function, such as when Emacs puts a buffer in Shell script
-mode.  Otherwise you are alway queried.
+mode.  Otherwise you are always queried.
 
 @findex executable-self-display
   @kbd{M-x executable-self-display} adds a magic number to the buffer, which

@@ -3762,7 +3762,7 @@ Additionally, if two fields are separated by another field with the
 special value @code{boundary}, then any point within this special
 field is also considered to be ``on the boundary.''
 
-Commands like @kbd{C-a} with no argumemt, that normally move backward
+Commands like @kbd{C-a} with no argument, that normally move backward
 to a specific kind of location and stay there once there, probably
 should specify @code{nil} for @var{escape-from-edge}.  Other motion
 commands that check fields should probably pass @code{t}.
@@ -4322,5 +4322,3 @@ If you do want modification hooks to be run in a particular piece of
 code that is itself run from a modification hook, then rebind locally
 @code{inhibit-modification-hooks} to @code{nil}.
 @end defvar
-
-

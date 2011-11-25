@@ -802,7 +802,7 @@ The 2nd and 3rd arguments BEGIN and END specify the region."
 	(forward-char 1)
 	(insert "}")))
 
-    ;; Special Ethiopic punctuations.
+    ;; Special Ethiopic punctuation.
     (goto-char (point-min))
     (while (re-search-forward "\\ce[»\\.\\?]\\|«\\ce" nil t)
       (cond

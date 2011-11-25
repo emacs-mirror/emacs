@@ -613,7 +613,7 @@ Emacs Lisp.  It is an LALR parser suitable for complex languages.
 @c LocalWords: multitable NAvigaTOR noindent nomedian nonterm noselect
 @c LocalWords: nosnarf obarray OLE OO outputfile paren parsetable POINT's
 @c LocalWords: popup positionalonly positiononly positionormarker pre
-@c LocalWords: printf printindex Programmatically pt punctuations quotemode
+@c LocalWords: printf printindex Programmatically pt quotemode
 @c LocalWords: ref regex regexp Regexps reparse resetfile samp sb
 @c LocalWords: scopestart SEmantic semanticdb setfilename setq
 @c LocalWords: settitle setupfunction sexp sp SPC speedbar speedbar's

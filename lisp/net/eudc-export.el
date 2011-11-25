@@ -128,7 +128,7 @@ LOCATION is used as the address location for bbdb."
 	 zip city state)
     (setq addr-components (nreverse addr-components))
     ;; If not containing the zip code the last line is supposed to contain a
-    ;; country name and the addres is supposed to be in european style
+    ;; country name and the address is supposed to be in european style
     (if (not (string-match "[0-9][0-9][0-9]" last1))
 	(progn
 	  (setq state last1)

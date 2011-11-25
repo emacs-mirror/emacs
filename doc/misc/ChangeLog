@@ -7982,7 +7982,7 @@
 2003-02-01  Michael Albinus  <Michael.Albinus@alcatel.de>
 
 	* tramp.texi (Frequently Asked Questions): Explain a workaround if
-	another package loads accidently Ange-FTP.
+	another package loads accidentally Ange-FTP.
 
 2003-01-24  Michael Albinus  <Michael.Albinus@alcatel.de>
 

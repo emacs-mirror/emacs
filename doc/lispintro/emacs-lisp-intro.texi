@@ -2040,7 +2040,7 @@ the first argument.  This function takes three arguments.  Its first
 argument is the string of characters, the second and third arguments are
 numbers that indicate the beginning and end of the substring.  The
 numbers are a count of the number of characters (including spaces and
-punctuations) from the beginning of the string.
+punctuation) from the beginning of the string.
 
 @need 800
 For example, if you evaluate the following:

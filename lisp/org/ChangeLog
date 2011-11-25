@@ -17596,7 +17596,7 @@
 2008-06-17  Carsten Dominik  <dominik@science.uva.nl>
 
 	* org.el (org-schedule, org-deadline): Protect scheduled and
-	deadline tasks against changes that accidently remove the
+	deadline tasks against changes that accidentally remove the
 	repeater.  Also show a message with the new date when done.
 
 2008-06-17  Carsten Dominik  <dominik@science.uva.nl>

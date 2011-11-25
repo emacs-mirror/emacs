@@ -98,7 +98,7 @@
 ;; (global-set-key [f7] 'follow-delete-other-windows-and-split)
 
 
-;; There exist two system variables that control the appearence of
+;; There exist two system variables that control the appearance of
 ;; lines wider than the window containing them.  The default is to
 ;; truncate long lines whenever a window isn't as wide as the frame.
 ;;

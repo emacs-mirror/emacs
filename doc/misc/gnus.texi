@@ -21279,7 +21279,7 @@ name (or part of a name) to match.
 @node The swish++ Engine
 @subsubsection The swish++ Engine
 
-FIXEM: Say something more here.
+FIXME: Say something more here.
 
 Documentation for swish++ may be found at the swish++ sourceforge page:
 @uref{http://swishplusplus.sourceforge.net}
@@ -21302,7 +21302,7 @@ to get a group name. By default this is @code{$HOME/Mail}.
 @node The swish-e Engine
 @subsubsection The swish-e Engine
 
-FIXEM: Say something more here.
+FIXME: Say something more here.
 
 Documentation for swish-e may be found at the swish-e homepage
 @uref{http://swish-e.org}

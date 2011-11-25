@@ -586,7 +586,7 @@ should not change this value.")
 	((>= column rfc2047-encode-max-chars)
 	 (when eword
 	   (cond ((string-match "\n[ \t]+\\'" eword)
-		  ;; Reomove a superfluous empty line.
+		  ;; Remove a superfluous empty line.
 		  (setq eword (substring eword 0 (match-beginning 0))))
 		 ((string-match "(+\\'" eword)
 		  ;; Break the line before the open parenthesis.
@@ -639,7 +639,7 @@ should not change this value.")
 	       (setq crest " "
 		     eword (concat eword next)))
 	     (when (string-match "\n[ \t]+\\'" eword)
-	       ;; Reomove a superfluous empty line.
+	       ;; Remove a superfluous empty line.
 	       (setq eword (substring eword 0 (match-beginning 0))))
 	     (rfc2047-encode-1 (length crest) (substring string index)
 			       cs encoder start " " tail

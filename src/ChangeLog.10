@@ -1003,7 +1003,7 @@
 	(syms_of_xdisp): DEFVAR_LISP and initialize it.  Update doc string
 	to describe new value `grow-only', and use of C-l.
 	(display_tool_bar_line): Only use default face for border below
-	toolbar if not grow-only (to get acceptable visual appearence).
+	toolbar if not grow-only (to get acceptable visual appearance).
 	Explicitly set visible_height for empty toolbar lines.
 	(redisplay_tool_bar): Handle `grow-only' setting.  Check and clear
 	minimize_tool_bar_window_p flag.

@@ -165,7 +165,7 @@
 ;;
 ;; %type  <punctuation> syntax "\\(\\s.\\|\\s$\\|\\s'\\)+" matchdatatype string
 ;;
-;; ;; Some punctuations based on the type defines above
+;; ;; Some punctuation based on the type defines above
 ;;
 ;; %token <punctuation> NOT         "!"
 ;; %token <punctuation> NOTEQ       "!="
@@ -1313,7 +1313,7 @@ and number formats."
 
 (define-lex-analyzer semantic-lex-punctuation-type
   "Detect and create a punctuation type token.
-Recognized punctuations are defined in the current table of lexical
+Recognized punctuation is defined in the current table of lexical
 types, as the value of the `punctuation' token type."
   (and (looking-at "\\(\\s.\\|\\s$\\|\\s'\\)+")
        (let* ((key (match-string 0))

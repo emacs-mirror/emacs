@@ -3717,7 +3717,7 @@ DEFUN ("network-interface-info", Fnetwork_interface_info, Snetwork_interface_inf
        doc: /* Return information about network interface named IFNAME.
 The return value is a list (ADDR BCAST NETMASK HWADDR FLAGS),
 where ADDR is the layer 3 address, BCAST is the layer 3 broadcast address,
-NETMASK is the layer 3 network mask, HWADDR is the layer 2 addres, and
+NETMASK is the layer 3 network mask, HWADDR is the layer 2 address, and
 FLAGS is the current flags of the interface.  */)
   (Lisp_Object ifname)
 {
