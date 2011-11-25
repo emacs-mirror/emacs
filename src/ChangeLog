@@ -1,3 +1,10 @@
+2011-11-25  Eli Zaretskii  <eliz@gnu.org>
+
+	* xdisp.c (redisplay_window): If cursor row is not fully visible
+	after recentering, and scroll-conservatively is set to a large
+	number, scroll window by a few more lines to make the cursor fully
+	visible and out of scroll-margin.  (Bug#10105)
+
 2011-11-24  Juri Linkov  <juri@jurta.org>
 
 	* image.c (imagemagick_load_image): Move `MagickSetResolution' down

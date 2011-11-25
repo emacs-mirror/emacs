@@ -15043,6 +15043,7 @@ redisplay_window (Lisp_Object window, int just_this_one_p)
   int centering_position = -1;
   int last_line_misfit = 0;
   EMACS_INT beg_unchanged, end_unchanged;
+  int scrolling_up;
 
   SET_TEXT_POS (lpoint, PT, PT_BYTE);
   opoint = lpoint;
@@ -15557,7 +15558,6 @@ redisplay_window (Lisp_Object window, int just_this_one_p)
 	? min (scroll_margin, WINDOW_TOTAL_LINES (w) / 4)
 	: 0;
       EMACS_INT margin_pos = CHARPOS (startp);
-      int scrolling_up;
       Lisp_Object aggressive;
 
       /* If there is a scroll margin at the top of the window, find
@@ -15718,6 +15718,24 @@ redisplay_window (Lisp_Object window, int just_this_one_p)
 	  w->vscroll = 0;
 	  clear_glyph_matrix (w->desired_matrix);
 	  goto recenter;
+	}
+
+      /* Users who set scroll-conservatively to a large number want
+	 point just above/below the scroll margin.  If we ended up
+	 with point's row partially visible, move the window start to
+	 make that row fully visible and out of the margin.  */
+      if (scroll_conservatively > SCROLL_LIMIT)
+	{
+	  int margin =
+	    scroll_margin > 0
+	    ? min (scroll_margin, WINDOW_TOTAL_LINES (w) / 4)
+	    : 0;
+
+	  move_it_by_lines (&it, scrolling_up ? margin + 1 : margin -1);
+	  clear_glyph_matrix (w->desired_matrix);
+	  if (1 == try_window (window, it.current.pos,
+			       TRY_WINDOW_CHECK_MARGINS))
+	    goto done;
 	}
 
       /* If centering point failed to make the whole line visible,
