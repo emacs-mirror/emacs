@@ -703,13 +703,13 @@ If the value is nil, on decoding, don't treat the first two-byte as
 BOM, and on encoding, don't produce BOM bytes.
 
 If the value is t, on decoding, skip the first two-byte as BOM, and on
-encoding, produce BOM bytes accoding to the value of `:endian'.
+encoding, produce BOM bytes according to the value of `:endian'.
 
 If the value is cons, on decoding, check the first two-byte.  If they
 are 0xFE 0xFF, use the car part coding system of the value.  If they
 are 0xFF 0xFE, use the cdr part coding system of the value.
 Otherwise, treat them as bytes for a normal character.  On encoding,
-produce BOM bytes accoding to the value of `:endian'.
+produce BOM bytes according to the value of `:endian'.
 
 This attribute has a meaning only when `:coding-type' is `utf-16' or
 `utf-8'.

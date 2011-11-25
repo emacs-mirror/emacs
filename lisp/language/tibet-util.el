@@ -27,7 +27,7 @@
 
 ;;; History:
 ;; 1997.03.13 Modification in treatment of text properties;
-;;            Support for some special signs and punctuations.
+;;            Support for some special signs and punctuation.
 ;; 1999.10.25 Modification for a new composition way by K.Handa.
 
 ;;; Commentary:

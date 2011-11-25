@@ -5904,7 +5904,7 @@
 	(mis-)use tramp-current-user as indication, assuming it is set in
 	`tramp-completion-handle-file-name-all-completions'.
 	(tramp-send-region): Handle the case `tramp-chunksize' is equal 0.
-	I did it accidently.  Infinite loop ...
+	I did it accidentally.  Infinite loop ...
 	(tramp-get-device): `tramp-make-tramp-file-name' must not be
 	called with NIL path.  It fails in case of multi-method.
 	(tramp-file-name-for-operation): Apply `expand-file-name' for

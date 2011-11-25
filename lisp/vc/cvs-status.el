@@ -257,7 +257,7 @@ The tree will be printed no closer than column COLUMN."
 
 (defun cvs-tree-merge (tree1 tree2)
   "Merge tags trees TREE1 and TREE2 into one.
-BEWARE:  because of stability issues, this is not a symetric operation."
+BEWARE:  because of stability issues, this is not a symmetric operation."
   (assert (and (listp tree1) (listp tree2)))
   (cond
    ((null tree1) tree2)

@@ -231,10 +231,9 @@ For example, invoke `emacs -batch -f batch-unrmail RMAIL'."
 	      (while (search-forward "\nFrom " nil t)
 		(forward-char -5)
 		(insert ?>)))
-	    ;; Make sure the message ends with two newlines
 	    (goto-char (point-max))
-	    (unless (looking-back "\n\n")
-	      (insert "\n"))
+	    ;; Add terminator blank line to message.
+	    (insert "\n")
 	    ;; Write it to the output file, suitably encoded.
 	    (let ((coding-system-for-write coding))
 	      (write-region (point-min) (point-max) to-file t

@@ -904,7 +904,7 @@ happen---Message will encode non-@acronym{ASCII} domain names in @code{From},
 Until @acronym{IDNA} becomes more well known, Message queries you
 whether @acronym{IDNA} encoding of the domain name really should
 occur.  Some users might not be aware that domain names can contain
-non-@acronym{ASCII} now, so this gives them a safety net if they accidently
+non-@acronym{ASCII} now, so this gives them a safety net if they accidentally
 typed a non-@acronym{ASCII} domain name.
 
 @vindex message-use-idna

@@ -13761,7 +13761,7 @@ The same as the above, but don't do automatic @acronym{STARTTLS} upgrades.
 @findex nntp-open-tls-stream
 @item nntp-open-tls-stream
 Opens a connection to a server over a @dfn{secure} channel.  To use
-this you must have @uref{http://www.gnu.org/software/gnutls/, GNUTLS}
+this you must have @uref{http://www.gnu.org/software/gnutls/, GnuTLS}
 installed.  You then define a server as follows:
 
 @lisp
@@ -21279,7 +21279,7 @@ name (or part of a name) to match.
 @node The swish++ Engine
 @subsubsection The swish++ Engine
 
-FIXEM: Say something more here.
+FIXME: Say something more here.
 
 Documentation for swish++ may be found at the swish++ sourceforge page:
 @uref{http://swishplusplus.sourceforge.net}
@@ -21302,7 +21302,7 @@ to get a group name. By default this is @code{$HOME/Mail}.
 @node The swish-e Engine
 @subsubsection The swish-e Engine
 
-FIXEM: Say something more here.
+FIXME: Say something more here.
 
 Documentation for swish-e may be found at the swish-e homepage
 @uref{http://swish-e.org}
@@ -27801,7 +27801,7 @@ The revised Gnus @acronym{FAQ} is included in the manual,
 @acronym{TLS} wrapper shipped with Gnus
 
 @acronym{TLS}/@acronym{SSL} is now supported in @acronym{IMAP} and
-@acronym{NNTP} via @file{tls.el} and GNUTLS.
+@acronym{NNTP} via @file{tls.el} and GnuTLS.
 
 @item
 Improved anti-spam features.

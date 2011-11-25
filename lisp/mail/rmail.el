@@ -482,6 +482,7 @@ still the current message in the Rmail buffer.")
 ;; It's not clear what it should do now, since there is nothing that
 ;; records when a message is shown for the first time (unseen is not
 ;; necessarily the same thing).
+;; See http://lists.gnu.org/archive/html/emacs-devel/2009-03/msg00013.html
 (defcustom rmail-message-filter nil
   "If non-nil, a filter function for new messages in RMAIL.
 Called with region narrowed to the message, including headers,
@@ -489,30 +490,41 @@ before obeying `rmail-ignored-headers'."
   :group 'rmail-headers
   :type '(choice (const nil) function))
 
+(make-obsolete-variable 'rmail-message-filter
+			"it is not used (try `rmail-show-message-hook')."
+			"23.1")
+
 (defcustom rmail-automatic-folder-directives nil
-  "List of directives specifying where to put a message.
+  "List of directives specifying how to automatically file messages.
+Whenever Rmail shows a message in the folder that `rmail-file-name'
+specifies, it calls `rmail-auto-file' to maybe file the message in
+another folder according to this list.  Messages that are already
+marked as `filed', or are in different folders, are left alone.
+
 Each element of the list is of the form:
 
   (FOLDERNAME FIELD REGEXP [ FIELD REGEXP ] ... )
 
-Where FOLDERNAME is the name of a folder to put the message.
-If any of the field regexp's are nil, then it is ignored.
+FOLDERNAME is the name of a folder in which to put the message.
+If FOLDERNAME is nil then Rmail deletes the message, and moves on to
+the next.  If FOLDERNAME is \"/dev/null\", Rmail deletes the message,
+but does not move to the next.
 
-If FOLDERNAME is \"/dev/null\", it is deleted.
-If FOLDERNAME is nil then it is deleted, and skipped.
+FIELD is the name of a header field in the message, such as
+\"subject\" or \"from\".  A FIELD of \"to\" includes all text
+from both the \"to\" and \"cc\" headers.
 
-FIELD is the plain text name of a field in the message, such as
-\"subject\" or \"from\".  A FIELD of \"to\" will automatically include
-all text from the \"cc\" field as well.
+REGEXP is a regular expression to match (case-sensitively) against
+the preceding specified FIELD.
 
-REGEXP is an expression to match in the preceding specified FIELD.
-FIELD/REGEXP pairs continue in the list.
+There may be any number of FIELD/REGEXP pairs.
+All pairs must match for a directive to apply to a message.
+For a given message, Rmail applies only the first matching directive.
 
-examples:
+Examples:
   (\"/dev/null\" \"from\" \"@spam.com\") ; delete all mail from spam.com
   (\"RMS\" \"from\" \"rms@\") ; save all mail from RMS.
-
-Note that this is only applied in the folder specifed by `rmail-file-name'."
+"
   :group 'rmail
   :version "21.1"
   :type '(repeat (sexp :tag "Directive")))
@@ -552,7 +564,9 @@ In a summary buffer, this holds the RMAIL buffer it is a summary for.")
 ;; Message counters and markers.  Deleted flags.
 
 (defvar rmail-current-message nil
-  "Integer specifying the message currently being displayed in this folder.")
+  "Integer specifying the message currently being displayed in this folder.
+Counts messages from 1 to `rmail-total-messages'.  A value of 0
+means there are no messages in the folder.")
 (put 'rmail-current-message 'permanent-local t)
 
 (defvar rmail-total-messages nil
@@ -2934,8 +2948,11 @@ Uses the face specified by `rmail-highlight-face'."
 			(cons overlay rmail-overlay-list))))))))))
 
 (defun rmail-auto-file ()
-  "Automatically move a message into a sub-folder based on criteria.
-Called when a new message is displayed."
+  "Automatically move a message into another sfolder based on criteria.
+This moves messages according to `rmail-automatic-folder-directives'.
+It only does something in the folder that `rmail-file-name' specifies.
+The function `rmail-show-message' calls this whenever it shows a message.
+This leaves a message alone if it already has the `filed' attribute."
   (if (or (zerop rmail-total-messages)
 	  (rmail-message-attr-p rmail-current-message "...F")
 	  (not (string= (buffer-file-name)
@@ -2955,10 +2972,14 @@ Called when a new message is displayed."
 	      directive-loop (cdr (car d)))
 	(while (and (car directive-loop)
 		    (let ((f (cond
-			      ((string= (car directive-loop) "from") from)
-			      ((string= (car directive-loop) "to") to)
-			      ((string= (car directive-loop) "subject") subj)
+			      ((string= (downcase (car directive-loop)) "from")
+			       from)
+			      ((string= (downcase (car directive-loop)) "to")
+			       to)
+			      ((string= (downcase (car directive-loop))
+					"subject") subj)
 			      (t (mail-fetch-field (car directive-loop))))))
+		      ;; FIXME - shouldn't this ignore case?
 		      (and f (string-match (car (cdr directive-loop)) f))))
 	  (setq directive-loop (cdr (cdr directive-loop))))
 	;; If there are no directives left, then it was a complete match.
@@ -3779,6 +3800,8 @@ which is an element of rmail-msgref-vector."
 With prefix argument, \"resend\" the message instead of forwarding it;
 see the documentation of `rmail-resend'."
   (interactive "P")
+  (if (zerop rmail-current-message)
+      (error "No message to forward"))
   (if resend
       (call-interactively 'rmail-resend)
     (let ((forward-buffer rmail-buffer)
@@ -4461,7 +4484,7 @@ Edit the contents of this message.
 
 ;;;### (autoloads (rmail-next-labeled-message rmail-previous-labeled-message
 ;;;;;;  rmail-read-label rmail-kill-label rmail-add-label) "rmailkwd"
-;;;;;;  "rmailkwd.el" "08c288c88cfe7be50830122c064e3884")
+;;;;;;  "rmailkwd.el" "ec13237a2b0a9e9c1893e38d36b11134")
 ;;; Generated autoloads from rmailkwd.el
 
 (autoload 'rmail-add-label "rmailkwd" "\
@@ -4504,7 +4527,7 @@ With prefix argument N moves forward N messages with these labels.
 
 ;;;***
 
-;;;### (autoloads (rmail-mime) "rmailmm" "rmailmm.el" "5ecb69456c4d86a4e905eb3008602a95")
+;;;### (autoloads (rmail-mime) "rmailmm" "rmailmm.el" "2cb1f29b88b0c724fdba389fd7b98b00")
 ;;; Generated autoloads from rmailmm.el
 
 (autoload 'rmail-mime "rmailmm" "\

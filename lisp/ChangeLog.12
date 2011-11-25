@@ -10695,7 +10695,7 @@
 
 	* net/tramp-smb.el (tramp-smb-wait-for-output): Wait always for
 	the prompt.  If it returns earlier (when detecting an error
-	message), the rest of the output will merge accidently with the
+	message), the rest of the output will merge accidentally with the
 	output of the next command.  Reported by M Jared Finder
 	<jared@hpalace.com>.
 
@@ -16181,7 +16181,7 @@
 
 2005-12-08  Alan Mackenzie  <bug-cc-mode@gnu.org>
 
-	* progmodes/cc-awk.el: Move regexps for analysing AWK code to near the
+	* progmodes/cc-awk.el: Move regexps for analyzing AWK code to near the
 	start of the file.  ^L now separate sections of the file.
 	(c-awk-non-eol-esc-pair-re, c-awk-blank-or-comment-line-re)
 	(c-awk-one-line-possibly-open-string-re)

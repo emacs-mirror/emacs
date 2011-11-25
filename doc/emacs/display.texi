@@ -762,7 +762,7 @@ relies on analysis of the syntactic structure of the buffer text.  For
 the sake of speed, some modes, including Lisp mode, rely on a special
 convention: an open-parenthesis or open-brace in the leftmost column
 always defines the beginning of a defun, and is thus always outside
-any string or comment.  Therefore, you should avoid placing a an
+any string or comment.  Therefore, you should avoid placing an
 open-parenthesis or open-brace in the leftmost column, if it is inside
 a string or comment.  @xref{Left Margin Paren}, for details.
 

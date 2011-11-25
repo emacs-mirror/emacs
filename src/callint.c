@@ -78,7 +78,7 @@ c -- Character (no input method is used).
 C -- Command name: symbol with interactive function definition.
 d -- Value of point as number.  Does not do I/O.
 D -- Directory name.
-e -- Parametrized event (i.e., one that's a list) that invoked this command.
+e -- Parameterized event (i.e., one that's a list) that invoked this command.
      If used more than once, the Nth `e' returns the Nth parameterized event.
      This skips events that are integers or symbols.
 f -- Existing file name.

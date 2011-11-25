@@ -376,7 +376,7 @@ Bars}).  At the top of the window is an optional header line
 line (@pxref{Mode Line Format}).
 
   Emacs provides several functions for finding the height and width of
-a window.  Except where noted, these heights and widths are reported
+a window.  Except where noted, Emacs reports window heights and widths
 as integer numbers of lines and columns respectively.  On a graphical
 display, each ``line'' and ``column'' actually corresponds to the
 height and width of a ``default'' character specified by the frame's
@@ -437,26 +437,6 @@ This function returns non-@code{nil} if @var{window} has no other
 window to the left or right in its frame, i.e. its total width equals
 that of the root window on that frame.  If @var{window} is omitted or
 @code{nil}, it defaults to the selected window.
-@end defun
-
-@cindex window position
-  The following functions can be used to determine the position of a
-window relative to the window area of its frame:
-
-@defun window-top-line &optional window
-This function returns the distance, in lines, between the top of
-@var{window} and the top of the frame's window area.  For instance,
-the return value is 0 if there is no window above @var{window}.  If
-@var{window} is omitted or @code{nil}, it defaults to the selected
-window.
-@end defun
-
-@defun window-left-column &optional window
-This function returns the distance, in columns, between the left edge
-of @var{window} and the left edge of the frame's window area.  For
-instance, the return value is 0 if there is no window to the left of
-@var{window}.  If @var{window} is omitted or @code{nil}, it defaults
-to the selected window.
 @end defun
 
 @cindex window body height
@@ -535,45 +515,12 @@ can be resized in the desired direction.  To determine that, use the
 function @code{window-resizable}.  @xref{Resizing Windows}.
 @end defun
 
-  The following functions can be used to find a window's size and
-position in pixels.  Though mostly useful on graphical displays, they
-can also be called on text-only terminals, where the screen area of
-each text character is taken to be ``one pixel''.
-
-@defun window-pixel-edges &optional window
-This function return a list of pixel coordinates for the edges of
-@var{window}.  If @var{window} is omitted or @code{nil}, it defaults
-to the selected window.
-
-The return value has the form @code{(@var{left} @var{top} @var{right}
-@var{bottom})}.  The list elements are, respectively, the X coordinate
-of the left window edge, the Y coordinate of the top edge, one more
-than the X coordinate of the right edge, and one more than the Y
-coordinate of the bottom edge.  The origin coordinate @samp{(0,0)} is
-taken to be the top left corner of the frame's window area.
-
-These edge values include the space used by the window's scroll bar,
-margins, fringes, header line, and mode line, if any.
-@end defun
-
-@defun window-inside-pixel-edges &optional window
-This function is like @code{window-pixel-edges}, except that it
-returns the edge coordinates for the window's text area, rather than
-the edge coordinates for the window itself.  @var{window} must specify
-a live window.
-@end defun
-
-@defun window-absolute-pixel-edges &optional window
-This function is like @code{window-pixel-edges}, except that it
-returns the edge coordinates relative to the top left corner of the
-display screen.
-@end defun
-
-@defun window-inside-absolute-pixel-edges &optional window
-This function is like @code{window-inside-pixel-edges}, except that it
-returns the edge coordinates relative to the top left corner of the
-display screen.  @var{window} must specify a live window.
-@end defun
+  @xref{Coordinates and Windows}, for more functions that report the
+positions of various parts of a window relative to the frame, from
+which you can calculate its size.  In particular, you can use the
+functions @code{window-pixel-edges} and
+@code{window-inside-pixel-edges} to find the size in pixels, for
+graphical displays.
 
 @node Resizing Windows
 @section Resizing Windows
@@ -2976,32 +2923,90 @@ is off the screen due to horizontal scrolling:
 @end group
 @end example
 
-
 @node Coordinates and Windows
 @section Coordinates and Windows
+@cindex frame-relative coordinate
+@cindex coordinate, relative to frame
+@cindex window position
 
-This section describes how to relate screen coordinates to windows.
+  This section describes functions that report the position of a
+window.  Most of these functions report positions relative to the
+window's frame.  In this case, the coordinate origin @samp{(0,0)} lies
+near the upper left corner of the frame.  For technical reasons, on
+graphical displays the origin is not located at the exact corner of
+the graphical window as it appears on the screen.  If Emacs is built
+with the GTK+ toolkit, the origin is at the upper left corner of the
+frame area used for displaying Emacs windows, below the title-bar,
+GTK+ menu bar, and tool bar (since these are drawn by the window
+manager and/or GTK+, not by Emacs).  But if Emacs is not built with
+GTK+, the origin is at the upper left corner of the tool bar (since in
+this case Emacs itself draws the tool bar).  In both cases, the X and
+Y coordinates increase rightward and downward respectively.
+
+  Except where noted, X and Y coordinates are reported in integer
+character units, i.e. numbers of lines and columns respectively.  On a
+graphical display, each ``line'' and ``column'' corresponds to the
+height and width of a default character specified by the frame's
+default font.
+
+@defun window-edges &optional window
+This function returns a list of the edge coordinates of @var{window}.
+If @var{window} is omitted or @code{nil}, it defaults to the selected
+window.
+
+The return value has the form @code{(@var{left} @var{top} @var{right}
+@var{bottom})}.  These list elements are, respectively, the X
+coordinate of the leftmost column occupied by the window, the Y
+coordinate of the topmost row, the X coordinate one column to the
+right of the rightmost column, and the Y coordinate one row down from
+the bottommost row.
+
+Note that these are the actual outer edges of the window, including
+any header line, mode line, scroll bar, fringes, and display margins.
+On a text-only terminal, if the window has a neighbor on its right,
+its right edge includes the separator line between the window and its
+neighbor.
+@end defun
+
+@defun window-inside-edges &optional window
+This function is similar to @code{window-edges}, but the returned edge
+values are for the text area of the window.  They exclude any header
+line, mode line, scroll bar, fringes, display margins, and vertical
+separator.
+@end defun
+
+@defun window-top-line &optional window
+This function returns the Y coordinate of the topmost row of
+@var{window}, equivalent to the @var{top} entry in the list returned
+by @code{window-edges}.
+@end defun
+
+@defun window-left-column &optional window
+This function returns the X coordinate of the leftmost column of
+@var{window}, equivalent to the @var{left} entry in the list returned
+by @code{window-edges}.
+@end defun
+
+  The following functions can be used to relate a set of
+frame-relative coordinates to a window:
 
 @defun window-at x y &optional frame
-This function returns the window containing the specified cursor
-position in the frame @var{frame}.  The coordinates @var{x} and @var{y}
-are measured in characters and count from the top left corner of the
-frame.  If they are out of range, @code{window-at} returns @code{nil}.
-
-If you omit @var{frame}, the selected frame is used.
+This function returns the live window at the frame-relative
+coordinates @var{x} and @var{y}, on frame @var{frame}.  If there is no
+window at that position, the return value is @code{nil}.  If
+@var{frame} is omitted or @code{nil}, it defaults to the selected
+frame.
 @end defun
 
 @defun coordinates-in-window-p coordinates window
-This function checks whether a particular frame position falls within
-the window @var{window}.
+This function checks whether a window @var{window} occupies the
+frame-relative coordinates @var{coordinates}, and if so which part of
+the window that is.  @var{window} should be a live window.
+@var{coordinates} should be a cons cell of the form @code{(@var{x}
+. @var{y})}, where @var{x} and @var{y} are frame-relative coordinates.
 
-The argument @var{coordinates} is a cons cell of the form @code{(@var{x}
-. @var{y})}.  The coordinates @var{x} and @var{y} are measured in
-characters, and count from the top left corner of the screen or frame.
-
-The value returned by @code{coordinates-in-window-p} is non-@code{nil}
-if the coordinates are inside @var{window}.  The value also indicates
-what part of the window the position is in, as follows:
+If there is no window at the specified position, the return value is
+@code{nil} .  Otherwise, the return value is one of the following:
 
 @table @code
 @item (@var{relx} . @var{rely})
@@ -3038,6 +3043,44 @@ The function @code{coordinates-in-window-p} does not require a frame as
 argument because it always uses the frame that @var{window} is on.
 @end defun
 
+  The following functions return window positions in pixels, rather
+than character units.  Though mostly useful on graphical displays,
+they can also be called on text-only terminals, where the screen area
+of each text character is taken to be ``one pixel''.
+
+@defun window-pixel-edges &optional window
+This function returns a list of pixel coordinates for the edges of
+@var{window}.  If @var{window} is omitted or @code{nil}, it defaults
+to the selected window.
+
+The return value has the form @code{(@var{left} @var{top} @var{right}
+@var{bottom})}.  The list elements are, respectively, the X pixel
+coordinate of the left window edge, the Y pixel coordinate of the top
+edge, one more than the X pixel coordinate of the right edge, and one
+more than the Y pixel coordinate of the bottom edge.
+@end defun
+
+@defun window-inside-pixel-edges &optional window
+This function is like @code{window-pixel-edges}, except that it
+returns the pixel coordinates for the edges of the window's text area,
+rather than the pixel coordinates for the edges of the window itself.
+@var{window} must specify a live window.
+@end defun
+
+  The following functions return window positions in pixels, relative
+to the display screen rather than the frame:
+
+@defun window-absolute-pixel-edges &optional window
+This function is like @code{window-pixel-edges}, except that it
+returns the edge pixel coordinates relative to the top left corner of
+the display screen.
+@end defun
+
+@defun window-inside-absolute-pixel-edges &optional window
+This function is like @code{window-inside-pixel-edges}, except that it
+returns the edge pixel coordinates relative to the top left corner of
+the display screen.  @var{window} must specify a live window.
+@end defun
 
 @node Window Configurations
 @section Window Configurations

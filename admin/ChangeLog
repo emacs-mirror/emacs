@@ -897,11 +897,11 @@
 
 	* FOR-RELEASE (NEW FEATURES): Completed work on this item:
 	Rework how fringe bitmaps are defined and used.
-	Currently, bitmap usage and bitmap appearence are "mixed-up" in a
+	Currently, bitmap usage and bitmap appearance are "mixed-up" in a
 	one-level representation.  It would be cleaner to split the
 	representation into a two-level model where first level maps
 	bitmap usage to a bitmap name, and second level maps bitmap name to
-	a bitmap appearence.
+	a bitmap appearance.
 
 2006-01-27  Chong Yidong  <cyd@stupidchicken.com>
 

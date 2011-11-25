@@ -233,7 +233,7 @@ least one of the following external tools are installed:
 
 @enumerate
 @item
-The GNUTLS command line tool @samp{gnutls-cli}, you can get it from
+The GnuTLS command line tool @samp{gnutls-cli}, you can get it from
 @url{http://www.gnu.org/software/gnutls/}.  This is the recommended
 tool, mainly because it can verify the server certificates.
 

@@ -5995,7 +5995,7 @@ Other orders of $ and _ seem to all work just fine.")
 	     (concat
 	      pubset
 	      (and userid (concat userid "."))
-	      ;; change every '/' in filename to a '.', normally not neccessary
+	      ;; change every '/' in filename to a '.', normally not necessary
 	      (and filename
 		   (subst-char-in-string ?/ ?. filename)))))
 	;; Let's hope that BS2000 recognize this anyway:

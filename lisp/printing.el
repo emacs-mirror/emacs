@@ -547,7 +547,7 @@ Please send all bug fixes and enhancements to
 ;; `pr-auto-region'		Non-nil means region is automagically detected.
 ;;
 ;; `pr-auto-mode'		Non-nil means major-mode specific printing is
-;;				prefered over normal printing.
+;;				preferred over normal printing.
 ;;
 ;; `pr-mode-alist'		Specify an alist for a major-mode and printing
 ;;				function.
@@ -2426,7 +2426,7 @@ marked instead of all buffer."
 
 
 (defcustom pr-auto-mode t
-  "Non-nil means major-mode specific printing is prefered over normal printing.
+  "Non-nil means major-mode specific printing is preferred over normal printing.
 
 That is, if current major-mode is declared in `pr-mode-alist', the `*-buffer*'
 and `*-region*' commands will behave like `*-mode*' commands; otherwise,
@@ -5458,7 +5458,7 @@ If menu binding was not done, calls `pr-menu-bind'."
 
 
 (defun pr-toggle-mode-menu (&optional no-menu)
-  "Toggle whether major-mode specific printing is prefered over normal printing."
+  "Toggle whether major-mode specific printing is preferred over normal printing."
   (interactive)
   (pr-toggle 'pr-auto-mode "Auto mode"
 	     'printing 1 12 'toggle nil no-menu))

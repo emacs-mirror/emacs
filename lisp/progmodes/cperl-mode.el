@@ -7650,7 +7650,7 @@ $~	The name of the current report format.
 ... &= ...	Bitwise and assignment.
 ... * ...	Multiplication.
 ... ** ...	Exponentiation.
-*NAME	Glob: all objects refered by NAME.  *NAM1 = *NAM2 aliases NAM1 to NAM2.
+*NAME	Glob: all objects referred by NAME.  *NAM1 = *NAM2 aliases NAM1 to NAM2.
 &NAME(arg0, ...)	Subroutine call.  Arguments go to @_.
 ... + ...	Addition.		+EXPR	Makes EXPR into scalar context.
 ++	Auto-increment (magical on strings).	++EXPR	EXPR++

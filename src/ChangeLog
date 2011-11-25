@@ -1,3 +1,21 @@
+2011-11-24  Juri Linkov  <juri@jurta.org>
+
+	* image.c (imagemagick_load_image): Move `MagickSetResolution' down
+	after the `MagickPingImage' call.  (Bug#10112)
+
+2011-11-23  Chong Yidong  <cyd@gnu.org>
+
+	* window.c (Fcoordinates_in_window_p): Accept only live windows.
+
+2011-11-23  Martin Rudalics  <rudalics@gmx.at>
+
+	* buffer.c (Fkill_buffer): Run replace_buffer_in_windows before
+	making another buffer current.  (Bug#10114)
+
+2011-11-23  Glenn Morris  <rgm@gnu.org>
+
+	* font.c (font_find_for_lface) [HAVE_NS]: Ignore case.  (Bug#2526)
+
 2011-11-23  Chong Yidong  <cyd@gnu.org>
 
 	* xdisp.c (compute_stop_pos): Check validity of end_charpos before

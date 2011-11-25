@@ -124,7 +124,8 @@ Use the current Bzr root directory as the ROOT argument to
 ;; Used in the autoloaded vc-bzr-registered; see below.
 ;;;###autoload
 (defconst vc-bzr-admin-checkout-format-file
-  (concat vc-bzr-admin-dirname "/checkout/format"))
+  (concat vc-bzr-admin-dirname "/checkout/format")
+  "Name of the format file in a .bzr directory.")
 (defconst vc-bzr-admin-dirstate
   (concat vc-bzr-admin-dirname "/checkout/dirstate"))
 (defconst vc-bzr-admin-branch-format-file

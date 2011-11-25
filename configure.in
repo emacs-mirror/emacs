@@ -2436,7 +2436,7 @@ no_return_alloc_pixels
   fi
 
   if test "${HAVE_XPM}" = "yes"; then
-    AC_DEFINE(HAVE_XPM, 1, [Define to 1 if you have the Xpm libary (-lXpm).])
+    AC_DEFINE(HAVE_XPM, 1, [Define to 1 if you have the Xpm library (-lXpm).])
     LIBXPM=-lXpm
   fi
 fi

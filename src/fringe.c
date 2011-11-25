@@ -35,7 +35,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
    Logical bitmaps are used internally to denote things like
    'end-of-buffer', 'left-truncation', 'overlay-arrow', etc.
 
-   Physical bitmaps specify the visual appearence of the bitmap,
+   Physical bitmaps specify the visual appearance of the bitmap,
    e.g. 'bottom-left-angle', 'left-arrow', 'left-triangle', etc.
    User defined bitmaps are physical bitmaps.
 

@@ -493,7 +493,8 @@ It is expected to call the function.")
     (define-key m [examine]
       `(menu-item ,(purecopy "Examine Directory") cvs-examine
 		  :help ,(purecopy "Examine the current state of a workarea")))
-    (fset 'cvs-global-menu m)))
+    (fset 'cvs-global-menu m))
+  "Global menu used by PCL-CVS.")
 
 
 ;; cvs-1.10 and above can take file arguments in other directories

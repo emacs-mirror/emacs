@@ -820,7 +820,7 @@ search, is returned."
     (with-current-buffer
 	(generate-new-buffer (xesam-buffer-name service search))
       (switch-to-buffer-other-window (current-buffer))
-      ;; Inialize buffer with `xesam-mode'.  `xesam-vendor' must be
+      ;; Initialize buffer with `xesam-mode'.  `xesam-vendor' must be
       ;; set before calling `xesam-mode', because we want to give the
       ;; hook functions a chance to identify their search engine.
       (setq xesam-vendor (xesam-get-cached-property engine "vendor.id"))

@@ -179,8 +179,8 @@ source."
     (goto-char (semantic-tag-start tag))
     (when (re-search-forward (concat
                               ;; The tag name is expected to be
-                              ;; between word delimiters, whitespaces,
-                              ;; or punctuations.
+                              ;; between word delimiters, whitespace,
+                              ;; or punctuation.
                               "\\(\\<\\|\\s-+\\|\\s.\\)"
                               (regexp-quote name)
                               "\\(\\>\\|\\s-+\\|\\s.\\)")

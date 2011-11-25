@@ -61,7 +61,7 @@ Use ldlibs to add addition libraries.")
 ;			   "$(CC_SHARED) -shared $(CFLAGS) $(LDFLAGS) -L. -o $@ $^")
 ;			  )
 ;	 :commands '("$(C_SHARED_LINK) %s")
-	 ;; @TODO - addative modification of autoconf.
+	 ;; @TODO - additive modification of autoconf.
 	 :autoconf '("AC_PROG_LIBTOOL")
 	 )
   "Compiler for C sourcecode.")
@@ -108,7 +108,7 @@ Use ldlibs to add addition libraries.")
 	 :variables '(("CXX_SHARED" . "g++")
 		      ("CXX_SHARED_COMPILE" .
 		       "$(CXX_SHARED) -shared $(DEFS) $(INCLUDES) $(CPPFLAGS) $(CFLAGS)"))
-	 ;; @TODO - addative modification of autoconf.
+	 ;; @TODO - additive modification of autoconf.
 	 :autoconf '("AC_PROG_LIBTOOL")
 	 )
   "Compiler for C sourcecode.")

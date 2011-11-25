@@ -725,6 +725,11 @@ more variants, including Mercury, and a lot more.
 *** The command `rmail-epa-decrypt' decrypts OpenPGP data
 in the Rmail incoming message.
 
+---
+*** The variable `rmail-message-filter' no longer has any effect.
+This change was made in Emacs 23.1 but was not advertised at the time.
+Try using `rmail-show-message-hook' instead.
+
 ** Shell mode
 
 *** Shell mode uses pcomplete rules, with the standard completion UI.

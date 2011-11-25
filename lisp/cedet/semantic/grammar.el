@@ -104,10 +104,10 @@ It ignores whitespaces, newlines and comments."
   ;; regexp match semicolons inside strings!
   semantic-lex-ignore-comments
   ;; Must detect prefixed list before punctuation because prefix chars
-  ;; are also punctuations!
+  ;; are also punctuation!
   semantic-grammar-wy--<qlist>-sexp-analyzer
-  ;; Must detect punctuations after comments because the semicolon can
-  ;; be a punctuation or a comment start!
+  ;; Must detect punctuation after comments because the semicolon can
+  ;; be punctuation or a comment start!
   semantic-grammar-wy--<punctuation>-string-analyzer
   semantic-grammar-wy--<block>-block-analyzer
   semantic-grammar-wy--<sexp>-sexp-analyzer)

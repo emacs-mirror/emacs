@@ -179,7 +179,8 @@ been set up by `rfn-eshadow-setup-minibuffer'."
       (let ((goal (substitute-in-file-name (minibuffer-contents)))
             (mid (overlay-end rfn-eshadow-overlay))
             (start (minibuffer-prompt-end))
-            (end (point-max)))
+            (end (point-max))
+	    (non-essential t))
         (unless
             ;; Catch the common case where the shadow does not need to move.
             (and mid

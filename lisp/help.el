@@ -969,7 +969,7 @@ This is effective only when Temp Buffer Resize mode is enabled.
 The value is the maximum height (in lines) which
 `resize-temp-buffer-window' will give to a window displaying a
 temporary buffer.  It can also be a function to be called to
-choose the height for such a buffer.  It gets one argumemt, the
+choose the height for such a buffer.  It gets one argument, the
 buffer, and should return a positive integer.  At the time the
 function is called, the window to be resized is selected."
   :type '(choice integer function)

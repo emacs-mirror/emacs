@@ -1,3 +1,10 @@
+2011-11-23  Chong Yidong  <cyd@gnu.org>
+
+	* windows.texi (Window Sizes): Move window-top-line,
+	window-left-column, and window-*-pixel-edges to Coordinates and
+	Windows node.
+	(Coordinates and Windows): Restore window-edges doc.
+
 2011-11-21  Martin Rudalics  <rudalics@gmx.at>
 
 	* windows.texi (Windows and Frames, Splitting Windows): Fix
