@@ -4,6 +4,9 @@
 	after recentering, and scroll-conservatively is set to a large
 	number, scroll window by a few more lines to make the cursor fully
 	visible and out of scroll-margin.  (Bug#10105)
+	(start_display): Don't move to the next line if the display should
+	start at a newline that is part of a display vector or an overlay
+	string.  (Bug#10119)
 
 2011-11-24  Juri Linkov  <juri@jurta.org>
 

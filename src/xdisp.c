@@ -2846,8 +2846,14 @@ start_display (struct it *it, struct window *w, struct text_pos pos)
 		  || (new_x == it->last_visible_x
 		      && FRAME_WINDOW_P (it->f))))
 	    {
-	      if (it->current.dpvec_index >= 0
-		  || it->current.overlay_string_index >= 0)
+	      if ((it->current.dpvec_index >= 0
+		   || it->current.overlay_string_index >= 0)
+		  /* If we are on a newline from a display vector or
+		     overlay string, then we are already at the end of
+		     a screen line; no need to go to the next line in
+		     that case, as this line is not really continued.
+		     (If we do go to the next line, C-e will not DTRT.)  */
+		  && it->c != '\n')
 		{
 		  set_iterator_to_next (it, 1);
 		  move_it_in_display_line_to (it, -1, -1, 0);
