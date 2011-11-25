@@ -1,3 +1,7 @@
+2011-11-24  Chong Yidong  <cyd@gnu.org>
+
+	* window.el (display-buffer--special-action): Doc fix.
+
 2011-11-25  Juanma Barranquero  <lekktu@gmail.com>
 
 	* emacs-lisp/avl-tree.el (avl-tree--do-copy, avl-tree-create)

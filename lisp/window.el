@@ -4786,9 +4786,10 @@ terminal if either of those variables is non-nil."
       (window--display-buffer-1 window))))
 
 (defun display-buffer--special-action (buffer)
-  "Try to display BUFFER using `special-display-function'.
-Call `special-display-p' on BUFFER's name, and if that returns
-non-nil, call `special-display-function' on BUFFER."
+  "Return special display action for BUFFER, if any.
+If `special-display-p' returns non-nil for BUFFER, return an
+appropriate display action involving `special-display-function'.
+See `display-buffer' for the format of display actions."
   (and special-display-function
        ;; `special-display-p' returns either t or a list of frame
        ;; parameters to pass to `special-display-function'.

@@ -6,31 +6,41 @@
 @chapter Frames and Graphical Displays
 @cindex frames
 
-  When using a graphical display, you can create multiple system-level
-``windows'' in a single Emacs session.  We refer to these system-level
-windows as @dfn{frames}.  A frame initially contains a single Emacs
-window; however, you can subdivide this Emacs window into smaller
-windows, all fitting into the same frame.  Each frame normally
-contains its own echo area and minibuffer.
+  When Emacs is started on a graphical display, e.g. on the X Window
+System, it occupies a graphical system-level ``window''.  In this
+manual, we call this a @dfn{frame}; we reserve the word ``window'' for
+the part of the frame used for displaying a buffer.  A frame initially
+contains one window, but it can be subdivided into multiple windows
+(@pxref{Windows}).  A frame normally also contains a menu bar, tool
+bar, and echo area.
 
-  To avoid confusion, we reserve the word ``window'' for the
-subdivisions that Emacs implements, and never use it to refer to a
-frame.
+  You can also create additional frames (@pxref{Creating Frames}).
+All frames created in the same Emacs session have access to the same
+underlying buffers and other data.  For instance, if a buffer is being
+shown in more than one frame, any changes made to it in one frame show
+up immediately in the other frames too.
 
-  Any editing you do in one frame affects the other frames.  For
-instance, if you put text in the kill ring in one frame, you can yank
-it in another frame.  If you exit Emacs through @kbd{C-x C-c} in one
-frame, it terminates all the frames.  To delete just one frame, use
+  Typing @kbd{C-x C-c} closes all the frames on the current display,
+and ends the Emacs session if it has no frames open on any other
+displays (@pxref{Exiting}).  To close just the selected frame, type
 @kbd{C-x 5 0} (that is zero, not @kbd{o}).
 
-  Emacs compiled for MS-DOS emulates some windowing functionality,
-so that you can use many of the features described in this chapter.
+  This chapter describes Emacs features specific to graphical displays
+(particularly mouse commands), and features for managing multiple
+frames.  On text-only terminals, many of these features are
+unavailable.  However, it is still possible to create multiple
+``frames'' on text-only terminals; such frames are displayed one at a
+time, filling the entire terminal screen (@pxref{Non-Window
+Terminals}).  It is also possible to use the mouse on some text-only
+terminals (@pxref{Text-Only Mouse}, for doing so on GNU and UNIX
+systems; and
 @iftex
-@xref{MS-DOS Mouse,,,emacs-xtra,Specialized Emacs Features}.
+@pxref{MS-DOS Mouse,,,emacs-xtra,Specialized Emacs Features},
 @end iftex
 @ifnottex
-@xref{MS-DOS Mouse}.
+@pxref{MS-DOS Mouse},
 @end ifnottex
+for doing so on MS-DOS).
 
 @menu
 * Mouse Commands::      Moving, cutting, and pasting, with the mouse.
@@ -87,29 +97,30 @@ ring; on a second click, kill it (@code{mouse-save-then-kill}).
   The most basic mouse command is @code{mouse-set-point}, which is
 called by clicking with the left mouse button, @kbd{Mouse-1}, in the
 text area of a window.  This moves point to the position where you
-clicked.
+clicked.  If that window was not the selected window, it becomes the
+selected window.
 
 @vindex x-mouse-click-focus-ignore-position
-  Normally, Emacs does not distinguish between ordinary mouse clicks
-and clicks that select a frame.  When you click on a frame to select
-it, that also changes the selected window and cursor position
-according to the mouse click position.  On the X Window System, you
-can change this behavior by setting the variable
-@code{x-mouse-click-focus-ignore-position} to @code{t}.  Then the
-first click selects the frame, but does not affect the selected window
-or cursor position.  If you click again in the same place, that click
-will be in the selected frame, so it will change the window or cursor
-position.
+  Normally, if the frame you clicked in was not the selected frame, it
+is made the selected frame, in addition to selecting the window and
+setting the cursor.  On the X Window System, you can change this by
+setting the variable @code{x-mouse-click-focus-ignore-position} to
+@code{t}.  In that case, the initial click on an unselected frame just
+selects the frame, without doing anything else; clicking again selects
+the window and sets the cursor position.
 
 @findex mouse-set-region
-@vindex mouse-drag-copy-region
   Holding down @kbd{Mouse-1} and ``dragging'' the mouse over a stretch
 of text activates the region around that text
-(@code{mouse-set-region}).  @xref{Mark}.  Emacs places the mark where
-you started holding down the mouse button, and point where you release
-it.  In addition, the region is copied into the kill ring (@pxref{Kill
-Ring}).  If you don't want Emacs to copy the region, change the
-variable @code{mouse-drag-copy-region} to @code{nil}.
+(@code{mouse-set-region}), placing the mark where you started holding
+down the mouse button, and point where you release it (@pxref{Mark}).
+In addition, the text in the region becomes the primary selection
+(@pxref{Primary Selection}).
+
+@vindex mouse-drag-copy-region
+  If you change the variable @code{mouse-drag-copy-region} to a
+non-@code{nil} value, dragging the mouse over a stretch of text also
+adds the text to the kill ring.  The default is @code{nil}.
 
 @vindex mouse-scroll-min-lines
   If you move the mouse off the top or bottom of the window while
@@ -124,7 +135,7 @@ on how far away from the window edge the mouse has gone; the variable
   Clicking with the middle mouse button, @kbd{Mouse-2}, moves point to
 the position where you clicked and inserts the contents of the primary
 selection (@code{mouse-yank-primary}).  @xref{Primary Selection}.
-This behavior is consistent with other X applications; alternatively,
+This behavior is consistent with other X applications.  Alternatively,
 you can rebind @kbd{Mouse-2} to @code{mouse-yank-at-click}, which
 performs a yank at point.
 
@@ -144,7 +155,6 @@ depending on where you click and the status of the region:
 @item
 If no region is active, clicking @kbd{Mouse-3} activates the region,
 placing the mark where point was and point at the clicked position.
-In addition, the text in the region is copied to the kill ring.
 
 @item
 If a region is active, clicking @kbd{Mouse-3} adjusts the nearer end
@@ -155,8 +165,8 @@ region was already on the kill ring, it replaces it there.
 @item
 If you originally specified the region using a double or triple
 @kbd{Mouse-1}, so that the region is defined to consist of entire
-words or lines, then adjusting the region with @kbd{Mouse-3} also
-proceeds by entire words or lines.
+words or lines (@pxref{Word and Line Mouse}), then adjusting the
+region with @kbd{Mouse-3} also proceeds by entire words or lines.
 
 @item
 If you use @kbd{Mouse-3} a second time consecutively, at the same
@@ -168,23 +178,17 @@ just once---or just drag across the text with @kbd{Mouse-1}.  Then you
 can copy it elsewhere by yanking it.
 @end itemize
 
+  The @code{mouse-save-then-kill} command also obeys the variable
+@code{mouse-drag-copy-region} (described above).  If the value is
+non-@code{nil}, then whenever the command sets or adjusts the active
+region, the text in the region is also added to the kill ring.  If the
+latest kill ring entry had been added the same way, that entry is
+replaced rather than making a new entry.
+
   Whenever you set the region using any of the mouse commands
 described above, the mark will be deactivated by any subsequent
 unshifted cursor motion command, in addition to the usual ways of
-deactivating the mark.  @xref{Shift Selection}.  While the region
-remains active, typing @key{Backspace} or @key{Delete} deletes the
-text in that region and deactivates the mark; this behavior follows a
-convention established by other graphical programs, and it does
-@emph{not} apply when you set the region any other way, including
-shift-selection (@pxref{Shift Selection}).
-
-@cindex Delete Selection mode
-@cindex mode, Delete Selection
-@findex delete-selection-mode
-  Many graphical applications also follow the convention that
-insertion while text is selected deletes the selected text.  You can
-make Emacs behave this way by enabling Delete Selection mode.
-@xref{Using Region}.
+deactivating the mark.  @xref{Shift Selection}.
 
 @node Word and Line Mouse
 @section Mouse Commands for Words and Lines
@@ -202,7 +206,7 @@ underscore, in C mode) selects the symbol surrounding that character.
 Double-clicking on a character with open- or close-parenthesis syntax
 selects the parenthetical grouping which that character starts or
 ends.  Double-clicking on a character with string-delimiter syntax
-(such as a singlequote or doublequote in C) selects the string
+(such as a single-quote or double-quote in C) selects the string
 constant (Emacs uses heuristics to figure out whether that character
 is the beginning or the end of it).
 
@@ -220,49 +224,53 @@ Select the text you drag across, in the form of whole lines.
 @section Following References with the Mouse
 @kindex Mouse-1 @r{(selection)}
 @kindex Mouse-2 @r{(selection)}
+@cindex hyperlinks
+@cindex links
+@cindex text buttons
+@cindex buttons
 
 @vindex mouse-highlight
-  Some Emacs buffers include @dfn{buttons}.  A button is a piece of
-text that performs some action when you activate it, such as following
-a reference.  Usually, a button's text is visually highlighted: it is
-underlined, or a box is drawn around it.  If you move the mouse over a
-button, the shape of the mouse cursor changes and the button lights up
-(if you change the variable @code{mouse-highlight} to @code{nil},
-Emacs disables this highlighting).
+  Some Emacs buffers include @dfn{buttons}, or @dfn{hyperlinks}:
+pieces of text that perform some action (e.g. following a reference)
+when activated (e.g. by clicking on them).  Usually, a button's text
+is visually highlighted: it is underlined, or a box is drawn around
+it.  If you move the mouse over a button, the shape of the mouse
+cursor changes and the button lights up.  If you change the variable
+@code{mouse-highlight} to @code{nil}, Emacs disables this
+highlighting.
 
   You can activate a button by moving point to it and typing
 @key{RET}, or by clicking either @kbd{Mouse-1} or @kbd{Mouse-2} on the
-button.  For example, typing @key{RET} or clicking on a file name in a
-Dired buffer visits that file (@pxref{Dired}).  Doing it on an error
-message in the @samp{*Compilation*} buffer goes to the source code for
-that error message (@pxref{Compilation}).  Doing it on a completion in
-the @samp{*Completions*} buffer chooses that completion
-(@pxref{Completion}).
+button.  For example, in a Dired buffer, each file name is a button;
+activating it causes Emacs to visit that file (@pxref{Dired}).  In a
+@samp{*Compilation*} buffer, each error message is a button, and
+activating it visits the source code for that error
+(@pxref{Compilation}).
 
-  Although clicking @kbd{Mouse-1} on a button usually activates that
-button, if you hold the mouse button down for a short period of time
-before releasing it (specifically, for more than 450 milliseconds),
-then Emacs moves point where you clicked instead.  This behavior
-allows you to use the mouse to move point over a button without
-following it.  Dragging---moving the mouse while it is held down---has
-its usual behavior of setting the region, even if you drag from or
-onto a button.
+  Although clicking @kbd{Mouse-1} on a button usually activates the
+button, if you hold the mouse button down for a period of time before
+releasing it (specifically, for more than 450 milliseconds), then
+Emacs moves point where you clicked, without activating the button.
+In this way, you can use the mouse to move point over a button without
+activating it.  Dragging the mouse over or onto a button has its usual
+behavior of setting the region, and does not activate the button.
+
+  You can change how @kbd{Mouse-1} applies to buttons by customizing
+the variable @code{mouse-1-click-follows-link}.  If the value is a
+positive integer, that determines how long you need to hold the mouse
+button down for, in milliseconds, to cancel button activation; the
+default is 450, as described in the previous paragraph.  If the value
+is @code{nil}, @kbd{Mouse-1} just sets point where you clicked, and
+does not activate buttons.  If the value is @code{double}, double
+clicks activate buttons but single clicks just set point.
 
 @vindex mouse-1-click-in-non-selected-windows
-  Normally, clicking @kbd{Mouse-1} on a button activates the button
-even if it is in a nonselected window.  If you change the variable
-@code{mouse-1-click-in-non-selected-windows} to @code{nil}, clicking
-@kbd{Mouse-1} on a button in an un-selected window moves point to the
+  Normally, @kbd{Mouse-1} on a button activates the button even if it
+is in a non-selected window.  If you change the variable
+@code{mouse-1-click-in-non-selected-windows} to @code{nil},
+@kbd{Mouse-1} on a button in an unselected window moves point to the
 clicked position and selects that window, without activating the
 button.
-
-@vindex mouse-1-click-follows-link
-  In Emacs versions before 22, only @kbd{Mouse-2} activates buttons
-and @kbd{Mouse-1} always sets point.  If you prefer this older
-behavior, set the variable @code{mouse-1-click-follows-link} to
-@code{nil}.  This variable also lets you choose various other
-alternatives for following links with the mouse.  Type @kbd{C-h v
-mouse-1-click-follows-link @key{RET}} for more details.
 
 @node Menu Mouse Clicks
 @section Mouse Clicks for Menus
@@ -288,19 +296,25 @@ for editing formatted text.  @xref{Formatted Text}.
 This menu is mode-specific.  For most modes if Menu-bar mode is on,
 this menu has the same items as all the mode-specific menu-bar menus
 put together.  Some modes may specify a different menu for this
-button.@footnote{Some systems use @kbd{Mouse-3} for a mode-specific
-menu.  We took a survey of users, and found they preferred to keep
-@kbd{Mouse-3} for selecting and killing regions.  Hence the decision
-to use @kbd{C-Mouse-3} for this menu.  To use @kbd{Mouse-3} instead,
-do @code{(global-set-key [mouse-3] 'mouse-popup-menubar-stuff)}.}  If
-Menu-bar mode is off, this menu contains all the items which would be
-present in the menu bar---not just the mode-specific ones---so that
-you can access them without having to display the menu bar.
+button.  If Menu Bar mode is off, this menu contains all the items
+which would be present in the menu bar---not just the mode-specific
+ones---so that you can access them without having to display the menu
+bar.
 
 @item S-Mouse-1
 This menu is for changing the default face within the window's buffer.
 @xref{Text Scale}.
 @end table
+
+  Some graphical applications use @kbd{Mouse-3} for a mode-specific
+menu.  If you prefer @kbd{Mouse-3} in Emacs to bring up such a menu
+instead of running the @code{mouse-save-then-kill} command, rebind
+@kbd{Mouse-3} by adding the following line to your init file
+(@pxref{Init Rebinding}):
+
+@smallexample
+(global-set-key [mouse-3] 'mouse-popup-menubar-stuff)
+@end smallexample
 
 @node Mode Line Mouse
 @section Mode Line Mouse Commands
@@ -332,21 +346,20 @@ make any window smaller than the minimum height.
 @item Mouse-3
 @kindex Mouse-3 @r{(mode line)}
 @kbd{Mouse-3} on a mode line deletes the window it belongs to.  If the
-frame has only one window, it buries the current buffer instead, and
-switches to another buffer.
+frame has only one window, it does nothing.
 
 @item C-Mouse-2
 @kindex C-mouse-2 @r{(mode line)}
-@kbd{C-Mouse-2} on a mode line splits the window above
-horizontally, above the place in the mode line where you click.
+@kbd{C-Mouse-2} on a mode line splits that window, producing two
+side-by-side windows with the boundary running through the click
+position (@pxref{Split Window}).
 @end table
 
 @kindex C-Mouse-2 @r{(scroll bar)}
 @kindex Mouse-1 @r{(scroll bar)}
-  Using @kbd{Mouse-1} on the divider between two side-by-side mode
-lines, you can move the vertical boundary left or right.  Using
-@kbd{C-Mouse-2} on a scroll bar splits the corresponding window
-vertically.  @xref{Split Window}.
+  Furthermore, by clicking and dragging @kbd{Mouse-1} on the divider
+between two side-by-side mode lines, you can move the vertical
+boundary to the left or right.
 
 @node Creating Frames
 @section Creating Frames
