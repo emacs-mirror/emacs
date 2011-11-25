@@ -2869,7 +2869,7 @@
 	we're using an encrypted connection.
 
 	* proto-stream.el: Alter the interface functions to also return the
-	actual stream type used: network or tls.
+	actual stream type used: network or TLS.
 
 2011-01-25  Julien Danjou  <julien@danjou.info>
 
@@ -3598,7 +3598,7 @@
 
 2010-11-30  Lars Magne Ingebrigtsen  <larsi@gnus.org>
 
-	* proto-stream.el (open-protocol-stream): All starttls connections are
+	* proto-stream.el (open-protocol-stream): All STARTTLS connections are
 	handled by the network handler.
 
 2010-11-30  Julien Danjou  <julien@danjou.info>
@@ -3687,9 +3687,9 @@
 	(nnimap-open-connection): Be more backwards-compatible.
 
 	* proto-stream.el (proto-stream-always-use-starttls): New variable.
-	(proto-stream-open-starttls): De-duplicate the starttls code.
+	(proto-stream-open-starttls): De-duplicate the STARTTLS code.
 	(proto-stream-open-starttls): Folded back into the main function.
-	(proto-stream-open-network): Fix typo in the gnutls path.
+	(proto-stream-open-network): Fix typo in the GnuTLS path.
 	(proto-stream-command): Refactor out.
 
 	* nntp.el (nntp-open-connection): Fix the STARTTLS command syntax.
@@ -3701,7 +3701,7 @@
 
 	* proto-stream.el (proto-stream-open-tls): Delete output from openssl
 	if we're using tls.el.
-	(proto-stream-open-network): If we don't have gnutls-cli or gnutls
+	(proto-stream-open-network): If we don't have gnutls-cli or GnuTLS
 	built in, then don't try to establish a STARTTLS connection.
 
 	* nntp.el (nntp-open-connection): Switch on STARTTLS on supported
@@ -5101,7 +5101,7 @@
 	* gnus-sum.el (gnus-summary-set-local-parameters): Ignore the `active'
 	non-variable, too.
 
-	* nnimap.el (nnimap-open-connection): Use gnutls STARTTLS, if
+	* nnimap.el (nnimap-open-connection): Use GnuTLS STARTTLS, if
 	available.
 	(nnimap-update-info): Rely more on the current active than the param
 	active to avoid marking articles as read too much.
@@ -5150,8 +5150,8 @@
 	group is the "last", so that the backends like nnfolder actually save
 	their folders.
 
-	* nnimap.el (nnimap-open-connection): If we have gnutls loaded, then
-	try to use that for the tls stream.
+	* nnimap.el (nnimap-open-connection): If we have GnuTLS loaded, then
+	try to use that for the TLS stream.
 	(nnimap-retrieve-group-data-early): Rework the marks code to heed
 	UIDVALIDITY and find out which groups are read-only and not.
 	(nnimap-get-flags): Use the same marks parsing code as the rest of
@@ -6370,8 +6370,8 @@
 	* gnus-int.el (gnus-request-update-info): Protect against backends not
 	having the function.
 
-	* nnimap.el (nnimap-stream): Mention starttls.
-	(nnimap-open-connection): Add starttls support.
+	* nnimap.el (nnimap-stream): Mention STARTTLS.
+	(nnimap-open-connection): Add STARTTLS support.
 
 2010-09-23  Andrew Cohen  <cohen@andy.bu.edu>
 
@@ -18651,7 +18651,7 @@
 2004-09-28  Kevin Greiner  <kgreiner@compsol.cc>
 
 	* gnus-agent.el (gnus-agent-synchronize-group-flags): Replace
-	gnus-requst-update-info with explicit code to sync the in-memory
+	gnus-request-update-info with explicit code to sync the in-memory
 	info read flags with the marks being sync'd to the backend.
 
 	* gnus-util.el (gnus-pp): Add optional stream to match pp API.
@@ -19765,7 +19765,7 @@
 
 2004-05-26  Simon Josefsson  <jas@extundo.com>
 
-	* starttls.el: Merge with my GNUTLS based starttls.el.
+	* starttls.el: Merge with my GnuTLS based starttls.el.
 	(starttls-gnutls-program, starttls-use-gnutls)
 	(starttls-extra-arguments, starttls-process-connection-type)
 	(starttls-connect, starttls-failure, starttls-success):

@@ -718,7 +718,7 @@
 	(init_ntproc) [HAVE_SOCKETS]: Only load winsock library on startup
 	if PRELOAD_WINSOCK is set in environment (or registry).
 
-	* ntproc.c (Fwin32_has_winsock,	Fwin32_unload_winsock)
+	* ntproc.c (Fwin32_has_winsock, Fwin32_unload_winsock)
 	[HAVE_SOCKETS]: New functions.
 	(syms_of_ntproc) [HAVE_SOCKETS]: defsubr them.
 
@@ -845,7 +845,7 @@
 	(timer_id): Renamed to mouse_button_timer.
 	(saved_mouse_move_msg, mouse_move_timer): New variables.
 	(win_msg_worker): Delete WM_TIMER code.
-	(win32_wnd_proc): Handle WM_TIMER events here. Use separate timers
+	(win32_wnd_proc): Handle WM_TIMER events here.  Use separate timers
 	for mouse down and mouse move (including scroll bar drag) events.
 	Add new handling code for WM_VSCROLL and WM_MOUSEMOVE events.
 	Only filter WM_MOUSEMOVE events when a button is held down.
@@ -1100,17 +1100,17 @@
 
 	(nt_sleep): Renamed to sys_sleep.
 
-	(rename): Renamed to sys_rename. Always rename to a temporary name
+	(rename): Renamed to sys_rename.  Always rename to a temporary name
 	first on Windows 95.  Unlink new name first if necessary.
 
 	(dir_finding): Variable deleted.
 	(dir_is_fat, dir_pathname): New variables.
 
-	(openddir): Fail if dir_find_handle is in use. Save directory name
+	(openddir): Fail if dir_find_handle is in use.  Save directory name
 	in dir_pathname, and set dir_is_fat appropriately.
 	(closedir, readdir): Use dir_find_handle in place of dir_finding.
 	(readdir): Copy directory name from dir_pathname on first
-	call. Use IS_DIRECTORY_SEP instead of IS_ANY_SEP.  Force filename
+	call.  Use IS_DIRECTORY_SEP instead of IS_ANY_SEP.  Force filename
 	to be lower case on FAT volumes.
 
 	(getpwuid): Move struct passwd initialization to init_user_info,
@@ -1141,7 +1141,7 @@
 	(get_emacs_configuration): Detect Windows flavor (Windows 95 or
 	NT) at run-time.  Change OS name for Windows 95 to be "win95".
 
-	(fd_info): New variable. Array of extra info for file descriptors
+	(fd_info): New variable.  Array of extra info for file descriptors
 	needed for pipe/socket support.
 
 	(utc_base_ft, utc_base, init): New internal variables used for
@@ -1206,7 +1206,7 @@
 	* ntinevt.c (win32_kdb_patch_key): Initialize isdead.
 	(key_event) [HAVE_NTGUI]: Use Windows key code.
 
-	* ntproc.c: Include config.h after CRT headers. Include fcntl.h.
+	* ntproc.c: Include config.h after CRT headers.  Include fcntl.h.
 	(child_process, MAX_CHILDREN, CHILD_ACTIVE): Moved to nt.h.
 	(DebugPrint): New macro.
 	(new_child): Create input event structures for child processes.
@@ -2580,7 +2580,7 @@
 	(win32_fill_rect, dumpglyphs, do_line_dance, x_draw_box):
 	Use Get/ReleaseFrameDC.
 	(win32_update_begin): Regenerate palette if required.
-	(w32_read_socket): Use FALSE. Handle WM_PALETTECHANGED.
+	(w32_read_socket): Use FALSE.  Handle WM_PALETTECHANGED.
 	(win32_term_init): Use GetDC directly.
 	Enable palette in display structure.
 	Predefine white and black.
@@ -4501,7 +4501,7 @@
 	* msdos.c (putchar): Call internal_flush instead of _flsbuf.
 	(DO_TERMSCRIPT): New macro to support open-termscript.
 	(internal_flush): Corrected handling of flush in middle of
-	escape sequences. Handle screen width > 127.
+	escape sequences.  Handle screen width > 127.
 	(flush_escape): New function for use by internal_flush.
 	(sys_select): New MS-DOS specific version with us timing.
 	(EMACSCOLORS): New environment variable.

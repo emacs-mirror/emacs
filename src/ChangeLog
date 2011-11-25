@@ -7730,7 +7730,7 @@
 	* keyboard.c (Fcommand_execute, Fsuspend_emacs, safe_run_hooks_1):
 	Use Frun_hooks.
 	(command_loop_1): Use Frun_hooks.  Call safe_run_hooks
-	unconditionnaly since it does the check itself.
+	unconditionally since it does the check itself.
 
 2011-03-23  Paul Eggert  <eggert@cs.ucla.edu>
 

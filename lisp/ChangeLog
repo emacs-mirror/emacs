@@ -1,3 +1,14 @@
+2011-11-25  Juanma Barranquero  <lekktu@gmail.com>
+
+	* emacs-lisp/avl-tree.el (avl-tree--do-copy, avl-tree-create)
+	(avl-tree-compare-function, avl-tree-empty, avl-tree-enter)
+	(avl-tree-delete, avl-tree-member, avl-tree-member-p, avl-tree-map)
+	(avl-tree-mapc, avl-tree-mapf, avl-tree-mapcar, avl-tree-copy)
+	(avl-tree-clear, avl-tree-stack, avl-tree-stack-pop)
+	(avl-tree-stack-first):
+	* emacs-lisp/cconv.el (cconv--analyse-use):
+	* net/gnutls.el (gnutls-negotiate): Fix typos.
+
 2011-11-24  Glenn Morris  <rgm@gnu.org>
 
 	* lpr.el (lpr-windows-system, lpr-lp-system):
@@ -3832,7 +3843,7 @@
 
 	* cus-edit.el (custom-show): Mark as obsolete.
 
-	* net/network-stream.el (network-stream-open-starttls): If gnutls
+	* net/network-stream.el (network-stream-open-starttls): If GnuTLS
 	negotiation fails, then possibly try again with a non-encrypted
 	connection (bug#9017).
 
@@ -8018,7 +8029,7 @@
 2011-04-12  Lars Magne Ingebrigtsen  <larsi@gnus.org>
 
 	* net/network-stream.el (network-stream-open-starttls): Only do
-	opportunistic STARTTLS upgrades if we have built-in gnutls support.
+	opportunistic STARTTLS upgrades if we have built-in GnuTLS support.
 	Upgrades via gnutls-cli are too slow to be done opportunistically.
 
 2011-04-12  Juanma Barranquero  <lekktu@gmail.com>

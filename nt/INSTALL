@@ -606,7 +606,7 @@
   Emacs on Windows uses more than one thread.  When Emacs aborts due
   to a fatal error, the current thread may not be the application
   thread running Emacs code.  Therefore, to produce a meaningful
-  backtrace from a debugger, you need to iunstruct it to show the
+  backtrace from a debugger, you need to instruct it to show the
   backtrace for every thread.  With GDB, you do it like this:
 
    (gdb) thread apply all backtrace

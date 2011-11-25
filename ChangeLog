@@ -1438,7 +1438,7 @@
 
 2010-10-24  Lars Magne Ingebrigtsen  <larsi@gnus.org>
 
-	* configure.in: Remove the BROKEN annotation from gnutls.
+	* configure.in: Remove the BROKEN annotation from GnuTLS.
 
 2010-10-22  Glenn Morris  <rgm@gnu.org>
 
@@ -1521,7 +1521,7 @@
 2010-09-26  Lars Magne Ingebrigtsen  <larsi@gnus.org>
 
 	* configure.in (HAVE_GNUTLS): Don't break if we don't have the
-	gnutls libraries.
+	GnuTLS libraries.
 
 2010-09-26  Teodor Zlatanov  <tzz@lifelogs.com>
 

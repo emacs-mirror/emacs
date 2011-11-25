@@ -4346,7 +4346,7 @@
 
 	* textprop.c (Fremove_list_of_text_properties):
 	Ensure modify_region is called only when buffer is modified and that
-	signal_after_change is allways called in that case.
+	signal_after_change is always called in that case.
 
 	* print.c (PRINTFINISH): Call signal_after_change.
 
