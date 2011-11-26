@@ -3578,12 +3578,11 @@ update_window (struct window *w, int force_p)
 
       rif->update_window_begin_hook (w);
       yb = window_text_bottom_y (w);
-
-      /* If window has a header line, update it before everything else.
-	 Adjust y-positions of other rows by the header line height.  */
       row = desired_matrix->rows;
       end = row + desired_matrix->nrows - 1;
 
+      /* Take note of the header line, if there is one.  We will
+	 update it below, after updating all of the window's lines.  */
       if (row->mode_line_p)
 	{
 	  header_line_row = row;
@@ -3628,6 +3627,8 @@ update_window (struct window *w, int force_p)
 
       /* Update the rest of the lines.  */
       for (; row < end && (force_p || !input_pending); ++row)
+	/* scrolling_window resets the enabled_p flag of the rows it
+	   reuses from current_matrix.  */
 	if (row->enabled_p)
 	  {
 	    int vpos = MATRIX_ROW_VPOS (row, desired_matrix);
