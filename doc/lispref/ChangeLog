@@ -1,3 +1,9 @@
+2011-11-26  Eli Zaretskii  <eliz@gnu.org>
+
+	* display.texi (Usual Display): Update the description,
+	cross-references, and indexing related to display of control
+	characters and raw bytes.
+
 2011-11-25  Martin Rudalics  <rudalics@gmx.at>
 
 	* windows.texi (Splitting Windows): Fix description of

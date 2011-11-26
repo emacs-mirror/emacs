@@ -1216,7 +1216,7 @@ characters include @acronym{ASCII} numbers, letters, and punctuation
 characters, as well as many non-@acronym{ASCII} characters.
 
 @vindex tab-width
-@cindex control character
+@cindex control characters on display
   The @acronym{ASCII} character set contains non-printing @dfn{control
 characters}.  Two of these are displayed specially: the newline
 character (Unicode code point @code{U+000A}) is displayed by starting
@@ -1228,19 +1228,21 @@ value between 1 and 1000, inclusive.  Note that how the tab character
 in the buffer is displayed has nothing to do with the definition of
 @key{TAB} as a command.
 
-  Other @acronym{ASCII} control characters are displayed as a caret
+  Other @acronym{ASCII} control characters, whose codes are below
+@code{U+0020} (octal 40, decimal 32), are displayed as a caret
 (@samp{^}) followed by the non-control version of the character, with
 the @code{escape-glyph} face.  For instance, the @samp{control-A}
 character, @code{U+0001}, is displayed as @samp{^A}.
 
+@cindex octal escapes
 @vindex ctl-arrow
-  The non-@acronym{ASCII}, non-printing characters @code{U+0080}
-(octal 200) through @code{U+009F} (octal 237) are displayed as octal
-escape sequences, with the @code{escape-glyph} face.  For instance,
+  The raw bytes with codes @code{U+0080} (octal 200) through
+@code{U+009F} (octal 237) are displayed as @dfn{octal escape
+sequences}, with the @code{escape-glyph} face.  For instance,
 character code @code{U+0098} (octal 230) is displayed as @samp{\230}.
 If you change the buffer-local variable @code{ctl-arrow} to
-@code{nil}, @acronym{ASCII} control characters are also displayed as
-octal escape sequences instead of caret escape sequences.
+@code{nil}, the @acronym{ASCII} control characters are also displayed
+as octal escape sequences instead of caret escape sequences.
 
 @vindex nobreak-char-display
 @cindex non-breaking space
@@ -1270,10 +1272,12 @@ elisp, The Emacs Lisp Reference Manual}.
   On graphical displays, some characters may have no glyphs in any of
 the fonts available to Emacs.  These @dfn{glyphless characters} are
 normally displayed as boxes containing the hexadecimal character code.
-You can control the display method by customizing the variable
-@code{glyphless-char-display-control}.  @xref{Glyphless Chars,,
-Glyphless Character Display, elisp, The Emacs Lisp Reference Manual},
-for details.
+Similarly, on text terminals, characters that cannot be displayed
+using the terminal encoding (@pxref{Terminal Coding}) are normally
+displayed as question signs.  You can control the display method by
+customizing the variable @code{glyphless-char-display-control}.
+@xref{Glyphless Chars,, Glyphless Character Display, elisp, The Emacs
+Lisp Reference Manual}, for details.
 
 @node Cursor Display
 @section Displaying the Cursor
