@@ -4630,26 +4630,29 @@ wait_reading_process_output (int time_limit, int microsecs, int read_kbd,
 		     the gnutls library -- 2.12.14 has been confirmed
 		     to need it.  See
 		     http://comments.gmane.org/gmane.emacs.devel/145074 */
-		  struct Lisp_Process *proc;
 		  for (channel = 0; channel < MAXDESC; ++channel)
-		    {
-		      if (! NILP (chan_process[channel]) &&
-			  (proc = XPROCESS (chan_process[channel])) != NULL &&
-			  proc->gnutls_p &&
-			  proc->infd &&
-			  emacs_gnutls_record_check_pending (proc->gnutls_state) > 0)
-			{
-			  nfds++;
-			  FD_SET (proc->infd, &Available);
-			}
-		    }
+		    if (! NILP (chan_process[channel]))
+		      {
+			struct Lisp_Process *p =
+			  XPROCESS (chan_process[channel]);
+			if (p && p->gnutls_p && p->infd
+			    && ((emacs_gnutls_record_check_pending
+				 (p->gnutls_state))
+				> 0))
+			  {
+			    nfds++;
+			    FD_SET (p->infd, &Available);
+			  }
+		      }
 		}
 	      else
 		{
 		  /* Check this specific channel. */
-		  if (wait_proc->gnutls_p && /* Check for valid process.  */
+		  if (wait_proc->gnutls_p /* Check for valid process.  */
 		      /* Do we have pending data?  */
-		      emacs_gnutls_record_check_pending (wait_proc->gnutls_state) > 0)
+		      && ((emacs_gnutls_record_check_pending
+			   (wait_proc->gnutls_state))
+			  > 0))
 		    {
 		      nfds = 1;
 		      /* Set to Available.  */

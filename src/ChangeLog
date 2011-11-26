@@ -1,3 +1,12 @@
+2011-11-26  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Rename locals to avoid shadowing.
+	* fileio.c (Finsert_file_contents):
+	Rename inner 'gcpro1' to 'inner_gcpro1' to avoid shadowing.
+	* process.c (wait_reading_process_output):
+	Rename inner 'proc' to 'p' to avoid shadowing.
+	Indent for consistency with usual Emacs style.
+
 2011-11-25  Eli Zaretskii  <eliz@gnu.org>
 
 	* xdisp.c (redisplay_window): If cursor row is not fully visible
