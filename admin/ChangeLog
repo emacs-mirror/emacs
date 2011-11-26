@@ -1,3 +1,13 @@
+2011-11-26  Andreas Schwab  <schwab@linux-m68k.org>
+
+	* grammars/wisent-grammar.el (auto-mode-alist): Change `$' to `\''
+	in regexp.
+	(wisent-make-parsers): Likewise.  Quote `.'.
+
+	* grammars/bovine-grammar.el (auto-mode-alist): Change `$' to `\''
+	in regexp.
+	(bovine-make-parsers): Likewise.  Quote `.'.
+
 2011-11-20  Andreas Schwab  <schwab@linux-m68k.org>
 
 	* CPP-DEFINES (VIRT_ADDR_VARIES): Remove.
