@@ -115,7 +115,7 @@ NAME, ALIASCLASS, DEFINITION and ATTRIBUTES."
 ;; when it is released, but at the moment it might be possible that people
 ;; are using an older snapshot.
 (defvar bovine--grammar-newstyle-unquote
-  (equal '(, test) (read ",test")))
+  (equal '(\, test) (read ",test")))
 
 (defun bovine-grammar-expand-form (form quotemode &optional inplace)
   "Expand FORM into a new one suitable to the bovine parser.
@@ -434,7 +434,7 @@ Menu items are appended to the common grammar menu.")
      (grammar-setupcode-builder  . bovine-grammar-setupcode-builder)
      )))
 
-(add-to-list 'auto-mode-alist '("\\.by$" . bovine-grammar-mode))
+(add-to-list 'auto-mode-alist '("\\.by\\'" . bovine-grammar-mode))
 
 (defvar-mode-local bovine-grammar-mode semantic-grammar-macros
   '(
@@ -459,7 +459,7 @@ Menu items are appended to the common grammar menu.")
   (semantic-mode 1)
   ;; Loop through each .by file in current directory, and run
   ;; `semantic-grammar-batch-build-one-package' to build the grammar.
-  (dolist (f (directory-files default-directory nil ".by$"))
+  (dolist (f (directory-files default-directory nil "\\.by\\'"))
     (let ((packagename
            (condition-case err
                (with-current-buffer (find-file-noselect f)
@@ -467,7 +467,7 @@ Menu items are appended to the common grammar menu.")
              (error (message "%s" (error-message-string err)) nil)))
 	  lang)
       (when (and packagename
-		 (string-match "^semantic-\\(.*\\)-by.el$" packagename))
+		 (string-match "^semantic-\\(.*\\)-by\\.el\\'" packagename))
 	(setq lang (match-string 1 packagename))
 	(with-temp-buffer
 	  (insert-file-contents packagename)

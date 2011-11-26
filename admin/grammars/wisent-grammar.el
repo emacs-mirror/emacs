@@ -331,7 +331,7 @@ Menu items are appended to the common grammar menu.")
      (grammar-setupcode-builder  . wisent-grammar-setupcode-builder)
      )))
 
-(add-to-list 'auto-mode-alist '("\\.wy$" . wisent-grammar-mode))
+(add-to-list 'auto-mode-alist '("\\.wy\\'" . wisent-grammar-mode))
 
 (defvar-mode-local wisent-grammar-mode semantic-grammar-macros
   '(
@@ -484,7 +484,7 @@ Menu items are appended to the common grammar menu.")
   (semantic-mode 1)
   ;; Loop through each .wy file in current directory, and run
   ;; `semantic-grammar-batch-build-one-package' to build the grammar.
-  (dolist (f (directory-files default-directory nil ".wy$"))
+  (dolist (f (directory-files default-directory nil "\\.wy\\'"))
     (let ((packagename
            (condition-case err
                (with-current-buffer (find-file-noselect f)

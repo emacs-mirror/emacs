@@ -1,3 +1,9 @@
+2011-11-26  Eli Zaretskii  <eliz@gnu.org>
+
+	* display.texi (Text Display): Update the description,
+	cross-references, and indexing related to display of control
+	characters and raw bytes.
+
 2011-11-25  Chong Yidong  <cyd@gnu.org>
 
 	* frames.texi (Frames): Rewrite introduction.
