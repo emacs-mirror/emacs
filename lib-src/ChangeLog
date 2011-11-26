@@ -4271,7 +4271,7 @@
 
 1998-12-08  Geoff Voelker  <voelker@cs.washington.edu>
 
-	* makefile.nt: Do string comparision of _NMAKE_VER.
+	* makefile.nt: Do string comparison of _NMAKE_VER.
 
 1998-11-03  Theodore Jump  <tjump@cais.com>
 

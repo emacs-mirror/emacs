@@ -150,7 +150,7 @@ association to the service from D-Bus."
     ;; entry has the structure ((UNAME SERVICE PATH MEMBER [RULE]) ...).
     ;; MEMBER is either a string (the handler), or a cons cell (a
     ;; property value).  UNAME and property values are not taken into
-    ;; account for comparision.
+    ;; account for comparison.
 
     ;; Loop over the registered functions.
     (dolist (elt entry)
