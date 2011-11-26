@@ -3686,7 +3686,7 @@ variable `last-coding-system-used' to the coding system actually used.  */)
       int this_count = SPECPDL_INDEX ();
       int multibyte = ! NILP (BVAR (current_buffer, enable_multibyte_characters));
       Lisp_Object conversion_buffer;
-      struct gcpro inner_gcpro1;
+      struct gcpro gcpro1;
 
       conversion_buffer = code_conversion_save (1, multibyte);
 
@@ -3702,7 +3702,7 @@ variable `last-coding-system-used' to the coding system actually used.  */)
       inserted = 0;		/* Bytes put into CONVERSION_BUFFER so far.  */
       unprocessed = 0;		/* Bytes not processed in previous loop.  */
 
-      GCPRO1_VAR (conversion_buffer, inner_gcpro);
+      GCPRO1 (conversion_buffer);
       while (how_much < total)
 	{
 	  /* We read one bunch by one (READ_BUF_SIZE bytes) to allow
