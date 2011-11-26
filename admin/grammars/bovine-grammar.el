@@ -115,7 +115,7 @@ NAME, ALIASCLASS, DEFINITION and ATTRIBUTES."
 ;; when it is released, but at the moment it might be possible that people
 ;; are using an older snapshot.
 (defvar bovine--grammar-newstyle-unquote
-  (equal '(, test) (read ",test")))
+  (equal '(\, test) (read ",test")))
 
 (defun bovine-grammar-expand-form (form quotemode &optional inplace)
   "Expand FORM into a new one suitable to the bovine parser.
