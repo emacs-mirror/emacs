@@ -19,12 +19,11 @@
 
 ;;; Commentary:
 ;;
-;; This file was generated from etc/java-tags.wy.
+;; This file was generated from admin/grammars/java-tags.wy.
 
 ;;; Code:
 
 (require 'semantic/lex)
-
 
 ;;; Prologue
 ;;
@@ -396,7 +395,7 @@
 	((SEMICOLON))
 	((block)))
        (block
-	   ((BRACE_BLOCK)))
+	((BRACE_BLOCK)))
        (formal_parameter_list
 	((PAREN_BLOCK)
 	 (semantic-parse-region
@@ -557,7 +556,7 @@
    '((parse-stream . wisent-parse-stream)))
   (setq semantic-parser-name "LALR"
 	semantic--parse-table wisent-java-tags-wy--parse-table
-	semantic-debug-parser-source "wisent-java-tags.wy"
+	semantic-debug-parser-source "java-tags.wy"
 	semantic-flex-keywords-obarray wisent-java-tags-wy--keyword-table
 	semantic-lex-types-obarray wisent-java-tags-wy--token-table)
   ;; Collect unmatched syntax lexical tokens
@@ -567,10 +566,6 @@
 
 
 ;;; Analyzers
-;;
-(define-lex-keyword-type-analyzer wisent-java-tags-wy--<keyword>-keyword-analyzer
-  "keyword analyzer for <keyword> tokens."
-  "\\(\\sw\\|\\s_\\)+")
 
 (define-lex-block-type-analyzer wisent-java-tags-wy--<block>-block-analyzer
   "block analyzer for <block> tokens."
@@ -582,23 +577,6 @@
     ("}" RBRACE)
     ("]" RBRACK))
   )
-
-(define-lex-regex-type-analyzer wisent-java-tags-wy--<symbol>-regexp-analyzer
-  "regexp analyzer for <symbol> tokens."
-  "\\(\\sw\\|\\s_\\)+"
-  nil
-  'IDENTIFIER)
-
-(define-lex-sexp-type-analyzer wisent-java-tags-wy--<string>-sexp-analyzer
-  "sexp analyzer for <string> tokens."
-  "\\s\""
-  'STRING_LITERAL)
-
-(define-lex-regex-type-analyzer wisent-java-tags-wy--<number>-regexp-analyzer
-  "regexp analyzer for <number> tokens."
-  semantic-lex-number-expression
-  nil
-  'NUMBER_LITERAL)
 
 (define-lex-string-type-analyzer wisent-java-tags-wy--<punctuation>-string-analyzer
   "string analyzer for <punctuation> tokens."
@@ -645,11 +623,32 @@
     (NOT . "!"))
   'punctuation)
 
+(define-lex-regex-type-analyzer wisent-java-tags-wy--<symbol>-regexp-analyzer
+  "regexp analyzer for <symbol> tokens."
+  "\\(\\sw\\|\\s_\\)+"
+  nil
+  'IDENTIFIER)
+
 (define-lex-regex-type-analyzer wisent-java-tags-wy--<unicode>-regexp-analyzer
   "regexp analyzer for <unicode> tokens."
   "\\\\u[0-9a-f][0-9a-f][0-9a-f][0-9a-f]"
   nil
   'unicodecharacter)
+
+(define-lex-regex-type-analyzer wisent-java-tags-wy--<number>-regexp-analyzer
+  "regexp analyzer for <number> tokens."
+  semantic-lex-number-expression
+  nil
+  'NUMBER_LITERAL)
+
+(define-lex-sexp-type-analyzer wisent-java-tags-wy--<string>-sexp-analyzer
+  "sexp analyzer for <string> tokens."
+  "\\s\""
+  'STRING_LITERAL)
+
+(define-lex-keyword-type-analyzer wisent-java-tags-wy--<keyword>-keyword-analyzer
+  "keyword analyzer for <keyword> tokens."
+  "\\(\\sw\\|\\s_\\)+")
 
 
 ;;; Epilogue
