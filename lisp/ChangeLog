@@ -1,3 +1,8 @@
+2011-11-26  Eli Zaretskii  <eliz@gnu.org>
+
+	* whitespace.el (whitespace-newline): Use a different foreground
+	color for 16-color light-background displays.
+
 2011-11-24  Chong Yidong  <cyd@gnu.org>
 
 	* window.el (display-buffer--special-action): Doc fix.
