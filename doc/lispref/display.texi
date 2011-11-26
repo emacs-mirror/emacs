@@ -193,10 +193,12 @@ a window, that forces truncation.
 @defvar wrap-prefix
 If this buffer-local variable is non-@code{nil}, it defines a
 ``prefix'' that is prepended to every continuation line at
-display-time.  (If lines are truncated, the wrap-prefix is never
-used.)  It may be a string, an image, or a stretch-glyph; the value is
-interpreted in the same way as a @code{display} text property.
-@xref{Display Property}.
+display time.  (If lines are truncated, the wrap-prefix is never
+used.)  It may be a string or an image (@pxref{Other Display Specs}),
+or a stretch of whitespace such as specified by the @code{:width} or
+@code{:align-to} display properties (@pxref{Specified Space}).  The
+value is interpreted in the same way as a @code{display} text
+property.  @xref{Display Property}.
 
 A wrap-prefix may also be specified for regions of text, using the
 @code{wrap-prefix} text or overlay property.  This takes precedence
@@ -206,9 +208,11 @@ over the @code{wrap-prefix} variable.  @xref{Special Properties}.
 @defvar line-prefix
 If this buffer-local variable is non-@code{nil}, it defines a
 ``prefix'' that is prepended to every non-continuation line at
-display-time.  It may be a string, an image, or a stretch-glyph; the
-value is interpreted in the same way as a @code{display} text
-property.  @xref{Display Property}.
+display time.  It may be a string or an image (@pxref{Other Display
+Specs}), or a stretch of whitespace such as specified by the
+@code{:width} or @code{:align-to} display properties (@pxref{Specified
+Space}).  The value is interpreted in the same way as a @code{display}
+text property.  @xref{Display Property}.
 
 A line-prefix may also be specified for regions of text using the
 @code{line-prefix} text or overlay property.  This takes precedence
