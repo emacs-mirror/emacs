@@ -1569,7 +1569,7 @@ For use with the `compilation-parse-errors-function' variable."
          limit t)
         (setq filepath (match-string 2)))
 
-      ;; ###### Does this work with SICStus under Windows (i.e. backslahes and stuff?)
+      ;; ###### Does this work with SICStus under Windows (i.e. backslashes and stuff?)
       (if (string-match "\\(.*/\\)\\([^/]*\\)$" filepath)
           (progn
             (setq dir (match-string 1 filepath))

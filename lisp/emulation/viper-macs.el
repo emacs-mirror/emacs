@@ -319,7 +319,7 @@ a key is a symbol, e.g., `a', `\\1', `f2', etc., or a list, e.g.,
 
 ;; Accepts as macro names: strings and vectors.
 ;; strings must be strings of characters; vectors must be vectors of keys
-;; in canonic form.  The canonic form is essentially the form used in XEmacs
+;; in canonical form, which is essentially the form used in XEmacs.
 ;; More general definitions are inherited by more specific scopes:
 ;; global->major mode->buffer. More specific definitions override more general
 (defun viper-record-kbd-macro (macro-name state macro-body &optional scope)
