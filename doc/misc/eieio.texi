@@ -1458,7 +1458,7 @@ Useful methods to define for your new class include:
 
 @defmethod eieio-speedbar eieio-speedbar-derive-line-path obj depth
 Return a string representing a directory associated with an instance
-of @var{obj}.  @var{depth} can be used to indice how many levels of
+of @var{obj}.  @var{depth} can be used to index how many levels of
 indentation have been opened by the user where @var{obj} is shown.
 @end defmethod
 

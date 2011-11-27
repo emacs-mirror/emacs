@@ -57,7 +57,7 @@
 ;;
 ;; context - A semantic datatype representing a point in a buffer.
 ;;
-;; constriant - If a context specifies a specific datatype is needed,
+;; constraint - If a context specifies a specific datatype is needed,
 ;;       that is a constraint.
 ;; constants - Some datatypes define elements of themselves as a
 ;;       constant.  These need to be returned as there would be no

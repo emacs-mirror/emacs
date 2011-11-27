@@ -166,9 +166,9 @@ static struct
      maximum character of the current charset.  */
   int min_char, max_char;
 
-  /* A Unicode character correspoinding to the code indice 0 (i.e. the
+  /* A Unicode character corresponding to the code index 0 (i.e. the
      minimum code-point) of the current charset, or -1 if the code
-     indice 0 is not a Unicode character.  This is checked when
+     index 0 is not a Unicode character.  This is checked when
      table.encoder[CHAR] is zero.  */
   int zero_index_char;
 

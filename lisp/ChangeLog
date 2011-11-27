@@ -2064,7 +2064,7 @@
 
 	* window.el (window-auto-delete): Remove.
 	(window-deletable-p): Remove argument FORCE.  Don't deal with
-	dedicatedness and previous buffers.
+	dedication and previous buffers.
 	(switch-to-prev-buffer): Don't delete window.
 	(delete-windows-on): Delete a window's frame if and only if the
 	window is dedicated.

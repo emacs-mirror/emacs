@@ -841,7 +841,7 @@ more detailed diagnosis.
 
 **** Provide an Error Summary buffer showing all the validation errors.
 
-**** Pop-up menu.  What is useful?  Tag a region (should be greyed out if
+**** Pop-up menu.  What is useful?  Tag a region (should be grayed out if
 the region is not balanced).  Suggestions based on error messages.
 
 **** Have configurable list of namespace URIs so that we can provide

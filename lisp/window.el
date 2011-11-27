@@ -170,7 +170,7 @@ Applications should never rebind this variable.  To resize a
 window to a height less than the one specified here, an
 application should instead call `window-resize' with a non-nil
 IGNORE argument.  In order to have `split-window' make a window
-shorter, explictly specify the SIZE argument of that function."
+shorter, explicitly specify the SIZE argument of that function."
   :type 'integer
   :version "24.1"
   :group 'windows)
@@ -190,7 +190,7 @@ Applications should never rebind this variable.  To resize a
 window to a width less than the one specified here, an
 application should instead call `window-resize' with a non-nil
 IGNORE argument.  In order to have `split-window' make a window
-narrower, explictly specify the SIZE argument of that function."
+narrower, explicitly specify the SIZE argument of that function."
   :type 'integer
   :version "24.1"
   :group 'windows)

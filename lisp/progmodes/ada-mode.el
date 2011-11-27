@@ -3939,7 +3939,7 @@ If NOERROR is non-nil, it only returns nil if no matching start found."
        ;; processing them recursively avoids the need for any special
        ;; handling.
        ;; Nothing should be done if we have only the specs or a
-       ;; generic instantion.
+       ;; generic instantiation.
 
        ((and (looking-at "\\<procedure\\|function\\>"))
 	(if first
@@ -4401,7 +4401,7 @@ Moves to 'begin' if in a declarative part."
           (ada-goto-matching-end 1))
 
          ;; on first line of subprogram body
-         ;; Do nothing for specs or generic instantion, since these are
+         ;; Do nothing for specs or generic instantiation, since these are
          ;; handled as the general case (find the enclosing block)
          ;; We also need to make sure that we ignore nested subprograms
          ((save-excursion

@@ -1388,12 +1388,12 @@ The expansion is entirely correct because it uses the C preprocessor."
 
 ;;; These two must be unwound, otherwise take exponential time
 (defconst cperl-maybe-white-and-comment-rex "[ \t\n]*\\(#[^\n]*\n[ \t\n]*\\)*"
-"Regular expression to match optional whitespace with interpspersed comments.
+"Regular expression to match optional whitespace with interspersed comments.
 Should contain exactly one group.")
 
 ;;; This one is tricky to unwind; still very inefficient...
 (defconst cperl-white-and-comment-rex "\\([ \t\n]\\|#[^\n]*\n\\)+"
-"Regular expression to match whitespace with interpspersed comments.
+"Regular expression to match whitespace with interspersed comments.
 Should contain exactly one group.")
 
 

@@ -570,13 +570,13 @@ Useful for large TOC's."
    nil t)
   (beginning-of-line))
 (defun reftex-select-next-heading (&optional arg)
-  "Move to next table of contentes line."
+  "Move to next table of contents line."
   (interactive "p")
   (end-of-line)
   (re-search-forward "^ " nil t arg)
   (beginning-of-line))
 (defun reftex-select-previous-heading (&optional arg)
-  "Move to previous table of contentes line."
+  "Move to previous table of contents line."
   (interactive "p")
   (re-search-backward "^ " nil t arg))
 (defun reftex-select-quit ()

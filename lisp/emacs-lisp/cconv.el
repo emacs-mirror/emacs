@@ -67,7 +67,7 @@
 
 ;; TODO: (not just for cconv but also for the lexbind changes in general)
 ;; - let (e)debug find the value of lexical variables from the stack.
-;; - make eval-region do the eval-sexp-add-defvars danse.
+;; - make eval-region do the eval-sexp-add-defvars dance.
 ;; - byte-optimize-form should be applied before cconv.
 ;;   OTOH, the warnings emitted by cconv-analyze need to come before optimize
 ;;   since afterwards they can because obnoxious (warnings about an "unused

@@ -995,7 +995,7 @@ breakpoint}, the breakpoint which point is on.
 Enable/disable current breakpoint (@code{gdb-toggle-breakpoint}).
 On a graphical display, this changes the color of a bullet in the
 margin of a source buffer at the relevant line.  This is red when
-the breakpoint is enabled and grey when it is disabled.  Text-only
+the breakpoint is enabled and gray when it is disabled.  Text-only
 terminals correspondingly display a @samp{B} or @samp{b}.
 
 @item D

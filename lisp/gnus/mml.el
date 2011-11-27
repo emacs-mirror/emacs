@@ -1454,7 +1454,7 @@ Should be adopted if code in `message-send-mail' is changed."
   "Display current buffer with Gnus, in a new buffer.
 If RAW, display a raw encoded MIME message.
 
-The window layout for the preview buffer is controled by the variables
+The window layout for the preview buffer is controlled by the variables
 `special-display-buffer-names', `special-display-regexps', or
 `gnus-buffer-configuration' (the first match made will be used),
 or the `pop-to-buffer' function."

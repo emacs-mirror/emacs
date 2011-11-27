@@ -324,7 +324,7 @@ union Lisp_Object
 
     struct
       {
-	/* Use explict signed, the signedness of a bit-field of type
+	/* Use explicit signed, the signedness of a bit-field of type
 	   int is implementation defined.  */
 	signed EMACS_INT val  : VALBITS;
 	ENUM_BF (Lisp_Type) type : GCTYPEBITS;
@@ -349,7 +349,7 @@ union Lisp_Object
     struct
       {
 	ENUM_BF (Lisp_Type) type : GCTYPEBITS;
-	/* Use explict signed, the signedness of a bit-field of type
+	/* Use explicit signed, the signedness of a bit-field of type
 	   int is implementation defined.  */
 	signed EMACS_INT val  : VALBITS;
       } s;

@@ -10961,7 +10961,7 @@
 2007-11-14  Denys Duchier  <denys.duchier@univ-orleans.fr>  (tiny change)
 
 	* pop3.el (pop3-open-server): Accept and process data more robustly at
-	connexion start to avoid spurious "POP SSL connexion failed" errors.
+	connection start to avoid spurious "POP SSL connection failed" errors.
 
 2007-11-14  Katsumi Yamaoka  <yamaoka@jpl.org>
 
@@ -16516,7 +16516,7 @@
 2005-07-01  Katsumi Yamaoka  <yamaoka@jpl.org>
 
 	* gnus-art.el (article-display-face): Improve the efficiency.
-	(article-display-x-face): Ditto; remove grey x-face stuff.
+	(article-display-x-face): Ditto; remove gray x-face stuff.
 
 2005-06-30  Katsumi Yamaoka  <yamaoka@jpl.org>
 

@@ -1631,7 +1631,7 @@ with SIGHUP.  */)
 
   /* Reset the local variables, so that this buffer's local values
      won't be protected from GC.  They would be protected
-     if they happened to remain encached in their symbols.
+     if they happened to remain cached in their symbols.
      This gets rid of them for certain.  */
   swap_out_buffer_local_variables (b);
   reset_buffer_local_variables (b, 1);
@@ -2486,7 +2486,7 @@ swap_out_buffer_local_variables (struct buffer *b)
       Lisp_Object sym = XCAR (XCAR (alist));
       eassert (XSYMBOL (sym)->redirect == SYMBOL_LOCALIZED);
       /* Need not do anything if some other buffer's binding is
-	 now encached.  */
+	 now cached.  */
       if (EQ (SYMBOL_BLV (XSYMBOL (sym))->where, buffer))
 	{
 	  /* Symbol is set up for this buffer's old local value:

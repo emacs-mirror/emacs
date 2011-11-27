@@ -819,7 +819,7 @@ BULLET: A character at the end of the ITEM PREFIX, it must be one of
         plain BULLETs are by default used, according to the DEPTH of the
         TOPIC.  Choice among the distinctive BULLETs is offered when you
         provide a universal argument (\\[universal-argument]) to the
-        TOPIC creation command, or when explictly rebulleting a TOPIC.  The
+        TOPIC creation command, or when explicitly rebulleting a TOPIC.  The
         significance of the various distinctive bullets is purely by
         convention.  See the documentation for the above bullet strings for
         more details.
@@ -10040,7 +10040,7 @@ beginning of the expanded text.
 
 If ARG is a list of numbers, point is placed according to the first
 member of the list, but you can visit the other specified positions
-cyclicaly with the functions `expand-jump-to-previous-slot' and
+cyclically with the functions `expand-jump-to-previous-slot' and
 `expand-jump-to-next-slot'.
 
 If ARG is omitted, point is placed at the end of the expanded text.
@@ -24377,7 +24377,7 @@ will be automatically rechecked when Emacs becomes idle; the
 rechecking will be paused whenever there is input pending.
 
 By default, uses a vacuous schema that allows any well-formed XML
-document.  A schema can be specified explictly using
+document.  A schema can be specified explicitly using
 \\[rng-set-schema-file-and-validate], or implicitly based on the buffer's
 file name or on the root element name.  In each case the schema must
 be a RELAX NG schema using the compact schema (such schemas

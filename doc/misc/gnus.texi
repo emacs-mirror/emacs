@@ -27408,7 +27408,7 @@ considered home score and adapt files (@pxref{Home Score File}) have
 been added.
 
 @item
-@code{nndoc} was rewritten to be easily extendable (@pxref{Document
+@code{nndoc} was rewritten to be easily extensible (@pxref{Document
 Server Internals}).
 
 @item

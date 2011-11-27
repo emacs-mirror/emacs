@@ -185,7 +185,7 @@ not align (only setting space according to `conf-assignment-space')."
      (2 'font-lock-constant-face nil t))
     ;; section { ... } (do this last because some assign ...{...)
     ("^[ \t]*\\([^=:\n]+?\\)[ \t\n]*{[^{}]*?$" 1 'font-lock-type-face prepend))
-  "Keywords to hilight in Conf mode.")
+  "Keywords to highlight in Conf mode.")
 
 (defvar conf-javaprop-font-lock-keywords
   '(;; var=val
@@ -197,7 +197,7 @@ not align (only setting space according to `conf-assignment-space')."
      (5 'font-lock-variable-name-face nil t)
      (6 'font-lock-constant-face nil t)
      (7 'font-lock-variable-name-face nil t)))
-  "Keywords to hilight in Conf Java Properties mode.")
+  "Keywords to highlight in Conf Java Properties mode.")
 
 (defvar conf-space-keywords-alist
   '(("\\`/etc/gpm/" . "key\\|name\\|foreground\\|background\\|border\\|head")
@@ -240,7 +240,7 @@ This variable is best set in the file local variables, or through
      (1 'font-lock-variable-name-face))
     ;; section { ... } (do this last because some assign ...{...)
     ("^[ \t]*\\([^:\n]+\\)[ \t\n]*{[^{}]*?$" 1 'font-lock-type-face prepend))
-  "Keywords to hilight in Conf Colon mode.")
+  "Keywords to highlight in Conf Colon mode.")
 
 (defvar conf-assignment-sign ?=
   "Sign used for assignments (char or string).")

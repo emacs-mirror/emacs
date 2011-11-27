@@ -15100,7 +15100,7 @@
 2005-12-21  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* emacs-lisp/lisp.el (lisp-complete-symbol): Don't call
-	delete-windows-on with an inexistent buffer.
+	delete-windows-on with a nonexistent buffer.
 
 2005-12-22  Nick Roberts  <nickrob@snap.net.nz>
 
@@ -31734,7 +31734,7 @@
 2005-02-23  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* emacs-lisp/debug.el (debug): Hide the buffer if it's not killed.
-	Remove unused and inexistent var `inhibit-trace'.
+	Remove unused and nonexistent var `inhibit-trace'.
 	(debugger-mode): Use run-mode-hooks.
 	(debugger-list-functions): Add buttons; setup xref stack.
 
