@@ -45,6 +45,7 @@
 (require 'cedet/cogre/utest)
 (require 'cedet/cogre/periodic-utest)
 (require 'cedet/cogre/convert-utest)
+(require 'chart)
 
 ;;; Code:
 (defvar cedet-utest-test-alist
