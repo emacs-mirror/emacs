@@ -21895,7 +21895,7 @@ Clearly, the easiest way would be if marks could somehow be
 automatically set for the original article. This is exactly what
 @emph{marks propagation} is about.
 
-Marks propagation is deactivated by default. You can activate it for a
+Marks propagation is inactive by default. You can activate it for a
 certain @code{nnmairix} group with
 @code{nnmairix-group-toggle-propmarks-this-group} (bound to @kbd{G b
 p}). This function will warn you if you try to use it with your default

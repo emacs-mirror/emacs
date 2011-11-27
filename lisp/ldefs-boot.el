@@ -27771,7 +27771,7 @@ companion command to `table-capture' this way.
 
 (autoload 'table-release "table" "\
 Convert a table into plain text by removing the frame from a table.
-Remove the frame from a table and inactivate the table.  This command
+Remove the frame from a table and deactivate the table.  This command
 converts a table into plain text without frames.  It is a companion to
 `table-capture' which does the opposite process.
 

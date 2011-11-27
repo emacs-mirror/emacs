@@ -12087,7 +12087,7 @@
 	(merge_face_heights): Eliminate GCPRO arg.  All callers changed.
 
 	* keyboard.c (command_loop_1): Change Vtransient_mark_mode
-	before deciding whether to inactivate mark.
+	before deciding whether to deactivate mark.
 
 2004-11-06  Lars Brinkhoff  <lars@nocrew.org>
 

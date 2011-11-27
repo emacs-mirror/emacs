@@ -2809,7 +2809,7 @@
 	Consolidate layout provisions coce directly into the activation
 	condition branch, now that we've removed those provisions.
 	(allout-unload-function): Explicitly activate the mode before
-	deactivating, if it's initially deactivated.
+	deactivating, if it's initially inactive.
 	(allout-set-buffer-multibyte): Properly prevent byte-compiler
 	warnings for version of function used only where
 	set-buffer-multibyte is unavailable.

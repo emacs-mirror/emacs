@@ -1872,7 +1872,7 @@ the bottom."
   (goto-char isearch-point))
 
 (defun isearch-reread-key-sequence-naturally (keylist)
-  "Reread key sequence KEYLIST with Isearch mode's keymap deactivated.
+  "Reread key sequence KEYLIST with an inactive Isearch-mode keymap.
 Return the key sequence as a string/vector."
   (isearch-unread-key-sequence keylist)
   (let (overriding-terminal-local-map)

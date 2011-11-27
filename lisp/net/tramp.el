@@ -1331,7 +1331,7 @@ ARGS to actually emit the message (if applicable)."
 		(setq fn nil)))
 	    (setq btn (1+ btn))))
 	;; The following code inserts filename and line number.
-	;; Should be deactivated by default, because it is time
+	;; Should be inactive by default, because it is time
 	;; consuming.
 ;	(let ((ffn (find-function-noselect (intern fn))))
 ;	  (insert

@@ -1354,7 +1354,7 @@ if it is a string, only list groups matching REGEXP."
 		     (predicate t)	; We list all groups?
 		     (t
 		      (or
-		       (if (eq unread t) ; Deactivated?
+		       (if (eq unread t) ; Inactive?
 			   gnus-group-list-inactive-groups
 					; We list inactive
 			 (and (numberp unread) (> unread 0)))

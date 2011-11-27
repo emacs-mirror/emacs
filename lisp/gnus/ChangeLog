@@ -2778,7 +2778,7 @@
 2011-01-28  Lars Ingebrigtsen  <larsi@gnus.org>
 
 	* gnus-sum.el (gnus-select-newsgroup): Don't try to alter the active
-	data if the group is deactivated.
+	data if the group is inactive.
 
 2011-01-28  Julien Danjou  <julien@danjou.info>
 
