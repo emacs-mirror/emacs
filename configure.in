@@ -1990,8 +1990,8 @@ if test "${HAVE_GTK}" = "yes"; then
   AC_CHECK_FUNCS(gtk_widget_get_window gtk_widget_set_has_window \
                  gtk_dialog_get_action_area gtk_widget_get_sensitive \
                  gtk_widget_get_mapped gtk_adjustment_get_page_size \
-                 gtk_orientable_set_orientation)
-
+                 gtk_orientable_set_orientation \
+		 gtk_window_set_has_resize_grip)
 fi
 
 dnl D-Bus has been tested under GNU/Linux only.  Must be adapted for

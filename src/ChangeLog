@@ -1,3 +1,9 @@
+2011-11-27  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* gtkutil.c (xg_create_frame_widgets): Call
+	gtk_window_set_has_resize_grip (FALSE) if that function is
+	present with Gtk+ 2.0.
+
 2011-11-26  Paul Eggert  <eggert@cs.ucla.edu>
 
 	* fileio.c (Finsert_file_contents): Undo previous change; see
