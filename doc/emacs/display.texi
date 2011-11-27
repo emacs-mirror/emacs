@@ -122,7 +122,7 @@ moving it to the topmost or bottommost line.  With any other
 non-@code{nil} value, Emacs adjusts point this way even if the scroll
 command leaves point in the window.  This variable affects all the
 scroll commands documented in this section, as well as scrolling with
-the mouse wheel (@pxref{Wheeled Mice}); in general, it affects any
+the mouse wheel (@pxref{Mouse Commands}); in general, it affects any
 command that has a non-@code{nil} @code{scroll-command} property.
 @xref{Property Lists,,, elisp, The Emacs Lisp Reference Manual}.
 

@@ -1,3 +1,21 @@
+2011-11-27  Chong Yidong  <cyd@gnu.org>
+
+	* frames.texi (Creating Frames): Move frame parameter example to
+	Frame Parameters node.
+	(Frame Commands): C-x 5 o does not warp the mouse by default.
+	(Fonts): Add more GTK-style properties; also, they should be
+	capitalized.
+	(Special Buffer Frames): Node deleted; special-display is on the
+	way out.
+	(Frame Parameters): Example moved here from Creating Frames.
+	Clarify that default-frame-alist affects the initial frame too.
+	Delete auto-raise-mode and auto-lower-mode.
+	(Wheeled Mice): Node deleted.  Content moved to Mouse Commands.
+	(Dialog Boxes): Delete x-gtk-use-old-file-dialog.
+
+	* windows.texi (Window Choice): Add xref to Lisp manual for
+	special-display-*.
+
 2011-11-26  Eli Zaretskii  <eliz@gnu.org>
 
 	* display.texi (Text Display): Update the description,
