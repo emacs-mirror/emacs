@@ -873,13 +873,13 @@ detailed description of this mode.
     (gdb-input (list "-gdb-set non-stop 1" 'gdb-non-stop-handler)))
 
   ;; find source file and compilation directory here
-  (gdb-input
-                                        ; Needs GDB 6.2 onwards.
-   (list "-file-list-exec-source-files" 'gdb-get-source-file-list))
   (if gdb-create-source-file-list
       (gdb-input
+                                        ; Needs GDB 6.2 onwards.
+       (list "-file-list-exec-source-files" 'gdb-get-source-file-list)))
+  (gdb-input
                                         ; Needs GDB 6.0 onwards.
-       (list "-file-list-exec-source-file" 'gdb-get-source-file)))
+   (list "-file-list-exec-source-file" 'gdb-get-source-file))
   (gdb-input
    (list "-gdb-show prompt" 'gdb-get-prompt)))
 
