@@ -23,7 +23,7 @@ ALL = make-docfile hexl ctags etags movemail ebrowse emacsclient
 
 LOCAL_FLAGS	= -DWINDOWSNT -DDOS_NT -DNO_LDAV=1 \
 		  -DNO_ARCHIVES=1 -DHAVE_CONFIG_H=1 -I../lib \
-		  -I../nt/inc -I../src
+		  -I../nt/inc -I../src $(EMACS_EXTRA_C_FLAGS)
 
 LIBS 		= $(BASE_LIBS) $(ADVAPI32)
 

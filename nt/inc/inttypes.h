@@ -24,7 +24,13 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include_next <inttypes.h>
 #else  /* !__MINGW32__ */
 #include "stdint.h"
+#ifdef _WIN64
 #define strtoumax _strtoui64
+#define strtoimax _strtoi64
+#else
+#define strtoumax strtoul
+#define strtoimax strtol
+#endif
 #endif	/* !__MINGW32__ */
 
 #endif

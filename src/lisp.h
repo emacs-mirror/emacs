@@ -163,14 +163,23 @@ extern int suppress_checking EXTERNALLY_VISIBLE;
 /* First, try and define DECL_ALIGN(type,var) which declares a static
    variable VAR of type TYPE with the added requirement that it be
    TYPEBITS-aligned.  */
+
+#ifndef GCTYPEBITS
+#define GCTYPEBITS 3
+#endif
+
 #ifndef NO_DECL_ALIGN
 # ifndef DECL_ALIGN
 #  if HAVE_ATTRIBUTE_ALIGNED
 #   define DECL_ALIGN(type, var) \
      type __attribute__ ((__aligned__ (1 << GCTYPEBITS))) var
 #  elif defined(_MSC_VER)
+#   define ALIGN_GCTYPEBITS 8
+#   if (1 << GCTYPEBITS) != ALIGN_GCTYPEBITS
+#    error ALIGN_GCTYPEBITS is wrong!
+#   endif
 #   define DECL_ALIGN(type, var) \
-     type __declspec(align(1 << GCTYPEBITS)) var
+     type __declspec(align(ALIGN_GCTYPEBITS)) var
 #  else
      /* What directives do other compilers use?  */
 #  endif
@@ -299,10 +308,6 @@ enum Lisp_Fwd_Type
     Lisp_Fwd_Buffer_Obj,	/* Fwd to a Lisp_Object field of buffers.  */
     Lisp_Fwd_Kboard_Obj,	/* Fwd to a Lisp_Object field of kboards.  */
   };
-
-#ifndef GCTYPEBITS
-#define GCTYPEBITS 3
-#endif
 
 /* These values are overridden by the m- file on some machines.  */
 #ifndef VALBITS

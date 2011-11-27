@@ -1,3 +1,10 @@
+2011-11-27  Eli Zaretskii  <eliz@gnu.org>
+
+	* makefile.w32-in (LOCAL_FLAGS): Add $(EMACS_EXTRA_C_FLAGS).
+
+	* emacsclient.c (main) <environ>: Remove declaration, already
+	pulled in by unistd.h on Posix hosts and stdlib.h on MS-Windows.
+
 2011-11-24  Glenn Morris  <rgm@gnu.org>
 
 	* make-docfile.c (scan_lisp_file): Treat defcustom like defvar.
