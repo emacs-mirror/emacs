@@ -1,3 +1,10 @@
+2011-11-28  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* files.el (find-file): Don't use force-same-window (bug#10144).
+	* window.el (switch-to-buffer): Better match Emacs-23 behavior and only
+	use pop-to-buffer if the selected window can't be used.
+	(pop-to-buffer-same-window): Use display-buffer--same-window-action.
+
 2011-11-28  Eli Zaretskii  <eliz@gnu.org>
 
 	* vc/diff-mode.el (diff-mode-map): Don't inherit 'z' => 'M-z' from

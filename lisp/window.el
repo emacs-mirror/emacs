@@ -4515,6 +4515,12 @@ Return WINDOW."
       (set-window-dedicated-p window dedicated))
     (window--display-buffer-1 window)))
 
+;; FIXME: Not implemented.
+;; FIXME: By the way, there could be more levels of dedication:
+;; - `barely' dedicated doesn't prevent reuse of the window, only records that
+;;   the window hasn't been used for something else yet.
+;; - `softly' dedicated only allows reuse when asked explicitly.
+;; - `strongly' never allows reuse.
 (defvar display-buffer-mark-dedicated nil
   "If non-nil, `display-buffer' marks the windows it creates as dedicated.
 The actual non-nil value of this variable will be copied to the
@@ -4945,10 +4951,7 @@ the buffer.
 
 NORECORD, if non-nil means do not put this buffer at the front of
 the list of recently selected ones."
-  (pop-to-buffer buffer
-		 '(display-buffer-same-window
-		   (inhibit-same-window . nil))
-		 norecord))
+  (pop-to-buffer buffer display-buffer--same-window-action norecord))
 
 (defun read-buffer-to-switch (prompt)
   "Read the name of a buffer to switch to, prompting with PROMPT.
@@ -5013,21 +5016,23 @@ Return the buffer switched to."
   (interactive
    (list (read-buffer-to-switch "Switch to buffer: ") nil 'force-same-window))
   (let ((buffer (window-normalize-buffer-to-switch-to buffer-or-name)))
-    (if (null force-same-window)
-	(pop-to-buffer buffer display-buffer--same-window-action norecord)
-      (cond
-       ;; Don't call set-window-buffer if it's not needed since it
-       ;; might signal an error (e.g. if the window is dedicated).
-       ((eq buffer (window-buffer)))
-       ((window-minibuffer-p)
-	(error "Cannot switch buffers in minibuffer window"))
-       ((eq (window-dedicated-p) t)
-	(error "Cannot switch buffers in a dedicated window"))
-       (t (set-window-buffer nil buffer)))
+    (cond
+     ;; Don't call set-window-buffer if it's not needed since it
+     ;; might signal an error (e.g. if the window is dedicated).
+     ((eq buffer (window-buffer)))
+     ((window-minibuffer-p)
+      (if force-same-window
+          (error "Cannot switch buffers in minibuffer window")
+        (pop-to-buffer buffer norecord)))
+     ((eq (window-dedicated-p) t)
+      (if force-same-window
+          (error "Cannot switch buffers in a dedicated window")
+        (pop-to-buffer buffer norecord)))
+     (t (set-window-buffer nil buffer)))
 
-      (unless norecord
-	(select-window (selected-window)))
-      (set-buffer buffer))))
+    (unless norecord
+      (select-window (selected-window)))
+    (set-buffer buffer)))
 
 (defun switch-to-buffer-other-window (buffer-or-name &optional norecord)
   "Select the buffer specified by BUFFER-OR-NAME in another window.
