@@ -253,6 +253,7 @@ off by customizing x-gtk-use-system-tooltips.
 ** New basic faces `error', `warning', `success' are available to
 highlight strings that indicate failure, caution or successful operation.
 
+---
 ** Lucid menus and dialogs can display antialiased fonts if Emacs is built
 with Xft.  To change font, use the X resource font, for example:
 Emacs.pane.menubar.font:  Courier-12
@@ -379,7 +380,7 @@ The elisp implementation sha1.el is removed. Feature sha1 is provided
 by default.
 
 ** Menu-bar changes
-
+---
 *** `menu-bar-select-buffer-function' lets you choose another operation
 instead of `switch-to-buffer' when selecting an item in the Buffers menu.
 

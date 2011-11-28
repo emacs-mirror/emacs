@@ -1,5 +1,8 @@
 2011-11-28  Chong Yidong  <cyd@gnu.org>
 
+	* text.texi (Words): Add xref to Position Info.
+	(Paragraphs): Add xref to Regexps.
+
 	* indent.texi (Indentation): Rewrite introduction.  Move table to
 	Indentation Commands node.
 	(Indentation Commands): Add index entries to table.  Copyedits.
