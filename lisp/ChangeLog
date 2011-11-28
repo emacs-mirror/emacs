@@ -1,3 +1,8 @@
+2011-11-28  Eli Zaretskii  <eliz@gnu.org>
+
+	* vc/diff-mode.el (diff-mode-map): Don't inherit 'z' => 'M-z' from
+	special-mode-map.
+
 2011-11-28  Chong Yidong  <cyd@gnu.org>
 
 	* emacs-lisp/easy-mmode.el (define-minor-mode): Fix default doc.
