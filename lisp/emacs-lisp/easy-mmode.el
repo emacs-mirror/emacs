@@ -233,10 +233,10 @@ or call the function `%s'."))))
        (defun ,modefun (&optional arg ,@extra-args)
 	 ,(or doc
 	      (format (concat "Toggle %s on or off.
-Interactively, with no prefix argument, toggle the mode.
-With universal prefix ARG turn mode on.
-With zero or negative ARG turn mode off.
-\\{%s}") pretty-name keymap-sym))
+With a prefix argument ARG, enable %s if ARG is
+positive, and disable it otherwise.  If called from Lisp, enable
+the mode if ARG is omitted or nil.
+\\{%s}") pretty-name pretty-name keymap-sym))
 	 ;; Use `toggle' rather than (if ,mode 0 1) so that using
 	 ;; repeat-command still does the toggling correctly.
 	 (interactive (list (or current-prefix-arg 'toggle)))
