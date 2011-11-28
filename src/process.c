@@ -3474,7 +3474,7 @@ usage: (make-network-process &rest ARGS)  */)
 
   {
     /* Setup coding systems for communicating with the network stream.  */
-    struct gcpro inner_gcpro1;
+    struct gcpro gcpro1;
     /* Qt denotes we have not yet called Ffind_operation_coding_system.  */
     Lisp_Object coding_systems = Qt;
     Lisp_Object fargs[5], val;
@@ -3502,9 +3502,9 @@ usage: (make-network-process &rest ARGS)  */)
 	  {
 	    fargs[0] = Qopen_network_stream, fargs[1] = name,
 	      fargs[2] = buffer, fargs[3] = host, fargs[4] = service;
-	    GCPRO1_VAR (proc, inner_gcpro);
+	    GCPRO1 (proc);
 	    coding_systems = Ffind_operation_coding_system (5, fargs);
-	    UNGCPRO_VAR (inner_gcpro);
+	    UNGCPRO;
 	  }
 	if (CONSP (coding_systems))
 	  val = XCAR (coding_systems);
@@ -3535,9 +3535,9 @@ usage: (make-network-process &rest ARGS)  */)
 	      {
 		fargs[0] = Qopen_network_stream, fargs[1] = name,
 		  fargs[2] = buffer, fargs[3] = host, fargs[4] = service;
-		GCPRO1_VAR (proc, inner_gcpro);
+		GCPRO1 (proc);
 		coding_systems = Ffind_operation_coding_system (5, fargs);
-		UNGCPRO_VAR (inner_gcpro);
+		UNGCPRO;
 	      }
 	  }
 	if (CONSP (coding_systems))

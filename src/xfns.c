@@ -3166,7 +3166,7 @@ This function is an internal primitive--use `make-frame' instead.  */)
      to get the color reference counts right, so initialize them!  */
   {
     Lisp_Object black;
-    struct gcpro inner_gcpro1;
+    struct gcpro gcpro1;
 
     /* Function x_decode_color can signal an error.  Make
        sure to initialize color slots so that we won't try
@@ -3179,7 +3179,7 @@ This function is an internal primitive--use `make-frame' instead.  */)
     f->output_data.x->mouse_pixel = -1;
 
     black = build_string ("black");
-    GCPRO1_VAR (black, inner_gcpro);
+    GCPRO1 (black);
     FRAME_FOREGROUND_PIXEL (f)
       = x_decode_color (f, black, BLACK_PIX_DEFAULT (f));
     FRAME_BACKGROUND_PIXEL (f)
@@ -3192,7 +3192,7 @@ This function is an internal primitive--use `make-frame' instead.  */)
       = x_decode_color (f, black, BLACK_PIX_DEFAULT (f));
     f->output_data.x->mouse_pixel
       = x_decode_color (f, black, BLACK_PIX_DEFAULT (f));
-    UNGCPRO_VAR (inner_gcpro);
+    UNGCPRO;
   }
 
   /* Specify the parent under which to make this X window.  */
@@ -4620,7 +4620,7 @@ x_create_tip_frame (struct x_display_info *dpyinfo,
      to get the color reference counts right, so initialize them!  */
   {
     Lisp_Object black;
-    struct gcpro inner_gcpro1;
+    struct gcpro gcpro1;
 
     /* Function x_decode_color can signal an error.  Make
        sure to initialize color slots so that we won't try
@@ -4633,7 +4633,7 @@ x_create_tip_frame (struct x_display_info *dpyinfo,
     f->output_data.x->mouse_pixel = -1;
 
     black = build_string ("black");
-    GCPRO1_VAR (black, inner_gcpro);
+    GCPRO1 (black);
     FRAME_FOREGROUND_PIXEL (f)
       = x_decode_color (f, black, BLACK_PIX_DEFAULT (f));
     FRAME_BACKGROUND_PIXEL (f)
@@ -4646,7 +4646,7 @@ x_create_tip_frame (struct x_display_info *dpyinfo,
       = x_decode_color (f, black, BLACK_PIX_DEFAULT (f));
     f->output_data.x->mouse_pixel
       = x_decode_color (f, black, BLACK_PIX_DEFAULT (f));
-    UNGCPRO_VAR (inner_gcpro);
+    UNGCPRO;
   }
 
   /* Set the name; the functions to which we pass f expect the name to

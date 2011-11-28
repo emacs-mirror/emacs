@@ -1,3 +1,13 @@
+2011-11-28  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Remove GCPRO-related macros that exist only to avoid shadowing locals.
+	* lisp.h (GCPRO1_VAR, GCPRO2_VAR, GCPRO3_VAR, GCPRO4_VAR, GCPRO5_VAR)
+	(GCPRO6_VAR, UNGCPRO_VAR): Remove.  See
+	<http://lists.gnu.org/archive/html/emacs-diffs/2011-11/msg00265.html>.
+	All uses changed to use GCPRO1 etc.
+	(GCPRO1, GCPRO2, GCPRO3, GCPRO4, GCPRO5, GCPRO6, UNGCPRO):
+	Revert to old implementation (i.e., before 2011-03-11).
+
 2011-11-28  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
 
 	* dispnew.c (scrolling_window): Truncate overlaps in copy destination
