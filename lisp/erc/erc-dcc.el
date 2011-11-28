@@ -649,7 +649,16 @@ that subcommand."
        ?q query ?n nick ?u login ?h host))))
 
 (defconst erc-dcc-ctcp-query-send-regexp
-  "^DCC SEND \\([^ ]+\\) \\([0-9]+\\) \\([0-9]+\\) *\\([0-9]*\\)")
+  (concat "^DCC SEND \\("
+          ;; Following part matches either filename without spaces
+          ;; or filename enclosed in double quotes with any number
+          ;; of escaped double quotes inside.
+          "\"\\(\\(.*?\\(\\\\\"\\)?\\)+?\\)\"\\|\\([^ ]+\\)"
+          "\\) \\([0-9]+\\) \\([0-9]+\\) *\\([0-9]*\\)"))
+
+(defsubst erc-dcc-unquote-filename (filename)
+  (erc-replace-regexp-in-string "\\\\\\\\" "\\"
+                                (erc-replace-regexp-in-string "\\\\\"" "\"" filename t t) t t))
 
 (defun erc-dcc-handle-ctcp-send (proc query nick login host to)
   "This is called if a CTCP DCC SEND subcommand is sent to the client.
@@ -664,10 +673,12 @@ It extracts the information about the dcc request and adds it to
        'dcc-request-bogus
        ?r "SEND" ?n nick ?u login ?h host))
      ((string-match erc-dcc-ctcp-query-send-regexp query)
-      (let ((filename (match-string 1 query))
-            (ip       (erc-decimal-to-ip (match-string 2 query)))
-            (port     (match-string 3 query))
-            (size     (match-string 4 query)))
+      (let ((filename
+             (or (match-string 3 query)
+                 (erc-dcc-unquote-filename (match-string 2 query))))
+            (ip       (erc-decimal-to-ip (match-string 6 query)))
+            (port     (match-string 7 query))
+            (size     (match-string 8 query)))
         ;; FIXME: a warning really should also be sent
         ;; if the ip address != the host the dcc sender is on.
         (erc-display-message
