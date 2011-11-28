@@ -49,7 +49,7 @@
 ;; 'user@' part may be omitted.  This syntax can be customized to a certain
 ;; extent by changing ange-ftp-name-format.  There are limitations.
 ;; The `host' part has an optional suffix `#port' which may be used to
-;; specify a non-default port number for the connexion.
+;; specify a non-default port number for the connection.
 ;;
 ;; If the user part is omitted then ange-ftp generates a default user
 ;; instead whose value depends on the variable ange-ftp-default-user.

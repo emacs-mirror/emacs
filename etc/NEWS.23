@@ -793,7 +793,7 @@ starts the server.  Clients can connect and create graphical or
 terminal frames using emacsclient.
 
 **** emacsclient starts emacs in daemon mode and connects to it when
---alternate-editor="" is used (or when the evironment variable
+--alternate-editor="" is used (or when the environment variable
 ALTERNATE_EDITOR is set to "") and emacsclient cannot connect to an
 emacs server.
 
@@ -1027,8 +1027,8 @@ motion keys (e.g. S-left and S-down) activate and extend a temporary
 region, similar to mouse-selection.
 
 *** Temporarily active regions, created using shift-selection or
-mouse-selection, are not necessarily deactivated in the next command.
-They are only deactivated after point motion commands that are not
+mouse-selection, are not necessarily deactivated after the next command.
+They are deactivated only after point motion commands that are not
 shift-translated, or after commands that would ordinarily deactivate
 the mark in Transient Mark mode (e.g., any command that modifies the
 buffer).

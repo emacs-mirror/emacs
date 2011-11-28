@@ -433,7 +433,7 @@ element is a cons where the car is the character to modify and the cdr
 the new syntax, as accepted by `modify-syntax-entry'."
   ;; The $ character is not allowed in most languages (one exception
   ;; is Java which allows it for legacy reasons) but we still classify
-  ;; it as an indentifier character since it's often used in various
+  ;; it as an identifier character since it's often used in various
   ;; machine generated identifiers.
   t    '((?_ . "w") (?$ . "w"))
   (objc java) (append '((?@ . "w"))

@@ -2254,7 +2254,7 @@ Only applies the FSPEC to the args part of FORMAT."
     ;; Remove those commands whose input was considered stable for
     ;; some other command (typically if (t . "%.pdf") is inactive
     ;; then we're using pdflatex and the fact that the dvi file
-    ;; is inexistent doesn't matter).
+    ;; is nonexistent doesn't matter).
     (let ((tmp nil))
       (dolist (cmd cmds)
 	(unless (member (nth 1 cmd) unchanged-in)

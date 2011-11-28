@@ -1026,7 +1026,7 @@ parts of the mode line.
 
 *** `shadow' face defines the appearance of the "shadowed" text, i.e.
 the text which should be less noticeable than the surrounding text.
-This can be achieved by using shades of grey in contrast with either
+This can be achieved by using shades of gray in contrast with either
 black or white default foreground color.  This generic shadow face
 allows customization of the appearance of shadowed text in one place,
 so package-specific faces can inherit from it.

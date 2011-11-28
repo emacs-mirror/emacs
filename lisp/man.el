@@ -1095,7 +1095,7 @@ Same for the ANSI bold and normal escape sequences."
       (replace-match "+")
       (put-text-property (1- (point)) (point) 'face 'bold))
     ;; When the header is longer than the manpage name, groff tries to
-    ;; condense it to a shorter line interspered with ^H.  Remove ^H with
+    ;; condense it to a shorter line interspersed with ^H.  Remove ^H with
     ;; their preceding chars (but don't put Man-overstrike-face).  (Bug#5566)
     (goto-char (point-min))
     (while (re-search-forward ".\b" nil t) (backward-delete-char 2))
@@ -1189,7 +1189,7 @@ script would have done them."
   (goto-char (point-min))
   (while (re-search-forward "[-|]\\(\b[-|]\\)+" nil t) (replace-match "+"))
   ;; When the header is longer than the manpage name, groff tries to
-  ;; condense it to a shorter line interspered with ^H.  Remove ^H with
+  ;; condense it to a shorter line interspersed with ^H.  Remove ^H with
   ;; their preceding chars (but don't put Man-overstrike-face).  (Bug#5566)
   (goto-char (point-min))
   (while (re-search-forward ".\b" nil t) (backward-delete-char 2))

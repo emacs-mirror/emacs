@@ -1100,6 +1100,14 @@ xg_create_frame_widgets (FRAME_PTR f)
   else
     wtop = gtk_window_new (GTK_WINDOW_TOPLEVEL);
 
+  /* gtk_window_set_has_resize_grip is a Gtk+ 3.0 function but Ubuntu
+     has backported it to Gtk+ 2.0 and they add the resize grip for
+     Gtk+ 2.0 applications also.  But it has a bug that makes Emacs loop
+     forever, so disable the grip.  */
+#if GTK_MAJOR_VERSION < 3 && defined (HAVE_GTK_WINDOW_SET_HAS_RESIZE_GRIP)
+  gtk_window_set_has_resize_grip (GTK_WINDOW (wtop), FALSE);
+#endif
+
   xg_set_screen (wtop, f);
 
   wvbox = gtk_vbox_new (FALSE, 0);

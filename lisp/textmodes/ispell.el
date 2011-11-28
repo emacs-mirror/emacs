@@ -2399,7 +2399,8 @@ Optional REFRESH will unhighlighted then highlight, using block cursor
 	   (setq start (1+ start))))	; On block non-refresh, inc start.
   (let ((modified (buffer-modified-p))	; don't allow this fn to modify buffer
 	(buffer-read-only nil)		; Allow highlighting read-only buffers.
-	(text (buffer-substring-no-properties start end)) ; Save hilight region
+	(text (buffer-substring-no-properties start end))
+					; Save highlight region.
 	(inhibit-quit t)		; inhibit interrupt processing here.
 	(buffer-undo-list t))		; don't clutter the undo list.
     (goto-char end)
@@ -3977,7 +3978,7 @@ Both should not be used to define a buffer-local dictionary."
 ; LocalWords:  Francais Nederlands charset autoloaded popup nonmenu regexp num
 ; LocalWords:  AMStex hspace includeonly nocite epsfig displaymath eqnarray reg
 ; LocalWords:  minipage modeline pers dict unhighlight buf grep sync prev inc
-; LocalWords:  fn hilight oldot NB AIX msg init read's bufs pt cmd Quinlan eg
+; LocalWords:  fn oldot NB AIX msg init read's bufs pt cmd Quinlan eg
 ; LocalWords:  uuencoded unidiff sc nn VM SGML eval IspellPersDict unsplitable
 ; LocalWords:  lns XEmacs HTML casechars Multibyte
 

@@ -3088,7 +3088,7 @@ This function runs `window-scroll-functions' before running
 	    error ("Window is dedicated to `%s'", SDATA (BVAR (XBUFFER (tem), name)));
 	  else
 	    /* WINDOW is weakly dedicated to its buffer, reset
-	       dedicatedness.  */
+	       dedication.  */
 	    w->dedicated = Qnil;
 
 	  call1 (Qrecord_window_buffer, window);
@@ -6299,7 +6299,7 @@ freeze_window_starts (struct frame *f, int freeze_p)
    ignore_positions non-zero means ignore non-matching scroll positions
    and the like.
 
-   This ignores a couple of things like the dedicatedness status of
+   This ignores a couple of things like the dedication status of
    window, combination_limit and the like.  This might have to be
    fixed.  */
 

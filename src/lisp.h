@@ -163,14 +163,23 @@ extern int suppress_checking EXTERNALLY_VISIBLE;
 /* First, try and define DECL_ALIGN(type,var) which declares a static
    variable VAR of type TYPE with the added requirement that it be
    TYPEBITS-aligned.  */
+
+#ifndef GCTYPEBITS
+#define GCTYPEBITS 3
+#endif
+
 #ifndef NO_DECL_ALIGN
 # ifndef DECL_ALIGN
 #  if HAVE_ATTRIBUTE_ALIGNED
 #   define DECL_ALIGN(type, var) \
      type __attribute__ ((__aligned__ (1 << GCTYPEBITS))) var
 #  elif defined(_MSC_VER)
+#   define ALIGN_GCTYPEBITS 8
+#   if (1 << GCTYPEBITS) != ALIGN_GCTYPEBITS
+#    error ALIGN_GCTYPEBITS is wrong!
+#   endif
 #   define DECL_ALIGN(type, var) \
-     type __declspec(align(1 << GCTYPEBITS)) var
+     type __declspec(align(ALIGN_GCTYPEBITS)) var
 #  else
      /* What directives do other compilers use?  */
 #  endif
@@ -300,10 +309,6 @@ enum Lisp_Fwd_Type
     Lisp_Fwd_Kboard_Obj,	/* Fwd to a Lisp_Object field of kboards.  */
   };
 
-#ifndef GCTYPEBITS
-#define GCTYPEBITS 3
-#endif
-
 /* These values are overridden by the m- file on some machines.  */
 #ifndef VALBITS
 #define VALBITS (BITS_PER_EMACS_INT - GCTYPEBITS)
@@ -324,7 +329,7 @@ union Lisp_Object
 
     struct
       {
-	/* Use explict signed, the signedness of a bit-field of type
+	/* Use explicit signed, the signedness of a bit-field of type
 	   int is implementation defined.  */
 	signed EMACS_INT val  : VALBITS;
 	ENUM_BF (Lisp_Type) type : GCTYPEBITS;
@@ -349,7 +354,7 @@ union Lisp_Object
     struct
       {
 	ENUM_BF (Lisp_Type) type : GCTYPEBITS;
-	/* Use explict signed, the signedness of a bit-field of type
+	/* Use explicit signed, the signedness of a bit-field of type
 	   int is implementation defined.  */
 	signed EMACS_INT val  : VALBITS;
       } s;

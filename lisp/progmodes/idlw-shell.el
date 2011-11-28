@@ -2903,7 +2903,7 @@ from `idlwave-shell-examine-alist' via mini-buffer shortcut key."
 	 ;; Move to beginning of current or previous expression
 	 (if (looking-at "\\<\\|(")
 	     ;; At beginning of expression, don't move backwards unless
-	     ;; this is at the end of an indentifier.
+	     ;; this is at the end of an identifier.
 	     (if (looking-at "\\>")
 		 (backward-sexp))
 	   (backward-sexp))

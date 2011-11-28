@@ -405,7 +405,7 @@ struct glyph
   {
     /* Metrics of a partial glyph of an image (type == IMAGE_GLYPH).  */
     struct glyph_slice img;
-    /* Start and end indices of glyphs of a graphme cluster of a
+    /* Start and end indices of glyphs of a grapheme cluster of a
        composition (type == COMPOSITE_GLYPH).  */
     struct { int from, to; } cmp;
     /* Pixel offsets for upper and lower part of the acronym.  */

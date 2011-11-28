@@ -808,7 +808,7 @@ EmacsFrameQueryGeometry (Widget widget, XtWidgetGeometry *request, XtWidgetGeome
   return result->request_mode ? XtGeometryAlmost : XtGeometryYes;
 }
 
-/* Special entrypoints */
+/* Special entry points */
 void
 EmacsFrameSetCharSize (Widget widget, int columns, int rows)
 {

@@ -1,3 +1,12 @@
+2011-11-28  Chong Yidong  <cyd@gnu.org>
+
+	* emacs-lisp/easy-mmode.el (define-minor-mode): Fix default doc.
+
+2011-11-27  Nick Roberts  <nickrob@snap.net.nz>
+
+	* progmodes/gdb-mi.el (gdb-init-1): Condition execution of
+	  gdb-get-source-file-list on gdb-create-source-file-list.
+
 2011-11-26  Eli Zaretskii  <eliz@gnu.org>
 
 	* whitespace.el (whitespace-newline): Use a different foreground
@@ -2064,7 +2073,7 @@
 
 	* window.el (window-auto-delete): Remove.
 	(window-deletable-p): Remove argument FORCE.  Don't deal with
-	dedicatedness and previous buffers.
+	dedication and previous buffers.
 	(switch-to-prev-buffer): Don't delete window.
 	(delete-windows-on): Delete a window's frame if and only if the
 	window is dedicated.

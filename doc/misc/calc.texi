@@ -25644,7 +25644,7 @@ equivalent expression involving intervals: @samp{b in [a .. c)}.
 of @samp{<} and @samp{<=} are allowed, or any of the four combinations
 of @samp{>} and @samp{>=}.  Four-argument constructions like
 @samp{a < b < c < d}, and mixtures like @w{@samp{a < b = c}} that
-involve both equalities and inequalities, are not allowed.
+involve both equations and inequalities, are not allowed.
 
 @kindex a .
 @pindex calc-remove-equal

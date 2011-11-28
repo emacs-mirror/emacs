@@ -22234,7 +22234,7 @@
 	* lisp.h (Fdelete_terminal): Declare.
 
 	* charset.h (CHECK_CHARSET, CHECK_CHARSET_GET_ID)
-	(CHECK_CHARSET_GET_ATTR): Don't use the inexistent return value of
+	(CHECK_CHARSET_GET_ATTR): Don't use the nonexistent return value of
 	wrong_type_argument.
 
 2008-02-22  Kenichi Handa  <handa@ni.aist.go.jp>
@@ -31330,7 +31330,7 @@
 
 2007-05-12  Chong Yidong  <cyd@stupidchicken.com>
 
-	* image.c (pbm_load): Correctly check image size for greyscale pbm.
+	* image.c (pbm_load): Correctly check image size for grayscale pbm.
 
 	* xterm.c (XTread_socket): Yet Another Uncaught X Error Crash (YAUXEC).
 

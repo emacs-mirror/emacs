@@ -625,12 +625,12 @@
 ;;
 ;;    (ad-activate-regexp "^ange-ftp-")
 ;;
-;; A saver way would have been to use
+;; A safer way would have been to use
 ;;
 ;;    (ad-update-regexp "^ange-ftp-")
 ;;
 ;; instead which would have only reactivated currently actively advised
-;; functions, but not functions that were currently deactivated. All these
+;; functions, but not functions that were currently inactive. All these
 ;; functions can also be called interactively.
 
 ;; A certain piece of advice is considered a match if its name contains a
@@ -833,7 +833,7 @@
 ;;     Reactivate an advised function but only if its advice is currently
 ;;     active. This can be used to bring all currently advised function up
 ;;     to date with the current state of advice without also activating
-;;     currently deactivated functions.
+;;     currently inactive functions.
 ;; - Caching:
 ;;     Is the saving of an advised definition and an identifying cache-id so
 ;;     it can be reused, for example, for activation after deactivation.
@@ -853,7 +853,7 @@
 ;; - ad-activate to activate the advice of a FUNCTION
 ;; - ad-deactivate to deactivate the advice of a FUNCTION
 ;; - ad-update   to activate the advice of a FUNCTION unless it was not
-;;               yet activated or is currently deactivated.
+;;               yet activated or is currently inactive.
 ;; - ad-unadvise deactivates a FUNCTION and removes all of its advice
 ;;               information, hence, it cannot be activated again
 ;; - ad-recover  tries to redefine a FUNCTION to its original definition and
@@ -1261,7 +1261,7 @@
 ;; contain some advice matched by the regular expression. This is a save
 ;; way to update the activation of advised functions whose advice changed
 ;; in some way or other without accidentally also activating currently
-;; deactivated functions:
+;; inactive functions:
 ;;
 ;; (ad-update-regexp "^fg-")
 ;; nil

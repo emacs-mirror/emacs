@@ -29,7 +29,9 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 #ifdef _WIN64
 typedef __int64 intptr_t;
-#define UINT64_MAX 18446744073709551615
+typedef unsigned int uint32_t;
+typedef unsigned __int64 uint64_t;
+#define UINT64_MAX (18446744073709551615i64)
 #define UINT64_MIN 0
 /* "i64" is the non-standard suffix used by MSVC for 64-bit constants.  */
 #define INT64_MAX 9223372036854775807i64
@@ -39,6 +41,8 @@ typedef __int64 intptr_t;
 #define UINTMAX_MIN UINT64_MIN
 #define INTMAX_MAX INT64_MAX
 #define INTMAX_MIN INT64_MIN
+#define uintmax_t unsigned __int64
+#define intmax_t __int64
 #else
 typedef int intptr_t;
 typedef unsigned int uint32_t;
@@ -51,10 +55,10 @@ typedef unsigned int uint32_t;
 #define UINTMAX_MIN UINT32_MIN
 #define INTMAX_MAX INT32_MAX
 #define INTMAX_MIN INT32_MIN
+#define uintmax_t unsigned long
+#define intmax_t long
 #endif
 
-#define uintmax_t unsigned __int64
-#define intmax_t __int64
 #define PTRDIFF_MAX INTPTR_MAX
 
 #endif	/* !__GNUC__ */

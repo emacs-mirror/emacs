@@ -103,7 +103,7 @@ If SOFT is non-nil, returns nil if the symbol doesn't already exist."
 
 (defvar gud-running nil
   "Non-nil if debugged program is running.
-Used to grey out relevant toolbar icons.")
+Used to gray out relevant toolbar icons.")
 
 (defvar gud-target-name "--unknown--"
   "The apparent name of the program being debugged in a gud buffer.")

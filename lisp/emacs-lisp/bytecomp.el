@@ -178,9 +178,9 @@ adds `c' to it; otherwise adds `.elc'."
 ;; This can be the 'byte-compile property of any symbol.
 (autoload 'byte-compile-inline-expand "byte-opt")
 
-;; This is the entrypoint to the lapcode optimizer pass1.
+;; This is the entry point to the lapcode optimizer pass1.
 (autoload 'byte-optimize-form "byte-opt")
-;; This is the entrypoint to the lapcode optimizer pass2.
+;; This is the entry point to the lapcode optimizer pass2.
 (autoload 'byte-optimize-lapcode "byte-opt")
 (autoload 'byte-compile-unfold-lambda "byte-opt")
 

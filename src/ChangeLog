@@ -1,3 +1,31 @@
+2011-11-28  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
+
+	* dispnew.c (scrolling_window): Truncate overlaps in copy destination
+	of scroll runs so as to avoid assigning disabled bogus rows and
+	unnecessary graphics copy operations.
+
+2011-11-27  Eli Zaretskii  <eliz@gnu.org>
+
+	* s/ms-w32.h (utimbuf) [_MSC_VER]: Don't define.
+	(snprintf) [_MSC_VER]: Redirect to _snprintf.
+	(strtoll) [_MSC_VER]: Redirect to _strtoi64.
+	(malloc, free, realloc, calloc): Redirect to e_* only when
+	compiling Emacs.
+
+	* lisp.h (GCTYPEBITS): Move before first use.
+	(ALIGN_GCTYPEBITS) [_MSC_VER]: Define.
+	(DECL_ALIGN) [_MSC_VER]: Use it, as MSVC doesn't like bit ops in
+	this macro definition.
+
+	* s/ms-w32.h (tzname): Redirect to _tzname for all values of
+	_MSC_VER.
+
+2011-11-27  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* gtkutil.c (xg_create_frame_widgets): Call
+	gtk_window_set_has_resize_grip (FALSE) if that function is
+	present with Gtk+ 2.0.
+
 2011-11-26  Paul Eggert  <eggert@cs.ucla.edu>
 
 	* fileio.c (Finsert_file_contents): Undo previous change; see

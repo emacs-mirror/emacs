@@ -96,7 +96,7 @@
 ;; This improves the interaction under Emacs but it still is somewhat
 ;; awkward.
 
-;; Quoted identifiers are not supported for hilighting.  Most
+;; Quoted identifiers are not supported for highlighting.  Most
 ;; databases support the use of double quoted strings in place of
 ;; identifiers; ms (Microsoft SQLServer) also supports identifiers
 ;; enclosed within brackets [].
@@ -1329,9 +1329,9 @@ statement.  The format of variable should be a valid
 ;; are not followed closely, and most vendors offer significant
 ;; capabilities beyond those defined in the standard specifications.
 
-;; SQL mode provides support for hilighting based on the product.  In
-;; addition to hilighting the product keywords, any ANSI keywords not
-;; used by the product are also hilighted.  This will help identify
+;; SQL mode provides support for highlighting based on the product.  In
+;; addition to highlighting the product keywords, any ANSI keywords not
+;; used by the product are also highlighted.  This will help identify
 ;; keywords that could be restricted in future versions of the product
 ;; or might be a problem if ported to another product.
 
@@ -2506,7 +2506,7 @@ See `sql-product-alist' for a list of products and supported features."
   "Configure font-lock and imenu with product-specific settings.
 
 The KEYWORDS-ONLY flag is passed to font-lock to specify whether
-only keywords should be hilighted and syntactic hilighting
+only keywords should be highlighted and syntactic highlighting
 skipped.  The IMENU flag indicates whether `imenu-mode' should
 also be configured."
 
@@ -3807,7 +3807,7 @@ you entered, right above the output it created.
 
   ;; Note that making KEYWORDS-ONLY nil will cause havoc if you try
   ;; SELECT 'x' FROM DUAL with SQL*Plus, because the title of the column
-  ;; will have just one quote.  Therefore syntactic hilighting is
+  ;; will have just one quote.  Therefore syntactic highlighting is
   ;; disabled for interactive buffers.  No imenu support.
   (sql-product-font-lock t nil)
 

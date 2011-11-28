@@ -92,9 +92,8 @@ extern WidgetClass emacsFrameClass;
 
 extern struct _DisplayContext* display_context;
 
-/* Special entrypoints */
+/* Special entry points */
 void EmacsFrameSetCharSize (Widget, int, int);
 void widget_store_internal_border (Widget widget);
 
 #endif /* _EmacsFrame_h */
-

@@ -5011,7 +5011,8 @@ no value of TYPE (always string in the MS Windows case).  */)
    cursor.  Duplicated from xdisp.c, but cannot use the version there
    due to lack of atimers on w32.  */
 #define DEFAULT_HOURGLASS_DELAY 1
-/* Return non-zero if houglass timer has been started or hourglass is shown.  */
+/* Return non-zero if hourglass timer has been started or hourglass is
+   shown.  */
 /* PENDING: if W32 can use atimers (atimer.[hc]) then the common impl in
    	    xdisp.c could be used. */
 

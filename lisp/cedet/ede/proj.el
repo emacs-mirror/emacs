@@ -546,7 +546,7 @@ You may need to add support for this type of file."
 		       (file-name-extension (car sources))
 		     "")))
 	  ))
-      ;; Return the disovered compilers
+      ;; Return the discovered compilers.
       comp)))
 
 (defmethod ede-proj-linkers ((obj ede-proj-target))
@@ -580,7 +580,7 @@ Converts all symbols into the objects to be used."
 	    (while (and avail (not (eieio-instance-inheritor-slot-boundp (car avail) 'sourcetype)))
 	      (setq avail (cdr avail)))
 	    (setq link (cdr avail)))))
-      ;; Return the disovered linkers
+      ;; Return the discovered linkers.
       link)))
 
 

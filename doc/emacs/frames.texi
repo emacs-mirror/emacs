@@ -8,7 +8,7 @@
 
   When Emacs is started on a graphical display, e.g. on the X Window
 System, it occupies a graphical system-level ``window''.  In this
-manual, we call this a @dfn{frame}; we reserve the word ``window'' for
+manual, we call this a @dfn{frame}, reserving the word ``window'' for
 the part of the frame used for displaying a buffer.  A frame initially
 contains one window, but it can be subdivided into multiple windows
 (@pxref{Windows}).  A frame normally also contains a menu bar, tool
@@ -53,10 +53,8 @@ for doing so on MS-DOS).
 * Fonts::               Changing the frame font.
 * Speedbar::            How to make and use a speedbar frame.
 * Multiple Displays::   How one Emacs job can talk to several displays.
-* Special Buffer Frames::  You can make certain buffers have their own frames.
 * Frame Parameters::    Changing the colors and other modes of frames.
 * Scroll Bars::         How to enable and disable scroll bars; how to use them.
-* Wheeled Mice::        Using mouse wheels for scrolling.
 * Drag and Drop::       Using drag and drop to open files and insert text.
 * Menu Bars::           Enabling and disabling the menu bar.
 * Tool Bars::           Enabling and disabling the tool bar.
@@ -95,7 +93,7 @@ ring; on a second click, kill it (@code{mouse-save-then-kill}).
 
 @findex mouse-set-point
   The most basic mouse command is @code{mouse-set-point}, which is
-called by clicking with the left mouse button, @kbd{Mouse-1}, in the
+invoked by clicking with the left mouse button, @kbd{Mouse-1}, in the
 text area of a window.  This moves point to the position where you
 clicked.  If that window was not the selected window, it becomes the
 selected window.
@@ -189,6 +187,22 @@ replaced rather than making a new entry.
 described above, the mark will be deactivated by any subsequent
 unshifted cursor motion command, in addition to the usual ways of
 deactivating the mark.  @xref{Shift Selection}.
+
+@cindex mouse wheel
+@findex mouse-wheel-mode
+@cindex Mouse Wheel minor mode
+@cindex mode, Mouse Wheel
+@vindex mouse-wheel-follow-mouse
+@vindex mouse-wheel-scroll-amount
+@vindex mouse-wheel-progressive-speed
+  Some mice have a ``wheel'' which can be used for scrolling.  Emacs
+supports scrolling windows with the mouse wheel, by default, on most
+graphical displays.  To toggle this feature, use @kbd{M-x
+mouse-wheel-mode}.  The variables @code{mouse-wheel-follow-mouse} and
+@code{mouse-wheel-scroll-amount} determine where and by how much
+buffers are scrolled.  The variable
+@code{mouse-wheel-progressive-speed} determines whether the scroll
+speed is linked to how fast you move the wheel.
 
 @node Word and Line Mouse
 @section Mouse Commands for Words and Lines
@@ -366,13 +380,13 @@ boundary to the left or right.
 @cindex creating frames
 
 @kindex C-x 5
-  The prefix key @kbd{C-x 5} is analogous to @kbd{C-x 4}, with
-parallel subcommands.  The difference is that @kbd{C-x 5} commands
-create a new frame rather than just a new window in the selected frame
-(@pxref{Pop Up Window}).  If an existing visible or iconified
-(``minimized'') frame already displays the requested material, these
-commands use the existing frame, after raising or deiconifying
-(``un-minimizing'') as necessary.
+  The prefix key @kbd{C-x 5} is analogous to @kbd{C-x 4}.  Whereas
+each @kbd{C-x 4} command pops up a buffer in a different window in the
+selected frame (@pxref{Pop Up Window}), the @kbd{C-x 5} commands use a
+different frame.  If an existing visible or iconified (``minimized'')
+frame already displays the requested buffer, that frame is raised and
+deiconified (``un-minimized''); otherwise, a new frame is created on
+the current display terminal.
 
   The various @kbd{C-x 5} commands differ in how they find or create the
 buffer to select:
@@ -407,56 +421,32 @@ frame.  This runs @code{find-file-read-only-other-frame}.
 @xref{Visiting}.
 @end table
 
-@cindex default-frame-alist
-@cindex initial-frame-alist
-@cindex face customization, in init file
-@cindex color customization, in init file
-  You can control the appearance of new frames you create by setting the
-frame parameters in @code{default-frame-alist}.  You can use the
-variable @code{initial-frame-alist} to specify parameters that affect
-only the initial frame.  @xref{Initial Parameters,,, elisp, The Emacs
-Lisp Reference Manual}, for more information.
-
-@cindex font (default)
-  Here is an example of using @code{default-frame-alist} to specify
-the default foreground color and font:
-
-@example
-(add-to-list 'default-frame-alist '(font . "10x20"))
-(add-to-list 'default-frame-alist
-             '(foreground-color . "blue"))
-@end example
-
-@noindent
-By putting such customizations in your init file, you can control the
-appearance of all the frames Emacs creates, including the initial one
-(@pxref{Init File}).  @xref{Fonts}, for other ways to set the default
-font.
+  You can control the appearance and behavior of the newly-created
+frames by specifying @dfn{frame parameters}.  @xref{Frame Parameters}.
 
 @node Frame Commands
 @section Frame Commands
 
-  The following commands let you create, delete and operate on frames:
+  The following commands are used to delete and operate on frames:
 
 @table @kbd
+@item C-x 5 0
+@kindex C-x 5 0
+@findex delete-frame
+Delete the selected frame (@code{delete-frame}).  This signals an
+error if there is only one frame.
+
 @item C-z
 @kindex C-z @r{(X windows)}
 @findex suspend-frame
 Minimize (or ``iconify) the selected Emacs frame
 (@code{suspend-frame}).  @xref{Exiting}.
 
-@item C-x 5 0
-@kindex C-x 5 0
-@findex delete-frame
-Delete the selected frame (@code{delete-frame}).  This is not allowed
-if there is only one frame.
-
 @item C-x 5 o
 @kindex C-x 5 o
 @findex other-frame
-Select another frame, raise it, and warp the mouse to it.  If you
-repeat this command, it cycles through all the frames on your
-terminal.
+Select another frame, and raise it.  If you repeat this command, it
+cycles through all the frames on your terminal.
 
 @item C-x 5 1
 @kindex C-x 5 1
@@ -464,43 +454,37 @@ terminal.
 Delete all frames on the current terminal, except the selected one.
 @end table
 
-  The @kbd{C-x 5 0} (@code{delete-frame}) command never deletes the
-last frame.  This prevents you from losing the ability to interact
-with the Emacs process.  Note that when Emacs is run as a daemon
-(@pxref{Emacs Server}), there is always a ``virtual frame'' that
-remains after all the ordinary, interactive frames are deleted.  In
-this case, @kbd{C-x 5 0} can delete the last interactive frame; you
-can use @command{emacsclient} to reconnect to the Emacs session.
+  The @kbd{C-x 5 0} (@code{delete-frame}) command deletes the selected
+frame.  However, it will refuse to delete the last frame in an Emacs
+session, to prevent you from losing the ability to interact with the
+Emacs session.  Note that when Emacs is run as a daemon (@pxref{Emacs
+Server}), there is always a ``virtual frame'' that remains after all
+the ordinary, interactive frames are deleted.  In this case, @kbd{C-x
+5 0} can delete the last interactive frame; you can use
+@command{emacsclient} to reconnect to the Emacs session.
 
-  The @kbd{C-x 5 1} (@code{delete-other-frames}) command only deletes
-frames on the current terminal.  For example, if you call it from an X
-frame, it deletes the other frames on that X display; if the Emacs
-process has frames open on other X displays or text terminals, those
-are not deleted.
+  The @kbd{C-x 5 1} (@code{delete-other-frames}) command deletes all
+other frames on the current terminal (this terminal refers to either a
+graphical display, or a text-only terminal; @pxref{Non-Window
+Terminals}).  If the Emacs session has frames open on other graphical
+displays or text terminals, those are not deleted.
 
 @vindex focus-follows-mouse
-  On X, you may have to tell Emacs how the window manager handles
-focus-switching between windows, in order for @kbd{C-x 5 o}
-(@code{other-frame}) to work properly.  Unfortunately, there is no way
-for Emacs to detect this automatically, so you should set the variable
-@code{focus-follows-mouse}.  The default is @code{nil}, meaning you
-have to click on the window to select it (the default for most modern
-window managers).  You should change it to @code{t} if your window
-manager selects a window and gives it focus anytime you move the mouse
-onto the window.
-
-  The window manager that is part of MS-Windows always gives focus to
-a frame that raises, so this variable has no effect in the native
-MS-Windows build of Emacs.  However, you may still wish to set this
-variable to @code{t} to have Emacs automatically move the mouse
-pointer to the raised frame.
+  The @kbd{C-x 5 o} (@code{other-frame}) command selects the next
+frame on the current terminal.  If you are using Emacs on the X Window
+System with a window manager that selects (or @dfn{gives focus to})
+whatever frame the mouse cursor is over, you have to change the
+variable @code{focus-follows-mouse} to @code{t} in order for this
+command to work properly.  Then invoking @kbd{C-x 5 o} will also warp
+the mouse cursor to the chosen frame.
 
 @node Fonts
 @section Fonts
 @cindex fonts
 
-  By default, Emacs displays text in X using a 12-point monospace
-font.  There are several different ways to specify a different font:
+  By default, Emacs displays text on graphical displays using a
+12-point monospace font.  There are several different ways to specify
+a different font:
 
 @itemize
 @item
@@ -514,7 +498,7 @@ variable @code{default-frame-alist} to specify the @code{font}
 parameter (@pxref{Creating Frames}), like this:
 
 @smallexample
-(add-to-list 'default-frame-alist '(font . "DejaVu Sans Mono-12"))
+(add-to-list 'default-frame-alist '(font . "DejaVu Sans Mono-10"))
 @end smallexample
 
 @cindex X defaults file
@@ -536,18 +520,16 @@ font in your X resources file, you should not quote it.
 If you are running Emacs on the GNOME desktop, you can tell Emacs to
 use the default system font by setting the variable
 @code{font-use-system-font} to @code{t} (the default is @code{nil}).
-For this to work, Emacs must be compiled with Gconf support; this is
-done automatically if the libraries are present at compile time.
+For this to work, Emacs must have been compiled with Gconf support.
 
 @item
 Use the command line option @samp{-fn} (or @samp{--font}).  @xref{Font
 X}.
 @end itemize
 
-To check what font you're currently using, the @kbd{C-u C-x =}
-command can be helpful.  It'll describe the character under point, and
-also say what font it's rendered in, if the window system you're
-running under supports that.
+  To check what font you're currently using, the @kbd{C-u C-x =}
+command can be helpful.  It describes the character at point, and
+names the font that it's rendered in.
 
 @cindex fontconfig
   On X, there are four different ways to express a ``font name''.  The
@@ -561,7 +543,7 @@ the following form:
 @noindent
 Within this format, any of the elements in braces may be omitted.
 Here, @var{fontname} is the @dfn{family name} of the font, such as
-@samp{Monospace} or @samp{DejaVu Serif}; @var{fontsize} is the
+@samp{Monospace} or @samp{DejaVu Sans Mono}; @var{fontsize} is the
 @dfn{point size} of the font (one @dfn{printer's point} is about 1/72
 of an inch); and the @samp{@var{name}=@var{values}} entries specify
 settings such as the slant and weight of the font.  Each @var{values}
@@ -574,7 +556,7 @@ Here is a list of common font properties:
 
 @table @samp
 @item slant
-One of @samp{italic}, @samp{oblique} or @samp{roman}.
+One of @samp{italic}, @samp{oblique}, or @samp{roman}.
 
 @item weight
 One of @samp{light}, @samp{medium}, @samp{demibold}, @samp{bold} or
@@ -608,8 +590,9 @@ For a more detailed description of Fontconfig patterns, see the
 Fontconfig manual, which is distributed with Fontconfig and available
 online at @url{http://fontconfig.org/fontconfig-user.html}.
 
-  The second way to specify a font is to use a @dfn{GTK font
-description}.  These have the syntax
+@cindex GTK font pattern
+  The second way to specify a font is to use a @dfn{GTK font pattern}.
+These have the syntax
 
 @smallexample
 @var{fontname} [@var{properties}] [@var{fontsize}]
@@ -618,20 +601,24 @@ description}.  These have the syntax
 @noindent
 where @var{fontname} is the family name, @var{properties} is a list of
 property values separated by spaces, and @var{fontsize} is the point
-size.  The properties that you may specify are as follows:
+size.  The properties that you may specify for GTK font patterns are
+as follows:
 
-@table @samp
-@item style
-One of @samp{roman}, @samp{italic} or @samp{oblique}.  If omitted, the
-@samp{roman} style is used.
-@item weight
-One of @samp{medium}, @samp{ultra-light}, @samp{light},
-@samp{semi-bold}, or @samp{bold}.  If omitted, @samp{medium} weight is
-used.
-@end table
+@itemize
+@item
+Slant properties: @samp{Italic} or @samp{Oblique}.  If omitted, the
+default (roman) slant is implied.
+@item
+Weight properties: @samp{Bold}, @samp{Book}, @samp{Light},
+@samp{Medium}, @samp{Semi-bold}, or @samp{Ultra-light}.  If omitted,
+@samp{Medium} weight is implied.
+@item
+Width properties: @samp{Semi-Condensed} or @samp{Condensed}.  If
+omitted, a default width is used.
+@end itemize
 
 @noindent
-Here are some examples of GTK font descriptions:
+Here are some examples of GTK font patterns:
 
 @smallexample
 Monospace 12
@@ -683,8 +670,8 @@ The font width---normally @samp{normal}, @samp{condensed},
 @samp{extended}, or @samp{semicondensed} (some font names support
 other values).
 @item style
-An optional additional style name.  Usually it is empty---most long
-font names have two hyphens in a row at this point.
+An optional additional style name.  Usually it is empty---most XLFDs
+have two hyphens in a row at this point.
 @item pixels
 The font height, in pixels.
 @item height
@@ -853,116 +840,40 @@ input stream for each server.  Each server also has its own selected
 frame.  The commands you enter with a particular X server apply to
 that server's selected frame.
 
-  It is even possible to use this feature to let two or more users
-type simultaneously on the two displays, within the same Emacs job.
-In practice, however, the different users can easily interfere with
-each others' edits if they are not careful.
-
-@node Special Buffer Frames
-@section Special Buffer Frames
-
-@vindex special-display-buffer-names
-  You can make certain chosen buffers, which Emacs normally displays
-in ``some other window'' (@pxref{Displaying Buffers}), appear in
-special frames of their own.  To do this, set the variable
-@code{special-display-buffer-names} to a list of buffer names; any
-buffer whose name is in that list automatically gets a special frame.
-@xref{Window Choice}, for how this fits in with the other ways for
-Emacs to choose a window to display in.
-
-  For example, if you set the variable this way,
-
-@example
-(setq special-display-buffer-names
-      '("*Completions*" "*grep*" "*tex-shell*"))
-@end example
-
-@noindent
-then completion lists, @code{grep} output and the @TeX{} mode shell
-buffer get individual frames of their own.  These frames, and the
-windows in them, are never automatically split or reused for any other
-buffers.  They continue to show the buffers they were created for,
-unless you alter them by hand.  Killing the special buffer deletes its
-frame automatically.
-
-@vindex special-display-regexps
-  More generally, you can set @code{special-display-regexps} to a list
-of regular expressions; then a buffer gets its own frame if its name
-matches any of those regular expressions.  (Once again, this applies only
-to buffers that normally get displayed for you in ``another window.'')
-
-@vindex special-display-frame-alist
-  The variable @code{special-display-frame-alist} specifies the frame
-parameters for these frames.  It has a default value, so you don't need
-to set it.
-
-  For those who know Lisp, an element of
-@code{special-display-buffer-names} or @code{special-display-regexps}
-can also be a list.  Then the first element is the buffer name or
-regular expression; the rest of the list specifies how to create the
-frame.  It can be an association list specifying frame parameter
-values; these values take precedence over parameter values specified
-in @code{special-display-frame-alist}.  If you specify the symbol
-@code{same-window} as a ``frame parameter'' in this list, with a
-non-@code{nil} value, that means to use the selected window if
-possible.  If you use the symbol @code{same-frame} as a ``frame
-parameter'' in this list, with a non-@code{nil} value, that means to
-use the selected frame if possible.
-
-  Alternatively, the value can have this form:
-
-@example
-(@var{function} @var{args}...)
-@end example
-
-@noindent
-where @var{function} is a symbol.  Then the frame is constructed by
-calling @var{function}; its first argument is the buffer, and its
-remaining arguments are @var{args}.
-
 @node Frame Parameters
-@section Setting Frame Parameters
-@cindex Auto-Raise mode
-@cindex Auto-Lower mode
+@section Frame Parameters
+@cindex default-frame-alist
 
-  These commands are available for controlling the window management
-behavior of the selected frame:
+  You can control the default appearance and behavior of all frames by
+specifying a default list of @dfn{frame parameters} in the variable
+@code{default-frame-alist}.  Its value should be a list of entries,
+each specifying a parameter name and a value for that parameter.
+These entries take effect whenever Emacs creates a new frame,
+including the initial frame.
 
-@table @kbd
-@findex auto-raise-mode
-@item M-x auto-raise-mode
-Toggle whether or not the selected frame should auto-raise.  Auto-raise
-means that every time you move the mouse onto the frame, it raises the
-frame.
+@cindex frame size, specifying default
+  For example, you can add the following lines to your init file
+(@pxref{Init File}) to set the default frame width to 90 character
+columns, the default frame height to 40 character rows, and the
+default font to @samp{Monospace-10}:
 
-Some window managers also implement auto-raise.  If you enable
-auto-raise for Emacs frames in your window manager, it will work, but
-it is beyond Emacs' control, so @code{auto-raise-mode} has no effect
-on it.
+@example
+(add-to-list 'default-frame-alist '(width  . 90))
+(add-to-list 'default-frame-alist '(height . 40))
+(add-to-list 'default-frame-alist '(font . "Monospace-10"))
+@end example
 
-@findex auto-lower-mode
-@item M-x auto-lower-mode
-Toggle whether or not the selected frame should auto-lower.
-Auto-lower means that every time you move the mouse off the frame,
-the frame moves to the bottom of the stack on the screen.
-
-The command @code{auto-lower-mode} has no effect on auto-lower
-implemented by the window manager.  To control that, you must use the
-appropriate window manager features.
-@end table
-
-  In Emacs versions that use an X toolkit, the color-setting and
-font-setting functions don't affect menus and the menu bar, since they
-are displayed by their own widget classes.  To change the appearance of
-the menus and menu bar, you must use X resources (@pxref{Resources}).
-@xref{Colors}, regarding colors.  @xref{Font X}, regarding choice of
-font.
-
-  Colors, fonts, and other attributes of the frame's display can also
-be customized by setting frame parameters in the variable
-@code{default-frame-alist} (@pxref{Creating Frames}).  For a detailed
-description of frame parameters and customization, see @ref{Frame
+  For a list of frame parameters and their effects, see @ref{Frame
 Parameters,,, elisp, The Emacs Lisp Reference Manual}.
+
+@cindex initial-frame-alist
+  You can also specify a list of frame parameters which apply to just
+the initial frame, by customizing the variable
+@code{initial-frame-alist}.
+
+  If Emacs is compiled to use an X toolkit, frame parameters that
+specify colors and fonts don't affect menus and the menu bar, since
+those are drawn by the toolkit and not directly by Emacs.
 
 @node Scroll Bars
 @section Scroll Bars
@@ -1007,41 +918,17 @@ or disable the scroll bars (@pxref{Resources}).  To control the scroll
 bar width, change the @code{scroll-bar-width} frame parameter
 (@pxref{Frame Parameters,,, elisp, The Emacs Lisp Reference Manual}).
 
-@node Wheeled Mice
-@section Scrolling With ``Wheeled'' Mice
-
-@cindex mouse wheel
-@cindex wheel, mouse
-@findex mouse-wheel-mode
-@cindex Mouse Wheel minor mode
-@cindex mode, Mouse Wheel
-  Some mice have a ``wheel'' instead of a third button.  You can
-usually click the wheel to act as either @kbd{Mouse-2} or
-@kbd{Mouse-3}, depending on the setup.  You can also use the wheel to
-scroll windows instead of using the scroll bar or keyboard commands.
-Mouse wheel support only works if the system generates appropriate
-events; whenever possible, it is turned on by default.  To toggle this
-feature, use @kbd{M-x mouse-wheel-mode}.
-
-@vindex mouse-wheel-follow-mouse
-@vindex mouse-wheel-scroll-amount
-@vindex mouse-wheel-progressive-speed
-  The two variables @code{mouse-wheel-follow-mouse} and
-@code{mouse-wheel-scroll-amount} determine where and by how much
-buffers are scrolled.  The variable
-@code{mouse-wheel-progressive-speed} determines whether the scroll
-speed is linked to how fast you move the wheel.
-
 @node Drag and Drop
 @section Drag and Drop
 @cindex drag and drop
 
-  Emacs supports @dfn{drag and drop} using the mouse.  For instance,
-dropping text onto an Emacs frame inserts the text where it is dropped.
-Dropping a file onto an Emacs frame visits that file.  As a special
-case, dropping the file on a Dired buffer moves or copies the file
-(according to the conventions of the application it came from) into the
-directory displayed in that buffer.
+  In most graphical desktop environments, Emacs has basic support for
+@dfn{drag and drop} operations.  For instance, dropping text onto an
+Emacs frame inserts the text where it is dropped.  Dropping a file
+onto an Emacs frame visits that file.  As a special case, dropping the
+file on a Dired buffer moves or copies the file (according to the
+conventions of the application it came from) into the directory
+displayed in that buffer.
 
 @vindex dnd-open-file-other-window
   Dropping a file normally visits it in the window you drop it on.  If
@@ -1058,13 +945,12 @@ protocol, are currently supported.
 @findex menu-bar-mode
 @vindex menu-bar-mode
 
-  You can turn display of menu bars on or off with @kbd{M-x
-menu-bar-mode} or by customizing the variable @code{menu-bar-mode}.
-With no argument, this command toggles Menu Bar mode, a
-minor mode.  With an argument, the command turns Menu Bar mode on if the
-argument is positive, off if the argument is not positive.  You can use
-the X resource @samp{menuBar} to control the initial setting of
-Menu Bar mode.  @xref{Resources}.
+  You can toggle the use of menu bars with @kbd{M-x menu-bar-mode}.
+With no argument, this command toggles Menu Bar mode, a global minor
+mode.  With an argument, the command turns Menu Bar mode on if the
+argument is positive, off if the argument is not positive.  To control
+the use of menu bars at startup, customize the variable
+@code{menu-bar-mode}.
 
 @kindex C-Mouse-3 @r{(when menu bar is disabled)}
   Expert users often turn off the menu bar, especially on text-only
@@ -1148,47 +1034,39 @@ toggle to be activated by default, change the variable
 help text to the GTK+ file chooser dialog; to disable this help text,
 change the variable @code{x-gtk-file-dialog-help-text} to @code{nil}.
 
-@vindex x-gtk-use-old-file-dialog
-  In GTK+ versions 2.4 through 2.10, you can choose to use an older
-version of the GTK+ file dialog by setting the variable
-@code{x-gtk-use-old-file-dialog} to a non-@code{nil} value.  If Emacs
-is built with a GTK+ version that has only one file dialog, this
-variable has no effect.
-
 @node Tooltips
 @section Tooltips
 @cindex tooltips
 
-  @dfn{Tooltips} are small windows that display text information at the
-current mouse position.  They activate when there is a pause in mouse
-movement.  There are two types of tooltip: help tooltips and GUD
-tooltips.
-
-  @dfn{Help tooltips} typically display over text---including the mode
-line---but are also available for other parts of the Emacs frame, such
-as the tool bar and menu items.
+  @dfn{Tooltips} are small windows that display text information at
+the current mouse position.  They activate when there is a pause in
+mouse movement over some significant piece of text in a window, or the
+mode line, or some other part of the Emacs frame such as a tool bar
+button or menu item.
 
 @findex tooltip-mode
-  You can toggle display of help tooltips (Tooltip mode) with the
-command @kbd{M-x tooltip-mode}.  When Tooltip mode is disabled, the
-help text is displayed in the echo area instead.
-
-  @dfn{GUD tooltips} show values of variables.  They are useful when
-you are debugging a program.  @xref{Debugger Operation}.
+  You can toggle the use of tooltips with the command @kbd{M-x
+tooltip-mode}.  When Tooltip mode is disabled, the help text is
+displayed in the echo area instead.  To control the use of tooltips at
+startup, customize the variable @code{tooltip-mode}.
 
 @vindex tooltip-delay
   The variables @code{tooltip-delay} specifies how long Emacs should
 wait before displaying a tooltip.  For additional customization
 options for displaying tooltips, use @kbd{M-x customize-group
-@key{RET} tooltip @key{RET}}.  @xref{X Resources}, for information on
-customizing the windows that display tooltips.
+@key{RET} tooltip @key{RET}}.
 
 @vindex x-gtk-use-system-tooltips
   If Emacs is built with GTK+ support, it displays tooltips via GTK+,
 using the default appearance of GTK+ tooltips.  To disable this,
 change the variable @code{x-gtk-use-system-tooltips} to @code{nil}.
-If you do this, or if Emacs is built without GTK+ support, the
-@code{tooltip} face specifies most attributes of the tooltip text.
+If you do this, or if Emacs is built without GTK+ support, most
+attributes of the tooltip text are specified by the @code{tooltip}
+face, and by X resources (@pxref{X Resources}).
+
+  @dfn{GUD tooltips} are special tooltips that show the values of
+variables when debugging a program with GUD.  @xref{Debugger
+Operation}.
 
 @node Mouse Avoidance
 @section Mouse Avoidance
@@ -1261,23 +1139,31 @@ to select a frame according to its name.  The name you specify appears
 in the mode line when the frame is selected.
 
 @node Text-Only Mouse
-@section Using a Mouse in Terminal Emulators
+@section Using a Mouse in Text-only Terminals
 @cindex mouse support
 @cindex terminal emulators, mouse support
 
 Some text-only terminals support mouse clicks in the terminal window.
 
 @cindex xterm
-In a terminal emulator which is compatible with @code{xterm},
-you can use @kbd{M-x xterm-mouse-mode} to give Emacs control over
-simple use of the mouse---basically, only non-modified single clicks
-are supported.  The normal @code{xterm} mouse functionality for such
+  In a terminal emulator which is compatible with @command{xterm}, you
+can use @kbd{M-x xterm-mouse-mode} to give Emacs control over simple
+uses of the mouse---basically, only non-modified single clicks are
+supported.  The normal @command{xterm} mouse functionality for such
 clicks is still available by holding down the @kbd{SHIFT} key when you
 press the mouse button.  Xterm Mouse mode is a global minor mode
 (@pxref{Minor Modes}).  Repeating the command turns the mode off
 again.
 
 @findex gpm-mouse-mode
-In the console on GNU/Linux, you can use @kbd{M-x gpm-mouse-mode} to
-enable terminal mouse support.  You must have the gpm package
-installed and running on your system in order for this to work.
+  In the console on GNU/Linux, you can use @kbd{M-x gpm-mouse-mode} to
+enable mouse support.  You must have the gpm server installed and
+running on your system in order for this to work.
+
+@iftex
+@pxref{MS-DOS Mouse,,,emacs-xtra,Specialized Emacs Features},
+@end iftex
+@ifnottex
+@pxref{MS-DOS Mouse},
+@end ifnottex
+for information about mouse support on MS-DOS.

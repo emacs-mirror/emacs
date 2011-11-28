@@ -50,7 +50,7 @@ For help on a specific command:  Click Button 2 over it; or
 (defconst ediff-long-help-message-compare3
   "
 p,DEL -previous diff |     | -vert/horiz split   | xy -copy buf X's region to Y
-n,SPC -next diff     |     h -hilighting         | rx -restore buf X's old diff
+n,SPC -next diff     |     h -highlighting       | rx -restore buf X's old diff
     j -jump to diff  |     @ -auto-refinement    |  * -refine current region
    gx -goto X's point|    ## -ignore whitespace  |  ! -update diff regions
   C-l -recenter      |    #c -ignore case        |
@@ -64,7 +64,7 @@ Normally, not a user option.  See `ediff-help-message' for details.")
 (defconst ediff-long-help-message-compare2
   "
 p,DEL -previous diff |     | -vert/horiz split   |a/b -copy A/B's region to B/A
-n,SPC -next diff     |     h -hilighting         | rx -restore buf X's old diff
+n,SPC -next diff     |     h -highlighting       | rx -restore buf X's old diff
     j -jump to diff  |     @ -auto-refinement    |  * -refine current region
    gx -goto X's point|    ## -ignore whitespace  |  ! -update diff regions
   C-l -recenter      |    #c -ignore case        |
@@ -78,7 +78,7 @@ Normally, not a user option.  See `ediff-help-message' for details.")
 (defconst ediff-long-help-message-narrow2
   "
 p,DEL -previous diff |     | -vert/horiz split   |a/b -copy A/B's region to B/A
-n,SPC -next diff     |     h -hilighting         | rx -restore buf X's old diff
+n,SPC -next diff     |     h -highlighting       | rx -restore buf X's old diff
     j -jump to diff  |     @ -auto-refinement    |  * -refine current region
    gx -goto X's point|    ## -ignore whitespace  |  ! -update diff regions
   C-l -recenter      |    #c -ignore case        |  % -narrow/widen buffs
@@ -92,7 +92,7 @@ Normally, not a user option.  See `ediff-help-message' for details.")
 (defconst ediff-long-help-message-word-mode
   "
 p,DEL -previous diff |     | -vert/horiz split   | xy -copy buf X's region to Y
-n,SPC -next diff     |     h -hilighting         | rx -restore buf X's old diff
+n,SPC -next diff     |     h -highlighting       | rx -restore buf X's old diff
     j -jump to diff  |                           |
    gx -goto X's point|    % -narrow/widen buffs  |  ! -recompute diffs
   C-l -recenter      |    #c -ignore case        |
@@ -106,7 +106,7 @@ Normally, not a user option.  See `ediff-help-message' for details.")
 (defconst ediff-long-help-message-merge
   "
 p,DEL -previous diff |     | -vert/horiz split   |  x -copy buf X's region to C
-n,SPC -next diff     |     h -hilighting         |  r -restore buf C's old diff
+n,SPC -next diff     |     h -highlighting       |  r -restore buf C's old diff
     j -jump to diff  |     @ -auto-refinement    |  * -refine current region
    gx -goto X's point|    ## -ignore whitespace  |  ! -update diff regions
   C-l -recenter      | #f/#h -focus/hide regions |  + -combine diff regions

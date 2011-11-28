@@ -579,7 +579,7 @@ PREC2 is a table as returned by `smie-precs->prec2' or
                    (smie-debug--describe-cycle
                     table (smie-debug--prec2-cycle csts)))))
         (incf i 10))
-      ;; Propagate equalities back to their source.
+      ;; Propagate equality constraints back to their sources.
       (dolist (eq (nreverse eqs))
         (when (null (cadr eq))
           ;; There's an equality constraint, but we still haven't given

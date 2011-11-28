@@ -656,7 +656,7 @@ prepending a space before it."
       (if (not (char-charset (lglyph-char glyph) coding))
 	  (progn
 	    ;; As the terminal doesn't support this glyph, return a
-	    ;; gstring in which each glyph is its own graphme-cluster
+	    ;; gstring in which each glyph is its own grapheme-cluster
 	    ;; of width 1..
 	    (setq i 0)
 	    (while (and (< i nglyphs)

@@ -1635,7 +1635,6 @@ main (int argc, char **argv)
   /* Send over our environment and current directory. */
   if (!current_frame)
     {
-      extern char **environ;
       int i;
       for (i = 0; environ[i]; i++)
         {

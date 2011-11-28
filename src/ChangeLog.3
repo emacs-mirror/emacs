@@ -3271,7 +3271,7 @@
 	[not HAVE_X11] (x_set_border_pixel): Use gray_width and
 	gray_height, instead of assuming that the bitmap is 16x16.
 	(x_make_gc): Instead of creating a pixmap and then calling
-	XPutImage to make it into a grey stipple, just call
+	XPutImage to make it into a gray stipple, just call
 	XCreatePixmapFromBitmapData to do it all at once.
 
 	* xterm.c (x_text_icon): Move the request for font information

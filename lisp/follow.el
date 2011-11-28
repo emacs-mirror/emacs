@@ -351,7 +351,7 @@ After that, changing the prefix key requires manipulating keymaps."
 ;; global map.
 (easy-menu-add-item nil '("Tools")
   '("Follow"
-    ;; The Emacs code used to just grey out operations when follow-mode was
+    ;; The Emacs code used to just gray out operations when follow-mode was
     ;; not enabled, whereas the XEmacs code used to remove it altogether.
     ;; Not sure which is preferable, but clearly the preference should not
     ;; depend on the flavor.

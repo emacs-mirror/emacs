@@ -1952,7 +1952,7 @@ BULLET: A character at the end of the ITEM PREFIX, it must be one of
         plain BULLETs are by default used, according to the DEPTH of the
         TOPIC.  Choice among the distinctive BULLETs is offered when you
         provide a universal argument (\\[universal-argument]) to the
-        TOPIC creation command, or when explictly rebulleting a TOPIC.  The
+        TOPIC creation command, or when explicitly rebulleting a TOPIC.  The
         significance of the various distinctive bullets is purely by
         convention.  See the documentation for the above bullet strings for
         more details.
