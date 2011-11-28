@@ -397,7 +397,7 @@ the syntax and conventions for its particular language.
 
   Use @kbd{C-q @key{TAB}} to insert a tab character at point.
 
-@kindex C-j
+@kindex C-j @r{(indenting source code)}
 @findex newline-and-indent
   When entering lines of new code, use @kbd{C-j}
 (@code{newline-and-indent}), which inserts a newline and then adjusts

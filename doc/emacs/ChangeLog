@@ -1,5 +1,16 @@
 2011-11-28  Chong Yidong  <cyd@gnu.org>
 
+	* indent.texi (Indentation): Rewrite introduction.  Move table to
+	Indentation Commands node.
+	(Indentation Commands): Add index entries to table.  Copyedits.
+	(Tab Stops, Just Spaces): Copyedits.
+	(Indent Convenience): New node.  Document electric-indent-mode.
+
+	* programs.texi (Basic Indent):
+	* windows.texi (Pop Up Window): Fix kindex entry.
+
+2011-11-28  Chong Yidong  <cyd@gnu.org>
+
 	* modes.texi (Major Modes): Move major-mode variable doc here from
 	Choosing Modes.  Document describe-mode.  Document prog-mode-hook
 	and text-mode-hook.  Add example of using hooks.

@@ -551,10 +551,10 @@ Modes
 
 Indentation
 
-* Indentation Commands::  Various commands and techniques for indentation.
-* Tab Stops::             You can set arbitrary "tab stops" and then
-                            indent to the next tab stop when you want to.
-* Just Spaces::           You can request indentation using just spaces.
+* Indentation Commands::  More commands for performing indentation.
+* Tab Stops::             Stop points for indentation in Text modes.
+* Just Spaces::           Using only space characters for indentation.
+* Indent Convenience::    Optional indentation features.
 
 Commands for Human Languages
 
