@@ -1,3 +1,13 @@
+2011-11-28  Chong Yidong  <cyd@gnu.org>
+
+	* modes.texi (Major Modes): Move major-mode variable doc here from
+	Choosing Modes.  Document describe-mode.  Document prog-mode-hook
+	and text-mode-hook.  Add example of using hooks.
+	(Minor Modes): Document behavior of mode command calls from Lisp.
+	Note that setting the mode variable using Customize will DTRT.
+	(Choosing Modes): Add example of setting a minor mode using a
+	local variable.
+
 2011-11-27  Chong Yidong  <cyd@gnu.org>
 
 	* frames.texi (Creating Frames): Move frame parameter example to
