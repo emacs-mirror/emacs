@@ -1,3 +1,158 @@
+2011-11-29  Michael McNamara  <mac@mail.brushroad.com>
+
+	* progmodes/verilog-mode.el (verilog-pretty-expr): Rework
+	verilog-pretty-expr to handle new assignment operators in system
+	verilog, such as += *= and the like.
+	(verilog-assignment-operator-re): Regular expression to find the
+	assigment operator in a verilog assignment.
+	(verilog-assignment-operation-re): Regular expression to find an
+	assignment statement for pretty-expr.
+	(verilog-in-attribute-p): Query returns true if point is in an
+	attribute context; used to skip these for expression line up from
+	pretty-expr.
+	(verilog-in-parameter-p): Query returns true if point is in an
+	parameter definition context; used to skip these for expression
+	line up from pretty-expr.
+	(verilog-in-parenthesis-p): Query returns true if point is in a
+	parenthetical expression, specifically ( ) but not [ ] or { };
+	used by pretty-expr.
+	(verilog-just-one-space): If there is no space, don't add one.
+	(verilog-get-lineup-indent-2): Specifically skip just attribute
+	contexts for expression lineup, rather than skipping all
+	parenthetical expressions.
+	(verilog-calculate-indent): Fix comment, and fix indent.
+	(verilog-do-indent): Indent declarations in lists (suggested by
+	Joachim Lechner).
+	(verilog-mode-abbrev-table): Populate abbrev mode with the various
+	skeleton items.
+	(verilog-sk-ovm-class): Add skeleton for OVM classes (reported
+	by Alain Mellan).
+
+2011-11-29  Wilson Snyder  <wsnyder@wsnyder.org>
+
+	* progmodes/verilog-mode.el (verilog-read-defines): Fix reading
+	parameters with embedded comments.  Reported by Ray Stevens.
+	(verilog-calc-1, verilog-fork-wait-re) (verilog-forward-sexp,
+	verilog-wait-fork-re): Fix indentation of "wait fork", bug407.
+	Reported by Tim Holt.
+	(verilog-auto): Fix AUTOing a upper module then AUTOing module
+	instantiated by upper module causing wrong expansion until AUTOed a
+	second time.  Reported by K C Buckenmaier.
+	(verilog-diff-auto): Fix showing .* as a difference when
+	`verilog-auto-star-save' off.  Reported by Dan Dever.
+	(verilog-auto-reset, verilog-read-always-signals)
+	(verilog-auto-reset-blocking-in-non): Fix AUTORESET including
+	temporary signals in reset list if
+	verilog-auto-reset-blocking-in-non is nil, and match assignment
+	style to each signal's assignment type, bug381.  Reported by
+	Thomas Esposito.
+	(verilog-sk-uvm-class, verilog-uvm-begin-re, verilog-uvm-end-re)
+	(verilog-uvm-statement-re): Support UVM indentation and
+	highlighting, with old OVM keywords only.
+	(verilog-auto-tieoff, verilog-auto-tieoff-declaration): Support
+	AUTOTIEOFF creating non-wire data types.  Suggested by Jonathan
+	Greenlaw.
+	(verilog-auto-insert-lisp, verilog-delete-to-paren)
+	(verilog-forward-sexp-cmt, verilog-forward-sexp-ign-cmt)
+	(verilog-inject-sense, verilog-read-inst-pins)
+	(verilog-read-sub-decls, verilog-read-sub-decls-line): Fix
+	mismatching parenthesis inside commented out code when deleting
+	AUTOINST, bug383. Reported by Jonathan Greenlaw.
+	(verilog-auto-ascii-enum): Fix AUTOASCIIENUM one-hot with
+	non-numeric vector width.  Reported by Alex Reed.
+	(verilog-auto-ascii-enum): Add "onehot" option to work around not
+	detecting signals with parameter widths. Reported by Alex Reed.
+	(verilog-auto-delete-trailing-whitespace): With
+	`verilog-auto-delete-trailing-whitespace' remove trailing
+	whitespace in auto expansion, bug371.  Reported by Brad Dobbie.
+	(verilog-run-hooks, verilog-scan-cache-flush, verilog-syntax-ppss):
+	Fix verilog-scan-cache corruption when running user AUTO expansion
+	hooks that call indentation routines.
+	(verilog-simplify-range-expression): Fix typo ignoring lower case
+	identifiers.
+	(verilog-delete-auto): Fix delete-autos to also remove user created
+	automatics, as long as they start with AUTO.
+	(verilog-batch-diff-auto, verilog-diff-auto)
+	(verilog-diff-function): Add `verilog-diff-auto' and bind to
+	"C-c?"  to report differences in AUTO expansion, ignoring spaces.
+	(verilog-backward-syntactic-ws-quick, verilog-beg-of-defun-quick)
+	(verilog-in-paren-quick, verilog-re-search-backward-quick)
+	(verilog-re-search-forward-quick, verilog-syntax-ppss): Fix
+	calling `syntax-ppss' when inside auto expansions as the ppss hook
+	is disabled and its cache will get corrupt, causing AUTOS not to
+	expand.  Instead use only -quick functions.
+	(verilog-scan-region): Fix scanning over escaped quotes.
+	(verilog-inside-comment-or-string-p, verilog-inside-comment-p)
+	(verilog-re-search-backward-quick)
+	(verilog-re-search-forward-quick, verilog-scan): verilog-scan and
+	related functions now ignore strings, to fix misparsing of strings
+	with magic comments embedded in them.
+	(verilog-read-auto-template): Fix
+	'verilog-auto-inst-template-numbers' with extra newline before (.
+	Reported by Brad Dobbie.
+	(verilog-read-auto-template): Fix
+	'verilog-auto-inst-template-numbers' with comments.  Reported by
+	Brad Dobbie.
+	(verilog-auto-inst, verilog-auto-inst-param)
+	(verilog-auto-inst-sort): Add 'verilog-auto-inst-sort' to reduce
+	merge conflicts with AUTOINST, bug358.  Reported by Brad Dobbie.
+	(verilog-auto-inst-template-numbers): Add 'lhs' policy for
+	debugging templates without merge conflicts, bug357.  Reported by
+	Brad Dobbie.
+	(verilog-read-auto-template): Fix
+	verilog-auto-inst-template-numbers with multiple templates.
+	Reported by Brad Dobbie.
+	(verilog-define-abbrev): Fix verilog-mode abbrevs to be system
+	abbrevs so user won't be asked to save.
+	(verilog-read-auto-lisp-present): Fix to start at beginning of
+	buffer in case called outside of verilog-auto.
+	(verilog-simplify-range-expression): Fix AUTOWIRE expanding "X-1+1"
+	to "X-2".  Reported by Matthew Myers.
+	(verilog-auto, verilog-auto-inout-in): Add AUTOINOUTIN for creating
+	all inputs from module templates.  Reported by Leith Johnson.
+	(verilog-module-inside-filename-p): Fix locating programs as with
+	modules.
+	(verilog-auto-inst-port): Fix vl-width expressions when using
+	verilog-auto-inst-param-value, bug331.  Reported by Julian Gorfajn.
+	(verilog-decls-get-regs, verilog-decls-get-signals,
+	verilog-decls-get-vars, verilog-decls-get-wires, verilog-decls-new,
+	verilog-modi-cache-add-vars, verilog-modi-cache-add-wires,
+	verilog-read-decls): Combine reg and wire structures into one var
+	structure to represent SystemVerilog concepts.
+	(verilog-auto-ascii-enum, verilog-auto-logic, verilog-auto-reg)
+	(verilog-auto-reg-input, verilog-auto-tieoff, verilog-auto-wire)
+	(verilog-auto-wire-type, verilog-insert-definition): Add
+	verilog-auto-wire-type and AUTOLOGIC to support using
+	SystemVerilog "logic" keyword instead of "wire"/"reg".
+	(verilog-auto-reg-input, verilog-decls-get-signals): Fix AUTOWIRE
+	to declares outputs that also have assignments (presumably in an
+	ifdef or generate if so there's not a driver conflict).  Reported
+	by Matthew Myers.
+	(verilog-auto-declare-nettype, verilog-insert-definition): Add
+	verilog-auto-declare-nettype to fix declarations using
+	`default_nettype none.  Reported by Julian Gorfajn.
+	(verilog-read-always-signals-recurse, verilog-read-decls)
+	(verilog-read-sub-decls-gate): Fix infinite loop with (*) and
+	malformed end statement, bug325.  Reported by Joshua Wise and
+	Andrew Drake.
+	(verilog-auto-star-safe, verilog-delete-auto-star-implicit)
+	(verilog-inst-comment-re): Fix not deleting Interfaced comment
+	when expanding .* in interfaces, bug320.  Reported by Pierre-David
+	Pfister.
+	(verilog-read-module-name): Fix import statements between module
+	name and open parenthesis, bug317.  Reported by Pierre-David
+	Pfister.
+	(verilog-simplify-range-expression): Fix simplification of
+	multiplications inside AUTOWIRE connections, bug303.
+	(verilog-auto-inst-port): Support parameter expansion in
+	multidimensional arrays.
+	(verilog-read-decls): Fix AUTOREG etc looking for "endproperty"
+	after "assert property".  Reported by Julian Gorfajn.
+	(verilog-simplify-range-expression): Fix "couldn't merge" errors
+	with multiplication, bug303.
+	(verilog-read-decls): Fix parsing of unsigned data types, bug302.
+	Reported by Jan Frode Lonnum.
+
 2011-11-29  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* isearch.el (isearch-yank-x-selection): Deactivate mark (bug#10022).
