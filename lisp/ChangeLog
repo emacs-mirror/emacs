@@ -1,3 +1,7 @@
+2011-11-29  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* isearch.el (isearch-yank-x-selection): Deactivate mark (bug#10022).
+
 2011-11-29  Chong Yidong  <cyd@gnu.org>
 
 	* indent.el (indent-for-tab-command, indent-according-to-mode):
