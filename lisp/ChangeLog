@@ -1,7 +1,13 @@
+2011-11-29  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* align.el: Try to generate fewer markers (bug#10047).
+	(align--set-marker): New macro.
+	(align-region): Use it.
+
 2011-11-29  Michael McNamara  <mac@mail.brushroad.com>
 
-	* progmodes/verilog-mode.el (verilog-pretty-expr): Rework
-	verilog-pretty-expr to handle new assignment operators in system
+	* progmodes/verilog-mode.el (verilog-pretty-expr):
+	Rework verilog-pretty-expr to handle new assignment operators in system
 	verilog, such as += *= and the like.
 	(verilog-assignment-operator-re): Regular expression to find the
 	assigment operator in a verilog assignment.
@@ -44,26 +50,26 @@
 	(verilog-auto-reset-blocking-in-non): Fix AUTORESET including
 	temporary signals in reset list if
 	verilog-auto-reset-blocking-in-non is nil, and match assignment
-	style to each signal's assignment type, bug381.  Reported by
-	Thomas Esposito.
+	style to each signal's assignment type, bug381.
+	Reported by Thomas Esposito.
 	(verilog-sk-uvm-class, verilog-uvm-begin-re, verilog-uvm-end-re)
 	(verilog-uvm-statement-re): Support UVM indentation and
 	highlighting, with old OVM keywords only.
-	(verilog-auto-tieoff, verilog-auto-tieoff-declaration): Support
-	AUTOTIEOFF creating non-wire data types.  Suggested by Jonathan
+	(verilog-auto-tieoff, verilog-auto-tieoff-declaration):
+	Support AUTOTIEOFF creating non-wire data types.  Suggested by Jonathan
 	Greenlaw.
 	(verilog-auto-insert-lisp, verilog-delete-to-paren)
 	(verilog-forward-sexp-cmt, verilog-forward-sexp-ign-cmt)
 	(verilog-inject-sense, verilog-read-inst-pins)
-	(verilog-read-sub-decls, verilog-read-sub-decls-line): Fix
-	mismatching parenthesis inside commented out code when deleting
+	(verilog-read-sub-decls, verilog-read-sub-decls-line):
+	Fix mismatching parenthesis inside commented out code when deleting
 	AUTOINST, bug383. Reported by Jonathan Greenlaw.
 	(verilog-auto-ascii-enum): Fix AUTOASCIIENUM one-hot with
 	non-numeric vector width.  Reported by Alex Reed.
 	(verilog-auto-ascii-enum): Add "onehot" option to work around not
 	detecting signals with parameter widths. Reported by Alex Reed.
-	(verilog-auto-delete-trailing-whitespace): With
-	`verilog-auto-delete-trailing-whitespace' remove trailing
+	(verilog-auto-delete-trailing-whitespace):
+	With `verilog-auto-delete-trailing-whitespace' remove trailing
 	whitespace in auto expansion, bug371.  Reported by Brad Dobbie.
 	(verilog-run-hooks, verilog-scan-cache-flush, verilog-syntax-ppss):
 	Fix verilog-scan-cache corruption when running user AUTO expansion
@@ -77,8 +83,8 @@
 	"C-c?"  to report differences in AUTO expansion, ignoring spaces.
 	(verilog-backward-syntactic-ws-quick, verilog-beg-of-defun-quick)
 	(verilog-in-paren-quick, verilog-re-search-backward-quick)
-	(verilog-re-search-forward-quick, verilog-syntax-ppss): Fix
-	calling `syntax-ppss' when inside auto expansions as the ppss hook
+	(verilog-re-search-forward-quick, verilog-syntax-ppss):
+	Fix calling `syntax-ppss' when inside auto expansions as the ppss hook
 	is disabled and its cache will get corrupt, causing AUTOS not to
 	expand.  Instead use only -quick functions.
 	(verilog-scan-region): Fix scanning over escaped quotes.
@@ -87,20 +93,20 @@
 	(verilog-re-search-forward-quick, verilog-scan): verilog-scan and
 	related functions now ignore strings, to fix misparsing of strings
 	with magic comments embedded in them.
-	(verilog-read-auto-template): Fix
-	'verilog-auto-inst-template-numbers' with extra newline before (.
+	(verilog-read-auto-template):
+	Fix 'verilog-auto-inst-template-numbers' with extra newline before (.
 	Reported by Brad Dobbie.
-	(verilog-read-auto-template): Fix
-	'verilog-auto-inst-template-numbers' with comments.  Reported by
-	Brad Dobbie.
+	(verilog-read-auto-template):
+	Fix 'verilog-auto-inst-template-numbers' with comments.
+	Reported by Brad Dobbie.
 	(verilog-auto-inst, verilog-auto-inst-param)
 	(verilog-auto-inst-sort): Add 'verilog-auto-inst-sort' to reduce
 	merge conflicts with AUTOINST, bug358.  Reported by Brad Dobbie.
 	(verilog-auto-inst-template-numbers): Add 'lhs' policy for
-	debugging templates without merge conflicts, bug357.  Reported by
-	Brad Dobbie.
-	(verilog-read-auto-template): Fix
-	verilog-auto-inst-template-numbers with multiple templates.
+	debugging templates without merge conflicts, bug357.
+	Reported by Brad Dobbie.
+	(verilog-read-auto-template):
+	Fix verilog-auto-inst-template-numbers with multiple templates.
 	Reported by Brad Dobbie.
 	(verilog-define-abbrev): Fix verilog-mode abbrevs to be system
 	abbrevs so user won't be asked to save.
@@ -121,15 +127,15 @@
 	structure to represent SystemVerilog concepts.
 	(verilog-auto-ascii-enum, verilog-auto-logic, verilog-auto-reg)
 	(verilog-auto-reg-input, verilog-auto-tieoff, verilog-auto-wire)
-	(verilog-auto-wire-type, verilog-insert-definition): Add
-	verilog-auto-wire-type and AUTOLOGIC to support using
+	(verilog-auto-wire-type, verilog-insert-definition):
+	Add verilog-auto-wire-type and AUTOLOGIC to support using
 	SystemVerilog "logic" keyword instead of "wire"/"reg".
 	(verilog-auto-reg-input, verilog-decls-get-signals): Fix AUTOWIRE
 	to declares outputs that also have assignments (presumably in an
-	ifdef or generate if so there's not a driver conflict).  Reported
-	by Matthew Myers.
-	(verilog-auto-declare-nettype, verilog-insert-definition): Add
-	verilog-auto-declare-nettype to fix declarations using
+	ifdef or generate if so there's not a driver conflict).
+	Reported by Matthew Myers.
+	(verilog-auto-declare-nettype, verilog-insert-definition):
+	Add verilog-auto-declare-nettype to fix declarations using
 	`default_nettype none.  Reported by Julian Gorfajn.
 	(verilog-read-always-signals-recurse, verilog-read-decls)
 	(verilog-read-sub-decls-gate): Fix infinite loop with (*) and
@@ -263,8 +269,8 @@
 
 2011-11-23  Eli Zaretskii  <eliz@gnu.org>
 
-	* emacs-lisp/autoload.el (autoload-generate-file-autoloads): On
-	MS-DOS and MS-Windows, compare with loaddefs.el
+	* emacs-lisp/autoload.el (autoload-generate-file-autoloads):
+	On MS-DOS and MS-Windows, compare with loaddefs.el
 	case-insensitively.
 
 2011-11-23  Mark Lillibridge  <mark.lillibridge@hp.com>  (tiny change)
