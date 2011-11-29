@@ -815,9 +815,11 @@ PREFIX is only used internally: don't use it."
 	    (diff-find-file-name old noprompt (match-string 1)))
        ;; if all else fails, ask the user
        (unless noprompt
-         (let ((file (read-file-name (format "Use file %s: "
-                                             (or (first fs) ""))
-                                     nil (first fs) t (first fs))))
+         (let ((file (expand-file-name (or (first fs) ""))))
+	   (setq file
+		 (read-file-name (format "Use file %s: " file)
+				 (file-name-directory file) file t
+				 (file-name-nondirectory file)))
            (set (make-local-variable 'diff-remembered-files-alist)
                 (cons (cons fs file) diff-remembered-files-alist))
            file))))))

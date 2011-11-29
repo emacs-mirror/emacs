@@ -1,3 +1,8 @@
+2011-11-29  Michael Albinus  <michael.albinus@gmx.de>
+
+	* vc/diff-mode.el (diff-find-file-name): Make `read-file-name'
+	aware of remote file names.  (Bug#10124)
+
 2011-11-29  Chong Yidong  <cyd@gnu.org>
 
 	* frame.el (auto-raise-mode, auto-lower-mode): Doc fix.
