@@ -1,3 +1,12 @@
+2011-11-29  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* xterm.h (struct x_output): net_wm_state_hidden_seen is new.
+
+	* xterm.c (handle_one_xevent): Only set async_visible and friends
+	if net_wm_state_hidden_seen is non-zero (Bug#10002)
+	(get_current_wm_state):  Set net_wm_state_hidden_seen to 1 if
+	_NET_WM_STATE_HIDDEN is in NET_WM_STATE.
+
 2011-11-28  Paul Eggert  <eggert@cs.ucla.edu>
 
 	Remove GCPRO-related macros that exist only to avoid shadowing locals.
