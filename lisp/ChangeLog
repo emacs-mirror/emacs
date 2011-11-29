@@ -1,3 +1,7 @@
+2011-11-29  Chong Yidong  <cyd@gnu.org>
+
+	* frame.el (auto-raise-mode, auto-lower-mode): Doc fix.
+
 2011-11-28  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* files.el (find-file): Don't use force-same-window (bug#10144).
