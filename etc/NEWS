@@ -551,6 +551,13 @@ at high rate, e.g. if you lean on some key, because stopping redisplay
 in the middle (when this variable is nil) forces more expensive
 updates later on, and Emacs appears to be unable to keep up.
 
++++
+** The behavior of <TAB> for active regions in Text mode has changed.
+In Text and related modes, typing <TAB> (`indent-for-tab-command')
+when the region is active causes Emacs to indent all the lines in the
+region, aligning them with the line previous to the first line in the
+region (or with the left margin if there is no previous line).
+
 
 * Changes in Specialized Modes and Packages in Emacs 24.1
 
