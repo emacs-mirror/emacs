@@ -1003,7 +1003,7 @@
 	(syms_of_xdisp): DEFVAR_LISP and initialize it.  Update doc string
 	to describe new value `grow-only', and use of C-l.
 	(display_tool_bar_line): Only use default face for border below
-	toolbar if not grow-only (to get acceptable visual appearence).
+	toolbar if not grow-only (to get acceptable visual appearance).
 	Explicitly set visible_height for empty toolbar lines.
 	(redisplay_tool_bar): Handle `grow-only' setting.  Check and clear
 	minimize_tool_bar_window_p flag.
@@ -4346,7 +4346,7 @@
 
 	* textprop.c (Fremove_list_of_text_properties):
 	Ensure modify_region is called only when buffer is modified and that
-	signal_after_change is allways called in that case.
+	signal_after_change is always called in that case.
 
 	* print.c (PRINTFINISH): Call signal_after_change.
 
@@ -5084,7 +5084,7 @@
 
 2006-02-26  Chong Yidong  <cyd@stupidchicken.com>
 
-	* xterm.h, xterm.c (x_uncatch_errors): Delete unneccessary argument.
+	* xterm.h, xterm.c (x_uncatch_errors): Delete unnecessary argument.
 
 	* xterm.c (x_load_font, x_term_init, XTmouse_position)
 	(handle_one_xevent, x_connection_closed, x_list_fonts):
@@ -12087,7 +12087,7 @@
 	(merge_face_heights): Eliminate GCPRO arg.  All callers changed.
 
 	* keyboard.c (command_loop_1): Change Vtransient_mark_mode
-	before deciding whether to inactivate mark.
+	before deciding whether to deactivate mark.
 
 2004-11-06  Lars Brinkhoff  <lars@nocrew.org>
 
@@ -23013,7 +23013,7 @@
 	(try_window_id): Likewise.
 	(redisplay_window): New local var buffer_unchanged_p.
 
-	* keyboard.c (cmd_error) [HAVE_X_WINDOWS]: Maybe call cancel_houglass.
+	* keyboard.c (cmd_error) [HAVE_X_WINDOWS]: Maybe call cancel_hourglass.
 
 	* process.c (create_process): Test USG_SUBTTY_WORKS.
 	(process_send_signal): Clean up handling of GID.

@@ -1003,7 +1003,7 @@ Used by `calc-user-invocation'.")
 (defvar calc-quick-prev-results nil
   "Previous results from Quick Calc.")
 (defvar calc-said-hello nil
-  "Non-nil if the welcomd message has been displayed.")
+  "Non-nil if the welcome message has been displayed.")
 (defvar calc-executing-macro nil
   "Non-nil if a keyboard macro is executing from the \"K\" key.")
 (defvar calc-any-selections nil
@@ -1235,7 +1235,8 @@ Used by `calc-user-invocation'.")
 	(glob (current-global-map))
 	(loc (current-local-map)))
     (or (input-pending-p) (message "%s" prompt))
-    (let ((key (calc-read-key t)))
+    (let ((key (calc-read-key t))
+	  (input-method-function nil))
       (calc-unread-command (cdr key))
       (unwind-protect
 	  (progn

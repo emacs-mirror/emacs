@@ -279,7 +279,7 @@ Intended to be used as the `allout-auto-activation' :set function."
 ;;;_  > allout-setup ()
 ;;;###autoload
 (defun allout-setup ()
-  "Do fundamental emacs session for allout auto-activation.
+  "Do fundamental Emacs session for allout auto-activation.
 
 Establishes allout processing as part of visiting a file if
 `allout-auto-activation' is non-nil, or removes it otherwise.
@@ -298,7 +298,7 @@ Control whether and how allout outline mode is automatically
 activated when files are visited with non-nil buffer-specific
 file variable `allout-layout'.
 
-When allout-auto-activation is \"On\" \(t), allout mode is
+When allout-auto-activation is \"On\" (t), allout mode is
 activated in buffers with non-nil `allout-layout', and the
 specified layout is applied.
 
@@ -560,7 +560,7 @@ of this var to take effect."
 These bullets are distinguish topics with particular character.
 They are not used by default in the topic creation routines, but
 are offered as options when you modify topic creation with a
-universal argument \(\\[universal-argument]), or during rebulleting \(\\[allout-rebullet-current-heading]).
+universal argument (\\[universal-argument]), or during rebulleting (\\[allout-rebullet-current-heading]).
 
 Distinctive bullets are not cycled when topics are shifted or
 otherwise automatically rebulleted, so their marking is
@@ -844,7 +844,7 @@ such topics are encrypted.)"
 (defvar allout-auto-save-temporarily-disabled nil
   "True while topic encryption is pending and auto-saving was active.
 
-The value of buffer-saved-size at the time of decryption is used,
+The value of `buffer-saved-size' at the time of decryption is used,
 for restoring when all encryptions are established.")
 (defvar allout-just-did-undo nil
   "True just after undo commands, until allout-post-command-business.")
@@ -910,7 +910,7 @@ For details, see `allout-toggle-current-subtree-encryption's docstring."
 (defvar allout-layout nil            ; LEAVE GLOBAL VALUE NIL -- see docstring.
   "Buffer-specific setting for allout layout.
 
-In buffers where this is non-nil \(and if `allout-auto-activation'
+In buffers where this is non-nil (and if `allout-auto-activation'
 has been customized to enable this behavior), `allout-mode' will be
 automatically activated.  The layout dictated by the value will be used to
 set the initial exposure when `allout-mode' is activated.
@@ -1037,7 +1037,7 @@ suitably economical.")
 (defun allout-lead-with-comment-string (&optional header-lead)
   "Set the topic-header leading string to specified string.
 
-Useful when for encapsulating outline structure in programming
+Useful for encapsulating outline structure in programming
 language comments.  Returns the leading string."
 
   (interactive "P")
@@ -1440,7 +1440,7 @@ Functions on the hook must take two arguments:
  - DEPTH -- integer indicating the depth of the subtree that was deleted.
  - REMOVED-FROM -- integer indicating the point where the subtree was removed.
 
-Some edits that remove or invalidate items may missed by this hook:
+Some edits that remove or invalidate items may be missed by this hook:
 specifically edits that native allout routines do not control.
 
 This hook might be invoked multiple times by a single command.")
@@ -1472,10 +1472,10 @@ that was affected by the undo.
 Functions on the hook should not require any arguments.")
 ;;;_   = allout-outside-normal-auto-fill-function
 (defvar allout-outside-normal-auto-fill-function nil
-  "Value of normal-auto-fill-function outside of allout mode.
+  "Value of `normal-auto-fill-function' outside of allout mode.
 
-Used by allout-auto-fill to do the mandated normal-auto-fill-function
-wrapped within allout's automatic fill-prefix setting.")
+Used by `allout-auto-fill' to do the mandated `normal-auto-fill-function'
+wrapped within allout's automatic `fill-prefix' setting.")
 (make-variable-buffer-local 'allout-outside-normal-auto-fill-function)
 ;;;_   = prevent redundant activation by desktop mode:
 (add-to-list 'desktop-minor-mode-handlers '(allout-mode . nil))
@@ -1576,7 +1576,7 @@ message if an error is encountered.  The message will serve as a
 non-nil return on `write-contents-functions' to prevent saving of
 the buffer while it has decrypted content.
 
-This behavior depends on emacs versions that implement the
+This behavior depends on Emacs versions that implement the
 `write-contents-functions' hook."
 
   (if (or (not (allout-mode-p))
@@ -1627,7 +1627,7 @@ and the place for the cursor after the decryption is done."
   )
 ;;;_   > allout-called-interactively-p ()
 (defmacro allout-called-interactively-p ()
-  "A version of called-interactively-p independent of emacs version."
+  "A version of `called-interactively-p' independent of Emacs version."
   ;; ... to ease maintenance of allout without betraying deprecation.
   (if (equal (subr-arity (symbol-function 'called-interactively-p))
              '(0 . 0))
@@ -1712,7 +1712,7 @@ Allout outline mode is a minor mode that provides extensive
 outline oriented formatting and manipulation.  It enables
 structural editing of outlines, as well as navigation and
 exposure.  It also is specifically aimed at accommodating
-syntax-sensitive text like programming languages.  \(For example,
+syntax-sensitive text like programming languages.  (For example,
 see the allout code itself, which is organized as an allout
 outline.)
 
@@ -1733,7 +1733,7 @@ Below is a description of the key bindings, and then description
 of special `allout-mode' features and terminology.  See also the
 outline menubar additions for quick reference to many of the
 features.  Customize `allout-auto-activation' to prepare your
-emacs session for automatic activation of `allout-mode'.
+Emacs session for automatic activation of `allout-mode'.
 
 The bindings are those listed in `allout-prefixed-keybindings'
 and `allout-unprefixed-keybindings'.  We recommend customizing
@@ -1781,7 +1781,7 @@ the HOT-SPOT Operation section.
 \\[allout-rebullet-current-heading] `allout-rebullet-current-heading' Prompt for alternate bullet for
             current topic
 \\[allout-rebullet-topic] `allout-rebullet-topic'   Reconcile bullets of topic and
-            its' offspring -- distinctive bullets are not changed, others
+            its offspring -- distinctive bullets are not changed, others
             are alternated according to nesting depth.
 \\[allout-number-siblings] `allout-number-siblings'  Number bullets of topic and siblings --
            the offspring are not affected.
@@ -1791,12 +1791,12 @@ the HOT-SPOT Operation section.
         ----------------------------------
 \\[allout-kill-topic] `allout-kill-topic'   Kill current topic, including offspring.
 \\[allout-copy-topic-as-kill] `allout-copy-topic-as-kill' Copy current topic, including offspring.
-\\[allout-kill-line]     `allout-kill-line'    kill-line, attending to outline structure.
+\\[allout-kill-line]     `allout-kill-line'    Kill line, attending to outline structure.
 \\[allout-copy-line-as-kill]     `allout-copy-line-as-kill' Copy line but don't delete it.
 \\[allout-yank] `allout-yank'        Yank, adjusting depth of yanked topic to
                              depth of heading if yanking into bare topic
                              heading (ie, prefix sans text).
-\\[allout-yank-pop]     `allout-yank-pop'       Is to allout-yank as yank-pop is to yank
+\\[allout-yank-pop]     `allout-yank-pop'       Is to `allout-yank' as `yank-pop' is to `yank'.
 
         Topic-oriented Encryption:
         -------------------------
@@ -1836,7 +1836,7 @@ for a save, it is automatically decrypted for continued editing.
 NOTE: A few GnuPG v2 versions improperly preserve incorrect
 symmetric decryption keys, preventing entry of the correct key on
 subsequent decryption attempts until the cache times-out.  That
-can take several minutes.  \(Decryption of other entries is not
+can take several minutes.  (Decryption of other entries is not
 affected.)  Upgrade your EasyPG version, if you can, and you can
 deliberately clear your gpg-agent's cache by sending it a '-HUP'
 signal.
@@ -1877,7 +1877,7 @@ hooks, by which independent code can cooperate with allout
 without changes to the allout core.  Here are key ones:
 
 `allout-mode-hook'
-`allout-mode-deactivate-hook' \(deprecated)
+`allout-mode-deactivate-hook' (deprecated)
 `allout-mode-off-hook'
 `allout-exposure-change-hook'
 `allout-structure-added-hook'
@@ -1939,7 +1939,7 @@ PREFIX-LEAD:
         When the PREFIX-LEAD is set to the comment-string of a
         programming language, outline structuring can be embedded in
         program code without interfering with processing of the text
-        (by emacs or the language processor) as program code.  This
+        (by Emacs or the language processor) as program code.  This
         setting happens automatically when allout mode is used in
         programming-mode buffers.  See `allout-use-mode-specific-leader'
         docstring for more detail.
@@ -1951,8 +1951,8 @@ BULLET: A character at the end of the ITEM PREFIX, it must be one of
         `allout-distinctive-bullets-string'.  When creating a TOPIC,
         plain BULLETs are by default used, according to the DEPTH of the
         TOPIC.  Choice among the distinctive BULLETs is offered when you
-        provide a universal argugment \(\\[universal-argument]) to the
-        TOPIC creation command, or when explictly rebulleting a TOPIC.  The
+        provide a universal argument (\\[universal-argument]) to the
+        TOPIC creation command, or when explicitly rebulleting a TOPIC.  The
         significance of the various distinctive bullets is purely by
         convention.  See the documentation for the above bullet strings for
         more details.
@@ -2250,7 +2250,7 @@ to return the current prefix."
                                   allout-recent-prefix-end))
 ;;;_  > allout-recent-bullet ()
 (defmacro allout-recent-bullet ()
-  "Like allout-recent-prefix, but returns bullet of last encountered prefix.
+  "Like `allout-recent-prefix', but returns bullet of last encountered prefix.
 
 All outline functions which directly do string matches to assess
 headings set the variables `allout-recent-prefix-beginning' and
@@ -2625,13 +2625,13 @@ The remaining optional args are for internal use by the function.
 Point is left at the end of the subtree.
 
 Charts are used to capture outline structure, so that outline-altering
-routines need assess the structure only once, and then use the chart
+routines need to assess the structure only once, and then use the chart
 for their elaborate manipulations.
 
 The chart entries for the topics are in reverse order, so the
 last topic is listed first.  The entry for each topic consists of
 an integer indicating the point at the beginning of the topic
-prefix.  Charts for offspring consists of a list containing,
+prefix.  Charts for offspring consist of a list containing,
 recursively, the charts for the respective subtopics.  The chart
 for a topics' offspring precedes the entry for the topic itself.
 
@@ -3100,7 +3100,7 @@ Return the start point of the new topic if successful, nil otherwise.
 
 Costs more than regular `allout-next-sibling' for short traversals:
 
- - we have to check the prior (next, if travelling backwards)
+ - we have to check the prior (next, if traveling backwards)
    item to confirm connectivity with the prior topic, and
  - if confirmed, we have to reestablish the allout-recent-* settings with
    some extra navigation
@@ -3186,7 +3186,7 @@ Presumes point is at the start of a topic prefix."
       (if (allout-called-interactively-p) (allout-end-of-prefix)))))
 ;;;_   > allout-next-visible-heading (arg)
 (defun allout-next-visible-heading (arg)
-  "Move to the next ARG'th visible heading line, backward if arg is negative.
+  "Move to the next ARGth visible heading line, backward if ARG is negative.
 
 Move to buffer limit in indicated direction if headings are exhausted."
 
@@ -3388,8 +3388,8 @@ return to regular interpretation of self-insert characters."
   "Catchall handling of key bindings in hot-spots.
 
 Translates unmodified keystrokes to corresponding allout commands, when
-they would qualify if prefixed with the allout-command-prefix, and sets
-this-command accordingly.
+they would qualify if prefixed with the `allout-command-prefix', and sets
+`this-command' accordingly.
 
 Returns the qualifying command, if any, else nil."
   (interactive)
@@ -3533,7 +3533,7 @@ the current topics' depth.
 If INSTEAD is:
 
 - nil, then the bullet char for the context is used, per distinction or depth
-- a \(numeric) character, then character's string representation is used
+- a (numeric) character, then character's string representation is used
 - a string, then the user is asked for bullet with the first char as default
 - anything else, the user is solicited with bullet char per context as default
 
@@ -3849,7 +3849,7 @@ Nuances:
 (defun allout-open-subtopic (arg)
   "Open new topic header at deeper level than the current one.
 
-Negative universal arg means to open deeper, but place the new topic
+Negative universal ARG means to open deeper, but place the new topic
 prior to the current one."
   (interactive "p")
   (allout-open-topic 1 (> 0 arg) (< 1 arg)))
@@ -3857,9 +3857,9 @@ prior to the current one."
 (defun allout-open-sibtopic (arg)
   "Open new topic header at same level as the current one.
 
-Positive universal arg means to use the bullet of the prior sibling.
+Positive universal ARG means to use the bullet of the prior sibling.
 
-Negative universal arg means to place the new topic prior to the current
+Negative universal ARG means to place the new topic prior to the current
 one."
   (interactive "p")
   (allout-open-topic 0 (> 0 arg) (not (= 1 arg))))
@@ -3867,7 +3867,7 @@ one."
 (defun allout-open-supertopic (arg)
   "Open new topic header at shallower level than the current one.
 
-Negative universal arg means to open shallower, but place the new
+Negative universal ARG means to open shallower, but place the new
 topic prior to the current one."
 
   (interactive "p")
@@ -3992,7 +3992,7 @@ All args are optional.
 
 If INSTEAD is:
 - nil, then the bullet char for the context is used, per distinction or depth
-- a \(numeric) character, then character's string representation is used
+- a (numeric) character, then character's string representation is used
 - a string, then the user is asked for bullet with the first char as default
 - anything else, the user is solicited with bullet char per context as default
 
@@ -4033,7 +4033,7 @@ this function."
                                                 number-control
                                                 index)))
 
-    ;; Is new one is identical to old?
+    ;; Is new one identical to old?
     (if (and (= current-depth new-depth)
              (string= current-bullet
                       (substring new-prefix (1- (length new-prefix)))))
@@ -4407,7 +4407,7 @@ subtopics into siblings of the item."
         (run-hook-with-args 'allout-structure-deleted-hook depth (point))))))
 ;;;_    > allout-copy-line-as-kill ()
 (defun allout-copy-line-as-kill ()
-  "Like allout-kill-topic, but save to kill ring instead of deleting."
+  "Like `allout-kill-topic', but save to kill ring instead of deleting."
   (interactive)
   (let ((buffer-read-only t))
     (condition-case nil
@@ -5854,12 +5854,12 @@ With repeat count, copy the exposed portions of entire buffer."
 (defun allout-toggle-current-subtree-encryption (&optional keymode-cue)
   "Encrypt clear or decrypt encoded topic text.
 
-Allout uses emacs 'epg' libary to perform encryption.  Symmetric
+Allout uses Emacs 'epg' library to perform encryption.  Symmetric
 and keypair encryption are supported.  All encryption is ascii
 armored.
 
 Entry encryption defaults to symmetric key mode unless keypair
-recipients are associated with the file \(see
+recipients are associated with the file (see
 `epa-file-encrypt-to') or the function is invoked with a
 \(KEYMODE-CUE) universal argument greater than 1.
 
@@ -5881,7 +5881,7 @@ pending encryption or encrypted.  `*' asterisk immediately after
 the bullet signals that the body is encrypted, its absence means
 the topic is meant to be encrypted but is not currently.  When a
 file with topics pending encryption is saved, topics pending
-encryption are encrypted.  See allout-encrypt-unencrypted-on-saves
+encryption are encrypted.  See `allout-encrypt-unencrypted-on-saves'
 for auto-encryption specifics.
 
 \*NOTE WELL* that automatic encryption that happens during saves will
@@ -5900,7 +5900,7 @@ encrypted.  If you want to encrypt the contents of a top-level topic, use
   "Encrypt clear text or decrypt encoded topic contents (body and subtopics.)
 
 Entry encryption defaults to symmetric key mode unless keypair
-recipients are associated with the file \(see
+recipients are associated with the file (see
 `epa-file-encrypt-to') or the function is invoked with a
 \(KEYMODE-CUE) universal argument greater than 1.
 
@@ -5916,7 +5916,7 @@ associated with it.  This can be used to deassociate any
 recipients with the file, by selecting no recipients in the
 dialog.
 
-Encryption and decryption uses the emacs epg library.
+Encryption and decryption uses the Emacs 'epg' library.
 
 Encrypted text will be ascii-armored.
 
@@ -6033,7 +6033,7 @@ If DECRYPT is true (default false), then decrypt instead of encrypt.
 ALLOUT-BUFFER identifies the buffer containing the text.
 
 Entry encryption defaults to symmetric key mode unless keypair
-recipients are associated with the file \(see
+recipients are associated with the file (see
 `epa-file-encrypt-to') or the function is invoked with a
 \(KEYMODE-CUE) universal argument greater than 1.
 
@@ -6057,7 +6057,7 @@ rejections due to matches against
 NOTE: A few GnuPG v2 versions improperly preserve incorrect
 symmetric decryption keys, preventing entry of the correct key on
 subsequent decryption attempts until the cache times-out.  That
-can take several minutes.  \(Decryption of other entries is not
+can take several minutes.  (Decryption of other entries is not
 affected.)  Upgrade your EasyPG version, if you can, and you can
 deliberately clear your gpg-agent's cache by sending it a '-HUP'
 signal."
@@ -6196,7 +6196,7 @@ signal."
 (defun allout-inhibit-auto-save-info-for-decryption (was-buffer-saved-size)
   "Temporarily prevent auto-saves in this buffer when an item is decrypted.
 
-WAS-BUFFER-SAVED-SIZE is the value of buffer-saved-size *before*
+WAS-BUFFER-SAVED-SIZE is the value of `buffer-saved-size' *before*
 the decryption."
   (when (not (or (= buffer-saved-size -1) (= was-buffer-saved-size -1)))
     (setq allout-auto-save-temporarily-disabled was-buffer-saved-size
@@ -6229,8 +6229,8 @@ the decryption."
   "Return the point of the next topic pending encryption, or nil if none.
 
 Such a topic has the `allout-topic-encryption-bullet' without an
-immediately following '*' that would mark the topic as being encrypted.  It
-must also have content."
+immediately following '*' that would mark the topic as being encrypted.
+It must also have content."
   (let (done got content-beg)
     (save-match-data
       (while (not done)
@@ -6332,7 +6332,7 @@ save.  See `allout-encrypt-unencrypted-on-saves' for more info."
   "Activate outline mode and establish file var so it is started subsequently.
 
 See `allout-layout' and customization of `allout-auto-activation'
-for details on preparing emacs for automatic allout activation."
+for details on preparing Emacs for automatic allout activation."
 
   (interactive "P")
 
@@ -6380,7 +6380,7 @@ Returns a list of the form (BEGINNING-POINT PREFIX-STRING SUFFIX-STRING)."
 (defun allout-adjust-file-variable (varname value)
   "Adjust the setting of an Emacs file variable named VARNAME to VALUE.
 
-This activity is inhibited if either `enable-local-variables'
+This activity is inhibited if either `enable-local-variables' or
 `allout-enable-file-variable-adjustment' are nil.
 
 When enabled, an entry for the variable is created if not already present,

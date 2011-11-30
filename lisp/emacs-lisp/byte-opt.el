@@ -135,7 +135,7 @@
 ;; We'd have to notice defvars and defconsts, since those variables should
 ;; always be dynamic, and attempting to do a lexical binding of them
 ;; should simply do a dynamic binding instead.
-;; But!  We need to know about variables that were not necessarily defvarred
+;; But!  We need to know about variables that were not necessarily defvared
 ;; in the file being compiled (doing a boundp check isn't good enough.)
 ;; Fdefvar() would have to be modified to add something to the plist.
 ;;

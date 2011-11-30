@@ -66,7 +66,7 @@ struct cm
 				   location */
     unsigned int cm_autolf:1;	/* \r performs a \r\n (rn) */
 
-    /* Parametrized capabilities.  This needs to be a struct since
+    /* Parameterized capabilities.  This needs to be a struct since
        the costs are accessed through pointers.  */
 
 #if 0

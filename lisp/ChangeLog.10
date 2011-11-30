@@ -1837,7 +1837,7 @@
 2003-05-31  Stefan Monnier  <monnier@cs.yale.edu>
 
 	* view.el (view-file, view-file-other-window, view-file-other-frame):
-	Signal an error when trying to visit an inexistent file.
+	Signal an error when trying to visit a nonexistent file.
 
 	* vc-hooks.el (vc-call-backend): Give better error message
 	when a backend function is missing.
@@ -5904,7 +5904,7 @@
 	(mis-)use tramp-current-user as indication, assuming it is set in
 	`tramp-completion-handle-file-name-all-completions'.
 	(tramp-send-region): Handle the case `tramp-chunksize' is equal 0.
-	I did it accidently.  Infinite loop ...
+	I did it accidentally.  Infinite loop ...
 	(tramp-get-device): `tramp-make-tramp-file-name' must not be
 	called with NIL path.  It fails in case of multi-method.
 	(tramp-file-name-for-operation): Apply `expand-file-name' for
@@ -8053,7 +8053,7 @@
 	(gdb-quit): Reset some variables including tool-bar-map.
 
 	* gud.el (gdb-running): New variable.
-	(gud-menu-map): Use gdb-running to grey out toolbar buttons
+	(gud-menu-map): Use gdb-running to gray out toolbar buttons
 	with gdba in gdb-ui.el.
 	(gud-tool-bar-map): Move to avoid byte compiler warning.
 
@@ -9746,8 +9746,8 @@
 
 2002-09-28  Simon Josefsson  <jas@extundo.com>
 
-	* mail/smtpmail.el (smtpmail-via-smtp): Only negotiate starttls on
-	streams that were opened using starttls.
+	* mail/smtpmail.el (smtpmail-via-smtp): Only negotiate STARTTLS on
+	streams that were opened using STARTTLS.
 
 2002-09-28  Paul Reilly  <pmr@pajato.com>
 
@@ -22790,7 +22790,7 @@
 2001-11-04  Miles Bader  <miles@gnu.org>
 
 	* startup.el (fancy-splash-head): Reapply Gerd's hack to make the
-	shadow of the splash image grey on a dark background instead of black.
+	shadow of the splash image gray on a dark background instead of black.
 
 2001-11-03  Stefan Monnier  <monnier@cs.yale.edu>
 

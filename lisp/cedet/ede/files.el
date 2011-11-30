@@ -249,7 +249,7 @@ Do this whenever a new project is created, as opposed to loaded."
   "Return a project description object if DIR has a project.
 Optional argument FORCE means to ignore a hash-hit of 'nomatch.
 This depends on an up to date `ede-project-class-files' variable.
-Any directory that contains the file .ede-ignore will allways
+Any directory that contains the file .ede-ignore will always
 return nil."
   (when (not (file-exists-p (expand-file-name ".ede-ignore" dir)))
     (let* ((dirtest (expand-file-name dir))

@@ -1052,6 +1052,7 @@ window_relative_x_coord (struct window *w, enum window_part part, int x)
 DEFUN ("coordinates-in-window-p", Fcoordinates_in_window_p,
        Scoordinates_in_window_p, 2, 2, 0,
        doc: /* Return non-nil if COORDINATES are in WINDOW.
+WINDOW must be a live window.
 COORDINATES is a cons of the form (X . Y), X and Y being distances
 measured in characters from the upper-left corner of the frame.
 \(0 . 0) denotes the character in the upper left corner of the
@@ -1073,7 +1074,7 @@ If they are in the windows's left or right marginal areas, `left-margin'\n\
   int x, y;
   Lisp_Object lx, ly;
 
-  CHECK_WINDOW (window);
+  CHECK_LIVE_WINDOW (window);
   w = XWINDOW (window);
   f = XFRAME (w->frame);
   CHECK_CONS (coordinates);
@@ -2181,7 +2182,7 @@ next_window (Lisp_Object window, Lisp_Object minibuf, Lisp_Object all_frames, in
 
 
 DEFUN ("next-window", Fnext_window, Snext_window, 0, 3, 0,
-       doc: /* Return window following WINDOW in cyclic ordering of windows.
+       doc: /* Return live window after WINDOW in the cyclic ordering of windows.
 WINDOW must be a live window and defaults to the selected one.  The
 optional arguments MINIBUF and ALL-FRAMES specify the set of windows to
 consider.
@@ -2220,7 +2221,7 @@ windows, eventually ending up back at the window you started with.
 
 
 DEFUN ("previous-window", Fprevious_window, Sprevious_window, 0, 3, 0,
-       doc: /* Return window preceding WINDOW in cyclic ordering of windows.
+       doc: /* Return live window before WINDOW in the cyclic ordering of windows.
 WINDOW must be a live window and defaults to the selected one.  The
 optional arguments MINIBUF and ALL-FRAMES specify the set of windows to
 consider.
@@ -3087,7 +3088,7 @@ This function runs `window-scroll-functions' before running
 	    error ("Window is dedicated to `%s'", SDATA (BVAR (XBUFFER (tem), name)));
 	  else
 	    /* WINDOW is weakly dedicated to its buffer, reset
-	       dedicatedness.  */
+	       dedication.  */
 	    w->dedicated = Qnil;
 
 	  call1 (Qrecord_window_buffer, window);
@@ -6298,7 +6299,7 @@ freeze_window_starts (struct frame *f, int freeze_p)
    ignore_positions non-zero means ignore non-matching scroll positions
    and the like.
 
-   This ignores a couple of things like the dedicatedness status of
+   This ignores a couple of things like the dedication status of
    window, combination_limit and the like.  This might have to be
    fixed.  */
 

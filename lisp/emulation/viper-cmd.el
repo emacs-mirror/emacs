@@ -3715,7 +3715,7 @@ Although this function is bound to \\[viper-toggle-search-style], the most
 convenient way to use it is to bind `//' to the macro
 `1 M-x viper-toggle-search-style' and `///' to
 `2 M-x viper-toggle-search-style'.  In this way, hitting `//' quickly will
-toggle case-fold-search and hitting `/' three times witth toggle regexp
+toggle case-fold-search and hitting `/' three times with toggle regexp
 search.  Macros are more convenient in this case because they don't affect
 the Emacs binding of `/'."
   (interactive "P")

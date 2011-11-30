@@ -3573,7 +3573,7 @@ The verbosity levels are
 
 When @code{tramp-verbose} is greater than or equal to 4, the messages
 are also written into a @value{tramp} debug buffer.  This debug buffer
-is useful for analysing problems; sending a @value{tramp} bug report
+is useful for analyzing problems; sending a @value{tramp} bug report
 should be done with @code{tramp-verbose} set to a verbosity level of at
 least 6 (@pxref{Bug Reports}).
 

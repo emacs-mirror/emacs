@@ -718,7 +718,7 @@ Argument PROMPT is the prompt to use."
 
 (defun dframe-set-timer (timeout fn &optional _null-on-error)
   "Apply a timer with TIMEOUT, to call FN, or remove a timer if TIMEOUT is nil.
-TIMEOUT is the number of seconds until the dframe controled program
+TIMEOUT is the number of seconds until the dframe controlled program
 timer is called again.  When TIMEOUT is nil, turn off all timeouts.
 This function must be called from the buffer belonging to the program
 who requested the timer.  NULL-ON-ERROR is ignored."

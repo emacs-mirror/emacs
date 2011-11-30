@@ -1,3 +1,120 @@
+2011-11-29  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* xterm.h (struct x_output): net_wm_state_hidden_seen is new.
+
+	* xterm.c (handle_one_xevent): Only set async_visible and friends
+	if net_wm_state_hidden_seen is non-zero (Bug#10002)
+	(get_current_wm_state):  Set net_wm_state_hidden_seen to 1 if
+	_NET_WM_STATE_HIDDEN is in NET_WM_STATE.
+
+2011-11-28  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Remove GCPRO-related macros that exist only to avoid shadowing locals.
+	* lisp.h (GCPRO1_VAR, GCPRO2_VAR, GCPRO3_VAR, GCPRO4_VAR, GCPRO5_VAR)
+	(GCPRO6_VAR, UNGCPRO_VAR): Remove.  See
+	<http://lists.gnu.org/archive/html/emacs-diffs/2011-11/msg00265.html>.
+	All uses changed to use GCPRO1 etc.
+	(GCPRO1, GCPRO2, GCPRO3, GCPRO4, GCPRO5, GCPRO6, UNGCPRO):
+	Revert to old implementation (i.e., before 2011-03-11).
+
+2011-11-28  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
+
+	* dispnew.c (scrolling_window): Truncate overlaps in copy destination
+	of scroll runs so as to avoid assigning disabled bogus rows and
+	unnecessary graphics copy operations.
+
+2011-11-27  Eli Zaretskii  <eliz@gnu.org>
+
+	* s/ms-w32.h (utimbuf) [_MSC_VER]: Don't define.
+	(snprintf) [_MSC_VER]: Redirect to _snprintf.
+	(strtoll) [_MSC_VER]: Redirect to _strtoi64.
+	(malloc, free, realloc, calloc): Redirect to e_* only when
+	compiling Emacs.
+
+	* lisp.h (GCTYPEBITS): Move before first use.
+	(ALIGN_GCTYPEBITS) [_MSC_VER]: Define.
+	(DECL_ALIGN) [_MSC_VER]: Use it, as MSVC doesn't like bit ops in
+	this macro definition.
+
+	* s/ms-w32.h (tzname): Redirect to _tzname for all values of
+	_MSC_VER.
+
+2011-11-27  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* gtkutil.c (xg_create_frame_widgets): Call
+	gtk_window_set_has_resize_grip (FALSE) if that function is
+	present with Gtk+ 2.0.
+
+2011-11-26  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* fileio.c (Finsert_file_contents): Undo previous change; see
+	<http://lists.gnu.org/archive/html/emacs-diffs/2011-11/msg00265.html>.
+
+2011-11-26  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Rename locals to avoid shadowing.
+	* fileio.c (Finsert_file_contents):
+	Rename inner 'gcpro1' to 'inner_gcpro1' to avoid shadowing.
+	* process.c (wait_reading_process_output):
+	Rename inner 'proc' to 'p' to avoid shadowing.
+	Indent for consistency with usual Emacs style.
+
+2011-11-25  Eli Zaretskii  <eliz@gnu.org>
+
+	* xdisp.c (redisplay_window): If cursor row is not fully visible
+	after recentering, and scroll-conservatively is set to a large
+	number, scroll window by a few more lines to make the cursor fully
+	visible and out of scroll-margin.  (Bug#10105)
+	(start_display): Don't move to the next line if the display should
+	start at a newline that is part of a display vector or an overlay
+	string.  (Bug#10119)
+
+2011-11-24  Juri Linkov  <juri@jurta.org>
+
+	* image.c (imagemagick_load_image): Move `MagickSetResolution' down
+	after the `MagickPingImage' call.  (Bug#10112)
+
+2011-11-23  Chong Yidong  <cyd@gnu.org>
+
+	* window.c (Fcoordinates_in_window_p): Accept only live windows.
+
+2011-11-23  Martin Rudalics  <rudalics@gmx.at>
+
+	* buffer.c (Fkill_buffer): Run replace_buffer_in_windows before
+	making another buffer current.  (Bug#10114)
+
+2011-11-23  Glenn Morris  <rgm@gnu.org>
+
+	* font.c (font_find_for_lface) [HAVE_NS]: Ignore case.  (Bug#2526)
+
+2011-11-23  Chong Yidong  <cyd@gnu.org>
+
+	* xdisp.c (compute_stop_pos): Check validity of end_charpos before
+	using it (Bug#5984).
+
+2011-11-22  Eli Zaretskii  <eliz@gnu.org>
+
+	* dispnew.c (adjust_glyph_matrix): Don't verify hash code of mode-
+	and header-lines, as they don't have one computed for them.
+	(Bug#10098)
+
+	* .gdbinit (prow): Make displayed values more self-explaining.
+	Add row's hash code.
+
+2011-11-21  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* process.c (wait_reading_process_output): Fix asynchrounous
+	GnuTLS socket handling on some versions of the GnuTLS library.
+	(wait_reading_process_output): Add comment and URL.
+
+2011-11-21  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* xterm.c (x_clear_frame): Reinstate the XClearWindow call.
+
+2011-11-21  Chong Yidong  <cyd@gnu.org>
+
+	* window.c (Fnext_window, Fprevious_window): Doc fix.
+
 2011-11-20  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* window.c (get_phys_cursor_glyph): Fix Lisp_Object/int mixup.
@@ -7061,7 +7178,7 @@
 
 2011-04-08  T.V. Raman  <tv.raman.tv@gmail.com>  (tiny change)
 
-	* xml.c (parse_region): Avoid creating spurious whiespace nodes.
+	* xml.c (parse_region): Avoid creating spurious whitespace nodes.
 
 2011-04-08  Chong Yidong  <cyd@stupidchicken.com>
 
@@ -7677,7 +7794,7 @@
 	* keyboard.c (Fcommand_execute, Fsuspend_emacs, safe_run_hooks_1):
 	Use Frun_hooks.
 	(command_loop_1): Use Frun_hooks.  Call safe_run_hooks
-	unconditionnaly since it does the check itself.
+	unconditionally since it does the check itself.
 
 2011-03-23  Paul Eggert  <eggert@cs.ucla.edu>
 

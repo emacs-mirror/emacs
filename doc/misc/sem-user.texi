@@ -547,7 +547,7 @@ reparsed regardless of their size.
 @end deffn
 
 @deffn Option semantic-idle-scheduler-no-working-message
-If non-@code{nil}, disable display of working messages whie reparsing.
+If non-@code{nil}, disable display of working messages while reparsing.
 @end deffn
 
 @deffn Option semantic-idle-scheduler-working-in-modeline-flag

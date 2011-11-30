@@ -437,7 +437,7 @@ RETURNONERROR specifies that parsing should stop on the first
 unmatched syntax encountered.  When nil, parsing skips the syntax,
 adding it to the unmatched syntax cache.
 
-Must return a list of semantic tags wich have been cooked
+Must return a list of semantic tags which have been cooked
 \(repositioned properly) but which DO NOT HAVE OVERLAYS associated
 with them.  When overloading this function, use `semantic--tag-expand'
 to cook raw tags.")

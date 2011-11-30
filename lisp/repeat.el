@@ -363,7 +363,7 @@ recently executed command not bound to an input event\"."
 
 ;; OK, there's one situation left where that doesn't work correctly: when the
 ;; most recent self-insertion provoked an auto-fill.  The problem is that
-;; unravelling the undo information after an auto-fill is too hard, since all
+;; unraveling the undo information after an auto-fill is too hard, since all
 ;; kinds of stuff can get in there as a result of comment prefixes etc.  It'd
 ;; be possible to advise do-auto-fill to record the most recent
 ;; self-insertion before it does its thing, but that's a performance hit on

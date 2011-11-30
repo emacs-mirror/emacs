@@ -11913,7 +11913,7 @@ will not be marked as saved."
 	  ;; This is a pseudo-article.
 	  (if (assq 'name header)
 	      (gnus-copy-file (cdr (assq 'name header)))
-	    (gnus-message 1 "Article %d is unsaveable" article))
+	    (gnus-message 1 "Article %d is unsavable" article))
 	;; This is a real article.
 	(save-window-excursion
 	  (gnus-summary-select-article decode decode nil article)

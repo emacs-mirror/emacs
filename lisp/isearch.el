@@ -1548,7 +1548,10 @@ If search string is empty, just beep."
 (defun isearch-yank-x-selection ()
   "Pull current X selection into search string."
   (interactive)
-  (isearch-yank-string (x-get-selection)))
+  (isearch-yank-string (x-get-selection))
+  ;; If `x-get-selection' returned the text from the active region,
+  ;; then it "used" the mark which we should hence deactivate.
+  (when select-active-regions (deactivate-mark)))
 
 
 (defun isearch-mouse-2 (click)
@@ -1872,7 +1875,7 @@ the bottom."
   (goto-char isearch-point))
 
 (defun isearch-reread-key-sequence-naturally (keylist)
-  "Reread key sequence KEYLIST with Isearch mode's keymap deactivated.
+  "Reread key sequence KEYLIST with an inactive Isearch-mode keymap.
 Return the key sequence as a string/vector."
   (isearch-unread-key-sequence keylist)
   (let (overriding-terminal-local-map)

@@ -144,7 +144,7 @@
 ;; 3.07--3.08:
 ;; - Made `fast-lock-read-cache' set `fast-lock-cache-filename'
 ;; 3.08--3.09:
-;; - Made `fast-lock-save-cache' cope if `fast-lock-minimum-size' is an a list
+;; - Made `fast-lock-save-cache' cope if `fast-lock-minimum-size' is a list
 ;; - Made `fast-lock-mode' respect the value of `font-lock-inhibit-thing-lock'
 ;; - Added `fast-lock-after-unfontify-buffer'
 ;; 3.09--3.10:

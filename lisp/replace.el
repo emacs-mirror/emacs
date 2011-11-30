@@ -1663,7 +1663,7 @@ with the `noescape' argument set.
 			      t t)))
 
 (defun replace-loop-through-replacements (data count)
-  ;; DATA is a vector contaning the following values:
+  ;; DATA is a vector containing the following values:
   ;;   0 next-rotate-count
   ;;   1 repeat-count
   ;;   2 next-replacement

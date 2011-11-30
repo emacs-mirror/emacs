@@ -3132,7 +3132,7 @@ record_unwind_save_match_data (void)
 			 Fmatch_data (Qnil, Qnil, Qnil));
 }
 
-/* Quote a string to inactivate reg-expr chars */
+/* Quote a string to deactivate reg-expr chars */
 
 DEFUN ("regexp-quote", Fregexp_quote, Sregexp_quote, 1, 1, 0,
        doc: /* Return a regexp string which matches exactly STRING and nothing else.  */)

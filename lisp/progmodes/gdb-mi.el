@@ -214,7 +214,7 @@ Emacs can't find.")
 (defvar gdb-source-window nil)
 (defvar gdb-inferior-status nil)
 (defvar gdb-continuation nil)
-(defvar gdb-version nil)
+(defvar gdb-supports-non-stop nil)
 (defvar gdb-filter-output nil
   "Message to be shown in GUD console.
 
@@ -574,7 +574,7 @@ When `gdb-non-stop' is nil, return COMMAND unchanged."
   (if gdb-non-stop
       (if (and gdb-gud-control-all-threads
                (not noall)
-	       (string-equal gdb-version "7.0+"))
+	       gdb-supports-non-stop)
           (concat command " --all ")
         (gdb-current-context-command command))
     command))
@@ -872,14 +872,16 @@ detailed description of this mode.
   (when gdb-non-stop
     (gdb-input (list "-gdb-set non-stop 1" 'gdb-non-stop-handler)))
 
+  (gdb-input (list "-enable-pretty-printing" 'ignore))
+
   ;; find source file and compilation directory here
-  (gdb-input
-                                        ; Needs GDB 6.2 onwards.
-   (list "-file-list-exec-source-files" 'gdb-get-source-file-list))
   (if gdb-create-source-file-list
       (gdb-input
+                                        ; Needs GDB 6.2 onwards.
+       (list "-file-list-exec-source-files" 'gdb-get-source-file-list)))
+  (gdb-input
                                         ; Needs GDB 6.0 onwards.
-       (list "-file-list-exec-source-file" 'gdb-get-source-file)))
+   (list "-file-list-exec-source-file" 'gdb-get-source-file))
   (gdb-input
    (list "-gdb-show prompt" 'gdb-get-prompt)))
 
@@ -890,10 +892,18 @@ detailed description of this mode.
 	(message
          "This version of GDB doesn't support non-stop mode.  Turning it off.")
 	(setq gdb-non-stop nil)
-	(setq gdb-version "pre-7.0"))
-    (setq gdb-version "7.0+")
+	(setq gdb-supports-non-stop nil))
+    (setq gdb-supports-non-stop t)
     (gdb-input (list "-gdb-set target-async 1" 'ignore))
-    (gdb-input (list "-enable-pretty-printing" 'ignore))))
+    (gdb-input (list "-list-target-features" 'gdb-check-target-async))))
+
+(defun gdb-check-target-async ()
+  (goto-char (point-min))
+  (unless (re-search-forward "async" nil t)
+    (message
+     "Target doesn't support non-stop mode.  Turning it off.")
+    (setq gdb-non-stop nil)
+    (gdb-input (list "-gdb-set non-stop 0" 'ignore))))
 
 (defvar gdb-define-alist nil "Alist of #define directives for GUD tooltips.")
 
@@ -1071,7 +1081,7 @@ With arg, enter name of variable to be watched in the minibuffer."
 			       (tooltip-identifier-from-point (point)))))))
 	      (set-text-properties 0 (length expr) nil expr)
 	      (gdb-input
-	       (list (concat"-var-create - * "  expr "")
+	       (list (concat "-var-create - * "  expr "")
 		     `(lambda () (gdb-var-create-handler ,expr)))))))
       (message "gud-watch is a no-op in this mode."))))
 
@@ -1699,7 +1709,7 @@ static char *magick[] = {
 (defun gdb-current-context-command (command)
   "Add --thread to gdb COMMAND when needed."
   (if (and gdb-thread-number
-	   (string-equal gdb-version "7.0+"))
+	   gdb-supports-non-stop)
       (concat command " --thread " gdb-thread-number)
     command))
 
@@ -1983,8 +1993,8 @@ current thread and update GDB buffers."
     (when (not gdb-register-names)
       (gdb-input
        (list (concat "-data-list-register-names"
-		     (if (string-equal gdb-version "7.0+")
-			 (concat" --thread " thread-id)))
+		     (if gdb-supports-non-stop
+			 (concat " --thread " thread-id)))
              'gdb-register-names-handler)))
 
 ;;; Don't set gud-last-frame here as it's currently done in gdb-frame-handler
@@ -4133,7 +4143,7 @@ buffers, if required."
   (if gdb-many-windows
       (gdb-setup-windows)
     (gdb-get-buffer-create 'gdb-breakpoints-buffer)
-    (if gdb-show-main
+    (if (and gdb-show-main gdb-main-file)
         (let ((pop-up-windows t))
           (display-buffer (gud-find-file gdb-main-file))))))
 

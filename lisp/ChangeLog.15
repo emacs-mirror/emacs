@@ -2809,7 +2809,7 @@
 	Consolidate layout provisions coce directly into the activation
 	condition branch, now that we've removed those provisions.
 	(allout-unload-function): Explicitly activate the mode before
-	deactivating, if it's initially deactivated.
+	deactivating, if it's initially inactive.
 	(allout-set-buffer-multibyte): Properly prevent byte-compiler
 	warnings for version of function used only where
 	set-buffer-multibyte is unavailable.
@@ -2818,7 +2818,7 @@
 
 	* tool-bar.el (tool-bar-setup): Remove :enable conditions, which
 	are handled by the menu-bar entries.  As before, don't use
-	:visibile to avoid changing the tool-bar.
+	:visible to avoid changing the tool-bar.
 
 2010-12-27  Michael Albinus  <michael.albinus@gmx.de>
 
@@ -6065,7 +6065,7 @@
 
 2010-10-03  Teodor Zlatanov  <tzz@lifelogs.com>
 
-	* net/gnutls.el: Improve docs.  Remove starttls and ssl emulation.
+	* net/gnutls.el: Improve docs.  Remove STARTTLS and SSL emulation.
 	Provide only `open-gnutls-stream' (formerly `open-ssl-stream') and
 	`gnutls-negotiate' (formerly `starttls-negotiate').
 	Remove trivial wrapper `starttls-open-stream'.
@@ -6217,7 +6217,7 @@
 
 2010-10-01  Lars Magne Ingebrigtsen  <larsi@gnus.org>
 
-	* net/tls.el (tls-starttls-switches): Give up on using starttls with
+	* net/tls.el (tls-starttls-switches): Give up on using STARTTLS with
 	gnutls-cli.
 	(tls-program): Add --insecure to be consistent with the defaults from
 	openssl s_client.  Now all three commands are insecure.

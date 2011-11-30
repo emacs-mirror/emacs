@@ -173,19 +173,19 @@
 ;; +-------------------------------+----------------------------------+
 ;; |`table-recognize'              |Recognize all tables in the       |
 ;; |`table-unrecognize'            |current buffer and                |
-;; |                               |activate/inactivate them.         |
+;; |                               |activate/deactivate them.         |
 ;; +-------------------------------+----------------------------------+
 ;; |`table-recognize-region'       |Recognize all the cells in a      |
-;; |`table-unrecognize-region'     |region and activate/inactivate    |
+;; |`table-unrecognize-region'     |region and activate/deactivate    |
 ;; |                               |them.                             |
 ;; +-------------------------------+----------------------------------+
 ;; |`table-recognize-table'        |Recognize all the cells in a      |
 ;; |`table-unrecognize-table'      |single table and                  |
-;; |                               |activate/inactivate them.         |
+;; |                               |activate/deactivate them.         |
 ;; +-------------------------------+----------------------------------+
 ;; |`table-recognize-cell'         |Recognize a cell.  Find a cell    |
 ;; |`table-unrecognize-cell'       |which contains the current point  |
-;; |                               |and activate/inactivate that cell.|
+;; |                               |and activate/deactivate that cell.|
 ;; +-------------------------------+----------------------------------+
 ;; |`table-forward-cell'           |Move point to the next Nth cell in|
 ;; |                               |a table.                          |
@@ -3856,7 +3856,7 @@ companion command to `table-capture' this way.
 ;;;###autoload
 (defun table-release ()
   "Convert a table into plain text by removing the frame from a table.
-Remove the frame from a table and inactivate the table.  This command
+Remove the frame from a table and deactivate the table.  This command
 converts a table into plain text without frames.  It is a companion to
 `table-capture' which does the opposite process."
   (interactive)

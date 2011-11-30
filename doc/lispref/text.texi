@@ -3191,10 +3191,12 @@ controls the total height of the display line ending in that newline.
 
 @item wrap-prefix
 If text has a @code{wrap-prefix} property, the prefix it defines will
-be added at display-time to the beginning of every continuation line
+be added at display time to the beginning of every continuation line
 due to text wrapping (so if lines are truncated, the wrap-prefix is
-never used).  It may be a string, an image, or a stretch-glyph such as
-used by the @code{display} text-property.  @xref{Display Property}.
+never used).  It may be a string or an image (@pxref{Other Display
+Specs}), or a stretch of whitespace such as specified by the
+@code{:width} or @code{:align-to} display properties (@pxref{Specified
+Space}).
 
 A wrap-prefix may also be specified for an entire buffer using the
 @code{wrap-prefix} buffer-local variable (however, a
@@ -3203,9 +3205,11 @@ the @code{wrap-prefix} variable).  @xref{Truncation}.
 
 @item line-prefix
 If text has a @code{line-prefix} property, the prefix it defines will
-be added at display-time to the beginning of every non-continuation
-line.  It may be a string, an image, or a stretch-glyph such as used
-by the @code{display} text-property.  @xref{Display Property}.
+be added at display time to the beginning of every non-continuation
+line.  It may be a string or an image (@pxref{Other Display
+Specs}), or a stretch of whitespace such as specified by the
+@code{:width} or @code{:align-to} display properties (@pxref{Specified
+Space}).
 
 A line-prefix may also be specified for an entire buffer using the
 @code{line-prefix} buffer-local variable (however, a
@@ -3762,7 +3766,7 @@ Additionally, if two fields are separated by another field with the
 special value @code{boundary}, then any point within this special
 field is also considered to be ``on the boundary.''
 
-Commands like @kbd{C-a} with no argumemt, that normally move backward
+Commands like @kbd{C-a} with no argument, that normally move backward
 to a specific kind of location and stay there once there, probably
 should specify @code{nil} for @var{escape-from-edge}.  Other motion
 commands that check fields should probably pass @code{t}.
@@ -4322,5 +4326,3 @@ If you do want modification hooks to be run in a particular piece of
 code that is itself run from a modification hook, then rebind locally
 @code{inhibit-modification-hooks} to @code{nil}.
 @end defvar
-
-

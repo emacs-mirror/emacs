@@ -1,3 +1,16 @@
+2011-11-26  Andreas Schwab  <schwab@linux-m68k.org>
+
+	* grammars/bovine-grammar.el (bovine--grammar-newstyle-unquote):
+	Avoid warning about old-style backquote.
+
+	* grammars/wisent-grammar.el (auto-mode-alist): Change `$' to `\''
+	in regexp.
+	(wisent-make-parsers): Likewise.  Quote `.'.
+
+	* grammars/bovine-grammar.el (auto-mode-alist): Change `$' to `\''
+	in regexp.
+	(bovine-make-parsers): Likewise.  Quote `.'.
+
 2011-11-20  Andreas Schwab  <schwab@linux-m68k.org>
 
 	* CPP-DEFINES (VIRT_ADDR_VARIES): Remove.
@@ -897,11 +910,11 @@
 
 	* FOR-RELEASE (NEW FEATURES): Completed work on this item:
 	Rework how fringe bitmaps are defined and used.
-	Currently, bitmap usage and bitmap appearence are "mixed-up" in a
+	Currently, bitmap usage and bitmap appearance are "mixed-up" in a
 	one-level representation.  It would be cleaner to split the
 	representation into a two-level model where first level maps
 	bitmap usage to a bitmap name, and second level maps bitmap name to
-	a bitmap appearence.
+	a bitmap appearance.
 
 2006-01-27  Chong Yidong  <cyd@stupidchicken.com>
 

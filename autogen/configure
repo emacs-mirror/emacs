@@ -9834,10 +9834,10 @@ if test "${HAVE_NS}" = yes; then
   window_system=nextstep
   with_xft=no
   # set up packaging dirs
-  exec_prefix=${ns_appbindir}
-  libexecdir=${ns_appbindir}/libexec
   if test "${EN_NS_SELF_CONTAINED}" = yes; then
      prefix=${ns_appresdir}
+     exec_prefix=${ns_appbindir}
+     libexecdir=${ns_appbindir}/libexec
   fi
   ns_frag=$srcdir/src/ns.mk
   NS_OBJ="fontset.o fringe.o image.o"
@@ -11217,7 +11217,8 @@ done
     for ac_func in gtk_widget_get_window gtk_widget_set_has_window \
                  gtk_dialog_get_action_area gtk_widget_get_sensitive \
                  gtk_widget_get_mapped gtk_adjustment_get_page_size \
-                 gtk_orientable_set_orientation
+                 gtk_orientable_set_orientation \
+		 gtk_window_set_has_resize_grip
 do :
   as_ac_var=`$as_echo "ac_cv_func_$ac_func" | $as_tr_sh`
 ac_fn_c_check_func "$LINENO" "$ac_func" "$as_ac_var"
@@ -11229,7 +11230,6 @@ _ACEOF
 
 fi
 done
-
 
 fi
 
@@ -13501,7 +13501,7 @@ $as_echo "#define NS_IMPL_GNUSTEP 1" >>confdefs.h
 
     # See also .m.o rule in Makefile.in */
     # FIXME: are all these flags really needed?  Document here why.  */
-    C_SWITCH_X_SYSTEM="-D_REENTRANT -fPIC -fno-strict-aliasing -I${GNUSTEP_SYSTEM_HEADERS} ${GNUSTEP_LOCAL_HEADERS}"
+            C_SWITCH_X_SYSTEM="-D_REENTRANT -fPIC -fno-strict-aliasing -I${GNUSTEP_SYSTEM_HEADERS} ${GNUSTEP_LOCAL_HEADERS}"
     ## Extra CFLAGS applied to src/*.m files.
     GNU_OBJC_CFLAGS="$GNU_OBJC_CFLAGS -fgnu-runtime -Wno-import -fconstant-string-class=NSConstantString -DGNUSTEP_BASE_LIBRARY=1 -DGNU_GUI_LIBRARY=1 -DGNU_RUNTIME=1 -DGSWARN -DGSDIAGNOSE"
   fi
@@ -22434,6 +22434,13 @@ echo "  Does Emacs use -lxft?                                   ${HAVE_XFT}"
 
 echo "  Does Emacs use toolkit scroll bars?                     ${USE_TOOLKIT_SCROLL_BARS}"
 echo
+
+if test -n "${EMACSDATA}"; then
+   echo "  Environment variable EMACSDATA set to:                  $EMACSDATA"
+fi
+if test -n "${EMACSDOC}"; then
+   echo "  Environment variable EMACSDOC set to:                   $EMACSDOC"
+fi
 
 if test $USE_XASSERTS = yes; then
    echo "  Compiling with asserts turned on."

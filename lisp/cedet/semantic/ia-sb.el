@@ -348,7 +348,7 @@ TEXT TAG and INDENT are the details."
 	  (insert (semantic-tag-name tag))
 	  (if movepoint (setq movepoint (point)))
 	  ;; I'd like to use this to add fancy () or what not at the end
-	  ;; but we need the parent file whih requires an upgrade to the
+	  ;; but we need the parent file which requires an upgrade to the
 	  ;; analysis tool.
 	  ;;(semantic-insert-foreign-tag tag ??))
 	  )

@@ -32,7 +32,7 @@
 
 BEGIN {
   print ";;; cp51932.el -- translation table for CP51932. -*- no-byte-compile: t -*-";
-  print ";;; Automatically genrated from CP932-2BYTE.map";
+  print ";;; Automatically generated from CP932-2BYTE.map";
   print "(let ((map";
   printf "       '(;JISEXT<->UNICODE";
 }

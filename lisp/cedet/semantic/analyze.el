@@ -57,7 +57,7 @@
 ;;
 ;; context - A semantic datatype representing a point in a buffer.
 ;;
-;; constriant - If a context specifies a specific datatype is needed,
+;; constraint - If a context specifies a specific datatype is needed,
 ;;       that is a constraint.
 ;; constants - Some datatypes define elements of themselves as a
 ;;       constant.  These need to be returned as there would be no
@@ -254,7 +254,7 @@ Optional argument THROWSYM specifies a symbol the throw on non-recoverable error
 	(fname nil)
 	(miniscope (when scope (clone scope)))
 	)
-    ;; First order check.  Is this wholely contained in the typecache?
+    ;; First order check.  Is this wholly contained in the typecache?
     (setq tmp (semanticdb-typecache-find sequence))
 
     (if tmp

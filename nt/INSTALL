@@ -599,6 +599,30 @@
   the debugger, and you will be able to debug the cause of the fatal
   error.
 
+  The single most important thing to find out when Emacs aborts or
+  crashes is where did that happen in the Emacs code.  This is called
+  "backtrace".
+
+  Emacs on Windows uses more than one thread.  When Emacs aborts due
+  to a fatal error, the current thread may not be the application
+  thread running Emacs code.  Therefore, to produce a meaningful
+  backtrace from a debugger, you need to instruct it to show the
+  backtrace for every thread.  With GDB, you do it like this:
+
+   (gdb) thread apply all backtrace
+
+  To run Emacs under a debugger to begin with, simply start it from
+  the debugger.  With GDB, chdir to the `src' directory (if you have
+  the source tree) or to a directory with the `.gdbinit' file (if you
+  don't have the source tree), and type these commands:
+
+    C:\whatever\src> gdb x:\path\to\emacs.exe
+    (gdb) run <ARGUMENTS TO EMACS>
+
+  Thereafter, use Emacs as usual; you can minimize the debugger
+  window, if you like.  The debugger will take control if and when
+  Emacs crashes.
+
   Emacs functions implemented in C use a naming convention that reflects
   their names in lisp.  The names of the C routines are the lisp names
   prefixed with 'F', and with dashes converted to underscores.  For

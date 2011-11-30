@@ -7618,7 +7618,7 @@ imagemagick_load_image (struct frame *f, struct image *img,
   image = image_spec_value (img->spec, QCindex, NULL);
   ino = INTEGERP (image) ? XFASTINT (image) : 0;
   ping_wand = NewMagickWand ();
-  MagickSetResolution (ping_wand, 2, 2);
+
   if (filename != NULL)
     {
       status = MagickPingImage (ping_wand, filename);
@@ -7627,6 +7627,8 @@ imagemagick_load_image (struct frame *f, struct image *img,
     {
       status = MagickPingImageBlob (ping_wand, contents, size);
     }
+
+  MagickSetResolution (ping_wand, 2, 2);
 
   if (! (0 <= ino && ino < MagickGetNumberImages (ping_wand)))
     {

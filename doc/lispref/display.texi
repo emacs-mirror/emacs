@@ -193,10 +193,12 @@ a window, that forces truncation.
 @defvar wrap-prefix
 If this buffer-local variable is non-@code{nil}, it defines a
 ``prefix'' that is prepended to every continuation line at
-display-time.  (If lines are truncated, the wrap-prefix is never
-used.)  It may be a string, an image, or a stretch-glyph; the value is
-interpreted in the same way as a @code{display} text property.
-@xref{Display Property}.
+display time.  (If lines are truncated, the wrap-prefix is never
+used.)  It may be a string or an image (@pxref{Other Display Specs}),
+or a stretch of whitespace such as specified by the @code{:width} or
+@code{:align-to} display properties (@pxref{Specified Space}).  The
+value is interpreted in the same way as a @code{display} text
+property.  @xref{Display Property}.
 
 A wrap-prefix may also be specified for regions of text, using the
 @code{wrap-prefix} text or overlay property.  This takes precedence
@@ -206,9 +208,11 @@ over the @code{wrap-prefix} variable.  @xref{Special Properties}.
 @defvar line-prefix
 If this buffer-local variable is non-@code{nil}, it defines a
 ``prefix'' that is prepended to every non-continuation line at
-display-time.  It may be a string, an image, or a stretch-glyph; the
-value is interpreted in the same way as a @code{display} text
-property.  @xref{Display Property}.
+display time.  It may be a string or an image (@pxref{Other Display
+Specs}), or a stretch of whitespace such as specified by the
+@code{:width} or @code{:align-to} display properties (@pxref{Specified
+Space}).  The value is interpreted in the same way as a @code{display}
+text property.  @xref{Display Property}.
 
 A line-prefix may also be specified for regions of text using the
 @code{line-prefix} text or overlay property.  This takes precedence
@@ -5638,39 +5642,45 @@ code.  You can override these conventions by setting up a display table
 @itemize @bullet
 @item
 Character codes 32 through 126 map to glyph codes 32 through 126.
-Normally this means they display as themselves.
+Normally this means they display as themselves, but a display table
+can change that.
 
 @item
 Character code 9 is a horizontal tab.  It displays as whitespace
 up to a position determined by @code{tab-width}.
 
 @item
-Character code 10 is a newline.
+Character code 10 is a newline.  It is normally invisible on display,
+and has the effect of ending the preceding line and starting a new
+line.
 
 @item
-All other codes in the range 0 through 31, and code 127, display in one
-of two ways according to the value of @code{ctl-arrow}.  If it is
-non-@code{nil}, these codes map to sequences of two glyphs, where the
-first glyph is the @acronym{ASCII} code for @samp{^}.  (A display table can
-specify a glyph to use instead of @samp{^}.)  Otherwise, these codes map
-just like the codes in the range 128 to 255.
+All other codes in the range 0 through 31 display in one of two ways
+according to the value of @code{ctl-arrow}.  If it is non-@code{nil},
+these codes map to sequences of two glyphs, where the first glyph is
+the @acronym{ASCII} code for @samp{^}.  (A display table can specify a
+glyph to use instead of @samp{^}.)  Otherwise, these codes map just
+like the raw bytes in the range 128 to 255 (described below).
 
-On MS-DOS terminals, Emacs arranges by default for the character code
-127 to be mapped to the glyph code 127, which normally displays as an
-empty polygon.  This glyph is used to display non-@acronym{ASCII} characters
-that the MS-DOS terminal doesn't support.  @xref{MS-DOS and MULE,,,
-emacs, The GNU Emacs Manual}.
+@cindex octal escapes
+@item
+Raw bytes (@pxref{Text Representations}) with codes 128 through 255,
+and the @acronym{ASCII} control character with code 127, display as
+sequences of four glyphs, where the first glyph is the @acronym{ASCII}
+code for @samp{\}, and the others are digit characters representing
+the character code in octal.  (A display table can specify a glyph to
+use instead of @samp{\}.)  This is known as the @dfn{octal escape}
+display.
 
 @item
-Character codes 128 through 255 map to sequences of four glyphs, where
-the first glyph is the @acronym{ASCII} code for @samp{\}, and the others are
-digit characters representing the character code in octal.  (A display
-table can specify a glyph to use instead of @samp{\}.)
-
-@item
-Multibyte character codes above 256 are displayed as themselves, or as
-a question mark or a hex code or an empty box if the terminal cannot
-display that character.
+Non-@acronym{ASCII} character codes above 127 are displayed as
+themselves, if the terminal and the available fonts support them.
+Characters that are not supported by the terminal, or (on window
+systems) have no fonts available for them, are displayed as a question
+mark or a hex code or an empty box.  @xref{Glyphless Chars}, for how
+to control display of the characters not supported by the terminal or
+fonts.  Display tables can change how a character is displayed, even
+if it is supported.
 @end itemize
 
   The usual display conventions apply even when there is a display
@@ -5695,7 +5705,8 @@ mode line using the new values, call the function
 This buffer-local variable controls how control characters are
 displayed.  If it is non-@code{nil}, they are displayed as a caret
 followed by the character: @samp{^A}.  If it is @code{nil}, they are
-displayed as a backslash followed by three octal digits: @samp{\001}.
+displayed as octal escapes: a backslash followed by three octal
+digits, as in @samp{\001}.
 @end defopt
 
 @defopt tab-width

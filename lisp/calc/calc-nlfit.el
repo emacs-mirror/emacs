@@ -22,7 +22,7 @@
 ;;; Commentary:
 
 ;; This code uses the Levenberg-Marquardt method, as described in
-;; _Numerical Analysis_ by H. R. Schwarz, to fit data to 
+;; _Numerical Analysis_ by H. R. Schwarz, to fit data to
 ;; nonlinear curves.  Currently, the only the following curves are
 ;; supported:
 ;; The logistic S curve, y=a/(1+exp(b*(t-c)))
@@ -33,14 +33,14 @@
 
 ;; The logistic bell curve, y=A*exp(B*(t-C))/(1+exp(B*(t-C)))^2
 ;;   Note that this is the derivative of the formula for the S curve.
-;;   We get A=-a*b, B=b and C=c.  Here, y is interpreted as the rate 
-;;   of growth of a population at time t.  So we will think of the 
-;;   data as consisting of rates p0, p1, ..., pn and their 
+;;   We get A=-a*b, B=b and C=c.  Here, y is interpreted as the rate
+;;   of growth of a population at time t.  So we will think of the
+;;   data as consisting of rates p0, p1, ..., pn and their
 ;;   respective times t0, t1, ..., tn.
 
 ;; The Hubbert Linearization, y/x=A*(1-x/B)
 ;;   Here, y is thought of as the rate of growth of a population
-;;   and x represents the actual population.  This is essentially 
+;;   and x represents the actual population.  This is essentially
 ;;   the differential equation describing the actual population.
 
 ;; The Levenberg-Marquardt method is an iterative process: it takes
@@ -53,7 +53,7 @@
 ;; approximations for b and c are found using least squares on the
 ;; linearization log((a/y)-1) = log(bb) + cc*t of
 ;; y=a/(1+bb*exp(cc*t)), which is equivalent to the above s curve
-;; formula, and then tranlating it to b and c.  From this, we can
+;; formula, and then translating it to b and c.  From this, we can
 ;; also get approximations for the bell curve parameters.
 
 ;;; Code:
@@ -68,7 +68,7 @@
 (defun math-nlfit-least-squares (xdata ydata &optional sdata sigmas)
   "Return the parameters A and B for the best least squares fit y=a+bx."
   (let* ((n (length xdata))
-         (s2data (if sdata 
+         (s2data (if sdata
                      (mapcar 'calcFunc-sqr sdata)
                   (make-list n 1)))
          (S (if sdata 0 n))
@@ -109,11 +109,11 @@
 ;;; The methods described by de Sousa require the cumulative data qdata
 ;;; and the rates pdata.  We will assume that we are given either
 ;;; qdata and the corresponding times tdata, or pdata and the corresponding
-;;; tdata.  The following two functions will find pdata or qdata, 
+;;; tdata.  The following two functions will find pdata or qdata,
 ;;; given the other..
 
-;;; First, given two lists; one of values q0, q1, ..., qn and one of 
-;;; corresponding times t0, t1, ..., tn; return a list 
+;;; First, given two lists; one of values q0, q1, ..., qn and one of
+;;; corresponding times t0, t1, ..., tn; return a list
 ;;; p0, p1, ..., pn of the rates of  change of the qi with respect to t.
 ;;; p0 is the right hand derivative (q1 - q0)/(t1 - t0).
 ;;; pn is the left hand derivative (qn - q(n-1))/(tn - t(n-1)).
@@ -122,7 +122,7 @@
 
 (defun math-nlfit-get-rates-from-cumul (tdata qdata)
   (let ((pdata (list
-                (math-div 
+                (math-div
                  (math-sub (nth 1 qdata)
                            (nth 0 qdata))
                  (math-sub (nth 1 tdata)
@@ -155,7 +155,7 @@
            pdata))
     (reverse pdata)))
 
-;;; Next, given two lists -- one of rates p0, p1, ..., pn and one of 
+;;; Next, given two lists -- one of rates p0, p1, ..., pn and one of
 ;;; corresponding times t0, t1, ..., tn -- and an initial values q0,
 ;;;  return a list q0, q1, ..., qn of the cumulative values.
 ;;; q0 is the initial value given.
@@ -169,7 +169,7 @@
             (cons
              (math-add (car qdata)
                        (math-mul
-                        (math-mul 
+                        (math-mul
                          '(float 5 -1)
                          (math-add (nth 1 pdata) (nth 0 pdata)))
                         (math-sub (nth 1 tdata)
@@ -181,13 +181,13 @@
 
 ;;; Given the qdata, pdata and tdata, find the parameters
 ;;; a, b and c that fit q = a/(1+b*exp(c*t)).
-;;; a is found using the method described by de Sousa.  
+;;; a is found using the method described by de Sousa.
 ;;; b and c are found using least squares on the linearization
 ;;; log((a/q)-1) = log(b) + c*t
 ;;; In some cases (where the logistic curve may well be the wrong
 ;;; model), the computed a will be less than or equal to the maximum
 ;;; value of q in qdata; in which case the above linearization won't work.
-;;; In this case, a will be replaced by a number slightly above 
+;;; In this case, a will be replaced by a number slightly above
 ;;; the maximum value of q.
 
 (defun math-nlfit-find-qmax (qdata pdata tdata)
@@ -224,7 +224,7 @@
       (setq qmh
             (math-add qmh
                       (math-mul
-                       (math-mul 
+                       (math-mul
                         '(float 5 -1)
                         (math-add (nth 1 pdata) (nth 0 pdata)))
                        (math-sub (nth 1 tdata)
@@ -239,7 +239,7 @@
   (let* ((qhalf (math-nlfit-find-qmaxhalf pdata tdata))
          (q0 (math-mul 2 qhalf))
          (qdata (math-nlfit-get-cumul-from-rates tdata pdata q0)))
-    (while (math-lessp (math-nlfit-find-qmax 
+    (while (math-lessp (math-nlfit-find-qmax
                         (mapcar
                          (lambda (q) (math-add q0 q))
                          qdata)
@@ -260,7 +260,7 @@
            (i 0))
       (while (< i 10)
         (setq q0 (math-mul '(float 5 -1) (math-add qmin qmax)))
-        (if (math-lessp 
+        (if (math-lessp
              (math-nlfit-find-qmax
               (mapcar
                (lambda (q) (math-add q0 q))
@@ -272,7 +272,7 @@
         (setq i (1+ i)))
       (math-mul '(float 5 -1) (math-add qmin qmax)))))
 
-;;; To improve the approximations to the parameters, we can use 
+;;; To improve the approximations to the parameters, we can use
 ;;; Marquardt method as described in Schwarz's book.
 
 ;;; Small numbers used in the Givens algorithm
@@ -329,7 +329,7 @@
           (let ((cij (math-nlfit-get-matx-elt C i j))
                 (cjj (math-nlfit-get-matx-elt C j j)))
             (when (not (math-equal 0 cij))
-                (if (math-lessp (calcFunc-abs cjj) 
+                (if (math-lessp (calcFunc-abs cjj)
                                 (math-mul math-nlfit-delta (calcFunc-abs cij)))
                     (setq w (math-neg cij)
                           gamma 0
@@ -337,7 +337,7 @@
                           rho 1)
                   (setq w (math-mul
                            (calcFunc-sign cjj)
-                           (calcFunc-sqrt 
+                           (calcFunc-sqrt
                             (math-add
                              (math-mul cjj cjj)
                              (math-mul cij cij))))
@@ -351,10 +351,10 @@
               (math-nlfit-set-matx-elt C j j w)
               (math-nlfit-set-matx-elt C i j rho)
               (let ((k (1+ j)))
-                (while (<= k n)       
+                (while (<= k n)
                   (let* ((cjk (math-nlfit-get-matx-elt C j k))
                          (cik (math-nlfit-get-matx-elt C i k))
-                         (h (math-sub 
+                         (h (math-sub
                              (math-mul gamma cjk) (math-mul sigma cik))))
                     (setq cik (math-add
                                (math-mul sigma cjk)
@@ -386,9 +386,9 @@
             (setq s (math-add s (math-mul (math-nlfit-get-matx-elt C i k)
                             (math-nlfit-get-elt x k))))
             (setq k (1+ k))))
-        (math-nlfit-set-elt x i 
-                            (math-neg 
-                             (math-div s 
+        (math-nlfit-set-elt x i
+                            (math-neg
+                             (math-div s
                                        (math-nlfit-get-matx-elt C i i))))
         (setq i (1- i))))
     (let ((i (1+ n)))
@@ -405,7 +405,7 @@
                       sigma 1)
               (if (math-lessp (calcFunc-abs rho) 1)
                   (setq sigma rho
-                        gamma (calcFunc-sqrt 
+                        gamma (calcFunc-sqrt
                                (math-sub 1 (math-mul sigma sigma))))
                 (setq gamma (math-div 1 (calcFunc-abs rho))
                       sigma (math-mul (calcFunc-sign rho)
@@ -429,7 +429,7 @@
 
 (defun math-nlfit-jacobian (grad xlist parms &optional slist)
   (let ((j nil))
-    (while xlist 
+    (while xlist
       (let ((row (apply grad (car xlist) parms)))
         (setq j
               (cons
@@ -495,7 +495,7 @@
       (setq ydata (cdr ydata))
       (setq sdata (cdr sdata)))
     (reverse d)))
-    
+
 (defun math-nlfit-make-dtilda (d n)
   (append d (make-list n 0)))
 
@@ -520,8 +520,8 @@
                  (newchisq (math-nlfit-chi-sq xlist ylist newparms fn slist)))
             (if (math-lessp newchisq chisq)
                 (progn
-                  (if (math-lessp 
-                       (math-div 
+                  (if (math-lessp
+                       (math-div
                         (math-sub chisq newchisq) newchisq) math-nlfit-epsilon)
                       (setq really-done t))
                   (setq lambda (math-div lambda 10))
@@ -551,7 +551,7 @@
   (let ((ex (calcFunc-exp (math-mul c (math-sub x d)))))
     (math-div
      (math-mul a ex)
-     (math-sqr 
+     (math-sqr
       (math-add
        1 ex)))))
 
@@ -582,7 +582,7 @@
 
 (defun math-nlfit-find-covar (grad xlist pparms)
   (let ((j nil))
-    (while xlist 
+    (while xlist
       (setq j (cons (cons 'vec (apply grad (car xlist) pparms)) j))
       (setq xlist (cdr xlist)))
     (setq j (cons 'vec (reverse j)))
@@ -603,7 +603,7 @@
         (setq i (1+ i)))
       (setq sgs (reverse sgs)))
     (list sgs covar)))
-   
+
 ;;; Now the Calc functions
 
 (defun math-nlfit-s-logistic-params (xdata ydata)
@@ -687,15 +687,15 @@
            (funcall initparms xdata ydata))
           (fit (math-nlfit-fit xdata ydata parmguess fn grad sdata))
           (finalparms (nth 1 fit))
-          (sigmacovar 
+          (sigmacovar
            (if sdevv
                (math-nlfit-get-sigmas grad xdata finalparms (nth 0 fit))))
-          (sigmas 
+          (sigmas
            (if sdevv
                (nth 0 sigmacovar)))
-          (finalparms 
+          (finalparms
            (if sigmas
-               (math-map-binop 
+               (math-map-binop
                 (lambda (x y) (list 'sdev x y)) finalparms sigmas)
              finalparms))
           (soln (funcall solnexpr finalparms var)))
@@ -712,8 +712,8 @@
              ((eq sdv 'calcFunc-xfit)
               (let (sln)
                 (setq sln
-                      (list 'vec 
-                            soln 
+                      (list 'vec
+                            soln
                             traillist
                             (nth 1 sigmacovar)
                             '(vec)
@@ -721,7 +721,7 @@
                             (let ((n (length xdata))
                                   (m (length finalparms)))
                               (if (and sdata (> n m))
-                                  (calcFunc-utpc (nth 0 fit) 
+                                  (calcFunc-utpc (nth 0 fit)
                                                  (- n m))
                                 '(var nan var-nan)))))
                 (math-nlfit-enter-result 1 "xfit" sln)))
@@ -787,14 +787,14 @@
                       (list (nth 1 (nth 0 finalparms))
                             (nth 1 (nth 1 finalparms)))
                       (lambda (x a b)
-                        (math-mul a 
+                        (math-mul a
                                   (math-sub
                                    1
                                    (math-div x b))))
                       sdata)))
                 (setq sln
-                      (list 'vec 
-                            soln 
+                      (list 'vec
+                            soln
                             traillist
                             (nth 2 parmvals)
                             (list
@@ -807,7 +807,7 @@
                             chisq
                             (let ((n (length qdata)))
                               (if (and sdata (> n 2))
-                                  (calcFunc-utpc 
+                                  (calcFunc-utpc
                                    chisq
                                    (- n 2))
                                 '(var nan var-nan)))))
@@ -817,4 +817,3 @@
        (calc-record traillist "parm")))))
 
 (provide 'calc-nlfit)
-

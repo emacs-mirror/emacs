@@ -1213,7 +1213,7 @@ Use the nov database for the current group if available."
 		;; #### already belongs to a range, whereas the corresponding
 		;; #### article doesn't exist (for example, if you delete an
 		;; #### article). For that reason, it is important to update
-		;; #### the ranges (meaning remove inexistent articles) before
+		;; #### the ranges (meaning remove nonexistent articles) before
 		;; #### doing anything on them.
 		;; 2 a/ read articles:
 		(let ((read (gnus-info-read info)))

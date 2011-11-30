@@ -22,7 +22,7 @@
 ;;; Code:
 
 (deftheme deeper-blue
-  "Face colors using a deep blue backgound.")
+  "Face colors using a deep blue background.")
 
 (let ((class '((class color) (min-colors 89))))
   (custom-theme-set-faces

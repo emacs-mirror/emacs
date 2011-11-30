@@ -78,8 +78,8 @@ for editing such pictures.
 @cindex words
 @cindex Meta commands and words
 
-  Emacs has commands for moving over or operating on words.  By convention,
-the keys for them are all Meta characters.
+  Emacs defines several commands for moving over or operating on
+words:
 
 @table @kbd
 @item M-f
@@ -157,13 +157,17 @@ the syntax table.  Any character can, for example, be declared to be a
 word delimiter.  @xref{Syntax Tables,, Syntax Tables, elisp, The Emacs
 Lisp Reference Manual}.
 
+  In addition, see @ref{Position Info} for the @kbd{M-=}
+(@code{count-words-region}) and @kbd{M-x count-words} commands, which
+count and report the number of words in the region or buffer.
+
 @node Sentences
 @section Sentences
 @cindex sentences
 @cindex manipulating sentences
 
-  The Emacs commands for manipulating sentences and paragraphs are mostly
-on Meta keys, so as to be like the word-handling commands.
+  The Emacs commands for manipulating sentences and paragraphs are
+mostly on Meta keys, like the word-handling commands.
 
 @table @kbd
 @item M-a
@@ -180,12 +184,12 @@ Kill back to the beginning of the sentence (@code{backward-kill-sentence}).
 @kindex M-e
 @findex backward-sentence
 @findex forward-sentence
-  The commands @kbd{M-a} and @kbd{M-e} (@code{backward-sentence} and
-@code{forward-sentence}) move to the beginning and end of the current
-sentence, respectively.  They were chosen to resemble @kbd{C-a} and
-@kbd{C-e}, which move to the beginning and end of a line.  Unlike
-them, @kbd{M-a} and @kbd{M-e} move over successive sentences if
-repeated.
+  The commands @kbd{M-a} (@code{backward-sentence}) and @kbd{M-e}
+(@code{forward-sentence}) move to the beginning and end of the current
+sentence, respectively.  Their bindings were chosen to resemble
+@kbd{C-a} and @kbd{C-e}, which move to the beginning and end of a
+line.  Unlike them, @kbd{M-a} and @kbd{M-e} move over successive
+sentences if repeated.
 
   Moving backward over a sentence places point just before the first
 character of the sentence; moving forward places point right after the
@@ -207,15 +211,14 @@ it kills back to the beginning of the @var{n}th preceding sentence.
 to the beginning of a sentence.
 
   The sentence commands assume that you follow the American typist's
-convention of putting two spaces at the end of a sentence; they consider
-a sentence to end wherever there is a @samp{.}, @samp{?} or @samp{!}
+convention of putting two spaces at the end of a sentence.  That is, a
+sentence ends wherever there is a @samp{.}, @samp{?} or @samp{!}
 followed by the end of a line or two spaces, with any number of
-@samp{)}, @samp{]}, @samp{'}, or @samp{"} characters allowed in between.
-A sentence also begins or ends wherever a paragraph begins or ends.
-It is useful to follow this convention, because it makes a distinction
-between periods that end a sentence and periods that indicate
-abbreviations; that enables the Emacs sentence commands to distinguish,
-too.  These commands do not stop for periods that indicate abbreviations.
+@samp{)}, @samp{]}, @samp{'}, or @samp{"} characters allowed in
+between.  A sentence also begins or ends wherever a paragraph begins
+or ends.  It is useful to follow this convention, because it allows
+the Emacs sentence commands to distinguish between periods that end a
+sentence and periods that indicate abbreviations.
 
 @vindex sentence-end-double-space
   If you want to use just one space between sentences, you can set the
@@ -225,7 +228,7 @@ drawback: there is no way to distinguish between periods that end
 sentences and those that indicate abbreviations.  For convenient and
 reliable editing, we therefore recommend you follow the two-space
 convention.  The variable @code{sentence-end-double-space} also
-affects filling (@pxref{Fill Commands}) in related ways.
+affects filling (@pxref{Fill Commands}).
 
 @vindex sentence-end
   The variable @code{sentence-end} controls how to recognize the end
@@ -237,19 +240,14 @@ Emacs computes sentence ends according to various criteria such as the
 value of @code{sentence-end-double-space}.
 
 @vindex sentence-end-without-period
-  Some languages do not use periods to indicate the end of a sentence.
-For example, sentences in Thai end with a double space but without a
-period.  Set the variable @code{sentence-end-without-period} to
+  Some languages, such as Thai, do not use periods to indicate the end
+of a sentence.  Set the variable @code{sentence-end-without-period} to
 @code{t} in such cases.
 
 @node Paragraphs
 @section Paragraphs
 @cindex paragraphs
 @cindex manipulating paragraphs
-@kindex M-@{
-@kindex M-@}
-@findex backward-paragraph
-@findex forward-paragraph
 
   The Emacs commands for manipulating paragraphs are also on Meta keys.
 
@@ -262,23 +260,15 @@ Move forward to next paragraph end (@code{forward-paragraph}).
 Put point and mark around this or next paragraph (@code{mark-paragraph}).
 @end table
 
-  @kbd{M-@{} moves to the beginning of the current or previous
-paragraph, while @kbd{M-@}} moves to the end of the current or next
-paragraph.  Blank lines and text-formatter command lines separate
-paragraphs and are not considered part of any paragraph.  If there is
-a blank line before the paragraph, @kbd{M-@{} moves to the blank line,
-because that is convenient in practice.
-
-  In Text mode, an indented line is not a paragraph break.  If you
-want indented lines to have this effect, use Paragraph-Indent Text
-mode instead.  @xref{Text Mode}.
-
-  In major modes for programs, paragraphs begin and end only at blank
-lines.  This makes the paragraph commands useful, even though there
-are no paragraphs as such in a program.
-
-  When you have set a fill prefix, then paragraphs are delimited by
-all lines which don't start with the fill prefix.  @xref{Filling}.
+@kindex M-@{
+@kindex M-@}
+@findex backward-paragraph
+@findex forward-paragraph
+  @kbd{M-@{} (@code{backward-paragraph}) moves to the beginning of the
+current or previous paragraph (see below for the definition of a
+paragraph).  @kbd{M-@}} (@code{forward-paragraph}) moves to the end of
+the current or next paragraph.  If there is a blank line before the
+paragraph, @kbd{M-@{} moves to the blank line.
 
 @kindex M-h
 @findex mark-paragraph
@@ -287,31 +277,42 @@ all lines which don't start with the fill prefix.  @xref{Filling}.
 @kbd{M-h C-w} kills the paragraph around or after point.  @kbd{M-h}
 puts point at the beginning and mark at the end of the paragraph point
 was in.  If point is between paragraphs (in a run of blank lines, or
-at a boundary), the paragraph following point is surrounded by point
-and mark.  If there are blank lines preceding the first line of the
-paragraph, one of these blank lines is included in the region.  If the
-region is already active, the command sets the mark without changing
-point; furthermore, each subsequent @kbd{M-h} further advances the
+at a boundary), @kbd{M-h} sets the region around the paragraph
+following point.  If there are blank lines preceding the first line of
+the paragraph, one of these blank lines is included in the region.  If
+the region is already active, the command sets the mark without
+changing point, and each subsequent @kbd{M-h} further advances the
 mark by one paragraph.
+
+  The definition of a paragraph depends on the major mode.  In
+Fundamental mode, as well as Text mode and related modes, a paragraph
+is separated each neighboring paragraph another by one or more
+@dfn{blank lines}---lines that are either empty, or consist solely of
+space, tab and/or formfeed characters.  In programming language modes,
+paragraphs are usually defined in a similar way, so that you can use
+the paragraph commands even though there are no paragraphs as such in
+a program.
+
+  Note that an indented line is @emph{not} itself a paragraph break in
+Text mode.  If you want indented lines to separate paragraphs, use
+Paragraph-Indent Text mode instead.  @xref{Text Mode}.
+
+  If you set a fill prefix, then paragraphs are delimited by all lines
+which don't start with the fill prefix.  @xref{Filling}.
 
 @vindex paragraph-start
 @vindex paragraph-separate
   The precise definition of a paragraph boundary is controlled by the
 variables @code{paragraph-separate} and @code{paragraph-start}.  The
-value of @code{paragraph-start} is a regexp that should match any line
-that either starts or separates paragraphs.  The value of
-@code{paragraph-separate} is another regexp that should match only lines
-that separate paragraphs without being part of any paragraph (for
-example, blank lines).  Lines that start a new paragraph and are
-contained in it must match only @code{paragraph-start}, not
-@code{paragraph-separate}.  Each regular expression must match at the
-left margin.  For example, in Fundamental mode, @code{paragraph-start}
-is @w{@code{"\f\\|[ \t]*$"}}, and @code{paragraph-separate} is
-@w{@code{"[ \t\f]*$"}}.
-
-  Normally it is desirable for page boundaries to separate paragraphs.
-The default values of these variables recognize the usual separator for
-pages.
+value of @code{paragraph-start} is a regular expression that should
+match lines that either start or separate paragraphs
+(@pxref{Regexps}).  The value of @code{paragraph-separate} is another
+regular expression that should match lines that separate paragraphs
+without being part of any paragraph (for example, blank lines).  Lines
+that start a new paragraph and are contained in it must match only
+@code{paragraph-start}, not @code{paragraph-separate}.  For example,
+in Fundamental mode, @code{paragraph-start} is @w{@code{"\f\\|[
+\t]*$"}}, and @code{paragraph-separate} is @w{@code{"[ \t\f]*$"}}.
 
 @node Pages
 @section Pages

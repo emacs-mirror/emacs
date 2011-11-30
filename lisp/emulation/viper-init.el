@@ -593,7 +593,7 @@ to a new place after repeating previous Vi command."
 ;; The reason this is needed is because dabbrev-expand (and possibly
 ;; others) may jump to before the insertion point, delete something and
 ;; then reinsert a bigger piece.  For instance:  bla^blo
-;; If dabbrev-expand is called after `blo' and ^ undicates viper-insert-point,
+;; If dabbrev-expand is called after `blo' and ^ indicates viper-insert-point,
 ;; then point jumps to the beginning of `blo'.  If expansion is found, `blablo'
 ;; is deleted, and we have |^, where | denotes point.  Next, dabbrev-expand
 ;; will insert the expansion, and we get: blablo^

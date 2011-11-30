@@ -4627,7 +4627,7 @@ line in bottom-up order."
   (verilog-batch-execute-func `verilog-inject-auto))
 
 (defun verilog-batch-indent ()
-  "For use with --batch, reindent an a entire file as a stand-alone tool.
+  "For use with --batch, reindent an entire file as a stand-alone tool.
 This sets up the appropriate Verilog mode environment, calls
 \\[verilog-indent-buffer] on all command-line files, and saves the buffers."
   (unless noninteractive

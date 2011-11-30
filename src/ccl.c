@@ -561,7 +561,7 @@ static Lisp_Object Vccl_program_table;
    If VALn is lambda, move to the next map set like reaching to the
    end of the current map set.
 
-   If VALn is a symbol, call the CCL program refered by it.
+   If VALn is a symbol, call the CCL program referred by it.
    Then, use reg[rrr] as a mapped value except for -1, -2 and -3.
    Such special values are regarded as nil, t, and lambda respectively.
 

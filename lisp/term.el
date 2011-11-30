@@ -40,10 +40,10 @@
 ;; overhead this has became so small that IMHO is surely outweighted by
 ;; the benefits you get but, as usual, YMMV
 ;;
-;; Important caveat, when deciding the cursor/'grey keys' keycodes I had to
+;; Important caveat, when deciding the cursor/'gray keys' keycodes I had to
 ;; make a choice: on my Linux box this choice allows me to run all the
 ;; ncurses applications without problems but make these keys
-;; uncomprehensible to all the cursesX programs.  Your mileage may vary so
+;; incomprehensible to all the cursesX programs.  Your mileage may vary so
 ;; you may consider changing the default 'emulation'.  Just search for this
 ;; piece of code and modify it as you like:
 ;;
@@ -910,7 +910,7 @@ is buffer-local."
   (setq term-raw-escape-map
 	(copy-keymap (lookup-key (current-global-map) "\C-x")))
 
-  ;; Added nearly all the 'grey keys' -mm
+  ;; Added nearly all the 'gray keys' -mm
 
   (if (featurep 'xemacs)
       (define-key term-raw-map [button2] 'term-mouse-paste)

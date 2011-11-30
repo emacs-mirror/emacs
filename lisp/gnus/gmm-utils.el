@@ -217,7 +217,7 @@ This is a copy of the `lazy' widget in Emacs 22.1 provided for compatibility."
 				 'static-color 'pseudo-color)))))
       'gnome
     'retro)
-  "Prefered tool bar style."
+  "Preferred tool bar style."
   :type '(choice (const :tag "GNOME style" gnome)
 		 (const :tag "Retro look"  retro))
   :group 'gmm)

@@ -1977,7 +1977,7 @@
 
 	* lisp/url-gw.el (url-gw-inhibit-code-conversion): Remove.
 	(url-open-stream): Bind coding-system-for{read,write} when setting
-	up the connexion.  Don't call url-gw-inhibit-code-conversion.
+	up the connection.  Don't call url-gw-inhibit-code-conversion.
 
 2001-05-24  William M. Perry  <wmperry@gnu.org>
 
@@ -2516,4 +2516,3 @@
 
   You should have received a copy of the GNU General Public License
   along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
-

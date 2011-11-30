@@ -74,7 +74,7 @@
   cmpfun)
 
 (defmacro avl-tree--root (tree)
-  ;; Return the root node for an avl-tree.  INTERNAL USE ONLY.
+  ;; Return the root node for an AVL tree.  INTERNAL USE ONLY.
   `(avl-tree--node-left (avl-tree--dummyroot ,tree)))
 
 (defsetf avl-tree--root (tree) (node)
@@ -372,7 +372,7 @@ itself."
 
 ;;; INTERNAL USE ONLY
 (defun avl-tree--do-copy (root)
-  "Copy the avl tree with ROOT as root. Highly recursive."
+  "Copy the AVL tree with ROOT as root.  Highly recursive."
   (if (null root)
       nil
     (avl-tree--node-create
@@ -401,7 +401,7 @@ itself."
   ;; front of the STACK, until a leaf is reached.
   (let ((node (car (avl-tree--stack-store stack)))
 	(dir (if (avl-tree--stack-reverse stack) 1 0)))
-    (when node  ; check for emtpy stack
+    (when node  ; check for empty stack
       (while (setq node (avl-tree--node-branch node dir))
 	(push node (avl-tree--stack-store stack))))))
 
@@ -411,21 +411,21 @@ itself."
 
 ;; define public alias for constructors so that we can set docstring
 (defalias 'avl-tree-create 'avl-tree--create
-  "Create an empty avl tree.
+  "Create an empty AVL tree.
 COMPARE-FUNCTION is a function which takes two arguments, A and B,
 and returns non-nil if A is less than B, and nil otherwise.")
 
 (defalias 'avl-tree-compare-function 'avl-tree--cmpfun
-  "Return the comparison function for the avl tree TREE.
+  "Return the comparison function for the AVL tree TREE.
 
 \(fn TREE)")
 
 (defun avl-tree-empty (tree)
-  "Return t if avl tree TREE is emtpy, otherwise return nil."
+  "Return t if AVL tree TREE is empty, otherwise return nil."
   (null (avl-tree--root tree)))
 
 (defun avl-tree-enter (tree data &optional updatefun)
-  "Insert DATA into the avl tree TREE.
+  "Insert DATA into the AVL tree TREE.
 
 If an element that matches DATA (according to the tree's
 comparison function, see `avl-tree-create') already exists in
@@ -433,8 +433,8 @@ TREE, it will be replaced by DATA by default.
 
 If UPDATEFUN is supplied and an element matching DATA already
 exists in TREE, UPDATEFUN is called with two arguments: DATA, and
-the matching element. Its return value replaces the existing
-element. This value *must* itself match DATA (and hence the
+the matching element.  Its return value replaces the existing
+element.  This value *must* itself match DATA (and hence the
 pre-existing data), or an error will occur.
 
 Returns the new data."
@@ -443,7 +443,7 @@ Returns the new data."
 			   0 data updatefun)))
 
 (defun avl-tree-delete (tree data &optional test nilflag)
-  "Delete the element matching DATA from the avl tree TREE.
+  "Delete the element matching DATA from the AVL tree TREE.
 Matching uses the comparison function previously specified in
 `avl-tree-create' when TREE was created.
 
@@ -456,7 +456,7 @@ distinguished from the case of a successfully deleted null
 element.
 
 If supplied, TEST specifies a test that a matching element must
-pass before it is deleted. If a matching element is found, it is
+pass before it is deleted.  If a matching element is found, it is
 passed as an argument to TEST, and is deleted only if the return
 value is non-nil."
   (cdr (avl-tree--do-delete (avl-tree--cmpfun tree)
@@ -465,14 +465,14 @@ value is non-nil."
 
 
 (defun avl-tree-member (tree data &optional nilflag)
-  "Return the element in the avl tree TREE which matches DATA.
+  "Return the element in the AVL tree TREE which matches DATA.
 Matching uses the comparison function previously specified in
 `avl-tree-create' when TREE was created.
 
 If there is no such element in the tree, nil is
-returned. Optional argument NILFLAG specifies a value to return
-instead of nil in this case. This allows non-existent elements to
-be distinguished from a null element. (See also
+returned.  Optional argument NILFLAG specifies a value to return
+instead of nil in this case.  This allows non-existent elements to
+be distinguished from a null element.  (See also
 `avl-tree-member-p', which does this for you.)"
   (let ((node (avl-tree--root tree))
 	(compare-function (avl-tree--cmpfun tree)))
@@ -488,15 +488,15 @@ be distinguished from a null element. (See also
 
 
 (defun avl-tree-member-p (tree data)
-  "Return t if an element matching DATA exists in the avl tree TREE,
-otherwise return nil. Matching uses the comparison function
+  "Return t if an element matching DATA exists in the AVL tree TREE.
+Otherwise return nil.  Matching uses the comparison function
 previously specified in `avl-tree-create' when TREE was created."
   (let ((flag '(nil)))
     (not (eq (avl-tree-member tree data flag) flag))))
 
 
 (defun avl-tree-map (__map-function__ tree &optional reverse)
-  "Modify all elements in the avl tree TREE by applying FUNCTION.
+  "Modify all elements in the AVL tree TREE by applying FUNCTION.
 
 Each element is replaced by the return value of FUNCTION applied
 to that element.
@@ -512,7 +512,7 @@ descending order if REVERSE is non-nil."
 
 
 (defun avl-tree-mapc (__map-function__ tree &optional reverse)
-  "Apply FUNCTION to all elements in avl tree TREE,
+  "Apply FUNCTION to all elements in AVL tree TREE,
 for side-effect only.
 
 FUNCTION is applied to the elements in ascending order, or
@@ -526,7 +526,7 @@ descending order if REVERSE is non-nil."
 
 (defun avl-tree-mapf
   (__map-function__ combinator tree &optional reverse)
-  "Apply FUNCTION to all elements in avl tree TREE,
+  "Apply FUNCTION to all elements in AVL tree TREE,
 and combine the results using COMBINATOR.
 
 The FUNCTION is applied and the results are combined in ascending
@@ -545,7 +545,7 @@ order, or descending order if REVERSE is non-nil."
 
 
 (defun avl-tree-mapcar (__map-function__ tree &optional reverse)
-  "Apply FUNCTION to all elements in avl tree TREE,
+  "Apply FUNCTION to all elements in AVL tree TREE,
 and make a list of the results.
 
 The FUNCTION is applied and the list constructed in ascending
@@ -578,7 +578,7 @@ is more efficient."
       (avl-tree--node-data node))))
 
 (defun avl-tree-copy (tree)
-  "Return a copy of the avl tree TREE."
+  "Return a copy of the AVL tree TREE."
   (let ((new-tree (avl-tree-create (avl-tree--cmpfun tree))))
     (setf (avl-tree--root new-tree) (avl-tree--do-copy (avl-tree--root tree)))
     new-tree))
@@ -600,7 +600,7 @@ is more efficient."
     treesize))
 
 (defun avl-tree-clear (tree)
-  "Clear the avl tree TREE."
+  "Clear the AVL tree TREE."
   (setf (avl-tree--root tree) nil))
 
 
@@ -617,8 +617,8 @@ calling `avl-tree-stack-pop' will give unpredictable results).
 
 Operations on these objects are significantly more efficient than
 constructing a real stack with `avl-tree-flatten' and using
-standard stack functions. As such, they can be useful in
-implementing efficient algorithms of AVL trees. However, in cases
+standard stack functions.  As such, they can be useful in
+implementing efficient algorithms of AVL trees.  However, in cases
 where mapping functions `avl-tree-mapc', `avl-tree-mapcar' or
 `avl-tree-mapf' would be sufficient, it is better to use one of
 those instead."
@@ -629,11 +629,11 @@ those instead."
 
 (defun avl-tree-stack-pop (avl-tree-stack &optional nilflag)
   "Pop the first element from AVL-TREE-STACK.
-\(See also `avl-tree-stack'\).
+\(See also `avl-tree-stack').
 
-Returns nil if the stack is empty, or NILFLAG if specified. (The
-latter allows an empty stack to be distinguished from a null
-element stored in the AVL tree.)"
+Returns nil if the stack is empty, or NILFLAG if specified.
+\(The latter allows an empty stack to be distinguished from
+a null element stored in the AVL tree.)"
   (let (node next)
     (if (not (setq node (pop (avl-tree--stack-store avl-tree-stack))))
 	nilflag
@@ -650,9 +650,9 @@ element stored in the AVL tree.)"
   "Return the first element of AVL-TREE-STACK, without removing it
 from the stack.
 
-Returns nil if the stack is empty, or NILFLAG if specified. (The
-latter allows an empty stack to be distinguished from a null
-element stored in the AVL tree.)"
+Returns nil if the stack is empty, or NILFLAG if specified.
+\(The latter allows an empty stack to be distinguished from
+a null element stored in the AVL tree.)"
   (or (car (avl-tree--stack-store avl-tree-stack))
       nilflag))
 

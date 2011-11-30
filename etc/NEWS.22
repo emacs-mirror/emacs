@@ -163,7 +163,7 @@ delimiters will appear to be fontified (in the new face
 customize `font-lock-comment-face'. Another alternative is to use a
 newer terminal emulator that supports more colors (256 is now common).
 For example, for xterm compatible emulators that support 256 colors,
-you can run emacs like this: 
+you can run emacs like this:
 env TERM=xterm-256color emacs -nw
 (This was new in Emacs 22.1, but was not described.  In Emacs 22.1
 this also happened for terminals with a light background, that is not
@@ -280,13 +280,13 @@ the files mac/README and mac/INSTALL for build instructions.
 ** Support for FreeBSD/Alpha has been added.
 
 ** New translations of the Emacs Tutorial are available in the
-following languages: Brasilian Portuguese, Bulgarian, Chinese (both
+following languages: Brazilian Portuguese, Bulgarian, Chinese (both
 with simplified and traditional characters), French, Russian, and
 Italian.  Type `C-u C-h t' to choose one of them in case your language
 setup doesn't automatically select the right one.
 
 ** New translations of the Emacs reference card are available in the
-Brasilian Portuguese and Russian.  The corresponding PostScript files
+Brazilian Portuguese and Russian.  The corresponding PostScript files
 are also included.
 
 ** A French translation of the `Emacs Survival Guide' is available.
@@ -1026,7 +1026,7 @@ parts of the mode line.
 
 *** `shadow' face defines the appearance of the "shadowed" text, i.e.
 the text which should be less noticeable than the surrounding text.
-This can be achieved by using shades of grey in contrast with either
+This can be achieved by using shades of gray in contrast with either
 black or white default foreground color.  This generic shadow face
 allows customization of the appearance of shadowed text in one place,
 so package-specific faces can inherit from it.
@@ -2558,10 +2558,10 @@ is nil).
 
 *** Minor Improvements
 
-**** The STARTTLS wrapper (starttls.el) can now use GNUTLS
+**** The STARTTLS wrapper (starttls.el) can now use GnuTLS
 instead of the OpenSSL based `starttls' tool.  For backwards
 compatibility, it prefers `starttls', but you can toggle
-`starttls-use-gnutls' to switch to GNUTLS (or simply remove the
+`starttls-use-gnutls' to switch to GnuTLS (or simply remove the
 `starttls' tool).
 
 **** Do not allow debugger output history variable to grow without bounds.

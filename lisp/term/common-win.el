@@ -281,11 +281,11 @@ have been processed."
 ;; The ordering of the colors is chosen for the user's convenience in
 ;; `list-colors-display', which displays the reverse of this list.
 ;; Roughly speaking, `list-colors-display' orders by (i) named shades
-;; of grey with hue 0.0, sorted by value (ii) named colors with
+;; of gray with hue 0.0, sorted by value (ii) named colors with
 ;; saturation 1.0, sorted by hue, (iii) named non-white colors with
 ;; saturation less than 1.0, sorted by hue, (iv) other named shades of
 ;; white, (v) numbered colors sorted by hue, and (vi) numbered shades
-;; of grey.
+;; of gray.
 
 (declare-function ns-list-colors "nsfns.m" (&optional frame))
 

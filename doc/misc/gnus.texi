@@ -13761,7 +13761,7 @@ The same as the above, but don't do automatic @acronym{STARTTLS} upgrades.
 @findex nntp-open-tls-stream
 @item nntp-open-tls-stream
 Opens a connection to a server over a @dfn{secure} channel.  To use
-this you must have @uref{http://www.gnu.org/software/gnutls/, GNUTLS}
+this you must have @uref{http://www.gnu.org/software/gnutls/, GnuTLS}
 installed.  You then define a server as follows:
 
 @lisp
@@ -21279,7 +21279,7 @@ name (or part of a name) to match.
 @node The swish++ Engine
 @subsubsection The swish++ Engine
 
-FIXEM: Say something more here.
+FIXME: Say something more here.
 
 Documentation for swish++ may be found at the swish++ sourceforge page:
 @uref{http://swishplusplus.sourceforge.net}
@@ -21302,7 +21302,7 @@ to get a group name. By default this is @code{$HOME/Mail}.
 @node The swish-e Engine
 @subsubsection The swish-e Engine
 
-FIXEM: Say something more here.
+FIXME: Say something more here.
 
 Documentation for swish-e may be found at the swish-e homepage
 @uref{http://swish-e.org}
@@ -21895,7 +21895,7 @@ Clearly, the easiest way would be if marks could somehow be
 automatically set for the original article. This is exactly what
 @emph{marks propagation} is about.
 
-Marks propagation is deactivated by default. You can activate it for a
+Marks propagation is inactive by default. You can activate it for a
 certain @code{nnmairix} group with
 @code{nnmairix-group-toggle-propmarks-this-group} (bound to @kbd{G b
 p}). This function will warn you if you try to use it with your default
@@ -22047,7 +22047,7 @@ an example server definition:
 (nnml "mairix" (nnml-directory "mairix") (nnml-get-new-mail nil))
 @end lisp
 
-(The @code{nnmaildir} back end also has a server variabe
+(The @code{nnmaildir} back end also has a server variable
 @code{get-new-mail}, but its default value is @code{nil}, so you don't
 have to explicitly set it if you use a @code{nnmaildir} server just for
 mairix.)
@@ -27408,7 +27408,7 @@ considered home score and adapt files (@pxref{Home Score File}) have
 been added.
 
 @item
-@code{nndoc} was rewritten to be easily extendable (@pxref{Document
+@code{nndoc} was rewritten to be easily extensible (@pxref{Document
 Server Internals}).
 
 @item
@@ -27801,7 +27801,7 @@ The revised Gnus @acronym{FAQ} is included in the manual,
 @acronym{TLS} wrapper shipped with Gnus
 
 @acronym{TLS}/@acronym{SSL} is now supported in @acronym{IMAP} and
-@acronym{NNTP} via @file{tls.el} and GNUTLS.
+@acronym{NNTP} via @file{tls.el} and GnuTLS.
 
 @item
 Improved anti-spam features.

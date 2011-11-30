@@ -966,7 +966,7 @@
 	($(BLD)/editfns.$(O)): Depend on ../lib/strftime.h.
 	($(BLD)/print.$(O)): Depend on ../lib/ftoastr.h and ../lib/intprops.h.
 
-	* deps.mk: Update for recent changes: gnutls support, gnulib
+	* deps.mk: Update for recent changes: GnuTLS support, gnulib
 	imports, addition of globals.h.
 
 	* makefile.w32-in ($(BLD)/sysdep.$(O)): Depend on
@@ -2191,7 +2191,7 @@
 2010-12-16  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* nsterm.m (ns_draw_window_cursor): If the cursor color is the
-	same as the background, use the face forground as cursor.
+	same as the background, use the face foreground as cursor.
 
 2010-12-13  Eli Zaretskii  <eliz@gnu.org>
 
@@ -3268,7 +3268,7 @@
 2010-10-10  Lars Magne Ingebrigtsen  <larsi@gnus.org>
 
 	* gnutls.c (emacs_gnutls_write): If we're trying to write before
-	gnutls is ready, return EAGAIN as the errno.
+	GnuTLS is ready, return EAGAIN as the errno.
 
 2010-10-10  Dan Nicolaescu  <dann@ics.uci.edu>
 
@@ -3585,12 +3585,12 @@
 	* process.c (make_process): Set the gnutls_p field to zero by
 	default.
 	(read_process_output): Always call the gnutls_read function if the
-	stream is a gnutls stream.
+	stream is a GnuTLS stream.
 	(send_process): Ditto for writes.
 
 	* gnutls.c (emacs_gnutls_write, emacs_gnutls_read): Refuse to read
 	or write anything until the state is GNUTLS_STAGE_READY.
-	(Fgnutls_boot): Mark the stream as being a gnutls stream.
+	(Fgnutls_boot): Mark the stream as being a GnuTLS stream.
 
 2010-09-29  Eli Zaretskii  <eliz@gnu.org>
 
@@ -11805,7 +11805,7 @@
 	* coding.c (encode_coding_utf_16): Fix checking of a Unicode
 	character.
 
-	* cmds.c (Fself_insert_command): Avoid unnecessay
+	* cmds.c (Fself_insert_command): Avoid unnecessary
 	unibyte->multibyte conversion.  (Bug#4240)  (Bug#4037)
 
 2009-08-26  Dan Nicolaescu  <dann@ics.uci.edu>
@@ -22234,7 +22234,7 @@
 	* lisp.h (Fdelete_terminal): Declare.
 
 	* charset.h (CHECK_CHARSET, CHECK_CHARSET_GET_ID)
-	(CHECK_CHARSET_GET_ATTR): Don't use the inexistent return value of
+	(CHECK_CHARSET_GET_ATTR): Don't use the nonexistent return value of
 	wrong_type_argument.
 
 2008-02-22  Kenichi Handa  <handa@ni.aist.go.jp>
@@ -27366,7 +27366,7 @@
 
 	* ccl.c: Include "character.h".
 	(Qccl, Qcclp): New variables.
-	(CCL_WRITE_CHAR): Alway treat the arg CH as a character even if
+	(CCL_WRITE_CHAR): Always treat the arg CH as a character even if
 	it's less than 256.
 	(CCL_WRITE_MULTIBYTE_CHAR): Delete.
 	(CCL_WRITE_STRING, CCL_READ_CHAR): Adjust for the change of SRC
@@ -31330,7 +31330,7 @@
 
 2007-05-12  Chong Yidong  <cyd@stupidchicken.com>
 
-	* image.c (pbm_load): Correctly check image size for greyscale pbm.
+	* image.c (pbm_load): Correctly check image size for grayscale pbm.
 
 	* xterm.c (XTread_socket): Yet Another Uncaught X Error Crash (YAUXEC).
 

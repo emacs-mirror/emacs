@@ -1,3 +1,7 @@
+2011-11-24  Juanma Barranquero  <lekktu@gmail.com>
+
+	* ob.el (org-babel-execute-src-block): Fix typo.
+
 2011-11-20  Juanma Barranquero  <lekktu@gmail.com>
 
 	* org.el (org-link-unescape, org-link-unescape-compound): Fix typos.
@@ -15461,7 +15465,7 @@
 
 	* org.el (org-enforce-todo-checkbox-dependencies): New option.
 	(org-block-todo-from-checkboxes): New function.
-	(org-todo): Make tripple prefix arg circumvent blocking.
+	(org-todo): Make triple prefix arg circumvent blocking.
 
 2009-01-30  Glenn Morris  <rgm@gnu.org>
 
@@ -17592,7 +17596,7 @@
 2008-06-17  Carsten Dominik  <dominik@science.uva.nl>
 
 	* org.el (org-schedule, org-deadline): Protect scheduled and
-	deadline tasks against changes that accidently remove the
+	deadline tasks against changes that accidentally remove the
 	repeater.  Also show a message with the new date when done.
 
 2008-06-17  Carsten Dominik  <dominik@science.uva.nl>

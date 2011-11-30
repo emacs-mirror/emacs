@@ -35,7 +35,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
    Logical bitmaps are used internally to denote things like
    'end-of-buffer', 'left-truncation', 'overlay-arrow', etc.
 
-   Physical bitmaps specify the visual appearence of the bitmap,
+   Physical bitmaps specify the visual appearance of the bitmap,
    e.g. 'bottom-left-angle', 'left-arrow', 'left-triangle', etc.
    User defined bitmaps are physical bitmaps.
 
@@ -928,7 +928,7 @@ update_window_fringes (struct window *w, int keep_current_p)
   int top_ind_rn, bot_ind_rn;
   int top_ind_min_y, bot_ind_max_y;
 
-  /* top_ind_rn is set to a nonnegative value whenver
+  /* top_ind_rn is set to a nonnegative value whenever
      row->indicate_bob_p is set, so it's OK that top_row_ends_at_zv_p
      is not initialized here.  Similarly for bot_ind_rn,
      row->indicate_eob_p and bot_row_ends_at_zv_p.  */

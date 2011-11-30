@@ -1,3 +1,14 @@
+2011-11-27  Eli Zaretskii  <eliz@gnu.org>
+
+	* makefile.w32-in (LOCAL_FLAGS): Add $(EMACS_EXTRA_C_FLAGS).
+
+	* emacsclient.c (main) <environ>: Remove declaration, already
+	pulled in by unistd.h on Posix hosts and stdlib.h on MS-Windows.
+
+2011-11-24  Glenn Morris  <rgm@gnu.org>
+
+	* make-docfile.c (scan_lisp_file): Treat defcustom like defvar.
+
 2011-11-14  Dan Nicolaescu  <dann@ics.uci.edu>
 
 	* Makefile.in (all): Make sure "all" is the first target.
@@ -4267,7 +4278,7 @@
 
 1998-12-08  Geoff Voelker  <voelker@cs.washington.edu>
 
-	* makefile.nt: Do string comparision of _NMAKE_VER.
+	* makefile.nt: Do string comparison of _NMAKE_VER.
 
 1998-11-03  Theodore Jump  <tjump@cais.com>
 

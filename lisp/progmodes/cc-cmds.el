@@ -2316,7 +2316,7 @@ function does not require the declaration to contain a brace block."
 
 (defun c-after-statement-terminator-p () ; Should we pass in LIM here?
   ;; Does point immediately follow a statement "terminator"?  A virtual
-  ;; semicolon is regarded here as such.  So is a an opening brace ;-)
+  ;; semicolon is regarded here as such.  So is an opening brace ;-)
   ;;
   ;; This function might do hidden buffer changes.
   (or (save-excursion

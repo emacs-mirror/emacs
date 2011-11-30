@@ -1357,7 +1357,7 @@ project file."
 			  (or executable-name
 			      (file-name-sans-extension (buffer-file-name))))))
 
-    ;;  For gvd, add an extra switch so that the Emacs window is completly
+    ;;  For gvd, add an extra switch so that the Emacs window is completely
     ;;  swallowed inside the Gvd one
     (if (and ada-tight-gvd-integration
 	     (string-match "^[^ \t]*gvd" cmd))
@@ -1783,7 +1783,7 @@ Information is extracted from the ali file."
 	    )
 	  )
 
-      ;; Last check to be completly sure we have found the correct line (the
+      ;; Last check to be completely sure we have found the correct line (the
       ;; ali might not be up to date for instance)
       (if declaration-found
 	  (progn

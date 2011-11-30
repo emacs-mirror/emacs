@@ -1098,7 +1098,7 @@ optional prefix argument REINIT is non-nil."
 ;; This includes all the built-in and dumped things with documentation.
 (defun elint-scan-doc-file ()
   "Scan the DOC file for function and variables.
-Marks the function wih their arguments, and returns a list of variables."
+Marks the function with their arguments, and returns a list of variables."
   ;; Cribbed from help-fns.el.
   (let ((docbuf " *DOC*")
 	vars sym args)

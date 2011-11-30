@@ -362,7 +362,7 @@ If you want to modify the group buffer, you can use this hook."
      gnus-group-news-low))
   "*Controls the highlighting of group buffer lines.
 
-Below is a list of `Form'/`Face' pairs.  When deciding how a a
+Below is a list of `Form'/`Face' pairs.  When deciding how a
 particular group line should be displayed, each form is
 evaluated.  The content of the face field after the first true form is
 used.  You can change how those group lines are displayed by
@@ -1354,9 +1354,9 @@ if it is a string, only list groups matching REGEXP."
 		     (predicate t)	; We list all groups?
 		     (t
 		      (or
-		       (if (eq unread t) ; Unactivated?
+		       (if (eq unread t) ; Inactive?
 			   gnus-group-list-inactive-groups
-					; We list unactivated
+					; We list inactive
 			 (and (numberp unread) (> unread 0)))
 					; We list groups with unread articles
 		       (and gnus-list-groups-with-ticked-articles

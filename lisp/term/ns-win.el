@@ -492,7 +492,7 @@ unless the current buffer is a scratch buffer."
 			       command-line-default-directory)))
          (file (find-file-noselect f))
          (bufwin1 (get-buffer-window file 'visible))
-         (bufwin2 (get-buffer-window "*scratch*" 'visibile)))
+         (bufwin2 (get-buffer-window "*scratch*" 'visible)))
     (cond
      (bufwin1
       (select-frame (window-frame bufwin1))

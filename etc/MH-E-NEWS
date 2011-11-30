@@ -1584,7 +1584,7 @@ message (closes SF #701756).
 MH-E now supports several spam filters including Bogofilter,
 SpamProbe, and SpamAssassin. Spam that is mistakenly considered to be
 good mail can be reclassified as spam with "J b (mh-junk-blacklist)".
-Conversely, good mail that is accidently considered to be spam can be
+Conversely, good mail that is accidentally considered to be spam can be
 reclassified with "J w (mh-junk-whitelist)" (closes SF #669518).
 
 If a message is blacklisted, and `mh-junk-mail-folder' is a string,

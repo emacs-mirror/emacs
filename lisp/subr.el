@@ -3792,7 +3792,7 @@ The properties used on SYMBOL are `composefunc', `sendfunc',
 ;;			      MIN-CHANGE
 ;;			      MIN-TIME])
 ;;
-;; This weirdeness is for optimization reasons: we want
+;; This weirdness is for optimization reasons: we want
 ;; `progress-reporter-update' to be as fast as possible, so
 ;; `(car reporter)' is better than `(aref reporter 0)'.
 ;;

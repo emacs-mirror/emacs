@@ -536,7 +536,7 @@ Pre-fill the buffer with CONTENTS."
 
 (defun semantic-utest-generic (testname filename contents name-contents names-removed killme insertme)
   "Generic unit test according to template.
-Should work for languages withouth .h files, python javascript java.
+Should work for languages without .h files, python javascript java.
 TESTNAME is the name of the test.
 FILENAME is the name of the file to create.
 CONTENTS is the contents of the file to test.

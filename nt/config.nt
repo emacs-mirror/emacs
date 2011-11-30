@@ -303,6 +303,10 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 /* Define to 1 if you have the `localtime_r' function. */
 #undef HAVE_LOCALTIME_R
 
+/* Define to 1 if you have the declaration of `strtoll', and to 0 if you
+   don't. */
+#define HAVE_DECL_STRTOLL 1
+
 /* Define to 1 if you have the declaration of `strtoull', and to 0 if you
    don't. */
 #define HAVE_DECL_STRTOULL 1
@@ -353,8 +357,8 @@ typedef unsigned short mode_t;
 /* A va_copy replacement for MSVC.  */
 #ifdef _MSC_VER
 # ifdef _WIN64
-#  ifndef va_copy
-#   error "va_copy is needed, but not defined!"
+#  ifndef va_copy               /* Need to be checked (?) */
+#   define va_copy(d,s) ((d) = (s))
 #  endif
 # else	/* not _WIN64 */
 #  define va_copy(d,s) ((d) = (s))

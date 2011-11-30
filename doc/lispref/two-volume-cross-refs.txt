@@ -34,7 +34,7 @@ where each volume starts with a higher page number since I find it
 harder to go to the right place in the volume.)
 
 References to the same volume are just the page number; references to
-the other volume are a volumne number (in Roman numerals) preceding
+the other volume are a volume number (in Roman numerals) preceding
 the page number.
 
 For example, in Volume I:

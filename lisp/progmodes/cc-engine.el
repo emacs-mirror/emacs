@@ -6467,7 +6467,7 @@ comment at the start of cc-engine.el for more info."
 		    (when (c-keyword-member kwd-sym 'c-typeless-decl-kwds)
 		      (setq maybe-typeless t))
 
-		    ;; Haven't matched a type so it's an umambiguous
+		    ;; Haven't matched a type so it's an unambiguous
 		    ;; specifier keyword and we know we're in a
 		    ;; declaration.
 		    (setq at-decl-or-cast t)

@@ -2635,7 +2635,7 @@ delete this buffer in another session as well."
     ))
 
 ;; Kill the variant buffer, according to user directives (ask, kill
-;; unconditionaly, keep)
+;; unconditionally, keep)
 ;; BUFF is the buffer, BUFF-TYPE is either 'A, or 'B, 'C, 'Ancestor
 (defun ediff-dispose-of-variant-according-to-user (buff bufftype ask keep-variants)
   ;; if this is indirect buffer, kill it and substitute with direct buf
@@ -3811,7 +3811,7 @@ Ediff Control Panel to restore highlighting."
 	 ;; later, and nconc above will break it. Either this or use slow
 	 ;; append instead of nconc
 	 (selected-buffers (ediff-get-selected-buffers))
-	 (prefered-buffer (car all-buffers))
+	 (preferred-buffer (car all-buffers))
 	 visible-dired-buffers
 	 (excl-buff-name-list
 	  (mapcar
@@ -3841,7 +3841,7 @@ Ediff Control Panel to restore highlighting."
 	     (cond ((member (buffer-name x) excl-buff-name-list) nil)
 		   ((memq x selected-buffers) x)
 		   ((not (ediff-get-visible-buffer-window x)) nil)
-		   ((eq x prefered-buffer) x)
+		   ((eq x preferred-buffer) x)
 		   ;; if prev selected buffer is dired, look only at
 		   ;; dired.
 		   ((eq use-dired-major-mode 'yes)

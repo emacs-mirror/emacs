@@ -49,7 +49,7 @@
 ;; 'user@' part may be omitted.  This syntax can be customized to a certain
 ;; extent by changing ange-ftp-name-format.  There are limitations.
 ;; The `host' part has an optional suffix `#port' which may be used to
-;; specify a non-default port number for the connexion.
+;; specify a non-default port number for the connection.
 ;;
 ;; If the user part is omitted then ange-ftp generates a default user
 ;; instead whose value depends on the variable ange-ftp-default-user.
@@ -5995,7 +5995,7 @@ Other orders of $ and _ seem to all work just fine.")
 	     (concat
 	      pubset
 	      (and userid (concat userid "."))
-	      ;; change every '/' in filename to a '.', normally not neccessary
+	      ;; change every '/' in filename to a '.', normally not necessary
 	      (and filename
 		   (subst-char-in-string ?/ ?. filename)))))
 	;; Let's hope that BS2000 recognize this anyway:

@@ -818,8 +818,8 @@ BULLET: A character at the end of the ITEM PREFIX, it must be one of
         `allout-distinctive-bullets-string'.  When creating a TOPIC,
         plain BULLETs are by default used, according to the DEPTH of the
         TOPIC.  Choice among the distinctive BULLETs is offered when you
-        provide a universal argugment (\\[universal-argument]) to the
-        TOPIC creation command, or when explictly rebulleting a TOPIC.  The
+        provide a universal argument (\\[universal-argument]) to the
+        TOPIC creation command, or when explicitly rebulleting a TOPIC.  The
         significance of the various distinctive bullets is purely by
         convention.  See the documentation for the above bullet strings for
         more details.
@@ -5677,7 +5677,7 @@ Variables controlling indentation style and extra features:
  dcl-block-begin-regexp
  dcl-block-end-regexp
     Regexps that match command lines that begin and end, respectively,
-    a block of commmand lines that will be given extra indentation.
+    a block of command lines that will be given extra indentation.
     Command lines between THEN-ELSE-ENDIF are always indented; these variables
     make it possible to define other places to indent.
     Set to nil to disable this feature.
@@ -8944,7 +8944,7 @@ system.
 Return non-nil if logging is enabled for BUFFER.
 If BUFFER is nil, the value of `current-buffer' is used.
 Logging is enabled if `erc-log-channels-directory' is non-nil, the directory
-is writeable (it will be created as necessary) and
+is writable (it will be created as necessary) and
 `erc-enable-logging' returns a non-nil value.
 
 \(fn &optional BUFFER)" nil nil)
@@ -10040,7 +10040,7 @@ beginning of the expanded text.
 
 If ARG is a list of numbers, point is placed according to the first
 member of the list, but you can visit the other specified positions
-cyclicaly with the functions `expand-jump-to-previous-slot' and
+cyclically with the functions `expand-jump-to-previous-slot' and
 `expand-jump-to-next-slot'.
 
 If ARG is omitted, point is placed at the end of the expanded text.
@@ -24377,7 +24377,7 @@ will be automatically rechecked when Emacs becomes idle; the
 rechecking will be paused whenever there is input pending.
 
 By default, uses a vacuous schema that allows any well-formed XML
-document.  A schema can be specified explictly using
+document.  A schema can be specified explicitly using
 \\[rng-set-schema-file-and-validate], or implicitly based on the buffer's
 file name or on the root element name.  In each case the schema must
 be a RELAX NG schema using the compact schema (such schemas
@@ -27771,7 +27771,7 @@ companion command to `table-capture' this way.
 
 (autoload 'table-release "table" "\
 Convert a table into plain text by removing the frame from a table.
-Remove the frame from a table and inactivate the table.  This command
+Remove the frame from a table and deactivate the table.  This command
 converts a table into plain text without frames.  It is a companion to
 `table-capture' which does the opposite process.
 

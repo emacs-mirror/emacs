@@ -996,7 +996,7 @@ ADDRESS can have the form \"xx:xx:xx:xx:xx:xx\" or \"[xx:xx:xx:xx:xx:xx]\"."
     (let ((signal-name (dbus-event-member-name last-input-event))
 	  (elt mount-info))
       ;; Jump over the first elements of the mount info. Since there
-      ;; were changes in the antries, we cannot access dedicated
+      ;; were changes in the entries, we cannot access dedicated
       ;; elements.
       (while (stringp (car elt)) (setq elt (cdr elt)))
       (let* ((fuse-mountpoint (dbus-byte-array-to-string (cadr elt)))
@@ -1066,7 +1066,7 @@ ADDRESS can have the form \"xx:xx:xx:xx:xx:xx\" or \"[xx:xx:xx:xx:xx:xx]\"."
 	      tramp-gvfs-interface-mounttracker "listMounts"))
 	  nil)
        ;; Jump over the first elements of the mount info. Since there
-       ;; were changes in the antries, we cannot access dedicated
+       ;; were changes in the entries, we cannot access dedicated
        ;; elements.
        (while (stringp (car elt)) (setq elt (cdr elt)))
        (let* ((fuse-mountpoint (dbus-byte-array-to-string (cadr elt)))

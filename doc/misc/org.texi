@@ -7219,7 +7219,7 @@ will be made in the agenda:
 #+CATEGORY: Holiday
 %%(org-calendar-holiday)   ; special function for holiday names
 #+CATEGORY: Ann
-%%(org-anniversary 1956  5 14)@footnote{@code{org-anniversary} is just like @code{diary-anniversary}, but the argument order is allways according to ISO and therefore independent of the value of @code{calendar-date-style}.} Arthur Dent is %d years old
+%%(org-anniversary 1956  5 14)@footnote{@code{org-anniversary} is just like @code{diary-anniversary}, but the argument order is always according to ISO and therefore independent of the value of @code{calendar-date-style}.} Arthur Dent is %d years old
 %%(org-anniversary 1869 10  2) Mahatma Gandhi would be %d years old
 @end example
 
@@ -7797,8 +7797,8 @@ Interactively select another agenda view and append it to the current view.
 @item o
 Delete other windows.
 @c
-@orgcmdkskc{v d,d,org-aganda-day-view}
-@xorgcmdkskc{v w,w,org-aganda-day-view}
+@orgcmdkskc{v d,d,org-agenda-day-view}
+@xorgcmdkskc{v w,w,org-agenda-day-view}
 @xorgcmd{v m,org-agenda-month-view}
 @xorgcmd{v y,org-agenda-month-year}
 @xorgcmd{v SPC,org-agenda-reset-view}

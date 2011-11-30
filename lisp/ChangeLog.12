@@ -10695,7 +10695,7 @@
 
 	* net/tramp-smb.el (tramp-smb-wait-for-output): Wait always for
 	the prompt.  If it returns earlier (when detecting an error
-	message), the rest of the output will merge accidently with the
+	message), the rest of the output will merge accidentally with the
 	output of the next command.  Reported by M Jared Finder
 	<jared@hpalace.com>.
 
@@ -15100,7 +15100,7 @@
 2005-12-21  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* emacs-lisp/lisp.el (lisp-complete-symbol): Don't call
-	delete-windows-on with an inexistent buffer.
+	delete-windows-on with a nonexistent buffer.
 
 2005-12-22  Nick Roberts  <nickrob@snap.net.nz>
 
@@ -16181,7 +16181,7 @@
 
 2005-12-08  Alan Mackenzie  <bug-cc-mode@gnu.org>
 
-	* progmodes/cc-awk.el: Move regexps for analysing AWK code to near the
+	* progmodes/cc-awk.el: Move regexps for analyzing AWK code to near the
 	start of the file.  ^L now separate sections of the file.
 	(c-awk-non-eol-esc-pair-re, c-awk-blank-or-comment-line-re)
 	(c-awk-one-line-possibly-open-string-re)
@@ -31734,7 +31734,7 @@
 2005-02-23  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* emacs-lisp/debug.el (debug): Hide the buffer if it's not killed.
-	Remove unused and inexistent var `inhibit-trace'.
+	Remove unused and nonexistent var `inhibit-trace'.
 	(debugger-mode): Use run-mode-hooks.
 	(debugger-list-functions): Add buttons; setup xref stack.
 

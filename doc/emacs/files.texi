@@ -267,9 +267,8 @@ newly requested file.  @xref{Windows}.
 @kindex C-x 5 f
 @findex find-file-other-frame
   @kbd{C-x 5 f} (@code{find-file-other-frame}) is similar, but opens a
-new frame, or makes visible any existing frame showing the file you
-seek.  This feature is available only when you are using a window
-system.  @xref{Frames}.
+new frame, or selects any existing frame showing the specified file.
+@xref{Frames}.
 
 @cindex file selection dialog
   On graphical displays, there are two additional methods for visiting

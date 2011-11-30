@@ -401,7 +401,7 @@ BUTTON is the button that was clicked."
 
 ;;; UTILS
 ;;
-;; List mode utils for understadning the current line
+;; List mode utils for understanding the current line
 
 (defun semantic-symref-list-on-hit-p ()
   "Return the line number if the cursor is on a buffer line with a hit.

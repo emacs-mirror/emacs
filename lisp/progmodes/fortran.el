@@ -665,7 +665,7 @@ Used in the Fortran entry in `hs-special-modes-alist'.")
          ["Reset to Saved" Custom-reset-saved :active t
           :help "Reset all edited or set settings to saved"]
          ["Reset to Standard Settings" Custom-reset-standard :active t
-          :help "Erase all cusomizations in buffer"]
+          :help "Erase all customizations in buffer"]
          )
         "--"
         ["Comment Region" fortran-comment-region mark-active]

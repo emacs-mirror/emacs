@@ -1692,7 +1692,7 @@ This function also adds a hook to the minibuffer."
 (defun ido-nonreadable-directory-p (dir)
   ;; Return t if dir is a directory, but not readable
   ;; Do not check for non-readable directories via tramp, as this causes a premature
-  ;; connect on incomplete tramp paths (after entring just method:).
+  ;; connect on incomplete tramp paths (after entering just method:).
   (let ((ido-enable-tramp-completion nil))
     (and (ido-final-slash dir)
 	 (not (ido-is-unc-host dir))
@@ -1702,7 +1702,7 @@ This function also adds a hook to the minibuffer."
 (defun ido-directory-too-big-p (dir)
   ;; Return t if dir is a directory, but too big to show
   ;; Do not check for non-readable directories via tramp, as this causes a premature
-  ;; connect on incomplete tramp paths (after entring just method:).
+  ;; connect on incomplete tramp paths (after entering just method:).
   (let ((ido-enable-tramp-completion nil))
     (and (numberp ido-max-directory-size)
 	 (ido-final-slash dir)

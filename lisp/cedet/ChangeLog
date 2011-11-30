@@ -1,3 +1,15 @@
+2011-11-26  Chong Yidong  <cyd@gnu.org>
+
+	* semantic/wisent/python-wy.el:
+	* semantic/wisent/js-wy.el:
+	* semantic/wisent/javat-wy.el:
+	* semantic/bovine/c-by.el:
+	* semantic/grammar-wy.el: Regenerate.
+
+2011-11-24  Juanma Barranquero  <lekktu@gmail.com>
+
+	* semantic/lex-spp.el (semantic-lex-spp-first-token-arg-list): Fix typo.
+
 2011-11-20  Juanma Barranquero  <lekktu@gmail.com>
 
 	* cedet-cscope.el (cedet-cscope-version-check):

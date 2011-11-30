@@ -2879,6 +2879,13 @@ message header will be added to the bodies of the \"text/html\" parts."
 				(with-current-buffer gnus-article-buffer
 				  gnus-article-mime-handles)
 				cid-dir))
+		     (when (eq system-type 'cygwin)
+		       (setq cid-file (substring
+				       (with-output-to-string
+					 (call-process "cygpath" nil
+						       standard-output
+						       nil "-m" cid-file))
+				       0 -1)))
 		     (replace-match (concat "file://" cid-file)
 				    nil nil nil 1))))
 	       (unless content (setq content (buffer-string))))
@@ -4497,7 +4504,9 @@ commands:
 (defun gnus-article-setup-buffer ()
   "Initialize the article buffer."
   (let* ((name (if gnus-single-article-buffer "*Article*"
-		 (concat "*Article " gnus-newsgroup-name "*")))
+		 (concat "*Article "
+			 (gnus-group-decoded-name gnus-newsgroup-name)
+			 "*")))
 	 (original
 	  (progn (string-match "\\*Article" name)
 		 (concat " *Original Article"

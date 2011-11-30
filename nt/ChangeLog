@@ -1,3 +1,23 @@
+2011-11-27  Fabrice Popineau  <fabrice.popineau@supelec.fr>  (tiny change)
+
+	* inc/stdint.h (uint32_t, uint64_t) [_WIN64]: New typedefs.
+	(UINT64_MAX) [_WIN64]: Fix definition.
+	(uintmax_t, intmax_t): Fix definitions.
+
+	* inc/inttypes.h (strtoumax, strtoimax) [!__MINGW32__]: Provide
+	correct definitions.
+
+	* config.nt (HAVE_DECL_STRTOLL): Define.
+	(va_copy) [_WIN64]: Provide a better definition.
+
+2011-11-25  Juanma Barranquero  <lekktu@gmail.com>
+
+	* configure.bat: Fix typos.
+
+2011-11-25  Eli Zaretskii  <eliz@gnu.org>
+
+	* INSTALL: Elaborate on debugging fatal errors.
+
 2011-11-15  Eli Zaretskii  <eliz@gnu.org>
 
 	* README.W32: Update the GTK Windows download URL for libpng.
@@ -1784,7 +1804,7 @@
 
 1998-12-08  Geoff Voelker  <voelker@cs.washington.edu>
 
-	* makefile.nt: Do string comparision of _NMAKE_VER.
+	* makefile.nt: Do string comparison of _NMAKE_VER.
 
 1998-12-02  Geoff Voelker  <voelker@cs.washington.edu>
 

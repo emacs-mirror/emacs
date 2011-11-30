@@ -582,7 +582,7 @@ articles in the topic and its subtopics."
 	       (or gnus-topic-display-empty-topics ;We want empty topics
 		   (not (zerop unread))	;Non-empty
 		   tick			;Ticked articles
-		   (/= point-max (point-max)))) ;Unactivated groups
+		   (/= point-max (point-max)))) ;Inactive groups
       (gnus-extent-start-open (point))
       (gnus-topic-insert-topic-line
        (car type) visiblep

@@ -98,7 +98,7 @@
 ;; (global-set-key [f7] 'follow-delete-other-windows-and-split)
 
 
-;; There exist two system variables that control the appearence of
+;; There exist two system variables that control the appearance of
 ;; lines wider than the window containing them.  The default is to
 ;; truncate long lines whenever a window isn't as wide as the frame.
 ;;
@@ -351,7 +351,7 @@ After that, changing the prefix key requires manipulating keymaps."
 ;; global map.
 (easy-menu-add-item nil '("Tools")
   '("Follow"
-    ;; The Emacs code used to just grey out operations when follow-mode was
+    ;; The Emacs code used to just gray out operations when follow-mode was
     ;; not enabled, whereas the XEmacs code used to remove it altogether.
     ;; Not sure which is preferable, but clearly the preference should not
     ;; depend on the flavor.

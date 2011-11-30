@@ -1917,7 +1917,7 @@ which is the input stream for reading characters.
 This function does not move point.  */)
   (Lisp_Object start, Lisp_Object end, Lisp_Object printflag, Lisp_Object read_function)
 {
-  /* FIXME: Do the eval-sexp-add-defvars danse!  */
+  /* FIXME: Do the eval-sexp-add-defvars dance!  */
   int count = SPECPDL_INDEX ();
   Lisp_Object tem, cbuf;
 

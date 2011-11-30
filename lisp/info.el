@@ -3240,7 +3240,7 @@ search results."
 	(Info-index topic)
 	(push (cons (cons Info-current-file topic) Info-index-alternatives)
 	      Info-virtual-index-nodes)
-	;; Clean up unneccessary side-effects of `Info-index'.
+	;; Clean up unnecessary side-effects of `Info-index'.
 	(setq Info-history-list ohist-list)
 	(Info-goto-node orignode)
 	(message "")))

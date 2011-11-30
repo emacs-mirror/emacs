@@ -1651,7 +1651,7 @@ Return non-nil if a selection was deactivated."
 ;;; Hierarchical tagbrowser ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Todo:
 ;; - Add a button on each dir to open/close it (?)
-;; - add the parent dir on the previous line, greyed-out, if it's not
+;; - add the parent dir on the previous line, grayed-out, if it's not
 ;;   present (because we're in the non-selected part and the parent is
 ;;   in the selected part).
 

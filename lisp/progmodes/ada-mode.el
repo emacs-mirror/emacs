@@ -1694,7 +1694,7 @@ ARG is ignored, and is there for compatibility with `capitalize-word' only."
 (defun ada-no-auto-case (&optional _arg)
   "Do nothing.  ARG is ignored.
 This function can be used for the auto-casing variables in Ada mode, to
-adapt to unusal auto-casing schemes.  Since it does nothing, you can for
+adapt to unusual auto-casing schemes.  Since it does nothing, you can for
 instance use it for `ada-case-identifier' if you don't want any special
 auto-casing for identifiers, whereas keywords have to be lower-cased.
 See also `ada-auto-case' to disable auto casing altogether."
@@ -3939,7 +3939,7 @@ If NOERROR is non-nil, it only returns nil if no matching start found."
        ;; processing them recursively avoids the need for any special
        ;; handling.
        ;; Nothing should be done if we have only the specs or a
-       ;; generic instantion.
+       ;; generic instantiation.
 
        ((and (looking-at "\\<procedure\\|function\\>"))
 	(if first
@@ -4401,7 +4401,7 @@ Moves to 'begin' if in a declarative part."
           (ada-goto-matching-end 1))
 
          ;; on first line of subprogram body
-         ;; Do nothing for specs or generic instantion, since these are
+         ;; Do nothing for specs or generic instantiation, since these are
          ;; handled as the general case (find the enclosing block)
          ;; We also need to make sure that we ignore nested subprograms
          ((save-excursion

@@ -1,3 +1,11 @@
+2011-11-28  Mike Kazantsev  <mk.fraggod@gmail.com>  (tiny change)
+
+	* erc-dcc.el (erc-dcc-ctcp-query-send-regexp): Updated regexp to
+	match quoted filenames with spaces inside.
+	(erc-dcc-handle-ctcp-send): Updated regexp match group numbers,
+	added processing of escaped quotes and backslashes if filename
+	itself was in quotes.
+
 2011-11-20  Juanma Barranquero  <lekktu@gmail.com>
 
 	* erc-log.el (erc-logging-enabled): Fix typo.

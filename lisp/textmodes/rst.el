@@ -2716,7 +2716,7 @@ general but you do not like the details."
        (rst-define-level-faces)))
 
 ;; Faces for displaying items on several levels; these definitions define
-;; different shades of grey where the lightest one (i.e. least contrasting) is
+;; different shades of gray where the lightest one (i.e. least contrasting) is
 ;; used for level 1
 (defcustom rst-level-face-max 6
   "Maximum depth of levels for which section title faces are defined."

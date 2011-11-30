@@ -1,3 +1,11 @@
+2011-11-24  Glenn Morris  <rgm@gnu.org>
+
+	* gnus.texi, smtpmail.texi: Fix case of "GnuTLS".
+
+2011-11-24  Juanma Barranquero  <lekktu@gmail.com>
+
+	* makefile.w32-in: Update dependencies.
+
 2011-11-20  Glenn Morris  <rgm@gnu.org>
 
 	* gnus.texi (Group Information):
@@ -2987,7 +2995,7 @@
 	* org.texi (Activation, Exporting, ASCII export, HTML export)
 	(HTML Export commands, LaTeX/PDF export commands):
 	Improve documentation about transient-mark-mode.
-	(References): DOcuemtn the use of special names like $LR1 to reference
+	(References): Document the use of special names like $LR1 to reference
 	to fields in the last table row.
 
 2008-12-19  Juri Linkov  <juri@jurta.org>
@@ -7974,7 +7982,7 @@
 2003-02-01  Michael Albinus  <Michael.Albinus@alcatel.de>
 
 	* tramp.texi (Frequently Asked Questions): Explain a workaround if
-	another package loads accidently Ange-FTP.
+	another package loads accidentally Ange-FTP.
 
 2003-01-24  Michael Albinus  <Michael.Albinus@alcatel.de>
 

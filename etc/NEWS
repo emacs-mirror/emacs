@@ -253,6 +253,7 @@ off by customizing x-gtk-use-system-tooltips.
 ** New basic faces `error', `warning', `success' are available to
 highlight strings that indicate failure, caution or successful operation.
 
+---
 ** Lucid menus and dialogs can display antialiased fonts if Emacs is built
 with Xft.  To change font, use the X resource font, for example:
 Emacs.pane.menubar.font:  Courier-12
@@ -379,7 +380,7 @@ The elisp implementation sha1.el is removed. Feature sha1 is provided
 by default.
 
 ** Menu-bar changes
-
+---
 *** `menu-bar-select-buffer-function' lets you choose another operation
 instead of `switch-to-buffer' when selecting an item in the Buffers menu.
 
@@ -549,6 +550,13 @@ This makes Emacs feel more responsive to editing commands that arrive
 at high rate, e.g. if you lean on some key, because stopping redisplay
 in the middle (when this variable is nil) forces more expensive
 updates later on, and Emacs appears to be unable to keep up.
+
++++
+** The behavior of <TAB> for active regions in Text mode has changed.
+In Text and related modes, typing <TAB> (`indent-for-tab-command')
+when the region is active causes Emacs to indent all the lines in the
+region, aligning them with the line previous to the first line in the
+region (or with the left margin if there is no previous line).
 
 
 * Changes in Specialized Modes and Packages in Emacs 24.1
@@ -724,6 +732,11 @@ more variants, including Mercury, and a lot more.
 
 *** The command `rmail-epa-decrypt' decrypts OpenPGP data
 in the Rmail incoming message.
+
+---
+*** The variable `rmail-message-filter' no longer has any effect.
+This change was made in Emacs 23.1 but was not advertised at the time.
+Try using `rmail-show-message-hook' instead.
 
 ** Shell mode
 
@@ -1326,6 +1339,8 @@ as well as those in the -*- line.
 ** rx.el has a new `group-n' construct for explicitly numbered groups.
 
 ** keymaps can inherit from multiple parents.
+
+** `debug-on-event' lets you debug Emacs when stuck because of inhibit-quit.
 
 +++
 ** New reader macro ## which stands for the empty symbol.

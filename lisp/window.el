@@ -170,7 +170,7 @@ Applications should never rebind this variable.  To resize a
 window to a height less than the one specified here, an
 application should instead call `window-resize' with a non-nil
 IGNORE argument.  In order to have `split-window' make a window
-shorter, explictly specify the SIZE argument of that function."
+shorter, explicitly specify the SIZE argument of that function."
   :type 'integer
   :version "24.1"
   :group 'windows)
@@ -190,7 +190,7 @@ Applications should never rebind this variable.  To resize a
 window to a width less than the one specified here, an
 application should instead call `window-resize' with a non-nil
 IGNORE argument.  In order to have `split-window' make a window
-narrower, explictly specify the SIZE argument of that function."
+narrower, explicitly specify the SIZE argument of that function."
   :type 'integer
   :version "24.1"
   :group 'windows)
@@ -4515,6 +4515,12 @@ Return WINDOW."
       (set-window-dedicated-p window dedicated))
     (window--display-buffer-1 window)))
 
+;; FIXME: Not implemented.
+;; FIXME: By the way, there could be more levels of dedication:
+;; - `barely' dedicated doesn't prevent reuse of the window, only records that
+;;   the window hasn't been used for something else yet.
+;; - `softly' dedicated only allows reuse when asked explicitly.
+;; - `strongly' never allows reuse.
 (defvar display-buffer-mark-dedicated nil
   "If non-nil, `display-buffer' marks the windows it creates as dedicated.
 The actual non-nil value of this variable will be copied to the
@@ -4522,7 +4528,7 @@ The actual non-nil value of this variable will be copied to the
 
 (defun window-normalize-buffer-to-display (buffer-or-name)
   "Normalize BUFFER-OR-NAME argument for buffer display functions.
-If BUFFER-OR-NAME is nil, return the curent buffer.  Else, if a
+If BUFFER-OR-NAME is nil, return the current buffer.  Else, if a
 buffer specified by BUFFER-OR-NAME exists, return that buffer.
 If no such buffer exists, create a buffer with the name
 BUFFER-OR-NAME and return that buffer."
@@ -4786,9 +4792,10 @@ terminal if either of those variables is non-nil."
       (window--display-buffer-1 window))))
 
 (defun display-buffer--special-action (buffer)
-  "Try to display BUFFER using `special-display-function'.
-Call `special-display-p' on BUFFER's name, and if that returns
-non-nil, call `special-display-function' on BUFFER."
+  "Return special display action for BUFFER, if any.
+If `special-display-p' returns non-nil for BUFFER, return an
+appropriate display action involving `special-display-function'.
+See `display-buffer' for the format of display actions."
   (and special-display-function
        ;; `special-display-p' returns either t or a list of frame
        ;; parameters to pass to `special-display-function'.
@@ -4944,10 +4951,7 @@ the buffer.
 
 NORECORD, if non-nil means do not put this buffer at the front of
 the list of recently selected ones."
-  (pop-to-buffer buffer
-		 '(display-buffer-same-window
-		   (inhibit-same-window . nil))
-		 norecord))
+  (pop-to-buffer buffer display-buffer--same-window-action norecord))
 
 (defun read-buffer-to-switch (prompt)
   "Read the name of a buffer to switch to, prompting with PROMPT.
@@ -5012,21 +5016,23 @@ Return the buffer switched to."
   (interactive
    (list (read-buffer-to-switch "Switch to buffer: ") nil 'force-same-window))
   (let ((buffer (window-normalize-buffer-to-switch-to buffer-or-name)))
-    (if (null force-same-window)
-	(pop-to-buffer buffer display-buffer--same-window-action norecord)
-      (cond
-       ;; Don't call set-window-buffer if it's not needed since it
-       ;; might signal an error (e.g. if the window is dedicated).
-       ((eq buffer (window-buffer)))
-       ((window-minibuffer-p)
-	(error "Cannot switch buffers in minibuffer window"))
-       ((eq (window-dedicated-p) t)
-	(error "Cannot switch buffers in a dedicated window"))
-       (t (set-window-buffer nil buffer)))
+    (cond
+     ;; Don't call set-window-buffer if it's not needed since it
+     ;; might signal an error (e.g. if the window is dedicated).
+     ((eq buffer (window-buffer)))
+     ((window-minibuffer-p)
+      (if force-same-window
+          (error "Cannot switch buffers in minibuffer window")
+        (pop-to-buffer buffer norecord)))
+     ((eq (window-dedicated-p) t)
+      (if force-same-window
+          (error "Cannot switch buffers in a dedicated window")
+        (pop-to-buffer buffer norecord)))
+     (t (set-window-buffer nil buffer)))
 
-      (unless norecord
-	(select-window (selected-window)))
-      (set-buffer buffer))))
+    (unless norecord
+      (select-window (selected-window)))
+    (set-buffer buffer)))
 
 (defun switch-to-buffer-other-window (buffer-or-name &optional norecord)
   "Select the buffer specified by BUFFER-OR-NAME in another window.

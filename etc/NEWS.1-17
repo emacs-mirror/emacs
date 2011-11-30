@@ -1198,7 +1198,7 @@ them with `\='.  For example, "\\=\\= is the way to quote \\=\\["
 will come out as `\= is the way to quote \['.
 
 The new function `substitute-command-keys' takes a string possibly
-contaning \[...] constructs and replaces those constructs with
+containing \[...] constructs and replaces those constructs with
 the key sequences they currently stand for.
 
 * Primitives `find-line-comment' and `find-line-comment-body' flushed.
@@ -1630,7 +1630,7 @@ Changes in Emacs 1.12
  read-char now returns a value in the range 128-255 if
  a Meta character is typed.  When interpreted as command
  input, a Meta character is equivalent to a two character
- sequence, the meta prefix character followed by the un-metized
+ sequence, the meta prefix character followed by the unmetized
  character (Meta-G unmetized is G).
 
  The meta prefix character

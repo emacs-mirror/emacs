@@ -182,7 +182,7 @@ LEFT and RIGHT are the elements to compare."
                 (equal (car x) (car y)))
       (setq x (cdr x))
       (setq y (cdr y)))
-    ;; Try to make a comparision that is useful for presentation (this
+    ;; Try to make a comparison that is useful for presentation (this
     ;; could be made nicer perhaps):
     (let ((cx (car x))
           (cy (car y)))

@@ -1568,10 +1568,10 @@ if test "${HAVE_NS}" = yes; then
   window_system=nextstep
   with_xft=no
   # set up packaging dirs
-  exec_prefix=${ns_appbindir}
-  libexecdir=${ns_appbindir}/libexec
   if test "${EN_NS_SELF_CONTAINED}" = yes; then
      prefix=${ns_appresdir}
+     exec_prefix=${ns_appbindir}
+     libexecdir=${ns_appbindir}/libexec
   fi
   ns_frag=$srcdir/src/ns.mk
   NS_OBJ="fontset.o fringe.o image.o"
@@ -1990,8 +1990,8 @@ if test "${HAVE_GTK}" = "yes"; then
   AC_CHECK_FUNCS(gtk_widget_get_window gtk_widget_set_has_window \
                  gtk_dialog_get_action_area gtk_widget_get_sensitive \
                  gtk_widget_get_mapped gtk_adjustment_get_page_size \
-                 gtk_orientable_set_orientation)
-
+                 gtk_orientable_set_orientation \
+		 gtk_window_set_has_resize_grip)
 fi
 
 dnl D-Bus has been tested under GNU/Linux only.  Must be adapted for
@@ -2436,7 +2436,7 @@ no_return_alloc_pixels
   fi
 
   if test "${HAVE_XPM}" = "yes"; then
-    AC_DEFINE(HAVE_XPM, 1, [Define to 1 if you have the Xpm libary (-lXpm).])
+    AC_DEFINE(HAVE_XPM, 1, [Define to 1 if you have the Xpm library (-lXpm).])
     LIBXPM=-lXpm
   fi
 fi
@@ -2586,6 +2586,8 @@ if test "${HAVE_NS}" = "yes"; then
     AC_DEFINE(NS_IMPL_GNUSTEP, 1, [Define to 1 if you are using NS windowing under GNUstep.])
     # See also .m.o rule in Makefile.in */
     # FIXME: are all these flags really needed?  Document here why.  */
+    dnl FIXME this should be renamed to GNUSTEP_CFLAGS, and only
+    dnl used in src/Makefile.in.
     C_SWITCH_X_SYSTEM="-D_REENTRANT -fPIC -fno-strict-aliasing -I${GNUSTEP_SYSTEM_HEADERS} ${GNUSTEP_LOCAL_HEADERS}"
     ## Extra CFLAGS applied to src/*.m files.
     GNU_OBJC_CFLAGS="$GNU_OBJC_CFLAGS -fgnu-runtime -Wno-import -fconstant-string-class=NSConstantString -DGNUSTEP_BASE_LIBRARY=1 -DGNU_GUI_LIBRARY=1 -DGNU_RUNTIME=1 -DGSWARN -DGSDIAGNOSE"
@@ -3729,6 +3731,13 @@ echo "  Does Emacs use -lxft?                                   ${HAVE_XFT}"
 
 echo "  Does Emacs use toolkit scroll bars?                     ${USE_TOOLKIT_SCROLL_BARS}"
 echo
+
+if test -n "${EMACSDATA}"; then
+   echo "  Environment variable EMACSDATA set to:                  $EMACSDATA"
+fi
+if test -n "${EMACSDOC}"; then
+   echo "  Environment variable EMACSDOC set to:                   $EMACSDOC"
+fi
 
 if test $USE_XASSERTS = yes; then
    echo "  Compiling with asserts turned on."
