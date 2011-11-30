@@ -1,3 +1,8 @@
+2011-11-30  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* gnus-art.el (gnus-article-browse-html-parts): Convert link file names
+	for Cygwin.
+
 2011-11-24  Glenn Morris  <rgm@gnu.org>
 
 	* starttls.el: Fix case of "GnuTLS".
