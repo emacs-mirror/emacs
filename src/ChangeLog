@@ -1,3 +1,9 @@
+2011-11-30  Eli Zaretskii  <eliz@gnu.org>
+
+	* dispnew.c (adjust_glyph_matrix) [XASSERTS]: Ensure ROW's
+	attributes are tested _before_ calling verify_row_hash, to protect
+	against GCC re-ordering of the tests.  (Bug#10164)
+
 2011-11-29  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* xterm.h (struct x_output): net_wm_state_hidden_seen is new.
