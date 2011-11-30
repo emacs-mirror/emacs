@@ -1637,7 +1637,7 @@ main (int argc, char **argv)
     {
 #ifndef WINDOWSNT
       /* This is defined in stdlib.h on MS-Windows.  It's defined in
-	 unisted.h on some POSIX hosts, but not all (Bug#10155).  */
+	 unistd.h on some POSIX hosts, but not all (Bug#10155).  */
       extern char **environ;
 #endif
       int i;
