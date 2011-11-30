@@ -1,3 +1,7 @@
+2011-11-30  Juanma Barranquero  <lekktu@gmail.com>
+
+	* dispnew.c (adjust_glyph_matrix) [XASSERTS]: Add missing check.
+
 2011-11-30  Eli Zaretskii  <eliz@gnu.org>
 
 	* dispnew.c (adjust_glyph_matrix) [XASSERTS]: Ensure ROW's

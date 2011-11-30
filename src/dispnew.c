@@ -610,7 +610,7 @@ adjust_glyph_matrix (struct window *w, struct glyph_matrix *matrix, int x, int y
 		}
 #if XASSERTS
 	      if (row->enabled_p && !row->mode_line_p)
-		verify_row_hash (row));
+		xassert (verify_row_hash (row));
 #endif
 	      ++row;
 	    }
