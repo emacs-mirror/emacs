@@ -1,3 +1,7 @@
+2011-11-30  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* message.el (message-pop-to-buffer): Revert 2011-09-11 change.
+
 2011-11-30  Katsumi Yamaoka  <yamaoka@jpl.org>
 
 	* gnus-art.el (gnus-article-browse-html-parts): Convert link file names
