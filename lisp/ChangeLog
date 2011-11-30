@@ -1,3 +1,9 @@
+2011-11-30  Juanma Barranquero  <lekktu@gmail.com>
+
+	* htmlfontify.el (hfy-page-header, hfy-post-html-hooks)
+	(hfy-shell-file-name, hfy-shell):
+	* international/fontset.el (x-decompose-font-name): Fix typos.
+
 2011-11-29  Ken Brown  <kbrown@cornell.edu>
 
 	* progmodes/gdb-mi.el: Fix bug#9853, bug#9858, and bug#9878.

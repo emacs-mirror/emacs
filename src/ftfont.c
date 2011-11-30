@@ -1462,7 +1462,7 @@ ftfont_get_bitmap (struct font *font, unsigned int code, struct font_bitmap *bit
        : ft_face->glyph->bitmap.pixel_mode == FT_PIXEL_MODE_LCD_V ? 8
        : -1);
   if (bitmap->bits_per_pixel < 0)
-    /* We don't suport that kind of pixel mode.  */
+    /* We don't support that kind of pixel mode.  */
     return -1;
   bitmap->rows = ft_face->glyph->bitmap.rows;
   bitmap->width = ft_face->glyph->bitmap.width;

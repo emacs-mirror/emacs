@@ -858,9 +858,9 @@ Internal use only.  Should be called at startup time."
 (defun x-decompose-font-name (pattern)
   "Decompose PATTERN into XLFD fields and return a vector of the fields.
 The length of the vector is 12.
-The FOUNDRY and FAMILY fields are concatinated and stored in the first
+The FOUNDRY and FAMILY fields are concatenated and stored in the first
 element of the vector.
-The REGISTRY and ENCODING fields are concatinated and stored in the last
+The REGISTRY and ENCODING fields are concatenated and stored in the last
 element of the vector.
 
 Return nil if PATTERN doesn't conform to XLFD."

@@ -518,7 +518,7 @@ if large.  You can use `Info-split' to do this manually."
 
 ;;; Handle paragraph filling
 
-;; Keep as concatinated lists for ease of maintenance
+;; Keep as concatenated lists for ease of maintenance
 
 (defvar texinfo-no-refill-regexp
   (concat

@@ -8688,7 +8688,7 @@
 	(xg_set_widget_bg): New function.
 	(delete_cb): New function.
 	(xg_create_frame_widgets): Connect delete-event to delete_cb.
-	Call xg_set_widget_bg.  Only set backgrund pixmap for ! HAVE_GTK3
+	Call xg_set_widget_bg.  Only set background pixmap for ! HAVE_GTK3
 	(xg_set_background_color): Call xg_set_widget_bg.
 	(xg_set_frame_icon): Call xg_get_pixbuf_from_pix_and_mask.
 	(xg_create_scroll_bar): vadj is a GtkAdjustment for HAVE_GTK3.
