@@ -1,3 +1,19 @@
+2011-11-29  Ken Brown  <kbrown@cornell.edu>
+
+	* progmodes/gdb-mi.el: Fix bug#9853, bug#9858, and bug#9878.
+	(gdb-version): Remove defvar.
+	(gdb-supports-non-stop): New defvar, replacing `gdb-version'.
+	(gdb-gud-context-command, gdb-non-stop-handler)
+	(gdb-current-context-command, gdb-stopped): Use it.
+	(gdb-init-1): Enable pretty printing here.
+	(gdb-non-stop-handler): Don't enable pretty-printing here.  Check
+	to see if the target supports non-stop mode; if not, turn off
+	non-stop mode.  Use the following.
+	(gdb-check-target-async): New defun.
+	(gud-watch, gdb-stopped): Fix whitespace.
+	(gdb-get-source-file): Don't try to display the source file if
+	`gdb-main-file' is nil.
+
 2011-11-29  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* align.el: Try to generate fewer markers (bug#10047).
