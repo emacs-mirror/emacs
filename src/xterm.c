@@ -6114,7 +6114,8 @@ handle_one_xevent (struct x_display_info *dpyinfo, XEvent *eventptr,
       last_user_time = event.xproperty.time;
       f = x_top_window_to_frame (dpyinfo, event.xproperty.window);
       if (f && event.xproperty.atom == dpyinfo->Xatom_net_wm_state)
-        if (x_handle_net_wm_state (f, &event.xproperty) && f->iconified)
+        if (x_handle_net_wm_state (f, &event.xproperty) && f->iconified
+            && f->output_data.x->net_wm_state_hidden_seen)
           {
             /* Gnome shell does not iconify us when C-z is pressed.  It hides
                the frame.  So if our state says we aren't hidden anymore,
@@ -6124,6 +6125,7 @@ handle_one_xevent (struct x_display_info *dpyinfo, XEvent *eventptr,
             f->async_visible = 1;
             f->async_iconified = 0;
             f->output_data.x->has_been_visible = 1;
+            f->output_data.x->net_wm_state_hidden_seen = 0;
             inev.ie.kind = DEICONIFY_EVENT;
             XSETFRAME (inev.ie.frame_or_window, f);
           }
@@ -8480,7 +8482,10 @@ get_current_wm_state (struct frame *f,
     {
       Atom a = ((Atom*)tmp_data)[i];
       if (a == dpyinfo->Xatom_net_wm_state_hidden)
-        is_hidden = 1;
+        {
+          is_hidden = 1;
+          f->output_data.x->net_wm_state_hidden_seen = 1;
+        }
       else if (a == dpyinfo->Xatom_net_wm_state_maximized_horz)
         {
           if (*size_state == FULLSCREEN_HEIGHT)

@@ -1,3 +1,8 @@
+2011-11-30  Chong Yidong  <cyd@gnu.org>
+
+	* emacsclient.c (main): Condition last change on WINDOWSNT
+	(Bug#10155).
+
 2011-11-27  Eli Zaretskii  <eliz@gnu.org>
 
 	* makefile.w32-in (LOCAL_FLAGS): Add $(EMACS_EXTRA_C_FLAGS).

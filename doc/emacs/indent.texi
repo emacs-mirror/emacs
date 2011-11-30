@@ -8,214 +8,154 @@
 @cindex tabs
 @cindex columns (indentation)
 
-  This chapter describes the Emacs commands that add, remove, or
-adjust indentation.
+@cindex whitespace character
+  @dfn{Indentation} refers to inserting or adjusting @dfn{whitespace
+characters} (space and/or tab characters) at the beginning of a line
+of text.  This chapter documents indentation commands and options
+which are common to Text mode and related modes, as well as
+programming language modes.  @xref{Program Indent}, for additional
+documentation about indenting in programming modes.
 
-@table @kbd
-@item @key{TAB}
-Indent the current line appropriately, in a mode-dependent fashion.
-@item @kbd{C-j}
-Perform @key{RET} followed by @key{TAB} (@code{newline-and-indent}).
-@item M-^
-Merge the previous and the current line (@code{delete-indentation}).
-This would cancel the effect of a preceding @kbd{C-j}.
-@item C-M-o
-Split the current line at point; text on the line after point becomes a
-new line indented to the same column where point is located
-(@code{split-line}).
-@item M-m
-Move (forward or back) to the first nonblank character on the current
-line (@code{back-to-indentation}).
-@item C-M-\
-Indent lines in the region to the same column (@code{indent-region}).
-@item C-x @key{TAB}
-Shift lines in the region rigidly right or left (@code{indent-rigidly}).
-@item M-i
-Indent from point to the next prespecified tab stop column
-(@code{tab-to-tab-stop}).
-@item M-x indent-relative
-Indent from point to under an indentation point in the previous line.
+@findex indent-for-tab-command
+@kindex TAB @r{(indentation)}
+  The simplest way to perform indentation is the @key{TAB} key.  In
+most major modes, this runs the command @code{indent-for-tab-command}.
+(In C and related modes, @key{TAB} runs the command
+@code{c-indent-line-or-region}, which behaves similarly).
+
+@table @key
+@item TAB
+Insert whitespace, or indent the current line, in a mode-appropriate
+way (@code{indent-for-tab-command}).  If the region is active, indent
+all the lines within it.
 @end table
 
-@noindent
-The @key{TAB} key runs @code{indent-for-tab-command} in most major
-modes (in C and related modes, @key{TAB} runs a separate command,
-@code{c-indent-line-or-region}, which behaves similarly).  The major
-mode determines just what this entails.
+  The exact behavior of @key{TAB} depends on the major mode.  In Text
+mode and related major modes, @key{TAB} normally inserts some
+combination of space and tab characters to advance point to the next
+tab stop (@pxref{Tab Stops}).  For this purpose, the position of the
+first non-whitespace character on the preceding line is treated as an
+additional tab stop, so you can use @key{TAB} to ``align'' point with
+the preceding line.  If the region is active (@pxref{Using Region}),
+@key{TAB} acts specially: it indents each line in the region so that
+its first non-whitespace character is aligned with the preceding line.
 
-  In text modes, @key{TAB} inserts some combination of space and tab
-characters to advance point to the next tab stop (@pxref{Tab Stops}).
-If the region is active and spans multiple lines, it advances the
-first character of each of those lines to the next tab stop
-(@pxref{Using Region}).  For the purposes of this command, the
-position of the first non-whitespace character on the preceding line
-is treated as an additional tab stop.  Thus, you can use @key{TAB} to
-``align'' point with the preceding line.
+  In programming modes, @key{TAB} indents the current line of code in
+a way that makes sense given the code in the preceding lines.  If the
+region is active, all the lines in the region are indented this way.
+If point was initially within the current line's indentation, it is
+repositioned to the first non-whitespace character on the line.
 
-  In programming modes, @key{TAB} adds or removes some combination of
-space and tab characters at the start of the line, in a way that makes
-sense given the text in the preceding lines.  If the region is active
-and spans multiple lines, all those lines are indented this way.  If
-point was initially within the current line's indentation, it is
-positioned after that indentation; otherwise, it remains at same point
-in the newly-indented text.  @xref{Program Indent}.
-
-@vindex tab-width
-  Normally, indentation commands insert (or remove) an optimal mix of
-@dfn{tab characters} and spaces to align to the desired column.  Tab
-characters (@acronym{ASCII} code 9) are displayed as a stretch of
-empty space extending to the next @dfn{display tab stop}.  By default,
-there is one display tab stop every eight columns; the number of
-columns is determined by the variable @code{tab-width}.  You can
-insert a single tab character by typing @kbd{C-q @key{TAB}}.
-@xref{Text Display}.
-
-@findex edit-tab-stops
-@findex tab-to-tab-stop
-@kindex M-i
-  The command @kbd{M-i} (@code{tab-to-tab-stop}) adjusts the
-whitespace characters around point, inserting just enough whitespace
-to advance point up to the next tab stop.  By default, this involves
-deleting the existing whitespace and inserting a single tab character.
-
-  @xref{Just Spaces}, for how to disable use of tabs.  However,
-@kbd{C-q @key{TAB}} always inserts a tab, even when tabs are disabled
-for the indentation commands.
-
-@vindex tab-always-indent
-  The variable @code{tab-always-indent} tweaks the behavior of the
-@key{TAB} (@code{indent-for-tab-command}) command.  The default value,
-@code{t}, gives the behavior described above.  If you change the value
-to the symbol @code{complete}, then @key{TAB} first tries to indent
-the current line, and if the line was already indented, it tries to
-complete the text at point (@pxref{Symbol Completion}).  If the value
-is @code{nil}, then @key{TAB} indents the current line only if point
-is at the left margin or in the line's indentation; otherwise, it
-inserts a real tab character.
+  If you just want to insert a tab character in the buffer, type
+@kbd{C-q @key{TAB}} (@pxref{Inserting Text}).
 
 @menu
-* Indentation Commands::  Various commands and techniques for indentation.
-* Tab Stops::             You can set arbitrary "tab stops" and then
-                            indent to the next tab stop when you want to.
-* Just Spaces::           You can request indentation using just spaces.
+* Indentation Commands::  More commands for performing indentation.
+* Tab Stops::             Stop points for indentation in Text modes.
+* Just Spaces::           Using only space characters for indentation.
+* Indent Convenience::    Optional indentation features.
 @end menu
 
-@node Indentation Commands, Tab Stops, Indentation, Indentation
-@section Indentation Commands and Techniques
+@node Indentation Commands
+@section Indentation Commands
+
+Apart from the @key{TAB} (@code{indent-for-tab-command}) command,
+Emacs provides a variety of commands to perform indentation in other
+ways.
+
+@table @kbd
+@item C-j
+@kindex C-j
+@findex newline-and-indent
+Perform @key{RET} followed by @key{TAB} (@code{newline-and-indent}).
+
+@item C-M-o
+@kindex C-M-o
+@findex split-line
+Split the current line at point (@code{split-line}).  The text on the
+line after point becomes a new line, indented to the same column where
+point is located.  This command first moves point forward over any
+spaces and tabs.  Afterward, point is positioned before the inserted
+newline.
 
 @kindex M-m
 @findex back-to-indentation
-  To move over the indentation on a line, do @kbd{M-m}
-(@code{back-to-indentation}).  This command, given anywhere on a line,
-positions point at the first nonblank character on the line, if any,
-or else at the end of the line.
+@item M-m
+Move (forward or back) to the first non-whitespace character on the
+current line (@code{back-to-indentation}).  If there are no
+non-whitespace characters on the line, move to the end of the line.
 
-  To insert an indented line before the current line, do @kbd{C-a C-o
-@key{TAB}}.  To make an indented line after the current line, use
-@kbd{C-e C-j}.
-
-  If you just want to insert a tab character in the buffer, type
-@kbd{C-q @key{TAB}}.
-
-@kindex C-M-o
-@findex split-line
-  @kbd{C-M-o} (@code{split-line}) moves the text from point to the end of
-the line vertically down, so that the current line becomes two lines.
-@kbd{C-M-o} first moves point forward over any spaces and tabs.  Then it
-inserts after point a newline and enough indentation to reach the same
-column point is on.  Point remains before the inserted newline; in this
-regard, @kbd{C-M-o} resembles @kbd{C-o}.
-
-@kindex M-^
-@findex delete-indentation
-  To join two lines cleanly, use the @kbd{M-^}
-(@code{delete-indentation}) command.  It deletes the indentation at
-the front of the current line, and the line boundary as well,
-replacing them with a single space.  As a special case (useful for
-Lisp code) the single space is omitted if the characters to be joined
-are consecutive open parentheses or closing parentheses, or if the
-junction follows another newline.  To delete just the indentation of a
-line, go to the beginning of the line and use @kbd{M-\}
-(@code{delete-horizontal-space}), which deletes all spaces and tabs
-around the cursor.
-
-  If you have a fill prefix, @kbd{M-^} deletes the fill prefix if it
-appears after the newline that is deleted.  @xref{Fill Prefix}.
-
-@kindex C-M-\
-@kindex C-x TAB
-@findex indent-region
-@findex indent-rigidly
-  There are also commands for changing the indentation of several lines
-at once.  They apply to all the lines that begin in the region.
-@kbd{C-M-\} (@code{indent-region}) indents each line in the ``usual''
-way, as if you had typed @key{TAB} at the beginning of the line.  A
-numeric argument specifies the column to indent to, and each line is
-shifted left or right so that its first nonblank character appears in
-that column.  @kbd{C-x @key{TAB}} (@code{indent-rigidly}) moves all of
-the lines in the region right by its argument (left, for negative
-arguments).  The whole group of lines moves rigidly sideways, which is
-how the command gets its name.
-
-@cindex remove indentation
-  To remove all indentation from all of the lines in the region,
-invoke @kbd{C-x @key{TAB}} with a large negative argument, such as
--1000.
-
-@findex indent-relative
-  @kbd{M-x indent-relative} indents at point based on the previous line
-(actually, the last nonempty line).  It inserts whitespace at point, moving
-point, until it is underneath the next indentation point in the previous line.
-An indentation point is the end of a sequence of whitespace or the end of
-the line.  If point is farther right than any indentation point in the
-previous line, @code{indent-relative} runs @code{tab-to-tab-stop}
-@ifnottex
-(@pxref{Tab Stops}),
-@end ifnottex
-@iftex
-(see next section),
-@end iftex
-unless it is called with a numeric argument, in which case it does
-nothing.
-
-  @xref{Format Indentation}, for another way of specifying the
-indentation for part of your text.
-
-@node Tab Stops, Just Spaces, Indentation Commands, Indentation
-@section Tab Stops
-
-@cindex tab stops
-@cindex using tab stops in making tables
-@cindex tables, indentation for
+@item M-i
 @kindex M-i
 @findex tab-to-tab-stop
-  For typing in tables, you can use @kbd{M-i} (@code{tab-to-tab-stop}).
-This command inserts indentation before point, enough to reach the
-next tab stop column.
+Indent whitespace at point, up to the next tab stop
+(@code{tab-to-tab-stop}).  @xref{Tab Stops}.
+
+@findex indent-relative
+@item M-x indent-relative
+Insert whitespace at point, until point is aligned with the first
+non-whitespace character on the previous line (actually, the last
+non-blank line).  If point is already farther right than that, run
+@code{tab-to-tab-stop} instead---unless called with a numeric
+argument, in which case do nothing.
+
+@item M-^
+@kindex M-^
+@findex delete-indentation
+Merge the previous and the current line (@code{delete-indentation}).
+This ``joins'' the two lines cleanly, by replacing any indentation at
+the front of the current line, together with the line boundary, with a
+single space.
+
+As a special case (useful for Lisp code), the single space is omitted
+if the characters to be joined are consecutive opening and closing
+parentheses, or if the junction follows another newline.
+
+If there is a fill prefix, @kbd{M-^} deletes the fill prefix if it
+appears after the newline that is deleted.  @xref{Fill Prefix}.
+
+@item C-M-\
+@kindex C-M-\
+@findex indent-region
+Indent all the lines in the region, as though you had typed @key{TAB}
+at the beginning of each line (@code{indent-region}).
+
+If a numeric argument is supplied, indent every line in the region to
+that column number.
+
+@item C-x @key{TAB}
+@kindex C-x TAB
+@findex indent-rigidly
+@cindex remove indentation
+Shift each line in the region by a fixed distance, to the right or
+left (@code{indent-rigidly}).  The distance to move is determined by
+the numeric argument (positive to move rightward, negative to move
+leftward).
+
+This command can be used to remove all indentation from the lines in
+the region, by invoking it with a large negative argument,
+e.g. @kbd{C-u -1000 C-x @key{TAB}}.
+@end table
+
+@node Tab Stops
+@section Tab Stops
+@cindex tab stops
+
+@vindex tab-stop-list
+  Emacs defines certain column numbers to be @dfn{tab stops}.  These
+are used as stopping points by @key{TAB} when inserting whitespace in
+Text mode and related modes (@pxref{Indentation}), and by commands
+like @kbd{M-i} (@pxref{Indentation Commands}).  By default, tab stops
+are located every 8 columns.  These positions are stored in the
+variable @code{tab-stop-list}, whose value is a list of column numbers
+in increasing order.
 
 @findex edit-tab-stops
-@findex edit-tab-stops-note-changes
 @kindex C-c C-c @r{(Edit Tab Stops)}
-@vindex tab-stop-list
-  You can change the tab stops used by @kbd{M-i} and other indentation
-commands, so that they need not be spaced every eight characters, or
-even regularly spaced.  The tab stops are stored in the variable
-@code{tab-stop-list}, as a list of column numbers in increasing order.
-
-  A convenient way to set the tab stops is with @kbd{M-x
-edit-tab-stops}, which creates and selects a buffer containing a
-description of the tab stop settings.  You can edit this buffer to
-specify different tab stops, and then type @kbd{C-c C-c} to make those
-new tab stops take effect.  The buffer uses Overwrite mode
-(@pxref{Minor Modes}).  @code{edit-tab-stops} records which buffer was
-current when you invoked it, and stores the tab stops back in that
-buffer; normally all buffers share the same tab stops and changing
-them in one buffer affects all, but if you happen to make
-@code{tab-stop-list} local in one buffer then @code{edit-tab-stops} in
-that buffer will edit the local settings.
-
-  Here is what the text representing the tab stops looks like for ordinary
-tab stops every eight columns.
+  Instead of customizing the variable @code{tab-stop-list} directly, a
+convenient way to view and set tab stops is via the command @kbd{M-x
+edit-tab-stops}.  This switches to a buffer containing a description
+of the tab stop settings, which looks like this:
 
 @example
         :       :       :       :       :       :
@@ -224,37 +164,77 @@ tab stops every eight columns.
 To install changes, type C-c C-c
 @end example
 
-  The first line contains a colon at each tab stop.  The remaining lines
-are present just to help you see where the colons are and know what to do.
+@noindent
+The first line contains a colon at each tab stop.  The numbers on the
+next two lines are present just to indicate where the colons are.
 
-  Note that the tab stops that control @code{tab-to-tab-stop} have
-nothing to do with how tab characters are displayed in the buffer.
-Tab characters are always displayed as empty spaces extending to the
-next display tab stop, which occurs every @code{tab-width} columns
-regardless of the contents of @code{tab-stop-list}.  @xref{Text
-Display}.
+  You can edit this buffer to specify different tab stops by placing
+colons on the desired columns.  The buffer uses Overwrite mode
+(@pxref{Minor Modes}).  When you are done, type @kbd{C-c C-c} to make
+the new tab stops take effect.  Normally, the new tab stop settings
+apply to all buffers.  However, if you have made the
+@code{tab-stop-list} variable local to the buffer where you called
+@kbd{M-x edit-tab-stops} (@pxref{Locals}), then the new tab stop
+settings apply only to that buffer.  To save the tab stop settings for
+future Emacs sessions, use the Customize interface to save the value
+of @code{tab-stop-list} (@pxref{Easy Customization}).
 
-@node Just Spaces,, Tab Stops, Indentation
+  Note that the tab stops discussed in this section have nothing to do
+with how tab characters are displayed in the buffer.  Tab characters
+are always displayed as empty spaces extending to the next
+@dfn{display tab stop}.  @xref{Text Display}.
+
+@node Just Spaces
 @section Tabs vs. Spaces
 
-@vindex indent-tabs-mode
-  Emacs normally uses both tabs and spaces to indent lines.  If you
-prefer, all indentation can be made from spaces only.  To request
-this, set @code{indent-tabs-mode} to @code{nil}.  This is a per-buffer
-variable, so altering the variable affects only the current buffer,
-but there is a default value which you can change as well.
-@xref{Locals}.
+@vindex tab-width
+  Normally, indentation commands insert (or remove) an optimal mix of
+space characters and tab characters to align to the desired column.
+Tab characters are displayed as a stretch of empty space extending to
+the next @dfn{display tab stop}.  By default, there is one display tab
+stop every @code{tab-width} columns (the default is 8).  @xref{Text
+Display}.
 
-  A tab is not always displayed in the same way.  By default, tabs are
-eight columns wide, but some people like to customize their editors to
-use a different tab width (e.g., by changing the variable
-@code{tab-width} in Emacs).  By using spaces only, you can make sure
-that your file looks the same regardless of the tab width setting.
+@vindex indent-tabs-mode
+  If you prefer, all indentation can be made from spaces only.  To
+request this, set the buffer-local variable @code{indent-tabs-mode} to
+@code{nil}.  @xref{Locals}, for information about setting buffer-local
+variables.  Note, however, that @kbd{C-q @key{TAB}} always inserts a
+tab character, regardless of the value of @code{indent-tabs-mode}.
+
+  One reason to set @code{indent-tabs-mode} to @code{nil} is that not
+all editors display tab characters in the same way.  Emacs users, too,
+may have different customized values of @code{tab-width}.  By using
+spaces only, you can make sure that your file always looks the same.
+If you only care about how it looks within Emacs, another way to
+tackle this problem is to set the @code{tab-width} variable in a
+file-local variable (@pxref{File Variables}).
 
 @findex tabify
 @findex untabify
   There are also commands to convert tabs to spaces or vice versa, always
-preserving the columns of all nonblank text.  @kbd{M-x tabify} scans the
+preserving the columns of all non-whitespace text.  @kbd{M-x tabify} scans the
 region for sequences of spaces, and converts sequences of at least two
 spaces to tabs if that can be done without changing indentation.  @kbd{M-x
 untabify} changes all tabs in the region to appropriate numbers of spaces.
+
+@node Indent Convenience
+@section Convenience Features for Indentation
+
+@vindex tab-always-indent
+  The variable @code{tab-always-indent} tweaks the behavior of the
+@key{TAB} (@code{indent-for-tab-command}) command.  The default value,
+@code{t}, gives the behavior described in @ref{Indentation}.  If you
+change the value to the symbol @code{complete}, then @key{TAB} first
+tries to indent the current line, and if the line was already
+indented, it tries to complete the text at point (@pxref{Symbol
+Completion}).  If the value is @code{nil}, then @key{TAB} indents the
+current line only if point is at the left margin or in the line's
+indentation; otherwise, it inserts a tab character.
+
+@cindex Electric Indent mode
+@cindex mode, Electric Indent
+@findex electric-indent-mode
+  Electric Indent mode is a global minor mode that automatically
+indents the line after every @key{RET} you type.  To toggle this minor
+mode, type @kbd{M-x electric-indent-mode}.

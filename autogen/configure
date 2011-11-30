@@ -11217,7 +11217,8 @@ done
     for ac_func in gtk_widget_get_window gtk_widget_set_has_window \
                  gtk_dialog_get_action_area gtk_widget_get_sensitive \
                  gtk_widget_get_mapped gtk_adjustment_get_page_size \
-                 gtk_orientable_set_orientation
+                 gtk_orientable_set_orientation \
+		 gtk_window_set_has_resize_grip
 do :
   as_ac_var=`$as_echo "ac_cv_func_$ac_func" | $as_tr_sh`
 ac_fn_c_check_func "$LINENO" "$ac_func" "$as_ac_var"
@@ -11229,7 +11230,6 @@ _ACEOF
 
 fi
 done
-
 
 fi
 

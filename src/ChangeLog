@@ -1,3 +1,38 @@
+2011-11-30  Eli Zaretskii  <eliz@gnu.org>
+
+	* dispnew.c (adjust_glyph_matrix): Remove the assertion that
+	verifies glyph row's hash code--we have just reallocated the
+	glyphs, so their contents can be complete garbage.  (Bug#10164)
+
+2011-11-30  Juanma Barranquero  <lekktu@gmail.com>
+
+	* dispnew.c (adjust_glyph_matrix) [XASSERTS]: Add missing check.
+
+2011-11-30  Eli Zaretskii  <eliz@gnu.org>
+
+	* dispnew.c (adjust_glyph_matrix) [XASSERTS]: Ensure ROW's
+	attributes are tested _before_ calling verify_row_hash, to protect
+	against GCC re-ordering of the tests.  (Bug#10164)
+
+2011-11-29  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* xterm.h (struct x_output): net_wm_state_hidden_seen is new.
+
+	* xterm.c (handle_one_xevent): Only set async_visible and friends
+	if net_wm_state_hidden_seen is non-zero (Bug#10002)
+	(get_current_wm_state):  Set net_wm_state_hidden_seen to 1 if
+	_NET_WM_STATE_HIDDEN is in NET_WM_STATE.
+
+2011-11-28  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Remove GCPRO-related macros that exist only to avoid shadowing locals.
+	* lisp.h (GCPRO1_VAR, GCPRO2_VAR, GCPRO3_VAR, GCPRO4_VAR, GCPRO5_VAR)
+	(GCPRO6_VAR, UNGCPRO_VAR): Remove.  See
+	<http://lists.gnu.org/archive/html/emacs-diffs/2011-11/msg00265.html>.
+	All uses changed to use GCPRO1 etc.
+	(GCPRO1, GCPRO2, GCPRO3, GCPRO4, GCPRO5, GCPRO6, UNGCPRO):
+	Revert to old implementation (i.e., before 2011-03-11).
+
 2011-11-28  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
 
 	* dispnew.c (scrolling_window): Truncate overlaps in copy destination
@@ -8659,7 +8694,7 @@
 	(xg_set_widget_bg): New function.
 	(delete_cb): New function.
 	(xg_create_frame_widgets): Connect delete-event to delete_cb.
-	Call xg_set_widget_bg.  Only set backgrund pixmap for ! HAVE_GTK3
+	Call xg_set_widget_bg.  Only set background pixmap for ! HAVE_GTK3
 	(xg_set_background_color): Call xg_set_widget_bg.
 	(xg_set_frame_icon): Call xg_get_pixbuf_from_pix_and_mask.
 	(xg_create_scroll_bar): vadj is a GtkAdjustment for HAVE_GTK3.

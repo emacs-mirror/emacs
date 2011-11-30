@@ -3236,7 +3236,7 @@ use the Bourne shell command `TERM=... export TERM' (C-shell:\n\
   MultiLeft (tty) = tgetstr ("LE", address);
   MultiRight (tty) = tgetstr ("RI", address);
 
-  /* SVr4/ANSI color suppert.  If "op" isn't available, don't support
+  /* SVr4/ANSI color support.  If "op" isn't available, don't support
      color because we can't switch back to the default foreground and
      background.  */
   tty->TS_orig_pair = tgetstr ("op", address);

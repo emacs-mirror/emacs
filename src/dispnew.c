@@ -608,9 +608,6 @@ adjust_glyph_matrix (struct window *w, struct glyph_matrix *matrix, int x, int y
 		  row->glyphs[LAST_AREA]
 		    = row->glyphs[LEFT_MARGIN_AREA] + dim.width;
 		}
-	      xassert (!row->enabled_p
-		       || row->mode_line_p
-		       || verify_row_hash (row));
 	      ++row;
 	    }
 	}

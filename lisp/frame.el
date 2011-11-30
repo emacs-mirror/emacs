@@ -1133,15 +1133,21 @@ To get the frame's current border color, use `frame-parameters'."
 			   (list (cons 'border-color color-name))))
 
 (define-minor-mode auto-raise-mode
-  "Toggle whether or not the selected frame should auto-raise.
+  "Toggle whether or not selected frames should auto-raise.
 With a prefix argument ARG, enable Auto Raise mode if ARG is
 positive, and disable it otherwise.  If called from Lisp, enable
 the mode if ARG is omitted or nil.
 
-Note that this controls Emacs's own auto-raise feature.
-Some window managers allow you to enable auto-raise for certain windows.
-You can use that for Emacs windows if you wish, but if you do,
-that is beyond the control of Emacs and this command has no effect on it."
+Auto Raise mode does nothing under most window managers, which
+switch focus on mouse clicks.  It only has an effect if your
+window manager switches focus on mouse movement (in which case
+you should also change `focus-follows-mouse' to t).  Then,
+enabling Auto Raise mode causes any graphical Emacs frame which
+acquires focus to be automatically raised.
+
+Note that this minor mode controls Emacs's own auto-raise
+feature.  Window managers that switch focus on mouse movement
+often have their own auto-raise feature."
   :variable (frame-parameter nil 'auto-raise)
   (if (frame-parameter nil 'auto-raise)
       (raise-frame)))
@@ -1152,10 +1158,16 @@ With a prefix argument ARG, enable Auto Lower mode if ARG is
 positive, and disable it otherwise.  If called from Lisp, enable
 the mode if ARG is omitted or nil.
 
-Note that this controls Emacs's own auto-lower feature.
-Some window managers allow you to enable auto-lower for certain windows.
-You can use that for Emacs windows if you wish, but if you do,
-that is beyond the control of Emacs and this command has no effect on it."
+Auto Lower mode does nothing under most window managers, which
+switch focus on mouse clicks.  It only has an effect if your
+window manager switches focus on mouse movement (in which case
+you should also change `focus-follows-mouse' to t).  Then,
+enabling Auto Lower Mode causes any graphical Emacs frame which
+loses focus to be automatically lowered.
+
+Note that this minor mode controls Emacs's own auto-lower
+feature.  Window managers that switch focus on mouse movement
+often have their own features for raising or lowering frames."
   :variable (frame-parameter nil 'auto-lower))
 
 (defun set-frame-name (name)

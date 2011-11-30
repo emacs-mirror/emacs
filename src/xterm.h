@@ -632,6 +632,9 @@ struct x_output
      x_check_expected_move.  */
   int left_before_move;
   int top_before_move;
+
+  /* Non-zero if _NET_WM_STATE_HIDDEN is set for this frame.  */
+  int net_wm_state_hidden_seen;
 };
 
 #define No_Cursor (None)

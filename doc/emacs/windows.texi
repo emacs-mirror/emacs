@@ -193,6 +193,7 @@ Select buffer @var{bufname} in another window
 
 @findex display-buffer
 @item C-x 4 C-o @var{bufname} @key{RET}
+@kindex C-x 4 C-o
 Display buffer @var{bufname} in some window, without trying to select
 it (@code{display-buffer}).  @xref{Displaying Buffers}, for details
 about how the window is chosen.
@@ -421,7 +422,7 @@ and display the buffer there.
 @end itemize
 
 @node Window Convenience
-@section Window Handling Convenience Features and Customization
+@section Convenience Features for Window Handling
 
 @findex winner-mode
 @cindex Winner mode

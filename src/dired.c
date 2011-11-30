@@ -229,11 +229,11 @@ directory_files_internal (Lisp_Object directory, Lisp_Object full, Lisp_Object m
 	  int len;
 	  int wanted = 0;
 	  Lisp_Object name, finalname;
-	  struct gcpro inner_gcpro1, inner_gcpro2;
+	  struct gcpro gcpro1, gcpro2;
 
 	  len = NAMLEN (dp);
 	  name = finalname = make_unibyte_string (dp->d_name, len);
-	  GCPRO2_VAR (finalname, name, inner_gcpro);
+	  GCPRO2 (finalname, name);
 
 	  /* Note: DECODE_FILE can GC; it should protect its argument,
 	     though.  */
@@ -289,23 +289,23 @@ directory_files_internal (Lisp_Object directory, Lisp_Object full, Lisp_Object m
 		  /* Construct an expanded filename for the directory entry.
 		     Use the decoded names for input to Ffile_attributes.  */
 		  Lisp_Object decoded_fullname, fileattrs;
-		  struct gcpro innermost_gcpro1, innermost_gcpro2;
+		  struct gcpro gcpro1, gcpro2;
 
 		  decoded_fullname = fileattrs = Qnil;
-		  GCPRO2_VAR (decoded_fullname, fileattrs, innermost_gcpro);
+		  GCPRO2 (decoded_fullname, fileattrs);
 
 		  /* Both Fexpand_file_name and Ffile_attributes can GC.  */
 		  decoded_fullname = Fexpand_file_name (name, directory);
 		  fileattrs = Ffile_attributes (decoded_fullname, id_format);
 
 		  list = Fcons (Fcons (finalname, fileattrs), list);
-		  UNGCPRO_VAR (innermost_gcpro);
+		  UNGCPRO;
 		}
 	      else
 		list = Fcons (finalname, list);
 	    }
 
-	  UNGCPRO_VAR (inner_gcpro);
+	  UNGCPRO;
 	}
     }
 
@@ -673,11 +673,11 @@ file_name_completion (Lisp_Object file, Lisp_Object dirname, int all_flag, int v
       if (!NILP (predicate))
 	{
 	  Lisp_Object val;
-	  struct gcpro inner_gcpro1;
+	  struct gcpro gcpro1;
 
-	  GCPRO1_VAR (name, inner_gcpro);
+	  GCPRO1 (name);
 	  val = call1 (predicate, name);
-	  UNGCPRO_VAR (inner_gcpro);
+	  UNGCPRO;
 
 	  if (NILP (val))
 	    continue;
