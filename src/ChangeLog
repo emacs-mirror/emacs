@@ -1,3 +1,9 @@
+2011-11-30  Eli Zaretskii  <eliz@gnu.org>
+
+	* dispnew.c (adjust_glyph_matrix): Remove the assertion that
+	verifies glyph row's hash code--we have just reallocated the
+	glyphs, so their contents can be complete garbage.  (Bug#10164)
+
 2011-11-30  Juanma Barranquero  <lekktu@gmail.com>
 
 	* dispnew.c (adjust_glyph_matrix) [XASSERTS]: Add missing check.
