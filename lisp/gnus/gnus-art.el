@@ -2880,12 +2880,13 @@ message header will be added to the bodies of the \"text/html\" parts."
 				  gnus-article-mime-handles)
 				cid-dir))
 		     (when (eq system-type 'cygwin)
-		       (setq cid-file (substring
-				       (with-output-to-string
-					 (call-process "cygpath" nil
-						       standard-output
-						       nil "-m" cid-file))
-				       0 -1)))
+		       (setq cid-file
+			     (concat "/" (substring
+					  (with-output-to-string
+					    (call-process "cygpath" nil
+							  standard-output
+							  nil "-m" cid-file))
+					  0 -1))))
 		     (replace-match (concat "file://" cid-file)
 				    nil nil nil 1))))
 	       (unless content (setq content (buffer-string))))
