@@ -1,3 +1,10 @@
+2011-12-01  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* fileio.c (Finsert_file_contents): Move after-change-function call
+	to before the "handled:" label, since all "goto handled" appear in
+	cases where the *-change-functions have already been properly called
+	(bug#10117).
+
 2011-12-01  Andreas Schwab  <schwab@linux-m68k.org>
 
 	* keyboard.c (interrupt_signal): Don't call kill-emacs when
