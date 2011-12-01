@@ -2,6 +2,7 @@
 
 	* eshell/em-hist.el (eshell-hist-initialize):
 	Handle eshell-history-size nil and HISTSIZE set or unset.
+	(eshell-history-file-name, eshell-history-size): Fix custom type.
 
 2011-12-01  Stefan Monnier  <monnier@iro.umontreal.ca>
 
