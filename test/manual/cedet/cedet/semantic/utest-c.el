@@ -49,17 +49,24 @@ The first file is full of SPP macros.
 The second file is full of raw code that the macros should
 expand to."
   (dolist (fp semantic-utest-c-comparisons)
-    (let* ((sem (locate-library "semantic"))
+    (let* ((sem (or (locate-library "cedet/semantic/utest-c")
+		    (error "Cannot locate library 'cedet/semantic/utest-c'.")))
 	   (sdir (file-name-directory sem))
+	   (filename1 (expand-file-name (concat "tests/" (car fp)) sdir))
+	   (filename2 (expand-file-name (concat "tests/" (cdr fp)) sdir))
 	   (semantic-lex-c-nested-namespace-ignore-second nil)
 	   (tags-actual
 	    (save-excursion
-	      (set-buffer (find-file-noselect (expand-file-name (concat "tests/" (car fp)) sdir)))
+	      (unless (file-exists-p filename1)
+		(error "Cannot load %s." filename1))
+	      (set-buffer (find-file-noselect filename1))
 	      (semantic-clear-toplevel-cache)
 	      (semantic-fetch-tags)))
 	   (tags-expected
 	    (save-excursion
-	      (set-buffer (find-file-noselect (expand-file-name (concat "tests/" (cdr fp)) sdir)))
+	      (unless (file-exists-p filename2)
+		(error "Cannot load %s." filename2))
+	      (set-buffer (find-file-noselect filename2))
 	      (semantic-clear-toplevel-cache)
 	      (semantic-fetch-tags))))
       ;; Now that we have the tags, compare them for SPP accuracy.
@@ -85,11 +92,15 @@ those with PASS in the name will pass."
       (message "\nNOTICE: XEmacs 21 doesn't support a recent enough version of hideif to run C contional tests.\n")
 
     (dolist (fp semantic-utest-c-conditionals)
-      (let* ((sem (locate-library "semantic"))
+      (let* ((sem (or (locate-library "cedet/semantic/utest-c")
+		      (error "Cannot locate library 'cedet/semantic/utest-c'.")))
 	     (sdir (file-name-directory sem))
+	     (filename (expand-file-name (concat "tests/" fp) sdir))
 	     (semantic-lex-c-nested-namespace-ignore-second nil)
 	     (tags-actual
 	      (save-excursion
+		(unless (file-exists-p filename)
+		  (error "Cannot load %s." filename))
 		(set-buffer (find-file-noselect (expand-file-name (concat "tests/" fp) sdir)))
 		(semantic-clear-toplevel-cache)
 		(semantic-fetch-tags)))
