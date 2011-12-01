@@ -466,16 +466,21 @@ If MML is non-nil, return the buffer up till the correspondent mml tag."
 (defun mml-generate-mime ()
   "Generate a MIME message based on the current MML document."
   (let ((cont (mml-parse))
-	(mml-multipart-number mml-multipart-number))
+	(mml-multipart-number mml-multipart-number)
+	(options message-options))
     (if (not cont)
 	nil
-      (mm-with-multibyte-buffer
-	(if (and (consp (car cont))
-		 (= (length cont) 1))
-	    (mml-generate-mime-1 (car cont))
-	  (mml-generate-mime-1 (nconc (list 'multipart '(type . "mixed"))
-				      cont)))
-	(buffer-string)))))
+      (prog1
+	  (mm-with-multibyte-buffer
+	    (setq message-options options)
+	    (if (and (consp (car cont))
+		     (= (length cont) 1))
+		(mml-generate-mime-1 (car cont))
+	      (mml-generate-mime-1 (nconc (list 'multipart '(type . "mixed"))
+					  cont)))
+	    (setq options message-options)
+	    (buffer-string))
+	(setq message-options options)))))
 
 (defun mml-generate-mime-1 (cont)
   (let ((mm-use-ultra-safe-encoding

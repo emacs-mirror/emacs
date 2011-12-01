@@ -1,32 +1,4 @@
-2011-11-30  Juanma Barranquero  <lekktu@gmail.com>
-
-	* htmlfontify.el (hfy-page-header, hfy-post-html-hooks)
-	(hfy-shell-file-name, hfy-shell):
-	* international/fontset.el (x-decompose-font-name): Fix typos.
-
-2011-11-29  Ken Brown  <kbrown@cornell.edu>
-
-	* progmodes/gdb-mi.el: Fix bug#9853, bug#9858, and bug#9878.
-	(gdb-version): Remove defvar.
-	(gdb-supports-non-stop): New defvar, replacing `gdb-version'.
-	(gdb-gud-context-command, gdb-non-stop-handler)
-	(gdb-current-context-command, gdb-stopped): Use it.
-	(gdb-init-1): Enable pretty printing here.
-	(gdb-non-stop-handler): Don't enable pretty-printing here.  Check
-	to see if the target supports non-stop mode; if not, turn off
-	non-stop mode.  Use the following.
-	(gdb-check-target-async): New defun.
-	(gud-watch, gdb-stopped): Fix whitespace.
-	(gdb-get-source-file): Don't try to display the source file if
-	`gdb-main-file' is nil.
-
-2011-11-29  Stefan Monnier  <monnier@iro.umontreal.ca>
-
-	* align.el: Try to generate fewer markers (bug#10047).
-	(align--set-marker): New macro.
-	(align-region): Use it.
-
-2011-11-29  Michael McNamara  <mac@mail.brushroad.com>
+2011-12-01  Michael McNamara  <mac@mail.brushroad.com>
 
 	* progmodes/verilog-mode.el (verilog-pretty-expr):
 	Rework verilog-pretty-expr to handle new assignment operators in system
@@ -56,7 +28,7 @@
 	(verilog-sk-ovm-class): Add skeleton for OVM classes (reported
 	by Alain Mellan).
 
-2011-11-29  Wilson Snyder  <wsnyder@wsnyder.org>
+2011-12-01  Wilson Snyder  <wsnyder@wsnyder.org>
 
 	* progmodes/verilog-mode.el (verilog-read-defines): Fix reading
 	parameters with embedded comments.  Reported by Ray Stevens.
@@ -180,6 +152,34 @@
 	with multiplication, bug303.
 	(verilog-read-decls): Fix parsing of unsigned data types, bug302.
 	Reported by Jan Frode Lonnum.
+
+2011-11-30  Juanma Barranquero  <lekktu@gmail.com>
+
+	* htmlfontify.el (hfy-page-header, hfy-post-html-hooks)
+	(hfy-shell-file-name, hfy-shell):
+	* international/fontset.el (x-decompose-font-name): Fix typos.
+
+2011-11-29  Ken Brown  <kbrown@cornell.edu>
+
+	* progmodes/gdb-mi.el: Fix bug#9853, bug#9858, and bug#9878.
+	(gdb-version): Remove defvar.
+	(gdb-supports-non-stop): New defvar, replacing `gdb-version'.
+	(gdb-gud-context-command, gdb-non-stop-handler)
+	(gdb-current-context-command, gdb-stopped): Use it.
+	(gdb-init-1): Enable pretty printing here.
+	(gdb-non-stop-handler): Don't enable pretty-printing here.  Check
+	to see if the target supports non-stop mode; if not, turn off
+	non-stop mode.  Use the following.
+	(gdb-check-target-async): New defun.
+	(gud-watch, gdb-stopped): Fix whitespace.
+	(gdb-get-source-file): Don't try to display the source file if
+	`gdb-main-file' is nil.
+
+2011-11-29  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* align.el: Try to generate fewer markers (bug#10047).
+	(align--set-marker): New macro.
+	(align-region): Use it.
 
 2011-11-29  Stefan Monnier  <monnier@iro.umontreal.ca>
 

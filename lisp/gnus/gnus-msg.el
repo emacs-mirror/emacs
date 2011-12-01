@@ -1549,7 +1549,7 @@ this is a reply."
       (message-narrow-to-headers)
       (let ((gcc (or gcc (mail-fetch-field "gcc" nil t)))
 	    (cur (current-buffer))
-	    groups group method group-art
+	    groups group method group-art options
 	    mml-externalize-attachments)
 	(when gcc
 	  (message-remove-header "gcc")
@@ -1573,6 +1573,7 @@ this is a reply."
 		    gnus-gcc-externalize-attachments))
 	    (save-excursion
 	      (nnheader-set-temp-buffer " *acc*")
+	      (setq message-options (with-current-buffer cur message-options))
 	      (insert-buffer-substring cur)
 	      (message-encode-message-body)
 	      (save-restriction
@@ -1629,6 +1630,8 @@ this is a reply."
 			      (boundp 'gnus-inews-mark-gcc-as-read)
 			      (symbol-value 'gnus-inews-mark-gcc-as-read))))
 		(gnus-group-mark-article-read group (cdr group-art)))
+	      (setq options message-options)
+	      (with-current-buffer cur (setq message-options options))
 	      (kill-buffer (current-buffer)))))))))
 
 (defun gnus-inews-insert-gcc (&optional group)
