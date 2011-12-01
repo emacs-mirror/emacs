@@ -754,8 +754,10 @@ POS defaults to `point'."
 
 (defun Man-completion-table (string pred action)
   (cond
-   ((eq action 'lambda)
-    (not (string-match "([^)]*\\'" string)))
+   ;; This ends up returning t for pretty much any string, and hence leads to
+   ;; spurious "complete but not unique" messages.  And since `man' doesn't
+   ;; require-match anyway, there's not point being clever.
+   ;;((eq action 'lambda) (not (string-match "([^)]*\\'" string)))
    ((equal string "-k")
     ;; Let SPC (minibuffer-complete-word) insert the space.
     (complete-with-action action '("-k ") string pred))

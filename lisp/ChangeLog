@@ -1,3 +1,7 @@
+2011-12-01  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* man.el (Man-completion-table): Fix the lambda case (bug#10168).
+
 2011-12-01  Michael McNamara  <mac@mail.brushroad.com>
 
 	* progmodes/verilog-mode.el (verilog-pretty-expr):
