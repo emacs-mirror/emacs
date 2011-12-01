@@ -4507,7 +4507,8 @@ This function could be useful in `message-setup-hook'."
 		   (boundp 'gnus-group-posting-charset-alist))
 	      (gnus-setup-posting-charset nil)
 	    message-posting-charset))
-	 (headers message-required-mail-headers))
+	 (headers message-required-mail-headers)
+	 options)
     (when (and message-generate-hashcash
 	       (not (eq message-generate-hashcash 'opportunistic)))
       (message "Generating hashcash...")
@@ -4546,9 +4547,11 @@ This function could be useful in `message-setup-hook'."
 	      (error "Failed to send the message")))))
       ;; Let the user do all of the above.
       (run-hooks 'message-header-hook))
+    (setq options message-options)
     (unwind-protect
 	(with-current-buffer tembuf
 	  (erase-buffer)
+	  (setq message-options options)
 	  ;; Avoid copying text props (except hard newlines).
 	  (insert (with-current-buffer mailbuf
 		    (mml-buffer-substring-no-properties-except-hard-newlines
@@ -4630,9 +4633,11 @@ If you always want Gnus to send messages in one piece, set
 		(message "Sending via mail...")
 		(funcall (or message-send-mail-real-function
 			     message-send-mail-function)))
-	    (message-send-mail-partially)))
+	    (message-send-mail-partially))
+	  (setq options message-options))
       (kill-buffer tembuf))
     (set-buffer mailbuf)
+    (setq message-options options)
     (push 'mail message-sent-message-via)))
 
 (defvar sendmail-program)
