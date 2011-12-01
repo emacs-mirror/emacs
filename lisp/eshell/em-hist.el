@@ -261,7 +261,12 @@ element, regardless of any text on the command line.  In that case,
 
   (make-local-variable 'eshell-history-size)
   (or eshell-history-size
-      (setq eshell-history-size (getenv "HISTSIZE")))
+      (let ((hsize (getenv "HISTSIZE")))
+        (setq eshell-history-size
+	      (if (and (> (length hsize) 0)
+		       (integerp (setq hsize (string-to-number hsize))))
+		  hsize
+		128))))
 
   (make-local-variable 'eshell-history-file-name)
   (or eshell-history-file-name

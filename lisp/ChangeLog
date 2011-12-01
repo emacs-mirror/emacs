@@ -1,3 +1,8 @@
+2011-12-01  Glenn Morris  <rgm@gnu.org>
+
+	* eshell/em-hist.el (eshell-hist-initialize):
+	Handle eshell-history-size nil and HISTSIZE set or unset.
+
 2011-12-01  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* man.el (Man-completion-table): Fix the lambda case (bug#10168).
