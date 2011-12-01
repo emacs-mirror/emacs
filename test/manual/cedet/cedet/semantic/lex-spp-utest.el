@@ -34,14 +34,16 @@
 (defun semantic-lex-spp-write-utest ()
   "Unit test using the test spp file to test the slot write fcn."
   (interactive)
-  (let* ((sem (locate-library "semantic/lex-spp.el"))
-	 (dir (file-name-directory sem)))
-    (save-excursion
-      (set-buffer (find-file-noselect
-		   (expand-file-name "tests/testsppreplace.c"
+  (let* ((sem (or (locate-library "cedet/semantic/lex-spp-utest.el")
+		  (error "Could not locate library 'cedet/semantic/lex-spp-utest.el'.")))
+	 (dir (file-name-directory sem))
+	 (filename (expand-file-name "tests/testsppreplace.c"
 				     dir)))
+    (save-excursion
+      (unless (file-exists-p filename)
+	(error "Could not find file %s." filename))
+      (set-buffer (find-file-noselect filename))
       (semantic-lex-spp-write-test))))
-
 
 (provide 'cedet/semantic/lex-spp-utest)
 
