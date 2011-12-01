@@ -263,8 +263,9 @@ element, regardless of any text on the command line.  In that case,
   (or eshell-history-size
       (let ((hsize (getenv "HISTSIZE")))
         (setq eshell-history-size
-	      (if (and (> (length hsize) 0)
-		       (integerp (setq hsize (string-to-number hsize))))
+	      (if (and (stringp hsize)
+		       (integerp (setq hsize (string-to-number hsize)))
+		       (> hsize 0))
 		  hsize
 		128))))
 
