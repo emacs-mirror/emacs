@@ -1,3 +1,10 @@
+2011-12-02  Juri Linkov  <juri@jurta.org>
+
+	* isearch.el (isearch-occur): Use `word-search-regexp' for
+	`isearch-word'.
+	(isearch-search-and-update): Add condition for `isearch-word' and
+	call `word-search-regexp'.  (Bug#10145)
+
 2011-12-01  Glenn Morris  <rgm@gnu.org>
 
 	* eshell/em-hist.el (eshell-hist-initialize):

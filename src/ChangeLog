@@ -1,3 +1,12 @@
+2011-12-02  Juri Linkov  <juri@jurta.org>
+
+	* search.c (Fword_search_regexp): New Lisp function created from
+	`wordify'.  Change type of arg `lax' from `int' to `Lisp_Object'.
+	(Fword_search_backward, Fword_search_forward)
+	(Fword_search_backward_lax, Fword_search_forward_lax):
+	Use `Fword_search_regexp' instead of `wordify'.  Doc fix.
+	(syms_of_search): Define `Sword_search_regexp'.  (Bug#10145)
+
 2011-12-01  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* fileio.c (Finsert_file_contents): Move after-change-function call

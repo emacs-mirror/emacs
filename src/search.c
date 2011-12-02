@@ -83,11 +83,10 @@ static struct re_registers search_regs;
    Qnil if no searching has been done yet.  */
 static Lisp_Object last_thing_searched;
 
-/* error condition signaled when regexp compile_pattern fails */
-
+/* Error condition signaled when regexp compile_pattern fails.  */
 static Lisp_Object Qinvalid_regexp;
 
-/* Error condition used for failing searches */
+/* Error condition used for failing searches.  */
 static Lisp_Object Qsearch_failed;
 
 static void set_search_regs (EMACS_INT, EMACS_INT);
@@ -2078,13 +2077,16 @@ set_search_regs (EMACS_INT beg_byte, EMACS_INT nbytes)
   XSETBUFFER (last_thing_searched, current_buffer);
 }
 
-/* Given STRING, a string of words separated by word delimiters,
-   compute a regexp that matches those exact words separated by
-   arbitrary punctuation.  If LAX is nonzero, the end of the string
-   need not match a word boundary unless it ends in whitespace.  */
+DEFUN ("word-search-regexp", Fword_search_regexp, Sword_search_regexp, 1, 2, 0,
+       doc: /* Return a regexp which matches words, ignoring punctuation.
+Given STRING, a string of words separated by word delimiters,
+compute a regexp that matches those exact words separated by
+arbitrary punctuation.  If LAX is non-nil, the end of the string
+need not match a word boundary unless it ends in whitespace.
 
-static Lisp_Object
-wordify (Lisp_Object string, int lax)
+Used in `word-search-forward', `word-search-backward',
+`word-search-forward-lax', `word-search-backward-lax'.  */)
+  (Lisp_Object string, Lisp_Object lax)
 {
   register unsigned char *o;
   register EMACS_INT i, i_byte, len, punct_count = 0, word_count = 0;
@@ -2125,7 +2127,7 @@ wordify (Lisp_Object string, int lax)
     }
 
   adjust = - punct_count + 5 * (word_count - 1)
-    + ((lax && !whitespace_at_end) ? 2 : 4);
+    + ((!NILP (lax) && !whitespace_at_end) ? 2 : 4);
   if (STRING_MULTIBYTE (string))
     val = make_uninit_multibyte_string (len + adjust,
 					SBYTES (string)
@@ -2162,7 +2164,7 @@ wordify (Lisp_Object string, int lax)
       prev_c = c;
     }
 
-  if (!lax || whitespace_at_end)
+  if (NILP (lax) || whitespace_at_end)
     {
       *o++ = '\\';
       *o++ = 'b';
@@ -2217,10 +2219,14 @@ An optional second argument bounds the search; it is a buffer position.
 The match found must not extend before that position.
 Optional third argument, if t, means if fail just return nil (no error).
   If not nil and not t, move to limit of search and return nil.
-Optional fourth argument is repeat count--search for successive occurrences.  */)
+Optional fourth argument is repeat count--search for successive occurrences.
+
+Relies on the function `word-search-regexp' to convert a sequence
+of words in STRING to a regexp used to search words without regard
+to punctuation.  */)
   (Lisp_Object string, Lisp_Object bound, Lisp_Object noerror, Lisp_Object count)
 {
-  return search_command (wordify (string, 0), bound, noerror, count, -1, 1, 0);
+  return search_command (Fword_search_regexp (string, Qnil), bound, noerror, count, -1, 1, 0);
 }
 
 DEFUN ("word-search-forward", Fword_search_forward, Sword_search_forward, 1, 4,
@@ -2231,10 +2237,14 @@ An optional second argument bounds the search; it is a buffer position.
 The match found must not extend after that position.
 Optional third argument, if t, means if fail just return nil (no error).
   If not nil and not t, move to limit of search and return nil.
-Optional fourth argument is repeat count--search for successive occurrences.  */)
+Optional fourth argument is repeat count--search for successive occurrences.
+
+Relies on the function `word-search-regexp' to convert a sequence
+of words in STRING to a regexp used to search words without regard
+to punctuation.  */)
   (Lisp_Object string, Lisp_Object bound, Lisp_Object noerror, Lisp_Object count)
 {
-  return search_command (wordify (string, 0), bound, noerror, count, 1, 1, 0);
+  return search_command (Fword_search_regexp (string, Qnil), bound, noerror, count, 1, 1, 0);
 }
 
 DEFUN ("word-search-backward-lax", Fword_search_backward_lax, Sword_search_backward_lax, 1, 4,
@@ -2249,10 +2259,14 @@ An optional second argument bounds the search; it is a buffer position.
 The match found must not extend before that position.
 Optional third argument, if t, means if fail just return nil (no error).
   If not nil and not t, move to limit of search and return nil.
-Optional fourth argument is repeat count--search for successive occurrences.  */)
+Optional fourth argument is repeat count--search for successive occurrences.
+
+Relies on the function `word-search-regexp' to convert a sequence
+of words in STRING to a regexp used to search words without regard
+to punctuation.  */)
   (Lisp_Object string, Lisp_Object bound, Lisp_Object noerror, Lisp_Object count)
 {
-  return search_command (wordify (string, 1), bound, noerror, count, -1, 1, 0);
+  return search_command (Fword_search_regexp (string, Qt), bound, noerror, count, -1, 1, 0);
 }
 
 DEFUN ("word-search-forward-lax", Fword_search_forward_lax, Sword_search_forward_lax, 1, 4,
@@ -2267,10 +2281,14 @@ An optional second argument bounds the search; it is a buffer position.
 The match found must not extend after that position.
 Optional third argument, if t, means if fail just return nil (no error).
   If not nil and not t, move to limit of search and return nil.
-Optional fourth argument is repeat count--search for successive occurrences.  */)
+Optional fourth argument is repeat count--search for successive occurrences.
+
+Relies on the function `word-search-regexp' to convert a sequence
+of words in STRING to a regexp used to search words without regard
+to punctuation.  */)
   (Lisp_Object string, Lisp_Object bound, Lisp_Object noerror, Lisp_Object count)
 {
-  return search_command (wordify (string, 1), bound, noerror, count, 1, 1, 0);
+  return search_command (Fword_search_regexp (string, Qt), bound, noerror, count, 1, 1, 0);
 }
 
 DEFUN ("re-search-backward", Fre_search_backward, Sre_search_backward, 1, 4,
@@ -3229,6 +3247,7 @@ is to bind it with `let' around a small expression.  */);
   defsubr (&Sposix_string_match);
   defsubr (&Ssearch_forward);
   defsubr (&Ssearch_backward);
+  defsubr (&Sword_search_regexp);
   defsubr (&Sword_search_forward);
   defsubr (&Sword_search_backward);
   defsubr (&Sword_search_forward_lax);

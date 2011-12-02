@@ -1438,12 +1438,7 @@ string.  NLINES has the same meaning as in `occur'."
   (interactive
    (list
     (cond
-     (isearch-word (concat "\\b" (replace-regexp-in-string
-				  "\\W+" "\\W+"
-				  (replace-regexp-in-string
-				   "^\\W+\\|\\W+$" "" isearch-string)
-				  nil t)
-			   "\\b"))
+     (isearch-word (word-search-regexp isearch-string))
      (isearch-regexp isearch-string)
      (t (regexp-quote isearch-string)))
     (if current-prefix-arg (prefix-numeric-value current-prefix-arg))))
@@ -1642,8 +1637,10 @@ Subword is used when `subword-mode' is activated. "
 		   (if (and (eq case-fold-search t) search-upper-case)
 		       (setq case-fold-search
 			     (isearch-no-upper-case-p isearch-string isearch-regexp)))
-		   (looking-at (if isearch-regexp isearch-string
-				 (regexp-quote isearch-string))))
+		   (looking-at (cond
+				(isearch-word (word-search-regexp isearch-string t))
+				(isearch-regexp isearch-string)
+				(t (regexp-quote isearch-string)))))
 	       (error nil))
 	     (or isearch-yank-flag
 		 (<= (match-end 0)
