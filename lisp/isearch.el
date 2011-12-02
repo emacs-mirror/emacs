@@ -2227,7 +2227,7 @@ If there is no completion possible, say so and continue searching."
 		   (if current-input-method
 		       ;; Input methods for RTL languages use RTL
 		       ;; characters for their title, and that messes
-		       ;; up the display of the prompt.
+		       ;; up the display of search text after the prompt.
 		       (bidi-string-mark-left-to-right
 			(concat " [" current-input-method-title "]: "))
 		     ": ")
