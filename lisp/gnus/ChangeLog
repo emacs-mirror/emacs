@@ -1,3 +1,9 @@
+2011-12-02  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* compface.el (uncompface):
+	* gnus-art.el (gnus-article-x-face-command): Update the header format
+	of icon data for the most recent icontopbm program.
+
 2011-12-01  Katsumi Yamaoka  <yamaoka@jpl.org>
 
 	* gnus-msg.el (gnus-inews-do-gcc):

@@ -268,11 +268,14 @@ This can also be a list of the above values."
       (if (or (gnus-image-type-available-p 'xface)
 	      (gnus-image-type-available-p 'pbm))
 	  'gnus-display-x-face-in-from
-	"{ echo '/* Width=48, Height=48 */'; uncompface; } | icontopbm | ee -")
+	"{ echo \
+'/* Format_version=1, Width=48, Height=48, Depth=1, Valid_bits_per_item=16 */'\
+; uncompface; } | icontopbm | ee -")
     (if (gnus-image-type-available-p 'pbm)
 	'gnus-display-x-face-in-from
-      "{ echo '/* Width=48, Height=48 */'; uncompface; } | icontopbm | \
-display -"))
+      "{ echo \
+'/* Format_version=1, Width=48, Height=48, Depth=1, Valid_bits_per_item=16 */'\
+; uncompface; } | icontopbm | display -"))
   "*String or function to be executed to display an X-Face header.
 If it is a string, the command will be executed in a sub-shell
 asynchronously.  The compressed face will be piped to this command."
