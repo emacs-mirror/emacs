@@ -2225,7 +2225,11 @@ If there is no completion possible, say so and continue searching."
 		   (if nonincremental "search" "I-search")
 		   (if isearch-forward "" " backward")
 		   (if current-input-method
-		       (concat " [" current-input-method-title "]: ")
+		       ;; Input methods for RTL languages use RTL
+		       ;; characters for their title, and that messes
+		       ;; up the display of the prompt.
+		       (bidi-string-mark-left-to-right
+			(concat " [" current-input-method-title "]: "))
 		     ": ")
 		   )))
     (propertize (concat (upcase (substring m 0 1)) (substring m 1))

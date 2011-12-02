@@ -1,3 +1,8 @@
+2011-12-02  Eli Zaretskii  <eliz@gnu.org>
+
+	* isearch.el (isearch-message-prefix): Run the input method part
+	of the prompt through bidi-string-mark-left-to-right.  (Bug#10183)
+
 2011-12-02  Juri Linkov  <juri@jurta.org>
 
 	* isearch.el (isearch-occur): Use `word-search-regexp' for
