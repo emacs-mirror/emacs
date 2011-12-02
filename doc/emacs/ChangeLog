@@ -1,3 +1,18 @@
+2011-12-02  Chong Yidong  <cyd@gnu.org>
+
+	* text.texi (Pages): Mention how formfeed chars are displayed.
+	(Auto Fill): Note convention for calling auto-fill-mode from Lisp.
+	Describe adaptive filling more precisely.
+	(Fill Commands): Note that filling removes excess whitespace.
+	(Text Mode): Note auto-mode-alist entries for Text mode.  TAB is
+	now bound to indent-for-tab-command in Text mode.
+	(Outline Mode): Copyedits.
+	(Outline Visibility): Note that Reveal mode is a buffer-local
+	minor mode.
+
+	* modes.texi (Major Modes): Move note about checking major-mode in
+	a hook function here, from Text mode.
+
 2011-11-28  Chong Yidong  <cyd@gnu.org>
 
 	* text.texi (Words): Add xref to Position Info.
