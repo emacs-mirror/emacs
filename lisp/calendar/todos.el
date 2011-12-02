@@ -3369,10 +3369,12 @@ below the todo items."
 
 (defun todos-item-start ()
   "Move to start of current Todos item and return its position."
-  (unless (looking-at "^$")
-	  ;; (or (looking-at "^$")	 ; last item or between done and not done
-	  ;;     ;; FIXME: need this? (was needed by abandoned todos-count-items)
-	  ;;     (looking-at (regexp-quote todos-category-beg)))
+  (unless (or
+	   ;; Point is either on last item in this category or on the empty
+	   ;; line between done and not done items.
+	   (looking-at "^$")
+	   ;; There are no done items in this category yet.
+	   (looking-at (regexp-quote todos-category-beg)))
     (goto-char (line-beginning-position))
     (while (not (looking-at todos-item-start))
       (forward-line -1))

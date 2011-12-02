@@ -1,5 +1,10 @@
 2012-09-19  Stephen Berman  <stephen.berman@gmx.net>
 
+	* calendar/todos.el (todos-item-start): Restore commented out code
+	to prevent wrongly moving point in widened buffer.
+
+2012-09-19  Stephen Berman  <stephen.berman@gmx.net>
+
 	* calendar/todos.el: Remove old commentary from todo-mode.el; add
 	and revise further doc strings and comments; require cl.el at
 	compile time for remove-duplicates; use function powerset from
