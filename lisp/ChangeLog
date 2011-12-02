@@ -1,5 +1,8 @@
 2011-12-02  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* pcmpl-gnu.el (pcomplete/tar): large-file-warn-threshold can be nil
+	(bug#9160).
+
 	* dired-aux.el (dired-query): Don't assume help-char is modifier-free
 	(bug#10191).
 
