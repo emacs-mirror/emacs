@@ -1,3 +1,8 @@
+2011-12-02  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* dired-aux.el (dired-query): Don't assume help-char is modifier-free
+	(bug#10191).
+
 2011-12-02  Juri Linkov  <juri@jurta.org>
 
 	* info.el (Info-search): Display "end of manual" when Isearch
@@ -194,8 +199,8 @@
 	(gdb-gud-context-command, gdb-non-stop-handler)
 	(gdb-current-context-command, gdb-stopped): Use it.
 	(gdb-init-1): Enable pretty printing here.
-	(gdb-non-stop-handler): Don't enable pretty-printing here.  Check
-	to see if the target supports non-stop mode; if not, turn off
+	(gdb-non-stop-handler): Don't enable pretty-printing here.
+	Check to see if the target supports non-stop mode; if not, turn off
 	non-stop mode.  Use the following.
 	(gdb-check-target-async): New defun.
 	(gud-watch, gdb-stopped): Fix whitespace.
