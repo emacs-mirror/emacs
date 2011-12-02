@@ -319,15 +319,15 @@ in Fundamental mode, @code{paragraph-start} is @w{@code{"\f\\|[
 
 @cindex pages
 @cindex formfeed character
-  Within some text files, text is divided into @dfn{pages}, which are
-delimited by the @dfn{formfeed character} (@acronym{ASCII} code 12,
-sometimes denoted as @key{control-L}).  When you print hardcopy for a
-file, the formfeed character forces a page break: each page of the
-file goes on a separate page on paper.  Most Emacs commands treat the
-formfeed character just like any other character: you can insert it
-with @kbd{C-q C-l}, and delete it with @key{DEL}.  However, since
-pages are often meaningful divisions of the file, Emacs provides
-commands to move over them and operate on them.
+  Within some text files, text is divided into @dfn{pages} delimited
+by the @dfn{formfeed character} (@acronym{ASCII} code 12, also denoted
+as @key{control-L}), which is displayed in Emacs as the escape
+sequence @samp{^L} (@pxref{Text Display}).  Traditionally, when such
+text files are printed to hardcopy, each formfeed character forces a
+page break.  Most Emacs commands treat it just like any other
+character, so you can insert it with @kbd{C-q C-l}, delete it with
+@key{DEL}, etc.  In addition, Emacs provides commands to move over
+pages and operate on them.
 
 @table @kbd
 @item M-x what-page
@@ -359,9 +359,9 @@ command moves forward past the next page delimiter.
 @kindex C-x C-p
 @findex mark-page
   The @kbd{C-x C-p} command (@code{mark-page}) puts point at the
-beginning of the current page and the mark at the end.  The page
-delimiter at the end is included (the mark follows it).  The page
-delimiter at the front is excluded (point follows it).
+beginning of the current page (after that page delimiter at the
+front), and the mark at the end of the page (after the page delimiter
+at the end).
 
   @kbd{C-x C-p C-w} is a handy way to kill a page to move it
 elsewhere.  If you move to another page delimiter with @kbd{C-x [} and
@@ -403,9 +403,7 @@ beginning of a line.
 specified width.  Emacs does filling in two ways.  In Auto Fill mode,
 inserting text with self-inserting characters also automatically fills
 it.  There are also explicit fill commands that you can use when editing
-text leaves it unfilled.  When you edit formatted text, you can specify
-a style of filling for each portion of the text (@pxref{Formatted
-Text}).
+text leaves it unfilled.
 
 @menu
 * Auto Fill::      Auto Fill mode breaks long lines automatically.
@@ -419,9 +417,9 @@ Text}).
 @cindex Auto Fill mode
 @cindex mode, Auto Fill
 
-  @dfn{Auto Fill} mode is a minor mode in which lines are broken
-automatically when they become too wide.  Breaking happens only when
-you type a @key{SPC} or @key{RET}.
+  @dfn{Auto Fill} mode is a buffer-local minor mode (@pxref{Minor
+Modes}) in which lines are broken automatically when they become too
+wide.  Breaking happens only when you type a @key{SPC} or @key{RET}.
 
 @table @kbd
 @item M-x auto-fill-mode
@@ -432,44 +430,42 @@ In Auto Fill mode, break lines when appropriate.
 @end table
 
 @findex auto-fill-mode
-  @kbd{M-x auto-fill-mode} turns Auto Fill mode on if it was off, or off
-if it was on.  With a positive numeric argument it always turns Auto
-Fill mode on, and with a negative argument always turns it off.  You can
-see when Auto Fill mode is in effect by the presence of the word
-@samp{Fill} in the mode line, inside the parentheses.  Auto Fill mode is
-a minor mode which is enabled or disabled for each buffer individually.
-@xref{Minor Modes}.
+  The mode command @kbd{M-x auto-fill-mode} toggles Auto Fill mode in
+the current buffer.  With a positive numeric argument, it enables Auto
+Fill mode, and with a negative argument it disables it.  If
+@code{auto-fill-mode} is called from Lisp with an omitted or
+@code{nil} argument, it enables Auto Fill mode.  To enable Auto Fill
+mode automatically in certain major modes, add @code{auto-fill-mode}
+to the mode hooks (@pxref{Major Modes}).  When Auto Fill mode is
+enabled, the mode indicator @samp{Fill} appears in the mode line
+(@pxref{Mode Line}).
 
-  In Auto Fill mode, lines are broken automatically at spaces when they
-get longer than the desired width.  Line breaking and rearrangement
-takes place only when you type @key{SPC} or @key{RET}.  If you wish to
-insert a space or newline without permitting line-breaking, type
-@kbd{C-q @key{SPC}} or @kbd{C-q C-j} (recall that a newline is really a
-control-J).  Also, @kbd{C-o} inserts a newline without line breaking.
+  Auto Fill mode breaks lines automatically at spaces whenever they
+get longer than the desired width.  This line breaking occurs only
+when you type @key{SPC} or @key{RET}.  If you wish to insert a space
+or newline without permitting line-breaking, type @kbd{C-q @key{SPC}}
+or @kbd{C-q C-j} respectively.  Also, @kbd{C-o} inserts a newline
+without line breaking.
 
-  Auto Fill mode works well with programming-language modes, because it
-indents new lines with @key{TAB}.  If a line ending in a comment gets
-too long, the text of the comment is split into two comment lines.
-Optionally, new comment delimiters are inserted at the end of the first
-line and the beginning of the second so that each line is a separate
-comment; the variable @code{comment-multi-line} controls the choice
-(@pxref{Comments}).
+  When Auto Fill mode breaks a line, it tries to obey the
+@dfn{adaptive fill prefix}: if a fill prefix can be deduced from the
+first and/or second line of the current paragraph, it is inserted into
+the new line (@pxref{Adaptive Fill}).  Otherwise the new line is
+indented, as though you had typed @key{TAB} on it
+(@pxref{Indentation}).  In a programming language mode, if a line is
+broken in the middle of a comment, the comment is split by inserting
+new comment delimiters as appropriate.
 
-  Adaptive filling (@pxref{Adaptive Fill}) works for Auto Filling as
-well as for explicit fill commands.  It takes a fill prefix
-automatically from the second or first line of a paragraph.
-
-  Auto Fill mode does not refill entire paragraphs; it can break lines but
-cannot merge lines.  So editing in the middle of a paragraph can result in
-a paragraph that is not correctly filled.  The easiest way to make the
-paragraph properly filled again is usually with the explicit fill commands.
+  Auto Fill mode does not refill entire paragraphs; it breaks lines
+but does not merge lines.  Therefore, editing in the middle of a
+paragraph can result in a paragraph that is not correctly filled.  To
+fill it, call the explicit fill commands
+@iftex
+described in the next section.
+@end iftex
 @ifnottex
-@xref{Fill Commands}.
+(@pxref{Fill Commands}).
 @end ifnottex
-
-  Many users like Auto Fill mode and want to use it in all text files.
-The section on init files says how to arrange this permanently for yourself.
-@xref{Init File}.
 
 @node Fill Commands
 @subsection Explicit Fill Commands
@@ -489,21 +485,23 @@ Center a line.
 
 @kindex M-q
 @findex fill-paragraph
-  To refill a paragraph, use the command @kbd{M-q}
-(@code{fill-paragraph}).  This operates on the paragraph that point is
-inside, or the one after point if point is between paragraphs.
-Refilling works by removing all the line-breaks, then inserting new
-ones where necessary.  When there is an active region, this command
-operates on the text within the region like @code{fill-region}.
+  The command @kbd{M-q} (@code{fill-paragraph}) @dfn{fills} the
+current paragraph.  It redistributes the line breaks within the
+paragraph, and deletes any excess space and tab characters occurring
+within the paragraph, in such a way that the lines end up fitting
+within a certain maximum width.
 
 @findex fill-region
-  To refill many paragraphs, use @kbd{M-x fill-region}, which
-finds the paragraphs in the region and fills each of them.
+  Normally, @kbd{M-q} acts on the paragraph where point is, but if
+point is between paragraphs, it acts on the paragraph after point.  If
+the region is active, it acts instead on the text in the region.  You
+can also call @kbd{M-x fill-region} to specifically fill the text in
+the region.
 
 @findex fill-region-as-paragraph
-  @kbd{M-q} and @code{fill-region} use the same criteria as @kbd{M-h}
-for finding paragraph boundaries (@pxref{Paragraphs}).  For more
-control, you can use @kbd{M-x fill-region-as-paragraph}, which refills
+  @kbd{M-q} and @code{fill-region} use the usual Emacs criteria for
+finding paragraph boundaries (@pxref{Paragraphs}).  For more control,
+you can use @kbd{M-x fill-region-as-paragraph}, which refills
 everything between point and mark as a single paragraph.  This command
 deletes any blank lines within the region, so separate blocks of text
 end up combined into one block.
@@ -513,9 +511,18 @@ end up combined into one block.
 as well as filling it.  This means that extra spaces are inserted to
 make the right margin line up exactly at the fill column.  To remove
 the extra spaces, use @kbd{M-q} with no argument.  (Likewise for
-@code{fill-region}.)  Another way to control justification, and choose
-other styles of filling, is with the @code{justification} text
-property; see @ref{Format Justification}.
+@code{fill-region}.)
+
+@vindex fill-column
+@kindex C-x f
+@findex set-fill-column
+  The maximum line width for filling is specified by the buffer-local
+variable @code{fill-column}.  The default value (@pxref{Locals}) is
+70.  The easiest way to set @code{fill-column} in the current buffer
+is to use the command @kbd{C-x f} (@code{set-fill-column}).  With a
+numeric argument, it uses that as the new fill column.  With just
+@kbd{C-u} as argument, it sets @code{fill-column} to the current
+horizontal position of point.
 
 @kindex M-o M-s @r{(Text mode)}
 @cindex centering
@@ -526,40 +533,27 @@ within the current fill column.  With an argument @var{n}, it centers
 made by Text mode and is available only in that and related modes
 (@pxref{Text Mode}).
 
-@vindex fill-column
-@kindex C-x f
-@findex set-fill-column
-  The maximum line width for filling is in the variable
-@code{fill-column}.  Altering the value of @code{fill-column} makes it
-local to the current buffer; until that time, the default value is in
-effect.  The default is initially 70.  @xref{Locals}.  The easiest way
-to set @code{fill-column} is to use the command @kbd{C-x f}
-(@code{set-fill-column}).  With a numeric argument, it uses that as the
-new fill column.  With just @kbd{C-u} as argument, it sets
-@code{fill-column} to the current horizontal position of point.
-
-  Emacs commands normally consider a period followed by two spaces or by
-a newline as the end of a sentence; a period followed by just one space
-indicates an abbreviation and not the end of a sentence.  To preserve
-the distinction between these two ways of using a period, the fill
-commands do not break a line after a period followed by just one space.
-
-  If the variable @code{sentence-end-double-space} is @code{nil}, the
-fill commands expect and leave just one space at the end of a sentence.
-Ordinarily this variable is @code{t}, so the fill commands insist on
-two spaces for the end of a sentence, as explained above.  @xref{Sentences}.
+  By default, Emacs considers a period followed by two spaces or by a
+newline as the end of a sentence; a period followed by just one space
+indicates an abbreviation, not the end of a sentence.  Accordingly,
+the fill commands will not break a line after a period followed by
+just one space.  If you change the variable
+@code{sentence-end-double-space} to a non-@code{nil} value, the fill
+commands will break a line after a period followed by one space, and
+put just one space after each period.  @xref{Sentences}, for other
+effects and possible drawbacks of this.
 
 @vindex colon-double-space
   If the variable @code{colon-double-space} is non-@code{nil}, the
 fill commands put two spaces after a colon.
 
 @vindex fill-nobreak-predicate
-  The variable @code{fill-nobreak-predicate} is a hook (an abnormal
-hook, @pxref{Hooks}) specifying additional conditions where
-line-breaking is not allowed.  Each function is called with no
-arguments, with point at a place where Emacs is considering breaking
-the line.  If a function returns a non-@code{nil} value, then that's
-a bad place to break the line.  Two standard functions you can use are
+  To specify additional conditions where line-breaking is not allowed,
+customize the abnormal hook variable @code{fill-nobreak-predicate}
+(@pxref{Hooks}).  Each function in this hook is called with no
+arguments, with point positioned where Emacs is considering breaking a
+line.  If a function returns a non-@code{nil} value, Emacs will not
+break the line there.  Two functions you can use are
 @code{fill-single-word-nobreak-p} (don't break after the first word of
 a sentence or before the last) and @code{fill-french-nobreak-p} (don't
 break after @samp{(} or before @samp{)}, @samp{:} or @samp{?}).
@@ -568,12 +562,11 @@ break after @samp{(} or before @samp{)}, @samp{:} or @samp{?}).
 @subsection The Fill Prefix
 
 @cindex fill prefix
-  To fill a paragraph in which each line starts with a special marker
-(which might be a few spaces, giving an indented paragraph), you can use
-the @dfn{fill prefix} feature.  The fill prefix is a string that Emacs
-expects every line to start with, and which is not included in filling.
-You can specify a fill prefix explicitly; Emacs can also deduce the
-fill prefix automatically (@pxref{Adaptive Fill}).
+  The @dfn{fill prefix} feature allows paragraphs to be filled so that
+each line starts with a special string of characters (such as a
+sequence of spaces, giving an indented paragraph).  You can specify a
+fill prefix explicitly; otherwise, Emacs tries to deduce one
+automatically (@pxref{Adaptive Fill}).
 
 @table @kbd
 @item C-x .
@@ -597,15 +590,15 @@ after the @kbd{C-x}.)  To turn off the fill prefix, specify an empty
 prefix: type @w{@kbd{C-x .}}@: with point at the beginning of a line.
 
   When a fill prefix is in effect, the fill commands remove the fill
-prefix from each line of the paragraph before filling and insert it on
-each line after filling.  (The beginning of the first line of the
+prefix from each line of the paragraph before filling, and insert it
+on each line after filling.  (The beginning of the first line of the
 paragraph is left unchanged, since often that is intentionally
 different.)  Auto Fill mode also inserts the fill prefix automatically
-when it makes a new line.  The @kbd{C-o} command inserts the fill
-prefix on new lines it creates, when you use it at the beginning of a
-line (@pxref{Blank Lines}).  Conversely, the command @kbd{M-^} deletes
-the prefix (if it occurs) after the newline that it deletes
-(@pxref{Indentation}).
+when it makes a new line (@pxref{Auto Fill}).  The @kbd{C-o} command
+inserts the fill prefix on new lines it creates, when you use it at
+the beginning of a line (@pxref{Blank Lines}).  Conversely, the
+command @kbd{M-^} deletes the prefix (if it occurs) after the newline
+that it deletes (@pxref{Indentation}).
 
   For example, if @code{fill-column} is 40 and you set the fill prefix
 to @samp{;; }, then @kbd{M-q} in the following text
@@ -755,17 +748,16 @@ Convert region to upper case (@code{upcase-region}).
 @findex downcase-word
 @findex upcase-word
 @findex capitalize-word
-  The word conversion commands are the most useful.  @kbd{M-l}
-(@code{downcase-word}) converts the word after point to lower case, moving
-past it.  Thus, repeating @kbd{M-l} converts successive words.
-@kbd{M-u} (@code{upcase-word}) converts to all capitals instead, while
-@kbd{M-c} (@code{capitalize-word}) puts the first letter of the word
-into upper case and the rest into lower case.  All these commands convert
-several words at once if given an argument.  They are especially convenient
-for converting a large amount of text from all upper case to mixed case,
-because you can move through the text using @kbd{M-l}, @kbd{M-u} or
-@kbd{M-c} on each word as appropriate, occasionally using @kbd{M-f} instead
-to skip a word.
+  @kbd{M-l} (@code{downcase-word}) converts the word after point to
+lower case, moving past it.  Thus, repeating @kbd{M-l} converts
+successive words.  @kbd{M-u} (@code{upcase-word}) converts to all
+capitals instead, while @kbd{M-c} (@code{capitalize-word}) puts the
+first letter of the word into upper case and the rest into lower case.
+All these commands convert several words at once if given an argument.
+They are especially convenient for converting a large amount of text
+from all upper case to mixed case, because you can move through the
+text using @kbd{M-l}, @kbd{M-u} or @kbd{M-c} on each word as
+appropriate, occasionally using @kbd{M-f} instead to skip a word.
 
   When given a negative argument, the word case conversion commands apply
 to the appropriate number of words before point, but do not move point.
@@ -799,9 +791,10 @@ enable the command, which means it will not ask for confirmation again.
 @cindex mode, Text
 @findex text-mode
 
-  When you edit files of text in a human language, it's more convenient
-to use Text mode rather than Fundamental mode.  To enter Text mode, type
-@kbd{M-x text-mode}.
+  Text mode is a major mode for editing files of text in a human
+language.  Files which have names ending in the extension @file{.txt}
+are usually opened in Text mode (@pxref{Choosing Modes}).  To
+explicitly switch to Text mode, type @kbd{M-x text-mode}.
 
   In Text mode, only blank lines and page delimiters separate
 paragraphs.  As a result, paragraphs can be indented, and adaptive
@@ -809,46 +802,49 @@ filling determines what indentation to use when filling a paragraph.
 @xref{Adaptive Fill}.
 
 @kindex TAB @r{(Text mode)}
-  Text mode defines @key{TAB} to run @code{indent-relative}
-(@pxref{Indentation}), so that you can conveniently indent a line like
-the previous line.
+  In Text mode, the @key{TAB} (@code{indent-for-tab-command}) command
+usually inserts whitespace up to the next tab stop, instead of
+indenting the current line.  @xref{Indentation}, for details.
 
   Text mode turns off the features concerned with comments except when
 you explicitly invoke them.  It changes the syntax table so that
-single-quotes are considered part of words.  However, if a word starts
-with single-quotes, these are treated as a prefix for purposes such as
-capitalization.  That is, @kbd{M-c} will convert @samp{'hello'} into
-@samp{'Hello'}, as expected.
+single-quotes are considered part of words (e.g. @samp{don't} is
+considered one word).  However, if a word starts with a single-quote,
+it is treated as a prefix for the purposes of capitalization
+(e.g. @kbd{M-c} converts @samp{'hello'} into @samp{'Hello'}, as
+expected).
 
 @cindex Paragraph-Indent Text mode
 @cindex mode, Paragraph-Indent Text
 @findex paragraph-indent-text-mode
 @findex paragraph-indent-minor-mode
   If you indent the first lines of paragraphs, then you should use
-Paragraph-Indent Text mode rather than Text mode.  In this mode, you
-do not need to have blank lines between paragraphs, because the
-first-line indentation is sufficient to start a paragraph; however
-paragraphs in which every line is indented are not supported.  Use
-@kbd{M-x paragraph-indent-text-mode} to enter this mode.  Use @kbd{M-x
-paragraph-indent-minor-mode} to enable an equivalent minor mode in
-situations where you can't change the major mode---in mail
+Paragraph-Indent Text mode (@kbd{M-x paragraph-indent-text-mode})
+rather than Text mode.  In that mode, you do not need to have blank
+lines between paragraphs, because the first-line indentation is
+sufficient to start a paragraph; however paragraphs in which every
+line is indented are not supported.  Use @kbd{M-x
+paragraph-indent-minor-mode} to enable an equivalent minor mode for
+situations where you shouldn't change the major mode---in mail
 composition, for instance.
 
 @kindex M-TAB @r{(Text mode)}
-  Text mode, and all the modes based on it, define @kbd{M-@key{TAB}}
-as the command @code{ispell-complete-word}, which performs completion
-of the partial word in the buffer before point, using the spelling
-dictionary as the space of possible words.  @xref{Spelling}.  If your
-window manager defines @kbd{M-@key{TAB}} to switch windows, you can
-type @kbd{@key{ESC} @key{TAB}} or @kbd{C-M-i}.
+  Text mode binds @kbd{M-@key{TAB}} to @code{ispell-complete-word}.
+This command performs completion of the partial word in the buffer
+before point, using the spelling dictionary as the space of possible
+words.  @xref{Spelling}.  If your window manager defines
+@kbd{M-@key{TAB}} to switch windows, you can type @kbd{@key{ESC}
+@key{TAB}} or @kbd{C-M-i} instead.
 
 @vindex text-mode-hook
-  Entering Text mode runs the hook @code{text-mode-hook}.  Other major
-modes related to Text mode also run this hook, followed by hooks of
-their own; this includes Paragraph-Indent Text mode, Nroff mode,
-@TeX{} mode, Outline mode, and Message mode.  Hook functions on
-@code{text-mode-hook} can look at the value of @code{major-mode} to
-see which of these modes is actually being entered.  @xref{Hooks}.
+  Entering Text mode runs the mode hook @code{text-mode-hook}
+(@pxref{Major Modes}).
+
+  The following sections describe several major modes that are
+@dfn{derived} from Text mode.  These derivatives share most of the
+features of Text mode described above.  In particular, derivatives of
+Text mode run @code{text-mode-hook} prior to running their own mode
+hooks.
 
 @node Outline Mode
 @section Outline Mode
@@ -859,29 +855,34 @@ see which of these modes is actually being entered.  @xref{Hooks}.
 @findex outline-mode
 @findex outline-minor-mode
 @vindex outline-minor-mode-prefix
-  Outline mode is a major mode much like Text mode but intended for
-editing outlines.  It allows you to make parts of the text temporarily
-invisible so that you can see the outline structure.  Type @kbd{M-x
-outline-mode} to switch to Outline mode as the major mode of the current
-buffer.
+@vindex outline-mode-hook
+  Outline mode is a major mode derived from Text mode, which is
+specialized for editing outlines.  It provides commands to navigate
+between entries in the outline structure, and commands to make parts
+of a buffer temporarily invisible, so that the outline structure may
+be more easily viewed.  Type @kbd{M-x outline-mode} to switch to
+Outline mode.  Entering Outline mode runs the hook
+@code{text-mode-hook} followed by the hook @code{outline-mode-hook}
+(@pxref{Hooks}).
 
-  When Outline mode makes a line invisible, the line does not appear
-on the screen.  The screen appears exactly as if the invisible line
-were deleted, except that an ellipsis (three periods in a row) appears
-at the end of the previous visible line.  (Multiple consecutive
-invisible lines produce just one ellipsis.)
+  When you use an Outline mode command to make a line invisible
+(@pxref{Outline Visibility}), the line disappears from the screen.  An
+ellipsis (three periods in a row) is displayed at the end of the
+previous visible line, to indicate the hidden text.  Multiple
+consecutive invisible lines produce just one ellipsis.
 
   Editing commands that operate on lines, such as @kbd{C-n} and
-@kbd{C-p}, treat the text of the invisible line as part of the previous
-visible line.  Killing the ellipsis at the end of a visible line
-really kills all the following invisible lines.
+@kbd{C-p}, treat the text of the invisible line as part of the
+previous visible line.  Killing the ellipsis at the end of a visible
+line really kills all the following invisible text associated with the
+ellipsis.
 
-  Outline minor mode provides the same commands as the major mode,
-Outline mode, but you can use it in conjunction with other major modes.
-Type @kbd{M-x outline-minor-mode} to enable the Outline minor mode in
-the current buffer.  You can also specify this in the text of a file,
-with a file local variable of the form @samp{mode: outline-minor}
-(@pxref{File Variables}).
+  Outline minor mode is a buffer-local minor mode which provides the
+same commands as the major mode, Outline mode, but can be used in
+conjunction with other major modes.  You can type @kbd{M-x
+outline-minor-mode} to toggle Outline minor mode in the current
+buffer, or use a file-local variable setting to enable it in a
+specific file (@pxref{File Variables}).
 
 @kindex C-c @@ @r{(Outline minor mode)}
   The major mode, Outline mode, provides special key bindings on the
@@ -890,17 +891,12 @@ with a file local variable of the form @samp{mode: outline-minor}
 major mode's special commands.  (The variable
 @code{outline-minor-mode-prefix} controls the prefix used.)
 
-@vindex outline-mode-hook
-  Entering Outline mode runs the hook @code{text-mode-hook} followed by
-the hook @code{outline-mode-hook} (@pxref{Hooks}).
-
 @menu
-* Format: Outline Format.          What the text of an outline looks like.
-* Motion: Outline Motion.          Special commands for moving through
-                                     outlines.
-* Visibility: Outline Visibility.  Commands to control what is visible.
-* Views: Outline Views.            Outlines and multiple views.
-* Foldout::                        Folding means zooming in on outlines.
+* Outline Format::      What the text of an outline looks like.
+* Outline Motion::      Special commands for moving through outlines.
+* Outline Visibility::  Commands to control what is visible.
+* Outline Views::       Outlines and multiple views.
+* Foldout::             Folding means zooming in on outlines.
 @end menu
 
 @node Outline Format
@@ -910,13 +906,13 @@ the hook @code{outline-mode-hook} (@pxref{Hooks}).
 @cindex body lines (Outline mode)
   Outline mode assumes that the lines in the buffer are of two types:
 @dfn{heading lines} and @dfn{body lines}.  A heading line represents a
-topic in the outline.  Heading lines start with one or more stars; the
-number of stars determines the depth of the heading in the outline
-structure.  Thus, a heading line with one star is a major topic; all the
-heading lines with two stars between it and the next one-star heading
-are its subtopics; and so on.  Any line that is not a heading line is a
-body line.  Body lines belong with the preceding heading line.  Here is
-an example:
+topic in the outline.  Heading lines start with one or more asterisk
+(@samp{*}) characters; the number of asterisks determines the depth of
+the heading in the outline structure.  Thus, a heading line with one
+@samp{*} is a major topic; all the heading lines with two @samp{*}s
+between it and the next one-@samp{*} heading are its subtopics; and so
+on.  Any line that is not a heading line is a body line.  Body lines
+belong with the preceding heading line.  Here is an example:
 
 @example
 * Food
@@ -998,12 +994,10 @@ Move point up to a lower-level (more inclusive) visible heading line
 @findex outline-previous-visible-heading
 @kindex C-c C-n @r{(Outline mode)}
 @kindex C-c C-p @r{(Outline mode)}
-  @kbd{C-c C-n} (@code{outline-next-visible-heading}) moves down to the next
-heading line.  @kbd{C-c C-p} (@code{outline-previous-visible-heading}) moves
-similarly backward.  Both accept numeric arguments as repeat counts.  The
-names emphasize that invisible headings are skipped, but this is not really
-a special feature.  All editing commands that look for lines ignore the
-invisible lines automatically.
+  @kbd{C-c C-n} (@code{outline-next-visible-heading}) moves down to
+the next heading line.  @kbd{C-c C-p}
+(@code{outline-previous-visible-heading}) moves similarly backward.
+Both accept numeric arguments as repeat counts.
 
 @findex outline-up-heading
 @findex outline-forward-same-level
@@ -1011,21 +1005,19 @@ invisible lines automatically.
 @kindex C-c C-f @r{(Outline mode)}
 @kindex C-c C-b @r{(Outline mode)}
 @kindex C-c C-u @r{(Outline mode)}
-  More powerful motion commands understand the level structure of headings.
-@kbd{C-c C-f} (@code{outline-forward-same-level}) and
+  The commands @kbd{C-c C-f} (@code{outline-forward-same-level}) and
 @kbd{C-c C-b} (@code{outline-backward-same-level}) move from one
-heading line to another visible heading at the same depth in
-the outline.  @kbd{C-c C-u} (@code{outline-up-heading}) moves
-backward to another heading that is less deeply nested.
+heading line to another visible heading at the same depth in the
+outline.  @kbd{C-c C-u} (@code{outline-up-heading}) moves backward to
+another heading that is less deeply nested.
 
 @node Outline Visibility
 @subsection Outline Visibility Commands
 
-  The other special commands of outline mode are used to make lines visible
-or invisible.  Their names all start with @code{hide} or @code{show}.
-Most of them fall into pairs of opposites.  They are not undoable; instead,
-you can undo right past them.  Making lines visible or invisible is simply
-not recorded by the undo mechanism.
+  Outline mode provides several commands for temporarily hiding or
+revealing parts of the buffer, based on the outline structure.  These
+commands are not undoable; their effects are simply not recorded by
+the undo mechanism, so you can undo right past them (@pxref{Undo}).
 
   Many of these commands act on the ``current'' heading line.  If
 point is on a heading line, that is the current heading line; if point
@@ -1069,72 +1061,64 @@ the headings leading up from there to the top level of the outline
 @findex show-entry
 @kindex C-c C-c @r{(Outline mode)}
 @kindex C-c C-e @r{(Outline mode)}
-  Two commands that are exact opposites are @kbd{C-c C-c}
-(@code{hide-entry}) and @kbd{C-c C-e} (@code{show-entry}).  They apply
-to the body lines directly following the current heading line.
-Subheadings and their bodies are not affected.
+  The simplest of these commands are @kbd{C-c C-c}
+(@code{hide-entry}), which hides the body lines directly following the
+current heading line, and @kbd{C-c C-e} (@code{show-entry}), which
+reveals them.  Subheadings and their bodies are not affected.
 
 @findex hide-subtree
 @findex show-subtree
 @kindex C-c C-s @r{(Outline mode)}
 @kindex C-c C-d @r{(Outline mode)}
 @cindex subtree (Outline mode)
-  Two more powerful opposites are @kbd{C-c C-d} (@code{hide-subtree})
-and @kbd{C-c C-s} (@code{show-subtree}).  Both apply to the current
-heading line's @dfn{subtree}: its body, all its subheadings, both
-direct and indirect, and all of their bodies.  In other words, the
-subtree contains everything following the current heading line, up to
-and not including the next heading of the same or higher rank.
+  The commands @kbd{C-c C-d} (@code{hide-subtree}) and @kbd{C-c C-s}
+(@code{show-subtree}) are more powerful.  They apply to the current
+heading line's @dfn{subtree}: its body, all of its subheadings, both
+direct and indirect, and all of their bodies.
 
 @findex hide-leaves
 @findex show-branches
+@findex show-children
 @kindex C-c C-l @r{(Outline mode)}
 @kindex C-c C-k @r{(Outline mode)}
-  Intermediate between a visible subtree and an invisible one is having
-all the subheadings visible but none of the body.  There are two
-commands for doing this, depending on whether you want to hide the
-bodies or make the subheadings visible.  They are @kbd{C-c C-l}
-(@code{hide-leaves}) and @kbd{C-c C-k} (@code{show-branches}).
-
 @kindex C-c C-i @r{(Outline mode)}
-@findex show-children
-  A little weaker than @code{show-branches} is @kbd{C-c C-i}
-(@code{show-children}).  It makes just the direct subheadings
-visible---those one level down.  Deeper subheadings remain invisible, if
-they were invisible.
+  The command @kbd{C-c C-l} (@code{hide-leaves}) hides the body of the
+current heading line as well as all the bodies in its subtree; the
+subheadings themselves are left visible.  The command @kbd{C-c C-k}
+(@code{show-branches}) reveals the subheadings, if they had previously
+been hidden (e.g. by @kbd{C-c C-d}).  The command @kbd{C-c C-i}
+(@code{show-children}) is a weaker version of this; it reveals just
+the direct subheadings, i.e. those one level down.
+
+@findex hide-other
+@kindex C-c C-o @r{(Outline mode)}
+  The command @kbd{C-c C-o} (@code{hide-other}) hides everything
+except the entry that point is in, plus its parents (the headers
+leading up from there to top level in the outline) and the top level
+headings.
 
 @findex hide-body
 @findex show-all
 @kindex C-c C-t @r{(Outline mode)}
 @kindex C-c C-a @r{(Outline mode)}
-  Two commands have a blanket effect on the whole file.  @kbd{C-c C-t}
-(@code{hide-body}) makes all body lines invisible, so that you see just
-the outline structure (as a special exception, it will not hide lines
-at the top of the file, preceding the first header line, even though
-these are technically body lines).  @kbd{C-c C-a} (@code{show-all})
-makes all lines visible.  These commands can be thought of as a pair
-of opposites even though @kbd{C-c C-a} applies to more than just body
-lines.
-
 @findex hide-sublevels
 @kindex C-c C-q @r{(Outline mode)}
-  The command @kbd{C-c C-q} (@code{hide-sublevels}) hides all but the
-top level headings.  With a numeric argument @var{n}, it hides everything
-except the top @var{n} levels of heading lines.
-
-@findex hide-other
-@kindex C-c C-o @r{(Outline mode)}
-  The command @kbd{C-c C-o} (@code{hide-other}) hides everything except
-the heading and body text that point is in, plus its parents (the headers
-leading up from there to top level in the outline) and the top level
-headings.
+  The remaining commands affect the whole buffer.  @kbd{C-c C-t}
+(@code{hide-body}) makes all body lines invisible, so that you see
+just the outline structure (as a special exception, it will not hide
+lines at the top of the file, preceding the first header line, even
+though these are technically body lines).  @kbd{C-c C-a}
+(@code{show-all}) makes all lines visible.  @kbd{C-c C-q}
+(@code{hide-sublevels}) hides all but the top level headings; with a
+numeric argument @var{n}, it hides everything except the top @var{n}
+levels of heading lines.
 
 @findex reveal-mode
   When incremental search finds text that is hidden by Outline mode,
-it makes that part of the buffer visible.  If you exit the search
-at that position, the text remains visible.  You can also
-automatically make text visible as you navigate in it by using
-@kbd{M-x reveal-mode}.
+it makes that part of the buffer visible.  If you exit the search at
+that position, the text remains visible.  You can also automatically
+make text visible as you navigate in it by using Reveal mode (@kbd{M-x
+reveal-mode}), a buffer-local minor mode.
 
 @node Outline Views
 @subsection Viewing One Outline in Multiple Views
@@ -1254,7 +1238,7 @@ it in order for this to take effect.
 
   To use the Foldout package, you can type @kbd{M-x load-library
 @key{RET} foldout @key{RET}}; or you can arrange for to do that
-automatically by putting this in your @file{.emacs} file:
+automatically by putting this in your init file (@pxref{Init File}):
 
 @example
 (eval-after-load "outline" '(require 'foldout))

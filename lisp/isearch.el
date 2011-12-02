@@ -1438,12 +1438,7 @@ string.  NLINES has the same meaning as in `occur'."
   (interactive
    (list
     (cond
-     (isearch-word (concat "\\b" (replace-regexp-in-string
-				  "\\W+" "\\W+"
-				  (replace-regexp-in-string
-				   "^\\W+\\|\\W+$" "" isearch-string)
-				  nil t)
-			   "\\b"))
+     (isearch-word (word-search-regexp isearch-string))
      (isearch-regexp isearch-string)
      (t (regexp-quote isearch-string)))
     (if current-prefix-arg (prefix-numeric-value current-prefix-arg))))
@@ -1642,8 +1637,10 @@ Subword is used when `subword-mode' is activated. "
 		   (if (and (eq case-fold-search t) search-upper-case)
 		       (setq case-fold-search
 			     (isearch-no-upper-case-p isearch-string isearch-regexp)))
-		   (looking-at (if isearch-regexp isearch-string
-				 (regexp-quote isearch-string))))
+		   (looking-at (cond
+				(isearch-word (word-search-regexp isearch-string t))
+				(isearch-regexp isearch-string)
+				(t (regexp-quote isearch-string)))))
 	       (error nil))
 	     (or isearch-yank-flag
 		 (<= (match-end 0)
@@ -2228,7 +2225,11 @@ If there is no completion possible, say so and continue searching."
 		   (if nonincremental "search" "I-search")
 		   (if isearch-forward "" " backward")
 		   (if current-input-method
-		       (concat " [" current-input-method-title "]: ")
+		       ;; Input methods for RTL languages use RTL
+		       ;; characters for their title, and that messes
+		       ;; up the display of search text after the prompt.
+		       (bidi-string-mark-left-to-right
+			(concat " [" current-input-method-title "]: "))
 		     ": ")
 		   )))
     (propertize (concat (upcase (substring m 0 1)) (substring m 1))

@@ -4100,6 +4100,16 @@ variable `last-coding-system-used' to the coding system actually used.  */)
     adjust_after_insert (PT, PT_BYTE, PT + inserted, PT_BYTE + inserted,
 			 inserted);
 
+  /* Call after-change hooks for the inserted text, aside from the case
+     of normal visiting (not with REPLACE), which is done in a new buffer
+     "before" the buffer is changed.  */
+  if (inserted > 0 && total > 0
+      && (NILP (visit) || !NILP (replace)))
+    {
+      signal_after_change (PT, 0, inserted);
+      update_compositions (PT, PT, CHECK_BORDER);
+    }
+
   /* Now INSERTED is measured in characters.  */
 
  handled:
@@ -4268,16 +4278,6 @@ variable `last-coding-system-used' to the coding system actually used.  */)
 	BVAR (current_buffer, undo_list) = EQ (old_undo, Qt) ? Qt : Qnil;
 
       unbind_to (count1, Qnil);
-    }
-
-  /* Call after-change hooks for the inserted text, aside from the case
-     of normal visiting (not with REPLACE), which is done in a new buffer
-     "before" the buffer is changed.  */
-  if (inserted > 0 && total > 0
-      && (NILP (visit) || !NILP (replace)))
-    {
-      signal_after_change (PT, 0, inserted);
-      update_compositions (PT, PT, CHECK_BORDER);
     }
 
   if (!NILP (visit)

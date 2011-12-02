@@ -309,7 +309,8 @@
                      (let* ((fa (file-attributes (pcomplete-arg 1)))
                             (size (nth 7 fa)))
                        (and (numberp size)
-                            (< size large-file-warning-threshold))))
+                            (or (null large-file-warning-threshold)
+                                (< size large-file-warning-threshold)))))
                 (let ((file (pcomplete-arg 1)))
                   (completion-table-dynamic
                    (lambda (_string)

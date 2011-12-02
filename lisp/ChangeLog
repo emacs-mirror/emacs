@@ -1,3 +1,38 @@
+2011-12-02  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* pcmpl-gnu.el (pcomplete/tar): large-file-warn-threshold can be nil
+	(bug#9160).
+
+	* dired-aux.el (dired-query): Don't assume help-char is modifier-free
+	(bug#10191).
+
+2011-12-02  Juri Linkov  <juri@jurta.org>
+
+	* info.el (Info-search): Display "end of manual" when Isearch
+	reaches the end of single-file Info manual.  (Bug#9918)
+
+2011-12-02  Eli Zaretskii  <eliz@gnu.org>
+
+	* isearch.el (isearch-message-prefix): Run the input method part
+	of the prompt through bidi-string-mark-left-to-right.  (Bug#10183)
+
+2011-12-02  Juri Linkov  <juri@jurta.org>
+
+	* isearch.el (isearch-occur): Use `word-search-regexp' for
+	`isearch-word'.
+	(isearch-search-and-update): Add condition for `isearch-word' and
+	call `word-search-regexp'.  (Bug#10145)
+
+2011-12-01  Glenn Morris  <rgm@gnu.org>
+
+	* eshell/em-hist.el (eshell-hist-initialize):
+	Handle eshell-history-size nil and HISTSIZE set or unset.
+	(eshell-history-file-name, eshell-history-size): Fix custom type.
+
+2011-12-01  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* man.el (Man-completion-table): Fix the lambda case (bug#10168).
+
 2011-12-01  Michael McNamara  <mac@mail.brushroad.com>
 
 	* progmodes/verilog-mode.el (verilog-pretty-expr):
@@ -167,8 +202,8 @@
 	(gdb-gud-context-command, gdb-non-stop-handler)
 	(gdb-current-context-command, gdb-stopped): Use it.
 	(gdb-init-1): Enable pretty printing here.
-	(gdb-non-stop-handler): Don't enable pretty-printing here.  Check
-	to see if the target supports non-stop mode; if not, turn off
+	(gdb-non-stop-handler): Don't enable pretty-printing here.
+	Check to see if the target supports non-stop mode; if not, turn off
 	non-stop mode.  Use the following.
 	(gdb-check-target-async): New defun.
 	(gud-watch, gdb-stopped): Fix whitespace.
