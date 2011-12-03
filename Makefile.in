@@ -66,6 +66,11 @@ CDPATH=
 
 # ==================== Things `configure' Might Edit ====================
 
+MAINTAINER_MODE_FLAG = --disable-maintainer-mode
+@MAINT@MAINTAINER_MODE_FLAG = --enable-maintainer-mode
+cache_file = @cache_file@
+CONFIGURE_FLAGS = --cache-file=$(cache_file) $(MAINTAINER_MODE_FLAG)
+
 CC=@CC@
 CFLAGS=@CFLAGS@
 LDFLAGS=@LDFLAGS@
@@ -404,7 +409,7 @@ config.status: ${srcdir}/configure ${srcdir}/lisp/version.el
 	if [ -x ./config.status ]; then	\
 	    ./config.status --recheck;	\
 	else				\
-	    ./configure;		\
+	    ./configure $(CONFIGURE_FLAGS); \
 	fi
 
 AUTOCONF_INPUTS = @MAINT@ $(srcdir)/configure.in $(srcdir)/aclocal.m4
@@ -936,7 +941,7 @@ bootstrap: bootstrap-clean FRC
 	if [ -x ./config.status ]; then           \
 	    ./config.status;                      \
 	else                                      \
-	    ./configure --enable-maintainer-mode; \
+	    ./configure $(CONFIGURE_FLAGS);       \
 	fi
 	$(MAKE) $(MFLAGS) info all
 
