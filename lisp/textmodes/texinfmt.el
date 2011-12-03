@@ -4238,7 +4238,7 @@ the @ifeq command."
 Must be used only with -batch, and kills Emacs on completion.
 Each file will be processed even if an error occurred previously.
 For example, invoke
-  \"emacs -batch -funcall batch-texinfo-format $docs/ ~/*.texinfo\"."
+  \"emacs -batch -l texinfmt -f batch-texinfo-format $docs/ ~/*.texinfo\"."
   (if (not noninteractive)
       (error "batch-texinfo-format may only be used -batch"))
   (let ((version-control t)
