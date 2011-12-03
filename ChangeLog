@@ -1,7 +1,7 @@
 2011-12-03  Paul Eggert  <eggert@cs.ucla.edu>
 
 	Propagate configure flags to sub-configures.
-	* Makefile.in (cache_file, ENABLE_MAINTAINER_MODE, CONFIGUREFLAGS):
+	* Makefile.in (cache_file, MAINTAINER_MODE_FLAG, CONFIGUREFLAGS):
 	New macros.
 	(config.status, bootstrap): Use them to propagate configure flags
 	to sub-configures.
