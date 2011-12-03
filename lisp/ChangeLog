@@ -1,3 +1,9 @@
+2011-12-03  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* progmodes/prolog.el (prolog-find-value-by-system): Avoid error when
+	there's no inferior buffer (bug#10196).
+	(prolog-consult-compile): Don't use toggle-read-only.
+
 2011-12-02  Michael Albinus  <michael.albinus@gmx.de>
 
 	* net/tramp-sh.el (tramp-maybe-open-connection): Handle user

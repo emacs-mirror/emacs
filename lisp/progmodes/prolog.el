@@ -868,8 +868,9 @@ VERSION is of the format (Major . Minor)"
 (defun prolog-find-value-by-system (alist)
   "Get value from ALIST according to `prolog-system'."
   (let ((system (or prolog-system
-                    (buffer-local-value 'prolog-system
-                                        (prolog-inferior-buffer 'dont-run)))))
+                    (let ((infbuf (prolog-inferior-buffer 'dont-run)))
+                      (when infbuf
+                        (buffer-local-value 'prolog-system infbuf))))))
     (if (listp alist)
         (let (result
               id)
@@ -1522,7 +1523,7 @@ This function must be called from the source code buffer."
           ;; Emacs-20).
             (set (make-local-variable 'compilation-parse-errors-function)
                'prolog-parse-sicstus-compilation-errors))
-      (toggle-read-only 0)
+      (setq buffer-read-only nil)
       (insert command-string "\n"))
     (save-selected-window
       (pop-to-buffer buffer))
