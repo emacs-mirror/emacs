@@ -197,11 +197,13 @@ Returns nil when we can't find this char."
 ;; value, which only works well if the variable is preloaded.
 ;;;###autoload
 (defvar electric-indent-chars '(?\n)
-  "Characters that should cause automatic reindentation.
-Each entry of the list can be either a character or a cons of the
-form (CHAR . PREDICATE) which means that CHAR should cause reindentation
-only if PREDICATE returns non-nil.  PREDICATE is called with no arguments
-and with point before the inserted char.")
+  "Characters that should cause automatic reindentation.")
+
+(defvar electric-indent-functions nil
+  "Special hook run to decide whether to auto-indent.
+Each function is called with one argument (the inserted char), with
+point right after that char, and it should return t to cause indentation,
+`no-indent' to prevent indentation or nil to let other functions decide.")
 
 (defun electric-indent-post-self-insert-function ()
   ;; FIXME: This reindents the current line, but what we really want instead is
@@ -212,18 +214,21 @@ and with point before the inserted char.")
   ;; There might be a way to get it working by analyzing buffer-undo-list, but
   ;; it looks challenging.
   (let (pos)
-    (when (and (or (memq last-command-event electric-indent-chars)
-                   (let ((cp (assq last-command-event electric-indent-chars)))
-                     (and cp (setq pos (electric--after-char-pos))
-                          (save-excursion
-                            (goto-char (1- pos))
-                            (funcall (cdr cp))))))
-               ;; Don't reindent while inserting spaces at beginning of line.
-               (or (not (memq last-command-event '(?\s ?\t)))
-                   (save-excursion (skip-chars-backward " \t") (not (bolp))))
-               (setq pos (electric--after-char-pos))
-               ;; Not in a string or comment.
-               (not (nth 8 (save-excursion (syntax-ppss pos)))))
+    (when (and
+           ;; Don't reindent while inserting spaces at beginning of line.
+           (or (not (memq last-command-event '(?\s ?\t)))
+               (save-excursion (skip-chars-backward " \t") (not (bolp))))
+           (setq pos (electric--after-char-pos))
+           (save-excursion
+             (goto-char pos)
+             (let ((act (or (run-hook-with-args-until-success
+                             'electric-indent-functions
+                             last-command-event)
+                            (memq last-command-event electric-indent-chars))))
+               (not
+                (or (memq act '(nil no-indent))
+                    ;; In a string or comment.
+                    (unless (eq act 'do-indent) (nth 8 (syntax-ppss))))))))
       ;; For newline, we want to reindent both lines and basically behave like
       ;; reindent-then-newline-and-indent (whose code we hence copied).
       (when (< (1- pos) (line-beginning-position))
@@ -231,7 +236,7 @@ and with point before the inserted char.")
           (save-excursion
             (unless (memq indent-line-function
                           '(indent-relative indent-to-left-margin
-                            indent-relative-maybe))
+                                            indent-relative-maybe))
               ;; Don't reindent the previous line if the indentation function
               ;; is not a real one.
               (goto-char before)
