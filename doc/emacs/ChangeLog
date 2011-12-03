@@ -1,3 +1,9 @@
+2011-12-03  Eli Zaretskii  <eliz@gnu.org>
+
+	* display.texi (Auto Scrolling): More accurate description of what
+	scroll-*-aggressively does, including the effect of non-zero
+	margin.  Fix "i.e." markup.
+
 2011-12-02  Chong Yidong  <cyd@gnu.org>
 
 	* text.texi (Pages): Mention how formfeed chars are displayed.

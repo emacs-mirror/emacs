@@ -238,25 +238,31 @@ centered after scrolling.
 @cindex aggressive scrolling
 @vindex scroll-up-aggressively
 @vindex scroll-down-aggressively
-  When the window does scroll by a longer distance, you can control
-how aggressively it scrolls by setting the variables
-@code{scroll-up-aggressively} and @code{scroll-down-aggressively}.
-The value of @code{scroll-up-aggressively} should be either
-@code{nil}, or a fraction @var{f} between 0 and 1.  A fraction
-specifies where on the screen to put point when scrolling upward,
-i.e. forward.  When point goes off the window end, the new start
-position is chosen to put point @var{f} parts of the window height
-from the bottom.  Thus, larger @var{f} means more aggressive
-scrolling: more new text is brought into view.  The default value,
-@code{nil}, is equivalent to 0.5.
+  When the window does scroll by a distance longer than
+@code{scroll-step}, you can control how aggressively it scrolls by
+setting the variables @code{scroll-up-aggressively} and
+@code{scroll-down-aggressively}.  The value of
+@code{scroll-up-aggressively} should be either @code{nil}, or a
+fraction @var{f} between 0 and 1.  A fraction specifies where on the
+screen to put point when scrolling upward, i.e.@: forward.  When point
+goes off the window end, the new start position is chosen to put point
+@var{f} parts of the window height from the bottom margin.  Thus,
+larger @var{f} means more aggressive scrolling: more new text is
+brought into view.  The default value, @code{nil}, is equivalent to
+0.5.
 
   Likewise, @code{scroll-down-aggressively} is used for scrolling
-down, i.e. backward.  The value specifies how far point should be
-placed from the top of the window; thus, as with
+down, i.e.@: backward.  The value specifies how far point should be
+placed from the top margin of the window; thus, as with
 @code{scroll-up-aggressively}, a larger value is more aggressive.
 
   These two variables are ignored if either @code{scroll-step} or
 @code{scroll-conservatively} are set to a non-zero value.
+
+  Note that @code{scroll-margin}, described below, limits the amount
+of scrolling so as to put point outside of the top or bottom margin,
+even if aggressive scrolling specifies a fraction @var{f} that is
+larger than the window portion between the top and the bottom margins.
 
 @vindex scroll-margin
   The variable @code{scroll-margin} restricts how close point can come
