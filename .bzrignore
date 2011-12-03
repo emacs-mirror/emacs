@@ -1,6 +1,7 @@
 ./_dir-locals.el
 ./bin
 ./BIN
+./config.cache
 ./config.log
 ./config.status
 ./data
