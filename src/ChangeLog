@@ -1,3 +1,13 @@
+2011-12-03  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* widget.c (update_wm_hints): Return if wmshell is null.
+	(widget_update_wm_size_hints): New function.
+
+	* widget.h (widget_update_wm_size_hints): Declare.
+
+	* xterm.c (x_wm_set_size_hint): If USE_X_TOOLKIT, call
+	widget_update_wm_size_hints (Bug#10104).
+
 2011-12-03  Eli Zaretskii  <eliz@gnu.org>
 
 	* xdisp.c (handle_invisible_prop): If the invisible text ends just
