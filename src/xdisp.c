@@ -15617,7 +15617,7 @@ redisplay_window (Lisp_Object window, int just_this_one_p)
 	      pt_offset = float_amount * WINDOW_BOX_TEXT_HEIGHT (w);
 	      if (pt_offset == 0 && float_amount > 0)
 		pt_offset = 1;
-	      if (pt_offset)
+	      if (pt_offset && margin > 0)
 		margin -= 1;
 	    }
 	  /* Compute how much to move the window start backward from

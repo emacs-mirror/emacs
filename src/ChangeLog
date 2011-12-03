@@ -3,6 +3,7 @@
 	* xdisp.c (handle_invisible_prop): If the invisible text ends just
 	before a newline, prepare the bidi iterator for consuming the
 	newline, and keep the current paragraph direction.  (Bug#10183)
+	(redisplay_window): Don't let `margin' become negative.  (Bug#10192)
 
 2011-12-02  Juri Linkov  <juri@jurta.org>
 
