@@ -1,5 +1,7 @@
 2011-12-03  Paul Eggert  <eggert@cs.ucla.edu>
 
+	* INSTALL.BZR: Mention configure -C, --disable-maintainer-mode.
+
 	Propagate configure flags to sub-configures.
 	* Makefile.in (cache_file, MAINTAINER_MODE_FLAG, CONFIGUREFLAGS):
 	New macros.
