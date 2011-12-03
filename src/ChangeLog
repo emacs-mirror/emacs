@@ -1,3 +1,9 @@
+2011-12-03  Eli Zaretskii  <eliz@gnu.org>
+
+	* xdisp.c (handle_invisible_prop): If the invisible text ends just
+	before a newline, prepare the bidi iterator for consuming the
+	newline, and keep the current paragraph direction.  (Bug#10183)
+
 2011-12-02  Juri Linkov  <juri@jurta.org>
 
 	* search.c (Fword_search_regexp): New Lisp function created from
