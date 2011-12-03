@@ -1,5 +1,10 @@
 2011-12-03  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* electric.el: Streamline electric-indent's hook.
+	(electric-indent-chars): Revert to simple list.
+	(electric-indent-functions): New var.
+	(electric-indent-post-self-insert-function): Use it.
+
 	* progmodes/prolog.el (prolog-find-value-by-system): Avoid error when
 	there's no inferior buffer (bug#10196).
 	(prolog-consult-compile): Don't use toggle-read-only.
