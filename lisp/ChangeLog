@@ -1,3 +1,8 @@
+2011-12-02  Michael Albinus  <michael.albinus@gmx.de>
+
+	* net/tramp-sh.el (tramp-maybe-open-connection): Handle user
+	interrupt.  (Bug#10187)
+
 2011-12-02  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* pcmpl-gnu.el (pcomplete/tar): large-file-warn-threshold can be nil
