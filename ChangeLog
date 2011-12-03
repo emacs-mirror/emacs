@@ -1,5 +1,14 @@
 2011-12-03  Paul Eggert  <eggert@cs.ucla.edu>
 
+	Propagate configure flags to sub-configures.
+	* Makefile.in (cache_file, ENABLE_MAINTAINER_MODE, CONFIGUREFLAGS):
+	New macros.
+	(config.status, bootstrap): Use them to propagate configure flags
+	to sub-configures.
+	* configure.in (cache_file): AC_SUBST this, for Makefile.in.
+
+2011-12-03  Paul Eggert  <eggert@cs.ucla.edu>
+
 	* .bzrignore: Add config.cache.
 
 2011-11-27  Jan Djärv  <jan.h.d@swipnet.se>

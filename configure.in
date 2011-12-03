@@ -182,6 +182,9 @@ OPTION_DEFAULT_ON([gnutls],[don't use -lgnutls for SSL/TLS support])
 dnl http://lists.gnu.org/archive/html/emacs-devel/2008-04/msg01844.html
 OPTION_DEFAULT_ON([makeinfo],[don't require makeinfo for building manuals])
 
+## Makefile.in needs the cache file name.
+AC_SUBST(cache_file)
+
 ## This is an option because I do not know if all info/man support
 ## compressed files, nor how to test if they do so.
 OPTION_DEFAULT_ON([compress-info],[don't compress the installed Info pages])
