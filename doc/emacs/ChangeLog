@@ -1,3 +1,29 @@
+2011-12-03  Chong Yidong  <cyd@gnu.org>
+
+	* text.texi (TeX Mode): Mention AUCTeX package.
+	(TeX Editing): Add xref to documentation for Occur.
+	(LaTeX Editing): Add xref to Completion node.
+	(TeX Print): Fix description of tex-directory.
+	(Enriched Text): Renamed from Formatted Text.  Make this node and
+	its subnodes less verbose, since text/enriched files are
+	practically unused.
+	(Enriched Mode): Renamed from Requesting Formatted Text.
+	(Format Colors): Node deleted.
+	(Enriched Faces): Renamed from Format Faces.  Describe commands
+	for applying colors too.
+	(Forcing Enriched Mode): Node deleted; merged into Enriched Mode.
+
+	* frames.texi (Menu Mouse Clicks): Tweak description of C-Mouse-2.
+
+	* display.texi (Colors): New node.
+
+	* cmdargs.texi (Colors X):
+	* xresources.texi (GTK styles):
+	* custom.texi (Face Customization): Reference it.
+
+	* glossary.texi (Glossary): Remove "formatted text" and "WYSIWYG".
+	Link to Fill Commands for Justification entry.
+
 2011-12-03  Eli Zaretskii  <eliz@gnu.org>
 
 	* display.texi (Auto Scrolling): More accurate description of what
