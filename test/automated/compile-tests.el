@@ -41,7 +41,7 @@
      1 nil 17 "fplot.f")
     ;; Ada & Mpatrol
     ("foo.adb:61:11:  [...] in call to size declared at foo.ads:11"
-     1 10 61 "foo.adb")
+     1 11 61 "foo.adb")
     ("foo.adb:61:11:  [...] in call to size declared at foo.ads:11"
      52 nil 11 "foo.ads")
     ("     0x8008621 main+16 at error.c:17"
@@ -55,7 +55,7 @@
     ("[javac] /src/DataBaseTestCase.java:49: warning: finally clause cannot complete normally"
      13 nil 49 "/src/DataBaseTestCase.java")
     ("[jikes]  foo.java:3:5:7:9: blah blah"
-     14 (4 . 9) (3 . 7) "foo.java")
+     14 (5 . 10) (3 . 7) "foo.java")
     ;; bash
     ("a.sh: line 1: ls-l: command not found"
      1 nil 1 "a.sh")
@@ -70,9 +70,9 @@
      1 nil 68 "pong.c")
     ;; caml
     ("File \"foobar.ml\", lines 5-8, characters 20-155: blah blah"
-     1 (19 . 155) (5 . 8) "foobar.ml")
+     1 (20 . 156) (5 . 8) "foobar.ml")
     ("File \"F:\\ocaml\\sorting.ml\", line 65, characters 2-145:\nWarning 26: unused variable equ."
-     1 (1 . 145) 65 "F:\\ocaml\\sorting.ml")
+     1 (2 . 146) 65 "F:\\ocaml\\sorting.ml")
     ("File \"/usr/share/gdesklets/display/TargetGauge.py\", line 41, in add_children"
      1 nil 41 "/usr/share/gdesklets/display/TargetGauge.py")
     ("File \\lib\\python\\Products\\PythonScripts\\PythonScript.py, line 302, in _exec"
@@ -83,13 +83,13 @@
     ("\"foo.f\", line 3: Error: syntax error near end of statement"
      1 nil 3 "foo.f")
     ("\"vvouch.c\", line 19.5: 1506-046 (S) Syntax error."
-     1 4 19 "vvouch.c")
+     1 5 19 "vvouch.c")
     ("\"foo.c\", line 32 pos 1; (E) syntax error; unexpected symbol: \"lossage\""
-     1 0 32 "foo.c")
+     1 1 32 "foo.c")
     ("\"foo.adb\", line 2(11): warning: file name does not match ..."
-     1 10 2 "foo.adb")
+     1 11 2 "foo.adb")
     ("\"src/swapping.c\", line 30.34: 1506-342 (W) \"/*\" detected in comment."
-     1 33 30 "src/swapping.c")
+     1 34 30 "src/swapping.c")
     ;; cucumber
     ("Scenario: undefined step  # features/cucumber.feature:3"
      29 nil 3 "features/cucumber.feature")
@@ -115,7 +115,7 @@
     ("Warning near line 10 file arrayclash.f: Module contains no executable"
      1 nil 10 "arrayclash.f")
     ("Nonportable usage near line 31 col 9 file assign.f: mixed default and explicit"
-     24 8 31 "assign.f")
+     24 9 31 "assign.f")
     ;; iar
     ("\"foo.c\",3  Error[32]: Error message"
      1 nil 3 "foo.c")
@@ -123,11 +123,11 @@
      1 nil 3 "foo.c")
     ;; ibm
     ("foo.c(2:0) : informational EDC0804: Function foo is not referenced."
-     1 -1 2 "foo.c")
+     1 0 2 "foo.c")
     ("foo.c(3:8) : warning EDC0833: Implicit return statement encountered."
-     1 7 3 "foo.c")
+     1 8 3 "foo.c")
     ("foo.c(5:5) : error EDC0350: Syntax error."
-     1 4 5 "foo.c")
+     1 5 5 "foo.c")
     ;; irix
     ("ccom: Error: foo.c, line 2: syntax error"
      1 nil 2 "foo.c")
@@ -163,7 +163,7 @@
     ("In file included from /usr/include/c++/3.3/backward/warn.h:4,"
      1 nil 4 "/usr/include/c++/3.3/backward/warn.h")
     ("                 from /usr/include/c++/3.3/backward/iostream.h:31:0,"
-     1 -1 31 "/usr/include/c++/3.3/backward/iostream.h")
+     1 0 31 "/usr/include/c++/3.3/backward/iostream.h")
     ("                 from test_clt.cc:1:"
      1 nil 1 "test_clt.cc")
     ;; gnu
@@ -173,15 +173,15 @@
     ("foo/bar.py:8: FutureWarning message" 1 nil 8 "foo/bar.py")
     ("foo.py:8: RuntimeWarning message" 1 nil 8 "foo.py")
     ("foo.c:8:I: message" 1 nil 8 "foo.c")
-    ("foo.c:8.23: note: message" 1 22 8 "foo.c")
-    ("foo.c:8.23: info: message" 1 22 8 "foo.c")
-    ("foo.c:8:23:information: message" 1 22 8 "foo.c")
-    ("foo.c:8.23-45: Informational: message" 1 (22 . nil) (8 . 45) "foo.c")
+    ("foo.c:8.23: note: message" 1 23 8 "foo.c")
+    ("foo.c:8.23: info: message" 1 23 8 "foo.c")
+    ("foo.c:8:23:information: message" 1 23 8 "foo.c")
+    ("foo.c:8.23-45: Informational: message" 1 (23 . nil) (8 . 45) "foo.c")
     ("foo.c:8-23: message" 1 nil (8 . 23) "foo.c")
-    ("foo.c:8-45.3: message" 1 (nil . 3) (8 . 45) "foo.c")
-    ("foo.c:8.23-9.1: message" 1 (22 . 1) (8 . 9) "foo.c")
+    ("foo.c:8-45.3: message" 1 (nil . 4) (8 . 45) "foo.c")
+    ("foo.c:8.23-9.1: message" 1 (23 . 2) (8 . 9) "foo.c")
     ("jade:dbcommon.dsl:133:17:E: missing argument for function call"
-     1 16 133 "dbcommon.dsl")
+     1 17 133 "dbcommon.dsl")
     ("G:/cygwin/dev/build-myproj.xml:54: Compiler Adapter 'javac' can't be found."
      1 nil 54 "G:/cygwin/dev/build-myproj.xml")
     ("file:G:/cygwin/dev/build-myproj.xml:54: Compiler Adapter 'javac' can't be found."
@@ -189,8 +189,8 @@
     ("{standard input}:27041: Warning: end of file not at end of a line; newline inserted"
      1 nil 27041 "{standard input}")
     ;; lcc
-    ("E, file.cc(35,52) Illegal operation on pointers" 1 51 35 "file.cc")
-    ("W, file.cc(36,52) blah blah" 1 51 36 "file.cc")
+    ("E, file.cc(35,52) Illegal operation on pointers" 1 52 35 "file.cc")
+    ("W, file.cc(36,52) blah blah" 1 52 36 "file.cc")
     ;; makepp
     ("makepp: Scanning `/foo/bar.c'" 19 nil nil "/foo/bar.c")
     ("makepp: warning: bla bla `/foo/bar.c' and `/foo/bar.h'" 27 nil nil "/foo/bar.c")
@@ -198,7 +198,7 @@
     ("makepp: bla bla `/foo/bar.c' and `/foo/bar.h'" 35 nil nil "/foo/bar.h")
     ;; maven
     ("FooBar.java:[111,53] no interface expected here"
-     1 52 111 "FooBar.java")
+     1 53 111 "FooBar.java")
     ;; mips-1 mips-2
     ("TrimMask (255) in solomon.c may be indistinguishable from TrimMasks (93) in solomo.c due to truncation"
      11 nil 255 "solomon.c")
@@ -220,17 +220,17 @@
      1 nil 120 "..\src\ctrl\lister.c")
     ;; oracle
     ("Semantic error at line 528, column 5, file erosacqdb.pc:"
-     1 4 528 "erosacqdb.pc")
+     1 5 528 "erosacqdb.pc")
     ("Error at line 41, column 10 in file /usr/src/sb/ODBI_BHP.hpp"
-     1 9 41 "/usr/src/sb/ODBI_BHP.hpp")
+     1 10 41 "/usr/src/sb/ODBI_BHP.hpp")
     ("PCC-02150: error at line 49, column 27 in file /usr/src/sb/ODBI_dxfgh.pc"
-     1 26 49 "/usr/src/sb/ODBI_dxfgh.pc")
+     1 27 49 "/usr/src/sb/ODBI_dxfgh.pc")
     ("PCC-00003: invalid SQL Identifier at column name in line 12 of file /usr/src/sb/ODBI_BHP.hpp"
      1 nil 12 "/usr/src/sb/ODBI_BHP.hpp")
     ("PCC-00004: mismatched IF/ELSE/ENDIF block at line 27 in file /usr/src/sb/ODBI_BHP.hpp"
      1 nil 27 "/usr/src/sb/ODBI_BHP.hpp")
     ("PCC-02151: line 21 column 40 file /usr/src/sb/ODBI_BHP.hpp:"
-     1 39 21 "/usr/src/sb/ODBI_BHP.hpp")
+     1 40 21 "/usr/src/sb/ODBI_BHP.hpp")
     ;; perl
     ("syntax error at automake line 922, near \"':'\""
      14 nil 922 "automake")
@@ -262,9 +262,9 @@
      1 nil 10 "examples/test-unit.rb")
     ;; rxp
     ("Error: Mismatched end tag: expected </geroup>, got </group>\nin unnamed entity at line 71 char 8 of file:///home/reto/test/group.xml"
-     1 7 71 "/home/reto/test/group.xml")
+     1 8 71 "/home/reto/test/group.xml")
     ("Warning: Start tag for undeclared element geroup\nin unnamed entity at line 4 char 8 of file:///home/reto/test/group.xml"
-     1 7 4 "/home/reto/test/group.xml")
+     1 8 4 "/home/reto/test/group.xml")
     ;; sparc-pascal-file sparc-pascal-line sparc-pascal-example
     ("Thu May 14 10:46:12 1992  mom3.p:"
      1 nil nil "mom3.p")
@@ -274,10 +274,10 @@
     ("cc-1070 cc: WARNING File = linkl.c, Line = 38"
      13 nil 38 "linkl.c")
     ("cf90-113 f90comp: ERROR NSE, File = Hoved.f90, Line = 16, Column = 3"
-     18 2 16 "Hoved.f90")
+     18 3 16 "Hoved.f90")
     ;; sun-ada
     ("/home3/xdhar/rcds_rc/main.a, line 361, char 6:syntax error: \",\" inserted"
-     1 5 361 "/home3/xdhar/rcds_rc/main.a")
+     1 6 361 "/home3/xdhar/rcds_rc/main.a")
     ;; 4bsd
     ("/usr/src/foo/foo.c(8): warning: w may be used before set"
      1 nil 8 "/usr/src/foo/foo.c")
@@ -300,7 +300,7 @@
      1 nil 46 "t/foo.t")
     ;; weblint
     ("index.html (13:1) Unknown element <fdjsk>"
-     1 0 13 "index.html"))
+     1 1 13 "index.html"))
   "List of tests for `compilation-error-regexp-alist'.
 Each element has the form (STR POS COLUMN LINE FILENAME), where
 STR is an error string, POS is the position of the error in STR,
