@@ -202,7 +202,7 @@ amount of work you can lose in case of a crash.  @xref{Auto Save}.
 
 @item
 Enriched mode enables editing and saving of formatted text.
-@xref{Formatted Text}.
+@xref{Enriched Text}.
 
 @item
 Flyspell mode automatically highlights misspelled words.

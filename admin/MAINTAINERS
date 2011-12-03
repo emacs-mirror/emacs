@@ -99,6 +99,7 @@ Eli Zaretskii
 	src/xfaces.c
 	src/xdisp.c
 	src/term.c
+	src/dispnew.c
 	src/frame.c
 	src/dired.c
 
@@ -108,6 +109,7 @@ Eli Zaretskii
 	lisp/info.el
 	lisp/ls-lisp.el
 	lisp/startup.el
+	lisp/w32*.el
 
 Stefan Monnier
 	src/intervals.c
@@ -148,7 +150,6 @@ src/coding.c
 src/composite.c
 src/config.in
 src/data.c
-src/dispnew.c
 src/doc.c
 src/doprnt.c
 src/ecrt0.c
@@ -214,7 +215,6 @@ src/w32term.c
 src/w32xfns.c
 src/widget.c
 src/window.c
-src/xdisp.c
 src/xfns.c
 src/xmenu.c
 src/xrdb.c

@@ -476,6 +476,9 @@ update_wm_hints (EmacsFrame ew)
   int base_height;
   int min_rows = 0, min_cols = 0;
 
+  /* This happens when the frame is just created.  */
+  if (! wmshell) return;
+
 #if 0
   check_frame_size (ew->emacs_frame.frame, &min_rows, &min_cols);
 #endif
@@ -505,6 +508,14 @@ update_wm_hints (EmacsFrame ew)
 		 XtNminHeight, (XtArgVal) (base_height + min_rows * ch),
 		 NULL);
 }
+
+void
+widget_update_wm_size_hints (Widget widget)
+{
+  EmacsFrame ew = (EmacsFrame)widget;
+  update_wm_hints (ew);
+}
+
 
 #if 0
 

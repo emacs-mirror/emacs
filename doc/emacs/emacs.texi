@@ -113,25 +113,6 @@ Emacs Lisp Reference Manual}.
 @insertcopying
 @end ifnottex
 
-@ignore
-These subcategories have been deleted for simplicity
-and to avoid conflicts.
-Completion
-Backup Files
-Auto-Saving: Protection Against Disasters
-Tags
-Text Mode
-Outline Mode
-@TeX{} Mode
-Formatted Text
-Shell Command History
-
-The ones for Dired and Rmail have had the items turned into :: items
-to avoid conflicts.
-Also Running Shell Commands from Emacs
-and Sending Mail and Registers and Minibuffer.
-@end ignore
-
 @menu
 * Distrib::             How to get the latest Emacs distribution.
 * Intro::               An introduction to Emacs concepts.
@@ -350,6 +331,7 @@ Controlling the Display
 * View Mode::              Viewing read-only buffers.
 * Follow Mode::            Follow mode lets two windows scroll as one.
 * Faces::                  How to change the display style using faces.
+* Colors::                 Specifying colors for faces.
 * Standard Faces::         Emacs' predefined faces.
 * Text Scale::             Increasing or decreasing text size in a buffer.
 * Font Lock::              Minor mode for syntactic highlighting using faces.
@@ -569,8 +551,8 @@ Commands for Human Languages
 * TeX Mode::            Editing input to the formatter TeX.
 * HTML Mode::           Editing HTML and SGML files.
 * Nroff Mode::          Editing input to the formatter nroff.
-* Formatted Text::      Editing formatted text directly in WYSIWYG fashion.
-* Text Based Tables::   Editing text-based tables in WYSIWYG fashion.
+* Enriched Text::       Editing text ``enriched'' with fonts, colors, etc.
+* Text Based Tables::   Commands for editing text-based tables.
 * Two-Column::          Splitting text columns into separate windows.
 
 Filling Text
@@ -597,18 +579,16 @@ Outline Mode
 * TeX Print::           Commands for printing part of a file with TeX.
 * TeX Misc::            Customization of TeX mode, and related features.
 
-Editing Formatted Text
+Editing Enriched Text
 
-* Requesting Formatted Text::   Entering and exiting Enriched mode.
-* Hard and Soft Newlines::      There are two different kinds of newlines.
-* Editing Format Info::         How to edit text properties.
-* Format Faces::                Bold, italic, underline, etc.
-* Format Colors::               Changing the color of text.
-* Format Indentation::          Changing the left and right margins.
-* Format Justification::        Centering, setting text flush with the
-                                  left or right margin, etc.
-* Format Properties::           The "special" text properties submenu.
-* Forcing Enriched Mode::       How to force use of Enriched mode.
+* Enriched Mode::           Entering and exiting Enriched mode.
+* Hard and Soft Newlines::  There are two different kinds of newlines.
+* Editing Format Info::     How to edit text properties.
+* Enriched Faces::          Bold, italic, underline, etc.
+* Enriched Indentation::    Changing the left and right margins.
+* Enriched Justification::  Centering, setting text flush with the
+                              left or right margin, etc.
+* Enriched Properties::     The "special" text properties submenu.
 
 @c The automatic texinfo menu update inserts some duplicate items here
 @c (faces, colors, indentation, justification, properties), because
@@ -1150,7 +1130,7 @@ Command Line Arguments for Emacs Invocation
 * Environment::         Environment variables that Emacs uses.
 * Display X::           Changing the default display and using remote login.
 * Font X::              Choosing a font for text, under X.
-* Colors::              Choosing display colors.
+* Colors X::            Choosing display colors.
 * Window Size X::       Start-up window size, under X.
 * Borders X::           Internal and external borders, under X.
 * Title X::             Specifying the initial frame's title.
