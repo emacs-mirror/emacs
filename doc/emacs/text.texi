@@ -1298,8 +1298,8 @@ more information, see the documentation string for the command
 @code{bibtex-mode}.
 
 @item
-The Ref@TeX{} package provides a minor mode which can be used in
-conjunction with La@TeX{} mode to manage bibliographic references.
+The Ref@TeX{} package provides a minor mode which can be used with
+La@TeX{} mode to manage bibliographic references.
 @ifinfo
 @xref{Top,The Ref@TeX{} Manual,,reftex}.
 @end ifinfo
@@ -1781,13 +1781,16 @@ always insert explicit closing tags as well.
 
 @cindex nroff
 @findex nroff-mode
-  Nroff mode is a mode like Text mode but modified to handle nroff commands
-present in the text.  Invoke @kbd{M-x nroff-mode} to enter this mode.  It
-differs from Text mode in only a few ways.  All nroff command lines are
-considered paragraph separators, so that filling will never garble the
-nroff commands.  Pages are separated by @samp{.bp} commands.  Comments
-start with backslash-doublequote.  Also, three special commands are
-provided that are not in Text mode:
+@vindex nroff-mode-hook
+  Nroff mode is a major mode derived from Text mode, which is
+specialized for editing nroff files (e.g.@: Unix man pages).  Type
+@kbd{M-x nroff-mode} to enter this mode.  Entering Nroff mode runs the
+hook @code{text-mode-hook}, followed by @code{nroff-mode-hook}
+(@pxref{Hooks}).
+
+  In Nroff mode, nroff command lines are treated as paragraph
+separators, pages are separated by @samp{.bp} commands, and comments
+start with backslash-doublequote.  It also defines these commands:
 
 @findex forward-text-line
 @findex backward-text-line
@@ -1807,23 +1810,16 @@ nroff commands) in the region (@code{count-text-lines}).
 @end table
 
 @findex electric-nroff-mode
-  The other feature of Nroff mode is that you can turn on Electric Nroff
-mode.  This is a minor mode that you can turn on or off with @kbd{M-x
+  Electric Nroff mode is a buffer-local minor mode that can be used
+with Nroff mode.  To toggle this minor mode, type @kbd{M-x
 electric-nroff-mode} (@pxref{Minor Modes}).  When the mode is on, each
-time you use @key{RET} to end a line that contains an nroff command that
-opens a kind of grouping, the matching nroff command to close that
-grouping is automatically inserted on the following line.  For example,
-if you are at the beginning of a line and type @kbd{.@: ( b @key{RET}},
-this inserts the matching command @samp{.)b} on a new line following
-point.
+time you type @key{RET} to end a line containing an nroff command that
+opens a kind of grouping, the nroff command to close that grouping is
+automatically inserted on the following line.
 
-  If you use Outline minor mode with Nroff mode (@pxref{Outline Mode}),
-heading lines are lines of the form @samp{.H} followed by a number (the
-header level).
-
-@vindex nroff-mode-hook
-  Entering Nroff mode runs the hook @code{text-mode-hook}, followed by
-the hook @code{nroff-mode-hook} (@pxref{Hooks}).
+  If you use Outline minor mode with Nroff mode (@pxref{Outline
+Mode}), heading lines are lines of the form @samp{.H} followed by a
+number (the header level).
 
 @node Enriched Text
 @section Enriched Text
@@ -2149,18 +2145,16 @@ hides text), and @code{intangible} (which disallows moving point
 within the text).  The @samp{Remove Special} menu item removes all of
 these special properties from the text in the region.
 
-  The @code{invisible} and @code{intangible} properties are @emph{not}
-saved in the text/enriched format.  The @code{read-only} property is
-saved, but it is not a standard part of the text/enriched format, so
-other editors may not respect it.
+  The @code{invisible} and @code{intangible} properties are not saved
+in the @samp{text/enriched} format.
 
 @node Text Based Tables
 @section Editing Text-based Tables
 @cindex table mode
 @cindex text-based tables
 
-  Table mode provides an easy and intuitive way to create and edit
-text-based tables.  Here is an example of such a table:
+  The @code{table} package provides commands to easily edit text-based
+tables.  Here is an example of what such a table looks like:
 
 @smallexample
 @group
@@ -2170,27 +2164,23 @@ text-based tables.  Here is an example of such a table:
 |  forward-char   |Move point right N characters   |       C-f       |
 |                 |(left if N is negative).        |                 |
 |                 |                                |                 |
-|                 |On reaching end of buffer, stop |                 |
-|                 |and signal error.               |                 |
 +-----------------+--------------------------------+-----------------+
 |  backward-char  |Move point left N characters    |       C-b       |
 |                 |(right if N is negative).       |                 |
 |                 |                                |                 |
-|                 |On attempt to pass beginning or |                 |
-|                 |end of buffer, stop and signal  |                 |
-|                 |error.                          |                 |
 +-----------------+--------------------------------+-----------------+
 @end group
 @end smallexample
 
-  Table mode allows the contents of the table such as this one to be
-easily manipulated by inserting or deleting characters inside a cell.
-A cell is effectively a localized rectangular edit region and edits to
-a cell do not affect the contents of the surrounding cells.  If the
-contents do not fit into a cell, then the cell is automatically
-expanded in the vertical and/or horizontal directions and the rest of
-the table is restructured and reformatted in accordance with the
-growth of the cell.
+  When Emacs recognizes such a stretch of text as a table
+(@pxref{Table Recognition}), editing the contents of each table cell
+will automatically resize the table, whenever the contents become too
+large to fit in the cell.  You can use the commands defined in the
+following sections for navigating and editing the table layout.
+
+@findex table-fixed-width-mode
+  To toggle the automatic table resizing feature, type @kbd{M-x
+table-fixed-width-mode}.
 
 @menu
 * Table Definition::          What is a text based table.
@@ -2198,102 +2188,87 @@ growth of the cell.
 * Table Recognition::         How to activate and deactivate tables.
 * Cell Commands::             Cell-oriented commands in a table.
 * Cell Justification::        Justifying cell contents.
-* Row Commands::              Manipulating rows of table cell.
-* Column Commands::           Manipulating columns of table cell.
-* Fixed Width Mode::          Fixing cell width.
+* Table Rows and Columns::    Inserting and deleting rows and columns.
 * Table Conversion::          Converting between plain text and tables.
-* Measuring Tables::          Analyzing table dimension.
 * Table Misc::                Table miscellany.
 @end menu
 
 @node Table Definition
 @subsection What is a Text-based Table?
+@cindex cells, for text-based tables
 
-  Keep the following examples of valid tables in mind as a reference
-while you read this section:
+  A @dfn{table} consists of a rectangular text area which is divided
+into @dfn{cells}.  Each cell must be at least one character wide and
+one character high, not counting its border lines.  A cell can be
+subdivided into more cells, but they cannot overlap.
 
-@example
-              +--+----+---+     +-+     +--+-----+
-              |  |    |   |     | |     |  |     |
-              +--+----+---+     +-+     |  +--+--+
-              |  |    |   |             |  |  |  |
-              +--+----+---+             +--+--+  |
-                                        |     |  |
-                                        +-----+--+
-@end example
-
-  A table consists of a rectangular frame whose inside is divided into
-cells.  Each cell must be at least one character wide and one
-character high, not counting its border lines.  A cell can be
-subdivided into multiple rectangular cells, but cells cannot overlap.
-
-  The table frame and cell border lines are made of three special
-characters.  These variables specify those characters:
+  Cell border lines are drawn with three special characters, specified
+by the following variables:
 
 @table @code
 @vindex table-cell-vertical-char
 @item table-cell-vertical-char
-Holds the character used for vertical lines.  The default value is
-@samp{|}.
+The character used for vertical lines.  The default is @samp{|}.
 
 @vindex table-cell-horizontal-chars
 @item table-cell-horizontal-chars
-Holds the characters used for horizontal lines.  The default value is
-@samp{"-="}.
+The characters used for horizontal lines.  The default is @samp{"-="}.
 
 @vindex table-cell-intersection-char
 @item table-cell-intersection-char
-Holds the character used at where horizontal line and vertical line
-meet.  The default value is @samp{+}.
+The character used for the intersection of horizontal and vertical
+lines.  The default is @samp{+}.
 @end table
 
 @noindent
-Based on this definition, the following five tables are examples of invalid
-tables:
+The following are examples of @emph{invalid} tables:
 
 @example
-   +-----+    +-----+       +--+    +-++--+    ++
-   |     |    |     |       |  |    | ||  |    ++
-   | +-+ |    |     |       |  |    | ||  |
-   | | | |    +--+  |    +--+--+    +-++--+
-   | +-+ |    |  |  |    |  |  |    +-++--+
-   |     |    |  |  |    |  |  |    | ||  |
-   +-----+    +--+--+    +--+--+    +-++--+
-     a           b          c          d        e
+   +-----+       +--+    +-++--+
+   |     |       |  |    | ||  |
+   |     |       |  |    | ||  |
+   +--+  |    +--+--+    +-++--+
+   |  |  |    |  |  |    +-++--+
+   |  |  |    |  |  |    | ||  |
+   +--+--+    +--+--+    +-++--+
+      a          b          c
 @end example
 
+@noindent
 From left to right:
 
 @enumerate a
 @item
 Overlapped cells or non-rectangular cells are not allowed.
 @item
-Same as a.
-@item
 The border must be rectangular.
 @item
 Cells must have a minimum width/height of one character.
-@item
-Same as d.
 @end enumerate
 
 @node Table Creation
-@subsection How to Create a Table?
+@subsection Creating a Table
 @cindex create a text-based table
 @cindex table creation
 
 @findex table-insert
-  The command to create a table is @code{table-insert}.  When called
-interactively, it asks for the number of columns, number of rows, cell
-width and cell height.  The number of columns is the number of cells
-horizontally side by side.  The number of rows is the number of cells
-vertically within the table's height.  The cell width is a number of
-characters that each cell holds, left to right.  The cell height is a
-number of lines each cell holds.  The cell width and the cell height
-can be either an integer (when the value is constant across the table)
-or a series of integer, separated by spaces or commas, where each
-number corresponds to the next cell within a row from left to right,
-or the next cell within a column from top to bottom.
+  To create a text-based table from scratch, type @kbd{M-x
+table-insert}.  This command prompts for the number of table columns,
+the number of table rows, cell width and cell height.  The cell width
+and cell height do not include the cell borders; each can be specified
+as a single integer (which means each cell is given the same
+width/height), or as a sequence of integers separated by spaces or
+commas (which specify the width/height of the individual table
+columns/rows, counting from left to right for table columns and from
+top to bottom for table rows).  The specified table is then inserted
+at point.
+
+  The table inserted by @kbd{M-x table-insert} contains special text
+properties, which tell Emacs to treat it specially as a text-based
+table.  If you save the buffer to a file and visit it again later,
+those properties are lost, and the table appears to Emacs as an
+ordinary piece of text.  See the next section, for how to convert it
+back into a table.
 
 @node Table Recognition
 @subsection Table Recognition
@@ -2301,103 +2276,97 @@ or the next cell within a column from top to bottom.
 
 @findex table-recognize
 @findex table-unrecognize
-  Table mode maintains special text properties in the buffer to allow
-editing in a convenient fashion.  When a buffer with tables is saved
-to its file, these text properties are lost, so when you visit this
-file again later, Emacs does not see a table, but just formatted text.
-To resurrect the table text properties, issue the @kbd{M-x
-table-recognize} command.  It scans the current buffer, recognizes
-valid table cells, and attaches appropriate text properties to allow
-for table editing.  The converse command, @code{table-unrecognize}, is
-used to remove the special text properties and convert the buffer back
-to plain text.
+  Existing text-based tables in a buffer, which lack the special text
+properties applied by @kbd{M-x table-insert}, are not treated
+specially as tables.  To apply those text properties, type @kbd{M-x
+table-recognize}.  This command scans the current buffer,
+@dfn{recognizes} valid table cells, and applies the relevant text
+properties.  Conversely, type @kbd{M-x table-unrecognize} to
+@dfn{unrecognize} all tables in the current buffer, removing the
+special text properties and converting tables back to plain text.
 
-  Special commands exist to enable or disable tables within a region,
-enable or disable individual tables, and enable/disable individual
-cells.  These commands are:
+  You can also use the following commands to selectively recognize or
+unrecognize tables:
 
 @table @kbd
 @findex table-recognize-region
 @item M-x table-recognize-region
-Recognize tables within the current region and activate them.
+Recognize tables within the current region.
+
 @findex table-unrecognize-region
 @item M-x table-unrecognize-region
-Deactivate tables within the current region.
+Unrecognize tables within the current region.
+
 @findex table-recognize-table
 @item M-x table-recognize-table
 Recognize the table at point and activate it.
+
 @findex table-unrecognize-table
 @item M-x table-unrecognize-table
 Deactivate the table at point.
+
 @findex table-recognize-cell
 @item M-x table-recognize-cell
 Recognize the cell at point and activate it.
+
 @findex table-unrecognize-cell
 @item M-x table-unrecognize-cell
 Deactivate the cell at point.
 @end table
 
-  For another way of converting text into tables, see @ref{Table
-Conversion}.
+  @xref{Table Conversion}, for another way to recognize a table.
 
 @node Cell Commands
 @subsection Commands for Table Cells
 
 @findex table-forward-cell
 @findex table-backward-cell
-  The commands @code{table-forward-cell} and
-@code{table-backward-cell} move point from the current cell to an
-adjacent cell forward and backward respectively.  The order of the
-cells is cyclic: when point is in the last cell of a table, typing
-@kbd{M-x table-forward-cell} moves to the first cell in the table.
-Likewise @kbd{M-x table-backward-cell} from the first cell in a table
-moves to the last cell.
+  The commands @kbd{M-x table-forward-cell} and @kbd{M-x
+table-backward-cell} move point from the current cell to an adjacent
+cell.  The order is cyclic: when point is in the last cell of a table,
+@kbd{M-x table-forward-cell} moves to the first cell.  Likewise, when
+point is on the first cell, @kbd{M-x table-backward-cell} moves to the
+last cell.
 
 @findex table-span-cell
-  The command @code{table-span-cell} merges the current cell with the
-adjacent cell in a specified direction---right, left, above or below.
-You specify the direction with the minibuffer.  It does not allow
-merges which don't result in a legitimate cell layout.
+  @kbd{M-x table-span-cell} prompts for a direction---right, left,
+above, or below---and merges the current cell with the adjacent cell
+in that direction.  This command signals an error if the merge would
+result in an illegitimate cell layout.
 
 @findex table-split-cell
-@cindex text-based tables, split a cell
-@cindex split table cell
-  The command @code{table-split-cell} splits the current cell
-vertically or horizontally.  This command is a wrapper to the
-direction specific commands @code{table-split-cell-vertically} and
-@code{table-split-cell-horizontally}.  You specify the direction with
-a minibuffer argument.
-
 @findex table-split-cell-vertically
-  The command @code{table-split-cell-vertically} splits the current
-cell vertically and creates a pair of cells above and below where
-point is located.  The content in the original cell is split as well.
-
 @findex table-split-cell-horizontally
-  The command @code{table-split-cell-horizontally} splits the current
-cell horizontally and creates a pair of cells right and left of where
-point is located.  If the cell being split is not empty, this asks you
-how to handle the cell contents.  The three options are: @code{split},
-@code{left}, or @code{right}.  @code{split} splits the contents at
-point literally, while the @code{left} and @code{right} options move
-the entire contents into the left or right cell respectively.
+@cindex text-based tables, splitting cells
+@cindex splitting table cells
+  @kbd{M-x table-split-cell} splits the current cell vertically or
+horizontally, prompting for the direction with the minibuffer.  The
+commands @kbd{M-x table-split-cell-vertically} and @kbd{M-x
+table-split-cell-horizontally} split in a specific direction.  When
+splitting vertically, the old cell contents are automatically split
+between the two new cells.  When splitting horizontally, you are
+prompted for how to divide the cell contents, if the cell is
+non-empty; the options are @samp{split} (divide the contents at
+point), @samp{left} (put all the contents in the left cell), and
+@samp{right} (put all the contents in the right cell).
 
-@cindex enlarge a table cell
-@cindex shrink a table cell
-  The next four commands enlarge or shrink a cell.  They use numeric
-arguments (@pxref{Arguments}) to specify how many columns or rows to
-enlarge or shrink a particular table.
+  The following commands enlarge or shrink a cell.  By default, they
+resize by one row or column; if a numeric argument is supplied, that
+specifies the number of rows or columns to resize by.
 
 @table @kbd
 @findex table-heighten-cell
 @item M-x table-heighten-cell
 Enlarge the current cell vertically.
+
 @findex table-shorten-cell
 @item M-x table-shorten-cell
 Shrink the current cell vertically.
+
 @findex table-widen-cell
 @item M-x table-widen-cell
 Enlarge the current cell horizontally.
+
 @findex table-narrow-cell
 @item M-x table-narrow-cell
 Shrink the current cell horizontally.
@@ -2405,107 +2374,76 @@ Shrink the current cell horizontally.
 
 @node Cell Justification
 @subsection Cell Justification
-@cindex cell text justification
+@cindex justification in text-based tables
 
-  You can specify text justification for each cell.  The justification
-is remembered independently for each cell and the subsequent editing
-of cell contents is subject to the specified justification.
+  The command @kbd{M-x table-justify} imposes @dfn{justification} on
+one or more cells in a text-based table.  Justification determines how
+the text in the cell is aligned, relative to the edges of the cell.
+Each cell in a table can be separately justified.
 
 @findex table-justify
-  The command @code{table-justify} ask you to specify what to justify:
-a cell, a column, or a row.  If you select cell justification, this
-command sets the justification only for the current cell.  Selecting
-column or row justification sets the justification for all the cells
-within a column or row respectively.  The command then ask you which
-kind of justification to apply: @code{left}, @code{center},
-@code{right}, @code{top}, @code{middle}, @code{bottom}, or
-@code{none}.  Horizontal justification and vertical justification are
-specified independently.  The options @code{left}, @code{center}, and
-@code{right} specify horizontal justification while the options
-@code{top}, @code{middle}, @code{bottom}, and @code{none} specify
-vertical justification.  The vertical justification @code{none}
-effectively removes vertical justification.  Horizontal justification
-must be one of @code{left}, @code{center}, or @code{right}.
+  @kbd{M-x table-justify} first prompts for what to justify; the
+options are @samp{cell} (just the current cell), @samp{column} (all
+cells in the current table column) and @samp{row} (all cells in the
+current table row).  The command then prompts for the justification
+style; the options are @code{left}, @code{center}, @code{right},
+@code{top}, @code{middle}, @code{bottom}, or @code{none} (meaning no
+vertical justification).
+
+  Horizontal and vertical justification styles are specified
+independently, and both types can be in effect simultaneously; for
+instance, you can call @kbd{M-x table-justify} twice, once to specify
+@code{right} justification and once to specify @code{bottom}
+justification, to align the contents of a cell to the bottom right.
 
 @vindex table-detect-cell-alignment
-  Justification information is stored in the buffer as a part of text
-property.  Therefore, this information is ephemeral and does not
-survive through the loss of the buffer (closing the buffer and
-revisiting the buffer erase any previous text properties).  To
-countermand for this, the command @code{table-recognize} and other
-recognition commands (@pxref{Table Recognition}) are equipped with a
-convenience feature (turned on by default).  During table recognition,
-the contents of a cell are examined to determine which justification
-was originally applied to the cell and then applies this justification
-to the cell.  This is a speculative algorithm and is therefore not
-perfect, however, the justification is deduced correctly most of the
-time.  To disable this feature, customize the variable
-@code{table-detect-cell-alignment} and set it to @code{nil}.
+  The justification style is stored in the buffer as a text property,
+and is lost when you kill the buffer or exit Emacs.  However, the
+table recognition commands, such as @kbd{M-x table-recognize}
+(@pxref{Table Recognition}), attempt to determine and re-apply each
+cell's justification style, by examining its contents.  To disable
+this feature, change the variable @code{table-detect-cell-alignment}
+to @code{nil}.
 
-@node Row Commands
-@subsection Commands for Table Rows
-@cindex table row commands
+@node Table Rows and Columns
+@subsection Table Rows and Columns
+@cindex inserting rows and columns in text-based tables
 
-@cindex insert row in table
 @findex table-insert-row
-  The command @code{table-insert-row} inserts a row of cells before
-the current row in a table.  The current row where point is located is
-pushed down after the newly inserted row.  A numeric prefix argument
-specifies the number of rows to insert.  Note that in order to insert
-rows @emph{after} the last row at the bottom of a table, you must
-place point below the table---that is, outside the table---prior to
-invoking this command.
+  @kbd{M-x table-insert-row} inserts a row of cells before the current
+table row.  The current row, together with point, is pushed down past
+the new row.  To insert rows after the last row at the bottom of a
+table, invoke this command with point below the table, just below the
+bottom edge.  A numeric prefix argument specifies the number of rows
+to insert.
 
-@cindex delete row in table
-@findex table-delete-row
-  The command @code{table-delete-row} deletes a row of cells at point.
-A numeric prefix argument specifies the number of rows to delete.
-
-@node Column Commands
-@subsection Commands for Table Columns
-@cindex table column commands
-
-@cindex insert column in table
 @findex table-insert-column
-  The command @code{table-insert-column} inserts a column of cells to
-the left of the current row in a table.  This pushes the current
-column to the right.  To insert a column to the right side of the
-rightmost column, place point to the right of the rightmost column,
-which is outside of the table, prior to invoking this command.  A
-numeric prefix argument specifies the number of columns to insert.
+  Similarly, @kbd{M-x table-insert-column} inserts a column of cells
+to the left of the current table column.  To insert a column to the
+right side of the rightmost column, invoke this command with point to
+the right of the rightmost column, outside the table.  A numeric
+prefix argument specifies the number of columns to insert.
 
-@cindex delete column in table
-  A command @code{table-delete-column} deletes a column of cells at
-point.  A numeric prefix argument specifies the number of columns to
-delete.
-
-@node Fixed Width Mode
-@subsection Fix Width of Cells
-@cindex fix width of table cells
-
-@findex table-fixed-width-mode
-  The command @code{table-fixed-width-mode} toggles fixed width mode
-on and off.  When fixed width mode is turned on, editing inside a
-cell never changes the cell width; when it is off, the cell width
-expands automatically in order to prevent a word from being folded
-into multiple lines.  By default, fixed width mode is disabled.
+@cindex deleting rows and column in text-based tables
+  @kbd{M-x table-delete-column} deletes the column of cells at point.
+Similarly, @kbd{M-x table-delete-row} deletes the row of cells at
+point.  A numeric prefix argument to either command specifies the
+number of columns or rows to delete.
 
 @node Table Conversion
-@subsection Conversion Between Plain Text and Tables
+@subsection Converting Between Plain Text and Tables
 @cindex text to table
 @cindex table to text
 
 @findex table-capture
-  The command @code{table-capture} captures plain text in a region and
-turns it into a table.  Unlike @code{table-recognize} (@pxref{Table
-Recognition}), the original text does not have a table appearance but
-may hold a logical table structure.  For example, some elements
-separated by known patterns form a two dimensional structure which can
-be turned into a table.
+  The command @kbd{M-x table-capture} captures plain text in a region
+and turns it into a table.  Unlike @kbd{M-x table-recognize}
+(@pxref{Table Recognition}), the original text does not need to have a
+table appearance; it only needs to have a logical table-like
+structure.
 
-  Here's an example of data that @code{table-capture} can operate on.
-The numbers are horizontally separated by a comma and vertically
-separated by a newline character.
+  For example, suppose we have the following numbers, which are
+divided into three lines and separated horizontally by commas:
 
 @example
 1, 2, 3, 4
@@ -2526,136 +2464,92 @@ Invoking @kbd{M-x table-capture} on that text produces this table:
 +-----+-----+-----+-----+
 @end example
 
-@noindent
-The conversion uses @samp{,} for the column delimiter and newline for
-a row delimiter, cells are left justified, and minimum cell width is
-5.
-
 @findex table-release
-  The command @code{table-release} does the opposite of
-@code{table-capture}.  It releases a table by removing the table frame
-and cell borders.  This leaves the table contents as plain text.  One
-of the useful applications of @code{table-capture} and
-@code{table-release} is to edit a text in layout.  Look at the
-following three paragraphs (the latter two are indented with header
-lines):
+  @kbd{M-x table-release} does the opposite: it converts a table back
+to plain text, removing its cell borders.
+
+  One application of this pair of commands is to edit a text in
+layout.  Look at the following three paragraphs (the latter two are
+indented with header lines):
 
 @example
 table-capture is a powerful command.
 Here are some things it can do:
 
-Parse Cell Items  By using column delimiter regular
-                  expression and raw delimiter regular
-                  expression, it parses the specified text
-                  area and extracts cell items from
-                  non-table text and then forms a table out
-                  of them.
-
-Capture Text Area When no delimiters are specified it
-                  creates a single cell table.  The text in
-                  the specified region is placed in that
-                  cell.
+Parse Cell Items   Using row and column delimiter regexps,
+                   it parses the specified text area and
+                   extracts cell items into a table.
 @end example
 
 @noindent
-Applying @code{table-capture} to a region containing the above three
-paragraphs, with empty strings for column delimiter regexp and row
-delimiter regexp, creates a table with a single cell like the
-following one.
+Applying @code{table-capture} to a region containing the above text,
+with empty strings for the column and row delimiter regexps, creates a
+table with a single cell like the following one.
 
-@c The first line's right-hand frame in the following two examples
-@c sticks out to accommodate for the removal of @samp in the
-@c produced output!!
 @smallexample
 @group
-+-------------------------------------------------------------+
-|table-capture is a powerful command.                         |
-|Here are some things it can do:                              |
-|                                                             |
-|Parse Cell Items  By using column delimiter regular          |
-|                  expression and raw delimiter regular       |
-|                  expression, it parses the specified text   |
-|                  area and extracts cell items from          |
-|                  non-table text and then forms a table out  |
-|                  of them.                                   |
-|                                                             |
-|Capture Text Area When no delimiters are specified it        |
-|                  creates a single cell table.  The text in  |
-|                  the specified region is placed in that     |
-|                  cell.                                      |
-+-------------------------------------------------------------+
++----------------------------------------------------------+
+|table-capture is a powerful command.                      |
+|Here are some things it can do:                           |
+|                                                          |
+|Parse Cell Items   Using row and column delimiter regexps,|
+|                   it parses the specified text area and  |
+|                   extracts cell items into a table.      |
++----------------------------------------------------------+
 @end group
 @end smallexample
 
 @noindent
-By splitting the cell appropriately we now have a table consisting of
-paragraphs occupying its own cell.  Each cell can now be edited
-independently without affecting the layout of other cells.
+We can then use the cell splitting commands (@pxref{Cell Commands}) to
+subdivide the table so that each paragraph occupies a cell:
 
 @smallexample
-+--------------------------------------------------------------+
-|table-capture is a powerful command.                          |
-|Here are some things it can do:                               |
-+------------------+-------------------------------------------+
-|Parse Cell Items  |By using column delimiter regular          |
-|                  |expression and raw delimiter regular       |
-|                  |expression, it parses the specified text   |
-|                  |area and extracts cell items from          |
-|                  |non-table text and then forms a table out  |
-|                  |of them.                                   |
-+------------------+-------------------------------------------+
-|Capture Text Area |When no delimiters are specified it        |
-|                  |creates a single cell table.  The text in  |
-|                  |the specified region is placed in that     |
-|                  |cell.                                      |
-+------------------+-------------------------------------------+
++----------------------------------------------------------+
+|table-capture is a powerful command.                      |
+|Here are some things it can do:                           |
++-----------------+----------------------------------------+
+|Parse Cell Items | Using row and column delimiter regexps,|
+|                 | it parses the specified text area and  |
+|                 | extracts cell items into a table.      |
++-----------------+----------------------------------------+
 @end smallexample
 
 @noindent
-By applying @code{table-release}, which does the opposite process, the
-contents become once again plain text.  @code{table-release} works as
-a companion command to @code{table-capture}.
+Each cell can now be edited independently without affecting the layout
+of other cells.  When finished, we can invoke @kbd{M-x table-release}
+to convert the table back to plain text.
 
-@node Measuring Tables
-@subsection Analyzing Table Dimensions
+@node Table Misc
+@subsection Table Miscellany
+
 @cindex table dimensions
-
 @findex table-query-dimension
-  The command @code{table-query-dimension} analyzes a table structure
-and reports information regarding its dimensions.  In case of the
-above example table, the @code{table-query-dimension} command displays
-in echo area:
+  The command @code{table-query-dimension} reports the layout of the
+table and table cell at point.  Here is an example of its output:
 
 @smallexample
 Cell: (21w, 6h), Table: (67w, 16h), Dim: (2c, 3r), Total Cells: 5
 @end smallexample
 
 @noindent
-This indicates that the current cell is 21 character wide and 6 lines
-high, the entire table is 67 characters wide and 16 lines high.  The
-table has 2 columns and 3 rows.  It has a total of 5 cells, since the
-first row has a spanned cell.
+This indicates that the current cell is 21 characters wide and 6 lines
+high, the table is 67 characters wide and 16 lines high with 2 columns
+and 3 rows, and a total of 5 cells.
 
-@node Table Misc
-@subsection Table Miscellany
-
-@cindex insert string into table cells
 @findex table-insert-sequence
-  The command @code{table-insert-sequence} inserts a string into each
-cell.  Each string is a part of a sequence i.e.@: a series of
-increasing integer numbers.
+  @kbd{M-x table-insert-sequence} inserts a string into each cell.
+Each string is a part of a sequence i.e.@: a series of increasing
+integer numbers.
 
-@cindex table in language format
 @cindex table for HTML and LaTeX
 @findex table-generate-source
-  The command @code{table-generate-source} generates a table formatted
-for a specific markup language.  It asks for a language (which must be
-one of @code{html}, @code{latex}, or @code{cals}), a destination
-buffer where to put the result, and the table caption (a string), and
-then inserts the generated table in the proper syntax into the
-destination buffer.  The default destination buffer is
-@code{table.@var{lang}}, where @var{lang} is the language you
-specified.
+  @kbd{M-x table-generate-source} generates a table formatted for a
+specific markup language.  It asks for a language (which must be one
+of @code{html}, @code{latex}, or @code{cals}), a destination buffer in
+which to put the result, and a table caption, and then inserts the
+generated table into the specified buffer.  The default destination
+buffer is @code{table.@var{lang}}, where @var{lang} is the language
+you specified.
 
 @node Two-Column
 @section Two-Column Editing
@@ -2663,11 +2557,9 @@ specified.
 @cindex splitting columns
 @cindex columns, splitting
 
-  Two-column mode lets you conveniently edit two side-by-side columns of
-text.  It uses two side-by-side windows, each showing its own
-buffer.
-
-  There are three ways to enter two-column mode:
+  Two-column mode lets you conveniently edit two side-by-side columns
+of text.  It uses two side-by-side windows, each showing its own
+buffer.  There are three ways to enter two-column mode:
 
 @table @asis
 @item @kbd{@key{F2} 2} or @kbd{C-x 6 2}

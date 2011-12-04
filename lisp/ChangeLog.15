@@ -7086,7 +7086,7 @@
 	(sql-mode-oracle-font-lock-keywords): Improve SQL*Plus REMARK
 	syntax pattern.
 	(sql-mode-postgres-font-lock-keywords): Support Postgres V9.
-	(sql-mode-sqlite-font-lock-keywords): Hilight sqlite commands.
+	(sql-mode-sqlite-font-lock-keywords): Highlight sqlite commands.
 
 2010-09-10  Lars Magne Ingebrigtsen  <larsi@gnus.org>
 
@@ -11908,7 +11908,7 @@
 	Add new VC methods: vc-log-incoming and vc-log-outgoing.
 	* vc.el (vc-print-log-setup-buttons): New function split out from
 	vc-print-log-internal.
-	(vc-log-internal-common): New function, a parametrized version of
+	(vc-log-internal-common): New function, a parameterized version of
 	vc-print-log-internal.
 	(vc-print-log-internal): Just call vc-log-internal-common with the
 	right arguments.

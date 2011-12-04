@@ -420,7 +420,7 @@ Type `n' to quit this window for now.\n")
 	(goto-char (point-min))
 	(if (y-or-n-p "Inhibit VIP startup message? ")
 	    (progn
-	      (with-current-buffer 
+	      (with-current-buffer
                   (find-file-noselect
                    (substitute-in-file-name vip-startup-file))
 		(goto-char (point-max))
@@ -877,7 +877,7 @@ is the name of the register for COM."
   (if (> beg end) (exchange-point-and-mark)))
 
 (defun vip-global-execute ()
-  "Call last keyboad macro for each line in the region."
+  "Call last keyboard macro for each line in the region."
   (if (> (point) (mark)) (exchange-point-and-mark))
   (beginning-of-line)
   (call-last-kbd-macro)

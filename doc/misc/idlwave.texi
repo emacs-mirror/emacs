@@ -1580,8 +1580,8 @@ available will be emphasized (e.g. colored blue).  For other items, the
 corresponding source code or DocLib header will be used as the help
 text.
 
-@cindex Completion, cancelling
-@cindex Cancelling completion
+@cindex Completion, canceling
+@cindex Canceling completion
 Completion is not a blocking operation --- you are free to continue
 editing, enter commands, or simply ignore the @file{*Completions*}
 buffer during a completion operation.  If, however, the most recent

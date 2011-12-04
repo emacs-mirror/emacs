@@ -223,7 +223,7 @@
 ;; automatically for a PC if Oemacs is detected.  This set uses separate
 ;; control, shift and meta keys with function keys 1 to 10.  In
 ;; particular, movement keys are concentrated on f5 to f8 with (in
-;; increasing order of distance travelled) C-, M- and S- as prefixes.
+;; increasing order of distance traveled) C-, M- and S- as prefixes.
 ;; See the actual bindings below (search for C-f1).  This is because the
 ;; C-S- prefix is represented by weird key sequences and the set is
 ;; incomplete; if you don't mind that, some hints are given in comments

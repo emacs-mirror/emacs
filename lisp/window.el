@@ -1211,7 +1211,7 @@ More precisely, cycle through all windows calling the function
 PREDICATE on each one of them with the window as its sole
 argument.  Return the first window for which PREDICATE returns
 non-nil.  Windows are scanned starting with the window following
-the selcted window.  If no window satisfies PREDICATE, return
+the selected window.  If no window satisfies PREDICATE, return
 DEFAULT.
 
 MINIBUF t means include the minibuffer window even if the
@@ -5234,7 +5234,7 @@ WINDOW was scrolled."
 	;; This `condition-case' shouldn't be necessary, but who knows?
 	(condition-case nil
 	    (if (zerop delta)
-		;; Return zero if DELTA became zero in the proces.
+		;; Return zero if DELTA became zero in the process.
 		0
 	      ;; Don't try to redisplay with the cursor at the end on its
 	      ;; own line--that would force a scroll and spoil things.

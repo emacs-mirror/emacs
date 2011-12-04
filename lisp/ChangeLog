@@ -1,3 +1,7 @@
+2011-12-03  Glenn Morris  <rgm@gnu.org>
+
+	* textmodes/texinfmt.el (batch-texinfo-format): Doc fix.  (Bug#10207)
+
 2011-12-03  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* electric.el: Streamline electric-indent's hook.

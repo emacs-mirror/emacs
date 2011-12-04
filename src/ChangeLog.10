@@ -516,7 +516,7 @@
 	* w32fns.c (current_popup_menu): Use from w32menu.c.
 	(w32_wnd_proc) <WM_EXITMENULOOP, WM_TIMER>: Use menubar_active
 	and current_popup_menu to determine whether a menubar menu has
-	been cancelled.
+	been canceled.
 
 	* w32term.h (w32_output): Remove menu_command_in_progress.
 

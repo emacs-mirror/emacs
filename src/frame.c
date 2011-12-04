@@ -1929,7 +1929,7 @@ request a switch to FOCUS-FRAME, and `last-event-frame' will be
 FOCUS-FRAME after reading an event typed at FRAME.
 
 If FOCUS-FRAME is omitted or nil, any existing redirection is
-cancelled, and the frame again receives its own keystrokes.
+canceled, and the frame again receives its own keystrokes.
 
 Focus redirection is useful for temporarily redirecting keystrokes to
 a surrogate minibuffer frame when a frame doesn't have its own

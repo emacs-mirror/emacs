@@ -1588,7 +1588,7 @@ this is a reply."
 		       ;; BUG: We really need to get the charset for
 		       ;; each name in the Newsgroups and Followup-To
 		       ;; lines to allow crossposting between group
-		       ;; namess with incompatible character sets.
+		       ;; names with incompatible character sets.
 		       ;; -- Per Abrahamsen <abraham@dina.kvl.dk> 2001-10-08.
 		       (group-field-charset
 			(gnus-group-name-charset

@@ -491,7 +491,7 @@ unless it is coming up in a wrong Viper state."
     )
   "List specifying how to modify the various major modes to enable some Viperisms.
 The list has the structure: ((mode viper-state keymap) (mode viper-state
-keymap) ...).  If `mode' is on the list, the `kemap' will be made active (on
+keymap) ...).  If `mode' is on the list, the `keymap' will be made active (on
 the minor-mode-map-alist) in the specified viper state.
 If you change this list, have to restart Emacs for the change to take effect.
 However, if you did the change through the customization widget, then Emacs

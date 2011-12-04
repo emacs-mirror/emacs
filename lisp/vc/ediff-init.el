@@ -370,7 +370,7 @@ It needs to be killed when we quit the session.")
 	     this-command)))
 
 (defgroup ediff-highlighting nil
-  "Hilighting of difference regions in Ediff."
+  "Highlighting of difference regions in Ediff."
   :prefix "ediff-"
   :group 'ediff)
 

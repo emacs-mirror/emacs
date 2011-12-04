@@ -85,7 +85,7 @@
 	      (eq last-input-event ?\C-g))
 	  (progn (setq unread-command-events nil
 		       prefix-arg nil)
-		 ;; If it wasn't cancelling a prefix character, then quit.
+		 ;; If it wasn't canceling a prefix character, then quit.
 		 (if (or (= (length (this-command-keys)) 1)
 			 (not inhibit-quit)) ; safety
 		     (progn (ding)

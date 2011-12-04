@@ -122,7 +122,7 @@ compose one Chinese character.
 
 In this input method, you enter a Chinese character by first typing
 keys corresponding to Zhuyin symbols (see the above table) followed by
-SPC, 1, 2, 3, or 4 specifing a tone (SPC:$(0?v(N(B, 1:$(0M=Vy(B, 2:$(0Dm(N(B, 3: $(0&9Vy(B,
+SPC, 1, 2, 3, or 4 specifying a tone (SPC:$(0?v(N(B, 1:$(0M=Vy(B, 2:$(0Dm(N(B, 3: $(0&9Vy(B,
 4:$(0(+Vy(B).
 
 \\<quail-translation-docstring>")
@@ -203,7 +203,7 @@ compose a Chinese character.
 
 In this input method, you enter a Chinese character by first typing
 keys corresponding to Zhuyin symbols (see the above table) followed by
-SPC, 6, 3, 4, or 7 specifing a tone (SPC:$(0?v(N(B, 6:$(0Dm(N(B, 3:$(0&9Vy(B, 4:$(0(+Vy(B,
+SPC, 6, 3, 4, or 7 specifying a tone (SPC:$(0?v(N(B, 6:$(0Dm(N(B, 3:$(0&9Vy(B, 4:$(0(+Vy(B,
 7:$(0M=Vy(B).
 
 \\<quail-translation-docstring>")))

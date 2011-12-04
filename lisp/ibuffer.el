@@ -426,7 +426,7 @@ directory, like `default-directory'."
       '(menu-item "Save current filter groups permanently..."
         ibuffer-save-filter-groups
         :enable (and (featurep 'ibuf-ext) ibuffer-filter-groups)
-        :help "Use a mnemnonic name to store current filter groups"))
+        :help "Use a mnemonic name to store current filter groups"))
     (define-key-after groups-map [switch-to-saved-filter-groups]
       '(menu-item "Restore permanently saved filters..."
         ibuffer-switch-to-saved-filter-groups
@@ -676,7 +676,7 @@ directory, like `default-directory'."
     (define-key-after map [menu-bar view filter save-filters]
       '(menu-item "Save current filters permanently..." ibuffer-save-filters
         :enable (and (featurep 'ibuf-ext) ibuffer-filtering-qualifiers)
-        :help "Use a mnemnonic name to store current filter stack"))
+        :help "Use a mnemonic name to store current filter stack"))
     (define-key-after map [menu-bar view filter switch-to-saved-filters]
       '(menu-item "Restore permanently saved filters..."
         ibuffer-switch-to-saved-filters

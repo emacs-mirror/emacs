@@ -8171,7 +8171,7 @@
 1994-01-08  Roland McGrath  (roland@churchy.gnu.ai.mit.edu)
 
 	* configure.in (creating src/Makefile): Put code inside 2nd arg to
-	AC_OUTPUT as it should be; hopefully noone will again see fit to
+	AC_OUTPUT as it should be; hopefully no one will again see fit to
 	gratuitously break this and not make a change log entry.
 	Optimized sed processing of Makefile.in and cpp output; now
 	preserves comments previously removed from the cpp input.

@@ -227,7 +227,7 @@ Note that Hangul are excluded.")
          (eval-when-compile decomposition-pair-to-composition)))
 
 (defun ucs-normalize-primary-composite (decomposition-pair composition-predicate)
-  "Convert DECOMPOSITION-PAIR to primay composite using COMPOSITION-PREDICATE."
+  "Convert DECOMPOSITION-PAIR to primary composite using COMPOSITION-PREDICATE."
   (let ((char (or (gethash decomposition-pair
                            ucs-normalize-decomposition-pair-to-primary-composite)
                   (and (<= #x1100 (car decomposition-pair))

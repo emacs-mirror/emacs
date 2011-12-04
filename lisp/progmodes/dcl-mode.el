@@ -708,7 +708,7 @@ Returns point of the found command line or nil if not able to move."
 	    (setq done t)		; not a label-only line, exit the loop
 	    (setq retval (point))))
 	;; We couldn't go further back, and we haven't found a command yet.
-	;; Return to the start positionn
+	;; Return to the start position.
 	(goto-char start)
 	(setq done t)
 	(setq retval nil)))
@@ -756,7 +756,7 @@ Returns point of the found command line or nil if not able to move."
 	      (setq done t)		; not a label-only line, exit the loop
 	      (setq retval (point)))))
 	;; We couldn't go further back, and we haven't found a command yet.
-	;; Return to the start positionn
+	;; Return to the start position.
 	(goto-char start)
 	(setq done t)
 	(setq retval nil)))

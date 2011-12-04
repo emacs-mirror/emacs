@@ -3960,11 +3960,11 @@ The 2-point shape SHAPE is drawn from X1, Y1 to X2, Y2."
 ;; Implementation note: This really should honor the interval-fn entry
 ;; in the master table, `artist-mt', which would mean leaving a timer
 ;; that calls `draw-fn' every now and then. That timer would then have
-;; to be cancelled and reinstalled whenever the user moves the cursor.
+;; to be canceled and reinstalled whenever the user moves the cursor.
 ;; This could be done, but what if the user suddenly switches to another
 ;; drawing mode, or even kills the buffer! In the mouse case, it is much
 ;; simpler: when at the end of `artist-mouse-draw-continously', the
-;; user has released the button, so the timer will always be cancelled
+;; user has released the button, so the timer will always be canceled
 ;; at that point.
 (defun artist-key-draw-continously (x y)
   "Draw current continuous shape at X,Y."
@@ -5589,7 +5589,7 @@ The event, EV, is the mouse event."
 ;;         of drawing mode.
 ;;
 ;;         You should provide these functions. You might think that
-;;         only you is using your type of mode, so noone will be able
+;;         only you is using your type of mode, so no one will be able
 ;;         to switch to another operation of the same type of mode,
 ;;         but someone else might base a new drawing mode upon your
 ;;         work.

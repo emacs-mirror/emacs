@@ -7177,7 +7177,7 @@
 2006-08-20  Chong Yidong  <cyd@stupidchicken.com>
 
 	* frame.el (blink-cursor-start): Set timer first.
-	(blink-cursor-end): Ignore timer cancelling errors.
+	(blink-cursor-end): Ignore timer canceling errors.
 	Suggested by Ken Manheimer.
 
 2006-08-20  Juanma Barranquero  <lekktu@gmail.com>
@@ -15842,7 +15842,7 @@
 	interactive spec from "p" to "P".
 
 	* progmodes/cc-styles.el: Amend the doc-string of c-set-style, in
-	reponse to a report from Joseph Kiniry <kiniry@acm.org> that it
+	response to a report from Joseph Kiniry <kiniry@acm.org> that it
 	was difficult to understand.
 
 2005-12-08  Martin Stjernholm  <bug-cc-mode@gnu.org>

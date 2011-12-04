@@ -34,7 +34,7 @@
 ;; for representing these characters: VISCII, TCVN-5712, VPS, VIQR,
 ;; and Unicode.  VISCII, TCVN-5712 and VPS are simple 1-byte code
 ;; which assigns 134 unique characters in control-code area
-;; (0x00..0x1F) and right half area (0x80..0xFF).  VIQR is a menmonic
+;; (0x00..0x1F) and right half area (0x80..0xFF).  VIQR is a mnemonic
 ;; encoding specification representing diacritical marks by following
 ;; ASCII characters.
 
@@ -47,7 +47,7 @@
   "Return VISCII character code of CHAR if appropriate."
   (encode-char char 'viscii))
 
-;; VIQR is a menmonic encoding specification for Vietnamese.
+;; VIQR is a mnemonic encoding specification for Vietnamese.
 ;; It represents diacritical marks by ASCII characters as follows:
 ;; ------------+----------+--------
 ;;     mark    | mnemonic | example

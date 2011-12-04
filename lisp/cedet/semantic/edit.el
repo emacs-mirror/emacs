@@ -859,7 +859,7 @@ pre-positioned to a convenient location."
 	  (setq cacheend chil)
 	  (while (and cacheend (not (eq last (car cacheend))))
 	    (setq cacheend (cdr cacheend)))
-	  ;; The splicable part is after cacheend.. so move cacheend
+	  ;; The spliceable part is after cacheend.. so move cacheend
 	  ;; one more tag.
 	  (setq cacheend (cdr cacheend))
 	  ;; Splice the found end tag into the cons cell

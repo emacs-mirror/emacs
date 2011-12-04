@@ -7087,7 +7087,7 @@ With ARG, turn line truncation on if ARG is positive."
 (defun gnus-summary-find-for-reselect ()
   "Return the number of an article to stay on across a reselect.
 The current article is considered, then following articles, then previous
-articles.  An article is sought which is not cancelled and isn't a temporary
+articles.  An article is sought which is not canceled and isn't a temporary
 insertion from another group.  If there's no such then return a dummy 0."
   (let (found)
     (dolist (rev '(nil t))

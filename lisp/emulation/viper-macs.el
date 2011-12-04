@@ -921,7 +921,7 @@ name from there."
 
 
 (defun viper-global-execute ()
-  "Call last keyboad macro for each line in the region."
+  "Call last keyboard macro for each line in the region."
   (if (> (point) (mark t)) (exchange-point-and-mark))
   (beginning-of-line)
   (call-last-kbd-macro)

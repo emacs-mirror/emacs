@@ -1248,7 +1248,7 @@ they are comment end characters) AND when you want whitespace tokens."
   (if (eq (semantic-lex-token-class (car semantic-lex-token-stream))
 	  'whitespace)
       ;; Merge whitespace tokens together if they are adjacent.  Two
-      ;; whitespace tokens may be sperated by a comment which is not in
+      ;; whitespace tokens may be separated by a comment which is not in
       ;; the token stream.
       (setcdr (semantic-lex-token-bounds (car semantic-lex-token-stream))
               (match-end 0))
@@ -1271,7 +1271,7 @@ they are comment end characters)."
   (if (eq (semantic-lex-token-class (car semantic-lex-token-stream))
 	  'whitespace)
       ;; Merge whitespace tokens together if they are adjacent.  Two
-      ;; whitespace tokens may be sperated by a comment which is not in
+      ;; whitespace tokens may be separated by a comment which is not in
       ;; the token stream.
       (progn
         (setq semantic-lex-end-point (match-end 0))

@@ -12878,7 +12878,7 @@ To declare specifically that @code{x} is real and non-zero,
 use @samp{[[-inf .. 0), (0 .. inf]]}.  (There is no way in the
 current notation to say that @code{x} is nonzero but not necessarily
 real.)  The @kbd{a e} command does ``unsafe'' simplifications,
-including cancelling @samp{x} from the equation when @samp{x} is
+including canceling @samp{x} from the equation when @samp{x} is
 not known to be nonzero.
 
 Another set of type symbols distinguish between scalars and vectors.
@@ -21903,7 +21903,7 @@ of our sample formula by selecting it and pressing @kbd{n}
 @end smallexample
 
 Unselecting the sub-formula reveals that the minus sign, which would
-normally have cancelled out with the subtraction automatically, has
+normally have canceled out with the subtraction automatically, has
 not been able to do so because the subtraction was not part of the
 selected portion.  Pressing @kbd{=} (@code{calc-evaluate}) or doing
 any other mathematical operation on the whole formula will cause it
@@ -22590,7 +22590,7 @@ described for multiplication.
 
 Quotients of products cancel only in the leading terms of the
 numerator and denominator.  In other words, @expr{a x b / a y b}
-is cancelled to @expr{x b / y b} but not to @expr{x / y}.  Once
+is canceled to @expr{x b / y b} but not to @expr{x / y}.  Once
 again this is because full cancellation can be slow; use @kbd{a s}
 to cancel all terms of the quotient.
 
@@ -22810,7 +22810,7 @@ the distributive law.  For example, @expr{a x^2 b / c x^3 d} will
 cancel @expr{x^2} from the top and bottom to get @expr{a b / c x d}.
 (The terms in the denominator will then be rearranged to @expr{c d x}
 as described above.)  If there is any common integer or fractional
-factor in the numerator and denominator, it is cancelled out;
+factor in the numerator and denominator, it is canceled out;
 for example, @expr{(4 x + 6) / 8 x} simplifies to @expr{(2 x + 3) / 4 x}.
 
 Non-constant common factors are not found even by @kbd{a s}.  To
@@ -22858,7 +22858,7 @@ example, @samp{(x - 23) % 10} is simplified to @samp{(x + 7) % 10}.
 
 If the argument is multiplied by a constant, and this constant
 has a common integer divisor with the modulus, then this factor is
-cancelled out.  For example, @samp{12 x % 15} is changed to
+canceled out.  For example, @samp{12 x % 15} is changed to
 @samp{3 (4 x % 5)} by factoring out 3.  Also, @samp{(12 x + 1) % 15}
 is changed to @samp{3 ((4 x + 1:3) % 5)}.  While these forms may
 not seem ``simpler,'' they allow Calc to discover useful information
@@ -22938,13 +22938,13 @@ function.
 \bigskip
 @end tex
 
-Equations and inequalities are simplified by cancelling factors
+Equations and inequalities are simplified by canceling factors
 of products, quotients, or sums on both sides.  Inequalities
-change sign if a negative multiplicative factor is cancelled.
+change sign if a negative multiplicative factor is canceled.
 Non-constant multiplicative factors as in @expr{a b = a c} are
-cancelled from equations only if they are provably nonzero (generally
+canceled from equations only if they are provably nonzero (generally
 because they were declared so; @pxref{Declarations}).  Factors
-are cancelled from inequalities only if they are nonzero and their
+are canceled from inequalities only if they are nonzero and their
 sign is known.
 
 Simplification also replaces an equation or inequality with
@@ -23035,9 +23035,9 @@ The simplifications of @expr{@tfn{ln}(@tfn{exp}(x))},
 unsafe because of problems with principal values (although these
 simplifications are safe if @expr{x} is known to be real).
 
-Common factors are cancelled from products on both sides of an
+Common factors are canceled from products on both sides of an
 equation, even if those factors may be zero:  @expr{a x / b x}
-to @expr{a / b}.  Such factors are never cancelled from
+to @expr{a / b}.  Such factors are never canceled from
 inequalities:  Even @kbd{a e} is not bold enough to reduce
 @expr{a x < b x} to @expr{a < b} (or @expr{a > b}, depending
 on whether you believe @expr{x} is positive or negative).
@@ -23071,7 +23071,7 @@ If units auto-ranging mode is enabled, products or quotients in
 which the first argument is a number which is out of range for the
 leading unit are modified accordingly.
 
-When cancelling and combining units in products and quotients,
+When canceling and combining units in products and quotients,
 Calc accounts for unit names that differ only in the prefix letter.
 For example, @samp{2 km m} is simplified to @samp{2000 m^2}.
 However, compatible but different units like @code{ft} and @code{in}

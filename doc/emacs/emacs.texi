@@ -39,7 +39,7 @@ developing GNU and promoting software freedom.''
 @c in general, keep the following line commented out, unless doing a
 @c copy of this manual that will be published.  The manual should go
 @c onto the distribution in the full, 8.5 x 11" size.
-@c @smallbook
+@smallbook
 
 @ifset smallbook
 @smallbook
@@ -602,11 +602,8 @@ Editing Text-based Tables
 * Table Recognition::   How to activate and deactivate tables.
 * Cell Commands::       Cell-oriented commands in a table.
 * Cell Justification::  Justifying cell contents.
-* Row Commands::        Manipulating rows of table cell.
-* Column Commands::     Manipulating columns of table cell.
-* Fixed Width Mode::    Fixing cell width.
+* Table Rows and Columns:: Inserting and deleting rows and columns.
 * Table Conversion::    Converting between plain text and tables.
-* Measuring Tables::    Analyzing table dimension.
 * Table Misc::          Table miscellany.
 
 Editing Programs
