@@ -508,7 +508,9 @@ The time should be in either 24 hour format or am/pm format.
 Optional argument WARNTIME is an integer (or string) giving the number
 of minutes before the appointment at which to start warning.
 The default is `appt-message-warning-time'."
-  (interactive "sTime (hh:mm[am/pm]): \nsMessage:
+  ;; People who like to delete trailing whitespace: READ THIS.
+  ;; This whitespace is supposed to be here.
+  (interactive "sTime (hh:mm[am/pm]): \nsMessage: 
 sMinutes before the appointment to start warning: ")
   (unless (string-match appt-time-regexp time)
     (error "Unacceptable time-string"))
