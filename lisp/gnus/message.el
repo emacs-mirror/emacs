@@ -6327,7 +6327,6 @@ between beginning of field and beginning of line."
 
 (defun message-pop-to-buffer (name &optional switch-function)
   "Pop to buffer NAME, and warn if it already exists and is modified."
-  (unless switch-function (setq switch-function #'pop-to-buffer))
   (let ((buffer (get-buffer name)))
     (if (and buffer
 	     (buffer-name buffer))
@@ -6337,7 +6336,7 @@ between beginning of field and beginning of line."
 	      (progn
 		(gnus-select-frame-set-input-focus (window-frame window))
 		(select-window window))
-	    (funcall switch-function buffer)
+	    (funcall (or switch-function #'pop-to-buffer) buffer)
 	    (set-buffer buffer))
 	  (when (and (buffer-modified-p)
 		     (not (prog1
@@ -6345,7 +6344,7 @@ between beginning of field and beginning of line."
 			       "Message already being composed; erase? ")
 			    (message nil))))
 	    (error "Message being composed")))
-      (funcall switch-function name)
+      (funcall (or switch-function #'switch-to-buffer) name)
       (set-buffer name))
     (erase-buffer)
     (message-mode)))
