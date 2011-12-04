@@ -1,3 +1,8 @@
+2011-12-04  Glenn Morris  <rgm@gnu.org>
+
+	* calendar/appt.el (appt-add): Rewrite the interactive-spec to avoid
+	overly zealous deletion of trailing whitespace.
+
 2011-12-04  Juanma Barranquero  <lekktu@gmail.com>
 
 	* server.el (server-delete-client): On Windows, do not try to delete
