@@ -457,7 +457,7 @@ struct coding_system
   /* Number of error source data found in a decoding routine.  */
   int errors;
 
-  /* Store the positions of error source data. */
+  /* Store the positions of error source data.  */
   EMACS_INT *error_positions;
 
   /* Finish status of code conversion.  */

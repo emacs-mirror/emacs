@@ -2143,18 +2143,11 @@ extern int pending_signals;
 #define ELSE_PENDING_SIGNALS
 #endif	/* not SYNC_INPUT */
 
+extern void handle_quit_flag (void);
 #define QUIT						\
   do {							\
     if (!NILP (Vquit_flag) && NILP (Vinhibit_quit))	\
-      {							\
-        Lisp_Object flag = Vquit_flag;			\
-	Vquit_flag = Qnil;				\
-	if (EQ (flag, Qkill_emacs))			\
-	  Fkill_emacs (Qnil);				\
-	if (EQ (Vthrow_on_input, flag))			\
-	  Fthrow (Vthrow_on_input, Qt);			\
-	Fsignal (Qquit, Qnil);				\
-      }							\
+      process_quit_flag ();				\
     ELSE_PENDING_SIGNALS				\
   } while (0)
 

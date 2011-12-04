@@ -1,3 +1,9 @@
+2011-12-04  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	Don't macro-inline non-performance-critical code.
+	* eval.c (process_quit_flag): New function.
+	* lisp.h (QUIT): Use it.
+
 2011-12-04  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* nsfns.m (get_geometry_from_preferences): New function.
@@ -9,8 +15,8 @@
 	(syms_of_emacs): Initialize it.
 	* keyboard.c (interrupt_signal): Don't call Fkill_emacs here, set
 	Qquit_flag to `kill-emacs' instead.
-	(quit_throw_to_read_char): Add parameter `from_signal'.  All
-	callers changed.  Call Fkill_emacs if requested and safe.
+	(quit_throw_to_read_char): Add parameter `from_signal'.
+	All callers changed.  Call Fkill_emacs if requested and safe.
 	* lisp.h (QUIT): Call Fkill_emacs if requested.
 
 2011-12-03  Jan Djärv  <jan.h.d@swipnet.se>
@@ -110,8 +116,8 @@
 
 2011-11-27  Jan Djärv  <jan.h.d@swipnet.se>
 
-	* gtkutil.c (xg_create_frame_widgets): Call
-	gtk_window_set_has_resize_grip (FALSE) if that function is
+	* gtkutil.c (xg_create_frame_widgets):
+	Call gtk_window_set_has_resize_grip (FALSE) if that function is
 	present with Gtk+ 2.0.
 
 2011-11-26  Paul Eggert  <eggert@cs.ucla.edu>
@@ -318,8 +324,8 @@
 	* xdisp.c (display_line): Move the call to
 	highlight_trailing_whitespace before the call to
 	compute_line_metrics, since the latter needs to see the final
-	faces of all the glyphs to compute ROW's hash value.  Fixes
-	assertion violations in row_equal_p.  (Bug#10035)
+	faces of all the glyphs to compute ROW's hash value.
+	Fixes assertion violations in row_equal_p.  (Bug#10035)
 
 2011-11-14  Juanma Barranquero  <lekktu@gmail.com>
 
@@ -403,8 +409,8 @@
 2011-11-08  Chong Yidong  <cyd@gnu.org>
 
 	* window.c (Fwindow_left_column, Fwindow_top_line): Doc fix.
-	(Fwindow_body_height, Fwindow_body_width): Move from Lisp.  Signal
-	an error if not a live window.
+	(Fwindow_body_height, Fwindow_body_width): Move from Lisp.
+	Signal an error if not a live window.
 	(Fwindow_total_width, Fwindow_total_height): Move from Lisp.
 	(Fwindow_total_size, Fwindow_body_size): Move to Lisp.
 
@@ -536,8 +542,8 @@
 	(x_destroy_window): Move code to x_free_frame_resources.
 
 	* xfns.c (unwind_create_frame): Fix comment.
-	(Fx_create_frame, x_create_tip_frame): Move
-	terminal->reference_count++ just before making the frame
+	(Fx_create_frame, x_create_tip_frame):
+	Move terminal->reference_count++ just before making the frame
 	official. Move initialization of image_cache_refcount and
 	dpyinfo_refcount before calling init_frame_faces (Bug#9943).
 
@@ -607,8 +613,8 @@
 	* xdisp.c (mouse_face_from_buffer_pos): Fix a typo in a comment.
 	Don't stop backward scan on the continuation glyph, even though
 	its CHARPOS is positive.
-	(mouse_face_from_buffer_pos, note_mouse_highlight): Rename
-	cover_string to disp_string.
+	(mouse_face_from_buffer_pos, note_mouse_highlight):
+	Rename cover_string to disp_string.
 
 2011-11-01  Martin Rudalics  <rudalics@gmx.at>
 
