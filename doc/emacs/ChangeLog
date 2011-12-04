@@ -1,3 +1,18 @@
+2011-12-04  Chong Yidong  <cyd@gnu.org>
+
+	* text.texi (Nroff Mode): Mention what nroff is.
+	(Text Based Tables, Table Recognition): Don't say "Table mode"
+	since it's not a major or minor mode.
+	(Text Based Tables): Reduce the size of the example.
+	(Table Definition): Clarify definitions.
+	(Table Creation): Add key table.
+	(Cell Commands): Use kbd for commands.
+	(Table Rows and Columns): Combine nodes Row Commands and Column
+	Commands.
+	(Fixed Width Mode): Node deleted; contents moved to parent.
+	(Table Conversion): Shorten example.
+	(Measuring Tables): Merge into Table Misc.
+
 2011-12-03  Chong Yidong  <cyd@gnu.org>
 
 	* text.texi (TeX Mode): Mention AUCTeX package.
