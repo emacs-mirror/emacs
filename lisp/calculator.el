@@ -81,7 +81,7 @@ This determines the default behavior of unary operators."
 
 (defcustom calculator-prompt "Calc=%s> "
   "The prompt used by the Emacs calculator.
-It should contain a \"%s\" somewhere that will indicate the i/o radixes;
+It should contain a \"%s\" somewhere that will indicate the i/o radices;
 this will be a two-character string as described in the documentation
 for `calculator-mode'."
   :type  'string

@@ -16,7 +16,7 @@ GNU General Public License for more details.
 You should have received a copy of the GNU General Public License
 along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
-/* Holds the minimum and maximum costs for the parametrized capabilities.  */
+/* Holds the minimum and maximum costs for the parameterized capabilities.  */
 struct parmcap
   {
     int mincost, maxcost;
@@ -79,7 +79,7 @@ struct cm
     struct parmcap cc_multiright; /* multiple right (RI) */
 #endif
 
-    /* Costs for the non-parametrized capabilities */
+    /* Costs for the non-parameterized capabilities */
     int cc_up;			/* cost for up */
     int cc_down;		/* etc. */
     int cc_left;

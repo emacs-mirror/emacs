@@ -2499,7 +2499,7 @@ scrolling the current window.  Leave the new window selected."
       ;; hidden by new window, scroll it to just below new win
       ;; otherwise set top line of other win so it doesn't scroll.
       (if (< oldot top) (setq top oldot))
-      ;; if frame is unsplitable, temporarily disable that...
+      ;; if frame is unsplittable, temporarily disable that...
       (if (cdr (assq 'unsplittable (frame-parameters (selected-frame))))
 	  (let ((frame (selected-frame)))
 	    (modify-frame-parameters frame '((unsplittable . nil)))
@@ -3979,7 +3979,7 @@ Both should not be used to define a buffer-local dictionary."
 ; LocalWords:  AMStex hspace includeonly nocite epsfig displaymath eqnarray reg
 ; LocalWords:  minipage modeline pers dict unhighlight buf grep sync prev inc
 ; LocalWords:  fn oldot NB AIX msg init read's bufs pt cmd Quinlan eg
-; LocalWords:  uuencoded unidiff sc nn VM SGML eval IspellPersDict unsplitable
+; LocalWords:  uuencoded unidiff sc nn VM SGML eval IspellPersDict
 ; LocalWords:  lns XEmacs HTML casechars Multibyte
 
 ;;; ispell.el ends here

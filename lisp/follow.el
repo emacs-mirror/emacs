@@ -1129,7 +1129,7 @@ Otherwise, return nil."
 ;;{{{ Redisplay
 
 ;; Redraw all the windows on the screen, starting with the top window.
-;; The window used as as marker is WIN, or the selcted window if WIN
+;; The window used as as marker is WIN, or the selected window if WIN
 ;; is nil.  Start every window directly after the end of the previous
 ;; window, to make sure long lines are displayed correctly.
 
@@ -1993,7 +1993,7 @@ report this using the `report-emacs-bug' function."
 ;; going to be recentered at the next redisplay, unless we do a
 ;; read-and-write cycle to update the `force' flag inside the windows.
 ;;
-;; In 19.30, a new varible `window-scroll-functions' is called every
+;; In 19.30, a new variable `window-scroll-functions' is called every
 ;; time a window is recentered.  It is not perfect for our situation,
 ;; since when it is called for a tail window, it is to late.  However,
 ;; if it is called for another window, we can try to update our

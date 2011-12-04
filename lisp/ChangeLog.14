@@ -866,7 +866,7 @@
 
 	* calc/calc-embed.el (calc-embedded-restore-original-modes):
 	Add argument for Calculator buffer.
-	(calc-do-embedded): Use specific Calculator buffer when cancelling
+	(calc-do-embedded): Use specific Calculator buffer when canceling
 	embedded mode.
 
 	* calc/calc.el (calc-buffer-list): New variable.

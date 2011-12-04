@@ -614,7 +614,7 @@ static const struct
   /* Function to validate PROP's value VAL, or NULL if any value is
      ok.  The value is VAL or its regularized value if VAL is valid,
      and Qerror if not.  */
-  Lisp_Object (*validater) (Lisp_Object prop, Lisp_Object val);
+  Lisp_Object (*validator) (Lisp_Object prop, Lisp_Object val);
 } font_property_table[] =
   { { &QCtype, font_prop_validate_symbol },
     { &QCfoundry, font_prop_validate_symbol },
@@ -672,7 +672,7 @@ font_prop_validate (int idx, Lisp_Object prop, Lisp_Object val)
       if (idx < 0)
 	return val;
     }
-  validated = (font_property_table[idx].validater) (prop, val);
+  validated = (font_property_table[idx].validator) (prop, val);
   if (EQ (validated, Qerror))
     signal_error ("invalid font property", Fcons (prop, val));
   return validated;
@@ -825,7 +825,7 @@ font_expand_wildcards (Lisp_Object *field, int n)
     range_mask = (range_mask << 1) | 1;
 
   /* The triplet RANGE_FROM, RANGE_TO, and RANGE_MASK is a
-     position-based retriction for FIELD[I].  */
+     position-based restriction for FIELD[I].  */
   for (i = 0, range_from = 0, range_to = 14 - n; i < n;
        i++, range_from++, range_to++, range_mask <<= 1)
     {
@@ -842,7 +842,7 @@ font_expand_wildcards (Lisp_Object *field, int n)
       else
 	{
 	  /* The triplet FROM, TO, and MASK is a value-based
-	     retriction for FIELD[I].  */
+	     restriction for FIELD[I].  */
 	  int from, to;
 	  unsigned mask;
 

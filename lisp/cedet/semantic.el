@@ -680,7 +680,7 @@ Does nothing if the current buffer doesn't need reparsing."
 		    (save-excursion (semantic-fetch-tags))
 		    nil)
 	      ;; If we are here, it is because the lexical step failed,
-	      ;; proably due to unterminated lists or something like that.
+	      ;; probably due to unterminated lists or something like that.
 
 	      ;; We do nothing, and just wait for the next idle timer
 	      ;; to go off.  In the meantime, remember this, and make sure

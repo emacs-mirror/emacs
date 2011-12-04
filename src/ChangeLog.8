@@ -12583,7 +12583,7 @@
 	quit_char is typed, in order to break out of potential deadlocks.
 	(cancel_all_deferred_msgs): New function.
 	(complete_deferred_msg): Don't abort if msg not found; may have
-	been cancelled.
+	been canceled.
 	(Fw32_reconstruct_hot_key): Use pre-interned symbols.
 	(Fw32_send_sys_command): Wait for system command to
 	complete before returning.
@@ -13701,7 +13701,7 @@
 	* ccl.c (CCL_WRITE_CHAR): Don't use bcopy.
 	(ccl_driver): If BUFFER-MAGNIFICATION of the CCL program is 0,
 	cause error if the program is going to output some bytes.  When
-	outputing a string to notify an error, check the case that
+	outputting a string to notify an error, check the case that
 	DST_BYTES is zero.
 
 	* coding.h (CODING_FINISH_INTERRUPT): New macro.

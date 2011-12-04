@@ -365,7 +365,7 @@
 	(message-mail-other-window, message-mail-other-frame)
 	(message-news-other-window, message-news-other-frame):
 	Use switch-to-buffer-other-frame and switch-to-buffer-other-window
-	instead of setting buffer display varibles.
+	instead of setting buffer display variables.
 
 2011-09-11  Lars Magne Ingebrigtsen  <larsi@gnus.org>
 
@@ -7128,7 +7128,7 @@
 
 	* gnus-start.el (gnus-activate-group): Take an optional parameter to
 	say that you don't want to call gnus-request-group with don-check, but
-	do check the reponse.  This is for virtual groups only.
+	do check the response.  This is for virtual groups only.
 	(gnus-get-unread-articles): Count the archive groups as secondary, so
 	that they're activated the same way as before.
 

@@ -324,7 +324,7 @@ Try to use this to provide useful completion when available.")
   )
 
 (defvar srecode-field-replication-max-size 100
-  "Maximum size of a field before cancelling replication.")
+  "Maximum size of a field before canceling replication.")
 
 (defun srecode-field-mod-hook (ol after start end &optional pre-len)
   "Modification hook for the field overlay.

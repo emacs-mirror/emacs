@@ -126,7 +126,7 @@ a file in the home directory."
 
 (defun emacs-session-save ()
   "This function is called when the window system is shutting down.
-If this function returns non-nil, the window system shutdown is cancelled.
+If this function returns non-nil, the window system shutdown is canceled.
 
 When a session manager tells Emacs that the window system is shutting
 down, this function is called.  It calls the functions in the hook

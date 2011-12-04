@@ -2088,11 +2088,11 @@ This command is executed when texinfmt sees @item inside @multitable."
         (table-entry-height 0)
         ;; unformatted row looks like:  A1  @tab  A2  @tab  A3
         ;; extract-row command deletes the source line in the table.
-        (unformated-row (texinfo-multitable-extract-row)))
+        (unformatted-row (texinfo-multitable-extract-row)))
     ;; Use a temporary buffer
     (set-buffer (get-buffer-create texinfo-multitable-buffer-name))
     (delete-region (point-min) (point-max))
-    (insert unformated-row)
+    (insert unformatted-row)
     (goto-char (point-min))
 ;; 1. Check for correct number of @tab in line.
     (let ((tab-number 1))               ; one @tab between two columns

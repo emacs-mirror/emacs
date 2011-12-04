@@ -1862,7 +1862,7 @@ of the special mode functions."
 	    (if (not v)
 		(setq speedbar-special-mode-expansion-list t)
 	      ;; If it is autoloaded, we need to load it now so that
-	      ;; we have access to the varialbe -speedbar-menu-items.
+	      ;; we have access to the variable -speedbar-menu-items.
 	      ;; Is this XEmacs safe?
 	      (let ((sf (symbol-function v)))
 		(if (and (listp sf) (eq (car sf) 'autoload))

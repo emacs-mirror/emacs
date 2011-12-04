@@ -82,7 +82,7 @@
 
 ;; The function `zeroconf-publish-service' publishes a new service to
 ;; the Avahi daemon.  Although the domain, where to the service is
-;; published, can be specified by this function, it is usally the
+;; published, can be specified by this function, it is usually the
 ;; default domain "local" (also written as nil or "").
 
 ;;   (zeroconf-publish-service

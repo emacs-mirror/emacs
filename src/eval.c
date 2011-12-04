@@ -3733,7 +3733,7 @@ When lexical binding is not being used, this variable is nil.
 A value of `(t)' indicates an empty environment, otherwise it is an
 alist of active lexical bindings.  */);
   Vinternal_interpreter_environment = Qnil;
-  /* Don't export this variable to Elisp, so noone can mess with it
+  /* Don't export this variable to Elisp, so no one can mess with it
      (Just imagine if someone makes it buffer-local).  */
   Funintern (Qinternal_interpreter_environment, Qnil);
 

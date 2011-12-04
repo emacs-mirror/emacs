@@ -328,7 +328,7 @@ to add an effort property.")
   "Hook run when stopping the current clock.")
 
 (defvar org-clock-cancel-hook nil
-  "Hook run when cancelling the current clock.")
+  "Hook run when canceling the current clock.")
 (defvar org-clock-goto-hook nil
   "Hook run when selecting the currently clocked-in entry.")
 (defvar org-clock-has-been-used nil
@@ -346,7 +346,7 @@ to add an effort property.")
 (defvar org-clock-start-time "")
 
 (defvar org-clock-leftover-time nil
-  "If non-nil, user cancelled a clock; this is when leftover time started.")
+  "If non-nil, user canceled a clock; this is when leftover time started.")
 
 (defvar org-clock-effort ""
   "Effort estimate of the currently clocking task.")

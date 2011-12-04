@@ -906,7 +906,7 @@ The function `message-setup' runs this hook."
   :type 'hook)
 
 (defcustom message-cancel-hook nil
-  "Hook run when cancelling articles."
+  "Hook run when canceling articles."
   :group 'message-various
   :link '(custom-manual "(message)Various Message Variables")
   :type 'hook)
@@ -4840,7 +4840,7 @@ Otherwise, generate and save a value for `canlock-password' first."
 			   (message-fetch-field "Followup-To")))
 	 ;; BUG: We really need to get the charset for each name in the
 	 ;; Newsgroups and Followup-To lines to allow crossposting
-	 ;; between group namess with incompatible character sets.
+	 ;; between group names with incompatible character sets.
 	 ;; -- Per Abrahamsen <abraham@dina.kvl.dk> 2001-10-08.
 	 (group-field-charset
 	  (gnus-group-name-charset method newsgroups-field))

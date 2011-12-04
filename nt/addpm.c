@@ -250,7 +250,7 @@ main (int argc, char *argv[])
 			       MB_OKCANCEL | MB_ICONQUESTION);
 	  if (result != IDOK)
 	    {
-	      fprintf (stderr, "Install cancelled\n");
+	      fprintf (stderr, "Install canceled\n");
 	      exit (1);
 	    }
 	}
@@ -365,4 +365,3 @@ main (int argc, char *argv[])
 
   return 0;
 }
-

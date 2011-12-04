@@ -481,7 +481,7 @@ Entry to view-mode runs the normal hook `view-mode-hook'."
   ;; sets view-read-only to t as a buffer-local variable
   ;; after exiting View mode.  That arranges that the next toggle-read-only
   ;; will reenable View mode.
-  ;; Cancelling View mode in any other way should cancel that, too,
+  ;; Canceling View mode in any other way should cancel that, too,
   ;; so that View mode stays off if toggle-read-only is called.
   (if (local-variable-p 'view-read-only)
       (kill-local-variable 'view-read-only))

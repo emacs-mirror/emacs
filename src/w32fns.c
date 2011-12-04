@@ -2417,7 +2417,7 @@ complete_deferred_msg (HWND hwnd, UINT msg, LRESULT result)
   deferred_msg * msg_buf = find_deferred_msg (hwnd, msg);
 
   if (msg_buf == NULL)
-    /* Message may have been cancelled, so don't abort.  */
+    /* Message may have been canceled, so don't abort.  */
     return;
 
   msg_buf->result = result;
@@ -2538,7 +2538,7 @@ post_character_message (HWND hwnd, UINT msg,
            the lisp thread to respond.
 
 	   Note that we don't want to block the input thread waiting for
-	   a reponse from the lisp thread (although that would at least
+	   a response from the lisp thread (although that would at least
 	   solve the deadlock problem above), because we want to be able
 	   to receive C-g to interrupt the lisp thread.  */
 	cancel_all_deferred_msgs ();
@@ -3749,7 +3749,7 @@ w32_wnd_proc (HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 	  flags |= TPM_RIGHTBUTTON;
 
 	/* Remember we did a SetCapture on the initial mouse down event,
-	   so for safety, we make sure the capture is cancelled now.  */
+	   so for safety, we make sure the capture is canceled now.  */
 	ReleaseCapture ();
 	button_state = 0;
 
@@ -4951,7 +4951,7 @@ If TYPE is nil or omitted, get the property as a string.
 Otherwise TYPE is the name of the atom that denotes the type expected.
 If SOURCE is non-nil, get the property on that window instead of from
 FRAME.  The number 0 denotes the root window.
-If DELETE_P is non-nil, delete the property after retreiving it.
+If DELETE_P is non-nil, delete the property after retrieving it.
 If VECTOR_RET_P is non-nil, don't return a string but a vector of values.
 
 Value is nil if FRAME hasn't a property with name PROP or if PROP has
@@ -6032,7 +6032,7 @@ Otherwise, if ONLY-DIR-P is non-nil, the user can only select directories.  */)
 
 	file = DECODE_FILE (build_string (filename));
       }
-    /* User cancelled the dialog without making a selection.  */
+    /* User canceled the dialog without making a selection.  */
     else if (!CommDlgExtendedError ())
       file = Qnil;
     /* An error occurred, fallback on reading from the mini-buffer.  */

@@ -877,7 +877,7 @@ extern int buffer_shared;
 extern void check_frame_size (struct frame *frame, int *rows, int *cols);
 
 /* Return a pointer to the glyph W's physical cursor is on.  Value is
-   null if W's current matrix is invalid, so that no meaningfull glyph
+   null if W's current matrix is invalid, so that no meaningful glyph
    can be returned.  */
 
 struct glyph *get_phys_cursor_glyph (struct window *w);

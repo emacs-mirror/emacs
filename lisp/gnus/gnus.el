@@ -700,7 +700,7 @@ be set in `.emacs' instead."
 (defface gnus-summary-cancelled
   '((((class color))
      (:foreground "yellow" :background "black")))
-  "Face used for cancelled articles."
+  "Face used for canceled articles."
   :group 'gnus-summary)
 ;; backward-compatibility alias
 (put 'gnus-summary-cancelled-face 'face-alias 'gnus-summary-cancelled)

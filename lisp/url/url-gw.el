@@ -72,12 +72,12 @@ This list will be executed as a command after logging in via telnet."
   :group 'url-gateway)
 
 (defcustom url-gateway-telnet-login-prompt "^\r*.?login:"
-  "Prompt that tells us we should send our username when loggin in w/telnet."
+  "Prompt that tells us we should send our username when logging in w/telnet."
   :type 'regexp
   :group 'url-gateway)
 
 (defcustom url-gateway-telnet-password-prompt "^\r*.?password:"
-  "Prompt that tells us we should send our password when loggin in w/telnet."
+  "Prompt that tells us we should send our password when logging in w/telnet."
   :type 'regexp
   :group 'url-gateway)
 

@@ -674,7 +674,7 @@ with toolkit-specific code to display the menu bar right to left.
 
 *** image-type-header-regexps priorities the jpeg loader over the
 ImageMagick one.  This is not wrong, but how should a user go about
-prefering the ImageMagick loader?  The user might like zooming etc in jpegs.
+preferring the ImageMagick loader?  The user might like zooming etc in jpegs.
 
 Try (setq image-type-header-regexps nil) for a quick hack to prefer
 ImageMagick over the jpg loader.

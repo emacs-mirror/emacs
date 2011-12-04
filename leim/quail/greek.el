@@ -152,7 +152,7 @@ eta		H		h
 theta		Q		q
 iota		I		i
 kappa		K		k
-lamda		L		l
+lambda		L		l
 mu		M		m
 nu		N		n
 xi		X		x
@@ -433,7 +433,7 @@ eta		H		h
 theta		J		j
 iota		I		i
 kappa		K		k
-lamda		L		l
+lambda		L		l
 mu		M		m
 nu		N		n
 xi		X		x

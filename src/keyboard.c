@@ -12245,7 +12245,7 @@ text in the region before modifying the buffer.  The next
   DEFVAR_LISP ("debug-on-event",
                Vdebug_on_event,
                doc: /* Enter debugger on this event.  When Emacs
-receives the special event specifed by this variable, it will try to
+receives the special event specified by this variable, it will try to
 break into the debugger as soon as possible instead of processing the
 event normally through `special-event-map'.
 

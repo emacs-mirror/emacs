@@ -8010,7 +8010,7 @@
 2007-10-31  Juanma Barranquero  <lekktu@gmail.com>
 
 	* help-at-pt.el (help-at-pt-unload-hook): Remove.
-	Timers are automatically cancelled by `unload-feature'.
+	Timers are automatically canceled by `unload-feature'.
 
 	* delsel.el (delsel-unload-hook): Remove function and variable.
 	(delsel-unload-function): New-style unload function, adapted

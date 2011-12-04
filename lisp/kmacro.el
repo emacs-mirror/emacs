@@ -747,7 +747,7 @@ If kbd macro currently being defined end it before activating it."
 ;; Create a separate keymap installed as a minor-mode keymap (e.g. in
 ;; the emulation-mode-map-alists) in which macro bindings are made
 ;; independent of any other bindings.  When first binding is made,
-;; the kemap is created, installed, and enabled.  Key seq. C-x C-k +
+;; the keymap is created, installed, and enabled.  Key seq. C-x C-k +
 ;; can then be used to toggle the use of this keymap on and off.
 ;; This means that it would be safe(r) to bind ordinary keys like
 ;; letters and digits, provided that we inhibit the keymap while

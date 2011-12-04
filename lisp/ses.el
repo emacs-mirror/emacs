@@ -2273,7 +2273,7 @@ cells."
 
 (defun ses-read-printer (prompt default)
   "Common code for `ses-read-cell-printer', `ses-read-column-printer', and `ses-read-default-printer'.
-PROMPT should end with \": \".  Result is t if operation was cancelled."
+PROMPT should end with \": \".  Result is t if operation was canceled."
   (barf-if-buffer-read-only)
   (if (eq default t)
       (setq default "")

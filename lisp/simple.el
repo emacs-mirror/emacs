@@ -1582,7 +1582,7 @@ by the new completion."
      n)
     ;; next-matching-history-element always puts us at (point-min).
     ;; Move to the position we were at before changing the buffer contents.
-    ;; This is still sensical, because the text before point has not changed.
+    ;; This is still sensible, because the text before point has not changed.
     (goto-char point-at-start)))
 
 (defun previous-complete-history-element (n)
@@ -5704,7 +5704,7 @@ At top-level, as an editor command, this simply beeps."
 (defvar buffer-quit-function nil
   "Function to call to \"quit\" the current buffer, or nil if none.
 \\[keyboard-escape-quit] calls this function when its more local actions
-\(such as cancelling a prefix argument, minibuffer or region) do not apply.")
+\(such as canceling a prefix argument, minibuffer or region) do not apply.")
 
 (defun keyboard-escape-quit ()
   "Exit the current \"mode\" (in a generalized sense of the word).
@@ -6209,7 +6209,7 @@ BASE-POSITION, says where to insert the completion."
 	       choice buffer base-position nil)
         ;; This remove-text-properties should be unnecessary since `choice'
         ;; comes from buffer-substring-no-properties.
-        ;;(remove-text-properties 0 (lenth choice) '(mouse-face nil) choice)
+        ;;(remove-text-properties 0 (length choice) '(mouse-face nil) choice)
 	;; Insert the completion into the buffer where it was requested.
         (funcall (or insert-function completion-list-insert-choice-function)
                  (or (car base-position) (point))

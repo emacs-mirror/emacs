@@ -8331,7 +8331,7 @@ tag and (if present) the flagging note."
 	  (org-agenda-remove-flag hdmarker)
 	  (let ((win (get-buffer-window "*Flagging Note*")))
 	    (and win (delete-window win)))
-	  (message "Entry unflaged"))
+	  (message "Entry unflagged"))
       (setq note (org-entry-get hdmarker "THEFLAGGINGNOTE"))
       (unless note
 	(error "No flagging note"))
@@ -8354,7 +8354,7 @@ tag and (if present) the flagging note."
       (org-entry-delete nil "THEFLAGGINGNOTE")
       (setq newhead (org-get-heading)))
     (org-agenda-change-all-lines newhead marker)
-    (message "Entry unflaged")))
+    (message "Entry unflagged")))
 
 (defun org-agenda-get-any-marker (&optional pos)
   (or (get-text-property (or pos (point-at-bol)) 'org-hd-marker)

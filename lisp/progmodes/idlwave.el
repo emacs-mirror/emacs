@@ -7866,7 +7866,7 @@ itself."
   "Display online help about the completion at point."
   (interactive "eP")
   ;; Restore last-command for next command, to make
-  ;; scrolling/cancelling of completions work.
+  ;; scrolling/canceling of completions work.
   (setq this-command last-command)
   (idlwave-do-mouse-completion-help ev))
 
