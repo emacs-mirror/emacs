@@ -1,3 +1,11 @@
+2011-12-04  Juanma Barranquero  <lekktu@gmail.com>
+
+	* emacsclient.c (decode_options) [WINDOWSNT]: Don't force tty = 0;
+	instead, treat both -c and -t as always requesting a new "tty" frame,
+	and let server.el decide which kind is actually required.
+	Reported by Uwe Siart <usenet@siart.de> in this thread:
+	http://lists.gnu.org/archive/html/emacs-devel/2011-11/msg00303.html
+
 2011-11-30  Chong Yidong  <cyd@gnu.org>
 
 	* emacsclient.c (main): Condition last change on WINDOWSNT

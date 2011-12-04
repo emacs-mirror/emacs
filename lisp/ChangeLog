@@ -1,3 +1,10 @@
+2011-12-04  Juanma Barranquero  <lekktu@gmail.com>
+
+	* server.el (server-delete-client): On Windows, do not try to delete
+	the only terminal.
+	(server-process-filter): On Windows, treat requests for a tty frame as
+	if they were for a GUI frame if the running server is in GUI mode.
+
 2011-12-03  Glenn Morris  <rgm@gnu.org>
 
 	* textmodes/texinfmt.el (batch-texinfo-format): Doc fix.  (Bug#10207)

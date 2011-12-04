@@ -307,11 +307,13 @@ Updates `server-clients'."
 
       (setq server-clients (delq proc server-clients))
 
-      ;; Delete the client's tty.
-      (let ((terminal (process-get proc 'terminal)))
-	;; Only delete the terminal if it is non-nil.
-	(when (and terminal (eq (terminal-live-p terminal) t))
-	  (delete-terminal terminal)))
+      ;; Delete the client's tty, except on Windows (both GUI and console),
+      ;; where there's only one terminal and does not make sense to delete it.
+      (unless (eq system-type 'windows-nt)
+	(let ((terminal (process-get proc 'terminal)))
+	  ;; Only delete the terminal if it is non-nil.
+	  (when (and terminal (eq (terminal-live-p terminal) t))
+	    (delete-terminal terminal))))
 
       ;; Delete the client's process.
       (if (eq (process-status proc) 'open)
@@ -1035,7 +1037,11 @@ The following commands are accepted by the client:
                  (setq tty-name (pop args-left)
                        tty-type (pop args-left)
                        dontkill (or dontkill
-                                    (not use-current-frame))))
+                                    (not use-current-frame)))
+                 ;; On Windows, emacsclient always asks for a tty frame.
+                 ;; If running a GUI server, force the frame type to GUI.
+                 (when (eq window-system 'w32)
+                   (push "-window-system" args-left)))
 
                 ;; -position LINE[:COLUMN]:  Set point to the given
                 ;;  position in the next file.

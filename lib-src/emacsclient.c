@@ -638,6 +638,22 @@ decode_options (int argc, char **argv)
   if (display && strlen (display) == 0)
     display = NULL;
 
+#ifdef WINDOWSNT
+  /* Emacs on Windows does not support GUI and console frames in the same
+     instance.  So, it makes sense to treat the -t and -c options as
+     equivalent, and open a new frame regardless of whether the running
+     instance is GUI or console.  Ideally, we would only set tty = 1 when
+     the instance is running in a console, but alas we don't know that.
+     The simplest workaround is to always ask for a tty frame, and let
+     server.el check whether it makes sense.  */
+  if (tty || !current_frame)
+    {
+      display = (const char *) ttyname;
+      current_frame = 0;
+      tty = 1;
+    }
+#endif
+
   /* If no display is available, new frames are tty frames.  */
   if (!current_frame && !display)
     tty = 1;
@@ -654,14 +670,6 @@ decode_options (int argc, char **argv)
 an empty string");
       exit (EXIT_FAILURE);
     }
-
-  /* TTY frames not supported on Windows.  Continue using GUI rather than
-     forcing the user to change their command-line.  This is required since
-     tty is set above if certain options are given and $DISPLAY is not set,
-     which is not obvious to users.  */
-  if (tty)
-      tty = 0;
-
 #endif /* WINDOWSNT */
 }
 
