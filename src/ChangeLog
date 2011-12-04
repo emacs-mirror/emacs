@@ -1,3 +1,8 @@
+2011-12-04  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* nsfns.m (get_geometry_from_preferences): New function.
+	(Fx_create_frame): Call get_geometry_from_preferences (Bug#10103).
+
 2011-12-04  Andreas Schwab  <schwab@linux-m68k.org>
 
 	* emacs.c (Qkill_emacs): Define.
