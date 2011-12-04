@@ -6344,7 +6344,7 @@ between beginning of field and beginning of line."
 			       "Message already being composed; erase? ")
 			    (message nil))))
 	    (error "Message being composed")))
-      (funcall (or switch-function #'switch-to-buffer) name)
+      (funcall (or switch-function #'pop-to-buffer-same-window) name)
       (set-buffer name))
     (erase-buffer)
     (message-mode)))
