@@ -723,6 +723,7 @@ build_cpu = @build_cpu@
 build_os = @build_os@
 build_vendor = @build_vendor@
 builddir = @builddir@
+cache_file = @cache_file@
 canonical = @canonical@
 configuration = @configuration@
 datadir = @datadir@
