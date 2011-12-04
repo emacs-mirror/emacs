@@ -32,7 +32,7 @@ unavailable.  However, it is still possible to create multiple
 ``frames'' on text-only terminals; such frames are displayed one at a
 time, filling the entire terminal screen (@pxref{Non-Window
 Terminals}).  It is also possible to use the mouse on some text-only
-terminals (@pxref{Text-Only Mouse}, for doing so on GNU and UNIX
+terminals (@pxref{Text-Only Mouse}, for doing so on GNU and Unix
 systems; and
 @iftex
 @pxref{MS-DOS Mouse,,,emacs-xtra,Specialized Emacs Features},
