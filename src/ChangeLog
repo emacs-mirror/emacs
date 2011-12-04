@@ -1,3 +1,13 @@
+2011-12-04  Andreas Schwab  <schwab@linux-m68k.org>
+
+	* emacs.c (Qkill_emacs): Define.
+	(syms_of_emacs): Initialize it.
+	* keyboard.c (interrupt_signal): Don't call Fkill_emacs here, set
+	Qquit_flag to `kill-emacs' instead.
+	(quit_throw_to_read_char): Add parameter `from_signal'.  All
+	callers changed.  Call Fkill_emacs if requested and safe.
+	* lisp.h (QUIT): Call Fkill_emacs if requested.
+
 2011-12-03  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* widget.c (update_wm_hints): Return if wmshell is null.
