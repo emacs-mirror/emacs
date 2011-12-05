@@ -1,3 +1,8 @@
+2011-12-05  Glenn Morris  <rgm@gnu.org>
+
+	* align.el (align--set-marker): Add doc-string.
+	Don't try to move something that is not a marker.  (Bug#10216)
+
 2011-12-04  Glenn Morris  <rgm@gnu.org>
 
 	* calendar/appt.el (appt-add): Rewrite the interactive-spec to avoid

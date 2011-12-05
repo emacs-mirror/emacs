@@ -1247,7 +1247,9 @@ have been aligned.  No changes will be made to the buffer."
 	(setq areas (cdr areas))))))
 
 (defmacro align--set-marker (marker-var pos &optional type)
-  `(if ,marker-var
+  "If MARKER-VAR is a marker, move it to position POS.
+Otherwise, create a new marker at position POS, with type TYPE."
+  `(if (markerp ,marker-var)
        (move-marker ,marker-var ,pos)
      (setq ,marker-var (copy-marker ,pos ,type))))
 
