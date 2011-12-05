@@ -1704,13 +1704,14 @@ If omitted or nil, that stands for the selected frame's display."
       (> (tty-color-gray-shades display) 2)))))
 
 (defun read-color (&optional prompt convert-to-RGB allow-empty-name msg)
-  "Read a color name or RGB triplet of the form \"#RRRRGGGGBBBB\".
+  "Read a color name or RGB triplet.
 Completion is available for color names, but not for RGB triplets.
 
-RGB triplets have the form #XXXXXXXXXXXX, where each X is a hex
-digit.  The number of Xs must be a multiple of 3, with the same
-number of Xs for each of red, green, and blue.  The order is red,
-green, blue.
+RGB triplets have the form \"#RRGGBB\".  Each of the R, G, and B
+components can have one to four digits, but all three components
+must have the same number of digits.  Each digit is a hex value
+between 0 and F; either upper case or lower case for A through F
+are acceptable.
 
 In addition to standard color names and RGB hex values, the
 following are available as color candidates.  In each case, the
