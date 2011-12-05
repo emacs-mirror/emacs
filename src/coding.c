@@ -4356,7 +4356,7 @@ encode_designation_at_bol (struct coding_system *coding,
 			   int *charbuf, int *charbuf_end,
 			   unsigned char *dst)
 {
-  unsigned char *orig;
+  unsigned char *orig = dst;
   struct charset *charset;
   /* Table of charsets to be designated to each graphic register.  */
   int r[4];

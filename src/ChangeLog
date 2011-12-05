@@ -1,3 +1,8 @@
+2011-12-05  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* coding.c (encode_designation_at_bol): Don't use uninitialized
+	local variable (Bug#9318).
+
 2011-12-05  Kenichi Handa  <handa@m17n.org>
 
 	* ftfont.c (get_adstyle_property): If the font is not BDF nor PCF,
