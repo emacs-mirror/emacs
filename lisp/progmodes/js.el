@@ -3000,7 +3000,7 @@ browser, respectively."
                       '(js> ((fifth hitab) "selectedTab") (fourth hitab))
                       cmds)))
 
-                  ;; Hilighting whole window
+                  ;; Highlighting whole window
                   ((third hitab)
                    (push '(js! ((third hitab) "document"
                                 "documentElement" "setAttribute")

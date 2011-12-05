@@ -24,19 +24,19 @@
 (defvar calc-arithmetic-menu
   (list "Arithmetic"
         (list "Basic"
-              ["-(1:)"         calc-change-sign 
+              ["-(1:)"         calc-change-sign
                :keys "n" :active (>= (calc-stack-size) 1)]
-              ["(2:) + (1:)"   calc-plus   
+              ["(2:) + (1:)"   calc-plus
                :keys "+" :active (>= (calc-stack-size) 2)]
-              ["(2:) - (1:)"   calc-minus  
+              ["(2:) - (1:)"   calc-minus
                :keys "-" :active (>= (calc-stack-size) 2)]
-              ["(2:) * (1:)"   calc-times  
+              ["(2:) * (1:)"   calc-times
                :keys "*" :active (>= (calc-stack-size) 2)]
-              ["(2:) / (1:)"   calc-divide 
+              ["(2:) / (1:)"   calc-divide
                :keys "/" :active (>= (calc-stack-size) 2)]
-              ["(2:) ^ (1:)"   calc-power  
+              ["(2:) ^ (1:)"   calc-power
                :keys "^" :active (>= (calc-stack-size) 2)]
-              ["(2:) ^ (1/(1:))" 
+              ["(2:) ^ (1/(1:))"
                (progn
                  (require 'calc-ext)
                  (let ((calc-inverse-flag t))
@@ -44,8 +44,8 @@
                :keys "I ^"
                :active (>= (calc-stack-size) 2)
                :help "The (1:)th root of (2:)"]
-              ["abs(1:)"   
-               (progn 
+              ["abs(1:)"
+               (progn
                  (require 'calc-arith)
                  (call-interactively 'calc-abs))
                :keys "A"
@@ -57,7 +57,7 @@
                  (call-interactively 'calc-inv))
                :keys "&"
                :active (>= (calc-stack-size) 1)]
-              ["sqrt(1:)" 
+              ["sqrt(1:)"
                (progn
                  (require 'calc-math)
                  (call-interactively 'calc-sqrt))
@@ -70,7 +70,7 @@
                :keys "\\"
                :active (>= (calc-stack-size) 2)
                :help "The integer quotient of (2:) over (1:)"]
-              ["(2:) mod (1:)"  
+              ["(2:) mod (1:)"
                (progn
                  (require 'calc-misc)
                  (call-interactively 'calc-mod))
@@ -78,28 +78,28 @@
                :active (>= (calc-stack-size) 2)
                :help "The remainder when (2:) is divided by (1:)"])
         (list "Rounding"
-              ["floor(1:)" 
+              ["floor(1:)"
                (progn
                  (require 'calc-arith)
                  (call-interactively 'calc-floor))
                :keys "F"
                :active (>= (calc-stack-size) 1)
                :help "The greatest integer less than or equal to (1:)"]
-              ["ceiling(1:)"  
+              ["ceiling(1:)"
                (progn
                  (require 'calc-arith)
                  (call-interactively 'calc-ceiling))
                :keys "I F"
                :active (>= (calc-stack-size) 1)
                :help "The smallest integer greater than or equal to (1:)"]
-              ["round(1:)"    
+              ["round(1:)"
                (progn
                  (require 'calc-arith)
                  (call-interactively 'calc-round))
                :keys "R"
                :active (>= (calc-stack-size) 1)
                :help "The nearest integer to (1:)"]
-              ["truncate(1:)" 
+              ["truncate(1:)"
                (progn
                  (require 'calc-arith)
                  (call-interactively 'calc-trunc))
@@ -140,32 +140,32 @@
                :active (>= (calc-stack-size) 1)
                :help "The argument (polar angle) of (1:)"])
         (list "Conversion"
-              ["Convert (1:) to a float"    
+              ["Convert (1:) to a float"
                (progn
                  (require 'calc-ext)
                  (call-interactively 'calc-float))
                :keys "c f"
                :active (>= (calc-stack-size) 1)]
-              ["Convert (1:) to a fraction" 
+              ["Convert (1:) to a fraction"
                (progn
                  (require 'calc-ext)
                  (call-interactively 'calc-fraction))
                :keys "c F"
                :active (>= (calc-stack-size) 1)])
         (list "Binary"
-              ["Set word size" 
+              ["Set word size"
                (progn
                  (require 'calc-bin)
                  (call-interactively 'calc-word-size))
                :keys "b w"]
-              ["Clip (1:) to word size" 
+              ["Clip (1:) to word size"
                (progn
                  (require 'calc-bin)
                  (call-interactively 'calc-clip))
                :keys "b c"
                :active (>= (calc-stack-size) 1)
                :help "Reduce (1:) modulo 2^wordsize"]
-              ["(2:) and (1:)"    
+              ["(2:) and (1:)"
                (progn
                  (require 'calc-bin)
                  (call-interactively 'calc-and))
@@ -180,13 +180,13 @@
                :active (>= (calc-stack-size) 2)
                :help "Bitwise inclusive OR [modulo 2^wordsize]"]
               ["(2:) xor (1:)"
-               (progn 
+               (progn
                  (require 'calc-bin)
                  (call-interactively 'calc-xor))
                :keys "b x"
                :active (>= (calc-stack-size) 2)
                :help "Bitwise exclusive OR [modulo 2^wordsize]"]
-              ["diff(2:,1:)" 
+              ["diff(2:,1:)"
                (progn
                  (require 'calc-bin)
                  (call-interactively 'calc-diff))
@@ -263,82 +263,82 @@
                :keys "I P"
                :help "Euler's constant"])
         (list "Logs and Exps"
-              ["ln(1:)" 
-               (progn 
-                 (require 'calc-math) 
-                 (call-interactively 'calc-ln)) 
+              ["ln(1:)"
+               (progn
+                 (require 'calc-math)
+                 (call-interactively 'calc-ln))
                :keys "L"
                :active (>= (calc-stack-size) 1)
                :help "The natural logarithm"]
-              ["e^(1:)"   
+              ["e^(1:)"
                (progn
                  (require 'calc-math)
                  (call-interactively 'calc-exp))
                :keys "E"
                :active (>= (calc-stack-size) 1)]
-              ["log(1:) [base 10]" 
+              ["log(1:) [base 10]"
                (progn
                  (require 'calc-math)
                  (call-interactively 'calc-log10))
                :keys "H L"
                :active (>= (calc-stack-size) 1)
                :help "The common logarithm"]
-              ["10^(1:)" 
+              ["10^(1:)"
                (progn
                  (require 'calc-math)
                  (let ((calc-inverse-flag t))
                    (call-interactively 'calc-log10)))
                :keys "I H L"
                :active (>= (calc-stack-size) 1)]
-              ["log(2:) [base(1:)]" 
+              ["log(2:) [base(1:)]"
                (progn
                  (require 'calc-math)
                  (call-interactively 'calc-log))
                :keys "B"
                :active (>= (calc-stack-size) 2)
                :help "The logarithm with an arbitrary base"]
-              ["(2:) ^ (1:)"  
-               calc-power 
+              ["(2:) ^ (1:)"
+               calc-power
                :keys "^"
                :active (>= (calc-stack-size) 2)])
         (list "Trigonometric Functions"
-              ["sin(1:)"  
+              ["sin(1:)"
                (progn
                  (require 'calc-math)
                  (call-interactively 'calc-sin))
                :keys "S"
                :active (>= (calc-stack-size) 1)]
-              ["cos(1:)"  
+              ["cos(1:)"
                (progn
                  (require 'calc-math)
                  (call-interactively 'calc-cos))
                :keys "C"
                :active (>= (calc-stack-size) 1)]
-              ["tan(1:)"  
+              ["tan(1:)"
                (progn
                  (require 'calc-math)
                  (call-interactively 'calc-tan))
                :keys "T"
                :active (>= (calc-stack-size) 1)]
-              ["arcsin(1:)" 
+              ["arcsin(1:)"
                (progn
                  (require 'calc-math)
                  (call-interactively 'calc-arcsin))
                :keys "I S"
                :active (>= (calc-stack-size) 1)]
-              ["arccos(1:)" 
+              ["arccos(1:)"
                (progn
                  (require 'calc-math)
                  (call-interactively 'calc-arccos))
                :keys "I C"
                :active (>= (calc-stack-size) 1)]
-              ["arctan(1:)" 
+              ["arctan(1:)"
                (progn
                  (require 'calc-math)
                  (call-interactively 'calc-arctan))
                :keys "I T"
                :active (>= (calc-stack-size) 1)]
-              ["arctan2(2:,1:)" 
+              ["arctan2(2:,1:)"
                (progn
                  (require 'calc-math)
                  (call-interactively 'calc-arctan2))
@@ -367,65 +367,65 @@
                :style radio
                :selected (eq calc-angle-mode 'hms)])
         (list "Hyperbolic Functions"
-              ["sinh(1:)" 
+              ["sinh(1:)"
                (progn
                  (require 'calc-math)
                  (call-interactively 'calc-sinh))
                :keys "H S"
                :active (>= (calc-stack-size) 1)]
-              ["cosh(1:)" 
+              ["cosh(1:)"
                (progn
                  (require 'calc-math)
                  (call-interactively 'calc-cosh))
                :keys "H C"
                :active (>= (calc-stack-size) 1)]
-              ["tanh(1:)" 
+              ["tanh(1:)"
                (progn
                  (require 'calc-math)
                  (call-interactively 'calc-tanh))
                :keys "H T"
                :active (>= (calc-stack-size) 1)]
-              ["arcsinh(1:)" 
+              ["arcsinh(1:)"
                (progn
                  (require 'calc-math)
                  (call-interactively 'calc-arcsinh))
                :keys "I H S"
                :active (>= (calc-stack-size) 1)]
-              ["arccosh(1:)" 
+              ["arccosh(1:)"
                (progn
                  (require 'calc-math)
                  (call-interactively 'calc-arccosh))
                :keys "I H C"
                :active (>= (calc-stack-size) 1)]
-              ["arctanh(1:)" 
+              ["arctanh(1:)"
                (progn
                  (require 'calc-math)
                  (call-interactively 'calc-arctanh))
                :keys "I H T"
                :active (>= (calc-stack-size) 1)])
         (list "Advanced Math Functions"
-              ["Gamma(1:)" 
+              ["Gamma(1:)"
                (progn
                  (require 'calc-comb)
                  (call-interactively 'calc-gamma))
                :keys "f g"
                :active (>= (calc-stack-size) 1)
                :help "The Euler Gamma function"]
-              ["GammaP(2:,1:)" 
+              ["GammaP(2:,1:)"
                (progn
                  (require 'calc-funcs)
                  (call-interactively 'calc-inc-gamma))
                :keys "f G"
                :active (>= (calc-stack-size) 2)
                :help "The lower incomplete Gamma function"]
-              ["Beta(2:,1:)" 
+              ["Beta(2:,1:)"
                (progn
                  (require 'calc-funcs)
                  (call-interactively 'calc-beta))
                :keys "f b"
                :active (>= (calc-stack-size) 2)
                :help "The Euler Beta function"]
-              ["BetaI(3:,2:,1:)" 
+              ["BetaI(3:,2:,1:)"
                (progn
                  (require 'calc-funcs)
                  (call-interactively 'calc-inc-beta))
@@ -439,14 +439,14 @@
                :keys "f e"
                :active (>= (calc-stack-size) 1)
                :help "The error function"]
-              ["BesselJ(2:,1:)" 
+              ["BesselJ(2:,1:)"
                (progn
                  (require 'calc-funcs)
                  (call-interactively 'calc-bessel-J))
                :keys "f j"
                :active (>= (calc-stack-size) 2)
                :help "The Bessel function of the first kind (of order (2:))"]
-              ["BesselY(2:,1:)" 
+              ["BesselY(2:,1:)"
                (progn
                  (require 'calc-funcs)
                  (call-interactively 'calc-bessel-Y))
@@ -454,44 +454,44 @@
                :active (>= (calc-stack-size) 2)
                :help "The Bessel function of the second kind (of order (2:))"])
         (list "Combinatorial Functions"
-              ["gcd(2:,1:)" 
+              ["gcd(2:,1:)"
                (progn
                  (require 'calc-comb)
                  (call-interactively 'calc-gcd))
                  :keys "k g"
                  :active (>= (calc-stack-size) 2)]
-              ["lcm(2:,1:)" 
+              ["lcm(2:,1:)"
                (progn
                  (require 'calc-comb)
                  (call-interactively 'calc-lcm))
                :keys "k l"
                :active (>= (calc-stack-size) 2)]
-              ["factorial(1:)" 
+              ["factorial(1:)"
                (progn
                  (require 'calc-comb)
                  (call-interactively 'calc-factorial))
                :keys "!"
                :active (>= (calc-stack-size) 1)]
-              ["(2:) choose (1:)" 
+              ["(2:) choose (1:)"
                (progn
                  (require 'calc-comb)
                  (call-interactively 'calc-choose))
                :keys "k c"
                :active (>= (calc-stack-size) 2)]
-              ["permutations(2:,1:)" 
+              ["permutations(2:,1:)"
                (progn
                  (require 'calc-comb)
                  (call-interactively 'calc-perm))
                :keys "H k c"
                :active (>= (calc-stack-size) 2)]
-              ["Primality test for (1:)" 
+              ["Primality test for (1:)"
                (progn
                  (require 'calc-comb)
                  (call-interactively 'calc-prime-test))
                :keys "k p"
                :active (>= (calc-stack-size) 1)
                :help "For large (1:), a probabilistic test"]
-              ["Factor (1:) into primes" 
+              ["Factor (1:) into primes"
                (progn
                  (require 'calc-comb)
                  (call-interactively 'calc-prime-factors))
@@ -527,17 +527,17 @@
         ["Help on Scientific Functions"
          (calc-info-goto-node "Scientific Functions")])
   "Menu for Calc's scientific functions.")
-              
+
 (defvar calc-algebra-menu
   (list "Algebra"
         (list "Simplification"
-              ["Simplify (1:)" 
+              ["Simplify (1:)"
                (progn
                  (require 'calc-alg)
                  (call-interactively 'calc-simplify))
                :keys "a s"
                :active (>= (calc-stack-size) 1)]
-              ["Simplify (1:) with extended rules" 
+              ["Simplify (1:) with extended rules"
                (progn
                  (require 'calc-alg)
                  (call-interactively 'calc-simplify-extended))
@@ -545,72 +545,72 @@
                :active (>= (calc-stack-size) 1)
                :help "Apply possibly unsafe simplifications"])
         (list "Manipulation"
-              ["Expand formula (1:)" 
+              ["Expand formula (1:)"
                (progn
                  (require 'calc-alg)
                  (call-interactively 'calc-expand-formula))
                :keys "a \""
                :active (>= (calc-stack-size) 1)
                :help "Expand (1:) into its defining formula, if possible"]
-              ["Evaluate variables in (1:)" 
+              ["Evaluate variables in (1:)"
                (progn
                  (require 'calc-ext)
                  (call-interactively 'calc-evaluate))
                :keys "="
                :active (>= (calc-stack-size) 1)]
-              ["Make substitution in (1:)" 
+              ["Make substitution in (1:)"
                (progn
                  (require 'calc-alg)
                  (call-interactively 'calc-substitute))
                :keys "a b"
                :active (>= (calc-stack-size) 1)
-               :help 
+               :help
                "Substitute all occurrences of a sub-expression with a new sub-expression"])
         (list "Polynomials"
-              ["Factor (1:)" 
+              ["Factor (1:)"
                (progn
                  (require 'calc-alg)
                  (call-interactively 'calc-factor))
                :keys "a f"
                :active (>= (calc-stack-size) 1)]
-              ["Collect terms in (1:)" 
+              ["Collect terms in (1:)"
                (progn
                  (require 'calc-alg)
-                 (call-interactively 'calc-collect)) 
+                 (call-interactively 'calc-collect))
                :keys "a c"
                :active (>= (calc-stack-size) 1)
                :help "Arrange as a polynomial in a given variable"]
-              ["Expand (1:)" 
+              ["Expand (1:)"
                (progn
                  (require 'calc-alg)
                  (call-interactively 'calc-expand))
                :keys "a x"
                :active (>= (calc-stack-size) 1)
                :help "Apply distributive law everywhere"]
-              ["Find roots of (1:)" 
+              ["Find roots of (1:)"
                (progn
                  (require 'calcalg2)
                  (call-interactively 'calc-poly-roots))
                :keys "a P"
                :active (>= (calc-stack-size) 1)])
         (list "Calculus"
-              ["Differentiate (1:)" 
+              ["Differentiate (1:)"
                (progn
                  (require 'calcalg2)
                  (call-interactively 'calc-derivative))
                :keys "a d"
                :active (>= (calc-stack-size) 1)]
-              ["Integrate (1:) [indefinite]" 
+              ["Integrate (1:) [indefinite]"
                (progn
                  (require 'calcalg2)
                  (call-interactively 'calc-integral))
                :keys "a i"
                :active (>= (calc-stack-size) 1)]
-              ["Integrate (1:) [definite]" 
+              ["Integrate (1:) [definite]"
                (progn
                  (require 'calcalg2)
                  (let ((var (read-string "Integration variable: ")))
-                   (calc-tabular-command 'calcFunc-integ "Integration" 
+                   (calc-tabular-command 'calcFunc-integ "Integration"
                                          "intg" nil var nil nil)))
                :keys "C-u a i"
                :active (>= (calc-stack-size) 1)]
@@ -621,20 +621,20 @@
                :keys "a I"
                :active (>= (calc-stack-size) 1)
                :help "Integrate using the open Romberg method"]
-              ["Taylor expand (1:)" 
+              ["Taylor expand (1:)"
                (progn
                  (require 'calcalg2)
                  (call-interactively 'calc-taylor))
                :keys "a t"
                :active (>= (calc-stack-size) 1)]
-              ["Minimize (2:) [initial guess = (1:)]" 
+              ["Minimize (2:) [initial guess = (1:)]"
                (progn
                  (require 'calcalg3)
                  (call-interactively 'calc-find-minimum))
                :keys "a N"
                :active (>= (calc-stack-size) 2)
                :help "Find a local minimum"]
-              ["Maximize (2:) [initial guess = (1:)]" 
+              ["Maximize (2:) [initial guess = (1:)]"
                (progn
                  (require 'calcalg3)
                  (call-interactively 'calc-find-maximum))
@@ -642,26 +642,26 @@
                :active (>= (calc-stack-size) 2)
                :help "Find a local maximum"])
         (list "Solving"
-              ["Solve equation (1:)" 
+              ["Solve equation (1:)"
                (progn
                  (require 'calcalg2)
                  (call-interactively 'calc-solve-for))
                :keys "a S"
                :active (>= (calc-stack-size) 1)]
-              ["Solve equation (2:) numerically [initial guess = (1:)]" 
+              ["Solve equation (2:) numerically [initial guess = (1:)]"
                (progn
                  (require 'calcalg3)
                  (call-interactively 'calc-find-root))
                :keys "a R"
                :active (>= (calc-stack-size) 2)]
-              ["Find roots of polynomial (1:)" 
+              ["Find roots of polynomial (1:)"
                (progn
                  (require 'calcalg2)
                  (call-interactively 'calc-poly-roots))
                :keys "a P"
                :active (>= (calc-stack-size) 1)])
         (list "Curve Fitting"
-              ["Fit (1:)=[x values, y values] to a curve" 
+              ["Fit (1:)=[x values, y values] to a curve"
                (progn
                  (require 'calcalg3)
                  (call-interactively 'calc-curve-fit))
@@ -675,13 +675,13 @@
 
 (defvar calc-graphics-menu
   (list "Graphics"
-        ["Graph 2D [(1:)= y values, (2:)= x values]" 
+        ["Graph 2D [(1:)= y values, (2:)= x values]"
          (progn
            (require 'calc-graph)
            (call-interactively 'calc-graph-fast))
          :keys "g f"
          :active (>= (calc-stack-size) 2)]
-        ["Graph 3D [(1:)= z values, (2:)= y values, (3:)= x values]" 
+        ["Graph 3D [(1:)= z values, (2:)= y values, (3:)= x values]"
          (progn
            (require 'calc-graph)
            (call-interactively 'calc-graph-fast-3d))
@@ -696,11 +696,11 @@
 (defvar calc-vectors-menu
   (list "Matrices/Vectors"
         (list "Matrices"
-              ["(2:) + (1:)"   calc-plus   
+              ["(2:) + (1:)"   calc-plus
                :keys "+" :active (>= (calc-stack-size) 2)]
-              ["(2:) - (1:)"   calc-minus  
+              ["(2:) - (1:)"   calc-minus
                :keys "-" :active (>= (calc-stack-size) 2)]
-              ["(2:) * (1:)"   calc-times  
+              ["(2:) * (1:)"   calc-times
                :keys "*" :active (>= (calc-stack-size) 2)]
               ["(1:)^(-1)"
                (progn
@@ -709,17 +709,17 @@
                :keys "&"
                :active (>= (calc-stack-size) 1)]
               ["Create an identity matrix"
-               (progn 
+               (progn
                  (require 'calc-vec)
                  (call-interactively 'calc-ident))
                :keys "v i"]
-              ["transpose(1:)" 
+              ["transpose(1:)"
                (progn
                  (require 'calc-vec)
                  (call-interactively 'calc-transpose))
                :keys "v t"
                :active (>= (calc-stack-size) 1)]
-              ["det(1:)" 
+              ["det(1:)"
                (progn
                  (require 'calc-mtx)
                  (call-interactively 'calc-mdet))
@@ -731,19 +731,19 @@
                  (call-interactively 'calc-mtrace))
                :keys "V T"
                :active (>= (calc-stack-size) 1)]
-              ["LUD decompose (1:)" 
+              ["LUD decompose (1:)"
                (progn
                  (require 'calc-mtx)
                  (call-interactively 'calc-mlud))
                :keys "V L"
                :active (>= (calc-stack-size) 1)]
-              ["Extract a row from (1:)" 
+              ["Extract a row from (1:)"
                (progn
                  (require 'calc-vec)
                  (call-interactively 'calc-mrow))
                :keys "v r"
                :active (>= (calc-stack-size) 1)]
-              ["Extract a column from (1:)" 
+              ["Extract a column from (1:)"
                (progn
                  (require 'calc-vec)
                  (call-interactively 'calc-mcol))
@@ -756,13 +756,13 @@
                  (call-interactively 'calc-head))
                :keys "v h"
                :active (>= (calc-stack-size) 1)]
-              ["Extract an element from (1:)" 
+              ["Extract an element from (1:)"
                (progn
                  (require 'calc-vec)
                  (call-interactively 'calc-mrow))
                :keys "v r"
                :active (>= (calc-stack-size) 1)]
-              ["Reverse (1:)" 
+              ["Reverse (1:)"
                (progn
                  (require 'calc-vec)
                  (call-interactively 'calc-reverse-vector))
@@ -775,19 +775,19 @@
                :keys "v u"
                :active (>= (calc-stack-size) 1)
                :help "Separate the elements of (1:)"]
-              ["(2:) cross (1:)" 
+              ["(2:) cross (1:)"
                (progn
                  (require 'calc-vec)
                  (call-interactively 'calc-cross))
                :keys "V C"
                :active (>= (calc-stack-size) 2)
                :help "The cross product in R^3"]
-              ["(2:) dot (1:)" 
-               calc-mult 
+              ["(2:) dot (1:)"
+               calc-mult
                :keys "*"
                :active (>= (calc-stack-size) 2)
                :help "The dot product"]
-              ["Map a function across (1:)" 
+              ["Map a function across (1:)"
                (progn
                  (require 'calc-map)
                  (call-interactively 'calc-map))
@@ -795,25 +795,25 @@
                :active (>= (calc-stack-size) 1)
                :help "Apply a function to each element"])
         (list "Vectors As Sets"
-              ["Remove duplicates from (1:)" 
+              ["Remove duplicates from (1:)"
                (progn
                  (require 'calc-vec)
                  (call-interactively 'calc-remove-duplicates))
                :keys "V +"
                :active (>= (calc-stack-size) 1)]
-              ["(2:) union (1:)" 
+              ["(2:) union (1:)"
                (progn
                  (require 'calc-vec)
                  (call-interactively 'calc-set-union))
                :keys "V V"
                :active (>= (calc-stack-size) 2)]
-              ["(2:) intersect (1:)" 
+              ["(2:) intersect (1:)"
                (progn
                  (require 'calc-vec)
                  (call-interactively 'calc-set-intersect))
                :keys "V ^"
                :active (>= (calc-stack-size) 2)]
-              ["(2:) \\ (1:)" 
+              ["(2:) \\ (1:)"
                (progn
                  (require 'calc-vec)
                  (call-interactively 'calc-set-difference))
@@ -821,35 +821,35 @@
                :help "Set difference"
                :active (>= (calc-stack-size) 2)])
         (list "Statistics On Vectors"
-              ["length(1:)" 
+              ["length(1:)"
                (progn
                  (require 'calc-stat)
                  (call-interactively 'calc-vector-count))
                :keys "u #"
                :active (>= (calc-stack-size) 1)
                :help "The number of data values"]
-              ["sum(1:)"    
+              ["sum(1:)"
                (progn
                  (require 'calc-stat)
                  (call-interactively 'calc-vector-sum))
                :keys "u +"
                :active (>= (calc-stack-size) 1)
                :help "The sum of the data values"]
-              ["max(1:)"    
+              ["max(1:)"
                (progn
                  (require 'calc-stat)
-                 (call-interactively 'calc-vector-max))  
+                 (call-interactively 'calc-vector-max))
                :keys "u x"
                :active (>= (calc-stack-size) 1)
                :help "The maximum of the data values"]
-              ["min(1:)"    
+              ["min(1:)"
                (progn
                  (require 'calc-stat)
-                 (call-interactively 'calc-vector-min))  
+                 (call-interactively 'calc-vector-min))
                :keys "u N"
                :active (>= (calc-stack-size) 1)
-               :help "The minumum of the data values"]
-              ["mean(1:)"   
+               :help "The minimum of the data values"]
+              ["mean(1:)"
                (progn
                  (require 'calc-stat)
                  (call-interactively 'calc-vector-mean))
@@ -863,28 +863,28 @@
               :keys "I u M"
               :active (>= (calc-stack-size) 1)
               :help "The average (arithmetic mean) of the data values as an error form"]
-              ["sdev(1:)"   
+              ["sdev(1:)"
                (progn
                  (require 'calc-stat)
                  (call-interactively 'calc-vector-sdev))
                :keys "u S"
                :active (>= (calc-stack-size) 1)
                :help "The sample sdev, sqrt[sum((values - mean)^2)/(N-1)]"]
-              ["variance(1:)" 
+              ["variance(1:)"
                (progn
                  (require 'calc-stat)
                  (call-interactively 'calc-vector-variance))
                :keys "H u S"
                :active (>= (calc-stack-size) 1)
                :help "The sample variance, sum((values - mean)^2)/(N-1)"]
-              ["population sdev(1:)" 
+              ["population sdev(1:)"
                (progn
                  (require 'calc-stat)
                  (call-interactively 'calc-vector-pop-sdev))
                :keys "I u S"
                :active (>= (calc-stack-size) 1)
                :help "The population sdev, sqrt[sum((values - mean)^2)/N]"]
-              ["population variance(1:)" 
+              ["population variance(1:)"
                (progn
                  (require 'calc-stat)
                  (call-interactively 'calc-vector-pop-variance))
@@ -937,25 +937,25 @@
 
 (defvar calc-units-menu
   (list "Units"
-        ["Convert units in (1:)" 
+        ["Convert units in (1:)"
          (progn
            (require 'calc-units)
            (call-interactively 'calc-convert-units ))
          :keys "u c"
          :active (>= (calc-stack-size) 1)]
-        ["Convert temperature in (1:)" 
+        ["Convert temperature in (1:)"
          (progn
            (require 'calc-units)
            (call-interactively 'calc-convert-temperature))
          :keys "u t"
          :active (>= (calc-stack-size) 1)]
-        ["Simplify units in (1:)" 
+        ["Simplify units in (1:)"
          (progn
            (require 'calc-units)
            (call-interactively 'calc-simplify-units))
          :keys "u s"
          :active (>= (calc-stack-size) 1)]
-        ["View units table" 
+        ["View units table"
          (progn
            (require 'calc-units)
            (call-interactively 'calc-view-units-table))
@@ -1072,40 +1072,40 @@
 
 (defvar calc-variables-menu
   (list "Variables"
-        ["Store (1:) into a variable" 
+        ["Store (1:) into a variable"
          (progn
            (require 'calc-store)
            (call-interactively 'calc-store))
          :keys "s s"
          :active (>= (calc-stack-size) 1)]
-        ["Recall a variable value" 
+        ["Recall a variable value"
           (progn
             (require 'calc-store)
             (call-interactively 'calc-recall ))
          :keys "s r"]
-        ["Edit the value of a variable" 
+        ["Edit the value of a variable"
          (progn
            (require 'calc-store)
            (call-interactively 'calc-edit-variable))
          :keys "s e"]
-        ["Exchange (1:) with a variable value" 
+        ["Exchange (1:) with a variable value"
          (progn
            (require 'calc-store)
            (call-interactively 'calc-store-exchange))
          :keys "s x"
          :active (>= (calc-stack-size) 1)]
-        ["Clear variable value" 
+        ["Clear variable value"
          (progn
            (require 'calc-store)
            (call-interactively 'calc-unstore))
          :keys "s u"]
-        ["Evaluate variables in (1:)" 
+        ["Evaluate variables in (1:)"
          (progn
            (require 'calc-ext)
            (call-interactively 'calc-evaluate))
          :keys "="
          :active (>= (calc-stack-size) 1)]
-        ["Evaluate (1:), assigning a value to a variable" 
+        ["Evaluate (1:), assigning a value to a variable"
          (progn
            (require 'calc-store)
            (call-interactively 'calc-let))
@@ -1119,19 +1119,19 @@
 
 (defvar calc-stack-menu
   (list "Stack"
-        ["Remove (1:)" 
-         calc-pop 
+        ["Remove (1:)"
+         calc-pop
          :keys "DEL"
          :active (>= (calc-stack-size) 1)]
-        ["Switch (1:) and (2:)" 
-         calc-roll-down 
+        ["Switch (1:) and (2:)"
+         calc-roll-down
          :keys "TAB"
          :active (>= (calc-stack-size) 2)]
-        ["Duplicate (1:)" 
-         calc-enter 
+        ["Duplicate (1:)"
+         calc-enter
          :keys "RET"
          :active (>= (calc-stack-size) 1)]
-        ["Edit (1:)" 
+        ["Edit (1:)"
          (progn
            (require 'calc-yank)
            (call-interactively calc-edit))
@@ -1144,12 +1144,12 @@
 
 (defvar calc-errors-menu
   (list "Undo"
-        ["Undo" 
+        ["Undo"
          (progn
            (require 'calc-undo)
            (call-interactively 'calc-undo))
          :keys "U"]
-        ["Redo" 
+        ["Redo"
          (progn
            (require 'calc-undo)
            (call-interactively 'calc-redo))
@@ -1162,7 +1162,7 @@
 
 (defvar calc-modes-menu
   (list "Modes"
-        ["Precision" 
+        ["Precision"
          (progn
            (require 'calc-ext)
            (call-interactively 'calc-precision))
@@ -1277,7 +1277,7 @@
               ["Binary"
                (progn
                  (require 'calc-bin)
-                 (call-interactively 
+                 (call-interactively
                   (lambda () (interactive) (calc-binary-radix t))))
                :keys "C-u d 2"
                :style radio
@@ -1330,7 +1330,7 @@
                :keys "d e"
                :style radio
                :selected (eq (car-safe calc-float-format) 'eng)])
-        (list "Complex Format"             
+        (list "Complex Format"
               ["Default"
                (progn
                  (require 'calc-cplx)
@@ -1522,17 +1522,17 @@
 
 (defvar  calc-help-menu
   (list "Help"
-        ["Manual"   
+        ["Manual"
          calc-info
          :keys "h i"]
-        ["Tutorial" 
-         calc-tutorial 
+        ["Tutorial"
+         calc-tutorial
          :keys "h t"]
-        ["Summary"  
-         calc-info-summary 
+        ["Summary"
+         calc-info-summary
          :keys "h s"]
         "----"
-        ["Help on Help" 
+        ["Help on Help"
          (progn
            (calc-info-goto-node "Introduction")
            (Info-goto-node "Help Commands"))])
@@ -1557,7 +1557,7 @@
         calc-errors-menu
         calc-modes-menu
         calc-help-menu
-        ["Reset"  
+        ["Reset"
          (progn
            (require 'calc-ext)
            (call-interactively 'calc-reset))
@@ -1565,4 +1565,3 @@
         ["Quit" calc-quit]))
 
 (provide 'calc-menu)
-

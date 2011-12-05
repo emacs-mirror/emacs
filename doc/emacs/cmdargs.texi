@@ -69,7 +69,7 @@ arguments.)
 * Environment::         Environment variables that Emacs uses.
 * Display X::           Changing the default display and using remote login.
 * Font X::              Choosing a font for text, under X.
-* Colors::              Choosing display colors.
+* Colors X::            Choosing display colors.
 * Window Size X::       Start-up window size, under X.
 * Borders X::           Internal and external borders, under X.
 * Title X::             Specifying the initial frame's title.
@@ -784,7 +784,7 @@ Use @var{font} as the default font.
 
 When passing a font specification to Emacs on the command line, you
 may need to ``quote'' it, by enclosing it in quotation marks, if it
-contains characters that the shell treats specially (e.g. spaces).
+contains characters that the shell treats specially (e.g.@: spaces).
 For example:
 
 @smallexample
@@ -794,27 +794,14 @@ emacs -fn "DejaVu Sans Mono-12"
 @xref{Fonts}, for other ways to specify the default font and font name
 formats.
 
-@node Colors
+@node Colors X
 @appendixsec Window Color Options
 @cindex color of window, from command line
 @cindex text colors, from command line
 
-@findex list-colors-display
-@cindex available colors
-  On a color display, you can specify which color to use for various
-parts of the Emacs display.  To find out what colors are available on
-your system, type @kbd{M-x list-colors-display}, or press
-@kbd{C-Mouse-2} and select @samp{Display Colors} from the pop-up menu.
-(A particular window system might support many more colors, but the
-list displayed by @code{list-colors-display} shows their portable
-subset that can be safely used on any display supported by Emacs.)
-If you do not specify colors, on windowed displays the default for the
-background is white and the default for all other colors is black.  On a
-monochrome display, the foreground is black, the background is white,
-and the border is gray if the display supports that.  On terminals, the
-background is usually black and the foreground is white.
-
-  Here is a list of the command-line options for specifying colors:
+  You can use the following command-line options to specify the colors
+to use for various parts of the Emacs display.  Colors may be
+specified using either color names or RGB triplets (@pxref{Colors}).
 
 @table @samp
 @item -fg @var{color}
@@ -822,15 +809,15 @@ background is usually black and the foreground is white.
 @itemx --foreground-color=@var{color}
 @opindex --foreground-color
 @cindex foreground color, command-line argument
-Specify the foreground color.  @var{color} should be a standard color
-name, or a numeric specification of the color's red, green, and blue
-components as in @samp{#4682B4} or @samp{RGB:46/82/B4}.
+Specify the foreground color, overriding the color specified by the
+@code{default} face (@pxref{Faces}).
 @item -bg @var{color}
 @opindex -bg
 @itemx --background-color=@var{color}
 @opindex --background-color
 @cindex background color, command-line argument
-Specify the background color.
+Specify the background color, overriding the color specified by the
+@code{default} face.
 @item -bd @var{color}
 @opindex -bd
 @itemx --border-color=@var{color}

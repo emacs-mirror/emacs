@@ -3704,4 +3704,4 @@ for @value{emacsothername}.
 @c   host and then send commands to it.
 @c * Use `filename' resp. `file name' consistently.
 @c * Use `host' resp. `machine' consistently.
-@c * Consistent small or capitalized words especially in menues.
+@c * Consistent small or capitalized words especially in menus.

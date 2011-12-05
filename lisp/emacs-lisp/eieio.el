@@ -57,7 +57,7 @@
 
 (eval-and-compile
 ;; About the above.  EIEIO must process its own code when it compiles
-;; itself, thus, by eval-and-compiling outselves, we solve the problem.
+;; itself, thus, by eval-and-compiling ourselves, we solve the problem.
 
 ;; Compatibility
 (if (fboundp 'compiled-function-arglist)

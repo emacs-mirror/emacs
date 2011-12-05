@@ -68,7 +68,7 @@
 
 ;; Computing a list structure can be a costly operation on huge lists
 ;; (a few thousand lines long).  Thus, code should follow the rule :
-;; "collect once, use many".  As a corollary, it is usally a bad idea
+;; "collect once, use many".  As a corollary, it is usually a bad idea
 ;; to use directly an interactive function inside the code, as those,
 ;; being independent entities, read the whole list structure another
 ;; time.

@@ -518,7 +518,7 @@ if large.  You can use `Info-split' to do this manually."
 
 ;;; Handle paragraph filling
 
-;; Keep as concatinated lists for ease of maintenance
+;; Keep as concatenated lists for ease of maintenance
 
 (defvar texinfo-no-refill-regexp
   (concat
@@ -2088,11 +2088,11 @@ This command is executed when texinfmt sees @item inside @multitable."
         (table-entry-height 0)
         ;; unformatted row looks like:  A1  @tab  A2  @tab  A3
         ;; extract-row command deletes the source line in the table.
-        (unformated-row (texinfo-multitable-extract-row)))
+        (unformatted-row (texinfo-multitable-extract-row)))
     ;; Use a temporary buffer
     (set-buffer (get-buffer-create texinfo-multitable-buffer-name))
     (delete-region (point-min) (point-max))
-    (insert unformated-row)
+    (insert unformatted-row)
     (goto-char (point-min))
 ;; 1. Check for correct number of @tab in line.
     (let ((tab-number 1))               ; one @tab between two columns
@@ -4238,7 +4238,7 @@ the @ifeq command."
 Must be used only with -batch, and kills Emacs on completion.
 Each file will be processed even if an error occurred previously.
 For example, invoke
-  \"emacs -batch -funcall batch-texinfo-format $docs/ ~/*.texinfo\"."
+  \"emacs -batch -l texinfmt -f batch-texinfo-format $docs/ ~/*.texinfo\"."
   (if (not noninteractive)
       (error "batch-texinfo-format may only be used -batch"))
   (let ((version-control t)

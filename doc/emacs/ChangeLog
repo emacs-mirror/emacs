@@ -1,3 +1,81 @@
+2011-12-04  Chong Yidong  <cyd@gnu.org>
+
+	* programs.texi (Program Modes): Mention modes that are not
+	included with Emacs.  Fix references to other manuals for tex.
+	Add index entry for backward-delete-char-untabify.  Mention
+	prog-mode-hook.
+	(Which Function): Use "global minor mode" terminology.
+	(Basic Indent, Multi-line Indent): Refer to previous descriptions
+	in Indentation chapter to avoid duplication.
+	(Expressions): Copyedit.
+	(Matching): Document Electric Pair mode.
+
+	* ack.texi (Acknowledgments):
+	* rmail.texi (Movemail, Other Mailbox Formats):
+	* frames.texi (Frames): Don't capitalize "Unix".
+
+2011-12-04  Chong Yidong  <cyd@gnu.org>
+
+	* text.texi (Nroff Mode): Mention what nroff is.
+	(Text Based Tables, Table Recognition): Don't say "Table mode"
+	since it's not a major or minor mode.
+	(Text Based Tables): Reduce the size of the example.
+	(Table Definition): Clarify definitions.
+	(Table Creation): Add key table.
+	(Cell Commands): Use kbd for commands.
+	(Table Rows and Columns): Combine nodes Row Commands and Column
+	Commands.
+	(Fixed Width Mode): Node deleted; contents moved to parent.
+	(Table Conversion): Shorten example.
+	(Measuring Tables): Merge into Table Misc.
+
+2011-12-03  Chong Yidong  <cyd@gnu.org>
+
+	* text.texi (TeX Mode): Mention AUCTeX package.
+	(TeX Editing): Add xref to documentation for Occur.
+	(LaTeX Editing): Add xref to Completion node.
+	(TeX Print): Fix description of tex-directory.
+	(Enriched Text): Renamed from Formatted Text.  Make this node and
+	its subnodes less verbose, since text/enriched files are
+	practically unused.
+	(Enriched Mode): Renamed from Requesting Formatted Text.
+	(Format Colors): Node deleted.
+	(Enriched Faces): Renamed from Format Faces.  Describe commands
+	for applying colors too.
+	(Forcing Enriched Mode): Node deleted; merged into Enriched Mode.
+
+	* frames.texi (Menu Mouse Clicks): Tweak description of C-Mouse-2.
+
+	* display.texi (Colors): New node.
+
+	* cmdargs.texi (Colors X):
+	* xresources.texi (GTK styles):
+	* custom.texi (Face Customization): Reference it.
+
+	* glossary.texi (Glossary): Remove "formatted text" and "WYSIWYG".
+	Link to Fill Commands for Justification entry.
+
+2011-12-03  Eli Zaretskii  <eliz@gnu.org>
+
+	* display.texi (Auto Scrolling): More accurate description of what
+	scroll-*-aggressively does, including the effect of non-zero
+	margin.  Fix "i.e." markup.
+
+2011-12-02  Chong Yidong  <cyd@gnu.org>
+
+	* text.texi (Pages): Mention how formfeed chars are displayed.
+	(Auto Fill): Note convention for calling auto-fill-mode from Lisp.
+	Describe adaptive filling more precisely.
+	(Fill Commands): Note that filling removes excess whitespace.
+	(Text Mode): Note auto-mode-alist entries for Text mode.  TAB is
+	now bound to indent-for-tab-command in Text mode.
+	(Outline Mode): Copyedits.
+	(Outline Visibility): Note that Reveal mode is a buffer-local
+	minor mode.
+
+	* modes.texi (Major Modes): Move note about checking major-mode in
+	a hook function here, from Text mode.
+
 2011-11-28  Chong Yidong  <cyd@gnu.org>
 
 	* text.texi (Words): Add xref to Position Info.

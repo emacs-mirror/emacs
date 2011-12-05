@@ -144,7 +144,7 @@ any selection."
 (put 'newline 'delete-selection t)
 (put 'open-line 'delete-selection 'kill)
 
-;; This is very useful for cancelling a selection in the minibuffer without
+;; This is very useful for canceling a selection in the minibuffer without
 ;; aborting the minibuffer.
 (defun minibuffer-keyboard-quit ()
   "Abort recursive edit.

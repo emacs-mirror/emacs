@@ -3448,7 +3448,7 @@ instrumented.  Then it does `edebug-on-entry' and switches to `go' mode."
 (defun edebug-on-entry (function &optional flag)
   "Cause Edebug to stop when FUNCTION is called.
 With prefix argument, make this temporary so it is automatically
-cancelled the first time the function is entered."
+canceled the first time the function is entered."
   (interactive "aEdebug on entry to: \nP")
   ;; Could store this in the edebug data instead.
   (put function 'edebug-on-entry (if flag 'temp t)))

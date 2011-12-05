@@ -1273,8 +1273,8 @@ Tested with swish-e-2.0.1 on Windows NT 4.0."
       (message "Doing hyrex-search query \"%s\"...done" qstring)
       (sit-for 0)
       ;; nnir-search returns:
-      ;;   for nnml/nnfolder: "filename mailid weigth"
-      ;;   for nnimap:        "group mailid weigth"
+      ;;   for nnml/nnfolder: "filename mailid weight"
+      ;;   for nnimap:        "group mailid weight"
       (goto-char (point-min))
       (delete-non-matching-lines "^\\S + [0-9]+ [0-9]+$")
       ;; HyREX doesn't search directly in groups -- so filter out here.

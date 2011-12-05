@@ -4293,7 +4293,7 @@ cache buffer into the designated cell in the table buffer."
     (car (table--get-coordinate (cdr (table--horizontal-cell-list nil t))))
     (1+ (cdr (table--get-coordinate (cdr (table--vertical-cell-list nil t))))))))
 
-(defun table-call-interactively (function &optional recoard-flag keys)
+(defun table-call-interactively (function &optional record-flag keys)
   "Call FUNCTION, or a table version of it if applicable.
 See `call-interactively' for full description of the arguments."
   (let ((table-func (intern-soft (format "*table--cell-%s" function))))
@@ -4301,7 +4301,7 @@ See `call-interactively' for full description of the arguments."
      (if (and table-func
 	      (table--point-in-cell-p))
 	 table-func
-       function) recoard-flag keys)))
+       function) record-flag keys)))
 
 (defun table-funcall (function &rest arguments)
   "Call FUNCTION, or a table version of it if applicable.

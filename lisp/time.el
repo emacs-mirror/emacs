@@ -369,7 +369,7 @@ would give mode line times like `94/12/30 21:07:48 (UTC)'."
       nil)))
 
 (with-no-warnings
-  ;; Warnings are suppresed to avoid "global/dynamic var `X' lacks a prefix".
+  ;; Warnings are suppressed to avoid "global/dynamic var `X' lacks a prefix".
   (defvar now)
   (defvar time)
   (defvar load)

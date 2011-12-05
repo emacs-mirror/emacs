@@ -67,7 +67,7 @@ minor_version ()
 
 ## $1 = program
 ## $2 = minimum version.
-## Return 0 if program is present with version >= minumum version.
+## Return 0 if program is present with version >= minimum version.
 ## Return 1 if program is missing.
 ## Return 2 if program is present but too old.
 ## Return 3 for unexpected error (eg failed to parse version).

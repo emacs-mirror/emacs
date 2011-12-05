@@ -1801,7 +1801,7 @@
 1998-07-21  Kenichi Handa  <handa@etl.go.jp>
 
 	* quail/japanese.el (quail-japanese-kanji-kkc): Handle the case
-	that conversion is cancelled in kkc-region.
+	that conversion is canceled in kkc-region.
 	(quail-japanese-switch-package): Fix previous change.
 
 1998-07-19  Kenichi Handa  <handa@etl.go.jp>
@@ -1998,7 +1998,7 @@
 	(quail-mode-map): Change binding for ethio-insert-ethio-space.
 	(quail-mode-hook): Check the current Quail package name.
 
-	* quail/latin-post.el: Add rules for cancelling accents by typing
+	* quail/latin-post.el: Add rules for canceling accents by typing
 	two accent keys (e.g. a~ => a-tilde, a~~ => a~) to all Quail
 	packages.
 

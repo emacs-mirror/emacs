@@ -906,7 +906,7 @@ The function `message-setup' runs this hook."
   :type 'hook)
 
 (defcustom message-cancel-hook nil
-  "Hook run when cancelling articles."
+  "Hook run when canceling articles."
   :group 'message-various
   :link '(custom-manual "(message)Various Message Variables")
   :type 'hook)
@@ -4507,7 +4507,8 @@ This function could be useful in `message-setup-hook'."
 		   (boundp 'gnus-group-posting-charset-alist))
 	      (gnus-setup-posting-charset nil)
 	    message-posting-charset))
-	 (headers message-required-mail-headers))
+	 (headers message-required-mail-headers)
+	 options)
     (when (and message-generate-hashcash
 	       (not (eq message-generate-hashcash 'opportunistic)))
       (message "Generating hashcash...")
@@ -4546,9 +4547,11 @@ This function could be useful in `message-setup-hook'."
 	      (error "Failed to send the message")))))
       ;; Let the user do all of the above.
       (run-hooks 'message-header-hook))
+    (setq options message-options)
     (unwind-protect
 	(with-current-buffer tembuf
 	  (erase-buffer)
+	  (setq message-options options)
 	  ;; Avoid copying text props (except hard newlines).
 	  (insert (with-current-buffer mailbuf
 		    (mml-buffer-substring-no-properties-except-hard-newlines
@@ -4630,9 +4633,11 @@ If you always want Gnus to send messages in one piece, set
 		(message "Sending via mail...")
 		(funcall (or message-send-mail-real-function
 			     message-send-mail-function)))
-	    (message-send-mail-partially)))
+	    (message-send-mail-partially))
+	  (setq options message-options))
       (kill-buffer tembuf))
     (set-buffer mailbuf)
+    (setq message-options options)
     (push 'mail message-sent-message-via)))
 
 (defvar sendmail-program)
@@ -4835,7 +4840,7 @@ Otherwise, generate and save a value for `canlock-password' first."
 			   (message-fetch-field "Followup-To")))
 	 ;; BUG: We really need to get the charset for each name in the
 	 ;; Newsgroups and Followup-To lines to allow crossposting
-	 ;; between group namess with incompatible character sets.
+	 ;; between group names with incompatible character sets.
 	 ;; -- Per Abrahamsen <abraham@dina.kvl.dk> 2001-10-08.
 	 (group-field-charset
 	  (gnus-group-name-charset method newsgroups-field))
@@ -6331,7 +6336,7 @@ between beginning of field and beginning of line."
 	      (progn
 		(gnus-select-frame-set-input-focus (window-frame window))
 		(select-window window))
-	    (funcall (or switch-function 'switch-to-buffer) buffer)
+	    (funcall (or switch-function #'pop-to-buffer) buffer)
 	    (set-buffer buffer))
 	  (when (and (buffer-modified-p)
 		     (not (prog1
@@ -6339,7 +6344,7 @@ between beginning of field and beginning of line."
 			       "Message already being composed; erase? ")
 			    (message nil))))
 	    (error "Message being composed")))
-      (funcall (or switch-function 'switch-to-buffer) name)
+      (funcall (or switch-function #'pop-to-buffer-same-window) name)
       (set-buffer name))
     (erase-buffer)
     (message-mode)))

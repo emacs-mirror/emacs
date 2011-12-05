@@ -1,3 +1,18 @@
+2011-12-03  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* INSTALL.BZR: Mention configure -C, --disable-maintainer-mode.
+
+	Propagate configure flags to sub-configures.
+	* Makefile.in (cache_file, MAINTAINER_MODE_FLAG, CONFIGUREFLAGS):
+	New macros.
+	(config.status, bootstrap): Use them to propagate configure flags
+	to sub-configures.
+	* configure.in (cache_file): AC_SUBST this, for Makefile.in.
+
+2011-12-03  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* .bzrignore: Add config.cache.
+
 2011-11-27  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* configure.in: Check for gtk_window_set_has_resize_grip.
@@ -8156,7 +8171,7 @@
 1994-01-08  Roland McGrath  (roland@churchy.gnu.ai.mit.edu)
 
 	* configure.in (creating src/Makefile): Put code inside 2nd arg to
-	AC_OUTPUT as it should be; hopefully noone will again see fit to
+	AC_OUTPUT as it should be; hopefully no one will again see fit to
 	gratuitously break this and not make a change log entry.
 	Optimized sed processing of Makefile.in and cpp output; now
 	preserves comments previously removed from the cpp input.

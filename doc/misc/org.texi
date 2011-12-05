@@ -11399,16 +11399,16 @@ a file is retrieved with @code{org-publish-find-date}.
 @tab Should sorting be case-sensitive?  Default @code{nil}.
 
 @item @code{:sitemap-file-entry-format}
-@tab With this option one can tell how a sitemap's entry is formated in the
+@tab With this option one can tell how a sitemap's entry is formatted in the
 sitemap.  This is a format string with some escape sequences: @code{%t} stands
 for the title of the file, @code{%a} stands for the author of the file and
 @code{%d} stands for the date of the file.  The date is retrieved with the
-@code{org-publish-find-date} function and formated with
+@code{org-publish-find-date} function and formatted with
 @code{org-publish-sitemap-date-format}.  Default @code{%t}.
 
 @item @code{:sitemap-date-format}
 @tab Format string for the @code{format-time-string} function that tells how
-a sitemap entry's date is to be formated.  This property bypasses
+a sitemap entry's date is to be formatted.  This property bypasses
 @code{org-publish-sitemap-date-format} which defaults to @code{%Y-%m-%d}.
 
 @item @code{:sitemap-sans-extension}

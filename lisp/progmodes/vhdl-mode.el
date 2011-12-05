@@ -1714,7 +1714,7 @@ an absolute path (i.e. all caches can be stored in one global directory)."
 
 
 (defgroup vhdl-menu nil
-  "Customizations for menues."
+  "Customizations for menus."
   :group 'vhdl)
 
 (defcustom vhdl-index-menu nil
@@ -1844,7 +1844,7 @@ NOTE: Activate the new setting in a VHDL buffer by using the menu entry
 ;; Internal variables
 
 (defvar vhdl-menu-max-size 20
-  "*Specifies the maximum size of a menu before splitting it into submenues.")
+  "*Specifies the maximum size of a menu before splitting it into submenus.")
 
 (defvar vhdl-progress-interval 1
   "*Interval used to update progress status during long operations.
@@ -2468,7 +2468,7 @@ conversion."
   (goto-char marker))
 
 (defun vhdl-menu-split (list title)
-  "Split menu LIST into several submenues, if number of
+  "Split menu LIST into several submenus, if number of
 elements > `vhdl-menu-max-size'."
   (if (> (length list) vhdl-menu-max-size)
       (let ((remain list)

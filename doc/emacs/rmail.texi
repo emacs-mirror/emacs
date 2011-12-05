@@ -1340,17 +1340,18 @@ included in GNU mailutils (the ``mailutils version,''
 command line syntax and the same basic subset of options.  However, the
 Mailutils version offers additional features.
 
-  The Emacs version of @code{movemail} is able to retrieve mail from the
-usual UNIX mailbox formats and from remote mailboxes using the POP3
-protocol.
+  The Emacs version of @code{movemail} is able to retrieve mail from
+the usual Unix mailbox formats and from remote mailboxes using the
+POP3 protocol.
 
   The Mailutils version is able to handle a wide set of mailbox
-formats, such as plain UNIX mailboxes, @code{maildir} and @code{MH}
-mailboxes, etc.  It is able to access remote mailboxes using the POP3 or
-IMAP4 protocol, and can retrieve mail from them using a TLS encrypted
-channel.  It also accepts mailbox arguments in @acronym{URL} form.
-The detailed description of mailbox @acronym{URL}s can be found in
-@ref{URL,,,mailutils,Mailbox URL Formats}.  In short, a @acronym{URL} is:
+formats, such as plain Unix mailboxes, @code{maildir} and @code{MH}
+mailboxes, etc.  It is able to access remote mailboxes using the POP3
+or IMAP4 protocol, and can retrieve mail from them using a TLS
+encrypted channel.  It also accepts mailbox arguments in @acronym{URL}
+form.  The detailed description of mailbox @acronym{URL}s can be found
+in @ref{URL,,,mailutils,Mailbox URL Formats}.  In short, a
+@acronym{URL} is:
 
 @smallexample
 @var{proto}://[@var{user}[:@var{password}]@@]@var{host-or-file-name}
@@ -1381,9 +1382,9 @@ local mailbox.
 
 @table @code
 @item mbox
-Usual UNIX mailbox format.  In this case, neither @var{user} nor
-@var{pass} are used, and @var{host-or-file-name} denotes the file name of
-the mailbox file, e.g., @code{mbox://var/spool/mail/smith}.
+Usual Unix mailbox format.  In this case, neither @var{user} nor
+@var{pass} are used, and @var{host-or-file-name} denotes the file name
+of the mailbox file, e.g., @code{mbox://var/spool/mail/smith}.
 
 @item mh
 A local mailbox in the @acronym{MH} format.  @var{User} and
@@ -1524,7 +1525,7 @@ use it, add the @samp{--tls} flag to @code{rmail-movemail-flags}.
 @section Retrieving Mail from Local Mailboxes in Various Formats
 
   If your incoming mail is stored on a local machine in a format other
-than UNIX mailbox, you will need the Mailutils @code{movemail} to
+than Unix mailbox, you will need the Mailutils @code{movemail} to
 retrieve it.  @xref{Movemail}, for the detailed description of
 @code{movemail} versions.  For example, to access mail from a inbox in
 @code{maildir} format located in @file{/var/spool/mail/in}, you would

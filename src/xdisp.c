@@ -4093,26 +4093,37 @@ handle_invisible_prop (struct it *it)
 	  if (it->bidi_p && newpos < ZV)
 	    {
 	      EMACS_INT bpos = CHAR_TO_BYTE (newpos);
+	      int on_newline = FETCH_BYTE (bpos) == '\n';
+	      int after_newline =
+		newpos <= BEGV || FETCH_BYTE (bpos - 1) == '\n';
 
-	      if (FETCH_BYTE (bpos) == '\n'
-		  || (newpos > BEGV && FETCH_BYTE (bpos - 1) == '\n'))
+	      /* If the invisible text ends on a newline or on a
+		 character after a newline, we can avoid the costly,
+		 character by character, bidi iteration to NEWPOS, and
+		 instead simply reseat the iterator there.  That's
+		 because all bidi reordering information is tossed at
+		 the newline.  This is a big win for modes that hide
+		 complete lines, like Outline, Org, etc.  */
+	      if (on_newline || after_newline)
 		{
-		  /* If the invisible text ends on a newline or the
-		     character after a newline, we can avoid the
-		     costly, character by character, bidi iteration to
-		     newpos, and instead simply reseat the iterator
-		     there.  That's because all bidi reordering
-		     information is tossed at the newline.  This is a
-		     big win for modes that hide complete lines, like
-		     Outline, Org, etc.  (Implementation note: the
-		     call to reseat_1 is necessary, because it signals
-		     to the bidi iterator that it needs to reinit its
-		     internal information when the next element for
-		     display is requested.  */
 		  struct text_pos tpos;
+		  bidi_dir_t pdir = it->bidi_it.paragraph_dir;
 
 		  SET_TEXT_POS (tpos, newpos, bpos);
 		  reseat_1 (it, tpos, 0);
+		  /* If we reseat on a newline, we need to prep the
+		     bidi iterator for advancing to the next character
+		     after the newline, keeping the current paragraph
+		     direction (so that PRODUCE_GLYPHS does TRT wrt
+		     prepending/appending glyphs to a glyph row).  */
+		  if (on_newline)
+		    {
+		      it->bidi_it.first_elt = 0;
+		      it->bidi_it.paragraph_dir = pdir;
+		      it->bidi_it.ch = '\n';
+		      it->bidi_it.nchars = 1;
+		      it->bidi_it.ch_len = 1;
+		    }
 		}
 	      else	/* Must use the slow method.  */
 		{
@@ -4121,11 +4132,11 @@ handle_invisible_prop (struct it *it)
 		     non-base embedding level.  Therefore, we need to
 		     skip invisible text using the bidi iterator,
 		     starting at IT's current position, until we find
-		     ourselves outside the invisible text.  Skipping
-		     invisible text _after_ bidi iteration avoids
-		     affecting the visual order of the displayed text
-		     when invisible properties are added or
-		     removed.  */
+		     ourselves outside of the invisible text.
+		     Skipping invisible text _after_ bidi iteration
+		     avoids affecting the visual order of the
+		     displayed text when invisible properties are
+		     added or removed.  */
 		  if (it->bidi_it.first_elt && it->bidi_it.charpos < ZV)
 		    {
 		      /* If we were `reseat'ed to a new paragraph,
@@ -10223,7 +10234,7 @@ current_message_1 (EMACS_INT a1, Lisp_Object a2, EMACS_INT a3, EMACS_INT a4)
 }
 
 
-/* Push the current message on Vmessage_stack for later restauration
+/* Push the current message on Vmessage_stack for later restoration
    by restore_message.  Value is non-zero if the current message isn't
    empty.  This is a relatively infrequent operation, so it's not
    worth optimizing.  */
@@ -15606,7 +15617,7 @@ redisplay_window (Lisp_Object window, int just_this_one_p)
 	      pt_offset = float_amount * WINDOW_BOX_TEXT_HEIGHT (w);
 	      if (pt_offset == 0 && float_amount > 0)
 		pt_offset = 1;
-	      if (pt_offset)
+	      if (pt_offset && margin > 0)
 		margin -= 1;
 	    }
 	  /* Compute how much to move the window start backward from

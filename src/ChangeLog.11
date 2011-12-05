@@ -23182,7 +23182,7 @@
 	* font.c (font_prop_validate_symbol, font_prop_validate_style)
 	(font_prop_validate_non_neg, font_prop_validate_spacing):
 	Delete argument prop_index.
-	(font_property_table): Change arguments to validater.  Change Callers.
+	(font_property_table): Change arguments to validator.  Change Callers.
 	(font_lispy_object): Delete.
 	(font_at): Use font_find_object instead fo font_lispy_object.
 

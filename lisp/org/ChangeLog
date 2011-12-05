@@ -278,7 +278,7 @@
 
 	* org-archive.el (org-archive-subtree): While it might be possible
 	to archive an headline of a temporary buffer (i.e. not visiting a
-	file), it wouldn't be really sensical.
+	file), it wouldn't be really sensible.
 
 2011-07-28  Nicolas Goaziou  <n.goaziou@gmail.com>
 
@@ -4008,7 +4008,7 @@
 	* org-list.el (org-list-blocks): New variable.
 	(org-list-context): New function.
 	(org-list-full-item-re): New variable.
-	(org-list-struct-assoc-at-point): Use new varible.
+	(org-list-struct-assoc-at-point): Use new variable.
 	(org-list-struct): Rewrite of function.  Now, list data is
 	collected by looking at the list line after line.  It reads the
 	whole list each time because reading only a subtree was not enough
@@ -8139,7 +8139,7 @@
 2010-11-11  Nicolas Goaziou  <n.goaziou@gmail.com>
 
 	* org-list.el (org-insert-item-internal): New function to handle
-	positionning and contents of an item being inserted at a specific
+	positioning and contents of an item being inserted at a specific
 	pos. It is not possible anymore to split a term in a description
 	list or a checkbox when inserting a new item.
 
@@ -9758,7 +9758,7 @@
 
 2010-07-19  Bastien Guerry  <bzg@altern.org>
 
-	* org-timer.el (org-timer-set-timer): Fix bug about cancelling
+	* org-timer.el (org-timer-set-timer): Fix bug about canceling
 	timers.
 
 2010-07-19  David Maus  <dmaus@ictsoc.de>
@@ -12582,7 +12582,7 @@
 	buffer and at the position of the given clock.  However, changes
 	to the current clock are local and have no effect on the user's
 	active clock.  This allows, for example, far any clock to be
-	cancelled without cancelling the active clock.
+	canceled without canceling the active clock.
 	(org-clock-clock-in): New inline function that switches the active
 	clock to the given clock.  If either the argument RESUME, or the
 	global `org-clock-in-resume', are non-nil, it will resume a clock

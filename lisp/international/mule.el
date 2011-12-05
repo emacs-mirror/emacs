@@ -1785,7 +1785,7 @@ contents of the current buffer following point against
 succeed, it checks to see if any function in `auto-coding-functions'
 gives a match.
 
-If a coding system is specifed, the return value is a cons
+If a coding system is specified, the return value is a cons
 \(CODING . SOURCE), where CODING is the specified coding system and
 SOURCE is a symbol `auto-coding-alist', `auto-coding-regexp-alist',
 `:coding', or `auto-coding-functions' indicating by what CODING is

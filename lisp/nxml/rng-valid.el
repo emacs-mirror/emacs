@@ -377,8 +377,8 @@ The schema is set like `rng-auto-set-schema'."
 (defun rng-kill-timers ()
   ;; rng-validate-timer and rng-validate-quick-timer have the
   ;; permanent-local property, so that the timers can be
-  ;; cancelled even after changing mode.
-  ;; This function takes care of cancelling the timers and
+  ;; canceled even after changing mode.
+  ;; This function takes care of canceling the timers and
   ;; then killing the local variables.
   (when (local-variable-p 'rng-validate-timer)
     (when rng-validate-timer

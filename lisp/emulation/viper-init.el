@@ -818,7 +818,7 @@ Related buffers can be cycled through via :R and :P commands."
 ;;; Face-saving tricks
 
 (defgroup viper-highlighting nil
-  "Hilighting of replace region, search pattern, minibuffer, etc."
+  "Highlighting of replace region, search pattern, minibuffer, etc."
   :prefix "viper-"
   :group 'viper)
 

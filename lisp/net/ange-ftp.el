@@ -1664,7 +1664,7 @@ good, skip, fatal, or unknown."
           (if (not (and seen-prompt ange-ftp-pending-error-line))
               (ange-ftp-process-handle-line line proc)
             ;; If we've seen a potential error message and it
-            ;; hasn't been cancelled by a good message before
+            ;; hasn't been canceled by a good message before
             ;; seeing a prompt, then the error was real.
             (delete-process proc)
             (setq ange-ftp-process-busy nil

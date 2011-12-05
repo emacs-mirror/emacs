@@ -2703,7 +2703,7 @@ KEY BINDINGS FOR CONVERSION
 
 ;; Generate a half-cooked decode map (char-table) for the current
 ;; Quail map.  An element for a character C is a key string or a list
-;; of a key strings to type to input C.  The lenth of key string is at
+;; of a key strings to type to input C.  The length of key string is at
 ;; most 2.  If it is 2, more keys may be required to input C.
 
 (defun quail-gen-decode-map ()

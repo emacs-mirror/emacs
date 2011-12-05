@@ -358,7 +358,7 @@ This function is semi-obsolete.  Use `get-char-code-property'."
       (compose-string (string ch) 0 1 (format "\t%c\t" ch))
     (string ch)))
 
-;; Return a nicely formated list of categories; extended category
+;; Return a nicely formatted list of categories; extended category
 ;; description is added to the category name as a tooltip
 (defsubst describe-char-categories (category-set)
   (let ((mnemonics (category-set-mnemonics category-set)))

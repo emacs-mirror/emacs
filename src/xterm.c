@@ -9561,6 +9561,14 @@ x_wm_set_size_hint (struct frame *f, long flags, int user_position)
   XSizeHints size_hints;
   Window window = FRAME_OUTER_WINDOW (f);
 
+#ifdef USE_X_TOOLKIT
+  if (f->output_data.x->widget)
+    {
+      widget_update_wm_size_hints (f->output_data.x->widget);
+      return;
+    }
+#endif
+
   /* Setting PMaxSize caused various problems.  */
   size_hints.flags = PResizeInc | PMinSize /* | PMaxSize */;
 

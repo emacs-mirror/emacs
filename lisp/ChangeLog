@@ -1,26 +1,76 @@
-2011-11-29  Ken Brown  <kbrown@cornell.edu>
+2011-12-05  Glenn Morris  <rgm@gnu.org>
 
-	* progmodes/gdb-mi.el: Fix bug#9853, bug#9858, and bug#9878.
-	(gdb-version): Remove defvar.
-	(gdb-supports-non-stop): New defvar, replacing `gdb-version'.
-	(gdb-gud-context-command, gdb-non-stop-handler)
-	(gdb-current-context-command, gdb-stopped): Use it.
-	(gdb-init-1): Enable pretty printing here.
-	(gdb-non-stop-handler): Don't enable pretty-printing here.  Check
-	to see if the target supports non-stop mode; if not, turn off
-	non-stop mode.  Use the following.
-	(gdb-check-target-async): New defun.
-	(gud-watch, gdb-stopped): Fix whitespace.
-	(gdb-get-source-file): Don't try to display the source file if
-	`gdb-main-file' is nil.
+	* align.el (align--set-marker): Add doc-string.
+	Don't try to move something that is not a marker.  (Bug#10216)
 
-2011-11-29  Stefan Monnier  <monnier@iro.umontreal.ca>
+2011-12-04  Glenn Morris  <rgm@gnu.org>
 
-	* align.el: Try to generate fewer markers (bug#10047).
-	(align--set-marker): New macro.
-	(align-region): Use it.
+	* calendar/appt.el (appt-add): Rewrite the interactive-spec to avoid
+	overly zealous deletion of trailing whitespace.
 
-2011-11-29  Michael McNamara  <mac@mail.brushroad.com>
+2011-12-04  Juanma Barranquero  <lekktu@gmail.com>
+
+	* server.el (server-delete-client): On Windows, do not try to delete
+	the only terminal.
+	(server-process-filter): On Windows, treat requests for a tty frame as
+	if they were for a GUI frame if the running server is in GUI mode.
+
+2011-12-03  Glenn Morris  <rgm@gnu.org>
+
+	* textmodes/texinfmt.el (batch-texinfo-format): Doc fix.  (Bug#10207)
+
+2011-12-03  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* electric.el: Streamline electric-indent's hook.
+	(electric-indent-chars): Revert to simple list.
+	(electric-indent-functions): New var.
+	(electric-indent-post-self-insert-function): Use it.
+
+	* progmodes/prolog.el (prolog-find-value-by-system): Avoid error when
+	there's no inferior buffer (bug#10196).
+	(prolog-consult-compile): Don't use toggle-read-only.
+
+2011-12-02  Michael Albinus  <michael.albinus@gmx.de>
+
+	* net/tramp-sh.el (tramp-maybe-open-connection): Handle user
+	interrupt.  (Bug#10187)
+
+2011-12-02  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* pcmpl-gnu.el (pcomplete/tar): large-file-warn-threshold can be nil
+	(bug#9160).
+
+	* dired-aux.el (dired-query): Don't assume help-char is modifier-free
+	(bug#10191).
+
+2011-12-02  Juri Linkov  <juri@jurta.org>
+
+	* info.el (Info-search): Display "end of manual" when Isearch
+	reaches the end of single-file Info manual.  (Bug#9918)
+
+2011-12-02  Eli Zaretskii  <eliz@gnu.org>
+
+	* isearch.el (isearch-message-prefix): Run the input method part
+	of the prompt through bidi-string-mark-left-to-right.  (Bug#10183)
+
+2011-12-02  Juri Linkov  <juri@jurta.org>
+
+	* isearch.el (isearch-occur): Use `word-search-regexp' for
+	`isearch-word'.
+	(isearch-search-and-update): Add condition for `isearch-word' and
+	call `word-search-regexp'.  (Bug#10145)
+
+2011-12-01  Glenn Morris  <rgm@gnu.org>
+
+	* eshell/em-hist.el (eshell-hist-initialize):
+	Handle eshell-history-size nil and HISTSIZE set or unset.
+	(eshell-history-file-name, eshell-history-size): Fix custom type.
+
+2011-12-01  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* man.el (Man-completion-table): Fix the lambda case (bug#10168).
+
+2011-12-01  Michael McNamara  <mac@mail.brushroad.com>
 
 	* progmodes/verilog-mode.el (verilog-pretty-expr):
 	Rework verilog-pretty-expr to handle new assignment operators in system
@@ -50,7 +100,7 @@
 	(verilog-sk-ovm-class): Add skeleton for OVM classes (reported
 	by Alain Mellan).
 
-2011-11-29  Wilson Snyder  <wsnyder@wsnyder.org>
+2011-12-01  Wilson Snyder  <wsnyder@wsnyder.org>
 
 	* progmodes/verilog-mode.el (verilog-read-defines): Fix reading
 	parameters with embedded comments.  Reported by Ray Stevens.
@@ -174,6 +224,34 @@
 	with multiplication, bug303.
 	(verilog-read-decls): Fix parsing of unsigned data types, bug302.
 	Reported by Jan Frode Lonnum.
+
+2011-11-30  Juanma Barranquero  <lekktu@gmail.com>
+
+	* htmlfontify.el (hfy-page-header, hfy-post-html-hooks)
+	(hfy-shell-file-name, hfy-shell):
+	* international/fontset.el (x-decompose-font-name): Fix typos.
+
+2011-11-29  Ken Brown  <kbrown@cornell.edu>
+
+	* progmodes/gdb-mi.el: Fix bug#9853, bug#9858, and bug#9878.
+	(gdb-version): Remove defvar.
+	(gdb-supports-non-stop): New defvar, replacing `gdb-version'.
+	(gdb-gud-context-command, gdb-non-stop-handler)
+	(gdb-current-context-command, gdb-stopped): Use it.
+	(gdb-init-1): Enable pretty printing here.
+	(gdb-non-stop-handler): Don't enable pretty-printing here.
+	Check to see if the target supports non-stop mode; if not, turn off
+	non-stop mode.  Use the following.
+	(gdb-check-target-async): New defun.
+	(gud-watch, gdb-stopped): Fix whitespace.
+	(gdb-get-source-file): Don't try to display the source file if
+	`gdb-main-file' is nil.
+
+2011-11-29  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* align.el: Try to generate fewer markers (bug#10047).
+	(align--set-marker): New macro.
+	(align-region): Use it.
 
 2011-11-29  Stefan Monnier  <monnier@iro.umontreal.ca>
 

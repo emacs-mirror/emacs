@@ -1769,12 +1769,14 @@ If DIRECTION is `backward', search in the reverse direction."
       ;; If no subfiles, give error now.
       (if give-up
 	  (if (null Info-current-subfile)
-	      (let ((search-spaces-regexp
-		     (if (or (not isearch-mode) isearch-regexp)
-			 Info-search-whitespace-regexp)))
-		(if backward
-		    (re-search-backward regexp)
-		  (re-search-forward regexp)))
+	      (if isearch-mode
+		  (signal 'search-failed (list regexp "end of manual"))
+		(let ((search-spaces-regexp
+		       (if (or (not isearch-mode) isearch-regexp)
+			   Info-search-whitespace-regexp)))
+		  (if backward
+		      (re-search-backward regexp)
+		    (re-search-forward regexp))))
 	    (setq found nil)))
 
       (if (and bound (not found))
@@ -1845,7 +1847,7 @@ If DIRECTION is `backward', search in the reverse direction."
 	      (if found
 		  (message "")
 		(signal 'search-failed (if isearch-mode
-					   (list regexp "end of the manual")
+					   (list regexp "end of manual")
 					 (list regexp)))))
 	  (if (not found)
 	      (progn (Info-read-subfile osubfile)

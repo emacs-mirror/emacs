@@ -1272,8 +1272,8 @@ Colin Walters wrote Ibuffer, an enhanced buffer menu.
 Barry Warsaw wrote @file{assoc.el}, a set of utility functions for
 working with association lists; @file{cc-mode.el}, a mode for editing
 C, C@t{++}, and Java code, based on earlier work by Dave Detlefs,
-Stewart Clamen, and Richard Stallman; @file{elp.el}, a profiler
-for Emacs Lisp programs; @file{man.el}, a mode for reading UNIX manual
+Stewart Clamen, and Richard Stallman; @file{elp.el}, a profiler for
+Emacs Lisp programs; @file{man.el}, a mode for reading Unix manual
 pages; @file{regi.el}, providing an AWK-like functionality for use in
 lisp programs; @file{reporter.el}, providing customizable bug
 reporting for lisp packages; and @file{supercite.el}, a minor mode for

@@ -6,7 +6,7 @@
 @chapter Frames and Graphical Displays
 @cindex frames
 
-  When Emacs is started on a graphical display, e.g. on the X Window
+  When Emacs is started on a graphical display, e.g.@: on the X Window
 System, it occupies a graphical system-level ``window''.  In this
 manual, we call this a @dfn{frame}, reserving the word ``window'' for
 the part of the frame used for displaying a buffer.  A frame initially
@@ -32,7 +32,7 @@ unavailable.  However, it is still possible to create multiple
 ``frames'' on text-only terminals; such frames are displayed one at a
 time, filling the entire terminal screen (@pxref{Non-Window
 Terminals}).  It is also possible to use the mouse on some text-only
-terminals (@pxref{Text-Only Mouse}, for doing so on GNU and UNIX
+terminals (@pxref{Text-Only Mouse}, for doing so on GNU and Unix
 systems; and
 @iftex
 @pxref{MS-DOS Mouse,,,emacs-xtra,Specialized Emacs Features},
@@ -245,8 +245,8 @@ Select the text you drag across, in the form of whole lines.
 
 @vindex mouse-highlight
   Some Emacs buffers include @dfn{buttons}, or @dfn{hyperlinks}:
-pieces of text that perform some action (e.g. following a reference)
-when activated (e.g. by clicking on them).  Usually, a button's text
+pieces of text that perform some action (e.g.@: following a reference)
+when activated (e.g.@: by clicking on them).  Usually, a button's text
 is visually highlighted: it is underlined, or a box is drawn around
 it.  If you move the mouse over a button, the shape of the mouse
 cursor changes and the button lights up.  If you change the variable
@@ -302,8 +302,9 @@ menu smarter and more customizable.  @xref{Buffer Menus}.
 
 @item C-Mouse-2
 @kindex C-Mouse-2
-This menu is for specifying faces and other text properties
-for editing formatted text.  @xref{Formatted Text}.
+This menu contains entries for examining faces and other text
+properties, and well as for setting them (the latter is mainly useful
+when editing enriched text; @pxref{Enriched Text}).
 
 @item C-Mouse-3
 @kindex C-Mouse-3
@@ -657,7 +658,7 @@ The entries have the following meanings:
 @item maker
 The name of the font manufacturer.
 @item family
-The name of the font family (e.g. @samp{courier}).
+The name of the font family (e.g.@: @samp{courier}).
 @item weight
 The font weight---normally either @samp{bold}, @samp{medium} or
 @samp{light}.  Some font names support other values.

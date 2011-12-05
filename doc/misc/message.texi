@@ -1974,7 +1974,7 @@ that look like:
 Hallvard B Furuseth <h.b.furuseth@@usit.uio.no> writes:
 @end example
 
-@c FIXME: Add `message-insert-formated-citation-line' and
+@c FIXME: Add `message-insert-formatted-citation-line' and
 @c `message-citation-line-format'
 
 Point will be at the beginning of the body of the message when this

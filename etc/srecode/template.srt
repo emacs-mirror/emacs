@@ -125,13 +125,13 @@ prompt $?NAME$ "$?PROMPT$"
 bind "p"
 
 template priority :blank
-"Insert a priority statemept."
+"Insert a priority statement."
 ----
 set priority $^$
 ----
 
 template application :blank
-"Insert a priority statemept."
+"Insert an application statement."
 ----
 set application "$^$"
 ----

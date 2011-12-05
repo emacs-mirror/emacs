@@ -665,7 +665,7 @@ command whose response triggered the error."
                                                   (process-buffer -process))))
                               ;; When I an able to identify the
                               ;; connection to the server AND I've
-                              ;; received NO reponse for
+                              ;; received NO response for
                               ;; nntp-connection-timeout seconds.
                               (when (and -buffer (eq 0 (buffer-size -buffer)))
                                 ;; Close the connection.  Take no

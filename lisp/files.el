@@ -4866,7 +4866,7 @@ given.  With a prefix argument, TRASH is nil."
 		directory 'full directory-files-no-dot-files-regexp))
 	  (error "Directory is not empty, not moving to trash")
 	(move-file-to-trash directory)))
-     ;; Otherwise, call outselves recursively if needed.
+     ;; Otherwise, call ourselves recursively if needed.
      (t
       (if (and recursive (not (file-symlink-p directory)))
 	  (mapc (lambda (file)
@@ -6110,7 +6110,7 @@ message to that effect instead of signaling an error."
 
 (defvar kill-emacs-query-functions nil
   "Functions to call with no arguments to query about killing Emacs.
-If any of these functions returns nil, killing Emacs is cancelled.
+If any of these functions returns nil, killing Emacs is canceled.
 `save-buffers-kill-emacs' calls these functions, but `kill-emacs',
 the low level primitive, does not.  See also `kill-emacs-hook'.")
 

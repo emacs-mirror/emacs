@@ -90,12 +90,14 @@
   "If non-nil, name of the file to read/write input history.
 See also `eshell-read-history' and `eshell-write-history'.
 If it is nil, Eshell will use the value of HISTFILE."
-  :type 'file
+  :type '(choice (const :tag "Use HISTFILE" nil)
+		 file)
   :group 'eshell-hist)
 
 (defcustom eshell-history-size 128
   "Size of the input history ring.  If nil, use envvar HISTSIZE."
-  :type 'integer
+  :type '(choice (const :tag "Use HISTSIZE" nil)
+		 integer)
   :group 'eshell-hist)
 
 (defcustom eshell-hist-ignoredups nil
@@ -261,7 +263,13 @@ element, regardless of any text on the command line.  In that case,
 
   (make-local-variable 'eshell-history-size)
   (or eshell-history-size
-      (setq eshell-history-size (getenv "HISTSIZE")))
+      (let ((hsize (getenv "HISTSIZE")))
+        (setq eshell-history-size
+	      (if (and (stringp hsize)
+		       (integerp (setq hsize (string-to-number hsize)))
+		       (> hsize 0))
+		  hsize
+		128))))
 
   (make-local-variable 'eshell-history-file-name)
   (or eshell-history-file-name

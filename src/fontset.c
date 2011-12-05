@@ -166,7 +166,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
    These structures are hidden from the other codes than this file.
    The other codes handle fontsets only by their ID numbers.  They
    usually use the variable name `fontset' for IDs.  But, in this
-   file, we always use varialbe name `id' for IDs, and name `fontset'
+   file, we always use variable name `id' for IDs, and name `fontset'
    for an actual fontset object, i.e., char-table.
 
 */

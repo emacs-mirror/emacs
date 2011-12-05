@@ -150,11 +150,11 @@ main-content <=MAIN_CONTENT;\\n\" rtfm-section file style rtfm-section file))
   :prefix "hfy-")
 
 (defcustom hfy-page-header 'hfy-default-header
-  "Function called to build the header of the html source.
+  "Function called to build the header of the HTML source.
 This is called with two arguments (the filename relative to the top
 level source directory being etag'd and fontified), and a string containing
 the <style>...</style> text to embed in the document.
-It should return the string returned will be used as the header for the
+It should return a string that will be used as the header for the
 htmlfontified version of the source file.\n
 See also `hfy-page-footer'."
   :group 'htmlfontify
@@ -166,8 +166,8 @@ See also `hfy-page-footer'."
 (defcustom hfy-split-index nil
   "Whether or not to split the index `hfy-index-file' alphabetically.
 If non-nil, the index is split on the first letter of each tag.
-Useful when the index would otherwise
-be large and take a long time to render or be difficult to navigate."
+Useful when the index would otherwise be large and take
+a long time to render or be difficult to navigate."
   :group 'htmlfontify
   :tag   "split-index"
   :type  '(boolean))
@@ -179,7 +179,7 @@ It takes only one argument, the filename."
   :tag   "page-footer"
   :type  '(function))
 
-(defcustom hfy-extn        ".html"
+(defcustom hfy-extn ".html"
   "File extension used for output files."
   :group 'htmlfontify
   :tag   "extension"
@@ -251,7 +251,7 @@ when not running under a window system."
 
 (defcustom hfy-post-html-hooks nil
   "List of functions to call after creating and filling the HTML buffer.
-These functions will be called with the html buffer as the current buffer."
+These functions will be called with the HTML buffer as the current buffer."
   :group   'htmlfontify
   :tag     "post-html-hooks"
   :options '(set-auto-mode)
@@ -342,7 +342,7 @@ commands in `hfy-etags-cmd-alist'."
   :type  '(file))
 
 (defcustom hfy-shell-file-name "/bin/sh"
-  "Shell (bourne or compatible) to invoke for complex shell operations."
+  "Shell (Bourne or compatible) to invoke for complex shell operations."
   :group 'htmlfontify
   :tag   "shell-file-name"
   :type  '(file))
@@ -595,7 +595,8 @@ in a windowing system - try to trick it..."
                    (setq cperl-syntaxify-by-font-lock t)))
              (setq hfy-cperl-mode-kludged-p t))) )
 
-(defun hfy-opt (symbol) "Is option SYMBOL set."
+(defun hfy-opt (symbol)
+  "Is option SYMBOL set."
   (memq symbol hfy-optimisations))
 
 (defun hfy-default-header (file style)
@@ -1066,7 +1067,7 @@ See also `hfy-face-to-style-i', `hfy-flatten-style'."
                      ;; text-decoration is not inherited.
                      ;; but it's not wrong and if this ever changes it will
                      ;; be needed, so I think it's better to leave it in? -- v
-                     (nconc final-style '(("text-decoration"."none"))))))
+                     (nconc final-style '(("text-decoration" . "none"))))))
     final-style))
 
 ;; strip redundant bits from a name. Technically, this could result in
@@ -1992,7 +1993,7 @@ FILE is the specific file we are rendering."
          tags-list) )))
 
 (defun hfy-shell ()
-  "Return `shell-file-name', or \"/bin/sh\" if it is a non-bourne shell."
+  "Return `shell-file-name', or \"/bin/sh\" if it is a non-Bourne shell."
   (if (string-match "\\<bash\\>\\|\\<sh\\>\\|\\<dash\\>" shell-file-name)
       shell-file-name
     (or hfy-shell-file-name "/bin/sh")))

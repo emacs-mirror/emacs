@@ -199,12 +199,12 @@ not an indication of new features or bug fixes."
 	     (= v1-1 v2-1)
 	     (= v1-2 v2-2)
 	     (= v1-3 v2-3)
-	     v1-4 v2-4		; all or nothin if elt - is =
+	     v1-4 v2-4		; all or nothing if elt - is =
 	     (< v1-4 v2-4))
 	(and (= v1-0 v2-0)
 	     (= v1-1 v2-1)
 	     (= v1-2 v2-2)
-	     v1-3 v2-3		; all or nothin if elt - is =
+	     v1-3 v2-3		; all or nothing if elt - is =
 	     (< v1-3 v2-3))
 	(and (= v1-1 v2-1)
 	     (< v1-2 v2-2))

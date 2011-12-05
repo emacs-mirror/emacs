@@ -430,15 +430,8 @@ means that it's disabled.  You can enable or disable the attribute by
 clicking that button.  When the attribute is enabled, you can change
 the attribute value in the usual ways.
 
-  You can specify a color name (use @kbd{M-x list-colors-display} for
-a list of them) or a hexadecimal color specification of the form
-@samp{#@var{rr}@var{gg}@var{bb}}.  (@samp{#000000} is black,
-@samp{#ff0000} is red, @samp{#00ff00} is green, @samp{#0000ff} is
-blue, and @samp{#ffffff} is white.)  On a black-and-white display, the
-colors you can use for the background are @samp{black}, @samp{white},
-@samp{gray}, @samp{gray1}, and @samp{gray3}.  Emacs supports these
-shades of gray by using background stipple patterns instead of a
-color.
+  The foreground and background colors can be specified using color
+names or RGB triplets.  @xref{Colors}.
 
   Setting, saving and resetting a face work like the same operations for
 variables (@pxref{Changing a Variable}).
