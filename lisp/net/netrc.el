@@ -237,7 +237,7 @@ MODE can be \"login\" or \"password\", suitable for passing to
 ;;;###autoload
 (defun netrc-credentials (machine &rest ports)
   "Return a user name/password pair.
-Port specifications will be prioritised in the order they are
+Port specifications will be prioritized in the order they are
 listed in the PORTS list."
   (let ((list (netrc-parse))
 	found)

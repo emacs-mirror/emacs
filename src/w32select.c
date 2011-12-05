@@ -39,7 +39,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
  *
  * When copying or cutting (sending data to the OS), the data is
  * announced and stored internally, but only actually rendered on
- * request.  The requester determines the format provided.  The
+ * request.  The requestor determines the format provided.  The
  * {next-}selection-coding-system is only used, when its corresponding
  * clipboard type matches the type requested.
  *
@@ -335,7 +335,7 @@ render_all (Lisp_Object ignore)
 
   OpenClipboard (NULL);
 
-  /* There is no usefull means to report errors here, there are none
+  /* There is no useful means to report errors here, there are none
      expected anyway, and even if there were errors, they wouldn't do
      any harm.  So we just go ahead and do what has to be done without
      bothering with error handling.  */
@@ -750,7 +750,7 @@ DEFUN ("w32-set-clipboard-data", Fw32_set_clipboard_data,
       else
 	{
 	  /* Advertise all supported formats so that whatever the
-	     requester chooses, only one encoding step needs to be
+	     requestor chooses, only one encoding step needs to be
 	     made.  This is intentionally different from what we do in
 	     the handler for WM_RENDERALLFORMATS.  */
 	  SetClipboardData (CF_UNICODETEXT, NULL);
@@ -1138,4 +1138,3 @@ globals_of_w32select (void)
 
   clipboard_owner = create_owner ();
 }
-

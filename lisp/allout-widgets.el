@@ -108,7 +108,7 @@ inhibition of allout-widgets-mode."
 ;;;_  > allout-widgets-setup (varname value)
 ;;;###autoload
 (defun allout-widgets-setup (varname value)
-  "Commission or decommision allout-widgets-mode along with allout-mode.
+  "Commission or decommission allout-widgets-mode along with allout-mode.
 
 Meant to be used by customization of `allout-widgets-auto-activation'."
   (set-default varname value)

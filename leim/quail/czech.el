@@ -461,7 +461,7 @@ keyboard from the obsolete `emacs-czech' package.
 All digits except of `1' are replaced by Czech characters as on the standard
 Czech keyboard.
 `[' and `]' are replaced with `,Bz(B' and `,By(B', respectively.
-There are two dead keys on `=' and `+'.  Characters with diaresis are
+There are two dead keys on `=' and `+'.  Characters with diaereses are
 accessible through `+='.
 All other keys are the same as on standard US keyboard."
  nil t nil nil t nil nil nil nil nil t)

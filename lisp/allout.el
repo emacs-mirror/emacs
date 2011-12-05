@@ -1872,7 +1872,7 @@ at the beginning of the current entry.
 
                              Extending Allout
 
-Allout exposure and authoring activites all have associated
+Allout exposure and authoring activities all have associated
 hooks, by which independent code can cooperate with allout
 without changes to the allout core.  Here are key ones:
 

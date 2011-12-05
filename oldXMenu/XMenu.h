@@ -152,8 +152,8 @@ typedef struct _xmselect {
  *
  */
 typedef enum _xmstyle {
-    LEFT,			/* Left oriented obejct. */
-    RIGHT,			/* Right oriented obejct. */
+    LEFT,			/* Left oriented object. */
+    RIGHT,			/* Right oriented object. */
     CENTER			/* Center oriented object. */
 } XMStyle;
 

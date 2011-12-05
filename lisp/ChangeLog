@@ -5370,7 +5370,7 @@
 
 	* net/network-stream.el (network-stream-open-starttls): Support
 	upgrading to STARTTLS always, even if we don't have built-in support.
-	(open-network-stream): Add the :always-query-capabilies keyword.
+	(open-network-stream): Add the :always-query-capabilities keyword.
 
 	* mail/smtpmail.el: Rewritten to do opportunistic STARTTLS
 	upgrades with `open-network-stream', and rely solely on

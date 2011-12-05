@@ -580,7 +580,7 @@ If a window system is unavailable, calls `hfy-fallback-colour-values'."
             (color-values colour)
           ;;(message "[%S]" window-system)
           (x-color-values colour))
-      ;; blarg - tty colours are no good - go fetch some X colours:
+      ;; blarg - tty colors are no good - go fetch some X colors:
       (hfy-fallback-colour-values colour))))
 
 (defvar hfy-cperl-mode-kludged-p nil)

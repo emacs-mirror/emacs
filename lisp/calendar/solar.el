@@ -962,7 +962,7 @@ Accurate to within a minute between 1951 and 2050."
 (defun solar-mean-equinoxes/solstices (k year)
   "Julian day of mean equinox/solstice K for YEAR.
 K=0, spring equinox; K=1, summer solstice; K=2, fall equinox; K=3, winter
-solstice.  These formulae are only to be used between 1000 BC and 3000 AD."
+solstice.  These formulas are only to be used between 1000 BC and 3000 AD."
   (let ((y (/ year 1000.0))
         (z (/ (- year 2000) 1000.0)))
     (if (< year 1000)                ; actually between -1000 and 1000

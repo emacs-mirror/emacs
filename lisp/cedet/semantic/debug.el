@@ -175,7 +175,7 @@ TOKEN is a lexical token."
   "For IFACE, highlight NONTERM in the parser buffer.
 NONTERM is the name of the rule currently being processed that shows up
 as a nonterminal (or tag) in the source buffer.
-If RULE and MATCH indicies are specified, highlight those also."
+If RULE and MATCH indices are specified, highlight those also."
   (set-buffer (oref iface :parser-buffer))
 
   (let* ((rules (semantic-find-tags-by-class 'nonterminal (current-buffer)))

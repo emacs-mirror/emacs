@@ -8976,7 +8976,7 @@ Translate many non-@acronym{ASCII} characters into their
 @acronym{ASCII} equivalents (@code{gnus-article-treat-non-ascii}).
 This is mostly useful if you're on a terminal that has a limited font
 and doesn't show accented characters, ``advanced'' punctuation, and the
-like.  For instance, @samp{»} is tranlated into @samp{>>}, and so on.
+like.  For instance, @samp{»} is translated into @samp{>>}, and so on.
 
 @item W Y f
 @kindex W Y f (Summary)

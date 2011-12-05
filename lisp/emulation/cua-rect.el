@@ -1258,7 +1258,7 @@ The numbers are formatted according to the FORMAT string."
   (untabify (point-min) (point-max)))
 
 (defun cua-text-fill-rectangle (width text)
-  "Replace rectagle with filled TEXT read from minibuffer.
+  "Replace rectangle with filled TEXT read from minibuffer.
 A numeric prefix argument is used a new width for the filled rectangle."
   (interactive (list
                 (prefix-numeric-value current-prefix-arg)
@@ -1269,7 +1269,7 @@ A numeric prefix argument is used a new width for the filled rectangle."
     (lambda () (insert text))))
 
 (defun cua-refill-rectangle (width)
-  "Fill contents of current rectagle.
+  "Fill contents of current rectangle.
 A numeric prefix argument is used as new width for the filled rectangle."
   (interactive "P")
   (cua--rectangle-aux-replace
