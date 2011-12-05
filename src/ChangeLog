@@ -1,5 +1,10 @@
 2011-12-05  Kenichi Handa  <handa@m17n.org>
 
+	* ftfont.c (get_adstyle_property): If the font is not BDF nor PCF,
+	return Qnil (Bug#8046, Bug#10193).
+
+2011-12-05  Kenichi Handa  <handa@m17n.org>
+
 	* coding.c (encode_designation_at_bol): New args charbuf_end and
 	dst.  Return the number of produced bytes.  Callers changed.
 	(coding_set_source): Return how many bytes coding->source was
