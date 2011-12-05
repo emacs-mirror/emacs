@@ -2143,7 +2143,7 @@ extern int pending_signals;
 #define ELSE_PENDING_SIGNALS
 #endif	/* not SYNC_INPUT */
 
-extern void handle_quit_flag (void);
+extern void process_quit_flag (void);
 #define QUIT						\
   do {							\
     if (!NILP (Vquit_flag) && NILP (Vinhibit_quit))	\

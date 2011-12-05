@@ -1,3 +1,7 @@
+2011-12-05  Juanma Barranquero  <lekktu@gmail.com>
+
+	* lisp.h (process_quit_flag): Fix external declaration.
+
 2011-12-04  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	Don't macro-inline non-performance-critical code.
@@ -79,7 +83,7 @@
 
 	* xterm.c (handle_one_xevent): Only set async_visible and friends
 	if net_wm_state_hidden_seen is non-zero (Bug#10002)
-	(get_current_wm_state):  Set net_wm_state_hidden_seen to 1 if
+	(get_current_wm_state): Set net_wm_state_hidden_seen to 1 if
 	_NET_WM_STATE_HIDDEN is in NET_WM_STATE.
 
 2011-11-28  Paul Eggert  <eggert@cs.ucla.edu>
