@@ -4186,7 +4186,7 @@ variable `last-coding-system-used' to the coding system actually used.  */)
 	  /* If REPLACE is non-nil and we succeeded in not replacing the
 	     beginning or end of the buffer text with the file's contents,
 	     call format-decode with `point' positioned at the beginning
-	     of the buffer and `inserted' equalling the number of
+	     of the buffer and `inserted' equaling the number of
 	     characters in the buffer.  Otherwise, format-decode might
 	     fail to correctly analyze the beginning or end of the buffer.
 	     Hence we temporarily save `point' and `inserted' here and

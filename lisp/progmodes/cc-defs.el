@@ -473,7 +473,7 @@ various buffer change hooks."
 
   (let ((saved-undo-list (elt saved-state 0)))
     (if (eq buffer-undo-list saved-undo-list)
-	;; No change was done afterall.
+	;; No change was done after all.
 	(setq buffer-undo-list (cdr saved-undo-list))
 
       (if keep

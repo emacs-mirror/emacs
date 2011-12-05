@@ -496,7 +496,7 @@ Entry to view-mode runs the normal hook `view-mode-hook'."
   "Update `view-return-to-alist' of buffer BUFFER.
 Remove from `view-return-to-alist' all entries referencing dead
 windows.  Optional argument ITEM non-nil means add ITEM to
-`view-return-to-alist' after purging.  For a decsription of items
+`view-return-to-alist' after purging.  For a description of items
 that can be added see the RETURN-TO-ALIST argument of the
 function `view-mode-exit'.  If `view-return-to-alist' contains an
 entry for the selected window, purge that entry from

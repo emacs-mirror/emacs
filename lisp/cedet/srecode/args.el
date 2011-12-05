@@ -32,7 +32,7 @@
 ;;; :blank
 ;;
 ;; Using :blank means that the template should force blank lines
-;; before and after the template, reguardless of where the insertion
+;; before and after the template, regardless of where the insertion
 ;; is occurring.
 (defun srecode-semantic-handle-:blank (dict)
   "Add macros into the dictionary DICT specifying blank line spacing.
@@ -185,4 +185,3 @@ do not contain any text from preceding or following text."
 (provide 'srecode/args)
 
 ;;; srecode/args.el ends here
-

@@ -1915,7 +1915,7 @@ get_glyph_string_clip_rects (struct glyph_string *s, NativeRectangle *rects, int
 	 environments with anti-aliased text: if the same text is
 	 drawn onto the same place multiple times, it gets thicker.
 	 If the overlap we are processing is for the erased cursor, we
-	 take the intersection with the rectagle of the cursor.  */
+	 take the intersection with the rectangle of the cursor.  */
       if (s->for_overlaps & OVERLAPS_ERASED_CURSOR)
 	{
 	  XRectangle rc, r_save = r;

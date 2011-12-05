@@ -608,7 +608,7 @@ scrolls back.
 
 @item Using C-p and C-n with rebind gets into a locked state
 
-This happened a few times in Emacs 21, but has been unreproducible
+This happened a few times in Emacs 21, but has been irreproducible
 since.
 
 @item If an interactive process is currently running, @kbd{M-!} doesn't work

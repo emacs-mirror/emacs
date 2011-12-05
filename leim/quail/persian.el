@@ -194,11 +194,11 @@ Based on ISIRI-9149 Layout of Persian Letters and Symbols on Computer Keyboards.
 ;;;
 ;;;  This translit keyboard is designed to be intuitive such that
 ;;;  mapping are easy and natural to remember for a persian writer.
-;;;  For some persian characters there are multiple ways of inputing
+;;;  For some persian characters there are multiple ways of inputting
 ;;;  the same character.
 ;;;
 ;;;  The letter 'h' is used for a number of two character mappings,
-;;;  this means that some character sequence inputs need to be repeated 
+;;;  this means that some character sequence inputs need to be repeated
 ;;;  followed by a backspace followed by the 'h'.
 ;;;    For example:  سحر = 's' 's' '<bs>' 'h' 'h' 'r'
 ;;;  In practice such sequences are rare.

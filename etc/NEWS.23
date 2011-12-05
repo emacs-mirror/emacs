@@ -903,7 +903,7 @@ mode-line information (e.g. waiting for a VC command to finish).
 
 *** The mode-line tooltips have been improved to provide more details.
 
-*** The VC, line/colum number and minor mode indicators on the mode
+*** The VC, line/column number and minor mode indicators on the mode
 line are now interactive: mouse-1 can be used on them to pop up a menu.
 
 ** File deletion can make use of the Recycle Bin or system Trash folder.

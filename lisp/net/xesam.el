@@ -279,8 +279,8 @@ fields are supported.")
 
 (defun xesam-dbus-call-method (&rest args)
   "Apply a D-Bus method call.
-`dbus-call-method' is to be preferred, because it is more
-performant.  If the target D-Bus service is owned by Emacs, this
+`dbus-call-method' is preferred, because it performs better.
+If the target D-Bus service is owned by Emacs, this
 is not applicable, and `dbus-call-method-non-blocking' must be
 used instead.  ARGS are identical to the argument list of both
 functions."
