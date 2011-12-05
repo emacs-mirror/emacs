@@ -1,3 +1,7 @@
+2011-12-05  Christopher Genovese  <genovese.cr@gmail.com>  (tiny change)
+
+	* emacs-lisp/assoc.el (aput): Fix return value (bug#10146)
+
 2011-12-05  Eli Zaretskii  <eliz@gnu.org>
 
 	* descr-text.el (describe-char): Fix display of strong
