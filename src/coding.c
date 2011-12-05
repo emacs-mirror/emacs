@@ -9208,7 +9208,7 @@ frame's terminal device.  */)
     = TERMINAL_TERMINAL_CODING (get_terminal (terminal, 1));
   Lisp_Object coding_system = CODING_ID_NAME (terminal_coding->id);
 
-  /* For backward compatibility, return nil if it is `undecided'. */
+  /* For backward compatibility, return nil if it is `undecided'.  */
   return (! EQ (coding_system, Qundecided) ? coding_system : Qnil);
 }
 

@@ -154,6 +154,8 @@ Lisp_Object Qfile_name_handler_alist;
 
 Lisp_Object Qrisky_local_variable;
 
+Lisp_Object Qkill_emacs;
+
 /* If non-zero, Emacs should not attempt to use a window-specific code,
    but instead should use the virtual terminal under which it was started.  */
 int inhibit_window_system;
@@ -2394,6 +2396,7 @@ syms_of_emacs (void)
 {
   DEFSYM (Qfile_name_handler_alist, "file-name-handler-alist");
   DEFSYM (Qrisky_local_variable, "risky-local-variable");
+  DEFSYM (Qkill_emacs, "kill-emacs");
 
 #ifndef CANNOT_DUMP
   defsubr (&Sdump_emacs);

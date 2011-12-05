@@ -1076,7 +1076,41 @@ unwind_create_frame (Lisp_Object frame)
   return Qnil;
 }
 
+/*
+ * Read geometry related parameters from preferences if not in PARMS.
+ * Returns the union of parms and any preferences read.
+ */
 
+static Lisp_Object
+get_geometry_from_preferences (struct ns_display_info *dpyinfo,
+                               Lisp_Object parms)
+{
+  struct {
+    const char *val;
+    const char *cls;
+    Lisp_Object tem;
+  } r[] = {
+    { "width",  "Width", Qwidth },
+    { "height", "Height", Qheight },
+    { "left", "Left", Qleft },
+    { "top", "Top", Qtop },
+  };
+
+  int i;
+  for (i = 0; i < sizeof (r)/sizeof (r[0]); ++i)
+    {
+      if (NILP (Fassq (r[i].tem, parms)))
+        {
+          Lisp_Object value
+            = x_get_arg (dpyinfo, parms, r[i].tem, r[i].val, r[i].cls,
+                         RES_TYPE_NUMBER);
+          if (! EQ (value, Qunbound))
+            parms = Fcons (Fcons (r[i].tem, value), parms);
+        }
+    }
+
+  return parms;
+}
 
 /* ==========================================================================
 
@@ -1285,6 +1319,7 @@ This function is an internal primitive--use `make-frame' instead.  */)
   x_default_parameter (f, parms, Qtitle, Qnil, "title", "Title",
                        RES_TYPE_STRING);
 
+  parms = get_geometry_from_preferences (dpyinfo, parms);
   window_prompting = x_figure_window_size (f, parms, 1);
 
   tem = x_get_arg (dpyinfo, parms, Qunsplittable, 0, 0, RES_TYPE_BOOLEAN);

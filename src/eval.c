@@ -1629,6 +1629,18 @@ static Lisp_Object find_handler_clause (Lisp_Object, Lisp_Object);
 static int maybe_call_debugger (Lisp_Object conditions, Lisp_Object sig,
 				Lisp_Object data);
 
+void
+process_quit_flag (void)
+{
+  Lisp_Object flag = Vquit_flag;
+  Vquit_flag = Qnil;
+  if (EQ (flag, Qkill_emacs))
+    Fkill_emacs (Qnil);
+  if (EQ (Vthrow_on_input, flag))
+    Fthrow (Vthrow_on_input, Qt);
+  Fsignal (Qquit, Qnil);
+}
+
 DEFUN ("signal", Fsignal, Ssignal, 2, 2, 0,
        doc: /* Signal an error.  Args are ERROR-SYMBOL and associated DATA.
 This function does not return.

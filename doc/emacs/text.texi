@@ -32,9 +32,14 @@ structure.
 @findex nxml-mode
   Emacs has other major modes for text which contains ``embedded''
 commands, such as @TeX{} and La@TeX{} (@pxref{TeX Mode}); HTML and
-SGML (@pxref{HTML Mode}); XML (@pxref{Top,The nXML Mode
-Manual,,nxml-mode, nXML Mode}); and Groff and Nroff (@pxref{Nroff
-Mode}).
+SGML (@pxref{HTML Mode}); XML
+@ifinfo
+(@pxref{Top,The nXML Mode Manual,,nxml-mode, nXML Mode});
+@end ifinfo
+@ifnotinfo
+(see the nXML mode Info manual, which is distributed with Emacs);
+@end ifnotinfo
+and Groff and Nroff (@pxref{Nroff Mode}).
 
 @cindex ASCII art
   If you need to edit pictures made out of text characters (commonly
@@ -1764,8 +1769,15 @@ xml-mode}.  Emacs uses nXML mode for files which have the extension
 @file{.xml}.  For XHTML files, which have the extension @file{.xhtml},
 Emacs uses HTML mode by default; you can make it use nXML mode by
 customizing the variable @code{auto-mode-alist} (@pxref{Choosing
-Modes}).  nXML mode is described in its own manual: @xref{Top, nXML
+Modes}).
+@ifinfo
+nXML mode is described in its own manual: @xref{Top, nXML
 Mode,,nxml-mode, nXML Mode}.
+@end ifinfo
+@ifnotinfo
+nXML mode is described in an Info manual, which is distributed with
+Emacs.
+@end ifnotinfo
 
 @vindex sgml-xml-mode
   You may choose to use the less powerful SGML mode for editing XML,

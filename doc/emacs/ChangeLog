@@ -1,5 +1,21 @@
 2011-12-04  Chong Yidong  <cyd@gnu.org>
 
+	* programs.texi (Program Modes): Mention modes that are not
+	included with Emacs.  Fix references to other manuals for tex.
+	Add index entry for backward-delete-char-untabify.  Mention
+	prog-mode-hook.
+	(Which Function): Use "global minor mode" terminology.
+	(Basic Indent, Multi-line Indent): Refer to previous descriptions
+	in Indentation chapter to avoid duplication.
+	(Expressions): Copyedit.
+	(Matching): Document Electric Pair mode.
+
+	* ack.texi (Acknowledgments):
+	* rmail.texi (Movemail, Other Mailbox Formats):
+	* frames.texi (Frames): Don't capitalize "Unix".
+
+2011-12-04  Chong Yidong  <cyd@gnu.org>
+
 	* text.texi (Nroff Mode): Mention what nroff is.
 	(Text Based Tables, Table Recognition): Don't say "Table mode"
 	since it's not a major or minor mode.

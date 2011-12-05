@@ -1217,6 +1217,7 @@ build
 PROFILING_CFLAGS
 MAINT
 GZIP_INFO
+cache_file
 am__untar
 am__tar
 AMTAR
@@ -4068,6 +4069,9 @@ if test "${with_makeinfo+set}" = set; then :
 else
      with_makeinfo=yes
 fi
+
+
+## Makefile.in needs the cache file name.
 
 
 ## This is an option because I do not know if all info/man support

@@ -2128,7 +2128,10 @@ extern char *stack_bottom;
    Exception: if you set immediate_quit to nonzero,
    then the handler that responds to the C-g does the quit itself.
    This is a good thing to do around a loop that has no side effects
-   and (in particular) cannot call arbitrary Lisp code.  */
+   and (in particular) cannot call arbitrary Lisp code.
+
+   If quit-flag is set to `kill-emacs' the SIGINT handler has received
+   a request to exit Emacs when it is safe to do.  */
 
 #ifdef SYNC_INPUT
 extern void process_pending_signals (void);
@@ -2140,16 +2143,11 @@ extern int pending_signals;
 #define ELSE_PENDING_SIGNALS
 #endif	/* not SYNC_INPUT */
 
+extern void process_quit_flag (void);
 #define QUIT						\
   do {							\
     if (!NILP (Vquit_flag) && NILP (Vinhibit_quit))	\
-      {							\
-        Lisp_Object flag = Vquit_flag;			\
-	Vquit_flag = Qnil;				\
-	if (EQ (Vthrow_on_input, flag))			\
-	  Fthrow (Vthrow_on_input, Qt);			\
-	Fsignal (Qquit, Qnil);				\
-      }							\
+      process_quit_flag ();				\
     ELSE_PENDING_SIGNALS				\
   } while (0)
 
@@ -3291,6 +3289,7 @@ extern Lisp_Object Qfile_name_handler_alist;
 #ifdef FLOAT_CATCH_SIGILL
 extern void fatal_error_signal (int);
 #endif
+extern Lisp_Object Qkill_emacs;
 EXFUN (Fkill_emacs, 1) NO_RETURN;
 #if HAVE_SETLOCALE
 void fixup_locale (void);
