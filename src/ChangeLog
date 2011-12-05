@@ -2,6 +2,12 @@
 
 	* coding.c (encode_designation_at_bol): New args charbuf_end and
 	dst.  Return the number of produced bytes.  Callers changed.
+	(coding_set_source): Return how many bytes coding->source was
+	relocated.
+	(coding_set_destination): Return how many bytes
+	coding->destination was relocated.
+	(CODING_DECODE_CHAR, CODING_ENCODE_CHAR, CODING_CHAR_CHARSET)
+	(CODING_CHAR_CHARSET_P): Adjusted for the avove changes.
 
 2011-12-05  Kazuhiro Ito  <kzhr@d1.dion.ne.jp>  (tiny change)
 
@@ -13,17 +19,10 @@
 
 	The following changes are to fix Bug#9318.
 
-	* coding.c (CODING_DECODE_CHAR): Adjusted for the new interface of
-	coding_set_source.
-	(CODING_ENCODE_CHAR, CODING_CHAR_CHARSET): New macros.
-	(coding_set_source): Return how many bytes coding->source was
-	relocated.
-	(coding_set_destination): Return how many bytes
-	coding->destination was relocated.
+	* coding.c (CODING_ENCODE_CHAR, CODING_CHAR_CHARSET): New macros.
 	(encode_coding_emacs_mule, ENCODE_ISO_CHARACTER)
 	(encode_coding_iso_2022, encode_coding_sjis)
-	(encode_coding_big5, encode_coding_charset): Use macros
-	CODING_ENCODE_CHAR, CODING_CHAR_CHARSET.
+	(encode_coding_big5, encode_coding_charset): Use the above macros.
 
 2011-11-29  Jan Djärv  <jan.h.d@swipnet.se>
 
