@@ -1,3 +1,11 @@
+2011-12-05  Eli Zaretskii  <eliz@gnu.org>
+
+	* descr-text.el (describe-char): Fix display of strong
+	right-to-left characters and directional embeddings and overrides.
+
+	* simple.el (what-cursor-position): Fix display of codepoints of
+	strong right-to-left characters.
+
 2011-12-05  Chong Yidong  <cyd@gnu.org>
 
 	* faces.el (read-color): Doc fix.

@@ -422,6 +422,20 @@ as well as widgets, buttons, overlays, and text properties."
               (setq charset (char-charset char)
                     code (encode-char char charset)))
         (setq code char))
+      (cond
+       ;; Append a PDF character to directional embeddings and
+       ;; overrides, to prevent potential messup of the following
+       ;; text.
+       ((memq char '(?\x202a ?\x202b ?\x202d ?\x202e))
+	(setq char-description
+	      (concat char-description
+		      (propertize (string ?\x202c) 'invisible t))))
+       ;; Append a LRM character to any strong character to avoid
+       ;; messing up the numerical codepoint.
+       ((memq (get-char-code-property char 'bidi-class) '(R AL))
+	(setq char-description
+	      (concat char-description
+		      (propertize (string ?\x200e) 'invisible t)))))
       (when composition
         ;; When the composition is trivial (i.e. composed only with the
         ;; current character itself without any alternate characters),
