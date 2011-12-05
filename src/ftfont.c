@@ -164,6 +164,13 @@ get_adstyle_property (FcPattern *p)
   char *str, *end;
   Lisp_Object adstyle;
 
+#ifdef FC_FONTFORMAT
+  if ((FcPatternGetString (p, FC_FONTFORMAT, 0, &fcstr) == FcResultMatch)
+      && (xstrcasecmp ((char *) fcstr, "bdf") != 0
+	  || xstrcasecmp ((char *) fcstr, "pcf") != 0))
+    /* Not a BDF nor PCF font.  */
+    return Qnil;
+#endif
   if (FcPatternGetString (p, FC_STYLE, 0, &fcstr) != FcResultMatch)
     return Qnil;
   str = (char *) fcstr;
