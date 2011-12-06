@@ -1,3 +1,7 @@
+2011-12-06  Chong Yidong  <cyd@gnu.org>
+
+	* progmodes/cc-fonts.el (c-annotation-face): Use defface.
+
 2011-12-06  Juanma Barranquero  <lekktu@gmail.com>
 
 	* textmodes/table.el (table-shorten-cell): Fix typo.

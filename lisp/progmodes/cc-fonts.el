@@ -194,9 +194,13 @@
 	 (unless (face-property-instance oldface 'reverse)
 	   (invert-face newface)))))
 
-(defvar c-annotation-face (make-face 'c-annotation-face)
-  "Face used to highlight annotations in java-mode and other modes that may wish to use it.")
-(set-face-foreground 'c-annotation-face "blue")
+(defvar c-annotation-face 'c-annotation-face)
+
+(defface c-annotation-face
+  '((default :inherit font-lock-constant-face))
+  "Face for highlighting annotations in Java mode and similar modes."
+  :version "24.1"
+  :group 'c)
 
 (eval-and-compile
   ;; We need the following definitions during compilation since they're
