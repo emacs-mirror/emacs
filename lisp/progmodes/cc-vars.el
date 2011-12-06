@@ -586,7 +586,7 @@ in a mode hook, you have to call `c-setup-doc-comment-style'
 afterwards to redo that work."
   ;; Symbols other than those documented above may be used on this
   ;; variable.  If a variable exists that has that name with
-  ;; "-font-lock-keywords" appended, it's value is prepended to the
+  ;; "-font-lock-keywords" appended, its value is prepended to the
   ;; font lock keywords list.  If it's a function then it's called and
   ;; the result is prepended.
   :type '(radio

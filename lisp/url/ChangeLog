@@ -2448,7 +2448,7 @@
 	* lisp/url-nfs.el (url-nfs-create-wrapper): New function to create
 	wrappers onto the appropriate file-based URLs for file-name-handlers.
 
-	* lisp/url-ftp.el: Moved the FTP stuff into it's own file - it
+	* lisp/url-ftp.el: Moved the FTP stuff into its own file - it
 	might get messy with file-name-handlers and things.
 
 	* lisp/url-http.el (url-http-clean-headers): Fix problem when

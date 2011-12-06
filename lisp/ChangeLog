@@ -1,3 +1,7 @@
+2011-12-06  Juanma Barranquero  <lekktu@gmail.com>
+
+	* textmodes/table.el (table-shorten-cell): Fix typo.
+
 2011-12-05  Christopher Genovese  <genovese.cr@gmail.com>  (tiny change)
 
 	* emacs-lisp/assoc.el (aput): Fix return value (bug#10146)
