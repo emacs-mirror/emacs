@@ -1,3 +1,8 @@
+2011-12-06  Glenn Morris  <rgm@gnu.org>
+
+	* process.c (start_process_unwind): Treat any pid <= 0, except -2,
+	as an error, not just -1.  (Bug#10217)
+
 2011-12-05  Chong Yidong  <cyd@gnu.org>
 
 	* keyboard.c (process_special_events): New function.

@@ -1521,8 +1521,9 @@ start_process_unwind (Lisp_Object proc)
   if (!PROCESSP (proc))
     abort ();
 
-  /* Was PROC started successfully?  */
-  if (XPROCESS (proc)->pid == -1)
+  /* Was PROC started successfully?
+     -2 is used for a pty with no process, eg for gdb.  */
+  if (XPROCESS (proc)->pid <= 0 && XPROCESS (proc)->pid != -2)
     remove_process (proc);
 
   return Qnil;
