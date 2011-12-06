@@ -1,3 +1,8 @@
+2011-12-06  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* pcmpl-gnu.el (pcomplete/make): Also allow filename arguments
+	(bug#10116).
+
 2011-12-06  Glenn Morris  <rgm@gnu.org>
 
 	* emacs-lisp/package.el (package-archives): Doc fix re riskiness.
