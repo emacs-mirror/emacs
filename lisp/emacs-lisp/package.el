@@ -113,6 +113,8 @@
 
 ;;; ToDo:
 
+;; - a trust mechanism, since compiling a package can run arbitrary code.
+;;   For example, download package signatures and check that they match.
 ;; - putting info dirs at the start of the info path means
 ;;   users see a weird ordering of categories.  OTOH we want to
 ;;   override later entries.  maybe emacs needs to enforce
@@ -224,7 +226,10 @@ Each element has the form (ID . LOCATION).
  LOCATION specifies the base location for the archive.
   If it starts with \"http:\", it is treated as a HTTP URL;
   otherwise it should be an absolute directory name.
-  (Other types of URL are currently not supported.)"
+  (Other types of URL are currently not supported.)
+
+Only add locations that you trust, since fetching and installing
+a package can run arbitrary code."
   :type '(alist :key-type (string :tag "Archive name")
                 :value-type (string :tag "URL or directory name"))
   :risky t
