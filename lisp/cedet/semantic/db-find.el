@@ -575,7 +575,7 @@ a new path from the provided PATH."
 	  (setq ans (semanticdb-file-table
 		     (car systemdb)
 		     ;; I would expect most omniscient to return the same
-o		     ;; thing regardless of filename, but we may have
+		     ;; thing regardless of filename, but we may have
 		     ;; one that can return a table of all things the
 		     ;; current file needs.
 		     (buffer-file-name (current-buffer))))

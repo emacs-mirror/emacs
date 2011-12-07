@@ -816,7 +816,7 @@ now.
     ;;
     ;; will create 2 toplevel tags, one is type A, and the other variable B
     ;; where the :type of B is just a type tag A that is a prototype, and
-    ;; the actual struct info of A is it's own toplevel tag.
+    ;; the actual struct info of A is its own toplevel tag.
     (when (or (semantic-tag-of-class-p tag 'function)
 	      (semantic-tag-of-class-p tag 'variable))
       (let* ((basetype (semantic-tag-type tag))
@@ -1311,7 +1311,7 @@ Optional PARENT and COLOR as specified with
   "Return non-nil if TAG is considered abstract.
 PARENT is tag's parent.
 In C, a method is abstract if it is `virtual', which is already
-handled.  A class is abstract iff it's destructor is virtual."
+handled.  A class is abstract iff its destructor is virtual."
   (cond
    ((eq (semantic-tag-class tag) 'type)
     (require 'semantic/find)

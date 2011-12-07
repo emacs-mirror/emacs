@@ -715,7 +715,7 @@ If :auto-sitemap is set, publish the sitemap too.
 If :makeindex is set, also produce a file theindex.org."
   (mapc
    (lambda (project)
-     ;; Each project uses it's own cache file:
+     ;; Each project uses its own cache file:
      (org-publish-initialize-cache (car project))
      (let*
 	 ((project-plist (cdr project))

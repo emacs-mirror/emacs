@@ -61,10 +61,9 @@ pair is not at the head of alist.  ALIST is not altered."
 
 
 (defun aput (alist-symbol key &optional value)
-  "Inserts a key-value pair into an alist.
+  "Insert a key-value pair into an alist.
 The alist is referenced by ALIST-SYMBOL.  The key-value pair is made
-from KEY and optionally, VALUE.  Returns the altered alist or nil if
-ALIST is nil.
+from KEY and optionally, VALUE.  Returns the altered alist.
 
 If the key-value pair referenced by KEY can be found in the alist, and
 VALUE is supplied non-nil, then the value of KEY will be set to VALUE.
@@ -78,7 +77,7 @@ of the alist (with value nil if VALUE is nil or not supplied)."
     (setq alist (symbol-value alist-symbol))
     (cond ((null alist) (set alist-symbol elem))
 	  ((anot-head-p alist key) (set alist-symbol (nconc elem alist)))
-	  (value (setcar alist (car elem)))
+	  (value (setcar alist (car elem)) alist)
 	  (t alist))))
 
 

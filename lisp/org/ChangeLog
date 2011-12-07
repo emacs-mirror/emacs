@@ -1,3 +1,8 @@
+2011-12-06  Juanma Barranquero  <lekktu@gmail.com>
+
+	* ob.el (org-babel-expand-body:generic, org-babel-number-p):
+	* ob-ref.el (org-babel-ref-parse): Fix typos.
+
 2011-11-24  Juanma Barranquero  <lekktu@gmail.com>
 
 	* ob.el (org-babel-execute-src-block): Fix typo.

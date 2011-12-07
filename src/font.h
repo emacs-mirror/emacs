@@ -705,7 +705,7 @@ struct font_driver
 
 
 /* Chain of font drivers.  There's one global font driver list
-   (font_driver_list in font.c).  In addition, each frame has it's own
+   (font_driver_list in font.c).  In addition, each frame has its own
    font driver list at FRAME_PTR->font_driver_list.  */
 
 struct font_driver_list
@@ -721,7 +721,7 @@ struct font_driver_list
 
 
 /* Chain of arbitrary data specific to each font driver.  Each frame
-   has it's own font data list at FRAME_PTR->font_data_list.  */
+   has its own font data list at FRAME_PTR->font_data_list.  */
 
 struct font_data_list
 {

@@ -1,3 +1,24 @@
+2011-12-06  Chong Yidong  <cyd@gnu.org>
+
+	* programs.texi (Man Page): Clarify how to use Man-switches.
+	Don't bother documenting Man-fontify-manpage-flag.
+	(Lisp Doc): Add xref to Name Help node.
+	(Hideshow): Add cindex.  Mention role of ellipses, and default
+	value of hs-isearch-open.  Don't bother documenting
+	hs-special-modes-alist.
+	(Symbol Completion): Add kindex for C-M-i.  Don't recommend
+	changing the window manager binding of M-TAB.
+
+2011-12-05  Chong Yidong  <cyd@gnu.org>
+
+	* programs.texi (Comment Commands): Fix description of for M-; on
+	blank lines.  Move documentation of comment-region here.
+	(Multi-Line Comments): Clarify the role of comment-multi-line.
+	Refer to Comment Commands for comment-region doc.
+	(Options for Comments): Refer to Multi-Line Comments for
+	comment-multi-line doc, instead of duplicating it.  Fix default
+	values of comment-padding and comment-start-skip.
+
 2011-12-04  Chong Yidong  <cyd@gnu.org>
 
 	* programs.texi (Program Modes): Mention modes that are not

@@ -1,3 +1,7 @@
+2011-12-06  Juanma Barranquero  <lekktu@gmail.com>
+
+	* gnus-faq.texi (FAQ 2-1, FAQ 3-8, FAQ 4-14, FAQ 9-1): Fix typos.
+
 2011-11-24  Glenn Morris  <rgm@gnu.org>
 
 	* gnus.texi, smtpmail.texi: Fix case of "GnuTLS".

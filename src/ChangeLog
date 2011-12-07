@@ -1,3 +1,27 @@
+2011-12-07  Glenn Morris  <rgm@gnu.org>
+
+	* lread.c (init_lread): If no_site_lisp, exclude site-lisp/ in
+	installation and source directories as well.  (Bug#10208)
+
+2011-12-06  Chong Yidong  <cyd@gnu.org>
+
+	* minibuf.c (Fread_from_minibuffer): Doc fix (Bug#10228).
+
+2011-12-06  Glenn Morris  <rgm@gnu.org>
+
+	* process.c (start_process_unwind): Treat any pid <= 0, except -2,
+	as an error, not just -1.  (Bug#10217)
+
+2011-12-05  Chong Yidong  <cyd@gnu.org>
+
+	* keyboard.c (process_special_events): New function.
+	(swallow_events, Finput_pending_p): Use it (Bug#10195).
+
+2011-12-05  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* coding.c (encode_designation_at_bol): Don't use uninitialized
+	local variable (Bug#9318).
+
 2011-12-05  Kenichi Handa  <handa@m17n.org>
 
 	* ftfont.c (get_adstyle_property): If the font is not BDF nor PCF,
