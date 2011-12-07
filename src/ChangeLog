@@ -1,3 +1,8 @@
+2011-12-07  Juanma Barranquero  <lekktu@gmail.com>
+
+	* w32.c (init_environment): If no_site_lisp, remove site-lisp
+	dirs from the default value of EMACSLOADPATH (bug#10208).
+
 2011-12-07  Glenn Morris  <rgm@gnu.org>
 
 	* lread.c (init_lread): If no_site_lisp, exclude site-lisp/ in
