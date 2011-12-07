@@ -1,3 +1,8 @@
+2011-12-07  Glenn Morris  <rgm@gnu.org>
+
+	* lread.c (init_lread): If no_site_lisp, exclude site-lisp/ in
+	installation and source directories as well.  (Bug#10208)
+
 2011-12-06  Chong Yidong  <cyd@gnu.org>
 
 	* minibuf.c (Fread_from_minibuffer): Doc fix (Bug#10228).
