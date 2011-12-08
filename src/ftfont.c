@@ -166,8 +166,8 @@ get_adstyle_property (FcPattern *p)
 
 #ifdef FC_FONTFORMAT
   if ((FcPatternGetString (p, FC_FONTFORMAT, 0, &fcstr) == FcResultMatch)
-      && (xstrcasecmp ((char *) fcstr, "bdf") != 0
-	  || xstrcasecmp ((char *) fcstr, "pcf") != 0))
+      && xstrcasecmp ((char *) fcstr, "bdf") != 0
+      && xstrcasecmp ((char *) fcstr, "pcf") != 0)
     /* Not a BDF nor PCF font.  */
     return Qnil;
 #endif
