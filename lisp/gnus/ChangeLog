@@ -1,3 +1,8 @@
+2011-12-08  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* gnus-sum.el (gnus-summary-show-article): Don't load shr
+	unconditionally.
+
 2011-12-07  Katsumi Yamaoka  <yamaoka@jpl.org>
 
 	* message.el (message-pop-to-buffer): Use pop-to-buffer instead of
