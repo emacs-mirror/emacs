@@ -1,3 +1,20 @@
+2011-12-06  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* pcmpl-gnu.el (pcomplete/make): Also allow filename arguments
+	(bug#10116).
+
+2011-12-06  Glenn Morris  <rgm@gnu.org>
+
+	* emacs-lisp/package.el (package-archives): Doc fix re riskiness.
+
+2011-12-06  Chong Yidong  <cyd@gnu.org>
+
+	* progmodes/cc-fonts.el (c-annotation-face): Use defface.
+
+2011-12-06  Juanma Barranquero  <lekktu@gmail.com>
+
+	* textmodes/table.el (table-shorten-cell): Fix typo.
+
 2011-12-05  Christopher Genovese  <genovese.cr@gmail.com>  (tiny change)
 
 	* emacs-lisp/assoc.el (aput): Fix return value (bug#10146)

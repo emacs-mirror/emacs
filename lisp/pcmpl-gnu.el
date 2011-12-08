@@ -99,7 +99,10 @@
   "Completion for GNU `make'."
   (let ((pcomplete-help "(make)Top"))
     (pcomplete-opt "bmC/def(pcmpl-gnu-makefile-names)hiI/j?kl?no.pqrsStvwW.")
-    (while (pcomplete-here (pcmpl-gnu-make-rule-names) nil 'identity))))
+    (while (pcomplete-here (completion-table-in-turn
+                            (pcmpl-gnu-make-rule-names)
+                            (pcomplete-entries))
+                           nil 'identity))))
 
 (defun pcmpl-gnu-makefile-names ()
   "Return a list of possible makefile names."

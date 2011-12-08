@@ -1,3 +1,14 @@
+2011-12-06  Chong Yidong  <cyd@gnu.org>
+
+	* programs.texi (Man Page): Clarify how to use Man-switches.
+	Don't bother documenting Man-fontify-manpage-flag.
+	(Lisp Doc): Add xref to Name Help node.
+	(Hideshow): Add cindex.  Mention role of ellipses, and default
+	value of hs-isearch-open.  Don't bother documenting
+	hs-special-modes-alist.
+	(Symbol Completion): Add kindex for C-M-i.  Don't recommend
+	changing the window manager binding of M-TAB.
+
 2011-12-05  Chong Yidong  <cyd@gnu.org>
 
 	* programs.texi (Comment Commands): Fix description of for M-; on

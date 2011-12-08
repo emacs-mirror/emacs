@@ -1654,6 +1654,24 @@ init_environment (char ** argv)
         }
     }
 
+  /* When Emacs is invoked with --no-site-lisp, we must remove the
+     site-lisp directories from the default value of EMACSLOADPATH.
+     This assumes that the site-lisp entries are at the front, and
+     that additional entries do exist.  */
+  if (no_site_lisp)
+    {
+      for (i = 0; i < N_ENV_VARS; i++)
+        {
+          if (strcmp (env_vars[i].name, "EMACSLOADPATH") == 0)
+            {
+              char *site;
+              while ((site = strstr (env_vars[i].def_value, "site-lisp")))
+                env_vars[i].def_value = strchr (site, ';') + 1;
+              break;
+            }
+        }
+    }
+
 #define SET_ENV_BUF_SIZE (4 * MAX_PATH)	/* to cover EMACSLOADPATH */
 
     /* Treat emacs_dir specially: set it unconditionally based on our

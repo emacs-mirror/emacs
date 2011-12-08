@@ -266,9 +266,9 @@ and how to prevent it?
 @subsubheading Answer
 
 This message means that the last time you used Gnus, it
-wasn't properly exited and therefor couldn't write its
-informations to disk (e.g. which messages you read), you
-are now asked if you want to restore those informations
+wasn't properly exited and therefore couldn't write its
+information to disk (e.g. which messages you read), you
+are now asked if you want to restore that information
 from the auto-save file.
 
 To prevent this message make sure you exit Gnus
@@ -563,7 +563,7 @@ However, the first thing to do is to tell Gnus in which way
 it should store the mail, in Gnus terminology which back end
 to use. Gnus supports many different back ends, the most
 commonly used one is nnml. It stores every mail in one file
-and is therefor quite fast. However you might prefer a one
+and is therefore quite fast. However you might prefer a one
 file per group approach if your file system has problems with
 many small files, the nnfolder back end is then probably the
 choice for you.  To use nnml add the following to ~/.gnus.el:
@@ -580,7 +580,7 @@ As you might have guessed, if you want nnfolder, it's
 @end example
 @noindent
 
-Now we need to tell Gnus, where to get it's mail from. If
+Now we need to tell Gnus, where to get its mail from. If
 it's a POP3 server, then you need something like this:
 
 @example
@@ -1104,11 +1104,11 @@ I don't like the way the Summary buffer looks, how to tweak it?
 @subsubheading Answer
 
 You've got to play around with the variable
-gnus-summary-line-format. It's value is a string of
+gnus-summary-line-format. Its value is a string of
 symbols which stand for things like author, date, subject
 etc. A list of the available specifiers can be found in the
 manual node "Summary Buffer Lines" and the often forgotten
-node "Formatting Variables" and it's sub-nodes. There
+node "Formatting Variables" and its sub-nodes. There
 you'll find useful things like positioning the cursor and
 tabulators which allow you a summary in table form, but
 sadly hard tabulators are broken in 5.8.8.
@@ -2190,7 +2190,7 @@ Starting Gnus is really slow, how to speed it up?
 
 @subsubheading Answer
 
-The reason for this could be the way Gnus reads it's
+The reason for this could be the way Gnus reads its
 active file, see the node "The Active File" in the Gnus
 manual for things you might try to speed the process up.
 An other idea would be to byte compile your ~/.gnus.el (say

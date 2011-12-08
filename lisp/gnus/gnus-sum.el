@@ -2969,7 +2969,7 @@ When FORCE, rebuild the tool bar."
 					'gnus-summary-mode-map)))
       (when map
 	;; Need to set `gnus-summary-tool-bar-map' because `gnus-article-mode'
-	;; uses it's value.
+	;; uses its value.
 	(setq gnus-summary-tool-bar-map map))))
   (set (make-local-variable 'tool-bar-map) gnus-summary-tool-bar-map))
 

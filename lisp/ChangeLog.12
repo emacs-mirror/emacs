@@ -6278,7 +6278,7 @@
 	Register changes using allout-exposure-change-hook.
 	Disregard aberrant topics.
 	(allout-shift-in): With universal-argument, make topic a peer of
-	it's former offspring.  Simplify the code by separating out
+	its former offspring.  Simplify the code by separating out
 	allout-shift-out functionality.
 	(allout-shift-out): With universal-argument, make offspring peers
 	of their former container, and its siblings.  Implement the

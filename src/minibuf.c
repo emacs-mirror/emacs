@@ -905,26 +905,36 @@ DEFUN ("read-from-minibuffer", Fread_from_minibuffer,
 The optional second arg INITIAL-CONTENTS is an obsolete alternative to
   DEFAULT-VALUE.  It normally should be nil in new code, except when
   HIST is a cons.  It is discussed in more detail below.
+
 Third arg KEYMAP is a keymap to use whilst reading;
   if omitted or nil, the default is `minibuffer-local-map'.
-If fourth arg READ is non-nil, then interpret the result as a Lisp object
+
+If fourth arg READ is non-nil, interpret the result as a Lisp object
   and return that object:
   in other words, do `(car (read-from-string INPUT-STRING))'
+
 Fifth arg HIST, if non-nil, specifies a history list and optionally
   the initial position in the list.  It can be a symbol, which is the
-  history list variable to use, or it can be a cons cell
-  (HISTVAR . HISTPOS).  In that case, HISTVAR is the history list variable
-  to use, and HISTPOS is the initial position for use by the minibuffer
-  history commands.  For consistency, you should also specify that
-  element of the history as the value of INITIAL-CONTENTS.  Positions
-  are counted starting from 1 at the beginning of the list.
-Sixth arg DEFAULT-VALUE is a default value or list of default values.
-  If non-nil, it is available via history commands.  If READ is
-  non-nil, it is also the default to `read' if the user enters empty
-  input.  If READ is non-nil, `read-from-minibuffer' does NOT return
-  DEFAULT-VALUE for empty input!  It returns the empty string.
+  history list variable to use, or a cons cell (HISTVAR . HISTPOS).
+  In that case, HISTVAR is the history list variable to use, and
+  HISTPOS is the initial position for use by the minibuffer history
+  commands.  For consistency, you should also specify that element of
+  the history as the value of INITIAL-CONTENTS.  Positions are counted
+  starting from 1 at the beginning of the list.
+
+Sixth arg DEFAULT-VALUE, if non-nil, should be a string, which is used
+  as the default to `read' if READ is non-nil and the user enters
+  empty input.  But if READ is nil, this function does _not_ return
+  DEFAULT-VALUE for empty input!  Instead, it returns the empty string.
+
+  Whatever the value of READ, DEFAULT-VALUE is made available via the
+  minibuffer history commands.  DEFAULT-VALUE can also be a list of
+  strings, in which case all the strings are available in the history,
+  and the first string is the default to `read' if READ is non-nil.
+
 Seventh arg INHERIT-INPUT-METHOD, if non-nil, means the minibuffer inherits
  the current input method and the setting of `enable-multibyte-characters'.
+
 If the variable `minibuffer-allow-text-properties' is non-nil,
  then the string which is returned includes whatever text properties
  were present in the minibuffer.  Otherwise the value has no text properties.

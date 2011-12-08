@@ -1109,7 +1109,7 @@ mode which @kbd{C-h S} does support.
 @node Man Page
 @subsection Man Page Lookup
 
-@cindex manual page
+@cindex man page
   On Unix, the main form of on-line documentation was the @dfn{manual
 page} or @dfn{man page}.  In the GNU operating system, we aim to
 replace man pages with better-organized manuals that you can browse
@@ -1118,71 +1118,51 @@ still useful to read manual pages.
 
 @findex manual-entry
   You can read the man page for an operating system command, library
-function, or system call, with the @kbd{M-x man} command.  It
-runs the @code{man} program to format the man page; if the system
-permits, it runs @code{man} asynchronously, so that you can keep on
-editing while the page is being formatted.  (On MS-DOS and MS-Windows
-3, you cannot edit while Emacs waits for @code{man} to finish.)  The
-result goes in a buffer named @samp{*Man @var{topic}*}.  These buffers
-use a special major mode, Man mode, that facilitates scrolling and
-jumping to other manual pages.  For details, type @kbd{C-h m} while in
-a man page buffer.
+function, or system call, with the @kbd{M-x man} command.  This
+prompts for a topic, with completion (@pxref{Completion}), and runs
+the @command{man} program to format the corresponding man page.  If
+the system permits, it runs @command{man} asynchronously, so that you
+can keep on editing while the page is being formatted.  The result
+goes in a buffer named @samp{*Man @var{topic}*}.  These buffers use a
+special major mode, Man mode, that facilitates scrolling and jumping
+to other manual pages.  For details, type @kbd{C-h m} while in a Man
+mode buffer.
 
 @cindex sections of manual pages
   Each man page belongs to one of ten or more @dfn{sections}, each
-named by a digit or by a digit and a letter.  Sometimes there are
-multiple man pages with the same name in different sections.  To read
-a man page from a specific section, type
-@samp{@var{topic}(@var{section})} or @samp{@var{section} @var{topic}}
-when @kbd{M-x manual-entry} prompts for the topic.  For example, to
-read the man page for the C library function @code{chmod} (as opposed
-to a command of the same name), type @kbd{M-x manual-entry @key{RET}
-chmod(2) @key{RET}}.  (@code{chmod} is a system call, so it is in
-section @samp{2}.)
+named by a digit or by a digit and a letter.  Sometimes there are man
+pages with the same name in different sections.  To read a man page
+from a specific section, type @samp{@var{topic}(@var{section})} or
+@samp{@var{section} @var{topic}} when @kbd{M-x manual-entry} prompts
+for the topic.  For example, the man page for the C library function
+@code{chmod} is in section 2, but there is a shell command of the same
+name, whose man page is in section 1; to view the former, type
+@kbd{M-x manual-entry @key{RET} chmod(2) @key{RET}}.
 
 @vindex Man-switches
-  If you do not specify a section, the results depend on how the
-@code{man} program works on your system.  Some of them display only
-the first man page they find.  Others display all man pages that have
-the specified name, so you can move between them with the @kbd{M-n}
-and @kbd{M-p} keys@footnote{On some systems, the @code{man} program
-accepts a @samp{-a} command-line option which tells it to display all
-the man pages for the specified topic.  If you want this behavior, you
-can add this option to the value of the variable @code{Man-switches}.}.
-The mode line shows how many manual pages are present in the Man buffer.
-
-@vindex Man-fontify-manpage-flag
-  By default, Emacs highlights the text in man pages.  For a long man
-page, highlighting can take substantial time.  You can turn off
-highlighting of man pages by setting the variable
-@code{Man-fontify-manpage-flag} to @code{nil}.
-
-@findex Man-fontify-manpage
-  If you insert the text of a man page into an Emacs buffer in some
-other fashion, you can use the command @kbd{M-x Man-fontify-manpage} to
-perform the same conversions that @kbd{M-x manual-entry} does.
+@kindex M-n @r{(Man mode)}
+@kindex M-p @r{(Man mode)}
+  If you do not specify a section, @kbd{M-x man} normally displays
+only the first man page found.  On some systems, the @code{man}
+program accepts a @samp{-a} command-line option, which tells it to
+display all the man pages for the specified topic.  To make use of
+this, change the value of the variable @code{Man-switches} to
+@samp{"-a"}.  Then, in the Man mode buffer, you can type @kbd{M-n} and
+@kbd{M-p} to switch between man pages in different sections.  The mode
+line shows how many manual pages are available.
 
 @findex woman
 @cindex manual pages, on MS-DOS/MS-Windows
   An alternative way of reading manual pages is the @kbd{M-x woman}
-command@footnote{The name of the command, @code{woman}, is an acronym
-for ``w/o (without) man,'' since it doesn't use the @code{man}
-program.}.  Unlike @kbd{M-x man}, it does not run any external
-programs to format and display the man pages; instead it does the job
-in Emacs Lisp, so it works on systems such as MS-Windows, where the
-@code{man} program (and other programs it uses) are not generally
-available.
+command.  Unlike @kbd{M-x man}, it does not run any external programs
+to format and display the man pages; the formatting is done by Emacs,
+so it works on systems such as MS-Windows where the @command{man}
+program may be unavailable.  It prompts for a man page, and displays
+it in a buffer named @samp{*WoMan @var{section} @var{topic}}.
 
-  @kbd{M-x woman} prompts for a name of a manual page, and provides
-completion based on the list of manual pages that are installed on
-your machine; the list of available manual pages is computed
-automatically the first time you invoke @code{woman}.  The word at
-point in the current buffer is used to suggest the default for the
-name of the manual page.
-
-  With a numeric argument, @kbd{M-x woman} recomputes the list of the
-manual pages used for completion.  This is useful if you add or delete
-manual pages.
+  @kbd{M-x woman} computes the completion list for manpages the first
+time you invoke the command.  With a numeric argument, it recomputes
+this list; this is useful if you add or delete manual pages.
 
   If you type a name of a manual page and @kbd{M-x woman} finds that
 several manual pages by the same name exist in different sections, it
@@ -1201,42 +1181,40 @@ the WoMan Info manual, which is distributed with Emacs.
 @node Lisp Doc
 @subsection Emacs Lisp Documentation Lookup
 
-  As you edit Lisp code to be run in Emacs, you can use the commands
-@kbd{C-h f} (@code{describe-function}) and @kbd{C-h v}
-(@code{describe-variable}) to view documentation of functions and
-variables that you want to use.  These commands use the minibuffer to
-read the name of a function or variable to document, and display the
-documentation in a window.  Their default arguments are based on the
-code in the neighborhood of point.  For @kbd{C-h f}, the default is
-the function called in the innermost list containing point.  @kbd{C-h
-v} uses the symbol name around or adjacent to point as its default.
+  When editing Emacs Lisp code, you can use the commands @kbd{C-h f}
+(@code{describe-function}) and @kbd{C-h v} (@code{describe-variable})
+to view the built-in documentation for the Lisp functions and
+variables that you want to use.  @xref{Name Help}.
 
 @cindex Eldoc mode
 @findex eldoc-mode
-  A more automatic but less powerful method is Eldoc mode.  This minor
-mode constantly displays in the echo area the argument list for the
-function being called at point.  (In other words, it finds the
-function call that point is contained in, and displays the argument
-list of that function.)  If point is over a documented variable, it
-shows the first line of the variable's docstring.  Eldoc mode applies
-in Emacs Lisp and Lisp Interaction modes, and perhaps a few others
-that provide special support for looking up doc strings.  Use the
-command @kbd{M-x eldoc-mode} to enable or disable this feature.
+  Eldoc is a buffer-local minor mode that helps with looking up Lisp
+documention.  When it is enabled, the echo area displays some useful
+information whenever there is a Lisp function or variable at point;
+for a function, it shows the argument list, and for a variable it
+shows the first line of the variable's documentation string.  To
+toggle Eldoc mode, type @kbd{M-x eldoc-mode}.  Eldoc mode can be used
+with the Emacs Lisp and Lisp Interaction major modes.
 
 @node Hideshow
 @section Hideshow minor mode
+@cindex Hideshow mode
+@cindex mode, Hideshow
 
 @findex hs-minor-mode
-  Hideshow minor mode provides selective display of portions of a
-program, known as @dfn{blocks}.  You can use @kbd{M-x hs-minor-mode}
-to enable or disable this mode, or add @code{hs-minor-mode} to the
-mode hook for certain major modes in order to enable it automatically
-for those modes.
+  Hideshow mode is a buffer-local minor mode that allows you to
+selectively display portions of a program, which are referred to as
+@dfn{blocks}.  Type @kbd{M-x hs-minor-mode} to toggle this minor mode
+(@pxref{Minor Modes}).
 
-  Just what constitutes a block depends on the major mode.  In C mode
-or C++ mode, they are delimited by braces, while in Lisp mode and
-similar modes they are delimited by parentheses.  Multi-line comments
-also count as blocks.
+  When you use Hideshow mode to hide a block, the block disappears
+from the screen, to be replaced by an ellipsis (three periods in a
+row).  Just what constitutes a block depends on the major mode.  In C
+mode and related modes, blocks are delimited by braces, while in Lisp
+mode they are delimited by parentheses.  Multi-line comments also
+count as blocks.
+
+  Hideshow mode provides the following commands:
 
 @findex hs-hide-all
 @findex hs-hide-block
@@ -1260,11 +1238,11 @@ Show the current block (@code{hs-show-block}).
 @item C-c @@ C-c
 Either hide or show the current block (@code{hs-toggle-hiding}).
 @item S-Mouse-2
-Either hide or show the block you click on (@code{hs-mouse-toggle-hiding}).
+Toggle hiding for the block you click on (@code{hs-mouse-toggle-hiding}).
 @item C-c @@ C-M-h
 Hide all top-level blocks (@code{hs-hide-all}).
 @item C-c @@ C-M-s
-Show everything in the buffer (@code{hs-show-all}).
+Show all blocks in the buffer (@code{hs-show-all}).
 @item C-c @@ C-l
 Hide all blocks @var{n} levels below this block
 (@code{hs-hide-level}).
@@ -1273,80 +1251,61 @@ Hide all blocks @var{n} levels below this block
 @vindex hs-hide-comments-when-hiding-all
 @vindex hs-isearch-open
 @vindex hs-special-modes-alist
-  These variables exist for customizing Hideshow mode.
+  These variables can be used to customize Hideshow mode:
 
 @table @code
 @item hs-hide-comments-when-hiding-all
-Non-@code{nil} says that @kbd{hs-hide-all} should hide comments too.
+If non-@code{nil}, @kbd{C-c @@ C-M-h} (@code{hs-hide-all}) hides
+comments too.
 
 @item hs-isearch-open
-Specifies what kind of hidden blocks incremental search should make
-visible.  The value should be one of these four symbols:
-
-@table @code
-@item code
-Open only code blocks.
-@item comment
-Open only comments.
-@item t
-Open both code blocks and comments.
-@item nil
-Open neither code blocks nor comments.
-@end table
-
-@item hs-special-modes-alist
-A list of elements, each specifying how to initialize Hideshow
-variables for one major mode.  See the variable's documentation string
-for more information.
+This variable specifies the conditions under which incremental search
+should unhide a hidden block when matching text occurs within the
+block.  Its value should be either @code{code} (unhide only code
+blocks), @code{comment} (unhide only comments), @code{t} (unhide both
+code blocks and comments), or @code{nil} (unhide neither code blocks
+nor comments).  The default value is @code{code}.
 @end table
 
 @node Symbol Completion
 @section Completion for Symbol Names
 @cindex completion (symbol names)
 
-  In Emacs, completion is something you normally do in the minibuffer
-(@pxref{Completion}).  But one kind of completion is available in all
-buffers: completion for symbol names.
+  Completion is normally done in the minibuffer (@pxref{Completion}),
+but you can also complete symbol names in ordinary Emacs buffers.
 
 @kindex M-TAB
-  The character @kbd{M-@key{TAB}} runs a command to complete the
-partial symbol before point against the set of meaningful symbol
-names.  This command inserts at point any additional characters that
-it can determine from the partial name.
-
-  If your window manager defines @kbd{M-@key{TAB}} to switch windows,
-you can type @kbd{@key{ESC} @key{TAB}} or @kbd{C-M-i} instead.
-However, most window managers let you customize these shortcuts, so
-you can change any that interfere with the way you use Emacs.
-
-  If the partial name in the buffer has multiple possible completions
-that differ in the very next character, so that it is impossible to
-complete even one more character, @kbd{M-@key{TAB}} displays a list of
-all possible completions in another window.
+@kindex C-M-i
+  In programming language modes, type @kbd{C-M-i} or @kbd{M-@key{TAB}}
+to complete the partial symbol before point.  On graphical displays,
+the @kbd{M-@key{TAB}} key is usually reserved by the window manager
+for switching graphical windows, so you should type @kbd{C-M-i} or
+@kbd{@key{ESC} @key{TAB}} instead.
 
 @cindex tags-based completion
 @cindex Info index completion
 @findex complete-symbol
-  In most programming language major modes, @kbd{M-@key{TAB}} runs the
-command @code{complete-symbol}, which provides two kinds of completion.
-Normally it does completion based on a tags table (@pxref{Tags}); with a
-numeric argument (regardless of the value), it does completion based on
-the names listed in the Info file indexes for your language.  Thus, to
-complete the name of a symbol defined in your own program, use
-@kbd{M-@key{TAB}} with no argument; to complete the name of a standard
-library function, use @kbd{C-u M-@key{TAB}}.  Of course, Info-based
-completion works only if there is an Info file for the standard library
-functions of your language, and only if it is installed at your site.
+  In-buffer symbol completion generates its completion list in a
+number of different ways.  In most programming language modes,
+completion is normally done using a tags table (@pxref{Tags}).
+However, if you supply @kbd{C-M-i} or @kbd{M-@key{TAB}} with a numeric
+argument, it completes using the Info file indexes for the current
+language (e.g.@: the C Library Manual).  Of course, Info-based
+completion works only if there is an Info file for the standard
+library functions of your language, and only if it is installed at
+your site.
 
 @cindex Lisp symbol completion
 @cindex completion (Lisp symbols)
-@findex lisp-complete-symbol
-  In Emacs-Lisp mode, the name space for completion normally consists of
-nontrivial symbols present in Emacs---those that have function
-definitions, values or properties.  However, if there is an
-open-parenthesis immediately before the beginning of the partial symbol,
-only symbols with function definitions are considered as completions.
-The command which implements this is @code{lisp-complete-symbol}.
+  In Emacs Lisp mode, completion is performed using the function,
+variable, and property names defined in the current Emacs session.  If
+there is an open parenthesis immediately before the beginning of the
+partial symbol, only symbols with function definitions are considered.
+
+  In all other respects, in-buffer symbol completion behaves like
+minibuffer completion.  For instance, if Emacs cannot complete to a
+unique symbol, it displays a list of completion alternatives in
+another window.  @xref{Completion}.
 
   In Text mode and related modes, @kbd{M-@key{TAB}} completes words
 based on the spell-checker's dictionary.  @xref{Spelling}.
@@ -1354,20 +1313,20 @@ based on the spell-checker's dictionary.  @xref{Spelling}.
 @node Glasses
 @section Glasses minor mode
 @cindex Glasses mode
-@cindex identifiers, making long ones readable
-@cindex StudlyCaps, making them readable
-@findex glasses-mode
+@cindex camel case
+@findex mode, Glasses
 
-  Glasses minor mode makes @samp{unreadableIdentifiersLikeThis}
-readable by altering the way they display.  It knows two different
-ways to do this: by displaying underscores between a lower-case letter
-and the following capital letter, and by emboldening the capital
-letters.  It does not alter the buffer text, only the way they
-display, so you can use it even on read-only buffers.  You can use the
-command @kbd{M-x glasses-mode} to enable or disable the mode in the
-current buffer; you can also add @code{glasses-mode} to the mode hook
-of the programming language major modes in which you normally want
-to use Glasses mode.
+  Glasses mode is a buffer-local minor mode that makes it easier to
+read mixed-case (or ``CamelCase'') symbols like
+@samp{unReadableSymbol}, by altering how they are displayed.  By
+default, it displays extra underscores between each lower-case letter
+and the following capital letter.  This does not alter the buffer
+text, only how it is displayed.
+
+  To toggle Glasses mode, type @kbd{M-x glasses-mode} (@pxref{Minor
+Modes}).  When Glasses mode is enabled, the minor mode indicator
+@samp{o^o} appears in the mode line.  For more information about
+Glasses mode, type @kbd{C-h P glasses @key{RET}}.
 
 @node Semantic
 @section Semantic
@@ -1383,8 +1342,8 @@ see @ref{Top, Semantic,, semantic, Semantic}.
 see the Semantic Info manual, which is distributed with Emacs.
 @end iftex
 
-  Most of the ``language aware'' features in Emacs, such as font lock
-(@pxref{Font Lock}), rely on ``rules of thumb''@footnote{Regular
+  Most of the ``language aware'' features in Emacs, such as Font Lock
+mode (@pxref{Font Lock}), rely on ``rules of thumb''@footnote{Regular
 expressions and syntax tables.} that usually give good results but are
 never completely exact.  In contrast, the parsers used by Semantic
 have an exact understanding of programming language syntax.  This
@@ -1438,27 +1397,25 @@ is idle.
 @node Misc for Programs
 @section Other Features Useful for Editing Programs
 
-  A number of Emacs commands that aren't designed specifically for
-editing programs are useful for that nonetheless.
+  Some Emacs commands that aren't designed specifically for editing
+programs are useful for that nonetheless.
 
   The Emacs commands that operate on words, sentences and paragraphs
 are useful for editing code.  Most symbols names contain words
-(@pxref{Words}); sentences can be found in strings and comments
-(@pxref{Sentences}).  Paragraphs in the strict sense can be found in
-program code (in long comments), but the paragraph commands are useful
-in other places too, because programming language major modes define
-paragraphs to begin and end at blank lines (@pxref{Paragraphs}).
-Judicious use of blank lines to make the program clearer will also
-provide useful chunks of text for the paragraph commands to work on.
-Auto Fill mode, if enabled in a programming language major mode,
-indents the new lines which it creates.
+(@pxref{Words}), while sentences can be found in strings and comments
+(@pxref{Sentences}).  As for paragraphs, they are defined in most
+programming language modes to begin and end at blank lines
+(@pxref{Paragraphs}).  Therefore, judicious use of blank lines to make
+the program clearer will also provide useful chunks of text for the
+paragraph commands to work on.  Auto Fill mode, if enabled in a
+programming language major mode, indents the new lines which it
+creates.
 
-  The selective display feature is useful for looking at the overall
-structure of a function (@pxref{Selective Display}).  This feature
-hides the lines that are indented more than a specified amount.
-Programming modes often support Outline minor mode (@pxref{Outline
-Mode}).  The Foldout package provides folding-editor features
-(@pxref{Foldout}).
+  Apart from Hideshow mode (@pxref{Hideshow}), another way to
+selectively display parts of a program is to use the selective display
+feature (@pxref{Selective Display}).  Programming modes often also
+support Outline minor mode (@pxref{Outline Mode}), which can be used
+with the Foldout package (@pxref{Foldout}).
 
 @ifinfo
   The ``automatic typing'' features may be useful for writing programs.

@@ -69,7 +69,7 @@
   "Parse a variable ASSIGNMENT in a header argument.
 If the right hand side of the assignment has a literal value
 return that value, otherwise interpret as a reference to an
-external resource and find it's value using
+external resource and find its value using
 `org-babel-ref-resolve'.  Return a list with two elements.  The
 first element of the list will be the name of the variable, and
 the second will be an emacs-lisp representation of the value of
