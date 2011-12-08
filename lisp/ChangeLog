@@ -1,3 +1,11 @@
+2011-12-08  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* pcmpl-gnu.el: Don't fail when there is no Makefile nor -f arg.
+	(pcmpl-gnu-makefile-regexps): Accept "makefile" as well as files that
+	end in ".mk".
+	(pcmpl-gnu-make-rule-names): Check "makefile" and ignore errors
+	when reading the makefile (bug#10116).
+
 2011-12-06  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* pcmpl-gnu.el (pcomplete/make): Also allow filename arguments
