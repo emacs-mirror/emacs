@@ -1,3 +1,8 @@
+2011-12-08  Kenichi Handa  <handa@m17n.org>
+
+	* ftfont.c (get_adstyle_property): Fix previous change
+	(Bug#10233).
+
 2011-12-07  Juanma Barranquero  <lekktu@gmail.com>
 
 	* w32.c (init_environment): If no_site_lisp, remove site-lisp
