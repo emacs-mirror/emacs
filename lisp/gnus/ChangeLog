@@ -1,3 +1,8 @@
+2011-12-07  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* message.el (message-pop-to-buffer): Use pop-to-buffer instead of
+	pop-to-buffer-same-window for old Emacsen.
+
 2011-12-04  Chong Yidong  <cyd@gnu.org>
 
 	* message.el (message-pop-to-buffer): Partially revert 2011-11-30
