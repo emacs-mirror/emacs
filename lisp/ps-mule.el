@@ -932,7 +932,7 @@ the sequence."
     (list ps-mule-bitmap-prologue)))
 
 (defun ps-mule-generate-bitmap-font (font-spec size relative-compose
-					       baselie-offset bbx)
+					       baseline-offset bbx)
   (let* ((id (ps-mule-font-spec-id font-spec))
 	 (bytes (ps-mule-font-spec-bytes font-spec))
 	 output-list)
@@ -941,7 +941,7 @@ the sequence."
 	      (list (format "/E%02X [ 0 1 255 {pop /.notdef} for ] def\n" id)
 		    (format "%%%% %s\n" (ps-mule-font-spec-name font-spec))
 		    (format "/F%02X %f %S %d E%02X NBF\n" id size
-			    relative-compose baselie-offset id)))
+			    relative-compose baseline-offset id)))
       (setq output-list
 	    (list (list (format "/E%02X [ 0 1 255 { pop 0 } for ] def\n" id))
 		  (list (format "/V%02X [" id))
@@ -950,7 +950,7 @@ the sequence."
 		  (format "/F%02X E%02X V%02X NPF\n" id id id))))
     (aset ps-mule-bitmap-font-record id
 	  (vector (= bytes 1) output-list
-		  size relative-compose baselie-offset bbx))
+		  size relative-compose baseline-offset bbx))
     (if ps-mule-bitmap-dict-list
 	output-list
       (setq ps-mule-bitmap-dict-list (list "/BitmapDict <<\n" ">> def\n"))

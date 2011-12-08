@@ -4266,7 +4266,7 @@ Usage:
 
   CODE BEAUTIFICATION:
     `C-c M-b' and `C-c C-b' beautify the code of a region or of the entire
-    buffer respectively.  This inludes indentation, alignment, and case
+    buffer respectively.  This includes indentation, alignment, and case
     fixing.  Code beautification can also be run non-interactively using the
     command:
 

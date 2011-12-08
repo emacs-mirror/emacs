@@ -10869,7 +10869,7 @@
 
 2007-09-23  Glenn Morris  <rgm@gnu.org>
 
-	* ses.el (ses-calculate-cell): Don't evaluate unsafe formulae.
+	* ses.el (ses-calculate-cell): Don't evaluate unsafe formulas.
 
 2007-09-23  Dan Nicolaescu  <dann@ics.uci.edu>
 

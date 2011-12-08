@@ -1,3 +1,8 @@
+2011-12-05  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* text.texi (Special Properties): Warn against `intangible' properties
+	(bug#10222).
+
 2011-11-26  Eli Zaretskii  <eliz@gnu.org>
 
 	* display.texi (Truncation):
@@ -23,8 +28,8 @@
 
 2011-11-21  Martin Rudalics  <rudalics@gmx.at>
 
-	* windows.texi (Windows and Frames, Splitting Windows): Fix
-	typos.
+	* windows.texi (Windows and Frames, Splitting Windows):
+	Fix typos.
 
 2011-11-21  Chong Yidong  <cyd@gnu.org>
 
@@ -36,8 +41,8 @@
 	(Buffers and Windows): Copyedits.
 	(Choosing Window): Document special handling of special-display-*.
 	(Choosing Window Options): Fix display-buffer-reuse-frames doc.
-	Don't document even-window-heights, which is going away.  Clarify
-	which options are obeyed by which action functions.
+	Don't document even-window-heights, which is going away.
+	Clarify which options are obeyed by which action functions.
 
 2011-11-20  Stefan Monnier  <monnier@iro.umontreal.ca>
 

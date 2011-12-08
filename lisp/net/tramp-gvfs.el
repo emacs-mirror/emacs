@@ -188,7 +188,7 @@
 ;;   STRING		  stable_name
 ;;   STRING		  x_content_types	Since GVFS 1.0 only !!!
 ;;   STRING		  icon
-;;   STRING		  prefered_filename_encoding
+;;   STRING		  preferred_filename_encoding
 ;;   BOOLEAN		  user_visible
 ;;   ARRAY BYTE		  fuse_mountpoint
 ;;   STRUCT		  mount_spec

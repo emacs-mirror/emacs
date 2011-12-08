@@ -1979,7 +1979,7 @@ Undo previous insertion and inserts new."
 ;; Quote region by each line with a user supplied string.
 (defun viper-quote-region ()
   (let ((quote-str viper-quote-string)
-	(donot-change-dafault t))
+	(donot-change-default t))
     (setq quote-str
 	  (viper-read-string-with-history
 	   "Quote string: "
@@ -1991,9 +1991,9 @@ Undo previous insertion and inserts new."
 		 ((string-match "lisp.*-mode" (symbol-name major-mode)) ";;")
 		 ((memq major-mode '(c-mode cc-mode c++-mode)) "//")
 		 ((memq major-mode '(sh-mode shell-mode)) "#")
-		 (t (setq donot-change-dafault nil)
+		 (t (setq donot-change-default nil)
 		    quote-str))))
-    (or donot-change-dafault
+    (or donot-change-default
 	(setq viper-quote-string quote-str))
     (viper-enlarge-region (point) (mark t))
     (if (> (point) (mark t)) (exchange-point-and-mark))

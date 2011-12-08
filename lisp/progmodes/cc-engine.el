@@ -6832,7 +6832,7 @@ comment at the start of cc-engine.el for more info."
 		       got-suffix-after-parens
 		       (eq (char-after got-suffix-after-parens) ?\())
 	      ;; Got a type, no declarator but a paren suffix. I.e. it's a
-	      ;; normal function call afterall (or perhaps a C++ style object
+	      ;; normal function call after all (or perhaps a C++ style object
 	      ;; instantiation expression).
 	      (throw 'at-decl-or-cast nil))))
 
@@ -9151,7 +9151,7 @@ comment at the start of cc-engine.el for more info."
 				    'label))
 			    (if (eq step 'up)
 				(setq placeholder (point))
-			      ;; There was no containing statement afterall.
+			      ;; There was no containing statement after all.
 			      (goto-char placeholder)))))
 		    placeholder))
 	       (if (looking-at c-block-stmt-2-key)

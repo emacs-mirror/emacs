@@ -367,7 +367,7 @@ buffer with the contents of a file
 
 ;;;###autoload
 (define-minor-mode highlight-changes-visible-mode
-  "Toggle visiblility of highlighting due to Highlight Changes mode.
+  "Toggle visibility of highlighting due to Highlight Changes mode.
 With a prefix argument ARG, enable Highlight Changes Visible mode
 if ARG is positive, and disable it otherwise.  If called from
 Lisp, enable the mode if ARG is omitted or nil.

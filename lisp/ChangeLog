@@ -1,3 +1,19 @@
+2011-12-05  Christopher Genovese  <genovese.cr@gmail.com>  (tiny change)
+
+	* emacs-lisp/assoc.el (aput): Fix return value (bug#10146)
+
+2011-12-05  Eli Zaretskii  <eliz@gnu.org>
+
+	* descr-text.el (describe-char): Fix display of strong
+	right-to-left characters and directional embeddings and overrides.
+
+	* simple.el (what-cursor-position): Fix display of codepoints of
+	strong right-to-left characters.
+
+2011-12-05  Chong Yidong  <cyd@gnu.org>
+
+	* faces.el (read-color): Doc fix.
+
 2011-12-05  Glenn Morris  <rgm@gnu.org>
 
 	* align.el (align--set-marker): Add doc-string.
@@ -5370,7 +5386,7 @@
 
 	* net/network-stream.el (network-stream-open-starttls): Support
 	upgrading to STARTTLS always, even if we don't have built-in support.
-	(open-network-stream): Add the :always-query-capabilies keyword.
+	(open-network-stream): Add the :always-query-capabilities keyword.
 
 	* mail/smtpmail.el: Rewritten to do opportunistic STARTTLS
 	upgrades with `open-network-stream', and rely solely on

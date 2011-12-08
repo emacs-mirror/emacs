@@ -312,7 +312,7 @@ occur in your template.")
 	  (setq doit nil)))
       (goto-char pm)
       )
-    ;; Do indentation reguardless of the newline.
+    ;; Do indentation regardless of the newline.
     (when (and (eq i t) inbuff)
       (indent-according-to-mode)
       (goto-char pm))

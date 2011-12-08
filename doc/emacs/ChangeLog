@@ -1,3 +1,13 @@
+2011-12-05  Chong Yidong  <cyd@gnu.org>
+
+	* programs.texi (Comment Commands): Fix description of for M-; on
+	blank lines.  Move documentation of comment-region here.
+	(Multi-Line Comments): Clarify the role of comment-multi-line.
+	Refer to Comment Commands for comment-region doc.
+	(Options for Comments): Refer to Multi-Line Comments for
+	comment-multi-line doc, instead of duplicating it.  Fix default
+	values of comment-padding and comment-start-skip.
+
 2011-12-04  Chong Yidong  <cyd@gnu.org>
 
 	* programs.texi (Program Modes): Mention modes that are not

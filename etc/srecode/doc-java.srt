@@ -44,7 +44,7 @@ Recycle javadoc comment code from the more general template set."
 ----
 
 template variable-same-line-comment :tag
-"A comment occurring after a veriable declaration.
+"A comment occurring after a variable declaration.
 Recycle javadoc comment code from the more general template set."
 ----
 {{>:declaration:javadoc-variable-same-line}}

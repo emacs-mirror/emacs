@@ -3145,6 +3145,12 @@ group is separately treated as described above.
 When the variable @code{inhibit-point-motion-hooks} is non-@code{nil},
 the @code{intangible} property is ignored.
 
+Beware: this property operates at a very low level, and affects a lot of code
+in unexpected ways.  So use it with extreme caution.  A common misuse is to put
+an intangible property on invisible text, which is actually unnecessary since
+the command loop will move point outside of the invisible text at the end of
+each command anyway.  @xref{Adjusting Point}.
+
 @item field
 @kindex field @r{(text property)}
 Consecutive characters with the same @code{field} property constitute a

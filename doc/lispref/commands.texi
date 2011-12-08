@@ -946,10 +946,9 @@ If the last event came from a keyboard macro, the value is @code{macro}.
 
   It is not easy to display a value of point in the middle of a
 sequence of text that has the @code{display}, @code{composition} or
-@code{intangible} property, or is invisible.  Therefore, after a
-command finishes and returns to the command loop, if point is within
-such a sequence, the command loop normally moves point to the edge of
-the sequence.
+is invisible.  Therefore, after a command finishes and returns to the
+command loop, if point is within such a sequence, the command loop
+normally moves point to the edge of the sequence.
 
   A command can inhibit this feature by setting the variable
 @code{disable-point-adjustment}:

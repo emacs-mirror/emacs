@@ -48,8 +48,8 @@ static GC *ftxfont_get_gcs (FRAME_PTR, unsigned long, unsigned long);
 static int ftxfont_draw_bitmap (FRAME_PTR, GC, GC *, struct font *,
                                 unsigned, int, int, XPoint *, int, int *,
                                 int);
-static void ftxfont_draw_backgrond (FRAME_PTR, struct font *, GC,
-                                    int, int, int);
+static void ftxfont_draw_background (FRAME_PTR, struct font *, GC,
+				     int, int, int);
 
 struct ftxfont_frame_data
 {
@@ -219,7 +219,8 @@ ftxfont_draw_bitmap (FRAME_PTR f, GC gc_fore, GC *gcs, struct font *font, unsign
 }
 
 static void
-ftxfont_draw_backgrond (FRAME_PTR f, struct font *font, GC gc, int x, int y, int width)
+ftxfont_draw_background (FRAME_PTR f, struct font *font, GC gc, int x, int y,
+			 int width)
 {
   XGCValues xgcv;
 
@@ -296,7 +297,7 @@ ftxfont_draw (struct glyph_string *s, int from, int to, int x, int y, int with_b
 
   BLOCK_INPUT;
   if (with_background)
-    ftxfont_draw_backgrond (f, font, s->gc, x, y, s->width);
+    ftxfont_draw_background (f, font, s->gc, x, y, s->width);
   code = alloca (sizeof (unsigned) * len);
   for (i = 0; i < len; i++)
     code[i] = ((XCHAR2B_BYTE1 (s->char2b + from + i) << 8)

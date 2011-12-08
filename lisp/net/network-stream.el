@@ -115,7 +115,7 @@ values:
   capability command, and should return the command to switch on
   STARTTLS if the server supports STARTTLS, and nil otherwise.
 
-:always-query-capabilies says whether to query the server for
+:always-query-capabilities says whether to query the server for
   capabilities, even if we're doing a `plain' network connection.
 
 :client-certificate should either be a list where the first

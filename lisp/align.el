@@ -109,7 +109,7 @@
 ;; simple algorithm that understand only basic regular expressions.
 ;; Parts of the code were broken up and included in vhdl-mode.el
 ;; around this time.  After several comments from users, and a need to
-;; find a more robust, performant algorithm, 2.0 was born in late
+;; find a more robust, higher performing algorithm, 2.0 was born in late
 ;; 1998.  Many different approaches were taken (mostly due to the
 ;; complexity of TeX tables), but finally a scheme was discovered
 ;; which worked fairly well for most common usage cases.  Development

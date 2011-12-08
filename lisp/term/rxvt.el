@@ -228,7 +228,7 @@ for the currently selected frame."
 	;; 216 non-gray colors first
 	(let ((r 0) (g 0) (b 0))
 	  (while (> ncolors 24)
-	    ;; This and other formulae taken from 256colres.pl and
+	    ;; This and other formulas taken from 256colres.pl and
 	    ;; 88colres.pl in the xterm distribution.
 	    (tty-color-define (format "color-%d" (- 256 ncolors))
 			      (- 256 ncolors)

@@ -465,6 +465,7 @@ static Lisp_Object (Fcommand_execute) (Lisp_Object, Lisp_Object, Lisp_Object,
 				       Lisp_Object);
 static void handle_interrupt (void);
 static void quit_throw_to_read_char (int) NO_RETURN;
+static void process_special_events (void);
 static void timer_start_idle (void);
 static void timer_stop_idle (void);
 static void timer_resume_idle (void);
@@ -4145,14 +4146,12 @@ kbd_buffer_get_event (KBOARD **kbp,
   return (obj);
 }
 
-/* Process any events that are not user-visible,
-   then return, without reading any user-visible events.  */
+/* Process any non-user-visible events (currently X selection events),
+   without reading any user-visible events.  */
 
-void
-swallow_events (int do_display)
+static void
+process_special_events (void)
 {
-  int old_timers_run;
-
   while (kbd_fetch_ptr != kbd_store_ptr)
     {
       struct input_event *event;
@@ -4187,6 +4186,17 @@ swallow_events (int do_display)
       else
 	break;
     }
+}
+
+/* Process any events that are not user-visible, run timer events that
+   are ripe, and return, without reading any user-visible events.  */
+
+void
+swallow_events (int do_display)
+{
+  int old_timers_run;
+
+  process_special_events ();
 
   old_timers_run = timers_run;
   get_input_pending (&input_pending, READABLE_EVENTS_DO_TIMERS_NOW);
@@ -10521,6 +10531,9 @@ if there is a doubt, the value is t.  */)
       || !NILP (Vunread_post_input_method_events)
       || !NILP (Vunread_input_method_events))
     return (Qt);
+
+  /* Process non-user-visible events (Bug#10195).  */
+  process_special_events ();
 
   get_input_pending (&input_pending,
 		     READABLE_EVENTS_DO_TIMERS_NOW

@@ -210,7 +210,7 @@ This class will cache data derived during various searches.")
   "Synchronize the search index IDX with some NEW-TAGS."
   ;; Reset our parts.
   (semantic-reset idx)
-  ;; Notify dependants by clearning their indicies.
+  ;; Notify dependants by clearing their indices.
   (semanticdb-notify-references
    (oref idx table)
    (lambda (tab me)
@@ -224,7 +224,7 @@ This class will cache data derived during various searches.")
   (if (semantic-find-tags-by-class 'include new-tags)
       (progn
 	(semantic-reset idx)
-	;; Notify dependants by clearning their indicies.
+	;; Notify dependants by clearing their indices.
 	(semanticdb-notify-references
 	 (oref idx table)
 	 (lambda (tab me)
@@ -234,7 +234,7 @@ This class will cache data derived during various searches.")
     (when (oref idx type-cache)
       (when (semanticdb-partial-synchronize (oref idx type-cache) new-tags)
 	;; If the synchronize returns true, we need to notify.
-	;; Notify dependants by clearning their indicies.
+	;; Notify dependants by clearing their indices.
 	(semanticdb-notify-references
 	 (oref idx table)
 	 (lambda (tab me)
@@ -405,10 +405,10 @@ Default action as described in `semanticdb-find-translate-path'."
 	;; do a caching lookup.
 	(let ((index (semanticdb-get-table-index table)))
 	  (if (semanticdb-find-need-cache-update-p table)
-	      ;; Lets go look up our indicies
+	      ;; Let's go look up our indices.
 	      (let ((ans (semanticdb-find-translate-path-includes--internal path)))
 		(oset index include-path ans)
-		;; Once we have our new indicies set up, notify those
+		;; Once we have our new indices set up, notify those
 		;; who depend on us if we found something for them to
 		;; depend on.
 		(when ans (semanticdb-refresh-references table))
@@ -575,7 +575,7 @@ a new path from the provided PATH."
 	  (setq ans (semanticdb-file-table
 		     (car systemdb)
 		     ;; I would expect most omniscient to return the same
-		     ;; thing reguardless of filename, but we may have
+		     ;; thing regardless of filename, but we may have
 		     ;; one that can return a table of all things the
 		     ;; current file needs.
 		     (buffer-file-name (current-buffer))))
