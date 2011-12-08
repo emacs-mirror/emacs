@@ -1,5 +1,7 @@
 2011-12-08  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* emacs-lisp/lisp-mode.el (defmethod): Add doc-string-elt (bug#10244).
+
 	* pcmpl-gnu.el: Don't fail when there is no Makefile nor -f arg.
 	(pcmpl-gnu-makefile-regexps): Accept "makefile" as well as files that
 	end in ".mk".
