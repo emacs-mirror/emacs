@@ -5244,7 +5244,7 @@ encode_coding_ccl (struct coding_system *coding)
       && coding->mode & CODING_MODE_LAST_BLOCK)
     ccl->last_block = 1;
 
-  while (charbuf < charbuf_end)
+  do
     {
       ccl_driver (ccl, charbuf, destination_charbuf,
 		  charbuf_end - charbuf, 1024, charset_list);
@@ -5266,6 +5266,7 @@ encode_coding_ccl (struct coding_system *coding)
 	  || ccl->status == CCL_STAT_INVALID_CMD)
 	break;
     }
+  while (charbuf < charbuf_end);
 
   switch (ccl->status)
     {
