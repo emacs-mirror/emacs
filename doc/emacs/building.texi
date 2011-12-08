@@ -8,9 +8,9 @@
 @cindex program building
 @cindex running Lisp functions
 
-  The previous chapter discusses the Emacs commands that are useful for
-making changes in programs.  This chapter deals with commands that assist
-in the larger process of compiling and testing programs.
+  The previous chapter discusses the Emacs commands that are useful
+for making changes in programs.  This chapter deals with commands that
+assist in the process of compiling and testing programs.
 
 @menu
 * Compilation::         Compiling programs in languages other
@@ -37,10 +37,10 @@ in the larger process of compiling and testing programs.
 @cindex compilation errors
 @cindex error log
 
-  Emacs can run compilers for noninteractive languages such as C and
-Fortran as inferior processes, feeding the error log into an Emacs buffer.
-It can also parse the error messages and show you the source lines where
-compilation errors occurred.
+  Emacs can run compilers for languages such as C and Fortran as
+inferior processes, feeding the compilation log into an Emacs buffer.
+It can also parse the error messages and show you where the errors
+occurred.
 
 @table @kbd
 @item M-x compile
@@ -54,64 +54,59 @@ Kill the running compilation subprocess.
 @end table
 
 @findex compile
-  To run @code{make} or another compilation command, do @kbd{M-x
-compile}.  This command reads a shell command line using the minibuffer,
-and then executes the command in an inferior shell, putting output in
-the buffer named @samp{*compilation*}.  The current buffer's default
+  To run @code{make} or another compilation command, type @kbd{M-x
+compile}.  This reads a shell command line using the minibuffer, and
+then executes the command in an inferior shell, putting output in the
+buffer named @samp{*compilation*}.  The current buffer's default
 directory is used as the working directory for the execution of the
-command; normally, therefore, the compilation happens in this
+command; normally, therefore, compilation takes place in this
 directory.
 
 @vindex compile-command
-  The default for the compilation command is normally @samp{make -k},
-which is correct most of the time for nontrivial programs.
-@xref{Top,, Make, make, GNU Make Manual}.  If you have done @kbd{M-x
-compile} before, the default each time is the command you used the
-previous time.  @code{compile} stores this command in the variable
-@code{compile-command}, so setting that variable specifies the default
-for the next use of @kbd{M-x compile}.  If a file specifies a file
-local value for @code{compile-command}, that provides the default when
-you type @kbd{M-x compile} in that file's buffer.  @xref{File
-Variables}.
+  The default compilation command is @samp{make -k}, which is usually
+correct for programs compiled using the @command{make} utility (the
+@samp{-k} flag tells @command{make} to continue compiling as much as
+possible after an error).  @xref{Top,, Make, make, GNU Make Manual}.
+If you have done @kbd{M-x compile} before, the command that you
+specified is automatically stored in the variable
+@code{compile-command}; this is used as the default the next time you
+type @kbd{M-x compile}.  A file can also specify a file-local value
+for @code{compile-command} (@pxref{File Variables}).
 
-  Starting a compilation displays the buffer @samp{*compilation*} in
-another window but does not select it.  The buffer's mode line tells
-you whether compilation is finished, with the word @samp{run},
-@samp{signal} or @samp{exit} inside the parentheses.  You do not have
-to keep this buffer visible; compilation continues in any case.  While
-a compilation is going on, the string @samp{Compiling} appears in the
-mode lines of all windows.  When this string disappears, the
-compilation is finished.
+  Starting a compilation displays the @samp{*compilation*} buffer in
+another window but does not select it.  While the compilation is
+running, the word @samp{run} is shown in the major mode indicator for
+the @samp{*compilation*} buffer, and the word @samp{Compiling} appears
+in all mode lines.  You do not have to keep the @samp{*compilation*}
+buffer visible while compilation is running; it continues in any case.
+When the compilation ends, for whatever reason, the mode line of the
+@samp{*compilation*} buffer changes to say @samp{exit} (followed by
+the exit code: @samp{[0]} for a normal exit), or @samp{signal} (if a
+signal terminated the process).
 
-  If you want to watch the compilation transcript as it appears, switch
-to the @samp{*compilation*} buffer and move point to the end of the
-buffer.  When point is at the end, new compilation output is inserted
-above point, which remains at the end.  If point is not at the end of
-the buffer, it remains fixed while more compilation output is added at
-the end of the buffer.
+  If you want to watch the compilation transcript as it appears,
+switch to the @samp{*compilation*} buffer and move point to the end of
+the buffer.  When point is at the end, new compilation output is
+inserted above point, which remains at the end.  Otherwise, point
+remains fixed while compilation output is added at the end of the
+buffer.
 
 @cindex compilation buffer, keeping point at end
 @vindex compilation-scroll-output
   If you change the variable @code{compilation-scroll-output} to a
-non-@code{nil} value, the compilation buffer will scroll automatically
-to follow the output as it comes in.  If the value is
-@code{first-error}, the scrolling stops at the first error that
-appears, leaving point at that error.  For any other non-@code{nil}
-value, the buffer continues scrolling until there is no more output.
+non-@code{nil} value, the @samp{*compilation*} buffer scrolls
+automatically to follow the output.  If the value is
+@code{first-error}, scrolling stops when the first error appears,
+leaving point at that error.  For any other non-@code{nil} value,
+scrolling continues until there is no more output.
 
 @findex recompile
   To rerun the last compilation with the same command, type @kbd{M-x
-recompile}.  This automatically reuses the compilation command from
-the last invocation of @kbd{M-x compile}.  It also reuses the
+recompile}.  This reuses the compilation command from the last
+invocation of @kbd{M-x compile}.  It also reuses the
 @samp{*compilation*} buffer and starts the compilation in its default
 directory, which is the directory in which the previous compilation
 was started.
-
-  When the compiler process terminates, for whatever reason, the mode
-line of the @samp{*compilation*} buffer changes to say @samp{exit}
-(followed by the exit code, @samp{[0]} for a normal exit), or
-@samp{signal} (if a signal terminated the process), instead of
-@samp{run}.
 
 @findex kill-compilation
   Starting a new compilation also kills any compilation already
@@ -126,27 +121,6 @@ the @samp{*compilation*} buffer (perhaps using @code{rename-uniquely};
 @pxref{Misc Buffer}), then switch buffers and start the other
 compilation.  This will create a new @samp{*compilation*} buffer.
 
-  Emacs does not expect a compiler process to launch asynchronous
-subprocesses; if it does, and they keep running after the main
-compiler process has terminated, Emacs may kill them or their output
-may not arrive in Emacs.  To avoid this problem, make the main process
-wait for its subprocesses to finish.  In a shell script, you can do this
-using @samp{$!} and @samp{wait}, like this:
-
-@example
-(sleep 10; echo 2nd)& pid=$!  # @r{Record pid of subprocess}
-echo first message
-wait $pid                     # @r{Wait for subprocess}
-@end example
-
-  If the background process does not output to the compilation buffer,
-so you only need to prevent it from being killed when the main
-compilation process terminates, this is sufficient:
-
-@example
-nohup @var{command}; sleep 1
-@end example
-
 @vindex compilation-environment
   You can control the environment passed to the compilation command
 with the variable @code{compilation-environment}.  Its value is a list
@@ -159,153 +133,154 @@ variable settings override the usual ones.
 
 @cindex Compilation mode
 @cindex mode, Compilation
-  The @samp{*compilation*} buffer uses a special major mode,
-Compilation mode, whose main feature is to provide a convenient way to
-visit the source line corresponding to an error message.  These
-commands are also available in other special buffers that list
-locations in files, including those made by @kbd{M-x grep} and
-@kbd{M-x occur}.
+@cindex locus
+  The @samp{*compilation*} buffer uses a major mode called Compilation
+mode.  Compilation mode turns each error message in the buffer into a
+hyperlink; you can move point to it and type @key{RET}, or click on it
+with the mouse (@pxref{Mouse References}), to visit the @dfn{locus} of
+the error message in a separate window.  The locus is the specific
+position in a file where that error occurred.
+
+@findex compile-goto-error
+@vindex compilation-auto-jump-to-first-error
+  If you change the variable
+@code{compilation-auto-jump-to-first-error} to a non-@code{nil} value,
+Emacs automatically visits the locus of the first error message that
+appears in the @samp{*compilation*} buffer.
+
+  Compilation mode provides the following additional commands.  These
+commands can also be used in @samp{*grep*} buffers, where the
+hyperlinks are search matches rather than error messages (@pxref{Grep
+Searching}).
 
 @table @kbd
 @item M-g M-n
 @itemx M-g n
 @itemx C-x `
-Visit the locus of the next error message or match.
+Visit the locus of the next error message or match (@code{next-error}).
 @item M-g M-p
 @itemx M-g p
-Visit the locus of the previous error message or match.
-@item @key{RET}
-Visit the locus of the error message that point is on.
-This command is used in the compilation buffer.
-@item Mouse-2
-Visit the locus of the error message that you click on.
+Visit the locus of the previous error message or match
+(@code{previous-error}).
 @item M-n
-Find and highlight the locus of the next error message, without
-selecting the source buffer.
+Move point to the next error message or match, without visiting its
+locus (@code{compilation-next-error}).
 @item M-p
-Find and highlight the locus of the previous error message, without
-selecting the source buffer.
+Move point to the previous error message or match, without visiting
+its locus (@code{compilation-previous-error}).
 @item M-@}
-Move point to the next error for a different file than the current
-one.
+Move point to the next error message or match occurring in a different
+file (@code{compilation-next-file}).
 @item M-@{
-Move point to the previous error for a different file than the current
-one.
+Move point to the previous error message or match occurring in a
+different file (@code{compilation-previous-file}).
 @item C-c C-f
 Toggle Next Error Follow minor mode, which makes cursor motion in the
 compilation buffer produce automatic source display.
 @end table
-
-@findex compile-goto-error
-@vindex compilation-auto-jump-to-first-error
-  You can visit the source for any particular error message by moving
-point in the @samp{*compilation*} buffer to that error message and
-typing @key{RET} (@code{compile-goto-error}).  Alternatively, you can
-click @kbd{Mouse-2} on the error message; you need not switch to the
-@samp{*compilation*} buffer first.  If you set the variable
-@code{compilation-auto-jump-to-first-error} to a non-@code{nil} value,
-Emacs automatically jumps to the first error, if any, as soon as it
-appears in the @samp{*compilation*} buffer.
 
 @kindex M-g M-n
 @kindex M-g n
 @kindex C-x `
 @findex next-error
 @vindex next-error-highlight
-  To parse the compiler error messages sequentially, type @kbd{C-x `}
-(@code{next-error}).  The character following the @kbd{C-x} is the
-backquote or ``grave accent,'' not the single-quote.  This command is
-available in all buffers, not just in @samp{*compilation*}; it
-displays the next error message at the top of one window and source
-location of the error in another window.  It also temporarily
-highlights the relevant source line, for a period controlled by the
-variable @code{next-error-highlight}.
+  To visit errors sequentially, type @w{@kbd{C-x `}}
+(@code{next-error}), or equivalently @kbd{M-g M-n} or @kbd{M-g n}.
+This command can be invoked from any buffer, not just a Compilation
+mode buffer.  The first time you invoke it after a compilation, it
+visits the locus of the first error message.  Each subsequent
+@w{@kbd{C-x `}} visits the next error, in a similar fashion.  If you
+visit a specific error with @key{RET} or a mouse click in the
+@samp{*compilation*} buffer, subsequent @w{@kbd{C-x `}} commands
+advance from there.  When @w{@kbd{C-x `}} finds no more error messages
+to visit, it signals an error.  @w{@kbd{C-u C-x `}} starts again from
+the beginning of the compilation buffer, and visits the first locus.
 
-  The first time @w{@kbd{C-x `}} is used after the start of a compilation,
-it moves to the first error's location.  Subsequent uses of @kbd{C-x
-`} advance down to subsequent errors.  If you visit a specific error
-message with @key{RET} or @kbd{Mouse-2}, subsequent @w{@kbd{C-x `}}
-commands advance from there.  When @w{@kbd{C-x `}} gets to the end of the
-buffer and finds no more error messages to visit, it fails and signals
-an Emacs error.  @w{@kbd{C-u C-x `}} starts scanning from the beginning of
-the compilation buffer, and goes to the first error's location.
+  @kbd{M-g M-p} or @kbd{M-g p} (@code{previous-error}) iterates
+through errors in the opposite direction.
+
+  The @code{next-error} and @code{previous-error} commands don't just
+act on the errors or matches listed in @samp{*compilation*} and
+@samp{*grep*} buffers; they also know how to iterate through error or
+match lists produced by other commands, such as @kbd{M-x occur}
+(@pxref{Other Repeating Search}).  If you are already in a buffer
+containing error messages or matches, those are the ones that are
+iterated through; otherwise, Emacs looks for a buffer containing error
+messages or matches amongst the windows of the selected frame, then
+for one that @code{next-error} or @code{previous-error} previously
+iterated through, and finally amongst all other buffers.  If the
+buffer chosen for iterating through is not currently displayed in a
+window, it will be displayed.
 
 @vindex compilation-skip-threshold
-  By default, @w{@kbd{C-x `}} skips less important messages.  The variable
-@code{compilation-skip-threshold} controls this.  If its value is 2,
-@w{@kbd{C-x `}} skips anything less than error, 1 skips anything less
-than warning, and 0 doesn't skip any messages.  The default is 1.
+  By default, the @code{next-error} and @code{previous-error} commands
+skip less important messages.  The variable
+@code{compilation-skip-threshold} controls this.  The default value,
+1, means to skip anything less important than a warning.  A value of 2
+means to skip anything less important than an error, while 0 means not
+to skip any messages.
 
-  When the window has a left fringe, an arrow in the fringe points to
-the current message in the compilation buffer. The variable
-@code{compilation-context-lines} controls the number of lines of
-leading context to display before the current message.  Going to an
-error message location scrolls the @samp{*compilation*} buffer to put
-the message that far down from the top.  The value @code{nil} is
-special: if there's a left fringe, the window doesn't scroll at all
-if the message is already visible.  If there is no left fringe,
-@code{nil} means display the message at the top of the window.
+  When Emacs visits the locus of an error message, it momentarily
+highlights the relevant source line.  The duration of this highlight
+is determined by the variable @code{next-error-highlight}.
 
-  If you're not in the compilation buffer when you run
-@code{next-error}, Emacs will look for a buffer that contains error
-messages.  First, it looks for one displayed in the selected frame,
-then for one that previously had @code{next-error} called on it, and
-then at the current buffer.  Finally, Emacs looks at all the remaining
-buffers.  @code{next-error} signals an error if it can't find any such
-buffer.
+@vindex compilation-context-lines
+  If the @samp{*compilation*} buffer is shown in a window with a left
+fringe (@pxref{Fringes}), the locus-visiting commands put an arrow in
+the fringe, pointing to the current error message.  If the window has
+no left fringe, such as on a text-only terminal, these commands scroll
+the window so that the current message is at the top of the window.
+If you change the variable @code{compilation-context-lines} to an
+integer value @var{n}, these commands scroll the window so that the
+current error message is @var{n} lines from the top, whether or not
+there is a fringe; the default value, @code{nil}, gives the behavior
+described above.
 
 @vindex compilation-error-regexp-alist
 @vindex grep-regexp-alist
   To parse messages from the compiler, Compilation mode uses the
 variable @code{compilation-error-regexp-alist} which lists various
-formats of error messages and tells Emacs how to extract the source file
-and the line number from the text of a message.  If your compiler isn't
-supported, you can tailor Compilation mode to it by adding elements to
-that list.  A similar variable @code{grep-regexp-alist} tells Emacs how
-to parse output of a @code{grep} command.
+error message formats and tells Emacs how to extract the locus from
+each.  A similar variable, @code{grep-regexp-alist}, tells Emacs how
+to parse output from a @code{grep} command (@pxref{Grep Searching}).
 
 @findex compilation-next-error
 @findex compilation-previous-error
 @findex compilation-next-file
 @findex compilation-previous-file
-  Compilation mode also redefines the keys @key{SPC} and @key{DEL} to
-scroll by screenfuls, and @kbd{M-n} (@code{compilation-next-error})
-and @kbd{M-p} (@code{compilation-previous-error}) to move to the next
-or previous error message.  You can also use @kbd{M-@{}
-(@code{compilation-next-file} and @kbd{M-@}}
-(@code{compilation-previous-file}) to move up or down to an error
-message for a different source file.
+  Compilation mode also defines the keys @key{SPC} and @key{DEL} to
+scroll by screenfuls; @kbd{M-n} (@code{compilation-next-error}) and
+@kbd{M-p} (@code{compilation-previous-error}) to move to the next or
+previous error message; and @kbd{M-@{} (@code{compilation-next-file})
+and @kbd{M-@}} (@code{compilation-previous-file}) to move to the next
+or previous error message for a different source file.
 
 @cindex Next Error Follow mode
 @findex next-error-follow-minor-mode
   You can type @kbd{C-c C-f} to toggle Next Error Follow mode.  In
 this minor mode, ordinary cursor motion in the compilation buffer
-automatically updates the source buffer.  For instance, moving the
-cursor to the next error message causes the location of that error to
-be displayed immediately.
+automatically updates the source buffer, i.e.@: moving the cursor over
+an error message causes the locus of that error to be displayed.
 
   The features of Compilation mode are also available in a minor mode
 called Compilation Minor mode.  This lets you parse error messages in
-any buffer, not just a normal compilation output buffer.  Type @kbd{M-x
-compilation-minor-mode} to enable the minor mode.  This defines the keys
-@key{RET} and @kbd{Mouse-2}, as in the Compilation major mode.
-
-  Compilation minor mode works in any buffer, as long as the contents
-are in a format that it understands.  In an Rlogin buffer (@pxref{Remote
-Host}), Compilation minor mode automatically accesses remote source
-files by FTP (@pxref{File Names}).
+any buffer, not just a normal compilation output buffer.  Type
+@kbd{M-x compilation-minor-mode} to enable the minor mode.  For
+instance, in an Rlogin buffer (@pxref{Remote Host}), Compilation minor
+mode automatically accesses remote source files by FTP (@pxref{File
+Names}).
 
 @node Compilation Shell
 @section Subshells for Compilation
 
-  Emacs uses a shell to run the compilation command, but specifies the
-option for a noninteractive shell.  This means, in particular, that
-the shell should start with no prompt.  If you find your usual shell
-prompt making an unsightly appearance in the @samp{*compilation*}
-buffer, it means you have made a mistake in your shell's init file by
-setting the prompt unconditionally.  (This init file's name may be
-@file{.bashrc}, @file{.profile}, @file{.cshrc}, @file{.shrc}, or
-various other things, depending on the shell you use.)  The shell init
+  The @kbd{M-x compile} command uses a shell to run the compilation
+command, but specifies the option for a noninteractive shell.  This
+means, in particular, that the shell should start with no prompt.  If
+you find your usual shell prompt making an unsightly appearance in the
+@samp{*compilation*} buffer, it means you have made a mistake in your
+shell's init file by setting the prompt unconditionally.  (This init
+file may be named @file{.bashrc}, @file{.profile}, @file{.cshrc},
+@file{.shrc}, etc., depending on what shell you use.)  The shell init
 file should set the prompt only if there already is a prompt.  Here's
 how to do it in bash:
 
@@ -322,67 +297,80 @@ And here's how to do it in csh:
 if ($?prompt) set prompt = @dots{}
 @end example
 
-  There may well be other things that your shell's init file
-ought to do only for an interactive shell.  You can use the same
-method to conditionalize them.
+  Emacs does not expect a compiler process to launch asynchronous
+subprocesses; if it does, and they keep running after the main
+compiler process has terminated, Emacs may kill them or their output
+may not arrive in Emacs.  To avoid this problem, make the main
+compilation process wait for its subprocesses to finish.  In a shell
+script, you can do this using @samp{$!} and @samp{wait}, like this:
 
-  The MS-DOS ``operating system'' does not support asynchronous
-subprocesses; to work around this lack, @kbd{M-x compile} runs the
-compilation command synchronously on MS-DOS.  As a consequence, you must
-wait until the command finishes before you can do anything else in
-Emacs.
-@iftex
-@inforef{MS-DOS,,emacs-xtra}.
-@end iftex
+@example
+(sleep 10; echo 2nd)& pid=$!  # @r{Record pid of subprocess}
+echo first message
+wait $pid                     # @r{Wait for subprocess}
+@end example
+
+@noindent
+If the background process does not output to the compilation buffer,
+so you only need to prevent it from being killed when the main
+compilation process terminates, this is sufficient:
+
+@example
+nohup @var{command}; sleep 1
+@end example
+
 @ifnottex
-@xref{MS-DOS}.
+  On the MS-DOS ``operating system'', asynchronous subprocesses are
+not supported, so @kbd{M-x compile} runs the compilation command
+synchronously (i.e.@: you must wait until the command finishes before
+you can do anything else in Emacs).  @xref{MS-DOS}.
 @end ifnottex
 
 @node Grep Searching
 @section Searching with Grep under Emacs
 
   Just as you can run a compiler from Emacs and then visit the lines
-with compilation errors, you can also run @code{grep} and then visit
-the lines on which matches were found.  This works by treating the
-matches reported by @code{grep} as if they were ``errors.''  The
-buffer of matches uses Grep mode, which is a variant of Compilation
+with compilation errors, you can also run @command{grep} and then
+visit the lines on which matches were found.  This works by treating
+the matches reported by @command{grep} as if they were ``errors.''
+The output buffer uses Grep mode, which is a variant of Compilation
 mode (@pxref{Compilation Mode}).
 
 @table @kbd
 @item M-x grep
 @itemx M-x lgrep
-Run @code{grep} asynchronously under Emacs, with matching lines
-listed in the buffer named @samp{*grep*}.
+Run @command{grep} asynchronously under Emacs, listing matching lines in
+the buffer named @samp{*grep*}.
 @item M-x grep-find
 @itemx M-x find-grep
 @itemx M-x rgrep
-Run @code{grep} via @code{find}, and collect output in the buffer
-named @samp{*grep*}.
+Run @command{grep} via @code{find}, and collect output in the
+@samp{*grep*} buffer.
 @item M-x zrgrep
-Run @code{zgrep} and collect output in the buffer named @samp{*grep*}.
+Run @code{zgrep} and collect output in the @samp{*grep*} buffer.
 @item M-x kill-grep
-Kill the running @code{grep} subprocess.
+Kill the running @command{grep} subprocess.
 @end table
 
 @findex grep
-  To run @code{grep}, type @kbd{M-x grep}, then enter a command line
-that specifies how to run @code{grep}.  Use the same arguments you
-would give @code{grep} when running it normally: a @code{grep}-style
+  To run @command{grep}, type @kbd{M-x grep}, then enter a command line
+that specifies how to run @command{grep}.  Use the same arguments you
+would give @command{grep} when running it normally: a @command{grep}-style
 regexp (usually in single-quotes to quote the shell's special
 characters) followed by file names, which may use wildcards.  If you
 specify a prefix argument for @kbd{M-x grep}, it finds the tag
 (@pxref{Tags}) in the buffer around point, and puts that into the
-default @code{grep} command.
+default @command{grep} command.
 
-  Your command need not simply run @code{grep}; you can use any shell
+  Your command need not simply run @command{grep}; you can use any shell
 command that produces output in the same format.  For instance, you
-can chain @code{grep} commands, like this:
+can chain @command{grep} commands, like this:
 
 @example
 grep -nH -e foo *.el | grep bar | grep toto
 @end example
 
-  The output from @code{grep} goes in the @samp{*grep*} buffer.  You
+  The output from @command{grep} goes in the @samp{*grep*} buffer.  You
 can find the corresponding lines in the original files using @w{@kbd{C-x
 `}}, @key{RET}, and so forth, just like compilation errors.
 
@@ -397,30 +385,31 @@ match will be highlighted, instead of the entire source line.
   The command @kbd{M-x grep-find} (also available as @kbd{M-x
 find-grep}) is similar to @kbd{M-x grep}, but it supplies a different
 initial default for the command---one that runs both @code{find} and
-@code{grep}, so as to search every file in a directory tree.  See also
+@command{grep}, so as to search every file in a directory tree.  See also
 the @code{find-grep-dired} command, in @ref{Dired and Find}.
 
 @findex lgrep
 @findex rgrep
 @findex zrgrep
   The commands @kbd{M-x lgrep} (local grep) and @kbd{M-x rgrep}
-(recursive grep) are more user-friendly versions of @code{grep} and
+(recursive grep) are more user-friendly versions of @command{grep} and
 @code{grep-find}, which prompt separately for the regular expression
 to match, the files to search, and the base directory for the search.
 Case sensitivity of the search is controlled by the current value of
 @code{case-fold-search}.  The command @kbd{M-x zrgrep} is similar to
-@code{rgrep}, but it calls @code{zgrep} instead of @code{grep} to
-search the contents of gzipped files.
+@kbd{M-x rgrep}, but it calls @command{zgrep} instead of
+@command{grep} to search the contents of gzipped files.
 
   These commands build the shell commands based on the variables
 @code{grep-template} (for @code{lgrep}) and @code{grep-find-template}
 (for @code{rgrep}).  The files to search can use aliases defined in
 the variable @code{grep-files-aliases}.
 
-  Subdirectories listed in the variable
-@code{grep-find-ignored-directories} such as those typically used by
-various version control systems, like CVS and arch, are automatically
-skipped by @code{rgrep}.
+@vindex grep-find-ignored-directories
+  Directories listed in the variable
+@code{grep-find-ignored-directories} are automatically skipped by
+@kbd{M-x rgrep}.  The default value includes the data directories used
+by various version control systems.
 
 @node Flymake
 @section Finding Syntax Errors On The Fly
@@ -444,8 +433,13 @@ flymake-goto-next-error} and @kbd{M-x flymake-goto-prev-error}.  To
 display any error messages associated with the current line, use
 @kbd{M-x flymake-display-err-menu-for-current-line}.
 
-  For more details about using Flymake, see @ref{Top, Flymake,
-Flymake, flymake, The Flymake Manual}.
+  For more details about using Flymake,
+@ifnottex
+see @ref{Top, Flymake, Flymake, flymake, The Flymake Manual}.
+@end ifnottex
+@iftex
+see the Flymake Info manual, which is distributed with Emacs.
+@end iftex
 
 @node Debuggers
 @section Running Debuggers Under Emacs
