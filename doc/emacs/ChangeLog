@@ -1,3 +1,14 @@
+2011-12-08  Chong Yidong  <cyd@gnu.org>
+
+	* building.texi (Compilation): Say what the -k flag to make does.
+	Move subprocess discussion to Compilation Shell.
+	(Compilation Mode): Add xref for grep, occur, and mouse
+	references.  Define "locus".
+	(Grep Searching): Use @command.
+
+	* programs.texi (Symbol Completion): M-TAB can now use Semantic.
+	(Semantic): Add cindex entries for Semantic.
+
 2011-12-06  Chong Yidong  <cyd@gnu.org>
 
 	* programs.texi (Man Page): Clarify how to use Man-switches.

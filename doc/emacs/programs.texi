@@ -1283,17 +1283,11 @@ for switching graphical windows, so you should type @kbd{C-M-i} or
 @kbd{@key{ESC} @key{TAB}} instead.
 
 @cindex tags-based completion
-@cindex Info index completion
-@findex complete-symbol
   In-buffer symbol completion generates its completion list in a
-number of different ways.  In most programming language modes,
-completion is normally done using a tags table (@pxref{Tags}).
-However, if you supply @kbd{C-M-i} or @kbd{M-@key{TAB}} with a numeric
-argument, it completes using the Info file indexes for the current
-language (e.g.@: the C Library Manual).  Of course, Info-based
-completion works only if there is an Info file for the standard
-library functions of your language, and only if it is installed at
-your site.
+number of different ways.  If Semantic mode is enabled, Emacs tries to
+use the Semantic parser data for completion (@pxref{Semantic}).  If
+Semantic mode is not enabled or it fails at performing completion,
+Emacs normally tries to complete using a tags table (@pxref{Tags}).
 
 @cindex Lisp symbol completion
 @cindex completion (Lisp symbols)
@@ -1350,6 +1344,8 @@ have an exact understanding of programming language syntax.  This
 allows Semantic to provide search, navigation, and completion commands
 that are powerful and precise.
 
+@cindex Semantic mode
+@cindex mode, Semantic
   To begin using Semantic, type @kbd{M-x semantic-mode} or click on
 the menu item named @samp{Source Code Parsers (Semantic)} in the
 @samp{Tools} menu.  This enables Semantic mode, a global minor mode.
