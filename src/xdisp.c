@@ -14360,7 +14360,7 @@ try_scrolling (Lisp_Object window, int just_this_one_p,
     {
       int scroll_margin_y;
 
-      /* Compute the pixel ypos of the scroll margin, then move it to
+      /* Compute the pixel ypos of the scroll margin, then move IT to
 	 either that ypos or PT, whichever comes first.  */
       start_display (&it, w, startp);
       scroll_margin_y = it.last_visible_y - this_scroll_margin
@@ -14390,7 +14390,8 @@ try_scrolling (Lisp_Object window, int just_this_one_p,
 	  if (dy > scroll_max)
 	    return SCROLLING_FAILED;
 
-	  scroll_down_p = 1;
+	  if (dy > 0)
+	    scroll_down_p = 1;
 	}
     }
 

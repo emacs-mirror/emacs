@@ -1,3 +1,8 @@
+2011-12-09  Eli Zaretskii  <eliz@gnu.org>
+
+	* xdisp.c (try_scrolling): Don't set scroll_down_p if dy is zero.
+	(Bug#10170)
+
 2011-12-09  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
 
 	* unexelf.c (unexec) [NS_IMPL_GNUSTEP]: Take account of the case
