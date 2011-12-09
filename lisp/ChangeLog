@@ -1,3 +1,8 @@
+2011-12-09  Manuel Gómez  <mgrojo@gmail.com>  (tiny change)
+
+	* speedbar.el (speedbar-supported-extension-expressions):
+	Add .adb and .ads, commonly used for Ada source code (bug#10256).
+
 2011-12-09  Juanma Barranquero  <lekktu@gmail.com>
 
 	* printing.el (pr-mode-alist):
