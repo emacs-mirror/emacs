@@ -1,3 +1,9 @@
+2011-12-09  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
+
+	* unexelf.c (unexec) [NS_IMPL_GNUSTEP]: Take account of the case
+	that where the value of an _OBJC_* symbol points to is in the .bss
+	section (Bug#10240).
+
 2011-12-08  Kazuhiro Ito  <kzhr@d1.dion.ne.jp>  (tiny change)
 
 	* coding.c (encode_coding_ccl): Check (charbuf < charbuf_end)
