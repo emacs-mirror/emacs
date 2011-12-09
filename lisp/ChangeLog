@@ -1,3 +1,24 @@
+2011-12-09  Juanma Barranquero  <lekktu@gmail.com>
+
+	* printing.el (pr-mode-alist):
+	* simple.el (filter-buffer-substring-functions)
+	(completion-list-insert-choice-function):
+	* window.el (window-with-parameter, window-atom-root)
+	(window-sides-slots, window-size-fixed, window-min-delta)
+	(window-max-delta, window--resize-mini-window)
+	(window--resize-child-windows-normal, window-tree)
+	(delete-other-windows, quit-window, split-window)
+	(display-buffer-record-window, special-display-buffer-names)
+	(special-display-regexps, special-display-popup-frame)
+	(same-window-p, split-window-sensibly)
+	(display-buffer-overriding-action, display-buffer-alist)
+	(display-buffer-base-action, display-buffer, switch-to-buffer)
+	(switch-to-buffer-other-window, switch-to-buffer-other-frame)
+	(fit-window-to-buffer, recenter-positions)
+	(mouse-autoselect-window-state, mouse-autoselect-window-select):
+	* emacs-lisp/syntax.el (syntax-propertize-function): Fix typos
+	and remove unneeded backslashes in docstrings.
+
 2011-12-08  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* emacs-lisp/lisp-mode.el (defmethod): Add doc-string-elt (bug#10244).
@@ -172,11 +193,11 @@
 	(verilog-inject-sense, verilog-read-inst-pins)
 	(verilog-read-sub-decls, verilog-read-sub-decls-line):
 	Fix mismatching parenthesis inside commented out code when deleting
-	AUTOINST, bug383. Reported by Jonathan Greenlaw.
+	AUTOINST, bug383.  Reported by Jonathan Greenlaw.
 	(verilog-auto-ascii-enum): Fix AUTOASCIIENUM one-hot with
 	non-numeric vector width.  Reported by Alex Reed.
 	(verilog-auto-ascii-enum): Add "onehot" option to work around not
-	detecting signals with parameter widths. Reported by Alex Reed.
+	detecting signals with parameter widths.  Reported by Alex Reed.
 	(verilog-auto-delete-trailing-whitespace):
 	With `verilog-auto-delete-trailing-whitespace' remove trailing
 	whitespace in auto expansion, bug371.  Reported by Brad Dobbie.

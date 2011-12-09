@@ -693,10 +693,10 @@
 2003-04-29  Jorgen Schaefer  <forcer@users.sourceforge.net>
 
 	* erc.el 1.525 (erc):
-	Check wether erc-save-buffer-in-logs is bound, too
+	Check whether erc-save-buffer-in-logs is bound, too
 
 	* erc.el 1.524 (erc):
-	Check wether erc-logging-enabled is bound before using it - not
+	Check whether erc-logging-enabled is bound before using it - not
 	everyone is using erc-log.el!
 
 2003-04-28  Andreas Fuchs  <asf@void.at>
@@ -1166,7 +1166,7 @@
 
 	(erc-person): Call erc-downcase before getting
 	something from the hash.
-	(erc-nick-in-channel): Checking wether erc-process must be used is
+	(erc-nick-in-channel): Checking whether erc-process must be used is
 	unnecessary -- this will be done in erc-person.
 	(erc-nick-channels): New.
 	(erc-add-nick-to-channel, erc-update-member): Call erc-downcase
@@ -1678,7 +1678,7 @@
 2003-01-11  Jorgen Schaefer  <forcer@users.sourceforge.net>
 
 	* erc-stamp.el 1.22 (erc-insert-timestamp-right):
-	Check wether erc-fill-column is
+	Check whether erc-fill-column is
 	available before using it. Else default to fill-column or if
 	everything else fails, the window width of the current window. For the
 	fill-columns, use them directly as the starting position for the

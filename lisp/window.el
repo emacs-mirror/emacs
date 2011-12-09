@@ -296,7 +296,7 @@ is unpredictable."
   "Return first window on FRAME with PARAMETER non-nil.
 FRAME defaults to the selected frame.  Optional argument VALUE
 non-nil means only return a window whose window-parameter value
-for PARAMETER equals VALUE \(comparison is done with `equal').
+for PARAMETER equals VALUE (comparison is done with `equal').
 Optional argument ANY non-nil means consider internal windows
 too."
   (let (this-value windows)
@@ -312,7 +312,7 @@ too."
 (defun window-atom-root (&optional window)
   "Return root of atomic window WINDOW is a part of.
 WINDOW can be any window and defaults to the selected one.
-Return nil if WINDOW is not part of a atomic window."
+Return nil if WINDOW is not part of an atomic window."
   (setq window (window-normalize-window window))
   (let (root)
     (while (and window (window-parameter window 'window-atom))
@@ -380,7 +380,7 @@ Otherwise, top and bottom side windows are full width."
 (defcustom window-sides-slots '(nil nil nil nil)
   "Maximum number of side window slots.
 The value is a list of four elements specifying the number of
-side window slots on \(in this order) the left, top, right and
+side window slots on (in this order) the left, top, right and
 bottom side of each frame.  If an element is a number, this means
 to display at most that many side windows on the corresponding
 side.  If an element is nil, this means there's no bound on the
@@ -504,7 +504,7 @@ If the value is `width', then only the window's width is fixed.
 Any other non-nil value fixes both the width and the height.
 
 Emacs won't change the size of any window displaying that buffer,
-unless it has no other choice \(like when deleting a neighboring
+unless it has no other choice (like when deleting a neighboring
 window).")
 (make-variable-buffer-local 'window-size-fixed)
 
@@ -749,7 +749,7 @@ Optional argument NOUP non-nil means don't go up in the window
 tree but try to enlarge windows within WINDOW's combination only.
 
 Optional argument NODOWN non-nil means don't check whether WINDOW
-itself \(and its child windows) can be shrunk; check only whether
+itself (and its child windows) can be shrunk; check only whether
 at least one other window can be enlarged appropriately."
   (setq window (window-normalize-window window))
   (let ((size (window-total-size window horizontal))
@@ -831,7 +831,7 @@ tree but try to obtain the entire space from windows within
 WINDOW's combination.
 
 Optional argument NODOWN non-nil means do not check whether
-WINDOW itself \(and its child windows) can be enlarged; check
+WINDOW itself (and its child windows) can be enlarged; check
 only whether other windows can be shrunk appropriately."
   (setq window (window-normalize-window window))
   (if (and (not (window--size-ignore window ignore))
@@ -1418,7 +1418,7 @@ windows."
 ;; window and is currently used, for example, by ispell.el.
 (defun window--resize-mini-window (window delta)
   "Resize minibuffer window WINDOW by DELTA lines.
-If WINDOW cannot be resized by DELTA lines make it as large \(or
+If WINDOW cannot be resized by DELTA lines make it as large (or
 as small) as possible but don't signal an error."
   (when (window-minibuffer-p window)
     (let* ((frame (window-frame window))
@@ -1513,12 +1513,12 @@ instead."
   "Recursively set new normal height of child windows of window PARENT.
 HORIZONTAL non-nil means set the new normal width of these
 windows.  WINDOW specifies a child window of PARENT that has been
-resized by THIS-DELTA lines \(columns).
+resized by THIS-DELTA lines (columns).
 
 Optional argument TRAIL either 'before or 'after means set values
 for windows before or after WINDOW only.  Optional argument
-OTHER-DELTA a number specifies that this many lines \(columns)
-have been obtained from \(or returned to) an ancestor window of
+OTHER-DELTA a number specifies that this many lines (columns)
+have been obtained from (or returned to) an ancestor window of
 PARENT in order to resize WINDOW."
   (let* ((delta-normal
 	  (if (and (= (- this-delta) (window-total-size window horizontal))
@@ -2190,7 +2190,7 @@ for a horizontal split, and t for a vertical split.  EDGES gives
 the combined size and position of the child windows in the split,
 and the rest of the elements are the child windows in the split.
 Each of the child windows may again be a window or a list
-representing a window split, and so on.  EDGES is a list \(LEFT
+representing a window split, and so on.  EDGES is a list (LEFT
 TOP RIGHT BOTTOM) as returned by `window-edges'."
   (setq frame (window-normalize-frame frame))
   (window--subtree (frame-root-window frame) t))
@@ -2430,7 +2430,7 @@ the value returned by that function.
 Otherwise, if WINDOW is part of an atomic window, call this
 function with the root of the atomic window as its argument.  If
 WINDOW is a non-side window, make WINDOW the only non-side window
-on the frame.  Side windows are not deleted. If WINDOW is a side
+on the frame.  Side windows are not deleted.  If WINDOW is a side
 window signal an error."
   (interactive)
   (setq window (window-normalize-window window))
@@ -2938,9 +2938,9 @@ With prefix argument KILL non-nil, kill the buffer instead of
 burying it.
 
 According to information stored in WINDOW's `quit-restore' window
-parameter either \(1) delete WINDOW and its frame, \(2) delete
-WINDOW, \(3) restore the buffer previously displayed in WINDOW,
-or \(4) make WINDOW display some other buffer than the present
+parameter either (1) delete WINDOW and its frame, (2) delete
+WINDOW, (3) restore the buffer previously displayed in WINDOW,
+or (4) make WINDOW display some other buffer than the present
 one.  If non-nil, reset `quit-restore' parameter to nil."
   (interactive "P")
   (setq window (window-normalize-window window t))
@@ -3047,14 +3047,14 @@ WINDOW's size.  Interactively, SIZE is the prefix argument.
 Optional third argument SIDE nil (or `below') specifies that the
 new window shall be located below WINDOW.  SIDE `above' means the
 new window shall be located above WINDOW.  In both cases SIZE
-specifies the new number of lines for WINDOW \(or the new window
+specifies the new number of lines for WINDOW (or the new window
 if SIZE is negative) including space reserved for the mode and/or
 header line.
 
 SIDE t (or `right') specifies that the new window shall be
 located on the right side of WINDOW.  SIDE `left' means the new
 window shall be located on the left of WINDOW.  In both cases
-SIZE specifies the new number of columns for WINDOW \(or the new
+SIZE specifies the new number of columns for WINDOW (or the new
 window provided SIZE is negative) including space reserved for
 fringes and the scrollbar or a divider column.  Any other non-nil
 value for SIDE is currently handled like t (or `right').
@@ -3870,10 +3870,10 @@ windows can get as small as `window-safe-min-height' and
 (defun display-buffer-record-window (type window buffer)
   "Record information for window used by `display-buffer'.
 TYPE specifies the type of the calling operation and must be one
-of the symbols 'reuse \(when WINDOW existed already and was
-reused for displaying BUFFER), 'window \(when WINDOW was created
-on an already existing frame), or 'frame \(when WINDOW was
-created on a new frame). WINDOW is the window used for or created
+of the symbols 'reuse (when WINDOW existed already and was
+reused for displaying BUFFER), 'window (when WINDOW was created
+on an already existing frame), or 'frame (when WINDOW was
+created on a new frame).  WINDOW is the window used for or created
 by the `display-buffer' routines.  BUFFER is the buffer that
 shall be displayed.
 
@@ -3968,7 +3968,7 @@ the buffer as first, and nil as second argument.
 
 Alternatively, an element of this list can be specified as
 \(BUFFER-NAME FRAME-PARAMETERS), where BUFFER-NAME is a buffer
-name and FRAME-PARAMETERS an alist of \(PARAMETER . VALUE) pairs.
+name and FRAME-PARAMETERS an alist of (PARAMETER . VALUE) pairs.
 `special-display-popup-frame' will interpret such pairs as frame
 parameters when it creates a special frame, overriding the
 corresponding values from `special-display-frame-alist'.
@@ -4044,7 +4044,7 @@ name matches REGEXP, overriding the corresponding values from
 
 As a special case, if FRAME-PARAMETERS contains (same-window . t)
 `special-display-popup-frame' displays buffers matching REGEXP in
-the selected window.  \(same-frame . t) in FRAME-PARAMETERS means
+the selected window.  (same-frame . t) in FRAME-PARAMETERS means
 to display such buffers in a window on the selected frame.
 
 If `special-display-function' specifies some other function than
@@ -4139,8 +4139,8 @@ Optional argument ARGS is a list specifying additional
 information.
 
 If ARGS is an alist, use it as a list of frame parameters.  If
-these parameters contain \(same-window . t), display BUFFER in
-the selected window.  If they contain \(same-frame . t), display
+these parameters contain (same-window . t), display BUFFER in
+the selected window.  If they contain (same-frame . t), display
 BUFFER in a window of the selected frame.
 
 If ARGS is a list whose car is a symbol, use (car ARGS) as a
@@ -4234,7 +4234,7 @@ See also `same-window-buffer-names'."
   "Return non-nil if a buffer named BUFFER-NAME would be shown in the \"same\" window.
 This function returns non-nil if `display-buffer' or
 `pop-to-buffer' would show a buffer named BUFFER-NAME in the
-selected rather than \(as usual\) some other window.  See
+selected rather than (as usual) some other window.  See
 `same-window-buffer-names' and `same-window-regexps'."
   (cond
    ((not (stringp buffer-name)))
@@ -4396,11 +4396,11 @@ the largest or least recently used window.  To change the default
 customize the option `split-window-preferred-function'.
 
 You can enforce this function to not split WINDOW horizontally,
-by setting \(or binding) the variable `split-width-threshold' to
+by setting (or binding) the variable `split-width-threshold' to
 nil.  If, in addition, you set `split-height-threshold' to zero,
 chances increase that this function does split WINDOW vertically.
 
-In order to not split WINDOW vertically, set \(or bind) the
+In order to not split WINDOW vertically, set (or bind) the
 variable `split-height-threshold' to nil.  Additionally, you can
 set `split-width-threshold' to zero to make a horizontal split
 more likely to occur.
@@ -4565,7 +4565,7 @@ BUFFER-OR-NAME and return that buffer."
 (defvar display-buffer-overriding-action '(nil . nil)
   "Overriding action to perform to display a buffer.
 It should be a cons cell (FUNCTION . ALIST), where FUNCTION is a
-function or a list of functions.  Each function should accept 2
+function or a list of functions.  Each function should accept two
 arguments: a buffer to display and an alist similar to ALIST.
 See `display-buffer' for details.")
 (put 'display-buffer-overriding-action 'risky-local-variable t)
@@ -4579,7 +4579,7 @@ This is a list of elements (CONDITION . ACTION), where:
 
  ACTION is a cons cell (FUNCTION . ALIST), where FUNCTION is a
   function or a list of functions.  Each such function should
-  accept 2 arguments: a buffer to display and an alist of the
+  accept two arguments: a buffer to display and an alist of the
   same form as ALIST.  See `display-buffer' for details."
   :type `(alist :key-type
 		(choice :tag "Condition"
@@ -4593,7 +4593,7 @@ This is a list of elements (CONDITION . ACTION), where:
 (defcustom display-buffer-base-action '(nil . nil)
   "User-specified default action for `display-buffer'.
 It should be a cons cell (FUNCTION . ALIST), where FUNCTION is a
-function or a list of functions.  Each function should accept 2
+function or a list of functions.  Each function should accept two
 arguments: a buffer to display and an alist similar to ALIST.
 See `display-buffer' for details."
   :type display-buffer--action-custom-type
@@ -4648,8 +4648,8 @@ or nil if no such window is found.
 
 Optional argument ACTION should have the form (FUNCTION . ALIST).
 FUNCTION is either a function or a list of functions.  Each such
-function is called with 2 arguments: the buffer to display and an
-alist.  It should either display the buffer and return the
+function is called with two arguments: the buffer to display and
+an alist.  It should either display the buffer and return the
 window, or return nil if unable to display the buffer.
 
 The `display-buffer' function builds a function list and an alist
@@ -4996,7 +4996,7 @@ minibuffer.  The variable `confirm-nonexistent-file-or-buffer'
 determines whether to request confirmation before creating a new
 buffer.
 
-BUFFER-OR-NAME may be a buffer, a string \(a buffer name), or
+BUFFER-OR-NAME may be a buffer, a string (a buffer name), or
 nil.  If BUFFER-OR-NAME is a string that does not identify an
 existing buffer, create a buffer with that name.  If
 BUFFER-OR-NAME is nil, switch to the buffer returned by
@@ -5036,7 +5036,7 @@ Return the buffer switched to."
 
 (defun switch-to-buffer-other-window (buffer-or-name &optional norecord)
   "Select the buffer specified by BUFFER-OR-NAME in another window.
-BUFFER-OR-NAME may be a buffer, a string \(a buffer name), or
+BUFFER-OR-NAME may be a buffer, a string (a buffer name), or
 nil.  Return the buffer switched to.
 
 If called interactively, prompt for the buffer name using the
@@ -5060,7 +5060,7 @@ documentation for additional customization information."
 
 (defun switch-to-buffer-other-frame (buffer-or-name &optional norecord)
   "Switch to buffer BUFFER-OR-NAME in another frame.
-BUFFER-OR-NAME may be a buffer, a string \(a buffer name), or
+BUFFER-OR-NAME may be a buffer, a string (a buffer name), or
 nil.  Return the buffer switched to.
 
 If called interactively, prompt for the buffer name using the
@@ -5169,7 +5169,7 @@ WINDOW can be any live window and defaults to the selected one.
 Optional argument MAX-HEIGHT specifies the maximum height of
 WINDOW and defaults to the height of WINDOW's frame.  Optional
 argument MIN-HEIGHT specifies the minimum height of WINDOW and
-defaults to `window-min-height'.  Both, MAX-HEIGHT and MIN-HEIGHT
+defaults to `window-min-height'.  Both MAX-HEIGHT and MIN-HEIGHT
 are specified in lines and include the mode line and header line,
 if any.
 
@@ -5332,7 +5332,7 @@ A list of elements with possible values `top', `middle', `bottom',
 integer or float numbers that define the cycling order for
 the command `recenter-top-bottom'.
 
-Top and bottom destinations are `scroll-margin' lines the from true
+Top and bottom destinations are `scroll-margin' lines from the true
 window top and bottom.  Middle redraws the frame and centers point
 vertically within the window.  Integer number moves current line to
 the specified absolute window-line.  Float number between 0.0 and 1.0
@@ -5571,9 +5571,9 @@ With arg N, put point N/10 of the way from the true end."
 
 (defvar mouse-autoselect-window-state nil
   "When non-nil, special state of delayed window autoselection.
-Possible values are `suspend' \(suspend autoselection after a menu or
-scrollbar interaction\) and `select' \(the next invocation of
-'handle-select-window' shall select the window immediately\).")
+Possible values are `suspend' (suspend autoselection after a menu or
+scrollbar interaction) and `select' (the next invocation of
+`handle-select-window' shall select the window immediately).")
 
 (defun mouse-autoselect-window-cancel (&optional force)
   "Cancel delayed window autoselection.
@@ -5610,8 +5610,8 @@ means suspend autoselection."
 (defun mouse-autoselect-window-select ()
   "Select window with delayed window autoselection.
 If the mouse position has stabilized in a non-selected window, select
-that window.  The minibuffer window is selected only if the minibuffer is
-active.  This function is run by `mouse-autoselect-window-timer'."
+that window.  The minibuffer window is selected only if the minibuffer
+is active.  This function is run by `mouse-autoselect-window-timer'."
   (ignore-errors
    (let* ((mouse-position (mouse-position))
 	  (window

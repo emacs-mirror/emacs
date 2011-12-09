@@ -75,7 +75,7 @@
 	everything but the last character.
 
 	* erc.el 1.395 (erc-send-current-line):
-	Check wether point is in the input line. If
+	Check whether point is in the input line. If
 	not, just beep and do nothing.
 
 2002-12-28  Alex Schroeder  <alex@gnu.org>
@@ -98,7 +98,7 @@
 2002-12-28  Jorgen Schaefer  <forcer@users.sourceforge.net>
 
 	* erc.el 1.392 (erc-log-irc-protocol):
-	Removed check wether get-buffer-create
+	Removed check whether get-buffer-create
 	    returned nil. "The value is never nil", says the docstring.
 
 	* erc.el 1.391: Day Of The Small Changes
@@ -245,7 +245,7 @@
 	(erc-process-alive): Check erc-process for boundp and processp.
 
 	* erc.el 1.374 (erc-kill-buffer-function):
-	Do not check wether the process is
+	Do not check whether the process is
 	alive before running the hook, because there might be functions on
 	the hook that need to run even when the process is dead.  And
 	function that wants to check this, should use (erc-process-alive).
@@ -1037,7 +1037,7 @@
 	* (erc-away-p): new function
 
 	erc-fill.el:
-	* (erc-fill-variable): Check wether erc-timestamp-format is bound before
+	* (erc-fill-variable): Check whether erc-timestamp-format is bound before
 	                       using it (erc-fill.el does not require erc-stamp).
 
 2002-11-10  Alex Schroeder  <alex@gnu.org>
