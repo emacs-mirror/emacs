@@ -2536,7 +2536,7 @@ LPR-PRINT	It's a symbol function for text printing.  It's invoked with
 		nil, it's used (point-max).
 
 PS-PRINT	It's a symbol function for PostScript printing.  It's invoked
-		with 3 arguments: n-up printing, file name and the list:
+		with three arguments: n-up printing, file name and the list:
 		(HEADER-LINES  LEFT-HEADER  RIGHT-HEADER DEFAULT...).
 
 		Usually PS-PRINT function prepares the environment or buffer

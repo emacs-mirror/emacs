@@ -35,7 +35,7 @@
 ;; User Variables:
 
 (defcustom pcmpl-gnu-makefile-regexps
-  '("\\`GNUmakefile" "\\`Makefile" "\\.mak\\'")
+  '("\\`GNUmakefile" "\\`[Mm]akefile" "\\.ma?k\\'")
   "A list of regexps that will match Makefile names."
   :type '(repeat regexp)
   :group 'pcmpl-gnu)
@@ -112,14 +112,16 @@
   "Return a list of possible make rule names in MAKEFILE."
   (let* ((minus-f (member "-f" pcomplete-args))
 	 (makefile (or (cadr minus-f)
-		       (if (file-exists-p "GNUmakefile")
-			   "GNUmakefile"
-			 "Makefile")))
+		       (cond
+                        ((file-exists-p "GNUmakefile") "GNUmakefile")
+                        ((file-exists-p "makefile") "makefile")
+                        (t "Makefile"))))
 	 rules)
     (if (not (file-readable-p makefile))
 	(unless minus-f (list "-f"))
       (with-temp-buffer
-	(insert-file-contents-literally makefile)
+	(ignore-errors			;Could be a directory or something.
+	  (insert-file-contents makefile))
 	(while (re-search-forward
 		(concat "^\\s-*\\([^\n#%.$][^:=\n]*\\)\\s-*:[^=]") nil t)
 	  (setq rules (append (split-string (match-string 1)) rules))))

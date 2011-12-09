@@ -2915,11 +2915,11 @@ These commands include \\[set-mark-command] and \\[start-kbd-macro]."
 
 (defvar filter-buffer-substring-functions nil
   "Wrapper hook around `filter-buffer-substring'.
-The functions on this special hook are called with 4 arguments:
+The functions on this special hook are called with four arguments:
   NEXT-FUN BEG END DELETE
-NEXT-FUN is a function of 3 arguments (BEG END DELETE)
-that performs the default operation.  The other 3 arguments are like
-the ones passed to `filter-buffer-substring'.")
+NEXT-FUN is a function of three arguments (BEG END DELETE)
+that performs the default operation.  The other three arguments
+are like the ones passed to `filter-buffer-substring'.")
 
 (defvar buffer-substring-filters nil
   "List of filter functions for `filter-buffer-substring'.
@@ -6023,7 +6023,7 @@ of the text to replace.  If END is nil, point is used instead.")
 
 (defvar completion-list-insert-choice-function #'completion--replace
   "Function to use to insert the text chosen in *Completions*.
-Called with 3 arguments (BEG END TEXT), it should replace the text
+Called with three arguments (BEG END TEXT), it should replace the text
 between BEG and END with TEXT.  Expected to be set buffer-locally
 in the *Completions* buffer.")
 
