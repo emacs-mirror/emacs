@@ -1,7 +1,7 @@
 2011-12-08  Kazuhiro Ito  <kzhr@d1.dion.ne.jp>  (tiny change)
 
 	* coding.c (encode_coding_ccl): Check (charbuf < charbuf_end)
-	after the loop to call ccl_driver at least once.
+	after the loop to call ccl_driver at least once (Bug#8619).
 
 2011-12-08  Kenichi Handa  <handa@m17n.org>
 
