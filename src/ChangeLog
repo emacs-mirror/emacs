@@ -1,5 +1,7 @@
 2011-12-10  Jan Djärv  <jan.h.d@swipnet.se>
 
+	* nsterm.h (x_free_frame_resources): Declare.
+
 	* nsfns.m (ns_get_defaults_value): New function (Bug#10103).
 	(Fns_get_resource, x_get_string_resource): Call ns_get_defaults_value.
 
