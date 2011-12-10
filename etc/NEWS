@@ -133,7 +133,10 @@ That variable used to have the default value "~/.authinfo", in which
 case you won't see any difference.  But if you changed it to be a list
 of user names and passwords, that setting is now ignored; you will be
 prompted for the user name and the password, which will then be saved
-to ~/.authinfo.
+to ~/.authinfo.  (To control where and how the credentials are stored,
+see the auth-source manual.  You may want to change the auth-source
+preferences if you want to store the credentials encrypted, for
+instance.)
 
 You can also manually copy the credentials to your ~/.authinfo file.
 For example, if you had

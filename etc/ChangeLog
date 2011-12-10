@@ -1,3 +1,8 @@
+2011-12-10  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* NEWS: Mention auth-source twice in connection with smtpmail to
+	clarify that smtpmail uses auth-source.
+
 2011-11-20  Bill Wohler  <wohler@newt.com>
 
 	Release MH-E version 8.3.1.
