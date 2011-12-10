@@ -1,3 +1,8 @@
+2011-12-10  Eli Zaretskii  <eliz@gnu.org>
+
+	* xdisp.c (RECORD_MAX_MIN_POS): Use IT->cmp_it.charpos only if
+	IT->string is nil.  (Bug#10263)
+
 2011-12-10  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* nsterm.h (x_free_frame_resources): Declare.
