@@ -760,6 +760,7 @@ extern void  ns_release_object (void *obj);
 extern void  ns_retain_object (void *obj);
 extern void *ns_alloc_autorelease_pool ();
 extern void ns_release_autorelease_pool ();
+extern const char *ns_get_defaults_value ();
 
 /* in nsmenu */
 extern void update_frame_tool_bar (FRAME_PTR f);

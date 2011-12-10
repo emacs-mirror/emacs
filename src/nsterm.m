@@ -3824,11 +3824,9 @@ ns_default (const char *parameter, Lisp_Object *result,
       Check a parameter value in user's preferences
    -------------------------------------------------------------------------- */
 {
-  const char *value;
+  const char *value = ns_get_defaults_value (parameter);
 
-  if ( (value =[[[NSUserDefaults standardUserDefaults]
-                   stringForKey: [NSString stringWithUTF8String: parameter]]
-                UTF8String]) )
+  if (value)
     {
       double f;
       char *pos;

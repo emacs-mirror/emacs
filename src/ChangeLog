@@ -1,3 +1,12 @@
+2011-12-10  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* nsfns.m (ns_get_defaults_value): New function (Bug#10103).
+	(Fns_get_resource, x_get_string_resource): Call ns_get_defaults_value.
+
+	* nsterm.h (ns_get_defaults_value): Declare.
+
+	* nsterm.m (ns_default): Call ns_get_defaults_value.
+
 2011-12-09  Eli Zaretskii  <eliz@gnu.org>
 
 	* xdisp.c (try_scrolling): Don't set scroll_down_p if dy is zero.
