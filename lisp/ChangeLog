@@ -3,12 +3,17 @@
 	* textmodes/texnfo-upd.el: Update commentary.  Add a warning not
 	to use texinfo-update-node and commands that call it if the
 	Texinfo file uses @node lines without next/prev/up pointers.
+	Correct outdated description about texinfo-master-menu.
 	(texinfo-all-menus-update, texinfo-master-menu)
 	(texinfo-update-node, texinfo-every-node-update)
 	(texinfo-multiple-files-update): Doc fix.  Warn against updating
 	all the @node lines.
 	(texinfo-master-menu): Only call texinfo-update-node if the prefix
-	argument is numeric.  (Bug#2975)  See also this thread:
+	argument is numeric.  Explain better in the doc string what the
+	function really does.
+	(texinfo-insert-master-menu-list): Improve the error message
+	displayed if there's no menu in the Top node.
+	(Bug#2975)  See also this thread:
 	http://lists.gnu.org/archive/html/emacs-devel/2011-12/msg00156.html.
 
 2011-12-09  Manuel Gómez  <mgrojo@gmail.com>  (tiny change)

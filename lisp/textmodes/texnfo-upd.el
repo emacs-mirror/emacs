@@ -142,14 +142,14 @@
 
 ;; The `texinfo-master-menu' function creates an extended menu located
 ;; after the top node.  (The file must have a top node.)  This
-;; function works only on Texinfo files all of whose @node lines are
+;; function works only on Texinfo files all of whose menus are
 ;; present in a single file; use `texinfo-multiple-files-update' for
-;; multi-file manuals.  The function first updates all the regular
-;; menus in the buffer (incorporating the descriptions from
-;; pre-existing menus), and then constructs a master menu that
-;; includes every entry from every other menu.  (However, the function
-;; cannot update an already existing master menu; if one exists, it
-;; must be removed before calling the function.)
+;; multi-file manuals.  The function constructs a master menu that
+;; includes every entry from every other menu.  Use this command to
+;; create or update the @detailmenu menu after you've created or
+;; updated all the menus in the file, including the menu in the Top
+;; node, using the `texinfo-make-menu' or the `texinfo-all-menus-update'
+;; command.
 
 ;; The `texinfo-indent-menu-description' function indents every
 ;; description in the menu following point, to the specified column.
@@ -878,6 +878,16 @@ Remove pre-existing master menu, if there is one.
 This function supports only single-file manuals.  For multi-file
 manuals, use `texinfo-multiple-files-update'.
 
+This function creates or updates the @detailmenu section of a
+master menu that follows the Top node.  It replaces any existing
+detailed menu that follows the top node.  The detailed menu
+includes every entry from all the other menus.  By default, the
+existing menus, including the menu in the Top node, are not
+updated according to the buffer contents, so all the menus should
+be updated first using `texinfo-make-menu' or
+`texinfo-all-menus-update', which see.  Alternatively, invoke
+this function with a prefix argument, see below.
+
 Non-nil, non-numeric argument (C-u prefix, if interactive) means
 first update all existing menus in the buffer (incorporating
 descriptions from pre-existing menus) before it constructs the
@@ -888,13 +898,10 @@ invoke with a numeric argument if your Texinfo file uses @node
 lines without the `Next', `Previous', `Up' pointers, as the
 result could be an invalid Texinfo file!
 
-This function creates a master menu that follows the top node.  The
-master menu includes every entry from all the other menus.  It
-replaces any existing ordinary menu that follows the top node.
-
-The function removes the detailed part of an already existing master
-menu.  This action depends on the pre-existing master menu using the
-standard `texinfo-master-menu-header'.
+The function removes and recreates the detailed part of an already
+existing master menu.  This action assumes that the pre-existing
+master menu uses the standard `texinfo-master-menu-header' for the
+detailed menu.
 
 The master menu has the following format, which is adapted from the
 recommendation in the Texinfo Manual:
@@ -1017,7 +1024,7 @@ However, there does not need to be a title field."
   (let ((first-chapter
 	 (save-excursion (re-search-forward "^@node\\|^@include") (point))))
     (unless (re-search-forward "^@menu" first-chapter t)
-      (error "Buffer lacks ordinary `Top' menu in which to insert master")))
+      (error "Buffer lacks a menu in its first node; create it, then run me again")))
   (beginning-of-line)
   (delete-region      ; buffer must have ordinary top menu
    (point)
