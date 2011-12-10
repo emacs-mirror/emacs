@@ -1,3 +1,8 @@
+2011-12-10  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* configure.in (HAVE_ALSA, HAVE_GSETTINGS): Save and restore LIBS
+	instead of LDFLAGS (Bug#10230).
+
 2011-12-03  Paul Eggert  <eggert@cs.ucla.edu>
 
 	* INSTALL.BZR: Mention configure -C, --disable-maintainer-mode.
