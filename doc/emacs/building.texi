@@ -453,16 +453,18 @@ see the Flymake Info manual, which is distributed with Emacs.
 @cindex JDB
 @cindex PDB
 
-@c Do you believe in GUD?
 The GUD (Grand Unified Debugger) library provides an Emacs interface
-to a wide variety of symbolic debuggers.  Unlike the GDB graphical
-interface, which only runs GDB (@pxref{GDB Graphical Interface}), GUD
-can also run DBX, SDB, XDB, Perl's debugging mode, the Python debugger
-PDB, or the Java Debugger JDB.
+to a wide variety of symbolic debuggers.  It can run the GNU Debugger
+(GDB), as well as DBX, SDB, XDB, Perl's debugging mode, the Python
+debugger PDB, and the Java Debugger JDB.
 
-  In addition, Emacs contains a built-in system for debugging Emacs
-Lisp programs.  @xref{Debugging,, The Lisp Debugger, elisp, the Emacs
-Lisp Reference Manual}, for information on the Emacs Lisp debugger.
+  Emacs provides a special interface to GDB, which uses extra Emacs
+windows to display the state of the debugged program.  @xref{GDB
+Graphical Interface}.
+
+  Emacs also has a built-in debugger for Emacs Lisp programs.
+@xref{Debugging,, The Lisp Debugger, elisp, the Emacs Lisp Reference
+Manual}.
 
 @menu
 * Starting GUD::        How to start a debugger subprocess.
@@ -477,146 +479,136 @@ Lisp Reference Manual}, for information on the Emacs Lisp debugger.
 @node Starting GUD
 @subsection Starting GUD
 
-  There are several commands for starting a debugger under GUD, each
+  There are several commands for starting a debugger subprocess, each
 corresponding to a particular debugger program.
 
 @table @kbd
-@item M-x gdb @key{RET} @var{file} @key{RET}
+@item M-x gdb
 @findex gdb
-Run GDB as a subprocess of Emacs.  This uses an IDE-like graphical
-interface; see @ref{GDB Graphical Interface}.  Only GDB works with the
-graphical interface.
+Run GDB as a subprocess, and interact with it via an IDE-like Emacs
+interface.  @xref{GDB Graphical Interface}, for more information about
+this command.
 
-@item M-x gud-gdb @key{RET} @var{file} @key{RET}
+@item M-x gud-gdb
 @findex gud-gdb
-Run GDB as a subprocess of Emacs.  This command creates a buffer for
-input and output to GDB, and switches to it.  If a GDB buffer already
-exists, it just switches to that buffer.
+Run GDB, using a GUD interaction buffer for input and output to the
+GDB subprocess (@pxref{Debugger Operation}).  If such a buffer already
+exists, switch to it; otherwise, create the buffer and switch to it.
 
-@item M-x dbx @key{RET} @var{file} @key{RET}
+The other commands in this list do the same, for other debugger
+programs.
+
+@item M-x perldb
+@findex perldb
+Run the Perl interpreter in debug mode.
+
+@item M-x jdb
+@findex jdb
+Run the Java debugger.
+
+@item M-x pdb
+@findex pdb
+Run the Python debugger.
+
+@item M-x dbx
 @findex dbx
-Run DBX as a subprocess of Emacs.  Since Emacs does not implement a
-graphical interface for DBX, communication with DBX works by typing
-commands in the GUD interaction buffer.  The same is true for all
-the other supported debuggers.
+Run the DBX debugger.
 
-@item M-x xdb @key{RET} @var{file} @key{RET}
+@item M-x xdb
 @findex xdb
 @vindex gud-xdb-directories
-Run XDB as a subprocess of Emacs.  Use the variable
-@code{gud-xdb-directories} to specify directories to search for source
-files.
+Run the XDB debugger.
 
-@item M-x sdb @key{RET} @var{file} @key{RET}
+@item M-x sdb
 @findex sdb
-Run SDB as a subprocess of Emacs.
-
-Some versions of SDB do not mention source file names in their
-messages.  When you use them, you need to have a valid tags table
-(@pxref{Tags}) in order for GUD to find functions in the source code.
-If you have not visited a tags table or the tags table doesn't list
-one of the functions, you get a message saying @samp{The sdb support
-requires a valid tags table to work}.  If this happens, generate a
-valid tags table in the working directory and try again.
-
-@item M-x perldb @key{RET} @var{file} @key{RET}
-@findex perldb
-Run the Perl interpreter in debug mode to debug @var{file}, a Perl program.
-
-@item M-x jdb @key{RET} @var{file} @key{RET}
-@findex jdb
-Run the Java debugger to debug @var{file}.
-
-@item M-x pdb @key{RET} @var{file} @key{RET}
-@findex pdb
-Run the Python debugger to debug @var{file}.
+Run the SDB debugger.
 @end table
 
-  Each of these commands takes one argument: a command line to invoke
-the debugger.  In the simplest case, specify just the name of the
-executable file you want to debug.  You may also use options that the
-debugger supports.  However, shell wildcards and variables are not
-allowed.  GUD assumes that the first argument not starting with a
-@samp{-} is the executable file name.
+  Each of these commands reads a command line to invoke the debugger,
+using the minibuffer.  The minibuffer's initial contents contain the
+standard executable name and options for the debugger, and sometimes
+also a guess for the name of the executable file you want to debug.
+Shell wildcards and variables are not allowed in this command line.
+Emacs assumes that the first command argument which does not start
+with a @samp{-} is the executable file name.
 
 @cindex remote host, debugging on
-Tramp provides a facility to debug programs on remote hosts
-(@pxref{Running a debugger on a remote host, Running a debugger on a
-remote host,, tramp, The Tramp Manual}), whereby both the debugger and
-the program being debugged are on the same remote host.  This should
-not be confused with debugging programs remotely, where the program
-and the debugger run on different machines, as can be done using the
-GDB remote debugging feature, for example (@pxref{Remote Debugging,,
-Debugging Remote Programs, gdb, The GNU debugger}).
+  Tramp provides a facility for remote debugging, whereby both the
+debugger and the program being debugged are on the same remote host.
+@xref{Running a debugger on a remote host,,, tramp, The Tramp Manual},
+for details.  This is separate from GDB's remote debugging feature,
+where the program and the debugger run on different machines
+(@pxref{Remote Debugging,, Debugging Remote Programs, gdb, The GNU
+debugger}).
 
 @node Debugger Operation
 @subsection Debugger Operation
+@cindex GUD interaction buffer
 
-@cindex fringes, and current execution line in GUD
-  Generally when you run a debugger with GUD, the debugger uses an Emacs
-buffer for its ordinary input and output.  This is called the GUD
-buffer.  Input and output from the program you are debugging also use
-this buffer.  We call this @dfn{text command mode}.  The GDB Graphical
-Interface can use further buffers (@pxref{GDB Graphical Interface}).
+  The @dfn{GUD interaction buffer} is an Emacs buffer which is used to
+send text commands to a debugger subprocess, and record its output.
+This is the basic interface for interacting with a debugger, used by
+@kbd{M-x gud-gdb} and other commands listed in
+@iftex
+the preceding section.
+@end iftext
+@ifnottex
+@ref{Starting GUD}.
+@end ifnottex
+The @kbd{M-x gdb} command extends this interface with additional
+specialized buffers for controlling breakpoints, stack frames, and
+other aspects of the debugger state (@pxref{GDB Graphical Interface}).
 
-  The debugger displays the source files of the program by visiting
-them in Emacs buffers.  An arrow in the left fringe indicates the
-current execution line.@footnote{On a text-only terminal, the arrow
-appears as @samp{=>} and overlays the first two text columns.}  Moving
-point in this buffer does not move the arrow.  The arrow is not part
-of the file's text; it appears only on the screen.
+  The GUD interaction buffer uses a variant of Shell mode, so the
+Emacs commands defined by Shell mode are available (@pxref{Shell
+Mode}).  Completion is available for most debugger commands
+(@pxref{Completion}), and you can use the usual Shell mode history
+commands to repeat them.
+@iftex
+See the next section
+@end iftext
+@ifnottex
+@xref{Commands of GUD},
+@end ifnottex
+for special commands that can be used in the GUD interaction buffer.
 
-  You can start editing these source files at any time in the buffers
-that display them.  If you do modify a source file, keep in mind that
-inserting or deleting lines will throw off the arrow's positioning;
-GUD has no way of figuring out which line corresponded before your
-changes to the line number in a debugger message.  Also, you'll
-typically have to recompile and restart the program for your changes
-to be reflected in the debugger's tables.
+  As you debug a program, Emacs displays the relevant source files by
+visiting them in Emacs buffers, with an arrow in the left fringe
+indicating the current execution line.  (On a text-only terminal, the
+arrow appears as @samp{=>}, overlaid on the first two text columns.)
+Moving point in such a buffer does not move the arrow.  You are free
+to edit these source files, but note that inserting or deleting lines
+will throw off the arrow's positioning, as Emacs has no way to figure
+out which edited source line corresponds to the line reported by the
+debugger subprocess.  To update this information, you typically have
+to recompile and restart the program.
 
-@cindex tooltips with GUD
-@vindex tooltip-gud-modes
-@vindex gud-tooltip-mode
+@cindex GUD Tooltip mode
+@cindex mode, GUD Tooltip
+@findex gud-tooltip-mode
 @vindex gud-tooltip-echo-area
-  The Tooltip facility (@pxref{Tooltips}) provides support for GUD@.
-You activate this feature by turning on the minor mode
-@code{gud-tooltip-mode}.  Then you can display a variable's value in a
-tooltip simply by pointing at it with the mouse.  This operates in the
-GUD buffer and in source buffers with major modes in the list
-@code{gud-tooltip-modes}.  If the variable @code{gud-tooltip-echo-area}
-is non-@code{nil} then the variable's value is displayed in the echo
-area.  When debugging a C program using the GDB Graphical Interface, you
-can also display macro definitions associated with an identifier when
-the program is not executing.
+  GUD Tooltip mode is a global minor mode that adds tooltip support to
+GUD.  To toggle this mode, type @kbd{M-x gud-tooltip-mode}.  It is
+disabled by default.  If enabled, you can move the mouse cursor over a
+variable to show its value in a tooltip (@pxref{Tooltips}); this takes
+effect in the GUD interaction buffer, and in all source buffers with
+major modes listed in the variable @code{gud-tooltip-modes}.  If the
+variable @code{gud-tooltip-echo-area} is non-@code{nil}, values are
+shown in the echo area instead of a tooltip.
 
-  GUD tooltips are disabled when you use GDB in text command mode
-(@pxref{GDB Graphical Interface}), because displaying an expression's
-value in GDB can sometimes expand a macro and result in a side effect
-that interferes with the program's operation.  The GDB graphical
-interface supports GUD tooltips and assures they will not cause side
-effects.
+  When using GUD Tooltip mode with @kbd{M-x gud-gdb}, you should note
+that displaying an expression's value in GDB can sometimes expand a
+macro, potentially causing side effects in the debugged program.  If
+you use the @kbd{M-x gdb} interface, this problem does not occur, as
+there is special code to avoid side-effects; furthermore, you can
+display macro definitions associated with an identifier when the
+program is not executing.
 
 @node Commands of GUD
 @subsection Commands of GUD
 
-  The GUD interaction buffer uses a variant of Shell mode, so the
-Emacs commands of Shell mode are available (@pxref{Shell Mode}).  All
-the usual commands for your debugger are available, and you can use
-the Shell mode history commands to repeat them.  If you wish, you can
-control your debugger process entirely through this buffer.
-
-  GUD mode also provides commands for setting and clearing
-breakpoints, for selecting stack frames, and for stepping through the
-program.  These commands are available both in the GUD buffer and
-globally, but with different key bindings.  It also has its own tool
-bar from which you can invoke the more common commands by clicking on
-the appropriate icon.  This is particularly useful for repetitive
-commands like @code{gud-next} and @code{gud-step}, and allows you to
-keep the GUD buffer hidden.
-
-  The breakpoint commands are normally used in source file buffers,
-because that is the easiest way to specify where to set or clear the
-breakpoint.  Here's the global command to set a breakpoint:
+  GUD provides commands for setting and clearing breakpoints,
+selecting stack frames, and stepping through the program.
 
 @table @kbd
 @item C-x @key{SPC}
@@ -624,35 +616,42 @@ breakpoint.  Here's the global command to set a breakpoint:
 Set a breakpoint on the source line that point is on.
 @end table
 
+  @kbd{C-x @key{SPC}} (@code{gud-break}), when called in a source
+buffer, sets a debugger breakpoint on the current source line.  This
+command is available only after starting GUD.  If you call it in a
+buffer that is not associated with any debugger subprocess, it signals
+a error.
+
 @kindex C-x C-a @r{(GUD)}
-  Here are the other special commands provided by GUD@.  The keys
+  The following commands are available both in the GUD interaction
+buffer and globally, but with different key bindings.  The keys
 starting with @kbd{C-c} are available only in the GUD interaction
-buffer.  The key bindings that start with @kbd{C-x C-a} are available
-in the GUD interaction buffer and also in source files.  Some of these
-commands are not available to all the supported debuggers.
+buffer, while those starting with @kbd{C-x C-a} are available
+globally.  Some of these commands are also available via the tool bar;
+some are not supported by certain debuggers.
 
 @table @kbd
 @item C-c C-l
 @kindex C-c C-l @r{(GUD)}
 @itemx C-x C-a C-l
 @findex gud-refresh
-Display in another window the last line referred to in the GUD
-buffer (that is, the line indicated in the last location message).
-This runs the command @code{gud-refresh}.
+Display, in another window, the last source line referred to in the
+GUD interaction buffer (@code{gud-refresh}).
 
 @item C-c C-s
 @kindex C-c C-s @r{(GUD)}
 @itemx C-x C-a C-s
 @findex gud-step
-Execute a single line of code (@code{gud-step}).  If the line contains
-a function call, execution stops after entering the called function.
+Execute the next single line of code (@code{gud-step}).  If the line
+contains a function call, execution stops after entering the called
+function.
 
 @item C-c C-n
 @kindex C-c C-n @r{(GUD)}
 @itemx C-x C-a C-n
 @findex gud-next
-Execute a single line of code, stepping across entire function calls
-at full speed (@code{gud-next}).
+Execute the next single line of code, stepping across function calls
+without stopping inside the functions (@code{gud-next}).
 
 @item C-c C-i
 @kindex C-c C-i @r{(GUD)}
@@ -763,17 +762,17 @@ Instead, type @kbd{C-q @key{TAB}} to enter a tab.
 @vindex perldb-mode-hook
 @vindex pdb-mode-hook
 @vindex jdb-mode-hook
-  On startup, GUD runs one of the following hooks: @code{gdb-mode-hook},
-if you are using GDB; @code{dbx-mode-hook}, if you are using DBX;
-@code{sdb-mode-hook}, if you are using SDB; @code{xdb-mode-hook}, if you
-are using XDB; @code{perldb-mode-hook}, for Perl debugging mode;
-@code{pdb-mode-hook}, for PDB; @code{jdb-mode-hook}, for JDB.  You can
-use these hooks to define custom key bindings for the debugger
-interaction buffer.  @xref{Hooks}.
+  On startup, GUD runs one of the following hooks:
+@code{gdb-mode-hook}, if you are using GDB; @code{dbx-mode-hook}, if
+you are using DBX; @code{sdb-mode-hook}, if you are using SDB;
+@code{xdb-mode-hook}, if you are using XDB; @code{perldb-mode-hook},
+for Perl debugging mode; @code{pdb-mode-hook}, for PDB;
+@code{jdb-mode-hook}, for JDB.  @xref{Hooks}.
 
-  Here is a convenient way to define a command that sends a particular
-command string to the debugger, and set up a key binding for it in the
-debugger interaction buffer:
+  The @code{gud-def} Lisp macro (@pxref{Defining Macros,,, elisp, the
+Emacs Lisp Reference Manual}) provides a convenient way to define an
+Emacs command that sends a particular command string to the debugger,
+and set up a key binding for in the GUD interaction buffer:
 
 @findex gud-def
 @example
@@ -829,21 +828,22 @@ Fully qualified class name derived from the expression surrounding point
 @node GDB Graphical Interface
 @subsection GDB Graphical Interface
 
-  The command @code{gdb} starts GDB in a graphical interface, using
-Emacs windows for display program state information.  With it, you do
-not need to use textual GDB commands; you can control the debugging
-session with the mouse.  For example, you can click in the fringe of a
-source buffer to set a breakpoint there, or on a stack frame in the
-stack buffer to select that frame.
-
-  This mode requires telling GDB that its ``screen size'' is
-unlimited, so it sets the height and width accordingly.  For correct
-operation you must not change these values during the GDB session.
+  The command @kbd{M-x gdb} starts GDB in an IDE-like interface, with
+specialized buffers for controlling breakpoints, stack frames, and
+other aspects of the debugger state.  It also provides additional ways
+to control the debugging session with the mouse, such as clicking in
+the fringe of a source buffer to set a breakpoint there.
 
 @vindex gud-gdb-command-name
-  To run GDB in text command mode, like the other debuggers in Emacs,
-use @kbd{M-x gud-gdb}.  You need to use text command mode to debug
-multiple programs within one Emacs session.
+  To run GDB using just the GUD interaction buffer interface, without
+these additional features, use @kbd{M-x gud-gdb} (@pxref{Starting
+GUD}).  You must use this if you want to debug multiple programs
+within one Emacs session, as that is currently unsupported by @kbd{M-x
+gdb}.
+
+  Internally, @kbd{M-x gdb} informs GDB that its ``screen size'' is
+unlimited; for correct operation, you must not change GDB's screen
+height and width values during the debugging session.
 
 @menu
 * GDB User Interface Layout::   Control the number of displayed buffers.
@@ -852,8 +852,7 @@ multiple programs within one Emacs session.
 * Breakpoints Buffer::          A breakpoint control panel.
 * Threads Buffer::              Displays your threads.
 * Stack Buffer::                Select a frame from the call stack.
-* Other GDB Buffers::           Input/output, locals, registers,
-                                assembler, threads and memory buffers.
+* Other GDB Buffers::           Other buffers for controlling the GDB state.
 * Watch Expressions::           Monitor variable values in the speedbar.
 * Multithreaded Debugging::     Debugging programs with several threads.
 @end menu
@@ -863,12 +862,12 @@ multiple programs within one Emacs session.
 @cindex GDB User Interface layout
 
 @vindex gdb-many-windows
-  If the variable @code{gdb-many-windows} is @code{nil} (the default
-value) then @kbd{M-x gdb} normally displays only the GUD buffer.
+  If the variable @code{gdb-many-windows} is @code{nil} (the default),
+@kbd{M-x gdb} normally displays only the GUD interaction buffer.
 However, if the variable @code{gdb-show-main} is also non-@code{nil},
-it starts with two windows: one displaying the GUD buffer, and the
-other showing the source for the @code{main} function of the program
-you are debugging.
+it starts with two windows: one displaying the GUD interaction buffer,
+and the other showing the source for the @code{main} function of the
+program you are debugging.
 
   If @code{gdb-many-windows} is non-@code{nil}, then @kbd{M-x gdb}
 displays the following frame layout:
@@ -876,7 +875,7 @@ displays the following frame layout:
 @smallexample
 @group
 +--------------------------------+--------------------------------+
-|   GUD buffer (I/O of GDB)      |   Locals/Registers buffer      |
+|   GUD interaction buffer       |   Locals/Registers buffer      |
 |--------------------------------+--------------------------------+
 |   Primary Source buffer        |   I/O buffer for debugged pgm  |
 |--------------------------------+--------------------------------+
@@ -890,264 +889,233 @@ buffer does not appear and the primary source buffer occupies the full
 width of the frame.
 
 @findex gdb-restore-windows
-  If you change the window layout, for example, while editing and
-re-compiling your program, then you can restore this standard window
-layout with the command @code{gdb-restore-windows}.
-
 @findex gdb-many-windows
-  To switch between this standard layout and a simple layout
-containing just the GUD buffer and a source file, type @kbd{M-x
-gdb-many-windows}.
+  If you ever change the window layout, you can restore the ``many
+windows'' layout by typing @kbd{M-x gdb-restore-windows}.  To toggle
+between the many windows layout and a simple layout with just the GUD
+interaction buffer and a source file, type @kbd{M-x gdb-many-windows}.
 
   You may also specify additional GDB-related buffers to display,
 either in the same frame or a different one.  Select the buffers you
-want with the @samp{GUD->GDB-Windows} and @samp{GUD->GDB-Frames}
-sub-menus.  If the menu-bar is unavailable, type @code{M-x
-gdb-display-@var{buffertype}-buffer} or @code{M-x
-gdb-frame-@var{buffertype}-buffer} respectively, where
-@var{buffertype} is the relevant buffer type, such as
-@samp{breakpoints}.  Most of these buffers are read-only, and typing
-@kbd{q} in them kills them.
+want by typing @code{M-x gdb-display-@var{buffertype}-buffer} or
+@code{M-x gdb-frame-@var{buffertype}-buffer}, where @var{buffertype}
+is the relevant buffer type, such as @samp{breakpoints}.  You can do
+the same with the menu bar, with the @samp{GDB-Windows} and
+@samp{GDB-Frames} sub-menus of the @samp{GUD} menu.
 
-  When you finish debugging, kill the GUD buffer with @kbd{C-x k},
-which will also kill all the buffers associated with the session.
-However you need not do this if, after editing and re-compiling your
-source code within Emacs, you wish continue debugging.  When you
-restart execution, GDB will automatically find your new executable.
-Keeping the GUD buffer has the advantage of keeping the shell history
-as well as GDB's breakpoints.  You do need to check that the
-breakpoints in recently edited source files are still in the right
-places.
+  When you finish debugging, kill the GUD interaction buffer with
+@kbd{C-x k}, which will also kill all the buffers associated with the
+session.  However you need not do this if, after editing and
+re-compiling your source code within Emacs, you wish to continue
+debugging.  When you restart execution, GDB automatically finds the
+new executable.  Keeping the GUD interaction buffer has the advantage
+of keeping the shell history as well as GDB's breakpoints.  You do
+need to check that the breakpoints in recently edited source files are
+still in the right places.
 
 @node Source Buffers
 @subsubsection Source Buffers
-@cindex GDB commands in Fringe
+@cindex fringes, for debugging
 
-@c @findex gdb-mouse-set-clear-breakpoint
-@c @findex gdb-mouse-toggle-breakpoint
-Many GDB commands can be entered using key bindings or the tool bar but
-sometimes it is quicker to use the fringe.  These commands either
-manipulate breakpoints or control program execution.  When there is no
-fringe, you can use the margin but this is only present when the
-source file already has a breakpoint.
+@table @asis
+@item @kbd{Mouse-1} (in fringe)
+Set or clear a breakpoint on that line.
 
-You can click @kbd{Mouse-1} in the fringe or display margin of a
-source buffer to set a breakpoint there and, on a graphical display, a
-red bullet will appear on that line.  If a breakpoint already exists
-on that line, the same click will remove it.  You can also enable or
-disable a breakpoint by clicking @kbd{C-Mouse-1} on the bullet.
+@item @kbd{C-Mouse-1} (in fringe)
+Enable or disable a breakpoint on that line.
 
-A solid arrow in the left fringe of a source buffer indicates the line
-of the innermost frame where the debugged program has stopped. A
-hollow arrow indicates the current execution line of higher level
-frames.
+@item @kbd{Mouse-3} (in fringe)
+Continue execution to that line.
 
-If you drag the arrow in the fringe with @kbd{Mouse-1}
-(@code{gdb-mouse-until}), execution will continue to the line where
-you release the button, provided it is still in the same frame.
-Alternatively, you can click @kbd{Mouse-3} at some point in the fringe
-of this buffer and execution will advance to there.  A similar command
-(@code{gdb-mouse-jump}) allows you to jump to a source line without
-executing the intermediate lines by clicking @kbd{C-Mouse-3}.  This
-command allows you to go backwards which can be useful for running
-through code that has already executed, in order to examine its
-execution in more detail.
-
-@table @kbd
-@item Mouse-1
-Set or clear a breakpoint.
-
-@item C-Mouse-1
-Enable or disable a breakpoint.
-
-@item Mouse-3
-Continue execution to here.
-
-@item C-Mouse-3
-Jump to here.
+@item @kbd{C-Mouse-3} (in fringe)
+Jump to that line.
 @end table
 
-If the variable @code{gdb-find-source-frame} is non-@code{nil} and
-execution stops in a frame for which there is no source code e.g after
-an interrupt, then Emacs finds and displays the first frame further up
-stack for which there is source.  If it is @code{nil} then the source
-buffer continues to display the last frame which maybe more useful,
-for example, when re-setting a breakpoint.
+  On a graphical display, you can click @kbd{Mouse-1} in the fringe of
+a source buffer, to set a breakpoint on that line (@pxref{Fringes}).
+A red dot appears in the fringe, where you clicked.  If a breakpoint
+already exists there, the click removes it.  A @kbd{C-Mouse-1} click
+enables or disables an existing breakpoint; a breakpoint that is
+disabled, but not unset, is indicated by a gray dot.
+
+  On a text-only terminal, or when fringes are disabled, enabled
+breakpoints are indicated with a @samp{B} character in the left margin
+of the window.  Disabled breakpoints are indicated with @samp{b}.
+(The margin is only displayed if a breakpoint is present.)
+
+  A solid arrow in the left fringe of a source buffer indicates the
+line of the innermost frame where the debugged program has stopped. A
+hollow arrow indicates the current execution line of a higher-level
+frame.  If you drag the arrow in the fringe with @kbd{Mouse-1}, that
+causes execution to advance to the line where you release the button.
+Alternatively, you can click @kbd{Mouse-3} in the fringe to advance to
+that line.  You can click @kbd{C-Mouse-3} in the fringe to jump to
+that line without executing the intermediate lines.  This command
+allows you to go backwards, which can be useful for running through
+code that has already executed, in order to examine its execution in
+more detail.
 
 @node Breakpoints Buffer
 @subsubsection Breakpoints Buffer
 
-  The breakpoints buffer shows the existing breakpoints, watchpoints and
-catchpoints (@pxref{Breakpoints,,, gdb, The GNU debugger}).  It has
-these special commands, which mostly apply to the @dfn{current
-breakpoint}, the breakpoint which point is on.
+  The GDB Breakpoints buffer shows the breakpoints, watchpoints and
+catchpoints in the debugger session.  @xref{Breakpoints,,, gdb, The
+GNU debugger}.  It provides the following commands, which mostly apply
+to the @dfn{current breakpoint} (the breakpoint which point is on):
 
 @table @kbd
 @item @key{SPC}
-@kindex SPC @r{(GDB breakpoints buffer)}
+@kindex SPC @r{(GDB Breakpoints buffer)}
 @findex gdb-toggle-breakpoint
-Enable/disable current breakpoint (@code{gdb-toggle-breakpoint}).
-On a graphical display, this changes the color of a bullet in the
-margin of a source buffer at the relevant line.  This is red when
-the breakpoint is enabled and gray when it is disabled.  Text-only
-terminals correspondingly display a @samp{B} or @samp{b}.
+Enable/disable current breakpoint (@code{gdb-toggle-breakpoint}).  On
+a graphical display, this changes the color of the dot in the fringe
+of the source buffer at that line.  The dot is red when the breakpoint
+is enabled, and gray when it is disabled.
 
 @item D
-@kindex D @r{(GDB breakpoints buffer)}
+@kindex D @r{(GDB Breakpoints buffer)}
 @findex gdb-delete-breakpoint
 Delete the current breakpoint (@code{gdb-delete-breakpoint}).
 
 @item @key{RET}
-@kindex RET @r{(GDB breakpoints buffer)}
+@kindex RET @r{(GDB Breakpoints buffer)}
 @findex gdb-goto-breakpoint
 Visit the source line for the current breakpoint
 (@code{gdb-goto-breakpoint}).
 
 @item Mouse-2
-@kindex Mouse-2 @r{(GDB breakpoints buffer)}
+@kindex Mouse-2 @r{(GDB Breakpoints buffer)}
 Visit the source line for the breakpoint you click on.
 @end table
 
 @vindex gdb-show-threads-by-default
-When @code{gdb-many-windows} is non-@code{nil}, the breakpoints buffer
-shares its window with the threads buffer.  To switch from one to the
-other click with @kbd{Mouse-1} on the relevant button in the header
-line.  If @code{gdb-show-threads-by-default} is non-@code{nil}, the
-threads buffer, rather than the breakpoints buffer, is shown at start
-up.
+  When @code{gdb-many-windows} is non-@code{nil}, the GDB Breakpoints
+buffer shares its window with the GDB Threads buffer.  To switch from
+one to the other click with @kbd{Mouse-1} on the relevant button in
+the header line.  If @code{gdb-show-threads-by-default} is
+non-@code{nil}, the GDB Threads buffer is the one shown by default.
 
 @node Threads Buffer
 @subsubsection Threads Buffer
 
 @findex gdb-select-thread
-The threads buffer displays a summary of all threads currently in your
-program (@pxref{Threads, Threads, Debugging programs with multiple
-threads, gdb, The GNU debugger}).  Move point to any thread in the list
-and press @key{RET} to select it (@code{gdb-select-thread}) and
-display the associated source in the primary source buffer.
-Alternatively, click @kbd{Mouse-2} on a thread to select it.  Contents
-of all GDB buffers are updated whenever you select a thread.
+  The GDB Threads buffer displays a summary of the threads in the
+debugged program.  @xref{Threads, Threads, Debugging programs with
+multiple threads, gdb, The GNU debugger}.  To select a thread, move
+point there and type @key{RET} (@code{gdb-select-thread}), or click on
+it with @kbd{Mouse-2}.  This also displays the associated source
+buffer, and updates the contents of the other GDB buffers.
 
   You can customize variables under @code{gdb-buffers} group to select
-fields included in threads buffer.
+fields included in GDB Threads buffer.
 
 @table @code
 @item gdb-thread-buffer-verbose-names
 @vindex gdb-thread-buffer-verbose-names
-Show long thread names like @samp{Thread 0x4e2ab70 (LWP 1983)} in
-threads buffer.
+Show long thread names like @samp{Thread 0x4e2ab70 (LWP 1983)}.
 
 @item gdb-thread-buffer-arguments
 @vindex gdb-thread-buffer-arguments
-Show arguments of thread top frames in threads buffer.
+Show arguments of thread top frames.
 
 @item gdb-thread-buffer-locations
 @vindex gdb-thread-buffer-locations
-Show file information or library names in threads buffer.
+Show file information or library names.
 
 @item gdb-thread-buffer-addresses
 @vindex gdb-thread-buffer-addresses
 Show addresses for thread frames in threads buffer.
 @end table
 
-  It's possible to observe information for several threads
-simultaneously (in addition to buffers which show information for
-currently selected thread) using the following keys from the threads
-buffer.
+  To view information for several threads simultaneously, use the
+following commands from the GDB Threads buffer.
 
 @table @kbd
 @item d
 @kindex d @r{(GDB threads buffer)}
 @findex gdb-display-disassembly-for-thread
-Display disassembly buffer for the thread at current line.
-(@code{gdb-display-disassembly-for-thread})
+Display disassembly buffer for the thread at current line
+(@code{gdb-display-disassembly-for-thread}).
 
 @item f
 @kindex f @r{(GDB threads buffer)}
 @findex gdb-display-stack-for-thread
-Display stack buffer for the thread at current line.
+Display the GDB Stack buffer for the thread at current line
 (@code{gdb-display-stack-for-thread}).
 
 @item l
 @kindex l @r{(GDB threads buffer)}
 @findex gdb-display-locals-for-thread
-Display locals buffer for the thread at current line.
+Display the GDB Locals buffer for the thread at current line
 (@code{gdb-display-locals-for-thread}).
 
 @item r
 @kindex r @r{(GDB threads buffer)}
 @findex gdb-display-registers-for-thread
-Display registers buffer for the thread at current line.
+Display the GDB Registers buffer for the thread at current line
 (@code{gdb-display-registers-for-thread}).
 @end table
 
-Pressing their upper-case counterparts, @kbd{D}, @kbd{F} ,@kbd{L} and
-@kbd{R} displays the corresponding buffer in a new frame.
+@noindent
+Their upper-case counterparts, @kbd{D}, @kbd{F} ,@kbd{L} and @kbd{R},
+display the corresponding buffer in a new frame.
 
   When you create a buffer showing information about some specific
 thread, it becomes bound to that thread and keeps showing actual
-information while you debug your program.  Every GDB buffer contains a
-number of thread it shows information for in its mode name.  Thread
-number is also included in the buffer name of bound buffers to prevent
-buffer names clashing.
+information while you debug your program.  The mode indicator for each
+GDB buffer shows the number of thread it is showing information about.
+The thread number is also included in the buffer name of bound
+buffers.
 
-Further commands are available in the threads buffer which depend on the
-mode of GDB that is used for controlling execution of your program.
-(@pxref{Multithreaded Debugging, Stopping and Starting Multi-threaded Programs}).
+  Further commands are available in the GDB Threads buffer which
+depend on the mode of GDB that is used for controlling execution of
+your program.  @xref{Multithreaded Debugging}.
 
 @node Stack Buffer
 @subsubsection Stack Buffer
 
-  The stack buffer displays a @dfn{call stack}, with one line for each
-of the nested subroutine calls (@dfn{stack frames}) now active in the
-program.  @xref{Backtrace,, Backtraces, gdb, The GNU debugger}.
+  The GDB Stack buffer displays a @dfn{call stack}, with one line for
+each of the nested subroutine calls (@dfn{stack frames}) in the
+debugger session.  @xref{Backtrace,, Backtraces, gdb, The GNU
+debugger}.
 
 @findex gdb-frames-select
-An arrow in the fringe points to the selected frame or, if the fringe is
-not present, the number of the selected frame is displayed in reverse
-contrast.  To select a frame in GDB, move point in the stack buffer to
-that stack frame and type @key{RET} (@code{gdb-frames-select}), or click
-@kbd{Mouse-2} on a stack frame.  If the locals buffer is visible,
-selecting a stack frame updates it to display the local variables of the
-new frame.
+  On graphical displays, the selected stack frame is indicated by an
+arrow in the fringe.  On text-only terminals, or when fringes are
+disabled, the selected stack frame is displayed in reverse contrast.
+To select a stack frame, move point in its line and type @key{RET}
+(@code{gdb-frames-select}), or click @kbd{Mouse-2} on it.  Doing so
+also updates the Locals buffer
+@ifnottex
+(@pxref{Other GDB Buffers}).
+@end ifnottex
+@iftex
+(described in the next section).
+@end iftex
 
 @node Other GDB Buffers
-@subsubsection Other Buffers
+@subsubsection Other GDB Buffers
 
 @table @asis
-@item Input/Output Buffer
-@vindex gdb-use-separate-io-buffer
-If the variable @code{gdb-use-separate-io-buffer} is non-@code{nil},
-the program being debugged takes its input and displays its output
-here.  Otherwise it uses the GUD buffer for that.  To toggle whether
-GUD mode uses this buffer, do @kbd{M-x gdb-use-separate-io-buffer}.
-This takes effect when you next restart the program you are debugging.
-
-The history and replay commands from Shell mode are available here,
-as are the commands to send signals to the debugged program.
-@xref{Shell Mode}.
-
 @item Locals Buffer
-The locals buffer displays the values of local variables of the
-current frame for simple data types (@pxref{Frame Info, Frame Info,
+This buffer displays the values of local variables of the current
+frame for simple data types (@pxref{Frame Info, Frame Info,
 Information on a frame, gdb, The GNU debugger}).  Press @key{RET} or
 click @kbd{Mouse-2} on the value if you want to edit it.
 
 Arrays and structures display their type only.  With GDB 6.4 or later,
-move point to their name and press @key{RET}, or alternatively click
-@kbd{Mouse-2} there, to examine their values.  With earlier versions
-of GDB, use @kbd{Mouse-2} or @key{RET} on the type description
+you can examine the value of the local variable at point by typing
+@key{RET}, or with a @kbd{Mouse-2} click.  With earlier versions of
+GDB, use @key{RET} or @kbd{Mouse-2} on the type description
 (@samp{[struct/union]} or @samp{[array]}).  @xref{Watch Expressions}.
 
 @item Registers Buffer
 @findex toggle-gdb-all-registers
-The registers buffer displays the values held by the registers
+This buffer displays the values held by the registers
 (@pxref{Registers,,, gdb, The GNU debugger}).  Press @key{RET} or
-click @kbd{Mouse-2} on a register if you want to edit its value.
-With GDB 6.4 or later, recently changed register values display with
-@code{font-lock-warning-face}.  With earlier versions of GDB, you can
-press @key{SPC} to toggle the display of floating point registers
-(@code{toggle-gdb-all-registers}).
+click @kbd{Mouse-2} on a register if you want to edit its value.  With
+GDB 6.4 or later, recently changed register values display with
+@code{font-lock-warning-face}.
 
 @item Assembler Buffer
 The assembler buffer displays the current frame as machine code.  An
@@ -1166,8 +1134,8 @@ size for these data items.
 @end table
 
 When @code{gdb-many-windows} is non-@code{nil}, the locals buffer
-shares its window with the registers buffer, just like breakpoints
-and threads buffers. To switch from one to the other click with
+shares its window with the registers buffer, just like breakpoints and
+threads buffers. To switch from one to the other, click with
 @kbd{Mouse-1} on the relevant button in the header line.
 
 @node Watch Expressions
@@ -1182,14 +1150,15 @@ in the tool bar (@code{gud-watch}) or type @kbd{C-x C-a C-w}.  If you
 specify a prefix argument, you can enter the variable name in the
 minibuffer.
 
-  Each watch expression is displayed in the speedbar.  Complex data
-types, such as arrays, structures and unions are represented in a tree
-format.  Leaves and simple data types show the name of the expression
-and its value and, when the speedbar frame is selected, display the
-type as a tooltip.  Higher levels show the name, type and address
-value for pointers and just the name and type otherwise.  Root expressions
-also display the frame address as a tooltip to help identify the frame
-in which they were defined.
+  Each watch expression is displayed in the speedbar
+(@pxref{Speedbar}).  Complex data types, such as arrays, structures
+and unions are represented in a tree format.  Leaves and simple data
+types show the name of the expression and its value and, when the
+speedbar frame is selected, display the type as a tooltip.  Higher
+levels show the name, type and address value for pointers and just the
+name and type otherwise.  Root expressions also display the frame
+address as a tooltip to help identify the frame in which they were
+defined.
 
   To expand or contract a complex data type, click @kbd{Mouse-2} or
 press @key{SPC} on the tag to the left of the expression.  Emacs asks
@@ -1237,51 +1206,43 @@ non-@code{nil}.  This can be useful if you are debugging with a full
 screen Emacs frame.
 
 @node Multithreaded Debugging
-@subsubsection Stopping and Starting Multi-threaded Programs
+@subsubsection Multithreaded Debugging
 @cindex Multithreaded debugging in GDB
-
-@subsubheading All-stop Debugging
-
-In all-stop mode, whenever your program stops, @emph{all} threads of
-execution stop.  Likewise, whenever you restart the program, all
-threads start executing.  @xref{All-Stop Mode, , All-Stop Mode, gdb,
-The GNU debugger}.  You can enable this behavior in Emacs by setting
-@code{gdb-non-stop-setting} to @code{nil} before starting a debugging
-session.
-
-@subsubheading Non-stop Debugging
 @cindex Non-stop debugging in GDB
 
-For some multi-threaded targets, GDB supports a further mode of
-operation in which you can examine stopped program threads in the
-debugger while other threads continue to execute freely.
-@xref{Non-Stop Mode, , Non-Stop Mode, gdb, The GNU debugger}.
-This is referred to as @dfn{non-stop} mode.
-
-Versions of GDB prior to 7.0 do not support non-stop mode and it does
-not work on all targets.  In such cases, Emacs uses all-stop mode
-regardless of the value of @code{gdb-non-stop-setting}.
+  In GDB's @dfn{all-stop mode}, whenever your program stops, all
+execution threads stop.  Likewise, whenever you restart the program,
+all threads start executing.  @xref{All-Stop Mode, , All-Stop Mode,
+gdb, The GNU debugger}.  For some multi-threaded targets, GDB supports
+a further mode of operation, called @dfn{non-stop mode}, in which you
+can examine stopped program threads in the debugger while other
+threads continue to execute freely.  @xref{Non-Stop Mode, , Non-Stop
+Mode, gdb, The GNU debugger}.  Versions of GDB prior to 7.0 do not
+support non-stop mode, and it does not work on all targets.
 
 @vindex gdb-non-stop-setting
-If the variable @code{gdb-non-stop-setting} is non-@code{nil} (the
-default value), Emacs tries to start GDB in non-stop mode.  Note that
-GDB debugging session needs to be restarted for change of this setting
-to take effect.
+  The variable @code{gdb-non-stop-setting} determines whether Emacs
+runs GDB in all-stop mode or non-stop mode.  The default is @code{t},
+which means it tries to use non-stop mode if that is available.  If
+you change the value to @code{nil}, or if non-stop mode is
+unavailable, Emacs runs GDB in all-stop mode.  The variable takes
+effect when Emacs begins a debugging session; if you change its value,
+you should restart any active debugging session.
 
 @vindex gdb-switch-when-another-stopped
-When a thread stops in non-stop mode, Emacs automatically switches to
-that thread.  It may be undesirable to allow switching of current
-thread when some other stopped thread is already selected.  Set
-@code{gdb-switch-when-another-stopped} to @code{nil} to prevent this.
+  When a thread stops in non-stop mode, Emacs usually switches to that
+thread.  If you don't want Emacs to do this switch if another stopped
+thread is already selected, change the variable
+@code{gdb-switch-when-another-stopped} to @code{nil}.
 
 @vindex gdb-switch-reasons
-Emacs can decide whether or not to switch to the stopped thread
-depending on the reason which caused the stop.  Customize
-@code{gdb-switch-reasons} to select stop reasons which make Emacs
-switch thread.
+  Emacs can decide whether or not to switch to the stopped thread
+depending on the reason which caused the stop.  Customize the variable
+@code{gdb-switch-reasons} to select the stop reasons which will cause
+a thread switch.
 
 @vindex gdb-stopped-hooks
-The variable @code{gdb-stopped-hooks} allows you to execute your
+  The variable @code{gdb-stopped-hooks} allows you to execute your
 functions whenever some thread stops.
 
   In non-stop mode, you can switch between different modes for GUD
@@ -1291,7 +1252,7 @@ execution control commands.
 @table @dfn
 @item Non-stop/A
 
-When @code{gdb-gud-control-all-threads} is @code{t} (the default
+  When @code{gdb-gud-control-all-threads} is @code{t} (the default
 value), interruption and continuation commands apply to all threads,
 so you can halt or continue all your threads with one command using
 @code{gud-stop-subjob} and @code{gud-cont}, respectively.  The
@@ -1312,18 +1273,13 @@ from the tool bar or from @samp{GUD->GDB-MI} menu.
 
   Stepping commands always apply to the current thread.
 
-@subsubheading Fine Thread Control
-
   In non-stop mode, you can interrupt/continue your threads without
 selecting them.  Hitting @kbd{i} in threads buffer interrupts thread
 under point, @kbd{c} continues it, @kbd{s} steps through.  More such
 commands may be added in the future.
 
-Combined with creating bound buffers for any thread, this allows you
-to change and track state of many threads in the same time.
-
-  Note that when you interrupt a thread, it stops with @samp{signal
-received} reason.  If that reason is included in your
+  Note that when you interrupt a thread, it stops with the
+@samp{signal received} reason.  If that reason is included in your
 @code{gdb-switch-reasons} (it is by default), Emacs will switch to
 that thread.
 

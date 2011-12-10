@@ -1,10 +1,21 @@
-2011-12-08  Chong Yidong  <cyd@gnu.org>
+2011-12-10  Chong Yidong  <cyd@gnu.org>
 
 	* building.texi (Compilation): Say what the -k flag to make does.
 	Move subprocess discussion to Compilation Shell.
 	(Compilation Mode): Add xref for grep, occur, and mouse
 	references.  Define "locus".
 	(Grep Searching): Use @command.
+	(Debuggers, Commands of GUD, GDB Graphical Interface): Clarify
+	intro.
+	(Starting GUD): Clarify how arguments are specified.
+	(Debugger Operation): Index entry for "GUD interaction buffer",
+	and move basic description here from Commands of GUD node.
+	(GDB User Interface Layout): Copyedits.
+	(Source Buffers): Remove gdb-find-source-frame, which is not in
+	gdb-mi.el.
+	(Other GDB Buffers): Remove gdb-use-separate-io-buffer and
+	toggle-gdb-all-registers, which are not in gdb-mi.el.  Don't
+	re-document GUD interaction buffers.
 
 	* programs.texi (Symbol Completion): M-TAB can now use Semantic.
 	(Semantic): Add cindex entries for Semantic.

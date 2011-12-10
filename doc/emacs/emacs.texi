@@ -722,8 +722,7 @@ GDB Graphical Interface
 * Breakpoints Buffer::          A breakpoint control panel.
 * Threads Buffer::              Displays your threads.
 * Stack Buffer::                Select a frame from the call stack.
-* Other GDB Buffers::           Input/output, locals, registers,
-                                assembler, threads and memory buffers.
+* Other GDB Buffers::           Other buffers for controlling the GDB state.
 * Watch Expressions::           Monitor variable values in the speedbar.
 * Multithreaded Debugging::     Debugging programs with several threads.
 
