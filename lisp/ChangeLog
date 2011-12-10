@@ -1,3 +1,11 @@
+2011-12-10  Eli Zaretskii  <eliz@gnu.org>
+
+	* mail/rmailsum.el (rmail-header-summary): RFC2047 decode the
+	`from' or `to' address before taking its substring.  Fixes
+	incorrect display in Rmail summary buffer whereby an RFC2047
+	encoded name is chopped in the middle of the encoded string, and
+	thus displayed encoded.
+
 2011-12-10  Juanma Barranquero  <lekktu@gmail.com>
 
 	* makefile.w32-in (update-subdirs-CMD): Use a Local Variables section.
