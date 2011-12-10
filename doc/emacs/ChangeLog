@@ -1,3 +1,8 @@
+2011-12-10  Eli Zaretskii  <eliz@gnu.org>
+
+	* msdog.texi (Windows Fonts): Document how to force GDI font
+	backend on MS-Windows.
+
 2011-12-10  Chong Yidong  <cyd@gnu.org>
 
 	* building.texi (Compilation): Say what the -k flag to make does.
