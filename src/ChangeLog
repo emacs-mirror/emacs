@@ -1,3 +1,8 @@
+2011-12-10  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* xterm.c (x_term_init): Move call to gdk_window_add_filter before
+	gtk_init (Bug#10100).
+
 2011-12-10  Eli Zaretskii  <eliz@gnu.org>
 
 	* xdisp.c (RECORD_MAX_MIN_POS): Use IT->cmp_it.charpos only if
