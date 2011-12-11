@@ -1,3 +1,22 @@
+2011-12-11  Juanma Barranquero  <lekktu@gmail.com>
+
+	* ses.el (ses-call-printer-return, ses-cell-property-get)
+	(ses-sym-rowcol, ses-printer-validate, ses-formula-record)
+	(ses-create-cell-variable, ses-reset-header-string)
+	(ses-cell-set-formula, ses-repair-cell-reference-all)
+	(ses-self-reference-early-detection, ses-in-print-area, ses-set-curcell)
+	(ses-check-curcell, ses-call-printer, ses-adjust-print-width)
+	(ses-print-cell-new-width, ses-formula-references, ses-relocate-formula)
+	(ses-aset-with-undo, ses-load, ses-truncate-cell)
+	(ses-read-column-printer, ses-read-default-printer, ses-insert-row)
+	(ses-delete-row, ses-delete-column, ses-append-row-jump-first-column)
+	(ses-kill-override, ses-yank-pop, ses-yank-cells, ses-yank-tsf)
+	(ses-yank-resize, ses-export-tab, ses-mark-row, ses-mark-column)
+	(ses-renarrow-buffer, ses-insert-range, ses-insert-ses-range)
+	(ses-safe-printer, ses-safe-formula, ses-warn-unsafe, ses--clean-!)
+	(ses--clean-_, ses-range, ses-select, ses-center, ses-center-span)
+	(ses-dashfill, ses-unsafe): Fix typos and reflow docstrings.
+
 2011-12-11  Vincent Belaïche  <vincentb1@users.sourceforge.net>
 
 	* ses.el: The overall change is to add cell renaming, that is

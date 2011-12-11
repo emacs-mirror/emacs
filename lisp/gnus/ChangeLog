@@ -1,6 +1,6 @@
 2011-12-09  Tassilo Horn  <tassilo@member.fsf.org>
 
-	* message.el (message-valid-fqdn-regexp): Udate with newly approved
+	* message.el (message-valid-fqdn-regexp): Update with newly approved
 	top-level domain names ".tel" and ".asia".
 
 2011-12-08  Katsumi Yamaoka  <yamaoka@jpl.org>
@@ -165,7 +165,7 @@
 
 2011-10-17  Dave Abrahams  <dave@boostpro.com>  (tiny change)
 
-	* gnus-registry.el (gnus-registry-enabled): Add new variable. (Bug#9691)
+	* gnus-registry.el (gnus-registry-enabled): Add new variable (bug#9691).
 	(gnus-registry-install-shortcuts): Set `gnus-registry-install' to 'ask
 	only while we need to find out if it should be t or nil.
 	(gnus-registry-initialize): Don't set `gnus-registry-install' to t.
@@ -324,7 +324,7 @@
 2011-09-20  Julien Danjou  <julien@danjou.info>
 
 	* auth-source.el (auth-source-netrc-create): Use default value for
-	password if specified. Evaluate default.
+	password if specified.  Evaluate default.
 	(auth-source-plstore-create): Ditto.
 	(auth-source-plstore-create, auth-source-netrc-create): Fix default
 	value evaluation.
@@ -641,8 +641,8 @@
 
 2011-08-05  Andrew Cohen  <cohen@andy.bu.edu>
 
-	* gnus-sum.el (gnus-summary-refer-article): Warp to article. This
-	allows article-referral to work from an nnir group.
+	* gnus-sum.el (gnus-summary-refer-article): Warp to article.
+	This allows article-referral to work from an nnir group.
 
 2011-08-04  Andrew Cohen  <cohen@andy.bu.edu>
 
@@ -658,7 +658,7 @@
 2011-08-03  Andrew Cohen  <cohen@andy.bu.edu>
 
 	* nnir.el (nnir-read-server-parm): Add an argument to restrict to
-	server-variables only. This should fix a bug introduced with commit
+	server-variables only.  This should fix a bug introduced with commit
 	e1889675b7f4adf057833c5513c9374134c4e053.
 	(nnir-run-query): 'nnir-search-engine should not be set from the global
 	environment.
@@ -1858,7 +1858,7 @@
 2011-03-21  Julien Danjou  <julien@danjou.info>
 
 	* mm-view.el (mm-display-inline-fontify): Make mode optional, and call
-	normal-mode if not set. Set temp buffer unmodified to avoid kill-buffer
+	normal-mode if not set.  Set temp buffer unmodified to avoid kill-buffer
 	query.
 	(mm-inline-text): Render normal text with fontification whenever
 	possible.
@@ -2702,9 +2702,9 @@
 	* gnus.el (gnus-summary-line-format): Mention &user-date format in
 	docstring.
 
-	* gnus.el (gnus-user-date-format-alist): Change default value. Use
-	defcustom, with type and group. Move from gnus-util.el. Rename to
-	gnus-summary-user-date-format-alist.
+	* gnus.el (gnus-user-date-format-alist): Change default value.
+	Use defcustom, with type and group.  Move from gnus-util.el.
+	Rename to gnus-summary-user-date-format-alist.
 
 2011-02-03  Glenn Morris  <rgm@gnu.org>
 
@@ -3231,12 +3231,12 @@
 2010-12-17  Julien Danjou  <julien@danjou.info>
 
 	* gnus-util.el (gnus-rescale-image): Allow to resize images even if
-	they are from file. Can also scale up.
+	they are from file.  Can also scale up.
 
 2010-12-17  Andrew Cohen  <cohen@andy.bu.edu>
 
-	* gnus-sum.el (gnus-summary-refer-thread): Simplify code. Restore
-	gnus-use-agent.
+	* gnus-sum.el (gnus-summary-refer-thread): Simplify code.
+	Restore gnus-use-agent.
 	(gnus-get-newsgroup-headers): Avoid unwanted spaces at eol.
 
 	* nnir.el (nnir-get-active): Ignore nnir-ignored-newsgroups if null.
@@ -3594,7 +3594,7 @@
 	* nnir.el: Update to handle the registry better.
 	(autoload): Silence byte-compiler.
 	(nnir-open-server): Add a hook for nnir groups.
-	(nnir-request-move-article): Don't mangle the header. Better to use
+	(nnir-request-move-article): Don't mangle the header.  Better to use
 	formating variables (which will be added in the future).
 	(nnir-registry-action): Update the registry using the original article
 	group name.
@@ -4030,7 +4030,7 @@
 2010-11-21  Andrew Cohen  <cohen@andy.bu.edu>
 
 	* nnir.el: Fix typo in comments.
-	(nnir-run-imap): Simplify code. No need to reverse artlist.
+	(nnir-run-imap): Simplify code.  No need to reverse artlist.
 	(nnir-run-gmane): Use nnir-tmp-buffer for web results.
 
 2010-11-21  Lars Magne Ingebrigtsen  <larsi@gnus.org>
@@ -4062,8 +4062,8 @@
 
 2010-11-19  Katsumi Yamaoka  <yamaoka@jpl.org>
 
-	* gnus-art.el (gnus-mime-display-single)
-	* gnus-html.el (gnus-html-wash-images, gnus-html-prefetch-images)
+	* gnus-art.el (gnus-mime-display-single):
+	* gnus-html.el (gnus-html-wash-images, gnus-html-prefetch-images):
 	* mm-decode.el (mm-shr): Assume that gnus-inhibit-images may be a group
 	parameter.
 
@@ -4418,7 +4418,7 @@
 	* gnus-util.el (gnus-string-match-p): New function, that is an alias to
 	string-match-p in Emacs >=23.
 
-	* gnus-msg.el (gnus-configure-posting-styles)
+	* gnus-msg.el (gnus-configure-posting-styles):
 	* nnir.el (nnir-run-gmane): Use gnus-string-match-p.
 
 2010-11-01  Glenn Morris  <rgm@gnu.org>
@@ -5366,8 +5366,8 @@
 	* gnus-util.el (gnus-remove-if): Allow hash table.
 	(gnus-remove-if-not): New function.
 
-	* gnus-art.el (gnus-mime-view-part-as-type)
-	* gnus-score.el (gnus-summary-score-effect)
+	* gnus-art.el (gnus-mime-view-part-as-type):
+	* gnus-score.el (gnus-summary-score-effect):
 	* gnus-sum.el (gnus-read-move-group-name):
 	Replace remove-if-not with gnus-remove-if-not.
 
@@ -5856,8 +5856,8 @@
 2010-09-29  Katsumi Yamaoka  <yamaoka@jpl.org>
 
 	* mm-util.el (mm-codepage-iso-8859-list, mm-charset-eval-alist)
-	(mm-mime-charset)
-	* rfc2047.el (rfc2047-syntax-table)
+	(mm-mime-charset):
+	* rfc2047.el (rfc2047-syntax-table):
 	* utf7.el (utf7-utf-16-coding-system): Comment fix.
 
 	* nnrss.el (nnrss-read-server-data, nnrss-read-group-data): Use `load'
@@ -5872,8 +5872,8 @@
 
 2010-09-28  Katsumi Yamaoka  <yamaoka@jpl.org>
 
-	* mail-source.el (mail-source-report-new-mail)
-	* message.el (message-default-mail-headers)
+	* mail-source.el (mail-source-report-new-mail):
+	* message.el (message-default-mail-headers):
 	* mm-decode.el (mm-valid-image-format-p): Comment fix.
 
 	* mml2015.el (mml2015-use): Don't bind recursive-load-depth-limit.
@@ -6369,8 +6369,8 @@
 	(gnus-article-next-page-1): No need to adjust the number of lines.
 	(gnus-article-describe-bindings): Always use help-buffer.
 
-	* gnus-audio.el (gnus-audio-inline-sound)
-	* gnus-cus.el (gnus-custom-mode)
+	* gnus-audio.el (gnus-audio-inline-sound):
+	* gnus-cus.el (gnus-custom-mode):
 	* gnus-group.el (gnus-group-update-tool-bar): Comment fix.
 
 	* gnus-sum.el (gnus-remove-overlays): Doc fix.
@@ -6566,9 +6566,9 @@
 
 2010-09-22  Katsumi Yamaoka  <yamaoka@jpl.org>
 
-	* mailcap.el (mailcap-parse-mailcap, mailcap-parse-mimetypes)
-	* mm-util.el (mm-decompress-buffer)
-	* nnir.el (nnir-run-find-grep)
+	* mailcap.el (mailcap-parse-mailcap, mailcap-parse-mimetypes):
+	* mm-util.el (mm-decompress-buffer):
+	* nnir.el (nnir-run-find-grep):
 	* pop3.el (pop3-list): Use 3rd arg of split-string.
 
 2010-09-21  Lars Magne Ingebrigtsen  <larsi@gnus.org>
@@ -7434,7 +7434,7 @@
 2010-09-01  Katsumi Yamaoka  <yamaoka@jpl.org>
 
 	* gnus-html.el (gnus-html-cache-directory, gnus-html-cache-size)
-	(gnus-html-frame-width, gnus-blocked-images)
+	(gnus-html-frame-width, gnus-blocked-images):
 	* message.el (message-prune-recipient-rules): Add custom version.
 	* gnus-sum.el (gnus-auto-expirable-marks): Bump custom version.
 
@@ -7484,11 +7484,11 @@
 	* gnus-ems.el: Provide compatibility functions for
 	gnus-set-process-plist.
 
-	* gnus-sum.el (gnus-summary-stop-at-end-of-message)
-	* gnus.el (gnus-valid-select-methods)
-	* message.el (message-send-mail-partially-limit)
-	* mm-decode.el (mm-text-html-renderer)
-	* mml.el (mml-insert-mime-headers-always)
+	* gnus-sum.el (gnus-summary-stop-at-end-of-message):
+	* gnus.el (gnus-valid-select-methods):
+	* message.el (message-send-mail-partially-limit):
+	* mm-decode.el (mm-text-html-renderer):
+	* mml.el (mml-insert-mime-headers-always):
 	* smiley.el (smiley-regexp-alist): Bump custom version.
 
 2010-08-31  Lars Magne Ingebrigtsen  <larsi@gnus.org>
@@ -7820,7 +7820,7 @@
 
 2010-05-13  Katsumi Yamaoka  <yamaoka@jpl.org>
 
-	* mml1991.el (mml1991-mailcrypt-encrypt, mml1991-gpg-encrypt)
+	* mml1991.el (mml1991-mailcrypt-encrypt, mml1991-gpg-encrypt):
 	* mml2015.el (mml2015-gpg-encrypt): Disable multibyte in buffers
 	generated within the mm-with-unibyte-current-buffer macro.
 
@@ -7895,11 +7895,11 @@
 
 2010-05-07  Katsumi Yamaoka  <yamaoka@jpl.org>
 
-	* nnweb.el (nnweb-gmane-search)
+	* nnweb.el (nnweb-gmane-search):
 	* yenc.el (yenc-decode-region): Don't run set-buffer-multibyte for
 	XEmacs.
 
-	* gnus-art.el (gnus-article-browse-html-parts)
+	* gnus-art.el (gnus-article-browse-html-parts):
 	* gnus-group.el (gnus-read-ephemeral-gmane-group)
 	(gnus-read-ephemeral-bug-grou): Use mm-make-temp-file instead of
 	make-temp-file.
@@ -10607,10 +10607,10 @@
 
 2007-12-05  Katsumi Yamaoka  <yamaoka@jpl.org>
 
-	* gnus-art.el (gnus-use-idna)
-	* gnus-start.el (gnus-site-init-file)
-	* message.el (message-use-idna)
-	* mm-uu.el (mm-uu-hide-markers)
+	* gnus-art.el (gnus-use-idna):
+	* gnus-start.el (gnus-site-init-file):
+	* message.el (message-use-idna):
+	* mm-uu.el (mm-uu-hide-markers):
 	* smiley.el (smiley-style): Revert changes that suppress warnings.
 
 2007-12-05  Katsumi Yamaoka  <yamaoka@jpl.org>
@@ -11912,13 +11912,13 @@
 2007-05-25  Katsumi Yamaoka  <yamaoka@jpl.org>
 
 	* gnus-art.el (gnus-header-from, gnus-header-subject, gnus-header-name)
-	(gnus-header-content)
-	* gnus-cite.el (gnus-cite-10)
-	* gnus-srvr.el (gnus-server-closed)
+	(gnus-header-content):
+	* gnus-cite.el (gnus-cite-10):
+	* gnus-srvr.el (gnus-server-closed):
 	* gnus.el (gnus-group-mail-1, gnus-group-mail-1-empty)
 	(gnus-group-mail-2, gnus-group-mail-2-empty, gnus-group-mail-3)
 	(gnus-group-mail-3-empty, gnus-group-mail-low)
-	(gnus-group-mail-low-empty, gnus-splash)
+	(gnus-group-mail-low-empty, gnus-splash):
 	* message.el (message-header-to, message-header-cc)
 	(message-header-subject, message-header-other, message-header-name)
 	(message-header-xheader, message-separator, message-cited-text)

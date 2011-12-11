@@ -327,7 +327,7 @@ need to be recalculated.")
 
 (defvar ses-call-printer-return nil
   "Set to t if last cell printer invoked by `ses-call-printer' requested
-left-justification of the result.  Set to error-signal if ses-call-printer
+left-justification of the result.  Set to error-signal if `ses-call-printer'
 encountered an error during printing.  Otherwise nil.")
 
 (defvar ses-start-time nil
@@ -394,7 +394,7 @@ functions refer to its value."
 	    val)))))
 
 (defmacro ses-cell-property-get (property-name row &optional col)
-   "Get property named PROPERTY-NAME From a CELL or a pair (ROW,COL).
+   "Get property named PROPERTY-NAME from a CELL or a pair (ROW,COL).
 
 When COL is omitted, CELL=ROW is a cell object.  When COL is
 present ROW and COL are the integer coordinates of the cell of
@@ -490,8 +490,8 @@ PROPERTY-NAME."
   `(aref ses--col-printers ,col))
 
 (defmacro ses-sym-rowcol (sym)
-  "From a cell-symbol SYM, gets the cons (row . col).  A1 => (0 . 0).  Result
-is nil if SYM is not a symbol that names a cell."
+  "From a cell-symbol SYM, gets the cons (row . col).  A1 => (0 . 0).
+Result is nil if SYM is not a symbol that names a cell."
   `(and (symbolp ,sym) (get ,sym 'ses-cell)))
 
 (defmacro ses-cell (sym value formula printer references)
@@ -625,7 +625,7 @@ is a vector--if a symbol, the new vector is assigned as the symbol's value."
     (delete-region pos (point))))
 
 (defun ses-printer-validate (printer)
-  "Signals an error if PRINTER is not a valid SES cell printer."
+  "Signal an error if PRINTER is not a valid SES cell printer."
   (or (not printer)
       (stringp printer)
       (functionp printer)
@@ -642,7 +642,7 @@ checking that it is a valid printer function."
       (add-to-list 'ses-read-printer-history (prin1-to-string printer))))
 
 (defun ses-formula-record (formula)
-  "If FORMULA is of the form 'symbol, adds it to the list of symbolic formulas
+  "If FORMULA is of the form 'symbol, add it to the list of symbolic formulas
 for this spreadsheet."
   (when (and (eq (car-safe formula) 'quote)
 	     (symbolp (cadr formula)))
@@ -676,7 +676,7 @@ for this spreadsheet."
 
 (defun ses-create-cell-variable (sym row col)
   "Create a buffer-local variable for cell with symbol
-SYM at position ROW COL. Return nil in case of failure."
+SYM at position ROW COL.  Return nil in case of failure."
   (unless (local-variable-p sym)
     (make-local-variable  sym)
     (put sym 'ses-cell (cons row col))))
@@ -698,7 +698,7 @@ SYM at position ROW COL. Return nil in case of failure."
 	buffer-undo-list))
 
 (defun ses-reset-header-string ()
-  "Flags the header string for update.  Upon undo, the header string will be
+  "Flag the header string for update.  Upon undo, the header string will be
 updated again."
   (push '(apply ses-reset-header-string) buffer-undo-list)
   (setq ses--header-hscroll -1))
@@ -734,7 +734,7 @@ cell (ROW,COL).  This is undoable.  The cell's data will be updated through
   nil) ; Make coverage-tester happy.
 
 (defun ses-cell-set-formula (row col formula)
-  "Store a new formula for (ROW . COL) and enqueues the cell for
+  "Store a new formula for (ROW . COL) and enqueue the cell for
 recalculation via `post-command-hook'.  Updates the reference lists for the
 cells that this cell refers to.  Does not update cell value or reprint the
 cell.  To avoid inconsistencies, this function is not interruptible, which
@@ -819,9 +819,9 @@ means Emacs will crash if FORMULA contains a circular list."
 		  errors)))))
     (if errors
       (warn "----------------------------------------------------------------
-Some reference where corrupted.
+Some references were corrupted.
 
-The following is a list of where each element ELT is such
+The following is a list where each element ELT is such
 that (car ELT) is the reference of cell CELL with corruption,
 and (cdr ELT) is a property list where
 
@@ -929,8 +929,7 @@ the old and FORCE is nil."
   (ses-cell-set-formula row col nil))
 
 (defcustom ses-self-reference-early-detection nil
-  "True if cycle detection is early for cells that refer to
-themselves."
+  "True if cycle detection is early for cells that refer to themselves."
   :type 'boolean
   :group 'ses)
 
@@ -996,7 +995,7 @@ if the cell's value is unchanged and FORCE is nil."
 ;;----------------------------------------------------------------------------
 
 (defun ses-in-print-area ()
-  "Returns t if point is in print area of spreadsheet."
+  "Return t if point is in print area of spreadsheet."
   (<= (point) ses--data-marker))
 
 ;; We turn off point-motion-hooks and explicitly position the cursor, in case
@@ -1018,7 +1017,7 @@ if the cell's value is unchanged and FORCE is nil."
 	 (forward-char))))
 
 (defun ses-set-curcell ()
-  "Sets `ses--curcell' to the current cell symbol, or a cons (BEG,END) for a
+  "Set `ses--curcell' to the current cell symbol, or a cons (BEG,END) for a
 region, or nil if cursor is not at a cell."
   (if (or (not mark-active)
 	  deactivate-mark
@@ -1037,10 +1036,10 @@ region, or nil if cursor is not at a cell."
   nil)
 
 (defun ses-check-curcell (&rest args)
-  "Signal an error if ses--curcell is inappropriate.  The end marker is
-appropriate if some argument is 'end.  A range is appropriate if some
-argument is 'range.  A single cell is appropriate unless some argument is
-'needrange."
+  "Signal an error if `ses--curcell' is inappropriate.
+The end marker is appropriate if some argument is 'end.
+A range is appropriate if some argument is 'range.
+A single cell is appropriate unless some argument is 'needrange."
   (if (eq ses--curcell t)
       ;; curcell recalculation was postponed, but user typed ahead.
       (ses-set-curcell))
@@ -1175,7 +1174,7 @@ preceding cell has spilled over."
       sig)))
 
 (defun ses-call-printer (printer &optional value)
-  "Invokes PRINTER (a string or parenthesized string or function-symbol or
+  "Invoke PRINTER (a string or parenthesized string or function-symbol or
 lambda of one argument) on VALUE.  Result is the printed cell as a string.
 The variable `ses-call-printer-return' is set to t if the printer used
 parenthesis to request left-justification, or the error-signal if the
@@ -1207,7 +1206,7 @@ printer signaled one (and \"%s\" is used as the default printer), else nil."
 (defun ses-adjust-print-width (col change)
   "Insert CHANGE spaces in front of column COL, or at end of line if
 COL=NUMCOLS.  Deletes characters if CHANGE < 0.  Caller should bind
-inhibit-quit to t."
+`inhibit-quit' to t."
   (let ((inhibit-read-only t)
 	(blank  (if (> change 0) (make-string change ?\s)))
 	(at-end (= col ses--numcols)))
@@ -1226,9 +1225,9 @@ inhibit-quit to t."
 	(delete-char (- change))))))
 
 (defun ses-print-cell-new-width (row col)
-  "Same as ses-print-cell, except if the cell's value is *skip*, the preceding
-nonskipped cell is reprinted.  This function is used when the width of
-cell (ROW,COL) has changed."
+  "Same as `ses-print-cell', except if the cell's value is *skip*,
+the preceding nonskipped cell is reprinted.  This function is used
+when the width of cell (ROW,COL) has changed."
   (if (not (eq (ses-cell-value row col) '*skip*))
       (ses-print-cell row col)
     ;;Cell was skipped over - reprint previous
@@ -1351,7 +1350,7 @@ Newlines in the data are escaped."
 ;;----------------------------------------------------------------------------
 
 (defun ses-formula-references (formula &optional result-so-far)
-  "Produce a list of symbols for cells that this formula's value
+  "Produce a list of symbols for cells that this FORMULA's value
 refers to.  For recursive calls, RESULT-SO-FAR is the list being
 constructed, or t to get a wrong-type-argument error when the
 first reference is found."
@@ -1396,8 +1395,8 @@ by (ROWINCR,COLINCR)."
 
 (defun ses-relocate-formula (formula startrow startcol rowincr colincr)
   "Produce a copy of FORMULA where all symbols that refer to cells in row
-STARTROW or above and col STARTCOL or above are altered by adding ROWINCR
-and COLINCR.  STARTROW and STARTCOL are 0-based. Example:
+STARTROW or above, and col STARTCOL or above, are altered by adding ROWINCR
+and COLINCR.  STARTROW and STARTCOL are 0-based.  Example:
 	(ses-relocate-formula '(+ A1 B2 D3) 1 2 1 -1)
 	=> (+ A1 B2 C4)
 If ROWINCR or COLINCR is negative, references to cells being deleted are
@@ -1647,7 +1646,8 @@ to each symbol."
     (makunbound sym)))
 
 (defun ses-aset-with-undo (array idx newval)
-  "Like aset, but undoable.  Result is t if element has changed"
+  "Like `aset', but undoable.
+Result is t if element has changed."
   (unless (equal (aref array idx) newval)
     (push `(apply ses-aset-with-undo ,array ,idx
 		  ,(aref array idx)) buffer-undo-list)
@@ -1660,8 +1660,8 @@ to each symbol."
 ;;----------------------------------------------------------------------------
 
 (defun ses-load ()
-  "Parse the current buffer and sets up buffer-local variables.  Does not
-execute cell formulas or print functions."
+  "Parse the current buffer and set up buffer-local variables.
+Does not execute cell formulas or print functions."
   (widen)
   ;; Read our global parameters, which should be a 3-element list.
   (goto-char (point-max))
@@ -2109,8 +2109,7 @@ to are recalculated first."
     (ses-jump-safe startcell)))
 
 (defun ses-truncate-cell ()
-  "Reprint current cell, but without spillover into any following blank
-cells."
+  "Reprint current cell, but without spillover into any following blank cells."
   (interactive "*")
   (ses-check-curcell)
   (let* ((rowcol (ses-sym-rowcol ses--curcell))
@@ -2358,8 +2357,8 @@ right-justified) or a list of one string (will be left-justified)."
       (ses-print-cell row col))))
 
 (defun ses-read-column-printer (col newval)
-  "Set the printer function for the current column.  See
-`ses-read-cell-printer' for input forms."
+  "Set the printer function for the current column.
+See `ses-read-cell-printer' for input forms."
   (interactive
    (let ((col (cdr (ses-sym-rowcol ses--curcell))))
      (ses-check-curcell)
@@ -2375,8 +2374,8 @@ right-justified) or a list of one string (will be left-justified)."
 	(ses-print-cell row col)))))
 
 (defun ses-read-default-printer (newval)
-  "Set the default printer function for cells that have no other.  See
-`ses-read-cell-printer' for input forms."
+  "Set the default printer function for cells that have no other.
+See `ses-read-cell-printer' for input forms."
   (interactive
    (list (ses-read-printer "Default printer: " ses--default-printer)))
   (unless (eq newval t)
@@ -2390,8 +2389,8 @@ right-justified) or a list of one string (will be left-justified)."
 ;;----------------------------------------------------------------------------
 
 (defun ses-insert-row (count)
-  "Insert a new row before the current one.  With prefix, insert COUNT rows
-before current one."
+  "Insert a new row before the current one.
+With prefix, insert COUNT rows before current one."
   (interactive "*p")
   (ses-check-curcell 'end)
   (or (> count 0) (signal 'args-out-of-range nil))
@@ -2443,8 +2442,8 @@ before current one."
     (ses-goto-print (1- ses--numrows) 0)))
 
 (defun ses-delete-row (count)
-  "Delete the current row.  With prefix, Deletes COUNT rows starting from the
-current one."
+  "Delete the current row.
+With prefix, deletes COUNT rows starting from the current one."
   (interactive "*p")
   (ses-check-curcell)
   (or (> count 0) (signal 'args-out-of-range nil))
@@ -2536,8 +2535,8 @@ If COL is specified, the new column(s) get the specified WIDTH and PRINTER
   (ses-jump-safe ses--curcell))
 
 (defun ses-delete-column (count)
-  "Delete the current column.  With prefix, Deletes COUNT columns starting
-from the current one."
+  "Delete the current column.
+With prefix, deletes COUNT columns starting from the current one."
   (interactive "*p")
   (ses-check-curcell)
   (or (> count 0) (signal 'args-out-of-range nil))
@@ -2611,7 +2610,7 @@ inserts a new row if at bottom of print area.  Repeat COUNT times."
     (forward-char)))
 
 (defun ses-append-row-jump-first-column ()
-  "Insert a new row after current one and jumps to its first column."
+  "Insert a new row after current one and jump to its first column."
   (interactive "*")
   (ses-check-curcell)
   (ses-begin-change)
@@ -2714,8 +2713,8 @@ the corresponding data cell."
   line)
 
 (defun ses-kill-override (beg end)
-  "Generic override for any commands that kill text.  We clear the killed
-cells instead of deleting them."
+  "Generic override for any commands that kill text.
+We clear the killed cells instead of deleting them."
   (interactive "r")
   (ses-check-curcell 'needrange)
   ;; For some reason, the text-read-only error is not caught by `delete-region',
@@ -2776,9 +2775,9 @@ as symbols."
 
 (defun ses-yank-pop (arg)
   "Replace just-yanked stretch of killed text with a different stretch.
-This command is allowed only immediately after a `yank' or a `yank-pop', when
-the region contains a stretch of reinserted previously-killed text.  We
-replace it with a different stretch of killed text.
+This command is allowed only immediately after a `yank' or a `yank-pop',
+when the region contains a stretch of reinserted previously-killed text.
+We replace it with a different stretch of killed text.
   Unlike standard `yank-pop', this function uses `undo' to delete the
 previous insertion."
   (interactive "*p")
@@ -2792,7 +2791,7 @@ previous insertion."
   (setq this-command 'yank))
 
 (defun ses-yank-cells (text arg)
-  "If the TEXT has a proper set of 'ses attributes, inserts the text as
+  "If the TEXT has a proper set of 'ses attributes, insert the text as
 cells, else return nil.  The cells are reprinted--the supplied text is
 ignored because the column widths, default printer, etc. at yank time might
 be different from those at kill-time.  ARG is a list to indicate that
@@ -2875,8 +2874,8 @@ cons of ROW and COL).  Treat plain symbols as strings unless ARG is a list."
       (ses-cell-set-formula row col val))))
 
 (defun ses-yank-tsf (text arg)
-  "If TEXT contains tabs and/or newlines, treats the tabs as
-column-separators and the newlines as row-separators and inserts the text as
+  "If TEXT contains tabs and/or newlines, treat the tabs as
+column-separators and the newlines as row-separators and insert the text as
 cell formulas--else return nil.  Treat plain symbols as strings unless ARG
 is a list.  Ignore a final newline."
   (if (or (not (string-match "[\t\n]" text))
@@ -2914,8 +2913,8 @@ is a list.  Ignore a final newline."
       t)))
 
 (defun ses-yank-resize (needrows needcols)
-  "If this yank will require inserting rows and/or columns, asks for
-confirmation and then inserts them.  Result is (row,col) for top left of yank
+  "If this yank will require inserting rows and/or columns, ask for
+confirmation and then insert them.  Result is (row,col) for top left of yank
 spot, or error signal if user requests cancel."
   (ses-begin-change)
   (let ((rowcol (if ses--curcell
@@ -2958,9 +2957,9 @@ newlines between rows.  Result is placed in kill ring."
   (ses-export-tab t))
 
 (defun ses-export-tab (want-formulas)
-  "Export the current range with tabs between columns and newlines between
-rows.  Result is placed in kill ring.  The export is values unless
-WANT-FORMULAS is non-nil.  Newlines and tabs in the export text are escaped."
+  "Export the current range with tabs between columns and newlines between rows.
+Result is placed in kill ring.  The export is values unless WANT-FORMULAS
+is non-nil.  Newlines and tabs in the export text are escaped."
   (ses-check-curcell 'needrange)
   (let ((print-escape-newlines t)
 	result item)
@@ -3019,7 +3018,7 @@ The top row is row 1.  Selecting row 0 displays the default header row."
   (ses-reset-header-string))
 
 (defun ses-mark-row ()
-  "Marks the entirety of current row as a range."
+  "Mark the entirety of current row as a range."
   (interactive)
   (ses-check-curcell 'range)
   (let ((row (car (ses-sym-rowcol (or (car-safe ses--curcell) ses--curcell)))))
@@ -3029,7 +3028,7 @@ The top row is row 1.  Selecting row 0 displays the default header row."
     (ses-goto-print row 0)))
 
 (defun ses-mark-column ()
-  "Marks the entirety of current column as a range."
+  "Mark the entirety of current column as a range."
   (interactive)
   (ses-check-curcell 'range)
   (let ((col (cdr (ses-sym-rowcol (or (car-safe ses--curcell) ses--curcell))))
@@ -3073,13 +3072,14 @@ The top row is row 1.  Selecting row 0 displays the default header row."
 	(ses-goto-print row col)))))
 
 (defun ses-renarrow-buffer ()
-  "Narrow the buffer so only the print area is visible.  Use after \\[widen]."
+  "Narrow the buffer so only the print area is visible.
+Use after \\[widen]."
   (interactive)
   (setq ses--deferred-narrow t))
 
 (defun ses-sort-column (sorter &optional reverse)
-  "Sorts the range by a specified column.  With prefix, sorts in
-REVERSE order."
+  "Sort the range by a specified column.
+With prefix, sorts in REVERSE order."
   (interactive "*sSort column: \nP")
   (ses-check-curcell 'needrange)
   (let ((min (ses-sym-rowcol (car ses--curcell)))
@@ -3130,7 +3130,7 @@ REVERSE order."
       (ses-sort-column (ses-column-letter col) reverse))))
 
 (defun ses-insert-range ()
-  "Inserts into minibuffer the list of cells currently highlighted in the
+  "Insert into minibuffer the list of cells currently highlighted in the
 spreadsheet."
   (interactive "*")
   (let (x)
@@ -3142,7 +3142,7 @@ spreadsheet."
     (insert (substring (prin1-to-string (nreverse x)) 1 -1))))
 
 (defun ses-insert-ses-range ()
-  "Inserts \"(ses-range x y)\" in the minibuffer to represent the currently
+  "Insert \"(ses-range x y)\" in the minibuffer to represent the currently
 highlighted range in the spreadsheet."
   (interactive "*")
   (let (x)
@@ -3226,7 +3226,7 @@ highlighted range in the spreadsheet."
 ;;----------------------------------------------------------------------------
 
 (defun ses-safe-printer (printer)
-  "Returns PRINTER if safe, or the substitute printer `ses-unsafe' otherwise."
+  "Return PRINTER if safe, or the substitute printer `ses-unsafe' otherwise."
   (if (or (stringp printer)
 	  (stringp (car-safe printer))
 	  (not printer)
@@ -3235,16 +3235,16 @@ highlighted range in the spreadsheet."
     'ses-unsafe))
 
 (defun ses-safe-formula (formula)
-  "Returns FORMULA if safe, or the substitute formula *unsafe* otherwise."
+  "Return FORMULA if safe, or the substitute formula *unsafe* otherwise."
   (if (ses-warn-unsafe formula 'unsafep)
       formula
     `(ses-unsafe ',formula)))
 
 (defun ses-warn-unsafe (formula checker)
-  "Applies CHECKER to FORMULA.  If result is non-nil, asks user for
-confirmation about FORMULA, which might be unsafe.  Returns t if formula
-is safe or user allows execution anyway.  Always returns t if
-`safe-functions' is t."
+  "Apply CHECKER to FORMULA.
+If result is non-nil, asks user for confirmation about FORMULA,
+which might be unsafe.  Returns t if formula is safe or user allows
+execution anyway.  Always returns t if `safe-functions' is t."
   (if (eq safe-functions t)
       t
     (setq checker (funcall checker formula))
@@ -3259,13 +3259,13 @@ is safe or user allows execution anyway.  Always returns t if
 ;;----------------------------------------------------------------------------
 
 (defun ses--clean-! (&rest x)
-  "Clean by delq list X from any occurrence of `nil' or `*skip*'."
+  "Clean by `delq' list X from any occurrence of `nil' or `*skip*'."
   (delq nil (delq '*skip* x)))
 
 (defun ses--clean-_ (x y)
   "Clean list X  by replacing by Y any occurrence of `nil' or `*skip*'.
 
-This will change X by making setcar on its cons cells."
+This will change X by making `setcar' on its cons cells."
   (let ((ret x) ret-elt)
     (while ret
       (setq ret-elt (car ret))
@@ -3275,7 +3275,7 @@ This will change X by making setcar on its cons cells."
   x)
 
 (defmacro ses-range (from to &rest rest)
-  "Expands to a list of cell-symbols for the range going from
+  "Expand to a list of cell-symbols for the range going from
 FROM up to TO.  The range automatically expands to include any
 new row or column inserted into its middle.  The SES library code
 specifically looks for the symbol `ses-range', so don't create an
@@ -3288,8 +3288,8 @@ In the sequel we assume that cells A1, B1, A2 B2 have respective values
 1 2 3 and 4.
 
 Readout direction is specified by a `>v', '`>^', `<v', `<^',
-`v>', `v<', `^>', `^<' flag. For historical reasons, in absence
-of such a flag, a default direction of `^<' is assumed. This
+`v>', `v<', `^>', `^<' flag.  For historical reasons, in absence
+of such a flag, a default direction of `^<' is assumed.  This
 way `(ses-range A1 B2 ^>)' will evaluate to `(1 3 2 4)',
 while `(ses-range A1 B2 >^)' will evaluate to (3 4 1 2).
 
@@ -3302,18 +3302,18 @@ If the range is one column, then `v' can be used as a shorthand to
 A `!' flag will remove all cells whose value is nil or `*skip*'.
 
 A `_' flag will replace nil or `*skip*' by the value following
-the `_' flag. If the `_' flag is the last argument, then they are
+the `_' flag.  If the `_' flag is the last argument, then they are
 replaced by integer 0.
 
 A `*', `*1' or `*2' flag will vectorize the range in the sense of
-Calc. See info node `(Calc) Top'. Flag `*' will output either a
+Calc.  See info node `(Calc) Top'.  Flag `*' will output either a
 vector or a matrix depending on the number of rows, `*1' will
 flatten the result to a one row vector, and `*2' will make a
 matrix whatever the number of rows.
 
 Warning: interaction with Calc is experimental and may produce
-confusing results if you are not aware of Calc data format. Use
-`math-format-value' as a printer for Calc objects."
+confusing results if you are not aware of Calc data format.
+Use `math-format-value' as a printer for Calc objects."
   (let (result-row
 	result
 	(prev-row -1)
@@ -3400,10 +3400,10 @@ are ignored.  Result is always floating-point, even if all args are integers."
   (/ (float (apply '+ list)) (length list)))
 
 (defmacro ses-select (fromrange test torange)
-  "Select cells in FROMRANGE that are `equal' to TEST.  For each match, return
-the corresponding cell from TORANGE.  The ranges are macroexpanded but not
-evaluated so they should be either (ses-range BEG END) or (list ...).  The
-TEST is evaluated."
+  "Select cells in FROMRANGE that are `equal' to TEST.
+For each match, return the corresponding cell from TORANGE.
+The ranges are macroexpanded but not evaluated so they should be
+either (ses-range BEG END) or (list ...).  The TEST is evaluated."
   (setq fromrange (cdr (macroexpand fromrange))
 	torange   (cdr (macroexpand torange))
 	test      (eval test))
@@ -3433,9 +3433,10 @@ TEST is evaluated."
 (defvar col)
 
 (defun ses-center (value &optional span fill)
-  "Print VALUE, centered within column.  FILL is the fill character for
-centering (default = space).  SPAN indicates how many additional rightward
-columns to include in width (default = 0)."
+  "Print VALUE, centered within column.
+FILL is the fill character for centering (default = space).
+SPAN indicates how many additional rightward columns to include
+in width (default = 0)."
   (let ((printer (or (ses-col-printer col) ses--default-printer))
 	(width   (ses-col-width col))
 	half)
@@ -3454,8 +3455,8 @@ columns to include in width (default = 0)."
 
 (defun ses-center-span (value &optional fill)
   "Print VALUE, centered within the span that starts in the current column
-and continues until the next nonblank column.  FILL specifies the fill
-character (default = space)."
+and continues until the next nonblank column.
+FILL specifies the fill character (default = space)."
   (let ((end (1+ col)))
     (while (and (< end ses--numcols)
 		(memq (ses-cell-value row end) '(nil *skip*)))
@@ -3463,8 +3464,8 @@ character (default = space)."
     (ses-center value (- end col 1) fill)))
 
 (defun ses-dashfill (value &optional span)
-  "Print VALUE centered using dashes.  SPAN indicates how many rightward
-columns to include in width (default = 0)."
+  "Print VALUE centered using dashes.
+SPAN indicates how many rightward columns to include in width (default = 0)."
   (ses-center value span ?-))
 
 (defun ses-dashfill-span (value)
@@ -3478,7 +3479,7 @@ current column and continues until the next nonblank column."
   (ses-center-span value ?~))
 
 (defun ses-unsafe (value)
-  "Substitute for an unsafe formula or printer"
+  "Substitute for an unsafe formula or printer."
   (error "Unsafe formula or printer"))
 
 ;;All standard printers are safe, including ses-unsafe!
