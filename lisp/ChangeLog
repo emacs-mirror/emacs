@@ -1,3 +1,8 @@
+2011-12-11  Chong Yidong  <cyd@gnu.org>
+
+	* progmodes/gdb-mi.el (gdb): Set comint-prompt-regexp, required
+	for completion via gud-gdb-fetch-lines-filter (Bug#10274).
+
 2011-12-11  Eric Hanchrow  <eric.hanchrow@gmail.com>
 
 	* window.el (other-window): Fix docstring.

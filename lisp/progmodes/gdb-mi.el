@@ -811,6 +811,9 @@ detailed description of this mode.
   (define-key gud-minor-mode-map [left-margin C-mouse-3]
     'gdb-mouse-jump)
 
+  (set (make-local-variable 'comint-prompt-regexp)
+       "^(.*gdb[+]?) *")
+
   (add-hook 'completion-at-point-functions #'gud-gdb-completion-at-point
             nil 'local)
   (local-set-key "\C-i" 'completion-at-point)
