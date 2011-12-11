@@ -1,3 +1,7 @@
+2011-12-11  Eric Hanchrow  <eric.hanchrow@gmail.com>
+
+	* window.el (other-window): Fix docstring.
+
 2011-12-10  Eli Zaretskii  <eliz@gnu.org>
 
 	* mail/rmailsum.el (rmail-header-summary): RFC2047 decode the
