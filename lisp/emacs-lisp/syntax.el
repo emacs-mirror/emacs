@@ -56,7 +56,7 @@
   ;; syntax-ppss-flush-cache since that would not only flush the cache but also
   ;; reset syntax-propertize--done which should not be done in this case).
   "Mode-specific function to apply the syntax-table properties.
-Called with 2 arguments: START and END.
+Called with two arguments: START and END.
 This function can call `syntax-ppss' on any position before END, but it
 should not call `syntax-ppss-flush-cache', which means that it should not
 call `syntax-ppss' on some position and later modify the buffer on some
@@ -248,7 +248,7 @@ Note: back-references in REGEXPs do not work."
                                  (if syntax
                                      (put-text-property
                                       mb me 'syntax-table syntax))))))))
-                               
+
                      (if (or (not (cddr rule)) (zerop gn))
                          (setq code (nconc (nreverse thiscode) code))
                        (push `(if (match-beginning ,gn)

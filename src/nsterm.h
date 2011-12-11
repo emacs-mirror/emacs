@@ -760,6 +760,7 @@ extern void  ns_release_object (void *obj);
 extern void  ns_retain_object (void *obj);
 extern void *ns_alloc_autorelease_pool ();
 extern void ns_release_autorelease_pool ();
+extern const char *ns_get_defaults_value ();
 
 /* in nsmenu */
 extern void update_frame_tool_bar (FRAME_PTR f);
@@ -794,6 +795,7 @@ extern void x_set_tool_bar_lines (struct frame *f,
                                   Lisp_Object oldval);
 extern void x_activate_menubar (struct frame *);
 extern void free_frame_menubar (struct frame *);
+extern void x_free_frame_resources (struct frame *);
 
 #define NSAPP_DATA2_RUNASSCRIPT 10
 extern void ns_run_ascript (void);

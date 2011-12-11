@@ -1893,14 +1893,14 @@ You must have the \"hashcash\" binary installed, see `hashcash-path'."
   (concat "[a-z0-9][-.a-z0-9]+\\." ;; [hostname.subdomain.]domain.
 	  ;; valid TLDs:
 	  "\\([a-z][a-z]\\|" ;; two letter country TDLs
-	  "aero\\|arpa\\|bitnet\\|biz\\|bofh\\|"
+	  "aero\\|arpa\\|asia\\|bitnet\\|biz\\|bofh\\|"
 	  "cat\\|com\\|coop\\|edu\\|gov\\|"
 	  "info\\|int\\|jobs\\|"
 	  "mil\\|mobi\\|museum\\|name\\|net\\|"
-	  "org\\|pro\\|travel\\|uucp\\)")
+	  "org\\|pro\\|tel\\|travel\\|uucp\\)")
   ;; http://en.wikipedia.org/wiki/List_of_Internet_top-level_domains
   ;; http://en.wikipedia.org/wiki/GTLD
-  ;; `in the process of being approved': .asia .post .tel .sex
+  ;; `approved, but not yet in operation': .xxx
   ;; "dead" nato bitnet uucp
   "Regular expression that matches a valid FQDN."
   ;; see also: gnus-button-valid-fqdn-regexp

@@ -863,15 +863,22 @@ fontconfig library used in modern Free desktops:
 
   The old XLFD based format is also supported for backwards compatibility.
 
-  Emacs 23 supports a number of backends.  Currently, the @code{gdi}
-and @code{uniscribe} font backends are supported on Windows.  The
-@code{gdi} font backend is available on all versions of Windows, and
-supports all fonts that are natively supported by Windows.  The
+@cindex font backend selection (MS-Windows)
+  Emacs 23 and later supports a number of font backends.  Currently,
+the @code{gdi} and @code{uniscribe} backends are supported on Windows.
+The @code{gdi} font backend is available on all versions of Windows,
+and supports all fonts that are natively supported by Windows.  The
 @code{uniscribe} font backend is available on Windows 2000 and later,
 and supports TrueType and OpenType fonts.  Some languages requiring
-complex layout can only be properly supported by the uniscribe
+complex layout can only be properly supported by the Uniscribe
 backend.  By default, both backends are enabled if supported, with
-@code{uniscribe} taking priority over @code{gdi}.
+@code{uniscribe} taking priority over @code{gdi}.  To override that
+and use the GDI backend even if Uniscribe is available, invoke Emacs
+with the @kbd{-xrm Emacs.fontBackend:gdi} command-line argument, or
+add a @code{Emacs.fontBackend} resource with the value @code{gdi} in
+the Registry under either the
+@samp{HKEY_CURRENT_USER\SOFTWARE\GNU\Emacs} or the
+@samp{HKEY_LOCAL_MACHINE\SOFTWARE\GNU\Emacs} key (@pxref{Resources}).
 
 @cindex font properties (MS Windows)
 @noindent

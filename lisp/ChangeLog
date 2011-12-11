@@ -1,3 +1,59 @@
+2011-12-10  Eli Zaretskii  <eliz@gnu.org>
+
+	* mail/rmailsum.el (rmail-header-summary): RFC2047 decode the
+	`from' or `to' address before taking its substring.  Fixes
+	incorrect display in Rmail summary buffer whereby an RFC2047
+	encoded name is chopped in the middle of the encoded string, and
+	thus displayed encoded.
+
+2011-12-10  Juanma Barranquero  <lekktu@gmail.com>
+
+	* makefile.w32-in (update-subdirs-CMD): Use a Local Variables section.
+
+2011-12-10  Eli Zaretskii  <eliz@gnu.org>
+
+	* textmodes/texnfo-upd.el: Update commentary.  Add a warning not
+	to use texinfo-update-node and commands that call it if the
+	Texinfo file uses @node lines without next/prev/up pointers.
+	Correct outdated description about texinfo-master-menu.
+	(texinfo-all-menus-update, texinfo-master-menu)
+	(texinfo-update-node, texinfo-every-node-update)
+	(texinfo-multiple-files-update): Doc fix.  Warn against updating
+	all the @node lines.
+	(texinfo-master-menu): Only call texinfo-update-node if the prefix
+	argument is numeric.  Explain better in the doc string what the
+	function really does.
+	(texinfo-insert-master-menu-list): Improve the error message
+	displayed if there's no menu in the Top node.
+	(Bug#2975)  See also this thread:
+	http://lists.gnu.org/archive/html/emacs-devel/2011-12/msg00156.html.
+
+2011-12-09  Manuel Gómez  <mgrojo@gmail.com>  (tiny change)
+
+	* speedbar.el (speedbar-supported-extension-expressions):
+	Add .adb and .ads, commonly used for Ada source code (bug#10256).
+
+2011-12-09  Juanma Barranquero  <lekktu@gmail.com>
+
+	* printing.el (pr-mode-alist):
+	* simple.el (filter-buffer-substring-functions)
+	(completion-list-insert-choice-function):
+	* window.el (window-with-parameter, window-atom-root)
+	(window-sides-slots, window-size-fixed, window-min-delta)
+	(window-max-delta, window--resize-mini-window)
+	(window--resize-child-windows-normal, window-tree)
+	(delete-other-windows, quit-window, split-window)
+	(display-buffer-record-window, special-display-buffer-names)
+	(special-display-regexps, special-display-popup-frame)
+	(same-window-p, split-window-sensibly)
+	(display-buffer-overriding-action, display-buffer-alist)
+	(display-buffer-base-action, display-buffer, switch-to-buffer)
+	(switch-to-buffer-other-window, switch-to-buffer-other-frame)
+	(fit-window-to-buffer, recenter-positions)
+	(mouse-autoselect-window-state, mouse-autoselect-window-select):
+	* emacs-lisp/syntax.el (syntax-propertize-function): Fix typos
+	and remove unneeded backslashes in docstrings.
+
 2011-12-08  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* emacs-lisp/lisp-mode.el (defmethod): Add doc-string-elt (bug#10244).
@@ -172,11 +228,11 @@
 	(verilog-inject-sense, verilog-read-inst-pins)
 	(verilog-read-sub-decls, verilog-read-sub-decls-line):
 	Fix mismatching parenthesis inside commented out code when deleting
-	AUTOINST, bug383. Reported by Jonathan Greenlaw.
+	AUTOINST, bug383.  Reported by Jonathan Greenlaw.
 	(verilog-auto-ascii-enum): Fix AUTOASCIIENUM one-hot with
 	non-numeric vector width.  Reported by Alex Reed.
 	(verilog-auto-ascii-enum): Add "onehot" option to work around not
-	detecting signals with parameter widths. Reported by Alex Reed.
+	detecting signals with parameter widths.  Reported by Alex Reed.
 	(verilog-auto-delete-trailing-whitespace):
 	With `verilog-auto-delete-trailing-whitespace' remove trailing
 	whitespace in auto expansion, bug371.  Reported by Brad Dobbie.

@@ -1174,9 +1174,9 @@ if test "${with_sound}" != "no"; then
   PKG_CHECK_MODULES(ALSA, $ALSA_MODULES, HAVE_ALSA=yes, HAVE_ALSA=no)
   if test $HAVE_ALSA = yes; then
     SAVE_CFLAGS="$CFLAGS"
-    SAVE_LDFLAGS="$LDFLAGS"
+    SAVE_LIBS="$LIBS"
     CFLAGS="$ALSA_CFLAGS $CFLAGS"
-    LDFLAGS="$ALSA_LIBS $LDFLAGS"
+    LIBS="$ALSA_LIBS $LIBS"
     AC_COMPILE_IFELSE([AC_LANG_PROGRAM([[#include <asoundlib.h>]], [[snd_lib_error_set_handler (0);]])],
                     emacs_alsa_normal=yes,
 	            emacs_alsa_normal=no)
@@ -1192,7 +1192,7 @@ if test "${with_sound}" != "no"; then
     fi
 
     CFLAGS="$SAVE_CFLAGS"
-    LDFLAGS="$SAVE_LDFLAGS"
+    LIBS="$SAVE_LIBS"
     LIBSOUND="$LIBSOUND $ALSA_LIBS"
     CFLAGS_SOUND="$CFLAGS_SOUND $ALSA_CFLAGS"
     AC_DEFINE(HAVE_ALSA, 1, [Define to 1 if ALSA is available.])
@@ -2039,12 +2039,12 @@ fi
 
 if test "$HAVE_GSETTINGS" = "yes" || test "$HAVE_GCONF" = "yes"; then
     SAVE_CFLAGS="$CFLAGS"
-    SAVE_LDFLAGS="$LDFLAGS"
+    SAVE_LIBS="$LIBS"
     CFLAGS="$SETTINGS_CFLAGS $CFLAGS"
-    LDFLAGS="$SETTINGS_LIBS $LDFLAGS"
+    LIBS="$SETTINGS_LIBS $LIBS"
     AC_CHECK_FUNCS([g_type_init])
     CFLAGS="$SAVE_CFLAGS"
-    LDFLAGS="$SAVE_LDFLAGS"
+    LIBS="$SAVE_LIBS"
 fi
 AC_SUBST(SETTINGS_CFLAGS)
 AC_SUBST(SETTINGS_LIBS)

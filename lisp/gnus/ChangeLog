@@ -1,3 +1,8 @@
+2011-12-09  Tassilo Horn  <tassilo@member.fsf.org>
+
+	* message.el (message-valid-fqdn-regexp): Udate with newly approved
+	top-level domain names ".tel" and ".asia".
+
 2011-12-08  Katsumi Yamaoka  <yamaoka@jpl.org>
 
 	* gnus-sum.el (gnus-summary-show-article): Don't load shr
