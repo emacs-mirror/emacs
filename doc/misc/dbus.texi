@@ -332,7 +332,7 @@ Example:
 @code{method}, @code{signal}, and @code{property} elements.  Unlike
 properties, which can change their values during lifetime of a D-Bus
 object, annotations are static.  Often they are used for code
-generators of D-Bus langugae bindings.  Example:
+generators of D-Bus language bindings.  Example:
 
 @example
 <annotation name="de.berlios.Pinot.GetStatistics" value="pinotDBus"/>

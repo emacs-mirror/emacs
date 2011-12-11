@@ -144,7 +144,7 @@
   this
   that)
 
-(define-mode-local-override a-overriden-function
+(define-mode-local-override a-overridden-function
   emacs-lisp-mode (tag)
   "A function that is overloaded."
   nil)

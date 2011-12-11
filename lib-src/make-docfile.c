@@ -1149,8 +1149,10 @@ scan_lisp_file (const char *filename, const char *mode)
 	    }
 	}
 
+      /* defcustom can only occur in uncompiled Lisp files.  */
       else if (! strcmp (buffer, "defvar")
-	       || ! strcmp (buffer, "defconst"))
+	       || ! strcmp (buffer, "defconst")
+	       || ! strcmp (buffer, "defcustom"))
 	{
 	  char c1 = 0, c2 = 0;
 	  type = 'V';

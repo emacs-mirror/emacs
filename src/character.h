@@ -596,7 +596,7 @@ sanitize_char_width (EMACS_INT width)
    ? ASCII_CHAR_WIDTH (c)	\
    : sanitize_char_width (XINT (CHAR_TABLE_REF (Vchar_width_table, c))))
 
-/* If C is a variation selector, return the index numnber of the
+/* If C is a variation selector, return the index of the
    variation selector (1..256).  Otherwise, return 0.  */
 
 #define CHAR_VARIATION_SELECTOR_P(c)		\

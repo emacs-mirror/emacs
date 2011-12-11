@@ -464,7 +464,8 @@ static void input_available_signal (int signo);
 static Lisp_Object (Fcommand_execute) (Lisp_Object, Lisp_Object, Lisp_Object,
 				       Lisp_Object);
 static void handle_interrupt (void);
-static void quit_throw_to_read_char (void) NO_RETURN;
+static void quit_throw_to_read_char (int) NO_RETURN;
+static void process_special_events (void);
 static void timer_start_idle (void);
 static void timer_stop_idle (void);
 static void timer_resume_idle (void);
@@ -653,7 +654,7 @@ echo_now (void)
   echo_kboard = current_kboard;
 
   if (waiting_for_input && !NILP (Vquit_flag))
-    quit_throw_to_read_char ();
+    quit_throw_to_read_char (0);
 }
 
 /* Turn off echoing, for the start of a new command.  */
@@ -2998,7 +2999,7 @@ read_char (int commandflag, ptrdiff_t nmaps, Lisp_Object *maps,
       Lisp_Object keys;
       ptrdiff_t key_count;
       int key_count_reset;
-      struct gcpro inner_gcpro1;
+      struct gcpro gcpro1;
       ptrdiff_t count = SPECPDL_INDEX ();
 
       /* Save the echo status.  */
@@ -3026,7 +3027,7 @@ read_char (int commandflag, ptrdiff_t nmaps, Lisp_Object *maps,
 	keys = Fcopy_sequence (this_command_keys);
       else
 	keys = Qnil;
-      GCPRO1_VAR (keys, inner_gcpro);
+      GCPRO1 (keys);
 
       /* Clear out this_command_keys.  */
       this_command_key_count = 0;
@@ -3064,7 +3065,7 @@ read_char (int commandflag, ptrdiff_t nmaps, Lisp_Object *maps,
       if (saved_immediate_echo)
 	echo_now ();
 
-      UNGCPRO_VAR (inner_gcpro);
+      UNGCPRO;
 
       /* The input method can return no events.  */
       if (! CONSP (tem))
@@ -3817,7 +3818,7 @@ kbd_buffer_get_event (KBOARD **kbp,
       /* If the quit flag is set, then read_char will return
 	 quit_char, so that counts as "available input."  */
       if (!NILP (Vquit_flag))
-	quit_throw_to_read_char ();
+	quit_throw_to_read_char (0);
 
       /* One way or another, wait until input is available; then, if
 	 interrupt handlers have not read it, read it now.  */
@@ -4145,14 +4146,12 @@ kbd_buffer_get_event (KBOARD **kbp,
   return (obj);
 }
 
-/* Process any events that are not user-visible,
-   then return, without reading any user-visible events.  */
+/* Process any non-user-visible events (currently X selection events),
+   without reading any user-visible events.  */
 
-void
-swallow_events (int do_display)
+static void
+process_special_events (void)
 {
-  int old_timers_run;
-
   while (kbd_fetch_ptr != kbd_store_ptr)
     {
       struct input_event *event;
@@ -4187,6 +4186,17 @@ swallow_events (int do_display)
       else
 	break;
     }
+}
+
+/* Process any events that are not user-visible, run timer events that
+   are ripe, and return, without reading any user-visible events.  */
+
+void
+swallow_events (int do_display)
+{
+  int old_timers_run;
+
+  process_special_events ();
 
   old_timers_run = timers_run;
   get_input_pending (&input_pending, READABLE_EVENTS_DO_TIMERS_NOW);
@@ -4813,7 +4823,7 @@ const char *const lispy_function_keys[] =
     "ico-00",        /* VK_ICO_00         0xE4 */
     0,               /* VK_PROCESSKEY     0xE5 - used by IME */
     "ico-clear",     /* VK_ICO_CLEAR      0xE6 */
-    0,               /* VK_PACKET         0xE7  - used to pass unicode chars */
+    0,               /* VK_PACKET         0xE7  - used to pass Unicode chars */
     0,               /*                   0xE8 */
     "reset",         /* VK_OEM_RESET      0xE9 */
     "jump",          /* VK_OEM_JUMP       0xEA */
@@ -9058,9 +9068,9 @@ read_key_sequence (Lisp_Object *keybuf, int bufsize, Lisp_Object prompt,
   int junk;
 #endif
 
-  struct gcpro outer_gcpro1;
+  struct gcpro gcpro1;
 
-  GCPRO1_VAR (fake_prefixed_keys, outer_gcpro);
+  GCPRO1 (fake_prefixed_keys);
   raw_keybuf_count = 0;
 
   last_nonmenu_event = Qnil;
@@ -9356,7 +9366,7 @@ read_key_sequence (Lisp_Object *keybuf, int bufsize, Lisp_Object prompt,
 	  if (EQ (key, Qt))
 	    {
 	      unbind_to (count, Qnil);
-	      UNGCPRO_VAR (outer_gcpro);
+	      UNGCPRO;
 	      return -1;
 	    }
 
@@ -10054,7 +10064,7 @@ read_key_sequence (Lisp_Object *keybuf, int bufsize, Lisp_Object prompt,
       add_command_key (keybuf[t]);
     }
 
-  UNGCPRO_VAR (outer_gcpro);
+  UNGCPRO;
   return t;
 }
 
@@ -10142,7 +10152,7 @@ will read just one key sequence.  */)
 			 ! NILP (can_return_switch_frame), 0);
 
 #if 0  /* The following is fine for code reading a key sequence and
-	  then proceeding with a lenghty computation, but it's not good
+	  then proceeding with a lengthy computation, but it's not good
 	  for code reading keys in a loop, like an input method.  */
 #ifdef HAVE_WINDOW_SYSTEM
   if (display_hourglass_p)
@@ -10527,6 +10537,9 @@ if there is a doubt, the value is t.  */)
       || !NILP (Vunread_input_method_events))
     return (Qt);
 
+  /* Process non-user-visible events (Bug#10195).  */
+  process_special_events ();
+
   get_input_pending (&input_pending,
 		     READABLE_EVENTS_DO_TIMERS_NOW
 		     | READABLE_EVENTS_FILTER_EVENTS);
@@ -10829,7 +10842,7 @@ set_waiting_for_input (struct timeval *time_to_clear)
   /* If handle_interrupt was called before and buffered a C-g,
      make it run again now, to avoid timing error.  */
   if (!NILP (Vquit_flag))
-    quit_throw_to_read_char ();
+    quit_throw_to_read_char (0);
 }
 
 void
@@ -10844,7 +10857,7 @@ clear_waiting_for_input (void)
 
    If we have a frame on the controlling tty, we assume that the
    SIGINT was generated by C-g, so we call handle_interrupt.
-   Otherwise, the handler kills Emacs.  */
+   Otherwise, tell QUIT to kill Emacs.  */
 
 static void
 interrupt_signal (int signalnum)	/* If we don't have an argument, some */
@@ -10861,12 +10874,10 @@ interrupt_signal (int signalnum)	/* If we don't have an argument, some */
   if (!terminal)
     {
       /* If there are no frames there, let's pretend that we are a
-         well-behaving UN*X program and quit.  We cannot do that while
-         GC is in progress, though.  */
-      if (!gc_in_progress)
-	Fkill_emacs (Qnil);
-      else
-	Vquit_flag = Qt;
+         well-behaving UN*X program and quit.  We must not call Lisp
+         in a signal handler, so tell QUIT to exit when it is
+         safe.  */
+      Vquit_flag = Qkill_emacs;
     }
   else
     {
@@ -11015,15 +11026,20 @@ handle_interrupt (void)
          separate event loop thread like W32.  */
 #ifndef HAVE_NS
   if (waiting_for_input && !echoing)
-      quit_throw_to_read_char ();
+      quit_throw_to_read_char (1);
 #endif
 }
 
 /* Handle a C-g by making read_char return C-g.  */
 
 static void
-quit_throw_to_read_char (void)
+quit_throw_to_read_char (int from_signal)
 {
+  /* When not called from a signal handler it is safe to call
+     Lisp.  */
+  if (!from_signal && EQ (Vquit_flag, Qkill_emacs))
+    Fkill_emacs (Qnil);
+
   sigfree ();
   /* Prevent another signal from doing this before we finish.  */
   clear_waiting_for_input ();
@@ -12105,7 +12121,7 @@ This variable is keyboard-local.  */);
 Function key definitions that apply to all terminal devices should go
 here.  If a mapping is defined in both the current
 `local-function-key-map' binding and this variable, then the local
-definition will take precendence.  */);
+definition will take precedence.  */);
   Vfunction_key_map = Fmake_sparse_keymap (Qnil);
 
   DEFVAR_LISP ("key-translation-map", Vkey_translation_map,
@@ -12250,7 +12266,7 @@ text in the region before modifying the buffer.  The next
   DEFVAR_LISP ("debug-on-event",
                Vdebug_on_event,
                doc: /* Enter debugger on this event.  When Emacs
-receives the special event specifed by this variable, it will try to
+receives the special event specified by this variable, it will try to
 break into the debugger as soon as possible instead of processing the
 event normally through `special-event-map'.
 

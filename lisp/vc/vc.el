@@ -181,7 +181,7 @@
 ;; * working-revision (file)
 ;;
 ;;   Return the working revision of FILE.  This is the revision fetched
-;;   by the last checkout or upate, not necessarily the same thing as the
+;;   by the last checkout or update, not necessarily the same thing as the
 ;;   head or tip revision.  Should return "0" for a file added but not yet
 ;;   committed.
 ;;
@@ -2690,7 +2690,7 @@ log entries should be gathered."
       (substring rev 0 index))))
 
 (defun vc-default-responsible-p (backend file)
-  "Indicate whether BACKEND is reponsible for FILE.
+  "Indicate whether BACKEND is responsible for FILE.
 The default is to return nil always."
   nil)
 

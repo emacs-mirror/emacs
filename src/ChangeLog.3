@@ -3271,7 +3271,7 @@
 	[not HAVE_X11] (x_set_border_pixel): Use gray_width and
 	gray_height, instead of assuming that the bitmap is 16x16.
 	(x_make_gc): Instead of creating a pixmap and then calling
-	XPutImage to make it into a grey stipple, just call
+	XPutImage to make it into a gray stipple, just call
 	XCreatePixmapFromBitmapData to do it all at once.
 
 	* xterm.c (x_text_icon): Move the request for font information
@@ -6089,7 +6089,7 @@
 	shrink below the minimum, this code would only try to delete it if
 	it had a parent.  Well, even if the window doesn't have a parent,
 	you want Fdelete_window to signal an error, since you're trying to
-	resize one of the undeleteable windows into nothingness.  So call
+	resize one of the undeletable windows into nothingness.  So call
 	Fdelete_window even if the window doesn't have a parent.
 
 	* window.c (MINSIZE): Add kludge so that the minibuffer is always
@@ -9010,7 +9010,7 @@
 	* keyboard.c (cmd_error): If an error occurs before somebody has
 	provided a screen to print it on, print it to stderr and exit
 	Emacs.  Handle batch-mode errors with the same code.
-	* lisp.h (Qexternal_debugging_ouput): New extern declaration, for
+	* lisp.h (Qexternal_debugging_output): New extern declaration, for
 	use in cmd_error.
 
 	* screen.c (Fscreen_pixel_size, Fset_screen_position): Doc fix.
@@ -13137,7 +13137,7 @@
 	* print.c: Include dispextern.h.
 	(printchar, strout): Use message_buf.
 
-	* sysdep.c (get_screen_size): Don't use MscreenWidth, MscreenLenght.
+	* sysdep.c (get_screen_size): Don't use MscreenWidth, MscreenLength.
 	* term.c: Likewise.
 
 	* scroll.c (CalcIDCosts, CalcIDCosts1, CalcLID): These now take a
@@ -13147,7 +13147,7 @@
 	(do_scrolling): Use alloca for queue.
 
 	* dispnew.c (remake_screen_structures): Allocate message_buf.
-	Don't use MscreenWidth, MscreenLenght.
+	Don't use MscreenWidth, MscreenLength.
 
 	* xdisp.c: bf_cur replaced with current_buffer.
 	Calls to SetBfx deleted.
@@ -14880,7 +14880,7 @@
 
 1989-08-09  Joseph Arceneaux  (jla@spiff)
 
-	* ../oldXMenu/Makefile: Removed all the unneccessary X stuff.
+	* ../oldXMenu/Makefile: Removed all the unnecessary X stuff.
 
 1989-08-07  Richard Stallman  (rms@sugar-bombs.ai.mit.edu)
 

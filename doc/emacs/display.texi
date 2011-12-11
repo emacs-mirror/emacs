@@ -21,6 +21,7 @@ the text is displayed.
 * View Mode::              Viewing read-only buffers.
 * Follow Mode::            Follow mode lets two windows scroll as one.
 * Faces::                  How to change the display style using faces.
+* Colors::                 Specifying colors for faces.
 * Standard Faces::         Emacs' predefined faces.
 * Text Scale::             Increasing or decreasing text size in a buffer.
 * Font Lock::              Minor mode for syntactic highlighting using faces.
@@ -122,7 +123,7 @@ moving it to the topmost or bottommost line.  With any other
 non-@code{nil} value, Emacs adjusts point this way even if the scroll
 command leaves point in the window.  This variable affects all the
 scroll commands documented in this section, as well as scrolling with
-the mouse wheel (@pxref{Wheeled Mice}); in general, it affects any
+the mouse wheel (@pxref{Mouse Commands}); in general, it affects any
 command that has a non-@code{nil} @code{scroll-command} property.
 @xref{Property Lists,,, elisp, The Emacs Lisp Reference Manual}.
 
@@ -238,25 +239,31 @@ centered after scrolling.
 @cindex aggressive scrolling
 @vindex scroll-up-aggressively
 @vindex scroll-down-aggressively
-  When the window does scroll by a longer distance, you can control
-how aggressively it scrolls by setting the variables
-@code{scroll-up-aggressively} and @code{scroll-down-aggressively}.
-The value of @code{scroll-up-aggressively} should be either
-@code{nil}, or a fraction @var{f} between 0 and 1.  A fraction
-specifies where on the screen to put point when scrolling upward,
-i.e. forward.  When point goes off the window end, the new start
-position is chosen to put point @var{f} parts of the window height
-from the bottom.  Thus, larger @var{f} means more aggressive
-scrolling: more new text is brought into view.  The default value,
-@code{nil}, is equivalent to 0.5.
+  When the window does scroll by a distance longer than
+@code{scroll-step}, you can control how aggressively it scrolls by
+setting the variables @code{scroll-up-aggressively} and
+@code{scroll-down-aggressively}.  The value of
+@code{scroll-up-aggressively} should be either @code{nil}, or a
+fraction @var{f} between 0 and 1.  A fraction specifies where on the
+screen to put point when scrolling upward, i.e.@: forward.  When point
+goes off the window end, the new start position is chosen to put point
+@var{f} parts of the window height from the bottom margin.  Thus,
+larger @var{f} means more aggressive scrolling: more new text is
+brought into view.  The default value, @code{nil}, is equivalent to
+0.5.
 
   Likewise, @code{scroll-down-aggressively} is used for scrolling
-down, i.e. backward.  The value specifies how far point should be
-placed from the top of the window; thus, as with
+down, i.e.@: backward.  The value specifies how far point should be
+placed from the top margin of the window; thus, as with
 @code{scroll-up-aggressively}, a larger value is more aggressive.
 
   These two variables are ignored if either @code{scroll-step} or
 @code{scroll-conservatively} are set to a non-zero value.
+
+  Note that @code{scroll-margin}, described below, limits the amount
+of scrolling so as to put point outside of the top or bottom margin,
+even if aggressive scrolling specifies a fraction @var{f} that is
+larger than the window portion between the top and the bottom margins.
 
 @vindex scroll-margin
   The variable @code{scroll-margin} restricts how close point can come
@@ -455,7 +462,7 @@ one large window.
   To turn off Follow mode, type @kbd{M-x follow-mode} a second time.
 
 @node Faces
-@section Faces: Controlling Text Display Style
+@section Text Faces
 @cindex faces
 
   Emacs can display text in several different styles, called
@@ -474,10 +481,8 @@ matching that regular expression (@pxref{Regexps}).
   It's possible for a given face to look different in different
 frames.  For instance, some text-only terminals do not support all
 face attributes, particularly font, height, and width, and some
-support a limited range of colors.  The @code{list-faces-display}
-command shows the appearance for the selected frame.
+support a limited range of colors.
 
-@cindex face colors, setting
 @cindex background color
 @cindex default face
   You can customize a face to alter its appearance, and save those
@@ -492,24 +497,57 @@ background color.
   You can also use X resources to specify attributes of any particular
 face.  @xref{Resources}.
 
-@findex set-face-foreground
-@findex set-face-background
-  You can also change the foreground and background colors of a face
-with @kbd{M-x set-face-foreground} and @kbd{M-x set-face-background}.
-These commands prompt in the minibuffer for a face name and a color
-name, with completion, and then set that face to use the specified
-color (@pxref{Face Customization}, for information about color names).
-They affect the face colors on all frames, but their effects do not
-persist for future Emacs sessions, unlike using the customization
-buffer or X resources.  You can also use frame parameters to set
-foreground and background colors for a specific frame; see @ref{Frame
-Parameters}.
-
   Emacs can display variable-width fonts, but some Emacs commands,
 particularly indentation commands, do not account for variable
 character display widths.  Therefore, we recommend not using
 variable-width fonts for most faces, particularly those assigned by
 Font Lock mode.
+
+@node Colors
+@section Colors for Faces
+@cindex color name
+@cindex RGB triplet
+
+  Faces can have various foreground and background colors.  When you
+specify a color for a face---for instance, when customizing the face
+(@pxref{Face Customization})---you can use either a @dfn{color name}
+or an @dfn{RGB triplet}.
+
+@findex list-colors-display
+  A color name is a pre-defined name, such as @samp{dark orange} or
+@samp{medium sea green}.  To view a list of color names, type @kbd{M-x
+list-colors-display}.  If you run this command on a graphical display,
+it shows the full range of color names known to Emacs (these are the
+standard X11 color names, defined in X's @file{rgb.txt} file).  If you
+run the command on a text-only terminal, it shows only a small subset
+of colors that can be safely displayed on such terminals.  However,
+Emacs understands X11 color names even on text-only terminals; if a
+face is given a color specified by an X11 color name, it is displayed
+using the closest-matching terminal color.
+
+  An RGB triplet is a string of the form @samp{#RRGGBB}.  Each of the
+R, G, and B components is a hexadecimal number specifying the
+component's relative intensity, one to four digits long (usually two
+digits are used).  The components must have the same number of digits.
+For hexadecimal values A to F, either upper or lower case are
+acceptable.
+
+  The @kbd{M-x list-colors-display} command also shows the equivalent
+RGB triplet for each named color.  For instance, @samp{medium sea
+green} is equivalent to @samp{#3CB371}.
+
+@cindex face colors, setting
+@findex set-face-foreground
+@findex set-face-background
+  You can change the foreground and background colors of a face with
+@kbd{M-x set-face-foreground} and @kbd{M-x set-face-background}.
+These commands prompt in the minibuffer for a face name and a color,
+with completion, and then set that face to use the specified color.
+They affect the face colors on all frames, but their effects do not
+persist for future Emacs sessions, unlike using the customization
+buffer or X resources.  You can also use frame parameters to set
+foreground and background colors for a specific frame; @xref{Frame
+Parameters}.
 
 @node Standard Faces
 @section Standard Faces
@@ -762,7 +800,7 @@ relies on analysis of the syntactic structure of the buffer text.  For
 the sake of speed, some modes, including Lisp mode, rely on a special
 convention: an open-parenthesis or open-brace in the leftmost column
 always defines the beginning of a defun, and is thus always outside
-any string or comment.  Therefore, you should avoid placing a an
+any string or comment.  Therefore, you should avoid placing an
 open-parenthesis or open-brace in the leftmost column, if it is inside
 a string or comment.  @xref{Left Margin Paren}, for details.
 
@@ -1016,13 +1054,13 @@ trailing whitespace in the region instead.
 @cindex fringes, and unused line indication
   On graphical displays, Emacs can indicate unused lines at the end of
 the window with a small image in the left fringe (@pxref{Fringes}).
-The image appears for window lines that do not correspond to any
-buffer text.  Blank lines at the end of the buffer then stand out
-because they do not have this image in the fringe.  To enable this
-feature, set the buffer-local variable @code{indicate-empty-lines} to
-a non-@code{nil} value.  You can enable or disable this feature for
-all new buffers by setting the default value of this variable,
-e.g.@:@code{(setq-default indicate-empty-lines t)}.
+The image appears for screen lines that do not correspond to any
+buffer text, so blank lines at the end of the buffer stand out because
+they lack this image.  To enable this feature, set the buffer-local
+variable @code{indicate-empty-lines} to a non-@code{nil} value.  You
+can enable or disable this feature for all new buffers by setting the
+default value of this variable, e.g.@: @code{(setq-default
+indicate-empty-lines t)}.
 
 @node Selective Display
 @section Selective Display
@@ -1216,7 +1254,7 @@ characters include @acronym{ASCII} numbers, letters, and punctuation
 characters, as well as many non-@acronym{ASCII} characters.
 
 @vindex tab-width
-@cindex control character
+@cindex control characters on display
   The @acronym{ASCII} character set contains non-printing @dfn{control
 characters}.  Two of these are displayed specially: the newline
 character (Unicode code point @code{U+000A}) is displayed by starting
@@ -1228,19 +1266,21 @@ value between 1 and 1000, inclusive.  Note that how the tab character
 in the buffer is displayed has nothing to do with the definition of
 @key{TAB} as a command.
 
-  Other @acronym{ASCII} control characters are displayed as a caret
+  Other @acronym{ASCII} control characters, whose codes are below
+@code{U+0020} (octal 40, decimal 32), are displayed as a caret
 (@samp{^}) followed by the non-control version of the character, with
 the @code{escape-glyph} face.  For instance, the @samp{control-A}
 character, @code{U+0001}, is displayed as @samp{^A}.
 
+@cindex octal escapes
 @vindex ctl-arrow
-  The non-@acronym{ASCII}, non-printing characters @code{U+0080}
-(octal 200) through @code{U+009F} (octal 237) are displayed as octal
-escape sequences, with the @code{escape-glyph} face.  For instance,
+  The raw bytes with codes @code{U+0080} (octal 200) through
+@code{U+009F} (octal 237) are displayed as @dfn{octal escape
+sequences}, with the @code{escape-glyph} face.  For instance,
 character code @code{U+0098} (octal 230) is displayed as @samp{\230}.
 If you change the buffer-local variable @code{ctl-arrow} to
-@code{nil}, @acronym{ASCII} control characters are also displayed as
-octal escape sequences instead of caret escape sequences.
+@code{nil}, the @acronym{ASCII} control characters are also displayed
+as octal escape sequences instead of caret escape sequences.
 
 @vindex nobreak-char-display
 @cindex non-breaking space
@@ -1249,7 +1289,7 @@ octal escape sequences instead of caret escape sequences.
   Some non-@acronym{ASCII} characters have the same appearance as an
 @acronym{ASCII} space or hyphen (minus) character.  Such characters
 can cause problems if they are entered into a buffer without your
-realization, e.g. by yanking; for instance, source code compilers
+realization, e.g.@: by yanking; for instance, source code compilers
 typically do not treat non-@acronym{ASCII} spaces as whitespace
 characters.  To deal with this problem, Emacs displays such characters
 specially: it displays @code{U+00A0} (no-break space) with the
@@ -1270,10 +1310,12 @@ elisp, The Emacs Lisp Reference Manual}.
   On graphical displays, some characters may have no glyphs in any of
 the fonts available to Emacs.  These @dfn{glyphless characters} are
 normally displayed as boxes containing the hexadecimal character code.
-You can control the display method by customizing the variable
-@code{glyphless-char-display-control}.  @xref{Glyphless Chars,,
-Glyphless Character Display, elisp, The Emacs Lisp Reference Manual},
-for details.
+Similarly, on text terminals, characters that cannot be displayed
+using the terminal encoding (@pxref{Terminal Coding}) are normally
+displayed as question signs.  You can control the display method by
+customizing the variable @code{glyphless-char-display-control}.
+@xref{Glyphless Chars,, Glyphless Character Display, elisp, The Emacs
+Lisp Reference Manual}, for details.
 
 @node Cursor Display
 @section Displaying the Cursor

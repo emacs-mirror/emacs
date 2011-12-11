@@ -53,7 +53,7 @@ C-F9 or `M-x ethio-toggle-space'
   punctuation followed by zero or more ASCII spaces'.
 
 S-F5 or `M-x ethio-toggle-punctuation'
-  Toggles ASCII punctuations and Ethiopic punctuations for keyboard input.
+  Toggles ASCII punctuation and Ethiopic punctuation for keyboard input.
   The current mode is indicated by `.' (ASCII) or `$(3$i(B' (Ethiopic).
 
 S-SPC or `M-x ethio-insert-ethio-space'

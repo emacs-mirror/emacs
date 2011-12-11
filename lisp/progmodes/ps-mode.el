@@ -713,7 +713,7 @@ defines the beginning of a group. These tokens are:  {  [  <<"
   (ps-mode-r-balance ">>"))
 
 (defun ps-mode-r-balance (right)
-  "Adjust indentification if point after RIGHT."
+  "Adjust indenting if point after RIGHT."
   (if ps-mode-auto-indent
       (save-excursion
 	(when (re-search-backward (concat "^[ \t]*" (regexp-quote right) "\\=") nil t)

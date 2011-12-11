@@ -108,7 +108,7 @@ inhibition of allout-widgets-mode."
 ;;;_  > allout-widgets-setup (varname value)
 ;;;###autoload
 (defun allout-widgets-setup (varname value)
-  "Commission or decommision allout-widgets-mode along with allout-mode.
+  "Commission or decommission allout-widgets-mode along with allout-mode.
 
 Meant to be used by customization of `allout-widgets-auto-activation'."
   (set-default varname value)
@@ -1623,7 +1623,7 @@ We return the item-widget corresponding to the item at point."
 
       (set-buffer-modified-p was-modified)
       (goto-char steady-point)
-      ;; must null the marker or the buffer gets clogged with impedence:
+      ;; must null the marker or the buffer gets clogged with impedance:
       (set-marker steady-point nil)
 
       item-widget)))

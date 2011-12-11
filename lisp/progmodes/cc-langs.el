@@ -221,7 +221,7 @@ the evaluated constant value at compile time."
     ;;
     ;; OPS either has the structure of `c-operators', is a single
     ;; group in `c-operators', or is a plain list of operators.
-    ;; 
+    ;;
     ;; OPGROUP-FILTER specifies how to select the operator groups.  It
     ;; can be t to choose all groups, a list of group type symbols
     ;; (such as 'prefix) to accept, or a function which will be called
@@ -433,7 +433,7 @@ element is a cons where the car is the character to modify and the cdr
 the new syntax, as accepted by `modify-syntax-entry'."
   ;; The $ character is not allowed in most languages (one exception
   ;; is Java which allows it for legacy reasons) but we still classify
-  ;; it as an indentifier character since it's often used in various
+  ;; it as an identifier character since it's often used in various
   ;; machine generated identifiers.
   t    '((?_ . "w") (?$ . "w"))
   (objc java) (append '((?@ . "w"))
@@ -772,7 +772,7 @@ literal are multiline."
   "Regexp matching the prefix of a cpp directive in the languages that
 normally use that macro preprocessor.  Tested at bol or at boi.
 Assumed to not contain any submatches or \\| operators."
-  ;; TODO (ACM, 2005-04-01).  Amend the following to recognise escaped NLs;
+  ;; TODO (ACM, 2005-04-01).  Amend the following to recognize escaped NLs;
   ;; amend all uses of c-opt-cpp-prefix which count regexp-depth.
   t "\\s *#\\s *"
   (java awk) nil)
@@ -1520,7 +1520,7 @@ properly."
 ;; end-of-defun-function will be set so that commands like
 ;; `mark-defun' and `narrow-to-defun' work right.  The key sequences
 ;; C-M-a and C-M-e are, however, bound directly to the CC Mode
-;; functions, allowing optimisation for large n.
+;; functions, allowing optimization for large n.
 (c-lang-defconst beginning-of-defun-function
   "Function to which beginning-of-defun-function will be set."
   t 'c-beginning-of-defun
@@ -2530,7 +2530,7 @@ Note that Java specific rules are currently applied to tell this from
        "\\.?[0-9]"
 
        "\\|"
-       ;; The nonambiguous operators from `prefix-ops'.
+       ;; The unambiguous operators from `prefix-ops'.
        (c-make-keywords-re nil
 	 (set-difference nonkeyword-prefix-ops in-or-postfix-ops
 			 :test 'string-equal))
@@ -2681,7 +2681,7 @@ possible for good performance."
 			       pos (match-end 0)))
 		       res))))
 
-  ;; Allow cpp operatios (where applicable).
+  ;; Allow cpp operations (where applicable).
   t (if (c-lang-const c-opt-cpp-prefix)
 	(set-difference (c-lang-const c-block-prefix-disallowed-chars)
 			'(?#))

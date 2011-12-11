@@ -847,7 +847,7 @@ and disable it otherwise.  If called from Lisp, enable the mode
 if ARG is omitted or nil.
 
 SGML Electric Tag Pair mode is a buffer-local minor mode for use
-with `sgml-mode' and related maor modes.  When enabled, editing
+with `sgml-mode' and related major modes.  When enabled, editing
 an opening markup tag automatically updates the closing tag."
   :lighter "/e"
   (if sgml-electric-tag-pair-mode

@@ -60,7 +60,7 @@
 ;;
 ;; Thanks to KevinB@bartley.demon.co.uk for his useful input.
 ;;
-;;--- Customisation -------------------------------------------------------
+;;--- Customization -------------------------------------------------------
 ;;
 ;; * You may want to use none or more of following:
 ;;

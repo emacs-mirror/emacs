@@ -204,7 +204,7 @@
 (add-hook 'gnus-summary-mode-hook 'nnmairix-summary-mode-hook)
 
 ;; ;;;###autoload
-;; (defun nnmairix-initalize (&optional force)
+;; (defun nnmairix-initialize (&optional force)
 ;;   (interactive "P")
 ;;   (if (not (or (file-readable-p "~/.mairixrc")
 ;; 	       force))
@@ -333,7 +333,7 @@ can happen are wrong marks in nnmairix groups."
   "Use only the registry for determining original group(s).
 If set to t, nnmairix will only use the registry for determining
 the original group(s) of an article (which is also necessary for
-propapagting marks).  If set to nil, it will also try to determine
+propagating marks).  If set to nil, it will also try to determine
 the group from an additional mairix search which might be slow
 when propagating lots of marks."
   :version "23.1"
@@ -512,7 +512,7 @@ Other back ends might or might not work.")
        ;; Everything else is an error
        (t
 	(nnheader-report
-	 'nnmairix "Error running marix. See buffer %s for details"
+	 'nnmairix "Error running mairix. See buffer %s for details"
 	 nnmairix-mairix-output-buffer)
 	nil))))))
 

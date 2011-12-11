@@ -519,7 +519,7 @@ exist to customize these feature for different Lisp implementations.
 
 ** C-x p now disabled.
 
-The command C-x p, a nonrecomended command which narrows to the current
+The command C-x p, a nonrecommended command which narrows to the current
 page, is now initially disabled like C-x n.
 
 * Dealing with files.
@@ -1303,7 +1303,7 @@ changing the file's uid or gid.
 
 The default value of this variable is `nil', because usually it is
 useful to have the uid of a file change according to who edited it
-last.  I recommend thet this variable be left normally `nil' and
+last.  I recommend that this variable be left normally `nil' and
 changed with a local variables list in those particular files where
 the uid needs to be preserved.
 
@@ -1620,4 +1620,3 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
 Local variables:
 mode: text
 end:
-

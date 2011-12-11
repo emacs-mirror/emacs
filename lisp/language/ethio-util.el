@@ -802,7 +802,7 @@ The 2nd and 3rd arguments BEGIN and END specify the region."
 	(forward-char 1)
 	(insert "}")))
 
-    ;; Special Ethiopic punctuations.
+    ;; Special Ethiopic punctuation.
     (goto-char (point-min))
     (while (re-search-forward "\\ce[»\\.\\?]\\|«\\ce" nil t)
       (cond
@@ -890,7 +890,7 @@ Otherwise, [0-9A-F]."
 
 ;;;###autoload
 (defun ethio-find-file nil
-  "Transliterate file content into Ethiopic dependig on filename suffix."
+  "Transliterate file content into Ethiopic depending on filename suffix."
   (cond
 
    ((string-match "\\.sera$" (buffer-file-name))

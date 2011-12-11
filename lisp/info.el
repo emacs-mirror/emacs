@@ -231,6 +231,12 @@ want to set `Info-refill-paragraphs'."
 		 (const :tag "Replace tag and hide reference" t)
 		 (const :tag "Hide tag and reference" hide)
 		 (other :tag "Only replace tag" tag))
+  :set (lambda (sym val)
+	 (set sym val)
+	 (dolist (buffer (buffer-list))
+	   (with-current-buffer buffer
+	     (when (eq major-mode 'Info-mode)
+	       (revert-buffer t t)))))
   :group 'info)
 
 (defcustom Info-refill-paragraphs nil
@@ -811,10 +817,6 @@ otherwise, that defaults to `Top'."
 	   (concat default-directory (buffer-name))))
   (Info-find-node-2 nil nodename))
 
-;; It's perhaps a bit nasty to kill the *info* buffer to force a re-read,
-;; but at least it keeps this routine (which is for makeinfo-buffer and
-;; Info-revert-buffer-function) out of the way of normal operations.
-;;
 (defun Info-revert-find-node (filename nodename)
   "Go to an Info node FILENAME and NODENAME, re-reading disk contents.
 When *info* is already displaying FILENAME and NODENAME, the window position
@@ -822,27 +824,23 @@ is preserved, if possible."
   (or (eq major-mode 'Info-mode) (switch-to-buffer "*info*"))
   (let ((old-filename Info-current-file)
 	(old-nodename Info-current-node)
-	(old-buffer-name (buffer-name))
+	(window-selected (eq (selected-window) (get-buffer-window)))
 	(pcolumn      (current-column))
 	(pline        (count-lines (point-min) (line-beginning-position)))
 	(wline        (count-lines (point-min) (window-start)))
-	(old-history-forward Info-history-forward)
-	(old-history  Info-history)
 	(new-history  (and Info-current-file
 			   (list Info-current-file Info-current-node (point)))))
-    (kill-buffer (current-buffer))
-    (switch-to-buffer (or old-buffer-name "*info*"))
-    (Info-mode)
+    ;; When `Info-current-file' is nil, `Info-find-node-2' rereads the file.
+    (setq Info-current-file nil)
     (Info-find-node filename nodename)
-    (setq Info-history-forward old-history-forward)
-    (setq Info-history old-history)
     (if (and (equal old-filename Info-current-file)
 	     (equal old-nodename Info-current-node))
 	(progn
 	  ;; note goto-line is no good, we want to measure from point-min
-	  (goto-char (point-min))
-	  (forward-line wline)
-	  (set-window-start (selected-window) (point))
+	  (when window-selected
+	    (goto-char (point-min))
+	    (forward-line wline)
+	    (set-window-start (selected-window) (point)))
 	  (goto-char (point-min))
 	  (forward-line pline)
 	  (move-to-column pcolumn))
@@ -1087,7 +1085,7 @@ a case-insensitive match is tried."
                      ;; Add anchors to the history too
                      (setq Info-history-list
                            (cons new-history
-                                 (delete new-history Info-history-list))))
+                                 (remove new-history Info-history-list))))
                    (goto-char anchorpos))
                   ((numberp Info-point-loc)
                    (forward-line (- Info-point-loc 2))
@@ -1514,7 +1512,7 @@ escaped (\\\",\\\\)."
 	;; Add a new unique history item to full history list
 	(let ((new-history (list Info-current-file Info-current-node)))
 	  (setq Info-history-list
-		(cons new-history (delete new-history Info-history-list)))
+		(cons new-history (remove new-history Info-history-list)))
 	  (setq Info-history-forward nil))
 	(if (not (eq Info-fontify-maximum-menu-size nil))
             (Info-fontify-node))
@@ -1771,12 +1769,14 @@ If DIRECTION is `backward', search in the reverse direction."
       ;; If no subfiles, give error now.
       (if give-up
 	  (if (null Info-current-subfile)
-	      (let ((search-spaces-regexp
-		     (if (or (not isearch-mode) isearch-regexp)
-			 Info-search-whitespace-regexp)))
-		(if backward
-		    (re-search-backward regexp)
-		  (re-search-forward regexp)))
+	      (if isearch-mode
+		  (signal 'search-failed (list regexp "end of manual"))
+		(let ((search-spaces-regexp
+		       (if (or (not isearch-mode) isearch-regexp)
+			   Info-search-whitespace-regexp)))
+		  (if backward
+		      (re-search-backward regexp)
+		    (re-search-forward regexp))))
 	    (setq found nil)))
 
       (if (and bound (not found))
@@ -1846,7 +1846,9 @@ If DIRECTION is `backward', search in the reverse direction."
 		    (setq list nil)))
 	      (if found
 		  (message "")
-		(signal 'search-failed (list regexp))))
+		(signal 'search-failed (if isearch-mode
+					   (list regexp "end of manual")
+					 (list regexp)))))
 	  (if (not found)
 	      (progn (Info-read-subfile osubfile)
 		     (goto-char opoint)
@@ -2153,7 +2155,7 @@ If SAME-FILE is non-nil, do not move to a different Info file."
   (insert "Recently Visited Nodes\n")
   (insert "**********************\n\n")
   (insert "* Menu:\n\n")
-  (let ((hl (delete '("*History*" "Top") Info-history-list)))
+  (let ((hl (remove '("*History*" "Top") Info-history-list)))
     (while hl
       (let ((file (nth 0 (car hl)))
 	    (node (nth 1 (car hl))))
@@ -3240,7 +3242,7 @@ search results."
 	(Info-index topic)
 	(push (cons (cons Info-current-file topic) Info-index-alternatives)
 	      Info-virtual-index-nodes)
-	;; Clean up unneccessary side-effects of `Info-index'.
+	;; Clean up unnecessary side-effects of `Info-index'.
 	(setq Info-history-list ohist-list)
 	(Info-goto-node orignode)
 	(message "")))
@@ -3403,7 +3405,7 @@ Build a menu of the possible matches."
 (declare-function finder-unknown-keywords "finder" ())
 (declare-function lm-commentary "lisp-mnt" (&optional file))
 (defvar finder-keywords-hash)
-(defvar package-alist)                  ; finder requires package
+(defvar package--builtins)		; finder requires package
 
 (defun Info-finder-find-node (_filename nodename &optional _no-going-back)
   "Finder-specific implementation of `Info-find-node-2'."
@@ -3417,14 +3419,14 @@ Build a menu of the possible matches."
     (insert "***************\n\n")
     (insert "* Menu:\n\n")
     (dolist (assoc (append '((all . "All package info")
-			     (unknown . "unknown keywords"))
+			     (unknown . "Unknown keywords"))
 			   finder-known-keywords))
       (let ((keyword (car assoc)))
 	(insert (format "* %s %s.\n"
 			(concat (symbol-name keyword) ": "
-				"kw:" (symbol-name keyword) ".")
+				"Keyword " (symbol-name keyword) ".")
 			(cdr assoc))))))
-   ((equal nodename "unknown")
+   ((equal nodename "Keyword unknown")
     ;; Display unknown keywords
     (insert (format "\n\^_\nFile: %s,  Node: %s,  Up: Top\n\n"
 		    Info-finder-file nodename))
@@ -3434,24 +3436,29 @@ Build a menu of the possible matches."
     (mapc
      (lambda (assoc)
        (insert (format "* %-14s %s.\n"
-		       (concat (symbol-name (car assoc)) "::")
+		       (concat (symbol-name (car assoc)) ": "
+			       "Keyword " (symbol-name (car assoc)) ".")
 		       (cdr assoc))))
      (finder-unknown-keywords)))
-   ((equal nodename "all")
+   ((equal nodename "Keyword all")
     ;; Display all package info.
     (insert (format "\n\^_\nFile: %s,  Node: %s,  Up: Top\n\n"
 		    Info-finder-file nodename))
     (insert "Finder Package Info\n")
     (insert "*******************\n\n")
-    (dolist (package package-alist)
-      (insert (format "%s - %s\n"
-		      (format "*Note %s::" (nth 0 package))
-		      (nth 1 package)))))
-   ((string-match "\\`kw:" nodename)
+    (insert "* Menu:\n\n")
+    (let (desc)
+      (dolist (package package--builtins)
+	(setq desc (cdr-safe package))
+	(when (vectorp desc)
+	  (insert (format "* %-16s %s.\n"
+			  (concat (symbol-name (car package)) "::")
+			  (aref desc 2)))))))
+   ((string-match "\\`Keyword " nodename)
     (setq nodename (substring nodename (match-end 0)))
     ;; Display packages that match the keyword
     ;; or the list of keywords separated by comma.
-    (insert (format "\n\^_\nFile: %s,  Node: kw:%s,  Up: Top\n\n"
+    (insert (format "\n\^_\nFile: %s,  Node: Keyword %s,  Up: Top\n\n"
 		    Info-finder-file nodename))
     (insert "Finder Packages\n")
     (insert "***************\n\n")
@@ -3463,11 +3470,11 @@ Build a menu of the possible matches."
 			       (split-string nodename ",[ \t\n]*" t)
 			     (list nodename))))
 	  hits desc)
-      (dolist (kw keywords)
-	(push (copy-tree (gethash kw finder-keywords-hash)) hits))
+      (dolist (keyword keywords)
+	(push (copy-tree (gethash keyword finder-keywords-hash)) hits))
       (setq hits (delete-dups (apply 'append hits)))
       (dolist (package hits)
-	(setq desc (cdr-safe (assq package package-alist)))
+	(setq desc (cdr-safe (assq package package--builtins)))
 	(when (vectorp desc)
 	  (insert (format "* %-16s %s.\n"
 			  (concat (symbol-name package) "::")

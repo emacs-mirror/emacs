@@ -230,7 +230,7 @@ will be automatically rechecked when Emacs becomes idle; the
 rechecking will be paused whenever there is input pending.
 
 By default, uses a vacuous schema that allows any well-formed XML
-document.  A schema can be specified explictly using
+document.  A schema can be specified explicitly using
 \\[rng-set-schema-file-and-validate], or implicitly based on the buffer's
 file name or on the root element name.  In each case the schema must
 be a RELAX NG schema using the compact schema \(such schemas
@@ -377,8 +377,8 @@ The schema is set like `rng-auto-set-schema'."
 (defun rng-kill-timers ()
   ;; rng-validate-timer and rng-validate-quick-timer have the
   ;; permanent-local property, so that the timers can be
-  ;; cancelled even after changing mode.
-  ;; This function takes care of cancelling the timers and
+  ;; canceled even after changing mode.
+  ;; This function takes care of canceling the timers and
   ;; then killing the local variables.
   (when (local-variable-p 'rng-validate-timer)
     (when rng-validate-timer

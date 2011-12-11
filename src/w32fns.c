@@ -2262,7 +2262,7 @@ w32_msg_pump (deferred_msg * msg_buf)
                  some third party shell extensions can cause it to be used in
                  system dialogs, which causes a crash if it is not initialized.
                  This is a known bug in Windows, which was fixed long ago, but
-                 the patch for XP is not publically available until XP SP3,
+                 the patch for XP is not publicly available until XP SP3,
                  and older versions will never be patched.  */
               CoInitialize (NULL);
 	      w32_createwindow ((struct frame *) msg.wParam);
@@ -2417,7 +2417,7 @@ complete_deferred_msg (HWND hwnd, UINT msg, LRESULT result)
   deferred_msg * msg_buf = find_deferred_msg (hwnd, msg);
 
   if (msg_buf == NULL)
-    /* Message may have been cancelled, so don't abort.  */
+    /* Message may have been canceled, so don't abort.  */
     return;
 
   msg_buf->result = result;
@@ -2538,7 +2538,7 @@ post_character_message (HWND hwnd, UINT msg,
            the lisp thread to respond.
 
 	   Note that we don't want to block the input thread waiting for
-	   a reponse from the lisp thread (although that would at least
+	   a response from the lisp thread (although that would at least
 	   solve the deadlock problem above), because we want to be able
 	   to receive C-g to interrupt the lisp thread.  */
 	cancel_all_deferred_msgs ();
@@ -2880,7 +2880,7 @@ w32_wnd_proc (HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 		      key.dwControlKeyState = modifiers;
 
 		      add = w32_kbd_patch_key (&key);
-		      /* 0 means an unrecognised keycode, negative means
+		      /* 0 means an unrecognized keycode, negative means
 			 dead key.  Ignore both.  */
 		      while (--add >= 0)
 			{
@@ -2943,7 +2943,7 @@ w32_wnd_proc (HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
       break;
 
     case WM_IME_CHAR:
-      /* If we can't get the IME result as unicode, use default processing,
+      /* If we can't get the IME result as Unicode, use default processing,
          which will at least allow characters decodable in the system locale
          get through.  */
       if (!get_composition_string_fn)
@@ -3711,7 +3711,7 @@ w32_wnd_proc (HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
       if (w32_system_caret_hwnd == NULL)
 	{
 	  /* Use the default caret width, and avoid changing it
-	     unneccesarily, as it confuses screen reader software.  */
+	     unnecessarily, as it confuses screen reader software.  */
 	  w32_system_caret_hwnd = hwnd;
 	  CreateCaret (hwnd, NULL, 0,
 		       w32_system_caret_height);
@@ -3749,7 +3749,7 @@ w32_wnd_proc (HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 	  flags |= TPM_RIGHTBUTTON;
 
 	/* Remember we did a SetCapture on the initial mouse down event,
-	   so for safety, we make sure the capture is cancelled now.  */
+	   so for safety, we make sure the capture is canceled now.  */
 	ReleaseCapture ();
 	button_state = 0;
 
@@ -4951,7 +4951,7 @@ If TYPE is nil or omitted, get the property as a string.
 Otherwise TYPE is the name of the atom that denotes the type expected.
 If SOURCE is non-nil, get the property on that window instead of from
 FRAME.  The number 0 denotes the root window.
-If DELETE_P is non-nil, delete the property after retreiving it.
+If DELETE_P is non-nil, delete the property after retrieving it.
 If VECTOR_RET_P is non-nil, don't return a string but a vector of values.
 
 Value is nil if FRAME hasn't a property with name PROP or if PROP has
@@ -5011,7 +5011,8 @@ no value of TYPE (always string in the MS Windows case).  */)
    cursor.  Duplicated from xdisp.c, but cannot use the version there
    due to lack of atimers on w32.  */
 #define DEFAULT_HOURGLASS_DELAY 1
-/* Return non-zero if houglass timer has been started or hourglass is shown.  */
+/* Return non-zero if hourglass timer has been started or hourglass is
+   shown.  */
 /* PENDING: if W32 can use atimers (atimer.[hc]) then the common impl in
    	    xdisp.c could be used. */
 
@@ -6031,7 +6032,7 @@ Otherwise, if ONLY-DIR-P is non-nil, the user can only select directories.  */)
 
 	file = DECODE_FILE (build_string (filename));
       }
-    /* User cancelled the dialog without making a selection.  */
+    /* User canceled the dialog without making a selection.  */
     else if (!CommDlgExtendedError ())
       file = Qnil;
     /* An error occurred, fallback on reading from the mini-buffer.  */

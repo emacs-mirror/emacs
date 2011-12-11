@@ -267,6 +267,8 @@ struct sigaction {
 #define getpid    _getpid
 #ifdef _MSC_VER
 typedef int pid_t;
+#define snprintf  _snprintf
+#define strtoll   _strtoi64
 #endif
 #define isatty    _isatty
 #define logb      _logb
@@ -275,15 +277,17 @@ typedef int pid_t;
 #define popen     _popen
 #define pclose    _pclose
 #define umask	  _umask
+#ifndef _MSC_VER
 #define utimbuf	  _utimbuf
+#endif
 #define strdup    _strdup
 #define strupr    _strupr
 #define strnicmp  _strnicmp
 #define stricmp   _stricmp
 #define tzset     _tzset
 
-#if !defined (_MSC_VER) || (_MSC_VER < 1400)
 #define tzname    _tzname
+#if !defined (_MSC_VER) || (_MSC_VER < 1400)
 #undef  utime
 #define utime	  _utime
 #endif
@@ -335,7 +339,7 @@ extern char *get_emacs_configuration_options (void);
 #define _WINSOCK_H
 
 /* Defines size_t and alloca ().  */
-#if (defined(_MSC_VER) && defined(emacs)) || defined(USE_CRT_DLL)
+#ifdef emacs
 #define malloc e_malloc
 #define free   e_free
 #define realloc e_realloc

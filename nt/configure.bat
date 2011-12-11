@@ -155,7 +155,7 @@ echo.   --without-jpeg          do not use JPEG library even if it is installed
 echo.   --without-gif           do not use GIF library even if it is installed
 echo.   --without-tiff          do not use TIFF library even if it is installed
 echo.   --without-xpm           do not use XPM library even if it is installed
-echo.   --without-gnutls        do not use GNUTLS library even if it is installed
+echo.   --without-gnutls        do not use GnuTLS library even if it is installed
 echo.   --with-svg              use the RSVG library (experimental)
 echo.   --distfiles             path to files for make dist, e.g. libXpm.dll
 if "%use_extensions%" == "0" goto end
@@ -563,7 +563,7 @@ set HAVE_GNUTLS=
 goto :tlsDone
 
 :haveTls
-echo ...GNUTLS header available, building with GNUTLS support.
+echo ...GnuTLS header available, building with GnuTLS support.
 set HAVE_GNUTLS=1
 
 :tlsDone

@@ -40,10 +40,10 @@
 ;; overhead this has became so small that IMHO is surely outweighted by
 ;; the benefits you get but, as usual, YMMV
 ;;
-;; Important caveat, when deciding the cursor/'grey keys' keycodes I had to
+;; Important caveat, when deciding the cursor/'gray keys' keycodes I had to
 ;; make a choice: on my Linux box this choice allows me to run all the
 ;; ncurses applications without problems but make these keys
-;; uncomprehensible to all the cursesX programs.  Your mileage may vary so
+;; incomprehensible to all the cursesX programs.  Your mileage may vary so
 ;; you may consider changing the default 'emulation'.  Just search for this
 ;; piece of code and modify it as you like:
 ;;
@@ -910,7 +910,7 @@ is buffer-local."
   (setq term-raw-escape-map
 	(copy-keymap (lookup-key (current-global-map) "\C-x")))
 
-  ;; Added nearly all the 'grey keys' -mm
+  ;; Added nearly all the 'gray keys' -mm
 
   (if (featurep 'xemacs)
       (define-key term-raw-map [button2] 'term-mouse-paste)
@@ -2122,7 +2122,7 @@ If this takes us past the end of the current line, don't skip at all."
   "Is point after the process output marker?"
   ;; Since output could come into the buffer after we looked at the point
   ;; but before we looked at the process marker's value, we explicitly
-  ;; serialise.  This is just because I don't know whether or not Emacs
+  ;; serialize.  This is just because I don't know whether or not Emacs
   ;; services input during execution of lisp commands.
   (let ((proc-pos (marker-position
 		   (process-mark (get-buffer-process (current-buffer))))))
@@ -3890,7 +3890,7 @@ if KIND is 1, erase from home to point; else erase from home to point-max."
   (goto-char (point-max))
   (recenter -1))
 
-;;; Do the user's customisation...
+;;; Do the user's customization...
 
 (defvar term-load-hook nil
   "This hook is run when term is loaded in.

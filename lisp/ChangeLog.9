@@ -40,7 +40,7 @@
 2001-10-17  Francesco Potortì  <pot@gnu.org>
 
 	* comint.el (comint-password-prompt-regexp): Make it less
-	restrictive, letting comint recognise OpenSSH2 passphrase prompts.
+	restrictive, letting comint recognize OpenSSH2 passphrase prompts.
 
 2001-10-17  John Wiegley  <johnw@gnu.org>
 
@@ -2021,7 +2021,7 @@
 	newbuffile out of the loop, in the newbuffile-nd local var.
 	Use dolist (cosmetic change).  Compute the proposed name for the most
 	common case and cache it in the fourth place in the item.
-	(uniquify-rationalize-file-buffer-names): Used to return a a list
+	(uniquify-rationalize-file-buffer-names): Used to return a list
 	of buffer whose name was changed, but that return value was never used.
 	(uniquify-item-lessp): Replaces uniquify-filename-lessp, works on
 	the cached proposed name, does much less consing and is quicker.
@@ -6620,7 +6620,7 @@
 	(ansi-color-process-output): New function.  It is automatically
 	added to comint-output-filter-functions if this is XEmacs.
 	(ansi-color-unfontify-region): New optional parameter for XEmacs
-	compatibility.  Check wether font-lock-syntactic-keywords is
+	compatibility.  Check whether font-lock-syntactic-keywords is
 	boundp before removing the syntax table text property, as XEmacs
 	doesn't have it.
 	(ansi-color-filter-region): Doc change.
@@ -8319,7 +8319,7 @@
 	* frame.el (show-cursor-in-non-selected-windows): Doc fix.
 
 	* hi-lock.el (hi-lock-refontify): Don't call non-existent
-	jit-lock-fontify-buffer; it should anyway be unneccessary to
+	jit-lock-fontify-buffer; it should anyway be unnecessary to
 	do anything special when jit-lock is active.
 	(hi-yellow, hi-pink, hi-green, hi-blue): Fix defface specs.
 
@@ -8638,7 +8638,7 @@
 2000-11-15  Gerd Moellmann  <gerd@gnu.org>
 
 	* faces.el (face-set-after-frame-default):
-	If `inhibit-default-face-x-resources' is bound, don't intialize the
+	If `inhibit-default-face-x-resources' is bound, don't initialize the
 	default face from X resources.
 
 2000-11-15  Eli Zaretskii  <eliz@is.elta.co.il>

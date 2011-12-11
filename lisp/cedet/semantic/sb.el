@@ -87,7 +87,7 @@ Restore the old current buffer when completed."
 ;;    @ type
 ;;    = default value
 ;;
-;;  +> keywrd Type
+;;  +> keyword Type
 ;;   +> type part
 ;;
 ;;  +>  -> click to see additional information

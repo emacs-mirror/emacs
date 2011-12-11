@@ -311,10 +311,9 @@ file: Users may suspend viewing in order to modify the buffer.
 Exiting View mode will then discard the user's edits.  Setting
 EXIT-ACTION to `kill-buffer-if-not-modified' avoids this."
   (interactive "bView buffer: ")
-  (if (with-current-buffer buffer
-	(and (eq (get major-mode 'mode-class)
-		 'special)
-	     (null buffer-file-name)))
+  (if (eq (with-current-buffer buffer
+	    (get major-mode 'mode-class))
+	  'special)
       (progn
 	(switch-to-buffer buffer)
 	(message "Not using View mode because the major mode is special"))
@@ -482,7 +481,7 @@ Entry to view-mode runs the normal hook `view-mode-hook'."
   ;; sets view-read-only to t as a buffer-local variable
   ;; after exiting View mode.  That arranges that the next toggle-read-only
   ;; will reenable View mode.
-  ;; Cancelling View mode in any other way should cancel that, too,
+  ;; Canceling View mode in any other way should cancel that, too,
   ;; so that View mode stays off if toggle-read-only is called.
   (if (local-variable-p 'view-read-only)
       (kill-local-variable 'view-read-only))
@@ -497,7 +496,7 @@ Entry to view-mode runs the normal hook `view-mode-hook'."
   "Update `view-return-to-alist' of buffer BUFFER.
 Remove from `view-return-to-alist' all entries referencing dead
 windows.  Optional argument ITEM non-nil means add ITEM to
-`view-return-to-alist' after purging.  For a decsription of items
+`view-return-to-alist' after purging.  For a description of items
 that can be added see the RETURN-TO-ALIST argument of the
 function `view-mode-exit'.  If `view-return-to-alist' contains an
 entry for the selected window, purge that entry from

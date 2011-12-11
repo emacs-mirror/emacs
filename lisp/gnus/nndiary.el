@@ -55,7 +55,7 @@
 
 ;; * nnoo. NNDiary is very similar to nnml. This makes the idea of using nnoo
 ;;   (to derive nndiary from nnml) natural. However, my experience with nnoo
-;;   is that for reasonably complex back ends like this one, noo is a burden
+;;   is that for reasonably complex back ends like this one, nnoo is a burden
 ;;   rather than an help. It's tricky to use, not everything can be inherited,
 ;;   what can be inherited and when is not very clear, and you've got to be
 ;;   very careful because a little mistake can fuck up your other back ends,
@@ -353,7 +353,7 @@ all.  This may very well take some time.")
   ;; List of NNDiary headers that specify the time spec. Each header name is
   ;; followed by either two integers (specifying a range of possible values
   ;; for this header) or one list (specifying all the possible values for this
-  ;; header). In the latter case, the list does NOT include the unspecifyed
+  ;; header). In the latter case, the list does NOT include the unspecified
   ;; spec (*).
   ;; For time zone values, we have symbolic time zone names associated with
   ;; the (relative) number of seconds ahead GMT.
@@ -1163,9 +1163,9 @@ all.  This may very well take some time.")
   ;; Parse the schedule string STR, or signal an error.
   ;; Signals are caught by `nndary-schedule'.
   (if (string-match "[ \t]*\\*[ \t]*" str)
-      ;; unspecifyed
+      ;; unspecified
       nil
-    ;; specifyed
+    ;; specified
     (if (listp min-or-values)
 	;; min-or-values is values
 	;; #### NOTE: this is actually only a hack for time zones.
@@ -1320,7 +1320,7 @@ all.  This may very well take some time.")
       (or minute (setq minute 59))
       (or hour (setq hour 23))
       ;; I'll just compute all possible values and test them by decreasing
-      ;; order until one succeeds. This is probably quide rude, but I got
+      ;; order until one succeeds. This is probably quite rude, but I got
       ;; bored in finding a good algorithm for doing that ;-)
       ;; ### FIXME: remove identical entries.
       (let ((dom-list (nth 2 sched))

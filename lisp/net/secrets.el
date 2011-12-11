@@ -729,7 +729,7 @@ to their attributes."
     ;; Create the search buffer.
     (with-current-buffer (get-buffer-create "*Secrets*")
       (switch-to-buffer-other-window (current-buffer))
-      ;; Inialize buffer with `secrets-mode'.
+      ;; Initialize buffer with `secrets-mode'.
       (secrets-mode)
       (secrets-show-collections))))
 

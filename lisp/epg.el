@@ -82,7 +82,7 @@
 (defconst epg-invalid-recipients-reason-alist
   '((0 . "No specific reason given")
     (1 . "Not Found")
-    (2 . "Ambigious specification")
+    (2 . "Ambiguous specification")
     (3 . "Wrong key usage")
     (4 . "Key revoked")
     (5 . "Key expired")
@@ -95,7 +95,7 @@
 (defconst epg-delete-problem-reason-alist
   '((1 . "No such key")
     (2 . "Must delete secret key first")
-    (3 . "Ambigious specification")))
+    (3 . "Ambiguous specification")))
 
 (defconst epg-import-ok-reason-alist
   '((0 . "Not actually changed")

@@ -547,7 +547,7 @@ Please send all bug fixes and enhancements to
 ;; `pr-auto-region'		Non-nil means region is automagically detected.
 ;;
 ;; `pr-auto-mode'		Non-nil means major-mode specific printing is
-;;				prefered over normal printing.
+;;				preferred over normal printing.
 ;;
 ;; `pr-mode-alist'		Specify an alist for a major-mode and printing
 ;;				function.
@@ -2426,7 +2426,7 @@ marked instead of all buffer."
 
 
 (defcustom pr-auto-mode t
-  "Non-nil means major-mode specific printing is prefered over normal printing.
+  "Non-nil means major-mode specific printing is preferred over normal printing.
 
 That is, if current major-mode is declared in `pr-mode-alist', the `*-buffer*'
 and `*-region*' commands will behave like `*-mode*' commands; otherwise,
@@ -2536,7 +2536,7 @@ LPR-PRINT	It's a symbol function for text printing.  It's invoked with
 		nil, it's used (point-max).
 
 PS-PRINT	It's a symbol function for PostScript printing.  It's invoked
-		with 3 arguments: n-up printing, file name and the list:
+		with three arguments: n-up printing, file name and the list:
 		(HEADER-LINES  LEFT-HEADER  RIGHT-HEADER DEFAULT...).
 
 		Usually PS-PRINT function prepares the environment or buffer
@@ -3692,7 +3692,7 @@ VI. Customization:
 	  "\n\n
 The printing interface buffer has the same functionality as the printing menu.
 The major difference is that the states (like sending PostScript generated to a
-file, n-up printing, etc.) are set and saved between priting buffer
+file, n-up printing, etc.) are set and saved between printing buffer
 activation.  Also, the landscape, duplex and tumble values are the same for
 PostScript file and directory/buffer/region/mode processing; using menu, there
 are different value sets for PostScript file and directory/buffer/region/mode
@@ -5458,7 +5458,7 @@ If menu binding was not done, calls `pr-menu-bind'."
 
 
 (defun pr-toggle-mode-menu (&optional no-menu)
-  "Toggle whether major-mode specific printing is prefered over normal printing."
+  "Toggle whether major-mode specific printing is preferred over normal printing."
   (interactive)
   (pr-toggle 'pr-auto-mode "Auto mode"
 	     'printing 1 12 'toggle nil no-menu))

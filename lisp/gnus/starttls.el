@@ -5,7 +5,7 @@
 ;; Author: Daiki Ueno <ueno@unixuser.org>
 ;; Author: Simon Josefsson <simon@josefsson.org>
 ;; Created: 1999/11/20
-;; Keywords: TLS, SSL, OpenSSL, GNUTLS, mail, news
+;; Keywords: TLS, SSL, OpenSSL, GnuTLS, mail, news
 
 ;; This file is part of GNU Emacs.
 
@@ -33,15 +33,15 @@
 ;; implementations both called "starttls.el".  The first one is Daiki
 ;; Ueno's starttls.el which uses his own "starttls" command line tool,
 ;; and the second one is Simon Josefsson's starttls.el which uses
-;; "gnutls-cli" from GNUTLS.
+;; "gnutls-cli" from GnuTLS.
 ;;
-;; If "starttls" is available, it is prefered by the code over
+;; If "starttls" is available, it is preferred by the code over
 ;; "gnutls-cli", for backwards compatibility.  Use
 ;; `starttls-use-gnutls' to toggle between implementations if you have
-;; both tools installed.  It is recommended to use GNUTLS, though, as
+;; both tools installed.  It is recommended to use GnuTLS, though, as
 ;; it performs more verification of the certificates.
 
-;; The GNUTLS support requires GNUTLS 0.9.90 (released 2003-10-08) or
+;; The GnuTLS support requires GnuTLS 0.9.90 (released 2003-10-08) or
 ;; later, from <http://www.gnu.org/software/gnutls/>, or "starttls"
 ;; from <ftp://ftp.opaopa.org/pub/elisp/>.
 
@@ -121,8 +121,8 @@
   :group 'mail)
 
 (defcustom starttls-gnutls-program "gnutls-cli"
-  "Name of GNUTLS command line tool.
-This program is used when GNUTLS is used, i.e. when
+  "Name of GnuTLS command line tool.
+This program is used when GnuTLS is used, i.e. when
 `starttls-use-gnutls' is non-nil."
   :version "22.1"
   :type 'string
@@ -136,7 +136,7 @@ i.e. when `starttls-use-gnutls' is nil."
   :group 'starttls)
 
 (defcustom starttls-use-gnutls (not (executable-find starttls-program))
-  "*Whether to use GNUTLS instead of the `starttls' command."
+  "*Whether to use GnuTLS instead of the `starttls' command."
   :version "22.1"
   :type 'boolean
   :group 'starttls)
@@ -150,7 +150,7 @@ These apply when the `starttls' command is used, i.e. when
 
 (defcustom starttls-extra-arguments nil
   "Extra arguments to `starttls-program'.
-These apply when GNUTLS is used, i.e. when `starttls-use-gnutls' is non-nil.
+These apply when GnuTLS is used, i.e. when `starttls-use-gnutls' is non-nil.
 
 For example, non-TLS compliant servers may require
 '(\"--protocols\" \"ssl3\").  Invoke \"gnutls-cli --help\" to
@@ -167,8 +167,8 @@ find out which parameters are available."
 
 (defcustom starttls-connect "- Simple Client Mode:\n\n"
   "*Regular expression indicating successful connection.
-The default is what GNUTLS's \"gnutls-cli\" outputs."
-  ;; GNUTLS cli.c:main() prints this string when it is starting to run
+The default is what GnuTLS's \"gnutls-cli\" outputs."
+  ;; GnuTLS cli.c:main() prints this string when it is starting to run
   ;; in the application read/write phase.  If the logic, or the string
   ;; itself, is modified, this must be updated.
   :version "22.1"
@@ -177,8 +177,8 @@ The default is what GNUTLS's \"gnutls-cli\" outputs."
 
 (defcustom starttls-failure "\\*\\*\\* Handshake has failed"
   "*Regular expression indicating failed TLS handshake.
-The default is what GNUTLS's \"gnutls-cli\" outputs."
-  ;; GNUTLS cli.c:do_handshake() prints this string on failure.  If the
+The default is what GnuTLS's \"gnutls-cli\" outputs."
+  ;; GnuTLS cli.c:do_handshake() prints this string on failure.  If the
   ;; logic, or the string itself, is modified, this must be updated.
   :version "22.1"
   :type 'regexp
@@ -186,8 +186,8 @@ The default is what GNUTLS's \"gnutls-cli\" outputs."
 
 (defcustom starttls-success "- Compression: "
   "*Regular expression indicating completed TLS handshakes.
-The default is what GNUTLS's \"gnutls-cli\" outputs."
-  ;; GNUTLS cli.c:do_handshake() calls, on success,
+The default is what GnuTLS's \"gnutls-cli\" outputs."
+  ;; GnuTLS cli.c:do_handshake() calls, on success,
   ;; common.c:print_info(), that unconditionally print this string
   ;; last.  If that logic, or the string itself, is modified, this
   ;; must be updated.
@@ -283,7 +283,7 @@ BUFFER is the buffer (or `buffer-name') to associate with the process.
 Third arg is name of the host to connect to, or its IP address.
 Fourth arg PORT is an integer specifying a port to connect to.
 If `starttls-use-gnutls' is nil, this may also be a service name, but
-GNUTLS requires a port number."
+GnuTLS requires a port number."
   (if starttls-use-gnutls
       (starttls-open-stream-gnutls name buffer host port)
     (message "Opening STARTTLS connection to `%s:%s'" host (format "%s" port))

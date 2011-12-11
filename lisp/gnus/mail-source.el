@@ -1017,6 +1017,7 @@ This only works when `display-time' is enabled."
 	  (dolist (file (directory-files (concat path subdir) t))
 	    (when (and (not (file-directory-p file))
 		       (not (if function
+				;; `function' should return nil if successful.
 				(funcall function file mail-source-crash-box)
 			      (let ((coding-system-for-write
 				     mm-text-coding-system)
@@ -1035,7 +1036,8 @@ This only works when `display-time' is enabled."
 ;;;				  (insert "\n\n")
 				  ;; MMDF mail format
 				  (insert "\001\001\001\001\n"))
-				(delete-file file)))))
+				(delete-file file)
+				nil))))
 	      (incf found (mail-source-callback callback file))
 	      (mail-source-delete-crash-box)))))
       found)))

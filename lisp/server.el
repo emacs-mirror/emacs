@@ -307,11 +307,13 @@ Updates `server-clients'."
 
       (setq server-clients (delq proc server-clients))
 
-      ;; Delete the client's tty.
-      (let ((terminal (process-get proc 'terminal)))
-	;; Only delete the terminal if it is non-nil.
-	(when (and terminal (eq (terminal-live-p terminal) t))
-	  (delete-terminal terminal)))
+      ;; Delete the client's tty, except on Windows (both GUI and console),
+      ;; where there's only one terminal and does not make sense to delete it.
+      (unless (eq system-type 'windows-nt)
+	(let ((terminal (process-get proc 'terminal)))
+	  ;; Only delete the terminal if it is non-nil.
+	  (when (and terminal (eq (terminal-live-p terminal) t))
+	    (delete-terminal terminal))))
 
       ;; Delete the client's process.
       (if (eq (process-status proc) 'open)
@@ -685,7 +687,14 @@ Server mode runs a process that accepts commands from the
 
 (defun server-eval-and-print (expr proc)
   "Eval EXPR and send the result back to client PROC."
-  (let ((v (eval (car (read-from-string expr)))))
+  ;; While we're running asynchronously (from a process filter), it is likely
+  ;; that the emacsclient command was run in response to a user
+  ;; action, so the user probably knows that Emacs is processing this
+  ;; emacsclient request, so if we get a C-g it's likely that the user
+  ;; intended it to interrupt us rather than interrupt whatever Emacs
+  ;; was doing before it started handling the process filter.
+  ;; Hence `with-local-quit' (bug#6585).
+  (let ((v (with-local-quit (eval (car (read-from-string expr))))))
     (when proc
       (with-temp-buffer
         (let ((standard-output (current-buffer)))
@@ -1028,7 +1037,11 @@ The following commands are accepted by the client:
                  (setq tty-name (pop args-left)
                        tty-type (pop args-left)
                        dontkill (or dontkill
-                                    (not use-current-frame))))
+                                    (not use-current-frame)))
+                 ;; On Windows, emacsclient always asks for a tty frame.
+                 ;; If running a GUI server, force the frame type to GUI.
+                 (when (eq window-system 'w32)
+                   (push "-window-system" args-left)))
 
                 ;; -position LINE[:COLUMN]:  Set point to the given
                 ;;  position in the next file.

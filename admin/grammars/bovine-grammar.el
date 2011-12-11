@@ -115,7 +115,7 @@ NAME, ALIASCLASS, DEFINITION and ATTRIBUTES."
 ;; when it is released, but at the moment it might be possible that people
 ;; are using an older snapshot.
 (defvar bovine--grammar-newstyle-unquote
-  (equal '(, test) (read ",test")))
+  (equal '(\, test) (read ",test")))
 
 (defun bovine-grammar-expand-form (form quotemode &optional inplace)
   "Expand FORM into a new one suitable to the bovine parser.
@@ -434,7 +434,7 @@ Menu items are appended to the common grammar menu.")
      (grammar-setupcode-builder  . bovine-grammar-setupcode-builder)
      )))
 
-(add-to-list 'auto-mode-alist '("\\.by$" . bovine-grammar-mode))
+(add-to-list 'auto-mode-alist '("\\.by\\'" . bovine-grammar-mode))
 
 (defvar-mode-local bovine-grammar-mode semantic-grammar-macros
   '(
@@ -453,5 +453,67 @@ Menu items are appended to the common grammar menu.")
   "Semantic grammar macros used in bovine grammars.")
 
 (provide 'semantic/bovine/grammar)
+
+(defun bovine-make-parsers ()
+  "Generate Emacs' built-in Bovine-based parser files."
+  (semantic-mode 1)
+  ;; Loop through each .by file in current directory, and run
+  ;; `semantic-grammar-batch-build-one-package' to build the grammar.
+  (dolist (f (directory-files default-directory nil "\\.by\\'"))
+    (let ((packagename
+           (condition-case err
+               (with-current-buffer (find-file-noselect f)
+                 (semantic-grammar-create-package))
+             (error (message "%s" (error-message-string err)) nil)))
+	  lang)
+      (when (and packagename
+		 (string-match "^semantic-\\(.*\\)-by\\.el\\'" packagename))
+	(setq lang (match-string 1 packagename))
+	(with-temp-buffer
+	  (insert-file-contents packagename)
+	  (setq buffer-file-name (expand-file-name packagename))
+	  ;; Fix copyright header:
+	  (goto-char (point-min))
+	  (re-search-forward "^;; Author:")
+	  (setq copyright-end (match-beginning 0))
+	  (re-search-forward "^;;; Code:\n")
+	  (delete-region copyright-end (match-end 0))
+	  (goto-char copyright-end)
+	  (insert ";; This file is part of GNU Emacs.
+
+;; GNU Emacs is free software: you can redistribute it and/or modify
+;; it under the terms of the GNU General Public License as published by
+;; the Free Software Foundation, either version 3 of the License, or
+;; (at your option) any later version.
+
+;; GNU Emacs is distributed in the hope that it will be useful,
+;; but WITHOUT ANY WARRANTY; without even the implied warranty of
+;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+;; GNU General Public License for more details.
+
+;; You should have received a copy of the GNU General Public License
+;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+
+;;; Commentary:
+;;
+;; This file was generated from admin/grammars/"
+		  lang ".by.
+
+;;; Code:
+
+\(require 'semantic/lex)
+\(eval-when-compile (require 'semantic/bovine))\n")
+	  (goto-char (point-min))
+	  (delete-region (point-min) (line-end-position))
+	  (insert ";;; semantic/bovine/" lang
+		  "-by.el --- Generated parser support file")
+	  (delete-trailing-whitespace)
+	  ;; Fix footer:
+	  (goto-char (point-max))
+	  (re-search-backward ".\n;;; Analyzers")
+	  (delete-region (point) (point-max))
+	  (insert "(provide 'semantic/bovine/" lang "-by)\n\n")
+	  (insert ";;; semantic/bovine/" lang "-by.el ends here\n")
+	  (save-buffer))))))
 
 ;;; bovine-grammar.el ends here

@@ -152,7 +152,7 @@ eta		H		h
 theta		Q		q
 iota		I		i
 kappa		K		k
-lamda		L		l
+lambda		L		l
 mu		M		m
 nu		N		n
 xi		X		x
@@ -433,7 +433,7 @@ eta		H		h
 theta		J		j
 iota		I		i
 kappa		K		k
-lamda		L		l
+lambda		L		l
 mu		M		m
 nu		N		n
 xi		X		x
@@ -1147,7 +1147,7 @@ nil t t nil nil nil nil nil nil nil t)
 
 In the right of ,Fk(B key is a combination key, where
  ,F4(B acute
- ,F((B diaresis
+ ,F((B diaeresis
 
 e.g.
  ,F4(B + ,Fa(B -> ,F\(B
@@ -1289,7 +1289,7 @@ e.g.
 
 In the right of ,Fk(B key is a combination key, where
  ,F4(B acute
- ,F((B diaresis
+ ,F((B diaeresis
 
 e.g.
  ,Fa(B + ,F4(B -> ,F\(B

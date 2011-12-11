@@ -839,7 +839,7 @@ do_symval_forwarding (register union Lisp_Fwd *valcontents)
 
     case Lisp_Fwd_Kboard_Obj:
       /* We used to simply use current_kboard here, but from Lisp
-	 code, it's value is often unexpected.  It seems nicer to
+	 code, its value is often unexpected.  It seems nicer to
 	 allow constructions like this to work as intuitively expected:
 
 	 (with-selected-frame frame

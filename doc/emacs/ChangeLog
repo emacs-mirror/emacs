@@ -1,3 +1,209 @@
+2011-12-10  Eli Zaretskii  <eliz@gnu.org>
+
+	* msdog.texi (Windows Fonts): Document how to force GDI font
+	backend on MS-Windows.
+
+2011-12-10  Chong Yidong  <cyd@gnu.org>
+
+	* building.texi (Compilation): Say what the -k flag to make does.
+	Move subprocess discussion to Compilation Shell.
+	(Compilation Mode): Add xref for grep, occur, and mouse
+	references.  Define "locus".
+	(Grep Searching): Use @command.
+	(Debuggers, Commands of GUD, GDB Graphical Interface): Clarify
+	intro.
+	(Starting GUD): Clarify how arguments are specified.
+	(Debugger Operation): Index entry for "GUD interaction buffer",
+	and move basic description here from Commands of GUD node.
+	(GDB User Interface Layout): Copyedits.
+	(Source Buffers): Remove gdb-find-source-frame, which is not in
+	gdb-mi.el.
+	(Other GDB Buffers): Remove gdb-use-separate-io-buffer and
+	toggle-gdb-all-registers, which are not in gdb-mi.el.  Don't
+	re-document GUD interaction buffers.
+
+	* programs.texi (Symbol Completion): M-TAB can now use Semantic.
+	(Semantic): Add cindex entries for Semantic.
+
+2011-12-06  Chong Yidong  <cyd@gnu.org>
+
+	* programs.texi (Man Page): Clarify how to use Man-switches.
+	Don't bother documenting Man-fontify-manpage-flag.
+	(Lisp Doc): Add xref to Name Help node.
+	(Hideshow): Add cindex.  Mention role of ellipses, and default
+	value of hs-isearch-open.  Don't bother documenting
+	hs-special-modes-alist.
+	(Symbol Completion): Add kindex for C-M-i.  Don't recommend
+	changing the window manager binding of M-TAB.
+
+2011-12-05  Chong Yidong  <cyd@gnu.org>
+
+	* programs.texi (Comment Commands): Fix description of for M-; on
+	blank lines.  Move documentation of comment-region here.
+	(Multi-Line Comments): Clarify the role of comment-multi-line.
+	Refer to Comment Commands for comment-region doc.
+	(Options for Comments): Refer to Multi-Line Comments for
+	comment-multi-line doc, instead of duplicating it.  Fix default
+	values of comment-padding and comment-start-skip.
+
+2011-12-04  Chong Yidong  <cyd@gnu.org>
+
+	* programs.texi (Program Modes): Mention modes that are not
+	included with Emacs.  Fix references to other manuals for tex.
+	Add index entry for backward-delete-char-untabify.  Mention
+	prog-mode-hook.
+	(Which Function): Use "global minor mode" terminology.
+	(Basic Indent, Multi-line Indent): Refer to previous descriptions
+	in Indentation chapter to avoid duplication.
+	(Expressions): Copyedit.
+	(Matching): Document Electric Pair mode.
+
+	* ack.texi (Acknowledgments):
+	* rmail.texi (Movemail, Other Mailbox Formats):
+	* frames.texi (Frames): Don't capitalize "Unix".
+
+2011-12-04  Chong Yidong  <cyd@gnu.org>
+
+	* text.texi (Nroff Mode): Mention what nroff is.
+	(Text Based Tables, Table Recognition): Don't say "Table mode"
+	since it's not a major or minor mode.
+	(Text Based Tables): Reduce the size of the example.
+	(Table Definition): Clarify definitions.
+	(Table Creation): Add key table.
+	(Cell Commands): Use kbd for commands.
+	(Table Rows and Columns): Combine nodes Row Commands and Column
+	Commands.
+	(Fixed Width Mode): Node deleted; contents moved to parent.
+	(Table Conversion): Shorten example.
+	(Measuring Tables): Merge into Table Misc.
+
+2011-12-03  Chong Yidong  <cyd@gnu.org>
+
+	* text.texi (TeX Mode): Mention AUCTeX package.
+	(TeX Editing): Add xref to documentation for Occur.
+	(LaTeX Editing): Add xref to Completion node.
+	(TeX Print): Fix description of tex-directory.
+	(Enriched Text): Renamed from Formatted Text.  Make this node and
+	its subnodes less verbose, since text/enriched files are
+	practically unused.
+	(Enriched Mode): Renamed from Requesting Formatted Text.
+	(Format Colors): Node deleted.
+	(Enriched Faces): Renamed from Format Faces.  Describe commands
+	for applying colors too.
+	(Forcing Enriched Mode): Node deleted; merged into Enriched Mode.
+
+	* frames.texi (Menu Mouse Clicks): Tweak description of C-Mouse-2.
+
+	* display.texi (Colors): New node.
+
+	* cmdargs.texi (Colors X):
+	* xresources.texi (GTK styles):
+	* custom.texi (Face Customization): Reference it.
+
+	* glossary.texi (Glossary): Remove "formatted text" and "WYSIWYG".
+	Link to Fill Commands for Justification entry.
+
+2011-12-03  Eli Zaretskii  <eliz@gnu.org>
+
+	* display.texi (Auto Scrolling): More accurate description of what
+	scroll-*-aggressively does, including the effect of non-zero
+	margin.  Fix "i.e." markup.
+
+2011-12-02  Chong Yidong  <cyd@gnu.org>
+
+	* text.texi (Pages): Mention how formfeed chars are displayed.
+	(Auto Fill): Note convention for calling auto-fill-mode from Lisp.
+	Describe adaptive filling more precisely.
+	(Fill Commands): Note that filling removes excess whitespace.
+	(Text Mode): Note auto-mode-alist entries for Text mode.  TAB is
+	now bound to indent-for-tab-command in Text mode.
+	(Outline Mode): Copyedits.
+	(Outline Visibility): Note that Reveal mode is a buffer-local
+	minor mode.
+
+	* modes.texi (Major Modes): Move note about checking major-mode in
+	a hook function here, from Text mode.
+
+2011-11-28  Chong Yidong  <cyd@gnu.org>
+
+	* text.texi (Words): Add xref to Position Info.
+	(Paragraphs): Add xref to Regexps.
+
+	* indent.texi (Indentation): Rewrite introduction.  Move table to
+	Indentation Commands node.
+	(Indentation Commands): Add index entries to table.  Copyedits.
+	(Tab Stops, Just Spaces): Copyedits.
+	(Indent Convenience): New node.  Document electric-indent-mode.
+
+	* programs.texi (Basic Indent):
+	* windows.texi (Pop Up Window): Fix kindex entry.
+
+2011-11-28  Chong Yidong  <cyd@gnu.org>
+
+	* modes.texi (Major Modes): Move major-mode variable doc here from
+	Choosing Modes.  Document describe-mode.  Document prog-mode-hook
+	and text-mode-hook.  Add example of using hooks.
+	(Minor Modes): Document behavior of mode command calls from Lisp.
+	Note that setting the mode variable using Customize will DTRT.
+	(Choosing Modes): Add example of setting a minor mode using a
+	local variable.
+
+2011-11-27  Chong Yidong  <cyd@gnu.org>
+
+	* frames.texi (Creating Frames): Move frame parameter example to
+	Frame Parameters node.
+	(Frame Commands): C-x 5 o does not warp the mouse by default.
+	(Fonts): Add more GTK-style properties; also, they should be
+	capitalized.
+	(Special Buffer Frames): Node deleted; special-display is on the
+	way out.
+	(Frame Parameters): Example moved here from Creating Frames.
+	Clarify that default-frame-alist affects the initial frame too.
+	Delete auto-raise-mode and auto-lower-mode.
+	(Wheeled Mice): Node deleted.  Content moved to Mouse Commands.
+	(Dialog Boxes): Delete x-gtk-use-old-file-dialog.
+
+	* windows.texi (Window Choice): Add xref to Lisp manual for
+	special-display-*.
+
+2011-11-26  Eli Zaretskii  <eliz@gnu.org>
+
+	* display.texi (Text Display): Update the description,
+	cross-references, and indexing related to display of control
+	characters and raw bytes.
+
+2011-11-25  Chong Yidong  <cyd@gnu.org>
+
+	* frames.texi (Frames): Rewrite introduction.
+	(Mouse Commands): Default for mouse-drag-copy-region is now t.
+	Mouse-3 does not copy to kill ring by default.  DEL does not
+	behave specially for mouse commands any more.
+	(Mouse References): Document mouse-1-click-follows-link more
+	thoroughly.
+	(Menu Mouse Clicks): Move footnote to the main text and add xref
+	to Init Rebinding node.
+	(Mode Line Mouse): Mouse-3 on the mode-line does not bury buffer.
+
+	* files.texi (Visiting): `C-x 5 f' works on ttys too.
+
+2011-11-24  Juanma Barranquero  <lekktu@gmail.com>
+
+	* display.texi (Font Lock): Fix typo.
+
+2011-11-24  Glenn Morris  <rgm@gnu.org>
+
+	* rmail.texi (Rmail Output):
+	Mention rmail-automatic-folder-directives.  (Bug#9657)
+
+2011-11-21  Chong Yidong  <cyd@gnu.org>
+
+	* mark.texi (Global Mark Ring): Fix description of global mark
+	ring (Bug#10032).
+
+2011-11-20  Juanma Barranquero  <lekktu@gmail.com>
+
+	* msdog.texi (Windows Fonts): Fix typo.
+
 2011-11-17  Glenn Morris  <rgm@gnu.org>
 
 	* regs.texi (Bookmarks): Small fixes related to saving.  (Bug#10058)

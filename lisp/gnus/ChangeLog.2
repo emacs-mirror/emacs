@@ -1396,7 +1396,7 @@
 	* tls.el (tls-process-connection-type): Doc fix.
 
 	* imap.el (imap-starttls-open): Rewrite, should support both old
-	starttls.el and new starttls.el that uses GNUTLS.
+	starttls.el and new starttls.el that uses GnuTLS.
 
 2003-09-18  Katsumi Yamaoka  <yamaoka@jpl.org>
 
@@ -2111,7 +2111,7 @@
 	* gnus-srvr.el (gnus-browse-foreign-server): Parse garbage NNTP
 	groups correctly.
 
-2003-06-06  Benjamin Rutt  <rutt+news@cis.ohio-state.edu>.
+2003-06-06  Benjamin Rutt  <rutt+news@cis.ohio-state.edu>
 
 	* message.el (message-fetch-field): Augment documentation to state
 	the narrowed-to-headers restriction.
@@ -5094,7 +5094,7 @@
 2003-02-02  Katsumi Yamaoka  <yamaoka@jpl.org>
 
 	* nnheader.el (nnheader-directory-separator-character): Change the
-	way to compute the dafault value.
+	way to compute the default value.
 
 2003-02-02  Jesper Harder  <harder@ifa.au.dk>
 
@@ -5120,7 +5120,7 @@
 	* gnus-util.el (gnus-prin1-to-string): Bind print-length and
 	print-level.
 
-	* gnus-art.el (article-display-x-face): Removed grey x-face stuff.
+	* gnus-art.el (article-display-x-face): Removed gray x-face stuff.
 	(gnus-treat-display-grey-xface): Removed.
 
 	* gnus-fun.el (gnus-grab-cam-face): New.
@@ -6816,7 +6816,7 @@
 	downloaded variable if we're in an uncovered group.
 
 	* gnus-agent.el (gnus-agent-downloaded-article-face): Change the
-	font to soemthing less noticeable.
+	font to something less noticeable.
 	(gnus-agent-group-covered-p): New function.
 
 2002-12-09  ShengHuo ZHU  <zsh@cs.rochester.edu>
@@ -6972,7 +6972,7 @@
 	* gnus-agent.el (gnus-agent-check-overview-buffer): Make debugger
 	print message on entry.
 
-2002-11-25  Kevin Greiner  <kgreiner@xpediantsolutions.com>.
+2002-11-25  Kevin Greiner  <kgreiner@xpediantsolutions.com>
 
 	* gnus-range.el (gnus-range-difference): New function.
 	* gnus-sum.el (gnus-summary-insert-old-articles): Use it.
@@ -7964,7 +7964,7 @@
 	(mml2015-pgg-encrypt): New functions.
 	(defvar, autoload): Prevent byte-compile warnings.
 
-2002-09-24  TSUCHIYA Masatoshi  <tsuchiya@namazu.org>.
+2002-09-24  TSUCHIYA Masatoshi  <tsuchiya@namazu.org>
 
 	* gnus-art.el (article-strip-banner): Check for the existence of
 	from header.
@@ -8097,7 +8097,7 @@
 
 	* gnus-sum.el (gnus-summary-next-group): Semi-exit only when needed.
 
-2002-09-12  John Paul Wallington  <jpw@shootybangbang.com>.
+2002-09-12  John Paul Wallington  <jpw@shootybangbang.com>
 
 	* gnus.el (gnus-visual, gnus-meta): Fix typo.
 
@@ -8111,7 +8111,7 @@
 	(nnimap-split-rule): Doc fix.
 	(nnimap-request-expire-articles): Cleanup code.
 
-2002-09-11  TSUCHIYA Masatoshi  <tsuchiya@namazu.org>.
+2002-09-11  TSUCHIYA Masatoshi  <tsuchiya@namazu.org>
 
 	* gnus-art.el (gnus-article-address-banner-alist): New option.
 	(article-strip-banner): Refer the above option to split banners of
@@ -8170,7 +8170,7 @@
 
 2002-09-03  Simon Josefsson  <jas@extundo.com>
 
-	* nntp.el (nntp-wait-for-string): Dont infloop if process died.
+	* nntp.el (nntp-wait-for-string): Don't infloop if process died.
 
 	* gnus-agent.el (gnus-agent-batch): Add doc.
 
@@ -8205,7 +8205,7 @@
 	(gnus-group-fetch-control): New function.
 	Add them to the keymap and menu.  Require mm-url.
 
-2002-08-30  Alex Schroeder  <alex@emacswiki.org>.
+2002-08-30  Alex Schroeder  <alex@emacswiki.org>
 
 	* gnus-mlspl.el (gnus-group-split-fancy): Doc fix.
 
@@ -8270,7 +8270,7 @@
 
 	* gnus-util.el (gnus-select-frame-set-input-focus): New function.
 
-2002-08-20  小関 吉則 (KOSEKI Yoshinori)  <kose@meadowy.org>.
+2002-08-20  小関 吉則 (KOSEKI Yoshinori)  <kose@meadowy.org>
 
 	* message.el (message-set-auto-save-file-name): Add support for
 	the Cygwin Emacs; the system-type is `cygwin'.
@@ -8396,7 +8396,7 @@
 	* nnimap.el (nnimap-split-articles): Do not call nnmail-fetch-field
 	when splitting malformed messages without message-id.
 
-2002-07-28  Niklas Morberg  <niklas.morberg@axis.com>.
+2002-07-28  Niklas Morberg  <niklas.morberg@axis.com>
 
 	* nnweb.el (nnweb-type, nnweb-type-definition)
 	(nnweb-gmane-create-mapping, nnweb-gmane-wash-article)
@@ -8440,18 +8440,18 @@
 	nnmail-expiry-target to 'delete, so that absolute deletion
 	happens when absolute deletion is requested.
 
-2002-07-21  Nevin Kapur  <nevin@jhu.edu>.
+2002-07-21  Nevin Kapur  <nevin@jhu.edu>
 
 	* nnmail.el (nnmail-fancy-expiry-target): Treat nonexisting
 	headers as empty headers.
 
-2002-07-21  Jochen Hein  <jochen@jochen.org>.
+2002-07-21  Jochen Hein  <jochen@jochen.org>
 
 	* gnus-art.el (gnus-emphasis-alist): Add strikethrough and
 	correct typo.
 	(gnus-emphasis-strikethru): New face.
 
-2002-07-20  Jason Merrill  <jason@redhat.com>.
+2002-07-20  Jason Merrill  <jason@redhat.com>
 
 	* nnfolder.el (nnfolder-retrieve-headers): Avoid searching the
 	entire file for each of a sequence of missing articles.
@@ -9836,7 +9836,7 @@
 2002-02-08  ShengHuo ZHU  <zsh@cs.rochester.edu>
 
 	* gnus-art.el (gnus-treat-display-grey-xface): New variable.
-	(article-display-x-face): Use it.  Disable grey xface, if
+	(article-display-x-face): Use it.  Disable gray xface, if
 	uncompface is not found.
 
 	* message.el (message-mode): Don't enable multibyte on an indirect
@@ -9879,7 +9879,7 @@
 	(rfc2047-decode-region): Don't unfold.  Let
 	gnus-article-treat-unfold-headers do it.
 
-2002-02-07  Matt Armstrong  <matt@lickey.com>.
+2002-02-07  Matt Armstrong  <matt@lickey.com>
 
 	* message.el (message-mode): Set local-abbrev-table.
 
@@ -10428,7 +10428,7 @@
 	* mml-sec.el (mml-secure-message-encrypt-smime): New.
 	* mml-sec.el (mml-secure-message-encrypt-pgp): New.
 	* mml-sec.el (mml-secure-message-encrypt-pgpmime): New.
-	* mml.el (mml-parse-1): Added code to recognise the secure tag and
+	* mml.el (mml-parse-1): Added code to recognize the secure tag and
 	convert it to either a part or multipart depending on if there are
 	other parts in the message.
 	* mml.el (mml-mode-map): Changed default sign/encrypt keybindings
@@ -11350,7 +11350,7 @@
 	* gnus-fun.el (gnus-convert-gray-x-face-to-xpm): Renamed.
 
 	* gnus-art.el (gnus-ignored-headers): Hide all X-Faces.
-	(article-display-x-face): Display grey X-Faces.
+	(article-display-x-face): Display gray X-Faces.
 
 	* gnus-fun.el (gnus-convert-gray-x-face-region): New function.
 	(gnus-convert-gray-x-face-to-ppm): Ditto.
@@ -13226,7 +13226,7 @@
 	(gnus-topic-catchup-articles): New function.  Suggested by Robin
 	S. Socha <robin-dated-1001857693.185e29@socha.net>.
 
-2001-09-27 11:00:00  Gerd M,Avllmann  <gerd@gnu.org>.
+2001-09-27 11:00:00  Gerd M,Avllmann  <gerd@gnu.org>
 
 	* gnus-ems.el (gnus-article-display-xface): Insert xface after
 	previous ones.
@@ -13977,7 +13977,7 @@
 	* mml.el (mml-menu): Changed name to "Attachments".
 
 	* mm-decode.el (mm-destroy-postponed-undisplay-list): Only message
-	when there is something to detroy.
+	when there is something to destroy.
 
 2001-05-21 17:11:46  Lars Magne Ingebrigtsen  <larsi@gnus.org>
 

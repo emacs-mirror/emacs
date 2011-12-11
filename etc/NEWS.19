@@ -1828,7 +1828,7 @@ c-fill-paragraph's behavior.
 containing an open brace just after a case/default label.
 
 *** New variable, c-progress-interval, which controls minibuffer update
-message displays during long re-indention.  This is a new feature
+message displays during long re-indentation.  This is a new feature
 which prints percentage complete messages at specified intervals.
 
 ** Makefile mode changes.
@@ -4288,7 +4288,7 @@ filename completion in comint mode apply, together with a variable
 controlling whether to restrict possible completions to only files
 that are executable (`shell-command-execonly').
 
-The input history is initialised from the file name given in the
+The input history is initialized from the file name given in the
 variable `shell-input-ring-file-name'--normally `.history' in your
 home directory.
 
@@ -4457,7 +4457,7 @@ highlighting, etc.
 
 So that such output processing may be done efficiently, there is a new
 variable, comint-last-output-start, that records the position of the start of
-the lastest output inserted into the buffer (effectively the previous value
+the last output inserted into the buffer (effectively the previous value
 of process-mark).  Output processing functions should process the text
 between comint-last-output-start (or perhaps the beginning of the line that
 the position lies on) and process-mark.
@@ -5484,7 +5484,7 @@ non-nil.
 ** M-x revert-buffer no longer offers to revert from a recent auto-save
 file unless you give it a prefix argument.  Otherwise it always
 reverts from the real file regardless of whether there has been an
-auto-save since thenm.  (Reverting from the auto-save file is no longer
+auto-save since then.  (Reverting from the auto-save file is no longer
 very useful now that the undo capacity is larger.)
 
 ** M-x recover-file no longer turns off Auto Save mode when it reads

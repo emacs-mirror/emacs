@@ -653,7 +653,7 @@ buffer, which is used to regenerate the help information when the user
 clicks on the @samp{Back} or @samp{Forward} buttons.  Most commands
 that use the @samp{*Help*} buffer should invoke this function before
 clearing the buffer.  The @var{item} argument should have the form
-@code{(@var{funtion} . @var{args})}, where @var{funtion} is a function
+@code{(@var{function} . @var{args})}, where @var{function} is a function
 to call, with argument list @var{args}, to regenerate the help buffer.
 The @var{interactive-p} argument is non-@code{nil} if the calling
 command was invoked interactively; in that case, the stack of items

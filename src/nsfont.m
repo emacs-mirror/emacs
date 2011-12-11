@@ -256,7 +256,7 @@ ns_char_width (NSFont *sfont, int c)
 
 
 /* Return whether set1 covers set2 to a reasonable extent given by pct.
-   We check, out of each 16 unicode char range containing chars in set2,
+   We check, out of each 16 Unicode char range containing chars in set2,
    whether at least one character is present in set1.
    This must be true for pct of the pairs to consider it covering. */
 static BOOL
@@ -297,7 +297,7 @@ static NSString
 
 
 /* Convert OTF 4-letter script code to emacs script name.  (Why can't
-   everyone just use some standard unicode names for these?) */
+   everyone just use some standard Unicode names for these?) */
 static NSString
 *ns_otf_to_script (Lisp_Object otf)
 {
@@ -329,7 +329,7 @@ static NSString
 
 /* Searches the :script, :lang, and :otf extra-bundle properties of the spec,
    plus registry regular property, for something that can be mapped to a
-   unicode script.  Empty string returned if no script spec found. */
+   Unicode script.  Empty string returned if no script spec found. */
 static NSString
 *ns_get_req_script (Lisp_Object font_spec)
 {
@@ -385,7 +385,7 @@ accumulate_script_ranges (Lisp_Object arg, Lisp_Object range, Lisp_Object val)
 }
 
 
-/* Use the unicode range information in Vchar_script_table to convert a script
+/* Use the Unicode range information in Vchar_script_table to convert a script
    name into an NSCharacterSet. */
 static NSCharacterSet
 *ns_script_to_charset (NSString *scriptName)
@@ -426,7 +426,7 @@ static NSCharacterSet
    If none are found, we reduce the percentage and try again, until 5%.
    This provides a font with at least some characters if such can be found.
    We don't use isSupersetOfSet: because (a) it doesn't work on Tiger, and
-   (b) need approximate match as fonts covering full unicode ranges are rare. */
+   (b) need approximate match as fonts covering full Unicode ranges are rare. */
 static NSSet
 *ns_get_covering_families (NSString *script, float pct)
 {
@@ -1292,7 +1292,7 @@ ns_uni_to_glyphs (struct nsfont_info *font_info, unsigned char block)
   if (!unichars || !(font_info->glyphs[block]))
     abort ();
 
-  /* create a string containing all unicode characters in this block */
+  /* create a string containing all Unicode characters in this block */
   for (idx = block<<8, i =0; i<0x100; idx++, i++)
     if (idx < 0xD800 || idx > 0xDFFF)
       unichars[i] = idx;
@@ -1487,5 +1487,5 @@ syms_of_nsfont (void)
   DEFSYM (Qroman, "roman");
   DEFSYM (Qmedium, "medium");
   DEFVAR_LISP ("ns-reg-to-script", Vns_reg_to_script,
-               doc: /* Internal use: maps font registry to unicode script. */);
+               doc: /* Internal use: maps font registry to Unicode script. */);
 }

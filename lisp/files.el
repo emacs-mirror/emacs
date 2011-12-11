@@ -1343,7 +1343,7 @@ automatically choosing a major mode, use \\[find-file-literally]."
   (let ((value (find-file-noselect filename nil nil wildcards)))
     (if (listp value)
 	(mapcar 'switch-to-buffer (nreverse value))
-      (switch-to-buffer value nil 'force-same-window))))
+      (switch-to-buffer value))))
 
 (defun find-file-other-window (filename &optional wildcards)
   "Edit file FILENAME, in another window.
@@ -4866,7 +4866,7 @@ given.  With a prefix argument, TRASH is nil."
 		directory 'full directory-files-no-dot-files-regexp))
 	  (error "Directory is not empty, not moving to trash")
 	(move-file-to-trash directory)))
-     ;; Otherwise, call outselves recursively if needed.
+     ;; Otherwise, call ourselves recursively if needed.
      (t
       (if (and recursive (not (file-symlink-p directory)))
 	  (mapc (lambda (file)
@@ -5790,7 +5790,7 @@ returns nil."
 
          ;; vc dired listings provide the state or blanks between file
          ;; permissions and date.  The state is always surrounded by
-         ;; parantheses:
+         ;; parentheses:
          ;; -rw-r--r-- (modified) 2005-10-22 21:25 files.el
          ;; This is not supported yet.
     (purecopy (concat "\\([0-9][BkKMGTPEZY]? " iso
@@ -6110,7 +6110,7 @@ message to that effect instead of signaling an error."
 
 (defvar kill-emacs-query-functions nil
   "Functions to call with no arguments to query about killing Emacs.
-If any of these functions returns nil, killing Emacs is cancelled.
+If any of these functions returns nil, killing Emacs is canceled.
 `save-buffers-kill-emacs' calls these functions, but `kill-emacs',
 the low level primitive, does not.  See also `kill-emacs-hook'.")
 

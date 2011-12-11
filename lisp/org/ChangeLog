@@ -1,3 +1,24 @@
+2011-12-06  Juanma Barranquero  <lekktu@gmail.com>
+
+	* ob.el (org-babel-expand-body:generic, org-babel-number-p):
+	* ob-ref.el (org-babel-ref-parse): Fix typos.
+
+2011-11-24  Juanma Barranquero  <lekktu@gmail.com>
+
+	* ob.el (org-babel-execute-src-block): Fix typo.
+
+2011-11-20  Juanma Barranquero  <lekktu@gmail.com>
+
+	* org.el (org-link-unescape, org-link-unescape-compound): Fix typos.
+
+2011-11-20  Andreas Schwab  <schwab@linux-m68k.org>
+
+	* org-list.el (org-list-send-item): Use sort instead of sort*.
+
+2011-11-20  Juanma Barranquero  <lekktu@gmail.com>
+
+	* org-table.el (org-table-line-to-dline): Fix typo.
+
 2011-11-16  Juanma Barranquero  <lekktu@gmail.com>
 
 	* org-agenda.el (org-agenda-add-entry-text-descriptive-links)
@@ -262,7 +283,7 @@
 
 	* org-archive.el (org-archive-subtree): While it might be possible
 	to archive an headline of a temporary buffer (i.e. not visiting a
-	file), it wouldn't be really sensical.
+	file), it wouldn't be really sensible.
 
 2011-07-28  Nicolas Goaziou  <n.goaziou@gmail.com>
 
@@ -3992,7 +4013,7 @@
 	* org-list.el (org-list-blocks): New variable.
 	(org-list-context): New function.
 	(org-list-full-item-re): New variable.
-	(org-list-struct-assoc-at-point): Use new varible.
+	(org-list-struct-assoc-at-point): Use new variable.
 	(org-list-struct): Rewrite of function.  Now, list data is
 	collected by looking at the list line after line.  It reads the
 	whole list each time because reading only a subtree was not enough
@@ -4165,7 +4186,7 @@
 
 2011-07-28  David Maus  <dmaus@ictsoc.de>
 
-	* org.el (org-link-escape): New unicode aware percent encoding
+	* org.el (org-link-escape): New Unicode aware percent encoding
 	algorithm.
 
 2011-07-28  Sebastian Rose  <sebastian_rose@gmx.de>
@@ -4173,7 +4194,7 @@
 	* org-protocol.el (org-protocol-unhex-single-byte-sequence): New
 	function.  Decode hex-encoded singly byte sequences.
 	(org-protocol-unhex-compound): Use new function if decoding sequence
-	as unicode character failed.
+	as Unicode character failed.
 
 2011-07-28  Bastien Guerry  <bzg@gnu.org>
 
@@ -6185,8 +6206,8 @@
 2010-11-11  Carsten Dominik  <carsten.dominik@gmail.com>
 
 	* org-indent.el (org-indent-add-properties):
-	Use `with-silent-modificatons'.
-	(org-indent-remove-properties): Use `with-silent-modificatons'.
+	Use `with-silent-modifications'.
+	(org-indent-remove-properties): Use `with-silent-modifications'.
 
 2010-11-11  Carsten Dominik  <carsten.dominik@gmail.com>
 
@@ -8123,7 +8144,7 @@
 2010-11-11  Nicolas Goaziou  <n.goaziou@gmail.com>
 
 	* org-list.el (org-insert-item-internal): New function to handle
-	positionning and contents of an item being inserted at a specific
+	positioning and contents of an item being inserted at a specific
 	pos. It is not possible anymore to split a term in a description
 	list or a checkbox when inserting a new item.
 
@@ -9742,7 +9763,7 @@
 
 2010-07-19  Bastien Guerry  <bzg@altern.org>
 
-	* org-timer.el (org-timer-set-timer): Fix bug about cancelling
+	* org-timer.el (org-timer-set-timer): Fix bug about canceling
 	timers.
 
 2010-07-19  David Maus  <dmaus@ictsoc.de>
@@ -12566,7 +12587,7 @@
 	buffer and at the position of the given clock.  However, changes
 	to the current clock are local and have no effect on the user's
 	active clock.  This allows, for example, far any clock to be
-	cancelled without cancelling the active clock.
+	canceled without canceling the active clock.
 	(org-clock-clock-in): New inline function that switches the active
 	clock to the given clock.  If either the argument RESUME, or the
 	global `org-clock-in-resume', are non-nil, it will resume a clock
@@ -13637,7 +13658,7 @@
 2009-08-06  Carsten Dominik  <carsten.dominik@gmail.com>
 
 	* org.el (org-remove-empty-overlays-at)
-	(org-clean-visibility-after-subtree-move): New functons.
+	(org-clean-visibility-after-subtree-move): New functions.
 	(org-move-subtree-down): Simplify cleanup of display.
 
 2009-08-06  Carsten Dominik  <carsten.dominik@gmail.com>
@@ -14386,7 +14407,7 @@
 2009-08-06  Carsten Dominik  <carsten.dominik@gmail.com>
 
 	* org.el (org-edit-src-code, org-edit-fixed-width-region): Use a
-	better bufer-generating mechanism.
+	better buffer-generating mechanism.
 	(org-edit-src-find-buffer): New function.
 
 	* org-icalendar.el (org-print-icalendar-entries): Don't check for
@@ -14739,7 +14760,7 @@
 
 2009-08-06  Carsten Dominik  <carsten.dominik@gmail.com>
 
-	* org.el (org-sort-entries-or-items): Match TODO keywrds
+	* org.el (org-sort-entries-or-items): Match TODO keywords
 	case-sensitively, when sorting.
 	(org-priority): Do not match TODO keywords with wrong case.
 
@@ -15201,7 +15222,7 @@
 
 	* org-exp.el (org-export-as-html): Use IDs in the correct way.
 
-	* org.el (org-uuidgen-p): New funtion.
+	* org.el (org-uuidgen-p): New function.
 
 	* org-agenda.el (org-agenda-fontify-priorities): New default value
 	`cookies'.
@@ -15449,7 +15470,7 @@
 
 	* org.el (org-enforce-todo-checkbox-dependencies): New option.
 	(org-block-todo-from-checkboxes): New function.
-	(org-todo): Make tripple prefix arg circumvent blocking.
+	(org-todo): Make triple prefix arg circumvent blocking.
 
 2009-01-30  Glenn Morris  <rgm@gnu.org>
 
@@ -17067,7 +17088,7 @@
 	(org-file-apps-defaults-macosx): Let PostScript files be opened by
 	preview.
 	(org-time-stamp-inactive): Call `org-time-stamp'.
-	(org-time-stamp): New argument `inactive'.  Also edit inacive
+	(org-time-stamp): New argument `inactive'.  Also edit inactive
 	stamps.  Convert time stamp type.
 	(org-open-file): Interpret the `default' value for the `command'
 	in `org-file-apps'.
@@ -17580,7 +17601,7 @@
 2008-06-17  Carsten Dominik  <dominik@science.uva.nl>
 
 	* org.el (org-schedule, org-deadline): Protect scheduled and
-	deadline tasks against changes that accidently remove the
+	deadline tasks against changes that accidentally remove the
 	repeater.  Also show a message with the new date when done.
 
 2008-06-17  Carsten Dominik  <dominik@science.uva.nl>

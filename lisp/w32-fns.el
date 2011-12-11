@@ -381,10 +381,10 @@ bit output with no translation."
 (w32-add-charset-info "mac-roman" 'w32-charset-mac 10000)
 (w32-add-charset-info "iso10646-1" 'w32-charset-default t)
 
-;;   ;; If unicode windows charset is not defined, use ansi fonts.
+;;   ;; If Unicode Windows charset is not defined, use ansi fonts.
 ;;   (w32-add-charset-info "iso10646-1" 'w32-charset-ansi t))
 
-;; Prefered names
+;; Preferred names
 (w32-add-charset-info "big5-0" 'w32-charset-chinesebig5 950)
 (w32-add-charset-info "gb2312.1980-0" 'w32-charset-gb2312 936)
 (w32-add-charset-info "jisx0208-sjis" 'w32-charset-shiftjis 932)

@@ -884,7 +884,7 @@
 1998-07-21  Kenichi Handa  <handa@etl.go.jp>
 
 	* international/kkc.el (kkc-region): Handled the case that
-	conversion is cancelled.
+	conversion is canceled.
 	(kkc-terminate): Update kkc-overlay-head correctly.
 	(kkc-cancel): Don't call kkc-terminate, but set kkc-converting to nil.
 
@@ -1012,7 +1012,7 @@
 	bindings for quail-execute-non-quail-command deleted.
 	(quail-conversion-keymap): Likewise.  Add key bindings for
 	quail-self-insert-command.
-	(quail-delete-overlays): Chekc overlay-start for overlays before
+	(quail-delete-overlays): Check overlay-start for overlays before
 	deleting them.
 	(quail-mode): This function deleted.
 	(quail-inactivate, quail-activate): New functions.
@@ -1230,7 +1230,7 @@
 	indicator regex, Fix line positioning.
 	(speedbar-add-indicator): Handles obj indicators now.
 	(speedbar-check-objects, speedbar-check-obj-this-line): New functions.
-	(speedbar-double-click): Fix tripple click error.
+	(speedbar-double-click): Fix triple click error.
 	(speedbar-line-file, speedbar-goto-this-file): Handle indicator regex.
 	(speedbar-line-path): Only try to get a file when in "files" display.
 	(speedbar-line-depth): Handle indicator regex.
@@ -2018,7 +2018,7 @@
 1998-06-19  Karl Heuer  <kwzh@gnu.org>
 
 	* emacs-lisp/checkdoc.el (checkdoc-eval-defun): Doc fix.
-	(checkdoc-continue, checkdoc-tripple-semi-comment-check-flag): Ditto.
+	(checkdoc-continue, checkdoc-triple-semi-comment-check-flag): Ditto.
 	(checkdoc-common-verbs-wrong-voice): Use dotted pairs.
 
 1998-06-19  Richard Stallman  <rms@gnu.org>
@@ -12129,7 +12129,7 @@
 
 	* cc-mode.el (c-buffer-is-cc-mode):
 	Definition moved here from cc-vars.el.  Also,
-	put permanent-local property on variable so it's value won't get
+	put permanent-local property on variable so its value won't get
 	killed by kill-all-local-variables.
 
 	* cc-mode.el (c++-mode, java-mode, objc-mode, idl-mode):
@@ -15185,7 +15185,7 @@
 1997-06-16  Dan Nicolaescu  <done@ece.arizona.edu>
 
 	* icon.el (icon-indent-line): A comment ends at the end of the
-	line, delete call to inexistent function.
+	line, delete call to nonexistent function.
 
 	* icon.el (icon-font-lock-keywords-1): Improved regexp.
 	(icon-font-lock-keywords-2): Likewise.
@@ -18065,7 +18065,7 @@
 	have KEY.
 	(current-input-method-title): Doc-string modified.
 	(select-input-method): Set current-input-method to nil even if
-	inactivation of the current input method failed.
+	deactivation of the current input method failed.
 	(set-language-environment): Doc-string modified.
 	(describe-language-support): Doc-string modified.  Calls an
 	appropriate function for each language.
@@ -19394,7 +19394,7 @@
 	* loadup.el: Load language/english and language/tibetan.
 
 	* mule-cmds.el: Prefix for Mule related commands is changed.
-	(view-hello-file): Allways does correct decoding of HELLO file.
+	(view-hello-file): Always does correct decoding of HELLO file.
 
 	* mule-conf.el: Change descriptions for Arabic, Indian, and
 	Vietnamese character sets.  Define Tibetan character sets.
@@ -19534,7 +19534,7 @@
 	the innermost test.  This catches GNU-style comments.
 
 	* cc-mode.el (c-add-syntax):
-	Move macro definition to before it's first use.
+	Move macro definition to before its first use.
 
 	* cc-mode.el (c-submit-bug-report):
 	Capture buffer local variable values which are
@@ -19552,7 +19552,7 @@
 	* term.el: Added a lot of new faces, they all start with
 	term- and follow a simple lexicographical convention.  Note that
 	each change is commented: just search for -mm in the source.
-	(term-char-mode): Added all the "grey-keys" to term-raw-map.
+	(term-char-mode): Added all the "gray-keys" to term-raw-map.
 	(term-send-up): Similar, decided to go for the more xterm-like
 	\eOA bindings in place of the previous \e[A.
 	(term-buffer-maximum-size): New variable.

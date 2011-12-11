@@ -268,11 +268,14 @@ This can also be a list of the above values."
       (if (or (gnus-image-type-available-p 'xface)
 	      (gnus-image-type-available-p 'pbm))
 	  'gnus-display-x-face-in-from
-	"{ echo '/* Width=48, Height=48 */'; uncompface; } | icontopbm | ee -")
+	"{ echo \
+'/* Format_version=1, Width=48, Height=48, Depth=1, Valid_bits_per_item=16 */'\
+; uncompface; } | icontopbm | ee -")
     (if (gnus-image-type-available-p 'pbm)
 	'gnus-display-x-face-in-from
-      "{ echo '/* Width=48, Height=48 */'; uncompface; } | icontopbm | \
-display -"))
+      "{ echo \
+'/* Format_version=1, Width=48, Height=48, Depth=1, Valid_bits_per_item=16 */'\
+; uncompface; } | icontopbm | display -"))
   "*String or function to be executed to display an X-Face header.
 If it is a string, the command will be executed in a sub-shell
 asynchronously.  The compressed face will be piped to this command."
@@ -2879,6 +2882,14 @@ message header will be added to the bodies of the \"text/html\" parts."
 				(with-current-buffer gnus-article-buffer
 				  gnus-article-mime-handles)
 				cid-dir))
+		     (when (eq system-type 'cygwin)
+		       (setq cid-file
+			     (concat "/" (substring
+					  (with-output-to-string
+					    (call-process "cygpath" nil
+							  standard-output
+							  nil "-m" cid-file))
+					  0 -1))))
 		     (replace-match (concat "file://" cid-file)
 				    nil nil nil 1))))
 	       (unless content (setq content (buffer-string))))
@@ -4497,7 +4508,9 @@ commands:
 (defun gnus-article-setup-buffer ()
   "Initialize the article buffer."
   (let* ((name (if gnus-single-article-buffer "*Article*"
-		 (concat "*Article " gnus-newsgroup-name "*")))
+		 (concat "*Article "
+			 (gnus-group-decoded-name gnus-newsgroup-name)
+			 "*")))
 	 (original
 	  (progn (string-match "\\*Article" name)
 		 (concat " *Original Article"

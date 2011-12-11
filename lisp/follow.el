@@ -87,7 +87,7 @@
 ;;   to turn it off.
 
 
-;; The command `follow-delete-other-windows-and-split' maximises the
+;; The command `follow-delete-other-windows-and-split' maximizes the
 ;; visible area of the current buffer.
 ;;
 ;; I recommend adding it, and `follow-mode', to hotkeys in the global
@@ -98,7 +98,7 @@
 ;; (global-set-key [f7] 'follow-delete-other-windows-and-split)
 
 
-;; There exist two system variables that control the appearence of
+;; There exist two system variables that control the appearance of
 ;; lines wider than the window containing them.  The default is to
 ;; truncate long lines whenever a window isn't as wide as the frame.
 ;;
@@ -154,7 +154,7 @@
 ;;	follow-delete-other-windows-and-split	 C-c . 1
 ;;		Maximize the visible area of the current buffer,
 ;;		and enter Follow mode. 	This is a very convenient
-;;		way to start Follow mode, hence we recomend that
+;;		way to start Follow mode, hence we recommend that
 ;;		this command be added to the global keymap.
 ;;
 ;;	follow-recenter				 C-c . C-l
@@ -351,7 +351,7 @@ After that, changing the prefix key requires manipulating keymaps."
 ;; global map.
 (easy-menu-add-item nil '("Tools")
   '("Follow"
-    ;; The Emacs code used to just grey out operations when follow-mode was
+    ;; The Emacs code used to just gray out operations when follow-mode was
     ;; not enabled, whereas the XEmacs code used to remove it altogether.
     ;; Not sure which is preferable, but clearly the preference should not
     ;; depend on the flavor.
@@ -562,7 +562,7 @@ Keys specific to Follow mode:
 ;;
 ;; Almost like the real thing, except when the cursor ends up outside
 ;; the top or bottom...  In our case however, we end up outside the
-;; window and hence we are recenterd.  Should we let `recenter' handle
+;; window and hence we are recentered.  Should we let `recenter' handle
 ;; the point position we would never leave the selected window.  To do
 ;; it ourselves we would need to do our own redisplay, which is easier
 ;; said than done.  (Why didn't I do a real display abstraction from
@@ -1129,7 +1129,7 @@ Otherwise, return nil."
 ;;{{{ Redisplay
 
 ;; Redraw all the windows on the screen, starting with the top window.
-;; The window used as as marker is WIN, or the selcted window if WIN
+;; The window used as as marker is WIN, or the selected window if WIN
 ;; is nil.  Start every window directly after the end of the previous
 ;; window, to make sure long lines are displayed correctly.
 
@@ -1993,7 +1993,7 @@ report this using the `report-emacs-bug' function."
 ;; going to be recentered at the next redisplay, unless we do a
 ;; read-and-write cycle to update the `force' flag inside the windows.
 ;;
-;; In 19.30, a new varible `window-scroll-functions' is called every
+;; In 19.30, a new variable `window-scroll-functions' is called every
 ;; time a window is recentered.  It is not perfect for our situation,
 ;; since when it is called for a tail window, it is to late.  However,
 ;; if it is called for another window, we can try to update our

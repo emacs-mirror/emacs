@@ -1985,7 +1985,7 @@ Also updates the variables `artist-draw-min-y' and `artist-draw-max-y'."
   "Retrieve a replacement for character C from `artist-replacement-table'.
 The replacement is used to convert tabs and new-lines to spaces."
   ;; Characters may be outside the range of the `artist-replacement-table',
-  ;; for example if they are unicode code points >= 256.
+  ;; for example if they are Unicode code points >= 256.
   ;; Check so we don't attempt to access the array out of its bounds,
   ;; assuming no such character needs to be replaced.
   (if (< c (length artist-replacement-table))
@@ -2338,7 +2338,7 @@ Octant are numbered 1--8, anti-clockwise as:
 	  5
 	6))))
 
-;; Some inline funtions for creating, setting and reading
+;; Some inline functions for creating, setting and reading
 ;; members of a coordinate
 ;;
 
@@ -3215,7 +3215,7 @@ X1, Y1.  An endpoint is a cons pair, (ENDPOINT-X . ENDPOINT-Y)."
 ;;         2|     |
 ;;         3+-----+
 ;;
-;;   We will then pop (0,0) and remove the left-most vertival line while
+;;   We will then pop (0,0) and remove the left-most vertical line while
 ;;   pushing the lower left corner (0,3) on the stack, and so on until
 ;;   the entire rectangle is vaporized.
 ;;
@@ -3960,11 +3960,11 @@ The 2-point shape SHAPE is drawn from X1, Y1 to X2, Y2."
 ;; Implementation note: This really should honor the interval-fn entry
 ;; in the master table, `artist-mt', which would mean leaving a timer
 ;; that calls `draw-fn' every now and then. That timer would then have
-;; to be cancelled and reinstalled whenever the user moves the cursor.
+;; to be canceled and reinstalled whenever the user moves the cursor.
 ;; This could be done, but what if the user suddenly switches to another
 ;; drawing mode, or even kills the buffer! In the mouse case, it is much
 ;; simpler: when at the end of `artist-mouse-draw-continously', the
-;; user has released the button, so the timer will always be cancelled
+;; user has released the button, so the timer will always be canceled
 ;; at that point.
 (defun artist-key-draw-continously (x y)
   "Draw current continuous shape at X,Y."
@@ -5589,7 +5589,7 @@ The event, EV, is the mouse event."
 ;;         of drawing mode.
 ;;
 ;;         You should provide these functions. You might think that
-;;         only you is using your type of mode, so noone will be able
+;;         only you is using your type of mode, so no one will be able
 ;;         to switch to another operation of the same type of mode,
 ;;         but someone else might base a new drawing mode upon your
 ;;         work.

@@ -1278,7 +1278,7 @@ definition and conveniently use this command."
      ((or (eq (char-before (line-end-position 1)) ?\\)
 	  (eq (char-before (line-end-position 0)) ?\\))
       ;; A backslash region.  Find beginning and end, remove
-      ;; backslashes, fill, and then reapply backslahes.
+      ;; backslashes, fill, and then reapply backslashes.
       (end-of-line)
       (let ((beginning
 	     (save-excursion

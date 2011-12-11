@@ -107,7 +107,7 @@ EasyPG is included in Emacs 23 and available separately as well.
 @itemize @bullet
 
 @item
-Symbols like @code{gcc-self} now has the same presedence rules in
+Symbols like @code{gcc-self} now have the same precedence rules in
 @code{gnus-parameters} as other ``real'' variables: The last match
 wins instead of the first match.
 

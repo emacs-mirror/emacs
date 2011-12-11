@@ -27,7 +27,7 @@
 ;;; Commentary:
 
 ;; These methods use a mixture of 8859-5 and Unicode.  Quail, used
-;; with ucs-tables provides suport for translating on the fly to
+;; with ucs-tables provides support for translating on the fly to
 ;; what's appropriate for aa buffer's file coding system, so the
 ;; encoding shouldn't matter too much provided it supports the
 ;; necessary characters.
@@ -608,7 +608,7 @@
 ;; layout.  In fact, Microsoft shipped for a while a layout that was lacking
 ;; two characters, precisely the "GHE_WITH_UPTURN" and the apostrophe.  The
 ;; latest versions of Windows software do have the "GHE_WITH_UPTURN" in the
-;; ukrainian keyborad layout but the apostrophe is still not there, whereas
+;; ukrainian keyboard layout but the apostrophe is still not there, whereas
 ;; there is one letter, "Cyrillic_YO", not used in ukrainian.  Ukrainians
 ;; normally replace the "Cyrillic_YO" by the apostrophe sign and live
 ;; happily with this little change.  [See "ukrainian-computer" below.]

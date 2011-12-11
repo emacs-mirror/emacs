@@ -800,7 +800,7 @@ will only be dimmed."
   :group 'org-agenda-todo-list
   :type '(choice
 	  (const :tag "Do not dim" nil)
-	  (const :tag "Dim to a grey face" t)
+	  (const :tag "Dim to a gray face" t)
 	  (const :tag "Make invisible" invisible)))
 
 (defcustom org-timeline-show-empty-dates 3
@@ -1619,7 +1619,7 @@ Where CATEGORY-REGEXP is a regexp matching the categories where
 the icon should be displayed.
 FILE-OR-DATA either a file path or a string containing image data.
 
-The other fields can be omited safely if not needed:
+The other fields can be omitted safely if not needed:
 TYPE indicates the image type.
 DATA-P is a boolean indicating whether the FILE-OR-DATA string is
 image data.
@@ -8331,7 +8331,7 @@ tag and (if present) the flagging note."
 	  (org-agenda-remove-flag hdmarker)
 	  (let ((win (get-buffer-window "*Flagging Note*")))
 	    (and win (delete-window win)))
-	  (message "Entry unflaged"))
+	  (message "Entry unflagged"))
       (setq note (org-entry-get hdmarker "THEFLAGGINGNOTE"))
       (unless note
 	(error "No flagging note"))
@@ -8354,7 +8354,7 @@ tag and (if present) the flagging note."
       (org-entry-delete nil "THEFLAGGINGNOTE")
       (setq newhead (org-get-heading)))
     (org-agenda-change-all-lines newhead marker)
-    (message "Entry unflaged")))
+    (message "Entry unflagged")))
 
 (defun org-agenda-get-any-marker (&optional pos)
   (or (get-text-property (or pos (point-at-bol)) 'org-hd-marker)

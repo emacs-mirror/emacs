@@ -670,7 +670,7 @@ str_as_multibyte (unsigned char *str, ptrdiff_t len, ptrdiff_t nbytes,
 }
 
 /* Parse unibyte string at STR of LEN bytes, and return the number of
-   bytes it may ocupy when converted to multibyte string by
+   bytes it may occupy when converted to multibyte string by
    `str_to_multibyte'.  */
 
 ptrdiff_t

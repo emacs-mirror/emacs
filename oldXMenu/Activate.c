@@ -78,7 +78,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.  */
  *
  *			3)	The application has enabled asynchronous event
  *				queuing mode.  In this mode all foreign events
- *				will be	queued up untill XMenuActivate
+ *				will be	queued up until XMenuActivate
  *				terminates; at which time they will be
  *				returned to the	X event queue.  As long as
  *				AEQ mode is enabled any asynchronous event

@@ -847,16 +847,16 @@ static int encode_coding_ccl (struct coding_system *);
 static void decode_coding_raw_text (struct coding_system *);
 static int encode_coding_raw_text (struct coding_system *);
 
-static void coding_set_source (struct coding_system *);
-static void coding_set_destination (struct coding_system *);
+static ptrdiff_t coding_set_source (struct coding_system *);
+static ptrdiff_t coding_set_destination (struct coding_system *);
 static void coding_alloc_by_realloc (struct coding_system *, ptrdiff_t);
 static void coding_alloc_by_making_gap (struct coding_system *,
                                         ptrdiff_t, ptrdiff_t);
 static unsigned char *alloc_destination (struct coding_system *,
                                          ptrdiff_t, unsigned char *);
 static void setup_iso_safe_charsets (Lisp_Object);
-static unsigned char *encode_designation_at_bol (struct coding_system *,
-                                                 int *, unsigned char *);
+static int encode_designation_at_bol (struct coding_system *,
+				      int *, int *, unsigned char *);
 static int detect_eol (const unsigned char *,
                        ptrdiff_t, enum coding_category);
 static Lisp_Object adjust_coding_eol_type (struct coding_system *, int);
@@ -915,25 +915,66 @@ record_conversion_result (struct coding_system *coding,
     }
 }
 
-/* This wrapper macro is used to preserve validity of pointers into
-   buffer text across calls to decode_char, which could cause
-   relocation of buffers if it loads a charset map, because loading a
-   charset map allocates large structures.  */
+/* These wrapper macros are used to preserve validity of pointers into
+   buffer text across calls to decode_char, encode_char, etc, which
+   could cause relocation of buffers if it loads a charset map,
+   because loading a charset map allocates large structures.  */
+
 #define CODING_DECODE_CHAR(coding, src, src_base, src_end, charset, code, c) \
   do {									     \
+    ptrdiff_t offset;							     \
+									     \
     charset_map_loaded = 0;						     \
     c = DECODE_CHAR (charset, code);					     \
-    if (charset_map_loaded)						     \
+    if (charset_map_loaded						     \
+	&& (offset = coding_set_source (coding)))			     \
       {									     \
-	const unsigned char *orig = coding->source;			     \
-	ptrdiff_t offset;						     \
-									     \
-	coding_set_source (coding);					     \
-	offset = coding->source - orig;					     \
 	src += offset;							     \
 	src_base += offset;						     \
 	src_end += offset;						     \
       }									     \
+  } while (0)
+
+#define CODING_ENCODE_CHAR(coding, dst, dst_end, charset, c, code)	\
+  do {									\
+    ptrdiff_t offset;							\
+									\
+    charset_map_loaded = 0;						\
+    code = ENCODE_CHAR (charset, c);					\
+    if (charset_map_loaded						\
+	&& (offset = coding_set_destination (coding)))			\
+      {									\
+	dst += offset;							\
+	dst_end += offset;						\
+      }									\
+  } while (0)
+
+#define CODING_CHAR_CHARSET(coding, dst, dst_end, c, charset_list, code_return, charset) \
+  do {									\
+    ptrdiff_t offset;							\
+									\
+    charset_map_loaded = 0;						\
+    charset = char_charset (c, charset_list, code_return);		\
+    if (charset_map_loaded						\
+	&& (offset = coding_set_destination (coding)))			\
+      {									\
+	dst += offset;							\
+	dst_end += offset;						\
+      }									\
+  } while (0)
+
+#define CODING_CHAR_CHARSET_P(coding, dst, dst_end, c, charset, result)	\
+  do {									\
+    ptrdiff_t offset;							\
+									\
+    charset_map_loaded = 0;						\
+    result = CHAR_CHARSET_P (c, charset);				\
+    if (charset_map_loaded						\
+	&& (offset = coding_set_destination (coding)))			\
+      {									\
+	dst += offset;							\
+	dst_end += offset;						\
+      }									\
   } while (0)
 
 
@@ -1015,9 +1056,14 @@ record_conversion_result (struct coding_system *coding,
        | ((p)[-1] & 0x3F))))
 
 
-static void
+/* Update coding->source from coding->src_object, and return how many
+   bytes coding->source was changed.  */
+
+static ptrdiff_t
 coding_set_source (struct coding_system *coding)
 {
+  const unsigned char *orig = coding->source;
+
   if (BUFFERP (coding->src_object))
     {
       struct buffer *buf = XBUFFER (coding->src_object);
@@ -1036,11 +1082,18 @@ coding_set_source (struct coding_system *coding)
       /* Otherwise, the source is C string and is never relocated
 	 automatically.  Thus we don't have to update anything.  */
     }
+  return coding->source - orig;
 }
 
-static void
+
+/* Update coding->destination from coding->dst_object, and return how
+   many bytes coding->destination was changed.  */
+
+static ptrdiff_t
 coding_set_destination (struct coding_system *coding)
 {
+  const unsigned char *orig = coding->destination;
+
   if (BUFFERP (coding->dst_object))
     {
       if (BUFFERP (coding->src_object) && coding->src_pos < 0)
@@ -1065,6 +1118,7 @@ coding_set_destination (struct coding_system *coding)
       /* Otherwise, the destination is C string and is never relocated
 	 automatically.  Thus we don't have to update anything.  */
     }
+  return coding->destination - orig;
 }
 
 
@@ -2650,14 +2704,19 @@ encode_coding_emacs_mule (struct coding_system *coding)
 
 	  if (preferred_charset_id >= 0)
 	    {
+	      int result;
+
 	      charset = CHARSET_FROM_ID (preferred_charset_id);
-	      if (CHAR_CHARSET_P (c, charset))
+	      CODING_CHAR_CHARSET_P (coding, dst, dst_end, c, charset, result);
+	      if (result)
 		code = ENCODE_CHAR (charset, c);
 	      else
-		charset = char_charset (c, charset_list, &code);
+		CODING_CHAR_CHARSET (coding, dst, dst_end, c, charset_list,
+				     &code, charset);
 	    }
 	  else
-	    charset = char_charset (c, charset_list, &code);
+	    CODING_CHAR_CHARSET (coding, dst, dst_end, c, charset_list,
+				 &code, charset);
 	  if (! charset)
 	    {
 	      c = coding->default_char;
@@ -2666,7 +2725,8 @@ encode_coding_emacs_mule (struct coding_system *coding)
 		  EMIT_ONE_ASCII_BYTE (c);
 		  continue;
 		}
-	      charset = char_charset (c, charset_list, &code);
+	      CODING_CHAR_CHARSET (coding, dst, dst_end, c, charset_list,
+				   &code, charset);
 	    }
 	  dimension = CHARSET_DIMENSION (charset);
 	  emacs_mule_id = CHARSET_EMACS_MULE_ID (charset);
@@ -4185,7 +4245,8 @@ decode_coding_iso_2022 (struct coding_system *coding)
 
 #define ENCODE_ISO_CHARACTER(charset, c)				   \
   do {									   \
-    unsigned code = ENCODE_CHAR ((charset), (c));			   \
+    unsigned code;							   \
+    CODING_ENCODE_CHAR (coding, dst, dst_end, (charset), (c), code);	   \
 									   \
     if (CHARSET_DIMENSION (charset) == 1)				   \
       ENCODE_ISO_CHARACTER_DIMENSION1 ((charset), code);		   \
@@ -4283,15 +4344,19 @@ encode_invocation_designation (struct charset *charset,
 
 
 /* Produce designation sequences of charsets in the line started from
-   SRC to a place pointed by DST, and return updated DST.
+   CHARBUF to a place pointed by DST, and return the number of
+   produced bytes.  DST should not directly point a buffer text area
+   which may be relocated by char_charset call.
 
    If the current block ends before any end-of-line, we may fail to
    find all the necessary designations.  */
 
-static unsigned char *
-encode_designation_at_bol (struct coding_system *coding, int *charbuf,
+static int
+encode_designation_at_bol (struct coding_system *coding,
+			   int *charbuf, int *charbuf_end,
 			   unsigned char *dst)
 {
+  unsigned char *orig = dst;
   struct charset *charset;
   /* Table of charsets to be designated to each graphic register.  */
   int r[4];
@@ -4309,7 +4374,7 @@ encode_designation_at_bol (struct coding_system *coding, int *charbuf,
   for (reg = 0; reg < 4; reg++)
     r[reg] = -1;
 
-  while (found < 4)
+  while (charbuf < charbuf_end && found < 4)
     {
       int id;
 
@@ -4334,7 +4399,7 @@ encode_designation_at_bol (struct coding_system *coding, int *charbuf,
 	  ENCODE_DESIGNATION (CHARSET_FROM_ID (r[reg]), reg, coding);
     }
 
-  return dst;
+  return dst - orig;
 }
 
 /* See the above "GENERAL NOTES on `encode_coding_XXX ()' functions".  */
@@ -4378,13 +4443,26 @@ encode_coding_iso_2022 (struct coding_system *coding)
 
       if (bol_designation)
 	{
-	  unsigned char *dst_prev = dst;
-
 	  /* We have to produce designation sequences if any now.  */
-	  dst = encode_designation_at_bol (coding, charbuf, dst);
-	  bol_designation = 0;
+	  unsigned char desig_buf[16];
+	  int nbytes;
+	  ptrdiff_t offset;
+
+	  charset_map_loaded = 0;
+	  nbytes = encode_designation_at_bol (coding, charbuf, charbuf_end,
+					      desig_buf);
+	  if (charset_map_loaded
+	      && (offset = coding_set_destination (coding)))
+	    {
+	      dst += offset;
+	      dst_end += offset;
+	    }
+	  memcpy (dst, desig_buf, nbytes);
+	  dst += nbytes;
 	  /* We are sure that designation sequences are all ASCII bytes.  */
-	  produced_chars += dst - dst_prev;
+	  produced_chars += nbytes;
+	  bol_designation = 0;
+	  ASSURE_DESTINATION (safe_room);
 	}
 
       c = *charbuf++;
@@ -4455,12 +4533,17 @@ encode_coding_iso_2022 (struct coding_system *coding)
 
 	  if (preferred_charset_id >= 0)
 	    {
+	      int result;
+
 	      charset = CHARSET_FROM_ID (preferred_charset_id);
-	      if (! CHAR_CHARSET_P (c, charset))
-		charset = char_charset (c, charset_list, NULL);
+	      CODING_CHAR_CHARSET_P (coding, dst, dst_end, c, charset, result);
+	      if (! result)
+		CODING_CHAR_CHARSET (coding, dst, dst_end, c, charset_list,
+				     NULL, charset);
 	    }
 	  else
-	    charset = char_charset (c, charset_list, NULL);
+	    CODING_CHAR_CHARSET (coding, dst, dst_end, c, charset_list,
+				 NULL, charset);
 	  if (!charset)
 	    {
 	      if (coding->mode & CODING_MODE_SAFE_ENCODING)
@@ -4471,7 +4554,8 @@ encode_coding_iso_2022 (struct coding_system *coding)
 	      else
 		{
 		  c = coding->default_char;
-		  charset = char_charset (c, charset_list, NULL);
+		  CODING_CHAR_CHARSET (coding, dst, dst_end, c,
+				       charset_list, NULL, charset);
 		}
 	    }
 	  ENCODE_ISO_CHARACTER (charset, c);
@@ -4897,7 +4981,9 @@ encode_coding_sjis (struct coding_system *coding)
       else
 	{
 	  unsigned code;
-	  struct charset *charset = char_charset (c, charset_list, &code);
+	  struct charset *charset;
+	  CODING_CHAR_CHARSET (coding, dst, dst_end, c, charset_list,
+			       &code, charset);
 
 	  if (!charset)
 	    {
@@ -4909,7 +4995,8 @@ encode_coding_sjis (struct coding_system *coding)
 	      else
 		{
 		  c = coding->default_char;
-		  charset = char_charset (c, charset_list, &code);
+		  CODING_CHAR_CHARSET (coding, dst, dst_end, c,
+				       charset_list, &code, charset);
 		}
 	    }
 	  if (code == CHARSET_INVALID_CODE (charset))
@@ -4984,7 +5071,9 @@ encode_coding_big5 (struct coding_system *coding)
       else
 	{
 	  unsigned code;
-	  struct charset *charset = char_charset (c, charset_list, &code);
+	  struct charset *charset;
+	  CODING_CHAR_CHARSET (coding, dst, dst_end, c, charset_list,
+			       &code, charset);
 
 	  if (! charset)
 	    {
@@ -4996,7 +5085,8 @@ encode_coding_big5 (struct coding_system *coding)
 	      else
 		{
 		  c = coding->default_char;
-		  charset = char_charset (c, charset_list, &code);
+		  CODING_CHAR_CHARSET (coding, dst, dst_end, c,
+				       charset_list, &code, charset);
 		}
 	    }
 	  if (code == CHARSET_INVALID_CODE (charset))
@@ -5154,7 +5244,7 @@ encode_coding_ccl (struct coding_system *coding)
       && coding->mode & CODING_MODE_LAST_BLOCK)
     ccl->last_block = 1;
 
-  while (charbuf < charbuf_end)
+  do
     {
       ccl_driver (ccl, charbuf, destination_charbuf,
 		  charbuf_end - charbuf, 1024, charset_list);
@@ -5176,6 +5266,7 @@ encode_coding_ccl (struct coding_system *coding)
 	  || ccl->status == CCL_STAT_INVALID_CMD)
 	break;
     }
+  while (charbuf < charbuf_end);
 
   switch (ccl->status)
     {
@@ -5572,7 +5663,9 @@ encode_coding_charset (struct coding_system *coding)
 	}
       else
 	{
-	  charset = char_charset (c, charset_list, &code);
+	  CODING_CHAR_CHARSET (coding, dst, dst_end, c, charset_list,
+			       &code, charset);
+
 	  if (charset)
 	    {
 	      if (CHARSET_DIMENSION (charset) == 1)
@@ -9207,7 +9300,7 @@ frame's terminal device.  */)
     = TERMINAL_TERMINAL_CODING (get_terminal (terminal, 1));
   Lisp_Object coding_system = CODING_ID_NAME (terminal_coding->id);
 
-  /* For backward compatibility, return nil if it is `undecided'. */
+  /* For backward compatibility, return nil if it is `undecided'.  */
   return (! EQ (coding_system, Qundecided) ? coding_system : Qnil);
 }
 

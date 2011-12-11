@@ -703,13 +703,13 @@ If the value is nil, on decoding, don't treat the first two-byte as
 BOM, and on encoding, don't produce BOM bytes.
 
 If the value is t, on decoding, skip the first two-byte as BOM, and on
-encoding, produce BOM bytes accoding to the value of `:endian'.
+encoding, produce BOM bytes according to the value of `:endian'.
 
 If the value is cons, on decoding, check the first two-byte.  If they
 are 0xFE 0xFF, use the car part coding system of the value.  If they
 are 0xFF 0xFE, use the cdr part coding system of the value.
 Otherwise, treat them as bytes for a normal character.  On encoding,
-produce BOM bytes accoding to the value of `:endian'.
+produce BOM bytes according to the value of `:endian'.
 
 This attribute has a meaning only when `:coding-type' is `utf-16' or
 `utf-8'.
@@ -1572,7 +1572,7 @@ of `ctext-non-standard-encodings-alist'.")
 ;; character in CHARSET is encoded using extended segment.  In the
 ;; latter case, a character in CHARSET is encoded using normal ISO2022
 ;; designation sequence.  If a character is not in any of CHARSETs, it
-;; is encoded using UTF-8 encoding extention.
+;; is encoded using UTF-8 encoding extension.
 
 (defun ctext-non-standard-encodings-table ()
   (let* ((table (append ctext-non-standard-encodings
@@ -1656,7 +1656,7 @@ in-place."
 		      (insert 2)))
 		;; Encode this range as characters in CHARSET.
 		(put-text-property last-pos (point) 'charset charset))
-	    ;; Encode this range using UTF-8 encoding extention.
+	    ;; Encode this range using UTF-8 encoding extension.
 	    (encode-coding-region last-pos (point) 'mule-utf-8)
 	    (save-excursion
 	      (goto-char last-pos)
@@ -1785,7 +1785,7 @@ contents of the current buffer following point against
 succeed, it checks to see if any function in `auto-coding-functions'
 gives a match.
 
-If a coding system is specifed, the return value is a cons
+If a coding system is specified, the return value is a cons
 \(CODING . SOURCE), where CODING is the specified coding system and
 SOURCE is a symbol `auto-coding-alist', `auto-coding-regexp-alist',
 `:coding', or `auto-coding-functions' indicating by what CODING is

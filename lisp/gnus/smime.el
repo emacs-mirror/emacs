@@ -99,7 +99,7 @@
 ;;
 ;; I would include pointers to introductory text on concepts used in
 ;; this library here, but the material I've read are so horrible I
-;; don't want to recomend them.
+;; don't want to recommend them.
 ;;
 ;; Why can't someone write a simple introduction to all this stuff?
 ;; Until then, much of this resemble security by obscurity.
@@ -180,7 +180,7 @@ File should contain certificates in PEM format."
 (defcustom smime-certificate-directory "~/Mail/certs/"
   "*Directory containing other people's certificates.
 It should contain files named to the X.509 hash of the certificate,
-and the files themself should be in PEM format."
+and the files themselves should be in PEM format."
 ;The S/MIME library provide simple functionality for fetching
 ;certificates into this directory, so there is no need to populate it
 ;manually.

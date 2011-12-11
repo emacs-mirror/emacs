@@ -582,7 +582,7 @@ extern void regfree _RE_ARGS ((regex_t *__preg));
 }
 #endif	/* C++ */
 
-/* For platform which support the ISO C amendement 1 functionality we
+/* For platform which support the ISO C amendment 1 functionality we
    support user defined character classes.  */
 #if WIDE_CHAR_SUPPORT
 /* Solaris 2.5 has a bug: <wchar.h> must be included before <wctype.h>.  */
@@ -592,7 +592,7 @@ extern void regfree _RE_ARGS ((regex_t *__preg));
 
 #if WIDE_CHAR_SUPPORT
 /* The GNU C library provides support for user-defined character classes
-   and the functions from ISO C amendement 1.  */
+   and the functions from ISO C amendment 1.  */
 # ifdef CHARCLASS_NAME_MAX
 #  define CHAR_CLASS_MAX_LENGTH CHARCLASS_NAME_MAX
 # else

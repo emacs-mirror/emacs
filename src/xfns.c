@@ -2962,7 +2962,7 @@ x_default_font_parameter (struct frame *f, Lisp_Object parms)
 
   if (NILP (font_param))
     {
-      /* System font should take precedendce over X resources.  We suggest this
+      /* System font should take precedence over X resources.  We suggest this
          regardless of font-use-system-font because .emacs may not have been
          read yet.  */
       const char *system_font = xsettings_get_system_font ();
@@ -3166,7 +3166,7 @@ This function is an internal primitive--use `make-frame' instead.  */)
      to get the color reference counts right, so initialize them!  */
   {
     Lisp_Object black;
-    struct gcpro inner_gcpro1;
+    struct gcpro gcpro1;
 
     /* Function x_decode_color can signal an error.  Make
        sure to initialize color slots so that we won't try
@@ -3179,7 +3179,7 @@ This function is an internal primitive--use `make-frame' instead.  */)
     f->output_data.x->mouse_pixel = -1;
 
     black = build_string ("black");
-    GCPRO1_VAR (black, inner_gcpro);
+    GCPRO1 (black);
     FRAME_FOREGROUND_PIXEL (f)
       = x_decode_color (f, black, BLACK_PIX_DEFAULT (f));
     FRAME_BACKGROUND_PIXEL (f)
@@ -3192,7 +3192,7 @@ This function is an internal primitive--use `make-frame' instead.  */)
       = x_decode_color (f, black, BLACK_PIX_DEFAULT (f));
     f->output_data.x->mouse_pixel
       = x_decode_color (f, black, BLACK_PIX_DEFAULT (f));
-    UNGCPRO_VAR (inner_gcpro);
+    UNGCPRO;
   }
 
   /* Specify the parent under which to make this X window.  */
@@ -4286,7 +4286,7 @@ If TYPE is nil or omitted, get the property as a string.
 Otherwise TYPE is the name of the atom that denotes the type expected.
 If SOURCE is non-nil, get the property on that window instead of from
 FRAME.  The number 0 denotes the root window.
-If DELETE_P is non-nil, delete the property after retreiving it.
+If DELETE_P is non-nil, delete the property after retrieving it.
 If VECTOR_RET_P is non-nil, don't return a string but a vector of values.
 
 Value is nil if FRAME hasn't a property with name PROP or if PROP has
@@ -4620,7 +4620,7 @@ x_create_tip_frame (struct x_display_info *dpyinfo,
      to get the color reference counts right, so initialize them!  */
   {
     Lisp_Object black;
-    struct gcpro inner_gcpro1;
+    struct gcpro gcpro1;
 
     /* Function x_decode_color can signal an error.  Make
        sure to initialize color slots so that we won't try
@@ -4633,7 +4633,7 @@ x_create_tip_frame (struct x_display_info *dpyinfo,
     f->output_data.x->mouse_pixel = -1;
 
     black = build_string ("black");
-    GCPRO1_VAR (black, inner_gcpro);
+    GCPRO1 (black);
     FRAME_FOREGROUND_PIXEL (f)
       = x_decode_color (f, black, BLACK_PIX_DEFAULT (f));
     FRAME_BACKGROUND_PIXEL (f)
@@ -4646,7 +4646,7 @@ x_create_tip_frame (struct x_display_info *dpyinfo,
       = x_decode_color (f, black, BLACK_PIX_DEFAULT (f));
     f->output_data.x->mouse_pixel
       = x_decode_color (f, black, BLACK_PIX_DEFAULT (f));
-    UNGCPRO_VAR (inner_gcpro);
+    UNGCPRO;
   }
 
   /* Set the name; the functions to which we pass f expect the name to
@@ -5912,7 +5912,7 @@ the tool bar buttons.  */);
   x_gtk_whole_detached_tool_bar = 0;
 
   DEFVAR_BOOL ("x-gtk-use-system-tooltips", x_gtk_use_system_tooltips,
-    doc: /* *If non-nil with a Gtk+ built Emacs, the Gtk+ toolip is used.
+    doc: /* *If non-nil with a Gtk+ built Emacs, the Gtk+ tooltip is used.
 Otherwise use Emacs own tooltip implementation.
 When using Gtk+ tooltips, the tooltip face is not used.  */);
   x_gtk_use_system_tooltips = 1;

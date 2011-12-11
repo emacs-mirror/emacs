@@ -66,7 +66,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
    attributes (1st thru 5th) are updated from the spec.
 
    On the other hand, if one of the other font-related attributes are
-   specified, the correspoinding specs in this attribute is set to nil.
+   specified, the corresponding specs in this attribute is set to nil.
 
    15. A face name or list of face names from which to inherit attributes.
 
@@ -1223,7 +1223,7 @@ face_color_gray_p (struct frame *f, const char *color_name)
   int gray_p;
 
   if (defined_color (f, color_name, &color, 0))
-    gray_p = (/* Any color sufficiently close to black counts as grey.  */
+    gray_p = (/* Any color sufficiently close to black counts as gray.  */
 	      (color.red < 5000 && color.green < 5000 && color.blue < 5000)
 	      ||
 	      ((eabs (color.red - color.green)

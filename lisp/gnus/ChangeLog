@@ -1,3 +1,86 @@
+2011-12-09  Tassilo Horn  <tassilo@member.fsf.org>
+
+	* message.el (message-valid-fqdn-regexp): Udate with newly approved
+	top-level domain names ".tel" and ".asia".
+
+2011-12-08  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* gnus-sum.el (gnus-summary-show-article): Don't load shr
+	unconditionally.
+
+2011-12-07  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* message.el (message-pop-to-buffer): Use pop-to-buffer instead of
+	pop-to-buffer-same-window for old Emacsen.
+
+2011-12-04  Chong Yidong  <cyd@gnu.org>
+
+	* message.el (message-pop-to-buffer): Partially revert 2011-11-30
+	change (Bug#10200).
+
+2011-12-02  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* compface.el (uncompface):
+	* gnus-art.el (gnus-article-x-face-command): Update the header format
+	of icon data for the most recent icontopbm program.
+
+2011-12-01  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* gnus-msg.el (gnus-inews-do-gcc):
+	* message.el (message-send-mail):
+	* mml.el (mml-generate-mime): Share the value of the buffer-local
+	`message-options' variable between a draft buffer and temprary working
+	buffers.
+
+2011-11-30  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* message.el (message-pop-to-buffer): Revert 2011-09-11 change.
+
+2011-11-30  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* gnus-art.el (gnus-article-browse-html-parts): Convert link file names
+	for Cygwin.
+
+2011-11-24  Glenn Morris  <rgm@gnu.org>
+
+	* starttls.el: Fix case of "GnuTLS".
+
+2011-11-24  Juanma Barranquero  <lekktu@gmail.com>
+
+	* gnus-group.el (gnus-group-highlight): Fix typo.
+
+2011-11-24  Adam W  <adam_w67@yahoo.com>  (tiny change)
+
+	* mail-source.el (mail-source-fetch-maildir): Don't expect the return
+	value of `delete-file', that returns nil for a local file but returns t
+	for a remote file using ssh.
+
+2011-11-22  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* shr.el (shr-table-horizontal-line): Use "?\s" instead of "? " to
+	avoid later breakage.
+
+2011-11-22  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* gnus-art.el (gnus-article-setup-buffer): Decode group name used for
+	article buffers' name.
+
+2011-11-22  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* shr.el (shr-table-horizontal-line): Revert infinite loops introduced
+	by Paul Eggert's spellfixes two days ago.
+
+2011-11-21  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* mm-view.el (mm-display-inline-fontify): Make the font-lock variables
+	buffer-local instead of binding them to avoid warnings.  Also demote
+	errors (bug#10063).
+	(font-lock-mode-hook): Shut up byte compiler.
+
+2011-11-20  Juanma Barranquero  <lekktu@gmail.com>
+
+	* mm-util.el (mm-charset-after): Fix typo.
+
 2011-11-16  Juanma Barranquero  <lekktu@gmail.com>
 
 	* gnus-sum.el (gnus-summary-make-menu-bar):
@@ -297,7 +380,7 @@
 	(message-mail-other-window, message-mail-other-frame)
 	(message-news-other-window, message-news-other-frame):
 	Use switch-to-buffer-other-frame and switch-to-buffer-other-window
-	instead of setting buffer display varibles.
+	instead of setting buffer display variables.
 
 2011-09-11  Lars Magne Ingebrigtsen  <larsi@gnus.org>
 
@@ -332,7 +415,7 @@
 	decoding nnimap groups.
 
 	* gnus.el (gnus-variable-list): Don't save `gnus-format-specs' in the
-	newsrc file.  It doesn't seem like an important optimisation any more.
+	newsrc file.  It doesn't seem like an important optimization any more.
 
 2011-09-10  Dave Abrahams  <dave@boostpro.com>  (tiny change)
 
@@ -985,7 +1068,7 @@
 	* nnimap.el (nnimap-process-expiry-targets): Say what target we're
 	expiring articles to.
 
-	* mm-util.el (mm-charset-to-coding-system): Recognise all ANSI.x3.4
+	* mm-util.el (mm-charset-to-coding-system): Recognize all ANSI.x3.4
 	variations as ASCII (bug#5458).
 
 2011-06-30  Katsumi Yamaoka  <yamaoka@jpl.org>
@@ -2245,7 +2328,7 @@
 	* gnus-art.el (gnus-article-next-page-1): Because customized mode-line
 	face with line-width greater than zero will cause RET in gnus summary
 	buffer to scroll down article page-wise because auto vscroll happens,
-	it should be temporalily disabled when doing a scroll-up.
+	it should be temporally disabled when doing a scroll-up.
 
 2011-02-19  Lars Ingebrigtsen  <larsi@gnus.org>
 
@@ -2738,7 +2821,7 @@
 2011-01-28  Lars Ingebrigtsen  <larsi@gnus.org>
 
 	* gnus-sum.el (gnus-select-newsgroup): Don't try to alter the active
-	data if the group is unactivated.
+	data if the group is inactive.
 
 2011-01-28  Julien Danjou  <julien@danjou.info>
 
@@ -2829,7 +2912,7 @@
 	we're using an encrypted connection.
 
 	* proto-stream.el: Alter the interface functions to also return the
-	actual stream type used: network or tls.
+	actual stream type used: network or TLS.
 
 2011-01-25  Julien Danjou  <julien@danjou.info>
 
@@ -2849,7 +2932,7 @@
 
 2011-01-24  Lars Ingebrigtsen  <larsi@gnus.org>
 
-	* shr.el (shr-expand-newlines): Proof of concept implemantation of boxy
+	* shr.el (shr-expand-newlines): Proof of concept implementation of boxy
 	backgrounds.
 	(shr-expand-newlines): Switch to using overlays to enable kill'n'yank
 	in a more sensible manner.
@@ -3558,7 +3641,7 @@
 
 2010-11-30  Lars Magne Ingebrigtsen  <larsi@gnus.org>
 
-	* proto-stream.el (open-protocol-stream): All starttls connections are
+	* proto-stream.el (open-protocol-stream): All STARTTLS connections are
 	handled by the network handler.
 
 2010-11-30  Julien Danjou  <julien@danjou.info>
@@ -3647,9 +3730,9 @@
 	(nnimap-open-connection): Be more backwards-compatible.
 
 	* proto-stream.el (proto-stream-always-use-starttls): New variable.
-	(proto-stream-open-starttls): De-duplicate the starttls code.
+	(proto-stream-open-starttls): De-duplicate the STARTTLS code.
 	(proto-stream-open-starttls): Folded back into the main function.
-	(proto-stream-open-network): Fix typo in the gnutls path.
+	(proto-stream-open-network): Fix typo in the GnuTLS path.
 	(proto-stream-command): Refactor out.
 
 	* nntp.el (nntp-open-connection): Fix the STARTTLS command syntax.
@@ -3661,7 +3744,7 @@
 
 	* proto-stream.el (proto-stream-open-tls): Delete output from openssl
 	if we're using tls.el.
-	(proto-stream-open-network): If we don't have gnutls-cli or gnutls
+	(proto-stream-open-network): If we don't have gnutls-cli or GnuTLS
 	built in, then don't try to establish a STARTTLS connection.
 
 	* nntp.el (nntp-open-connection): Switch on STARTTLS on supported
@@ -4504,7 +4587,7 @@
 
 2010-10-30  Lars Magne Ingebrigtsen  <larsi@gnus.org>
 
-	* shr.el (shr-tag-span): Drop colorisation of regions since we don't
+	* shr.el (shr-tag-span): Drop colorization of regions since we don't
 	control the background color.
 	(shr-tag-img): Ignore very small web bug type images.
 	(shr-put-image): Add help-echo alt texts to the images.
@@ -5061,7 +5144,7 @@
 	* gnus-sum.el (gnus-summary-set-local-parameters): Ignore the `active'
 	non-variable, too.
 
-	* nnimap.el (nnimap-open-connection): Use gnutls STARTTLS, if
+	* nnimap.el (nnimap-open-connection): Use GnuTLS STARTTLS, if
 	available.
 	(nnimap-update-info): Rely more on the current active than the param
 	active to avoid marking articles as read too much.
@@ -5110,8 +5193,8 @@
 	group is the "last", so that the backends like nnfolder actually save
 	their folders.
 
-	* nnimap.el (nnimap-open-connection): If we have gnutls loaded, then
-	try to use that for the tls stream.
+	* nnimap.el (nnimap-open-connection): If we have GnuTLS loaded, then
+	try to use that for the TLS stream.
 	(nnimap-retrieve-group-data-early): Rework the marks code to heed
 	UIDVALIDITY and find out which groups are read-only and not.
 	(nnimap-get-flags): Use the same marks parsing code as the rest of
@@ -6330,8 +6413,8 @@
 	* gnus-int.el (gnus-request-update-info): Protect against backends not
 	having the function.
 
-	* nnimap.el (nnimap-stream): Mention starttls.
-	(nnimap-open-connection): Add starttls support.
+	* nnimap.el (nnimap-stream): Mention STARTTLS.
+	(nnimap-open-connection): Add STARTTLS support.
 
 2010-09-23  Andrew Cohen  <cohen@andy.bu.edu>
 
@@ -7060,7 +7143,7 @@
 
 	* gnus-start.el (gnus-activate-group): Take an optional parameter to
 	say that you don't want to call gnus-request-group with don-check, but
-	do check the reponse.  This is for virtual groups only.
+	do check the response.  This is for virtual groups only.
 	(gnus-get-unread-articles): Count the archive groups as secondary, so
 	that they're activated the same way as before.
 
@@ -10921,7 +11004,7 @@
 2007-11-14  Denys Duchier  <denys.duchier@univ-orleans.fr>  (tiny change)
 
 	* pop3.el (pop3-open-server): Accept and process data more robustly at
-	connexion start to avoid spurious "POP SSL connexion failed" errors.
+	connection start to avoid spurious "POP SSL connection failed" errors.
 
 2007-11-14  Katsumi Yamaoka  <yamaoka@jpl.org>
 
@@ -11668,7 +11751,7 @@
 	(nntp-open-marks): Decode group names when bootstrapping marks.
 
 	* rfc2047.el (rfc2047-encode-message-header): Make XEmacs decode
-	Newsgroups and Folowup-To headers.
+	Newsgroups and Followup-To headers.
 
 2007-07-13  Katsumi Yamaoka  <yamaoka@jpl.org>
 
@@ -11860,7 +11943,7 @@
 
 	* message.el (message-font-lock-keywords): Use message-header-xheader
 	face for "X-Foo", its apparent intended purpose.  Move "X-" pattern
-	ahead of the anything pattern, to get it recognised.
+	ahead of the anything pattern, to get it recognized.
 
 2007-05-12  Michaël Cadilhac  <michael@cadilhac.name>
 
@@ -14905,7 +14988,7 @@
 	(nnweb-request-list): Don't list bogus groups.  There can only be one.
 	(nnweb-request-create-group): Don't use ARGS.
 	(nnweb-possibly-change-server, nnweb-request-group): Remove some
-	initialisations.  Let nnoo do the work.
+	initializations.  Let nnoo do the work.
 
 2006-01-31  Katsumi Yamaoka  <yamaoka@jpl.org>
 
@@ -16476,7 +16559,7 @@
 2005-07-01  Katsumi Yamaoka  <yamaoka@jpl.org>
 
 	* gnus-art.el (article-display-face): Improve the efficiency.
-	(article-display-x-face): Ditto; remove grey x-face stuff.
+	(article-display-x-face): Ditto; remove gray x-face stuff.
 
 2005-06-30  Katsumi Yamaoka  <yamaoka@jpl.org>
 
@@ -18611,7 +18694,7 @@
 2004-09-28  Kevin Greiner  <kgreiner@compsol.cc>
 
 	* gnus-agent.el (gnus-agent-synchronize-group-flags): Replace
-	gnus-requst-update-info with explicit code to sync the in-memory
+	gnus-request-update-info with explicit code to sync the in-memory
 	info read flags with the marks being sync'd to the backend.
 
 	* gnus-util.el (gnus-pp): Add optional stream to match pp API.
@@ -19398,7 +19481,7 @@
 	* gnus-group.el (gnus-group-get-new-news-this-group):
 	Don't update info that isn't there.
 
-2004-06-29  Ilya N. Golubev  <gin@mo.msk.ru>.
+2004-06-29  Ilya N. Golubev  <gin@mo.msk.ru>
 
 	* mm-util.el (mm-mime-mule-charset-alist): Add the windows-1251
 	entry.
@@ -19725,7 +19808,7 @@
 
 2004-05-26  Simon Josefsson  <jas@extundo.com>
 
-	* starttls.el: Merge with my GNUTLS based starttls.el.
+	* starttls.el: Merge with my GnuTLS based starttls.el.
 	(starttls-gnutls-program, starttls-use-gnutls)
 	(starttls-extra-arguments, starttls-process-connection-type)
 	(starttls-connect, starttls-failure, starttls-success):

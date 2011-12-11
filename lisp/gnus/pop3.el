@@ -270,11 +270,11 @@ Use streaming commands."
     message-count))
 
 (defcustom pop3-stream-type nil
-  "*Transport security type for POP3 connexions.
-This may be either nil (plain connexion), `ssl' (use an
+  "*Transport security type for POP3 connections.
+This may be either nil (plain connection), `ssl' (use an
 SSL/TSL-secured stream) or `starttls' (use the starttls mechanism
 to turn on TLS security after opening the stream).  However, if
-this is nil, `ssl' is assumed for connexions to port
+this is nil, `ssl' is assumed for connections to port
 995 (pop3s)."
   :version "23.1" ;; No Gnus
   :group 'pop3

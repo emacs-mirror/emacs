@@ -344,7 +344,7 @@ to use Semantic, and `semantic-init-hook' is run."
     ;; don't go along for the ride.
     (add-hook 'clone-indirect-buffer-hook 'semantic-clear-toplevel-cache
 	      nil t)
-    ;; Specify that this function has done it's work.  At this point
+    ;; Specify that this function has done its work.  At this point
     ;; we can consider that semantic is active in this buffer.
     (setq semantic-new-buffer-fcn-was-run t)
     ;; Here are some buffer local variables we can initialize ourselves
@@ -378,7 +378,7 @@ Do not set this yourself.  Call `semantic-debug'.")
 
 (defun semantic-elapsed-time (start end)
   "Copied from elp.el.  Was `elp-elapsed-time'.
-Argument START and END bound the time being calculated."
+Arguments START and END bound the time being calculated."
   (float-time (time-subtract end start)))
 
 (defun bovinate (&optional clear)
@@ -431,13 +431,13 @@ will be silently ignored.
 
 Optional arguments:
 NONTERMINAL is the rule to start parsing at.
-DEPTH specifies the lexical depth to descend for parser that use
+DEPTH specifies the lexical depth to descend for parsers that use
 lexical analysis as their first step.
 RETURNONERROR specifies that parsing should stop on the first
 unmatched syntax encountered.  When nil, parsing skips the syntax,
 adding it to the unmatched syntax cache.
 
-Must return a list of semantic tags wich have been cooked
+Must return a list of semantic tags which have been cooked
 \(repositioned properly) but which DO NOT HAVE OVERLAYS associated
 with them.  When overloading this function, use `semantic--tag-expand'
 to cook raw tags.")
@@ -680,7 +680,7 @@ Does nothing if the current buffer doesn't need reparsing."
 		    (save-excursion (semantic-fetch-tags))
 		    nil)
 	      ;; If we are here, it is because the lexical step failed,
-	      ;; proably due to unterminated lists or something like that.
+	      ;; probably due to unterminated lists or something like that.
 
 	      ;; We do nothing, and just wait for the next idle timer
 	      ;; to go off.  In the meantime, remember this, and make sure
@@ -960,7 +960,7 @@ Throw away all the old tags, and recreate the tag database."
     '("--"))
   (define-key navigate-menu [senator-go-to-up-reference]
     '(menu-item "Parent Tag" senator-go-to-up-reference
-		:help "Navigate up one reference by tag."))
+		:help "Navigate up one reference by tag"))
   (define-key navigate-menu [senator-next-tag]
     '(menu-item "Next Tag" senator-next-tag
 		:help "Go to the next tag"))
@@ -971,7 +971,7 @@ Throw away all the old tags, and recreate the tag database."
   ;; Top level menu items:
   (define-key cedet-menu-map [semantic-force-refresh]
     '(menu-item "Reparse Buffer" semantic-force-refresh
-		:help "Force a full reparse of the current buffer."
+		:help "Force a full reparse of the current buffer"
 		:visible semantic-mode))
   (define-key cedet-menu-map [semantic-edit-menu]
     `(menu-item "Edit Tags" ,edit-menu

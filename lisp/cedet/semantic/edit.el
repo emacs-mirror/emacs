@@ -392,7 +392,7 @@ See `semantic-edits-change-leaf-tag' for details on parents."
 	      ;; There are no tags left, and all tags originally
 	      ;; found are encompassed by the change.  Setup our list
 	      ;; from the cache
-	      (setq list-to-search semantic--buffer-cache);; We have a tag ouside the list.  Check for
+	      (setq list-to-search semantic--buffer-cache);; We have a tag outside the list.  Check for
 	    ;; We know we have a parent because it would
 	    ;; completely cover the change.  A tag can only
 	    ;; do that if it is a parent after we get here.
@@ -549,7 +549,7 @@ This function is for internal use by `semantic-edits-incremental-parser'."
                       ;; is not the first change for this
                       ;; iteration, and it starts before the end
                       ;; of current parse region, then it is
-                      ;; encompased within the bounds of tags
+                      ;; encompassed within the bounds of tags
                       ;; modified by the previous iteration's
                       ;; change.
                       (< (semantic-overlay-start (car changes))
@@ -649,7 +649,7 @@ This function is for internal use by `semantic-edits-incremental-parser'."
                     parent-tag (aref tmp 2))
               ;; We can calculate parse begin/end by checking
               ;; out what is in TAGS.  The one near start is
-              ;; always first.  Make sure the reprase includes
+              ;; always first.  Make sure the reparse includes
               ;; the `whitespace' around the snarfed tags.
               ;; Since cache-list is positioned properly, use it
               ;; to find that boundary.
@@ -707,7 +707,7 @@ This function is for internal use by `semantic-edits-incremental-parser'."
       ;; since that is how the multi-tag parser works.  Grab
       ;; the reparse symbol from the first of the returned tags.
       ;;
-      ;; Feb '06 - If repase-symbol is nil, then they are top level
+      ;; Feb '06 - If reparse-symbol is nil, then they are top level
       ;;     tags.  (I'm guessing.)  Is this right?
       (setq reparse-symbol
             (semantic--tag-get-property (car (or tags cache-list))
@@ -859,7 +859,7 @@ pre-positioned to a convenient location."
 	  (setq cacheend chil)
 	  (while (and cacheend (not (eq last (car cacheend))))
 	    (setq cacheend (cdr cacheend)))
-	  ;; The splicable part is after cacheend.. so move cacheend
+	  ;; The spliceable part is after cacheend.. so move cacheend
 	  ;; one more tag.
 	  (setq cacheend (cdr cacheend))
 	  ;; Splice the found end tag into the cons cell

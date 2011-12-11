@@ -632,6 +632,9 @@ struct x_output
      x_check_expected_move.  */
   int left_before_move;
   int top_before_move;
+
+  /* Non-zero if _NET_WM_STATE_HIDDEN is set for this frame.  */
+  int net_wm_state_hidden_seen;
 };
 
 #define No_Cursor (None)
@@ -640,7 +643,7 @@ enum
 {
   /* Values for focus_state, used as bit mask.
      EXPLICIT means we received a FocusIn for the frame and know it has
-     the focus.  IMPLICIT means we recevied an EnterNotify and the frame
+     the focus.  IMPLICIT means we received an EnterNotify and the frame
      may have the focus if no window manager is running.
      FocusOut and LeaveNotify clears EXPLICIT/IMPLICIT. */
   FOCUS_NONE     = 0,

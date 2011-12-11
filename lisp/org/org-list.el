@@ -68,7 +68,7 @@
 
 ;; Computing a list structure can be a costly operation on huge lists
 ;; (a few thousand lines long).  Thus, code should follow the rule :
-;; "collect once, use many".  As a corollary, it is usally a bad idea
+;; "collect once, use many".  As a corollary, it is usually a bad idea
 ;; to use directly an interactive function inside the code, as those,
 ;; being independent entities, read the whole list structure another
 ;; time.
@@ -1439,7 +1439,7 @@ This function returns, destructively, the new list structure."
 	;; 1.1. Remove the item just created in structure.
 	(setq struct (delete (assq new-item struct) struct))
 	;; 1.2. Copy ITEM and any of its sub-items at NEW-ITEM.
-	(setq struct (sort*
+	(setq struct (sort
 		      (append
 		       struct
 		       (mapcar (lambda (e)
@@ -3008,7 +3008,7 @@ Valid parameters PARAMS are:
 
 Alternatively, each parameter can also be a form returning
 a string.  These sexp can use keywords `counter' and `depth',
-reprensenting respectively counter associated to the current
+representing respectively counter associated to the current
 item, and depth of the current sub-list, starting at 0.
 Obviously, `counter' is only available for parameters applying to
 items."

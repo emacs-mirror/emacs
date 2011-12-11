@@ -81,7 +81,7 @@ Setting this to nil is offered as an aid to debugging only."
 Numeric form is tested using the regular expression
 `eshell-number-regexp'.
 
-NOTE: If you find that numeric conversions are intefering with the
+NOTE: If you find that numeric conversions are interfering with the
 specification of filenames (for example, in calling `find-file', or
 some other Lisp function that deals with files, not numbers), add the
 following in your .emacs file:

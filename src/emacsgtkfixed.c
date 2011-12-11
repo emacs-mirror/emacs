@@ -1,4 +1,4 @@
-/* A Gtk Widget that inherits GtkFixed, but can be shrinked.
+/* A Gtk Widget that inherits GtkFixed, but can be shrunk.
 This file is only use when compiling with Gtk+ 3.
 
 Copyright (C) 2011  Free Software Foundation, Inc.

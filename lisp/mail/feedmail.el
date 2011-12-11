@@ -1010,7 +1010,7 @@ If it contains a \"%s\", that will be replaced with the value of
 
 
 (defcustom feedmail-ask-before-queue-reprompt "FQM: Please type q, i, d, or e; or ? for help [%s]: "
-  "A string which will be used for repompting after invalid input.
+  "A string which will be used for reprompting after invalid input.
 If it contains a \"%s\", that will be replaced with the value of
 `feedmail-ask-before-queue-default'."
   :group 'feedmail-queue
@@ -2026,7 +2026,7 @@ backup file names and the like)."
 	      (if (looking-at ".*\r\n.*\r\n")
 		  (while (search-forward "\r\n" nil t)
 		    (replace-match "\n" nil t)))
-;;		   ;; work around text-vs-binary wierdness
+;;		   ;; work around text-vs-binary weirdness
 ;;		   ;; if we don't find the normal M-H-S, try reading the file a different way
 ;; 		   (if (not (feedmail-find-eoh t))
 ;;			   (let ((file-name-buffer-file-type-alist nil) (default-buffer-file-type nil))
@@ -2188,7 +2188,7 @@ you can set `feedmail-queue-reminder-alist' to nil."
 	    (if (or (eq user-sez ?\C-m) (eq user-sez ?\C-j) (eq user-sez ?y))
 		(setq user-sez d-char))
 	    ;; these char-to-int things are because of some
-	    ;; incomprensible difference between the two in
+	    ;; incomprehensible difference between the two in
 	    ;; byte-compiled stuff between Emacs and XEmacs
 	    ;; (well, I'm sure someone could comprehend it,
 	    ;; but I say 'uncle')
@@ -2261,9 +2261,9 @@ the counts."
   (while (string-match feedmail-queue-slug-suspect-regexp slug) (setq slug (replace-match "-" nil nil slug)))
   ;; collapse multiple hyphens to one
   (while (string-match "--+" slug) (setq slug (replace-match "-" nil nil slug)))
-  ;; for tidyness, peel off leading hyphens
+  ;; for tidiness, peel off leading hyphens
   (if (string-match "^-*" slug) (setq slug (replace-match "" nil nil slug)))
-  ;; for tidyness, peel off trailing hyphens
+  ;; for tidiness, peel off trailing hyphens
   (if (string-match "-*$" slug) (setq slug (replace-match "" nil nil slug)))
   slug
   )

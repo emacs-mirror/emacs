@@ -1191,7 +1191,7 @@ error message."
     ;; Note: there is a small inefficiency in find-buffer-visiting :
     ;;   truename is computed even if not needed. Not too sure about this
     ;;   but I suspect truename computation accesses the disk.
-    ;;   It is maybe a good idea to optimise this find-buffer-visiting.
+    ;;   It is maybe a good idea to optimize this find-buffer-visiting.
     ;; An alternative would be to use only get-file-buffer
     ;; but this looks less "sure" to find the buffer for the file.
     (while (and (not the-buffer) buffer-search-extensions)

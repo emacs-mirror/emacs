@@ -284,7 +284,7 @@ buffer being in order to provide a smart default target type."
 		(progn (forward-line -1)
 		       (end-of-line)
 		       (insert "\n"))
-	      ;; If the above search fails, thats ok.  We'd just want to be at
+	      ;; If the above search fails, that's ok.  We'd just want to be at
 	      ;; point-min anyway.
 	      )
 	    (makefile-insert-macro (car (cdr (cdr ntype))))))

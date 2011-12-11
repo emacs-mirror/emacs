@@ -975,7 +975,7 @@ The list is in preference order.")
 	  (subst-char-in-region (point-min) (point-max)  9 ?  t) ; tab     --> blank
 
 	  (goto-char (point-min))
-	  ;; tidyness in case hook is not robust when it looks at this
+	  ;; tidiness in case hook is not robust when it looks at this
 	  (while (re-search-forward "[ \t]+" header-end t) (replace-match " "))
 
 	  (goto-char (point-min))

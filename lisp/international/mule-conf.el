@@ -218,7 +218,7 @@
 (fmakunbound 'define-iso-single-byte-charset)
 
 ;; Can this be shared with 8859-11?
-;; N.b. not all of these are defined unicodes.
+;; N.b. not all of these are defined in Unicode.
 (define-charset 'thai-tis620
   "TIS620.2533"
   :short-name "TIS620.2533"
@@ -865,7 +865,7 @@
 
 ;; Lao script.
 ;; Codes 0x21..0x7E are mapped to Unicode U+0E81..U+0EDF.
-;; Not all of them are defined unicodes.
+;; Not all of them are defined in Unicode.
 (define-charset 'lao
   "Lao characters (ISO10646 0E81..0EDF)"
   :short-name "Lao"

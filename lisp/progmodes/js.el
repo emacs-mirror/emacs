@@ -1599,7 +1599,7 @@ will be returned."
 
 (defun js-syntactic-context ()
   "Return the JavaScript syntactic context at point.
-When called interatively, also display a message with that
+When called interactively, also display a message with that
 context."
   (interactive)
   (let* ((syntactic-context (js--syntactic-context-from-pstate
@@ -3000,7 +3000,7 @@ browser, respectively."
                       '(js> ((fifth hitab) "selectedTab") (fourth hitab))
                       cmds)))
 
-                  ;; Hilighting whole window
+                  ;; Highlighting whole window
                   ((third hitab)
                    (push '(js! ((third hitab) "document"
                                 "documentElement" "setAttribute")

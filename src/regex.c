@@ -53,7 +53,7 @@
 	(HAVE_WCTYPE_H && HAVE_WCHAR_H && HAVE_BTOWC && !emacs)
 #endif
 
-/* For platform which support the ISO C amendement 1 functionality we
+/* For platform which support the ISO C amendment 1 functionality we
    support user defined character classes.  */
 #if WIDE_CHAR_SUPPORT
 /* Solaris 2.5 has a bug: <wchar.h> must be included before <wctype.h>.  */

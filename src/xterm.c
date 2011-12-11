@@ -2963,9 +2963,7 @@ x_clear_frame (struct frame *f)
      follow an explicit cursor_to.  */
   BLOCK_INPUT;
 
-  /* The following call is commented out because it does not seem to accomplish
-     anything, apart from causing flickering during window resize.  */
-  /* XClearWindow (FRAME_X_DISPLAY (f), FRAME_X_WINDOW (f)); */
+  XClearWindow (FRAME_X_DISPLAY (f), FRAME_X_WINDOW (f));
 
   /* We have to clear the scroll bars.  If we have changed colors or
      something like that, then they should be notified.  */
@@ -3319,7 +3317,7 @@ x_scroll_run (struct window *w, struct run *run)
     }
   else
     {
-      /* Scolling down.  Make sure we don't copy over the mode line.
+      /* Scrolling down.  Make sure we don't copy over the mode line.
 	 at the bottom.  */
       if (to_y + run->height > bottom_y)
 	height = bottom_y - to_y;
@@ -4183,7 +4181,7 @@ static Boolean xaw3d_arrow_scroll;
 
 /* Whether the drag scrolling maintains the mouse at the top of the
    thumb.  If not, resizing the thumb needs to be done more carefully
-   to avoid jerkyness.  */
+   to avoid jerkiness.  */
 
 static Boolean xaw3d_pick_top;
 
@@ -6115,7 +6113,8 @@ handle_one_xevent (struct x_display_info *dpyinfo, XEvent *eventptr,
       last_user_time = event.xproperty.time;
       f = x_top_window_to_frame (dpyinfo, event.xproperty.window);
       if (f && event.xproperty.atom == dpyinfo->Xatom_net_wm_state)
-        if (x_handle_net_wm_state (f, &event.xproperty) && f->iconified)
+        if (x_handle_net_wm_state (f, &event.xproperty) && f->iconified
+            && f->output_data.x->net_wm_state_hidden_seen)
           {
             /* Gnome shell does not iconify us when C-z is pressed.  It hides
                the frame.  So if our state says we aren't hidden anymore,
@@ -6125,6 +6124,7 @@ handle_one_xevent (struct x_display_info *dpyinfo, XEvent *eventptr,
             f->async_visible = 1;
             f->async_iconified = 0;
             f->output_data.x->has_been_visible = 1;
+            f->output_data.x->net_wm_state_hidden_seen = 0;
             inev.ie.kind = DEICONIFY_EVENT;
             XSETFRAME (inev.ie.frame_or_window, f);
           }
@@ -8482,7 +8482,10 @@ get_current_wm_state (struct frame *f,
     {
       Atom a = ((Atom*)tmp_data)[i];
       if (a == dpyinfo->Xatom_net_wm_state_hidden)
-        is_hidden = 1;
+        {
+          is_hidden = 1;
+          f->output_data.x->net_wm_state_hidden_seen = 1;
+        }
       else if (a == dpyinfo->Xatom_net_wm_state_maximized_horz)
         {
           if (*size_state == FULLSCREEN_HEIGHT)
@@ -8765,7 +8768,7 @@ x_wait_for_event (struct frame *f, int eventtype)
   pending_event_wait.f = f;
   pending_event_wait.eventtype = eventtype;
 
-  /* Set timeout to 0.1 second.  Hopefully not noticable.
+  /* Set timeout to 0.1 second.  Hopefully not noticeable.
      Maybe it should be configurable.  */
   EMACS_SET_SECS_USECS (tmo, 0, 100000);
   EMACS_GET_TIME (tmo_at);
@@ -9558,6 +9561,14 @@ x_wm_set_size_hint (struct frame *f, long flags, int user_position)
   XSizeHints size_hints;
   Window window = FRAME_OUTER_WINDOW (f);
 
+#ifdef USE_X_TOOLKIT
+  if (f->output_data.x->widget)
+    {
+      widget_update_wm_size_hints (f->output_data.x->widget);
+      return;
+    }
+#endif
+
   /* Setting PMaxSize caused various problems.  */
   size_hints.flags = PResizeInc | PMinSize /* | PMaxSize */;
 
@@ -9950,6 +9961,11 @@ x_term_init (Lisp_Object display_name, char *xrm_option, char *resource_name)
            https://bugzilla.gnome.org/show_bug.cgi?id=563627.  */
         id = g_log_set_handler ("GLib", G_LOG_LEVEL_WARNING | G_LOG_FLAG_FATAL
                                   | G_LOG_FLAG_RECURSION, my_log_handler, NULL);
+
+        /* NULL window -> events for all windows go to our function.
+           Call before gtk_init so Gtk+ event filters comes after our.  */
+        gdk_window_add_filter (NULL, event_handler_gdk, NULL);
+
         gtk_init (&argc, &argv2);
         g_log_remove_handler ("GLib", id);
 
@@ -9958,9 +9974,6 @@ x_term_init (Lisp_Object display_name, char *xrm_option, char *resource_name)
         xg_initialize ();
 
         dpy = DEFAULT_GDK_DISPLAY ();
-
-        /* NULL window -> events for all windows go to our function */
-        gdk_window_add_filter (NULL, event_handler_gdk, NULL);
 
 #if GTK_MAJOR_VERSION <= 2 && GTK_MINOR_VERSION <= 90
         /* Load our own gtkrc if it exists.  */

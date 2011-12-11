@@ -374,7 +374,7 @@
 	the function is advised in cc-defs.  However, that advice
 	doesn't help if the autoloads are updated in an old (X)Emacs
 	with this version of CC Mode, but I believe it's unlikely that
-	anyone does that when CC Mode isn't distributed with with it.
+	anyone does that when CC Mode isn't distributed with it.
 
 	* progmodes/cc-defs.el (add-to-list): Add advice to get the
 	optional third append argument in older (X)Emacsen.
@@ -1036,13 +1036,13 @@
 
 2003-06-29  Nick Roberts  <nick@nick.uklinux.net>
 
-	* gdb-ui.el (gdb-display-number-end): Don't re-initialise local
+	* gdb-ui.el (gdb-display-number-end): Don't re-initialize local
 	variables to preserve array slices.
 	(gdb-array-slice): Rename gdb-mouse-array-slice.
 	(gdb-array-slice): Interactive function bound to "\r" for text
 	terminals.
 	(gdb-view-source): Rename gdb-view-source-function.
-	Set uninitialised variables (defvars) to nil.
+	Set uninitialized variables (defvars) to nil.
 
 2003-06-29  Kai Großjohann  <kai.grossjohann@gmx.net>
 
@@ -1837,7 +1837,7 @@
 2003-05-31  Stefan Monnier  <monnier@cs.yale.edu>
 
 	* view.el (view-file, view-file-other-window, view-file-other-frame):
-	Signal an error when trying to visit an inexistent file.
+	Signal an error when trying to visit a nonexistent file.
 
 	* vc-hooks.el (vc-call-backend): Give better error message
 	when a backend function is missing.
@@ -2016,7 +2016,7 @@
 2003-05-28  Andreas Schwab  <schwab@suse.de>
 
 	* descr-text.el (describe-char): Use `char' instead of
-	`(char-after)'.  Fix display of unicode.
+	`(char-after)'.  Fix display of Unicode.
 
 2003-05-28  Nick Roberts  <nick@nick.uklinux.net>
 
@@ -2149,7 +2149,7 @@
 
 2003-05-25  Kevin Ryde  <user42@zip.com.au>
 
-	* info-look.el (autoconf-mode setups): Recognise AH_ and AU_ entries
+	* info-look.el (autoconf-mode setups): Recognize AH_ and AU_ entries
 	in "(autoconf)Autoconf Macro Index".  Add "(autoconf)M4 Macro Index"
 	and "(autoconf)Autotest Macro Index".  Remove duplicate copy of
 	"(automake)Macro and Variable Index".  Keep automake after all
@@ -2429,8 +2429,8 @@
 2003-05-21  Dave Love  <fx@gnu.org>
 
 	* descr-text.el (unicodedata-file): New.
-	(unicode-data): New (adapted from unicode branch).
-	(describe-char): Use it.  Print char's unicode differently.
+	(unicode-data): New (adapted from Unicode branch).
+	(describe-char): Use it.  Print char's Unicode code point differently.
 	Avoid elements with null cadr when formatting list.  Clarify error
 	message when used in Help buffer.
 	(button): Require when compiling.
@@ -2440,7 +2440,7 @@
 
 	* gdb-ui.el (gud-gdba-command-name): Use -noasync option for Gdb
 	with MS windows.
-	(gdb-display-end): Only make buffer writeable temporarily.
+	(gdb-display-end): Only make buffer writable temporarily.
 	Move "View" submenu up one level.
 
 2003-05-21  Nick Roberts  <nick@nick.uklinux.net>
@@ -5904,7 +5904,7 @@
 	(mis-)use tramp-current-user as indication, assuming it is set in
 	`tramp-completion-handle-file-name-all-completions'.
 	(tramp-send-region): Handle the case `tramp-chunksize' is equal 0.
-	I did it accidently.  Infinite loop ...
+	I did it accidentally.  Infinite loop ...
 	(tramp-get-device): `tramp-make-tramp-file-name' must not be
 	called with NIL path.  It fails in case of multi-method.
 	(tramp-file-name-for-operation): Apply `expand-file-name' for
@@ -8053,7 +8053,7 @@
 	(gdb-quit): Reset some variables including tool-bar-map.
 
 	* gud.el (gdb-running): New variable.
-	(gud-menu-map): Use gdb-running to grey out toolbar buttons
+	(gud-menu-map): Use gdb-running to gray out toolbar buttons
 	with gdba in gdb-ui.el.
 	(gud-tool-bar-map): Move to avoid byte compiler warning.
 
@@ -9746,8 +9746,8 @@
 
 2002-09-28  Simon Josefsson  <jas@extundo.com>
 
-	* mail/smtpmail.el (smtpmail-via-smtp): Only negotiate starttls on
-	streams that were opened using starttls.
+	* mail/smtpmail.el (smtpmail-via-smtp): Only negotiate STARTTLS on
+	streams that were opened using STARTTLS.
 
 2002-09-28  Paul Reilly  <pmr@pajato.com>
 
@@ -9827,7 +9827,7 @@
 	(uniquify-delay-rationalize-file-buffer-names): Remove useless check.
 	(kill-buffer-hook): Don't change globally.
 
-2002-09-27  Stefan Monnier  <monnier@cs.yale.edu>.
+2002-09-27  Stefan Monnier  <monnier@cs.yale.edu>
 
 	* calc/calc.el (calc-bug-address, calc-scan-for-dels, calc-stack)
 	(calc-stack-top, calc-always-load-extensions)
@@ -11680,7 +11680,7 @@
 2002-08-27  Francesco Potortì  <pot@gnu.org>
 
 	* net/ange-ftp.el (ange-ftp-skip-msgs): Skip the 530 response
-	given by vsFTPd when accessed with a kerberised FTP client.
+	given by vsFTPd when accessed with a kerberized FTP client.
 
 2002-08-27  Richard M. Stallman  <rms@gnu.org>
 
@@ -14917,7 +14917,7 @@
 
 2002-05-14  Francesco Potortì  <pot@gnu.org>
 
-	* shell.el (shell-mode): Make second part of initialisation
+	* shell.el (shell-mode): Make second part of initialization
 	depend on whether comint-input-ring is empty, rather than depend
 	on it being nil.
 
@@ -17991,7 +17991,7 @@
 	* international/ucs-tables.el (ucs-unify-8859, ucs-fragment-8859):
 	Use unify-8859-on-decoding-mode.
 	(unify-8859-on-decoding-mode): Also set translation-table-for-input.
-	(ucs-insert): Give an error if the unicode char can't be created.
+	(ucs-insert): Give an error if the Unicode char can't be created.
 
 	* pcvs-parse.el (cvs-parse-table): Be a bit more lenient.
 	(cvs-parse-status): Handle the "used to have a conflict" marker.
@@ -19206,7 +19206,7 @@
 	* language/cyril-util.el (cyrillic-encode-koi8-r-char)
 	(cyrillic-encode-alternativnyj-char): Get translation tables from
 	symbol properties, not as variables.
-	(standard-display-cyrillic-translit): Include unicodes.
+	(standard-display-cyrillic-translit): Include Unicode characters.
 
 2002-02-06  Kim F. Storm  <storm@cua.dk>
 
@@ -20778,7 +20778,7 @@
 	* Makefile.in (distclean): Remove Makefile in the build
 	directory, not in the source directory.
 
-2001-12-21  Simon Josefsson  <jas@extundo.com>.
+2001-12-21  Simon Josefsson  <jas@extundo.com>
 
 	* mail/smtpmail.el (smtpmail-send-queued-mail):
 	Use with-temp-buffer instead of find-file-noselect, and bind
@@ -22669,7 +22669,7 @@
 
 	Suggested by Kalle Olavi Niemitalo <kon@iki.fi>:
 
-	* vc-hooks.el (vc-error-occured): Backquotified.
+	* vc-hooks.el (vc-error-occurred): Backquotified.
 	(vc-file-prop-obarray): Use prime length for better efficiency.
 
 	* vc.el (vc-clear-context): Fill obarray with 0, not nil.
@@ -22790,7 +22790,7 @@
 2001-11-04  Miles Bader  <miles@gnu.org>
 
 	* startup.el (fancy-splash-head): Reapply Gerd's hack to make the
-	shadow of the splash image grey on a dark background instead of black.
+	shadow of the splash image gray on a dark background instead of black.
 
 2001-11-03  Stefan Monnier  <monnier@cs.yale.edu>
 

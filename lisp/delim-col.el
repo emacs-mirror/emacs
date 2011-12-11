@@ -206,7 +206,7 @@ This has effect only when there are lines with different number of columns."
   :group 'columns)
 
 (defcustom delimit-columns-start 0
-  "Specify column number to start prettifing.
+  "Specify column number to start prettifying.
 
 See also `delimit-columns-end' for documentation.
 
@@ -221,7 +221,7 @@ column (column 0) is located at left corner."
   :group 'columns)
 
 (defcustom delimit-columns-end 1000000
-  "Specify column number to end prettifing.
+  "Specify column number to end prettifying.
 
 See also `delimit-columns-start' for documentation.
 

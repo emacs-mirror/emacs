@@ -113,25 +113,6 @@ Emacs Lisp Reference Manual}.
 @insertcopying
 @end ifnottex
 
-@ignore
-These subcategories have been deleted for simplicity
-and to avoid conflicts.
-Completion
-Backup Files
-Auto-Saving: Protection Against Disasters
-Tags
-Text Mode
-Outline Mode
-@TeX{} Mode
-Formatted Text
-Shell Command History
-
-The ones for Dired and Rmail have had the items turned into :: items
-to avoid conflicts.
-Also Running Shell Commands from Emacs
-and Sending Mail and Registers and Minibuffer.
-@end ignore
-
 @menu
 * Distrib::             How to get the latest Emacs distribution.
 * Intro::               An introduction to Emacs concepts.
@@ -350,6 +331,7 @@ Controlling the Display
 * View Mode::              Viewing read-only buffers.
 * Follow Mode::            Follow mode lets two windows scroll as one.
 * Faces::                  How to change the display style using faces.
+* Colors::                 Specifying colors for faces.
 * Standard Faces::         Emacs' predefined faces.
 * Text Scale::             Increasing or decreasing text size in a buffer.
 * Font Lock::              Minor mode for syntactic highlighting using faces.
@@ -505,10 +487,8 @@ Frames and Graphical Displays
 * Fonts::               Changing the frame font.
 * Speedbar::            How to make and use a speedbar frame.
 * Multiple Displays::   How one Emacs job can talk to several displays.
-* Special Buffer Frames::  You can make certain buffers have their own frames.
 * Frame Parameters::    Changing the colors and other modes of frames.
 * Scroll Bars::         How to enable and disable scroll bars; how to use them.
-* Wheeled Mice::        Using mouse wheels for scrolling.
 * Drag and Drop::       Using drag and drop to open files and insert text.
 * Menu Bars::           Enabling and disabling the menu bar.
 * Tool Bars::           Enabling and disabling the tool bar.
@@ -553,10 +533,10 @@ Modes
 
 Indentation
 
-* Indentation Commands::  Various commands and techniques for indentation.
-* Tab Stops::             You can set arbitrary "tab stops" and then
-                            indent to the next tab stop when you want to.
-* Just Spaces::           You can request indentation using just spaces.
+* Indentation Commands::  More commands for performing indentation.
+* Tab Stops::             Stop points for indentation in Text modes.
+* Just Spaces::           Using only space characters for indentation.
+* Indent Convenience::    Optional indentation features.
 
 Commands for Human Languages
 
@@ -571,8 +551,8 @@ Commands for Human Languages
 * TeX Mode::            Editing input to the formatter TeX.
 * HTML Mode::           Editing HTML and SGML files.
 * Nroff Mode::          Editing input to the formatter nroff.
-* Formatted Text::      Editing formatted text directly in WYSIWYG fashion.
-* Text Based Tables::   Editing text-based tables in WYSIWYG fashion.
+* Enriched Text::       Editing text ``enriched'' with fonts, colors, etc.
+* Text Based Tables::   Commands for editing text-based tables.
 * Two-Column::          Splitting text columns into separate windows.
 
 Filling Text
@@ -599,18 +579,16 @@ Outline Mode
 * TeX Print::           Commands for printing part of a file with TeX.
 * TeX Misc::            Customization of TeX mode, and related features.
 
-Editing Formatted Text
+Editing Enriched Text
 
-* Requesting Formatted Text::   Entering and exiting Enriched mode.
-* Hard and Soft Newlines::      There are two different kinds of newlines.
-* Editing Format Info::         How to edit text properties.
-* Format Faces::                Bold, italic, underline, etc.
-* Format Colors::               Changing the color of text.
-* Format Indentation::          Changing the left and right margins.
-* Format Justification::        Centering, setting text flush with the
-                                  left or right margin, etc.
-* Format Properties::           The "special" text properties submenu.
-* Forcing Enriched Mode::       How to force use of Enriched mode.
+* Enriched Mode::           Entering and exiting Enriched mode.
+* Hard and Soft Newlines::  There are two different kinds of newlines.
+* Editing Format Info::     How to edit text properties.
+* Enriched Faces::          Bold, italic, underline, etc.
+* Enriched Indentation::    Changing the left and right margins.
+* Enriched Justification::  Centering, setting text flush with the
+                              left or right margin, etc.
+* Enriched Properties::     The "special" text properties submenu.
 
 @c The automatic texinfo menu update inserts some duplicate items here
 @c (faces, colors, indentation, justification, properties), because
@@ -624,11 +602,8 @@ Editing Text-based Tables
 * Table Recognition::   How to activate and deactivate tables.
 * Cell Commands::       Cell-oriented commands in a table.
 * Cell Justification::  Justifying cell contents.
-* Row Commands::        Manipulating rows of table cell.
-* Column Commands::     Manipulating columns of table cell.
-* Fixed Width Mode::    Fixing cell width.
+* Table Rows and Columns:: Inserting and deleting rows and columns.
 * Table Conversion::    Converting between plain text and tables.
-* Measuring Tables::    Analyzing table dimension.
 * Table Misc::          Table miscellany.
 
 Editing Programs
@@ -747,8 +722,7 @@ GDB Graphical Interface
 * Breakpoints Buffer::          A breakpoint control panel.
 * Threads Buffer::              Displays your threads.
 * Stack Buffer::                Select a frame from the call stack.
-* Other GDB Buffers::           Input/output, locals, registers,
-                                assembler, threads and memory buffers.
+* Other GDB Buffers::           Other buffers for controlling the GDB state.
 * Watch Expressions::           Monitor variable values in the speedbar.
 * Multithreaded Debugging::     Debugging programs with several threads.
 
@@ -1152,7 +1126,7 @@ Command Line Arguments for Emacs Invocation
 * Environment::         Environment variables that Emacs uses.
 * Display X::           Changing the default display and using remote login.
 * Font X::              Choosing a font for text, under X.
-* Colors::              Choosing display colors.
+* Colors X::            Choosing display colors.
 * Window Size X::       Start-up window size, under X.
 * Borders X::           Internal and external borders, under X.
 * Title X::             Specifying the initial frame's title.

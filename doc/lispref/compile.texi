@@ -528,7 +528,7 @@ but the compiler does not issue warnings for anything that occurs
 inside @var{body}.
 
 We recommend that you use this construct around the smallest
-possible piece of code, to avoid missing possible warnings other than one
+possible piece of code, to avoid missing possible warnings other than
 one you intend to suppress.
 @end defspec
 

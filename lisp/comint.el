@@ -1980,7 +1980,7 @@ Make backspaces delete the previous character."
               ;; The point should float after any insertion we do.
 	      (saved-point (copy-marker (point) t)))
 
-	  ;; We temporarly remove any buffer narrowing, in case the
+	  ;; We temporarily remove any buffer narrowing, in case the
 	  ;; process mark is outside of the restriction
 	  (save-restriction
 	    (widen)
@@ -2568,7 +2568,7 @@ This command is like `M-.' in bash."
 	   ;; First usage; initialize to a marker
 	   (setq comint-insert-previous-argument-last-start-pos
 		 (make-marker)))))
-  ;; Make sure we're not in the prompt, and add a beginning space if necess.
+  ;; Make sure we're not in the prompt, and add a beginning space if necessary.
   (if (<= (point) (comint-line-beginning-position))
       (comint-bol)
     (just-one-space))

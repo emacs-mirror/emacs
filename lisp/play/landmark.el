@@ -385,7 +385,7 @@ is non-nil.  One interesting value is `turn-on-font-lock'."
 		  best-square square
 		  score-max   score)
 	    (aset landmark-score-table square -1))) ; no: kill it !
-       ;; If score is equally good, choose randomly. But first check freeness:
+       ;; If score is equally good, choose randomly. But first check freedom:
        ((not (zerop (aref landmark-board square)))
 	(aset landmark-score-table square -1))
        ((zerop (random (setq count (1+ count))))

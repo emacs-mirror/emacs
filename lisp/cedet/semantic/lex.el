@@ -165,7 +165,7 @@
 ;;
 ;; %type  <punctuation> syntax "\\(\\s.\\|\\s$\\|\\s'\\)+" matchdatatype string
 ;;
-;; ;; Some punctuations based on the type defines above
+;; ;; Some punctuation based on the type defines above
 ;;
 ;; %token <punctuation> NOT         "!"
 ;; %token <punctuation> NOTEQ       "!="
@@ -1248,7 +1248,7 @@ they are comment end characters) AND when you want whitespace tokens."
   (if (eq (semantic-lex-token-class (car semantic-lex-token-stream))
 	  'whitespace)
       ;; Merge whitespace tokens together if they are adjacent.  Two
-      ;; whitespace tokens may be sperated by a comment which is not in
+      ;; whitespace tokens may be separated by a comment which is not in
       ;; the token stream.
       (setcdr (semantic-lex-token-bounds (car semantic-lex-token-stream))
               (match-end 0))
@@ -1271,7 +1271,7 @@ they are comment end characters)."
   (if (eq (semantic-lex-token-class (car semantic-lex-token-stream))
 	  'whitespace)
       ;; Merge whitespace tokens together if they are adjacent.  Two
-      ;; whitespace tokens may be sperated by a comment which is not in
+      ;; whitespace tokens may be separated by a comment which is not in
       ;; the token stream.
       (progn
         (setq semantic-lex-end-point (match-end 0))
@@ -1313,7 +1313,7 @@ and number formats."
 
 (define-lex-analyzer semantic-lex-punctuation-type
   "Detect and create a punctuation type token.
-Recognized punctuations are defined in the current table of lexical
+Recognized punctuation is defined in the current table of lexical
 types, as the value of the `punctuation' token type."
   (and (looking-at "\\(\\s.\\|\\s$\\|\\s'\\)+")
        (let* ((key (match-string 0))
@@ -1362,11 +1362,11 @@ Return either a paren token or a semantic list token depending on
     ))
 
 (define-lex-simple-regex-analyzer semantic-lex-open-paren
-  "Detect and create an open parenthisis token."
+  "Detect and create an open parenthesis token."
   "\\s(" 'open-paren 0  (setq semantic-lex-current-depth (1+ semantic-lex-current-depth)))
 
 (define-lex-simple-regex-analyzer semantic-lex-close-paren
-  "Detect and create a close paren token."
+  "Detect and create a close parenthesis token."
   "\\s)" 'close-paren 0 (setq semantic-lex-current-depth (1- semantic-lex-current-depth)))
 
 (define-lex-regex-analyzer semantic-lex-string

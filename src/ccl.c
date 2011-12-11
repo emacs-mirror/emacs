@@ -47,7 +47,7 @@ static Lisp_Object Qcode_conversion_map;
 static Lisp_Object Qcode_conversion_map_id;
 
 /* Symbols of ccl program have this property, a value of the property
-   is an index for Vccl_protram_table. */
+   is an index for Vccl_program_table. */
 static Lisp_Object Qccl_program_idx;
 
 /* Table of registered CCL programs.  Each element is a vector of
@@ -552,7 +552,7 @@ static Lisp_Object Vccl_program_table;
    But, when VALm is mapped to VALn and VALn is not a number, the
    mapping proceed as below:
 
-   If VALn is nil, the lastest map is ignored and the mapping of VALm
+   If VALn is nil, the last map is ignored and the mapping of VALm
    proceed to the next map.
 
    In VALn is t, VALm is reverted to reg[rrr] and the mapping of VALm
@@ -561,7 +561,7 @@ static Lisp_Object Vccl_program_table;
    If VALn is lambda, move to the next map set like reaching to the
    end of the current map set.
 
-   If VALn is a symbol, call the CCL program refered by it.
+   If VALn is a symbol, call the CCL program referred by it.
    Then, use reg[rrr] as a mapped value except for -1, -2 and -3.
    Such special values are regarded as nil, t, and lambda respectively.
 
@@ -823,7 +823,7 @@ while (0)
    : (charset = CHARSET_FROM_ID ((id)), DECODE_CHAR (charset, (code))))
 
 /* Encode character C by some of charsets in CHARSET_LIST.  Set ID to
-   the id of the used charset, ENCODED to the resulf of encoding.
+   the id of the used charset, ENCODED to the result of encoding.
    Assume that we can use the variable `charset'.  */
 
 #define CCL_ENCODE_CHAR(c, charset_list, id, encoded)		\

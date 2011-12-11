@@ -417,7 +417,7 @@ XML document."
 Automatically creates an XML request body if TAG is non-nil.
 BODY is the XML document fragment to be enclosed by <TAG></TAG>.
 
-DEPTH is how deep the request should propogate.  Default is 0, meaning
+DEPTH is how deep the request should propagate.  Default is 0, meaning
 it should apply only to URL.  A negative number means to use
 `Infinity' for the depth.  Not all WebDAV servers support this depth
 though.

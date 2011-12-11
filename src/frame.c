@@ -374,7 +374,7 @@ make_frame (int mini_p)
 
     /* Use set_window_buffer, not Fset_window_buffer, and don't let
        hooks be run by it.  The reason is that the whole frame/window
-       arrangement is not yet fully intialized at this point.  Windows
+       arrangement is not yet fully initialized at this point.  Windows
        don't have the right size, glyph matrices aren't initialized
        etc.  Running Lisp functions at this point surely ends in a
        SEGV.  */
@@ -1712,7 +1712,7 @@ If omitted, FRAME defaults to the currently selected frame.  */)
 }
 
 /* Update the display_time slot of the buffers shown in WINDOW
-   and all its descendents.  */
+   and all its descendants.  */
 
 static void
 make_frame_visible_1 (Lisp_Object window)
@@ -1929,7 +1929,7 @@ request a switch to FOCUS-FRAME, and `last-event-frame' will be
 FOCUS-FRAME after reading an event typed at FRAME.
 
 If FOCUS-FRAME is omitted or nil, any existing redirection is
-cancelled, and the frame again receives its own keystrokes.
+canceled, and the frame again receives its own keystrokes.
 
 Focus redirection is useful for temporarily redirecting keystrokes to
 a surrogate minibuffer frame when a frame doesn't have its own

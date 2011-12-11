@@ -294,14 +294,14 @@ Use a range of Latin-1 non-ASCII characters for footnoting."
 ;; Unicode
 
 (defconst footnote-unicode-string "⁰¹²³⁴⁵⁶⁷⁸⁹"
-  "String of unicode footnoting characters.")
+  "String of Unicode footnoting characters.")
 
 (defconst footnote-unicode-regexp (concat "[" footnote-unicode-string "]+")
-  "Regexp for unicode footnoting characters.")
+  "Regexp for Unicode footnoting characters.")
 
 (defun Footnote-unicode (n)
   "Unicode footnote style.
-Use unicode characters for footnoting."
+Use Unicode characters for footnoting."
   (let (modulus result done)
     (while (not done)
       (setq modulus (mod n 10)
@@ -348,7 +348,7 @@ buffer use the command `Footnote-set-style'."
 
 ;;; Style utilities & functions
 (defun Footnote-style-p (style)
-  "Return non-nil if style is a valid style known to footnote-mode."
+  "Return non-nil if style is a valid style known to `footnote-mode'."
   (assq style footnote-style-alist))
 
 (defun Footnote-index-to-string (index)

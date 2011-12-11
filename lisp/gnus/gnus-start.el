@@ -2533,7 +2533,7 @@ If FORCE is non-nil, the .newsrc file is read."
        ((or (eq symbol options-symbol)
 	    (eq symbol Options-symbol))
 	(setq gnus-newsrc-options
-	      ;; This concating is quite inefficient, but since our
+	      ;; This concatting is quite inefficient, but since our
 	      ;; thorough studies show that approx 99.37% of all
 	      ;; .newsrc files only contain a single options line, we
 	      ;; don't give a damn, frankly, my dear.

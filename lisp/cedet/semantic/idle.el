@@ -245,7 +245,7 @@ And also manages services that depend on tag values."
         ;; services.  Stop on keypress.
 
 	;; NOTE ON COMMENTED SAFE HERE
-	;; We used to not execute the services if the buffer wsa
+	;; We used to not execute the services if the buffer was
 	;; unparseable.  We now assume that they are lexically
 	;; safe to do, because we have marked the buffer unparseable
 	;; if there was a problem.
@@ -254,11 +254,11 @@ And also manages services that depend on tag values."
 	  (save-excursion
 	    (semantic-throw-on-input 'idle-queue)
 	    (when semantic-idle-scheduler-verbose-flag
-	      (message "IDLE: execture service %s..." service))
+	      (message "IDLE: execute service %s..." service))
 	    (semantic-safe (format "Idle Service Error %s: %%S" service)
 	      (funcall service))
 	    (when semantic-idle-scheduler-verbose-flag
-	      (message "IDLE: execture service %s...done" service))
+	      (message "IDLE: execute service %s...done" service))
 	    )))
 	;;)
       ;; Finally loop over remaining buffers, trying to update them as
@@ -515,7 +515,7 @@ Does nothing if the current buffer doesn't need reparsing."
 			(save-excursion (semantic-fetch-tags))
 			nil)
 		  ;; If we are here, it is because the lexical step failed,
-		  ;; proably due to unterminated lists or something like that.
+		  ;; probably due to unterminated lists or something like that.
 
 		  ;; We do nothing, and just wait for the next idle timer
 		  ;; to go off.  In the meantime, remember this, and make sure

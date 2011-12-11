@@ -24,7 +24,7 @@ infodir = $(srcdir)/../../info
 # Directory with the (customized) texinfo.tex file.
 texinfodir = $(srcdir)/../misc
 
-INFO_SOURCES = $(srcdir)/emacs-lisp-intro.texi
+INFO_SOURCES = $(srcdir)/emacs-lisp-intro.texi $(srcdir)/doclicense.texi
 # The file name eintr must fit within 5 characters, to allow for
 # -NN extensions to fit into DOS 8+3 limits without clashing
 INFO_TARGETS = $(infodir)/eintr

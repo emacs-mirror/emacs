@@ -36,7 +36,7 @@
 2008-02-01  Vinicius Jose Latorre  <viniciusjl@ig.com.br>
 
 	* ps-print.el: Some face attributes (like :strike-through) were not
-	being recognised.  Reported by Leo <sdl.web@gmail.com>.
+	being recognized.  Reported by Leo <sdl.web@gmail.com>.
 	(ps-print-version): New version 7.3.2.
 	(ps-screen-to-bit-face): Fix code.  Call ps-face-strikeout-p,
 	ps-face-overline-p and ps-face-box-p functions.
@@ -315,7 +315,7 @@
 	* language/ethio-util.el:
 	* international/characters.el: Use utf-8 rather than utf-8-emacs
 	since it works as well and has the advantage of working with
-	non-unicode versions of Emacs.
+	non-Unicode versions of Emacs.
 
 	* international/encoded-kb.el (encoded-kbd-setup-display): Use the new
 	multi-tty code, which includes the previous local change.
@@ -1171,7 +1171,7 @@
 
 	* international/encoded-kb.el (encoded-kbd-self-insert-charset)
 	(encoded-kbd-self-insert-utf-8, encoded-kbd-setup-keymap)
-	(encoded-kbd-mode): Adjust code merged from trunk for unicode branch.
+	(encoded-kbd-mode): Adjust code merged from trunk for Unicode branch.
 
 2008-02-01  Kenichi Handa  <handa@m17n.org>
 
@@ -1668,7 +1668,7 @@
 2008-02-01  Kenichi Handa  <handa@m17n.org>
 
 	* international/fontset.el: Enable the default fontset to use
-	unicode fonts for ASCII characters.
+	Unicode fonts for ASCII characters.
 	(x-decompose-font-name): Don't try to resolve PATTERN by
 	x-resolve-font-name.
 	(x-complement-fontset-spec): Never prepend an ASCII font.
@@ -2331,9 +2331,9 @@
 	New coding systems.
 	("Chinese-GBK"): New environment.
 
-	* language/thai-util.el: Remove redundant unicodes in category-setting.
-
-	* language/lao-util.el: Remove redundant unicodes in category-setting.
+	* language/thai-util.el:
+	* language/lao-util.el: Remove redundant Unicode characters
+	in category-setting.
 
 	* international/mule-conf.el (japanese-jisx0213-1)
 	(japanese-jisx0213-2): Add unify-map.
@@ -2358,7 +2358,8 @@
 
 	* language/cyril-util.el (cyrillic-encode-koi8-r-char)
 	(cyrillic-encode-alternativnyj-char): Fix.
-	(standard-display-cyrillic-translit): Remove redundant unicodes.
+	(standard-display-cyrillic-translit):
+	Remove redundant Unicode characters.
 
 2008-02-01  Dave Love  <fx@gnu.org>
 
@@ -2417,7 +2418,7 @@
 	lengths of the pair.
 
 	* international/characters.el: Add Vietnamese category to
-	equivalent unicodes.
+	equivalent Unicode characters.
 
 2008-02-01  Dave Love  <fx@gnu.org>
 
@@ -2518,7 +2519,7 @@
 	(print-designation): Partial re-write.
 	(describe-coding-system): Deal with iso-2022 designations, flags.
 	Fix shift_jis case.
-	(describe-char-after): Use characterp.  Print explicit unicode.
+	(describe-char-after): Use characterp.  Print explicit Unicode code point.
 	Remove some obsolete code.
 	(print-coding-system-briefly): Fix printing aliases.
 	(print-coding-system): Use coding-system-aliases.
@@ -2587,7 +2588,7 @@
 
 	* Makefile.in: Cancel the 2008-02-01 change of mine.
 
-	* international/fontset.el: Add setting for unicode font at the
+	* international/fontset.el: Add setting for Unicode font at the
 	end of the default fontset.
 
 2008-02-01  Dave Love  <fx@gnu.org>
@@ -2742,7 +2743,7 @@
 
 	* international/ja-dic-utl.el (skkdic-jisx0208-hiragana-block):
 	Fix the initial value to specify character range of
-	japanese-jisx0208, not unicode.
+	japanese-jisx0208, not Unicode.
 
 	* international/characters.el: Set syntax/category for
 	japanese-jisx0208.
@@ -4137,7 +4138,7 @@
 2008-01-14  Alan Mackenzie  <acm@muc.de>
 
 	* progmodes/cc-engine.el (c-guess-basic-syntax): Prevent a macro
-	call inside a struct being recognised as a K&R argument.
+	call inside a struct being recognized as a K&R argument.
 
 2008-01-14  Stefan Monnier  <monnier@iro.umontreal.ca>
 
@@ -4274,7 +4275,7 @@
 	stops with an error and Emacs does not compile with those things in.
 	Besides, declare-function is not defined in XEmacs.
 
-	* ediff-util.el (eqiff-quit): Autoraise minibuffer.
+	* ediff-util.el (ediff-quit): Autoraise minibuffer.
 
 	* ediff-diff.el (ediff-convert-fine-diffs-to-overlays): Make it a defun.
 
@@ -6265,7 +6266,7 @@
 	delete .elc files.
 
 	* nxml/char-name/unicode: Move to etc/nxml/.
-	* nxml/nxml-uchnm.el (top-level): Adapt for moved unicode files.
+	* nxml/nxml-uchnm.el (top-level): Adapt for moved Unicode files.
 
 	* nxml/nxml-enc.el (xmltok-get-declared-encoding-position):
 	Declare as a function.
@@ -7392,7 +7393,7 @@
 
 	* help-mode.el (help-mode): Set view-exit-action to bury the
 	buffer instead of fiddling with windows.  Simplify code.
-	(help-mode-finish): When help-window eqs t set it to the selected
+	(help-mode-finish): When help-window equals t set it to the selected
 	window and have with-help-window set up view-return-to-alist.
 	(help-buffer): Add autoload cookie.
 
@@ -8009,7 +8010,7 @@
 2007-10-31  Juanma Barranquero  <lekktu@gmail.com>
 
 	* help-at-pt.el (help-at-pt-unload-hook): Remove.
-	Timers are automatically cancelled by `unload-feature'.
+	Timers are automatically canceled by `unload-feature'.
 
 	* delsel.el (delsel-unload-hook): Remove function and variable.
 	(delsel-unload-function): New-style unload function, adapted
@@ -10868,7 +10869,7 @@
 
 2007-09-23  Glenn Morris  <rgm@gnu.org>
 
-	* ses.el (ses-calculate-cell): Don't evaluate unsafe formulae.
+	* ses.el (ses-calculate-cell): Don't evaluate unsafe formulas.
 
 2007-09-23  Dan Nicolaescu  <dann@ics.uci.edu>
 
@@ -12544,7 +12545,7 @@
 	a weird set-buffer&prog1 combination.
 
 	* emacs-lisp/byte-opt.el (byte-optimize-if): Move `progn' out of the
-	test so as to optimise cases where the `progn's result is constant.
+	test so as to optimize cases where the `progn's result is constant.
 
 2007-08-23  Thien-Thi Nguyen  <ttn@gnuvola.org>
 
@@ -13845,7 +13846,7 @@
 2007-07-24  Alan Mackenzie  <acm@muc.de>
 
 	* emacs-lisp/bytecomp.el (byte-compile-from-buffer):
-	Initialise byte-compile-unresolved-functions before rather than
+	Initialize byte-compile-unresolved-functions before rather than
 	after a compilation.
 	(byte-compile-unresolved-functions): Amplify doc string.
 
@@ -14943,7 +14944,7 @@
 2007-07-05  Thien-Thi Nguyen  <ttn@gnuvola.org>
 
 	* Makefile.in (bootstrap-prepare): When copying from
-	ldefs-boot.el, make sure loaddefs.el is writeable.
+	ldefs-boot.el, make sure loaddefs.el is writable.
 
 	(bootstrap-prepare): Make $(lisp)/ps-print.el
 	and $(lisp)/emacs-lisp/cl-loaddefs.el writable, as well.
@@ -15910,14 +15911,14 @@
 2007-06-08  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* textmodes/css-mode.el (css-navigation-syntax-table):
-	Use set-char-table-range so it also works in the unicode branch.
+	Use set-char-table-range so it also works in the Unicode branch.
 
 2007-06-08  Nick Roberts  <nickrob@snap.net.nz>
 
 	* help-mode.el (help-xref-forward-stack)
 	(help-xref-stack-forward-item, help-forward-label): New variables.
 	(help-forward): New button type.
-	(help-setup-xref): Initialise help-xref-forward-stack.
+	(help-setup-xref): Initialize help-xref-forward-stack.
 	(help-make-xrefs): Add forward button, if appropriate.
 	(help-xref-go-back): Push item on forward stack.
 	(help-xref-go-forward, help-go-forward): New functions.

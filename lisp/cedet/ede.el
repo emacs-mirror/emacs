@@ -214,7 +214,7 @@ Argument LIST-O-O is the list of objects to choose from."
     (and obj (obj-of-class-p obj ede-target))))
 
 (defun ede-buffer-belongs-to-project-p ()
-  "Return non-nil if this buffer belongs to at least one target."
+  "Return non-nil if this buffer belongs to at least one project."
   (if (or (null ede-object) (consp ede-object)) nil
     (obj-of-class-p ede-object ede-project)))
 
@@ -243,7 +243,7 @@ Argument MENU-DEF is the menu definition to use."
 	      ede-obj (if (listp ede-object) ede-object (list ede-object)))
 	;; First, collect the build items from the project
 	(setq newmenu (append newmenu (ede-menu-items-build obj t)))
-	;; Second, Declare the current target menu items
+	;; Second, declare the current target menu items
 	(if (and ede-obj (ede-menu-obj-of-class-p ede-target))
 	    (while ede-obj
 	      (setq newmenu (append newmenu
@@ -264,7 +264,7 @@ Argument MENU-DEF is the menu definition to use."
 	  (setq targets (cdr targets)))
 	;; Fourth, build sub projects.
 	;; -- nerp
-	;; Fifth, Add make distribution
+	;; Fifth, add make distribution
 	(append newmenu (list [ "Make distribution" ede-make-dist t ]))
 	)))))
 
@@ -512,7 +512,7 @@ an EDE controlled project."
   "Look for a target that wants to own the current file.
 Follow the preference set with `ede-auto-add-method' and get the list
 of objects with the `ede-want-file-p' method."
-  (if ede-object (error "Ede-object already defined for %s" (buffer-name)))
+  (if ede-object (error "ede-object already defined for %s" (buffer-name)))
   (if (or (eq ede-auto-add-method 'never)
 	  (ede-ignore-file (buffer-file-name)))
       nil
@@ -566,7 +566,7 @@ Argument FILE is the file or directory to load a project from."
     (ede-load-project-file (file-name-directory file))))
 
 (defun ede-new (type &optional name)
-  "Create a new project starting of project type TYPE.
+  "Create a new project starting from project type TYPE.
 Optional argument NAME is the name to give this project."
   (interactive
    (list (completing-read "Project Type: "
@@ -642,7 +642,7 @@ Optional argument NAME is the name to give this project."
 
 (defun ede-invoke-method (sym &rest args)
   "Invoke method SYM on the current buffer's project object.
-ARGS are additional arguments to pass to method sym."
+ARGS are additional arguments to pass to method SYM."
   (if (not ede-object)
       (error "Cannot invoke %s for %s" (symbol-name sym)
 	     (buffer-name)))
@@ -815,7 +815,7 @@ Argument FNND is an argument."
   (error "remove-file not supported by %s" (object-name ot)))
 
 (defmethod project-edit-file-target ((ot ede-target))
-  "Edit the target OT associated w/ this file."
+  "Edit the target OT associated with this file."
   (find-file (oref (ede-current-project) file)))
 
 (defmethod project-new-target ((proj ede-project) &rest args)
@@ -857,7 +857,7 @@ Argument COMMAND is the command to use for compiling the target."
   (error "Dist-files is not supported by %s" (object-name this)))
 
 (defmethod project-rescan ((this ede-project))
-  "Rescan the EDE proj project THIS."
+  "Rescan the EDE project THIS."
   (error "Rescanning a project is not supported by %s" (object-name this)))
 
 (defun ede-ecb-project-paths ()
@@ -879,7 +879,7 @@ On success, return the added project."
   (when (not proj)
     (error "No project created to add to master list"))
   (when (not (eieio-object-p proj))
-    (error "Attempt to add Non-object to master project list"))
+    (error "Attempt to add non-object to master project list"))
   (when (not (obj-of-class-p proj ede-project-placeholder))
     (error "Attempt to add a non-project to the ede projects list"))
   (add-to-list 'ede-projects proj)
@@ -1157,7 +1157,7 @@ See also `ede-map-all-subprojects'."
   (mapcar proc (oref this subproj)))
 
 (defmethod ede-map-all-subprojects ((this ede-project) allproc)
-  "For object THIS, execute PROC on THIS and  all subprojects.
+  "For object THIS, execute PROC on THIS and all subprojects.
 This function also applies PROC to sub-sub projects.
 See also `ede-map-subprojects'."
   (apply 'append

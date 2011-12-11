@@ -167,9 +167,9 @@ static struct
      maximum character of the current charset.  */
   int min_char, max_char;
 
-  /* A Unicode character correspoinding to the code indice 0 (i.e. the
+  /* A Unicode character corresponding to the code index 0 (i.e. the
      minimum code-point) of the current charset, or -1 if the code
-     indice 0 is not a Unicode character.  This is checked when
+     index 0 is not a Unicode character.  This is checked when
      table.encoder[CHAR] is zero.  */
   int zero_index_char;
 
@@ -2074,7 +2074,7 @@ that case, find the charset from what supported by that coding system.  */)
 DEFUN ("charset-after", Fcharset_after, Scharset_after, 0, 1, 0,
        doc: /*
 Return charset of a character in the current buffer at position POS.
-If POS is nil, it defauls to the current point.
+If POS is nil, it defaults to the current point.
 If POS is out of range, the value is nil.  */)
   (Lisp_Object pos)
 {

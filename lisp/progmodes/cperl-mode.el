@@ -839,7 +839,7 @@ voice);
         b) Can lineup vertically \"middles\" of rows, like `=' in
                 a  = b;
                 cc = d;
-        c) Can insert spaces where this impoves readability (in one
+        c) Can insert spaces where this improves readability (in one
                 interactive sweep over the buffer);
         d) Has support for imenu, including:
                 1) Separate unordered list of \"interesting places\";
@@ -1277,7 +1277,7 @@ versions of Emacs."
 	  "----"
 	  ["Ispell PODs" cperl-pod-spell
 	   ;; Better not to update syntaxification here:
-	   ;; debugging syntaxificatio can be broken by this???
+	   ;; debugging syntaxification can be broken by this???
 	   (or
 	    (get-text-property (point-min) 'in-pod)
 	    (< (progn
@@ -1388,12 +1388,12 @@ The expansion is entirely correct because it uses the C preprocessor."
 
 ;;; These two must be unwound, otherwise take exponential time
 (defconst cperl-maybe-white-and-comment-rex "[ \t\n]*\\(#[^\n]*\n[ \t\n]*\\)*"
-"Regular expression to match optional whitespace with interpspersed comments.
+"Regular expression to match optional whitespace with interspersed comments.
 Should contain exactly one group.")
 
 ;;; This one is tricky to unwind; still very inefficient...
 (defconst cperl-white-and-comment-rex "\\([ \t\n]\\|#[^\n]*\n\\)+"
-"Regular expression to match whitespace with interpspersed comments.
+"Regular expression to match whitespace with interspersed comments.
 Should contain exactly one group.")
 
 
@@ -1811,7 +1811,7 @@ or as help on variables `cperl-tips', `cperl-problems',
 	       (funcall f))
 	   (make-local-variable 'compilation-error-regexp-alist)
 	   (push 'cperl compilation-error-regexp-alist)))
-	((boundp 'compilation-error-regexp-alist);; xmeacs 19.x
+	((boundp 'compilation-error-regexp-alist);; xemacs 19.x
 	 (make-local-variable 'compilation-error-regexp-alist)
 	 (set 'compilation-error-regexp-alist
 	       (append cperl-compilation-error-regexp-alist
@@ -2801,7 +2801,7 @@ Will not look before LIM."
 				 (skip-chars-forward " \t")
 				 (if (memq (char-after (point))
 					   (append "#\n" nil))
-				     nil ; Can't use intentation of this line...
+				     nil ; Can't use indentation of this line...
 				   (point)))
 			     (skip-chars-forward " \t")
 			     (point)))
@@ -7650,7 +7650,7 @@ $~	The name of the current report format.
 ... &= ...	Bitwise and assignment.
 ... * ...	Multiplication.
 ... ** ...	Exponentiation.
-*NAME	Glob: all objects refered by NAME.  *NAM1 = *NAM2 aliases NAM1 to NAM2.
+*NAME	Glob: all objects referred by NAME.  *NAM1 = *NAM2 aliases NAM1 to NAM2.
 &NAME(arg0, ...)	Subroutine call.  Arguments go to @_.
 ... + ...	Addition.		+EXPR	Makes EXPR into scalar context.
 ++	Auto-increment (magical on strings).	++EXPR	EXPR++

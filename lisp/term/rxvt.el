@@ -114,11 +114,11 @@
 
 (defvar rxvt-alternatives-map
   (let ((map (make-sparse-keymap)))
-    ;; The terminal intialization C code file might have initialized
+    ;; The terminal initialization C code file might have initialized
     ;; function keys F11->F42 from the termcap/terminfo information.  On
     ;; a PC-style keyboard these keys correspond to
     ;; MODIFIER-FUNCTION_KEY, where modifier is S-, C-, C-S-.  The
-    ;; code here subsitutes the corresponding definitions in
+    ;; code here substitutes the corresponding definitions in
     ;; function-key-map.  This substitution is needed because if a key
     ;; definition if found in function-key-map, there are no further
     ;; lookups in other keymaps.
@@ -228,7 +228,7 @@ for the currently selected frame."
 	;; 216 non-gray colors first
 	(let ((r 0) (g 0) (b 0))
 	  (while (> ncolors 24)
-	    ;; This and other formulae taken from 256colres.pl and
+	    ;; This and other formulas taken from 256colres.pl and
 	    ;; 88colres.pl in the xterm distribution.
 	    (tty-color-define (format "color-%d" (- 256 ncolors))
 			      (- 256 ncolors)

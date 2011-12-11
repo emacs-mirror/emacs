@@ -306,14 +306,14 @@ Name to display in the title bar of the initial Emacs frame.
 @item @code{toolBar} (class @code{ToolBar})
 @cindex tool bar
 Number of lines to reserve for the tool bar.  A zero value suppresses
-the tool bar.  For the Emacs tool bar (i.e. not Gtk+), if the value is 
-non-zero and @code{auto-resize-tool-bars} is non-@code{nil}, the tool bar's
-size will be changed automatically so that all tool bar items are visible.
-  If the value of @code{auto-resize-tool-bars} is @code{grow-only},
-the tool bar expands automatically, but does not contract automatically.
-To contract the tool bar, you must redraw the frame by entering @kbd{C-l}.
-For the Gtk+ tool bar, any non-zero value means on and
-@code{auto-resize-tool-bars} has no effect.
+the tool bar.  For the Emacs tool bar (i.e.@: not Gtk+), if the value
+is non-zero and @code{auto-resize-tool-bars} is non-@code{nil}, the
+tool bar's size will be changed automatically so that all tool bar
+items are visible.  If the value of @code{auto-resize-tool-bars} is
+@code{grow-only}, the tool bar expands automatically, but does not
+contract automatically.  To contract the tool bar, you must redraw the
+frame by entering @kbd{C-l}.  For the Gtk+ tool bar, any non-zero
+value means on and @code{auto-resize-tool-bars} has no effect.
 
 @item @code{useXIM} (class @code{UseXIM})
 @cindex XIM
@@ -641,17 +641,18 @@ The color for the border shadow, on the top and the left.
 @node GTK resources
 @appendixsec GTK resources
 @iftex
-  The most common way to customize the GTK widgets Emacs uses (menus, dialogs
-tool bars and scroll bars) is by choosing an appropriate theme, for example
-with the GNOME theme selector.  
+  The most common way to customize the GTK widgets Emacs uses (menus,
+dialogs tool bars and scroll bars) is by choosing an appropriate
+theme, for example with the GNOME theme selector.
 
-You can also do Emacs specific customization
-by inserting GTK style directives in the file @file{~/.emacs.d/gtkrc},
-but only if you have a Gtk+ version earlier than 3 (i.e. 2).   Some GTK
-themes ignore customizations in @file{~/.emacs.d/gtkrc} so not everything
-works with all themes.  To customize Emacs font, background, faces, etc., use
-the normal X resources (@pxref{Resources}).  We will present some examples of
-customizations here, but for a more detailed description, see the online manual
+You can also do Emacs specific customization by inserting GTK style
+directives in the file @file{~/.emacs.d/gtkrc}, but only if you have a
+Gtk+ version earlier than 3 (i.e.@: 2).  Some GTK themes ignore
+customizations in @file{~/.emacs.d/gtkrc} so not everything works with
+all themes.  To customize Emacs font, background, faces, etc., use the
+normal X resources (@pxref{Resources}).  We will present some examples
+of customizations here, but for a more detailed description, see the
+online manual
 
   The first example is just one line.  It changes the font on all GTK widgets
 to courier with size 12:
@@ -1065,7 +1066,7 @@ possible states are:
 This is the default state for widgets.
 @item ACTIVE
 This is the state for a widget that is ready to do something.  It is
-also for the trough of a scroll bar, i.e.  @code{bg[ACTIVE] = "red"}
+also for the trough of a scroll bar, i.e.@: @code{bg[ACTIVE] = "red"}
 sets the scroll bar trough to red.  Buttons that have been pressed but
 not released yet (``armed'') are in this state.
 @item PRELIGHT
@@ -1109,7 +1110,7 @@ You can't specify the file by its absolute file name.  GTK looks for
 the pixmap file in directories specified in @code{pixmap_path}.
 @code{pixmap_path} is a colon-separated list of directories within
 double quotes, specified at the top level in a @file{gtkrc} file
-(i.e. not inside a style definition; see example above):
+(i.e.@: not inside a style definition; see example above):
 
 @smallexample
 pixmap_path "/usr/share/pixmaps:/usr/include/X11/pixmaps"
@@ -1131,19 +1132,18 @@ Bold 12}, @samp{Courier 14}, @samp{Times 18}.  See below for exact
 syntax.  The names are case insensitive.
 @end table
 
-  There are three ways to specify a color: by name, in hexadecimal
-form, and with an RGB triplet.
+  There are three ways to specify a color: a color name, an RGB
+triplet, or a GTK-style RGB triplet.  @xref{Colors}, for a description
+of color names and RGB triplets.  Color names should be enclosed with
+double quotes, e.g.@: @samp{"red"}.  RGB triplets should be written
+without double quotes, e.g.@: @samp{#ff0000}.  GTK-style RGB triplets
+have the form
+
+@smallexample
+@code{@{ @var{r}, @var{g}, @var{b} @}}
+@end smallexample
 
 @noindent
-A color name is written within double quotes, for example @code{"red"}.
-
-@noindent
-Hexadecimal form is the same as in X:
-@code{#@var{rrrr}@var{gggg}@var{bbbb}}, where all three color specs
-must have the same number of hex digits (1, 2, 3 or 4).
-
-@noindent
-An RGB triplet looks like @code{@{ @var{r}, @var{g}, @var{b} @}},
 where @var{r}, @var{g} and @var{b} are either integers in the range
 0-65535 or floats in the range 0.0-1.0.
 

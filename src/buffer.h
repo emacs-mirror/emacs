@@ -978,7 +978,7 @@ extern int last_per_buffer_idx;
    variable has an index > 0 associated with it, except when it always
    has buffer-local values, in which case the index is -1.  If this is
    0, this is a bug and means that the slot of VAR in
-   buffer_local_flags wasn't intiialized.  */
+   buffer_local_flags wasn't initialized.  */
 
 #define PER_BUFFER_VAR_IDX(VAR) \
     PER_BUFFER_IDX (PER_BUFFER_VAR_OFFSET (VAR))

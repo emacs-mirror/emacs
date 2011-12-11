@@ -69,14 +69,14 @@
   (unless (eq (get 'reftex-default-bibliography :reftex-raw)
               reftex-default-bibliography)
     (put 'reftex-default-bibliography :reftex-expanded
-         (reftex-locate-bibliography-files 
+         (reftex-locate-bibliography-files
           default-directory reftex-default-bibliography))
     (put 'reftex-default-bibliography :reftex-raw
          reftex-default-bibliography))
   (get 'reftex-default-bibliography :reftex-expanded))
 
 (defun reftex-bib-or-thebib ()
-  ;; Tests if BibTeX or \begin{tehbibliography} should be used for the
+  ;; Tests if BibTeX or \begin{thebibliography} should be used for the
   ;; citation
   ;; Find the bof of the current file
   (let* ((docstruct (symbol-value reftex-docstruct-symbol))
@@ -128,7 +128,7 @@
   ;; If RETURN is non-nil, just return the entry and restore point.
 
   (let* ((re
-          (if item 
+          (if item
               (concat "\\\\bibitem\\(\\[[^]]*\\]\\)?{" (regexp-quote key) "}")
             (concat "@[a-zA-Z]+[ \t\n\r]*[{(][ \t\n\r]*" (regexp-quote key)
                     "[, \t\r\n}]")))
@@ -152,7 +152,7 @@
           (when return
             ;; Just return the relevant entry
             (if item (goto-char (match-end 0)))
-            (setq return (buffer-substring 
+            (setq return (buffer-substring
                           (point) (reftex-end-of-bib-entry item)))
 	    (goto-char oldpos) ;; restore point.
             (set-buffer buffer-conf)
@@ -169,9 +169,9 @@
         (error "No BibTeX entry with citation key %s" key)))))
 
 (defun reftex-end-of-bib-entry (item)
-  (save-excursion 
+  (save-excursion
     (condition-case nil
-        (if item 
+        (if item
             (progn (end-of-line)
                    (re-search-forward
                     "\\\\bibitem\\|\\end{thebibliography}")
@@ -192,16 +192,16 @@
 
     ;; Read a regexp, completing on known citation keys.
     (setq default (regexp-quote (reftex-get-bibkey-default)))
-    (setq re-list 
-          (split-string 
-           (completing-read 
+    (setq re-list
+          (split-string
+           (completing-read
             (concat
              "Regex { && Regex...}: "
              "[" default "]: ")
             (if reftex-mode
                 (if (fboundp 'LaTeX-bibitem-list)
                     (LaTeX-bibitem-list)
-                  (cdr (assoc 'bibview-cache 
+                  (cdr (assoc 'bibview-cache
                               (symbol-value reftex-docstruct-symbol))))
               nil)
             nil nil nil 'reftex-cite-regexp-hist)
@@ -248,7 +248,7 @@
                    (error (goto-char key-point)
                           (throw 'search-again nil)))
                  (setq end-point (point))
-                 
+
                  ;; Ignore @string, @comment and @c entries or things
                  ;; outside entries
                  (when (or (string= (downcase (match-string 2)) "string")
@@ -257,12 +257,12 @@
                            (< (point) key-point)) ; this means match not in {}
                    (goto-char key-point)
                    (throw 'search-again nil))
-                 
+
                  ;; Well, we have got a match
                  ;;(setq entry (concat
                  ;;             (buffer-substring start-point (point)) "\n"))
                  (setq entry (buffer-substring start-point (point)))
-                 
+
                  ;; Check if other regexp match as well
                  (setq re-list rest-re)
                  (while re-list
@@ -270,24 +270,24 @@
                      ;; nope - move on
                      (throw 'search-again nil))
                    (pop re-list))
-                 
+
                  (setq alist (reftex-parse-bibtex-entry
                               nil start-point end-point))
                  (push (cons "&entry" entry) alist)
-                 
+
                  ;; check for crossref entries
                  (if (assoc "crossref" alist)
                      (setq alist
                            (append
                             alist (reftex-get-crossref-alist alist))))
-                 
+
                  ;; format the entry
                  (push (cons "&formatted" (reftex-format-bib-entry alist))
                        alist)
-                 
+
                  ;; make key the first element
                  (push (reftex-get-bib-field "&key" alist) alist)
-                 
+
                  ;; add it to the list
                  (push alist found-list)))))
           (reftex-kill-temporary-buffers))))
@@ -350,7 +350,7 @@
     (unless files
       (error "Need file name to find thebibliography environment"))
     (while (setq file (pop files))
-      (setq buf (reftex-get-file-buffer-force 
+      (setq buf (reftex-get-file-buffer-force
                  file (not reftex-keep-temporary-buffers)))
       (unless buf
         (error "No such file %s" file))
@@ -386,16 +386,16 @@
 
     ;; Read a regexp, completing on known citation keys.
     (setq default (regexp-quote (reftex-get-bibkey-default)))
-    (setq re-list 
-          (split-string 
-           (completing-read 
+    (setq re-list
+          (split-string
+           (completing-read
             (concat
              "Regex { && Regex...}: "
              "[" default "]: ")
             (if reftex-mode
                 (if (fboundp 'LaTeX-bibitem-list)
                     (LaTeX-bibitem-list)
-                  (cdr (assoc 'bibview-cache 
+                  (cdr (assoc 'bibview-cache
                               (symbol-value reftex-docstruct-symbol))))
               nil)
             nil nil nil 'reftex-cite-regexp-hist)
@@ -408,14 +408,14 @@
         (error "Empty regular expression"))
 
     (while (and (setq re (pop re-list)) entries)
-      (setq entries 
+      (setq entries
             (delq nil (mapcar
                        (lambda (x)
                          (if (string-match re (cdr (assoc "&entry" x)))
                              x nil))
                        entries))))
-    (setq entries 
-          (mapcar 
+    (setq entries
+          (mapcar
             (lambda (x)
               (push (cons "&formatted" (reftex-format-bibitem x)) x)
               (push (reftex-get-bib-field "&key" x) x)
@@ -655,12 +655,12 @@ While entering the regexp, completion on knows citation keys is possible.
 
     (when (eq (car selected-entries) 'concat)
       ;; All keys go into a single command - we need to trick a little
-      ;; FIXME: Unfortunately, this meens that commenting does not work right.
+      ;; FIXME: Unfortunately, this means that commenting does not work right.
       (pop selected-entries)
       (let ((concat-keys (mapconcat 'car selected-entries ",")))
-        (setq insert-entries 
+        (setq insert-entries
               (list (list concat-keys (cons "&key" concat-keys))))))
-    
+
     (unless no-insert
 
       ;; We shall insert this into the buffer...

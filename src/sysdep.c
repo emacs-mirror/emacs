@@ -433,7 +433,7 @@ child_setup_tty (int out)
 #endif /* AIX */
 
   /* We originally enabled ICANON (and set VEOF to 04), and then had
-     proces.c send additional EOF chars to flush the output when faced
+     process.c send additional EOF chars to flush the output when faced
      with long lines, but this leads to weird effects when the
      subprocess has disabled ICANON and ends up seeing those spurious
      extra EOFs.  So we don't send EOFs any more in
@@ -1663,7 +1663,7 @@ init_signals (void)
       sys_siglist[SIGQUIT] = "Quit";
 # endif
 # ifdef SIGRETRACT
-      sys_siglist[SIGRETRACT] = "Need to relinguish monitor mode";
+      sys_siglist[SIGRETRACT] = "Need to relinquish monitor mode";
 # endif
 # ifdef SIGSAK
       sys_siglist[SIGSAK] = "Secure attention";

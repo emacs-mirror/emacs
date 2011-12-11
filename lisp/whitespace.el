@@ -623,8 +623,12 @@ and `newline'."
 (defface whitespace-newline
   '((((class color) (background dark))
      (:foreground "darkgray" :bold nil))
-    (((class color) (background light))
+    (((class color) (min-colors 88) (background light))
      (:foreground "lightgray" :bold nil))
+    ;; Displays with 16 colors use lightgray as background, so using a
+    ;; lightgray foreground makes the newline mark invisible.
+    (((class color) (background light))
+     (:foreground "brown" :bold nil))
     (t (:underline t :bold nil)))
   "Face used to visualize NEWLINE char mapping.
 

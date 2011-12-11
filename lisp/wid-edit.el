@@ -295,10 +295,10 @@ minibuffer."
 	     (error "Canceled"))
 	   value))))
 
-(defun widget-remove-if (predictate list)
+(defun widget-remove-if (predicate list)
   (let (result (tail list))
     (while tail
-      (or (funcall predictate (car tail))
+      (or (funcall predicate (car tail))
 	  (setq result (cons (car tail) result)))
       (setq tail (cdr tail)))
     (nreverse result)))
@@ -577,7 +577,7 @@ This is only meaningful for radio buttons or checkboxes in a list."
   "Map FUNCTION over the buttons in BUFFER.
 FUNCTION is called with the arguments WIDGET and MAPARG.
 
-If FUNCTION returns non-nil, the walk is cancelled.
+If FUNCTION returns non-nil, the walk is canceled.
 
 The arguments MAPARG, and BUFFER default to nil and (current-buffer),
 respectively."

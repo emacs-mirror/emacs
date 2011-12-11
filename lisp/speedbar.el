@@ -35,7 +35,7 @@ this version is not backward compatible to 0.14 or earlier.")
 ;;
 ;;; Customizing and Developing for speedbar
 ;;
-;; Please see the speedbar manual for informaion.
+;; Please see the speedbar manual for information.
 ;;
 ;;; Notes:
 ;;
@@ -471,7 +471,7 @@ Possible values are:
  'trim - trim large directories to only show the last few.
  nil   - no trimming."
   :group 'speedbar
-  :type '(radio (const :tag "Span large directories over mutiple lines."
+  :type '(radio (const :tag "Span large directories over multiple lines."
 		       span)
 		(const :tag "Trim large directories to only show the last few."
 		       trim)
@@ -696,7 +696,7 @@ function `speedbar-extension-list-to-regex'.")
   (append '(".[ch]\\(\\+\\+\\|pp\\|c\\|h\\|xx\\)?" ".tex\\(i\\(nfo\\)?\\)?"
 	    ".el" ".emacs" ".l" ".lsp" ".p" ".java" ".js" ".f\\(90\\|77\\|or\\)?")
 	  (if speedbar-use-imenu-flag
-	      '(".ada" ".p[lm]" ".tcl" ".m" ".scm" ".pm" ".py" ".g"
+	      '(".ad[abs]" ".p[lm]" ".tcl" ".m" ".scm" ".pm" ".py" ".g"
 		;; html is not supported by default, but an imenu tags package
 		;; is available.  Also, html files are nice to be able to see.
 		".s?html"
@@ -1004,7 +1004,7 @@ supported at a time.
 		     #'speedbar-frame-mode
 		     (if (featurep 'xemacs)
 			 (append speedbar-frame-plist
-				 ;; This is a hack to get speedbar to iconfiy
+				 ;; This is a hack to get speedbar to iconify
 				 ;; with the selected frame.
 				 (list 'parent (selected-frame)))
 		       speedbar-frame-parameters)
@@ -1862,7 +1862,7 @@ of the special mode functions."
 	    (if (not v)
 		(setq speedbar-special-mode-expansion-list t)
 	      ;; If it is autoloaded, we need to load it now so that
-	      ;; we have access to the varialbe -speedbar-menu-items.
+	      ;; we have access to the variable -speedbar-menu-items.
 	      ;; Is this XEmacs safe?
 	      (let ((sf (symbol-function v)))
 		(if (and (listp sf) (eq (car sf) 'autoload))
@@ -2101,7 +2101,7 @@ cell of the form ( 'DIRLIST . 'FILELIST )."
       ;; If the shown files variable has extra directories, then
       ;; it is our responsibility to redraw them all
       ;; Luckily, the nature of inserting items into this list means
-      ;; that by reversing it, we can easilly go in the right order
+      ;; that by reversing it, we can easily go in the right order
       (let ((sf (cdr (reverse speedbar-shown-directories))))
 	(setq speedbar-shown-directories
 	      (list (expand-file-name default-directory)))

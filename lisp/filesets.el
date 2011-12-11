@@ -267,12 +267,12 @@ SYM to VAL and return t.  If INIT-FLAG is non-nil, set with
     (not ignore-flag)))
 
 (defun filesets-set-default! (sym val)
-  "Call `filestes-set-default' and reset cached data (i.e. rebuild menu)."
+  "Call `filesets-set-default' and reset cached data (i.e. rebuild menu)."
   (when (filesets-set-default sym val)
     (filesets-reset-fileset)))
 
 (defun filesets-set-default+ (sym val)
-  "Call `filestes-set-default' and reset filesets' standard menu."
+  "Call `filesets-set-default' and reset filesets' standard menu."
   (when (filesets-set-default sym val)
     (setq filesets-has-changed-flag t)))
 ;    (filesets-reset-fileset nil t)))

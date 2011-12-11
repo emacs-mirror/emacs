@@ -636,7 +636,7 @@ The file associated with OBJ does not need to be in a buffer."
   (when (featurep 'semantic/lex-spp)
     (oset table lexical-table (semantic-lex-spp-save-table)))
 
-  ;; Incremental parser doesn't mokey around with this.
+  ;; Incremental parser doesn't monkey around with this.
   (oset table unmatched-syntax semantic-unmatched-syntax-cache)
 
   ;; Synchronize the index

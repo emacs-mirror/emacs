@@ -212,7 +212,7 @@ to the functions `reftex-view-cr-cite' and `reftex-view-cr-ref'."
       (add-hook 'pre-command-hook 'reftex-highlight-shall-die)
 
       (when (eq how 'tmp-window)
-        ;; Resize window and arrange restauration
+        ;; Resize window and arrange restoration
         (shrink-window (1- (- (window-height) 9)))
         (recenter '(4))
         (add-hook 'pre-command-hook 'reftex-restore-window-conf))
@@ -361,7 +361,7 @@ will display info in the echo area."
   "View location in a LaTeX document which cites the BibTeX entry at point.
 Since BibTeX files can be used by many LaTeX documents, this function
 prompts upon first use for a buffer in RefTeX mode.  To reset this
-link to a document, call the function with with a prefix arg.
+link to a document, call the function with a prefix arg.
 Calling this function several times find successive citation locations."
   (interactive "P")
   (when arg

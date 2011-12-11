@@ -43,7 +43,7 @@ Recycle doxygen comment code from the more general template set."
 ----
 
 template variable-same-line-comment :tag
-"A comment occurring after a veriable declaration.
+"A comment occurring after a variable declaration.
 Recycle doxygen comment code from the more general template set."
 ----
 {{>:declaration:doxygen-variable-same-line}}

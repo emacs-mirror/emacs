@@ -598,7 +598,7 @@ See variable `lisp-describe-sym-command'."
 	(error "No Lisp subprocess; see variable `inferior-lisp-buffer'"))))
 
 
-;;; Do the user's customisation...
+;;; Do the user's customization...
 ;;;===============================
 (defvar inferior-lisp-load-hook nil
   "This hook is run when the library `inf-lisp' is loaded.")

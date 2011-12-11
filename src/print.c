@@ -1627,7 +1627,7 @@ print_object (Lisp_Object obj, register Lisp_Object printcharfun, int escapeflag
 		/* Detect circular list.  */
 		if (NILP (Vprint_circle))
 		  {
-		    /* Simple but imcomplete way.  */
+		    /* Simple but incomplete way.  */
 		    if (i != 0 && EQ (obj, halftail))
 		      {
 			sprintf (buf, " . #%"pMd, i / 2);

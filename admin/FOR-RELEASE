@@ -170,10 +170,10 @@ entering.texi     cyd
 files.texi        cyd
 fixit.texi        
 fortran-xtra.texi 
-frames.texi       
+frames.texi       cyd
 glossary.texi
 help.texi         cyd
-indent.texi       
+indent.texi       cyd
 killing.texi      cyd
 kmacro.texi       cyd
 macos.texi        
@@ -182,6 +182,7 @@ major.texi
 mark.texi         cyd
 mini.texi         
 misc.texi         
+modes.texi        cyd
 msdog.texi        
 msdog-xtra.texi   
 mule.texi         
@@ -197,7 +198,7 @@ text.texi
 trouble.texi      
 vc-xtra.texi
 vc1-xtra.texi
-windows.texi      
+windows.texi      cyd
 xresources.texi   
 
 ** Check the Lisp manual.

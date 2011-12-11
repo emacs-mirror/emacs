@@ -142,7 +142,7 @@ Intended to be added to `isearch-mode-hook'."
        ;; 1. First try searching in the initial buffer
        (let ((res (funcall search-fun string bound noerror)))
 	 ;; Reset wrapping for all-buffers pause after successful search
-	 (if (and res (eq multi-isearch-pause t))
+	 (if (and res (not bound) (eq multi-isearch-pause t))
 	     (setq multi-isearch-current-buffer nil))
 	 res)
        ;; 2. If the above search fails, start visiting next/prev buffers
@@ -173,8 +173,8 @@ Intended to be added to `isearch-mode-hook'."
 		   found)
 	       ;; Return nil when multi-isearch-next-buffer-current-function fails
 	       ;; (`with-current-buffer' raises an error for nil returned from it).
-	       (error nil))
-	   (signal 'search-failed (list string "Repeat for next buffer"))))))))
+	       (error (signal 'search-failed (list string "end of multi"))))
+	   (signal 'search-failed (list string "repeat for next buffer"))))))))
 
 (defun multi-isearch-wrap ()
   "Wrap the multiple buffers search when search is failed.

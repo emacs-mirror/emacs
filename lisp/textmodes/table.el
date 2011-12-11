@@ -173,19 +173,19 @@
 ;; +-------------------------------+----------------------------------+
 ;; |`table-recognize'              |Recognize all tables in the       |
 ;; |`table-unrecognize'            |current buffer and                |
-;; |                               |activate/inactivate them.         |
+;; |                               |activate/deactivate them.         |
 ;; +-------------------------------+----------------------------------+
 ;; |`table-recognize-region'       |Recognize all the cells in a      |
-;; |`table-unrecognize-region'     |region and activate/inactivate    |
+;; |`table-unrecognize-region'     |region and activate/deactivate    |
 ;; |                               |them.                             |
 ;; +-------------------------------+----------------------------------+
 ;; |`table-recognize-table'        |Recognize all the cells in a      |
 ;; |`table-unrecognize-table'      |single table and                  |
-;; |                               |activate/inactivate them.         |
+;; |                               |activate/deactivate them.         |
 ;; +-------------------------------+----------------------------------+
 ;; |`table-recognize-cell'         |Recognize a cell.  Find a cell    |
 ;; |`table-unrecognize-cell'       |which contains the current point  |
-;; |                               |and activate/inactivate that cell.|
+;; |                               |and activate/deactivate that cell.|
 ;; +-------------------------------+----------------------------------+
 ;; |`table-forward-cell'           |Move point to the next Nth cell in|
 ;; |                               |a table.                          |
@@ -345,7 +345,7 @@
 ;; Above code is well known ~/.emacs idiom for customizing a mode
 ;; specific keymap however it does not work for this package.  This is
 ;; because there is no table mode in effect.  This package does not
-;; use a local map therefor you must modify `table-cell-map'
+;; use a local map therefore you must modify `table-cell-map'
 ;; explicitly.  The correct way of achieving above task is:
 ;;
 ;;   (add-hook 'table-cell-map-hook
@@ -2155,7 +2155,7 @@ specified."
 (defun table-shorten-cell (n)
   "Shorten the current cell by N lines by shrinking the cell vertically.
 Shortening is done by removing blank lines from the bottom of the cell
-and possibly from the top of the cell as well.  Therefor, the cell
+and possibly from the top of the cell as well.  Therefore, the cell
 must have some bottom/top blank lines to be shorten effectively.  This
 is applicable to all the cells aligned horizontally with the current
 one because they are also shortened in order to keep the rectangular
@@ -3856,7 +3856,7 @@ companion command to `table-capture' this way.
 ;;;###autoload
 (defun table-release ()
   "Convert a table into plain text by removing the frame from a table.
-Remove the frame from a table and inactivate the table.  This command
+Remove the frame from a table and deactivate the table.  This command
 converts a table into plain text without frames.  It is a companion to
 `table-capture' which does the opposite process."
   (interactive)
@@ -4293,7 +4293,7 @@ cache buffer into the designated cell in the table buffer."
     (car (table--get-coordinate (cdr (table--horizontal-cell-list nil t))))
     (1+ (cdr (table--get-coordinate (cdr (table--vertical-cell-list nil t))))))))
 
-(defun table-call-interactively (function &optional recoard-flag keys)
+(defun table-call-interactively (function &optional record-flag keys)
   "Call FUNCTION, or a table version of it if applicable.
 See `call-interactively' for full description of the arguments."
   (let ((table-func (intern-soft (format "*table--cell-%s" function))))
@@ -4301,7 +4301,7 @@ See `call-interactively' for full description of the arguments."
      (if (and table-func
 	      (table--point-in-cell-p))
 	 table-func
-       function) recoard-flag keys)))
+       function) record-flag keys)))
 
 (defun table-funcall (function &rest arguments)
   "Call FUNCTION, or a table version of it if applicable.
@@ -5535,7 +5535,7 @@ When COORDINATE is omitted or nil the point in current buffer is assumed in plac
    table-cell-info-lu-coordinate))
 
 (defun table--offset-coordinate (coordinate offset &optional negative)
-  "Return the offseted COORDINATE by OFFSET.
+  "Return the offset COORDINATE by OFFSET.
 When optional NEGATIVE is non-nil offsetting direction is negative."
   (cons (if negative (- (car coordinate) (car offset))
 	  (+ (car coordinate) (car offset)))

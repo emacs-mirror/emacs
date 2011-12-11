@@ -33,11 +33,13 @@
 
 ;;;###autoload
 (defvar lpr-windows-system
-  (memq system-type '(ms-dos windows-nt)))
+  (memq system-type '(ms-dos windows-nt))
+  "Non-nil if running on MS-DOS or MS Windows.")
 
 ;;;###autoload
 (defvar lpr-lp-system
-  (memq system-type '(usg-unix-v hpux irix)))
+  (memq system-type '(usg-unix-v hpux irix))
+  "Non-nil if running on a system type that uses the \"lp\" command.")
 
 
 (defgroup lpr nil

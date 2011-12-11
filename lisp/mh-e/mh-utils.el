@@ -484,18 +484,18 @@ no effect."
   folder)
 
 (defmacro mh-children-p (folder)
-  "Return t if FOLDER from sub-folders cache has children.
-The car of folder is the name, and the cdr is either t or some
-sort of count that I do not understand. It's too small to be the
-number of messages in the sub-folders and too large to be the
-number of sub-folders. XXX"
+  "Return t if FOLDER from sub-folders cache has children."
+;; The car of folder is the name, and the cdr is either t or some
+;; sort of count that I do not understand. It's too small to be the
+;; number of messages in the sub-folders and too large to be the
+;; number of sub-folders. XXX
   `(if (cdr ,folder)
        t
      nil))
 
 ;;;###mh-autoload
 (defun mh-folder-list (folder)
-  "Return FOLDER and its descendents.
+  "Return FOLDER and its descendants.
 FOLDER may have a + prefix. Returns a list of strings without the
 + prefix. If FOLDER is nil, then all folders are considered. For
 example, if your Mail directory only contains the folders +inbox,

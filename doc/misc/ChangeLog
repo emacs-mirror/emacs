@@ -1,3 +1,31 @@
+2011-12-06  Juanma Barranquero  <lekktu@gmail.com>
+
+	* gnus-faq.texi (FAQ 2-1, FAQ 3-8, FAQ 4-14, FAQ 9-1): Fix typos.
+
+2011-11-24  Glenn Morris  <rgm@gnu.org>
+
+	* gnus.texi, smtpmail.texi: Fix case of "GnuTLS".
+
+2011-11-24  Juanma Barranquero  <lekktu@gmail.com>
+
+	* makefile.w32-in: Update dependencies.
+
+2011-11-20  Glenn Morris  <rgm@gnu.org>
+
+	* gnus.texi (Group Information):
+	Remove gnus-group-fetch-faq, command deleted 2010-09-24.
+
+2011-11-20  Juanma Barranquero  <lekktu@gmail.com>
+
+	* gnus-coding.texi (Gnus Maintenance Guide):
+	Rename from "Gnus Maintainance Guide".
+
+	* ede.texi (ede-compilation-program, ede-compiler, ede-linker):
+	* eieio.texi (Customizing):
+	* gnus.texi (Article Washing):
+	* gnus-news.texi:
+	* sem-user.texi (Smart Jump): Fix typos.
+
 2011-11-16  Juanma Barranquero  <lekktu@gmail.com>
 
 	* org.texi (Agenda commands, Exporting Agenda Views): Fix typos.
@@ -2971,7 +2999,7 @@
 	* org.texi (Activation, Exporting, ASCII export, HTML export)
 	(HTML Export commands, LaTeX/PDF export commands):
 	Improve documentation about transient-mark-mode.
-	(References): DOcuemtn the use of special names like $LR1 to reference
+	(References): Document the use of special names like $LR1 to reference
 	to fields in the last table row.
 
 2008-12-19  Juri Linkov  <juri@jurta.org>
@@ -7958,7 +7986,7 @@
 2003-02-01  Michael Albinus  <Michael.Albinus@alcatel.de>
 
 	* tramp.texi (Frequently Asked Questions): Explain a workaround if
-	another package loads accidently Ange-FTP.
+	another package loads accidentally Ange-FTP.
 
 2003-01-24  Michael Albinus  <Michael.Albinus@alcatel.de>
 

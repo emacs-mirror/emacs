@@ -39,7 +39,7 @@
 ;; Consequently, GNU Emacs 23.1 with enabled D-Bus bindings is a
 ;; precondition.
 
-;; The GVFS D-Bus interface is said to be instable.  There are even no
+;; The GVFS D-Bus interface is said to be unstable.  There are even no
 ;; introspection data.  The interface, as discovered during
 ;; development time, is given in respective comments.
 
@@ -188,7 +188,7 @@
 ;;   STRING		  stable_name
 ;;   STRING		  x_content_types	Since GVFS 1.0 only !!!
 ;;   STRING		  icon
-;;   STRING		  prefered_filename_encoding
+;;   STRING		  preferred_filename_encoding
 ;;   BOOLEAN		  user_visible
 ;;   ARRAY BYTE		  fuse_mountpoint
 ;;   STRUCT		  mount_spec
@@ -996,7 +996,7 @@ ADDRESS can have the form \"xx:xx:xx:xx:xx:xx\" or \"[xx:xx:xx:xx:xx:xx]\"."
     (let ((signal-name (dbus-event-member-name last-input-event))
 	  (elt mount-info))
       ;; Jump over the first elements of the mount info. Since there
-      ;; were changes in the antries, we cannot access dedicated
+      ;; were changes in the entries, we cannot access dedicated
       ;; elements.
       (while (stringp (car elt)) (setq elt (cdr elt)))
       (let* ((fuse-mountpoint (dbus-byte-array-to-string (cadr elt)))
@@ -1066,7 +1066,7 @@ ADDRESS can have the form \"xx:xx:xx:xx:xx:xx\" or \"[xx:xx:xx:xx:xx:xx]\"."
 	      tramp-gvfs-interface-mounttracker "listMounts"))
 	  nil)
        ;; Jump over the first elements of the mount info. Since there
-       ;; were changes in the antries, we cannot access dedicated
+       ;; were changes in the entries, we cannot access dedicated
        ;; elements.
        (while (stringp (car elt)) (setq elt (cdr elt)))
        (let* ((fuse-mountpoint (dbus-byte-array-to-string (cadr elt)))

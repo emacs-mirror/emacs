@@ -1,3 +1,55 @@
+2011-12-10  Juanma Barranquero  <lekktu@gmail.com>
+
+	* update-subdirs: Don't set no-byte-compile twice (bug#10260).
+
+2011-12-10  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* configure.in (HAVE_ALSA, HAVE_GSETTINGS): Save and restore LIBS
+	instead of LDFLAGS (Bug#10230).
+
+2011-12-03  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* INSTALL.BZR: Mention configure -C, --disable-maintainer-mode.
+
+	Propagate configure flags to sub-configures.
+	* Makefile.in (cache_file, MAINTAINER_MODE_FLAG, CONFIGUREFLAGS):
+	New macros.
+	(config.status, bootstrap): Use them to propagate configure flags
+	to sub-configures.
+	* configure.in (cache_file): AC_SUBST this, for Makefile.in.
+
+2011-12-03  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* .bzrignore: Add config.cache.
+
+2011-11-27  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* configure.in: Check for gtk_window_set_has_resize_grip.
+
+2011-11-24  Juanma Barranquero  <lekktu@gmail.com>
+
+	* configure.in (HAVE_XPM): Fix typo.
+
+2011-11-22  Glenn Morris  <rgm@gnu.org>
+
+	* configure.in (EMACSDATA, EMACSDOC): If set, print, since they can
+	have confusing effects on the build.  (Bug#6401)
+
+	* Makefile.in (install-arch-dep): Tweak previous change.
+
+2011-11-22  Yavor Doganov  <yavor@gnu.org>
+
+	Do not install arch-dependent files in the app bundle if
+	--disable-ns-self-contained is requested.  (Bug#1335)
+	* configure.in (exec_prefix, libexecdir): Define relative to
+	`ns_appbindir' only if configured for a self-contained app.
+	* Makefile.in (install-arch-dep): Test for the existence of
+	libexec in the Emacs.app bundle before executing commands.
+
+2011-11-20  Andreas Schwab  <schwab@linux-m68k.org>
+
+	* configure.in: Remove reference to src/m/ibms390.h.
+
 2011-11-13  Glenn Morris  <rgm@gnu.org>
 
 	* INSTALL: Tiny updates for disk space used during installation.
@@ -689,7 +741,7 @@
 	* autogen/Makefile.in: Add auto-updated generated files.
 	* autogen.sh: No longer a no-op, now it tests for autotools
 	and runs them as necessary.
-	* configure.in: Defaule maintainer-mode to on.
+	* configure.in: Default maintainer-mode to on.
 	* aclocal.m4, configure, lib/Makefile.in: Remove files.
 
 2011-03-13  Paul Eggert  <eggert@cs.ucla.edu>
@@ -1414,7 +1466,7 @@
 
 2010-10-24  Lars Magne Ingebrigtsen  <larsi@gnus.org>
 
-	* configure.in: Remove the BROKEN annotation from gnutls.
+	* configure.in: Remove the BROKEN annotation from GnuTLS.
 
 2010-10-22  Glenn Morris  <rgm@gnu.org>
 
@@ -1497,7 +1549,7 @@
 2010-09-26  Lars Magne Ingebrigtsen  <larsi@gnus.org>
 
 	* configure.in (HAVE_GNUTLS): Don't break if we don't have the
-	gnutls libraries.
+	GnuTLS libraries.
 
 2010-09-26  Teodor Zlatanov  <tzz@lifelogs.com>
 
@@ -8128,7 +8180,7 @@
 1994-01-08  Roland McGrath  (roland@churchy.gnu.ai.mit.edu)
 
 	* configure.in (creating src/Makefile): Put code inside 2nd arg to
-	AC_OUTPUT as it should be; hopefully noone will again see fit to
+	AC_OUTPUT as it should be; hopefully no one will again see fit to
 	gratuitously break this and not make a change log entry.
 	Optimized sed processing of Makefile.in and cpp output; now
 	preserves comments previously removed from the cpp input.
@@ -9711,7 +9763,7 @@
 	paths.h.in, Makefile.in in src.
 
 	* configure: Delete .tmp files before creating them; don't bother
-	trying to make final targets writeable first, since it won't
+	trying to make final targets writable first, since it won't
 	matter to move-if-change.
 
 1992-05-19  Jim Blandy  (jimb@pogo.cs.oberlin.edu)

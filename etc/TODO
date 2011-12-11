@@ -205,7 +205,7 @@ of the scroll bar itself.  That depends on to what extent toolkit
 scroll bars are extensible.
 
 ** Provide user-friendly ways to list all available font families,
-   list fonts, display a font as a sample, etc.  [fx is looking at
+  list fonts, display a font as a sample, etc.  [fx is looking at
   multilingual font selection for the Unicode branch of Emacs.]
 
 ** Provide a convenient way to select a color with the mouse.
@@ -635,7 +635,7 @@ up on top of all others
 
 *** Other / Low Priority:
 
-**** Better recognition of unicode scripts / Greek / composition.
+**** Better recognition of Unicode scripts / Greek / composition.
 
 **** Undo for color-drag face customization.
 
@@ -674,7 +674,7 @@ with toolkit-specific code to display the menu bar right to left.
 
 *** image-type-header-regexps priorities the jpeg loader over the
 ImageMagick one.  This is not wrong, but how should a user go about
-prefering the ImageMagick loader?  The user might like zooming etc in jpegs.
+preferring the ImageMagick loader?  The user might like zooming etc in jpegs.
 
 Try (setq image-type-header-regexps nil) for a quick hack to prefer
 ImageMagick over the jpg loader.
@@ -841,7 +841,7 @@ more detailed diagnosis.
 
 **** Provide an Error Summary buffer showing all the validation errors.
 
-**** Pop-up menu.  What is useful?  Tag a region (should be greyed out if
+**** Pop-up menu.  What is useful?  Tag a region (should be grayed out if
 the region is not balanced).  Suggestions based on error messages.
 
 **** Have configurable list of namespace URIs so that we can provide

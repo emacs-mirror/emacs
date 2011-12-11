@@ -1,3 +1,17 @@
+2011-12-03  Chong Yidong  <cyd@gnu.org>
+
+	* automated/compile-tests.el (compile-tests--test-regexps-data):
+	Increase column numbers by one to reflect change in how
+	compilation-message is recorded	(Bug#10172).
+
+2011-11-22  Glenn Morris  <rgm@gnu.org>
+
+	* rmailmm.el: New file, split from lisp/mail/rmailmm.el.
+
+2011-11-20  Juanma Barranquero  <lekktu@gmail.com>
+
+	* cedet/semantic-utest-c.el (semantic-utest-c-comparisons): Fix typo.
+
 2011-11-16  Juanma Barranquero  <lekktu@gmail.com>
 
 	* automated/icalendar-tests.el (icalendar-tests--get-ical-event)

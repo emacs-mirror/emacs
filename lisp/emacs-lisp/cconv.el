@@ -67,7 +67,7 @@
 
 ;; TODO: (not just for cconv but also for the lexbind changes in general)
 ;; - let (e)debug find the value of lexical variables from the stack.
-;; - make eval-region do the eval-sexp-add-defvars danse.
+;; - make eval-region do the eval-sexp-add-defvars dance.
 ;; - byte-optimize-form should be applied before cconv.
 ;;   OTOH, the warnings emitted by cconv-analyze need to come before optimize
 ;;   since afterwards they can because obnoxious (warnings about an "unused
@@ -507,7 +507,7 @@ places where they originally did not directly appear."
   (defalias 'byte-compile-not-lexical-var-p 'boundp))
 
 (defun cconv--analyse-use (vardata form varkind)
-  "Analyse the use of a variable.
+  "Analyze the use of a variable.
 VARDATA should be (BINDER READ MUTATED CAPTURED CALLED).
 VARKIND is the name of the kind of variable.
 FORM is the parent form that binds this var."
@@ -559,7 +559,7 @@ FORM is the parent form that binds this var."
        (t (let ((varstruct (list arg nil nil nil nil)))
             (push (cons (list arg) (cdr varstruct)) newvars)
             (push varstruct newenv)))))
-    (dolist (form body)                   ;Analyse body forms.
+    (dolist (form body)                   ;Analyze body forms.
       (cconv-analyse-form form newenv))
     ;; Summarize resulting data about arguments.
     (dolist (vardata newvars)
@@ -612,7 +612,7 @@ and updates the data stored in ENV."
              (push (cons binder (cdr varstruct)) newvars)
              (push varstruct env))))
 
-       (dolist (form body-forms)          ; Analyse body forms.
+       (dolist (form body-forms)          ; Analyze body forms.
          (cconv-analyse-form form env))
 
        (dolist (vardata newvars)

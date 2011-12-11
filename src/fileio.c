@@ -62,7 +62,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 #ifdef DOS_NT
 /* On Windows, drive letters must be alphabetic - on DOS, the Netware
-   redirector allows the six letters between 'Z' and 'a' as well. */
+   redirector allows the six letters between 'Z' and 'a' as well.  */
 #ifdef MSDOS
 #define IS_DRIVE(x) ((x) >= 'A' && (x) <= 'z')
 #endif
@@ -70,7 +70,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #define IS_DRIVE(x) isalpha ((unsigned char) (x))
 #endif
 /* Need to lower-case the drive letter, or else expanded
-   filenames will sometimes compare inequal, because
+   filenames will sometimes compare unequal, because
    `expand-file-name' doesn't always down-case the drive letter.  */
 #define DRIVE_LETTER(x) (tolower ((unsigned char) (x)))
 #endif
@@ -338,7 +338,7 @@ Given a Unix syntax file name, returns a string ending in slash.  */)
 
   while (p != beg && !IS_DIRECTORY_SEP (p[-1])
 #ifdef DOS_NT
-	 /* only recognise drive specifier at the beginning */
+	 /* only recognize drive specifier at the beginning */
 	 && !(p[-1] == ':'
 	      /* handle the "/:d:foo" and "/:foo" cases correctly  */
 	      && ((p == beg + 2 && !IS_DIRECTORY_SEP (*beg))
@@ -401,7 +401,7 @@ or the entire name if it contains no slash.  */)
 
   while (p != beg && !IS_DIRECTORY_SEP (p[-1])
 #ifdef DOS_NT
-	 /* only recognise drive specifier at beginning */
+	 /* only recognize drive specifier at beginning */
 	 && !(p[-1] == ':'
 	      /* handle the "/:d:foo" case correctly  */
 	      && (p == beg + 2 || (p == beg + 4 && IS_DIRECTORY_SEP (*beg))))
@@ -1553,7 +1553,7 @@ those `/' is discarded.  */)
   if (p)
     /* Start over with the new string, so we check the file-name-handler
        again.  Important with filenames like "/home/foo//:/hello///there"
-       which whould substitute to "/:/hello///there" rather than "/there".  */
+       which would substitute to "/:/hello///there" rather than "/there".  */
     return Fsubstitute_in_file_name
       (make_specified_string (p, -1, endp - p, multibyte));
 
@@ -3689,6 +3689,7 @@ variable `last-coding-system-used' to the coding system actually used.  */)
       ptrdiff_t this_count = SPECPDL_INDEX ();
       int multibyte = ! NILP (BVAR (current_buffer, enable_multibyte_characters));
       Lisp_Object conversion_buffer;
+      struct gcpro gcpro1;
 
       conversion_buffer = code_conversion_save (1, multibyte);
 
@@ -3709,7 +3710,7 @@ variable `last-coding-system-used' to the coding system actually used.  */)
 	{
 	  /* We read one bunch by one (READ_BUF_SIZE bytes) to allow
 	     quitting while reading a huge while.  */
-	  /* try is reserved in some compilers (Microsoft C) */
+	  /* `try'' is reserved in some compilers (Microsoft C).  */
 	  int trytry = min (total - how_much, READ_BUF_SIZE - unprocessed);
 
 	  /* Allow quitting out of the actual I/O.  */
@@ -4101,6 +4102,16 @@ variable `last-coding-system-used' to the coding system actually used.  */)
     adjust_after_insert (PT, PT_BYTE, PT + inserted, PT_BYTE + inserted,
 			 inserted);
 
+  /* Call after-change hooks for the inserted text, aside from the case
+     of normal visiting (not with REPLACE), which is done in a new buffer
+     "before" the buffer is changed.  */
+  if (inserted > 0 && total > 0
+      && (NILP (visit) || !NILP (replace)))
+    {
+      signal_after_change (PT, 0, inserted);
+      update_compositions (PT, PT, CHECK_BORDER);
+    }
+
   /* Now INSERTED is measured in characters.  */
 
  handled:
@@ -4179,7 +4190,7 @@ variable `last-coding-system-used' to the coding system actually used.  */)
 	  /* If REPLACE is non-nil and we succeeded in not replacing the
 	     beginning or end of the buffer text with the file's contents,
 	     call format-decode with `point' positioned at the beginning
-	     of the buffer and `inserted' equalling the number of
+	     of the buffer and `inserted' equaling the number of
 	     characters in the buffer.  Otherwise, format-decode might
 	     fail to correctly analyze the beginning or end of the buffer.
 	     Hence we temporarily save `point' and `inserted' here and
@@ -4274,16 +4285,6 @@ variable `last-coding-system-used' to the coding system actually used.  */)
 	BVAR (current_buffer, undo_list) = EQ (old_undo, Qt) ? Qt : Qnil;
 
       unbind_to (count1, Qnil);
-    }
-
-  /* Call after-change hooks for the inserted text, aside from the case
-     of normal visiting (not with REPLACE), which is done in a new buffer
-     "before" the buffer is changed.  */
-  if (inserted > 0 && total > 0
-      && (NILP (visit) || !NILP (replace)))
-    {
-      signal_after_change (PT, 0, inserted);
-      update_compositions (PT, PT, CHECK_BORDER);
     }
 
   if (!NILP (visit)

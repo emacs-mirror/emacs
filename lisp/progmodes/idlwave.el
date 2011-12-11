@@ -5789,7 +5789,7 @@ end
     (setq idlwave-idlwave_routine_info-compiled t))
 
   ;; Restore if necessary.  Must use execute to hide lame routine_info
-  ;; errors on undefinded routine
+  ;; errors on undefined routine
   (idlwave-shell-send-command
    (format "if execute(\"_v=routine_info('idlwave_routine_info',/SOURCE)\") eq 0 then restore,'%s' else if _v.path eq '' then restore,'%s'"
 	   idlwave-shell-temp-rinfo-save-file
@@ -7866,7 +7866,7 @@ itself."
   "Display online help about the completion at point."
   (interactive "eP")
   ;; Restore last-command for next command, to make
-  ;; scrolling/cancelling of completions work.
+  ;; scrolling/canceling of completions work.
   (setq this-command last-command)
   (idlwave-do-mouse-completion-help ev))
 

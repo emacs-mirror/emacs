@@ -189,7 +189,8 @@ See also variable `vc-cvs-sticky-date-format-string'."
 ;;; State-querying functions
 ;;;
 
-;;;###autoload (defun vc-cvs-registered (f)
+;;;###autoload(defun vc-cvs-registered (f)
+;;;###autoload   "Return non-nil if file F is registered with CVS."
 ;;;###autoload   (when (file-readable-p (expand-file-name
 ;;;###autoload 			  "CVS/Entries" (file-name-directory f)))
 ;;;###autoload       (load "vc-cvs")

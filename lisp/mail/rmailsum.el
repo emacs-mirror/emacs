@@ -342,10 +342,9 @@ Emacs will list the message in the summary."
 (defun rmail-message-regexp-p-1 (msg regexp)
   ;; Search functions can expect to start from the beginning.
   (narrow-to-region (point) (save-excursion (search-forward "\n\n") (point)))
-  (if rmail-enable-mime
-      (if rmail-search-mime-header-function
-	  (funcall rmail-search-mime-header-function msg regexp (point))
-	(error "You must set `rmail-search-mime-header-function'"))
+  (if (and rmail-enable-mime
+	   rmail-search-mime-header-function)
+      (funcall rmail-search-mime-header-function msg regexp (point))
     (re-search-forward regexp nil t)))
 
 ;;;###autoload
@@ -763,6 +762,12 @@ the message being processed."
 					      (point)))))))))
 	       (if (null from)
 		   "                         "
+		 ;; We are going to return only 25 characters of the
+		 ;; address, so make sure it is RFC2047 decoded before
+		 ;; taking its substring.  This is important when the address is not on the same line as the name, e.g.:
+		 ;; To: =?UTF-8?Q?=C5=A0t=C4=9Bp=C3=A1n_?= =?UTF-8?Q?N=C4=9Bmec?=
+		 ;; <stepnem@gmail.com>
+		 (setq from (rfc2047-decode-string from))
 		 (setq len (length from))
 		 (setq mch (string-match "[@%]" from))
 		 (format "%25s"

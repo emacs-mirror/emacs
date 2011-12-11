@@ -43,7 +43,7 @@
 ;;
 ;; Customization:
 ;;
-;; Since these projects are all so increadibly generic, a user will
+;; Since these projects are all so incredibly generic, a user will
 ;; need to configure some aspects of the project by hand.  In order to
 ;; enable this without configuring the project objects directly (which
 ;; are auto-generated) a special ede-generic-config object is defined to
@@ -359,7 +359,7 @@ the new configuration."
 (defun ede-generic-new-autoloader (internal-name external-name
 						 projectfile class)
   "Add a new EDE Autoload instance for identifying a generic project.
-INTERNAL-NAME is a long name that identifies thsi project type.
+INTERNAL-NAME is a long name that identifies this project type.
 EXTERNAL-NAME is a shorter human readable name to describe the project.
 PROJECTFILE is a file name that identifies a project of this type to EDE, such as
 a Makefile, or SConstruct file.

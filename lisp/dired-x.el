@@ -1392,7 +1392,7 @@ Considers buffers closer to the car of `buffer-list' to be more recent."
 ;; Apparently people do use it. - lrd 12/22/97.
 
 (with-no-warnings
-  ;; Warnings are suppresed to avoid "global/dynamic var `X' lacks a prefix".
+  ;; Warnings are suppressed to avoid "global/dynamic var `X' lacks a prefix".
   ;; This is unbearably ugly, but not more than having global variables
   ;; named size, time, name or s, however practical it can be while writing
   ;; `dired-mark-sexp' predicates.

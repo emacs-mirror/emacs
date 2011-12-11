@@ -1,4 +1,4 @@
-2011-11-18  Paul Eggert  <eggert@cs.ucla.edu>
+2011-12-11  Paul Eggert  <eggert@cs.ucla.edu>
 
 	Fix integer width and related bugs (Bug#9874).
 	* alloc.c (pure_bytes_used_lisp, pure_bytes_used_non_lisp):
@@ -150,6 +150,7 @@
 	Fix a FIXME, by checking for integer overflow when calculating
 	target_clm and actual_clm.
 	* coding.c (detect_coding_XXX, encode_coding_XXX, CODING_DECODE_CHAR)
+	(CODING_ENCODE_CHAR, CODING_CHAR_CHARSET, CODING_CHAR_CHARSET_P)
 	(ASSURE_DESTINATION, coding_alloc_by_realloc)
 	(coding_alloc_by_making_gap, alloc_destination)
 	(detect_coding_utf_8, encode_coding_utf_8, decode_coding_utf_16)
@@ -169,7 +170,8 @@
 	(decode_coding_object, encode_coding_object, detect_coding_system)
 	(Ffind_coding_systems_region_internal, Fcheck_coding_systems_region)
 	(code_convert_region, code_convert_string)
-	(Fdefine_coding_system_internal):
+	(Fdefine_coding_system_internal)
+	(coding_set_source, coding_set_destination):
 	Use ptrdiff_t, not EMACS_INT, where ptrdiff_t is wide enough.
 	(setup_iso_safe_charsets, consume_chars, Funencodable_char_position)
 	(Fdefine_coding_system_internal):
@@ -786,11 +788,369 @@
 	rather than rolling our own approximation.
 	(SCROLL_BAR_VEC_SIZE): Remove; not used.
 
-2011-11-18  Paul Eggert  <eggert@cs.ucla.edu>
+2011-12-10  Jan Djärv  <jan.h.d@swipnet.se>
 
-	Fix minor problems found by static checking.
-	* dispextern.h, xdisp.c (row_hash): Declare extern only if XASSERTS.
-	* dispnew.c (verify_row_hash): Now static.
+	* xterm.c (x_term_init): Move call to gdk_window_add_filter before
+	gtk_init (Bug#10100).
+
+2011-12-10  Eli Zaretskii  <eliz@gnu.org>
+
+	* xdisp.c (RECORD_MAX_MIN_POS): Use IT->cmp_it.charpos only if
+	IT->string is nil.  (Bug#10263)
+
+2011-12-10  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* nsterm.h (x_free_frame_resources): Declare.
+
+	* nsfns.m (ns_get_defaults_value): New function (Bug#10103).
+	(Fns_get_resource, x_get_string_resource): Call ns_get_defaults_value.
+
+	* nsterm.h (ns_get_defaults_value): Declare.
+
+	* nsterm.m (ns_default): Call ns_get_defaults_value.
+
+2011-12-09  Eli Zaretskii  <eliz@gnu.org>
+
+	* xdisp.c (try_scrolling): Don't set scroll_down_p if dy is zero.
+	(Bug#10170)
+
+2011-12-09  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
+
+	* unexelf.c (unexec) [NS_IMPL_GNUSTEP]: Take account of the case
+	that where the value of an _OBJC_* symbol points to is in the .bss
+	section (Bug#10240).
+
+2011-12-08  Kazuhiro Ito  <kzhr@d1.dion.ne.jp>  (tiny change)
+
+	* coding.c (encode_coding_ccl): Check (charbuf < charbuf_end)
+	after the loop to call ccl_driver at least once (Bug#8619).
+
+2011-12-08  Kenichi Handa  <handa@m17n.org>
+
+	* ftfont.c (get_adstyle_property): Fix previous change
+	(Bug#10233).
+
+2011-12-07  Juanma Barranquero  <lekktu@gmail.com>
+
+	* w32.c (init_environment): If no_site_lisp, remove site-lisp
+	dirs from the default value of EMACSLOADPATH (bug#10208).
+
+2011-12-07  Glenn Morris  <rgm@gnu.org>
+
+	* lread.c (init_lread): If no_site_lisp, exclude site-lisp/ in
+	installation and source directories as well.  (Bug#10208)
+
+2011-12-06  Chong Yidong  <cyd@gnu.org>
+
+	* minibuf.c (Fread_from_minibuffer): Doc fix (Bug#10228).
+
+2011-12-06  Glenn Morris  <rgm@gnu.org>
+
+	* process.c (start_process_unwind): Treat any pid <= 0, except -2,
+	as an error, not just -1.  (Bug#10217)
+
+2011-12-05  Chong Yidong  <cyd@gnu.org>
+
+	* keyboard.c (process_special_events): New function.
+	(swallow_events, Finput_pending_p): Use it (Bug#10195).
+
+2011-12-05  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* coding.c (encode_designation_at_bol): Don't use uninitialized
+	local variable (Bug#9318).
+
+2011-12-05  Kenichi Handa  <handa@m17n.org>
+
+	* ftfont.c (get_adstyle_property): If the font is not BDF nor PCF,
+	return Qnil (Bug#8046, Bug#10193).
+
+2011-12-05  Kenichi Handa  <handa@m17n.org>
+
+	* coding.c (encode_designation_at_bol): New args charbuf_end and
+	dst.  Return the number of produced bytes.  Callers changed.
+	(coding_set_source): Return how many bytes coding->source was
+	relocated.
+	(coding_set_destination): Return how many bytes
+	coding->destination was relocated.
+	(CODING_DECODE_CHAR, CODING_ENCODE_CHAR, CODING_CHAR_CHARSET)
+	(CODING_CHAR_CHARSET_P): Adjusted for the avove changes.
+
+2011-12-05  Kazuhiro Ito  <kzhr@d1.dion.ne.jp>  (tiny change)
+
+	* coding.c (CODING_CHAR_CHARSET_P): New macro.
+	(encode_coding_emacs_mule, encode_coding_iso_2022): Use the above
+	macro (Bug#9318).
+
+2011-12-05  Andreas Schwab  <schwab@linux-m68k.org>
+
+	The following changes are to fix Bug#9318.
+
+	* coding.c (CODING_ENCODE_CHAR, CODING_CHAR_CHARSET): New macros.
+	(encode_coding_emacs_mule, ENCODE_ISO_CHARACTER)
+	(encode_coding_iso_2022, encode_coding_sjis)
+	(encode_coding_big5, encode_coding_charset): Use the above macros.
+
+2011-12-05  Juanma Barranquero  <lekktu@gmail.com>
+
+	* lisp.h (process_quit_flag): Fix external declaration.
+
+2011-12-04  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	Don't macro-inline non-performance-critical code.
+	* eval.c (process_quit_flag): New function.
+	* lisp.h (QUIT): Use it.
+
+2011-12-04  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* nsfns.m (get_geometry_from_preferences): New function.
+	(Fx_create_frame): Call get_geometry_from_preferences (Bug#10103).
+
+2011-12-04  Andreas Schwab  <schwab@linux-m68k.org>
+
+	* emacs.c (Qkill_emacs): Define.
+	(syms_of_emacs): Initialize it.
+	* keyboard.c (interrupt_signal): Don't call Fkill_emacs here, set
+	Qquit_flag to `kill-emacs' instead.
+	(quit_throw_to_read_char): Add parameter `from_signal'.
+	All callers changed.  Call Fkill_emacs if requested and safe.
+	* lisp.h (QUIT): Call Fkill_emacs if requested.
+
+2011-12-03  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* widget.c (update_wm_hints): Return if wmshell is null.
+	(widget_update_wm_size_hints): New function.
+
+	* widget.h (widget_update_wm_size_hints): Declare.
+
+	* xterm.c (x_wm_set_size_hint): If USE_X_TOOLKIT, call
+	widget_update_wm_size_hints (Bug#10104).
+
+2011-12-03  Eli Zaretskii  <eliz@gnu.org>
+
+	* xdisp.c (handle_invisible_prop): If the invisible text ends just
+	before a newline, prepare the bidi iterator for consuming the
+	newline, and keep the current paragraph direction.  (Bug#10183)
+	(redisplay_window): Don't let `margin' become negative.  (Bug#10192)
+
+2011-12-02  Juri Linkov  <juri@jurta.org>
+
+	* search.c (Fword_search_regexp): New Lisp function created from
+	`wordify'.  Change type of arg `lax' from `int' to `Lisp_Object'.
+	(Fword_search_backward, Fword_search_forward)
+	(Fword_search_backward_lax, Fword_search_forward_lax):
+	Use `Fword_search_regexp' instead of `wordify'.  Doc fix.
+	(syms_of_search): Define `Sword_search_regexp'.  (Bug#10145)
+
+2011-12-01  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* fileio.c (Finsert_file_contents): Move after-change-function call
+	to before the "handled:" label, since all "goto handled" appear in
+	cases where the *-change-functions have already been properly called
+	(bug#10117).
+
+2011-12-01  Andreas Schwab  <schwab@linux-m68k.org>
+
+	* keyboard.c (interrupt_signal): Don't call kill-emacs when
+	waiting for input.  (Bug#10169)
+
+2011-11-30  Eli Zaretskii  <eliz@gnu.org>
+
+	* dispnew.c (adjust_glyph_matrix): Remove the assertion that
+	verifies glyph row's hash code--we have just reallocated the
+	glyphs, so their contents can be complete garbage.  (Bug#10164)
+
+2011-11-30  Juanma Barranquero  <lekktu@gmail.com>
+
+	* dispnew.c (adjust_glyph_matrix) [XASSERTS]: Add missing check.
+
+2011-11-30  Eli Zaretskii  <eliz@gnu.org>
+
+	* dispnew.c (adjust_glyph_matrix) [XASSERTS]: Ensure ROW's
+	attributes are tested _before_ calling verify_row_hash, to protect
+	against GCC re-ordering of the tests.  (Bug#10164)
+
+2011-11-29  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* xterm.h (struct x_output): net_wm_state_hidden_seen is new.
+
+	* xterm.c (handle_one_xevent): Only set async_visible and friends
+	if net_wm_state_hidden_seen is non-zero (Bug#10002)
+	(get_current_wm_state): Set net_wm_state_hidden_seen to 1 if
+	_NET_WM_STATE_HIDDEN is in NET_WM_STATE.
+
+2011-11-28  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Remove GCPRO-related macros that exist only to avoid shadowing locals.
+	* lisp.h (GCPRO1_VAR, GCPRO2_VAR, GCPRO3_VAR, GCPRO4_VAR, GCPRO5_VAR)
+	(GCPRO6_VAR, UNGCPRO_VAR): Remove.  See
+	<http://lists.gnu.org/archive/html/emacs-diffs/2011-11/msg00265.html>.
+	All uses changed to use GCPRO1 etc.
+	(GCPRO1, GCPRO2, GCPRO3, GCPRO4, GCPRO5, GCPRO6, UNGCPRO):
+	Revert to old implementation (i.e., before 2011-03-11).
+
+2011-11-28  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
+
+	* dispnew.c (scrolling_window): Truncate overlaps in copy destination
+	of scroll runs so as to avoid assigning disabled bogus rows and
+	unnecessary graphics copy operations.
+
+2011-11-27  Eli Zaretskii  <eliz@gnu.org>
+
+	* s/ms-w32.h (utimbuf) [_MSC_VER]: Don't define.
+	(snprintf) [_MSC_VER]: Redirect to _snprintf.
+	(strtoll) [_MSC_VER]: Redirect to _strtoi64.
+	(malloc, free, realloc, calloc): Redirect to e_* only when
+	compiling Emacs.
+
+	* lisp.h (GCTYPEBITS): Move before first use.
+	(ALIGN_GCTYPEBITS) [_MSC_VER]: Define.
+	(DECL_ALIGN) [_MSC_VER]: Use it, as MSVC doesn't like bit ops in
+	this macro definition.
+
+	* s/ms-w32.h (tzname): Redirect to _tzname for all values of
+	_MSC_VER.
+
+2011-11-27  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* gtkutil.c (xg_create_frame_widgets):
+	Call gtk_window_set_has_resize_grip (FALSE) if that function is
+	present with Gtk+ 2.0.
+
+2011-11-26  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* fileio.c (Finsert_file_contents): Undo previous change; see
+	<http://lists.gnu.org/archive/html/emacs-diffs/2011-11/msg00265.html>.
+
+2011-11-26  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Rename locals to avoid shadowing.
+	* fileio.c (Finsert_file_contents):
+	Rename inner 'gcpro1' to 'inner_gcpro1' to avoid shadowing.
+	* process.c (wait_reading_process_output):
+	Rename inner 'proc' to 'p' to avoid shadowing.
+	Indent for consistency with usual Emacs style.
+
+2011-11-25  Eli Zaretskii  <eliz@gnu.org>
+
+	* xdisp.c (redisplay_window): If cursor row is not fully visible
+	after recentering, and scroll-conservatively is set to a large
+	number, scroll window by a few more lines to make the cursor fully
+	visible and out of scroll-margin.  (Bug#10105)
+	(start_display): Don't move to the next line if the display should
+	start at a newline that is part of a display vector or an overlay
+	string.  (Bug#10119)
+
+2011-11-24  Juri Linkov  <juri@jurta.org>
+
+	* image.c (imagemagick_load_image): Move `MagickSetResolution' down
+	after the `MagickPingImage' call.  (Bug#10112)
+
+2011-11-23  Chong Yidong  <cyd@gnu.org>
+
+	* window.c (Fcoordinates_in_window_p): Accept only live windows.
+
+2011-11-23  Martin Rudalics  <rudalics@gmx.at>
+
+	* buffer.c (Fkill_buffer): Run replace_buffer_in_windows before
+	making another buffer current.  (Bug#10114)
+
+2011-11-23  Glenn Morris  <rgm@gnu.org>
+
+	* font.c (font_find_for_lface) [HAVE_NS]: Ignore case.  (Bug#2526)
+
+2011-11-23  Chong Yidong  <cyd@gnu.org>
+
+	* xdisp.c (compute_stop_pos): Check validity of end_charpos before
+	using it (Bug#5984).
+
+2011-11-22  Eli Zaretskii  <eliz@gnu.org>
+
+	* dispnew.c (adjust_glyph_matrix): Don't verify hash code of mode-
+	and header-lines, as they don't have one computed for them.
+	(Bug#10098)
+
+	* .gdbinit (prow): Make displayed values more self-explaining.
+	Add row's hash code.
+
+2011-11-21  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* process.c (wait_reading_process_output): Fix asynchrounous
+	GnuTLS socket handling on some versions of the GnuTLS library.
+	(wait_reading_process_output): Add comment and URL.
+
+2011-11-21  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* xterm.c (x_clear_frame): Reinstate the XClearWindow call.
+
+2011-11-21  Chong Yidong  <cyd@gnu.org>
+
+	* window.c (Fnext_window, Fprevious_window): Doc fix.
+
+2011-11-20  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* window.c (get_phys_cursor_glyph): Fix Lisp_Object/int mixup.
+
+2011-11-20  Juanma Barranquero  <lekktu@gmail.com>
+
+	* nsfont.m (syms_of_nsfont) <ns-reg-to-script>: Fix typo.
+
+2011-11-20  Martin Rudalics  <rudalics@gmx.at>
+
+	* window.c (Fset_window_combination_limit): Rename argument
+	STATUS to LIMIT.
+	(Vwindow_combination_limit): Remove "status" from doc-string.
+
+2011-11-20  Andreas Schwab  <schwab@linux-m68k.org>
+
+	* m/ibms390.h: Remove.
+	* m/ibms390x.h: Don't include "ibms390.h".
+
+2011-11-20  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* fileio.c (Finsert_file_contents): Add missing gcpro1 variable.
+	Suggested by Dmitry Antipov <dmantipov@yandex.ru>.
+
+2011-11-20  Juanma Barranquero  <lekktu@gmail.com>
+
+	* casetab.c (Fset_case_table):
+	* charset.c (Fcharset_after): Fix typos.
+
+2011-11-20  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Standardize on VIRT_ADDR_VARIES behavior (Bug#10042).
+	Otherwise, valgrind does not work on some platforms.
+	Problem reported by Andreas Schwab in
+	<http://lists.gnu.org/archive/html/emacs-devel/2011-11/msg00081.html>.
+	* puresize.h (pure, PURE_P): Always behave as if VIRT_ADDR_VARIES
+	is set, removing the need for VIRT_ADDRESS_VARIES.
+	(PURE_P): Use a more-efficient implementation that needs just one
+	comparison, not two: on x86-64 with GCC 4.6.2, this cut down the
+	number of instructions from 6 (xorl, cmpq, jge, xorl, cmpq, setge)
+	to 4 (xorl, subq, cmpq, setbe).
+	* alloc.c (pure): Always extern now, since that's the
+	VIRT_ADDR_VARIES behavior.
+	(PURE_POINTER_P): Use a single comparison, not two, for
+	consistency with the new puresize.h.
+	* lisp.h (PNTR_COMPARISON_TYPE): Remove; no longer needed.
+	* m/ibms390.h, m/intel386.h, m/template.h, s/cygwin.h, s/hpux10-20.h:
+	Remove VIRT_ADDR_VARIES no longer needed.
+
+2011-11-19  Eli Zaretskii  <eliz@gnu.org>
+
+	* xdisp.c (x_write_glyphs, draw_phys_cursor_glyph)
+	(erase_phys_cursor, update_window_cursor, show_mouse_face)
+	(cursor_in_mouse_face_p): If the cursor position is out of bounds,
+	behave as if the cursor position were at the window margin.
+
+	* window.c (get_phys_cursor_glyph): If the window is hscrolled,
+	and the cursor position is out of bounds, behave as if the cursor
+	position were at the window margin.  (Bug#10075)
+
+2011-11-18  Chong Yidong  <cyd@gnu.org>
+
+	* window.c (Fwindow_combination_limit): Make first argument
+	non-optional, since it is meaningless for live windows like the
+	selected window.
 
 2011-11-18  Dmitry Antipov  <dmantipov@yandex.ru>
 
@@ -860,8 +1220,8 @@
 	* xdisp.c (display_line): Move the call to
 	highlight_trailing_whitespace before the call to
 	compute_line_metrics, since the latter needs to see the final
-	faces of all the glyphs to compute ROW's hash value.  Fixes
-	assertion violations in row_equal_p.  (Bug#10035)
+	faces of all the glyphs to compute ROW's hash value.
+	Fixes assertion violations in row_equal_p.  (Bug#10035)
 
 2011-11-14  Juanma Barranquero  <lekktu@gmail.com>
 
@@ -945,8 +1305,8 @@
 2011-11-08  Chong Yidong  <cyd@gnu.org>
 
 	* window.c (Fwindow_left_column, Fwindow_top_line): Doc fix.
-	(Fwindow_body_height, Fwindow_body_width): Move from Lisp.  Signal
-	an error if not a live window.
+	(Fwindow_body_height, Fwindow_body_width): Move from Lisp.
+	Signal an error if not a live window.
 	(Fwindow_total_width, Fwindow_total_height): Move from Lisp.
 	(Fwindow_total_size, Fwindow_body_size): Move to Lisp.
 
@@ -1078,8 +1438,8 @@
 	(x_destroy_window): Move code to x_free_frame_resources.
 
 	* xfns.c (unwind_create_frame): Fix comment.
-	(Fx_create_frame, x_create_tip_frame): Move
-	terminal->reference_count++ just before making the frame
+	(Fx_create_frame, x_create_tip_frame):
+	Move terminal->reference_count++ just before making the frame
 	official. Move initialization of image_cache_refcount and
 	dpyinfo_refcount before calling init_frame_faces (Bug#9943).
 
@@ -1149,8 +1509,8 @@
 	* xdisp.c (mouse_face_from_buffer_pos): Fix a typo in a comment.
 	Don't stop backward scan on the continuation glyph, even though
 	its CHARPOS is positive.
-	(mouse_face_from_buffer_pos, note_mouse_highlight): Rename
-	cover_string to disp_string.
+	(mouse_face_from_buffer_pos, note_mouse_highlight):
+	Rename cover_string to disp_string.
 
 2011-11-01  Martin Rudalics  <rudalics@gmx.at>
 
@@ -7789,7 +8149,7 @@
 
 2011-04-08  T.V. Raman  <tv.raman.tv@gmail.com>  (tiny change)
 
-	* xml.c (parse_region): Avoid creating spurious whiespace nodes.
+	* xml.c (parse_region): Avoid creating spurious whitespace nodes.
 
 2011-04-08  Chong Yidong  <cyd@stupidchicken.com>
 
@@ -8405,7 +8765,7 @@
 	* keyboard.c (Fcommand_execute, Fsuspend_emacs, safe_run_hooks_1):
 	Use Frun_hooks.
 	(command_loop_1): Use Frun_hooks.  Call safe_run_hooks
-	unconditionnaly since it does the check itself.
+	unconditionally since it does the check itself.
 
 2011-03-23  Paul Eggert  <eggert@cs.ucla.edu>
 
@@ -9289,7 +9649,7 @@
 	(xg_set_widget_bg): New function.
 	(delete_cb): New function.
 	(xg_create_frame_widgets): Connect delete-event to delete_cb.
-	Call xg_set_widget_bg.  Only set backgrund pixmap for ! HAVE_GTK3
+	Call xg_set_widget_bg.  Only set background pixmap for ! HAVE_GTK3
 	(xg_set_background_color): Call xg_set_widget_bg.
 	(xg_set_frame_icon): Call xg_get_pixbuf_from_pix_and_mask.
 	(xg_create_scroll_bar): vadj is a GtkAdjustment for HAVE_GTK3.

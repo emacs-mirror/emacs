@@ -331,7 +331,7 @@ Menu items are appended to the common grammar menu.")
      (grammar-setupcode-builder  . wisent-grammar-setupcode-builder)
      )))
 
-(add-to-list 'auto-mode-alist '("\\.wy$" . wisent-grammar-mode))
+(add-to-list 'auto-mode-alist '("\\.wy\\'" . wisent-grammar-mode))
 
 (defvar-mode-local wisent-grammar-mode semantic-grammar-macros
   '(
@@ -357,5 +357,181 @@ Menu items are appended to the common grammar menu.")
     (SKIP-TOKEN     . wisent-grammar-SKIP-TOKEN)
     )
   "Semantic grammar macros used in wisent grammars.")
+
+(defvar wisent-make-parsers--emacs-license
+  ";; This file is part of GNU Emacs.
+
+;; GNU Emacs is free software: you can redistribute it and/or modify
+;; it under the terms of the GNU General Public License as published by
+;; the Free Software Foundation, either version 3 of the License, or
+;; (at your option) any later version.
+
+;; GNU Emacs is distributed in the hope that it will be useful,
+;; but WITHOUT ANY WARRANTY; without even the implied warranty of
+;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+;; GNU General Public License for more details.
+
+;; You should have received a copy of the GNU General Public License
+;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.")
+
+(defvar wisent-make-parsers--python-license
+  ";; It is derived in part from the Python grammar, used under the
+;; following license:
+;;
+;; PYTHON SOFTWARE FOUNDATION LICENSE VERSION 2
+;; --------------------------------------------
+;; 1. This LICENSE AGREEMENT is between the Python Software Foundation
+;; (\"PSF\"), and the Individual or Organization (\"Licensee\") accessing
+;; and otherwise using this software (\"Python\") in source or binary
+;; form and its associated documentation.
+;;
+;; 2. Subject to the terms and conditions of this License Agreement,
+;; PSF hereby grants Licensee a nonexclusive, royalty-free, world-wide
+;; license to reproduce, analyze, test, perform and/or display
+;; publicly, prepare derivative works, distribute, and otherwise use
+;; Python alone or in any derivative version, provided, however, that
+;; PSF's License Agreement and PSF's notice of copyright, i.e.,
+;; \"Copyright (c) 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008,
+;; 2009, 2010 Python Software Foundation; All Rights Reserved\" are
+;; retained in Python alone or in any derivative version prepared by
+;; Licensee.
+;;
+;; 3. In the event Licensee prepares a derivative work that is based
+;; on or incorporates Python or any part thereof, and wants to make
+;; the derivative work available to others as provided herein, then
+;; Licensee hereby agrees to include in any such work a brief summary
+;; of the changes made to Python.
+;;
+;; 4. PSF is making Python available to Licensee on an \"AS IS\"
+;; basis.  PSF MAKES NO REPRESENTATIONS OR WARRANTIES, EXPRESS OR
+;; IMPLIED.  BY WAY OF EXAMPLE, BUT NOT LIMITATION, PSF MAKES NO AND
+;; DISCLAIMS ANY REPRESENTATION OR WARRANTY OF MERCHANTABILITY OR FITNESS
+;; FOR ANY PARTICULAR PURPOSE OR THAT THE USE OF PYTHON WILL NOT
+;; INFRINGE ANY THIRD PARTY RIGHTS.
+;;
+;; 5. PSF SHALL NOT BE LIABLE TO LICENSEE OR ANY OTHER USERS OF PYTHON
+;; FOR ANY INCIDENTAL, SPECIAL, OR CONSEQUENTIAL DAMAGES OR LOSS AS A
+;; RESULT OF MODIFYING, DISTRIBUTING, OR OTHERWISE USING PYTHON, OR
+;; ANY DERIVATIVE THEREOF, EVEN IF ADVISED OF THE POSSIBILITY THEREOF.
+;;
+;; 6. This License Agreement will automatically terminate upon a
+;; material breach of its terms and conditions.
+;;
+;; 7. Nothing in this License Agreement shall be deemed to create any
+;; relationship of agency, partnership, or joint venture between PSF
+;; and Licensee.  This License Agreement does not grant permission to
+;; use PSF trademarks or trade name in a trademark sense to endorse or
+;; promote products or services of Licensee, or any third party.
+;;
+;; 8. By copying, installing or otherwise using Python, Licensee
+;; agrees to be bound by the terms and conditions of this License
+;; Agreement.")
+
+(defvar wisent-make-parsers--ecmascript-license
+  "\n;; It is derived from the grammar in the ECMAScript Language
+;; Specification published at
+;;
+;; http://www.ecma-international.org/publications/standards/Ecma-262.htm
+;;
+;; and redistributed under the following license:
+;;
+;; Redistribution and use in source and binary forms, with or without
+;; modification, are permitted provided that the following conditions
+;; are met:
+;;
+;; 1. Redistributions of source code must retain the above copyright
+;; notice, this list of conditions and the following disclaimer.
+;;
+;; 2. Redistributions in binary form must reproduce the above
+;; copyright notice, this list of conditions and the following
+;; disclaimer in the documentation and/or other materials provided
+;; with the distribution.
+;;
+;; 3. Neither the name of the authors nor Ecma International may be
+;; used to endorse or promote products derived from this software
+;; without specific prior written permission.  THIS SOFTWARE IS
+;; PROVIDED BY THE ECMA INTERNATIONAL \"AS IS\" AND ANY EXPRESS OR
+;; IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+;; WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+;; ARE DISCLAIMED. IN NO EVENT SHALL ECMA INTERNATIONAL BE LIABLE FOR
+;; ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+;; CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT
+;; OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR
+;; BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF
+;; LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+;; (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE
+;; USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH
+;; DAMAGE.")
+
+(defvar wisent-make-parsers--parser-file-name
+  `(("semantic-grammar-wy.el"
+     "semantic/grammar-wy")
+    ("srecode-template-wy.el"
+     "srecode/srt-wy")
+    ("wisent-javascript-jv-wy.el"
+     "semantic/wisent/js-wy"
+     "Copyright (C) 1998-2011 Ecma International"
+     ,wisent-make-parsers--ecmascript-license)
+    ("wisent-java-tags-wy.el"
+     "semantic/wisent/javat-wy")
+    ("wisent-python-wy.el"
+     "semantic/wisent/python-wy"
+     "Copyright (C) 2001-2010 Python Software Foundation"
+     ,wisent-make-parsers--python-license)))
+
+(defun wisent-make-parsers ()
+  "Generate Emacs' built-in Wisent-based parser files."
+  (semantic-mode 1)
+  ;; Loop through each .wy file in current directory, and run
+  ;; `semantic-grammar-batch-build-one-package' to build the grammar.
+  (dolist (f (directory-files default-directory nil "\\.wy\\'"))
+    (let ((packagename
+           (condition-case err
+               (with-current-buffer (find-file-noselect f)
+                 (semantic-grammar-create-package))
+             (error (message "%s" (error-message-string err)) nil)))
+	  output-data)
+      (when (setq output-data (assoc packagename wisent-make-parsers--parser-file-name))
+	(let ((require-name         (nth 1 output-data))
+	      (additional-copyright (nth 2 output-data))
+	      (additional-license   (nth 3 output-data))
+	      copyright-end)
+	  ;; Touch up the generated parsers for Emacs integration.
+	  (with-temp-buffer
+	    (insert-file-contents packagename)
+	    ;; Fix copyright header:
+	    (goto-char (point-min))
+	    (when additional-copyright
+	      (re-search-forward "Copyright (C).*$")
+	      (insert "\n;; " additional-copyright))
+	    (re-search-forward "^;; Author:")
+	    (setq copyright-end (match-beginning 0))
+	    (re-search-forward "^;;; Code:\n")
+	    (delete-region copyright-end (match-end 0))
+	    (goto-char copyright-end)
+	    (insert wisent-make-parsers--emacs-license)
+	    (insert "\n\n;;; Commentary:
+;;
+;; This file was generated from admin/grammars/"
+			f ".")
+	    (when additional-license
+	      (insert "\n" additional-license))
+	    (insert "\n\n;;; Code:\n
+\(require 'semantic/lex)\n")
+	    (goto-char (point-min))
+	    (delete-region (point-min) (line-end-position))
+	    (insert ";;; " require-name
+		    ".el --- Generated parser support file")
+	    (delete-trailing-whitespace)
+	    (re-search-forward ";;\n(require 'semantic/lex)\n")
+	    (delete-region (match-beginning 0) (match-end 0))
+	    ;; Fix footer:
+	    (goto-char (point-max))
+	    (re-search-backward "^(provide")
+	    (delete-region (match-beginning 0) (point-max))
+	    (goto-char (point-max))
+	    (insert "(provide '" require-name ")\n\n")
+	    (insert ";;; " require-name ".el ends here\n")
+	    (write-region nil nil (expand-file-name packagename))))))))
 
 ;;; wisent-grammar.el ends here

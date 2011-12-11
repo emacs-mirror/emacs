@@ -6728,11 +6728,11 @@
 2004-05-28  Simon Josefsson  <jas@extundo.com>
 
 	* mail/smtpmail.el (smtpmail-open-stream):
-	Bind starttls-extra-arguments too, if starttls.el uses GNUTLS.
+	Bind starttls-extra-arguments too, if starttls.el uses GnuTLS.
 
 2004-05-26  Simon Josefsson  <jas@extundo.com>
 
-	* starttls.el: Merge with my GNUTLS based starttls.el.
+	* starttls.el: Merge with my GnuTLS based starttls.el.
 	(starttls-gnutls-program, starttls-use-gnutls)
 	(starttls-extra-arguments, starttls-process-connection-type)
 	(starttls-connect, starttls-failure, starttls-success): New variables.
@@ -6884,7 +6884,7 @@
 
 2004-05-22  Richard M. Stallman  <rms@gnu.org>
 
-	* textmodes/paragraphs.el (sentence-end): Match unicode curly quotes
+	* textmodes/paragraphs.el (sentence-end): Match Unicode curly quotes
 	as a close quote.
 
 	* textmodes/bibtex.el: Use assoc-string, not assoc-ignore-case.
@@ -7074,7 +7074,7 @@
 2004-05-14  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* descr-text.el (describe-char-unicode-data)
-	(describe-char-unicodedata-file): Re-enable the unicode code now that
+	(describe-char-unicodedata-file): Re-enable the Unicode code now that
 	the licensing issues have been cleared in the unicode-4 license.
 	(describe-text-properties-1): Remove unused `overlay' var.
 	(describe-char): Remove unused var `buffer'.

@@ -70,7 +70,7 @@ customize-group RET pcl-cvs @key{RET}} and to look at the documentation strings
 of the various commands and major modes for further information.
 @c This manual is updated to release 2.5 of PCL-CVS.
 
-@insertcopying 
+@insertcopying
 
 @end ifnottex
 
@@ -1275,7 +1275,7 @@ will be called as @samp{cvs -d @var{cvs-cvsroot}@dots{}}.  This can be
 useful if your site has several repositories.
 
 @item log-edit-require-final-newline
-@c wordy to avoid unhderfull hbox
+@c wordy to avoid underfull hbox
 When you enter a log message by typing into the
 @samp{*cvs-commit-message*} buffer, PCL-CVS normally automatically
 inserts a trailing newline, unless there already is one.  This behavior

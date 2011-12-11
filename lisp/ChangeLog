@@ -1,3 +1,645 @@
+2011-12-10  Eli Zaretskii  <eliz@gnu.org>
+
+	* mail/rmailsum.el (rmail-header-summary): RFC2047 decode the
+	`from' or `to' address before taking its substring.  Fixes
+	incorrect display in Rmail summary buffer whereby an RFC2047
+	encoded name is chopped in the middle of the encoded string, and
+	thus displayed encoded.
+
+2011-12-10  Juanma Barranquero  <lekktu@gmail.com>
+
+	* makefile.w32-in (update-subdirs-CMD): Use a Local Variables section.
+
+2011-12-10  Eli Zaretskii  <eliz@gnu.org>
+
+	* textmodes/texnfo-upd.el: Update commentary.  Add a warning not
+	to use texinfo-update-node and commands that call it if the
+	Texinfo file uses @node lines without next/prev/up pointers.
+	Correct outdated description about texinfo-master-menu.
+	(texinfo-all-menus-update, texinfo-master-menu)
+	(texinfo-update-node, texinfo-every-node-update)
+	(texinfo-multiple-files-update): Doc fix.  Warn against updating
+	all the @node lines.
+	(texinfo-master-menu): Only call texinfo-update-node if the prefix
+	argument is numeric.  Explain better in the doc string what the
+	function really does.
+	(texinfo-insert-master-menu-list): Improve the error message
+	displayed if there's no menu in the Top node.
+	(Bug#2975)  See also this thread:
+	http://lists.gnu.org/archive/html/emacs-devel/2011-12/msg00156.html.
+
+2011-12-09  Manuel Gómez  <mgrojo@gmail.com>  (tiny change)
+
+	* speedbar.el (speedbar-supported-extension-expressions):
+	Add .adb and .ads, commonly used for Ada source code (bug#10256).
+
+2011-12-09  Juanma Barranquero  <lekktu@gmail.com>
+
+	* printing.el (pr-mode-alist):
+	* simple.el (filter-buffer-substring-functions)
+	(completion-list-insert-choice-function):
+	* window.el (window-with-parameter, window-atom-root)
+	(window-sides-slots, window-size-fixed, window-min-delta)
+	(window-max-delta, window--resize-mini-window)
+	(window--resize-child-windows-normal, window-tree)
+	(delete-other-windows, quit-window, split-window)
+	(display-buffer-record-window, special-display-buffer-names)
+	(special-display-regexps, special-display-popup-frame)
+	(same-window-p, split-window-sensibly)
+	(display-buffer-overriding-action, display-buffer-alist)
+	(display-buffer-base-action, display-buffer, switch-to-buffer)
+	(switch-to-buffer-other-window, switch-to-buffer-other-frame)
+	(fit-window-to-buffer, recenter-positions)
+	(mouse-autoselect-window-state, mouse-autoselect-window-select):
+	* emacs-lisp/syntax.el (syntax-propertize-function): Fix typos
+	and remove unneeded backslashes in docstrings.
+
+2011-12-08  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* emacs-lisp/lisp-mode.el (defmethod): Add doc-string-elt (bug#10244).
+
+	* pcmpl-gnu.el: Don't fail when there is no Makefile nor -f arg.
+	(pcmpl-gnu-makefile-regexps): Accept "makefile" as well as files that
+	end in ".mk".
+	(pcmpl-gnu-make-rule-names): Check "makefile" and ignore errors
+	when reading the makefile (bug#10116).
+
+2011-12-06  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* pcmpl-gnu.el (pcomplete/make): Also allow filename arguments
+	(bug#10116).
+
+2011-12-06  Glenn Morris  <rgm@gnu.org>
+
+	* emacs-lisp/package.el (package-archives): Doc fix re riskiness.
+
+2011-12-06  Chong Yidong  <cyd@gnu.org>
+
+	* progmodes/cc-fonts.el (c-annotation-face): Use defface.
+
+2011-12-06  Juanma Barranquero  <lekktu@gmail.com>
+
+	* textmodes/table.el (table-shorten-cell): Fix typo.
+
+2011-12-05  Christopher Genovese  <genovese.cr@gmail.com>  (tiny change)
+
+	* emacs-lisp/assoc.el (aput): Fix return value (bug#10146)
+
+2011-12-05  Eli Zaretskii  <eliz@gnu.org>
+
+	* descr-text.el (describe-char): Fix display of strong
+	right-to-left characters and directional embeddings and overrides.
+
+	* simple.el (what-cursor-position): Fix display of codepoints of
+	strong right-to-left characters.
+
+2011-12-05  Chong Yidong  <cyd@gnu.org>
+
+	* faces.el (read-color): Doc fix.
+
+2011-12-05  Glenn Morris  <rgm@gnu.org>
+
+	* align.el (align--set-marker): Add doc-string.
+	Don't try to move something that is not a marker.  (Bug#10216)
+
+2011-12-04  Glenn Morris  <rgm@gnu.org>
+
+	* calendar/appt.el (appt-add): Rewrite the interactive-spec to avoid
+	overly zealous deletion of trailing whitespace.
+
+2011-12-04  Juanma Barranquero  <lekktu@gmail.com>
+
+	* server.el (server-delete-client): On Windows, do not try to delete
+	the only terminal.
+	(server-process-filter): On Windows, treat requests for a tty frame as
+	if they were for a GUI frame if the running server is in GUI mode.
+
+2011-12-03  Glenn Morris  <rgm@gnu.org>
+
+	* textmodes/texinfmt.el (batch-texinfo-format): Doc fix.  (Bug#10207)
+
+2011-12-03  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* electric.el: Streamline electric-indent's hook.
+	(electric-indent-chars): Revert to simple list.
+	(electric-indent-functions): New var.
+	(electric-indent-post-self-insert-function): Use it.
+
+	* progmodes/prolog.el (prolog-find-value-by-system): Avoid error when
+	there's no inferior buffer (bug#10196).
+	(prolog-consult-compile): Don't use toggle-read-only.
+
+2011-12-02  Michael Albinus  <michael.albinus@gmx.de>
+
+	* net/tramp-sh.el (tramp-maybe-open-connection): Handle user
+	interrupt.  (Bug#10187)
+
+2011-12-02  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* pcmpl-gnu.el (pcomplete/tar): large-file-warn-threshold can be nil
+	(bug#9160).
+
+	* dired-aux.el (dired-query): Don't assume help-char is modifier-free
+	(bug#10191).
+
+2011-12-02  Juri Linkov  <juri@jurta.org>
+
+	* info.el (Info-search): Display "end of manual" when Isearch
+	reaches the end of single-file Info manual.  (Bug#9918)
+
+2011-12-02  Eli Zaretskii  <eliz@gnu.org>
+
+	* isearch.el (isearch-message-prefix): Run the input method part
+	of the prompt through bidi-string-mark-left-to-right.  (Bug#10183)
+
+2011-12-02  Juri Linkov  <juri@jurta.org>
+
+	* isearch.el (isearch-occur): Use `word-search-regexp' for
+	`isearch-word'.
+	(isearch-search-and-update): Add condition for `isearch-word' and
+	call `word-search-regexp'.  (Bug#10145)
+
+2011-12-01  Glenn Morris  <rgm@gnu.org>
+
+	* eshell/em-hist.el (eshell-hist-initialize):
+	Handle eshell-history-size nil and HISTSIZE set or unset.
+	(eshell-history-file-name, eshell-history-size): Fix custom type.
+
+2011-12-01  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* man.el (Man-completion-table): Fix the lambda case (bug#10168).
+
+2011-12-01  Michael McNamara  <mac@mail.brushroad.com>
+
+	* progmodes/verilog-mode.el (verilog-pretty-expr):
+	Rework verilog-pretty-expr to handle new assignment operators in system
+	verilog, such as += *= and the like.
+	(verilog-assignment-operator-re): Regular expression to find the
+	assigment operator in a verilog assignment.
+	(verilog-assignment-operation-re): Regular expression to find an
+	assignment statement for pretty-expr.
+	(verilog-in-attribute-p): Query returns true if point is in an
+	attribute context; used to skip these for expression line up from
+	pretty-expr.
+	(verilog-in-parameter-p): Query returns true if point is in an
+	parameter definition context; used to skip these for expression
+	line up from pretty-expr.
+	(verilog-in-parenthesis-p): Query returns true if point is in a
+	parenthetical expression, specifically ( ) but not [ ] or { };
+	used by pretty-expr.
+	(verilog-just-one-space): If there is no space, don't add one.
+	(verilog-get-lineup-indent-2): Specifically skip just attribute
+	contexts for expression lineup, rather than skipping all
+	parenthetical expressions.
+	(verilog-calculate-indent): Fix comment, and fix indent.
+	(verilog-do-indent): Indent declarations in lists (suggested by
+	Joachim Lechner).
+	(verilog-mode-abbrev-table): Populate abbrev mode with the various
+	skeleton items.
+	(verilog-sk-ovm-class): Add skeleton for OVM classes (reported
+	by Alain Mellan).
+
+2011-12-01  Wilson Snyder  <wsnyder@wsnyder.org>
+
+	* progmodes/verilog-mode.el (verilog-read-defines): Fix reading
+	parameters with embedded comments.  Reported by Ray Stevens.
+	(verilog-calc-1, verilog-fork-wait-re) (verilog-forward-sexp,
+	verilog-wait-fork-re): Fix indentation of "wait fork", bug407.
+	Reported by Tim Holt.
+	(verilog-auto): Fix AUTOing a upper module then AUTOing module
+	instantiated by upper module causing wrong expansion until AUTOed a
+	second time.  Reported by K C Buckenmaier.
+	(verilog-diff-auto): Fix showing .* as a difference when
+	`verilog-auto-star-save' off.  Reported by Dan Dever.
+	(verilog-auto-reset, verilog-read-always-signals)
+	(verilog-auto-reset-blocking-in-non): Fix AUTORESET including
+	temporary signals in reset list if
+	verilog-auto-reset-blocking-in-non is nil, and match assignment
+	style to each signal's assignment type, bug381.
+	Reported by Thomas Esposito.
+	(verilog-sk-uvm-class, verilog-uvm-begin-re, verilog-uvm-end-re)
+	(verilog-uvm-statement-re): Support UVM indentation and
+	highlighting, with old OVM keywords only.
+	(verilog-auto-tieoff, verilog-auto-tieoff-declaration):
+	Support AUTOTIEOFF creating non-wire data types.  Suggested by Jonathan
+	Greenlaw.
+	(verilog-auto-insert-lisp, verilog-delete-to-paren)
+	(verilog-forward-sexp-cmt, verilog-forward-sexp-ign-cmt)
+	(verilog-inject-sense, verilog-read-inst-pins)
+	(verilog-read-sub-decls, verilog-read-sub-decls-line):
+	Fix mismatching parenthesis inside commented out code when deleting
+	AUTOINST, bug383.  Reported by Jonathan Greenlaw.
+	(verilog-auto-ascii-enum): Fix AUTOASCIIENUM one-hot with
+	non-numeric vector width.  Reported by Alex Reed.
+	(verilog-auto-ascii-enum): Add "onehot" option to work around not
+	detecting signals with parameter widths.  Reported by Alex Reed.
+	(verilog-auto-delete-trailing-whitespace):
+	With `verilog-auto-delete-trailing-whitespace' remove trailing
+	whitespace in auto expansion, bug371.  Reported by Brad Dobbie.
+	(verilog-run-hooks, verilog-scan-cache-flush, verilog-syntax-ppss):
+	Fix verilog-scan-cache corruption when running user AUTO expansion
+	hooks that call indentation routines.
+	(verilog-simplify-range-expression): Fix typo ignoring lower case
+	identifiers.
+	(verilog-delete-auto): Fix delete-autos to also remove user created
+	automatics, as long as they start with AUTO.
+	(verilog-batch-diff-auto, verilog-diff-auto)
+	(verilog-diff-function): Add `verilog-diff-auto' and bind to
+	"C-c?"  to report differences in AUTO expansion, ignoring spaces.
+	(verilog-backward-syntactic-ws-quick, verilog-beg-of-defun-quick)
+	(verilog-in-paren-quick, verilog-re-search-backward-quick)
+	(verilog-re-search-forward-quick, verilog-syntax-ppss):
+	Fix calling `syntax-ppss' when inside auto expansions as the ppss hook
+	is disabled and its cache will get corrupt, causing AUTOS not to
+	expand.  Instead use only -quick functions.
+	(verilog-scan-region): Fix scanning over escaped quotes.
+	(verilog-inside-comment-or-string-p, verilog-inside-comment-p)
+	(verilog-re-search-backward-quick)
+	(verilog-re-search-forward-quick, verilog-scan): verilog-scan and
+	related functions now ignore strings, to fix misparsing of strings
+	with magic comments embedded in them.
+	(verilog-read-auto-template):
+	Fix 'verilog-auto-inst-template-numbers' with extra newline before (.
+	Reported by Brad Dobbie.
+	(verilog-read-auto-template):
+	Fix 'verilog-auto-inst-template-numbers' with comments.
+	Reported by Brad Dobbie.
+	(verilog-auto-inst, verilog-auto-inst-param)
+	(verilog-auto-inst-sort): Add 'verilog-auto-inst-sort' to reduce
+	merge conflicts with AUTOINST, bug358.  Reported by Brad Dobbie.
+	(verilog-auto-inst-template-numbers): Add 'lhs' policy for
+	debugging templates without merge conflicts, bug357.
+	Reported by Brad Dobbie.
+	(verilog-read-auto-template):
+	Fix verilog-auto-inst-template-numbers with multiple templates.
+	Reported by Brad Dobbie.
+	(verilog-define-abbrev): Fix verilog-mode abbrevs to be system
+	abbrevs so user won't be asked to save.
+	(verilog-read-auto-lisp-present): Fix to start at beginning of
+	buffer in case called outside of verilog-auto.
+	(verilog-simplify-range-expression): Fix AUTOWIRE expanding "X-1+1"
+	to "X-2".  Reported by Matthew Myers.
+	(verilog-auto, verilog-auto-inout-in): Add AUTOINOUTIN for creating
+	all inputs from module templates.  Reported by Leith Johnson.
+	(verilog-module-inside-filename-p): Fix locating programs as with
+	modules.
+	(verilog-auto-inst-port): Fix vl-width expressions when using
+	verilog-auto-inst-param-value, bug331.  Reported by Julian Gorfajn.
+	(verilog-decls-get-regs, verilog-decls-get-signals,
+	verilog-decls-get-vars, verilog-decls-get-wires, verilog-decls-new,
+	verilog-modi-cache-add-vars, verilog-modi-cache-add-wires,
+	verilog-read-decls): Combine reg and wire structures into one var
+	structure to represent SystemVerilog concepts.
+	(verilog-auto-ascii-enum, verilog-auto-logic, verilog-auto-reg)
+	(verilog-auto-reg-input, verilog-auto-tieoff, verilog-auto-wire)
+	(verilog-auto-wire-type, verilog-insert-definition):
+	Add verilog-auto-wire-type and AUTOLOGIC to support using
+	SystemVerilog "logic" keyword instead of "wire"/"reg".
+	(verilog-auto-reg-input, verilog-decls-get-signals): Fix AUTOWIRE
+	to declares outputs that also have assignments (presumably in an
+	ifdef or generate if so there's not a driver conflict).
+	Reported by Matthew Myers.
+	(verilog-auto-declare-nettype, verilog-insert-definition):
+	Add verilog-auto-declare-nettype to fix declarations using
+	`default_nettype none.  Reported by Julian Gorfajn.
+	(verilog-read-always-signals-recurse, verilog-read-decls)
+	(verilog-read-sub-decls-gate): Fix infinite loop with (*) and
+	malformed end statement, bug325.  Reported by Joshua Wise and
+	Andrew Drake.
+	(verilog-auto-star-safe, verilog-delete-auto-star-implicit)
+	(verilog-inst-comment-re): Fix not deleting Interfaced comment
+	when expanding .* in interfaces, bug320.  Reported by Pierre-David
+	Pfister.
+	(verilog-read-module-name): Fix import statements between module
+	name and open parenthesis, bug317.  Reported by Pierre-David
+	Pfister.
+	(verilog-simplify-range-expression): Fix simplification of
+	multiplications inside AUTOWIRE connections, bug303.
+	(verilog-auto-inst-port): Support parameter expansion in
+	multidimensional arrays.
+	(verilog-read-decls): Fix AUTOREG etc looking for "endproperty"
+	after "assert property".  Reported by Julian Gorfajn.
+	(verilog-simplify-range-expression): Fix "couldn't merge" errors
+	with multiplication, bug303.
+	(verilog-read-decls): Fix parsing of unsigned data types, bug302.
+	Reported by Jan Frode Lonnum.
+
+2011-11-30  Juanma Barranquero  <lekktu@gmail.com>
+
+	* htmlfontify.el (hfy-page-header, hfy-post-html-hooks)
+	(hfy-shell-file-name, hfy-shell):
+	* international/fontset.el (x-decompose-font-name): Fix typos.
+
+2011-11-29  Ken Brown  <kbrown@cornell.edu>
+
+	* progmodes/gdb-mi.el: Fix bug#9853, bug#9858, and bug#9878.
+	(gdb-version): Remove defvar.
+	(gdb-supports-non-stop): New defvar, replacing `gdb-version'.
+	(gdb-gud-context-command, gdb-non-stop-handler)
+	(gdb-current-context-command, gdb-stopped): Use it.
+	(gdb-init-1): Enable pretty printing here.
+	(gdb-non-stop-handler): Don't enable pretty-printing here.
+	Check to see if the target supports non-stop mode; if not, turn off
+	non-stop mode.  Use the following.
+	(gdb-check-target-async): New defun.
+	(gud-watch, gdb-stopped): Fix whitespace.
+	(gdb-get-source-file): Don't try to display the source file if
+	`gdb-main-file' is nil.
+
+2011-11-29  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* align.el: Try to generate fewer markers (bug#10047).
+	(align--set-marker): New macro.
+	(align-region): Use it.
+
+2011-11-29  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* isearch.el (isearch-yank-x-selection): Deactivate mark (bug#10022).
+
+2011-11-29  Chong Yidong  <cyd@gnu.org>
+
+	* indent.el (indent-for-tab-command, indent-according-to-mode):
+	Doc fix.
+	(indent-region): Doc fix.  Switch nested ifs to equivalent cond.
+
+2011-11-29  Michael Albinus  <michael.albinus@gmx.de>
+
+	* vc/diff-mode.el (diff-find-file-name): Make `read-file-name'
+	aware of remote file names.  (Bug#10124)
+
+2011-11-29  Chong Yidong  <cyd@gnu.org>
+
+	* frame.el (auto-raise-mode, auto-lower-mode): Doc fix.
+
+2011-11-28  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* files.el (find-file): Don't use force-same-window (bug#10144).
+	* window.el (switch-to-buffer): Better match Emacs-23 behavior and only
+	use pop-to-buffer if the selected window can't be used.
+	(pop-to-buffer-same-window): Use display-buffer--same-window-action.
+
+2011-11-28  Eli Zaretskii  <eliz@gnu.org>
+
+	* vc/diff-mode.el (diff-mode-map): Don't inherit 'z' => 'M-z' from
+	special-mode-map.
+
+2011-11-28  Chong Yidong  <cyd@gnu.org>
+
+	* emacs-lisp/easy-mmode.el (define-minor-mode): Fix default doc.
+
+2011-11-27  Nick Roberts  <nickrob@snap.net.nz>
+
+	* progmodes/gdb-mi.el (gdb-init-1): Condition execution of
+	  gdb-get-source-file-list on gdb-create-source-file-list.
+
+2011-11-26  Eli Zaretskii  <eliz@gnu.org>
+
+	* whitespace.el (whitespace-newline): Use a different foreground
+	color for 16-color light-background displays.
+
+2011-11-24  Chong Yidong  <cyd@gnu.org>
+
+	* window.el (display-buffer--special-action): Doc fix.
+
+2011-11-25  Juanma Barranquero  <lekktu@gmail.com>
+
+	* emacs-lisp/avl-tree.el (avl-tree--do-copy, avl-tree-create)
+	(avl-tree-compare-function, avl-tree-empty, avl-tree-enter)
+	(avl-tree-delete, avl-tree-member, avl-tree-member-p, avl-tree-map)
+	(avl-tree-mapc, avl-tree-mapf, avl-tree-mapcar, avl-tree-copy)
+	(avl-tree-clear, avl-tree-stack, avl-tree-stack-pop)
+	(avl-tree-stack-first):
+	* emacs-lisp/cconv.el (cconv--analyse-use):
+	* net/gnutls.el (gnutls-negotiate): Fix typos.
+
+2011-11-24  Glenn Morris  <rgm@gnu.org>
+
+	* lpr.el (lpr-windows-system, lpr-lp-system):
+	* mail/binhex.el (binhex-begin-line):
+	* progmodes/grep.el (grep-history, grep-find-history):
+	* textmodes/flyspell.el:
+	* vc/pcvs-defs.el (cvs-global-menu):
+	* vc/vc-bzr.el (vc-bzr-admin-checkout-format-file):
+	* vc/vc-mtn.el (vc-mtn-admin-dir, vc-mtn-admin-format):
+	* vc/vc-cvs.el (vc-cvs-registered): Give them basic doc-strings.
+
+	* net/tls.el: Fix case of "GnuTLS".
+
+	* paths.el (rmail-file-name): Format doc-string for make-docfile.
+
+	* version.el (emacs-build-system): Give it a doc-string.
+
+2011-11-24  Juri Linkov  <juri@jurta.org>
+
+	* view.el (view-buffer): Revert revno:105285 from 2011-07-19 (bug#8615).
+
+2011-11-24  Glenn Morris  <rgm@gnu.org>
+
+	* mail/rmailmm.el (rmail-mime): When rmail-enable-mime is non-nil,
+	if called on a non-mime message just toggle the headers.  (Bug#8006)
+
+2011-11-24  Juanma Barranquero  <lekktu@gmail.com>
+
+	* allout.el (allout-setup, allout-auto-save-temporarily-disabled)
+	(allout-lead-with-comment-string, allout-structure-deleted-hook)
+	(allout-mode, allout-chart-subtree, allout-hotspot-key-handler)
+	(allout-rebullet-heading, allout-open-sibtopic)
+	(allout-toggle-current-subtree-encryption)
+	(allout-toggle-subtree-encryption, allout-encrypt-string)
+	(allout-next-topic-pending-encryption, allout-adjust-file-variable)
+	(allout-distinctive-bullets-string, allout-auto-activation):
+	* window.el (window-normalize-buffer-to-display):
+	* progmodes/verilog-mode.el (verilog-batch-indent):
+	* textmodes/bibtex.el (bibtex-field-braces-opt)
+	(bibtex-field-strings-opt):
+	* vc/cvs-status.el (cvs-tree-merge):
+	Fix typos.
+
+2011-11-23  Michael Albinus  <michael.albinus@gmx.de>
+
+	* rfn-eshadow.el (rfn-eshadow-update-overlay): Let-bind
+	`non-essential' to t, in order to avoid remote connections.
+
+2011-11-23  Eli Zaretskii  <eliz@gnu.org>
+
+	* emacs-lisp/autoload.el (autoload-generate-file-autoloads):
+	On MS-DOS and MS-Windows, compare with loaddefs.el
+	case-insensitively.
+
+2011-11-23  Mark Lillibridge  <mark.lillibridge@hp.com>  (tiny change)
+
+	* mail/unrmail.el (unrmail): Always add blank line.  (Bug#7743)
+
+2011-11-23  Glenn Morris  <rgm@gnu.org>
+
+	* paths.el (rmail-file-name): Reformat the doc-string so that it
+	is picked up.
+
+	* mail/rmail.el (rmail-message-filter, rmail-auto-file): Doc fixes.
+	(rmail-auto-file): Ignore case in the "special" field names,
+	as mail-fetch-field does for all others.
+
+	* mail/rmail.el (rmail-forward):
+	* mail/rmailkwd.el (rmail-set-label):
+	* mail/rmailout.el (rmail-output, rmail-output-as-seen)
+	(rmail-output-body-to-file): Give error if no message.  (Bug#10082)
+
+	* mail/rmail.el (rmail-current-message): Doc fix.
+
+	* mail/rmail.el (rmail-message-filter): Mark as obsolete.  (Bug#2624)
+
+2011-11-22  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* server.el (server-eval-and-print): Allow C-g (bug#6585).
+
+2011-11-22  Glenn Morris  <rgm@gnu.org>
+
+	* mail/rmailmm.el (test-rmail-mime-handler)
+	(test-rmail-mime-bulk-handler)
+	(test-rmail-mime-multipart-handler): Move tests to test/ directory.
+
+2011-11-21  Juri Linkov  <juri@jurta.org>
+
+	* calc/calc.el (calc-read-key-sequence): Let-bind `input-method-function'
+	to nil.  (Bug#10018)
+
+2011-11-21  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* emacs-lisp/cl-indent.el (common-lisp-loop-part-indentation):
+	Tell the caller that the next line needs recomputation, even
+	though it doesn't start a sexp (bug#10094).
+
+2011-11-21  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* emacs-lisp/autoload.el (autoload-generate-file-autoloads): Simplify.
+
+2011-11-20  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* vc/pcvs-util.el (cvs-pop-to-buffer-same-frame):
+	Use force-same-window.
+
+2011-11-20  Juanma Barranquero  <lekktu@gmail.com>
+
+	* descr-text.el (describe-char-unicode-data):
+	* json.el (json-string-escape):
+	* mail/footnote.el (footnote-unicode-string, footnote-unicode-regexp)
+	(Footnote-unicode, Footnote-style-p):
+	* net/ntlm.el (ntlm-get-password-hashes): Fix typos.
+
+2011-11-20  Chong Yidong  <cyd@gnu.org>
+
+	* window.el (replace-buffer-in-windows): Restore interactive spec.
+
+2011-11-20  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* electric.el (electric-indent-mode): Fix last change (too optimistic).
+
+	* emacs-lisp/bytecomp.el: Silence obsolete warnings more reliably.
+	(byte-compile-global-not-obsolete-vars): New var.
+	(byte-compile-check-variable, byte-compile-make-obsolete-variable):
+	Use it.
+	(byte-compile-warn-obsolete): Align text with the one in *Help*.
+
+2011-11-20  Juanma Barranquero  <lekktu@gmail.com>
+
+	* progmodes/cwarn.el (cwarn-is-enabled, cwarn-font-lock-keywords):
+	* progmodes/pascal.el (electric-pascal-equal):
+	* textmodes/reftex-dcr.el (reftex-view-crossref-from-bibtex):
+	* xml.el (xml-substitute-special): Fix typos.
+
+2011-11-20  Glenn Morris  <rgm@gnu.org>
+
+	* mail/rmail.el (rmail-enable-mime-composing): Make it a defcustom.
+	(rmail-insert-mime-forwarded-message-function, rmail-mime-feature):
+	Doc fixes.
+	(rmail-decode-mime-charset): Mark as obsolete.
+
+	* mail/rmailsum.el (rmail-message-regexp-p-1):
+	* mail/rmail.el (rmail-search-message, rmail-forward, rmail-resend):
+	Before using mime functions, check they are set.  (Bug#10077)
+
+2011-11-19  Juri Linkov  <juri@jurta.org>
+
+	* info.el (Info-finder-find-node): Use `package--builtins' instead
+	of `package-alist'.  Use node names formed by the pattern "Keyword "
+	and the keyword name.
+
+2011-11-19  Andreas Schwab  <schwab@linux-m68k.org>
+
+	* progmodes/sh-script.el (sh-assignment-regexp): Add entry for
+	bash.
+
+2011-11-19  Juri Linkov  <juri@jurta.org>
+
+	* info.el (Info-hide-note-references): Add `:set' tag to `defcustom'
+	that calls `revert-buffer' on all Info buffers.  (Bug#9915)
+	(Info-revert-find-node): Remove let-bindings `old-buffer-name',
+	`old-history', `old-history-forward'.  Add let-binding
+	`window-selected'.  Remove calls to `kill-buffer',
+	`switch-to-buffer' and `Info-mode'.  Set `Info-current-file' to nil
+	before calling `Info-find-node', so `Info-find-node-2' will reread
+	the Info file.  Restore window positions only when `window-selected'
+	is non-nil.
+
+2011-11-19  Juri Linkov  <juri@jurta.org>
+
+	* isearch.el (isearch-lazy-highlight-new-loop):
+	Remove condition `(not isearch-error)'.  (Bug#9918)
+
+	* misearch.el (multi-isearch-search-fun): Add condition
+	`(not bound)' to ignore lazy-highlighting search.
+	Add the search-failed message "end of multi" when the end of
+	multi-sequence is reached.  Uncapitalize the search-failed
+	message "Repeat for next buffer".
+
+	* info.el (Info-search): Add the search-failed message
+	"end of the manual" when the end of the manual is reached
+	in Isearch mode.
+
+2011-11-19  Juri Linkov  <juri@jurta.org>
+
+	* info.el (Info-find-node-2, Info-select-node, Info-history-find-node):
+	Use non-destructive `remove' instead of `delete' because
+	`Info-history-list' stored to `Info-isearch-initial-history-list' in
+	`Info-isearch-start' might need to be restored in `Info-isearch-end'.
+
+2011-11-19  Juri Linkov  <juri@jurta.org>
+
+	* isearch.el (isearch-edit-string): Let-bind `history-add-new-input'
+	to nil instead of binding `search-ring' and `regexp-search-ring'.
+	(Bug#9185)
+
+2011-11-19  Eli Zaretskii  <eliz@gnu.org>
+
+	* simple.el (line-move): Force movement by logical lines for any
+	hscrolled window, not only when auto-hscroll-mode is on.
+	(line-move-visual): Update doc string to that effect.  (Bug#10076)
+
+2011-11-19  Andreas Schwab  <schwab@linux-m68k.org>
+
+	* language/european.el (macintosh): Define as alias for mac-roman.
+
+2011-11-19  Eli Zaretskii  <eliz@gnu.org>
+
+	* mail/rmailmm.el (rmail-mime-display-header)
+	(rmail-mime-display-tagline, rmail-mime-display-body): New defsubsts.
+	(rmail-mime-entity-segment, rmail-mime-toggle-raw)
+	(rmail-mime-toggle-hidden, rmail-mime-insert-text)
+	(rmail-mime-insert-bulk, rmail-mime-insert-multipart)
+	(rmail-mime-insert, rmail-mime-insert-tagline): Use them instead
+	of a raw aref.
+	(rmail-mime-entity-segment): To get past the tagline, move forward
+	2 more lines, to account for the 2 empty lines that precede and
+	follow the line with the buttons.
+	(rmail-mime-update-tagline): Move one more line, to get past the
+	empty line that follows the buttons in the tagline.  (Bug#9520)
+
+2011-11-19  Martin Rudalics  <rudalics@gmx.at>
+
+	* window.el (window-max-delta-1, window-min-delta-1)
+	(window-min-size-1, window-state-get-1, window-state-put-1)
+	(window-state-put-2): Use "window--" prefix.
+
 2011-11-18  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* emacs-lisp/smie.el: Improve warnings and conflict detection.
@@ -60,11 +702,11 @@
 
 2011-11-16  Michael Albinus  <michael.albinus@gmx.de>
 
-	* net/tramp.el (tramp-handle-file-truename): Cache only the local
-	file name.
-
 	* net/tramp-cache.el (tramp-flush-file-property): Flush also
 	properties of linked files.  (Bug#9879)
+
+	* net/tramp-sh.el (tramp-sh-handle-file-truename): Cache only the
+	local file name.
 
 2011-11-16  Juanma Barranquero  <lekktu@gmail.com>
 
@@ -1816,7 +2458,7 @@
 
 	* window.el (window-auto-delete): Remove.
 	(window-deletable-p): Remove argument FORCE.  Don't deal with
-	dedicatedness and previous buffers.
+	dedication and previous buffers.
 	(switch-to-prev-buffer): Don't delete window.
 	(delete-windows-on): Delete a window's frame if and only if the
 	window is dedicated.
@@ -2940,7 +3582,7 @@
 	more people.
 
 	* cus-edit.el (custom-file): When running under emacs -q, always
-	refuse to save the customisations, even if the .emacs file doesn't
+	refuse to save the customizations, even if the .emacs file doesn't
 	exist.
 
 	* info.el: Remove the `Info-beginning-of-buffer' function
@@ -3604,7 +4246,7 @@
 
 	* cus-edit.el (custom-show): Mark as obsolete.
 
-	* net/network-stream.el (network-stream-open-starttls): If gnutls
+	* net/network-stream.el (network-stream-open-starttls): If GnuTLS
 	negotiation fails, then possibly try again with a non-encrypted
 	connection (bug#9017).
 
@@ -4827,7 +5469,7 @@
 
 	* net/network-stream.el (network-stream-open-starttls): Support
 	upgrading to STARTTLS always, even if we don't have built-in support.
-	(open-network-stream): Add the :always-query-capabilies keyword.
+	(open-network-stream): Add the :always-query-capabilities keyword.
 
 	* mail/smtpmail.el: Rewritten to do opportunistic STARTTLS
 	upgrades with `open-network-stream', and rely solely on
@@ -7790,7 +8432,7 @@
 2011-04-12  Lars Magne Ingebrigtsen  <larsi@gnus.org>
 
 	* net/network-stream.el (network-stream-open-starttls): Only do
-	opportunistic STARTTLS upgrades if we have built-in gnutls support.
+	opportunistic STARTTLS upgrades if we have built-in GnuTLS support.
 	Upgrades via gnutls-cli are too slow to be done opportunistically.
 
 2011-04-12  Juanma Barranquero  <lekktu@gmail.com>

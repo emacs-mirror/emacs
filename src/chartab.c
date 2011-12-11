@@ -747,7 +747,7 @@ equivalent and can be merged.  It defaults to `equal'.  */)
    ARG is passed to C_FUNCTION when that is called.
 
    It returns the value of last character covered by TABLE (not the
-   value inheritted from the parent), and by side-effect, the car part
+   value inherited from the parent), and by side-effect, the car part
    of RANGE is updated to the minimum character C where C and all the
    following characters in TABLE have the same value.  */
 

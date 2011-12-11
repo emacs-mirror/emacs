@@ -66,6 +66,11 @@ CDPATH=
 
 # ==================== Things `configure' Might Edit ====================
 
+MAINTAINER_MODE_FLAG = --disable-maintainer-mode
+@MAINT@MAINTAINER_MODE_FLAG = --enable-maintainer-mode
+cache_file = @cache_file@
+CONFIGURE_FLAGS = --cache-file=$(cache_file) $(MAINTAINER_MODE_FLAG)
+
 CC=@CC@
 CFLAGS=@CFLAGS@
 LDFLAGS=@LDFLAGS@
@@ -404,7 +409,7 @@ config.status: ${srcdir}/configure ${srcdir}/lisp/version.el
 	if [ -x ./config.status ]; then	\
 	    ./config.status --recheck;	\
 	else				\
-	    ./configure;		\
+	    ./configure $(CONFIGURE_FLAGS); \
 	fi
 
 AUTOCONF_INPUTS = @MAINT@ $(srcdir)/configure.in $(srcdir)/aclocal.m4
@@ -474,10 +479,10 @@ install-arch-dep: mkdir
 	    if test -d share/emacs ; then dir=share/emacs/*/*; $(MV_DIRS); fi;\
 	    if test -d share/info ; then dir=share/info; $(MV_DIRS) ; fi ; \
 	    rm -fr share ) ; \
-	  ( cd ${ns_appbindir}libexec ; dir=emacs/*/*/* ; $(MV_DIRS); \
-	    rm -fr emacs ) ; \
-	  ( cd ${ns_appbindir}bin ; rm -f emacs emacs-24* ; \
-	    ln -sf ../libexec/* .) ; \
+	  ( cd ${ns_appbindir} ; \
+	    if cd libexec ; then dir=emacs/*/*/* ; $(MV_DIRS); \
+	    rm -fr emacs; if cd ../bin; then rm -f emacs emacs-24*; \
+	    ln -sf ../libexec/* . ; fi ; fi ) ; \
 	else true ; fi
 
 ## FIXME is the emacs-24* bit above really necessary and correct?
@@ -666,7 +671,7 @@ install-etc: mkdir
 ### Install LEIM files.  Although they are machine-independent, we
 ### have separate target here instead of including it in
 ### `install-arch-indep'.  People who extracted LEIM files after they
-### insalled Emacs itself can install only LEIM files by this target.
+### installed Emacs itself can install only LEIM files by this target.
 install-leim: leim/Makefile mkdir
 	cd leim; $(MAKE) install
 
@@ -936,7 +941,7 @@ bootstrap: bootstrap-clean FRC
 	if [ -x ./config.status ]; then           \
 	    ./config.status;                      \
 	else                                      \
-	    ./configure --enable-maintainer-mode; \
+	    ./configure $(CONFIGURE_FLAGS);       \
 	fi
 	$(MAKE) $(MFLAGS) info all
 

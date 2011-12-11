@@ -1569,7 +1569,7 @@ symbol, it may have these values:
     ;; current ERC buffer.
     ;; if buf-name is taken by a different connection (or by something !erc)
     ;; then see if "buf-name/server" meets the same criteria
-    (dolist (candidate (list buf-name (concat buf-name "/" server))) 
+    (dolist (candidate (list buf-name (concat buf-name "/" server)))
       (if (and (not buffer-name)
                erc-reuse-buffers
                (get-buffer candidate)
@@ -2626,7 +2626,7 @@ VALUE is computed by evaluating the rest of LINE in Lisp."
 (defun erc-cmd-default (line)
   "Fallback command.
 
-Commands for which no erc-cmd-xxx exists, are tunnelled through
+Commands for which no erc-cmd-xxx exists, are tunneled through
 this function.  LINE is sent to the server verbatim, and
 therefore has to contain the command itself as well."
   (erc-log (format "cmd: DEFAULT: %s" line))
@@ -4001,7 +4001,7 @@ and as second argument the event parsed as a vector."
        (not (string-match "^\C-a\\ACTION.*\C-a$" message))))
 
 (defun erc-format-privmessage (nick msg privp msgp)
-  "Format a PRIVMSG in an insertible fashion."
+  "Format a PRIVMSG in an insertable fashion."
   (let* ((mark-s (if msgp (if privp "*" "<") "-"))
 	 (mark-e (if msgp (if privp "*" ">") "-"))
 	 (str	 (format "%s%s%s %s" mark-s nick mark-e msg))
@@ -5797,7 +5797,7 @@ If it doesn't exist, create it."
   "Give information about the nickname at `point'.
 
 If called interactively, give a human readable message in the
-minibuffer.  If called programatically, return the corresponding
+minibuffer.  If called programmatically, return the corresponding
 entry of `channel-members'."
   (interactive)
   (require 'thingatpt)

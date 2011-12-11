@@ -521,7 +521,7 @@ THINGS TO DO
 
 ** Very strange bug: visible-bell does not work on secondary
    terminals in xterm and konsole.  The screen does flicker a bit,
-   but it's so quick it isn't noticable.
+   but it's so quick it isn't noticeable.
 
    (Update: This is probably some problem with padding or whatnot on
    the secondary terminals.)
@@ -585,7 +585,7 @@ DIARY OF CHANGES
 -- other-frame should cycle through the frames on the `current'
    terminal only.
 
-   (Done, by trivially modifiying next_frame and prev_frame.)
+   (Done, by trivially modifying next_frame and prev_frame.)
 
 -- Support different terminal sizes.
 
@@ -984,7 +984,7 @@ DIARY OF CHANGES
    wrt foreground/background process groups.)
 
 -- There is a flicker during the startup of `emacs -nw'; it's as if
-   the terminal is initialized, reset and then initialialized again.
+   the terminal is initialized, reset and then initialized again.
    Debug this.  (Hint: narrow_foreground_group is called twice during
    startup.)
 

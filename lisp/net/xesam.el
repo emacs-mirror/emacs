@@ -88,7 +88,7 @@
 ;;
 ;;   (setq xesam-query-type 'fulltext-query)
 ;;
-;; Another option to be customised is the number of hits to be
+;; Another option to be customized is the number of hits to be
 ;; presented at once.
 ;;
 ;;   (setq xesam-hits-per-page 50)
@@ -196,7 +196,7 @@ be different at least in one face property not set in that face."
 (defconst xesam-all-fields
   '("xesam:35mmEquivalent" "xesam:aimContactMedium" "xesam:aperture"
     "xesam:aspectRatio" "xesam:attachmentEncoding" "xesam:attendee"
-    "xesam:audioBirate" "xesam:audioChannels" "xesam:audioCodec"
+    "xesam:audioBitrate" "xesam:audioChannels" "xesam:audioCodec"
     "xesam:audioCodecType" "xesam:audioSampleFormat" "xesam:audioSampleRate"
     "xesam:author" "xesam:bcc" "xesam:birthDate" "xesam:blogContactURL"
     "xesam:cameraManufacturer" "xesam:cameraModel" "xesam:cc" "xesam:ccdWidth"
@@ -240,7 +240,8 @@ be different at least in one face property not set in that face."
     "xesam:subject" "xesam:supercedes" "xesam:title" "xesam:to"
     "xesam:totalSpace" "xesam:totalUncompressedSize" "xesam:url"
     "xesam:usageIntensity" "xesam:userComment" "xesam:userKeyword"
-    "xesam:uuid" "xesam:version" "xesam:verticalResolution" "xesam:videoBirate"
+    "xesam:uuid" "xesam:version" "xesam:verticalResolution"
+    "xesam:videoBitrate"
     "xesam:videoCodec" "xesam:videoCodecType" "xesam:whiteBalance"
     "xesam:width" "xesam:wordCount" "xesam:workEmailAddress"
     "xesam:workPhoneNumber" "xesam:workPostalAddress"
@@ -278,8 +279,8 @@ fields are supported.")
 
 (defun xesam-dbus-call-method (&rest args)
   "Apply a D-Bus method call.
-`dbus-call-method' is to be preferred, because it is more
-performant.  If the target D-Bus service is owned by Emacs, this
+`dbus-call-method' is preferred, because it performs better.
+If the target D-Bus service is owned by Emacs, this
 is not applicable, and `dbus-call-method-non-blocking' must be
 used instead.  ARGS are identical to the argument list of both
 functions."
@@ -819,7 +820,7 @@ search, is returned."
     (with-current-buffer
 	(generate-new-buffer (xesam-buffer-name service search))
       (switch-to-buffer-other-window (current-buffer))
-      ;; Inialize buffer with `xesam-mode'.  `xesam-vendor' must be
+      ;; Initialize buffer with `xesam-mode'.  `xesam-vendor' must be
       ;; set before calling `xesam-mode', because we want to give the
       ;; hook functions a chance to identify their search engine.
       (setq xesam-vendor (xesam-get-cached-property engine "vendor.id"))

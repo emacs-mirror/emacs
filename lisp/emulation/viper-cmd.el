@@ -716,7 +716,7 @@
     (error
      (viper-message-conditions conds))))
 
-;; escape to emacs mode termporarily
+;; escape to emacs mode temporarily
 (defun viper-escape-to-emacs (arg &optional events)
   "Escape to Emacs state from Vi state for one Emacs command.
 ARG is used as the prefix value for the executed command.  If
@@ -726,7 +726,7 @@ EVENTS is a list of events, which become the beginning of the command."
       (message "Switched to EMACS state for the next command..."))
   (viper-escape-to-state arg events 'emacs-state))
 
-;; escape to Vi mode termporarily
+;; escape to Vi mode temporarily
 (defun viper-escape-to-vi (arg)
   "Escape from Emacs state to Vi state for one Vi 1-character command.
 If the Vi command that the user types has a prefix argument, e.g., `d2w', then
@@ -1979,7 +1979,7 @@ Undo previous insertion and inserts new."
 ;; Quote region by each line with a user supplied string.
 (defun viper-quote-region ()
   (let ((quote-str viper-quote-string)
-	(donot-change-dafault t))
+	(donot-change-default t))
     (setq quote-str
 	  (viper-read-string-with-history
 	   "Quote string: "
@@ -1991,9 +1991,9 @@ Undo previous insertion and inserts new."
 		 ((string-match "lisp.*-mode" (symbol-name major-mode)) ";;")
 		 ((memq major-mode '(c-mode cc-mode c++-mode)) "//")
 		 ((memq major-mode '(sh-mode shell-mode)) "#")
-		 (t (setq donot-change-dafault nil)
+		 (t (setq donot-change-default nil)
 		    quote-str))))
-    (or donot-change-dafault
+    (or donot-change-default
 	(setq viper-quote-string quote-str))
     (viper-enlarge-region (point) (mark t))
     (if (> (point) (mark t)) (exchange-point-and-mark))
@@ -2407,7 +2407,7 @@ problems."
    t 'local)
   (add-hook
    'viper-pre-command-hooks 'viper-replace-state-pre-command-sentinel t 'local)
-  ;; guard against a smartie who switched from R-replace to normal replace
+  ;; guard against a smarty who switched from R-replace to normal replace
   (remove-hook
    'viper-post-command-hooks 'viper-R-state-post-command-sentinel 'local)
   (if overwrite-mode (overwrite-mode -1))
@@ -2531,7 +2531,7 @@ problems."
    'viper-post-command-hooks 'viper-R-state-post-command-sentinel t 'local)
   (add-hook
    'viper-pre-command-hooks 'viper-replace-state-pre-command-sentinel t 'local)
-  ;; guard against a smartie who switched from R-replace to normal replace
+  ;; guard against a smarty who switched from R-replace to normal replace
   (remove-hook
    'viper-post-command-hooks 'viper-replace-state-post-command-sentinel 'local)
   )
@@ -3715,7 +3715,7 @@ Although this function is bound to \\[viper-toggle-search-style], the most
 convenient way to use it is to bind `//' to the macro
 `1 M-x viper-toggle-search-style' and `///' to
 `2 M-x viper-toggle-search-style'.  In this way, hitting `//' quickly will
-toggle case-fold-search and hitting `/' three times witth toggle regexp
+toggle case-fold-search and hitting `/' three times with toggle regexp
 search.  Macros are more convenient in this case because they don't affect
 the Emacs binding of `/'."
   (interactive "P")
@@ -3767,7 +3767,7 @@ If MAJOR-MODE is set, set the macros only in that major mode."
 	       "//" 'vi-state
 	       [1 (meta x) v i p e r - t o g g l e - s e a r c h - s t y l e return]
 	       scope)
-	      ;; toggle regexp/vanila search
+	      ;; toggle regexp/vanilla search
 	      (viper-record-kbd-macro
 	       "///" 'vi-state
 	       [2 (meta x) v i p e r - t o g g l e - s e a r c h - s t y l e return]
@@ -3824,7 +3824,7 @@ the macros are set in the current major mode.
 	     "//" 'emacs-state
 	     [1 (meta x) v i p e r - t o g g l e - s e a r c h - s t y l e return]
 	     (or arg-majormode major-mode))
-	    ;; toggle regexp/vanila search
+	    ;; toggle regexp/vanilla search
 	    (viper-record-kbd-macro
 	     "///" 'emacs-state
 	     [2 (meta x) v i p e r - t o g g l e - s e a r c h - s t y l e return]
@@ -4017,7 +4017,7 @@ Null string will repeat previous search."
   (setq viper-prefix-commands
 	(cons viper-buffer-search-char viper-prefix-commands)))
 
-;; This is a Viper wraper for isearch-forward.
+;; This is a Viper wrapper for isearch-forward.
 (defun viper-isearch-forward (arg)
   "Do incremental search forward."
   (interactive "P")
@@ -4025,7 +4025,7 @@ Null string will repeat previous search."
   (if (listp arg) (setq arg (car arg)))
   (viper-exec-form-in-emacs (list 'isearch-forward arg)))
 
-;; This is a Viper wraper for isearch-backward."
+;; This is a Viper wrapper for isearch-backward."
 (defun viper-isearch-backward (arg)
   "Do incremental search backward."
   (interactive "P")

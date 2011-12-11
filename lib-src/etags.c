@@ -326,7 +326,7 @@ typedef struct regexp
   struct re_pattern_buffer *pat; /* the compiled pattern */
   struct re_registers regs;	/* re registers */
   bool error_signaled;		/* already signaled for this regexp */
-  bool force_explicit_name;	/* do not allow implict tag name */
+  bool force_explicit_name;	/* do not allow implicit tag name */
   bool ignore_case;		/* ignore case when matching */
   bool multi_line;		/* do a multi-line match on the whole file */
 } regexp;
@@ -1862,10 +1862,10 @@ find_entries (FILE *inf)
 
   assert (parser != NULL);
 
-  /* Generic initialisations before reading from file. */
+  /* Generic initializations before reading from file. */
   linebuffer_setlen (&filebuf, 0); /* reset the file buffer */
 
-  /* Generic initialisations before parsing file with readline. */
+  /* Generic initializations before parsing file with readline. */
   lineno = 0;		       /* reset global line number */
   charno = 0;		       /* reset global char number */
   linecharno = 0;	       /* reset global char number of line start */
@@ -1895,7 +1895,7 @@ find_entries (FILE *inf)
  *  4. the character, if any, immediately after NAME in LINESTART must
  *     also be a character in NONAM.
  *
- * The implementation uses the notinname() macro, which recognises the
+ * The implementation uses the notinname() macro, which recognizes the
  * characters stored in the string `nonam'.
  * etags.el needs to use the same characters that are in NONAM.
  */
@@ -3057,7 +3057,7 @@ make_C_tag (int isfun)
     make_tag (token_name.buffer, token_name.len, isfun, token.line,
 	      token.offset+token.length+1, token.lineno, token.linepos);
   else if (DEBUG)
-    {				  /* this branch is optimised away if !DEBUG */
+    {				  /* this branch is optimized away if !DEBUG */
       make_tag (concat ("INVALID TOKEN:-->", token_name.buffer, ""),
 		token_name.len + 17, isfun, token.line,
 		token.offset+token.length+1, token.lineno, token.linepos);
@@ -3304,7 +3304,7 @@ C_entries (int c_ext, FILE *inf)
 		  if (c == ':' && *lp == ':' && begtoken (lp[1]))
 		    /* This handles :: in the middle,
 		       but not at the beginning of an identifier.
-		       Also, space-separated :: is not recognised. */
+		       Also, space-separated :: is not recognized. */
 		    {
 		      if (c_ext & C_AUTO) /* automatic detection of C++ */
 			c_ext = (c_ext | C_PLPL) & ~C_AUTO;
@@ -5900,7 +5900,7 @@ regex_tag_multiline (void)
       if (!rp->multi_line)
 	continue;		/* skip normal regexps */
 
-      /* Generic initialisations before parsing file from memory. */
+      /* Generic initializations before parsing file from memory. */
       lineno = 1;		/* reset global line number */
       charno = 0;		/* reset global char number */
       linecharno = 0;		/* reset global char number of line start */

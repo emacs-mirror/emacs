@@ -482,6 +482,7 @@ still the current message in the Rmail buffer.")
 ;; It's not clear what it should do now, since there is nothing that
 ;; records when a message is shown for the first time (unseen is not
 ;; necessarily the same thing).
+;; See http://lists.gnu.org/archive/html/emacs-devel/2009-03/msg00013.html
 (defcustom rmail-message-filter nil
   "If non-nil, a filter function for new messages in RMAIL.
 Called with region narrowed to the message, including headers,
@@ -489,30 +490,41 @@ before obeying `rmail-ignored-headers'."
   :group 'rmail-headers
   :type '(choice (const nil) function))
 
+(make-obsolete-variable 'rmail-message-filter
+			"it is not used (try `rmail-show-message-hook')."
+			"23.1")
+
 (defcustom rmail-automatic-folder-directives nil
-  "List of directives specifying where to put a message.
+  "List of directives specifying how to automatically file messages.
+Whenever Rmail shows a message in the folder that `rmail-file-name'
+specifies, it calls `rmail-auto-file' to maybe file the message in
+another folder according to this list.  Messages that are already
+marked as `filed', or are in different folders, are left alone.
+
 Each element of the list is of the form:
 
   (FOLDERNAME FIELD REGEXP [ FIELD REGEXP ] ... )
 
-Where FOLDERNAME is the name of a folder to put the message.
-If any of the field regexp's are nil, then it is ignored.
+FOLDERNAME is the name of a folder in which to put the message.
+If FOLDERNAME is nil then Rmail deletes the message, and moves on to
+the next.  If FOLDERNAME is \"/dev/null\", Rmail deletes the message,
+but does not move to the next.
 
-If FOLDERNAME is \"/dev/null\", it is deleted.
-If FOLDERNAME is nil then it is deleted, and skipped.
+FIELD is the name of a header field in the message, such as
+\"subject\" or \"from\".  A FIELD of \"to\" includes all text
+from both the \"to\" and \"cc\" headers.
 
-FIELD is the plain text name of a field in the message, such as
-\"subject\" or \"from\".  A FIELD of \"to\" will automatically include
-all text from the \"cc\" field as well.
+REGEXP is a regular expression to match (case-sensitively) against
+the preceding specified FIELD.
 
-REGEXP is an expression to match in the preceding specified FIELD.
-FIELD/REGEXP pairs continue in the list.
+There may be any number of FIELD/REGEXP pairs.
+All pairs must match for a directive to apply to a message.
+For a given message, Rmail applies only the first matching directive.
 
-examples:
+Examples:
   (\"/dev/null\" \"from\" \"@spam.com\") ; delete all mail from spam.com
   (\"RMS\" \"from\" \"rms@\") ; save all mail from RMS.
-
-Note that this is only applied in the folder specifed by `rmail-file-name'."
+"
   :group 'rmail
   :version "21.1"
   :type '(repeat (sexp :tag "Directive")))
@@ -552,7 +564,9 @@ In a summary buffer, this holds the RMAIL buffer it is a summary for.")
 ;; Message counters and markers.  Deleted flags.
 
 (defvar rmail-current-message nil
-  "Integer specifying the message currently being displayed in this folder.")
+  "Integer specifying the message currently being displayed in this folder.
+Counts messages from 1 to `rmail-total-messages'.  A value of 0
+means there are no messages in the folder.")
 (put 'rmail-current-message 'permanent-local t)
 
 (defvar rmail-total-messages nil
@@ -638,8 +652,11 @@ be available."
   :version "23.3"
   :group 'rmail)
 
-(defvar rmail-enable-mime-composing t
-  "*If non-nil, RMAIL uses `rmail-insert-mime-forwarded-message-function' to forward.")
+(defcustom rmail-enable-mime-composing t
+  "If non-nil, use `rmail-insert-mime-forwarded-message-function' to forward."
+  :type 'boolean
+  :version "24.1"			; nil -> t
+  :group 'rmail)
 
 (defvar rmail-show-mime-function nil
   "Function of no argument called to show a decoded MIME message.
@@ -649,8 +666,8 @@ The package providing MIME support should set this.")
 ;;;###autoload
 (defvar rmail-insert-mime-forwarded-message-function nil
   "Function to insert a message in MIME format so it can be forwarded.
-This function is called if `rmail-enable-mime' or
-`rmail-enable-mime-composing' is non-nil.
+This function is called if `rmail-enable-mime' and
+`rmail-enable-mime-composing' are non-nil.
 It is called with one argument FORWARD-BUFFER, which is a
 buffer containing the message to forward.  The current buffer
 is the outgoing mail buffer.")
@@ -681,12 +698,17 @@ expression, LIMIT is the position specifying the end of header.")
 
 (defvar rmail-mime-feature 'rmailmm
   "Feature to require for MIME support in Rmail.
-When starting Rmail, if `rmail-enable-mime' is non-nil,
-this feature is required with `require'.
+When starting Rmail, if `rmail-enable-mime' is non-nil, this
+feature is loaded with `require'.  The default value is `rmailmm'.
 
-The default value is `rmailmm'")
+The library should set the variable `rmail-show-mime-function'
+to an appropriate value, and optionally also set
+`rmail-search-mime-message-function',
+`rmail-search-mime-header-function',
+`rmail-insert-mime-forwarded-message-function', and
+`rmail-insert-mime-resent-message-function'.")
 
-;; FIXME this is unused.
+;; FIXME this is unused since 23.1.
 (defvar rmail-decode-mime-charset t
   "*Non-nil means a message is decoded by MIME's charset specification.
 If this variable is nil, or the message has not MIME specification,
@@ -695,6 +717,9 @@ the message is decoded as normal way.
 If the variable `rmail-enable-mime' is non-nil, this variable is
 ignored, and all the decoding work is done by a feature specified by
 the variable `rmail-mime-feature'.")
+
+(make-obsolete-variable 'rmail-decode-mime-charset
+			"it does nothing." "23.1")
 
 (defvar rmail-mime-charset-pattern
   (concat "^content-type:[ \t]*text/plain;"
@@ -2923,8 +2948,11 @@ Uses the face specified by `rmail-highlight-face'."
 			(cons overlay rmail-overlay-list))))))))))
 
 (defun rmail-auto-file ()
-  "Automatically move a message into a sub-folder based on criteria.
-Called when a new message is displayed."
+  "Automatically move a message into another sfolder based on criteria.
+This moves messages according to `rmail-automatic-folder-directives'.
+It only does something in the folder that `rmail-file-name' specifies.
+The function `rmail-show-message' calls this whenever it shows a message.
+This leaves a message alone if it already has the `filed' attribute."
   (if (or (zerop rmail-total-messages)
 	  (rmail-message-attr-p rmail-current-message "...F")
 	  (not (string= (buffer-file-name)
@@ -2944,10 +2972,14 @@ Called when a new message is displayed."
 	      directive-loop (cdr (car d)))
 	(while (and (car directive-loop)
 		    (let ((f (cond
-			      ((string= (car directive-loop) "from") from)
-			      ((string= (car directive-loop) "to") to)
-			      ((string= (car directive-loop) "subject") subj)
+			      ((string= (downcase (car directive-loop)) "from")
+			       from)
+			      ((string= (downcase (car directive-loop)) "to")
+			       to)
+			      ((string= (downcase (car directive-loop))
+					"subject") subj)
 			      (t (mail-fetch-field (car directive-loop))))))
+		      ;; FIXME - shouldn't this ignore case?
 		      (and f (string-match (car (cdr directive-loop)) f))))
 	  (setq directive-loop (cdr (cdr directive-loop))))
 	;; If there are no directives left, then it was a complete match.
@@ -3128,10 +3160,9 @@ but probably is garbage."
   ;; This is adequate because its only caller, rmail-search,
   ;; unswaps the buffers.
   (goto-char (rmail-msgbeg msg))
-  (if rmail-enable-mime
-      (if rmail-search-mime-message-function
-          (funcall rmail-search-mime-message-function msg regexp)
-        (error "You must set `rmail-search-mime-message-function'"))
+  (if (and rmail-enable-mime
+	   rmail-search-mime-message-function)
+      (funcall rmail-search-mime-message-function msg regexp)
     (re-search-forward regexp (rmail-msgend msg) t)))
 
 (defvar rmail-search-last-regexp nil)
@@ -3769,6 +3800,8 @@ which is an element of rmail-msgref-vector."
 With prefix argument, \"resend\" the message instead of forwarding it;
 see the documentation of `rmail-resend'."
   (interactive "P")
+  (if (zerop rmail-current-message)
+      (error "No message to forward"))
   (if resend
       (call-interactively 'rmail-resend)
     (let ((forward-buffer rmail-buffer)
@@ -3798,7 +3831,8 @@ see the documentation of `rmail-resend'."
 	    ;; Insert after header separator--before signature if any.
 	    (rfc822-goto-eoh)
 	    (forward-line 1)
-	    (if (and rmail-enable-mime rmail-enable-mime-composing)
+	    (if (and rmail-enable-mime rmail-enable-mime-composing
+		     rmail-insert-mime-forwarded-message-function)
 		(prog1
 		    (funcall rmail-insert-mime-forwarded-message-function
 			     forward-buffer)
@@ -3854,10 +3888,9 @@ typically for purposes of moderating a list."
     (unwind-protect
 	(with-current-buffer tembuf
 	  ;;>> Copy message into temp buffer
-	  (if rmail-enable-mime
-              (if rmail-insert-mime-resent-message-function
+	  (if (and rmail-enable-mime
+		   rmail-insert-mime-resent-message-function)
                   (funcall rmail-insert-mime-resent-message-function mailbuf)
-                (error "You must set `rmail-insert-mime-resent-message-function'"))
 	    (insert-buffer-substring mailbuf))
 	  (goto-char (point-min))
 	  ;; Delete any Sender field, since that's not specifiable.
@@ -4451,7 +4484,7 @@ Edit the contents of this message.
 
 ;;;### (autoloads (rmail-next-labeled-message rmail-previous-labeled-message
 ;;;;;;  rmail-read-label rmail-kill-label rmail-add-label) "rmailkwd"
-;;;;;;  "rmailkwd.el" "08c288c88cfe7be50830122c064e3884")
+;;;;;;  "rmailkwd.el" "ec13237a2b0a9e9c1893e38d36b11134")
 ;;; Generated autoloads from rmailkwd.el
 
 (autoload 'rmail-add-label "rmailkwd" "\
@@ -4494,7 +4527,7 @@ With prefix argument N moves forward N messages with these labels.
 
 ;;;***
 
-;;;### (autoloads (rmail-mime) "rmailmm" "rmailmm.el" "6296f0170a37670c49a88a1b92d78187")
+;;;### (autoloads (rmail-mime) "rmailmm" "rmailmm.el" "2cb1f29b88b0c724fdba389fd7b98b00")
 ;;; Generated autoloads from rmailmm.el
 
 (autoload 'rmail-mime "rmailmm" "\
@@ -4596,7 +4629,7 @@ If prefix argument REVERSE is non-nil, sorts in reverse order.
 
 ;;;### (autoloads (rmail-summary-by-senders rmail-summary-by-topic
 ;;;;;;  rmail-summary-by-regexp rmail-summary-by-recipients rmail-summary-by-labels
-;;;;;;  rmail-summary) "rmailsum" "rmailsum.el" "35e07b0a5ea8e41971f31a8780eba6bb")
+;;;;;;  rmail-summary) "rmailsum" "rmailsum.el" "d5971848a5fb43dc0092008376298a80")
 ;;; Generated autoloads from rmailsum.el
 
 (autoload 'rmail-summary "rmailsum" "\

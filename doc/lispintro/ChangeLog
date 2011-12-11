@@ -1,3 +1,7 @@
+2011-11-24  Juanma Barranquero  <lekktu@gmail.com>
+
+	* makefile.w32-in: Update dependencies.
+
 2011-11-16  Juanma Barranquero  <lekktu@gmail.com>
 
 	* emacs-lisp-intro.texi (etags): Fix typo.

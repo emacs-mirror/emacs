@@ -410,7 +410,7 @@ with L, LRE, or LRO Unicode bidi character type.")
 		  ("ྐ-ྐྵྺྻྼ"       "w"     ?0) ;
 		  ("ིེཻོཽྀ"       "w"	?2) ; upper vowel
 		  ("ཾྂྃ྆྇ྈྉྊྋ" "w"	?2) ; upper modifier
-		  ("྄ཱུ༙༵༷"       "w"	?3) ; lowel vowel/modifier
+		  ("྄ཱུ༙༵༷"       "w"	?3) ; lower vowel/modifier
 		  ("཰"		"w" ?3)		    ; invisible vowel a
 		  ("༠-༩༪-༳"	        "w"	?6) ; digit
 		  ("་།-༒༔ཿ"        "."     ?|) ; line-break char
@@ -512,7 +512,7 @@ with L, LRE, or LRO Unicode bidi character type.")
   ;; relating Unicode categories to Emacs syntax codes.
 
   ;; NBSP isn't semantically interchangeable with other whitespace chars,
-  ;; so it's more like punctation.
+  ;; so it's more like punctuation.
   (set-case-syntax ?  "." tbl)
   (set-case-syntax ?¡ "." tbl)
   (set-case-syntax ?¦ "_" tbl)

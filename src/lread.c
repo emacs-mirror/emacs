@@ -1922,7 +1922,7 @@ which is the input stream for reading characters.
 This function does not move point.  */)
   (Lisp_Object start, Lisp_Object end, Lisp_Object printflag, Lisp_Object read_function)
 {
-  /* FIXME: Do the eval-sexp-add-defvars danse!  */
+  /* FIXME: Do the eval-sexp-add-defvars dance!  */
   ptrdiff_t count = SPECPDL_INDEX ();
   Lisp_Object tem, cbuf;
 
@@ -3990,7 +3990,7 @@ init_obarray (void)
   Qnil = intern_c_string ("nil");
 
   /* Fmake_symbol inits fields of new symbols with Qunbound and Qnil,
-     so those two need to be fixed manally.  */
+     so those two need to be fixed manually.  */
   SET_SYMBOL_VAL (XSYMBOL (Qunbound), Qunbound);
   XSYMBOL (Qunbound)->function = Qunbound;
   XSYMBOL (Qunbound)->plist = Qnil;
@@ -4186,13 +4186,16 @@ init_lread (void)
 		}
 
 	      /* Add site-lisp under the installation dir, if it exists.  */
-	      tem = Fexpand_file_name (build_string ("site-lisp"),
-				       Vinstallation_directory);
-	      tem1 = Ffile_exists_p (tem);
-	      if (!NILP (tem1))
+	      if (!no_site_lisp)
 		{
-		  if (NILP (Fmember (tem, Vload_path)))
-		    Vload_path = Fcons (tem, Vload_path);
+		  tem = Fexpand_file_name (build_string ("site-lisp"),
+					   Vinstallation_directory);
+		  tem1 = Ffile_exists_p (tem);
+		  if (!NILP (tem1))
+		    {
+		      if (NILP (Fmember (tem, Vload_path)))
+			Vload_path = Fcons (tem, Vload_path);
+		    }
 		}
 
 	      /* If Emacs was not built in the source directory,
@@ -4228,11 +4231,14 @@ init_lread (void)
 		      if (NILP (Fmember (tem, Vload_path)))
 			Vload_path = Fcons (tem, Vload_path);
 
-		      tem = Fexpand_file_name (build_string ("site-lisp"),
-					       Vsource_directory);
+		      if (!no_site_lisp)
+			{
+			  tem = Fexpand_file_name (build_string ("site-lisp"),
+						   Vsource_directory);
 
-		      if (NILP (Fmember (tem, Vload_path)))
-			Vload_path = Fcons (tem, Vload_path);
+			  if (NILP (Fmember (tem, Vload_path)))
+			    Vload_path = Fcons (tem, Vload_path);
+			}
 		    }
 		}
 	      if (!NILP (sitelisp) && !no_site_lisp)

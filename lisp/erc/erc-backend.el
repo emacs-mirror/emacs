@@ -1432,7 +1432,7 @@ add things to `%s' instead."
         (when (string= cmd "PRIVMSG")
           (erc-auto-query proc parsed))))))
 
-;; FIXME: need clean way of specifiying extra hooks in
+;; FIXME: need clean way of specifying extra hooks in
 ;; define-erc-response-handler.
 (add-hook 'erc-server-PRIVMSG-functions 'erc-auto-query)
 

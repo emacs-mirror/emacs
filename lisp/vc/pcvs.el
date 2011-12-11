@@ -322,7 +322,7 @@ The argument is added (or not) to the list of FLAGS and is constructed
 by appending the branch to ARG which defaults to \"-r\".
 Since the `cvs-secondary-branch-prefix' is only active if the primary
 prefix is active, it is important to read the secondary prefix before
-the primay since reading the primary can deactivate it."
+the primary since reading the primary can deactivate it."
   (let ((branch (and (cvs-prefix-get 'cvs-branch-prefix 'read-only)
 		     (cvs-prefix-get 'cvs-secondary-branch-prefix))))
     (if branch (cons (concat (or arg "-r") branch) flags) flags)))

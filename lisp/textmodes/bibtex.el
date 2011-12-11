@@ -1451,12 +1451,12 @@ Set this variable before loading BibTeX mode."
 (defvar bibtex-field-braces-opt nil
   "Optimized value of `bibtex-field-braces-alist'.
 Created by `bibtex-field-re-init'.
-It is a an alist with elements (FIELD . REGEXP).")
+It is an alist with elements (FIELD . REGEXP).")
 
 (defvar bibtex-field-strings-opt nil
   "Optimized value of `bibtex-field-strings-alist'.
 Created by `bibtex-field-re-init'.
-It is a an alist with elements (FIELD RULE1 RULE2 ...),
+It is an alist with elements (FIELD RULE1 RULE2 ...),
 where each RULE is (REGEXP . TO-STR).")
 
 (defvar bibtex-pop-previous-search-point nil
@@ -3595,7 +3595,7 @@ If optional arg CONTENT is non-nil extract content of text fields."
 (defun bibtex-autofill-entry ()
   "Try to fill fields of current BibTeX entry based on neighboring entries.
 The current entry must have a key.  Determine the neighboring entry
-\(previouse or next\) whose key is more similar to the key of the current
+\(previous or next\) whose key is more similar to the key of the current
 entry.  For all empty fields of the current entry insert the corresponding
 field contents of the neighboring entry.  Finally try to update the text
 based on the difference between the keys of the neighboring and the current

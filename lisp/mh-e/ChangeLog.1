@@ -428,7 +428,7 @@
 2004-11-08  Satyaki Das  <satyaki@theforce.stanford.edu>
 
 	* mh-acros.el (mh-funcall-if-exists): In XEmacs, presence of a
-	function at compile time doesn't guarantee it's existence at run
+	function at compile time doesn't guarantee its existence at run
 	time. So make the macro handle that situation better.
 
 2004-11-05  Satyaki Das  <satyaki@theforce.stanford.edu>
@@ -2553,7 +2553,7 @@
 	for users who have customized it to a long list now redundant with
 	`mh-invisible-header-fields-default'.
 	(mh-invisible-header-fields-default-override): New defcustom.
-	Users check off the fields they want displyed from what we
+	Users check off the fields they want displayed from what we
 	included in `mh-invisible-header-fields-default'.
 	(mh-invisible-headers): Function adapted to new variables.
 
@@ -7385,7 +7385,7 @@
 	(mh-visit-folder) alias, and v (mh-visit-folder).
 	(mh-index-folder-mode-help-messages): Changes for above.
 	(mh-index-folder-message-menu, mh-index-folder-folder-menu): New
-	menus. I decided to delete the unavailable items since greying out
+	menus. I decided to delete the unavailable items since graying out
 	implies that the user can do something to access them. In this
 	case, that's not the case. Well, that's not entirely true--the
 	user could write code for those functions ;-).
@@ -9150,7 +9150,7 @@
 	%number(msg).
 	(mh-scan-msg-format-string): Format to be used with the current
 	maximum width of message number for the folder in the
-	`mh-upate-scan-format' function.
+	`mh-update-scan-format' function.
 	(mh-update-scan-format): Use `mh-scan-msg-format-regexp' for greater
 	flexibility. The message number is no longer anchored to the
 	beginning of the `mh-scan-format-nmh' or `mh-scan-format-mh' format
@@ -10195,7 +10195,7 @@
 2002-04-02  Peter S Galbraith  <psg@debian.org>
 
 	* mh-e.el: 'defvar mh-folder-unseen-seq-name' called a function to
-	set it's value, and this happens also on byte-compilation (where
+	set its value, and this happens also on byte-compilation (where
 	it can fail if the user's MH environment is not setup correctly).
 	I now set the value of mh-folder-unseen-seq-name at runtime when I
 	first need it.  This should fix Debian bugs
@@ -10944,7 +10944,7 @@
 2001-11-21  Peter S Galbraith  <psg@debian.org>
 
 	* mh-comp.el (mh-reply-show-message-p): The setting of this
-	variable determines whether the MH show-buffer is diplayed with
+	variable determines whether the MH show-buffer is displayed with
 	the current message when using mh-reply without a prefix argument.
 	Set it to nil if you already include the message automatically in
 	your draft using "repl: -filter repl.filter" in your ~/.mh_profile

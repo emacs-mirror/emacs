@@ -1076,7 +1076,41 @@ unwind_create_frame (Lisp_Object frame)
   return Qnil;
 }
 
+/*
+ * Read geometry related parameters from preferences if not in PARMS.
+ * Returns the union of parms and any preferences read.
+ */
 
+static Lisp_Object
+get_geometry_from_preferences (struct ns_display_info *dpyinfo,
+                               Lisp_Object parms)
+{
+  struct {
+    const char *val;
+    const char *cls;
+    Lisp_Object tem;
+  } r[] = {
+    { "width",  "Width", Qwidth },
+    { "height", "Height", Qheight },
+    { "left", "Left", Qleft },
+    { "top", "Top", Qtop },
+  };
+
+  int i;
+  for (i = 0; i < sizeof (r)/sizeof (r[0]); ++i)
+    {
+      if (NILP (Fassq (r[i].tem, parms)))
+        {
+          Lisp_Object value
+            = x_get_arg (dpyinfo, parms, r[i].tem, r[i].val, r[i].cls,
+                         RES_TYPE_NUMBER);
+          if (! EQ (value, Qunbound))
+            parms = Fcons (Fcons (r[i].tem, value), parms);
+        }
+    }
+
+  return parms;
+}
 
 /* ==========================================================================
 
@@ -1285,6 +1319,7 @@ This function is an internal primitive--use `make-frame' instead.  */)
   x_default_parameter (f, parms, Qtitle, Qnil, "title", "Title",
                        RES_TYPE_STRING);
 
+  parms = get_geometry_from_preferences (dpyinfo, parms);
   window_prompting = x_figure_window_size (f, parms, 1);
 
   tem = x_get_arg (dpyinfo, parms, Qunsplittable, 0, 0, RES_TYPE_BOOLEAN);
@@ -1511,6 +1546,17 @@ Optional arg INIT, if non-nil, provides a default file name to use.  */)
   return ret ? fname : Qnil;
 }
 
+const char *
+ns_get_defaults_value (const char *key)
+{
+  NSObject *obj = [[NSUserDefaults standardUserDefaults]
+                    objectForKey: [NSString stringWithUTF8String: key]];
+
+  if (!obj) return NULL;
+
+  return [[NSString stringWithFormat: @"%@", obj] UTF8String];
+}
+
 
 DEFUN ("ns-get-resource", Fns_get_resource, Sns_get_resource, 2, 2, 0,
        doc: /* Return the value of the property NAME of OWNER from the defaults database.
@@ -1525,9 +1571,7 @@ If OWNER is nil, Emacs is assumed.  */)
   CHECK_STRING (name);
 /*fprintf (stderr, "ns-get-resource checking resource '%s'\n", SDATA (name)); */
 
-  value =[[[NSUserDefaults standardUserDefaults]
-            objectForKey: [NSString stringWithUTF8String: SDATA (name)]]
-           UTF8String];
+  value = ns_get_defaults_value (SDATA (name));
 
   if (value)
     return build_string (value);
@@ -2182,8 +2226,7 @@ x_get_string_resource (XrmDatabase rdb, char *name, char *class)
     /* --quick was passed, so this is a no-op.  */
     return NULL;
 
-  res = [[[NSUserDefaults standardUserDefaults] objectForKey:
-            [NSString stringWithUTF8String: toCheck]] UTF8String];
+  res = ns_get_defaults_value (toCheck);
   return !res ? NULL :
       (!strncasecmp (res, "YES", 3) ? "true" :
           (!strncasecmp (res, "NO", 2) ? "false" : res));

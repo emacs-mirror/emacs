@@ -452,7 +452,7 @@ continue processing recursively."
 	 ;; If val is nil, that's probably wrong.
 	 ;; Found a system header case where this was true.
 	 ((null val) "")
-	 ;; Debug wierd stuff.
+	 ;; Debug weird stuff.
 	 (t (debug)))
 	))
      ((stringp txt)
@@ -821,7 +821,7 @@ STR occurs in the current buffer between BEG and END."
 ;; a macro.
 
 (defun semantic-lex-spp-first-token-arg-list (token)
-  "If TOKEN is a semantic-list, turn it into a an SPP ARG LIST."
+  "If TOKEN is a semantic-list, turn it into an SPP ARG LIST."
   (when (and (consp token)
 	     (symbolp (car token))
 	     (eq 'semantic-list (car token)))
@@ -1067,7 +1067,7 @@ of type `spp-macro-undef' is to be created."
 ;;
 ;; These analyzers help a language define how include files
 ;; are identified.  These are ONLY for languages that perform
-;; an actual textual includesion, and not for imports.
+;; an actual textual inclusion, and not for imports.
 ;;
 ;; This section is supposed to allow the macros from the headers to be
 ;; added to the local dynamic macro table, but that hasn't been

@@ -380,7 +380,7 @@ Insert the results of execution into the buffer.  Source code
 execution and the collection and formatting of results can be
 controlled through a variety of header arguments.
 
-With prefix argument ARG, force re-execution even if a an
+With prefix argument ARG, force re-execution even if an
 existing result cached in the buffer would otherwise have been
 returned.
 
@@ -464,7 +464,7 @@ block."
 
 (defun org-babel-expand-body:generic (body params &optional var-lines)
   "Expand BODY with PARAMS.
-Expand a block of code with org-babel according to it's header
+Expand a block of code with org-babel according to its header
 arguments.  This generic implementation of body expansion is
 called for languages which have not defined their own specific
 org-babel-expand-body:lang function."
@@ -2045,7 +2045,7 @@ appropriate."
     cell))
 
 (defun org-babel-number-p (string)
-  "If STRING represents a number return it's value."
+  "If STRING represents a number return its value."
   (if (and (string-match "^-?[0-9]*\\.?[0-9]*$" string)
            (= (length (substring string (match-beginning 0)
 				 (match-end 0)))

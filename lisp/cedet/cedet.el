@@ -75,7 +75,7 @@
 This is used by `semantic-mode' and `global-ede-mode'.")
 
 (defun cedet-version ()
-  "Display all active versions of CEDET and Dependent packages.
+  "Display all active versions of CEDET and dependent packages.
 
 The PACKAGE column is the name of a given package from CEDET.
 
@@ -85,7 +85,7 @@ See `cedet-packages' for details.
 FILE VERSION is the version number found in the source file
 for the specified PACKAGE.
 
-LOADED VERSION is the version of PACKAGE current loaded in Emacs
+LOADED VERSION is the version of PACKAGE currently loaded in Emacs
 memory and (presumably) running in this Emacs instance.  Value is X
 if the package has not been loaded."
   (interactive)

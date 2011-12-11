@@ -2558,7 +2558,7 @@ REQUEST is the invoking directive without the leading dot."
      ;; ((looking-at "[te]") (setq c nil))   ; reject t(roff) and e(ven page)
      ((looking-at "[ntoe]")
       (setq c (memq (following-char) woman-if-conditions-true)))
-     ;; Unrecognised letter so reject:
+     ;; Unrecognized letter so reject:
      ((looking-at "[A-Za-z]") (setq c nil)
       (WoMan-warn "%s %s -- unrecognized condition name rejected!"
 		  request (match-string 0)))
@@ -3697,7 +3697,7 @@ expression in parentheses.  Leaves point after the value."
                               (setq woman-request (match-string 1)))))
             ;; Delete request or macro name:
             (woman-delete-match 0))
-           ;; Unrecognised request:
+           ;; Unrecognized request:
            ((prog1 nil
               ;; (WoMan-warn ".%s request ignored!" woman-request)
               (WoMan-warn-ignored woman-request "ignored!")

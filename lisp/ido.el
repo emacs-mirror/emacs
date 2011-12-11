@@ -770,7 +770,7 @@ can be completed using TAB,
 (defcustom ido-use-virtual-buffers nil
   "If non-nil, refer to past buffers as well as existing ones.
 Essentially it works as follows: Say you are visiting a file and
-the buffer gets cleaned up by mignight.el.  Later, you want to
+the buffer gets cleaned up by midnight.el.  Later, you want to
 switch to that buffer, but find it's no longer open.  With
 virtual buffers enabled, the buffer name stays in the buffer
 list (using the `ido-virtual' face, and always at the end), and if
@@ -1692,7 +1692,7 @@ This function also adds a hook to the minibuffer."
 (defun ido-nonreadable-directory-p (dir)
   ;; Return t if dir is a directory, but not readable
   ;; Do not check for non-readable directories via tramp, as this causes a premature
-  ;; connect on incomplete tramp paths (after entring just method:).
+  ;; connect on incomplete tramp paths (after entering just method:).
   (let ((ido-enable-tramp-completion nil))
     (and (ido-final-slash dir)
 	 (not (ido-is-unc-host dir))
@@ -1702,7 +1702,7 @@ This function also adds a hook to the minibuffer."
 (defun ido-directory-too-big-p (dir)
   ;; Return t if dir is a directory, but too big to show
   ;; Do not check for non-readable directories via tramp, as this causes a premature
-  ;; connect on incomplete tramp paths (after entring just method:).
+  ;; connect on incomplete tramp paths (after entering just method:).
   (let ((ido-enable-tramp-completion nil))
     (and (numberp ido-max-directory-size)
 	 (ido-final-slash dir)

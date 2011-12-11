@@ -232,12 +232,15 @@ $(lisp)/subdirs.el:
 update-subdirs: update-subdirs-$(SHELLTYPE)
 
 update-subdirs-CMD: doit
-	echo ;; -*- no-byte-compile: t -*-> $(lisp)/subdirs.el
-	echo ;; In load-path, after this directory should come>> $(lisp)/subdirs.el
+	echo ;; In load-path, after this directory should come> $(lisp)/subdirs.el
 	echo ;; certain of its subdirectories.  Here we specify them.>> $(lisp)/subdirs.el
 	echo (normal-top-level-add-to-load-path $(SQUOTE)(>> $(lisp)/subdirs.el
 	@for %%d in ($(WINS_SUBDIR) cedet) do echo "%%d">> $(lisp)/subdirs.el
 	echo ))>> $(lisp)/subdirs.el
+	echo ;; Local Variables:>> $(lisp)/subdirs.el
+	echo ;; version-control: never>> $(lisp)/subdirs.el
+	echo ;; no-byte-compile: t>> $(lisp)/subdirs.el
+	echo ;; End:>> $(lisp)/subdirs.el
 
 update-subdirs-SH: doit
 	$(srcdir)/update-subdirs $(lisp); \

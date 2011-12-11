@@ -109,7 +109,7 @@
 ;; simple algorithm that understand only basic regular expressions.
 ;; Parts of the code were broken up and included in vhdl-mode.el
 ;; around this time.  After several comments from users, and a need to
-;; find a more robust, performant algorithm, 2.0 was born in late
+;; find a more robust, higher performing algorithm, 2.0 was born in late
 ;; 1998.  Many different approaches were taken (mostly due to the
 ;; complexity of TeX tables), but finally a scheme was discovered
 ;; which worked fairly well for most common usage cases.  Development
@@ -1246,6 +1246,13 @@ have been aligned.  No changes will be made to the buffer."
 					 (car props) (cdr props)))))))))))
 	(setq areas (cdr areas))))))
 
+(defmacro align--set-marker (marker-var pos &optional type)
+  "If MARKER-VAR is a marker, move it to position POS.
+Otherwise, create a new marker at position POS, with type TYPE."
+  `(if (markerp ,marker-var)
+       (move-marker ,marker-var ,pos)
+     (setq ,marker-var (copy-marker ,pos ,type))))
+
 (defun align-region (beg end separate rules exclude-rules
 			 &optional func)
   "Align a region based on a given set of alignment rules.
@@ -1370,8 +1377,8 @@ aligner would have dealt with are."
 		  (if (not here)
 		      (goto-char end))
 		  (forward-line)
-		  (setq end (point)
-			end-mark (copy-marker end t))
+		  (setq end (point))
+                  (align--set-marker end-mark end t)
 		  (goto-char beg)))
 
 	      ;; If we have a region to align, and `func' is set and
@@ -1467,10 +1474,9 @@ aligner would have dealt with are."
 			;; test whether we have found a match on the same
 			;; line as a previous match
 			(if (> (point) eol)
-			    (setq same nil
-				  eol (save-excursion
-					(end-of-line)
-					(point-marker))))
+			    (progn
+                              (setq same nil)
+                              (align--set-marker eol (line-end-position))))
 
 			;; lookup the `repeat' attribute the first time
 			(or repeat-c
@@ -1504,10 +1510,9 @@ aligner would have dealt with are."
 			      (progn
 				(align-regions regions align-props
 					       rule func)
-				(setq last-point (copy-marker b t)
-				      regions nil
-				      align-props nil))
-			    (setq last-point (copy-marker b t)))
+				(setq regions nil)
+                                (setq align-props nil)))
+                          (align--set-marker last-point b t)
 
 			  ;; restore the match data
 			  (set-match-data save-match-data)

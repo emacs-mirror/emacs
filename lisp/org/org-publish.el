@@ -278,12 +278,12 @@ in the sitemap."
   :type 'string)
 
 (defcustom org-publish-sitemap-file-entry-format "%t"
-  "How a sitemap file entry is formated.
+  "How a sitemap file entry is formatted.
 You could use brackets to delimit on what part the link will be.
 
 %t is the title.
 %a is the author.
-%d is the date formated using `org-publish-sitemap-date-format'."
+%d is the date formatted using `org-publish-sitemap-date-format'."
   :group 'org-publish
   :type 'string)
 
@@ -715,7 +715,7 @@ If :auto-sitemap is set, publish the sitemap too.
 If :makeindex is set, also produce a file theindex.org."
   (mapc
    (lambda (project)
-     ;; Each project uses it's own cache file:
+     ;; Each project uses its own cache file:
      (org-publish-initialize-cache (car project))
      (let*
 	 ((project-plist (cdr project))

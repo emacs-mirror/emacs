@@ -2051,7 +2051,7 @@ function does not require the declaration to contain a brace block."
 	(c-narrow-to-comment-innards range) ; This may move point back.
 	(let* ((here (point))
 	       last
-	       (here-filler	   ; matches WS and comment-prefices at point.
+	       (here-filler	   ; matches WS and comment-prefixes at point.
 		(concat "\\=\\(^[ \t]*\\(" c-current-comment-prefix "\\)"
 			"\\|[ \t\n\r\f]\\)*"))
 	       (prefix-at-bol-here ; matches WS and prefix at BOL, just before point
@@ -2071,7 +2071,7 @@ function does not require the declaration to contain a brace block."
 
 	  ;; Now seek successively earlier sentence ends between PAR-BEG and
 	  ;; HERE, until the "start of sentence" following it is earlier than
-	  ;; HERE, or we hit PAR-BEG.  Beware of comment prefices!
+	  ;; HERE, or we hit PAR-BEG.  Beware of comment prefixes!
 	  (while (and (re-search-backward (c-sentence-end) par-beg 'limit)
 		      (setq last (point))
 		      (goto-char (match-end 0))	; tentative beginning of sentence
@@ -2178,7 +2178,7 @@ function does not require the declaration to contain a brace block."
 	   (end (1- (cdr range)))
 	   (here-filler		   ; matches WS and escaped newlines at point.
 	    "\\=\\([ \t\n\r\f]\\|\\\\[\n\r]\\)*")
-	   ;; Enhance paragraph-start and paragraph-separate also to recognise
+	   ;; Enhance paragraph-start and paragraph-separate also to recognize
 	   ;; blank lines terminated by escaped EOLs.  IT MAY WELL BE that
 	   ;; these values should be customizable user options, or something.
 	   (paragraph-start c-string-par-start)
@@ -2234,7 +2234,7 @@ function does not require the declaration to contain a brace block."
   (save-match-data
     (let* ((here (point))
 	   last
-	   ;; Enhance paragraph-start and paragraph-separate to recognise
+	   ;; Enhance paragraph-start and paragraph-separate to recognize
 	   ;; blank lines terminated by escaped EOLs.
 	   (paragraph-start c-string-par-start)
 	   (paragraph-separate c-string-par-separate)
@@ -2316,7 +2316,7 @@ function does not require the declaration to contain a brace block."
 
 (defun c-after-statement-terminator-p () ; Should we pass in LIM here?
   ;; Does point immediately follow a statement "terminator"?  A virtual
-  ;; semicolon is regarded here as such.  So is a an opening brace ;-)
+  ;; semicolon is regarded here as such.  So is an opening brace ;-)
   ;;
   ;; This function might do hidden buffer changes.
   (or (save-excursion

@@ -1279,7 +1279,7 @@ in XEmacs.
 ** The module system has again changed a lot.  You can now customize
   the variable `erc-modules' and define once and for all which
   extension modules you want to use.  This unfortunately may require
-  you to change your current erc initialisation code a bit, if you
+  you to change your current erc initialization code a bit, if you
   have some existing customizations.  On the other hand, this change
   makes the configuration of extension modules a lot easier for new
   users.  In theory, you should be able to configure all aspects of

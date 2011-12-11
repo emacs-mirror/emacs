@@ -571,7 +571,7 @@ with separator \"\n\"."
     (and filtered-items (mapconcat 'identity filtered-items "\n"))))
 
 (defun org-taskjuggler-get-attributes (item attributes)
-  "Return all attribute as a single formated string. ITEM is an
+  "Return all attributes as a single formatted string. ITEM is an
 alist representing either a resource or a task. ATTRIBUTES is a
 list of symbols. Only entries from ITEM are considered that are
 listed in ATTRIBUTES."

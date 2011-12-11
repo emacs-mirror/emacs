@@ -2723,7 +2723,7 @@
 	(CURSOR_FACE_ID, MOUSE_FACE_ID): New.
 
 	* xfaces.c (Qscroll_bar, Qcursor, Qborder, Qmouse): New.
-	(syms_of_xfaces): Intialize new symbols.
+	(syms_of_xfaces): Initialize new symbols.
 
 	* fns.c (Fmakehash): Take one argument, test, make all the
 	rest keyword arguments.
@@ -5409,7 +5409,7 @@
 
 1998-11-10  Gerd Moellmann  <gerd@gnu.org>
 
-	* xrdb.c (x_load_resources): Add grey background colors as
+	* xrdb.c (x_load_resources): Add gray background colors as
 	defaults for menus, scroll bars, and dialogs.
 
 	* insdel.c (prepare_to_modify_buffer): Move setting
@@ -8018,7 +8018,7 @@
 
 	* xterm.c (x_scroll_run): Renamed from do_line_dance.
 
-	* xdisp.c (redisplay_window): For window-based redisplay, alway
+	* xdisp.c (redisplay_window): For window-based redisplay, always
 	try try_window_id.
 
 	* xterm.c (struct glyph_string): New member two_byte_p that is
@@ -9227,7 +9227,7 @@
 	* xdisp.c (store_frame_title_char): New function to store a
 	single character for the frame title with re-allocation of
 	frame_title_buf.
-	(init_xdisp): Intialize frame_title_.* variables to null.
+	(init_xdisp): Initialize frame_title_.* variables to null.
 
 	* dispnew.c (quit_error_check): Removed.
 
@@ -12321,7 +12321,7 @@
 	(enumfont_t): Remove unused head pointer.
 	(enum_font_cb2): Dereference elfLogFont.
 	(w32_list_bdf_fonts): New function.
-	(w32_list_fonts): Use one_w32_dispay_info instead of insisting on
+	(w32_list_fonts): Use one_w32_display_info instead of insisting on
 	valid frame.  Remove MessageBox.  Support BDF fonts.
 	(Fw32_find_bdf_fonts): New function.
 	(syms_of_w32fns): Add Vw32_bdf_filename_alist and
@@ -12583,7 +12583,7 @@
 	quit_char is typed, in order to break out of potential deadlocks.
 	(cancel_all_deferred_msgs): New function.
 	(complete_deferred_msg): Don't abort if msg not found; may have
-	been cancelled.
+	been canceled.
 	(Fw32_reconstruct_hot_key): Use pre-interned symbols.
 	(Fw32_send_sys_command): Wait for system command to
 	complete before returning.
@@ -12766,7 +12766,7 @@
 
 1998-12-08  Geoff Voelker  <voelker@cs.washington.edu>
 
-	* makefile.nt: Do string comparision of _NMAKE_VER.
+	* makefile.nt: Do string comparison of _NMAKE_VER.
 
 1998-12-06  Eli Zaretskii  <eliz@mescaline.gnu.org>
 
@@ -13266,7 +13266,7 @@
 
 	* charset.c (Fchar_bytes): Doc fix.
 	(char_bytes): Fix returned value to match returned type.
-	(syms_of_charset): Fix type clash in initialisation of
+	(syms_of_charset): Fix type clash in initialization of
 	Vauto_fill_chars.
 
 1998-10-29  Geoff Voelker  <voelker@cs.washington.edu>
@@ -13429,7 +13429,7 @@
 	`x-list-fonts.c'.
 	(w32_get_font_info, w32_query_font, w32_find_ccl_program): New
 	functions for fontset support - adapted from x_ equivalents.
-	(syms_of_w32fns): New lisp variables initialised.  Function
+	(syms_of_w32fns): New lisp variables initialized.  Function
 	pointers for fontset.c set up.
 
 	* w32term.c: Include fontset.h.  Define codepage macros.
@@ -13701,7 +13701,7 @@
 	* ccl.c (CCL_WRITE_CHAR): Don't use bcopy.
 	(ccl_driver): If BUFFER-MAGNIFICATION of the CCL program is 0,
 	cause error if the program is going to output some bytes.  When
-	outputing a string to notify an error, check the case that
+	outputting a string to notify an error, check the case that
 	DST_BYTES is zero.
 
 	* coding.h (CODING_FINISH_INTERRUPT): New macro.

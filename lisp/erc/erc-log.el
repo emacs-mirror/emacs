@@ -50,7 +50,7 @@
 ;;       erc-log-write-after-send t
 ;;       erc-log-write-after-insert t)
 ;;
-;; If you only want to save logs for some buffers, customise the
+;; If you only want to save logs for some buffers, customize the
 ;; variable `erc-enable-logging'.
 
 ;; How it works:
@@ -314,7 +314,7 @@ Returns nil if `erc-server-buffer-p' returns t."
   "Return non-nil if logging is enabled for BUFFER.
 If BUFFER is nil, the value of `current-buffer' is used.
 Logging is enabled if `erc-log-channels-directory' is non-nil, the directory
-is writeable (it will be created as necessary) and
+is writable (it will be created as necessary) and
 `erc-enable-logging' returns a non-nil value."
   (and erc-log-channels-directory
        (or (functionp erc-log-channels-directory)
@@ -450,4 +450,3 @@ You can save every individual message by putting this function on
 ;; indent-tabs-mode: t
 ;; tab-width: 8
 ;; End:
-

@@ -166,7 +166,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
    These structures are hidden from the other codes than this file.
    The other codes handle fontsets only by their ID numbers.  They
    usually use the variable name `fontset' for IDs.  But, in this
-   file, we always use varialbe name `id' for IDs, and name `fontset'
+   file, we always use variable name `id' for IDs, and name `fontset'
    for an actual fontset object, i.e., char-table.
 
 */
@@ -633,7 +633,7 @@ fontset_find_font (Lisp_Object fontset, int c, struct face *face, int id, int fa
 	    {
 	      /* Something strange happened, perhaps because of a
 		 Font-backend problem.  Too avoid crashing, record
-		 that this spec is unsable.  It may be better to find
+		 that this spec is unusable.  It may be better to find
 		 another font of the same spec, but currently we don't
 		 have such an API.  */
 	      RFONT_DEF_SET_FACE (rfont_def, -1);
@@ -907,7 +907,7 @@ face_suitable_for_char_p (struct face *face, int c)
 
 
 /* Return ID of face suitable for displaying character C on frame F.
-   FACE must be reazlied for ASCII characters in advance.  Called from
+   FACE must be realized for ASCII characters in advance.  Called from
    the macro FACE_FOR_CHAR.  */
 
 int
@@ -1348,7 +1348,7 @@ accumulate_script_ranges (Lisp_Object arg, Lisp_Object range, Lisp_Object val)
 
    In FONTSET, set FONT_DEF in a fashion specified by ADD for
    characters in RANGE and ranges in SCRIPT_RANGE_LIST before RANGE.
-   The consumed ranges are poped up from SCRIPT_RANGE_LIST, and the
+   The consumed ranges are popped up from SCRIPT_RANGE_LIST, and the
    new SCRIPT_RANGE_LIST is stored in ARG.
 
    If ASCII is nil, don't set FONT_DEF for ASCII characters.  It is

@@ -128,7 +128,7 @@
 ;; REGEXPS FOR "HARMLESS" STRINGS/LINES.
 (defconst c-awk-harmless-char-re "[^_#/\"\\\\\n\r]")
 ;;   Matches any character but a _, #, /, ", \, or newline.  N.B. _" starts a
-;; localisation string in gawk 3.1
+;; localization string in gawk 3.1
 (defconst c-awk-harmless-_ "_\\([^\"]\\|\\'\\)")
 ;;   Matches an underline NOT followed by ".
 (defconst c-awk-harmless-string*-re
@@ -160,7 +160,7 @@
 (defconst c-awk-string-without-end-here-re
   (concat "\\=_?\"" c-awk-string-innards-re))
 ;;   Matches an AWK string at point up to, but not including, any terminator.
-;; A gawk 3.1+ string may look like _"localisable string".
+;; A gawk 3.1+ string may look like _"localizable string".
 (defconst c-awk-one-line-possibly-open-string-re
   (concat "\"\\(" c-awk-string-ch-re "\\|" c-awk-non-eol-esc-pair-re "\\)*"
 	  "\\(\"\\|\\\\?$\\|\\'\\)"))
@@ -231,7 +231,7 @@
 ;; to foul things up.
 (defconst c-awk-non-arith-op-bra-re
   "[[\(&=:!><,?;'~|]")
-;;   Matches an openeing BRAcket ,round or square, or any operator character
+;;   Matches an opening BRAcket, round or square, or any operator character
 ;; apart from +,-,/,*,%.  For the purpose at hand (detecting a / which is a
 ;; regexp bracket) these arith ops are unnecessary and a pain, because of "++"
 ;; and "--".

@@ -23,7 +23,9 @@
 
 ;;; Commentary:
 
-;; Known bug: update commands fail to ignore @ignore.
+;; Known bug: update commands fail to ignore @ignore, and fail to DTRT
+;; with the @if... directives (so expect trouble when the manual uses
+;; different @node lines or @menu items in @iftex and in @ifnottex).
 
 ;; Summary: how to use the updating commands
 
@@ -36,6 +38,16 @@
 ;;
 ;; With a prefix argument, the `texinfo-update-node' and
 ;; `texinfo-make-menu' functions do their jobs in the region.
+;;
+;; Important note: We do NOT recommend use of these commands to update
+;; the `Next', `Previous' and `Up' pointers on @node lines.  Most
+;; manuals, including those whose Texinfo files adhere to the strucure
+;; described below, don't need these pointers, because makeinfo will
+;; generate them automatically (see the node "makeinfo Pointer
+;; Creation" in the Texinfo manual).  By contrast, due to known bugs
+;; described above, texinfo-update-node etc. could produce incorrect
+;; pointers, and thus make a perfectly valid Texinfo file into an
+;; invalid one.  You _have_ been warned!
 ;;
 ;; In brief, the functions for creating or updating nodes and menus, are:
 ;;
@@ -89,6 +101,16 @@
 ;; It does not matter whether the  `@node' line has pre-existing
 ;; `Next', `Previous', or `Up' pointers in it.  They are removed.
 
+;; Warning: Since the pre-existing pointers are replaced with the ones
+;; computed by `texinfo-update-node', and since this function has
+;; known bugs with the more advanced Texinfo features (see above), it
+;; could produce an invalid Texinfo file.  You are well advised not to
+;; use this function, except if you know what you are doing and
+;; exercise extreme caution.  Keep in mind that most manuals do not
+;; need the `Next', `Previous', and `Up' pointers to be present on the
+;; @node lines; makeinfo will automatically generate them when it
+;; produces the Info or HTML versions of the manual.
+
 ;; The `texinfo-every-node-update' function runs `texinfo-update-node'
 ;; on the whole buffer.
 
@@ -119,12 +141,15 @@
 ;; on the whole buffer.
 
 ;; The `texinfo-master-menu' function creates an extended menu located
-;; after the top node.  (The file must have a top node.)  The function
-;; first updates all the regular menus in the buffer (incorporating the
-;; descriptions from pre-existing menus), and then constructs a master
-;; menu that includes every entry from every other menu.  (However, the
-;; function cannot update an already existing master menu; if one
-;; exists, it must be removed before calling the function.)
+;; after the top node.  (The file must have a top node.)  This
+;; function works only on Texinfo files all of whose menus are
+;; present in a single file; use `texinfo-multiple-files-update' for
+;; multi-file manuals.  The function constructs a master menu that
+;; includes every entry from every other menu.  Use this command to
+;; create or update the @detailmenu menu after you've created or
+;; updated all the menus in the file, including the menu in the Top
+;; node, using the `texinfo-make-menu' or the `texinfo-all-menus-update'
+;; command.
 
 ;; The `texinfo-indent-menu-description' function indents every
 ;; description in the menu following point, to the specified column.
@@ -142,7 +167,7 @@
 ;; as node names in pre-existing `@node' lines that lack names.
 ;;
 ;; Since node names should be more concise than section or chapter
-;; titles, node names so inserted will need to be edited manually.
+;; titles, you will usually want to manually edit node names so inserted.
 
 
 ;;; Code:
@@ -330,8 +355,13 @@ at the level specified by LEVEL.  Point is left at the end of menu."
   "Update every regular menu in a Texinfo file.
 Update pre-existing master menu, if there is one.
 
+Only single-file manuals are supported by this function.  For
+multi-file manuals, use `texinfo-multiple-files-update'.
+
 If called with a non-nil argument, this function first updates all the
-nodes in the buffer before updating the menus.
+nodes in the buffer before updating the menus.  Do NOT invoke this
+command with an argument if your Texinfo file uses @node lines without
+the `Next', `Previous', and `Up' pointers!
 
 Indents the first line of descriptions, and leaves trailing whitespace
 in a menu that lacks descriptions, so descriptions will format well.
@@ -843,20 +873,35 @@ second and subsequent lines of a multi-line description."
 
 (defun texinfo-master-menu (update-all-nodes-menus-p)
   "Make a master menu for a whole Texinfo file.
-Non-nil argument (prefix, if interactive) means first update all
-existing nodes and menus.  Remove pre-existing master menu, if there is one.
+Remove pre-existing master menu, if there is one.
 
-This function creates a master menu that follows the top node.  The
-master menu includes every entry from all the other menus.  It
-replaces any existing ordinary menu that follows the top node.
+This function supports only single-file manuals.  For multi-file
+manuals, use `texinfo-multiple-files-update'.
 
-If called with a non-nil argument, this function first updates all the
-menus in the buffer (incorporating descriptions from pre-existing
-menus) before it constructs the master menu.
+This function creates or updates the @detailmenu section of a
+master menu that follows the Top node.  It replaces any existing
+detailed menu that follows the top node.  The detailed menu
+includes every entry from all the other menus.  By default, the
+existing menus, including the menu in the Top node, are not
+updated according to the buffer contents, so all the menus should
+be updated first using `texinfo-make-menu' or
+`texinfo-all-menus-update', which see.  Alternatively, invoke
+this function with a prefix argument, see below.
 
-The function removes the detailed part of an already existing master
-menu.  This action depends on the pre-existing master menu using the
-standard `texinfo-master-menu-header'.
+Non-nil, non-numeric argument (C-u prefix, if interactive) means
+first update all existing menus in the buffer (incorporating
+descriptions from pre-existing menus) before it constructs the
+master menu.  If the argument is numeric (e.g., \"C-u 2\"),
+update all existing nodes as well, by calling
+\`texinfo-update-node' on the entire file.  Warning: do NOT
+invoke with a numeric argument if your Texinfo file uses @node
+lines without the `Next', `Previous', `Up' pointers, as the
+result could be an invalid Texinfo file!
+
+The function removes and recreates the detailed part of an already
+existing master menu.  This action assumes that the pre-existing
+master menu uses the standard `texinfo-master-menu-header' for the
+detailed menu.
 
 The master menu has the following format, which is adapted from the
 recommendation in the Texinfo Manual:
@@ -909,10 +954,11 @@ section titles are often too short to explain a node well."
 
     (if update-all-nodes-menus-p
 	(progn
-	  (message "Making a master menu in %s ...first updating all nodes... "
-		   (buffer-name))
-	  (texinfo-update-node (point-min) (point-max))
-
+	  (when (numberp update-all-nodes-menus-p)
+	    (message
+	     "Making a master menu in %s ...first updating all nodes... "
+	     (buffer-name))
+	    (texinfo-update-node (point-min) (point-max)))
 	  (message "Updating all menus in %s ... " (buffer-name))
 	  (texinfo-make-menu (point-min) (point-max))))
 
@@ -978,7 +1024,7 @@ However, there does not need to be a title field."
   (let ((first-chapter
 	 (save-excursion (re-search-forward "^@node\\|^@include") (point))))
     (unless (re-search-forward "^@menu" first-chapter t)
-      (error "Buffer lacks ordinary `Top' menu in which to insert master")))
+      (error "Buffer lacks a menu in its first node; create it, then run me again")))
   (beginning-of-line)
   (delete-region      ; buffer must have ordinary top menu
    (point)
@@ -1207,6 +1253,11 @@ end of that region; it limits the search."
   "Without any prefix argument, update the node in which point is located.
 Interactively, a prefix argument means to operate on the region.
 
+Warning: do NOT use this function if your Texinfo file uses @node
+lines without the `Next', `Previous', `Up' pointers, because the
+result could be an invalid Texinfo file due to known deficiencies
+in this command: it does not support @ignore and @if* directives.
+
 The functions for creating or updating nodes and menus, and their
 keybindings, are:
 
@@ -1246,7 +1297,12 @@ which menu descriptions are indented. Its default value is 32."
 	  (message "Done...nodes updated in region.  You may save the buffer."))))))
 
 (defun texinfo-every-node-update ()
-  "Update every node in a Texinfo file."
+  "Update every node in a Texinfo file.
+
+Warning: do NOT use this function if your Texinfo file uses @node
+lines without the `Next', `Previous', `Up' pointers, because the
+result could be an invalid Texinfo file due to known deficiencies
+in this command: it does not support @ignore and @if* directives."
   (interactive)
   (save-excursion
     (texinfo-update-node (point-min) (point-max))
@@ -1934,7 +1990,11 @@ With optional UPDATE-EVERYTHING argument (numeric prefix arg, if
 interactive), update all the menus and all the `Next', `Previous', and
 `Up' pointers of all the files included in OUTER-FILE before inserting
 a master menu in OUTER-FILE.  Also, update the `Top' level node
-pointers of OUTER-FILE.
+pointers of OUTER-FILE.  Do NOT invoke this command with a numeric prefix
+arg, if your files use @node lines without the `Next', `Previous', `Up'
+pointers, because this could produce invalid Texinfo files due to known
+deficiencies in `texinfo-update-node': it does not support the @ignore
+and @if... directives.
 
 Notes:
 

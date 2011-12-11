@@ -1143,7 +1143,7 @@ preceding cell has spilled over."
 	(setq x (concat text (if (< maxcol ses--numcols) " " "\n")))
 	;; We use set-text-properties to prevent a wacky print function from
 	;; inserting rogue properties, and to ensure that the keymap property is
-	;; inherited (is it a bug that only unpropertied strings actually
+	;; inherited (is it a bug that only unpropertized strings actually
 	;; inherit from surrounding text?)
 	(set-text-properties 0 (length x) nil x)
 	(insert-and-inherit x)
@@ -1315,7 +1315,7 @@ Newlines in the data are escaped."
 	      (setq formula (cadr formula)))
 	  (if (eq (car-safe printer) 'ses-safe-printer)
 	      (setq printer (cadr printer)))
-	  ;; This is noticably faster than (format "%S %S %S %S %S")
+	  ;; This is noticeably faster than (format "%S %S %S %S %S")
 	  (setq text    (concat "(ses-cell "
 				(symbol-name sym)
 				" "
@@ -1371,7 +1371,7 @@ first reference is found."
     result-so-far)
 
 (defsubst ses-relocate-symbol (sym rowcol startrow startcol rowincr colincr)
-  "Relocate one symbol SYM, whichs corresponds to ROWCOL (a cons of ROW and
+  "Relocate one symbol SYM, which corresponds to ROWCOL (a cons of ROW and
 COL).  Cells starting at (STARTROW,STARTCOL) are being shifted
 by (ROWINCR,COLINCR)."
   (let ((row (car rowcol))
@@ -2273,7 +2273,7 @@ cells."
 
 (defun ses-read-printer (prompt default)
   "Common code for `ses-read-cell-printer', `ses-read-column-printer', and `ses-read-default-printer'.
-PROMPT should end with \": \".  Result is t if operation was cancelled."
+PROMPT should end with \": \".  Result is t if operation was canceled."
   (barf-if-buffer-read-only)
   (if (eq default t)
       (setq default "")
@@ -2720,7 +2720,7 @@ When inserting cells, the formulas are usually relocated to keep the same
 relative references to neighboring cells.  This is best if the formulas
 generally refer to other cells within the yanked text.  You can use the C-u
 prefix to specify insertion without relocation, which is best when the
-formulas refer to cells outsite the yanked text.
+formulas refer to cells outside the yanked text.
 
 When inserting formulas, the text is treated as a string constant if it doesn't
 make sense as a sexp or would otherwise be considered a symbol.  Use 'sym to

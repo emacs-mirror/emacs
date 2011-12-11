@@ -112,7 +112,7 @@
 
 (defun hangul-character (cho jung jong)
   "Convert CHO, JUNG, JONG to the precomposed `Hangul Syllables' character.
-CHO, JUNG, JONG are relative indices in `Hangul Compatibility Jamo' of unicode.
+CHO, JUNG, JONG are relative indices in `Hangul Compatibility Jamo' of Unicode.
 Return a zero-length string if the conversion fails."
   (or
    (decode-char

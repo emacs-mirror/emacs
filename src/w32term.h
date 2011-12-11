@@ -209,7 +209,7 @@ extern int x_display_pixel_width (struct w32_display_info *);
    the information that is specific to W32 windows.  */
 
 /* Put some things in x_output for compatibility.
-   NTEMACS_TODO: Move all common things here to eliminate unneccesary
+   NTEMACS_TODO: Move all common things here to eliminate unnecessary
    diffs between X and w32 code.  */
 struct x_output
 {
@@ -229,7 +229,7 @@ enum
 {
   /* Values for focus_state, used as bit mask.
      EXPLICIT means we received a FocusIn for the frame and know it has
-     the focus.  IMPLICIT means we recevied an EnterNotify and the frame
+     the focus.  IMPLICIT means we received an EnterNotify and the frame
      may have the focus if no window manager is running.
      FocusOut and LeaveNotify clears EXPLICIT/IMPLICIT. */
   FOCUS_NONE     = 0,

@@ -366,7 +366,7 @@ See also `ps-mule-font-info-database-bdf'.")
 ;; character is printed by which FONT-SPEC.  It has one extra slot
 ;; whose value is an alist of the form:
 ;;	(CHARSET . FONT-SPEC)
-;; FONT-SPEC is a vecotr of the form:
+;; FONT-SPEC is a vector of the form:
 ;;	(ID FONT-SRC FONT-NAME ENCODING EXTRA)
 (defvar ps-mule-font-spec-tables nil)
 
@@ -932,7 +932,7 @@ the sequence."
     (list ps-mule-bitmap-prologue)))
 
 (defun ps-mule-generate-bitmap-font (font-spec size relative-compose
-					       baselie-offset bbx)
+					       baseline-offset bbx)
   (let* ((id (ps-mule-font-spec-id font-spec))
 	 (bytes (ps-mule-font-spec-bytes font-spec))
 	 output-list)
@@ -941,7 +941,7 @@ the sequence."
 	      (list (format "/E%02X [ 0 1 255 {pop /.notdef} for ] def\n" id)
 		    (format "%%%% %s\n" (ps-mule-font-spec-name font-spec))
 		    (format "/F%02X %f %S %d E%02X NBF\n" id size
-			    relative-compose baselie-offset id)))
+			    relative-compose baseline-offset id)))
       (setq output-list
 	    (list (list (format "/E%02X [ 0 1 255 { pop 0 } for ] def\n" id))
 		  (list (format "/V%02X [" id))
@@ -950,7 +950,7 @@ the sequence."
 		  (format "/F%02X E%02X V%02X NPF\n" id id id))))
     (aset ps-mule-bitmap-font-record id
 	  (vector (= bytes 1) output-list
-		  size relative-compose baselie-offset bbx))
+		  size relative-compose baseline-offset bbx))
     (if ps-mule-bitmap-dict-list
 	output-list
       (setq ps-mule-bitmap-dict-list (list "/BitmapDict <<\n" ">> def\n"))
@@ -1010,7 +1010,7 @@ the sequence."
 	  ps-mule-external-libraries))
 
 (defun ps-mule-encode-header-string (string fonttag)
-  "Generate PostScript code for ploting STRING by font FONTTAG.
+  "Generate PostScript code for plotting STRING by font FONTTAG.
 FONTTAG should be a string \"/h0\", \"/h1\", \"/L0\", or \"/H0\".
 Any other value is treated as \"/H0\"."
   (with-temp-buffer

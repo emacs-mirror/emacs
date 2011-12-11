@@ -103,7 +103,7 @@ If SOFT is non-nil, returns nil if the symbol doesn't already exist."
 
 (defvar gud-running nil
   "Non-nil if debugged program is running.
-Used to grey out relevant toolbar icons.")
+Used to gray out relevant toolbar icons.")
 
 (defvar gud-target-name "--unknown--"
   "The apparent name of the program being debugged in a gud buffer.")
@@ -1168,7 +1168,7 @@ containing the executable being debugged."
 ;; appears to indicate a breakpoint.  Then we prod the dbx sub-process
 ;; to output the information we want with a combination of the
 ;; `printf' and `file' commands as a pseudo marker which we can
-;; recognise next time through the marker-filter.  This would be like
+;; recognize next time through the marker-filter.  This would be like
 ;; the gdb marker but you can't get the file name without a newline...
 ;; Note that gud-remove won't work since Irix dbx expects a breakpoint
 ;; number rather than a line number etc.  Maybe this could be made to
@@ -1689,7 +1689,7 @@ and source-file directory for your debugger."
 ;;    Run jdb (like this): jdb
 ;;
 ;; type any jdb switches followed by the name of the class you'd like to debug.
-;; Supply a fully qualfied classname (these do not have the ".class" extension)
+;; Supply a fully qualified classname (these don't have the ".class" extension)
 ;; for the name of the class to debug (e.g. "COM.the-kind.ddavies.CoolClass").
 ;; See the known problems section below for restrictions when specifying jdb
 ;; command line switches (search forward for '-classpath').
@@ -1745,7 +1745,7 @@ and source-file directory for your debugger."
 ;; All the .java files in the directories in gud-jdb-directories are
 ;; syntactically analyzed each time gud jdb is invoked.  It would be
 ;; nice to keep as much information as possible between runs.  It would
-;; be really nice to analyze the files only as neccessary (when the
+;; be really nice to analyze the files only as necessary (when the
 ;; source needs to be displayed.)  I'm not sure to what extent the former
 ;; can be accomplished and I'm not sure the latter can be done at all
 ;; since I don't know of any general way to tell which .class files are
@@ -2094,7 +2094,7 @@ extension EXTN.  Normally EXTN is given as the regular expression
 
 	;; By this point the current directory is all screwed up.  Maybe we
 	;; could fix things and re-invoke gud-common-init, but for now I think
-	;; issueing the error is good enough.
+	;; issuing the error is good enough.
 	(if user-error
 	    (progn
 	      (kill-buffer (current-buffer))

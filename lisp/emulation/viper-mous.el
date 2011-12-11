@@ -66,7 +66,7 @@
   "*Function that determines what constitutes a word for clicking events.
 Takes two parameters: a COUNT, indicating how many words to return,
 and CLICK-COUNT, telling whether this is the first click, a double-click,
-or a tripple-click."
+or a triple-click."
   :type 'symbol
   :group 'viper-mouse)
 
@@ -95,7 +95,7 @@ considered related."
 
 ;; remembers prefix argument to pass along to commands invoked by second
 ;; click.
-;; This is needed because in Emacs (not XEmacs), assigning to preix-arg
+;; This is needed because in Emacs (not XEmacs), assigning to prefix-arg
 ;; causes Emacs to count the second click as if it was a single click
 (defvar viper-global-prefix-argument nil)
 

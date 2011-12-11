@@ -293,7 +293,7 @@ control).  See \"cc-mode.el\" for more info."
   ;; replaces `fill-paragraph' and does the adaption before calling
   ;; `fill-paragraph-function', and we have to mask comments etc
   ;; before that.  Also, `c-fill-paragraph' chains on to
-  ;; `fill-paragraph' and the value on `fill-parapgraph-function' to
+  ;; `fill-paragraph' and the value on `fill-paragraph-function' to
   ;; do the actual filling work.
   (substitute-key-definition 'fill-paragraph 'c-fill-paragraph
 			     c-mode-base-map global-map)
@@ -505,7 +505,7 @@ that requires a literal mode spec at compile time."
   ;; doesn't work with filladapt but it's better than nothing.
   (set (make-local-variable 'fill-paragraph-function) 'c-fill-paragraph)
 
-  ;; Initialise the cache of brace pairs, and opening braces/brackets/parens.
+  ;; Initialize the cache of brace pairs, and opening braces/brackets/parens.
   (c-state-cache-init)
 
   (when (or c-recognize-<>-arglists
@@ -587,7 +587,7 @@ that requires a literal mode spec at compile time."
   (add-hook 'after-change-functions 'c-after-change nil t)
   (set (make-local-variable 'font-lock-extend-after-change-region-function)
  	'c-extend-after-change-region))	; Currently (2009-05) used by all
-			; lanaguages with #define (C, C++,; ObjC), and by AWK.
+			; languages with #define (C, C++,; ObjC), and by AWK.
 
 (defun c-setup-doc-comment-style ()
   "Initialize the variables that depend on the value of `c-doc-comment-style'."

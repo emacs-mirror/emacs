@@ -1162,11 +1162,10 @@ The following additional command keys are active while editing.
 
 	  (unwind-protect
 	      (let* ((message-log-max nil)
-		     ;; Protect global value of search rings from updating
-		     ;; by `read-from-minibuffer'.  It should be updated only
-		     ;; by `isearch-update-ring' in `isearch-done', not here.
-		     (search-ring search-ring)
-		     (regexp-search-ring regexp-search-ring)
+		     ;; Don't add a new search string to the search ring here
+		     ;; in `read-from-minibuffer'. It should be added only
+		     ;; by `isearch-update-ring' called from `isearch-done'.
+		     (history-add-new-input nil)
 		     ;; Binding minibuffer-history-symbol to nil is a work-around
 		     ;; for some incompatibility with gmhist.
 		     (minibuffer-history-symbol))
@@ -1439,12 +1438,7 @@ string.  NLINES has the same meaning as in `occur'."
   (interactive
    (list
     (cond
-     (isearch-word (concat "\\b" (replace-regexp-in-string
-				  "\\W+" "\\W+"
-				  (replace-regexp-in-string
-				   "^\\W+\\|\\W+$" "" isearch-string)
-				  nil t)
-			   "\\b"))
+     (isearch-word (word-search-regexp isearch-string))
      (isearch-regexp isearch-string)
      (t (regexp-quote isearch-string)))
     (if current-prefix-arg (prefix-numeric-value current-prefix-arg))))
@@ -1549,7 +1543,10 @@ If search string is empty, just beep."
 (defun isearch-yank-x-selection ()
   "Pull current X selection into search string."
   (interactive)
-  (isearch-yank-string (x-get-selection)))
+  (isearch-yank-string (x-get-selection))
+  ;; If `x-get-selection' returned the text from the active region,
+  ;; then it "used" the mark which we should hence deactivate.
+  (when select-active-regions (deactivate-mark)))
 
 
 (defun isearch-mouse-2 (click)
@@ -1640,8 +1637,10 @@ Subword is used when `subword-mode' is activated. "
 		   (if (and (eq case-fold-search t) search-upper-case)
 		       (setq case-fold-search
 			     (isearch-no-upper-case-p isearch-string isearch-regexp)))
-		   (looking-at (if isearch-regexp isearch-string
-				 (regexp-quote isearch-string))))
+		   (looking-at (cond
+				(isearch-word (word-search-regexp isearch-string t))
+				(isearch-regexp isearch-string)
+				(t (regexp-quote isearch-string)))))
 	       (error nil))
 	     (or isearch-yank-flag
 		 (<= (match-end 0)
@@ -1873,7 +1872,7 @@ the bottom."
   (goto-char isearch-point))
 
 (defun isearch-reread-key-sequence-naturally (keylist)
-  "Reread key sequence KEYLIST with Isearch mode's keymap deactivated.
+  "Reread key sequence KEYLIST with an inactive Isearch-mode keymap.
 Return the key sequence as a string/vector."
   (isearch-unread-key-sequence keylist)
   (let (overriding-terminal-local-map)
@@ -2226,7 +2225,11 @@ If there is no completion possible, say so and continue searching."
 		   (if nonincremental "search" "I-search")
 		   (if isearch-forward "" " backward")
 		   (if current-input-method
-		       (concat " [" current-input-method-title "]: ")
+		       ;; Input methods for RTL languages use RTL
+		       ;; characters for their title, and that messes
+		       ;; up the display of search text after the prompt.
+		       (bidi-string-mark-left-to-right
+			(concat " [" current-input-method-title "]: "))
 		     ": ")
 		   )))
     (propertize (concat (upcase (substring m 0 1)) (substring m 1))
@@ -2674,25 +2677,27 @@ by other Emacs features."
     ;; something important did indeed change
     (lazy-highlight-cleanup t) ;kill old loop & remove overlays
     (setq isearch-lazy-highlight-error isearch-error)
-    (when (not isearch-error)
-      (setq isearch-lazy-highlight-start-limit beg
-	    isearch-lazy-highlight-end-limit end)
-      (setq isearch-lazy-highlight-window       (selected-window)
-            isearch-lazy-highlight-window-start (window-start)
-            isearch-lazy-highlight-window-end   (window-end)
-            isearch-lazy-highlight-start        (point)
-            isearch-lazy-highlight-end          (point)
-            isearch-lazy-highlight-wrapped      nil
-            isearch-lazy-highlight-last-string  isearch-string
-	    isearch-lazy-highlight-case-fold-search isearch-case-fold-search
-	    isearch-lazy-highlight-regexp       isearch-regexp
-	    isearch-lazy-highlight-space-regexp search-whitespace-regexp
-	    isearch-lazy-highlight-word         isearch-word
-	    isearch-lazy-highlight-forward      isearch-forward)
+    ;; It used to check for `(not isearch-error)' here, but actually
+    ;; lazy-highlighting might find matches to highlight even when
+    ;; `isearch-error' is non-nil.  (Bug#9918)
+    (setq isearch-lazy-highlight-start-limit beg
+	  isearch-lazy-highlight-end-limit end)
+    (setq isearch-lazy-highlight-window       (selected-window)
+	  isearch-lazy-highlight-window-start (window-start)
+	  isearch-lazy-highlight-window-end   (window-end)
+	  isearch-lazy-highlight-start        (point)
+	  isearch-lazy-highlight-end          (point)
+	  isearch-lazy-highlight-wrapped      nil
+	  isearch-lazy-highlight-last-string  isearch-string
+	  isearch-lazy-highlight-case-fold-search isearch-case-fold-search
+	  isearch-lazy-highlight-regexp       isearch-regexp
+	  isearch-lazy-highlight-space-regexp search-whitespace-regexp
+	  isearch-lazy-highlight-word         isearch-word
+	  isearch-lazy-highlight-forward      isearch-forward)
       (unless (equal isearch-string "")
 	(setq isearch-lazy-highlight-timer
 	      (run-with-idle-timer lazy-highlight-initial-delay nil
-				   'isearch-lazy-highlight-update))))))
+				   'isearch-lazy-highlight-update)))))
 
 (defun isearch-lazy-highlight-search ()
   "Search ahead for the next or previous match, for lazy highlighting.

@@ -298,8 +298,8 @@ shouldn't return t when it isn't."
       (search-forward-regexp "Missing ControlMaster argument" nil t))))
 
 (defcustom tramp-default-method
-  ;; An external copy method seems to be preferred, because it is much
-  ;; more performant for large files, and it hasn't too serious delays
+  ;; An external copy method seems to be preferred, because it performs
+  ;; much better for large files, and it hasn't too serious delays
   ;; for small files.  But it must be ensured that there aren't
   ;; permanent password queries.  Either a password agent like
   ;; "ssh-agent" or "Pageant" shall run, or the optional
@@ -1331,7 +1331,7 @@ ARGS to actually emit the message (if applicable)."
 		(setq fn nil)))
 	    (setq btn (1+ btn))))
 	;; The following code inserts filename and line number.
-	;; Should be deactivated by default, because it is time
+	;; Should be inactive by default, because it is time
 	;; consuming.
 ;	(let ((ffn (find-function-noselect (intern fn))))
 ;	  (insert

@@ -704,7 +704,7 @@ Don't use that together with FILTER."
 
 (defun dired-file-name-at-point ()
   "Try to get a file name at point in the current dired buffer.
-This hook is inteneded to be put in `file-name-at-point-functions'."
+This hook is intended to be put in `file-name-at-point-functions'."
   (let ((filename (dired-get-filename nil t)))
     (when filename
       (if (file-directory-p filename)
@@ -2678,7 +2678,7 @@ Anything else means ask for each directory."
 (defvar dired-re-no-dot "^\\([^.]\\|\\.\\([^.]\\|\\..\\)\\).*")
 
 ;; Delete file, possibly delete a directory and all its files.
-;; This function is usefull outside of dired.  One could change it's name
+;; This function is useful outside of dired.  One could change its name
 ;; to e.g. recursive-delete-file and put it somewhere else.
 (defun dired-delete-file (file &optional recursive trash) "\
 Delete FILE or directory (possibly recursively if optional RECURSIVE is true.)
@@ -3667,7 +3667,7 @@ Ask means pop up a menu for the user to select one of copy, move or link."
 ;;;;;;  dired-run-shell-command dired-do-shell-command dired-do-async-shell-command
 ;;;;;;  dired-clean-directory dired-do-print dired-do-touch dired-do-chown
 ;;;;;;  dired-do-chgrp dired-do-chmod dired-compare-directories dired-backup-diff
-;;;;;;  dired-diff) "dired-aux" "dired-aux.el" "2026ac587f0d9e893bae7662ff9d9318")
+;;;;;;  dired-diff) "dired-aux" "dired-aux.el" "2301de52aab0488c60d2b4841b6f597f")
 ;;; Generated autoloads from dired-aux.el
 
 (autoload 'dired-diff "dired-aux" "\
@@ -4128,7 +4128,7 @@ instead.
 ;;;***
 
 ;;;### (autoloads (dired-do-relsymlink dired-jump-other-window dired-jump)
-;;;;;;  "dired-x" "dired-x.el" "ea7c74fbb7dddf43bb85875018cb59ad")
+;;;;;;  "dired-x" "dired-x.el" "a542cdbf155ff79f36331bae217f3b28")
 ;;; Generated autoloads from dired-x.el
 
 (autoload 'dired-jump "dired-x" "\

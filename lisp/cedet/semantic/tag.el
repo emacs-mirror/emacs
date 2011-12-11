@@ -919,7 +919,7 @@ That is the value of the attribute `:system-flag'."
   "Return a filename representation of TAG.
 The default action is to return the `semantic-tag-name'.
 Some languages do not use full filenames in their include statements.
-Override this method to translate the code represenation
+Override this method to translate the code representation
 into a filename.  (A relative filename if necessary.)
 
 See `semantic-dependency-tag-file' to expand an include
@@ -1162,7 +1162,7 @@ This function is for internal use only."
        (semantic-tag-components-with-overlays tag)))))
 
 (defun semantic--tag-unlink-cache-from-buffer ()
-  "Convert all tags in the current cache to use overlay proxys.
+  "Convert all tags in the current cache to use overlay proxies.
 This function is for internal use only."
   (require 'semantic)
   (semantic--tag-unlink-list-from-buffer

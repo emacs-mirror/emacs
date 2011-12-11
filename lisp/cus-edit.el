@@ -3225,7 +3225,7 @@ Also change :reverse-video to :inverse-video."
     (if (not inactive)
 	;; Widget is alive, we don't have to do anything special
 	(widget-default-delete widget)
-      ;; WIDGET is already deleted because we did so to inactivate it;
+      ;; WIDGET is already deleted because we did so to deactivate it;
       ;; now just get rid of the label we put in its place.
       (delete-region (car (cdr inactive))
 		     (+ (car (cdr inactive)) (cdr (cdr inactive))))

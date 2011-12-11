@@ -96,7 +96,8 @@ LABEL may be a symbol or string."
       (error "More than one label specified"))
   (with-current-buffer rmail-buffer
     (rmail-maybe-set-message-counters)
-    (or msg (setq msg rmail-current-message))
+    (if (zerop (or msg (setq msg rmail-current-message)))
+	(error "No message"))
     ;; Force recalculation of summary for this message.
     (aset rmail-summary-vector (1- msg) nil)
     (let (attr-index)

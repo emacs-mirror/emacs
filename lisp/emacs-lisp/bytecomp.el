@@ -178,9 +178,9 @@ adds `c' to it; otherwise adds `.elc'."
 ;; This can be the 'byte-compile property of any symbol.
 (autoload 'byte-compile-inline-expand "byte-opt")
 
-;; This is the entrypoint to the lapcode optimizer pass1.
+;; This is the entry point to the lapcode optimizer pass1.
 (autoload 'byte-optimize-form "byte-opt")
-;; This is the entrypoint to the lapcode optimizer pass2.
+;; This is the entry point to the lapcode optimizer pass2.
 (autoload 'byte-optimize-lapcode "byte-opt")
 (autoload 'byte-compile-unfold-lambda "byte-opt")
 
@@ -359,10 +359,12 @@ else the global value will be modified."
   "List of commands that are not meant to be called from Lisp.")
 
 (defvar byte-compile-not-obsolete-vars nil
-  "If non-nil, a list of variables that shouldn't be reported as obsolete.")
+  "List of variables that shouldn't be reported as obsolete.")
+(defvar byte-compile-global-not-obsolete-vars nil
+  "Global list of variables that shouldn't be reported as obsolete.")
 
 (defvar byte-compile-not-obsolete-funcs nil
-  "If non-nil, a list of functions that shouldn't be reported as obsolete.")
+  "List of functions that shouldn't be reported as obsolete.")
 
 (defcustom byte-compile-generate-call-tree nil
   "Non-nil means collect call-graph information when compiling.
@@ -1113,7 +1115,7 @@ Each function's symbol gets added to `byte-compile-noruntime-functions'."
       (unless (and funcp (memq symbol byte-compile-not-obsolete-funcs))
 	(byte-compile-warn "`%s' is an obsolete %s%s%s" symbol
 			   (if funcp "function" "variable")
-			   (if asof (concat " (as of Emacs " asof ")") "")
+			   (if asof (concat " (as of " asof ")") "")
 			   (cond ((stringp instead)
 				  (concat "; " instead))
 				 (instead
@@ -2195,7 +2197,7 @@ list that represents a doc string reference.
 	   (byte-compile-keep-pending form)))))
 
 ;; Functions and variables with doc strings must be output separately,
-;; so make-docfile can recognise them.  Most other things can be output
+;; so make-docfile can recognize them.  Most other things can be output
 ;; as byte-code.
 
 (put 'autoload 'byte-hunk-handler 'byte-compile-file-form-autoload)
@@ -3030,6 +3032,7 @@ That command is designed for interactive use only" fn))
 	((let ((od (get var 'byte-obsolete-variable)))
            (and od
                 (not (memq var byte-compile-not-obsolete-vars))
+                (not (memq var byte-compile-global-not-obsolete-vars))
                 (or (case (nth 1 od)
                       (set (not (eq access-type 'reference)))
                       (get (eq access-type 'reference))
@@ -4116,7 +4119,7 @@ binding slots have been popped."
 (byte-defop-compiler-1 make-obsolete-variable)
 (defun byte-compile-make-obsolete-variable (form)
   (when (eq 'quote (car-safe (nth 1 form)))
-    (push (nth 1 (nth 1 form)) byte-compile-not-obsolete-vars))
+    (push (nth 1 (nth 1 form)) byte-compile-global-not-obsolete-vars))
   (byte-compile-normal-call form))
 
 (defun byte-compile-defvar (form)

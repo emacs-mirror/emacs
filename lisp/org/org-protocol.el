@@ -145,8 +145,8 @@
 (defgroup org-protocol nil
   "Intercept calls from emacsclient to trigger custom actions.
 
-This is done by advising `server-visit-files' to scann the list of filenames
-for `org-protocol-the-protocol' and sub-procols defined in
+This is done by advising `server-visit-files' to scan the list of filenames
+for `org-protocol-the-protocol' and sub-protocols defined in
 `org-protocol-protocol-alist' and `org-protocol-protocol-alist-default'."
   :version "22.1"
   :group 'convenience

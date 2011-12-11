@@ -122,7 +122,7 @@ RESULT is a string."
     ("read" . "Reads from")
     ("reset" . "Resets the parameters and returns")
     ("scan" . "Scans the ")
-    ("setup\\|init\\(iallize\\)?" . "Initializes the ")
+    ("setup\\|init\\(ialize\\)?" . "Initializes the ")
     ("select" . "Chooses the ")
     ("send" . "Sends a")
     ("re?c\\(v\\|ieves?\\)" . "Receives a ")
@@ -698,7 +698,7 @@ allocating something based on its type."
 				 (cdr (car al)))))
 	    (setq al nil)))
       (setq al (cdr al)))
-    ;; add tailers to names which are obviously returning something.
+    ;; add trailers to names which are obviously returning something.
     (if tailit
 	(progn
 	  (setq al srecode-document-autocomment-return-last-alist)

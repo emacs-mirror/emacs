@@ -693,10 +693,10 @@
 2003-04-29  Jorgen Schaefer  <forcer@users.sourceforge.net>
 
 	* erc.el 1.525 (erc):
-	Check wether erc-save-buffer-in-logs is bound, too
+	Check whether erc-save-buffer-in-logs is bound, too
 
 	* erc.el 1.524 (erc):
-	Check wether erc-logging-enabled is bound before using it - not
+	Check whether erc-logging-enabled is bound before using it - not
 	everyone is using erc-log.el!
 
 2003-04-28  Andreas Fuchs  <asf@void.at>
@@ -838,7 +838,7 @@
 	* erc.el 1.510:
 	erc-log-channels: removed; set the directory to start logging
 	(erc-directory-writeable-p): create directory if it doesn't exist, check if
-	    it's writeable
+	    it's writable
 	(erc-logging-enabled): don't reference erc-log-channels
 
 2003-04-07  Damien Elmes  <erc@repose.cx>
@@ -1166,7 +1166,7 @@
 
 	(erc-person): Call erc-downcase before getting
 	something from the hash.
-	(erc-nick-in-channel): Checking wether erc-process must be used is
+	(erc-nick-in-channel): Checking whether erc-process must be used is
 	unnecessary -- this will be done in erc-person.
 	(erc-nick-channels): New.
 	(erc-add-nick-to-channel, erc-update-member): Call erc-downcase
@@ -1425,7 +1425,7 @@
 	reference argument directly - no string matching
 
 	* erc.el 1.445 (erc-extract-command-from-line):
-	hmm, thinko in the canonicalisation. should
+	hmm, thinko in the canonicalization. should
 	    be fixed
 
 2003-01-16  Francis Litterio  <franl@users.sourceforge.net>
@@ -1556,7 +1556,7 @@
 
 	* erc.el 1.426: This is the "everything is suddenly broken!" release
 	You know, this is CVS, you can still go back, and wait until the transition
-	is finished, but here is patch one, which basicly breaks every command
+	is finished, but here is patch one, which basically breaks every command
 	which is typed on the prompt.
 	Hit me, we can still revert, but something needs to be done about this.
 	* (erc-extract-command-from-line): intern-soft the function here.
@@ -1678,7 +1678,7 @@
 2003-01-11  Jorgen Schaefer  <forcer@users.sourceforge.net>
 
 	* erc-stamp.el 1.22 (erc-insert-timestamp-right):
-	Check wether erc-fill-column is
+	Check whether erc-fill-column is
 	available before using it. Else default to fill-column or if
 	everything else fails, the window width of the current window. For the
 	fill-columns, use them directly as the starting position for the

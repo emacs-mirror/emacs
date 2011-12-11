@@ -35,7 +35,7 @@
 ;; User Variables:
 
 (defcustom pcmpl-gnu-makefile-regexps
-  '("\\`GNUmakefile" "\\`Makefile" "\\.mak\\'")
+  '("\\`GNUmakefile" "\\`[Mm]akefile" "\\.ma?k\\'")
   "A list of regexps that will match Makefile names."
   :type '(repeat regexp)
   :group 'pcmpl-gnu)
@@ -99,7 +99,10 @@
   "Completion for GNU `make'."
   (let ((pcomplete-help "(make)Top"))
     (pcomplete-opt "bmC/def(pcmpl-gnu-makefile-names)hiI/j?kl?no.pqrsStvwW.")
-    (while (pcomplete-here (pcmpl-gnu-make-rule-names) nil 'identity))))
+    (while (pcomplete-here (completion-table-in-turn
+                            (pcmpl-gnu-make-rule-names)
+                            (pcomplete-entries))
+                           nil 'identity))))
 
 (defun pcmpl-gnu-makefile-names ()
   "Return a list of possible makefile names."
@@ -109,14 +112,16 @@
   "Return a list of possible make rule names in MAKEFILE."
   (let* ((minus-f (member "-f" pcomplete-args))
 	 (makefile (or (cadr minus-f)
-		       (if (file-exists-p "GNUmakefile")
-			   "GNUmakefile"
-			 "Makefile")))
+		       (cond
+                        ((file-exists-p "GNUmakefile") "GNUmakefile")
+                        ((file-exists-p "makefile") "makefile")
+                        (t "Makefile"))))
 	 rules)
     (if (not (file-readable-p makefile))
 	(unless minus-f (list "-f"))
       (with-temp-buffer
-	(insert-file-contents-literally makefile)
+	(ignore-errors			;Could be a directory or something.
+	  (insert-file-contents makefile))
 	(while (re-search-forward
 		(concat "^\\s-*\\([^\n#%.$][^:=\n]*\\)\\s-*:[^=]") nil t)
 	  (setq rules (append (split-string (match-string 1)) rules))))
@@ -309,7 +314,8 @@
                      (let* ((fa (file-attributes (pcomplete-arg 1)))
                             (size (nth 7 fa)))
                        (and (numberp size)
-                            (< size large-file-warning-threshold))))
+                            (or (null large-file-warning-threshold)
+                                (< size large-file-warning-threshold)))))
                 (let ((file (pcomplete-arg 1)))
                   (completion-table-dynamic
                    (lambda (_string)

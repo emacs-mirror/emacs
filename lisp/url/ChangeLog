@@ -1673,7 +1673,7 @@
 	(url-dav-process-DAV:activelock)
 	(url-dav-process-DAV:lockdiscovery): Can now correctly parse
 	DAV:lockdiscovery nodes, so that we can find out who has a
-	resource locked and properly parse the reponse to a LOCK request.
+	resource locked and properly parse the response to a LOCK request.
 	(url-dav-process-DAV:status): Now parses out the numeric status
 	from the HTTP response line.
 	(url-dav-process-response): New function to handle all the
@@ -1977,7 +1977,7 @@
 
 	* lisp/url-gw.el (url-gw-inhibit-code-conversion): Remove.
 	(url-open-stream): Bind coding-system-for{read,write} when setting
-	up the connexion.  Don't call url-gw-inhibit-code-conversion.
+	up the connection.  Don't call url-gw-inhibit-code-conversion.
 
 2001-05-24  William M. Perry  <wmperry@gnu.org>
 
@@ -2448,7 +2448,7 @@
 	* lisp/url-nfs.el (url-nfs-create-wrapper): New function to create
 	wrappers onto the appropriate file-based URLs for file-name-handlers.
 
-	* lisp/url-ftp.el: Moved the FTP stuff into it's own file - it
+	* lisp/url-ftp.el: Moved the FTP stuff into its own file - it
 	might get messy with file-name-handlers and things.
 
 	* lisp/url-http.el (url-http-clean-headers): Fix problem when
@@ -2516,4 +2516,3 @@
 
   You should have received a copy of the GNU General Public License
   along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
-

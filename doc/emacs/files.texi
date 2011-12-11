@@ -267,9 +267,8 @@ newly requested file.  @xref{Windows}.
 @kindex C-x 5 f
 @findex find-file-other-frame
   @kbd{C-x 5 f} (@code{find-file-other-frame}) is similar, but opens a
-new frame, or makes visible any existing frame showing the file you
-seek.  This feature is available only when you are using a window
-system.  @xref{Frames}.
+new frame, or selects any existing frame showing the specified file.
+@xref{Frames}.
 
 @cindex file selection dialog
   On graphical displays, there are two additional methods for visiting
@@ -298,8 +297,9 @@ original encoding and end-of-line convention.  @xref{Coding Systems}.
   If you wish to edit a file as a sequence of @acronym{ASCII}
 characters with no special encoding or conversion, use the @kbd{M-x
 find-file-literally} command.  This visits a file, like @kbd{C-x C-f},
-but does not do format conversion (@pxref{Formatted Text}), character
-code conversion (@pxref{Coding Systems}), or automatic uncompression
+but does not do format conversion (@pxref{Format Conversion,, Format
+Conversion, elisp, the Emacs Lisp Reference Manual}), character code
+conversion (@pxref{Coding Systems}), or automatic uncompression
 (@pxref{Compressed Files}), and does not add a final newline because
 of @code{require-final-newline} (@pxref{Customize Save}).  If you have
 already visited the same file in the usual (non-literal) manner, this

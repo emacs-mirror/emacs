@@ -122,17 +122,17 @@ compose one Chinese character.
 
 In this input method, you enter a Chinese character by first typing
 keys corresponding to Zhuyin symbols (see the above table) followed by
-SPC, 1, 2, 3, or 4 specifing a tone (SPC:$(0?v(N(B, 1:$(0M=Vy(B, 2:$(0Dm(N(B, 3: $(0&9Vy(B,
+SPC, 1, 2, 3, or 4 specifying a tone (SPC:$(0?v(N(B, 1:$(0M=Vy(B, 2:$(0Dm(N(B, 3: $(0&9Vy(B,
 4:$(0(+Vy(B).
 
 \\<quail-translation-docstring>")
 
     ("chinese-punct-b5" "$(0O:(BB"
-     "Input method for Chinese punctuations and symbols of Big5
+     "Input method for Chinese punctuation and symbols of Big5
 \(`chinese-big5-1' and `chinese-big5-2').")
 
     ("chinese-punct" "$A1j(BG"
-     "Input method for Chinese punctuations and symbols of GB2312
+     "Input method for Chinese punctuation and symbols of GB2312
 \(`chinese-gb2312').")
 
     ("chinese-py-b5" "$(03<(BB"
@@ -203,7 +203,7 @@ compose a Chinese character.
 
 In this input method, you enter a Chinese character by first typing
 keys corresponding to Zhuyin symbols (see the above table) followed by
-SPC, 6, 3, 4, or 7 specifing a tone (SPC:$(0?v(N(B, 6:$(0Dm(N(B, 3:$(0&9Vy(B, 4:$(0(+Vy(B,
+SPC, 6, 3, 4, or 7 specifying a tone (SPC:$(0?v(N(B, 6:$(0Dm(N(B, 3:$(0&9Vy(B, 4:$(0(+Vy(B,
 7:$(0M=Vy(B).
 
 \\<quail-translation-docstring>")))
@@ -801,36 +801,36 @@ To get complete usage, invoke \"emacs -batch -f batch-titdic-convert -h\"."
     (setq dic (sort dic (function (lambda (x y) (string< (car x ) (car y))))))
     (dolist (elt dic)
       (insert (format "(%S\t%S)\n" (car elt) (cdr elt))))
-    (let ((punctuations '((";" "$(0!'!2!"!#!.!/(B" "$(G!'!2!"!#!.!/(B")
-			  (":" "$(0!(!+!3!%!$!&!0!1(B" "$(G!(!+!3!%!$!&!0!1(B")
-			  ("'" "$(0!e!d(B" "$(G!e!d(B")
-			  ("\"" "$(0!g!f!h!i!q(B" "$(G!g!f!h!i!q(B")
-			  ("\\" "$(0"`"b#M(B" "$(G"`"b#M(B")
-			  ("|" "$(0!6!8!:"^(B" "$(G!6!8!:"^(B")
-			  ("/" "$(0"_"a#L(B" "$(G"_"a#L(B")
-			  ("?" "$(0!)!4(B" "$(G!)!4(B")
-			  ("<" "$(0!R"6"A!T"H(B" "$(G!R"6"A!T"H(B")
-			  (">" "$(0!S"7"B!U(B" "$(G!S"7"B!U(B")
-			  ("[" "$(0!F!J!b!H!L!V!Z!X!\(B" "$(G!F!J!b!H!L!V!Z!X!\(B")
-			  ("]" "$(0!G!K!c!I!M!W![!Y!](B" "$(G!G!K!c!I!M!W![!Y!](B")
-			  ("{" "$(0!B!`!D(B " "$(G!B!`!D(B ")
-			  ("}" "$(0!C!a!E(B" "$(G!C!a!E(B")
-			  ("`" "$(0!j!k(B" "$(G!j!k(B")
-			  ("~" "$(0"D"+",!<!=(B" "$(G"D"+",!<!=(B")
-			  ("!" "$(0!*!5(B" "$(G!*!5(B")
-			  ("@" "$(0"i"n(B" "$(G"i"n(B")
-			  ("#" "$(0!l"-(B" "$(G!l"-(B")
-			  ("$" "$(0"c"l(B" "$(G"c"l(B")
-			  ("%" "$(0"h"m(B" "$(G"h"m(B")
-			  ("&" "$(0!m".(B" "$(G!m".(B")
-			  ("*" "$(0!n"/!o!w!x(B" "$(G!n"/!o!w!x(B")
-			  ("(" "$(0!>!^!@(B" "$(G!>!^!@(B")
-			  (")" "$(0!?!_!A(B" "$(G!?!_!A(B")
-			  ("-" "$(0!7!9"#"$"1"@(B" "$(G!7!9"#"$"1"@(B")
-			  ("_" "$(0"%"&(B" "$(G"%"&(B")
-			  ("=" "$(0"8"C(B" "$(G"8"C(B")
-			  ("+" "$(0"0"?(B" "$(G"0"?(B"))))
-    (dolist (elt punctuations)
+    (let ((punctuation '((";" "$(0!'!2!"!#!.!/(B" "$(G!'!2!"!#!.!/(B")
+			 (":" "$(0!(!+!3!%!$!&!0!1(B" "$(G!(!+!3!%!$!&!0!1(B")
+			 ("'" "$(0!e!d(B" "$(G!e!d(B")
+			 ("\"" "$(0!g!f!h!i!q(B" "$(G!g!f!h!i!q(B")
+			 ("\\" "$(0"`"b#M(B" "$(G"`"b#M(B")
+			 ("|" "$(0!6!8!:"^(B" "$(G!6!8!:"^(B")
+			 ("/" "$(0"_"a#L(B" "$(G"_"a#L(B")
+			 ("?" "$(0!)!4(B" "$(G!)!4(B")
+			 ("<" "$(0!R"6"A!T"H(B" "$(G!R"6"A!T"H(B")
+			 (">" "$(0!S"7"B!U(B" "$(G!S"7"B!U(B")
+			 ("[" "$(0!F!J!b!H!L!V!Z!X!\(B" "$(G!F!J!b!H!L!V!Z!X!\(B")
+			 ("]" "$(0!G!K!c!I!M!W![!Y!](B" "$(G!G!K!c!I!M!W![!Y!](B")
+			 ("{" "$(0!B!`!D(B " "$(G!B!`!D(B ")
+			 ("}" "$(0!C!a!E(B" "$(G!C!a!E(B")
+			 ("`" "$(0!j!k(B" "$(G!j!k(B")
+			 ("~" "$(0"D"+",!<!=(B" "$(G"D"+",!<!=(B")
+			 ("!" "$(0!*!5(B" "$(G!*!5(B")
+			 ("@" "$(0"i"n(B" "$(G"i"n(B")
+			 ("#" "$(0!l"-(B" "$(G!l"-(B")
+			 ("$" "$(0"c"l(B" "$(G"c"l(B")
+			 ("%" "$(0"h"m(B" "$(G"h"m(B")
+			 ("&" "$(0!m".(B" "$(G!m".(B")
+			 ("*" "$(0!n"/!o!w!x(B" "$(G!n"/!o!w!x(B")
+			 ("(" "$(0!>!^!@(B" "$(G!>!^!@(B")
+			 (")" "$(0!?!_!A(B" "$(G!?!_!A(B")
+			 ("-" "$(0!7!9"#"$"1"@(B" "$(G!7!9"#"$"1"@(B")
+			 ("_" "$(0"%"&(B" "$(G"%"&(B")
+			 ("=" "$(0"8"C(B" "$(G"8"C(B")
+			 ("+" "$(0"0"?(B" "$(G"0"?(B"))))
+    (dolist (elt punctuation)
       (insert (format "(%S %S)\n" (concat "z" (car elt))
 		      (if big5-p (nth 1 elt) (nth 2 elt))))))
     (insert ")\n")))
@@ -1017,7 +1017,7 @@ To input words of more than three letters, you type 4 keys, initials
 of the first three letters and the last letter.  For instance,
 \"bjdt\" inputs $A11>)5gJSL((B.
 
-To input symbols and punctuations, type `/' followed by one of `a' to
+To input symbols and punctuation, type `/' followed by one of `a' to
 `z', then select one of the candidates."))
     (insert "  '((\"\C-?\" . quail-delete-last-char)
    (\".\" . quail-next-translation)
@@ -1179,7 +1179,7 @@ the generated Quail package is saved."
       (setq tail (cdr tail)))))
 
 (defun batch-miscdic-convert ()
-  "Run `miscdic-convert' on the files remaing on the command line.
+  "Run `miscdic-convert' on the files remaining on the command line.
 Use this from the command line, with `-batch';
 it won't work in an interactive Emacs.
 If there's an argument \"-dir\", the next argument specifies a directory

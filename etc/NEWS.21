@@ -1678,7 +1678,7 @@ current file, or you can use C-x v r RET to get an update for an
 entire directory tree.
 
 The new user option `vc-cvs-use-edit' indicates whether VC should call
-"cvs edit" to make files writeable; it defaults to `t'.  (This option
+"cvs edit" to make files writable; it defaults to `t'.  (This option
 is only meaningful if the CVSREAD variable is set, or if files are
 "watched" by other developers.)
 

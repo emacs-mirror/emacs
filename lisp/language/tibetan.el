@@ -30,7 +30,7 @@
 
 ;;; History:
 
-;; 1997.03.13 Modification for special signs and punctuations.
+;; 1997.03.13 Modification for special signs and punctuation.
 
 ;;; Commentary:
 
@@ -44,7 +44,7 @@
 ;;;
 ;;;     00 01 02 03 04 05 06 07 08 09 0A 0B 0C 0D 0E 0F
 ;;;2120 // $(7!!(B $(7!"(B $(7!#(B $(7!$(B $(7!%(B $(7!&(B $(7!'(B $(7!((B $(7!)(B $(7!*(B $(7!+(B $(7!,(B $(7!-(B $(7!.(B $(7!/(B ; obsolete glyphs (2123-5)
-;;;2130 $(7!0(B $(7!1(B $(7!2(B $(7!3(B $(7!4(B $(7!5(B $(7!6(B $(7!7(B $(7!8(B $(7!9(B $(7!:(B $(7!;(B $(7!<(B $(7!=(B $(7!>(B $(7!?(B ; Punctuations,
+;;;2130 $(7!0(B $(7!1(B $(7!2(B $(7!3(B $(7!4(B $(7!5(B $(7!6(B $(7!7(B $(7!8(B $(7!9(B $(7!:(B $(7!;(B $(7!<(B $(7!=(B $(7!>(B $(7!?(B ; Punctuation,
 ;;;2140 $(7!@(B $(7!A(B $(7!B(B $(7!C(B $(7!D(B $(7!E(B $(7!F(B $(7!G(B $(7!H(B $(7!I(B $(7!J(B $(7!K(B $(7!L(B $(7!M(B $(7!N(B $(7!O(B ; Digits and
 ;;;2150 $(7!P(B $(7!Q(B $(7!R(B $(7!S(B $(7!T(B $(7!U(B $(7!V(B $(7!W(B $(7!X(B $(7!Y(B $(7!Z(B $(7![(B $(7!\(B $(7!](B $(7!^(B $(7!_(B ; Special signs.
 ;;;2160 $(7!`(B $(7!a(B $(7!b(B $(7!c(B $(7!d(B $(7!e(B $(7!f(B $(7!g(B $(7!h(B $(7!i(B $(7!j(B $(7!k(B $(7!l(B $(7!m(B $(7!n(B $(7!o(B ;
@@ -424,7 +424,7 @@
     ))
 
 ;;; alist for Tibetan composite vowels (long i, vocalic r, etc.)
-;;; New varialble. created by Tomabechi 2000/06/08
+;;; New variable. created by Tomabechi 2000/06/08
 (defconst tibetan-composite-vowel-alist
   '(;; LONG A
     ;; ("$(7"R(B" . ((bc . tc) ?$(7"R(B))
@@ -604,7 +604,7 @@ This also matches some punctuation characters which need conversion.")
 (defvar tibetan-decomposed-temp nil)
 
 ;; For automatic composition.
-(set-char-table-range 
+(set-char-table-range
  composition-function-table '(#xF00 . #xFD1)
  (list (vector tibetan-composable-pattern 0 'font-shape-gstring)))
 

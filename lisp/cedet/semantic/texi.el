@@ -262,7 +262,7 @@ can handle the @menu environment.")
       (let ((parenthetical (semantic-up-context-default))
 	    )
 	(when (not parenthetical)
-	  ;; We are in parenthises.  Are they the types of parens
+	  ;; We are in parentheses.  Are they the types of parens
 	  ;; belonging to a texinfo construct?
 	  (forward-word -1)
 	  (when (looking-at "@\\w+{")
@@ -483,7 +483,7 @@ that start with that symbol."
 ;; This section provides specialized access into texinfo files.
 ;; Because texinfo files often directly refer to functions and programs
 ;; it is useful to access the texinfo file from the C code for document
-;; maintainance.
+;; maintenance.
 (defun semantic-texi-associated-files (&optional buffer)
   "Find texinfo files associated with BUFFER."
   (save-excursion

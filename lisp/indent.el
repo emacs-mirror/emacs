@@ -63,9 +63,11 @@ e.g., `c-tab-always-indent', and do not respect this variable."
 
 (defun indent-according-to-mode ()
   "Indent line in proper way for current major mode.
-The buffer-local variable `indent-line-function' determines how to do this,
-but the functions `indent-relative' and `indent-relative-maybe' are
-special; we don't actually use them here."
+Normally, this is done by calling the function specified by the
+variable `indent-line-function'.  However, if the value of that
+variable is `indent-relative' or `indent-relative-maybe', handle
+it specially (since those functions are used for tabbing); in
+that case, indent by aligning to the previous non-blank line."
   (interactive)
   (syntax-propertize (line-end-position))
   (if (memq indent-line-function
@@ -84,22 +86,25 @@ special; we don't actually use them here."
     (funcall indent-line-function)))
 
 (defun indent-for-tab-command (&optional arg)
-  "Indent line or region in proper way for current major mode or insert a tab.
-Depending on `tab-always-indent', either insert a tab or indent.
+  "Indent the current line or region, or insert a tab, as appropriate.
+This function either inserts a tab, or indents the current line,
+or performs symbol completion, depending on `tab-always-indent'.
+The function called to actually indent the line or insert a tab
+is given by the variable `indent-line-function'.
 
-In most major modes, if point was in the current line's indentation,
-it is moved to the first non-whitespace character after indenting;
-otherwise it stays at the same position in the text.
-
-If a prefix argument is given, also rigidly indent the entire
+If a prefix argument is given, after this function indents the
+current line or inserts a tab, it also rigidly indents the entire
 balanced expression which starts at the beginning of the current
-line to reflect the current line's change in indentation.
+line, to reflect the current line's indentation.
+
+In most major modes, if point was in the current line's
+indentation, it is moved to the first non-whitespace character
+after indenting; otherwise it stays at the same position relative
+to the text.
 
 If `transient-mark-mode' is turned on and the region is active,
-indent the region (in this case, any prefix argument is ignored).
-
-The function actually called to indent the line is determined by the value of
-`indent-line-function'."
+this function instead calls `indent-region'.  In this case, any
+prefix argument is ignored."
   (interactive "P")
   (cond
    ;; The region is active, indent it.
@@ -393,34 +398,14 @@ indents all the lines with it:
      with it.
   2) If `indent-region-function' is non-nil, call that function
      to indent the region.
-  3) Indent each line as specified by the variable `indent-line-function'.
+  3) Indent each line via `indent-according-to-mode'.
 
 Called from a program, START and END specify the region to indent.
 If the third argument COLUMN is an integer, it specifies the
 column to indent to; if it is nil, use one of the three methods above."
   (interactive "r\nP")
-  (if (null column)
-      (if fill-prefix
-	  (save-excursion
-	    (goto-char end)
-	    (setq end (point-marker))
-	    (goto-char start)
-	    (let ((regexp (regexp-quote fill-prefix)))
-	      (while (< (point) end)
-		(or (looking-at regexp)
-		    (and (bolp) (eolp))
-		    (insert fill-prefix))
-		(forward-line 1))))
-	(if indent-region-function
-	    (funcall indent-region-function start end)
-	  (save-excursion
-	    (setq end (copy-marker end))
-	    (goto-char start)
-	    (while (< (point) end)
-	      (or (and (bolp) (eolp))
-		  (indent-according-to-mode))
-	      (forward-line 1))
-	    (move-marker end nil))))
+  (cond
+   (column
     (setq column (prefix-numeric-value column))
     (save-excursion
       (goto-char end)
@@ -433,6 +418,28 @@ column to indent to; if it is nil, use one of the three methods above."
 	    (indent-to column 0))
 	(forward-line 1))
       (move-marker end nil)))
+   (fill-prefix
+    (save-excursion
+      (goto-char end)
+      (setq end (point-marker))
+      (goto-char start)
+      (let ((regexp (regexp-quote fill-prefix)))
+	(while (< (point) end)
+	  (or (looking-at regexp)
+	      (and (bolp) (eolp))
+	      (insert fill-prefix))
+	  (forward-line 1)))))
+   (indent-region-function
+    (funcall indent-region-function start end))
+   (t
+    (save-excursion
+      (setq end (copy-marker end))
+      (goto-char start)
+      (while (< (point) end)
+	(or (and (bolp) (eolp))
+	    (indent-according-to-mode))
+	(forward-line 1))
+      (move-marker end nil))))
   ;; In most cases, reindenting modifies the buffer, but it may also
   ;; leave it unmodified, in which case we have to deactivate the mark
   ;; by hand.

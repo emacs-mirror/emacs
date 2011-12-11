@@ -28,7 +28,7 @@
 (defvar semantic-utest-c-comparisons
   '( ("testsppreplace.c" . "testsppreplaced.c")
      )
-  "List of files to parse and compare against eachother.")
+  "List of files to parse and compare against each other.")
 
 ;;; Code:
 ;;;###autoload

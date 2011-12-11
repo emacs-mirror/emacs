@@ -83,7 +83,7 @@ To specify the file in which to save them, modify the variable
   "The `.emacs.bmk' file used to be called this name.")
 
 
-;; defvarred to avoid a compilation warning:
+;; defvared to avoid a compilation warning:
 (defvar bookmark-file nil
   "Old name for `bookmark-default-file'.")
 

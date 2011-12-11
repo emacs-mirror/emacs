@@ -251,7 +251,7 @@ file to save in."
 	  (if (eq gnus-dired-mail-mode 'gnus-user-agent)
 	      (gnus-print-buffer)
 	    ;; FIXME:
-	    (error "MIME print only implemeted via Gnus")))
+	    (error "MIME print only implemented via Gnus")))
 	(ps-despool print-to))))
    ((file-symlink-p file-name)
      (error "File is a symlink to a nonexistent target"))

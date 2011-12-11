@@ -127,7 +127,7 @@ xg_set_screen (GtkWidget *w, FRAME_PTR f)
 
    Returns non-zero if display could be opened, zero if display could not
    be opened, and less than zero if the GTK version doesn't support
-   multipe displays.  */
+   multiple displays.  */
 
 void
 xg_display_open (char *display_name, Display **dpy)
@@ -1099,6 +1099,14 @@ xg_create_frame_widgets (FRAME_PTR f)
     wtop = gtk_plug_new (f->output_data.x->parent_desc);
   else
     wtop = gtk_window_new (GTK_WINDOW_TOPLEVEL);
+
+  /* gtk_window_set_has_resize_grip is a Gtk+ 3.0 function but Ubuntu
+     has backported it to Gtk+ 2.0 and they add the resize grip for
+     Gtk+ 2.0 applications also.  But it has a bug that makes Emacs loop
+     forever, so disable the grip.  */
+#if GTK_MAJOR_VERSION < 3 && defined (HAVE_GTK_WINDOW_SET_HAS_RESIZE_GRIP)
+  gtk_window_set_has_resize_grip (GTK_WINDOW (wtop), FALSE);
+#endif
 
   xg_set_screen (wtop, f);
 
@@ -2363,7 +2371,7 @@ xg_create_one_menuitem (widget_value *item,
    HIGHLIGHT_CB is the callback to call when entering/leaving menu items.
    POP_UP_P is non-zero if we shall create a popup menu.
    MENU_BAR_P is non-zero if we shall create a menu bar.
-   ADD_TEAROFF_P is non-zero if we shall add a teroff menu item.  Ignored
+   ADD_TEAROFF_P is non-zero if we shall add a tearoff menu item.  Ignored
    if MENU_BAR_P is non-zero.
    TOPMENU is the topmost GtkWidget that others shall be placed under.
    It may be NULL, in that case we create the appropriate widget
@@ -4262,7 +4270,7 @@ xg_make_tool_item (FRAME_PTR f,
 #endif
       gtk_tool_item_set_homogeneous (ti, FALSE);
 
-      /* Callback to save modifyer mask (Shift/Control, etc).  GTK makes
+      /* Callback to save modifier mask (Shift/Control, etc).  GTK makes
          no distinction based on modifiers in the activate callback,
          so we have to do it ourselves.  */
       g_signal_connect (wb, "button-release-event",

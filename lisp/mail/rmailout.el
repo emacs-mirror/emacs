@@ -468,6 +468,8 @@ from a non-Rmail buffer.  In this case, COUNT is ignored."
       (if rmail-buffer
 	  (set-buffer rmail-buffer)
 	(error "There is no Rmail buffer"))
+      (if (zerop rmail-total-messages)
+	  (error "No messages to output"))
       (let ((orig-count count)
 	    beg end)
 	(while (> count 0)
@@ -533,6 +535,8 @@ so you should call `rmail-output' directly in that case."
     (if rmail-buffer
 	(set-buffer rmail-buffer)
       (error "There is no Rmail buffer"))
+    (if (zerop rmail-total-messages)
+	(error "No messages to output"))
     (let ((orig-count count)
 	  (cur (current-buffer)))
       (while (> count 0)
@@ -594,6 +598,8 @@ than appending to it.  Deletes the message after writing if
 	(expand-file-name file-name
 			  (and rmail-default-body-file
 			       (file-name-directory rmail-default-body-file))))
+  (if (zerop rmail-current-message)
+      (error "No message to output"))
   (save-excursion
     (goto-char (point-min))
     (search-forward "\n\n")

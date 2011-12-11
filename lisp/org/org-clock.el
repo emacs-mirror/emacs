@@ -328,7 +328,7 @@ to add an effort property.")
   "Hook run when stopping the current clock.")
 
 (defvar org-clock-cancel-hook nil
-  "Hook run when cancelling the current clock.")
+  "Hook run when canceling the current clock.")
 (defvar org-clock-goto-hook nil
   "Hook run when selecting the currently clocked-in entry.")
 (defvar org-clock-has-been-used nil
@@ -346,7 +346,7 @@ to add an effort property.")
 (defvar org-clock-start-time "")
 
 (defvar org-clock-leftover-time nil
-  "If non-nil, user cancelled a clock; this is when leftover time started.")
+  "If non-nil, user canceled a clock; this is when leftover time started.")
 
 (defvar org-clock-effort ""
   "Effort estimate of the currently clocking task.")
@@ -1919,7 +1919,7 @@ the returned times will be formatted strings."
                shiftedm (- 13 (* 3 (nth 1 tmp)))
                shiftedq (- 5 (nth 1 tmp))))
        (setq d 1 h 0 m 0 d1 1 month shiftedm month1 (+ 3 shiftedm) h1 0 m1 0 y shiftedy))
-       ((> (+ q shift) 0) ; shift is whitin this year
+       ((> (+ q shift) 0) ; shift is within this year
        (setq shiftedq (+ q shift))
        (setq shiftedy y)
        (setq d 1 h 0 m 0 d1 1 month (+ 1 (* 3 (- (+ q shift) 1))) month1 (+ 4 (* 3 (- (+ q shift) 1))) h1 0 m1 0))))

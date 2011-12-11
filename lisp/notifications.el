@@ -163,7 +163,7 @@ Various PARAMS can be set:
                  only URI schema supported right now) or a name
                  in a freedesktop.org-compliant icon theme.
  :sound-file     The path to a sound file to play when the notification pops up.
- :sound-name     A themeable named sound from the freedesktop.org sound naming
+ :sound-name     A themable named sound from the freedesktop.org sound naming
                  specification to play when the notification pops up.
                  Similar to icon-name,only for sounds. An example would
                  be \"message-new-instant\".

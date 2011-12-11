@@ -131,6 +131,7 @@
 (put 'autoload 'doc-string-elt 3)
 (put 'defun    'doc-string-elt 3)
 (put 'defun*    'doc-string-elt 3)
+(put 'defmethod 'doc-string-elt 3)
 (put 'defvar   'doc-string-elt 3)
 (put 'defcustom 'doc-string-elt 3)
 (put 'deftheme 'doc-string-elt 2)
@@ -769,7 +770,7 @@ this command arranges for all errors to enter the debugger."
 Reset the `defvar' and `defcustom' variables to the initial value.
 Reinitialize the face according to the `defface' specification."
   ;; The code in edebug-defun should be consistent with this, but not
-  ;; the same, since this gets a macroexpended form.
+  ;; the same, since this gets a macroexpanded form.
   (cond ((not (listp form))
 	 form)
 	((and (eq (car form) 'defvar)

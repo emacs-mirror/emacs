@@ -1304,7 +1304,7 @@ free_frame_menubar (FRAME_PTR f)
 #ifdef USE_MOTIF
       /* Removing the menu bar magically changes the shell widget's x
 	 and y position of (0, 0) which, when the menu bar is turned
-	 on again, leads to pull-down menuss appearing in strange
+	 on again, leads to pull-down menus appearing in strange
 	 positions near the upper-left corner of the display.  This
 	 happens only with some window managers like twm and ctwm,
 	 but not with other like Motif's mwm or kwm, because the

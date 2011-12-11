@@ -1,3 +1,14 @@
+2011-11-20  Bill Wohler  <wohler@newt.com>
+
+	* Release MH-E version 8.3.1.
+
+	* mh-e.el (Version, mh-version): Update for release 8.3.1.
+
+2011-11-20  Juanma Barranquero  <lekktu@gmail.com>
+
+	* mh-utils.el (mh-folder-list): Fix typo.
+	(mh-children-p): Move part of the docstring to a comment.
+
 2011-11-16  Juanma Barranquero  <lekktu@gmail.com>
 
 	* mh-search.el (mh-pick-parse-search-buffer): Fix typo.
@@ -347,7 +358,7 @@
 
 2008-06-20  Stephen Eglen  <stephen@gnu.org>
 
-	* mh-show.el (mh-defun-show-buffer): Use `...' rather than than
+	* mh-show.el (mh-defun-show-buffer): Use `...' rather than
 	"..." in generated docstrings.
 
 2008-06-12  Glenn Morris  <rgm@gnu.org>
@@ -2663,7 +2674,7 @@
 
 	Follow MH-E Developers Guide conventions.  Use `' quotes for Help
 	hyperlinks such as symbols, Info nodes, or URLs.  Use \" quotes for
-	everything else.  Otherwise, you can accidently get links to
+	everything else.  Otherwise, you can accidentally get links to
 	nonsense symbols.
 
 2005-12-22  Bill Wohler  <wohler@newt.com>
@@ -3445,4 +3456,3 @@
 ;; sentence-end-double-space: nil
 ;; add-log-time-zone-rule: t
 ;; End:
-

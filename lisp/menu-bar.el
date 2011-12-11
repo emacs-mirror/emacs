@@ -445,7 +445,7 @@
     (define-key menu [props]
       `(menu-item ,(purecopy "Text Properties") facemenu-menu))
 
-    ;; ns-win.el said: Add spell for platorm consistency.
+    ;; ns-win.el said: Add spell for platform consistency.
     (if (featurep 'ns)
         (define-key menu [spell]
           `(menu-item ,(purecopy "Spell") ispell-menu-map)))

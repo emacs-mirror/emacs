@@ -1654,6 +1654,24 @@ init_environment (char ** argv)
         }
     }
 
+  /* When Emacs is invoked with --no-site-lisp, we must remove the
+     site-lisp directories from the default value of EMACSLOADPATH.
+     This assumes that the site-lisp entries are at the front, and
+     that additional entries do exist.  */
+  if (no_site_lisp)
+    {
+      for (i = 0; i < N_ENV_VARS; i++)
+        {
+          if (strcmp (env_vars[i].name, "EMACSLOADPATH") == 0)
+            {
+              char *site;
+              while ((site = strstr (env_vars[i].def_value, "site-lisp")))
+                env_vars[i].def_value = strchr (site, ';') + 1;
+              break;
+            }
+        }
+    }
+
 #define SET_ENV_BUF_SIZE (4 * MAX_PATH)	/* to cover EMACSLOADPATH */
 
     /* Treat emacs_dir specially: set it unconditionally based on our
@@ -3057,7 +3075,7 @@ generate_inode_val (const char * name)
   unsigned hash;
 
   /* Get the truly canonical filename, if it exists.  (Note: this
-     doesn't resolve aliasing due to subst commands, or recognise hard
+     doesn't resolve aliasing due to subst commands, or recognize hard
      links.  */
   if (!w32_get_long_filename ((char *)name, fullname, MAX_PATH))
     abort ();
@@ -5845,7 +5863,7 @@ term_ntproc (void)
 void
 init_ntproc (void)
 {
-  /* Initialise the socket interface now if available and requested by
+  /* Initialize the socket interface now if available and requested by
      the user by defining PRELOAD_WINSOCK; otherwise loading will be
      delayed until open-network-stream is called (w32-has-winsock can
      also be used to dynamically load or reload winsock).

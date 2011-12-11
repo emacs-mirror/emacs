@@ -906,7 +906,7 @@ The function `message-setup' runs this hook."
   :type 'hook)
 
 (defcustom message-cancel-hook nil
-  "Hook run when cancelling articles."
+  "Hook run when canceling articles."
   :group 'message-various
   :link '(custom-manual "(message)Various Message Variables")
   :type 'hook)
@@ -1893,14 +1893,14 @@ You must have the \"hashcash\" binary installed, see `hashcash-path'."
   (concat "[a-z0-9][-.a-z0-9]+\\." ;; [hostname.subdomain.]domain.
 	  ;; valid TLDs:
 	  "\\([a-z][a-z]\\|" ;; two letter country TDLs
-	  "aero\\|arpa\\|bitnet\\|biz\\|bofh\\|"
+	  "aero\\|arpa\\|asia\\|bitnet\\|biz\\|bofh\\|"
 	  "cat\\|com\\|coop\\|edu\\|gov\\|"
 	  "info\\|int\\|jobs\\|"
 	  "mil\\|mobi\\|museum\\|name\\|net\\|"
-	  "org\\|pro\\|travel\\|uucp\\)")
+	  "org\\|pro\\|tel\\|travel\\|uucp\\)")
   ;; http://en.wikipedia.org/wiki/List_of_Internet_top-level_domains
   ;; http://en.wikipedia.org/wiki/GTLD
-  ;; `in the process of being approved': .asia .post .tel .sex
+  ;; `approved, but not yet in operation': .xxx
   ;; "dead" nato bitnet uucp
   "Regular expression that matches a valid FQDN."
   ;; see also: gnus-button-valid-fqdn-regexp
@@ -4507,7 +4507,8 @@ This function could be useful in `message-setup-hook'."
 		   (boundp 'gnus-group-posting-charset-alist))
 	      (gnus-setup-posting-charset nil)
 	    message-posting-charset))
-	 (headers message-required-mail-headers))
+	 (headers message-required-mail-headers)
+	 options)
     (when (and message-generate-hashcash
 	       (not (eq message-generate-hashcash 'opportunistic)))
       (message "Generating hashcash...")
@@ -4546,9 +4547,11 @@ This function could be useful in `message-setup-hook'."
 	      (error "Failed to send the message")))))
       ;; Let the user do all of the above.
       (run-hooks 'message-header-hook))
+    (setq options message-options)
     (unwind-protect
 	(with-current-buffer tembuf
 	  (erase-buffer)
+	  (setq message-options options)
 	  ;; Avoid copying text props (except hard newlines).
 	  (insert (with-current-buffer mailbuf
 		    (mml-buffer-substring-no-properties-except-hard-newlines
@@ -4630,9 +4633,11 @@ If you always want Gnus to send messages in one piece, set
 		(message "Sending via mail...")
 		(funcall (or message-send-mail-real-function
 			     message-send-mail-function)))
-	    (message-send-mail-partially)))
+	    (message-send-mail-partially))
+	  (setq options message-options))
       (kill-buffer tembuf))
     (set-buffer mailbuf)
+    (setq message-options options)
     (push 'mail message-sent-message-via)))
 
 (defvar sendmail-program)
@@ -4835,7 +4840,7 @@ Otherwise, generate and save a value for `canlock-password' first."
 			   (message-fetch-field "Followup-To")))
 	 ;; BUG: We really need to get the charset for each name in the
 	 ;; Newsgroups and Followup-To lines to allow crossposting
-	 ;; between group namess with incompatible character sets.
+	 ;; between group names with incompatible character sets.
 	 ;; -- Per Abrahamsen <abraham@dina.kvl.dk> 2001-10-08.
 	 (group-field-charset
 	  (gnus-group-name-charset method newsgroups-field))
@@ -6331,7 +6336,7 @@ between beginning of field and beginning of line."
 	      (progn
 		(gnus-select-frame-set-input-focus (window-frame window))
 		(select-window window))
-	    (funcall (or switch-function 'switch-to-buffer) buffer)
+	    (funcall (or switch-function #'pop-to-buffer) buffer)
 	    (set-buffer buffer))
 	  (when (and (buffer-modified-p)
 		     (not (prog1
@@ -6339,7 +6344,11 @@ between beginning of field and beginning of line."
 			       "Message already being composed; erase? ")
 			    (message nil))))
 	    (error "Message being composed")))
-      (funcall (or switch-function 'switch-to-buffer) name)
+      (funcall (or switch-function
+		   (if (fboundp #'pop-to-buffer-same-window)
+		       #'pop-to-buffer-same-window
+		     #'pop-to-buffer))
+	       name)
       (set-buffer name))
     (erase-buffer)
     (message-mode)))
@@ -7167,7 +7176,7 @@ header line with the old Message-ID."
 
 (defun message-wash-subject (subject)
   "Remove junk like \"Re:\", \"(fwd)\", etc. added to subject string SUBJECT.
-Previous forwarders, replyers, etc. may add it."
+Previous forwarders, repliers, etc. may add it."
   (with-temp-buffer
     (insert subject)
     (goto-char (point-min))

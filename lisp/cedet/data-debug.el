@@ -916,7 +916,7 @@ If PARENT is non-nil, it is somehow related as a parent to thing."
   (skip-chars-forward " *-><[]" (point-at-eol)))
 
 (defun data-debug-prev ()
-  "Go to the next line in the Ddebug buffer."
+  "Go to the previous line in the Ddebug buffer."
   (interactive)
   (forward-line -1)
   (beginning-of-line)
@@ -972,7 +972,7 @@ Do nothing if already expanded."
 
 (defun data-debug-contract-current-line ()
   "Contract the current line (if possible).
-Do nothing if already expanded."
+Do nothing if already contracted."
   (when (and (data-debug-current-line-expanded-p)
 	     ;; Don't contract if the current line is not expandable.
 	     (get-text-property (point) 'ddebug-function))

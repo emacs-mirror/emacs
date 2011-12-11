@@ -46,10 +46,10 @@
 ;; Extended filename syntax:
 ;;
 ;; The default extended filename syntax is '/user@host:name', where the
-;; 'user@' part may be omitted.  This syntax can be customised to a certain
+;; 'user@' part may be omitted.  This syntax can be customized to a certain
 ;; extent by changing ange-ftp-name-format.  There are limitations.
 ;; The `host' part has an optional suffix `#port' which may be used to
-;; specify a non-default port number for the connexion.
+;; specify a non-default port number for the connection.
 ;;
 ;; If the user part is omitted then ange-ftp generates a default user
 ;; instead whose value depends on the variable ange-ftp-default-user.
@@ -721,7 +721,7 @@ parenthesized expressions in REGEXP for the components (in that order)."
 	  "^local:\\|^Trying\\|^125 \\|^550-\\|^221 .*oodbye\\|"
           "^500 .*AUTH\\|^KERBEROS\\|"
           "^504 Unknown security mechanism\\|"
-	  "^530 Please login with USER and PASS\\|" ; non kerberised vsFTPd
+	  "^530 Please login with USER and PASS\\|" ; non kerberized vsFTPd
 	  "^534 Kerberos Authentication not enabled\\|"
 	  "^22[789] .*[Pp]assive\\|^200 EPRT\\|^500 .*EPRT")
   "Regular expression matching FTP messages that can be ignored."
@@ -1664,8 +1664,8 @@ good, skip, fatal, or unknown."
           (if (not (and seen-prompt ange-ftp-pending-error-line))
               (ange-ftp-process-handle-line line proc)
             ;; If we've seen a potential error message and it
-            ;; hasn't been cancelled by a good message before
-            ;; seeing a propt, then the error was real.
+            ;; hasn't been canceled by a good message before
+            ;; seeing a prompt, then the error was real.
             (delete-process proc)
             (setq ange-ftp-process-busy nil
                   ange-ftp-process-result-line ange-ftp-pending-error-line))))
@@ -5995,7 +5995,7 @@ Other orders of $ and _ seem to all work just fine.")
 	     (concat
 	      pubset
 	      (and userid (concat userid "."))
-	      ;; change every '/' in filename to a '.', normally not neccessary
+	      ;; change every '/' in filename to a '.', normally not necessary
 	      (and filename
 		   (subst-char-in-string ?/ ?. filename)))))
 	;; Let's hope that BS2000 recognize this anyway:
