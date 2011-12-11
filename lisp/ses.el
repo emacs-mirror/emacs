@@ -674,6 +674,13 @@ for this spreadsheet."
 	(put sym 'ses-cell (cons xrow xcol))
 	(make-local-variable sym)))))
 
+(defun ses-create-cell-variable (sym row col)
+  "Create a buffer-local variable for cell with symbol
+SYM at position ROW COL. Return nil in case of failure."
+  (unless (local-variable-p sym)
+    (make-local-variable  sym)
+    (put sym 'ses-cell (cons row col))))
+
 ;; We do not delete the ses-cell properties for the cell-variables, in
 ;; case a formula that refers to this cell is in the kill-ring and is
 ;; later pasted back in.
@@ -1400,7 +1407,8 @@ removed.  Example:
 Sets `ses-relocate-return' to 'delete if cell-references were removed."
   (let (rowcol result)
     (if (or (atom formula) (eq (car formula) 'quote))
-	(if (setq rowcol (ses-sym-rowcol formula))
+	(if (and (setq rowcol (ses-sym-rowcol formula))
+		 (string-match "\\`[A-Z]+[0-9]+\\'" (symbol-name formula)))
 	    (ses-relocate-symbol formula rowcol
 				 startrow startcol rowincr colincr)
 	  formula) ; Pass through as-is.
@@ -1508,14 +1516,15 @@ if the range was altered."
 the rectangle (MINROW,MINCOL)..(NUMROWS,NUMCOLS) by adding ROWINCR and COLINCR
 to each symbol."
   (let (reform)
-    (let (mycell newval)
+    (let (mycell newval xrow)
       (dotimes-with-progress-reporter
 	  (row ses--numrows) "Relocating formulas..."
 	(dotimes (col ses--numcols)
 	  (setq ses-relocate-return nil
 		mycell (ses-get-cell row col)
 		newval (ses-relocate-formula (ses-cell-formula mycell)
-					     minrow mincol rowincr colincr))
+					     minrow mincol rowincr colincr)
+		xrow  (- row rowincr))
 	  (ses-set-cell row col 'formula newval)
 	  (if (eq ses-relocate-return 'range)
 	      ;; This cell contains a (ses-range X Y) where a cell has been
@@ -1531,8 +1540,22 @@ to each symbol."
 					     minrow mincol rowincr colincr))
 	  (ses-set-cell row col 'references newval)
 	  (and (>= row minrow) (>= col mincol)
-	       (ses-set-cell row col 'symbol
-			     (ses-create-cell-symbol row col))))))
+	       (let ((sym (ses-cell-symbol row col))
+		     (xcol (- col colincr)))
+		 (if (and
+		      sym
+		      (>= xrow 0)
+		      (>= xcol 0)
+		      (null (eq sym
+				(ses-create-cell-symbol xrow xcol))))
+		     ;; This is a renamed cell, do not update the cell
+		     ;; name, but just update the coordinate property.
+		     (put sym 'ses-cell (cons row col))
+		   (ses-set-cell row col 'symbol
+				 (setq sym (ses-create-cell-symbol row col)))
+		   (unless (and (boundp sym) (local-variable-p sym))
+		     (set (make-local-variable sym) nil)
+		     (put sym 'ses-cell (cons row col)))))) )))
     ;; Relocate the cell values.
     (let (oldval myrow mycol xrow xcol)
       (cond
@@ -1545,11 +1568,17 @@ to each symbol."
 	    (setq mycol  (+ col mincol)
 		  xrow   (- myrow rowincr)
 		  xcol   (- mycol colincr))
-	    (if (and (< xrow ses--numrows) (< xcol ses--numcols))
-		(setq oldval (ses-cell-value xrow xcol))
-	      ;; Cell is off the end of the array.
-	      (setq oldval (symbol-value (ses-create-cell-symbol xrow xcol))))
-	    (ses-set-cell myrow mycol 'value oldval))))
+	    (let ((sym (ses-cell-symbol myrow mycol))
+		  (xsym (ses-create-cell-symbol xrow xcol)))
+	      ;; Make the value relocation only when if the cell is not
+	      ;; a renamed cell.  Otherwise this is not needed.
+	      (and (eq sym xsym)
+		  (ses-set-cell myrow mycol 'value
+		    (if (and (< xrow ses--numrows) (< xcol ses--numcols))
+			(ses-cell-value xrow xcol)
+		      ;;Cell is off the end of the array
+		      (symbol-value xsym))))))))
+
        ((and (wholenump rowincr) (wholenump colincr))
 	;; Insertion of rows and/or columns.  Run the loop backwards.
 	(let ((disty (1- ses--numrows))
@@ -1658,7 +1687,6 @@ execute cell formulas or print functions."
 	(message "Upgrading from SES-1 file format")))
     (or (= ses--file-format 2)
 	(error "This file needs a newer version of the SES library code"))
-    (ses-create-cell-variable-range 0 (1- ses--numrows) 0 (1- ses--numcols))
     ;; Initialize cell array.
     (setq ses--cells (make-vector ses--numrows nil))
     (dotimes (row ses--numrows)
@@ -1678,11 +1706,10 @@ execute cell formulas or print functions."
   (dotimes (row ses--numrows)
     (dotimes (col ses--numcols)
       (let* ((x      (read (current-buffer)))
-	     (rowcol (ses-sym-rowcol (car-safe (cdr-safe x)))))
+	     (sym  (car-safe (cdr-safe x))))
 	(or (and (looking-at "\n")
 		 (eq (car-safe x) 'ses-cell)
-		 (eq row (car rowcol))
-		 (eq col (cdr rowcol)))
+		 (ses-create-cell-variable sym row col))
 	    (error "Cell-def error"))
 	(eval x)))
     (or (looking-at "\n\n")
@@ -3138,6 +3165,60 @@ highlighted range in the spreadsheet."
   (interactive "*e")
   (mouse-set-point event)
   (ses-insert-ses-range))
+
+(defun ses-replace-name-in-formula (formula old-name new-name)
+  (let ((new-formula formula))
+    (unless (and (consp formula)
+		 (eq (car-safe formula) 'quote))
+      (while formula
+	(let ((elt (car-safe formula)))
+	  (cond
+	   ((consp elt)
+	    (setcar formula (ses-replace-name-in-formula elt old-name new-name)))
+	   ((and (symbolp elt)
+		 (eq (car-safe formula) old-name))
+	    (setcar formula new-name))))
+	(setq formula (cdr formula))))
+    new-formula))
+
+(defun ses-rename-cell (new-name)
+  "Rename current cell."
+  (interactive "*SEnter new name: ")
+  (ses-check-curcell)
+  (or
+   (and  (local-variable-p new-name)
+	 (ses-sym-rowcol new-name)
+	 (error "Already a cell name"))
+   (and (boundp new-name)
+	(null (yes-or-no-p (format "`%S' is already bound outside this buffer, continue? "
+				   new-name)))
+	(error "Already a bound cell name")))
+  (let* ((rowcol (ses-sym-rowcol ses--curcell))
+	 (cell (ses-get-cell (car rowcol) (cdr rowcol))))
+    (dolist (reference (ses-cell-references (car rowcol) (cdr rowcol)))
+      (let* ((rowcol (ses-sym-rowcol reference))
+	     (cell  (ses-get-cell (car rowcol) (cdr rowcol))))
+	(ses-cell-set-formula (car rowcol)
+			      (cdr rowcol)
+			      (ses-replace-name-in-formula
+			       (ses-cell-formula cell)
+			       ses--curcell
+			       new-name))))
+    (put new-name 'ses-cell rowcol)
+    (set new-name (symbol-value ses--curcell))
+    (aset cell 0 new-name)
+    (put ses--curcell 'ses-cell nil)
+    (makunbound ses--curcell)
+    (setq ses--curcell new-name)
+    (let* ((pos (point))
+	   (inhibit-read-only t)
+	   (col (current-column))
+	   (end (save-excursion
+		  (move-to-column (1+ col))
+		  (if (eolp)
+		      (+ pos (ses-col-width col) 1)
+		    (point)))))
+      (put-text-property pos end 'intangible new-name))) )
 
 
 ;;----------------------------------------------------------------------------

@@ -1,3 +1,20 @@
+2011-12-11  Vincent Belaïche  <vincentb1@users.sourceforge.net>
+
+	* ses.el: The overall change is to add cell renaming, that is
+	setting fancy names for cell symbols other than name matching
+	"\\`[A-Z]+[0-9]+\\'" regexp .
+	(ses-create-cell-variable): New defun.
+	(ses-relocate-formula): Relocate formulas only for cells the
+	symbols of which are not renamed, i.e. symbols whose names do not
+	match regexp "\\`[A-Z]+[0-9]+\\'".
+	(ses-relocate-all): Relocate values only for cells the symbols of
+	which are not renamed.
+	(ses-load): Create cells variables as the (ses-cell ...) are read,
+	in order to check row col consistency with cell symbol name only
+	for cells that are not renamed.
+	(ses-replace-name-in-formula): New defun.
+	(ses-rename-cell): New defun.
+
 2011-12-11  Chong Yidong  <cyd@gnu.org>
 
 	* progmodes/gdb-mi.el (gdb): Set comint-prompt-regexp, required
