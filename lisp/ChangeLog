@@ -1,3 +1,83 @@
+2011-12-11  Juanma Barranquero  <lekktu@gmail.com>
+
+	* ses.el (ses-call-printer-return, ses-cell-property-get)
+	(ses-sym-rowcol, ses-printer-validate, ses-formula-record)
+	(ses-create-cell-variable, ses-reset-header-string)
+	(ses-cell-set-formula, ses-repair-cell-reference-all)
+	(ses-self-reference-early-detection, ses-in-print-area, ses-set-curcell)
+	(ses-check-curcell, ses-call-printer, ses-adjust-print-width)
+	(ses-print-cell-new-width, ses-formula-references, ses-relocate-formula)
+	(ses-aset-with-undo, ses-load, ses-truncate-cell)
+	(ses-read-column-printer, ses-read-default-printer, ses-insert-row)
+	(ses-delete-row, ses-delete-column, ses-append-row-jump-first-column)
+	(ses-kill-override, ses-yank-pop, ses-yank-cells, ses-yank-tsf)
+	(ses-yank-resize, ses-export-tab, ses-mark-row, ses-mark-column)
+	(ses-renarrow-buffer, ses-insert-range, ses-insert-ses-range)
+	(ses-safe-printer, ses-safe-formula, ses-warn-unsafe, ses--clean-!)
+	(ses--clean-_, ses-range, ses-select, ses-center, ses-center-span)
+	(ses-dashfill, ses-unsafe): Fix typos and reflow docstrings.
+
+2011-12-11  Vincent Belaïche  <vincentb1@users.sourceforge.net>
+
+	* ses.el: The overall change is to add cell renaming, that is
+	setting fancy names for cell symbols other than name matching
+	"\\`[A-Z]+[0-9]+\\'" regexp .
+	(ses-create-cell-variable): New defun.
+	(ses-relocate-formula): Relocate formulas only for cells the
+	symbols of which are not renamed, i.e. symbols whose names do not
+	match regexp "\\`[A-Z]+[0-9]+\\'".
+	(ses-relocate-all): Relocate values only for cells the symbols of
+	which are not renamed.
+	(ses-load): Create cells variables as the (ses-cell ...) are read,
+	in order to check row col consistency with cell symbol name only
+	for cells that are not renamed.
+	(ses-replace-name-in-formula): New defun.
+	(ses-rename-cell): New defun.
+
+2011-12-11  Chong Yidong  <cyd@gnu.org>
+
+	* progmodes/gdb-mi.el (gdb): Set comint-prompt-regexp, required
+	for completion via gud-gdb-fetch-lines-filter (Bug#10274).
+
+2011-12-11  Eric Hanchrow  <eric.hanchrow@gmail.com>
+
+	* window.el (other-window): Fix docstring.
+
+2011-12-10  Eli Zaretskii  <eliz@gnu.org>
+
+	* mail/rmailsum.el (rmail-header-summary): RFC2047 decode the
+	`from' or `to' address before taking its substring.  Fixes
+	incorrect display in Rmail summary buffer whereby an RFC2047
+	encoded name is chopped in the middle of the encoded string, and
+	thus displayed encoded.
+
+2011-12-10  Juanma Barranquero  <lekktu@gmail.com>
+
+	* makefile.w32-in (update-subdirs-CMD): Use a Local Variables section.
+
+2011-12-10  Eli Zaretskii  <eliz@gnu.org>
+
+	* textmodes/texnfo-upd.el: Update commentary.  Add a warning not
+	to use texinfo-update-node and commands that call it if the
+	Texinfo file uses @node lines without next/prev/up pointers.
+	Correct outdated description about texinfo-master-menu.
+	(texinfo-all-menus-update, texinfo-master-menu)
+	(texinfo-update-node, texinfo-every-node-update)
+	(texinfo-multiple-files-update): Doc fix.  Warn against updating
+	all the @node lines.
+	(texinfo-master-menu): Only call texinfo-update-node if the prefix
+	argument is numeric.  Explain better in the doc string what the
+	function really does.
+	(texinfo-insert-master-menu-list): Improve the error message
+	displayed if there's no menu in the Top node.
+	(Bug#2975)  See also this thread:
+	http://lists.gnu.org/archive/html/emacs-devel/2011-12/msg00156.html.
+
+2011-12-09  Manuel Gómez  <mgrojo@gmail.com>  (tiny change)
+
+	* speedbar.el (speedbar-supported-extension-expressions):
+	Add .adb and .ads, commonly used for Ada source code (bug#10256).
+
 2011-12-09  Juanma Barranquero  <lekktu@gmail.com>
 
 	* printing.el (pr-mode-alist):

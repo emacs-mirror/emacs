@@ -9961,6 +9961,11 @@ x_term_init (Lisp_Object display_name, char *xrm_option, char *resource_name)
            https://bugzilla.gnome.org/show_bug.cgi?id=563627.  */
         id = g_log_set_handler ("GLib", G_LOG_LEVEL_WARNING | G_LOG_FLAG_FATAL
                                   | G_LOG_FLAG_RECURSION, my_log_handler, NULL);
+
+        /* NULL window -> events for all windows go to our function.
+           Call before gtk_init so Gtk+ event filters comes after our.  */
+        gdk_window_add_filter (NULL, event_handler_gdk, NULL);
+
         gtk_init (&argc, &argv2);
         g_log_remove_handler ("GLib", id);
 
@@ -9969,9 +9974,6 @@ x_term_init (Lisp_Object display_name, char *xrm_option, char *resource_name)
         xg_initialize ();
 
         dpy = DEFAULT_GDK_DISPLAY ();
-
-        /* NULL window -> events for all windows go to our function */
-        gdk_window_add_filter (NULL, event_handler_gdk, NULL);
 
 #if GTK_MAJOR_VERSION <= 2 && GTK_MINOR_VERSION <= 90
         /* Load our own gtkrc if it exists.  */

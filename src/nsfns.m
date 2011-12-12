@@ -1546,6 +1546,17 @@ Optional arg INIT, if non-nil, provides a default file name to use.  */)
   return ret ? fname : Qnil;
 }
 
+const char *
+ns_get_defaults_value (const char *key)
+{
+  NSObject *obj = [[NSUserDefaults standardUserDefaults]
+                    objectForKey: [NSString stringWithUTF8String: key]];
+
+  if (!obj) return NULL;
+
+  return [[NSString stringWithFormat: @"%@", obj] UTF8String];
+}
+
 
 DEFUN ("ns-get-resource", Fns_get_resource, Sns_get_resource, 2, 2, 0,
        doc: /* Return the value of the property NAME of OWNER from the defaults database.
@@ -1560,9 +1571,7 @@ If OWNER is nil, Emacs is assumed.  */)
   CHECK_STRING (name);
 /*fprintf (stderr, "ns-get-resource checking resource '%s'\n", SDATA (name)); */
 
-  value =[[[NSUserDefaults standardUserDefaults]
-            objectForKey: [NSString stringWithUTF8String: SDATA (name)]]
-           UTF8String];
+  value = ns_get_defaults_value (SDATA (name));
 
   if (value)
     return build_string (value);
@@ -2217,8 +2226,7 @@ x_get_string_resource (XrmDatabase rdb, char *name, char *class)
     /* --quick was passed, so this is a no-op.  */
     return NULL;
 
-  res = [[[NSUserDefaults standardUserDefaults] objectForKey:
-            [NSString stringWithUTF8String: toCheck]] UTF8String];
+  res = ns_get_defaults_value (toCheck);
   return !res ? NULL :
       (!strncasecmp (res, "YES", 3) ? "true" :
           (!strncasecmp (res, "NO", 2) ? "false" : res));

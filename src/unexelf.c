@@ -1219,9 +1219,15 @@ temacs:
 	      nn = symp->st_shndx;
 	      if (nn > old_bss_index)
 		nn--;
-	      old = ((symp->st_value - NEW_SECTION_H (symp->st_shndx).sh_addr)
-		     + OLD_SECTION_H (nn).sh_offset + old_base);
-	      memcpy (new, old, symp->st_size);
+	      if (nn == old_bss_index)
+		memset (new, 0, symp->st_size);
+	      else
+		{
+		  old = ((symp->st_value
+			  - NEW_SECTION_H (symp->st_shndx).sh_addr)
+			 + OLD_SECTION_H (nn).sh_offset + old_base);
+		  memcpy (new, old, symp->st_size);
+		}
 	    }
 #endif
 	}

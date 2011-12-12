@@ -8756,6 +8756,7 @@ to the string.  */)
     }
 
   positions = Qnil;
+  charset_map_loaded = 0;
   while (1)
     {
       int c;
@@ -8783,6 +8784,16 @@ to the string.  */)
 	}
 
       from++;
+      if (charset_map_loaded && NILP (string))
+	{
+	  p = CHAR_POS_ADDR (from);
+	  pend = CHAR_POS_ADDR (to);
+	  if (from < GPT && to >= GPT)
+	    stop = GPT_ADDR;
+	  else
+	    stop = pend;
+	  charset_map_loaded = 0;
+	}
     }
 
   return (NILP (count) ? Fcar (positions) : Fnreverse (positions));
