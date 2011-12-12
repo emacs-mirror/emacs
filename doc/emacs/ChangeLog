@@ -1,3 +1,15 @@
+2011-12-12  Chong Yidong  <cyd@gnu.org>
+
+	* building.texi (Executing Lisp): Fix xref for C-M-x.
+	(Lisp Libraries): Add xref to node explaining `load' in Lisp
+	manual.  Note that load-path is not customizable.
+	(Lisp Eval): Note that listed commands are available globally.
+	Explain the meaning of "defun" in the C-M-x context.
+	(Lisp Interaction): Copyedits.
+	(External Lisp): Fix name of inferior Lisp buffer.  Mention
+	Scheme.
+	(Compilation): Define "inferior process".
+
 2011-12-10  Eli Zaretskii  <eliz@gnu.org>
 
 	* msdog.texi (Windows Fonts): Document how to force GDI font

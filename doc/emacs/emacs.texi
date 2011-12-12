@@ -699,7 +699,7 @@ Compiling and Testing Programs
 * Executing Lisp::      Various modes for editing Lisp programs,
                           with different facilities for running
                           the Lisp programs.
-* Lisp Libraries::      Creating Lisp programs to run in Emacs.
+* Lisp Libraries::      How Lisp programs are loaded into Emacs.
 * Lisp Eval::           Executing a single Lisp expression in Emacs.
 * Lisp Interaction::    Executing Lisp in an Emacs buffer.
 * External Lisp::       Communicating through Emacs with a separate Lisp.
