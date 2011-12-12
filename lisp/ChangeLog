@@ -1,3 +1,12 @@
+2011-12-12  Daniel Pfeiffer  <occitan@t-online.de>
+
+	* progmodes/make-mode.el: Bring it up to date with makepp V2.0.
+	(makefile-make-font-lock-keywords): Extend meaning of `keywords'.
+	(makefile-gmake-statements, makefile-makepp-statements):
+	Use it and add new makepp keywords.
+	(makefile-makepp-font-lock-keywords): Add new patterns.
+	(makefile-match-function-end): Match new [...] and [[...]].
+
 2011-12-11  Juanma Barranquero  <lekktu@gmail.com>
 
 	* ses.el (ses-call-printer-return, ses-cell-property-get)
