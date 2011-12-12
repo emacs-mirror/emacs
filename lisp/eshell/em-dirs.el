@@ -160,7 +160,7 @@ it's far more automatic.  `pushd' allows the user to decide which
 directories gets pushed, and its size is unlimited.
 
 `eshell-last-dir-ring' is meant for users who don't use `pushd'
-explicity very much, but every once in a while would like to return to
+explicitly very much, but every once in a while would like to return to
 a previously visited directory without having to type in the whole
 thing again."
   :type 'integer

@@ -943,7 +943,7 @@ Note that the style variables are always made local to the buffer."
   ;; Note that this function must be FAST rather than accurate.  Note
   ;; also that it only has any effect when font locking is enabled.
   ;; We exploit this by checking for font-lock-*-face instead of doing
-  ;; rigourous syntactic analysis.
+  ;; rigorous syntactic analysis.
 
   ;; If either change boundary is wholly inside an identifier, delete
   ;; it/them from the cache.  Don't worry about being inside a string

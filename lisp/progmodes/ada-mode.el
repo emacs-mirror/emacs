@@ -499,7 +499,7 @@ Used to define `ada-*-keywords.'"))
 
 (defvar ada-case-exception-substring '()
   "Alist of substrings (entities) that have special casing.
-The substrings are detected for word constituant when the word
+The substrings are detected for word constituent when the word
 is not itself in `ada-case-exception', and only for substrings that
 either are at the beginning or end of the word, or start after '_'.")
 
@@ -1773,7 +1773,7 @@ ATTENTION: This function might take very long for big buffers!"
 ;;    `ada-insert-paramlist'.
 ;; Both steps are called from `ada-format-paramlist'.
 ;; Note: Comments inside the parameter list are lost.
-;;       The syntax has to be correct, or the reformating will fail.
+;;       The syntax has to be correct, or the reformatting will fail.
 ;;--------------------------------------------------------------
 
 (defun ada-format-paramlist ()
@@ -2139,7 +2139,7 @@ command like:
 
   (while command-line-args-left
     (let ((source (car command-line-args-left)))
-      (message "Formating %s" source)
+      (message "Formatting %s" source)
       (find-file source)
       (ada-indent-region (point-min) (point-max))
       (ada-adjust-case-buffer)

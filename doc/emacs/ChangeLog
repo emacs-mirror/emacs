@@ -1676,7 +1676,7 @@
 2009-08-31  Nick Roberts  <nickrob@snap.net.nz>
 
 	* building.texi (Threads Buffer, Multithreaded Debugging):
-	Re-organise these two sections.
+	Reorganize these two sections.
 
 2009-08-29  Eli Zaretskii  <eliz@gnu.org>
 

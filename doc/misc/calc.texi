@@ -16873,7 +16873,7 @@ The @kbd{t U} (@code{calc-unix-time}) [@code{unixtime}] command
 converts a date form into a Unix time value, which is the number of
 seconds since midnight on Jan 1, 1970, or vice-versa.  The numeric result
 will be an integer if the current precision is 12 or less; for higher
-precisions, the result may be a float with (@var{precision}@minus{}12)
+precision, the result may be a float with (@var{precision}@minus{}12)
 digits after the decimal.  Just as for @kbd{t J}, the numeric time
 is interpreted in the GMT time zone and the date form is interpreted
 in the current or specified zone.  Some systems use Unix-like
@@ -16943,7 +16943,7 @@ from a date form as an integer in the range 0 to 59.
 The @kbd{M-6 t P} [@code{second}] function extracts the second
 from a date form.  If the current precision is 12 or less,
 the result is an integer in the range 0 to 59.  For higher
-precisions, the result may instead be a floating-point number.
+precision, the result may instead be a floating-point number.
 
 @tindex weekday
 The @kbd{M-7 t P} [@code{weekday}] function extracts the weekday
@@ -18499,7 +18499,7 @@ counterparts, which are also available separately as @code{calc-sech}
 Calc can compute a variety of less common functions that arise in
 various branches of mathematics.  All of the functions described in
 this section allow arbitrary complex arguments and, except as noted,
-will work to arbitrarily large precisions.  They can not at present
+will work to arbitrarily large precision.  They can not at present
 handle error forms or intervals as arguments.
 
 NOTE:  These functions are still experimental.  In particular, their

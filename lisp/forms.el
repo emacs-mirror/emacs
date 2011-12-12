@@ -709,7 +709,7 @@ Commands:                        Equivalent keys in read-only mode:
       (forms-first-record))
     )
 
-  ;; user customising
+  ;; user customizing
   ;;(message "forms: proceeding setup (user hooks)...")
   (run-mode-hooks 'forms-mode-hook 'forms-mode-hooks)
   ;;(message "forms: setting up... done.")

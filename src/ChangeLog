@@ -1,3 +1,8 @@
+2011-12-11  Kenichi Handa  <handa@m17n.org>
+
+	* coding.c (Funencodable_char_position): Pay attention to the
+	buffer text relocation (Bug#9389).
+
 2011-12-10  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* xterm.c (x_term_init): Move call to gdk_window_add_filter before

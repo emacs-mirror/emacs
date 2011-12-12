@@ -2822,7 +2822,7 @@ read1 (register Lisp_Object readcharfun, int *pch, int first_in_list)
 	   So we now use the same heuristic as for backquote: old-style
 	   unquotes are only recognized when first on a list, and when
 	   followed by a space.
-	   Because it's more difficult to peak 2 chars ahead, a new-style
+	   Because it's more difficult to peek 2 chars ahead, a new-style
 	   ,@ can still not be used outside of a `, unless it's in the middle
 	   of a list.  */
 	if (new_backquote_flag

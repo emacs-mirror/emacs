@@ -2113,7 +2113,7 @@ comment at the start of cc-engine.el for more info."
   ;; buffer).  Otherwise, return nil.
   ;;
   ;; This function is almost the same as `c-literal-limits'.  It differs in
-  ;; that it is a lower level function, and that it rigourously follows the
+  ;; that it is a lower level function, and that it rigorously follows the
   ;; syntax from BOB, whereas `c-literal-limits' uses a "local" safe position.
   ;;
   ;; NOTE: This function manipulates `c-state-nonlit-pos-cache'.  This cache

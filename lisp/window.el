@@ -2204,9 +2204,9 @@ skip -COUNT windows backwards.  COUNT zero means do not skip any
 window, so select the selected window.  In an interactive call,
 COUNT is the numeric prefix argument.  Return nil.
 
-If the `other-window' parameter of WINDOW is a function and
-`ignore-window-parameters' is nil, call that function with the
-arguments COUNT and ALL-FRAMES.
+If the `other-window' parameter of the selected window is a
+function and `ignore-window-parameters' is nil, call that
+function with the arguments COUNT and ALL-FRAMES.
 
 This function does not select a window whose `no-other-window'
 window parameter is non-nil.

@@ -8618,7 +8618,7 @@
 	(menu-bar-showhide-tool-bar-menu-customize-enable-right)
 	(menu-bar-showhide-tool-bar-menu-customize-enable-bottom)
 	(menu-bar-showhide-tool-bar-menu-customize-enable-top): New functions
-	(menu-bar-showhide-tool-bar-menu): If tool bar is moveable,
+	(menu-bar-showhide-tool-bar-menu): If tool bar is movable,
 	make a menu for Options => toolbar that can move it.
 
 2010-07-29  Chong Yidong  <cyd@stupidchicken.com>

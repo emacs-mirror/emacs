@@ -36,7 +36,7 @@
 ;; This makes these modes easier to use.
 
 ;; For documentation on the functionality provided by comint mode, and
-;; the hooks available for customising it, see the file comint.el.
+;; the hooks available for customizing it, see the file comint.el.
 ;; For further information on inferior-lisp mode, see the comments below.
 
 ;; Needs fixin:

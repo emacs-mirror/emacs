@@ -8353,9 +8353,9 @@ $as_echo "no" >&6; }
 
   if test $HAVE_ALSA = yes; then
     SAVE_CFLAGS="$CFLAGS"
-    SAVE_LDFLAGS="$LDFLAGS"
+    SAVE_LIBS="$LIBS"
     CFLAGS="$ALSA_CFLAGS $CFLAGS"
-    LDFLAGS="$ALSA_LIBS $LDFLAGS"
+    LIBS="$ALSA_LIBS $LIBS"
     cat confdefs.h - <<_ACEOF >conftest.$ac_ext
 /* end confdefs.h.  */
 #include <asoundlib.h>
@@ -8398,7 +8398,7 @@ rm -f core conftest.err conftest.$ac_objext conftest.$ac_ext
     fi
 
     CFLAGS="$SAVE_CFLAGS"
-    LDFLAGS="$SAVE_LDFLAGS"
+    LIBS="$SAVE_LIBS"
     LIBSOUND="$LIBSOUND $ALSA_LIBS"
     CFLAGS_SOUND="$CFLAGS_SOUND $ALSA_CFLAGS"
 
@@ -11567,9 +11567,9 @@ fi
 
 if test "$HAVE_GSETTINGS" = "yes" || test "$HAVE_GCONF" = "yes"; then
     SAVE_CFLAGS="$CFLAGS"
-    SAVE_LDFLAGS="$LDFLAGS"
+    SAVE_LIBS="$LIBS"
     CFLAGS="$SETTINGS_CFLAGS $CFLAGS"
-    LDFLAGS="$SETTINGS_LIBS $LDFLAGS"
+    LIBS="$SETTINGS_LIBS $LIBS"
     for ac_func in g_type_init
 do :
   ac_fn_c_check_func "$LINENO" "g_type_init" "ac_cv_func_g_type_init"
@@ -11582,7 +11582,7 @@ fi
 done
 
     CFLAGS="$SAVE_CFLAGS"
-    LDFLAGS="$SAVE_LDFLAGS"
+    LIBS="$SAVE_LIBS"
 fi
 
 

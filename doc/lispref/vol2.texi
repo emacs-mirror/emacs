@@ -1401,7 +1401,7 @@ Operating System Interface
 * System Environment::      Distinguish the name and kind of system.
 * User Identification::     Finding the name and user id of the user.
 * Time of Day::             Getting the current time.
-* Time Conversion::         Converting a time from numeric form to 
+* Time Conversion::         Converting a time from numeric form to
                               calendrical data and vice versa.
 * Time Parsing::            Converting a time from numeric form to text
                               and vice versa.
@@ -1457,7 +1457,7 @@ Tips and Conventions
 GNU Emacs Internals
 
 * Building Emacs::          How the dumped Emacs is made.
-* Pure Storage::            A kludge to make preloaded Lisp functions sharable.
+* Pure Storage::            Kludge to make preloaded Lisp functions shareable.
 * Garbage Collection::      Reclaiming space for Lisp objects no longer used.
 * Memory Usage::            Info about total size of Lisp objects made so far.
 * Writing Emacs Primitives::  Writing C code for Emacs.

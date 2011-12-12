@@ -553,7 +553,7 @@ struct terminal
 
   /* Arrange for all scroll bars on FRAME to be removed at the next call
      to `*judge_scroll_bars_hook'.  A scroll bar may be spared if
-     `*redeem_scroll_bar_hook' is applied to its window before the judgement.
+     `*redeem_scroll_bar_hook' is applied to its window before the judgment.
 
      This should be applied to each frame each time its window tree is
      redisplayed, even if it is not displaying scroll bars at the moment;
@@ -565,7 +565,7 @@ struct terminal
      currently displaying them.  */
   void (*condemn_scroll_bars_hook) (struct frame *frame);
 
-  /* Unmark WINDOW's scroll bar for deletion in this judgement cycle.
+  /* Unmark WINDOW's scroll bar for deletion in this judgment cycle.
      Note that it's okay to redeem a scroll bar that is not condemned.  */
   void (*redeem_scroll_bar_hook) (struct window *window);
 

@@ -960,7 +960,7 @@ ftfont_list (Lisp_Object frame, Lisp_Object spec)
   /* Need fix because this finds any fonts.  */
   if (fontset->nfont == 0 && ! NILP (family))
     {
-      /* Try maching with configuration.  For instance, the
+      /* Try matching with configuration.  For instance, the
 	 configuration may specify "Nimbus Mono L" as an alias of
 	 "Courier".  */
       FcPattern *pat = FcPatternBuild (0, FC_FAMILY, FcTypeString,

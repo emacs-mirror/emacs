@@ -427,7 +427,7 @@ TABLE is a tag table.  See `semantic-something-to-tag-table'."
 
 ;;; Old Style Brute Force Search Routines
 ;;
-;; These functions will search through tags lists explicity for
+;; These functions will search through tags lists explicitly for
 ;; desired information.
 
 ;; The -by-name nonterminal search can use the built in fcn

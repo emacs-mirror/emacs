@@ -420,7 +420,7 @@ SECRET-KEYS is a plist containing secret data."
 							  (current-buffer)))))
 			  (epa-select-keys
 			   context
-			   "Select recipents for encryption.
+			   "Select recipients for encryption.
 If no one is selected, symmetric encryption will be performed.  "
 			   recipients)
 			(if plstore-encrypt-to

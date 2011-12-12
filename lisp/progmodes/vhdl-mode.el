@@ -10812,7 +10812,7 @@ but not if inside a comment or quote."
 
 (defvar vhdl-port-list nil
   "Variable to hold last port map parsed.")
-;; structure: (parenthesised expression means list of such entries)
+;; structure: (parenthesized expression means list of such entries)
 ;; (ent-name
 ;;  ((generic-names) generic-type generic-init generic-comment group-comment)
 ;;  ((port-names) port-object port-direct port-type port-comment group-comment)
@@ -11660,7 +11660,7 @@ reflected in a subsequent paste operation."
 
 (defvar vhdl-subprog-list nil
   "Variable to hold last subprogram interface parsed.")
-;; structure: (parenthesised expression means list of such entries)
+;; structure: (parenthesized expression means list of such entries)
 ;; (subprog-name kind
 ;;  ((names) object direct type init comment group-comment)
 ;;  return-type return-comment group-comment)
@@ -12971,7 +12971,7 @@ This does background highlighting of translate-off regions.")
 (defvar vhdl-entity-alist nil
   "Cache with entities and corresponding architectures for each
 project/directory.")
-;; structure: (parenthesised expression means list of such entries)
+;; structure: (parenthesized expression means list of such entries)
 ;; (cache-key
 ;;   (ent-key ent-name ent-file ent-line
 ;;     (arch-key arch-name arch-file arch-line
@@ -12982,7 +12982,7 @@ project/directory.")
 
 (defvar vhdl-config-alist nil
   "Cache with configurations for each project/directory.")
-;; structure: (parenthesised expression means list of such entries)
+;; structure: (parenthesized expression means list of such entries)
 ;; (cache-key
 ;;   (conf-key conf-name conf-file conf-line ent-key arch-key
 ;;     (inst-key inst-comp-name inst-ent-key inst-arch-key
@@ -12991,7 +12991,7 @@ project/directory.")
 
 (defvar vhdl-package-alist nil
   "Cache with packages for each project/directory.")
-;; structure: (parenthesised expression means list of such entries)
+;; structure: (parenthesized expression means list of such entries)
 ;; (cache-key
 ;;   (pack-key pack-name pack-file pack-line
 ;;     (comp-key comp-name comp-file comp-line)
@@ -13003,19 +13003,19 @@ project/directory.")
 
 (defvar vhdl-ent-inst-alist nil
   "Cache with instantiated entities for each project/directory.")
-;; structure: (parenthesised expression means list of such entries)
+;; structure: (parenthesized expression means list of such entries)
 ;; (cache-key (inst-ent-key))
 
 (defvar vhdl-file-alist nil
   "Cache with design units in each file for each project/directory.")
-;; structure: (parenthesised expression means list of such entries)
+;; structure: (parenthesized expression means list of such entries)
 ;; (cache-key
 ;;   (file-name (ent-list) (arch-list) (arch-ent-list) (conf-list)
 ;;		(pack-list) (pack-body-list) (inst-list) (inst-ent-list))
 
 (defvar vhdl-directory-alist nil
   "Cache with source directories for each project.")
-;; structure: (parenthesised expression means list of such entries)
+;; structure: (parenthesized expression means list of such entries)
 ;; (cache-key (directory))
 
 (defvar vhdl-speedbar-shown-unit-alist nil
@@ -13655,7 +13655,7 @@ of PROJECT."
       (vhdl-speedbar-update-current-unit)
       (when updated (message "Updating hierarchy...done")))))
 
-;; structure (parenthesised expression means list of such entries)
+;; structure (parenthesized expression means list of such entries)
 ;; (inst-key inst-file-marker comp-ent-key comp-ent-file-marker
 ;;  comp-arch-key comp-arch-file-marker comp-conf-key comp-conf-file-marker
 ;;  comp-lib-name level)

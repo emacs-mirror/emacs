@@ -44,7 +44,7 @@
 
 (defcustom tramp-inline-compress-start-size 4096
   "*The minimum size of compressing where inline transfer.
-When inline transfer, compress transfered data of file
+When inline transfer, compress transferred data of file
 whose size is this value or above (up to `tramp-copy-size-limit').
 If it is nil, no compression at all will be applied."
   :group 'tramp
@@ -3726,7 +3726,7 @@ process to set up.  VEC specifies the connection."
   ;; Check whether the output of "uname -sr" has been changed.  If
   ;; yes, this is a strong indication that we must expire all
   ;; connection properties.  We start again with
-  ;; `tramp-maybe-open-connection', it will be catched there.
+  ;; `tramp-maybe-open-connection', it will be caught there.
   (tramp-message vec 5 "Checking system information")
   (let ((old-uname (tramp-get-connection-property vec "uname" nil))
 	(new-uname
@@ -4215,7 +4215,7 @@ connection if a previous connection has died for some reason."
 	    (tramp-send-command vec "echo are you awake" t t)
 	    (unless (and (memq (process-status p) '(run open))
 			 (tramp-wait-for-output p 10))
-	      ;; The error will be catched locally.
+	      ;; The error will be caught locally.
 	      (tramp-error vec 'file-error "Awake did fail")))
 	(file-error
 	 (tramp-flush-connection-property vec)

@@ -1332,7 +1332,7 @@ Prefix ARG controls sort order, see `proced-sort-interactive'."
             (proced-sort-interactive key arg)
           (message "No sorter defined here."))))))
 
-;;; Formating
+;;; Formatting
 
 (defun proced-format-time (time)
   "Format time interval TIME."

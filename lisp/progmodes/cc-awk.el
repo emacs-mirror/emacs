@@ -545,7 +545,7 @@
 (defun c-awk-vsemi-status-unknown-p ()
   ;; Are we unsure whether there is a virtual semicolon on the current line?
   ;; DO NOT under any circumstances attempt to calculate this; that would
-  ;; defeat the (admittedly kludgey) purpose of this function, which is to
+  ;; defeat the (admittedly kludgy) purpose of this function, which is to
   ;; prevent an infinite recursion in c-beginning-of-statement-1 when point
   ;; starts at a `while' token.
   (not (c-get-char-property (c-point 'eol) 'c-awk-NL-prop)))

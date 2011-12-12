@@ -62,7 +62,6 @@
 (mapc 'make-variable-buffer-local
       '(
 	url-current-object
-	url-current-referer
 	url-current-mime-headers
 	))
 

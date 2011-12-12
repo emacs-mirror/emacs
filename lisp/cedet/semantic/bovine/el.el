@@ -497,15 +497,15 @@ used to perform the override."
 Unfortunately, this requires that the tag in question has been loaded
 into Emacs Lisp's memory."
   (let ((obsoletethis (intern-soft (semantic-tag-name tag)))
-	(obsoletor nil))
+	(obsoleter nil))
     ;; This asks if our tag is available in the Emacs name space for querying.
     (when obsoletethis
       (mapatoms (lambda (a)
 		  (let ((oi (get a 'byte-obsolete-info)))
 		    (if (and oi (eq (car oi) obsoletethis))
-			(setq obsoletor a)))))
-      (if obsoletor
-	  (format "\n@obsolete{%s,%s}" obsoletor (semantic-tag-name tag))
+			(setq obsoleter a)))))
+      (if obsoleter
+	  (format "\n@obsolete{%s,%s}" obsoleter (semantic-tag-name tag))
 	""))))
 
 (define-mode-local-override semantic-documentation-for-tag

@@ -3870,7 +3870,7 @@ usage: (format STRING &rest OBJECTS)  */)
 	      enum
 	      {
 		/* Maximum precision for a %f conversion such that the
-		   trailing output digit might be nonzero.  Any precisions
+		   trailing output digit might be nonzero.  Any precision
 		   larger than this will not yield useful information.  */
 		USEFUL_PRECISION_MAX =
 		  ((1 - DBL_MIN_EXP)
