@@ -3595,7 +3595,7 @@
 	(autoload): Silence byte-compiler.
 	(nnir-open-server): Add a hook for nnir groups.
 	(nnir-request-move-article): Don't mangle the header.  Better to use
-	formating variables (which will be added in the future).
+	formatting variables (which will be added in the future).
 	(nnir-registry-action): Update the registry using the original article
 	group name.
 	(nnir-mode): Install nnir-specific hooks for updating the registry.
@@ -21851,7 +21851,7 @@
 
 2004-01-06  Steve Youngs  <sryoungs@bigpond.net.au>
 
-	* gnus-ems.el (gnus-mode-line-modified): Don't conditionalise on
+	* gnus-ems.el (gnus-mode-line-modified): Don't conditionalize on
 	XEmacs version.
 
 	* dns.el (dns-make-network-process): Use `open-network-stream'

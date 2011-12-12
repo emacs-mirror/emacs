@@ -9754,7 +9754,7 @@
 	directory have been changed to reflect this.
 
 	* All instances of @indentedresultt{} have been changed to
-	`     @result{}', using 5 spaces at the begining of the line.
+	`     @result{}', using 5 spaces at the beginning of the line.
 
 1989-04-24  Robert J. Chassell  (bob@rice-chex.ai.mit.edu)
 

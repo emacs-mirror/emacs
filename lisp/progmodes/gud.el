@@ -1919,7 +1919,7 @@ extension EXTN.  Normally EXTN is given as the regular expression
 ;; in petticoat junction.
 (defun gud-jdb-skip-block ()
 
-  ;; Find the begining of the block.
+  ;; Find the beginning of the block.
   (while
       (not (eq (following-char) ?{))
 
@@ -1936,7 +1936,7 @@ extension EXTN.  Normally EXTN is given as the regular expression
       (gud-jdb-skip-character-literal))
      (t (forward-char))))
 
-  ;; Now at the begining of the block.
+  ;; Now at the beginning of the block.
   (forward-char)
 
   ;; Skip over the body of the block as well as the final brace.

@@ -26,7 +26,7 @@
 ;;; Commentary:
 
 ;; These functions should be automatically loaded when called, but you
-;; can explicity (require 'ibuf-ext) in your ~/.emacs to have them
+;; can explicitly (require 'ibuf-ext) in your ~/.emacs to have them
 ;; preloaded.
 
 ;;; Code:

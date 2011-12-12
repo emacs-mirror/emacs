@@ -7261,7 +7261,7 @@
 	* progmodes/gdb-ui.el (gdb-parent-bptno-enabled): New variable.
 	(gdb-breakpoint-regexp, gdb-mouse-toggle-breakpoint-margin)
 	(gdb-mouse-toggle-breakpoint-fringe, gdb-delete-breakpoint)
-	(gdb-goto-breakpoint): Generalise for breakpoints with multiple
+	(gdb-goto-breakpoint): Generalize for breakpoints with multiple
 	locations.
 	(gdb-info-breakpoints-custom, gdb-assembler-custom)
 	(gdb-toggle-breakpoint): Update for new gdb-breakpoint-regexp.

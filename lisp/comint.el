@@ -45,7 +45,7 @@
 ;; It is pretty easy to make new derived modes for other processes.
 
 ;; For documentation on the functionality provided by Comint mode, and
-;; the hooks available for customising it, see the comments below.
+;; the hooks available for customizing it, see the comments below.
 ;; For further information on the standard derived modes (shell,
 ;; inferior-lisp, inferior-scheme, ...), see the relevant source files.
 

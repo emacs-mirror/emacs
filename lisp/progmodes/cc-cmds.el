@@ -1360,7 +1360,7 @@ No indentation or other \"electric\" behavior is performed."
   ;; Determine where we are with respect to functions (or other brace
   ;; constructs, included in the term "function" in the rest of this comment).
   ;; Point is assumed to be outside any macro or literal.
-  ;; This is used by c-\(begining\|end\)-of-defun.
+  ;; This is used by c-\(beginning\|end\)-of-defun.
   ;;
   ;; Return one of these symbols:
   ;; at-header       : we're at the start of a function's header.

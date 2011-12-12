@@ -522,7 +522,7 @@ don't have EOL terminated statements. "
 
 (c-lang-defconst c-vsemi-status-unknown-p-fn
   "Contains a function \"are we unsure whether there is a virtual semicolon on this line?\".
-The (admittedly kludgey) purpose of such a function is to prevent an infinite
+The (admittedly kludgy) purpose of such a function is to prevent an infinite
 recursion in c-beginning-of-statement-1 when point starts at a `while' token.
 The function MUST NOT UNDER ANY CIRCUMSTANCES call c-beginning-of-statement-1,
 even indirectly.  This variable contains nil for languages which don't have

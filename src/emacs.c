@@ -951,7 +951,7 @@ main (int argc, char **argv)
     }
 
   /* Command line option --no-windows is deprecated and thus not mentioned
-     in the manual and usage informations.  */
+     in the manual and usage information.  */
   if (argmatch (argv, argc, "-nw", "--no-window-system", 6, NULL, &skip_args)
       || argmatch (argv, argc, "-nw", "--no-windows", 6, NULL, &skip_args))
     inhibit_window_system = 1;
