@@ -5,6 +5,7 @@
 	doc-strings.
 	(Vrecenter_redisplay): Add first sentence of doc-string on
 	separate line.
+	(Frecenter): Fix doc-string typo.
 
 2011-12-11  Kenichi Handa  <handa@m17n.org>
 

@@ -4995,7 +4995,7 @@ the selected window; if the variable `recenter-redisplay' is non-nil,
 also erase the entire frame and redraw it (when `auto-resize-tool-bars'
 is set to `grow-only', this resets the tool-bar's height to the minimum
 height needed); if `recenter-redisplay' has the special value `tty',
-then only tty frame are redrawn.
+then only tty frames are redrawn.
 
 Just C-u as prefix means put point in the center of the window
 and redisplay normally--don't erase and redraw the frame.  */)
