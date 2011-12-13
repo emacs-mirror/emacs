@@ -6500,9 +6500,10 @@ with the relevant frame selected.  */);
   Vwindow_configuration_change_hook = Qnil;
 
   DEFVAR_LISP ("recenter-redisplay", Vrecenter_redisplay,
-	       doc: /* If non-nil, then the `recenter' command with a nil argument
-will redraw the entire frame; the special value `tty' causes the
-frame to be redrawn only if it is a tty frame.  */);
+	       doc: /* Non-nil means `recenter' redraws entire frame.
+If this option is non-nil, then the `recenter' command with a nil
+argument will redraw the entire frame; the special value `tty' causes
+the frame to be redrawn only if it is a tty frame.  */);
   Vrecenter_redisplay = Qtty;
 
   DEFVAR_LISP ("window-combination-resize", Vwindow_combination_resize,

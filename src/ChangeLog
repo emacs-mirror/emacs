@@ -3,6 +3,8 @@
 	* window.c (Vwindow_combination_resize)
 	(Vwindow_combination_limit): Use t instead of non-nil in
 	doc-strings.
+	(Vrecenter_redisplay): Add first sentence of doc-string on
+	separate line.
 
 2011-12-11  Kenichi Handa  <handa@m17n.org>
 
