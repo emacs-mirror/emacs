@@ -2455,7 +2455,7 @@ window signal an error."
 	(throw 'done (delete-other-windows atom-root)))
        ((eq window-side 'none)
 	;; Set side-main to the major non-side window.
-	(setq side-main (window-with-parameter 'window-side 'none nil t)))
+	(setq side-main (window-with-parameter 'window-side 'none frame t)))
        ((memq window-side window-sides)
 	(error "Cannot make side window the only window")))
       ;; If WINDOW is the main non-side window, do nothing.

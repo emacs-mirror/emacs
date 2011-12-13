@@ -13,7 +13,7 @@ internal aspects of GNU Emacs that may be of interest to C programmers.
 
 @menu
 * Building Emacs::      How the dumped Emacs is made.
-* Pure Storage::        A kludge to make preloaded Lisp functions sharable.
+* Pure Storage::        Kludge to make preloaded Lisp functions shareable.
 * Garbage Collection::  Reclaiming space for Lisp objects no longer used.
 * Memory Usage::        Info about total size of Lisp objects made so far.
 * Writing Emacs Primitives::   Writing C code for Emacs.
@@ -196,7 +196,7 @@ function definition in pure storage.  If it is non-@code{nil}, then the
 function definition is copied into pure storage.
 
 This flag is @code{t} while loading all of the basic functions for
-building Emacs initially (allowing those functions to be sharable and
+building Emacs initially (allowing those functions to be shareable and
 non-collectible).  Dumping Emacs as an executable always writes
 @code{nil} in this variable, regardless of the value it actually has
 before and after dumping.

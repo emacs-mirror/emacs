@@ -97,7 +97,7 @@
 ;; operates over the text rectangle selected which rectangle diagonal is
 ;; given by the region start and end.
 ;;
-;; See `delimit-columns-format' variable documentation for column formating.
+;; See `delimit-columns-format' variable documentation for column formatting.
 ;;
 ;; `delimit-columns-region' is useful when you have columns of text that
 ;; are not well aligned, like:
@@ -171,7 +171,7 @@ For examples below, consider:
 
 Valid values are:
 
-   nil		no formating.  That is, `delimit-columns-after' is followed by
+   nil		no formatting.  That is, `delimit-columns-after' is followed by
 		`delimit-columns-separator'.
 		For example, the result is: \"<ccc>:<dddd>:\"
 
@@ -190,9 +190,9 @@ Valid values are:
 		For example, the result is: \"<ccc   >:<dddd  >:\"
 
 Any other value is treated as t."
-  :type '(choice :menu-tag "Column Formating"
-		 :tag "Column Formating"
-		 (const :tag "No Formating" nil)
+  :type '(choice :menu-tag "Column Formatting"
+		 :tag "Column Formatting"
+		 (const :tag "No Formatting" nil)
 		 (const :tag "Column Alignment" t)
 		 (const :tag "Separator Alignment" separator)
 		 (const :tag "Column Padding" padding))
@@ -404,7 +404,7 @@ START and END delimits the corners of text rectangle."
 		(re-search-forward delimit-columns-separator
 				   delimit-columns-limit 'move))
       (setq ncol (1+ ncol)))
-    ;; insert first formating
+    ;; insert first formatting
     (insert delimit-columns-str-before delimit-columns-before)
     ;; Adjust all columns but last one
     (while (progn
@@ -436,7 +436,7 @@ START and END delimits the corners of text rectangle."
 	     (setq spaces (and delimit-columns-format
 			       (make-string (aref delimit-columns-max ncol)
 					    ?\s)))))
-      ;; insert last formating
+      ;; insert last formatting
       (cond ((null delimit-columns-format)
 	     (insert delimit-columns-after delimit-columns-str-after))
 	    ((eq delimit-columns-format 'padding)

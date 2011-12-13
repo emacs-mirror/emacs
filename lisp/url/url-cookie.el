@@ -316,7 +316,7 @@ telling Microsoft that."
 	 (set (if (> trusted untrusted) 'untrusted 'trusted) nil))
     (cond
      (untrusted
-      ;; The site was explicity marked as untrusted by the user.
+      ;; The site was explicitly marked as untrusted by the user.
       nil)
      ((or (eq url-privacy-level 'paranoid)
 	  (and (listp url-privacy-level) (memq 'cookies url-privacy-level)))

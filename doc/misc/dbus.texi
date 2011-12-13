@@ -1816,7 +1816,7 @@ handled by a hook function.
 @defvar dbus-event-error-hooks
 This hook variable keeps a list of functions, which are called when a
 D-Bus error happens in the event handler.  Every function must accept
-two arguments, the event and the error variable catched in
+two arguments, the event and the error variable caught in
 @code{condition-case} by @code{dbus-error}.
 
 Such functions can be used the adapt the error signal to be raised.

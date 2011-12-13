@@ -630,7 +630,7 @@ nsfont_list (Lisp_Object frame, Lisp_Object font_spec)
 }
 
 
-/* Return a font entity most closely maching with FONT_SPEC on
+/* Return a font entity most closely matching with FONT_SPEC on
    FRAME.  The closeness is determined by the font backend, thus
    `face-font-selection-order' is ignored here.
    Properties to be considered are same as for list(). */

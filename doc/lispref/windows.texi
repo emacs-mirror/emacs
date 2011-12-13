@@ -793,20 +793,20 @@ the new root window.
 
 @defopt window-combination-resize
 If this variable is @code{nil}, @code{split-window} can only split a
-window (denoted by @var{window}) if @var{window}'s screen area is
-large enough to accommodate both itself and the new window.  This is
-the default.
+window (denoted by @var{window}) if @var{window}'s screen area is large
+enough to accommodate both itself and the new window.
 
-If this variable is non-@code{nil}, @code{split-window} tries to
-resize all windows that are part of the same combination as
-@var{window}, in order to accommodate the new window.  In particular,
-this may allow @code{split-window} to succeed even if @var{window} is
-a fixed-size window or too small to ordinarily split.  Furthermore,
-subsequently resizing or deleting @var{window} may resize all other
-windows in its combination.
+If this variable is @code{t}, @code{split-window} tries to resize all
+windows that are part of the same combination as @var{window}, in order
+to accommodate the new window.  In particular, this may allow
+@code{split-window} to succeed even if @var{window} is a fixed-size
+window or too small to ordinarily split.  Furthermore, subsequently
+resizing or deleting @var{window} may resize all other windows in its
+combination.
 
-This variable has no effect if @code{window-combination-limit} is
-non-@code{nil} (see below).
+The default is @code{nil}.  Other values are reserved for future use.
+The value of this variable is ignored when
+@code{window-combination-limit} is non-@code{nil} (see below).
 @end defopt
 
   To illustrate the effect of @code{window-combination-resize},
@@ -857,9 +857,9 @@ If @code{window-combination-resize} is @code{nil}, splitting window
 @end smallexample
 
 @noindent
-If @code{window-combination-resize} is non-@code{nil}, splitting
-@code{W3} instead leaves all three live windows with approximately the
-same height:
+If @code{window-combination-resize} is @code{t}, splitting @code{W3}
+instead leaves all three live windows with approximately the same
+height:
 
 @smallexample
 @group

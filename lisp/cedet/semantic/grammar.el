@@ -1290,7 +1290,7 @@ the change bounds to encompass the whole nonterminal tag."
           semantic-grammar-mode-keywords-3)
          nil  ;; perform string/comment fontification
          nil  ;; keywords are case sensitive.
-         ;; This puts _ & - as a word constituant,
+         ;; This puts _ & - as a word constituent,
          ;; simplifying our keywords significantly
          ((?_ . "w") (?- . "w"))))
   ;; Setup Semantic to parse grammar

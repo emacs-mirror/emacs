@@ -368,7 +368,7 @@ interpreted as a register number."
 
 (defcustom cua-check-pending-input t
   "If non-nil, don't override prefix key if input pending.
-It is rumoured that `input-pending-p' is unreliable under some window
+It is rumored that `input-pending-p' is unreliable under some window
 managers, so try setting this to nil, if prefix override doesn't work."
   :type 'boolean
   :group 'cua)

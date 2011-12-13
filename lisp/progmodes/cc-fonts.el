@@ -1211,7 +1211,7 @@ casts and declarations are fontified.  Used on level 2 and higher."
 	  ;; o - '<> if the arglist is of angle bracket type;
 	  ;; o - 'arglist if it's some other arglist;
 	  ;; o - nil, if not in an arglist at all.  This includes the
-	  ;;   parenthesised condition which follows "if", "while", etc.
+	  ;;   parenthesized condition which follows "if", "while", etc.
 	  context
 	  ;; The position of the next token after the closing paren of
 	  ;; the last detected cast.
@@ -1539,10 +1539,11 @@ casts and declarations are fontified.  Used on level 2 and higher."
   ;; Fontification".
   (let* ((paren-state (c-parse-state))
 	 (start (point))
+	 (bod-lim (max (- (point) 500) (point-min)))
 	 decl-context bo-decl in-typedef type-type ps-elt)
 
     ;; First, are we actually in a "local" declaration?
-    (setq decl-context (c-beginning-of-decl-1)
+    (setq decl-context (c-beginning-of-decl-1 bod-lim)
 	  bo-decl (point)
 	  in-typedef (looking-at c-typedef-key))
     (if in-typedef (c-forward-token-2))

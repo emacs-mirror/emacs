@@ -417,7 +417,7 @@ called with a @acronym{MIME} handle as the argument.
 @vindex mm-inline-text-html-with-images
 Some @acronym{HTML} mails might have the trick of spammers using
 @samp{<img>} tags.  It is likely to be intended to verify whether you
-have read the mail.  You can prevent your personal informations from
+have read the mail.  You can prevent your personal information from
 leaking by setting this option to @code{nil} (which is the default).
 It is currently ignored by Emacs/w3.  For emacs-w3m, you may use the
 command @kbd{t} on the image anchor to show an image even if it is

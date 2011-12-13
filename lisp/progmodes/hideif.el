@@ -822,7 +822,7 @@ Point is left unchanged."
 
 (defun hif-possibly-hide ()
   "Called at #ifX expression, this hides those parts that should be hidden.
-It uses the judgement of `hide-ifdef-evaluator'."
+It uses the judgment of `hide-ifdef-evaluator'."
   ;; (message "hif-possibly-hide") (sit-for 1)
   (let ((test (hif-canonicalize))
 	(range (hif-find-range)))

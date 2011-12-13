@@ -643,7 +643,7 @@ fontset_find_font (Lisp_Object fontset, int c, struct face *face, int id, int fa
       if (font_has_char (f, font_object, c))
 	goto found;
 
-      /* Find a font already opened, maching with the current spec,
+      /* Find a font already opened, matching with the current spec,
 	 and supporting C. */
       font_def = RFONT_DEF_FONT_DEF (rfont_def);
       for (; found_index + 1 < ASIZE (vec); found_index++)

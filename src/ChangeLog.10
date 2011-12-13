@@ -15816,14 +15816,14 @@
 	Add prototypes.
 
 	* macterm.c (mac_draw_bitmap): Add overlay_p arg.
-	(x_draw_fringe_bitmap): Handle overlayed fringe bitmaps;
+	(x_draw_fringe_bitmap): Handle overlaid fringe bitmaps;
 	thanks to YAMAMOTO Mitsuharu for advice on how to do this.
 	Use cursor color for displaying cursor in fringe.
 	(x_redisplay_interface): Add null handlers for
 	define_fringe_bitmap and destroy_fringe_bitmap functions.
 
 	* w32term.c (w32_draw_fringe_bitmap): Copy unadapted code from
-	xterm.c to handle overlayed fringe bitmaps and to use cursor color
+	xterm.c to handle overlaid fringe bitmaps and to use cursor color
 	for displaying cursor in fringe.
 	(w32_define_fringe_bitmap, w32_destroy_fringe_bitmap): New W32
 	specific functions to define and destroy fringe bitmaps in fringe_bmp.
@@ -15849,7 +15849,7 @@
 	(display_line): Handle cursor in fringe at eob.
 	(display_line): Set row user fringe bitmaps from iterator.
 
-	* xterm.c (x_draw_fringe_bitmap): Handle overlayed fringe bitmaps.
+	* xterm.c (x_draw_fringe_bitmap): Handle overlaid fringe bitmaps.
 	Use cursor color for displaying cursor in fringe.
 	(x_redisplay_interface): Add null handlers for
 	define_fringe_bitmap and destroy_fringe_bitmap functions.

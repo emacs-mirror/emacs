@@ -3137,7 +3137,7 @@
 	(main): Call put_entries here even in CTAGS mode.
 	(main, process_file): Check the return values of fclose and pclose.
 	(process_file): Do not call put_entries after parsing each file.
-	(process_file): Canonicalise file names even for ctags.
+	(process_file): Canonicalize file names even for ctags.
 	(process_file): Set curfile here...
 	(find_entries): ... not here any more.
 	(add_node): In etags mode, build a linked list of entries (on

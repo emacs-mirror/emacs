@@ -235,7 +235,7 @@ encryption is used."
 						   (current-buffer)))))
 		   (epa-select-keys
 		    context
-		    "Select recipents for encryption.
+		    "Select recipients for encryption.
 If no one is selected, symmetric encryption will be performed.  "
 		    recipients)
 		 (if epa-file-encrypt-to
@@ -273,7 +273,7 @@ If no one is selected, symmetric encryption will be performed.  "
 	   (epg-sub-key-id (car (epg-key-sub-key-list key))))
 	(epa-select-keys
 	 (epg-make-context)
-	 "Select recipents for encryption.
+	 "Select recipients for encryption.
 If no one is selected, symmetric encryption will be performed.  "))))
 
 ;;;###autoload

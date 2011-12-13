@@ -522,7 +522,7 @@ don't have EOL terminated statements. "
 
 (c-lang-defconst c-vsemi-status-unknown-p-fn
   "Contains a function \"are we unsure whether there is a virtual semicolon on this line?\".
-The (admittedly kludgey) purpose of such a function is to prevent an infinite
+The (admittedly kludgy) purpose of such a function is to prevent an infinite
 recursion in c-beginning-of-statement-1 when point starts at a `while' token.
 The function MUST NOT UNDER ANY CIRCUMSTANCES call c-beginning-of-statement-1,
 even indirectly.  This variable contains nil for languages which don't have
@@ -2242,8 +2242,7 @@ This construct is \"<keyword> <expression> :\"."
 
 (c-lang-defconst c-label-kwds
   "Keywords introducing colon terminated labels in blocks."
-  t '("case" "default")
-  awk nil)
+  t '("case" "default"))
 
 (c-lang-defconst c-label-kwds-regexp
   ;; Adorned regexp matching any keyword that introduces a label.
@@ -2998,18 +2997,19 @@ neither in a statement nor in a declaration context.  The regexp is
 tested at the beginning of every sexp in a suspected label,
 i.e. before \":\".  Only used if `c-recognize-colon-labels' is set."
   t (concat
-     ;; Don't allow string literals.
-     "\"\\|"
      ;; All keywords except `c-label-kwds' and `c-protection-kwds'.
      (c-make-keywords-re t
        (set-difference (c-lang-const c-keywords)
 		       (append (c-lang-const c-label-kwds)
 			       (c-lang-const c-protection-kwds))
 		       :test 'string-equal)))
+  ;; Don't allow string literals, except in AWK.  Character constants are OK.
+  (c objc java pike idl) (concat "\"\\|"
+				 (c-lang-const c-nonlabel-token-key))
   ;; Also check for open parens in C++, to catch member init lists in
   ;; constructors.  We normally allow it so that macros with arguments
   ;; work in labels.
-  c++ (concat "\\s\(\\|" (c-lang-const c-nonlabel-token-key)))
+  c++ (concat "\\s\(\\|\"\\|" (c-lang-const c-nonlabel-token-key)))
 (c-lang-defvar c-nonlabel-token-key (c-lang-const c-nonlabel-token-key))
 
 (c-lang-defconst c-nonlabel-token-2-key
