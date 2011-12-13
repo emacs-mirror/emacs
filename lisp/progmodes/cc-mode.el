@@ -1562,10 +1562,6 @@ Key bindings:
   (c-common-init 'awk-mode)
   (c-awk-unstick-NL-prop)
 
-  ;; Prevent XEmacs's buffer-syntactic-context being used.  See the comment
-  ;; in cc-engine.el, just before (defun c-fast-in-literal ...
-  (defalias 'c-in-literal 'c-slow-in-literal)
-
   (c-run-mode-hooks 'c-mode-common-hook 'awk-mode-hook)
   (c-update-modeline))
 

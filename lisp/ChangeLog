@@ -1,3 +1,25 @@
+2011-12-13  Alan Mackenzie  <acm@muc.de>
+
+	Large brace-block initialisation makes CC Mode slow: Fix.
+	Tidy up and accelerate c-in-literal, etc. by using the
+	c-parse-state
+	routines.  Limit backward searching in c-font-lock-enclosing.decl.
+
+	* progmodes/cc-engine.el (c-state-pp-to-literal): Return the
+	pp-state and literal type in addition to the limits.
+	(c-state-safe-place): New defun, extracted from
+	c-state-literal-at.
+	(c-state-literal-at): Use the above new defun.
+	(c-slow-in-literal, c-fast-in-literal): Removed.
+	(c-in-literal, c-literal-limits): Amended to use
+	c-state-pp-to-literal.
+
+	* progmodes/cc-fonts.el (c-font-lock-enclosing-decls): Check for
+	being in a literal.  Add a limit for backward searching.
+
+	* progmodes/cc-mode.el (awk-mode): Don't alias c-in-literal to
+	c-slow-in-literal.
+
 2011-12-13  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* progmodes/pascal.el: Declare `ind' as dyn-bound (bug#10264).
