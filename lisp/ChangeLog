@@ -1,5 +1,15 @@
 2011-12-13  Alan Mackenzie  <acm@muc.de>
 
+	Add the switch statement to AWK Mode.
+
+	* progmodes/cc-awk (awk-font-lock-keywords): Add "switch", "case",
+	"default" to the keywords regexp.
+
+	* progmodes/cc-langs (c-label-kwds): Let AWK take the same
+	expression as the rest.
+	(c-nonlabel-token-key): Allow string literals for AWK.  Refactor
+	for the other modes.
+
 	Large brace-block initialisation makes CC Mode slow: Fix.
 	Tidy up and accelerate c-in-literal, etc. by using the
 	c-parse-state

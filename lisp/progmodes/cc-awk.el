@@ -894,9 +894,9 @@ std\\(err\\|in\\|out\\)\\|user\\)\\)\\>\
      ;; Keywords.
      (concat "\\<"
 	     (regexp-opt
-	      '("BEGIN" "END" "break" "continue" "delete" "do" "else"
-		"exit" "for" "getline" "if" "in" "next" "nextfile"
-		"return" "while")
+	      '("BEGIN" "END" "break" "case" "continue" "default" "delete"
+		"do" "else" "exit" "for" "getline" "if" "in" "next"
+		"nextfile" "return" "switch" "while")
 	      t) "\\>")
 
      ;; Builtins.
