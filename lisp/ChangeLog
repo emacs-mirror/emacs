@@ -1,3 +1,7 @@
+2011-12-13  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* progmodes/pascal.el: Declare `ind' as dyn-bound (bug#10264).
+
 2011-12-13  Martin Rudalics  <rudalics@gmx.at>
 
 	* window.el (delete-other-windows): Use correct frame in call to

@@ -786,6 +786,7 @@ on the line which ends a function or procedure named NAME."
     (if (looking-at "[ \t]+$")
 	(skip-chars-forward " \t"))))
 
+(defvar ind)			       ;Used via `eval' in pascal-indent-alist.
 (defun pascal-indent-line ()
   "Indent current line as a Pascal statement."
   (let* ((indent-str (pascal-calculate-indent))
