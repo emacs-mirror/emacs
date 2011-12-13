@@ -6506,22 +6506,24 @@ frame to be redrawn only if it is a tty frame.  */);
   Vrecenter_redisplay = Qtty;
 
   DEFVAR_LISP ("window-combination-resize", Vwindow_combination_resize,
-	       doc: /* Non-nil means resize window combinations proportionally.
+	       doc: /* If t, resize window combinations proportionally.
 If this variable is nil, splitting a window gets the entire screen space
 for displaying the new window from the window to split.  Deleting and
 resizing a window preferably resizes one adjacent window only.
 
-If this variable is non-nil, splitting a window tries to get the space
+If this variable is t, splitting a window tries to get the space
 proportionally from all windows in the same combination.  This also
 allows to split a window that is otherwise too small or of fixed size.
 Resizing and deleting a window proportionally resize all windows in the
 same combination.
 
+Other values are reserved for future use.
+
 This variable takes no effect if `window-combination-limit' is non-nil.  */);
   Vwindow_combination_resize = Qnil;
 
   DEFVAR_LISP ("window-combination-limit", Vwindow_combination_limit,
-	       doc: /* Non-nil means splitting a window makes a new parent window.
+	       doc: /* If t, splitting a window makes a new parent window.
 If this variable is nil, splitting a window will create a new parent
 window only if the window has no parent window or the window shall
 become a combination orthogonal to the one it is part of.

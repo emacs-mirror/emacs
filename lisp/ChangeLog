@@ -1,3 +1,8 @@
+2011-12-13  Martin Rudalics  <rudalics@gmx.at>
+
+	* window.el (delete-other-windows): Use correct frame in call to
+	window-with-parameter.
+
 2011-12-12  Daniel Pfeiffer  <occitan@t-online.de>
 
 	* progmodes/make-mode.el: Bring it up to date with makepp V2.0.
