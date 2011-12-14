@@ -699,7 +699,7 @@ know_region_cache (struct buffer *buf, struct region_cache *c,
 
 /* Return true if the text immediately after POS in BUF is known, for
    the purposes of CACHE.  If NEXT is non-zero, set *NEXT to the nearest
-   position after POS where the knownness changes.  */
+   position after POS where the knowledge changes.  */
 int
 region_cache_forward (struct buffer *buf, struct region_cache *c,
 		      ptrdiff_t pos, ptrdiff_t *next)
@@ -736,7 +736,7 @@ region_cache_forward (struct buffer *buf, struct region_cache *c,
 
 /* Return true if the text immediately before POS in BUF is known, for
    the purposes of CACHE.  If NEXT is non-zero, set *NEXT to the nearest
-   position before POS where the knownness changes.  */
+   position before POS where the knowledge changes.  */
 int region_cache_backward (struct buffer *buf, struct region_cache *c,
 			   ptrdiff_t pos, ptrdiff_t *next)
 {

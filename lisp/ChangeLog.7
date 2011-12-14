@@ -13088,7 +13088,7 @@
 
 1997-07-25  Simon Marshall  <simon@frobnitz.gnu.ai.mit.edu>
 
-	* complete.el: Customise; as subgroup of minibuffer.
+	* complete.el: Customize; as subgroup of minibuffer.
 	(partial-completion-mode): New option to toggle mode.
 	(partial-completion-mode): New command to toggle mode.
 	Add and remove hooks here, i.e., not at the top-level.
@@ -13617,7 +13617,7 @@
 
 1997-07-15  Simon Marshall  <simon@albert.gnu.ai.mit.edu>
 
-	* mouse-sel.el: Customise; create mouse-sel as subgroup of mouse.
+	* mouse-sel.el: Customize; create mouse-sel as subgroup of mouse.
 	(mouse-sel-mode): New option to toggle mode.
 	(mouse-sel-mode): New command to toggle mode.
 	(mouse-sel-set-selection-function): If mouse-sel-default-bindings is
@@ -13625,7 +13625,7 @@
 	(mouse-sel-bindings): New function to install/restore mouse bindings.
 	This is called by mouse-sel-mode, i.e., not at the top-level.
 
-	* delsel.el: Customise; as part of editing-basics group.
+	* delsel.el: Customize; as part of editing-basics group.
 	(delete-selection-mode): Convert to autoloaded option.  Default to nil.
 	(delete-selection-mode): Define before option.
 	Modify pre-command-hook here, i.e., not at the top-level.
@@ -14943,7 +14943,7 @@
 	paren-matching) and put all blink-matching-paren variables in the
 	former (as opposed to the latter) group.
 
-	* paren.el: Customise; paren-showing as a subgroup of paren-matching.
+	* paren.el: Customize; paren-showing as a subgroup of paren-matching.
 	(show-paren-style): New variable.
 	(show-paren-match-face)
 	(show-paren-mismatch-face): New faces.
@@ -18871,7 +18871,7 @@
 
 1997-04-16  Simon Marshall  <simon@wombat.gnu.ai.mit.edu>
 
-	* font-lock.el: Customise.
+	* font-lock.el: Customize.
 	(font-lock-defaults-alist): Leave ~ syntax alone in C++.
 	(font-lock-match-c++-style-declaration-item-and-skip-to-next): Match ~
 	characters here.
@@ -18883,10 +18883,10 @@
 	(font-lock-compile-keywords): Don't set font-lock-keywords.
 	(font-lock-fontify-keywords-region): Set it here.
 
-	* fast-lock.el: Customise.
+	* fast-lock.el: Customize.
 	(fast-lock-cache-data): Simplify calls of font-lock-compile-keywords.
 
-	* lazy-lock.el: Customise.
+	* lazy-lock.el: Customize.
 	(lazy-lock-fontify-conservatively): Fontify around WINDOW's point.
 
 	* shell.el (shell-font-lock-keywords): Use EVAL form for prompt.

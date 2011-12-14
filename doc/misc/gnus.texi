@@ -4622,7 +4622,7 @@ Sieve is a server-side mail filtering language.  In Gnus you can use
 the @code{sieve} group parameter (@pxref{Group Parameters}) to specify
 sieve rules that should apply to each group.  Gnus provides two
 commands to translate all these group parameters into a proper Sieve
-script that can be transfered to the server somehow.
+script that can be transferred to the server somehow.
 
 @vindex gnus-sieve-file
 @vindex gnus-sieve-region-start
@@ -8332,7 +8332,7 @@ Files with name matching this regular expression won't be viewed.
 Files with a @acronym{MIME} type matching this variable won't be viewed.
 Note that Gnus tries to guess what type the file is based on the name.
 @code{gnus-uu} is not a @acronym{MIME} package (yet), so this is slightly
-kludgey.
+kludgy.
 
 @item gnus-uu-tmp-dir
 @vindex gnus-uu-tmp-dir

@@ -1877,7 +1877,7 @@ static XIMStyle supported_xim_styles[] =
 #if defined HAVE_X_WINDOWS && defined USE_X_TOOLKIT
 /* Create an X fontset on frame F with base font name BASE_FONTNAME.  */
 
-static const char xic_defaut_fontset[] = "-*-*-*-r-normal--14-*-*-*-*-*-*-*";
+static const char xic_default_fontset[] = "-*-*-*-r-normal--14-*-*-*-*-*-*-*";
 
 /* Create an Xt fontset spec from the name of a base font.
    If `motif' is True use the Motif syntax.  */
@@ -1888,7 +1888,7 @@ xic_create_fontsetname (const char *base_fontname, int motif)
   char *fontsetname;
 
   /* Make a fontset name from the base font name.  */
-  if (xic_defaut_fontset == base_fontname)
+  if (xic_default_fontset == base_fontname)
     { /* There is no base font name, use the default.  */
       ptrdiff_t len = strlen (base_fontname) + 2;
       fontsetname = xmalloc (len);
@@ -1912,12 +1912,12 @@ xic_create_fontsetname (const char *base_fontname, int motif)
 	     modify it to generalize it to allcs and allfamilies.
 	     Use the specified font plus the default.  */
 	  ptrdiff_t len =
-	    strlen (base_fontname) + strlen (xic_defaut_fontset) + 3;
+	    strlen (base_fontname) + strlen (xic_default_fontset) + 3;
 	  fontsetname = xmalloc (len);
 	  memset (fontsetname, 0, len);
 	  strcpy (fontsetname, base_fontname);
 	  strcat (fontsetname, sep);
-	  strcat (fontsetname, xic_defaut_fontset);
+	  strcat (fontsetname, xic_default_fontset);
 	}
       else
 	{

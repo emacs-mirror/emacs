@@ -416,7 +416,7 @@
 	* erc-button.el 1.47: New variable erc-button-wrap-long-urls.
 	Modified erc-button-add-buttons:
 	  New optional argument REGEXP.
-	  If we're buttonising a URL and erc-button-wrap-long-urls is
+	  If we're buttonizing a URL and erc-button-wrap-long-urls is
 	  non-nil, try and wrap them
 
 	Modified erc-button-add-buttons-1:
@@ -822,7 +822,7 @@
 	(define-erc-module): the enable and disable routines now update erc-modules
 	    accordingly
 	erc-modules: new variable controlling the modules which erc has loaded/will
-	    load. when customising, it will automatically enable modules. it won't
+	    load. when customizing, it will automatically enable modules. it won't
 	    automatically disable modules which are removed, yet.
 	(erc-update-modules): enable all modules in `erc-modules'
 
@@ -1058,7 +1058,7 @@
 	* erc.el 1.483 (erc-process-input-line):
 	when displaying the help for a function, if no
 	    documentation exists, don't fall over
-	(erc-cmd-SAY): new function for quoting lines begining with /
+	(erc-cmd-SAY): new function for quoting lines beginning with /
 	(erc-server-NICK):
 	    - fix a bug where the "is now known as" message doesn't appear on newly
 	      created /query buffers
@@ -1491,7 +1491,7 @@
 	* erc.el 1.438:
 	* removed duplicate do-no-parse-args properties for the defaliased defuns
 	(erc-process-input-line): show function signature when incorrect args
-	(erc-extract-command-from-line): canonicalise defaliases before extracting
+	(erc-extract-command-from-line): canonicalize defaliases before extracting
 	    plist
 	(erc-cmd-CLEAR): fixed
 	(erc-cmd-UNIGNORE): fixed again

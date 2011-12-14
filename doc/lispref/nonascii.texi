@@ -1580,7 +1580,7 @@ decoding functions (@pxref{Explicit Encoding}).
   Sometimes, you need to prefer several coding systems for some
 operation, rather than fix a single one.  Emacs lets you specify a
 priority order for using coding systems.  This ordering affects the
-sorting of lists of coding sysems returned by functions such as
+sorting of lists of coding systems returned by functions such as
 @code{find-coding-systems-region} (@pxref{Lisp and Coding Systems}).
 
 @defun coding-system-priority-list &optional highestp

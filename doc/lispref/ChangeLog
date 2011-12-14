@@ -1,3 +1,8 @@
+2011-12-13  Martin Rudalics  <rudalics@gmx.at>
+
+	* windows.texi (Splitting Windows): Use t instead of non-nil
+	when describing window-combination-resize.
+
 2011-12-05  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* text.texi (Special Properties): Warn against `intangible' properties
@@ -9754,7 +9759,7 @@
 	directory have been changed to reflect this.
 
 	* All instances of @indentedresultt{} have been changed to
-	`     @result{}', using 5 spaces at the begining of the line.
+	`     @result{}', using 5 spaces at the beginning of the line.
 
 1989-04-24  Robert J. Chassell  (bob@rice-chex.ai.mit.edu)
 

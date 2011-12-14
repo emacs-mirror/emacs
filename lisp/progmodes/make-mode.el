@@ -315,25 +315,32 @@ not be enclosed in { } or ( )."
   "List of keywords understood by automake.")
 
 (defconst makefile-gmake-statements
-  `("-sinclude" "sinclude" "vpath"	; makefile-makepp-statements takes rest
+  `("-sinclude" "sinclude"		; makefile-makepp-statements takes rest
     "ifdef" "ifndef" "ifeq" "ifneq" "-include" "define" "endef" "export"
-    "override define" "override" "unexport"
+    "override define" "override" "unexport" "vpath"
     ,@(cdr makefile-automake-statements))
   "List of keywords understood by gmake.")
 
-;; These are even more silly, because you can have more spaces in between.
 (defconst makefile-makepp-statements
-  `("and ifdef" "and ifndef" "and ifeq" "and ifneq" "and ifperl"
-    "and ifmakeperl" "and ifsys" "and ifnsys" "build_cache" "build_check"
+  `(t					; - alternately means _
+    ;; todo: take if* out of these lists, and let the negation regexp do it all
+    "ifperl" "ifmakeperl" "ifsys" "ifnsys" "iftrue" "ifntrue"
+    "and ifdef" "and ifndef" "and ifeq" "and ifneq" "and ifperl"
+    "and ifmakeperl" "and ifsys" "and ifnsys" "and iftrue" "and ifntrue"
     "else ifdef" "else ifndef" "else ifeq" "else ifneq" "else ifperl"
-    "else ifmakeperl" "else ifsys" "else ifnsys" "enddef" "global"
-    "load_makefile" "ifperl" "ifmakeperl" "ifsys" "ifnsys" "_include"
-    "makeperl" "makesub" "no_implicit_load" "perl" "perl-begin" "perl_begin"
-    "perl-end" "perl_end" "prebuild" "or ifdef" "or ifndef" "or ifeq"
-    "or ifneq" "or ifperl" "or ifmakeperl" "or ifsys" "or ifnsys"
-    "override export" "override global" "register_command_parser"
-    "register_scanner" "repository" "runtime" "signature" "sub"
-    ,@(nthcdr 3 makefile-gmake-statements))
+    "else ifmakeperl" "else ifsys" "else ifnsys" "else iftrue" "else ifntrue"
+    "or ifdef" "or ifndef" "or ifeq" "or ifneq" "or ifperl"
+    "or ifmakeperl" "or ifsys" "or ifnsys" "or iftrue" "or ifntrue"
+
+    "autoload" "build-cache" "build-check" "enddef" "export define"
+    "global" "global build-cache" "global build-check" "global define"
+    "global signature" "global override signature" "load-makefile"
+    "make" "makeperl" "makesub" "no-implicit-load" "perl" "perl-begin"
+    "perl-end" "prebuild" "override export" "override global" "register-parser"
+    "register-command-parser" "register-input-suffix"
+    "register-scanner" "repository" "runtime" "signature" "sub"
+
+    ,@(nthcdr 2 makefile-gmake-statements))
   "List of keywords understood by gmake.")
 
 (defconst makefile-bsdmake-statements
@@ -372,7 +379,12 @@ not be enclosed in { } or ( )."
 
     ;; Fontify conditionals and includes.
     (,(concat "^\\(?: [ \t]*\\)?"
-	      (regexp-opt keywords t)
+	      (replace-regexp-in-string
+	       " " "[ \t]+"
+	       (if (eq (car keywords) t)
+		   (replace-regexp-in-string "-" "[_-]"
+                                             (regexp-opt (cdr keywords) t))
+		 (regexp-opt keywords t)))
 	      "\\>[ \t]*\\([^: \t\n#]*\\)")
      (1 font-lock-keyword-face) (2 font-lock-variable-name-face))
 
@@ -436,7 +448,7 @@ not be enclosed in { } or ( )."
    makefile-var-use-regex
    makefile-makepp-statements
    nil
-   "^\\(?: [ \t]*\\)?\\(?:and[ \t]+\\|else[ \t]+\\|or[ \t]+\\)?if\\(n\\)\\(?:def\\|eq\\|sys\\)\\>"
+   "^\\(?: [ \t]*\\)?\\(?:and[ \t]+\\|else[ \t]+\\|or[ \t]+\\)?if\\(n\\)\\(?:def\\|eq\\|sys\\|true\\)\\>"
 
    '("[^$]\\(\\$[({]\\(?:output\\|stem\\|target\\)s?\\_>.*?[})]\\)"
      1 'makefile-targets append)
@@ -447,17 +459,17 @@ not be enclosed in { } or ( )."
      (2 font-lock-keyword-face t)
      (3 font-lock-variable-name-face t))
 
-   ;; $(function ...) $((function ...)) ${function ...} ${{function ...}}
-   '("[^$]\\$\\(?:((?\\|{{?\\)\\([-a-zA-Z0-9_.]+\\s \\)"
+   ;; $(function ...) $((function ...)) ${...} ${{...}} $[...] $[[...]]
+   '("[^$]\\$\\(?:((?\\|{{?\\|\\[\\[?\\)\\([-a-zA-Z0-9_.]+\\s \\)"
      1 font-lock-function-name-face prepend)
 
-   ;; $(shell ...) $((shell ...)) ${shell ...} ${{shell ...}}
-   '("[^$]\\$\\(((?\\|{{?\\)shell\\(?:[-_]\\(?:global[-_]\\)?once\\)?[ \t]+"
+   ;; $(shell ...) $((shell ...)) ${...} ${{...}} $[...] $[[...]]
+   '("[^$]\\$\\(((?\\|{{?\\|\\[\\[?\\)shell\\(?:[-_]\\(?:global[-_]\\)?once\\)?[ \t]+"
      makefile-match-function-end nil nil
      (1 'makefile-shell prepend t))
 
-   ;; $(perl ...) $((perl ...)) ${perl ...} ${{perl ...}}
-   '("[^$]\\$\\(((?\\|{{?\\)makeperl[ \t]+"
+   ;; $(perl ...) $((perl ...)) ${...} ${{...}} $[...] $[[...]]
+   '("[^$]\\$\\(((?\\|{{?\\|\\[\\[?\\)makeperl[ \t]+"
      makefile-match-function-end nil nil
      (1 'makefile-makepp-perl prepend t))
    '("[^$]\\$\\(((?\\|{{?\\)perl[ \t]+"
@@ -1688,8 +1700,10 @@ The anchor must have matched the opening parens in the first group."
     ;; FIXME forward-sexp or somesuch would be better?
     (if (setq s (cond ((string= s "(") ")")
 		      ((string= s "{") "}")
+		      ((string= s "[") "]")
 		      ((string= s "((") "))")
-		      ((string= s "{{") "}}")))
+		      ((string= s "{{") "}}")
+		      ((string= s "[[") "]]")))
 	(re-search-forward (concat "\\(.*\\)[ \t]*" s) (line-end-position) t))))
 
 (defun makefile-match-dependency (bound)

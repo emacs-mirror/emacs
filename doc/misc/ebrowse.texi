@@ -482,7 +482,7 @@ name.
 @table @kbd
 @item SPC
 This command views the class declaration if the database
-contains informations about it.  If you don't parse the entire source
+contains information about it.  If you don't parse the entire source
 you are working on, some classes will only be known to exist but the
 location of their declarations and definitions will not be known.@refill
 

@@ -97,7 +97,7 @@ extern void invalidate_region_cache (struct buffer *BUF,
 
 /* Return true if the text immediately after POS in BUF is known, for
    the purposes of CACHE.  If NEXT is non-zero, set *NEXT to the nearest
-   position after POS where the knownness changes.  */
+   position after POS where the knowledge changes.  */
 extern int region_cache_forward (struct buffer *BUF,
                                  struct region_cache *CACHE,
                                  ptrdiff_t POS,
@@ -105,7 +105,7 @@ extern int region_cache_forward (struct buffer *BUF,
 
 /* Return true if the text immediately before POS in BUF is known, for
    the purposes of CACHE.  If NEXT is non-zero, set *NEXT to the nearest
-   position before POS where the knownness changes.  */
+   position before POS where the knowledge changes.  */
 extern int region_cache_backward (struct buffer *BUF,
                                   struct region_cache *CACHE,
                                   ptrdiff_t POS,

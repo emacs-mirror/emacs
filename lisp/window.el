@@ -2204,9 +2204,9 @@ skip -COUNT windows backwards.  COUNT zero means do not skip any
 window, so select the selected window.  In an interactive call,
 COUNT is the numeric prefix argument.  Return nil.
 
-If the `other-window' parameter of WINDOW is a function and
-`ignore-window-parameters' is nil, call that function with the
-arguments COUNT and ALL-FRAMES.
+If the `other-window' parameter of the selected window is a
+function and `ignore-window-parameters' is nil, call that
+function with the arguments COUNT and ALL-FRAMES.
 
 This function does not select a window whose `no-other-window'
 window parameter is non-nil.
@@ -2455,7 +2455,7 @@ window signal an error."
 	(throw 'done (delete-other-windows atom-root)))
        ((eq window-side 'none)
 	;; Set side-main to the major non-side window.
-	(setq side-main (window-with-parameter 'window-side 'none nil t)))
+	(setq side-main (window-with-parameter 'window-side 'none frame t)))
        ((memq window-side window-sides)
 	(error "Cannot make side window the only window")))
       ;; If WINDOW is the main non-side window, do nothing.

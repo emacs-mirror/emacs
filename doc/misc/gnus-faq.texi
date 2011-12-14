@@ -1838,7 +1838,7 @@ inconvenient since you are not displaying the found mail
 in Gnus. Here comes nnir into action. Nnir is a front end
 to search engines like swish-e or swish++ and
 others. You index your mail with one of those search
-engines and with the help of nnir you can search trough
+engines and with the help of nnir you can search through
 the indexed mail and generate a temporary group with all
 messages which met your search criteria. If this sound
 cool to you get nnir.el from

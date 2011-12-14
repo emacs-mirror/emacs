@@ -7124,7 +7124,7 @@
 2010-11-11  Dan Davison  <davison@stats.ox.ac.uk>
 
 	* ob.el (org-babel-get-src-block-info): Form info list correctly
-	when parenthesised arguments are missing.
+	when parenthesized arguments are missing.
 
 2010-11-11  Dan Davison  <davison@stats.ox.ac.uk>
 

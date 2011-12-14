@@ -194,7 +194,7 @@ we can tell font lock about them.")
        '(srecode-font-lock-keywords
          nil  ;; perform string/comment fontification
          nil  ;; keywords are case sensitive.
-         ;; This puts _ & - as a word constituant,
+         ;; This puts _ & - as a word constituent,
          ;; simplifying our keywords significantly
          ((?_ . "w") (?- . "w")))))
 

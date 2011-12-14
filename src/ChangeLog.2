@@ -2254,7 +2254,7 @@
 	Initialize save_color.
 
 	* fileio.c, search.c, sysdep.c, filelock.c, editfns.c, process.c:
-	Delete/replace unused/conditionalised variables
+	Delete/replace unused/conditionalized variables
 
 1987-01-15  Richard M. Stallman  (rms@prep)
 
@@ -2632,7 +2632,7 @@
 	* fns.c: Fding requires an arg; pass Qnil.
 
 	* m-alliant.h: define TEXT_START as 0x1000.
-	Don't define LIBS_STANDARD; the default (sharable) library
+	Don't define LIBS_STANDARD; the default (shareable) library
 	is said to work now.
 
 	* alloc.c (mark_object): Now pass address of slot being marked.
@@ -4220,7 +4220,7 @@
 	Increase PURESIZE again (sigh)
 
 	* unexec.c (write_segment):
-	Kludgey coercions ("(int)") to get this line to compile:
+	Kludgy coercions ("(int)") to get this line to compile:
          nwrite = (((int) ptr + 128) & ~127) - (int) ptr;
 	Also changed incorrect ~128 to ~127.
 

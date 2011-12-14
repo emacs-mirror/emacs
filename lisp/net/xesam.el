@@ -172,7 +172,7 @@
 
 (defface xesam-highlight '((t :inherit match))
   "Face to highlight query entries.
-It will be overlayed by `widget-documentation-face', so it shall
+It will be overlaid by `widget-documentation-face', so it shall
 be different at least in one face property not set in that face."
   :group 'xesam)
 

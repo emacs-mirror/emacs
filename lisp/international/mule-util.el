@@ -314,7 +314,7 @@ Optional 5th argument NIL-FOR-TOO-LONG non-nil means return nil
 (defmacro with-coding-priority (coding-systems &rest body)
   "Execute BODY like `progn' with CODING-SYSTEMS at the front of priority list.
 CODING-SYSTEMS is a list of coding systems.  See `set-coding-system-priority'.
-This affects the implicit sorting of lists of coding sysems returned by
+This affects the implicit sorting of lists of coding systems returned by
 operations such as `find-coding-systems-region'."
   (let ((current (make-symbol "current")))
   `(let ((,current (coding-system-priority-list)))

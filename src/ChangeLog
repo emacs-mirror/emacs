@@ -1,4 +1,4 @@
-2011-12-11  Paul Eggert  <eggert@cs.ucla.edu>
+2011-12-14  Paul Eggert  <eggert@cs.ucla.edu>
 
 	Fix integer width and related bugs (Bug#9874).
 	* alloc.c (pure_bytes_used_lisp, pure_bytes_used_non_lisp):
@@ -787,6 +787,20 @@
 	(struct scroll_bar): Use struct vectorlike_header
 	rather than rolling our own approximation.
 	(SCROLL_BAR_VEC_SIZE): Remove; not used.
+
+2011-12-13  Martin Rudalics  <rudalics@gmx.at>
+
+	* window.c (Vwindow_combination_resize)
+	(Vwindow_combination_limit): Use t instead of non-nil in
+	doc-strings.
+	(Vrecenter_redisplay): Add first sentence of doc-string on
+	separate line.
+	(Frecenter): Fix doc-string typo.
+
+2011-12-11  Kenichi Handa  <handa@m17n.org>
+
+	* coding.c (Funencodable_char_position): Pay attention to the
+	buffer text relocation (Bug#9389).
 
 2011-12-10  Jan Djärv  <jan.h.d@swipnet.se>
 

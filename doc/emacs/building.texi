@@ -24,9 +24,9 @@ assist in the process of compiling and testing programs.
 * Executing Lisp::      Various modes for editing Lisp programs,
                           with different facilities for running
                           the Lisp programs.
-* Libraries: Lisp Libraries.      Creating Lisp programs to run in Emacs.
-* Eval: Lisp Eval.      Executing a single Lisp expression in Emacs.
-* Interaction: Lisp Interaction.  Executing Lisp in an Emacs buffer.
+* Lisp Libraries::      How Lisp programs are loaded into Emacs.
+* Lisp Eval::           Executing a single Lisp expression in Emacs.
+* Lisp Interaction::    Executing Lisp in an Emacs buffer.
 * External Lisp::       Communicating through Emacs with a separate Lisp.
 @end menu
 
@@ -37,10 +37,9 @@ assist in the process of compiling and testing programs.
 @cindex compilation errors
 @cindex error log
 
-  Emacs can run compilers for languages such as C and Fortran as
-inferior processes, feeding the compilation log into an Emacs buffer.
-It can also parse the error messages and show you where the errors
-occurred.
+  Emacs can run compilers for languages such as C and Fortran, feeding
+the compilation log into an Emacs buffer.  It can also parse the error
+messages and show you where the errors occurred.
 
 @table @kbd
 @item M-x compile
@@ -56,11 +55,11 @@ Kill the running compilation subprocess.
 @findex compile
   To run @code{make} or another compilation command, type @kbd{M-x
 compile}.  This reads a shell command line using the minibuffer, and
-then executes the command in an inferior shell, putting output in the
-buffer named @samp{*compilation*}.  The current buffer's default
-directory is used as the working directory for the execution of the
-command; normally, therefore, compilation takes place in this
-directory.
+then executes the command by running a shell as a subprocess (or
+@dfn{inferior process}) of Emacs.  The output is inserted in a buffer
+named @samp{*compilation*}.  The current buffer's default directory is
+used as the working directory for the execution of the command;
+normally, therefore, compilation takes place in this directory.
 
 @vindex compile-command
   The default compilation command is @samp{make -k}, which is usually
@@ -1286,109 +1285,119 @@ that thread.
 @node Executing Lisp
 @section Executing Lisp Expressions
 
-  Emacs has several different major modes for Lisp and Scheme.  They are
-the same in terms of editing commands, but differ in the commands for
-executing Lisp expressions.  Each mode has its own purpose.
+  Emacs has major modes for several variants of Lisp.  They use the
+same editing commands as other programming language modes
+(@pxref{Programs}).  In addition, they provide special commands for
+executing Lisp expressions.
 
 @table @asis
-@item Emacs-Lisp mode
-The mode for editing source files of programs to run in Emacs Lisp.
-This mode defines @kbd{C-M-x} to evaluate the current defun.
-@xref{Lisp Libraries}.
+@item Emacs Lisp mode
+The mode for editing Emacs Lisp source files.  It defines @kbd{C-M-x}
+to evaluate the current top-level Lisp expression.  @xref{Lisp Eval}.
+
 @item Lisp Interaction mode
-The mode for an interactive session with Emacs Lisp.  It defines
-@kbd{C-j} to evaluate the sexp before point and insert its value in the
+The mode for an interactive Emacs Lisp session.  It defines @kbd{C-j}
+to evaluate the expression before point and insert its value in the
 buffer.  @xref{Lisp Interaction}.
+
 @item Lisp mode
 The mode for editing source files of programs that run in Lisps other
-than Emacs Lisp.  This mode defines @kbd{C-M-x} to send the current defun
-to an inferior Lisp process.  @xref{External Lisp}.
-@item Inferior Lisp mode
-The mode for an interactive session with an inferior Lisp process.
-This mode combines the special features of Lisp mode and Shell mode
-(@pxref{Shell Mode}).
-@item Scheme mode
-Like Lisp mode but for Scheme programs.
-@item Inferior Scheme mode
-The mode for an interactive session with an inferior Scheme process.
-@end table
+than Emacs Lisp.  It defines @kbd{C-M-x} to evaluate the current
+top-level expression in an external Lisp.  @xref{External Lisp}.
 
-  Most editing commands for working with Lisp programs are in fact
-available globally.  @xref{Programs}.
+@item Inferior Lisp mode
+The mode for an interactive session with an external Lisp which is
+being run as a subprocess (or @dfn{inferior process}) of Emacs.
+@ifnottex
+@xref{External Lisp}.
+@end ifnottex
+
+@item Scheme mode
+Like Lisp mode, but for Scheme programs.
+
+@item Inferior Scheme mode
+Like Inferior Lisp mode, but for Scheme.
+@end table
 
 @node Lisp Libraries
 @section Libraries of Lisp Code for Emacs
 @cindex libraries
 @cindex loading Lisp code
 
-  Lisp code for Emacs editing commands is stored in files whose names
-conventionally end in @file{.el}.  This ending tells Emacs to edit them in
-Emacs-Lisp mode (@pxref{Executing Lisp}).
+  Emacs Lisp code is stored in files whose names conventionally end in
+@file{.el}.  Such files are automatically visited in Emacs Lisp mode.
 
 @cindex byte code
   Emacs Lisp code can be compiled into byte-code, which loads faster,
-takes up less space, and executes faster.  @xref{Byte Compilation,,
-Byte Compilation, elisp, the Emacs Lisp Reference Manual}.  By
-convention, the compiled code for a library goes in a separate file
-whose name ends in @samp{.elc}.  Thus, the compiled code for
-@file{foo.el} goes in @file{foo.elc}.
+takes up less space, and executes faster.  By convention, compiled
+Emacs Lisp code goes in a separate file whose name ends in
+@samp{.elc}.  For example, the compiled code for @file{foo.el} goes in
+@file{foo.elc}.  @xref{Byte Compilation,, Byte Compilation, elisp, the
+Emacs Lisp Reference Manual}.
 
 @findex load-file
-  To execute a file of Emacs Lisp code, use @kbd{M-x load-file}.  This
-command reads a file name using the minibuffer and then executes the
-contents of that file as Lisp code.  It is not necessary to visit the
-file first; in any case, this command reads the file as found on disk,
-not text in an Emacs buffer.
+  To @dfn{load} an Emacs Lisp file, type @kbd{M-x load-file}.  This
+command reads a file name using the minibuffer, and executes the
+contents of that file as Emacs Lisp code.  It is not necessary to
+visit the file first; this command reads the file directly from disk,
+not from an existing Emacs buffer.
 
 @findex load
 @findex load-library
-  Once a file of Lisp code is installed in the Emacs Lisp library
-directories, users can load it using @kbd{M-x load-library}.  Programs
-can load it by calling @code{load}, a more primitive function that is
-similar but accepts some additional arguments.
+@cindex load path for Emacs Lisp
+  If an Emacs Lisp file is installed in the Emacs Lisp @dfn{load path}
+(defined below), you can load it by typing @kbd{M-x load-library},
+instead of using @kbd{M-x load-file}.  The @kbd{M-x load-library}
+command prompts for a @dfn{library name} rather than a file name; it
+searches through each directory in the Emacs Lisp load path, trying to
+find a file matching that library name.  If the library name is
+@samp{@var{foo}}, it tries looking for files named
+@file{@var{foo}.elc}, @file{@var{foo}.el}, and lastly just
+@file{@var{foo}}; the first one found is loaded.  This command prefers
+@file{.elc} files over @file{.el} files because compiled files load
+and run faster.  If it finds that @file{@var{lib}.el} is newer than
+@file{@var{lib}.elc}, it issues a warning, in case someone made
+changes to the @file{.el} file and forgot to recompile it, but loads
+the @file{.elc} file anyway.  (Due to this behavior, you can save
+unfinished edits to Emacs Lisp source files, and not recompile until
+your changes are ready for use.)
 
-  @kbd{M-x load-library} differs from @kbd{M-x load-file} in that it
-searches a sequence of directories and tries three file names in each
-directory.  Suppose your argument is @var{lib}; the three names are
-@file{@var{lib}.elc}, @file{@var{lib}.el}, and lastly just
-@file{@var{lib}}.  If @file{@var{lib}.elc} exists, it is by convention
-the result of compiling @file{@var{lib}.el}; it is better to load the
-compiled file, since it will load and run faster.
-
-  If @code{load-library} finds that @file{@var{lib}.el} is newer than
-@file{@var{lib}.elc} file, it issues a warning, because it's likely
-that somebody made changes to the @file{.el} file and forgot to
-recompile it.  Nonetheless, it loads @file{@var{lib}.elc}.  This is
-because people often leave unfinished edits the source file, and don't
-recompile it until they think it is ready to use.
+  Emacs Lisp programs usually load Emacs Lisp files using the
+@code{load} function.  This is similar to @code{load-library}, but is
+lower-level and accepts additional arguments.  @xref{How Programs Do
+Loading,,, elisp, the Emacs Lisp Reference Manual}.
 
 @vindex load-path
-  The variable @code{load-path} specifies the sequence of directories
-searched by @kbd{M-x load-library}.  Its value should be a list of
-strings that are directory names; in addition, @code{nil} in this list
-stands for the current default directory.  (Generally, it is not a
-good idea to put @code{nil} in the list; if you find yourself wishing
+  The Emacs Lisp load path is specified by the variable
+@code{load-path}.  Its value should be a list of directory names
+(strings).  These directories are searched, in the specified order, by
+the @kbd{M-x load-library} command, the lower-level @code{load}
+function, and other Emacs functions that find Emacs Lisp libraries.  A
+list entry in @code{load-path} can also have the special value
+@code{nil}, which stands for the current default directory, but it is
+almost always a bad idea to use this.  (If you find yourself wishing
 that @code{nil} were in the list, most likely what you really want is
-to do @kbd{M-x load-file} this once.)
+to use @kbd{M-x load-file}.)
 
   The default value of @code{load-path} is a list of directories where
 the Lisp code for Emacs itself is stored.  If you have libraries of
-your own, put them in a single directory and add that directory to
-@code{load-path}, by adding a line like this to your init file
-(@pxref{Init File}):
+your own in another directory, you can add that directory to the load
+path.  Unlike most other variables described in this manual,
+@code{load-path} cannot be changed via the Customize interface
+(@pxref{Easy Customization}), but you can add a directory to it by
+putting a line like this in your init file (@pxref{Init File}):
 
 @example
-(add-to-list 'load-path "/path/to/lisp/libraries")
+(add-to-list 'load-path "/path/to/my/lisp/library")
 @end example
 
 @cindex autoload
-  Some commands are @dfn{autoloaded}: when you run them, Emacs will
-automatically load the associated library first.  For instance, the
-@code{compile} and @code{compilation-mode} commands
-(@pxref{Compilation}) are autoloaded; if you call either command,
-Emacs automatically loads the @code{compile} library.  In contrast,
-the command @code{recompile} is not autoloaded, so it is unavailable
-until you load the @code{compile} library.
+  Some commands are @dfn{autoloaded}: when you run them, Emacs
+automatically loads the associated library first.  For instance, the
+@kbd{M-x compile} command (@pxref{Compilation}) is autoloaded; if you
+call it, Emacs automatically loads the @code{compile} library first.
+In contrast, the command @kbd{M-x recompile} is not autoloaded, so it
+is unavailable until you load the @code{compile} library.
 
 @vindex load-dangerous-libraries
 @cindex Lisp files byte-compiled by XEmacs
@@ -1399,38 +1408,35 @@ Emacs to crash.  Set the variable @code{load-dangerous-libraries} to
 
 @node Lisp Eval
 @section Evaluating Emacs Lisp Expressions
-@cindex Emacs-Lisp mode
-@cindex mode, Emacs-Lisp
+@cindex Emacs Lisp mode
+@cindex mode, Emacs Lisp
 
 @findex emacs-lisp-mode
-  Lisp programs intended to be run in Emacs should be edited in
-Emacs-Lisp mode; this happens automatically for file names ending in
-@file{.el}.  By contrast, Lisp mode itself is used for editing Lisp
-programs intended for other Lisp systems.  To switch to Emacs-Lisp mode
-explicitly, use the command @kbd{M-x emacs-lisp-mode}.
+  Emacs Lisp mode is the major mode for editing Emacs Lisp.  Its mode
+command is @kbd{M-x emacs-lisp-mode}.
 
-  For testing of Lisp programs to run in Emacs, it is often useful to
-evaluate part of the program as it is found in the Emacs buffer.  For
-example, after changing the text of a Lisp function definition,
-evaluating the definition installs the change for future calls to the
-function.  Evaluation of Lisp expressions is also useful in any kind of
-editing, for invoking noninteractive functions (functions that are
-not commands).
+  Emacs provides several commands for evaluating Emacs Lisp
+expressions.  You can use these commands in Emacs Lisp mode, to test
+your Emacs Lisp code as it is being written.  For example, after
+re-writing a function, you can evaluate the function definition to
+make it take effect for subsequent function calls.  These commands are
+also available globally, and can be used outside Emacs Lisp mode.
 
-@table @kbd
-@item M-:
-Read a single Lisp expression in the minibuffer, evaluate it, and print
-the value in the echo area (@code{eval-expression}).
-@item C-x C-e
-Evaluate the Lisp expression before point, and print the value in the
-echo area (@code{eval-last-sexp}).
-@item C-M-x
+@table @asis
+@item @kbd{M-:}
+Read a single Emacs Lisp expression in the minibuffer, evaluate it,
+and print the value in the echo area (@code{eval-expression}).
+@item @kbd{C-x C-e}
+Evaluate the Emacs Lisp expression before point, and print the value
+in the echo area (@code{eval-last-sexp}).
+@item @kbd{C-M-x} @r{(in Emacs Lisp mode)}
+@itemx @kbd{M-x eval-defun}
 Evaluate the defun containing or after point, and print the value in
 the echo area (@code{eval-defun}).
-@item M-x eval-region
-Evaluate all the Lisp expressions in the region.
-@item M-x eval-buffer
-Evaluate all the Lisp expressions in the buffer.
+@item @kbd{M-x eval-region}
+Evaluate all the Emacs Lisp expressions in the region.
+@item @kbd{M-x eval-buffer}
+Evaluate all the Emacs Lisp expressions in the buffer.
 @end table
 
 @ifinfo
@@ -1442,150 +1448,144 @@ Evaluate all the Lisp expressions in the buffer.
 @kindex M-:
 @end ifnotinfo
 @findex eval-expression
-  @kbd{M-:} (@code{eval-expression}) is the most basic command for evaluating
-a Lisp expression interactively.  It reads the expression using the
-minibuffer, so you can execute any expression on a buffer regardless of
-what the buffer contains.  When the expression is evaluated, the current
-buffer is once again the buffer that was current when @kbd{M-:} was
-typed.
-
-@kindex C-M-x @r{(Emacs-Lisp mode)}
-@findex eval-defun
-  In Emacs-Lisp mode, the key @kbd{C-M-x} is bound to the command
-@code{eval-defun}, which parses the defun containing or following point
-as a Lisp expression and evaluates it.  The value is printed in the echo
-area.  This command is convenient for installing in the Lisp environment
-changes that you have just made in the text of a function definition.
-
-  @kbd{C-M-x} treats @code{defvar} expressions specially.  Normally,
-evaluating a @code{defvar} expression does nothing if the variable it
-defines already has a value.  But @kbd{C-M-x} unconditionally resets the
-variable to the initial value specified in the @code{defvar} expression.
-@code{defcustom} expressions are treated similarly.
-This special feature is convenient for debugging Lisp programs.
-Typing @kbd{C-M-x} on a @code{defface} expression reinitializes
-the face according to the @code{defface} specification.
+  @kbd{M-:} (@code{eval-expression}) reads an expression using the
+minibuffer, and evaluates it.  (Before evaluating the expression, the
+current buffer switches back to the buffer that was current when you
+typed @kbd{M-:}, not the minibuffer into which you typed the
+expression.)
 
 @kindex C-x C-e
 @findex eval-last-sexp
-  The command @kbd{C-x C-e} (@code{eval-last-sexp}) evaluates the Lisp
-expression preceding point in the buffer, and displays the value in the
-echo area.  It is available in all major modes, not just Emacs-Lisp
-mode.  It does not treat @code{defvar} specially.
+  The command @kbd{C-x C-e} (@code{eval-last-sexp}) evaluates the
+Emacs Lisp expression preceding point in the buffer, and displays the
+value in the echo area.  When the result of an evaluation is an
+integer, you can type @kbd{C-x C-e} a second time to display the value
+of the integer result in additional formats (octal, hexadecimal, and
+character).
 
-  When the result of an evaluation is an integer, you can type
-@kbd{C-x C-e} a second time to display the value of the integer result
-in additional formats (octal, hexadecimal, and character).
+  If @kbd{M-:} or @kbd{C-x C-e} is given a prefix argument, it inserts
+the value into the current buffer at point, rather than displaying it
+in the echo area.  The argument's value does not matter.
 
-  If @kbd{C-x C-e}, or @kbd{M-:} is given a numeric argument, it
-inserts the value into the current buffer at point, rather than
-displaying it in the echo area.  The argument's value does not matter.
-@kbd{C-M-x} with a numeric argument instruments the function
-definition for Edebug (@pxref{Instrumenting, Instrumenting for Edebug,, elisp, the Emacs Lisp Reference Manual}).
+@kindex C-M-x @r{(Emacs Lisp mode)}
+@findex eval-defun
+  The @code{eval-defun} command is bound to @kbd{C-M-x} in Emacs Lisp
+mode.  It evaluates the top-level Lisp expression containing or
+following point, and prints the value in the echo area.  In this
+context, a top-level expression is referred to as a ``defun'', but it
+need not be an actual @code{defun} (function definition).  In
+particular, this command treats @code{defvar} expressions specially.
+Normally, evaluating a @code{defvar} expression does nothing if the
+variable it defines already has a value.  But this command
+unconditionally resets the variable to the initial value specified by
+the @code{defvar}; this is convenient for debugging Emacs Lisp
+programs.  @code{defcustom} and @code{defface} expressions are treated
+similarly.  Note that the other commands documented in this section do
+not have this special feature.
+
+  With a prefix argument, @kbd{C-M-x} instruments the function
+definition for Edebug, the Emacs Lisp Debugger.  @xref{Instrumenting,
+Instrumenting for Edebug,, elisp, the Emacs Lisp Reference Manual}.
 
 @findex eval-region
 @findex eval-buffer
-  The most general command for evaluating Lisp expressions from a buffer
-is @code{eval-region}.  @kbd{M-x eval-region} parses the text of the
-region as one or more Lisp expressions, evaluating them one by one.
-@kbd{M-x eval-buffer} is similar but evaluates the entire
-buffer.  This is a reasonable way to install the contents of a file of
-Lisp code that you are ready to test.  Later, as you find bugs and
-change individual functions, use @kbd{C-M-x} on each function that you
-change.  This keeps the Lisp world in step with the source file.
+  The command @kbd{M-x eval-region} parses the text of the region as
+one or more Lisp expressions, evaluating them one by one.  @kbd{M-x
+eval-buffer} is similar but evaluates the entire buffer.
 
 @vindex eval-expression-print-level
 @vindex eval-expression-print-length
 @vindex eval-expression-debug-on-error
-  The two customizable variables @code{eval-expression-print-level} and
-@code{eval-expression-print-length} control the maximum depth and length
-of lists to print in the result of the evaluation commands before
-abbreviating them.  @code{eval-expression-debug-on-error} controls
-whether evaluation errors invoke the debugger when these commands are
-used; its default is @code{t}.
+  The customizable variables @code{eval-expression-print-level} and
+@code{eval-expression-print-length} control the maximum depth and
+length of lists to print in the result of the evaluation commands
+before abbreviating them.  @code{eval-expression-debug-on-error}
+controls whether evaluation errors invoke the debugger when these
+commands are used; its default is @code{t}.
 
 @node Lisp Interaction
 @section Lisp Interaction Buffers
 
+@findex lisp-interaction-mode
   When Emacs starts up, it contains a buffer named @samp{*scratch*},
-which is provided for evaluating Lisp expressions interactively inside
-Emacs.  Its major mode is Lisp Interaction mode.
+which is provided for evaluating Emacs Lisp expressions interactively.
+Its major mode is Lisp Interaction mode.  You can also enable Lisp
+Interaction mode by typing @kbd{M-x lisp-interaction-mode}.
 
 @findex eval-print-last-sexp
 @kindex C-j @r{(Lisp Interaction mode)}
-  The simplest way to use the @samp{*scratch*} buffer is to insert
-Lisp expressions and type @kbd{C-j} (@code{eval-print-last-sexp})
-after each expression.  This command reads the Lisp expression before
-point, evaluates it, and inserts the value in printed representation
-before point.  The result is a complete typescript of the expressions
-you have evaluated and their values.
+  In the @samp{*scratch*} buffer, and other Lisp Interaction mode
+buffers, @kbd{C-j} (@code{eval-print-last-sexp}) evaluates the Lisp
+expression before point, and inserts the value at point.  Thus, as you
+type expressions into the buffer followed by @kbd{C-j} after each
+expression, the buffer records a transcript of the evaluated
+expressions and their values.  All other commands in Lisp Interaction
+mode are the same as in Emacs Lisp mode.
 
 @vindex initial-scratch-message
   At startup, the @samp{*scratch*} buffer contains a short message, in
 the form of a Lisp comment, that explains what it is for.  This
 message is controlled by the variable @code{initial-scratch-message},
-which should be either a string or @code{nil}.  If you set it to the
-empty string, or @code{nil}, the initial message is suppressed.
-
-@findex lisp-interaction-mode
-  All other commands in Lisp Interaction mode are the same as in Emacs
-Lisp mode.  You can enable Lisp Interaction mode by typing @kbd{M-x
-lisp-interaction-mode}.
+which should be either a string, or @code{nil} (which means to
+suppress the message).
 
 @findex ielm
-  An alternative way of evaluating Emacs Lisp expressions interactively
-is to use Inferior Emacs-Lisp mode, which provides an interface rather
-like Shell mode (@pxref{Shell Mode}) for evaluating Emacs Lisp
-expressions.  Type @kbd{M-x ielm} to create an @samp{*ielm*} buffer
-which uses this mode.  For more information see that command's
-documentation.
+  An alternative way of evaluating Emacs Lisp expressions
+interactively is to use Inferior Emacs Lisp mode, which provides an
+interface rather like Shell mode (@pxref{Shell Mode}) for evaluating
+Emacs Lisp expressions.  Type @kbd{M-x ielm} to create an
+@samp{*ielm*} buffer which uses this mode.  For more information, see
+that command's documentation.
 
 @node External Lisp
 @section Running an External Lisp
+@cindex Lisp mode
+@cindex mode, Lisp
+@cindex Common Lisp
 
-  Emacs has facilities for running programs in other Lisp systems.  You can
-run a Lisp process as an inferior of Emacs, and pass expressions to it to
-be evaluated.  You can also pass changed function definitions directly from
-the Emacs buffers in which you edit the Lisp programs to the inferior Lisp
-process.
+  Lisp mode is the major mode for editing programs written in
+general-purpose Lisp dialects, such as Common Lisp.  Its mode command
+is @kbd{M-x lisp-mode}.  Emacs uses Lisp mode automatically for files
+whose names end in @file{.l}, @file{.lsp}, or @file{.lisp}.
 
 @findex run-lisp
 @vindex inferior-lisp-program
 @kindex C-x C-z
-  To run an inferior Lisp process, type @kbd{M-x run-lisp}.  This runs
-the program named @code{lisp}, the same program you would run by typing
-@code{lisp} as a shell command, with both input and output going through
-an Emacs buffer named @samp{*lisp*}.  That is to say, any ``terminal
-output'' from Lisp will go into the buffer, advancing point, and any
-``terminal input'' for Lisp comes from text in the buffer.  (You can
-change the name of the Lisp executable file by setting the variable
-@code{inferior-lisp-program}.)
+  You can run an external Lisp session as a subprocess or
+@dfn{inferior process} of Emacs, and pass expressions to it to be
+evaluated.  To begin an external Lisp session, type @kbd{M-x
+run-lisp}.  This runs the program named @command{lisp}, and sets it up
+so that both input and output go through an Emacs buffer named
+@samp{*inferior-lisp*}.  To change the name of the Lisp program run by
+@kbd{M-x run-lisp}, change the variable @code{inferior-lisp-program}.
 
-  To give input to Lisp, go to the end of the buffer and type the input,
-terminated by @key{RET}.  The @samp{*lisp*} buffer is in Inferior Lisp
-mode, which combines the special characteristics of Lisp mode with most
-of the features of Shell mode (@pxref{Shell Mode}).  The definition of
-@key{RET} to send a line to a subprocess is one of the features of Shell
-mode.
-
-@findex lisp-mode
-  For the source files of programs to run in external Lisps, use Lisp
-mode.  You can switch to this mode with @kbd{M-x lisp-mode}, and it is
-used automatically for files whose names end in @file{.l},
-@file{.lsp}, or @file{.lisp}.
+  The major mode for the @samp{*lisp*} buffer is Inferior Lisp mode,
+which combines the characteristics of Lisp mode and Shell mode
+(@pxref{Shell Mode}).  To send input to the Lisp session, go to the
+end of the @samp{*lisp*} buffer and type the input, followed by
+@key{RET}.  Terminal output from the Lisp session is automatically
+inserted in the buffer.
 
 @kindex C-M-x @r{(Lisp mode)}
 @findex lisp-eval-defun
-  When you edit a function in a Lisp program you are running, the easiest
-way to send the changed definition to the inferior Lisp process is the key
-@kbd{C-M-x}.  In Lisp mode, this runs the function @code{lisp-eval-defun},
-which finds the defun around or following point and sends it as input to
-the Lisp process.  (Emacs can send input to any inferior process regardless
-of what buffer is current.)
+  When you edit a Lisp program in Lisp mode, you can type @kbd{C-M-x}
+(@code{lisp-eval-defun}) to send an expression from the Lisp mode
+buffer to a Lisp session that you had started with @kbd{M-x run-lisp}.
+The expression sent is the top-level Lisp expression at or following
+point.  The resulting value goes as usual into the
+@samp{*inferior-lisp*} buffer.  Note that the effect of @kbd{C-M-x} in
+Lisp mode is thus very similar to its effect in Emacs Lisp mode
+(@pxref{Lisp Eval}), except that the expression is sent to a different
+Lisp environment instead of being evaluated in Emacs.
 
-  Contrast the meanings of @kbd{C-M-x} in Lisp mode (for editing
-programs to be run in another Lisp system) and Emacs-Lisp mode (for
-editing Lisp programs to be run in Emacs; see @pxref{Lisp Eval}): in
-both modes it has the effect of installing the function definition
-that point is in, but the way of doing so is different according to
-where the relevant Lisp environment is found.
+@findex scheme-mode
+@findex run-scheme
+@cindex Scheme mode
+@cindex mode, Scheme
+@kindex C-M-x @r{(Scheme mode)}
+  The facilities for editing Scheme code, and for sending expressions
+to a Scheme subprocess, are very similar.  Scheme source files are
+edited in Scheme mode, which can be explicitly enabled with @kbd{M-x
+scheme-mode}.  You can initiate a Scheme session by typing @kbd{M-x
+run-scheme} (the buffer for interacting with Scheme is named
+@samp{*scheme*}), and send expressions to it by typing @kbd{C-M-x}.

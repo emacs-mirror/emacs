@@ -1,3 +1,98 @@
+2011-12-13  Alan Mackenzie  <acm@muc.de>
+
+	Add the switch statement to AWK Mode.
+
+	* progmodes/cc-awk (awk-font-lock-keywords): Add "switch", "case",
+	"default" to the keywords regexp.
+
+	* progmodes/cc-langs (c-label-kwds): Let AWK take the same
+	expression as the rest.
+	(c-nonlabel-token-key): Allow string literals for AWK.  Refactor
+	for the other modes.
+
+	Large brace-block initialisation makes CC Mode slow: Fix.
+	Tidy up and accelerate c-in-literal, etc. by using the
+	c-parse-state
+	routines.  Limit backward searching in c-font-lock-enclosing.decl.
+
+	* progmodes/cc-engine.el (c-state-pp-to-literal): Return the
+	pp-state and literal type in addition to the limits.
+	(c-state-safe-place): New defun, extracted from
+	c-state-literal-at.
+	(c-state-literal-at): Use the above new defun.
+	(c-slow-in-literal, c-fast-in-literal): Removed.
+	(c-in-literal, c-literal-limits): Amended to use
+	c-state-pp-to-literal.
+
+	* progmodes/cc-fonts.el (c-font-lock-enclosing-decls): Check for
+	being in a literal.  Add a limit for backward searching.
+
+	* progmodes/cc-mode.el (awk-mode): Don't alias c-in-literal to
+	c-slow-in-literal.
+
+2011-12-13  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* progmodes/pascal.el: Declare `ind' as dyn-bound (bug#10264).
+
+2011-12-13  Martin Rudalics  <rudalics@gmx.at>
+
+	* window.el (delete-other-windows): Use correct frame in call to
+	window-with-parameter.
+
+2011-12-12  Daniel Pfeiffer  <occitan@t-online.de>
+
+	* progmodes/make-mode.el: Bring it up to date with makepp V2.0.
+	(makefile-make-font-lock-keywords): Extend meaning of `keywords'.
+	(makefile-gmake-statements, makefile-makepp-statements):
+	Use it and add new makepp keywords.
+	(makefile-makepp-font-lock-keywords): Add new patterns.
+	(makefile-match-function-end): Match new [...] and [[...]].
+
+2011-12-11  Juanma Barranquero  <lekktu@gmail.com>
+
+	* ses.el (ses-call-printer-return, ses-cell-property-get)
+	(ses-sym-rowcol, ses-printer-validate, ses-formula-record)
+	(ses-create-cell-variable, ses-reset-header-string)
+	(ses-cell-set-formula, ses-repair-cell-reference-all)
+	(ses-self-reference-early-detection, ses-in-print-area, ses-set-curcell)
+	(ses-check-curcell, ses-call-printer, ses-adjust-print-width)
+	(ses-print-cell-new-width, ses-formula-references, ses-relocate-formula)
+	(ses-aset-with-undo, ses-load, ses-truncate-cell)
+	(ses-read-column-printer, ses-read-default-printer, ses-insert-row)
+	(ses-delete-row, ses-delete-column, ses-append-row-jump-first-column)
+	(ses-kill-override, ses-yank-pop, ses-yank-cells, ses-yank-tsf)
+	(ses-yank-resize, ses-export-tab, ses-mark-row, ses-mark-column)
+	(ses-renarrow-buffer, ses-insert-range, ses-insert-ses-range)
+	(ses-safe-printer, ses-safe-formula, ses-warn-unsafe, ses--clean-!)
+	(ses--clean-_, ses-range, ses-select, ses-center, ses-center-span)
+	(ses-dashfill, ses-unsafe): Fix typos and reflow docstrings.
+
+2011-12-11  Vincent Belaïche  <vincentb1@users.sourceforge.net>
+
+	* ses.el: The overall change is to add cell renaming, that is
+	setting fancy names for cell symbols other than name matching
+	"\\`[A-Z]+[0-9]+\\'" regexp .
+	(ses-create-cell-variable): New defun.
+	(ses-relocate-formula): Relocate formulas only for cells the
+	symbols of which are not renamed, i.e. symbols whose names do not
+	match regexp "\\`[A-Z]+[0-9]+\\'".
+	(ses-relocate-all): Relocate values only for cells the symbols of
+	which are not renamed.
+	(ses-load): Create cells variables as the (ses-cell ...) are read,
+	in order to check row col consistency with cell symbol name only
+	for cells that are not renamed.
+	(ses-replace-name-in-formula): New defun.
+	(ses-rename-cell): New defun.
+
+2011-12-11  Chong Yidong  <cyd@gnu.org>
+
+	* progmodes/gdb-mi.el (gdb): Set comint-prompt-regexp, required
+	for completion via gud-gdb-fetch-lines-filter (Bug#10274).
+
+2011-12-11  Eric Hanchrow  <eric.hanchrow@gmail.com>
+
+	* window.el (other-window): Fix docstring.
+
 2011-12-10  Eli Zaretskii  <eliz@gnu.org>
 
 	* mail/rmailsum.el (rmail-header-summary): RFC2047 decode the

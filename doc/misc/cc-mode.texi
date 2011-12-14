@@ -2160,7 +2160,7 @@ A space between the function name and opening parenthesis when calling
 a user function.  The last character of the function name and the
 opening parenthesis are highlighted.  This font-locking rule will
 spuriously highlight a valid concatenation expression where an
-identifier precedes a parenthesised expression.  Unfortunately.
+identifier precedes a parenthesized expression.  Unfortunately.
 
 @item
 Whitespace following the @samp{\} in what otherwise looks like an
