@@ -1,3 +1,8 @@
+2011-12-13  Martin Rudalics  <rudalics@gmx.at>
+
+	* windows.texi (Splitting Windows): Use t instead of non-nil
+	when describing window-combination-resize.
+
 2011-12-05  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* text.texi (Special Properties): Warn against `intangible' properties
