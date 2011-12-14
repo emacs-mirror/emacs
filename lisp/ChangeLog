@@ -5275,7 +5275,7 @@
 	(ses-calculate-cell, ses-update-cells): Use Dijkstra algorithm for
 	cycle detection.
 	(ses-self-reference-early-detection): New defcustom.
-	(ses-formula-references): Robustify against self-refering cells.
+	(ses-formula-references): Robustify against self-referring cells.
 	(ses-mode): Use ses-set-localvars.
 	(ses-command-hook): Add call to ses-initialize-Dijkstra-attempt
 	before lauching the update processing.

@@ -3526,7 +3526,7 @@ variable PATH."
 Here, we are looking for a command which has zero exit status if the
 file exists and nonzero exit status otherwise."
   (let ((existing "/")
-        (nonexisting
+        (nonexistent
 	 (tramp-shell-quote-argument "/ this file does not exist "))
 	result)
     ;; The algorithm is as follows: we try a list of several commands.
@@ -3551,22 +3551,22 @@ file exists and nonzero exit status otherwise."
 		  (tramp-send-command-and-check
 		   vec (format "%s %s" result existing))
                   (not (tramp-send-command-and-check
-			vec (format "%s %s" result nonexisting))))
+			vec (format "%s %s" result nonexistent))))
              (and (setq result "/bin/test -e")
 		  (tramp-send-command-and-check
 		   vec (format "%s %s" result existing))
                   (not (tramp-send-command-and-check
-			vec (format "%s %s" result nonexisting))))
+			vec (format "%s %s" result nonexistent))))
              (and (setq result "/usr/bin/test -e")
 		  (tramp-send-command-and-check
 		   vec (format "%s %s" result existing))
                   (not (tramp-send-command-and-check
-			vec (format "%s %s" result nonexisting))))
+			vec (format "%s %s" result nonexistent))))
              (and (setq result (format "%s -d" (tramp-get-ls-command vec)))
 		  (tramp-send-command-and-check
 		   vec (format "%s %s" result existing))
                   (not (tramp-send-command-and-check
-			vec (format "%s %s" result nonexisting)))))
+			vec (format "%s %s" result nonexistent)))))
       (tramp-error
        vec 'file-error "Couldn't find command to check if file exists"))
     result))

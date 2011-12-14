@@ -1704,7 +1704,7 @@ If there is no error, then the last value of FORMS is returned."
                       nil))))
        ;; Great Sadness.  Assume that FORMS execute within the
        ;; confines of the current buffer only!  Mark this thing
-       ;; unparseable iff the special symbol was thrown.  This
+       ;; unparsable iff the special symbol was thrown.  This
        ;; will prevent future calls from parsing, but will allow
        ;; then to still return the cache.
        (when ,ret

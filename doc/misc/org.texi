@@ -12469,7 +12469,7 @@ block.  E.g., @code{:results value html}.
 Results assumed to be LaTeX and are enclosed in a @code{begin_latex} block.
 E.g., @code{:results value latex}.
 @item @code{code}
-Result are assumed to be parseable code and are enclosed in a code block.
+Result are assumed to be parsable code and are enclosed in a code block.
 E.g., @code{:results value code}.
 @item @code{pp}
 The result is converted to pretty-printed code and is enclosed in a code
