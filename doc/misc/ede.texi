@@ -705,11 +705,11 @@ A brief description of the project or target.  This is currently used
 by the @samp{ede-speedbar} interface.
 @item ede-want-file-p
 Return non-nil if a target will accept a given file.
-It is generally unecessary to override this.  See the section on source
+It is generally unnecessary to override this.  See the section on source
 code.
 @item ede-buffer-mine
 Return non-nil if a buffer belongs to this target.  Used during
-association when a file is loaded.  It is generally unecessary to
+association when a file is loaded.  It is generally unnecessary to
 override this unless you keep auxiliary files.
 @end table
 

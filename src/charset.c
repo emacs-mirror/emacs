@@ -1660,7 +1660,7 @@ maybe_unify_char (int c, Lisp_Object val)
 }
 
 
-/* Return a character correponding to the code-point CODE of
+/* Return a character corresponding to the code-point CODE of
    CHARSET.  */
 
 int

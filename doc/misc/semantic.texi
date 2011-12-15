@@ -380,7 +380,7 @@ with the search results format.
 
 @item semanticdb-ref.el
 Tracks crossreferences.   Cross references are needed when buffer is
-reparsed, and must alert other tables that any dependant caches may
+reparsed, and must alert other tables that any dependent caches may
 need to be flushed.  References are in the form of include files.
 
 @end table

@@ -221,7 +221,7 @@ Local to those buffers, as a function called that created it.")
     (define-key map [mouse-2] 'dframe-click)
     ;; This is the power click for new frames, or refreshing a cache
     (define-key map [S-mouse-2] 'dframe-power-click)
-    ;; This adds a small unecessary visual effect
+    ;; This adds a small unnecessary visual effect
     ;;(define-key map [down-mouse-2] 'dframe-quick-mouse)
 
     (define-key map [down-mouse-3] 'dframe-popup-kludge)

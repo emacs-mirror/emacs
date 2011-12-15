@@ -1683,7 +1683,7 @@ if test "$doug_lea_malloc" = "yes" ; then
   ## Use mmap directly for allocating larger buffers.
   ## FIXME this comes from src/s/{gnu,gnu-linux}.h:
   ## #ifdef DOUG_LEA_MALLOC; #undef REL_ALLOC; #endif
-  ## Does the AC_FUNC_MMAP test below make this check unecessary?
+  ## Does the AC_FUNC_MMAP test below make this check unnecessary?
   case "$opsys" in
     gnu*) REL_ALLOC=no ;;
   esac

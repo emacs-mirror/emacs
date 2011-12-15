@@ -4273,7 +4273,7 @@ of suffixes.  The function also accepts a predicate argument to
 further filter candidate files.
 
 One advantage of using this function is that the list of suffixes in
-`exec-suffixes' is OS-dependant, so this function will find
+`exec-suffixes' is OS-dependent, so this function will find
 executables without polluting Lisp code with OS dependencies.
 
 *** The new function `file-remote-p' tests a file name and returns

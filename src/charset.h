@@ -238,7 +238,7 @@ struct charset
   int unified_p;
 };
 
-/* Hash table of charset symbols vs. the correponding attribute
+/* Hash table of charset symbols vs. the corresponding attribute
    vectors.  */
 extern Lisp_Object Vcharset_hash_table;
 
@@ -389,7 +389,7 @@ extern Lisp_Object Vchar_charset_set;
 #endif
 
 
-/* Return a character correponding to the code-point CODE of CHARSET.
+/* Return a character corresponding to the code-point CODE of CHARSET.
    Try some optimization before calling decode_char.  */
 
 #define DECODE_CHAR(charset, code)					\
