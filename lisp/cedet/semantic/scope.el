@@ -725,7 +725,7 @@ The class returned from the scope calculation is variable
 	      (oset scopecache localargs localargs)
 	      (oset scopecache localvar localvar)
 	      )))
-	;; Make sure we become dependant on the typecache.
+	;; Make sure we become dependent on the typecache.
 	(semanticdb-typecache-add-dependant scopecache)
 	;; Handy debug output.
 	(when (called-interactively-p 'any)

@@ -958,7 +958,7 @@ B) Speed of editing operations.
   `cperl-array-face'			Array names
   `cperl-hash-face'			Hash names
   `font-lock-comment-face'	Comments, PODs and whatever is considered
-				syntaxically to be not code
+				syntactically to be not code
   `font-lock-constant-face'	HERE-doc delimiters, labels, delimiters of
 				2-arg operators s/y/tr/ or of RExen,
   `font-lock-warning-face'	Special-cased m// and s//foo/,
@@ -970,7 +970,7 @@ B) Speed of editing operations.
   `cperl-nonoverridable-face'	Non-overridable keywords, modifiers of RExen
   `font-lock-string-face'	Strings, qw() constructs, RExen, POD sections,
 				literal parts and the terminator of formats
-				and whatever is syntaxically considered
+				and whatever is syntactically considered
 				as string literals
   `font-lock-type-face'		Overridable keywords
   `font-lock-variable-name-face' Variable declarations, indirect array and
@@ -1537,8 +1537,8 @@ default.)  You can always quote (with \\[quoted-insert]) the left
 since most the time you mean \"less\".  CPerl mode tries to guess
 whether you want to type pair <>, and inserts is if it
 appropriate.  You can set `cperl-electric-parens-string' to the string that
-contains the parenths from the above list you want to be electrical.
-Electricity of parenths is controlled by `cperl-electric-parens'.
+contains the parens from the above list you want to be electrical.
+Electricity of parens is controlled by `cperl-electric-parens'.
 You may also set `cperl-electric-parens-mark' to have electric parens
 look for active mark and \"embrace\" a region if possible.'
 
@@ -3517,7 +3517,7 @@ Works before syntax recognition is done."
 (defvar font-lock-warning-face)
 
 (defun cperl-find-sub-attrs (&optional st-l b-fname e-fname pos)
-  "Syntaxically mark (and fontify) attributes of a subroutine.
+  "Syntactically mark (and fontify) attributes of a subroutine.
 Should be called with the point before leading colon of an attribute."
   ;; Works *before* syntax recognition is done
   (or st-l (setq st-l (list nil)))	; Avoid overwriting '()
@@ -4994,7 +4994,7 @@ conditional/loop constructs."
 	  (setq top (point))
 	  ;; Plan A: if line has an unfinished paren-group, go to end-of-group
 	  (while (= -1 (nth 0 (parse-partial-sexp (point) tmp-end -1)))
-	    (setq top (point)))		; Get the outermost parenths in line
+	    (setq top (point)))		; Get the outermost parens in line
 	  (goto-char top)
 	  (while (< (point) tmp-end)
 	    (parse-partial-sexp (point) tmp-end nil t) ; To start-sexp or eol
@@ -5906,7 +5906,7 @@ indentation and initial hashes.  Behaves usually outside of comment."
 		       3 font-lock-variable-name-face)))
 	    '("\\<for\\(each\\)?\\([ \t]+\\(my\\|local\\|our\\)\\)?[ \t]*\\(\\$[a-zA-Z_][a-zA-Z_0-9]*\\)[ \t]*("
 	      4 font-lock-variable-name-face)
-	    ;; Avoid $!, and s!!, qq!! etc. when not fontifying syntaxically
+	    ;; Avoid $!, and s!!, qq!! etc. when not fontifying syntactically
 	    '("\\(?:^\\|[^smywqrx$]\\)\\(!\\)" 1 font-lock-negation-char-face)
 	    '("\\[\\(\\^\\)" 1 font-lock-negation-char-face prepend)))
 	  (setq

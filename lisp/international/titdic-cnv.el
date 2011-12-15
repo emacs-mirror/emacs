@@ -103,7 +103,7 @@ For example:
 
 \\<quail-translation-docstring>
 
-For double-width GB2312 characters correponding to ASCII, use the
+For double-width GB2312 characters corresponding to ASCII, use the
 input method `chinese-qj'.")
 
     ("chinese-ecdict" "$(05CKH(B"
@@ -191,7 +191,7 @@ For instance, to input $ADc(B, you type \"n i 3 3\", the first \"n i\" is
 a Pinyin, the next \"3\" specifies tone, and the last \"3\" selects
 the third character from the candidate list.
 
-For double-width GB2312 characters correponding to ASCII, use the
+For double-width GB2312 characters corresponding to ASCII, use the
 input method `chinese-qj'.")
 
     ("chinese-zozy" "$(0I\0D(B"
