@@ -860,13 +860,13 @@ using `make-temp-file', and the generated name is returned."
 	  dir)))
     (if (or alien (file-exists-p fullname))
 	(progn
-	  ;; Maked sure all the leading directories in
+	  ;; Make sure all the leading directories in
 	  ;; archive-local-name exist under archive-tmpdir, so that
 	  ;; the directory structure recorded in the archive is
 	  ;; reconstructed in the temporary directory.
 	  (make-directory (file-name-directory tmpfile) t)
 	  (make-temp-file tmpfile))
-      ;; Maked sure all the leading directories in `fullname' exist
+      ;; Make sure all the leading directories in `fullname' exist
       ;; under archive-tmpdir.  This is necessary for nested archives
       ;; (`archive-extract' sets `archive-remote' to t in case
       ;; an archive occurs inside another archive).

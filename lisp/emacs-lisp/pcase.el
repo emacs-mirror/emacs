@@ -363,12 +363,12 @@ MATCH is the pattern that needs to be matched, of the form:
     (dolist (branch rest)
       (let* ((match (car branch))
              (code&vars (cdr branch))
-             (splitted
+             (split
               (pcase--split-match sym splitter match)))
-        (unless (eq (car splitted) :pcase--fail)
-          (push (cons (car splitted) code&vars) then-rest))
-        (unless (eq (cdr splitted) :pcase--fail)
-          (push (cons (cdr splitted) code&vars) else-rest))))
+        (unless (eq (car split) :pcase--fail)
+          (push (cons (car split) code&vars) then-rest))
+        (unless (eq (cdr split) :pcase--fail)
+          (push (cons (cdr split) code&vars) else-rest))))
     (cons (nreverse then-rest) (nreverse else-rest))))
 
 (defun pcase--split-consp (syma symd pat)

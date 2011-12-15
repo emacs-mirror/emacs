@@ -2464,7 +2464,7 @@ If prefix ARG < 0 then move forward to enclosing block end."
 (defun idlwave-down-block (&optional arg)
   "Go down a block.
 With ARG: ARG >= 0 go forwards, ARG < 0 go backwards.
-Returns non-nil if successfull."
+Returns non-nil if successful."
   (interactive "p")
   (let (status)
     (if (< arg 0)

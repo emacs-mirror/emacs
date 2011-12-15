@@ -3865,7 +3865,7 @@ overlay arrow in source buffer."
 If BUF is already displayed in some window, show it, deiconifying
 the frame if necessary. Otherwise, find least recently used
 window and show BUF there, if the window is not used for GDB
-already, in which case that window is splitted first."
+already, in which case that window is split first."
   (let ((answer (get-buffer-window buf (or frame 0))))
     (if answer
 	(display-buffer buf nil (or frame 0)) ;Deiconify frame if necessary.

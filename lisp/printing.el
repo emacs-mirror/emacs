@@ -4710,12 +4710,12 @@ Interactively, you have the following situations:
 
    M-x pr-ps-fast-fire RET
       The command prompts the user for a N-UP value and printing will
-      immediatelly be done using the current active printer.
+      immediately be done using the current active printer.
 
    C-u   M-x pr-ps-fast-fire RET
    C-u 0 M-x pr-ps-fast-fire RET
       The command prompts the user for a N-UP value and also for a current
-      PostScript printer, then printing will immediatelly be done using the new
+      PostScript printer, then printing will immediately be done using the new
       current active printer.
 
    C-u 1 M-x pr-ps-fast-fire RET
@@ -4736,7 +4736,7 @@ zero and the argument SELECT is treated as follows:
    If it's nil, send the image to the printer.
 
    If it's a list or an integer lesser or equal to zero, the command prompts
-   the user for a current PostScript printer, then printing will immediatelly
+   the user for a current PostScript printer, then printing will immediately
    be done using the new current active printer.
 
    If it's an integer equal to 1, the command prompts the user for a file name
@@ -4749,7 +4749,7 @@ zero and the argument SELECT is treated as follows:
    instead of sending it to the printer.
 
    If it's a symbol which it's defined in `pr-ps-printer-alist', it's the new
-   active printer and printing will immediatelly be done using the new active
+   active printer and printing will immediately be done using the new active
    printer.
 
    Otherwise, send the image to the printer.
@@ -4800,7 +4800,7 @@ Noninteractively, the argument SELECT-PRINTER is treated as follows:
    If it's nil, the printing is sent to the current active text printer.
 
    If it's a symbol which it's defined in `pr-txt-printer-alist', it's the new
-   active printer and printing will immediatelly be done using the new active
+   active printer and printing will immediately be done using the new active
    printer.
 
    If it's non-nil, the command prompts the user for a new active text printer.

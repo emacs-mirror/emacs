@@ -453,7 +453,7 @@ will not be rewrapped if their length exceeds this value."
   :group 'filesets)
 
 (defcustom filesets-max-entry-length 50
-  "Truncate names of splitted submenus to this length."
+  "Truncate names of split submenus to this length."
   :set (function filesets-set-default)
   :type 'integer
   :group 'filesets)
