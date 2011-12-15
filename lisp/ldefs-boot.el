@@ -3608,7 +3608,7 @@ REG := r0 | r1 | r2 | r3 | r4 | r5 | r6 | r7
 ARG := REG | integer
 
 OPERATOR :=
-	;; Normal arithmethic operators (same meaning as C code).
+	;; Normal arithmetic operators (same meaning as C code).
 	+ | - | * | / | %
 
 	;; Bitwise operators (same meaning as C code)
