@@ -46,7 +46,7 @@
 (defmethod ede-proj-makefile-insert-source-variables :BEFORE
   ((this ede-proj-target-makefile-archive) &optional moresource)
   "Insert bin_PROGRAMS variables needed by target THIS.
-We aren't acutally inserting SOURCE details, but this is used by the
+We aren't actually inserting SOURCE details, but this is used by the
 Makefile.am generator, so use it to add this important bin program."
   (ede-pmake-insert-variable-shared
       (concat "lib" (ede-name this) "_a_LIBRARIES")

@@ -308,7 +308,7 @@
 ;; ifindf package back into iswitchb.
 ;;
 ;; This is basically what ido (interactively do) is all about; but I
-;; found it ackward to merge my changes into the "iswitchb-" namespace,
+;; found it awkward to merge my changes into the "iswitchb-" namespace,
 ;; so I invented a common "ido-" namespace for the merged packages.
 ;;
 ;; This version is based on ido.el version 1.57 released on

@@ -335,7 +335,7 @@ NOTE: Not yet in use!  This is part of an SRecode conversion of
 ;
 ;	   (oref this variables))
 ;
-;     ;; Add in all variables from the configuration not allready covered.
+;     ;; Add in all variables from the configuration not already covered.
 ;     (mapc (lambda (c)
 ;
 ;	     (if (member (car c) conf-done)
@@ -372,7 +372,7 @@ NOTE: Not yet in use!  This is part of an SRecode conversion of
 		  (setq conf-done (cons (car c) conf-done))))
 	    (insert (cdr c) "\n"))
 	  (oref this variables))
-    ;; Add in all variables from the configuration not allready covered.
+    ;; Add in all variables from the configuration not already covered.
     (mapc (lambda (c)
 	    (if (member (car c) conf-done)
 		nil
@@ -430,7 +430,7 @@ sources variable."
 		      this (oref proj configuration-default)))
 	 (conf-done nil)
 	 )
-    ;; Add in all variables from the configuration not allready covered.
+    ;; Add in all variables from the configuration not already covered.
     (mapc (lambda (c)
 	    (if (member (car c) conf-done)
 		nil

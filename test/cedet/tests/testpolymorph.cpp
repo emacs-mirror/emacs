@@ -83,7 +83,7 @@ namespace template_partial_spec {
   };
 }
 
-// Test 5 - Templates w/ full specicialization which may or may not share
+// Test 5 - Templates w/ full specialization which may or may not share
 // common functions.
 namespace template_full_spec {
   template <typename T> class test
