@@ -1,3 +1,7 @@
+2011-12-15  Juri Linkov  <juri@jurta.org>
+
+	* mm-decode.el (mm-inline-media-tests): Add missing `mm-handle-media-subtype'.
+
 2011-12-09  Tassilo Horn  <tassilo@member.fsf.org>
 
 	* message.el (message-valid-fqdn-regexp): Update with newly approved
