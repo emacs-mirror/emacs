@@ -1,3 +1,9 @@
+2011-12-15  Kenichi Handa  <handa@m17n.org>
+
+	* language/ethio-util.el: Change coding tag to utf-8-emacs.
+	(setup-ethiopic-environment-internal): Comment out key-binding for
+	ethio-toggle-punctuation.
+
 2011-12-13  Alan Mackenzie  <acm@muc.de>
 
 	Add the switch statement to AWK Mode.

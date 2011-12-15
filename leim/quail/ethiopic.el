@@ -39,7 +39,7 @@
  "ethiopic" "Ethiopic"
  '("$(3$Q#U!.(B "
    (ethio-prefer-ascii-space "_" "$(3$h(B")
-   (ethio-prefer-ascii-punctuation "." "$(3$i(B"))
+   "$(3$i(B")
  t "  Quail package for Ethiopic (Tigrigna and Amharic)
 
 When you are in Ethiopic language environment, the following special
