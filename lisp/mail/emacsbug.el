@@ -437,7 +437,7 @@ and send the mail again%s."
 				(car bug))
 			       items))
 		       (nreverse items))))
-      (widget-insert "No bugs maching your keywords found.\n"))
+      (widget-insert "No bugs matching your keywords found.\n"))
     (widget-insert "\n")
     (widget-create 'push-button
 		   :notify (lambda (&rest ignore)

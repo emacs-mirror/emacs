@@ -570,6 +570,7 @@ region (or with the left margin if there is no previous line).
 ** browse-url has a new variable `browse-url-mailto-function'
 specifies how mailto: URLs are handled.  The default is `browse-url-mail'.
 
+---
 ** BibTeX mode
 
 *** BibTeX mode now supports biblatex.
@@ -625,7 +626,7 @@ view-diary-entries, list-diary-entries, show-all-diary-entries
 ** comint and modes derived from it use the generic completion code.
 
 ** Compilation mode
-
+---
 *** Compilation mode can be used without font-lock-mode.
 `compilation-parse-errors-function' is now obsolete.
 

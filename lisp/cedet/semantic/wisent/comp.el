@@ -2640,7 +2640,7 @@ there are any reduce/reduce conflicts.")
 
 (defun wisent-print-results ()
   "Print information on generated parser.
-Report detailed informations if `wisent-verbose-flag' or
+Report detailed information if `wisent-verbose-flag' or
 `wisent-debug-flag' are non-nil."
   (when (or wisent-verbose-flag wisent-debug-flag)
     (wisent-print-useless))

@@ -195,9 +195,6 @@
       (not prevstate)
     (> arg 0)))
 
-;; Dynamically bound cache for `c-in-literal'.
-(defvar c-in-literal-cache t)
-
 
 ;; Basic handling of preprocessor directives.
 
@@ -2093,28 +2090,35 @@ comment at the start of cc-engine.el for more info."
 ;; `c-state-literal-at'.
 
 (defsubst c-state-pp-to-literal (from to)
-  ;; Do a parse-partial-sexp from FROM to TO, returning the bounds of any
-  ;; literal at TO as a cons, otherwise NIL.
-  ;; FROM must not be in a literal, and the buffer should already be wide
-  ;; enough.
+  ;; Do a parse-partial-sexp from FROM to TO, returning either
+  ;;     (STATE TYPE (BEG . END))     if TO is in a literal; or
+  ;;     (STATE)                      otherwise,
+  ;; where STATE is the parsing state at TO, TYPE is the type of the literal
+  ;; (one of 'c, 'c++, 'string) and (BEG . END) is the boundaries of the literal.
+  ;;
+  ;; Only elements 3 (in a string), 4 (in a comment), 5 (following a quote),
+  ;; 7 (comment type) and 8 (start of comment/string) (and possibly 9) of
+  ;; STATE are valid.
   (save-excursion
-    (let ((s (parse-partial-sexp from to)))
+    (let ((s (parse-partial-sexp from to))
+	  ty)
       (when (or (nth 3 s) (nth 4 s))	; in a string or comment
+	(setq ty (cond
+		  ((nth 3 s) 'string)
+		  ((eq (nth 7 s) t) 'c++)
+		  (t 'c)))
 	(parse-partial-sexp (point) (point-max)
 			    nil			 ; TARGETDEPTH
 			    nil			 ; STOPBEFORE
 			    s			 ; OLDSTATE
-			    'syntax-table)	 ; stop at end of literal
-	(cons (nth 8 s) (point))))))
+			    'syntax-table))	 ; stop at end of literal
+      (if ty
+	  `(,s ,ty (,(nth 8 s) . ,(point)))
+	`(,s)))))
 
-(defun c-state-literal-at (here)
-  ;; If position HERE is inside a literal, return (START . END), the
-  ;; boundaries of the literal (which may be outside the accessible bit of the
-  ;; buffer).  Otherwise, return nil.
-  ;;
-  ;; This function is almost the same as `c-literal-limits'.  It differs in
-  ;; that it is a lower level function, and that it rigourously follows the
-  ;; syntax from BOB, whereas `c-literal-limits' uses a "local" safe position.
+(defun c-state-safe-place (here)
+  ;; Return a buffer position before HERE which is "safe", i.e. outside any
+  ;; string, comment, or macro.
   ;;
   ;; NOTE: This function manipulates `c-state-nonlit-pos-cache'.  This cache
   ;; MAY NOT contain any positions within macros, since macros are frequently
@@ -2137,7 +2141,7 @@ comment at the start of cc-engine.el for more info."
 
 	(while (<= (setq npos (+ pos c-state-nonlit-pos-interval))
 		   here)
-	  (setq lit (c-state-pp-to-literal pos npos))
+	  (setq lit (car (cddr (c-state-pp-to-literal pos npos))))
 	  (setq pos (or (cdr lit) npos)) ; end of literal containing npos.
 	  (goto-char pos)
 	  (when (and (c-beginning-of-macro) (/= (point) pos))
@@ -2148,9 +2152,22 @@ comment at the start of cc-engine.el for more info."
 
 	(if (> pos c-state-nonlit-pos-cache-limit)
 	    (setq c-state-nonlit-pos-cache-limit pos))
-	(if (< pos here)
-	    (setq lit (c-state-pp-to-literal pos here)))
-	lit))))
+	pos))))
+	
+(defun c-state-literal-at (here)
+  ;; If position HERE is inside a literal, return (START . END), the
+  ;; boundaries of the literal (which may be outside the accessible bit of the
+  ;; buffer).  Otherwise, return nil.
+  ;;
+  ;; This function is almost the same as `c-literal-limits'.  Previously, it
+  ;; differed in that it was a lower level function, and that it rigourously
+  ;; followed the syntax from BOB.  `c-literal-limits' is now (2011-12)
+  ;; virtually identical to this function.
+  (save-restriction
+    (widen)
+    (save-excursion
+      (let ((pos (c-state-safe-place here)))
+	    (car (cddr (c-state-pp-to-literal pos here)))))))
 
 (defsubst c-state-lit-beg (pos)
   ;; Return the start of the literal containing POS, or POS itself.
@@ -4181,7 +4198,7 @@ comment at the start of cc-engine.el for more info."
 
 ;; Tools for handling comments and string literals.
 
-(defun c-slow-in-literal (&optional lim detect-cpp)
+(defun c-in-literal (&optional lim detect-cpp)
   "Return the type of literal point is in, if any.
 The return value is `c' if in a C-style comment, `c++' if in a C++
 style comment, `string' if in a string literal, `pound' if DETECT-CPP
@@ -4194,67 +4211,12 @@ The last point calculated is cached if the cache is enabled, i.e. if
 
 Note that this function might do hidden buffer changes.  See the
 comment at the start of cc-engine.el for more info."
-
-  (if (and (vectorp c-in-literal-cache)
-	   (= (point) (aref c-in-literal-cache 0)))
-      (aref c-in-literal-cache 1)
-    (let ((rtn (save-excursion
-		 (let* ((pos (point))
-			(lim (or lim (progn
-				       (c-beginning-of-syntax)
-				       (point))))
-			(state (parse-partial-sexp lim pos)))
-		   (cond
-		    ((elt state 3) 'string)
-		    ((elt state 4) (if (elt state 7) 'c++ 'c))
-		    ((and detect-cpp (c-beginning-of-macro lim)) 'pound)
-		    (t nil))))))
-      ;; cache this result if the cache is enabled
-      (if (not c-in-literal-cache)
-	  (setq c-in-literal-cache (vector (point) rtn)))
-      rtn)))
-
-;; XEmacs has a built-in function that should make this much quicker.
-;; I don't think we even need the cache, which makes our lives more
-;; complicated anyway.  In this case, lim is only used to detect
-;; cpp directives.
-;;
-;; Note that there is a bug in XEmacs's buffer-syntactic-context when used in
-;; conjunction with syntax-table-properties.  The bug is present in, e.g.,
-;; XEmacs 21.4.4.  It manifested itself thus:
-;;
-;; Starting with an empty AWK Mode buffer, type
-;; /regexp/ {<C-j>
-;; Point gets wrongly left at column 0, rather than being indented to tab-width.
-;;
-;; AWK Mode is designed such that when the first / is typed, it gets the
-;; syntax-table property "string fence".  When the second / is typed, BOTH /s
-;; are given the s-t property "string".  However, buffer-syntactic-context
-;; fails to take account of the change of the s-t property on the opening / to
-;; "string", and reports that the { is within a string started by the second /.
-;;
-;; The workaround for this is for the AWK Mode initialization to switch the
-;; defalias for c-in-literal to c-slow-in-literal.  This will slow down other
-;; cc-modes in XEmacs whenever an awk-buffer has been initialized.
-;;
-;; (Alan Mackenzie, 2003/4/30).
-
-(defun c-fast-in-literal (&optional lim detect-cpp)
-  ;; This function might do hidden buffer changes.
-  (let ((context (buffer-syntactic-context)))
-    (cond
-     ((eq context 'string) 'string)
-     ((eq context 'comment) 'c++)
-     ((eq context 'block-comment) 'c)
-     ((and detect-cpp (save-excursion (c-beginning-of-macro lim))) 'pound))))
-
-(defalias 'c-in-literal
-  (if (fboundp 'buffer-syntactic-context)
-    'c-fast-in-literal                  ; XEmacs
-    'c-slow-in-literal))                ; GNU Emacs
-
-;; The defalias above isn't enough to shut up the byte compiler.
-(cc-bytecomp-defun c-in-literal)
+  (let* ((safe-place (c-state-safe-place (point)))
+	 (lit (c-state-pp-to-literal safe-place (point))))
+    (or (cadr lit)
+	(and detect-cpp
+	     (save-excursion (c-beginning-of-macro))
+	     'pound))))
 
 (defun c-literal-limits (&optional lim near not-in-delimiter)
   "Return a cons of the beginning and end positions of the comment or
@@ -4273,64 +4235,56 @@ comment at the start of cc-engine.el for more info."
 
   (save-excursion
     (let* ((pos (point))
-	   (lim (or lim (progn
-			  (c-beginning-of-syntax)
-			  (point))))
-	   (state (parse-partial-sexp lim pos)))
+	   (lim (or lim (c-state-safe-place pos)))
+	   (pp-to-lit (c-state-pp-to-literal lim pos))
+	   (state (car pp-to-lit))
+	   (lit-type (cadr pp-to-lit))
+	   (lit-limits (car (cddr pp-to-lit))))
 
-      (cond ((elt state 3)		; String.
-	     (goto-char (elt state 8))
-	     (cons (point) (or (c-safe (c-forward-sexp 1) (point))
-			       (point-max))))
+      (cond
+       (lit-limits)
+       ((and (not not-in-delimiter)
+	     (not (elt state 5))
+	     (eq (char-before) ?/)
+	     (looking-at "[/*]")) ; FIXME!!! use c-line/block-comment-starter.  2008-09-28.
+	;; We're standing in a comment starter.
+	(backward-char 1)
+	(cons (point) (progn (c-forward-single-comment) (point))))
 
-	    ((elt state 4)		; Comment.
-	     (goto-char (elt state 8))
-	     (cons (point) (progn (c-forward-single-comment) (point))))
+       (near
+	(goto-char pos)
+	;; Search forward for a literal.
+	(skip-chars-forward " \t")
+	(cond
+	 ((looking-at c-string-limit-regexp) ; String.
+	  (cons (point) (or (c-safe (c-forward-sexp 1) (point))
+			    (point-max))))
 
-	    ((and (not not-in-delimiter)
-		  (not (elt state 5))
-		  (eq (char-before) ?/)
-		  (looking-at "[/*]"))
-	     ;; We're standing in a comment starter.
-	     (backward-char 1)
-	     (cons (point) (progn (c-forward-single-comment) (point))))
+	 ((looking-at c-comment-start-regexp) ; Line or block comment.
+	  (cons (point) (progn (c-forward-single-comment) (point))))
 
-	    (near
-	     (goto-char pos)
+	 (t
+	  ;; Search backward.
+	  (skip-chars-backward " \t")
 
-	     ;; Search forward for a literal.
-	     (skip-chars-forward " \t")
+	  (let ((end (point)) beg)
+	    (cond
+	     ((save-excursion
+		(< (skip-syntax-backward c-string-syntax) 0)) ; String.
+	      (setq beg (c-safe (c-backward-sexp 1) (point))))
 
-	     (cond
-	      ((looking-at c-string-limit-regexp) ; String.
-	       (cons (point) (or (c-safe (c-forward-sexp 1) (point))
-				 (point-max))))
+	     ((and (c-safe (forward-char -2) t)
+		   (looking-at "*/"))
+	      ;; Block comment.  Due to the nature of line
+	      ;; comments, they will always be covered by the
+	      ;; normal case above.
+	      (goto-char end)
+	      (c-backward-single-comment)
+	      ;; If LIM is bogus, beg will be bogus.
+	      (setq beg (point))))
 
-	      ((looking-at c-comment-start-regexp) ; Line or block comment.
-	       (cons (point) (progn (c-forward-single-comment) (point))))
-
-	      (t
-	       ;; Search backward.
-	       (skip-chars-backward " \t")
-
-	       (let ((end (point)) beg)
-		 (cond
-		  ((save-excursion
-		     (< (skip-syntax-backward c-string-syntax) 0)) ; String.
-		   (setq beg (c-safe (c-backward-sexp 1) (point))))
-
-		  ((and (c-safe (forward-char -2) t)
-			(looking-at "*/"))
-		   ;; Block comment.  Due to the nature of line
-		   ;; comments, they will always be covered by the
-		   ;; normal case above.
-		   (goto-char end)
-		   (c-backward-single-comment)
-		   ;; If LIM is bogus, beg will be bogus.
-		   (setq beg (point))))
-
-		 (if beg (cons beg end))))))
-	    ))))
+	    (if beg (cons beg end))))))
+       ))))
 
 ;; In case external callers use this; it did have a docstring.
 (defalias 'c-literal-limits-fast 'c-literal-limits)

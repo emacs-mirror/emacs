@@ -528,8 +528,8 @@ differ.
 @cindex methods, inline
 @cindex methods, external
 Loading or saving a remote file requires that the content of the file
-be transfered between the two machines.  The content of the file can
-be transfered using one of two methods: the @dfn{inline method} over
+be transferred between the two machines.  The content of the file can
+be transferred using one of two methods: the @dfn{inline method} over
 the same connection used to log in to the remote machine, or the
 @dfn{external method} through another connection using a remote copy
 program such as @command{rcp}, @command{scp} or @command{rsync}.

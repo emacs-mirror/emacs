@@ -19176,7 +19176,7 @@
 	toggle-read-only.
 
 	* textmodes/bibtex.el (bibtex-format-entry): Handle error message
-	refering to a missing required field with the OPT prefix.
+	referring to a missing required field with the OPT prefix.
 	Make unwindform more robust.
 
 	* textmodes/bibtex.el: Remove support for hideshow minor mode as

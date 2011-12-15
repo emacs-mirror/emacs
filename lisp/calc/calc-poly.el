@@ -147,7 +147,7 @@
 
 ;;; Return only quotient to top of stack (nil if zero)
 
-;; calc-poly-div-remainder is a local variable for 
+;; calc-poly-div-remainder is a local variable for
 ;; calc-poly-div (in calc-alg.el), but is used by
 ;; calcFunc-pdiv, which is called by calc-poly-div.
 (defvar calc-poly-div-remainder)
@@ -512,7 +512,7 @@
 ;;; Given an expression find all variables that are polynomial bases.
 ;;; Return list in the form '( (var1 degree1) (var2 degree2) ... ).
 
-;; The variable math-poly-base-total-base is local to 
+;; The variable math-poly-base-total-base is local to
 ;; math-total-polynomial-base, but is used by math-polynomial-p1,
 ;; which is called by math-total-polynomial-base.
 (defvar math-poly-base-total-base)
@@ -539,19 +539,19 @@
   nil)
 
 ;; The variable math-factored-vars is local to calcFunc-factors and
-;; calcFunc-factor, but is used by math-factor-expr and 
+;; calcFunc-factor, but is used by math-factor-expr and
 ;; math-factor-expr-part, which are called (directly and indirectly) by
 ;; calcFunc-factor and calcFunc-factors.
 (defvar math-factored-vars)
 
 ;; The variable math-fact-expr is local to calcFunc-factors,
-;; calcFunc-factor and math-factor-expr, but is used by math-factor-expr-try 
+;; calcFunc-factor and math-factor-expr, but is used by math-factor-expr-try
 ;; and math-factor-expr-part, which are called (directly and indirectly) by
 ;; calcFunc-factor, calcFunc-factors and math-factor-expr.
 (defvar math-fact-expr)
 
-;; The variable math-to-list is local to calcFunc-factors and 
-;; calcFunc-factor, but is used by math-accum-factors, which is 
+;; The variable math-to-list is local to calcFunc-factors and
+;; calcFunc-factor, but is used by math-accum-factors, which is
 ;; called (indirectly) by calcFunc-factors and calcFunc-factor.
 (defvar math-to-list)
 
@@ -729,7 +729,7 @@
 			  '(1)))
 
 	       ;; We now have a square-free polynomial with integer coefs.
-	       ;; For now, we use a kludgey method that finds linear and
+	       ;; For now, we use a kludgy method that finds linear and
 	       ;; quadratic terms using floating-point root-finding.
 	       (if (setq t1 (let ((calc-symbolic-mode nil))
 			      (math-poly-all-roots nil p t)))
@@ -749,7 +749,7 @@
 					   (math-add
 					    (math-add
 					     (math-mul den (math-pow math-fet-x 2))
-					     (math-mul (math-mul coef1 den) 
+					     (math-mul (math-mul coef1 den)
                                                        math-fet-x))
 					    (math-mul coef0 den)))
 				       (let ((den (math-lcm-denoms coef0)))
@@ -1077,7 +1077,7 @@ If no partial fraction representation can be found, return nil."
 	((and (eq (car-safe expr) '^)
 	      (memq (car-safe (nth 1 expr)) '(+ -))
 	      (integerp (nth 2 expr))
-              (if (and 
+              (if (and
                    (or (math-known-matrixp (nth 1 (nth 1 expr)))
                        (math-known-matrixp (nth 2 (nth 1 expr)))
                        (and
@@ -1090,11 +1090,11 @@ If no partial fraction representation can be found, return nil."
                       (math-add-or-sub (list '* (nth 1 (nth 1 expr)) (nth 1 expr))
                                        (list '* (nth 2 (nth 1 expr)) (nth 1 expr))
                                        nil (eq (car (nth 1 expr)) '-))
-                    (math-add-or-sub (list '* (nth 1 (nth 1 expr)) 
-                                           (list '^ (nth 1 expr) 
+                    (math-add-or-sub (list '* (nth 1 (nth 1 expr))
+                                           (list '^ (nth 1 expr)
                                                  (1- (nth 2 expr))))
-                                     (list '* (nth 2 (nth 1 expr)) 
-                                           (list '^ (nth 1 expr) 
+                                     (list '* (nth 2 (nth 1 expr))
+                                           (list '^ (nth 1 expr)
                                                  (1- (nth 2 expr))))
                                      nil (eq (car (nth 1 expr)) '-)))
                 (if (> (nth 2 expr) 0)

@@ -524,7 +524,7 @@ your full name, you might want to set it to some pseudonym.
 
 @item rcirc-authinfo
 @vindex rcirc-authinfo
-@cindex authentification
+@cindex authentication
 @cindex identification
 @cindex nickserv
 @cindex login
@@ -547,7 +547,7 @@ And here are the valid method symbols and the arguments they require:
 
 @table @code
 @item nickserv
-@cindex nickserv authentification
+@cindex nickserv authentication
 Use this symbol if you need to identify yourself as follows when
 connecting to a network: @code{/msg nickserv identify secret}.  The
 necessary arguments are the nickname you want to use this for, and the
@@ -558,7 +558,7 @@ pick a password for it.  Contact @code{nickserv} and check out the
 details.  (Using @code{/msg nickserv help}, for example.)
 
 @item chanserv
-@cindex chanserv authentification
+@cindex chanserv authentication
 Use this symbol if you need to identify yourself as follows if you want
 to join a particular channel: @code{/msg chanserv identify #underground
 secret}.  The necessary arguments are the nickname and channel you want
@@ -569,7 +569,7 @@ the password to use.  Contact @code{chanserv} and check out the details.
 (Using @code{/msg chanserv help}, for example.)
 
 @item bitlbee
-@cindex bitlbee authentification
+@cindex bitlbee authentication
 Use this symbol if you need to identify yourself in the Bitlbee channel
 as follows: @code{identify secret}.  The necessary arguments are the
 nickname you want to use this for, and the password to use.
@@ -585,7 +585,7 @@ Bitlbee acts like an IRC server, but in fact it is a gateway to a lot of
 other instant messaging services.  You can either install Bitlbee
 locally or use a public Bitlbee server.  There, you need to create an
 account with a password.  This is the nick and password you need to
-provide for the bitlbee authentification method.
+provide for the bitlbee authentication method.
 
 Later, you will tell Bitlbee about your accounts and passwords on all
 the other instant messaging services, and Bitlbee will log you in.  All

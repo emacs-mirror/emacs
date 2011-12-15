@@ -8278,7 +8278,7 @@
 2002-11-17  Markus Rost  <rost@math.ohio-state.edu>
 
 	* speedbar.el (defgroup speedbar): Use group 'etags instead of
-	nonexisting group 'tags.
+	nonexistent group 'tags.
 
 	* emacs-lisp/re-builder.el: Add provide call.
 

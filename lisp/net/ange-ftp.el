@@ -2854,7 +2854,7 @@ NO-ERROR, if a listing for DIRECTORY cannot be obtained."
 ;; that a wasted listing is not done:
 ;; 1. When looking for a .dired file in dired-x.el.
 ;; 2. The syntax of FILE and DIR make it impossible that FILE could be a valid
-;;     subdirectory. This is of course an OS dependent judgement.
+;;     subdirectory. This is of course an OS dependent judgment.
 
 (defvar dired-local-variables-file)
 (defmacro ange-ftp-allow-child-lookup (dir file)

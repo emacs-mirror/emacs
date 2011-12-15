@@ -108,7 +108,7 @@ To change the default value, use Customize or call the function
 
 Setting it causes the grep commands to put point at the end of their
 output window so that the end of the output is always visible rather
-than the begining."
+than the beginning."
   :type 'boolean
   :version "22.1"
   :group 'grep)

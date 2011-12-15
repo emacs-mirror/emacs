@@ -30,7 +30,7 @@
 ;;; for lookup and completion in Ada mode.
 ;;;
 ;;; If a file *.`adp' exists in the ada-file directory, then it is
-;;; read for configuration informations.  It is read only the first
+;;; read for configuration information.  It is read only the first
 ;;; time a cross-reference is asked for, and is not read later.
 
 ;;; You need Emacs >= 20.2 to run this package

@@ -101,7 +101,7 @@ Otherwise, return result of last form in BODY, or all other errors."
 (defvar dbus-event-error-hooks nil
   "Functions to be called when a D-Bus error happens in the event handler.
 Every function must accept two arguments, the event and the error variable
-catched in `condition-case' by `dbus-error'.")
+caught in `condition-case' by `dbus-error'.")
 
 
 ;;; Hash table of registered functions.

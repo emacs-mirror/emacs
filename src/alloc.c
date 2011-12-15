@@ -6399,7 +6399,7 @@ If this portion is smaller than `gc-cons-threshold', this is ignored.  */);
   Vgc_cons_percentage = make_float (0.1);
 
   DEFVAR_INT ("pure-bytes-used", pure_bytes_used,
-	      doc: /* Number of bytes of sharable Lisp data allocated so far.  */);
+	      doc: /* Number of bytes of shareable Lisp data allocated so far.  */);
 
   DEFVAR_INT ("cons-cells-consed", cons_cells_consed,
 	      doc: /* Number of cons cells that have been consed so far.  */);
