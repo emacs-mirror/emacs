@@ -1,3 +1,8 @@
+2011-12-15  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
+
+	* xftfont.c (xftfont_draw): Use the font metrics of s->font to
+	fill background (Bug#8992).
+
 2011-12-13  Martin Rudalics  <rudalics@gmx.at>
 
 	* window.c (Vwindow_combination_resize)
