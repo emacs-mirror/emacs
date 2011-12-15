@@ -1,3 +1,12 @@
+2011-12-15  Juri Linkov  <juri@jurta.org>
+
+	* image.c (imagemagick_error): New function.  (Bug#10112)
+	(imagemagick_load_image): Comment out `MagickSetResolution' call.
+	Use `imagemagick_error' where ImageMagick functions return
+	`MagickFalse'.
+	(Fimagemagick_types): Add `Fnreverse' to return the list in the
+	proper order.
+
 2011-12-15  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
 
 	* xftfont.c (xftfont_draw): Use the font metrics of s->font to
