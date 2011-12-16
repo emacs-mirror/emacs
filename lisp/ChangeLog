@@ -1,3 +1,8 @@
+2011-12-13  Sam Steingold  <sds@gnu.org>
+
+	* man.el (Man-getpage-in-background): When running under a
+	window-system, ignore $MANWIDTH and $COLUMNS.
+
 2011-12-15  Kenichi Handa  <handa@m17n.org>
 
 	* language/ethio-util.el: Change coding tag to utf-8-emacs.
