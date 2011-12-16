@@ -1,3 +1,7 @@
+2011-12-16  Andreas Schwab  <schwab@linux-m68k.org>
+
+	* calc/calc-misc.el (calc-help): Avoid wrapping help message.
+
 2011-12-13  Sam Steingold  <sds@gnu.org>
 
 	* man.el (Man-getpage-in-background): When running under a
