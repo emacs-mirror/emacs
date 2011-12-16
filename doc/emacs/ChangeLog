@@ -1,3 +1,11 @@
+2011-12-16  Chong Yidong  <cyd@gnu.org>
+
+	* maintaining.texi (Version Control Systems): Drop Meta-CVS.
+	(Basic VC Editing): Remove redundant descriptions.
+	(VC With A Merging VCS): Make description more general instead of
+	CVS-specific.
+	(VC With A Locking VCS): Use VC fileset terminology.
+
 2011-12-12  Chong Yidong  <cyd@gnu.org>
 
 	* building.texi (Executing Lisp): Fix xref for C-M-x.

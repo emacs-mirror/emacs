@@ -71,7 +71,7 @@ control operations.
 
   Some uncommon or intricate version control operations, such as
 altering repository settings, are not supported in VC.  You should
-perform such tasks outside Emacs, e.g. via the command line.
+perform such tasks outside Emacs, e.g.@: via the command line.
 
   This section provides a general overview of version control, and
 describes the version control systems that VC supports.  You can skip
@@ -125,7 +125,7 @@ which it refers to as @dfn{back ends}:
 @item
 SCCS was the first version control system ever built, and was long ago
 superseded by more advanced ones.  VC compensates for certain features
-missing in SCCS (e.g., tag names for releases) by implementing them
+missing in SCCS (e.g.@: tag names for releases) by implementing them
 itself.  Other VC features, such as multiple branches, are simply
 unavailable.  Since SCCS is non-free, we recommend avoiding it.
 
@@ -154,7 +154,7 @@ moving/renaming.  VC supports all basic editing operations under CVS.
 @cindex SVN
 @cindex Subversion
 @item
-Subversion (SVN) is a free version control system designed to be
+Subversion (svn) is a free version control system designed to be
 similar to CVS but without its problems (e.g., it supports atomic
 commits of filesets, and versioning of directories, symbolic links,
 meta-data, renames, copies, and deletes).
@@ -188,10 +188,6 @@ Bazaar (bzr) is a distributed version control system that supports
 both repository-based and distributed versioning.  VC supports most
 basic editing operations under Bazaar.
 @end itemize
-
-  Previous versions of VC supported a version control system known as
-Meta-CVS.  This support was dropped due to limited interest from users
-and developers.
 
 @node VCS Concepts
 @subsubsection Concepts of Version Control
@@ -264,7 +260,7 @@ number and severity of conflicts that actually occur.
   SCCS always uses locking.  RCS is lock-based by default but can be
 told to operate in a merging style.  CVS and Subversion are
 merge-based by default but can be told to operate in a locking mode.
-Distributed version control systems, such as GNU Arch, git, and
+Distributed version control systems, such as GNU Arch, Git, and
 Mercurial, are exclusively merging-based.
 
   VC mode supports both locking and merging version control.  The
@@ -302,7 +298,7 @@ kind of model.  One of its drawbacks is that the repository is a choke
 point for reliability and efficiency.
 
   GNU Arch pioneered the concept of @dfn{decentralized} version
-control, later implemented in git, Mercurial, and Bazaar.  A project
+control, later implemented in Git, Mercurial, and Bazaar.  A project
 may have several different repositories, and these systems support a
 sort of super-merge between repositories that tries to reconcile their
 change histories.  In effect, there is one repository for each
@@ -409,37 +405,35 @@ VC fileset is simply that one file.  When you type them in a VC
 Directory buffer, and some files in it are marked, the VC fileset
 consists of the marked files (@pxref{VC Directory Mode}).
 
-  The principal VC command is an all-purpose command, @kbd{C-x v v}
-(@code{vc-next-action}), that performs either registration, locking,
-merging or a check-in (depending on the situation) on the current VC
-fileset.  You can use @kbd{C-x v v} in a file-visiting buffer or in a
-VC Directory buffer.
+  On Subversion and on decentralized version control systems,
+multi-file VC filesets are handled as a single group by the relevant
+version control commands.  For example, committing a multi-file VC
+fileset generates a single revision, consisting of all the changes to
+those files.  But on older version control systems which lack support
+for group operations, such as CVS, the files in a multi-file VC
+fileset are passed individually to version control commands (e.g.@: a
+commit generates one revision for each changed file).
 
 @table @kbd
 @itemx C-x v v
-Perform the appropriate next version control operation on the VC fileset.
+Perform the next appropriate version control operation on the current
+VC fileset.
 @end table
 
 @findex vc-next-action
 @kindex C-x v v
-  The precise action of @kbd{C-x v v} depends on the state of the VC
-fileset, and whether the version control system uses locking or
-merging.  This is described in detail in the subsequent sections.
+  The principal VC command is an all-purpose command, @kbd{C-x v v}
+(@code{vc-next-action}), which performs the ``most appropriate''
+action on the current VC fileset: either registering it with a version
+control system, or committing it, or unlocking it, or merging changes
+into it.  The precise actions are described in detail in the following
+subsections.  You can use @kbd{C-x v v} either in a file-visiting
+buffer or in a VC Directory buffer.
 
-  VC filesets are the way that VC mode bridges the gap between
-file-based and changeset-based version control systems.  They are,
-essentially, a way to pass multiple file arguments as a group to
-version control commands.  For example, on Subversion, a checkin with
-a multi-file VC fileset becomes a joint commit, as though you had
-typed @command{svn commit} with those file arguments at the shell
-command line.  All files in a VC fileset must be under the same
-version control system; if they are not, Emacs signals an error when
-you attempt to execute a command on the fileset.
-
-  VC filesets are distinct from the ``named filesets'' used for
-viewing and visiting files in functional groups (@pxref{Filesets}).
-Unlike named filesets, VC filesets are not named and don't persist
-across sessions.
+  Note that VC filesets are distinct from the ``named filesets'' used
+for viewing and visiting files in functional groups
+(@pxref{Filesets}).  Unlike named filesets, VC filesets are not named
+and don't persist across sessions.
 
 @menu
 * VC With A Merging VCS::  Without locking: default mode for CVS.
@@ -450,46 +444,41 @@ across sessions.
 @node VC With A Merging VCS
 @subsubsection Basic Version Control with Merging
 
-  When your version control system is merging-based (the default for
-CVS and all newer version control systems), work files are always
-writable; you need not do anything special to begin editing a file.
-The status indicator on the mode line is @samp{-} if the file is
-unmodified; it flips to @samp{:} as soon as you save any changes
-(@pxref{VC Mode Line}).
-
-  Here is what @kbd{C-x v v} does when using a merging-based system:
+  On a merging-based version control system (i.e.@: most modern ones;
+@pxref{VCS Merging}), @kbd{C-x v v} does the following:
 
 @itemize @bullet
 @item
-If the work file is in a directory that is not controlled by any
-version control system, prompt for a repository type.  Then, create a
-version control repository of that type and register the file with it.
+If there is more than one file in the VC fileset and the files have
+inconsistent version control states, signal an error.
 
 @item
-If the work file is in a directory that is controlled by a version
-control system but not registered with it, register the file.
+If each file in the VC fileset is not registered with a version
+control system, register the VC fileset.  If the fileset is in a
+directory controlled by a version control system, register it with
+that system; otherwise, prompt for a repository type, create a new
+repository, and register the VC fileset with it.
 
 @item
-If the work file is the same as in the repository, do nothing.
+If each work file in the VC fileset is unchanged, do nothing.
 
 @item
-If you have not changed the work file, but some other user has checked
-in changes to the repository, merge those changes into the work file.
+If each work file in the VC fileset has been modified, commit the
+changes.  To do this, Emacs pops up a @samp{*vc-log*} buffer; type the
+desired log entry for the new revision, followed by @kbd{C-c C-c} to
+commit (@pxref{Log Buffer}).
+
+If committing to a shared repository, the commit may fail if the
+repository that has been changed since your last update.  In that
+case, you must perform an update before trying again.  If using a
+decentralized version control system, use @kbd{C-x v +} or @kbd{C-x v
+m} (@pxref{Merging}).  If using a centralized version control system,
+type @kbd{C-x v v} again to merge in the repository changes.
 
 @item
-If you have made modifications to the work file, attempt to commit
-the changes.  To do this, Emacs first reads the log entry for the new
-revision (@pxref{Log Buffer}).  If some other user has committed
-changes to the repository since you last checked it out, the checkin
-fails.  In that case, type @kbd{C-x v v} again to merge those changes
-into your own work file; this puts the work file into a ``conflicted''
-state.  Type @kbd{C-x v v} to clear the ``conflicted'' state; VC then
-regards the file as up-to-date and modified, and you can try to check
-it in again.
-
-To pick up any recent changes from the repository @emph{without}
-trying to commit your own changes, type @kbd{C-x v m @key{RET}}.
-@xref{Merging}.
+Finally, if you are using a centralized version control system, check
+if each work file in the VC fileset is up-to-date.  If any file has
+been changed in the repository, offer to update it.
 @end itemize
 
   These rules also apply when you use RCS in its ``non-locking'' mode,
@@ -506,32 +495,44 @@ its normal locking mode (@pxref{VC With A Locking VCS}).
 @node VC With A Locking VCS
 @subsubsection Basic Version Control with Locking
 
-  Under a locking-based version control system (such as SCCS, and RCS
-in its default mode), @kbd{C-x v v} does the following:
+  On a locking-based version control system (such as SCCS, and RCS in
+its default mode), @kbd{C-x v v} does the following:
 
 @itemize @bullet
 @item
-If the file is not locked, lock it and make it writable, so that you
-can change it.
+If there is more than one file in the VC fileset and the files have
+inconsistent version control states, signal an error.
 
 @item
-If the file is locked by you, and contains changes, commit the
-changes.  In order to do this, Emacs first reads the log entry for the
-new revision.  @xref{Log Buffer}.
+If each file in the VC fileset is not registered with a version
+control system, register the VC fileset.  If the fileset is in a
+directory controlled by a version control system, register it with
+that system; otherwise, prompt for a repository type, create a new
+repository, and register the VC fileset with it.
 
 @item
-If the file is locked by you, but you have not changed it since you
-locked it, release the lock and makes the file read-only again.
+If each file is registed and unlocked, lock it and make it writable,
+so that you can begin to edit it.
 
 @item
-If the file is locked by some other user, ask whether you want to
-``steal the lock'' from that user.  If you say yes, the file becomes
-locked by you, but a message is sent to the person who had formerly
-locked the file, to inform him of what has happened.
+If each file is locked by you and contains changes, commit the
+changes.  To do this, Emacs pops up a @samp{*vc-log*} buffer; type the
+desired log entry for the new revision, followed by @kbd{C-c C-c} to
+commit (@pxref{Log Buffer}).
+
+@item
+If each file is locked by you, but you have not changed it, release
+the lock and make the file read-only again.
+
+@item
+If each file is locked by another user, ask whether you want to
+``steal the lock''.  If you say yes, the file becomes locked by you,
+and a warning message is sent to the user who had formerly locked the
+file.
 @end itemize
 
   These rules also apply when you use CVS in locking mode, except
-that CVS does not support stealing a lock.
+that CVS does not support stealing locks.
 
 @node Advanced C-x v v
 @subsubsection Advanced Control in @kbd{C-x v v}
