@@ -1,3 +1,7 @@
+2011-12-16  Chong Yidong  <cyd@gnu.org>
+
+	* vc/vc.el (vc-next-action): Doc fix; remove CVS-isms.
+
 2011-12-16  Andreas Schwab  <schwab@linux-m68k.org>
 
 	* calc/calc-misc.el (calc-help): Avoid wrapping help message.
