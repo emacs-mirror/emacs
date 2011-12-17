@@ -1,3 +1,8 @@
+2011-12-17  Ken Brown  <kbrown@cornell.edu>
+
+	* fileio.c (check_writable) [CYGWIN]: Return non-zero if UID or
+	GID is unknown (Bug#10257).
+
 2011-12-17  Paul Eggert  <eggert@cs.ucla.edu>
 
 	* s/gnu-linux.h: Fix mark_memory typo (Bug#10286).
