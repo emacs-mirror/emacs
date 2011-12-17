@@ -1,6 +1,7 @@
-2011-12-16  Chong Yidong  <cyd@gnu.org>
+2011-12-17  Chong Yidong  <cyd@gnu.org>
 
 	* vc/vc.el (vc-next-action): Doc fix; remove CVS-isms.
+	(vc-deduce-fileset): Doc fix.
 
 2011-12-16  Andreas Schwab  <schwab@linux-m68k.org>
 

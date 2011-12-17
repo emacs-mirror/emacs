@@ -852,6 +852,7 @@ the user for specifics, e.g. a merge source.
 *** New option `vc-revert-show-diff' controls whether `vc-revert'
 shows a diff while querying the user.  It defaults to t.
 
++++
 *** Log entries in some Log View buffers can be toggled to display a
 longer description by typing RET (log-view-toggle-entry-display).
 In the Log View buffers made by `C-x v L' (vc-print-root-log), you can
@@ -862,6 +863,7 @@ use this to display the full log entry for the revision at point.
 **** Packages using Log View mode can enable this functionality by
 binding `log-view-expanded-log-entry-function' to a suitable function.
 
++++
 *** New command `vc-ediff' allows visual comparison of two revisions
 of a file similar to `vc-diff', but using ediff backend.
 

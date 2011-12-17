@@ -951,13 +951,13 @@ Within directories, only files already under version control are noticed."
 (defun vc-deduce-fileset (&optional observer allow-unregistered
 				    state-model-only-files)
   "Deduce a set of files and a backend to which to apply an operation.
-
 Return (BACKEND FILESET FILESET-ONLY-FILES STATE CHECKOUT-MODEL).
-If we're in VC-dir mode, the fileset is the list of marked files.
-Otherwise, if we're looking at a buffer visiting a version-controlled file,
-the fileset is a singleton containing this file.
-If none of these conditions is met, but ALLOW_UNREGISTERED is on and the
-visited file is not registered, return a singleton fileset containing it.
+
+If we're in VC-dir mode, FILESET is the list of marked files.
+Otherwise, if in a buffer visiting a version-controlled file,
+FILESET is a single-file fileset containing that file.
+Otherwise, if ALLOW-UNREGISTERED is non-nil and the visited file
+is unregistered, FILESET is a single-file fileset containing it.
 Otherwise, throw an error.
 
 STATE-MODEL-ONLY-FILES if non-nil, means that the caller needs

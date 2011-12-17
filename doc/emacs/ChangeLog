@@ -1,3 +1,22 @@
+2011-12-17  Chong Yidong  <cyd@gnu.org>
+
+	* maintaining.texi (VCS Concepts): Make "revision" terminology
+	less CVS-specific.
+	(VC With A Merging VCS, VC With A Locking VCS): Add xref to
+	Registering node.
+	(Secondary VC Commands): Deleted.  Promote subnodes.
+	(Log Buffer): Add command name for C-c C-c.  Fix the name of the
+	log buffer.  Add index entries.
+	(VCS Changesets, Types of Log File, VC With A Merging VCS): Use
+	"commit" terminology.
+	(Old Revisions): Move it to just before VC Change Log.  "Tag" here
+	doesn't refer to tags tables.  Note other possible forms of the
+	revision ID.  C-x v = does not save.
+	(Registering): Note similarity to C-x v v action.  Fix description
+	of how backends are chosen.  De-document vc-default-init-revision.
+	(VC Change Log): Document C-x v l in VC-Dir buffer.  Document RET
+	in root log buffers.
+
 2011-12-16  Chong Yidong  <cyd@gnu.org>
 
 	* maintaining.texi (Version Control Systems): Drop Meta-CVS.
