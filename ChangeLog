@@ -1,3 +1,11 @@
+2011-12-17  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Port HAVE_PTHREAD configuration to MirBSD 10 (Bug#10201).
+	* configure.in (HAVE_PTHREAD): Check for pthread_atfork	if linking
+	to gmalloc.c.  This should prevent a MirBSD 10 build failure reported
+	by Nelson H. F. Beebe in
+	<http://lists.gnu.org/archive/html/emacs-devel/2011-12/msg00065.html>.
+
 2011-12-10  Juanma Barranquero  <lekktu@gmail.com>
 
 	* update-subdirs: Don't set no-byte-compile twice (bug#10260).
