@@ -3713,7 +3713,7 @@ value can be also stored on disk and read back in a new session."
 	      (if (window-sizable-p window (- size) horizontal 'safe)
 		  (let* ((window-combination-limit
 			  (assq 'combination-limit item)))
-		    ;; We must inherit the combiantion limit, otherwise
+		    ;; We must inherit the combination limit, otherwise
 		    ;; we might mess up handling of atomic and side
 		    ;; window.
 		    (setq new (split-window window size horizontal)))

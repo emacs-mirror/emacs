@@ -51,7 +51,7 @@
 ;; name space.  Elisp dynamic binding allows that ;-)
 
 ;; Here are simple macros to easily define and use set of variables
-;; binded locally, without all these "reference to free variable"
+;; bound locally, without all these "reference to free variable"
 ;; compiler warnings!
 
 (defmacro wisent-context-name (name)

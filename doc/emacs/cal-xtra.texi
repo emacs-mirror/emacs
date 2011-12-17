@@ -41,12 +41,12 @@ customize the variables @code{calendar-intermonth-header} and
 
 @vindex calendar-holiday-marker
 @vindex diary-entry-marker
-@vindex calenday-today-marker
+@vindex calendar-today-marker
   The variable @code{calendar-holiday-marker} specifies how to mark a
 date as being a holiday.  Its value may be a single-character string to
 insert next to the date, or a face name to use for displaying the date.
 Likewise, the variable @code{diary-entry-marker} specifies how to mark a
-date that has diary entries, and @code{calenday-today-marker} is used by
+date that has diary entries, and @code{calendar-today-marker} is used by
 the function @code{calendar-mark-today} to mark today's date.  By
 default, the calendar uses faces named @code{holiday}, @code{diary}, and
 @code{calendar-today} for these purposes.

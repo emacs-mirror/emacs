@@ -4455,7 +4455,7 @@ If N is negative, move backward."
   "Set current fill character to be C."
   (interactive "cType fill char (type RET to turn off): ")
   (cond ((eq c ?\r) (setq artist-fill-char-set nil)
-		    (message "Fill cancelled"))
+		    (message "Fill canceled"))
 	(t	    (setq artist-fill-char-set t)
 		    (setq artist-fill-char c)
 		    (message "Fill set to \"%c\"" c))))
