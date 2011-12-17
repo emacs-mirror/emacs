@@ -1,3 +1,10 @@
+2011-12-17  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* s/gnu-linux.h: Fix mark_memory typo (Bug#10286).
+	(GC_MARK_SECONDARY_STACK): Omit removed 3rd arg to mark_memory,
+	which caused a build failure on GNU/Linux IA-64.  This problem was
+	introduced by my 2011-10-07 patch.
+
 2011-12-15  Juri Linkov  <juri@jurta.org>
 
 	* image.c (imagemagick_error): New function.  (Bug#10112)
