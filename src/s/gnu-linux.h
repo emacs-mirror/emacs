@@ -155,7 +155,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
     extern void *__libc_ia64_register_backing_store_base;	\
     __builtin_ia64_flushrs ();					\
     mark_memory (__libc_ia64_register_backing_store_base,	\
-		 __builtin_ia64_bsp (), 0);			\
+		 __builtin_ia64_bsp ());			\
   } while (0)
 #endif
 #endif
