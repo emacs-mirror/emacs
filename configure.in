@@ -1720,7 +1720,15 @@ dnl Check if pthreads is available.
 LIB_PTHREAD=
 AC_CHECK_HEADERS(pthread.h)
 if test "$ac_cv_header_pthread_h"; then
-  AC_CHECK_LIB(pthread, pthread_self, HAVE_PTHREAD=yes)
+  dnl gmalloc.c uses pthread_atfork, which is not available on older-style
+  dnl hosts such as MirBSD 10, so test for pthread_atfork instead of merely
+  dnl testing for pthread_self if Emacs uses gmalloc.c.
+  if test "$GMALLOC_OBJ" = gmalloc.o; then
+    emacs_pthread_function=pthread_atfork
+  else
+    emacs_pthread_function=pthread_self
+  fi
+  AC_CHECK_LIB(pthread, $emacs_pthread_function, HAVE_PTHREAD=yes)
 fi
 if test "$HAVE_PTHREAD" = yes; then
   case "${canonical}" in
