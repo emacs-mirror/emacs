@@ -10339,9 +10339,15 @@ fi
 done
 
 if test "$ac_cv_header_pthread_h"; then
-  { $as_echo "$as_me:${as_lineno-$LINENO}: checking for pthread_self in -lpthread" >&5
-$as_echo_n "checking for pthread_self in -lpthread... " >&6; }
-if test "${ac_cv_lib_pthread_pthread_self+set}" = set; then :
+        if test "$GMALLOC_OBJ" = gmalloc.o; then
+    emacs_pthread_function=pthread_atfork
+  else
+    emacs_pthread_function=pthread_self
+  fi
+  as_ac_Lib=`$as_echo "ac_cv_lib_pthread_$emacs_pthread_function" | $as_tr_sh`
+{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for $emacs_pthread_function in -lpthread" >&5
+$as_echo_n "checking for $emacs_pthread_function in -lpthread... " >&6; }
+if { as_var=$as_ac_Lib; eval "test \"\${$as_var+set}\" = set"; }; then :
   $as_echo_n "(cached) " >&6
 else
   ac_check_lib_save_LIBS=$LIBS
@@ -10355,27 +10361,29 @@ cat confdefs.h - <<_ACEOF >conftest.$ac_ext
 #ifdef __cplusplus
 extern "C"
 #endif
-char pthread_self ();
+char $emacs_pthread_function ();
 int
 main ()
 {
-return pthread_self ();
+return $emacs_pthread_function ();
   ;
   return 0;
 }
 _ACEOF
 if ac_fn_c_try_link "$LINENO"; then :
-  ac_cv_lib_pthread_pthread_self=yes
+  eval "$as_ac_Lib=yes"
 else
-  ac_cv_lib_pthread_pthread_self=no
+  eval "$as_ac_Lib=no"
 fi
 rm -f core conftest.err conftest.$ac_objext \
     conftest$ac_exeext conftest.$ac_ext
 LIBS=$ac_check_lib_save_LIBS
 fi
-{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_cv_lib_pthread_pthread_self" >&5
-$as_echo "$ac_cv_lib_pthread_pthread_self" >&6; }
-if test "x$ac_cv_lib_pthread_pthread_self" = x""yes; then :
+eval ac_res=\$$as_ac_Lib
+	       { $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_res" >&5
+$as_echo "$ac_res" >&6; }
+eval as_val=\$$as_ac_Lib
+   if test "x$as_val" = x""yes; then :
   HAVE_PTHREAD=yes
 fi
 
