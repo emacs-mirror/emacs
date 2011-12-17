@@ -1031,7 +1031,7 @@ It is highly recommended to fix it before writing to a file."
 and try again)? " coding-system auto-cs))
 	      (error "Save aborted"))))
       (when (and tick (/= tick (buffer-chars-modified-tick)))
-	(error "Cancelled because the buffer was modified"))
+	(error "Canceled because the buffer was modified"))
       coding-system)))
 
 (setq select-safe-coding-system-function 'select-safe-coding-system)

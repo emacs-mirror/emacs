@@ -1677,7 +1677,7 @@ Establish the connection to D-Bus @var{bus}.
 
 @var{bus} can be either the symbol @code{:system} or the symbol
 @code{:session}, or it can be a string denoting the address of the
-corresponding bus.  For the system and session busses, this function
+corresponding bus.  For the system and session buses, this function
 is called when loading @file{dbus.el}, there is no need to call it
 again.
 

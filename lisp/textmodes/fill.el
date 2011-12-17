@@ -82,7 +82,7 @@ reinserts the fill prefix in each resulting line."
       (setq fill-prefix nil)))
   (if fill-prefix
       (message "fill-prefix: \"%s\"" fill-prefix)
-    (message "fill-prefix cancelled")))
+    (message "fill-prefix canceled")))
 
 (defcustom adaptive-fill-mode t
   "Non-nil means determine a paragraph's fill prefix from its text."
@@ -383,7 +383,7 @@ and `fill-nobreak-invisible'."
   "Char-table of characters that don't use space between words.")
 
 (progn
-  ;; Register `kinsoku' for scripts HAN, KANA, BOPOMPFO, and CJK-MISS.
+  ;; Register `kinsoku' for scripts HAN, KANA, BOPOMOFO, and CJK-MISC.
   ;; Also tell that they don't use space between words.
   (map-char-table
    #'(lambda (key val)

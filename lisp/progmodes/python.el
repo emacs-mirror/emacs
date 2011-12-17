@@ -2343,7 +2343,7 @@ Interactively, prompt for the name with completion."
 ;;;; Bicycle Repair Man support
 
 (autoload 'pymacs-load "pymacs" nil t)
-(autoload 'brm-init "bikemacs")
+(autoload 'brm-init "bikeemacs")
 (defvar brm-menu)
 
 ;; I'm not sure how useful BRM really is, and it's certainly dangerous

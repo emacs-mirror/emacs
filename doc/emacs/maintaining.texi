@@ -511,7 +511,7 @@ that system; otherwise, prompt for a repository type, create a new
 repository, and register the VC fileset with it.
 
 @item
-If each file is registed and unlocked, lock it and make it writable,
+If each file is registered and unlocked, lock it and make it writable,
 so that you can begin to edit it.
 
 @item
@@ -1880,7 +1880,7 @@ directory where the tags file was initially written.  This way, you can
 move an entire directory tree containing both the tags file and the
 source files, and the tags file will still refer correctly to the source
 files.  If the tags file is @file{-} or is in the @file{/dev} directory,
-however, the file names are 
+however, the file names are
 made relative to the current working directory.  This is useful, for
 example, when writing the tags to @file{/dev/stdout}.
 
