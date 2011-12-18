@@ -7,9 +7,9 @@
 	* nsmenu.m (trackingMenu): New variable.
 	(NSMenuDidBeginTrackingNotification): Declare if OSX < 10.5 and
 	NS_IMPL_COCOA.
-	(trackingNotification): New method (from AquaEmacs).
+	(trackingNotification): New method (from Aquamacs).
 	(menuNeedsUpdate): Expand comment and return if trackingMenu is 0,
-	from AquaEmacs (Bug#7030).
+	from Aquamacs (Bug#7030).
 	(syms_of_nsmenu): Set trackingMenu to 1 if not NS_IMPL_COCOA.
 
 	* nsselect.m (CUT_BUFFER_SUPPORT): Remove define.
