@@ -1,3 +1,26 @@
+2011-12-18  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* nsselect.m (CUT_BUFFER_SUPPORT): Remove define.
+	(symbol_to_nsstring): Fix indentation.
+	(ns_symbol_to_pb): New function.
+	(Fns_get_selection_internal): Renamed from Fns_get_cut_buffer_internal.
+	(Fns_rotate_cut_buffers_internal): Removed.
+	(Fns_store_selection_internal): Renamed from
+	Fns_store_cut_buffer_internal.
+	(ns_get_foreign_selection, Fx_own_selection_internal)
+	(Fx_disown_selection_internal, Fx_selection_exists_p)
+	(Fns_get_selection_internal, Fns_store_selection_internal): Use
+	ns_symbol_to_pb and check if return value is nil.
+	(syms_of_nsselect): Remove ifdef CUT_BUFFER_SUPPORT.  Remove
+	defsubr Sns_rotate_cut_buffers_internal.  Sns_get_cut_buffer_internal
+	renamed to Sns_get_selection_internal, Sns_store_cut_buffer_internal
+	renamed to Sns_store_selection_internal.
+	(ns_handle_selection_request): Move code to Fx_own_selection_internal
+	and remove this function.
+	(ns_handle_selection_clear): Remove, never used.
+	(Fx_own_selection_internal): Move code from ns_handle_selection_request
+	here.
+
 2011-12-17  Ken Brown  <kbrown@cornell.edu>
 
 	* fileio.c (check_writable) [CYGWIN]: Return non-zero if UID or

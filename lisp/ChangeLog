@@ -1,3 +1,14 @@
+2011-12-18  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* term/ns-win.el (ns-get-selection-internal)
+	(ns-store-selection-internal): Declare.
+	(ns-store-cut-buffer-internal, ns-get-cut-buffer-internal): Declare
+	as obsolete.
+	(ns-get-pasteboard, ns-paste-secondary): Use
+	ns-get-selection-internal.
+	(ns-set-pasteboard,  ns-copy-including-secondary): Use
+	ns-store-selection-internal.
+
 2011-12-17  Chong Yidong  <cyd@gnu.org>
 
 	* vc/vc.el (vc-next-action): Doc fix; remove CVS-isms.
