@@ -1,5 +1,17 @@
 2011-12-18  Jan Djärv  <jan.h.d@swipnet.se>
 
+	* nsterm.m (ns_term_init): Subscribe for notifications
+	NSMenuDidBeginTrackingNotification and NSMenuDidEndTrackingNotification
+	to method trackingNotification in EmacsMenu.
+
+	* nsmenu.m (trackingMenu): New variable.
+	(NSMenuDidBeginTrackingNotification): Declare if OSX < 10.5 and
+	NS_IMPL_COCOA.
+	(trackingNotification): New method (from AquaEmacs).
+	(menuNeedsUpdate): Expand comment and return if trackingMenu is 0,
+	from AquaEmacs (Bug#7030).
+	(syms_of_nsmenu): Set trackingMenu to 1 if not NS_IMPL_COCOA.
+
 	* nsselect.m (CUT_BUFFER_SUPPORT): Remove define.
 	(symbol_to_nsstring): Fix indentation.
 	(ns_symbol_to_pb): New function.
