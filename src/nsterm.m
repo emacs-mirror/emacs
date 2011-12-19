@@ -4203,6 +4203,15 @@ ns_term_init (Lisp_Object display_name)
     [NSApp setServicesMenu: svcsMenu];
     /* Needed at least on Cocoa, to get dock menu to show windows */
     [NSApp setWindowsMenu: [[NSMenu alloc] init]];
+
+    [[NSNotificationCenter defaultCenter]
+      addObserver: mainMenu
+         selector: @selector (trackingNotification:)
+             name: NSMenuDidBeginTrackingNotification object: mainMenu];
+    [[NSNotificationCenter defaultCenter]
+      addObserver: mainMenu
+         selector: @selector (trackingNotification:)
+             name: NSMenuDidEndTrackingNotification object: mainMenu];
   }
 #endif /* MAC OS X menu setup */
 

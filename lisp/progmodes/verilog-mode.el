@@ -10932,7 +10932,7 @@ Typing \\[verilog-auto] will make this into:
 (defun verilog-auto-logic ()
   "Expand AUTOLOGIC statements, as part of \\[verilog-auto].
 Make wire statements using the SystemVerilog logic keyword.
-This is currently equivelent to:
+This is currently equivalent to:
 
     /*AUTOWIRE*/
 

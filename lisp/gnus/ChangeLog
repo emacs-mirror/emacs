@@ -21339,7 +21339,7 @@
 	(gnus-agent-cat-groups): Use eval-and-compile, not
 	eval-when-compile, to define gnus-agent-set-cat-groups as the setf
 	method of gnus-agent-cat-groups even when the buffer has been
-	evaled.
+	evalled.
 	(gnus-agent-save-active, gnus-agent-save-active-1): Merge to
 	delete gnus-agent-save-active-1.
 	(gnus-agent-save-groups): Delete.  Identical to

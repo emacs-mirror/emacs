@@ -106,7 +106,7 @@ Each element has the form (WINDOW . OVERLAY).")
           (let ((inv (overlay-get ol 'invisible)) open)
             (when (and inv
                        ;; There's an `invisible' property.  Make sure it's
-                       ;; actually invisible, and ellipsised.
+                       ;; actually invisible, and ellipsized.
                        (and (consp buffer-invisibility-spec)
                             (cdr (assq inv buffer-invisibility-spec)))
                        (or (setq open

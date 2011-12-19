@@ -1165,7 +1165,7 @@ error if the node is not the top node and a section is not found."
 	 "texinfo-specific-section-type: Chapter or section not found"))))))
 
 (defun texinfo-hierarchic-level ()
-  "Return the general hierarchal level of the next node in a texinfo file.
+  "Return the general hierarchical level of the next node in a texinfo file.
 Thus, a subheading or appendixsubsec is of type subsection."
   (let ((case-fold-search t))
     (cadr (assoc

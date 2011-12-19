@@ -243,7 +243,7 @@
     (define-key map [(control ?=)] 'rst-adjust) ;; (Does not work on the Mac OSX.)
     ;; Display the hierarchy of decorations implied by the current document contents.
     (define-key map [(control c) (control h)] 'rst-display-decorations-hierarchy)
-    ;; Homogeneize the decorations in the document.
+    ;; Homogenize the decorations in the document.
     (define-key map [(control c) (control s)] 'rst-straighten-decorations)
 ;;    (define-key map [(control c) (control s)] 'rst-straighten-deco-spacing)
 

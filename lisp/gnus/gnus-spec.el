@@ -52,7 +52,7 @@ text properties. This is only needed on XEmacs, as Emacs does this anyway."
 (defvar gnus-group-indentation "")
 
 ;; Format specs.  The chunks below are the machine-generated forms
-;; that are to be evaled as the result of the default format strings.
+;; that are to be evalled as the result of the default format strings.
 ;; We write them in here to get them byte-compiled.  That way the
 ;; default actions will be quite fast, while still retaining the full
 ;; flexibility of the user-defined format specs.
@@ -690,7 +690,7 @@ are supported for %s."
 		     (not (and (featurep 'xemacs)
 			       gnus-use-correct-string-widths)))
 	    (insert (number-to-string pad-width)))
-	  ;; Create the form to be evaled.
+	  ;; Create the form to be evalled.
 	  (if (or max-width cut-width ignore-value
 		  (and (featurep 'xemacs)
 		       gnus-use-correct-string-widths))

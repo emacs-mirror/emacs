@@ -298,7 +298,7 @@ VALUE is a value, or range of values to match against.  For
 example, a SYMBOL might need to match \"foo\".  Some TYPES will not
 have matching criteria.
 
-LAMBDA is a lambda expression which is evaled with the text of the
+LAMBDA is a lambda expression which is evalled with the text of the
 type when it is found.  It is passed the list of all buffer text
 elements found since the last lambda expression.  It should return a
 semantic element (see below.)
