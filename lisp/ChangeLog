@@ -1,3 +1,13 @@
+2011-12-19  Chong Yidong  <cyd@gnu.org>
+
+	* vc/vc-dir.el (vc-dir-parent-marked-p, vc-dir-children-marked-p):
+	Don't signal an error in a predicate function; return non-nil.
+	(vc-dir-mark-file): Move the error here.
+	(vc-dir-mark-unmark): If acting on the region, keep going if one
+	of the entries cannot be marked/unmarked.
+	(vc-dir-mark-all-files): If current entry is a directory, mark
+	only child files, as documented.
+
 2011-12-19  Vincent Belaïche  <vincentb1@users.sourceforge.net>
 
 	* ses.el: Ooops... undo changes of revision 106664, as trunk
