@@ -18,12 +18,12 @@
 
 	* term/ns-win.el (ns-get-selection-internal)
 	(ns-store-selection-internal): Declare.
-	(ns-store-cut-buffer-internal, ns-get-cut-buffer-internal): Declare
-	as obsolete.
-	(ns-get-pasteboard, ns-paste-secondary): Use
-	ns-get-selection-internal.
-	(ns-set-pasteboard,  ns-copy-including-secondary): Use
-	ns-store-selection-internal.
+	(ns-store-cut-buffer-internal, ns-get-cut-buffer-internal):
+	Declare as obsolete.
+	(ns-get-pasteboard, ns-paste-secondary):
+	Use ns-get-selection-internal.
+	(ns-set-pasteboard,  ns-copy-including-secondary):
+	Use ns-store-selection-internal.
 
 2011-12-17  Chong Yidong  <cyd@gnu.org>
 
@@ -642,8 +642,8 @@
 
 2011-11-21  Juri Linkov  <juri@jurta.org>
 
-	* calc/calc.el (calc-read-key-sequence): Let-bind `input-method-function'
-	to nil.  (Bug#10018)
+	* calc/calc.el (calc-read-key-sequence):
+	Let-bind `input-method-function' to nil.  (Bug#10018)
 
 2011-11-21  Lars Magne Ingebrigtsen  <larsi@gnus.org>
 
@@ -2173,11 +2173,10 @@
 2011-09-24  Ulf Jasper  <ulf.jasper@web.de>
 
 	* net/newst-reader.el (newsticker-html-renderer)
-	(newsticker-show-news): Automatically
-	load html rendering package if newsticker-html-renderer is set.
-	Fixes "Warning: defvar ignored because w3m-fill-column is
-	let-bound" and the error "Symbol's value as variable is void:
-	w3m-fill-column".
+	(newsticker-show-news): Automatically load html rendering package
+	if newsticker-html-renderer is set.  Fixes "Warning: defvar ignored
+	because w3m-fill-column is let-bound" and the error "Symbol's value
+	as variable is void: w3m-fill-column".
 
 2011-09-24  Michael Albinus  <michael.albinus@gmx.de>
 
@@ -2291,8 +2290,8 @@
 2011-09-21  Martin Rudalics  <rudalics@gmx.at>
 
 	* window.el (set-window-buffer-start-and-point):
-	Call set-window-start with NOFORCE argument t.  Suggested by Thierry
-	Volpiatto <thierry.volpiatto@gmail.com>.
+	Call set-window-start with NOFORCE argument t.
+	Suggested by Thierry Volpiatto <thierry.volpiatto@gmail.com>.
 	(quit-window): Reword doc-string.  Handle new format of
 	quit-restore parameter.  Don't delete window if it has a
 	previous buffer we can show instead of the present one.
@@ -2410,13 +2409,13 @@
 2011-09-18  Juri Linkov  <juri@jurta.org>
 
 	* info.el (Info-mode-syntax-table): New variable.
-	(Info-mode): Set `:syntax-table' to `Info-mode-syntax-table'.  (Bug#3312)
+	(Info-mode): Set `:syntax-table' to `Info-mode-syntax-table' (bug#3312).
 
 2011-09-18  Juri Linkov  <juri@jurta.org>
 
-	* info.el (Info-file-supports-index-cookies): Increment
-	line-beginning-position's arg from 3 to 4 because makeinfo outputs
-	one more line for long file names (bug#4142).
+	* info.el (Info-file-supports-index-cookies):
+	Increment line-beginning-position's arg from 3 to 4 because makeinfo
+	outputs one more line for long file names (bug#4142).
 
 2011-09-18  Chong Yidong  <cyd@stupidchicken.com>
 
@@ -4708,8 +4707,8 @@
 	pending encryption.
 
 	(allout-inhibit-auto-save-info-for-decryption):
-	Adjust buffer-saved-size and some allout state to inhibit auto-saves if
-	there are plain-text topics pending encryption.
+	Adjust buffer-saved-size and some allout state to inhibit auto-saves
+	if there are plain-text topics pending encryption.
 
 	(allout-maybe-resume-auto-save-info-after-encryption): Adjust
 	buffer-saved-size and some allout state to not inhibit auto-saves
@@ -6139,11 +6138,11 @@
 	(split-window-keep-point): Mention split-window-above-each-other
 	instead of split-window-vertically.
 	(split-window-above-each-other, split-window-vertically):
-	Rename split-window-vertically to split-window-above-each-other and
-	provide defalias for old definition.
-	(split-window-side-by-side, split-window-horizontally): Rename
-	split-window-horizontally to split-window-side-by-side and provide
-	defalias for the old definition.
+	Rename split-window-vertically to split-window-above-each-other
+	and provide defalias for old definition.
+	(split-window-side-by-side, split-window-horizontally):
+	Rename split-window-horizontally to split-window-side-by-side
+	and provide defalias for the old definition.
 	(ctl-x-map): Move bindings for delete-window,
 	delete-other-windows and enlarge-window here from window.c.
 	Replace bindings for split-window-vertically and
@@ -9566,10 +9565,10 @@
 	preserves the existing header prefix, rebulleting it if necessary,
 	rather than replacing it.  This is necessary for proper operation
 	of cooperative addons like allout-widgets.
-	(allout-make-topic-prefix, allout-rebullet-heading): Change
-	SOLICIT arg to INSTEAD, and interpret additionally a string value
-	as alternate bullet to be used, instead of prompting the user for
-	a bullet character.
+	(allout-make-topic-prefix, allout-rebullet-heading):
+	Change SOLICIT arg to INSTEAD, and interpret additionally a string
+	value as alternate bullet to be used, instead of prompting the user
+	for a bullet character.
 
 2011-03-09  Michael Albinus  <michael.albinus@gmx.de>
 
