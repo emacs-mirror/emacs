@@ -849,6 +849,7 @@ the user for specifics, e.g. a merge source.
 
 **** Currently supported for Bzr, Git, and Mercurial.
 
++++
 *** New option `vc-revert-show-diff' controls whether `vc-revert'
 shows a diff while querying the user.  It defaults to t.
 
