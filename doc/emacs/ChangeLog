@@ -1,3 +1,15 @@
+2011-12-19  Chong Yidong  <cyd@gnu.org>
+
+	* maintaining.texi (VCS Merging, VCS Changesets): Index entries.
+	(VC Mode Line): Add index entry for "version control status".
+	(VC Undo): Use vc-revert instead of its vc-revert-buffer alias.
+	Document vc-revert-show-diff.  De-document vc-rollback.
+	(VC Directory Mode): Rewrite introduction.  Move prefix arg
+	documentation here from VC Directory Buffer node.
+	(VC Directory Buffer): Use a decentralized VCS example.
+	(VC Directory Commands): Use a table.  Remove material duplicated
+	in previous nodes on multi-file VC filsets.
+
 2011-12-17  Chong Yidong  <cyd@gnu.org>
 
 	* maintaining.texi (VCS Concepts): Make "revision" terminology
