@@ -1,3 +1,9 @@
+2011-12-19  Vincent Belaïche  <vincentb1@users.sourceforge.net>
+
+	* ses.el: Ooops... undo changes of revision 106664, as trunk
+	branch is feature frozen, and revision 106664 was a feature
+	addition.
+
 2011-12-18  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* term/ns-win.el (ns-get-selection-internal)
