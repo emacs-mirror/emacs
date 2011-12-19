@@ -200,7 +200,7 @@ elaborate(fix(F,T,B,E), Env, Ee) :-
     elaborate(let(F,T,app(fix,lambda(F,T,B)),E), Env, Ee).
 
 %% elab_bindings(+TS, +Env, -TS).
-%% Applique `elaborate' sur l'environnment de type TS.
+%% Applique `elaborate' sur l'environnement de type TS.
 elab_tenv([], _, []).
 elab_tenv([(X,T)|TS], Env, [(X, Tg)|TSe]) :-
     elaborate(T, Env, Te),

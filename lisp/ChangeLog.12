@@ -18459,7 +18459,7 @@
 	reveal-open-spots, so as to be more reliable.  There were several
 	tricky corner cases where an open spot might be lost, or where
 	a closed spot might end up on the list of open spots.
-	Only reveal text that's ellipsised.
+	Only reveal text that's ellipsized.
 
 2005-11-07  Carsten Dominik  <dominik@science.uva.nl>
 

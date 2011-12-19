@@ -2637,7 +2637,7 @@ If FORM is a lambda or a macro, byte-compile it as a function."
 		   (setq form (cdr form)))
 		 (setq form (car form)))
 	       (if (and (eq (car-safe form) 'list)
-                        ;; The spec is evaled in callint.c in dynamic-scoping
+                        ;; The spec is evalled in callint.c in dynamic-scoping
                         ;; mode, so just leaving the form unchanged would mean
                         ;; it won't be eval'd in the right mode.
                         (not lexical-binding))

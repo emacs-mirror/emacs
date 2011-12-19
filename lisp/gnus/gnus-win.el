@@ -242,7 +242,7 @@ See the Gnus manual for an explanation of the syntax used.")
   (let* ((current-window (or (get-buffer-window (current-buffer)) (selected-window)))
          (window (or window current-window)))
     (select-window window)
-    ;; The SPLIT might be something that is to be evaled to
+    ;; The SPLIT might be something that is to be evalled to
     ;; return a new SPLIT.
     (while (and (not (assq (car split) gnus-window-to-buffer))
 		(symbolp (car split)) (fboundp (car split)))
@@ -447,7 +447,7 @@ should have point."
       (when (consp (car split))
 	(push 1.0 split)
 	(push 'vertical split))
-      ;; The SPLIT might be something that is to be evaled to
+      ;; The SPLIT might be something that is to be evalled to
       ;; return a new SPLIT.
       (while (and (not (assq (car split) gnus-window-to-buffer))
 		  (symbolp (car split)) (fboundp (car split)))

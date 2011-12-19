@@ -1060,11 +1060,11 @@ If the result is a list or vector, then use the data debugger to display it."
       (setq values (cons (eval expr) values))
     (let ((old-value (make-symbol "t")) new-value)
       ;; Bind debug-on-error to something unique so that we can
-      ;; detect when evaled code changes it.
+      ;; detect when evalled code changes it.
       (let ((debug-on-error old-value))
 	(setq values (cons (eval expr) values))
 	(setq new-value debug-on-error))
-      ;; If evaled code has changed the value of debug-on-error,
+      ;; If evalled code has changed the value of debug-on-error,
       ;; propagate that change to the global binding.
       (unless (eq old-value new-value)
 	(setq debug-on-error new-value))))
