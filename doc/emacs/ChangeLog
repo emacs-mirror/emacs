@@ -1,3 +1,9 @@
+2011-12-20  Alan Mackenzie  <acm@muc.de>
+
+	* programs.texi (Motion in C): Update the description of C-M-a and
+	C-M-e, they now DTRT in enclosing scopes.
+	(Custom C Indent): Add @dfn{guessing} of the indentation style.
+
 2011-12-20  Chong Yidong  <cyd@gnu.org>
 
 	* maintaining.texi (VCS Concepts): Add "working tree" terminology.
