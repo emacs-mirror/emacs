@@ -495,14 +495,7 @@ a mechanism, except GNU Arch.
   VC does not normally use the information contained in these headers.
 The exception is RCS---with RCS, version headers are sometimes more
 reliable than the master file to determine which version of the file
-you are editing.  Note that in a multi-branch environment, version
-headers are necessary to make VC behave correctly
-@iftex
-(@pxref{Multi-User Branching,,,emacs, the Emacs Manual}).
-@end iftex
-@ifnottex
-(@pxref{Multi-User Branching}).
-@end ifnottex
+you are editing.
 
   Searching for RCS version headers is controlled by the variable
 @code{vc-consult-headers}.  If it is non-@code{nil} (the default),

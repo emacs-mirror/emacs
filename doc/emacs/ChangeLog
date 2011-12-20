@@ -1,3 +1,18 @@
+2011-12-20  Chong Yidong  <cyd@gnu.org>
+
+	* maintaining.texi (VCS Concepts): Add "working tree" terminology.
+	(Old Revisions): Use it.
+	(VCS Repositories): Add "distributed" terminology.
+	(Log Buffer): Remove duplicate description
+	about changesets.  Fix "current VC fileset" ambiguity.
+	(Multi-User Branching): Node deleted.
+	(Branches, Switching Branches): Discuss decentralized version
+	control systems.
+	(VC Pull): New node.
+	(Merging): Document merging on decentralized systems.
+	(Creating Branches): Note that this is specific to CVS and related
+	systems.
+
 2011-12-19  Chong Yidong  <cyd@gnu.org>
 
 	* maintaining.texi (VCS Merging, VCS Changesets): Index entries.

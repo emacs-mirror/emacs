@@ -776,10 +776,9 @@ VC Directory Mode
 Multiple Branches of a File
 
 * Switching Branches::    How to get to another existing branch.
-* Creating Branches::     How to start a new branch.
+* VC Pull::               Updating a branch from another branch.
 * Merging::               Transferring changes between branches.
-* Multi-User Branching::  Multiple users working at multiple branches
-                            in parallel.
+* Creating Branches::     How to start a new branch.
 
 Remote Repositories
 

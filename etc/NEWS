@@ -833,19 +833,21 @@ controlling the degree of parallelism.
 
 ** VC and related modes
 
++++
 *** Support for pulling on distributed version control systems.
-The vc-pull command runs a "pull" operation, if it is supported.
-This updates the current branch from upstream.  A prefix argument
-means to prompt the user for specifics, e.g. a pull location.
+`C-x v +' (`vc-pull') runs a "pull" operation, if it is supported, to
+update the current branch and working tree.  A prefix argument means
+to prompt the user for specifics, e.g. a pull location.
 
 **** `vc-update' is now an alias for `vc-pull'.
 
 **** Currently supported by Bzr, Git, and Mercurial.
 
++++
 *** Support for merging on distributed version control systems.
-The vc-merge command now runs a "merge" operation, if it is supported.
-This merges another branch into the current one.  This command prompts
-the user for specifics, e.g. a merge source.
+The vc-merge command now runs a "merge" operation, if it is supported,
+to merge changes from another branch into the current one.  It prompts
+for specifics, e.g. a merge source.
 
 **** Currently supported for Bzr, Git, and Mercurial.
 
