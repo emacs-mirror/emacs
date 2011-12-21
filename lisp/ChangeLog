@@ -1,3 +1,7 @@
+2011-12-21  Drew Adams  <drew.adams@oracle.com>
+
+	* files.el (file-remote-p): Fix docstring.  (Bug#10319)
+
 2011-12-21  Jérémy Compostella  <jeremy.compostella@gmail.com>
 
 	* battery.el (battery-linux-sysfs): Add missing parameters from acpi.
