@@ -321,6 +321,12 @@ static void (*fatal_error_signal_hook) (void);
 pthread_t main_thread;
 #endif
 
+#ifdef HAVE_NS
+/* NS autrelease pool, for memory management.  */
+static void *ns_pool;
+#endif  
+
+ 
 
 /* Handle bus errors, invalid instruction, etc.  */
 #ifndef FLOAT_CATCH_SIGILL
@@ -1318,7 +1324,7 @@ Using an Emacs configured with --with-x-toolkit=lucid does not have this problem
     = argmatch (argv, argc, "-nsl", "--no-site-lisp", 11, NULL, &skip_args);
 
 #ifdef HAVE_NS
-  ns_alloc_autorelease_pool ();
+  ns_pool = ns_alloc_autorelease_pool ();
   if (!noninteractive)
     {
 #ifdef NS_IMPL_COCOA
@@ -2014,6 +2020,10 @@ all of which are called before Emacs is actually killed.  */)
 #endif
 
   shut_down_emacs (0, 0, STRINGP (arg) ? arg : Qnil);
+
+#ifdef HAVE_NS
+  ns_release_autorelease_pool (ns_pool);
+#endif
 
   /* If we have an auto-save list file,
      kill it because we are exiting Emacs deliberately (not crashing).

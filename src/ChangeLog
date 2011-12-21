@@ -1,3 +1,29 @@
+2011-12-21  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* nsterm.m (x_free_frame_resources): Release
+	f->output_data.ns->miniimage
+	(ns_index_color): Fix indentation.  Do not retain
+	color_table->colors[i].
+
+	* nsmenu.m (ns_update_menubar): Call free_menubar_widget_value_tree
+	before returning.
+
+	* nsfns.m (x_set_background_color): Assign return value from
+	ns_index_color to face-background instead of NSColor*.
+	(ns_implicitly_set_icon_type): Fix indentation.
+	Change assignment in for loop to comparison.
+
+	* emacs.c (ns_pool): New variable.
+	(main): Assign ns_pool.
+	(Fkill_emacs): Call ns_release_autorelease_pool.
+
+	* nsfont.m (ns_spec_to_descriptor): Fix indentation,
+	autorelease fdesc, release fdAttrs and tdict.
+	(ns_get_covering_families): Release charset.
+	(ns_findfonts): Release NSFontDescriptor created with new.
+	(ns_uni_to_glyphs): Fix indentation.
+	(setString): Release attrStr before assigning new value.
+
 2011-12-18  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* nsmenu.m (NSMenuDidBeginTrackingNotification): Declare if OSX < 10.5

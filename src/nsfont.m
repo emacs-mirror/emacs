@@ -126,8 +126,8 @@ ns_attribute_fvalue (NSFontDescriptor *fdesc, NSString *trait)
 /* Converts FONT_WEIGHT, FONT_SLANT, FONT_WIDTH, plus family and script/lang
    to NSFont descriptor.  Information under extra only needed for matching. */
 #define STYLE_REF 100
-static NSFontDescriptor
-*ns_spec_to_descriptor(Lisp_Object font_spec)
+static NSFontDescriptor *
+ns_spec_to_descriptor (Lisp_Object font_spec)
 {
     NSFontDescriptor *fdesc;
     NSMutableDictionary *fdAttrs = [NSMutableDictionary new];
@@ -152,8 +152,14 @@ static NSFontDescriptor
 	[fdAttrs setObject: tdict forKey: NSFontTraitsAttribute];
 
     fdesc = [NSFontDescriptor fontDescriptorWithFontAttributes: fdAttrs];
-    if (family != nil)
+    if (family != nil) 
+      {
 	fdesc = [fdesc fontDescriptorWithFamily: family];
+        [fdesc autorelease];
+      }
+
+    [fdAttrs release];
+    [tdict release];
     return fdesc;
 }
 
@@ -469,6 +475,7 @@ static NSSet
 		if ([families count] > 0 || pct < 0.05)
 		    break;
 	      }
+            [charset release];
 	  }
 #ifdef NS_IMPL_COCOA
 	if ([families count] == 0)
@@ -536,12 +543,14 @@ ns_findfonts (Lisp_Object font_spec, BOOL isMatch)
     family = [fdesc objectForKey: NSFontFamilyAttribute];
     if (family != nil && !foundItal && XINT (Flength (list)) > 0)
       {
-	NSFontDescriptor *sDesc = [[[NSFontDescriptor new]
-	    fontDescriptorWithSymbolicTraits: NSFontItalicTrait]
-	    fontDescriptorWithFamily: family];
+        NSFontDescriptor *s1 = [NSFontDescriptor new];
+        NSFontDescriptor *sDesc
+          = [[s1 fontDescriptorWithSymbolicTraits: NSFontItalicTrait]
+              fontDescriptorWithFamily: family];
 	list = Fcons (ns_descriptor_to_entity (sDesc,
 					 AREF (font_spec, FONT_EXTRA_INDEX),
 					 "synthItal"), list);
+        [s1 release];
       }
 
     /* Return something if was a match and nothing found. */
@@ -1293,7 +1302,7 @@ ns_uni_to_glyphs (struct nsfont_info *font_info, unsigned char block)
     abort ();
 
   /* create a string containing all Unicode characters in this block */
-  for (idx = block<<8, i =0; i<0x100; idx++, i++)
+  for (idx = block<<8, i = 0; i < 0x100; idx++, i++)
     if (idx < 0xD800 || idx > 0xDFFF)
       unichars[i] = idx;
     else
@@ -1309,7 +1318,7 @@ ns_uni_to_glyphs (struct nsfont_info *font_info, unsigned char block)
     NSGlyphGenerator *glyphGenerator = [NSGlyphGenerator sharedGlyphGenerator];
     /*NSCharacterSet *coveredChars = [nsfont coveredCharacterSet]; */
     unsigned int numGlyphs = [font_info->nsfont numberOfGlyphs];
-    NSUInteger gInd =0, cInd =0;
+    NSUInteger gInd = 0, cInd = 0;
 
     [glyphStorage setString: allChars font: font_info->nsfont];
     [glyphGenerator generateGlyphsForGlyphStorage: glyphStorage
@@ -1317,7 +1326,7 @@ ns_uni_to_glyphs (struct nsfont_info *font_info, unsigned char block)
                                        glyphIndex: &gInd characterIndex: &cInd];
 #endif
     glyphs = font_info->glyphs[block];
-    for (i =0; i<0x100; i++, glyphs++)
+    for (i = 0; i < 0x100; i++, glyphs++)
       {
 #ifdef NS_IMPL_GNUSTEP
         g = unichars[i];
@@ -1425,6 +1434,8 @@ ns_glyph_metrics (struct nsfont_info *font_info, unsigned char block)
 - (void) setString: (NSString *)str font: (NSFont *)font
 {
   [dict setObject: font forKey: NSFontAttributeName];
+  if (attrStr != nil)
+    [attrStr release];
   attrStr = [[NSAttributedString alloc] initWithString: str attributes: dict];
   maxChar = [str length];
   maxGlyph = 0;
