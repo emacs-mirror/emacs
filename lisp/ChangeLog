@@ -1,3 +1,16 @@
+2011-12-21  Teodor Zlatanov  <tzz@lifelogs.com>
+
+	* progmodes/cfengine.el: Add Version.
+
+	Add CFEngine 3.x syntax highlighting and support with
+	`cfengine3-mode', and rename the old `cfengine-mode' to
+	`cfengine2-mode'.  Make `cfengine-mode' an automatic content-based
+	switcher between `cfengine3-mode' and `cfengine2-mode' by aliasing
+	it to `cfengine-auto-mode'.  Rename variables specific to
+	`cfengine2-mode' from cfengine-* to cfengine2-*.  Change the
+	modeline indicator to "CFE2" and "CFE3" depending on the mode, to
+	save space. Mark `cfengine-mode-abbrevs' as obsolete.
+
 2011-12-21  Chong Yidong  <cyd@gnu.org>
 
 	* vc/vc-bzr.el (vc-bzr-rename-file): Don't pass ~ to Bzr in
