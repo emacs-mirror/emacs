@@ -1,3 +1,7 @@
+2011-12-20  Alan Mackenzie  <acm@muc.de>
+
+	* cc-mode.texi: Update version string 5.31 -> 5.32.
+
 2011-12-06  Juanma Barranquero  <lekktu@gmail.com>
 
 	* gnus-faq.texi (FAQ 2-1, FAQ 3-8, FAQ 4-14, FAQ 9-1): Fix typos.

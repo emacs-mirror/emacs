@@ -281,7 +281,7 @@ for any of the prompts.
 Note that the password needs to be evaluated if it's a function.  It's
 wrapped in a function to provide some security.
 
-Later, after a successful login, @code{nnimal.el} calls the
+Later, after a successful login, @code{nnimap.el} calls the
 @code{:save-function} like so:
 
 @example

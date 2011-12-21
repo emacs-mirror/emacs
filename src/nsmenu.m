@@ -404,6 +404,7 @@ ns_update_menubar (struct frame *f, int deep_p, EmacsMenu *submenu)
       items = FRAME_MENU_BAR_ITEMS (f);
       if (NILP (items))
         {
+          free_menubar_widget_value_tree (first_wv);
           [pool release];
           UNBLOCK_INPUT;
           return;
@@ -431,6 +432,7 @@ ns_update_menubar (struct frame *f, int deep_p, EmacsMenu *submenu)
 
           if (i == n)
             {
+              free_menubar_widget_value_tree (first_wv);
               [pool release];
               UNBLOCK_INPUT;
               return;

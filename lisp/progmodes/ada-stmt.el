@@ -56,7 +56,7 @@
 ;; BUGS:
 ;;;> I have the following suggestions for the function template: 1) I
 ;;;> don't want it automatically assigning it a name for the return variable. I
-;;;> never want it to be called "Result" because that is nondescriptive. If you
+;;;> never want it to be called "Result" because that is nondescript. If you
 ;;;> must define a variable, give me the ability to specify its name.
 ;;;>
 ;;;> 2) You do not provide a type for variable 'Result'. Its type is the same

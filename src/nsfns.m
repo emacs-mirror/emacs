@@ -394,9 +394,8 @@ x_set_background_color (struct frame *f, Lisp_Object arg, Lisp_Object oldval)
       if (face)
         {
           col = ns_lookup_indexed_color (NS_FACE_BACKGROUND (face), f);
-          face->background
-	     = (EMACS_UINT) [[col colorWithAlphaComponent: alpha] retain];
-          [col release];
+          face->background = ns_index_color
+            ([col colorWithAlphaComponent: alpha], f);
 
           update_face_from_frame_parameter (f, Qbackground_color, arg);
         }
@@ -770,7 +769,7 @@ ns_implicitly_set_icon_type (struct frame *f)
 {
   Lisp_Object tem;
   EmacsView *view = FRAME_NS_VIEW (f);
-  id image =nil;
+  id image = nil;
   Lisp_Object chain, elt;
   NSAutoreleasePool *pool;
   BOOL setMini = YES;
@@ -797,7 +796,7 @@ ns_implicitly_set_icon_type (struct frame *f)
     }
 
   for (chain = Vns_icon_type_alist;
-       (image = nil) && CONSP (chain);
+       image == nil && CONSP (chain);
        chain = XCDR (chain))
     {
       elt = XCAR (chain);

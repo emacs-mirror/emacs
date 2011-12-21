@@ -190,7 +190,7 @@ developing GNU and promoting software freedom.''
 @titlepage
 @sp 10
 
-@center @titlefont{CC Mode 5.31}
+@center @titlefont{CC Mode 5.32}
 @sp 2
 @center @subtitlefont{A GNU Emacs mode for editing C and C-like languages}
 @sp 2
@@ -378,7 +378,7 @@ was added in version 5.30.
 
 This manual describes @ccmode{}
 @comment The following line must appear on its own, so that the
-version 5.31.
+version 5.32.
 @comment Release.py script can update the version number automatically
 
 @ccmode{} supports the editing of K&R and ANSI C, C++, Objective-C,
