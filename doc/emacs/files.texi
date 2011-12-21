@@ -1498,6 +1498,7 @@ it creates a copy of the @var{old} directory and puts it in @var{new}.
 If @var{new} is not an existing directory, it copies all the contents
 of @var{old} into a new directory named @var{new}.
 
+@cindex renaming files
 @findex rename-file
   @kbd{M-x rename-file} reads two file names @var{old} and @var{new}
 using the minibuffer, then renames file @var{old} as @var{new}.  If
@@ -1511,6 +1512,13 @@ component as @var{old}.  For example, @kbd{M-x rename-file RET ~/foo
 RET /tmp RET} renames @file{~/foo} to @file{/tmp/foo}.  The same rule
 applies to all the remaining commands in this section.  All of them
 ask for confirmation when the new file name already exists, too.
+
+@ifnottex
+  Note that if a file is under version control (@pxref{Version
+Control}), you normally ought to rename it via the version control
+system instead, using @kbd{M-x vc-rename-file}.  @xref{Renaming and
+VC}.
+@end ifnottex
 
 @findex add-name-to-file
 @cindex hard links (creation)

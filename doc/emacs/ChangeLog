@@ -1,3 +1,27 @@
+2011-12-21  Chong Yidong  <cyd@gnu.org>
+
+	* maintaining.texi (Advanced C-x v v): Use fileset terminology.
+	(VC With A Merging VCS, VC Change Log): Add xref to VC Pull node.
+	(VC Pull): Mention vc-log-incoming.
+	(Log Buffer): Add CVS/RCS only disclaimer.
+
+	* vc1-xtra.texi (Remote Repositories): Update introduction.
+	(Local Version Control): Node deleted (obsolete with DVCSes).
+	(Remote Repositories, Version Backups): Node deleted.  Move
+	documentation of vc-cvs-stay-local to CVS Options.
+	(CVS Options): Reduce verbosity of description of obscure CVS
+	locking feature.
+	(Making Revision Tags, Revision Tag Caveats): Merge into Revision
+	Tags node.
+	(Revision Tags): Move under Miscellaneous VC subsection.
+	(Change Logs and VC): Note that this is wrong for DVCSs.
+	De-document log entry manipulating features.
+	(Renaming and VC): Describe how it works on modern VCSes.
+
+	* files.texi (Misc File Ops): Mention vc-rename-file.
+
+	* programs.texi (Custom C Indent): Add index entries.
+
 2011-12-20  Alan Mackenzie  <acm@muc.de>
 
 	* programs.texi (Motion in C): Update the description of C-M-a and

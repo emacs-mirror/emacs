@@ -747,7 +747,6 @@ Version Control
 * VC Undo::             Canceling changes before or after committing.
 * VC Directory Mode::   Listing files managed by version control.
 * Branches::            Multiple lines of development.
-* Remote Repositories:: Efficient access to remote CVS servers.
 * Revision Tags::       Symbolic names for revisions.
 * Miscellaneous VC::    Various other commands and features of VC.
 * Customizing VC::      Variables that change VC's behavior.
@@ -780,21 +779,12 @@ Multiple Branches of a File
 * Merging::               Transferring changes between branches.
 * Creating Branches::     How to start a new branch.
 
-Remote Repositories
-
-* Version Backups::       Keeping local copies of repository versions.
-* Local Version Control:: Using another version system for local editing.
-
-Revision Tags
-
-* Making Revision Tags::  The tag facilities.
-* Revision Tag Caveats::  Things to be careful of when using tags.
-
 Miscellaneous Commands and Features of VC
 
 * Change Logs and VC::    Generating a change log file from log entries.
 * Renaming and VC::       A command to rename both the source and master
                             file correctly.
+* Revision Tags::       Symbolic names for revisions.
 * Version Headers::       Inserting version control headers into working files.
 
 Customizing VC

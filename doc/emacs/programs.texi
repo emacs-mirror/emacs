@@ -606,12 +606,13 @@ information on customizing indentation for C and related modes,
 including how to override parts of an existing style and how to define
 your own styles.
 
-  As an alternative to specifying a style, you can get Emacs to
-@dfn{guess} the style by scanning a code buffer which is already
-formatted.  To do this, call @kbd{M-x c-guess} in your sample buffer.
-You can then apply this guessed style to other buffers with @kbd{M-x
+@findex c-guess
+@findex c-guess-install
+  As an alternative to specifying a style, you can tell Emacs to guess
+a style by typing @kbd{M-x c-guess} in a sample code buffer.  You can
+then apply the guessed style to other buffers with @kbd{M-x
 c-guess-install}.  @xref{Guessing the Style,,, ccmode, the CC Mode
-Manual}, for more details about this mechanism.
+Manual}, for details.
 
 @node Parentheses
 @section Commands for Editing with Parentheses

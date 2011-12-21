@@ -56,8 +56,6 @@ variable @code{vc-handled-backends} to @code{nil}
 * VC Directory Mode::   Listing files managed by version control.
 * Branches::            Multiple lines of development.
 @ifnottex
-* Remote Repositories:: Efficient access to remote CVS servers.
-* Revision Tags::       Symbolic names for revisions.
 * Miscellaneous VC::    Various other commands and features of VC.
 * Customizing VC::      Variables that change VC's behavior.
 @end ifnottex
@@ -482,10 +480,11 @@ commit.  @xref{Log Buffer}.
 
 If committing to a shared repository, the commit may fail if the
 repository that has been changed since your last update.  In that
-case, you must perform an update before trying again.  If using a
-decentralized version control system, use @kbd{C-x v +} or @kbd{C-x v
-m} (@pxref{Merging}).  If using a centralized version control system,
-type @kbd{C-x v v} again to merge in the repository changes.
+case, you must perform an update before trying again.  On a
+decentralized version control system, use @kbd{C-x v +} (@pxref{VC
+Pull}) or @kbd{C-x v m} (@pxref{Merging}).  On a centralized version
+control system, type @kbd{C-x v v} again to merge in the repository
+changes.
 
 @item
 Finally, if you are using a centralized version control system, check
@@ -557,31 +556,27 @@ to do the operation.
 
 @itemize @bullet
 @item
-If the file is modified (or locked), you can specify the revision ID
-to use for the new version that you commit.  This is one way to create
-a new branch (@pxref{Branches}).
-
-@item
-If the file is not modified (and unlocked), you can specify the
-revision to select; this lets you start working from an older
-revision, or on another branch.  If you do not enter any revision,
-that takes you to the highest (``head'') revision on the current
-branch; therefore @kbd{C-u C-x v v @key{RET}} is a convenient way to
-get the latest version of a file from the repository.
-
-@item
 @cindex specific version control system
-Instead of the revision ID, you can also specify the name of a
-version control system.  This is useful when one file is being managed
-with two version control systems at the same time
-@iftex
-(@pxref{Local Version Control,,,emacs-xtra, Specialized Emacs
-Features}).
-@end iftex
-@ifnottex
-(@pxref{Local Version Control}).
-@end ifnottex
+You can specify the name of a version control system.  This is useful
+if the fileset can be managed by more than one version control system,
+and Emacs fails to detect the correct one.
 
+@item
+Otherwise, if using CVS or RCS, you can specify a revision ID.
+
+If the fileset is modified (or locked), this makes Emacs commit with
+that revision ID.  You can create a new branch by supplying an
+appropriate revision ID (@pxref{Branches}).
+
+If the fileset is unmodified (and unlocked), this checks the specified
+revision into the working tree.  You can also specify a revision on
+another branch by giving its revision or branch ID (@pxref{Switching
+Branches}).  An empty argument (i.e.@: @kbd{C-u C-x v v @key{RET}})
+checks out the latest (``head'') revision on the current branch.
+
+This signals an error on a decentralized version control system.
+Those systems do not let you specify your own revision IDs, nor do
+they use the concept of ``checking out'' individual files.
 @end itemize
 
 @node Log Buffer
@@ -646,8 +641,9 @@ the @samp{*vc-log*} buffer.  If the topmost item in each
 this command searches that item for entries matching the file(s) to be
 committed, and inserts them.
 @ifnottex
-@xref{Change Logs and VC}, for the opposite way of
-working---generating ChangeLog entries from the Log Edit buffer.
+If you are using CVS or RCS, see @ref{Change Logs and VC}, for the
+opposite way of working---generating ChangeLog entries from the Log
+Edit buffer.
 @end ifnottex
 
   To abort a commit, just @strong{don't} type @kbd{C-c C-c} in that
@@ -935,13 +931,13 @@ revision at point.  A second @key{RET} hides it again.
 (@code{vc-log-incoming}) command displays a log buffer showing the
 changes that will be applied, the next time you run the version
 control system's ``pull'' command to get new revisions from another
-repository.  This other repository is the default one from which
-changes are pulled, as defined by the version control system; with a
-prefix argument, @code{vc-log-incoming} prompts for a specific
-repository.  Similarly, @kbd{C-x v O} (@code{vc-log-outgoing}) shows
-the changes that will be sent to another repository, the next time you
-run the ``push'' command; with a prefix argument, it prompts for a
-specific destination repository.
+repository (@pxref{VC Pull}).  This other repository is the default
+one from which changes are pulled, as defined by the version control
+system; with a prefix argument, @code{vc-log-incoming} prompts for a
+specific repository.  Similarly, @kbd{C-x v O}
+(@code{vc-log-outgoing}) shows the changes that will be sent to
+another repository, the next time you run the ``push'' command; with a
+prefix argument, it prompts for a specific destination repository.
 
   In the @samp{*vc-change-log*} buffer, you can use the following keys
 to move between the logs of revisions and of files, and to examine and
@@ -1339,8 +1335,8 @@ command to use, which lets you specify where to pull changes from.
 Otherwise, it pulls from a default location determined by the version
 control system.
 
-  Amongst decentralized version control systems, @kbd{C-x v +}
-currently supports only Bazaar, Git, and Mercurial.  On Bazaar, it
+  Amongst decentralized version control systems, @kbd{C-x v +} is
+currently supported only by Bazaar, Git, and Mercurial.  On Bazaar, it
 calls @command{bzr pull} for ordinary branches (to pull from a master
 branch into a mirroring branch), and @command{bzr update} for a bound
 branch (to pull from a central repository).  On Git, it calls
@@ -1348,6 +1344,10 @@ branch (to pull from a central repository).  On Git, it calls
 it into the current branch.  On Mercurial, it calls @command{hg pull
 -u} to fetch changesets from the default remote repository and update
 the working directory.
+
+  Prior to pulling, you can use @kbd{C-x v I} (@code{vc-log-incoming})
+to view a log buffer of the changes to be applied.  @xref{VC Change
+Log}.
 
   On a centralized version control system like CVS, @kbd{C-x v +}
 updates the current VC fileset from the repository.
