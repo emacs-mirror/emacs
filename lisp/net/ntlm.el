@@ -440,7 +440,7 @@ length of STR is LEN."
 
 (defun ntlm-smb-dohash (in key forw)
   "Return the hash value for a string IN and a string KEY.
-Length of IN and KEY are 64.  FORW non nill means forward, nil means
+Length of IN and KEY are 64.  FORW non-nil means forward, nil means
 backward."
   (let (pk1				;string of length 56
 	c				;string of length 28
