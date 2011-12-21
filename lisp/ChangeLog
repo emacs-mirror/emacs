@@ -1,3 +1,7 @@
+2011-12-21  Jérémy Compostella  <jeremy.compostella@gmail.com>
+
+	* battery.el (battery-linux-sysfs): Add missing parameters from acpi.
+
 2011-12-21  Teodor Zlatanov  <tzz@lifelogs.com>
 
 	* progmodes/cfengine.el: Add Version.
