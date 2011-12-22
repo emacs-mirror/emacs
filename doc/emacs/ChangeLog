@@ -1,3 +1,13 @@
+2011-12-22  Chong Yidong  <cyd@gnu.org>
+
+	* maintaining.texi (Change Log Commands): Don't specially mention
+	vc-update-change-log which is CVS-only.
+
+	* vc1-xtra.texi (Version Headers): Note that these are for
+	Subversion, CVS, etc. only.
+	(General VC Options): De-document vc-keep-workfiles.  Fix
+	RCS-isms.
+
 2011-12-22  Eli Zaretskii  <eliz@gnu.org>
 
 	* building.texi (Debugger Operation): Fix a typo: "@end iftext"

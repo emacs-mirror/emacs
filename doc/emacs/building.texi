@@ -565,7 +565,7 @@ Mode}).  Completion is available for most debugger commands
 commands to repeat them.
 @iftex
 See the next section
-@end iftext
+@end iftex
 @ifnottex
 @xref{Commands of GUD},
 @end ifnottex
