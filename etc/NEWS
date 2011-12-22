@@ -548,7 +548,7 @@ the lines in the current rectangle.  With a prefix argument, this
 prompts for a number to count from and for a format string.
 
 +++
-** The default value of redisplay-dont-change is now t
+** The default value of redisplay-dont-pause is now t
 This makes Emacs feel more responsive to editing commands that arrive
 at high rate, e.g. if you lean on some key, because stopping redisplay
 in the middle (when this variable is nil) forces more expensive
