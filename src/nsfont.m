@@ -155,7 +155,6 @@ ns_spec_to_descriptor (Lisp_Object font_spec)
     if (family != nil) 
       {
 	fdesc = [fdesc fontDescriptorWithFamily: family];
-        [fdesc autorelease];
       }
 
     [fdAttrs release];

@@ -1,3 +1,7 @@
+2011-12-22  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* nsfont.m (ns_spec_to_descriptor): Do not autorelease fdesc.
+
 2011-12-21  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* nsterm.m (x_free_frame_resources): Release
