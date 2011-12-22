@@ -1,3 +1,7 @@
+2011-12-22  Chong Yidong  <cyd@gnu.org>
+
+	* vc/vc-hooks.el (vc-keep-workfiles): Doc fix.
+
 2011-12-21  Drew Adams  <drew.adams@oracle.com>
 
 	* files.el (file-remote-p): Fix docstring.  (Bug#10319)
