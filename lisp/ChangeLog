@@ -1,3 +1,21 @@
+2011-12-23  Alan Mackenzie  <acm@muc.de>
+
+	Fix unstable fontification inside templates.
+
+	* progmodes/cc-langs.el (c-before-font-lock-functions): newly
+	created from the singular version.  The (c c++ objc) entry now
+	additionally has c-set-fl-decl-start.  The other languages (apart
+	from AWK) have that as a single entry.
+
+	* progmodes/cc-fonts.el (c-font-lock-enclosing-decls): The
+	functionality for "local" declarations has been extracted to
+	c-set-fl-decl-start.
+
+	* progmodes/cc-mode.el: (c-common-init, c-after-change): Changes
+	due to pluralisation of c-before-font-lock-functions.
+	(c-set-fl-decl-start): New function, extracted from
+	c-font-lock-enclosing-decls and enhanced.
+
 2011-12-23  Juanma Barranquero  <lekktu@gmail.com>
 
 	* desktop.el (desktop-internal-v2s): Fix typos in docstring (bug#10353).
