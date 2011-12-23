@@ -1,3 +1,9 @@
+2011-12-23  Eli Zaretskii  <eliz@gnu.org>
+
+	* xdisp.c (handle_invisible_prop): Handle correctly an invisible
+	property that ends at ZV, so that the bidi iteration could be
+	resumed from there (after widening).
+
 2011-12-22  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* nsfont.m (ns_spec_to_descriptor): Do not autorelease fdesc.
