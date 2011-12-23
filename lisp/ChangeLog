@@ -1,3 +1,7 @@
+2011-12-23  Juanma Barranquero  <lekktu@gmail.com>
+
+	* desktop.el (desktop-internal-v2s): Fix typos in docstring (bug#10353).
+
 2011-12-22  Juri Linkov  <juri@jurta.org>
 
 	* progmodes/grep.el (rgrep): Fix docstring.  (Bug#10185)
