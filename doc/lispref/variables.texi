@@ -1998,6 +1998,6 @@ This variable holds a list of all variables of type @code{DEFVAR_BOOL}.
 Attempting to assign them any other value will result in an error:
 
 @example
-(setq window-min-height 5.0)
-@error{} Wrong type argument: integerp, 5.0
+(setq undo-limit 1000.0)
+@error{} Wrong type argument: integerp, 1000.0
 @end example
