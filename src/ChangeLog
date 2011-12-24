@@ -2,7 +2,7 @@
 
 	* xdisp.c (handle_invisible_prop): Handle correctly an invisible
 	property that ends at ZV, so that the bidi iteration could be
-	resumed from there (after widening).
+	resumed from there (after widening).  (Bug#10360)
 
 2011-12-22  Jan Djärv  <jan.h.d@swipnet.se>
 
