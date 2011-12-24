@@ -488,8 +488,9 @@ parameters \(point-min) and \(point-max).")
 (c-lang-defconst c-before-font-lock-functions
   ;; For documentation see the following c-lang-defvar of the same name.
   ;; The value here may be a list of functions or a single function.
-  t 'c-set-fl-decl-start
-  (c c++ objc) '(c-neutralize-syntax-in-and-mark-CPP c-set-fl-decl-start)
+  t 'c-change-set-fl-decl-start
+  (c c++ objc) '(c-neutralize-syntax-in-and-mark-CPP
+		 c-change-set-fl-decl-start)
   awk 'c-awk-extend-and-syntax-tablify-region)
 (c-lang-defvar c-before-font-lock-functions
 	       (let ((fs (c-lang-const c-before-font-lock-functions)))
@@ -513,6 +514,27 @@ The functions are called even when font locking is disabled.
 
 When the mode is initialized, these functions are called with
 parameters \(point-min), \(point-max) and <buffer size>.")
+
+(c-lang-defconst c-before-context-fontification-functions
+  awk nil
+  t 'c-context-set-fl-decl-start)
+  ;; For documentation see the following c-lang-defvar of the same name.
+  ;; The value here may be a list of functions or a single function.
+(c-lang-defvar c-before-context-fontification-functions
+  (let ((fs (c-lang-const c-before-context-fontification-functions)))
+    (if (listp fs)
+	fs
+      (list fs)))
+  "If non-nil, a list of functions called just before context (or
+other non-change) fontification is done.  Typically they will
+extend the region.
+
+These functions will be run in the order given.  Each of them
+takes 2 parameters, the BEG and END of the region to be
+fontified.  Point is undefined on both entry and exit.  On entry,
+the buffer will have been widened and match-data will have been
+saved; the return value is a cons of the adjusted
+region, (NEW-BEG . NEW-END).")
 
 
 ;;; Syntactic analysis ("virtual semicolons") for line-oriented languages (AWK).

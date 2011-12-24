@@ -1,3 +1,26 @@
+2011-12-24  Alan Mackenzie  <acm@muc.de>
+
+	Introduce a mechanism to widen the region used in context font
+	locking.  Use this to protect declarations from losing their
+	contexts.
+
+	* progmodes/cc-langs.el (c-before-font-lock-functions): replace
+	c-set-fl-decl-start with c-change-set-fl-decl-start (Renaming).
+	(c-before-context-fontification-functions): new defvar, a list of
+	functions to be run just before context (etc.) font locking.
+
+	* progmodes/cc-mode.el (c-extend-font-lock-region-for-macros):
+	new, functionality extracted from
+	c-neutralize-syntax-in-and-mark-CPP.
+	(c-in-after-change-fontification): new variable.
+	(c-after-change): Set c-in-after-change-fontification.
+	(c-set-fl-decl-start): Rejig its interface, so it can be called
+	from both after-change and context fontifying.
+	(c-change-set-fl-decl-start, c-context-set-fl-decl-start): new
+	functions.
+	(c-standard-font-lock-fontify-region-function): new variable.
+	(c-font-lock-fontify-region): new function.
+
 2011-12-24  Juri Linkov  <juri@jurta.org>
 
 	* window.el (window--state-get-1): Set `FORCE' arg of `mark' to t.
