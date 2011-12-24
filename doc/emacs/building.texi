@@ -550,7 +550,7 @@ This is the basic interface for interacting with a debugger, used by
 @kbd{M-x gud-gdb} and other commands listed in
 @iftex
 the preceding section.
-@end iftext
+@end iftex
 @ifnottex
 @ref{Starting GUD}.
 @end ifnottex
@@ -565,7 +565,7 @@ Mode}).  Completion is available for most debugger commands
 commands to repeat them.
 @iftex
 See the next section
-@end iftext
+@end iftex
 @ifnottex
 @xref{Commands of GUD},
 @end ifnottex

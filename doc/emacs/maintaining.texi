@@ -1438,13 +1438,11 @@ different revision with @kbd{C-u C-x v v}.
 @section Change Logs
 
 @cindex change log
-  A change log file contains a chronological record of when and why you
-have changed a program, consisting of a sequence of entries describing
-individual changes.  Normally it is kept in a file called
-@file{ChangeLog} in the same directory as the file you are editing, or
-one of its parent directories.  A single @file{ChangeLog} file can
-record changes for all the files in its directory and all its
-subdirectories.
+  Many software projects keep a @dfn{change log}.  This is a file,
+normally named @file{ChangeLog}, containing a chronological record of
+when and how the program was changed.  Sometimes, there are several
+change log files, each recording the changes in one directory or
+directory tree.
 
 @menu
 * Change Log Commands:: Commands for editing change log files.
@@ -1476,7 +1474,7 @@ rather than starting a new item.
 
 You can combine multiple changes of the same nature.  If you don't
 enter any text after the initial @kbd{C-x 4 a}, any subsequent
-@kbd{C-x 4 a} adds another symbol to the change.
+@kbd{C-x 4 a} adds another symbol to the change log entry.
 
 @vindex add-log-always-start-new-record
   If @code{add-log-always-start-new-record} is non-@code{nil},
@@ -1514,15 +1512,7 @@ ordering of entries.
   Version control systems are another way to keep track of changes in
 your program and keep a change log.  In the VC log buffer, typing
 @kbd{C-c C-a} (@code{log-edit-insert-changelog}) inserts the relevant
-Change Log entry, if one exists (@pxref{Log Buffer}).  You can also
-insert a VC log entry into a Change Log buffer by typing @kbd{C-x v a}
-(@code{vc-update-change-log}) in the Change Log buffer
-@iftex
-(@pxref{Change Logs and VC,,,emacs-xtra, Specialized Emacs Features}).
-@end iftex
-@ifnottex
-(@pxref{Change Logs and VC}).
-@end ifnottex
+Change Log entry, if one exists.  @xref{Log Buffer}.
 
 @node Format of ChangeLog
 @subsection Format of ChangeLog

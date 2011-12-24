@@ -959,7 +959,10 @@ can use \\[next-error] (M-x next-error), or \\<grep-mode-map>\\[compile-goto-err
 in the grep output buffer,
 to go to the lines where grep found matches.
 
-This command shares argument histories with \\[lgrep] and \\[grep-find]."
+This command shares argument histories with \\[lgrep] and \\[grep-find].
+
+When called programmatically and FILES is nil, REGEXP is expected
+to specify a command to run."
   (interactive
    (progn
      (grep-compute-defaults)

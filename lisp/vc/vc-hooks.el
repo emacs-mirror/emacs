@@ -114,9 +114,9 @@ Otherwise, not displayed."
   :group 'vc)
 
 (defcustom vc-keep-workfiles t
-  "If non-nil, don't delete working files after registering changes.
-If the back-end is CVS, workfiles are always kept, regardless of the
-value of this flag."
+  "Whether to keep work files on disk after commits, on a locking VCS.
+This variable has no effect on modern merging-based version
+control systems."
   :type 'boolean
   :group 'vc)
 

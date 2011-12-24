@@ -1,3 +1,8 @@
+2011-12-23  Juanma Barranquero  <lekktu@gmail.com>
+
+	* variables.texi (Variables with Restricted Values):
+	Change reference to variable (bug#10354).
+
 2011-12-13  Martin Rudalics  <rudalics@gmx.at>
 
 	* windows.texi (Splitting Windows): Use t instead of non-nil

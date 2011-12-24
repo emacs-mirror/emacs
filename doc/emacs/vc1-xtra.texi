@@ -204,123 +204,63 @@ So the program won't really work as retrieved.
 @node Version Headers
 @subsubsection Inserting Version Control Headers
 
-   Sometimes it is convenient to put version identification strings
-directly into working files.  Certain special strings called
-@dfn{version headers} are replaced in each successive version by the
-number of that version, the name of the user who created it, and other
-relevant information.  All of the back ends that VC supports have such
-a mechanism, except GNU Arch.
+  On Subversion, CVS, RCS, and SCCS, you can put certain special
+strings called @dfn{version headers} into a work file.  When the file
+is committed, the version control system automatically puts the
+revision number, the name of the user who made the commit, and other
+relevant information into the version header.
 
-  VC does not normally use the information contained in these headers.
-The exception is RCS---with RCS, version headers are sometimes more
-reliable than the master file to determine which version of the file
-you are editing.
-
-  Searching for RCS version headers is controlled by the variable
-@code{vc-consult-headers}.  If it is non-@code{nil} (the default),
-Emacs searches for headers to determine the version number you are
-editing.  Setting it to @code{nil} disables this feature.
-
-  Note that although CVS uses the same kind of version headers as RCS
-does, VC never searches for these headers if you are using CVS,
-regardless of the above setting.
+@vindex vc-consult-headers
+  VC does not normally use the information in the version headers.  As
+an exception, when using RCS, Emacs uses the version header, if there
+is one, to determine the file version, since it is often more reliable
+than the RCS master file.  To inhibit using the version header this
+way, change the variable @code{vc-consult-headers} to @code{nil}.
 
 @kindex C-x v h
 @findex vc-insert-headers
-  You can use the @kbd{C-x v h} command (@code{vc-insert-headers}) to
-insert a suitable header string.
-
-@table @kbd
-@item C-x v h
-Insert headers in a file for use with your version-control system.
-@end table
-
 @vindex vc-@var{backend}-header
-  The default header string is @samp{@w{$}Id$} for RCS and
-@samp{@w{%}W%} for SCCS.  You can specify other headers to insert by
-setting the variables @code{vc-@var{backend}-header} where
-@var{backend} is @code{rcs} or @code{sccs}.
-
-  Instead of a single string, you can specify a list of strings; then
-each string in the list is inserted as a separate header on a line of
-its own.
-
-  It may be necessary to use apparently-superfluous backslashes when
-writing the strings that you put in this variable.  For instance, you
-might write @code{"$Id\$"} rather than @code{"$Id@w{$}"}.  The extra
-backslash prevents the string constant from being interpreted as a
-header, if the Emacs Lisp file containing it is maintained with
-version control.
-
-@vindex vc-comment-alist
-  Each header is inserted surrounded by tabs, inside comment delimiters,
-on a new line at point.  Normally the ordinary comment
-start and comment end strings of the current mode are used, but for
-certain modes, there are special comment delimiters for this purpose;
-the variable @code{vc-comment-alist} specifies them.  Each element of
-this list has the form @code{(@var{mode} @var{starter} @var{ender})}.
+  To insert a suitable header string into the current buffer, type
+@kbd{C-x v h} (@code{vc-insert-headers}).  This command works only on
+Subversion, CVS, RCS, and SCCS.  The variable
+@code{vc-@var{backend}-header} contains the list of keywords to insert
+into the version header; for instance, CVS uses @code{vc-cvs-header},
+whose default value is @code{'("\$Id\$")}.  (The extra backslashes
+prevent the string constant from being interpreted as a header, if the
+Emacs Lisp file defining it is maintained with version control.)  The
+@kbd{C-x v h} command inserts each keyword in the list on a new line
+at point, surrounded by tabs, and inside comment delimiters if
+necessary.
 
 @vindex vc-static-header-alist
   The variable @code{vc-static-header-alist} specifies further strings
 to add based on the name of the buffer.  Its value should be a list of
 elements of the form @code{(@var{regexp} . @var{format})}.  Whenever
-@var{regexp} matches the buffer name, @var{format} is inserted as part
-of the header.  A header line is inserted for each element that matches
-the buffer name, and for each string specified by
-@code{vc-@var{backend}-header}.  The header line is made by processing the
-string from @code{vc-@var{backend}-header} with the format taken from the
-element.  The default value for @code{vc-static-header-alist} is as follows:
-
-@example
-@group
-(("\\.c$" .
-  "\n#ifndef lint\nstatic char vcid[] = \"\%s\";\n\
-#endif /* lint */\n"))
-@end group
-@end example
-
-@noindent
-It specifies insertion of text of this form:
-
-@example
-@group
-
-#ifndef lint
-static char vcid[] = "@var{string}";
-#endif /* lint */
-@end group
-@end example
-
-@noindent
-Note that the text above starts with a blank line.
-
-  If you use more than one version header in a file, put them close
-together in the file.  The mechanism in @code{revert-buffer} that
-preserves markers may not handle markers positioned between two version
-headers.
+@var{regexp} matches the buffer name, @var{format} is also inserted as
+part of the version header.  A @samp{%s} in @var{format} is replaced
+with the file's version control type.
 
 @node Customizing VC
 @subsection Customizing VC
 
 @vindex vc-handled-backends
-The variable @code{vc-handled-backends} determines which version
+  The variable @code{vc-handled-backends} determines which version
 control systems VC should handle.  The default value is @code{(RCS CVS
 SVN SCCS Bzr Git Hg Mtn Arch)}, so it contains all the version systems
 that are currently supported.  If you want VC to ignore one or more of
-these systems, exclude its name from the list.  To disable VC entirely,
-set this variable to @code{nil}.
+these systems, exclude its name from the list.  To disable VC
+entirely, set this variable to @code{nil}.
 
-The order of systems in the list is significant: when you visit a file
-registered in more than one system, VC uses the system that comes
+  The order of systems in the list is significant: when you visit a
+file registered in more than one system, VC uses the system that comes
 first in @code{vc-handled-backends} by default.  The order is also
-significant when you register a file for the first time, see
+significant when you register a file for the first time
 @iftex
-@ref{Registering,,,emacs, the Emacs Manual},
+(@pxref{Registering,,,emacs, the Emacs Manual}).
 @end iftex
 @ifnottex
-@ref{Registering},
+(@pxref{Registering}).
 @end ifnottex
-for details.
 
 @menu
 * General VC Options::  Options that apply to multiple back ends.
@@ -337,40 +277,27 @@ maintained with version control.  If you want to make backup files even
 for files that use version control, set the variable
 @code{vc-make-backup-files} to a non-@code{nil} value.
 
-@vindex vc-keep-workfiles
-  Normally the work file exists all the time, whether it is locked or
-not.  If you set @code{vc-keep-workfiles} to @code{nil}, then checking
-in a new version with @kbd{C-x v v} deletes the work file; but any
-attempt to visit the file with Emacs creates it again.  (With CVS, work
-files are always kept.)
-
 @vindex vc-follow-symlinks
-  Editing a version-controlled file through a symbolic link can be
-dangerous.  It bypasses the version control system---you can edit the
-file without locking it, and fail to check your changes in.  Also,
-your changes might overwrite those of another user.  To protect against
-this, VC checks each symbolic link that you visit, to see if it points
-to a file under version control.
-
-  The variable @code{vc-follow-symlinks} controls what to do when a
-symbolic link points to a version-controlled file.  If it is @code{nil},
-VC only displays a warning message.  If it is @code{t}, VC automatically
-follows the link, and visits the real file instead, telling you about
-this in the echo area.  If the value is @code{ask} (the default), VC
-asks you each time whether to follow the link.
+@cindex symbolic links (and version control)
+  Editing a version-controlled file through a symbolic link may cause
+unexpected results, if you are unaware that the underlying file is
+version-controlled.  The variable @code{vc-follow-symlinks} controls
+what Emacs does if you try to visit a symbolic link pointing to a
+version-controlled file.  If the value is @code{ask} (the default),
+Emacs asks for confirmation.  If it is @code{nil}, Emacs just displays
+a warning message.  If it is @code{t}, Emacs automatically follows the
+link and visits the real file instead.
 
 @vindex vc-suppress-confirm
   If @code{vc-suppress-confirm} is non-@code{nil}, then @kbd{C-x v v}
 and @kbd{C-x v i} can save the current buffer without asking, and
-@kbd{C-x v u} also operates without asking for confirmation.  (This
-variable does not affect @kbd{C-x v c}; that operation is so drastic
-that it should always ask for confirmation.)
+@kbd{C-x v u} also operates without asking for confirmation.
 
 @vindex vc-command-messages
   VC mode does much of its work by running the shell commands for the
-appropriate backend.  If @code{vc-command-messages} is non-@code{nil}, VC
-displays messages to indicate which shell commands it runs, and
-additional messages when the commands finish.
+appropriate version control system.  If @code{vc-command-messages} is
+non-@code{nil}, VC displays messages to indicate which shell commands
+it runs, and additional messages when the commands finish.
 
 @vindex vc-path
   You can specify additional directories to search for version control

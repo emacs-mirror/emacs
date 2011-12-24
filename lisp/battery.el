@@ -421,10 +421,15 @@ format introduced in Linux version 2.4.25.
 
 The following %-sequences are provided:
 %c Current capacity (mAh or mWh)
+%r Current rate
 %B Battery status (verbose)
+%d Temperature (in degrees Celsius)
 %p Battery load percentage
-%L AC line status (verbose)"
-  (let (charging-state
+%L AC line status (verbose)
+%m Remaining time (to charge or discharge) in minutes
+%h Remaining time (to charge or discharge) in hours
+%t Remaining time (to charge or discharge) in the form `h:min'"
+  (let (charging-state rate temperature hours
 	(charge-full 0.0)
 	(charge-now 0.0)
 	(energy-full 0.0)
@@ -444,6 +449,12 @@ The following %-sequences are provided:
 	  (and (re-search-forward "POWER_SUPPLY_STATUS=\\(.*\\)$" nil t)
 	       (member charging-state '("Unknown" "Full" nil))
 	       (setq charging-state (match-string 1)))
+	  (when (re-search-forward
+                 "POWER_SUPPLY_\\(CURRENT\\|POWER\\)_NOW=\\([0-9]*\\)$"
+                 nil t)
+	    (setq rate (float (string-to-number (match-string 2)))))
+	  (when (re-search-forward "POWER_SUPPLY_TEMP=\\([0-9]*\\)$" nil t)
+	    (setq temperature (match-string 1)))
 	  (let (full-string now-string)
 	    ;; Sysfs may list either charge (mAh) or energy (mWh).
 	    ;; Keep track of both, and choose which to report later.
@@ -466,12 +477,30 @@ The following %-sequences are provided:
 		   (setq energy-full (+ energy-full
 					(string-to-number full-string))
 			 energy-now  (+ energy-now
-					(string-to-number now-string)))))))))
+					(string-to-number now-string))))))
+	  (goto-char (point-min))
+	  (when (and energy-now rate (not (zerop rate))
+		     (re-search-forward
+                      "POWER_SUPPLY_VOLTAGE_NOW=\\([0-9]*\\)$" nil t))
+	    (let ((remaining (if (string= charging-state "Discharging")
+				 energy-now
+			       (- energy-full energy-now))))
+	      (setq hours (/ (/ (* remaining (string-to-number
+                                              (match-string 1)))
+                                rate)
+			     10000000.0)))))))
     (list (cons ?c (cond ((or (> charge-full 0) (> charge-now 0))
 			  (number-to-string charge-now))
 			 ((or (> energy-full 0) (> energy-now 0))
 			  (number-to-string energy-now))
 			 (t "N/A")))
+	  (cons ?r (if rate (format "%.1f" (/ rate 1000000.0)) "N/A"))
+	  (cons ?m (if hours (format "%d" (* hours 60)) "N/A"))
+	  (cons ?h (if hours (format "%d" hours) "N/A"))
+	  (cons ?t (if hours
+		       (format "%d:%02d" hours (* (- hours (floor hours)) 60))
+		     "N/A"))
+	  (cons ?d (or temperature "N/A"))
 	  (cons ?B (or charging-state "N/A"))
 	  (cons ?p (cond ((> charge-full 0)
 			  (format "%.1f"
