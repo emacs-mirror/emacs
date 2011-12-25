@@ -1,3 +1,7 @@
+2011-12-24  Andreas Schwab  <schwab@linux-m68k.org>
+
+	* callint.c (Fcall_interactively): Don't truncate prompt string.
+
 2011-12-23  Eli Zaretskii  <eliz@gnu.org>
 
 	* xdisp.c (handle_invisible_prop): Handle correctly an invisible
