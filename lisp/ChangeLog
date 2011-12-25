@@ -1,3 +1,25 @@
+2011-12-25  Chong Yidong  <cyd@gnu.org>
+
+	* progmodes/gud.el (gud-gdb-fetch-lines-filter): Just use
+	gud-gdb-marker-filter without taking it as an argument.
+	(gud-gdb-run-command-fetch-lines): Caller changed.
+	(gud-gdb-completion-function): New variable.
+	(gud-gdb-completion-at-point): Use it.
+	(gud-gdb-completions-1): Split from gud-gdb-completions.
+
+	* progmodes/gdb-mi.el (gdb-input): Accept command and handler
+	function as separate arguments.
+	(gdb-init-1, gdb-non-stop-handler, gdb-check-target-async)
+	(gdb-tooltip-print-1, gud-watch, gdb-speedbar-update)
+	(gdb-var-list-children, gdb-var-set-format, gdb-var-delete-1)
+	(gdb-var-delete-children, gdb-edit-value, gdb-var-update)
+	(gdb-stopped, def-gdb-auto-update-trigger)
+	(gdb-place-breakpoints, gdb-select-thread, gdb-select-frame)
+	(gdb-get-changed-registers, gdb-get-main-selected-frame): Callers
+	changed.
+	(gud-gdbmi-completions): New function.
+	(gdb): Use it for generating the completion table.
+
 2011-12-24  Alan Mackenzie  <acm@muc.de>
 
 	Introduce a mechanism to widen the region used in context font
