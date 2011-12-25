@@ -153,7 +153,7 @@ indent.texi       cyd
 killing.texi      cyd
 kmacro.texi       cyd
 macos.texi        
-maintaining.texi  
+maintaining.texi  cyd
 major.texi        
 mark.texi         cyd
 mini.texi         
@@ -172,8 +172,8 @@ search.texi       cyd
 sending.texi      
 text.texi         cyd
 trouble.texi      
-vc-xtra.texi
-vc1-xtra.texi
+vc-xtra.texi      cyd
+vc1-xtra.texi     cyd
 windows.texi      cyd
 xresources.texi   
 

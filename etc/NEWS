@@ -97,10 +97,10 @@ and also when HOME is set to C:\ by default.
 ** Completion
 
 *** shell-mode uses pcomplete rules, with the standard completion UI.
-
++++
 *** Many packages have been changed to use `completion-at-point'
 rather than their own completion code.
-
++++
 *** `completion-at-point' now handles tags and semantic completion.
 ---
 *** Completion in a non-minibuffer now tries to detect the end of completion

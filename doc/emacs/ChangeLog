@@ -1,3 +1,19 @@
+2011-12-25  Chong Yidong  <cyd@gnu.org>
+
+	* maintaining.texi (Tags): Mention Semantic.
+	(Create Tags Table, Etags Regexps): Copyedits.
+	(Find Tag): Mention minibuffer completion.
+	(List Tags): Mention completion-at-point.  Completion is actually
+	available in M-x list-tags.
+
+	* vc1-xtra.texi (VC Delete/Rename): Rename from Renaming and VC.
+	Document vc-delete-file.
+
+	* files.texi (Misc File Ops): Mention vc-delete-file.
+
+	* programs.texi (Symbol Completion): Mention completion-at-point
+	explicitly.
+
 2011-12-22  Chong Yidong  <cyd@gnu.org>
 
 	* maintaining.texi (Change Log Commands): Don't specially mention

@@ -1188,7 +1188,7 @@ Unmark the file or directory on the current line.  If the region is
 active, unmark all the files in the region (@code{vc-dir-unmark}).
 
 @item U
-If point is on a file entry, umark all files with the same status; if
+If point is on a file entry, unmark all files with the same status; if
 point is on a directory entry, unmark all files in that directory tree
 (@code{vc-dir-unmark-all-files}).  With a prefix argument, unmark all
 files and directories.
@@ -1567,8 +1567,8 @@ Of course, you should substitute the proper years and copyright holder.
 @cindex tags and tag tables
 
   A @dfn{tag} is a reference to a subunit in a program or in a
-document.  In program source code, tags reference syntactic elements
-of the program: functions, subroutines, data types, macros, etc.  In a
+document.  In source code, tags reference syntactic elements of the
+program: functions, subroutines, data types, macros, etc.  In a
 document, tags reference chapters, sections, appendices, etc.  Each
 tag specifies the name of the file where the corresponding subunit is
 defined, and the position of the subunit's definition in that file.
@@ -1582,34 +1582,36 @@ a Yacc parser, or from Lex scanner definitions; @file{.i} preprocessed
 C files; and Fortran files produced by preprocessing @file{.fpp}
 source files.
 
-  To produce a tags table, you use the @samp{etags} command,
-submitting it a document or the source code of a program.
-@samp{etags} writes the tags to a @dfn{tags table file}, or @dfn{tags
-file} in short.  The conventional name for a tags file is @file{TAGS}.
+@cindex etags
+  To produce a tags table, you run the @command{etags} shell command
+on a document or the source code file.  The @samp{etags} program
+writes the tags to a @dfn{tags table file}, or @dfn{tags file} in
+short.  The conventional name for a tags file is @file{TAGS}.
+@xref{Create Tags Table}.
 
-  Emacs uses the information recorded in tags tables in commands that
-search or replace through multiple source files: these commands use
-the names of the source files recorded in the tags table to know which
-files to search.  Other commands, such as @kbd{M-.}, which finds the
-definition of a function, use the recorded information about the
-function names and positions to find the source file and the position
-within that file where the function is defined.
+  Emacs provides many commands for searching and replacing using the
+information recorded in tags tables.  For instance, the @kbd{M-.}
+(@code{find-tag}) jumps to the location of a specified function
+definition in its source file.  @xref{Find Tag}.
 
 @cindex C++ class browser, tags
 @cindex tags, C++
 @cindex class browser, C++
 @cindex Ebrowse
-  See also the Ebrowse facility, which is tailored for C++.
-@xref{Top,, Ebrowse, ebrowse, Ebrowse User's Manual}.
+  The Ebrowse facility is similar to @command{etags} but specifically
+tailored for C++.  @xref{Top,, Ebrowse, ebrowse, Ebrowse User's
+Manual}.  The Semantic package provides another way to generate and
+use tags, separate from the @command{etags} facility.
+@xref{Semantic}.
 
 @menu
 * Tag Syntax::          Tag syntax for various types of code and text files.
-* Create Tags Table::   Creating a tags table with @code{etags}.
+* Create Tags Table::   Creating a tags table with @command{etags}.
 * Etags Regexps::       Create arbitrary tags using regular expressions.
 * Select Tags Table::   How to visit a tags table.
 * Find Tag::            Commands to find the definition of a specific tag.
 * Tags Search::         Using a tags table for searching and replacing.
-* List Tags::           Listing and finding tags defined in a file.
+* List Tags::           Using tags for completion, and listing them.
 @end menu
 
 @node Tag Syntax
@@ -1631,7 +1633,7 @@ and @samp{--no-members} can make the tags table file much smaller.
 
 You can tag function declarations and external variables in addition
 to function definitions by giving the @samp{--declarations} option to
-@code{etags}.
+@command{etags}.
 
 @item
 In C++ code, in addition to all the tag constructs of C code, member
@@ -1648,15 +1650,15 @@ Tags for variables and functions in classes are named
 @samp{@var{class}.@var{variable}} and @samp{@var{class}.@var{function}}.
 
 @item
-In La@TeX{} text, the argument of any of the commands @code{\chapter},
+In La@TeX{} documents, the arguments for @code{\chapter},
 @code{\section}, @code{\subsection}, @code{\subsubsection},
 @code{\eqno}, @code{\label}, @code{\ref}, @code{\cite},
 @code{\bibitem}, @code{\part}, @code{\appendix}, @code{\entry},
 @code{\index}, @code{\def}, @code{\newcommand}, @code{\renewcommand},
-@code{\newenvironment} or @code{\renewenvironment} is a tag.@refill
+@code{\newenvironment} and @code{\renewenvironment} are tags.
 
 Other commands can make tags as well, if you specify them in the
-environment variable @env{TEXTAGS} before invoking @code{etags}.  The
+environment variable @env{TEXTAGS} before invoking @command{etags}.  The
 value of this environment variable should be a colon-separated list of
 command names.  For example,
 
@@ -1788,9 +1790,9 @@ Regexps}) to handle other formats and languages.
 
 @node Create Tags Table
 @subsection Creating Tags Tables
-@cindex @code{etags} program
+@cindex @command{etags} program
 
-  The @code{etags} program is used to create a tags table file.  It knows
+  The @command{etags} program is used to create a tags table file.  It knows
 the syntax of several languages, as described in
 @iftex
 the previous section.
@@ -1798,53 +1800,46 @@ the previous section.
 @ifnottex
 @ref{Tag Syntax}.
 @end ifnottex
-Here is how to run @code{etags}:
+Here is how to run @command{etags}:
 
 @example
 etags @var{inputfiles}@dots{}
 @end example
 
 @noindent
-The @code{etags} program reads the specified files, and writes a tags
+The @command{etags} program reads the specified files, and writes a tags
 table named @file{TAGS} in the current working directory.  You can
 optionally specify a different file name for the tags table by using the
 @samp{--output=@var{file}} option; specifying @file{-} as a file name
 prints the tags table to standard output.
 
-  If the specified files don't exist, @code{etags} looks for
+  If the specified files don't exist, @command{etags} looks for
 compressed versions of them and uncompresses them to read them.  Under
-MS-DOS, @code{etags} also looks for file names like @file{mycode.cgz}
+MS-DOS, @command{etags} also looks for file names like @file{mycode.cgz}
 if it is given @samp{mycode.c} on the command line and @file{mycode.c}
 does not exist.
 
-  @code{etags} recognizes the language used in an input file based on
-its file name and contents.  You can specify the language with the
-@samp{--language=@var{name}} option, described below.
-
-  If the tags table data become outdated due to changes in the files
-described in the table, the way to update the tags table is the same
-way it was made in the first place.  If the tags table fails to record
-a tag, or records it for the wrong file, then Emacs cannot possibly
-find its definition until you update the tags table.  However, if the
-position recorded in the tags table becomes a little bit wrong (due to
-other editing), the worst consequence is a slight delay in finding the
-tag.  Even if the stored position is very far wrong, Emacs will still
-find the tag, after searching most of the file for it.  That delay is
-hardly noticeable with today's computers.
+  If the tags table becomes outdated due to changes in the files
+described in it, you can update it by running the @command{etags}
+program again.  If the tags table does not record a tag, or records it
+for the wrong file, then Emacs will not be able to find that
+definition until you update the tags table.  But if the position
+recorded in the tags table becomes a little bit wrong (due to other
+editing), Emacs will still be able to find the right position, with a
+slight delay.
 
    Thus, there is no need to update the tags table after each edit.
 You should update a tags table when you define new tags that you want
 to have listed, or when you move tag definitions from one file to
 another, or when changes become substantial.
 
-  One tags table can virtually include another.  Specify the included
-tags file name with the @samp{--include=@var{file}} option when
-creating the file that is to include it.  The latter file then acts as
-if it covered all the source files specified in the included file, as
-well as the files it directly contains.
+  You can make a tags table @dfn{include} another tags table, by
+passing the @samp{--include=@var{file}} option to @command{etags}.  It
+then covers all the files covered by the included tags file, as well
+as its own.
 
   If you specify the source files with relative file names when you run
-@code{etags}, the tags file will contain file names relative to the
+@command{etags}, the tags file will contain file names relative to the
 directory where the tags file was initially written.  This way, you can
 move an entire directory tree containing both the tags file and the
 source files, and the tags file will still refer correctly to the source
@@ -1857,40 +1852,41 @@ example, when writing the tags to @file{/dev/stdout}.
 pointing to a tags file in a different directory, because this would
 generally render the file names invalid.
 
-  If you specify absolute file names as arguments to @code{etags}, then
+  If you specify absolute file names as arguments to @command{etags}, then
 the tags file will contain absolute file names.  This way, the tags file
 will still refer to the same files even if you move it, as long as the
 source files remain in the same place.  Absolute file names start with
 @samp{/}, or with @samp{@var{device}:/} on MS-DOS and MS-Windows.
 
-  When you want to make a tags table from a great number of files, you
-may have problems listing them on the command line, because some systems
-have a limit on its length.  The simplest way to circumvent this limit
-is to tell @code{etags} to read the file names from its standard input,
-by typing a dash in place of the file names, like this:
+   When you want to make a tags table from a great number of files,
+you may have problems listing them on the command line, because some
+systems have a limit on its length.  You can circumvent this limit by
+telling @command{etags} to read the file names from its standard
+input, by typing a dash in place of the file names, like this:
 
 @smallexample
 find . -name "*.[chCH]" -print | etags -
 @end smallexample
 
-  Use the option @samp{--language=@var{name}} to specify the language
-explicitly.  You can intermix these options with file names; each one
-applies to the file names that follow it.  Specify
-@samp{--language=auto} to tell @code{etags} to resume guessing the
-language from the file names and file contents.  Specify
-@samp{--language=none} to turn off language-specific processing
-entirely; then @code{etags} recognizes tags by regexp matching alone
-(@pxref{Etags Regexps}).
+  @command{etags} recognizes the language used in an input file based
+on its file name and contents.  You can specify the language
+explicitly with the @samp{--language=@var{name}} option.  You can
+intermix these options with file names; each one applies to the file
+names that follow it.  Specify @samp{--language=auto} to tell
+@command{etags} to resume guessing the language from the file names
+and file contents.  Specify @samp{--language=none} to turn off
+language-specific processing entirely; then @command{etags} recognizes
+tags by regexp matching alone (@pxref{Etags Regexps}).
 
   The option @samp{--parse-stdin=@var{file}} is mostly useful when
-calling @code{etags} from programs.  It can be used (only once) in
-place of a file name on the command line.  @code{Etags} will read from
+calling @command{etags} from programs.  It can be used (only once) in
+place of a file name on the command line.  @command{etags} will read from
 standard input and mark the produced tags as belonging to the file
 @var{file}.
 
-  @samp{etags --help} outputs the list of the languages @code{etags}
+  @samp{etags --help} outputs the list of the languages @command{etags}
 knows, and the file name rules for guessing the language.  It also prints
-a list of all the available @code{etags} options, together with a short
+a list of all the available @command{etags} options, together with a short
 explanation.  If followed by one or more @samp{--language=@var{lang}}
 options, it outputs detailed information about how tags are generated for
 @var{lang}.
@@ -1898,21 +1894,22 @@ options, it outputs detailed information about how tags are generated for
 @node Etags Regexps
 @subsection Etags Regexps
 
-  The @samp{--regex} option provides a general way of recognizing tags
-based on regexp matching.  You can freely intermix this option with
-file names, and each one applies to the source files that follow it.
-If you specify multiple @samp{--regex} options, all of them are used
-in parallel.  The syntax is:
+  The @samp{--regex} option to @command{etags} allows tags to be
+recognized by regular expression matching.  You can intermix this
+option with file names; each one applies to the source files that
+follow it.  If you specify multiple @samp{--regex} options, all of
+them are used in parallel.  The syntax is:
 
 @smallexample
 --regex=[@var{@{language@}}]/@var{tagregexp}/[@var{nameregexp}/]@var{modifiers}
 @end smallexample
 
-  The essential part of the option value is @var{tagregexp}, the
-regexp for matching tags.  It is always used anchored, that is, it
-only matches at the beginning of a line.  If you want to allow
-indented tags, use a regexp that matches initial whitespace; start it
-with @samp{[ \t]*}.
+@noindent
+The essential part of the option value is @var{tagregexp}, the regexp
+for matching tags.  It is always used anchored, that is, it only
+matches at the beginning of a line.  If you want to allow indented
+tags, use a regexp that matches initial whitespace; start it with
+@samp{[ \t]*}.
 
   In these regular expressions, @samp{\} quotes the next character, and
 all the GCC character escape sequences are supported (@samp{\a} for
@@ -1929,7 +1926,7 @@ completion on tag names more reliably.  You can find some examples
 below.
 
   The @var{modifiers} are a sequence of zero or more characters that
-modify the way @code{etags} does the matching.  A regexp with no
+modify the way @command{etags} does the matching.  A regexp with no
 modifiers is applied sequentially to each line of the input file, in a
 case-sensitive way.  The modifiers and their meanings are:
 
@@ -1954,22 +1951,22 @@ etags --regex=/@var{reg1}/i voo.doo --regex=/@var{reg2}/m \
 @end smallexample
 
 @noindent
-Here @code{etags} chooses the parsing language for @file{voo.doo} and
-@file{bar.ber} according to their contents.  @code{etags} also uses
+Here @command{etags} chooses the parsing language for @file{voo.doo} and
+@file{bar.ber} according to their contents.  @command{etags} also uses
 @var{reg1} to recognize additional tags in @file{voo.doo}, and both
 @var{reg1} and @var{reg2} to recognize additional tags in
 @file{bar.ber}.  @var{reg1} is checked against each line of
 @file{voo.doo} and @file{bar.ber}, in a case-insensitive way, while
 @var{reg2} is checked against the whole @file{bar.ber} file,
-permitting multi-line matches, in a case-sensitive way.  @code{etags}
+permitting multi-line matches, in a case-sensitive way.  @command{etags}
 uses only the Lisp tags rules, with no user-specified regexp matching,
 to recognize tags in @file{los.er}.
 
   You can restrict a @samp{--regex} option to match only files of a
 given language by using the optional prefix @var{@{language@}}.
 (@samp{etags --help} prints the list of languages recognized by
-@code{etags}.)  This is particularly useful when storing many
-predefined regular expressions for @code{etags} in a file.  The
+@command{etags}.)  This is particularly useful when storing many
+predefined regular expressions for @command{etags} in a file.  The
 following example tags the @code{DEFVAR} macros in the Emacs source
 files, for the C language only:
 
@@ -1979,7 +1976,7 @@ files, for the C language only:
 
 @noindent
 When you have complex regular expressions, you can store the list of
-them in a file.  The following option syntax instructs @code{etags} to
+them in a file.  The following option syntax instructs @command{etags} to
 read two files of regular expressions.  The regular expressions
 contained in the second file are matched without regard to case.
 
@@ -1988,9 +1985,9 @@ contained in the second file are matched without regard to case.
 @end smallexample
 
 @noindent
-A regex file for @code{etags} contains one regular expression per
+A regex file for @command{etags} contains one regular expression per
 line.  Empty lines, and lines beginning with space or tab are ignored.
-When the first character in a line is @samp{@@}, @code{etags} assumes
+When the first character in a line is @samp{@@}, @command{etags} assumes
 that the rest of the line is the name of another file of regular
 expressions; thus, one such file can include another file.  All the
 other lines are taken to be regular expressions.  If the first
@@ -2053,14 +2050,14 @@ etags --language=none \
 @node Select Tags Table
 @subsection Selecting a Tags Table
 
-@vindex tags-file-name
 @findex visit-tags-table
-  Emacs has at any time one @dfn{selected} tags table, and all the
+  Emacs has at any time one @dfn{selected} tags table.  All the
 commands for working with tags tables use the selected one.  To select
 a tags table, type @kbd{M-x visit-tags-table}, which reads the tags
 table file name as an argument, with @file{TAGS} in the default
 directory as the default.
 
+@vindex tags-file-name
   Emacs does not actually read in the tags table contents until you
 try to use them; all @code{visit-tags-table} does is store the file
 name in the variable @code{tags-file-name}, and setting the variable
@@ -2124,27 +2121,25 @@ Pop back to where you previously invoked @kbd{M-.} and friends.
 
 @kindex M-.
 @findex find-tag
-  @kbd{M-.}@: (@code{find-tag}) is the command to find the definition of
-a specified tag.  It searches through the tags table for that tag, as a
-string, and then uses the tags table info to determine the file that the
-definition is in and the approximate character position in the file of
-the definition.  Then @code{find-tag} visits that file, moves point to
-the approximate character position, and searches ever-increasing
-distances away to find the tag definition.
+  @kbd{M-.}@: (@code{find-tag}) prompts for a tag name and jumps to
+its source definition.  It works by searching through the tags table
+for that tag's file and approximate character position, visiting that
+file, and searching for the tag definition at ever-increasing
+distances away from the recorded approximate position.
 
-  If an empty argument is given (just type @key{RET}), the balanced
-expression in the buffer before or around point is used as the
-@var{tag} argument.  @xref{Expressions}.
+  When entering the tag argument to @kbd{M-.}, the usual minibuffer
+completion commands can be used (@pxref{Completion}), with the tag
+names in the selected tags table as completion candidates.  If you
+specify an empty argument, the balanced expression in the buffer
+before or around point is the default argument.  @xref{Expressions}.
 
   You don't need to give @kbd{M-.} the full name of the tag; a part
-will do.  This is because @kbd{M-.} finds tags in the table which
-contain @var{tag} as a substring.  However, it prefers an exact match
-to a substring match.  To find other tags that match the same
-substring, give @code{find-tag} a numeric argument, as in @kbd{C-u
-M-.}; this does not read a tag name, but continues searching the tags
-table's text for another tag containing the same substring last used.
-If you have a real @key{META} key, @kbd{M-0 M-.}@: is an easier
-alternative to @kbd{C-u M-.}.
+will do.  @kbd{M-.} finds tags which contain that argument as a
+substring.  However, it prefers an exact match to a substring match.
+To find other tags that match the same substring, give @code{find-tag}
+a numeric argument, as in @kbd{C-u M-.}  or @kbd{M-0 M-.}; this does
+not read a tag name, but continues searching the tags table's text for
+another tag containing the same substring last used.
 
 @kindex C-x 4 .
 @findex find-tag-other-window
@@ -2152,23 +2147,23 @@ alternative to @kbd{C-u M-.}.
 @findex find-tag-other-frame
   Like most commands that can switch buffers, @code{find-tag} has a
 variant that displays the new buffer in another window, and one that
-makes a new frame for it.  The former is @w{@kbd{C-x 4 .}}, which invokes
-the command @code{find-tag-other-window}.  The latter is @w{@kbd{C-x 5 .}},
-which invokes @code{find-tag-other-frame}.
+makes a new frame for it.  The former is @w{@kbd{C-x 4 .}}
+(@code{find-tag-other-window}), and the latter is @w{@kbd{C-x 5 .}}
+(@code{find-tag-other-frame}).
 
-  To move back to places you've found tags recently, use @kbd{C-u -
-M-.}; more generally, @kbd{M-.} with a negative numeric argument.  This
-command can take you to another buffer.  @w{@kbd{C-x 4 .}} with a negative
-argument finds the previous tag location in another window.
+  To move back to previous tag definitions, use @kbd{C-u - M-.}; more
+generally, @kbd{M-.} with a negative numeric argument.  Similarly,
+@w{@kbd{C-x 4 .}} with a negative argument finds the previous tag
+location in another window.
 
 @kindex M-*
 @findex pop-tag-mark
 @vindex find-tag-marker-ring-length
-  As well as going back to places you've found tags recently, you can go
-back to places @emph{from where} you found them.  Use @kbd{M-*}, which
-invokes the command @code{pop-tag-mark}, for this.  Typically you would
-find and study the definition of something with @kbd{M-.} and then
-return to where you were with @kbd{M-*}.
+  As well as going back to places you've found tags recently, you can
+go back to places @emph{from where} you found them, using @kbd{M-*}
+(@code{pop-tag-mark}).  Thus you can find and examine the definition
+of something with @kbd{M-.} and then return to where you were with
+@kbd{M-*}.
 
   Both @kbd{C-u - M-.} and @kbd{M-*} allow you to retrace your steps to
 a depth determined by the variable @code{find-tag-marker-ring-length}.
@@ -2212,10 +2207,10 @@ can follow its progress.  As soon as it finds an occurrence,
 
 @kindex M-,
 @findex tags-loop-continue
-  Having found one match, you probably want to find all the rest.  To find
-one more match, type @kbd{M-,} (@code{tags-loop-continue}) to resume the
-@code{tags-search}.  This searches the rest of the current buffer, followed
-by the remaining files of the tags table.@refill
+  Having found one match, you probably want to find all the rest.
+Type @kbd{M-,} (@code{tags-loop-continue}) to resume the
+@code{tags-search}, finding one more match.  This searches the rest of
+the current buffer, followed by the remaining files of the tags table.
 
 @findex tags-query-replace
   @kbd{M-x tags-query-replace} performs a single
@@ -2252,56 +2247,56 @@ have to search (those which are not already visited in Emacs buffers).
 Buffers in which no match is found are quickly killed; the others
 continue to exist.
 
-  It may have struck you that @code{tags-search} is a lot like
-@code{grep}.  You can also run @code{grep} itself as an inferior of
-Emacs and have Emacs show you the matching lines one by one.
+  As an alternative to @code{tags-search}, you can run @command{grep}
+as a subprocess and have Emacs show you the matching lines one by one.
 @xref{Grep Searching}.
 
 @node List Tags
 @subsection Tags Table Inquiries
 
 @table @kbd
+@item C-M-i
+@itemx M-@key{TAB}
+Perform completion on the text around point, using the selected tags
+table if one is loaded (@code{completion-at-point}).
 @item M-x list-tags @key{RET} @var{file} @key{RET}
 Display a list of the tags defined in the program file @var{file}.
 @item M-x tags-apropos @key{RET} @var{regexp} @key{RET}
 Display a list of all tags matching @var{regexp}.
 @end table
 
+@cindex completion (symbol names)
+  In most programming language modes, you can type @kbd{C-M-i} or
+@kbd{M-@key{TAB}} (@code{completion-at-point}) to complete the symbol
+at point.  If there is a selected tags table, this command can use it
+to generate completion candidates.  @xref{Symbol Completion}.
+
 @findex list-tags
-  @kbd{M-x list-tags} reads the name of one of the files described by
-the selected tags table, and displays a list of all the tags defined in
-that file.  The ``file name'' argument is really just a string to
-compare against the file names recorded in the tags table; it is read as
-a string rather than as a file name.  Therefore, completion and
-defaulting are not available, and you must enter the file name the same
-way it appears in the tags table.  Do not include a directory as part of
-the file name unless the file name recorded in the tags table includes a
-directory.
+  @kbd{M-x list-tags} reads the name of one of the files covered by
+the selected tags table, and displays a list of tags defined in that
+file.  Do not include a directory as part of the file name unless the
+file name recorded in the tags table includes a directory.
 
 @findex tags-apropos
 @vindex tags-apropos-verbose
-  @kbd{M-x tags-apropos} is like @code{apropos} for tags
-(@pxref{Apropos}).  It finds all the tags in the selected tags table
-whose entries match @var{regexp}, and displays them.  If the variable
-@code{tags-apropos-verbose} is non-@code{nil}, it displays the names
-of the tags files together with the tag names.
-
 @vindex tags-tag-face
 @vindex tags-apropos-additional-actions
-  You can customize the appearance of the output by setting the
-variable @code{tags-tag-face} to a face.  You can display additional
-output with @kbd{M-x tags-apropos} by customizing the variable
-@code{tags-apropos-additional-actions}---see its documentation for
-details.
+  @kbd{M-x tags-apropos} is like @code{apropos} for tags
+(@pxref{Apropos}).  It displays a list of tags in the selected tags
+table whose entries match @var{regexp}.  If the variable
+@code{tags-apropos-verbose} is non-@code{nil}, it displays the names
+of the tags files together with the tag names.  You can customize the
+appearance of the output by setting the variable @code{tags-tag-face}
+to a face.  You can display additional output by customizing the
+variable @code{tags-apropos-additional-actions}; see its documentation
+for details.
 
-  You can also use the collection of tag names to complete a symbol
-name in the buffer.  @xref{Symbol Completion}.
-
-  You can use @kbd{M-x next-file} to visit the files in the selected
-tags table.  The first time this command is called, it visits the
-first file in the tags table.  Each subsequent call visits the next
-file in the table, unless a prefix argument is supplied, in which case
-it returns to the first file.
+@findex next-file
+  @kbd{M-x next-file} visits files covered by the selected tags table.
+The first time it is called, it visits the first file covered by the
+table.  Each subsequent call visits the next covered file, unless a
+prefix argument is supplied, in which case it returns to the first
+file.
 
 @node EDE
 @section Emacs Development Environment

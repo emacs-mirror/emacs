@@ -1291,18 +1291,18 @@ for switching graphical windows, so you should type @kbd{C-M-i} or
 @kbd{@key{ESC} @key{TAB}} instead.
 
 @cindex tags-based completion
-  In-buffer symbol completion generates its completion list in a
-number of different ways.  If Semantic mode is enabled, Emacs tries to
-use the Semantic parser data for completion (@pxref{Semantic}).  If
-Semantic mode is not enabled or it fails at performing completion,
-Emacs normally tries to complete using a tags table (@pxref{Tags}).
-
+@findex completion-at-point
 @cindex Lisp symbol completion
 @cindex completion (Lisp symbols)
-  In Emacs Lisp mode, completion is performed using the function,
-variable, and property names defined in the current Emacs session.  If
-there is an open parenthesis immediately before the beginning of the
-partial symbol, only symbols with function definitions are considered.
+  In most programming language modes, @kbd{C-M-i} (or
+@kbd{M-@key{TAB}}) invokes the command @code{completion-at-point},
+which generates its completion list in a flexible way.  If Semantic
+mode is enabled, it tries to use the Semantic parser data for
+completion (@pxref{Semantic}).  If Semantic mode is not enabled or
+fails at performing completion, it tries to complete using the
+selected tags table (@pxref{Tags}).  If in Emacs Lisp mode, it
+performs completion using the function, variable, or property names
+defined in the current Emacs session.
 
   In all other respects, in-buffer symbol completion behaves like
 minibuffer completion.  For instance, if Emacs cannot complete to a
