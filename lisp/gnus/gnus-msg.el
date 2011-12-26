@@ -1784,7 +1784,7 @@ this is a reply."
 			     (and header
 				  (string-match (nth 2 match) header)))))))
 		 (t
-		  ;; This is a form to be evaled.
+		  ;; This is a form to be evalled.
 		  (eval match)))))
 	  ;; We have a match, so we set the variables.
 	  (dolist (attribute style)

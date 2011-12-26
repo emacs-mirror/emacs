@@ -701,7 +701,7 @@ init file.)
 @cindex help for major mode
 @cindex documentation for major mode
 
-  The @code{describe-mode} function is provides information about major
+  The @code{describe-mode} function provides information about major
 modes.  It is normally bound to @kbd{C-h m}.  It uses the value of the
 variable @code{major-mode} (@pxref{Major Modes}), which is why every
 major mode command needs to set that variable.

@@ -741,15 +741,16 @@ Version Control
 * VC Mode Line::        How the mode line shows version control status.
 * Basic VC Editing::    How to edit a file under version control.
 * Log Buffer::          Features available in log entry buffers.
+* Registering::         Putting a file under version control.
 * Old Revisions::       Examining and comparing old versions.
-* Secondary VC Commands:: The commands used a little less frequently.
+* VC Change Log::       Viewing the VC Change Log.
+* VC Undo::             Canceling changes before or after committing.
 * VC Directory Mode::   Listing files managed by version control.
 * Branches::            Multiple lines of development.
-* Remote Repositories:: Efficient access to remote CVS servers.
 * Revision Tags::       Symbolic names for revisions.
 * Miscellaneous VC::    Various other commands and features of VC.
 * Customizing VC::      Variables that change VC's behavior.
-  
+
 Introduction to Version Control
 
 * Why Version Control?::    Understanding the problems it addresses.
@@ -766,12 +767,6 @@ Basic Editing under Version Control
 * VC With A Locking VCS::  RCS in its default mode, SCCS, and optionally CVS.
 * Advanced C-x v v::       Advanced features available with a prefix argument.
 
-The Secondary Commands of VC
-
-* Registering::         Putting a file under version control.
-* VC Change Log::       Viewing the VC Change Log.
-* VC Undo::             Canceling changes before or after check-in.
-
 VC Directory Mode
 
 * VC Directory Buffer::   What the buffer looks like and means.
@@ -780,26 +775,15 @@ VC Directory Mode
 Multiple Branches of a File
 
 * Switching Branches::    How to get to another existing branch.
-* Creating Branches::     How to start a new branch.
+* VC Pull::               Updating a branch from another branch.
 * Merging::               Transferring changes between branches.
-* Multi-User Branching::  Multiple users working at multiple branches
-                            in parallel.
-
-Remote Repositories
-
-* Version Backups::       Keeping local copies of repository versions.
-* Local Version Control:: Using another version system for local editing.
-
-Revision Tags
-
-* Making Revision Tags::  The tag facilities.
-* Revision Tag Caveats::  Things to be careful of when using tags.
+* Creating Branches::     How to start a new branch.
 
 Miscellaneous Commands and Features of VC
 
 * Change Logs and VC::    Generating a change log file from log entries.
-* Renaming and VC::       A command to rename both the source and master
-                            file correctly.
+* VC Delete/Rename::      Deleting and renaming version-controlled files.
+* Revision Tags::         Symbolic names for revisions.
 * Version Headers::       Inserting version control headers into working files.
 
 Customizing VC

@@ -50,9 +50,9 @@
 ;; identified by a string called package name.  Use robin-define-package
 ;; to define a robin package.
 
-;; (robin-define-package NAME DOCTSTRING
-;;   (INPUT1 OUPUT1)
-;;   (INPUT2 OUPUT2)
+;; (robin-define-package NAME DOCSTRING
+;;   (INPUT1 OUTPUT1)
+;;   (INPUT2 OUTPUT2)
 ;;   ...)
 
 ;; NAME is a string identifying the robin package.  It often starts with a

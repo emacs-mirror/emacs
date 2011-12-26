@@ -6114,7 +6114,7 @@ When you have edited both buffers as you wish, merge them with C-x 6
 1.  This copies the text from the right-hand buffer as a second column
 in the other buffer.  To go back to two-column editing, use C-x 6 s.
 
-Use C-x 6 d to disassociate the two buffers, leaving each as it
+Use C-x 6 d to dissociate the two buffers, leaving each as it
 stands.  (If the other buffer, the one that was not current when you
 type C-x 6 d, is empty, C-x 6 d kills it.)
 

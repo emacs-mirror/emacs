@@ -181,7 +181,7 @@ Results in --add-missing being passed to automake."
 (defmethod ede-proj-makefile-insert-automake-pre-variables
   ((this ede-proj-target-makefile-shared-object))
   "Insert bin_PROGRAMS variables needed by target THIS.
-We aren't acutally inserting SOURCE details, but this is used by the
+We aren't actually inserting SOURCE details, but this is used by the
 Makefile.am generator, so use it to add this important bin program."
   (ede-pmake-insert-variable-shared "lib_LTLIBRARIES"
      (insert (concat "lib" (ede-name this) ".la"))))

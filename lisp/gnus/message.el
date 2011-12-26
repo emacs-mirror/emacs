@@ -4409,7 +4409,7 @@ This function could be useful in `message-setup-hook'."
        ;; A simple function.
        ((functionp action)
 	(funcall action))
-       ;; Something to be evaled.
+       ;; Something to be evalled.
        (t
 	(eval action))))))
 

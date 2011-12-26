@@ -951,13 +951,13 @@ Within directories, only files already under version control are noticed."
 (defun vc-deduce-fileset (&optional observer allow-unregistered
 				    state-model-only-files)
   "Deduce a set of files and a backend to which to apply an operation.
-
 Return (BACKEND FILESET FILESET-ONLY-FILES STATE CHECKOUT-MODEL).
-If we're in VC-dir mode, the fileset is the list of marked files.
-Otherwise, if we're looking at a buffer visiting a version-controlled file,
-the fileset is a singleton containing this file.
-If none of these conditions is met, but ALLOW_UNREGISTERED is on and the
-visited file is not registered, return a singleton fileset containing it.
+
+If we're in VC-dir mode, FILESET is the list of marked files.
+Otherwise, if in a buffer visiting a version-controlled file,
+FILESET is a single-file fileset containing that file.
+Otherwise, if ALLOW-UNREGISTERED is non-nil and the visited file
+is unregistered, FILESET is a single-file fileset containing it.
 Otherwise, throw an error.
 
 STATE-MODEL-ONLY-FILES if non-nil, means that the caller needs
@@ -1048,34 +1048,27 @@ current buffer."
 ;;;###autoload
 (defun vc-next-action (verbose)
   "Do the next logical version control operation on the current fileset.
-This requires that all files in the fileset be in the same state.
+This requires that all files in the current VC fileset be in the
+same state.  If not, signal an error.
 
-For locking systems:
-   If every file is not already registered, this registers each for version
-control.
-   If every file is registered and not locked by anyone, this checks out
-a writable and locked file of each ready for editing.
-   If every file is checked out and locked by the calling user, this
-first checks to see if each file has changed since checkout.  If not,
-it performs a revert on that file.
-   If every file has been changed, this pops up a buffer for entry
-of a log message; when the message has been entered, it checks in the
-resulting changes along with the log message as change commentary.  If
-the variable `vc-keep-workfiles' is non-nil (which is its default), a
-read-only copy of each changed file is left in place afterwards.
-   If the affected file is registered and locked by someone else, you are
-given the option to steal the lock(s).
+For merging-based version control systems:
+  If every file in the VC fileset is not registered for version
+   control, register the fileset (but don't commit).
+  If every work file in the VC fileset is added or changed, pop
+   up a *vc-log* buffer to commit the fileset.
+  For a centralized version control system, if any work file in
+   the VC fileset is out of date, offer to update the fileset.
 
-For merging systems:
-   If every file is not already registered, this registers each one for version
-control.  This does an add, but not a commit.
-   If every file is added but not committed, each one is committed.
-   If every working file is changed, but the corresponding repository file is
-unchanged, this pops up a buffer for entry of a log message; when the
-message has been entered, it checks in the resulting changes along
-with the logmessage as change commentary.  A writable file is retained.
-   If the repository file is changed, you are asked if you want to
-merge in the changes into your working copy."
+For old-style locking-based version control systems, like RCS:
+  If every file is not registered, register the file(s).
+  If every file is registered and unlocked, check out (lock)
+   the file(s) for editing.
+  If every file is locked by you and has changes, pop up a
+   *vc-log* buffer to check in the changes.  If the variable
+   `vc-keep-workfiles' is non-nil (the default), leave a
+   read-only copy of each changed file after checking in.
+  If every file is locked by you and unchanged, unlock them.
+  If every file is locked by someone else, offer to steal the lock."
   (interactive "P")
   (let* ((vc-fileset (vc-deduce-fileset nil t 'state-model-only-files))
          (backend (car vc-fileset))

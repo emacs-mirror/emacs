@@ -1161,7 +1161,7 @@ all.  This may very well take some time.")
 
 (defun nndiary-parse-schedule-value (str min-or-values max)
   ;; Parse the schedule string STR, or signal an error.
-  ;; Signals are caught by `nndary-schedule'.
+  ;; Signals are caught by `nndiary-schedule'.
   (if (string-match "[ \t]*\\*[ \t]*" str)
       ;; unspecified
       nil
@@ -1204,7 +1204,7 @@ all.  This may very well take some time.")
   ;; - Returns nil if `*'
   ;; - Otherwise returns a list of integers and/or ranges (BEG . END)
   ;; The exception is the Timze-Zone value which is always of the form (STR).
-  ;; Signals are caught by `nndary-schedule'.
+  ;; Signals are caught by `nndiary-schedule'.
   (let ((header (format "^X-Diary-%s: \\(.*\\)$" head)))
     (goto-char (point-min))
     (if (not (re-search-forward header nil t))

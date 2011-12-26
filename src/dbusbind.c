@@ -968,7 +968,7 @@ DEFUN ("dbus-init-bus", Fdbus_init_bus, Sdbus_init_bus, 1, 1, 0,
   connection = xd_initialize (bus, TRUE);
 
   /* Add the watch functions.  We pass also the bus as data, in order
-     to distinguish between the busses in xd_remove_watch.  */
+     to distinguish between the buses in xd_remove_watch.  */
   if (!dbus_connection_set_watch_functions (connection,
 					    xd_add_watch,
 					    xd_remove_watch,

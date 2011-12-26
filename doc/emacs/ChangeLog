@@ -1,3 +1,118 @@
+2011-12-25  Chong Yidong  <cyd@gnu.org>
+
+	* maintaining.texi (Tags): Mention Semantic.
+	(Create Tags Table, Etags Regexps): Copyedits.
+	(Find Tag): Mention minibuffer completion.
+	(List Tags): Mention completion-at-point.  Completion is actually
+	available in M-x list-tags.
+
+	* vc1-xtra.texi (VC Delete/Rename): Rename from Renaming and VC.
+	Document vc-delete-file.
+
+	* files.texi (Misc File Ops): Mention vc-delete-file.
+
+	* programs.texi (Symbol Completion): Mention completion-at-point
+	explicitly.
+
+2011-12-22  Chong Yidong  <cyd@gnu.org>
+
+	* maintaining.texi (Change Log Commands): Don't specially mention
+	vc-update-change-log which is CVS-only.
+
+	* vc1-xtra.texi (Version Headers): Note that these are for
+	Subversion, CVS, etc. only.
+	(General VC Options): De-document vc-keep-workfiles.  Fix
+	RCS-isms.
+
+2011-12-22  Eli Zaretskii  <eliz@gnu.org>
+
+	* building.texi (Debugger Operation): Fix a typo: "@end iftext"
+	should be @end iftex".
+
+2011-12-21  Chong Yidong  <cyd@gnu.org>
+
+	* maintaining.texi (Advanced C-x v v): Use fileset terminology.
+	(VC With A Merging VCS, VC Change Log): Add xref to VC Pull node.
+	(VC Pull): Mention vc-log-incoming.
+	(Log Buffer): Add CVS/RCS only disclaimer.
+
+	* vc1-xtra.texi (Remote Repositories): Update introduction.
+	(Local Version Control): Node deleted (obsolete with DVCSes).
+	(Remote Repositories, Version Backups): Node deleted.  Move
+	documentation of vc-cvs-stay-local to CVS Options.
+	(CVS Options): Reduce verbosity of description of obscure CVS
+	locking feature.
+	(Making Revision Tags, Revision Tag Caveats): Merge into Revision
+	Tags node.
+	(Revision Tags): Move under Miscellaneous VC subsection.
+	(Change Logs and VC): Note that this is wrong for DVCSs.
+	De-document log entry manipulating features.
+	(Renaming and VC): Describe how it works on modern VCSes.
+
+	* files.texi (Misc File Ops): Mention vc-rename-file.
+
+	* programs.texi (Custom C Indent): Add index entries.
+
+2011-12-20  Alan Mackenzie  <acm@muc.de>
+
+	* programs.texi (Motion in C): Update the description of C-M-a and
+	C-M-e, they now DTRT in enclosing scopes.
+	(Custom C Indent): Add @dfn{guessing} of the indentation style.
+
+2011-12-20  Chong Yidong  <cyd@gnu.org>
+
+	* maintaining.texi (VCS Concepts): Add "working tree" terminology.
+	(Old Revisions): Use it.
+	(VCS Repositories): Add "distributed" terminology.
+	(Log Buffer): Remove duplicate description
+	about changesets.  Fix "current VC fileset" ambiguity.
+	(Multi-User Branching): Node deleted.
+	(Branches, Switching Branches): Discuss decentralized version
+	control systems.
+	(VC Pull): New node.
+	(Merging): Document merging on decentralized systems.
+	(Creating Branches): Note that this is specific to CVS and related
+	systems.
+
+2011-12-19  Chong Yidong  <cyd@gnu.org>
+
+	* maintaining.texi (VCS Merging, VCS Changesets): Index entries.
+	(VC Mode Line): Add index entry for "version control status".
+	(VC Undo): Use vc-revert instead of its vc-revert-buffer alias.
+	Document vc-revert-show-diff.  De-document vc-rollback.
+	(VC Directory Mode): Rewrite introduction.  Move prefix arg
+	documentation here from VC Directory Buffer node.
+	(VC Directory Buffer): Use a decentralized VCS example.
+	(VC Directory Commands): Use a table.  Remove material duplicated
+	in previous nodes on multi-file VC filsets.
+
+2011-12-17  Chong Yidong  <cyd@gnu.org>
+
+	* maintaining.texi (VCS Concepts): Make "revision" terminology
+	less CVS-specific.
+	(VC With A Merging VCS, VC With A Locking VCS): Add xref to
+	Registering node.
+	(Secondary VC Commands): Deleted.  Promote subnodes.
+	(Log Buffer): Add command name for C-c C-c.  Fix the name of the
+	log buffer.  Add index entries.
+	(VCS Changesets, Types of Log File, VC With A Merging VCS): Use
+	"commit" terminology.
+	(Old Revisions): Move it to just before VC Change Log.  "Tag" here
+	doesn't refer to tags tables.  Note other possible forms of the
+	revision ID.  C-x v = does not save.
+	(Registering): Note similarity to C-x v v action.  Fix description
+	of how backends are chosen.  De-document vc-default-init-revision.
+	(VC Change Log): Document C-x v l in VC-Dir buffer.  Document RET
+	in root log buffers.
+
+2011-12-16  Chong Yidong  <cyd@gnu.org>
+
+	* maintaining.texi (Version Control Systems): Drop Meta-CVS.
+	(Basic VC Editing): Remove redundant descriptions.
+	(VC With A Merging VCS): Make description more general instead of
+	CVS-specific.
+	(VC With A Locking VCS): Use VC fileset terminology.
+
 2011-12-12  Chong Yidong  <cyd@gnu.org>
 
 	* building.texi (Executing Lisp): Fix xref for C-M-x.

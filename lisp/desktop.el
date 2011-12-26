@@ -702,9 +702,9 @@ is nil, ask the user where to save the desktop."
 ;; ----------------------------------------------------------------------------
 (defun desktop-internal-v2s (value)
   "Convert VALUE to a pair (QUOTE . TXT); (eval (read TXT)) gives VALUE.
-TXT is a string that when read and evaluated yields value.
+TXT is a string that when read and evaluated yields VALUE.
 QUOTE may be `may' (value may be quoted),
-`must' (values must be quoted), or nil (value may not be quoted)."
+`must' (value must be quoted), or nil (value must not be quoted)."
   (cond
     ((or (numberp value) (null value) (eq t value) (keywordp value))
      (cons 'may (prin1-to-string value)))

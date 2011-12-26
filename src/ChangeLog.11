@@ -12897,7 +12897,7 @@
 	* font.c (font_update_drivers): Sanity fallback to avoid disabling
 	all drivers.
 
-	* nsterm.m (-windowDidResize:): Avoid inf-loop under GNUStep.
+	* nsterm.m (-windowDidResize:): Avoid inf-loop under GNUstep.
 
 2009-05-06  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
 

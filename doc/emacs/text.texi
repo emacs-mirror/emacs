@@ -21,7 +21,10 @@ are also often useful for editing programs.
 the file contains ordinary text, use Text mode, which customizes Emacs
 in small ways for the syntactic conventions of text.  Outline mode
 provides special commands for operating on text with an outline
-structure.
+structure.  Org mode extends Outline mode and turn Emacs into a
+full-fledged organizer: you can manage TODO lists, store notes and
+publish them in many formats.
+
 @iftex
 @xref{Outline Mode}.
 @end iftex
@@ -70,6 +73,7 @@ for editing such pictures.
 * Case::                Changing the case of text.
 * Text Mode::           The major modes for editing text files.
 * Outline Mode::        Editing outlines.
+* Org Mode::            The Emacs organizer.
 * TeX Mode::            Editing input to the formatter TeX.
 * HTML Mode::           Editing HTML and SGML files.
 * Nroff Mode::          Editing input to the formatter nroff.
@@ -1249,6 +1253,143 @@ automatically by putting this in your init file (@pxref{Init File}):
 @example
 (eval-after-load "outline" '(require 'foldout))
 @end example
+
+@node Org Mode
+@section Org Mode
+@kindex TAB @r{(Org Mode)}
+@kindex S-TAB @r{(Org Mode)}
+@cindex organizer
+@cindex planner
+@findex org-mode
+@cindex fold
+@cindex headline
+@kindex M-<up> @r{(Org Mode)}
+@kindex M-<down> @r{(Org Mode)}
+@kindex M-<left> @r{(Org Mode)}
+@kindex M-<right> @r{(Org Mode)}
+@kindex S-M-<up> @r{(Org Mode)}
+@kindex S-M-<down> @r{(Org Mode)}
+@kindex S-M-<left> @r{(Org Mode)}
+@kindex S-M-<right> @r{(Org Mode)}
+
+Org mode extends Outline mode to turn Emacs into an organizer and an
+authoring system.
+
+When editing a file ending with the @file{.org} extension, Emacs
+automatically uses @code{org-mode} as the major mode.  In this mode,
+headlines start with one (or more) leading star(s) and comments start
+with the @code{#} character at the beginning of a line.
+
+@example
+* This is the first headline
+** This is a first sub-headline
+* This is the second headline
+
+Some content here.
+
+# Some comment here.
+@end example
+
+From here, you can use Org mode as a simple outliner: @key{TAB} on a
+headline will cycle through the various folding states of a subtree,
+and @key{S-TAB} anywhere in the buffer will (un)fold the whole
+structure.
+
+You can also manipulate the structure of your document by moving a
+headline up and down with @key{M-<up>} and @key{M-<down>}, or by
+promoting and demoting a headline with @key{M-<left>} and
+@key{M-<left>}.  If you want to act on the whole subtree (i.e. the
+headline and its content, including other headlines), simply add the
+@kbd{Shift} key and use @key{S-M-<up>}, @key{S-M-<down>},
+@key{S-M-<left>} and @key{S-M-<right>}.
+
+For further details, see @ref{Document Structure,,,org, The Org Manual}.
+
+@menu
+* Org as an organizer::         Manage TODO lists and agendas
+* Org as an authoring system::  Export to various formats
+@end menu
+
+@node Org as an organizer
+@subsection Org as an organizer
+
+@cindex TODO keywords
+@kindex C-c C-t @r{(Org Mode)}
+@kindex C-c C-s @r{(Org Mode)}
+@kindex C-c C-d @r{(Org Mode)}
+@vindex org-todo-keywords
+@findex org-todo
+@findex org-agenda
+@cindex scheduled
+@cindex deadline
+@cindex agenda
+
+Each headline can be turned into a TODO item calling @code{org-todo}
+with @key{C-c C-t} anywhere on it.  This will add the TODO keyword
+@code{TODO}.  Hit @key{C-c C-t} to cycle through the list of available
+TODO keywords: you can configure the variable @code{org-todo-keywords}
+to use your own list of keywords.
+
+Now that you have something to do, let's add a date to it: pressing
+@key{C-c C-s} on a headline will add @code{SCHEDULED} below it, and
+you will be prompted for a date through the calendar.  @key{C-c C-d}
+has the same effect, except that the item will have a @code{DEADLINE}
+instead.
+
+Now that some TODO items are planned in the current file, add it to
+the list of agenda files with @key{C-c [}.  Calling the interactive
+command @code{org-agenda} will prompt you for what you want to see: a
+list of things to do this week, a list of TODO items with specific
+keywords, etc.
+
+For further details, see @ref{TODO items,,,org, The Org Manual} and
+@ref{Dates and times,,,org, The Org Manual}.
+
+@node Org as an authoring system
+@subsection Org as an authoring system
+@cindex export
+@findex org-export
+@cindex publish
+@cindex code block
+@cindex quote
+
+You may want to format your Org notes nicely and to prepare them for
+export and publication.  Org supports simple text formatting:
+
+@example
+- This text is /emphasized/
+- This item uses *a bold font*
+- This text is _underlined_
+- This text uses =a teletype font=
+@end example
+
+If a paragraph is a quote or an example, you can use specific
+environments:
+
+@example
+#+begin_quote
+``This is a quote.''
+#+end_quote
+
+#+begin_example
+This is an example.
+#+end_example
+@end example
+
+These environments will be displayed in a specific way with respect
+to the selected export/publish backend.
+
+To export the current buffer, press the @key{C-c C-e} key anywhere in
+an Org buffer.  Supported export formats include @code{HTML}, La@TeX{}
+and @file{.odt} (OpenDocument format.)  Depending on your system
+installation, you can also directly export to @code{pdf}.
+
+To export several files at once to a specific directory either locally
+or on the Internet, you will need to define a list of projects through
+the variable @code{org-publish-project-alist}.
+
+For further details, see @ref{Exporting,,,org, The Org Manual} and
+@ref{Publishing,,,org, The Org Manual}.
 
 @node TeX Mode
 @section @TeX{} Mode

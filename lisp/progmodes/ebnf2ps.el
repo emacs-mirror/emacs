@@ -3260,7 +3260,7 @@ See documentation for `ebnf-terminal-shape', `ebnf-non-terminal-shape' and
 
 % --- Corners
 
-%>corner Right Descendent: height arrow corner_RD
+%>corner Right Descendant: height arrow corner_RD
 %   _             | arrow
 %  /   height > 0 |  0 - none
 % |               |  1 - right
@@ -3299,7 +3299,7 @@ See documentation for `ebnf-terminal-shape', `ebnf-non-terminal-shape' and
  Gstroke
 }def
 
-%>corner Right Ascendent: height arrow corner_RA
+%>corner Right Ascendant: height arrow corner_RA
 %                 | arrow
 %    | height > 0 |  0 - none
 %   /             |  1 - right
@@ -3338,7 +3338,7 @@ See documentation for `ebnf-terminal-shape', `ebnf-non-terminal-shape' and
  Gstroke
 }def
 
-%>corner Left Descendent: height arrow corner_LD
+%>corner Left Descendant: height arrow corner_LD
 %  _              | arrow
 %   \\  height > 0 |  0 - none
 %    |            |  1 - right
@@ -3377,7 +3377,7 @@ See documentation for `ebnf-terminal-shape', `ebnf-non-terminal-shape' and
  Gstroke
 }def
 
-%>corner Left Ascendent: height arrow corner_LA
+%>corner Left Ascendant: height arrow corner_LA
 %                 | arrow
 % |    height > 0 |  0 - none
 %  \\              |  1 - right

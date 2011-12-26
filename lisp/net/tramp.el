@@ -3506,7 +3506,7 @@ If the `tramp-methods' entry does not exist, return nil."
        (cond
          ((char-equal other-write ?w) (tramp-compat-octal-to-decimal "00002"))
 	 ((char-equal other-write ?-) 0)
-         (t (error "Nineth char `%c' must be one of `w-'" other-write)))
+         (t (error "Ninth char `%c' must be one of `w-'" other-write)))
        (cond
 	((char-equal other-execute-or-sticky ?x)
 	 (tramp-compat-octal-to-decimal "00001"))

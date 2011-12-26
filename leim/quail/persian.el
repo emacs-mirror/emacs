@@ -27,7 +27,7 @@
 ;;; Commentary:
 ;;
 ;; This file contains a collection of input methods for
-;; Persian languages (Farsi, Urdu, Pashto/Afghanic, ...)
+;; Persian languages - Farsi, Urdu, Pashto (Afghani), ...
 ;;
 ;; At this time, the following input methods are specified:
 ;;

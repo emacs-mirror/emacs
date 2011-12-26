@@ -2483,7 +2483,7 @@ Create the make rule needed to create an archive for @var{THIS}.
 
 @deffn Method ede-proj-makefile-insert-source-variables :PRIMARY this
 Insert bin_PROGRAMS variables needed by target @var{THIS}.
-We aren't acutally inserting SOURCE details, but this is used by the
+We aren't actually inserting SOURCE details, but this is used by the
 Makefile.am generator, so use it to add this important bin program.
 @end deffn
 
@@ -2624,7 +2624,7 @@ Return the name of the main target for @var{THIS} target.
 
 @deffn Method ede-proj-makefile-insert-automake-pre-variables :AFTER this
 Insert bin_PROGRAMS variables needed by target @var{THIS}.
-We aren't acutally inserting SOURCE details, but this is used by the
+We aren't actually inserting SOURCE details, but this is used by the
 Makefile.am generator, so use it to add this important bin program.
 @end deffn
 
