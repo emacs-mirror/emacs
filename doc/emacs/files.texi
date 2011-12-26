@@ -1485,6 +1485,12 @@ argument to @kbd{M-x delete-file} or @kbd{M-x delete-directory} makes
 them delete outright, instead of using the Trash, regardless of
 @code{delete-by-moving-to-trash}.
 
+@ifnottex
+  If a file is under version control (@pxref{Version Control}), you
+should delete it using @kbd{M-x vc-delete-file} instead of @kbd{M-x
+delete-file}.  @xref{VC Delete/Rename}.
+@end ifnottex
+
 @findex copy-file
 @cindex copying files
   @kbd{M-x copy-file} reads the file @var{old} and writes a new file
@@ -1514,10 +1520,9 @@ applies to all the remaining commands in this section.  All of them
 ask for confirmation when the new file name already exists, too.
 
 @ifnottex
-  Note that if a file is under version control (@pxref{Version
-Control}), you normally ought to rename it via the version control
-system instead, using @kbd{M-x vc-rename-file}.  @xref{Renaming and
-VC}.
+  If a file is under version control (@pxref{Version Control}), you
+should rename it using @kbd{M-x vc-rename-file} instead of @kbd{M-x
+rename-file}.  @xref{VC Delete/Rename}.
 @end ifnottex
 
 @findex add-name-to-file

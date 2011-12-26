@@ -756,6 +756,8 @@ directory and source-file directory for your debugger."
 
   (add-hook 'completion-at-point-functions #'gud-gdb-completion-at-point
             nil 'local)
+  (set (make-local-variable 'gud-gdb-completion-function) 'gud-gdb-completions)
+
   (local-set-key "\C-i" 'completion-at-point)
   (setq comint-prompt-regexp "^(.*gdb[+]?) *")
   (setq paragraph-start comint-prompt-regexp)
@@ -767,6 +769,12 @@ directory and source-file directory for your debugger."
 ;; One of the nice features of GDB is its impressive support for
 ;; context-sensitive command completion.  We preserve that feature
 ;; in the GUD buffer by using a GDB command designed just for Emacs.
+
+(defvar gud-gdb-completion-function nil
+  "Completion function for GDB commands.
+It receives two arguments: COMMAND, the prefix for which we seek
+completion; and CONTEXT, the text before COMMAND on the line.
+It should return a list of completion strings.")
 
 ;; The completion process filter indicates when it is finished.
 (defvar gud-gdb-fetch-lines-in-progress)
@@ -806,28 +814,32 @@ CONTEXT is the text before COMMAND on the line."
     (and complete-list
 	 (string-match "^Undefined command: \"complete\"" (car complete-list))
 	 (error "This version of GDB doesn't support the `complete' command"))
-    ;; Sort the list like readline.
-    (setq complete-list (sort complete-list (function string-lessp)))
-    ;; Remove duplicates.
-    (let ((first complete-list)
-	  (second (cdr complete-list)))
-      (while second
-	(if (string-equal (car first) (car second))
-	    (setcdr first (setq second (cdr second)))
-	  (setq first second
-		second (cdr second)))))
-    ;; Add a trailing single quote if there is a unique completion
-    ;; and it contains an odd number of unquoted single quotes.
-    (and (= (length complete-list) 1)
-	 (let ((str (car complete-list))
-	       (pos 0)
-	       (count 0))
-	   (while (string-match "\\([^'\\]\\|\\\\'\\)*'" str pos)
-	     (setq count (1+ count)
-		   pos (match-end 0)))
-	   (and (= (mod count 2) 1)
-		(setq complete-list (list (concat str "'"))))))
-    complete-list))
+    (gud-gdb-completions-1 complete-list)))
+
+;; This function is also used by `gud-gdbmi-completions'.
+(defun gud-gdb-completions-1 (complete-list)
+  ;; Sort the list like readline.
+  (setq complete-list (sort complete-list (function string-lessp)))
+  ;; Remove duplicates.
+  (let ((first complete-list)
+	(second (cdr complete-list)))
+    (while second
+      (if (string-equal (car first) (car second))
+	  (setcdr first (setq second (cdr second)))
+	(setq first second
+	      second (cdr second)))))
+  ;; Add a trailing single quote if there is a unique completion
+  ;; and it contains an odd number of unquoted single quotes.
+  (and (= (length complete-list) 1)
+       (let ((str (car complete-list))
+	     (pos 0)
+	     (count 0))
+	 (while (string-match "\\([^'\\]\\|\\\\'\\)*'" str pos)
+	   (setq count (1+ count)
+		 pos (match-end 0)))
+	 (and (= (mod count 2) 1)
+	      (setq complete-list (list (concat str "'"))))))
+  complete-list)
 
 (defun gud-gdb-completion-at-point ()
   "Return the data to complete the GDB command before point."
@@ -838,7 +850,7 @@ CONTEXT is the text before COMMAND on the line."
            (point))))
     (list start end
           (completion-table-dynamic
-           (apply-partially #'gud-gdb-completions
+           (apply-partially gud-gdb-completion-function
                             (buffer-substring (comint-line-beginning-position)
                                               start))))))
 
@@ -851,11 +863,11 @@ CONTEXT is the text before COMMAND on the line."
 
 ;; The completion process filter is installed temporarily to slurp the
 ;; output of GDB up to the next prompt and build the completion list.
-(defun gud-gdb-fetch-lines-filter (string filter)
+(defun gud-gdb-fetch-lines-filter (string)
   "Filter used to read the list of lines output by a command.
 STRING is the output to filter.
-It is passed through FILTER before we look at it."
-  (setq string (funcall filter string))
+It is passed through `gud-gdb-marker-filter' before we look at it."
+  (setq string (gud-gdb-marker-filter string))
   (setq string (concat gud-gdb-fetch-lines-string string))
   (while (string-match "\n" string)
     (push (substring string gud-gdb-fetch-lines-break (match-beginning 0))
@@ -879,17 +891,6 @@ It is passed through FILTER before we look at it."
 
 (defvar gud-gdb-fetched-stack-frame nil
   "Stack frames we are fetching from GDB.")
-
-;(defun gud-gdb-get-scope-data (text token indent)
-;  ;; checkdoc-params: (indent)
-;  "Fetch data associated with a stack frame, and expand/contract it.
-;Data to do this is retrieved from TEXT and TOKEN."
-;  (let ((args nil) (scope nil))
-;    (gud-gdb-run-command-fetch-lines "info args")
-;
-;    (gud-gdb-run-command-fetch-lines "info local")
-;
-;    ))
 
 (defun gud-gdb-get-stackframe (buffer)
   "Extract the current stack frame out of the GUD GDB BUFFER."
@@ -934,21 +935,16 @@ It is passed through FILTER before we look at it."
 BUFFER is the current buffer which may be the GUD buffer in which to run.
 SKIP is the number of chars to skip on each line, it defaults to 0."
   (with-current-buffer gud-comint-buffer
-    (if (and (eq gud-comint-buffer buffer)
-	     (save-excursion
-	       (goto-char (point-max))
-	       (forward-line 0)
-	       (not (looking-at comint-prompt-regexp))))
-	nil
-      ;; Much of this copied from GDB complete, but I'm grabbing the stack
-      ;; frame instead.
+    (unless (and (eq gud-comint-buffer buffer)
+		 (save-excursion
+		   (goto-char (point-max))
+		   (forward-line 0)
+		   (not (looking-at comint-prompt-regexp))))
       (let ((gud-gdb-fetch-lines-in-progress t)
 	    (gud-gdb-fetched-lines nil)
 	    (gud-gdb-fetch-lines-string nil)
 	    (gud-gdb-fetch-lines-break (or skip 0))
-	    (gud-marker-filter
-	     `(lambda (string)
-		(gud-gdb-fetch-lines-filter string ',gud-marker-filter))))
+	    (gud-marker-filter #'gud-gdb-fetch-lines-filter))
 	;; Issue the command to GDB.
 	(gud-basic-call command)
 	;; Slurp the output.
@@ -3422,7 +3418,7 @@ With arg, dereference expr if ARG is positive, otherwise do not dereference."
 	((xdb pdb) (concat "p " expr))
 	(sdb (concat expr "/"))))
 
-(declare-function gdb-input "gdb-mi" (item))
+(declare-function gdb-input "gdb-mi" (command handler))
 (declare-function tooltip-expr-to-print "tooltip" (event))
 (declare-function tooltip-event-buffer "tooltip" (event))
 
@@ -3468,12 +3464,12 @@ so they have been disabled."))
 		(if (eq gud-minor-mode 'gdbmi)
                     (if gdb-macro-info
                         (gdb-input
-                         (list (concat
-                                "server macro expand " expr "\n")
-                               `(lambda () (gdb-tooltip-print-1 ,expr))))
+                         (concat
+			  "server macro expand " expr "\n")
+			 `(lambda () (gdb-tooltip-print-1 ,expr)))
                       (gdb-input
-                       (list  (concat cmd "\n")
-                              `(lambda () (gdb-tooltip-print ,expr)))))
+		       (concat cmd "\n")
+		       `(lambda () (gdb-tooltip-print ,expr))))
 		  (setq gud-tooltip-original-filter (process-filter process))
 		  (set-process-filter process 'gud-tooltip-process-output)
 		  (gud-basic-call cmd))

@@ -12,8 +12,7 @@
 
 @menu
 * Change Logs and VC::  Generating a change log file from log entries.
-* Renaming and VC::     A command to rename both the source and master
-                          file correctly.
+* VC Delete/Rename::    Deleting and renaming version-controlled files.
 * Revision Tags::       Symbolic names for revisions.
 * Version Headers::     Inserting version control headers into working files.
 @end menu
@@ -104,33 +103,48 @@ same author at nearly the same time.  If the log entries for several
 such files all have the same text, it coalesces them into a single
 entry.
 
-@node Renaming and VC
-@subsubsection Renaming VC Work Files and Master Files
+@node VC Delete/Rename
+@subsubsection Deleting and Renaming Version-Controlled Files
 @cindex renaming version-controlled files
 
 @table @kbd
+@item M-x vc-delete-file
+Prompt for a file name, delete the file from the working tree, and
+schedule the deletion for committing.
+
 @item M-x vc-rename-file
-Prompt for two file names, @var{VAR} and @var{OLD}, and rename them in
-the version-controlled working tree.
+Prompt for two file names, @var{VAR} and @var{OLD}, rename them in the
+working tree, and schedule the renaming for committing.
 @end table
 
+@findex vc-delete-file
+  If you wish to delete a version-controlled file, use the command
+@kbd{M-x vc-delete-file}.  This prompts for the file name, and deletes
+it via the version control system.  The file is removed from the
+working tree, and in the VC Directory buffer
+@iftex
+(@pxref{VC Directory Mode}),
+@end iftex
+@ifnottex
+(@pxref{VC Directory Mode}),
+@end ifnottex
+it is displayed with the @samp{removed} status.  When you commit it,
+the deletion takes effect in the repository.
+
 @findex vc-rename-file
-  If you wish to rename a registered file in a version-controlled
-working tree, use the command @kbd{M-x vc-rename-file}.  This prompts
-for two arguments: the file you wish to rename, followed by the new
-name; then it performs the renaming through the version control
-system.
+  To rename a version-controlled file, type @kbd{M-x vc-rename-file}.
+This prompts for two arguments: the name of the file you wish to
+rename, and the new name; then it performs the renaming via the
+version control system.  The renaming takes effect immediately in the
+working tree, and takes effect in the repository when you commit the
+renamed file.
 
   On modern version control systems that have built-in support for
-renaming, the renaming operation takes effect immediately in the
-working tree, and takes effect in the repository when you commit the
-renamed file.  The renamed file retains the full change history of the
-original file.
-
-  On CVS and older version control systems, the @code{vc-rename-file}
-command actually works by creating a copy of the old file under the
-new name, registering it, and deleting the old file.  In this case,
-the change history is not preserved.
+renaming, the renamed file retains the full change history of the
+original file.  On CVS and older version control systems, the
+@code{vc-rename-file} command actually works by creating a copy of the
+old file under the new name, registering it, and deleting the old
+file.  In this case, the change history is not preserved.
 
 @node Revision Tags
 @subsubsection Revision Tags

@@ -3604,7 +3604,7 @@ specific buffers."
                 (with-current-buffer (window-buffer window)
                   (let ((point (window-point-1 window))
                         (start (window-start window))
-                        (mark (mark)))
+                        (mark (mark t)))
                     `((buffer
                        ,(buffer-name buffer)
                        (selected . ,selected)

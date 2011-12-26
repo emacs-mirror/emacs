@@ -782,9 +782,8 @@ Multiple Branches of a File
 Miscellaneous Commands and Features of VC
 
 * Change Logs and VC::    Generating a change log file from log entries.
-* Renaming and VC::       A command to rename both the source and master
-                            file correctly.
-* Revision Tags::       Symbolic names for revisions.
+* VC Delete/Rename::      Deleting and renaming version-controlled files.
+* Revision Tags::         Symbolic names for revisions.
 * Version Headers::       Inserting version control headers into working files.
 
 Customizing VC

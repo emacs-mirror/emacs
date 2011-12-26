@@ -45,17 +45,14 @@ expanding to @samp{find outer otter}, then you can insert @samp{find
 outer otter.} into the buffer by typing @kbd{f o o .}.
 
 @findex abbrev-mode
-@vindex abbrev-mode
 @cindex Abbrev mode
 @cindex mode, Abbrev
-  Abbrevs expand only when Abbrev mode (a minor mode) is enabled.
-Disabling Abbrev mode does not cause abbrev definitions to be forgotten,
-but they do not expand until Abbrev mode is enabled again.  The command
-@kbd{M-x abbrev-mode} toggles Abbrev mode; with a numeric argument, it
-turns Abbrev mode on if the argument is positive, off otherwise.
-@xref{Minor Modes}.  @code{abbrev-mode} is also a variable; Abbrev mode is
-on when the variable is non-@code{nil}.  The variable @code{abbrev-mode}
-automatically becomes local to the current buffer when it is set.
+  Abbrevs expand only when Abbrev mode, a buffer-local minor mode, is
+enabled.  Disabling Abbrev mode does not cause abbrev definitions to
+be forgotten, but they do not expand until Abbrev mode is enabled
+again.  The command @kbd{M-x abbrev-mode} toggles Abbrev mode; with a
+numeric argument, it turns Abbrev mode on if the argument is positive,
+off otherwise.  @xref{Minor Modes}.
 
   Abbrevs can have @dfn{mode-specific} definitions, active only in one major
 mode.  Abbrevs can also have @dfn{global} definitions that are active in
@@ -108,22 +105,18 @@ region as the expansion of the abbrev being defined.
 @kindex C-x a l
 @findex add-mode-abbrev
   The command @kbd{C-x a l} (@code{add-mode-abbrev}) is similar, but
-defines a mode-specific abbrev.  Mode-specific abbrevs are active only in a
-particular major mode.  @kbd{C-x a l} defines an abbrev for the major mode
-in effect at the time @kbd{C-x a l} is typed.  The arguments work the same
-as for @kbd{C-x a g}.
+defines a mode-specific abbrev for the current major mode.  The
+arguments work the same as for @kbd{C-x a g}.
 
 @kindex C-x a i g
 @findex inverse-add-global-abbrev
 @kindex C-x a i l
 @findex inverse-add-mode-abbrev
-  If the abbrev text itself is already in the buffer, you can use the
-commands @kbd{C-x a i g} (@code{inverse-add-global-abbrev}) and
-@kbd{C-x a i l} (@code{inverse-add-mode-abbrev}) to define it as an
-abbrev by specify the expansion in the minibuffer.  These commands are
-called ``inverse'' because they invert the meaning of the two text
-strings they use (one from the buffer and one read with the
-minibuffer).
+  @kbd{C-x a i g} (@code{inverse-add-global-abbrev}) and @kbd{C-x a i
+l} (@code{inverse-add-mode-abbrev}) perform the opposite task: if the
+abbrev text is already in the buffer, you use these commands to define
+an abbrev by specifying the expansion in the minibuffer.  These
+commands will expand the abbrev text used for the definition.
 
 @findex define-mode-abbrev
 @findex define-global-abbrev
@@ -132,8 +125,8 @@ expansion in the buffer using the command @code{define-global-abbrev}.
 It reads two arguments---the abbrev, and its expansion.  The command
 @code{define-mode-abbrev} does likewise for a mode-specific abbrev.
 
-  To change the definition of an abbrev, just define a new definition.
-When the abbrev has a prior definition, the abbrev definition commands
+  To change the definition of an abbrev, just make a new definition.
+When an abbrev has a prior definition, the abbrev definition commands
 ask for confirmation before replacing it.
 
 @findex kill-all-abbrevs
@@ -155,11 +148,11 @@ The most common way to use an abbrev is to insert it and then insert a
 punctuation or whitespace character to expand it.
 
 @vindex abbrev-all-caps
-  Abbrev expansion preserves case; thus, @samp{foo} expands into @samp{find
-outer otter}; @samp{Foo} into @samp{Find outer otter}, and @samp{FOO} into
-@samp{FIND OUTER OTTER} or @samp{Find Outer Otter} according to the
-variable @code{abbrev-all-caps} (setting it non-@code{nil} specifies
-@samp{FIND OUTER OTTER}).
+  Abbrev expansion preserves case: @samp{foo} expands to @samp{find
+outer otter}, and @samp{Foo} to @samp{Find outer otter}.  @samp{FOO}
+expands to @samp{Find Outer Otter} by default, but if you change the
+variable @code{abbrev-all-caps} to a non-@code{nil} value, it expands
+to @samp{FIND OUTER OTTER}.
 
   These commands are used to control abbrev expansion:
 
@@ -196,14 +189,14 @@ punctuation with @kbd{C-q}.  Thus, @kbd{foo C-q ,} leaves @samp{foo,} in
 the buffer, not expanding it.
 
 @findex unexpand-abbrev
-  If you expand an abbrev by mistake, you can undo the expansion and
-bring back the abbrev itself by typing @kbd{C-_} to undo (@pxref{Undo}).
-This also undoes the insertion of the non-word character that expanded
-the abbrev.  If the result you want is the terminating non-word
-character plus the unexpanded abbrev, you must reinsert the terminating
-character, quoting it with @kbd{C-q}.  You can also use the command
-@kbd{M-x unexpand-abbrev} to cancel the last expansion without
-deleting the terminating character.
+  If you expand an abbrev by mistake, you can undo the expansion by
+typing @kbd{C-/} (@code{undo}).  @xref{Undo}.  This undoes the
+insertion of the abbrev expansion and brings back the abbrev text.  If
+the result you want is the terminating non-word character plus the
+unexpanded abbrev, you must reinsert the terminating character,
+quoting it with @kbd{C-q}.  You can also use the command @kbd{M-x
+unexpand-abbrev} to cancel the last expansion without deleting the
+terminating character.
 
 @findex expand-region-abbrevs
   @kbd{M-x expand-region-abbrevs} searches through the region for defined
@@ -409,12 +402,11 @@ you are expanding.
 
 @vindex dabbrev-case-fold-search
   This feature is controlled by the variable
-@code{dabbrev-case-fold-search}.  If it is @code{t}, case is ignored in
-this search; if it is @code{nil}, the word and the expansion must match
-in case.  If the value of @code{dabbrev-case-fold-search} is
-@code{case-fold-search}, which is true by default, then the variable
-@code{case-fold-search} controls whether to ignore case while searching
-for expansions.
+@code{dabbrev-case-fold-search}.  If it is @code{t}, case is ignored
+in this search; if it is @code{nil}, the word and the expansion must
+match in case.  If the value is @code{case-fold-search} (the default),
+then the variable @code{case-fold-search} controls whether to ignore
+case while searching for expansions (@pxref{Search Case}).
 
 @vindex dabbrev-case-replace
   Normally, dynamic abbrev expansion preserves the case pattern
@@ -425,10 +417,10 @@ expansion to that case pattern.
   The variable @code{dabbrev-case-replace} controls whether to
 preserve the case pattern of the dynamic abbrev.  If it is @code{t},
 the dynamic abbrev's case pattern is preserved in most cases; if it is
-@code{nil}, the expansion is always copied verbatim.  If the value of
-@code{dabbrev-case-replace} is @code{case-replace}, which is true by
-default, then the variable @code{case-replace} controls whether to
-copy the expansion verbatim.
+@code{nil}, the expansion is always copied verbatim.  If the value is
+@code{case-replace} (the default), then the variable
+@code{case-replace} controls whether to copy the expansion verbatim
+(@pxref{Replacement and Case}).
 
   However, if the expansion contains a complex mixed case pattern, and
 the dynamic abbrev matches this pattern as far as it goes, then the
