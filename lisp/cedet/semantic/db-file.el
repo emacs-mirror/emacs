@@ -193,16 +193,16 @@ If DIRECTORY doesn't exist, create a new one."
   (eieio-instance-tracker-find filename 'file 'semanticdb-database-list))
 
 (defmethod semanticdb-file-directory-exists-p ((DB semanticdb-project-database-file)
-					       &optional supress-questions)
+					       &optional suppress-questions)
   "Does the directory the database DB needs to write to exist?
-If SUPRESS-QUESTIONS, then do not ask to create the directory."
+If SUPPRESS-QUESTIONS, then do not ask to create the directory."
   (let ((dest (file-name-directory (oref DB file)))
 	)
     (cond ((null dest)
 	   ;; @TODO - If it was never set up... what should we do ?
 	   nil)
 	  ((file-exists-p dest) t)
-	  ((or supress-questions
+	  ((or suppress-questions
 	       (and (boundp 'semanticdb--inhibit-make-directory)
 		    semanticdb--inhibit-make-directory))
 	   nil)
@@ -216,13 +216,13 @@ If SUPRESS-QUESTIONS, then do not ask to create the directory."
 
 (defmethod semanticdb-save-db ((DB semanticdb-project-database-file)
 			       &optional
-			       supress-questions)
+			       suppress-questions)
   "Write out the database DB to its file.
 If DB is not specified, then use the current database."
   (let ((objname (oref DB file)))
     (when (and (semanticdb-dirty-p DB)
 	       (semanticdb-live-p DB)
-	       (semanticdb-file-directory-exists-p DB supress-questions)
+	       (semanticdb-file-directory-exists-p DB suppress-questions)
 	       (semanticdb-write-directory-p DB)
 	       )
       ;;(message "Saving tag summary for %s..." objname)
@@ -243,7 +243,7 @@ If DB is not specified, then use the current database."
 	  (t
 	   ;; @todo - It should ask if we are not called from a hook.
 	   ;;         How?
-	   (if (or supress-questions
+	   (if (or suppress-questions
 		   (y-or-n-p (format "Skip Error: %s ?" (car (cdr foo)))))
 	       (message "Save Error: %S: %s" (car (cdr foo))
 			objname)

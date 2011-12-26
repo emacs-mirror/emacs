@@ -58,7 +58,7 @@ must never cause a Lisp error."
 	 ;; The most likely cause of an error is unbalanced parentheses
 	 ;; or double-quotes.  If all parentheses and double-quotes are
 	 ;; quoted meaninglessly with backslashes, removing them might
-	 ;; make it parseable.  Let's try...
+	 ;; make it parsable.  Let's try...
 	 (error
 	  (let (mod)
 	    (when (and (string-match "\\\\\"" string)

@@ -237,12 +237,12 @@ request.")
     (if proxy-auth
 	(setq proxy-auth (concat "Proxy-Authorization: " proxy-auth "\r\n")))
 
-    ;; Protection against stupid values in the referer
+    ;; Protection against stupid values in the referrer
     (if (and ref-url (stringp ref-url) (or (string= ref-url "file:nil")
 					   (string= ref-url "")))
 	(setq ref-url nil))
 
-    ;; We do not want to expose the referer if the user is paranoid.
+    ;; We do not want to expose the referrer if the user is paranoid.
     (if (or (memq url-privacy-level '(low high paranoid))
 	    (and (listp url-privacy-level)
 		 (memq 'lastloc url-privacy-level)))

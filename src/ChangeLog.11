@@ -30657,7 +30657,7 @@
 	(display_buffer): Do not set split_height_threshold to twice the
 	value of window_min_height to avoid changing the value of a
 	customizable variable.  Rather explicitly check whether the
-	height of the window that shall be splitted is at least as large
+	height of the window that shall be split is at least as large
 	as split_height_threshold.
 	(Fwindow_full_width_p): New defun.
 	(syms_of_window): Defsubr it.

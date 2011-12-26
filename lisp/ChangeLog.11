@@ -1744,7 +1744,7 @@
 	substitute-env-vars -- not quite shell compatible but better than
 	nothing.
 	(compilation-error-regexp-alist-alist): Simplify ftnchek to only
-	handle the newer versions messages, which are more parseable.
+	handle the newer versions messages, which are more parsable.
 
 2004-11-22  Stefan Monnier  <monnier@iro.umontreal.ca>
 

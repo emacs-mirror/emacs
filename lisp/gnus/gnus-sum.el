@@ -2835,7 +2835,7 @@ Setter function for custom variables."
 				   'gnus-summary-tool-bar-retro)
   "Specifies the Gnus summary tool bar.
 
-It can be either a list or a symbol refering to a list.  See
+It can be either a list or a symbol referring to a list.  See
 `gmm-tool-bar-from-list' for the format of the list.  The
 default key map is `gnus-summary-mode-map'.
 

@@ -11634,7 +11634,7 @@ message/external-body @acronym{MIME} type.
 @item r (Article)
 @kindex r (Article)
 Prompt for a file name, replace the @acronym{MIME} object with an
-external body refering to the file via the message/external-body
+external body referring to the file via the message/external-body
 @acronym{MIME} type.  (@code{gnus-mime-replace-part}).
 
 @findex gnus-mime-delete-part
@@ -30012,7 +30012,7 @@ this:
 @node Score File Syntax
 @subsection Score File Syntax
 
-Score files are meant to be easily parseable, but yet extremely
+Score files are meant to be easily parsable, but yet extremely
 malleable.  It was decided that something that had the same read syntax
 as an Emacs Lisp list would fit that spec.
 

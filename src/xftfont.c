@@ -654,7 +654,7 @@ xftfont_draw (struct glyph_string *s, int from, int to, int x, int y, int with_b
 
   if (with_background)
     XftDrawRect (xft_draw, &bg,
-		 x, y - face->font->ascent, s->width, face->font->height);
+		 x, y - s->font->ascent, s->width, s->font->height);
   code = alloca (sizeof (FT_UInt) * len);
   for (i = 0; i < len; i++)
     code[i] = ((XCHAR2B_BYTE1 (s->char2b + from + i) << 8)
