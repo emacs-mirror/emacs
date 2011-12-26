@@ -1,3 +1,26 @@
+2011-12-26  Chong Yidong  <cyd@gnu.org>
+
+	* dired.texi (Dired Enter, Misc Dired Features): Document
+	dired-use-ls-dired changes.  Mention quit-window.
+	(Dired Navigation): Add index entries.
+	(Dired Visiting): Fix View Mode xref.
+	(Marks vs Flags): Prefer C-/ binding for undo.
+	(Subdirectories in Dired): Add xrefs.
+	(Misc Dired Features): Document some Emacs 24 changes.  Add index
+	entries.
+
+	* abbrevs.texi (Abbrev Concepts): No need to mention abbrev-mode
+	variable, since it is explained in Minor Modes node.
+	(Defining Abbrevs): Copyedits.
+	(Expanding Abbrevs): State default of abbrev-all-caps.  Prefer the
+	C-/ binding for undo.
+	(Dabbrev Customization): Add xrefs for case-fold-search and
+	case-replace.
+
+	* dired-xtra.texi (Subdir Switches): Add xref.
+
+	* maintaining.texi (VC Directory Commands): Mention quit-window.
+
 2011-12-25  Chong Yidong  <cyd@gnu.org>
 
 	* maintaining.texi (Tags): Mention Semantic.

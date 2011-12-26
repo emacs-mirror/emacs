@@ -1183,6 +1183,12 @@ point is on a directory entry, mark all files in that directory tree
 (@code{vc-dir-mark-all-files}).  With a prefix argument, mark all
 listed files and directories.
 
+@kindex q @r{(VC Directory)}
+@findex quit-window
+@item q
+Bury the VC Directory buffer, and delete its window if the window was
+created just for that buffer.
+
 @item u
 Unmark the file or directory on the current line.  If the region is
 active, unmark all the files in the region (@code{vc-dir-unmark}).

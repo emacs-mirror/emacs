@@ -665,7 +665,7 @@ The new function dbus-register-service registers a service known name
 on a D-Bus without simultaneously registering a property or a method.
 
 ** Dired-x
-
+---
 *** dired-jump and dired-jump-other-window called with a prefix argument
 read a file name from the minibuffer instead of using buffer-file-name.
 
