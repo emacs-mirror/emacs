@@ -1,3 +1,17 @@
+2011-12-27  Jeffrey C Honig  <jch@honig.net>
+
+	* mh-e.el (mh-invisible-header-fields-internal): Added:
+	Bounces-To:, Bounces_to:, X-ACL-Warn:, X-BFI:, X-BPS1:, X-BPS2:,
+	X-Campaign-Id:, X-Campaign:, X-Cloudmark-SP-, X-Destination-ID:,
+	X-detected-operating-system:, X-DocGen-Version:, X-EM-,
+	X-Email-Type-Id:, X-FB-SS:, X-FuHaFi:, X-MailFlowPolicy:,
+	X-mail_abuse-inquires, X-MailingID:, X-Match:,
+	X-MaxCode-Template:, X-ME-Bayesian:, X-Sendergroup:, X-SFDC-,
+	X-SMFBL:, X-SMHeaderMap:, X-VGI-OESCD:, X-VirtualServer:,
+	X-VirtualServerGroup:, X-XPT-XSL-Name:, X-Y-GMX-Trusted:,
+	X-XWALL-, X-ZixNet:. Changed X-Habeas-SWE- to X-Habeas-. Updated
+	the comment. (addresses SF #1916032).
+
 2011-12-27  Bill Wohler  <wohler@newt.com>
 
 	* mh-e.el (mh-invisible-header-fields-internal): Add

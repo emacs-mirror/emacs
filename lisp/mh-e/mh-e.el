@@ -2400,7 +2400,8 @@ of citations entirely, choose \"None\"."
 ;;  "X-Mailer:"                         ;
 ;;  "X-Operator:"                       ; Similar to X-Mailer, so display it
 
-;; Keep fields alphabetized (set sort-fold-case to t first).
+;; Keep fields alphabetized with case folding. Use M-:(setq
+;; sort-fold-case t) from the minibuffer to accomplish this.
 ;; Mention source, if known.
 (defvar mh-invisible-header-fields-internal
   '(
@@ -2418,6 +2419,8 @@ of citations entirely, choose \"None\"."
     "Auto-forwarded:"                   ; RFC 2156
     "Autoforwarded:"                    ; RFC 2156
     "Bestservhost:"
+    "Bounces-To:"
+    "Bounces_to:"
     "Bytes:"
     "Cancel-Key:"                       ; http://people.dsv.su.se/~jpalme/ietf/mail-headers/
     "Cancel-Lock:"                      ; NNTP posts
@@ -2523,6 +2526,7 @@ of citations entirely, choose \"None\"."
     "X-Abuse-Info:"
     "X-Accept-Language:"                ; Netscape/Mozilla
     "X-Ack:"
+    "X-ACL-Warn:"			; http://www.exim.org
     "X-Admin:"                          ; http://people.dsv.su.se/~jpalme/ietf/mail-headers/
     "X-Administrivia-To:"
     "X-AMAZON"                          ; Amazon.com
@@ -2543,14 +2547,20 @@ of citations entirely, choose \"None\"."
     "X-Barracuda-"                      ; Barracuda spam scores
     "X-Bayes-Prob:"                     ; IEEE spam filter
     "X-Beenthere:"                      ; Mailman mailing list manager
+    "X-BFI:"
     "X-Bigfish:"
     "X-Bogosity:"                       ; bogofilter
+    "X-BPS1:"				; http://www.boggletools.com
+    "X-BPS2:"				; http://www.boggletools.com
     "X-Brightmail-Tracker:"             ; Brightmail
     "X-BrightmailFiltered:"             ; Brightmail
     "X-Bugzilla-"                       ; Bugzilla
     "X-Cam-"                            ; Cambridge scanners
+    "X-Campaign-Id:"
+    "X-Campaign:"
     "X-Campaignid:"
     "X-CanIt-Geo:"                      ; IEEE spam filter
+    "X-Cloudmark-SP-"			; Cloudmark (www.cloudmark.com)
     "X-Comment:"                        ; AT&T Mailennium
     "X-Complaints-To:"                  ; http://people.dsv.su.se/~jpalme/ietf/mail-headers/
     "X-Completed:"
@@ -2565,14 +2575,19 @@ of citations entirely, choose \"None\"."
     "X-Declude-"                        ; http://www.declude.com/x-note.htm
     "X-Dedicated:"
     "X-Delivered"
+    "X-Destination-ID:"
+    "X-detected-operating-system:"	; GNU.ORG?
     "X-DH-Virus-"
     "X-DMCA"
+    "X-DocGen-Version:"			; DocGen
     "X-Domain:"
     "X-Echelon-Distraction"
     "X-EFL-Spamscore:"                  ; MIT alumni spam filtering
     "X-eGroups-"                        ; Egroups/yahoogroups mailing list manager
     "X-EID:"
     "X-ELNK-Trace:"                     ; Earthlink mailer
+    "X-EM-"				; Some ecommerce software
+    "X-Email-Type-Id:"			; Paypal http://www.paypal.com
     "X-Enigmail-Version:"
     "X-Envelope-Date:"                  ; GNU mailutils
     "X-Envelope-From:"                  ; http://people.dsv.su.se/~jpalme/ietf/mail-headers/
@@ -2583,17 +2598,19 @@ of citations entirely, choose \"None\"."
     "X-ExtLoop"
     "X-Face:"                           ; http://people.dsv.su.se/~jpalme/ietf/mail-headers/
     "X-Facebook"                        ; Facebook
+    "X-FB-SS:"
     "X-fmx-"
     "X-Folder:"                         ; Spam
     "X-Forwarded-"                      ; Google+
     "X-From-Line"
+    "X-FuHaFi:"				; http://www.gmx.net/
     "X-Generated-By:"                   ; launchpad.net
     "X-Gmail-"                          ; Gmail
     "X-Gnus-Mail-Source:"               ; gnus
     "X-Google-"                         ; Google mail
     "X-Google-Sender-Auth:"
     "X-Greylist:"                       ; milter-greylist-1.2.1
-    "X-Habeas-SWE-"                     ; Spam
+    "X-Habeas-"				; http://www.returnpath.net
     "X-Hashcash:"                       ; hashcash
     "X-Headers-End:"                    ; SpamCop
     "X-HPL-"
@@ -2621,18 +2638,24 @@ of citations entirely, choose \"None\"."
     "X-Loop:"                           ; http://people.dsv.su.se/~jpalme/ietf/mail-headers/
     "X-Lrde-Mailscanner:"
     "X-Lumos-SenderID:"                 ; Roving ConstantContact
+    "X-mail_abuse_inquiries:"		; http://www.salesforce.com
     "X-Mail-from:"                      ; fastmail.fm
     "X-MAIL-INFO:"                      ; NetZero
     "X-Mailer_"
+    "X-MailFlowPolicy:"			; Cicso ironport (http://www.ironport.com)
     "X-Mailing-List:"                   ; Unknown mailing list managers
+    "X-MailingID:"
     "X-Mailman-Approved-At:"            ; Mailman mailing list manager
     "X-Mailman-Version:"                ; Mailman mailing list manager
     "X-MailScanner"                     ; ListProc(tm) by CREN
     "X-Mailutils-Message-Id"            ; GNU Mailutils
     "X-Majordomo:"                      ; Majordomo mailing list manager
+    "X-Match:"				
+    "X-MaxCode-Template:"		; Paypal http://www.paypal.com
     "X-MB-Message-"                     ; AOL WebMail
     "X-MDaemon-Deliver-To:"
     "X-MDRemoteIP:"
+    "X-ME-Bayesian:"			; http://www.newmediadevelopment.net/page.cfm/parent/Client-Area/content/Managing-spam/
     "X-Message-Id"
     "X-Message-Type:"
     "X-MessageWall-Score:"              ; Unknown mailing list manager, AUC TeX
@@ -2699,10 +2722,14 @@ of citations entirely, choose \"None\"."
     "X-Scanned-By:"
     "X-Sender-ID:"                      ; Google+
     "X-Sender:"                         ; http://people.dsv.su.se/~jpalme/ietf/mail-headers/
+    "X-Sendergroup:"			; Cicso ironport (http://www.ironport.com)
     "X-Server-Date:"
     "X-Server-Uuid:"
     "X-Service-Code:"
+    "X-SFDC-"				; http://www.salesforce.com
     "X-Sieve:"                          ; Sieve filtering
+    "X-SMFBL:"
+    "X-SMHeaderMap:"
     "X-SMTP-"
     "X-Source"
     "X-Spam-"                           ; SpamAssassin
@@ -2714,6 +2741,7 @@ of citations entirely, choose \"None\"."
     "X-Submissions-To:"
     "X-Sun-Charset:"
     "X-Telecom-Digest"
+    "X-TM-IMSS-Message-ID:"		; http://www.trendmicro.com
     "X-Trace:"
     "X-UID"
     "X-UIDL:"                           ; http://people.dsv.su.se/~jpalme/ietf/mail-headers/
@@ -2724,15 +2752,22 @@ of citations entirely, choose \"None\"."
     "X-USANET-"                         ; usa.net
     "X-Usenet-Provider"
     "X-UserInfo1:"
+    "X-VGI-OESCD:"
+    "X-VirtualServer:"
+    "X-VirtualServerGroup:"
     "X-Virus-"                          ;
     "X-Vms-To:"
     "X-VSMLoop:"                        ; NTMail
     "X-WebTV-Signature:"
     "X-Wss-Id:"                         ; Worldtalk gateways
     "X-X-Sender:"                       ; http://people.dsv.su.se/~jpalme/ietf/mail-headers/
+    "X-XPT-XSL-Name:"			; Paypal http://www.paypal.com
+    "X-XWALL-"				; http://www.dataenter.co.at/doc/xwall_undocumented_config.htm
+    "X-Y-GMX-Trusted:"			; http://www.gmx.net/
     "X-Yahoo"
     "X-Yahoo-Newman-"
     "X-YMail-"
+    "X-ZixNet:"
     "X400-"                             ; X400
     "Xref:"                             ; RFC 1036
     )
