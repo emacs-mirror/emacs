@@ -611,6 +611,7 @@ still visible.\n")
   "l"    mh-show-list-folders
   "n"    mh-index-new-messages
   "o"    mh-show-visit-folder
+  "p"    mh-show-pack-folder
   "q"    mh-show-index-sequenced-messages
   "r"    mh-show-rescan-folder
   "s"    mh-search

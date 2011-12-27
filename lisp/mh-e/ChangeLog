@@ -1,3 +1,8 @@
+2011-12-27  Jeffrey C Honig  <jch@honig.net>
+
+	* mh-show.el (mh-show-folder-map): Add missing key binding for
+	mh-show-pack-folder (closes SF #3466086).
+
 2011-12-25  Bill Wohler  <wohler@newt.com>
 
 	* mh-e.el (Version, mh-version): Add +bzr to version.
