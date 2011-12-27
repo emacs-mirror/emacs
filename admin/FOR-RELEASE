@@ -124,7 +124,7 @@ TUTORIAL.zh
 
 ** Check the manual.
 
-abbrevs.texi      
+abbrevs.texi      cyd
 ack.texi          
 anti.texi
 arevert-xtra.texi cyd
@@ -136,7 +136,7 @@ cal-xtra.texi
 cmdargs.texi      
 commands.texi     cyd
 custom.texi       
-dired.texi        
+dired.texi        cyd
 dired-xtra.texi
 display.texi      cyd
 emacs.texi        

@@ -102,6 +102,9 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 #ifdef USE_GTK
 #include "gtkutil.h"
+#ifdef HAVE_GTK3
+#include "xgselect.h"
+#endif
 #endif
 
 #include "menu.h"
@@ -408,7 +411,15 @@ x_menu_wait_for_event (void *data)
       else
         ntp = &next_time;
 
+#ifdef HAVE_GTK3
+      /* Gtk3 have arrows on menus when they don't fit.  When the pointer is
+         over an arrow, a timeout scrolls it a bit.  Use xg_select so that
+         timeout gets triggered.  */
+
+      xg_select (n + 1, &read_fds, (SELECT_TYPE *)0, (SELECT_TYPE *)0, ntp);
+#else
       select (n + 1, &read_fds, (SELECT_TYPE *)0, (SELECT_TYPE *)0, ntp);
+#endif
     }
 }
 #endif /* ! MSDOS */
@@ -1435,6 +1446,13 @@ create_and_show_popup_menu (FRAME_PTR f, widget_value *first_wv, int x, int y,
   GtkMenuPositionFunc pos_func = 0;  /* Pop up at pointer.  */
   struct next_popup_x_y popup_x_y;
   int specpdl_count = SPECPDL_INDEX ();
+  int use_pos_func = ! for_click;
+
+#ifdef HAVE_GTK3
+  /* Always use position function for Gtk3.  Otherwise menus may become
+     too small to show anything.  */
+  use_pos_func = 1;
+#endif
 
   if (! FRAME_X_P (f))
     abort ();
@@ -1446,7 +1464,7 @@ create_and_show_popup_menu (FRAME_PTR f, widget_value *first_wv, int x, int y,
                            G_CALLBACK (menu_highlight_callback));
   xg_crazy_callback_abort = 0;
 
-  if (! for_click)
+  if (use_pos_func)
     {
       /* Not invoked by a click.  pop up at x/y.  */
       pos_func = menu_position_func;
@@ -1461,7 +1479,8 @@ create_and_show_popup_menu (FRAME_PTR f, widget_value *first_wv, int x, int y,
 
       i = 0;  /* gtk_menu_popup needs this to be 0 for a non-button popup.  */
     }
-  else
+
+  if (for_click)
     {
       for (i = 0; i < 5; i++)
         if (FRAME_X_DISPLAY_INFO (f)->grabbed & (1 << i))
