@@ -1,3 +1,8 @@
+2011-12-27  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* variables.texi (Creating Buffer-Local): Warn against misuses of
+	make-variable-buffer-local (bug#10258).
+
 2011-08-28  Dani Moncayo  <dmoncayo@gmail.com>  (tiny change)
 
 	* lists.texi (Building Lists): Fix typo.
