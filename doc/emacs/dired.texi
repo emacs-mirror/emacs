@@ -73,32 +73,45 @@ completion commands can be used in the minibuffer; in particular,
 a directory name.
 
   The variable @code{dired-listing-switches} specifies the options to
-give to @code{ls} for listing the directory; this string @emph{must}
-contain @samp{-l}.  If you use a prefix argument with the @code{dired}
-command, you can specify the @code{ls} switches with the minibuffer
-before you enter the directory specification.  No matter how they are
-specified, the @code{ls} switches can include short options (that is,
-single characters) requiring no arguments, and long options (starting
-with @samp{--}) whose arguments are specified with @samp{=}.
+give to @command{ls} for listing the directory; this string
+@emph{must} contain @samp{-l}.  If you use a prefix argument with the
+@code{dired} command, you can specify the @command{ls} switches with the
+minibuffer before you enter the directory specification.  No matter
+how they are specified, the @command{ls} switches can include short
+options (that is, single characters) requiring no arguments, and long
+options (starting with @samp{--}) whose arguments are specified with
+@samp{=}.
 
 @vindex dired-use-ls-dired
-  Note that Dired automatically adds the option @samp{--dired}, if
-your @code{ls} program supports it, unless you explicitly set
-the variable @code{dired-use-ls-dired} to @code{nil}.  Without this
-option, Dired will have trouble parsing some @samp{unusual} file-names.
-See the documentation of @code{dired-use-ls-dired} for more details.
+  If your @command{ls} program supports the @samp{--dired} option,
+Dired automatically passes it that option; this causes @command{ls} to
+emit special escape sequences for certain unusual file names, without
+which Dired will not be able to parse those names.  The first time you
+run Dired in an Emacs session, it checks whether @command{ls} supports
+the @samp{--dired} option by calling it once with that option.  If the
+exit code is 0, Dired will subsequently use the @samp{--dired} option;
+otherwise it will not.  You can inhibit this check by customizing the
+variable @code{dired-use-ls-dired}.  The value @code{unspecified} (the
+default) means to perform the check; any other non-@code{nil} value
+means to use the @samp{--dired} option; and @code{nil} means not to
+use the @samp{--dired} option.
 
-  On MS-Windows and MS-DOS systems, Emacs @emph{emulates} @code{ls};
-see @ref{ls in Lisp}, for options and peculiarities of that emulation.
+  On MS-Windows and MS-DOS systems, Emacs emulates @command{ls}.
+@xref{ls in Lisp}, for options and peculiarities of this emulation.
 
 @findex dired-other-window
 @kindex C-x 4 d
 @findex dired-other-frame
 @kindex C-x 5 d
-  To display the Dired buffer in another window rather than in the
-selected window, use @kbd{C-x 4 d} (@code{dired-other-window}) instead
-of @kbd{C-x d}.  @kbd{C-x 5 d} (@code{dired-other-frame}) uses a
-separate frame to display the Dired buffer.
+  To display the Dired buffer in another window, use @kbd{C-x 4 d}
+(@code{dired-other-window}) instead of @kbd{C-x d}.  @kbd{C-x 5 d}
+(@code{dired-other-frame}) displays the Dired buffer in a separate
+frame.
+
+@kindex q @r{(Dired)}
+@findex quit-window
+  Typing @kbd{q} (@code{quit-window}) buries the Dired buffer, and
+deletes its window if the window was created just for that buffer.
 
 @node Dired Navigation
 @section Navigation in the Dired Buffer
@@ -124,7 +137,11 @@ minibuffer, and moves point to the line in the Dired buffer describing
 that file.
 
 @cindex searching Dired buffers
+@findex dired-isearch-filenames
 @vindex dired-isearch-filenames
+@findex dired-isearch-filenames-regexp
+@kindex M-s f C-s @r{(Dired)}
+@kindex M-s f M-C-s @r{(Dired)}
   @kbd{M-s f C-s} (@code{dired-isearch-filenames}) performs a forward
 incremental search in the Dired buffer, looking for matches only
 amongst the file names and ignoring the rest of the text in the
@@ -331,18 +348,16 @@ another window, but do not select that window (@code{dired-display-file}).
 @item Mouse-1
 @itemx Mouse-2
 @findex dired-mouse-find-file-other-window
-Visit the file named by the line you click on
+Visit the file whose name you clicked on
 (@code{dired-mouse-find-file-other-window}).  This uses another window
 to display the file, like the @kbd{o} command.
 
 @item v
 @kindex v @r{(Dired)}
 @findex dired-view-file
-View the file described on the current line, using @kbd{M-x view-file}
-(@code{dired-view-file}).  Viewing a file with @code{view-file} is
-like visiting it, but is slanted toward moving around in the file
-conveniently and does not allow changing the file.  @xref{Misc File
-Ops, View File, Miscellaneous File Operations}.
+View the file described on the current line, with View mode
+(@code{dired-view-file}).  View mode provides convenient commands to
+navigate the buffer but forbids changing it; @xref{View Mode}.
 
 @item ^
 @kindex ^ @r{(Dired)}
@@ -520,9 +535,9 @@ the regular expression @var{regexp}
 @kbd{% m}, except that it searches the file contents instead of the file
 name.
 
-@item C-x u
+@item C-/
+@itemx C-x u
 @itemx C-_
-@itemx C-/
 @kindex C-_ @r{(Dired)}
 @findex dired-undo
 Undo changes in the Dired buffer, such as adding or removing
@@ -615,7 +630,7 @@ Like the other commands in this section, this command operates on the
 Rename the specified files (@code{dired-do-rename}).  If you rename a
 single file, the argument @var{new} is the new name of the file.  If
 you rename several files, the argument @var{new} is the directory into
-which to move the files (this is like the shell command @code{mv}).
+which to move the files (this is like the shell command @command{mv}).
 
 Dired automatically changes the visited file name of buffers associated
 with renamed files so that they refer to the new names.
@@ -625,7 +640,7 @@ with renamed files so that they refer to the new names.
 @cindex hard links (in Dired)
 @item H @var{new} @key{RET}
 Make hard links to the specified files (@code{dired-do-hardlink}).
-This is like the shell command @code{ln}.  The argument @var{new} is
+This is like the shell command @command{ln}.  The argument @var{new} is
 the directory to make the links in, or (if making just one link) the
 name to give the link.
 
@@ -642,9 +657,10 @@ link.
 @kindex M @r{(Dired)}
 @cindex changing file permissions (in Dired)
 @item M @var{modespec} @key{RET}
-Change the mode (also called ``permission bits'') of the specified files
-(@code{dired-do-chmod}).  @var{modespec} can be in octal or symbolic
-notation like arguments handled by the @code{chmod} program.
+Change the mode (also called @dfn{permission bits}) of the specified
+files (@code{dired-do-chmod}).  @var{modespec} can be in octal or
+symbolic notation, like arguments handled by the @command{chmod}
+program.
 
 @findex dired-do-chgrp
 @kindex G @r{(Dired)}
@@ -663,8 +679,8 @@ this.)
 
 @vindex dired-chown-program
 The variable @code{dired-chown-program} specifies the name of the
-program to use to do the work (different systems put @code{chown} in
-different places).
+program to use to do the work (different systems put @command{chown}
+in different places).
 
 @findex dired-do-touch
 @kindex T @r{(Dired)}
@@ -952,17 +968,17 @@ The backup file is the first file given to @code{diff}.
 @cindex subdirectories in Dired
 @cindex expanding subdirectories in Dired
 
-  A Dired buffer displays just one directory in the normal case;
-but you can optionally include its subdirectories as well.
+  A Dired buffer usually displays just one directory, but you can
+optionally include its subdirectories as well.
 
   The simplest way to include multiple directories in one Dired buffer is
-to specify the options @samp{-lR} for running @code{ls}.  (If you give a
+to specify the options @samp{-lR} for running @command{ls}.  (If you give a
 numeric argument when you run Dired, then you can specify these options
 in the minibuffer.)  That produces a recursive directory listing showing
 all subdirectories at all levels.
 
   More often, you will want to show only specific subdirectories.  You
-can do this with the @kbd{i} command:
+can do this with @kbd{i} (@code{dired-maybe-insert-subdir}):
 
 @table @kbd
 @findex dired-maybe-insert-subdir
@@ -973,25 +989,27 @@ can do this with the @kbd{i} command:
 Insert the contents of a subdirectory later in the buffer.
 @end table
 
-Use the @kbd{i} (@code{dired-maybe-insert-subdir}) command on a line
-that describes a file which is a directory.  It inserts the contents of
-that directory into the same Dired buffer, and moves there.  Inserted
-subdirectory contents follow the top-level directory of the Dired
-buffer, just as they do in @samp{ls -lR} output.
+@noindent
+If you use this command on a line that describes a file which is a
+directory, it inserts the contents of that directory into the same
+Dired buffer, and moves there.  Inserted subdirectory contents follow
+the top-level directory of the Dired buffer, just as they do in
+@samp{ls -lR} output.
 
-If the subdirectory's contents are already present in the buffer, the
-@kbd{i} command just moves to it.
+  If the subdirectory's contents are already present in the buffer,
+the @kbd{i} command just moves to it.
 
-In either case, @kbd{i} sets the Emacs mark before moving, so @kbd{C-u
-C-@key{SPC}} takes you back to the old position in the buffer (the line
-describing that subdirectory).  You can also use @samp{^} to return
-to the parent directory in the same Dired buffer.
+  In either case, @kbd{i} sets the Emacs mark before moving, so
+@kbd{C-u C-@key{SPC}} returns to your previous position in the Dired
+buffer (@pxref{Setting Mark}).  You can also use @samp{^} to return to
+the parent directory in the same Dired buffer (@pxref{Dired
+Visiting}).
 
-Use the @kbd{l} command (@code{dired-do-redisplay}) to update the
-subdirectory's contents.  Use @kbd{C-u k} on the subdirectory header
-line to remove the subdirectory listing (@pxref{Dired Updating}).  You
-can also hide and show inserted subdirectories (@pxref{Hiding
-Subdirectories}).
+  Use the @kbd{l} command (@code{dired-do-redisplay}) to update the
+subdirectory's contents, and use @kbd{C-u k} on the subdirectory
+header line to remove the subdirectory listing (@pxref{Dired
+Updating}).  You can also hide and show inserted subdirectories
+(@pxref{Hiding Subdirectories}).
 
 @ifnottex
 @include dired-xtra.texi
@@ -1209,10 +1227,10 @@ tell @command{find} what condition to test.  To use this command, you
 need to know how to use @command{find}.
 
 @vindex find-ls-option
-  The format of listing produced by these commands is controlled by the
-variable @code{find-ls-option}, whose default value specifies using
-options @samp{-ld} for @code{ls}.  If your listings are corrupted, you
-may need to change the value of this variable.
+  The format of listing produced by these commands is controlled by
+the variable @code{find-ls-option}, whose default value specifies
+using options @samp{-ld} for @command{ls}.  If your listings are
+corrupted, you may need to change the value of this variable.
 
 @findex locate
 @findex locate-with-filter
@@ -1338,10 +1356,14 @@ rotation is lossless, and uses an external utility called JpegTRAN.
 @kindex + @r{(Dired)}
 @findex dired-create-directory
   The command @kbd{+} (@code{dired-create-directory}) reads a
-directory name, and creates the directory if it does not already
-exist.
+directory name, and creates that directory.  It signals an error if
+the directory already exists.
 
 @cindex searching multiple files via Dired
+@kindex M-s a C-s @r{(Dired)}
+@kindex M-s a M-C-s @r{(Dired)}
+@findex dired-do-isearch
+@findex dired-do-isearch-regexp
   The command @kbd{M-s a C-s} (@code{dired-do-isearch}) begins a
 ``multi-file'' incremental search on the marked files.  If a search
 fails at the end of a file, typing @kbd{C-s} advances to the next

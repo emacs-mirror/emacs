@@ -4224,7 +4224,7 @@ The default comes from `process-coding-system-alist' and
     "^\\(.+\\) (hex ..)$"
     "SET \\1")
 
-   ;; FEDDBACK ON for 99 or more rows
+   ;; FEEDBACK ON for 99 or more rows
    ;; feedback OFF
    (sql-redirect-value
     sqlbuf

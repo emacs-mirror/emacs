@@ -275,7 +275,7 @@ before the external MIME handler is invoked."
 		     (ignore-errors
 		       (if (fboundp 'create-image)
 			   (create-image (buffer-string) 'imagemagick 'data-p)
-			 (mm-create-image-xemacs type)))))
+			 (mm-create-image-xemacs (mm-handle-media-subtype handle))))))
 		(when image
 		  (setcar (cdr handle) (list "image/imagemagick"))
 		  (mm-image-fit-p handle)))))))

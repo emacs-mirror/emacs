@@ -156,7 +156,7 @@ documentation of `unload-feature' for details.")
     (dolist (buffer (buffer-list))
       (set-buffer buffer)
       (let ((proposed major-mode))
-        ;; Look for an antecessor mode not defined in the feature we're processing
+        ;; Look for a predecessor mode not defined in the feature we're processing
         (while (and proposed (rassq proposed unload-function-defs-list))
           (setq proposed (get proposed 'derived-mode-parent)))
         (unless (eq proposed major-mode)

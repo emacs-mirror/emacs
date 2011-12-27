@@ -917,24 +917,41 @@ See `load-file' for a different interface to `load'."
 
 (defun file-remote-p (file &optional identification connected)
   "Test whether FILE specifies a location on a remote system.
-Returns nil or a string identifying the remote connection (ideally
-a prefix of FILE).  For example, the remote identification for filename
-\"/user@host:/foo\" could be \"/user@host:\".
-A file is considered \"remote\" if accessing it is likely to be slower or
-less reliable than accessing local files.
-Furthermore, relative file names do not work across remote connections.
+A file is considered remote if accessing it is likely to
+be slower or less reliable than accessing local files.
 
-IDENTIFICATION specifies which part of the identification shall
-be returned as string.  IDENTIFICATION can be the symbol
-`method', `user', `host' or `localname'; any other value is
-handled like nil and means to return the complete identification
-string.
+`file-remote-p' never opens a new remote connection.  It can
+only reuse a connection that is already open.
 
-If CONNECTED is non-nil, the function returns an identification only
-if FILE is located on a remote system, and a connection is established
-to that remote system.
+Return nil or a string identifying the remote connection
+\(ideally a prefix of FILE).  Return nil if FILE is a relative
+file name.
 
-`file-remote-p' will never open a connection on its own."
+When IDENTIFICATION is nil, the returned string is a complete
+remote identifier: with components method, user, and host.  The
+components are those present in FILE, with defaults filled in for
+any that are missing.
+
+IDENTIFICATION can specify which part of the identification to
+return.  IDENTIFICATION can be the symbol `method', `user',
+`host', or `localname'.  Any other value is handled like nil and
+means to return the complete identification.  The string returned
+for IDENTIFICATION `localname' can differ depending on whether
+there is an existing connection.
+
+If CONNECTED is non-nil, return an identification only if FILE is
+located on a remote system and a connection is established to
+that remote system.
+
+Tip: You can use this expansion of remote identifier components
+     to derive a new remote file name from an existing one.  For
+     example, if FILE is \"/sudo::/path/to/file\" then
+
+       \(concat \(file-remote-p FILE) \"/bin/sh\")
+
+     returns a remote file name for file \"/bin/sh\" that has the
+     same remote identifier as FILE but expanded; a name such as
+     \"/sudo:root@myhost:/bin/sh\"."
   (let ((handler (find-file-name-handler file 'file-remote-p)))
     (if handler
 	(funcall handler 'file-remote-p file identification connected)

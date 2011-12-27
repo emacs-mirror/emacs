@@ -3637,6 +3637,10 @@ so return the size on the remote host exactly. See RFC 3659."
   (setq filename (expand-file-name filename)
 	newname (expand-file-name newname))
 
+  (or (file-exists-p filename)
+      (signal 'file-error
+	      (list "Copy file" "no such file or directory" filename)))
+
   ;; canonicalize newname if a directory.
   (if (file-directory-p newname)
       (setq newname (expand-file-name (file-name-nondirectory filename) newname)))

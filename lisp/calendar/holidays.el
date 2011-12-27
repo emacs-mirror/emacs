@@ -723,7 +723,7 @@ STRING)).  Returns nil if it is not visible in the current calendar window."
   (let ((m displayed-month)
         (y displayed-year))
     (calendar-increment-month m y (- 11 month))
-    (if (> m 9)                         ; is november visible?
+    (if (> m 9)                         ; Is November visible?
         (list (list (list month day y) string)))))
 
 (defun holiday-float (month dayname n string &optional day)

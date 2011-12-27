@@ -764,7 +764,10 @@ REV non-nil gets an error."
 
 (defun vc-bzr-rename-file (old new)
   "Rename file from OLD to NEW using `bzr mv'."
-  (vc-bzr-command "mv" nil 0 new old))
+  (setq old (expand-file-name old))
+  (setq new (expand-file-name new))
+  (vc-bzr-command "mv" nil 0 new old)
+  (message "Renamed %s => %s" old new))
 
 (defvar vc-bzr-annotation-table nil
   "Internal use.")

@@ -1,3 +1,112 @@
+2011-12-26  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* xmenu.c (x_menu_wait_for_event): Use xg_select for Gtk3 so menus
+	can scroll.
+	(create_and_show_popup_menu): Always use menu_position_func for
+	Gtk3 (Bug#10361).
+
+2011-12-24  Andreas Schwab  <schwab@linux-m68k.org>
+
+	* callint.c (Fcall_interactively): Don't truncate prompt string.
+
+2011-12-23  Eli Zaretskii  <eliz@gnu.org>
+
+	* xdisp.c (handle_invisible_prop): Handle correctly an invisible
+	property that ends at ZV, so that the bidi iteration could be
+	resumed from there (after widening).  (Bug#10360)
+
+2011-12-22  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* nsfont.m (ns_spec_to_descriptor): Do not autorelease fdesc.
+
+2011-12-21  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* nsterm.m (x_free_frame_resources): Release
+	f->output_data.ns->miniimage
+	(ns_index_color): Fix indentation.  Do not retain
+	color_table->colors[i].
+
+	* nsmenu.m (ns_update_menubar): Call free_menubar_widget_value_tree
+	before returning.
+
+	* nsfns.m (x_set_background_color): Assign return value from
+	ns_index_color to face-background instead of NSColor*.
+	(ns_implicitly_set_icon_type): Fix indentation.
+	Change assignment in for loop to comparison.
+
+	* emacs.c (ns_pool): New variable.
+	(main): Assign ns_pool.
+	(Fkill_emacs): Call ns_release_autorelease_pool.
+
+	* nsfont.m (ns_spec_to_descriptor): Fix indentation,
+	autorelease fdesc, release fdAttrs and tdict.
+	(ns_get_covering_families): Release charset.
+	(ns_findfonts): Release NSFontDescriptor created with new.
+	(ns_uni_to_glyphs): Fix indentation.
+	(setString): Release attrStr before assigning new value.
+
+2011-12-18  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* nsmenu.m (NSMenuDidBeginTrackingNotification): Declare if OSX < 10.5
+	and NS_IMPL_COCOA.
+	(trackingNotification): Surround with ifdef NS_IMPL_COCOA.
+	(syms_of_nsmenu): Set trackingMenu to 1 if not NS_IMPL_COCOA.
+
+2011-12-18 David Reitter <reitter@cmu.edu>
+
+	* nsterm.m (ns_term_init): Subscribe for notifications
+	NSMenuDidBeginTrackingNotification and NSMenuDidEndTrackingNotification
+	to method trackingNotification in EmacsMenu.
+
+	* nsmenu.m (trackingMenu): New variable.
+	(trackingNotification): New method (from Aquamacs).
+	(menuNeedsUpdate): Expand comment and return if trackingMenu is 0,
+	from Aquamacs (Bug#7030).
+
+2011-12-18  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* nsselect.m (CUT_BUFFER_SUPPORT): Remove define.
+	(symbol_to_nsstring): Fix indentation.
+	(ns_symbol_to_pb): New function.
+	(Fns_get_selection_internal): Renamed from Fns_get_cut_buffer_internal.
+	(Fns_rotate_cut_buffers_internal): Removed.
+	(Fns_store_selection_internal): Renamed from
+	Fns_store_cut_buffer_internal.
+	(ns_get_foreign_selection, Fx_own_selection_internal)
+	(Fx_disown_selection_internal, Fx_selection_exists_p)
+	(Fns_get_selection_internal, Fns_store_selection_internal): Use
+	ns_symbol_to_pb and check if return value is nil.
+	(syms_of_nsselect): Remove ifdef CUT_BUFFER_SUPPORT.  Remove
+	defsubr Sns_rotate_cut_buffers_internal.  Sns_get_cut_buffer_internal
+	renamed to Sns_get_selection_internal, Sns_store_cut_buffer_internal
+	renamed to Sns_store_selection_internal.
+	(ns_handle_selection_request): Move code to Fx_own_selection_internal
+	and remove this function.
+	(ns_handle_selection_clear): Remove, never used.
+	(Fx_own_selection_internal): Move code from ns_handle_selection_request
+	here.
+
+2011-12-17  Ken Brown  <kbrown@cornell.edu>
+
+	* fileio.c (check_writable) [CYGWIN]: Return non-zero if UID or
+	GID is unknown (Bug#10257).
+
+2011-12-17  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* s/gnu-linux.h: Fix mark_memory typo (Bug#10286).
+	(GC_MARK_SECONDARY_STACK): Omit removed 3rd arg to mark_memory,
+	which caused a build failure on GNU/Linux IA-64.  This problem was
+	introduced by my 2011-10-07 patch.
+
+2011-12-15  Juri Linkov  <juri@jurta.org>
+
+	* image.c (imagemagick_error): New function.  (Bug#10112)
+	(imagemagick_load_image): Comment out `MagickSetResolution' call.
+	Use `imagemagick_error' where ImageMagick functions return
+	`MagickFalse'.
+	(Fimagemagick_types): Add `Fnreverse' to return the list in the
+	proper order.
+
 2011-12-15  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
 
 	* xftfont.c (xftfont_draw): Use the font metrics of s->font to

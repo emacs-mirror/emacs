@@ -5151,7 +5151,7 @@ x_scroll_bar_remove (struct scroll_bar *bar)
   XDestroyWindow (FRAME_X_DISPLAY (f), bar->x_window);
 #endif
 
-  /* Disassociate this scroll bar from its window.  */
+  /* Dissociate this scroll bar from its window.  */
   XWINDOW (bar->window)->vertical_scroll_bar = Qnil;
 
   UNBLOCK_INPUT;

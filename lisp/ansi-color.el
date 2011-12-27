@@ -585,7 +585,7 @@ ANSI-CODE is used as an index into the vector."
   "Create a new face by applying all the parameters in ESCAPE-SEQ.
 
 Should any of the parameters result in the default face (usually this is
-the parameter 0), then the effect of all previous parameters is cancelled.
+the parameter 0), then the effect of all previous parameters is canceled.
 
 ESCAPE-SEQ is a SGR control sequences such as \\033[34m.  The parameter
 34 is used by `ansi-color-get-face-1' to return a face definition."

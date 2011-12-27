@@ -1841,7 +1841,7 @@
 	     expr))))
 
 ;;; Simplify a polynomial in list form by stripping off high-end zeros.
-;;; This always leaves the constant part, i.e., nil->nil and nonnil->nonnil.
+;;; This always leaves the constant part, i.e., nil->nil and non-nil->non-nil.
 (defun math-poly-simplify (p)
   (and p
        (if (Math-zerop (nth (1- (length p)) p))

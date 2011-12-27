@@ -981,7 +981,7 @@ of each Verilog file that requires it, rather than being set globally."
   "*If true, AUTORESET will reset those signals which were
 assigned with blocking assignments (=) even in a block with
 non-blocking assignments (<=).
-  
+
 If nil, all blocking assigned signals are ignored when any
 non-blocking assignment is in the AUTORESET block.  This allows
 blocking assignments to be used for temporary values and not have
@@ -2011,7 +2011,7 @@ find the errors."
        "`uvm_component_utils"
        "`uvm_create"
        "`uvm_create_on"
-       "`uvm_create_seq"		;; Undocumented in 1.1 
+       "`uvm_create_seq"		;; Undocumented in 1.1
        "`uvm_declare_p_sequencer"
        "`uvm_declare_sequence_lib"	;; Deprecated in 1.1
        "`uvm_do"
@@ -7505,7 +7505,7 @@ Signals must be in standard (base vector) form."
     (nreverse out-list)))
 
 (defun verilog-signals-combine-bus (in-list)
-  "Return a list of signals in IN-LIST, with busses combined.
+  "Return a list of signals in IN-LIST, with buses combined.
 Duplicate signals are also removed.  For example A[2] and A[1] become A[2:1]."
   (let (combo buswarn
 	out-list
@@ -9907,7 +9907,7 @@ If optional WHITESPACE true, ignore whitespace."
 	   (p2 (with-current-buffer b2 (goto-char (point-min))))
 	   (maxp1 (with-current-buffer b1 (point-max)))
 	   (maxp2 (with-current-buffer b2 (point-max)))
-	   (op1 -1) (op2 -1) 
+	   (op1 -1) (op2 -1)
 	   progress size)
       (while (not (and (eq p1 op1) (eq p2 op2)))
 	;; If both windows have whitespace optionally skip over it.
@@ -10100,7 +10100,7 @@ instantiating the resulting module.  Long lines are split based
 on the `fill-column', see \\[set-fill-column].
 
 Limitations:
-  Concatenation and outputting partial busses is not supported.
+  Concatenation and outputting partial buses is not supported.
 
   Typedefs must match `verilog-typedef-regexp', which is disabled by default.
 
@@ -10932,7 +10932,7 @@ Typing \\[verilog-auto] will make this into:
 (defun verilog-auto-logic ()
   "Expand AUTOLOGIC statements, as part of \\[verilog-auto].
 Make wire statements using the SystemVerilog logic keyword.
-This is currently equivelent to:
+This is currently equivalent to:
 
     /*AUTOWIRE*/
 
@@ -10958,7 +10958,7 @@ the datatype of the declarations.
 
 Limitations:
   This ONLY detects outputs of AUTOINSTants (see `verilog-read-sub-decls'),
-  and all busses must have widths, such as those from AUTOINST, or using []
+  and all buses must have widths, such as those from AUTOINST, or using []
   in AUTO_TEMPLATEs.
 
   This does NOT work on memories or SystemVerilog .name connections,
@@ -11315,7 +11315,7 @@ Limitations:
   If placed inside the parenthesis of a module declaration, it creates
   Verilog 2001 style, else uses Verilog 1995 style.
 
-  Concatenation and outputting partial busses is not supported.
+  Concatenation and outputting partial buses is not supported.
 
   Module names must be resolvable to filenames.  See `verilog-auto-inst'.
 
@@ -11439,7 +11439,7 @@ Limitations:
   If placed inside the parenthesis of a module declaration, it creates
   Verilog 2001 style, else uses Verilog 1995 style.
 
-  Concatenation and outputting partial busses is not supported.
+  Concatenation and outputting partial buses is not supported.
 
   Module names must be resolvable to filenames.  See `verilog-auto-inst'.
 
@@ -11490,7 +11490,7 @@ Limitations:
   If placed inside the parenthesis of a module declaration, it creates
   Verilog 2001 style, else uses Verilog 1995 style.
 
-  Concatenation and outputting partial busses is not supported.
+  Concatenation and outputting partial buses is not supported.
 
   Module names must be resolvable to filenames.  See `verilog-auto-inst'.
 

@@ -4090,10 +4090,11 @@ handle_invisible_prop (struct it *it)
 	  while (invis_p);
 
 	  /* The position newpos is now either ZV or on visible text.  */
-	  if (it->bidi_p && newpos < ZV)
+	  if (it->bidi_p)
 	    {
 	      EMACS_INT bpos = CHAR_TO_BYTE (newpos);
-	      int on_newline = FETCH_BYTE (bpos) == '\n';
+	      int on_newline =
+		bpos == ZV_BYTE || FETCH_BYTE (bpos) == '\n';
 	      int after_newline =
 		newpos <= BEGV || FETCH_BYTE (bpos - 1) == '\n';
 
@@ -4111,16 +4112,16 @@ handle_invisible_prop (struct it *it)
 
 		  SET_TEXT_POS (tpos, newpos, bpos);
 		  reseat_1 (it, tpos, 0);
-		  /* If we reseat on a newline, we need to prep the
+		  /* If we reseat on a newline/ZV, we need to prep the
 		     bidi iterator for advancing to the next character
-		     after the newline, keeping the current paragraph
+		     after the newline/EOB, keeping the current paragraph
 		     direction (so that PRODUCE_GLYPHS does TRT wrt
 		     prepending/appending glyphs to a glyph row).  */
 		  if (on_newline)
 		    {
 		      it->bidi_it.first_elt = 0;
 		      it->bidi_it.paragraph_dir = pdir;
-		      it->bidi_it.ch = '\n';
+		      it->bidi_it.ch = (bpos == ZV_BYTE) ? -1 : '\n';
 		      it->bidi_it.nchars = 1;
 		      it->bidi_it.ch_len = 1;
 		    }

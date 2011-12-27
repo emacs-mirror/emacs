@@ -1,3 +1,8 @@
+2011-12-25  Andreas Schwab  <schwab@linux-m68k.org>
+
+	* etags.c (C_entries): Properly skip over string and character
+	constants and comments inside brackets.  (Bug#10357)
+
 2011-12-04  Juanma Barranquero  <lekktu@gmail.com>
 
 	* emacsclient.c (decode_options) [WINDOWSNT]: Don't force tty = 0;

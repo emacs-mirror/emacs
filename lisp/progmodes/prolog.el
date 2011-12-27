@@ -147,9 +147,9 @@
 ;;  o  Introduced three new customizable variables: electric colon
 ;;     (`prolog-electric-colon-flag', default nil), electric dash
 ;;     (`prolog-electric-dash-flag', default nil), and a possibility
-;;     to prevent the predicate template insertion from adding commata
+;;     to prevent the predicate template insertion from adding commas
 ;;     (`prolog-electric-dot-full-predicate-template', defaults to t
-;;     since it seems quicker to me to just type those commata).  A
+;;     since it seems quicker to me to just type those commas).  A
 ;;     trivial adaptation of a patch by Markus Triska.
 ;;  o  Improved the behavior of electric if-then-else to only skip
 ;;     forward if the parenthesis/semicolon is preceded by
@@ -512,7 +512,7 @@ It does not apply in strings and comments."
 (defcustom prolog-electric-dot-full-predicate-template nil
   "*If nil, electric dot inserts only the current predicate's name and `('
 for recursive calls or new clause heads.  Non-nil means to also
-insert enough commata to cover the predicate's arity and `)',
+insert enough commas to cover the predicate's arity and `)',
 and dot and newline for recursive calls."
   :group 'prolog-keyboard
   :type 'boolean)

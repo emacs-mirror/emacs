@@ -122,7 +122,7 @@
 	* mh-mime.el: Shush XEmacs compiler in mh-do-in-xemacs block.
 
 	* mh-folder.el: Use boundp instead of fboundp when testing
-	existence of desktop-buffer-mode-handlers.
+	existence of desktop-buffer-mode-handlers (closes SF #1510145).
 
 2011-05-10  Jim Meyering  <meyering@redhat.com>
 

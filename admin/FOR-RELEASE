@@ -61,13 +61,6 @@ sk	Miroslav Vaško
 
 * BUGS
 
-** Does deleting frames run Lisp code?  If so, can we get rid of that?
-It is a dangerous design.
-http://lists.gnu.org/archive/html/emacs-devel/2007-09/msg01330.html
-
-** Why were the calls to x_fully_uncatch_errors commented out in eval.c?
-http://lists.gnu.org/archive/html/emacs-devel/2007-09/msg01987.html
-
 ** rms: gnus-dired.el is a mistake.  Those features should not
 be part of Gnus.  They should be moved to some other part of Emacs.
 rsteib: Gnus dependencies in `gnus-dired.el' (and `mailcap.el') have been
@@ -90,24 +83,7 @@ and change key bindings where necessary.  The current list of modes:
    `log-edit-comment-search-forward'.  Perhaps search commands
    on the global key binding `M-s' are useless in these modes.
 
-** sdl.web@gmail.com, 30 Oct: ps-lpr-switches has no effect
-http://lists.gnu.org/archive/html/emacs-devel/2007-10/msg02091.html
-
-Fixed by this change?
-
-2007-11-09  Vinicius Jose Latorre  <viniciusjl@ig.com.br>
-
-	* ps-print.el: [...]
-	(ps-do-despool): If ps-lpr-switches is not a list, force it to be one.
-
-** In C, use EMACS_INT for variables and structure members
-for buffer/string positions.  E.g. struct it, struct text_pos.
-
 * DOCUMENTATION
-
-** Clean up Emacs.app references in code and documentation.
-
-** Document new font backend
 
 ** Document XEmbed support
 
@@ -148,19 +124,19 @@ TUTORIAL.zh
 
 ** Check the manual.
 
-abbrevs.texi      
+abbrevs.texi      cyd
 ack.texi          
 anti.texi
 arevert-xtra.texi cyd
 basic.texi        cyd
 buffers.texi      cyd
-building.texi     
+building.texi     cyd
 calendar.texi     
 cal-xtra.texi     
 cmdargs.texi      
 commands.texi     cyd
 custom.texi       
-dired.texi        
+dired.texi        cyd
 dired-xtra.texi
 display.texi      cyd
 emacs.texi        
@@ -177,7 +153,7 @@ indent.texi       cyd
 killing.texi      cyd
 kmacro.texi       cyd
 macos.texi        
-maintaining.texi  
+maintaining.texi  cyd
 major.texi        
 mark.texi         cyd
 mini.texi         
@@ -188,16 +164,16 @@ msdog-xtra.texi
 mule.texi         
 m-x.texi          cyd
 picture-xtra.texi
-programs.texi     
+programs.texi     cyd
 regs.texi         cyd
 rmail.texi        
 screen.texi       cyd
 search.texi       cyd
 sending.texi      
-text.texi         
+text.texi         cyd
 trouble.texi      
-vc-xtra.texi
-vc1-xtra.texi
+vc-xtra.texi      cyd
+vc1-xtra.texi     cyd
 windows.texi      cyd
 xresources.texi   
 

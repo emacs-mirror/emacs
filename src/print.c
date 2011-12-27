@@ -620,7 +620,7 @@ A printed representation of an object is text which describes that object.  */)
     printcharfun = Vprin1_to_string_buffer;
     PRINTPREPARE;
     print (object, printcharfun, NILP (noescape));
-    /* Make Vprin1_to_string_buffer be the default buffer after PRINTFINSH */
+    /* Make Vprin1_to_string_buffer be the default buffer after PRINTFINISH */
     PRINTFINISH;
   }
 

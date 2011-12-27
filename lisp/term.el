@@ -37,8 +37,8 @@
 ;; --------------------------------------
 ;;
 ;; While the message passing and the colorization surely introduce some
-;; overhead this has became so small that IMHO is surely outweighted by
-;; the benefits you get but, as usual, YMMV
+;; overhead this has became so small that IMHO it is surely outweighed by
+;; the benefits you get but, as usual, YMMV.
 ;;
 ;; Important caveat, when deciding the cursor/'gray keys' keycodes I had to
 ;; make a choice: on my Linux box this choice allows me to run all the
