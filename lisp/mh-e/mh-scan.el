@@ -111,6 +111,22 @@ expression which matches the body text as in the default of
 not correct, the body fragment will not be highlighted with the
 face `mh-folder-body'.")
 
+(defvar mh-scan-blacklisted-msg-regexp "^\\( *[0-9]+\\)B"
+  "This regular expression matches blacklisted (spam) messages.
+
+It must match from the beginning of the line. Note that the
+default setting of `mh-folder-font-lock-keywords' expects this
+expression to contain at least one parenthesized expression which
+matches the message number as in the default of
+
+  \"^\\\\( *[0-9]+\\\\)B\".
+
+This expression includes the leading space within parenthesis
+since it looks better to highlight it as well. The highlighting
+is done with the face `mh-folder-blacklisted'. This regular
+expression should be correct as it is needed by non-fontification
+functions. See also `mh-note-blacklisted'.")
+
 (defvar mh-scan-cur-msg-number-regexp "^\\( *[0-9]+\\+\\).*"
   "This regular expression matches the current message.
 
@@ -155,7 +171,7 @@ is done with the face `mh-folder-deleted'.  This regular
 expression should be correct as it is needed by non-fontification
 functions.  See also `mh-note-deleted'.")
 
-(defvar mh-scan-good-msg-regexp  "^\\( *[0-9]+\\)[^D^0-9]"
+(defvar mh-scan-good-msg-regexp  "^\\( *[0-9]+\\)[^^DBW0-9]"
   "This regular expression matches \"good\" messages.
 
 It must match from the beginning of the line.  Note that the
@@ -163,7 +179,7 @@ default setting of `mh-folder-font-lock-keywords' expects this
 expression to contain at least one parenthesized expression which
 matches the message number as in the default of
 
-  \"^\\\\( *[0-9]+\\\\)[^D^0-9]\".
+  \"^\\\\( *[0-9]+\\\\)[^^DBW0-9]\".
 
 This expression includes the leading space within the parenthesis
 since it looks better to highlight it as well.  The highlighting
@@ -277,6 +293,22 @@ non-fontification functions.")
 This is used to eliminate error messages that are occasionally
 produced by \"inc\".")
 
+(defvar mh-scan-whitelisted-msg-regexp "^\\( *[0-9]+\\)W"
+  "This regular expression matches whitelisted (non-spam) messages.
+
+It must match from the beginning of the line. Note that the
+default setting of `mh-folder-font-lock-keywords' expects this
+expression to contain at least one parenthesized expression which
+matches the message number as in the default of
+
+  \"^\\\\( *[0-9]+\\\\)W\".
+
+This expression includes the leading space within parenthesis
+since it looks better to highlight it as well. The highlighting
+is done with the face `mh-folder-whitelisted'. This regular
+expression should be correct as it is needed by non-fontification
+functions. See also `mh-note-whitelisted'.")
+
 
 
 ;;; Widths, Offsets and Columns
@@ -294,11 +326,13 @@ Note that columns in Emacs start with 0.")
 (defvar mh-scan-cmd-note-width 1
   "Number of columns consumed by the cmd-note field in `mh-scan-format'.
 
-This column will have one of the values: \" \", \"D\", \"^\", \"+\", where
+This column will have one of the values: \" \", \"^\", \"D\", \"B\", \"W\", \"+\", where
 
   \" \" is the default value,
+  \"^\" is the `mh-note-refiled' character,
   \"D\" is the `mh-note-deleted' character,
-  \"^\" is the `mh-note-refiled' character, and
+  \"B\" is the `mh-note-blacklisted' character,
+  \"W\" is the `mh-note-whitelisted' character, and
   \"+\" is the `mh-note-cur' character.")
 
 (defvar mh-scan-destination-width 1
@@ -363,6 +397,10 @@ This column will only ever have spaces in it.")
 
 ;; Alphabetical.
 
+(defvar mh-note-blacklisted ?B
+  "Messages that have been blacklisted are marked by this character.
+See also `mh-scan-blacklisted-msg-regexp'.")
+
 (defvar mh-note-cur ?+
   "The current message (in MH, not in MH-E) is marked by this character.
 See also `mh-scan-cur-msg-number-regexp'.")
@@ -395,6 +433,10 @@ See also `mh-scan-refiled-msg-regexp'.")
 
 Messages in the \"search\" sequence are marked by this character as
 well.")
+
+(defvar mh-note-whitelisted ?W
+  "Messages that have been whitelisted are marked by this character.
+See also `mh-scan-whitelisted-msg-regexp'.")
 
 
 

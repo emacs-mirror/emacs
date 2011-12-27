@@ -230,6 +230,11 @@ User's mail folder directory.")
 (defvar mh-arrow-marker nil
   "Marker for arrow display in fringe.")
 
+(defvar mh-blacklist nil
+  "List of messages to use to train the junk filter.
+This variable can be used by
+`mh-before-commands-processed-hook'.")
+
 (defvar mh-colors-available-flag nil
   "Non-nil means colors are available.")
 
@@ -290,6 +295,11 @@ Elements have the form (SEQUENCE . MESSAGES).")
 (defvar mh-view-ops nil
   "Stack of operations that change the folder view.
 These operations include narrowing or threading.")
+
+(defvar mh-whitelist nil
+  "List of messages to use to train the junk filter.
+This variable can be used by
+`mh-before-commands-processed-hook'.")
 
 ;; MH-Show Locals (alphabetical)
 
@@ -2215,6 +2225,17 @@ commands."
   :group 'mh-sequences
   :package-version '(MH-E . "7.0"))
 
+(defcustom-mh mh-whitelist-preserves-sequences-flag t
+  "*Non-nil means that sequences are preserved when messages are whitelisted.
+
+If a message is in any sequence (except \"Previous-Sequence:\"
+and \"cur\") when it is whitelisted, then it will still be in
+those sequences in the destination folder. If this behavior is
+not desired, then turn off this option."
+  :type 'boolean
+  :group 'mh-sequences
+  :package-version '(MH-E . "8.4"))
+
 ;;; Reading Your Mail (:group 'mh-show)
 
 (defcustom-mh mh-bury-show-buffer-flag t
@@ -3126,9 +3147,10 @@ annotated messages with `mh-annotate-list'."
 (defcustom-mh mh-before-commands-processed-hook nil
   "Hook run by \\<mh-folder-mode-map>\\[mh-execute-commands] before performing outstanding refile and delete requests.
 
-Variables that are useful in this hook include `mh-delete-list'
-and `mh-refile-list' which can be used to see which changes will
-be made to the current folder, `mh-current-folder'."
+Variables that are useful in this hook include `mh-delete-list',
+`mh-refile-list', `mh-blacklist', and `mh-whitelist' which can be
+used to see which changes will be made to the current folder,
+`mh-current-folder'."
   :type 'hook
   :group 'mh-hooks
   :group 'mh-folder
@@ -3157,6 +3179,13 @@ before sending, add the `ispell-message' function."
   :group 'mh-hooks
   :group 'mh-letter
   :package-version '(MH-E . "6.0"))
+
+(defcustom-mh mh-blacklist-msg-hook nil
+  "Hook run by \\<mh-letter-mode-map>\\[mh-junk-blacklist] after marking each message for blacklisting."
+  :type 'hook
+  :group 'mh-hooks
+  :group 'mh-show
+  :package-version '(MH-E . "8.4"))
 
 (defcustom-mh mh-delete-msg-hook nil
   "Hook run by \\<mh-letter-mode-map>\\[mh-delete-msg] after marking each message for deletion.
@@ -3320,6 +3349,13 @@ sequence."
   :group 'mh-hooks
   :group 'mh-sequences
   :package-version '(MH-E . "6.0"))
+
+(defcustom-mh mh-whitelist-msg-hook nil
+  "Hook run by \\<mh-letter-mode-map>\\[mh-junk-whitelist] after marking each message for whitelisting."
+  :type 'hook
+  :group 'mh-hooks
+  :group 'mh-show
+  :package-version '(MH-E . "8.4"))
 
 
 
@@ -3539,6 +3575,13 @@ specified colors."
   :group 'mh-folder
   :package-version '(MH-E . "8.0"))
 
+(defface-mh mh-folder-blacklisted
+  (mh-face-data 'mh-folder-msg-number '((t (:inherit mh-folder-msg-number))))
+  "Blacklisted message face."
+  :group 'mh-faces
+  :group 'mh-folder
+  :package-version '(MH-E . "8.4"))
+
 (defface-mh mh-folder-body
   (mh-face-data 'mh-folder-msg-number
                 '((((class color))
@@ -3627,6 +3670,13 @@ format `mh-scan-format-nmh' and the regular expression
   :group 'mh-faces
   :group 'mh-folder
   :package-version '(MH-E . "8.0"))
+
+(defface-mh mh-folder-whitelisted
+  (mh-face-data 'mh-folder-refiled '((t (:inherit mh-folder-refiled))))
+  "Whitelisted message face."
+  :group 'mh-faces
+  :group 'mh-folder
+  :package-version '(MH-E . "8.4"))
 
 (defface-mh mh-letter-header-field (mh-face-data 'mh-letter-header-field)
   "Editable header field value face in draft buffers."

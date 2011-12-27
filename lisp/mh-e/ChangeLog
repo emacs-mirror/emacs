@@ -1,3 +1,39 @@
+2011-12-27  Ted Phelps  <phelps@gnusto.com>
+	Postpone junk processing (closes SF #2945712). Patch submitted by
+	Ted Phelps and refined by Bill Wohler.
+
+	* mh-e.el (mh-blacklist, mh-whitelist): New variables.
+	(mh-whitelist-preserves-sequences-flag): New option.
+	(mh-before-commands-processed-hook): Update documentation.
+	(mh-blacklist-msg-hook, mh-whitelist-msg-hook): New hooks.
+	(mh-folder-blacklisted, mh-folder-whitelisted): New faces.
+	* mh-folder.el (mh-folder-message-menu):  Add "Junk" to "Undo."
+	(mh-folder-font-lock-keywords): Add regexps for blacklisted and
+	whitelisted messages.
+	(mh-folder-mode): Add mh-blacklist and mh-whitelist variables.
+	(mh-execute-commands): Update documentation.
+	(mh-undo, mh-outstanding-commands-p, mh-process-commands)
+	(mh-delete-a-msg, mh-refile-a-msg, mh-undo-msg): Handle
+	blacklisted and whitelisted messages.
+	* mh-junk.el (mh-junk-blacklist, mh-junk-whitelist): Update to put
+	messages in blacklist and whitelist respectively for latter
+	processing.
+	(mh-blacklist-a-msg, mh-junk-whitelist-a-msg): New function to
+	support previous functions.
+	(mh-junk-blacklist-disposition): New function.
+	(mh-junk-process-blacklist, mh-junk-process-whitelist): New
+	functions that perform the blacklisting and whitelisting
+	respectively that used to be performed by mh-junk-blacklist and
+	mh-junk-whitelist.
+	* mh-scan.el (mh-scan-blacklisted-msg-regexp)
+	(mh-scan-whitelisted-msg-regexp): New scan line regexps.
+	(mh-scan-good-msg-regexp): Add B and W characters to regexp.
+	(mh-scan-cmd-note-width): Update documentation.
+	(mh-note-blacklisted, mh-note-whitelisted): New scan line
+	characters.
+	* mh-search.el (mh-index-execute-commands): Handle blacklisted and
+	whitelisted messages.
+
 2011-12-27  Bill Wohler  <wohler@newt.com>
 
 	* mh-e.el (mh-invisible-header-fields-internal): Add
