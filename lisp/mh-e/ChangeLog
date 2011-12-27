@@ -10,6 +10,11 @@
 
 2011-12-27  Jeffrey C Honig  <jch@honig.net>
 
+	* mh-letter.el (mh-yank-cur-msg): Replace usage of set-buffer with
+	with-current-buffer in mh-yang-cur-msg, semantics changed in emacs
+	23 and we do not want to use set-buffer unless we actually want to
+	change the buffer the user is looking at (cloases SF #2830504).
+
 	* mh-show.el (mh-show-folder-map): Add missing key binding for
 	mh-show-pack-folder (closes SF #3466086).
 
