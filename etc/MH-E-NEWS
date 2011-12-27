@@ -44,6 +44,11 @@ The `mh-showing-mode' variable is now defined with `define-minor-mode'
 When restoring MH folders from ".emacs.desktop", Emacs now opens them in
 the expected `mh-folder' mode instead of `dired-mode' (closes SF #1510145)
 
+*** *MH-E Log* buffer can point to removed directory
+This was caused by using `set-buffer' instead of
+`with-current-buffer.' This has been fixed thanks to Stefan Monnier
+(closes SF #1903293).
+
 
 
 * Changes in MH-E 8.2
