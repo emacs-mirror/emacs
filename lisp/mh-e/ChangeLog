@@ -1,3 +1,13 @@
+2011-12-27  Bill Wohler  <wohler@newt.com>
+
+	* mh-e.el (mh-invisible-header-fields-internal): Add
+	X-AnalysisOut, X-Authentication-Info, X-Auto-Response-Suppress,
+	X-Bayes-Prob, X-Cam-, X-CanIt-Geo, X-Completed, X-Facebook,
+	X-Forwarded-, X-Generated-By, X-Headers-End, X-IEEE-UCE,
+	X-Jira-Fingerprint, X-Junkmail-, X-Launchpad-, X-MXL-Hash,
+	X-Notification-, X-Notifications, X-Oracle-Calendar. Replace
+	X-DCC-Usenix-Metrics with X-DCC- (addresses SF #1916032).
+
 2011-12-27  Jeffrey C Honig  <jch@honig.net>
 
 	* mh-show.el (mh-show-folder-map): Add missing key binding for

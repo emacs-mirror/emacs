@@ -2526,6 +2526,7 @@ of citations entirely, choose \"None\"."
     "X-Admin:"                          ; http://people.dsv.su.se/~jpalme/ietf/mail-headers/
     "X-Administrivia-To:"
     "X-AMAZON"                          ; Amazon.com
+    "X-AnalysisOut:"                    ; Exchange
     "X-AntiAbuse:"                      ; cPanel
     "X-Antivirus-Scanner:"
     "X-AOL-IP:"                         ; AOL WebMail
@@ -2535,18 +2536,24 @@ of citations entirely, choose \"None\"."
     "X-AuditID:"
     "X-Authenticated-Info:"             ; Verizon.net?
     "X-Authenticated-Sender:"           ; AT&T Message Center (webmail)
+    "X-Authentication-Info:"            ; verizon.net?
     "X-Authentication-Warning:"         ; sendmail
     "X-Authority-Analysis:"
+    "X-Auto-Response-Suppress:"         ; Exchange
     "X-Barracuda-"                      ; Barracuda spam scores
+    "X-Bayes-Prob:"                     ; IEEE spam filter
     "X-Beenthere:"                      ; Mailman mailing list manager
     "X-Bigfish:"
     "X-Bogosity:"                       ; bogofilter
     "X-Brightmail-Tracker:"             ; Brightmail
     "X-BrightmailFiltered:"             ; Brightmail
     "X-Bugzilla-"                       ; Bugzilla
+    "X-Cam-"                            ; Cambridge scanners
     "X-Campaignid:"
+    "X-CanIt-Geo:"                      ; IEEE spam filter
     "X-Comment:"                        ; AT&T Mailennium
     "X-Complaints-To:"                  ; http://people.dsv.su.se/~jpalme/ietf/mail-headers/
+    "X-Completed:"
     "X-Confirm-Reading-To:"             ; http://people.dsv.su.se/~jpalme/ietf/mail-headers/
     "X-Content-Filtered-By:"
     "X-ContentStamp:"                   ; NetZero
@@ -2554,7 +2561,7 @@ of citations entirely, choose \"None\"."
     "X-Cr-Hashedpuzzle:"
     "X-Cr-Puzzleid:"
     "X-Cron-Env:"
-    "X-DCC-Usenix-Metrics:"
+    "X-DCC-"                            ; SpamAssassin
     "X-Declude-"                        ; http://www.declude.com/x-note.htm
     "X-Dedicated:"
     "X-Delivered"
@@ -2575,9 +2582,12 @@ of citations entirely, choose \"None\"."
     "X-Evolution:"                      ; Evolution mail client
     "X-ExtLoop"
     "X-Face:"                           ; http://people.dsv.su.se/~jpalme/ietf/mail-headers/
+    "X-Facebook"                        ; Facebook
     "X-fmx-"
     "X-Folder:"                         ; Spam
+    "X-Forwarded-"                      ; Google+
     "X-From-Line"
+    "X-Generated-By:"                   ; launchpad.net
     "X-Gmail-"                          ; Gmail
     "X-Gnus-Mail-Source:"               ; gnus
     "X-Google-"                         ; Google mail
@@ -2585,19 +2595,24 @@ of citations entirely, choose \"None\"."
     "X-Greylist:"                       ; milter-greylist-1.2.1
     "X-Habeas-SWE-"                     ; Spam
     "X-Hashcash:"                       ; hashcash
+    "X-Headers-End:"                    ; SpamCop
     "X-HPL-"
     "X-HR-"
     "X-HTTP-UserAgent:"
     "X-Hz"				; Hertz
     "X-Identity:"                       ; http://www.declude.com/x-note.htm
+    "X-IEEE-UCE-"                       ; IEEE spam filter
     "X-Image-URL:"
     "X-IMAP:"                           ; http://people.dsv.su.se/~jpalme/ietf/mail-headers/
     "X-Info:"                           ; NTMail
     "X-IronPort-"                       ; IronPort AV
     "X-ISI-4-30-3-MailScanner:"
     "X-J2-"
+    "X-Jira-Fingerprint:"               ; JIRA
+    "X-Junkmail-"                       ; RCN?
     "X-Juno-"                           ; Juno
     "X-Key:"
+    "X-Launchpad-"                      ; plaunchpad.net
     "X-List-Host:"                      ; http://people.dsv.su.se/~jpalme/ietf/mail-headers/
     "X-List-Subscribe:"                 ; Unknown mailing list managers
     "X-List-Unsubscribe:"               ; Unknown mailing list managers
@@ -2630,12 +2645,16 @@ of citations entirely, choose \"None\"."
     "X-MS-"                             ; MS Outlook
     "X-Msmail-"                         ; MS Outlook
     "X-MSMail-Priority"                 ; http://people.dsv.su.se/~jpalme/ietf/mail-headers/
+    "X-MXL-Hash:"
     "X-NAI-Spam-"                       ; Network Associates Inc. SpamKiller
     "X-News:"                           ; News
     "X-Newsreader:"                     ; http://people.dsv.su.se/~jpalme/ietf/mail-headers/
     "X-No-Archive:"                     ; http://people.dsv.su.se/~jpalme/ietf/mail-headers/
     "X-Notes-Item:"                     ; Lotus Notes Domino structured header
+    "X-Notification-"                   ; Google+
+    "X-Notifications:"                  ; Google+
     "X-OperatingSystem:"
+    "X-Oracle-Calendar:"                ; Oracle calendar invitations
     "X-ORBL:"
     "X-Orcl-Content-Type:"
     "X-Organization:"
@@ -2652,6 +2671,7 @@ of citations entirely, choose \"None\"."
     "X-PID:"
     "X-PMG-"
     "X-PMX-Version:"
+    "X-Policyd-Weight:"                 ; policyd-weight (Postfix)
     "X-Postfilter:"
     "X-Priority:"                       ; MS Outlook
     "X-Proofpoint-"			; Proofpoint mail filter
@@ -2677,6 +2697,7 @@ of citations entirely, choose \"None\"."
     "X-SBRS:"
     "X-SBRule:"                         ; Spam
     "X-Scanned-By:"
+    "X-Sender-ID:"                      ; Google+
     "X-Sender:"                         ; http://people.dsv.su.se/~jpalme/ietf/mail-headers/
     "X-Server-Date:"
     "X-Server-Uuid:"
@@ -2684,7 +2705,8 @@ of citations entirely, choose \"None\"."
     "X-Sieve:"                          ; Sieve filtering
     "X-SMTP-"
     "X-Source"
-    "X-Spam-"                           ; Spamassassin
+    "X-Spam-"                           ; SpamAssassin
+    "X-Spam:"                           ; Exchange
     "X-SpamBouncer:"                    ; Spam
     "X-SPF-"
     "X-Status"
