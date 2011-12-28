@@ -1,3 +1,8 @@
+2011-12-28  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* files.texi (File Attributes, Changing Files):
+	Use a more-natural notation for octal numbers.
+
 2011-12-23  Juanma Barranquero  <lekktu@gmail.com>
 
 	* variables.texi (Variables with Restricted Values):
