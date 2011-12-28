@@ -122,7 +122,7 @@
 	* mh-mime.el: Shush XEmacs compiler in mh-do-in-xemacs block.
 
 	* mh-folder.el: Use boundp instead of fboundp when testing
-	existence of desktop-buffer-mode-handlers.
+	existence of desktop-buffer-mode-handlers (closes SF #1510145).
 
 2011-05-10  Jim Meyering  <meyering@redhat.com>
 
@@ -232,7 +232,8 @@
 	(mh-handle-process-error, mh-variant-info):
 	* mh-comp.el (mh-forward):
 	* mh-alias.el (mh-alias-local-users, mh-alias-which-file-has-alias):
-	(mh-alias-add-alias-to-file): Use with-current-buffer.
+	(mh-alias-add-alias-to-file): Use with-current-buffer (closes SF
+	#1903293).
 
 2009-11-04  Stefan Monnier  <monnier@iro.umontreal.ca>
 
