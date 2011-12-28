@@ -1,3 +1,9 @@
+2011-12-28  Jeffrey C Honig  <jch@honig.net>
+
+	* mh-folder.el (mh-inc-folder): Call mh-process-or-undo-commands
+	before running to insure we do not lose any pending changes.
+	(closes SF #2321115).
+
 2011-12-27  Ted Phelps  <phelps@gnusto.com>
 	Postpone junk processing (closes SF #2945712). Patch submitted by
 	Ted Phelps and refined by Bill Wohler.
