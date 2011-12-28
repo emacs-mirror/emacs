@@ -126,7 +126,7 @@ Support for Russian using koi8-r and the russian-computer input method.")
 (define-coding-system 'koi8-u
   "KOI8-U 8-bit encoding for Cyrillic (MIME: KOI8-U)"
   :coding-type 'charset
-  :mnemonic ?U 
+  :mnemonic ?U
   :charset-list '(koi8-u)
   :mime-charset 'koi8-u)
 
@@ -246,7 +246,7 @@ Support for Russian using koi8-r and the russian-computer input method.")
 	       (ctext-non-standard-encodings "microsoft-cp1251")
 	       (input-method . "bulgarian-bds")
 	       (documentation
-		. "Support for Bulgrian with windows-1251 character set."))
+		. "Support for Bulgarian with windows-1251 character set."))
  '("Cyrillic"))
 
 (set-language-info-alist

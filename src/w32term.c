@@ -3286,7 +3286,7 @@ w32_mouse_position (FRAME_PTR *fp, int insist, Lisp_Object *bar_window,
  ***********************************************************************/
 
 /* Handle mouse button event on the tool-bar of frame F, at
-   frame-relative coordinates X/Y.  EVENT_TYPE is either ButtionPress
+   frame-relative coordinates X/Y.  EVENT_TYPE is either ButtonPress
    or ButtonRelease.  */
 
 static void
@@ -3556,7 +3556,7 @@ x_scroll_bar_remove (struct scroll_bar *bar)
   /* Destroy the window.  */
   my_destroy_window (f, SCROLL_BAR_W32_WINDOW (bar));
 
-  /* Disassociate this scroll bar from its window.  */
+  /* Dissociate this scroll bar from its window.  */
   XWINDOW (bar->window)->vertical_scroll_bar = Qnil;
 
   UNBLOCK_INPUT;

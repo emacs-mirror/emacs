@@ -2,7 +2,7 @@
 
 ;; Copyright (C) 1997, 1999, 2001-2011  Free Software Foundation, Inc.
 
-;; Author: Koaunghi Un <koanughi.un@zdv.uni-tuebingen.de>
+;; Author: Koaunghi Un <koaunghi.un@zdv.uni-tuebingen.de>
 ;; Keywords: mule, quail, multilingual, input method, Korean, Hanja
 
 ;; This file is part of GNU Emacs.

@@ -4409,7 +4409,7 @@ This function could be useful in `message-setup-hook'."
        ;; A simple function.
        ((functionp action)
 	(funcall action))
-       ;; Something to be evaled.
+       ;; Something to be evalled.
        (t
 	(eval action))))))
 
@@ -7738,7 +7738,7 @@ Setter function for custom variables."
 			      'message-tool-bar-retro)
   "Specifies the message mode tool bar.
 
-It can be either a list or a symbol refering to a list.  See
+It can be either a list or a symbol referring to a list.  See
 `gmm-tool-bar-from-list' for the format of the list.  The
 default key map is `message-mode-map'.
 

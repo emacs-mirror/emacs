@@ -705,11 +705,11 @@ A brief description of the project or target.  This is currently used
 by the @samp{ede-speedbar} interface.
 @item ede-want-file-p
 Return non-nil if a target will accept a given file.
-It is generally unecessary to override this.  See the section on source
+It is generally unnecessary to override this.  See the section on source
 code.
 @item ede-buffer-mine
 Return non-nil if a buffer belongs to this target.  Used during
-association when a file is loaded.  It is generally unecessary to
+association when a file is loaded.  It is generally unnecessary to
 override this unless you keep auxiliary files.
 @end table
 
@@ -2483,7 +2483,7 @@ Create the make rule needed to create an archive for @var{THIS}.
 
 @deffn Method ede-proj-makefile-insert-source-variables :PRIMARY this
 Insert bin_PROGRAMS variables needed by target @var{THIS}.
-We aren't acutally inserting SOURCE details, but this is used by the
+We aren't actually inserting SOURCE details, but this is used by the
 Makefile.am generator, so use it to add this important bin program.
 @end deffn
 
@@ -2624,7 +2624,7 @@ Return the name of the main target for @var{THIS} target.
 
 @deffn Method ede-proj-makefile-insert-automake-pre-variables :AFTER this
 Insert bin_PROGRAMS variables needed by target @var{THIS}.
-We aren't acutally inserting SOURCE details, but this is used by the
+We aren't actually inserting SOURCE details, but this is used by the
 Makefile.am generator, so use it to add this important bin program.
 @end deffn
 

@@ -9999,8 +9999,6 @@ usage: (define-coding-system-internal ...)  */)
     {
       Lisp_Object bom;
 
-      CODING_ATTR_ASCII_COMPAT (attrs) = Qt;
-
       if (nargs < coding_arg_utf8_max)
 	goto short_args;
 
@@ -10014,6 +10012,8 @@ usage: (define-coding-system-internal ...)  */)
 	  CHECK_CODING_SYSTEM (val);
 	}
       ASET (attrs, coding_attr_utf_bom, bom);
+      if (NILP (bom))
+	CODING_ATTR_ASCII_COMPAT (attrs) = Qt;
 
       category = (CONSP (bom) ? coding_category_utf_8_auto
 		  : NILP (bom) ? coding_category_utf_8_nosig

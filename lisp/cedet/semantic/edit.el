@@ -470,6 +470,7 @@ a 'semantic-parse-changes-failed exception with value t."
 	     (buffer-name (current-buffer))))
   (run-hooks 'semantic-edits-incremental-reparse-failed-hook))
 
+;;;###autoload
 (defun semantic-edits-incremental-parser ()
   "Incrementally reparse the current buffer.
 Incremental parser allows semantic to only reparse those sections of

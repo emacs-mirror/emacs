@@ -1,3 +1,12 @@
+2011-12-28  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* mm-view.el (mm-display-inline-fontify): Add comment.
+
+2011-12-15  Juri Linkov  <juri@jurta.org>
+
+	* mm-decode.el (mm-inline-media-tests): Add missing
+	`mm-handle-media-subtype'.
+
 2011-12-09  Tassilo Horn  <tassilo@member.fsf.org>
 
 	* message.el (message-valid-fqdn-regexp): Update with newly approved
@@ -21335,7 +21344,7 @@
 	(gnus-agent-cat-groups): Use eval-and-compile, not
 	eval-when-compile, to define gnus-agent-set-cat-groups as the setf
 	method of gnus-agent-cat-groups even when the buffer has been
-	evaled.
+	evalled.
 	(gnus-agent-save-active, gnus-agent-save-active-1): Merge to
 	delete gnus-agent-save-active-1.
 	(gnus-agent-save-groups): Delete.  Identical to

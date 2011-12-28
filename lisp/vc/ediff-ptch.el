@@ -373,7 +373,7 @@ other files, enter /dev/null
 			 (concat actual-dir (cdr proposed-file-names)))))
 	      ))
 	  ediff-patch-map)
-    ;; Check for the existing files in each pair and discard the nonexisting
+    ;; Check for the existing files in each pair and discard the nonexistent
     ;; ones. If both exist, ask the user.
     (mapcar (lambda (session-info)
 	      (let* ((file1 (car (ediff-get-session-objA-name session-info)))

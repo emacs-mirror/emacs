@@ -702,19 +702,24 @@ See the documentation of `create-fontset-from-fontset-spec' for the format.")
 
 ;;;; Pasteboard support.
 
-(declare-function ns-get-cut-buffer-internal "nsselect.m" (buffer))
+(declare-function ns-get-selection-internal "nsselect.m" (buffer))
+(declare-function ns-store-selection-internal "nsselect.m" (buffer string))
+
+(define-obsolete-function-alias 'ns-get-cut-buffer-internal
+  'ns-get-selection-internal "24.1")
+(define-obsolete-function-alias 'ns-store-cut-buffer-internal
+  'ns-store-selection-internal "24.1")
+
 
 (defun ns-get-pasteboard ()
   "Returns the value of the pasteboard."
-  (ns-get-cut-buffer-internal 'CLIPBOARD))
-
-(declare-function ns-store-cut-buffer-internal "nsselect.m" (buffer string))
+  (ns-get-selection-internal 'CLIPBOARD))
 
 (defun ns-set-pasteboard (string)
   "Store STRING into the pasteboard of the Nextstep display server."
   ;; Check the data type of STRING.
   (if (not (stringp string)) (error "Nonstring given to pasteboard"))
-  (ns-store-cut-buffer-internal 'CLIPBOARD string))
+  (ns-store-selection-internal 'CLIPBOARD string))
 
 ;; We keep track of the last text selected here, so we can check the
 ;; current selection against it, and avoid passing back our own text
@@ -742,11 +747,11 @@ See the documentation of `create-fontset-from-fontset-spec' for the format.")
 (defun ns-copy-including-secondary ()
   (interactive)
   (call-interactively 'kill-ring-save)
-  (ns-store-cut-buffer-internal 'SECONDARY
-				(buffer-substring (point) (mark t))))
+  (ns-store-selection-internal 'SECONDARY
+			       (buffer-substring (point) (mark t))))
 (defun ns-paste-secondary ()
   (interactive)
-  (insert (ns-get-cut-buffer-internal 'SECONDARY)))
+  (insert (ns-get-selection-internal 'SECONDARY)))
 
 
 ;;;; Scrollbar handling.

@@ -66,7 +66,7 @@
 ;; Other Goals
 %start FormalParameterList
 
-;; with the terminals stuff, I used the javacript.y names,
+;; with the terminals stuff, I used the javascript.y names,
 ;; but the semantic/wisent/java-tags.wy types
 ;; when possible
 ;; ------------------

@@ -1754,7 +1754,7 @@ to the left margin, if they are in windows."
 ;; If there are min-lines lines above and below the region, then don't do
 ;; anything.
 ;; If not, recenter the region to make it so.
-;; If that isn't possible, remove context lines balancedly from top and bottom
+;; If that isn't possible, remove context lines evenly from top and bottom
 ;; so the entire region shows.
 ;; If that isn't possible, show the top of the region.
 ;; BEG must be at the beginning of a line.

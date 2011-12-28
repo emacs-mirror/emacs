@@ -5,6 +5,7 @@
 ;; Author: Dave Love <fx@gnu.org>
 ;; Maintainer: Ted Zlatanov <tzz@lifelogs.com>
 ;; Keywords: languages
+;; Version: 1.1
 
 ;; This file is part of GNU Emacs.
 
@@ -29,18 +30,18 @@
 ;; The CFEngine 3.x support doesn't have Imenu support but patches are
 ;; welcome.
 
-;; You can set it up so either cfengine-mode (2.x and earlier) or
-;; cfengine3-mode (3.x) will be picked, depending on the buffer
+;; You can set it up so either `cfengine2-mode' (2.x and earlier) or
+;; `cfengine3-mode' (3.x) will be picked, depending on the buffer
 ;; contents:
 
-;; (add-to-list 'auto-mode-alist '("\\.cf\\'" . cfengine-auto-mode))
+;; (add-to-list 'auto-mode-alist '("\\.cf\\'" . cfengine-mode))
 
 ;; OR you can choose to always use a specific version, if you prefer
-;; it
+;; it:
 
 ;; (add-to-list 'auto-mode-alist '("\\.cf\\'" . cfengine3-mode))
-;; (add-to-list 'auto-mode-alist '("^cf\\." . cfengine-mode))
-;; (add-to-list 'auto-mode-alist '("^cfagent.conf\\'" . cfengine-mode))
+;; (add-to-list 'auto-mode-alist '("^cf\\." . cfengine2-mode))
+;; (add-to-list 'auto-mode-alist '("^cfagent.conf\\'" . cfengine2-mode))
 
 ;; This is not the same as the mode written by Rolf Ebert
 ;; <ebert@waporo.muc.de>, distributed with cfengine-2.0.5.  It does
@@ -49,31 +50,36 @@
 ;;; Code:
 
 (defgroup cfengine ()
-  "Editing Cfengine files."
+  "Editing CFEngine files."
   :group 'languages)
 
 (defcustom cfengine-indent 2
-  "*Size of a Cfengine indentation step in columns."
+  "*Size of a CFEngine indentation step in columns."
   :group 'cfengine
   :type 'integer)
 
+(defvar cfengine-mode-debug nil
+  "Whether `cfengine-mode' should print debugging info.")
+
 (defcustom cfengine-mode-abbrevs nil
-  "Abbrevs for Cfengine mode."
+  "Abbrevs for CFEngine2 mode."
   :group 'cfengine
   :type '(repeat (list (string :tag "Name")
 		       (string :tag "Expansion")
 		       (choice  :tag "Hook" (const nil) function))))
 
+(make-obsolete-variable 'cfengine-mode-abbrevs 'edit-abbrevs "24.1")
+
 ;; Taken from the doc for pre-release 2.1.
 (eval-and-compile
-  (defconst cfengine-actions
+  (defconst cfengine2-actions
     '("acl" "alerts" "binservers" "broadcast" "control" "classes" "copy"
       "defaultroute" "disks" "directories" "disable" "editfiles" "files"
       "filters" "groups" "homeservers" "ignore" "import" "interfaces"
       "links" "mailserver" "methods" "miscmounts" "mountables"
       "processes" "packages" "rename" "required" "resolve"
       "shellcommands" "tidy" "unmount"
-      ;; cfservd
+      ;; Keywords for cfservd.
       "admit" "grant" "deny")
     "List of the action keywords supported by Cfengine.
 This includes those for cfservd as well as cfagent.")
@@ -98,11 +104,11 @@ This includes those for cfservd as well as cfagent.")
      '(string int real slist ilist rlist irange rrange counter))
     "List of the CFEngine 3.x variable types."))
 
-(defvar cfengine-font-lock-keywords
+(defvar cfengine2-font-lock-keywords
   `(;; Actions.
     ;; List the allowed actions explicitly, so that errors are more obvious.
     (,(concat "^[ \t]*" (eval-when-compile
-			  (regexp-opt cfengine-actions t))
+			  (regexp-opt cfengine2-actions t))
 	      ":")
      1 font-lock-keyword-face)
     ;; Classes.
@@ -117,46 +123,54 @@ This includes those for cfservd as well as cfagent.")
 
 (defvar cfengine3-font-lock-keywords
   `(
+    ;; Defuns.  This happens early so they don't get caught by looser
+    ;; patterns.
+    (,(concat "\\<" cfengine3-defuns-regex "\\>"
+              "[ \t]+\\<\\([[:alnum:]_]+\\)\\>"
+              "[ \t]+\\<\\([[:alnum:]_]+\\)"
+              ;; Optional parentheses with variable names inside.
+              "\\(?:(\\([^)]*\\))\\)?")
+     (1 font-lock-builtin-face)
+     (2 font-lock-constant-face)
+     (3 font-lock-function-name-face)
+     (4 font-lock-variable-name-face nil t))
+
+    ;; Class selectors.
     (,(concat "^[ \t]*" cfengine3-class-selector-regex)
      1 font-lock-keyword-face)
+
+    ;; Categories.
     (,(concat "^[ \t]*" cfengine3-category-regex)
      1 font-lock-builtin-face)
+
     ;; Variables, including scope, e.g. module.var
     ("[@$](\\([[:alnum:]_.]+\\))" 1 font-lock-variable-name-face)
     ("[@$]{\\([[:alnum:]_.]+\\)}" 1 font-lock-variable-name-face)
+
     ;; Variable definitions.
     ("\\<\\([[:alnum:]_]+\\)[ \t]*=[ \t]*(" 1 font-lock-variable-name-face)
 
-    ;; CFEngine 3.x faces
-    ;; defuns
-    (,(concat "\\<" cfengine3-defuns-regex "\\>"
-              "[ \t]+\\<\\([[:alnum:]_]+\\)\\>"
-              "[ \t]+\\<\\([[:alnum:]_]+\\)\\((\\([^)]*\\))\\)?")
-    (1 font-lock-builtin-face)
-    (2 font-lock-constant-name-face)
-    (3 font-lock-function-name-face)
-    (5 font-lock-variable-name-face))
-    ;; variable types
+    ;; Variable types.
     (,(concat "\\<" (eval-when-compile (regexp-opt cfengine3-vartypes t)) "\\>")
      1 font-lock-type-face)))
 
-(defvar cfengine-imenu-expression
+(defvar cfengine2-imenu-expression
   `((nil ,(concat "^[ \t]*" (eval-when-compile
-			      (regexp-opt cfengine-actions t))
+			      (regexp-opt cfengine2-actions t))
 		  ":[^:]")
 	 1)
     ("Variables/classes" "\\<\\([[:alnum:]_]+\\)[ \t]*=[ \t]*(" 1)
     ("Variables/classes" "\\<define=\\([[:alnum:]_]+\\)" 1)
     ("Variables/classes" "\\<DefineClass\\>[ \t]+\\([[:alnum:]_]+\\)" 1))
-  "`imenu-generic-expression' for Cfengine mode.")
+  "`imenu-generic-expression' for CFEngine mode.")
 
-(defun cfengine-outline-level ()
-  "`outline-level' function for Cfengine mode."
+(defun cfengine2-outline-level ()
+  "`outline-level' function for CFEngine mode."
   (if (looking-at "[^:]+\\(?:[:]+\\)$")
       (length (match-string 1))))
 
-(defun cfengine-beginning-of-defun ()
-  "`beginning-of-defun' function for Cfengine mode.
+(defun cfengine2-beginning-of-defun ()
+  "`beginning-of-defun' function for CFEngine mode.
 Treats actions as defuns."
   (unless (<= (current-column) (current-indentation))
     (end-of-line))
@@ -165,8 +179,8 @@ Treats actions as defuns."
     (goto-char (point-min)))
   t)
 
-(defun cfengine-end-of-defun ()
-  "`end-of-defun' function for Cfengine mode.
+(defun cfengine2-end-of-defun ()
+  "`end-of-defun' function for CFEngine mode.
 Treats actions as defuns."
   (end-of-line)
   (if (re-search-forward "^[[:alpha:]]+: *$" nil t)
@@ -176,7 +190,7 @@ Treats actions as defuns."
 
 ;; Fixme: Should get an extra indent step in editfiles BeginGroup...s.
 
-(defun cfengine-indent-line ()
+(defun cfengine2-indent-line ()
   "Indent a line in Cfengine mode.
 Intended as the value of `indent-line-function'."
   (let ((pos (- (point-max) (point))))
@@ -283,15 +297,17 @@ Intended as the value of `indent-line-function'."
       (narrow-to-defun)
       (back-to-indentation)
       (setq parse (parse-partial-sexp (point-min) (point)))
-      (message "%S" parse)
+      (when cfengine-mode-debug
+        (message "%S" parse))
+
       (cond
-       ;; body/bundle blocks start at 0
+       ;; Body/bundle blocks start at 0.
        ((looking-at (concat cfengine3-defuns-regex "\\>"))
         (indent-line-to 0))
-       ;; categories are indented one step
+       ;; Categories are indented one step.
        ((looking-at (concat cfengine3-category-regex "[ \t]*$"))
         (indent-line-to cfengine-indent))
-       ;; class selectors are indented two steps
+       ;; Class selectors are indented two steps.
        ((looking-at (concat cfengine3-class-selector-regex "[ \t]*$"))
         (indent-line-to (* 2 cfengine-indent)))
        ;; Outdent leading close brackets one step.
@@ -303,11 +319,17 @@ Intended as the value of `indent-line-function'."
                               (backward-sexp)
                               (current-column)))
           (error nil)))
-       ;; inside a string and it starts before this line
+       ;; Inside a string and it starts before this line.
        ((and (nth 3 parse)
              (< (nth 8 parse) (save-excursion (beginning-of-line) (point))))
         (indent-line-to 0))
-       ;; inside a defun, but not a nested list (depth is 1)
+
+       ;; Inside a defun, but not a nested list (depth is 1).  This is
+       ;; a promise, usually.
+
+       ;; Indent to cfengine-indent times the nested depth
+       ;; plus 2.  That way, promises indent deeper than class
+       ;; selectors, which in turn are one deeper than categories.
        ((= 1 (nth 0 parse))
         (indent-line-to (* (+ 2 (nth 0 parse)) cfengine-indent)))
        ;; Inside brackets/parens: indent to start column of non-comment
@@ -411,18 +433,18 @@ Intended as the value of `indent-line-function'."
   (set (make-local-variable 'parse-sexp-ignore-comments) t))
 
 (defun cfengine-common-syntax (table)
-  ;; the syntax defaults seem OK to give reasonable word movement
+  ;; The syntax defaults seem OK to give reasonable word movement.
   (modify-syntax-entry ?# "<" table)
   (modify-syntax-entry ?\n ">#" table)
   (modify-syntax-entry ?\" "\"" table)
-  ;; variable substitution:
+  ;; Variable substitution.
   (modify-syntax-entry ?$ "." table)
-  ;; Doze path separators:
+  ;; Doze path separators.
   (modify-syntax-entry ?\\ "." table))
 
 ;;;###autoload
-(define-derived-mode cfengine3-mode prog-mode "CFEngine3"
-  "Major mode for editing cfengine input.
+(define-derived-mode cfengine3-mode prog-mode "CFE3"
+  "Major mode for editing CFEngine3 input.
 There are no special keybindings by default.
 
 Action blocks are treated as defuns, i.e. \\[beginning-of-defun] moves
@@ -434,46 +456,46 @@ to the action header."
   (setq font-lock-defaults
         '(cfengine3-font-lock-keywords nil nil nil beginning-of-defun))
 
-  ;; use defuns as the essential syntax block
+  ;; Use defuns as the essential syntax block.
   (set (make-local-variable 'beginning-of-defun-function)
        #'cfengine3-beginning-of-defun)
   (set (make-local-variable 'end-of-defun-function)
        #'cfengine3-end-of-defun))
 
 ;;;###autoload
-(define-derived-mode cfengine-mode prog-mode "Cfengine"
-  "Major mode for editing cfengine input.
+(define-derived-mode cfengine2-mode prog-mode "CFE2"
+  "Major mode for editing CFEngine2 input.
 There are no special keybindings by default.
 
 Action blocks are treated as defuns, i.e. \\[beginning-of-defun] moves
 to the action header."
   (cfengine-common-settings)
-  (cfengine-common-syntax cfengine-mode-syntax-table)
+  (cfengine-common-syntax cfengine2-mode-syntax-table)
 
   ;; Shell commands can be quoted by single, double or back quotes.
   ;; It's debatable whether we should define string syntax, but it
   ;; should avoid potential confusion in some cases.
-  (modify-syntax-entry ?\' "\"" cfengine-mode-syntax-table)
-  (modify-syntax-entry ?\` "\"" cfengine-mode-syntax-table)
+  (modify-syntax-entry ?\' "\"" cfengine2-mode-syntax-table)
+  (modify-syntax-entry ?\` "\"" cfengine2-mode-syntax-table)
 
-  (set (make-local-variable 'indent-line-function) #'cfengine-indent-line)
+  (set (make-local-variable 'indent-line-function) #'cfengine2-indent-line)
   (set (make-local-variable 'outline-regexp) "[ \t]*\\(\\sw\\|\\s_\\)+:+")
-  (set (make-local-variable 'outline-level) #'cfengine-outline-level)
+  (set (make-local-variable 'outline-level) #'cfengine2-outline-level)
   (set (make-local-variable 'fill-paragraph-function)
        #'cfengine-fill-paragraph)
-  (define-abbrev-table 'cfengine-mode-abbrev-table cfengine-mode-abbrevs)
+  (define-abbrev-table 'cfengine2-mode-abbrev-table cfengine-mode-abbrevs)
   (setq font-lock-defaults
-	'(cfengine-font-lock-keywords nil nil nil beginning-of-line))
+        '(cfengine2-font-lock-keywords nil nil nil beginning-of-line))
   ;; Fixme: set the args of functions in evaluated classes to string
   ;; syntax, and then obey syntax properties.
-  (setq imenu-generic-expression cfengine-imenu-expression)
+  (setq imenu-generic-expression cfengine2-imenu-expression)
   (set (make-local-variable 'beginning-of-defun-function)
-       #'cfengine-beginning-of-defun)
-  (set (make-local-variable 'end-of-defun-function) #'cfengine-end-of-defun))
+       #'cfengine2-beginning-of-defun)
+  (set (make-local-variable 'end-of-defun-function) #'cfengine2-end-of-defun))
 
 ;;;###autoload
 (defun cfengine-auto-mode ()
-  "Choose between `cfengine-mode' and `cfengine3-mode' depending
+  "Choose between `cfengine2-mode' and `cfengine3-mode' depending
 on the buffer contents"
   (let ((v3 nil))
     (save-restriction
@@ -481,7 +503,9 @@ on the buffer contents"
       (while (not (or (eobp) v3))
         (setq v3 (looking-at (concat cfengine3-defuns-regex "\\>")))
         (forward-line)))
-    (if v3 (cfengine3-mode) (cfengine-mode))))
+    (if v3 (cfengine3-mode) (cfengine2-mode))))
+
+(defalias 'cfengine-mode 'cfengine-auto-mode)
 
 (provide 'cfengine3)
 (provide 'cfengine)

@@ -669,7 +669,7 @@ non-nil.
 If the match is a string, it is used as a regexp match on the
 article.  If the match is a symbol, that symbol will be funcalled
 from the buffer of the article to be saved with the newsgroup as the
-parameter.  If it is a list, it will be evaled in the same buffer.
+parameter.  If it is a list, it will be evalled in the same buffer.
 
 If this form or function returns a string, this string will be used as a
 possible file name; and if it returns a non-nil list, that list will be

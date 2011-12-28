@@ -109,7 +109,7 @@ Only minor modes that are locally enabled are shown in the mode line."
                  (tail (or (memq elem minor-mode-alist)
                            (setq minor-mode-alist
                                  (cons elem minor-mode-alist)))))
-            (setcdr tail (nconc locals (cdr tail)))))))))      
+            (setcdr tail (nconc locals (cdr tail)))))))))
 
 (defun semantic-desktop-ignore-this-minor-mode (buffer)
   "Installed as a minor-mode initializer for Desktop mode.
@@ -438,7 +438,7 @@ The state is indicated in the modeline with the following characters:
  `-'  ->  The cache is up to date.
  `!'  ->  The cache requires a full update.
  `~'  ->  The cache needs to be incrementally parsed.
- `%'  ->  The cache is not currently parseable.
+ `%'  ->  The cache is not currently parsable.
  `@'  ->  Auto-parse in progress (not set here.)
 With prefix argument ARG, turn on if positive, otherwise off.  The
 minor mode can be turned on only if semantic feature is available and
@@ -524,7 +524,7 @@ This marker is one of the following:
  `-'  ->  The cache is up to date.
  `!'  ->  The cache requires a full update.
  `~'  ->  The cache needs to be incrementally parsed.
- `%'  ->  The cache is not currently parseable.
+ `%'  ->  The cache is not currently parsable.
  `@'  ->  Auto-parse in progress (not set here.)
 Arguments IGNORE are ignored, and accepted so this can be used as a hook
 in many situations."

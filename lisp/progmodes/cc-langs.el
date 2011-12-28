@@ -485,28 +485,56 @@ The functions are called even when font locking isn't enabled.
 When the mode is initialized, the functions are called with
 parameters \(point-min) and \(point-max).")
 
-(c-lang-defconst c-before-font-lock-function
-  "If non-nil, a function called just before font locking.
-Typically it will extend the region about to be fontified \(see
+(c-lang-defconst c-before-font-lock-functions
+  ;; For documentation see the following c-lang-defvar of the same name.
+  ;; The value here may be a list of functions or a single function.
+  t 'c-change-set-fl-decl-start
+  (c c++ objc) '(c-neutralize-syntax-in-and-mark-CPP
+		 c-change-set-fl-decl-start)
+  awk 'c-awk-extend-and-syntax-tablify-region)
+(c-lang-defvar c-before-font-lock-functions
+	       (let ((fs (c-lang-const c-before-font-lock-functions)))
+		 (if (listp fs)
+		     fs
+		   (list fs)))
+  "If non-nil, a list of functions called just before font locking.
+Typically they will extend the region about to be fontified \(see
 below) and will set `syntax-table' text properties on the region.
 
-It takes 3 parameters, the BEG, END, and OLD-LEN supplied to
-every after-change function; point is undefined on both entry and
-exit; on entry, the buffer will have been widened and match-data
-will have been saved; the return value is ignored.
+These functions will be run in the order given.  Each of them
+takes 3 parameters, the BEG, END, and OLD-LEN supplied to every
+after-change function; point is undefined on both entry and exit;
+on entry, the buffer will have been widened and match-data will
+have been saved; the return value is ignored.
 
-The function may extend the region to be fontified by setting the
+The functions may extend the region to be fontified by setting the
 buffer local variables c-new-BEG and c-new-END.
 
-The function is called even when font locking is disabled.
+The functions are called even when font locking is disabled.
 
-When the mode is initialized, this function is called with
-parameters \(point-min), \(point-max) and <buffer size>."
-  t nil
-  (c c++ objc) 'c-neutralize-syntax-in-and-mark-CPP
-  awk 'c-awk-extend-and-syntax-tablify-region)
-(c-lang-defvar c-before-font-lock-function
-	       (c-lang-const c-before-font-lock-function))
+When the mode is initialized, these functions are called with
+parameters \(point-min), \(point-max) and <buffer size>.")
+
+(c-lang-defconst c-before-context-fontification-functions
+  awk nil
+  t 'c-context-set-fl-decl-start)
+  ;; For documentation see the following c-lang-defvar of the same name.
+  ;; The value here may be a list of functions or a single function.
+(c-lang-defvar c-before-context-fontification-functions
+  (let ((fs (c-lang-const c-before-context-fontification-functions)))
+    (if (listp fs)
+	fs
+      (list fs)))
+  "If non-nil, a list of functions called just before context (or
+other non-change) fontification is done.  Typically they will
+extend the region.
+
+These functions will be run in the order given.  Each of them
+takes 2 parameters, the BEG and END of the region to be
+fontified.  Point is undefined on both entry and exit.  On entry,
+the buffer will have been widened and match-data will have been
+saved; the return value is a cons of the adjusted
+region, (NEW-BEG . NEW-END).")
 
 
 ;;; Syntactic analysis ("virtual semicolons") for line-oriented languages (AWK).
@@ -2242,8 +2270,7 @@ This construct is \"<keyword> <expression> :\"."
 
 (c-lang-defconst c-label-kwds
   "Keywords introducing colon terminated labels in blocks."
-  t '("case" "default")
-  awk nil)
+  t '("case" "default"))
 
 (c-lang-defconst c-label-kwds-regexp
   ;; Adorned regexp matching any keyword that introduces a label.
@@ -2998,18 +3025,19 @@ neither in a statement nor in a declaration context.  The regexp is
 tested at the beginning of every sexp in a suspected label,
 i.e. before \":\".  Only used if `c-recognize-colon-labels' is set."
   t (concat
-     ;; Don't allow string literals.
-     "\"\\|"
      ;; All keywords except `c-label-kwds' and `c-protection-kwds'.
      (c-make-keywords-re t
        (set-difference (c-lang-const c-keywords)
 		       (append (c-lang-const c-label-kwds)
 			       (c-lang-const c-protection-kwds))
 		       :test 'string-equal)))
+  ;; Don't allow string literals, except in AWK.  Character constants are OK.
+  (c objc java pike idl) (concat "\"\\|"
+				 (c-lang-const c-nonlabel-token-key))
   ;; Also check for open parens in C++, to catch member init lists in
   ;; constructors.  We normally allow it so that macros with arguments
   ;; work in labels.
-  c++ (concat "\\s\(\\|" (c-lang-const c-nonlabel-token-key)))
+  c++ (concat "\\s\(\\|\"\\|" (c-lang-const c-nonlabel-token-key)))
 (c-lang-defvar c-nonlabel-token-key (c-lang-const c-nonlabel-token-key))
 
 (c-lang-defconst c-nonlabel-token-2-key

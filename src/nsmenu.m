@@ -74,6 +74,10 @@ EmacsMenu *mainMenu, *svcsMenu, *dockMenu;
 static int popup_activated_flag;
 static NSModalSession popupSession;
 
+/* Nonzero means we are tracking and updating menus.  */
+static int trackingMenu;
+
+
 /* NOTE: toolbar implementation is at end,
   following complete menu implementation. */
 
@@ -400,6 +404,7 @@ ns_update_menubar (struct frame *f, int deep_p, EmacsMenu *submenu)
       items = FRAME_MENU_BAR_ITEMS (f);
       if (NILP (items))
         {
+          free_menubar_widget_value_tree (first_wv);
           [pool release];
           UNBLOCK_INPUT;
           return;
@@ -427,6 +432,7 @@ ns_update_menubar (struct frame *f, int deep_p, EmacsMenu *submenu)
 
           if (i == n)
             {
+              free_menubar_widget_value_tree (first_wv);
               [pool release];
               UNBLOCK_INPUT;
               return;
@@ -543,21 +549,44 @@ set_frame_menubar (struct frame *f, int first_time, int deep_p)
   frame = f;
 }
 
+#ifdef NS_IMPL_COCOA
+#if MAC_OS_X_VERSION_MAX_ALLOWED < MAC_OS_X_VERSION_10_5
+extern NSString *NSMenuDidBeginTrackingNotification;
+#endif
+#endif
+
+#ifdef NS_IMPL_COCOA
+-(void)trackingNotification:(NSNotification *)notification
+{
+  /* Update menu in menuNeedsUpdate only while tracking menus.  */
+  trackingMenu = ([notification name] == NSMenuDidBeginTrackingNotification
+                  ? 1 : 0);
+}
+#endif
 
 /* delegate method called when a submenu is being opened: run a 'deep' call
    to set_frame_menubar */
 - (void)menuNeedsUpdate: (NSMenu *)menu
 {
-  NSEvent *event;
   if (!FRAME_LIVE_P (frame))
     return;
-  event = [[FRAME_NS_VIEW (frame) window] currentEvent];
-  /* HACK: Cocoa/Carbon will request update on every keystroke
+
+  /* Cocoa/Carbon will request update on every keystroke
      via IsMenuKeyEvent -> CheckMenusForKeyEvent.  These are not needed
      since key equivalents are handled through emacs.
-     On Leopard, even keystroke events generate SystemDefined events, but
-     their subtype is 8. */
-  if ([event type] != NSSystemDefined || [event subtype] == 8
+     On Leopard, even keystroke events generate SystemDefined event.
+     Third-party applications that enhance mouse / trackpad
+     interaction, or also VNC/Remote Desktop will send events
+     of type AppDefined rather than SysDefined.
+     Menus will fail to show up if they haven't been initialized.
+     AppDefined events may lack timing data.
+
+     Thus, we rely on the didBeginTrackingNotification notification
+     as above to indicate the need for updates.
+     From 10.6 on, we could also use -[NSMenu propertiesToUpdate]: In the
+     key press case, NSMenuPropertyItemImage (e.g.) won't be set.
+  */
+  if (trackingMenu == 0
       /* Also, don't try this if from an event picked up asynchronously,
          as lots of lisp evaluation happens in ns_update_menubar. */
       || handling_signal != 0)
@@ -1795,6 +1824,11 @@ DEFUN ("menu-or-popup-active-p", Fmenu_or_popup_active_p, Smenu_or_popup_active_
 void
 syms_of_nsmenu (void)
 {
+#ifndef NS_IMPL_COCOA
+  /* Don't know how to keep track of this in Next/Open/Gnustep.  Always
+     update menus there.  */
+  trackingMenu = 1;
+#endif
   defsubr (&Sx_popup_dialog);
   defsubr (&Sns_reset_menu);
   defsubr (&Smenu_or_popup_active_p);

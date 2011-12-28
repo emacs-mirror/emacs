@@ -219,10 +219,10 @@ Calc user interface as before (either C-x * C or C-x * K; initially C-x * C).
   (let ((msgs
 	 '("Press `h' for complete help; press `?' repeatedly for a summary"
 	   "Letter keys: Negate; Precision; Yank; Why; Xtended cmd; Quit"
-	   "Letter keys: SHIFT + Undo, reDo; Keep-args; Inverse, Hyperbolic, Option"
+	   "Letter keys: SHIFT + Undo, reDo; Inverse, Hyperbolic, Option"
 	   "Letter keys: SHIFT + sQrt; Sin, Cos, Tan; Exp, Ln, logB"
 	   "Letter keys: SHIFT + Floor, Round; Abs, conJ, arG; Pi"
-	   "Letter keys: SHIFT + Num-eval; More-recn; eXec-kbd-macro"
+	   "Letter keys: SHIFT + Num-eval; More-recn; eXec-kbd-macro; Keep-args"
 	   "Other keys: +, -, *, /, ^, \\ (int div), : (frac div)"
 	   "Other keys: & (1/x), | (concat), % (modulo), ! (factorial)"
 	   "Other keys: ' (alg-entry), = (eval), ` (edit); M-RET (last-args)"
