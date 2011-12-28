@@ -1,3 +1,10 @@
+2011-12-28  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* gnus.texi (Mail Source Customization, Mail Back End Variables):
+	Use octal notation for file permissions, which are normally
+	thought of in octal.
+	(Mail Back End Variables): Use more-plausible modes in example.
+
 2011-12-20  Alan Mackenzie  <acm@muc.de>
 
 	* cc-mode.texi: Update version string 5.31 -> 5.32.

@@ -1115,13 +1115,8 @@ This function recursively follows symbolic links at all levels.
 @end group
 
 @group
-(set-file-modes "~/junk/diffs" 438)
+(set-file-modes "~/junk/diffs" #o666)
      @result{} nil
-@end group
-
-@group
-(format "%o" 438)
-     @result{} "666"             ; @r{Convert to octal.}
 @end group
 
 @group
@@ -1570,10 +1565,10 @@ the bitwise complement of the ``umask'' value.
 
 The argument @var{mode} must be an integer.  On most systems, only the
 low 9 bits of @var{mode} are meaningful.  You can use the Lisp construct
-for octal character codes to enter @var{mode}; for example,
+for octal numbers to enter @var{mode}; for example,
 
 @example
-(set-default-file-modes ?\644)
+(set-default-file-modes #o644)
 @end example
 
 Saving a modified version of an existing file does not count as creating
