@@ -1,3 +1,8 @@
+2011-12-29  Daniel Colascione  <dan.colascione@gmail.com>
+
+	* frames.texi (Font and Color Parameters):
+	Document w32 font backends (bug#10399).
+
 2011-12-28  Paul Eggert  <eggert@cs.ucla.edu>
 
 	* files.texi (File Attributes, Changing Files):
