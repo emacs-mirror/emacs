@@ -888,11 +888,11 @@ and bar becomes a narrower bar).
 A list of symbols, specifying the @dfn{font backends} to use for
 drawing fonts in the frame, in order of priority.  On X, there are
 currently two available font backends: @code{x} (the X core font
-driver) and @code{xft} (the Xft font driver).  On Windows, there
-are currently two available font backends: @code{gdi} and
-@code{uniscribe}.  On other systems, there is only one available
-font backend, so it does not make sense to modify this frame
-parameter.
+driver) and @code{xft} (the Xft font driver).  On Windows, there are
+currently two available font backends: @code{gdi} and
+@code{uniscribe} (@pxref{Windows Fonts,,, emacs, The GNU Emacs
+Manual}).  On other systems, there is only one available font backend,
+so it does not make sense to modify this frame parameter.
 
 @vindex background-mode, a frame parameter
 @item background-mode
