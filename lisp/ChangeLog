@@ -1,6 +1,7 @@
 2011-12-29  Paul Eggert  <eggert@cs.ucla.edu>
 
 	* files.el (move-file-to-trash): Preserve default file modes on error.
+	(Bug#10401)
 
 2011-12-29  Michael Albinus  <michael.albinus@gmx.de>
 
