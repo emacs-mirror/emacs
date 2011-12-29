@@ -1,13 +1,13 @@
 2011-12-29  Paul Eggert  <eggert@cs.ucla.edu>
 
-	emacs: fix an auto-save permissions race condition
+	emacs: fix an auto-save permissions race condition (Bug#10400)
 	* fileio.c (auto_saving_dir_umask): New static var.
 	(Fmake_directory_internal): Use it.
 	(do_auto_save_make_dir): Set it, instead of invoking chmod after
 	creating the directory.  The old code temporarily assigns
 	too-generous permissions to the directory.
 	(do_auto_save_eh): Clear it.
-	(Fdo_auto_save): Catch all errrors, not just file errors, so
+	(Fdo_auto_save): Catch all errors, not just file errors, so
 	that the var is always cleared.
 
 2011-12-28  Kenichi Handa  <handa@m17n.org>
