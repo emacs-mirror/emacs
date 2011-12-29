@@ -1,3 +1,9 @@
+2011-12-29  Chong Yidong  <cyd@gnu.org>
+
+	* text.texi (Org Mode): Copyedits.  Refer to Outline Format for
+	example.  Add index entries.
+	(Org Organizer, Org Authoring): Nodes renamed.  Copyedits.
+
 2011-12-26  Chong Yidong  <cyd@gnu.org>
 
 	* dired.texi (Dired Enter, Misc Dired Features): Document
