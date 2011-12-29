@@ -3618,7 +3618,8 @@ file exists and nonzero exit status otherwise."
 	     vec 'file-error
 	     "Couldn't find a shell which groks tilde expansion"))
 	  (tramp-message
-	   vec 5 "Starting remote shell `%s' for tilde expansion" shell)
+	   vec 5 "Starting remote shell `%s' for tilde expansion"
+	   (tramp-set-connection-property vec "remote-shell" shell))
 	  (tramp-open-shell vec shell))
 
 	 (t (tramp-message
@@ -3784,6 +3785,17 @@ process to set up.  VEC specifies the connection."
 
   ;; Disable unexpected output.
   (tramp-send-command vec "mesg n; biff n" t)
+
+  ;; Busyboxes tend to behave strange.  We check for the existence.
+  (with-connection-property vec "busybox"
+    (tramp-send-command
+     vec
+     (format
+      "%s --version" (tramp-get-connection-property vec "remote-shell" "echo"))
+     t)
+    (with-current-buffer (process-buffer proc)
+      (let ((case-fold-search t))
+	(and (string-match "busybox" (buffer-string)) t))))
 
   ;; IRIX64 bash expands "!" even when in single quotes.  This
   ;; destroys our shell functions, we must disable it.  See
@@ -4397,7 +4409,8 @@ function waits for output unless NOOUTPUT is set."
       ;; We mark the command string that it can be erased in the output buffer.
       (tramp-set-connection-property p "check-remote-echo" t)
       (setq command (format "%s%s%s" tramp-echo-mark command tramp-echo-mark)))
-    (when (string-match "<<'EOF'" command)
+    (when (and (string-match "<<'EOF'" command)
+	       (not (tramp-get-connection-property vec "busybox" nil)))
       ;; Unset $PS1 when using here documents, in order to avoid
       ;; multiple prompts.
       (setq command (concat "(PS1= ; " command "\n)")))
