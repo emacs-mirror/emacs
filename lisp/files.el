@@ -6457,12 +6457,14 @@ Otherwise, trash FILENAME using the freedesktop.org conventions,
 
 	   ;; Ensure that the trash directory exists; otherwise, create it.
 	   (let ((saved-default-file-modes (default-file-modes)))
-	     (set-default-file-modes ?\700)
-	     (unless (file-exists-p trash-files-dir)
-	       (make-directory trash-files-dir t))
-	     (unless (file-exists-p trash-info-dir)
-	       (make-directory trash-info-dir t))
-	     (set-default-file-modes saved-default-file-modes))
+	     (unwind-protect
+		 (progn
+		   (set-default-file-modes #o700)
+		   (unless (file-exists-p trash-files-dir)
+		     (make-directory trash-files-dir t))
+		   (unless (file-exists-p trash-info-dir)
+		     (make-directory trash-info-dir t)))
+	       (set-default-file-modes saved-default-file-modes)))
 
 	   ;; Try to move to trash with .trashinfo undo information
 	   (save-excursion
