@@ -1,6 +1,11 @@
+2011-12-28  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* mm-view.el (mm-display-inline-fontify): Add comment.
+
 2011-12-15  Juri Linkov  <juri@jurta.org>
 
-	* mm-decode.el (mm-inline-media-tests): Add missing `mm-handle-media-subtype'.
+	* mm-decode.el (mm-inline-media-tests): Add missing
+	`mm-handle-media-subtype'.
 
 2011-12-09  Tassilo Horn  <tassilo@member.fsf.org>
 
@@ -4708,7 +4713,7 @@
 2010-10-24  Lars Magne Ingebrigtsen  <larsi@gnus.org>
 
 	* nnimap.el (nnimap-request-head): New function.
-	(nnimap-request-move-article): Try to be slighly faster by not
+	(nnimap-request-move-article): Try to be slightly faster by not
 	requesting the entire message when moving.
 	(nnimap-transform-headers): Don't bug out on bodiless articles.
 	(nnimap-send-command): Have no outstanding messages if the IMAP server

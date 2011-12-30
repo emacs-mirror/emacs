@@ -53,7 +53,7 @@
 
 (defcustom pgg-parse-symmetric-key-algorithm-alist
   '((1 . IDEA) (2 . 3DES) (4 . CAST5) (5 . SAFER-SK128))
-  "Alist of the assigned number to the simmetric key algorithm."
+  "Alist of the assigned number to the symmetric key algorithm."
   :group 'pgg-parse
   :type '(repeat
 	  (cons (sexp :tag "Number") (sexp :tag "Type"))))

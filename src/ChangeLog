@@ -1,3 +1,16 @@
+2011-12-28  Kenichi Handa  <handa@m17n.org>
+
+	* coding.c (Fdefine_coding_system_internal): Make an utf-8 base
+	coding-system ASCII compatible only when it does not produce BOM
+	on encoding (Bug#10383).
+
+2011-12-26  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* xmenu.c (x_menu_wait_for_event): Use xg_select for Gtk3 so menus
+	can scroll.
+	(create_and_show_popup_menu): Always use menu_position_func for
+	Gtk3 (Bug#10361).
+
 2011-12-24  Andreas Schwab  <schwab@linux-m68k.org>
 
 	* callint.c (Fcall_interactively): Don't truncate prompt string.

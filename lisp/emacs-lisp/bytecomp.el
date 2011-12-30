@@ -3725,7 +3725,7 @@ that suppresses all warnings during execution of BODY."
 (defun byte-compile-if (form)
   (byte-compile-form (car (cdr form)))
   ;; Check whether we have `(if (fboundp ...' or `(if (boundp ...'
-  ;; and avoid warnings about the relevent symbols in the consequent.
+  ;; and avoid warnings about the relevant symbols in the consequent.
   (let ((clause (nth 1 form))
 	(donetag (byte-compile-make-tag)))
     (if (null (nthcdr 3 form))

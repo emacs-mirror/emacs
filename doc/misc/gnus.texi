@@ -15033,7 +15033,7 @@ number.
 
 @item mail-source-default-file-modes
 @vindex mail-source-default-file-modes
-All new mail files will get this file mode.  The default is 384.
+All new mail files will get this file mode.  The default is @code{#o600}.
 
 @item mail-source-movemail-program
 @vindex mail-source-movemail-program
@@ -15123,10 +15123,10 @@ default file modes the new mail files get:
 
 @lisp
 (add-hook 'nnmail-pre-get-new-mail-hook
-          (lambda () (set-default-file-modes 511)))
+          (lambda () (set-default-file-modes #o700)))
 
 (add-hook 'nnmail-post-get-new-mail-hook
-          (lambda () (set-default-file-modes 551)))
+          (lambda () (set-default-file-modes #o775)))
 @end lisp
 
 @item nnmail-use-long-file-names

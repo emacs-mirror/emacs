@@ -171,7 +171,7 @@ Extracted from `org-export-as-pdf' in org-latex.el."
       pdffile)))
 
 (defun org-babel-prep-session:latex (session params)
-  "Return an error because LaTeX doesn't support sesstions."
+  "Return an error because LaTeX doesn't support sessions."
   (error "LaTeX does not support sessions"))
 
 (provide 'ob-latex)

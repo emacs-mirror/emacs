@@ -5140,7 +5140,7 @@ Return the URL or nil if none can be generated."
 	  (message "No URL known."))
       url)))
 
-;; We could combine multiple seach results with set operations
+;; We could combine multiple search results with set operations
 ;; AND, OR, MINUS, and NOT.  Would this be useful?
 ;; How complicated are searches in real life?
 ;; We could also have other searches such as "publication year newer than...".
