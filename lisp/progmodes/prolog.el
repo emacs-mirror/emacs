@@ -3262,7 +3262,7 @@ STRING should be given if the last search was by `string-match' on STRING."
 (defun prolog-clause-start (&optional not-allow-methods)
   "Return the position at the start of the head of the current clause.
 If NOTALLOWMETHODS is non-nil then do not match on methods in
-objects (relevent only if 'prolog-system' is set to 'sicstus)."
+objects (relevant only if 'prolog-system' is set to 'sicstus)."
   (save-excursion
     (let ((notdone t)
           (retval (point-min)))
@@ -3328,7 +3328,7 @@ objects (relevent only if 'prolog-system' is set to 'sicstus)."
 (defun prolog-clause-end (&optional not-allow-methods)
   "Return the position at the end of the current clause.
 If NOTALLOWMETHODS is non-nil then do not match on methods in
-objects (relevent only if 'prolog-system' is set to 'sicstus)."
+objects (relevant only if 'prolog-system' is set to 'sicstus)."
   (save-excursion
     (beginning-of-line) ; Necessary since we use "^...." for the search.
     (if (re-search-forward

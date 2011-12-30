@@ -342,7 +342,7 @@ Name of the Previous sequence.")
   "Non-nil means that we have \"flists\".")
 
 (defvar mh-index-data-file ".mhe_index"
-  "MH-E specific file where index seach info is stored.")
+  "MH-E specific file where index search info is stored.")
 
 (defvar mh-letter-header-field-regexp "^\\([A-Za-z][A-Za-z0-9-]*\\):")
 

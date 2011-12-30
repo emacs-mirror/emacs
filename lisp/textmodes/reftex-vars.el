@@ -1750,7 +1750,7 @@ The option is ignored when `reftex-use-fonts' is nil."
 (defcustom reftex-highlight-selection 'cursor
   "*Non-nil mean, highlight selected text in selection and *toc* buffers.
 Normally, the text near the cursor is the selected text, and it is
-highlighted.  This is the entry most keys in the selction and *toc*
+highlighted.  This is the entry most keys in the selection and *toc*
 buffers act on.  However, if you mainly use the mouse to select an
 item, you may find it nice to have mouse-triggered highlighting
 instead or as well.  The variable may have one of these values:

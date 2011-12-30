@@ -4713,7 +4713,7 @@
 2010-10-24  Lars Magne Ingebrigtsen  <larsi@gnus.org>
 
 	* nnimap.el (nnimap-request-head): New function.
-	(nnimap-request-move-article): Try to be slighly faster by not
+	(nnimap-request-move-article): Try to be slightly faster by not
 	requesting the entire message when moving.
 	(nnimap-transform-headers): Don't bug out on bodiless articles.
 	(nnimap-send-command): Have no outstanding messages if the IMAP server

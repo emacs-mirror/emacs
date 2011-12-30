@@ -3492,7 +3492,7 @@ usage: (make-network-process &rest ARGS)  */)
 	     || (NILP (buffer) && NILP (BVAR (&buffer_defaults, enable_multibyte_characters))))
       /* We dare not decode end-of-line format by setting VAL to
 	 Qraw_text, because the existing Emacs Lisp libraries
-	 assume that they receive bare code including a sequene of
+	 assume that they receive bare code including a sequence of
 	 CR LF.  */
       val = Qnil;
     else

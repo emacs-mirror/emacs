@@ -506,7 +506,7 @@ struct font_driver
   Lisp_Object type;
 
   /* 1 iff the font's foundry, family, and adstyle names are case
-     sensitve.  */
+     sensitive.  */
   int case_sensitive;
 
   /* Return a cache of font-entities on frame F.  The cache must be a

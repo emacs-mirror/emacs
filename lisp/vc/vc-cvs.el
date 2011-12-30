@@ -319,7 +319,7 @@ its parents."
   (unless (or (not rev) (vc-cvs-valid-revision-number-p rev))
     (if (not (vc-cvs-valid-symbolic-tag-name-p rev))
 	(error "%s is not a valid symbolic tag name" rev)
-      ;; If the input revison is a valid symbolic tag name, we create it
+      ;; If the input revision is a valid symbolic tag name, we create it
       ;; as a branch, commit and switch to it.
       (apply 'vc-cvs-command nil 0 files "tag" "-b" (list rev))
       (apply 'vc-cvs-command nil 0 files "update" "-r" (list rev))

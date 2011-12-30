@@ -1635,7 +1635,7 @@ Use this to redecorate only the item, when you know that its
 situation with respect to siblings, parent, and offspring is
 unchanged from its last decoration.  Use
 `allout-decorate-item-and-context' instead to reassess and adjust
-relevent context, when suitable."
+relevant context, when suitable."
   (if (not (equal (widget-get item-widget :last-decorated-tick)
                   allout-command-counter))
       (let ((was-modified (buffer-modified-p))

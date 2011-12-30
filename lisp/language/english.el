@@ -30,7 +30,7 @@
 
 ;; We need nothing special to support English on Emacs.  Selecting
 ;; English as a language environment is one of the ways to reset
-;; various multilingual environment to the original settting.
+;; various multilingual environment to the original setting.
 
 ;;; Code:
 

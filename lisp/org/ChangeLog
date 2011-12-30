@@ -322,7 +322,7 @@
 2011-07-28  Nicolas Goaziou  <n.goaziou@gmail.com>
 
 	* org-capture.el (org-capture): If no file is associated to
-	current buffer, check dired buffer and try to retreive a possibly
+	current buffer, check dired buffer and try to retrieve a possibly
 	directory associated.
 
 2011-07-28  Eric Schulte  <schulte.eric@gmail.com>
@@ -948,7 +948,7 @@
 2011-07-28  Nicolas Goaziou  <n.goaziou@gmail.com>
 
 	* org-latex.el (org-export-latex-preprocess): Rely on
-	`org-export-footnotes-markers' to retreive definition of the
+	`org-export-footnotes-markers' to retrieve definition of the
 	current footnote during export.
 
 2011-07-28  Nicolas Goaziou  <n.goaziou@gmail.com>

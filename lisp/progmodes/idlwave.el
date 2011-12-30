@@ -7855,7 +7855,7 @@ Restore the pre-completion window configuration if possible."
 If point is on a keyword, help for that keyword will be shown.  If
 point is on a routine name or in the argument list of a routine, help
 for that routine will be displayed.  Works for system routines and
-keywords, it pulls up text help.  For other routies and keywords,
+keywords, it pulls up text help.  For other routines and keywords,
 visits the source file, finding help in the header (if
 `idlwave-help-source-try-header' is non-nil) or the routine definition
 itself."

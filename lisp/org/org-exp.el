@@ -2290,7 +2290,7 @@ TYPE must be a string, any of:
 			    (plist-get org-export-opt-plist
 				       (intern (concat ":" key)))))
 	  (save-match-data
-	    ;; If arguments are provided, first retreive them properly
+	    ;; If arguments are provided, first retrieve them properly
 	    ;; (in ARGS, as a list), then replace them in VAL.
 	    (when args
 	      (setq args (org-split-string args ",") args2 nil)

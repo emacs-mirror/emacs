@@ -304,7 +304,7 @@ is `(valuefunc member)'."
 ;;; User Customizable Variables:
 
 (defgroup nnir nil
-  "Search groups in Gnus with assorted seach engines."
+  "Search groups in Gnus with assorted search engines."
   :group 'gnus)
 
 (defcustom nnir-ignored-newsgroups ""

@@ -2183,7 +2183,7 @@ A hole leads north."
         nil nil nil nil nil
         (list obj-box)                        ;; stair-landing
         nil nil nil
-        (list obj-axe)                        ;; smal-crawlspace
+        (list obj-axe)                        ;; small-crawlspace
         nil nil nil nil nil nil nil nil nil nil nil nil nil nil nil
         nil nil nil nil nil
         (list obj-special)                    ;; fourth-vermont-intersection

@@ -981,7 +981,7 @@ make_namespace (char *name, struct sym *context)
 }
 
 
-/* Find the symbol for namespace NAME.  If not found, retrun NULL */
+/* Find the symbol for namespace NAME.  If not found, return NULL */
 
 static struct sym *
 check_namespace (char *name, struct sym *context)

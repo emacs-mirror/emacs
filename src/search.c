@@ -1302,7 +1302,7 @@ search_buffer (Lisp_Object string, EMACS_INT pos, EMACS_INT pos_byte,
 	     checking if we can use boyer-moore search.  If TRT is
 	     non-nil, we can use boyer-moore search only if TRT can be
 	     represented by the byte array of 256 elements.  For that,
-	     all non-ASCII case-equivalents of all case-senstive
+	     all non-ASCII case-equivalents of all case-sensitive
 	     characters in STRING must belong to the same charset and
 	     row.  */
 
