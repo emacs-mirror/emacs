@@ -116,7 +116,8 @@ and pops down the *Completions* buffer accordingly.
 
 ** Mail changes
 
-The default of `send-mail-function' is now `sendmail-query-once',
++++
+*** The default of `send-mail-function' is now `sendmail-query-once',
 which asks the user (once) whether to use the smtpmail package to send
 email, or to use the old defaults that rely on external mail
 facilities (`sendmail-send-it' on GNU/Linux and other Unix-like
@@ -156,14 +157,12 @@ If you had that set, then you need to put
 
 in your ~/.authinfo file instead.
 
-*** sendmail changes
+*** Mail mode changes (this is the old Mail mode, not Message mode)
 +++
-You can now add MIME attachments to outgoing messages with the new
-command `mail-add-attachment'.
-
+**** New command `mail-add-attachment' for adding MIME attachments
 ---
-The command `mail-attach-file' was renamed to `mail-insert-file'; the
-old name is now an obsolete alias to the new name.
+**** The command `mail-attach-file' was renamed to `mail-insert-file'.
+The old name is now an obsolete alias to the new name.
 
 ** Emacs server and client changes
 +++
