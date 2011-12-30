@@ -548,6 +548,7 @@ Commands for Human Languages
 * Case::                Changing the case of text.
 * Text Mode::           The major modes for editing text files.
 * Outline Mode::        Editing outlines.
+* Org Mode::            The Emacs organizer.
 * TeX Mode::            Editing input to the formatter TeX.
 * HTML Mode::           Editing HTML and SGML files.
 * Nroff Mode::          Editing input to the formatter nroff.

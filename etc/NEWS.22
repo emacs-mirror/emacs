@@ -3035,7 +3035,7 @@ appropriate `sql-interactive-mode' wrapper for the current setting of
 ** Fortran mode changes
 
 *** F90 mode and Fortran mode have support for `hs-minor-mode' (hideshow).
-It cannot deal with every code format, but ought to handle a sizeable
+It cannot deal with every code format, but ought to handle a sizable
 majority.
 
 *** F90 mode and Fortran mode have new navigation commands

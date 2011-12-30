@@ -356,7 +356,7 @@ If it is down, start it up (again)."
 	   infos data))
 
 (defun gnus-retrieve-group-data-early (gnus-command-method infos)
-  "Start early async retrival of data from GNUS-COMMAND-METHOD."
+  "Start early async retrieval of data from GNUS-COMMAND-METHOD."
   (when (stringp gnus-command-method)
     (setq gnus-command-method (gnus-server-to-method gnus-command-method)))
   (funcall (gnus-get-function gnus-command-method 'retrieve-group-data-early)

@@ -4031,7 +4031,7 @@ If REREAD is not nil, downloaded articles are marked as unread."
 	;; gnus-agent-regenerate-group can remove the article ID of every
 	;; article (with the exception of the last ID in the list - it's
 	;; special) that no longer appears in the overview.  In this
-	;; situtation, the last article ID in the list implies that it,
+	;; situation, the last article ID in the list implies that it,
 	;; and every article ID preceding it, have been fetched from the
 	;; server.
 

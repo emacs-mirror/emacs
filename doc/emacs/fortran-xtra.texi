@@ -22,7 +22,7 @@ extensions @samp{.f90}, @samp{.f95}, @samp{.f03} and @samp{.f08}.
 Customize @code{auto-mode-alist} to add more extensions.  GNU Fortran
 supports both free and fixed form.  This manual mainly documents Fortran
 mode, but the corresponding F90 mode features are mentioned when
-revelant.
+relevant.
 
   Fortran mode provides special motion commands for Fortran statements
 and subprograms, and indentation commands that understand Fortran

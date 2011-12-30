@@ -396,7 +396,7 @@ there (in decreasing order of priority)."
 	    ;; Finally, get rid of the old frame.
 	    (delete-frame frame-initial-frame t))
 
-	;; Otherwise, we don't need all that rigamarole; just apply
+	;; Otherwise, we don't need all that rigmarole; just apply
 	;; the new parameters.
 	(let (newparms allparms tail)
 	  (setq allparms (append initial-frame-alist

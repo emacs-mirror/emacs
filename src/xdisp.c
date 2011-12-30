@@ -13645,7 +13645,7 @@ set_cursor_from_row (struct window *w, struct glyph_row *row,
   /* Non-zero means we've seen at least one glyph that came from a
      display string.  */
   int string_seen = 0;
-  /* Largest and smalles buffer positions seen so far during scan of
+  /* Largest and smallest buffer positions seen so far during scan of
      glyph row.  */
   EMACS_INT bpos_max = pos_before;
   EMACS_INT bpos_min = pos_after;

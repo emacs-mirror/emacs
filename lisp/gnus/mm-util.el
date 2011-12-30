@@ -424,7 +424,7 @@ corresponding number of an iso-8859 charset."
   ;; Cf. http://thread.gmane.org/v9lkng5nwy.fsf@marauder.physik.uni-ulm.de
   "List of IBM codepage numbers.
 
-The codepage mappings slighly differ between IBM and other vendors.
+The codepage mappings slightly differ between IBM and other vendors.
 See \"ftp://ftp.unicode.org/Public/MAPPINGS/VENDORS/IBM/README.TXT\".
 
 If an element is a number corresponding to a supported windows

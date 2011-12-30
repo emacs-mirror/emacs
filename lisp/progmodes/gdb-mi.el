@@ -3787,9 +3787,7 @@ is set in them."
   (dolist (buffer (buffer-list))
     (with-current-buffer buffer
       (when (member buffer-file-name gdb-source-file-list)
-	(gdb-init-buffer))))
-  (gdb-force-mode-line-update
-   (propertize "ready" 'face font-lock-variable-name-face)))
+	(gdb-init-buffer)))))
 
 (defun gdb-get-main-selected-frame ()
   "Trigger for `gdb-frame-handler' which uses main current
@@ -4128,7 +4126,9 @@ buffers, if required."
     (gdb-get-buffer-create 'gdb-breakpoints-buffer)
     (if (and gdb-show-main gdb-main-file)
         (let ((pop-up-windows t))
-          (display-buffer (gud-find-file gdb-main-file))))))
+          (display-buffer (gud-find-file gdb-main-file)))))
+  (gdb-force-mode-line-update
+   (propertize "ready" 'face font-lock-variable-name-face)))
 
 ;;from put-image
 (defun gdb-put-string (putstring pos &optional dprop &rest sprops)
