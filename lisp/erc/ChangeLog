@@ -1,3 +1,9 @@
+2011-12-31  Antoine Levitt  <antoine.levitt@gmail.com>
+
+	* erc-goodies.el (erc-scroll-to-bottom): Use post-command-hook
+	rather than window-scroll-functions.  Fixes a bug with word-wrap on
+	a tty.  (Bug#9246)
+
 2011-11-28  Mike Kazantsev  <mk.fraggod@gmail.com>  (tiny change)
 
 	* erc-dcc.el (erc-dcc-ctcp-query-send-regexp): Updated regexp to
