@@ -1,3 +1,8 @@
+2011-12-31  Eli Zaretskii  <eliz@gnu.org>
+
+	* basic.texi (Moving Point): Fix the description of C-n and C-p.
+	(Bug#10380)
+
 2011-12-30  Chong Yidong  <cyd@gnu.org>
 
 	* sending.texi (Sending Mail): Document initial mail buffer name,
