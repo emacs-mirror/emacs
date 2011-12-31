@@ -3429,7 +3429,7 @@ Steve Nygard: changed unexnext.c
 
 Steve Purcell: changed nnimap.el
 
-Steve Strassman: wrote spook.el
+Steve Strassmann: wrote spook.el
 
 Steve Youngs: changed mh-utils.el mh-xemacs-compat.el mh-customize.el
   mh-e.el mh-comp.el mh-mime.el dns.el gnus-art.el browse-url.el

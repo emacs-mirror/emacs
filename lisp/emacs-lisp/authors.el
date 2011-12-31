@@ -452,7 +452,7 @@ Changes to files in this list are not listed.")
     ("William Sommerfeld" :wrote "emacsclient.c" "scribe.el")
     ;; No longer distributed: emacsserver.c.
     ("Leigh Stoller" :changed "emacsclient.c" "server.el")
-    ("Steve Strassman" :wrote "spook.el")
+    ("Steve Strassmann" :wrote "spook.el")
     ("Shinichirou Sugou" :changed "etags.c")
     ;; No longer distributed: emacsserver.c.
     ("Sun Microsystems, Inc" :changed "emacsclient.c" "server.el"

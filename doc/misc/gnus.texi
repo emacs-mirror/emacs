@@ -1328,7 +1328,7 @@ variable to @code{nil}.
 
 @vindex gnus-auto-subscribed-categories
 As if that wasn't enough, @code{gnus-auto-subscribed-categories} also
-allows you to specify that new groups should be subcribed based on the
+allows you to specify that new groups should be subscribed based on the
 category their select methods belong to.  The default is @samp{(mail
 post-mail)}, meaning that all new groups from mail-like backends
 should be subscribed automatically.
@@ -20043,7 +20043,7 @@ matches will use the @code{Message-ID}s of these matching articles.)
 This will ensure that you can raise/lower the score of an entire thread,
 even though some articles in the thread may not have complete
 @code{References} headers.  Note that using this may lead to
-undeterministic scores of the articles in the thread.  (Using this match
+nondeterministic scores of the articles in the thread.  (Using this match
 key will lead to creation of @file{ADAPT} files.)
 @end table
 @end enumerate

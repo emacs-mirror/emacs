@@ -41,7 +41,7 @@
 ;;
 ;; Important note: We do NOT recommend use of these commands to update
 ;; the `Next', `Previous' and `Up' pointers on @node lines.  Most
-;; manuals, including those whose Texinfo files adhere to the strucure
+;; manuals, including those whose Texinfo files adhere to the structure
 ;; described below, don't need these pointers, because makeinfo will
 ;; generate them automatically (see the node "makeinfo Pointer
 ;; Creation" in the Texinfo manual).  By contrast, due to known bugs

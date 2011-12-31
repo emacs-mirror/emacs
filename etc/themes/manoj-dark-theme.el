@@ -20,7 +20,7 @@
 
 ;;; Commentary:
 
-;; I spend a lot of time workin in front of a screen (many hours in a
+;; I spend a lot of time working in front of a screen (many hours in a
 ;; dimly lit room) and eye fatigue is an issue. This is a dark color
 ;; theme for emacs, which is easier on the eyes than light themes.
 

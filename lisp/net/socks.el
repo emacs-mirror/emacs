@@ -414,7 +414,7 @@ version.")
 	       ((= atype socks-address-type-name)
 		(format "%c%s" (length address) address))
 	       (t
-		(error "Unkown address type: %d" atype))))
+		(error "Unknown address type: %d" atype))))
 	(info (gethash proc socks-connections))
 	request version)
     (or info (error "socks-send-command called on non-SOCKS connection %S"

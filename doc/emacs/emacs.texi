@@ -1371,7 +1371,7 @@ Shapiro, Richard Sharman, Olin Shivers, Espen Skoglund, Rick Sladkey,
 Lynn Slater, Chris Smith, David Smith, Paul D.@: Smith, William
 Sommerfeld, Andre Spiegel, Michael Staats, Ulf Stegemann, Reiner Steib,
 Sam Steingold, Ake Stenhoff, Peter Stephenson, Ken Stevens, Andy Stewart,
-Jonathan Stigelman, Martin Stjernholm, Kim F.@: Storm, Steve Strassman,
+Jonathan Stigelman, Martin Stjernholm, Kim F.@: Storm, Steve Strassmann,
 Olaf Sylvester, Naoto Takahashi, Steven Tamm, Jean-Philippe Theberge,
 Jens T.@: Berger Thielemann, Spencer Thomas, Jim Thompson, Luc
 Teirlinck, David O'Toole, Tom Tromey, Enami Tsugutomo, Eli Tziperman,

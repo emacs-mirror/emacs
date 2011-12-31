@@ -485,7 +485,7 @@ struct coding_system
      element.  The following elements are OFFSET, ANNOTATION-TYPE, and
      a sequence of actual data for the annotation.  OFFSET is a
      character position offset from dst_pos or src_pos,
-     ANNOTATION-TYPE specfies the meaning of the annotation and how to
+     ANNOTATION-TYPE specifies the meaning of the annotation and how to
      handle the following data..  */
   int *charbuf;
   int charbuf_size, charbuf_used;

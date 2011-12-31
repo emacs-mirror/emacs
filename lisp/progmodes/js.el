@@ -369,7 +369,8 @@ Match group 1 is the name of the macro.")
 ;; must be h-end.
 ;;
 ;; js--pitem instances are never modified (with the exception
-;; of the b-end field). Instead, modified copies are added at subseqnce parse points.
+;; of the b-end field). Instead, modified copies are added at
+;; subsequence parse points.
 ;; (The exception for b-end and its caveats is described below.)
 ;;
 

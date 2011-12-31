@@ -2227,7 +2227,7 @@ This also inhibits the use of the `intangible' text property.  */);
 
   DEFVAR_LISP ("text-property-default-nonsticky",
 	       Vtext_property_default_nonsticky,
-	       doc: /* Alist of properties vs the corresponding non-stickinesses.
+	       doc: /* Alist of properties vs the corresponding non-stickiness.
 Each element has the form (PROPERTY . NONSTICKINESS).
 
 If a character in a buffer has PROPERTY, new text inserted adjacent to

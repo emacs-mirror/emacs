@@ -106,7 +106,7 @@ in `selection-converter-alist', which see."
 			     ((eq data-type 'STRING)
 			      'iso-8859-1)
 			     (t
-			      (error "Unknow selection data type: %S" type))))
+			      (error "Unknown selection data type: %S" type))))
 	    data (if coding (decode-coding-string data coding)
 		   (string-to-multibyte data)))
       (setq next-selection-coding-system nil)

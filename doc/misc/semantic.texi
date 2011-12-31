@@ -536,7 +536,7 @@ the buffer.
 
 @item bovine parser
 A parser using the bovine parser generator.  It is an LL parser
-suitible for small simple languages.
+suitable for small simple languages.
 
 @item context
 

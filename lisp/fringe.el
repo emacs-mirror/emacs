@@ -30,7 +30,7 @@
 
 ;; The code is influenced by scroll-bar.el and avoid.el.  The author
 ;; gratefully acknowledge comments and suggestions made by Miles
-;; Bader, Eli Zaretski, Richard Stallman, Pavel Janík and others which
+;; Bader, Eli Zaretskii, Richard Stallman, Pavel Janík and others which
 ;; improved this package.
 
 ;;; Code:

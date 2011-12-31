@@ -4814,7 +4814,7 @@ return the window used; otherwise return nil."
   "Display BUFFER by popping up a new window.
 The new window is created on the selected frame, or in
 `last-nonminibuffer-frame' if no windows can be created there.
-If sucessful, return the new window; otherwise return nil."
+If successful, return the new window; otherwise return nil."
   (let ((frame (or (window--frame-usable-p (selected-frame))
 		   (window--frame-usable-p (last-nonminibuffer-frame))))
 	window)

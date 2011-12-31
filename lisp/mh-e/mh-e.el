@@ -2508,7 +2508,7 @@ of citations entirely, choose \"None\"."
     "Seal-Send-Time:"
     "See-Also:"                         ; H. Spencer: News Article Format and Transmission, June 1994
     "Sensitivity:"                      ; RFC 2156, 2421
-    "Speach-Act:"                       ; http://people.dsv.su.se/~jpalme/ietf/mail-headers/
+    "Speech-Act:"                       ; http://people.dsv.su.se/~jpalme/ietf/mail-headers/
     "Status:"                           ; sendmail
     "Supersedes:"                       ; H. Spencer: News Article Format and Transmission, June 1994
     "Telefax:"                          ; http://people.dsv.su.se/~jpalme/ietf/mail-headers/

@@ -384,7 +384,7 @@ Each entry is a list with the following elements:
 1. Regexp matching the preceding text.
 2. A number indicating the subgroup in the regexp containing the text.
 3. A function returning an alist of possible completions.
-4. Text to append after a succesful completion (if any).
+4. Text to append after a successful completion (if any).
 
 Or alternatively:
 1. Regexp matching the preceding text.

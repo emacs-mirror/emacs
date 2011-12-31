@@ -2594,7 +2594,7 @@ comment at the start of cc-engine.el for more info."
 	mstart)		      ; start of a macro.
 
     (save-excursion
-      ;; Each time round the following loop, we enter a succesively deeper
+      ;; Each time round the following loop, we enter a successively deeper
       ;; level of brace/paren nesting.  (Except sometimes we "continue at
       ;; the existing level".)  `pa+1' is a pos inside an opening
       ;; brace/paren/bracket, usually just after it.

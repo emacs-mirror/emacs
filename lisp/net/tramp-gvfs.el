@@ -1209,7 +1209,7 @@ connection if a previous connection has died for some reason."
 	      (format "Opening connection for %s using %s" host method)
 	    (format "Opening connection for %s@%s using %s" user host method))
 
-	;; Enable auth-sorce and password-cache.
+	;; Enable auth-source and password-cache.
 	(tramp-set-connection-property vec "first-password-request" t)
 
 	;; There will be a callback of "askPassword" when a password is

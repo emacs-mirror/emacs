@@ -4397,7 +4397,7 @@ cursor move past the beginning of line."
 
 (defun viper-query-replace ()
   "Query replace.
-If a null string is suplied as the string to be replaced,
+If a null string is supplied as the string to be replaced,
 the query replace mode will toggle between string replace
 and regexp replace."
   (interactive)

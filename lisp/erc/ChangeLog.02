@@ -51,7 +51,7 @@
 2002-12-29  Damien Elmes  <erc@repose.cx>
 
 	* erc-track.el 1.42:
-	* (erc-track-get-active-buffer): remove superflous (+ arg 0)
+	* (erc-track-get-active-buffer): remove superfluous (+ arg 0)
 
 2002-12-29  Alex Schroeder  <alex@gnu.org>
 
