@@ -6658,7 +6658,7 @@ If FACE is not a valid face name, use default face."
 ;; But autoload them here to make the separation invisible.
 
 ;;;### (autoloads (ps-mule-end-job ps-mule-begin-job ps-mule-initialize
-;;;;;;  ps-multibyte-buffer) "ps-mule" "ps-mule.el" "01641c7c3af4e45e1c3afeb75a73120c")
+;;;;;;  ps-multibyte-buffer) "ps-mule" "ps-mule.el" "5c36356aa1f23d9da308debe8f2e4e49")
 ;;; Generated autoloads from ps-mule.el
 
 (defvar ps-multibyte-buffer nil "\
