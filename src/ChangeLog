@@ -1,3 +1,9 @@
+2011-12-31  Antoine Levitt  <antoine.levitt@gmail.com>
+
+	* xdisp.c (syms_of_xdisp) <window-scroll-functions>: Add warning
+	to the doc string advising against its use for altering the way
+	windows are scrolled.
+
 2011-12-28  Kenichi Handa  <handa@m17n.org>
 
 	* coding.c (Fdefine_coding_system_internal): Make an utf-8 base
@@ -4427,7 +4433,7 @@
 
 2011-06-15  Paul Eggert  <eggert@cs.ucla.edu>
 
-	Integer overflow and signedness fixes (Bug#8873).
+	Integer overflow and signedness fixes (Bug#8873, Bug#8828).
 
 	* ccl.c (ASCENDING_ORDER): New macro, to work around GCC bug 43772.
 	(GET_CCL_RANGE, IN_INT_RANGE): Use it.

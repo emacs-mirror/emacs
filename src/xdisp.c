@@ -28325,7 +28325,11 @@ all the functions in the list are called, with the frame as argument.  */);
 Each function is called with two arguments, the window and its new
 display-start position.  Note that these functions are also called by
 `set-window-buffer'.  Also note that the value of `window-end' is not
-valid when these functions are called.  */);
+valid when these functions are called.
+
+Warning: Do not use this feature to alter the way the window
+is scrolled.  It is not designed for that, and such use probably won't
+work.  */);
   Vwindow_scroll_functions = Qnil;
 
   DEFVAR_LISP ("window-text-change-functions",
