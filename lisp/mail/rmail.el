@@ -2773,7 +2773,15 @@ The current mail message becomes the message displayed."
 	      (forward-line))
 	    (goto-char (point-min)))
 	  ;; Copy the headers to the front of the message view buffer.
-	  (rmail-copy-headers beg end))
+	  (rmail-copy-headers beg end)
+	  ;; Decode any RFC2047 encoded message headers.
+	  (if rmail-enable-mime
+	      (with-current-buffer rmail-view-buffer
+		(rfc2047-decode-region
+		 (point-min)
+		 (progn
+		   (search-forward "\n\n" nil 'move)
+		   (point))))))
 	;; highlight the message, activate any URL like text and add
 	;; special highlighting for and quoted material.
 	(with-current-buffer rmail-view-buffer
