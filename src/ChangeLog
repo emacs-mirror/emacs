@@ -4433,7 +4433,7 @@
 
 2011-06-15  Paul Eggert  <eggert@cs.ucla.edu>
 
-	Integer overflow and signedness fixes (Bug#8873).
+	Integer overflow and signedness fixes (Bug#8873, Bug#8828).
 
 	* ccl.c (ASCENDING_ORDER): New macro, to work around GCC bug 43772.
 	(GET_CCL_RANGE, IN_INT_RANGE): Use it.
