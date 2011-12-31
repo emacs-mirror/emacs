@@ -62,7 +62,7 @@
 
 (defun url-scheme-default-loader (url &optional callback cbargs)
   "Signal an error for an unknown URL scheme."
-  (error "Unkown URL scheme: %s" (url-type url)))
+  (error "Unknown URL scheme: %s" (url-type url)))
 
 (defvar url-scheme--registering-proxy nil)
 

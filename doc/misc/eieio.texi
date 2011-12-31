@@ -1893,7 +1893,7 @@ better in the Emacs environment.
 
 @enumerate
 @item
-Allow subclasing of Emacs built-in types, such as faces, markers, and
+Allow subclassing of Emacs built-in types, such as faces, markers, and
 buffers.
 @item
 Allow method overloading of method-like functions in Emacs.

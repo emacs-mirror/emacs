@@ -31,7 +31,7 @@ struct independent var_indep_struct;
 struct {
   int unnamed_1;
   int unnamed_2;
-} var_unamed_struct;
+} var_unnamed_struct;
 
 struct {
   int unnamed_3;
@@ -59,12 +59,12 @@ struct inline2struct in_var2;
 int test_1(int var_arg1) {
 
   var_// -1-
-    ; // #1# ("var_arg1" "var_indep_struct" "var_n_2" "var_n_3" "var_named_struct" "var_un_2" "var_un_3" "var_unamed_struct")
+    ; // #1# ("var_arg1" "var_indep_struct" "var_n_2" "var_n_3" "var_named_struct" "var_un_2" "var_un_3" "var_unnamed_struct")
 
   var_indep_struct.// -2-
     ; // #2# ( "indep_1" "indep_2" )
 
-  var_unamed_struct.// -3-
+  var_unnamed_struct.// -3-
     ; // #3# ( "unnamed_1" "unnamed_2" )
 
   var_named_struct.// -4-
@@ -88,4 +88,3 @@ int test_1(int var_arg1) {
   in_var2.// -11-
     ; // #11# ( "named_3" "named_4")
 }
-

@@ -79,7 +79,7 @@ understand.  I find it quite hard to figure out what compilation
 command it will use.
 
 I suggest totally rewriting that part of Flymake, using the simplest
-mechanism that sufficies for the specific needs.  That will be easy
+mechanism that suffices for the specific needs.  That will be easy
 for users to customize.
 
 ** Compute the list of active keymaps *after* reading the first event.

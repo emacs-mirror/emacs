@@ -1286,7 +1286,7 @@ This function is an internal primitive--use `make-frame' instead.  */)
                       "foreground", "Foreground", RES_TYPE_STRING);
   x_default_parameter (f, parms, Qbackground_color, build_string ("White"),
                       "background", "Background", RES_TYPE_STRING);
-  /* FIXME: not suppported yet in Nextstep */
+  /* FIXME: not supported yet in Nextstep */
   x_default_parameter (f, parms, Qline_spacing, Qnil,
 		       "lineSpacing", "LineSpacing", RES_TYPE_NUMBER);
   x_default_parameter (f, parms, Qleft_fringe, Qnil,

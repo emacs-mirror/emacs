@@ -1809,7 +1809,7 @@ append_glyphless_glyph (struct it *it, int face_id, const char *str)
    glyphless_display_method in dispextern.h for the details.
 
    FOR_NO_FONT is nonzero if and only if this is for a character that
-   is not supproted by the coding system of the terminal.  ACRONYM, if
+   is not supported by the coding system of the terminal.  ACRONYM, if
    non-nil, is an acronym string for the character.
 
    The glyphs actually produced are of type CHAR_GLYPH.  */

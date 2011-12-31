@@ -1183,7 +1183,7 @@ Martin Stjernholm co-authored CC Mode, a major editing mode for C,
 C@t{++}, Objective-C, Java, Pike, CORBA IDL, and AWK code.
 
 @item
-Steve Strassman did not write @file{spook.el}, and even if he did, he
+Steve Strassmann did not write @file{spook.el}, and even if he did, he
 really didn't mean for you to use it in an anarchistic way.
 
 @item

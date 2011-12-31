@@ -423,7 +423,7 @@ The remaining KEYS are passed directly to `cvs-create-fileinfo'."
 	(cvs-match "restoring \\(.*\\) from backup file .*$" (path 1))))
       t)
 
-     ;; Is it a succesful merge?
+     ;; Is it a successful merge?
      ;; Figure out result of merging (ie, was there a conflict?)
      (let ((qfile (regexp-quote path)))
        (cvs-or

@@ -4339,7 +4339,7 @@ handle_display_spec (struct it *it, Lisp_Object spec, Lisp_Object object,
   int rv;
 
   if (CONSP (spec)
-      /* Simple specerties.  */
+      /* Simple specifications.  */
       && !EQ (XCAR (spec), Qimage)
       && !EQ (XCAR (spec), Qspace)
       && !EQ (XCAR (spec), Qwhen)

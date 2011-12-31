@@ -973,7 +973,7 @@ If VEC has no cifs capabilities, exchange \"/\" by \"\\\\\"."
       (setq
        localname
        (if (string-match "^/?[^/]+\\(/.*\\)" localname)
-	   ;; There is a share, sparated by "/".
+	   ;; There is a share, separated by "/".
 	   (if (not (tramp-smb-get-cifs-capabilities vec))
 	       (mapconcat
 		(lambda (x) (if (equal x ?/) "\\" (char-to-string x)))

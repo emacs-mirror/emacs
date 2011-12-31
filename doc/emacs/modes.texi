@@ -96,7 +96,7 @@ the rules of the language (@pxref{Indentation}).  The keys that are
 commonly changed are @key{TAB}, @key{DEL}, and @kbd{C-j}.  Many modes
 also define special commands of their own, usually bound in the prefix
 key @kbd{C-c}.  Major modes can also alter user options and variables;
-for instance, programming language modes typicaly set a buffer-local
+for instance, programming language modes typically set a buffer-local
 value for the variable @code{comment-start}, which determines how
 source code comments are delimited (@pxref{Comments}).
 

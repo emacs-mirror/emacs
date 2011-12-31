@@ -159,7 +159,7 @@
  nil nil nil nil nil nil nil nil
  'quail-tibetan-update-translation)
 
-;; Here we build up a Quail map for a Tibtan sequence the whole of
+;; Here we build up a Quail map for a Tibetan sequence the whole of
 ;; which can be one composition.
 ;;
 ;; A Tibetan syllable is typically structured as follows:
@@ -224,7 +224,7 @@
     ("F" . "M")				; anusvara
     ("g" . "u")				; zhabs kyu
     ("G" . "i")				; gi gu
-    ("H" . ",")				; viraama
+    ("H" . ",")				; virama
     ("j" . "o")				; naro
     ("J" . "e")				; 'greng bu
     ("k" . "ts")			; tsa

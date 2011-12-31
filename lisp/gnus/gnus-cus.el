@@ -922,7 +922,7 @@ will add a new `thread' match for each article that has X in its
 `Message-ID's of these matching articles.)  This will ensure that you
 can raise/lower the score of an entire thread, even though some
 articles in the thread may not have complete `References' headers.
-Note that using this may lead to undeterministic scores of the
+Note that using this may lead to nondeterministic scores of the
 articles in the thread.
 ")
 				     ,@types)

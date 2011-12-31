@@ -3052,7 +3052,7 @@ xg_update_submenu (GtkWidget *submenu,
       }
   }
 
-  /* Remove widgets from first structual change.  */
+  /* Remove widgets from first structural change.  */
   if (iter)
     {
       /* If we are adding new menu items below, we must remove from

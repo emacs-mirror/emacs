@@ -483,7 +483,7 @@ Other back ends might or might not work.")
 	       mfolder query threads)))
       ;; Check return value
       (cond
-       ((zerop rval)			; call was succesful
+       ((zerop rval)			; call was successful
 	(nnmairix-call-backend
 	 "open-server" nnmairix-backend-server)
 	;; If we're dealing with nnml, rename files

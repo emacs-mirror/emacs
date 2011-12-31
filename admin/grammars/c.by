@@ -261,7 +261,7 @@ define
   ;
 
 ;; In C++, structures can have the same things as classes.
-;; So delete this somday in the figure.
+;; So delete this some day in the figure.
 ;;
 ;;structparts : semantic-list
 ;;            (EXPANDFULL $1 structsubparts)

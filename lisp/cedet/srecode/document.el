@@ -167,7 +167,7 @@ doesn't always work correctly."
     ("str\\(ing\\)?" . "string")
     ("use?r" . "user")
     ("num\\(ber\\)?" . "number")
-    ("\\(^\\|\\s-\\)id\\($\\|\\s-\\)" . "Identifier") ;complex cause ;common sylable
+    ("\\(^\\|\\s-\\)id\\($\\|\\s-\\)" . "Identifier") ;complex cause ;common syllable
     )
   "List of common English abbreviations or full words.
 These are nouns (as opposed to verbs) for use in creating expanded

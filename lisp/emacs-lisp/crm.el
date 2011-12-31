@@ -143,7 +143,7 @@ nil if none.
 
 The value of FLAG is used to specify the type of completion operation.
 A value of nil specifies `try-completion'.  A value of t specifies
-`all-completions'.  A value of lambda specifes a test for an exact match.
+`all-completions'.  A value of lambda specifies a test for an exact match.
 
 For more information on STRING, PREDICATE, and FLAG, see the Elisp
 Reference sections on 'Programmed Completion' and 'Basic Completion

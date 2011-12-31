@@ -1,3 +1,12 @@
+2011-12-30  Chong Yidong  <cyd@gnu.org>
+
+	* sending.texi (Sending Mail): Document initial mail buffer name,
+	and changed multiple mail buffer behavior.
+	(Mail Format): Put the example at the top of the section.
+	(Mail Headers): Move discussion of "From" to the top.
+	(Mail Sending): Document sendmail-query-once.
+	(Citing Mail): Make it less Rmail-specific.
+
 2011-12-29  Chong Yidong  <cyd@gnu.org>
 
 	* text.texi (Org Mode): Copyedits.  Refer to Outline Format for

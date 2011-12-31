@@ -4257,7 +4257,7 @@ If NO-DISPLAY, don't generate a summary buffer."
     result))
 
 (defun gnus-sort-gathered-threads (threads)
-  "Sort subtreads inside each gathered thread by `gnus-sort-gathered-threads-function'."
+  "Sort subthreads inside each gathered thread by `gnus-sort-gathered-threads-function'."
   (let ((result threads))
     (while threads
       (when (stringp (caar threads))

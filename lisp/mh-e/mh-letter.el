@@ -909,7 +909,7 @@ Any match found replaces the text from BEGIN to END."
                (with-output-to-temp-buffer completions-buffer
                  (mh-display-completion-list
                   (all-completions word choices)
-                  ;; The `common-subtring' arg only works if it's a prefix.
+                  ;; The `common-substring' arg only works if it's a prefix.
                   (unless (and (functionp choices)
                                (let ((bounds
                                       (funcall choices

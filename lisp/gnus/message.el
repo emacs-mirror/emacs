@@ -6169,7 +6169,7 @@ If the current line has `message-yank-prefix', insert it on the new line."
 When sending via news, also check that the REFERENCES are less
 than 988 characters long, and if they are not, trim them until
 they are."
-  ;; 21 is the number suggested by USEAGE.
+  ;; 21 is the number suggested by USAGE.
   (let ((maxcount 21)
 	(count 0)
 	(cut 2)

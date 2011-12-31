@@ -363,7 +363,7 @@ Argument PROMPT is the prompt to use when reading."
       (setq ans (assoc ans alist))
       (if ans
 	  (cdr ans)
-	;; no match.  Custom word.  Look it up somwhere?
+	;; no match.  Custom word.  Look it up somewhere?
 	nil)
       )))
 
