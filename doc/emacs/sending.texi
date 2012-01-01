@@ -328,11 +328,9 @@ in greater detail.  @xref{Top,,Message, message, Message}.
 @node Mail Sending
 @subsection Mail Sending
 
-  There are two commands to send a message you have been editing:
-
 @table @kbd
 @item C-c C-c
-Send the message, and deselect the mail buffer (@code{message-send-and-exit}).
+Send the message, and bury the mail buffer (@code{message-send-and-exit}).
 @item C-c C-s
 Send the message, and leave the mail buffer selected (@code{message-send}).
 @end table
@@ -340,35 +338,24 @@ Send the message, and leave the mail buffer selected (@code{message-send}).
 @kindex C-c C-s @r{(Message mode)}
 @kindex C-c C-c @r{(Message mode)}
 @findex message-send
-  If you want to send a message and be done with it, type @kbd{C-c
-C-c} (@code{mail-send-and-exit}).  This sends the message and then
-either deletes the window or switches to another buffer.  It also
+@vindex message-kill-buffer-on-exit
+  The usual command to send a message is @kbd{C-c C-c}
+(@code{mail-send-and-exit}).  This sends the message and then
 ``buries'' the mail buffer, putting it at the lowest priority for
-reselection.  This is the usual command for sending a message.
+reselection.  If you want it to kill the mail buffer instead, change
+the variable @code{message-kill-buffer-on-exit} to @code{t}.
 
 @findex message-send-and-exit
   The command @kbd{C-c C-s} (@code{message-send}) sends the message
-and marks the mail buffer unmodified, but leaves the buffer selected.
-Use this command if you want to modify the message (perhaps with new
-recipients) and send it again.
+and leaves the buffer selected.  Use this command if you want to
+modify the message (perhaps with new recipients) and send it again.
 
 @vindex message-send-hook
-  Sending a message runs the hook @code{message-send-hook}.
-
-  In a file-visiting buffer, sending the message does not clear the
-modified flag, because only saving the file should do that.  Also, you
-don't get a warning if you try to send the same message twice.
-
-@vindex sendmail-coding-system
-  When you send a message containing non-@acronym{ASCII} characters,
-they need to be encoded with a coding system (@pxref{Coding Systems}).
-Usually the coding system is specified automatically by your chosen
-language environment (@pxref{Language Environments}).  You can
-explicitly specify the coding system for outgoing mail by setting the
-variable @code{sendmail-coding-system} (@pxref{Recognize Coding}).  If
-the coding system thus determined does not handle the characters in a
-particular message, Emacs asks you to select the coding system to use,
-showing a list of possible coding systems.
+  Sending a message runs the hook @code{message-send-hook}.  It also
+marks the mail buffer as unmodified, except if the mail buffer is also
+a file-visiting buffer (in that case, only saving the file does that,
+and you don't get a warning if you try to send the same message
+twice).
 
 @cindex SMTP
 @cindex Feedmail
@@ -376,24 +363,23 @@ showing a list of possible coding systems.
 @cindex Mailclient
 @vindex send-mail-function
   The variable @code{send-mail-function} controls how the message is
-delivered.  Its value should be a function, which can be one of the
-following:
+delivered.  Its value should be one of the following functions:
 
 @table @code
 @item sendmail-query-once
-This function queries for a delivery method (one of the other entries
-in this list), and uses that method for this message.  Then it saves
-the method to @code{send-mail-function}, so that the method is used
-for future deliveries.  This is the default, unless you have already
-configured the @code{smtpmail-send-it} method.
+Query for a delivery method (one of the other entries in this list),
+and use that method for this message; then save the method to
+@code{send-mail-function}, so that it is used for future deliveries.
+This is the default, unless you have already set the variables for
+sending mail via @code{smtpmail-send-it} (see below).
 
 @item smtpmail-send-it
-Send mail through an external mail host, such as your Internet service
-provider's outgoing SMTP mail server.  If you have not told Emacs how
-to contact the SMTP server, it prompts for this information (which is
-saved in the variables @code{smtpmail-smtp-server} and
-@code{smtpmail-auth-credentials}).  @xref{Top,,Emacs SMTP Library,
-smtpmail, Sending mail via SMTP}.
+Send mail using the through an external mail host, such as your
+Internet service provider's outgoing SMTP mail server.  If you have
+not told Emacs how to contact the SMTP server, it prompts for this
+information, which is saved in the variables
+@code{smtpmail-smtp-server} and @code{smtpmail-auth-credentials}.
+@xref{Top,,Emacs SMTP Library, smtpmail, Sending mail via SMTP}.
 
 @item sendmail-send-it
 Send mail using the system's default @command{sendmail} program, or
@@ -409,6 +395,17 @@ This is similar to @code{sendmail-send-it}, but allows you to queue
 messages for later sending.  See the commentary section in the file
 @file{feedmail.el} for details.
 @end table
+
+@vindex sendmail-coding-system
+  When you send a message containing non-@acronym{ASCII} characters,
+they need to be encoded with a coding system (@pxref{Coding Systems}).
+Usually the coding system is specified automatically by your chosen
+language environment (@pxref{Language Environments}).  You can
+explicitly specify the coding system for outgoing mail by setting the
+variable @code{sendmail-coding-system} (@pxref{Recognize Coding}).  If
+the coding system thus determined does not handle the characters in a
+particular message, Emacs asks you to select the coding system to use,
+showing a list of possible coding systems.
 
 @node Header Editing
 @subsection Mail Header Editing

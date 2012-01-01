@@ -1,3 +1,17 @@
+2012-01-01  Chong Yidong  <cyd@gnu.org>
+
+	* misc.texi (Gnus, Buffers of Gnus): Copyedits.
+	(Gnus Startup): Note that the system might not be set up for news.
+	Describe group levels more clearly.
+	(Gnus Group Buffer, Gnus Summary Buffer): New nodes, split from
+	Summary of Gnus.
+	(Document View): Copyedits.  Move zoom commads to DocView
+	Navigation node.
+	(DocView Navigation, DocView Searching, DocView Slicing)
+	(DocView Conversion): Nodes renamed from Navigation, etc.
+
+	* sending.texi (Mail Sending): Add message-kill-buffer-on-exit.
+
 2011-12-31  Eli Zaretskii  <eliz@gnu.org>
 
 	* basic.texi (Moving Point): Fix the description of C-n and C-p.

@@ -6,7 +6,7 @@
 @chapter Miscellaneous Commands
 
   This chapter contains several brief topics that do not fit anywhere
-else: viewing ``document files'', reading netnews, running shell
+else: viewing ``document files'', reading Usenet news, running shell
 commands and shell subprocesses, using a single shared Emacs for
 utilities that expect to run an editor as a subprocess, printing
 hardcopy, sorting text, narrowing display to part of the buffer,
@@ -23,12 +23,13 @@ various diversions and amusements.
 @node Gnus
 @section Gnus
 @cindex Gnus
-@cindex reading netnews
+@cindex Usenet news
+@cindex newsreader
 
-Gnus is an Emacs package primarily designed for reading and posting
-Usenet news.  It can also be used to read and respond to messages from a
-number of other sources---mail, remote directories, digests, and so on.
-Here we introduce Gnus and describe several basic features.
+  Gnus is an Emacs package primarily designed for reading and posting
+Usenet news.  It can also be used to read and respond to messages from
+a number of other sources---email, remote directories, digests, and so
+on.  Here we introduce Gnus and describe several basic features.
 @ifnottex
 For full details, see @ref{Top, Gnus,, gnus, The Gnus Manual}.
 @end ifnottex
@@ -37,198 +38,216 @@ For full details on Gnus, type @kbd{C-h i} and then select the Gnus
 manual.
 @end iftex
 
-@findex gnus
-To start Gnus, type @kbd{M-x gnus @key{RET}}.
-
 @menu
 * Buffers of Gnus::     The group, summary, and article buffers.
 * Gnus Startup::        What you should know about starting Gnus.
-* Summary of Gnus::     A short description of the basic Gnus commands.
+* Gnus Group Buffer::   A short description of Gnus group commands.
+* Gnus Summary Buffer:: A short description of Gnus summary commands.
 @end menu
 
 @node Buffers of Gnus
 @subsection Gnus Buffers
 
-Unlike most Emacs packages, Gnus uses several buffers to display
-information and to receive commands.  The three Gnus buffers users use
-most are the @dfn{group buffer}, the @dfn{summary buffer} and the
-@dfn{article buffer}.
+  Gnus uses several buffers to display information and to receive
+commands.  The three most commonly-used Gnus buffers are the
+@dfn{group buffer}, the @dfn{summary buffer} and the @dfn{article
+buffer}.
 
-The @dfn{group buffer} contains a list of newsgroups.  This is the
-first buffer Gnus displays when it starts up.  It normally displays
-only the groups to which you subscribe and that contain unread
-articles.  Use this buffer to select a specific group.
+  The @dfn{group buffer} contains a list of article sources (e.g.@:
+newsgroups and email inboxes), which are collectively referred to as
+@dfn{groups}.  This is the first buffer Gnus displays when it starts
+up.  It normally displays only the groups to which you subscribe and
+that contain unread articles.  From this buffer, you can select a
+group to read.
 
-The @dfn{summary buffer} lists one line for each article in a single
-group.  By default, the author, the subject and the line number are
-displayed for each article, but this is customizable, like most aspects
-of Gnus display.  The summary buffer is created when you select a group
-in the group buffer, and is killed when you exit the group.  Use this
-buffer to select an article.
+  The @dfn{summary buffer} lists the articles in a single group,
+showing one article per line.  By default, it displays each article's
+author, subject, and line
+@iftex
+number.
+@end iftex
+@ifnottex
+number, but this is customizable; @xref{Summary Buffer Format,,, gnus,
+The Gnus Manual}.
+@end ifnottex
+The summary buffer is created when you select a group in the group
+buffer, and is killed when you exit the group.
 
-The @dfn{article buffer} displays the article.  In normal Gnus usage,
-you see this buffer but you don't select it---all useful
-article-oriented commands work in the summary buffer.  But you can
-select the article buffer, and execute all Gnus commands from that
-buffer, if you want to.
+  From the summary buffer, you can choose an article to view.  The
+article is displayed in the @dfn{article buffer}.  In normal Gnus
+usage, you view this buffer but do not select it---all useful Gnus
+commands can be invoked from the summary buffer.  But you can select
+the article buffer, and execute Gnus commands from it, if you wish.
 
 @node Gnus Startup
 @subsection When Gnus Starts Up
 
-At startup, Gnus reads your @file{.newsrc} news initialization file
-and attempts to communicate with the local news server, which is a
-repository of news articles.  The news server need not be the same
-computer you are logged in on.
+@findex gnus
+@cindex @file{.newsrc} file
+  If your system has been set up for reading Usenet news, getting
+started with Gnus is easy---just type @kbd{M-x gnus}.
 
-If you start Gnus and connect to the server, but do not see any
-newsgroups listed in the group buffer, type @kbd{L} or @kbd{A k} to get
-a listing of all the groups.  Then type @kbd{u} to toggle
-subscription to groups.
+  On starting up, Gnus reads your @dfn{news initialization file}: a
+file named @file{.newsrc} in your home directory which lists your
+Usenet newsgroups and subscriptions (this file is not unique to Gnus;
+it is used by many other newsreader programs).  It then tries to
+contact the system's default news server, which is typically specified
+by the @samp{NNTPSERVER} environment variable.
 
-The first time you start Gnus, Gnus subscribes you to a few selected
-groups.  All other groups start out as @dfn{killed groups} for you; you
-can list them with @kbd{A k}.  All new groups that subsequently come to
-exist at the news server become @dfn{zombie groups} for you; type @kbd{A
-z} to list them.  You can subscribe to a group shown in these lists
-using the @kbd{u} command.
+  If your system does not have a default news server, or if you wish
+to use Gnus for reading email, then before invoking @kbd{M-x gnus} you
+need to tell Gnus where to get news and/or mail.  To do this,
+customize the variables @code{gnus-select-method} and/or
+@code{gnus-secondary-select-methods}.
+@iftex
+See the Gnus manual for details.
+@end iftex
+@ifnottex
+@xref{Finding the News,,, gnus, The Gnus Manual}.
+@end ifnottex
 
-When you quit Gnus with @kbd{q}, it automatically records in your
-@file{.newsrc} and @file{.newsrc.eld} initialization files the
-subscribed or unsubscribed status of all groups.  You should normally
-not edit these files manually, but you may if you know how.
+  Once Gnus has started up, it displays the group buffer.  By default,
+the group buffer shows only a small number of @dfn{subscribed groups}.
+Groups with other statuses---@dfn{unsubscribed}, @dfn{killed}, or
+@dfn{zombie}---are hidden.  The first time you start Gnus, any group
+to which you are not subscribed is made into a killed group; any group
+that subsequently appears on the news server becomes a zombie group.
 
-@node Summary of Gnus
-@subsection Summary of Gnus Commands
+  To proceed, you must select a group in the group buffer to open the
+summary buffer for that group; then, select an article in the summary
+buffer to view its article buffer in a separate window.  The following
+sections explain how to use the group and summary buffers to do this.
 
-Reading news is a two-step process:
+  To quit Gnus, type @kbd{q} in the group buffer.  This automatically
+records your group statuses in the files @file{.newsrc} and
+@file{.newsrc.eld}, so that they take effect in subsequent Gnus
+sessions.
 
-@enumerate
-@item
-Choose a group in the group buffer.
+@node Gnus Group Buffer
+@subsection Using the Gnus Group Buffer
 
-@item
-Select articles from the summary buffer.  Each article selected is
-displayed in the article buffer in a large window, below the summary
-buffer in its small window.
-@end enumerate
-
-  Each Gnus buffer has its own special commands; the meanings of any
-given key in the various Gnus buffers are usually analogous, even if
-not identical.  Here are commands for the group and summary buffers:
+  The following commands are available in the Gnus group buffer:
 
 @table @kbd
-@kindex q @r{(Gnus Group mode)}
-@findex gnus-group-exit
-@item q
-In the group buffer, update your @file{.newsrc} initialization file
-and quit Gnus.
-
-In the summary buffer, exit the current group and return to the
-group buffer.  Thus, typing @kbd{q} twice quits Gnus.
-
-@kindex L @r{(Gnus Group mode)}
-@findex gnus-group-list-all-groups
-@item L
-In the group buffer, list all the groups available on your news
-server (except those you have killed).  This may be a long list!
+@kindex SPC @r{(Gnus Group mode)}
+@findex gnus-group-read-group
+@item @key{SPC}
+Switch to the summary buffer for the group on the current line.
 
 @kindex l @r{(Gnus Group mode)}
+@kindex A s @r{(Gnus Group mode)}
 @findex gnus-group-list-groups
 @item l
+@itemx A s
 In the group buffer, list only the groups to which you subscribe and
-which contain unread articles.
+which contain unread articles (this is the default listing).
+
+@kindex L @r{(Gnus Group mode)}
+@kindex A u @r{(Gnus Group mode)}
+@findex gnus-group-list-all-groups
+@item L
+@itemx A u
+List all subscribed and unsubscribed groups, but not killed or zombie
+groups.
+
+@kindex A k @r{(Gnus Group mode)}
+@findex gnus-group-list-all-groups
+@item A k
+List killed groups.
+
+@kindex A z @r{(Gnus Group mode)}
+@findex gnus-group-list-all-groups
+@item A z
+List zombie groups.
 
 @kindex u @r{(Gnus Group mode)}
 @findex gnus-group-unsubscribe-current-group
 @cindex subscribe groups
 @cindex unsubscribe groups
 @item u
-In the group buffer, unsubscribe from (or subscribe to) the group listed
-in the line that point is on.  When you quit Gnus by typing @kbd{q},
-Gnus lists in your @file{.newsrc} file which groups you have subscribed
-to.  The next time you start Gnus, you won't see this group,
-because Gnus normally displays only subscribed-to groups.
+Toggle the subscription status of the group on the current line
+(i.e.@: turn a subscribed group into an unsubscribed group, or vice
+versa).  Invoking this on a killed or zombie group turns it into an
+unsubscribed group.
 
-@kindex C-k @r{(Gnus)}
+@kindex C-k @r{(Gnus Group mode)}
 @findex gnus-group-kill-group
 @item C-k
-In the group buffer, ``kill'' the current line's group---don't
-even list it in @file{.newsrc} from now on.  This affects future
-Gnus sessions as well as the present session.
+Kill the group on the current line.  Killed groups are not recorded in
+the @file{.newsrc} file, and they are not shown in the @kbd{l} or
+@kbd{L} listings.
 
-When you quit Gnus by typing @kbd{q}, Gnus writes information
-in the file @file{.newsrc} describing all newsgroups except those you
-have ``killed.''
-
-@kindex SPC @r{(Gnus)}
-@findex gnus-group-read-group
-@item @key{SPC}
-In the group buffer, select the group on the line under the cursor
-and display the first unread article in that group.
-
-@need 1000
-In the summary buffer,
-
-@itemize @bullet
-@item
-Select the article on the line under the cursor if none is selected.
-
-@item
-Scroll the text of the selected article (if there is one).
-
-@item
-Select the next unread article if at the end of the current article.
-@end itemize
-
-Thus, you can move through all the articles by repeatedly typing @key{SPC}.
-
-@kindex DEL @r{(Gnus)}
+@kindex DEL @r{(Gnus Group mode)}
 @item @key{DEL}
-In the group buffer, move point to the previous group containing
-unread articles.
+Move point to the previous group containing unread articles.
 
-@findex gnus-summary-prev-page
-In the summary buffer, scroll the text of the article backwards.
-
-@kindex n @r{(Gnus)}
+@kindex n @r{(Gnus Group mode)}
 @findex gnus-group-next-unread-group
 @findex gnus-summary-next-unread-article
 @item n
-Move point to the next unread group, or select the next unread article.
+Move point to the next unread group.
 
-@kindex p @r{(Gnus)}
+@kindex p @r{(Gnus Group mode)}
 @findex gnus-group-prev-unread-group
 @findex gnus-summary-prev-unread-article
 @item p
-Move point to the previous unread group, or select the previous
-unread article.
+Move point to the previous unread group.
 
-@kindex C-n @r{(Gnus Group mode)}
-@findex gnus-group-next-group
-@kindex C-p @r{(Gnus Group mode)}
-@findex gnus-group-prev-group
-@kindex C-n @r{(Gnus Summary mode)}
-@findex gnus-summary-next-subject
-@kindex C-p @r{(Gnus Summary mode)}
-@findex gnus-summary-prev-subject
-@item C-n
-@itemx C-p
-Move point to the next or previous item, even if it is marked as read.
-This does not select the article or group on that line.
+@kindex q @r{(Gnus Group mode)}
+@findex gnus-group-exit
+@item q
+Update your Gnus settings, and quit Gnus.
+@end table
+
+@node Gnus Summary Buffer
+@subsection Using the Gnus Summary Buffer
+
+  The following commands are available in the Gnus summary buffer:
+
+@table @kbd
+@kindex SPC @r{(Gnus Summary mode)}
+@findex gnus-group-read-group
+@item @key{SPC}
+If there is no article selected, select the article on the current
+line and display its article buffer.  Otherwise, try scrolling the
+selected article buffer in its window; on reaching the end of the
+buffer, select the next unread article.
+
+Thus, you can read through all articles by repeatedly typing
+@key{SPC}.
+
+@kindex DEL @r{(Gnus Summary mode)}
+@findex gnus-summary-prev-page
+@item @key{DEL}
+Scroll the text of the article backwards.
+
+@kindex n @r{(Gnus Summary mode)}
+@findex gnus-group-next-unread-group
+@findex gnus-summary-next-unread-article
+@item n
+Select the next unread article.
+
+@kindex p @r{(Gnus Summary mode)}
+@findex gnus-group-prev-unread-group
+@findex gnus-summary-prev-unread-article
+@item p
+Select the previous unread article.
 
 @kindex s @r{(Gnus Summary mode)}
 @findex gnus-summary-isearch-article
 @item s
-In the summary buffer, do an incremental search of the current text in
-the article buffer, just as if you switched to the article buffer and
-typed @kbd{C-s}.
+Do an incremental search on the selected article buffer, as if you
+switched to the buffer and typed @kbd{C-s} (@pxref{Incremental
+Search}).
 
 @kindex M-s @r{(Gnus Summary mode)}
 @findex gnus-summary-search-article-forward
 @item M-s @var{regexp} @key{RET}
-In the summary buffer, search forward for articles containing a match
-for @var{regexp}.
+Search forward for articles containing a match for @var{regexp}.
 
+@kindex q @r{(Gnus Summary mode)}
+@item q
+Exit the summary buffer and return to the group buffer.
 @end table
 
 @node Document View
@@ -244,64 +263,54 @@ for @var{regexp}.
 @cindex document viewer (DocView)
 @findex doc-view-mode
 
-DocView mode (@code{doc-view-mode}) is a viewer for DVI, PostScript
-(PS), PDF, OpenDocument, and Microsoft Office documents.  It provides
-features such as slicing, zooming, and searching inside documents.  It
-works by converting the document to a set of images using the
-@command{gs} (GhostScript) command and other external tools
-@footnote{@code{gs} is a hard requirement.  For DVI files,
-@code{dvipdf} or @code{dvipdfm} is needed.  For OpenDocument and
-Microsoft Office documents, the @code{unoconv} tool is needed.}, and
-displaying those images.
+  DocView mode is a major mode for viewing DVI, PostScript (PS), PDF,
+OpenDocument, and Microsoft Office documents.  It provides features
+such as slicing, zooming, and searching inside documents.  It works by
+converting the document to a set of images using the @command{gs}
+(GhostScript) command and other external tools @footnote{@code{gs} is
+a hard requirement.  For DVI files, @code{dvipdf} or @code{dvipdfm} is
+needed.  For OpenDocument and Microsoft Office documents, the
+@code{unoconv} tool is needed.}, and displaying those images.
 
 @findex doc-view-toggle-display
 @findex doc-view-toggle-display
 @cindex doc-view-minor-mode
-  When you visit a document file with the exception of PostScript
-files, Emacs automatically switches to DocView mode if possible
-@footnote{The needed external tools for this document type have to be
-available, emacs needs to run in a graphical frame, and PNG image
-support has to be compiled into emacs.  If any of these requirements
-is not fulfilled, DocView falls back to an appropriate mode.}.  When
-you visit a PostScript file, Emacs switches to PS mode, a major mode
-for editing PostScript files as text; however, it also enables DocView
-minor mode, so you can type @kbd{C-c C-c} to view the document with
-DocView.  (PDF and DVI files, unlike PostScript files, are not usually
-human-editable.)  In either case, repeating @kbd{C-c C-c}
-(@code{doc-view-toggle-display}) toggles between DocView and the file
-text.
+  When you visit a document file that can be displayed with DocView
+mode, Emacs automatically uses DocView mode @footnote{The needed
+external tools for the document type must be available, and Emacs must
+be running in a graphical frame and have PNG image support.  If any of
+these requirements is not fulfilled, Emacs falls back to another major
+mode.}.  As an exception, when you visit a PostScript file, Emacs
+switches to PS mode, a major mode for editing PostScript files as
+text; however, it also enables DocView minor mode, so you can type
+@kbd{C-c C-c} to view the document with DocView.  In either DocView
+mode or DocView minor mode, repeating @kbd{C-c C-c}
+(@code{doc-view-toggle-display}) toggles between DocView and the
+underlying file contents.
 
-  You can explicitly toggle DocView mode with the command @code{M-x
-doc-view-mode}, and DocView minor mode with the command @code{M-x
+  You can explicitly enable DocView mode with the command @code{M-x
+doc-view-mode}.  You can toggle DocView minor mode with @code{M-x
 doc-view-minor-mode}.
 
   When DocView mode starts, it displays a welcome screen and begins
 formatting the file, page by page.  It displays the first page once
 that has been formatted.
 
-@findex doc-view-enlarge
-@findex doc-view-shrink
-@vindex doc-view-resolution
-  When in DocView mode, you can enlarge or shrink the document with
-@kbd{+} (@code{doc-view-enlarge}) and @kbd{-}
-(@code{doc-view-shrink}).  To specify the default size for DocView,
-set or customize the variable @code{doc-view-resolution}.
-
   To kill the DocView buffer, type @kbd{k}
 (@code{doc-view-kill-proc-and-buffer}).  To bury it, type @kbd{q}
 (@code{quit-window}).
 
 @menu
-* Navigation::  Navigation inside DocView buffers.
-* Searching::   Searching inside documents.
-* Slicing::     Specifying which part of pages should be displayed.
-* Conversion::  Influencing and triggering conversion.
+* Navigation: DocView Navigation.  Navigating DocView buffers.
+* Searching: DocView Searching.    Searching inside documents.
+* Slicing: DocView Slicing.        Specifying which part of a page is displayed.
+* Conversion: DocView Conversion.  Influencing and triggering conversion.
 @end menu
 
-@node Navigation
-@subsection Navigation
+@node DocView Navigation
+@subsection DocView Navigation
 
-When in DocView mode, you can scroll the current page using the usual
+  In DocView mode, you can scroll the current page using the usual
 Emacs movement keys: @kbd{C-p}, @kbd{C-n}, @kbd{C-b}, @kbd{C-f}, and
 the arrow keys.
 
@@ -315,6 +324,10 @@ displays the next page if you are at the end of the current page.
 
 @findex doc-view-next-page
 @findex doc-view-previous-page
+@kindex n @r{(DocView mode)}
+@kindex p @r{(DocView mode)}
+@kindex C-x ] @r{(DocView mode)}
+@kindex C-x [ @r{(DocView mode)}
   You can also display the next page by typing @kbd{n}, @key{next} or
 @kbd{C-x ]} (@code{doc-view-next-page}).  To display the previous
 page, type @kbd{p}, @key{prior} or @kbd{C-x [}
@@ -322,23 +335,38 @@ page, type @kbd{p}, @key{prior} or @kbd{C-x [}
 
 @findex doc-view-scroll-up-or-next-page
 @findex doc-view-scroll-down-or-previous-page
-  The @key{SPC} (@code{doc-view-scroll-up-or-next-page}) key is a
-convenient way to advance through the document.  It scrolls within the
-current page or advances to the next.  @key{DEL} moves backwards in a
-similar way (@code{doc-view-scroll-down-or-previous-page}).
+@kindex SPC @r{(DocView mode)}
+@kindex DEL @r{(DocView mode)}
+  @key{SPC} (@code{doc-view-scroll-up-or-next-page}) is a convenient
+way to advance through the document.  It scrolls within the current
+page or advances to the next.  @key{DEL} moves backwards in a similar
+way (@code{doc-view-scroll-down-or-previous-page}).
 
 @findex doc-view-first-page
 @findex doc-view-last-page
 @findex doc-view-goto-page
+@kindex M-< @r{(DocView mode)}
+@kindex M-> @r{(DocView mode)}
   To go to the first page, type @kbd{M-<}
 (@code{doc-view-first-page}); to go to the last one, type @kbd{M->}
 (@code{doc-view-last-page}).  To jump to a page by its number, type
 @kbd{M-g M-g} or @kbd{M-g g} (@code{doc-view-goto-page}).
 
-@node Searching
-@subsection Searching
+@findex doc-view-enlarge
+@findex doc-view-shrink
+@vindex doc-view-resolution
+@kindex + @r{(DocView mode)}
+@kindex - @r{(DocView mode)}
+  You can enlarge or shrink the document with @kbd{+}
+(@code{doc-view-enlarge}) and @kbd{-} (@code{doc-view-shrink}).  These
+commands work by reconverting the document at the new size.  To
+specify the default size for DocView, customize the variable
+@code{doc-view-resolution}.
 
-While in DocView mode, you can search the file's text for a regular
+@node DocView Searching
+@subsection DocView Searching
+
+  In DocView mode, you can search the file's text for a regular
 expression (@pxref{Regexps}).  The interface for searching is inspired
 by @code{isearch} (@pxref{Incremental Search}).
 
@@ -359,8 +387,8 @@ To force display of this tooltip, type @kbd{C-t}
 argument; i.e., @kbd{C-u C-s} for a forward search or @kbd{C-u C-r}
 for a backward search.
 
-@node Slicing
-@subsection Slicing
+@node DocView Slicing
+@subsection DocView Slicing
 
 Documents often have wide margins for printing.  They are annoying
 when reading the document on the screen, because they use up screen
@@ -388,37 +416,33 @@ select the slice.
 (@code{doc-view-reset-slice}).  Then DocView shows the entire page
 including its entire margins.
 
-@node Conversion
-@subsection Conversion
+@node DocView Conversion
+@subsection DocView Conversion
 
 @vindex doc-view-cache-directory
 @findex doc-view-clear-cache
-For efficiency, DocView caches the images produced by @command{gs}.
+  For efficiency, DocView caches the images produced by @command{gs}.
 The name of this directory is given by the variable
 @code{doc-view-cache-directory}.  You can clear the cache directory by
 typing @code{M-x doc-view-clear-cache}.
 
 @findex doc-view-kill-proc
 @findex doc-view-kill-proc-and-buffer
-  To force a reconversion of the currently viewed document, type
-@kbd{r} or @kbd{g} (@code{revert-buffer}).  To kill the converter
-process associated with the current buffer, type @kbd{K}
+  To force reconversion of the currently viewed document, type @kbd{r}
+or @kbd{g} (@code{revert-buffer}).  To kill the converter process
+associated with the current buffer, type @kbd{K}
 (@code{doc-view-kill-proc}).  The command @kbd{k}
 (@code{doc-view-kill-proc-and-buffer}) kills the converter process and
 the DocView buffer.
-
-  The zoom commands @kbd{+} (@code{doc-view-enlarge}) and @kbd{-}
-(@code{doc-view-shrink}) need to reconvert the document at the new
-size.  The current page is converted first.
 
 @node Shell
 @section Running Shell Commands from Emacs
 @cindex subshell
 @cindex shell commands
 
-  Emacs has commands for passing single command lines to inferior shell
-processes; it can also run a shell interactively with input and output
-to an Emacs buffer named @samp{*shell*} or run a shell inside a terminal
+  Emacs has commands for passing single command lines to shell
+subprocesses, and for running a shell interactively with input and
+output to an Emacs buffer, and for running a shell in a terminal
 emulator window.
 
 @table @kbd
