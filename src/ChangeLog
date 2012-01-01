@@ -1,3 +1,11 @@
+2012-01-01  Eli Zaretskii  <eliz@gnu.org>
+
+	* gnutls.c (init_gnutls_functions): Load gnutls_check_version.
+	Load gnutls_transport_set_lowat only if GnuTLS version is below
+	2.11.1.
+	(emacs_gnutls_handshake): Call gnutls_transport_set_lowat only for
+	GnuTLS versions below 2.11.1.
+
 2011-12-31  Antoine Levitt  <antoine.levitt@gmail.com>
 
 	* xdisp.c (syms_of_xdisp) <window-scroll-functions>: Add warning

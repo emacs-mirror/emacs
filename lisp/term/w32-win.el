@@ -210,7 +210,7 @@ See the documentation of `create-fontset-from-fontset-spec' for the format.")
        '(gdk-pixbuf "libgdk_pixbuf-2.0-0.dll")
        '(glib "libglib-2.0-0.dll")
        '(gobject "libgobject-2.0-0.dll")
-       '(gnutls "libgnutls-26.dll")))
+       '(gnutls "libgnutls-28.dll" "libgnutls-26.dll")))
 
 ;;; multi-tty support
 (defvar w32-initialized nil
