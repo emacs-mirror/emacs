@@ -1,3 +1,15 @@
+2012-01-02  Chong Yidong  <cyd@gnu.org>
+
+	* dirtrack.el (dirtrack-list): Eliminate unused third element.
+	(dirtrack): Merge code for handling relative filenames in prompt
+	from shell-dir-cookie-watcher.
+	(dirtrack-debug-message): New arg to avoid excess format calls.
+
+	* shell.el (shell-dir-cookie-re): Variable deleted.
+	(shell-dir-cookie-watcher): Function deleted.
+	(shell-mode): Don't use shell-dir-cookie-re, since it is redundant
+	with dirtrack-mode.
+
 2012-01-01  Eli Zaretskii  <eliz@gnu.org>
 
 	* term/w32-win.el (dynamic-library-alist) <gnutls>: Load

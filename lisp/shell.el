@@ -372,18 +372,6 @@ Thus, this does not include the shell's current directory.")
 
 ;;; Basic Procedures
 
-(defcustom shell-dir-cookie-re nil
-  "Regexp matching your prompt, including some part of the current directory.
-If your prompt includes the current directory or the last few elements of it,
-set this to a pattern that matches your prompt and whose subgroup 1 matches
-the directory part of it.
-This is used by `shell-dir-cookie-watcher' to try and use this info
-to track your current directory.  It can be used instead of or in addition
-to `dirtrack-mode'."
-  :group 'shell
-  :type '(choice (const nil) regexp)
-  :version "24.1")
-
 (defun shell-parse-pcomplete-arguments ()
   "Parse whitespace separated arguments in the current region."
   (let ((begin (save-excursion (shell-backward-command 1) (point)))
@@ -546,10 +534,6 @@ buffer."
       (when (string-equal shell "bash")
         (add-hook 'comint-preoutput-filter-functions
                   'shell-filter-ctrl-a-ctrl-b nil t)))
-    (when shell-dir-cookie-re
-      ;; Watch for magic cookies in the output to track the current dir.
-      (add-hook 'comint-output-filter-functions
-		'shell-dir-cookie-watcher nil t))
     (comint-read-input-ring t)))
 
 (defun shell-filter-ctrl-a-ctrl-b (string)
@@ -709,20 +693,6 @@ Otherwise, one argument `-i' is passed to the shell.
 ;; directory tracking machinery currently used in this package, and
 ;; replace it with a process filter that watches for and strips out
 ;; these messages.
-
-(defun shell-dir-cookie-watcher (text)
-  ;; This is fragile: the TEXT could be split into several chunks and we'd
-  ;; miss it.  Oh well.  It's a best effort anyway.  I'd expect that it's
-  ;; rather unusual to have the prompt split into several packets, but
-  ;; I'm sure Murphy will prove me wrong.
-  (when (and shell-dir-cookie-re (string-match shell-dir-cookie-re text))
-    (let ((dir (match-string 1 text)))
-      (cond
-       ((file-name-absolute-p dir) (shell-cd dir))
-       ;; Let's try and see if it seems to be up or down from where we were.
-       ((string-match "\\`\\(.*\\)\\(?:/.*\\)?\n\\(.*/\\)\\1\\(?:/.*\\)?\\'"
-		      (setq text (concat dir "\n" default-directory)))
-	(shell-cd (concat (match-string 2 text) dir)))))))
 
 (defun shell-directory-tracker (str)
   "Tracks cd, pushd and popd commands issued to the shell.

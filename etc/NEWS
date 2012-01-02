@@ -749,10 +749,6 @@ Try using `rmail-show-message-hook' instead.
 directory is a remote file name and neither the environment variable
 $ESHELL nor the variable `explicit-shell-file-name' is set.
 
-*** New variable `shell-dir-cookie-re'.
-If set to an appropriate regexp, Shell mode can track your cwd by
-reading it from your prompt.
-
 ---
 ** SQL Mode enhancements.
 
