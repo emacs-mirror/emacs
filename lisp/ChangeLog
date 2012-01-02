@@ -1,3 +1,11 @@
+2012-01-02  Richard Stallman  <rms@gnu.org>
+
+	* battery.el (battery-status-function):
+	Detect when to use battery-yeeloong-sysfs.
+	(battery-echo-area-format): Add string for Yeeloong.
+	(battery-linux-proc-apm, battery-linux-proc-acpi): Doc fixes.
+	(battery-yeeloong-sysfs): New function.
+
 2012-01-02  Chong Yidong  <cyd@gnu.org>
 
 	* dirtrack.el (dirtrack-list): Eliminate unused third element.
