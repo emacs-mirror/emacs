@@ -65,8 +65,8 @@
 	(gdb-var-delete-children, gdb-edit-value, gdb-var-update)
 	(gdb-stopped, def-gdb-auto-update-trigger)
 	(gdb-place-breakpoints, gdb-select-thread, gdb-select-frame)
-	(gdb-get-changed-registers, gdb-get-main-selected-frame): Callers
-	changed.
+	(gdb-get-changed-registers, gdb-get-main-selected-frame):
+	Callers changed.
 	(gud-gdbmi-completions): New function.
 	(gdb): Use it for generating the completion table.
 
@@ -76,22 +76,22 @@
 	locking.  Use this to protect declarations from losing their
 	contexts.
 
-	* progmodes/cc-langs.el (c-before-font-lock-functions): replace
+	* progmodes/cc-langs.el (c-before-font-lock-functions): Replace
 	c-set-fl-decl-start with c-change-set-fl-decl-start (Renaming).
-	(c-before-context-fontification-functions): new defvar, a list of
+	(c-before-context-fontification-functions): New defvar, a list of
 	functions to be run just before context (etc.) font locking.
 
 	* progmodes/cc-mode.el (c-extend-font-lock-region-for-macros):
-	new, functionality extracted from
+	New, functionality extracted from
 	c-neutralize-syntax-in-and-mark-CPP.
-	(c-in-after-change-fontification): new variable.
+	(c-in-after-change-fontification): New variable.
 	(c-after-change): Set c-in-after-change-fontification.
 	(c-set-fl-decl-start): Rejig its interface, so it can be called
 	from both after-change and context fontifying.
-	(c-change-set-fl-decl-start, c-context-set-fl-decl-start): new
-	functions.
-	(c-standard-font-lock-fontify-region-function): new variable.
-	(c-font-lock-fontify-region): new function.
+	(c-change-set-fl-decl-start, c-context-set-fl-decl-start):
+	New functions.
+	(c-standard-font-lock-fontify-region-function): New variable.
+	(c-font-lock-fontify-region): New function.
 
 2011-12-24  Juri Linkov  <juri@jurta.org>
 
@@ -107,17 +107,17 @@
 
 	Fix unstable fontification inside templates.
 
-	* progmodes/cc-langs.el (c-before-font-lock-functions): newly
-	created from the singular version.  The (c c++ objc) entry now
+	* progmodes/cc-langs.el (c-before-font-lock-functions):
+	Newly created from the singular version.  The (c c++ objc) entry now
 	additionally has c-set-fl-decl-start.  The other languages (apart
 	from AWK) have that as a single entry.
 
-	* progmodes/cc-fonts.el (c-font-lock-enclosing-decls): The
-	functionality for "local" declarations has been extracted to
+	* progmodes/cc-fonts.el (c-font-lock-enclosing-decls):
+	The functionality for "local" declarations has been extracted to
 	c-set-fl-decl-start.
 
-	* progmodes/cc-mode.el: (c-common-init, c-after-change): Changes
-	due to pluralisation of c-before-font-lock-functions.
+	* progmodes/cc-mode.el (c-common-init, c-after-change):
+	Changes due to pluralisation of c-before-font-lock-functions.
 	(c-set-fl-decl-start): New function, extracted from
 	c-font-lock-enclosing-decls and enhanced.
 

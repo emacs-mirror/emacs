@@ -3113,7 +3113,7 @@ read1 (register Lisp_Object readcharfun, int *pch, int first_in_list)
 	  if (uninterned_symbol && ! NILP (Vpurify_flag))
 	    name = make_pure_string (read_buffer, nchars, nbytes, multibyte);
 	  else
-	    name = make_specified_string (read_buffer, nchars, nbytes,multibyte);
+	    name = make_specified_string (read_buffer, nchars, nbytes, multibyte);
 	  result = (uninterned_symbol ? Fmake_symbol (name)
 		    : Fintern (name, Qnil));
 
