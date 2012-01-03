@@ -566,6 +566,7 @@ region (or with the left margin if there is no previous line).
 +++
 ** Archive Mode has basic support for browsing and updating 7z archives.
 
++++
 ** browse-url has a new variable `browse-url-mailto-function'
 specifies how mailto: URLs are handled.  The default is `browse-url-mail'.
 
@@ -692,7 +693,7 @@ utf-8, and do the normal `undecided' decoding for the rest.
 exists, that is used instead.
 
 ** gdb-mi
-
++++
 *** GDB User Interface migrated to GDB Machine Interface and now
 supports multithread non-stop debugging and debugging of several
 threads simultaneously.
@@ -718,6 +719,7 @@ handy if you have many manuals in many Info buffers, and don't
 remember the name of the buffer visiting the manual you want to
 consult.
 
++++
 ** The Landmark game is now invoked with `landmark', not `lm'.
 
 ** MH-E has been upgraded to MH-E version 8.3.1.
@@ -742,9 +744,9 @@ This change was made in Emacs 23.1 but was not advertised at the time.
 Try using `rmail-show-message-hook' instead.
 
 ** Shell mode
-
++++
 *** Shell mode uses pcomplete rules, with the standard completion UI.
-
++++
 *** The `shell' command prompts for the shell path name if the default
 directory is a remote file name and neither the environment variable
 $ESHELL nor the variable `explicit-shell-file-name' is set.
@@ -898,6 +900,7 @@ They are superseded by shift-select-mode enabled by default in 23.1.
 ---
 *** `copyright-fix-years' can optionally convert consecutive years to ranges.
 
++++
 *** New command `nato-region' converts text to NATO phonetic alphabet.
 
 

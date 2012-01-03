@@ -1,3 +1,29 @@
+2012-01-03  Chong Yidong  <cyd@gnu.org>
+
+	* misc.texi (Single Shell): Don't document Lisp usage of
+	shell-command.  Tidy up discussion of synchronicity.  Add index
+	entries for async-shell-command.
+	(Interactive Shell): Note that M-x shell uses shell-file-name.
+	Note change in behavior in Emacs 24.
+	(Shell Mode): Shell mode now uses completion-at-point.
+	(Shell Prompts): Emphasize that comint-use-prompt-regexp isn't the
+	default method for recognizing prompts nowadays.
+	(Shell Ring): Add xref to Minibuffer History.
+	(Directory Tracking): Explain Dirtrack mode in more detail.
+	(Term Mode): Fix index entries.
+	(Paging in Term): Merge into Term Mode.
+	(Serial Terminal, Emacs Server, emacsclient Options): Copyedits.
+	(Printing): Fix xref.  State default of lpr-switches.
+	(PostScript): Remove obsolete sentence.  Omit description of
+	non-interactive behaviors.
+	(Hyperlinking): Improve description.
+	(Browse-URL): Using compose-mail for mailto URLs is the default.
+	Document browse-url-mailto-function.
+	(Goto Address mode): Add index entries.  Add xref to Browse-URL.
+	(FFAP): FFAP is not a minor mode.
+	(Amusements): M-x lm was renamed to M-x landmark.  Document
+	nato-region.
+
 2012-01-01  Chong Yidong  <cyd@gnu.org>
 
 	* misc.texi (Gnus, Buffers of Gnus): Copyedits.
