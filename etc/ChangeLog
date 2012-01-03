@@ -1,3 +1,17 @@
+2012-01-03  Bastien Guerry  <bzg@altern.org>
+
+	* org/COPYRIGHT-AND-LICENSE: New file.
+
+	* org/OrgOdtContentTemplate.xml: New file.
+
+	* org/OrgOdtStyles.xml: New file.
+
+	* org/: New directory.
+
+2012-01-03  Julian Gehring  <julian.gehring@googlemail.com>
+
+	* refcards/orgcard.tex: Correct one markup in the "Timestamps" section.
+
 2011-12-10  Lars Magne Ingebrigtsen  <larsi@gnus.org>
 
 	* NEWS: Mention auth-source twice in connection with smtpmail to

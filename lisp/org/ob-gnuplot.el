@@ -5,7 +5,6 @@
 ;; Author: Eric Schulte
 ;; Keywords: literate programming, reproducible research
 ;; Homepage: http://orgmode.org
-;; Version: 7.7
 
 ;; This file is part of GNU Emacs.
 
@@ -149,7 +148,10 @@ This function is called by `org-babel-execute-src-block'."
                   (shell-command-to-string
 		   (format
 		    "gnuplot \"%s\""
-		    (org-babel-process-file-name script-file))))
+		    (org-babel-process-file-name
+		     script-file
+		     (if (member system-type '(cygwin windows-nt ms-dos))
+			 t nil)))))
             (message output))
         (with-temp-buffer
           (insert (concat body "\n"))

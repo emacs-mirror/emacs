@@ -5,7 +5,6 @@
 ;; Author: Carsten Dominik <carsten at orgmode dot org>
 ;; Keywords: outlines, hypermedia, calendar, wp
 ;; Homepage: http://orgmode.org
-;; Version: 7.7
 ;;
 ;; This file is part of GNU Emacs.
 ;;
@@ -194,7 +193,5 @@ before running this command, even though the command tries to be smart."
 	  (org-datetree-file-entry-under (current-kill 0) date)))))))
 
 (provide 'org-datetree)
-
-
 
 ;;; org-datetree.el ends here

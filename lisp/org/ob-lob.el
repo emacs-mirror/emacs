@@ -6,7 +6,6 @@
 ;;	Dan Davison
 ;; Keywords: literate programming, reproducible research
 ;; Homepage: http://orgmode.org
-;; Version: 7.7
 
 ;; This file is part of GNU Emacs.
 
@@ -28,6 +27,8 @@
   (require 'cl))
 (require 'ob)
 (require 'ob-table)
+
+(declare-function org-babel-in-example-or-verbatim "ob-exp" nil)
 
 (defvar org-babel-library-of-babel nil
   "Library of source-code blocks.
@@ -62,24 +63,15 @@ To add files to this list use the `org-babel-lob-ingest' command."
 	     lob-ingest-count (if (> lob-ingest-count 1) "s" ""))
     lob-ingest-count))
 
-(defconst org-babel-lob-call-aliases '("lob" "call")
-  "Aliases to call a source block function.
-If you change the value of this variable then your files may
-  become unusable by other org-babel users, and vice versa.")
-
 (defconst org-babel-block-lob-one-liner-regexp
   (concat
-   "^\\([ \t]*\\)#\\+\\(?:"
-   (mapconcat #'regexp-quote org-babel-lob-call-aliases "\\|")
-   "\\):[ \t]+\\([^\(\)\n]+?\\)\\(\\[\\(.*\\)\\]\\|\\(\\)\\)"
+   "^\\([ \t]*\\)#\\+call:[ \t]+\\([^\(\)\n]+?\\)\\(\\[\\(.*\\)\\]\\|\\(\\)\\)"
    "\(\\([^\n]*\\)\)\\(\\[.+\\]\\|\\)[ \t]*\\(\\([^\n]*\\)\\)?")
   "Regexp to match non-inline calls to predefined source block functions.")
 
 (defconst org-babel-inline-lob-one-liner-regexp
   (concat
-   "\\([^\n]*\\)\\(?:"
-   (mapconcat #'regexp-quote org-babel-lob-call-aliases "\\|")
-   "\\)_\\([^\(\)\n]+?\\)\\(\\[\\(.*\\)\\]\\|\\(\\)\\)"
+   "\\([^\n]*\\)call_\\([^\(\)\n]+?\\)\\(\\[\\(.*\\)\\]\\|\\(\\)\\)"
    "\(\\([^\n]*\\)\)\\(\\[\\(.*?\\)\\]\\)?")
   "Regexp to match inline calls to predefined source block functions.")
 
@@ -89,6 +81,7 @@ If you change the value of this variable then your files may
   "Regexp to match calls to predefined source block functions.")
 
 ;; functions for executing lob one-liners
+
 ;;;###autoload
 (defun org-babel-lob-execute-maybe ()
   "Execute a Library of Babel source block, if appropriate.
@@ -96,7 +89,9 @@ Detect if this is context for a Library Of Babel source block and
 if so then run the appropriate source block from the Library."
   (interactive)
   (let ((info (org-babel-lob-get-info)))
-    (if (nth 0 info) (progn (org-babel-lob-execute info) t) nil)))
+    (if (and (nth 0 info) (not (org-babel-in-example-or-verbatim)))
+	(progn (org-babel-lob-execute info) t)
+      nil)))
 
 ;;;###autoload
 (defun org-babel-lob-get-info ()
@@ -126,7 +121,6 @@ if so then run the appropriate source block from the Library."
   (let ((params (org-babel-process-params
 		 (org-babel-merge-params
 		  org-babel-default-header-args
-		  (org-babel-params-from-buffer)
 		  (org-babel-params-from-properties)
 		  (org-babel-parse-header-arguments
 		   (org-babel-clean-text-properties

@@ -5,7 +5,6 @@
 ;; Author: Eric Schulte
 ;; Keywords: literate programming, reproducible research
 ;; Homepage: http://orgmode.org
-;; Version: 7.7
 
 ;; This file is part of GNU Emacs.
 
@@ -129,8 +128,8 @@ Emacs-lisp table, otherwise return the results as a string."
   "Initiate a ruby session.
 If there is not a current inferior-process-buffer in SESSION
 then create one.  Return the initialized session."
-  (require 'inf-ruby)
   (unless (string= session "none")
+    (require 'inf-ruby)
     (let ((session-buffer (save-window-excursion
 			    (run-ruby nil session) (current-buffer))))
       (if (org-babel-comint-buffer-livep session-buffer)

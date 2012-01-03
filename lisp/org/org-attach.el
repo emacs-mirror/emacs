@@ -4,7 +4,6 @@
 
 ;; Author: John Wiegley <johnw@newartisans.com>
 ;; Keywords: org data task
-;; Version: 7.7
 
 ;; This file is part of GNU Emacs.
 ;;
@@ -436,6 +435,5 @@ prefix."
   (concat "file:" (org-attach-expand file)))
 
 (provide 'org-attach)
-
 
 ;;; org-attach.el ends here

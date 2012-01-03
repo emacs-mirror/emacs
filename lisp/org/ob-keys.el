@@ -5,7 +5,6 @@
 ;; Author: Eric Schulte
 ;; Keywords: literate programming, reproducible research
 ;; Homepage: http://orgmode.org
-;; Version: 7.7
 
 ;; This file is part of GNU Emacs.
 
@@ -75,6 +74,8 @@ functions which are assigned key bindings, and see
     ("f" . org-babel-tangle-file)
     ("\C-c" . org-babel-check-src-block)
     ("c" . org-babel-check-src-block)
+    ("\C-j" . org-babel-insert-header-arg)
+    ("j" . org-babel-insert-header-arg)
     ("\C-l" . org-babel-load-in-session)
     ("l" . org-babel-load-in-session)
     ("\C-i" . org-babel-lob-ingest)

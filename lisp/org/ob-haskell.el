@@ -5,7 +5,6 @@
 ;; Author: Eric Schulte
 ;; Keywords: literate programming, reproducible research
 ;; Homepage: http://orgmode.org
-;; Version: 7.7
 
 ;; This file is part of GNU Emacs.
 
@@ -29,7 +28,7 @@
 ;; they can be run, but haskell code can also be run through an
 ;; interactive interpreter.
 ;;
-;; For now let's only allow evaluation using the haskell interpreter.
+;; For now lets only allow evaluation using the haskell interpreter.
 
 ;;; Requirements:
 
@@ -80,7 +79,7 @@
                    (cdr (member org-babel-haskell-eoe
                                 (reverse (mapcar #'org-babel-trim raw)))))))
     (org-babel-reassemble-table
-     (cond
+     (cond 
       ((equal result-type 'output)
        (mapconcat #'identity (reverse (cdr results)) "\n"))
       ((equal result-type 'value)

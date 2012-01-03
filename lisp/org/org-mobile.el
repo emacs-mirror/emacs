@@ -4,7 +4,6 @@
 ;; Author: Carsten Dominik <carsten at orgmode dot org>
 ;; Keywords: outlines, hypermedia, calendar, wp
 ;; Homepage: http://orgmode.org
-;; Version: 7.7
 ;;
 ;; This file is part of GNU Emacs.
 ;;
@@ -37,6 +36,9 @@
 ;;; Code:
 
 (eval-when-compile (require 'cl))
+
+(declare-function org-pop-to-buffer-same-window 
+		  "org-compat" (&optional buffer-or-name norecord label))
 
 (defgroup org-mobile nil
   "Options concerning support for a viewer/editor on a mobile device."
@@ -909,7 +911,7 @@ If BEG and END are given, only do this in that region."
 				   (buffer-file-name (current-buffer))))))
 		(error (setq org-mobile-error msg))))
 	    (when org-mobile-error
-	      (switch-to-buffer (marker-buffer marker))
+	      (org-pop-to-buffer-same-window (marker-buffer marker))
 	      (goto-char marker)
 	      (incf cnt-error)
 	      (insert (if (stringp (nth 1 org-mobile-error))
@@ -1095,8 +1097,6 @@ A and B must be strings or nil."
       (equal a b))))
 
 (provide 'org-mobile)
-
-
 
 ;;; org-mobile.el ends here
 
