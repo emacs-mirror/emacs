@@ -187,10 +187,11 @@ This is a fine thing to set in your `.emacs' file.")
     shell-environment-variable-completion
     shell-command-completion
     shell-c-a-p-replace-by-expanded-directory
-    pcomplete-completions-at-point
     shell-filename-completion
-    ;; Not sure when this one would still be useful.  --Stef
-    comint-filename-completion)
+    comint-filename-completion
+    ;; This goes last, so that `comint-filename-completion' can handle
+    ;; `shell-completion-execonly' (Bug#10417).
+    pcomplete-completions-at-point)
   "List of functions called to perform completion.
 This variable is used to initialize `comint-dynamic-complete-functions' in the
 shell buffer.

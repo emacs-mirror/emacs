@@ -1,3 +1,9 @@
+2012-01-03  Chong Yidong  <cyd@gnu.org>
+
+	* shell.el (shell-dynamic-complete-functions): Put
+	pcomplete-completions-at-point, so as to try
+	comint-filename-completion first (Bug#10417).
+
 2012-01-02  Richard Stallman  <rms@gnu.org>
 
 	* battery.el (battery-status-function):
