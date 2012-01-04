@@ -1,3 +1,35 @@
+2012-01-04  Julien Danjou  <julien@danjou.info>
+
+	* nnimap.el (nnimap-update-info): Fix an error when all articles UIDs
+	change.
+
+2012-01-04  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* shr.el (shr-rescale-image): Add :ascent 100 to the rescaled picture,
+	too.
+
+	* nntp.el (nntp-retrieve-group-data-early): Use it.
+
+2012-01-03  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* nntp.el (nntp-retrieval-in-progress): New variable.
+	(nntp-make-process-buffer): Make it buffer-local.
+
+	* gnus-demon.el (gnus-demon-time-to-step): Resurrect function lost in
+	2010.
+	(gnus-demon-init): Use it to compute the time if time is on the form
+	"04:23".
+
+	* gnus-topic.el (gnus-topic-history): Define `gnus-topic-history'.
+
+	* nnimap.el (nnimap-finish-retrieve-group-infos): Check the connection
+	status in the correct buffer.
+
+2012-01-03  Leo  <sdl.web@gmail.com>
+
+	* gnus-topic.el (gnus-topic-goto-next-group): Don't move point around
+	when opening topics (bug#10407).
+
 2011-12-28  Katsumi Yamaoka  <yamaoka@jpl.org>
 
 	* mm-view.el (mm-display-inline-fontify): Add comment.
