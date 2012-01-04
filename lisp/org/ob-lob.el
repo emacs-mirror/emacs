@@ -1,6 +1,6 @@
 ;;; ob-lob.el --- functions supporting the Library of Babel
 
-;; Copyright (C) 2009-2011  Free Software Foundation, Inc.
+;; Copyright (C) 2009-2012  Free Software Foundation, Inc.
 
 ;; Author: Eric Schulte
 ;;	Dan Davison

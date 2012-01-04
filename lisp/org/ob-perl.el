@@ -1,6 +1,6 @@
 ;;; ob-perl.el --- org-babel functions for perl evaluation
 
-;; Copyright (C) 2009-2011  Free Software Foundation
+;; Copyright (C) 2009-2012  Free Software Foundation
 
 ;; Author: Dan Davison
 ;;	Eric Schulte

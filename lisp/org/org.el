@@ -1,12 +1,12 @@
 ;;; org.el --- Outline-based notes management and organizer
 ;; Carstens outline-mode for keeping track of everything.
-;; Copyright (C) 2004-2011 Free Software Foundation, Inc.
+;; Copyright (C) 2004-2012 Free Software Foundation, Inc.
 ;;
 ;; Author: Carsten Dominik <carsten at orgmode dot org>
 ;; Maintainer: Bastien Guerry <bzg at gnu dot org>
 ;; Keywords: outlines, hypermedia, calendar, wp
 ;; Homepage: http://orgmode.org
-;; Version: 7.8.02
+;; Version: 7.8.03
 ;;
 ;; This file is part of GNU Emacs.
 ;;
@@ -203,7 +203,7 @@ identifier."
 
 ;;; Version
 
-(defconst org-version "7.8.02"
+(defconst org-version "7.8.03"
   "The version number of the file org.el.")
 
 (defun org-version (&optional here)

@@ -1,6 +1,6 @@
 ;;; ob.el --- working with code blocks in org-mode
 
-;; Copyright (C) 2009-2011  Free Software Foundation, Inc.
+;; Copyright (C) 2009-2012  Free Software Foundation, Inc.
 
 ;; Author: Eric Schulte
 ;;	Dan Davison
@@ -1074,8 +1074,7 @@ ALTS is a cons of two character options where each option may be
 either the numeric code of a single character or a list of
 character alternatives.  For example to split on balanced
 instances of \"[ \t]:\" set ALTS to '((32 9) . 58)."
-  (flet ((matches (ch spec) (or (and (numberp spec) (= spec ch))
-				(member ch spec)))
+  (flet ((matches (ch spec) (if (listp spec) (member ch spec) (equal spec ch)))
 	 (matched (ch last)
 		  (if (consp alts)
 		      (and (matches ch (cdr alts))
