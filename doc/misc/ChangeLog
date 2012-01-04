@@ -1,3 +1,7 @@
+2012-01-04  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* gnus.texi (Group Parameters): Note precedence.
+
 2012-01-03  Eric Schulte  <eric.schulte@gmx.com>
 
 	* org.texi (Noweb reference syntax): Adding documentation of

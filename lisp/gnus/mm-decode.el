@@ -1,6 +1,6 @@
 ;;; mm-decode.el --- Functions for decoding MIME things
 
-;; Copyright (C) 1998-2011  Free Software Foundation, Inc.
+;; Copyright (C) 1998-2012  Free Software Foundation, Inc.
 
 ;; Author: Lars Magne Ingebrigtsen <larsi@gnus.org>
 ;;	MORIOKA Tomohiko <morioka@jaist.ac.jp>
@@ -1724,6 +1724,7 @@ If RECURSIVE, search recursively."
 				      (buffer-string))))))
 	shr-inhibit-images shr-blocked-images charset char)
     (if (and (boundp 'gnus-summary-buffer)
+	     (bufferp gnus-summary-buffer)
 	     (buffer-name gnus-summary-buffer))
 	(with-current-buffer gnus-summary-buffer
 	  (setq shr-inhibit-images gnus-inhibit-images

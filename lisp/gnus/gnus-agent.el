@@ -2229,7 +2229,10 @@ doesn't exist, to valid the overview buffer."
 article counts for each of the method's subscribed groups."
   (let ((gnus-command-method (or method gnus-command-method)))
     (when (or (null gnus-agent-article-local-times)
-	      (zerop gnus-agent-article-local-times))
+	      (zerop gnus-agent-article-local-times)
+	      (not (gnus-methods-equal-p
+		    gnus-command-method
+		    (symbol-value (intern "+method" gnus-agent-article-local)))))
       (setq gnus-agent-article-local
 	    (gnus-cache-file-contents
 	     (gnus-agent-lib-file "local")

@@ -1,6 +1,6 @@
 ;;; gnus.el --- a newsreader for GNU Emacs
 
-;; Copyright (C) 1987-1990, 1993-1998, 2000-2011
+;; Copyright (C) 1987-1990, 1993-1998, 2000-2012
 ;;   Free Software Foundation, Inc.
 
 ;; Author: Masanobu UMEDA <umerin@flab.flab.fujitsu.junet>
@@ -1146,7 +1146,9 @@ For example:
 		  (display . all))
      (\"mail\\\\.me\" (gnus-use-scoring  t))
      (\"list\\\\..*\" (total-expire . t)
-		  (broken-reply-to . t)))"
+		  (broken-reply-to . t)))
+
+The first clause that matches the group name will be used."
   :version "22.1"
   :group 'gnus-group-various
   :type '(repeat (cons regexp

@@ -1,3 +1,27 @@
+2012-01-04  Chris Gray  <chrismgray@gmail.com>  (tiny change)
+
+	* mm-decode.el (mm-shr): Check that `gnus-summary-buffer' really is a
+	live buffer.
+
+2012-01-04  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* nnir.el (nnir-retrieve-headers): Protect against the article not
+	existing on the server (bug#10335).
+
+2012-01-04  Wolfgang Jenkner  <wjenkner@inode.at>  (tiny change)
+
+	* gnus-agent.el (gnus-agent-load-local): Recompute
+	gnus-agent-article-local on changing method.
+
+2012-01-04  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* gnus.el (gnus-parameters): Note precedence.
+
+2012-01-04  Leo  <sdl.web@gmail.com>
+
+	* nndraft.el (nndraft-update-unread-articles): Don't move point around
+	in the group buffer.
+
 2012-01-04  Julien Danjou  <julien@danjou.info>
 
 	* nnimap.el (nnimap-update-info): Fix an error when all articles UIDs

@@ -3187,8 +3187,10 @@ For example:
          (broken-reply-to . t))))
 @end lisp
 
-String value of parameters will be subjected to regexp substitution, as
-the @code{to-group} example shows.
+The first clause that matches the group name will be used.
+
+Parameters that are strings will be subjected to regexp substitution,
+as the @code{to-group} example shows.
 
 @vindex gnus-parameters-case-fold-search
 By default, whether comparing the group name and one of those regexps
