@@ -39,7 +39,7 @@
 (declare-function remember "remember" (&optional initial))
 (declare-function remember-buffer-desc "remember" ())
 (declare-function remember-finalize "remember" ())
-(declare-function org-pop-to-buffer-same-window 
+(declare-function org-pop-to-buffer-same-window
 		  "org-compat" (&optional buffer-or-name norecord label))
 
 (defvar remember-save-after-remembering)
@@ -1152,4 +1152,3 @@ See also the variable `org-reverse-note-order'."
 (provide 'org-remember)
 
 ;;; org-remember.el ends here
-

@@ -34,7 +34,7 @@
 ;;; Requirements:
 
 ;; - gnuplot :: http://www.gnuplot.info/
-;; 
+;;
 ;; - gnuplot-mode :: http://cars9.uchicago.edu/~ravel/software/gnuplot-mode.html
 
 ;;; Code:

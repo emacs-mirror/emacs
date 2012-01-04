@@ -146,7 +146,7 @@ When completing for #+STARTUP, for example, this function returns
 			    (org-split-string (org-get-current-options) "\n"))
 		    org-additional-option-like-keywords)))))
    (substring pcomplete-stub 2)))
-  
+
 (defvar org-startup-options)
 (defun pcomplete/org-mode/file-option/startup ()
   "Complete arguments for the #+STARTUP file option."

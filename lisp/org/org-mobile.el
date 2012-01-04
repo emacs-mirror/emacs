@@ -37,7 +37,7 @@
 
 (eval-when-compile (require 'cl))
 
-(declare-function org-pop-to-buffer-same-window 
+(declare-function org-pop-to-buffer-same-window
 		  "org-compat" (&optional buffer-or-name norecord label))
 
 (defgroup org-mobile nil
@@ -272,7 +272,7 @@ Also exclude files matching `org-mobile-files-exclude-regexp'."
 		     (t nil)))
 		  org-mobile-files)))
 	 (files (delete
-		 nil 
+		 nil
 		 (mapcar (lambda (f)
 			   (unless (and (not (string= org-mobile-files-exclude-regexp ""))
 					(string-match org-mobile-files-exclude-regexp f))
@@ -499,7 +499,7 @@ agenda view showing the flagged items."
 				 org-mobile-directory))
     (save-excursion
       (setq buf (find-file file))
-      (when (and (= (point-min) (point-max))) 
+      (when (and (= (point-min) (point-max)))
 	(insert "\n")
 	(save-buffer)
 	(when org-mobile-use-encryption
@@ -1099,4 +1099,3 @@ A and B must be strings or nil."
 (provide 'org-mobile)
 
 ;;; org-mobile.el ends here
-

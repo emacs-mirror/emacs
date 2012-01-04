@@ -44,10 +44,10 @@
 
 ;; PicoLisp _is_ an object-oriented database with a Prolog-based query
 ;; language implemented in PicoLisp (Pilog). Database objects are
-;; first-class members of the language. 
+;; first-class members of the language.
 
 ;; PicoLisp is an extremely productive framework for the development
-;; of interactive web-applications (on top of a database). 
+;; of interactive web-applications (on top of a database).
 
 ;;; Requirements:
 
@@ -95,7 +95,7 @@
 
 (defun org-babel-execute:picolisp (body params)
   "Execute a block of Picolisp code with org-babel.  This function is
- called by `org-babel-execute-src-block'"           
+ called by `org-babel-execute-src-block'"
   (message "executing Picolisp source code block")
   (let* (
 	 ;; name of the session or "none"
@@ -118,7 +118,7 @@
            ((member "value" result-params)
             (format "(out \"/dev/null\" %s)" full-body))
            (t full-body))))
-    
+
     ((lambda (result)
        (if (or (member "verbatim" result-params)
                (member "scalar" result-params)

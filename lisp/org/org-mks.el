@@ -24,7 +24,7 @@
 
 
 ;;; Commentary:
-;; 
+;;
 
 ;;; Code:
 

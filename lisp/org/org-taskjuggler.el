@@ -355,8 +355,8 @@ information, all the properties, etc."
   (let* ((props (org-entry-properties))
 	 (components (org-heading-components))
 	 (level (nth 1 components))
-	 (headline 
-	  (replace-regexp-in-string 
+	 (headline
+	  (replace-regexp-in-string
 	   "\"" "\\\"" (nth 4 components) t t)) ; quote double quotes in headlines
 	 (parent-ordered (org-taskjuggler-parent-is-ordered-p)))
     (push (cons "level" level) props)
@@ -406,10 +406,10 @@ deeper), then it's not a leaf."
 	    (successor (car (cdr tasks))))
 	(cond
 	 ;; if a task has no successors it is a leaf
-	 ((null successor) 
+	 ((null successor)
 	  (push (cons (cons "leaf-node" t) task) new-list))
 	 ;; if the successor has a lower level than task it is a leaf
-	 ((<= (cdr (assoc "level" successor)) (cdr (assoc "level" task))) 
+	 ((<= (cdr (assoc "level" successor)) (cdr (assoc "level" task)))
 	  (push (cons (cons "leaf-node" t) task) new-list))
 	 ;; otherwise examine the rest of the tasks
 	 (t (push task new-list))))

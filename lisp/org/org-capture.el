@@ -56,7 +56,7 @@
 		  (date &optional keep-restriction))
 (declare-function org-table-get-specials "org-table" ())
 (declare-function org-table-goto-line "org-table" (N))
-(declare-function org-pop-to-buffer-same-window "org-compat" 
+(declare-function org-pop-to-buffer-same-window "org-compat"
 		  (&optional buffer-or-name norecord label))
 
 (defvar org-remember-default-headline)

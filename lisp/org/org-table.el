@@ -2436,7 +2436,7 @@ not overwrite the stored one."
 	   (modes (copy-sequence org-calc-default-modes))
 	   (numbers nil) ; was a variable, now fixed default
 	   (keep-empty nil)
-	   n form form0 formrpl formrg bw fmt x ev orig c lispp literal 
+	   n form form0 formrpl formrg bw fmt x ev orig c lispp literal
 	   duration duration-output-format)
       ;; Parse the format string.  Since we have a lot of modes, this is
       ;; a lot of work.  However, I think calc still uses most of the time.
@@ -2461,7 +2461,7 @@ not overwrite the stored one."
 		      duration-output-format nil
 		      fmt (replace-match "" t t fmt)))
 	    (if (string-match "t" fmt)
-		(setq duration t 
+		(setq duration t
 		      duration-output-format org-table-duration-custom-format
 		      numbers t
 		      fmt (replace-match "" t t fmt)))
@@ -2529,7 +2529,7 @@ not overwrite the stored one."
 	;; Insert complex ranges
 	(while (and (string-match org-table-range-regexp form)
 		    (> (length (match-string 0 form)) 1))
-	  (setq formrg (save-match-data 
+	  (setq formrg (save-match-data
 			 (org-table-get-range (match-string 0 form) nil n0)))
 	  (setq formrpl
 		(save-match-data
@@ -4759,4 +4759,3 @@ list of the fields in the rectangle ."
 (provide 'org-table)
 
 ;;; org-table.el ends here
-

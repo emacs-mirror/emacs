@@ -73,7 +73,7 @@
 (require 'org)
 
 (declare-function message-make-fqdn "message" ())
-(declare-function org-pop-to-buffer-same-window 
+(declare-function org-pop-to-buffer-same-window
 		  "org-compat" (&optional buffer-or-name norecord label))
 
 ;;; Customization
@@ -641,7 +641,3 @@ optional argument MARKERP, return the position as a new marker."
 (provide 'org-id)
 
 ;;; org-id.el ends here
-
-
-
-

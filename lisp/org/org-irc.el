@@ -59,7 +59,7 @@
 (declare-function erc-server-buffer "erc" ())
 (declare-function erc-get-server-nickname-list "erc" ())
 (declare-function erc-cmd-JOIN "erc" (channel &optional key))
-(declare-function org-pop-to-buffer-same-window 
+(declare-function org-pop-to-buffer-same-window
 		  "org-compat" (&optional buffer-or-name norecord label))
 
 (defvar org-irc-client 'erc

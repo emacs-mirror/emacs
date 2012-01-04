@@ -104,7 +104,7 @@ if so then run the appropriate source block from the Library."
 	(beginning-of-line 1)
 	(when (looking-at org-babel-lob-one-liner-regexp)
 	  (append
-	   (mapcar #'org-babel-clean-text-properties 
+	   (mapcar #'org-babel-clean-text-properties
 		   (list
 		    (format "%s%s(%s)%s"
 			    (nonempty 3 12)
@@ -115,7 +115,7 @@ if so then run the appropriate source block from the Library."
 		    (nonempty 9 18)))
 	   (list (length (if (= (length (match-string 12)) 0)
 			     (match-string 2) (match-string 11))))))))))
-  
+
 (defun org-babel-lob-execute (info)
   "Execute the lob call specified by INFO."
   (let ((params (org-babel-process-params

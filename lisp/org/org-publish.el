@@ -368,7 +368,7 @@ This is a compatibility function for Emacsen without `delete-dups'."
 
 (declare-function org-publish-delete-dups "org-publish" (list))
 (declare-function find-lisp-find-files "find-lisp" (directory regexp))
-(declare-function org-pop-to-buffer-same-window 
+(declare-function org-pop-to-buffer-same-window
 		  "org-compat" (&optional buffer-or-name norecord label))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -1127,7 +1127,7 @@ so that the file including them will be republished as well."
       (let ((ctime (org-publish-cache-ctime-of-src filename)))
 	(or (< pstamp ctime)
 	    (when included-files-ctime
-	      (not (null (delq nil (mapcar (lambda(ct) (< ctime ct)) 
+	      (not (null (delq nil (mapcar (lambda(ct) (< ctime ct))
 					   included-files-ctime))))))))))
 
 (defun org-publish-cache-set-file-property (filename property value &optional project-name)

@@ -302,8 +302,8 @@ markup defined, the first one in the association list will be used."
 
 (defcustom org-export-latex-href-format "\\href{%s}{%s}"
   "A printf format string to be applied to href links.
-The format must contain either two %s instances or just one.  
-If it contains two %s instances, the first will be filled with 
+The format must contain either two %s instances or just one.
+If it contains two %s instances, the first will be filled with
 the link, the second with the link description.  If it contains
 only one, the %s will be filled with the link."
   :group 'org-export-latex
@@ -2226,7 +2226,7 @@ The conversion is made depending of STRING-BEFORE and STRING-AFTER."
 		;; a LaTeX issue, but we here implement a work-around anyway.
 		(setq path (org-export-latex-protect-amp path)
 		      desc (org-export-latex-protect-amp desc)))
-	      (insert 
+	      (insert
 	       (if (string-match "%s.*%s" org-export-latex-href-format)
 		   (format org-export-latex-href-format path desc)
 		 (format org-export-latex-href-format path))))

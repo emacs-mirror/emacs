@@ -51,7 +51,7 @@ interpreted by other mechanisms.")
 (defun org-special-blocks-make-special-cookies ()
   "Adds special cookies when #+begin_foo and #+end_foo tokens are
 seen.  This is run after a few special cases are taken care of."
-  (when (or (eq org-export-current-backend 'html) 
+  (when (or (eq org-export-current-backend 'html)
 	    (eq org-export-current-backend 'latex))
     (goto-char (point-min))
     (while (re-search-forward "^[ \t]*#\\+\\(begin\\|end\\)_\\(.*\\)$" nil t)

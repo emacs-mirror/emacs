@@ -28,10 +28,10 @@
 ;;; Requirements:
 
 ;; - ruby and irb executables :: http://www.ruby-lang.org/
-;; 
+;;
 ;; - ruby-mode :: Can be installed through ELPA, or from
 ;;   http://github.com/eschulte/rinari/raw/master/util/ruby-mode.el
-;;   
+;;
 ;; - inf-ruby mode :: Can be installed through ELPA, or from
 ;;   http://github.com/eschulte/rinari/raw/master/util/inf-ruby.el
 

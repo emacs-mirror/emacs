@@ -79,7 +79,7 @@
                    (cdr (member org-babel-haskell-eoe
                                 (reverse (mapcar #'org-babel-trim raw)))))))
     (org-babel-reassemble-table
-     (cond 
+     (cond
       ((equal result-type 'output)
        (mapconcat #'identity (reverse (cdr results)) "\n"))
       ((equal result-type 'value)
