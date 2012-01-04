@@ -791,7 +791,7 @@ that knows the exact ordering of the \\( \\) subexpressions.")
   ;; These are all matched case-insensitively.
   (eval-when-compile
     (let* ((cite-chars "[>|}]")
-	   (cite-prefix "a-z")
+	   (cite-prefix "[:alpha:]")
 	   (cite-suffix (concat cite-prefix "0-9_.@-`'\"")))
       (list '("^\\(From\\|Sender\\|Resent-From\\):"
 	      . 'rmail-header-name)

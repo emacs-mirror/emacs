@@ -1,3 +1,8 @@
+2012-01-04  Eli Zaretskii  <eliz@gnu.org>
+
+	* mail/rmail.el (rmail-font-lock-keywords): Accept non-ASCII
+	letters in cite-prefix.
+
 2012-01-03  Lars Magne Ingebrigtsen  <larsi@gnus.org>
 
 	* mail/smtpmail.el (smtpmail-stream-type): Mention the `ssl' value.
