@@ -1,3 +1,8 @@
+2012-01-05  Glenn Morris  <rgm@gnu.org>
+
+	* eshell/em-unix.el (diff-no-select): Autoload it.
+	(eshell/diff): Use diff-no-select.  (Bug#10420)
+
 2012-01-05  Chong Yidong  <cyd@gnu.org>
 
 	* shell.el (shell-dynamic-complete-functions): Revert last change.
