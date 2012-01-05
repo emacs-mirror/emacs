@@ -1,3 +1,19 @@
+2012-01-05  Chong Yidong  <cyd@gnu.org>
+
+	* custom.texi (Customization Groups): Update example.
+	(Browsing Custom): Document the new search field.
+	(Changing a Variable): Update example for Emacs 24 changes.
+	Document Custom-set and Custom-save commands.
+	(Face Customization): Document Emacs 24 changes.  De-document
+	modify-face.
+	(Specific Customization): Mention customize-variable.
+	(Custom Themes): Add customize-themes, custom-theme-load-path,
+	custom-theme-directory, and describe-theme.
+	(Creating Custom Themes): New node.
+	(Examining): Mention M-:.
+
+	* package.texi (Packages): Fix typo.
+
 2012-01-03  Chong Yidong  <cyd@gnu.org>
 
 	* misc.texi (Single Shell): Don't document Lisp usage of

@@ -341,14 +341,14 @@ automatically when Emacs starts up.  To disable this, set
 loaded, customize `package-load-list'.
 
 ** Custom Themes
-
++++
 *** `M-x customize-themes' lists Custom themes which can be enabled.
-
++++
 *** New option `custom-theme-load-path' is the load path for themes.
 Emacs no longer looks for custom themes in `load-path'.  The default
 is to search in `custom-theme-directory', followed by a built-in theme
 directory named "themes/" in `data-directory'.
-
++++
 *** New option `custom-safe-themes' records known-safe theme files.
 If a theme is not in this list, Emacs queries before loading it, and
 offers to save the theme to `custom-safe-themes' automatically.  By
@@ -640,15 +640,18 @@ in the *compilation* buffer was used.
 
 ** Customize
 
++++
 *** Customize buffers now contain a search field.
 The search is performed using `customize-apropos'.
 To turn off the search field, set custom-search-field to nil.
 
++++
 *** Custom options now start out hidden if at their default values.
 Use the arrow to the left of the option name to toggle visibility.
 
 *** custom-buffer-sort-alphabetically now defaults to t.
 
++++
 *** The color widget now has a "Choose" button, which allows you to
 choose a color via list-colors-display.
 

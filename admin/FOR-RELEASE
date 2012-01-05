@@ -162,6 +162,7 @@ msdog.texi
 msdog-xtra.texi   
 mule.texi         
 m-x.texi          cyd
+package.texi      cyd
 picture-xtra.texi
 programs.texi     cyd
 regs.texi         cyd

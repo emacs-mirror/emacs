@@ -1033,15 +1033,14 @@ Customization
 
 Easy Customization Interface
 
-* Customization Groups::     How settings are classified in a structure.
+* Customization Groups::     How settings are classified.
 * Browsing Custom::          Browsing and searching for settings.
 * Changing a Variable::      How to edit an option's value and set the option.
-* Saving Customizations::    Specifying the file for saving customizations.
+* Saving Customizations::    Saving customizations for future Emacs sessions.
 * Face Customization::       How to edit the attributes of a face.
-* Specific Customization::   Making a customization buffer for specific
-                                variables, faces, or groups.
-* Custom Themes::            How to define collections of customized options
-                                that can be loaded and unloaded together.
+* Specific Customization::   Customizing specific settings or groups.
+* Custom Themes::            Collections of customization settings.
+* Creating Custom Themes::   How to create a new custom theme.
 
 Variables
 
