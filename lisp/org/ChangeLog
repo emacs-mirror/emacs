@@ -1,3 +1,10 @@
+2012-01-05  Eric Schulte  <eric.schulte@gmx.com>
+
+	* ob.el (org-babel-expand-noweb-references): Resurrect dropped
+	pieces of a previous patch.
+
+	* ob-maxima.el (org-babel-execute:maxima): Fix compiler warning.
+
 2012-01-05  Bastien Guerry  <bzg@gnu.org>
 
 	* org-eshell.el (org-eshell-open): Use (goto-char (point-max))
