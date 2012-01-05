@@ -112,11 +112,17 @@
           (&optional dont-check-disk already-in-db-buffer))
 (declare-function bbdb-split "ext:bbdb" (string separators))
 (declare-function bbdb-string-trim "ext:bbdb" (string))
+(declare-function bbdb-record-get-field "ext:bbdb"
+		  (fn file &optional arglist fileonly))
+;; These two functions below are part of BBDB3:
+(declare-function bbdb-search-name "ext:bbdb" (regexp &optional layout))
+(declare-function bbdb-search-organization "ext:bbdb" (regexp &optional layout))
 
 (declare-function calendar-leap-year-p "calendar" (year))
 (declare-function diary-ordinal-suffix "diary-lib" (n))
 
 (defvar date)   ;; dynamically scoped from Org
+(defvar name)   ;; dynamically scoped from Org
 
 ;; Support for version 2.35
 (defvar org-bbdb-old (fboundp 'bbdb-record-get-field-internal))

@@ -247,7 +247,9 @@ you can \"misuse\" it to also add other text to the header.  However,
 
 ;; Keep custom values for `org-agenda-filter-preset' compatible with
 ;; the new variable `org-agenda-tag-filter-preset'.
-(defvaralias 'org-agenda-filter-preset 'org-agenda-tag-filter-preset)
+(if (fboundp 'defvaralias)
+    (defvaralias 'org-agenda-filter-preset 'org-agenda-tag-filter-preset)
+    (defvaralias 'org-agenda-filter 'org-agenda-tag-filter))
 
 (defconst org-agenda-custom-commands-local-options
   `(repeat :tag "Local settings for this command. Remember to quote values"
@@ -1768,7 +1770,7 @@ works you probably want to add it to `org-agenda-custom-commands' for good."
 	(setcdr ass (cdr entry))
       (push entry org-agenda-custom-commands))))
 
-;;; Define the Org-agenda-mode
+;;; Define the org-agenda-mode
 
 (defvar org-agenda-mode-map (make-sparse-keymap)
   "Keymap for `org-agenda-mode'.")
@@ -4375,7 +4377,7 @@ of what a project is and how to check if it stuck, customize the variable
 ;;; Diary integration
 
 (defvar org-disable-agenda-to-diary nil)          ;Dynamically-scoped param.
-(defvar list-diary-entries-hook)
+(defvar diary-list-entries-hook)
 (defvar diary-time-regexp)
 (defun org-get-entries-from-diary (date)
   "Get the (Emacs Calendar) diary entries for DATE."
@@ -4384,8 +4386,8 @@ of what a project is and how to check if it stuck, customize the variable
 	 (diary-display-hook '(fancy-diary-display))
 	 (diary-display-function 'fancy-diary-display)
 	 (pop-up-frames nil)
-	 (list-diary-entries-hook
-	  (cons 'org-diary-default-entry list-diary-entries-hook))
+	 (diary-list-entries-hook
+	  (cons 'org-diary-default-entry diary-list-entries-hook))
 	 (diary-file-name-prefix-function nil) ; turn this feature off
 	 (diary-modify-entry-list-string-function 'org-modify-diary-entry-string)
 	 entries
@@ -6180,6 +6182,7 @@ When this is the global TODO list, a prefix argument will be interpreted."
     (recenter window-line)))
 
 (defvar org-global-tags-completion-table nil)
+(defvar org-agenda-filtered-by-category nil)
 (defvar org-agenda-filter-form nil)
 
 (defun org-agenda-filter-by-category (strip)
@@ -6359,10 +6362,9 @@ If the line does not have an effort defined, return nil."
       (funcall op (or eff (if org-sort-agenda-noeffort-is-high 32767 0))
 	       value))))
 
-(defvar org-agenda-filtered-by-category nil)
 (defun org-agenda-filter-apply (filter type)
   "Set FILTER as the new agenda filter and apply it."
-  (let (tags)
+  (let (tags cat)
     (if (eq type 'tag)
 	(setq org-agenda-tag-filter filter)
       (setq org-agenda-category-filter filter

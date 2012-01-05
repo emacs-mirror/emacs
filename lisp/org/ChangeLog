@@ -1,3 +1,19 @@
+2012-01-05  Bastien Guerry  <bzg@gnu.org>
+
+	* org-eshell.el (org-eshell-open): Use (goto-char (point-max))
+	instead of (end-of-buffer).
+
+	* org-bbdb.el (name): Declare variable.
+	(bbdb-record-get-field, bbdb-search-name)
+	(bbdb-search-organization): Declare as part of ext:bbdb.
+
+	* org-agenda.el: Add an alias for `org-agenda-filter'.
+	(diary-list-entries-hook): Use the non-obsolete hook.
+	(org-agenda-filter-apply): Silent compiler warnings.
+
+	* org-mobile.el (org-mobile-push): Use `org-agenda-tag-filter'
+	instead of the obsolete `org-agenda-filter'.
+
 2012-01-03  Bastien Guerry  <bzg@gnu.org>
 
 	* org.el (org-ctrl-c-ctrl-c): Preserve symmetry when adding
