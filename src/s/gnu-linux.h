@@ -1,6 +1,6 @@
 /* This file is the configuration file for Linux-based GNU systems
 
-Copyright (C) 1985-1986, 1992, 1994, 1996, 1999, 2001-2011
+Copyright (C) 1985-1986, 1992, 1994, 1996, 1999, 2001-2012
   Free Software Foundation, Inc.
 
 This file was put together by Michael K. Johnson and Rik Faith.

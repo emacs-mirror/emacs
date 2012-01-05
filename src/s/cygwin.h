@@ -1,6 +1,6 @@
 /* System description header file for Cygwin.
 
-Copyright (C) 1985-1986, 1992, 1999, 2002-2011 Free Software Foundation, Inc.
+Copyright (C) 1985-1986, 1992, 1999, 2002-2012 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 

@@ -1,6 +1,6 @@
 ;; Auxiliary functions for preparing a two volume manual.
 
-;; Copyright (C) 2001-2011  Free Software Foundation, Inc.
+;; Copyright (C) 2001-2012  Free Software Foundation, Inc.
 
 ;; --rjc 30mar92
 

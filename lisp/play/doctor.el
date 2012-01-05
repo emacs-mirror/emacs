@@ -1,6 +1,6 @@
 ;;; doctor.el --- psychological help for frustrated users
 
-;; Copyright (C) 1985, 1987, 1994, 1996, 2000-2011
+;; Copyright (C) 1985, 1987, 1994, 1996, 2000-2012
 ;;   Free Software Foundation, Inc.
 
 ;; Maintainer: FSF

@@ -1,5 +1,5 @@
 /* String search routines for GNU Emacs.
-   Copyright (C) 1985-1987, 1993-1994, 1997-1999, 2001-2011
+   Copyright (C) 1985-1987, 1993-1994, 1997-1999, 2001-2012
                  Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.

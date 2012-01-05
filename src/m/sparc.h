@@ -1,6 +1,6 @@
 /* machine description file for Sun 4 SPARC.
 
-Copyright (C) 1987, 2001-2011  Free Software Foundation, Inc.
+Copyright (C) 1987, 2001-2012  Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 

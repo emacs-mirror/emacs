@@ -1,6 +1,6 @@
 ;;; buff-menu.el --- buffer menu main function and support functions -*- coding:utf-8 -*-
 
-;; Copyright (C) 1985-1987, 1993-1995, 2000-2011
+;; Copyright (C) 1985-1987, 1993-1995, 2000-2012
 ;;   Free Software Foundation, Inc.
 
 ;; Maintainer: FSF

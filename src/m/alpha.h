@@ -1,6 +1,6 @@
 /* Machine description file for the alpha chip.
 
-Copyright (C) 1994, 1997, 1999, 2001-2011  Free Software Foundation, Inc.
+Copyright (C) 1994, 1997, 1999, 2001-2012  Free Software Foundation, Inc.
 
 Author: Rainer Schoepf
 (according to authors.el)
