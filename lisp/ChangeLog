@@ -1,5 +1,10 @@
 2012-01-05  Chong Yidong  <cyd@gnu.org>
 
+	* shell.el (shell-dynamic-complete-functions): Revert last change.
+	(shell-command-completion-function): New function.
+	(shell-completion-vars): Use it to implement
+	shell-completion-execonly (Bug#10417).
+
 	* custom.el (enable-theme): Don't set custom-safe-themes.
 
 	* cus-theme.el (custom-theme-merge-theme): Ignore

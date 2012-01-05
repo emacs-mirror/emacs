@@ -187,11 +187,9 @@ This is a fine thing to set in your `.emacs' file.")
     shell-environment-variable-completion
     shell-command-completion
     shell-c-a-p-replace-by-expanded-directory
+    pcomplete-completions-at-point
     shell-filename-completion
-    comint-filename-completion
-    ;; This goes last, so that `comint-filename-completion' can handle
-    ;; `shell-completion-execonly' (Bug#10417).
-    pcomplete-completions-at-point)
+    comint-filename-completion)
   "List of functions called to perform completion.
 This variable is used to initialize `comint-dynamic-complete-functions' in the
 shell buffer.
@@ -407,6 +405,15 @@ Thus, this does not include the shell's current directory.")
           (push (mapconcat #'identity (nreverse arg) "") args)))
       (cons (nreverse args) (nreverse begins)))))
 
+(defun shell-command-completion-function ()
+  "Completion function for shell command names.
+This is the value of `pcomplete-command-completion-function' for
+Shell buffers.  It implements `shell-completion-execonly' for
+`pcomplete' completion."
+  (pcomplete-here (pcomplete-entries nil
+				     (if shell-completion-execonly
+					 'file-executable-p))))
+
 (defun shell-completion-vars ()
   "Setup completion vars for `shell-mode' and `read-shell-command'."
   (set (make-local-variable 'comint-completion-fignore)
@@ -428,6 +435,8 @@ Thus, this does not include the shell's current directory.")
               comint-completion-addsuffix)
              ((not (consp comint-completion-addsuffix)) " ")
              (t (cdr comint-completion-addsuffix))))
+  (set (make-local-variable 'pcomplete-command-completion-function)
+       #'shell-command-completion-function)
   ;; Don't use pcomplete's defaulting mechanism, rely on
   ;; shell-dynamic-complete-functions instead.
   (set (make-local-variable 'pcomplete-default-completion-function) #'ignore)
