@@ -4,6 +4,16 @@
 	* refcards/cs-refcard.tex, refcards/cs-survival.tex:
 	* refcards/de-refcard.tex, refcards/dired-ref.tex:
 	* refcards/fr-dired-ref.tex, refcards/fr-refcard.tex:
+	* refcards/fr-survival.tex, refcards/pl-refcard.tex:
+	* refcards/pt-br-refcard.tex, refcards/refcard.tex:
+	* refcards/ru-refcard.tex, refcards/sk-dired-ref.tex:
+	* refcards/sk-refcard.tex, refcards/sk-survival.tex:
+	* refcards/survival.tex: Bump version number to 24.
+
+	* refcards/calccard.tex, refcards/cs-dired-ref.tex:
+	* refcards/cs-refcard.tex, refcards/cs-survival.tex:
+	* refcards/de-refcard.tex, refcards/dired-ref.tex:
+	* refcards/fr-dired-ref.tex, refcards/fr-refcard.tex:
 	* refcards/fr-survival.tex, refcards/orgcard.tex:
 	* refcards/pl-refcard.tex, refcards/pt-br-refcard.tex:
 	* refcards/refcard.tex, refcards/ru-refcard.tex:
