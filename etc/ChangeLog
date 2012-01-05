@@ -12,13 +12,17 @@
 	* refcards/vipcard.tex, refcards/viperCard.tex:
 	Update short copyright year to 2012.
 
+2012-01-04 Chong Yidong  <cyd@stupidchicken.com>
+
+	* org/README: Rename from COPYRIGHT-AND-LICENSE.
+
+2012-01-03  Jambunathan K  <kjambunathan@gmail.com>
+
+	* org/OrgOdtContentTemplate.xml, org/OrgOdtStyles.xml: New files.
+
 2012-01-03  Bastien Guerry  <bzg@altern.org>
 
 	* org/COPYRIGHT-AND-LICENSE: New file.
-
-	* org/OrgOdtContentTemplate.xml: New file.
-
-	* org/OrgOdtStyles.xml: New file.
 
 	* org/: New directory.
 
