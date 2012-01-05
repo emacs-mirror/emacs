@@ -1110,7 +1110,9 @@ hash of a safe theme file, or the symbol `default', which stands
 for any theme in the built-in Emacs theme directory (a directory
 named \"themes\" in `data-directory').
 
-If the value is t, Emacs treats all themes as safe."
+If the value is t, Emacs treats all themes as safe.
+
+This variable cannot be set in a Custom theme."
   :type '(choice (repeat :tag "List of safe themes"
 			 (choice string
 				 (const :tag "Built-in themes" default)))
@@ -1285,8 +1287,8 @@ precedence (after `user')."
 	 ((eq prop 'theme-face)
 	  (custom-theme-recalc-face symbol))
 	 ((eq prop 'theme-value)
-	  ;; Don't change `custom-enabled-themes'; that's special.
-	  (unless (eq symbol 'custom-enabled-themes)
+	  ;; Ignore `custom-enabled-themes' and `custom-safe-themes'.
+	  (unless (memq symbol '(custom-enabled-themes custom-safe-themes))
 	    (custom-theme-recalc-variable symbol)))))))
   (unless (eq theme 'user)
     (setq custom-enabled-themes

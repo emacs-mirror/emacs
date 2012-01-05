@@ -1,9 +1,16 @@
+2012-01-05  Chong Yidong  <cyd@gnu.org>
+
+	* custom.el (enable-theme): Don't set custom-safe-themes.
+
+	* cus-theme.el (custom-theme-merge-theme): Ignore
+	custom-enabled-themes and custom-safe-themes.
+
 2012-01-05  Michael R. Mauger  <mmaug@yahoo.com>
 
 	* progmodes/sql.el (sql-login-hook): Add hook to respond to the
 	first prompt in `sql-interacive-mode'.
 	(sql-mode-oracle-font-lock-keywords): Add CONNECT_BY_* builtin
-	keywords. 
+	keywords.
 	(sql-mode-mysql-font-lock-keywords):  Add ELSEIF keyword.
 	(sql-product-interactive): Bug fix: Set `sql-buffer' in
 	context of original buffer.  Invoke `sql-login-hook'.
