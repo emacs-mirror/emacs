@@ -3526,7 +3526,7 @@ static void
 version (void)
 {
   /* Makes it easier to update automatically. */
-  char emacs_copyright[] = "Copyright (C) 2011 Free Software Foundation, Inc.";
+  char emacs_copyright[] = "Copyright (C) 2012 Free Software Foundation, Inc.";
 
   printf ("ebrowse %s\n", VERSION);
   puts (emacs_copyright);

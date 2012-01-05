@@ -98,7 +98,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #endif
 
 static const char emacs_version[] = VERSION;
-static const char emacs_copyright[] = "Copyright (C) 2011 Free Software Foundation, Inc.";
+static const char emacs_copyright[] = "Copyright (C) 2012 Free Software Foundation, Inc.";
 
 /* Make these values available in GDB, which doesn't see macros.  */
 
