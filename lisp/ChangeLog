@@ -1,3 +1,13 @@
+2012-01-05  Michael R. Mauger  <mmaug@yahoo.com>
+
+	* progmodes/sql.el (sql-login-hook): Add hook to respond to the
+	first prompt in `sql-interacive-mode'.
+	(sql-mode-oracle-font-lock-keywords): Add CONNECT_BY_* builtin
+	keywords. 
+	(sql-mode-mysql-font-lock-keywords):  Add ELSEIF keyword.
+	(sql-product-interactive): Bug fix: Set `sql-buffer' in
+	context of original buffer.  Invoke `sql-login-hook'.
+
 2012-01-04  Eli Zaretskii  <eliz@gnu.org>
 
 	* mail/rmail.el (rmail-font-lock-keywords): Accept non-ASCII
