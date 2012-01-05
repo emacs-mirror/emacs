@@ -1,3 +1,8 @@
+2012-01-05  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* starttls.el (starttls-available-p): Return nil on Windows/MS-DOS
+	systems, since these allegedly don't work there.
+
 2012-01-04  Chris Gray  <chrismgray@gmail.com>  (tiny change)
 
 	* mm-decode.el (mm-shr): Check that `gnus-summary-buffer' really is a

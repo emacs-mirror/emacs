@@ -297,9 +297,10 @@ GnuTLS requires a port number."
 
 (defun starttls-available-p ()
   "Say whether the STARTTLS programs are available."
-  (executable-find (if starttls-use-gnutls
-		       starttls-gnutls-program
-		     starttls-program)))
+  (and (not (memq system-type '(windows-nt ms-dos)))
+       (executable-find (if starttls-use-gnutls
+			    starttls-gnutls-program
+			  starttls-program))))
 
 (defalias 'starttls-any-program-available 'starttls-available-p)
 (make-obsolete 'starttls-any-program-available 'starttls-available-p
