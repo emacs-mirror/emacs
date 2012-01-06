@@ -1745,7 +1745,9 @@ The value is non-nil if there were no errors, nil if errors."
              (enable-local-eval nil))
 	;; Arg of t means don't alter enable-local-variables.
         (normal-mode t)
-        (setq filename buffer-file-name))
+        ;; There may be a file local variable setting (bug#10419).
+        (setq buffer-read-only nil
+              filename buffer-file-name))
       ;; Set the default directory, in case an eval-when-compile uses it.
       (setq default-directory (file-name-directory filename)))
     ;; Check if the file's local variables explicitly specify not to
