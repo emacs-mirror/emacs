@@ -1,3 +1,13 @@
+2012-01-06  Eli Zaretskii  <eliz@gnu.org>
+
+	* cmdargs.texi (MS-Windows Registry): Shorten the index entry.
+	(Bug#10422)
+	Move the stuff about resources to xresources.texi.
+
+	* xresources.texi (Resources): Move information about setting X
+	resources in the Registry from cmdargs.texi.  Make the index entry
+	be similar to the one in cmdargs.texi.
+
 2012-01-05  Chong Yidong  <cyd@gnu.org>
 
 	* custom.texi (Customization Groups): Update example.
