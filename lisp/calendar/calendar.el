@@ -1730,6 +1730,7 @@ For a complete description, see the info node `Calendar/Diary'.
   (setq buffer-read-only t
         buffer-undo-list t
         indent-tabs-mode nil)
+  (set (make-local-variable 'scroll-margin) 0) ; bug#10379
   (calendar-update-mode-line)
   (make-local-variable 'calendar-mark-ring)
   (make-local-variable 'displayed-month) ; month in middle of window
