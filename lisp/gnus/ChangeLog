@@ -1,3 +1,9 @@
+2012-01-06  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* gnus-msg.el (gnus-summary-reply): Do not give a `switch-to-buffer'
+	argument to `message-reply'.  This broke `special-display-*' frame
+	pop-uping (bug#10238).
+
 2012-01-05  Lars Magne Ingebrigtsen  <larsi@gnus.org>
 
 	* starttls.el (starttls-available-p): Return nil on Windows/MS-DOS
