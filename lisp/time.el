@@ -64,13 +64,14 @@ directory `display-time-mail-directory' contains nonempty files."
 
 (defcustom display-time-default-load-average 0
   "Which load average value will be shown in the mode line.
-Almost every system can provide values of load for past 1 minute, past 5 or
-past 15 minutes.  The default is to display 1 minute load average.
+Almost every system can provide values of load for the past 1 minute,
+past 5 or past 15 minutes.  The default is to display 1-minute load average.
 The value can be one of:
 
   0   => 1 minute load
   1   => 5 minutes load
-  2   => 15 minutes load"
+  2   => 15 minutes load
+  nil => None (do not display the load average)"
   :type '(choice (const :tag "1 minute load" 0)
 		 (const :tag "5 minutes load" 1)
 		 (const :tag "15 minutes load" 2)
@@ -78,8 +79,10 @@ The value can be one of:
   :group 'display-time)
 
 (defvar display-time-load-average nil
-  "Load average currently being shown in mode line.
-See `display-time-default-load-average'.")
+  "Value of the system's load average currently shown on the mode line.
+See `display-time-default-load-average'.
+
+This is an internal variable; setting it has no effect.")
 
 (defcustom display-time-load-average-threshold 0.1
   "Load-average values below this value won't be shown in the mode line."

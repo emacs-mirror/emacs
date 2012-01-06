@@ -1,3 +1,11 @@
+2012-01-06  Eli Zaretskii  <eliz@gnu.org>
+
+	* time.el (display-time-load-average)
+	(display-time-default-load-average): Doc fixes.  See the thread
+	starting at
+	http://lists.gnu.org/archive/html/help-gnu-emacs/2012-01/msg00059.html
+	for the details.
+
 2012-01-06  Glenn Morris  <rgm@gnu.org>
 
 	* mail/unrmail.el (unrmail): Give an explicit error if the input file
