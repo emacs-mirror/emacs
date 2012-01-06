@@ -2175,6 +2175,7 @@ be invoked for the values of the other parameters."
 (defalias 'erc-select 'erc)
 (defalias 'erc-ssl 'erc-tls)
 
+;;;###autoload
 (defun erc-tls (&rest r)
   "Interactively select TLS connection parameters and run ERC.
 Arguments are the same as for `erc'."
