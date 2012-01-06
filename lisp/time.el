@@ -78,7 +78,8 @@ The value can be one of:
   :group 'display-time)
 
 (defvar display-time-load-average nil
-  "Load average currently being shown in mode line.")
+  "Load average currently being shown in mode line.
+See `display-time-default-load-average'.")
 
 (defcustom display-time-load-average-threshold 0.1
   "Load-average values below this value won't be shown in the mode line."
@@ -349,6 +350,8 @@ would give mode line times like `94/12/30 21:07:48 (UTC)'."
 	  (timer-activate timer)))))
 
 (defun display-time-next-load-average ()
+  "Switch between different load averages in the mode line.
+Switches from the 1 to 5 to 15 minute load average, and then back to 1."
   (interactive)
   (if (= 3 (setq display-time-load-average (1+ display-time-load-average)))
       (setq display-time-load-average 0))

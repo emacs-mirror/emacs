@@ -1,5 +1,8 @@
 2012-01-06  Glenn Morris  <rgm@gnu.org>
 
+	* time.el (display-time-load-average, display-time-next-load-average):
+	Doc fixes.
+
 	* emacs-lisp/bytecomp.el (byte-compile-file): Do not propagate a file
 	local setting of buffer-read-only to the input buffer.  (Bug#10419)
 
