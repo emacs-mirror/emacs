@@ -144,7 +144,7 @@ cell.
 
 @item Info-edit-map
 @vindex Info-edit-map
-A sparse keymap used by the @kbd{e} command of Info.
+A sparse keymap used by the @code{Info-edit} command.
 
 @item Info-mode-map
 @vindex Info-mode-map

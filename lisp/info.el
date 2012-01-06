@@ -3706,7 +3706,7 @@ If FORK is non-nil, it is passed to `Info-goto-node'."
     (define-key map "b" 'beginning-of-buffer)
     (put 'beginning-of-buffer :advertised-binding "b")
     (define-key map "d" 'Info-directory)
-    (define-key map "e" 'Info-edit)
+    (define-key map "e" 'end-of-buffer)
     (define-key map "f" 'Info-follow-reference)
     (define-key map "g" 'Info-goto-node)
     (define-key map "h" 'Info-help)

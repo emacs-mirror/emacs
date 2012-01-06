@@ -1,5 +1,8 @@
 2012-01-06  Glenn Morris  <rgm@gnu.org>
 
+	* info.el (Info-mode-map): Bind e to end-of-buffer, rather
+	than Info-edit.  (Bug#10385)
+
 	* time.el (display-time-load-average, display-time-next-load-average):
 	Doc fixes.
 
