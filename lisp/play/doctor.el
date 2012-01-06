@@ -1576,9 +1576,9 @@ Hack on previous word, setting global variable DOCTOR-OWNER to correct result."
                       (equal doctor-found 'killing))
                   (memq 'yourself doctor-sent)))
 	 (setq doctor--suicide-flag t)
-	 (doctor-type '(If you are really suicidal, you might
+	 (doctor-type '(If you are really suicidal\, you might
 			   want to contact the Samaritans via
-			   E-mail: jo@samaritans.org or, at your option,
+			   E-mail: jo@samaritans.org or\, at your option\,
 			   anonymous E-mail: samaritans@anon.twwells.com\ \.
                            or find a Befrienders crisis center at
 			   http://www.befrienders.org/\ \.
