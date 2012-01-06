@@ -723,6 +723,12 @@ remember the name of the buffer visiting the manual you want to
 consult.
 
 +++
+*** `e' is now bound to `end-of-buffer' rather than to `Info-edit'.
+This is for compatibility with the stand-alone Info reader program,
+and also because `Info-edit' is a rarely used command that is disabled
+by default.
+
++++
 ** The Landmark game is now invoked with `landmark', not `lm'.
 
 ** MH-E has been upgraded to MH-E version 8.3.1.
