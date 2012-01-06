@@ -30,7 +30,7 @@ Reference Manual}.
 * Key Bindings::        The keymaps say what command each key runs.
                           By changing them, you can "redefine keys".
 * Init File::           How to write common customizations in the
-                          @file{.emacs} file.
+                          initialization file.
 @end menu
 
 @node Easy Customization
@@ -1008,7 +1008,7 @@ explicitly.  For example, here's how to obtain the default value of
 @cindex local variables in files
 @cindex file local variables
 
-  A file can specify local variable values for use when you edit the
+  A file can specify local variable values to use when editing the
 file with Emacs.  Visiting the file checks for local variable
 specifications; it automatically makes these variables local to the
 buffer, and sets them to the values specified in the file.
@@ -1031,21 +1031,20 @@ first line:
 
 @noindent
 You can specify any number of variable/value pairs in this way, each
-pair with a colon and semicolon as shown above.  The special
-variable/value pair @code{mode: @var{modename};}, if present,
-specifies a major mode, and should come first in the line.  The
+pair with a colon and semicolon.  The special variable/value pair
+@code{mode: @var{modename};}, if present, specifies a major mode.  The
 @var{value}s are used literally, and not evaluated.
 
 @findex add-file-local-variable-prop-line
 @findex delete-file-local-variable-prop-line
 @findex copy-dir-locals-to-file-locals-prop-line
-  You can use the command @code{add-file-local-variable-prop-line}
-instead of adding entries by hand.  It prompts for a variable
-and value, and adds them to the first line in the appropriate way.
-The command @code{delete-file-local-variable-prop-line} deletes a
-variable from the line.  The command
-@code{copy-dir-locals-to-file-locals-prop-line} copies directory-local
-variables (@pxref{Directory Variables}) to the first line.
+  Instead of adding variable/value pairs by hand, you can use the
+command @kbd{M-x add-file-local-variable-prop-line}.  This prompts for
+a variable and value, and adds them to the first line in the
+appropriate way.  @kbd{M-x delete-file-local-variable-prop-line}
+prompts for a variable, and deletes its entry from the line.  @kbd{M-x
+copy-dir-locals-to-file-locals-prop-line} copies directory-local
+variables to the first line (@pxref{Directory Variables}).
 
   Here is an example first line that specifies Lisp mode and sets two
 variables with numeric values:
@@ -1069,7 +1068,7 @@ same is true for man pages which start with the magic string
 @samp{'\"} to specify a list of troff preprocessors (not all do,
 however).
 
-  Instead of using a @samp{-*-} line, you can define file local
+  Apart from using a @samp{-*-} line, you can define file local
 variables using a @dfn{local variables list} near the end of the file.
 The start of the local variables list should be no more than 3000
 characters from the end of the file, and must be on the last page if
@@ -1088,10 +1087,10 @@ part of their initialization.
 per line, like this:
 
 @example
-/* Local Variables: */
-/* mode:c           */
-/* comment-column:0 */
-/* End:             */
+/* Local Variables:  */
+/* mode: c           */
+/* comment-column: 0 */
+/* End:              */
 @end example
 
 @noindent
@@ -1102,23 +1101,23 @@ the first line of the list; it then automatically discards them from
 the other lines of the list.  The usual reason for using a prefix
 and/or suffix is to embed the local variables list in a comment, so it
 won't confuse other programs that the file is intended for.  The
-example above is for the C programming language, where comment lines
-start with @samp{/*} and end with @samp{*/}.
+example above is for the C programming language, where comments start
+with @samp{/*} and end with @samp{*/}.
 
 @findex add-file-local-variable
 @findex delete-file-local-variable
 @findex copy-dir-locals-to-file-locals
-  You can construct the local variables list yourself, or use the
-command @code{add-file-local-variable}.  This prompts for a variable
-and value, and adds them to the list.  If necessary, it also adds the
-start and end markers.  The command @code{delete-file-local-variable}
-deletes a variable from the list.  The command
-@code{copy-dir-locals-to-file-locals} copies directory-local variables
-(@pxref{Directory Variables}) to the list.
+  Instead of typing in the local variables list directly, you can use
+the command @kbd{M-x add-file-local-variable}.  This prompts for a
+variable and value, and adds them to the list, adding the @samp{Local
+Variables:} string and start and end markers as necessary.  The
+command @kbd{M-x delete-file-local-variable} deletes a variable from
+the list.  @kbd{M-x copy-dir-locals-to-file-locals} copies
+directory-local variables to the list (@pxref{Directory Variables}).
 
   As with the @samp{-*-} line, the variables in a local variables list
 are used literally, and are not evaluated first.  If you want to split
-a long string across multiple lines of the file, you can use
+a long string value across multiple lines of the file, you can use
 backslash-newline, which is ignored in Lisp string constants; you
 should put the prefix and suffix on each line, even lines that start
 or end within the string, as they will be stripped off when processing
@@ -1152,24 +1151,35 @@ value is @code{t}.  @xref{Enabling Multibyte}.
 @end itemize
 
 @noindent
-These four ``variables'' are not really variables; setting them in any
+These four keywords are not really variables; setting them in any
 other context has no special meaning.
 
-  You can use the @code{mode} ``variable'' to enable minor modes as
-well as the major modes; in fact, you can use it more than once, first
-to set the major mode and then to enable minor modes which are
-specific to particular buffers.  Using @code{mode} for minor modes
-is deprecated, though---instead, use @code{eval: (minor-mode 1)}.
+  Do not use the @code{mode} keyword for minor modes.  To enable or
+disable a minor mode in a local variables list, use the @code{eval}
+keyword with a Lisp expression that runs the mode command
+(@pxref{Minor Modes}).  For example, the following local variables
+list enables Eldoc mode (@pxref{Lisp Doc}) by calling
+@code{eldoc-mode} with no argument (calling it with an argument of 1
+would do the same), and disables Font Lock mode (@pxref{Font Lock}) by
+calling @code{font-lock-mode} with an argument of -1.
 
-  Often, however, it is a mistake to enable minor modes in file local
-variables.  Most minor modes, like Auto Fill mode, represent individual user
-preferences.  If you want to use a minor mode, it is better to set up
-major mode hooks with your init file to turn that minor mode on for
-yourself alone (@pxref{Init File}), instead of using a local variable
-list to impose your taste on everyone.
+@example
+;; Local Variables:
+;; eval: (eldoc-mode)
+;; eval: (font-lock-mode -1)
+;; End:
+@end example
 
-  Use the command @code{normal-mode} to reset the local variables and
-major mode of a buffer according to the file name and contents,
+@noindent
+Note, however, that it is often a mistake to specify minor modes this
+way.  Minor modes represent individual user preferences, and it may be
+inappropriate to impose your preferences on another user who might
+edit the file.  If you wish to automatically enable or disable a minor
+mode in a situation-dependent way, it is often better to do it in a
+major mode hook (@pxref{Hooks}).
+
+  Use the command @kbd{M-x normal-mode} to reset the local variables
+and major mode of a buffer according to the file name and contents,
 including the local variables list if any.  @xref{Choosing Modes}.
 
 @node Safe File Variables
@@ -1237,85 +1247,81 @@ confirmation about processing @code{eval} variables.
 @node Directory Variables
 @subsection Per-Directory Local Variables
 @cindex local variables, for all files in a directory
-@cindex directory local variables
+@cindex directory-local variables
 @cindex per-directory local variables
 
-  A @dfn{project} is a collection of files on which you work together.
-Usually, the project's files are kept in one or more directories.
-Occasionally, you may wish to define Emacs settings that are common to
-all the files that belong to the project.
-
-  Emacs provides two ways to specify settings that are applicable to
-files in a specific directory: you can put a special file in that
-directory, or you can define a @dfn{project class} for that directory.
+  Sometimes, you may wish to define the same set of local variables to
+all the files in a certain directory and its subdirectories, such as
+the directory tree of a large software project.  This can be
+accomplished with @dfn{directory-local variables}.
 
 @cindex @file{.dir-locals.el} file
-  If you put a file with a special name @file{.dir-locals.el}@footnote{
-On MS-DOS, the name of this file should be @file{_dir-locals.el}, due
-to limitations of the DOS filesystems.  If the filesystem is limited
-to 8+3 file names, the name of the file will be truncated by the OS to
-@file{_dir-loc.el}.
-} in a directory, Emacs will read it when it visits any file in that
-directory or any of its subdirectories, and apply the settings it
-specifies to the file's buffer.  Emacs searches for
-@file{.dir-locals.el} starting in the directory of the visited file,
-and moving up the directory tree.  (To avoid slowdown, this search is
-skipped for remote files.)
+  The usual way to define directory-local variables is to put a file
+named @file{.dir-locals.el}@footnote{ On MS-DOS, the name of this file
+should be @file{_dir-locals.el}, due to limitations of the DOS
+filesystems.  If the filesystem is limited to 8+3 file names, the name
+of the file will be truncated by the OS to @file{_dir-loc.el}.  } in a
+directory.  Whenever Emacs visits any file in that directory or any of
+its subdirectories, it will apply the directory-local variables
+specified in @file{.dir-locals.el}, as though they had been defined as
+file-local variables for that file (@pxref{File Variables}).  Emacs
+searches for @file{.dir-locals.el} starting in the directory of the
+visited file, and moving up the directory tree.  To avoid slowdown,
+this search is skipped for remote files.
 
   The @file{.dir-locals.el} file should hold a specially-constructed
-list.  This list maps Emacs mode names (symbols) to alists; each alist
-specifies values for variables to use when the respective mode is
-turned on.  The special mode name @samp{nil} means that its alist
-applies to any mode.  Instead of a mode name, you can specify a string
-that is a name of a subdirectory of the project's directory; then the
-corresponding alist applies to all the files in that subdirectory.
+list, which maps major mode names (symbols) to alists
+(@pxref{Association Lists,,, elisp, The Emacs Lisp Reference Manual}).
+Each alist entry consists of a variable name and the directory-local
+value to assign to that variable, when the specified major mode is
+enabled.  Instead of a mode name, you can specify @samp{nil}, which
+means that the alist applies to any mode; or you can specify a
+subdirectory name (a string), in which case the alist applies to all
+files in that subdirectory.
 
   Here's an example of a @file{.dir-locals.el} file:
 
 @example
 ((nil . ((indent-tabs-mode . t)
-         (tab-width . 4)
          (fill-column . 80)))
  (c-mode . ((c-file-style . "BSD")))
- (java-mode . ((c-file-style . "BSD")
-               (subdirs . nil)))
+            (subdirs . nil)))
  ("src/imported"
-  . ((nil . ((change-log-default-name .
-              "ChangeLog.local"))))))
+  . ((nil . ((change-log-default-name
+              . "ChangeLog.local"))))))
 @end example
 
 @noindent
-This example shows some settings for a hypothetical project.  It sets
-@samp{indent-tabs-mode}, @code{tab-width}, and @code{fill-column} for
-any file in the project's directory tree, and it sets the indentation
-style for any C or Java source file.  The special @code{subdirs} element
-indicates that the Java mode settings are only to be applied in the
-current directory, not in any subdirectories.  Finally, it specifies a
-different @file{ChangeLog} file name for any file in the @file{src/imported}
-subdirectory of the directory where you put the @file{.dir-locals.el}
-file.
+This sets @samp{indent-tabs-mode} and @code{fill-column} for any file
+in the directory tree, and the indentation style for any C source
+file.  The special @code{subdirs} element is not a variable, but a
+special keyword which indicates that the C mode settings are only to
+be applied in the current directory, not in any subdirectories.
+Finally, it specifies a different @file{ChangeLog} file name for any
+file in the @file{src/imported} subdirectory.
 
 @findex add-dir-local-variable
 @findex delete-dir-local-variable
 @findex copy-file-locals-to-dir-locals
-  You can edit the @file{.dir-locals.el} file by hand, or use the
-command @code{add-dir-local-variable}.  This prompts for a mode (or
-subdirectory), variable and value, and adds an entry to the file.
-The command @code{delete-dir-local-variable} deletes an entry.  The
-command @code{copy-file-locals-to-dir-locals} copies file local
-variables (@pxref{File Variables}) to the @file{.dir-locals.el} file.
+  Instead of editing the @file{.dir-locals.el} file by hand, you can
+use the command @kbd{M-x add-dir-local-variable}.  This prompts for a
+mode or subdirectory name, and for variable and value, and adds the
+entry defining the directory-local variable.  @kbd{M-x
+delete-dir-local-variable} deletes an entry.  @kbd{M-x
+copy-file-locals-to-dir-locals} copies the file-local variables in the
+current file into @file{.dir-locals.el}.
 
 @findex dir-locals-set-class-variables
 @findex dir-locals-set-directory-class
-  Another method of specifying directory-local variables is to explicitly
-define a project class using @code{dir-locals-set-class-variables}, and
-then tell Emacs which directories correspond to that class, using
-@code{dir-locals-set-directory-class}.  You can put calls to these functions
-in your @file{~/.emacs} init file; this can be useful when you can't put
-@file{.dir-locals.el} in the directory for some reason, or if you want
-to keep in a single place settings for several directories that don't
-have a common parent.  For example, you could apply settings to an
-unwritable directory this way:
+  Another method of specifying directory-local variables is to define
+a group of variables/value pairs in a @dfn{directory class}, using the
+@code{dir-locals-set-class-variables} function; then, tell Emacs which
+directories correspond to the class by using the
+@code{dir-locals-set-directory-class} function.  These function calls
+normally go in your initialization file (@pxref{Init File}).  This
+method is useful when you can't put @file{.dir-locals.el} in a
+directory for some reason.  For example, you could apply settings to
+an unwritable directory this way:
 
 @example
 (dir-locals-set-class-variables 'unwritable-directory
@@ -1325,8 +1331,14 @@ unwritable directory this way:
    "/usr/include/" 'unwritable-directory)
 @end example
 
-  Unsafe directory-local variables are handled in the same way as
-unsafe file-local variables (@pxref{Safe File Variables}).
+  If a variable has both a directory-local and file-local value
+specified, the file-local value takes effect.  Unsafe directory-local
+variables are handled in the same way as unsafe file-local variables
+(@pxref{Safe File Variables}).
+
+  Directory-local variables also take effect in certain buffers that
+do not visit a file directly but perform work within a directory, such
+as Dired buffers (@pxref{Dired}).
 
 @node Key Bindings
 @section Customizing Key Bindings
@@ -1343,7 +1355,7 @@ init file (@pxref{Init Rebinding}).
 * Local Keymaps::       Major and minor modes have their own keymaps.
 * Minibuffer Maps::     The minibuffer uses its own local keymaps.
 * Rebinding::           How to redefine one key's meaning conveniently.
-* Init Rebinding::      Rebinding keys with your init file, @file{.emacs}.
+* Init Rebinding::      Rebinding keys with your initialization file.
 * Modifier Keys::       Using modifier keys in key bindings.
 * Function Keys::       Rebinding terminal function keys.
 * Named ASCII Chars::   Distinguishing @key{TAB} from @kbd{C-i}, and so on.
@@ -1993,7 +2005,7 @@ input saying whether to execute the command as requested, enable it
 and execute it, or cancel.  If you decide to enable the command, you
 must then answer another question---whether to do this permanently, or
 just for the current session.  (Enabling permanently works by
-automatically editing your @file{.emacs} file.)  You can also type
+automatically editing your initialization file.)  You can also type
 @kbd{!} to enable @emph{all} commands, for the current session only.
 
   The direct mechanism for disabling a command is to put a
@@ -2014,15 +2026,16 @@ is included in the message displayed when the command is used:
 
 @findex disable-command
 @findex enable-command
-  You can make a command disabled either by editing the @file{.emacs}
-file directly, or with the command @kbd{M-x disable-command}, which edits
-the @file{.emacs} file for you.  Likewise, @kbd{M-x enable-command}
-edits @file{.emacs} to enable a command permanently.  @xref{Init File}.
+  You can make a command disabled either by editing the initialization
+file directly, or with the command @kbd{M-x disable-command}, which
+edits the initialization file for you.  Likewise, @kbd{M-x
+enable-command} edits the initialization file to enable a command
+permanently.  @xref{Init File}.
 
   If Emacs was invoked with the @option{-q} or @option{--no-init-file}
 options (@pxref{Initial Options}), it will not edit your
-@file{~/.emacs} init file.  Doing so could lose information
-because Emacs has not read your init file.
+initialization file.  Doing so could lose information because Emacs
+has not read your initialization file.
 
   Whether a command is disabled is independent of what key is used to
 invoke it; disabling also applies if the command is invoked using
@@ -2030,7 +2043,7 @@ invoke it; disabling also applies if the command is invoked using
 as a function from Lisp programs.
 
 @node Init File
-@section The Init File, @file{~/.emacs}
+@section The Emacs Initialization File
 @cindex init file
 @cindex .emacs file
 @cindex ~/.emacs file
@@ -2262,20 +2275,12 @@ Turn off Line Number mode, a global minor mode.
 
 @need 1500
 @item
-Turn on Auto Fill mode automatically in Text mode and related modes.
+Turn on Auto Fill mode automatically in Text mode and related modes
+(@pxref{Hooks}).
 
 @example
 (add-hook 'text-mode-hook 'auto-fill-mode)
 @end example
-
-This shows how to add a hook function to a normal hook variable
-(@pxref{Hooks}).  The function we supply is a list starting with
-@code{lambda}, with a single-quote in front of it to make it a list
-constant rather than an expression.
-
-It's beyond the scope of this manual to explain Lisp functions, but
-for this example it is enough to know that the effect is to execute
-the @code{auto-fill-mode} function when Text mode is entered.
 
 @item
 Load the installed Lisp library named @file{foo} (actually a file
@@ -2296,7 +2301,7 @@ Load the compiled Lisp file @file{foo.elc} from your home directory.
 (load "~/foo.elc")
 @end example
 
-Here an absolute file name is used, so no searching is done.
+Here a full file name is used, so no searching is done.
 
 @item
 @cindex loading Lisp libraries automatically

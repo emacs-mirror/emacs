@@ -363,7 +363,7 @@ the remote file-name cache is used for read access.
 Add an element (subdirs . nil) to the alist portion of any variables
 settings to indicate that the section should not apply to
 subdirectories.
-
++++
 *** Directory local variables can apply to some file-less buffers.
 Affected modes include dired, vc-dir, and log-edit.  For example,
 adding "(diff-mode . ((mode . whitespace)))" to .dir-locals.el will
