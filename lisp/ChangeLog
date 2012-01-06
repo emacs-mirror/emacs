@@ -1,5 +1,8 @@
 2012-01-06  Glenn Morris  <rgm@gnu.org>
 
+	* mail/unrmail.el (unrmail): Give an explicit error if the input file
+	has no messages.  (Bug#10377)
+
 	* info.el (Info-mode-map): Bind e to end-of-buffer, rather
 	than Info-edit.  (Bug#10385)
 

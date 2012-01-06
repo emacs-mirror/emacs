@@ -66,7 +66,8 @@ For example, invoke `emacs -batch -f batch-unrmail RMAIL'."
 	  from to)
       (goto-char (point-min))
       (search-forward "\n\^_" nil t)	; Skip BABYL header.
-      (setq from (point))
+      (if (= (setq from (point)) (point-max))
+	  (error "The input file contains no messages"))
       (goto-char (point-max))
       (search-backward "\n\^_" from 'mv)
       (setq to (point))
