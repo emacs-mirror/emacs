@@ -60,7 +60,6 @@
 (autoload 'message-make-date "message")
 (autoload 'message-make-message-id "message")
 (autoload 'rfc2104-hash "rfc2104")
-(autoload 'password-read "password-cache")
 
 ;;;
 (defgroup smtpmail nil
@@ -469,9 +468,6 @@ The list is in preference order.")
       (when (memq el2 list1)
 	(push el2 result)))
     (nreverse result)))
-
-;; `password-read' autoloads password-cache.
-(declare-function password-cache-add "password-cache" (key password))
 
 (defun smtpmail-command-or-throw (process string &optional code)
   (let (ret)
