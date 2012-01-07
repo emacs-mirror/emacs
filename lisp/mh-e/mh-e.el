@@ -2783,6 +2783,7 @@ of citations entirely, choose \"None\"."
     "X-Wss-Id:"                         ; Worldtalk gateways
     "X-X-Sender:"                       ; http://people.dsv.su.se/~jpalme/ietf/mail-headers/
     "X-XPT-XSL-Name:"			; Paypal http://www.paypal.com
+    "X-xsi-"
     "X-XWALL-"				; http://www.dataenter.co.at/doc/xwall_undocumented_config.htm
     "X-Y-GMX-Trusted:"			; http://www.gmx.net/
     "X-Yahoo"

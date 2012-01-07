@@ -1,3 +1,8 @@
+2012-01-07  Jeffrey C Honig  <jch@honig.net>
+
+	* mh-e.el (mh-invisible-header-fields-internal): Added: X-xsi.
+	(addresses SF #1916032).
+
 2011-12-28  Jeffrey C Honig  <jch@honig.net>
 
 	* mh-folder.el (mh-inc-folder): Call mh-process-or-undo-commands
