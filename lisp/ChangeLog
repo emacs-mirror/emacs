@@ -1,3 +1,8 @@
+2012-01-07  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* files.el (move-file-to-trash): Preserve default file modes on error.
+	(Bug#10401)
+
 2012-01-07  Lars Magne Ingebrigtsen  <larsi@gnus.org>
 
 	* faces.el (set-face-attribute): Clarify the meaning of the nil
