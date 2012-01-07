@@ -1,3 +1,11 @@
+2012-01-07  David Benjamin  <davidben@mit.edu>  (tiny change)
+
+	* xterm.c (x_embed_request_focus): New function.
+
+	* xterm.h: Add prototype.
+
+	* xfns.c (Fx_focus_frame): Use it for embedded frames (Bug#9977).
+
 2012-01-05  Glenn Morris  <rgm@gnu.org>
 
 	* emacs.c (emacs_copyright): Update short copyright year to 2012.

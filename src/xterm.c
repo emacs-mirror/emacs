@@ -8981,6 +8981,18 @@ x_lower_frame (struct frame *f)
     }
 }
 
+/* Request focus with XEmbed */
+
+void
+xembed_request_focus (FRAME_PTR f)
+{
+  /* See XEmbed Protocol Specification at
+     http://freedesktop.org/wiki/Specifications/xembed-spec  */
+  if (f->async_visible)
+    xembed_send_message (f, CurrentTime,
+			 XEMBED_REQUEST_FOCUS, 0, 0, 0);
+}
+
 /* Activate frame with Extended Window Manager Hints */
 
 void

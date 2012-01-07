@@ -3519,9 +3519,21 @@ FRAME nil means use the selected frame.  */)
 
   BLOCK_INPUT;
   x_catch_errors (dpy);
-  XSetInputFocus (FRAME_X_DISPLAY (f), FRAME_X_WINDOW (f),
-		  RevertToParent, CurrentTime);
-  x_ewmh_activate_frame (f);
+
+  if (FRAME_X_EMBEDDED_P (f))
+    {
+      /* For Xembedded frames, normally the embedder forwards key
+	 events.  See XEmbed Protocol Specification at
+	 http://freedesktop.org/wiki/Specifications/xembed-spec  */
+      xembed_request_focus (f);
+    }
+  else
+    {
+      XSetInputFocus (FRAME_X_DISPLAY (f), FRAME_X_WINDOW (f),
+		      RevertToParent, CurrentTime);
+      x_ewmh_activate_frame (f);
+    }
+
   x_uncatch_errors ();
   UNBLOCK_INPUT;
 
