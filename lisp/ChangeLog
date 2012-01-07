@@ -1,5 +1,8 @@
 2012-01-07  Lars Magne Ingebrigtsen  <larsi@gnus.org>
 
+	* ibuffer.el (ibuffer-mode): List the bindings in the corrent map
+	(bug#9759).
+
 	* mail/smtpmail.el (password-cache-add): Removed unused declaration.
 	(password-read): Don't autoload unused function.
 

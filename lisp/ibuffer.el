@@ -2384,7 +2384,7 @@ currently open buffers, in addition to filtering your view to a
 particular subset of them, and sorting by various criteria.
 
 Operations on marked buffers:
-
+\\<ibuffer-mode-map>
   '\\[ibuffer-do-save]' - Save the marked buffers
   '\\[ibuffer-do-view]' - View the marked buffers in this frame.
   '\\[ibuffer-do-view-other-frame]' - View the marked buffers in another frame.
