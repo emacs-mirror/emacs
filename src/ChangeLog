@@ -1,3 +1,8 @@
+2012-01-07  Eli Zaretskii  <eliz@gnu.org>
+
+	* search.c (scan_buffer): Pass character positions to
+	know_region_cache, not byte positions.  (Bug#6540)
+
 2012-01-07  LynX  <_LynX@bk.ru>  (tiny change)
 
 	* w32.c (sys_rename): Report EXDEV when rename of a directory
