@@ -1,3 +1,8 @@
+2012-01-07  LynX  <_LynX@bk.ru>  (tiny change)
+
+	* w32.c (sys_rename): Report EXDEV when rename of a directory
+	fails because the target is on another logical disk.  (Bug#10284)
+
 2012-01-07  David Benjamin  <davidben@mit.edu>  (tiny change)
 
 	* xterm.c (x_embed_request_focus): New function.
