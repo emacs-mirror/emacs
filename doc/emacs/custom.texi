@@ -857,17 +857,34 @@ Manual}, for details.
   Most major modes run one or more @dfn{mode hooks} as the last step
 of initialization.  Mode hooks are a convenient way to customize the
 behavior of individual modes; they are always normal.  For example,
-here's how to set up a hook to turn on Auto Fill mode when entering
-Text mode and other modes based on Text mode:
+here's how to set up a hook to turn on Auto Fill mode in Text mode and
+other modes based on Text mode:
 
 @example
 (add-hook 'text-mode-hook 'auto-fill-mode)
 @end example
 
-  Here is another example, showing how to use a hook to customize the
-indentation of C code.  The hook function uses an anonymous lambda
-expression (@pxref{Lambda Expressions,,, elisp, The Emacs Lisp
-Reference Manual}).
+@noindent
+This works by calling @code{auto-fill-mode}, which enables the minor
+mode when no argument is supplied (@pxref{Minor Modes}).  Next,
+suppose you don't want Auto Fill mode turned on in La@TeX{} mode,
+which is one of the modes based on Text mode.  You can do this with
+the following additional line:
+
+@example
+(add-hook 'latex-mode-hook (lambda () (auto-fill-mode -1)))
+@end example
+
+@noindent
+Here we have used the special macro @code{lambda} to construct an
+anonymous function (@pxref{Lambda Expressions,,, elisp, The Emacs Lisp
+Reference Manual}), which calls @code{auto-fill-mode} with an argument
+of @code{-1} to disable the minor mode.  Because La@TeX{} mode runs
+@code{latex-mode-hook} after running @code{text-mode-hook}, the result
+leaves Auto Fill mode disabled.
+
+  Here is a more complex example, showing how to use a hook to
+customize the indentation of C code:
 
 @example
 @group

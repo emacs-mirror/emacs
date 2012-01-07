@@ -1,5 +1,10 @@
 2012-01-07  Chong Yidong  <cyd@gnu.org>
 
+	* custom.texi (Hooks): Discuss how to disable minor modes.
+
+	* files.texi (Diff Mode): Discuss diff-auto-refine-mode
+	(Bug#10309).
+
 	* trouble.texi (Lossage): Refer to Bugs node for problems.
 	(DEL Does Not Delete): Don't use "usual erasure key" teminology.
 	(Screen Garbled): Don't refer to terminal "manufacturers".

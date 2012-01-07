@@ -1352,9 +1352,25 @@ manipulate and apply parts of patches:
 @findex diff-hunk-next
 Move to the next hunk-start (@code{diff-hunk-next}).
 
+@findex diff-auto-refine-mode
+@cindex mode, Diff Auto-Refine
+@cindex Diff Auto-Refine mode
+This command has a side effect: it @dfn{refines} the hunk you move to,
+highlighting its changes with better granularity.  To disable this
+feature, type @kbd{M-x diff-auto-refine-mode} to toggle off the minor
+mode Diff Auto-Refine mode.  To disable Diff Auto Refine mode by
+default, add this to your init file (@pxref{Hooks}):
+
+@example
+(add-hook 'diff-mode-hook
+          (lambda () (diff-auto-refine-hook -1)))
+@end example
+
 @item M-p
 @findex diff-hunk-prev
-Move to the previous hunk-start (@code{diff-hunk-prev}).
+Move to the previous hunk-start (@code{diff-hunk-prev}).  Like
+@kbd{M-n}, this has the side-effect of refining the hunk you move to,
+unless you disable Diff Auto-Refine mode.
 
 @item M-@}
 @findex diff-file-next
@@ -1453,7 +1469,6 @@ functions that are deleted by the patch.
 Highlight trailing whitespace characters, except for those used by the
 patch syntax (@pxref{Useless Whitespace}).
 @end table
-
 
 @node Misc File Ops
 @section Miscellaneous File Operations
