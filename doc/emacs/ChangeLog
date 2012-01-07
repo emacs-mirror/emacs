@@ -1,9 +1,11 @@
 2012-01-07  Chong Yidong  <cyd@gnu.org>
 
+	* display.texi (Useless Whitespace): Add Whitespace mode.
+
 	* custom.texi (Hooks): Discuss how to disable minor modes.
 
 	* files.texi (Diff Mode): Discuss diff-auto-refine-mode
-	(Bug#10309).
+	(Bug#10309).  Discuss use of Whitespace mode (Bug#10300).
 
 	* trouble.texi (Lossage): Refer to Bugs node for problems.
 	(DEL Does Not Delete): Don't use "usual erasure key" teminology.
