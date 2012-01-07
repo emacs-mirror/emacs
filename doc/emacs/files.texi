@@ -1363,7 +1363,7 @@ default, add this to your init file (@pxref{Hooks}):
 
 @example
 (add-hook 'diff-mode-hook
-          (lambda () (diff-auto-refine-hook -1)))
+          (lambda () (diff-auto-refine-mode -1)))
 @end example
 
 @item M-p
