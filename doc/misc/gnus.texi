@@ -3180,14 +3180,17 @@ For example:
          (to-group . "\\1"))
 
         ("mail\\.me"
-         (gnus-use-scoring  t))
+         (gnus-use-scoring t))
 
         ("list\\..*"
          (total-expire . t)
          (broken-reply-to . t))))
 @end lisp
 
-The first clause that matches the group name will be used.
+All clauses that matches the group name will be used, but the last
+setting ``wins''.  So if you have two clauses that both match the
+group name, and both set, say @code{display}, the last setting will
+override the first.
 
 Parameters that are strings will be subjected to regexp substitution,
 as the @code{to-group} example shows.

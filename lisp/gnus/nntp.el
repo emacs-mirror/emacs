@@ -847,7 +847,14 @@ command whose response triggered the error."
   "Retrieve group info on GROUPS."
   (nntp-with-open-group
    nil server
-   (when (nntp-find-connection-buffer nntp-server-buffer)
+   (when (and (nntp-find-connection-buffer nntp-server-buffer)
+	      (with-current-buffer
+		  (nntp-find-connection-buffer nntp-server-buffer)
+		(if (not nntp-retrieval-in-progress)
+		    t
+		  (message "Warning: Refusing to do retrieval from %s because a retrieval is already happening"
+			   server)
+		  nil)))
      (catch 'done
        (save-excursion
          ;; Erase nntp-server-buffer before nntp-inhibit-erase.

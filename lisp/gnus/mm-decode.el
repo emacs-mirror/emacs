@@ -942,7 +942,7 @@ external if displayed external."
 			  ;; In particular, the timer object (which is
 			  ;; a vector in Emacs but is a list in XEmacs)
 			  ;; requires that it is lexically scoped.
-			  (timer (run-at-time 2.0 nil 'ignore)))
+			  (timer (run-at-time 30.0 nil 'ignore)))
 		       (if (featurep 'xemacs)
 			   (lambda (process state)
 			     (when (eq 'exit (process-status process))
@@ -1353,7 +1353,7 @@ Use CMD as the process."
 		  (mailcap-mime-info type 'all)))
 	 (method (let ((minibuffer-local-completion-map
 			mm-viewer-completion-map))
-		   (gnus-completing-read "Viewer" methods))))
+		   (completing-read "Viewer" methods))))
     (when (string= method "")
       (error "No method given"))
     (if (string-match "^[^% \t]+$" method)

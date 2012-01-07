@@ -1181,6 +1181,7 @@ downloadable."
     (gnus-summary-position-point)))
 
 (defun gnus-agent-summary-fetch-series ()
+  "Fetch the process-marked articles into the Agent."
   (interactive)
   (when gnus-newsgroup-processable
     (setq gnus-newsgroup-downloadable
@@ -1228,8 +1229,9 @@ Optional arg ALL, if non-nil, means to fetch all articles."
             (cond (gnus-agent-mark-unread-after-downloaded
                    (setq gnus-newsgroup-downloadable
                          (delq article gnus-newsgroup-downloadable))
-
-                   (gnus-summary-mark-article article gnus-unread-mark))
+		   (when (and (not (member article gnus-newsgroup-dormant))
+			      (not (member article gnus-newsgroup-marked)))
+		     (gnus-summary-mark-article article gnus-unread-mark)))
                   (was-marked-downloadable
                    (gnus-summary-set-agent-mark article t)))
             (when (gnus-summary-goto-subject article nil t)
@@ -3888,7 +3890,12 @@ has been fetched."
 	 (coding-system-for-write gnus-cache-coding-system))
     (when (not (file-exists-p file))
       (gnus-make-directory (file-name-directory file))
-      (write-region (point-min) (point-max) file nil 'silent))))
+      (write-region (point-min) (point-max) file nil 'silent)
+      ;; Tell the Agent when the article was fetched, so that it can
+      ;; be expired later.
+      (gnus-agent-load-alist group)
+      (gnus-agent-save-alist group (list article)
+			     (time-to-days (current-time))))))
 
 (defun gnus-agent-regenerate-group (group &optional reread)
   "Regenerate GROUP.

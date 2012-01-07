@@ -9032,7 +9032,8 @@ non-numeric or nil fetch the number specified by the
               'gnus-article-sort-by-number)))
       (setq gnus-newsgroup-articles
       	    (gnus-sorted-nunion gnus-newsgroup-articles (nreverse article-ids)))
-      (gnus-summary-limit-include-thread id))))
+      (gnus-summary-limit-include-thread id)))
+  (gnus-summary-show-thread))
 
 (defun gnus-summary-refer-article (message-id)
   "Fetch an article specified by MESSAGE-ID."
@@ -10886,6 +10887,7 @@ If NO-EXPIRE, auto-expiry will be inhibited."
 	(setq gnus-newsgroup-dormant (delq article gnus-newsgroup-dormant))
 	(setq gnus-newsgroup-expirable (delq article gnus-newsgroup-expirable))
 	(setq gnus-newsgroup-reads (delq article gnus-newsgroup-reads))
+	(setq gnus-newsgroup-unreads (delq article gnus-newsgroup-unreads))
 	(cond ((= mark gnus-ticked-mark)
 	       (setq gnus-newsgroup-marked
 		     (gnus-add-to-sorted-list gnus-newsgroup-marked

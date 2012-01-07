@@ -464,6 +464,7 @@ should have point."
 	(unless buffer
 	  (error "Invalid buffer type: %s" type))
 	(if (and (setq buf (get-buffer (gnus-window-to-buffer-helper buffer)))
+		 (buffer-live-p buf)
 		 (setq win (gnus-get-buffer-window buf t)))
 	    (if (memq 'point split)
 		(setq all-visible win))

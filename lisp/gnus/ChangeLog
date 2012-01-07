@@ -1,4 +1,60 @@
+2012-01-07  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* mm-decode.el (mm-interactively-view-part): Use `completing-read',
+	since ido doesn't work on symbols (bug#9632).
+
+	* gnus.el (gnus-group-fast-parameter): Use the same precedence rules
+	when getting a single value as when getting all the values.  This means
+	that atoms like `gcc-self' work cumulatively, like variable settings,
+	instead of getting the value from the last matching clause.
+	(gnus-group-find-parameter): Protect against the group buffer not
+	existing (bug#9585).
+
 2012-01-06  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* gnus-start.el (gnus-activate-group): Document more parameters
+	(bug#9694).
+
+	* gnus-group.el (gnus-group-read-ephemeral-group): Doc clarification
+	(bug#9692).
+
+	* gnus-agent.el (gnus-agent-store-article): Tell the Agent when the
+	article was fetched, so that it can be expired later (bug#9958).
+	(gnus-agent-summary-fetch-series): Add doc string.
+	(gnus-agent-summary-fetch-group): Don't remove tick and dormant marks
+	(bug#9517).
+
+	* nntp.el (nntp-retrieve-groups): Refuse to do retrieval when an async
+	retrieval is happening.
+
+	* gnus.el (gnus-parameters): Doc fix.
+
+2012-01-06  Dave Abrahams  <dave@boostpro.com>  (tiny change)
+
+	* gnus-sum.el (gnus-summary-refer-thread): If the subtree is hidden,
+	show the thread after expansion.
+
+2012-01-06  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* gnus-art.el (article-narrow-to-head): If the head is completely
+	empty, narrow to the empty region (bug#9764).
+
+	* gnus-sum.el (gnus-summary-mark-article-as-unread): Mark articles as
+	read, and then mark them as unread only when the unread mark is used.
+	This makes `C-- T k' actually work, even though it's confusing.
+
+	* gnus-win.el (gnus-all-windows-visible-p): Ensure that the buffer is
+	alive before we try to find its window.
+
+2012-01-06  Brian Sniffen  <bsniffen@akamai.com>  (tiny change)
+
+	* mm-decode.el (mm-display-external): Use a longer timeout for the
+	deletion to allow slow programs to display the file.
+
+2012-01-06  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* gnus-art.el (gnus-article-browse-delete-temp-files): Fix up the
+	prompt to be less confusing.
 
 	* gnus-msg.el (gnus-summary-reply): Do not give a `switch-to-buffer'
 	argument to `message-reply'.  This broke `special-display-*' frame

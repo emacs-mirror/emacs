@@ -396,7 +396,7 @@ If it is down, start it up (again)."
     result))
 
 (defun gnus-request-compact (gnus-command-method)
-  "Request groups compaction  from GNUS-COMMAND-METHOD."
+  "Request groups compaction from GNUS-COMMAND-METHOD."
   (when (stringp gnus-command-method)
     (setq gnus-command-method (gnus-server-to-method gnus-command-method)))
   (funcall (gnus-get-function gnus-command-method 'request-compact)

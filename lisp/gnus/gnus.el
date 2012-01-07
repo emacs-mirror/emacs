@@ -1146,9 +1146,7 @@ For example:
 		  (display . all))
      (\"mail\\\\.me\" (gnus-use-scoring  t))
      (\"list\\\\..*\" (total-expire . t)
-		  (broken-reply-to . t)))
-
-The first clause that matches the group name will be used."
+		  (broken-reply-to . t)))"
   :version "22.1"
   :group 'gnus-group-various
   :type '(repeat (cons regexp
@@ -3862,13 +3860,14 @@ The function `gnus-group-find-parameter' will do that for you."
 	  ;; The car is regexp matching for matching the group name.
 	  (when (string-match (car head) group)
 	    ;; The cdr is the parameters.
-	    (setq result (gnus-group-parameter-value (cdr head)
-						     symbol allow-list))
-	    (when result
-	      ;; Expand if necessary.
-	      (if (and (stringp result) (string-match "\\\\[0-9&]" result))
-		  (setq result (gnus-expand-group-parameter (car head)
-							    result group))))))
+	    (let ((this-result
+		   (gnus-group-parameter-value (cdr head) symbol allow-list t)))
+	      (when this-result
+		(setq result (car this-result))
+		;; Expand if necessary.
+		(if (and (stringp result) (string-match "\\\\[0-9&]" result))
+		    (setq result (gnus-expand-group-parameter
+				  (car head) result group)))))))
 	;; Done.
 	result))))
 
@@ -3878,7 +3877,9 @@ If SYMBOL, return the value of that symbol in the group parameters.
 
 If you call this function inside a loop, consider using the faster
 `gnus-group-fast-parameter' instead."
-  (with-current-buffer gnus-group-buffer
+  (with-current-buffer (if (buffer-live-p gnus-group-buffer)
+			   gnus-group-buffer
+			 (current-buffer))
     (if symbol
 	(gnus-group-fast-parameter group symbol allow-list)
       (nconc
