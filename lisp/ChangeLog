@@ -133,7 +133,6 @@
 
 	* mail/rmail.el (rmail-show-message-1): Decode any RFC2047 encoded
 	headers of non-MIME messages, when rmail-enable-mime is non-nil.
->>>>>>> MERGE-SOURCE
 
 2011-12-29  Michael Albinus  <michael.albinus@gmx.de>
 
