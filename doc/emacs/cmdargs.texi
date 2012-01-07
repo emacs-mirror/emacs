@@ -1,5 +1,5 @@
 @c This is part of the Emacs manual.
-@c Copyright (C) 1985-1987, 1993-1995, 1997, 2001-2011
+@c Copyright (C) 1985-1987, 1993-1995, 1997, 2001-2012
 @c   Free Software Foundation, Inc.
 @c See file emacs.texi for copying conditions.
 @node Emacs Invocation, X Resources, GNU Free Documentation License, Top
@@ -675,9 +675,9 @@ changing any environment or registry settings.
 @node MS-Windows Registry
 @appendixsubsec The MS-Windows System Registry
 @pindex addpm, MS-Windows installation program
-@cindex registry, setting environment variables and resources on MS-Windows
+@cindex registry, setting environment variables (MS-Windows)
 
-Under MS-Windows, the installation program @command{addpm.exe} adds
+On MS-Windows, the installation program @command{addpm.exe} adds
 values for @env{emacs_dir}, @env{EMACSLOADPATH}, @env{EMACSDATA},
 @env{EMACSPATH}, @env{EMACSDOC}, @env{SHELL} and @env{TERM} to the
 @file{HKEY_LOCAL_MACHINE} section of the system registry, under
@@ -704,10 +704,6 @@ still cannot determine the values, compiled-in defaults are used.
 In addition to the environment variables above, you can also add many
 of the settings which on X belong in the @file{.Xdefaults} file
 (@pxref{X Resources}) to the @file{/Software/GNU/Emacs} registry key.
-Settings you add to the @file{HKEY_LOCAL_MACHINE} section will affect
-all users of the machine.  Settings you add to the
-@file{HKEY_CURRENT_USER} section will only affect you, and will
-override machine wide settings.
 
 @node Display X
 @appendixsec Specifying the Display Name

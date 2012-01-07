@@ -1,5 +1,5 @@
 /* Generate doc-string file for GNU Emacs from source files.
-   Copyright (C) 1985-1986, 1992-1994, 1997, 1999-2011
+   Copyright (C) 1985-1986, 1992-1994, 1997, 1999-2012
                  Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
@@ -541,7 +541,7 @@ write_c_args (FILE *out, char *func, char *buf, int minargs, int maxargs)
 	  maxargs--;
 
 	  /* In C code, `default' is a reserved word, so we spell it
-	     `defalt'; unmangle that here.  */
+	     `defalt'; demangle that here.  */
 	  if (ident_length == 6 && strncmp (ident_start, "defalt", 6) == 0)
 	    fprintf (out, "DEFAULT");
 	  else

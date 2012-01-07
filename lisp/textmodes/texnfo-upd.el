@@ -1,6 +1,6 @@
 ;;; texnfo-upd.el --- utilities for updating nodes and menus in Texinfo files
 
-;; Copyright (C) 1989-1992, 2001-2011  Free Software Foundation, Inc.
+;; Copyright (C) 1989-1992, 2001-2012  Free Software Foundation, Inc.
 
 ;; Author: Robert J. Chassell
 ;; Maintainer: bug-texinfo@gnu.org
@@ -41,7 +41,7 @@
 ;;
 ;; Important note: We do NOT recommend use of these commands to update
 ;; the `Next', `Previous' and `Up' pointers on @node lines.  Most
-;; manuals, including those whose Texinfo files adhere to the strucure
+;; manuals, including those whose Texinfo files adhere to the structure
 ;; described below, don't need these pointers, because makeinfo will
 ;; generate them automatically (see the node "makeinfo Pointer
 ;; Creation" in the Texinfo manual).  By contrast, due to known bugs

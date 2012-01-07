@@ -1,11 +1,10 @@
 ;;; org-plot.el --- Support for plotting from Org-mode
 
-;; Copyright (C) 2008-2011 Free Software Foundation, Inc.
+;; Copyright (C) 2008-2012 Free Software Foundation, Inc.
 ;;
 ;; Author: Eric Schulte <schulte dot eric at gmail dot com>
 ;; Keywords: tables, plotting
 ;; Homepage: http://orgmode.org
-;; Version: 7.7
 ;;
 ;; This file is part of GNU Emacs.
 ;;
@@ -136,7 +135,7 @@ Pass PARAMS through to `orgtbl-to-generic' when exporting TABLE."
   "Export the data in TABLE to DATA-FILE for gnuplot.
 This means in a format appropriate for grid plotting by gnuplot.
 PARAMS specifies which columns of TABLE should be plotted as independent
-and dependent variables."
+and dependant variables."
   (interactive)
   (let* ((ind (- (plist-get params :ind) 1))
 	 (deps (if (plist-member params :deps)
@@ -349,6 +348,5 @@ line directly before or after the table."
       (run-with-idle-timer 0.1 nil (lambda () (delete-file data-file))))))
 
 (provide 'org-plot)
-
 
 ;;; org-plot.el ends here

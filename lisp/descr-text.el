@@ -1,6 +1,6 @@
 ;;; descr-text.el --- describe text mode
 
-;; Copyright (C) 1994-1996, 2001-2011 Free Software Foundation, Inc.
+;; Copyright (C) 1994-1996, 2001-2012 Free Software Foundation, Inc.
 
 ;; Author: Boris Goldowsky <boris@gnu.org>
 ;; Maintainer: FSF

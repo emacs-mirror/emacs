@@ -1,6 +1,6 @@
 ;;; gnus-demon.el --- daemonic Gnus behavior
 
-;; Copyright (C) 1995-2011 Free Software Foundation, Inc.
+;; Copyright (C) 1995-2012 Free Software Foundation, Inc.
 
 ;; Author: Lars Magne Ingebrigtsen <larsi@gnus.org>
 ;; Keywords: news
@@ -120,8 +120,12 @@ Emacs has been idle for IDLE `gnus-demon-timestep's."
            ;; If t, replace by 1
            (time (cond ((eq time t)
                         gnus-demon-timestep)
-                       ((null time) nil)
-                       (t (* time gnus-demon-timestep))))
+                       ((null time)
+			nil)
+		       ((stringp time)
+			(gnus-demon-time-to-step time))
+                       (t
+			(* time gnus-demon-timestep))))
            (timer
             (cond
              ;; (func number t)
@@ -143,6 +147,38 @@ Emacs has been idle for IDLE `gnus-demon-timestep's."
               (run-with-timer time time 'gnus-demon-run-callback func)))))
       (when timer
         (add-to-list 'gnus-demon-timers timer)))))
+
+(defun gnus-demon-time-to-step (time)
+  "Find out how many seconds to TIME, which is on the form \"17:43\"."
+  (let* ((now (current-time))
+	 ;; obtain NOW as discrete components -- make a vector for speed
+	 (nowParts (decode-time now))
+	 ;; obtain THEN as discrete components
+	 (thenParts (parse-time-string time))
+	 (thenHour (elt thenParts 2))
+	 (thenMin (elt thenParts 1))
+	 ;; convert time as elements into number of seconds since EPOCH.
+	 (then (encode-time 0
+			    thenMin
+			    thenHour
+			    ;; If THEN is earlier than NOW, make it
+			    ;; same time tomorrow.  Doc for encode-time
+			    ;; says that this is OK.
+			    (+ (elt nowParts 3)
+			       (if (or (< thenHour (elt nowParts 2))
+				       (and (= thenHour (elt nowParts 2))
+					    (<= thenMin (elt nowParts 1))))
+				   1 0))
+			    (elt nowParts 4)
+			    (elt nowParts 5)
+			    (elt nowParts 6)
+			    (elt nowParts 7)
+			    (elt nowParts 8)))
+	 ;; calculate number of seconds between NOW and THEN
+	 (diff (+ (* 65536 (- (car then) (car now)))
+		  (- (cadr then) (cadr now)))))
+    ;; return number of timesteps in the number of seconds
+    (round (/ diff gnus-demon-timestep))))
 
 (gnus-add-shutdown 'gnus-demon-cancel 'gnus)
 

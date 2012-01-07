@@ -1,11 +1,10 @@
 ;;; org-timer.el --- The relative timer code for Org-mode
 
-;; Copyright (C) 2008-2011 Free Software Foundation, Inc.
+;; Copyright (C) 2008-2012 Free Software Foundation, Inc.
 
 ;; Author: Carsten Dominik <carsten at orgmode dot org>
 ;; Keywords: outlines, hypermedia, calendar, wp
 ;; Homepage: http://orgmode.org
-;; Version: 7.7
 ;;
 ;; This file is part of GNU Emacs.
 ;;
@@ -373,7 +372,7 @@ replace any running timer."
 		     (org-show-entry)
 		     (or (ignore-errors (org-get-heading))
 			 (concat "File:" (file-name-nondirectory (buffer-file-name)))))))
-		((org-mode-p)
+		((eq major-mode 'org-mode)
 		 (or (ignore-errors (org-get-heading))
 		     (concat "File:" (file-name-nondirectory (buffer-file-name)))))
 		(t (error "Not in an Org buffer"))))
@@ -402,7 +401,5 @@ replace any running timer."
 	(message "No timer set"))))))
 
 (provide 'org-timer)
-
-
 
 ;;; org-timer.el ends here

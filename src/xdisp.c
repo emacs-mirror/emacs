@@ -1,6 +1,6 @@
 /* Display generation from window structure and buffer text.
 
-Copyright (C) 1985-1988, 1993-1995, 1997-2011  Free Software Foundation, Inc.
+Copyright (C) 1985-1988, 1993-1995, 1997-2012  Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -4339,7 +4339,7 @@ handle_display_spec (struct it *it, Lisp_Object spec, Lisp_Object object,
   int rv;
 
   if (CONSP (spec)
-      /* Simple specerties.  */
+      /* Simple specifications.  */
       && !EQ (XCAR (spec), Qimage)
       && !EQ (XCAR (spec), Qspace)
       && !EQ (XCAR (spec), Qwhen)
@@ -13645,7 +13645,7 @@ set_cursor_from_row (struct window *w, struct glyph_row *row,
   /* Non-zero means we've seen at least one glyph that came from a
      display string.  */
   int string_seen = 0;
-  /* Largest and smalles buffer positions seen so far during scan of
+  /* Largest and smallest buffer positions seen so far during scan of
      glyph row.  */
   EMACS_INT bpos_max = pos_before;
   EMACS_INT bpos_min = pos_after;
@@ -28325,7 +28325,11 @@ all the functions in the list are called, with the frame as argument.  */);
 Each function is called with two arguments, the window and its new
 display-start position.  Note that these functions are also called by
 `set-window-buffer'.  Also note that the value of `window-end' is not
-valid when these functions are called.  */);
+valid when these functions are called.
+
+Warning: Do not use this feature to alter the way the window
+is scrolled.  It is not designed for that, and such use probably won't
+work.  */);
   Vwindow_scroll_functions = Qnil;
 
   DEFVAR_LISP ("window-text-change-functions",

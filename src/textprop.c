@@ -1,5 +1,5 @@
 /* Interface code for dealing with text properties.
-   Copyright (C) 1993-1995, 1997, 1999-2011 Free Software Foundation, Inc.
+   Copyright (C) 1993-1995, 1997, 1999-2012 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -2227,7 +2227,7 @@ This also inhibits the use of the `intangible' text property.  */);
 
   DEFVAR_LISP ("text-property-default-nonsticky",
 	       Vtext_property_default_nonsticky,
-	       doc: /* Alist of properties vs the corresponding non-stickinesses.
+	       doc: /* Alist of properties vs the corresponding non-stickiness.
 Each element has the form (PROPERTY . NONSTICKINESS).
 
 If a character in a buffer has PROPERTY, new text inserted adjacent to

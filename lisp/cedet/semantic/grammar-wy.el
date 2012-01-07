@@ -1,6 +1,6 @@
 ;;; semantic/grammar-wy.el --- Generated parser support file
 
-;; Copyright (C) 2002-2004, 2009-2011  Free Software Foundation, Inc.
+;; Copyright (C) 2002-2004, 2009-2012  Free Software Foundation, Inc.
 
 ;; Author: David Ponce <david@dponce.com>
 ;; Keywords: syntax

@@ -1,6 +1,6 @@
 ;;; rst.el --- Mode for viewing and editing reStructuredText-documents.
 
-;; Copyright (C) 2003-2011  Free Software Foundation, Inc.
+;; Copyright (C) 2003-2012  Free Software Foundation, Inc.
 
 ;; Authors: Martin Blais <blais@furius.ca>,
 ;;          Stefan Merten <smerten@oekonux.de>,
@@ -2348,7 +2348,7 @@ of (COLUMN-NUMBER . LINE) pairs."
     ))
 
 (defun rst-shift-region-right (pfxarg)
-  "Indent region ridigly, by a few characters to the right.
+  "Indent region rigidly, by a few characters to the right.
 This function first computes all possible alignment columns by
 inspecting the lines preceding the region for bulleted or
 enumerated list items.  If the leftmost column is beyond the

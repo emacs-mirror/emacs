@@ -1,6 +1,6 @@
 ;;; cc-mode.el --- major mode for editing C and similar languages
 
-;; Copyright (C) 1985, 1987, 1992-2011  Free Software Foundation, Inc.
+;; Copyright (C) 1985, 1987, 1992-2012  Free Software Foundation, Inc.
 
 ;; Authors:    2003- Alan Mackenzie
 ;;             1998- Martin Stjernholm
@@ -1102,7 +1102,7 @@ Note that the style variables are always made local to the buffer."
   ;; nested.
   ;;
   ;; This function is called indirectly from font locking stuff - either from
-  ;; c-after-change (to prepare for after-change font-lockng) or from font
+  ;; c-after-change (to prepare for after-change font-locking) or from font
   ;; lock context (etc.) fontification.
   (let ((lit-limits (c-literal-limits))
 	(new-pos pos)
@@ -1165,7 +1165,7 @@ Note that the style variables are always made local to the buffer."
   ;;
   ;;
   ;;     void myfunc(T* p) {}
-  ;; 
+  ;;
   ;; Type a space in the first blank line, and the fontification of the next
   ;; line was fouled up by context fontification.
   (let ((new-beg beg) (new-end end) new-region)
@@ -1180,10 +1180,10 @@ Note that the style variables are always made local to the buffer."
 		c-before-context-fontification-functions))))
     (funcall c-standard-font-lock-fontify-region-function
 	     new-beg new-end verbose)))
-  
+
 (defun c-after-font-lock-init ()
   ;; Put on `font-lock-mode-hook'.  This function ensures our after-change
-  ;; function will get excuted before the font-lock one.  Amongst other
+  ;; function will get executed before the font-lock one.  Amongst other
   ;; things.
   (remove-hook 'after-change-functions 'c-after-change t)
   (add-hook 'after-change-functions 'c-after-change nil t)

@@ -1,6 +1,6 @@
 ;;; avl-tree.el --- balanced binary trees, AVL-trees
 
-;; Copyright (C) 1995, 2007-2011  Free Software Foundation, Inc.
+;; Copyright (C) 1995, 2007-2012  Free Software Foundation, Inc.
 
 ;; Author: Per Cederqvist <ceder@lysator.liu.se>
 ;;         Inge Wallin <inge@lysator.liu.se>
@@ -31,7 +31,7 @@
 ;; deleting, and retrieving data from an AVL tree containing n elements
 ;; is O(log n). It is somewhat more rigidly balanced than other
 ;; self-balancing binary trees (such as red-black trees and AA trees),
-;; making insertion slighty slower, deletion somewhat slower, and
+;; making insertion slightly slower, deletion somewhat slower, and
 ;; retrieval somewhat faster (the asymptotic scaling is of course the
 ;; same for all types). Thus it may be a good choice when the tree will
 ;; be relatively static, i.e. data will be retrieved more often than

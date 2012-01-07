@@ -1,4 +1,4 @@
-2011-12-29  Paul Eggert  <eggert@cs.ucla.edu>
+2012-01-07  Paul Eggert  <eggert@cs.ucla.edu>
 
 	emacs: fix an auto-save permissions race condition (Bug#10400)
 	* fileio.c (auto_saving_dir_umask): New static var.
@@ -9,6 +9,42 @@
 	(do_auto_save_eh): Clear it.
 	(Fdo_auto_save): Catch all errors, not just file errors, so
 	that the var is always cleared.
+
+2012-01-07  Eli Zaretskii  <eliz@gnu.org>
+
+	* search.c (scan_buffer): Pass character positions to
+	know_region_cache, not byte positions.  (Bug#6540)
+
+2012-01-07  LynX  <_LynX@bk.ru>  (tiny change)
+
+	* w32.c (sys_rename): Report EXDEV when rename of a directory
+	fails because the target is on another logical disk.  (Bug#10284)
+
+2012-01-07  David Benjamin  <davidben@mit.edu>  (tiny change)
+
+	* xterm.c (x_embed_request_focus): New function.
+
+	* xterm.h: Add prototype.
+
+	* xfns.c (Fx_focus_frame): Use it for embedded frames (Bug#9977).
+
+2012-01-05  Glenn Morris  <rgm@gnu.org>
+
+	* emacs.c (emacs_copyright): Update short copyright year to 2012.
+
+2012-01-01  Eli Zaretskii  <eliz@gnu.org>
+
+	* gnutls.c (init_gnutls_functions): Load gnutls_check_version.
+	Load gnutls_transport_set_lowat only if GnuTLS version is below
+	2.11.1.
+	(emacs_gnutls_handshake): Call gnutls_transport_set_lowat only for
+	GnuTLS versions below 2.11.1.
+
+2011-12-31  Antoine Levitt  <antoine.levitt@gmail.com>
+
+	* xdisp.c (syms_of_xdisp) <window-scroll-functions>: Add warning
+	to the doc string advising against its use for altering the way
+	windows are scrolled.
 
 2011-12-28  Kenichi Handa  <handa@m17n.org>
 
@@ -39,8 +75,8 @@
 
 2011-12-21  Jan Djärv  <jan.h.d@swipnet.se>
 
-	* nsterm.m (x_free_frame_resources): Release
-	f->output_data.ns->miniimage
+	* nsterm.m (x_free_frame_resources):
+	Release f->output_data.ns->miniimage.
 	(ns_index_color): Fix indentation.  Do not retain
 	color_table->colors[i].
 
@@ -92,10 +128,10 @@
 	Fns_store_cut_buffer_internal.
 	(ns_get_foreign_selection, Fx_own_selection_internal)
 	(Fx_disown_selection_internal, Fx_selection_exists_p)
-	(Fns_get_selection_internal, Fns_store_selection_internal): Use
-	ns_symbol_to_pb and check if return value is nil.
-	(syms_of_nsselect): Remove ifdef CUT_BUFFER_SUPPORT.  Remove
-	defsubr Sns_rotate_cut_buffers_internal.  Sns_get_cut_buffer_internal
+	(Fns_get_selection_internal, Fns_store_selection_internal):
+	Use ns_symbol_to_pb and check if return value is nil.
+	(syms_of_nsselect): Remove ifdef CUT_BUFFER_SUPPORT.  Remove defsubr
+	Sns_rotate_cut_buffers_internal.  Sns_get_cut_buffer_internal
 	renamed to Sns_get_selection_internal, Sns_store_cut_buffer_internal
 	renamed to Sns_store_selection_internal.
 	(ns_handle_selection_request): Move code to Fx_own_selection_internal
@@ -4439,7 +4475,7 @@
 
 2011-06-15  Paul Eggert  <eggert@cs.ucla.edu>
 
-	Integer overflow and signedness fixes (Bug#8873).
+	Integer overflow and signedness fixes (Bug#8873, Bug#8828).
 
 	* ccl.c (ASCENDING_ORDER): New macro, to work around GCC bug 43772.
 	(GET_CCL_RANGE, IN_INT_RANGE): Use it.
@@ -9034,7 +9070,7 @@ See ChangeLog.11 for earlier changes.
 ;; coding: utf-8
 ;; End:
 
-  Copyright (C) 2011  Free Software Foundation, Inc.
+  Copyright (C) 2011-2012  Free Software Foundation, Inc.
 
   This file is part of GNU Emacs.
 

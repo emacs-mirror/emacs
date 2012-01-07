@@ -1,6 +1,6 @@
 /* X Communication module for terminals which understand the X protocol.
 
-Copyright (C) 1986, 1988, 1993-1994, 1996, 1999-2011
+Copyright (C) 1986, 1988, 1993-1994, 1996, 1999-2012
   Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.

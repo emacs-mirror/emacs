@@ -1,6 +1,6 @@
 @c This file is included by semantic.texi
 
-@c Copyright (C) 1999-2005, 2007, 2009-2011  Free Software Foundation, Inc.
+@c Copyright (C) 1999-2005, 2007, 2009-2012  Free Software Foundation, Inc.
 
 @c Permission is granted to copy, distribute and/or modify this
 @c document under the terms of the GNU Free Documentation License,

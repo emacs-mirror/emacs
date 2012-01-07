@@ -1,6 +1,6 @@
 ;;; dunnet.el --- text adventure for Emacs -*-  byte-compile-warnings: nil -*-
 
-;; Copyright (C) 1992-1993, 2001-2011 Free Software Foundation, Inc.
+;; Copyright (C) 1992-1993, 2001-2012 Free Software Foundation, Inc.
 
 ;; Author: Ron Schnell <ronnie@driver-aces.com>
 ;; Created: 25 Jul 1992
@@ -2183,7 +2183,7 @@ A hole leads north."
         nil nil nil nil nil
         (list obj-box)                        ;; stair-landing
         nil nil nil
-        (list obj-axe)                        ;; smal-crawlspace
+        (list obj-axe)                        ;; small-crawlspace
         nil nil nil nil nil nil nil nil nil nil nil nil nil nil nil
         nil nil nil nil nil
         (list obj-special)                    ;; fourth-vermont-intersection

@@ -1,6 +1,6 @@
 ;;; view.el --- peruse file or buffer without editing
 
-;; Copyright (C) 1985, 1989, 1994-1995, 1997, 2000-2011
+;; Copyright (C) 1985, 1989, 1994-1995, 1997, 2000-2012
 ;;   Free Software Foundation, Inc.
 
 ;; Author: K. Shane Hartman

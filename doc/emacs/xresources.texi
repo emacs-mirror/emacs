@@ -1,5 +1,5 @@
 @c This is part of the Emacs manual.
-@c Copyright (C) 1987, 1993-1995, 1997, 2001-2011
+@c Copyright (C) 1987, 1993-1995, 1997, 2001-2012
 @c   Free Software Foundation, Inc.
 @c See file emacs.texi for copying conditions.
 @node X Resources, Antinews, Emacs Invocation, Top
@@ -51,15 +51,16 @@ this file do not take effect immediately, because the X server stores
 its own list of resources; to update it, use the command
 @command{xrdb}---for instance, @samp{xrdb ~/.Xdefaults}.
 
-@cindex Registry (MS-Windows)
+@cindex registry, setting resources (MS-Windows)
   (MS-Windows systems do not support X resource files; on Windows,
 Emacs looks for X resources in the Windows Registry, first under the
-key @samp{HKEY_CURRENT_USER\SOFTWARE\GNU\Emacs} and then under the key
-@samp{HKEY_LOCAL_MACHINE\SOFTWARE\GNU\Emacs}.  The menu and scroll
-bars are native widgets on MS-Windows, so they are only customizable
-via the system-wide settings in the Display Control Panel.  You can
-also set resources using the @samp{-xrm} command line option, as
-explained below.)
+key @samp{HKEY_CURRENT_USER\SOFTWARE\GNU\Emacs}, which affects only
+the current user and override the system-wide settings, and then under
+the key @samp{HKEY_LOCAL_MACHINE\SOFTWARE\GNU\Emacs}, which affects
+all users of the system.  The menu and scroll bars are native widgets
+on MS-Windows, so they are only customizable via the system-wide
+settings in the Display Control Panel.  You can also set resources
+using the @samp{-xrm} command line option, as explained below.)
 
   Each line in the X resource file specifies a value for one option or
 for a collection of related options.  Each resource specification

@@ -1,5 +1,5 @@
 @c This is part of the Emacs manual.
-@c Copyright (C) 1985-1987, 1993-1995, 1997, 1999-2011
+@c Copyright (C) 1985-1987, 1993-1995, 1997, 1999-2012
 @c   Free Software Foundation, Inc.
 @c See file emacs.texi for copying conditions.
 @node Files, Buffers, Keyboard Macros, Top
@@ -1352,9 +1352,25 @@ manipulate and apply parts of patches:
 @findex diff-hunk-next
 Move to the next hunk-start (@code{diff-hunk-next}).
 
+@findex diff-auto-refine-mode
+@cindex mode, Diff Auto-Refine
+@cindex Diff Auto-Refine mode
+This command has a side effect: it @dfn{refines} the hunk you move to,
+highlighting its changes with better granularity.  To disable this
+feature, type @kbd{M-x diff-auto-refine-mode} to toggle off the minor
+mode Diff Auto-Refine mode.  To disable Diff Auto Refine mode by
+default, add this to your init file (@pxref{Hooks}):
+
+@example
+(add-hook 'diff-mode-hook
+          (lambda () (diff-auto-refine-mode -1)))
+@end example
+
 @item M-p
 @findex diff-hunk-prev
-Move to the previous hunk-start (@code{diff-hunk-prev}).
+Move to the previous hunk-start (@code{diff-hunk-prev}).  Like
+@kbd{M-n}, this has the side-effect of refining the hunk you move to,
+unless you disable Diff Auto-Refine mode.
 
 @item M-@}
 @findex diff-file-next
@@ -1447,13 +1463,13 @@ descriptions of the changes.  @kbd{C-x 4 a} itself in Diff mode
 operates on behalf of the current hunk's file, but gets the function
 name from the patch itself.  This is useful for making log entries for
 functions that are deleted by the patch.
-
-@item M-x diff-show-trailing-whitespaces RET
-@findex diff-show-trailing-whitespaces
-Highlight trailing whitespace characters, except for those used by the
-patch syntax (@pxref{Useless Whitespace}).
 @end table
 
+  By default, Diff mode highlights trailing whitespace on modified
+lines, so that they are more obvious.  This is done by enabling
+Whitespace mode in the Diff buffer (@pxref{Useless Whitespace}).  Diff
+mode buffers are set up so that Whitespace mode avoids highlighting
+trailing whitespace occurring in the diff context.
 
 @node Misc File Ops
 @section Miscellaneous File Operations

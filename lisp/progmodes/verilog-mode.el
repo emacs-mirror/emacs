@@ -1,6 +1,6 @@
 ;; verilog-mode.el --- major mode for editing verilog source in Emacs
 
-;; Copyright (C) 1996-2011  Free Software Foundation, Inc.
+;; Copyright (C) 1996-2012  Free Software Foundation, Inc.
 
 ;; Author: Michael McNamara (mac@verilog.com),
 ;;    Wilson Snyder (wsnyder@wsnyder.org)
@@ -1423,7 +1423,7 @@ If set will become buffer local.")
       ["AUTOSENSE"			(describe-function 'verilog-auto-sense)
        :help		"Help on AUTOSENSE - sensitivity lists for always blocks"]
       ["AUTOTIEOFF"			(describe-function 'verilog-auto-tieoff)
-       :help		"Help on AUTOTIEOFF - tieing off unused outputs"]
+       :help		"Help on AUTOTIEOFF - tying off unused outputs"]
       ["AUTOUNUSED"			(describe-function 'verilog-auto-unused)
        :help		"Help on AUTOUNUSED - terminating unused inputs"]
       ["AUTOWIRE"			(describe-function 'verilog-auto-wire)
@@ -1667,7 +1667,7 @@ This speeds up complicated regexp matches."
   ;; Similar to `delete-trailing-whitespace' but that's not present in XEmacs
   (save-excursion
     (goto-char (point-min))
-    (while (re-search-forward "[ \t]+$" nil t)  ;; Not syntatic WS as no formfeed
+    (while (re-search-forward "[ \t]+$" nil t)  ;; Not syntactic WS as no formfeed
       (replace-match "" nil nil))))
 
 (defvar compile-command)
@@ -11725,7 +11725,7 @@ this is a recent change.  To control this behavior, see
 `verilog-auto-reset-widths'.
 
 AUTORESET ties signals to deasserted, which is presumed to be zero.
-Signals that match `verilog-active-low-regexp' will be deasserted by tieing
+Signals that match `verilog-active-low-regexp' will be deasserted by tying
 them to a one.
 
 An example:
@@ -11816,7 +11816,7 @@ finds all outputs in the module, and if that input is not otherwise declared
 as a register or wire, creates a tieoff.
 
 AUTORESET ties signals to deasserted, which is presumed to be zero.
-Signals that match `verilog-active-low-regexp' will be deasserted by tieing
+Signals that match `verilog-active-low-regexp' will be deasserted by tying
 them to a one.
 
 You can add signals you do not want included in AUTOTIEOFF with

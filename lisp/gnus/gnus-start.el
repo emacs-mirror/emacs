@@ -1,6 +1,6 @@
 ;;; gnus-start.el --- startup functions for Gnus
 
-;; Copyright (C) 1996-2011 Free Software Foundation, Inc.
+;; Copyright (C) 1996-2012 Free Software Foundation, Inc.
 
 ;; Author: Lars Magne Ingebrigtsen <larsi@gnus.org>
 ;; Keywords: news
@@ -1451,7 +1451,11 @@ newsgroup."
 (defun gnus-activate-group (group &optional scan dont-check method
 				  dont-sub-check)
   "Check whether a group has been activated or not.
-If SCAN, request a scan of that group as well."
+If SCAN, request a scan of that group as well.  If METHOD, use
+that select method instead of determining the method based on the
+group name.  If DONT-CHECK, don't check check whether the group
+actually exists.  If DONT-SUB-CHECK or DONT-CHECK, don't let the
+backend check whether the group actually exists."
   (let ((method (or method (inline (gnus-find-method-for-group group))))
 	active)
     (and (inline (gnus-check-server method))

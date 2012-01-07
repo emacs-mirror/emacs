@@ -1,11 +1,10 @@
 ;;; ob-comint.el --- org-babel functions for interaction with comint buffers
 
-;; Copyright (C) 2009-2011  Free Software Foundation, Inc.
+;; Copyright (C) 2009-2012  Free Software Foundation, Inc.
 
 ;; Author: Eric Schulte
 ;; Keywords: literate programming, reproducible research, comint
 ;; Homepage: http://orgmode.org
-;; Version: 7.7
 
 ;; This file is part of GNU Emacs.
 
@@ -54,6 +53,7 @@ executed inside the protection of `save-excursion' and
          (error "buffer %s doesn't exist or has no process" ,buffer))
        (set-buffer ,buffer)
        ,@body)))
+(def-edebug-spec org-babel-comint-in-buffer (form body))
 
 (defmacro org-babel-comint-with-output (meta &rest body)
   "Evaluate BODY in BUFFER and return process output.
@@ -115,6 +115,7 @@ or user `keyboard-quit' during execution of body."
 		   string-buffer))
 	     (setq raw (substring string-buffer (match-end 0))))
 	 (split-string string-buffer comint-prompt-regexp)))))
+(def-edebug-spec org-babel-comint-with-output (form body))
 
 (defun org-babel-comint-input-command (buffer cmd)
   "Pass CMD to BUFFER.

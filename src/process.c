@@ -1,6 +1,6 @@
 /* Asynchronous subprocess control for GNU Emacs.
 
-Copyright (C) 1985-1988, 1993-1996, 1998-1999, 2001-2011
+Copyright (C) 1985-1988, 1993-1996, 1998-1999, 2001-2012
   Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
@@ -3492,7 +3492,7 @@ usage: (make-network-process &rest ARGS)  */)
 	     || (NILP (buffer) && NILP (BVAR (&buffer_defaults, enable_multibyte_characters))))
       /* We dare not decode end-of-line format by setting VAL to
 	 Qraw_text, because the existing Emacs Lisp libraries
-	 assume that they receive bare code including a sequene of
+	 assume that they receive bare code including a sequence of
 	 CR LF.  */
       val = Qnil;
     else

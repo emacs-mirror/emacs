@@ -1,7 +1,7 @@
 % Reference Card for Org Mode
-\def\orgversionnumber{7.7}
+\def\orgversionnumber{7.8.02}
 \def\versionyear{2011}          % latest update
-\def\year{2011}                 % latest copyright year
+\def\year{2012}                 % latest copyright year
 
 %**start of header
 \newcount\columnsperpage
@@ -17,7 +17,7 @@
 \pdflayout=(0l)
 
 % Nothing else needs to be changed below this line.
-% Copyright (C) 1987, 1993, 1996-1997, 2001-2011
+% Copyright (C) 1987, 1993, 1996-1997, 2001-2012
 %   Free Software Foundation, Inc.
 
 % This file is part of GNU Emacs.
@@ -445,6 +445,7 @@ formula, \kbd{:=} a field formula.
 \key{execute code block at point}{C-c C-c}
 \key{open results of code block at point}{C-c C-o}
 \key{check code block at point for errors}{C-c C-v c}
+\key{insert a header argument with completion}{C-c C-v j}
 \key{view expanded body of code block at point}{C-c C-v v}
 \key{view information about code block at point}{C-c C-v I}
 \key{go to named code block}{C-c C-v g}
@@ -460,7 +461,7 @@ formula, \kbd{:=} a field formula.
 \key{tangle code blocks in supplied file}{C-c C-v f}
 \key{ingest all code blocks in supplied file into the Library of Babel}{C-c C-v i}
 \key{switch to the session of the current code block}{C-c C-v z}
-\key{load expanded body of the current code block into a session}{C-c C-v l}
+\key{load the current code block into a session}{C-c C-v l}
 \key{view sha1 hash of the current code block}{C-c C-v a}
 
 \section{Completion}
@@ -525,7 +526,7 @@ after  ``{\tt :}'', and dictionary words elsewhere.
 \section{Timestamps}
 
 \key{prompt for date and insert timestamp}{C-c .}
-\key{like \kbd{C-c} . but insert date and time format}{C-u C-c .}
+\key{like \kbd{C-c .} but insert date and time format}{C-u C-c .}
 \key{like \kbd{C-c .} but make stamp inactive}{C-c !} % FIXME
 \key{insert DEADLINE timestamp}{C-c C-d}
 \key{insert SCHEDULED timestamp}{C-c C-s}
@@ -673,7 +674,7 @@ never exported.
 
 \section{Notes}
 [1] This is only a suggestion for a binding of this command.  Choose
-your own key as shown under INSTALLATION.
+your own key as shown under ACTIVATION.
 
 [2] Keybinding affected by {\tt org-support-shift-select} and also
  {\tt org-replace-disputed-keys}.
@@ -685,5 +686,4 @@ your own key as shown under INSTALLATION.
 % Local variables:
 % compile-command: "tex refcard"
 % End:
-
 

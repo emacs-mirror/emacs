@@ -1,5 +1,5 @@
 /* Low-level bidirectional buffer/string-scanning functions for GNU Emacs.
-   Copyright (C) 2000-2001, 2004-2005, 2009-2011
+   Copyright (C) 2000-2001, 2004-2005, 2009-2012
    Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
@@ -1132,7 +1132,7 @@ bidi_find_paragraph_start (EMACS_INT pos, EMACS_INT pos_byte)
 
    Note that this function gives the paragraph separator the same
    direction as the preceding paragraph, even though Emacs generally
-   views the separartor as not belonging to any paragraph.  */
+   views the separator as not belonging to any paragraph.  */
 void
 bidi_paragraph_init (bidi_dir_t dir, struct bidi_it *bidi_it, int no_default_p)
 {

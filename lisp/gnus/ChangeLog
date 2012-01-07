@@ -1,3 +1,135 @@
+2012-01-07  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* shr.el (shr-visit-file): Move point to the beginning of the buffer
+	after rendering.
+
+2012-01-07  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* gnus-sum.el (gnus-summary-read-group): Document more parameters
+	(bug#9693).
+	(gnus-summary-setup-buffer): Document return value (bug#9697).
+
+	* mm-decode.el (mm-interactively-view-part): Use `completing-read',
+	since ido doesn't work on symbols (bug#9632).
+
+	* gnus.el (gnus-group-fast-parameter): Use the same precedence rules
+	when getting a single value as when getting all the values.  This means
+	that atoms like `gcc-self' work cumulatively, like variable settings,
+	instead of getting the value from the last matching clause.
+	(gnus-group-find-parameter): Protect against the group buffer not
+	existing (bug#9585).
+
+2012-01-06  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* gnus-start.el (gnus-activate-group): Document more parameters
+	(bug#9694).
+
+	* gnus-group.el (gnus-group-read-ephemeral-group): Doc clarification
+	(bug#9692).
+
+	* gnus-agent.el (gnus-agent-store-article): Tell the Agent when the
+	article was fetched, so that it can be expired later (bug#9958).
+	(gnus-agent-summary-fetch-series): Add doc string.
+	(gnus-agent-summary-fetch-group): Don't remove tick and dormant marks
+	(bug#9517).
+
+	* nntp.el (nntp-retrieve-groups): Refuse to do retrieval when an async
+	retrieval is happening.
+
+	* gnus.el (gnus-parameters): Doc fix.
+
+2012-01-06  Dave Abrahams  <dave@boostpro.com>  (tiny change)
+
+	* gnus-sum.el (gnus-summary-refer-thread): If the subtree is hidden,
+	show the thread after expansion.
+
+2012-01-06  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* gnus-art.el (article-narrow-to-head): If the head is completely
+	empty, narrow to the empty region (bug#9764).
+
+	* gnus-sum.el (gnus-summary-mark-article-as-unread): Mark articles as
+	read, and then mark them as unread only when the unread mark is used.
+	This makes `C-- T k' actually work, even though it's confusing.
+
+	* gnus-win.el (gnus-all-windows-visible-p): Ensure that the buffer is
+	alive before we try to find its window.
+
+2012-01-06  Brian Sniffen  <bsniffen@akamai.com>  (tiny change)
+
+	* mm-decode.el (mm-display-external): Use a longer timeout for the
+	deletion to allow slow programs to display the file.
+
+2012-01-06  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* gnus-art.el (gnus-article-browse-delete-temp-files): Fix up the
+	prompt to be less confusing.
+
+	* gnus-msg.el (gnus-summary-reply): Do not give a `switch-to-buffer'
+	argument to `message-reply'.  This broke `special-display-*' frame
+	pop-uping (bug#10238).
+
+2012-01-05  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* starttls.el (starttls-available-p): Return nil on Windows/MS-DOS
+	systems, since these allegedly don't work there.
+
+2012-01-04  Chris Gray  <chrismgray@gmail.com>  (tiny change)
+
+	* mm-decode.el (mm-shr): Check that `gnus-summary-buffer' really is a
+	live buffer.
+
+2012-01-04  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* nnir.el (nnir-retrieve-headers): Protect against the article not
+	existing on the server (bug#10335).
+
+2012-01-04  Wolfgang Jenkner  <wjenkner@inode.at>  (tiny change)
+
+	* gnus-agent.el (gnus-agent-load-local): Recompute
+	gnus-agent-article-local on changing method.
+
+2012-01-04  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* gnus.el (gnus-parameters): Note precedence.
+
+2012-01-04  Leo  <sdl.web@gmail.com>
+
+	* nndraft.el (nndraft-update-unread-articles): Don't move point around
+	in the group buffer.
+
+2012-01-04  Julien Danjou  <julien@danjou.info>
+
+	* nnimap.el (nnimap-update-info): Fix an error when all articles UIDs
+	change.
+
+2012-01-04  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* shr.el (shr-rescale-image): Add :ascent 100 to the rescaled picture,
+	too.
+
+	* nntp.el (nntp-retrieve-group-data-early): Use it.
+
+2012-01-03  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* nntp.el (nntp-retrieval-in-progress): New variable.
+	(nntp-make-process-buffer): Make it buffer-local.
+
+	* gnus-demon.el (gnus-demon-time-to-step): Resurrect function lost in
+	2010.
+	(gnus-demon-init): Use it to compute the time if time is on the form
+	"04:23".
+
+	* gnus-topic.el (gnus-topic-history): Define `gnus-topic-history'.
+
+	* nnimap.el (nnimap-finish-retrieve-group-infos): Check the connection
+	status in the correct buffer.
+
+2012-01-03  Leo  <sdl.web@gmail.com>
+
+	* gnus-topic.el (gnus-topic-goto-next-group): Don't move point around
+	when opening topics (bug#10407).
+
 2011-12-28  Katsumi Yamaoka  <yamaoka@jpl.org>
 
 	* mm-view.el (mm-display-inline-fontify): Add comment.
@@ -4713,7 +4845,7 @@
 2010-10-24  Lars Magne Ingebrigtsen  <larsi@gnus.org>
 
 	* nnimap.el (nnimap-request-head): New function.
-	(nnimap-request-move-article): Try to be slighly faster by not
+	(nnimap-request-move-article): Try to be slightly faster by not
 	requesting the entire message when moving.
 	(nnimap-transform-headers): Don't bug out on bodiless articles.
 	(nnimap-send-command): Have no outstanding messages if the IMAP server
@@ -22127,7 +22259,7 @@
 
 See ChangeLog.2 for earlier changes.
 
-  Copyright (C) 2004-2011  Free Software Foundation, Inc.
+  Copyright (C) 2004-2012  Free Software Foundation, Inc.
 
   This file is part of GNU Emacs.
 

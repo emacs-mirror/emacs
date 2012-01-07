@@ -1,6 +1,6 @@
 ;;; shr.el --- Simple HTML Renderer
 
-;; Copyright (C) 2010-2011 Free Software Foundation, Inc.
+;; Copyright (C) 2010-2012 Free Software Foundation, Inc.
 
 ;; Author: Lars Magne Ingebrigtsen <larsi@gnus.org>
 ;; Keywords: html
@@ -134,7 +134,8 @@ cid: URL as the argument.")
   (shr-insert-document
    (with-temp-buffer
      (insert-file-contents file)
-     (libxml-parse-html-region (point-min) (point-max)))))
+     (libxml-parse-html-region (point-min) (point-max))))
+  (goto-char (point-min)))
 
 ;;;###autoload
 (defun shr-insert-document (dom)
@@ -534,33 +535,33 @@ the URL of the image to the kill buffer instead."
     (insert alt)))
 
 (defun shr-rescale-image (data)
-  (if (or (not (fboundp 'imagemagick-types))
-	  (not (get-buffer-window (current-buffer))))
-      (create-image data nil t
-		    :ascent 100)
-    (let* ((image (create-image data nil t :ascent 100))
-	   (size (image-size image t))
-	   (width (car size))
-	   (height (cdr size))
-	   (edges (window-inside-pixel-edges
-		   (get-buffer-window (current-buffer))))
-	   (window-width (truncate (* shr-max-image-proportion
-				      (- (nth 2 edges) (nth 0 edges)))))
-	   (window-height (truncate (* shr-max-image-proportion
-				       (- (nth 3 edges) (nth 1 edges)))))
-	   scaled-image)
-      (when (> height window-height)
-	(setq image (or (create-image data 'imagemagick t
-				      :height window-height)
-			image))
-	(setq size (image-size image t)))
-      (when (> (car size) window-width)
-	(setq image (or
-		     (create-image data 'imagemagick t
-				   :width window-width
-				   :ascent 100)
-		     image)))
-      image)))
+  (let ((image (create-image data nil t :ascent 100)))
+    (if (or (not (fboundp 'imagemagick-types))
+	    (not (get-buffer-window (current-buffer))))
+	image
+      (let* ((size (image-size image t))
+	     (width (car size))
+	     (height (cdr size))
+	     (edges (window-inside-pixel-edges
+		     (get-buffer-window (current-buffer))))
+	     (window-width (truncate (* shr-max-image-proportion
+					(- (nth 2 edges) (nth 0 edges)))))
+	     (window-height (truncate (* shr-max-image-proportion
+					 (- (nth 3 edges) (nth 1 edges)))))
+	     scaled-image)
+	(when (> height window-height)
+	  (setq image (or (create-image data 'imagemagick t
+					:height window-height
+					:ascent 100)
+			  image))
+	  (setq size (image-size image t)))
+	(when (> (car size) window-width)
+	  (setq image (or
+		       (create-image data 'imagemagick t
+				     :width window-width
+				     :ascent 100)
+		       image)))
+	image))))
 
 ;; url-cache-extract autoloads url-cache.
 (declare-function url-cache-create-filename "url-cache" (url))

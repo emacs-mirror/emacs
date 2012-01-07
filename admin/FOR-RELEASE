@@ -135,7 +135,7 @@ calendar.texi
 cal-xtra.texi     
 cmdargs.texi      
 commands.texi     cyd
-custom.texi       
+custom.texi       cyd
 dired.texi        cyd
 dired-xtra.texi
 display.texi      cyd
@@ -154,24 +154,24 @@ killing.texi      cyd
 kmacro.texi       cyd
 macos.texi        
 maintaining.texi  cyd
-major.texi        
 mark.texi         cyd
 mini.texi         
-misc.texi         
+misc.texi         cyd
 modes.texi        cyd
 msdog.texi        
 msdog-xtra.texi   
 mule.texi         
 m-x.texi          cyd
+package.texi      cyd
 picture-xtra.texi
 programs.texi     cyd
 regs.texi         cyd
 rmail.texi        
 screen.texi       cyd
 search.texi       cyd
-sending.texi      
+sending.texi      cyd
 text.texi         cyd
-trouble.texi      
+trouble.texi      cyd
 vc-xtra.texi      cyd
 vc1-xtra.texi     cyd
 windows.texi      cyd

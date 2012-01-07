@@ -1,5 +1,5 @@
 /* String search routines for GNU Emacs.
-   Copyright (C) 1985-1987, 1993-1994, 1997-1999, 2001-2011
+   Copyright (C) 1985-1987, 1993-1994, 1997-1999, 2001-2012
                  Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
@@ -725,8 +725,8 @@ scan_buffer (register int target, EMACS_INT start, EMACS_INT end,
                  the region from start to cursor is free of them. */
               if (target == '\n' && newline_cache)
                 know_region_cache (current_buffer, newline_cache,
-                                   start_byte + scan_start - base,
-                                   start_byte + cursor - base);
+                                   BYTE_TO_CHAR (start_byte + scan_start - base),
+                                   BYTE_TO_CHAR (start_byte + cursor - base));
 
               /* Did we find the target character?  */
               if (cursor < ceiling_addr)
@@ -791,8 +791,8 @@ scan_buffer (register int target, EMACS_INT start, EMACS_INT end,
                  the region from after the cursor to start is free of them.  */
               if (target == '\n' && newline_cache)
                 know_region_cache (current_buffer, newline_cache,
-                                   start_byte + cursor - base,
-                                   start_byte + scan_start - base);
+                                   BYTE_TO_CHAR (start_byte + cursor - base),
+                                   BYTE_TO_CHAR (start_byte + scan_start - base));
 
               /* Did we find the target character?  */
               if (cursor >= ceiling_addr)
@@ -1302,7 +1302,7 @@ search_buffer (Lisp_Object string, EMACS_INT pos, EMACS_INT pos_byte,
 	     checking if we can use boyer-moore search.  If TRT is
 	     non-nil, we can use boyer-moore search only if TRT can be
 	     represented by the byte array of 256 elements.  For that,
-	     all non-ASCII case-equivalents of all case-senstive
+	     all non-ASCII case-equivalents of all case-sensitive
 	     characters in STRING must belong to the same charset and
 	     row.  */
 

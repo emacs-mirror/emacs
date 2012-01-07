@@ -1,6 +1,6 @@
 ;;; gnus-agent.el --- unplugged support for Gnus
 
-;; Copyright (C) 1997-2011  Free Software Foundation, Inc.
+;; Copyright (C) 1997-2012  Free Software Foundation, Inc.
 
 ;; Author: Lars Magne Ingebrigtsen <larsi@gnus.org>
 ;; This file is part of GNU Emacs.
@@ -1181,6 +1181,7 @@ downloadable."
     (gnus-summary-position-point)))
 
 (defun gnus-agent-summary-fetch-series ()
+  "Fetch the process-marked articles into the Agent."
   (interactive)
   (when gnus-newsgroup-processable
     (setq gnus-newsgroup-downloadable
@@ -1228,8 +1229,9 @@ Optional arg ALL, if non-nil, means to fetch all articles."
             (cond (gnus-agent-mark-unread-after-downloaded
                    (setq gnus-newsgroup-downloadable
                          (delq article gnus-newsgroup-downloadable))
-
-                   (gnus-summary-mark-article article gnus-unread-mark))
+		   (when (and (not (member article gnus-newsgroup-dormant))
+			      (not (member article gnus-newsgroup-marked)))
+		     (gnus-summary-mark-article article gnus-unread-mark)))
                   (was-marked-downloadable
                    (gnus-summary-set-agent-mark article t)))
             (when (gnus-summary-goto-subject article nil t)
@@ -2229,7 +2231,10 @@ doesn't exist, to valid the overview buffer."
 article counts for each of the method's subscribed groups."
   (let ((gnus-command-method (or method gnus-command-method)))
     (when (or (null gnus-agent-article-local-times)
-	      (zerop gnus-agent-article-local-times))
+	      (zerop gnus-agent-article-local-times)
+	      (not (gnus-methods-equal-p
+		    gnus-command-method
+		    (symbol-value (intern "+method" gnus-agent-article-local)))))
       (setq gnus-agent-article-local
 	    (gnus-cache-file-contents
 	     (gnus-agent-lib-file "local")
@@ -3885,7 +3890,12 @@ has been fetched."
 	 (coding-system-for-write gnus-cache-coding-system))
     (when (not (file-exists-p file))
       (gnus-make-directory (file-name-directory file))
-      (write-region (point-min) (point-max) file nil 'silent))))
+      (write-region (point-min) (point-max) file nil 'silent)
+      ;; Tell the Agent when the article was fetched, so that it can
+      ;; be expired later.
+      (gnus-agent-load-alist group)
+      (gnus-agent-save-alist group (list article)
+			     (time-to-days (current-time))))))
 
 (defun gnus-agent-regenerate-group (group &optional reread)
   "Regenerate GROUP.
@@ -4031,7 +4041,7 @@ If REREAD is not nil, downloaded articles are marked as unread."
 	;; gnus-agent-regenerate-group can remove the article ID of every
 	;; article (with the exception of the last ID in the list - it's
 	;; special) that no longer appears in the overview.  In this
-	;; situtation, the last article ID in the list implies that it,
+	;; situation, the last article ID in the list implies that it,
 	;; and every article ID preceding it, have been fetched from the
 	;; server.
 

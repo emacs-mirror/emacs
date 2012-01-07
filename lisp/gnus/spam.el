@@ -1,6 +1,6 @@
 ;;; spam.el --- Identifying spam
 
-;; Copyright (C) 2002-2011  Free Software Foundation, Inc.
+;; Copyright (C) 2002-2012  Free Software Foundation, Inc.
 
 ;; Author: Lars Magne Ingebrigtsen <larsi@gnus.org>
 ;; Maintainer: Ted Zlatanov <tzz@lifelogs.com>

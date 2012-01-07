@@ -1,11 +1,10 @@
 ;;; org-capture.el --- Fast note taking in Org-mode
 
-;; Copyright (C) 2010-2011  Free Software Foundation, Inc.
+;; Copyright (C) 2010-2012 Free Software Foundation, Inc.
 
 ;; Author: Carsten Dominik <carsten at orgmode dot org>
 ;; Keywords: outlines, hypermedia, calendar, wp
 ;; Homepage: http://orgmode.org
-;; Version: 7.7
 ;;
 ;; This file is part of GNU Emacs.
 ;;
@@ -57,6 +56,8 @@
 		  (date &optional keep-restriction))
 (declare-function org-table-get-specials "org-table" ())
 (declare-function org-table-goto-line "org-table" (N))
+(declare-function org-pop-to-buffer-same-window "org-compat"
+		  (&optional buffer-or-name norecord label))
 
 (defvar org-remember-default-headline)
 (defvar org-remember-templates)
@@ -332,7 +333,8 @@ calendar                |  %:type %:date"
 
 (defcustom org-capture-before-finalize-hook nil
   "Hook that is run right before a capture process is finalized.
-The capture buffer is still current when this hook runs."
+The capture buffer is still current when this hook runs and it is
+widened to the entire buffer."
   :group 'org-capture
   :type 'hook)
 
@@ -372,7 +374,7 @@ to avoid conflicts with other active capture processes."
   (plist-get (if local org-capture-current-plist org-capture-plist) prop))
 
 (defun org-capture-member (prop &optional local)
-  "Is PROP a property in `org-capture-plist'.
+  "Is PROP a preperty in `org-capture-plist'.
 When LOCAL is set, use the local variable `org-capture-current-plist',
 this is necessary after initialization of the capture process,
 to avoid conflicts with other active capture processes."
@@ -484,7 +486,7 @@ bypassed."
 	     (error "Capture template `%s': %s"
 		    (org-capture-get :key)
 		    (nth 1 error))))
-	  (if (and (org-mode-p)
+	  (if (and (eq major-mode 'org-mode)
 		   (org-capture-get :clock-in))
 	      (condition-case nil
 		  (progn
@@ -574,7 +576,7 @@ captured item after finalizing."
 	  (org-capture-empty-lines-after
 	   (or (org-capture-get :empty-lines 'local) 0))))
       ;; Postprocessing:  Update Statistics cookies, do the sorting
-      (when (org-mode-p)
+      (when (eq major-mode 'org-mode)
 	(save-excursion
 	  (when (ignore-errors (org-back-to-heading))
 	    (org-update-parent-todo-statistics)
@@ -722,7 +724,7 @@ already gone.  Any prefix argument will be passed to the refile command."
 	(widen)
 	(let ((hd (nth 2 target)))
 	  (goto-char (point-min))
-	  (unless (org-mode-p)
+	  (unless (eq major-mode 'org-mode)
 	    (error
 	     "Target buffer \"%s\" for file+headline should be in Org mode"
 	     (current-buffer)))
@@ -754,7 +756,7 @@ already gone.  Any prefix argument will be passed to the refile command."
 	      (goto-char (if (org-capture-get :prepend)
 			     (match-beginning 0) (match-end 0)))
 	      (org-capture-put :exact-position (point))
-	      (setq target-entry-p (and (org-mode-p) (org-at-heading-p))))
+	      (setq target-entry-p (and (eq major-mode 'org-mode) (org-at-heading-p))))
 	  (error "No match for target regexp in file %s" (nth 1 target))))
 
        ((memq (car target) '(file+datetree file+datetree+prompt))
@@ -776,7 +778,8 @@ already gone.  Any prefix argument will be passed to the refile command."
 	    (let ((prompt-time (org-read-date
 				nil t nil "Date for tree entry:"
 				(current-time))))
-	      (org-capture-put :prompt-time prompt-time)
+	      (org-capture-put :prompt-time prompt-time
+			       :default-time prompt-time)
 	      (time-to-days prompt-time)))
 	   (t
 	    ;; current date, possible corrected for late night workers
@@ -788,12 +791,12 @@ already gone.  Any prefix argument will be passed to the refile command."
 	(widen)
 	(funcall (nth 2 target))
 	(org-capture-put :exact-position (point))
-	(setq target-entry-p (and (org-mode-p) (org-at-heading-p))))
+	(setq target-entry-p (and (eq major-mode 'org-mode) (org-at-heading-p))))
 
        ((eq (car target) 'function)
 	(funcall (nth 1 target))
 	(org-capture-put :exact-position (point))
-	(setq target-entry-p (and (org-mode-p) (org-at-heading-p))))
+	(setq target-entry-p (and (eq major-mode 'org-mode) (org-at-heading-p))))
 
        ((eq (car target) 'clock)
 	(if (and (markerp org-clock-hd-marker)
@@ -847,6 +850,7 @@ it.  When it is a variable, retrieve the value.  Return whatever we get."
   (goto-char (org-capture-get :pos))
   (org-set-local 'org-capture-target-marker
 		 (move-marker (make-marker) (point)))
+  (org-set-local 'outline-level 'org-outline-level)
   (let* ((template (org-capture-get :template))
 	 (type (org-capture-get :type)))
     (case type
@@ -1146,11 +1150,11 @@ Point will remain at the first line after the inserted text."
     (or (bolp) (newline))
     (setq beg (point))
     (cond
-     ((and (eq type 'entry) (org-mode-p))
+     ((and (eq type 'entry) (eq major-mode 'org-mode))
       (org-capture-verify-tree (org-capture-get :template))
       (org-paste-subtree nil template t))
      ((and (memq type '(item checkitem))
-	   (org-mode-p)
+	   (eq major-mode 'org-mode)
 	   (save-excursion (skip-chars-backward " \t\n")
 			   (setq pp (point))
 			   (org-in-item-p)))
@@ -1199,7 +1203,7 @@ The user is queried for the template."
       (error "No capture template selected"))
     (org-capture-set-plist entry)
     (org-capture-set-target-location)
-    (switch-to-buffer (org-capture-get :buffer))
+    (org-pop-to-buffer-same-window (org-capture-get :buffer))
     (goto-char (org-capture-get :pos))))
 
 (defun org-capture-get-indirect-buffer (&optional buffer prefix)
@@ -1212,8 +1216,10 @@ Use PREFIX as a prefix for the name of the indirect buffer."
       (setq bname (concat prefix "-" (number-to-string (incf n)) "-" base)))
     (condition-case nil
         (make-indirect-buffer buffer bname 'clone)
-      (error (make-indirect-buffer buffer bname)))))
-
+      (error
+       (let ((buf (make-indirect-buffer buffer bname)))
+	 (with-current-buffer buf (org-mode))
+	 buf)))))
 
 (defun org-capture-verify-tree (tree)
   "Throw error if TREE is not a valid tree"
@@ -1309,7 +1315,7 @@ The template may still contain \"%?\" for cursor positioning."
 	    (sit-for 1))
     (save-window-excursion
       (delete-other-windows)
-      (switch-to-buffer (get-buffer-create "*Capture*"))
+      (org-pop-to-buffer-same-window (get-buffer-create "*Capture*"))
       (erase-buffer)
       (insert template)
       (goto-char (point-min))
@@ -1411,7 +1417,7 @@ The template may still contain \"%?\" for cursor positioning."
 		(or (equal (char-before) ?:) (insert ":"))
 		(insert ins)
 		(or (equal (char-after) ?:) (insert ":"))
-		(and (org-on-heading-p) (org-set-tags nil 'align)))))
+		(and (org-at-heading-p) (org-set-tags nil 'align)))))
 	   ((equal char "C")
 	    (cond ((= (length clipboards) 1) (insert (car clipboards)))
 		  ((> (length clipboards) 1)
@@ -1449,7 +1455,7 @@ The template may still contain \"%?\" for cursor positioning."
       (goto-char (point-min))
       (while (looking-at "[ \t]*\n") (replace-match ""))
       (if (re-search-forward "[ \t\n]*\\'" nil t) (replace-match "\n"))
-      ;; Return the expanded template and kill the temporary buffer
+      ;; Return the expanded tempate and kill the temporary buffer
       (untabify (point-min) (point-max))
       (set-buffer-modified-p nil)
       (prog1 (buffer-string) (kill-buffer (current-buffer))))))
@@ -1502,7 +1508,5 @@ The template may still contain \"%?\" for cursor positioning."
 	   org-remember-templates))))
 
 (provide 'org-capture)
-
-
 
 ;;; org-capture.el ends here

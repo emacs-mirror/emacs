@@ -1926,7 +1926,7 @@
 
 	* erc.el: erc-send-whitespace-lines: New variable.
 	(erc-send-current-line): Use erc-send-whitespace-lines.  Also,
-	removed superflous test for empty line in the mapc, since the
+	removed superfluous test for empty line in the mapc, since the
 	blank line test should find all.  I do like to be able to send an
 	empty line when i want to!
 	(erc-send-current-line): Check for point being in input line
@@ -2072,7 +2072,7 @@
 
 See ChangeLog.03 for earlier changes.
 
-	Copyright (C) 2004, 2006-2011 Free Software Foundation, Inc.
+	Copyright (C) 2004, 2006-2012 Free Software Foundation, Inc.
 
   This file is part of GNU Emacs.
 
@@ -2092,4 +2092,3 @@ See ChangeLog.03 for earlier changes.
 ;; Local Variables:
 ;; coding: utf-8
 ;; End:
-

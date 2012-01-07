@@ -1,6 +1,6 @@
 ;;; authors.el --- utility for maintaining Emacs' AUTHORS file -*-coding: utf-8;-*-
 
-;; Copyright (C) 2000-2011  Free Software Foundation, Inc.
+;; Copyright (C) 2000-2012  Free Software Foundation, Inc.
 
 ;; Author: Gerd Moellmann <gerd@gnu.org>
 ;; Maintainer: Kim F. Storm <storm@cua.dk>
@@ -452,7 +452,7 @@ Changes to files in this list are not listed.")
     ("William Sommerfeld" :wrote "emacsclient.c" "scribe.el")
     ;; No longer distributed: emacsserver.c.
     ("Leigh Stoller" :changed "emacsclient.c" "server.el")
-    ("Steve Strassman" :wrote "spook.el")
+    ("Steve Strassmann" :wrote "spook.el")
     ("Shinichirou Sugou" :changed "etags.c")
     ;; No longer distributed: emacsserver.c.
     ("Sun Microsystems, Inc" :changed "emacsclient.c" "server.el"

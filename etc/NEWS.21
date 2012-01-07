@@ -1,6 +1,6 @@
 GNU Emacs NEWS -- history of user-visible changes.  2006-05-31
 
-Copyright (C) 2000-2011  Free Software Foundation, Inc.
+Copyright (C) 2000-2012  Free Software Foundation, Inc.
 See the end of the file for license conditions.
 
 
@@ -4639,7 +4639,7 @@ simpler form STRING as property value.
 *** Variable width and height spaces
 
 To display a space of fractional width or height, use a display
-specification of the form `(LOCATION STRECH)'.  If LOCATION is
+specification of the form `(LOCATION STRETCH)'.  If LOCATION is
 `(margin left-margin)', the space is displayed in the left marginal
 area, if it is `(margin right-margin)', it is displayed in the right
 marginal area, and if LOCATION is `(margin nil)' the space is

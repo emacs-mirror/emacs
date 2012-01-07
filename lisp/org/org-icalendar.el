@@ -1,11 +1,10 @@
 ;;; org-icalendar.el --- iCalendar export for Org-mode
 
-;; Copyright (C) 2004-2011  Free Software Foundation, Inc.
+;; Copyright (C) 2004-2012 Free Software Foundation, Inc.
 
 ;; Author: Carsten Dominik <carsten at orgmode dot org>
 ;; Keywords: outlines, hypermedia, calendar, wp
 ;; Homepage: http://orgmode.org
-;; Version: 7.7
 ;;
 ;; This file is part of GNU Emacs.
 ;;
@@ -204,7 +203,7 @@ When nil of the empty string, use the abbreviation retrieved from Emacs."
   (if org-icalendar-use-UTC-date-time
       ":%Y%m%dT%H%M%SZ"
     ":%Y%m%dT%H%M%S")
-  "Format-string for exporting iCalendar DATE-TIME.
+  "Format-string for exporting icalendar DATE-TIME.
 See `format-time-string' for a full documentation.  The only
 difference is that `org-icalendar-timezone' is used for %Z.
 
@@ -418,7 +417,7 @@ When COMBINE is non nil, add the category to each line."
 	  (let ((t1 (ignore-errors (org-parse-time-string ts 'nodefault))))
 	    (if (and (> org-icalendar-alarm-time 0)
 		     (car t1) (nth 1 t1) (nth 2 t1))
-		(setq alarm (format "\nBEGIN:VALARM\nACTION:DISPLAY\nDESCRIPTION:%s\nTRIGGER:-P0D0H%dM0S\nEND:VALARM" summary org-icalendar-alarm-time))
+		(setq alarm (format "\nBEGIN:VALARM\nACTION:DISPLAY\nDESCRIPTION:%s\nTRIGGER:-P0DT0H%dM0S\nEND:VALARM" summary org-icalendar-alarm-time))
 	      (setq alarm ""))
 	    )
 	  (if (string-match org-bracket-link-regexp summary)
@@ -683,6 +682,5 @@ a time), or the day by one (if it does not contain a time)."
 					       have-time))))))
 
 (provide 'org-icalendar)
-
 
 ;;; org-icalendar.el ends here

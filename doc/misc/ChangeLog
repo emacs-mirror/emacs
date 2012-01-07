@@ -1,3 +1,165 @@
+2012-01-06  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* gnus.texi (Group Parameters): Really note precedence.
+
+2012-01-04  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* gnus.texi (Group Parameters): Note precedence.
+
+2012-01-03  Eric Schulte  <eric.schulte@gmx.com>
+
+	* org.texi (Noweb reference syntax): Adding documentation of
+	the `*org-babel-use-quick-and-dirty-noweb-expansion*'
+	variable.
+
+2012-01-03  Bastien Guerry  <bzg@gnu.org>
+
+	* org.texi (Plain lists): Split the table to fix the display
+	of items.
+
+2012-01-03  Bastien Guerry  <bzg@gnu.org>
+
+	* org.texi (Plain lists): Fix misplaced explanation.
+
+2012-01-03  Bastien Guerry  <bzg@gnu.org>
+
+	* org.texi (Plain lists, Agenda files): Add index entries.
+
+2012-01-03  Julian Gehring  <julian.gehring@googlemail.com>
+
+	* org.texi: Use "Org mode" instead of alternatives like
+	"Org-mode" or "org-mode".
+
+2012-01-03  Bernt Hansen  <bernt@norang.ca>
+
+	* org.texi (Agenda commands): Document
+	`org-clock-report-include-clocking-task'.
+
+2012-01-03  Bastien Guerry  <bzg@gnu.org>
+
+	* org.texi (Checkboxes): Document the new behavior of `C-u C-c
+	C-c' on checkboxes.
+
+2012-01-03  Julian Gehring  <julian.gehring@googlemail.com>
+
+	* org.texi: End sentences with two spaces.
+
+2012-01-03  Michael Brand  <michael.ch.brand@gmail.com>
+
+	* org.texi (External links): Document the link types file+sys
+	and file+emacs, slightly narrow used page width.
+
+2012-01-03  Eric Schulte  <eric.schulte@gmx.com>
+
+	* org.texi (colnames): Note that colnames behavior may differ
+	across languages.
+
+2012-01-03  Bastien Guerry  <bzg@gnu.org>
+
+	* org.texi (Weekly/daily agenda, Agenda commands): Fix typos.
+
+2012-01-03  Thomas Dye  <dk@poto.westell.com>
+
+	* org.texi: Augmented discussion of babel property
+	inheritance.  Put footnote outside sentence ending period.
+
+2012-01-03  Eric Schulte  <schulte.eric@gmail.com>
+
+	* org.texi (eval): Documenting the full range of :eval header
+	argument values.
+
+2012-01-03  Eric Schulte  <schulte.eric@gmail.com>
+
+	* org.texi (eval): Documentation of the new :eval option.
+
+2012-01-03  Thomas Dye  <dk@poto.local>
+
+	* org.texi: Add accumulated properties.
+
+2012-01-03  Thomas Dye  <dk@poto.local>
+
+	* org.texi: Documented no spaces in name=assign, another
+	correction to :var table.
+
+2012-01-03  Thomas Dye  <dk@poto.local>
+
+	* org.texi: Changed DATA to NAME in Working With Source Code
+	section.
+
+2012-01-03  Tom Dye  <tsd@tsdye.com>
+
+	* org.texi: Minor change to :var table.
+
+2012-01-03  Tom Dye  <tsd@tsdye.com>
+
+	* org.texi: More changes to :var table (some examples were wrong).
+
+2012-01-03  Tom Dye  <tsd@tsdye.com>
+
+	* org.texi: Cleaned up :var table.
+
+2012-01-03  Bastien Guerry  <bzg@gnu.org>
+
+	* org.texi (Timestamps, Weekly/daily agenda)
+	(Weekly/daily agenda): Add @cindex for "appointment".
+
+2012-01-03  Eric Schulte  <schulte.eric@gmail.com>
+
+	* org.texi (Literal examples): A new link to the template for
+	inserting empty code blocks.
+	(Structure of code blocks): A new link to the template for
+	inserting empty code blocks.
+
+2012-01-03  Rafael Laboissiere  <rafael@laboissiere.net>  (tiny change)
+
+	* org.texi (External links): Add footnote on how the behavior
+	of the text search in Org files are controled by the variable
+	`org-link-search-must-match-exact-headline'.
+
+2012-01-03  Eric Schulte  <schulte.eric@gmail.com>
+
+	* org.texi (Buffer-wide header arguments): Update
+	documentation to reflect removal of #+PROPERTIES.
+
+2012-01-03  Carsten Dominik  <carsten.dominik@gmail.com>
+
+	* org.texi (The clock table): Mention that ACHIVED trees
+	contribute to the clock table.
+
+2012-01-03  Carsten Dominik  <carsten.dominik@gmail.com>  (tiny change)
+
+	* org.texi (Conflicts): Better yasnippet config info.
+
+2012-01-03  Bastien Guerry  <bzg@gnu.org>  (tiny change)
+
+	* org.texi (Selective export): Explicitely mention the default
+	values for `org-export-select-tags',
+	`org-export-exclude-tags'.
+
+2012-01-03  Tom Dye  <tsd@tsdye.com>
+
+	* org.texi: Added a line to specify that header arguments are
+	lowercase.
+
+2012-01-03  Tom Dye  <tsd@tsdye.com>
+
+	* org.texi: :var requires default value when declared.
+
+2012-01-03  Bastien Guerry  <bzg@gnu.org>
+
+	* org.texi (Handling links): Add a note about the
+	`org-link-frame-setup' option.
+
+2012-01-03  David Maus  <dmaus@ictsoc.de>
+
+	* org.texi (Exporting Agenda Views, Extracting agenda
+	information): Fix command line syntax, quote symbol parameter
+	values.
+
+2012-01-03  David Maus  <dmaus@ictsoc.de>
+
+	* org.texi (Exporting Agenda Views): Fix command line syntax.
+
 2011-12-28  Paul Eggert  <eggert@cs.ucla.edu>
 
 	* gnus.texi (Mail Source Customization, Mail Back End Variables):
@@ -8504,7 +8666,7 @@
 ;; coding: utf-8
 ;; End:
 
-  Copyright (C) 1993-1999, 2001-2011  Free Software Foundation, Inc.
+  Copyright (C) 1993-1999, 2001-2012  Free Software Foundation, Inc.
 
   This file is part of GNU Emacs.
 

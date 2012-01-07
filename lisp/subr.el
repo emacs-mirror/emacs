@@ -1,6 +1,6 @@
 ;;; subr.el --- basic lisp subroutines for Emacs  -*- coding: utf-8 -*-
 
-;; Copyright (C) 1985-1986, 1992, 1994-1995, 1999-2011
+;; Copyright (C) 1985-1986, 1992, 1994-1995, 1999-2012
 ;;   Free Software Foundation, Inc.
 
 ;; Maintainer: FSF
@@ -2983,8 +2983,9 @@ the buffer list ordering."
   "Execute the forms in BODY with FRAME as the selected frame.
 The value returned is the value of the last form in BODY.
 
-This macro neither changes the order of recently selected windows
-nor the buffer list."
+This macro saves and restores the selected frame, and changes the
+order of neither the recently selected windows nor the buffers in
+the buffer list."
   (declare (indent 1) (debug t))
   (let ((old-frame (make-symbol "old-frame"))
 	(old-buffer (make-symbol "old-buffer")))

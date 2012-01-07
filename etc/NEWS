@@ -1,6 +1,6 @@
 GNU Emacs NEWS -- history of user-visible changes.
 
-Copyright (C) 2010-2011  Free Software Foundation, Inc.
+Copyright (C) 2010-2012  Free Software Foundation, Inc.
 See the end of the file for license conditions.
 
 Please send Emacs bug reports to bug-gnu-emacs@gnu.org.
@@ -116,7 +116,8 @@ and pops down the *Completions* buffer accordingly.
 
 ** Mail changes
 
-The default of `send-mail-function' is now `sendmail-query-once',
++++
+*** The default of `send-mail-function' is now `sendmail-query-once',
 which asks the user (once) whether to use the smtpmail package to send
 email, or to use the old defaults that rely on external mail
 facilities (`sendmail-send-it' on GNU/Linux and other Unix-like
@@ -156,14 +157,12 @@ If you had that set, then you need to put
 
 in your ~/.authinfo file instead.
 
-*** sendmail changes
+*** Mail mode changes (this is the old Mail mode, not Message mode)
 +++
-You can now add MIME attachments to outgoing messages with the new
-command `mail-add-attachment'.
-
+**** New command `mail-add-attachment' for adding MIME attachments
 ---
-The command `mail-attach-file' was renamed to `mail-insert-file'; the
-old name is now an obsolete alias to the new name.
+**** The command `mail-attach-file' was renamed to `mail-insert-file'.
+The old name is now an obsolete alias to the new name.
 
 ** Emacs server and client changes
 +++
@@ -342,14 +341,14 @@ automatically when Emacs starts up.  To disable this, set
 loaded, customize `package-load-list'.
 
 ** Custom Themes
-
++++
 *** `M-x customize-themes' lists Custom themes which can be enabled.
-
++++
 *** New option `custom-theme-load-path' is the load path for themes.
 Emacs no longer looks for custom themes in `load-path'.  The default
 is to search in `custom-theme-directory', followed by a built-in theme
 directory named "themes/" in `data-directory'.
-
++++
 *** New option `custom-safe-themes' records known-safe theme files.
 If a theme is not in this list, Emacs queries before loading it, and
 offers to save the theme to `custom-safe-themes' automatically.  By
@@ -364,7 +363,7 @@ the remote file-name cache is used for read access.
 Add an element (subdirs . nil) to the alist portion of any variables
 settings to indicate that the section should not apply to
 subdirectories.
-
++++
 *** Directory local variables can apply to some file-less buffers.
 Affected modes include dired, vc-dir, and log-edit.  For example,
 adding "(diff-mode . ((mode . whitespace)))" to .dir-locals.el will
@@ -567,6 +566,7 @@ region (or with the left margin if there is no previous line).
 +++
 ** Archive Mode has basic support for browsing and updating 7z archives.
 
++++
 ** browse-url has a new variable `browse-url-mailto-function'
 specifies how mailto: URLs are handled.  The default is `browse-url-mail'.
 
@@ -640,15 +640,18 @@ in the *compilation* buffer was used.
 
 ** Customize
 
++++
 *** Customize buffers now contain a search field.
 The search is performed using `customize-apropos'.
 To turn off the search field, set custom-search-field to nil.
 
++++
 *** Custom options now start out hidden if at their default values.
 Use the arrow to the left of the option name to toggle visibility.
 
 *** custom-buffer-sort-alphabetically now defaults to t.
 
++++
 *** The color widget now has a "Choose" button, which allows you to
 choose a color via list-colors-display.
 
@@ -693,7 +696,7 @@ utf-8, and do the normal `undecided' decoding for the rest.
 exists, that is used instead.
 
 ** gdb-mi
-
++++
 *** GDB User Interface migrated to GDB Machine Interface and now
 supports multithread non-stop debugging and debugging of several
 threads simultaneously.
@@ -719,6 +722,13 @@ handy if you have many manuals in many Info buffers, and don't
 remember the name of the buffer visiting the manual you want to
 consult.
 
++++
+*** `e' is now bound to `end-of-buffer' rather than to `Info-edit'.
+This is for compatibility with the stand-alone Info reader program,
+and also because `Info-edit' is a rarely used command that is disabled
+by default.
+
++++
 ** The Landmark game is now invoked with `landmark', not `lm'.
 
 ** MH-E has been upgraded to MH-E version 8.3.1.
@@ -743,16 +753,12 @@ This change was made in Emacs 23.1 but was not advertised at the time.
 Try using `rmail-show-message-hook' instead.
 
 ** Shell mode
-
++++
 *** Shell mode uses pcomplete rules, with the standard completion UI.
-
++++
 *** The `shell' command prompts for the shell path name if the default
 directory is a remote file name and neither the environment variable
 $ESHELL nor the variable `explicit-shell-file-name' is set.
-
-*** New variable `shell-dir-cookie-re'.
-If set to an appropriate regexp, Shell mode can track your cwd by
-reading it from your prompt.
 
 ---
 ** SQL Mode enhancements.
@@ -903,6 +909,7 @@ They are superseded by shift-select-mode enabled by default in 23.1.
 ---
 *** `copyright-fix-years' can optionally convert consecutive years to ranges.
 
++++
 *** New command `nato-region' converts text to NATO phonetic alphabet.
 
 

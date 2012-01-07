@@ -1,6 +1,6 @@
 ;;; uudecode.el -- elisp native uudecode
 
-;; Copyright (C) 1998-2011 Free Software Foundation, Inc.
+;; Copyright (C) 1998-2012 Free Software Foundation, Inc.
 
 ;; Author: Shenghuo Zhu <zsh@cs.rochester.edu>
 ;; Keywords: uudecode news
@@ -197,10 +197,10 @@ If FILE-NAME is non-nil, save the result to FILE-NAME."
 	  (cond
 	   (done)
 	   ((> 0 remain)
-	    (error "uucode line ends unexpectly")
+	    (error "uucode line ends unexpectedly")
 	    (setq done t))
 	   ((and (= (point) end) (not done))
-	    ;;(error "uucode ends unexpectly")
+	    ;;(error "uucode ends unexpectedly")
 	    (setq done t))
 	   ((= counter 3)
 	    (setq result (cons

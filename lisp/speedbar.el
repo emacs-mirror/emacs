@@ -1,6 +1,6 @@
 ;;; speedbar --- quick access to files and tags in a frame
 
-;; Copyright (C) 1996-2011  Free Software Foundation, Inc.
+;; Copyright (C) 1996-2012  Free Software Foundation, Inc.
 
 ;; Author: Eric M. Ludlam <zappo@gnu.org>
 ;; Keywords: file, tags, tools
@@ -3063,7 +3063,7 @@ a function if appropriate."
   (let* ((speedbar-frame (speedbar-current-frame))
 	 (fn (get-text-property (point) 'speedbar-function))
 	 (tok (get-text-property (point) 'speedbar-token))
-	 ;; The 1-,+ is safe because scaning starts AFTER the point
+	 ;; The 1-,+ is safe because scanning starts AFTER the point
 	 ;; specified.  This lets the search include the character the
 	 ;; cursor is on.
 	 (tp (previous-single-property-change

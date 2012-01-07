@@ -1,6 +1,6 @@
 ;; idlwave.el --- IDL editing mode for GNU Emacs
 
-;; Copyright (C) 1999-2011  Free Software Foundation, Inc.
+;; Copyright (C) 1999-2012  Free Software Foundation, Inc.
 
 ;; Authors: J.D. Smith <jdsmith@as.arizona.edu>
 ;;          Carsten Dominik <dominik@science.uva.nl>
@@ -7855,7 +7855,7 @@ Restore the pre-completion window configuration if possible."
 If point is on a keyword, help for that keyword will be shown.  If
 point is on a routine name or in the argument list of a routine, help
 for that routine will be displayed.  Works for system routines and
-keywords, it pulls up text help.  For other routies and keywords,
+keywords, it pulls up text help.  For other routines and keywords,
 visits the source file, finding help in the header (if
 `idlwave-help-source-try-header' is non-nil) or the routine definition
 itself."

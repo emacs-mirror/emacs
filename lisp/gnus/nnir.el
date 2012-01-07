@@ -1,6 +1,6 @@
 ;;; nnir.el --- search mail with various search engines -*- coding: iso-8859-1 -*-
 
-;; Copyright (C) 1998-2011 Free Software Foundation, Inc.
+;; Copyright (C) 1998-2012 Free Software Foundation, Inc.
 
 ;; Author: Kai Groﬂjohann <grossjohann@ls6.cs.uni-dortmund.de>
 ;; Swish-e and Swish++ backends by:
@@ -304,7 +304,7 @@ is `(valuefunc member)'."
 ;;; User Customizable Variables:
 
 (defgroup nnir nil
-  "Search groups in Gnus with assorted seach engines."
+  "Search groups in Gnus with assorted search engines."
   :group 'gnus)
 
 (defcustom nnir-ignored-newsgroups ""
@@ -670,7 +670,8 @@ Add an entry here when adding a new search engine.")
 	  (goto-char (point-min))
 	  (while (not (eobp))
 	    (let* ((novitem (funcall parsefunc))
-		   (artno (mail-header-number novitem))
+		   (artno (and novitem
+			       (mail-header-number novitem)))
 		   (art (car (rassq artno articleids))))
 	      (when art
 		(mail-header-set-number novitem art)

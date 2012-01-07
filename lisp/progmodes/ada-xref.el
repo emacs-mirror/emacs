@@ -1,6 +1,6 @@
 ;; ada-xref.el --- for lookup and completion in Ada mode
 
-;; Copyright (C) 1994-2011  Free Software Foundation, Inc.
+;; Copyright (C) 1994-2012  Free Software Foundation, Inc.
 
 ;; Author: Markus Heritsch <Markus.Heritsch@studbox.uni-stuttgart.de>
 ;;      Rolf Ebert <ebert@inf.enst.fr>
@@ -1533,7 +1533,7 @@ the project file."
   ;;      .ali file for a spec file.  If we are, go to step 3.
   ;;   3- If the file is not found or step 2 failed:
   ;;      find the name of the "other file", ie the body, and look
-  ;;      for its associated .ali file by subtituing the extension
+  ;;      for its associated .ali file by subtituting the extension
   ;;
   ;; We must also handle the case of separate packages and subprograms:
   ;;   4- If no ali file was found, we try to modify the file name by removing

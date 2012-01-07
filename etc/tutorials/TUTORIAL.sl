@@ -1106,7 +1106,7 @@ Emacs. V sloven¹èino ga je prevedel Primo¾ Peterlin.
 To besedilo, kot sam GNU Emacs, je avtorsko delo, in njegovo
 razmno¾evanje in raz¹irjanje je dovoljeno pod naslednjimi pogoji:
 
-Copyright (C) 1985, 1996, 1998, 2001-2011  Free Software Foundation, Inc.
+Copyright (C) 1985, 1996, 1998, 2001-2012  Free Software Foundation, Inc.
 
    Dovoljeno je izdelovati in raz¹irjati neokrnjene kopije tega spisa
    v kakr¹nikoli obliki pod pogojem, da je ohranjena navedba o

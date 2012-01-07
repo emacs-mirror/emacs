@@ -1,6 +1,6 @@
 /* Implementation of GUI terminal on the Microsoft W32 API.
 
-Copyright (C) 1989, 1993-2011  Free Software Foundation, Inc.
+Copyright (C) 1989, 1993-2012  Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -3388,7 +3388,7 @@ w32_set_scroll_bar_thumb (struct scroll_bar *bar,
   if (whole)
     {
       /* Position scroll bar at rock bottom if the bottom of the
-         buffer is visible. This avoids shinking the thumb away
+         buffer is visible. This avoids shrinking the thumb away
          to nothing if it is held at the bottom of the buffer.  */
       if (position + portion >= whole && !draggingp)
 	{

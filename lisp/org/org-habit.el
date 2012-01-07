@@ -1,11 +1,10 @@
 ;;; org-habit.el --- The habit tracking code for Org-mode
 
-;; Copyright (C) 2009-2011 Free Software Foundation, Inc.
+;; Copyright (C) 2009-2012 Free Software Foundation, Inc.
 
 ;; Author: John Wiegley <johnw at gnu dot org>
 ;; Keywords: outlines, hypermedia, calendar, wp
 ;; Homepage: http://orgmode.org
-;; Version: 7.7
 ;;
 ;; This file is part of GNU Emacs.
 ;;
@@ -67,6 +66,16 @@ Note that even when shown for future days, the graph is always
 relative to the current effective date."
   :group 'org-habit
   :type 'boolean)
+
+(defcustom org-habit-today-glyph ?!
+  "Glyph character used to identify today."
+  :group 'org-habit
+  :type 'character)
+
+(defcustom org-habit-completed-glyph ?*
+  "Glyph character used to show completed days on which a task was done."
+  :group 'org-habit
+  :type 'character)
 
 (defface org-habit-clear-face
   '((((background light)) (:background "#8270f9"))
@@ -297,7 +306,7 @@ current time."
 			      (days-to-time
 			       (- start (time-to-days starting))))))
 
-	      (aset graph index ?*)
+	      (aset graph index org-habit-completed-glyph)
 	      (setq markedp t)
 	      (put-text-property
 	       index (1+ index) 'help-echo
@@ -307,7 +316,7 @@ current time."
 		(setq last-done-date (car done-dates)
 		      done-dates (cdr done-dates))))
 	  (if todayp
-	      (aset graph index ?!)))
+	      (aset graph index org-habit-today-glyph)))
 	(setq face (if (or in-the-past-p todayp)
 		       (car faces)
 		     (cdr faces)))
@@ -357,7 +366,5 @@ current time."
 (org-defkey org-agenda-mode-map "K" 'org-habit-toggle-habits)
 
 (provide 'org-habit)
-
-
 
 ;;; org-habit.el ends here

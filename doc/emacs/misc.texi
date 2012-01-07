@@ -1,12 +1,12 @@
 @c This is part of the Emacs manual.
-@c Copyright (C) 1985-1987, 1993-1995, 1997, 2000-2011
+@c Copyright (C) 1985-1987, 1993-1995, 1997, 2000-2012
 @c   Free Software Foundation, Inc.
 @c See file emacs.texi for copying conditions.
 @iftex
 @chapter Miscellaneous Commands
 
   This chapter contains several brief topics that do not fit anywhere
-else: viewing ``document files'', reading netnews, running shell
+else: viewing ``document files'', reading Usenet news, running shell
 commands and shell subprocesses, using a single shared Emacs for
 utilities that expect to run an editor as a subprocess, printing
 hardcopy, sorting text, narrowing display to part of the buffer,
@@ -23,12 +23,13 @@ various diversions and amusements.
 @node Gnus
 @section Gnus
 @cindex Gnus
-@cindex reading netnews
+@cindex Usenet news
+@cindex newsreader
 
-Gnus is an Emacs package primarily designed for reading and posting
-Usenet news.  It can also be used to read and respond to messages from a
-number of other sources---mail, remote directories, digests, and so on.
-Here we introduce Gnus and describe several basic features.
+  Gnus is an Emacs package primarily designed for reading and posting
+Usenet news.  It can also be used to read and respond to messages from
+a number of other sources---email, remote directories, digests, and so
+on.  Here we introduce Gnus and describe several basic features.
 @ifnottex
 For full details, see @ref{Top, Gnus,, gnus, The Gnus Manual}.
 @end ifnottex
@@ -37,198 +38,216 @@ For full details on Gnus, type @kbd{C-h i} and then select the Gnus
 manual.
 @end iftex
 
-@findex gnus
-To start Gnus, type @kbd{M-x gnus @key{RET}}.
-
 @menu
 * Buffers of Gnus::     The group, summary, and article buffers.
 * Gnus Startup::        What you should know about starting Gnus.
-* Summary of Gnus::     A short description of the basic Gnus commands.
+* Gnus Group Buffer::   A short description of Gnus group commands.
+* Gnus Summary Buffer:: A short description of Gnus summary commands.
 @end menu
 
 @node Buffers of Gnus
 @subsection Gnus Buffers
 
-Unlike most Emacs packages, Gnus uses several buffers to display
-information and to receive commands.  The three Gnus buffers users use
-most are the @dfn{group buffer}, the @dfn{summary buffer} and the
-@dfn{article buffer}.
+  Gnus uses several buffers to display information and to receive
+commands.  The three most commonly-used Gnus buffers are the
+@dfn{group buffer}, the @dfn{summary buffer} and the @dfn{article
+buffer}.
 
-The @dfn{group buffer} contains a list of newsgroups.  This is the
-first buffer Gnus displays when it starts up.  It normally displays
-only the groups to which you subscribe and that contain unread
-articles.  Use this buffer to select a specific group.
+  The @dfn{group buffer} contains a list of article sources (e.g.@:
+newsgroups and email inboxes), which are collectively referred to as
+@dfn{groups}.  This is the first buffer Gnus displays when it starts
+up.  It normally displays only the groups to which you subscribe and
+that contain unread articles.  From this buffer, you can select a
+group to read.
 
-The @dfn{summary buffer} lists one line for each article in a single
-group.  By default, the author, the subject and the line number are
-displayed for each article, but this is customizable, like most aspects
-of Gnus display.  The summary buffer is created when you select a group
-in the group buffer, and is killed when you exit the group.  Use this
-buffer to select an article.
+  The @dfn{summary buffer} lists the articles in a single group,
+showing one article per line.  By default, it displays each article's
+author, subject, and line
+@iftex
+number.
+@end iftex
+@ifnottex
+number, but this is customizable; @xref{Summary Buffer Format,,, gnus,
+The Gnus Manual}.
+@end ifnottex
+The summary buffer is created when you select a group in the group
+buffer, and is killed when you exit the group.
 
-The @dfn{article buffer} displays the article.  In normal Gnus usage,
-you see this buffer but you don't select it---all useful
-article-oriented commands work in the summary buffer.  But you can
-select the article buffer, and execute all Gnus commands from that
-buffer, if you want to.
+  From the summary buffer, you can choose an article to view.  The
+article is displayed in the @dfn{article buffer}.  In normal Gnus
+usage, you view this buffer but do not select it---all useful Gnus
+commands can be invoked from the summary buffer.  But you can select
+the article buffer, and execute Gnus commands from it, if you wish.
 
 @node Gnus Startup
 @subsection When Gnus Starts Up
 
-At startup, Gnus reads your @file{.newsrc} news initialization file
-and attempts to communicate with the local news server, which is a
-repository of news articles.  The news server need not be the same
-computer you are logged in on.
+@findex gnus
+@cindex @file{.newsrc} file
+  If your system has been set up for reading Usenet news, getting
+started with Gnus is easy---just type @kbd{M-x gnus}.
 
-If you start Gnus and connect to the server, but do not see any
-newsgroups listed in the group buffer, type @kbd{L} or @kbd{A k} to get
-a listing of all the groups.  Then type @kbd{u} to toggle
-subscription to groups.
+  On starting up, Gnus reads your @dfn{news initialization file}: a
+file named @file{.newsrc} in your home directory which lists your
+Usenet newsgroups and subscriptions (this file is not unique to Gnus;
+it is used by many other newsreader programs).  It then tries to
+contact the system's default news server, which is typically specified
+by the @samp{NNTPSERVER} environment variable.
 
-The first time you start Gnus, Gnus subscribes you to a few selected
-groups.  All other groups start out as @dfn{killed groups} for you; you
-can list them with @kbd{A k}.  All new groups that subsequently come to
-exist at the news server become @dfn{zombie groups} for you; type @kbd{A
-z} to list them.  You can subscribe to a group shown in these lists
-using the @kbd{u} command.
+  If your system does not have a default news server, or if you wish
+to use Gnus for reading email, then before invoking @kbd{M-x gnus} you
+need to tell Gnus where to get news and/or mail.  To do this,
+customize the variables @code{gnus-select-method} and/or
+@code{gnus-secondary-select-methods}.
+@iftex
+See the Gnus manual for details.
+@end iftex
+@ifnottex
+@xref{Finding the News,,, gnus, The Gnus Manual}.
+@end ifnottex
 
-When you quit Gnus with @kbd{q}, it automatically records in your
-@file{.newsrc} and @file{.newsrc.eld} initialization files the
-subscribed or unsubscribed status of all groups.  You should normally
-not edit these files manually, but you may if you know how.
+  Once Gnus has started up, it displays the group buffer.  By default,
+the group buffer shows only a small number of @dfn{subscribed groups}.
+Groups with other statuses---@dfn{unsubscribed}, @dfn{killed}, or
+@dfn{zombie}---are hidden.  The first time you start Gnus, any group
+to which you are not subscribed is made into a killed group; any group
+that subsequently appears on the news server becomes a zombie group.
 
-@node Summary of Gnus
-@subsection Summary of Gnus Commands
+  To proceed, you must select a group in the group buffer to open the
+summary buffer for that group; then, select an article in the summary
+buffer to view its article buffer in a separate window.  The following
+sections explain how to use the group and summary buffers to do this.
 
-Reading news is a two-step process:
+  To quit Gnus, type @kbd{q} in the group buffer.  This automatically
+records your group statuses in the files @file{.newsrc} and
+@file{.newsrc.eld}, so that they take effect in subsequent Gnus
+sessions.
 
-@enumerate
-@item
-Choose a group in the group buffer.
+@node Gnus Group Buffer
+@subsection Using the Gnus Group Buffer
 
-@item
-Select articles from the summary buffer.  Each article selected is
-displayed in the article buffer in a large window, below the summary
-buffer in its small window.
-@end enumerate
-
-  Each Gnus buffer has its own special commands; the meanings of any
-given key in the various Gnus buffers are usually analogous, even if
-not identical.  Here are commands for the group and summary buffers:
+  The following commands are available in the Gnus group buffer:
 
 @table @kbd
-@kindex q @r{(Gnus Group mode)}
-@findex gnus-group-exit
-@item q
-In the group buffer, update your @file{.newsrc} initialization file
-and quit Gnus.
-
-In the summary buffer, exit the current group and return to the
-group buffer.  Thus, typing @kbd{q} twice quits Gnus.
-
-@kindex L @r{(Gnus Group mode)}
-@findex gnus-group-list-all-groups
-@item L
-In the group buffer, list all the groups available on your news
-server (except those you have killed).  This may be a long list!
+@kindex SPC @r{(Gnus Group mode)}
+@findex gnus-group-read-group
+@item @key{SPC}
+Switch to the summary buffer for the group on the current line.
 
 @kindex l @r{(Gnus Group mode)}
+@kindex A s @r{(Gnus Group mode)}
 @findex gnus-group-list-groups
 @item l
+@itemx A s
 In the group buffer, list only the groups to which you subscribe and
-which contain unread articles.
+which contain unread articles (this is the default listing).
+
+@kindex L @r{(Gnus Group mode)}
+@kindex A u @r{(Gnus Group mode)}
+@findex gnus-group-list-all-groups
+@item L
+@itemx A u
+List all subscribed and unsubscribed groups, but not killed or zombie
+groups.
+
+@kindex A k @r{(Gnus Group mode)}
+@findex gnus-group-list-all-groups
+@item A k
+List killed groups.
+
+@kindex A z @r{(Gnus Group mode)}
+@findex gnus-group-list-all-groups
+@item A z
+List zombie groups.
 
 @kindex u @r{(Gnus Group mode)}
 @findex gnus-group-unsubscribe-current-group
 @cindex subscribe groups
 @cindex unsubscribe groups
 @item u
-In the group buffer, unsubscribe from (or subscribe to) the group listed
-in the line that point is on.  When you quit Gnus by typing @kbd{q},
-Gnus lists in your @file{.newsrc} file which groups you have subscribed
-to.  The next time you start Gnus, you won't see this group,
-because Gnus normally displays only subscribed-to groups.
+Toggle the subscription status of the group on the current line
+(i.e.@: turn a subscribed group into an unsubscribed group, or vice
+versa).  Invoking this on a killed or zombie group turns it into an
+unsubscribed group.
 
-@kindex C-k @r{(Gnus)}
+@kindex C-k @r{(Gnus Group mode)}
 @findex gnus-group-kill-group
 @item C-k
-In the group buffer, ``kill'' the current line's group---don't
-even list it in @file{.newsrc} from now on.  This affects future
-Gnus sessions as well as the present session.
+Kill the group on the current line.  Killed groups are not recorded in
+the @file{.newsrc} file, and they are not shown in the @kbd{l} or
+@kbd{L} listings.
 
-When you quit Gnus by typing @kbd{q}, Gnus writes information
-in the file @file{.newsrc} describing all newsgroups except those you
-have ``killed.''
-
-@kindex SPC @r{(Gnus)}
-@findex gnus-group-read-group
-@item @key{SPC}
-In the group buffer, select the group on the line under the cursor
-and display the first unread article in that group.
-
-@need 1000
-In the summary buffer,
-
-@itemize @bullet
-@item
-Select the article on the line under the cursor if none is selected.
-
-@item
-Scroll the text of the selected article (if there is one).
-
-@item
-Select the next unread article if at the end of the current article.
-@end itemize
-
-Thus, you can move through all the articles by repeatedly typing @key{SPC}.
-
-@kindex DEL @r{(Gnus)}
+@kindex DEL @r{(Gnus Group mode)}
 @item @key{DEL}
-In the group buffer, move point to the previous group containing
-unread articles.
+Move point to the previous group containing unread articles.
 
-@findex gnus-summary-prev-page
-In the summary buffer, scroll the text of the article backwards.
-
-@kindex n @r{(Gnus)}
+@kindex n @r{(Gnus Group mode)}
 @findex gnus-group-next-unread-group
 @findex gnus-summary-next-unread-article
 @item n
-Move point to the next unread group, or select the next unread article.
+Move point to the next unread group.
 
-@kindex p @r{(Gnus)}
+@kindex p @r{(Gnus Group mode)}
 @findex gnus-group-prev-unread-group
 @findex gnus-summary-prev-unread-article
 @item p
-Move point to the previous unread group, or select the previous
-unread article.
+Move point to the previous unread group.
 
-@kindex C-n @r{(Gnus Group mode)}
-@findex gnus-group-next-group
-@kindex C-p @r{(Gnus Group mode)}
-@findex gnus-group-prev-group
-@kindex C-n @r{(Gnus Summary mode)}
-@findex gnus-summary-next-subject
-@kindex C-p @r{(Gnus Summary mode)}
-@findex gnus-summary-prev-subject
-@item C-n
-@itemx C-p
-Move point to the next or previous item, even if it is marked as read.
-This does not select the article or group on that line.
+@kindex q @r{(Gnus Group mode)}
+@findex gnus-group-exit
+@item q
+Update your Gnus settings, and quit Gnus.
+@end table
+
+@node Gnus Summary Buffer
+@subsection Using the Gnus Summary Buffer
+
+  The following commands are available in the Gnus summary buffer:
+
+@table @kbd
+@kindex SPC @r{(Gnus Summary mode)}
+@findex gnus-group-read-group
+@item @key{SPC}
+If there is no article selected, select the article on the current
+line and display its article buffer.  Otherwise, try scrolling the
+selected article buffer in its window; on reaching the end of the
+buffer, select the next unread article.
+
+Thus, you can read through all articles by repeatedly typing
+@key{SPC}.
+
+@kindex DEL @r{(Gnus Summary mode)}
+@findex gnus-summary-prev-page
+@item @key{DEL}
+Scroll the text of the article backwards.
+
+@kindex n @r{(Gnus Summary mode)}
+@findex gnus-group-next-unread-group
+@findex gnus-summary-next-unread-article
+@item n
+Select the next unread article.
+
+@kindex p @r{(Gnus Summary mode)}
+@findex gnus-group-prev-unread-group
+@findex gnus-summary-prev-unread-article
+@item p
+Select the previous unread article.
 
 @kindex s @r{(Gnus Summary mode)}
 @findex gnus-summary-isearch-article
 @item s
-In the summary buffer, do an incremental search of the current text in
-the article buffer, just as if you switched to the article buffer and
-typed @kbd{C-s}.
+Do an incremental search on the selected article buffer, as if you
+switched to the buffer and typed @kbd{C-s} (@pxref{Incremental
+Search}).
 
 @kindex M-s @r{(Gnus Summary mode)}
 @findex gnus-summary-search-article-forward
 @item M-s @var{regexp} @key{RET}
-In the summary buffer, search forward for articles containing a match
-for @var{regexp}.
+Search forward for articles containing a match for @var{regexp}.
 
+@kindex q @r{(Gnus Summary mode)}
+@item q
+Exit the summary buffer and return to the group buffer.
 @end table
 
 @node Document View
@@ -244,64 +263,54 @@ for @var{regexp}.
 @cindex document viewer (DocView)
 @findex doc-view-mode
 
-DocView mode (@code{doc-view-mode}) is a viewer for DVI, PostScript
-(PS), PDF, OpenDocument, and Microsoft Office documents.  It provides
-features such as slicing, zooming, and searching inside documents.  It
-works by converting the document to a set of images using the
-@command{gs} (GhostScript) command and other external tools
-@footnote{@code{gs} is a hard requirement.  For DVI files,
-@code{dvipdf} or @code{dvipdfm} is needed.  For OpenDocument and
-Microsoft Office documents, the @code{unoconv} tool is needed.}, and
-displaying those images.
+  DocView mode is a major mode for viewing DVI, PostScript (PS), PDF,
+OpenDocument, and Microsoft Office documents.  It provides features
+such as slicing, zooming, and searching inside documents.  It works by
+converting the document to a set of images using the @command{gs}
+(GhostScript) command and other external tools @footnote{@code{gs} is
+a hard requirement.  For DVI files, @code{dvipdf} or @code{dvipdfm} is
+needed.  For OpenDocument and Microsoft Office documents, the
+@code{unoconv} tool is needed.}, and displaying those images.
 
 @findex doc-view-toggle-display
 @findex doc-view-toggle-display
 @cindex doc-view-minor-mode
-  When you visit a document file with the exception of PostScript
-files, Emacs automatically switches to DocView mode if possible
-@footnote{The needed external tools for this document type have to be
-available, emacs needs to run in a graphical frame, and PNG image
-support has to be compiled into emacs.  If any of these requirements
-is not fulfilled, DocView falls back to an appropriate mode.}.  When
-you visit a PostScript file, Emacs switches to PS mode, a major mode
-for editing PostScript files as text; however, it also enables DocView
-minor mode, so you can type @kbd{C-c C-c} to view the document with
-DocView.  (PDF and DVI files, unlike PostScript files, are not usually
-human-editable.)  In either case, repeating @kbd{C-c C-c}
-(@code{doc-view-toggle-display}) toggles between DocView and the file
-text.
+  When you visit a document file that can be displayed with DocView
+mode, Emacs automatically uses DocView mode @footnote{The needed
+external tools for the document type must be available, and Emacs must
+be running in a graphical frame and have PNG image support.  If any of
+these requirements is not fulfilled, Emacs falls back to another major
+mode.}.  As an exception, when you visit a PostScript file, Emacs
+switches to PS mode, a major mode for editing PostScript files as
+text; however, it also enables DocView minor mode, so you can type
+@kbd{C-c C-c} to view the document with DocView.  In either DocView
+mode or DocView minor mode, repeating @kbd{C-c C-c}
+(@code{doc-view-toggle-display}) toggles between DocView and the
+underlying file contents.
 
-  You can explicitly toggle DocView mode with the command @code{M-x
-doc-view-mode}, and DocView minor mode with the command @code{M-x
+  You can explicitly enable DocView mode with the command @code{M-x
+doc-view-mode}.  You can toggle DocView minor mode with @code{M-x
 doc-view-minor-mode}.
 
   When DocView mode starts, it displays a welcome screen and begins
 formatting the file, page by page.  It displays the first page once
 that has been formatted.
 
-@findex doc-view-enlarge
-@findex doc-view-shrink
-@vindex doc-view-resolution
-  When in DocView mode, you can enlarge or shrink the document with
-@kbd{+} (@code{doc-view-enlarge}) and @kbd{-}
-(@code{doc-view-shrink}).  To specify the default size for DocView,
-set or customize the variable @code{doc-view-resolution}.
-
   To kill the DocView buffer, type @kbd{k}
 (@code{doc-view-kill-proc-and-buffer}).  To bury it, type @kbd{q}
 (@code{quit-window}).
 
 @menu
-* Navigation::  Navigation inside DocView buffers.
-* Searching::   Searching inside documents.
-* Slicing::     Specifying which part of pages should be displayed.
-* Conversion::  Influencing and triggering conversion.
+* Navigation: DocView Navigation.  Navigating DocView buffers.
+* Searching: DocView Searching.    Searching inside documents.
+* Slicing: DocView Slicing.        Specifying which part of a page is displayed.
+* Conversion: DocView Conversion.  Influencing and triggering conversion.
 @end menu
 
-@node Navigation
-@subsection Navigation
+@node DocView Navigation
+@subsection DocView Navigation
 
-When in DocView mode, you can scroll the current page using the usual
+  In DocView mode, you can scroll the current page using the usual
 Emacs movement keys: @kbd{C-p}, @kbd{C-n}, @kbd{C-b}, @kbd{C-f}, and
 the arrow keys.
 
@@ -315,6 +324,10 @@ displays the next page if you are at the end of the current page.
 
 @findex doc-view-next-page
 @findex doc-view-previous-page
+@kindex n @r{(DocView mode)}
+@kindex p @r{(DocView mode)}
+@kindex C-x ] @r{(DocView mode)}
+@kindex C-x [ @r{(DocView mode)}
   You can also display the next page by typing @kbd{n}, @key{next} or
 @kbd{C-x ]} (@code{doc-view-next-page}).  To display the previous
 page, type @kbd{p}, @key{prior} or @kbd{C-x [}
@@ -322,23 +335,38 @@ page, type @kbd{p}, @key{prior} or @kbd{C-x [}
 
 @findex doc-view-scroll-up-or-next-page
 @findex doc-view-scroll-down-or-previous-page
-  The @key{SPC} (@code{doc-view-scroll-up-or-next-page}) key is a
-convenient way to advance through the document.  It scrolls within the
-current page or advances to the next.  @key{DEL} moves backwards in a
-similar way (@code{doc-view-scroll-down-or-previous-page}).
+@kindex SPC @r{(DocView mode)}
+@kindex DEL @r{(DocView mode)}
+  @key{SPC} (@code{doc-view-scroll-up-or-next-page}) is a convenient
+way to advance through the document.  It scrolls within the current
+page or advances to the next.  @key{DEL} moves backwards in a similar
+way (@code{doc-view-scroll-down-or-previous-page}).
 
 @findex doc-view-first-page
 @findex doc-view-last-page
 @findex doc-view-goto-page
+@kindex M-< @r{(DocView mode)}
+@kindex M-> @r{(DocView mode)}
   To go to the first page, type @kbd{M-<}
 (@code{doc-view-first-page}); to go to the last one, type @kbd{M->}
 (@code{doc-view-last-page}).  To jump to a page by its number, type
 @kbd{M-g M-g} or @kbd{M-g g} (@code{doc-view-goto-page}).
 
-@node Searching
-@subsection Searching
+@findex doc-view-enlarge
+@findex doc-view-shrink
+@vindex doc-view-resolution
+@kindex + @r{(DocView mode)}
+@kindex - @r{(DocView mode)}
+  You can enlarge or shrink the document with @kbd{+}
+(@code{doc-view-enlarge}) and @kbd{-} (@code{doc-view-shrink}).  These
+commands work by reconverting the document at the new size.  To
+specify the default size for DocView, customize the variable
+@code{doc-view-resolution}.
 
-While in DocView mode, you can search the file's text for a regular
+@node DocView Searching
+@subsection DocView Searching
+
+  In DocView mode, you can search the file's text for a regular
 expression (@pxref{Regexps}).  The interface for searching is inspired
 by @code{isearch} (@pxref{Incremental Search}).
 
@@ -359,8 +387,8 @@ To force display of this tooltip, type @kbd{C-t}
 argument; i.e., @kbd{C-u C-s} for a forward search or @kbd{C-u C-r}
 for a backward search.
 
-@node Slicing
-@subsection Slicing
+@node DocView Slicing
+@subsection DocView Slicing
 
 Documents often have wide margins for printing.  They are annoying
 when reading the document on the screen, because they use up screen
@@ -388,62 +416,63 @@ select the slice.
 (@code{doc-view-reset-slice}).  Then DocView shows the entire page
 including its entire margins.
 
-@node Conversion
-@subsection Conversion
+@node DocView Conversion
+@subsection DocView Conversion
 
 @vindex doc-view-cache-directory
 @findex doc-view-clear-cache
-For efficiency, DocView caches the images produced by @command{gs}.
+  For efficiency, DocView caches the images produced by @command{gs}.
 The name of this directory is given by the variable
 @code{doc-view-cache-directory}.  You can clear the cache directory by
 typing @code{M-x doc-view-clear-cache}.
 
 @findex doc-view-kill-proc
 @findex doc-view-kill-proc-and-buffer
-  To force a reconversion of the currently viewed document, type
-@kbd{r} or @kbd{g} (@code{revert-buffer}).  To kill the converter
-process associated with the current buffer, type @kbd{K}
+  To force reconversion of the currently viewed document, type @kbd{r}
+or @kbd{g} (@code{revert-buffer}).  To kill the converter process
+associated with the current buffer, type @kbd{K}
 (@code{doc-view-kill-proc}).  The command @kbd{k}
 (@code{doc-view-kill-proc-and-buffer}) kills the converter process and
 the DocView buffer.
-
-  The zoom commands @kbd{+} (@code{doc-view-enlarge}) and @kbd{-}
-(@code{doc-view-shrink}) need to reconvert the document at the new
-size.  The current page is converted first.
 
 @node Shell
 @section Running Shell Commands from Emacs
 @cindex subshell
 @cindex shell commands
 
-  Emacs has commands for passing single command lines to inferior shell
-processes; it can also run a shell interactively with input and output
-to an Emacs buffer named @samp{*shell*} or run a shell inside a terminal
+  Emacs has commands for passing single command lines to shell
+subprocesses, and for running a shell interactively with input and
+output to an Emacs buffer, and for running a shell in a terminal
 emulator window.
 
 @table @kbd
 @item M-! @var{cmd} @key{RET}
-Run the shell command line @var{cmd} and display the output
+Run the shell command @var{cmd} and display the output
 (@code{shell-command}).
 @item M-| @var{cmd} @key{RET}
-Run the shell command line @var{cmd} with region contents as input;
+Run the shell command @var{cmd} with region contents as input;
 optionally replace the region with the output
 (@code{shell-command-on-region}).
 @item M-& @var{cmd} @key{RET}
-Run the shell command line @var{cmd} asynchronously, and display the
-output (@code{async-shell-command}).
+Run the shell command @var{cmd} asynchronously, and display the output
+(@code{async-shell-command}).
 @item M-x shell
-Run a subshell with input and output through an Emacs buffer.
-You can then give commands interactively.
+Run a subshell with input and output through an Emacs buffer.  You can
+then give commands interactively.
 @item M-x term
-Run a subshell with input and output through an Emacs buffer.
-You can then give commands interactively.
-Full terminal emulation is available.
+Run a subshell with input and output through an Emacs buffer.  You can
+then give commands interactively.  Full terminal emulation is
+available.
 @end table
 
   @kbd{M-x eshell} invokes a shell implemented entirely in Emacs.  It
-is documented in a separate manual.  @xref{Top,Eshell,Eshell, eshell,
-Eshell: The Emacs Shell}.
+is documented in its own manual.
+@ifnottex
+@xref{Top,Eshell,Eshell, eshell, Eshell: The Emacs Shell}.
+@end ifnottex
+@iftex
+See the Eshell Info manual, which is distributed with Emacs.
+@end iftex
 
 @menu
 * Single Shell::           How to run one shell command and return.
@@ -455,7 +484,6 @@ Eshell: The Emacs Shell}.
 * Options: Shell Options.  Options for customizing Shell mode.
 * Terminal emulator::      An Emacs window as a terminal emulator.
 * Term Mode::              Special Emacs commands used in Term mode.
-* Paging in Term::         Paging in the terminal emulator.
 * Remote Host::            Connecting to another computer.
 * Serial Terminal::        Connecting to a serial port.
 @end menu
@@ -466,53 +494,62 @@ Eshell: The Emacs Shell}.
 @kindex M-!
 @findex shell-command
   @kbd{M-!} (@code{shell-command}) reads a line of text using the
-minibuffer and executes it as a shell command in a subshell made just
+minibuffer and executes it as a shell command, in a subshell made just
 for that command.  Standard input for the command comes from the null
 device.  If the shell command produces any output, the output appears
 either in the echo area (if it is short), or in an Emacs buffer named
-@samp{*Shell Command Output*}, which is displayed in another window
-but not selected (if the output is long).
+@samp{*Shell Command Output*}, displayed in another window (if the
+output is long).
 
-  For instance, one way to decompress a file @file{foo.gz} from Emacs
-is to type @kbd{M-! gunzip foo.gz @key{RET}}.  That shell command
-normally creates the file @file{foo} and produces no terminal output.
+  For instance, one way to decompress a file named @file{foo.gz} is to
+type @kbd{M-! gunzip foo.gz @key{RET}}.  That shell command normally
+creates the file @file{foo} and produces no terminal output.
 
-  A numeric argument, as in @kbd{M-1 M-!}, says to insert terminal
-output into the current buffer instead of a separate buffer.  It puts
-point before the output, and sets the mark after the output.  For
-instance, @kbd{M-1 M-! gunzip < foo.gz @key{RET}} would insert the
-uncompressed equivalent of @file{foo.gz} into the current buffer.
+  A numeric argument to @code{shell-command}, e.g.@: @kbd{M-1 M-!},
+causes it to insert terminal output into the current buffer instead of
+a separate buffer.  It puts point before the output, and sets the mark
+after the output.  For instance, @kbd{M-1 M-! gunzip < foo.gz
+@key{RET}} would insert the uncompressed form of the file
+@file{foo.gz} into the current buffer.
 
-  If the shell command line ends in @samp{&}, it runs asynchronously.
-For a synchronous shell command, @code{shell-command} returns the
-command's exit status (0 means success), when it is called from a Lisp
-program.  You do not get any status information for an asynchronous
-command, since it hasn't finished yet when @code{shell-command} returns.
+  Provided the specified shell command does not end with @samp{&}, it
+runs @dfn{synchronously}, and you must wait for it to exit before
+continuing to use Emacs.  To stop waiting, type @kbd{C-g} to quit;
+this sends a @code{SIGINT} signal to terminate the shell command (this
+is the same signal that @kbd{C-c} normally generates in the shell).
+Emacs then waits until the command actually terminates.  If the shell
+command doesn't stop (because it ignores the @code{SIGINT} signal),
+type @kbd{C-g} again; this sends the command a @code{SIGKILL} signal,
+which is impossible to ignore.
 
-  You can also type @kbd{M-&} (@code{async-shell-command}) to execute
-a shell command asynchronously.  This behaves exactly like calling
-@code{shell-command} with @samp{&}, except that you do not need to add
-the @samp{&} to the shell command line.
+@kindex M-&
+@findex async-shell-command
+  A shell command that ends in @samp{&} is executed
+@dfn{asynchronously}, and you can continue to use Emacs as it runs.
+You can also type @kbd{M-&} (@code{async-shell-command}) to execute a
+shell command asynchronously; this is exactly like calling @kbd{M-!}
+with a trailing @samp{&}, except that you do not need the @samp{&}.
+The output buffer for asynchronous shell commands is named
+@samp{*Async Shell Command*}.  Emacs inserts the output into this
+buffer as it comes in, whether or not the buffer is visible in a
+window.
 
 @kindex M-|
 @findex shell-command-on-region
-  @kbd{M-|} (@code{shell-command-on-region}) is like @kbd{M-!} but
+  @kbd{M-|} (@code{shell-command-on-region}) is like @kbd{M-!}, but
 passes the contents of the region as the standard input to the shell
-command, instead of no input.  With a numeric argument, meaning insert
-the output in the current buffer, it deletes the old region and the
-output replaces it as the contents of the region.  It returns the
-command's exit status, like @kbd{M-!}.
+command, instead of no input.  With a numeric argument, it deletes the
+old region and replaces it with the output from the shell command.
 
-  One use for @kbd{M-|} is to run @code{gpg} to see what keys are in
-the buffer.  For instance, if the buffer contains a GPG key, type
-@kbd{C-x h M-| gpg @key{RET}} to feed the entire buffer contents to
-the @code{gpg} program.  That program will ignore everything except
-the encoded keys, and will output a list of the keys the buffer
-contains.
+  For example, you can use @kbd{M-|} with the @command{gpg} program to
+see what keys are in the buffer.  If the buffer contains a GnuPG key,
+type @kbd{C-x h M-| gpg @key{RET}} to feed the entire buffer contents
+to @command{gpg}.  This will output the list of keys to the
+@samp{*Shell Command Output*} buffer.
 
 @vindex shell-file-name
-  Both @kbd{M-!} and @kbd{M-|} use @code{shell-file-name} to specify
-the shell to use.  This variable is initialized based on your
+  The above commands use the shell specified by the variable
+@code{shell-file-name}.  Its default value is determined by the
 @env{SHELL} environment variable when Emacs is started.  If the file
 name is relative, Emacs searches the directories in the list
 @code{exec-path}; this list is initialized based on the environment
@@ -520,81 +557,65 @@ variable @env{PATH} when Emacs is started.  Your init file can
 override either or both of these default initializations (@pxref{Init
 File}).
 
-  Both @kbd{M-!} and @kbd{M-|} wait for the shell command to complete,
-unless you end the command with @samp{&} to make it asynchronous.  To
-stop waiting, type @kbd{C-g} to quit; that terminates the shell
-command with the signal @code{SIGINT}---the same signal that @kbd{C-c}
-normally generates in the shell.  Emacs then waits until the command
-actually terminates.  If the shell command doesn't stop (because it
-ignores the @code{SIGINT} signal), type @kbd{C-g} again; this sends
-the command a @code{SIGKILL} signal which is impossible to ignore.
-
-  Asynchronous commands ending in @samp{&} feed their output into
-the buffer @samp{*Async Shell Command*}.  Output arrives in that
-buffer regardless of whether it is visible in a window.
-
   To specify a coding system for @kbd{M-!} or @kbd{M-|}, use the command
 @kbd{C-x @key{RET} c} immediately beforehand.  @xref{Communication Coding}.
 
 @vindex shell-command-default-error-buffer
-  Error output from these commands is normally intermixed with the
-regular output.  But if the variable
-@code{shell-command-default-error-buffer} has a string as value, and
-it's the name of a buffer, @kbd{M-!} and @kbd{M-|} insert error output
-before point in that buffer.
+  By default, error output is intermixed with the regular output in
+the output buffer.  But if you change the value of the variable
+@code{shell-command-default-error-buffer} to a string, error output is
+inserted into a buffer of that name.
 
 @node Interactive Shell
-@subsection Interactive Inferior Shell
+@subsection Interactive Subshell
 
 @findex shell
-  To run a subshell interactively, use @kbd{M-x shell}.  This creates
-(or reuses) a buffer named @samp{*shell*} and runs a subshell with
-input coming from and output going to that buffer.  That is to say,
-any ``terminal output'' from the subshell goes into the buffer,
-advancing point, and any ``terminal input'' for the subshell comes
-from text in the buffer.  To give input to the subshell, go to the end
-of the buffer and type the input, terminated by @key{RET}.
+  To run a subshell interactively, type @kbd{M-x shell}.  This creates
+(or reuses) a buffer named @samp{*shell*}, and runs a shell subprocess
+with input coming from and output going to that buffer.  That is to
+say, any terminal output from the subshell goes into the buffer,
+advancing point, and any terminal input for the subshell comes from
+text in the buffer.  To give input to the subshell, go to the end of
+the buffer and type the input, terminated by @key{RET}.
 
-  Emacs does not wait for the subshell to do anything.  You can switch
-windows or buffers and edit them while the shell is waiting, or while it is
-running a command.  Output from the subshell waits until Emacs has time to
-process it; this happens whenever Emacs is waiting for keyboard input or
-for time to elapse.
+  While the subshell is waiting or running a command, you can switch
+windows or buffers and perform other editing in Emacs.  Emacs inserts
+the output from the subshell into the Shell buffer whenever it has
+time to process it (e.g.@: while waiting for keyboard input).
 
 @cindex @code{comint-highlight-input} face
 @cindex @code{comint-highlight-prompt} face
-  Input lines, once you submit them, are displayed using the face
-@code{comint-highlight-input}, and prompts are displayed using the
-face @code{comint-highlight-prompt}.  This makes it easier to see
-previous input lines in the buffer.  @xref{Faces}.
+  In the Shell buffer, prompts are displayed with the face
+@code{comint-highlight-prompt}, and submitted input lines are
+displayed with the face @code{comint-highlight-input}.  This makes it
+easier to distinguish input lines from the shell output.
+@xref{Faces}.
 
-  To make multiple subshells, you can invoke @kbd{M-x shell} with a
-prefix argument (e.g. @kbd{C-u M-x shell}), which will read a buffer
-name and create (or reuse) a subshell in that buffer.  You can also
-rename the @samp{*shell*} buffer using @kbd{M-x rename-uniquely}, then
-create a new @samp{*shell*} buffer using plain @kbd{M-x shell}.
+  To make multiple subshells, invoke @kbd{M-x shell} with a prefix
+argument (e.g. @kbd{C-u M-x shell}).  Then the command will read a
+buffer name, and create (or reuse) a subshell in that buffer.  You can
+also rename the @samp{*shell*} buffer using @kbd{M-x rename-uniquely},
+then create a new @samp{*shell*} buffer using plain @kbd{M-x shell}.
 Subshells in different buffers run independently and in parallel.
 
 @vindex explicit-shell-file-name
 @cindex environment variables for subshells
 @cindex @env{ESHELL} environment variable
 @cindex @env{SHELL} environment variable
-  The file name used to load the subshell is the value of the variable
-@code{explicit-shell-file-name}, if that is non-@code{nil}.
-Otherwise, the environment variable @env{ESHELL} is used, or the
-environment variable @env{SHELL} if there is no @env{ESHELL}.  If the
-file name specified is relative, the directories in the list
-@code{exec-path} are searched; this list is initialized based on the
-environment variable @env{PATH} when Emacs is started.  Your init file
-can override either or both of these default initializations.
-(@pxref{Init File}).
+  To specify the shell file name used by @kbd{M-x shell}, customize
+the variable @code{explicit-shell-file-name}.  If this is @code{nil}
+(the default), Emacs uses the environment variable @env{ESHELL} if it
+exists.  Otherwise, it usually uses the variable
+@code{shell-file-name} (@pxref{Single Shell}); but if the default
+directory is remote (@pxref{Remote Files}), it prompts you for the
+shell file name.
 
   Emacs sends the new shell the contents of the file
 @file{~/.emacs_@var{shellname}} as input, if it exists, where
 @var{shellname} is the name of the file that the shell was loaded
 from.  For example, if you use bash, the file sent to it is
-@file{~/.emacs_bash}.  If this file is not found, Emacs tries to fallback
-on @file{~/.emacs.d/init_@var{shellname}.sh}.
+@file{~/.emacs_bash}.  If this file is not found, Emacs tries with
+@file{~/.emacs.d/init_@var{shellname}.sh}.
 
   To specify a coding system for the shell, you can use the command
 @kbd{C-x @key{RET} c} immediately before @kbd{M-x shell}.  You can
@@ -603,44 +624,46 @@ also change the coding system for a running subshell by typing
 Coding}.
 
 @cindex @env{INSIDE_EMACS} environment variable
-  Emacs sets the environment variable @env{INSIDE_EMACS} in the
-subshell to a comma-separated list including the Emacs version.
-Programs can check this variable to determine whether they are running
-inside an Emacs subshell.
-
 @cindex @env{EMACS} environment variable
-  Emacs also sets the @env{EMACS} environment variable (to @code{t}) if
-it is not already defined.  @strong{Warning:} This environment
-variable is deprecated.  Programs that check this variable should be
-changed to check @env{INSIDE_EMACS} instead.
+  Emacs sets the environment variable @env{INSIDE_EMACS} in the
+subshell to @samp{@var{version},comint}, where @var{version} is the
+Emacs version (e.g.@: @samp{24.1}).  Programs can check this variable
+to determine whether they are running inside an Emacs subshell.  (It
+also sets the @env{EMACS} environment variable to @code{t}, if that
+environment variable is not already defined.  However, this
+environment variable is deprecated; programs that use it should switch
+to using @env{INSIDE_EMACS} instead.)
 
 @node Shell Mode
 @subsection Shell Mode
 @cindex Shell mode
 @cindex mode, Shell
 
-  Shell buffers use Shell mode, which defines several special keys
-attached to the @kbd{C-c} prefix.  They are chosen to resemble the usual
-editing and job control characters present in shells that are not under
-Emacs, except that you must type @kbd{C-c} first.  Here is a complete list
-of the special key bindings of Shell mode:
+  The major mode for Shell buffers is Shell mode.  Many of its special
+commands are bound to the @kbd{C-c} prefix, and resemble the usual
+editing and job control characters present in ordinary shells, except
+that you must type @kbd{C-c} first.  Here is a list of Shell mode
+commands:
 
 @table @kbd
 @item @key{RET}
 @kindex RET @r{(Shell mode)}
 @findex comint-send-input
-At end of buffer send line as input; otherwise, copy current line to
-end of buffer and send it (@code{comint-send-input}).  Copying a line
-in this way omits any prompt at the beginning of the line (text output
-by programs preceding your input).  @xref{Shell Prompts}, for how
-Shell mode recognizes prompts.
+Send the current line as input to the subshell
+(@code{comint-send-input}).  Any shell prompt at the beginning of the
+line is omitted (@pxref{Shell Prompts}).  If point is at the end of
+buffer, this is like submitting the command line in an ordinary
+interactive shell.  However, you can also invoke @key{RET} elsewhere
+in the shell buffer to submit the current line as input.
 
 @item @key{TAB}
 @kindex TAB @r{(Shell mode)}
-@findex comint-dynamic-complete
-Complete the command name or file name before point in the shell buffer
-(@code{comint-dynamic-complete}).  @key{TAB} also completes history
-references (@pxref{History References}) and environment variable names.
+@findex completion-at-point
+Complete the command name or file name before point in the shell
+buffer (@code{completion-at-point}).  This uses the usual Emacs
+completion rules (@pxref{Completion}), with the completion
+alternatives being file names, environment variable names, the shell
+command history, and history references (@pxref{History References}).
 
 @vindex shell-completion-fignore
 @vindex comint-completion-fignore
@@ -654,17 +677,16 @@ instead.
 @item M-?
 @kindex M-? @r{(Shell mode)}
 @findex comint-dynamic-list-filename@dots{}
-Display temporarily a list of the possible completions of the file name
-before point in the shell buffer
-(@code{comint-dynamic-list-filename-completions}).
+Display temporarily a list of the possible completions of the file
+name before point (@code{comint-dynamic-list-filename-completions}).
 
 @item C-d
 @kindex C-d @r{(Shell mode)}
 @findex comint-delchar-or-maybe-eof
 Either delete a character or send @acronym{EOF}
 (@code{comint-delchar-or-maybe-eof}).  Typed at the end of the shell
-buffer, @kbd{C-d} sends @acronym{EOF} to the subshell.  Typed at any other
-position in the buffer, @kbd{C-d} deletes a character as usual.
+buffer, this sends @acronym{EOF} to the subshell.  Typed at any other
+position in the buffer, this deletes a character as usual.
 
 @item C-c C-a
 @kindex C-c C-a @r{(Shell mode)}
@@ -760,8 +782,8 @@ Move backward across one shell command, but not beyond the current line
 (@code{shell-backward-command}).
 
 @item M-x dirs
-Ask the shell what its current directory is, so that Emacs can agree
-with the shell.
+Ask the shell for its working directory, and update the Shell buffer's
+default directory.  @xref{Directory Tracking}.
 
 @item M-x send-invisible @key{RET} @var{text} @key{RET}
 @findex send-invisible
@@ -830,41 +852,38 @@ specializations of Shell mode.
 @node Shell Prompts
 @subsection Shell Prompts
 
-@vindex shell-prompt-pattern
-@vindex comint-prompt-regexp
-@vindex comint-use-prompt-regexp
 @cindex prompt, shell
   A prompt is text output by a program to show that it is ready to
 accept new user input.  Normally, Comint mode (and thus Shell mode)
-considers the prompt to be any text output by a program at the
-beginning of an input line.  However, if the variable
-@code{comint-use-prompt-regexp} is non-@code{nil}, then Comint mode
-uses a regular expression to recognize prompts.  In Shell mode,
-@code{shell-prompt-pattern} specifies the regular expression.
+automatically figures out part of the buffer is a prompt, based on the
+output of the subprocess.  (Specifically, it assumes that any received
+output line which doesn't end with a newline is a prompt.)
 
-  The value of @code{comint-use-prompt-regexp} also affects many
-motion and paragraph commands.  If the value is non-@code{nil}, the
-general Emacs motion commands behave as they normally do in buffers
-without special text properties.  However, if the value is @code{nil},
-the default, then Comint mode divides the buffer into two types of
-``fields'' (ranges of consecutive characters having the same
-@code{field} text property): input and output.  Prompts are part of
-the output.  Most Emacs motion commands do not cross field boundaries,
-unless they move over multiple lines.  For instance, when point is in
-input on the same line as a prompt, @kbd{C-a} puts point at the
-beginning of the input if @code{comint-use-prompt-regexp} is
-@code{nil} and at the beginning of the line otherwise.
+  Comint mode divides the buffer into two types of @dfn{fields}: input
+fields (where user input is typed) and output fields (everywhere
+else).  Prompts are part of the output fields.  Most Emacs motion
+commands do not cross field boundaries, unless they move over multiple
+lines.  For instance, when point is in the input field on a shell
+command line, @kbd{C-a} puts point at the beginning of the input
+field, after the prompt.  Internally, the fields are implemented using
+the @code{field} text property (@pxref{Text Properties,,, elisp, the
+Emacs Lisp Reference Manual}).
 
-  In Shell mode, only shell prompts start new paragraphs.  Thus, a
-paragraph consists of a prompt and the input and output that follow
-it.  However, if @code{comint-use-prompt-regexp} is @code{nil}, the
-default, most paragraph commands do not cross field boundaries.  This
-means that prompts, ranges of input, and ranges of non-prompt output
-behave mostly like separate paragraphs; with this setting, numeric
-arguments to most paragraph commands yield essentially undefined
-behavior.  For the purpose of finding paragraph boundaries, Shell mode
-uses @code{shell-prompt-pattern}, regardless of
-@code{comint-use-prompt-regexp}.
+@vindex comint-use-prompt-regexp
+@vindex shell-prompt-pattern
+  If you change the variable @code{comint-use-prompt-regexp} to a
+non-@code{nil} value, then Comint mode recognize prompts using a
+regular expression (@pxref{Regexps}).  In Shell mode, the regular
+expression is specified by the variable @code{shell-prompt-pattern}.
+The default value of @code{comint-use-prompt-regexp} is @code{nil},
+because this method for recognizing prompts is unreliable, but you may
+want to set it to a non-@code{nil} value in unusual circumstances.  In
+that case, Emacs does not divide the Comint buffer into fields, so the
+general motion commands behave as they normally do in buffers without
+special text properties.  However, you can use the paragraph motion
+commands to conveniently navigate the buffer (@pxref{Paragraphs}); in
+Shell mode, Emacs uses @code{shell-prompt-pattern} as paragraph
+boundaries.
 
 @node Shell History
 @subsection Shell Command History
@@ -921,11 +940,12 @@ Display the buffer's history of shell commands in another window
 (@code{comint-dynamic-list-input-ring}).
 @end table
 
-  Shell buffers provide a history of previously entered shell commands.  To
-reuse shell commands from the history, use the editing commands @kbd{M-p},
-@kbd{M-n}, @kbd{M-r} and @kbd{M-s}.  These work just like the minibuffer
-history commands except that they operate on the text at the end of the
-shell buffer, where you would normally insert text to send to the shell.
+  Shell buffers provide a history of previously entered shell
+commands.  To reuse shell commands from the history, use the editing
+commands @kbd{M-p}, @kbd{M-n}, @kbd{M-r} and @kbd{M-s}.  These work
+just like the minibuffer history commands (@pxref{Minibuffer
+History}), except that they operate within the Shell buffer rather
+than the minibuffer.
 
   @kbd{M-p} fetches an earlier shell command to the end of the shell
 buffer.  Successive use of @kbd{M-p} fetches successively earlier
@@ -1052,39 +1072,40 @@ command @code{comint-magic-space}.
 @vindex shell-popd-regexp
 @vindex shell-cd-regexp
   Shell mode keeps track of @samp{cd}, @samp{pushd} and @samp{popd}
-commands given to the inferior shell, so it can keep the
-@samp{*shell*} buffer's default directory the same as the shell's
-working directory.  It recognizes these commands syntactically, by
-examining lines of input that are sent.
+commands given to the subshell, in order to keep the Shell buffer's
+default directory (@pxref{File Names}) the same as the shell's working
+directory.  It recognizes these commands by examining lines of input
+that you send.
 
   If you use aliases for these commands, you can tell Emacs to
-recognize them also.  For example, if the value of the variable
-@code{shell-pushd-regexp} matches the beginning of a shell command
-line, that line is regarded as a @code{pushd} command.  Change this
-variable when you add aliases for @samp{pushd}.  Likewise,
-@code{shell-popd-regexp} and @code{shell-cd-regexp} are used to
-recognize commands with the meaning of @samp{popd} and @samp{cd}.
-These commands are recognized only at the beginning of a shell command
-line.
-
-@ignore  @c This seems to have been deleted long ago.
-@vindex shell-set-directory-error-hook
-  If Emacs gets an error while trying to handle what it believes is a
-@samp{cd}, @samp{pushd} or @samp{popd} command, it runs the hook
-@code{shell-set-directory-error-hook} (@pxref{Hooks}).
-@end ignore
+recognize them also, by setting the variables
+@code{shell-pushd-regexp}, @code{shell-popd-regexp}, and
+@code{shell-cd-regexp} to the appropriate regular expressions
+(@pxref{Regexps}).  For example, if @code{shell-pushd-regexp} matches
+the beginning of a shell command line, that line is regarded as a
+@code{pushd} command.  These commands are recognized only at the
+beginning of a shell command line.
 
 @findex dirs
-  If Emacs gets confused about changes in the current directory of the
-subshell, use the command @kbd{M-x dirs} to ask the shell what its
-current directory is.  This command works for shells that support the
-most common command syntax; it may not work for unusual shells.
+  If Emacs gets confused about changes in the working directory of the
+subshell, type @kbd{M-x dirs}.  This command asks the shell for its
+working directory and updates the default directory accordingly.  It
+works for shells that support the most common command syntax, but may
+not work for unusual shells.
 
 @findex dirtrack-mode
-  You can also use @kbd{M-x dirtrack-mode} to enable (or disable) an
-alternative method of tracking changes in the current directory.  This
-method relies on your shell prompt containing the full current working
-directory at all times.
+@cindex Dirtrack mode
+@cindex mode, Dirtrack
+@vindex dirtrack-list
+  You can also use Dirtrack mode, a buffer-local minor mode that
+implements an alternative method of tracking the shell's working
+directory.  To use this method, your shell prompt must contain the
+working directory at all times, and you must supply a regular
+expression for recognizing which part of the prompt contains the
+working directory; see the documentation of the variable
+@code{dirtrack-list} for details.  To use Dirtrack mode, type @kbd{M-x
+dirtrack-mode} in the Shell buffer, or add @code{dirtrack-mode} to
+@code{shell-mode-hook} (@pxref{Hooks}).
 
 @node Shell Options
 @subsection Shell Mode Options
@@ -1161,10 +1182,10 @@ subshell with input coming from your keyboard, and output going to
 that buffer.
 
   The terminal emulator uses Term mode, which has two input modes.  In
-line mode, Term basically acts like Shell mode; see @ref{Shell Mode}.
+line mode, Term basically acts like Shell mode (@pxref{Shell Mode}).
 
-  In char mode, each character is sent directly to the inferior
-subshell, as ``terminal input.''  Any ``echoing'' of your input is the
+  In char mode, each character is sent directly to the subshell, as
+``terminal input.''  Any ``echoing'' of your input is the
 responsibility of the subshell.  The sole exception is the terminal
 escape character, which by default is @kbd{C-c} (@pxref{Term Mode}).
 Any ``terminal output'' from the subshell goes into the buffer,
@@ -1180,8 +1201,8 @@ handles each one appropriately, changing the buffer so that the
 appearance of the window matches what it would be on a real terminal.
 You can actually run Emacs inside an Emacs Term window.
 
-  You can use Term mode to communicate with a device connected to a
-serial port of your computer.  @xref{Serial Terminal}.
+  You can also Term mode to communicate with a device connected to a
+serial port.  @xref{Serial Terminal}.
 
   The file name used to load the subshell is determined the same way
 as for Shell mode.  To make multiple terminal emulators, rename the
@@ -1199,22 +1220,24 @@ and later.
 @cindex mode, Term
 
   The terminal emulator uses Term mode, which has two input modes.  In
-line mode, Term basically acts like Shell mode; see @ref{Shell Mode}.
-In char mode, each character is sent directly to the inferior
-subshell, except for the Term escape character, normally @kbd{C-c}.
+line mode, Term basically acts like Shell mode (@pxref{Shell Mode}).
+In char mode, each character is sent directly to the subshell, except
+for the Term escape character, normally @kbd{C-c}.
 
   To switch between line and char mode, use these commands:
 
 @table @kbd
 @kindex C-c C-j @r{(Term mode)}
-@findex term-char-mode
+@findex term-line-mode
 @item C-c C-j
-Switch to line mode.  Do nothing if already in line mode.
+Switch to line mode (@code{term-line-mode}).  Do nothing if already in
+line mode.
 
 @kindex C-c C-k @r{(Term mode)}
-@findex term-line-mode
+@findex term-char-mode
 @item C-c C-k
-Switch to char mode.  Do nothing if already in char mode.
+Switch to char mode (@code{term-char-mode}).  Do nothing if already in
+char mode.
 @end table
 
   The following commands are only available in char mode:
@@ -1229,27 +1252,22 @@ example, @kbd{C-c o} invokes the global binding of @kbd{C-x o}, which
 is normally @samp{other-window}.
 @end table
 
-@node Paging in Term
-@subsection Page-At-A-Time Output
-@cindex page-at-a-time
-
-  Term mode has a page-at-a-time feature.  When enabled it makes
-output pause at the end of each screenful.
+@cindex paging in Term mode
+  Term mode has a page-at-a-time feature.  When enabled, it makes
+output pause at the end of each screenful:
 
 @table @kbd
 @kindex C-c C-q @r{(Term mode)}
 @findex term-pager-toggle
 @item C-c C-q
 Toggle the page-at-a-time feature.  This command works in both line
-and char modes.  When page-at-a-time is enabled, the mode-line
-displays the word @samp{page}.
+and char modes.  When the feature is enabled, the mode-line displays
+the word @samp{page}, and each time Term receives more than a
+screenful of output, it pauses and displays @samp{**MORE**} in the
+mode-line.  Type @key{SPC} to display the next screenful of output, or
+@kbd{?} to see your other options.  The interface is similar to the
+@code{more} program.
 @end table
-
-  With page-at-a-time enabled, whenever Term receives more than a
-screenful of output since your last input, it pauses, displaying
-@samp{**MORE**} in the mode-line.  Type @key{SPC} to display the next
-screenful of output.  Type @kbd{?} to see your other options.  The
-interface is similar to the @code{more} program.
 
 @node Remote Host
 @subsection Remote Host Shell
@@ -1273,71 +1291,8 @@ happens automatically; there is no special password processing.)
 of terminal you're using, by setting the @env{TERM} environment
 variable in the environment for the remote login command.  (If you use
 bash, you do that by writing the variable assignment before the remote
-login command, without separating comma.)  Terminal types @samp{ansi}
-or @samp{vt100} will work on most systems.
-
-@c   If you are talking to a Bourne-compatible
-@c shell, and your system understands the @env{TERMCAP} variable,
-@c you can use the command @kbd{M-x shell-send-termcap}, which
-@c sends a string specifying the terminal type and size.
-@c (This command is also useful after the window has changed size.)
-
-@c You can of course run @samp{gdb} on that remote computer.  One useful
-@c trick:  If you invoke gdb with the @code{--fullname} option,
-@c it will send special commands to Emacs that will cause Emacs to
-@c pop up the source files you're debugging.  This will work
-@c whether or not gdb is running on a different computer than Emacs,
-@c as long as Emacs can access the source files specified by gdb.
-
-@ignore
-  You cannot log in to a remote computer using the Shell mode.
-@c (This will change when Shell is re-written to use Term.)
-Instead, Emacs provides two commands for logging in to another computer
-and communicating with it through an Emacs buffer using Comint mode:
-
-@table @kbd
-@item M-x telnet @key{RET} @var{hostname} @key{RET}
-Set up a Telnet connection to the computer named @var{hostname}.
-@item M-x rlogin @key{RET} @var{hostname} @key{RET}
-Set up an Rlogin connection to the computer named @var{hostname}.
-@end table
-
-@findex telnet
-  Use @kbd{M-x telnet} to set up a Telnet connection to another
-computer.  (Telnet is the standard Internet protocol for remote login.)
-It reads the host name of the other computer as an argument with the
-minibuffer.  Once the connection is established, talking to the other
-computer works like talking to a subshell: you can edit input with the
-usual Emacs commands, and send it a line at a time by typing @key{RET}.
-The output is inserted in the Telnet buffer interspersed with the input.
-
-@findex rlogin
-@vindex rlogin-explicit-args
-  Use @kbd{M-x rlogin} to set up an Rlogin connection.  Rlogin is
-another remote login communication protocol, essentially much like the
-Telnet protocol but incompatible with it, and supported only by certain
-systems.  Rlogin's advantages are that you can arrange not to have to
-give your user name and password when communicating between two machines
-you frequently use, and that you can make an 8-bit-clean connection.
-(To do that in Emacs, set @code{rlogin-explicit-args} to @code{("-8")}
-before you run Rlogin.)
-
-  @kbd{M-x rlogin} sets up the default file directory of the Emacs
-buffer to access the remote host via FTP (@pxref{File Names}), and it
-tracks the shell commands that change the current directory, just like
-Shell mode.
-
-@findex rlogin-directory-tracking-mode
-  There are two ways of doing directory tracking in an Rlogin
-buffer---either with remote directory names
-@file{/@var{host}:@var{dir}/} or with local names (that works if the
-``remote'' machine shares file systems with your machine of origin).
-You can use the command @code{rlogin-directory-tracking-mode} to switch
-modes.  No argument means use remote directory names, a positive
-argument means use local names, and a negative argument means turn
-off directory tracking.
-
-@end ignore
+login command, without a separating comma.)  Terminal types
+@samp{ansi} or @samp{vt100} will work on most systems.
 
 @node Serial Terminal
 @subsection Serial Terminal
@@ -1345,9 +1300,10 @@ off directory tracking.
 @findex serial-term
 
   If you have a device connected to a serial port of your computer,
-you can use Emacs to communicate with it.  @kbd{M-x serial-term} will
-ask you for a serial port name and speed and will then open a new
-window in @ref{Term Mode}.
+you can communicate with it by typing @kbd{M-x serial-term}.  This
+command asks for a serial port name and speed, and switches to a new
+Term mode buffer.  Emacs communicates with the serial device through
+this buffer just like it does with a terminal in ordinary Term mode.
 
   The speed of the serial port is measured in bits per second.  The
 most common speed is 9600 bits per second.  You can change the speed
@@ -1357,10 +1313,6 @@ interactively by clicking on the mode line.
 the mode line.  By default, a serial port is configured as ``8N1'',
 which means that each byte consists of 8 data bits, No parity check
 bit, and 1 stopbit.
-
-  When you have opened the serial port connection, you will see output
-from the device in the window.  Also, what you type in the window is
-sent to the device.
 
   If the speed or the configuration is wrong, you cannot communicate
 with your device and will probably only see garbage output in the
@@ -1373,12 +1325,14 @@ window.
 @cindex server, using Emacs as
 @cindex @env{EDITOR} environment variable
 
-  Various programs such as @command{mail} can invoke your choice of
-editor to edit a particular piece of text, such as a message that you
-are sending.  By convention, most of these programs use the
-environment variable @env{EDITOR} to specify which editor to run.  If
-you set @env{EDITOR} to @samp{emacs}, they invoke Emacs---but in an
-inconvenient way, by starting a new Emacs process.  This is
+  Various programs can invoke your choice of editor to edit a
+particular piece of text.  For instance, version control programs
+invoke an editor to enter version control logs (@pxref{Version
+Control}), and the Unix @command{mail} utility invokes an editor to
+enter a message to send.  By convention, your choice of editor is
+specified by the environment variable @env{EDITOR}.  If you set
+@env{EDITOR} to @samp{emacs}, Emacs would be invoked, but in an
+inconvenient way---by starting a new Emacs process.  This is
 inconvenient because the new Emacs process doesn't share buffers, a
 command history, or other kinds of information with any existing Emacs
 process.
@@ -1387,30 +1341,33 @@ process.
 server}, so that it ``listens'' for external edit requests and acts
 accordingly.  There are two ways to start an Emacs server:
 
+@itemize
 @findex server-start
-  The first is to run the command @code{server-start} in an existing
-Emacs process: either type @kbd{M-x server-start}, or put the
-expression @code{(server-start)} in your initialization file
-(@pxref{Init File}).  The existing Emacs process is the server; when
-you exit Emacs, the server dies with the Emacs process.
+@item
+Run the command @code{server-start} in an existing Emacs process:
+either type @kbd{M-x server-start}, or put the expression
+@code{(server-start)} in your init file (@pxref{Init File}).  The
+existing Emacs process is the server; when you exit Emacs, the server
+dies with the Emacs process.
 
 @cindex daemon, Emacs
-  The second way to start an Emacs server is to run Emacs as a
-@dfn{daemon}, using the @samp{--daemon} command-line option.
-@xref{Initial Options}.  When Emacs is started this way, it calls
-@code{server-start} after initialization, and returns control to the
-calling terminal instead of opening an initial frame; it then waits in
-the background, listening for edit requests.
+@item
+Run Emacs as a @dfn{daemon}, using the @samp{--daemon} command-line
+option.  @xref{Initial Options}.  When Emacs is started this way, it
+calls @code{server-start} after initialization, and returns control to
+the calling terminal instead of opening an initial frame; it then
+waits in the background, listening for edit requests.
+@end itemize
 
 @cindex @env{TEXEDIT} environment variable
-  Once an Emacs server is set up, you can use a shell command called
-@command{emacsclient} to connect to the existing Emacs process and
-tell it to visit a file.  If you set the @env{EDITOR} environment
-variable to @samp{emacsclient}, programs such as @command{mail} will
-use the existing Emacs process for editing.@footnote{Some programs use
-a different environment variable; for example, to make @TeX{} use
-@samp{emacsclient}, set the @env{TEXEDIT} environment variable to
-@samp{emacsclient +%d %s}.}
+  Either way, once an Emacs server is started, you can use a shell
+command called @command{emacsclient} to connect to the Emacs process
+and tell it to visit a file.  You can then set the @env{EDITOR}
+environment variable to @samp{emacsclient}, so that external programs
+will use the existing Emacs process for editing.@footnote{Some
+programs use a different environment variable; for example, to make
+@TeX{} use @samp{emacsclient}, set the @env{TEXEDIT} environment
+variable to @samp{emacsclient +%d %s}.}
 
 @vindex server-name
   You can run multiple Emacs servers on the same machine by giving
@@ -1421,13 +1378,13 @@ server-name @key{RET} foo @key{RET}} sets the server name to
 name, using the @samp{-s} option (@pxref{emacsclient Options}).
 
 @findex server-eval-at
-  If you have defined a server by a unique server name, you can
-connect to this server from other Emacs instances and evaluate forms
-on it by using the @code{server-eval-at} function.
-
-@code{(server-eval-at "foo" '(+ 1 2))} gives the result @code{3}, if
-there's a server with that name that is listening.  If not, an error
-will be signaled.
+  If you have defined a server by a unique server name, it is possible
+to connect to the server from another Emacs instance and evaluate Lisp
+expressions on the server, using the @code{server-eval-at} function.
+For instance, @code{(server-eval-at "foo" '(+ 1 2))} evaluates the
+expression @code{(+ 1 2)} on the @samp{foo} server, and returns
+@code{3}.  (If there is no server with that name, an error is
+signaled.)  Currently, this feature is mainly useful for developers.
 
 @menu
 * Invoking emacsclient:: Connecting to the Emacs server.
@@ -1541,14 +1498,14 @@ precedence.
 
 @item -c
 Create a new graphical frame, instead of using an existing Emacs
-frame.  Emacs 23 can create a graphical frame even if it was started
-in a text-only terminal, provided it is able to connect to a graphical
+frame.  Emacs can create a graphical frame even if it was started in a
+text-only terminal, provided it is able to connect to a graphical
 display.  If no graphical display is available, Emacs creates a new
 text-only terminal frame (@pxref{Frames}).  If you omit a filename
 argument while supplying the @samp{-c} option, the new frame displays
 the @samp{*scratch*} buffer (@pxref{Buffers}).
 
-@item -F
+@item -F @var{alist}
 @itemx --frame-parameters=@var{alist}
 Set the parameters for a newly-created graphical frame
 (@pxref{Frame Parameters}).
@@ -1629,7 +1586,7 @@ server it finds.  (This option is not supported on MS-Windows.)
 @itemx --tty
 @itemx -nw
 Create a new Emacs frame on the current text-only terminal, instead of
-using an existing Emacs frame.  Emacs 23 can open a text-only terminal
+using an existing Emacs frame.  Emacs can open a text-only terminal
 even if it was started in another text-only terminal, or on a
 graphical display.  If you omit a filename argument while supplying
 this option, the new frame displays the @samp{*scratch*} buffer.
@@ -1653,23 +1610,23 @@ process, type @kbd{M-x kill-emacs}.
 @cindex hardcopy
 @cindex printing
 
-  Emacs provides commands for printing hard copies of either an entire
-buffer or just part of one, with or without page headers.  You can
-invoke the printing commands directly, as detailed in the following
-section, or using the @samp{File} menu on the menu bar.
+  Emacs provides commands for printing hardcopies of either an entire
+buffer or part of one.  You can invoke the printing commands directly,
+as detailed below, or using the @samp{File} menu on the menu bar.
 
 @findex htmlfontify-buffer
   Aside from the commands described in this section, you can also
-``print'' an Emacs buffer to HTML with @kbd{M-x htmlfontify-buffer}.
-This command converts the current buffer to a HTML file, replacing
-Emacs faces with CSS-based markup.  In addition, see the hardcopy
-commands of Dired (@pxref{Misc File Ops}) and the diary
-(@pxref{Displaying the Diary}).
+print hardcopies from Dired (@pxref{Operating on Files}) and the diary
+(@pxref{Displaying the Diary}).  You can also ``print'' an Emacs
+buffer to HTML with the command @kbd{M-x htmlfontify-buffer}, which
+converts the current buffer to a HTML file, replacing Emacs faces with
+CSS-based markup.  Furthermore, Org mode allows you to ``print'' Org
+files to a variety of formats, such as PDF (@pxref{Org Mode}).
 
 @table @kbd
 @item M-x print-buffer
-Print hardcopy of current buffer with page headings containing the file
-name and page number.
+Print hardcopy of current buffer with page headings containing the
+file name and page number.
 @item M-x lpr-buffer
 Print hardcopy of current buffer without page headings.
 @item M-x print-region
@@ -1683,33 +1640,32 @@ Like @code{lpr-buffer} but print only the current region.
 @findex lpr-buffer
 @findex lpr-region
 @vindex lpr-switches
-  The hardcopy commands (aside from the PostScript commands) pass extra
-switches to the @code{lpr} program based on the value of the variable
-@code{lpr-switches}.  Its value should be a list of strings, each string
-an option starting with @samp{-}.  For example, to specify a line width
-of 80 columns for all the printing you do in Emacs, set
-@code{lpr-switches} like this:
-
-@example
-(setq lpr-switches '("-w80"))
-@end example
+@vindex lpr-commands
+  On most operating system, the above hardcopy commands submit files
+for printing by calling the @command{lpr} program.  To change the
+printer program, customize the variable @code{lpr-command}.  To
+specify extra switches to give the printer program, customize the list
+variable @code{lpr-switches}.  Its value should be a list of option
+strings, each of which should start with @samp{-} (e.g.@: the option
+string @code{"-w80"} specifies a line width of 80 columns).  The
+default is the empty list, @code{nil}.
 
 @vindex printer-name
-  You can specify the printer to use by setting the variable
-@code{printer-name}.
+@vindex lpr-printer-switch
+  To specify the printer to use, set the variable @code{printer-name}.
+The default, @code{nil}, specifies the default printer.  If you set it
+to a printer name (a string), that name is passed to @command{lpr}
+with the @samp{-P} switch; if you are not using @command{lpr}, you
+should specify the switch with @code{lpr-printer-switch}.
 
 @vindex lpr-headers-switches
-@vindex lpr-commands
 @vindex lpr-add-switches
-  The variable @code{lpr-command} specifies the name of the printer
-program to run; the default value depends on your operating system type.
-On most systems, the default is @code{"lpr"}.  The variable
-@code{lpr-headers-switches} similarly specifies the extra switches to
-use to make page headers.  The variable @code{lpr-add-switches} controls
-whether to supply @samp{-T} and @samp{-J} options (suitable for
-@code{lpr}) to the printer program: @code{nil} means don't add them.
-@code{lpr-add-switches} should be @code{nil} if your printer program is
-not compatible with @code{lpr}.
+  The variable @code{lpr-headers-switches} similarly specifies the
+extra switches to use to make page headers.  The variable
+@code{lpr-add-switches} controls whether to supply @samp{-T} and
+@samp{-J} options (suitable for @command{lpr}) to the printer program:
+@code{nil} means don't add them (this should be the value if your
+printer program is not compatible with @command{lpr}).
 
 @menu
 * PostScript::           Printing buffers or regions as PostScript.
@@ -1752,27 +1708,16 @@ Generate/print PostScript for the current buffer as if handwritten.
 @findex ps-print-buffer
 @findex ps-print-region-with-faces
 @findex ps-print-buffer-with-faces
-  The PostScript commands, @code{ps-print-buffer} and
-@code{ps-print-region}, print buffer contents in PostScript form.  One
-command prints the entire buffer; the other, just the region.  The
-corresponding @samp{-with-faces} commands,
-@code{ps-print-buffer-with-faces} and @code{ps-print-region-with-faces},
-use PostScript features to show the faces (fonts and colors) in the text
-properties of the text being printed.  The @samp{-with-faces} commands only
-work if they are used in a window system, so it has a way to determine color
-values.
+  The @code{ps-print-buffer} and @code{ps-print-region} commands print
+buffer contents in PostScript form.  One command prints the entire
+buffer; the other, just the region.  The commands
+@code{ps-print-buffer-with-faces} and
+@code{ps-print-region-with-faces} behave similarly, but use PostScript
+features to show the faces (fonts and colors) of the buffer text.
 
   Interactively, when you use a prefix argument (@kbd{C-u}), the command
 prompts the user for a file name, and saves the PostScript image in that file
 instead of sending it to the printer.
-
-  Noninteractively, the argument @var{filename} is treated as follows: if it is
-@code{nil}, send the image to the printer.  If @var{filename} is a string, save
-the PostScript image in a file with that name.
-
-  If you are using a color display, you can print a buffer of program
-code with color highlighting by turning on Font-Lock mode in that
-buffer, and using @code{ps-print-buffer-with-faces}.
 
 @findex ps-spool-region
 @findex ps-spool-buffer
@@ -1782,30 +1727,20 @@ buffer, and using @code{ps-print-buffer-with-faces}.
 generate the PostScript output in an Emacs buffer instead of sending
 it to the printer.
 
-  Use the command @code{ps-despool} to send the spooled images to the printer.
-
 @findex ps-despool
-  This command sends the PostScript generated by  @samp{-spool-} commands (see
-commands above) to the printer.
-
-  Interactively, when you use a prefix argument (@kbd{C-u}), the command
-prompts the user for a file name, and saves the spooled PostScript image in
-that file instead of sending it to the printer.
-
-  Noninteractively, the argument @var{filename} is treated as follows: if it is
-@code{nil}, send the image to the printer.  If @var{filename} is a string, save
-the PostScript image in a file with that name.
+  Use the command @code{ps-despool} to send the spooled images to the
+printer.  This command sends the PostScript generated by
+@samp{-spool-} commands (see commands above) to the printer.  With a
+prefix argument (@kbd{C-u}), it prompts for a file name, and saves the
+spooled PostScript image in that file instead of sending it to the
+printer.
 
 @findex handwrite
 @cindex handwriting
-@kbd{M-x handwrite} is more frivolous.  It generates a PostScript
+  @kbd{M-x handwrite} is more frivolous.  It generates a PostScript
 rendition of the current buffer as a cursive handwritten document.  It
 can be customized in group @code{handwrite}.  This function only
 supports ISO 8859-1 characters.
-
-@ifnottex
-  The following section describes variables for customizing these commands.
-@end ifnottex
 
 @node PostScript Variables, Printing Package, PostScript, Printing
 @subsection Variables for PostScript Hardcopy
@@ -2355,26 +2290,8 @@ key bindings.
 @node Hyperlinking, Amusements, Emulation, Top
 @section Hyperlinking and Navigation Features
 
-@cindex hyperlinking
-@cindex navigation
-  Various modes documented elsewhere have hypertext features so that
-you can follow links, usually by clicking @kbd{Mouse-2} on the link or
-typing @key{RET} while point is on the link.  Clicking @kbd{Mouse-1}
-quickly on the link also follows it.  (Hold @kbd{Mouse-1} for longer
-if you want to set point instead.)
-
-  Info mode, Help mode and the Dired-like modes are examples of modes
-that have links in the buffer.  The Tags facility links between uses
-and definitions in source files, see @ref{Tags}.  Imenu provides
-navigation amongst items indexed in the current buffer, see
-@ref{Imenu}.  Info-lookup provides mode-specific lookup of definitions
-in Info indexes, see @ref{Documentation}.  Speedbar maintains a frame
-in which links to files, and locations in files are displayed, see
-@ref{Speedbar}.
-
-  Other non-mode-specific facilities described in this section enable
-following links from the current buffer in a context-sensitive
-fashion.
+  The following subsections describe convenience features for handling
+URLs and other types of links occurring in Emacs buffer text.
 
 @menu
 * Browse-URL::                  Following URLs.
@@ -2397,31 +2314,31 @@ fashion.
 Load a URL into a Web browser.
 @end table
 
-The Browse-URL package provides facilities for following URLs specifying
-links on the World Wide Web.  Usually this works by invoking a web
-browser, but you can, for instance, arrange to invoke @code{compose-mail}
-from @samp{mailto:} URLs.
+  The Browse-URL package allows you to easily follow URLs from within
+Emacs.  Most URLs are followed by invoking a web browser;
+@samp{mailto:} URLs are followed by invoking the @code{compose-mail}
+Emacs command to send mail to the specified address (@pxref{Sending
+Mail}).
 
-  The general way to use this feature is to type @kbd{M-x browse-url},
-which displays a specified URL.  If point is located near a plausible
-URL, that URL is used as the default.  Other commands are available
-which you might like to bind to keys, such as
-@code{browse-url-at-point} and @code{browse-url-at-mouse}.
+  The command @kbd{M-x browse-url} prompts for a URL, and follows it.
+If point is located near a plausible URL, that URL is offered as the
+default.  The Browse-URL package also provides other commands which
+you might like to bind to keys, such as @code{browse-url-at-point} and
+@code{browse-url-at-mouse}.
 
+@vindex browse-url-mailto-function
 @vindex browse-url-browser-function
   You can customize Browse-URL's behavior via various options in the
-@code{browse-url} Customize group, particularly
-@code{browse-url-browser-function}.  You can invoke actions dependent
-on the type of URL by defining @code{browse-url-browser-function} as
-an association list.  The package's commentary available via @kbd{C-h
-p} under the @samp{hypermedia} keyword provides more information.
-Packages with facilities for following URLs should always go through
-Browse-URL, so that the customization options for Browse-URL will
-affect all browsing in Emacs.
+@code{browse-url} Customize group.  In particular, the option
+@code{browse-url-mailto-function} lets you define how to follow
+@samp{mailto:} URLs, while @code{browse-url-browser-function} lets you
+define how to follow other types of URLs.  For more information, view
+the package commentary by typing @kbd{C-h P browse-url @key{RET}}.
 
 @node Goto Address mode
 @subsection Activating URLs
 @findex goto-address-mode
+@cindex mode, Goto Address
 @cindex Goto Address mode
 @cindex URLs, activating
 
@@ -2430,20 +2347,23 @@ affect all browsing in Emacs.
 Activate URLs and e-mail addresses in the current buffer.
 @end table
 
-  You can make URLs in the current buffer active with @kbd{M-x
-goto-address-mode}.  This minor mode finds all the URLs in the buffer,
-highlights them, and turns them into @dfn{buttons}: if you click on a
-URL with @kbd{Mouse-1} or @kbd{Mouse-2} (@pxref{Mouse References}), or
-move to the URL and type @kbd{C-c @key{RET}}, that displays the web
-page that the URL specifies.  For a @samp{mailto} URL, it sends mail
-instead, using your selected mail-composition method (@pxref{Mail
-Methods}).
+@kindex C-c RET @r{(Goto Address mode)}
+@findex goto-address-at-point
+  You can make Emacs mark out URLs specially in the current buffer, by
+typing @kbd{M-x goto-address-mode}.  When this buffer-local minor mode
+is enabled, it finds all the URLs in the buffer, highlights them, and
+turns them into clickable buttons.  You can follow the URL by typing
+@kbd{C-c @key{RET}} (@code{goto-address-at-point}) while point is on
+its text; or by clicking with @kbd{Mouse-2}, or by clicking
+@kbd{Mouse-1} quickly (@pxref{Mouse References}).  Following a URL is
+done by calling @code{browse-url} as a subroutine
+(@pxref{Browse-URL}).
 
   It can be useful to add @code{goto-address-mode} to mode hooks and
-the hooks used to display an incoming message (e.g.,
-@code{rmail-show-message-hook} for Rmail, and @code{mh-show-mode-hook}
-for MH-E).  This is not needed for Gnus, which has a similar feature
-of its own.
+hooks for displaying an incoming message
+(e.g.@: @code{rmail-show-message-hook} for Rmail, and
+@code{mh-show-mode-hook} for MH-E).  This is not needed for Gnus,
+which has a similar feature of its own.
 
 @node FFAP
 @subsection Finding Files and URLs at Point
@@ -2454,24 +2374,24 @@ of its own.
 @findex ffap-menu
 @cindex finding file at point
 
-  FFAP mode replaces certain key bindings for finding files, including
-@kbd{C-x C-f}, with commands that provide more sensitive defaults.
-These commands behave like the ordinary ones when given a prefix
-argument.  Otherwise, they get the default file name or URL from the
-text around point.  If what is found in the buffer has the form of a
-URL rather than a file name, the commands use @code{browse-url} to
-view it.
+  The FFAP package replaces certain key bindings for finding files,
+such as @kbd{C-x C-f}, with commands that provide more sensitive
+defaults.  These commands behave like the ordinary ones when given a
+prefix argument.  Otherwise, they get the default file name or URL
+from the text around point.  If what is found in the buffer has the
+form of a URL rather than a file name, the commands use
+@code{browse-url} to view it (@pxref{Browse-URL}).
 
   This feature is useful for following references in mail or news
-buffers, @file{README} files, @file{MANIFEST} files, and so on.  The
-@samp{ffap} package's commentary available via @kbd{C-h p} under the
-@samp{files} keyword and the @code{ffap} Custom group provide details.
+buffers, @file{README} files, @file{MANIFEST} files, and so on.  For
+more information, view the package commentary by typing @kbd{C-h P
+ffap @key{RET}}.
 
 @cindex FFAP minor mode
 @findex ffap-mode
-  You can turn on FFAP minor mode by calling @code{ffap-bindings} to
-make the following key bindings and to install hooks for using
-@code{ffap} in Rmail, Gnus and VM article buffers.
+  To enable FFAP, type @kbd{M-x ffap-bindings}.  This makes the
+following key bindings, and also installs hooks for additional FFAP
+functionality in Rmail, Gnus and VM article buffers.
 
 @table @kbd
 @item C-x C-f @var{filename} @key{RET}
@@ -2580,18 +2500,22 @@ bored, try an argument of 9.  Sit back and watch.
 @cindex Life
   @kbd{M-x life} runs Conway's ``Life'' cellular automaton.
 
-@findex lm
+@findex landmark
 @cindex landmark game
-  @kbd{M-x lm} runs a relatively non-participatory game in which a
-robot attempts to maneuver towards a tree at the center of the window
-based on unique olfactory cues from each of the four directions.
+  @kbd{M-x landmark} runs a relatively non-participatory game in which
+a robot attempts to maneuver towards a tree at the center of the
+window based on unique olfactory cues from each of the four
+directions.
 
 @findex morse-region
 @findex unmorse-region
+@findex nato-region
 @cindex Morse code
 @cindex --/---/.-./.../.
-  @kbd{M-x morse-region} converts text in a region to Morse code and
-@kbd{M-x unmorse-region} converts it back.  No cause for remorse.
+  @kbd{M-x morse-region} converts the text in the region to Morse
+code; @kbd{M-x unmorse-region} converts it back.  @kbd{M-x
+nato-region} converts the text in the region to NATO phonetic
+alphabet; @kbd{M-x denato-region} converts it back.
 
 @findex pong
 @cindex Pong game
@@ -2611,9 +2535,11 @@ across other pegs.
   The command @kbd{M-x zone} plays games with the display when Emacs
 is idle.
 
-  Finally, if you find yourself frustrated, try the famous Eliza
-program.  Just do @kbd{M-x doctor}.  End each input by typing
-@key{RET} twice.
+@findex doctor
+@cindex Eliza
+  Finally, if you find yourself frustrated, try describing your
+problems to the famous psychotherapist Eliza.  Just do @kbd{M-x
+doctor}.  End each input by typing @key{RET} twice.
 
 @ifnottex
 @lowersections

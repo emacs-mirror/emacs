@@ -1,6 +1,6 @@
 /* X Communication module for terminals which understand the X protocol.
 
-Copyright (C) 1989, 1993-2011  Free Software Foundation, Inc.
+Copyright (C) 1989, 1993-2012  Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -8979,6 +8979,18 @@ x_lower_frame (struct frame *f)
       XFlush (FRAME_X_DISPLAY (f));
       UNBLOCK_INPUT;
     }
+}
+
+/* Request focus with XEmbed */
+
+void
+xembed_request_focus (FRAME_PTR f)
+{
+  /* See XEmbed Protocol Specification at
+     http://freedesktop.org/wiki/Specifications/xembed-spec  */
+  if (f->async_visible)
+    xembed_send_message (f, CurrentTime,
+			 XEMBED_REQUEST_FOCUS, 0, 0, 0);
 }
 
 /* Activate frame with Extended Window Manager Hints */

@@ -1,6 +1,6 @@
 ;;; sendmail.el --- mail sending commands for Emacs.  -*- byte-compile-dynamic: t -*-
 
-;; Copyright (C) 1985-1986, 1992-1996, 1998, 2000-2011
+;; Copyright (C) 1985-1986, 1992-1996, 1998, 2000-2012
 ;;   Free Software Foundation, Inc.
 
 ;; Maintainer: FSF

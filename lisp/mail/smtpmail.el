@@ -1,6 +1,6 @@
 ;;; smtpmail.el --- simple SMTP protocol (RFC 821) for sending mail
 
-;; Copyright (C) 1995-1996, 2001-2011  Free Software Foundation, Inc.
+;; Copyright (C) 1995-1996, 2001-2012  Free Software Foundation, Inc.
 
 ;; Author: Tomoji Kagatani <kagatani@rbc.ncl.omron.co.jp>
 ;; Maintainer: Simon Josefsson <simon@josefsson.org>
@@ -60,7 +60,6 @@
 (autoload 'message-make-date "message")
 (autoload 'message-make-message-id "message")
 (autoload 'rfc2104-hash "rfc2104")
-(autoload 'password-read "password-cache")
 
 ;;;
 (defgroup smtpmail nil
@@ -103,12 +102,14 @@ don't define this value."
   "Connection type SMTP connections.
 This may be either nil (possibly upgraded to STARTTLS if
 possible), or `starttls' (refuse to send if STARTTLS isn't
-available), or `plain' (never use STARTTLS).."
+available), or `plain' (never use STARTTLS), or `ssl' (to use
+TLS/SSL)."
   :version "24.1"
   :group 'smtpmail
   :type '(choice (const :tag "Possibly upgrade to STARTTLS" nil)
 		 (const :tag "Always use STARTTLS" starttls)
-		 (const :tag "Never use STARTTLS" plain)))
+		 (const :tag "Never use STARTTLS" plain)
+		 (const :tag "Use TLS/SSL" ssl)))
 
 (defcustom smtpmail-sendto-domain nil
   "Local domain name without a host name.
@@ -467,9 +468,6 @@ The list is in preference order.")
       (when (memq el2 list1)
 	(push el2 result)))
     (nreverse result)))
-
-;; `password-read' autoloads password-cache.
-(declare-function password-cache-add "password-cache" (key password))
 
 (defun smtpmail-command-or-throw (process string &optional code)
   (let (ret)

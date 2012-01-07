@@ -11,7 +11,7 @@
 @documentencoding ISO-8859-1
 
 @copying
-Copyright @copyright{} 1995-2011 Free Software Foundation, Inc.
+Copyright @copyright{} 1995-2012 Free Software Foundation, Inc.
 
 @quotation
 Permission is granted to copy, distribute and/or modify this document
@@ -1328,7 +1328,7 @@ variable to @code{nil}.
 
 @vindex gnus-auto-subscribed-categories
 As if that wasn't enough, @code{gnus-auto-subscribed-categories} also
-allows you to specify that new groups should be subcribed based on the
+allows you to specify that new groups should be subscribed based on the
 category their select methods belong to.  The default is @samp{(mail
 post-mail)}, meaning that all new groups from mail-like backends
 should be subscribed automatically.
@@ -3180,15 +3180,20 @@ For example:
          (to-group . "\\1"))
 
         ("mail\\.me"
-         (gnus-use-scoring  t))
+         (gnus-use-scoring t))
 
         ("list\\..*"
          (total-expire . t)
          (broken-reply-to . t))))
 @end lisp
 
-String value of parameters will be subjected to regexp substitution, as
-the @code{to-group} example shows.
+All clauses that matches the group name will be used, but the last
+setting ``wins''.  So if you have two clauses that both match the
+group name, and both set, say @code{display}, the last setting will
+override the first.
+
+Parameters that are strings will be subjected to regexp substitution,
+as the @code{to-group} example shows.
 
 @vindex gnus-parameters-case-fold-search
 By default, whether comparing the group name and one of those regexps
@@ -20043,7 +20048,7 @@ matches will use the @code{Message-ID}s of these matching articles.)
 This will ensure that you can raise/lower the score of an entire thread,
 even though some articles in the thread may not have complete
 @code{References} headers.  Note that using this may lead to
-undeterministic scores of the articles in the thread.  (Using this match
+nondeterministic scores of the articles in the thread.  (Using this match
 key will lead to creation of @file{ADAPT} files.)
 @end table
 @end enumerate

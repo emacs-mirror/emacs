@@ -1,5 +1,5 @@
 /* Random utility Lisp functions.
-   Copyright (C) 1985-1987, 1993-1995, 1997-2011
+   Copyright (C) 1985-1987, 1993-1995, 1997-2012
 		 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
@@ -3254,7 +3254,7 @@ DEFUN ("base64-decode-string", Fbase64_decode_string, Sbase64_decode_string,
 
 /* Base64-decode the data at FROM of LENGTH bytes into TO.  If
    MULTIBYTE is nonzero, the decoded result should be in multibyte
-   form.  If NCHARS_RETRUN is not NULL, store the number of produced
+   form.  If NCHARS_RETURN is not NULL, store the number of produced
    characters in *NCHARS_RETURN.  */
 
 static EMACS_INT

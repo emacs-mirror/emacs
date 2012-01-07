@@ -1,5 +1,5 @@
 /* profile.c --- generate periodic events for profiling of Emacs Lisp code.
-   Copyright (C) 1992, 1994, 1999, 2001-2011  Free Software Foundation, Inc.
+   Copyright (C) 1992, 1994, 1999, 2001-2012  Free Software Foundation, Inc.
 
 Author: Boaz Ben-Zvi <boaz@lcs.mit.edu>
 

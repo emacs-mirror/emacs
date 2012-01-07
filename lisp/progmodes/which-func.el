@@ -1,6 +1,6 @@
 ;;; which-func.el --- print current function in mode line
 
-;; Copyright (C) 1994, 1997-1998, 2001-2011  Free Software Foundation, Inc.
+;; Copyright (C) 1994, 1997-1998, 2001-2012  Free Software Foundation, Inc.
 
 ;; Author:   Alex Rezinsky <alexr@msil.sps.mot.com>
 ;;           (doesn't seem to be responsive any more)
@@ -229,7 +229,9 @@ It creates the Imenu index for the buffer, if necessary."
 	 (error "Error in which-func-update: %S" info))))))
 
 ;;;###autoload
-(defalias 'which-func-mode 'which-function-mode)
+(defun which-func-mode (&optional arg)
+  (which-function-mode arg))
+(make-obsolete 'which-func-mode 'which-function-mode "24.1")
 
 (defvar which-func-update-timer nil)
 

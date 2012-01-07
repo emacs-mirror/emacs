@@ -1,5 +1,5 @@
 @c This is part of the Emacs manual.
-@c Copyright (C) 2004-2011  Free Software Foundation, Inc.
+@c Copyright (C) 2004-2012  Free Software Foundation, Inc.
 @c See file emacs.texi for copying conditions.
 @c
 @c This file is included either in emacs-xtra.texi (when producing the
@@ -22,7 +22,7 @@ extensions @samp{.f90}, @samp{.f95}, @samp{.f03} and @samp{.f08}.
 Customize @code{auto-mode-alist} to add more extensions.  GNU Fortran
 supports both free and fixed form.  This manual mainly documents Fortran
 mode, but the corresponding F90 mode features are mentioned when
-revelant.
+relevant.
 
   Fortran mode provides special motion commands for Fortran statements
 and subprograms, and indentation commands that understand Fortran
