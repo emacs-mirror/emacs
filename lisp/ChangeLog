@@ -1,5 +1,8 @@
 2012-01-07  Lars Magne Ingebrigtsen  <larsi@gnus.org>
 
+	* faces.el (set-face-attribute): Clarify the meaning of the nil
+	frame (bug#10294).
+
 	* subr.el (with-selected-frame): Mention that the selected frame
 	is restored (bug#9980).
 
