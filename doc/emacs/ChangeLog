@@ -1,3 +1,15 @@
+2012-01-07  Chong Yidong  <cyd@gnu.org>
+
+	* trouble.texi (Lossage): Refer to Bugs node for problems.
+	(DEL Does Not Delete): Don't use "usual erasure key" teminology.
+	(Screen Garbled): Don't refer to terminal "manufacturers".
+	(Total Frustration): Node deleted.  Eliza is documented in
+	Amusements now.
+	(Known Problems): More info about using the bug tracker.  Mention
+	debbugs package.
+	(Bug Criteria): Copyedits.
+	(Understanding Bug Reporting): Mention emacs -Q.
+
 2012-01-06  Chong Yidong  <cyd@gnu.org>
 
 	* custom.texi (Specifying File Variables): The mode: keyword

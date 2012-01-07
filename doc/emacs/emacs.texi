@@ -1088,9 +1088,7 @@ Dealing with Emacs Trouble
 * Text Garbled::        Garbage in the text.
 * Memory Full::         How to cope when you run out of memory.
 * After a Crash::       Recovering editing in an Emacs session that crashed.
-* Emergency Escape::    Emergency escape---
-                          What to do if Emacs stops responding.
-* Total Frustration::   When you are at your wits' end.
+* Emergency Escape::    What to do if Emacs stops responding.
 
 Reporting Bugs
 
