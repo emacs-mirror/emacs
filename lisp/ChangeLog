@@ -1,5 +1,8 @@
 2012-01-07  Lars Magne Ingebrigtsen  <larsi@gnus.org>
 
+	* subr.el (with-selected-frame): Mention that the selected frame
+	is restored (bug#9980).
+
 	* ibuffer.el (ibuffer-mode): List the bindings in the corrent map
 	(bug#9759).
 
