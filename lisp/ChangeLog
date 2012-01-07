@@ -1,8 +1,5 @@
 2012-01-07  Paul Eggert  <eggert@cs.ucla.edu>
 
-	* epg.el (epg--make-temp-file): Avoid permission race conditions
-	when creating temporary directories and files on older Emacs.
-
 	* files.el (move-file-to-trash): Preserve default file modes on error.
 	(Bug#10401)
 
