@@ -1,10 +1,9 @@
 ;;; org-publish.el --- publish related org-mode files as a website
-;; Copyright (C) 2006-2011  Free Software Foundation, Inc.
+;; Copyright (C) 2006-2012 Free Software Foundation, Inc.
 
 ;; Author: David O'Toole <dto@gnu.org>
 ;; Maintainer: Carsten Dominik <carsten DOT dominik AT gmail DOT com>
 ;; Keywords: hypermedia, outlines, wp
-;; Version: 7.7
 
 ;; This file is part of GNU Emacs.
 ;;
@@ -191,7 +190,7 @@ sitemap of files or summary page for a given project.
                            display folders first or last, respectively.
                            Any other value will mix files and folders.
   :sitemap-sort-files      The site map is normally sorted alphabetically.
-                           You can change this behavior setting this to
+                           You can change this behaviour setting this to
                            `chronologically', `anti-chronologically' or nil.
   :sitemap-ignore-case     Should sorting be case-sensitive?  Default nil.
 
@@ -278,12 +277,12 @@ in the sitemap."
   :type 'string)
 
 (defcustom org-publish-sitemap-file-entry-format "%t"
-  "How a sitemap file entry is formatted.
+  "How a sitemap file entry is formated.
 You could use brackets to delimit on what part the link will be.
 
 %t is the title.
 %a is the author.
-%d is the date formatted using `org-publish-sitemap-date-format'."
+%d is the date formated using `org-publish-sitemap-date-format'."
   :group 'org-publish
   :type 'string)
 
@@ -369,6 +368,8 @@ This is a compatibility function for Emacsen without `delete-dups'."
 
 (declare-function org-publish-delete-dups "org-publish" (list))
 (declare-function find-lisp-find-files "find-lisp" (directory regexp))
+(declare-function org-pop-to-buffer-same-window
+		  "org-compat" (&optional buffer-or-name norecord label))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;; Getting project information out of org-publish-project-alist
@@ -559,7 +560,7 @@ PUB-DIR is the publishing directory."
     (make-directory pub-dir t))
   (let ((visiting (find-buffer-visiting filename)))
     (save-excursion
-      (switch-to-buffer (or visiting (find-file filename)))
+      (org-pop-to-buffer-same-window (or visiting (find-file filename)))
       (let* ((plist (cons :buffer-will-be-killed (cons t plist)))
 	     (init-buf (current-buffer))
 	     (init-point (point))
@@ -599,6 +600,7 @@ PUB-DIR is the publishing directory."
 		   org-export-preprocess-after-headline-targets-hook)
 	   org-export-preprocess-after-headline-targets-hook)))
      ,@body))
+(def-edebug-spec org-publish-with-aux-preprocess-maybe (body))
 
 (defvar project-plist)
 (defun org-publish-org-to-latex (plist filename pub-dir)
@@ -682,7 +684,7 @@ See `org-publish-projects'."
 	 (pub-dir
 	  (file-name-as-directory
 	   (file-truename
-	    (or (plist-get project-plist :publishing-directory)
+	    (or (eval (plist-get project-plist :publishing-directory))
 		(error "Project %s does not have :publishing-directory defined"
 		       (car project))))))
 	 tmp-pub-dir)
@@ -860,7 +862,7 @@ system's modification time.
 It returns time in `current-time' format."
   (let ((visiting (find-buffer-visiting file)))
     (save-excursion
-      (switch-to-buffer (or visiting (find-file-noselect file nil t)))
+      (org-pop-to-buffer-same-window (or visiting (find-file-noselect file nil t)))
       (let* ((plist (org-infile-export-plist))
 	     (date (plist-get plist :date)))
 	(unless visiting
@@ -982,7 +984,9 @@ the project."
 	 main last-main letter last-letter file sub link tgext)
     ;; `files' contains the list of relative file names
     (dolist (file files)
-      (setq origfile (substring file 1 -1))
+      (setq origfile
+	    (concat (file-name-directory file)
+		    (substring (file-name-nondirectory file) 1 -1)))
       (setq buf (find-file-noselect file))
       (with-current-buffer buf
 	(goto-char (point-min))
@@ -993,7 +997,7 @@ the project."
       (kill-buffer buf))
     (setq index (sort index (lambda (a b) (string< (downcase (car a))
 						   (downcase (car b))))))
-    (setq ibuffer (find-file-noselect (expand-file-name "theindex.org" directory)))
+    (setq ibuffer (find-file-noselect (expand-file-name "theindex.inc" directory)))
     (with-current-buffer ibuffer
       (erase-buffer)
       (insert "* Index\n")
@@ -1020,7 +1024,16 @@ the project."
 	    (insert "     - " link "\n")
 	  (insert "   - " link "\n")))
       (save-buffer))
-    (kill-buffer ibuffer)))
+    (kill-buffer ibuffer)
+    ;; Create theindex.org if it doesn't exist already
+    (let ((index-file (expand-file-name "theindex.org" directory)))
+      (unless (file-exists-p index-file)
+       (setq ibuffer (find-file-noselect index-file))
+       (with-current-buffer ibuffer
+         (erase-buffer)
+         (insert "\n\n#+include: \"theindex.inc\"\n\n")
+         (save-buffer))
+       (kill-buffer ibuffer)))))
 
 ;; Caching functions:
 
@@ -1103,7 +1116,7 @@ so that the file including them will be republished as well."
       (setq buf (find-file (expand-file-name filename)))
       (with-current-buffer buf
 	(goto-char (point-min))
-	(while (re-search-forward "^#\\+INCLUDE:[ \t]+\"?\\([^ \t\"]*\\)\"?[ \t]*.*$" nil t)
+	(while (re-search-forward "^#\\+INCLUDE:[ \t]+\"?\\([^ \t\n\r\"]*\\)\"?[ \t]*.*$" nil t)
 	  (let* ((included-file (expand-file-name (match-string 1))))
 	    (add-to-list 'included-files-ctime
 			 (org-publish-cache-ctime-of-src included-file) t))))
@@ -1179,7 +1192,5 @@ Returns value on success, else nil."
      (cadr (nth 5 src-attr)))))
 
 (provide 'org-publish)
-
-
 
 ;;; org-publish.el ends here

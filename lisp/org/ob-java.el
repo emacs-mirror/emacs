@@ -1,11 +1,10 @@
 ;;; ob-java.el --- org-babel functions for java evaluation
 
-;; Copyright (C) 2011  Free Software Foundation, Inc.
+;; Copyright (C) 2011-2012  Free Software Foundation, Inc.
 
 ;; Author: Eric Schulte
 ;; Keywords: literate programming, reproducible research
 ;; Homepage: http://orgmode.org
-;; Version: 7.7
 
 ;; This file is part of GNU Emacs.
 
@@ -46,11 +45,14 @@
 			 "Can't compile a java block without a classname")))
 	 (packagename (file-name-directory classname))
 	 (src-file (concat classname ".java"))
+	 (cmpflag (or (cdr (assoc :cmpflag params)) ""))
+	 (cmdline (or (cdr (assoc :cmdline params)) ""))
 	 (full-body (org-babel-expand-body:generic body params))
 	 (compile
 	  (progn (with-temp-file src-file (insert full-body))
 		 (org-babel-eval
-		  (concat org-babel-java-compiler " " src-file) ""))))
+		  (concat org-babel-java-compiler
+			  " " cmpflag " " src-file) ""))))
     ;; created package-name directories if missing
     (unless (or (not packagename) (file-exists-p packagename))
       (make-directory packagename 'parents))
@@ -65,7 +67,8 @@
 	 (cdr (assoc :colname-names params)) (cdr (assoc :colnames params)))
 	(org-babel-pick-name
 	 (cdr (assoc :rowname-names params)) (cdr (assoc :rownames params)))))
-     (org-babel-eval (concat org-babel-java-command " " classname) ""))))
+     (org-babel-eval (concat org-babel-java-command
+			     " " cmdline " " classname) ""))))
 
 (provide 'ob-java)
 

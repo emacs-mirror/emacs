@@ -1,6 +1,6 @@
 ;;; sql.el --- specialized comint.el for SQL interpreters
 
-;; Copyright (C) 1998-2011  Free Software Foundation, Inc.
+;; Copyright (C) 1998-2012  Free Software Foundation, Inc.
 
 ;; Author: Alex Schroeder <alex@gnu.org>
 ;; Maintainer: Michael Mauger <mmaug@yahoo.com>
@@ -219,6 +219,8 @@
 ;; Drew Adams <drew.adams@oracle.com> -- Emacs 20 support
 ;; Harald Maier <maierh@myself.com> -- sql-send-string
 ;; Stefan Monnier <monnier@iro.umontreal.ca> -- font-lock corrections; code polish
+;; Paul Sleigh <bat@flurf.net> -- MySQL keyword enhancement
+;; Andrew Schein <andrew@andrewschein.com> -- sql-port bug
 
 
 
@@ -808,6 +810,14 @@ commands when the input history is read, as if you had set
 
 This is called by `sql-set-sqli-buffer' when the value of `sql-buffer'
 is changed."
+  :type 'hook
+  :group 'SQL)
+
+(defcustom sql-login-hook '()
+  "Hook for interacting with a buffer in `sql-interactive-mode'.
+
+This hook is invoked in a buffer once it is ready to accept input
+for the first time."
   :type 'hook
   :group 'SQL)
 
@@ -1594,6 +1604,7 @@ to add functions and PL/SQL keywords.")
 "atan" "atan2" "avg" "bfilename" "bin_to_num" "bitand" "cardinality"
 "cast" "ceil" "chartorowid" "chr" "cluster_id" "cluster_probability"
 "cluster_set" "coalesce" "collect" "compose" "concat" "convert" "corr"
+"connect_by_root" "connect_by_iscycle" "connect_by_isleaf"
 "corr_k" "corr_s" "cos" "cosh" "count" "covar_pop" "covar_samp"
 "cube_table" "cume_dist" "current_date" "current_timestamp" "cv"
 "dataobj_to_partition" "dbtimezone" "decode" "decompose" "deletexml"
@@ -2279,7 +2290,7 @@ you define your own `sql-mode-solid-font-lock-keywords'.")
 "collation" "column" "columns" "comment" "committed" "concurrent"
 "constraint" "create" "cross" "data" "database" "default"
 "delay_key_write" "delayed" "delete" "desc" "directory" "disable"
-"distinct" "distinctrow" "do" "drop" "dumpfile" "duplicate" "else"
+"distinct" "distinctrow" "do" "drop" "dumpfile" "duplicate" "else" "elseif"
 "enable" "enclosed" "end" "escaped" "exists" "fields" "first" "for"
 "force" "foreign" "from" "full" "fulltext" "global" "group" "handler"
 "having" "heap" "high_priority" "if" "ignore" "in" "index" "infile"
@@ -3423,7 +3434,7 @@ list of SQLi command strings."
                                                          :prompt-regexp))
           (start nil))
       (with-current-buffer buf
-        (toggle-read-only -1)
+        (setq view-read-only nil)
         (unless save-prior
           (erase-buffer))
         (goto-char (point-max))
@@ -3532,7 +3543,7 @@ buffer is popped into a view window. "
                        (get-lru-window))))
       (with-current-buffer outbuf
         (set-buffer-modified-p nil)
-        (toggle-read-only 1))
+        (setq view-read-only t))
       (view-buffer-other-window outbuf)
       (when one-win
         (shrink-window-if-larger-than-buffer)))))
@@ -4097,7 +4108,8 @@ the call to \\[sql-product-interactive] with
               (setq new-sqli-buffer (current-buffer))
               (when new-name
                 (sql-rename-buffer new-name))
-              (setq sql-buffer (buffer-name new-sqli-buffer))
+              (set (make-local-variable 'sql-buffer) 
+                   (buffer-name new-sqli-buffer))
 
               ;; Set `sql-buffer' in the start buffer
               (with-current-buffer start-buffer
@@ -4107,6 +4119,7 @@ the call to \\[sql-product-interactive] with
 
               ;; All done.
               (message "Login...done")
+              (run-hooks 'sql-login-hook)
               (pop-to-buffer new-sqli-buffer)))))
     (message "No default SQL product defined.  Set `sql-product'.")))
 

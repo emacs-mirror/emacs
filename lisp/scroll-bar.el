@@ -1,6 +1,6 @@
 ;;; scroll-bar.el --- window system-independent scroll bar support
 
-;; Copyright (C) 1993-1995, 1999-2011 Free Software Foundation, Inc.
+;; Copyright (C) 1993-1995, 1999-2012 Free Software Foundation, Inc.
 
 ;; Maintainer: FSF
 ;; Keywords: hardware

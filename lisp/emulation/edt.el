@@ -1,6 +1,6 @@
 ;;; edt.el --- enhanced EDT keypad mode emulation for GNU Emacs
 
-;; Copyright (C) 1986, 1992-1995, 2000-2011  Free Software Foundation, Inc.
+;; Copyright (C) 1986, 1992-1995, 2000-2012  Free Software Foundation, Inc.
 
 ;; Author: Kevin Gallagher <Kevin.Gallagher@boeing.com>
 ;; Maintainer: Kevin Gallagher <Kevin.Gallagher@boeing.com>

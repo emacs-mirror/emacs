@@ -1,6 +1,6 @@
 ;;; assoc.el --- insert/delete functions on association lists
 
-;; Copyright (C) 1996, 2001-2011  Free Software Foundation, Inc.
+;; Copyright (C) 1996, 2001-2012  Free Software Foundation, Inc.
 
 ;; Author: Barry A. Warsaw <bwarsaw@cen.com>
 ;; Keywords: extensions

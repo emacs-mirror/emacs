@@ -27,7 +27,7 @@ BEGIN
 	    VALUE "FileDescription", "GNU Emacs: The extensible self-documenting text editor\0"
 	    VALUE "FileVersion", "24, 0, 92, 0\0"
 	    VALUE "InternalName", "Emacs\0"
-	    VALUE "LegalCopyright", "Copyright (C) 2001-2011\0"
+	    VALUE "LegalCopyright", "Copyright (C) 2001-2012\0"
 	    VALUE "OriginalFilename", "emacs.exe"
 	    VALUE "ProductName", "Emacs\0"
 	    VALUE "ProductVersion", "24, 0, 92, 0\0"

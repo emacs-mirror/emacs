@@ -1,6 +1,6 @@
 @c -*-texinfo-*-
 @c This is part of the GNU Emacs Lisp Reference Manual.
-@c Copyright (C) 1990-1993, 1999, 2001-2011  Free Software Foundation, Inc.
+@c Copyright (C) 1990-1993, 1999, 2001-2012  Free Software Foundation, Inc.
 @c See the file elisp.texi for copying conditions.
 @setfilename ../../info/maps
 @node Standard Keymaps, Standard Hooks, Standard Buffer-Local Variables, Top
@@ -144,7 +144,7 @@ cell.
 
 @item Info-edit-map
 @vindex Info-edit-map
-A sparse keymap used by the @kbd{e} command of Info.
+A sparse keymap used by the @code{Info-edit} command.
 
 @item Info-mode-map
 @vindex Info-mode-map

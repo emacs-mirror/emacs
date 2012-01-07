@@ -1,6 +1,6 @@
 ;;; texinfmt.el --- format Texinfo files into Info files
 
-;; Copyright (C) 1985-1986, 1988, 1990-1998, 2000-2011
+;; Copyright (C) 1985-1986, 1988, 1990-1998, 2000-2012
 ;;   Free Software Foundation, Inc.
 
 ;; Maintainer: Robert J. Chassell <bug-texinfo@gnu.org>

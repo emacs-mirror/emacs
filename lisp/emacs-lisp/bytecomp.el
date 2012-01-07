@@ -1,6 +1,6 @@
 ;;; bytecomp.el --- compilation of Lisp code into byte code -*- lexical-binding: t -*-
 
-;; Copyright (C) 1985-1987, 1992, 1994, 1998, 2000-2011
+;; Copyright (C) 1985-1987, 1992, 1994, 1998, 2000-2012
 ;;   Free Software Foundation, Inc.
 
 ;; Author: Jamie Zawinski <jwz@lucid.com>
@@ -1745,7 +1745,9 @@ The value is non-nil if there were no errors, nil if errors."
              (enable-local-eval nil))
 	;; Arg of t means don't alter enable-local-variables.
         (normal-mode t)
-        (setq filename buffer-file-name))
+        ;; There may be a file local variable setting (bug#10419).
+        (setq buffer-read-only nil
+              filename buffer-file-name))
       ;; Set the default directory, in case an eval-when-compile uses it.
       (setq default-directory (file-name-directory filename)))
     ;; Check if the file's local variables explicitly specify not to

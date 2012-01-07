@@ -1,6 +1,6 @@
 ;;; sgml-mode.el --- SGML- and HTML-editing modes -*- coding: utf-8 -*-
 
-;; Copyright (C) 1992, 1995-1996, 1998, 2001-2011
+;; Copyright (C) 1992, 1995-1996, 1998, 2001-2012
 ;;   Free Software Foundation, Inc.
 
 ;; Author: James Clark <jjc@jclark.com>

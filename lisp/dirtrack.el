@@ -1,6 +1,6 @@
 ;;; dirtrack.el --- Directory Tracking by watching the prompt
 
-;; Copyright (C) 1996, 2001-2011 Free Software Foundation, Inc.
+;; Copyright (C) 1996, 2001-2012 Free Software Foundation, Inc.
 
 ;; Author: Peter Breton <pbreton@cs.umb.edu>
 ;; Created: Sun Nov 17 1996
@@ -122,13 +122,11 @@
 (defcustom dirtrack-list (list "^emacs \\([a-zA-Z]:.*\\)>" 1)
   "List for directory tracking.
 First item is a regexp that describes where to find the path in a prompt.
-Second is a number, the regexp group to match.  Optional third item is
-whether the prompt is multi-line.  If nil or omitted, prompt is assumed to
-be on a single line."
+Second is a number, the regexp group to match."
   :group 'dirtrack
   :type  '(sexp (regexp  :tag "Prompt Expression")
-		(integer :tag "Regexp Group")
-		(boolean :tag "Multiline Prompt")))
+		(integer :tag "Regexp Group"))
+  :version "24.1")
 
 (make-variable-buffer-local 'dirtrack-list)
 
@@ -188,11 +186,13 @@ With a prefix argument ARG, enable Dirtrack mode if ARG is
 positive, and disable it otherwise.  If called from Lisp, enable
 the mode if ARG is omitted or nil.
 
-This method requires that your shell prompt contain the full
-current working directory at all times, and that `dirtrack-list'
-is set to match the prompt.  This is an alternative to
-`shell-dirtrack-mode', which works differently, by tracking `cd'
-and similar commands which change the shell working directory."
+This method requires that your shell prompt contain the current
+working directory at all times, and that you set the variable
+`dirtrack-list' to match the prompt.
+
+This is an alternative to `shell-dirtrack-mode', which works by
+tracking `cd' and similar commands which change the shell working
+directory."
   nil nil nil
   (if dirtrack-mode
       (add-hook 'comint-preoutput-filter-functions 'dirtrack nil t)
@@ -213,63 +213,67 @@ and similar commands which change the shell working directory."
 (define-obsolete-variable-alias 'dirtrack-debug 'dirtrack-debug-mode "23.1")
 
 
-(defun dirtrack-debug-message (string)
-  "Insert string at the end of `dirtrack-debug-buffer'."
+(defun dirtrack-debug-message (msg1 msg2)
+  "Insert strings at the end of `dirtrack-debug-buffer'."
   (when dirtrack-debug-mode
     (with-current-buffer (get-buffer-create dirtrack-debug-buffer)
       (goto-char (point-max))
-      (insert (concat string "\n")))))
+      (insert msg1 msg2 "\n"))))
 
 ;;;###autoload
 (defun dirtrack (input)
-  "Determine the current directory by scanning the process output for a prompt.
-The prompt to look for is the first item in `dirtrack-list'.
-
-You can toggle directory tracking by using the function `dirtrack-mode'.
-
-If directory tracking does not seem to be working, you can use the
-function `dirtrack-debug-mode' to turn on debugging output."
-  (unless (or (null dirtrack-mode)
-              (eq (point) (point-min)))     ; no output?
-    (let (prompt-path orig-prompt-path
-	  (current-dir default-directory)
-	  (dirtrack-regexp    (nth 0 dirtrack-list))
-	  (match-num	      (nth 1 dirtrack-list)))
-          ;; Currently unimplemented, it seems.  --Stef
-	  ;; (multi-line      (nth 2 dirtrack-list)))
-      (save-excursion
-        ;; No match
-        (if (not (string-match dirtrack-regexp input))
-            (dirtrack-debug-message
-             (format "Input `%s' failed to match `dirtrack-list'" input))
-          (setq prompt-path (match-string match-num input))
-          ;; Empty string
-          (if (not (> (length prompt-path) 0))
-              (dirtrack-debug-message "Match is empty string")
-            ;; Transform prompts into canonical forms
-            (setq orig-prompt-path (funcall dirtrack-directory-function
-                                            prompt-path)
-                  prompt-path (shell-prefixed-directory-name orig-prompt-path)
-                  current-dir (funcall dirtrack-canonicalize-function
-                                       current-dir))
-            (dirtrack-debug-message
-             (format "Prompt is %s\nCurrent directory is %s"
-                     prompt-path current-dir))
-            ;; Compare them
-            (if (or (string= current-dir prompt-path)
-                    (string= current-dir (abbreviate-file-name prompt-path)))
-                (dirtrack-debug-message (format "Not changing directory"))
-              ;; It's possible that Emacs will think the directory
-              ;; won't exist (eg, rlogin buffers)
-              (if (file-accessible-directory-p prompt-path)
-                  ;; Change directory. shell-process-cd adds the prefix, so we
-                  ;; need to give it the original (un-prefixed) path.
-                  (and (shell-process-cd orig-prompt-path)
-                       (run-hooks 'dirtrack-directory-change-hook)
-                       (dirtrack-debug-message
-                        (format "Changing directory to %s" prompt-path)))
-                (warn "Directory %s does not exist" prompt-path)))
-            )))))
+  "Determine the current directory from the process output for a prompt.
+This filter function is used by `dirtrack-mode'.  It looks for
+the prompt specified by `dirtrack-list', and calls
+`shell-process-cd' if the directory seems to have changed away
+from `default-directory'."
+  (when (and dirtrack-mode
+	     (not (eq (point) (point-min)))) ; there must be output
+    (save-excursion ; What's this for? -- cyd
+      (if (not (string-match (nth 0 dirtrack-list) input))
+	  ;; No match
+	  (dirtrack-debug-message
+	   "Input failed to match `dirtrack-list': " input)
+	(let ((prompt-path (match-string (nth 1 dirtrack-list) input))
+	      temp)
+	  (cond
+	   ;; Don't do anything for empty string
+	   ((string-equal prompt-path "")
+	    (dirtrack-debug-message "Prompt match gives empty string: " input))
+	   ;; If the prompt contains an absolute file name, call
+	   ;; `shell-process-cd' if the directory has changed.
+	   ((file-name-absolute-p prompt-path)
+	    ;; Transform prompts into canonical forms
+	    (let ((orig-prompt-path (funcall dirtrack-directory-function
+					     prompt-path))
+		  (current-dir      (funcall dirtrack-canonicalize-function
+					     default-directory)))
+	      (setq prompt-path (shell-prefixed-directory-name orig-prompt-path))
+	      ;; Compare them
+	      (if (or (string-equal current-dir prompt-path)
+		      (string-equal (expand-file-name current-dir)
+				    (expand-file-name prompt-path)))
+		  (dirtrack-debug-message "Not changing directory: " current-dir)
+		;; It's possible that Emacs thinks the directory
+		;; doesn't exist (e.g. rlogin buffers)
+		(if (file-accessible-directory-p prompt-path)
+		    ;; `shell-process-cd' adds the prefix, so we need
+		    ;; to give it the original (un-prefixed) path.
+		    (progn
+		      (shell-process-cd orig-prompt-path)
+		      (run-hooks 'dirtrack-directory-change-hook)
+		      (dirtrack-debug-message "Changing directory to "
+					      prompt-path))
+		  (dirtrack-debug-message "Not changing to non-existent directory: "
+					  prompt-path)))))
+	   ;; If the file name is non-absolute, try and see if it
+	   ;; seems to be up or down from where we were.
+	   ((string-match "\\`\\(.*\\)\\(?:/.*\\)?\n\\(.*/\\)\\1\\(?:/.*\\)?\\'"
+			  (setq temp
+				(concat prompt-path "\n" default-directory)))
+	    (shell-process-cd (concat (match-string 2 temp)
+				      prompt-path))
+	    (run-hooks 'dirtrack-directory-change-hook)))))))
   input)
 
 (provide 'dirtrack)

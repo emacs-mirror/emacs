@@ -1,6 +1,6 @@
 ;;; gnus-group.el --- group mode commands for Gnus
 
-;; Copyright (C) 1996-2011  Free Software Foundation, Inc.
+;; Copyright (C) 1996-2012  Free Software Foundation, Inc.
 
 ;; Author: Lars Magne Ingebrigtsen <larsi@gnus.org>
 ;; Keywords: news
@@ -2277,8 +2277,8 @@ confirmation is required."
 					      number)
   "Read GROUP from METHOD as an ephemeral group.
 If ACTIVATE, request the group first.
-If QUIT-CONFIG, use that window configuration when exiting from the
-ephemeral group.
+If QUIT-CONFIG, use that Gnus window configuration name when
+exiting from the ephemeral group.
 If REQUEST-ONLY, don't actually read the group; just request it.
 If SELECT-ARTICLES, only select those articles.
 If PARAMETERS, use those as the group parameters.

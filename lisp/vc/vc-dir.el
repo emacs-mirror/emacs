@@ -1,6 +1,6 @@
 ;;; vc-dir.el --- Directory status display under VC
 
-;; Copyright (C) 2007-2011  Free Software Foundation, Inc.
+;; Copyright (C) 2007-2012  Free Software Foundation, Inc.
 
 ;; Author:   Dan Nicolaescu <dann@ics.uci.edu>
 ;; Keywords: vc tools

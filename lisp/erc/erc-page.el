@@ -1,6 +1,6 @@
 ;; erc-page.el - CTCP PAGE support for ERC
 
-;; Copyright (C) 2002, 2004, 2006-2011 Free Software Foundation
+;; Copyright (C) 2002, 2004, 2006-2012 Free Software Foundation
 
 ;; This file is part of GNU Emacs.
 

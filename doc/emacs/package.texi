@@ -1,5 +1,5 @@
 @c This is part of the Emacs manual.
-@c Copyright (C) 1985-1987, 1993-1995, 1997, 2000-2011
+@c Copyright (C) 1985-1987, 1993-1995, 1997, 2000-2012
 @c   Free Software Foundation, Inc.
 @c See file emacs.texi for copying conditions.
 @node Packages
@@ -20,7 +20,7 @@ via this buffer.  @xref{Package Menu}.
 
 @findex describe-package
   The command @kbd{C-h P} (@code{describe-package}) prompts for the
-name of a package, and displays a help buffer describing that
+name of a package, and displays a help buffer describing the
 attributes of the package and the features that it implements.
 
   By default, Emacs downloads packages from a @dfn{package archive}
@@ -119,9 +119,9 @@ dependencies; also, delete all packages marked with @kbd{d}
 (@code{package-menu-execute}).  This also removes the marks.
 
 @item r
-Refresh the package list (@code{package-menu-refresh}).  This also
-retrieves the list of available packages from the package archive
-again.
+Refresh the package list (@code{package-menu-refresh}).  This fetches
+the list of available packages from the package archive again, and
+recomputes the package list.
 @end table
 
 @noindent

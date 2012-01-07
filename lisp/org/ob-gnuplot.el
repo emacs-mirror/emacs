@@ -1,11 +1,10 @@
 ;;; ob-gnuplot.el --- org-babel functions for gnuplot evaluation
 
-;; Copyright (C) 2009-2011  Free Software Foundation, Inc.
+;; Copyright (C) 2009-2012  Free Software Foundation, Inc.
 
 ;; Author: Eric Schulte
 ;; Keywords: literate programming, reproducible research
 ;; Homepage: http://orgmode.org
-;; Version: 7.7
 
 ;; This file is part of GNU Emacs.
 
@@ -35,7 +34,7 @@
 ;;; Requirements:
 
 ;; - gnuplot :: http://www.gnuplot.info/
-;; 
+;;
 ;; - gnuplot-mode :: http://cars9.uchicago.edu/~ravel/software/gnuplot-mode.html
 
 ;;; Code:
@@ -149,7 +148,10 @@ This function is called by `org-babel-execute-src-block'."
                   (shell-command-to-string
 		   (format
 		    "gnuplot \"%s\""
-		    (org-babel-process-file-name script-file))))
+		    (org-babel-process-file-name
+		     script-file
+		     (if (member system-type '(cygwin windows-nt ms-dos))
+			 t nil)))))
             (message output))
         (with-temp-buffer
           (insert (concat body "\n"))

@@ -1,6 +1,6 @@
 ;;; holidays.el --- holiday functions for the calendar package
 
-;; Copyright (C) 1989-1990, 1992-1994, 1997, 2001-2011
+;; Copyright (C) 1989-1990, 1992-1994, 1997, 2001-2012
 ;;   Free Software Foundation, Inc.
 
 ;; Author: Edward M. Reingold <reingold@cs.uiuc.edu>

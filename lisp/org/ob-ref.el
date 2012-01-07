@@ -1,12 +1,11 @@
 ;;; ob-ref.el --- org-babel functions for referencing external data
 
-;; Copyright (C) 2009-2011  Free Software Foundation, Inc.
+;; Copyright (C) 2009-2012  Free Software Foundation, Inc.
 
 ;; Author: Eric Schulte
 ;;	Dan Davison
 ;; Keywords: literate programming, reproducible research
 ;; Homepage: http://orgmode.org
-;; Version: 7.7
 
 ;; This file is part of GNU Emacs.
 
@@ -61,9 +60,14 @@
 (declare-function org-narrow-to-subtree "org" ())
 (declare-function org-id-find-id-in-file "org-id" (id file &optional markerp))
 (declare-function org-show-context "org" (&optional key))
+(declare-function org-pop-to-buffer-same-window
+		  "org-compat" (&optional buffer-or-name norecord label))
 
 (defvar org-babel-ref-split-regexp
   "[ \f\t\n\r\v]*\\(.+?\\)[ \f\t\n\r\v]*=[ \f\t\n\r\v]*\\(.+\\)[ \f\t\n\r\v]*")
+
+(defvar org-babel-update-intermediate nil
+  "Update the in-buffer results of code blocks executed to resolve references.")
 
 (defun org-babel-ref-parse (assignment)
   "Parse a variable ASSIGNMENT in a header argument.
@@ -94,7 +98,7 @@ the variable."
 	       (m (when file (org-id-find-id-in-file id file 'marker))))
 	  (when (and file m)
 	    (message "file:%S" file)
-	    (switch-to-buffer (marker-buffer m))
+	    (org-pop-to-buffer-same-window (marker-buffer m))
 	    (goto-char m)
 	    (move-marker m nil)
 	    (org-show-context)
@@ -147,21 +151,19 @@ the variable."
       (save-restriction
 	(widen)
 	(goto-char (point-min))
-	(if (let* ((rx (regexp-quote ref))
-		   (res-rx (concat org-babel-result-regexp rx "[ \t]*$"))
-		   (src-rx (concat org-babel-src-name-regexp
-				   rx "\\(\(.*\)\\)?" "[ \t]*$")))
+	(if (let ((src-rx (org-babel-named-src-block-regexp-for-name ref))
+		  (res-rx (org-babel-named-data-regexp-for-name ref)))
 	      ;; goto ref in the current buffer
-	      (or (and (not args)
-		       (or (re-search-forward res-rx nil t)
-			   (re-search-backward res-rx nil t)))
-		  (re-search-forward src-rx nil t)
-		  (re-search-backward src-rx nil t)
-		  ;; check for local or global headlines by id
-		  (setq id (org-babel-ref-goto-headline-id ref))
-		  ;; check the Library of Babel
-		  (setq lob-info (cdr (assoc (intern ref)
-					     org-babel-library-of-babel)))))
+	      (or
+	       ;; check for code blocks
+	       (re-search-forward src-rx nil t)
+	       ;; check for named data
+	       (re-search-forward res-rx nil t)
+	       ;; check for local or global headlines by id
+	       (setq id (org-babel-ref-goto-headline-id ref))
+	       ;; check the Library of Babel
+	       (setq lob-info (cdr (assoc (intern ref)
+					  org-babel-library-of-babel)))))
 	    (unless (or lob-info id) (goto-char (match-beginning 0)))
 	  ;; ;; TODO: allow searching for names in other buffers
 	  ;; (setq id-loc (org-id-find ref 'marker)
@@ -172,6 +174,12 @@ the variable."
 	(cond
 	 (lob-info (setq type 'lob))
 	 (id (setq type 'id))
+	 ((and (looking-at org-babel-src-name-regexp)
+	       (save-excursion
+		 (forward-line 1)
+		 (or (looking-at org-babel-src-block-regexp)
+		     (looking-at org-babel-multi-line-header-regexp))))
+	  (setq type 'source-block))
 	 (t (while (not (setq type (org-babel-ref-at-ref-p)))
 	      (forward-line 1)
 	      (beginning-of-line)
@@ -184,7 +192,9 @@ the variable."
 		  (table        (org-babel-read-table))
 		  (list         (org-babel-read-list))
 		  (file         (org-babel-read-link))
-		  (source-block (org-babel-execute-src-block nil nil params))
+		  (source-block (org-babel-execute-src-block
+				 nil nil (if org-babel-update-intermediate
+					     nil params)))
 		  (lob          (org-babel-execute-src-block
 				 nil lob-info params))
 		  (id           (org-babel-ref-headline-body)))))
@@ -234,20 +244,7 @@ to \"0:-1\"."
 
 (defun org-babel-ref-split-args (arg-string)
   "Split ARG-STRING into top-level arguments of balanced parenthesis."
-  (let ((index 0) (depth 0) (buffer "") holder return)
-    ;; crawl along string, splitting at any ","s which are on the top level
-    (while (< index (length arg-string))
-      (setq holder (substring arg-string index (+ 1 index)))
-      (setq buffer (concat buffer holder))
-      (setq index (+ 1 index))
-      (cond
-       ((string= holder ",")
-        (when (= depth 0)
-          (setq return (cons (substring buffer 0 -1) return))
-          (setq buffer "")))
-       ((or (string= holder "(") (string= holder "[")) (setq depth (+ depth 1)))
-       ((or (string= holder ")") (string= holder "]")) (setq depth (- depth 1)))))
-    (mapcar #'org-babel-trim (reverse (cons buffer return)))))
+  (mapcar #'org-babel-trim (org-babel-balanced-split arg-string 44)))
 
 (defvar org-bracket-link-regexp)
 (defun org-babel-ref-at-ref-p ()

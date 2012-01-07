@@ -1,6 +1,6 @@
 ;;; gnus.el --- a newsreader for GNU Emacs
 
-;; Copyright (C) 1987-1990, 1993-1998, 2000-2011
+;; Copyright (C) 1987-1990, 1993-1998, 2000-2012
 ;;   Free Software Foundation, Inc.
 
 ;; Author: Masanobu UMEDA <umerin@flab.flab.fujitsu.junet>
@@ -3860,13 +3860,14 @@ The function `gnus-group-find-parameter' will do that for you."
 	  ;; The car is regexp matching for matching the group name.
 	  (when (string-match (car head) group)
 	    ;; The cdr is the parameters.
-	    (setq result (gnus-group-parameter-value (cdr head)
-						     symbol allow-list))
-	    (when result
-	      ;; Expand if necessary.
-	      (if (and (stringp result) (string-match "\\\\[0-9&]" result))
-		  (setq result (gnus-expand-group-parameter (car head)
-							    result group))))))
+	    (let ((this-result
+		   (gnus-group-parameter-value (cdr head) symbol allow-list t)))
+	      (when this-result
+		(setq result (car this-result))
+		;; Expand if necessary.
+		(if (and (stringp result) (string-match "\\\\[0-9&]" result))
+		    (setq result (gnus-expand-group-parameter
+				  (car head) result group)))))))
 	;; Done.
 	result))))
 
@@ -3876,7 +3877,9 @@ If SYMBOL, return the value of that symbol in the group parameters.
 
 If you call this function inside a loop, consider using the faster
 `gnus-group-fast-parameter' instead."
-  (with-current-buffer gnus-group-buffer
+  (with-current-buffer (if (buffer-live-p gnus-group-buffer)
+			   gnus-group-buffer
+			 (current-buffer))
     (if symbol
 	(gnus-group-fast-parameter group symbol allow-list)
       (nconc

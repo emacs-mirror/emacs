@@ -1,11 +1,10 @@
 ;;; org-colview.el --- Column View in Org-mode
 
-;; Copyright (C) 2004-2011  Free Software Foundation, Inc.
+;; Copyright (C) 2004-2012 Free Software Foundation, Inc.
 
 ;; Author: Carsten Dominik <carsten at orgmode dot org>
 ;; Keywords: outlines, hypermedia, calendar, wp
 ;; Homepage: http://orgmode.org
-;; Version: 7.7
 ;;
 ;; This file is part of GNU Emacs.
 ;;
@@ -187,7 +186,7 @@ This is the compiled version of the format.")
 		    (cons "ITEM"
 			  ;; When in a buffer, get the whole line,
 			  ;; we'll clean it later…
-			  (if (org-mode-p)
+			  (if (eq major-mode 'org-mode)
 			      (save-match-data
 				(org-no-properties
 				 (org-remove-tabs
@@ -209,9 +208,9 @@ This is the compiled version of the format.")
 			  (funcall org-columns-modify-value-for-display-function
 				   title val))
 			 ((equal property "ITEM")
-			  (if (org-mode-p)
-			      (org-columns-cleanup-item
-			       val org-columns-current-fmt-compiled)))
+			  (org-columns-cleanup-item
+			   val org-columns-current-fmt-compiled
+			   (or org-complex-heading-regexp cphr)))
 			 ((and calc (functionp calc)
 			       (not (string= val ""))
 			       (not (get-text-property 0 'org-computed val)))
@@ -341,24 +340,28 @@ for the duration of the command.")
       (when (local-variable-p 'org-colview-initial-truncate-line-value)
 	(setq truncate-lines org-colview-initial-truncate-line-value)))))
 
-(defun org-columns-cleanup-item (item fmt)
-  "Remove from ITEM what is a column in the format FMT."
-  (if (not org-complex-heading-regexp)
-      item
-    (when (string-match org-complex-heading-regexp item)
-      (setq item
-	    (concat
-	     (org-add-props (match-string 1 item) nil
-	       'org-whitespace (* 2 (1- (org-reduced-level (- (match-end 1) (match-beginning 1))))))
-	     (and (match-end 2) (not (assoc "TODO" fmt)) (concat " " (match-string 2 item)))
-	     (and (match-end 3) (not (assoc "PRIORITY" fmt)) (concat " " (match-string 3 item)))
-	     " " (save-match-data (org-columns-compact-links (match-string 4 item)))
-	     (and (match-end 5) (not (assoc "TAGS" fmt)) (concat " " (match-string 5 item)))))
-      (add-text-properties
-       0 (1+ (match-end 1))
-       (list 'org-whitespace (* 2 (1- (org-reduced-level (- (match-end 1) (match-beginning 1))))))
-       item)
-      item)))
+(defun org-columns-cleanup-item (item fmt cphr)
+  "Remove from ITEM what is a column in the format FMT.
+CPHR is the complex heading regexp to use for parsing ITEM."
+  (let (fixitem)
+    (if (not cphr)
+	item
+      (unless (string-match "^\*+ " item)
+	(setq item (concat "* " item) fixitem t))
+      (if (string-match cphr item)
+	  (setq item
+		(concat
+		 (org-add-props (match-string 1 item) nil
+		   'org-whitespace (* 2 (1- (org-reduced-level (- (match-end 1) (match-beginning 1))))))
+		 (and (match-end 2) (not (assoc "TODO" fmt)) (concat " " (match-string 2 item)))
+		 (and (match-end 3) (not (assoc "PRIORITY" fmt)) (concat " " (match-string 3 item)))
+		 " " (save-match-data (org-columns-compact-links (match-string 4 item)))
+		 (and (match-end 5) (not (assoc "TAGS" fmt)) (concat " " (match-string 5 item)))))
+	(add-text-properties
+	 0 (1+ (match-end 1))
+	 (list 'org-whitespace (* 2 (1- (org-reduced-level (- (match-end 1) (match-beginning 1))))))
+	 item))
+      (if fixitem (replace-regexp-in-string "^\*+ " "" item) item))))
 
 (defun org-columns-compact-links (s)
   "Replace [[link][desc]] with [desc] or [link]."
@@ -494,7 +497,7 @@ Where possible, use the standard interface for changing this line."
 		(org-columns-eval eval))
 	    (org-columns-display-here)))
 	(org-move-to-column col)
-	(if (and (org-mode-p)
+	(if (and (eq major-mode 'org-mode)
 		 (nth 3 (assoc key org-columns-current-fmt-compiled)))
 	    (org-columns-update key)))))))
 
@@ -544,7 +547,7 @@ Where possible, use the standard interface for changing this line."
       (beginning-of-line 1)
       ;; `next-line' is needed here, because it skips invisible line.
       (condition-case nil (org-no-warnings (next-line 1)) (error nil))
-      (setq hidep (org-on-heading-p 1)))
+      (setq hidep (org-at-heading-p 1)))
     (eval form)
     (and hidep (hide-entry))))
 
@@ -872,7 +875,7 @@ display, or in the #+COLUMNS line of the current buffer."
 	      (replace-match (concat "#+COLUMNS: " fmt) t t))
 	    (unless (> cnt 0)
 	      (goto-char (point-min))
-	      (or (org-on-heading-p t) (outline-next-heading))
+	      (or (org-at-heading-p t) (outline-next-heading))
 	      (let ((inhibit-read-only t))
 		(insert-before-markers "#+COLUMNS: " fmt "\n")))
 	    (org-set-local 'org-columns-default-format fmt))))))
@@ -1000,7 +1003,7 @@ Don't set this, this is meant for dynamic scoping.")
       (if (marker-position org-columns-begin-marker)
 	  (goto-char org-columns-begin-marker))
       (org-columns-remove-overlays)
-      (if (org-mode-p)
+      (if (eq major-mode 'org-mode)
 	  (call-interactively 'org-columns)
 	(org-agenda-redo)
 	(call-interactively 'org-agenda-columns)))
@@ -1139,6 +1142,8 @@ calc         function to get values from base elements"
 
 ;;; Dynamic block for Column view
 
+(defvar org-heading-regexp) ; defined in org.el
+(defvar org-heading-keyword-regexp-format) ; defined in org.el
 (defun org-columns-capture-view (&optional maxlevel skip-empty-rows)
   "Get the column view of the current buffer or subtree.
 The first optional argument MAXLEVEL sets the level limit.  A
@@ -1149,11 +1154,12 @@ containing the title row and all other rows.  Each row is a list
 of fields."
   (save-excursion
     (let* ((title (mapcar 'cadr org-columns-current-fmt-compiled))
-	   (re-comment (concat "\\*+[ \t]+" org-comment-string "\\>"))
+	   (re-comment (format org-heading-keyword-regexp-format
+			       org-comment-string))
 	   (re-archive (concat ".*:" org-archive-tag ":"))
 	   (n (length title)) row tbl)
       (goto-char (point-min))
-      (while (re-search-forward "^\\(\\*+\\) " nil t)
+      (while (re-search-forward org-heading-regexp nil t)
 	(catch 'next
 	  (when (and (or (null maxlevel)
 			 (>= maxlevel
@@ -1524,7 +1530,5 @@ The string should be two numbers joined with a \"-\"."
     (list (string-to-number s) (string-to-number s))))
 
 (provide 'org-colview)
-
-
 
 ;;; org-colview.el ends here

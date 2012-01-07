@@ -44,7 +44,7 @@
 This is edition @value{VERSION} of the GNU Emacs Lisp Reference Manual,@*
 corresponding to Emacs version @value{EMACSVER}.
 
-Copyright @copyright{} 1990-1996, 1998-2011  Free Software
+Copyright @copyright{} 1990-1996, 1998-2012  Free Software
 Foundation, Inc.
 
 @quotation

@@ -1,5 +1,5 @@
 /* Low-level bidirectional buffer/string-scanning functions for GNU Emacs.
-   Copyright (C) 2000-2001, 2004-2005, 2009-2011
+   Copyright (C) 2000-2001, 2004-2005, 2009-2012
    Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.

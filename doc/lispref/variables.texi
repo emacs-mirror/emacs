@@ -1,6 +1,6 @@
 @c -*-texinfo-*-
 @c This is part of the GNU Emacs Lisp Reference Manual.
-@c Copyright (C) 1990-1995, 1998-2011  Free Software Foundation, Inc.
+@c Copyright (C) 1990-1995, 1998-2012  Free Software Foundation, Inc.
 @c See the file elisp.texi for copying conditions.
 @setfilename ../../info/variables
 @node Variables, Functions, Control Structures, Top
@@ -1827,6 +1827,15 @@ applying them.  It also stores the directory-local settings in
 the directory in which @file{.dir-locals.el} file was found.  This
 function works by calling @code{dir-locals-set-class-variables} and
 @code{dir-locals-set-directory-class}, described below.
+@end defun
+
+@defun hack-dir-local-variables-non-file-buffer
+This function looks for directory-local variables, and immediately
+applies them in the current buffer.  It is intended to be called in
+the mode commands for non-file buffers, such as Dired buffers, to let
+them obey directory-local variable settings.  For non-file buffers,
+Emacs looks for directory-local variables in @code{default-directory}
+and its parent directories.
 @end defun
 
 @defun dir-locals-set-class-variables class variables

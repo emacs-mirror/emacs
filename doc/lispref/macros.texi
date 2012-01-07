@@ -1,6 +1,6 @@
 @c -*-texinfo-*-
 @c This is part of the GNU Emacs Lisp Reference Manual.
-@c Copyright (C) 1990-1995, 1998, 2001-2011  Free Software Foundation, Inc.
+@c Copyright (C) 1990-1995, 1998, 2001-2012  Free Software Foundation, Inc.
 @c See the file elisp.texi for copying conditions.
 @setfilename ../../info/macros
 @node Macros, Customization, Functions, Top
@@ -239,6 +239,9 @@ Specify how to step through macro calls for Edebug.
 @item (indent @var{indent-spec})
 Specify how to indent calls to this macro.  @xref{Indenting Macros},
 for more details.
+
+@item (doc-string @var{number})
+Specify which element of the macro is the doc string, if any.
 @end table
 
 A @code{declare} form only has its special effect in the body of a

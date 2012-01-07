@@ -1,6 +1,6 @@
 /* Asynchronous subprocess control for GNU Emacs.
 
-Copyright (C) 1985-1988, 1993-1996, 1998-1999, 2001-2011
+Copyright (C) 1985-1988, 1993-1996, 1998-1999, 2001-2012
   Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.

@@ -1,6 +1,6 @@
 /* Lisp object printing and output streams.
 
-Copyright (C) 1985-1986, 1988, 1993-1995, 1997-2011
+Copyright (C) 1985-1986, 1988, 1993-1995, 1997-2012
   Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.

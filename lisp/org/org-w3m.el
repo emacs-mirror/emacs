@@ -1,11 +1,10 @@
 ;;; org-w3m.el --- Support from copy and paste from w3m to Org-mode
 
-;; Copyright (C) 2008-2011 Free Software Foundation, Inc.
+;; Copyright (C) 2008-2012 Free Software Foundation, Inc.
 
 ;; Author: Andy Stewart <lazycat dot manatee at gmail dot com>
 ;; Keywords: outlines, hypermedia, calendar, wp
 ;; Homepage: http://orgmode.org
-;; Version: 7.7
 ;;
 ;; This file is part of GNU Emacs.
 ;;
@@ -167,7 +166,5 @@ Return t if there is no previous link; otherwise, return nil."
    (define-key w3m-minor-mode-map "\C-c\C-x\C-w" 'org-w3m-copy-for-org-mode)))
 
 (provide 'org-w3m)
-
-
 
 ;;; org-w3m.el ends here

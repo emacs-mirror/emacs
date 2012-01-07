@@ -1,6 +1,6 @@
 ;;; mailheader.el --- mail header parsing, merging, formatting
 
-;; Copyright (C) 1996, 2001-2011  Free Software Foundation, Inc.
+;; Copyright (C) 1996, 2001-2012  Free Software Foundation, Inc.
 
 ;; Author: Erik Naggum <erik@naggum.no>
 ;; Keywords: tools, mail, news

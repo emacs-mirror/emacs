@@ -1,6 +1,6 @@
 ;;; semantic/bovine.el --- LL Parser/Analyzer core.
 
-;; Copyright (C) 1999-2004, 2006-2007, 2009-2011
+;; Copyright (C) 1999-2004, 2006-2007, 2009-2012
 ;;   Free Software Foundation, Inc.
 
 ;; Author: Eric M. Ludlam <eric@siege-engine.com>

@@ -1,6 +1,6 @@
 ;;; advice.el --- an overloading mechanism for Emacs Lisp functions
 
-;; Copyright (C) 1993-1994, 2000-2011 Free Software Foundation, Inc.
+;; Copyright (C) 1993-1994, 2000-2012 Free Software Foundation, Inc.
 
 ;; Author: Hans Chalupsky <hans@cs.buffalo.edu>
 ;; Maintainer: FSF

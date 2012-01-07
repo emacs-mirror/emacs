@@ -1,6 +1,6 @@
 ;;; vc-cvs.el --- non-resident support for CVS version-control
 
-;; Copyright (C) 1995, 1998-2011 Free Software Foundation, Inc.
+;; Copyright (C) 1995, 1998-2012 Free Software Foundation, Inc.
 
 ;; Author:      FSF (see vc.el for full credits)
 ;; Maintainer:  Andre Spiegel <spiegel@gnu.org>

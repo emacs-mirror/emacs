@@ -1,6 +1,6 @@
 /* Lisp parsing and input streams.
 
-Copyright (C) 1985-1989, 1993-1995, 1997-2011  Free Software Foundation, Inc.
+Copyright (C) 1985-1989, 1993-1995, 1997-2012  Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -3113,7 +3113,7 @@ read1 (register Lisp_Object readcharfun, int *pch, int first_in_list)
 	  if (uninterned_symbol && ! NILP (Vpurify_flag))
 	    name = make_pure_string (read_buffer, nchars, nbytes, multibyte);
 	  else
-	    name = make_specified_string (read_buffer, nchars, nbytes,multibyte);
+	    name = make_specified_string (read_buffer, nchars, nbytes, multibyte);
 	  result = (uninterned_symbol ? Fmake_symbol (name)
 		    : Fintern (name, Qnil));
 

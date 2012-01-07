@@ -1,6 +1,6 @@
 ;;; w32-win.el --- parse switches controlling interface with W32 window system
 
-;; Copyright (C) 1993-1994, 2001-2011  Free Software Foundation, Inc.
+;; Copyright (C) 1993-1994, 2001-2012  Free Software Foundation, Inc.
 
 ;; Author: Kevin Gallo
 ;; Keywords: terminals
@@ -210,7 +210,7 @@ See the documentation of `create-fontset-from-fontset-spec' for the format.")
        '(gdk-pixbuf "libgdk_pixbuf-2.0-0.dll")
        '(glib "libglib-2.0-0.dll")
        '(gobject "libgobject-2.0-0.dll")
-       '(gnutls "libgnutls-26.dll")))
+       '(gnutls "libgnutls-28.dll" "libgnutls-26.dll")))
 
 ;;; multi-tty support
 (defvar w32-initialized nil

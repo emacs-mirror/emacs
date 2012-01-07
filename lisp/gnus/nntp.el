@@ -1,6 +1,6 @@
 ;;; nntp.el --- nntp access for Gnus
 
-;; Copyright (C) 1987-1990, 1992-1998, 2000-2011
+;; Copyright (C) 1987-1990, 1992-1998, 2000-2012
 ;;   Free Software Foundation, Inc.
 
 ;; Author: Lars Magne Ingebrigtsen <larsi@gnus.org>
@@ -281,6 +281,7 @@ update their active files often, this can help.")
 
 ;;; Internal variables.
 
+(defvoo nntp-retrieval-in-progress nil)
 (defvar nntp-record-commands nil
   "*If non-nil, nntp will record all commands in the \"*nntp-log*\" buffer.")
 
@@ -770,21 +771,28 @@ command whose response triggered the error."
 (deffoo nntp-retrieve-group-data-early (server infos)
   "Retrieve group info on INFOS."
   (nntp-with-open-group nil server
-    (when (nntp-find-connection-buffer nntp-server-buffer)
-      ;; The first time this is run, this variable is `try'.  So we
-      ;; try.
-      (when (eq nntp-server-list-active-group 'try)
-	(nntp-try-list-active
-	 (gnus-group-real-name (gnus-info-group (car infos)))))
-      (with-current-buffer (nntp-find-connection-buffer nntp-server-buffer)
-	(erase-buffer)
-	(let ((nntp-inhibit-erase t)
-	      (command (if nntp-server-list-active-group
-			   "LIST ACTIVE" "GROUP")))
-	  (dolist (info infos)
-	    (nntp-send-command
-	     nil command (gnus-group-real-name (gnus-info-group info)))))
-	(length infos)))))
+    (let ((buffer (nntp-find-connection-buffer nntp-server-buffer)))
+      (when (and buffer
+		 (with-current-buffer buffer
+		   (not nntp-retrieval-in-progress)))
+	;; The first time this is run, this variable is `try'.  So we
+	;; try.
+	(when (eq nntp-server-list-active-group 'try)
+	  (nntp-try-list-active
+	   (gnus-group-real-name (gnus-info-group (car infos)))))
+	(with-current-buffer buffer
+	  (erase-buffer)
+	  ;; Mark this buffer as "in use" in case we try to issue two
+	  ;; retrievals from the same server.  This shouldn't happen,
+	  ;; so this is mostly a sanity check.
+	  (setq nntp-retrieval-in-progress t)
+	  (let ((nntp-inhibit-erase t)
+		(command (if nntp-server-list-active-group
+			     "LIST ACTIVE" "GROUP")))
+	    (dolist (info infos)
+	      (nntp-send-command
+	       nil command (gnus-group-real-name (gnus-info-group info)))))
+	  (length infos))))))
 
 (deffoo nntp-finish-retrieve-group-infos (server infos count)
   (nntp-with-open-group nil server
@@ -794,6 +802,8 @@ command whose response triggered the error."
 		   (car infos)))
 	  (received 0)
 	  (last-point 1))
+      (with-current-buffer buf
+	(setq nntp-retrieval-in-progress nil))
       (when (and buf
 		 count)
 	(with-current-buffer buf
@@ -837,7 +847,14 @@ command whose response triggered the error."
   "Retrieve group info on GROUPS."
   (nntp-with-open-group
    nil server
-   (when (nntp-find-connection-buffer nntp-server-buffer)
+   (when (and (nntp-find-connection-buffer nntp-server-buffer)
+	      (with-current-buffer
+		  (nntp-find-connection-buffer nntp-server-buffer)
+		(if (not nntp-retrieval-in-progress)
+		    t
+		  (message "Warning: Refusing to do retrieval from %s because a retrieval is already happening"
+			   server)
+		  nil)))
      (catch 'done
        (save-excursion
          ;; Erase nntp-server-buffer before nntp-inhibit-erase.
@@ -1318,6 +1335,7 @@ password contained in '~/.nntp-authinfo'."
     (set (make-local-variable 'nntp-process-to-buffer) nil)
     (set (make-local-variable 'nntp-process-start-point) nil)
     (set (make-local-variable 'nntp-process-decode) nil)
+    (set (make-local-variable 'nntp-retrieval-in-progress) nil)
     (current-buffer)))
 
 (defun nntp-open-connection (buffer)
