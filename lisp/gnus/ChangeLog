@@ -1,5 +1,10 @@
 2012-01-07  Lars Magne Ingebrigtsen  <larsi@gnus.org>
 
+	* shr.el (shr-visit-file): Move point to the beginning of the buffer
+	after rendering.
+
+2012-01-07  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
 	* gnus-sum.el (gnus-summary-read-group): Document more parameters
 	(bug#9693).
 	(gnus-summary-setup-buffer): Document return value (bug#9697).

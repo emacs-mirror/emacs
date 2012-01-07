@@ -134,7 +134,8 @@ cid: URL as the argument.")
   (shr-insert-document
    (with-temp-buffer
      (insert-file-contents file)
-     (libxml-parse-html-region (point-min) (point-max)))))
+     (libxml-parse-html-region (point-min) (point-max))))
+  (goto-char (point-min)))
 
 ;;;###autoload
 (defun shr-insert-document (dom)
