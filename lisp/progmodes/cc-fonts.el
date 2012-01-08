@@ -1428,6 +1428,21 @@ casts and declarations are fontified.  Used on level 2 and higher."
 	      (c-fontify-recorded-types-and-refs)
 	      nil)
 
+	     ((and (not c-enums-contain-decls)
+		   ;; An optimisation quickly to eliminate scans of long enum
+		   ;; declarations in the next cond arm.
+		   (let ((paren-state (c-parse-state)))
+		     (and
+		      (numberp (car paren-state))
+		      (save-excursion
+			(goto-char (car paren-state))
+			(c-backward-token-2)
+			(or (looking-at c-brace-list-key)
+			    (progn
+			      (c-backward-token-2)
+			      (looking-at c-brace-list-key)))))))
+	      t)
+
 	     (t
 	      ;; Are we at a declarator?  Try to go back to the declaration
 	      ;; to check this.  If we get there, check whether a "typedef"

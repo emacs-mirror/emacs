@@ -1158,7 +1158,7 @@ Note that the style variables are always made local to the buffer."
   ;; Effectively advice around `font-lock-fontify-region' which extends the
   ;; region (BEG END), for example, to avoid context fontification chopping
   ;; off the start of the context.  Do not do anything if it's already been
-  ;; done (i.e. from and after-change fontification.  An example (C++) where
+  ;; done (i.e. from an after-change fontification.  An example (C++) where
   ;; this used to happen is this:
   ;;
   ;;     template <typename T>

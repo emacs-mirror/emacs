@@ -1,3 +1,12 @@
+2012-01-08  Alan Mackenzie  <acm@muc.de>
+
+	Optimise font locking in long enum definitions.
+
+	* progmodes/cc-fonts.el (c-font-lock-declarations): Add an extra
+	arm to a cond form to handle enums.
+	* progmodes/cc-langs.el (c-enums-contain-decls): New lang variable.
+	* progmodes/cc-mode.el (c-font-lock-fontify-region): Correct a typo.
+
 2012-01-07  Paul Eggert  <eggert@cs.ucla.edu>
 
 	* files.el (move-file-to-trash): Preserve default file modes on error.
