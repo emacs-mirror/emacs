@@ -1351,7 +1351,10 @@ needed if you use the @var{local} argument to @code{add-hook} or
 @deffn Command make-variable-buffer-local variable
 This function marks @var{variable} (a symbol) automatically
 buffer-local, so that any subsequent attempt to set it will make it
-local to the current buffer at the time.
+local to the current buffer at the time.  Unlike
+@code{make-local-variable}, with which it is often confused, this
+cannot be undone, and affects the behavior of the variable in all
+buffers.
 
 A peculiar wrinkle of this feature is that binding the variable (with
 @code{let} or other binding constructs) does not create a buffer-local
