@@ -23580,7 +23580,7 @@ note_mouse_highlight (f, x, y)
       && XFASTINT (w->last_modified) == BUF_MODIFF (b)
       && XFASTINT (w->last_overlay_modified) == BUF_OVERLAY_MODIFF (b))
     {
-      int hpos, vpos, pos, i, dx, dy, area;
+      int hpos, vpos, pos, i, dx, dy, area = LAST_AREA;
       struct glyph *glyph;
       Lisp_Object object;
       Lisp_Object mouse_face = Qnil, overlay = Qnil, position;

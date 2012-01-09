@@ -9,9 +9,9 @@
 
 2012-01-09  Eli Zaretskii  <eliz@gnu.org>
 
-	* xdisp.c (note_mouse_highlight): Initialize `part', to avoid a
-	possible random value that matches one of those tested as
-	condition to clear the mouse face.
+	* xdisp.c (note_mouse_highlight): Initialize `area'.  (Bug#9947)
+	Initialize `part', to avoid a possible random value that matches
+	one of those tested as condition to clear the mouse face.
 
 2012-01-09  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
 
