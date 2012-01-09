@@ -1,3 +1,8 @@
+2012-01-09  Eli Zaretskii  <eliz@gnu.org>
+
+	* dispnew.c (scrolling_window): Fix incorrect indices in accessing
+	current_matrix and desired_matrix.  (Bug#9990)
+
 2011-10-31  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
 
 	* xmenu.c (cleanup_widget_value_tree): New function.

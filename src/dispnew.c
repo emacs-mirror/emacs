@@ -5035,10 +5035,10 @@ scrolling_window (w, header_line_p)
   j = last_old;
   while (i - 1 > first_new
          && j - 1 > first_old
-         && MATRIX_ROW (current_matrix, i - 1)->enabled_p
-	 && (MATRIX_ROW (current_matrix, i - 1)->y
-	     == MATRIX_ROW (desired_matrix, j - 1)->y)
-	 && !MATRIX_ROW (desired_matrix, j - 1)->redraw_fringe_bitmaps_p
+	 && MATRIX_ROW (current_matrix, j - 1)->enabled_p
+	 && (MATRIX_ROW (current_matrix, j - 1)->y
+	     == MATRIX_ROW (desired_matrix, i - 1)->y)
+	 && !MATRIX_ROW (desired_matrix, i - 1)->redraw_fringe_bitmaps_p
          && row_equal_p (w,
 			 MATRIX_ROW (desired_matrix, i - 1),
                          MATRIX_ROW (current_matrix, j - 1), 1))
