@@ -23484,7 +23484,7 @@ note_mouse_highlight (f, x, y)
      int x, y;
 {
   Display_Info *dpyinfo = FRAME_X_DISPLAY_INFO (f);
-  enum window_part part;
+  enum window_part part = ON_NOTHING;
   Lisp_Object window;
   struct window *w;
   Cursor cursor = No_Cursor;
