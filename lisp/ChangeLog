@@ -1,3 +1,7 @@
+2012-01-09  Chong Yidong  <cyd@gnu.org>
+
+	* custom.el (custom-safe-themes): Use SHA-256 for hashing.
+
 2012-01-08  Alan Mackenzie  <acm@muc.de>
 
 	Optimise font locking in long enum definitions.
