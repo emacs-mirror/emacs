@@ -1,3 +1,8 @@
+2011-11-11  Johan Bockgård  <bojohan@gnu.org>
+
+	* xdisp.c (fill_composite_glyph_string): Always set s->face, to
+	avoid a crash (bug#9496).
+
 2012-01-09  Chong Yidong  <cyd@gnu.org>
 
 	* xdisp.c (note_mouse_highlight): Fix use of uninitialized var.
