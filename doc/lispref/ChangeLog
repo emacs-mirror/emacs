@@ -1,3 +1,8 @@
+2011-12-27  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* variables.texi (Creating Buffer-Local): Warn against misuses of
+	make-variable-buffer-local (bug#10258).
+
 2012-01-07  Lars Magne Ingebrigtsen  <larsi@gnus.org>
 
 	* macros.texi (Defining Macros): Document `doc-string' (bug#9668).

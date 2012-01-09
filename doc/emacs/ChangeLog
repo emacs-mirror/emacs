@@ -1,3 +1,8 @@
+2012-01-09  Chong Yidong  <cyd@gnu.org>
+
+	* custom.texi (Custom Themes): Switched custom-safe-themes to use
+	SHA-256.
+
 2012-01-07  Chong Yidong  <cyd@gnu.org>
 
 	* display.texi (Useless Whitespace): Add Whitespace mode.
