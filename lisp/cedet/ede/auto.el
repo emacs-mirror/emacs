@@ -58,6 +58,13 @@ associated with a single object class, based on the initilizeres used.")
 	  :initform t
 	  :documentation
 	  "Non-nil if this is an option when a user creates a project.")
+   (safe-p :initarg :safe-p
+	   :initform t
+	   :documentation
+	   "Non-nil if the project load files are \"safe\".
+An unsafe project is one that loads project variables via Emacs
+Lisp code.  A safe project is one that loads project variables by
+scanning files without loading Lisp code from them.")
    )
   "Class representing minimal knowledge set to run preliminary EDE functions.
 When more advanced functionality is needed from a project type, that projects
@@ -69,13 +76,15 @@ type is required and the load function used.")
 			 :name "Make" :file 'ede/proj
 			 :proj-file "Project.ede"
 			 :load-type 'ede-proj-load
-			 :class-sym 'ede-proj-project)
+			 :class-sym 'ede-proj-project
+			 :safe-p nil)
    (ede-project-autoload "edeproject-automake"
 			 :name "Automake" :file 'ede/proj
 			 :proj-file "Project.ede"
 			 :initializers '(:makefile-type Makefile.am)
 			 :load-type 'ede-proj-load
-			 :class-sym 'ede-proj-project)
+			 :class-sym 'ede-proj-project
+			 :safe-p nil)
    (ede-project-autoload "automake"
 			 :name "automake" :file 'ede/project-am
 			 :proj-file "Makefile.am"
@@ -83,6 +92,8 @@ type is required and the load function used.")
 			 :class-sym 'project-am-makefile
 			 :new-p nil))
   "List of vectors defining how to determine what type of projects exist.")
+
+(put 'ede-project-class-files 'risky-local-variable t)
 
 ;;; EDE project-autoload methods
 ;;
@@ -122,6 +133,19 @@ Return nil if the project file does not exist."
     (when (and f (file-exists-p f))
       f)))
 
+(defmethod ede-auto-load-project ((this ede-project-autoload) dir)
+  "Load in the project associated with THIS project autoload description.
+THIS project description should be valid for DIR, where the project will
+be loaded."
+  ;; Last line of defense: don't load unsafe projects.
+  (when (not (or (oref this :safe-p)
+		 (ede-directory-safe-p dir)))
+    (error "Attempt to load an unsafe project (bug elsewhere in EDE)"))
+  ;; Things are good - so load the project.
+  (let ((o (funcall (oref this load-type) dir)))
+    (when (not o)
+      (error "Project type error: :load-type failed to create a project"))
+    (ede-add-project-to-global-list o)))
 
 (provide 'ede/auto)
 
