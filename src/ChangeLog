@@ -1,3 +1,9 @@
+2012-01-09  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
+
+	* dispnew.c (scrolling_window): Truncate overlaps in copy
+	destination of scroll runs so as to avoid assigning disabled bogus
+	rows and unnecessary graphics copy operations.
+
 2012-01-09  Eli Zaretskii  <eliz@gnu.org>
 
 	* dispnew.c (scrolling_window): Fix incorrect indices in accessing

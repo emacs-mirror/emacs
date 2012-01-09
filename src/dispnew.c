@@ -5208,18 +5208,69 @@ scrolling_window (w, header_line_p)
 	  {
 	    rif->clear_window_mouse_face (w);
 	    rif->scroll_run_hook (w, r);
+	  }
 
-	    /* Invalidate runs that copy from where we copied to.  */
-	    for (j = i + 1; j < nruns; ++j)
+	/* Truncate runs that copy to where we copied to, and
+	   invalidate runs that copy from where we copied to.  */
+	for (j = nruns - 1; j > i; --j)
+	  {
+	    struct run *p = runs[j];
+	    int truncated_p = 0;
+
+	    if (p->nrows > 0
+		&& p->desired_y < r->desired_y + r->height
+		&& p->desired_y + p->height > r->desired_y)
 	      {
-		struct run *p = runs[j];
+		if (p->desired_y < r->desired_y)
+		  {
+		    p->nrows = r->desired_vpos - p->desired_vpos;
+		    p->height = r->desired_y - p->desired_y;
+		    truncated_p = 1;
+		  }
+		else
+		  {
+		    int nrows_copied = (r->desired_vpos + r->nrows
+					- p->desired_vpos);
 
-		if ((p->current_y >= r->desired_y
+		    if (p->nrows <= nrows_copied)
+		      p->nrows = 0;
+		    else
+		      {
+			int height_copied = (r->desired_y + r->height
+					     - p->desired_y);
+
+			p->current_vpos += nrows_copied;
+			p->desired_vpos += nrows_copied;
+			p->nrows -= nrows_copied;
+			p->current_y += height_copied;
+			p->desired_y += height_copied;
+			p->height -= height_copied;
+			truncated_p = 1;
+		      }
+		  }
+	      }
+
+	    if (r->current_y != r->desired_y
+		/* The condition below is equivalent to
+		   ((p->current_y >= r->desired_y
 		     && p->current_y < r->desired_y + r->height)
-		    || (p->current_y + p->height >= r->desired_y
+		    || (p->current_y + p->height > r->desired_y
 			&& (p->current_y + p->height
-			    < r->desired_y + r->height)))
-		  p->nrows = 0;
+			    <= r->desired_y + r->height)))
+		   because we have 0 < p->height <= r->height.  */
+		&& p->current_y < r->desired_y + r->height
+		&& p->current_y + p->height > r->desired_y)
+	      p->nrows = 0;
+
+	    /* Reorder runs by copied pixel lines if truncated.  */
+	    if (truncated_p && p->nrows > 0)
+	      {
+		int k = nruns - 1;
+
+		while (runs[k]->nrows == 0 || runs[k]->height < p->height)
+		  k--;
+		memmove (runs + j, runs + j + 1, (k - j) * sizeof (*runs));
+		runs[k] = p;
 	      }
 	  }
 
@@ -5234,7 +5285,14 @@ scrolling_window (w, header_line_p)
 	    to_overlapped_p = to->overlapped_p;
 	    from->redraw_fringe_bitmaps_p = from->fringe_bitmap_periodic_p;
 	    assign_row (to, from);
-	    to->enabled_p = 1, from->enabled_p = 0;
+	    /* The above `assign_row' actually does swap, so if we had
+	       an overlap in the copy destination of two runs, then
+	       the second run would assign a previously disabled bogus
+	       row.  But thanks to the truncation code in the
+	       preceding for-loop, we no longer have such an overlap,
+	       and thus the assigned row should always be enabled.  */
+	    xassert (to->enabled_p);
+	    from->enabled_p = 0;
 	    to->overlapped_p = to_overlapped_p;
 	  }
       }
