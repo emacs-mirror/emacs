@@ -22,8 +22,7 @@
 
 ;;; Commentary:
 ;;
-;; This file is generated from the grammar file semantic-grammar.wy in
-;; the upstream CEDET repository.
+;; This file was generated from etc/grammars/grammar.wy.
 
 ;;; Code:
 

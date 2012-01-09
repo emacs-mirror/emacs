@@ -18,8 +18,8 @@
 ;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
 
 ;;; Commentary:
-
-;; Generated from srecode-template.wy in the CEDET repository.
+;;
+;; This file was generated from etc/grammars/srecode-template.wy.
 
 ;;; Code:
 
