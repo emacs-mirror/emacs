@@ -25817,12 +25817,14 @@ cursor_in_mouse_face_p (struct window *w)
 
 /* Find the glyph rows START_ROW and END_ROW of window W that display
    characters between buffer positions START_CHARPOS and END_CHARPOS
-   (excluding END_CHARPOS).  This is similar to row_containing_pos,
-   but is more accurate when bidi reordering makes buffer positions
-   change non-linearly with glyph rows.  */
+   (excluding END_CHARPOS).  DISP_STRING is a display string that
+   covers these buffer positions.  This is similar to
+   row_containing_pos, but is more accurate when bidi reordering makes
+   buffer positions change non-linearly with glyph rows.  */
 static void
 rows_from_pos_range (struct window *w,
 		     EMACS_INT start_charpos, EMACS_INT end_charpos,
+		     Lisp_Object disp_string,
 		     struct glyph_row **start, struct glyph_row **end)
 {
   struct glyph_row *first = MATRIX_FIRST_TEXT_ROW (w->current_matrix);
@@ -25874,8 +25876,11 @@ rows_from_pos_range (struct window *w,
 
 	  while (g < e)
 	    {
-	      if ((BUFFERP (g->object) || INTEGERP (g->object))
-		  && start_charpos <= g->charpos && g->charpos < end_charpos)
+	      if (((BUFFERP (g->object) || INTEGERP (g->object))
+		   && start_charpos <= g->charpos && g->charpos < end_charpos)
+		  /* A glyph that comes from DISP_STRING is by
+		     definition to be highlighted.  */
+		  || EQ (g->object, disp_string))
 		*start = row;
 	      g++;
 	    }
@@ -25924,8 +25929,11 @@ rows_from_pos_range (struct window *w,
 
 	  while (g < e)
 	    {
-	      if ((BUFFERP (g->object) || INTEGERP (g->object))
-		  && start_charpos <= g->charpos && g->charpos < end_charpos)
+	      if (((BUFFERP (g->object) || INTEGERP (g->object))
+		   && start_charpos <= g->charpos && g->charpos < end_charpos)
+		  /* A glyph that comes from DISP_STRING is by
+		     definition to be highlighted.  */
+		  || EQ (g->object, disp_string))
 		break;
 	      g++;
 	    }
@@ -25969,7 +25977,7 @@ mouse_face_from_buffer_pos (Lisp_Object window,
   xassert (NILP (after_string) || STRINGP (after_string));
 
   /* Find the rows corresponding to START_CHARPOS and END_CHARPOS.  */
-  rows_from_pos_range (w, start_charpos, end_charpos, &r1, &r2);
+  rows_from_pos_range (w, start_charpos, end_charpos, disp_string, &r1, &r2);
   if (r1 == NULL)
     r1 = MATRIX_ROW (w->current_matrix, XFASTINT (w->window_end_vpos));
   /* If the before-string or display-string contains newlines,
