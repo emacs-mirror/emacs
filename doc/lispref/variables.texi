@@ -1,6 +1,6 @@
 @c -*-texinfo-*-
 @c This is part of the GNU Emacs Lisp Reference Manual.
-@c Copyright (C) 1990-1995, 1998-2011  Free Software Foundation, Inc.
+@c Copyright (C) 1990-1995, 1998-2012  Free Software Foundation, Inc.
 @c See the file elisp.texi for copying conditions.
 @setfilename ../../info/variables
 @node Variables, Functions, Control Structures, Top
@@ -1351,7 +1351,10 @@ needed if you use the @var{local} argument to @code{add-hook} or
 @deffn Command make-variable-buffer-local variable
 This function marks @var{variable} (a symbol) automatically
 buffer-local, so that any subsequent attempt to set it will make it
-local to the current buffer at the time.
+local to the current buffer at the time.  Unlike
+@code{make-local-variable}, with which it is often confused, this
+cannot be undone, and affects the behavior of the variable in all
+buffers.
 
 A peculiar wrinkle of this feature is that binding the variable (with
 @code{let} or other binding constructs) does not create a buffer-local
@@ -1829,6 +1832,15 @@ function works by calling @code{dir-locals-set-class-variables} and
 @code{dir-locals-set-directory-class}, described below.
 @end defun
 
+@defun hack-dir-local-variables-non-file-buffer
+This function looks for directory-local variables, and immediately
+applies them in the current buffer.  It is intended to be called in
+the mode commands for non-file buffers, such as Dired buffers, to let
+them obey directory-local variable settings.  For non-file buffers,
+Emacs looks for directory-local variables in @code{default-directory}
+and its parent directories.
+@end defun
+
 @defun dir-locals-set-class-variables class variables
 This function defines a set of variable settings for the named
 @var{class}, which is a symbol.  You can later assign the class to one
@@ -1998,6 +2010,6 @@ This variable holds a list of all variables of type @code{DEFVAR_BOOL}.
 Attempting to assign them any other value will result in an error:
 
 @example
-(setq window-min-height 5.0)
-@error{} Wrong type argument: integerp, 5.0
+(setq undo-limit 1000.0)
+@error{} Wrong type argument: integerp, 1000.0
 @end example

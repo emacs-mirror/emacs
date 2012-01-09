@@ -1,6 +1,6 @@
 ;;; vc-bzr.el --- VC backend for the bzr revision control system
 
-;; Copyright (C) 2006-2011  Free Software Foundation, Inc.
+;; Copyright (C) 2006-2012  Free Software Foundation, Inc.
 
 ;; Author: Dave Love <fx@gnu.org>
 ;; 	   Riccardo Murri <riccardo.murri@gmail.com>
@@ -764,7 +764,10 @@ REV non-nil gets an error."
 
 (defun vc-bzr-rename-file (old new)
   "Rename file from OLD to NEW using `bzr mv'."
-  (vc-bzr-command "mv" nil 0 new old))
+  (setq old (expand-file-name old))
+  (setq new (expand-file-name new))
+  (vc-bzr-command "mv" nil 0 new old)
+  (message "Renamed %s => %s" old new))
 
 (defvar vc-bzr-annotation-table nil
   "Internal use.")

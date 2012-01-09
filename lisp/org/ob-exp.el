@@ -1,12 +1,11 @@
 ;;; ob-exp.el --- Exportation of org-babel source blocks
 
-;; Copyright (C) 2009-2011  Free Software Foundation, Inc.
+;; Copyright (C) 2009-2012  Free Software Foundation, Inc.
 
 ;; Author: Eric Schulte
 ;;	Dan Davison
 ;; Keywords: literate programming, reproducible research
 ;; Homepage: http://orgmode.org
-;; Version: 7.7
 
 ;; This file is part of GNU Emacs.
 
@@ -37,7 +36,6 @@
 (declare-function org-babel-eval-wipe-error-buffer "ob-eval" ())
 (add-to-list 'org-export-interblocks '(src org-babel-exp-inline-src-blocks))
 (add-to-list 'org-export-interblocks '(lob org-babel-exp-lob-one-liners))
-(add-hook 'org-export-blocks-postblock-hook 'org-exp-res/src-name-cleanup)
 
 (org-export-blocks-add-block '(src org-babel-exp-src-block nil))
 
@@ -74,6 +72,7 @@ process."
 	 (setq results ,@body))
        (set-buffer export-buffer)
        results)))
+(def-edebug-spec org-babel-exp-in-export-file (form body))
 
 (defun org-babel-exp-src-block (body &rest headers)
   "Process source block for export.
@@ -105,7 +104,6 @@ none ----- do not display either code or results upon export"
 		  (org-babel-process-params
 		   (org-babel-merge-params
 		    org-babel-default-header-args
-		    (org-babel-params-from-buffer)
 		    (org-babel-params-from-properties lang)
 		    (if (boundp lang-headers) (eval lang-headers) nil)
 		    raw-params))))
@@ -129,10 +127,10 @@ options and are taken from `org-babel-default-inline-header-args'."
     (while (and (< (point) end)
                 (re-search-forward org-babel-inline-src-block-regexp end t))
       (let* ((info (save-match-data (org-babel-parse-inline-src-block-match)))
-	     (params (nth 2 info)) code-replacement)
+	     (params (nth 2 info)))
 	(save-match-data
 	  (goto-char (match-beginning 2))
-	  (when (not (org-babel-in-example-or-verbatim))
+	  (unless (org-babel-in-example-or-verbatim)
 	    ;; expand noweb references in the original file
 	    (setf (nth 1 info)
 		  (if (and (cdr (assoc :noweb params))
@@ -140,39 +138,25 @@ options and are taken from `org-babel-default-inline-header-args'."
 		      (org-babel-expand-noweb-references
 		       info (get-file-buffer org-current-export-file))
 		    (nth 1 info)))
-	    (setq code-replacement (org-babel-exp-do-export info 'inline))))
-	(if code-replacement
-	    (replace-match code-replacement nil nil nil 1)
-	  (org-babel-examplize-region (match-beginning 1) (match-end 1))
-	  (forward-char 2))))))
-
-(defun org-exp-res/src-name-cleanup ()
-  "Clean up #+results and #+srcname lines for export.
-This function should only be called after all block processing
-has taken place."
-  (interactive)
-  (save-excursion
-    (goto-char (point-min))
-    (while (org-re-search-forward-unprotected
-	    (concat
-	     "\\("org-babel-src-name-regexp"\\|"org-babel-result-regexp"\\)")
-	    nil t)
-      (delete-region
-       (progn (beginning-of-line) (point))
-       (progn (end-of-line) (+ 1 (point)))))))
+	    (let ((code-replacement (save-match-data
+				      (org-babel-exp-do-export info 'inline))))
+	      (if code-replacement
+		  (replace-match code-replacement nil nil nil 1)
+		(org-babel-examplize-region (match-beginning 1) (match-end 1))
+		(forward-char 2)))))))))
 
 (defun org-babel-in-example-or-verbatim ()
   "Return true if point is in example or verbatim code.
 Example and verbatim code include escaped portions of
 an org-mode buffer code that should be treated as normal
 org-mode text."
-  (or (org-in-indented-comment-line) 
-      (save-match-data
+  (or (save-match-data
 	(save-excursion
 	  (goto-char (point-at-bol))
 	  (looking-at "[ \t]*:[ \t]")))
       (org-in-verbatim-emphasis)
-      (org-in-regexps-block-p "^[ \t]*#\\+begin_src" "^[ \t]*#\\+end_src")))
+      (org-in-block-p org-list-forbidden-blocks)
+      (org-between-regexps-p "^[ \t]*#\\+begin_src" "^[ \t]*#\\+end_src")))
 
 (defvar org-babel-default-lob-header-args)
 (defun org-babel-exp-lob-one-liners (start end)
@@ -183,8 +167,8 @@ options are taken from `org-babel-default-header-args'."
   (save-excursion
     (goto-char start)
     (while (and (< (point) end)
-		(re-search-forward org-babel-lob-one-liner-regexp nil t))
-      (unless (and (match-string 12) (org-babel-in-example-or-verbatim))
+		(re-search-forward org-babel-lob-one-liner-regexp end t))
+      (unless (org-babel-in-example-or-verbatim)
 	(let* ((lob-info (org-babel-lob-get-info))
 	       (inlinep (match-string 11))
 	       (inline-start (match-end 11))
@@ -196,7 +180,6 @@ options are taken from `org-babel-default-header-args'."
 			       (org-babel-merge-params
 				org-babel-default-header-args
 				org-babel-default-lob-header-args
-				(org-babel-params-from-buffer)
 				(org-babel-params-from-properties)
 				(org-babel-parse-header-arguments
 				 (org-babel-clean-text-properties
@@ -232,7 +215,7 @@ The function respects the value of the :exports header argument."
 (defun org-babel-exp-code (info)
   "Return the original code block formatted for export."
   (org-fill-template
-   "#+BEGIN_SRC %lang%flags\n%body\n#+END_SRC\n"
+   "#+BEGIN_SRC %lang%flags\n%body\n#+END_SRC"
    `(("lang"  . ,(nth 0 info))
      ("flags" . ,((lambda (f) (when f (concat " " f))) (nth 3 info)))
      ("body"  . ,(nth 1 info)))))
@@ -258,7 +241,15 @@ inhibit insertion of results into the buffer."
 		    (nth 2 info)
 		    `((:results . ,(if silent "silent" "replace")))))))
 	  (cond
-	   ((or (equal type 'block) (equal type 'inline))
+	   ((equal type 'block)
+	    (org-babel-execute-src-block nil info))
+	   ((equal type 'inline)
+	    ;; position the point on the inline source block allowing
+	    ;; `org-babel-insert-result' to check that the block is
+	    ;; inline
+	    (re-search-backward "[ \f\t\n\r\v]" nil t)
+	    (re-search-forward org-babel-inline-src-block-regexp nil t)
+	    (re-search-backward "src_" nil t)
 	    (org-babel-execute-src-block nil info))
 	   ((equal type 'lob)
 	    (save-excursion

@@ -1,6 +1,6 @@
 ;;; vc-hooks.el --- resident support for version-control
 
-;; Copyright (C) 1992-1996, 1998-2011  Free Software Foundation, Inc.
+;; Copyright (C) 1992-1996, 1998-2012  Free Software Foundation, Inc.
 
 ;; Author:     FSF (see vc.el for full credits)
 ;; Maintainer: Andre Spiegel <spiegel@gnu.org>
@@ -114,9 +114,9 @@ Otherwise, not displayed."
   :group 'vc)
 
 (defcustom vc-keep-workfiles t
-  "If non-nil, don't delete working files after registering changes.
-If the back-end is CVS, workfiles are always kept, regardless of the
-value of this flag."
+  "Whether to keep work files on disk after commits, on a locking VCS.
+This variable has no effect on modern merging-based version
+control systems."
   :type 'boolean
   :group 'vc)
 

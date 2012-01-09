@@ -1,6 +1,6 @@
 ;;; titdic-cnv.el --- convert cxterm dictionary (TIT format) to Quail package -*- coding:iso-2022-7bit; -*-
 
-;; Copyright (C) 1997-1998, 2000-2011  Free Software Foundation, Inc.
+;; Copyright (C) 1997-1998, 2000-2012  Free Software Foundation, Inc.
 ;; Copyright (C) 1995, 1996, 1997, 1998, 1999, 2000, 2001, 2002, 2003, 2004,
 ;;   2005, 2006, 2007, 2008, 2009, 2010, 2011
 ;;   National Institute of Advanced Industrial Science and Technology (AIST)
@@ -103,7 +103,7 @@ For example:
 
 \\<quail-translation-docstring>
 
-For double-width GB2312 characters correponding to ASCII, use the
+For double-width GB2312 characters corresponding to ASCII, use the
 input method `chinese-qj'.")
 
     ("chinese-ecdict" "$(05CKH(B"
@@ -191,7 +191,7 @@ For instance, to input $ADc(B, you type \"n i 3 3\", the first \"n i\" is
 a Pinyin, the next \"3\" specifies tone, and the last \"3\" selects
 the third character from the candidate list.
 
-For double-width GB2312 characters correponding to ASCII, use the
+For double-width GB2312 characters corresponding to ASCII, use the
 input method `chinese-qj'.")
 
     ("chinese-zozy" "$(0I\0D(B"

@@ -1,6 +1,6 @@
 ;;; tramp-gvfs.el --- Tramp access functions for GVFS daemon
 
-;; Copyright (C) 2009-2011 Free Software Foundation, Inc.
+;; Copyright (C) 2009-2012 Free Software Foundation, Inc.
 
 ;; Author: Michael Albinus <michael.albinus@gmx.de>
 ;; Keywords: comm, processes
@@ -1209,7 +1209,7 @@ connection if a previous connection has died for some reason."
 	      (format "Opening connection for %s using %s" host method)
 	    (format "Opening connection for %s@%s using %s" user host method))
 
-	;; Enable auth-sorce and password-cache.
+	;; Enable auth-source and password-cache.
 	(tramp-set-connection-property vec "first-password-request" t)
 
 	;; There will be a callback of "askPassword" when a password is

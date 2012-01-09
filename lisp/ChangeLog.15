@@ -17621,7 +17621,7 @@
 	(batch-update-autoloads): Handle autoload-excludes on windows-nt.
 
 	* mail/rmailedit.el (rmail-cease-edit): Give an error if the end of
-	the headers cannot be located.  Simplify, subtracting superflous
+	the headers cannot be located.  Simplify, subtracting superfluous
 	save-excursions.
 
 2009-10-15  Stefan Monnier  <monnier@iro.umontreal.ca>
@@ -22792,7 +22792,7 @@ See ChangeLog.14 for earlier changes.
 ;; coding: utf-8
 ;; End:
 
-  Copyright (C) 2009-2011  Free Software Foundation, Inc.
+  Copyright (C) 2009-2012  Free Software Foundation, Inc.
 
   This file is part of GNU Emacs.
 

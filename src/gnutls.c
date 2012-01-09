@@ -1,5 +1,5 @@
 /* GnuTLS glue for GNU Emacs.
-   Copyright (C) 2010-2011  Free Software Foundation, Inc.
+   Copyright (C) 2010-2012  Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -125,6 +125,7 @@ DEF_GNUTLS_FN (ssize_t, gnutls_record_send,
 	       (gnutls_session_t, const void *, size_t));
 DEF_GNUTLS_FN (const char *, gnutls_strerror, (int));
 DEF_GNUTLS_FN (void, gnutls_transport_set_errno, (gnutls_session_t, int));
+DEF_GNUTLS_FN (const char *, gnutls_check_version, (const char *));
 DEF_GNUTLS_FN (void, gnutls_transport_set_lowat, (gnutls_session_t, int));
 DEF_GNUTLS_FN (void, gnutls_transport_set_ptr2,
 	       (gnutls_session_t, gnutls_transport_ptr_t,
@@ -184,7 +185,11 @@ init_gnutls_functions (Lisp_Object libraries)
   LOAD_GNUTLS_FN (library, gnutls_record_send);
   LOAD_GNUTLS_FN (library, gnutls_strerror);
   LOAD_GNUTLS_FN (library, gnutls_transport_set_errno);
-  LOAD_GNUTLS_FN (library, gnutls_transport_set_lowat);
+  LOAD_GNUTLS_FN (library, gnutls_check_version);
+  /* We don't need to call gnutls_transport_set_lowat in GnuTLS 2.11.1
+     and later, and the function was removed entirely in 3.0.0.  */
+  if (!fn_gnutls_check_version ("2.11.1"))
+    LOAD_GNUTLS_FN (library, gnutls_transport_set_lowat);
   LOAD_GNUTLS_FN (library, gnutls_transport_set_ptr2);
   LOAD_GNUTLS_FN (library, gnutls_transport_set_pull_function);
   LOAD_GNUTLS_FN (library, gnutls_transport_set_push_function);
@@ -282,7 +287,12 @@ emacs_gnutls_handshake (struct Lisp_Process *proc)
 	 (Note: this is probably not strictly necessary as the lowat
 	  value is only used when no custom pull/push functions are
 	  set.)  */
-      fn_gnutls_transport_set_lowat (state, 0);
+      /* According to GnuTLS NEWS file, lowat level has been set to
+	 zero by default in version 2.11.1, and the function
+	 gnutls_transport_set_lowat was removed from the library in
+	 version 2.99.0.  */
+      if (!fn_gnutls_check_version ("2.11.1"))
+	fn_gnutls_transport_set_lowat (state, 0);
 #else
       /* This is how GnuTLS takes sockets: as file descriptors passed
 	 in.  For an Emacs process socket, infd and outfd are the

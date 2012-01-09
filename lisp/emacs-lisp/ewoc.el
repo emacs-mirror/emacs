@@ -1,6 +1,6 @@
 ;;; ewoc.el --- utility to maintain a view of a list of objects in a buffer
 
-;; Copyright (C) 1991-2011 Free Software Foundation, Inc.
+;; Copyright (C) 1991-2012 Free Software Foundation, Inc.
 
 ;; Author: Per Cederqvist <ceder@lysator.liu.se>
 ;;	Inge Wallin <inge@lysator.liu.se>

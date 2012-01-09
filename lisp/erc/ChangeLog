@@ -1,3 +1,13 @@
+2012-01-06  Glenn Morris  <rgm@gnu.org>
+
+	* erc.el (erc-tls): Add autoload cookie.  (Bug#10333)
+
+2011-12-31  Antoine Levitt  <antoine.levitt@gmail.com>
+
+	* erc-goodies.el (erc-scroll-to-bottom): Use post-command-hook
+	rather than window-scroll-functions.  Fixes a bug with word-wrap on
+	a tty.  (Bug#9246)
+
 2011-11-28  Mike Kazantsev  <mk.fraggod@gmail.com>  (tiny change)
 
 	* erc-dcc.el (erc-dcc-ctcp-query-send-regexp): Updated regexp to
@@ -236,7 +246,7 @@
 
 See ChangeLog.08 for earlier changes.
 
-	Copyright (C) 2009-2011 Free Software Foundation, Inc.
+	Copyright (C) 2009-2012 Free Software Foundation, Inc.
 
   This file is part of GNU Emacs.
 

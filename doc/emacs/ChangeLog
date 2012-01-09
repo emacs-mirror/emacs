@@ -1,3 +1,261 @@
+2012-01-09  Chong Yidong  <cyd@gnu.org>
+
+	* custom.texi (Custom Themes): Switched custom-safe-themes to use
+	SHA-256.
+
+2012-01-07  Chong Yidong  <cyd@gnu.org>
+
+	* display.texi (Useless Whitespace): Add Whitespace mode.
+
+	* custom.texi (Hooks): Discuss how to disable minor modes.
+
+	* files.texi (Diff Mode): Discuss diff-auto-refine-mode
+	(Bug#10309).  Discuss use of Whitespace mode (Bug#10300).
+
+	* trouble.texi (Lossage): Refer to Bugs node for problems.
+	(DEL Does Not Delete): Don't use "usual erasure key" teminology.
+	(Screen Garbled): Don't refer to terminal "manufacturers".
+	(Total Frustration): Node deleted.  Eliza is documented in
+	Amusements now.
+	(Known Problems): More info about using the bug tracker.  Mention
+	debbugs package.
+	(Bug Criteria): Copyedits.
+	(Understanding Bug Reporting): Mention emacs -Q.
+
+2012-01-06  Chong Yidong  <cyd@gnu.org>
+
+	* custom.texi (Specifying File Variables): The mode: keyword
+	doesn't have to be first anymore.  Add example of specifying minor
+	modes.
+	(Directory Variables): Simplify example.  Mention application to
+	non-file buffers.
+	(Disabling): Use "initialization file" terminology.
+	(Init Examples): Fix hook example.
+
+2012-01-06  Eli Zaretskii  <eliz@gnu.org>
+
+	* cmdargs.texi (MS-Windows Registry): Shorten the index entry.
+	(Bug#10422)
+	Move the stuff about resources to xresources.texi.
+
+	* xresources.texi (Resources): Move information about setting X
+	resources in the Registry from cmdargs.texi.  Make the index entry
+	be similar to the one in cmdargs.texi.
+
+2012-01-05  Chong Yidong  <cyd@gnu.org>
+
+	* custom.texi (Customization Groups): Update example.
+	(Browsing Custom): Document the new search field.
+	(Changing a Variable): Update example for Emacs 24 changes.
+	Document Custom-set and Custom-save commands.
+	(Face Customization): Document Emacs 24 changes.  De-document
+	modify-face.
+	(Specific Customization): Mention customize-variable.
+	(Custom Themes): Add customize-themes, custom-theme-load-path,
+	custom-theme-directory, and describe-theme.
+	(Creating Custom Themes): New node.
+	(Examining): Mention M-:.
+
+	* package.texi (Packages): Fix typo.
+
+2012-01-03  Chong Yidong  <cyd@gnu.org>
+
+	* misc.texi (Single Shell): Don't document Lisp usage of
+	shell-command.  Tidy up discussion of synchronicity.  Add index
+	entries for async-shell-command.
+	(Interactive Shell): Note that M-x shell uses shell-file-name.
+	Note change in behavior in Emacs 24.
+	(Shell Mode): Shell mode now uses completion-at-point.
+	(Shell Prompts): Emphasize that comint-use-prompt-regexp isn't the
+	default method for recognizing prompts nowadays.
+	(Shell Ring): Add xref to Minibuffer History.
+	(Directory Tracking): Explain Dirtrack mode in more detail.
+	(Term Mode): Fix index entries.
+	(Paging in Term): Merge into Term Mode.
+	(Serial Terminal, Emacs Server, emacsclient Options): Copyedits.
+	(Printing): Fix xref.  State default of lpr-switches.
+	(PostScript): Remove obsolete sentence.  Omit description of
+	non-interactive behaviors.
+	(Hyperlinking): Improve description.
+	(Browse-URL): Using compose-mail for mailto URLs is the default.
+	Document browse-url-mailto-function.
+	(Goto Address mode): Add index entries.  Add xref to Browse-URL.
+	(FFAP): FFAP is not a minor mode.
+	(Amusements): M-x lm was renamed to M-x landmark.  Document
+	nato-region.
+
+2012-01-01  Chong Yidong  <cyd@gnu.org>
+
+	* misc.texi (Gnus, Buffers of Gnus): Copyedits.
+	(Gnus Startup): Note that the system might not be set up for news.
+	Describe group levels more clearly.
+	(Gnus Group Buffer, Gnus Summary Buffer): New nodes, split from
+	Summary of Gnus.
+	(Document View): Copyedits.  Move zoom commads to DocView
+	Navigation node.
+	(DocView Navigation, DocView Searching, DocView Slicing)
+	(DocView Conversion): Nodes renamed from Navigation, etc.
+
+	* sending.texi (Mail Sending): Add message-kill-buffer-on-exit.
+
+2011-12-31  Eli Zaretskii  <eliz@gnu.org>
+
+	* basic.texi (Moving Point): Fix the description of C-n and C-p.
+	(Bug#10380)
+
+2011-12-30  Chong Yidong  <cyd@gnu.org>
+
+	* sending.texi (Sending Mail): Document initial mail buffer name,
+	and changed multiple mail buffer behavior.
+	(Mail Format): Put the example at the top of the section.
+	(Mail Headers): Move discussion of "From" to the top.
+	(Mail Sending): Document sendmail-query-once.
+	(Citing Mail): Make it less Rmail-specific.
+
+2011-12-29  Chong Yidong  <cyd@gnu.org>
+
+	* text.texi (Org Mode): Copyedits.  Refer to Outline Format for
+	example.  Add index entries.
+	(Org Organizer, Org Authoring): Nodes renamed.  Copyedits.
+
+2011-12-26  Chong Yidong  <cyd@gnu.org>
+
+	* dired.texi (Dired Enter, Misc Dired Features): Document
+	dired-use-ls-dired changes.  Mention quit-window.
+	(Dired Navigation): Add index entries.
+	(Dired Visiting): Fix View Mode xref.
+	(Marks vs Flags): Prefer C-/ binding for undo.
+	(Subdirectories in Dired): Add xrefs.
+	(Misc Dired Features): Document some Emacs 24 changes.  Add index
+	entries.
+
+	* abbrevs.texi (Abbrev Concepts): No need to mention abbrev-mode
+	variable, since it is explained in Minor Modes node.
+	(Defining Abbrevs): Copyedits.
+	(Expanding Abbrevs): State default of abbrev-all-caps.  Prefer the
+	C-/ binding for undo.
+	(Dabbrev Customization): Add xrefs for case-fold-search and
+	case-replace.
+
+	* dired-xtra.texi (Subdir Switches): Add xref.
+
+	* maintaining.texi (VC Directory Commands): Mention quit-window.
+
+2011-12-25  Chong Yidong  <cyd@gnu.org>
+
+	* maintaining.texi (Tags): Mention Semantic.
+	(Create Tags Table, Etags Regexps): Copyedits.
+	(Find Tag): Mention minibuffer completion.
+	(List Tags): Mention completion-at-point.  Completion is actually
+	available in M-x list-tags.
+
+	* vc1-xtra.texi (VC Delete/Rename): Rename from Renaming and VC.
+	Document vc-delete-file.
+
+	* files.texi (Misc File Ops): Mention vc-delete-file.
+
+	* programs.texi (Symbol Completion): Mention completion-at-point
+	explicitly.
+
+2011-12-22  Chong Yidong  <cyd@gnu.org>
+
+	* maintaining.texi (Change Log Commands): Don't specially mention
+	vc-update-change-log which is CVS-only.
+
+	* vc1-xtra.texi (Version Headers): Note that these are for
+	Subversion, CVS, etc. only.
+	(General VC Options): De-document vc-keep-workfiles.  Fix
+	RCS-isms.
+
+2011-12-22  Eli Zaretskii  <eliz@gnu.org>
+
+	* building.texi (Debugger Operation): Fix a typo: "@end iftext"
+	should be @end iftex".
+
+2011-12-21  Chong Yidong  <cyd@gnu.org>
+
+	* maintaining.texi (Advanced C-x v v): Use fileset terminology.
+	(VC With A Merging VCS, VC Change Log): Add xref to VC Pull node.
+	(VC Pull): Mention vc-log-incoming.
+	(Log Buffer): Add CVS/RCS only disclaimer.
+
+	* vc1-xtra.texi (Remote Repositories): Update introduction.
+	(Local Version Control): Node deleted (obsolete with DVCSes).
+	(Remote Repositories, Version Backups): Node deleted.  Move
+	documentation of vc-cvs-stay-local to CVS Options.
+	(CVS Options): Reduce verbosity of description of obscure CVS
+	locking feature.
+	(Making Revision Tags, Revision Tag Caveats): Merge into Revision
+	Tags node.
+	(Revision Tags): Move under Miscellaneous VC subsection.
+	(Change Logs and VC): Note that this is wrong for DVCSs.
+	De-document log entry manipulating features.
+	(Renaming and VC): Describe how it works on modern VCSes.
+
+	* files.texi (Misc File Ops): Mention vc-rename-file.
+
+	* programs.texi (Custom C Indent): Add index entries.
+
+2011-12-20  Alan Mackenzie  <acm@muc.de>
+
+	* programs.texi (Motion in C): Update the description of C-M-a and
+	C-M-e, they now DTRT in enclosing scopes.
+	(Custom C Indent): Add @dfn{guessing} of the indentation style.
+
+2011-12-20  Chong Yidong  <cyd@gnu.org>
+
+	* maintaining.texi (VCS Concepts): Add "working tree" terminology.
+	(Old Revisions): Use it.
+	(VCS Repositories): Add "distributed" terminology.
+	(Log Buffer): Remove duplicate description
+	about changesets.  Fix "current VC fileset" ambiguity.
+	(Multi-User Branching): Node deleted.
+	(Branches, Switching Branches): Discuss decentralized version
+	control systems.
+	(VC Pull): New node.
+	(Merging): Document merging on decentralized systems.
+	(Creating Branches): Note that this is specific to CVS and related
+	systems.
+
+2011-12-19  Chong Yidong  <cyd@gnu.org>
+
+	* maintaining.texi (VCS Merging, VCS Changesets): Index entries.
+	(VC Mode Line): Add index entry for "version control status".
+	(VC Undo): Use vc-revert instead of its vc-revert-buffer alias.
+	Document vc-revert-show-diff.  De-document vc-rollback.
+	(VC Directory Mode): Rewrite introduction.  Move prefix arg
+	documentation here from VC Directory Buffer node.
+	(VC Directory Buffer): Use a decentralized VCS example.
+	(VC Directory Commands): Use a table.  Remove material duplicated
+	in previous nodes on multi-file VC filsets.
+
+2011-12-17  Chong Yidong  <cyd@gnu.org>
+
+	* maintaining.texi (VCS Concepts): Make "revision" terminology
+	less CVS-specific.
+	(VC With A Merging VCS, VC With A Locking VCS): Add xref to
+	Registering node.
+	(Secondary VC Commands): Deleted.  Promote subnodes.
+	(Log Buffer): Add command name for C-c C-c.  Fix the name of the
+	log buffer.  Add index entries.
+	(VCS Changesets, Types of Log File, VC With A Merging VCS): Use
+	"commit" terminology.
+	(Old Revisions): Move it to just before VC Change Log.  "Tag" here
+	doesn't refer to tags tables.  Note other possible forms of the
+	revision ID.  C-x v = does not save.
+	(Registering): Note similarity to C-x v v action.  Fix description
+	of how backends are chosen.  De-document vc-default-init-revision.
+	(VC Change Log): Document C-x v l in VC-Dir buffer.  Document RET
+	in root log buffers.
+
+2011-12-16  Chong Yidong  <cyd@gnu.org>
+
+	* maintaining.texi (Version Control Systems): Drop Meta-CVS.
+	(Basic VC Editing): Remove redundant descriptions.
+	(VC With A Merging VCS): Make description more general instead of
+	CVS-specific.
+	(VC With A Locking VCS): Use VC fileset terminology.
+
 2011-12-12  Chong Yidong  <cyd@gnu.org>
 
 	* building.texi (Executing Lisp): Fix xref for C-M-x.

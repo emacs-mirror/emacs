@@ -1,6 +1,6 @@
 ;;; gnus-int.el --- backend interface functions for Gnus
 
-;; Copyright (C) 1996-2011 Free Software Foundation, Inc.
+;; Copyright (C) 1996-2012 Free Software Foundation, Inc.
 
 ;; Author: Lars Magne Ingebrigtsen <larsi@gnus.org>
 ;; Keywords: news
@@ -356,7 +356,7 @@ If it is down, start it up (again)."
 	   infos data))
 
 (defun gnus-retrieve-group-data-early (gnus-command-method infos)
-  "Start early async retrival of data from GNUS-COMMAND-METHOD."
+  "Start early async retrieval of data from GNUS-COMMAND-METHOD."
   (when (stringp gnus-command-method)
     (setq gnus-command-method (gnus-server-to-method gnus-command-method)))
   (funcall (gnus-get-function gnus-command-method 'retrieve-group-data-early)
@@ -396,7 +396,7 @@ If it is down, start it up (again)."
     result))
 
 (defun gnus-request-compact (gnus-command-method)
-  "Request groups compaction  from GNUS-COMMAND-METHOD."
+  "Request groups compaction from GNUS-COMMAND-METHOD."
   (when (stringp gnus-command-method)
     (setq gnus-command-method (gnus-server-to-method gnus-command-method)))
   (funcall (gnus-get-function gnus-command-method 'request-compact)

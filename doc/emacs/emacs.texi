@@ -11,7 +11,7 @@
 This is the @value{EDITION} edition of the @cite{GNU Emacs Manual},@*
 updated for Emacs version @value{EMACSVER}.
 
-Copyright @copyright{} 1985-1987, 1993-2011  Free Software Foundation, Inc.
+Copyright @copyright{} 1985-1987, 1993-2012  Free Software Foundation, Inc.
 
 @quotation
 Permission is granted to copy, distribute and/or modify this document
@@ -548,6 +548,7 @@ Commands for Human Languages
 * Case::                Changing the case of text.
 * Text Mode::           The major modes for editing text files.
 * Outline Mode::        Editing outlines.
+* Org Mode::            The Emacs organizer.
 * TeX Mode::            Editing input to the formatter TeX.
 * HTML Mode::           Editing HTML and SGML files.
 * Nroff Mode::          Editing input to the formatter nroff.
@@ -741,15 +742,16 @@ Version Control
 * VC Mode Line::        How the mode line shows version control status.
 * Basic VC Editing::    How to edit a file under version control.
 * Log Buffer::          Features available in log entry buffers.
+* Registering::         Putting a file under version control.
 * Old Revisions::       Examining and comparing old versions.
-* Secondary VC Commands:: The commands used a little less frequently.
+* VC Change Log::       Viewing the VC Change Log.
+* VC Undo::             Canceling changes before or after committing.
 * VC Directory Mode::   Listing files managed by version control.
 * Branches::            Multiple lines of development.
-* Remote Repositories:: Efficient access to remote CVS servers.
 * Revision Tags::       Symbolic names for revisions.
 * Miscellaneous VC::    Various other commands and features of VC.
 * Customizing VC::      Variables that change VC's behavior.
-  
+
 Introduction to Version Control
 
 * Why Version Control?::    Understanding the problems it addresses.
@@ -766,12 +768,6 @@ Basic Editing under Version Control
 * VC With A Locking VCS::  RCS in its default mode, SCCS, and optionally CVS.
 * Advanced C-x v v::       Advanced features available with a prefix argument.
 
-The Secondary Commands of VC
-
-* Registering::         Putting a file under version control.
-* VC Change Log::       Viewing the VC Change Log.
-* VC Undo::             Canceling changes before or after check-in.
-
 VC Directory Mode
 
 * VC Directory Buffer::   What the buffer looks like and means.
@@ -780,26 +776,15 @@ VC Directory Mode
 Multiple Branches of a File
 
 * Switching Branches::    How to get to another existing branch.
-* Creating Branches::     How to start a new branch.
+* VC Pull::               Updating a branch from another branch.
 * Merging::               Transferring changes between branches.
-* Multi-User Branching::  Multiple users working at multiple branches
-                            in parallel.
-
-Remote Repositories
-
-* Version Backups::       Keeping local copies of repository versions.
-* Local Version Control:: Using another version system for local editing.
-
-Revision Tags
-
-* Making Revision Tags::  The tag facilities.
-* Revision Tag Caveats::  Things to be careful of when using tags.
+* Creating Branches::     How to start a new branch.
 
 Miscellaneous Commands and Features of VC
 
 * Change Logs and VC::    Generating a change log file from log entries.
-* Renaming and VC::       A command to rename both the source and master
-                            file correctly.
+* VC Delete/Rename::      Deleting and renaming version-controlled files.
+* Revision Tags::         Symbolic names for revisions.
 * Version Headers::       Inserting version control headers into working files.
 
 Customizing VC
@@ -934,10 +919,10 @@ Customizing the Calendar and Diary
 
 Document Viewing
 
-* Navigation::  Navigation inside DocView buffers.
-* Searching::   Searching inside documents.
-* Slicing::     Specifying which part of pages should be displayed.
-* Conversion::  Influencing and triggering conversion.
+* DocView Navigation::  Navigating DocView buffers.
+* DocView Searching::   Searching inside documents.
+* DocView Slicing::     Specifying which part of a page is displayed.
+* DocView Conversion::  Influencing and triggering conversion.
 
 Sending Mail
 
@@ -989,7 +974,8 @@ Gnus
 
 * Buffers of Gnus::     The group, summary, and article buffers.
 * Gnus Startup::        What you should know about starting Gnus.
-* Summary of Gnus::     A short description of the basic Gnus commands.
+* Gnus Group Buffer::   A short description of Gnus group commands.
+* Gnus Summary Buffer:: A short description of Gnus summary commands.
 
 Running Shell Commands from Emacs
 
@@ -1002,7 +988,6 @@ Running Shell Commands from Emacs
 * Shell Options::       Options for customizing Shell mode.
 * Terminal emulator::   An Emacs window as a terminal emulator.
 * Term Mode::           Special Emacs commands used in Term mode.
-* Paging in Term::      Paging in the terminal emulator.
 * Remote Host::         Connecting to another computer.
 * Serial Terminal::     Connecting to a serial port.
 
@@ -1048,15 +1033,14 @@ Customization
 
 Easy Customization Interface
 
-* Customization Groups::     How settings are classified in a structure.
+* Customization Groups::     How settings are classified.
 * Browsing Custom::          Browsing and searching for settings.
 * Changing a Variable::      How to edit an option's value and set the option.
-* Saving Customizations::    Specifying the file for saving customizations.
+* Saving Customizations::    Saving customizations for future Emacs sessions.
 * Face Customization::       How to edit the attributes of a face.
-* Specific Customization::   Making a customization buffer for specific
-                                variables, faces, or groups.
-* Custom Themes::            How to define collections of customized options
-                                that can be loaded and unloaded together.
+* Specific Customization::   Customizing specific settings or groups.
+* Custom Themes::            Collections of customization settings.
+* Creating Custom Themes::   How to create a new custom theme.
 
 Variables
 
@@ -1104,9 +1088,7 @@ Dealing with Emacs Trouble
 * Text Garbled::        Garbage in the text.
 * Memory Full::         How to cope when you run out of memory.
 * After a Crash::       Recovering editing in an Emacs session that crashed.
-* Emergency Escape::    Emergency escape---
-                          What to do if Emacs stops responding.
-* Total Frustration::   When you are at your wits' end.
+* Emergency Escape::    What to do if Emacs stops responding.
 
 Reporting Bugs
 
@@ -1386,7 +1368,7 @@ Shapiro, Richard Sharman, Olin Shivers, Espen Skoglund, Rick Sladkey,
 Lynn Slater, Chris Smith, David Smith, Paul D.@: Smith, William
 Sommerfeld, Andre Spiegel, Michael Staats, Ulf Stegemann, Reiner Steib,
 Sam Steingold, Ake Stenhoff, Peter Stephenson, Ken Stevens, Andy Stewart,
-Jonathan Stigelman, Martin Stjernholm, Kim F.@: Storm, Steve Strassman,
+Jonathan Stigelman, Martin Stjernholm, Kim F.@: Storm, Steve Strassmann,
 Olaf Sylvester, Naoto Takahashi, Steven Tamm, Jean-Philippe Theberge,
 Jens T.@: Berger Thielemann, Spencer Thomas, Jim Thompson, Luc
 Teirlinck, David O'Toole, Tom Tromey, Enami Tsugutomo, Eli Tziperman,

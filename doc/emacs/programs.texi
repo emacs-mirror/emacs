@@ -1,5 +1,5 @@
 @c This is part of the Emacs manual.
-@c Copyright (C) 1985-1987, 1993-1995, 1997, 1999-2011
+@c Copyright (C) 1985-1987, 1993-1995, 1997, 1999-2012
 @c   Free Software Foundation, Inc.
 @c See file emacs.texi for copying conditions.
 @node Programs, Building, Text, Top
@@ -38,8 +38,8 @@ Highlight program syntax (@pxref{Font Lock}).
 * Glasses::             Making identifiersLikeThis more readable.
 * Semantic::            Suite of editing tools based on source code parsing.
 * Misc for Programs::   Other Emacs features useful for editing programs.
-* C Modes::             Special commands of C, C++, Objective-C,
-                          Java, and Pike modes.
+* C Modes::             Special commands of C, C++, Objective-C, Java,
+                          IDL, Pike and AWK modes.
 * Asm Mode::            Asm mode and its special features.
 @ifnottex
 * Fortran::             Fortran mode and its special features.
@@ -605,6 +605,14 @@ recommended style.
 information on customizing indentation for C and related modes,
 including how to override parts of an existing style and how to define
 your own styles.
+
+@findex c-guess
+@findex c-guess-install
+  As an alternative to specifying a style, you can tell Emacs to guess
+a style by typing @kbd{M-x c-guess} in a sample code buffer.  You can
+then apply the guessed style to other buffers with @kbd{M-x
+c-guess-install}.  @xref{Guessing the Style,,, ccmode, the CC Mode
+Manual}, for details.
 
 @node Parentheses
 @section Commands for Editing with Parentheses
@@ -1283,18 +1291,18 @@ for switching graphical windows, so you should type @kbd{C-M-i} or
 @kbd{@key{ESC} @key{TAB}} instead.
 
 @cindex tags-based completion
-  In-buffer symbol completion generates its completion list in a
-number of different ways.  If Semantic mode is enabled, Emacs tries to
-use the Semantic parser data for completion (@pxref{Semantic}).  If
-Semantic mode is not enabled or it fails at performing completion,
-Emacs normally tries to complete using a tags table (@pxref{Tags}).
-
+@findex completion-at-point
 @cindex Lisp symbol completion
 @cindex completion (Lisp symbols)
-  In Emacs Lisp mode, completion is performed using the function,
-variable, and property names defined in the current Emacs session.  If
-there is an open parenthesis immediately before the beginning of the
-partial symbol, only symbols with function definitions are considered.
+  In most programming language modes, @kbd{C-M-i} (or
+@kbd{M-@key{TAB}}) invokes the command @code{completion-at-point},
+which generates its completion list in a flexible way.  If Semantic
+mode is enabled, it tries to use the Semantic parser data for
+completion (@pxref{Semantic}).  If Semantic mode is not enabled or
+fails at performing completion, it tries to complete using the
+selected tags table (@pxref{Tags}).  If in Emacs Lisp mode, it
+performs completion using the function, variable, or property names
+defined in the current Emacs session.
 
   In all other respects, in-buffer symbol completion behaves like
 minibuffer completion.  For instance, if Emacs cannot complete to a
@@ -1462,17 +1470,17 @@ with Emacs.
 related modes.
 
 @table @code
-@item M-x c-beginning-of-defun
-@itemx M-x c-end-of-defun
+@item C-M-a
+@itemx C-M-e
 @findex c-beginning-of-defun
 @findex c-end-of-defun
 Move point to the beginning or end of the current function or
-top-level definition.  These are found by searching for the least
+top-level definition.  In languages with enclosing scopes (such as
+C++'s classes) the @dfn{current function} is the immediate one,
+possibly inside a scope.  Otherwise it is the one defined by the least
 enclosing braces.  (By contrast, @code{beginning-of-defun} and
-@code{end-of-defun} search for braces in column zero.)  If you are
-editing code where the opening brace of a function isn't placed in
-column zero, you may wish to bind @code{C-M-a} and @code{C-M-e} to
-these commands.  @xref{Moving by Defuns}.
+@code{end-of-defun} search for braces in column zero.)  @xref{Moving
+by Defuns}.
 
 @item C-c C-u
 @kindex C-c C-u @r{(C mode)}

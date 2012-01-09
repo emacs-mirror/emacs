@@ -1,6 +1,6 @@
 ;;; ange-ftp.el --- transparent FTP support for GNU Emacs
 
-;; Copyright (C) 1989-1996, 1998, 2000-2011  Free Software Foundation, Inc.
+;; Copyright (C) 1989-1996, 1998, 2000-2012  Free Software Foundation, Inc.
 
 ;; Author: Andy Norman (ange@hplb.hpl.hp.com)
 ;; Maintainer: FSF
@@ -3636,6 +3636,10 @@ so return the size on the remote host exactly. See RFC 3659."
 					     keep-date &optional msg cont nowait)
   (setq filename (expand-file-name filename)
 	newname (expand-file-name newname))
+
+  (or (file-exists-p filename)
+      (signal 'file-error
+	      (list "Copy file" "no such file or directory" filename)))
 
   ;; canonicalize newname if a directory.
   (if (file-directory-p newname)

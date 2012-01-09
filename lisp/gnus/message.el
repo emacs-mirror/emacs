@@ -1,6 +1,6 @@
 ;;; message.el --- composing mail and news messages
 
-;; Copyright (C) 1996-2011 Free Software Foundation, Inc.
+;; Copyright (C) 1996-2012 Free Software Foundation, Inc.
 
 ;; Author: Lars Magne Ingebrigtsen <larsi@gnus.org>
 ;; Keywords: mail, news
@@ -4409,7 +4409,7 @@ This function could be useful in `message-setup-hook'."
        ;; A simple function.
        ((functionp action)
 	(funcall action))
-       ;; Something to be evaled.
+       ;; Something to be evalled.
        (t
 	(eval action))))))
 
@@ -6169,7 +6169,7 @@ If the current line has `message-yank-prefix', insert it on the new line."
 When sending via news, also check that the REFERENCES are less
 than 988 characters long, and if they are not, trim them until
 they are."
-  ;; 21 is the number suggested by USEAGE.
+  ;; 21 is the number suggested by USAGE.
   (let ((maxcount 21)
 	(count 0)
 	(cut 2)
@@ -7738,7 +7738,7 @@ Setter function for custom variables."
 			      'message-tool-bar-retro)
   "Specifies the message mode tool bar.
 
-It can be either a list or a symbol refering to a list.  See
+It can be either a list or a symbol referring to a list.  See
 `gmm-tool-bar-from-list' for the format of the list.  The
 default key map is `message-mode-map'.
 

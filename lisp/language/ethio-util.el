@@ -1,6 +1,6 @@
-;;; ethio-util.el --- utilities for Ethiopic	-*- coding: utf-8; -*-
+;;; ethio-util.el --- utilities for Ethiopic	-*- coding: utf-8-emacs; -*-
 
-;; Copyright (C) 1997-1998, 2002-2011  Free Software Foundation, Inc.
+;; Copyright (C) 1997-1998, 2002-2012  Free Software Foundation, Inc.
 ;; Copyright (C) 1997, 1998, 1999, 2000, 2001, 2002, 2003, 2004, 2005,
 ;;   2006, 2007, 2008, 2009, 2010, 2011
 ;;   National Institute of Advanced Industrial Science and Technology (AIST)
@@ -48,7 +48,7 @@
 			([f4] . ethio-sera-to-fidel-buffer)
 			([S-f4] . ethio-sera-to-fidel-region)
 			([C-f4] . ethio-sera-to-fidel-marker)
-			([S-f5] . ethio-toggle-punctuation)
+			;; ([S-f5] . ethio-toggle-punctuation)
 			([S-f6] . ethio-modify-vowel)
 			([S-f7] . ethio-replace-space)
 			;; ([S-f8] . ethio-input-special-character) ; deprecated

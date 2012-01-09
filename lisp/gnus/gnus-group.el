@@ -1,6 +1,6 @@
 ;;; gnus-group.el --- group mode commands for Gnus
 
-;; Copyright (C) 1996-2011  Free Software Foundation, Inc.
+;; Copyright (C) 1996-2012  Free Software Foundation, Inc.
 
 ;; Author: Lars Magne Ingebrigtsen <larsi@gnus.org>
 ;; Keywords: news
@@ -992,7 +992,7 @@ Setter function for custom variables."
 				 'gnus-group-tool-bar-retro)
   "Specifies the Gnus group tool bar.
 
-It can be either a list or a symbol refering to a list.  See
+It can be either a list or a symbol referring to a list.  See
 `gmm-tool-bar-from-list' for the format of the list.  The
 default key map is `gnus-group-mode-map'.
 
@@ -2277,8 +2277,8 @@ confirmation is required."
 					      number)
   "Read GROUP from METHOD as an ephemeral group.
 If ACTIVATE, request the group first.
-If QUIT-CONFIG, use that window configuration when exiting from the
-ephemeral group.
+If QUIT-CONFIG, use that Gnus window configuration name when
+exiting from the ephemeral group.
 If REQUEST-ONLY, don't actually read the group; just request it.
 If SELECT-ARTICLES, only select those articles.
 If PARAMETERS, use those as the group parameters.

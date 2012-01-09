@@ -1,5 +1,5 @@
 @c This is part of the Emacs manual.
-@c Copyright (C) 1985-1987, 1993-1995, 1997, 2000-2011
+@c Copyright (C) 1985-1987, 1993-1995, 1997, 2000-2012
 @c   Free Software Foundation, Inc.
 @c See file emacs.texi for copying conditions.
 @node Building, Maintaining, Programs, Top
@@ -24,9 +24,9 @@ assist in the process of compiling and testing programs.
 * Executing Lisp::      Various modes for editing Lisp programs,
                           with different facilities for running
                           the Lisp programs.
-* Lisp Libraries::      How Lisp programs are loaded into Emacs.
-* Lisp Eval::           Executing a single Lisp expression in Emacs.
-* Lisp Interaction::    Executing Lisp in an Emacs buffer.
+* Libraries: Lisp Libraries.      How Lisp programs are loaded into Emacs.
+* Eval: Lisp Eval.      Executing a single Lisp expression in Emacs.
+* Interaction: Lisp Interaction.  Executing Lisp in an Emacs buffer.
 * External Lisp::       Communicating through Emacs with a separate Lisp.
 @end menu
 
@@ -550,7 +550,7 @@ This is the basic interface for interacting with a debugger, used by
 @kbd{M-x gud-gdb} and other commands listed in
 @iftex
 the preceding section.
-@end iftext
+@end iftex
 @ifnottex
 @ref{Starting GUD}.
 @end ifnottex
@@ -565,7 +565,7 @@ Mode}).  Completion is available for most debugger commands
 commands to repeat them.
 @iftex
 See the next section
-@end iftext
+@end iftex
 @ifnottex
 @xref{Commands of GUD},
 @end ifnottex

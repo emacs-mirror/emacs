@@ -1,5 +1,5 @@
 @c This is part of the Emacs manual.
-@c Copyright (C) 1985-1987, 1993-1995, 1997, 2000-2011
+@c Copyright (C) 1985-1987, 1993-1995, 1997, 2000-2012
 @c   Free Software Foundation, Inc.
 
 @c See file emacs.texi for copying conditions.
@@ -1061,6 +1061,56 @@ variable @code{indicate-empty-lines} to a non-@code{nil} value.  You
 can enable or disable this feature for all new buffers by setting the
 default value of this variable, e.g.@: @code{(setq-default
 indicate-empty-lines t)}.
+
+@cindex Whitespace mode
+@cindex mode, Whitespace
+@findex whitespace-mode
+@vindex whitespace-style
+  Whitespace mode is a buffer-local minor mode that lets you
+``visualize'' many kinds of whitespace in the buffer, by either
+drawing the whitespace characters with a special face or displaying
+them as special glyphs.  To toggle this mode, type @kbd{M-x
+whitespace-mode}.  The kinds of whitespace visualized are determined
+by the list variable @code{whitespace-style}.  Here is a partial list
+of possible elements (see the variable's documentation for the full
+list):
+
+@table @code
+@item face
+Enable all visualizations which use special faces.  This element has a
+special meaing: if it is absent from the list, none of the other
+visualizations take effect except @code{space-mark}, @code{tab-mark},
+and @code{newline-mark}.
+
+@item trailing
+Highlight trailing whitespace.
+
+@item tabs
+Highlight tab characters.
+
+@item spaces
+Highlight space and non-breaking space characters.
+
+@item lines
+@vindex whitespace-line-column
+Highlight lines longer than 80 lines.  To change the column limit,
+customize the variable @code{whitespace-line-column}.
+
+@item newline
+Highlight newlines.
+
+@item empty
+Highlight empty lines.
+
+@item space-mark
+Draw space and non-breaking characters with a special glyph.
+
+@item tab-mark
+Draw tab characters with a special glyph.
+
+@item newline-mark
+Draw newline characters with a special glyph.
+@end table
 
 @node Selective Display
 @section Selective Display

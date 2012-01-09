@@ -1,6 +1,6 @@
 ;;; dframe --- dedicate frame support modes
 
-;; Copyright (C) 1996-2011  Free Software Foundation, Inc.
+;; Copyright (C) 1996-2012  Free Software Foundation, Inc.
 
 ;; Author: Eric M. Ludlam <zappo@gnu.org>
 ;; Keywords: file, tags, tools
@@ -221,7 +221,7 @@ Local to those buffers, as a function called that created it.")
     (define-key map [mouse-2] 'dframe-click)
     ;; This is the power click for new frames, or refreshing a cache
     (define-key map [S-mouse-2] 'dframe-power-click)
-    ;; This adds a small unecessary visual effect
+    ;; This adds a small unnecessary visual effect
     ;;(define-key map [down-mouse-2] 'dframe-quick-mouse)
 
     (define-key map [down-mouse-3] 'dframe-popup-kludge)

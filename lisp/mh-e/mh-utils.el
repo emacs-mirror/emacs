@@ -1,6 +1,6 @@
 ;;; mh-utils.el --- MH-E general utilities
 
-;; Copyright (C) 1993, 1995, 1997, 2000-2011  Free Software Foundation, Inc.
+;; Copyright (C) 1993, 1995, 1997, 2000-2012  Free Software Foundation, Inc.
 
 ;; Author: Bill Wohler <wohler@newt.com>
 ;; Maintainer: Bill Wohler <wohler@newt.com>

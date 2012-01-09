@@ -1,6 +1,6 @@
 /* 16-bit Windows Selection processing for emacs on MS-Windows
 
-Copyright (C) 1996-1997, 2001-2011  Free Software Foundation, Inc.
+Copyright (C) 1996-1997, 2001-2012  Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -114,7 +114,7 @@ identify_winoldap_version (void)
   return regs.x.ax;
 }
 
-/* Open the clipboard, return non-zero if successfull.  */
+/* Open the clipboard, return non-zero if successful.  */
 unsigned
 open_clipboard (void)
 {
@@ -137,7 +137,7 @@ open_clipboard (void)
   return regs.x.ax;
 }
 
-/* Empty clipboard, return non-zero if successfull.  */
+/* Empty clipboard, return non-zero if successful.  */
 unsigned
 empty_clipboard (void)
 {
@@ -207,7 +207,7 @@ free_xfer_buf (void)
     }
 }
 
-/* Copy data into the clipboard, return zero if successfull.  */
+/* Copy data into the clipboard, return zero if successful.  */
 unsigned
 set_clipboard_data (unsigned Format, void *Data, unsigned Size, int Raw)
 {
@@ -405,7 +405,7 @@ get_clipboard_data (unsigned Format, void *Data, unsigned Size, int Raw)
   return (unsigned) (dp - (unsigned char *)Data - 1);
 }
 
-/* Close clipboard, return non-zero if successfull.  */
+/* Close clipboard, return non-zero if successful.  */
 unsigned
 close_clipboard (void)
 {
@@ -730,4 +730,3 @@ After the communication, this variable is set to nil.  */);
 }
 
 #endif /* MSDOS */
-

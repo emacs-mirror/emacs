@@ -1,6 +1,6 @@
 ;;; semantic/db-mode.el --- Semanticdb Minor Mode
 
-;; Copyright (C) 2008-2011 Free Software Foundation, Inc.
+;; Copyright (C) 2008-2012 Free Software Foundation, Inc.
 
 ;; Author: Eric M. Ludlam <eric@siege-engine.com>
 

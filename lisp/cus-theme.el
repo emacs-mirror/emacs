@@ -1,6 +1,6 @@
 ;;; cus-theme.el -- custom theme creation user interface
 ;;
-;; Copyright (C) 2001-2011 Free Software Foundation, Inc.
+;; Copyright (C) 2001-2012 Free Software Foundation, Inc.
 ;;
 ;; Author: Alex Schroeder <alex@gnu.org>
 ;; Maintainer: FSF
@@ -329,11 +329,16 @@ SPEC, if non-nil, should be a face spec to which to set the widget."
     (load-theme theme nil t))
   (let ((settings (reverse (get theme 'theme-settings))))
     (dolist (setting settings)
-      (funcall (if (eq (car setting) 'theme-value)
-		   'custom-theme-add-variable
-		 'custom-theme-add-face)
-	       (nth 1 setting)
-	       (nth 3 setting))))
+      (let ((option (eq (car setting) 'theme-value))
+	    (name   (nth 1 setting))
+	    (value  (nth 3 setting)))
+	(unless (and option
+		     (memq name '(custom-enabled-themes
+				  custom-safe-themes)))
+	  (funcall (if option
+		       'custom-theme-add-variable
+		     'custom-theme-add-face)
+		   name value)))))
   theme)
 
 ;; From cus-edit.el

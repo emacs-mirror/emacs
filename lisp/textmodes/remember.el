@@ -1,6 +1,6 @@
 ;;; remember --- a mode for quickly jotting down things to remember
 
-;; Copyright (C) 1999-2001, 2003-2011  Free Software Foundation, Inc.
+;; Copyright (C) 1999-2001, 2003-2012  Free Software Foundation, Inc.
 
 ;; Author: John Wiegley <johnw@gnu.org>
 ;; Created: 29 Mar 1999
@@ -474,7 +474,7 @@ If this is nil, then `diary-file' will be used instead."
           (replace-match
            (let ((style (if (boundp 'calendar-date-style)
                             calendar-date-style
-                          ;; Don't complain about obsoleteness.
+                          ;; Don't complain about obsolescence.
                           (if (with-no-warnings european-calendar-style)
                               'european
                             'american))))

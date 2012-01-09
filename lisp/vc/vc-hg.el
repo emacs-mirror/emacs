@@ -1,6 +1,6 @@
 ;;; vc-hg.el --- VC backend for the mercurial version control system
 
-;; Copyright (C) 2006-2011 Free Software Foundation, Inc.
+;; Copyright (C) 2006-2012 Free Software Foundation, Inc.
 
 ;; Author: Ivan Kanis
 ;; Keywords: vc tools
@@ -216,7 +216,7 @@ highlighting the Log View buffer."
              ((eq state ?R) 'removed)
              ((eq state ?!) 'missing)
              ((eq state ??) 'unregistered)
-             ((eq state ?C) 'up-to-date) ;; Older mercurials use this
+             ((eq state ?C) 'up-to-date) ;; Older mercurial versions use this.
              (t 'up-to-date)))))))
 
 (defun vc-hg-working-revision (file)

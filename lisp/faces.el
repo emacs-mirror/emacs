@@ -1,6 +1,6 @@
 ;;; faces.el --- Lisp faces
 
-;; Copyright (C) 1992-1996, 1998-2011  Free Software Foundation, Inc.
+;; Copyright (C) 1992-1996, 1998-2012  Free Software Foundation, Inc.
 
 ;; Maintainer: FSF
 ;; Keywords: internal
@@ -557,9 +557,10 @@ If FACE is a face-alias, get the documentation for the target face."
 (defun set-face-attribute (face frame &rest args)
   "Set attributes of FACE on FRAME from ARGS.
 
-FRAME nil means change attributes on all frames.  FRAME t means change
-the default for new frames (this is done automatically each time an
-attribute is changed on all frames).
+If FRAME is nil this function sets the attributes for all
+existing frames, and the default for new frames.  If FRAME is t,
+change the default for new frames (this is done automatically
+each time an attribute is changed on all frames).
 
 ARGS must come in pairs ATTRIBUTE VALUE.  ATTRIBUTE must be a valid
 face attribute name.  All attributes can be set to `unspecified';

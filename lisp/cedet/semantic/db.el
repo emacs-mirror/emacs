@@ -1,6 +1,6 @@
 ;;; semantic/db.el --- Semantic tag database manager
 
-;; Copyright (C) 2000-2011  Free Software Foundation, Inc.
+;; Copyright (C) 2000-2012  Free Software Foundation, Inc.
 
 ;; Author: Eric M. Ludlam <zappo@gnu.org>
 ;; Keywords: tags
@@ -227,7 +227,7 @@ it is in Emacs.")
 	  "Non nil if this table needs to be `Saved'.")
    (db-refs :initform nil
 	    :documentation
-	    "List of `semanticdb-table' objects refering to this one.
+	    "List of `semanticdb-table' objects referring to this one.
 These aren't saved, but are instead recalculated after load.
 See the file semantic/db-ref.el for how this slot is used.")
    (pointmax :initarg :pointmax
@@ -657,7 +657,7 @@ The file associated with OBJ does not need to be in a buffer."
 ;;; SAVE/LOAD
 ;;
 (defmethod semanticdb-save-db ((DB semanticdb-project-database)
-			       &optional supress-questions)
+			       &optional suppress-questions)
   "Cause a database to save itself.
 The database base class does not save itself persistently.
 Subclasses could save themselves to a file, or to a database, or other

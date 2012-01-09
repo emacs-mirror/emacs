@@ -28,7 +28,7 @@ OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN
 IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 
-Copyright (C) 1984, 1987-1989, 1993-1995, 1998-2011
+Copyright (C) 1984, 1987-1989, 1993-1995, 1998-2012
   Free Software Foundation, Inc.
 
 This file is not considered part of GNU Emacs.
@@ -867,7 +867,7 @@ static void
 print_version (void)
 {
   /* Makes it easier to update automatically. */
-  char emacs_copyright[] = "Copyright (C) 2011 Free Software Foundation, Inc.";
+  char emacs_copyright[] = "Copyright (C) 2012 Free Software Foundation, Inc.";
 
   printf ("%s (%s %s)\n", (CTAGS) ? "ctags" : "etags", EMACS_NAME, VERSION);
   puts (emacs_copyright);
@@ -3189,24 +3189,12 @@ C_entries (int c_ext, FILE *inf)
 	    }
 	  continue;
 	}
-      else if (bracketlev > 0)
-	{
-	  switch (c)
-	    {
-	    case ']':
-	      if (--bracketlev > 0)
-		continue;
-	      break;
-	    case '\0':
-	      CNL_SAVE_DEFINEDEF ();
-	      break;
-	    }
-	  continue;
-	}
       else switch (c)
 	{
 	case '"':
 	  inquote = TRUE;
+	  if (bracketlev > 0)
+	    continue;
 	  if (inattribute)
 	    break;
 	  switch (fvdef)
@@ -3224,9 +3212,11 @@ C_entries (int c_ext, FILE *inf)
 	  continue;
 	case '\'':
 	  inchar = TRUE;
+	  if (bracketlev > 0)
+	    continue;
 	  if (inattribute)
 	    break;
-	  if (fvdef != finlist && fvdef != fignore && fvdef !=vignore)
+	  if (fvdef != finlist && fvdef != fignore && fvdef != vignore)
 	    {
 	      fvextern = FALSE;
 	      fvdef = fvnone;
@@ -3238,6 +3228,8 @@ C_entries (int c_ext, FILE *inf)
 	      incomm = TRUE;
 	      lp++;
 	      c = ' ';
+	      if (bracketlev > 0)
+		continue;
 	    }
 	  else if (/* cplpl && */ *lp == '/')
 	    {
@@ -3270,7 +3262,7 @@ C_entries (int c_ext, FILE *inf)
 	      for (cp = newlb.buffer; cp < lp-1; cp++)
 		if (!iswhite (*cp))
 		  {
-		    if (*cp == '*' && *(cp+1) == '/')
+		    if (*cp == '*' && cp[1] == '/')
 		      {
 			cp++;
 			cpptoken = TRUE;
@@ -3284,7 +3276,17 @@ C_entries (int c_ext, FILE *inf)
 	  continue;
 	case '[':
 	  bracketlev++;
-	    continue;
+	  continue;
+	default:
+	  if (bracketlev > 0)
+	    {
+	      if (c == ']')
+		--bracketlev;
+	      else if (c == '\0')
+		CNL_SAVE_DEFINEDEF ();
+	      continue;
+	    }
+	  break;
 	} /* switch (c) */
 
 

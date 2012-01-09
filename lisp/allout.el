@@ -1,6 +1,6 @@
 ;;; allout.el --- extensive outline mode for use alone and with other modes
 
-;; Copyright (C) 1992-1994, 2001-2011  Free Software Foundation, Inc.
+;; Copyright (C) 1992-1994, 2001-2012  Free Software Foundation, Inc.
 
 ;; Author: Ken Manheimer <ken dot manheimer at gmail...>
 ;; Maintainer: Ken Manheimer <ken dot manheimer at gmail...>
@@ -3334,7 +3334,7 @@ coordinating with allout activity.")
       (run-hooks 'allout-post-undo-hook)
       (cond ((and (= buffer-saved-size -1)
                   allout-auto-save-temporarily-disabled)
-             ;; user possibly undid a decryption, deinhibit auto-save:
+             ;; user possibly undid a decryption, disinhibit auto-save:
              (allout-maybe-resume-auto-save-info-after-encryption))
             ((save-excursion
                (save-restriction
@@ -5871,7 +5871,7 @@ encryption.
 Further, encrypting with a KEYMODE-CUE universal argument greater
 than 4 - eg, preceded by a doubled Ctrl-U - causes association of
 the specified recipients with the file, replacing those currently
-associated with it.  This can be used to deassociate any
+associated with it.  This can be used to dissociate any
 recipients with the file, by selecting no recipients in the
 dialog.
 
@@ -5912,7 +5912,7 @@ encryption.
 Further, encrypting with a KEYMODE-CUE universal argument greater
 than 4 - eg, preceded by a doubled Ctrl-U - causes association of
 the specified recipients with the file, replacing those currently
-associated with it.  This can be used to deassociate any
+associated with it.  This can be used to dissociate any
 recipients with the file, by selecting no recipients in the
 dialog.
 
@@ -6045,7 +6045,7 @@ encryption.
 Further, encrypting with a KEYMODE-CUE universal argument greater
 than 4 - eg, preceded by a doubled Ctrl-U - causes association of
 the specified recipients with the file, replacing those currently
-associated with it.  This can be used to deassociate any
+associated with it.  This can be used to dissociate any
 recipients with the file, by selecting no recipients in the
 dialog.
 
@@ -6661,7 +6661,7 @@ To ignore intangibility, bind `inhibit-point-motion-hooks' to t."
       (if (/= arg 1)
           (condition-case nil (line-move (1- arg)) (error nil)))
 
-      ;; Move to beginning-of-line, ignoring fields and invisibles.
+      ;; Move to beginning-of-line, ignoring fields and invisible text.
       (skip-chars-backward "^\n")
       (while (and (not (bobp))
                   (let ((prop

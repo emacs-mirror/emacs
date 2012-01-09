@@ -1,6 +1,6 @@
 ;;; mouse.el --- window system-independent mouse support
 
-;; Copyright (C) 1993-1995, 1999-2011  Free Software Foundation, Inc.
+;; Copyright (C) 1993-1995, 1999-2012  Free Software Foundation, Inc.
 
 ;; Maintainer: FSF
 ;; Keywords: hardware, mouse
@@ -62,7 +62,7 @@ typically sets point where you click the mouse).
 If value is an integer, the time elapsed between pressing and
 releasing the mouse button determines whether to follow the link
 or perform the normal Mouse-1 action (typically set point).
-The absolute numeric value specifices the maximum duration of a
+The absolute numeric value specifies the maximum duration of a
 \"short click\" in milliseconds.  A positive value means that a
 short click follows the link, and a longer click performs the
 normal action.  A negative value gives the opposite behavior.

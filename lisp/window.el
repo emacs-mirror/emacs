@@ -1,6 +1,6 @@
 ;;; window.el --- GNU Emacs window commands aside from those written in C
 
-;; Copyright (C) 1985, 1989, 1992-1994, 2000-2011
+;; Copyright (C) 1985, 1989, 1992-1994, 2000-2012
 ;;   Free Software Foundation, Inc.
 
 ;; Maintainer: FSF
@@ -3604,7 +3604,7 @@ specific buffers."
                 (with-current-buffer (window-buffer window)
                   (let ((point (window-point-1 window))
                         (start (window-start window))
-                        (mark (mark)))
+                        (mark (mark t)))
                     `((buffer
                        ,(buffer-name buffer)
                        (selected . ,selected)
@@ -3713,7 +3713,7 @@ value can be also stored on disk and read back in a new session."
 	      (if (window-sizable-p window (- size) horizontal 'safe)
 		  (let* ((window-combination-limit
 			  (assq 'combination-limit item)))
-		    ;; We must inherit the combiantion limit, otherwise
+		    ;; We must inherit the combination limit, otherwise
 		    ;; we might mess up handling of atomic and side
 		    ;; window.
 		    (setq new (split-window window size horizontal)))
@@ -4526,19 +4526,6 @@ Return WINDOW."
 The actual non-nil value of this variable will be copied to the
 `window-dedicated-p' flag.")
 
-(defun window-normalize-buffer-to-display (buffer-or-name)
-  "Normalize BUFFER-OR-NAME argument for buffer display functions.
-If BUFFER-OR-NAME is nil, return the current buffer.  Else, if a
-buffer specified by BUFFER-OR-NAME exists, return that buffer.
-If no such buffer exists, create a buffer with the name
-BUFFER-OR-NAME and return that buffer."
-  (if buffer-or-name
-      (or (get-buffer buffer-or-name)
-	  (let ((buffer (get-buffer-create buffer-or-name)))
-	    (set-buffer-major-mode buffer)
-	    buffer))
-    (current-buffer)))
-
 (defconst display-buffer--action-function-custom-type
   '(choice :tag "Function"
 	   (const :tag "--" ignore) ; default for insertion
@@ -4640,7 +4627,7 @@ specified, e.g. by the user options `display-buffer-alist' or
   "A `display-buffer' action for displaying in another frame.")
 (put 'display-buffer--other-frame-action 'risky-local-variable t)
 
-(defun display-buffer (&optional buffer-or-name action frame)
+(defun display-buffer (buffer-or-name &optional action frame)
   "Display BUFFER-OR-NAME in some window, without selecting it.
 BUFFER-OR-NAME must be a buffer or the name of an existing
 buffer.  Return the window chosen for displaying BUFFER-OR-NAME,
@@ -4688,7 +4675,9 @@ search for a window that is already displaying the buffer.  See
 `display-buffer-reuse-window'."
   (interactive (list (read-buffer "Display buffer: " (other-buffer))
 		     (if current-prefix-arg t)))
-  (let ((buffer (window-normalize-buffer-to-display buffer-or-name))
+  (let ((buffer (if (bufferp buffer-or-name)
+		    buffer-or-name
+		  (get-buffer buffer-or-name)))
 	;; Handle the old form of the first argument.
 	(inhibit-same-window (and action (not (listp action)))))
     (unless (listp action) (setq action nil))
@@ -4825,7 +4814,7 @@ return the window used; otherwise return nil."
   "Display BUFFER by popping up a new window.
 The new window is created on the selected frame, or in
 `last-nonminibuffer-frame' if no windows can be created there.
-If sucessful, return the new window; otherwise return nil."
+If successful, return the new window; otherwise return nil."
   (let ((frame (or (window--frame-usable-p (selected-frame))
 		   (window--frame-usable-p (last-nonminibuffer-frame))))
 	window)

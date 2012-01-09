@@ -1,6 +1,6 @@
 /* Display generation from window structure and buffer text.
 
-Copyright (C) 1985-1988, 1993-1995, 1997-2011  Free Software Foundation, Inc.
+Copyright (C) 1985-1988, 1993-1995, 1997-2012  Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -4093,10 +4093,11 @@ handle_invisible_prop (struct it *it)
 	  while (invis_p);
 
 	  /* The position newpos is now either ZV or on visible text.  */
-	  if (it->bidi_p && newpos < ZV)
+	  if (it->bidi_p)
 	    {
 	      ptrdiff_t bpos = CHAR_TO_BYTE (newpos);
-	      int on_newline = FETCH_BYTE (bpos) == '\n';
+	      int on_newline =
+		bpos == ZV_BYTE || FETCH_BYTE (bpos) == '\n';
 	      int after_newline =
 		newpos <= BEGV || FETCH_BYTE (bpos - 1) == '\n';
 
@@ -4114,16 +4115,16 @@ handle_invisible_prop (struct it *it)
 
 		  SET_TEXT_POS (tpos, newpos, bpos);
 		  reseat_1 (it, tpos, 0);
-		  /* If we reseat on a newline, we need to prep the
+		  /* If we reseat on a newline/ZV, we need to prep the
 		     bidi iterator for advancing to the next character
-		     after the newline, keeping the current paragraph
+		     after the newline/EOB, keeping the current paragraph
 		     direction (so that PRODUCE_GLYPHS does TRT wrt
 		     prepending/appending glyphs to a glyph row).  */
 		  if (on_newline)
 		    {
 		      it->bidi_it.first_elt = 0;
 		      it->bidi_it.paragraph_dir = pdir;
-		      it->bidi_it.ch = '\n';
+		      it->bidi_it.ch = (bpos == ZV_BYTE) ? -1 : '\n';
 		      it->bidi_it.nchars = 1;
 		      it->bidi_it.ch_len = 1;
 		    }
@@ -4341,7 +4342,7 @@ handle_display_spec (struct it *it, Lisp_Object spec, Lisp_Object object,
   int rv;
 
   if (CONSP (spec)
-      /* Simple specerties.  */
+      /* Simple specifications.  */
       && !EQ (XCAR (spec), Qimage)
       && !EQ (XCAR (spec), Qspace)
       && !EQ (XCAR (spec), Qwhen)
@@ -13651,7 +13652,7 @@ set_cursor_from_row (struct window *w, struct glyph_row *row,
   /* Non-zero means we've seen at least one glyph that came from a
      display string.  */
   int string_seen = 0;
-  /* Largest and smalles buffer positions seen so far during scan of
+  /* Largest and smallest buffer positions seen so far during scan of
      glyph row.  */
   ptrdiff_t bpos_max = pos_before;
   ptrdiff_t bpos_min = pos_after;
@@ -28331,7 +28332,11 @@ all the functions in the list are called, with the frame as argument.  */);
 Each function is called with two arguments, the window and its new
 display-start position.  Note that these functions are also called by
 `set-window-buffer'.  Also note that the value of `window-end' is not
-valid when these functions are called.  */);
+valid when these functions are called.
+
+Warning: Do not use this feature to alter the way the window
+is scrolled.  It is not designed for that, and such use probably won't
+work.  */);
   Vwindow_scroll_functions = Qnil;
 
   DEFVAR_LISP ("window-text-change-functions",

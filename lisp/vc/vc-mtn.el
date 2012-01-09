@@ -1,6 +1,6 @@
 ;;; vc-mtn.el --- VC backend for Monotone
 
-;; Copyright (C) 2007-2011  Free Software Foundation, Inc.
+;; Copyright (C) 2007-2012  Free Software Foundation, Inc.
 
 ;; Author: Stefan Monnier <monnier@iro.umontreal.ca>
 ;; Keywords: vc
@@ -193,7 +193,7 @@ If nil, use the value of `vc-diff-switches'.  If t, use no switches."
   (unless contents-done
     (vc-mtn-command nil 0 file "revert")))
 
-;; (defun vc-mtn-roolback (files)
+;; (defun vc-mtn-rollback (files)
 ;;   )
 
 (defun vc-mtn-print-log (files buffer &optional shortlog start-revision limit)

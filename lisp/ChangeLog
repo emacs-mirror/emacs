@@ -1,3 +1,339 @@
+2012-01-09  Chong Yidong  <cyd@gnu.org>
+
+	* custom.el (custom-safe-themes): Use SHA-256 for hashing.
+
+2012-01-08  Alan Mackenzie  <acm@muc.de>
+
+	Optimise font locking in long enum definitions.
+
+	* progmodes/cc-fonts.el (c-font-lock-declarations): Add an extra
+	arm to a cond form to handle enums.
+	* progmodes/cc-langs.el (c-enums-contain-decls): New lang variable.
+	* progmodes/cc-mode.el (c-font-lock-fontify-region): Correct a typo.
+
+2012-01-07  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* files.el (move-file-to-trash): Preserve default file modes on error.
+	(Bug#10401)
+
+2012-01-07  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* faces.el (set-face-attribute): Clarify the meaning of the nil
+	frame (bug#10294).
+
+	* subr.el (with-selected-frame): Mention that the selected frame
+	is restored (bug#9980).
+
+	* ibuffer.el (ibuffer-mode): List the bindings in the corrent map
+	(bug#9759).
+
+	* mail/smtpmail.el (password-cache-add): Removed unused declaration.
+	(password-read): Don't autoload unused function.
+
+2012-01-07  Juanma Barranquero  <lekktu@gmail.com>
+
+	* progmodes/which-func.el (which-func-mode): Turn into a
+	non-interactive function and mark as obsolete (bug#10428).
+
+2012-01-06  Chong Yidong  <cyd@gnu.org>
+
+	* files.el (hack-dir-local-variables-non-file-buffer): Add doc.
+	(hack-one-local-variable-eval-safep): Allow 0 arg for minor mode
+	functions, along with 1 and -1.
+
+2012-01-06  Eli Zaretskii  <eliz@gnu.org>
+
+	* time.el (display-time-load-average)
+	(display-time-default-load-average): Doc fixes.  See the thread
+	starting at
+	http://lists.gnu.org/archive/html/help-gnu-emacs/2012-01/msg00059.html
+	for the details.
+
+2012-01-06  Glenn Morris  <rgm@gnu.org>
+
+	* mail/unrmail.el (unrmail): Give an explicit error if the input file
+	has no messages.  (Bug#10377)
+
+	* info.el (Info-mode-map): Bind e to end-of-buffer, rather
+	than Info-edit.  (Bug#10385)
+
+	* time.el (display-time-load-average, display-time-next-load-average):
+	Doc fixes.
+
+	* emacs-lisp/bytecomp.el (byte-compile-file): Do not propagate a file
+	local setting of buffer-read-only to the input buffer.  (Bug#10419)
+
+	* calendar/calendar.el (calendar-mode):
+	Locally set scroll-margin to 0.  (Bug#10379)
+
+2012-01-06  Ulrich Mueller  <ulm@gentoo.org>
+
+	* play/doctor.el (doctor-death): Escape "," characters.  (Bug#10370)
+
+2012-01-05  Glenn Morris  <rgm@gnu.org>
+
+	* eshell/em-unix.el (diff-no-select): Autoload it.
+	(eshell/diff): Use diff-no-select.  (Bug#10420)
+
+2012-01-05  Chong Yidong  <cyd@gnu.org>
+
+	* shell.el (shell-dynamic-complete-functions): Revert last change.
+	(shell-command-completion-function): New function.
+	(shell-completion-vars): Use it to implement
+	shell-completion-execonly (Bug#10417).
+
+	* custom.el (enable-theme): Don't set custom-safe-themes.
+
+	* cus-theme.el (custom-theme-merge-theme): Ignore
+	custom-enabled-themes and custom-safe-themes.
+
+2012-01-05  Michael R. Mauger  <mmaug@yahoo.com>
+
+	* progmodes/sql.el (sql-login-hook): Add hook to respond to the
+	first prompt in `sql-interacive-mode'.
+	(sql-mode-oracle-font-lock-keywords): Add CONNECT_BY_* builtin
+	keywords.
+	(sql-mode-mysql-font-lock-keywords):  Add ELSEIF keyword.
+	(sql-product-interactive): Bug fix: Set `sql-buffer' in
+	context of original buffer.  Invoke `sql-login-hook'.
+
+2012-01-04  Eli Zaretskii  <eliz@gnu.org>
+
+	* mail/rmail.el (rmail-font-lock-keywords): Accept non-ASCII
+	letters in cite-prefix.
+
+2012-01-03  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* mail/smtpmail.el (smtpmail-stream-type): Mention the `ssl' value.
+
+2012-01-03  Chong Yidong  <cyd@gnu.org>
+
+	* shell.el (shell-dynamic-complete-functions): Put
+	pcomplete-completions-at-point, so as to try
+	comint-filename-completion first (Bug#10417).
+
+2012-01-02  Richard Stallman  <rms@gnu.org>
+
+	* battery.el (battery-status-function):
+	Detect when to use battery-yeeloong-sysfs.
+	(battery-echo-area-format): Add string for Yeeloong.
+	(battery-linux-proc-apm, battery-linux-proc-acpi): Doc fixes.
+	(battery-yeeloong-sysfs): New function.
+
+2012-01-02  Chong Yidong  <cyd@gnu.org>
+
+	* dirtrack.el (dirtrack-list): Eliminate unused third element.
+	(dirtrack): Merge code for handling relative filenames in prompt
+	from shell-dir-cookie-watcher.
+	(dirtrack-debug-message): New arg to avoid excess format calls.
+
+	* shell.el (shell-dir-cookie-re): Variable deleted.
+	(shell-dir-cookie-watcher): Function deleted.
+	(shell-mode): Don't use shell-dir-cookie-re, since it is redundant
+	with dirtrack-mode.
+
+2012-01-01  Eli Zaretskii  <eliz@gnu.org>
+
+	* term/w32-win.el (dynamic-library-alist) <gnutls>: Load
+	libgnutls-28.dll, from GnuTLS version 3.x, in preference to
+	libgnutls-26.dll.
+
+2011-12-31  Andreas Schwab  <schwab@linux-m68k.org>
+
+	* emacs-lisp/bytecomp.el (byte-compile-file): Fix indentation.
+
+2011-12-31  Eli Zaretskii  <eliz@gnu.org>
+
+	* mail/rmail.el (rmail-show-message-1): Decode any RFC2047 encoded
+	headers of non-MIME messages, when rmail-enable-mime is non-nil.
+
+2011-12-29  Michael Albinus  <michael.albinus@gmx.de>
+
+	* net/tramp-sh.el (tramp-find-shell): Set "remote-shell" property
+	also for alternative shells.
+	(tramp-open-connection-setup-interactive-shell): Check, whether
+	the shell is a busybox.
+	(tramp-send-command): Don't suppress multiple prompts for
+	busyboxes, it hurts.
+
+2011-12-28  Chong Yidong  <cyd@gnu.org>
+
+	* progmodes/gdb-mi.el (gdb-get-source-file-list)
+	(gdb-get-source-file): Move mode line update to
+	gdb-get-source-file (Bug#10087).
+
+2011-12-25  Chong Yidong  <cyd@gnu.org>
+
+	* progmodes/gud.el (gud-gdb-fetch-lines-filter): Just use
+	gud-gdb-marker-filter without taking it as an argument.
+	(gud-gdb-run-command-fetch-lines): Caller changed.
+	(gud-gdb-completion-function): New variable.
+	(gud-gdb-completion-at-point): Use it.
+	(gud-gdb-completions-1): Split from gud-gdb-completions.
+
+	* progmodes/gdb-mi.el (gdb-input): Accept command and handler
+	function as separate arguments.
+	(gdb-init-1, gdb-non-stop-handler, gdb-check-target-async)
+	(gdb-tooltip-print-1, gud-watch, gdb-speedbar-update)
+	(gdb-var-list-children, gdb-var-set-format, gdb-var-delete-1)
+	(gdb-var-delete-children, gdb-edit-value, gdb-var-update)
+	(gdb-stopped, def-gdb-auto-update-trigger)
+	(gdb-place-breakpoints, gdb-select-thread, gdb-select-frame)
+	(gdb-get-changed-registers, gdb-get-main-selected-frame):
+	Callers changed.
+	(gud-gdbmi-completions): New function.
+	(gdb): Use it for generating the completion table.
+
+2011-12-24  Alan Mackenzie  <acm@muc.de>
+
+	Introduce a mechanism to widen the region used in context font
+	locking.  Use this to protect declarations from losing their
+	contexts.
+
+	* progmodes/cc-langs.el (c-before-font-lock-functions): Replace
+	c-set-fl-decl-start with c-change-set-fl-decl-start (Renaming).
+	(c-before-context-fontification-functions): New defvar, a list of
+	functions to be run just before context (etc.) font locking.
+
+	* progmodes/cc-mode.el (c-extend-font-lock-region-for-macros):
+	New, functionality extracted from
+	c-neutralize-syntax-in-and-mark-CPP.
+	(c-in-after-change-fontification): New variable.
+	(c-after-change): Set c-in-after-change-fontification.
+	(c-set-fl-decl-start): Rejig its interface, so it can be called
+	from both after-change and context fontifying.
+	(c-change-set-fl-decl-start, c-context-set-fl-decl-start):
+	New functions.
+	(c-standard-font-lock-fontify-region-function): New variable.
+	(c-font-lock-fontify-region): New function.
+
+2011-12-24  Juri Linkov  <juri@jurta.org>
+
+	* window.el (window--state-get-1): Set `FORCE' arg of `mark' to t.
+	(Bug#10348)
+
+2011-12-23  Michael Albinus  <michael.albinus@gmx.de>
+
+	* net/ange-ftp.el (ange-ftp-copy-file-internal): Check for
+	existence of source file.  (Bug#10325)
+
+2011-12-23  Alan Mackenzie  <acm@muc.de>
+
+	Fix unstable fontification inside templates.
+
+	* progmodes/cc-langs.el (c-before-font-lock-functions):
+	Newly created from the singular version.  The (c c++ objc) entry now
+	additionally has c-set-fl-decl-start.  The other languages (apart
+	from AWK) have that as a single entry.
+
+	* progmodes/cc-fonts.el (c-font-lock-enclosing-decls):
+	The functionality for "local" declarations has been extracted to
+	c-set-fl-decl-start.
+
+	* progmodes/cc-mode.el (c-common-init, c-after-change):
+	Changes due to pluralisation of c-before-font-lock-functions.
+	(c-set-fl-decl-start): New function, extracted from
+	c-font-lock-enclosing-decls and enhanced.
+
+2011-12-23  Juanma Barranquero  <lekktu@gmail.com>
+
+	* desktop.el (desktop-internal-v2s): Fix typos in docstring (bug#10353).
+
+2011-12-22  Juri Linkov  <juri@jurta.org>
+
+	* progmodes/grep.el (rgrep): Fix docstring.  (Bug#10185)
+
+2011-12-22  Chong Yidong  <cyd@gnu.org>
+
+	* vc/vc-hooks.el (vc-keep-workfiles): Doc fix.
+
+2011-12-21  Drew Adams  <drew.adams@oracle.com>
+
+	* files.el (file-remote-p): Fix docstring.  (Bug#10319)
+
+2011-12-21  Jérémy Compostella  <jeremy.compostella@gmail.com>
+
+	* battery.el (battery-linux-sysfs): Add missing parameters from acpi.
+
+2011-12-21  Teodor Zlatanov  <tzz@lifelogs.com>
+
+	* progmodes/cfengine.el: Add Version.  Improve CFEngine 3.x syntax
+	highlighting and support.  Fix up comments for capitalization.
+	(cfengine-mode-debug): New var.
+	(cfengine3-mode): Change the modeline indicator to "CFE3".
+	(cfengine3-font-lock-keywords): Improve defun highlighting.
+	(cfengine2-actions): Rename from `cfengine-actions'.
+	(cfengine2-font-lock-keywords): Rename from
+	`cfengine-font-lock-keywords'.
+	(cfengine2-imenu-expression): Rename from
+	`cfengine-imenu-expression'.
+	(cfengine2-outline-level): Rename from `cfengine-outline-level'.
+	(cfengine2-beginning-of-defun): Rename from
+	`cfengine-beginning-of-defun'.
+	(cfengine2-end-of-defun): Rename from `cfengine-end-of-defun'.
+	(cfengine2-indent-line): Rename from `cfengine-indent-line'.
+	(cfengine2-mode): Rename from `cfengine-mode'.  Change the
+	modeline indicator to "CFE2".
+	(cfengine-mode): Defalias to `cfengine-auto-mode'.
+	(cfengine-mode-abbrevs): Mark obsolete.
+
+2011-12-21  Chong Yidong  <cyd@gnu.org>
+
+	* vc/vc-bzr.el (vc-bzr-rename-file): Don't pass ~ to Bzr in
+	filename argument.
+
+2011-12-20  Martin Rudalics  <rudalics@gmx.at>
+
+	* window.el (window-normalize-buffer-to-display): Remove.
+	(display-buffer): Handle buffer-or-name argument as in Emacs 23.
+
+2011-12-19  Chong Yidong  <cyd@gnu.org>
+
+	* vc/vc-dir.el (vc-dir-parent-marked-p, vc-dir-children-marked-p):
+	Don't signal an error in a predicate function; return non-nil.
+	(vc-dir-mark-file): Move the error here.
+	(vc-dir-mark-unmark): If acting on the region, keep going if one
+	of the entries cannot be marked/unmarked.
+	(vc-dir-mark-all-files): If current entry is a directory, mark
+	only child files, as documented.
+
+2011-12-19  Vincent Belaïche  <vincentb1@users.sourceforge.net>
+
+	* ses.el: Ooops... undo changes of revision 106664, as trunk
+	branch is feature frozen, and revision 106664 was a feature
+	addition.
+
+2011-12-18  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* term/ns-win.el (ns-get-selection-internal)
+	(ns-store-selection-internal): Declare.
+	(ns-store-cut-buffer-internal, ns-get-cut-buffer-internal):
+	Declare as obsolete.
+	(ns-get-pasteboard, ns-paste-secondary):
+	Use ns-get-selection-internal.
+	(ns-set-pasteboard,  ns-copy-including-secondary):
+	Use ns-store-selection-internal.
+
+2011-12-17  Chong Yidong  <cyd@gnu.org>
+
+	* vc/vc.el (vc-next-action): Doc fix; remove CVS-isms.
+	(vc-deduce-fileset): Doc fix.
+
+2011-12-16  Andreas Schwab  <schwab@linux-m68k.org>
+
+	* calc/calc-misc.el (calc-help): Avoid wrapping help message.
+
+2011-12-13  Sam Steingold  <sds@gnu.org>
+
+	* man.el (Man-getpage-in-background): When running under a
+	window-system, ignore $MANWIDTH and $COLUMNS.
+
+2011-12-15  Kenichi Handa  <handa@m17n.org>
+
+	* language/ethio-util.el: Change coding tag to utf-8-emacs.
+	(setup-ethiopic-environment-internal): Comment out key-binding for
+	ethio-toggle-punctuation.
+
 2011-12-13  Alan Mackenzie  <acm@muc.de>
 
 	Add the switch statement to AWK Mode.
@@ -595,8 +931,8 @@
 
 2011-11-21  Juri Linkov  <juri@jurta.org>
 
-	* calc/calc.el (calc-read-key-sequence): Let-bind `input-method-function'
-	to nil.  (Bug#10018)
+	* calc/calc.el (calc-read-key-sequence):
+	Let-bind `input-method-function' to nil.  (Bug#10018)
 
 2011-11-21  Lars Magne Ingebrigtsen  <larsi@gnus.org>
 
@@ -2126,11 +2462,10 @@
 2011-09-24  Ulf Jasper  <ulf.jasper@web.de>
 
 	* net/newst-reader.el (newsticker-html-renderer)
-	(newsticker-show-news): Automatically
-	load html rendering package if newsticker-html-renderer is set.
-	Fixes "Warning: defvar ignored because w3m-fill-column is
-	let-bound" and the error "Symbol's value as variable is void:
-	w3m-fill-column".
+	(newsticker-show-news): Automatically load html rendering package
+	if newsticker-html-renderer is set.  Fixes "Warning: defvar ignored
+	because w3m-fill-column is let-bound" and the error "Symbol's value
+	as variable is void: w3m-fill-column".
 
 2011-09-24  Michael Albinus  <michael.albinus@gmx.de>
 
@@ -2244,8 +2579,8 @@
 2011-09-21  Martin Rudalics  <rudalics@gmx.at>
 
 	* window.el (set-window-buffer-start-and-point):
-	Call set-window-start with NOFORCE argument t.  Suggested by Thierry
-	Volpiatto <thierry.volpiatto@gmail.com>.
+	Call set-window-start with NOFORCE argument t.
+	Suggested by Thierry Volpiatto <thierry.volpiatto@gmail.com>.
 	(quit-window): Reword doc-string.  Handle new format of
 	quit-restore parameter.  Don't delete window if it has a
 	previous buffer we can show instead of the present one.
@@ -2363,13 +2698,13 @@
 2011-09-18  Juri Linkov  <juri@jurta.org>
 
 	* info.el (Info-mode-syntax-table): New variable.
-	(Info-mode): Set `:syntax-table' to `Info-mode-syntax-table'.  (Bug#3312)
+	(Info-mode): Set `:syntax-table' to `Info-mode-syntax-table' (bug#3312).
 
 2011-09-18  Juri Linkov  <juri@jurta.org>
 
-	* info.el (Info-file-supports-index-cookies): Increment
-	line-beginning-position's arg from 3 to 4 because makeinfo outputs
-	one more line for long file names (bug#4142).
+	* info.el (Info-file-supports-index-cookies):
+	Increment line-beginning-position's arg from 3 to 4 because makeinfo
+	outputs one more line for long file names (bug#4142).
 
 2011-09-18  Chong Yidong  <cyd@stupidchicken.com>
 
@@ -4661,8 +4996,8 @@
 	pending encryption.
 
 	(allout-inhibit-auto-save-info-for-decryption):
-	Adjust buffer-saved-size and some allout state to inhibit auto-saves if
-	there are plain-text topics pending encryption.
+	Adjust buffer-saved-size and some allout state to inhibit auto-saves
+	if there are plain-text topics pending encryption.
 
 	(allout-maybe-resume-auto-save-info-after-encryption): Adjust
 	buffer-saved-size and some allout state to not inhibit auto-saves
@@ -5275,7 +5610,7 @@
 	(ses-calculate-cell, ses-update-cells): Use Dijkstra algorithm for
 	cycle detection.
 	(ses-self-reference-early-detection): New defcustom.
-	(ses-formula-references): Robustify against self-refering cells.
+	(ses-formula-references): Robustify against self-referring cells.
 	(ses-mode): Use ses-set-localvars.
 	(ses-command-hook): Add call to ses-initialize-Dijkstra-attempt
 	before lauching the update processing.
@@ -6092,11 +6427,11 @@
 	(split-window-keep-point): Mention split-window-above-each-other
 	instead of split-window-vertically.
 	(split-window-above-each-other, split-window-vertically):
-	Rename split-window-vertically to split-window-above-each-other and
-	provide defalias for old definition.
-	(split-window-side-by-side, split-window-horizontally): Rename
-	split-window-horizontally to split-window-side-by-side and provide
-	defalias for the old definition.
+	Rename split-window-vertically to split-window-above-each-other
+	and provide defalias for old definition.
+	(split-window-side-by-side, split-window-horizontally):
+	Rename split-window-horizontally to split-window-side-by-side
+	and provide defalias for the old definition.
 	(ctl-x-map): Move bindings for delete-window,
 	delete-other-windows and enlarge-window here from window.c.
 	Replace bindings for split-window-vertically and
@@ -9519,10 +9854,10 @@
 	preserves the existing header prefix, rebulleting it if necessary,
 	rather than replacing it.  This is necessary for proper operation
 	of cooperative addons like allout-widgets.
-	(allout-make-topic-prefix, allout-rebullet-heading): Change
-	SOLICIT arg to INSTEAD, and interpret additionally a string value
-	as alternate bullet to be used, instead of prompting the user for
-	a bullet character.
+	(allout-make-topic-prefix, allout-rebullet-heading):
+	Change SOLICIT arg to INSTEAD, and interpret additionally a string
+	value as alternate bullet to be used, instead of prompting the user
+	for a bullet character.
 
 2011-03-09  Michael Albinus  <michael.albinus@gmx.de>
 
@@ -9583,7 +9918,7 @@ See ChangeLog.15 for earlier changes.
 ;; coding: utf-8
 ;; End:
 
-  Copyright (C) 2011  Free Software Foundation, Inc.
+  Copyright (C) 2011-2012  Free Software Foundation, Inc.
 
   This file is part of GNU Emacs.
 

@@ -1,6 +1,6 @@
 ;;; holidays.el --- holiday functions for the calendar package
 
-;; Copyright (C) 1989-1990, 1992-1994, 1997, 2001-2011
+;; Copyright (C) 1989-1990, 1992-1994, 1997, 2001-2012
 ;;   Free Software Foundation, Inc.
 
 ;; Author: Edward M. Reingold <reingold@cs.uiuc.edu>
@@ -723,7 +723,7 @@ STRING)).  Returns nil if it is not visible in the current calendar window."
   (let ((m displayed-month)
         (y displayed-year))
     (calendar-increment-month m y (- 11 month))
-    (if (> m 9)                         ; is november visible?
+    (if (> m 9)                         ; Is November visible?
         (list (list (list month day y) string)))))
 
 (defun holiday-float (month dayname n string &optional day)

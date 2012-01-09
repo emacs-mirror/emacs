@@ -1,6 +1,6 @@
 ;;; nndiary.el --- A diary back end for Gnus
 
-;; Copyright (C) 1999-2011  Free Software Foundation, Inc.
+;; Copyright (C) 1999-2012  Free Software Foundation, Inc.
 
 ;; Author:        Didier Verna <didier@xemacs.org>
 ;; Maintainer:    Didier Verna <didier@xemacs.org>
@@ -71,7 +71,7 @@
 
 ;; * nndiary-get-new-mail, nndiary-mail-source and nndiary-split-methods:
 ;;   NNDiary has some experimental parts, in the sense Gnus normally uses only
-;;   one mail back ends for mail retreival and splitting. This back end is
+;;   one mail back ends for mail retrieval and splitting. This back end is
 ;;   also an attempt to make it behave differently. For Gnus developers: as
 ;;   you can see if you snarf into the code, that was not a very difficult
 ;;   thing to do. Something should be done about the respooling breakage
@@ -224,7 +224,7 @@ The hooks will be called with the article in the current buffer."
 (defvoo nndiary-get-new-mail nil
   "Whether nndiary gets new mail and split it.
 Contrary to traditional mail back ends, this variable can be set to t
-even if your primary mail back end also retreives mail. In such a case,
+even if your primary mail back end also retrieves mail. In such a case,
 NDiary uses its own mail-sources and split-methods.")
 
 (defvoo nndiary-nov-is-evil nil
@@ -1161,7 +1161,7 @@ all.  This may very well take some time.")
 
 (defun nndiary-parse-schedule-value (str min-or-values max)
   ;; Parse the schedule string STR, or signal an error.
-  ;; Signals are caught by `nndary-schedule'.
+  ;; Signals are caught by `nndiary-schedule'.
   (if (string-match "[ \t]*\\*[ \t]*" str)
       ;; unspecified
       nil
@@ -1204,7 +1204,7 @@ all.  This may very well take some time.")
   ;; - Returns nil if `*'
   ;; - Otherwise returns a list of integers and/or ranges (BEG . END)
   ;; The exception is the Timze-Zone value which is always of the form (STR).
-  ;; Signals are caught by `nndary-schedule'.
+  ;; Signals are caught by `nndiary-schedule'.
   (let ((header (format "^X-Diary-%s: \\(.*\\)$" head)))
     (goto-char (point-min))
     (if (not (re-search-forward header nil t))

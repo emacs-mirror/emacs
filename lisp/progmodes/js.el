@@ -1,6 +1,6 @@
 ;;; js.el --- Major mode for editing JavaScript
 
-;; Copyright (C) 2008-2011 Free Software Foundation, Inc.
+;; Copyright (C) 2008-2012 Free Software Foundation, Inc.
 
 ;; Author: Karl Landstrom <karl.landstrom@brgeight.se>
 ;;         Daniel Colascione <dan.colascione@gmail.com>
@@ -369,7 +369,8 @@ Match group 1 is the name of the macro.")
 ;; must be h-end.
 ;;
 ;; js--pitem instances are never modified (with the exception
-;; of the b-end field). Instead, modified copies are added at subseqnce parse points.
+;; of the b-end field). Instead, modified copies are added at
+;; subsequence parse points.
 ;; (The exception for b-end and its caveats is described below.)
 ;;
 

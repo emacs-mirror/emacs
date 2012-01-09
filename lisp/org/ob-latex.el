@@ -1,11 +1,10 @@
 ;;; ob-latex.el --- org-babel functions for latex "evaluation"
 
-;; Copyright (C) 2009-2011  Free Software Foundation, Inc.
+;; Copyright (C) 2009-2012  Free Software Foundation, Inc.
 
 ;; Author: Eric Schulte
 ;; Keywords: literate programming, reproducible research
 ;; Homepage: http://orgmode.org
-;; Version: 7.7
 
 ;; This file is part of GNU Emacs.
 
@@ -73,6 +72,10 @@ This function is called by `org-babel-execute-src-block'."
       (let* ((out-file (cdr (assoc :file params)))
 	     (tex-file (org-babel-temp-file "latex-" ".tex"))
 	     (border (cdr (assoc :border params)))
+	     (imagemagick (cdr (assoc :imagemagick params)))
+	     (im-in-options (cdr (assoc :iminoptions params)))
+	     (im-out-options (cdr (assoc :imoutoptions params)))
+	     (pdfpng (cdr (assoc :pdfpng params)))
 	     (fit (or (cdr (assoc :fit params)) border))
 	     (height (and fit (cdr (assoc :pdfheight params))))
 	     (width (and fit (cdr (assoc :pdfwidth params))))
@@ -82,10 +85,10 @@ This function is called by `org-babel-execute-src-block'."
 	      (append (cdr (assoc :packages params))
 		      org-export-latex-packages-alist)))
         (cond
-         ((string-match "\\.png$" out-file)
+         ((and (string-match "\\.png$" out-file) (not imagemagick))
           (org-create-formula-image
            body out-file org-format-latex-options in-buffer))
-         ((string-match "\\.pdf$" out-file)
+         ((or (string-match "\\.pdf$" out-file) imagemagick)
 	  (require 'org-latex)
 	  (with-temp-file tex-file
 	    (insert
@@ -119,12 +122,28 @@ This function is called by `org-babel-execute-src-block'."
 	       (concat "\n\\begin{document}\n" body "\n\\end{document}\n")))
 	    (org-export-latex-fix-inputenc))
           (when (file-exists-p out-file) (delete-file out-file))
-          (rename-file (org-babel-latex-tex-to-pdf tex-file) out-file))
+	  (let ((transient-pdf-file (org-babel-latex-tex-to-pdf tex-file)))
+	    (cond
+	     ((string-match "\\.pdf$" out-file)
+	      (rename-file transient-pdf-file out-file))
+	     (imagemagick
+	      (convert-pdf
+	       transient-pdf-file out-file im-in-options im-out-options)
+	      (when (file-exists-p transient-pdf-file)
+		(delete-file transient-pdf-file))))))
          ((string-match "\\.\\([^\\.]+\\)$" out-file)
-          (error "can not create %s files, please specify a .png or .pdf file"
+          (error "can not create %s files, please specify a .png or .pdf file or try the :imagemagick header arguement"
 		 (match-string 1 out-file))))
         nil) ;; signal that output has already been written to file
     body))
+
+
+(defun convert-pdf (pdffile out-file im-in-options im-out-options)
+  "Generate a file from a pdf file using imagemagick."
+  (let ((cmd (concat "convert " im-in-options " " pdffile " "
+		     im-out-options " " out-file)))
+    (message (concat "Converting pdffile file " cmd  "..."))
+    (shell-command cmd)))
 
 (defun org-babel-latex-tex-to-pdf (file)
   "Generate a pdf file according to the contents FILE.
@@ -171,7 +190,7 @@ Extracted from `org-export-as-pdf' in org-latex.el."
       pdffile)))
 
 (defun org-babel-prep-session:latex (session params)
-  "Return an error because LaTeX doesn't support sesstions."
+  "Return an error because LaTeX doesn't support sessions."
   (error "LaTeX does not support sessions"))
 
 (provide 'ob-latex)

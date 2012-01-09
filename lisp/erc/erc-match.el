@@ -1,6 +1,6 @@
 ;;; erc-match.el --- Highlight messages matching certain regexps
 
-;; Copyright (C) 2002-2011 Free Software Foundation, Inc.
+;; Copyright (C) 2002-2012 Free Software Foundation, Inc.
 
 ;; Author: Andreas Fuchs <asf@void.at>
 ;; Keywords: comm, faces

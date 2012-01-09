@@ -1,5 +1,5 @@
 /* Header for charset handler.
-   Copyright (C) 2001-2011 Free Software Foundation, Inc.
+   Copyright (C) 2001-2012 Free Software Foundation, Inc.
    Copyright (C) 1995, 1996, 1997, 1998, 1999, 2000, 2001, 2002, 2003, 2004,
      2005, 2006, 2007, 2008, 2009, 2010, 2011
      National Institute of Advanced Industrial Science and Technology (AIST)
@@ -238,7 +238,7 @@ struct charset
   int unified_p;
 };
 
-/* Hash table of charset symbols vs. the correponding attribute
+/* Hash table of charset symbols vs. the corresponding attribute
    vectors.  */
 extern Lisp_Object Vcharset_hash_table;
 
@@ -389,7 +389,7 @@ extern Lisp_Object Vchar_charset_set;
 #endif
 
 
-/* Return a character correponding to the code-point CODE of CHARSET.
+/* Return a character corresponding to the code-point CODE of CHARSET.
    Try some optimization before calling decode_char.  */
 
 #define DECODE_CHAR(charset, code)					\

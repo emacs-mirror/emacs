@@ -1,11 +1,10 @@
 ;;; org-inlinetask.el --- Tasks independent of outline hierarchy
 
-;; Copyright (C) 2009-2011 Free Software Foundation, Inc.
+;; Copyright (C) 2009-2012 Free Software Foundation, Inc.
 ;;
 ;; Author: Carsten Dominik <carsten at orgmode dot org>
 ;; Keywords: outlines, hypermedia, calendar, wp
 ;; Homepage: http://orgmode.org
-;; Version: 7.7
 
 ;; This file is part of GNU Emacs.
 
@@ -107,11 +106,14 @@ When nil, they will not be exported."
   :type 'boolean)
 
 (defvar org-inlinetask-export-templates
-  '((html "<pre class=\"inlinetask\"><b>%s%s</b><br />%s</pre>"
+  '((html "<div class=\"inlinetask\"><b>%s%s</b><br />%s</div>"
 	  '((unless (eq todo "")
 	      (format "<span class=\"%s %s\">%s%s</span> "
 		      class todo todo priority))
 	    heading content))
+    (odt "%s" '((org-odt-format-inlinetask heading content
+					   todo priority tags)))
+
     (latex "\\begin\{description\}\n\\item[%s%s]~%s\\end\{description\}"
 	   '((unless (eq todo "") (format "\\textsc\{%s%s\} " todo priority))
 	     heading content))
@@ -132,9 +134,9 @@ When nil, they will not be exported."
 	       heading content)))
   "Templates for inline tasks in various exporters.
 
-This variable is an alist in the shape of (BACKEND STRING OBJECTS).
+This variable is an alist in the shape of \(BACKEND STRING OBJECTS\).
 
-BACKEND is the name of the backend for the template (ascii, html...).
+BACKEND is the name of the backend for the template \(ascii, html...\).
 
 STRING is a format control string.
 
@@ -151,14 +153,14 @@ defined in an inline task, their value is the empty string.
 
 As an example, valid associations are:
 
-(html \"<ul><li>%s <p>%s</p></li></ul>\" (heading content))
+\(html \"<ul><li>%s <p>%s</p></li></ul>\" \(heading content\)\)
 
 or, with the additional package \"todonotes\" for LaTeX,
 
-(latex \"\\todo[inline]{\\textbf{\\textsf{%s %s}}\\linebreak{} %s}\"
-       '((unless (eq todo \"\")
-	   (format \"\\textsc{%s%s}\" todo priority))
-	 heading content)))")
+\(latex \"\\todo[inline]{\\textbf{\\textsf{%s %s}}\\linebreak{} %s}\"
+       '\(\(unless \(eq todo \"\"\)
+	   \(format \"\\textsc{%s%s}\" todo priority\)\)
+	 heading content\)\)\)")
 
 (defvar org-odd-levels-only)
 (defvar org-keyword-time-regexp)
@@ -179,15 +181,22 @@ default, or nil of no state should be assigned."
   "Insert an inline task.
 If prefix arg NO-STATE is set, ignore `org-inlinetask-default-state'."
   (interactive "P")
+  ;; Error when inside an inline task, except if point was at its very
+  ;; beginning, in which case the new inline task will be inserted
+  ;; before this one.
+  (when (and (org-inlinetask-in-task-p)
+	     (not (and (org-inlinetask-at-task-p) (bolp))))
+    (error "Cannot nest inline tasks"))
   (or (bolp) (newline))
-  (let ((indent org-inlinetask-min-level))
-    (if org-odd-levels-only
-        (setq indent (- (* 2 indent) 1)))
-    (insert (make-string indent ?*)
-            (if (or no-state (not org-inlinetask-default-state))
-		" \n"
-	      (concat " " org-inlinetask-default-state " \n"))
-            (make-string indent ?*) " END\n"))
+  (let* ((indent (if org-odd-levels-only
+		     (1- (* 2 org-inlinetask-min-level))
+		   org-inlinetask-min-level))
+	 (indent-string (concat (make-string indent ?*) " ")))
+    (insert indent-string
+	    (if (or no-state (not org-inlinetask-default-state))
+		"\n"
+	      (concat org-inlinetask-default-state " \n"))
+	    indent-string "END\n"))
   (end-of-line -1))
 (define-key org-mode-map "\C-c\C-xt" 'org-inlinetask-insert-task)
 
@@ -228,21 +237,26 @@ The number of levels is controlled by `org-inlinetask-min-level'."
       (re-search-backward inlinetask-re nil t))))
 
 (defun org-inlinetask-goto-end ()
-  "Go to the end of the inline task at point."
-  (beginning-of-line)
-  (let ((case-fold-search t)
-	(inlinetask-re (org-inlinetask-outline-regexp)))
-    (cond
-     ((org-looking-at-p (concat inlinetask-re "END[ \t]*$"))
-      (forward-line 1))
-     ((org-looking-at-p inlinetask-re)
-      (forward-line 1)
-      (when (org-inlinetask-in-task-p)
-	(re-search-forward inlinetask-re nil t)
-	(forward-line 1)))
-     (t
-      (re-search-forward inlinetask-re nil t)
-      (forward-line 1)))))
+  "Go to the end of the inline task at point.
+Return point."
+  (save-match-data
+    (beginning-of-line)
+    (let* ((case-fold-search t)
+	   (inlinetask-re (org-inlinetask-outline-regexp))
+	   (task-end-re (concat inlinetask-re "END[ \t]*$")))
+      (cond
+       ((looking-at task-end-re) (forward-line))
+       ((looking-at inlinetask-re)
+	(forward-line)
+	(cond
+	 ((looking-at task-end-re) (forward-line))
+	 ((looking-at inlinetask-re))
+	 ((org-inlinetask-in-task-p)
+	  (re-search-forward inlinetask-re nil t)
+	  (forward-line))))
+       (t (re-search-forward inlinetask-re nil t)
+	  (forward-line)))
+      (point))))
 
 (defun org-inlinetask-get-task-level ()
   "Get the level of the inline task around.
@@ -333,7 +347,9 @@ Either remove headline and meta data, or do special formatting."
       ;; Remove the task.
       (goto-char beg)
       (delete-region beg end)
-      (when org-inlinetask-export
+      (when (and org-inlinetask-export
+		 (assq org-export-current-backend
+		       org-inlinetask-export-templates))
 	;; Format CONTENT, if appropriate.
 	(setq content
 	      (if (not (and content (string-match "\\S-" content)))
@@ -341,12 +357,14 @@ Either remove headline and meta data, or do special formatting."
 		;; Ensure CONTENT has minimal indentation, a single
 		;; newline character at its boundaries, and isn't
 		;; protected.
-		(when (string-match "`\\([ \t]*\n\\)+" content)
+		(when (string-match "\\`\\([ \t]*\n\\)+" content)
 		  (setq content (substring content (match-end 0))))
 		(when (string-match "[ \t\n]+\\'" content)
 		  (setq content (substring content 0 (match-beginning 0))))
-		(org-add-props (concat "\n" (org-remove-indentation content) "\n")
-		    '(org-protected nil))))
+		(org-add-props
+		    (concat "\n\n" (org-remove-indentation content) "\n\n")
+		    '(org-protected nil org-native-text nil))))
+
 	(when (string-match org-complex-heading-regexp headline)
 	  (let* ((nil-to-str
 		  (function
@@ -363,7 +381,7 @@ Either remove headline and meta data, or do special formatting."
 		 (backend-spec (assq org-export-current-backend
 				     org-inlinetask-export-templates))
 		 (format-str (org-add-props (nth 1 backend-spec)
-				 '(org-protected t)))
+				 '(org-protected t org-native-text t)))
 		 (tokens (cadr (nth 2 backend-spec)))
 		 ;; Build export string. Ensure it won't break
 		 ;; surrounding lists by giving it arbitrary high
@@ -372,6 +390,11 @@ Either remove headline and meta data, or do special formatting."
 				 (eval (append '(format format-str)
 					       (mapcar nil-to-str tokens)))
 				 '(original-indentation 1000))))
+	    ;; Ensure task starts a new paragraph.
+	    (unless (or (bobp)
+			(save-excursion (forward-line -1)
+					(looking-at "[ \t]*$")))
+	      (insert "\n"))
 	    (insert export-str)
 	    (unless (bolp) (insert "\n")))))))))
 
@@ -386,21 +409,34 @@ Either remove headline and meta data, or do special formatting."
     (goto-char (match-end 0))
     (current-column)))
 
+(defvar org-indent-indentation-per-level) ; defined in org-indent.el
+
+(defface org-inlinetask
+  (org-compatible-face 'shadow '((t (:bold t))))
+  "Face for inlinetask headlines."
+  :group 'org-faces)
+
 (defun org-inlinetask-fontify (limit)
-  "Fontify the inline tasks."
+  "Fontify the inline tasks down to LIMIT."
   (let* ((nstars (if org-odd-levels-only
 		     (1- (* 2 (or org-inlinetask-min-level 200)))
 		   (or org-inlinetask-min-level 200)))
 	 (re (concat "^\\(\\*\\)\\(\\*\\{"
 		    (format "%d" (- nstars 3))
-		    ",\\}\\)\\(\\*\\* .*\\)")))
+		    ",\\}\\)\\(\\*\\* .*\\)"))
+	 ;; Virtual indentation will add the warning face on the first
+	 ;; star. Thus, in that case, only hide it.
+	 (start-face (if (and (org-bound-and-true-p org-indent-mode)
+			      (> org-indent-indentation-per-level 1))
+			 'org-hide
+		       'org-warning)))
     (while (re-search-forward re limit t)
       (add-text-properties (match-beginning 1) (match-end 1)
-			   '(face org-warning font-lock-fontified t))
+			   `(face ,start-face font-lock-fontified t))
       (add-text-properties (match-beginning 2) (match-end 2)
 			   '(face org-hide font-lock-fontified t))
       (add-text-properties (match-beginning 3) (match-end 3)
-			   '(face shadow font-lock-fontified t)))))
+			   '(face org-inlinetask font-lock-fontified t)))))
 
 (defun org-inlinetask-toggle-visibility ()
   "Toggle visibility of inline task at point."

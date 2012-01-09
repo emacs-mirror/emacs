@@ -1,11 +1,10 @@
 ;;; org-exp.el --- ASCII, HTML, XOXO and iCalendar export for Org-mode
 
-;; Copyright (C) 2004-2011  Free Software Foundation, Inc.
+;; Copyright (C) 2004-2012 Free Software Foundation, Inc.
 
 ;; Author: Carsten Dominik <carsten at orgmode dot org>
 ;; Keywords: outlines, hypermedia, calendar, wp
 ;; Homepage: http://orgmode.org
-;; Version: 7.7
 ;;
 ;; This file is part of GNU Emacs.
 ;;
@@ -47,13 +46,15 @@
 (declare-function org-inlinetask-remove-END-maybe "org-inlinetask" ())
 (declare-function org-table-cookie-line-p "org-table" (line))
 (declare-function org-table-colgroup-line-p "org-table" (line))
+(declare-function org-pop-to-buffer-same-window "org-compat"
+		  (&optional buffer-or-name norecord label))
 
 (autoload 'org-export-generic "org-export-generic" "Export using the generic exporter" t)
 
 (autoload 'org-export-as-odt "org-odt"
-  "Export the outline to a OpenDocumentText file." t)
+  "Export the outline to a OpenDocument Text file." t)
 (autoload 'org-export-as-odt-and-open "org-odt"
-  "Export the outline to a OpenDocumentText file and open it." t)
+  "Export the outline to a OpenDocument Text file and open it." t)
 
 (defgroup org-export nil
   "Options for exporting org-listings."
@@ -213,6 +214,11 @@ or use the +OPTION lines for a per-file setting."
   "The default language for export and clocktable translations, as a string.
 This should have an association in `org-export-language-setup'
 and in `org-clock-clocktable-language-setup'."
+  :group 'org-export-general
+  :type 'string)
+
+(defcustom org-export-date-timestamp-format "%Y-%m-%d"
+  "Time string format for Org timestamps in the #+DATE option."
   :group 'org-export-general
   :type 'string)
 
@@ -725,6 +731,7 @@ must accept the property list as an argument, and must return the (possibly
 modified) list.")
 
 ;; FIXME: should we fold case here?
+
 (defun org-infile-export-plist ()
   "Return the property list with file-local settings for export."
   (save-excursion
@@ -736,13 +743,13 @@ modified) list.")
 		  '("TITLE" "AUTHOR" "DATE" "EMAIL" "TEXT" "OPTIONS" "LANGUAGE"
 		    "MATHJAX"
 		    "LINK_UP" "LINK_HOME" "SETUPFILE" "STYLE"
-		    "LATEX_HEADER" "LATEX_CLASS"
+		    "LATEX_HEADER" "LATEX_CLASS" "LATEX_CLASS_OPTIONS"
 		    "EXPORT_SELECT_TAGS" "EXPORT_EXCLUDE_TAGS"
 		    "KEYWORDS" "DESCRIPTION" "MACRO" "BIND" "XSLT")
 		  (mapcar 'car org-export-inbuffer-options-extra))))
 	    (case-fold-search t)
 	    p key val text options mathjax a pr style
-	    latex-header latex-class macros letbind
+	    latex-header latex-class latex-class-options macros letbind
 	    ext-setup-or-nil setup-file setup-dir setup-contents (start 0))
 	(while (or (and ext-setup-or-nil
 			(string-match re ext-setup-or-nil start)
@@ -758,7 +765,15 @@ modified) list.")
 	   ((string-equal key "TITLE") (setq p (plist-put p :title val)))
 	   ((string-equal key "AUTHOR")(setq p (plist-put p :author val)))
 	   ((string-equal key "EMAIL") (setq p (plist-put p :email val)))
-	   ((string-equal key "DATE") (setq p (plist-put p :date val)))
+	   ((string-equal key "DATE")
+	    ;; If date is an Org timestamp, convert it to a time
+	    ;; string using `org-export-date-timestamp-format'
+	    (when (string-match org-ts-regexp3 val)
+	      (setq val (format-time-string
+			 org-export-date-timestamp-format
+			 (apply 'encode-time (org-parse-time-string
+					      (match-string 0 val))))))
+	    (setq p (plist-put p :date val)))
 	   ((string-equal key "KEYWORDS") (setq p (plist-put p :keywords val)))
 	   ((string-equal key "DESCRIPTION")
 	    (setq p (plist-put p :description val)))
@@ -769,6 +784,8 @@ modified) list.")
 	    (setq latex-header (concat latex-header "\n" val)))
 	   ((string-equal key "LATEX_CLASS")
 	    (setq latex-class val))
+           ((string-equal key "LATEX_CLASS_OPTIONS")
+            (setq latex-class-options val))
 	   ((string-equal key "TEXT")
 	    (setq text (if text (concat text "\n" val) val)))
 	   ((string-equal key "OPTIONS")
@@ -812,6 +829,8 @@ modified) list.")
 	  (setq p (plist-put p :latex-header-extra (substring latex-header 1))))
 	(when latex-class
 	  (setq p (plist-put p :latex-class latex-class)))
+        (when latex-class-options
+          (setq p (plist-put p :latex-class-options latex-class-options)))
 	(when options
 	  (setq p (org-export-add-options-to-plist p options)))
 	(when mathjax
@@ -947,7 +966,7 @@ Pressing `1' will switch between these two options."
 
 \[D] export as DocBook   [V] export as DocBook, process to PDF, and open
 
-\[o] export as OpenDocumentText                    [O] ... and open
+\[o] export as OpenDocument Text                   [O] ... and open
 
 \[j] export as TaskJuggler                         [J] ... and open
 
@@ -1011,6 +1030,7 @@ Pressing `1' will switch between these two options."
 		 (message "Export buffer: "))
 		((not subtree-p)
 		 (setq subtree-p t)
+		 (setq bpos (point))
 		 (message "Export subtree: "))))
 	(when (eq r1 ?\ )
 	  (let ((case-fold-search t)
@@ -1027,7 +1047,7 @@ Pressing `1' will switch between these two options."
 		  (setq r1 (read-char-exclusive)))
 	      (error "No enclosing node with LaTeX_CLASS or EXPORT_TITLE or EXPORT_FILE_NAME")
 	      )))))
-    (redisplay)
+    (if (fboundp 'redisplay) (redisplay)) ;; XEmacs does not have/need (redisplay)
     (and bpos (goto-char bpos))
     (setq r2 (if (< r1 27) (+ r1 96) r1))
     (unless (setq ass (assq r2 cmds))
@@ -1277,6 +1297,9 @@ on this string to produce the exported version."
       ;; Remove #+TBLFM and #+TBLNAME lines
       (org-export-handle-table-metalines)
 
+      ;; Remove #+results and #+name lines
+      (org-export-res/src-name-cleanup)
+
       ;; Run the final hook
       (run-hooks 'org-export-preprocess-final-hook)
 
@@ -1407,7 +1430,7 @@ the current file."
 		   (setq found (condition-case nil (org-link-search link)
 				 (error nil)))
 		   (when (and found
-			      (or (org-on-heading-p)
+			      (or (org-at-heading-p)
 				  (not (eq found 'dedicated))))
 		     (or (get-text-property (point) 'target)
 			 (get-text-property
@@ -1438,7 +1461,7 @@ the current file."
 
 (defvar org-export-format-drawer-function nil
   "Function to be called to format the contents of a drawer.
-The function must accept three parameters:
+The function must accept two parameters:
   NAME     the drawer name, like \"PROPERTIES\"
   CONTENT  the content of the drawer.
 You can check the export backend through `org-export-current-backend'.
@@ -1518,7 +1541,7 @@ removed as well."
       (setq beg (point))
       (put-text-property beg (point-max) :org-delete t)
       (while (re-search-forward re-sel nil t)
-	(when (org-on-heading-p)
+	(when (org-at-heading-p)
 	  (org-back-to-heading)
 	  (remove-text-properties
 	   (max (1- (point)) (point-min))
@@ -1588,7 +1611,7 @@ from the buffer."
     (when (not (eq export-archived-trees t))
       (goto-char (point-min))
       (while (re-search-forward re-archive nil t)
-	(if (not (org-on-heading-p t))
+	(if (not (org-at-heading-p t))
 	    (goto-char (point-at-eol))
 	  (beginning-of-line 1)
 	  (setq a (if export-archived-trees
@@ -1634,9 +1657,11 @@ from the buffer."
       (org-if-unprotected
        (replace-match "")))))
 
+(defvar org-heading-keyword-regexp-format) ; defined in org.el
 (defun org-export-protect-quoted-subtrees ()
   "Mark quoted subtrees with the protection property."
-  (let ((org-re-quote (concat "^\\*+[ \t]+" org-quote-string "\\>")))
+  (let ((org-re-quote (format org-heading-keyword-regexp-format
+			      org-quote-string)))
     (goto-char (point-min))
     (while (re-search-forward org-re-quote nil t)
       (goto-char (match-beginning 0))
@@ -1737,8 +1762,14 @@ from the buffer."
 		(save-excursion
 		  (save-match-data
 		    (goto-char beg-content)
-		    (while (re-search-forward "^[ \t]*\\(,\\)" end-content t)
-		      (replace-match "" nil nil nil 1))))
+		    (let ((front-line (save-excursion
+					(re-search-forward
+					 "[^[:space:]]" end-content t)
+					(goto-char (match-beginning 0))
+					(current-column))))
+		      (while (re-search-forward "^[ \t]*\\(,\\)" end-content t)
+			(when (= (current-column) front-line)
+			  (replace-match "" nil nil nil 1))))))
 		(delete-region (match-beginning 0) (match-end 0))
 		(save-excursion
 		  (goto-char beg)
@@ -1924,7 +1955,8 @@ table line.  If it is a link, add it to the line containing the link."
 
 (defun org-export-remove-comment-blocks-and-subtrees ()
   "Remove the comment environment, and also commented subtrees."
-  (let ((re-commented (concat "^\\*+[ \t]+" org-comment-string "\\>"))
+  (let ((re-commented (format org-heading-keyword-regexp-format
+			      org-comment-string))
 	case-fold-search)
     ;; Remove comment environment
     (goto-char (point-min))
@@ -1977,6 +2009,18 @@ When it is nil, all comments will be removed."
 	(replace-match "")
 	(goto-char (max (point-min) (1- pos)))))))
 
+(defun org-export-res/src-name-cleanup ()
+  "Clean up #+results and #+name lines for export.
+This function should only be called after all block processing
+has taken place."
+  (interactive)
+  (save-excursion
+    (goto-char (point-min))
+    (let ((case-fold-search t))
+      (while (org-re-search-forward-unprotected
+	      "#\\+\\(name\\|results\\(\\[[a-z0-9]+\\]\\)?\\):" nil t)
+	(delete-region (match-beginning 0) (progn (forward-line) (point)))))))
+
 (defun org-export-mark-radio-links ()
   "Find all matches for radio targets and turn them into internal links."
   (let ((re-radio (and org-target-link-regexp
@@ -1994,23 +2038,28 @@ When it is nil, all comments will be removed."
 
 (defun org-store-forced-table-alignment ()
   "Find table lines which force alignment, store the results in properties."
-  (let (line cnt aligns)
+  (let (line cnt cookies)
     (goto-char (point-min))
-    (while (re-search-forward "|[ \t]*<[lrc][0-9]*>[ \t]*|" nil t)
+    (while (re-search-forward "|[ \t]*<\\([lrc]?[0-9]+\\|[lrc]\\)>[ \t]*|"
+			      nil t)
       ;; OK, this looks like a table line with an alignment cookie
       (org-if-unprotected
        (setq line (buffer-substring (point-at-bol) (point-at-eol)))
        (when (and (org-at-table-p)
 		  (org-table-cookie-line-p line))
-	 (setq cnt 0 aligns nil)
+	 (setq cnt 0 cookies nil)
 	 (mapc
 	  (lambda (x)
 	    (setq cnt (1+ cnt))
-	    (if (string-match "\\`<\\([lrc]\\)" x)
-		(push (cons cnt (downcase (match-string 1 x))) aligns)))
+	    (when (string-match "\\`<\\([lrc]\\)?\\([0-9]+\\)?>\\'" x)
+	      (let ((align (and (match-end 1)
+				(downcase (match-string 1 x))))
+		    (width (and (match-end 2)
+				(string-to-number (match-string 2 x)))))
+		(push (cons cnt (list align width)) cookies))))
 	  (org-split-string line "[ \t]*|[ \t]*"))
 	 (add-text-properties (org-table-begin) (org-table-end)
-			      (list 'org-forced-aligns aligns))))
+			      (list 'org-col-cookies cookies))))
       (goto-char (point-at-eol)))))
 
 (defun org-export-remove-special-table-lines ()
@@ -2048,10 +2097,11 @@ Also, store forced alignment information found in such lines."
 	(re-angle-link (concat "\\([^[]\\)" org-angle-link-re))
 	nodesc)
     (goto-char (point-min))
+    (while (re-search-forward org-bracket-link-regexp nil t)
+      (put-text-property (match-beginning 0) (match-end 0) 'org-normalized-link t))
+    (goto-char (point-min))
     (while (re-search-forward re-plain-link nil t)
-      (unless (org-string-match-p
-	       "\\[\\[\\S-+:\\S-*?\\<"
-	       (buffer-substring (point-at-bol) (match-beginning 0)))
+      (unless (get-text-property (match-beginning 0) 'org-normalized-link)
 	(goto-char (1- (match-end 0)))
 	(org-if-unprotected-at (1+ (match-beginning 0))
 	  (let* ((s (concat (match-string 1)
@@ -2131,24 +2181,31 @@ can work correctly."
 		   (save-excursion (outline-next-heading) (point)))))
 	(when (re-search-forward "^[ \t]*[^|# \t\r\n].*\n" end t)
 	  ;; Mark the line so that it will not be exported as normal text.
-	  (org-unmodified
-	   (add-text-properties (match-beginning 0) (match-end 0)
-				(list :org-license-to-kill t)))
+	  (unless (org-in-block-p org-list-forbidden-blocks)
+	    (org-unmodified
+	     (add-text-properties (match-beginning 0) (match-end 0)
+				  (list :org-license-to-kill t))))
 	  ;; Return the title string
 	  (org-trim (match-string 0)))))))
 
 (defun org-export-get-title-from-subtree ()
   "Return subtree title and exclude it from export."
   (let ((rbeg (region-beginning)) (rend (region-end))
-	(inhibit-read-only t) title)
+	(inhibit-read-only t)
+	(tags (plist-get (org-infile-export-plist) :tags))
+	title)
     (save-excursion
       (goto-char rbeg)
       (when (and (org-at-heading-p)
 		 (>= (org-end-of-subtree t t) rend))
+	(when (plist-member org-export-opt-plist :tags)
+	  (setq tags (or (plist-get org-export-opt-plist :tags) tags)))
 	;; This is a subtree, we take the title from the first heading
 	(goto-char rbeg)
-	(looking-at org-todo-line-regexp)
-	(setq title (match-string 3))
+	(looking-at org-todo-line-tags-regexp)
+	(setq title (if (eq tags t)
+			(format "%s\t%s" (match-string 3) (match-string 4))
+		      (match-string 3)))
 	(org-unmodified
 	 (add-text-properties (point) (1+ (point-at-eol))
 			      (list :org-license-to-kill t)))
@@ -2290,7 +2347,7 @@ TYPE must be a string, any of:
 			    (plist-get org-export-opt-plist
 				       (intern (concat ":" key)))))
 	  (save-match-data
-	    ;; If arguments are provided, first retreive them properly
+	    ;; If arguments are provided, first retrieve them properly
 	    ;; (in ARGS, as a list), then replace them in VAL.
 	    (when args
 	      (setq args (org-split-string args ",") args2 nil)
@@ -2688,11 +2745,11 @@ INDENT was the original indentation of the block."
 		       (format "\\begin{%s}\n%s\\end{%s}\n"
 			       custom-environment rtn custom-environment))
 		      (listings-p
-		       (format "\\begin{%s}\n%s\\end{%s}\n"
+		       (format "\\begin{%s}\n%s\\end{%s}"
 			       "lstlisting" rtn "lstlisting"))
 		      (minted-p
 		       (format
-			"\\begin{minted}[%s]{%s}\n%s\\end{minted}\n"
+			"\\begin{minted}[%s]{%s}\n%s\\end{minted}"
 			(mapconcat #'make-option-string
 				   org-export-latex-minted-options ",")
 			backend-lang rtn)))))))
@@ -2717,13 +2774,60 @@ INDENT was the original indentation of the block."
 	     "\n#+BEGIN_" backend-name "\n"
 	     (org-add-props rtn
 		 '(org-protected t org-example t org-native-text t))
-	     "\n#+END_" backend-name "\n\n"))
+	     "\n#+END_" backend-name "\n"))
       (org-add-props rtn nil 'original-indentation indent))))
 
 (defun org-export-number-lines (text &optional skip1 skip2 number cont
-				     replace-labels label-format)
+				     replace-labels label-format preprocess)
+  "Apply line numbers to literal examples and handle code references.
+Handle user-specified options under info node `(org)Literal
+examples' and return the modified source block.
+
+TEXT contains the source or example block.
+
+SKIP1 and SKIP2 are the number of lines that are to be skipped at
+the beginning and end of TEXT.  Use these to skip over
+backend-specific lines pre-pended or appended to the original
+source block.
+
+NUMBER is non-nil if the literal example specifies \"+n\" or
+\"-n\" switch. If NUMBER is non-nil add line numbers.
+
+CONT is non-nil if the literal example specifies \"+n\" switch.
+If CONT is nil, start numbering this block from 1.  Otherwise
+continue numbering from the last numbered block.
+
+REPLACE-LABELS is dual-purpose.
+1. It controls the retention of labels in the exported block.
+2. It specifies in what manner the links (or references) to a
+   labelled line be formatted.
+
+REPLACE-LABELS is the symbol `keep' if the literal example
+specifies \"-k\" option, is numeric if the literal example
+specifies \"-r\" option and is nil otherwise.
+
+Handle REPLACE-LABELS as below:
+- If nil, retain labels in the exported block and use
+  user-provided labels for referencing the labelled lines.
+- If it is a number, remove labels in the exported block and use
+  one of line numbers or labels for referencing labelled lines based
+  on NUMBER option.
+- If it is a keep, retain labels in the exported block and use
+  one of line numbers or labels for referencing labelled lines
+  based on NUMBER option.
+
+LABEL-FORMAT is the value of \"-l\" switch associated with
+literal example.  See `org-coderef-label-format'.
+
+PREPROCESS is intended for backend-agnostic handling of source
+block numbering.  When non-nil do the following:
+- do not number the lines
+- always strip the labels from exported block
+- do not make the labelled line a target of an incoming link.
+  Instead mark the labelled line with `org-coderef' property and
+  store the label in it."
   (setq skip1 (or skip1 0) skip2 (or skip2 0))
-  (if (not cont) (setq org-export-last-code-line-counter-value 0))
+  (if (and number (not cont)) (setq org-export-last-code-line-counter-value 0))
   (with-temp-buffer
     (insert text)
     (goto-char (point-max))
@@ -2760,9 +2864,10 @@ INDENT was the original indentation of the block."
 
       (org-goto-line (1+ skip1))
       (while (and (re-search-forward "^" nil t) (not (eobp)) (< n nmax))
-	(if number
-	    (insert (format fm (incf n)))
-	  (forward-char 1))
+	(when number (incf n))
+	(if (or preprocess (not number))
+	    (forward-char 1)
+	  (insert (format fm n)))
 	(when (looking-at lbl-re)
 	  (setq ref (match-string 3))
 	  (cond ((numberp replace-labels)
@@ -2775,7 +2880,8 @@ INDENT was the original indentation of the block."
 		 ;; lines are numbered, use labels otherwise
 		 (goto-char (match-beginning 2))
 		 (delete-region (match-beginning 2) (match-end 2))
-		 (insert "(" ref ")")
+		 (unless preprocess
+		   (insert "(" ref ")"))
 		 (push (cons ref (if (> n 0) n (concat "(" ref ")")))
 		       org-export-code-refs))
 		(t
@@ -2783,15 +2889,19 @@ INDENT was the original indentation of the block."
 		 ;; references
 		 (goto-char (match-beginning 2))
 		 (delete-region (match-beginning 2) (match-end 2))
-		 (insert "(" ref ")")
+		 (unless preprocess
+		   (insert "(" ref ")"))
 		 (push (cons ref (concat "(" ref ")")) org-export-code-refs)))
-	  (when (eq org-export-current-backend 'html)
+	  (when (and (eq org-export-current-backend 'html) (not preprocess))
 	    (save-excursion
 	      (beginning-of-line 1)
 	      (insert (format "<span id=\"coderef-%s\" class=\"coderef-off\">"
 			      ref))
 	      (end-of-line 1)
-	      (insert "</span>")))))
+	      (insert "</span>")))
+	  (when preprocess
+	    (add-text-properties
+	     (point-at-bol) (point-at-eol) (list 'org-coderef ref)))))
       (setq org-export-last-code-line-counter-value n)
       (goto-char (point-max))
       (newline)
@@ -2893,17 +3003,6 @@ command."
       (switch-to-buffer-other-window buffer)
       (goto-char (point-min)))))
 
-(defun org-find-visible ()
-  (let ((s (point)))
-    (while (and (not (= (point-max) (setq s (next-overlay-change s))))
-		(get-char-property s 'invisible)))
-    s))
-(defun org-find-invisible ()
-  (let ((s (point)))
-    (while (and (not (= (point-max) (setq s (next-overlay-change s))))
-		(not (get-char-property s 'invisible))))
-    s))
-
 (defvar org-export-htmlized-org-css-url) ;; defined in org-html.el
 
 (defun org-export-string (string fmt &optional dir)
@@ -2922,7 +3021,7 @@ to the value of `temporary-file-directory'."
 	  (org-load-modules-maybe)
 	  (unless org-local-vars
 	    (setq org-local-vars (org-get-local-variables)))
-	  (eval ;; convert to fmt -- mimicking `org-run-like-in-org-mode'
+	  (eval ;; convert to fmt -- mimicing `org-run-like-in-org-mode'
 	   (list 'let org-local-vars
 		 (list (intern (format "org-export-as-%s" fmt))
 		       nil nil nil ''string t))))
@@ -2972,7 +3071,7 @@ directory."
 	 (region (buffer-string))
          str-ret)
     (save-excursion
-      (switch-to-buffer buffer)
+      (org-pop-to-buffer-same-window buffer)
       (erase-buffer)
       (insert region)
       (let ((org-inhibit-startup t)) (org-mode))
@@ -3218,7 +3317,7 @@ If yes remove the column and the special lines."
 
 (defun org-export-push-to-kill-ring (format)
   "Push buffer content to kill ring.
-The depends on the variable `org-export-copy-to-kill'."
+The depends on the variable `org-export-copy-to-kill-ring'."
   (when org-export-copy-to-kill-ring
     (org-kill-new (buffer-string))
     (when (fboundp 'x-set-selection)
@@ -3227,7 +3326,5 @@ The depends on the variable `org-export-copy-to-kill'."
     (message "%s export done, pushed to kill ring and clipboard" format)))
 
 (provide 'org-exp)
-
-
 
 ;;; org-exp.el ends here

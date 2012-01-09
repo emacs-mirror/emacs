@@ -1,6 +1,6 @@
 ;;; rng-valid.el --- real-time validation of XML using RELAX NG
 
-;; Copyright (C) 2003, 2007-2011  Free Software Foundation, Inc.
+;; Copyright (C) 2003, 2007-2012  Free Software Foundation, Inc.
 
 ;; Author: James Clark
 ;; Keywords: XML, RelaxNG
@@ -570,7 +570,7 @@ Return t if there is work to do, nil otherwise."
 		 (rng-clear-cached-state remove-start (1- pos)))
 	       ;; sync up with cached validation state
 	       (setq continue nil)
-	       ;; do this before settting rng-validate-up-to-date-end
+	       ;; do this before setting rng-validate-up-to-date-end
 	       ;; in case we get a quit
 	       (rng-mark-xmltok-errors)
 	       (rng-mark-xmltok-dependent-regions)

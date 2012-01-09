@@ -1,6 +1,6 @@
 ;;; python.el --- silly walks for Python  -*- coding: iso-8859-1 -*-
 
-;; Copyright (C) 2003-2011  Free Software Foundation, Inc.
+;; Copyright (C) 2003-2012  Free Software Foundation, Inc.
 
 ;; Author: Dave Love <fx@gnu.org>
 ;; Maintainer: FSF
@@ -2343,7 +2343,7 @@ Interactively, prompt for the name with completion."
 ;;;; Bicycle Repair Man support
 
 (autoload 'pymacs-load "pymacs" nil t)
-(autoload 'brm-init "bikemacs")
+(autoload 'brm-init "bikeemacs")
 (defvar brm-menu)
 
 ;; I'm not sure how useful BRM really is, and it's certainly dangerous

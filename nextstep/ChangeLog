@@ -1,3 +1,10 @@
+2012-01-05  Glenn Morris  <rgm@gnu.org>
+
+	* Cocoa/Emacs.base/Contents/Info.plist:
+	* Cocoa/Emacs.base/Contents/Resources/English.lproj/InfoPlist.strings:
+	* GNUstep/Emacs.base/Resources/Info-gnustep.plist:
+	Update short copyright year to 2012.
+
 2011-10-19  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* INSTALL: Remove XCode part.
@@ -216,7 +223,7 @@
 ;; coding: utf-8
 ;; End:
 
-  Copyright (C) 2008-2011  Free Software Foundation, Inc.
+  Copyright (C) 2008-2012  Free Software Foundation, Inc.
 
   This file is part of GNU Emacs.
 

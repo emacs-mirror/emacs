@@ -1,3 +1,8 @@
+2011-12-15  Kenichi Handa  <handa@m17n.org>
+
+	* quail/ethiopic.el ("ethiopic"): Do not refer to
+	ethio-prefer-ascii-punctuation.
+
 2011-11-20  Juanma Barranquero  <lekktu@gmail.com>
 
 	* quail/hangul.el (hangul-character): Fix typo.
@@ -1890,7 +1895,7 @@
 	* Makefile.in (${TIT}): To byte-compile quail packages, use just
 	built quail.
 
-1997-12-09  Koaunghi Un  <koanughi.un@zdv.uni-tuebingen.de>
+1997-12-09  Koaunghi Un  <koaunghi.un@zdv.uni-tuebingen.de>
 
 	* quail/hanja3.el: New file.
 
@@ -2213,7 +2218,7 @@
 ;; coding: utf-8
 ;; End:
 
-  Copyright (C) 1997-1999, 2001-2011  Free Software Foundation, Inc.
+  Copyright (C) 1997-1999, 2001-2012  Free Software Foundation, Inc.
 
   This file is part of GNU Emacs.
 

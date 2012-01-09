@@ -1,6 +1,6 @@
 /** testpolymorph.cpp --- A sequence of polymorphism examples.
  *
- * Copyright (C) 2009-2011  Free Software Foundation, Inc.
+ * Copyright (C) 2009-2012  Free Software Foundation, Inc.
  *
  * Author: Eric M. Ludlam <eric@siege-engine.com>
  *
@@ -83,7 +83,7 @@ namespace template_partial_spec {
   };
 }
 
-// Test 5 - Templates w/ full specicialization which may or may not share
+// Test 5 - Templates w/ full specialization which may or may not share
 // common functions.
 namespace template_full_spec {
   template <typename T> class test

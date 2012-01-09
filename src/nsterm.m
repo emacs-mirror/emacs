@@ -1,5 +1,5 @@
 /* NeXT/Open/GNUstep / MacOSX communication module.
-   Copyright (C) 1989, 1993-1994, 2005-2006, 2008-2011
+   Copyright (C) 1989, 1993-1994, 2005-2006, 2008-2012
      Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
@@ -1158,6 +1158,9 @@ x_free_frame_resources (struct frame *f)
 
   xfree (f->output_data.ns);
 
+  if (f->output_data.ns->miniimage != nil)
+    [f->output_data.ns->miniimage release];
+
   [[view window] close];
   [view release];
 
@@ -1351,7 +1354,7 @@ ns_index_color (NSColor *color, struct frame *f)
 {
   struct ns_color_table *color_table = FRAME_NS_DISPLAY_INFO (f)->color_table;
   ptrdiff_t idx;
-  NSNumber *index;
+  ptrdiff_t i;
 
   if (!color_table->colors)
     {
@@ -1364,21 +1367,13 @@ ns_index_color (NSColor *color, struct frame *f)
     }
 
   /* do we already have this color ? */
-  {
-    ptrdiff_t i;
-    for (i = 1; i < color_table->avail; i++)
-      {
-        if (color_table->colors[i] && [color_table->colors[i] isEqual: color])
-          {
-            [color_table->colors[i] retain];
-            return i;
-          }
-      }
-  }
+  for (i = 1; i < color_table->avail; i++)
+    if (color_table->colors[i] && [color_table->colors[i] isEqual: color])
+      return i;
 
   if ([color_table->empty_indices count] > 0)
     {
-      index = [color_table->empty_indices anyObject];
+      NSNumber *index = [color_table->empty_indices anyObject];
       [color_table->empty_indices removeObject: index];
       idx = [index unsignedLongValue];
     }
@@ -1411,20 +1406,20 @@ ns_free_indexed_color (unsigned long idx, struct frame *f)
   color_table = FRAME_NS_DISPLAY_INFO (f)->color_table;
 
   if (idx <= 0 || idx >= color_table->size) {
-    message1("ns_free_indexed_color: Color index out of range.\n");
+    message1 ("ns_free_indexed_color: Color index out of range.\n");
     return;
   }
 
   index = [NSNumber numberWithUnsignedInt: idx];
   if ([color_table->empty_indices containsObject: index]) {
-    message1("ns_free_indexed_color: attempt to free already freed color.\n");
+    message1 ("ns_free_indexed_color: attempt to free already freed color.\n");
     return;
   }
 
   color = color_table->colors[idx];
   [color release];
   color_table->colors[idx] = nil;
-  [color_table->empty_indices addObject: [NSNumber numberWithUnsignedInt: idx]];
+  [color_table->empty_indices addObject: index];
 /*fprintf(stderr, "color_table: FREED %d\n",idx);*/
 }
 
@@ -4203,6 +4198,15 @@ ns_term_init (Lisp_Object display_name)
     [NSApp setServicesMenu: svcsMenu];
     /* Needed at least on Cocoa, to get dock menu to show windows */
     [NSApp setWindowsMenu: [[NSMenu alloc] init]];
+
+    [[NSNotificationCenter defaultCenter]
+      addObserver: mainMenu
+         selector: @selector (trackingNotification:)
+             name: NSMenuDidBeginTrackingNotification object: mainMenu];
+    [[NSNotificationCenter defaultCenter]
+      addObserver: mainMenu
+         selector: @selector (trackingNotification:)
+             name: NSMenuDidEndTrackingNotification object: mainMenu];
   }
 #endif /* MAC OS X menu setup */
 

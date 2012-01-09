@@ -1,5 +1,5 @@
 /* Font backend for the Microsoft W32 API.
-   Copyright (C) 2007-2011 Free Software Foundation, Inc.
+   Copyright (C) 2007-2012 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -786,7 +786,7 @@ w32font_free_outline (struct font *font, void *outline);
    Optional.
    Get coordinates of the INDEXth anchor point of the glyph whose
    code is CODE.  Store the coordinates in *X and *Y.  Return 0 if
-   the operations was successfull.  Otherwise return -1.
+   the operations was successful.  Otherwise return -1.
 static int
 w32font_anchor_point (struct font *font, unsigned code,
                                  int index, int *x, int *y);

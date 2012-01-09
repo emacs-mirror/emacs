@@ -94,7 +94,7 @@ This file documents Calc, the GNU Emacs calculator, included with
 GNU Emacs @value{EMACSVER}.
 @end ifnotinfo
 
-Copyright @copyright{} 1990-1991, 2001-2011 Free Software Foundation, Inc.
+Copyright @copyright{} 1990-1991, 2001-2012 Free Software Foundation, Inc.
 
 @quotation
 Permission is granted to copy, distribute and/or modify this document
@@ -11100,7 +11100,7 @@ pairwise relatively prime) is
 @texline @math{15\times 19\times 28 = 7980} years.
 @infoline 15*19*28 = 7980 years.
 This is the length of a Julian cycle.  Working backwards, the previous
-year in which all three cycles began was 4713 BC, and so Scalinger
+year in which all three cycles began was 4713 BC, and so Scaliger
 chose that year as the beginning of a Julian cycle.  Since at the time
 there were no historical records from before 4713 BC, using this year
 as a starting point had the advantage of avoiding negative year

@@ -1,6 +1,6 @@
 ;;; reveal.el --- Automatically reveal hidden text at point -*- lexical-binding: t -*-
 
-;; Copyright (C) 2000-2011 Free Software Foundation, Inc.
+;; Copyright (C) 2000-2012 Free Software Foundation, Inc.
 
 ;; Author: Stefan Monnier <monnier@iro.umontreal.ca>
 ;; Keywords: outlines
@@ -106,7 +106,7 @@ Each element has the form (WINDOW . OVERLAY).")
           (let ((inv (overlay-get ol 'invisible)) open)
             (when (and inv
                        ;; There's an `invisible' property.  Make sure it's
-                       ;; actually invisible, and ellipsised.
+                       ;; actually invisible, and ellipsized.
                        (and (consp buffer-invisibility-spec)
                             (cdr (assq inv buffer-invisibility-spec)))
                        (or (setq open

@@ -1,5 +1,5 @@
 /* Header for coding system handler.
-   Copyright (C) 2001-2011  Free Software Foundation, Inc.
+   Copyright (C) 2001-2012  Free Software Foundation, Inc.
    Copyright (C) 1995, 1996, 1997, 1998, 1999, 2000, 2001, 2002, 2003, 2004,
      2005, 2006, 2007, 2008, 2009, 2010, 2011
      National Institute of Advanced Industrial Science and Technology (AIST)
@@ -485,7 +485,7 @@ struct coding_system
      element.  The following elements are OFFSET, ANNOTATION-TYPE, and
      a sequence of actual data for the annotation.  OFFSET is a
      character position offset from dst_pos or src_pos,
-     ANNOTATION-TYPE specfies the meaning of the annotation and how to
+     ANNOTATION-TYPE specifies the meaning of the annotation and how to
      handle the following data..  */
   int *charbuf;
   int charbuf_size, charbuf_used;

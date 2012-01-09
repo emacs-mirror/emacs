@@ -1,3 +1,41 @@
+2011-12-27  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* variables.texi (Creating Buffer-Local): Warn against misuses of
+	make-variable-buffer-local (bug#10258).
+
+2012-01-07  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* macros.texi (Defining Macros): Document `doc-string' (bug#9668).
+
+2012-01-06  Chong Yidong  <cyd@gnu.org>
+
+	* variables.texi (Directory Local Variables): Document
+	hack-dir-local-variables-non-file-buffer.
+
+2012-01-06  Glenn Morris  <rgm@gnu.org>
+
+	* maps.texi (Standard Keymaps): Refer to Info-edit by name
+	rather than by keybinding.
+
+2011-12-29  Juanma Barranquero  <lekktu@gmail.com>
+
+	* frames.texi (Font and Color Parameters): Add @pxref.
+
+2011-12-29  Daniel Colascione  <dan.colascione@gmail.com>
+
+	* frames.texi (Font and Color Parameters):
+	Document w32 font backends (bug#10399).
+
+2011-12-28  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* files.texi (File Attributes, Changing Files):
+	Use a more-natural notation for octal numbers.
+
+2011-12-23  Juanma Barranquero  <lekktu@gmail.com>
+
+	* variables.texi (Variables with Restricted Values):
+	Change reference to variable (bug#10354).
+
 2011-12-13  Martin Rudalics  <rudalics@gmx.at>
 
 	* windows.texi (Splitting Windows): Use t instead of non-nil
@@ -9789,7 +9827,7 @@
 ;; coding: utf-8
 ;; End:
 
-  Copyright (C) 1998-2011  Free Software Foundation, Inc.
+  Copyright (C) 1998-2012  Free Software Foundation, Inc.
 
   This file is part of GNU Emacs.
 

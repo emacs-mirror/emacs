@@ -1,11 +1,10 @@
 ;;; ob-C.el --- org-babel functions for C and similar languages
 
-;; Copyright (C) 2010-2011  Free Software Foundation, Inc.
+;; Copyright (C) 2010-2012  Free Software Foundation, Inc.
 
 ;; Author: Eric Schulte
 ;; Keywords: literate programming, reproducible research
 ;; Homepage: http://orgmode.org
-;; Version: 7.7
 
 ;; This file is part of GNU Emacs.
 
@@ -180,7 +179,7 @@ of the same value."
       (format "int %S = %S;" var val))
      ((floatp val)
       (format "double %S = %S;" var val))
-     ((or (characterp val))
+     ((or (integerp val))
       (format "char %S = '%S';" var val))
      ((stringp val)
       (format "char %S[%d] = \"%s\";"

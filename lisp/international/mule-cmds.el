@@ -1,6 +1,6 @@
 ;;; mule-cmds.el --- commands for multilingual environment -*-coding: iso-2022-7bit -*-
 
-;; Copyright (C) 1997-2011  Free Software Foundation, Inc.
+;; Copyright (C) 1997-2012  Free Software Foundation, Inc.
 ;; Copyright (C) 1995, 1996, 1997, 1998, 1999, 2000, 2001, 2002, 2003, 2004,
 ;;   2005, 2006, 2007, 2008, 2009, 2010, 2011
 ;;   National Institute of Advanced Industrial Science and Technology (AIST)
@@ -1031,7 +1031,7 @@ It is highly recommended to fix it before writing to a file."
 and try again)? " coding-system auto-cs))
 	      (error "Save aborted"))))
       (when (and tick (/= tick (buffer-chars-modified-tick)))
-	(error "Cancelled because the buffer was modified"))
+	(error "Canceled because the buffer was modified"))
       coding-system)))
 
 (setq select-safe-coding-system-function 'select-safe-coding-system)

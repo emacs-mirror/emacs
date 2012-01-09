@@ -1,11 +1,10 @@
 ;;; org-id.el --- Global identifiers for Org-mode entries
 ;;
-;; Copyright (C) 2008-2011 Free Software Foundation, Inc.
+;; Copyright (C) 2008-2012 Free Software Foundation, Inc.
 ;;
 ;; Author: Carsten Dominik <carsten at orgmode dot org>
 ;; Keywords: outlines, hypermedia, calendar, wp
 ;; Homepage: http://orgmode.org
-;; Version: 7.7
 ;;
 ;; This file is part of GNU Emacs.
 ;;
@@ -74,6 +73,8 @@
 (require 'org)
 
 (declare-function message-make-fqdn "message" ())
+(declare-function org-pop-to-buffer-same-window
+		  "org-compat" (&optional buffer-or-name norecord label))
 
 ;;; Customization
 
@@ -253,7 +254,7 @@ Move the cursor to that entry in that buffer."
   (let ((m (org-id-find id 'marker)))
     (unless m
       (error "Cannot find entry with ID \"%s\"" id))
-    (switch-to-buffer (marker-buffer m))
+    (org-pop-to-buffer-same-window (marker-buffer m))
     (goto-char m)
     (move-marker m nil)
     (org-show-context)))
@@ -430,7 +431,7 @@ When CHECK is given, prepare detailed information about duplicate IDs."
 		 (delq nil
 		       (mapcar (lambda (b)
 				 (with-current-buffer b
-				   (and (org-mode-p) (buffer-file-name))))
+				   (and (eq major-mode 'org-mode) (buffer-file-name))))
 			       (buffer-list)))
 		 ;; All files known to have IDs
 		 org-id-files)))
@@ -599,7 +600,7 @@ optional argument MARKERP, return the position as a new marker."
 (defun org-id-store-link ()
   "Store a link to the current entry, using its ID."
   (interactive)
-  (when (and (buffer-file-name (buffer-base-buffer)) (org-mode-p))
+  (when (and (buffer-file-name (buffer-base-buffer)) (eq major-mode 'org-mode))
     (let* ((link (org-make-link "id:" (org-id-get-create)))
 	   (case-fold-search nil)
 	   (desc (save-excursion
@@ -640,7 +641,3 @@ optional argument MARKERP, return the position as a new marker."
 (provide 'org-id)
 
 ;;; org-id.el ends here
-
-
-
-

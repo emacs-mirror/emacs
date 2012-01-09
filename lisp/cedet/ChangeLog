@@ -1,3 +1,8 @@
+2011-12-19  Sam Steingold  <sds@gnu.org>
+
+	* semantic/edit.el (semantic-edits-incremental-parser): Add the
+	autoload cookie, necessary for JDEE.
+
 2011-12-06  Juanma Barranquero  <lekktu@gmail.com>
 
 	* semantic/bovine/c.el (semantic-tag-abstract-p): Fix typo.
@@ -1685,7 +1690,7 @@
 ;; coding: utf-8
 ;; End:
 
-	Copyright (C) 2009-2011  Free Software Foundation, Inc.
+	Copyright (C) 2009-2012  Free Software Foundation, Inc.
 
   This file is part of GNU Emacs.
 

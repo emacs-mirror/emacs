@@ -1,6 +1,6 @@
 /* Lisp object printing and output streams.
 
-Copyright (C) 1985-1986, 1988, 1993-1995, 1997-2011
+Copyright (C) 1985-1986, 1988, 1993-1995, 1997-2012
   Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
@@ -609,7 +609,7 @@ A printed representation of an object is text which describes that object.  */)
     printcharfun = Vprin1_to_string_buffer;
     PRINTPREPARE;
     print (object, printcharfun, NILP (noescape));
-    /* Make Vprin1_to_string_buffer be the default buffer after PRINTFINSH */
+    /* Make Vprin1_to_string_buffer be the default buffer after PRINTFINISH */
     PRINTFINISH;
   }
 

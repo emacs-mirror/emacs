@@ -1,6 +1,6 @@
 ;;; prolog.el --- major mode for editing and running Prolog (and Mercury) code
 
-;; Copyright (C) 1986-1987, 1997-1999, 2002-2003, 2011
+;; Copyright (C) 1986-1987, 1997-1999, 2002-2003, 2011-2012
 ;;   Free Software Foundation, Inc.
 
 ;; Authors: Emil Åström <emil_astrom(at)hotmail(dot)com>
@@ -147,9 +147,9 @@
 ;;  o  Introduced three new customizable variables: electric colon
 ;;     (`prolog-electric-colon-flag', default nil), electric dash
 ;;     (`prolog-electric-dash-flag', default nil), and a possibility
-;;     to prevent the predicate template insertion from adding commata
+;;     to prevent the predicate template insertion from adding commas
 ;;     (`prolog-electric-dot-full-predicate-template', defaults to t
-;;     since it seems quicker to me to just type those commata).  A
+;;     since it seems quicker to me to just type those commas).  A
 ;;     trivial adaptation of a patch by Markus Triska.
 ;;  o  Improved the behavior of electric if-then-else to only skip
 ;;     forward if the parenthesis/semicolon is preceded by
@@ -512,7 +512,7 @@ It does not apply in strings and comments."
 (defcustom prolog-electric-dot-full-predicate-template nil
   "*If nil, electric dot inserts only the current predicate's name and `('
 for recursive calls or new clause heads.  Non-nil means to also
-insert enough commata to cover the predicate's arity and `)',
+insert enough commas to cover the predicate's arity and `)',
 and dot and newline for recursive calls."
   :group 'prolog-keyboard
   :type 'boolean)
@@ -3262,7 +3262,7 @@ STRING should be given if the last search was by `string-match' on STRING."
 (defun prolog-clause-start (&optional not-allow-methods)
   "Return the position at the start of the head of the current clause.
 If NOTALLOWMETHODS is non-nil then do not match on methods in
-objects (relevent only if 'prolog-system' is set to 'sicstus)."
+objects (relevant only if 'prolog-system' is set to 'sicstus)."
   (save-excursion
     (let ((notdone t)
           (retval (point-min)))
@@ -3328,7 +3328,7 @@ objects (relevent only if 'prolog-system' is set to 'sicstus)."
 (defun prolog-clause-end (&optional not-allow-methods)
   "Return the position at the end of the current clause.
 If NOTALLOWMETHODS is non-nil then do not match on methods in
-objects (relevent only if 'prolog-system' is set to 'sicstus)."
+objects (relevant only if 'prolog-system' is set to 'sicstus)."
   (save-excursion
     (beginning-of-line) ; Necessary since we use "^...." for the search.
     (if (re-search-forward

@@ -1,6 +1,6 @@
 ;;; semantic/wisent/comp.el --- GNU Bison for Emacs - Grammar compiler
 
-;; Copyright (C) 1984, 1986, 1989, 1992, 1995, 2000-2007, 2009-2011
+;; Copyright (C) 1984, 1986, 1989, 1992, 1995, 2000-2007, 2009-2012
 ;;   Free Software Foundation, Inc.
 
 ;; Author: David Ponce <david@dponce.com>
@@ -51,7 +51,7 @@
 ;; name space.  Elisp dynamic binding allows that ;-)
 
 ;; Here are simple macros to easily define and use set of variables
-;; binded locally, without all these "reference to free variable"
+;; bound locally, without all these "reference to free variable"
 ;; compiler warnings!
 
 (defmacro wisent-context-name (name)

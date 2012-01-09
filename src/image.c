@@ -1,5 +1,5 @@
 /* Functions for image support on window system.
-   Copyright (C) 1989, 1992-2011 Free Software Foundation, Inc.
+   Copyright (C) 1989, 1992-2012 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -7565,6 +7565,22 @@ extern WandExport void PixelGetMagickColor (const PixelWand *,
 					    MagickPixelPacket *);
 #endif
 
+/* Log ImageMagick error message.
+   Useful when a ImageMagick function returns the status `MagickFalse'.  */
+
+static void
+imagemagick_error (MagickWand *wand)
+{
+  char *description;
+  ExceptionType severity;
+
+  description = MagickGetException (wand, &severity);
+  image_error ("ImageMagick error: %s",
+	       make_string (description, strlen (description)),
+	       Qnil);
+  description = (char *) MagickRelinquishMemory (description);
+}
+
 /* Helper function for imagemagick_load, which does the actual loading
    given contents and size, apart from frame and image structures,
    passed from imagemagick_load.  Uses librimagemagick to do most of
@@ -7619,6 +7635,7 @@ imagemagick_load_image (struct frame *f, struct image *img,
   image = image_spec_value (img->spec, QCindex, NULL);
   ino = INTEGERP (image) ? XFASTINT (image) : 0;
   ping_wand = NewMagickWand ();
+  /* MagickSetResolution (ping_wand, 2, 2);   (Bug#10112)  */
 
   if (filename != NULL)
     {
@@ -7629,7 +7646,12 @@ imagemagick_load_image (struct frame *f, struct image *img,
       status = MagickPingImageBlob (ping_wand, contents, size);
     }
 
-  MagickSetResolution (ping_wand, 2, 2);
+  if (status == MagickFalse)
+    {
+      imagemagick_error (ping_wand);
+      DestroyMagickWand (ping_wand);
+      return 0;
+    }
 
   if (! (0 <= ino && ino < MagickGetNumberImages (ping_wand)))
     {
@@ -7670,7 +7692,10 @@ imagemagick_load_image (struct frame *f, struct image *img,
     {
       image_wand = NewMagickWand ();
       if (MagickReadImageBlob (image_wand, contents, size) == MagickFalse)
-	goto imagemagick_error;
+	{
+	  imagemagick_error (image_wand);
+	  goto imagemagick_error;
+	}
     }
 
   /* If width and/or height is set in the display spec assume we want
@@ -7698,6 +7723,7 @@ imagemagick_load_image (struct frame *f, struct image *img,
       if (status == MagickFalse)
 	{
 	  image_error ("Imagemagick scale failed", Qnil, Qnil);
+	  imagemagick_error (image_wand);
 	  goto imagemagick_error;
 	}
     }
@@ -7752,6 +7778,7 @@ imagemagick_load_image (struct frame *f, struct image *img,
       if (status == MagickFalse)
         {
           image_error ("Imagemagick image rotate failed", Qnil, Qnil);
+	  imagemagick_error (image_wand);
           goto imagemagick_error;
         }
     }
@@ -7976,7 +8003,7 @@ recognize as images, such as C.  See `imagemagick-types-inhibit'.  */)
       Qimagemagicktype = intern (imtypes[i]);
       typelist = Fcons (Qimagemagicktype, typelist);
     }
-  return typelist;
+  return Fnreverse (typelist);
 }
 
 #endif	/* defined (HAVE_IMAGEMAGICK) */

@@ -1,5 +1,5 @@
 @c This is part of the Emacs manual.
-@c Copyright (C) 1985-1987, 1993-1995, 1997, 1999-2011
+@c Copyright (C) 1985-1987, 1993-1995, 1997, 1999-2012
 @c   Free Software Foundation, Inc.
 @c See file emacs.texi for copying conditions.
 @node Files, Buffers, Keyboard Macros, Top
@@ -1352,9 +1352,25 @@ manipulate and apply parts of patches:
 @findex diff-hunk-next
 Move to the next hunk-start (@code{diff-hunk-next}).
 
+@findex diff-auto-refine-mode
+@cindex mode, Diff Auto-Refine
+@cindex Diff Auto-Refine mode
+This command has a side effect: it @dfn{refines} the hunk you move to,
+highlighting its changes with better granularity.  To disable this
+feature, type @kbd{M-x diff-auto-refine-mode} to toggle off the minor
+mode Diff Auto-Refine mode.  To disable Diff Auto Refine mode by
+default, add this to your init file (@pxref{Hooks}):
+
+@example
+(add-hook 'diff-mode-hook
+          (lambda () (diff-auto-refine-mode -1)))
+@end example
+
 @item M-p
 @findex diff-hunk-prev
-Move to the previous hunk-start (@code{diff-hunk-prev}).
+Move to the previous hunk-start (@code{diff-hunk-prev}).  Like
+@kbd{M-n}, this has the side-effect of refining the hunk you move to,
+unless you disable Diff Auto-Refine mode.
 
 @item M-@}
 @findex diff-file-next
@@ -1447,13 +1463,13 @@ descriptions of the changes.  @kbd{C-x 4 a} itself in Diff mode
 operates on behalf of the current hunk's file, but gets the function
 name from the patch itself.  This is useful for making log entries for
 functions that are deleted by the patch.
-
-@item M-x diff-show-trailing-whitespaces RET
-@findex diff-show-trailing-whitespaces
-Highlight trailing whitespace characters, except for those used by the
-patch syntax (@pxref{Useless Whitespace}).
 @end table
 
+  By default, Diff mode highlights trailing whitespace on modified
+lines, so that they are more obvious.  This is done by enabling
+Whitespace mode in the Diff buffer (@pxref{Useless Whitespace}).  Diff
+mode buffers are set up so that Whitespace mode avoids highlighting
+trailing whitespace occurring in the diff context.
 
 @node Misc File Ops
 @section Miscellaneous File Operations
@@ -1485,6 +1501,12 @@ argument to @kbd{M-x delete-file} or @kbd{M-x delete-directory} makes
 them delete outright, instead of using the Trash, regardless of
 @code{delete-by-moving-to-trash}.
 
+@ifnottex
+  If a file is under version control (@pxref{Version Control}), you
+should delete it using @kbd{M-x vc-delete-file} instead of @kbd{M-x
+delete-file}.  @xref{VC Delete/Rename}.
+@end ifnottex
+
 @findex copy-file
 @cindex copying files
   @kbd{M-x copy-file} reads the file @var{old} and writes a new file
@@ -1498,6 +1520,7 @@ it creates a copy of the @var{old} directory and puts it in @var{new}.
 If @var{new} is not an existing directory, it copies all the contents
 of @var{old} into a new directory named @var{new}.
 
+@cindex renaming files
 @findex rename-file
   @kbd{M-x rename-file} reads two file names @var{old} and @var{new}
 using the minibuffer, then renames file @var{old} as @var{new}.  If
@@ -1511,6 +1534,12 @@ component as @var{old}.  For example, @kbd{M-x rename-file RET ~/foo
 RET /tmp RET} renames @file{~/foo} to @file{/tmp/foo}.  The same rule
 applies to all the remaining commands in this section.  All of them
 ask for confirmation when the new file name already exists, too.
+
+@ifnottex
+  If a file is under version control (@pxref{Version Control}), you
+should rename it using @kbd{M-x vc-rename-file} instead of @kbd{M-x
+rename-file}.  @xref{VC Delete/Rename}.
+@end ifnottex
 
 @findex add-name-to-file
 @cindex hard links (creation)

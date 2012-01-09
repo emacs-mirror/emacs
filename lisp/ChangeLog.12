@@ -18459,7 +18459,7 @@
 	reveal-open-spots, so as to be more reliable.  There were several
 	tricky corner cases where an open spot might be lost, or where
 	a closed spot might end up on the list of open spots.
-	Only reveal text that's ellipsised.
+	Only reveal text that's ellipsized.
 
 2005-11-07  Carsten Dominik  <dominik@science.uva.nl>
 
@@ -27413,7 +27413,7 @@
 	which has been added in Emacs 21.1.
 	(c-mode, c++-mode, objc-mode, java-mode, idl-mode, pike-mode)
 	(awk-mode): Use it.
-	(make-local-hook): Suppress warning about obsoleteness.
+	(make-local-hook): Suppress warning about obsolescence.
 
 	* progmodes/cc-engine.el, cc-align.el, cc-cmds.el
 	(c-append-backslashes-forward, c-delete-backslashes-forward)
@@ -33346,7 +33346,7 @@ See ChangeLog.11 for earlier changes.
 ;; add-log-time-zone-rule: t
 ;; End:
 
-    Copyright (C) 2005-2011 Free Software Foundation, Inc.
+    Copyright (C) 2005-2012 Free Software Foundation, Inc.
 
   This file is part of GNU Emacs.
 

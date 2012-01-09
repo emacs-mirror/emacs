@@ -1,6 +1,6 @@
 ;;; minibuf-eldef.el --- Only show defaults in prompts when applicable
 ;;
-;; Copyright (C) 2000-2011 Free Software Foundation, Inc.
+;; Copyright (C) 2000-2012 Free Software Foundation, Inc.
 ;;
 ;; Author: Miles Bader <miles@gnu.org>
 ;; Keywords: convenience

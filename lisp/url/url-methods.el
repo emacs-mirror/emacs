@@ -1,6 +1,6 @@
 ;;; url-methods.el --- Load URL schemes as needed
 
-;; Copyright (C) 1996-1999, 2004-2011 Free Software Foundation, Inc.
+;; Copyright (C) 1996-1999, 2004-2012 Free Software Foundation, Inc.
 
 ;; Keywords: comm, data, processes, hypermedia
 
@@ -62,7 +62,7 @@
 
 (defun url-scheme-default-loader (url &optional callback cbargs)
   "Signal an error for an unknown URL scheme."
-  (error "Unkown URL scheme: %s" (url-type url)))
+  (error "Unknown URL scheme: %s" (url-type url)))
 
 (defvar url-scheme--registering-proxy nil)
 

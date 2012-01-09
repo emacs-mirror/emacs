@@ -1,6 +1,6 @@
 /* Functions for creating and updating GTK widgets.
 
-Copyright (C) 2003-2011  Free Software Foundation, Inc.
+Copyright (C) 2003-2012  Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -3052,7 +3052,7 @@ xg_update_submenu (GtkWidget *submenu,
       }
   }
 
-  /* Remove widgets from first structual change.  */
+  /* Remove widgets from first structural change.  */
   if (iter)
     {
       /* If we are adding new menu items below, we must remove from

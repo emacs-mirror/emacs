@@ -1121,10 +1121,10 @@
 	* international/titdic-cnv.el (tit-process-header): Fix embedded
 	coding tag.
 	(titdic-convert): Bind coding-system-for-write to the coding
-	system specfied in the map file.  Remove `charset' property after
+	system specified in the map file.  Remove `charset' property after
 	decoding.
 	(miscdic-convert): Bind coding-system-for-write to the coding
-	system specfied for the map file.  Fix LANGUAGE arg to
+	system specified for the map file.  Fix LANGUAGE arg to
 	quail-define-package.
 	(batch-miscdic-convert): Check if a file is directory or not.
 
@@ -16697,7 +16697,7 @@ See ChangeLog.12 for earlier changes.
 ;; coding: utf-8
 ;; End:
 
-  Copyright (C) 2007-2011  Free Software Foundation, Inc.
+  Copyright (C) 2007-2012  Free Software Foundation, Inc.
 
   This file is part of GNU Emacs.
 

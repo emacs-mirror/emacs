@@ -4,7 +4,7 @@ dnl 	autoconf
 dnl in the directory containing this script.
 dnl If you changed any AC_DEFINES, also run autoheader.
 dnl
-dnl Copyright (C) 1994-1996, 1999-2011  Free Software Foundation, Inc.
+dnl Copyright (C) 1994-1996, 1999-2012  Free Software Foundation, Inc.
 dnl
 dnl  This file is part of GNU Emacs.
 dnl
@@ -1683,7 +1683,7 @@ if test "$doug_lea_malloc" = "yes" ; then
   ## Use mmap directly for allocating larger buffers.
   ## FIXME this comes from src/s/{gnu,gnu-linux}.h:
   ## #ifdef DOUG_LEA_MALLOC; #undef REL_ALLOC; #endif
-  ## Does the AC_FUNC_MMAP test below make this check unecessary?
+  ## Does the AC_FUNC_MMAP test below make this check unnecessary?
   case "$opsys" in
     gnu*) REL_ALLOC=no ;;
   esac
@@ -1720,7 +1720,15 @@ dnl Check if pthreads is available.
 LIB_PTHREAD=
 AC_CHECK_HEADERS(pthread.h)
 if test "$ac_cv_header_pthread_h"; then
-  AC_CHECK_LIB(pthread, pthread_self, HAVE_PTHREAD=yes)
+  dnl gmalloc.c uses pthread_atfork, which is not available on older-style
+  dnl hosts such as MirBSD 10, so test for pthread_atfork instead of merely
+  dnl testing for pthread_self if Emacs uses gmalloc.c.
+  if test "$GMALLOC_OBJ" = gmalloc.o; then
+    emacs_pthread_function=pthread_atfork
+  else
+    emacs_pthread_function=pthread_self
+  fi
+  AC_CHECK_LIB(pthread, $emacs_pthread_function, HAVE_PTHREAD=yes)
 fi
 if test "$HAVE_PTHREAD" = yes; then
   case "${canonical}" in
@@ -3508,7 +3516,7 @@ fi
 
 AH_TOP([/* GNU Emacs site configuration template file.
 
-Copyright (C) 1988, 1993-1994, 1999-2002, 2004-2011
+Copyright (C) 1988, 1993-1994, 1999-2002, 2004-2012
   Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.

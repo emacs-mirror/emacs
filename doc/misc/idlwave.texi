@@ -22,7 +22,7 @@ Emacs, and interacting with an IDL shell run as a subprocess.
 This is edition @value{EDITION} of the IDLWAVE User Manual for IDLWAVE
 @value{VERSION}.
 
-Copyright @copyright{} 1999-2011 Free Software Foundation, Inc.
+Copyright @copyright{} 1999-2012 Free Software Foundation, Inc.
 
 @quotation
 Permission is granted to copy, distribute and/or modify this document
@@ -669,7 +669,7 @@ We have already used the routine info display in the first part of this
 tutorial.  This was the invoked using @kbd{C-c ?}, and displays
 information about the IDL routine near the cursor position.  Wouldn't it
 be nice to have the same kind of information available for your own
-routines and for the huge amount of code in major libraries like JHUPL
+routines and for the huge amount of code in major libraries like JHUAPL
 or the IDL-Astro library?  In many cases, you may already have this
 information.  Files named @file{.idlwave_catalog} in library directories
 contain scanned information on the routines in that directory; many

@@ -1,5 +1,5 @@
 @c This is part of the Emacs manual.
-@c Copyright (C) 1985-1987, 1993-1995, 1997, 2000-2011
+@c Copyright (C) 1985-1987, 1993-1995, 1997, 2000-2012
 @c   Free Software Foundation, Inc.
 @c See file emacs.texi for copying conditions.
 @node Text, Programs, Indentation, Top
@@ -21,7 +21,10 @@ are also often useful for editing programs.
 the file contains ordinary text, use Text mode, which customizes Emacs
 in small ways for the syntactic conventions of text.  Outline mode
 provides special commands for operating on text with an outline
-structure.
+structure.  Org mode extends Outline mode and turn Emacs into a
+full-fledged organizer: you can manage TODO lists, store notes and
+publish them in many formats.
+
 @iftex
 @xref{Outline Mode}.
 @end iftex
@@ -70,6 +73,7 @@ for editing such pictures.
 * Case::                Changing the case of text.
 * Text Mode::           The major modes for editing text files.
 * Outline Mode::        Editing outlines.
+* Org Mode::            The Emacs organizer.
 * TeX Mode::            Editing input to the formatter TeX.
 * HTML Mode::           Editing HTML and SGML files.
 * Nroff Mode::          Editing input to the formatter nroff.
@@ -1249,6 +1253,153 @@ automatically by putting this in your init file (@pxref{Init File}):
 @example
 (eval-after-load "outline" '(require 'foldout))
 @end example
+
+@node Org Mode
+@section Org Mode
+@cindex organizer
+@cindex planner
+@findex Org mode
+@findex mode, Org
+
+@findex org-mode
+  Org mode is a variant of Outline mode for using Emacs as an
+organizer and/or authoring system.  Files with names ending in the
+extension @file{.org} are opened in Org mode (@pxref{Choosing Modes}).
+To explicitly switch to Org mode, type @kbd{M-x org-mode}.
+
+  In Org mode, as in Outline mode, each entry has a heading line that
+starts with one or more @samp{*} characters.  @xref{Outline Format}.
+In addition, any line that begins with the @samp{#} character is
+treated as a comment.
+
+@kindex TAB @r{(Org Mode)}
+@findex org-cycle
+  Org mode provides commands for easily viewing and manipulating the
+outline structure.  The simplest of these commands is @key{TAB}
+(@code{org-cycle}).  If invoked on a heading line, it cycles through
+the different visibility states of the subtree: (i) showing only that
+heading line, (ii) showing only the heading line and the heading lines
+of its direct children, if any, and (iii) showing the entire subtree.
+If invoked in a body line, the global binding for @key{TAB} is
+executed.
+
+@kindex S-TAB @r{(Org Mode)}
+@findex org-shifttab
+  Typing @key{S-TAB} (@code{org-shifttab}) anywhere in an Org mode
+buffer cycles the visibility of the entire outline structure, between
+(i) showing only top-level heading lines, (ii) showing all heading
+lines but no body lines, and (iii) showing everything.
+
+@kindex M-<up> @r{(Org Mode)}
+@kindex M-<down> @r{(Org Mode)}
+@kindex M-<left> @r{(Org Mode)}
+@kindex M-<right> @r{(Org Mode)}
+@findex org-metaup
+@findex org-metadown
+@findex org-metaleft
+@findex org-metaright
+  You can move an entire entry up or down in the buffer, including its
+body lines and subtree (if any), by typing @kbd{M-<up>}
+(@code{org-metaup}) or @kbd{M-<down>} (@code{org-metadown}) on the
+heading line.  Similarly, you can promote or demote a heading line
+with @kbd{M-<left>} (@code{org-metaleft}) and @kbd{M-<left>}
+(@code{org-metaright}).  These commands execute their global bindings
+if invoked on a body line.
+
+  The following subsections give basic instructions for using Org mode
+as an organizer and as an authoring system.  @xref{Top,The Org Mode
+Manual,,org, The Org Manual}, for details.
+
+@menu
+* Org Organizer::   Managing TODO lists and agendas.
+* Org Authoring::   Exporting Org buffers to various formats.
+@end menu
+
+@node Org Organizer
+@subsection Org as an organizer
+@cindex TODO item
+@cindex Org agenda
+
+@kindex C-c C-t @r{(Org Mode)}
+@findex org-todo
+@vindex org-todo-keywords
+  You can tag an Org entry as a @dfn{TODO} item by typing @kbd{C-c
+C-t} (@code{org-todo}) anywhere in the entry.  This adds the keyword
+@samp{TODO} to the heading line.  Typing @kbd{C-c C-t} again switches
+the keyword to @samp{DONE}; another @kbd{C-c C-t} removes the keyword
+entirely, and so forth.  You can customize the keywords used by
+@kbd{C-c C-t} via the variable @code{org-todo-keywords}.
+
+@kindex C-c C-s @r{(Org Mode)}
+@kindex C-c C-d @r{(Org Mode)}
+@findex org-schedule
+@findex org-deadline
+  Apart from marking an entry as TODO, you can attach a date to it, by
+typing @kbd{C-c C-s} (@code{org-schedule}) in the entry.  This prompts
+for a date by popping up the Emacs Calendar (@pxref{Calendar/Diary}),
+and then adds the tag @samp{SCHEDULED}, together with the selected
+date, beneath the heading line.  The command @kbd{C-c C-d}
+(@code{org-deadline}) has the same effect, except that it uses the tag
+@code{DEADLINE}.
+
+@kindex C-c [ @r{(Org Mode)}
+@findex org-agenda-file-to-front
+@vindex org-agenda-files
+  Once you have some TODO items planned in an Org file, you can add
+that file to the list of @dfn{agenda files} by typing @kbd{C-c [}
+(@code{org-agenda-file-to-front}).  Org mode is designed to let you
+easily maintain multiple agenda files, e.g.@: for organizing different
+aspects of your life.  The list of agenda files is stored in the
+variable @code{org-agenda-files}.
+
+@findex org-agenda
+  To view items coming from your agenda files, type @kbd{M-x
+org-agenda}.  This command prompts for what you want to see: a list of
+things to do this week, a list of TODO items with specific keywords,
+etc.
+@ifnottex
+@xref{Agenda Views,,,org, The Org Manual}, for details.
+@end ifnottex
+
+@node Org Authoring
+@subsection Org as an authoring system
+@cindex Org exporting
+
+@findex org-export
+@kindex C-c C-e @r{(Org mode)}
+  You may want to format your Org notes nicely and to prepare them for
+export and publication.  To export the current buffer, type @kbd{C-c
+C-e} (@code{org-export}) anywhere in an Org buffer.  This command
+prompts for an export format; currently supported formats include
+HTML, La@TeX{}, OpenDocument (@file{.odt}), and PDF.  Some formats,
+such as PDF, require certain system tools to be installed.
+
+@vindex org-publish-project-alist
+  To export several files at once to a specific directory, either
+locally or over the network, you must define a list of projects
+through the variable @code{org-publish-project-alist}.  See its
+documentation for details.
+
+  Org supports a simple markup scheme for applying text formatting to
+exported documents:
+
+@example
+- This text is /emphasized/
+- This text is *in bold*
+- This text is _underlined_
+- This text uses =a teletype font=
+
+#+begin_quote
+``This is a quote.''
+#+end_quote
+
+#+begin_example
+This is an example.
+#+end_example
+@end example
+
+  For further details, see @ref{Exporting,,,org, The Org Manual} and
+@ref{Publishing,,,org, The Org Manual}.
 
 @node TeX Mode
 @section @TeX{} Mode

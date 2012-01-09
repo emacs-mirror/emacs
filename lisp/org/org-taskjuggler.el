@@ -1,10 +1,9 @@
 ;;; org-taskjuggler.el --- TaskJuggler exporter for org-mode
 ;;
-;; Copyright (C) 2007-2011 Free Software Foundation, Inc.
+;; Copyright (C) 2007-2012 Free Software Foundation, Inc.
 ;;
 ;; Emacs Lisp Archive Entry
 ;; Filename: org-taskjuggler.el
-;; Version: 7.7
 ;; Author: Christian Egli
 ;; Maintainer: Christian Egli
 ;; Keywords: org, taskjuggler, project planning
@@ -70,7 +69,7 @@
 ;; "taskjuggler_project" (or whatever you customized
 ;; `org-export-taskjuggler-project-tag' to). You are now ready to
 ;; export the project plan with `org-export-as-taskjuggler-and-open'
-;; which will export the project plan and open a Gantt chart in
+;; which will export the project plan and open a gant chart in
 ;; TaskJugglerUI.
 ;;
 ;; * Resources
@@ -278,6 +277,7 @@ defined in `org-export-taskjuggler-default-reports'."
 		      (file-name-nondirectory buffer-file-name))
 		     org-export-taskjuggler-extension)))
 	 (buffer (find-file-noselect filename))
+	 (old-buffer (current-buffer))
 	 (org-export-taskjuggler-old-level 0)
 	 task resource)
     (unless tasks
@@ -305,6 +305,7 @@ defined in `org-export-taskjuggler-default-reports'."
 	(setcar tasks (push (cons "version" version) task))))
     (with-current-buffer buffer
       (erase-buffer)
+      (org-clone-local-variables old-buffer "^org-")
       (org-taskjuggler-open-project (car tasks))
       (insert org-export-taskjuggler-default-global-properties)
       (insert "\n")
@@ -571,7 +572,7 @@ with separator \"\n\"."
     (and filtered-items (mapconcat 'identity filtered-items "\n"))))
 
 (defun org-taskjuggler-get-attributes (item attributes)
-  "Return all attributes as a single formatted string. ITEM is an
+  "Return all attribute as a single formated string. ITEM is an
 alist representing either a resource or a task. ATTRIBUTES is a
 list of symbols. Only entries from ITEM are considered that are
 listed in ATTRIBUTES."

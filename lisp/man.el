@@ -1,6 +1,6 @@
 ;;; man.el --- browse UNIX manual pages -*- coding: iso-8859-1 -*-
 
-;; Copyright (C) 1993-1994, 1996-1997, 2001-2011
+;; Copyright (C) 1993-1994, 1996-1997, 2001-2012
 ;;   Free Software Foundation, Inc.
 
 ;; Author: Barry A. Warsaw <bwarsaw@cen.com>
@@ -933,7 +933,8 @@ Return the buffer in which the manpage will appear."
 	;;               minal (using an ioctl(2) if available, the value of
 	;;               $COLUMNS,  or falling back to 80 characters if nei-
 	;;               ther is available).
-	(unless (or (getenv "MANWIDTH") (getenv "COLUMNS"))
+	(when (or window-system
+                  (not (or (getenv "MANWIDTH") (getenv "COLUMNS"))))
 	  ;; This isn't strictly correct, since we don't know how
 	  ;; the page will actually be displayed, but it seems
 	  ;; reasonable.

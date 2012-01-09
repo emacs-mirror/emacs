@@ -1,6 +1,6 @@
 ;;; env.el --- functions to manipulate environment variables
 
-;; Copyright (C) 1991, 1994, 2000-2011 Free Software Foundation, Inc.
+;; Copyright (C) 1991, 1994, 2000-2012 Free Software Foundation, Inc.
 
 ;; Maintainer: FSF
 ;; Keywords: processes, unix

@@ -1,6 +1,6 @@
 ;;; term.el --- general command interpreter in a window stuff
 
-;; Copyright (C) 1988, 1990, 1992, 1994-1995, 2001-2011
+;; Copyright (C) 1988, 1990, 1992, 1994-1995, 2001-2012
 ;;   Free Software Foundation, Inc.
 
 ;; Author: Per Bothner <per@bothner.com>
@@ -37,8 +37,8 @@
 ;; --------------------------------------
 ;;
 ;; While the message passing and the colorization surely introduce some
-;; overhead this has became so small that IMHO is surely outweighted by
-;; the benefits you get but, as usual, YMMV
+;; overhead this has became so small that IMHO it is surely outweighed by
+;; the benefits you get but, as usual, YMMV.
 ;;
 ;; Important caveat, when deciding the cursor/'gray keys' keycodes I had to
 ;; make a choice: on my Linux box this choice allows me to run all the

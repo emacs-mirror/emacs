@@ -1,6 +1,6 @@
 ;;; artist.el --- draw ascii graphics with your mouse
 
-;; Copyright (C) 2000-2011  Free Software Foundation, Inc.
+;; Copyright (C) 2000-2012  Free Software Foundation, Inc.
 
 ;; Author:       Tomas Abrahamsson <tab@lysator.liu.se>
 ;; Maintainer:   Tomas Abrahamsson <tab@lysator.liu.se>
@@ -4455,7 +4455,7 @@ If N is negative, move backward."
   "Set current fill character to be C."
   (interactive "cType fill char (type RET to turn off): ")
   (cond ((eq c ?\r) (setq artist-fill-char-set nil)
-		    (message "Fill cancelled"))
+		    (message "Fill canceled"))
 	(t	    (setq artist-fill-char-set t)
 		    (setq artist-fill-char c)
 		    (message "Fill set to \"%c\"" c))))

@@ -1,11 +1,10 @@
 ;;; org-macs.el --- Top-level definitions for Org-mode
 
-;; Copyright (C) 2004-2011  Free Software Foundation, Inc.
+;; Copyright (C) 2004-2012 Free Software Foundation, Inc.
 
 ;; Author: Carsten Dominik <carsten at orgmode dot org>
 ;; Keywords: outlines, hypermedia, calendar, wp
 ;; Homepage: http://orgmode.org
-;; Version: 7.7
 ;;
 ;; This file is part of GNU Emacs.
 ;;
@@ -46,6 +45,13 @@
 (declare-function org-add-props "org-compat" (string plist &rest props))
 (declare-function org-string-match-p "org-compat" (&rest args))
 
+(defmacro org-with-gensyms (symbols &rest body)
+  `(let ,(mapcar (lambda (s)
+		   `(,s (make-symbol (concat "--" (symbol-name ',s))))) symbols)
+     ,@body))
+(def-edebug-spec org-with-gensyms (sexp body))
+(put 'org-with-gensyms 'lisp-indent-function 1)
+
 (defmacro org-called-interactively-p (&optional kind)
   (if (featurep 'xemacs)
        `(interactive-p)
@@ -54,17 +60,20 @@
 		  (>= emacs-minor-version 2)))
 	 `(with-no-warnings (called-interactively-p ,kind)) ;; defined with no argument in <=23.1
        `(interactive-p))))
+(def-edebug-spec org-called-interactively-p (&optional ("quote" symbolp)))
 
-(if (and (not (fboundp 'with-silent-modifications))
+(when (and (not (fboundp 'with-silent-modifications))
 	 (or (< emacs-major-version 23)
 	     (and (= emacs-major-version 23)
 		  (< emacs-minor-version 2))))
     (defmacro with-silent-modifications (&rest body)
-      `(org-unmodified ,@body)))
+      `(org-unmodified ,@body))
+    (def-edebug-spec with-silent-modifications (body)))
 
 (defmacro org-bound-and-true-p (var)
   "Return the value of symbol VAR if it is bound, else nil."
   `(and (boundp (quote ,var)) ,var))
+(def-edebug-spec org-bound-and-true-p (symbolp))
 
 (defun org-string-nw-p (s)
   "Is S a string with a non-white character?"
@@ -85,30 +94,36 @@ Also, do not record undo information."
       (let ((buffer-undo-list t)
 	    before-change-functions after-change-functions)
 	,@body))))
+(def-edebug-spec org-unmodified (body))
+
+(defun org-substitute-posix-classes (re)
+  "Substitute posix classes in regular expression RE."
+  (let ((ss re))
+    (save-match-data
+      (while (string-match "\\[:alnum:\\]" ss)
+	(setq ss (replace-match "a-zA-Z0-9" t t ss)))
+      (while (string-match "\\[:word:\\]" ss)
+	(setq ss (replace-match "a-zA-Z0-9" t t ss)))
+      (while (string-match "\\[:alpha:\\]" ss)
+	(setq ss (replace-match "a-zA-Z" t t ss)))
+      (while (string-match "\\[:punct:\\]" ss)
+	(setq ss (replace-match "\001-@[-`{-~" t t ss)))
+      ss)))
 
 (defmacro org-re (s)
   "Replace posix classes in regular expression."
-  (if (featurep 'xemacs)
-      (let ((ss s))
-	(save-match-data
-	  (while (string-match "\\[:alnum:\\]" ss)
-	    (setq ss (replace-match "a-zA-Z0-9" t t ss)))
-	  (while (string-match "\\[:word:\\]" ss)
-	    (setq ss (replace-match "a-zA-Z0-9" t t ss)))
-	  (while (string-match "\\[:alpha:\\]" ss)
-	    (setq ss (replace-match "a-zA-Z" t t ss)))
-	  (while (string-match "\\[:punct:\\]" ss)
-	    (setq ss (replace-match "\001-@[-`{-~" t t ss)))
-	  ss))
-    s))
+  (if (featurep 'xemacs) `(org-substitute-posix-classes ,s) s))
+(def-edebug-spec org-re (form))
 
 (defmacro org-preserve-lc (&rest body)
-  `(let ((_line (org-current-line))
-	 (_col (current-column)))
-     (unwind-protect
-	 (progn ,@body)
-       (org-goto-line _line)
-       (org-move-to-column _col))))
+  (org-with-gensyms (line col)
+    `(let ((,line (org-current-line))
+	   (,col (current-column)))
+       (unwind-protect
+	   (progn ,@body)
+	 (org-goto-line ,line)
+	 (org-move-to-column ,col)))))
+(def-edebug-spec org-preserve-lc (body))
 
 (defmacro org-without-partial-completion (&rest body)
   `(if (and (boundp 'partial-completion-mode)
@@ -120,7 +135,9 @@ Also, do not record undo information."
 	   ,@body)
        (partial-completion-mode 1))
      ,@body))
+(def-edebug-spec org-without-partial-completion (body))
 
+;; FIXME: Slated for removal. Current Org mode does not support Emacs < 22
 (defmacro org-maybe-intangible (props)
   "Add '(intangible t) to PROPS if Emacs version is earlier than Emacs 22.
 In Emacs 21, invisible text is not avoided by the command loop, so the
@@ -135,31 +152,37 @@ We use a macro so that the test can happen at compilation time."
 
 (defmacro org-with-point-at (pom &rest body)
   "Move to buffer and point of point-or-marker POM for the duration of BODY."
-  `(let ((pom ,pom))
-     (save-excursion
-       (if (markerp pom) (set-buffer (marker-buffer pom)))
+  (org-with-gensyms (mpom)
+    `(let ((,mpom ,pom))
        (save-excursion
-	 (goto-char (or pom (point)))
-	 ,@body))))
+	 (if (markerp ,mpom) (set-buffer (marker-buffer ,mpom)))
+	 (save-excursion
+	   (goto-char (or ,mpom (point)))
+	   ,@body)))))
+(def-edebug-spec org-with-point-at (form body))
 (put 'org-with-point-at 'lisp-indent-function 1)
 
 (defmacro org-no-warnings (&rest body)
   (cons (if (fboundp 'with-no-warnings) 'with-no-warnings 'progn) body))
+(def-edebug-spec org-no-warnings (body))
 
 (defmacro org-if-unprotected (&rest body)
   "Execute BODY if there is no `org-protected' text property at point."
   `(unless (get-text-property (point) 'org-protected)
      ,@body))
+(def-edebug-spec org-if-unprotected (body))
 
 (defmacro org-if-unprotected-1 (&rest body)
   "Execute BODY if there is no `org-protected' text property at point-1."
   `(unless (get-text-property (1- (point)) 'org-protected)
      ,@body))
+(def-edebug-spec org-if-unprotected-1 (body))
 
 (defmacro org-if-unprotected-at (pos &rest body)
   "Execute BODY if there is no `org-protected' text property at POS."
   `(unless (get-text-property ,pos 'org-protected)
      ,@body))
+(def-edebug-spec org-if-unprotected-at (form body))
 (put 'org-if-unprotected-at 'lisp-indent-function 1)
 
 (defun org-re-search-forward-unprotected (&rest args)
@@ -171,33 +194,37 @@ We use a macro so that the test can happen at compilation time."
       (unless (get-text-property (match-beginning 0) 'org-protected)
 	(throw 'exit (point))))))
 
+;; FIXME: Normalize argument names
 (defmacro org-with-remote-undo (_buffer &rest _body)
   "Execute BODY while recording undo information in two buffers."
-  `(let ((_cline (org-current-line))
-	 (_cmd this-command)
-	 (_buf1 (current-buffer))
-	 (_buf2 ,_buffer)
-	 (_undo1 buffer-undo-list)
-	 (_undo2 (with-current-buffer ,_buffer buffer-undo-list))
-	 _c1 _c2)
-     ,@_body
-     (when org-agenda-allow-remote-undo
-       (setq _c1 (org-verify-change-for-undo
-		  _undo1 (with-current-buffer _buf1 buffer-undo-list))
-	     _c2 (org-verify-change-for-undo
-		  _undo2 (with-current-buffer _buf2 buffer-undo-list)))
-       (when (or _c1 _c2)
-	 ;; make sure there are undo boundaries
-	 (and _c1 (with-current-buffer _buf1 (undo-boundary)))
-	 (and _c2 (with-current-buffer _buf2 (undo-boundary)))
-	 ;; remember which buffer to undo
-	 (push (list _cmd _cline _buf1 _c1 _buf2 _c2)
-	       org-agenda-undo-list)))))
+  (org-with-gensyms (cline cmd buf1 buf2 undo1 undo2 c1 c2)
+    `(let ((,cline (org-current-line))
+	   (,cmd this-command)
+	   (,buf1 (current-buffer))
+	   (,buf2 ,_buffer)
+	   (,undo1 buffer-undo-list)
+	   (,undo2 (with-current-buffer ,_buffer buffer-undo-list))
+	   ,c1 ,c2)
+       ,@_body
+       (when org-agenda-allow-remote-undo
+	 (setq ,c1 (org-verify-change-for-undo
+		    ,undo1 (with-current-buffer ,buf1 buffer-undo-list))
+	       ,c2 (org-verify-change-for-undo
+		    ,undo2 (with-current-buffer ,buf2 buffer-undo-list)))
+	 (when (or ,c1 ,c2)
+	   ;; make sure there are undo boundaries
+	   (and ,c1 (with-current-buffer ,buf1 (undo-boundary)))
+	   (and ,c2 (with-current-buffer ,buf2 (undo-boundary)))
+	   ;; remember which buffer to undo
+	   (push (list ,cmd ,cline ,buf1 ,c1 ,buf2 ,c2)
+		 org-agenda-undo-list))))))
+(def-edebug-spec org-with-remote-undo (form body))
 (put 'org-with-remote-undo 'lisp-indent-function 1)
 
 (defmacro org-no-read-only (&rest body)
   "Inhibit read-only for BODY."
   `(let ((inhibit-read-only t)) ,@body))
+(def-edebug-spec org-no-read-only (body))
 
 (defconst org-rm-props '(invisible t face t keymap t intangible t mouse-face t
 				   rear-nonsticky t mouse-map t fontified t
@@ -244,10 +271,6 @@ we turn off invisibility temporarily.  Use this in a `let' form."
 (defsubst org-set-local (var value)
   "Make VAR local in current buffer and set it to VALUE."
   (set (make-local-variable var) value))
-
-(defsubst org-mode-p ()
-  "Check if the current buffer is in Org-mode."
-  (eq major-mode 'org-mode))
 
 (defsubst org-last (list)
   "Return the last element of LIST."
@@ -324,18 +347,20 @@ but it also means that the buffer should stay alive
 during the operation, because otherwise all these markers will
 point nowhere."
   (declare (indent 1))
-  `(let ((data (org-outline-overlay-data ,use-markers))
-	 rtn)
-     (unwind-protect
-	 (progn
-	   (setq rtn (progn ,@body))
-	   (org-set-outline-overlay-data data))
-       (when ,use-markers
-	 (mapc (lambda (c)
-		 (and (markerp (car c)) (move-marker (car c) nil))
-		 (and (markerp (cdr c)) (move-marker (cdr c) nil)))
-	       data)))
-     rtn))
+  (org-with-gensyms (data rtn)
+    `(let ((,data (org-outline-overlay-data ,use-markers))
+	   ,rtn)
+       (unwind-protect
+	   (progn
+	     (setq ,rtn (progn ,@body))
+	     (org-set-outline-overlay-data ,data))
+	 (when ,use-markers
+	   (mapc (lambda (c)
+		   (and (markerp (car c)) (move-marker (car c) nil))
+		   (and (markerp (cdr c)) (move-marker (cdr c) nil)))
+		 ,data)))
+       ,rtn)))
+(def-edebug-spec org-save-outline-visibility (form body))
 
 (defmacro org-with-wide-buffer (&rest body)
  "Execute body while temporarily widening the buffer."
@@ -343,6 +368,7 @@ point nowhere."
     (save-restriction
        (widen)
        ,@body)))
+(def-edebug-spec org-with-wide-buffer (body))
 
 (defmacro org-with-limited-levels (&rest body)
   "Execute BODY with limited number of outline levels."
@@ -350,6 +376,7 @@ point nowhere."
 	  (outline-regexp org-outline-regexp)
 	  (org-outline-regexp-at-bol (concat "^" org-outline-regexp)))
      ,@body))
+(def-edebug-spec org-with-limited-levels (body))
 
 (defvar org-outline-regexp) ; defined in org.el
 (defvar org-odd-levels-only) ; defined in org.el
@@ -357,7 +384,7 @@ point nowhere."
 (defun org-get-limited-outline-regexp ()
   "Return outline-regexp with limited number of levels.
 The number of levels is controlled by `org-inlinetask-min-level'"
-  (if (or (not (org-mode-p)) (not (featurep 'org-inlinetask)))
+  (if (or (not (eq major-mode 'org-mode)) (not (featurep 'org-inlinetask)))
       org-outline-regexp
     (let* ((limit-level (1- org-inlinetask-min-level))
 	   (nstars (if org-odd-levels-only (1- (* limit-level 2)) limit-level)))
@@ -369,8 +396,20 @@ The number of levels is controlled by `org-inlinetask-min-level'"
       (format-seconds string seconds)
     (format-time-string string (seconds-to-time seconds))))
 
+(defmacro org-eval-in-environment (environment form)
+  `(eval (list 'let ,environment ',form)))
+(def-edebug-spec org-eval-in-environment (form form))
+(put 'org-eval-in-environment 'lisp-indent-function 1)
+
+(defun org-make-parameter-alist (flat)
+  "Return alist based on FLAT.
+FLAT is a list with alternating symbol names and values. The
+returned alist is a list of lists with the symbol name in car and
+the value in cdr."
+  (when flat
+    (cons (list (car flat) (cadr flat))
+         (org-make-parameter-alist (cddr flat)))))
+
 (provide 'org-macs)
-
-
 
 ;;; org-macs.el ends here

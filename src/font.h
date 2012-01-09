@@ -1,5 +1,5 @@
 /* font.h -- Interface definition for font handling.
-   Copyright (C) 2006-2011 Free Software Foundation, Inc.
+   Copyright (C) 2006-2012 Free Software Foundation, Inc.
    Copyright (C) 2006, 2007, 2008, 2009, 2010, 2011
      National Institute of Advanced Industrial Science and Technology (AIST)
      Registration Number H13PRO009
@@ -506,7 +506,7 @@ struct font_driver
   Lisp_Object type;
 
   /* 1 iff the font's foundry, family, and adstyle names are case
-     sensitve.  */
+     sensitive.  */
   int case_sensitive;
 
   /* Return a cache of font-entities on frame F.  The cache must be a
@@ -621,7 +621,7 @@ struct font_driver
   /* Optional.
      Get coordinates of the INDEXth anchor point of the glyph whose
      code is CODE.  Store the coordinates in *X and *Y.  Return 0 if
-     the operations was successfull.  Otherwise return -1.  */
+     the operations was successful.  Otherwise return -1.  */
   int (*anchor_point) (struct font *font, unsigned code, int index,
                        int *x, int *y);
 

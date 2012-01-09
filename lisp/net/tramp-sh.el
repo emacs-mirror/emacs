@@ -1,6 +1,6 @@
 ;;; tramp-sh.el --- Tramp access functions for (s)sh-like connections
 
-;; Copyright (C) 1998-2011 Free Software Foundation, Inc.
+;; Copyright (C) 1998-2012 Free Software Foundation, Inc.
 
 ;; (copyright statements below in code to be updated with the above notice)
 
@@ -806,7 +806,7 @@ on the remote host.")
 (defconst tramp-perl-encode
   "%s -e '
 # This script contributed by Juanma Barranquero <lektu@terra.es>.
-# Copyright (C) 2002-2011 Free Software Foundation, Inc.
+# Copyright (C) 2002-2012 Free Software Foundation, Inc.
 use strict;
 
 my %%trans = do {
@@ -847,7 +847,7 @@ This string is passed to `format', so percent characters need to be doubled.")
 (defconst tramp-perl-decode
   "%s -e '
 # This script contributed by Juanma Barranquero <lektu@terra.es>.
-# Copyright (C) 2002-2011 Free Software Foundation, Inc.
+# Copyright (C) 2002-2012 Free Software Foundation, Inc.
 use strict;
 
 my %%trans = do {
@@ -3526,7 +3526,7 @@ variable PATH."
 Here, we are looking for a command which has zero exit status if the
 file exists and nonzero exit status otherwise."
   (let ((existing "/")
-        (nonexisting
+        (nonexistent
 	 (tramp-shell-quote-argument "/ this file does not exist "))
 	result)
     ;; The algorithm is as follows: we try a list of several commands.
@@ -3551,22 +3551,22 @@ file exists and nonzero exit status otherwise."
 		  (tramp-send-command-and-check
 		   vec (format "%s %s" result existing))
                   (not (tramp-send-command-and-check
-			vec (format "%s %s" result nonexisting))))
+			vec (format "%s %s" result nonexistent))))
              (and (setq result "/bin/test -e")
 		  (tramp-send-command-and-check
 		   vec (format "%s %s" result existing))
                   (not (tramp-send-command-and-check
-			vec (format "%s %s" result nonexisting))))
+			vec (format "%s %s" result nonexistent))))
              (and (setq result "/usr/bin/test -e")
 		  (tramp-send-command-and-check
 		   vec (format "%s %s" result existing))
                   (not (tramp-send-command-and-check
-			vec (format "%s %s" result nonexisting))))
+			vec (format "%s %s" result nonexistent))))
              (and (setq result (format "%s -d" (tramp-get-ls-command vec)))
 		  (tramp-send-command-and-check
 		   vec (format "%s %s" result existing))
                   (not (tramp-send-command-and-check
-			vec (format "%s %s" result nonexisting)))))
+			vec (format "%s %s" result nonexistent)))))
       (tramp-error
        vec 'file-error "Couldn't find command to check if file exists"))
     result))
@@ -3618,7 +3618,8 @@ file exists and nonzero exit status otherwise."
 	     vec 'file-error
 	     "Couldn't find a shell which groks tilde expansion"))
 	  (tramp-message
-	   vec 5 "Starting remote shell `%s' for tilde expansion" shell)
+	   vec 5 "Starting remote shell `%s' for tilde expansion"
+	   (tramp-set-connection-property vec "remote-shell" shell))
 	  (tramp-open-shell vec shell))
 
 	 (t (tramp-message
@@ -3784,6 +3785,17 @@ process to set up.  VEC specifies the connection."
 
   ;; Disable unexpected output.
   (tramp-send-command vec "mesg n; biff n" t)
+
+  ;; Busyboxes tend to behave strange.  We check for the existence.
+  (with-connection-property vec "busybox"
+    (tramp-send-command
+     vec
+     (format
+      "%s --version" (tramp-get-connection-property vec "remote-shell" "echo"))
+     t)
+    (with-current-buffer (process-buffer proc)
+      (let ((case-fold-search t))
+	(and (string-match "busybox" (buffer-string)) t))))
 
   ;; IRIX64 bash expands "!" even when in single quotes.  This
   ;; destroys our shell functions, we must disable it.  See
@@ -4397,7 +4409,8 @@ function waits for output unless NOOUTPUT is set."
       ;; We mark the command string that it can be erased in the output buffer.
       (tramp-set-connection-property p "check-remote-echo" t)
       (setq command (format "%s%s%s" tramp-echo-mark command tramp-echo-mark)))
-    (when (string-match "<<'EOF'" command)
+    (when (and (string-match "<<'EOF'" command)
+	       (not (tramp-get-connection-property vec "busybox" nil)))
       ;; Unset $PS1 when using here documents, in order to avoid
       ;; multiple prompts.
       (setq command (concat "(PS1= ; " command "\n)")))

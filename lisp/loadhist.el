@@ -1,6 +1,6 @@
 ;;; loadhist.el --- lisp functions for working with feature groups
 
-;; Copyright (C) 1995, 1998, 2000-2011 Free Software Foundation, Inc.
+;; Copyright (C) 1995, 1998, 2000-2012 Free Software Foundation, Inc.
 
 ;; Author: Eric S. Raymond <esr@snark.thyrsus.com>
 ;; Maintainer: FSF
@@ -156,7 +156,7 @@ documentation of `unload-feature' for details.")
     (dolist (buffer (buffer-list))
       (set-buffer buffer)
       (let ((proposed major-mode))
-        ;; Look for an antecessor mode not defined in the feature we're processing
+        ;; Look for a predecessor mode not defined in the feature we're processing
         (while (and proposed (rassq proposed unload-function-defs-list))
           (setq proposed (get proposed 'derived-mode-parent)))
         (unless (eq proposed major-mode)

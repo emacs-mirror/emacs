@@ -1,6 +1,6 @@
 ;;; wid-edit.el --- Functions for creating and using widgets -*-byte-compile-dynamic: t; lexical-binding:t -*-
 ;;
-;; Copyright (C) 1996-1997, 1999-2011  Free Software Foundation, Inc.
+;; Copyright (C) 1996-1997, 1999-2012  Free Software Foundation, Inc.
 ;;
 ;; Author: Per Abrahamsen <abraham@dina.kvl.dk>
 ;; Maintainer: FSF
@@ -1687,7 +1687,7 @@ The value of the :type attribute should be an unconverted widget type."
   (eval-minibuffer prompt))
 
 (defun widget-docstring (widget)
-  "Return the documentation string specificied by WIDGET, or nil if none.
+  "Return the documentation string specified by WIDGET, or nil if none.
 If WIDGET has a `:doc' property, that specifies the documentation string.
 Otherwise, try the `:documentation-property' property.  If this
 is a function, call it with the widget's value as an argument; if

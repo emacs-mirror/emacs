@@ -1,6 +1,6 @@
 ;;; cc-engine.el --- core syntax guessing engine for CC mode
 
-;; Copyright (C) 1985, 1987, 1992-2011  Free Software Foundation, Inc.
+;; Copyright (C) 1985, 1987, 1992-2012  Free Software Foundation, Inc.
 
 ;; Authors:    2001- Alan Mackenzie
 ;;             1998- Martin Stjernholm
@@ -2153,14 +2153,14 @@ comment at the start of cc-engine.el for more info."
 	(if (> pos c-state-nonlit-pos-cache-limit)
 	    (setq c-state-nonlit-pos-cache-limit pos))
 	pos))))
-	
+
 (defun c-state-literal-at (here)
   ;; If position HERE is inside a literal, return (START . END), the
   ;; boundaries of the literal (which may be outside the accessible bit of the
   ;; buffer).  Otherwise, return nil.
   ;;
   ;; This function is almost the same as `c-literal-limits'.  Previously, it
-  ;; differed in that it was a lower level function, and that it rigourously
+  ;; differed in that it was a lower level function, and that it rigorously
   ;; followed the syntax from BOB.  `c-literal-limits' is now (2011-12)
   ;; virtually identical to this function.
   (save-restriction
@@ -2594,7 +2594,7 @@ comment at the start of cc-engine.el for more info."
 	mstart)		      ; start of a macro.
 
     (save-excursion
-      ;; Each time round the following loop, we enter a succesively deeper
+      ;; Each time round the following loop, we enter a successively deeper
       ;; level of brace/paren nesting.  (Except sometimes we "continue at
       ;; the existing level".)  `pa+1' is a pos inside an opening
       ;; brace/paren/bracket, usually just after it.

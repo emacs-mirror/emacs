@@ -1,6 +1,6 @@
 ;;; bibtex.el --- BibTeX mode for GNU Emacs -*- lexical-binding: t -*-
 
-;; Copyright (C) 1992, 1994-1999, 2001-2011  Free Software Foundation, Inc.
+;; Copyright (C) 1992, 1994-1999, 2001-2012  Free Software Foundation, Inc.
 
 ;; Author: Stefan Schoef <schoef@offis.uni-oldenburg.de>
 ;;      Bengt Martensson <bengt@mathematik.uni-Bremen.de>
@@ -5140,7 +5140,7 @@ Return the URL or nil if none can be generated."
 	  (message "No URL known."))
       url)))
 
-;; We could combine multiple seach results with set operations
+;; We could combine multiple search results with set operations
 ;; AND, OR, MINUS, and NOT.  Would this be useful?
 ;; How complicated are searches in real life?
 ;; We could also have other searches such as "publication year newer than...".

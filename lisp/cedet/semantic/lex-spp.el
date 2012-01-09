@@ -1,6 +1,6 @@
 ;;; semantic/lex-spp.el --- Semantic Lexical Pre-processor
 
-;; Copyright (C) 2006-2011  Free Software Foundation, Inc.
+;; Copyright (C) 2006-2012  Free Software Foundation, Inc.
 
 ;; Author: Eric M. Ludlam <zappo@gnu.org>
 
@@ -577,7 +577,7 @@ and what valid VAL values are."
 	(cond
 	 ;; CASE 3: Merge symbols together.
 	 ((eq (semantic-lex-token-class v) 'spp-symbol-merge)
-	  ;; We need to merge the tokens in the 'text segement together,
+	  ;; We need to merge the tokens in the 'text segment together,
 	  ;; and produce a single symbol from it.
 	  (let ((newsym
 		 (mapconcat (lambda (tok)

@@ -1,6 +1,6 @@
 ;;; ps-mule.el --- provide multi-byte character facility to ps-print
 
-;; Copyright (C) 1998-2011 Free Software Foundation, Inc.
+;; Copyright (C) 1998-2012 Free Software Foundation, Inc.
 
 ;; Author: Vinicius Jose Latorre <viniciusjl@ig.com.br>
 ;;	Kenichi Handa <handa@m17n.org> (multi-byte characters)
@@ -1141,7 +1141,7 @@ It checks if all multi-byte characters in the region are printable or not."
 			   (aref ps-mule-font-spec-tables font-type) 0)))
     (ps-output-prologue
      (list (if (ps-mule-font-spec-src (cdr (car font-spec-alist)))
-	       ;; We ignore a font specfied in ps-font-info-database.
+	       ;; We ignore a font specified in ps-font-info-database.
 	       (format "/V%s VTOP%d def\n" fonttag font-type)
 	     (format "/V%s [ VTOP%d aload pop ] def\n
 V%s 0 /%s-latin1 /%s Latin1Encoding put\n"

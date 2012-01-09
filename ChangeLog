@@ -1,3 +1,11 @@
+2011-12-17  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Port HAVE_PTHREAD configuration to MirBSD 10 (Bug#10201).
+	* configure.in (HAVE_PTHREAD): Check for pthread_atfork	if linking
+	to gmalloc.c.  This should prevent a MirBSD 10 build failure reported
+	by Nelson H. F. Beebe in
+	<http://lists.gnu.org/archive/html/emacs-devel/2011-12/msg00065.html>.
+
 2011-12-10  Juanma Barranquero  <lekktu@gmail.com>
 
 	* update-subdirs: Don't set no-byte-compile twice (bug#10260).
@@ -2254,7 +2262,7 @@
 
 2009-12-10  Jan Djärv  <jan.h.d@swipnet.se>
 
-	* configure.in: Check for RSVG if GNUStep is used.
+	* configure.in: Check for RSVG if GNUstep is used.
 
 2009-12-09  Jan Djärv  <jan.h.d@swipnet.se>
 
@@ -2439,7 +2447,7 @@
 
 2009-05-06  Stefan Monnier  <monnier@iro.umontreal.ca>
 
-	* configure.in: Don't define CANNOT_DUMP for GNUStep any more.
+	* configure.in: Don't define CANNOT_DUMP for GNUstep any more.
 
 2009-05-05  Per Starbäck  <per@starback.se>  (tiny change)
 
@@ -10072,7 +10080,7 @@
 ;; coding: utf-8
 ;; End:
 
-  Copyright (C) 1993-1999, 2001-2011  Free Software Foundation, Inc.
+  Copyright (C) 1993-1999, 2001-2012  Free Software Foundation, Inc.
 
   This file is part of GNU Emacs.
 

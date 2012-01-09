@@ -1,6 +1,6 @@
 ;;; minibuffer.el --- Minibuffer completion functions -*- lexical-binding: t -*-
 
-;; Copyright (C) 2008-2011  Free Software Foundation, Inc.
+;; Copyright (C) 2008-2012  Free Software Foundation, Inc.
 
 ;; Author: Stefan Monnier <monnier@iro.umontreal.ca>
 ;; Package: emacs
@@ -2672,7 +2672,7 @@ the same set of elements."
                          mergedpat))
            ;; New pos from the start.
            (newpos (length (completion-pcm--pattern->string pointpat)))
-           ;; Do it afterwards because it changes `pointpat' by sideeffect.
+           ;; Do it afterwards because it changes `pointpat' by side effect.
            (merged (completion-pcm--pattern->string (nreverse mergedpat))))
 
       (setq suffix (completion--merge-suffix merged newpos suffix))

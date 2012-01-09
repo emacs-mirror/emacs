@@ -1,6 +1,6 @@
 ;;; persian.el  --- Quail package for inputting Persian/Farsi keyboard	-*- coding: utf-8;-*-
 
-;; Copyright (C) 2011  Free Software Foundation, Inc.
+;; Copyright (C) 2011-2012  Free Software Foundation, Inc.
 
 ;; Author: Mohsen BANAN  <libre@mohsen.banan.1.byname.net>
 ;; http://mohsen.banan.1.byname.net/contact
@@ -27,7 +27,7 @@
 ;;; Commentary:
 ;;
 ;; This file contains a collection of input methods for
-;; Persian languages (Farsi, Urdu, Pashto/Afghanic, ...)
+;; Persian languages - Farsi, Urdu, Pashto (Afghani), ...
 ;;
 ;; At this time, the following input methods are specified:
 ;;

@@ -1,5 +1,5 @@
 /* CCL (Code Conversion Language) interpreter.
-   Copyright (C) 2001-2011 Free Software Foundation, Inc.
+   Copyright (C) 2001-2012 Free Software Foundation, Inc.
    Copyright (C) 1995, 1996, 1997, 1998, 1999, 2000, 2001, 2002, 2003, 2004,
      2005, 2006, 2007, 2008, 2009, 2010, 2011
      National Institute of Advanced Industrial Science and Technology (AIST)
@@ -210,8 +210,8 @@ static Lisp_Object Vccl_program_table;
 #define CCL_WriteArrayReadJump	0x0B /* Write an array element, read, and jump:
 					1:A--D--D--R--E--S--S-rrrXXXXX
 					2:LENGTH
-					3:ELEMENET[0]
-					4:ELEMENET[1]
+					3:ELEMENT[0]
+					4:ELEMENT[1]
 					...
 					N:A--D--D--R--E--S--S-rrrYYYYY
 					------------------------------

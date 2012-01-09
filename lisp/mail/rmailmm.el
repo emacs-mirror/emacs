@@ -1,6 +1,6 @@
 ;;; rmailmm.el --- MIME decoding and display stuff for RMAIL
 
-;; Copyright (C) 2006-2011  Free Software Foundation, Inc.
+;; Copyright (C) 2006-2012  Free Software Foundation, Inc.
 
 ;; Author: Alexander Pohoyda
 ;;	Alex Schroeder
@@ -320,7 +320,7 @@ The value is a vector [INDEX HEADER TAGLINE BODY END], where
 	    (setq index 2))
 	;; If the tagline is displayed, get past it to the body.
 	(if (rmail-mime-display-tagline current)
-	    ;; The next foward-line call must be in sync with how
+	    ;; The next forward-line call must be in sync with how
 	    ;; `rmail-mime-insert-tagline' formats the tagline.  The
 	    ;; body begins after the empty line that ends the tagline.
 	    (forward-line 3))

@@ -1,6 +1,6 @@
 ;;; cc-menus.el --- imenu support for CC Mode
 
-;; Copyright (C) 1985, 1987, 1992-2011  Free Software Foundation, Inc.
+;; Copyright (C) 1985, 1987, 1992-2012  Free Software Foundation, Inc.
 
 ;; Authors:    1998- Martin Stjernholm
 ;;             1992-1999 Barry A. Warsaw

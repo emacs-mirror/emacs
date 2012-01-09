@@ -1,6 +1,6 @@
 ;;; pcase.el --- ML-style pattern-matching macro for Elisp -*- lexical-binding: t -*-
 
-;; Copyright (C) 2010-2011  Free Software Foundation, Inc.
+;; Copyright (C) 2010-2012  Free Software Foundation, Inc.
 
 ;; Author: Stefan Monnier <monnier@iro.umontreal.ca>
 ;; Keywords:
@@ -363,12 +363,12 @@ MATCH is the pattern that needs to be matched, of the form:
     (dolist (branch rest)
       (let* ((match (car branch))
              (code&vars (cdr branch))
-             (splitted
+             (split
               (pcase--split-match sym splitter match)))
-        (unless (eq (car splitted) :pcase--fail)
-          (push (cons (car splitted) code&vars) then-rest))
-        (unless (eq (cdr splitted) :pcase--fail)
-          (push (cons (cdr splitted) code&vars) else-rest))))
+        (unless (eq (car split) :pcase--fail)
+          (push (cons (car split) code&vars) then-rest))
+        (unless (eq (cdr split) :pcase--fail)
+          (push (cons (cdr split) code&vars) else-rest))))
     (cons (nreverse then-rest) (nreverse else-rest))))
 
 (defun pcase--split-consp (syma symd pat)
@@ -685,7 +685,7 @@ Otherwise, it defers to REST which is a list of branches of the form
       (pcase--if `(,(if (stringp qpat) #'equal #'eq) ,sym ',qpat)
                  (pcase--u1 matches code vars then-rest)
                  (pcase--u else-rest))))
-   (t (error "Unkown QPattern %s" qpat))))
+   (t (error "Unknown QPattern %s" qpat))))
 
 
 (provide 'pcase)

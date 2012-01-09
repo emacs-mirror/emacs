@@ -1,6 +1,6 @@
 ;;; ansi-color.el --- translate ANSI escape sequences into faces
 
-;; Copyright (C) 1999-2011 Free Software Foundation, Inc.
+;; Copyright (C) 1999-2012 Free Software Foundation, Inc.
 
 ;; Author: Alex Schroeder <alex@gnu.org>
 ;; Maintainer: Alex Schroeder <alex@gnu.org>
@@ -585,7 +585,7 @@ ANSI-CODE is used as an index into the vector."
   "Create a new face by applying all the parameters in ESCAPE-SEQ.
 
 Should any of the parameters result in the default face (usually this is
-the parameter 0), then the effect of all previous parameters is cancelled.
+the parameter 0), then the effect of all previous parameters is canceled.
 
 ESCAPE-SEQ is a SGR control sequences such as \\033[34m.  The parameter
 34 is used by `ansi-color-get-face-1' to return a face definition."

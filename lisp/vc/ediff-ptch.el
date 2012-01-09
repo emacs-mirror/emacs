@@ -1,6 +1,6 @@
 ;;; ediff-ptch.el --- Ediff's  patch support
 
-;; Copyright (C) 1996-2011  Free Software Foundation, Inc.
+;; Copyright (C) 1996-2012  Free Software Foundation, Inc.
 
 ;; Author: Michael Kifer <kifer@cs.stonybrook.edu>
 ;; Package: ediff
@@ -373,7 +373,7 @@ other files, enter /dev/null
 			 (concat actual-dir (cdr proposed-file-names)))))
 	      ))
 	  ediff-patch-map)
-    ;; Check for the existing files in each pair and discard the nonexisting
+    ;; Check for the existing files in each pair and discard the nonexistent
     ;; ones. If both exist, ask the user.
     (mapcar (lambda (session-info)
 	      (let* ((file1 (car (ediff-get-session-objA-name session-info)))

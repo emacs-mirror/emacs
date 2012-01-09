@@ -1,6 +1,6 @@
 ;;; custom.el --- tools for declaring and initializing options
 ;;
-;; Copyright (C) 1996-1997, 1999, 2001-2011 Free Software Foundation, Inc.
+;; Copyright (C) 1996-1997, 1999, 2001-2012 Free Software Foundation, Inc.
 ;;
 ;; Author: Per Abrahamsen <abraham@dina.kvl.dk>
 ;; Maintainer: FSF
@@ -1105,12 +1105,14 @@ property `theme-feature' (which is usually a symbol created by
 
 (defcustom custom-safe-themes '(default)
   "Themes that are considered safe to load.
-If the value is a list, each element should be either the `sha1'
+If the value is a list, each element should be either the SHA-256
 hash of a safe theme file, or the symbol `default', which stands
 for any theme in the built-in Emacs theme directory (a directory
 named \"themes\" in `data-directory').
 
-If the value is t, Emacs treats all themes as safe."
+If the value is t, Emacs treats all themes as safe.
+
+This variable cannot be set in a Custom theme."
   :type '(choice (repeat :tag "List of safe themes"
 			 (choice string
 				 (const :tag "Built-in themes" default)))
@@ -1159,7 +1161,7 @@ Return t if THEME was successfully loaded, nil otherwise."
       (error "Unable to find theme file for `%s'" theme))
     (with-temp-buffer
       (insert-file-contents fn)
-      (setq hash (sha1 (current-buffer)))
+      (setq hash (secure-hash 'sha256 (current-buffer)))
       ;; Check file safety with `custom-safe-themes', prompting the
       ;; user if necessary.
       (when (or no-confirm
@@ -1285,8 +1287,8 @@ precedence (after `user')."
 	 ((eq prop 'theme-face)
 	  (custom-theme-recalc-face symbol))
 	 ((eq prop 'theme-value)
-	  ;; Don't change `custom-enabled-themes'; that's special.
-	  (unless (eq symbol 'custom-enabled-themes)
+	  ;; Ignore `custom-enabled-themes' and `custom-safe-themes'.
+	  (unless (memq symbol '(custom-enabled-themes custom-safe-themes))
 	    (custom-theme-recalc-variable symbol)))))))
   (unless (eq theme 'user)
     (setq custom-enabled-themes

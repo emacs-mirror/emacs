@@ -1,5 +1,5 @@
 /* X Selection processing for Emacs.
-   Copyright (C) 1993-1997, 2000-2011 Free Software Foundation, Inc.
+   Copyright (C) 1993-1997, 2000-2012 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -756,7 +756,7 @@ x_reply_selection_request (struct input_event *event,
   /* The window we're communicating with may have been deleted
      in the meantime (that's a real situation from a bug report).
      In this case, there may be events in the event queue still
-     refering to the deleted window, and we'll get a BadWindow error
+     referring to the deleted window, and we'll get a BadWindow error
      in XTread_socket when processing the events.  I don't have
      an idea how to fix that.  gerd, 2001-01-98.   */
   /* 2004-09-10: XSync and UNBLOCK so that possible protocol errors are

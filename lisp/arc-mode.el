@@ -1,6 +1,6 @@
 ;;; arc-mode.el --- simple editing of archives
 
-;; Copyright (C) 1995, 1997-1998, 2001-2011  Free Software Foundation, Inc.
+;; Copyright (C) 1995, 1997-1998, 2001-2012  Free Software Foundation, Inc.
 
 ;; Author: Morten Welinder <terra@gnu.org>
 ;; Keywords: files archives msdog editing major-mode
@@ -860,13 +860,13 @@ using `make-temp-file', and the generated name is returned."
 	  dir)))
     (if (or alien (file-exists-p fullname))
 	(progn
-	  ;; Maked sure all the leading directories in
+	  ;; Make sure all the leading directories in
 	  ;; archive-local-name exist under archive-tmpdir, so that
 	  ;; the directory structure recorded in the archive is
 	  ;; reconstructed in the temporary directory.
 	  (make-directory (file-name-directory tmpfile) t)
 	  (make-temp-file tmpfile))
-      ;; Maked sure all the leading directories in `fullname' exist
+      ;; Make sure all the leading directories in `fullname' exist
       ;; under archive-tmpdir.  This is necessary for nested archives
       ;; (`archive-extract' sets `archive-remote' to t in case
       ;; an archive occurs inside another archive).

@@ -1,6 +1,6 @@
 GNU Emacs NEWS -- history of user-visible changes.  1992.
 
-Copyright (C) 1993-1995, 2001, 2006-2011  Free Software Foundation, Inc.
+Copyright (C) 1993-1995, 2001, 2006-2012  Free Software Foundation, Inc.
 See the end of the file for license conditions.
 
 
@@ -5032,7 +5032,7 @@ if it is `memq' in the list.
 
 ** If you call `get-buffer-window' passing t as its second argument, it
 will only search for windows on visible frames.  Previously, passing t
-as the secord argument caused `get-buffer-window' to search all
+as the second argument caused `get-buffer-window' to search all
 frames, visible or not.
 
 ** If you call `other-buffer' with a nil or omitted second argument, it
@@ -6114,7 +6114,7 @@ When you have edited both buffers as you wish, merge them with C-x 6
 1.  This copies the text from the right-hand buffer as a second column
 in the other buffer.  To go back to two-column editing, use C-x 6 s.
 
-Use C-x 6 d to disassociate the two buffers, leaving each as it
+Use C-x 6 d to dissociate the two buffers, leaving each as it
 stands.  (If the other buffer, the one that was not current when you
 type C-x 6 d, is empty, C-x 6 d kills it.)
 

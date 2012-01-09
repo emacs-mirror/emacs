@@ -1,6 +1,6 @@
 ;;; mpc.el --- A client for the Music Player Daemon   -*- coding: utf-8; lexical-binding: t -*-
 
-;; Copyright (C) 2006-2011  Free Software Foundation, Inc.
+;; Copyright (C) 2006-2012  Free Software Foundation, Inc.
 
 ;; Author: Stefan Monnier <monnier@iro.umontreal.ca>
 ;; Keywords: multimedia
@@ -2412,7 +2412,7 @@ This is used so that they can be compared with `eq', which is needed for
     (let* (songid       ;The ID of the currently ffwd/rewinding song.
            songduration ;The duration of that song.
            songtime     ;The time of the song last time we ran.
-           oldtime      ;The timeoftheday last time we ran.
+           oldtime      ;The time of day last time we ran.
            prevsongid)  ;The song we're in the process leaving.
       (let ((fun
              (lambda ()

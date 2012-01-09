@@ -1,11 +1,10 @@
 ;;; ob-haskell.el --- org-babel functions for haskell evaluation
 
-;; Copyright (C) 2009-2011  Free Software Foundation, Inc.
+;; Copyright (C) 2009-2012  Free Software Foundation, Inc.
 
 ;; Author: Eric Schulte
 ;; Keywords: literate programming, reproducible research
 ;; Homepage: http://orgmode.org
-;; Version: 7.7
 
 ;; This file is part of GNU Emacs.
 
@@ -29,7 +28,7 @@
 ;; they can be run, but haskell code can also be run through an
 ;; interactive interpreter.
 ;;
-;; For now let's only allow evaluation using the haskell interpreter.
+;; For now lets only allow evaluation using the haskell interpreter.
 
 ;;; Requirements:
 

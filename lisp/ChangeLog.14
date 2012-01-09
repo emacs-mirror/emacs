@@ -3473,7 +3473,7 @@
 2009-01-10  Dan Nicolaescu  <dann@ics.uci.edu>
 
 	* diff-mode.el (diff-show-trailing-whitespaces): Remove function.
-	Move setting up whitepace-mode ...
+	Move setting up whitespace-mode ...
 	(diff-mode): ... here.
 	(diff-mode-menu): Add a menu entry for showing trailing whitespace.
 
@@ -19176,7 +19176,7 @@
 	toggle-read-only.
 
 	* textmodes/bibtex.el (bibtex-format-entry): Handle error message
-	refering to a missing required field with the OPT prefix.
+	referring to a missing required field with the OPT prefix.
 	Make unwindform more robust.
 
 	* textmodes/bibtex.el: Remove support for hideshow minor mode as
@@ -20551,7 +20551,7 @@ See ChangeLog.13 for earlier changes.
 ;; coding: utf-8
 ;; End:
 
-    Copyright (C) 2008-2011  Free Software Foundation, Inc.
+    Copyright (C) 2008-2012  Free Software Foundation, Inc.
 
   This file is part of GNU Emacs.
 

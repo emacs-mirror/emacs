@@ -1,6 +1,6 @@
 ;;; htmlfontify.el --- htmlize a buffer/source tree with optional hyperlinks
 
-;; Copyright (C) 2002-2003, 2009-2011  Free Software Foundation, Inc.
+;; Copyright (C) 2002-2003, 2009-2012  Free Software Foundation, Inc.
 
 ;; Emacs Lisp Archive Entry
 ;; Package: htmlfontify
@@ -2316,7 +2316,7 @@ You may also want to set `hfy-page-header' and `hfy-page-footer'."
 
 
 ;;;### (autoloads (hfy-fallback-colour-values htmlfontify-load-rgb-file)
-;;;;;;  "hfy-cmap" "hfy-cmap.el" "8dce008297f15826cc6ab82203c46fa6")
+;;;;;;  "hfy-cmap" "hfy-cmap.el" "ef24066922f1e27b7580d572f12fabbe")
 ;;; Generated autoloads from hfy-cmap.el
 
 (autoload 'htmlfontify-load-rgb-file "hfy-cmap" "\

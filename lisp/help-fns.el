@@ -1,6 +1,6 @@
 ;;; help-fns.el --- Complex help functions -*- lexical-binding: t -*-
 
-;; Copyright (C) 1985-1986, 1993-1994, 1998-2011
+;; Copyright (C) 1985-1986, 1993-1994, 1998-2012
 ;;   Free Software Foundation, Inc.
 
 ;; Maintainer: FSF

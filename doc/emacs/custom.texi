@@ -1,5 +1,5 @@
 @c This is part of the Emacs manual.
-@c Copyright (C) 1985-1987, 1993-1995, 1997, 2000-2011
+@c Copyright (C) 1985-1987, 1993-1995, 1997, 2000-2012
 @c   Free Software Foundation, Inc.
 @c See file emacs.texi for copying conditions.
 @node Customization
@@ -30,287 +30,291 @@ Reference Manual}.
 * Key Bindings::        The keymaps say what command each key runs.
                           By changing them, you can "redefine keys".
 * Init File::           How to write common customizations in the
-                          @file{.emacs} file.
+                          initialization file.
 @end menu
 
 @node Easy Customization
 @section Easy Customization Interface
 
 @cindex settings
-  Emacs has many @dfn{settings} which have values that you can change.
-Many are documented in this manual.  Most settings are @dfn{user
-options}---that is to say, Lisp variables (@pxref{Variables})---and
-their names appear in the Variable Index (@pxref{Variable Index}).
-The other settings are faces and their attributes (@pxref{Faces}).
+@cindex user option
+@cindex customizable variable
+  Emacs has many @dfn{settings} which you can change.  Most settings
+are @dfn{customizable variables} (@pxref{Variables}), which are also
+called @dfn{user options}.  There is a huge number of customizable
+variables, controlling numerous aspects of Emacs behavior; the
+variables documented in this manual are listed in @ref{Variable
+Index}.  A separate class of settings are the @dfn{faces}, which
+determine the fonts, colors, and other attributes of text
+(@pxref{Faces}).
 
 @findex customize
 @cindex customization buffer
-  You can browse settings and change them using @kbd{M-x customize}.
-This creates a @dfn{customization buffer}, which lets you navigate
-through a logically organized list of settings, edit and set their
-values, and save them permanently in your initialization file
-(@pxref{Init File}).
+  To browse and alter settings (both variables and faces), type
+@kbd{M-x customize}.  This creates a @dfn{customization buffer}, which
+lets you navigate through a logically organized list of settings, edit
+and set their values, and save them permanently.
 
 @menu
-* Customization Groups::     How settings are classified in a structure.
+* Customization Groups::     How settings are classified.
 * Browsing Custom::          Browsing and searching for settings.
 * Changing a Variable::      How to edit an option's value and set the option.
-* Saving Customizations::    Specifying the file for saving customizations.
+* Saving Customizations::    Saving customizations for future Emacs sessions.
 * Face Customization::       How to edit the attributes of a face.
-* Specific Customization::   Making a customization buffer for specific
-                                variables, faces, or groups.
-* Custom Themes::            How to define collections of customized options
-                                that can be loaded and unloaded together.
+* Specific Customization::   Customizing specific settings or groups.
+* Custom Themes::            Collections of customization settings.
+* Creating Custom Themes::   How to create a new custom theme.
 @end menu
 
 @node Customization Groups
 @subsection Customization Groups
 @cindex customization groups
 
-  For customization purposes, settings are organized into @dfn{groups}
-to help you find them.  Groups are collected into bigger groups, all
-the way up to a master group called @code{Emacs}.
+  Customization settings are organized into @dfn{customization
+groups}.  These groups are collected into bigger groups, all the way
+up to a master group called @code{Emacs}.
 
   @kbd{M-x customize} creates a customization buffer that shows the
-top-level @code{Emacs} group and the second-level groups immediately
-under it.  It looks like this, in part:
+top-level @code{Emacs} group.  It looks like this, in part:
 
 @c we want the buffer example to all be on one page, but unfortunately
 @c that's quite a bit of text, so force all space to the bottom.
 @page
 @smallexample
 @group
-/- Emacs group: Customization of the One True Editor. -------------\
-      [State]: visible group members are all at standard values.
+To apply changes, use the Save or Set buttons.
+For details, see [Saving Customizations] in the [Emacs manual].
 
-   See also [Manual].
+________________________________________ [ Search ]
+
+ Operate on all settings in this buffer:
+ [ Set for current session ] [ Save for future sessions ]
+ [ Undo edits ] [ Reset to saved ] [ Erase customizations ] [ Exit ]
+
+
+Emacs group: Customization of the One True Editor.
+      [State]: visible group members are all at standard values.
+      See also [Manual].
 
 [Editing] : Basic text editing facilities.
 
-[External] : Interfacing to external utilities.
+[Convenience] : Convenience features for faster editing.
 
 @var{more second-level groups}
-
-\- Emacs group end ------------------------------------------------/
 @end group
 @end smallexample
 
 @noindent
-This says that the buffer displays the contents of the @code{Emacs}
-group.  The other groups are listed because they are its contents.  But
-they are listed differently, without indentation and dashes, because
-@emph{their} contents are not included.  Each group has a single-line
-documentation string; the @code{Emacs} group also has a @samp{[State]}
-line.
+The main part of this buffer shows the @samp{Emacs} customization
+group, which contains several other groups (@samp{Editing},
+@samp{Convenience}, etc.).  The contents of those groups are not
+listed here, only one line of documentation each.
+
+  The @dfn{state} of the group indicates whether setting in that group
+has been edited, set or saved.  @xref{Changing a Variable}.
 
 @cindex editable fields (customization buffer)
 @cindex buttons (customization buffer)
 @cindex links (customization buffer)
-  Most of the text in the customization buffer is read-only, but it
-typically includes some @dfn{editable fields} that you can edit.
-There are also @dfn{buttons} and @dfn{links}, which do something when
-you @dfn{invoke} them.  To invoke a button or a link, either click on
-it with @kbd{Mouse-1}, or move point to it and type @key{RET}.
-
-  For example, the phrase @samp{[State]} that appears in a
-second-level group is a button.  It operates on the same customization
-buffer.  Each group name, such as @samp{[Editing]}, is a hypertext
-link to that group; invoking it creates a new customization buffer,
-showing the group and its contents.
-
-  The @code{Emacs} group only contains other groups.  These groups, in
-turn, can contain settings or still more groups.  By browsing the
-hierarchy of groups, you will eventually find the feature you are
-interested in customizing.  Then you can use the customization buffer
-to set that feature's settings.  You can also go straight to a
-particular group by name, using the command @kbd{M-x customize-group}.
-
-@node Browsing Custom
-@subsection Browsing and Searching for Options and Faces
-@findex customize-browse
-
-  @kbd{M-x customize-browse} is another way to browse the available
-settings.  This command creates a special customization buffer which
-shows only the names of groups and settings, and puts them in a
-structure.
-
-  In this buffer, you can show the contents of a group by invoking the
-@samp{[+]} button.  When the group contents are visible, this button
-changes to @samp{[-]}; invoking that hides the group contents again.
-
-  Each group or setting in this buffer has a link which says
-@samp{[Group]}, @samp{[Option]} or @samp{[Face]}.  Invoking this link
-creates an ordinary customization buffer showing just that group and
-its contents, just that user option, or just that face.  This is the
-way to change settings that you find with @kbd{M-x customize-browse}.
-
-  If you can guess part of the name of the settings you are interested
-in, @kbd{M-x customize-apropos} is another way to search for settings.
-However, unlike @code{customize} and @code{customize-browse},
-@code{customize-apropos} can only find groups and settings that are
-loaded in the current Emacs session.  @xref{Specific Customization,,
-Customizing Specific Items}.
-
-@node Changing a Variable
-@subsection Changing a Variable
-
-  Here is an example of what a variable (a user option) looks like in
-the customization buffer:
-
-@smallexample
-Kill Ring Max: [Hide Value] 60
-   [State]: STANDARD.
-Maximum length of kill ring before oldest elements are thrown away.
-@end smallexample
-
-  The text following @samp{[Hide Value]}, @samp{60} in this case, indicates
-the current value of the variable.  If you see @samp{[Show Value]} instead of
-@samp{[Hide Value]}, it means that the value is hidden; the customization
-buffer initially hides values that take up several lines.  Invoke
-@samp{[Show Value]} to show the value.
-
-  The line after the variable name indicates the @dfn{customization
-state} of the variable: in the example above, it says you have not
-changed the option yet.  The @samp{[State]} button at the beginning of
-this line gives you a menu of various operations for customizing the
-variable.
-
-  The line after the @samp{[State]} line displays the beginning of the
-variable's documentation string.  If there are more lines of
-documentation, this line ends with a @samp{[More]} button; invoke that
-to show the full documentation string.
-
-  To enter a new value for @samp{Kill Ring Max}, move point to the
-value and edit it textually.  For example, you can type @kbd{M-d},
-then insert another number.  As you begin to alter the text, you will
-see the @samp{[State]} line change to say that you have edited the
-value:
-
-@smallexample
-[State]: EDITED, shown value does not take effect until you set or @r{@dots{}}
-                                                           save it.
-@end smallexample
-
-@cindex user options, how to set
-@cindex variables, how to set
-@cindex settings, how to set
-  Editing the value does not actually set the variable.  To do that,
-you must @dfn{set} the variable.  To do this, invoke the
-@samp{[State]} button and choose @samp{Set for Current Session}.
-
-  The state of the variable changes visibly when you set it:
-
-@smallexample
-[State]: SET for current session only.
-@end smallexample
-
-   You don't have to worry about specifying a value that is not valid;
-the @samp{Set for Current Session} operation checks for validity and
-will not install an unacceptable value.
-
-@kindex M-TAB @r{(customization buffer)}
-@findex widget-complete
-  While editing a field that is a file name, directory name,
-command name, or anything else for which completion is defined, you
-can type @kbd{M-@key{TAB}} (@code{widget-complete}) to do completion.
-(@kbd{@key{ESC} @key{TAB}} and @kbd{C-M-i} do the same thing.)
-
-  Some variables have a small fixed set of possible legitimate values.
-These variables don't let you edit the value textually.  Instead, a
-@samp{[Value Menu]} button appears before the value; invoke this
-button to change the value.  For a boolean ``on or off'' value, the
-button says @samp{[Toggle]}, and it changes to the other value.
-@samp{[Value Menu]} and @samp{[Toggle]} simply edit the buffer; the
-changes take real effect when you use the @samp{Set for Current
-Session} operation.
-
-  Some variables have values with complex structure.  For example, the
-value of @code{file-coding-system-alist} is an association list.  Here
-is how it appears in the customization buffer:
-
-@smallexample
-File Coding System Alist: [Hide Value]
-[INS] [DEL] File regexp: \.elc\'
-            Choice: [Value Menu] Encoding/decoding pair:
-            Decoding: emacs-mule
-            Encoding: emacs-mule
-[INS] [DEL] File regexp: \(\`\|/\)loaddefs.el\'
-            Choice: [Value Menu] Encoding/decoding pair:
-            Decoding: raw-text
-            Encoding: raw-text-unix
-[INS] [DEL] File regexp: \.tar\'
-            Choice: [Value Menu] Encoding/decoding pair:
-            Decoding: no-conversion
-            Encoding: no-conversion
-[INS] [DEL] File regexp:
-            Choice: [Value Menu] Encoding/decoding pair:
-            Decoding: undecided
-            Encoding: nil
-[INS]
-   [State]: STANDARD.
-Alist to decide a coding system to use for a file I/O @r{@dots{}}
-                                operation. [Hide Rest]
-The format is ((PATTERN . VAL) ...),
-where PATTERN is a regular expression matching a file name,
-@r{[@dots{}more lines of documentation@dots{}]}
-@end smallexample
-
-@noindent
-Each association in the list appears on four lines, with several
-editable fields and/or buttons.  You can edit the regexps and coding
-systems using ordinary editing commands.  You can also invoke
-@samp{[Value Menu]} to switch to a different kind of value---for
-instance, to specify a function instead of a pair of coding systems.
-
-To delete an association from the list, invoke the @samp{[DEL]} button
-for that item.  To add an association, invoke @samp{[INS]} at the
-position where you want to add it.  There is an @samp{[INS]} button
-between each pair of associations, another at the beginning and another
-at the end, so you can add a new association at any position in the
-list.
+  Most of the customization buffer is read-only, but it includes some
+@dfn{editable fields} that you can edit.  For example, at the top of
+the customization buffer is an editable field for searching for
+settings (@pxref{Browsing Custom}).  There are also @dfn{buttons} and
+@dfn{links}, which you can activate by either clicking with the mouse,
+or moving point there and typing @key{RET}.  For example, the group
+names like @samp{[Editing]} are links; activating one of these links
+brings up the customization buffer for that group.
 
 @kindex TAB @r{(customization buffer)}
 @kindex S-TAB @r{(customization buffer)}
 @findex widget-forward
 @findex widget-backward
-  Two special commands, @key{TAB} and @kbd{S-@key{TAB}}, are useful
-for moving through the customization buffer.  @key{TAB}
-(@code{widget-forward}) moves forward to the next button or editable
-field; @kbd{S-@key{TAB}} (@code{widget-backward}) moves backward to
-the previous button or editable field.
+  In the customizable buffer, you can type @key{TAB}
+(@code{widget-forward}) to move forward to the next button or editable
+field.  @kbd{S-@key{TAB}} (@code{widget-backward}) moves back to the
+previous button or editable field.
 
-  Typing @key{RET} on an editable field also moves forward, just like
-@key{TAB}.  You can thus type @key{RET} when you are finished editing
-a field, to move on to the next button or field.  To insert a newline
-within an editable field, use @kbd{C-o} or @kbd{C-q C-j}.
+@node Browsing Custom
+@subsection Browsing and Searching for Settings
+@findex customize-browse
+
+  From the top-level customization buffer created by @kbd{M-x
+customize}, you can follow the links to the subgroups of the
+@samp{Emacs} customization group.  These subgroups may contain
+settings for you to customize; they may also contain futher subgroups,
+dealing with yet more specialized subsystems of Emacs.  As you
+navigate the hierarchy of customization groups, you should find some
+settings that you want to customize.
+
+  If you are interested in customizing a particular setting or
+customization group, you can go straight there with the commands
+@kbd{M-x customize-option}, @kbd{M-x customize-face}, or @kbd{M-x
+customize-group}.  @xref{Specific Customization}.
+
+@vindex custom-search-field
+  If you don't know exactly what groups or settings you want to
+customize, you can search for them using the editable search field at
+the top of each customization buffer.  Here, you can type in a search
+term---either one or more words separated by spaces, or a regular
+expression (@pxref{Regexps}).  Then type @key{RET} in the field, or
+activate the @samp{Search} button next to it, to switch to a
+customization buffer containing groups and settings that match those
+terms.  Note, however, that this feature only finds groups and
+settings that are loaded in the current Emacs session.
+
+  If you don't want customization buffers to show the search field,
+change the variable @code{custom-search-field} to @code{nil}.
+
+  The command @kbd{M-x customize-apropos} is similar to using the
+search field, except that it reads the search term(s) using the
+minibuffer.  @xref{Specific Customization}.
+
+  @kbd{M-x customize-browse} is another way to browse the available
+settings.  This command creates a special customization buffer which
+shows only the names of groups and settings, in a structured layout.
+You can show the contents of a group, in the same buffer, by invoking
+the @samp{[+]} button next to the group name.  When the group contents
+are shown, the button changes to @samp{[-]}; invoking that hides the
+group contents again.  Each group or setting in this buffer has a link
+which says @samp{[Group]}, @samp{[Option]} or @samp{[Face]}.  Invoking
+this link creates an ordinary customization buffer showing just that
+group, option, or face; this is the way to change settings that you
+find with @kbd{M-x customize-browse}.
+
+@node Changing a Variable
+@subsection Changing a Variable
+
+  Here is an example of what a variable, or user option, looks like in
+the customization buffer:
+
+@smallexample
+[Hide] Kill Ring Max: 60
+   [State]: STANDARD.
+   Maximum length of kill ring before oldest elements are thrown away.
+@end smallexample
+
+  The first line shows that the variable is named
+@code{kill-ring-max}, formatted as @samp{Kill Ring Max} for easier
+viewing.  Its value is @samp{60}.  The button labeled @samp{[Hide]},
+if activated, hides the variable's value and state; this is useful to
+avoid cluttering up the customization buffer with very long values
+(for this reason, variables that have very long values may start out
+hidden).  If you use the @samp{[Hide]} button, it changes to
+@samp{[Show Value]}, which you can activate to reveal the value and
+state.  On a graphical display, the @samp{[Hide]} and @samp{[Show
+Value]} buttons are replaced with graphical triangles pointing
+downwards and rightwards respectively.
+
+  The line after the variable name indicates the @dfn{customization
+state} of the variable: in this example, @samp{STANDARD} means you
+have not changed the variable, so its value is the default one.  The
+@samp{[State]} button gives a menu of operations for customizing the
+variable.
+
+  Below the customization state is the documentation for the variable.
+This is the same documentation that would be shown by the @kbd{C-h v}
+command (@pxref{Examining}).  If the documentation is more than one
+line long, only one line may be shown.  If so, that line ends with a
+@samp{[More]} button; activate this to see the full documentation.
+
+@cindex user options, changing
+@cindex customizing variables
+@cindex variables, changing
+  To enter a new value for @samp{Kill Ring Max}, just move point to
+the value and edit it.  For example, type @kbd{M-d} to delete the
+@samp{60} and type in another number.  As you begin to alter the text,
+the @samp{[State]} line will change:
+
+@smallexample
+[State]: EDITED, shown value does not take effect until you
+         set or save it.
+@end smallexample
+
+@noindent
+Editing the value does not make it take effect right away.  To do
+that, you must @dfn{set} the variable by activating the @samp{[State]}
+button and choosing @samp{Set for Current Session}.  Then the
+variable's state becomes:
+
+@smallexample
+[State]: SET for current session only.
+@end smallexample
+
+@noindent
+You don't have to worry about specifying a value that is not valid;
+the @samp{Set for Current Session} operation checks for validity and
+will not install an unacceptable value.
+
+@kindex M-TAB @r{(customization buffer)}
+@kindex C-M-i @r{(customization buffer)}
+@findex widget-complete
+  While editing certain kinds of values, such as file names, directory
+names, and Emacs command names, you can perform completion with
+@kbd{C-M-i} (@code{widget-complete}), or the equivalent keys
+@kbd{M-@key{TAB}} or @kbd{@key{ESC} @key{TAB}}.  This behaves much
+like minibuffer completion (@pxref{Completion}).
+
+  Typing @key{RET} on an editable value field moves point forward to
+the next field or button, like @key{TAB}.  You can thus type @key{RET}
+when you are finished editing a field, to move on to the next button
+or field.  To insert a newline within an editable field, use @kbd{C-o}
+or @kbd{C-q C-j}.
+
+  For some variables, there is only a fixed set of legitimate values,
+and you are not allowed to edit the value directly.  Instead, a
+@samp{[Value Menu]} button appears before the value; activating this
+button presents a choice of values.  For a boolean ``on or off''
+value, the button says @samp{[Toggle]}, and flips the value.  After
+using the @samp{[Value Menu]} or @samp{[Toggle]} button, you must
+again set the variable to make the chosen value take effect.
+
+  Some variables have values with complex structure.  For example, the
+value of @code{minibuffer-frame-alist} is an association list.  Here
+is how it appears in the customization buffer:
+
+@smallexample
+[Hide] Minibuffer Frame Alist:
+[INS] [DEL] Parameter: width
+            Value: 80
+[INS] [DEL] Parameter: height
+            Value: 2
+[INS]
+   [ State ]: STANDARD.
+   Alist of parameters for the initial minibuffer frame. [Hide]
+   @r{[@dots{}more lines of documentation@dots{}]}
+@end smallexample
+
+@noindent
+In this case, each association in the list consists of two items, one
+labeled @samp{Parameter} and one labeled @samp{Value}; both are
+editable fields.  You can delete an association from the list with the
+@samp{[DEL]} button next to it.  To add an association, use the
+@samp{[INS]} button at the position where you want to insert it; the
+very last @samp{[INS]} button inserts at the end of the list.
 
 @cindex saving a setting
 @cindex settings, how to save
-  Setting the variable changes its value in the current Emacs session;
-@dfn{saving} the value changes it for future sessions as well.  To
-save the variable, invoke @samp{[State]} and select the @samp{Save for
-Future Sessions} operation.  This works by writing code so as to set
-the variable again, each time you start Emacs (@pxref{Saving
-Customizations}).
+  When you set a variable, the new value takes effect only in the
+current Emacs session.  To @dfn{save} the value for future sessions,
+use the @samp{[State]} button and select the @samp{Save for Future
+Sessions} operation.  @xref{Saving Customizations}.
 
-  You can also restore the variable to its standard value by invoking
-@samp{[State]} and selecting the @samp{Erase Customization} operation.
-There are actually four reset operations:
+  You can also restore the variable to its standard value by using the
+@samp{[State]} button and selecting the @samp{Erase Customization}
+operation.  There are actually four reset operations:
 
 @table @samp
 @item Undo Edits
-If you have made some modifications and not yet set the variable,
-this restores the text in the customization buffer to match
-the actual value.
+If you have modified but not yet set the variable, this restores the
+text in the customization buffer to match the actual value.
 
 @item Reset to Saved
 This restores the value of the variable to the last saved value,
 and updates the text accordingly.
 
 @item Erase Customization
-This sets the variable to its standard value, and updates the text
-accordingly.  This also eliminates any saved value for the variable,
-so that you will get the standard value in future Emacs sessions.
+This sets the variable to its standard value.  Any saved value that
+you have is also eliminated.
 
 @item Set to Backup Value
 This sets the variable to a previous value that was set in the
@@ -322,40 +326,51 @@ you can get the discarded value back again with this operation.
 @cindex comments on customized settings
   Sometimes it is useful to record a comment about a specific
 customization.  Use the @samp{Add Comment} item from the
-@samp{[State]} menu to create a field for entering the comment.  The
-comment you enter will be saved, and displayed again if you again view
-the same variable in a customization buffer, even in another session.
+@samp{[State]} menu to create a field for entering the comment.
 
-  The state of a group indicates whether anything in that group has been
-edited, set or saved.
-
-  Near the top of the customization buffer there are two lines of buttons:
+  Near the top of the customization buffer are two lines of buttons:
 
 @smallexample
  [Set for Current Session] [Save for Future Sessions]
  [Undo Edits] [Reset to Saved] [Erase Customization]   [Finish]
 @end smallexample
 
-@vindex custom-buffer-done-function
 @noindent
-Invoking @samp{[Finish]} either buries or kills this customization
-buffer according to the setting of the option
-@code{custom-buffer-done-kill}; the default is to bury the buffer.
-Each of the other buttons performs an operation---set, save or
-reset---on each of the settings in the buffer that could meaningfully
-be set, saved or reset.  They do not operate on settings whose values
-are hidden, nor on subgroups which are hidden or not visible in the buffer.
+Each of the first five buttons performs the stated operation---set,
+save, reset, etc.---on all the settings in the buffer that could
+meaningfully be affected.  They do not operate on settings that are
+hidden, nor on subgroups that are hidden or not visible in the buffer.
+
+@kindex C-c C-c @r{(customization buffer)}
+@kindex C-x C-c @r{(customization buffer)}
+@findex Custom-set
+@findex Custom-save
+  The command @kbd{C-c C-c} (@code{Custom-set}) is equivalent using to
+the @samp{[Set for Current Session]} button.  The command @kbd{C-x
+C-s} (@code{Custom-save}) is like using the @samp{[Save for Future
+Sessions]} button.
+
+@vindex custom-buffer-done-kill
+  The @samp{[Finish]} button switches out of the customization buffer,
+and buries the buffer at the bottom of the buffer list.  To make it
+kill the customization buffer instead, change the variable
+@code{custom-buffer-done-kill} to @code{t}.
 
 @node Saving Customizations
 @subsection Saving Customizations
 
-@vindex custom-file
-  Saving customizations from the customization buffer works by writing
-code to a file.  By reading this code, future sessions can set up the
-customizations again.  Normally, the code is saved in your
-initialization file (@pxref{Init File}).
+  In the customization buffer, you can @dfn{save} a customization
+setting by choosing the @samp{Save for Future Sessions} choice from
+its @samp{[State]} button.  The @kbd{C-x C-s} (@code{Custom-save})
+command, or the @samp{[Save for Future Sessions]} button at the top of
+the customization buffer, saves all applicable settings in the buffer.
 
-  You can choose to save your customizations in a file other than your
+  Saving works by writing code to a file, usually your initialization
+file (@pxref{Init File}).  Future Emacs sessions automatically read
+this file at startup, which sets up the customizations again.
+
+@vindex custom-file
+  You can choose to save customizations somewhere other than your
 initialization file.  To make this work, you must add a couple of
 lines of code to your initialization file, to set the variable
 @code{custom-file} to the name of the desired file, and to load that
@@ -366,8 +381,8 @@ file.  For example:
 (load custom-file)
 @end example
 
-  You can use @code{custom-file} to specify different customization
-files for different Emacs versions, like this:
+  You can even specify different customization files for different
+Emacs versions, like this:
 
 @example
 (cond ((< emacs-major-version 22)
@@ -393,80 +408,92 @@ customizations you might have on your initialization file.
 @node Face Customization
 @subsection Customizing Faces
 @cindex customizing faces
-@cindex bold font
-@cindex italic font
+@cindex faces, customizing
 @cindex fonts and faces
 
-  In addition to variables, some customization groups also include
-faces.  When you show the contents of a group, both the variables and
-the faces in the group appear in the customization buffer.  Here is an
-example of how a face looks:
+  You can customize faces (@pxref{Faces}), which determine how Emacs
+displays different types of text.  Customization groups can contain
+both variables and faces.
+
+  For example, in programming language modes, source code comments are
+shown with @code{font-lock-comment-face} (@pxref{Font Lock}).  In a
+customization buffer, that face appears like this:
 
 @smallexample
-Custom Changed Face:(sample) [Hide Face]
-   [State]: STANDARD.
-Face used when the customize item has been changed.
-Parent groups: [Custom Magic Faces]
-Attributes: [ ] Font Family: *
-            [ ] Width: *
-            [ ] Height: *
-            [ ] Weight: *
-            [ ] Slant: *
-            [ ] Underline: *
-            [ ] Overline: *
-            [ ] Strike-through: *
-            [ ] Box around text: *
-            [ ] Inverse-video: *
-            [X] Foreground: white       (sample)
-            [X] Background: blue        (sample)
-            [ ] Stipple: *
-            [ ] Inherit: *
+[Hide] Font Lock Comment Face:[sample]
+   [State] : STANDARD.
+   Font Lock mode face used to highlight comments.
+   [ ] Font Family: --
+   [ ] Font Foundry: --
+   [ ] Width: --
+   [ ] Height: --
+   [ ] Weight: --
+   [ ] Slant: --
+   [ ] Underline: --
+   [ ] Overline: --
+   [ ] Strike-through: --
+   [ ] Box around text: --
+   [ ] Inverse-video: --
+   [X] Foreground: Firebrick     [Choose]  (sample)
+   [ ] Background: --
+   [ ] Stipple: --
+   [ ] Inherit: --
+   [Hide Unused Attributes]
 @end smallexample
 
-  Each face attribute has its own line.  The @samp{[@var{x}]} button
-before the attribute name indicates whether the attribute is
-@dfn{enabled}; @samp{[X]} means that it's enabled, and @samp{[ ]}
-means that it's disabled.  You can enable or disable the attribute by
-clicking that button.  When the attribute is enabled, you can change
-the attribute value in the usual ways.
+@noindent
+The first three lines show the name, @samp{[State]} button, and
+documentation for the face.  Below that is a list of @dfn{face
+attributes}.  In front of each attribute is a checkbox.  A filled
+checkbox, @samp{[X]}, means that the face specifies a value for this
+attribute; an empty checkbox, @samp{[ ]}, means that the face does not
+specify any special value for the attribute.  You can activate a
+checkbox to specify or unspecify its attribute.
 
-  The foreground and background colors can be specified using color
-names or RGB triplets.  @xref{Colors}.
+  Most faces only specify a few attributes (in the above example,
+@code{font-lock-comment-face} only specifies the foreground color).
+Emacs has a special face, @code{default}, whose attributes are all
+specified; it determines the attributes left unspecified by other
+faces.
+
+  The @samp{Hide Unused Attributes} button, at the end of the
+attribute list, hides the unspecified attributes of the face.  When
+attributes are being hidden, the button changes to @samp{[Show All
+Attributes]}, which reveals the entire attribute list.  The
+customization buffer may start out with unspecified attributes hidden,
+to avoid cluttering the interface.
+
+  When an attribute is specified, you can change its value in the
+usual ways.
+
+  Foreground and background colors can be specified using either color
+names or RGB triplets (@pxref{Colors}).  You can also use the
+@samp{[Choose]} button to switch to a list of color names; select a
+color with @key{RET} in that buffer to put the color name in the value
+field.
 
   Setting, saving and resetting a face work like the same operations for
 variables (@pxref{Changing a Variable}).
 
   A face can specify different appearances for different types of
-display.  For example, a face can make text red on a color display, but
-use a bold font on a monochrome display.  To specify multiple
+displays.  For example, a face can make text red on a color display,
+but use a bold font on a monochrome display.  To specify multiple
 appearances for a face, select @samp{For All Kinds of Displays} in the
 menu you get from invoking @samp{[State]}.
-
-@findex modify-face
-  Another more basic way to set the attributes of a specific face is
-with @kbd{M-x modify-face}.  This command reads the name of a face, then
-reads the attributes one by one.  For the color and stipple attributes,
-the attribute's current value is the default---type just @key{RET} if
-you don't want to change that attribute.  Type @samp{none} if you want
-to clear out the attribute.
 
 @node Specific Customization
 @subsection Customizing Specific Items
 
-  Instead of finding the setting you want to change by navigating the
-structure of groups, here are other ways to specify the settings that
-you want to customize.
-
 @table @kbd
 @item M-x customize-option @key{RET} @var{option} @key{RET}
-Set up a customization buffer with just one user option variable,
-@var{option}.
+@itemx M-x customize-variable @key{RET} @var{option} @key{RET}
+Set up a customization buffer for just one user option, @var{option}.
 @item M-x customize-face @key{RET} @var{face} @key{RET}
-Set up a customization buffer with just one face, @var{face}.
+Set up a customization buffer for just one face, @var{face}.
 @item M-x customize-group @key{RET} @var{group} @key{RET}
-Set up a customization buffer with just one group, @var{group}.
+Set up a customization buffer for just one group, @var{group}.
 @item M-x customize-apropos @key{RET} @var{regexp} @key{RET}
-Set up a customization buffer with all the settings and groups that
+Set up a customization buffer for all the settings and groups that
 match @var{regexp}.
 @item M-x customize-changed @key{RET} @var{version} @key{RET}
 Set up a customization buffer with all the settings and groups
@@ -480,35 +507,24 @@ set but not saved.
 @end table
 
 @findex customize-option
-  If you want to alter a particular user option with the customization
-buffer, and you know its name, you can use the command @kbd{M-x
-customize-option} and specify the user option (variable) name.  This
-sets up the customization buffer with just one user option---the one
-that you asked for.  Editing, setting and saving the value work as
-described above, but only for the specified user option.  Minibuffer
-completion is handy if you only know part of the name.  However, this
-command can only see options that have been loaded in the current
-Emacs session.
+  If you want to customize a particular user option, type @kbd{M-x
+customize-option}.  This reads the variable name, and sets up the
+customization buffer with just that one user option.  When entering
+the variable name into the minibuffer, completion is available, but
+only for the names of variables that have been loaded into Emacs.
 
 @findex customize-face
-  Likewise, you can modify a specific face, chosen by name, using
-@kbd{M-x customize-face}.  By default it operates on the face used
-on the character after point.
-
 @findex customize-group
-  You can also set up the customization buffer with a specific group,
-using @kbd{M-x customize-group}.  The immediate contents of the chosen
-group, including settings (user options and faces), and other groups,
-all appear as well (even if not already loaded).  However, the
-subgroups' own contents are not included.
+  Likewise, you can customize a specific face using @kbd{M-x
+customize-face}.  You can set up a customization buffer for a specific
+customization group using @kbd{M-x customize-group}.
 
 @findex customize-apropos
-  For a more general way of controlling what to customize, you can use
-@kbd{M-x customize-apropos}.  You specify a regular expression as
-argument; then all @emph{loaded} settings and groups whose names match
-this regular expression are set up in the customization buffer.  If
-you specify an empty regular expression, this includes @emph{all}
-loaded groups and settings---which takes a long time to set up.
+  @kbd{M-x customize-apropos} prompts for a search term---either one
+or more words separated by spaces, or a regular expression---and sets
+up a customization buffer for all @emph{loaded} settings and groups
+with matching names.  This is like using the search field at the top
+of the customization buffer (@pxref{Customization Groups}).
 
 @findex customize-changed
   When you upgrade to a new Emacs version, you might want to consider
@@ -522,78 +538,159 @@ loading them if necessary.
 @findex customize-saved
 @findex customize-unsaved
   If you change settings and then decide the change was a mistake, you
-can use two special commands to revisit your previous changes.  Use
-@kbd{M-x customize-saved} to look at the settings that you have saved.
-Use @kbd{M-x customize-unsaved} to look at the settings that you
-have set but not saved.
+can use two commands to revisit your changes.  Use @kbd{M-x
+customize-saved} to customize settings that you have saved.  Use
+@kbd{M-x customize-unsaved} to customize settings that you have set
+but not saved.
 
 @node Custom Themes
-@subsection Customization Themes
+@subsection Custom Themes
 @cindex custom themes
 
   @dfn{Custom themes} are collections of settings that can be enabled
-or disabled as a unit.  You can use Custom themes to switch quickly
-and easily between various collections of settings, and to transfer
-such collections from one computer to another.
+or disabled as a unit.  You can use Custom themes to switch easily
+between various collections of settings, and to transfer such
+collections from one computer to another.
 
-@findex customize-create-theme
-  To define a Custom theme, use @kbd{M-x customize-create-theme},
-which brings up a buffer named @samp{*New Custom Theme*}.  At the top
-of the buffer is an editable field where you can specify the name of
-the theme.  Click on the button labeled @samp{Insert Variable} to add
-a variable to the theme, and click on @samp{Insert Face} to add a
-face.  You can edit these values in the @samp{*New Custom Theme*}
-buffer like in an ordinary Customize buffer.  To remove an option from
-the theme, click on its @samp{State} button and select @samp{Delete}.
+  A Custom theme is stored an Emacs Lisp source file.  If the name of
+the Custom theme is @var{name}, the theme file is named
+@file{@var{name}-theme.el}.  @xref{Creating Custom Themes}, for the
+format of a theme file and how to make one.
 
+@findex customize-themes
 @vindex custom-theme-directory
-  After adding the desired options, click on @samp{Save Theme} to save
-the Custom theme.  This writes the theme definition to a file
-@file{@var{foo}-theme.el} (where @var{foo} is the theme name you
-supplied), in the directory @file{~/.emacs.d/}.  You can specify the
-directory by setting @code{custom-theme-directory}.
+@cindex color scheme
+  Type @kbd{M-x customize-themes} to switch to a buffer named
+@samp{*Custom Themes*}, which lists the Custom themes that Emacs knows
+about.  By default, Emacs looks for theme files in two locations: the
+directory specified by the variable @code{custom-theme-directory}
+(which defaults to @file{~/.emacs.d/}), and a directory named
+@file{etc/themes} in your Emacs installation (see the variable
+@code{data-directory}).  The latter contains several Custom themes
+which are distributed with Emacs, which customize Emacs' faces to fit
+various color schemes.  (Note, however, that Custom themes need not be
+restricted to this purpose; they can be used to customize variables
+too).
 
-  You can view and edit the settings of a previously-defined theme by
-clicking on @samp{Visit Theme} and specifying the theme name.  You can
-also import the variables and faces that you have set using Customize
-by visiting the ``special'' theme named @samp{user}.  This theme, which
-records all the options that you set in the ordinary customization
-buffer, is always enabled, and always takes precedence over all other
-enabled Custom themes.  Additionally, the @samp{user} theme is
-recorded with code in your @file{.emacs} file, rather than a
-@file{user-theme.el} file.
+@vindex custom-theme-load-path
+  If you want Emacs to look for Custom themes in some other directory,
+add the directory name to the list variable
+@code{custom-theme-load-path}.  Its default value is
+@code{(custom-theme-directory t)}; here, the symbol
+@code{custom-theme-directory} has the special meaning of the value of
+the variable @code{custom-theme-directory}, while @code{t} stands for
+the built-in theme directory @file{etc/themes}.  The themes listed in
+the @samp{*Custom Themes*} buffer are those found in the directories
+specified by @code{custom-theme-load-path}.
+
+@kindex C-x C-s @r{(Custom Themes buffer)}
+  In the @samp{*Custom Themes*} buffer, you can activate the checkbox
+next to a Custom theme to enable or disable the theme for the current
+Emacs session.  When a Custom theme is enabled, all of its settings
+(variables and faces) take effect in the Emacs session.  To apply the
+choice of theme(s) to future Emacs sessions, type @kbd{C-x C-s}
+(@code{custom-theme-save}) or use the @samp{[Save Theme Settings]}
+button.
+
+@vindex custom-safe-themes
+  When you first enable a Custom theme, Emacs displays the contents of
+the theme file and asks if you really want to load it.  Because
+loading a Custom theme can execute arbitrary Lisp code, you should
+only say yes if you know that the theme is safe; in that case, Emacs
+offers to remember in the future that the theme is safe (this is done
+by saving the theme file's SHA-256 hash to the variable
+@code{custom-safe-themes}; if you want to treat all themes as safe,
+change its value to @code{t}).  Themes that come with Emacs (in the
+@file{etc/themes} directory) are exempt from this check, and are
+always considered safe.
 
 @vindex custom-enabled-themes
-  Once you have defined a Custom theme, you can use it by customizing
-the variable @code{custom-enabled-themes}.  This is a list of Custom
-themes that are @dfn{enabled}, or put into effect.  If you set
-@code{custom-enabled-themes} using the Customize interface, the theme
-definitions are automatically loaded from the theme files, if they
-aren't already.  If you save the value of @code{custom-enabled-themes}
-for future Emacs sessions, those Custom themes will be enabled
-whenever Emacs is started up.
+  Setting or saving Custom themes actually works by customizing the
+variable @code{custom-enabled-themes}.  The value of this variable is
+a list of Custom theme names (as Lisp symbols, e.g.@: @code{tango}).
+Instead of using the @samp{*Custom Themes*} buffer to set
+@code{custom-enabled-themes}, you can customize the variable using the
+usual customization interface, e.g.@: with @kbd{M-x customize-option}.
+Note that Custom themes are not allowed to set
+@code{custom-enabled-themes} themselves.
 
-  If two enabled themes specify different values for an option, the
-theme occurring earlier in @code{custom-enabled-themes} takes effect.
+  Any customizations that you make through the customization buffer
+take precedence over theme settings.  This lets you easily override
+individual theme settings that you disagree with.  If settings from
+two different themes overlap, the theme occurring earlier in
+@code{custom-enabled-themes} takes precedence.  In the customization
+buffer, if a setting has been changed from its default by a Custom
+theme, its @samp{State} display shows @samp{THEMED} instead of
+@samp{STANDARD}.
 
 @findex load-theme
 @findex enable-theme
 @findex disable-theme
-  You can temporarily enable a Custom theme with @kbd{M-x
-enable-theme}.  This prompts for a theme name in the minibuffer, loads
-the theme from the theme file if necessary, and enables the theme.
-You can @dfn{disable} any enabled theme with the command @kbd{M-x
-disable-theme}; this returns the options specified in the theme to
-their original values.  To re-enable the theme, type @kbd{M-x
-enable-theme} again.  If a theme file is changed during your Emacs
-session, you can reload it by typing @kbd{M-x load-theme}.  (This also
-enables the theme.)
+  You can enable a specific Custom theme in the current Emacs session
+by typing @kbd{M-x load-theme}.  This prompts for a theme name, loads
+the theme from the theme file, and enables the theme.  If a theme file
+has been loaded before, you can enable the theme without loading its
+file by typing @kbd{M-x enable-theme}.  To disable a Custom theme,
+type @kbd{M-x disable-theme}.
+
+@findex describe-theme
+  To see a description of a Custom theme, type @kbd{?} on its line in
+the @samp{*Custom Themes*} buffer; or type @kbd{M-x describe-theme}
+anywhere in Emacs and enter the theme name in the minibuffer.
+
+@node Creating Custom Themes
+@subsection Creating Custom Themes
+@cindex custom themes, creating
+
+@findex customize-create-theme
+  You can define a Custom theme using an interface similar to the
+customization buffer, by typing @kbd{M-x customize-create-theme}.
+This switches to a buffer named @samp{*Custom Theme*}.  It also offers
+to insert some common Emacs faces into the theme (a convenience, since
+Custom themes are often used to customize faces).  If you answer no,
+the theme will initially contain no settings.
+
+  Near the top of the @samp{*Custom Theme*} buffer are editable fields
+where you can enter the theme's name and description.  The name can be
+anything except @samp{user}.  The description is the one that will be
+shown when you invoke @kbd{M-x describe-theme} for the theme.  Its
+first line should be a brief one-sentence summary; in the buffer made
+by @kbd{M-x customize-themes}, this sentence is displayed next to the
+theme name.
+
+  To add a new setting to the theme, use the @samp{[Insert Additional
+Face]} or @samp{[Insert Additional Variable]} buttons.  Each button
+reads a face or variable name using the minibuffer, with completion,
+and inserts a customization entry for the face or variable.  You can
+edit the variable values or face attributes in the same way as in a
+normal customization buffer.  To remove a face or variable from the
+theme, uncheck the checkbox next to its name.
+
+@vindex custom-theme-directory
+  After specifying the Custom theme's faces and variables, type
+@kbd{C-x C-s} (@code{custom-theme-write}) or use the buffer's
+@samp{[Save Theme]} button.  This saves the theme file, named
+@file{@var{name}-theme.el} where @var{name} is the theme name, in the
+directory named by @code{custom-theme-directory}.
+
+  From the @samp{*Custom Theme*} buffer, you can view and edit an
+existing Custom theme by activating the @samp{[Visit Theme]} button
+and specifying the theme name.  You can also add the settings of
+another theme into the buffer, using the @samp{[Merge Theme]} button.
+You can import your non-theme settings into a Custom theme by using
+the @samp{[Merge Theme]} button and specifying the special theme named
+@samp{user}.
+
+  A theme file is simply an Emacs Lisp source file, and loading the
+Custom theme works by loading the Lisp file.  Therefore, you can edit
+a theme file directly instead of using the @samp{*Custom Theme*}
+buffer.
+@c Add link to the relevant Emacs Lisp Reference manual node, once
+@c that is written.
 
 @node Variables
 @section Variables
 @cindex variable
-@cindex option, user
-@cindex user option
 
   A @dfn{variable} is a Lisp symbol which has a value.  The symbol's
 name is also called the @dfn{variable name}.  A variable name can
@@ -609,10 +706,10 @@ using the help command @kbd{C-h v} (@code{describe-variable}).
 
   Emacs uses many Lisp variables for internal record keeping, but the
 most interesting variables for a non-programmer user are those meant
-for users to change---these are called @dfn{user options}.  @xref{Easy
-Customization}, for information about using the Customize facility to
-set user options.  In the following sections, we will describe other
-aspects of Emacs variables, such as how to set them outside Customize.
+for users to change---these are called @dfn{customizable variables} or
+@dfn{user options} (@pxref{Easy Customization}).  In the following
+sections, we will describe other aspects of Emacs variables, such as
+how to set them outside Customize.
 
   Emacs Lisp allows any variable (with a few exceptions) to have any
 kind of value.  However, many variables are meaningful only if
@@ -654,9 +751,9 @@ Display the value and documentation of variable @var{var}
 Change the value of variable @var{var} to @var{value}.
 @end table
 
-  To examine the value of a single variable, use @kbd{C-h v}
-(@code{describe-variable}), which reads a variable name using the
-minibuffer, with completion.  It displays both the value and the
+  To examine the value of a variable, use @kbd{C-h v}
+(@code{describe-variable}).  This reads a variable name using the
+minibuffer, with completion, and displays both the value and the
 documentation of the variable.  For example,
 
 @example
@@ -686,10 +783,10 @@ You can customize this variable.
 @noindent
 The line that says ``You can customize the variable'' indicates that
 this variable is a user option.  @kbd{C-h v} is not restricted to user
-options; it allows any variable name.
+options; it allows non-customizable variables too.
 
 @findex set-variable
-  The most convenient way to set a specific user option variable is
+  The most convenient way to set a specific customizable variable is
 with @kbd{M-x set-variable}.  This reads the variable name with the
 minibuffer (with completion), and then reads a Lisp expression for the
 new value using the minibuffer a second time (you can insert the old
@@ -702,22 +799,23 @@ M-x set-variable @key{RET} fill-column @key{RET} 75 @key{RET}
 @noindent
 sets @code{fill-column} to 75.
 
- @kbd{M-x set-variable} is limited to user option variables, but you can
-set any variable with a Lisp expression, using the function @code{setq}.
-Here is a @code{setq} expression to set @code{fill-column}:
+ @kbd{M-x set-variable} is limited to customizable variables, but you
+can set any variable with a Lisp expression like this:
 
 @example
 (setq fill-column 75)
 @end example
 
-  To execute an expression like this one, go to the @samp{*scratch*}
-buffer, type in the expression, and then type @kbd{C-j}.  @xref{Lisp
-Interaction}.
+@noindent
+To execute such an expression, type @kbd{M-:} (@code{eval-expression})
+and enter the expression in the minibuffer (@pxref{Lisp Eval}).
+Alternatively, go to the @samp{*scratch*} buffer, type in the
+expression, and then type @kbd{C-j} (@pxref{Lisp Interaction}).
 
   Setting variables, like all means of customizing Emacs except where
 otherwise stated, affects only the current Emacs session.  The only
 way to alter the variable in future sessions is to put something in
-your initialization file to set it those sessions (@pxref{Init File}).
+your initialization file (@pxref{Init File}).
 
 @node Hooks
 @subsection Hooks
@@ -759,17 +857,34 @@ Manual}, for details.
   Most major modes run one or more @dfn{mode hooks} as the last step
 of initialization.  Mode hooks are a convenient way to customize the
 behavior of individual modes; they are always normal.  For example,
-here's how to set up a hook to turn on Auto Fill mode when entering
-Text mode and other modes based on Text mode:
+here's how to set up a hook to turn on Auto Fill mode in Text mode and
+other modes based on Text mode:
 
 @example
 (add-hook 'text-mode-hook 'auto-fill-mode)
 @end example
 
-  Here is another example, showing how to use a hook to customize the
-indentation of C code.  The hook function uses an anonymous lambda
-expression (@pxref{Lambda Expressions,,, elisp, The Emacs Lisp
-Reference Manual}).
+@noindent
+This works by calling @code{auto-fill-mode}, which enables the minor
+mode when no argument is supplied (@pxref{Minor Modes}).  Next,
+suppose you don't want Auto Fill mode turned on in La@TeX{} mode,
+which is one of the modes based on Text mode.  You can do this with
+the following additional line:
+
+@example
+(add-hook 'latex-mode-hook (lambda () (auto-fill-mode -1)))
+@end example
+
+@noindent
+Here we have used the special macro @code{lambda} to construct an
+anonymous function (@pxref{Lambda Expressions,,, elisp, The Emacs Lisp
+Reference Manual}), which calls @code{auto-fill-mode} with an argument
+of @code{-1} to disable the minor mode.  Because La@TeX{} mode runs
+@code{latex-mode-hook} after running @code{text-mode-hook}, the result
+leaves Auto Fill mode disabled.
+
+  Here is a more complex example, showing how to use a hook to
+customize the indentation of C code:
 
 @example
 @group
@@ -792,8 +907,8 @@ Reference Manual}).
 @cindex program editing
   Major mode hooks also apply to other major modes @dfn{derived} from
 the original mode (@pxref{Derived Modes,,, elisp, The Emacs Lisp
-Reference Manual}).  For instance, HTML mode (@pxref{HTML Mode})
-inherits from Text mode; when HTML mode is enabled, it runs
+Reference Manual}).  For instance, HTML mode is derived from Text mode
+(@pxref{HTML Mode}); when HTML mode is enabled, it runs
 @code{text-mode-hook} before running @code{html-mode-hook}.  This
 provides a convenient way to use a single hook to affect several
 related modes.  In particular, if you want to apply a hook function to
@@ -910,7 +1025,7 @@ explicitly.  For example, here's how to obtain the default value of
 @cindex local variables in files
 @cindex file local variables
 
-  A file can specify local variable values for use when you edit the
+  A file can specify local variable values to use when editing the
 file with Emacs.  Visiting the file checks for local variable
 specifications; it automatically makes these variables local to the
 buffer, and sets them to the values specified in the file.
@@ -933,21 +1048,20 @@ first line:
 
 @noindent
 You can specify any number of variable/value pairs in this way, each
-pair with a colon and semicolon as shown above.  The special
-variable/value pair @code{mode: @var{modename};}, if present,
-specifies a major mode, and should come first in the line.  The
+pair with a colon and semicolon.  The special variable/value pair
+@code{mode: @var{modename};}, if present, specifies a major mode.  The
 @var{value}s are used literally, and not evaluated.
 
 @findex add-file-local-variable-prop-line
 @findex delete-file-local-variable-prop-line
 @findex copy-dir-locals-to-file-locals-prop-line
-  You can use the command @code{add-file-local-variable-prop-line}
-instead of adding entries by hand.  It prompts for a variable
-and value, and adds them to the first line in the appropriate way.
-The command @code{delete-file-local-variable-prop-line} deletes a
-variable from the line.  The command
-@code{copy-dir-locals-to-file-locals-prop-line} copies directory-local
-variables (@pxref{Directory Variables}) to the first line.
+  Instead of adding variable/value pairs by hand, you can use the
+command @kbd{M-x add-file-local-variable-prop-line}.  This prompts for
+a variable and value, and adds them to the first line in the
+appropriate way.  @kbd{M-x delete-file-local-variable-prop-line}
+prompts for a variable, and deletes its entry from the line.  @kbd{M-x
+copy-dir-locals-to-file-locals-prop-line} copies directory-local
+variables to the first line (@pxref{Directory Variables}).
 
   Here is an example first line that specifies Lisp mode and sets two
 variables with numeric values:
@@ -971,7 +1085,7 @@ same is true for man pages which start with the magic string
 @samp{'\"} to specify a list of troff preprocessors (not all do,
 however).
 
-  Instead of using a @samp{-*-} line, you can define file local
+  Apart from using a @samp{-*-} line, you can define file local
 variables using a @dfn{local variables list} near the end of the file.
 The start of the local variables list should be no more than 3000
 characters from the end of the file, and must be on the last page if
@@ -990,10 +1104,10 @@ part of their initialization.
 per line, like this:
 
 @example
-/* Local Variables: */
-/* mode:c           */
-/* comment-column:0 */
-/* End:             */
+/* Local Variables:  */
+/* mode: c           */
+/* comment-column: 0 */
+/* End:              */
 @end example
 
 @noindent
@@ -1004,23 +1118,23 @@ the first line of the list; it then automatically discards them from
 the other lines of the list.  The usual reason for using a prefix
 and/or suffix is to embed the local variables list in a comment, so it
 won't confuse other programs that the file is intended for.  The
-example above is for the C programming language, where comment lines
-start with @samp{/*} and end with @samp{*/}.
+example above is for the C programming language, where comments start
+with @samp{/*} and end with @samp{*/}.
 
 @findex add-file-local-variable
 @findex delete-file-local-variable
 @findex copy-dir-locals-to-file-locals
-  You can construct the local variables list yourself, or use the
-command @code{add-file-local-variable}.  This prompts for a variable
-and value, and adds them to the list.  If necessary, it also adds the
-start and end markers.  The command @code{delete-file-local-variable}
-deletes a variable from the list.  The command
-@code{copy-dir-locals-to-file-locals} copies directory-local variables
-(@pxref{Directory Variables}) to the list.
+  Instead of typing in the local variables list directly, you can use
+the command @kbd{M-x add-file-local-variable}.  This prompts for a
+variable and value, and adds them to the list, adding the @samp{Local
+Variables:} string and start and end markers as necessary.  The
+command @kbd{M-x delete-file-local-variable} deletes a variable from
+the list.  @kbd{M-x copy-dir-locals-to-file-locals} copies
+directory-local variables to the list (@pxref{Directory Variables}).
 
   As with the @samp{-*-} line, the variables in a local variables list
 are used literally, and are not evaluated first.  If you want to split
-a long string across multiple lines of the file, you can use
+a long string value across multiple lines of the file, you can use
 backslash-newline, which is ignored in Lisp string constants; you
 should put the prefix and suffix on each line, even lines that start
 or end within the string, as they will be stripped off when processing
@@ -1054,24 +1168,35 @@ value is @code{t}.  @xref{Enabling Multibyte}.
 @end itemize
 
 @noindent
-These four ``variables'' are not really variables; setting them in any
+These four keywords are not really variables; setting them in any
 other context has no special meaning.
 
-  You can use the @code{mode} ``variable'' to enable minor modes as
-well as the major modes; in fact, you can use it more than once, first
-to set the major mode and then to enable minor modes which are
-specific to particular buffers.  Using @code{mode} for minor modes
-is deprecated, though---instead, use @code{eval: (minor-mode 1)}.
+  Do not use the @code{mode} keyword for minor modes.  To enable or
+disable a minor mode in a local variables list, use the @code{eval}
+keyword with a Lisp expression that runs the mode command
+(@pxref{Minor Modes}).  For example, the following local variables
+list enables Eldoc mode (@pxref{Lisp Doc}) by calling
+@code{eldoc-mode} with no argument (calling it with an argument of 1
+would do the same), and disables Font Lock mode (@pxref{Font Lock}) by
+calling @code{font-lock-mode} with an argument of -1.
 
-  Often, however, it is a mistake to enable minor modes in file local
-variables.  Most minor modes, like Auto Fill mode, represent individual user
-preferences.  If you want to use a minor mode, it is better to set up
-major mode hooks with your init file to turn that minor mode on for
-yourself alone (@pxref{Init File}), instead of using a local variable
-list to impose your taste on everyone.
+@example
+;; Local Variables:
+;; eval: (eldoc-mode)
+;; eval: (font-lock-mode -1)
+;; End:
+@end example
 
-  Use the command @code{normal-mode} to reset the local variables and
-major mode of a buffer according to the file name and contents,
+@noindent
+Note, however, that it is often a mistake to specify minor modes this
+way.  Minor modes represent individual user preferences, and it may be
+inappropriate to impose your preferences on another user who might
+edit the file.  If you wish to automatically enable or disable a minor
+mode in a situation-dependent way, it is often better to do it in a
+major mode hook (@pxref{Hooks}).
+
+  Use the command @kbd{M-x normal-mode} to reset the local variables
+and major mode of a buffer according to the file name and contents,
 including the local variables list if any.  @xref{Choosing Modes}.
 
 @node Safe File Variables
@@ -1139,85 +1264,81 @@ confirmation about processing @code{eval} variables.
 @node Directory Variables
 @subsection Per-Directory Local Variables
 @cindex local variables, for all files in a directory
-@cindex directory local variables
+@cindex directory-local variables
 @cindex per-directory local variables
 
-  A @dfn{project} is a collection of files on which you work together.
-Usually, the project's files are kept in one or more directories.
-Occasionally, you may wish to define Emacs settings that are common to
-all the files that belong to the project.
-
-  Emacs provides two ways to specify settings that are applicable to
-files in a specific directory: you can put a special file in that
-directory, or you can define a @dfn{project class} for that directory.
+  Sometimes, you may wish to define the same set of local variables to
+all the files in a certain directory and its subdirectories, such as
+the directory tree of a large software project.  This can be
+accomplished with @dfn{directory-local variables}.
 
 @cindex @file{.dir-locals.el} file
-  If you put a file with a special name @file{.dir-locals.el}@footnote{
-On MS-DOS, the name of this file should be @file{_dir-locals.el}, due
-to limitations of the DOS filesystems.  If the filesystem is limited
-to 8+3 file names, the name of the file will be truncated by the OS to
-@file{_dir-loc.el}.
-} in a directory, Emacs will read it when it visits any file in that
-directory or any of its subdirectories, and apply the settings it
-specifies to the file's buffer.  Emacs searches for
-@file{.dir-locals.el} starting in the directory of the visited file,
-and moving up the directory tree.  (To avoid slowdown, this search is
-skipped for remote files.)
+  The usual way to define directory-local variables is to put a file
+named @file{.dir-locals.el}@footnote{ On MS-DOS, the name of this file
+should be @file{_dir-locals.el}, due to limitations of the DOS
+filesystems.  If the filesystem is limited to 8+3 file names, the name
+of the file will be truncated by the OS to @file{_dir-loc.el}.  } in a
+directory.  Whenever Emacs visits any file in that directory or any of
+its subdirectories, it will apply the directory-local variables
+specified in @file{.dir-locals.el}, as though they had been defined as
+file-local variables for that file (@pxref{File Variables}).  Emacs
+searches for @file{.dir-locals.el} starting in the directory of the
+visited file, and moving up the directory tree.  To avoid slowdown,
+this search is skipped for remote files.
 
   The @file{.dir-locals.el} file should hold a specially-constructed
-list.  This list maps Emacs mode names (symbols) to alists; each alist
-specifies values for variables to use when the respective mode is
-turned on.  The special mode name @samp{nil} means that its alist
-applies to any mode.  Instead of a mode name, you can specify a string
-that is a name of a subdirectory of the project's directory; then the
-corresponding alist applies to all the files in that subdirectory.
+list, which maps major mode names (symbols) to alists
+(@pxref{Association Lists,,, elisp, The Emacs Lisp Reference Manual}).
+Each alist entry consists of a variable name and the directory-local
+value to assign to that variable, when the specified major mode is
+enabled.  Instead of a mode name, you can specify @samp{nil}, which
+means that the alist applies to any mode; or you can specify a
+subdirectory name (a string), in which case the alist applies to all
+files in that subdirectory.
 
   Here's an example of a @file{.dir-locals.el} file:
 
 @example
 ((nil . ((indent-tabs-mode . t)
-         (tab-width . 4)
          (fill-column . 80)))
  (c-mode . ((c-file-style . "BSD")))
- (java-mode . ((c-file-style . "BSD")
-               (subdirs . nil)))
+            (subdirs . nil)))
  ("src/imported"
-  . ((nil . ((change-log-default-name .
-              "ChangeLog.local"))))))
+  . ((nil . ((change-log-default-name
+              . "ChangeLog.local"))))))
 @end example
 
 @noindent
-This example shows some settings for a hypothetical project.  It sets
-@samp{indent-tabs-mode}, @code{tab-width}, and @code{fill-column} for
-any file in the project's directory tree, and it sets the indentation
-style for any C or Java source file.  The special @code{subdirs} element
-indicates that the Java mode settings are only to be applied in the
-current directory, not in any subdirectories.  Finally, it specifies a
-different @file{ChangeLog} file name for any file in the @file{src/imported}
-subdirectory of the directory where you put the @file{.dir-locals.el}
-file.
+This sets @samp{indent-tabs-mode} and @code{fill-column} for any file
+in the directory tree, and the indentation style for any C source
+file.  The special @code{subdirs} element is not a variable, but a
+special keyword which indicates that the C mode settings are only to
+be applied in the current directory, not in any subdirectories.
+Finally, it specifies a different @file{ChangeLog} file name for any
+file in the @file{src/imported} subdirectory.
 
 @findex add-dir-local-variable
 @findex delete-dir-local-variable
 @findex copy-file-locals-to-dir-locals
-  You can edit the @file{.dir-locals.el} file by hand, or use the
-command @code{add-dir-local-variable}.  This prompts for a mode (or
-subdirectory), variable and value, and adds an entry to the file.
-The command @code{delete-dir-local-variable} deletes an entry.  The
-command @code{copy-file-locals-to-dir-locals} copies file local
-variables (@pxref{File Variables}) to the @file{.dir-locals.el} file.
+  Instead of editing the @file{.dir-locals.el} file by hand, you can
+use the command @kbd{M-x add-dir-local-variable}.  This prompts for a
+mode or subdirectory name, and for variable and value, and adds the
+entry defining the directory-local variable.  @kbd{M-x
+delete-dir-local-variable} deletes an entry.  @kbd{M-x
+copy-file-locals-to-dir-locals} copies the file-local variables in the
+current file into @file{.dir-locals.el}.
 
 @findex dir-locals-set-class-variables
 @findex dir-locals-set-directory-class
-  Another method of specifying directory-local variables is to explicitly
-define a project class using @code{dir-locals-set-class-variables}, and
-then tell Emacs which directories correspond to that class, using
-@code{dir-locals-set-directory-class}.  You can put calls to these functions
-in your @file{~/.emacs} init file; this can be useful when you can't put
-@file{.dir-locals.el} in the directory for some reason, or if you want
-to keep in a single place settings for several directories that don't
-have a common parent.  For example, you could apply settings to an
-unwritable directory this way:
+  Another method of specifying directory-local variables is to define
+a group of variables/value pairs in a @dfn{directory class}, using the
+@code{dir-locals-set-class-variables} function; then, tell Emacs which
+directories correspond to the class by using the
+@code{dir-locals-set-directory-class} function.  These function calls
+normally go in your initialization file (@pxref{Init File}).  This
+method is useful when you can't put @file{.dir-locals.el} in a
+directory for some reason.  For example, you could apply settings to
+an unwritable directory this way:
 
 @example
 (dir-locals-set-class-variables 'unwritable-directory
@@ -1227,8 +1348,14 @@ unwritable directory this way:
    "/usr/include/" 'unwritable-directory)
 @end example
 
-  Unsafe directory-local variables are handled in the same way as
-unsafe file-local variables (@pxref{Safe File Variables}).
+  If a variable has both a directory-local and file-local value
+specified, the file-local value takes effect.  Unsafe directory-local
+variables are handled in the same way as unsafe file-local variables
+(@pxref{Safe File Variables}).
+
+  Directory-local variables also take effect in certain buffers that
+do not visit a file directly but perform work within a directory, such
+as Dired buffers (@pxref{Dired}).
 
 @node Key Bindings
 @section Customizing Key Bindings
@@ -1245,7 +1372,7 @@ init file (@pxref{Init Rebinding}).
 * Local Keymaps::       Major and minor modes have their own keymaps.
 * Minibuffer Maps::     The minibuffer uses its own local keymaps.
 * Rebinding::           How to redefine one key's meaning conveniently.
-* Init Rebinding::      Rebinding keys with your init file, @file{.emacs}.
+* Init Rebinding::      Rebinding keys with your initialization file.
 * Modifier Keys::       Using modifier keys in key bindings.
 * Function Keys::       Rebinding terminal function keys.
 * Named ASCII Chars::   Distinguishing @key{TAB} from @kbd{C-i}, and so on.
@@ -1895,7 +2022,7 @@ input saying whether to execute the command as requested, enable it
 and execute it, or cancel.  If you decide to enable the command, you
 must then answer another question---whether to do this permanently, or
 just for the current session.  (Enabling permanently works by
-automatically editing your @file{.emacs} file.)  You can also type
+automatically editing your initialization file.)  You can also type
 @kbd{!} to enable @emph{all} commands, for the current session only.
 
   The direct mechanism for disabling a command is to put a
@@ -1916,15 +2043,16 @@ is included in the message displayed when the command is used:
 
 @findex disable-command
 @findex enable-command
-  You can make a command disabled either by editing the @file{.emacs}
-file directly, or with the command @kbd{M-x disable-command}, which edits
-the @file{.emacs} file for you.  Likewise, @kbd{M-x enable-command}
-edits @file{.emacs} to enable a command permanently.  @xref{Init File}.
+  You can make a command disabled either by editing the initialization
+file directly, or with the command @kbd{M-x disable-command}, which
+edits the initialization file for you.  Likewise, @kbd{M-x
+enable-command} edits the initialization file to enable a command
+permanently.  @xref{Init File}.
 
   If Emacs was invoked with the @option{-q} or @option{--no-init-file}
 options (@pxref{Initial Options}), it will not edit your
-@file{~/.emacs} init file.  Doing so could lose information
-because Emacs has not read your init file.
+initialization file.  Doing so could lose information because Emacs
+has not read your initialization file.
 
   Whether a command is disabled is independent of what key is used to
 invoke it; disabling also applies if the command is invoked using
@@ -1932,7 +2060,7 @@ invoke it; disabling also applies if the command is invoked using
 as a function from Lisp programs.
 
 @node Init File
-@section The Init File, @file{~/.emacs}
+@section The Emacs Initialization File
 @cindex init file
 @cindex .emacs file
 @cindex ~/.emacs file
@@ -2164,20 +2292,12 @@ Turn off Line Number mode, a global minor mode.
 
 @need 1500
 @item
-Turn on Auto Fill mode automatically in Text mode and related modes.
+Turn on Auto Fill mode automatically in Text mode and related modes
+(@pxref{Hooks}).
 
 @example
 (add-hook 'text-mode-hook 'auto-fill-mode)
 @end example
-
-This shows how to add a hook function to a normal hook variable
-(@pxref{Hooks}).  The function we supply is a list starting with
-@code{lambda}, with a single-quote in front of it to make it a list
-constant rather than an expression.
-
-It's beyond the scope of this manual to explain Lisp functions, but
-for this example it is enough to know that the effect is to execute
-the @code{auto-fill-mode} function when Text mode is entered.
 
 @item
 Load the installed Lisp library named @file{foo} (actually a file
@@ -2198,7 +2318,7 @@ Load the compiled Lisp file @file{foo.elc} from your home directory.
 (load "~/foo.elc")
 @end example
 
-Here an absolute file name is used, so no searching is done.
+Here a full file name is used, so no searching is done.
 
 @item
 @cindex loading Lisp libraries automatically

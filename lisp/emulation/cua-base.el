@@ -1,6 +1,6 @@
 ;;; cua-base.el --- emulate CUA key bindings
 
-;; Copyright (C) 1997-2011  Free Software Foundation, Inc.
+;; Copyright (C) 1997-2012  Free Software Foundation, Inc.
 
 ;; Author: Kim F. Storm <storm@cua.dk>
 ;; Keywords: keyboard emulations convenience cua
@@ -84,7 +84,7 @@
 
 ;; If you have just replaced a highlighted region with typed text,
 ;; you can repeat the replace with M-v.  This will search forward
-;; for a streach of text identical to the previous contents of the
+;; for a stretch of text identical to the previous contents of the
 ;; region (i.e. the contents of register 0) and replace it with the
 ;; text you typed to replace the original region.  Repeating M-v will
 ;; replace the next matching region and so on.

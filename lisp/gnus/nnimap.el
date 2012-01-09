@@ -1,6 +1,6 @@
 ;;; nnimap.el --- IMAP interface for Gnus
 
-;; Copyright (C) 2010-2011 Free Software Foundation, Inc.
+;; Copyright (C) 2010-2012 Free Software Foundation, Inc.
 
 ;; Author: Lars Magne Ingebrigtsen <larsi@gnus.org>
 ;;         Simon Josefsson <simon@josefsson.org>
@@ -1273,11 +1273,11 @@ textual parts.")
 
 (deffoo nnimap-finish-retrieve-group-infos (server infos sequences)
   (when (and sequences
+	     (nnimap-possibly-change-group nil server)
 	     ;; Check that the process is still alive.
 	     (get-buffer-process (nnimap-buffer))
 	     (memq (process-status (get-buffer-process (nnimap-buffer)))
-		   '(open run))
-	     (nnimap-possibly-change-group nil server))
+		   '(open run)))
     (with-current-buffer (nnimap-buffer)
       ;; Wait for the final data to trickle in.
       (when (nnimap-wait-for-response (if (eq (cadar sequences) 'qresync)
@@ -1332,7 +1332,8 @@ textual parts.")
 	     (cdr (assq 'uidvalidity (gnus-info-params info)))))
 	(and old-uidvalidity
 	     (not (equal old-uidvalidity uidvalidity))
-	     (> start-article 1)))
+             (or (not start-article)
+                 (> start-article 1))))
       (gnus-group-remove-parameter info 'uidvalidity)
       (gnus-group-remove-parameter info 'modseq))
      ;; We have the data needed to update.
@@ -1620,8 +1621,9 @@ textual parts.")
                        (nnimap-command  "UID SEARCH %s" cmd))))
         (when result
           (gnus-fetch-headers
-           (and (car result) (delete 0 (mapcar #'string-to-number
-                                               (cdr (assoc "SEARCH" (cdr result))))))
+           (and (car result)
+		(delete 0 (mapcar #'string-to-number
+				  (cdr (assoc "SEARCH" (cdr result))))))
            nil t))))))
 
 (defun nnimap-possibly-change-group (group server)

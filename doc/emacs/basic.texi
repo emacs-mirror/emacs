@@ -1,5 +1,5 @@
 @c This is part of the Emacs manual.
-@c Copyright (C) 1985-1987, 1993-1995, 1997, 2000-2011
+@c Copyright (C) 1985-1987, 1993-1995, 1997, 2000-2012
 @c   Free Software Foundation, Inc.
 @c See file emacs.texi for copying conditions.
 @node Basic, Minibuffer, Exiting, Top
@@ -130,11 +130,13 @@ specifies how many copies of the character to insert
 @cindex moving the cursor
   To do more than insert characters, you have to know how to move
 point (@pxref{Point}).  The keyboard commands @kbd{C-f}, @kbd{C-b},
-@kbd{C-n}, and @kbd{C-p} move point to the right, left, up and down
+@kbd{C-n}, and @kbd{C-p} move point to the right, left, down, and up,
 respectively.  You can also move point using the @dfn{arrow keys}
 present on most keyboards: @kbd{@key{right}}, @kbd{@key{left}},
 @kbd{@key{down}}, and @kbd{@key{up}}; however, many Emacs users find
-that it is slower to use the arrow keys than the control keys.
+that it is slower to use the arrow keys than the control keys, because
+you need to move your hand to the area of the keyboard where those
+keys are located.
 
   You can also click the left mouse button to move point to the
 position clicked.  Emacs also provides a variety of additional

@@ -1,12 +1,11 @@
 ;;; org-ctags.el - Integrate Emacs "tags" facility with org mode.
 ;;
-;; Copyright (C) 2007-2011 Free Software Foundation, Inc.
+;; Copyright (C) 2007-2012 Free Software Foundation, Inc.
 
 ;; Author: Paul Sexton <eeeickythump@gmail.com>
-;; Version: 7.7
+
 
 ;; Keywords: org, wp
-;; Version: 7.7
 ;;
 ;; This file is part of GNU Emacs.
 ;;
@@ -36,7 +35,7 @@
 ;; links to these 'tagged' destinations, allowing seamless navigation between
 ;; multiple org-mode files. Topics can be created in any org mode file and
 ;; will always be found by plain links from other files. Other file types
-;; recognized by ctags (source code files, latex files, etc) will also be
+;; recognised by ctags (source code files, latex files, etc) will also be
 ;; available as destinations for plain links, and similarly, org-mode links
 ;; will be available as tags from source files. Finally, the function
 ;; `org-ctags-find-tag-interactive' lets you choose any known tag, using
@@ -64,19 +63,19 @@
 ;; with the same name as the link; then, if unsuccessful, ask the user if
 ;; he/she wants to rebuild the 'TAGS' database and try again; then ask if
 ;; the user wishes to append 'tag' as a new toplevel heading at the end of
-;; the buffer; and finally, defer to org's default behavior which is to
+;; the buffer; and finally, defer to org's default behaviour which is to
 ;; search the entire text of the current buffer for 'tag'.
 ;;
-;; This behavior can be modified by changing the value of
+;; This behaviour can be modified by changing the value of
 ;; ORG-CTAGS-OPEN-LINK-FUNCTIONS. For example I have the following in my
-;; .emacs, which describes the same behavior as the above paragraph with
+;; .emacs, which describes the same behaviour as the above paragraph with
 ;; one difference:
 ;;
 ;; (setq org-ctags-open-link-functions
 ;;       '(org-ctags-find-tag
 ;;         org-ctags-ask-rebuild-tags-file-then-find-tag
 ;;         org-ctags-ask-append-topic
-;;         org-ctags-fail-silently))  ; <-- prevents org default behavior
+;;         org-ctags-fail-silently))  ; <-- prevents org default behaviour
 ;;
 ;;
 ;; Usage
@@ -139,6 +138,8 @@
 (eval-when-compile (require 'cl))
 
 (require 'org)
+
+(declare-function org-pop-to-buffer-same-window "org-compat" (&optional buffer-or-name norecord label))
 
 (defgroup org-ctags nil
   "Options concerning use of ctags within org mode."
@@ -305,7 +306,7 @@ The new topic will be titled NAME (or TITLE if supplied)."
 			    activate compile)
   "Before trying to find a tag, save our current position on org mark ring."
   (save-excursion
-    (if (and (org-mode-p) org-ctags-enabled-p)
+    (if (and (eq major-mode 'org-mode) org-ctags-enabled-p)
         (org-mark-ring-push))))
 
 
@@ -385,7 +386,7 @@ the new file."
     (cond
      ((get-buffer (concat name ".org"))
       ;; Buffer is already open
-      (switch-to-buffer (get-buffer (concat name ".org"))))
+      (org-pop-to-buffer-same-window (get-buffer (concat name ".org"))))
      ((file-exists-p filename)
       ;; File exists but is not open --> open it
       (message "Opening existing org file `%S'..."
@@ -536,6 +537,5 @@ a new topic."
 (org-ctags-enable)
 
 (provide 'org-ctags)
-
 
 ;;; org-ctags.el ends here

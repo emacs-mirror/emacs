@@ -1,5 +1,5 @@
 /* Call a Lisp function interactively.
-   Copyright (C) 1985-1986, 1993-1995, 1997, 2000-2011
+   Copyright (C) 1985-1986, 1993-1995, 1997, 2000-2012
                  Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
@@ -274,8 +274,6 @@ invoke it.  If KEYS is omitted or nil, the return value of
 
   ptrdiff_t i, nargs;
   int foo;
-  char prompt1[100];
-  char *tem1;
   int arg_from_tty = 0;
   struct gcpro gcpro1, gcpro2, gcpro3, gcpro4, gcpro5;
   ptrdiff_t key_count;
@@ -491,13 +489,8 @@ invoke it.  If KEYS is omitted or nil, the return value of
   tem = string;
   for (i = 1; *tem; i++)
     {
-      strncpy (prompt1, tem + 1, sizeof prompt1 - 1);
-      prompt1[sizeof prompt1 - 1] = 0;
-      tem1 = strchr (prompt1, '\n');
-      if (tem1) *tem1 = 0;
-
-      visargs[0] = build_string (prompt1);
-      if (strchr (prompt1, '%'))
+      visargs[0] = make_string (tem + 1, strcspn (tem + 1, "\n"));
+      if (strchr (SSDATA (visargs[0]), '%'))
 	callint_message = Fformat (i, visargs);
       else
 	callint_message = visargs[0];

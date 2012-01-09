@@ -1,6 +1,6 @@
 ;;; simple.el --- basic editing commands for Emacs
 
-;; Copyright (C) 1985-1987, 1993-2011  Free Software Foundation, Inc.
+;; Copyright (C) 1985-1987, 1993-2012  Free Software Foundation, Inc.
 
 ;; Maintainer: FSF
 ;; Keywords: internal
@@ -1225,11 +1225,11 @@ this command arranges for all errors to enter the debugger."
       (push (eval eval-expression-arg lexical-binding) values)
     (let ((old-value (make-symbol "t")) new-value)
       ;; Bind debug-on-error to something unique so that we can
-      ;; detect when evaled code changes it.
+      ;; detect when evalled code changes it.
       (let ((debug-on-error old-value))
 	(push (eval eval-expression-arg lexical-binding) values)
 	(setq new-value debug-on-error))
-      ;; If evaled code has changed the value of debug-on-error,
+      ;; If evalled code has changed the value of debug-on-error,
       ;; propagate that change to the global binding.
       (unless (eq old-value new-value)
 	(setq debug-on-error new-value))))
@@ -4729,7 +4729,7 @@ To ignore intangibility, bind `inhibit-point-motion-hooks' to t."
 	(let ((line-move-visual nil))
 	  (line-move (1- arg) t)))
 
-    ;; Move to beginning-of-line, ignoring fields and invisibles.
+    ;; Move to beginning-of-line, ignoring fields and invisible text.
     (skip-chars-backward "^\n")
     (while (and (not (bobp)) (invisible-p (1- (point))))
       (goto-char (previous-char-property-change (point)))

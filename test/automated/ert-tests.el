@@ -1,6 +1,6 @@
 ;;; ert-tests.el --- ERT's self-tests
 
-;; Copyright (C) 2007-2008, 2010-2011 Free Software Foundation, Inc.
+;; Copyright (C) 2007-2008, 2010-2012 Free Software Foundation, Inc.
 
 ;; Author: Christian Ohler <ohler@gnu.org>
 

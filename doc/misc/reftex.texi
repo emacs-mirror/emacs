@@ -27,7 +27,7 @@ citations and indices for LaTeX documents with Emacs.
 This is edition @value{EDITION} of the @b{Ref@TeX{}} User Manual for
 @b{Ref@TeX{}} @value{VERSION}
 
-Copyright @copyright{} 1997-2011  Free Software Foundation, Inc.
+Copyright @copyright{} 1997-2012  Free Software Foundation, Inc.
 
 @quotation
 Permission is granted to copy, distribute and/or modify this document
@@ -90,7 +90,7 @@ Don't be discouraged by the size of this manual, which covers
 Nutshell}).  You can go back later to other parts of this document when
 needed.
 
-@insertcopying 
+@insertcopying
 
 @menu
 * Introduction::                     Quick-Start information.
@@ -157,7 +157,7 @@ Citations
 * Citation Info::                    View the corresponding database entry.
 * Chapterbib and Bibunits::          Multiple bibliographies in a Document.
 * Citations Outside LaTeX::          How to make citations in Emails etc.
-* BibTeX Database Subsets::          Extract parts of a big database. 
+* BibTeX Database Subsets::          Extract parts of a big database.
 
 Index Support
 
@@ -1672,7 +1672,7 @@ support for citations helps to select the correct key quickly.
 * Citation Info::                    View the corresponding database entry.
 * Chapterbib and Bibunits::          Multiple bibliographies in a Document.
 * Citations Outside LaTeX::          How to make citations in Emails etc.
-* BibTeX Database Subsets::          Extract parts of a big database. 
+* BibTeX Database Subsets::          Extract parts of a big database.
 @end menu
 
 @node Creating Citations, Citation Styles, , Citations
@@ -1776,12 +1776,12 @@ separate @code{\cite} macro for each of it.
 @item e
 Create a new BibTeX database file which contains all @i{marked} entries
 in the selection buffer.  If no entries are marked, all entries are
-selected. 
+selected.
 
 @item E
 Create a new BibTeX database file which contains all @i{unmarked}
 entries in the selection buffer.  If no entries are marked, all entries
-are selected. 
+are selected.
 
 @item @key{TAB}
 Enter a citation key with completion.  This may also be a key which does
@@ -3215,7 +3215,7 @@ way.
 
 Before calling a @b{Ref@TeX{}} function, the style hook should always
 test for the availability of the function, so that the style file will
-also work for people who do not use @b{Ref@TeX{}}. 
+also work for people who do not use @b{Ref@TeX{}}.
 
 Additions made with style files in the way described below remain local
 to the current document.  For example, if one package uses AMSTeX, the
@@ -3714,7 +3714,7 @@ Produce a list of all duplicate labels in the document.
 Create a new BibTeX database file with all entries referenced in document.
 The command prompts for a filename and writes the collected entries to
 that file.  Only entries referenced in the current document with
-any @code{\cite}-like macros are used. 
+any @code{\cite}-like macros are used.
 The sequence in the new file is the same as it was in the old database.
 @end deffn
 
@@ -3819,7 +3819,7 @@ only in that frame.  So when creating that frame (with @kbd{d} key in an
 ordinary TOC window), the automatic recentering is turned on.  When the
 frame gets destroyed, automatic recentering is turned off again.
 
-This feature can be turned on and off from the menu 
+This feature can be turned on and off from the menu
 (Ref->Options).
 @end defopt
 
@@ -4095,7 +4095,7 @@ Possible values for this option are:
 t       @r{This means to trust any label prefixes found.}
 regexp  @r{If a regexp, only prefixes matched by the regexp are trusted.}
 list    @r{List of accepted prefixes, as strings.  The colon is part of}
-        @r{the prefix, e.g. ("fn:" "eqn:" "item:").}   
+        @r{the prefix, e.g. ("fn:" "eqn:" "item:").}
 nil     @r{Never trust a label prefix.}
 @end example
 The only disadvantage of using this feature is that the label context
@@ -5179,11 +5179,11 @@ Fixed bug with @samp{%F} in a label prefix.  Added new escapes
 
 @noindent @b{Version 4.24}
 @itemize @bullet
-@item 
+@item
 Inserting citation commands now prompts for optional arguments
 when called with a prefix argument.  Related new options are
 @code{reftex-cite-prompt-optional-args} and
-@code{reftex-cite-cleanup-optional-args}. 
+@code{reftex-cite-cleanup-optional-args}.
 @item
 New option @code{reftex-trust-label-prefix}.  Configure this variable
 if you'd like RefTeX to base its classification of labels on prefixes.
@@ -5199,7 +5199,7 @@ after words.  Disabled indexing in comment lines.
 
 @noindent @b{Version 4.22}
 @itemize @bullet
-@item 
+@item
 New command @code{reftex-create-bibtex-file} to create a new database
 with all entries referenced in the current document.
 @item
@@ -5209,7 +5209,7 @@ from entries marked in a citation selection buffer.
 
 @noindent @b{Version 4.21}
 @itemize @bullet
-@item 
+@item
 Renaming labels from the toc buffer with key @kbd{M-%}.
 @end itemize
 
@@ -5342,7 +5342,7 @@ default stuff which has been moved to a constant.
 @item
 Environments like theorems can be placed into the TOC by putting
 entries for @samp{"begin@{theorem@}"} in
-@code{reftex-setion-levels}.
+@code{reftex-section-levels}.
 @end itemize
 
 @noindent @b{Version 4.06}
@@ -5425,7 +5425,7 @@ File search further refined.  New option @code{reftex-file-extensions}.
 document, all labels and associated context.  New keys @kbd{i}, @kbd{l},
 and @kbd{c}.  New options @code{reftex-toc-include-labels},
 @code{reftex-toc-include-context},
-@code{reftex-toc-include-file-boundaries}. 
+@code{reftex-toc-include-file-boundaries}.
 @end itemize
 
 @noindent @b{Version 3.41}

@@ -8,7 +8,7 @@
 This manual documents nxml-mode, an Emacs major mode for editing
 XML with RELAX NG support.
 
-Copyright @copyright{} 2007-2011
+Copyright @copyright{} 2007-2012
 Free Software Foundation, Inc.
 
 @quotation
@@ -878,7 +878,7 @@ the document in different ways, since the XML Recommendation does not
 require XML parsers to read the DTD.  With DTDs, it was impractical to
 get validation without using an external DTD or reference to an
 parameter entity.  With RELAX NG and other schema languages, you can
-simulataneously get the benefits of validation and standalone XML
+simultaneously get the benefits of validation and standalone XML
 documents.  Therefore, I recommend that you do not reference an
 external DOCTYPE in your XML documents.
 
@@ -908,4 +908,3 @@ specification are not enforced.
 @end itemize
 
 @bye
-

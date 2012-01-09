@@ -1,6 +1,6 @@
 @c -*-texinfo-*-
 @c This is part of the GNU Emacs Lisp Reference Manual.
-@c Copyright (C) 1990-1995, 1998-1999, 2001-2011  Free Software Foundation, Inc.
+@c Copyright (C) 1990-1995, 1998-1999, 2001-2012  Free Software Foundation, Inc.
 @c See the file elisp.texi for copying conditions.
 @setfilename ../../info/modes
 @node Modes, Documentation, Keymaps, Top
@@ -701,7 +701,7 @@ init file.)
 @cindex help for major mode
 @cindex documentation for major mode
 
-  The @code{describe-mode} function is provides information about major
+  The @code{describe-mode} function provides information about major
 modes.  It is normally bound to @kbd{C-h m}.  It uses the value of the
 variable @code{major-mode} (@pxref{Major Modes}), which is why every
 major mode command needs to set that variable.

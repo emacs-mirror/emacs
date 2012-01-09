@@ -1,6 +1,6 @@
 ;;; quail.el --- provides simple input method for multilingual text
 
-;; Copyright (C) 1997-1998, 2000-2011  Free Software Foundation, Inc.
+;; Copyright (C) 1997-1998, 2000-2012  Free Software Foundation, Inc.
 ;; Copyright (C) 1995, 1996, 1997, 1998, 1999, 2000, 2001, 2002, 2003, 2004,
 ;;   2005, 2006, 2007, 2008, 2009, 2010, 2011
 ;;   National Institute of Advanced Industrial Science and Technology (AIST)
@@ -2832,7 +2832,7 @@ STATE-n are symbols to denote state.  STATE-0 is the initial state.
 TRANSITION-n-m are transition rules from STATE-n, and have the form
 \(RULES . STATE-x) or RULES, where STATE-x is one of STATE-n above,
 RULES is a symbol whose value is an alist of keys \(string) vs the
-correponding characters or strings.  The format of the symbol value of
+corresponding characters or strings.  The format of the symbol value of
 RULES is the same as arguments to `quail-define-rules'.
 
 If TRANSITION-n-m has the form (RULES . STATE-x), it means that
@@ -2846,7 +2846,7 @@ The generated map can be set for the current Quail package by the
 function `quail-install-map' (which see)."
   (let ((state-alist (mapcar (lambda (x) (list (car x))) table))
 	tail elt)
-    ;; STATE-ALIST is an alist of states vs the correponding sub Quail
+    ;; STATE-ALIST is an alist of states vs the corresponding sub Quail
     ;; map.  It is now initialized to ((STATE-0) (STATE-1) ...).
     ;; Set key sequence mapping rules in cdr part of each element.
     (while table

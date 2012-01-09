@@ -10,7 +10,7 @@
 ;;;;;;  ceiling* floor* isqrt lcm gcd cl-progv-before cl-set-frame-visible-p
 ;;;;;;  cl-map-overlays cl-map-intervals cl-map-keymap-recursively
 ;;;;;;  notevery notany every some mapcon mapcan mapl maplist map
-;;;;;;  cl-mapcar-many equalp coerce) "cl-extra" "cl-extra.el" "15a5e127e1c9c9c3d1f398963b66cde7")
+;;;;;;  cl-mapcar-many equalp coerce) "cl-extra" "cl-extra.el" "c172dda6770ce18b556561481bfefbb2")
 ;;; Generated autoloads from cl-extra.el
 
 (autoload 'coerce "cl-extra" "\
@@ -286,7 +286,7 @@ This also does some trivial optimizations to make the form prettier.
 ;;;;;;  flet progv psetq do-all-symbols do-symbols dotimes dolist
 ;;;;;;  do* do loop return-from return block etypecase typecase ecase
 ;;;;;;  case load-time-value eval-when destructuring-bind function*
-;;;;;;  defmacro* defun* gentemp gensym) "cl-macs" "cl-macs.el" "cc8cbd8c86e2facbe61986e992e6c508")
+;;;;;;  defmacro* defun* gentemp gensym) "cl-macs" "cl-macs.el" "91b45885535a73dd8015973cb8c988e1")
 ;;; Generated autoloads from cl-macs.el
 
 (autoload 'gensym "cl-macs" "\
@@ -770,7 +770,7 @@ surrounded by (block NAME ...).
 ;;;;;;  find nsubstitute-if-not nsubstitute-if nsubstitute substitute-if-not
 ;;;;;;  substitute-if substitute delete-duplicates remove-duplicates
 ;;;;;;  delete-if-not delete-if delete* remove-if-not remove-if remove*
-;;;;;;  replace fill reduce) "cl-seq" "cl-seq.el" "df375ddc313f0c1c262cacab5cffd3e4")
+;;;;;;  replace fill reduce) "cl-seq" "cl-seq.el" "99095e49c83af1c8bec0fdcf517b3f95")
 ;;; Generated autoloads from cl-seq.el
 
 (autoload 'reduce "cl-seq" "\
@@ -1048,7 +1048,7 @@ Keywords supported:  :key
 \(fn PREDICATE LIST [KEYWORD VALUE]...)" nil nil)
 
 (autoload 'cl-adjoin "cl-seq" "\
-Not documented
+
 
 \(fn CL-ITEM CL-LIST &rest CL-KEYS)" nil nil)
 

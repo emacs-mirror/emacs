@@ -12897,7 +12897,7 @@
 	* font.c (font_update_drivers): Sanity fallback to avoid disabling
 	all drivers.
 
-	* nsterm.m (-windowDidResize:): Avoid inf-loop under GNUStep.
+	* nsterm.m (-windowDidResize:): Avoid inf-loop under GNUstep.
 
 2009-05-06  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
 
@@ -30657,7 +30657,7 @@
 	(display_buffer): Do not set split_height_threshold to twice the
 	value of window_min_height to avoid changing the value of a
 	customizable variable.  Rather explicitly check whether the
-	height of the window that shall be splitted is at least as large
+	height of the window that shall be split is at least as large
 	as split_height_threshold.
 	(Fwindow_full_width_p): New defun.
 	(syms_of_window): Defsubr it.
@@ -31383,7 +31383,7 @@ See ChangeLog.10 for earlier changes.
 ;; coding: utf-8
 ;; End:
 
-  Copyright (C) 2007-2011  Free Software Foundation, Inc.
+  Copyright (C) 2007-2012  Free Software Foundation, Inc.
 
   This file is part of GNU Emacs.
 

@@ -1,6 +1,6 @@
 Emacs TODO List                                                   -*-outline-*-
 
-Copyright (C) 2001-2011  Free Software Foundation, Inc.
+Copyright (C) 2001-2012  Free Software Foundation, Inc.
 See the end of the file for license conditions.
 
 
@@ -79,7 +79,7 @@ understand.  I find it quite hard to figure out what compilation
 command it will use.
 
 I suggest totally rewriting that part of Flymake, using the simplest
-mechanism that sufficies for the specific needs.  That will be easy
+mechanism that suffices for the specific needs.  That will be easy
 for users to customize.
 
 ** Compute the list of active keymaps *after* reading the first event.

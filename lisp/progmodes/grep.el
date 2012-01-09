@@ -1,6 +1,6 @@
 ;;; grep.el --- run `grep' and display the results
 
-;; Copyright (C) 1985-1987, 1993-1999, 2001-2011
+;; Copyright (C) 1985-1987, 1993-1999, 2001-2012
 ;;   Free Software Foundation, Inc.
 
 ;; Author: Roland McGrath <roland@gnu.org>
@@ -959,7 +959,10 @@ can use \\[next-error] (M-x next-error), or \\<grep-mode-map>\\[compile-goto-err
 in the grep output buffer,
 to go to the lines where grep found matches.
 
-This command shares argument histories with \\[lgrep] and \\[grep-find]."
+This command shares argument histories with \\[lgrep] and \\[grep-find].
+
+When called programmatically and FILES is nil, REGEXP is expected
+to specify a command to run."
   (interactive
    (progn
      (grep-compute-defaults)

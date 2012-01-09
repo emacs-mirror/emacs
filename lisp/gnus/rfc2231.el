@@ -1,6 +1,6 @@
 ;;; rfc2231.el --- Functions for decoding rfc2231 headers
 
-;; Copyright (C) 1998-2011 Free Software Foundation, Inc.
+;; Copyright (C) 1998-2012 Free Software Foundation, Inc.
 
 ;; Author: Lars Magne Ingebrigtsen <larsi@gnus.org>
 ;; This file is part of GNU Emacs.
@@ -58,7 +58,7 @@ must never cause a Lisp error."
 	 ;; The most likely cause of an error is unbalanced parentheses
 	 ;; or double-quotes.  If all parentheses and double-quotes are
 	 ;; quoted meaninglessly with backslashes, removing them might
-	 ;; make it parseable.  Let's try...
+	 ;; make it parsable.  Let's try...
 	 (error
 	  (let (mod)
 	    (when (and (string-match "\\\\\"" string)
