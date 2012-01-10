@@ -1,8 +1,7 @@
 2012-01-10  Glenn Morris  <rgm@gnu.org>
 
-	* epaths.in (PATH_LOADSEARCH, PATH_DUMPLOADSEARCH, PATH_EXEC)
-	(PATH_DATA, PATH_DOC): Update the template values to be closer to
-	their typical values these days.
+	* epaths.in (PATH_LOADSEARCH, PATH_EXEC, PATH_DATA, PATH_DOC):
+	Update template values to be closer to their typical values these days.
 
 2012-01-09  Eli Zaretskii  <eliz@gnu.org>
 

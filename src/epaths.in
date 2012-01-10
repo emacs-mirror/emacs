@@ -34,7 +34,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
    when Emacs is dumping.  Configure (using "make epaths-force") sets
    this to $buildlisppath, which normally has the value: <srcdir>/lisp.
 */
-#define PATH_DUMPLOADSEARCH "/usr/local/share/emacs/lisp"
+#define PATH_DUMPLOADSEARCH "../lisp"
 
 /* The extra search path for programs to invoke.  This is appended to
    whatever the PATH environment variable says to set the Lisp
