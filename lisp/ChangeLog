@@ -1,3 +1,7 @@
+2012-01-10  Glenn Morris  <rgm@gnu.org>
+
+	* mail/unrmail.el (unrmail): Tweak previous change.
+
 2012-01-09  Chong Yidong  <cyd@gnu.org>
 
 	* custom.el (custom-safe-themes): Use SHA-256 for hashing.
