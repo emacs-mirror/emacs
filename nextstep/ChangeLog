@@ -1,3 +1,10 @@
+2012-01-10  Glenn Morris  <rgm@gnu.org>
+
+	* Cocoa/Emacs.base/Contents/Info.plist:
+	* Cocoa/Emacs.base/Contents/Resources/English.lproj/InfoPlist.strings:
+	* GNUstep/Emacs.base/Resources/Info-gnustep.plist:
+	Update short copyright year to 2012.
+
 2011-03-07  Chong Yidong  <cyd@stupidchicken.com>
 
 	* Version 23.3 released.
@@ -7,6 +14,7 @@
 	* Cocoa/Emacs.base/Contents/Info.plist:
 	* Cocoa/Emacs.base/Contents/Resources/English.lproj/InfoPlist.strings:
 	* GNUstep/Emacs.base/Resources/Info-gnustep.plist:
+	Update short copyright year to 2011.
 
 2010-05-07  Chong Yidong  <cyd@stupidchicken.com>
 

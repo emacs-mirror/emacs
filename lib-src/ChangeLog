@@ -1,3 +1,9 @@
+2012-01-10  Glenn Morris  <rgm@gnu.org>
+
+	* ebrowse.c (version) <emacs_copyright>:
+	* etags.c (print_version) <emacs_copyright>:
+	* rcs2log (Copyright): Update short copyright year to 2012.
+
 2011-03-07  Chong Yidong  <cyd@stupidchicken.com>
 
 	* Version 23.3 released.
