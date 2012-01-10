@@ -2482,8 +2482,8 @@ The value is nil if that directory's name is not known.  */);
 	       doc: /* A directory within which to look for the `lib-src' and `etc' directories.
 In an installed Emacs, this is normally nil.  It is non-nil if
 both `lib-src' (on MS-DOS, `info') and `etc' directories are found
-within `invocation-directory' or its parent.  For example, this
-is the case when running an uninstalled Emacs executable from its
+within the variable `invocation-directory' or its parent.  For example,
+this is the case when running an uninstalled Emacs executable from its
 build directory.  */);
   Vinstallation_directory = Qnil;
 
