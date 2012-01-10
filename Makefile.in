@@ -208,11 +208,8 @@ lisppath=@lisppath@
 # building.  This is only used during the process of
 # compiling Emacs, to help Emacs find its lisp files
 # before they've been installed in their final location.
-# It's usually identical to lisppath, except that
-# it does not include locallisppath, and the
-# entry for the directory containing the installed lisp
-# files has been replaced with ../lisp.  This should be a
-# colon-separated list of directories.
+# This should be a colon-separated list of directories.
+# Normally it points to the lisp/ directory in the sources.
 buildlisppath=${srcdir}/lisp
 
 # Where to install the other architecture-independent
