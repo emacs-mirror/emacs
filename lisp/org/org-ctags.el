@@ -35,7 +35,7 @@
 ;; links to these 'tagged' destinations, allowing seamless navigation between
 ;; multiple org-mode files. Topics can be created in any org mode file and
 ;; will always be found by plain links from other files. Other file types
-;; recognised by ctags (source code files, latex files, etc) will also be
+;; recognized by ctags (source code files, latex files, etc) will also be
 ;; available as destinations for plain links, and similarly, org-mode links
 ;; will be available as tags from source files. Finally, the function
 ;; `org-ctags-find-tag-interactive' lets you choose any known tag, using

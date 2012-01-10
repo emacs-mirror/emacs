@@ -1429,7 +1429,7 @@ casts and declarations are fontified.  Used on level 2 and higher."
 	      nil)
 
 	     ((and (not c-enums-contain-decls)
-		   ;; An optimisation quickly to eliminate scans of long enum
+		   ;; An optimization quickly to eliminate scans of long enum
 		   ;; declarations in the next cond arm.
 		   (let ((paren-state (c-parse-state)))
 		     (and
