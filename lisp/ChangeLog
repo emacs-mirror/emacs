@@ -1,3 +1,9 @@
+2012-01-10  Chong Yidong  <cyd@gnu.org>
+
+	* net/network-stream.el (network-stream-open-starttls): Avoid
+	emitting a confusing error message when the server gives a bad
+	response to the capability command.
+
 2012-01-10  Glenn Morris  <rgm@gnu.org>
 
 	* mail/unrmail.el (unrmail): Tweak previous change.
