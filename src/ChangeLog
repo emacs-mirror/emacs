@@ -118,7 +118,7 @@
 	(trackingNotification): Surround with ifdef NS_IMPL_COCOA.
 	(syms_of_nsmenu): Set trackingMenu to 1 if not NS_IMPL_COCOA.
 
-2011-12-18 David Reitter <reitter@cmu.edu>
+2011-12-18  David Reitter  <reitter@cmu.edu>
 
 	* nsterm.m (ns_term_init): Subscribe for notifications
 	NSMenuDidBeginTrackingNotification and NSMenuDidEndTrackingNotification
@@ -5767,7 +5767,7 @@
 	where the include path doesn't have X11/X.h by default.  See
 	<http://lists.gnu.org/archive/html/emacs-devel/2011-05/msg00561.html>.
 
-2011-05-20 Kenichi Handa  <handa@m17n.org>
+2011-05-20  Kenichi Handa  <handa@m17n.org>
 
 	* composite.c (find_automatic_composition): Fix previous change.
 
@@ -6109,7 +6109,7 @@
 	* lread.c (lisp_file_lexically_bound_p): Stop scanning at end
 	marker.  (Bug#8610)
 
-2011-05-05 Eli Zaretskii  <eliz@gnu.org>
+2011-05-05  Eli Zaretskii  <eliz@gnu.org>
 
 	* w32heap.c (allocate_heap) [USE_LISP_UNION_TYPE || USE_LSB_TAG]:
 	New version that can reserve upto 2GB of heap space.
@@ -8313,7 +8313,7 @@
 	are now in src/globals.h.
 	(syms_of_minibuf): Remove spurious & from previous change.
 
-2011-03-20  Leo  <sdl.web@gmail.com>
+2011-03-20  Leo Liu  <sdl.web@gmail.com>
 
 	* minibuf.c (completing-read-function): New variable.
 	(completing-read-default): Rename from completing-read.

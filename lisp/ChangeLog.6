@@ -686,7 +686,7 @@
 
 1996-06-23  Noah Friedman  <friedman@splode.com>
 
-	* rlogin.el (rlogin): make comint-output-filter-functions local
+	* rlogin.el (rlogin): Make comint-output-filter-functions local
 	before adding hooks.
 
 1996-06-22  Richard Stallman  <rms@psilocin.gnu.ai.mit.edu>
@@ -719,7 +719,7 @@
 	(ediff-make-diff2-buffer): Refuses to diff remote files.
 	(ediff-make-diff2-buffer, ediff-setup-diff-regions): Changed functions.
 	(ediff-make-diff2-buffer): New function.
-	Added ^\C-m$ to ok-lines regexps
+	Add ^\C-m$ to ok-lines regexps.
 
 	* ediff-ptch.el: New file.
 
@@ -1478,8 +1478,8 @@
 
 1996-04-18  Lars Magne Ingebrigtsen  <larsi@ifi.uio.no>
 
-	* gnus.el (gnus-summary-pipe-output, gnus-buffer-configuration,
-	gnus-window-to-buffer): Pop up the shell buffer after piping
+	* gnus.el (gnus-summary-pipe-output, gnus-buffer-configuration)
+	(gnus-window-to-buffer): Pop up the shell buffer after piping
 	articles through a filter.
 
 	* gnus-ems.el: Make invisible text intangible as well.
@@ -2684,7 +2684,7 @@
 	determined in c-emacs-features.
 
 	* cc-mode.el:
-	imenu is required in Emacs 19, but doesn't exist in XEmacs
+	imenu is required in Emacs 19, but doesn't exist in XEmacs.
 
 	* cc-mode.el (c-site-default-style): New variable.
 
@@ -2874,15 +2874,15 @@
 
 1996-01-29  Andreas Schwab  <schwab@issan.informatik.uni-dortmund.de>
 
-	* ada-mode.el (ada-indent-region, ada-check-matching-start,
-	ada-check-defun-name): Fix error format string.
+	* ada-mode.el (ada-indent-region, ada-check-matching-start)
+	(ada-check-defun-name): Fix error format string.
 	* allout.el (outline-process-exposed): Likewise.
 	* bookmark.el (bookmark-load): Likewise.
 	* cpp.el (cpp-parse-error): Likewise.
 	* ediff-init.el (ediff-event-point, ediff-event-buffer):
 	Likewise.
-	* etags.el (visit-tags-table-buffer, tags-loop-scan,
-	complete-tag): Likewise.
+	* etags.el (visit-tags-table-buffer, tags-loop-scan)
+	(complete-tag): Likewise.
 	* forms.el (forms--process-format-list): Likewise.
 	* gnus-ems.el (gnus-summary-insert-pseudos-xemacs): Likewise.
 	* hexl.el (hexl-hex-char-to-integer, hexl-oct-char-to-integer):
@@ -3106,8 +3106,8 @@
 	* facemenu.el (list-text-properties-at): Likewise.
 	* finder.el (finder-summary): Likewise.
 	* flow-ctrl.el (enable-flow-control): Likewise.
-	* forms.el (forms--help, forms-search-forward,
-	forms-search-backward): Likewise.
+	* forms.el (forms--help, forms-search-forward)
+	(forms-search-backward): Likewise.
 	* help-macro.el (make-help-screen): Likewise.
 	* hippie-exp.el (hippie-expand): Likewise.
 	* holidays.el (calendar-cursor-holidays): Likewise.
@@ -3133,8 +3133,8 @@
 	* type-break.el (type-break-demo-life): Likewise.
 	* view.el (view-mode-enter, View-scroll-lines-forward): Likewise.
 	* viper-ex.el (ex-pwd, vip-info-on-file): Likewise.
-	* viper-macs.el (ex-map-read-args, ex-unmap-read-args,
-	vip-record-kbd-macro): Likewise.
+	* viper-macs.el (ex-map-read-args, ex-unmap-read-args)
+	(vip-record-kbd-macro): Likewise.
 	* viper-util.el (vip-save-setting): Likewise.
 
 	* ada-mode.el (ada-adjust-case-region, ada-indent-region): Delete
@@ -3146,14 +3146,14 @@
 	* enriched.el (enriched-next-annotation): Likewise.
 	* ispell4.el (ispell-point): Likewise.
 	* mh-e.el (mh-get-new-mail): Likewise.
-	* saveplace.el (toggle-save-place, save-place-alist-to-file,
-	load-save-place-alist-from-file): Likewise.
+	* saveplace.el (toggle-save-place, save-place-alist-to-file)
+	(load-save-place-alist-from-file): Likewise.
 	* shadow.el (list-load-path-shadows): Likewise.
 	* shadowfile.el (shadow-cancel, shadow-copy-file): Likewise.
 	* subr.el (read-quoted-char): Likewise.
 	* tpu-edt.el (tpu-y-or-n-p): Likewise.
-	* vip.el (vip-replace-string, vip-search-forward,
-	vip-search-backward): Likewise.
+	* vip.el (vip-replace-string, vip-search-forward)
+	(vip-search-backward): Likewise.
 	* viper-ex.el (ex-set): Likewise.
 
 1996-01-24  Karl Heuer  <kwzh@gnu.ai.mit.edu>
@@ -3176,9 +3176,9 @@
 
 	* solitaire.el (solitaire): Doc fix.
 
-	* solar.el (solar-moment, solar-ephemeris-time,
-	solar-equatorial-coordinates, solar-horizontal-coordinates): Doc
-	fixes.
+	* solar.el (solar-moment, solar-ephemeris-time)
+	(solar-equatorial-coordinates, solar-horizontal-coordinates):
+	Doc fixes.
 
 	* lunar.el (lunar-new-moon-on-or-after): Doc fix.
 
@@ -3221,11 +3221,11 @@
 	* cal-tex.el (cal-tex-preamble): Add \hfuzz=1000pt to get rid of
 	overfull box messages.
 
-	* solar.el (calendar-latitude, calendar-longitude,
-	calendar-location-name, solar-sunrise-and-sunset): Fix doc strings.
+	* solar.el (calendar-latitude, calendar-longitude)
+	(calendar-location-name, solar-sunrise-and-sunset): Fix doc strings.
 	(solar-exact-local-noon, solar-sunrise-sunset): Refer to
 	(calendar-longitude) and (calendar-latitude) instead of
-	calendar-longitude and
+	calendar-longitude and calendar-latitude.
 
 1996-01-24  Richard Stallman  <rms@mole.gnu.ai.mit.edu>
 
@@ -3743,67 +3743,67 @@
 
 	* custom.el (custom-default-validate): Fix message spelling.
 	* debug.el (debug): Likewise.
-	* doctor.el (make-doctor-variables, doctor-othermodifierp,
-	doctor-strangelove): Likewise.
+	* doctor.el (make-doctor-variables, doctor-othermodifierp)
+	(doctor-strangelove): Likewise.
 	* dunnet.el (dun-sauna-heat, dun-login): Likewise.
 	* gnus.el (gnus-summary-save-article): Likewise.
 	* hideshow.el (hs-hide-block): Likewise.
 	* hilit19.el (hilit-submit-feedback): Likewise.
-	* mail-extr.el (mail-extr-nuke-outside-range,
-	mail-extr-all-top-level-domains): Likewise.
+	* mail-extr.el (mail-extr-nuke-outside-range)
+	(mail-extr-all-top-level-domains): Likewise.
 	* simple.el (shell-command): Likewise.
 	* term.el (term-process-pager): Likewise.
 	* term/sun-mouse.el (describe-mouse-briefly): Likewise.
 
-	* ada-mode.el (ada-case-keyword, ada-auto-case, ada-krunch-args,
-	ada-call-pretty-printer): Doc fix.
-	* allout.el (outline-primary-bullet, outline-numbered-bullet,
-	outline-override-protect, outline-explicitly-deactivated,
-	outline-init, outline-chart-subtree, outline-chart-spec,
-	outline-make-topic-prefix, outline-open-topic,
-	outline-reindent-body, outline-yank-processing, outline-yank,
-	outlineify-sticky): Doc fix.
+	* ada-mode.el (ada-case-keyword, ada-auto-case, ada-krunch-args)
+	(ada-call-pretty-printer): Doc fix.
+	* allout.el (outline-primary-bullet, outline-numbered-bullet)
+	(outline-override-protect, outline-explicitly-deactivated)
+	(outline-init, outline-chart-subtree, outline-chart-spec)
+	(outline-make-topic-prefix, outline-open-topic)
+	(outline-reindent-body, outline-yank-processing, outline-yank)
+	(outlineify-sticky): Doc fix.
 	* apropos.el (apropos-files-scanned): Doc fix.
 	* arc-mode.el (archive-summarize-files): Doc fix.
 	* bib-mode.el (capitalize-title-stop-words): Doc fix.
 	* bibtex.el (bibtex-generate-autokey, bibtex-find-entry-location):
 	Doc fix.
-	* bookmark.el (bookmark-save-flag, bookmark-read-annotation-text-func,
-	bookmark-rename, bookmark-bmenu-mode, bookmark-menu-rename): Doc fix.
-	* cc-mode.el (c-file-offsets, c++-mode, c-mode, objc-mode,
-	c-postprocess-file-styles): Doc fix.
+	* bookmark.el (bookmark-save-flag, bookmark-read-annotation-text-func)
+	(bookmark-rename, bookmark-bmenu-mode, bookmark-menu-rename): Doc fix.
+	* cc-mode.el (c-file-offsets, c++-mode, c-mode, objc-mode)
+	(c-postprocess-file-styles): Doc fix.
 	* cl-extra.el (cl-copy-tree): Doc fix.
 	* comint.el (comint-ptyp, comint-completion-autolist): Doc fix.
 	* compile.el (compilation-error-list): Doc fix.
 	* cplus-md.el (c++-mode): Doc fix.
 	* cpp.el (cpp-unknown-face, cpp-face-mono-list, cpp-face-all-list):
 	Doc fix.
-	* custom.el (rear-nonsticky, custom-property-set, custom-field-accept,
-	custom-repeat-extract, custom-pair-extract, custom-list-extract,
-	custom-choice-extract, custom-choice-validate, custom-mode-map):
+	* custom.el (rear-nonsticky, custom-property-set, custom-field-accept)
+	(custom-repeat-extract, custom-pair-extract, custom-list-extract)
+	(custom-choice-extract, custom-choice-validate, custom-mode-map):
 	Doc fix.
 	* dired-x.el (dired-mark-sexp): Doc fix.
 	* docref.el (docref-subst): Doc fix.
 	* edebug.el (edebug-read): Doc fix.
 	* ediff-init.el (ediff-keep-variants): Doc fix.
 	* ediff-wind.el (ediff-prefer-iconified-control-frame): Doc fix.
-	* edt.el (edt-find-forward, edt-find-backward, edt-find,
-	edt-find-next-forward, edt-find-next-backward, edt-find-next): Doc fix.
+	* edt.el (edt-find-forward, edt-find-backward, edt-find)
+	(edt-find-next-forward, edt-find-next-backward, edt-find-next): Doc fix.
 	* ffap.el (ffap-list-env): Doc fix.
 	* files.el (make-directory): Doc fix.
-	* fill.el (fill-context-prefix, unjustify-current-line,
-	unjustify-region): Doc fix.
+	* fill.el (fill-context-prefix, unjustify-current-line)
+	(unjustify-region): Doc fix.
 	* font-lock.el (font-lock-keywords): Doc fix.
 	* format.el (format-annotate-atomic-property-change): Doc fix.
 	* forms.el (forms-toggle-read-only, forms-enumerate): Doc fix.
 	gnus-cus.el: Doc fix.
 	* gnus-edit.el (gnus-score-custom-data): Doc fix.
 	* gnus-uu.el (gnus-uu-do-not-unpack-archives): Doc fix.
-	* gnus.el (gnus-buffer-configuration,
-	gnus-article-hide-headers-if-wanted): Doc fix.
-	* hexl.el (hexl-program, hexl-beginning-of-1k-page,
-	hexl-end-of-1k-page, hexl-beginning-of-512b-page,
-	hexl-end-of-512b-page): Doc fix.
+	* gnus.el (gnus-buffer-configuration)
+	(gnus-article-hide-headers-if-wanted): Doc fix.
+	* hexl.el (hexl-program, hexl-beginning-of-1k-page)
+	(hexl-end-of-1k-page, hexl-beginning-of-512b-page)
+	(hexl-end-of-512b-page): Doc fix.
 	* hideshow.el (hs-unbalance-handler-method, hs-show-block): Doc fix.
 	* hilit19.el (hilit-lookup-face-create): Doc fix.
 	* icomplete.el (icomplete-simple-completing-p, icomplete-completions):
@@ -3814,8 +3814,8 @@
 	* iso-cvt.el (iso-fix-tex2iso): Doc fix.
 	* ispell4.el (ispell-gnu-look-still-broken-p, ispell-message-text-end):
 	Doc fix.
-	* make-mode.el (makefile-insert-special-target,
-	makefile-backslash-region): Doc fix.
+	* make-mode.el (makefile-insert-special-target)
+	(makefile-backslash-region): Doc fix.
 	* mh-e.el (mh-good-msg-regexp): Doc fix.
 	* modula2.el (m2-case, m2-for, m2-if): Doc fix.
 	* msb.el (msb-max-file-menu-items, msb-menu-cond): Doc fix.
@@ -3830,12 +3830,12 @@
 	* sh-script.el (sh-mode-syntax-table): Doc fix.
 	* simple.el (next-completion): Doc fix.
 	* skeleton.el (skeleton-insert): Doc fix.
-	* supercite.el (sc-citation-nonnested-root-regexp,
-	sc-add-citation-level, sc-no-blank-line-or-header): Doc fix.
+	* supercite.el (sc-citation-nonnested-root-regexp)
+	(sc-add-citation-level, sc-no-blank-line-or-header): Doc fix.
 	* tempo.el (tempo-local-tags, tempo-user-elements, tempo-use-tag-list):
 	Doc fix.
-	* term.el (term-ptyp, term-termcap-format, term-scroll-region,
-	term-completion-autolist): Doc fix.
+	* term.el (term-ptyp, term-termcap-format, term-scroll-region)
+	(term-completion-autolist): Doc fix.
 	* texinfo.el (texinfo-master-menu): Doc fix.
 	* texnfo-upd.el (texinfo-master-menu): Doc fix.
 	* thingatpt.el (read-from-whole-string): Doc fix.
@@ -3845,8 +3845,8 @@
 	* type-break.el (type-break-keystroke-threshold, type-break-mode):
 	Doc fix.
 	* vip.el (vip-shift-width): Doc fix.
-	* viper.el (vip-insert-diehard-minor-mode, vip-toggle-search-style,
-	vip-del-backward-char-in-replace, vip-query-replace): Doc fix.
+	* viper.el (vip-insert-diehard-minor-mode, vip-toggle-search-style)
+	(vip-del-backward-char-in-replace, vip-query-replace): Doc fix.
 	* vmsproc.el (display-subprocess-window): Doc fix.
 	* xscheme.el (xscheme-control-g-synchronization-p): Doc fix.
 
@@ -4389,9 +4389,9 @@
 
 1995-12-19  Eli Zaretskii  <eliz@is.elta.co.il>
 
-	* time.el (display-time): make it work under ms-dos by setting the
+	* time.el (display-time): Make it work under MS-DOS by setting the
 	`dos-display-time' variable instead of invoking `wakeup' as
-	asynchronous process (which doesn't work under ms-dos).
+	asynchronous process (which doesn't work under MS-DOS).
 
 1995-12-19  Karl Heuer  <kwzh@gnu.ai.mit.edu>
 
@@ -4419,8 +4419,8 @@
 
 1995-12-14  Lars Magne Ingebrigtsen  <larsi@ifi.uio.no>
 
-	* gnus.el (gnus-summary-mode-line-format,
-	gnus-article-mode-line-format, gnus-group-mode-line-format):
+	* gnus.el (gnus-summary-mode-line-format)
+	(gnus-article-mode-line-format, gnus-group-mode-line-format):
 	Include the buffer name in the default mode strings.
 	(gnus-mode-non-string-length): Changed the default to not
 	limit/pad mode line lengths.
@@ -4502,8 +4502,8 @@
 	(bibtex-font-lock-keywords): New variable with font-lock keywords
 	for BibTeX mode.
 
-	* bibtex.el (bibtex-make-optional-field): Not longer interactive
-	(suggested by Karl Eichwalder <karl@pertron.central.de>).
+	* bibtex.el (bibtex-make-optional-field): Not longer interactive.
+	Suggested by Karl Eichwalder <karl@pertron.central.de>.
 
 	* bibtex.el (bibtex-maintain-sorted-entries): Set to nil, since it
 	requires more user attention and more restricted files to have
@@ -4561,8 +4561,8 @@
 	to bibtex-completion-candidates).
 	(bibtex-complete-string): Made it use bibtex-string.
 
-	* bibtex.el (bibtex-keys,
-	bibtex-buffer-last-parsed-for-keys-tick): New buffer-local
+	* bibtex.el (bibtex-keys)
+	(bibtex-buffer-last-parsed-for-keys-tick): New buffer-local
 	variables to make parsing of BibTeX buffer for reference keys
 	(needed by TAB completion in minibuffer when entering key) more
 	occasional.
@@ -4708,17 +4708,17 @@
 
 1995-11-29  Paul Eggert  <eggert@twinsun.com>
 
-	* cal-chinese.el (calendar-chinese-sexagesimal-name): Renamed from
+	* cal-chinese.el (calendar-chinese-sexagesimal-name): Rename from
 	calendar-chinese-sexagisimal-name to fix misspelling.
 	* cal-hebrew.el (holiday-rosh-hashanah-etc): Fix misspelled var.
 	* holidays.el (holiday-easter-etc): Fix misspelling of "Whitmonday".
 	* calendar.el (calendar-setup, calendar-basic-setup)
 	(calendar-next-calendar-round-date)
-	(calendar-previous-calendar-round-date, cal-tex-cursor-year)
-	* cal-julian.el (calendar-absolute-from-astro)
+	(calendar-previous-calendar-round-date, cal-tex-cursor-year):
+	* cal-julian.el (calendar-absolute-from-astro):
 	* cal-mayan.el (calendar-next-calendar-round-date)
-	(calendar-previous-calendar-round-date)
-	* diary-lib.el (list-sexp-diary-entries)
+	(calendar-previous-calendar-round-date):
+	* diary-lib.el (list-sexp-diary-entries):
 	* solar.el (solar-longitude): Doc fixes to fix misspellings.
 
 1995-11-29  Richard Stallman  <rms@mole.gnu.ai.mit.edu>
@@ -5010,8 +5010,8 @@
 1995-11-14  Eric Ding  <ericding@mit.edu>
 
 	* goto-addr.el (goto-address-highlight-p): New variable.
-	(goto-address-fontify): Removed check for invisible text,
-	set inhibit-point-motion-hooks instead
+	(goto-address-fontify): Remove check for invisible text,
+	set inhibit-point-motion-hooks instead.
 
 1995-11-13  Richard Stallman  <rms@mole.gnu.ai.mit.edu>
 
@@ -5980,7 +5980,7 @@
 
 	* help.el (print-help-return-message): Handle lists in
 	special-display-regexps and same-window-regexps.  Also in
-	special-display-buffer-names and same-window-buffer-names
+	special-display-buffer-names and same-window-buffer-names.
 
 	* files.el (interpreter-mode-alist): Handle nawk.
 
@@ -6157,8 +6157,8 @@
 	dates; fix astro date message.
 	(calendar-mouse-2-date-menu): Add dayname to menu.
 
-	* cal-french.el (french-calendar-special-days-array,
-	calendar-french-date-string): Fix accents.
+	* cal-french.el (french-calendar-special-days-array)
+	(calendar-french-date-string): Fix accents.
 	(calendar-goto-french-date): Use reverse instead of nreverse; fix
 	accents.
 	(french-calendar-epoch): New variable.
@@ -6168,8 +6168,8 @@
 	(dst-adjust-time): Moved and renamed from solar.el.
 	(dst-in-effect): New function.
 
-	* solar.el (solar-equinoxes-solstices, solar-ephemeris-correction,
-	solar-equinoxes/solstices): Rewritten.
+	* solar.el (solar-equinoxes-solstices, solar-ephemeris-correction)
+	(solar-equinoxes/solstices): Rewritten.
 	(solar-apparent-longitude-of-sun): Deleted.
 	(solar-longitude, solar-date-next-longitude): New functions.
 	(solar-adj-time-for-dst): Renamed dst-adjust-time and moved to
@@ -6178,31 +6178,30 @@
 	Take angle mod 360.0.
 	(solar-tangent-degrees): Change to macro.
 
-	* calendar.el (calendar-mod, calendar-absolute-from-astro,
-	calendar-astro-from-absolute): New functions.
-	(calendar-astro-date-string, calendar-goto-astro-day-number): Use
-	them.  Autoload holiday-chinese-new-year,
+	* calendar.el (calendar-mod, calendar-absolute-from-astro)
+	(calendar-astro-from-absolute): New functions.
+	(calendar-astro-date-string, calendar-goto-astro-day-number):
+	Use them.  Autoload holiday-chinese-new-year,
 	calendar-goto-chinese-date, calendar-print-chinese-date,
 	calendar-chinese-date-string, calendar-goto-coptic-date,
 	calendar-print-coptic-date, calendar-coptic-date-string,
 	calendar-goto-ethiopic-date, calendar-print-ethiopic-date,
 	calendar-ethiopic-date-string, calendar-one-frame-setup, and
-	calendar-two-frame-setup.  (oriental-holidays): New variable for
-	Chinese New Year.  (calendar-mode-map): Put Chinese and Coptic
-	calendar functions on keys.  (calendar-setup): Moved here from
-	cal-x.el.  (diary-file): Mention Chinese, Coptic, and Ethiopic
-	dates.  (calendar-goto-today, calendar-forward-month,
-	calendar-forward-year, calendar-backward-month,
-	calendar-backward-year, scroll-calendar-left,
-	scroll-calendar-right, scroll-calendar-left-three-months,
-	scroll-calendar-right-three-months,
-	calendar-cursor-to-nearest-date, calendar-forward-day,
-	calendar-backward-day, calendar-forward-week,
-	calendar-backward-week, calendar-beginning-of-week,
-	calendar-end-of-week, calendar-beginning-of-month,
-	calendar-end-of-month, calendar-beginning-of-year,
-	calendar-end-of-year, calendar-cursor-to-visible-date,
-	calendar-goto-date, calendar-goto-iso-date): Moved to cal-move.el.
+	calendar-two-frame-setup.
+	(oriental-holidays): New variable for Chinese New Year.
+	(calendar-mode-map): Put Chinese and Coptic calendar functions on keys.
+	(calendar-setup): Moved here from cal-x.el.
+	(diary-file): Mention Chinese, Coptic, and Ethiopic dates.
+	(calendar-goto-today, calendar-forward-month, calendar-forward-year)
+	(calendar-backward-month, calendar-backward-year, scroll-calendar-left)
+	(scroll-calendar-right, scroll-calendar-left-three-months)
+	(scroll-calendar-right-three-months, calendar-cursor-to-nearest-date)
+	(calendar-forward-day, calendar-backward-day, calendar-forward-week)
+	(calendar-backward-week, calendar-beginning-of-week)
+	(calendar-end-of-week, calendar-beginning-of-month)
+	(calendar-end-of-month, calendar-beginning-of-year)
+	(calendar-end-of-year, calendar-cursor-to-visible-date)
+	(calendar-goto-date, calendar-goto-iso-date): Moved to cal-move.el.
 	(calendar-goto-julian-date): Moved to cal-julian.
 	(calendar-cursor-to-date, generate-calendar-month): Consider the
 	space next to a one-digit date as being on that date.
@@ -6210,8 +6209,8 @@
 	* cal-mayan.el (calendar-mayan-tzolkin-from-absolute): Use them.
 	(mayan-adjusted-mod): Moved to calendar.el and renamed calendar-mod.
 
-	* lunar.el (lunar-new-moon-time, lunar-new-moon-on-or-after) New
-	functions.
+	* lunar.el (lunar-new-moon-time, lunar-new-moon-on-or-after):
+	New functions.
 
 1995-09-18  Richard Stallman  <rms@whiz-bang.gnu.ai.mit.edu>
 
@@ -6863,7 +6862,7 @@
 	(skeleton-read): Don't quit and remove partial skeleton when empty
 	string entered for outer iterator.  Added implicit argument `input'.
 	(define-skeleton, skeleton-insert, skeleton-internal-list): Use `x
-	rather than backquote's (` x) or own (list 'x)
+	rather than backquote's (` x) or own (list 'x).
 
 	* sh-script.el (sh-test): New variable.
 	(sh-if, sh-until, sh-while): Use it.
@@ -7011,8 +7010,8 @@
 
 1995-08-04  Stephen A. Wood  <saw@hallc1.cebaf.gov>
 
-	* fortran.el (fortran-auto-fill-mode, fortran-do-auto-fill,
-	fortran-fill): Invoke auto filling only when past fill-column.
+	* fortran.el (fortran-auto-fill-mode, fortran-do-auto-fill)
+	(fortran-fill): Invoke auto filling only when past fill-column.
 
 1995-08-04  Roland McGrath  <roland@churchy.gnu.ai.mit.edu>
 
@@ -7287,7 +7286,7 @@
 
 1995-07-25  Ake Stenhoff  <etxaksf@aom.ericsson.se>
 
-	* perl-mode.el (perl-imenu-generic-expression) New variable.
+	* perl-mode.el (perl-imenu-generic-expression): New variable.
 	(perl-mode): Set imenu-generic-expression.
 
 	* imenu.el (imenu-generic-expression): Call make-variable-buffer-local.
@@ -7640,7 +7639,7 @@
 	apropos-command in apropos.el.
 
 	* autoload.el (make-autoload): Generate `(autoload ...)' form for
-	`(define-skeleton ...)'
+	`(define-skeleton ...)'.
 
 	* skeleton.el: Partly rewritten and extended.
 	(skeleton-filter, skeleton-untabify, skeleton-further-elements)
@@ -7702,7 +7701,7 @@
 	* two-column.el: Symbols renamed to be like mode-line indicator.
 	Supposed to now also work for Lucid.
 	(2C-mode-map): New name for `tc-mode-map'.  Additionally bound to [f2].
-	(2C-minor-mode-map) New variable.
+	(2C-minor-mode-map): New variable.
 	(2C-mode): New name for `tc-other'.
 	(2C-mode-line-format): New name for `tc-mode-line-format'.
 	(2C-other-buffer-hook): New variable.
@@ -7799,7 +7798,7 @@
 1995-06-29  David M. Smith  <D.M.Smith@lancaster.ac.uk>
 
 	* ielm.el (ielm-font-lock-keywords): New variable.
-	(inferior-emacs-lisp-mode): Use it for font-lock support
+	(inferior-emacs-lisp-mode): Use it for font-lock support.
 
 1995-06-29  Bryan O'Sullivan  <bos@Eng.Sun.COM>
 
@@ -7944,7 +7943,7 @@
 
 1995-06-24  Richard Stallman  <rms@mole.gnu.ai.mit.edu>
 
-	* rmail.el (rmail-revert): Use the default revert-buffer-function
+	* rmail.el (rmail-revert): Use the default revert-buffer-function.
 
 	* simple.el (newline): Put point at right place if insert gets error.
 

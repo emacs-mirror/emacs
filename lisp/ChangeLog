@@ -37,7 +37,7 @@
 	* ibuffer.el (ibuffer-mode): List the bindings in the corrent map
 	(bug#9759).
 
-	* mail/smtpmail.el (password-cache-add): Removed unused declaration.
+	* mail/smtpmail.el (password-cache-add): Remove unused declaration.
 	(password-read): Don't autoload unused function.
 
 2012-01-07  Juanma Barranquero  <lekktu@gmail.com>
@@ -1392,7 +1392,7 @@
 	(window-list-no-nils): Remove.
 	(window-state-get-1, window-state-get): Use backquote instead.
 
-2011-11-08  thierry  <thierry.volpiatto@gmail.com>
+2011-11-08  Thierry Volpiatto  <thierry.volpiatto@gmail.com>
 
 	* emacs-lisp/find-func.el (find-function-read):
 	Fix incorrect use of default argument in `completing-read'.
@@ -4542,7 +4542,7 @@
 
 	* printing.el: Add documentation to all the `pr-toggle-' commands.
 
-2011-07-11  Leo  <sdl.web@gmail.com>  (tiny change)
+2011-07-11  Leo Liu  <sdl.web@gmail.com>
 
 	* files.el (toggle-read-only): Only do the `C-x C-q' warning on VC
 	backends where it makes sense (bug#2623).
@@ -9576,7 +9576,7 @@
 	* calc/calc-menu.el (calc-units-menu): Add entries for logarithmic
 	units and musical notes.
 
-2011-03-20  Leo  <sdl.web@gmail.com>
+2011-03-20  Leo Liu  <sdl.web@gmail.com>
 
 	* ido.el (ido-read-internal): Use completing-read-default.
 	(ido-completing-read): Fix compatibility with completing-read.
