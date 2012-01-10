@@ -2800,7 +2800,7 @@ continue numbering from the last numbered block.
 REPLACE-LABELS is dual-purpose.
 1. It controls the retention of labels in the exported block.
 2. It specifies in what manner the links (or references) to a
-   labelled line be formatted.
+   labeled line be formatted.
 
 REPLACE-LABELS is the symbol `keep' if the literal example
 specifies \"-k\" option, is numeric if the literal example
@@ -2808,12 +2808,12 @@ specifies \"-r\" option and is nil otherwise.
 
 Handle REPLACE-LABELS as below:
 - If nil, retain labels in the exported block and use
-  user-provided labels for referencing the labelled lines.
+  user-provided labels for referencing the labeled lines.
 - If it is a number, remove labels in the exported block and use
-  one of line numbers or labels for referencing labelled lines based
+  one of line numbers or labels for referencing labeled lines based
   on NUMBER option.
 - If it is a keep, retain labels in the exported block and use
-  one of line numbers or labels for referencing labelled lines
+  one of line numbers or labels for referencing labeled lines
   based on NUMBER option.
 
 LABEL-FORMAT is the value of \"-l\" switch associated with
@@ -2823,8 +2823,8 @@ PREPROCESS is intended for backend-agnostic handling of source
 block numbering.  When non-nil do the following:
 - do not number the lines
 - always strip the labels from exported block
-- do not make the labelled line a target of an incoming link.
-  Instead mark the labelled line with `org-coderef' property and
+- do not make the labeled line a target of an incoming link.
+  Instead mark the labeled line with `org-coderef' property and
   store the label in it."
   (setq skip1 (or skip1 0) skip2 (or skip2 0))
   (if (and number (not cont)) (setq org-export-last-code-line-counter-value 0))
@@ -3021,7 +3021,7 @@ to the value of `temporary-file-directory'."
 	  (org-load-modules-maybe)
 	  (unless org-local-vars
 	    (setq org-local-vars (org-get-local-variables)))
-	  (eval ;; convert to fmt -- mimicing `org-run-like-in-org-mode'
+	  (eval ;; convert to fmt -- mimicking `org-run-like-in-org-mode'
 	   (list 'let org-local-vars
 		 (list (intern (format "org-export-as-%s" fmt))
 		       nil nil nil ''string t))))

@@ -1749,7 +1749,7 @@
 
 2012-01-03  Suvayu Ali  <fatkasuvayu+linux@gmail.com>  (tiny change)
 
-	* org-inlinetask.el (org-inlinetask): New customisable face
+	* org-inlinetask.el (org-inlinetask): New customizable face
 	for inlinetasks
 
 2012-01-03  Bastien Guerry  <bzg@gnu.org>

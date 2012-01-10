@@ -110,7 +110,7 @@ it's header arguments."
   "Wrap body in a \"program ... end program\" block if none exists."
   (if (string-match "^[ \t]*program[ \t]*.*" (capitalize body))
        (let ((vars (mapcar #'cdr (org-babel-get-header params :var))))
-	 (if vars (error "cannot use :vars if 'program' statment is present"))
+	 (if vars (error "cannot use :vars if 'program' statement is present"))
 	 body)
     (format "program main\n%s\nend program main\n" body)))
 
@@ -127,7 +127,7 @@ support for sessions"
 ;; helper functions
 
 (defun org-babel-fortran-var-to-fortran (pair)
-  "fortranonvert an elisp val into a string of fortran code specifying a var
+  "Convert an elisp val into a string of fortran code specifying a var
 of the same value."
   ;; TODO list support
   (let ((var (car pair))

@@ -284,7 +284,7 @@ FILE-MEMBERS.
 Use options 1, 2 or 3 only if styles.xml alone suffices for
 achieving the desired formatting.  Use option 4, if the styles.xml
 references additional files like header and footer images for
-achieving the desired formattting.
+achieving the desired formatting.
 
 Use \"#+ODT_STYLES_FILE: ...\" directive to set this variable on
 a per-file basis.  For example,
@@ -1878,7 +1878,7 @@ ATTR is a string of other attributes of the a element."
     (cons width height)))
 
 (defvar org-odt-entity-labels-alist nil
-  "Associate Labels with the Labelled entities.
+  "Associate Labels with the Labeled entities.
 Each element of the alist is of the form (LABEL-NAME
 CATEGORY-NAME SEQNO LABEL-STYLE-NAME).  LABEL-NAME is same as
 that specified by \"#+LABEL: ...\" line.  CATEGORY-NAME is the
@@ -2213,7 +2213,7 @@ visually."
   (with-current-buffer
       (find-file-noselect (expand-file-name "styles.xml") t)
     ;; Don't make automatic backup of styles.xml file. This setting
-    ;; prevents the backedup styles.xml file from being zipped in to
+    ;; prevents the backed-up styles.xml file from being zipped in to
     ;; odt file. This is more of a hackish fix. Better alternative
     ;; would be to fix the zip command so that the output odt file
     ;; includes only the needed files and excludes any auto-generated
@@ -2228,7 +2228,7 @@ visually."
     (org-odt-configure-outline-numbering
      (if org-export-with-section-numbers org-export-headline-levels 0)))
 
-  ;; Write custom stlyes for source blocks
+  ;; Write custom styles for source blocks
   (org-odt-insert-custom-styles-for-srcblocks
    (mapconcat
     (lambda (style)
@@ -2479,7 +2479,7 @@ Do this when translation to MathML fails."
 ;; `org-export-preprocess-after-blockquote-hook'. Note that this hook
 ;; is the one that is closest and well before the call to
 ;; `org-export-attach-captions-and-attributes' in
-;; `org-export-preprocess-stirng'.  The above arrangement permits
+;; `org-export-preprocess-string'.  The above arrangement permits
 ;; captions, labels and attributes to be attached to png images
 ;; generated out of latex equations.
 (add-hook 'org-export-preprocess-after-blockquote-hook
