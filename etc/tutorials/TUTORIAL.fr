@@ -240,15 +240,8 @@ ou « scrollbar » sur le bord gauche de la fenêtre d'Emacs. Vous pouvez
 faire défiler le texte en cliquant avec la souris dans cette barre de
 défilement.
 
->> Cliquez avec le bouton du milieu en haut de la zone mise en
-   évidence dans la barre de défilement. Cela devrait déplacer le
-   texte jusqu'à une position dépendant de la hauteur où vous avez
-   cliqué.
-
->> Déplacez la souris de bas en haut tout en maintenant son bouton du
-   milieu pressé. Vous constaterez que le texte défile vers le haut et
-   vers le bas en fonction du déplacement de la souris.
-
+Si votre souris a une molette, vous pouvez aussi l'utiliser pour faire
+défiler le texte.
 
 * QUAND EMACS EST MUET
 ----------------------
