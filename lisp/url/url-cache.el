@@ -1,7 +1,7 @@
 ;;; url-cache.el --- Uniform Resource Locator retrieval tool
 
 ;; Copyright (C) 1996, 1997, 1998, 1999, 2004, 2005, 2006, 2007, 2008,
-;;   2009, 2010, 2011  Free Software Foundation, Inc.
+;;   2009, 2010, 2011, 2012  Free Software Foundation, Inc.
 
 ;; Keywords: comm, data, processes, hypermedia
 

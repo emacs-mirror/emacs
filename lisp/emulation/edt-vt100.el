@@ -1,7 +1,7 @@
 ;;; edt-vt100.el --- enhanced EDT keypad mode emulation for VT series terminals
 
 ;; Copyright (C) 1986, 1992, 1993, 1995, 2002, 2003, 2004,
-;;   2005, 2006, 2007, 2008, 2009, 2010, 2011 Free Software Foundation, Inc.
+;;   2005, 2006, 2007, 2008, 2009, 2010, 2011, 2012 Free Software Foundation, Inc.
 
 ;; Author: Kevin Gallagher <Kevin.Gallagher@boeing.com>
 ;; Maintainer: Kevin Gallagher <Kevin.Gallagher@boeing.com>

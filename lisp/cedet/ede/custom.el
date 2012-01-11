@@ -1,6 +1,6 @@
 ;;; ede.el --- customization of EDE projects.
 
-;; Copyright (C) 2010, 2011  Free Software Foundation, Inc.
+;; Copyright (C) 2010, 2011, 2012  Free Software Foundation, Inc.
 
 ;; Author: Eric M. Ludlam <zappo@gnu.org>
 

@@ -1,7 +1,7 @@
 ;;; tramp-cache.el --- file information caching for Tramp
 
 ;; Copyright (C) 2000, 2005, 2006, 2007, 2008, 2009,
-;;   2010, 2011 Free Software Foundation, Inc.
+;;   2010, 2011, 2012 Free Software Foundation, Inc.
 
 ;; Author: Daniel Pittman <daniel@inanna.danann.net>
 ;;         Michael Albinus <michael.albinus@gmx.de>

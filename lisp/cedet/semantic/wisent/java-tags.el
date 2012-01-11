@@ -1,6 +1,6 @@
 ;;; semantic/wisent/java-tags.el --- Java LALR parser for Emacs
 
-;; Copyright (C) 2001, 2002, 2003, 2004, 2005, 2006, 2009, 2010, 2011
+;; Copyright (C) 2001, 2002, 2003, 2004, 2005, 2006, 2009, 2010, 2011, 2012
 ;;   Free Software Foundation, Inc.
 
 ;; Author: David Ponce <david@dponce.com>

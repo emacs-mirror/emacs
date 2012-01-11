@@ -1,6 +1,6 @@
 # test.make --- Semantic unit test for Make -*- makefile -*-
 
-# Copyright (C) 2001, 2002, 2010, 2011 Free Software Foundation, Inc.
+# Copyright (C) 2001, 2002, 2010, 2011, 2012 Free Software Foundation, Inc.
 
 # Author: Eric M. Ludlam <eric@siege-engine.com>
 

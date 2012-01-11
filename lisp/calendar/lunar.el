@@ -1,7 +1,7 @@
 ;;; lunar.el --- calendar functions for phases of the moon
 
 ;; Copyright (C) 1992, 1993, 1995, 1997, 2001, 2002, 2003, 2004, 2005,
-;;   2006, 2007, 2008, 2009, 2010, 2011  Free Software Foundation, Inc.
+;;   2006, 2007, 2008, 2009, 2010, 2011, 2012  Free Software Foundation, Inc.
 
 ;; Author: Edward M. Reingold <reingold@cs.uiuc.edu>
 ;; Maintainer: Glenn Morris <rgm@gnu.org>

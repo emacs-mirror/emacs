@@ -1,7 +1,7 @@
 /* XPM */
 /* Emacs icon
 
-Copyright (C) 2008, 2009, 2010, 2011  Free Software Foundation, Inc.
+Copyright (C) 2008, 2009, 2010, 2011, 2012  Free Software Foundation, Inc.
 
 Author:  Kentaro Ohkouchi <nanasess@fsm.ne.jp>
 

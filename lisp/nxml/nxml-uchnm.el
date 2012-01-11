@@ -1,6 +1,6 @@
 ;;; nxml-uchnm.el --- support for Unicode standard cha names in nxml-mode
 
-;; Copyright (C) 2003, 2007, 2008, 2009, 2010, 2011 Free Software Foundation, Inc.
+;; Copyright (C) 2003, 2007, 2008, 2009, 2010, 2011, 2012 Free Software Foundation, Inc.
 
 ;; Author: James Clark
 ;; Keywords: XML

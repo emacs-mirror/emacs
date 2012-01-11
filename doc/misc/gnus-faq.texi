@@ -2,7 +2,7 @@
 @c Uncomment 1st line before texing this file alone.
 @c %**start of header
 @c Copyright (C) 1995, 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008,
-@c   2009, 2010, 2011 Free Software Foundation, Inc.
+@c   2009, 2010, 2011, 2012 Free Software Foundation, Inc.
 @c
 @c Do not modify this file, it was generated from gnus-faq.xml, available from
 @c <URL:http://my.gnus.org/FAQ/>.

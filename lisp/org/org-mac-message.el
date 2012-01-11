@@ -1,6 +1,6 @@
 ;;; org-mac-message.el --- Links to Apple Mail.app messages from within Org-mode
 
-;; Copyright (C) 2008, 2009, 2010, 2011 Free Software Foundation, Inc.
+;; Copyright (C) 2008, 2009, 2010, 2011, 2012 Free Software Foundation, Inc.
 
 ;; Author: John Wiegley <johnw@gnu.org>
 ;;         Christopher Suckling <suckling at gmail dot com>

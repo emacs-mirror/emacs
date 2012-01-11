@@ -1,6 +1,6 @@
 ;; bug-reference.el --- buttonize bug references
 
-;; Copyright (C) 2008, 2009, 2010, 2011 Free Software Foundation, Inc.
+;; Copyright (C) 2008, 2009, 2010, 2011, 2012 Free Software Foundation, Inc.
 
 ;; Author: Tom Tromey <tromey@redhat.com>
 ;; Created: 21 Mar 2007

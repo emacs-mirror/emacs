@@ -1,6 +1,6 @@
 ;;; json.el --- JavaScript Object Notation parser / generator
 
-;; Copyright (C) 2006, 2007, 2008, 2009, 2010, 2011 Free Software Foundation, Inc.
+;; Copyright (C) 2006, 2007, 2008, 2009, 2010, 2011, 2012 Free Software Foundation, Inc.
 
 ;; Author: Edward O'Connor <ted@oconnor.cx>
 ;; Version: 1.2

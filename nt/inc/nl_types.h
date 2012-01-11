@@ -1,6 +1,6 @@
 /* Replacement nl_types.h file for building GNU Emacs on Windows.
 
-Copyright (C) 2006, 2007, 2008, 2009, 2010, 2011
+Copyright (C) 2006, 2007, 2008, 2009, 2010, 2011, 2012
   Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
