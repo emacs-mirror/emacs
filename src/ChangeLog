@@ -1,3 +1,8 @@
+2012-01-11  Glenn Morris  <rgm@gnu.org>
+
+	* lread.c (init_lread): If no-site-lisp, remove site-lisp dirs
+	from load-path also when installation-directory is nil.  (Bug#10208)
+
 2012-01-10  Glenn Morris  <rgm@gnu.org>
 
 	* emacs.c (syms_of_emacs) <installation-directory>: Doc fix.
