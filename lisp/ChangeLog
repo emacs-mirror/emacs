@@ -1,3 +1,7 @@
+2012-01-11  Glenn Morris  <rgm@gnu.org>
+
+	* dired-aux.el (dired-do-shell-command): Fix */? logic.  (Bug#6561)
+
 2012-01-10  Chong Yidong  <cyd@gnu.org>
 
 	* net/network-stream.el (network-stream-open-starttls): Avoid

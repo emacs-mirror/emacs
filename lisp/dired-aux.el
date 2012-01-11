@@ -605,16 +605,16 @@ can be produced by `dired-get-marked-files', for example."
       current-prefix-arg
       files)))
   (let* ((on-each (not (string-match dired-star-subst-regexp command)))
-	 (subst (not (string-match dired-quark-subst-regexp command)))
-	 (star (not (string-match "\\*" command)))
-	 (qmark (not (string-match "\\?" command))))
+	 (no-subst (not (string-match dired-quark-subst-regexp command)))
+	 (star (string-match "\\*" command))
+	 (qmark (string-match "\\?" command)))
     ;; Get confirmation for wildcards that may have been meant
     ;; to control substitution of a file name or the file name list.
-    (if (cond ((not (or on-each subst))
+    (if (cond ((not (or on-each no-subst))
 	       (error "You can not combine `*' and `?' substitution marks"))
-	      ((and star (not on-each))
+	      ((and star on-each)
 	       (y-or-n-p "Confirm--do you mean to use `*' as a wildcard? "))
-	      ((and qmark (not subst))
+	      ((and qmark no-subst)
 	       (y-or-n-p "Confirm--do you mean to use `?' as a wildcard? "))
 	      (t))
 	(if on-each
