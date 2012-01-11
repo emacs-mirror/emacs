@@ -576,8 +576,11 @@ file name added at the end of COMMAND (separated by a space).
 
 `*' and `?' when not surrounded by whitespace have no special
 significance for `dired-do-shell-command', and are passed through
-normally to the shell, but you must confirm first.  To pass `*' by
-itself to the shell as a wildcard, type `*\"\"'.
+normally to the shell, but you must confirm first.
+
+If you want to use `*' as a shell wildcard with whitespace around
+it, write `*\"\"' in place of just `*'.  This is equivalent to just
+`*' in the shell, but avoids Dired's special handling.
 
 If COMMAND produces output, it goes to a separate buffer.
 

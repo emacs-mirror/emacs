@@ -1,6 +1,7 @@
 2012-01-11  Glenn Morris  <rgm@gnu.org>
 
 	* dired-aux.el (dired-do-shell-command): Fix */? logic.  (Bug#6561)
+	Doc fix.
 
 2012-01-10  Chong Yidong  <cyd@gnu.org>
 
