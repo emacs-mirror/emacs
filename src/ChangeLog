@@ -1,3 +1,11 @@
+2012-01-11  Eli Zaretskii  <eliz@gnu.org>
+
+	* xdisp.c (rows_from_pos_range): Handle the case where the
+	highlight ends on a newline.  (Bug#10464)
+	(mouse_face_from_buffer_pos): Fix off-by-one error in calculating
+	he end column for display of highlight that ends on a newline
+	before a R2L line.
+
 2012-01-11  Glenn Morris  <rgm@gnu.org>
 
 	* lread.c (init_lread): If no-site-lisp, remove site-lisp dirs
