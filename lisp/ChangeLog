@@ -1,3 +1,11 @@
+2012-01-11  Alan Mackenzie  <acm@muc.de>
+
+	Fix Emacs bug #10463 - put `widen's around the critical spots.
+
+        * progmodes/cc-engine.el (c-in-literal, c-literal-limits): put a
+	widen around each invocation of c-state-pp-to-literal.  Remove an
+	unused let variable.
+
 2012-01-11  Glenn Morris  <rgm@gnu.org>
 
 	* dired-aux.el (dired-do-shell-command): Fix */? logic.  (Bug#6561)
