@@ -41,7 +41,7 @@
 (define-overload srecode-calculate-context ()
   "Calculate the context at the current point.
 The returned context is a list, with the top-most context first.
-Each returned context is a string that that would show up in a `context'
+Each returned context is a string that would show up in a `context'
 statement in an `.srt' file.
 
 Some useful context values used by the provided srecode templates are:

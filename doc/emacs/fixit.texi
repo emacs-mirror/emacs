@@ -356,7 +356,7 @@ Show the list of options.
   In Text mode and related modes, @kbd{M-@key{TAB}}
 (@code{ispell-complete-word}) performs in-buffer completion based on
 spelling correction.  Insert the beginning of a word, and then type
-@kbd{M-@key{TAB}}; this shows shows a list of completions.  (If your
+@kbd{M-@key{TAB}}; this shows a list of completions.  (If your
 window manager intercepts @kbd{M-@key{TAB}}, type @kbd{@key{ESC}
 @key{TAB}} or @kbd{C-M-i}.)  Each completion is listed with a digit or
 character; type that digit or character to choose it.

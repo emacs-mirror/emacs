@@ -7131,7 +7131,7 @@
 2011-05-23  Kevin Ryde  <user42@zip.com.au>
 
 	* emacs-lisp/advice.el (ad-read-advised-function):
-	Use `function-called-at-point' as the default default, if it has
+	Use `function-called-at-point' as the default, if it has
 	advice and passes PREDICATE.
 
 2011-05-23  Stefan Monnier  <monnier@iro.umontreal.ca>
@@ -7957,7 +7957,7 @@
 	* net/gnutls.el (gnutls-negotiate): Add hostname, verify-flags,
 	verify-error, and verify-hostname-error parameters.  Check whether
 	default trustfile exists before going to use it.  Add missing
-	argument to gnutls-message-maybe call.  Return return value.
+	argument to gnutls-message-maybe call.  Return value.
 	Reported by Claudio Bley <claudio.bley@gmail.com>.
 	(open-gnutls-stream): Add usage example.
 

@@ -7342,7 +7342,7 @@ If you are using the Big Brothers Database to store your contacts, you will
 very likely prefer to store anniversaries in BBDB rather than in a
 separate Org or diary file.  Org supports this and will show BBDB
 anniversaries as part of the agenda.  All you need to do is to add the
-following to one your your agenda files:
+following to one of your agenda files:
 
 @example
 * Anniversaries

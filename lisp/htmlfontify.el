@@ -861,7 +861,7 @@ which *doesn't* clash with CLASS is returned.\n
 \(A specification with a class of t is considered to match any class you
 specify - this matches Emacs' behavior when deciding on which face attributes
 to use, to the best of my understanding).\n
-If CLASS is nil, then you just get get whatever `face-attr-construct' returns,
+If CLASS is nil, then you just get whatever `face-attr-construct' returns,
 ie the current specification in effect for FACE.\n
 *NOTE*: This function forces any face that is not 'default and which has
 no :inherit property to inherit from 'default (this is because 'default

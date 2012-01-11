@@ -49,7 +49,7 @@ COPY='cp -f'
 REMOVE='rm -r'
 MKDIR='mkdir -p'
 
-# Used to execute commands once once we create them
+# Used to execute commands once we create them
 EXEC='sh'
 
 NAWK=/usr/bin/nawk

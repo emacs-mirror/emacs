@@ -451,7 +451,7 @@ Also load the specified macro libraries."
       ',(semantic-grammar-keyword-properties keywords))))
 
 (define-overloadable-function semantic-grammar-keywordtable-builder ()
-  "Return the keyword table table value.")
+  "Return the keyword table value.")
 
 ;;; Token table builder
 ;;
