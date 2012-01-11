@@ -3667,7 +3667,7 @@ Ask means pop up a menu for the user to select one of copy, move or link."
 ;;;;;;  dired-run-shell-command dired-do-shell-command dired-do-async-shell-command
 ;;;;;;  dired-clean-directory dired-do-print dired-do-touch dired-do-chown
 ;;;;;;  dired-do-chgrp dired-do-chmod dired-compare-directories dired-backup-diff
-;;;;;;  dired-diff) "dired-aux" "dired-aux.el" "cdcae8f5f4ea69fa7b0231f640c13163")
+;;;;;;  dired-diff) "dired-aux" "dired-aux.el" "e77c506a0dd793230c5856a67e408fc6")
 ;;; Generated autoloads from dired-aux.el
 
 (autoload 'dired-diff "dired-aux" "\
@@ -3784,8 +3784,11 @@ file name added at the end of COMMAND (separated by a space).
 
 `*' and `?' when not surrounded by whitespace have no special
 significance for `dired-do-shell-command', and are passed through
-normally to the shell, but you must confirm first.  To pass `*' by
-itself to the shell as a wildcard, type `*\"\"'.
+normally to the shell, but you must confirm first.
+
+If you want to use `*' as a shell wildcard with whitespace around
+it, write `*\"\"' in place of just `*'.  This is equivalent to just
+`*' in the shell, but avoids Dired's special handling.
 
 If COMMAND produces output, it goes to a separate buffer.
 
