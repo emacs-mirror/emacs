@@ -572,7 +572,7 @@ bidi_cache_find (EMACS_INT charpos, int level, struct bidi_it *bidi_it)
 
       bidi_copy_it (bidi_it, &bidi_cache[i]);
       bidi_cache_last_idx = i;
-      /* Don't let scan direction from from the cached state override
+      /* Don't let scan direction from the cached state override
 	 the current scan direction.  */
       bidi_it->scan_dir = current_scan_dir;
       return bidi_it->type;

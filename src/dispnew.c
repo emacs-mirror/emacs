@@ -62,7 +62,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include <errno.h>
 
 /* Get number of chars of output now in the buffer of a stdio stream.
-   This ought to be built in in stdio, but it isn't.  Some s- files
+   This ought to be built in stdio, but it isn't.  Some s- files
    override this because their stdio internals differ.  */
 
 #ifdef __GNU_LIBRARY__

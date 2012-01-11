@@ -18,7 +18,7 @@
 	(erc-nickserv-identify-on-connect)
 	(erc-nickserv-identify-on-nick-change): Handle 'both method.
 
-2006-12-28  Leo  <sdl.web@gmail.com>  (tiny change)
+2006-12-28  Leo Liu  <sdl.web@gmail.com>  (tiny change)
 
 	* erc.el (erc-iswitchb): Wrap body in unwind-protect so that
 	hitting C-g does not leave iswitchb-mode on.
@@ -51,7 +51,7 @@
 	* erc.el (erc-open): Restore old point correctly, or at least get
 	closer to doing so than before.
 
-2006-12-13  Leo  <sdl.web@gmail.com>  (tiny change)
+2006-12-13  Leo Liu  <sdl.web@gmail.com>  (tiny change)
 
 	* erc.el (erc-iswitchb): Temporarily enable iswitchb mode if it
 	isn't active already, instead of leaving it on.

@@ -569,7 +569,7 @@
 	* emacs-lisp/lisp-mode.el: Give `deftype' a doc-string-elt
 	property (Bug#2984).
 
-2009-04-16  Leo  <sdl.web@gmail.com>  (tiny change)
+2009-04-16  Leo Liu  <sdl.web@gmail.com>  (tiny change)
 
 	* ediff-wind.el (ediff-make-wide-display): Fix typo in frame
 	parameter alist.
@@ -1041,7 +1041,7 @@
 
 	* mail/supercite.el (sc-version): Doc fix.
 
-2009-03-19  Leo  <sdl.web@gmail.com>  (tiny change)
+2009-03-19  Leo Liu  <sdl.web@gmail.com>  (tiny change)
 
 	* mail/supercite.el (sc-version): Fix typo in interactive spec.
 

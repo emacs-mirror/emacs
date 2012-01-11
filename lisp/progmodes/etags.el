@@ -463,7 +463,7 @@ Returns non-nil if it is a valid table."
 
 ;; Subroutine of visit-tags-table-buffer.  Search the current tags tables
 ;; for one that has tags for THIS-FILE (or that includes a table that
-;; does).  Return the name of the first table table listing THIS-FILE; if
+;; does).  Return the name of the first table listing THIS-FILE; if
 ;; the table is one included by another table, it is the master table that
 ;; we return.  If CORE-ONLY is non-nil, check only tags tables that are
 ;; already in buffers--don't visit any new files.

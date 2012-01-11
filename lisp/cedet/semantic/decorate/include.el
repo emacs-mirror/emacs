@@ -45,7 +45,7 @@
 (defvar semantic-decoratiton-mouse-3 (if (featurep 'xemacs) [ button3 ] [ mouse-3 ])
   "The keybinding lisp object to use for binding the right mouse button.")
 
-;;; Includes that that are in a happy state!
+;;; Includes that are in a happy state!
 ;;
 (defface semantic-decoration-on-includes
   nil

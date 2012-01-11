@@ -394,7 +394,7 @@ by translating things like \"foo!bar!baz@host\" into \"baz@bar.UUCP\"."
 ;; Matches ham radio call signs.
 ;; Help from: Mat Maessen N2NJZ <maessm@rpi.edu>, Mark Feit
 ;; <mark@era.com>, Michael Covington <mcovingt@ai.uga.edu>.
-;; Examples: DX504 DX515 K5MRU K8DHK KA9WGN KA9WGN KD3FU KD6EUI KD6HBW
+;; Examples: DX504 DX515 K5MRU K8DHK KA9WGN KD3FU KD6EUI KD6HBW
 ;; KE9TV KF0NV N1API N3FU N3GZE N3IGS N4KCC N7IKQ N9HHU W4YHF W6ANK WA2SUH
 ;; WB7VZI N2NJZ NR3G KJ4KK AB4UM AL7NI KH6OH WN3KBT N4TMI W1A N0NZO
 (defconst mail-extr-ham-call-sign-pattern

@@ -217,21 +217,10 @@ screenful.  For example, C-u 8 C-v scrolls the screen by 8 lines.
 This should have scrolled the screen up by 8 lines.  If you would like
 to scroll it down again, you can give an argument to M-v.
 
-If you are using a windowed display, such as X or MS-Windows, there
+If you are using a graphical display, such as X or MS-Windows, there
 should be a tall rectangular area called a scroll bar on one side of
-the Emacs window.  (There are other tall rectangles on either side of
-the Emacs display.  These "fringes" are used for displaying
-continuation characters and other symbols.  The scroll bar appears on
-only one side, and is the outermost column on that side.)
-You can scroll the text by clicking the mouse in the scroll bar.
-
->> Try pressing the middle button at the top of the highlighted area
-   within the scroll bar.  This should scroll the text to a position
-   determined by how high or low you click.
-
->> Try moving the mouse up and down, while holding the middle button
-   pressed down.  You'll see that the text scrolls up and down as
-   you move the mouse.
+the Emacs window.  You can scroll the text by clicking the mouse in
+the scroll bar.
 
 If your mouse has a wheel button, you can also use this to scroll.
 
@@ -247,8 +236,8 @@ You can also use C-g to discard a numeric argument or the beginning of
 a command that you do not want to finish.
 
 >> Type C-u 100 to make a numeric argument of 100, then type C-g.
-   Now type C-f.  It should move just one character,
-   because you canceled the argument with C-g.
+   Now type C-f.  It should move just one character, because you
+   canceled the argument with C-g.
 
 If you have typed an <ESC> by mistake, you can get rid of it with a C-g.
 
@@ -274,9 +263,9 @@ disabled command, answer the question with "n".
 * WINDOWS
 ---------
 
-Emacs can have several windows, each displaying its own text.  We will
-explain later on how to use multiple windows.  Right now we want to
-explain how to get rid of extra windows and go back to basic
+Emacs can have several "windows", each displaying its own text.  We
+will explain later on how to use multiple windows.  Right now we want
+to explain how to get rid of extra windows and go back to basic
 one-window editing.  It is simple:
 
 	C-x 1	One window (i.e., kill all other windows).
@@ -286,9 +275,9 @@ which contains the cursor, to occupy the full screen.  It deletes all
 other windows.
 
 >> Move the cursor to this line and type C-u 0 C-l.
->> Type CONTROL-h k CONTROL-f.
+>> Type C-h k C-f.
    See how this window shrinks, while a new one appears
-   to display documentation on the CONTROL-f command.
+   to display documentation on the C-f command.
 
 >> Type C-x 1 and see the documentation listing window disappear.
 
@@ -302,39 +291,36 @@ These commands are two, three or four characters long.
 * INSERTING AND DELETING
 ------------------------
 
-If you want to insert text, just type the text.  Characters which you
-can see, such as A, 7, *, etc. are taken by Emacs as text and inserted
-immediately.  Type <Return> (the carriage-return key) to insert a
-Newline character.
+If you want to insert text, just type the text.  Ordinary characters,
+like A, 7, *, etc., are inserted as you type them.  To insert a
+Newline character, type <Return> (this is the key on the keyboard
+which is sometimes labeled "Enter").
 
-You can delete the last character you typed by typing <Delback>.
-<Delback> is a key on the keyboard--the same one you normally use,
-outside Emacs, for deleting the last character you typed.  It is
-normally a large key a couple of lines up from the <Return> key, and
-it is usually labeled "Delete", "Del" or "Backspace".
+To delete <DEL> the character immediately before the current cursor
+position, type <DEL>.  This is the key on the keyboard usually labeled
+"Backspace"--the same one you normally use, outside Emacs, to delete
+the last character typed.
 
-If the large key there is labeled "Backspace", then that's the one you
-use for <Delback>.  There may also be another key labeled "Delete"
-somewhere else, but that's not <Delback>.
+There may also be another key on your keyboard labeled <Delete>, but
+that's not the one we refer to as <DEL>.
 
-More generally, <Delback> deletes the character immediately before the
-current cursor position.
-
->> Do this now--type a few characters, then delete them
-   by typing <Delback> a few times.  Don't worry about this file
-   being changed; you will not alter the master tutorial.  This is
-   your personal copy of it.
+>> Do this now--type a few characters, then delete them by
+   typing <DEL> a few times.  Don't worry about this file
+   being changed; you will not alter the master tutorial.
+   This is your personal copy of it.
 
 When a line of text gets too big for one line on the screen, the line
-of text is "continued" onto a second screen line.  A backslash ("\")
-(or, if you're using a windowed display, a little curved arrow) at the
-right margin (actually, in the right "fringe") indicates a line which
-has been continued.
+of text is "continued" onto a second screen line.  If you're using a
+graphical display, little curved arrows appear in the narrow spaces on
+each side of the text area (the left and right "fringes"), to indicate
+where a line has been continued.  If you're using a text terminal, the
+continued line is indicated by a backslash ("\") on the rightmost
+screen column.
 
 >> Insert text until you reach the right margin, and keep on inserting.
    You'll see a continuation line appear.
 
->> Use <Delback>s to delete the text until the line fits on one screen
+>> Use <DEL>s to delete the text until the line fits on one screen
    line again.  The continuation line goes away.
 
 You can delete a Newline character just like any other character.
@@ -342,7 +328,7 @@ Deleting the Newline character between two lines merges them into
 one line.  If the resulting combined line is too long to fit in the
 screen width, it will be displayed with a continuation line.
 
->> Move the cursor to the beginning of a line and type <Delback>.  This
+>> Move the cursor to the beginning of a line and type <DEL>.  This
    merges that line with the previous line.
 
 >> Type <Return> to reinsert the Newline you deleted.
@@ -357,24 +343,26 @@ You've now learned the most basic way of typing something in
 Emacs and correcting errors.  You can delete by words or lines
 as well.  Here is a summary of the delete operations:
 
-	<Delback>    Delete the character just before the cursor
+	<DEL>        Delete the character just before the cursor
 	C-d   	     Delete the next character after the cursor
 
-	M-<Delback>  Kill the word immediately before the cursor
+	M-<DEL>      Kill the word immediately before the cursor
 	M-d	     Kill the next word after the cursor
 
 	C-k	     Kill from the cursor position to end of line
 	M-k	     Kill to the end of the current sentence
 
-Notice that <Delback> and C-d vs M-<Delback> and M-d extend the parallel
-started by C-f and M-f (well, <Delback> is not really a control
-character, but let's not worry about that).  C-k and M-k are like C-e
-and M-e, sort of, in that lines are paired with sentences.
+Notice that <DEL> and C-d vs M-<DEL> and M-d extend the parallel
+started by C-f and M-f (well, <DEL> is not really a control character,
+but let's not worry about that).  C-k and M-k are like C-e and M-e,
+sort of, in that lines are paired with sentences.
 
-You can also kill any part of the text with one uniform method.  Move
-to one end of that part, and type C-@ or C-<SPC> (either one).  (<SPC>
-is the Space bar.)  Move to the other end of that part, and type C-w.
-That kills all the text between the two positions.
+You can also kill a segment of text with one uniform method.  Move to
+one end of that part, and type C-<SPC>.  (<SPC> is the Space bar.)
+Next, move the cursor to the other end of the text you intend to kill.
+As you do this, Emacs highlights the text between the cursor and the
+position where you typed C-<SPC>.  Finally, type C-w.  This kills all
+the text between the two positions.
 
 >> Move the cursor to the Y at the start of the previous paragraph.
 >> Type C-<SPC>.  Emacs should display a message "Mark set"
@@ -391,10 +379,10 @@ Reinsertion of killed text is called "yanking".  Generally, the
 commands that can remove a lot of text kill the text (they are set up so
 that you can yank the text), while the commands that remove just one
 character, or only remove blank lines and spaces, do deletion (so you
-cannot yank that text).  <Delback> and C-d  do deletion in the simplest
+cannot yank that text).  <DEL> and C-d  do deletion in the simplest
 case, with no argument.  When given an argument, they kill instead.
 
->> Move the cursor to the  beginning of a line which is not empty.
+>> Move the cursor to the beginning of a line which is not empty.
    Then type C-k to kill the text on that line.
 >> Type C-k a second time.  You'll see that it kills the Newline
    which follows that line.
@@ -405,13 +393,13 @@ treats a numeric argument specially: it kills that many lines AND
 their contents.  This is not mere repetition.  C-u 2 C-k kills two
 lines and their newlines; typing C-k twice would not do that.
 
-Bringing back killed text is called "yanking".  (Think of it as
-yanking back, or pulling back, some text that was taken away.)  You
-can yank the killed text either at the same place where it was killed,
-or at some other place in the text you are editing, or even in a
-different file.  You can yank the same text several times; that makes
-multiple copies of it.  Some other editors call killing and yanking
-"cutting" and "pasting" (see the Glossary in the Emacs manual).
+Reinserting killed text is called "yanking".  (Think of it as yanking
+back, or pulling back, some text that was taken away.)  You can yank
+the killed text either at the same place where it was killed, or at
+some other place in the text you are editing, or even in a different
+file.  You can yank the same text several times; that makes multiple
+copies of it.  Some other editors call killing and yanking "cutting"
+and "pasting" (see the Glossary in the Emacs manual).
 
 The command for yanking is C-y.  It reinserts the last killed text,
 at the current cursor position.
@@ -454,27 +442,25 @@ recent kill).
 ------
 
 If you make a change to the text, and then decide that it was a
-mistake, you can undo the change with the undo command, C-x u.
+mistake, you can undo the change with the undo command, C-/.
 
-Normally, C-x u undoes the changes made by one command; if you repeat
-the C-x u several times in a row, each repetition undoes one
-additional command.
+Normally, C-/ undoes the changes made by one command; if you repeat
+C-/ several times in a row, each repetition undoes one more command.
 
-But there are two exceptions: commands that do not change the text do
-not count (this includes cursor motion commands and scrolling
+But there are two exceptions: commands that do not change the text
+don't count (this includes cursor motion commands and scrolling
 commands), and self-inserting characters are usually handled in groups
-of up to 20.  (This is to reduce the number of C-x u's you have to
-type to undo insertion of text.)
+of up to 20.  (This is to reduce the number of C-/'s you have to type
+to undo insertion of text.)
 
->> Kill this line with C-k, then type C-x u and it should reappear.
+>> Kill this line with C-k, then type C-/ and it should reappear.
 
-C-_ is an alternative undo command; it works just the same as C-x u,
-but it is easier to type several times in a row.  The disadvantage of
-C-_ is that on some keyboards it is not obvious how to type it.  That
-is why we provide C-x u as well.  On some terminals, you can type C-_
-by typing / while holding down CONTROL.
+C-_ is an alternative undo command; it works exactly the same as C-/.
+On some text terminals, typing C-/ actually sends C-_ to Emacs.
+Alternatively, C-x u also works exactly like C-/, but is a little less
+convenient to type.
 
-A numeric argument to C-_ or C-x u acts as a repeat count.
+A numeric argument to C-/, C-_, or C-x u acts as a repeat count.
 
 You can undo deletion of text just as you can undo killing of text.
 The distinction between killing something and deleting it affects
@@ -485,9 +471,9 @@ whether you can yank it with C-y; it makes no difference for undo.
 -------
 
 In order to make the text you edit permanent, you must put it in a
-file.  Otherwise, it will go away when your invocation of Emacs goes
-away.  In order to put your text in a file, you must "find" the file
-before you enter the text.  (This is also called "visiting" the file.)
+file.  Otherwise, it will go away when you exit Emacs.  In order to
+put your text in a file, you must "find" the file before you enter the
+text.  (This is also called "visiting" the file.)
 
 Finding a file means that you see the contents of the file within
 Emacs.  In many ways, it is as if you were editing the file itself.
@@ -498,17 +484,16 @@ you save, Emacs leaves the original file under a changed name in case
 you later decide that your changes were a mistake.
 
 If you look near the bottom of the screen you will see a line that
-begins with dashes, and starts with "--:--- TUTORIAL" or something
+begins with dashes, and starts with " -:---  TUTORIAL" or something
 like that.  This part of the screen normally shows the name of the
-file that you are visiting.  Right now, you are visiting a file called
-"TUTORIAL" which is your personal scratch copy of the Emacs tutorial.
-When you find a file with Emacs, that file's name will appear in that
-precise spot.
+file that you are visiting.  Right now, you are visiting your personal
+copy of the Emacs tutorial, which is called "TUTORIAL".  When you find
+a file with Emacs, that file's name will appear in that precise spot.
 
 One special thing about the command for finding a file is that you
 have to say what file name you want.  We say the command "reads an
-argument from the terminal" (in this case, the argument is the name of
-the file).  After you type the command
+argument" (in this case, the argument is the name of the file).  After
+you type the command
 
 	C-x C-f   Find a file
 
@@ -525,13 +510,12 @@ you can cancel the command with C-g.
    minibuffer.  So you do not find any file.
 
 When you have finished entering the file name, type <Return> to
-terminate it.  The C-x C-f command goes to work, and finds the file
-you chose.  The minibuffer disappears when the C-x C-f command is
-finished.
+terminate it.  The minibuffer disappears, and the C-x C-f command goes
+to work to find the file you chose.
 
-In a little while the file contents appear on the screen, and you can
-edit the contents.  When you wish to make your changes permanent,
-type the command
+The file contents now appear on the screen, and you can edit the
+contents.  When you wish to make your changes permanent, type the
+command
 
 	C-x C-s   Save the file
 
@@ -544,8 +528,9 @@ When saving is finished, Emacs displays the name of the file written.
 You should save fairly often, so that you will not lose very much
 work if the system should crash (see the section "Auto Save" below).
 
->> Type C-x C-s, saving your copy of the tutorial.
-   This should show "Wrote ...TUTORIAL" at the bottom of the screen.
+>> Type C-x C-s TUTORIAL <Return>.
+   This should save this tutorial to a file named TUTORIAL, and show
+   "Wrote ...TUTORIAL" at the bottom of the screen.
 
 You can find an existing file, to view it or edit it.  You can also
 find a file which does not already exist.  This is the way to create a
@@ -563,14 +548,9 @@ If you find a second file with C-x C-f, the first file remains
 inside Emacs.  You can switch back to it by finding it again with
 C-x C-f.  This way you can get quite a number of files inside Emacs.
 
->> Create a file named "foo" by typing  C-x C-f foo <Return>.
-   Then insert some text, edit it, and save "foo" by typing  C-x C-s.
-   Finally, type C-x C-f TUTORIAL <Return>
-   to come back to the tutorial.
-
 Emacs stores each file's text inside an object called a "buffer".
 Finding a file makes a new buffer inside Emacs.  To see a list of the
-buffers that currently exist in your Emacs job, type
+buffers that currently exist, type
 
 	C-x C-b   List buffers
 
@@ -589,22 +569,24 @@ that corresponds to a file, you can do it by visiting the file again
 with C-x C-f.  But there is an easier way: use the C-x b command.
 In that command, you have to type the buffer's name.
 
->> Type C-x b foo <Return> to go back to the buffer "foo" which holds
-   the text of the file "foo".  Then type C-x b TUTORIAL <Return>
-   to come back to this tutorial.
+>> Create a file named "foo" by typing C-x C-f foo <Return>.
+   Then type C-x b TUTORIAL <Return> to come back to this tutorial.
 
 Most of the time, the buffer's name is the same as the file name
 (without the file directory part).  However, this is not always true.
-The buffer list you make with C-x C-b always shows you the name of
-every buffer.
+The buffer list you make with C-x C-b shows you both the buffer name
+and the file name of every buffer.
 
 ANY text you see in an Emacs window is always part of some buffer.
-Some buffers do not correspond to files.  For example, the buffer
-named "*Buffer List*" does not have any file.  It is the buffer which
-contains the buffer list that you made with C-x C-b.  The buffer named
-"*Messages*" also does not correspond to any file; it contains the
-messages that have appeared on the bottom line during your Emacs
-session.
+Some buffers do not correspond to files.  The buffer named
+"*Buffer List*", which contains the buffer list that you made with
+C-x C-b, does not have any file.  This TUTORIAL buffer initially did
+not have a file, but now it does, because in the previous section you
+typed C-x C-s and saved it to a file.
+
+The buffer named "*Messages*" also does not correspond to any file.
+This buffer contains the messages that have appeared on the bottom
+line during your Emacs session.
 
 >> Type C-x b *Messages* <Return> to look at the buffer of messages.
    Then type C-x b TUTORIAL <Return> to come back to this tutorial.
@@ -646,23 +628,21 @@ session--this is the command C-x C-c.  (Do not worry about losing
 changes you have made; C-x C-c offers to save each changed file before
 it kills Emacs.)
 
-If you are using a graphical display that supports multiple
-applications in parallel, you don't need any special command to move
-from Emacs to another application.  You can do this with the mouse or
-with window manager commands.  However, if you're using a text
-terminal which can only show one application at a time, you need to
-"suspend" Emacs to move to any other program.
+If you are using a graphical display, you don't need any special
+command to move from Emacs to another application.  You can do this
+with the mouse or with window manager commands.  However, if you're
+using a text terminal which can only show one application at a time,
+you need to "suspend" Emacs to move to any other program.
 
 C-z is the command to exit Emacs *temporarily*--so that you can go
 back to the same Emacs session afterward.  When Emacs is running on a
 text terminal, C-z "suspends" Emacs; that is, it returns to the shell
-but does not destroy the Emacs.  In the most common shells, you can
-resume Emacs with the `fg' command or with `%emacs'.
+but does not destroy the Emacs job.  In the most common shells, you
+can resume Emacs with the `fg' command or with `%emacs'.
 
 The time to use C-x C-c is when you are about to log out.  It's also
 the right thing to use to exit an Emacs invoked under mail handling
-programs and other miscellaneous utilities, since they may not know
-how to cope with suspension of Emacs.
+programs and other miscellaneous utilities.
 
 There are many C-x commands.  Here is a list of the ones you have learned:
 
@@ -683,7 +663,7 @@ bottom of the screen with M-x and you should type the name of the
 command; in this case, "replace-string".  Just type "repl s<TAB>" and
 Emacs will complete the name.  (<TAB> is the Tab key, usually found
 above the CapsLock or Shift key near the left edge of the keyboard.)
-End the command name with <Return>.
+Submit the command name with <Return>.
 
 The replace-string command requires two arguments--the string to be
 replaced, and the string to replace it with.  You must end each
@@ -729,18 +709,18 @@ shows them to you at the bottom of the screen in an area called the
 The line immediately above the echo area is called the "mode line".
 The mode line says something like this:
 
---:**-  TUTORIAL       63% L749    (Fundamental)-----------------------
+ -:**-  TUTORIAL       63% L749    (Fundamental)
 
 This line gives useful information about the status of Emacs and
 the text you are editing.
 
 You already know what the filename means--it is the file you have
-found.  NN% indicates your current position in the text; it means that
-NN percent of the text is above the top of the screen.  If the top of
-the file is on the screen, it will say "Top" instead of " 0%".  If the
-bottom of the text is on the screen, it will say "Bot".  If you are
-looking at text so small that all of it fits on the screen, the mode
-line says "All".
+found.  NN% indicates your current position in the buffer text; it
+means that NN percent of the buffer is above the top of the screen.
+If the top of the buffer is on the screen, it will say "Top" instead
+of " 0%".  If the bottom of the buffer is on the screen, it will say
+"Bot".  If you are looking at a buffer so small that all of it fits on
+the screen, the mode line says "All".
 
 The L and digits indicate position in another way: they give the
 current line number of point.
@@ -783,7 +763,7 @@ differently.
 
 To view documentation on your current major mode, type C-h m.
 
->> Use C-u C-v once or more to bring this line near the top of screen.
+>> Type C-l C-l to bring this line to the top of screen.
 >> Type C-h m, to see how Text mode differs from Fundamental mode.
 >> Type C-x 1 to remove the documentation from the screen.
 
@@ -829,10 +809,10 @@ that paragraph.
 * SEARCHING
 -----------
 
-Emacs can do searches for strings (these are groups of contiguous
-characters or words) either forward through the text or backward
-through it.  Searching for a string is a cursor motion command;
-it moves the cursor to the next place where that string appears.
+Emacs can do searches for strings (a "string" is a group of contiguous
+characters) either forward through the text or backward through it.
+Searching for a string is a cursor motion command; it moves the cursor
+to the next place where that string appears.
 
 The Emacs search command is "incremental".  This means that the
 search happens while you type in the string to search for.
@@ -850,7 +830,7 @@ you want to search for.  <Return> terminates a search.
    character to notice what happens to the cursor.
    Now you have searched for "cursor", once.
 >> Type C-s again, to search for the next occurrence of "cursor".
->> Now type <Delback> four times and see how the cursor moves.
+>> Now type <DEL> four times and see how the cursor moves.
 >> Type <Return> to terminate the search.
 
 Did you see what happened?  Emacs, in an incremental search, tries to
@@ -859,27 +839,23 @@ go to the next occurrence of 'cursor' just type C-s again.  If no such
 occurrence exists, Emacs beeps and tells you the search is currently
 "failing".  C-g would also terminate the search.
 
-(Note that on some systems, typing C-s will freeze the screen and you
-will see no further output from Emacs.  This indicates that an
-operating system "feature" called "flow control" is intercepting the
-C-s and not letting it get through to Emacs.  To unfreeze the screen,
-type C-q.)
-
-If you are in the middle of an incremental search and type <Delback>,
-you'll notice that the last character in the search string is erased
-and the search backs up to the last place of the search.  For
-instance, suppose you have typed "c", to search for the first
-occurrence of "c".  Now if you type "u", the cursor will move
-to the first occurrence of "cu".  Now type <Delback>.  This erases
-the "u" from the search string, and the cursor moves back to
-the first occurrence of "c".
+If you are in the middle of an incremental search and type <DEL>, this
+the search "retreats" to an earlier location.  If you type <DEL> just
+after you had typed C-s to advance to the next occurrence of a search
+string, the <DEL> moves the cursor back to an earlier occurrence.  If
+there are no earlier occurrences, the <DEL> erases the last character
+in the search string.  For instance, suppose you have typed "c", to
+search for the first occurrence of "c".  Now if you type "u", the
+cursor will move to the first occurrence of "cu".  Now type <DEL>.
+This erases the "u" from the search string, and the cursor moves back
+to the first occurrence of "c".
 
 If you are in the middle of a search and type a control or meta
-character (with a few exceptions--characters that are special in
-a search, such as C-s and C-r), the search is terminated.
+character (with a few exceptions--characters that are special in a
+search, such as C-s and C-r), the search is terminated.
 
-The C-s starts a search that looks for any occurrence of the search
-string AFTER the current cursor position.  If you want to search for
+C-s starts a search that looks for any occurrence of the search string
+AFTER the current cursor position.  If you want to search for
 something earlier in the text, type C-r instead.  Everything that we
 have said about C-s also applies to C-r, except that the direction of
 the search is reversed.
@@ -888,17 +864,17 @@ the search is reversed.
 * MULTIPLE WINDOWS
 ------------------
 
-One of the nice features of Emacs is that you can display more than one
-window on the screen at the same time.  (Note that Emacs uses the term
-"frames"--described in the next section--for what some other
+One of the nice features of Emacs is that you can display more than
+one window on the screen at the same time.  (Note that Emacs uses the
+term "frames"--described in the next section--for what some other
 applications call "windows".  The Emacs manual contains a Glossary of
 Emacs terms.)
 
->> Move the cursor to this line and type C-u 0 C-l (that's CONTROL-L, not
-   CONTROL-1).
+>> Move the cursor to this line and type C-l C-l.
 
 >> Now type C-x 2 which splits the screen into two windows.
-   Both windows display this tutorial.  The cursor stays in the top window.
+   Both windows display this tutorial.  The editing cursor stays in
+   the top window.
 
 >> Type C-M-v to scroll the bottom window.
    (If you do not have a real META key, type <ESC> C-v.)
@@ -910,23 +886,24 @@ Emacs terms.)
 >> Type C-x o again to move the cursor back to the top window.
    The cursor in the top window is just where it was before.
 
-You can keep using C-x o to switch between the windows.  Each
-window has its own cursor position, but only one window actually
-shows the cursor.  All the ordinary editing commands apply to the
-window that the cursor is in.  We call this the "selected window".
+You can keep using C-x o to switch between the windows.  The "selected
+window", where most editing takes place, is the one with a prominent
+cursor which blinks when you are not typing.  The other windows have
+their own cursor positions; if you are running Emacs in a graphical
+display, those cursors are drawn as unblinking hollow boxes.
 
 The command C-M-v is very useful when you are editing text in one
-window and using the other window just for reference.  You can keep
-the cursor always in the window where you are editing, and advance
-through the other window sequentially with C-M-v.
+window and using the other window just for reference.  Without leaving
+the selected window, you can scroll the other window with C-M-v.
 
-C-M-v is an example of a CONTROL-META character.  If you have a real
-META key, you can type C-M-v by holding down both CONTROL and META while
-typing v.  It does not matter whether CONTROL or META "comes first,"
-because both of these keys act by modifying the characters you type.
+C-M-v is an example of a CONTROL-META character.  If you have a META
+(or Alt) key, you can type C-M-v by holding down both CONTROL and META
+while typing v.  It does not matter whether CONTROL or META "comes
+first," as both of these keys act by modifying the characters you
+type.
 
-If you do not have a real META key, and you use <ESC> instead, the
-order does matter: you must type <ESC> followed by CONTROL-v, because
+If you do not have a META key, and you use <ESC> instead, the order
+does matter: you must type <ESC> followed by CONTROL-v, because
 CONTROL-<ESC> v will not work.  This is because <ESC> is a character
 in its own right, not a modifier key.
 
@@ -953,10 +930,12 @@ Here is another way to use two windows to display two different things:
 * MULTIPLE FRAMES
 ------------------
 
-Emacs can also create multiple "frames" (unless you are using a
-text-only terminal).  A frame is what we call one collection of
-windows, together with its menus, scroll bars, echo area, etc.
-(Some other applications call a frame a "window".)
+Emacs can also create multiple "frames".  A frame is what we call one
+collection of windows, together with its menus, scroll bars, echo
+area, etc.  On graphical displays, what Emacs calls a "frame" is what
+most other applications call a "window".  Multiple graphical frames
+can be shown on the screen at the same time.  On a text terminal, only
+one frame can be shown at a time.
 
 >> Type M-x make-frame <Return>.
    See a new frame appear on your screen.
@@ -967,10 +946,10 @@ There is nothing special about the first frame.
 >> Type M-x delete-frame <Return>.
    This removes the selected frame.
 
-You can also remove a frame by using the normal method provided by
-your window manager (often clicking a button with an "X" at a top
-corner of the frame).  No information is lost when you close a frame
-(or window), it is simply removed from sight and can be restored later.
+You can also remove a frame by using the normal method provided by the
+graphical system (often clicking a button with an "X" at a top corner
+of the frame).  If you remove the Emacs job's last frame this way,
+that exits Emacs.
 
 
 * RECURSIVE EDITING LEVELS
@@ -1035,11 +1014,11 @@ To get more information about a command, use C-h k instead of C-h c.
 
 >> Type C-h k C-p.
 
-This displays the documentation of the function, as well as its
-name, in an Emacs window.  When you are finished reading the
-output, type C-x 1 to get rid of the help text.  You do not have
-to do this right away.  You can do some editing while referring
-to the help text, and then type C-x 1.
+This displays the documentation of the function, as well as its name,
+in an Emacs window.  When you are finished reading the output, type
+C-x 1 to get rid of that window.  You do not have to do this right
+away.  You can do some editing while referring to the help text, and
+then type C-x 1.
 
 Here are some other useful C-h options:
 

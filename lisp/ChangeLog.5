@@ -4501,7 +4501,7 @@
 	(reporter-status-message, reporter-status-count): New variables.
 
 	* reporter.el (reporter-update-status, reporter-beautify-list)
-	reporter-dump-variable): Now smarter about formatting variables
+	(reporter-dump-variable): Now smarter about formatting variables
 	with list values.  Checks the value of reporter-dont-compact-list.
 
 1994-12-23  Richard Stallman  <rms@mole.gnu.ai.mit.edu>
@@ -4732,8 +4732,8 @@
 
 1994-12-18  Lawrence R. Dodd  (dodd@roebling.poly.edu)
 
-	* fortran.el (fortran-end-if, fortran-end-do,
-	fortran-beginning-if, fortran-beginning-do): New subroutines.
+	* fortran.el (fortran-end-if, fortran-end-do)
+	(fortran-beginning-if, fortran-beginning-do): New subroutines.
 	(fortran-blink-matching-if, fortran-blink-matching-do): Use them.
 	(fortran-mark-do, fortran-mark-if): New user functions.
 	(fortran-blink-matching-if, fortran-mode): Doc mod.
@@ -5249,8 +5249,8 @@
 
 1994-11-09  Francesco Potortì  (pot@cnuce.cnr.it)
 
-	* man.el (Man-berkeley-sed-script, Man-sysv-sed-script,
-	Man-cleanup-manpage, Man-fontify-manpage): Handle the "+\bo" form
+	* man.el (Man-berkeley-sed-script, Man-sysv-sed-script)
+	(Man-cleanup-manpage, Man-fontify-manpage): Handle the "+\bo" form
 	(used by aix) in addition to the "o\b+" one (used by sun).
 
 1994-11-09  Karl Heuer  <kwzh@hal.gnu.ai.mit.edu>
@@ -5285,8 +5285,8 @@
 
 1994-11-08  Ed Reingold  <reingold@albert.gnu.ai.mit.edu>
 
-	* calendar.el (diary-entry-marker, calendar-today-marker,
-	calendar-holiday-marker): Don't supersede attributes for faces
+	* calendar.el (diary-entry-marker, calendar-today-marker)
+	(calendar-holiday-marker): Don't supersede attributes for faces
 	`diary-face', `calendar-display-face', or `holiday-face' if they
 	are already defined.
 
@@ -5341,7 +5341,7 @@
 	* bytecomp.el (byte-compile-insert-header): Escape backslashes
 	in FILENAME when putting it inside a string constant.
 
-1994-10-31  voelker  <voelker@cs.washington.edu>
+1994-10-31  Geoff Voelker  <voelker@cs.washington.edu>
 
 	* makefile.nt: New file.
 
@@ -5634,8 +5634,8 @@
 
 1994-10-22  Roland McGrath  <roland@churchy.gnu.ai.mit.edu>
 
-	* dired-aux.el (dired-do-tags-search,
-	dired-do-tags-query-replace): New functions.
+	* dired-aux.el (dired-do-tags-search, dired-do-tags-query-replace):
+	New functions.
 	* dired.el (dired-mode-map): Bind A to dired-do-tags-search, Q to
 	dired-do-tags-query-replace.
 
@@ -5665,8 +5665,8 @@
 
 1994-10-20  Noah Friedman  <friedman@splode.com>
 
-	* timer.el (timer-error, timer-abnormal-termination,
-	timer-filter-error): New error conditions.
+	* timer.el (timer-error, timer-abnormal-termination)
+	(timer-filter-error): New error conditions.
 	(timer-process-filter, timer-process-sentinel): Signal an error,
 	don't just print a message.
 
@@ -5707,8 +5707,8 @@
 
 1994-10-19  Boris Goldowsky  <boris@cs.rochester.edu>
 
-	* facemenu.el (facemenu-face-menu, facemenu-foreground-menu,
-	facemenu-background-menu, facemenu-special-menu): New or renamed
+	* facemenu.el (facemenu-face-menu, facemenu-foreground-menu)
+	(facemenu-background-menu, facemenu-special-menu): New or renamed
 	variables for submenus.
 	* facemenu.el (facemenu-color-alist): Renamed from facemenu-colors.
 	* facemenu.el (facemenu-add-new-face): New function.
@@ -5901,8 +5901,8 @@
 	(facemenu-add-face, facemenu-discard-redundant-faces): New functions.
 
 	* facemenu.el (facemenu-set-foreground, facemenu-set-background)
-	(facemenu-get-face, facemenu-foreground, facemenu-background): New
-	functions and variables.  Faces with names of the form fg:color
+	(facemenu-get-face, facemenu-foreground, facemenu-background):
+	New functions and variables.  Faces with names of the form fg:color
 	and bg:color are now treated specially.
 	(facemenu-update): Updated for above.
 
@@ -6168,10 +6168,10 @@
 	* comint.el (comint-check-proc): Recognize `open'.
 	(comint-exec): Use open-network-stream if command is a cons pair.
 
-	* font-lock.el (compilation-mode-font-lock-keywords,
-	rmail-summary-font-lock-keywords, dired-font-lock-keywords,
-	shell-font-lock-keywords, texi-font-lock-keywords,
-	perl-font-lock-keywords): Deleted.
+	* font-lock.el (compilation-mode-font-lock-keywords)
+	(rmail-summary-font-lock-keywords, dired-font-lock-keywords)
+	(shell-font-lock-keywords, texi-font-lock-keywords)
+	(perl-font-lock-keywords): Delete.
 
 	* sh-script.el (sh-font-lock-keywords): Default to nil.
 
@@ -6232,7 +6232,7 @@
 	(Man-filter-list, Man-original-frame, Man-arguments)
 	(Man-fontify-manpage-flag, Man-sections-alist, Man-refpages-alist)
 	(Man-uses-untabify-flag, Man-page-mode-string, Man-sed-script):
-	Added defvar's to keep the compiler quiet.
+	Add defvar's to keep the compiler quiet.
 	(Man-getpage-in-background): Start buffer name with "*Man ".
 	instead of "*man " to avoid conflict with "*mail*".
 	(Man-match-substring): Defsubst moved before first call.
@@ -7016,7 +7016,7 @@
 
 	* vc-hooks.el (vc-file-not-found-hook): Use save-excursion.
 
-1994-09-18  Kenneth Manheimer  (klm@coil.nist.gov)
+1994-09-18  Ken Manheimer  (klm@coil.nist.gov)
 
 	* icomplete.el: Major rewrite to behave more like a minor mode.
 	Doc fixes.
@@ -7233,14 +7233,14 @@
 
 1994-09-14  Boris Goldowsky  <boris@cs.rochester.edu>
 
-	* simple.el (repeat-complex-command, next-history-element,
-	previous-matching-history-element): Override print-level when
+	* simple.el (repeat-complex-command, next-history-element)
+	(previous-matching-history-element): Override print-level when
 	offering command lines to edit.
 
 1994-09-13  Karl Heuer  <kwzh@hal.gnu.ai.mit.edu>
 
-	* faces.el (make-face-unbold, make-face-unitalic, make-face-bold,
-	make-face-italic, make-face-bold-italic): Don't try to frob font
+	* faces.el (make-face-unbold, make-face-unitalic, make-face-bold)
+	(make-face-italic, make-face-bold-italic): Don't try to frob font
 	if it's nil.
 
 1994-09-11  Richard Stallman  <rms@mole.gnu.ai.mit.edu>
@@ -7967,8 +7967,8 @@
 	Now accommodates buffer identifications generated by
 	mode-line.el and uniquify.el.
 
-	* ediff.el (ediff-current-diff-face-A/B,
-	ediff-fine-diff-face-A/B,ediff-odd/even-diff-face-A/B):
+	* ediff.el (ediff-current-diff-face-A/B)
+	(ediff-fine-diff-face-A/B, ediff-odd/even-diff-face-A/B):
 	Variables changed to contain face names
 	instead of face internal representation.
 
@@ -8714,9 +8714,9 @@
 
 1994-06-22  Noah Friedman  (friedman@splode.com)
 
-	* rsz-mini.el (resize-minibuffer-window-exactly,
-	resize-minibuffer-frame, resize-minibuffer-frame-exactly): Doc
-	fixes.
+	* rsz-mini.el (resize-minibuffer-window-exactly)
+	(resize-minibuffer-frame, resize-minibuffer-frame-exactly):
+	Doc fixes.
 	(resize-minibuffer-frame-exactly): Make default t.
 	(resize-minibuffer-frame-original-height): New variable.
 	(resize-minibuffer-setup): Set it locally in the minibuffer.
@@ -8912,8 +8912,8 @@
 
 1994-06-17  Roland McGrath  (roland@geech.gnu.ai.mit.edu)
 
-	* etags.el (tags-table-computed-list,
-	tags-table-computed-list-for): New variables.
+	* etags.el (tags-table-computed-list)
+	(tags-table-computed-list-for): New variables.
 	(tags-table-list-pointer, tags-table-list-started-at): Doc fixes.
 	(tags-table-parent-pointer-list): Variable removed.
 	(tags-table-check-computed-list, tags-table-extend-computed-list): New

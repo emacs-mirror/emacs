@@ -299,7 +299,8 @@ functionality.
 	       ;; support, or no gnutls-cli installed.
 	       (eq resulting-type 'plain))
       (setq error
-	    (if starttls-available
+	    (if (or (null starttls-command)
+		    starttls-available)
 		"Server does not support TLS"
 	      (concat "Emacs does not support TLS, and no external `"
 		      (if starttls-use-gnutls

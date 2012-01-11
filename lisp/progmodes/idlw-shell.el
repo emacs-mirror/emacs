@@ -227,7 +227,7 @@ window, but is useful for stepping, etc."
   "Obsolete variable.  See `idlwave-shell-debug-modifiers'.")
 
 (defcustom idlwave-shell-use-truename nil
-  "*Non-nil means, use use `file-truename' when looking for buffers.
+  "*Non-nil means, use `file-truename' when looking for buffers.
 If this variable is non-nil, Emacs will use the function `file-truename' to
 resolve symbolic links in the file paths printed by e.g., STOP commands.
 This means, unvisited files will be loaded under their truename.

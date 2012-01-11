@@ -1,3 +1,10 @@
+2012-01-10  Chong Yidong  <cyd@gnu.org>
+
+	* tutorials/TUTORIAL: Don't give instructions for old-style X
+	scrollbars.  Use DEL terminology instead of DelBack.  Improve
+	description of graphical continuation lines and mode-line.
+	Promote use of C-/ and C-SPC.  Remove discussion of flow control.
+
 2012-01-05  Glenn Morris  <rgm@gnu.org>
 
 	* refcards/calccard.tex, refcards/cs-dired-ref.tex:
