@@ -1,3 +1,7 @@
+2012-01-12  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* xdisp.c (rows_from_pos_range): Add parens as per gcc -Wparentheses.
+
 2012-01-11  Eli Zaretskii  <eliz@gnu.org>
 
 	* xdisp.c (rows_from_pos_range): Handle the case where the

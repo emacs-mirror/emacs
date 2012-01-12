@@ -25932,14 +25932,14 @@ rows_from_pos_range (struct window *w,
 	  while (g < e)
 	    {
 	      if (((BUFFERP (g->object) || INTEGERP (g->object))
-		   && (start_charpos <= g->charpos && g->charpos < end_charpos
+		   && ((start_charpos <= g->charpos && g->charpos < end_charpos)
 		       /* If the buffer position of the first glyph in
 			  the row is equal to END_CHARPOS, it means
 			  the last character to be highlighted is the
 			  newline of ROW, and we must consider NEXT as
 			  END, not END+1.  */
-		       || ((!next->reversed_p && g == s
-			    || next->reversed_p && g == e - 1)
+		       || (((!next->reversed_p && g == s)
+			    || (next->reversed_p && g == e - 1))
 			   && (g->charpos == end_charpos
 			       /* Special case for when NEXT is an
 				  empty line at ZV.  */
