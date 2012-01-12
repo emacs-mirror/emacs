@@ -730,6 +730,7 @@ Turning on Mail mode runs the normal hooks `text-mode-hook' and
       (set (make-local-variable 'comment-start-skip)
 	   (concat "^" (regexp-quote mail-yank-prefix) "[ \t]*")))
   (make-local-variable 'adaptive-fill-regexp)
+  ;; Also update the paragraph-separate entry if you change this.
   (setq adaptive-fill-regexp
 	(concat "[ \t]*[-[:alnum:]]+>+[ \t]*\\|"
 		adaptive-fill-regexp))
