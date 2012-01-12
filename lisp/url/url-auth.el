@@ -69,6 +69,7 @@ instead of the filename inheritance method."
 	 (file (url-filename href))
 	 (user (url-user href))
 	 (pass (url-password href))
+	 (enable-recursive-minibuffers t) ; for url-handler-mode (bug#10298)
 	 byserv retval data)
     (setq server (format "%s:%d" server port)
 	  file (cond
