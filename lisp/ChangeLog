@@ -1,3 +1,8 @@
+2012-01-12  Glenn Morris  <rgm@gnu.org>
+
+	* mail/sendmail.el (mail-mode): Update paragraph-separate for
+	changes in adaptive-fill-regexp.  (Bug#10276)
+
 2012-01-11  Alan Mackenzie  <acm@muc.de>
 
 	Fix Emacs bug #10463 - put `widen's around the critical spots.
