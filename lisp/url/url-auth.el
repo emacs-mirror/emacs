@@ -164,6 +164,7 @@ instead of hostname:portnum."
 	     (type (url-type href))
 	     (port (url-port href))
 	     (file (url-filename href))
+	     (enable-recursive-minibuffers t)
 	     user pass byserv retval data)
 	(setq file (cond
 		    (realm realm)
