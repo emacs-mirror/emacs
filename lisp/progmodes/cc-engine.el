@@ -4211,12 +4211,14 @@ The last point calculated is cached if the cache is enabled, i.e. if
 
 Note that this function might do hidden buffer changes.  See the
 comment at the start of cc-engine.el for more info."
-  (let* ((safe-place (c-state-safe-place (point)))
-	 (lit (c-state-pp-to-literal safe-place (point))))
-    (or (cadr lit)
-	(and detect-cpp
-	     (save-excursion (c-beginning-of-macro))
-	     'pound))))
+  (save-restriction
+    (widen)
+    (let* ((safe-place (c-state-safe-place (point)))
+	   (lit (c-state-pp-to-literal safe-place (point))))
+      (or (cadr lit)
+	  (and detect-cpp
+	       (save-excursion (c-beginning-of-macro))
+	       'pound)))))
 
 (defun c-literal-limits (&optional lim near not-in-delimiter)
   "Return a cons of the beginning and end positions of the comment or
@@ -4236,9 +4238,10 @@ comment at the start of cc-engine.el for more info."
   (save-excursion
     (let* ((pos (point))
 	   (lim (or lim (c-state-safe-place pos)))
-	   (pp-to-lit (c-state-pp-to-literal lim pos))
+	   (pp-to-lit (save-restriction
+			(widen)
+			(c-state-pp-to-literal lim pos)))
 	   (state (car pp-to-lit))
-	   (lit-type (cadr pp-to-lit))
 	   (lit-limits (car (cddr pp-to-lit))))
 
       (cond
