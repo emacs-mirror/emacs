@@ -1,3 +1,7 @@
+2012-01-12  Sven Joachim  <svenjoac@gmx.de>
+
+	* s/gnu-linux.h: Use CRT_DIR.
+
 2011-11-11  Johan Bockgård  <bojohan@gnu.org>
 
 	* xdisp.c (fill_composite_glyph_string): Always set s->face, to
