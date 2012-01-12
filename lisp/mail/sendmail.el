@@ -745,8 +745,8 @@ Turning on Mail mode runs the normal hooks `text-mode-hook' and
   ;; are also sometimes used and should be separators.
   (setq paragraph-separate
 	(concat (regexp-quote mail-header-separator)
-		;; This is based on adaptive-fill-regexp.
-		;; Presumably the idea is to allow filling of cited paragraphs.
+		;; This is based on adaptive-fill-regexp (presumably
+		;; the idea is to allow navigation etc of cited paragraphs).
 		"$\\|\t*[-–!|#%;>*·•‣⁃◦ ]+$"
 		"\\|[ \t]*[-[:alnum:]]*>+[ \t]*$\\|[ \t]*$\\|"
 		"--\\( \\|-+\\)$\\|"
