@@ -1,8 +1,8 @@
-2011-12-26  Kenichi Handa  <handa@m17n.org>
+2011-01-13  Kenichi Handa  <handa@m17n.org>
 
 	* character.c (char_width): New function.
-	(Fchar_width, c_string_width, lisp_string_width): Use char_width
-	(Bug#9496).
+	(Fchar_width, c_string_width, lisp_string_width):
+	Use char_width (Bug#9496).
 
 2012-01-12  Sven Joachim  <svenjoac@gmx.de>
 
