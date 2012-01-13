@@ -1,6 +1,6 @@
 ;;; mailclient.el --- mail sending via system's mail client.  -*- byte-compile-dynamic: t -*-
 
-;; Copyright (C) 2005, 2006, 2007, 2008, 2009, 2010, 2011 Free Software Foundation
+;; Copyright (C) 2005, 2006, 2007, 2008, 2009, 2010, 2011, 2012 Free Software Foundation, Inc.
 
 ;; Author: David Reitter <david.reitter@gmail.com>
 ;; Keywords: mail

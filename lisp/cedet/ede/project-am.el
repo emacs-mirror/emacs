@@ -1,6 +1,6 @@
 ;;; project-am.el --- A project management scheme based on automake files.
 
-;; Copyright (C) 1998, 1999, 2000, 2003, 2005, 2007, 2008, 2009, 2010, 2011
+;; Copyright (C) 1998, 1999, 2000, 2003, 2005, 2007, 2008, 2009, 2010, 2011, 2012
 ;;   Free Software Foundation, Inc.
 
 ;; Author: Eric M. Ludlam <zappo@gnu.org>

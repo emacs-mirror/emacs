@@ -1,6 +1,6 @@
 ;;; ucs-normalize.el --- Unicode normalization NFC/NFD/NFKD/NFKC
 
-;; Copyright (C) 2009, 2010, 2011
+;; Copyright (C) 2009, 2010, 2011, 2012
 ;;   Free Software Foundation, Inc.
 
 ;; Author: Taichi Kawabata <kawabata.taichi@gmail.com>

@@ -1,6 +1,6 @@
 ;;; vc-mtn.el --- VC backend for Monotone
 
-;; Copyright (C) 2007, 2008, 2009, 2010, 2011  Free Software Foundation, Inc.
+;; Copyright (C) 2007, 2008, 2009, 2010, 2011, 2012  Free Software Foundation, Inc.
 
 ;; Author: Stefan Monnier <monnier@iro.umontreal.ca>
 ;; Keywords: 

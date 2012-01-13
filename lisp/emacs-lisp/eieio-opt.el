@@ -1,7 +1,7 @@
 ;;; eieio-opt.el -- eieio optional functions (debug, printing, speedbar)
 
 ;; Copyright (C) 1996, 1998, 1999, 2000, 2001, 2002, 2003, 2005, 2008,
-;;   2009, 2010, 2011  Free Software Foundation, Inc.
+;;   2009, 2010, 2011, 2012  Free Software Foundation, Inc.
 
 ;; Author: Eric M. Ludlam <zappo@gnu.org>
 ;; Version: 0.2

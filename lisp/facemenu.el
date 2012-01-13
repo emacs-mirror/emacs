@@ -1,7 +1,7 @@
 ;;; facemenu.el --- create a face menu for interactively adding fonts to text
 
 ;; Copyright (C) 1994, 1995, 1996, 2001, 2002, 2003, 2004,
-;;   2005, 2006, 2007, 2008, 2009, 2010, 2011 Free Software Foundation, Inc.
+;;   2005, 2006, 2007, 2008, 2009, 2010, 2011, 2012 Free Software Foundation, Inc.
 
 ;; Author: Boris Goldowsky <boris@gnu.org>
 ;; Keywords: faces

@@ -1107,7 +1107,7 @@ To besedilo, kot sam GNU Emacs, je avtorsko delo, in njegovo
 razmno¾evanje in raz¹irjanje je dovoljeno pod naslednjimi pogoji:
 
 Copyright (C) 1985, 1996, 1998, 2001, 2002, 2003, 2004,
-   2005, 2006, 2007, 2008, 2009, 2010, 2011  Free Software Foundation, Inc.
+   2005, 2006, 2007, 2008, 2009, 2010, 2011, 2012  Free Software Foundation, Inc.
 
    Dovoljeno je izdelovati in raz¹irjati neokrnjene kopije tega spisa
    v kakr¹nikoli obliki pod pogojem, da je ohranjena navedba o

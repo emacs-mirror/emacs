@@ -1,6 +1,6 @@
 ;;; org-datetree.el --- Create date entries in a tree
 
-;; Copyright (C) 2009, 2010, 2011 Free Software Foundation, Inc.
+;; Copyright (C) 2009, 2010, 2011, 2012 Free Software Foundation, Inc.
 
 ;; Author: Carsten Dominik <carsten at orgmode dot org>
 ;; Keywords: outlines, hypermedia, calendar, wp

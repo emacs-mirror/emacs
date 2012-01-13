@@ -1,7 +1,7 @@
 /* Manipulation of keymaps
    Copyright (C) 1985, 1986, 1987, 1988, 1993, 1994, 1995,
                  1998, 1999, 2000, 2001, 2002, 2003, 2004,
-                 2005, 2006, 2007, 2008, 2009, 2010, 2011 Free Software Foundation, Inc.
+                 2005, 2006, 2007, 2008, 2009, 2010, 2011, 2012 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -2529,10 +2529,11 @@ around function keys and event symbols.  */)
 
   if (INTEGERP (key))		/* Normal character */
     {
-      char tem[KEY_DESCRIPTION_SIZE];
+      char tem[KEY_DESCRIPTION_SIZE], *p;
 
-      *push_key_description (XUINT (key), tem, 1) = 0;
-      return build_string (tem);
+      p = push_key_description (XUINT (key), tem, 1);
+      *p = 0;
+      return make_specified_string (tem, -1, p - tem, 1);
     }
   else if (SYMBOLP (key))	/* Function key or event-symbol */
     {

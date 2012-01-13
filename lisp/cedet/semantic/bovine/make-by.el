@@ -1,6 +1,6 @@
 ;;; semantic/bovine/make-by.el --- Generated parser support file
 
-;; Copyright (C) 1999, 2000, 2001, 2002, 2003, 2004, 2008, 2009, 2010, 2011
+;; Copyright (C) 1999, 2000, 2001, 2002, 2003, 2004, 2008, 2009, 2010, 2011, 2012
 ;;   Free Software Foundation, Inc.
 
 ;; This file is part of GNU Emacs.
@@ -20,8 +20,7 @@
 
 ;;; Commentary:
 ;;
-;; This file was generated from the grammar file
-;; semantic/bovine/make.by in the CEDET repository.
+;; This file was generated from etc/grammars/make.by.
 
 ;;; Code:
 

@@ -1,6 +1,6 @@
 ;;; semantic/grammar-wy.el --- Generated parser support file
 
-;; Copyright (C) 2002, 2003, 2004, 2009, 2010, 2011  Free Software Foundation, Inc.
+;; Copyright (C) 2002, 2003, 2004, 2009, 2010, 2011, 2012  Free Software Foundation, Inc.
 
 ;; Author: David Ponce <david@dponce.com>
 ;; Keywords: syntax
@@ -22,8 +22,7 @@
 
 ;;; Commentary:
 ;;
-;; This file is generated from the grammar file semantic-grammar.wy in
-;; the upstream CEDET repository.
+;; This file was generated from etc/grammars/grammar.wy.
 
 ;;; Code:
 

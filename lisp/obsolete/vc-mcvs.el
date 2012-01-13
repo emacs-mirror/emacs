@@ -1,6 +1,6 @@
 ;;; vc-mcvs.el --- VC backend for the Meta-CVS version-control system
 
-;; Copyright (C) 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010, 2011
+;; Copyright (C) 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010, 2011, 2012
 ;;   Free Software Foundation, Inc.
 
 ;; Author:      FSF (see vc.el for full credits)

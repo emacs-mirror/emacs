@@ -1,7 +1,7 @@
 ;;; xt-mouse.el --- support the mouse when emacs run in an xterm
 
 ;; Copyright (C) 1994, 2000, 2001, 2002, 2003,
-;;   2004, 2005, 2006, 2007, 2008, 2009, 2010, 2011 Free Software Foundation, Inc.
+;;   2004, 2005, 2006, 2007, 2008, 2009, 2010, 2011, 2012 Free Software Foundation, Inc.
 
 ;; Author: Per Abrahamsen <abraham@dina.kvl.dk>
 ;; Keywords: mouse, terminals
@@ -121,10 +121,17 @@
 
 ;; read xterm sequences above ascii 127 (#x7f)
 (defun xterm-mouse-event-read ()
+  ;; We get the characters decoded by the keyboard coding system.  Try
+  ;; to recover the raw character.
   (let ((c (read-char)))
-    (if (> c #x3FFF80)
-        (+ 128 (- c #x3FFF80))
-      c)))
+    (cond ;; If meta-flag is t we get a meta character
+	  ((>= c ?\M-\^@)
+	   (- c (- ?\M-\^@ 128)))
+	  ;; Reencode the character in the keyboard coding system, if
+	  ;; this is a non-ASCII character.
+	  ((>= c #x80)
+	   (aref (encode-coding-string (string c) (keyboard-coding-system)) 0))
+	  (t c))))
 
 (defun xterm-mouse-truncate-wrap (f)
   "Truncate with wrap-around."

@@ -1,7 +1,7 @@
 ;;; bytecomp.el --- compilation of Lisp code into byte code
 
 ;; Copyright (C) 1985, 1986, 1987, 1992, 1994, 1998, 2000, 2001, 2002,
-;;   2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010, 2011 Free Software Foundation, Inc.
+;;   2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010, 2011, 2012 Free Software Foundation, Inc.
 
 ;; Author: Jamie Zawinski <jwz@lucid.com>
 ;;	Hallvard Furuseth <hbf@ulrik.uio.no>

@@ -466,7 +466,7 @@ Compilation segmentation fault at Thu Jul 13 10:55:49
 Compilation finished at Thu Jul 21 15:02:15
 
 
-Copyright (C) 2004, 2005, 2006, 2007, 2008, 2009, 2010, 2011
+Copyright (C) 2004, 2005, 2006, 2007, 2008, 2009, 2010, 2011, 2012
 Free Software Foundation, Inc.
 
 COPYING PERMISSIONS:

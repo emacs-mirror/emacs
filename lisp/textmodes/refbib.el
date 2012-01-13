@@ -1,7 +1,7 @@
 ;;; refbib.el --- convert refer-style references to ones usable by Latex bib
 
 ;; Copyright (C) 1989, 2001, 2002, 2003, 2004, 2005,
-;;   2006, 2007, 2008, 2009, 2010, 2011 Free Software Foundation, Inc.
+;;   2006, 2007, 2008, 2009, 2010, 2011, 2012 Free Software Foundation, Inc.
 
 ;; Author: Henry Kautz <kautz@research.att.com>
 ;; Maintainer: FSF

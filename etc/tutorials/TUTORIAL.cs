@@ -1016,7 +1016,7 @@ Tato verze tutoriálu je, podobnì jako GNU Emacs, chránìna copyrightem a
 je ¹íøena se svolením distribuovat kopie za jistých podmínek:
 
 Copyright (C) 1985, 1996, 1998, 2001, 2002, 2003, 2004,
-   2005, 2006, 2007, 2008, 2009, 2010, 2011  Free Software Foundation, Inc.
+   2005, 2006, 2007, 2008, 2009, 2010, 2011, 2012  Free Software Foundation, Inc.
 
    Ka¾dému je zaruèeno právo vytváøet a distribuovat pøesné kopie tohoto
    dokumentu tak, jak jej obdr¾el, na jakémkoliv médiu, s tím, ¾e bude

@@ -1,6 +1,6 @@
 ;;; erc-capab.el --- support for dancer-ircd and hyperion's CAPAB
 
-;; Copyright (C) 2006, 2007, 2008, 2009, 2010, 2011 Free Software Foundation, Inc.
+;; Copyright (C) 2006, 2007, 2008, 2009, 2010, 2011, 2012 Free Software Foundation, Inc.
 
 ;; GNU Emacs is free software: you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by

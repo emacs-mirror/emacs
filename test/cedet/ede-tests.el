@@ -1,6 +1,6 @@
 ;;; ede-tests.el --- Some tests for the Emacs Development Environment
 
-;; Copyright (C) 2008, 2009, 2010, 2011  Free Software Foundation, Inc.
+;; Copyright (C) 2008, 2009, 2010, 2011, 2012  Free Software Foundation, Inc.
 
 ;; Author: Eric M. Ludlam <eric@siege-engine.com>
 

@@ -1,7 +1,7 @@
 ;;; erc-dcc.el --- CTCP DCC module for ERC
 
 ;; Copyright (C) 1993, 1994, 1995, 1998, 2002, 2003, 2004, 2006, 2007,
-;;   2008, 2009, 2010, 2011  Free Software Foundation, Inc.
+;;   2008, 2009, 2010, 2011, 2012  Free Software Foundation, Inc.
 
 ;; Author: Ben A. Mesander <ben@gnu.ai.mit.edu>
 ;;         Noah Friedman <friedman@prep.ai.mit.edu>

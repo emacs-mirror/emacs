@@ -1,5 +1,5 @@
 /* Fontset handler.
-   Copyright (C) 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010, 2011
+   Copyright (C) 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010, 2011, 2012
      Free Software Foundation, Inc.
    Copyright (C) 1995, 1996, 1997, 1998, 1999, 2000, 2001, 2002, 2003, 2004,
      2005, 2006, 2007, 2008, 2009, 2010, 2011
@@ -463,7 +463,7 @@ reorder_font_vector (font_group, font)
 /* Return a font-group (actually a cons (-1 . FONT-GROUP-VECTOR)) for
    character C in FONTSET.  If C is -1, return a fallback font-group.
    If C is not -1, the value may be Qt (FONTSET doesn't have a font
-   for C even in the fallback group, or 0 (a font for C may be found
+   for C even in the fallback group), or 0 (a font for C may be found
    only in the fallback group).  */
 
 static Lisp_Object
@@ -481,7 +481,9 @@ fontset_get_font_group (Lisp_Object fontset, int c)
   if (! NILP (font_group))
     return font_group;
   base_fontset = FONTSET_BASE (fontset);
-  if (c >= 0)
+  if (NILP (base_fontset))
+    font_group = Qnil;
+  else if (c >= 0)
     font_group = char_table_ref_and_range (base_fontset, c, &from, &to);
   else
     font_group = FONTSET_FALLBACK (base_fontset);
@@ -492,6 +494,8 @@ fontset_get_font_group (Lisp_Object fontset, int c)
 	char_table_set_range (fontset, from, to, font_group);
       return font_group;
     }
+  if (!VECTORP (font_group))
+    return font_group;
   font_group = Fcopy_sequence (font_group);
   for (i = 0; i < ASIZE (font_group); i++)
     if (! NILP (AREF (font_group, i)))

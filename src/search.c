@@ -1,6 +1,6 @@
 /* String search routines for GNU Emacs.
    Copyright (C) 1985, 1986, 1987, 1993, 1994, 1997, 1998, 1999, 2001, 2002,
-                 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010, 2011
+                 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010, 2011, 2012
                  Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
@@ -1837,7 +1837,7 @@ boyer_moore (n, base_pat, len, len_byte, trt, inverse_trt,
 		ch = -1;
 	    }
 
-	  if (ch >= 0200)
+	  if (ch >= 0200 && multibyte)
 	    j = (ch & 0x3F) | 0200;
 	  else
 	    j = *ptr;
@@ -1856,7 +1856,7 @@ boyer_moore (n, base_pat, len, len_byte, trt, inverse_trt,
 	      while (1)
 		{
 		  TRANSLATE (ch, inverse_trt, ch);
-		  if (ch >= 0200)
+		  if (ch >= 0200 && multibyte)
 		    j = (ch & 0x3F) | 0200;
 		  else
 		    j = ch;

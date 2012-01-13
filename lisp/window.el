@@ -1,7 +1,7 @@
 ;;; window.el --- GNU Emacs window commands aside from those written in C
 
 ;; Copyright (C) 1985, 1989, 1992, 1993, 1994, 2000, 2001, 2002,
-;;   2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010, 2011
+;;   2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010, 2011, 2012
 ;;   Free Software Foundation, Inc.
 
 ;; Maintainer: FSF
@@ -1314,7 +1314,7 @@ window."
 (defun split-window-horizontally (&optional size)
   "Split selected window into two windows side by side.
 The selected window becomes the left one and gets SIZE columns.
-SIZE negative means the right window gets -SIZE lines.
+SIZE negative means the right window gets -SIZE columns.
 
 SIZE includes the width of the window's scroll bar; if there are
 no scroll bars, it includes the width of the divider column to

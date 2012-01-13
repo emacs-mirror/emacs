@@ -1,3 +1,92 @@
+2012-01-12  Sven Joachim  <svenjoac@gmx.de>
+
+	* s/gnu-linux.h: Use CRT_DIR.
+
+2011-11-11  Johan Bockgård  <bojohan@gnu.org>
+
+	* xdisp.c (fill_composite_glyph_string): Always set s->face, to
+	avoid a crash (bug#9496).
+
+2012-01-09  Chong Yidong  <cyd@gnu.org>
+
+	* xdisp.c (note_mouse_highlight): Fix use of uninitialized var.
+
+2012-01-09  Eli Zaretskii  <eliz@gnu.org>
+
+	* xdisp.c (note_mouse_highlight): Initialize `area'.  (Bug#9947)
+	Initialize `part', to avoid a possible random value that matches
+	one of those tested as condition to clear the mouse face.
+
+2012-01-09  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
+
+	* dispnew.c (scrolling_window): Truncate overlaps in copy
+	destination of scroll runs so as to avoid assigning disabled bogus
+	rows and unnecessary graphics copy operations.
+
+2012-01-09  Eli Zaretskii  <eliz@gnu.org>
+
+	* dispnew.c (scrolling_window): Fix incorrect indices in accessing
+	current_matrix and desired_matrix.  (Bug#9990)
+
+2011-10-31  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
+
+	* xmenu.c (cleanup_widget_value_tree): New function.
+	(xmenu_show, xdialog_show): Use it in record_unwind_protect instead of
+	calling free_menubar_widget_value_tree directly (Bug#9830).
+
+2011-09-19  Andreas Schwab  <schwab@linux-m68k.org>
+
+	* keymap.c (Fsingle_key_description): Use make_specified_string
+	instead of build_string to build string from push_key_description.
+	(Bug#5193)
+
+2011-09-10  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
+
+	* xdisp.c (expose_window): Save original value of phys_cursor_on_p
+	and turn window cursor on if cleared (Bug#9415).
+
+2011-09-07  Andreas Schwab  <schwab@linux-m68k.org>
+
+	* search.c (boyer_moore): Take unibyte characters from pattern
+	literally.  (Bug#9458)
+
+2011-08-30  Chong Yidong  <cyd@stupidchicken.com>
+
+	* syntax.c (find_defun_start): Update all cache variables if
+	exiting early (Bug#9401).
+
+2011-08-19  Andreas Schwab  <schwab@linux-m68k.org>
+
+	* keyboard.c: Include "process.h"
+
+2011-07-28  Eli Zaretskii  <eliz@gnu.org>
+
+	* xfaces.c (update_face_from_frame_parameter): Move out of
+	HAVE_WINDOW_SYSTEM portion.  Condition window-system only parts
+	with HAVE_WINDOW_SYSTEM.
+
+2011-07-26  Andreas Schwab  <schwab@linux-m68k.org>
+
+	* fontset.c (fontset_get_font_group): Add proper type checks.
+	(Bug#9172)
+
+2011-07-23  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
+
+	* unexmacosx.c (print_load_command_name): Add cases LC_FUNCTION_STARTS
+	and LC_VERSION_MIN_MACOSX.
+	(copy_linkedit_data) [LC_FUNCTION_STARTS]: New function.
+	(dump_it) [LC_FUNCTION_STARTS]: Use it.
+
+2011-07-22  Chong Yidong  <cyd@stupidchicken.com>
+
+	* frame.c (Fmodify_frame_parameters): In tty case, update the
+	default face if necessary (Bug#4238).
+
+2011-07-11  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
+
+	* s/darwin.h (LD_SWITCH_SYSTEM_TEMACS): Add -fno-pie so as to suppress
+	address randomization (Bug#8395).
+
 2011-07-07  Kenichi Handa  <handa@m17n.org>
 
 	* composite.c (composition_compute_stop_pos): Ignore a static
@@ -22915,7 +23004,7 @@ See ChangeLog.10 for earlier changes.
 ;; add-log-time-zone-rule: t
 ;; End:
 
-    Copyright (C) 2007, 2008, 2009, 2010, 2011  Free Software Foundation, Inc.
+    Copyright (C) 2007, 2008, 2009, 2010, 2011, 2012  Free Software Foundation, Inc.
 
   This file is part of GNU Emacs.
 

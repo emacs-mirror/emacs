@@ -1,7 +1,7 @@
 ;;; eieio-comp.el -- eieio routines to help with byte compilation
 
 ;; Copyright (C) 1995,1996, 1998, 1999, 2000, 2001, 2002, 2005, 2008,
-;;   2009, 2010, 2011  Free Software Foundation, Inc.
+;;   2009, 2010, 2011, 2012  Free Software Foundation, Inc.
 
 ;; Author: Eric M. Ludlam <zappo@gnu.org>
 ;; Version: 0.2

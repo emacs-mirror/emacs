@@ -1,7 +1,7 @@
 ;;; hi-lock.el --- minor mode for interactive automatic highlighting
 
 ;; Copyright (C) 2000, 2001, 2002, 2003, 2004, 2005, 2006, 2007,
-;;   2008, 2009, 2010, 2011 Free Software Foundation, Inc.
+;;   2008, 2009, 2010, 2011, 2012 Free Software Foundation, Inc.
 
 ;; Author: David M. Koppelman <koppel@ece.lsu.edu>
 ;; Keywords: faces, minor-mode, matching, display
@@ -461,7 +461,9 @@ interactive functions.  \(See `hi-lock-interactive-patterns'.\)
 \\<minibuffer-local-must-match-map>Use \\[minibuffer-complete] to complete a partially typed regexp.
 \(See info node `Minibuffer History'.\)"
   (interactive
-   (if (and (display-popup-menus-p) (not last-nonmenu-event))
+   (if (and (display-popup-menus-p)
+	    (listp last-nonmenu-event)
+	    use-dialog-box)
        (catch 'snafu
 	 (or
 	  (x-popup-menu

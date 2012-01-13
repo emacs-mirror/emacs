@@ -1,6 +1,6 @@
 ;;; ind-util.el --- Transliteration and Misc. Tools for Indian Languages -*- coding: iso-2022-7bit; -*-
 
-;; Copyright (C) 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010, 2011
+;; Copyright (C) 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010, 2011, 2012
 ;;   Free Software Foundation, Inc.
 
 ;; Maintainer:  KAWABATA, Taichi <kawabata@m17n.org>

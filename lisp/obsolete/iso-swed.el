@@ -1,7 +1,7 @@
 ;;; iso-swed.el --- set up char tables for ISO 8859/1 for Swedish/Finnish ttys
 
 ;; Copyright (C) 1987, 2001, 2002, 2003, 2004, 2005,
-;;   2006, 2007, 2008, 2009, 2010, 2011 Free Software Foundation, Inc.
+;;   2006, 2007, 2008, 2009, 2010, 2011, 2012 Free Software Foundation, Inc.
 
 ;; Author: Howard Gayle
 ;; Maintainer: FSF

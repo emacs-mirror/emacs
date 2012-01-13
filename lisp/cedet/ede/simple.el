@@ -1,6 +1,6 @@
 ;;; ede/simple.el --- Overlay an EDE structure on an existing project
 
-;; Copyright (C) 2007, 2008, 2009, 2010, 2011 Free Software Foundation, Inc.
+;; Copyright (C) 2007, 2008, 2009, 2010, 2011, 2012 Free Software Foundation, Inc.
 
 ;; Author: Eric M. Ludlam <eric@siege-engine.com>
 
@@ -50,7 +50,8 @@
 	      :name "Simple" :file 'ede/simple
 	      :proj-file 'ede-simple-projectfile-for-dir
 	      :load-type 'ede-simple-load
-	      :class-sym 'ede-simple-project)
+	      :class-sym 'ede-simple-project
+	      :safe-p nil)
 	     t)
 
 (defcustom ede-simple-save-directory "~/.ede"

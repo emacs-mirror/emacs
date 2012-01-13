@@ -2,7 +2,7 @@
 
 # b2m.pl - Script to convert a Babyl file to an mbox file
 
-# Copyright (C) 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010, 2011
+# Copyright (C) 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010, 2011, 2012
 #   Free Software Foundation, Inc.
 
 # Maintainer: Jonathan Kamens <jik@kamens.brookline.ma.us>

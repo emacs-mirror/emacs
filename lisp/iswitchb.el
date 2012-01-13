@@ -1,7 +1,7 @@
 ;;; iswitchb.el --- switch between buffers using substrings
 
 ;; Copyright (C) 1996, 1997, 2000, 2001, 2002, 2003, 2004,
-;;   2005, 2006, 2007, 2008, 2009, 2010, 2011 Free Software Foundation, Inc.
+;;   2005, 2006, 2007, 2008, 2009, 2010, 2011, 2012 Free Software Foundation, Inc.
 
 ;; Author: Stephen Eglen <stephen@gnu.org>
 ;; Maintainer: Stephen Eglen <stephen@gnu.org>
@@ -1112,10 +1112,9 @@ Return the modified list with the last element prepended to it."
 If BUFFER is visible in the current frame, return nil."
   (interactive)
   (let ((blist (iswitchb-get-buffers-in-frames 'current)))
-    ;;If the buffer is visible in current frame, return nil
-    (if (memq buffer blist)
-	nil
-      ;;  maybe in other frame or icon
+    ;; If the buffer is visible in current frame, return nil
+    (unless (member buffer blist)
+      ;; maybe in other frame or icon
       (get-buffer-window buffer 0) ; better than 'visible
       )))
 

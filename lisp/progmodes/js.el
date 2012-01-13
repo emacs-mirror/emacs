@@ -1,6 +1,6 @@
 ;;; js.el --- Major mode for editing JavaScript
 
-;; Copyright (C) 2008, 2009, 2010, 2011 Free Software Foundation, Inc.
+;; Copyright (C) 2008, 2009, 2010, 2011, 2012 Free Software Foundation, Inc.
 
 ;; Author: Karl Landstrom <karl.landstrom@brgeight.se>
 ;;         Daniel Colascione <dan.colascione@gmail.com>
