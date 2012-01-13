@@ -1,3 +1,20 @@
+2012-01-09  Eric Ludlam  <zappo@gnu.org>
+
+	* ede.el (ede-project-directories): New option.
+	(ede-directory-safe-p): Check it.
+	(ede-initialize-state-current-buffer, ede, ede-new)
+	(ede-check-project-directory, ede-rescan-toplevel)
+	(ede-load-project-file, ede-parent-project, ede-current-project):
+	(ede-target-parent): Avoid loading in a project unless it is safe,
+	since it may involve malicious code.  This security flaw was
+	pointed out by Hiroshi Oota.
+
+	* ede/auto.el (ede-project-autoload): Add safe-p slot.
+	(ede-project-class-files): Projects using Project.ede are unsafe.
+	(ede-auto-load-project): New method.
+
+	* ede/simple.el (ede-project-class-files): Mark as unsafe.
+
 2011-12-19  Sam Steingold  <sds@gnu.org>
 
 	* semantic/edit.el (semantic-edits-incremental-parser): Add the
