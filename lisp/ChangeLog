@@ -1,5 +1,9 @@
 2012-01-13  Glenn Morris  <rgm@gnu.org>
 
+	* dired.el (dired-switches-escape-p): New function.
+	(dired-insert-directory): Use dired-switches-escape-p.
+	(dired-get-filename): Undo "\ " quoting if needed.  (Bug#10469)
+
 	* find-dired.el (find-ls-option): Doc fix.  (Bug#10262)
 
 2012-01-12  Glenn Morris  <rgm@gnu.org>
