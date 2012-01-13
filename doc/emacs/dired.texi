@@ -1228,9 +1228,9 @@ need to know how to use @command{find}.
 
 @vindex find-ls-option
   The format of listing produced by these commands is controlled by
-the variable @code{find-ls-option}, whose default value specifies
-using options @samp{-ld} for @command{ls}.  If your listings are
-corrupted, you may need to change the value of this variable.
+the variable @code{find-ls-option}.  This is a pair of options; the
+first specifying how to call @command{find} to produce the file listing,
+and the second telling Dired to parse the output.
 
 @findex locate
 @findex locate-with-filter

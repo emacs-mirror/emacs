@@ -1,3 +1,7 @@
+2012-01-13  Glenn Morris  <rgm@gnu.org>
+
+	* dired.texi (Dired and Find): Clarify find-ls-options.
+
 2012-01-09  Chong Yidong  <cyd@gnu.org>
 
 	* custom.texi (Custom Themes): Switched custom-safe-themes to use

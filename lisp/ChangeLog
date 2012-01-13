@@ -1,3 +1,7 @@
+2012-01-13  Glenn Morris  <rgm@gnu.org>
+
+	* find-dired.el (find-ls-option): Doc fix.  (Bug#10262)
+
 2012-01-12  Glenn Morris  <rgm@gnu.org>
 
 	* mail/sendmail.el (mail-mode): Update paragraph-separate for
