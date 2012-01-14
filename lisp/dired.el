@@ -2107,10 +2107,15 @@ Otherwise, an error occurs in these cases."
           ;; Unescape any spaces escaped by ls -b (bug#10469).
           ;; Other -b quotes, eg \t, \n, work transparently.
           (if (dired-switches-escape-p dired-actual-switches)
-              (let ((start 0))
+              (let ((start 0)
+                    (rep "")
+                    (shift -1))
+                (if (eq localp 'verbatim)
+                    (setq rep "\\\\"
+                          shift +1))
                 (while (string-match "\\(\\\\\\) " file start)
-                  (setq file (replace-match "" nil t file 1)
-                        start (1- (match-end 0))))))
+                  (setq file (replace-match rep nil t file 1)
+                        start (+ shift (match-end 0))))))
 	  (when (eq system-type 'windows-nt)
 	    (save-match-data
 	      (let ((start 0))
