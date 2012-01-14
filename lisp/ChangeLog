@@ -1,6 +1,7 @@
 2012-01-14  Chong Yidong  <cyd@gnu.org>
 
 	* startup.el (command-line): Fix X resource class for cursorColor.
+	Fix values recognized by the cursorBlink resource.
 
 2012-01-14  Paul Eggert  <eggert@cs.ucla.edu>
 
