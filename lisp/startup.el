@@ -910,7 +910,7 @@ opening the first frame (e.g. open a connection to an X server).")
 	    (setq no-blinking-cursor t)))
       ;; If the cursorColor X resource exists, alter the `cursor' face
       ;; spec, but mark it as changed outside of Customize.
-      (let ((color (x-get-resource "cursorColor" "CursorColor")))
+      (let ((color (x-get-resource "cursorColor" "Foreground")))
 	(when color
 	  (put 'cursor 'theme-face
 	       `((changed ((t :background ,color)))))
