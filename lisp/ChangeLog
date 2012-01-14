@@ -1,3 +1,8 @@
+2012-01-14  Eli Zaretskii  <eliz@gnu.org>
+
+	* info.el (Info-toc-build): If the Info file has no "Up" pointer,
+	don't pass the (nil) value of `upnode' to string-match.
+
 2012-01-14  Chong Yidong  <cyd@gnu.org>
 
 	* startup.el (command-line): Fix X resource class for cursorColor.
