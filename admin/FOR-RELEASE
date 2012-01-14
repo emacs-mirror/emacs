@@ -133,7 +133,7 @@ buffers.texi      cyd
 building.texi     cyd
 calendar.texi     
 cal-xtra.texi     
-cmdargs.texi      
+cmdargs.texi      cyd
 commands.texi     cyd
 custom.texi       cyd
 dired.texi        cyd
