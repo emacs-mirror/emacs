@@ -1,3 +1,8 @@
+2012-01-14  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* epg.el (epg--make-temp-file): Avoid permission race condition
+	when running on old Emacs versions (bug#10403).
+
 2012-01-14  Glenn Morris  <rgm@gnu.org>
 
 	* dired.el (dired-get-filename): Fix 'verbatim case of previous change.
