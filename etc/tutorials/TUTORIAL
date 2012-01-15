@@ -296,7 +296,7 @@ like A, 7, *, etc., are inserted as you type them.  To insert a
 Newline character, type <Return> (this is the key on the keyboard
 which is sometimes labeled "Enter").
 
-To delete <DEL> the character immediately before the current cursor
+To delete the character immediately before the current cursor
 position, type <DEL>.  This is the key on the keyboard usually labeled
 "Backspace"--the same one you normally use, outside Emacs, to delete
 the last character typed.
