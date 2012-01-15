@@ -1,3 +1,7 @@
+2012-01-15  Michael Albinus  <michael.albinus@gmx.de>
+
+	* net/tramp-sh.el (tramp-remote-path): Set tramp-autoload cookie.
+
 2012-01-14  Eli Zaretskii  <eliz@gnu.org>
 
 	* info.el (Info-toc-build): If the Info file has no "Up" pointer,
