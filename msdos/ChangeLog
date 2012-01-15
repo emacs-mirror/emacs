@@ -1,3 +1,8 @@
+2012-01-14  Eli Zaretskii  <eliz@gnu.org>
+
+	* sed4.inp (PATH_DUMPLOADSEARCH): Edit to "../lisp", for when the
+	default in src/epaths.in will change, maybe.
+
 2011-10-31  Eli Zaretskii  <eliz@gnu.org>
 
 	* sed3v2.inp (insrcdir): Comment out definition.

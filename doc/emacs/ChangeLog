@@ -1,3 +1,43 @@
+2012-01-15  Chong Yidong  <cyd@gnu.org>
+
+	* xresources.texi (X Resources): Describe GTK+ case first.
+	(Resources): Don't use borderWidth as an example, since it doesn't
+	work with GTK+.
+	(Table of Resources): Clarify role of several resources, including
+	the Emacs 24 behavior of cursorBlink etc.
+	(Face Resources): Node deleted.  Recommend using Customize
+	instead.  Add paragraph to `Table of Resources' node summarizing
+	how to use X resources for changing faces.
+	(Lucid Resources): Rewrite, omitting description of font names,
+	referring to the Fonts node instead.
+	(LessTif Resources): Copyedits.
+	(GTK resources): Rewrite, describing the difference between gtk2
+	and gtk3.
+	(GTK Resource Basics): New node.
+	(GTK Widget Names, GTK Names in Emacs): Rewrite.
+	(GTK styles): Just refer to Fonts node for GTK font format.
+
+	* display.texi (Faces): Document the cursor face.
+
+2012-01-14  Chong Yidong  <cyd@gnu.org>
+
+	* cmdargs.texi (Action Arguments): No need to mention
+	EMACSLOADPATH.
+	(General Variables): Add xref to Lisp Libraries.
+	(Initial Options): Copyedits.
+	(Resume Arguments): Node deleted; emacs.bash/csh are obsolete.
+	(Environment): Clarify what getenv does.
+	(General Variables): Clarify EMACSPATH etc.  Emacs does not assume
+	light backgrounds on xterms.
+	(Misc Variables): TEMP and TMP are not Windows-specific.
+	(Display X): Copyedits.
+	(Colors X): -bd does nothing for GTK.
+	(Icons X): Gnome 3 doesn't use taskbars.
+
+	* misc.texi (Shell): Document exec-path here.
+
+	* rmail.texi (Movemail): Add xref for exec-path.
+
 2012-01-13  Glenn Morris  <rgm@gnu.org>
 
 	* dired.texi (Dired and Find): Clarify find-ls-options.

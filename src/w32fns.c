@@ -2479,6 +2479,10 @@ signal_user_input (void)
   if (!NILP (Vthrow_on_input))
     {
       Vquit_flag = Vthrow_on_input;
+      /* Doing a QUIT from this thread is a bad idea, since this
+	 unwinds the stack of the Lisp thread, and the Windows runtime
+	 rightfully barfs.  Disabled.  */
+#if 0
       /* If we're inside a function that wants immediate quits,
 	 do it now.  */
       if (immediate_quit && NILP (Vinhibit_quit))
@@ -2486,6 +2490,7 @@ signal_user_input (void)
 	  immediate_quit = 0;
 	  QUIT;
 	}
+#endif
     }
 }
 

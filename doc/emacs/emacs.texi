@@ -210,7 +210,7 @@ Appendices
 * GNU Free Documentation License:: The license for this documentation.
 * Emacs Invocation::    Hairy startup options.
 * X Resources::         X resources for customizing Emacs.
-* Antinews::            Information about Emacs version 22.
+* Antinews::            Information about Emacs version 23.
 * Mac OS / GNUstep::    Using Emacs under Mac OS and GNUstep.
 * Microsoft Windows::   Using Emacs on Microsoft Windows and MS-DOS.
 * Manifesto::           What's GNU?  Gnu's Not Unix!
@@ -1104,7 +1104,6 @@ Command Line Arguments for Emacs Invocation
                           and call functions.
 * Initial Options::     Arguments that take effect while starting Emacs.
 * Command Example::     Examples of using command line arguments.
-* Resume Arguments::    Specifying arguments when you resume a running Emacs.
 * Environment::         Environment variables that Emacs uses.
 * Display X::           Changing the default display and using remote login.
 * Font X::              Choosing a font for text, under X.
@@ -1125,15 +1124,15 @@ X Options and Resources
 
 * Resources::           Using X resources with Emacs (in general).
 * Table of Resources::  Table of specific X resources that affect Emacs.
-* Face Resources::      X resources for customizing faces.
 * Lucid Resources::     X resources for Lucid menus.
 * LessTif Resources::   X resources for LessTif and Motif menus.
 * GTK resources::       Resources for GTK widgets.
 
 GTK resources
 
-* GTK widget names::      How widgets in GTK are named in general.
-* GTK Names in Emacs::    GTK widget names in Emacs.
+* GTK Resource Basics::   Basic usage of GTK+ resources.
+* GTK Widget Names::      How GTK+ widgets are named.
+* GTK Names in Emacs::    GTK+ widgets used by Emacs.
 * GTK styles::            What can be customized in a GTK widget.
 
 Emacs and Mac OS / GNUstep

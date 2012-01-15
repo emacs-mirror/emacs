@@ -296,7 +296,7 @@ like A, 7, *, etc., are inserted as you type them.  To insert a
 Newline character, type <Return> (this is the key on the keyboard
 which is sometimes labeled "Enter").
 
-To delete <DEL> the character immediately before the current cursor
+To delete the character immediately before the current cursor
 position, type <DEL>.  This is the key on the keyboard usually labeled
 "Backspace"--the same one you normally use, outside Emacs, to delete
 the last character typed.
@@ -839,8 +839,8 @@ go to the next occurrence of 'cursor' just type C-s again.  If no such
 occurrence exists, Emacs beeps and tells you the search is currently
 "failing".  C-g would also terminate the search.
 
-If you are in the middle of an incremental search and type <DEL>, this
-the search "retreats" to an earlier location.  If you type <DEL> just
+If you are in the middle of an incremental search and type <DEL>, the
+search "retreats" to an earlier location.  If you type <DEL> just
 after you had typed C-s to advance to the next occurrence of a search
 string, the <DEL> moves the cursor back to an earlier occurrence.  If
 there are no earlier occurrences, the <DEL> erases the last character

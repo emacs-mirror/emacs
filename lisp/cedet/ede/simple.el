@@ -50,7 +50,8 @@
 	      :name "Simple" :file 'ede/simple
 	      :proj-file 'ede-simple-projectfile-for-dir
 	      :load-type 'ede-simple-load
-	      :class-sym 'ede-simple-project)
+	      :class-sym 'ede-simple-project
+	      :safe-p nil)
 	     t)
 
 (defcustom ede-simple-save-directory "~/.ede"

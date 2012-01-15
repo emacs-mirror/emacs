@@ -16,6 +16,7 @@
 #
 # ----------------------------------------------------------------------
 /^#define *PATH_LOADSEARCH/s/".*"/rootrelativepath ("lisp")/
+/^#define *PATH_DUMPLOADSEARCH/s/".*"/"..\/lisp"/
 /^#define *PATH_DATA/s/".*"/rootrelativepath ("etc")/
 /^#define *PATH_DOC/s/".*"/rootrelativepath ("etc")/
 /^#define *PATH_INFO/s/".*"/rootrelativepath ("info")/

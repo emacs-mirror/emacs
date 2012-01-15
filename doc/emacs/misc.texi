@@ -465,6 +465,15 @@ then give commands interactively.  Full terminal emulation is
 available.
 @end table
 
+@vindex exec-path
+  Whenever you specify a relative file name for an executable program
+(either in the @var{cmd} argument to one of the above commands, or in
+other contexts), Emacs searches for the program in the directories
+specified by the variable @code{exec-path}.  The value of this
+variable must be a list of directory names; the default value is
+initialized from the environment variable @env{PATH} when Emacs is
+started (@pxref{General Variables}).
+
   @kbd{M-x eshell} invokes a shell implemented entirely in Emacs.  It
 is documented in its own manual.
 @ifnottex
@@ -551,11 +560,8 @@ to @command{gpg}.  This will output the list of keys to the
   The above commands use the shell specified by the variable
 @code{shell-file-name}.  Its default value is determined by the
 @env{SHELL} environment variable when Emacs is started.  If the file
-name is relative, Emacs searches the directories in the list
-@code{exec-path}; this list is initialized based on the environment
-variable @env{PATH} when Emacs is started.  Your init file can
-override either or both of these default initializations (@pxref{Init
-File}).
+name is relative, Emacs searches the directories listed in
+@code{exec-path} (@pxref{Shell}).
 
   To specify a coding system for @kbd{M-!} or @kbd{M-|}, use the command
 @kbd{C-x @key{RET} c} immediately beforehand.  @xref{Communication Coding}.

@@ -1,4 +1,31 @@
+2012-01-15  Michael Albinus  <michael.albinus@gmx.de>
+
+	* net/tramp-sh.el (tramp-remote-path): Set tramp-autoload cookie.
+
+2012-01-14  Eli Zaretskii  <eliz@gnu.org>
+
+	* info.el (Info-toc-build): If the Info file has no "Up" pointer,
+	don't pass the (nil) value of `upnode' to string-match.
+
+2012-01-14  Chong Yidong  <cyd@gnu.org>
+
+	* startup.el (command-line): Fix X resource class for cursorColor.
+	Fix values recognized by the cursorBlink resource.
+
+2012-01-14  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* epg.el (epg--make-temp-file): Avoid permission race condition
+	when running on old Emacs versions (bug#10403).
+
+2012-01-14  Glenn Morris  <rgm@gnu.org>
+
+	* dired.el (dired-get-filename): Fix 'verbatim case of previous change.
+
 2012-01-13  Glenn Morris  <rgm@gnu.org>
+
+	* dired.el (dired-switches-escape-p): New function.
+	(dired-insert-directory): Use dired-switches-escape-p.
+	(dired-get-filename): Undo "\ " quoting if needed.  (Bug#10469)
 
 	* find-dired.el (find-ls-option): Doc fix.  (Bug#10262)
 
