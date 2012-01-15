@@ -1,7 +1,7 @@
 ;;; semantic/wisent/python-wy.el --- Generated parser support file
 
-;; Copyright (C) 2002, 2003, 2004, 2007, 2010, 2011, 2012
-;; Free Software Foundation, Inc.
+;; Copyright (C) 2002-2011, 2012 Free Software Foundation, Inc.
+;; Copyright (c) 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010 Python Software Foundation; All Rights Reserved
 
 ;; This file is part of GNU Emacs.
 
@@ -19,7 +19,7 @@
 ;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
 
 ;;; Commentary:
-
+;;
 ;; This file was generated from etc/grammars/python.wy.
 ;; It is derived in part from the Python grammar, used under the
 ;; following license:
@@ -715,7 +715,7 @@
    '((parse-stream . wisent-parse-stream)))
   (setq semantic-parser-name "LALR"
 	semantic--parse-table wisent-python-wy--parse-table
-	semantic-debug-parser-source "wisent-python.wy"
+	semantic-debug-parser-source "python.wy"
 	semantic-flex-keywords-obarray wisent-python-wy--keyword-table
 	semantic-lex-types-obarray wisent-python-wy--token-table)
   ;; Collect unmatched syntax lexical tokens
