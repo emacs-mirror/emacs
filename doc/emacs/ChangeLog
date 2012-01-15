@@ -1,3 +1,26 @@
+2012-01-14  Chong Yidong  <cyd@gnu.org>
+
+	* cmdargs.texi (Action Arguments): No need to mention
+	EMACSLOADPATH.
+	(General Variables): Add xref to Lisp Libraries.
+	(Initial Options): Copyedits.
+	(Resume Arguments): Node deleted; emacs.bash/csh are obsolete.
+	(Environment): Clarify what getenv does.
+	(General Variables): Clarify EMACSPATH etc.  Emacs does not assume
+	light backgrounds on xterms.
+	(Misc Variables): TEMP and TMP are not Windows-specific.
+	(Display X): Copyedits.
+	(Colors X): -bd does nothing for GTK.
+	(Icons X): Gnome 3 doesn't use taskbars.
+
+	* misc.texi (Shell): Document exec-path here.
+
+	* rmail.texi (Movemail): Add xref for exec-path.
+
+2012-01-13  Glenn Morris  <rgm@gnu.org>
+
+	* dired.texi (Dired and Find): Clarify find-ls-options.
+
 2012-01-09  Chong Yidong  <cyd@gnu.org>
 
 	* custom.texi (Custom Themes): Switched custom-safe-themes to use

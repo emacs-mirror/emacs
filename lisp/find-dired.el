@@ -63,10 +63,20 @@ than the latter."
     (cons
      (format "-exec ls -ld {} %s" find-exec-terminator)
      "-ld"))
-  "Description of the option to `find' to produce an `ls -l'-type listing.
-This is a cons of two strings (FIND-OPTION . LS-SWITCHES).  FIND-OPTION
-gives the option (or options) to `find' that produce the desired output.
-LS-SWITCHES is a list of `ls' switches to tell dired how to parse the output."
+  "A pair of options to produce and parse an `ls -l'-type list from `find'.
+This is a cons of two strings (FIND-OPTION . LS-SWITCHES).
+FIND-OPTION is the option (or options) passed to `find' to produce
+a file listing in the desired format.  LS-SWITCHES is a set of
+`ls' switches that tell dired how to parse the output of `find'.
+
+The two options must be set to compatible values.
+For example, to use human-readable file sizes with GNU ls:
+   \(\"-exec ls -ldh {} +\" . \"-ldh\")
+
+To use GNU find's inbuilt \"-ls\" option to list files:
+   \(\"-ls\" . \"-dilsb\")
+since GNU find's output has the same format as using GNU ls with
+the options \"-dilsb\"."
   :version "24.1"	       ; add tests for -ls and -exec + support
   :type '(cons (string :tag "Find Option")
 	       (string :tag "Ls Switches"))

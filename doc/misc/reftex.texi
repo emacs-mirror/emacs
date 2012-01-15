@@ -4122,7 +4122,7 @@ Flags governing label insertion.  The value has the form
 (@var{derive} @var{prompt})
 @end example
 
-If @var{derive}is @code{t}, @b{Ref@TeX{}} will try to derive a sensible
+If @var{derive} is @code{t}, @b{Ref@TeX{}} will try to derive a sensible
 label from context.  A section label for example will be derived from
 the section heading.  The conversion of the context to a valid label is
 governed by the specifications given in

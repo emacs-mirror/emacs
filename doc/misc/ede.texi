@@ -1588,7 +1588,7 @@ Argument @var{PROJ} is the project to save.
 @end deffn
 
 @deffn Method ede-proj-configure-recreate :AFTER this
-Delete project @var{THIS}es configure script and start over.
+Delete project @var{THIS}'s configure script and start over.
 @end deffn
 
 @deffn Method ede-proj-makefile-insert-user-rules :AFTER this
