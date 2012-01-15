@@ -144,7 +144,7 @@ emacs-xtra.texi
 emerge-xtra.texi
 entering.texi     cyd
 files.texi        cyd
-fixit.texi        
+fixit.texi        cyd
 fortran-xtra.texi 
 frames.texi       cyd
 glossary.texi
@@ -175,7 +175,7 @@ trouble.texi      cyd
 vc-xtra.texi      cyd
 vc1-xtra.texi     cyd
 windows.texi      cyd
-xresources.texi   
+xresources.texi   cyd
 
 ** Check the Lisp manual.
 

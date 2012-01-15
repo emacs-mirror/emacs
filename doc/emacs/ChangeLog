@@ -1,3 +1,24 @@
+2012-01-15  Chong Yidong  <cyd@gnu.org>
+
+	* xresources.texi (X Resources): Describe GTK+ case first.
+	(Resources): Don't use borderWidth as an example, since it doesn't
+	work with GTK+.
+	(Table of Resources): Clarify role of several resources, including
+	the Emacs 24 behavior of cursorBlink etc.
+	(Face Resources): Node deleted.  Recommend using Customize
+	instead.  Add paragraph to `Table of Resources' node summarizing
+	how to use X resources for changing faces.
+	(Lucid Resources): Rewrite, omitting description of font names,
+	referring to the Fonts node instead.
+	(LessTif Resources): Copyedits.
+	(GTK resources): Rewrite, describing the difference between gtk2
+	and gtk3.
+	(GTK Resource Basics): New node.
+	(GTK Widget Names, GTK Names in Emacs): Rewrite.
+	(GTK styles): Just refer to Fonts node for GTK font format.
+
+	* display.texi (Faces): Document the cursor face.
+
 2012-01-14  Chong Yidong  <cyd@gnu.org>
 
 	* cmdargs.texi (Action Arguments): No need to mention

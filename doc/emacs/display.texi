@@ -489,10 +489,20 @@ support a limited range of colors.
 changes for future Emacs sessions.  @xref{Face Customization}.  A face
 does not have to specify every single attribute; often it inherits
 most attributes from another face.  Any ultimately unspecified
-attribute is taken from a face named @code{default}, whose attributes
-are all specified.  The @code{default} face is the default for
-displaying text, and its background color is also used as the frame's
-background color.
+attribute is taken from the face named @code{default}.
+
+  The @code{default} face is the default for displaying text, and all
+of its attributes are specified.  Its background color is also used as
+the frame's background color.
+
+@cindex cursor face
+  Another special face is the @code{cursor} face.  On graphical
+displays, the background color of this face is used to draw the text
+cursor.  None of the other attributes of this face have any effect;
+the foreground color for text under the cursor is taken from the
+background color of the underlying text.  On text terminals, the
+appearance of the text cursor is determined by the terminal, not by
+the @code{cursor} face.
 
   You can also use X resources to specify attributes of any particular
 face.  @xref{Resources}.
