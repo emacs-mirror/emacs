@@ -1,4 +1,4 @@
-2012-01-09  Paul Eggert  <eggert@cs.ucla.edu>
+2012-01-15  Paul Eggert  <eggert@cs.ucla.edu>
 
 	Fix integer width and related bugs (Bug#9874).
 	* alloc.c (pure_bytes_used_lisp, pure_bytes_used_non_lisp):
@@ -788,6 +788,42 @@
 	rather than rolling our own approximation.
 	(SCROLL_BAR_VEC_SIZE): Remove; not used.
 
+2012-01-14  Eli Zaretskii  <eliz@gnu.org>
+
+	* w32fns.c (signal_user_input): Don't do a QUIT, to avoid
+	thrashing the stack of the thread.  (Bug#9087)
+
+2012-01-12  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* xdisp.c (rows_from_pos_range): Add parens as per gcc -Wparentheses.
+
+2012-01-11  Eli Zaretskii  <eliz@gnu.org>
+
+	* xdisp.c (rows_from_pos_range): Handle the case where the
+	highlight ends on a newline.  (Bug#10464)
+	(mouse_face_from_buffer_pos): Fix off-by-one error in calculating
+	he end column for display of highlight that ends on a newline
+	before a R2L line.
+
+2012-01-11  Glenn Morris  <rgm@gnu.org>
+
+	* lread.c (init_lread): If no-site-lisp, remove site-lisp dirs
+	from load-path also when installation-directory is nil.  (Bug#10208)
+
+2012-01-10  Glenn Morris  <rgm@gnu.org>
+
+	* emacs.c (syms_of_emacs) <installation-directory>: Doc fix.
+
+	* epaths.in (PATH_LOADSEARCH, PATH_EXEC, PATH_DATA, PATH_DOC):
+	Update template values to be closer to their typical values these days.
+
+2012-01-09  Eli Zaretskii  <eliz@gnu.org>
+
+	* xdisp.c (rows_from_pos_range): Accept additional argument
+	DISP_STRING, and accept any glyph in a row whose object is that
+	string as eligible for mouse highlight.  Fixes mouse highlight of
+	display strings from overlays.  (Bug#10464)
+
 2012-01-07  Paul Eggert  <eggert@cs.ucla.edu>
 
 	emacs: fix an auto-save permissions race condition (Bug#10400)
@@ -896,7 +932,7 @@
 	(trackingNotification): Surround with ifdef NS_IMPL_COCOA.
 	(syms_of_nsmenu): Set trackingMenu to 1 if not NS_IMPL_COCOA.
 
-2011-12-18 David Reitter <reitter@cmu.edu>
+2011-12-18  David Reitter  <reitter@cmu.edu>
 
 	* nsterm.m (ns_term_init): Subscribe for notifications
 	NSMenuDidBeginTrackingNotification and NSMenuDidEndTrackingNotification
@@ -6545,7 +6581,7 @@
 	where the include path doesn't have X11/X.h by default.  See
 	<http://lists.gnu.org/archive/html/emacs-devel/2011-05/msg00561.html>.
 
-2011-05-20 Kenichi Handa  <handa@m17n.org>
+2011-05-20  Kenichi Handa  <handa@m17n.org>
 
 	* composite.c (find_automatic_composition): Fix previous change.
 
@@ -6887,7 +6923,7 @@
 	* lread.c (lisp_file_lexically_bound_p): Stop scanning at end
 	marker.  (Bug#8610)
 
-2011-05-05 Eli Zaretskii  <eliz@gnu.org>
+2011-05-05  Eli Zaretskii  <eliz@gnu.org>
 
 	* w32heap.c (allocate_heap) [USE_LISP_UNION_TYPE || USE_LSB_TAG]:
 	New version that can reserve upto 2GB of heap space.
@@ -9091,7 +9127,7 @@
 	are now in src/globals.h.
 	(syms_of_minibuf): Remove spurious & from previous change.
 
-2011-03-20  Leo  <sdl.web@gmail.com>
+2011-03-20  Leo Liu  <sdl.web@gmail.com>
 
 	* minibuf.c (completing-read-function): New variable.
 	(completing-read-default): Rename from completing-read.

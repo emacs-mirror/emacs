@@ -124,7 +124,7 @@
 
 	* server.el (server-kill-emacs-query-function): Ignore killed buffers.
 
-1994-05-24  Kenneth Manheimer  (ken.manheimer@nist.gov)
+1994-05-24  Ken Manheimer  (ken.manheimer@nist.gov)
 
 	* allout.el (outline-chart-subtree): Include outline-next-
 	heading in loop conditions to detect end-of-buffer (and avoid
@@ -342,7 +342,7 @@
 	* startup.el (precompute-menubar-bindings): Don't precompute menus
 	if not using x.
 
-1994-05-12  Kenneth Manheimer  (klm@coil.nist.gov)
+1994-05-12  Ken Manheimer  (klm@coil.nist.gov)
 
 	* allout.el (outline-mode): Use outline-this-or-next-heading.
 	* allout.el (outline-this-or-next-heading): New function.
@@ -421,7 +421,7 @@
 
 1994-05-10  Karl Heuer  (kwzh@hal.gnu.ai.mit.edu)
 
-	* ediff.el (ediff-no-help-in-control-buffer): Renamed from
+	* ediff.el (ediff-no-help-in-control-buffer): Rename from
 	ediff-nix-help-in-control-buffer, to match doc and usage.
 
 	* autoload.el (update-file-autoloads): Delete leftover variable.
@@ -517,7 +517,7 @@
 	* cal-menu.el (calendar-mouse-set-mark): New function.
 	(calendar-mouse-date-menu): Bind it to key.
 
-1994-05-08  Kenneth Manheimer  (klm@coil.nist.gov)
+1994-05-08  Ken Manheimer  (klm@coil.nist.gov)
 
 	* allout.el (outline-init): New user interface for control of
 	outline-mode session setup, sets up `outline-find-file-hook',
@@ -958,9 +958,9 @@
 
 	* files.el (revert-buffer): Widen before replacing text.
 
-1994-04-29  Kenneth Manheimer  (ken.manheimer@nist.gov)
+1994-04-29  Ken Manheimer  (ken.manheimer@nist.gov)
 
-	* allout.el: major code speedups, bug fixes, behavior
+	* allout.el: Major code speedups, bug fixes, behavior
 	   refinements, doc-string clarification and elaboration, etc.
 	   Prominent new features include:
 	 - Exposure changes and navigation are greatly accelerated.
@@ -1689,7 +1689,7 @@
 
 	* saveplace.el (save-place-find-file-hook)
 	(save-place-kill-emacs-hook): New functions.
-	(hooks for find-file-hooks,kill-emacs-hook): Use those new functions.
+	(hooks for find-file-hooks, kill-emacs-hook): Use those new functions.
 
 	* menu-bar.el (clipboard-yank, clipboard-kill-ring-save)
 	(clipboard-kill-region): New functions.  Give them
@@ -3114,32 +3114,32 @@
 	(calendar-cursor-to-date): Add optional parameter to cause error
 	signal when cursor is not on a date---this allows lots of
 	simplifications throughout the code.
-	(calendar-forward-month,calendar-set-mark)
-	(calendar-exchange-point-and-mark,calendar-count-days-region)
-	(calendar-print-day-of-year,calendar-print-iso-date)
-	(calendar-print-julian-date,calendar-print-islamic-date)
-	(calendar-print-hebrew-date,calendar-print-astro-day-number):
+	(calendar-forward-month, calendar-set-mark)
+	(calendar-exchange-point-and-mark, calendar-count-days-region)
+	(calendar-print-day-of-year, calendar-print-iso-date)
+	(calendar-print-julian-date, calendar-print-islamic-date)
+	(calendar-print-hebrew-date, calendar-print-astro-day-number):
 	Use simplification.
 
 	* holidays.el (calendar-cursor-holidays): Use new error arg
 	to calendar-cursor-to-date.
 
-	* diary.el (view-diary-entries,diary-islamic-date): Use new error arg
+	* diary.el (view-diary-entries, diary-islamic-date): Use new error arg
 	to calendar-cursor-to-date.
 
-	* diary-ins.el (insert-diary-entry,insert-weekly-diary-entry)
-	(insert-monthly-diary-entry,insert-yearly-diary-entry)
-	(insert-anniversary-diary-entry,insert-block-diary-entry)
-	(insert-cyclic-diary-entry,insert-hebrew-diary-entry)
-	(insert-monthly-hebrew-diary-entry,insert-yearly-hebrew-diary-entry)
-	(insert-islamic-diary-entry,insert-monthly-islamic-diary-entry)
+	* diary-ins.el (insert-diary-entry, insert-weekly-diary-entry)
+	(insert-monthly-diary-entry, insert-yearly-diary-entry)
+	(insert-anniversary-diary-entry, insert-block-diary-entry)
+	(insert-cyclic-diary-entry, insert-hebrew-diary-entry)
+	(insert-monthly-hebrew-diary-entry, insert-yearly-hebrew-diary-entry)
+	(insert-islamic-diary-entry, insert-monthly-islamic-diary-entry)
 	(insert-yearly-islamic-diary-entry): Use new error arg
 	to calendar-cursor-to-date.
 
 	* solar.el (calendar-sunrise-sunset): Use new error arg
 	to calendar-cursor-to-date.
 
-	* cal-french.el (calendar-print-french-date,diary-french-date):
+	* cal-french.el (calendar-print-french-date, diary-french-date):
 	Use new error arg to calendar-cursor-to-date.
 
 	* cal-mayan.el (calendar-print-mayan-date): Use new error arg
@@ -3516,16 +3516,18 @@
 	(diary-entry-marker, calendar-today-marker)
 	(calendar-holiday-marker): Don't autoload them; change definitions
 	to support monochrome and color workstations.
-	(calendar-french-date-string,calendar-mayan-date-string): Autoload them.
+	(calendar-french-date-string, calendar-mayan-date-string):
+	Autoload them.
 	(calendar-day-of-year-string, calendar-iso-date-string)
-	(calendar-julian-date-string,calendar-islamic-date-string)
-	(calendar-hebrew-date-string,calendar-astro-date-string): New functions.
+	(calendar-julian-date-string, calendar-islamic-date-string)
+	(calendar-hebrew-date-string, calendar-astro-date-string):
+	New functions.
 	(calendar-print-day-of-year, calendar-print-iso-date)
-	(calendar-print-iso-date,calendar-print-julian-date)
-	(calendar-print-islamic-date,calendar-print-hebrew-date)
+	(calendar-print-iso-date, calendar-print-julian-date)
+	(calendar-print-islamic-date, calendar-print-hebrew-date)
 	(calendar-print-astro-day-number): Use them.
 	(calendar-mode-map): Add mouse support.
-	(calendar-unmark,mark-visible-calendar-date,calendar-mark-today):
+	(calendar-unmark, mark-visible-calendar-date, calendar-mark-today):
 	Rewritten.
 
 	* diary.el (diary-day-of-year, diary-iso-date, diary-islamic-date)
@@ -5896,8 +5898,8 @@
 
 	* loaddefs.el (ctl-x-map): `C-x r c' now runs `clear-rectangle'.
 
-	* texinfmt.el (texinfo-format-region texinfo-format-buffer): Add
-	###autoload cookies.
+	* texinfmt.el (texinfo-format-region texinfo-format-buffer):
+	Add ###autoload cookies.
 	(batch-texinfo-format): Use `buffer-disable-undo' instead of
 	obsolete function `buffer-flush-undo'.
 
@@ -5916,8 +5918,8 @@
 
 1993-08-26  Jim Blandy  (blandy@comano.cscs.ch)
 
-	* add-log.el (add-log-full-name, add-log-mailing-address): New
-	variables.
+	* add-log.el (add-log-full-name, add-log-mailing-address):
+	New variables.
 	(add-change-log-entry): Don't ask for the login name and site name
 	separately; instead, prompt for a mailing address; that's more
 	useful.  Set add-log-full-name and add-log-mailing-address, so
@@ -8760,8 +8762,8 @@
 	calendar-time-display-form): Change Universal Time (UT) to
 	Coordinated Universal Time (UTC).
 
-	*solar.el (solar-setup, solar-ephemeris-time, sunrise-sunset): Change
-	Universal Time (UT) to Coordinated Universal Time (UTC).
+	* solar.el (solar-setup, solar-ephemeris-time, sunrise-sunset):
+	Change Universal Time (UT) to Coordinated Universal Time (UTC).
 	(solar-time-string): Use calendar-daylight-time-offset instead of
 	1 hr, and use calendar-daylight-savings-switchover-time instead of
 	midnight.  Add an optional parameter to allow forcing the use of

@@ -141,7 +141,7 @@ previous button or editable field.
   From the top-level customization buffer created by @kbd{M-x
 customize}, you can follow the links to the subgroups of the
 @samp{Emacs} customization group.  These subgroups may contain
-settings for you to customize; they may also contain futher subgroups,
+settings for you to customize; they may also contain further subgroups,
 dealing with yet more specialized subsystems of Emacs.  As you
 navigate the hierarchy of customization groups, you should find some
 settings that you want to customize.

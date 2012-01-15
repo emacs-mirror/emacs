@@ -1,3 +1,9 @@
+2012-01-12  Glenn Morris  <rgm@gnu.org>
+
+	* url-auth.el (url-basic-auth, url-digest-auth):
+	Allow reading usernames etc when the minibuffer is already in use,
+	eg in url-handler-mode.  (Bug#10298)
+
 2011-11-15  Juanma Barranquero  <lekktu@gmail.com>
 
 	* url-dav.el (url-dav-delete-file): Fix typo.

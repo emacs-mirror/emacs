@@ -1,3 +1,11 @@
+2012-01-10  Teodor Zlatanov  <tzz@lifelogs.com>
+
+	* nntp.el (nntp-send-authinfo): Query `auth-source-search' with the
+	logical server name in addition to the actual machine address.
+
+	* auth-source.el (auth-source-user-and-password): Add convenience
+	wrapper to search by just host and optionally user.
+
 2012-01-07  Lars Magne Ingebrigtsen  <larsi@gnus.org>
 
 	* shr.el (shr-visit-file): Move point to the beginning of the buffer
@@ -93,7 +101,7 @@
 
 	* gnus.el (gnus-parameters): Note precedence.
 
-2012-01-04  Leo  <sdl.web@gmail.com>
+2012-01-04  Leo Liu  <sdl.web@gmail.com>
 
 	* nndraft.el (nndraft-update-unread-articles): Don't move point around
 	in the group buffer.
@@ -125,7 +133,7 @@
 	* nnimap.el (nnimap-finish-retrieve-group-infos): Check the connection
 	status in the correct buffer.
 
-2012-01-03  Leo  <sdl.web@gmail.com>
+2012-01-03  Leo Liu  <sdl.web@gmail.com>
 
 	* gnus-topic.el (gnus-topic-goto-next-group): Don't move point around
 	when opening topics (bug#10407).
@@ -11234,7 +11242,7 @@
 	* gnus-art.el (gnus-button-mid-or-mail-heuristic-alist): Add "alpine".
 	(gnus-treat-body-boundary): Don't test window-system.
 
-2007-10-28  Leo  <sdl.web@gmail.com>  (tiny change)
+2007-10-28  Leo Liu  <sdl.web@gmail.com>  (tiny change)
 
 	* gnus-art.el (gnus-treat-emphasize): Don't test window-system.
 

@@ -1177,7 +1177,7 @@
 	* org.el: Remap `outline-promote' and `outline-demote' keys to
 	`org-promote-subtree' and `org-demote-subtree'.
 
-2012-01-03  Leo  <sdl.web@gmail.com>
+2012-01-03  Leo Liu  <sdl.web@gmail.com>
 
 	* org-agenda.el (org-agenda-do-context-action): Check if marker is
 	valid before use.
@@ -1749,7 +1749,7 @@
 
 2012-01-03  Suvayu Ali  <fatkasuvayu+linux@gmail.com>  (tiny change)
 
-	* org-inlinetask.el (org-inlinetask): New customisable face
+	* org-inlinetask.el (org-inlinetask): New customizable face
 	for inlinetasks
 
 2012-01-03  Bastien Guerry  <bzg@gnu.org>
@@ -2964,7 +2964,7 @@
 
 	* org-latex.el (org-export-latex-header-defs-re): Delete.
 
-2011-07-28  Bastien  <bzg@gnu.org>
+2011-07-28  Bastien Guerry  <bzg@gnu.org>
 
 	* org.el (org-last-set-property): New variable.
 	(org-read-property-name): Use the new variable: the prompt
@@ -6786,7 +6786,7 @@
 	* ob.el (org-babel-params-from-properties): Test for
 	"header-arg-name" and ":header-arg-name", in that order.
 
-2011-07-28  Bastien  <bastien.guerry@wikimedia.fr>
+2011-07-28  Bastien Guerry  <bzg@gnu.org>
 
 	* org-capture.el (org-capture-templates): Document "currentfile"
 	for capture template.
@@ -19573,7 +19573,7 @@
 	against all agenda files.
 
 2008-10-12  Carsten Dominik  <dominik@science.uva.nl>
-	Bastien Guerry  <bzg@altern.org>
+	    Bastien Guerry  <bzg@altern.org>
 
 	* org-list.el: New file, aggregating list functions from org.el
 	and org-export-latex.el.

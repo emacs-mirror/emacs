@@ -604,7 +604,7 @@ we return a list having a nil as its car and the end of comment position
 as cdr."
   (save-excursion
     ;; the idea is to look backwards for a comment start regexp, do a
-    ;; forward comment, and see if we are inside, then extend extend
+    ;; forward comment, and see if we are inside, then extend
     ;; forward and backward as long as we have comments
     (let ((q (point)))
       (when (or (looking-at hs-c-start-regexp)

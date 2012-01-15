@@ -1951,7 +1951,8 @@ The returned file name (created by appending some random characters at the end
 of PREFIX, and expanding against `temporary-file-directory' if necessary),
 is guaranteed to point to a newly created empty file.
 You can then use `write-region' to write new data into the file."
-      (let (tempdir tempfile)
+      (let ((orig-modes (default-file-modes))
+	    tempdir tempfile)
 	(setq prefix (expand-file-name prefix
 				       (if (featurep 'xemacs)
 					   (temp-directory)
@@ -1959,6 +1960,7 @@ You can then use `write-region' to write new data into the file."
 	(unwind-protect
 	    (let (file)
 	      ;; First, create a temporary directory.
+	      (set-default-file-modes #o700)
 	      (while (condition-case ()
 			 (progn
 			   (setq tempdir (make-temp-name
@@ -1969,14 +1971,12 @@ You can then use `write-region' to write new data into the file."
 			   (make-directory tempdir))
 		       ;; let's try again.
 		       (file-already-exists t)))
-	      (set-file-modes tempdir 448)
 	      ;; Second, create a temporary file in the tempdir.
 	      ;; There *is* a race condition between `make-temp-name'
 	      ;; and `write-region', but we don't care it since we are
 	      ;; in a private directory now.
 	      (setq tempfile (make-temp-name (concat tempdir "/EMU")))
 	      (write-region "" nil tempfile nil 'silent)
-	      (set-file-modes tempfile 384)
 	      ;; Finally, make a hard-link from the tempfile.
 	      (while (condition-case ()
 			 (progn
@@ -1986,6 +1986,7 @@ You can then use `write-region' to write new data into the file."
 		       ;; let's try again.
 		       (file-already-exists t)))
 	      file)
+	  (set-default-file-modes orig-modes)
 	  ;; Cleanup the tempfile.
 	  (and tempfile
 	       (file-exists-p tempfile)

@@ -3538,7 +3538,6 @@
 	* nsmenu.m (syms_of_nsmenu):
 	* nsfns.m (syms_of_nsfns):
 	* msdos.c (syms_of_msdos):
-
 	* image.c (syms_of_image):
 	* charset.c (syms_of_charset): Use intern_c_string instead of intern.
 
@@ -4388,7 +4387,7 @@
 	* xml.c (Fxml_parse_string, Fxml_parse_string): Revert last change.
 	Don't make first argument optional.  Doc fix.
 
-2010-09-14  Leo  <sdl.web@gmail.com>  (tiny change)
+2010-09-14  Leo Liu  <sdl.web@gmail.com>  (tiny change)
 
 	* xml.c (Fxml_parse_string, Fhtml_parse_string): Fix up the
 	parameters for the doc string.
@@ -29523,7 +29522,7 @@
 	(Fdisplay_buffer): Use it.
 	(syms_of_window): Export, and initialize it.
 
-2007-09-06  Pixel  <pixel@mandriva.com>  (tiny change)
+2007-09-06  Pascal Rigaux  <pixel@mandriva.com>  (tiny change)
 
 	* image.c (gif_load): Fix bug: Handle nonexistent colormap.
 

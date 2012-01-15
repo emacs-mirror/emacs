@@ -1943,7 +1943,7 @@ from the comment."
 A code fragment is identified by an open parenthesis followed by a
 symbol which is a valid function or a word in all CAPS, or a parenthesis
 that is quoted with the ' character.  Only the region from START to LIMIT
-is is allowed while searching for the bounding parenthesis."
+is allowed while searching for the bounding parenthesis."
   (save-match-data
     (save-restriction
       (narrow-to-region start limit)

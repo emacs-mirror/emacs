@@ -288,7 +288,7 @@
 	* emacs-lisp/ewoc.el (ewoc-goto-next): Give a more explicit error
 	if there is no node.  (Bug#3261)
 
-2011-03-04  Leo  <sdl.web@gmail.com>
+2011-03-04  Leo Liu  <sdl.web@gmail.com>
 
 	* vc/diff-mode.el (diff-mode): Fix whitespace-style.  (Bug#8139)
 
@@ -866,7 +866,7 @@
 	* net/soap-client.el:
 	* net/soap-inspect.el: New files.
 
-2011-02-16  Leo  <sdl.web@gmail.com>
+2011-02-16  Leo Liu  <sdl.web@gmail.com>
 
 	* dired-x.el (dired-mode-map, dired-extra-startup):
 	Remove dired-copy-filename-as-kill since it's already in dired.el.
@@ -1586,7 +1586,7 @@
 	* vc/vc-bzr.el (vc-bzr-pull, vc-bzr-merge-branch):
 	Callers changed.
 
-2011-01-28  Leo  <sdl.web@gmail.com>
+2011-01-28  Leo Liu  <sdl.web@gmail.com>
 
 	* emacs-lisp/advice.el (ad-make-advised-docstring): Don't apply
 	highlighting to the "this function is advised" message.
@@ -2668,7 +2668,7 @@
 	* mail/rmail.el (rmail-show-message-1): If rmail-enable-mime is
 	non-nil, handle the header in rmail-show-mime-function.
 
-2011-01-02  Leo  <sdl.web@gmail.com>
+2011-01-02  Leo Liu  <sdl.web@gmail.com>
 
 	* help-fns.el (describe-variable): Fix previous change.
 
@@ -2699,7 +2699,7 @@
 	* mail/smtpmail.el (smtpmail-send-it): Write queued mail body with
 	Unix EOLs.  (Bug#7589)
 
-2011-01-02  Leo  <sdl.web@gmail.com>
+2011-01-02  Leo Liu  <sdl.web@gmail.com>
 
 	* eshell/em-hist.el (eshell-previous-matching-input): Signal error
 	if point is not behind eshell-last-output-end (Bug#7585).
@@ -2867,7 +2867,7 @@
 	* obsolete/pgg-gpg.el, obsolete/pgg-def.el, obsolete/pgg.el:
 	Move from lisp/.
 
-2010-12-20  Leo  <sdl.web@gmail.com>
+2010-12-20  Leo Liu  <sdl.web@gmail.com>
 
 	* dnd.el (dnd-get-local-file-name): Unhex of file name shall
 	always be performed (Bug#7680).
@@ -2953,7 +2953,7 @@
 	* epa-file.el (epa-file-select-keys): Accept 'silent to inhibit
 	key selection prompt; make 'silent as default (Bug#7487).
 
-2010-12-16  Leo  <sdl.web@gmail.com>
+2010-12-16  Leo Liu  <sdl.web@gmail.com>
 
 	* eshell/eshell.el (eshell-directory-name):
 	Use locate-user-emacs-file (Bug#7578).
@@ -3081,7 +3081,7 @@
 	* diff-mode.el (diff-refine-hunk): Make it work when the hunk contains
 	empty lines without a leading space.
 
-2010-12-13  Leo  <sdl.web@gmail.com>
+2010-12-13  Leo Liu  <sdl.web@gmail.com>
 
 	* dired-aux.el (dired-do-redisplay): Postpone dired-after-readin-hook
 	while mapping over marks (Bug#6810).
@@ -3155,7 +3155,7 @@
 	(rmail-search-mime-message-function): Set to
 	rmail-search-mime-message.
 
-2010-12-13  Leo  <sdl.web@gmail.com>
+2010-12-13  Leo Liu  <sdl.web@gmail.com>
 
 	* ido.el (ido-common-initialization): New function.  (bug#3274)
 	(ido-mode): Use it.
@@ -4990,7 +4990,7 @@
 	(minibuffer-force-complete): Set completion-cycling.
 	(completion-all-sorted-completions): Move declaration before first use.
 
-2010-10-28  Leo  <sdl.web@gmail.com>
+2010-10-28  Leo Liu  <sdl.web@gmail.com>
 
 	* iswitchb.el (iswitchb-kill-buffer): Avoid `iswitchb-make-buflist'
 	which changes the order of matches seen by users (bug#7231).
@@ -5279,7 +5279,7 @@
 	(set-cursor-color, set-mouse-color, set-border-color):
 	Use read-color.
 
-2010-10-24  Leo  <sdl.web@gmail.com>
+2010-10-24  Leo Liu  <sdl.web@gmail.com>
 
 	* eshell/em-unix.el (eshell-remove-entries): Use the TRASH
 	argument of delete-file and delete-directory (Bug#7011).
@@ -5876,7 +5876,7 @@
 
 	* vc-svn.el (vc-svn-merge-news): Use --non-interactive.  (Bug#7152)
 
-2010-10-08  Leo  <sdl.web@gmail.com>
+2010-10-08  Leo Liu  <sdl.web@gmail.com>
 
 	* dnd.el (dnd-get-local-file-name): If MUST-EXIST is non-nil, only
 	return non-nil if the file exists (Bug#7090).
@@ -7038,7 +7038,7 @@
 
 	* subr.el (y-or-n-p): New function, moved from src/fns.c; use read-key.
 
-2010-09-12  Leo  <sdl.web@gmail.com>
+2010-09-12  Leo Liu  <sdl.web@gmail.com>
 
 	* net/rcirc.el (rcirc-server-commands, rcirc-client-commands)
 	(rcirc-completion-start): New variables.
@@ -7961,7 +7961,7 @@
 	* startup.el (command-line-1): Issue warning for ignored arguments
 	--unibyte, etc (Bug#6886).
 
-2010-08-22  Leo  <sdl.web@gmail.com>
+2010-08-22  Leo Liu  <sdl.web@gmail.com>
 
 	* net/rcirc.el (rcirc-add-or-remove): Accept a list of elements.
 	(ignore, bright, dim, keyword): Split list of nicknames before
@@ -7971,7 +7971,7 @@
 
 	* emacs-lisp/easy-mmode.el (define-minor-mode): Doc fix (Bug#6880).
 
-2010-08-22  Leo  <sdl.web@gmail.com>
+2010-08-22  Leo Liu  <sdl.web@gmail.com>
 
 	Fix buffer-list rename&refresh after killing a buffer in ido.
 	* ido.el: Revert Óscar's.
@@ -8429,7 +8429,7 @@
 	* emacs-lisp/syntax.el (syntax-ppss-toplevel-pos):
 	Fix typo in docstring (bug#6747).
 
-2010-08-08  Leo  <sdl.web@gmail.com>
+2010-08-08  Leo Liu  <sdl.web@gmail.com>
 
 	* eshell/esh-io.el (eshell-get-target): Better detection of
 	read-only file (Bug#6762).
@@ -8535,7 +8535,7 @@
 	(tramp-handle-start-file-process): Use it, in order to invalidate
 	file caches.
 
-2010-08-03  Leo  <sdl.web@gmail.com>
+2010-08-03  Leo Liu  <sdl.web@gmail.com>
 
 	* server.el (server-start): Simplify loop.
 
@@ -9336,7 +9336,7 @@
 
 	* xml.el (xml-parse-region): Avoid infloop (Bug#5281).
 
-2010-06-29  Leo  <sdl.web@gmail.com>
+2010-06-29  Leo Liu  <sdl.web@gmail.com>
 
 	* emacs-lisp/rx.el (rx): Doc fix.  (Bug#6537)
 
@@ -19360,7 +19360,7 @@
 	* eshell/em-dirs.el (eshell-complete-user-reference):
 	Declare pcomplete functions and variables to avoid compiler warnings.
 
-2009-09-13  Leo  <sdl.web@gmail.com>  (tiny change)
+2009-09-13  Leo Liu  <sdl.web@gmail.com>  (tiny change)
 
 	* eshell/em-script.el (eshell-login-script, eshell-rc-script):
 	* eshell/em-dirs.el (eshell-last-dir-ring-file-name):
@@ -19823,7 +19823,7 @@
 	* files.el (locate-file-completion-table): Make it provide boundary
 	information, so partial-completion works better.
 
-2009-09-04  Leo  <sdl.web@gmail.com>  (tiny change)
+2009-09-04  Leo Liu  <sdl.web@gmail.com>  (tiny change)
 
 	* mail/footnote.el (Footnote-text-under-cursor):
 	Check footnote-text-marker-alist before using it (bug#4324).

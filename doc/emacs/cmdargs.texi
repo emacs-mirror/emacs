@@ -65,7 +65,6 @@ arguments.)
                           and call functions.
 * Initial Options::     Arguments that take effect while starting Emacs.
 * Command Example::     Examples of using command line arguments.
-* Resume Arguments::    Specifying arguments when you resume a running Emacs.
 * Environment::         Environment variables that Emacs uses.
 * Display X::           Changing the default display and using remote login.
 * Font X::              Choosing a font for text, under X.
@@ -124,10 +123,9 @@ Visit @var{file} using @code{find-file}, then go to line number
 @opindex --load
 @cindex loading Lisp libraries, command-line argument
 Load a Lisp library named @var{file} with the function @code{load}.
-@xref{Lisp Libraries}.  If @var{file} is not an absolute file name,
-the library can be found either in the current directory, or in the
-Emacs library search path as specified with @env{EMACSLOADPATH}
-(@pxref{General Variables}).
+If @var{file} is not an absolute file name, Emacs first looks for it
+in the current directory, then in the directories listed in
+@code{load-path} (@pxref{Lisp Libraries}).
 
 @strong{Warning:} If previous command-line arguments have visited
 files, the current directory is the directory of the last file
@@ -186,11 +184,11 @@ specifically related to the X Window System appear in the following
 sections.
 
   Some initial options affect the loading of the initialization file.
-The normal actions of Emacs are to first load @file{site-start.el} if
-it exists, then your own initialization file @file{~/.emacs} if it
-exists, and finally @file{default.el} if it exists.  @xref{Init File}.
-Certain options prevent loading of some of these files or substitute
-other files for them.
+Normally, Emacs first loads @file{site-start.el} if it exists, then
+your own initialization file if it exists, and finally the default
+initialization file @file{default.el} if it exists (@pxref{Init
+File}).  Certain options prevent loading of some of these files or
+substitute other files for them.
 
 @table @samp
 @item -chdir @var{directory}
@@ -207,8 +205,8 @@ stopped.  This makes desktop saving and restoring easier.
 @itemx --terminal=@var{device}
 @opindex --terminal
 @cindex device for Emacs terminal I/O
-Use @var{device} as the device for terminal input and output.
-@samp{--terminal} implies @samp{--no-window-system}.
+Use @var{device} as the device for terminal input and output.  This
+option implies @samp{--no-window-system}.
 
 @item -d @var{display}
 @opindex -d
@@ -252,7 +250,7 @@ terminal's standard input stream (@code{stdin}) instead.
 @samp{--batch} implies @samp{-q} (do not load an initialization file),
 but @file{site-start.el} is loaded nonetheless.  It also causes Emacs
 to exit after processing all the command options.  In addition, it
-disables auto-saving except in buffers for which it has been
+disables auto-saving except in buffers for which auto-saving is
 explicitly requested.
 
 @item --script @var{file}
@@ -270,8 +268,8 @@ Emacs.  They can start with this text on the first line
 
 @noindent
 which will invoke Emacs with @samp{--script} and supply the name of
-the script file as @var{file}.  Emacs Lisp then treats @samp{#!}  as a
-comment delimiter.
+the script file as @var{file}.  Emacs Lisp then treats the @samp{#!}
+on this first line as a comment delimiter.
 
 @item -q
 @opindex -q
@@ -280,11 +278,10 @@ comment delimiter.
 @cindex bypassing init and @file{default.el} file
 @cindex init file, not loading
 @cindex @file{default.el} file, not loading
-Do not load your Emacs initialization file, and do not load the file
-@file{default.el} either (@pxref{Init File}).  Regardless of this
-switch, @file{site-start.el} is still loaded.  When Emacs is invoked
-like this, the Customize facility does not allow options to be saved
-(@pxref{Easy Customization}).
+Do not load any initialization file (@pxref{Init File}).  When Emacs
+is invoked with this option, the Customize facility does not allow
+options to be saved (@pxref{Easy Customization}).  This option does
+not disable loading @file{site-start.el}.
 
 @item --no-site-file
 @opindex --no-site-file
@@ -371,45 +368,6 @@ also guarantees there will be no problem redirecting output to
 @file{log}, because Emacs will not assume that it has a display terminal
 to work with.
 
-@node Resume Arguments
-@appendixsec Resuming Emacs with Arguments
-
-  You can specify action arguments for Emacs when you resume it after
-a suspension.  To prepare for this, put the following code in your
-@file{.emacs} file (@pxref{Hooks}):
-
-@c `resume-suspend-hook' is correct.  It is the name of a function.
-@example
-(add-hook 'suspend-hook 'resume-suspend-hook)
-(add-hook 'suspend-resume-hook 'resume-process-args)
-@end example
-
-  As further preparation, you must execute the shell script
-@file{emacs.csh} (if you use csh as your shell) or @file{emacs.bash}
-(if you use bash as your shell).  These scripts define an alias named
-@code{edit}, which will resume Emacs giving it new command line
-arguments such as files to visit.  The scripts are found in the
-@file{etc} subdirectory of the Emacs distribution.
-
-  Only action arguments work properly when you resume Emacs.  Initial
-arguments are not recognized---it's too late to execute them anyway.
-
-  Note that resuming Emacs (with or without arguments) must be done from
-within the shell that is the parent of the Emacs job.  This is why
-@code{edit} is an alias rather than a program or a shell script.  It is
-not possible to implement a resumption command that could be run from
-other subjobs of the shell; there is no way to define a command that could
-be made the value of @env{EDITOR}, for example.  Therefore, this feature
-does not take the place of the Emacs Server feature (@pxref{Emacs
-Server}).
-
-  The aliases use the Emacs Server feature if you appear to have a
-server Emacs running.  However, they cannot determine this with complete
-accuracy.  They may think that a server is still running when in
-actuality you have killed that Emacs, because the file
-@file{/tmp/esrv@dots{}} still exists.  If this happens, find that
-file and delete it.
-
 @node Environment
 @appendixsec Environment Variables
 @cindex environment variables
@@ -424,19 +382,19 @@ letters only.  The values are all text strings.
 environment automatically from their parent process.  This means you
 can set up an environment variable in your login shell, and all the
 programs you run (including Emacs) will automatically see it.
-Subprocesses of Emacs (such as shells, compilers, and version-control
-software) inherit the environment from Emacs, too.
+Subprocesses of Emacs (such as shells, compilers, and version control
+programs) inherit the environment from Emacs, too.
 
 @findex setenv
 @findex getenv
 @vindex initial-environment
-  Inside Emacs, the command @kbd{M-x getenv} gets the value of an
-environment variable.  @kbd{M-x setenv} sets a variable in the Emacs
-environment, and @kbd{C-u M-x setenv} removes a variable.
-(Environment variable substitutions with @samp{$} work in the value
-just as in file names; see @ref{File Names with $}.)  The variable
-@code{initial-environment} stores the initial environment inherited by
-Emacs.
+  Inside Emacs, the command @kbd{M-x getenv} reads the name of an
+environment variable, and prints its value in the echo area.  @kbd{M-x
+setenv} sets a variable in the Emacs environment, and @kbd{C-u M-x
+setenv} removes a variable.  (Environment variable substitutions with
+@samp{$} work in the value just as in file names; see @ref{File Names
+with $}.)  The variable @code{initial-environment} stores the initial
+environment inherited by Emacs.
 
   The way to set environment variables outside of Emacs depends on the
 operating system, and especially the shell that you are using.  For
@@ -483,22 +441,25 @@ This is used to initialize the Lisp variable @code{data-directory}.
 Directory for the documentation string file, which is used to
 initialize the Lisp variable @code{doc-directory}.
 @item EMACSLOADPATH
-A colon-separated list of directories@footnote{
-Here and below, whenever we say ``colon-separated list of directories,''
-it pertains to Unix and GNU/Linux systems.  On MS-DOS and MS-Windows,
-the directories are separated by semi-colons instead, since DOS/Windows
-file names might include a colon after a drive letter.}
-to search for Emacs Lisp files---used to initialize @code{load-path}.
+A colon-separated list of directories@footnote{ Here and below,
+whenever we say ``colon-separated list of directories,'' it pertains
+to Unix and GNU/Linux systems.  On MS-DOS and MS-Windows, the
+directories are separated by semi-colons instead, since DOS/Windows
+file names might include a colon after a drive letter.}  to search for
+Emacs Lisp files.  If set, it overrides the usual initial value of the
+@code{load-path} variable (@pxref{Lisp Libraries}).
 @item EMACSPATH
-A colon-separated list of directories to search for executable
-files---used to initialize @code{exec-path}.
+A colon-separated list of directories to search for executable files.
+If set, Emacs uses this in addition to @env{PATH} (see below) when
+initializing the variable @code{exec-path} (@pxref{Shell}).
 @item EMAIL
 @vindex user-mail-address@r{, initialization}
 Your email address; used to initialize the Lisp variable
-@code{user-mail-address}, which the Emacs mail interface puts into
-the @samp{From} header of outgoing messages (@pxref{Mail Headers}).
+@code{user-mail-address}, which the Emacs mail interface puts into the
+@samp{From} header of outgoing messages (@pxref{Mail Headers}).
 @item ESHELL
-Used for shell-mode to override the @env{SHELL} environment variable.
+Used for shell-mode to override the @env{SHELL} environment variable
+(@pxref{Interactive Shell}).
 @item HISTFILE
 The name of the file that shell commands are saved in between logins.
 This variable defaults to @file{~/.bash_history} if you use Bash, to
@@ -554,23 +515,28 @@ environment and coding system.  @xref{Language Environments}.
 The user's login name.  See also @env{USER}.
 @item MAIL
 The name of your system mail inbox.
+@ifnottex
 @item MH
-Name of setup file for the mh system.  (The default is @file{~/.mh_profile}.)
+Name of setup file for the mh system.  @xref{Top,,MH-E,mh-e, The Emacs
+Interface to MH}.
+@end ifnottex
 @item NAME
-Your real-world name.
+Your real-world name.  This is used to initialize the variable
+@code{user-full-name} (@pxref{Mail Headers}).
 @item NNTPSERVER
 The name of the news server.  Used by the mh and Gnus packages.
 @item ORGANIZATION
 The name of the organization to which you belong.  Used for setting the
 `Organization:' header in your posts from the Gnus package.
 @item PATH
-A colon-separated list of directories in which executables reside.  This
-is used to initialize the Emacs Lisp variable @code{exec-path}.
+A colon-separated list of directories containing executable files.
+This is used to initialize the variable @code{exec-path}
+(@pxref{Shell}).
 @item PWD
 If set, this should be the default directory when Emacs was started.
 @item REPLYTO
 If set, this specifies an initial value for the variable
-@code{mail-default-reply-to}.  @xref{Mail Headers}.
+@code{mail-default-reply-to} (@pxref{Mail Headers}).
 @item SAVEDIR
 The name of a directory in which news articles are saved by default.
 Used by the Gnus package.
@@ -578,23 +544,29 @@ Used by the Gnus package.
 The name of an interpreter used to parse and execute programs run from
 inside Emacs.
 @item SMTPSERVER
-The name of the outgoing mail server.  Used by the SMTP library
-(@pxref{Top,,,smtpmail,Sending mail via SMTP}).
+The name of the outgoing mail server.  This is used to initialize the
+variable @code{smtpmail-smtp-server} (@pxref{Mail Sending}).
 @cindex background mode, on @command{xterm}
 @item TERM
 The type of the terminal that Emacs is using.  This variable must be
 set unless Emacs is run in batch mode.  On MS-DOS, it defaults to
 @samp{internal}, which specifies a built-in terminal emulation that
-handles the machine's own display.  If the value of @env{TERM} indicates
-that Emacs runs in non-windowed mode from @command{xterm} or a similar
-terminal emulator, the background mode defaults to @samp{light}, and
-Emacs will choose colors that are appropriate for a light background.
+handles the machine's own display.
 @item TERMCAP
 The name of the termcap library file describing how to program the
-terminal specified by the @env{TERM} variable.  This defaults to
+terminal specified by @env{TERM}.  This defaults to
 @file{/etc/termcap}.
 @item TMPDIR
-Used by the Emerge package as a prefix for temporary files.
+@itemx TMP
+@itemx TEMP
+These environment variables are used to initialize the variable
+@code{temporary-file-directory}, which specifies a directory in which
+to put temporary files (@pxref{Backup}).  Emacs tries to use
+@env{TMPDIR} first; if that is unset, it tries @env{TMP}, then
+@env{TEMP}, and finally @file{/tmp}.  But on MS-Windows and MS-DOS,
+Emacs tries @env{TEMP}, then @env{TMPDIR}, then @env{TMP}, and finally
+@file{c:/temp}.
+
 @item TZ
 This specifies the current time zone and possibly also daylight
 saving time information.  On MS-DOS, if @env{TZ} is not set in the
@@ -623,11 +595,6 @@ variable.
 @item NAME
 On MS-DOS, this variable defaults to the value of the @env{USER}
 variable.
-
-@item TEMP
-@itemx TMP
-On MS-DOS and MS-Windows, these specify the name of the directory for
-storing temporary files in.
 
 @item EMACSTEST
 On MS-DOS, this specifies a file to use to log the operation of the
@@ -710,27 +677,21 @@ of the settings which on X belong in the @file{.Xdefaults} file
 @cindex display name (X Window System)
 @cindex @env{DISPLAY} environment variable
 
-  The environment variable @env{DISPLAY} tells all X clients, including
-Emacs, where to display their windows.  Its value is set by default
-in ordinary circumstances, when you start an X server and run jobs
-locally.  Occasionally you may need to specify the display yourself; for
-example, if you do a remote login and want to run a client program
-remotely, displaying on your local screen.
-
-  With Emacs, the main reason people change the default display is to
-let them log into another system, run Emacs on that system, but have the
-window displayed at their local terminal.  You might need to log in
-to another system because the files you want to edit are there, or
-because the Emacs executable file you want to run is there.
+  The environment variable @env{DISPLAY} tells all X clients,
+including Emacs, where to display their windows.  Its value is set by
+default in ordinary circumstances, when you start an X server and run
+jobs locally.  You can specify the display yourself; one reason to do
+this is if you want to log into another system and run Emacs there,
+and have the window displayed at your local terminal.
 
   @env{DISPLAY} has the syntax
 @samp{@var{host}:@var{display}.@var{screen}}, where @var{host} is the
 host name of the X Window System server machine, @var{display} is an
 arbitrarily-assigned number that distinguishes your server (X
 terminal) from other servers on the same machine, and @var{screen} is
-a rarely-used field that allows an X server to control multiple
-terminal screens.  The period and the @var{screen} field are optional.
-If included, @var{screen} is usually zero.
+a field that allows an X server to control multiple terminal screens.
+The period and the @var{screen} field are optional.  If included,
+@var{screen} is usually zero.
 
   For example, if your host is named @samp{glasperle} and your server is
 the first (or perhaps the only) server listed in the configuration, your
@@ -744,9 +705,9 @@ by changing the @env{DISPLAY} variable, or with the option @samp{-d
 emacs --display=glasperle:0 &
 @end smallexample
 
-  You can inhibit the direct use of the window system and GUI with the
-@samp{-nw} option.  It tells Emacs to display using ordinary @acronym{ASCII} on
-its controlling terminal.  This is also an initial option.
+  You can inhibit the use of the X window system with the @samp{-nw}
+option.  Then Emacs uses its controlling text terminal for display.
+@xref{Initial Options}.
 
   Sometimes, security arrangements prevent a program on a remote system
 from displaying on your local system.  In this case, trying to run Emacs
@@ -778,17 +739,17 @@ font:
 Use @var{font} as the default font.
 @end table
 
-When passing a font specification to Emacs on the command line, you
-may need to ``quote'' it, by enclosing it in quotation marks, if it
-contains characters that the shell treats specially (e.g.@: spaces).
-For example:
+When passing a font name to Emacs on the command line, you may need to
+``quote'' it, by enclosing it in quotation marks, if it contains
+characters that the shell treats specially (e.g.@: spaces).  For
+example:
 
 @smallexample
 emacs -fn "DejaVu Sans Mono-12"
 @end smallexample
 
-@xref{Fonts}, for other ways to specify the default font and font name
-formats.
+@xref{Fonts}, for details about font names and other ways to specify
+the default font.
 
 @node Colors X
 @appendixsec Window Color Options
@@ -819,7 +780,8 @@ Specify the background color, overriding the color specified by the
 @itemx --border-color=@var{color}
 @opindex --border-color
 @cindex border color, command-line argument
-Specify the color of the border of the X window.
+Specify the color of the border of the X window.  This has no effect
+if Emacs is compiled with GTK+ support.
 @item -cr @var{color}
 @opindex -cr
 @itemx --cursor-color=@var{color}
@@ -844,11 +806,10 @@ Reverse video---swap the foreground and background colors.
 @opindex --color
 @cindex standard colors on a character terminal
 @cindex override character terminal color support
-For a character terminal only, specify the mode of color support.
-This option is intended for overriding the number of supported colors
-that the character terminal advertises in its @code{termcap} or
-@code{terminfo} database.  The parameter @var{mode} can be one of the
-following:
+Set the @dfn{color support mode} when Emacs is run on a text terminal.
+This option overrides the number of supported colors that the
+character terminal advertises in its @code{termcap} or @code{terminfo}
+database.  The parameter @var{mode} can be one of the following:
 @table @samp
 @item never
 @itemx no
@@ -1090,7 +1051,7 @@ Start Emacs in an iconified (``minimized'') state.
 @itemx --no-bitmap-icon
 @opindex --no-bitmap-icon
 @cindex Emacs icon, a gnu
-Do not display the Emacs icon.
+Disable the use of the Emacs icon.
 @end table
 
   Most window managers allow you to ``iconify'' (or ``minimize'') an
@@ -1102,10 +1063,11 @@ The text frame doesn't appear until you deiconify (or ``un-minimize'')
 it.
 
   By default, Emacs uses an icon containing the Emacs logo.  On
-desktop environments such as Gnome, this icon is also displayed on the
-``taskbar''.  The @samp{-nbi} or @samp{--no-bitmap-icon} option tells
-Emacs to let the window manager choose what sort of icon to
-use---usually just a small rectangle containing the frame's title.
+desktop environments such as Gnome, this icon is also displayed in
+other contexts, e.g.@: when switching into an Emacs frame.  The
+@samp{-nbi} or @samp{--no-bitmap-icon} option tells Emacs to let the
+window manager choose what sort of icon to use---usually just a small
+rectangle containing the frame's title.
 
 @node Misc X
 @appendixsec Other Display Options

@@ -2237,8 +2237,8 @@ do { if (polling_stopped_here) start_polling ();	\
        polling_stopped_here = 0; } while (0)
 
 /* read a character from the keyboard; call the redisplay if needed */
-/* commandflag 0 means do not do auto-saving, but do do redisplay.
-   -1 means do not do redisplay, but do do autosaving.
+/* commandflag 0 means do not autosave, but do redisplay.
+   -1 means do not redisplay, but do autosave.
    1 means do both.  */
 
 /* The arguments MAPS and NMAPS are for menu prompting.
@@ -5133,7 +5133,7 @@ make_lispy_position (struct frame *f, Lisp_Object x, Lisp_Object y,
 
   if (WINDOWP (window))
     {
-      /* It's a click in window window at frame coordinates (x,y)  */
+      /* It's a click in window WINDOW at frame coordinates (X,Y)  */
       struct window *w = XWINDOW (window);
       Lisp_Object string_info = Qnil;
       ptrdiff_t textpos = -1;

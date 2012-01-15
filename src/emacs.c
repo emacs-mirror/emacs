@@ -2485,9 +2485,11 @@ The value is nil if that directory's name is not known.  */);
 
   DEFVAR_LISP ("installation-directory", Vinstallation_directory,
 	       doc: /* A directory within which to look for the `lib-src' and `etc' directories.
-This is non-nil when we can't find those directories in their standard
-installed locations, but we can find them near where the Emacs executable
-was found.  */);
+In an installed Emacs, this is normally nil.  It is non-nil if
+both `lib-src' (on MS-DOS, `info') and `etc' directories are found
+within the variable `invocation-directory' or its parent.  For example,
+this is the case when running an uninstalled Emacs executable from its
+build directory.  */);
   Vinstallation_directory = Qnil;
 
   DEFVAR_LISP ("system-messages-locale", Vsystem_messages_locale,

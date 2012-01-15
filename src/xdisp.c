@@ -25822,12 +25822,14 @@ cursor_in_mouse_face_p (struct window *w)
 
 /* Find the glyph rows START_ROW and END_ROW of window W that display
    characters between buffer positions START_CHARPOS and END_CHARPOS
-   (excluding END_CHARPOS).  This is similar to row_containing_pos,
-   but is more accurate when bidi reordering makes buffer positions
-   change non-linearly with glyph rows.  */
+   (excluding END_CHARPOS).  DISP_STRING is a display string that
+   covers these buffer positions.  This is similar to
+   row_containing_pos, but is more accurate when bidi reordering makes
+   buffer positions change non-linearly with glyph rows.  */
 static void
 rows_from_pos_range (struct window *w,
 		     ptrdiff_t start_charpos, ptrdiff_t end_charpos,
+		     Lisp_Object disp_string,
 		     struct glyph_row **start, struct glyph_row **end)
 {
   struct glyph_row *first = MATRIX_FIRST_TEXT_ROW (w->current_matrix);
@@ -25879,8 +25881,11 @@ rows_from_pos_range (struct window *w,
 
 	  while (g < e)
 	    {
-	      if ((BUFFERP (g->object) || INTEGERP (g->object))
-		  && start_charpos <= g->charpos && g->charpos < end_charpos)
+	      if (((BUFFERP (g->object) || INTEGERP (g->object))
+		   && start_charpos <= g->charpos && g->charpos < end_charpos)
+		  /* A glyph that comes from DISP_STRING is by
+		     definition to be highlighted.  */
+		  || EQ (g->object, disp_string))
 		*start = row;
 	      g++;
 	    }
@@ -25899,14 +25904,15 @@ rows_from_pos_range (struct window *w,
   for ( ; row->enabled_p && MATRIX_ROW_BOTTOM_Y (row) <= last_y; row++)
     {
       struct glyph_row *next = row + 1;
+      ptrdiff_t next_start = MATRIX_ROW_START_CHARPOS (next);
 
       if (!next->enabled_p
 	  || next >= MATRIX_BOTTOM_TEXT_ROW (w->current_matrix, w)
 	  /* The first row >= START whose range of displayed characters
 	     does NOT intersect the range [START_CHARPOS..END_CHARPOS]
 	     is the row END + 1.  */
-	  || (start_charpos < MATRIX_ROW_START_CHARPOS (next)
-	      && end_charpos < MATRIX_ROW_START_CHARPOS (next))
+	  || (start_charpos < next_start
+	      && end_charpos < next_start)
 	  || ((start_charpos > MATRIX_ROW_END_CHARPOS (next)
 	       || (start_charpos == MATRIX_ROW_END_CHARPOS (next)
 		   && !next->ends_at_zv_p
@@ -25925,18 +25931,42 @@ rows_from_pos_range (struct window *w,
 	     but none of the characters it displays are in the range, it is
 	     also END + 1. */
 	  struct glyph *g = next->glyphs[TEXT_AREA];
+	  struct glyph *s = g;
 	  struct glyph *e = g + next->used[TEXT_AREA];
 
 	  while (g < e)
 	    {
-	      if ((BUFFERP (g->object) || INTEGERP (g->object))
-		  && start_charpos <= g->charpos && g->charpos < end_charpos)
+	      if (((BUFFERP (g->object) || INTEGERP (g->object))
+		   && ((start_charpos <= g->charpos && g->charpos < end_charpos)
+		       /* If the buffer position of the first glyph in
+			  the row is equal to END_CHARPOS, it means
+			  the last character to be highlighted is the
+			  newline of ROW, and we must consider NEXT as
+			  END, not END+1.  */
+		       || (((!next->reversed_p && g == s)
+			    || (next->reversed_p && g == e - 1))
+			   && (g->charpos == end_charpos
+			       /* Special case for when NEXT is an
+				  empty line at ZV.  */
+			       || (g->charpos == -1
+				   && !row->ends_at_zv_p
+				   && next_start == end_charpos)))))
+		  /* A glyph that comes from DISP_STRING is by
+		     definition to be highlighted.  */
+		  || EQ (g->object, disp_string))
 		break;
 	      g++;
 	    }
 	  if (g == e)
 	    {
 	      *end = row;
+	      break;
+	    }
+	  /* The first row that ends at ZV must be the last to be
+	     highlighted.  */
+	  else if (next->ends_at_zv_p)
+	    {
+	      *end = next;
 	      break;
 	    }
 	}
@@ -25974,7 +26004,7 @@ mouse_face_from_buffer_pos (Lisp_Object window,
   xassert (NILP (after_string) || STRINGP (after_string));
 
   /* Find the rows corresponding to START_CHARPOS and END_CHARPOS.  */
-  rows_from_pos_range (w, start_charpos, end_charpos, &r1, &r2);
+  rows_from_pos_range (w, start_charpos, end_charpos, disp_string, &r1, &r2);
   if (r1 == NULL)
     r1 = MATRIX_ROW (w->current_matrix, XFASTINT (w->window_end_vpos));
   /* If the before-string or display-string contains newlines,
@@ -26251,6 +26281,19 @@ mouse_face_from_buffer_pos (Lisp_Object window,
 		break;
 	    }
 	  x += end->pixel_width;
+	}
+      /* If we exited the above loop because we arrived at the last
+	 glyph of the row, and its buffer position is still not in
+	 range, it means the last character in range is the preceding
+	 newline.  Bump the end column and x values to get past the
+	 last glyph.  */
+      if (end == glyph
+	  && BUFFERP (end->object)
+	  && (end->charpos < start_charpos
+	      || end->charpos >= end_charpos))
+	{
+	  x += end->pixel_width;
+	  ++end;
 	}
       hlinfo->mouse_face_end_x = x;
       hlinfo->mouse_face_end_col = end - r2->glyphs[TEXT_AREA];

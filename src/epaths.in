@@ -19,14 +19,21 @@ You should have received a copy of the GNU General Public License
 along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 
-/* The default search path for Lisp function "load".
-   This sets load-path.  */
-#define PATH_LOADSEARCH "/usr/local/lib/emacs/lisp"
+/* The default value of load-path, which is the search path for
+   the Lisp function "load".  Configure (using "make epaths-force")
+   sets this to $lisppath, which typically has a value like:
+   <datadir>/emacs/VERSION/site-lisp:<datadir>/emacs/site-lisp:
+   <datadir>/emacs/VERSION/lisp:<datadir>/emacs/VERSION/leim
+   where datadir is eg /usr/local/share.
+   Configure prepends any $locallisppath, as set by the
+   --enable-locallisppath argument.
+*/
+#define PATH_LOADSEARCH "/usr/local/share/emacs/lisp"
 
-/* Like PATH_LOADSEARCH, but used only when Emacs is dumping.  This
-   path is usually identical to PATH_LOADSEARCH except that the entry
-   for the directory containing the installed lisp files has been
-   replaced with ../lisp.  */
+/* Like PATH_LOADSEARCH, but used only during the build process
+   when Emacs is dumping.  Configure (using "make epaths-force") sets
+   this to $buildlisppath, which normally has the value: <srcdir>/lisp.
+*/
 #define PATH_DUMPLOADSEARCH "../lisp"
 
 /* The extra search path for programs to invoke.  This is appended to
@@ -34,12 +41,12 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
    variable exec-path and the first file name in it sets the Lisp
    variable exec-directory.  exec-directory is used for finding
    executables and other architecture-dependent files.  */
-#define PATH_EXEC "/usr/local/lib/emacs/etc"
+#define PATH_EXEC "/usr/local/libexec/emacs"
 
 /* Where Emacs should look for its architecture-independent data
    files, like the NEWS file.  The lisp variable data-directory
    is set to this value.  */
-#define PATH_DATA "/usr/local/lib/emacs/data"
+#define PATH_DATA "/usr/local/share/emacs/etc"
 
 /* Where Emacs should look for X bitmap files.
    The lisp variable x-bitmap-file-path is set based on this value.  */
@@ -47,7 +54,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 /* Where Emacs should look for its docstring file.  The lisp variable
    doc-directory is set to this value.  */
-#define PATH_DOC "/usr/local/lib/emacs/data"
+#define PATH_DOC "/usr/local/share/emacs/etc"
 
 /* Where the configuration process believes the info tree lives.  The
    lisp variable configure-info-directory gets its value from this

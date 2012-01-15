@@ -145,43 +145,43 @@ zeros to make a word."
     (LD1 loading "load I1" 9 field
          "Put in rI1 the contents of cell no. M.
 Uses a + when there is no sign in subfield. Subfield is left padded with
-zeros to make a word. Index registers only have 2 bytes and a sign, Trying
-to set anything more that that will result in undefined behavior."
+zeros to make a word. Index registers only have 2 bytes and a sign; trying
+to set anything more than that will result in undefined behavior."
          2)
 
     (LD2 loading "load I2" 10 field
          "Put in rI2 the contents of cell no. M.
 Uses a + when there is no sign in subfield. Subfield is left padded with
-zeros to make a word. Index registers only have 2 bytes and a sign, Trying
-to set anything more that that will result in undefined behavior."
+zeros to make a word. Index registers only have 2 bytes and a sign; trying
+to set anything more than that will result in undefined behavior."
          2)
 
     (LD3 loading "load I3" 11 field
          "Put in rI3 the contents of cell no. M.
 Uses a + when there is no sign in subfield. Subfield is left padded with
-zeros to make a word. Index registers only have 2 bytes and a sign, Trying
-to set anything more that that will result in undefined behavior."
+zeros to make a word. Index registers only have 2 bytes and a sign; trying
+to set anything more than that will result in undefined behavior."
          2)
 
     (LD4 loading "load I4" 12 field
          "Put in rI4 the contents of cell no. M.
 Uses a + when there is no sign in subfield. Subfield is left padded with
-zeros to make a word. Index registers only have 2 bytes and a sign, Trying
-to set anything more that that will result in undefined behavior."
+zeros to make a word. Index registers only have 2 bytes and a sign; trying
+to set anything more than that will result in undefined behavior."
          2)
 
     (LD5 loading "load I5" 13 field
          "Put in rI5 the contents of cell no. M.
 Uses a + when there is no sign in subfield. Subfield is left padded with
-zeros to make a word. Index registers only have 2 bytes and a sign, Trying
-to set anything more that that will result in undefined behavior."
+zeros to make a word. Index registers only have 2 bytes and a sign; trying
+to set anything more than that will result in undefined behavior."
          2)
 
     (LD6 loading "load I6" 14 field
          "Put in rI6 the contents of cell no. M.
 Uses a + when there is no sign in subfield. Subfield is left padded with
-zeros to make a word. Index registers only have 2 bytes and a sign, Trying
-to set anything more that that will result in undefined behavior."
+zeros to make a word. Index registers only have 2 bytes and a sign; trying
+to set anything more than that will result in undefined behavior."
          2)
 
     (LDAN loading "load A negative" 16 field
@@ -200,7 +200,7 @@ Subfield is left padded with zeros to make a word."
           "Put in rI1 the contents of cell no. M, with opposite sign.
 Uses a + when there is no sign in subfield, otherwise use the opposite sign.
 Subfield is left padded with zeros to make a word. Index registers only
-have 2 bytes and a sign, Trying to set anything more that that will result
+have 2 bytes and a sign; trying to set anything more than that will result
 in undefined behavior."
           2)
 
@@ -208,7 +208,7 @@ in undefined behavior."
           "Put in rI2 the contents of cell no. M, with opposite sign.
 Uses a + when there is no sign in subfield, otherwise use the opposite sign.
 Subfield is left padded with zeros to make a word. Index registers only
-have 2 bytes and a sign, Trying to set anything more that that will result
+have 2 bytes and a sign; trying to set anything more than that will result
 in undefined behavior."
           2)
 
@@ -216,7 +216,7 @@ in undefined behavior."
           "Put in rI3 the contents of cell no. M, with opposite sign.
 Uses a + when there is no sign in subfield, otherwise use the opposite sign.
 Subfield is left padded with zeros to make a word. Index registers only
-have 2 bytes and a sign, Trying to set anything more that that will result
+have 2 bytes and a sign; trying to set anything more than that will result
 in undefined behavior."
           2)
 
@@ -224,7 +224,7 @@ in undefined behavior."
           "Put in rI4 the contents of cell no. M, with opposite sign.
 Uses a + when there is no sign in subfield, otherwise use the opposite sign.
 Subfield is left padded with zeros to make a word. Index registers only
-have 2 bytes and a sign, Trying to set anything more that that will result
+have 2 bytes and a sign; trying to set anything more than that will result
 in undefined behavior."
           2)
 
@@ -232,7 +232,7 @@ in undefined behavior."
           "Put in rI5 the contents of cell no. M, with opposite sign.
 Uses a + when there is no sign in subfield, otherwise use the opposite sign.
 Subfield is left padded with zeros to make a word. Index registers only
-have 2 bytes and a sign, Trying to set anything more that that will result
+have 2 bytes and a sign; trying to set anything more than that will result
 in undefined behavior."
           2)
 
@@ -240,7 +240,7 @@ in undefined behavior."
           "Put in rI6 the contents of cell no. M, with opposite sign.
 Uses a + when there is no sign in subfield, otherwise use the opposite sign.
 Subfield is left padded with zeros to make a word. Index registers only
-have 2 bytes and a sign, Trying to set anything more that that will result
+have 2 bytes and a sign; trying to set anything more than that will result
 in undefined behavior."
           2)
 

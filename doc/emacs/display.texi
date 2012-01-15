@@ -1078,7 +1078,7 @@ list):
 @table @code
 @item face
 Enable all visualizations which use special faces.  This element has a
-special meaing: if it is absent from the list, none of the other
+special meaning: if it is absent from the list, none of the other
 visualizations take effect except @code{space-mark}, @code{tab-mark},
 and @code{newline-mark}.
 

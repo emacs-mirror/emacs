@@ -12,9 +12,10 @@ ou ALT). Pour ces touches, nous utiliserons les abréviations suivantes :
 	 touches n'existe, pressez puis relâchez la touche ESC et
 	 tapez <car>. Nous écrirons <ESC> pour désigner la touche ESC.
 
-Tapez C-x C-c (deux caractères) pour terminer une session Emacs.
-Dans ce didacticiel, les caractères ">>" en marge gauche indiquent les
-directions à suivre pour essayer une commande. Ainsi :
+Note importante : tapez C-x C-c (deux caractères) pour terminer une
+session Emacs. Pour interrompre une commande partiellement entrée,
+tapez C-g. Dans ce didacticiel, les caractères ">>" en marge gauche
+indiquent les directions à suivre pour essayer une commande. Ainsi :
 <<Lignes blanches insérées après cette ligne par help-with-tutorial>>
 [Centre de page delibérément vide. Le texte continue ci-dessous.]
 >>  Tapez C-v (Voir l'écran suivant) pour passer à l'écran suivant
@@ -34,9 +35,6 @@ touche META, EDIT ou ALT).
 
 >>  Faites M-v, puis C-v plusieurs fois.
 
-Si votre terminal en dispose, vous pouvez également utiliser les
-touches PgUp et PgDn pour monter ou descendre d'un écran, bien que les
-combinaisons C-v et M-v soient plus efficaces.
 
 * RÉSUMÉ
 --------
@@ -52,7 +50,14 @@ Les commandes suivantes servent à manipuler des écrans :
 
 >> Notez le texte situé à côté du curseur, puis faites C-l.
    Recherchez l'emplacement du curseur et vous remarquerez que
-   c'est le même texte qui est à côté de lui.
+   c'est le même texte qui est à côté de lui, mais il est désormais
+   au centre de l'écran.
+   Si vous appuyez de nouveau sur C-l, ce bout de texte se déplacera
+   en haut de l'écran. Faite encore C-l, et il se déplace en bas.
+
+Si votre terminal en dispose, vous pouvez également utiliser les
+touches PgUp et PgDn pour monter ou descendre d'un écran, bien que les
+combinaisons C-v et M-v soient plus efficaces.
 
 
 * GESTION DU CURSEUR
@@ -240,15 +245,8 @@ ou « scrollbar » sur le bord gauche de la fenêtre d'Emacs. Vous pouvez
 faire défiler le texte en cliquant avec la souris dans cette barre de
 défilement.
 
->> Cliquez avec le bouton du milieu en haut de la zone mise en
-   évidence dans la barre de défilement. Cela devrait déplacer le
-   texte jusqu'à une position dépendant de la hauteur où vous avez
-   cliqué.
-
->> Déplacez la souris de bas en haut tout en maintenant son bouton du
-   milieu pressé. Vous constaterez que le texte défile vers le haut et
-   vers le bas en fonction du déplacement de la souris.
-
+Si votre souris a une molette, vous pouvez aussi l'utiliser pour faire
+défiler le texte.
 
 * QUAND EMACS EST MUET
 ----------------------

@@ -1111,6 +1111,11 @@ BEG..END is the line where the file info is located."
 
 (defvar ls-lisp-use-insert-directory-program)
 
+(defun dired-switches-escape-p (switches)
+  "Return non-nil if the string SWITCHES contains -b or --escape."
+  ;; Do not match things like "--block-size" that happen to contain "b".
+  (string-match "\\(\\`\\| \\)-[[:alnum:]]*b\\|--escape\\>" switches))
+
 (defun dired-insert-directory (dir switches &optional file-list wildcard hdr)
   "Insert a directory listing of DIR, Dired style.
 Use SWITCHES to make the listings.
@@ -1152,7 +1157,7 @@ see `dired-use-ls-dired' for more details.")
 	    (dired-align-file beg (point))))
       (insert-directory dir switches wildcard (not wildcard)))
     ;; Quote certain characters, unless ls quoted them for us.
-    (if (not (string-match "b" dired-actual-switches))
+    (if (not (dired-switches-escape-p dired-actual-switches))
 	(save-excursion
 	  (setq end (point-marker))
 	  (goto-char opoint)
@@ -2099,7 +2104,18 @@ Otherwise, an error occurs in these cases."
           ;; with quotation marks in their names.
 	  (while (string-match "\\(?:[^\\]\\|\\`\\)\\(\"\\)" file)
 	    (setq file (replace-match "\\\"" nil t file 1)))
-
+          ;; Unescape any spaces escaped by ls -b (bug#10469).
+          ;; Other -b quotes, eg \t, \n, work transparently.
+          (if (dired-switches-escape-p dired-actual-switches)
+              (let ((start 0)
+                    (rep "")
+                    (shift -1))
+                (if (eq localp 'verbatim)
+                    (setq rep "\\\\"
+                          shift +1))
+                (while (string-match "\\(\\\\\\) " file start)
+                  (setq file (replace-match rep nil t file 1)
+                        start (+ shift (match-end 0))))))
 	  (when (eq system-type 'windows-nt)
 	    (save-match-data
 	      (let ((start 0))
@@ -2107,6 +2123,7 @@ Otherwise, an error occurs in these cases."
 		  (aset file (match-beginning 0) ?/)
 		  (setq start (match-end 0))))))
 
+          ;; Hence we don't need to worry about converting `\\' back to `\'.
           (setq file (read (concat "\"" file "\"")))
 	  ;; The above `read' will return a unibyte string if FILE
 	  ;; contains eight-bit-control/graphic characters.
@@ -3667,7 +3684,7 @@ Ask means pop up a menu for the user to select one of copy, move or link."
 ;;;;;;  dired-run-shell-command dired-do-shell-command dired-do-async-shell-command
 ;;;;;;  dired-clean-directory dired-do-print dired-do-touch dired-do-chown
 ;;;;;;  dired-do-chgrp dired-do-chmod dired-compare-directories dired-backup-diff
-;;;;;;  dired-diff) "dired-aux" "dired-aux.el" "cdcae8f5f4ea69fa7b0231f640c13163")
+;;;;;;  dired-diff) "dired-aux" "dired-aux.el" "e77c506a0dd793230c5856a67e408fc6")
 ;;; Generated autoloads from dired-aux.el
 
 (autoload 'dired-diff "dired-aux" "\
@@ -3784,8 +3801,11 @@ file name added at the end of COMMAND (separated by a space).
 
 `*' and `?' when not surrounded by whitespace have no special
 significance for `dired-do-shell-command', and are passed through
-normally to the shell, but you must confirm first.  To pass `*' by
-itself to the shell as a wildcard, type `*\"\"'.
+normally to the shell, but you must confirm first.
+
+If you want to use `*' as a shell wildcard with whitespace around
+it, write `*\"\"' in place of just `*'.  This is equivalent to just
+`*' in the shell, but avoids Dired's special handling.
 
 If COMMAND produces output, it goes to a separate buffer.
 

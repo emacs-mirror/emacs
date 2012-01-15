@@ -789,7 +789,7 @@ DIARY OF CHANGES
    frame's kboard from there.)
 
 -- Fix rif issue with X-tty combo sessions.  IMHO the best thing to do
-   is to get rid of that global variable (and use the value value in
+   is to get rid of that global variable (and use the value in
    display_method, which is guaranteed to be correct).
 
    (Done, did exactly that.  Core dumps during combo sessions became

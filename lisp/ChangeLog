@@ -1,3 +1,58 @@
+2012-01-14  Eli Zaretskii  <eliz@gnu.org>
+
+	* info.el (Info-toc-build): If the Info file has no "Up" pointer,
+	don't pass the (nil) value of `upnode' to string-match.
+
+2012-01-14  Chong Yidong  <cyd@gnu.org>
+
+	* startup.el (command-line): Fix X resource class for cursorColor.
+	Fix values recognized by the cursorBlink resource.
+
+2012-01-14  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* epg.el (epg--make-temp-file): Avoid permission race condition
+	when running on old Emacs versions (bug#10403).
+
+2012-01-14  Glenn Morris  <rgm@gnu.org>
+
+	* dired.el (dired-get-filename): Fix 'verbatim case of previous change.
+
+2012-01-13  Glenn Morris  <rgm@gnu.org>
+
+	* dired.el (dired-switches-escape-p): New function.
+	(dired-insert-directory): Use dired-switches-escape-p.
+	(dired-get-filename): Undo "\ " quoting if needed.  (Bug#10469)
+
+	* find-dired.el (find-ls-option): Doc fix.  (Bug#10262)
+
+2012-01-12  Glenn Morris  <rgm@gnu.org>
+
+	* mail/sendmail.el (mail-mode): Update paragraph-separate for
+	changes in adaptive-fill-regexp.  (Bug#10276)
+
+2012-01-11  Alan Mackenzie  <acm@muc.de>
+
+	Fix Emacs bug #10463 - put `widen's around the critical spots.
+
+        * progmodes/cc-engine.el (c-in-literal, c-literal-limits): put a
+	widen around each invocation of c-state-pp-to-literal.  Remove an
+	unused let variable.
+
+2012-01-11  Glenn Morris  <rgm@gnu.org>
+
+	* dired-aux.el (dired-do-shell-command): Fix */? logic.  (Bug#6561)
+	Doc fix.
+
+2012-01-10  Chong Yidong  <cyd@gnu.org>
+
+	* net/network-stream.el (network-stream-open-starttls): Avoid
+	emitting a confusing error message when the server gives a bad
+	response to the capability command.
+
+2012-01-10  Glenn Morris  <rgm@gnu.org>
+
+	* mail/unrmail.el (unrmail): Tweak previous change.
+
 2012-01-09  Chong Yidong  <cyd@gnu.org>
 
 	* custom.el (custom-safe-themes): Use SHA-256 for hashing.
@@ -27,7 +82,7 @@
 	* ibuffer.el (ibuffer-mode): List the bindings in the corrent map
 	(bug#9759).
 
-	* mail/smtpmail.el (password-cache-add): Removed unused declaration.
+	* mail/smtpmail.el (password-cache-add): Remove unused declaration.
 	(password-read): Don't autoload unused function.
 
 2012-01-07  Juanma Barranquero  <lekktu@gmail.com>
@@ -1382,7 +1437,7 @@
 	(window-list-no-nils): Remove.
 	(window-state-get-1, window-state-get): Use backquote instead.
 
-2011-11-08  thierry  <thierry.volpiatto@gmail.com>
+2011-11-08  Thierry Volpiatto  <thierry.volpiatto@gmail.com>
 
 	* emacs-lisp/find-func.el (find-function-read):
 	Fix incorrect use of default argument in `completing-read'.
@@ -4532,7 +4587,7 @@
 
 	* printing.el: Add documentation to all the `pr-toggle-' commands.
 
-2011-07-11  Leo  <sdl.web@gmail.com>  (tiny change)
+2011-07-11  Leo Liu  <sdl.web@gmail.com>
 
 	* files.el (toggle-read-only): Only do the `C-x C-q' warning on VC
 	backends where it makes sense (bug#2623).
@@ -7116,7 +7171,7 @@
 2011-05-23  Kevin Ryde  <user42@zip.com.au>
 
 	* emacs-lisp/advice.el (ad-read-advised-function):
-	Use `function-called-at-point' as the default default, if it has
+	Use `function-called-at-point' as the default, if it has
 	advice and passes PREDICATE.
 
 2011-05-23  Stefan Monnier  <monnier@iro.umontreal.ca>
@@ -7942,7 +7997,7 @@
 	* net/gnutls.el (gnutls-negotiate): Add hostname, verify-flags,
 	verify-error, and verify-hostname-error parameters.  Check whether
 	default trustfile exists before going to use it.  Add missing
-	argument to gnutls-message-maybe call.  Return return value.
+	argument to gnutls-message-maybe call.  Return value.
 	Reported by Claudio Bley <claudio.bley@gmail.com>.
 	(open-gnutls-stream): Add usage example.
 
@@ -9566,7 +9621,7 @@
 	* calc/calc-menu.el (calc-units-menu): Add entries for logarithmic
 	units and musical notes.
 
-2011-03-20  Leo  <sdl.web@gmail.com>
+2011-03-20  Leo Liu  <sdl.web@gmail.com>
 
 	* ido.el (ido-read-internal): Use completing-read-default.
 	(ido-completing-read): Fix compatibility with completing-read.

@@ -1871,10 +1871,9 @@ Add each file name in @var{directory} and all of its nested
 subdirectories to the file name cache, using @command{locate} to find
 them all.
 @item M-x file-cache-add-directory-list @key{RET} @var{variable} @key{RET}
-Add each file name in each directory listed in @var{variable}
-to the file name cache.  @var{variable} should be a Lisp variable
-such as @code{load-path} or @code{exec-path}, whose value is a list
-of directory names.
+Add each file name in each directory listed in @var{variable} to the
+file name cache.  @var{variable} should be a Lisp variable whose value
+is a list of directory names, like @code{load-path}.
 @item M-x file-cache-clear-cache @key{RET}
 Clear the cache; that is, remove all file names from it.
 @end table

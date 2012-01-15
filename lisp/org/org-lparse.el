@@ -854,7 +854,7 @@ version."
 	    (throw 'nextline nil))
 
 	  ;; Notes: The baseline version of org-html.el (git commit
-	  ;; 3d802e), while encoutering a *line-long* protected text,
+	  ;; 3d802e), while encountering a *line-long* protected text,
 	  ;; does one of the following two things based on the state
 	  ;; of the export buffer.
 
@@ -869,10 +869,10 @@ version."
 	  ;; I think --->
 
 	  ;; Scenario 1 mentioned above kicks in when a block of
-	  ;; protected text has to be inserted enbloc. For example,
+	  ;; protected text has to be inserted en bloc. For example,
 	  ;; this happens, when inserting an source or example block
 	  ;; or preformatted content enclosed in #+backend,
-	  ;; #+begin_bakend ... #+end_backend)
+	  ;; #+begin_backend ... #+end_backend)
 
 	  ;; Scenario 2 mentioned above kicks in when the protected
 	  ;; text is part of a running sentence. For example this
@@ -1189,7 +1189,7 @@ version."
        (t (current-buffer))))))
 
 (defun org-lparse-format-table (lines olines)
-  "Retuns backend-specific code for org-type and table-type tables."
+  "Returns backend-specific code for org-type and table-type tables."
   (if (stringp lines)
       (setq lines (org-split-string lines "\n")))
   (if (string-match "^[ \t]*|" (car lines))

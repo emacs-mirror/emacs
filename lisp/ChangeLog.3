@@ -533,7 +533,7 @@
 
 1993-05-16  Richard Stallman  (rms@geech.gnu.ai.mit.edu)
 
-	* gnus.el, gnuspost.el, gnusmail.el, gnusmisc.el
+	* gnus.el, gnuspost.el, gnusmail.el, gnusmisc.el,
 	* nntp.el, nnspool.el, mhspool.el: Version 3.15 from Umeda.
 
 	* frame.el (toggle-scroll-bar): Renamed from toggle-vertical-scroll...
@@ -762,8 +762,8 @@
 
 	Fail more gracefully if we can't build bold, italic, etc,
 	versions of the default font.
-	* faces.el (make-face-bold, make-face-italic,
-	make-face-bold-italic, make-face-unbold, make-face-unitalic):
+	* faces.el (make-face-bold, make-face-italic)
+	(make-face-bold-italic, make-face-unbold, make-face-unitalic):
 	Implement NOERROR argument.
 	(x-initialize-frame-faces): Use the NOERROR argument to the
 	font manipulation functions to avoid errors while starting up.
@@ -1772,8 +1772,8 @@
 
 1993-03-24  Jim Blandy  (jimb@geech.gnu.ai.mit.edu)
 
-	* calendar.el (calendar-standard-time-zone-name,
-	calendar-daylight-time-zone-name): Initialize these at load-time,
+	* calendar.el (calendar-standard-time-zone-name)
+	(calendar-daylight-time-zone-name): Initialize these at load-time,
 	as well as calendar-time-zone.
 
 	* calendar.el (calendar-time-zone): Fix code which initializes
@@ -1827,7 +1827,7 @@
 	* help.el, register.el, replace.el, reposition.el, rfc822.el,
 	* rlogin.el, rot13.el, scribe.el, scroll-bar.el, sendmail.el,
 	* setenv.el, sgml-mode.el, simple.el, simula.el, sort.el, spell.el,
-	* spook.el, studly.el, tabify.el, text-mode.el: Added or corrected
+	* spook.el, studly.el, tabify.el, text-mode.el: Add or correct
 	Commentary headers.
 
 1993-03-22  Edward M. Reingold  (reingold@emr.cs.uiuc.edu)
@@ -1840,7 +1840,7 @@
 	* man.el, mlconvert.el, mlsupport.el, modula2.el, mouse.el,
 	* mpuz.el, netunam.el, novice.el, nroff-mode.el, options.el,
 	* outline.el, page.el, paragraphs.el, picture.el, prolog.el,
-	* rect.el: Added or corrected Commentary sections.
+	* rect.el: Add or correct Commentary sections.
 
 1993-03-22  Eric S. Raymond  (eric@geech.gnu.ai.mit.edu)
 
@@ -1857,7 +1857,7 @@
 	* mail-utils.el, mailalias.el, makefile.el, makesum.el, mim-mode.el,
 	* modula2.el, nroff-mode.el, perl-mode.el, prolog.el, scheme.el,
 	* sgml-mode.el, tex-mode.el:
-	Added or corrected Commentary sections.  There's more of this
+	Add or correct Commentary sections.  There's more of this
 	coming; soon, the package finder will be able to browse Commentary
 	sections, and I want almost all packages to have useful ones.
 
@@ -1972,7 +1972,7 @@
 	* cust-print.el, find-dired.el, etags.el, electric.el, dired.el,
 	* dired-aux.el, cust-print.el, cmuscheme.el, cmulisp.el, cl.el,
 	* case-table.el, byte-run.el, ange-ftp.el, backquote.el:
-	Added or corrected library header comments.
+	Add or correct library header comments.
 
 1993-03-17  Eric S. Raymond  (eric@mole.gnu.ai.mit.edu)
 
@@ -2186,8 +2186,8 @@
 
 1993-03-10  Edward M. Reingold  (reingold@emr.cs.uiuc.edu)
 
-	* diary-insert.el (insert-anniversary-diary-entry,
-	insert-block-diary-entry): Fix calendar-date-display-form used.
+	* diary-insert.el (insert-anniversary-diary-entry)
+	(insert-block-diary-entry): Fix calendar-date-display-form used.
 
 1993-03-10  Jim Blandy  (jimb@totoro.cs.oberlin.edu)
 
@@ -2383,8 +2383,8 @@
 	nonexistent function last-month-of-hebrew-year to the correct
 	function hebrew-calendar-last-month-of-year.
 
-	* cal-mayan.el (calendar-mayan-haab-on-or-before,
-	calendar-mayan-tzolkin-on-or-before): Change `mod' to `%'.
+	* cal-mayan.el (calendar-mayan-haab-on-or-before)
+	(calendar-mayan-tzolkin-on-or-before): Change `mod' to `%'.
 
 	* cal-mayan.el (calendar-next-tzolkin-date): Delete bogus second
 	defun.
@@ -2857,8 +2857,8 @@
 	* ehelp.el (electric-help-command-loop): Same.
 	* electric.el (Electric-command-loop): Same.
 	* emerge.el (emerge-show-file-name): Same.
-	* fortran.el (fortran-abbrev-start,
-	fortran-window-create-momentarily): Same.
+	* fortran.el (fortran-abbrev-start)
+	(fortran-window-create-momentarily): Same.
 	* gnus.el (gnus-Subject-next-article): Same.
 	* info.el (Info-summary): Same.
 	* isearch-mode.el (isearch-update, isearch-unread): Same.

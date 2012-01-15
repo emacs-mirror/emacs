@@ -36,7 +36,7 @@
 
 @c orgkey{key}                        A key item
 @c orgcmd{key,cmd}                    Key with command name
-@c xorgcmd{key,cmmand}                Key with command name as @itemx
+@c xorgcmd{key,cmd}                   Key with command name as @itemx
 @c orgcmdnki{key,cmd}                 Like orgcmd, but do not index the key
 @c orgcmdtkc{text,key,cmd}            Like orgcmd,special text instead of key
 @c orgcmdkkc{key1,key2,cmd}           Two keys with one command name, use "or"
@@ -1004,8 +1004,8 @@ from within Emacs, please copy and paste the content into your Email program.
 
 Sometimes you might face a problem due to an error in your Emacs or Org mode
 setup.  Before reporting a bug, it is very helpful to start Emacs with minimal
-customisations and reproduce the problem.  Doing so often helps you determine
-if the problem is with your customisation or with Org mode itself.  You can
+customizations and reproduce the problem.  Doing so often helps you determine
+if the problem is with your customization or with Org mode itself.  You can
 start a typical minimal session with a command like the example below.
 
 @example
@@ -1241,7 +1241,7 @@ Reveal context around point, showing the current entry, the following heading
 and the hierarchy above.  Useful for working near a location that has been
 exposed by a sparse tree command (@pxref{Sparse trees}) or an agenda command
 (@pxref{Agenda commands}).  With a prefix argument show, on each
-level, all sibling headings.  With a double prefix argument, also show the 
+level, all sibling headings.  With a double prefix argument, also show the
 entire subtree of the parent.
 @orgcmd{C-c C-k,show-branches}
 Expose all the headings of the subtree, CONTENT view for just one subtree.
@@ -3943,7 +3943,7 @@ special faces for some of them.  This can be done using the variable
 @end lisp
 
 While using a list with face properties as shown for CANCELED @emph{should}
-work, this does not aways seem to be the case.  If necessary, define a
+work, this does not always seem to be the case.  If necessary, define a
 special face and use that.  A string is interpreted as a color.  The variable
 @code{org-faces-easy-properties} determines if that color is interpreted as a
 foreground or a background color.
@@ -4427,7 +4427,7 @@ off a box while there are unchecked boxes above it.
 
 @table @kbd
 @orgcmd{C-c C-c,org-toggle-checkbox}
-Toggle checkbox status or (with prefix arg) checkbox presence at point.  
+Toggle checkbox status or (with prefix arg) checkbox presence at point.
 With a single prefix argument, add an empty checkbox or remove the current
 one@footnote{`C-u C-c C-c' on the @emph{first} item of a list with no checkbox
 will add checkboxes to the rest of the list.}.  With a double prefix argument, set it to @samp{[-]}, which is
@@ -6326,7 +6326,7 @@ not started at exactly the right moment.
 @kindex ;
 
 Calling @code{org-timer-set-timer} from an Org mode buffer runs a countdown
-timer.  Use @kbd{;} from agenda buffers, @key{C-c C-x ;} everwhere else.
+timer.  Use @kbd{;} from agenda buffers, @key{C-c C-x ;} everywhere else.
 
 @code{org-timer-set-timer} prompts the user for a duration and displays a
 countdown timer in the modeline.  @code{org-timer-default-timer} sets the
@@ -7342,7 +7342,7 @@ If you are using the Big Brothers Database to store your contacts, you will
 very likely prefer to store anniversaries in BBDB rather than in a
 separate Org or diary file.  Org supports this and will show BBDB
 anniversaries as part of the agenda.  All you need to do is to add the
-following to one your your agenda files:
+following to one of your agenda files:
 
 @example
 * Anniversaries
@@ -9549,7 +9549,7 @@ broad range of other applications.  @LaTeX{} export lets you use Org mode and
 its structured editing functions to easily create @LaTeX{} files.  DocBook
 export makes it possible to convert Org files to many other formats using
 DocBook tools.  OpenDocument Text(@acronym{ODT}) export allows seamless
-colloboration across organizational boundaries.  For project management you
+collaboration across organizational boundaries.  For project management you
 can create gantt and resource charts by using TaskJuggler export.  To
 incorporate entries with associated times like deadlines or appointments into
 a desktop calendar program like iCal, Org mode can also produce extracts in
@@ -10998,9 +10998,9 @@ You can control the size and scale of the embedded images using the
 
 @vindex org-export-odt-pixels-per-inch
 Note that the exporter specifies the desired size of the image in the final
-document in units of centimetres.  In order to scale the embedded images, the
+document in units of centimeters.  In order to scale the embedded images, the
 exporter needs to compute the size of the image.  This is done by retrieving
-the image size in pixels and converting the pixel units to centimetres using
+the image size in pixels and converting the pixel units to centimeters using
 @code{org-export-odt-pixels-per-inch}.  The default value of this variable is
 set to @code{display-pixels-per-inch}.  You can tweak this variable to
 achieve the best results.
@@ -12629,7 +12629,7 @@ that code is only evaluated after explicit confirmation from the user.  For
 information on these safeguards (and on how to disable them) see @ref{Code
 evaluation security}.} and the results of evaluation optionally placed in the
 Org mode buffer.  By default, the evaluation facility is only enabled for
-Lisp code blocks specified as @code{emacs-lisp}. However, souce code blocks
+Lisp code blocks specified as @code{emacs-lisp}. However, source code blocks
 in many languages can be evaluated within Org mode (see @ref{Languages} for a
 list of supported languages and @ref{Structure of code blocks} for
 information on the syntax used to define a code block).
@@ -16434,7 +16434,7 @@ chapter about publishing.
 @i{Jambunathan K} contributed the @acronym{ODT} exporter.
 @item
 @i{Sebastien Vauban} reported many issues with @LaTeX{} and BEAMER export and
-enabled source code highlighling in Gnus.
+enabled source code highlighting in Gnus.
 @item
 @i{Stefan Vollmar} organized a video-recorded talk at the
 Max-Planck-Institute for Neurology.  He also inspired the creation of a
