@@ -1,3 +1,12 @@
+2012-01-16  Martin Rudalics  <rudalics@gmx.at>
+
+	* window.el (window-state-ignored-parameters): Remove variable.
+	(window--state-get-1): Rename argument MARKERS to IGNORE.
+	Handle persistent window parameters.  Make copy of clone-of
+	parameter only if requested.  (Bug#10348)
+	(window--state-put-2): Install a window parameter only if it has
+	a non-nil value or an existing parameter shall be overwritten.
+
 2012-01-15  Michael Albinus  <michael.albinus@gmx.de>
 
 	* net/tramp-sh.el (tramp-remote-path): Set tramp-autoload cookie.
