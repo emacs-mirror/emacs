@@ -1,3 +1,7 @@
+2012-01-16  Juanma Barranquero  <lekktu@gmail.com>
+
+	* .bzrignore: Ignore etc/__pycache__.
+
 2011-12-17  Paul Eggert  <eggert@cs.ucla.edu>
 
 	Port HAVE_PTHREAD configuration to MirBSD 10 (Bug#10201).
