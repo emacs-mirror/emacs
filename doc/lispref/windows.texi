@@ -3277,7 +3277,7 @@ is the selected window.
 @end defun
 
 By default, functions saving and restoring window configurations or the
-states of windows (@xref{Window Configurations}) do not care about
+states of windows (@pxref{Window Configurations}) do not care about
 window parameters.  This means, that when you change the value of a
 parameter within the body of a @code{save-window-excursion}, the
 previous value is not restored upon exit of that macro.  It also means
