@@ -1,6 +1,6 @@
 ;;; cit-load.el --- Configuration when running the integration tests.
 
-;; Copyright (C) 2008, 2009 Eric M. Ludlam
+;; Copyright (C) 2008, 2009, 2012 Eric M. Ludlam
 
 ;; Author: Eric M. Ludlam <eric@siege-engine.com>
 
@@ -30,7 +30,7 @@
 
 (defvar cit-src-dir
   (let ((dir (file-name-directory
-	      (or load-file-name (buffer-file-name)))))
+              (or load-file-name (buffer-file-name)))))
     (add-to-list 'load-path dir)
     dir)
   "Src dir to CIT testing suite.")
@@ -46,6 +46,9 @@
 ;; Disabling the srecoder map, we won't load a pre-existing one
 ;; and will be forced to bootstrap a new one.
 (setq srecode-map-save-file nil)
+
+;; Disable asking lots of questions while the tests are running.
+(setq ede-project-directories t)
 
 (require 'cedet-integ-test)
 
