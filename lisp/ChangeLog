@@ -1,5 +1,7 @@
 2012-01-17  Glenn Morris  <rgm@gnu.org>
 
+	* isearch.el (search-nonincremental-instead): Fix doc typo.
+
 	* dired.el (dired-insert-directory): Handle newlines in directory name.
 	(dired-build-subdir-alist): Unescape newlines in directory name.
 
