@@ -12607,7 +12607,7 @@ four arguments:
 @enumerate
 @item
 The first argument is the regular expression that the function searches
-for.  The regular expression will be a string between quotations marks.
+for.  The regular expression will be a string between quotation marks.
 
 @item
 The optional second argument limits how far the function will search; it is a
