@@ -1,7 +1,31 @@
+2012-01-16  Volker Sobek  <reklov@live.com>  (tiny change)
+
+	* programs.texi (Comment Commands): Typo (bug#10514).
+
+2012-01-15  Chong Yidong  <cyd@gnu.org>
+
+	* xresources.texi (X Resources): Describe GTK+ case first.
+	(Resources): Don't use borderWidth as an example, since it doesn't
+	work with GTK+.
+	(Table of Resources): Clarify role of several resources, including
+	the Emacs 24 behavior of cursorBlink etc.
+	(Face Resources): Node deleted.  Recommend using Customize
+	instead.  Add paragraph to `Table of Resources' node summarizing
+	how to use X resources for changing faces.
+	(Lucid Resources): Rewrite, omitting description of font names,
+	referring to the Fonts node instead.
+	(LessTif Resources): Copyedits.
+	(GTK resources): Rewrite, describing the difference between gtk2
+	and gtk3.
+	(GTK Resource Basics): New node.
+	(GTK Widget Names, GTK Names in Emacs): Rewrite.
+	(GTK styles): Just refer to Fonts node for GTK font format.
+
+	* display.texi (Faces): Document the cursor face.
+
 2012-01-14  Chong Yidong  <cyd@gnu.org>
 
-	* cmdargs.texi (Action Arguments): No need to mention
-	EMACSLOADPATH.
+	* cmdargs.texi (Action Arguments): No need to mention EMACSLOADPATH.
 	(General Variables): Add xref to Lisp Libraries.
 	(Initial Options): Copyedits.
 	(Resume Arguments): Node deleted; emacs.bash/csh are obsolete.
@@ -8826,7 +8850,7 @@
 ;; coding: utf-8
 ;; End:
 
-  Copyright (C) 1993-1999, 2001-2011  Free Software Foundation, Inc.
+  Copyright (C) 1993-1999, 2001-2012  Free Software Foundation, Inc.
 
   This file is part of GNU Emacs.
 

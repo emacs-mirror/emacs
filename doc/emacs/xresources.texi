@@ -6,31 +6,26 @@
 @appendix X Options and Resources
 
   You can customize some X-related aspects of Emacs behavior using X
-resources, as is usual for programs that use X.  On MS-Windows, you
-can customize some of the same aspects using the system registry.
-@xref{MS-Windows Registry}.
+resources, as is usual for programs that use X.
 
-  When Emacs is built using an ``X toolkit'', such as Lucid or
-LessTif, you need to use X resources to customize the appearance of
-the widgets, including the menu-bar, scroll-bar, and dialog boxes.
-This is because the libraries that implement these don't provide for
-customization through Emacs.  GTK+ widgets use a separate system of
+  When Emacs is compiled with GTK+ support, the appearance of various
+graphical widgets, such as the menu-bar, scroll-bar, and dialog boxes,
+is determined by
 @ifnottex
 ``GTK resources'', which we will also describe.
 @end ifnottex
 @iftex
-``GTK resources.''  In this chapter we describe the most commonly used
-resource specifications.  For full documentation, see the online
-manual.
-
-@c Add xref for LessTif/Motif menu resources.
+``GTK resources''.
 @end iftex
+When Emacs is built without GTK+ support, the appearance of these
+widgets is determined by additional X resources.
 
+  On MS-Windows, you can customize some of the same aspects using the
+system registry (@pxref{MS-Windows Registry}).
 
 @menu
 * Resources::           Using X resources with Emacs (in general).
 * Table of Resources::  Table of specific X resources that affect Emacs.
-* Face Resources::      X resources for customizing faces.
 * Lucid Resources::     X resources for Lucid menus.
 * LessTif Resources::   X resources for LessTif and Motif menus.
 * GTK resources::       Resources for GTK widgets.
@@ -63,60 +58,41 @@ settings in the Display Control Panel.  You can also set resources
 using the @samp{-xrm} command line option, as explained below.)
 
   Each line in the X resource file specifies a value for one option or
-for a collection of related options.  Each resource specification
+for a collection of related options.  The order in which the lines
+appear in the file does not matter.  Each resource specification
 consists of a @dfn{program name} and a @dfn{resource name}.  Case
 distinctions are significant in each of these names.  Here is an
 example:
 
 @example
-emacs.borderWidth: 2
+emacs.cursorColor: dark green
 @end example
 
-@ifnottex
   The program name is the name of the executable file to which the
 resource applies.  For Emacs, this is normally @samp{emacs}.  To
 specify a definition that applies to all instances of Emacs,
 regardless of the name of the Emacs executable, use @samp{Emacs}.
 
   The resource name is the name of a program setting.  For instance,
-Emacs recognizes a @samp{borderWidth} resource that controls the width
-of the external border for graphical frames.
+Emacs recognizes a @samp{cursorColor} resource that controls the color
+of the text cursor.
 
   Resources are grouped into named classes.  For instance, the
-@samp{BorderWidth} class contains both the @samp{borderWidth} resource
-(which we just described), as well as the @samp{internalBorder}
-resource, which controls the width of the internal border for
-graphical frames.  Instead of using a resource name, you can use a
-class name to specify the same value for all resources in that class.
-Here's an example:
+@samp{Foreground} class contains the @samp{cursorColor},
+@samp{foreground} and @samp{pointerColor} resources (@pxref{Table of
+Resources}).  Instead of using a resource name, you can use a class
+name to specify the default value for all resources in that class,
+like this:
 
 @example
-emacs.BorderWidth: 2
+emacs.Foreground: dark green
 @end example
-
-  If you specify a value for a class, it becomes the default for all
-resources in that class.  You can specify values for individual
-resources as well; these override the class value, for those
-particular resources.  The following example specifies 2 as the
-default width for all borders, but overrides this value with 4 for the
-external border:
-
-@example
-emacs.BorderWidth: 2
-emacs.borderWidth: 4
-@end example
-@end ifnottex
-
-  The order in which the lines appear in the file does not matter.
-One way to experiment with the effect of different resource settings
-is to use the @code{editres} program.  See the @code{editres} man page
-for more details.
 
   Emacs does not process X resources at all if you set the variable
-@code{inhibit-x-resources} to a non-@code{nil} value, or if you
-specify the @samp{-Q} (or @samp{--quick}) command-line argument
-(@pxref{Initial Options}).  (The @samp{-Q} argument automatically sets
-@code{inhibit-x-resources} to @code{t}.)
+@code{inhibit-x-resources} to a non-@code{nil} value.  If you invoke
+Emacs with the @samp{-Q} (or @samp{--quick}) command-line option,
+@code{inhibit-x-resources} is automatically set to @code{t}
+(@pxref{Initial Options}).
 
 @ifnottex
   In addition, you can use the following command-line options to
@@ -162,98 +138,93 @@ other resource specifications.
 @node Table of Resources
 @appendixsec Table of X Resources for Emacs
 
-  This table lists the resource names that designate options for
-Emacs, not counting those for the appearance of the menu bar, each
-with the class that it belongs to:
+  This table lists the X resource names that Emacs recognizes,
+excluding those that control the appearance of graphical widgets like
+the menu bar:
 
 @table @asis
 @item @code{background} (class @code{Background})
-Background color name.
+Background color (@pxref{Colors}).
 
 @item @code{bitmapIcon} (class @code{BitmapIcon})
 Tell the window manager to display the Emacs icon if @samp{on}; don't
-do so if @samp{off}.  (The icon is usually shown in the ``taskbar'' on
-a graphical desktop.)
-
-@item @code{borderColor} (class @code{BorderColor})
-Color name for the external border.
+do so if @samp{off}.  @xref{Icons X}, for a description of the icon.
 
 @ifnottex
+@item @code{borderColor} (class @code{BorderColor})
+Color of the frame's external border.  This has no effect if Emacs is
+compiled with GTK+ support.
+
 @item @code{borderWidth} (class @code{BorderWidth})
-Width in pixels of the external border.
+Width of the frame's external border, in pixels.  This has no effect
+if Emacs is compiled with GTK+ support.
 @end ifnottex
 
 @item @code{cursorColor} (class @code{Foreground})
-Color name for text cursor (point).
+Text cursor color.  If this resource is specified when Emacs starts
+up, Emacs sets its value as the background color of the @code{cursor}
+face (@pxref{Faces}).
 
-@ifnottex
 @item @code{cursorBlink} (class @code{CursorBlink})
-Specifies whether to make the cursor blink. The default is @samp{on}.  Use
-@samp{off} or @samp{false} to turn cursor blinking off.
-@end ifnottex
+If the value of this resource is @samp{off} or @samp{false} or
+@samp{0} at startup, Emacs disables Blink Cursor mode (@pxref{Cursor
+Display}).
 
 @item @code{font} (class @code{Font})
-Font name for the @code{default} font.  @xref{Fonts}.  You can also
+Font name for the @code{default} face (@pxref{Fonts}).  You can also
 specify a fontset name (@pxref{Fontsets}).
 
 @item @code{fontBackend} (class @code{FontBackend})
-The backend(s) to use for drawing fonts; if multiple backends are
-specified, they must be comma-delimited and given in order of
-precedence.  On X, for instance, the value @samp{x,xft} tells Emacs to
+Comma-delimited list of backend(s) to use for drawing fonts, in order
+of precedence.  For instance, the value @samp{x,xft} tells Emacs to
 draw fonts using the X core font driver, falling back on the Xft font
-driver if that fails.  Normally, you can leave this resource unset, in
-which case Emacs tries using all font backends available on your
-graphical device.
+driver if that fails.  Normally, you should leave this resource unset,
+in which case Emacs tries using all available font backends.
 
 @item @code{foreground} (class @code{Foreground})
-Color name for text.
+Default foreground color for text.
 
 @item @code{geometry} (class @code{Geometry})
-Window size and position.  Be careful not to specify this resource as
-@samp{emacs*geometry}, because that may affect individual menus as well
-as the Emacs frame itself.
+Window size and position.  The value should be a size and position
+specification, of the same form as in the @samp{-g} or
+@samp{--geometry} command-line option (@pxref{Window Size X}).
 
-If this resource specifies a position, that position applies only to the
-initial Emacs frame (or, in the case of a resource for a specific frame
-name, only that frame).  However, the size, if specified here, applies to
-all frames.
+The size applies to all frames in the Emacs session, but the position
+applies only to the initial Emacs frame (or, in the case of a resource
+for a specific frame name, only that frame).
 
-@ifnottex
+
+Be careful not to specify this resource as @samp{emacs*geometry}, as
+that may affect individual menus as well as the main Emacs frame.
+
 @item @code{fullscreen} (class @code{Fullscreen})
 The desired fullscreen size.  The value can be one of @code{fullboth},
-@code{maximized}, @code{fullwidth} or @code{fullheight}, which correspond to
-the command-line options @samp{-fs}, @samp{-mm}, @samp{-fw}, and @samp{-fh}
-(@pxref{Window Size X}).
+@code{maximized}, @code{fullwidth} or @code{fullheight}, which
+correspond to the command-line options @samp{-fs}, @samp{-mm},
+@samp{-fw}, and @samp{-fh} (@pxref{Window Size X}).  Note that this
+applies to the initial frame only.
 
-Note that this applies to the initial frame only.
-@end ifnottex
-
+@ifnottex
 @item @code{iconName} (class @code{Title})
 Name to display in the icon.
 
 @item @code{internalBorder} (class @code{BorderWidth})
-Width in pixels of the internal border.
+Width of the internal frame border, in pixels.
+@end ifnottex
 
 @item @code{lineSpacing} (class @code{LineSpacing})
 @cindex line spacing
-@cindex leading
-Additional space (@dfn{leading}) between lines, in pixels.
+Additional space between lines, in pixels.
 
 @item @code{menuBar} (class @code{MenuBar})
 @cindex menu bar
-Give frames menu bars if @samp{on}; don't have menu bars if @samp{off}.
-@ifnottex
-@xref{Lucid Resources}, and @ref{LessTif Resources},
-@end ifnottex
-@iftex
-@xref{Lucid Resources},
-@end iftex
-for how to control the appearance of the menu bar if you have one.
+If the value of this resource is @samp{off} or @samp{false} or
+@samp{0}, Emacs disables Menu Bar mode at startup (@pxref{Menu Bars}).
 
 @ifnottex
 @item @code{minibuffer} (class @code{Minibuffer})
-If @samp{none}, don't make a minibuffer in this frame.
-It will use a separate minibuffer frame instead.
+If @samp{none}, Emacs will not make a minibuffer in this frame; it
+will use a separate minibuffer frame instead.
 
 @item @code{paneFont} (class @code{Font})
 @cindex font for menus
@@ -261,7 +232,9 @@ Font name for menu pane titles, in non-toolkit versions of Emacs.
 @end ifnottex
 
 @item @code{pointerColor} (class @code{Foreground})
-Color of the mouse cursor.
+Color of the mouse cursor.  This has no effect in many graphical
+desktop environments, as they do not let Emacs change the mouse cursor
+this way.
 
 @ifnottex
 @item @code{privateColormap} (class @code{PrivateColormap})
@@ -271,7 +244,6 @@ visual'' of class PseudoColor and Emacs is using it.
 @item @code{reverseVideo} (class @code{ReverseVideo})
 Switch foreground and background default colors if @samp{on}, use colors as
 specified if @samp{off}.
-@end ifnottex
 
 @item @code{screenGamma} (class @code{ScreenGamma})
 @cindex gamma correction
@@ -281,7 +253,9 @@ Gamma correction for colors, equivalent to the frame parameter
 @item @code{scrollBarWidth} (class @code{ScrollBarWidth})
 @cindex scrollbar width
 The scroll bar width in pixels, equivalent to the frame parameter
-@code{scroll-bar-width}.
+@code{scroll-bar-width}.  Do not set this resource if Emacs is
+compiled with GTK+ support.
+@end ifnottex
 
 @ifnottex
 @item @code{selectionFont} (class @code{SelectionFont})
@@ -306,24 +280,16 @@ Name to display in the title bar of the initial Emacs frame.
 
 @item @code{toolBar} (class @code{ToolBar})
 @cindex tool bar
-Number of lines to reserve for the tool bar.  A zero value suppresses
-the tool bar.  For the Emacs tool bar (i.e.@: not Gtk+), if the value
-is non-zero and @code{auto-resize-tool-bars} is non-@code{nil}, the
-tool bar's size will be changed automatically so that all tool bar
-items are visible.  If the value of @code{auto-resize-tool-bars} is
-@code{grow-only}, the tool bar expands automatically, but does not
-contract automatically.  To contract the tool bar, you must redraw the
-frame by entering @kbd{C-l}.  For the Gtk+ tool bar, any non-zero
-value means on and @code{auto-resize-tool-bars} has no effect.
+If the value of this resource is @samp{off} or @samp{false} or
+@samp{0}, Emacs disables Tool Bar mode at startup (@pxref{Tool Bars}).
 
 @item @code{useXIM} (class @code{UseXIM})
 @cindex XIM
 @cindex X input methods
 @cindex input methods, X
-Turn off use of X input methods (XIM) if @samp{false} or @samp{off}.
-This is only relevant if your Emacs is actually built with XIM
-support.  It is potentially useful to turn off XIM for efficiency,
-especially slow X client/server links.
+Disable use of X input methods (XIM) if @samp{false} or @samp{off}.
+This is only relevant if your Emacs is built with XIM support.  It
+might be useful to turn off XIM on slow X client/server links.
 
 @item @code{verticalScrollBars} (class @code{ScrollBars})
 Give frames scroll bars if @samp{on}; don't have scroll bars if
@@ -331,143 +297,51 @@ Give frames scroll bars if @samp{on}; don't have scroll bars if
 
 @ifnottex
 @item @code{visualClass} (class @code{VisualClass})
-Specify the ``visual'' that X should use.  This tells X how to handle
-colors.
-
-The value should start with one of @samp{TrueColor},
-@samp{PseudoColor}, @samp{DirectColor}, @samp{StaticColor},
-@samp{GrayScale}, and @samp{StaticGray}, followed by
-@samp{-@var{depth}}, where @var{depth} is the number of color planes.
-Most terminals only allow a few ``visuals,'' and the @samp{dpyinfo}
-program outputs information saying which ones.
+The @dfn{visual class} for X color display.  If specified, the value
+should start with one of @samp{TrueColor}, @samp{PseudoColor},
+@samp{DirectColor}, @samp{StaticColor}, @samp{GrayScale}, and
+@samp{StaticGray}, followed by @samp{-@var{depth}}, where @var{depth}
+is the number of color planes.
 @end ifnottex
 @end table
 
-@node Face Resources
-@appendixsec X Resources for Faces
+  You can also use X resources to customize individual Emacs faces
+(@pxref{Faces}).  For example, setting the resource
+@samp{@var{face}.attributeForeground} is equivalent to customizing the
+@samp{foreground} attribute of the face @var{face}.  However, we
+recommend customizing faces from within Emacs, instead of using X
+resources.  @xref{Face Customization}.
 
-  You can use resources to customize the appearance of particular
-faces (@pxref{Faces}):
-
-@table @code
-@item @var{face}.attributeForeground
-Foreground color for face @var{face}.
-@item @var{face}.attributeBackground
-Background color for face @var{face}.
-@item @var{face}.attributeUnderline
-Underline flag for face @var{face}.  Use @samp{on} or @samp{true} for
-yes.
-@item @var{face}.attributeStrikeThrough
-@itemx @var{face}.attributeOverline
-@itemx @var{face}.attributeBox
-@itemx @var{face}.attributeInverse
-Likewise, for other boolean font attributes.
-@item @var{face}.attributeStipple
-The name of a pixmap data file to use for the stipple pattern, or
-@code{false} to not use stipple for the face @var{face}.
-@item @var{face}.attributeBackgroundPixmap
-The background pixmap for the face @var{face}.  Should be a name of a
-pixmap file or @code{false}.
-@item @var{face}.attributeFont
-Font name (full XFD name or valid X abbreviation) for face @var{face}.
-Instead of this, you can specify the font through separate attributes.
-@end table
-
-  Instead of using @code{attributeFont} to specify a font name, you can
-select a font through these separate attributes:
-
-@table @code
-@item @var{face}.attributeFamily
-Font family for face @var{face}.
-@item @var{face}.attributeHeight
-Height of the font to use for face @var{face}: either an integer
-specifying the height in units of 1/10@dmn{pt}, or a floating point
-number that specifies a scale factor to scale the underlying face's
-default font, or a function to be called with the default height which
-will return a new height.
-@item @var{face}.attributeWidth
-@itemx @var{face}.attributeWeight
-@itemx @var{face}.attributeSlant
-Each of these resources corresponds to a like-named font attribute,
-and you write the resource value the same as the symbol you would use
-for the font attribute value.
-@item @var{face}.attributeBold
-Bold flag for face @var{face}---instead of @code{attributeWeight}.  Use @samp{on} or @samp{true} for
-yes.
-@item @var{face}.attributeItalic
-Italic flag for face @var{face}---instead of @code{attributeSlant}.
-@end table
-
+@ifnottex
 @node Lucid Resources
 @appendixsec Lucid Menu And Dialog X Resources
 @cindex Menu X Resources (Lucid widgets)
 @cindex Dialog X Resources (Lucid widgets)
 @cindex Lucid Widget X Resources
 
-@ifnottex
-  If the Emacs installed at your site was built to use the X toolkit
-with the Lucid menu widgets, then the menu bar is a separate widget and
-has its own resources.  The resource names contain @samp{pane.menubar}
-(following, as always, the name of the Emacs invocation, or @samp{Emacs},
-which stands for all Emacs invocations).  Specify them like this:
+  If Emacs is compiled with the X toolkit support using Lucid widgets,
+you can use X resources to customize the appearance of the menu bar,
+pop-up menus, and dialog boxes.  The resources for the menu bar fall
+in the @samp{pane.menubar} class (following, as always, either the
+name of the Emacs executable or @samp{Emacs} for all Emacs
+invocations).  The resources for the pop-up menu are in the
+@samp{menu*} class.  The resources for dialog boxes are in the
+@samp{dialog*} class.
+
+  For example, to display menu bar entries with the @samp{Courier-12}
+font (@pxref{Fonts}), write this:
 
 @example
-Emacs.pane.menubar.@var{resource}:  @var{value}
+Emacs.pane.menubar.font: Courier-12
 @end example
 
 @noindent
-For example, to specify the font @samp{Courier-12} for the menu-bar items,
-write this:
-@end ifnottex
-@iftex
-   If the Emacs installed at your site was built to use the X toolkit
-with the Lucid menu widgets, then the menu bar is a separate widget
-and has its own resources.  The resource specifications start with
-@samp{Emacs.pane.menubar}---for instance, to specify the font
-@samp{Courier-12} for the menu-bar items, write this:
-@end iftex
+Lucid widgets can display multilingual text in your locale.  To enable
+this, specify a @code{fontSet} resource instead of a @code{font}
+resource.  @xref{Fontsets}.  If both @code{font} and @code{fontSet}
+resources are specified, the @code{fontSet} resource is used.
 
-@example
-Emacs.pane.menubar.font:  Courier-12
-@end example
-
-@noindent
-To specify a font, use fontconfig font names as values to the @code{font}
-resource, or old style names:
-
-@example
-Emacs.pane.menubar.font: lucidasanstypewriter-10
-@end example
-
-@noindent
-Emacs first tries to open the font as an old style font, and if that fails
-as an fontconfig font.  In rare cases, Emacs might do the wrong thing.
-
-@noindent
-The Lucid menus can display multilingual text in your locale with old style
-fonts.  For more information about fontsets see the man page for
-@code{XCreateFontSet}.  To enable multilingual menu text you specify a
-@code{fontSet} resource instead of the font resource.  If both
-@code{font} and @code{fontSet} resources are specified, the
-@code{fontSet} resource is used.
-
-@noindent
-Resources for @emph{non-menubar} toolkit pop-up menus have
-@samp{menu*} instead of @samp{pane.menubar}.  For example, to specify
-the font @samp{8x16} for the pop-up menu items, write this:
-
-@example
-Emacs.menu*.font:       8x16
-@end example
-
-@noindent
-For dialog boxes, use @samp{dialog*}:
-
-@example
-Emacs.dialog*.font: Sans-12
-@end example
-
-  Here is a list of the specific resources for menu bars and pop-up menus:
+Here is a list of resources for menu bars, pop-up menus, and dialogs:
 
 @table @code
 @item font
@@ -475,11 +349,11 @@ Font for menu item text.
 @item fontSet
 Fontset for menu item text.
 @item foreground
-Color of the foreground.
+Foreground color.
 @item background
-Color of the background.
+Background color.
 @item buttonForeground
-In the menu bar, the color of the foreground for a selected item.
+Foreground color for a selected item.
 @ifnottex
 @item horizontalSpacing
 Horizontal spacing in pixels between items.  Default is 3.
@@ -489,59 +363,51 @@ Vertical spacing in pixels between items.  Default is 2.
 Horizontal spacing between the arrow (which indicates a submenu) and
 the associated text.  Default is 10.
 @item shadowThickness
-Thickness of shadow line around the widget.  Default is 1.
-
-Also determines the thickness of shadow lines around other objects,
-for instance 3D buttons and arrows.  If you have the impression that
-the arrows in the menus do not stand out clearly enough or that the
-difference between ``in'' and ``out'' buttons is difficult to see, set
-this to 2.  If you have no problems with visibility, the default
-probably looks better.  The background color may also have some effect
-on the contrast.
+Thickness of shadow lines for 3D buttons, arrows, and other graphical
+elements.  Default is 1.
 @end ifnottex
 @item margin
-The margin of the menu bar, in characters.  Default is 1.
+Margin of the menu bar, in characters.  Default is 1.
 @end table
 
-@ifnottex
 @node LessTif Resources
 @appendixsec LessTif Menu X Resources
 @cindex Menu X Resources (LessTif widgets)
 @cindex LessTif Widget X Resources
 
-  If the Emacs installed at your site was built to use the X toolkit
-with the LessTif or Motif widgets, then the menu bar, the dialog
-boxes, the pop-up menus, and the file-selection box are separate
-widgets and have their own resources.
+  If Emacs is compiled with the X toolkit support using LessTif or
+Motif widgets, you can use X resources to customize the appearance of
+the menu bar, pop-up menus, and dialog boxes.  However, the resources
+are organized differently from Lucid widgets.
 
-  The resource names for the menu bar contain @samp{pane.menubar}
-(following, as always, the name of the Emacs invocation, or
-@samp{Emacs}, which stands for all Emacs invocations).  Specify them
-like this:
+  The resource names for the menu bar are in the @samp{pane.menubar}
+class, and they must be specified in this form:
 
 @smallexample
 Emacs.pane.menubar.@var{subwidget}.@var{resource}:  @var{value}
 @end smallexample
 
-  Each individual string in the menu bar is a subwidget; the subwidget's
-name is the same as the menu item string.  For example, the word
-@samp{File} in the menu bar is part of a subwidget named
-@samp{emacs.pane.menubar.File}.  Most likely, you want to specify the
-same resources for the whole menu bar.  To do this, use @samp{*} instead
-of a specific subwidget name.  For example, to specify the font
-@samp{8x16} for the menu-bar items, write this:
+@noindent
+For pop-up menus, the resources are in the @samp{menu*} class, instead
+of @samp{pane.menubar}.  For dialog boxes, they are in @samp{dialog}.
+In each case, each individual menu string is a subwidget; the
+subwidget's name is the same as the menu item string.  For example,
+the @samp{File} menu in the menu bar is a subwidget named
+@samp{emacs.pane.menubar.File}.
+
+  Typically, you want to specify the same resources for the whole menu
+bar.  To do this, use @samp{*} instead of a specific subwidget name.
+For example, to specify the font @samp{8x16} for all menu bar items,
+including submenus, write this:
 
 @smallexample
 Emacs.pane.menubar.*.fontList:  8x16
 @end smallexample
 
-@noindent
-This also specifies the resource value for submenus.
-
-  Each item in a submenu in the menu bar also has its own name for X
-resources; for example, the @samp{File} submenu has an item named
-@samp{Save (current buffer)}.  A resource specification for a submenu
-item looks like this:
+  Each item in a submenu also has its own name for X resources; for
+example, the @samp{File} submenu has an item named @samp{Save (current
+buffer)}.  A resource specification for a submenu item looks like
+this:
 
 @smallexample
 Emacs.pane.menubar.popup_*.@var{menu}.@var{item}.@var{resource}: @var{value}
@@ -574,46 +440,23 @@ Emacs.pane.menubar.popup_*.popup_*.Spell Checking.Complete Word: @var{value}
 @noindent
 (This should be one long line.)
 
-  It's impossible to specify a resource for all the menu-bar items
-without also specifying it for the submenus as well.  So if you want the
-submenu items to look different from the menu bar itself, you must ask
-for that in two steps.  First, specify the resource for all of them;
-then, override the value for submenus alone.  Here is an example:
+  If you want the submenu items to look different from the menu bar
+itself, you must first specify the resource for all of them, then
+override the value for submenus alone.  Here is an example:
 
 @smallexample
 Emacs.pane.menubar.*.fontList:  8x16
 Emacs.pane.menubar.popup_*.fontList: 8x16
 @end smallexample
 
-@noindent
-For LessTif pop-up menus, use @samp{menu*} instead of
-@samp{pane.menubar}.  For example, to specify the font @samp{8x16} for
-the pop-up menu items, write this:
-
-@smallexample
-Emacs.menu*.fontList:  8x16
-@end smallexample
-
-@noindent
-For LessTif dialog boxes, use @samp{dialog} instead of @samp{menu}:
-
-@example
-Emacs.dialog*.fontList: 8x16
-Emacs.dialog*.foreground: hotpink
-@end example
-
-To specify resources for the LessTif file-selection box, use
+  To specify resources for the LessTif file-selection box, use
 @samp{fsb*}, like this:
 
 @example
 Emacs.fsb*.fontList: 8x16
 @end example
 
-@iftex
-@medbreak
-@end iftex
-  Here is a list of the specific resources for LessTif menu bars and
-pop-up menus:
+  Here is a list of resources for LessTif menu bars and pop-up menus:
 
 @table @code
 @item armColor
@@ -638,178 +481,92 @@ The color for the border shadow, on the top and the left.
 @end table
 @end ifnottex
 
-
 @node GTK resources
 @appendixsec GTK resources
-@iftex
-  The most common way to customize the GTK widgets Emacs uses (menus,
-dialogs tool bars and scroll bars) is by choosing an appropriate
-theme, for example with the GNOME theme selector.
-
-You can also do Emacs specific customization by inserting GTK style
-directives in the file @file{~/.emacs.d/gtkrc}, but only if you have a
-Gtk+ version earlier than 3 (i.e.@: 2).  Some GTK themes ignore
-customizations in @file{~/.emacs.d/gtkrc} so not everything works with
-all themes.  To customize Emacs font, background, faces, etc., use the
-normal X resources (@pxref{Resources}).  We will present some examples
-of customizations here, but for a more detailed description, see the
-online manual
-
-  The first example is just one line.  It changes the font on all GTK widgets
-to courier with size 12:
-
-@smallexample
-gtk-font-name = "courier 12"
-@end smallexample
-
-  The thing to note is that the font name is not an X font name, but a
-Pango font name.  A Pango font name is basically of the format "family
-style size", where the style is optional as in the case above.  A name
-with a style could be for example:
-
-@smallexample
-gtk-font-name = "helvetica bold 10"
-@end smallexample
-
-  To customize widgets you first define a style and then apply the style to
-the widgets.  Here is an example that sets the font for menus, but not
-for other widgets:
-
-@smallexample
-# @r{Define the style @samp{menufont}.}
-style "menufont"
-@{
-  font_name = "helvetica bold 14"  # This is a Pango font name
-@}
-
-# @r{Specify that widget type @samp{*emacs-menuitem*} uses @samp{menufont}.}
-widget "*emacs-menuitem*" style "menufont"
-@end smallexample
-
-The widget name in this example contains wildcards, so the style will be
-applied to all widgets that match "*emacs-menuitem*".  The widgets are
-named by the way they are contained, from the outer widget to the inner widget.
-So to apply the style "my_style" (not shown) with the full, absolute name, for
-the menubar and the scroll bar in Emacs we use:
-
-@smallexample
-widget "Emacs.pane.menubar" style "my_style"
-widget "Emacs.pane.emacs.verticalScrollBar" style "my_style"
-@end smallexample
-
-But to avoid having to type it all, wildcards are often used.  @samp{*}
-matches zero or more characters and @samp{?} matches one character.  So "*"
-matches all widgets.
-
-  Each widget has a class (for example GtkMenuItem) and a name (emacs-menuitem).
-You can assign styles by name or by class.  In this example we have used the
-class:
-
-@smallexample
-style "menufont"
-@{
-  font_name = "helvetica bold 14"
-@}
-
-widget_class "*GtkMenuBar" style "menufont"
-@end smallexample
-
-@noindent
-The names and classes for the GTK widgets Emacs uses are:
-
-@multitable {@code{verticalScrollbar plus}} {@code{GtkFileSelection} and some}
-@item @code{emacs-filedialog}
-@tab @code{GtkFileSelection}
-@item @code{emacs-dialog}
-@tab @code{GtkDialog}
-@item @code{Emacs}
-@tab @code{GtkWindow}
-@item @code{pane}
-@tab @code{GtkVHbox}
-@item @code{emacs}
-@tab @code{GtkFixed}
-@item @code{verticalScrollBar}
-@tab @code{GtkVScrollbar}
-@item @code{emacs-toolbar}
-@tab @code{GtkToolbar}
-@item @code{menubar}
-@tab @code{GtkMenuBar}
-@item @code{emacs-menuitem}
-@tab anything in menus
-@end multitable
-
-  GTK absolute names are quite strange when it comes to menus
-and dialogs.  The names do not start with @samp{Emacs}, as they are
-free-standing windows and not contained (in the GTK sense) by the
-Emacs GtkWindow.  To customize the dialogs and menus, use wildcards like this:
-
-@smallexample
-widget "*emacs-dialog*" style "my_dialog_style"
-widget "*emacs-filedialog* style "my_file_style"
-widget "*emacs-menuitem* style "my_menu_style"
-@end smallexample
-
-  If you specify a customization in @file{~/.emacs.d/gtkrc}, then it
-automatically applies only to Emacs, since other programs don't read
-that file.  For example, the drop down menu in the file dialog can not
-be customized by any absolute widget name, only by an absolute class
-name.  This is because the widgets in the drop down menu do not
-have names and the menu is not contained in the Emacs GtkWindow.  To
-have all menus in Emacs look the same, use this in
-@file{~/.emacs.d/gtkrc}:
-
-@smallexample
-widget_class "*Menu*" style "my_menu_style"
-@end smallexample
-
-  Here is a more elaborate example, showing how to change the parts of
-the scroll bar:
-
-@smallexample
-style "scroll"
-@{
-  fg[NORMAL] = "red"@ @ @ @ @ # @r{The arrow color.}
-  bg[NORMAL] = "yellow"@ @ # @r{The thumb and background around the arrow.}
-  bg[ACTIVE] = "blue"@ @ @ @ # @r{The trough color.}
-  bg[PRELIGHT] = "white"@ # @r{The thumb color when the mouse is over it.}
-@}
-
-widget "*verticalScrollBar*" style "scroll"
-@end smallexample
-@end iftex
-
-@ifnottex
-@cindex GTK resources and customization
+@cindex GTK+ resources
 @cindex resource files for GTK
 @cindex @file{~/.gtkrc-2.0} file
 @cindex @file{~/.emacs.d/gtkrc} file
 
-  If Emacs was built to use the GTK widget set, then the menu bar, tool bar,
-scroll bar and the dialogs are customized with the standard GTK
-customization file, @file{~/.gtkrc-2.0}, or with the Emacs specific
-file @file{~/.emacs.d/gtkrc}.  We recommend that you use
-@file{~/.emacs.d/gtkrc} for customizations, since @file{~/.gtkrc-2.0}
-seems to be ignored when running GConf with GNOME.  These files apply
-only to GTK widget features.  To customize Emacs font, background,
-faces, etc., use the normal X resources (@pxref{Resources}).
+  If Emacs is compiled with GTK+ toolkit support, the simplest way to
+customize its GTK+ widgets (e.g.@: menus, dialogs, tool bars and
+scroll bars) is to choose an appropriate GTK+ theme, for example with
+the GNOME theme selector.
 
-  Some GTK themes override these mechanisms, which means that using
-these mechanisms will not work to customize them.
+  In GTK+ version 2, you can also use @dfn{GTK+ resources} to
+customize the appearance of GTK+ widgets used by Emacs.  These
+resources are specified in either the file @file{~/.emacs.d/gtkrc}
+(for Emacs-specific GTK+ resources), or @file{~/.gtkrc-2.0} (for
+general GTK+ resources).  We recommend using @file{~/.emacs.d/gtkrc},
+since GTK+ seems to ignore @file{~/.gtkrc-2.0} when running GConf with
+GNOME.  Note, however, that some GTK themes may override
+customizations in @file{~/.emacs.d/gtkrc}; there is nothing we can do
+about this.  GTK+ resources do not affect aspects of Emacs unrelated
+to GTK+ widgets, such as fonts and colors in the main Emacs window;
+those are governed by normal X resources (@pxref{Resources}).
 
-  In these files you first define a style and say what it means; then
-you specify to apply the style to various widget types (@pxref{GTK
-widget names}).  Here is an example of how to change the font for
-Emacs menus:
+  The following sections describe how to customize GTK+ resources for
+Emacs.  For details about GTK+ resources, see the GTK+ API document at
+@uref{http://developer.gnome.org/doc/API/2.0/gtk/gtk-Resource-Files.html}.
+
+  In GTK+ version 3, GTK+ resources have been replaced by a completely
+different system.  The appearance of GTK+ widgets is now determined by
+CSS-like style files: @file{gtk-3.0/gtk.css} in the GTK+ installation
+directory, and @file{~/.themes/@var{theme}/gtk-3.0/gtk.css} for local
+style settings (where @var{theme} is the name of the current GTK+
+theme).  Therefore, the description of GTK+ resources in this section
+does not apply to GTK+ 3.  For details about the GTK+ 3 styling
+system, see
+@uref{http://developer.gnome.org/gtk3/3.0/GtkCssProvider.html}.
+
+@menu
+* GTK Resource Basics::   Basic usage of GTK+ resources.
+* GTK Widget Names::      How GTK+ widgets are named.
+* GTK Names in Emacs::    GTK widgets used by Emacs.
+* GTK styles::            What can be customized in a GTK widget.
+@end menu
+
+@node GTK Resource Basics
+@appendixsubsec GTK Resource Basics
+
+  In a GTK+ 2 resource file (usually @file{~/.emacs.d/gtkrc}), the
+simplest kinds of resource settings simply assign a value to a
+variable.  For example, putting the following line in the resource
+file changes the font on all GTK+ widgets to @samp{courier-12}:
 
 @smallexample
-# @r{Define the style @samp{menufont}.}
-style "menufont"
+gtk-font-name = "courier 12"
+@end smallexample
+
+@noindent
+Note that in this case the font name must be supplied as a GTK font
+pattern (also called a @dfn{Pango font name}), not as a
+Fontconfig-style font name or XLFD.  @xref{Fonts}.
+
+  To customize widgets you first define a @dfn{style}, and then apply
+the style to the widgets.  Here is an example that sets the font for
+menus (@samp{#} characters indicate comments):
+
+@smallexample
+# @r{Define the style @samp{my_style}.}
+style "my_style"
 @{
-  font_name = "helvetica bold 14"  # This is a Pango font name
+  font_name = "helvetica bold 14"
 @}
 
-# @r{Specify that widget type @samp{*emacs-menuitem*} uses @samp{menufont}.}
-widget "*emacs-menuitem*" style "menufont"
+# @r{Specify that widget type @samp{*emacs-menuitem*} uses @samp{my_style}.}
+widget "*emacs-menuitem*" style "my_style"
+@end smallexample
+
+@noindent
+The widget name in this example contains wildcards, so the style is
+applied to all widgets matching @samp{*emacs-menuitem*}.  The widgets
+are named by the way they are contained, from the outer widget to the
+inner widget.  Here is another example that applies @samp{my_style}
+specifically to the Emacs menu bar:
+
+@smallexample
+widget "Emacs.pane.menubar.*" style "my_style"
 @end smallexample
 
   Here is a more elaborate example, showing how to change the parts of
@@ -818,47 +575,24 @@ the scroll bar:
 @smallexample
 style "scroll"
 @{
-  fg[NORMAL] = "red"@ @ @ @ @ # @r{The arrow color.}
-  bg[NORMAL] = "yellow"@ @ # @r{The thumb and background around the arrow.}
-  bg[ACTIVE] = "blue"@ @ @ @ # @r{The trough color.}
-  bg[PRELIGHT] = "white"@ # @r{The thumb color when the mouse is over it.}
+  fg[NORMAL] = "red"@ @ @ @ @ # @r{Arrow color.}
+  bg[NORMAL] = "yellow"@ @ # @r{Thumb and background around arrow.}
+  bg[ACTIVE] = "blue"@ @ @ @ # @r{Trough color.}
+  bg[PRELIGHT] = "white"@ # @r{Thumb color when the mouse is over it.}
 @}
 
 widget "*verticalScrollBar*" style "scroll"
 @end smallexample
 
-  There are also parameters that affect GTK as a whole.  For example,
-the property @code{gtk-font-name} sets the default font for GTK.  You
-must use Pango font names (@pxref{GTK styles}).  A GTK resources file
-that just sets a default font looks like this:
-
-@smallexample
-gtk-font-name = "courier 12"
-@end smallexample
-
-  The GTK resources file is fully described in the GTK API document.
-This can be found in
-@file{@var{prefix}/share/gtk-doc/html/gtk/gtk-resource-files.html},
-where @file{prefix} is the directory in which the GTK libraries were
-installed (usually @file{/usr} or @file{/usr/local}).  You can also
-find the document online, at
-@uref{http://developer.gnome.org/doc/API/2.0/gtk/gtk-Resource-Files.html}.
-
-@menu
-* GTK widget names::      How widgets in GTK are named in general.
-* GTK Names in Emacs::    GTK widget names in Emacs.
-* GTK styles::            What can be customized in a GTK widget.
-@end menu
-
-@node GTK widget names
+@node GTK Widget Names
 @appendixsubsec GTK widget names
 @cindex GTK widget names
 
-  A GTK widget is specified by its @dfn{widget class} and
-@dfn{widget name}.  The widget class is the type of the widget: for
-example, @code{GtkMenuBar}.  The widget name is the name given to a
-specific widget.  A widget always has a class, but need not have a
-name.
+  A GTK+ widget is specified by a @dfn{widget name} and a @dfn{widget
+class}.  The widget name refers to a specific widget
+(e.g.@: @samp{emacs-menuitem}), while the widget class refers to a
+collection of similar widgets (e.g.@: @samp{GtkMenuItem}).  A widget
+always has a class, but need not have a name.
 
   @dfn{Absolute names} are sequences of widget names or widget
 classes, corresponding to hierarchies of widgets embedded within
@@ -868,55 +602,31 @@ a @code{GtkMenuBar} called @code{menubar}, the absolute class name
 of the menu-bar widget is @code{GtkWindow.GtkVBox.GtkMenuBar}, and
 its absolute widget name is @code{top.box.menubar}.
 
-  When assigning a style to a widget, you can use the absolute class
-name or the absolute widget name.
+  GTK+ resource files can contain two types of commands for specifying
+widget appearances:
 
-  There are two commands to specify changes for widgets:
+@table @code
+@item widget
+specifies a style for widgets based on the class name, or just the
+class.
 
-@table @asis
-@item @code{widget_class}
-specifies a style for widgets based on the absolute class name.
-
-@item @code{widget}
-specifies a style for widgets based on the absolute class name,
-or just the class.
+@item widget_class
+specifies a style for widgets based on the class name.
 @end table
 
 @noindent
-You must specify the class and the style in double-quotes, and put
-these commands at the top level in the GTK customization file, like
-this:
+See the previous subsection for examples of using the @code{widget}
+command; the @code{widget_class} command is used similarly.  Note that
+the widget name/class and the style must be enclosed in double-quotes,
+and these commands must be at the top level in the GTK+ resource file.
+
+  As previously noted, you may specify a widget name or class with
+shell wildcard syntax: @samp{*} matches zero or more characters and
+@samp{?} matches one character.  This example assigns a style to all
+widgets:
 
 @smallexample
-style "menufont"
-@{
-  font_name = "helvetica bold 14"
-@}
-
-widget "top.box.menubar" style "menufont"
-widget_class "GtkWindow.GtkVBox.GtkMenuBar" style "menufont"
-@end smallexample
-
-  Matching of absolute names uses shell wildcard syntax: @samp{*}
-matches zero or more characters and @samp{?} matches one character.
-This example assigns @code{base_style} to all widgets:
-
-@smallexample
-widget "*" style "base_style"
-@end smallexample
-
-  Given the absolute class name @code{GtkWindow.GtkVBox.GtkMenuBar}
-and the corresponding absolute widget name @code{top.box.menubar}, all
-these examples specify @code{my_style} for the menu bar:
-
-@smallexample
-widget_class "GtkWindow.GtkVBox.GtkMenuBar" style "my_style"
-widget_class "GtkWindow.*.GtkMenuBar" style "my_style"
-widget_class "*GtkMenuBar" style "my_style"
-widget "top.box.menubar" style "my_style"
-widget "*box*menubar" style "my_style"
-widget "*menubar" style "my_style"
-widget "*menu*" style "my_style"
+widget "*" style "my_style"
 @end smallexample
 
 @node GTK Names in Emacs
@@ -924,68 +634,52 @@ widget "*menu*" style "my_style"
 @cindex GTK widget names
 @cindex GTK widget classes
 
-  In Emacs, the top level widget for a frame is a @code{GtkWindow}
-that contains a @code{GtkVBox}.  The @code{GtkVBox} contains the
-@code{GtkMenuBar} and a @code{GtkFixed} widget.  The vertical scroll
-bars, @code{GtkVScrollbar}, are contained in the @code{GtkFixed}
-widget.  The text you write in Emacs is drawn in the @code{GtkFixed}
-widget.
+  The GTK+ widgets used by an Emacs frame are listed below:
 
-  Dialogs in Emacs are @code{GtkDialog} widgets.  The file dialog is a
-@code{GtkFileSelection} widget.
+@table @asis
+@item @code{Emacs} (class @code{GtkWindow})
+@table @asis
+@item @code{pane} (class @code{GtkVBox})
+@table @asis
+@item @code{menubar} (class @code{GtkMenuBar})
+@table @asis
+@item [menu item widgets]
+@end table
+@item [unnamed widget] (class @code{GtkHandleBox})
+@table @asis
+@item @code{emacs-toolbar} (class @code{GtkToolbar})
+@table @asis
+@item [tool bar item widgets]
+@end table
+@end table
+@item @code{emacs} (class @code{GtkFixed})
+@table @asis
+@item @code{verticalScrollBar} (class @code{GtkVScrollbar})
+@end table
+@end table
+@end table
+@end table
 
 @noindent
-To set a style for the menu bar using the absolute class name, use:
+The contents of Emacs windows are drawn in the @code{emacs} widget.
+Note that even if there are multiple Emacs windows, each scroll bar
+widget is named @code{verticalScrollBar}.
+
+  For example, here are two different ways to set the menu bar style:
 
 @smallexample
-widget_class "GtkWindow.GtkVBox.GtkMenuBar" style "my_style"
+widget "Emacs.pane.menubar.*" style "my_style"
+widget_class "GtkWindow.GtkVBox.GtkMenuBar.*" style "my_style"
 @end smallexample
 
-@noindent
-For the scroll bar, the absolute class name is:
+  For GTK+ dialogs, Emacs uses a widget named @code{emacs-dialog}, of
+class @code{GtkDialog}.  For file selection, Emacs uses a widget named
+@code{emacs-filedialog}, of class @code{GtkFileSelection}.
 
-@smallexample
-widget_class
-  "GtkWindow.GtkVBox.GtkFixed.GtkVScrollbar"
-     style "my_style"
-@end smallexample
-
-@noindent
-The names for the emacs widgets, and their classes, are:
-
-@multitable {@code{verticalScrollbar plus}} {@code{GtkFileSelection} and some}
-@item @code{emacs-filedialog}
-@tab @code{GtkFileSelection}
-@item @code{emacs-dialog}
-@tab @code{GtkDialog}
-@item @code{Emacs}
-@tab @code{GtkWindow}
-@item @code{pane}
-@tab @code{GtkVHbox}
-@item @code{emacs}
-@tab @code{GtkFixed}
-@item @code{verticalScrollBar}
-@tab @code{GtkVScrollbar}
-@item @code{emacs-toolbar}
-@tab @code{GtkToolbar}
-@item @code{menubar}
-@tab @code{GtkMenuBar}
-@item @code{emacs-menuitem}
-@tab anything in menus
-@end multitable
-
-@noindent
-Thus, for Emacs you can write the two examples above as:
-
-@smallexample
-widget "Emacs.pane.menubar" style "my_style"
-widget "Emacs.pane.emacs.verticalScrollBar" style "my_style"
-@end smallexample
-
-  GTK absolute names are quite strange when it comes to menus
-and dialogs.  The names do not start with @samp{Emacs}, as they are
-free-standing windows and not contained (in the GTK sense) by the
-Emacs GtkWindow.  To customize the dialogs and menus, use wildcards like this:
+  Because the widgets for pop-up menus and dialogs are free-standing
+windows and not ``contained'' in the @code{Emacs} widget, their GTK+
+absolute names do not start with @samp{Emacs}.  To customize these
+widgets, use wildcards like this:
 
 @smallexample
 widget "*emacs-dialog*" style "my_dialog_style"
@@ -993,14 +687,7 @@ widget "*emacs-filedialog* style "my_file_style"
 widget "*emacs-menuitem* style "my_menu_style"
 @end smallexample
 
-  If you specify a customization in @file{~/.emacs.d/gtkrc}, then it
-automatically applies only to Emacs, since other programs don't read
-that file.  For example, the drop down menu in the file dialog can not
-be customized by any absolute widget name, only by an absolute class
-name.  This is because the widgets in the drop down menu do not
-have names and the menu is not contained in the Emacs GtkWindow.  To
-have all menus in Emacs look the same, use this in
-@file{~/.emacs.d/gtkrc}:
+  If you want to apply a style to all menus in Emacs, use this:
 
 @smallexample
 widget_class "*Menu*" style "my_menu_style"
@@ -1010,15 +697,7 @@ widget_class "*Menu*" style "my_menu_style"
 @appendixsubsec GTK styles
 @cindex GTK styles
 
-  In a GTK style you specify the appearance widgets shall have.  You
-can specify foreground and background color, background pixmap and
-font.  The edit widget (where you edit the text) in Emacs is a GTK
-widget, but trying to specify a style for the edit widget will have no
-effect.  This is so that Emacs compiled for GTK is compatible with
-Emacs compiled for other X toolkits.  The settings for foreground,
-background and font for the edit widget is taken from the X resources;
-@pxref{Resources}.  Here is an example of two style declarations,
-@samp{default} and @samp{ruler}:
+  Here is an example of two GTK+ style declarations:
 
 @smallexample
 pixmap_path "/usr/share/pixmaps:/usr/include/X11/pixmaps"
@@ -1128,9 +807,8 @@ text fields in the file dialog.
 
 @item font_name = "@var{font}"
 This specifies the font for text in the widget.  @var{font} is a
-Pango font name, for example @samp{Sans Italic 10}, @samp{Helvetica
-Bold 12}, @samp{Courier 14}, @samp{Times 18}.  See below for exact
-syntax.  The names are case insensitive.
+GTK-style (or Pango) font name, like @samp{Sans Italic 10}.
+@xref{Fonts}.  The names are case insensitive.
 @end table
 
   There are three ways to specify a color: a color name, an RGB
@@ -1138,60 +816,6 @@ triplet, or a GTK-style RGB triplet.  @xref{Colors}, for a description
 of color names and RGB triplets.  Color names should be enclosed with
 double quotes, e.g.@: @samp{"red"}.  RGB triplets should be written
 without double quotes, e.g.@: @samp{#ff0000}.  GTK-style RGB triplets
-have the form
-
-@smallexample
-@code{@{ @var{r}, @var{g}, @var{b} @}}
-@end smallexample
-
-@noindent
-where @var{r}, @var{g} and @var{b} are either integers in the range
-0-65535 or floats in the range 0.0-1.0.
-
-  Pango font names have the form ``@var{family-list} @var{style-options}
-@var{size}.''
-@cindex Pango font name
-@noindent
-@var{family-list} is a comma separated list of font families optionally
-terminated by a comma.  This way you can specify several families and the
-first one found will be used.  @var{family} corresponds to the second part in
-an X font name, for example in
-
-@smallexample
--adobe-times-medium-r-normal--12-120-75-75-p-64-iso10646-1
-@end smallexample
-
-@noindent
-the family name is @samp{times}.
-
-@noindent
-@var{style-options} is a whitespace separated list of words where each word
-is a style, variant, weight, or stretch.  The default value for all of
-these is @code{normal}.
-
-@noindent
-A `style' corresponds to the fourth part of an X font name.  In X font
-names it is the character @samp{r}, @samp{i} or @samp{o}; in Pango
-font names the corresponding values are @code{normal}, @code{italic},
-or @code{oblique}.
-
-@noindent
-A `variant' is either @code{normal} or @code{small-caps}.
-Small caps is a font with the lower case characters replaced by
-smaller variants of the capital characters.
-
-@noindent
-Weight describes the ``boldness'' of a font.  It corresponds to the third
-part of an X font name.  It is one of @code{ultra-light}, @code{light},
-@code{normal}, @code{bold}, @code{ultra-bold}, or @code{heavy}.
-
-@noindent
-Stretch gives the width of the font relative to other designs within a
-family.  It corresponds to the fifth part of an X font name.  It is one of
-@code{ultra-condensed}, @code{extra-condensed}, @code{condensed},
-@code{semi-condensed}, @code{normal}, @code{semi-expanded},
-@code{expanded}, @code{extra-expanded}, or @code{ultra-expanded}.
-
-@noindent
-@var{size} is a decimal number that describes the font size in points.
-@end ifnottex
+have the form @w{@code{@{ @var{r}, @var{g}, @var{b} @}}}, where
+@var{r}, @var{g} and @var{b} are either integers in the range 0-65535
+or floats in the range 0.0-1.0.

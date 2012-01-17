@@ -1,3 +1,20 @@
+2012-01-16  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* minibuffer.el (completion--replace): Strip properties (bug#10062).
+
+2012-01-16  Martin Rudalics  <rudalics@gmx.at>
+
+	* window.el (window-state-ignored-parameters): Remove variable.
+	(window--state-get-1): Rename argument MARKERS to IGNORE.
+	Handle persistent window parameters.  Make copy of clone-of
+	parameter only if requested.  (Bug#10348)
+	(window--state-put-2): Install a window parameter only if it has
+	a non-nil value or an existing parameter shall be overwritten.
+
+2012-01-15  Michael Albinus  <michael.albinus@gmx.de>
+
+	* net/tramp-sh.el (tramp-remote-path): Set tramp-autoload cookie.
+
 2012-01-14  Eli Zaretskii  <eliz@gnu.org>
 
 	* info.el (Info-toc-build): If the Info file has no "Up" pointer,
@@ -34,7 +51,7 @@
 
 	Fix Emacs bug #10463 - put `widen's around the critical spots.
 
-        * progmodes/cc-engine.el (c-in-literal, c-literal-limits): put a
+	* progmodes/cc-engine.el (c-in-literal, c-literal-limits): Put a
 	widen around each invocation of c-state-pp-to-literal.  Remove an
 	unused let variable.
 
@@ -45,8 +62,8 @@
 
 2012-01-10  Chong Yidong  <cyd@gnu.org>
 
-	* net/network-stream.el (network-stream-open-starttls): Avoid
-	emitting a confusing error message when the server gives a bad
+	* net/network-stream.el (network-stream-open-starttls):
+	Avoid emitting a confusing error message when the server gives a bad
 	response to the capability command.
 
 2012-01-10  Glenn Morris  <rgm@gnu.org>
@@ -139,8 +156,8 @@
 
 	* custom.el (enable-theme): Don't set custom-safe-themes.
 
-	* cus-theme.el (custom-theme-merge-theme): Ignore
-	custom-enabled-themes and custom-safe-themes.
+	* cus-theme.el (custom-theme-merge-theme):
+	Ignore custom-enabled-themes and custom-safe-themes.
 
 2012-01-05  Michael R. Mauger  <mmaug@yahoo.com>
 
@@ -163,8 +180,8 @@
 
 2012-01-03  Chong Yidong  <cyd@gnu.org>
 
-	* shell.el (shell-dynamic-complete-functions): Put
-	pcomplete-completions-at-point, so as to try
+	* shell.el (shell-dynamic-complete-functions):
+	Put pcomplete-completions-at-point, so as to try
 	comint-filename-completion first (Bug#10417).
 
 2012-01-02  Richard Stallman  <rms@gnu.org>
@@ -189,8 +206,8 @@
 
 2012-01-01  Eli Zaretskii  <eliz@gnu.org>
 
-	* term/w32-win.el (dynamic-library-alist) <gnutls>: Load
-	libgnutls-28.dll, from GnuTLS version 3.x, in preference to
+	* term/w32-win.el (dynamic-library-alist) <gnutls>:
+	Load libgnutls-28.dll, from GnuTLS version 3.x, in preference to
 	libgnutls-26.dll.
 
 2011-12-31  Andreas Schwab  <schwab@linux-m68k.org>
@@ -242,11 +259,10 @@
 2011-12-24  Alan Mackenzie  <acm@muc.de>
 
 	Introduce a mechanism to widen the region used in context font
-	locking.  Use this to protect declarations from losing their
-	contexts.
+	locking.  Use this to protect declarations from losing their contexts.
 
-	* progmodes/cc-langs.el (c-before-font-lock-functions): Replace
-	c-set-fl-decl-start with c-change-set-fl-decl-start (Renaming).
+	* progmodes/cc-langs.el (c-before-font-lock-functions):
+	Replace c-set-fl-decl-start with c-change-set-fl-decl-start (Renaming).
 	(c-before-context-fontification-functions): New defvar, a list of
 	functions to be run just before context (etc.) font locking.
 
@@ -398,22 +414,19 @@
 
 	* progmodes/cc-langs (c-label-kwds): Let AWK take the same
 	expression as the rest.
-	(c-nonlabel-token-key): Allow string literals for AWK.  Refactor
-	for the other modes.
+	(c-nonlabel-token-key): Allow string literals for AWK.
+	Refactor for the other modes.
 
 	Large brace-block initialisation makes CC Mode slow: Fix.
-	Tidy up and accelerate c-in-literal, etc. by using the
-	c-parse-state
+	Tidy up and accelerate c-in-literal, etc. by using the c-parse-state
 	routines.  Limit backward searching in c-font-lock-enclosing.decl.
 
 	* progmodes/cc-engine.el (c-state-pp-to-literal): Return the
 	pp-state and literal type in addition to the limits.
-	(c-state-safe-place): New defun, extracted from
-	c-state-literal-at.
+	(c-state-safe-place): New defun, extracted from c-state-literal-at.
 	(c-state-literal-at): Use the above new defun.
-	(c-slow-in-literal, c-fast-in-literal): Removed.
-	(c-in-literal, c-literal-limits): Amended to use
-	c-state-pp-to-literal.
+	(c-slow-in-literal, c-fast-in-literal): Remove.
+	(c-in-literal, c-literal-limits): Amend to use c-state-pp-to-literal.
 
 	* progmodes/cc-fonts.el (c-font-lock-enclosing-decls): Check for
 	being in a literal.  Add a limit for backward searching.
@@ -487,8 +500,8 @@
 2011-12-10  Eli Zaretskii  <eliz@gnu.org>
 
 	* mail/rmailsum.el (rmail-header-summary): RFC2047 decode the
-	`from' or `to' address before taking its substring.  Fixes
-	incorrect display in Rmail summary buffer whereby an RFC2047
+	`from' or `to' address before taking its substring.
+	Fixes incorrect display in Rmail summary buffer whereby an RFC2047
 	encoded name is chopped in the middle of the encoded string, and
 	thus displayed encoded.
 
@@ -707,8 +720,8 @@
 	(verilog-uvm-statement-re): Support UVM indentation and
 	highlighting, with old OVM keywords only.
 	(verilog-auto-tieoff, verilog-auto-tieoff-declaration):
-	Support AUTOTIEOFF creating non-wire data types.  Suggested by Jonathan
-	Greenlaw.
+	Support AUTOTIEOFF creating non-wire data types.
+	Suggested by Jonathan Greenlaw.
 	(verilog-auto-insert-lisp, verilog-delete-to-paren)
 	(verilog-forward-sexp-cmt, verilog-forward-sexp-ign-cmt)
 	(verilog-inject-sense, verilog-read-inst-pins)
@@ -794,11 +807,11 @@
 	Andrew Drake.
 	(verilog-auto-star-safe, verilog-delete-auto-star-implicit)
 	(verilog-inst-comment-re): Fix not deleting Interfaced comment
-	when expanding .* in interfaces, bug320.  Reported by Pierre-David
-	Pfister.
+	when expanding .* in interfaces, bug320.
+	Reported by Pierre-David Pfister.
 	(verilog-read-module-name): Fix import statements between module
-	name and open parenthesis, bug317.  Reported by Pierre-David
-	Pfister.
+	name and open parenthesis, bug317.
+	Reported by Pierre-David Pfister.
 	(verilog-simplify-range-expression): Fix simplification of
 	multiplications inside AUTOWIRE connections, bug303.
 	(verilog-auto-inst-port): Support parameter expansion in
@@ -1052,8 +1065,7 @@
 
 2011-11-19  Andreas Schwab  <schwab@linux-m68k.org>
 
-	* progmodes/sh-script.el (sh-assignment-regexp): Add entry for
-	bash.
+	* progmodes/sh-script.el (sh-assignment-regexp): Add entry for bash.
 
 2011-11-19  Juri Linkov  <juri@jurta.org>
 
@@ -1178,8 +1190,7 @@
 
 	* window.el (window-resize, delete-window, split-window):
 	Replace window-splits by window-combination-resize.
-	* cus-start.el (window-splits): Replace by
-	window-combination-resize.
+	* cus-start.el (window-splits): Replace by window-combination-resize.
 
 2011-11-17  Glenn Morris  <rgm@gnu.org>
 
@@ -1244,8 +1255,7 @@
 	* window.el (split-window, window-state-get-1)
 	(window-state-put-1, window-state-put-2): Rename occurrences of
 	window-nest to window-combination-limit.
-	* cus-start.el (window-nest): Rename to
-	window-combination-limit.
+	* cus-start.el (window-nest): Rename to window-combination-limit.
 
 2011-11-16  Chong Yidong  <cyd@gnu.org>
 
