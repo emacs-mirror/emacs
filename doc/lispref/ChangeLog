@@ -1,3 +1,12 @@
+2012-01-16  Juanma Barranquero  <lekktu@gmail.com>
+
+	* windows.texi (Window Parameters): Use @pxref.
+
+2012-01-16  Martin Rudalics  <rudalics@gmx.at>
+
+	* windows.texi (Window Configurations, Window Parameters):
+	Describe persistent window parameters.
+
 2011-12-27  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* variables.texi (Creating Buffer-Local): Warn against misuses of

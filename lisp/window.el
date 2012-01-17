@@ -3568,10 +3568,7 @@ specific buffers."
     ))
 
 ;;; Window states, how to get them and how to put them in a window.
-(defvar window-state-ignored-parameters '(quit-restore)
-  "List of window parameters ignored by `window-state-get'.")
-
-(defun window--state-get-1 (window &optional markers)
+(defun window--state-get-1 (window &optional ignore)
   "Helper function for `window-state-get'."
   (let* ((type
 	  (cond
@@ -3589,12 +3586,27 @@ specific buffers."
             (normal-width . ,(window-normal-size window t))
             (combination-limit . ,(window-combination-limit window))
             ,@(let (list)
-                (dolist (parameter (window-parameters window))
-                  (unless (memq (car parameter)
-                                window-state-ignored-parameters)
-                    (setq list (cons parameter list))))
-                (unless (window-parameter window 'clone-of)
-                  ;; Make a clone-of parameter.
+		;; Make copies of persistent window parameters whose cdr
+		;; is either t or, when IGNORE is non-nil, is either nil
+		;; or `state'.
+                (dolist (pers window-persistent-parameters)
+		  (when (and (consp pers)
+			     (or (eq (cdr pers) t)
+				 (and (memq (cdr pers) '(state nil))
+				      (not ignore))))
+		    (let ((par (assq (car pers) (window-parameters window))))
+		      (setq list (cons (cons (car pers) (when par (cdr par)))
+				       list)))))
+		;; Save `clone-of' parameter unless IGNORE or
+		;; `window-persistent-parameters' prevail.
+                (when (and (not (assq 'clone-of (window-parameters window)))
+			   (let ((clone-of
+				  (assq 'clone-of
+					window-persistent-parameters)))
+			     (when clone-of
+			       (if ignore
+				   (eq (cdr clone-of) t)
+				 (memq (cdr clone-of) '(state nil))))))
                   (setq list (cons (cons 'clone-of window) list)))
                 (when list
                   `((parameters . ,list))))
@@ -3616,30 +3628,31 @@ specific buffers."
                        (scroll-bars . ,(window-scroll-bars window))
                        (vscroll . ,(window-vscroll window))
                        (dedicated . ,(window-dedicated-p window))
-                       (point . ,(if markers (copy-marker point) point))
-                       (start . ,(if markers (copy-marker start) start))
+                       (point . ,(if ignore point (copy-marker point)))
+                       (start . ,(if ignore start (copy-marker start)))
                        ,@(when mark
-                           `((mark . ,(if markers
-                                          (copy-marker mark) mark)))))))))))
+                           `((mark . ,(if ignore
+                                          mark (copy-marker mark))))))))))))
 	 (tail
 	  (when (memq type '(vc hc))
 	    (let (list)
 	      (setq window (window-child window))
 	      (while window
-		(setq list (cons (window--state-get-1 window markers) list))
+		(setq list (cons (window--state-get-1 window ignore) list))
 		(setq window (window-right window)))
 	      (nreverse list)))))
     (append head tail)))
 
-(defun window-state-get (&optional window markers)
+(defun window-state-get (&optional window ignore)
   "Return state of WINDOW as a Lisp object.
 WINDOW can be any window and defaults to the root window of the
 selected frame.
 
-Optional argument MARKERS non-nil means use markers for sampling
-positions like `window-point' or `window-start'.  MARKERS should
-be non-nil only if the value is used for putting the state back
-in the same session (note that markers slow down processing).
+Optional argument IGNORE non-nil means do not use markers for
+sampling positions like `window-point' or `window-start' and do
+not record parameters unless `window-persistent-parameters'
+requests it.  IGNORE should be non-nil when the return value
+shall be written to a file and read back in another session.
 
 The return value can be used as argument for `window-state-put'
 to put the state recorded here into an arbitrary window.  The
@@ -3665,7 +3678,7 @@ value can be also stored on disk and read back in a new session."
      ;; These are probably not needed.
      ,@(when (window-size-fixed-p window) `((fixed-height . t)))
      ,@(when (window-size-fixed-p window t) `((fixed-width . t))))
-   (window--state-get-1 window markers)))
+   (window--state-get-1 window ignore)))
 
 (defvar window-state-put-list nil
   "Helper variable for `window-state-put'.")
@@ -3744,10 +3757,15 @@ value can be also stored on disk and read back in a new session."
 	  (state (cdr (assq 'buffer item))))
       (when combination-limit
 	(set-window-combination-limit window combination-limit))
-      ;; Process parameters.
+      ;; Assign saved window parameters.  If a parameter's value is nil,
+      ;; don't assign it unless the new window has it set already (which
+      ;; shouldn't happen unless some `window-configuration-change-hook'
+      ;; function installed it).
       (when parameters
 	(dolist (parameter parameters)
-	  (set-window-parameter window (car parameter) (cdr parameter))))
+	  (when (or (cdr parameter)
+		    (window-parameter window (car parameter)))
+	    (set-window-parameter window (car parameter) (cdr parameter)))))
       ;; Process buffer related state.
       (when state
 	;; We don't want to raise an error here so we create a buffer if

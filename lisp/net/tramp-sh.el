@@ -512,6 +512,7 @@ detected as prompt when being sent on echoing hosts, therefore.")
 ;; GNU/Linux (Debian, Suse): /bin:/usr/bin
 ;; FreeBSD: /usr/bin:/bin:/usr/sbin:/sbin: - beware trailing ":"!
 ;; IRIX64: /usr/bin
+;;;###tramp-autoload
 (defcustom tramp-remote-path
   '(tramp-default-remote-path "/bin" "/usr/bin" "/usr/sbin" "/usr/local/bin"
     "/local/bin" "/local/freeware/bin" "/local/gnu/bin"

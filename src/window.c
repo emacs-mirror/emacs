@@ -57,7 +57,7 @@ static Lisp_Object Qreplace_buffer_in_windows, Qget_mru_window;
 static Lisp_Object Qwindow_resize_root_window, Qwindow_resize_root_window_vertically;
 static Lisp_Object Qscroll_up, Qscroll_down, Qscroll_command;
 static Lisp_Object Qsafe, Qabove, Qbelow;
-static Lisp_Object Qauto_buffer_name;
+static Lisp_Object Qauto_buffer_name, Qclone_of, Qstate;
 
 static int displayed_window_lines (struct window *);
 static struct window *decode_window (Lisp_Object);
@@ -5412,6 +5412,7 @@ the return value is nil.  Otherwise the value is t.  */)
     {
       Lisp_Object window;
       Lisp_Object dead_windows = Qnil;
+      register Lisp_Object tem, par, pers;
       register struct window *w;
       register struct saved_window *p;
       struct window *root_window;
@@ -5545,7 +5546,28 @@ the return value is nil.  Otherwise the value is t.  */)
 	  w->vertical_scroll_bar_type = p->vertical_scroll_bar_type;
 	  w->dedicated = p->dedicated;
 	  w->combination_limit = p->combination_limit;
-	  w->window_parameters = p->window_parameters;
+	  /* Restore any window parameters that have been saved.
+	     Parameters that have not been saved are left alone.  */
+	  for (tem = p->window_parameters; CONSP (tem); tem = XCDR (tem))
+	    {
+	      pers = XCAR (tem);
+	      if (CONSP (pers))
+		{
+		  if (NILP (XCDR (pers)))
+		    {
+		      par = Fassq (XCAR (pers), w->window_parameters);
+		      if (CONSP (par) && !NILP (XCDR (par)))
+			/* Reset a parameter to nil if and only if it
+			   has a non-nil association.  Don't make new
+			   associations.  */
+			Fsetcdr (par, Qnil);
+		    }
+		  else
+		    /* Always restore a non-nil value.  */
+		    Fset_window_parameter (window, XCAR (pers), XCDR (pers));
+		}
+	    }
+
 	  XSETFASTINT (w->last_modified, 0);
 	  XSETFASTINT (w->last_overlay_modified, 0);
 
@@ -5812,7 +5834,7 @@ save_window_save (Lisp_Object window, struct Lisp_Vector *vector, int i)
 {
   register struct saved_window *p;
   register struct window *w;
-  register Lisp_Object tem;
+  register Lisp_Object tem, pers, par;
 
   for (;!NILP (window); window = w->next)
     {
@@ -5840,12 +5862,60 @@ save_window_save (Lisp_Object window, struct Lisp_Vector *vector, int i)
       p->vertical_scroll_bar_type = w->vertical_scroll_bar_type;
       p->dedicated = w->dedicated;
       p->combination_limit = w->combination_limit;
-      p->window_parameters = w->window_parameters;
+      p->window_parameters = Qnil;
+
+      if (!NILP (Vwindow_persistent_parameters))
+	{
+	  /* Run cycle detection on Vwindow_persistent_parameters.  */
+	  Lisp_Object tortoise, hare;
+
+	  hare = tortoise = Vwindow_persistent_parameters;
+	  while (CONSP (hare))
+	    {
+	      hare = XCDR (hare);
+	      if (!CONSP (hare))
+		break;
+
+	      hare = XCDR (hare);
+	      tortoise = XCDR (tortoise);
+
+	      if (EQ (hare, tortoise))
+		/* Reset Vwindow_persistent_parameters to Qnil.  */
+		{
+		  Vwindow_persistent_parameters = Qnil;
+		  break;
+		}
+	    }
+
+	  for (tem = Vwindow_persistent_parameters; CONSP (tem);
+	       tem = XCDR (tem))
+	    {
+	      pers = XCAR (tem);
+	      /* Save values for persistent window parameters whose cdr
+		 is either nil or t.  */
+	      if (CONSP (pers) && (NILP (XCDR (pers)) || EQ (XCDR (pers), Qt)))
+		{
+		  par = Fassq (XCAR (pers), w->window_parameters);
+		  if (NILP (par))
+		    /* If the window has no value for the parameter,
+		       make one.  */
+		    p->window_parameters = Fcons (Fcons (XCAR (pers), Qnil),
+						  p->window_parameters);
+		  else
+		    /* If the window has a value for the parameter,
+		       save it.  */
+		    p->window_parameters = Fcons (Fcons (XCAR (par),
+							 XCDR (par)),
+						  p->window_parameters);
+		}
+	    }
+	}
+
       if (!NILP (w->buffer))
 	{
-	  /* Save w's value of point in the window configuration.
-	     If w is the selected window, then get the value of point
-	     from the buffer; pointm is garbage in the selected window.  */
+	  /* Save w's value of point in the window configuration.  If w
+	     is the selected window, then get the value of point from
+	     the buffer; pointm is garbage in the selected window.  */
 	  if (EQ (window, selected_window))
 	    {
 	      p->pointm = Fmake_marker ();
@@ -6435,6 +6505,8 @@ syms_of_window (void)
   DEFSYM (Qabove, "above");
   DEFSYM (Qbelow, "below");
   DEFSYM (Qauto_buffer_name, "auto-buffer-name");
+  DEFSYM (Qclone_of, "clone-of");
+  DEFSYM (Qstate, "state");
 
   staticpro (&Vwindow_list);
 
@@ -6543,6 +6615,31 @@ the new parent window.  The combination limit of a window can be
 retrieved via the function `window-combination-limit' and altered by the
 function `set-window-combination-limit'.  */);
   Vwindow_combination_limit = Qnil;
+
+  DEFVAR_LISP ("window-persistent-parameters", Vwindow_persistent_parameters,
+	       doc: /* Alist of persistent window parameters.
+Parameters in this list are saved by `current-window-configuration' and
+`window-state-get' and subsequently restored to their previous values by
+`set-window-configuration' and `window-state-put'.
+
+The car of each entry of this alist is the symbol specifying the
+parameter.  The cdr is one of the following:
+
+The symbol `state' means the parameter is saved by `window-state-get'
+provided its IGNORE argument is nil.  `current-window-configuration'
+does not save this parameter.
+
+nil means the parameter is saved by `current-window-configuration' and,
+provided its IGNORE argument is nil, by `window-state-get'.
+
+t means the parameter is saved unconditionally by both
+`current-window-configuration' and `window-state-get'.  Parameters
+without read syntax (like windows or frames) should not use that.
+
+Parameters not saved by `current-window-configuration' or
+`window-state-get' are left alone by `set-window-configuration'
+respectively are not installed by `window-state-put'.  */);
+  Vwindow_persistent_parameters = list1 (Fcons (Qclone_of, Qstate));
 
   defsubr (&Sselected_window);
   defsubr (&Sminibuffer_window);

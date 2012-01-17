@@ -3104,7 +3104,9 @@ window configuration; see @ref{Frame Configurations}.
 @defun current-window-configuration &optional frame
 This function returns a new object representing @var{frame}'s current
 window configuration.  The default for @var{frame} is the selected
-frame.
+frame.  This function saves copies of window parameters listed by the
+variable @code{window-persistent-parameters}, see @ref{Window
+Parameters} for details.
 @end defun
 
 @defun set-window-configuration configuration
@@ -3206,24 +3208,30 @@ configurations.
 
   The objects returned by @code{current-window-configuration} die
 together with the Emacs process.  In order to store a window
-configuration on disk and read it back in another Emacs session the
-following two functions can be used.
+configuration on disk and read it back in another Emacs session, the
+functions described next can be used.  These functions are also useful
+to clone the state of a frame into an arbitrary live window
+(@code{set-window-configuration} effectively clones the windows of a
+frame into the root window of that very frame only).
 
-@defun window-state-get &optional window markers
+@defun window-state-get &optional window ignore
 This function returns the state of @var{window} as a Lisp object.  The
 argument @var{window} can be any window and defaults to the root window
 of the selected frame.
 
-The optional argument @var{markers} non-@code{nil} means to use markers
-for sampling positions like @code{window-point} or @code{window-start}.
-This argument should be non-@code{nil} only if the value is used for
-putting the state back in the same session since markers slow down
-processing.
+If the optional argument @var{ignore} is non-@code{nil}, this means to
+not use markers for sampling positions like @code{window-point} or
+@code{window-start}.  This argument should be non-@code{nil} when the
+state shall be written on disk and read back in another session.
+
+The variable @code{window-persistent-parameters} specifies whether and
+which window parameters are saved by this function, see @ref{Window
+Parameters} for details.
 @end defun
 
-The value returned by @code{window-state-get} can be converted by using
+The value returned by @code{window-state-get} can be converted, using
 one of the functions defined by Desktop Save Mode (@pxref{Desktop Save
-Mode}) to an object that can be written to a file.  Such objects can be
+Mode}), to an object that can be written to a file.  Such objects can be
 read back and converted to a Lisp object representing the state of the
 window.  That Lisp object can be used as argument for the following
 function in order to restore the state window in another window.
@@ -3268,6 +3276,51 @@ This function sets @var{window}'s value of @var{parameter} to
 is the selected window.
 @end defun
 
+By default, functions saving and restoring window configurations or the
+states of windows (@pxref{Window Configurations}) do not care about
+window parameters.  This means, that when you change the value of a
+parameter within the body of a @code{save-window-excursion}, the
+previous value is not restored upon exit of that macro.  It also means
+that when you clone via @code{window-state-put} a window state saved
+earlier by @code{window-state-get}, the cloned windows come up with no
+parameters at all.  The following variable allows to override the
+standard behavior.
+
+@defvar window-persistent-parameters
+This variable is an alist specifying which parameters get saved by
+@code{current-window-configuration} and @code{window-state-get} and
+subsequently restored by @code{set-window-configuration} and
+@code{window-state-put}, see @ref{Window Configurations}.
+
+The @sc{car} of each entry of this alist is the symbol specifying the
+parameter.  The @sc{cdr} must be one of the following:
+
+@table @asis
+@item @code{state}
+This value means the parameter is saved by @code{window-state-get}
+provided its @var{ignore} argument is @code{nil}.  The function
+@code{current-window-configuration} does not save this parameter.
+
+@item @code{nil}
+This value specifies that the parameter is saved by
+@code{current-window-configuration} and, provided its @var{ignore}
+argument is @code{nil}, by @code{window-state-get}.
+
+@item @code{t}
+This means that the parameter is saved unconditionally by both
+@code{current-window-configuration} and @code{window-state-get}.  This
+value should not be used for parameters whose values do not have a read
+syntax.  Otherwise, invoking @code{window-state-put} in another session
+may fail with an @code{invalid-read-syntax} error.
+@end table
+
+Parameters that have been saved are restored to their previous values by
+@code{set-window-configuration} respectively are installed by
+@code{window-state-put}.  Parameters that have not been saved are left
+alone by @code{set-window-configuration} respectively are not installed
+by @code{window-state-put}.
+@end defvar
+
 Some functions, notably @code{delete-window},
 @code{delete-other-windows} and @code{split-window} may behave specially
 when their @var{window} argument has a parameter set.  You can override
@@ -3287,7 +3340,7 @@ windows when exiting that function.
 @end defvar
 
 The following parameters are currently used by the window management
-code.
+code:
 
 @table @asis
 @item @code{delete-window}
@@ -3309,14 +3362,20 @@ This parameter affects the execution of @code{other-window}
 @item @code{no-other-window}
 This parameter marks the window as not selectable by @code{other-window}
 (@pxref{Cyclic Window Ordering}).
+
+@item @code{clone-of}
+This parameter specifies the window this one has been cloned from and is
+installed by @code{window-state-get}, see @ref{Window Configurations}.
+
+@item @code{quit-restore}
+This parameter tells how to proceed with a window when the buffer it
+shows is no more needed.  It is installed by the buffer display
+functions (@pxref{Choosing Window}) and consulted by the function
+@code{quit-window} (@pxref{Quitting Windows}).
 @end table
 
 In addition, the parameters @code{window-atom} and @code{window-side}
-are reserved and should not be used by applications.  The
-@code{quit-restore} parameter tells how to proceed with a window when
-the buffer it shows is no more needed.  This parameter is installed by
-the buffer display functions (@pxref{Choosing Window}) and consulted by
-the function @code{quit-window} (@pxref{Quitting Windows}).
+are reserved and should not be used by applications.
 
 
 @node Window Hooks
