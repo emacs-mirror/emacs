@@ -1,3 +1,8 @@
+2012-01-17  Glenn Morris  <rgm@gnu.org>
+
+	* dired.el (dired-insert-directory): Handle newlines in directory name.
+	(dired-build-subdir-alist): Unescape newlines in directory name.
+
 2012-01-17  Michael Albinus  <michael.albinus@gmx.de>
 
 	* net/tramp.el (tramp-local-end-of-line): New defcustom.
