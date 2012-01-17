@@ -460,6 +460,12 @@ usually suffice.")
   "Regexp which matches `tramp-echo-mark' as it gets echoed by
 the remote shell.")
 
+(defcustom tramp-local-end-of-line
+  (if (memq system-type '(windows-nt)) "\r\n" "\n")
+  "*String used for end of line in local processes."
+  :group 'tramp
+  :type 'string)
+
 (defcustom tramp-rsh-end-of-line "\n"
   "*String used for end of line in rsh connections.
 I don't think this ever needs to be changed, so please tell me about it
@@ -1902,7 +1908,7 @@ Falls back to normal file name handler if no Tramp file name handler exists."
 		  ;; operations shall return at least a default value
 		  ;; in order to give the user a chance to correct the
 		  ;; file name in the minibuffer.
-		  ;; We cannot use 'debug as error handler.  In order
+		  ;; We cannot use `debug' as error handler.  In order
 		  ;; to get a full backtrace, one could apply
 		  ;;   (setq debug-on-error t debug-on-signal t)
 		  (error
@@ -3116,7 +3122,7 @@ beginning of local filename are not substituted."
   (tramp-message vec 3 "Sending login name `%s'" tramp-current-user)
   (with-current-buffer (tramp-get-connection-buffer vec)
     (tramp-message vec 6 "\n%s" (buffer-string)))
-  (tramp-send-string vec tramp-current-user))
+  (tramp-send-string vec (concat tramp-current-user tramp-local-end-of-line)))
 
 (defun tramp-action-password (proc vec)
   "Query the user for a password."
@@ -3148,7 +3154,7 @@ See also `tramp-action-yn'."
 	(throw 'tramp-action 'permission-denied))
       (with-current-buffer (tramp-get-connection-buffer vec)
 	(tramp-message vec 6 "\n%s" (buffer-string)))
-      (tramp-send-string vec "yes"))))
+      (tramp-send-string vec (concat "yes" tramp-local-end-of-line)))))
 
 (defun tramp-action-yn (proc vec)
   "Ask the user for confirmation using `y-or-n-p'.
@@ -3162,7 +3168,7 @@ See also `tramp-action-yesno'."
 	(throw 'tramp-action 'permission-denied))
       (with-current-buffer (tramp-get-connection-buffer vec)
 	(tramp-message vec 6 "\n%s" (buffer-string)))
-      (tramp-send-string vec "y"))))
+      (tramp-send-string vec (concat "y" tramp-local-end-of-line)))))
 
 (defun tramp-action-terminal (proc vec)
   "Tell the remote host which terminal type to use.
@@ -3170,7 +3176,7 @@ The terminal type can be configured with `tramp-terminal-type'."
   (tramp-message vec 5 "Setting `%s' as terminal type." tramp-terminal-type)
   (with-current-buffer (tramp-get-connection-buffer vec)
     (tramp-message vec 6 "\n%s" (buffer-string)))
-  (tramp-send-string vec tramp-terminal-type))
+  (tramp-send-string vec (concat tramp-terminal-type tramp-local-end-of-line)))
 
 (defun tramp-action-process-alive (proc vec)
   "Check, whether a process has finished."

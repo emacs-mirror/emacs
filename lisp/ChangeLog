@@ -1,3 +1,9 @@
+2012-01-17  Michael Albinus  <michael.albinus@gmx.de>
+
+	* net/tramp.el (tramp-local-end-of-line): New defcustom.
+	(tramp-action-login, tramp-action-yesno, tramp-action-yn)
+	(tramp-action-terminal): Use it.  (Bug#10530)
+
 2012-01-16  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* minibuffer.el (completion--replace): Strip properties (bug#10062).
