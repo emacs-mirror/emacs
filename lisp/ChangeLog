@@ -40,6 +40,17 @@
 
 	* dired.el (dired-get-filename): Fix 'verbatim case of previous change.
 
+2012-01-13  Alan Mackenzie  <acm@muc.de>
+
+	Fix filling for when filladapt mode is enabled.
+
+	* progmodes/cc-cmds.el (c-fill-paragraph): In the invocation of
+	c-mask-paragraph, pass in `fill-paragraph' rather than
+	`fill-region-as-paragraph'.  (This is a reversion of a previous
+	change.)
+	* progmodes/cc-mode.el (c-basic-common-init): Make
+	fill-paragraph-handle-comment buffer local and set it to nil.
+
 2012-01-13  Glenn Morris  <rgm@gnu.org>
 
 	* dired.el (dired-switches-escape-p): New function.
