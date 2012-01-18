@@ -71,6 +71,12 @@ things in their .emacs.
 
 ** See if other files can use generated-autoload-file (see eg ps-print).
 
+** Write more tests.  Pick a fixed bug from the database, write a test
+case to make sure it stays fixed.  Or pick your favorite programming
+major-mode, and write a test for its indentation.  Or a version
+control backend, and write a test for its status parser.  Etc.
+See test/automated for examples.
+
 * Small but important fixes needed in existing features:
 
 ** Flymake's customization mechanism needs to be both simpler (fewer
