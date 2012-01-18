@@ -6,6 +6,7 @@
 ./config.status
 ./data
 ./etc/icons
+./etc/__pycache__
 ./lock
 ./README.W32
 ./site-lisp

@@ -117,7 +117,7 @@ TUTORIAL.pt_BR
 TUTORIAL.ro
 TUTORIAL.ru          
 TUTORIAL.sk          
-TUTORIAL.sl          
+TUTORIAL.sl          Primoz PETERLIN
 TUTORIAL.sv          
 TUTORIAL.th          
 TUTORIAL.zh
@@ -203,7 +203,7 @@ help.texi
 hooks.texi        
 index.texi
 internals.texi    
-intro.texi        
+intro.texi        cyd
 keymaps.texi      
 lists.texi        
 loading.texi      

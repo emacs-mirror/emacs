@@ -2405,9 +2405,6 @@ If the element has the form (REGEXP FUNCTION NON-NIL), then after
 calling FUNCTION (if it's not nil), we delete the suffix that matched
 REGEXP and search the list again for another match.
 
-If the file name matches `inhibit-first-line-modes-regexps',
-then `auto-mode-alist' is not processed.
-
 The extensions whose FUNCTION is `archive-mode' should also
 appear in `auto-coding-alist' with `no-conversion' coding system.
 
@@ -2481,7 +2478,8 @@ See also `auto-mode-alist'.")
 (defvar inhibit-first-line-modes-regexps
   (mapcar 'purecopy '("\\.tar\\'" "\\.tgz\\'" "\\.tiff?\\'"
 		      "\\.gif\\'" "\\.png\\'" "\\.jpe?g\\'"))
-  "List of regexps; if one matches a file name, don't look for `-*-'.")
+  "List of regexps; if one matches a file name, don't look for `-*-'.
+See also `inhibit-first-line-modes-suffixes'.")
 
 (defvar inhibit-first-line-modes-suffixes nil
   "List of regexps for what to ignore, for `inhibit-first-line-modes-regexps'.
@@ -2550,7 +2548,8 @@ Also applies to `magic-fallback-mode-alist'.")
 (defun set-auto-mode (&optional keep-mode-if-same)
   "Select major mode appropriate for current buffer.
 
-To find the right major mode, this function checks for a -*- mode tag,
+To find the right major mode, this function checks for a -*- mode tag
+\(unless `inhibit-first-line-modes-regexps' says not to),
 checks for a `mode:' entry in the Local Variables section of the file,
 checks if it uses an interpreter listed in `interpreter-mode-alist',
 matches the buffer beginning against `magic-mode-alist',
