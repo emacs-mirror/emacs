@@ -2559,7 +2559,7 @@ instead of `dired-actual-switches'."
 	  ;; Undo any escaping of newlines and \ by dired-insert-directory.
 	  ;; Convert "n" preceded by odd number of \ to newline, and \\ to \.
 	  (when (and (dired-switches-escape-p switches)
-		     (string-match "\\\\" new-dir-name))
+		     (string-match-p "\\\\" new-dir-name))
 	    (let (temp res)
 	      (mapc (lambda (char)
 		      (cond ((equal char ?\\)
