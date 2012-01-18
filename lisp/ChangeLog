@@ -1,3 +1,9 @@
+2011-12-30  Kenichi Handa  <handa@m17n.org>
+
+	* international/mule-cmds.el (prefer-coding-system): Show a
+	warning message if the default value of file-name-coding-system
+	was not changed.
+
 2011-12-29  Michael Albinus  <michael.albinus@gmx.de>
 
 	* net/tramp-sh.el (tramp-find-shell): Set "remote-shell" property

@@ -418,7 +418,10 @@ To prefer, for instance, utf-8, say the following:
     (if (memq eol-type '(0 1 2))
 	(setq base
 	      (coding-system-change-eol-conversion base eol-type)))
-    (set-default-coding-systems base)))
+    (set-default-coding-systems base)
+    (if (called-interactively-p 'interactive)
+	(or (eq base default-file-name-coding-system)
+	    (message "The default value of `file-name-coding-system' was not changed because the specified coding system is not suitable for file names.")))))
 
 (defvar sort-coding-systems-predicate nil
   "If non-nil, a predicate function to sort coding systems.
