@@ -1,3 +1,8 @@
+2012-01-18  Glenn Morris  <rgm@gnu.org>
+
+	* files.el (auto-mode-alist, inhibit-first-line-modes-regexps)
+	(set-auto-mode): Doc fixes.
+
 2012-01-17  Glenn Morris  <rgm@gnu.org>
 
 	* isearch.el (search-nonincremental-instead): Fix doc typo.
