@@ -1,3 +1,27 @@
+2012-01-18  Alan Mackenzie  <acm@muc.de>
+
+	Eliminate sluggishness and hangs in fontification of "semicolon
+	deserts".
+
+	* progmodes/cc-engine.el (c-state-nonlit-pos-interval): change
+	value 10000 -> 3000.
+	(c-state-safe-place): Reformulate so it doesn't stack up an
+	infinite number of wrong entries in c-state-nonlit-pos-cache.
+	(c-determine-limit-get-base, c-determine-limit): New functions to
+	determine backward search limits disregarding literals.
+	(c-find-decl-spots): Amend commenting.
+	(c-cheap-inside-bracelist-p): New function which detects "={".
+
+	* progmodes/cc-fonts.el
+	(c-make-font-lock-BO-decl-search-function): Give a limit to a
+	backward search.
+	(c-font-lock-declarations): Fix an occurrence of point being
+	undefined.  Check additionally for point being in a bracelist or
+	near a macro invocation without a semicolon so as to avoid a
+	fruitless time consuming search for a declarator.  Give a more
+	precise search limit for declarators using the new
+	c-determine-limit.
+
 2012-01-18  Glenn Morris  <rgm@gnu.org>
 
 	* files.el (auto-mode-alist, inhibit-first-line-modes-regexps)
