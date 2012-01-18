@@ -2074,7 +2074,7 @@ comment at the start of cc-engine.el for more info."
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; We maintain a simple cache of positions which aren't in a literal, so as to
 ;; speed up testing for non-literality.
-(defconst c-state-nonlit-pos-interval 10000)
+(defconst c-state-nonlit-pos-interval 3000)
 ;; The approximate interval between entries in `c-state-nonlit-pos-cache'.
 
 (defvar c-state-nonlit-pos-cache nil)
@@ -2129,7 +2129,7 @@ comment at the start of cc-engine.el for more info."
     (widen)
     (save-excursion
       (let ((c c-state-nonlit-pos-cache)
-	    pos npos lit)
+	    pos npos lit macro-beg)
 	;; Trim the cache to take account of buffer changes.
 	(while (and c (> (car c) c-state-nonlit-pos-cache-limit))
 	  (setq c (cdr c)))
@@ -2139,16 +2139,32 @@ comment at the start of cc-engine.el for more info."
 	  (setq c (cdr c)))
 	(setq pos (or (car c) (point-min)))
 
-	(while (<= (setq npos (+ pos c-state-nonlit-pos-interval))
-		   here)
-	  (setq lit (car (cddr (c-state-pp-to-literal pos npos))))
-	  (setq pos (or (cdr lit) npos)) ; end of literal containing npos.
+	(while
+	    ;; Add an element to `c-state-nonlit-pos-cache' each iteration.
+	    (and
+	     (<= (setq npos (+ pos c-state-nonlit-pos-interval)) here)
+	     (progn
+	       (setq lit (car (cddr (c-state-pp-to-literal pos npos))))
+	       (cond
+		((null lit)
+		 (setq pos npos)
+		 t)
+		((<= (cdr lit) here)
+		 (setq pos (cdr lit))
+		 t)
+		(t
+		 (setq pos (car lit))
+		 nil))))
+
 	  (goto-char pos)
 	  (when (and (c-beginning-of-macro) (/= (point) pos))
-	    (c-syntactic-end-of-macro)
-	    (or (eobp) (forward-char))
-	    (setq pos (point)))
-	  (setq c-state-nonlit-pos-cache (cons pos c-state-nonlit-pos-cache)))
+	      (setq macro-beg (point))
+	      (c-syntactic-end-of-macro)
+	      (or (eobp) (forward-char))
+	      (setq pos (if (<= (point) here)
+			    (point)
+			  macro-beg)))
+	    (setq c-state-nonlit-pos-cache (cons pos c-state-nonlit-pos-cache)))
 
 	(if (> pos c-state-nonlit-pos-cache-limit)
 	    (setq c-state-nonlit-pos-cache-limit pos))
@@ -4351,6 +4367,78 @@ comment at the start of cc-engine.el for more info."
 	      (t 'c)))			; Assuming the range is valid.
     range))
 
+(defsubst c-determine-limit-get-base (start try-size)
+  ;; Get a "safe place" approximately TRY-SIZE characters before START.
+  ;; This doesn't preserve point.
+  (let* ((pos (max (- start try-size) (point-min)))
+	 (base (c-state-safe-place pos))
+	 (s (parse-partial-sexp base pos)))
+    (if (or (nth 4 s) (nth 3 s))	; comment or string
+	(nth 8 s)
+      (point))))
+
+(defun c-determine-limit (how-far-back &optional start try-size)
+  ;; Return a buffer position HOW-FAR-BACK non-literal characters from START
+  ;; (default point).  This is done by going back further in the buffer then
+  ;; searching forward for literals.  The position found won't be in a
+  ;; literal.  We start searching for the sought position TRY-SIZE (default
+  ;; twice HOW-FAR-BACK) bytes back from START.  This function must be fast.
+  ;; :-)
+  (save-excursion
+    (let* ((start (or start (point)))
+	   (try-size (or try-size (* 2 how-far-back)))
+	   (base (c-determine-limit-get-base start try-size))
+	   (pos base)
+
+	   (s (parse-partial-sexp pos pos)) ; null state.
+	   stack elt size
+	   (count 0))
+      (while (< pos start)
+	;; Move forward one literal each time round this loop.
+	;; Move forward to the start of a comment or string.
+	(setq s (parse-partial-sexp
+		 pos
+		 start
+		 nil			; target-depth
+		 nil			; stop-before
+		 s			; state
+		 'syntax-table))	; stop-comment
+
+	;; Gather details of the non-literal-bit - starting pos and size.
+	(setq size (- (if (or (nth 4 s) (nth 3 s))
+			  (nth 8 s)
+			(point))
+		      pos))
+	(if (> size 0)
+	    (setq stack (cons (cons pos size) stack)))
+
+	;; Move forward to the end of the comment/string.
+	(if (or (nth 4 s) (nth 3 s))
+	    (setq s (parse-partial-sexp
+		     (point)
+		     start
+		     nil		; target-depth
+		     nil		; stop-before
+		     s			; state
+		     'syntax-table)))	; stop-comment
+	(setq pos (point)))
+    
+      ;; Now try and find enough non-literal characters recorded on the stack.
+      ;; Go back one recorded literal each time round this loop.
+      (while (and (< count how-far-back)
+		  stack)
+	(setq elt (car stack)
+	      stack (cdr stack))
+	(setq count (+ count (cdr elt))))
+
+      ;; Have we found enough yet?
+      (cond
+       ((>= count how-far-back)
+	(+ (car elt) (- count how-far-back)))
+       ((eq base (point-min))
+	(point-min))
+       (t
+	(c-determine-limit (- how-far-back count) base try-size))))))
 
 ;; `c-find-decl-spots' and accompanying stuff.
 
@@ -4487,13 +4575,14 @@ comment at the start of cc-engine.el for more info."
   ;; Call CFD-FUN for each possible spot for a declaration, cast or
   ;; label from the point to CFD-LIMIT.
   ;;
-  ;; CFD-FUN is called with point at the start of the spot.  It's
-  ;; passed two arguments: The first is the end position of the token
-  ;; preceding the spot, or 0 for the implicit match at bob.  The
-  ;; second is a flag that is t when the match is inside a macro.  If
-  ;; CFD-FUN adds `c-decl-end' properties somewhere below the current
-  ;; spot, it should return non-nil to ensure that the next search
-  ;; will find them.
+  ;; CFD-FUN is called with point at the start of the spot.  It's passed two
+  ;; arguments: The first is the end position of the token preceding the spot,
+  ;; or 0 for the implicit match at bob.  The second is a flag that is t when
+  ;; the match is inside a macro.  Point should be moved forward by at least
+  ;; one token.
+  ;;
+  ;; If CFD-FUN adds `c-decl-end' properties somewhere below the current spot,
+  ;; it should return non-nil to ensure that the next search will find them.
   ;;
   ;; Such a spot is:
   ;; o  The first token after bob.
@@ -4867,7 +4956,8 @@ comment at the start of cc-engine.el for more info."
       (goto-char cfd-continue-pos)
       (if (= cfd-continue-pos cfd-limit)
 	  (setq cfd-match-pos cfd-limit)
-	(c-find-decl-prefix-search)))))
+	(c-find-decl-prefix-search))))) ; Moves point, sets cfd-continue-pos,
+					; cfd-match-pos, etc.
 
 
 ;; A cache for found types.
@@ -8046,6 +8136,23 @@ comment at the start of cc-engine.el for more info."
       (setq open-brace next-open-brace
 	    next-open-brace (c-pull-open-brace paren-state)))
     open-brace))
+
+(defun c-cheap-inside-bracelist-p (paren-state)
+  ;; Return the position of the L-brace if point is inside a brace list
+  ;; initialization of an array, etc.  This is an approximate function,
+  ;; designed for speed over accuracy.  It will not find every bracelist, but
+  ;; a non-nil result is reliable.  We simply search for "= {" (naturally with
+  ;; syntactic whitespace allowed).  PAREN-STATE is the normal thing that it
+  ;; is everywhere else.
+  (let (b-pos)
+    (save-excursion
+      (while
+	  (and (setq b-pos (c-pull-open-brace paren-state))
+	       (progn (goto-char b-pos)
+		      (c-backward-sws)
+		      (c-backward-token-2)
+		      (not (looking-at "=")))))
+      b-pos)))
 
 (defun c-inside-bracelist-p (containing-sexp paren-state)
   ;; return the buffer position of the beginning of the brace list
