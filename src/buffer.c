@@ -5338,7 +5338,7 @@ init_buffer ()
       Map new memory.  */
    struct buffer *b;
 
-   for (b = all_buffers; b; b = b->next)
+   for (b = all_buffers; b; b = b->header.next.buffer)
      if (b->text->beg == NULL)
        enlarge_buffer_text (b, 0);
  }

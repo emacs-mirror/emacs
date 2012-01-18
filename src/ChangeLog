@@ -1,3 +1,8 @@
+2012-01-18  Yoshiaki Kasahara  <kasahara@nc.kyushu-u.ac.jp>  (tiny change)
+
+	* buffer.c (init_buffer) [USE_MMAP_FOR_BUFFERS]: Adjust to
+	aliasing change.
+
 2012-01-15  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
 
 	* xftfont.c (xftfont_draw): Use the font metrics of s->font to
