@@ -471,7 +471,7 @@ Menu items are appended to the common grammar menu.")
      "srecode/srt-wy")
     ("wisent-javascript-jv-wy.el"
      "semantic/wisent/js-wy"
-     "Copyright (C) 1998-2011, 2012 Ecma International."
+     "Copyright (C) 1998-2011 Ecma International."
      ,wisent-make-parsers--ecmascript-license)
     ("wisent-java-tags-wy.el"
      "semantic/wisent/javat-wy")
