@@ -3445,7 +3445,7 @@ Yoni Rabkin: changed faces.el net-utils.el artist.el bs.el cmacexp.el
   ediff.el files.el hilit19.el ps-mode.el simula.el vera-mode.el
   verilog-mode.el vhdl-mode.el viper.el whitespace.el
 
-Yoshiaki Kasahara: changed term.c
+Yoshiaki Kasahara: changed buffer.c term.c
 
 Yoshiki Hayashi: changed texinfmt.el nnheader.el
 

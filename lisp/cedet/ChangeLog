@@ -1,3 +1,7 @@
+2012-01-19  Chong Yidong  <cyd@gnu.org>
+
+	* Version 23.4 released.
+
 2012-01-09  Eric Ludlam  <zappo@gnu.org>
 
 	* ede.el (ede-project-directories): New option.
