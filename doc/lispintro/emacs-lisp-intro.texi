@@ -15012,7 +15012,7 @@ expression for this (@pxref{Syntax}), so the loop is straightforward:
 @group
 (while (and (< (point) end)
             (re-search-forward
-             "\\(\\w\\|\\s_\\)+[^ \t\n]*[ \t\n]*" end t)
+             "\\(\\w\\|\\s_\\)+[^ \t\n]*[ \t\n]*" end t))
   (setq count (1+ count)))
 @end group
 @end smallexample
