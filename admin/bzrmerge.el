@@ -133,9 +133,23 @@ are both lists of revnos, in oldest-first order."
                     (setq str (substring str (match-end 0))))
                   (when (string-match "[.!;, ]+\\'" str)
                     (setq str (substring str 0 (match-beginning 0))))
-                  (if (save-excursion (y-or-n-p (concat str ": Skip? ")))
-                      (setq skip t))))
-              (if skip
+                  (let ((help-form "\
+Type `y' to skip this revision,
+`N' to include it and go on to the next revision,
+`n' to not skip, but continue to search this log entry for skip regexps,
+`q' to quit merging."))
+                    (case (save-excursion
+                            (read-char-choice
+                             (format "%s: Skip (y/n/N/q/%s)? " str
+                                     (key-description (vector help-char)))
+                             '(?y ?n ?N ?q)))
+                      (?y (setq skip t))
+                      (?q (keyboard-quit))
+                      ;; A single log entry can match skip-regexp multiple
+                      ;; times.  If you are sure you don't want to skip it,
+                      ;; you don't want to be asked multiple times.
+                      (?N (setq skip 'no))))))
+              (if (eq skip t)
                   (push revno skipped)
                 (push revno revnos)))))
         (delete-region (point) (point-max)))
