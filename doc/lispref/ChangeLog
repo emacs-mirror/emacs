@@ -1,3 +1,10 @@
+2012-01-19  Martin Rudalics  <rudalics@gmx.at>
+
+	* windows.texi (Window Configurations): Rewrite references to
+	persistent window parameters.
+	(Window Parameters): Fix description of persistent window
+	parameters.
+
 2012-01-16  Juanma Barranquero  <lekktu@gmail.com>
 
 	* windows.texi (Window Parameters): Use @pxref.

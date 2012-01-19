@@ -1,3 +1,9 @@
+2012-01-19  Martin Rudalics  <rudalics@gmx.at>
+
+	* window.c (save_window_save, Fcurrent_window_configuration)
+	(Vwindow_persistent_parameters): Do not use Qstate.  Rewrite
+	doc-strings.
+
 2012-01-19  Kenichi Handa  <handa@m17n.org>
 
 	* character.c (char_width): New function.

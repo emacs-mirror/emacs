@@ -3568,7 +3568,7 @@ specific buffers."
     ))
 
 ;;; Window states, how to get them and how to put them in a window.
-(defun window--state-get-1 (window &optional ignore)
+(defun window--state-get-1 (window &optional writable)
   "Helper function for `window-state-get'."
   (let* ((type
 	  (cond
@@ -3585,29 +3585,22 @@ specific buffers."
             (normal-height . ,(window-normal-size window))
             (normal-width . ,(window-normal-size window t))
             (combination-limit . ,(window-combination-limit window))
-            ,@(let (list)
-		;; Make copies of persistent window parameters whose cdr
-		;; is either t or, when IGNORE is non-nil, is either nil
-		;; or `state'.
-                (dolist (pers window-persistent-parameters)
-		  (when (and (consp pers)
-			     (or (eq (cdr pers) t)
-				 (and (memq (cdr pers) '(state nil))
-				      (not ignore))))
-		    (let ((par (assq (car pers) (window-parameters window))))
-		      (setq list (cons (cons (car pers) (when par (cdr par)))
-				       list)))))
-		;; Save `clone-of' parameter unless IGNORE or
-		;; `window-persistent-parameters' prevail.
-                (when (and (not (assq 'clone-of (window-parameters window)))
-			   (let ((clone-of
-				  (assq 'clone-of
-					window-persistent-parameters)))
-			     (when clone-of
-			       (if ignore
-				   (eq (cdr clone-of) t)
-				 (memq (cdr clone-of) '(state nil))))))
-                  (setq list (cons (cons 'clone-of window) list)))
+            ,@(let ((parameters (window-parameters window))
+		    list)
+		;; Make copies of those window parameters whose
+		;; persistence property is `writable' if WRITABLE is
+		;; non-nil and non-nil if WRITABLE is nil.
+                (dolist (par parameters)
+		  (let ((pers (cdr (assq (car par)
+					 window-persistent-parameters))))
+		    (when (and pers (or (not writable) (eq pers 'writable)))
+		      (setq list (cons (cons (car par) (cdr par)) list)))))
+		;; Add `clone-of' parameter if necessary.
+		(let ((pers (cdr (assq 'clone-of
+				       window-persistent-parameters))))
+		  (when (and pers (or (not writable) (eq pers 'writable))
+			     (not (assq 'clone-of list)))
+		    (setq list (cons (cons 'clone-of window) list))))
                 (when list
                   `((parameters . ,list))))
             ,@(when buffer
@@ -3628,31 +3621,34 @@ specific buffers."
                        (scroll-bars . ,(window-scroll-bars window))
                        (vscroll . ,(window-vscroll window))
                        (dedicated . ,(window-dedicated-p window))
-                       (point . ,(if ignore point (copy-marker point)))
-                       (start . ,(if ignore start (copy-marker start)))
+                       (point . ,(if writable point (copy-marker point)))
+                       (start . ,(if writable start (copy-marker start)))
                        ,@(when mark
-                           `((mark . ,(if ignore
+                           `((mark . ,(if writable
                                           mark (copy-marker mark))))))))))))
 	 (tail
 	  (when (memq type '(vc hc))
 	    (let (list)
 	      (setq window (window-child window))
 	      (while window
-		(setq list (cons (window--state-get-1 window ignore) list))
+		(setq list (cons (window--state-get-1 window writable) list))
 		(setq window (window-right window)))
 	      (nreverse list)))))
     (append head tail)))
 
-(defun window-state-get (&optional window ignore)
+(defun window-state-get (&optional window writable)
   "Return state of WINDOW as a Lisp object.
 WINDOW can be any window and defaults to the root window of the
 selected frame.
 
-Optional argument IGNORE non-nil means do not use markers for
-sampling positions like `window-point' or `window-start' and do
-not record parameters unless `window-persistent-parameters'
-requests it.  IGNORE should be non-nil when the return value
-shall be written to a file and read back in another session.
+Optional argument WRITABLE non-nil means do not use markers for
+sampling `window-point' and `window-start'.  Together, WRITABLE
+and the variable `window-persistent-parameters' specify which
+window parameters are saved by this function.  WRITABLE should be
+non-nil when the return value shall be written to a file and read
+back in another session.  Otherwise, an application may run into
+an `invalid-read-syntax' error while attempting to read back the
+value from file.
 
 The return value can be used as argument for `window-state-put'
 to put the state recorded here into an arbitrary window.  The
@@ -3678,7 +3674,7 @@ value can be also stored on disk and read back in a new session."
      ;; These are probably not needed.
      ,@(when (window-size-fixed-p window) `((fixed-height . t)))
      ,@(when (window-size-fixed-p window t) `((fixed-width . t))))
-   (window--state-get-1 window ignore)))
+   (window--state-get-1 window writable)))
 
 (defvar window-state-put-list nil
   "Helper variable for `window-state-put'.")
@@ -3757,15 +3753,13 @@ value can be also stored on disk and read back in a new session."
 	  (state (cdr (assq 'buffer item))))
       (when combination-limit
 	(set-window-combination-limit window combination-limit))
-      ;; Assign saved window parameters.  If a parameter's value is nil,
-      ;; don't assign it unless the new window has it set already (which
-      ;; shouldn't happen unless some `window-configuration-change-hook'
-      ;; function installed it).
+      ;; Reset window's parameters and assign saved ones (we might want
+      ;; a `remove-window-parameters' function here).
+      (dolist (parameter (window-parameters window))
+	(set-window-parameter window (car parameter) nil))
       (when parameters
 	(dolist (parameter parameters)
-	  (when (or (cdr parameter)
-		    (window-parameter window (car parameter)))
-	    (set-window-parameter window (car parameter) (cdr parameter)))))
+	  (set-window-parameter window (car parameter) (cdr parameter))))
       ;; Process buffer related state.
       (when state
 	;; We don't want to raise an error here so we create a buffer if

@@ -1,3 +1,11 @@
+2012-01-19  Martin Rudalics  <rudalics@gmx.at>
+
+	* window.el (window--state-get-1, window-state-get): Do not use
+	special state value for window-persistent-parameters.  Rename
+	argument IGNORE to WRITABLE.  Rewrite doc-string.
+	(window--state-put-2): Reset all window parameters to nil before
+	assigning values of persistent parameters.
+
 2012-01-18  Alan Mackenzie  <acm@muc.de>
 
 	Eliminate sluggishness and hangs in fontification of "semicolon
