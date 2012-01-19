@@ -24,12 +24,22 @@ require version 1.14 or later.  See README.W32 and nt/INSTALL for
 details and pointers to URLs where the latest libpng can be
 downloaded.
 
-
+* Changes in Specialized Modes and Packages in Emacs 23.4
+
+** EDE
+
+*** New variable `ede-project-directories'.
+EDE now refuses to automatically load a project file (Project.ede)
+unless the file is in one of the directories specified by this
+variable.  This reduces the risk of inadvertently loading malicious
+project files.  The commands `M-x ede-new' and `M-x ede' now offer to
+save directories to `ede-project-directories'.
+
 * Changes in Emacs 23.4 on non-free operating systems
 
 ** The MS-Windows port can now use more than 500MB of heap.
 Depending on the available virtual memory, Emacs on Windows can now
-have up to 2GB of heap space.  This allows, e.g., to visit several
+have up to 2GB of heap space.  This allows, e.g., visiting several
 large (> 256MB) files in the same session.
 
 

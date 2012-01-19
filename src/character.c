@@ -308,6 +308,31 @@ If the multibyte character does not represent a byte, return -1.  */)
     }
 }
 
+
+/* Return width (columns) of C considering the buffer display table DP. */
+
+static int
+char_width (int c, struct Lisp_Char_Table *dp)
+{
+  int width = CHAR_WIDTH (c);
+
+  if (dp)
+    {
+      Lisp_Object disp = DISP_CHAR_VECTOR (dp, c), ch;
+      int i;
+
+      if (VECTORP (disp))
+	for (i = 0, width = 0; i < ASIZE (disp); i++)
+	  {
+	    ch = AREF (disp, i);
+	    if (CHARACTERP (ch))
+	      width += CHAR_WIDTH (XFASTINT (ch));
+	  }
+    }
+  return width;
+}
+
+
 DEFUN ("char-width", Fchar_width, Schar_width, 1, 1, 0,
        doc: /* Return width of CHAR when displayed in the current buffer.
 The width is measured by how many columns it occupies on the screen.
@@ -315,21 +340,11 @@ Tab is taken to occupy `tab-width' columns.
 usage: (char-width CHAR)  */)
   (Lisp_Object ch)
 {
-  Lisp_Object disp;
   int c, width;
-  struct Lisp_Char_Table *dp = buffer_display_table ();
 
   CHECK_CHARACTER (ch);
   c = XINT (ch);
-
-  /* Get the way the display table would display it.  */
-  disp = dp ? DISP_CHAR_VECTOR (dp, c) : Qnil;
-
-  if (VECTORP (disp))
-    width = sanitize_char_width (ASIZE (disp));
-  else
-    width = CHAR_WIDTH (c);
-
+  width = char_width (c, buffer_display_table ());
   return make_number (width);
 }
 
@@ -350,22 +365,9 @@ c_string_width (const unsigned char *str, EMACS_INT len, int precision,
 
   while (i_byte < len)
     {
-      int bytes, thiswidth;
-      Lisp_Object val;
+      int bytes;
       int c = STRING_CHAR_AND_LENGTH (str + i_byte, bytes);
-
-      if (dp)
-	{
-	  val = DISP_CHAR_VECTOR (dp, c);
-	  if (VECTORP (val))
-	    thiswidth = sanitize_char_width (ASIZE (val));
-	  else
-	    thiswidth = CHAR_WIDTH (c);
-	}
-      else
-	{
-	  thiswidth = CHAR_WIDTH (c);
-	}
+      int thiswidth = char_width (c, dp);
 
       if (precision > 0
 	  && (width + thiswidth > precision))
@@ -447,18 +449,7 @@ lisp_string_width (Lisp_Object string, EMACS_INT precision,
 	  else
 	    c = str[i_byte], bytes = 1;
 	  chars = 1;
-	  if (dp)
-	    {
-	      val = DISP_CHAR_VECTOR (dp, c);
-	      if (VECTORP (val))
-		thiswidth = sanitize_char_width (ASIZE (val));
-	      else
-		thiswidth = CHAR_WIDTH (c);
-	    }
-	  else
-	    {
-	      thiswidth = CHAR_WIDTH (c);
-	    }
+	  thiswidth = char_width (c, dp);
 	}
 
       if (precision <= 0)
