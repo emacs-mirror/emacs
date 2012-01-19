@@ -1,3 +1,29 @@
+2012-01-19  Kenichi Handa  <handa@m17n.org>
+
+	* coding.c (encode_designation_at_bol): New args charbuf_end and
+	dst.  Return the number of produced bytes.  Callers changed.
+	(coding_set_source): Return how many bytes coding->source was
+	relocated.
+	(coding_set_destination): Return how many bytes
+	coding->destination was relocated.
+	(CODING_DECODE_CHAR, CODING_ENCODE_CHAR, CODING_CHAR_CHARSET)
+	(CODING_CHAR_CHARSET_P): Adjusted for the avove changes.
+
+2012-01-19  Kazuhiro Ito  <kzhr@d1.dion.ne.jp>  (tiny change)
+
+	* coding.c (CODING_CHAR_CHARSET_P): New macro.
+	(encode_coding_emacs_mule, encode_coding_iso_2022): Use the above
+	macro (Bug#9318).
+
+2012-01-19  Andreas Schwab  <schwab@linux-m68k.org>
+
+	The following changes are to fix Bug#9318.
+
+	* coding.c (CODING_ENCODE_CHAR, CODING_CHAR_CHARSET): New macros.
+	(encode_coding_emacs_mule, ENCODE_ISO_CHARACTER)
+	(encode_coding_iso_2022, encode_coding_sjis)
+	(encode_coding_big5, encode_coding_charset): Use the above macros.
+
 2012-01-18  Yoshiaki Kasahara  <kasahara@nc.kyushu-u.ac.jp>  (tiny change)
 
 	* buffer.c (init_buffer) [USE_MMAP_FOR_BUFFERS]: Adjust to
