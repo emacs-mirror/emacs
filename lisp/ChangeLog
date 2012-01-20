@@ -1,3 +1,8 @@
+2012-01-20  Martin Rudalics  <rudalics@gmx.at>
+
+	* help-macro.el (make-help-screen): Temporarily restore original
+	binding for minor-mode-map-alist (Bug#10454).
+
 2012-01-19  Julien Danjou  <julien@danjou.info>
 
 	* color.el (color-name-to-rgb): Use the white color to find the max
