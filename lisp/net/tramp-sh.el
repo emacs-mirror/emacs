@@ -419,13 +419,13 @@ detected as prompt when being sent on echoing hosts, therefore.")
 	     `(,(concat "\\`" (regexp-opt '("su" "sudo" "ksu")) "\\'")
 	       nil "root"))
 ;; Do not add "ssh" based methods, otherwise ~/.ssh/config would be ignored.
+;; Do not add "plink" and "psftp", they ask interactively for the user.
 ;;;###tramp-autoload
 (add-to-list 'tramp-default-user-alist
 	     `(,(concat
 		 "\\`"
 		 (regexp-opt
-		  '("rcp" "remcp" "rsh" "telnet" "krlogin"
-		    "plink" "plink1" "pscp" "psftp" "fcp"))
+		  '("rcp" "remcp" "rsh" "telnet" "krlogin" "pscp" "fcp"))
 		 "\\'")
 	       nil ,(user-login-name)))
 

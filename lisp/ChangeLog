@@ -1,4 +1,9 @@
-20122-01-21  Kenichi Handa  <handa@m17n.org>
+2012-01-21  Michael Albinus  <michael.albinus@gmx.de>
+
+	* net/tramp-sh.el (tramp-default-user-alist): Don't add "plink",
+	"plink1" and "psftp".  (Bug#10530)
+
+2012-01-21  Kenichi Handa  <handa@m17n.org>
 
 	* international/mule-cmds.el (prefer-coding-system): Show a
 	warning message if the default value of file-name-coding-system
