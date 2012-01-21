@@ -1,3 +1,18 @@
+2012-01-21  Chong Yidong  <cyd@gnu.org>
+
+	* intro.texi (A Sample Function Description): Special notation
+	used for macros too.
+
+	* objects.texi (Ctl-Char Syntax, Other Char Bits): Copyedits.
+	(Symbol Type): Add xref for keyword symbols.
+	(Sequence Type): Clarify differences between sequence types.
+	(Cons Cell Type): Add "linked list" index entry.
+	(Non-ASCII in Strings): Copyedits.
+	(Equality Predicates): Symbols with same name need not be eq.
+
+	* numbers.texi (Float Basics): Document isnan, copysign, frexp and
+	ldexp.  Move float-e and float-pi to Math Functions node.
+
 2012-01-21  Glenn Morris  <rgm@gnu.org>
 
 	* modes.texi (Auto Major Mode):

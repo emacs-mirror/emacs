@@ -168,34 +168,37 @@ character codepoint.
 @node Float Basics
 @section Floating Point Basics
 
+@cindex @acronym{IEEE} floating point
   Floating point numbers are useful for representing numbers that are
 not integral.  The precise range of floating point numbers is
 machine-specific; it is the same as the range of the C data type
-@code{double} on the machine you are using.
+@code{double} on the machine you are using.  Emacs uses the
+@acronym{IEEE} floating point standard where possible (the standard is
+supported by most modern computers).
 
-  The read-syntax for floating point numbers requires either a decimal
+  The read syntax for floating point numbers requires either a decimal
 point (with at least one digit following), an exponent, or both.  For
 example, @samp{1500.0}, @samp{15e2}, @samp{15.0e2}, @samp{1.5e3}, and
 @samp{.15e4} are five ways of writing a floating point number whose
-value is 1500.  They are all equivalent.  You can also use a minus sign
-to write negative floating point numbers, as in @samp{-1.0}.
+value is 1500.  They are all equivalent.  You can also use a minus
+sign to write negative floating point numbers, as in @samp{-1.0}.
 
-@cindex @acronym{IEEE} floating point
+  Emacs Lisp treats @code{-0.0} as equal to ordinary zero (with
+respect to @code{equal} and @code{=}), even though the two are
+distinguishable in the @acronym{IEEE} floating point standard.
+
 @cindex positive infinity
 @cindex negative infinity
 @cindex infinity
 @cindex NaN
-  Most modern computers support the @acronym{IEEE} floating point standard,
-which provides for positive infinity and negative infinity as floating point
-values.  It also provides for a class of values called NaN or
-``not-a-number''; numerical functions return such values in cases where
-there is no correct answer.  For example, @code{(/ 0.0 0.0)} returns a
-NaN.  For practical purposes, there's no significant difference between
-different NaN values in Emacs Lisp, and there's no rule for precisely
-which NaN value should be used in a particular case, so Emacs Lisp
-doesn't try to distinguish them (but it does report the sign, if you
-print it).  Here are the read syntaxes for these special floating
-point values:
+  The @acronym{IEEE} floating point standard supports positive
+infinity and negative infinity as floating point values.  It also
+provides for a class of values called NaN or ``not-a-number'';
+numerical functions return such values in cases where there is no
+correct answer.  For example, @code{(/ 0.0 0.0)} returns a NaN.  (NaN
+values can also carry a sign, but for practical purposes there's no
+significant difference between different NaN values in Emacs Lisp.)
+Here are the read syntaxes for these special floating point values:
 
 @table @asis
 @item positive infinity
@@ -206,16 +209,37 @@ point values:
 @samp{0.0e+NaN} or @samp{-0.0e+NaN}.
 @end table
 
-  To test whether a floating point value is a NaN, compare it with
-itself using @code{=}.  That returns @code{nil} for a NaN, and
-@code{t} for any other floating point value.
+@defun isnan number
+This predicate tests whether its argument is NaN, and returns @code{t}
+if so, @code{nil} otherwise.  The argument must be a number.
+@end defun
 
-  The value @code{-0.0} is distinguishable from ordinary zero in
-@acronym{IEEE} floating point, but Emacs Lisp @code{equal} and
-@code{=} consider them equal values.
+  The following functions are specialized for handling floating point
+numbers:
 
-  You can use @code{logb} to extract the binary exponent of a floating
-point number (or estimate the logarithm of an integer):
+@defun frexp x
+This function returns a cons cell @code{(@var{sig} . @var{exp})},
+where @var{sig} and @var{exp} are respectively the significand and
+exponent of the floating point number @var{x}:
+
+@smallexample
+@var{x} = @var{sig} * 2^@var{exp}
+@end smallexample
+
+@var{sig} is a floating point number between 0.5 (inclusive) and 1.0
+(exclusive).  If @var{x} is zero, the return value is @code{(0 . 0)}.
+@end defun
+
+@defun ldexp sig &optional exp
+This function returns a floating point number corresponding to the
+significand @var{sig} and exponent @var{exp}.
+@end defun
+
+@defun copysign x1 x2
+This function copies the sign of @var{x2} to the value of @var{x1},
+and returns the result.  @var{x1} and @var{x2} must be floating point
+numbers.
+@end defun
 
 @defun logb number
 This function returns the binary exponent of @var{number}.  More
@@ -229,14 +253,6 @@ down to an integer.
      @result{} 69
 @end example
 @end defun
-
-@defvar float-e
-The mathematical constant @math{e} (2.71828@dots{}).
-@end defvar
-
-@defvar float-pi
-The mathematical constant @math{pi} (3.14159@dots{}).
-@end defvar
 
 @node Predicates on Numbers
 @section Type Predicates for Numbers
@@ -1122,35 +1138,15 @@ angle in radians between the vector @code{[@var{x}, @var{y}]} and the
 @end defun
 
 @defun exp arg
-This is the exponential function; it returns
-@tex
-@math{e}
-@end tex
-@ifnottex
-@i{e}
-@end ifnottex
-to the power @var{arg}.
-@tex
-@math{e}
-@end tex
-@ifnottex
-@i{e}
-@end ifnottex
-is a fundamental mathematical constant also called the base of natural
-logarithms.
+This is the exponential function; it returns @math{e} to the power
+@var{arg}.
 @end defun
 
 @defun log arg &optional base
-This function returns the logarithm of @var{arg}, with base @var{base}.
-If you don't specify @var{base}, the base
-@tex
-@math{e}
-@end tex
-@ifnottex
-@i{e}
-@end ifnottex
-is used.  If @var{arg} is negative, it signals a @code{domain-error}
-error.
+This function returns the logarithm of @var{arg}, with base
+@var{base}.  If you don't specify @var{base}, the natural base
+@math{e} is used.  If @var{arg} is negative, it signals a
+@code{domain-error} error.
 @end defun
 
 @ignore
@@ -1185,6 +1181,17 @@ This returns the square root of @var{arg}.  If @var{arg} is negative,
 it signals a @code{domain-error} error.
 @end defun
 
+In addition, Emacs defines the following common mathematical
+constants:
+
+@defvar float-e
+The mathematical constant @math{e} (2.71828@dots{}).
+@end defvar
+
+@defvar float-pi
+The mathematical constant @math{pi} (3.14159@dots{}).
+@end defvar
+
 @node Random Numbers
 @section Random Numbers
 @cindex random numbers
@@ -1218,7 +1225,6 @@ nonnegative and less than @var{limit}.
 
 If @var{limit} is @code{t}, it means to choose a new seed based on the
 current time of day and on Emacs's process @acronym{ID} number.
-@c "Emacs'" is incorrect usage!
 
 On some machines, any integer representable in Lisp may be the result
 of @code{random}.  On other machines, the result can never be larger
