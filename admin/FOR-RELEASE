@@ -100,10 +100,10 @@ names of the people who have checked it.
 SECTION                  READERS
 ----------------------------------
 TUTORIAL             cyd
-TUTORIAL.bg          
+TUTORIAL.bg          ogi
 TUTORIAL.cn
 TUTORIAL.cs          
-TUTORIAL.de          
+TUTORIAL.de          wl
 TUTORIAL.eo
 TUTORIAL.es          
 TUTORIAL.fr          
@@ -215,7 +215,7 @@ minibuf.texi
 modes.texi        
 nonascii.texi     
 numbers.texi      
-objects.texi      
+objects.texi      cyd
 os.texi           
 package.texi
 positions.texi    

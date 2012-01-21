@@ -1382,20 +1382,19 @@ Use `filter-buffer-substring-functions' instead.
 * Changes in Emacs 24.1 on non-free operating systems
 
 ---
-** On MS Windows, Emacs now warns when the obsolete _emacs init file is used,
+** On MS Windows, Emacs warns when using the obsolete init file _emacs,
 and also when HOME is set to C:\ by default.
 
-** New configure.bat option --enable-checking builds Emacs with extra
-runtime checks.
+** New configure.bat options
 
-** New configure.bat option --distfiles to specify files to be
-included in binary distribution.
+*** --enable-checking builds Emacs with extra runtime checks.
 
-** New configure.bat option --without-gnutls to disable automatic
-GnuTLS detection.
+*** --distfiles specifies files to be included in binary distribution.
 
-** New configure.bat option --lib for general library linkage, works
-with the USER_LIBS build variable.
+*** --without-gnutls disables automatic GnuTLS detection.
+
+*** --lib for general library linkage, works with the USER_LIBS build
+variable.
 
 ** New make target `dist' to create binary distribution for MS Windows.
 
