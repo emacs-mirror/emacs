@@ -1,5 +1,7 @@
 2012-01-21  Glenn Morris  <rgm@gnu.org>
 
+	* international/mule.el (auto-coding-alist): Add .tbz.
+
 	* files.el (local-enable-local-variables): Doc fix.
 	(inhibit-local-variables-regexps): Rename from
 	inhibit-first-line-modes-regexps.  Keep old name as obsolete alias.
