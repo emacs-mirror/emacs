@@ -1,6 +1,6 @@
 ;;; cc-langs.el --- language specific settings for CC Mode
 
-;; Copyright (C) 1985, 1987, 1992-2011  Free Software Foundation, Inc.
+;; Copyright (C) 1985, 1987, 1992-2012  Free Software Foundation, Inc.
 
 ;; Authors:    2002- Alan Mackenzie
 ;;             1998- Martin Stjernholm
@@ -2937,6 +2937,12 @@ expression is considered to be a type."
   t (or (consp (c-lang-const c-<>-type-kwds))
 	(consp (c-lang-const c-<>-arglist-kwds))))
 (c-lang-defvar c-recognize-<>-arglists (c-lang-const c-recognize-<>-arglists))
+
+(c-lang-defconst c-enums-contain-decls
+  "Non-nil means that an enum structure can contain declarations."
+  t nil
+  java t)
+(c-lang-defvar c-enums-contain-decls (c-lang-const c-enums-contain-decls))
 
 (c-lang-defconst c-recognize-paren-inits
   "Non-nil means that parenthesis style initializers exist,

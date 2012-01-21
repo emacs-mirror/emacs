@@ -1,5 +1,5 @@
 /* Updating of data structures for redisplay.
-   Copyright (C) 1985-1988, 1993-1995, 1997-2011 Free Software Foundation, Inc.
+   Copyright (C) 1985-1988, 1993-1995, 1997-2012 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -62,7 +62,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include <errno.h>
 
 /* Get number of chars of output now in the buffer of a stdio stream.
-   This ought to be built in in stdio, but it isn't.  Some s- files
+   This ought to be built in stdio, but it isn't.  Some s- files
    override this because their stdio internals differ.  */
 
 #ifdef __GNU_LIBRARY__

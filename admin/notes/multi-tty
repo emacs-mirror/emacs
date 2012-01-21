@@ -1,6 +1,6 @@
 -*- coding: utf-8; mode: text; -*-
 
-Copyright (C) 2007-2011  Free Software Foundation, Inc.
+Copyright (C) 2007-2012  Free Software Foundation, Inc.
 See the end of the file for license conditions.
 
 From README.multi-tty in the multi-tty branch.
@@ -789,7 +789,7 @@ DIARY OF CHANGES
    frame's kboard from there.)
 
 -- Fix rif issue with X-tty combo sessions.  IMHO the best thing to do
-   is to get rid of that global variable (and use the value value in
+   is to get rid of that global variable (and use the value in
    display_method, which is guaranteed to be correct).
 
    (Done, did exactly that.  Core dumps during combo sessions became

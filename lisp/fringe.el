@@ -1,6 +1,6 @@
 ;;; fringe.el --- fringe setup and control  -*- coding: utf-8 -*-
 
-;; Copyright (C) 2002-2011 Free Software Foundation, Inc.
+;; Copyright (C) 2002-2012 Free Software Foundation, Inc.
 
 ;; Author: Simon Josefsson <simon@josefsson.org>
 ;; Maintainer: FSF
@@ -30,7 +30,7 @@
 
 ;; The code is influenced by scroll-bar.el and avoid.el.  The author
 ;; gratefully acknowledge comments and suggestions made by Miles
-;; Bader, Eli Zaretski, Richard Stallman, Pavel Janík and others which
+;; Bader, Eli Zaretskii, Richard Stallman, Pavel Janík and others which
 ;; improved this package.
 
 ;;; Code:

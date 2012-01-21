@@ -1,6 +1,6 @@
 ;;; auth-source.el --- authentication sources for Gnus and Emacs
 
-;; Copyright (C) 2008-2011 Free Software Foundation, Inc.
+;; Copyright (C) 2008-2012 Free Software Foundation, Inc.
 
 ;; Author: Ted Zlatanov <tzz@lifelogs.com>
 ;; Keywords: news
@@ -1780,6 +1780,26 @@ MODE can be \"login\" or \"password\"."
         (setq found (if listy found (car-safe found)))))
 
     found))
+
+(defun auth-source-user-and-password (host &optional user)
+  (let* ((auth-info (car
+                     (if user
+                         (auth-source-search
+                          :host host
+                          :user "yourusername"
+                          :max 1
+                          :require '(:user :secret)
+                          :create nil)
+                       (auth-source-search
+                        :host host
+                        :max 1
+                        :require '(:user :secret)
+                        :create nil))))
+         (user (plist-get auth-info :user))
+         (password (plist-get auth-info :secret)))
+    (when (functionp password)
+      (setq password (funcall password)))
+    (list user password auth-info)))
 
 (provide 'auth-source)
 

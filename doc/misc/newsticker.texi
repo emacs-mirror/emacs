@@ -13,7 +13,7 @@
 This manual is for Newsticker (version @value{VERSION}, @value{UPDATED}).
 
 @noindent
-Copyright @copyright{} 2004-2011
+Copyright @copyright{} 2004-2012
 Free Software Foundation, Inc.
 
 @quotation

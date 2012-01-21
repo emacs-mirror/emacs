@@ -1,6 +1,6 @@
 /* Definitions file for GNU Emacs running on the GNU Hurd.
 
-Copyright (C) 1994-1996, 2001-2011  Free Software Foundation, Inc.
+Copyright (C) 1994-1996, 2001-2012  Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 

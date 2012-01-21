@@ -1,5 +1,5 @@
 /* Definitions and headers for communication with X protocol.
-   Copyright (C) 1989, 1993-1994, 1998-2011 Free Software Foundation, Inc.
+   Copyright (C) 1989, 1993-1994, 1998-2012 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -967,6 +967,7 @@ extern void x_clear_errors (Display *);
 extern void x_set_window_size (struct frame *, int, int, int);
 extern void x_set_mouse_position (struct frame *, int, int);
 extern void x_set_mouse_pixel_position (struct frame *, int, int);
+extern void xembed_request_focus (struct frame *);
 extern void x_ewmh_activate_frame (struct frame *);
 extern void x_make_frame_visible (struct frame *);
 extern void x_make_frame_invisible (struct frame *);

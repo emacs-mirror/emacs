@@ -1,6 +1,6 @@
 ;;; erc-services.el --- Identify to NickServ
 
-;; Copyright (C) 2002-2004, 2006-2011 Free Software Foundation, Inc.
+;; Copyright (C) 2002-2004, 2006-2012 Free Software Foundation, Inc.
 
 ;; This file is part of GNU Emacs.
 

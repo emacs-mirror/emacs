@@ -1,3 +1,44 @@
+2012-01-21  Glenn Morris  <rgm@gnu.org>
+
+	* modes.texi (Auto Major Mode):
+	* variables.texi (File Local Variables):
+	Mention inhibit-local-variables-regexps.
+
+2012-01-19  Martin Rudalics  <rudalics@gmx.at>
+
+	* windows.texi (Window Configurations): Rewrite references to
+	persistent window parameters.
+	(Window Parameters): Fix description of persistent window
+	parameters.
+
+2012-01-16  Juanma Barranquero  <lekktu@gmail.com>
+
+	* windows.texi (Window Parameters): Use @pxref.
+
+2012-01-16  Martin Rudalics  <rudalics@gmx.at>
+
+	* windows.texi (Window Configurations, Window Parameters):
+	Describe persistent window parameters.
+
+2011-12-27  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* variables.texi (Creating Buffer-Local): Warn against misuses of
+	make-variable-buffer-local (bug#10258).
+
+2012-01-07  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* macros.texi (Defining Macros): Document `doc-string' (bug#9668).
+
+2012-01-06  Chong Yidong  <cyd@gnu.org>
+
+	* variables.texi (Directory Local Variables): Document
+	hack-dir-local-variables-non-file-buffer.
+
+2012-01-06  Glenn Morris  <rgm@gnu.org>
+
+	* maps.texi (Standard Keymaps): Refer to Info-edit by name
+	rather than by keybinding.
+
 2011-12-29  Juanma Barranquero  <lekktu@gmail.com>
 
 	* frames.texi (Font and Color Parameters): Add @pxref.
@@ -9808,7 +9849,7 @@
 ;; coding: utf-8
 ;; End:
 
-  Copyright (C) 1998-2011  Free Software Foundation, Inc.
+  Copyright (C) 1998-2012  Free Software Foundation, Inc.
 
   This file is part of GNU Emacs.
 

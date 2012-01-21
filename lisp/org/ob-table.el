@@ -1,11 +1,10 @@
 ;;; ob-table.el --- support for calling org-babel functions from tables
 
-;; Copyright (C) 2009-2011  Free Software Foundation, Inc.
+;; Copyright (C) 2009-2012  Free Software Foundation, Inc.
 
 ;; Author: Eric Schulte
 ;; Keywords: literate programming, reproducible research
 ;; Homepage: http://orgmode.org
-;; Version: 7.7
 
 ;; This file is part of GNU Emacs.
 
@@ -31,7 +30,7 @@
 ;;   (defun fibbd (n) (if (< n 2) 1 (+ (fibbd (- n 1)) (fibbd (- n 2)))))
 ;; #+end_src
 
-;; #+srcname: fibbd
+;; #+name: fibbd
 ;; #+begin_src emacs-lisp :var n=2 :results silent
 ;; (fibbd n)
 ;; #+end_src
@@ -78,46 +77,60 @@ NOTE: by default string variable names are interpreted as
 references to source-code blocks, to force interpretation of a
 cell's value as a string, prefix the identifier with two \"$\"s
 rather than a single \"$\" (i.e. \"$$2\" instead of \"$2\" in the
-example above."
-  (let* (quote
-	 (variables
-	  (mapcar
-	   (lambda (var)
-	     ;; ensure that all cells prefixed with $'s are strings
-	     (cons (car var)
-		   (delq nil (mapcar
-			      (lambda (el)
-				(if (eq '$ el)
-				    (setq quote t)
-				  (prog1 (if quote
-					     (format "\"%s\"" el)
-					   (org-babel-clean-text-properties el))
-				    (setq quote nil))))
-			      (cdr var)))))
-	   variables)))
-    (unless (stringp source-block)
-      (setq source-block (symbol-name source-block)))
-    ((lambda (result)
-       (org-babel-trim (if (stringp result) result (format "%S" result))))
-     (if (and source-block (> (length source-block) 0))
-         (let ((params
-                (eval `(org-babel-parse-header-arguments
-                        (concat ":var results="
-                                ,source-block
-                                "("
-                                (mapconcat
-				 (lambda (var-spec)
-				   (if (> (length (cdr var-spec)) 1)
-				       (format "%S='%S"
-					       (car var-spec)
-					       (mapcar #'read (cdr var-spec)))
-				     (format "%S=%s"
-					     (car var-spec) (cadr var-spec))))
-				 ',variables ", ")
-                                ")")))))
-           (org-babel-execute-src-block
-            nil (list "emacs-lisp" "results" params) '((:results . "silent"))))
-       ""))))
+example above.
+
+NOTE: it is also possible to pass header arguments to the code
+block.  In this case a table cell should hold the string value of
+the header argument which can then be passed before all variables
+as shown in the example below.
+
+| 1 | 2 | :file nothing.png | nothing.png |
+#+TBLFM: @1$4='(sbe test-sbe $3 (x $1) (y $2))"
+  (let* ((header-args (if (stringp (car variables)) (car variables) ""))
+	 (variables (if (stringp (car variables)) (cdr variables) variables)))
+    (let* (quote
+	   (variables
+	    (mapcar
+	     (lambda (var)
+	       ;; ensure that all cells prefixed with $'s are strings
+	       (cons (car var)
+		     (delq nil (mapcar
+				(lambda (el)
+				  (if (eq '$ el)
+				      (setq quote t)
+				    (prog1 (if quote
+					       (format "\"%s\"" el)
+					     (org-babel-clean-text-properties el))
+				      (setq quote nil))))
+				(cdr var)))))
+	     variables)))
+      (unless (stringp source-block)
+	(setq source-block (symbol-name source-block)))
+      ((lambda (result)
+	 (org-babel-trim (if (stringp result) result (format "%S" result))))
+       (if (and source-block (> (length source-block) 0))
+	   (let ((params
+		  (eval `(org-babel-parse-header-arguments
+			  (concat
+			   ":var results="
+			   ,source-block
+			   "[" ,header-args "]"
+			   "("
+			   (mapconcat
+			    (lambda (var-spec)
+			      (if (> (length (cdr var-spec)) 1)
+				  (format "%S='%S"
+					  (car var-spec)
+					  (mapcar #'read (cdr var-spec)))
+				(format "%S=%s"
+					(car var-spec) (cadr var-spec))))
+			    ',variables ", ")
+			   ")")))))
+	     (org-babel-execute-src-block
+	      nil (list "emacs-lisp" "results" params)
+	      '((:results . "silent"))))
+	 "")))))
+(def-edebug-spec sbe (form form))
 
 (provide 'ob-table)
 

@@ -1,6 +1,6 @@
 ;; idlw-shell.el --- run IDL as an inferior process of Emacs.
 
-;; Copyright (C) 1999-2011  Free Software Foundation, Inc.
+;; Copyright (C) 1999-2012  Free Software Foundation, Inc.
 
 ;; Authors: J.D. Smith <jdsmith@as.arizona.edu>
 ;;          Carsten Dominik <dominik@astro.uva.nl>
@@ -227,7 +227,7 @@ window, but is useful for stepping, etc."
   "Obsolete variable.  See `idlwave-shell-debug-modifiers'.")
 
 (defcustom idlwave-shell-use-truename nil
-  "*Non-nil means, use use `file-truename' when looking for buffers.
+  "*Non-nil means, use `file-truename' when looking for buffers.
 If this variable is non-nil, Emacs will use the function `file-truename' to
 resolve symbolic links in the file paths printed by e.g., STOP commands.
 This means, unvisited files will be loaded under their truename.

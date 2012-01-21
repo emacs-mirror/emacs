@@ -1,6 +1,6 @@
 ;;; gnus-sum.el --- summary mode commands for Gnus
 
-;; Copyright (C) 1996-2011 Free Software Foundation, Inc.
+;; Copyright (C) 1996-2012 Free Software Foundation, Inc.
 
 ;; Author: Lars Magne Ingebrigtsen <larsi@gnus.org>
 ;; Keywords: news
@@ -3503,7 +3503,8 @@ display only a single character."
 					       (current-buffer))))))
 
 (defun gnus-summary-setup-buffer (group)
-  "Initialize summary buffer."
+  "Initialize summary buffer.
+If the setup was successful, non-nil is returned."
   (let ((buffer (gnus-summary-buffer-name group))
 	(dead-name (concat "*Dead Summary "
 			   (gnus-group-decoded-name group) "*")))
@@ -3931,7 +3932,11 @@ Input should look like this: \"Sun, 14 Oct 2001 13:34:39 +0200\"."
   "Start reading news in newsgroup GROUP.
 If SHOW-ALL is non-nil, already read articles are also listed.
 If NO-ARTICLE is non-nil, no article is selected initially.
-If NO-DISPLAY, don't generate a summary buffer."
+If NO-DISPLAY, don't generate the summary buffer contents.
+If KILL-BUFFER, it should be a buffer that's killed once the new
+summary buffer has been generated.
+If BACKWARD, move point to the previous group in the group buffer
+If SELECT-ARTICLES, only select those articles from GROUP."
   (let (result)
     (while (and group
 		(null (setq result
@@ -4257,7 +4262,7 @@ If NO-DISPLAY, don't generate a summary buffer."
     result))
 
 (defun gnus-sort-gathered-threads (threads)
-  "Sort subtreads inside each gathered thread by `gnus-sort-gathered-threads-function'."
+  "Sort subthreads inside each gathered thread by `gnus-sort-gathered-threads-function'."
   (let ((result threads))
     (while threads
       (when (stringp (caar threads))
@@ -9032,7 +9037,8 @@ non-numeric or nil fetch the number specified by the
               'gnus-article-sort-by-number)))
       (setq gnus-newsgroup-articles
       	    (gnus-sorted-nunion gnus-newsgroup-articles (nreverse article-ids)))
-      (gnus-summary-limit-include-thread id))))
+      (gnus-summary-limit-include-thread id)))
+  (gnus-summary-show-thread))
 
 (defun gnus-summary-refer-article (message-id)
   "Fetch an article specified by MESSAGE-ID."
@@ -10886,6 +10892,7 @@ If NO-EXPIRE, auto-expiry will be inhibited."
 	(setq gnus-newsgroup-dormant (delq article gnus-newsgroup-dormant))
 	(setq gnus-newsgroup-expirable (delq article gnus-newsgroup-expirable))
 	(setq gnus-newsgroup-reads (delq article gnus-newsgroup-reads))
+	(setq gnus-newsgroup-unreads (delq article gnus-newsgroup-unreads))
 	(cond ((= mark gnus-ticked-mark)
 	       (setq gnus-newsgroup-marked
 		     (gnus-add-to-sorted-list gnus-newsgroup-marked

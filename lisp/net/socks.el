@@ -1,6 +1,6 @@
 ;;; socks.el --- A Socks v5 Client for Emacs
 
-;; Copyright (C) 1996-2000, 2002, 2007-2011 Free Software Foundation, Inc.
+;; Copyright (C) 1996-2000, 2002, 2007-2012 Free Software Foundation, Inc.
 
 ;; Author: William M. Perry <wmperry@gnu.org>
 ;;         Dave Love <fx@gnu.org>
@@ -414,7 +414,7 @@ version.")
 	       ((= atype socks-address-type-name)
 		(format "%c%s" (length address) address))
 	       (t
-		(error "Unkown address type: %d" atype))))
+		(error "Unknown address type: %d" atype))))
 	(info (gethash proc socks-connections))
 	request version)
     (or info (error "socks-send-command called on non-SOCKS connection %S"

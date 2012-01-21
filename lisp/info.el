@@ -1,6 +1,6 @@
 ;; info.el --- info package for Emacs
 
-;; Copyright (C) 1985-1986, 1992-2011  Free Software Foundation, Inc.
+;; Copyright (C) 1985-1986, 1992-2012  Free Software Foundation, Inc.
 
 ;; Maintainer: FSF
 ;; Keywords: help
@@ -2251,7 +2251,7 @@ Table of contents is created from the tree structure of menus."
 			      (match-string-no-properties 1)))
 		 (section "Top")
 		 menu-items)
-	    (when (string-match "(" upnode) (setq upnode nil))
+	    (when (and upnode (string-match "(" upnode)) (setq upnode nil))
             (when (and (not (Info-index-node nodename file))
                        (re-search-forward "^\\* Menu:" bound t))
               (forward-line 1)
@@ -3706,7 +3706,7 @@ If FORK is non-nil, it is passed to `Info-goto-node'."
     (define-key map "b" 'beginning-of-buffer)
     (put 'beginning-of-buffer :advertised-binding "b")
     (define-key map "d" 'Info-directory)
-    (define-key map "e" 'Info-edit)
+    (define-key map "e" 'end-of-buffer)
     (define-key map "f" 'Info-follow-reference)
     (define-key map "g" 'Info-goto-node)
     (define-key map "h" 'Info-help)

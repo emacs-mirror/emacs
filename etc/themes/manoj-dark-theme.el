@@ -1,6 +1,6 @@
 ;;; manoj-dark.el --- A dark theme from Manoj
 
-;; Copyright (C) 2011 Free Software Foundation, Inc.
+;; Copyright (C) 2011-2012 Free Software Foundation, Inc.
 
 ;; Author: Manoj Srivastava <srivasta@ieee.org>
 ;; Keywords: lisp, faces
@@ -20,7 +20,7 @@
 
 ;;; Commentary:
 
-;; I spend a lot of time workin in front of a screen (many hours in a
+;; I spend a lot of time working in front of a screen (many hours in a
 ;; dimly lit room) and eye fatigue is an issue. This is a dark color
 ;; theme for emacs, which is easier on the eyes than light themes.
 

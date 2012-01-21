@@ -1,6 +1,6 @@
 ;;; cc-cmds.el --- user level commands for CC Mode
 
-;; Copyright (C) 1985, 1987, 1992-2011  Free Software Foundation, Inc.
+;; Copyright (C) 1985, 1987, 1992-2012  Free Software Foundation, Inc.
 
 ;; Authors:    2003- Alan Mackenzie
 ;;             1998- Martin Stjernholm
@@ -4382,11 +4382,8 @@ Optional prefix ARG means justify paragraph as well."
   (let ((fill-paragraph-function
 	 ;; Avoid infinite recursion.
 	 (if (not (eq fill-paragraph-function 'c-fill-paragraph))
-	     fill-paragraph-function))
-	(start-point (point-marker)))
-    (c-mask-paragraph
-     t nil (lambda () (fill-region-as-paragraph (point-min) (point-max) arg)))
-    (goto-char start-point))
+	     fill-paragraph-function)))
+    (c-mask-paragraph t nil 'fill-paragraph arg))
   ;; Always return t.  This has the effect that if filling isn't done
   ;; above, it isn't done at all, and it's therefore effectively
   ;; disabled in normal code.

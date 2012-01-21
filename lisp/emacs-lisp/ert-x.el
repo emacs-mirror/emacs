@@ -1,6 +1,6 @@
 ;;; ert-x.el --- Staging area for experimental extensions to ERT
 
-;; Copyright (C) 2008, 2010-2011 Free Software Foundation, Inc.
+;; Copyright (C) 2008, 2010-2012 Free Software Foundation, Inc.
 
 ;; Author: Lennart Borgman (lennart O borgman A gmail O com)
 ;; Author: Christian Ohler <ohler@gnu.org>

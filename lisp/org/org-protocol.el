@@ -1,14 +1,14 @@
 ;;; org-protocol.el --- Intercept calls from emacsclient to trigger custom actions.
 ;;
-;; Copyright (C) 2008-2011  Free Software Foundation, Inc.
+;; Copyright (C) 2008-2012
+;;          Free Software Foundation, Inc.
 ;;
-;; Author: Bastien Guerry <bzg AT altern DOT org>
+;; Author: Bastien Guerry <bzg AT gnu DOT org>
 ;; Author: Daniel M German <dmg AT uvic DOT org>
 ;; Author: Sebastian Rose <sebastian_rose AT gmx DOT de>
 ;; Author: Ross Patterson <me AT rpatterson DOT net>
 ;; Maintainer: Sebastian Rose <sebastian_rose AT gmx DOT de>
 ;; Keywords: org, emacsclient, wp
-;; Version: 7.7
 
 ;; This file is part of GNU Emacs.
 ;;
@@ -643,6 +643,5 @@ project-plist is the CDR of an element in `org-publish-project-alist', reuse
       (customize-save-variable 'org-protocol-project-alist org-protocol-project-alist))))
 
 (provide 'org-protocol)
-
 
 ;;; org-protocol.el ends here

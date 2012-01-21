@@ -1,3 +1,66 @@
+2012-01-19  Werner Lemberg  <wl@gnu.org>
+
+	* tutorial/TUTORIAL.de: Updated; synchronize with TUTORIAL.
+	Minor typographical improvements.
+
+2012-01-17  Primoz PETERLIN  <primoz.peterlin@mf.uni-lj.si>
+
+	* tutorials/TUTORIAL.sl: Update.
+
+2012-01-14  Eli Zaretskii  <eliz@gnu.org>
+
+	* tutorials/TUTORIAL.he: Update to follow changes to TUTORIAL in
+	revision 106831.
+
+2012-01-10  Chong Yidong  <cyd@gnu.org>
+
+	* tutorials/TUTORIAL: Don't give instructions for old-style X
+	scrollbars.  Use DEL terminology instead of DelBack.  Improve
+	description of graphical continuation lines and mode-line.
+	Promote use of C-/ and C-SPC.  Remove discussion of flow control.
+
+2012-01-05  Glenn Morris  <rgm@gnu.org>
+
+	* refcards/calccard.tex, refcards/cs-dired-ref.tex:
+	* refcards/cs-refcard.tex, refcards/cs-survival.tex:
+	* refcards/de-refcard.tex, refcards/dired-ref.tex:
+	* refcards/fr-dired-ref.tex, refcards/fr-refcard.tex:
+	* refcards/fr-survival.tex, refcards/pl-refcard.tex:
+	* refcards/pt-br-refcard.tex, refcards/refcard.tex:
+	* refcards/ru-refcard.tex, refcards/sk-dired-ref.tex:
+	* refcards/sk-refcard.tex, refcards/sk-survival.tex:
+	* refcards/survival.tex: Bump version number to 24.
+
+	* refcards/calccard.tex, refcards/cs-dired-ref.tex:
+	* refcards/cs-refcard.tex, refcards/cs-survival.tex:
+	* refcards/de-refcard.tex, refcards/dired-ref.tex:
+	* refcards/fr-dired-ref.tex, refcards/fr-refcard.tex:
+	* refcards/fr-survival.tex, refcards/orgcard.tex:
+	* refcards/pl-refcard.tex, refcards/pt-br-refcard.tex:
+	* refcards/refcard.tex, refcards/ru-refcard.tex:
+	* refcards/sk-dired-ref.tex, refcards/sk-refcard.tex:
+	* refcards/sk-survival.tex, refcards/survival.tex:
+	* refcards/vipcard.tex, refcards/viperCard.tex:
+	Update short copyright year to 2012.
+
+2012-01-04 Chong Yidong  <cyd@stupidchicken.com>
+
+	* org/README: Rename from COPYRIGHT-AND-LICENSE.
+
+2012-01-03  Jambunathan K  <kjambunathan@gmail.com>
+
+	* org/OrgOdtContentTemplate.xml, org/OrgOdtStyles.xml: New files.
+
+2012-01-03  Bastien Guerry  <bzg@altern.org>
+
+	* org/COPYRIGHT-AND-LICENSE: New file.
+
+	* org/: New directory.
+
+2012-01-03  Julian Gehring  <julian.gehring@googlemail.com>
+
+	* refcards/orgcard.tex: Correct one markup in the "Timestamps" section.
+
 2011-12-10  Lars Magne Ingebrigtsen  <larsi@gnus.org>
 
 	* NEWS: Mention auth-source twice in connection with smtpmail to
@@ -5528,7 +5591,7 @@
 ;; coding: utf-8
 ;; End:
 
-  Copyright (C) 1993-1999, 2001-2011  Free Software Foundation, Inc.
+  Copyright (C) 1993-1999, 2001-2012  Free Software Foundation, Inc.
 
   This file is part of GNU Emacs.
 

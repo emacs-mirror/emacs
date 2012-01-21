@@ -1,6 +1,6 @@
 ;;; window.el --- GNU Emacs window commands aside from those written in C
 
-;; Copyright (C) 1985, 1989, 1992-1994, 2000-2011
+;; Copyright (C) 1985, 1989, 1992-1994, 2000-2012
 ;;   Free Software Foundation, Inc.
 
 ;; Maintainer: FSF
@@ -3568,10 +3568,7 @@ specific buffers."
     ))
 
 ;;; Window states, how to get them and how to put them in a window.
-(defvar window-state-ignored-parameters '(quit-restore)
-  "List of window parameters ignored by `window-state-get'.")
-
-(defun window--state-get-1 (window &optional markers)
+(defun window--state-get-1 (window &optional writable)
   "Helper function for `window-state-get'."
   (let* ((type
 	  (cond
@@ -3588,14 +3585,22 @@ specific buffers."
             (normal-height . ,(window-normal-size window))
             (normal-width . ,(window-normal-size window t))
             (combination-limit . ,(window-combination-limit window))
-            ,@(let (list)
-                (dolist (parameter (window-parameters window))
-                  (unless (memq (car parameter)
-                                window-state-ignored-parameters)
-                    (setq list (cons parameter list))))
-                (unless (window-parameter window 'clone-of)
-                  ;; Make a clone-of parameter.
-                  (setq list (cons (cons 'clone-of window) list)))
+            ,@(let ((parameters (window-parameters window))
+		    list)
+		;; Make copies of those window parameters whose
+		;; persistence property is `writable' if WRITABLE is
+		;; non-nil and non-nil if WRITABLE is nil.
+                (dolist (par parameters)
+		  (let ((pers (cdr (assq (car par)
+					 window-persistent-parameters))))
+		    (when (and pers (or (not writable) (eq pers 'writable)))
+		      (setq list (cons (cons (car par) (cdr par)) list)))))
+		;; Add `clone-of' parameter if necessary.
+		(let ((pers (cdr (assq 'clone-of
+				       window-persistent-parameters))))
+		  (when (and pers (or (not writable) (eq pers 'writable))
+			     (not (assq 'clone-of list)))
+		    (setq list (cons (cons 'clone-of window) list))))
                 (when list
                   `((parameters . ,list))))
             ,@(when buffer
@@ -3616,30 +3621,34 @@ specific buffers."
                        (scroll-bars . ,(window-scroll-bars window))
                        (vscroll . ,(window-vscroll window))
                        (dedicated . ,(window-dedicated-p window))
-                       (point . ,(if markers (copy-marker point) point))
-                       (start . ,(if markers (copy-marker start) start))
+                       (point . ,(if writable point (copy-marker point)))
+                       (start . ,(if writable start (copy-marker start)))
                        ,@(when mark
-                           `((mark . ,(if markers
-                                          (copy-marker mark) mark)))))))))))
+                           `((mark . ,(if writable
+                                          mark (copy-marker mark))))))))))))
 	 (tail
 	  (when (memq type '(vc hc))
 	    (let (list)
 	      (setq window (window-child window))
 	      (while window
-		(setq list (cons (window--state-get-1 window markers) list))
+		(setq list (cons (window--state-get-1 window writable) list))
 		(setq window (window-right window)))
 	      (nreverse list)))))
     (append head tail)))
 
-(defun window-state-get (&optional window markers)
+(defun window-state-get (&optional window writable)
   "Return state of WINDOW as a Lisp object.
 WINDOW can be any window and defaults to the root window of the
 selected frame.
 
-Optional argument MARKERS non-nil means use markers for sampling
-positions like `window-point' or `window-start'.  MARKERS should
-be non-nil only if the value is used for putting the state back
-in the same session (note that markers slow down processing).
+Optional argument WRITABLE non-nil means do not use markers for
+sampling `window-point' and `window-start'.  Together, WRITABLE
+and the variable `window-persistent-parameters' specify which
+window parameters are saved by this function.  WRITABLE should be
+non-nil when the return value shall be written to a file and read
+back in another session.  Otherwise, an application may run into
+an `invalid-read-syntax' error while attempting to read back the
+value from file.
 
 The return value can be used as argument for `window-state-put'
 to put the state recorded here into an arbitrary window.  The
@@ -3665,7 +3674,7 @@ value can be also stored on disk and read back in a new session."
      ;; These are probably not needed.
      ,@(when (window-size-fixed-p window) `((fixed-height . t)))
      ,@(when (window-size-fixed-p window t) `((fixed-width . t))))
-   (window--state-get-1 window markers)))
+   (window--state-get-1 window writable)))
 
 (defvar window-state-put-list nil
   "Helper variable for `window-state-put'.")
@@ -3744,7 +3753,10 @@ value can be also stored on disk and read back in a new session."
 	  (state (cdr (assq 'buffer item))))
       (when combination-limit
 	(set-window-combination-limit window combination-limit))
-      ;; Process parameters.
+      ;; Reset window's parameters and assign saved ones (we might want
+      ;; a `remove-window-parameters' function here).
+      (dolist (parameter (window-parameters window))
+	(set-window-parameter window (car parameter) nil))
       (when parameters
 	(dolist (parameter parameters)
 	  (set-window-parameter window (car parameter) (cdr parameter))))
@@ -4814,7 +4826,7 @@ return the window used; otherwise return nil."
   "Display BUFFER by popping up a new window.
 The new window is created on the selected frame, or in
 `last-nonminibuffer-frame' if no windows can be created there.
-If sucessful, return the new window; otherwise return nil."
+If successful, return the new window; otherwise return nil."
   (let ((frame (or (window--frame-usable-p (selected-frame))
 		   (window--frame-usable-p (last-nonminibuffer-frame))))
 	window)

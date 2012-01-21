@@ -1,11 +1,10 @@
 ;;; ob-tangle.el --- extract source code from org-mode files
 
-;; Copyright (C) 2009-2011  Free Software Foundation, Inc.
+;; Copyright (C) 2009-2012  Free Software Foundation, Inc.
 
 ;; Author: Eric Schulte
 ;; Keywords: literate programming, reproducible research
 ;; Homepage: http://orgmode.org
-;; Version: 7.7
 
 ;; This file is part of GNU Emacs.
 
@@ -96,6 +95,14 @@ controlled by the :comments header argument."
   :group 'org-babel
   :type 'string)
 
+(defcustom org-babel-process-comment-text #'org-babel-trim
+  "Function called to process raw Org-mode text collected to be
+inserted as comments in tangled source-code files.  The function
+should take a single string argument and return a string
+result.  The default value is `org-babel-trim'."
+  :group 'org-babel
+  :type 'function)
+
 (defun org-babel-find-file-noselect-refresh (file)
   "Find file ensuring that the latest changes on disk are
 represented in the file."
@@ -119,6 +126,7 @@ evaluating BODY."
 	 (setf ,temp-result (progn ,@body)))
        (unless ,visited-p (kill-buffer ,temp-file))
        ,temp-result)))
+(def-edebug-spec org-babel-with-temp-filebuffer (form body))
 
 ;;;###autoload
 (defun org-babel-load-file (file)
@@ -345,16 +353,20 @@ code blocks by language."
 		    (when (or (string= "both" (cdr (assoc :comments params)))
 			      (string= "org" (cdr (assoc :comments params))))
 		      ;; from the previous heading or code-block end
-		      (buffer-substring
-		       (max (condition-case nil
-				(save-excursion
-				  (org-back-to-heading t) (point))
-			      (error 0))
-			    (save-excursion
-			      (re-search-backward
-			       org-babel-src-block-regexp nil t)
-			      (match-end 0)))
-		       (point))))
+		      (funcall
+		       org-babel-process-comment-text
+		       (buffer-substring
+			(max (condition-case nil
+				 (save-excursion
+				   (org-back-to-heading t)  ; sets match data
+				   (match-end 0))
+			       (error (point-min)))
+			     (save-excursion
+			       (if (re-search-backward
+				    org-babel-src-block-regexp nil t)
+				   (match-end 0)
+				 (point-min))))
+			(point)))))
 		   by-lang)
 	      ;; add the spec for this block to blocks under it's language
 	      (setq by-lang (cdr (assoc src-lang blocks)))
@@ -396,12 +408,11 @@ form
 				     (eval el))))
 			    '(start-line file link source-name))))
     (flet ((insert-comment (text)
-            (let ((text (org-babel-trim text)))
-	      (when (and comments (not (string= comments "no"))
-			 (> (length text) 0))
-		(when padline (insert "\n"))
-		(comment-region (point) (progn (insert text) (point)))
-		(end-of-line nil) (insert "\n")))))
+            (when (and comments (not (string= comments "no"))
+		       (> (length text) 0))
+	      (when padline (insert "\n"))
+	      (comment-region (point) (progn (insert text) (point)))
+	      (end-of-line nil) (insert "\n"))))
       (when comment (insert-comment comment))
       (when link-p
 	(insert-comment

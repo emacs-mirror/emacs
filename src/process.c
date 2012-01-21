@@ -1,6 +1,6 @@
 /* Asynchronous subprocess control for GNU Emacs.
 
-Copyright (C) 1985-1988, 1993-1996, 1998-1999, 2001-2011
+Copyright (C) 1985-1988, 1993-1996, 1998-1999, 2001-2012
   Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
@@ -5060,9 +5060,8 @@ read_process_output (Lisp_Object proc, register int channel)
 	  proc_buffered_char[channel] = -1;
 	}
 #ifdef HAVE_GNUTLS
-      if (XPROCESS (proc)->gnutls_p)
-	nbytes = emacs_gnutls_read (XPROCESS (proc),
-				    chars + carryover + buffered,
+      if (p->gnutls_p)
+	nbytes = emacs_gnutls_read (p, chars + carryover + buffered,
 				    readmax - buffered);
       else
 #endif
@@ -5527,9 +5526,8 @@ send_process (volatile Lisp_Object proc, const char *volatile buf,
 #endif
 		{
 #ifdef HAVE_GNUTLS
-		  if (XPROCESS (proc)->gnutls_p)
-		    written = emacs_gnutls_write (XPROCESS (proc),
-                                                  buf, this);
+		  if (p->gnutls_p)
+		    written = emacs_gnutls_write (p, buf, this);
 		  else
 #endif
 		    written = emacs_write (outfd, buf, this);

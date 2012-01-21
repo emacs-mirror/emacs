@@ -6,7 +6,7 @@
 @c %**end of header
 
 @copying
-Copyright @copyright{} 1991-2011
+Copyright @copyright{} 1991-2012
 Free Software Foundation, Inc.
 
 @quotation

@@ -1,6 +1,6 @@
 ;;; f90.el --- Fortran-90 mode (free format)
 
-;; Copyright (C) 1995-1997, 2000-2011  Free Software Foundation, Inc.
+;; Copyright (C) 1995-1997, 2000-2012  Free Software Foundation, Inc.
 
 ;; Author: Torbjörn Einarsson <Torbjorn.Einarsson@era.ericsson.se>
 ;; Maintainer: Glenn Morris <rgm@gnu.org>

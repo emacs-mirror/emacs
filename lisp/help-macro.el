@@ -1,6 +1,6 @@
 ;;; help-macro.el --- makes command line help such as help-for-help
 
-;; Copyright (C) 1993-1994, 2001-2011 Free Software Foundation, Inc.
+;; Copyright (C) 1993-1994, 2001-2012 Free Software Foundation, Inc.
 
 ;; Author: Lynn Slater <lrs@indetech.com>
 ;; Maintainer: FSF
@@ -184,9 +184,12 @@ and then returns."
 			     (when config
 			       (set-window-configuration config)
 			       (setq config nil))
-			     ;; `defn' must make sure that its frame is
-			     ;; selected, so we won't iconify it below.
-			     (call-interactively defn)
+			     ;; Temporarily rebind `minor-mode-map-alist'
+			     ;; to `new-minor-mode-map-alist' (Bug#10454).
+			     (let ((minor-mode-map-alist new-minor-mode-map-alist))
+			       ;; `defn' must make sure that its frame is
+			       ;; selected, so we won't iconify it below.
+			       (call-interactively defn))
 			     (when new-frame
 			       ;; Do not iconify the selected frame.
 			       (unless (eq new-frame (selected-frame))

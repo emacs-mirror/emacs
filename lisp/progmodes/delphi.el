@@ -1,6 +1,6 @@
 ;;; delphi.el --- major mode for editing Delphi source (Object Pascal) in Emacs
 
-;; Copyright (C) 1998-1999, 2001-2011  Free Software Foundation, Inc.
+;; Copyright (C) 1998-1999, 2001-2012  Free Software Foundation, Inc.
 
 ;; Authors: Ray Blaak <blaak@infomatch.com>,
 ;;          Simon South <ssouth@member.fsf.org>

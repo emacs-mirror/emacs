@@ -1,6 +1,6 @@
 ;;; sh-script.el --- shell-script editing commands for Emacs
 
-;; Copyright (C) 1993-1997, 1999, 2001-2011  Free Software Foundation, Inc.
+;; Copyright (C) 1993-1997, 1999, 2001-2012  Free Software Foundation, Inc.
 
 ;; Author: Daniel Pfeiffer <occitan@esperanto.org>
 ;; Version: 2.0f

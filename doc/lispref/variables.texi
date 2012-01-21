@@ -1,6 +1,6 @@
 @c -*-texinfo-*-
 @c This is part of the GNU Emacs Lisp Reference Manual.
-@c Copyright (C) 1990-1995, 1998-2011  Free Software Foundation, Inc.
+@c Copyright (C) 1990-1995, 1998-2012  Free Software Foundation, Inc.
 @c See the file elisp.texi for copying conditions.
 @setfilename ../../info/variables
 @node Variables, Functions, Control Structures, Top
@@ -1351,7 +1351,10 @@ needed if you use the @var{local} argument to @code{add-hook} or
 @deffn Command make-variable-buffer-local variable
 This function marks @var{variable} (a symbol) automatically
 buffer-local, so that any subsequent attempt to set it will make it
-local to the current buffer at the time.
+local to the current buffer at the time.  Unlike
+@code{make-local-variable}, with which it is often confused, this
+cannot be undone, and affects the behavior of the variable in all
+buffers.
 
 A peculiar wrinkle of this feature is that binding the variable (with
 @code{let} or other binding constructs) does not create a buffer-local
@@ -1657,6 +1660,13 @@ Query (once) about all the variables.
 @end table
 @end defopt
 
+@defvar inhibit-local-variables-regexps
+This is a list of regular expressions.  If a file has a name
+matching an element of this list, then it is not scanned for
+any form of file-local variable.  For examples of why you might want
+to use this, @pxref{Auto Major Mode}.
+@end defvar
+
 @defun hack-local-variables &optional mode-only
 This function parses, and binds or evaluates as appropriate, any local
 variables specified by the contents of the current buffer.  The variable
@@ -1827,6 +1837,15 @@ applying them.  It also stores the directory-local settings in
 the directory in which @file{.dir-locals.el} file was found.  This
 function works by calling @code{dir-locals-set-class-variables} and
 @code{dir-locals-set-directory-class}, described below.
+@end defun
+
+@defun hack-dir-local-variables-non-file-buffer
+This function looks for directory-local variables, and immediately
+applies them in the current buffer.  It is intended to be called in
+the mode commands for non-file buffers, such as Dired buffers, to let
+them obey directory-local variable settings.  For non-file buffers,
+Emacs looks for directory-local variables in @code{default-directory}
+and its parent directories.
 @end defun
 
 @defun dir-locals-set-class-variables class variables

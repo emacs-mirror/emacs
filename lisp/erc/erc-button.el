@@ -1,6 +1,6 @@
 ;; erc-button.el --- A way of buttonizing certain things in ERC buffers
 
-;; Copyright (C) 1996-2004, 2006-2011 Free Software Foundation, Inc.
+;; Copyright (C) 1996-2004, 2006-2012 Free Software Foundation, Inc.
 
 ;; Author: Mario Lang <mlang@delysid.org>
 ;; Keywords: irc, button, url, regexp

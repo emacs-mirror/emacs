@@ -1,6 +1,6 @@
 /* File IO for GNU Emacs.
 
-Copyright (C) 1985-1988, 1993-2011  Free Software Foundation, Inc.
+Copyright (C) 1985-1988, 1993-2012  Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -89,6 +89,9 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 /* Nonzero during writing of auto-save files */
 static int auto_saving;
+
+/* Nonzero umask during creation of auto-save directories */
+static int auto_saving_dir_umask;
 
 /* Set by auto_save_1 to mode of original file so Fwrite_region will create
    a new file with the same mode as the original */
@@ -2062,7 +2065,7 @@ DEFUN ("make-directory-internal", Fmake_directory_internal,
 #ifdef WINDOWSNT
   if (mkdir (dir) != 0)
 #else
-  if (mkdir (dir, 0777) != 0)
+  if (mkdir (dir, 0777 & ~auto_saving_dir_umask) != 0)
 #endif
     report_file_error ("Creating directory", list1 (directory));
 
@@ -5205,16 +5208,18 @@ do_auto_save_unwind_1 (Lisp_Object value)  /* used as unwind-protect function */
 static Lisp_Object
 do_auto_save_make_dir (Lisp_Object dir)
 {
-  Lisp_Object mode;
+  Lisp_Object result;
 
-  call2 (Qmake_directory, dir, Qt);
-  XSETFASTINT (mode, 0700);
-  return Fset_file_modes (dir, mode);
+  auto_saving_dir_umask = 077;
+  result = call2 (Qmake_directory, dir, Qt);
+  auto_saving_dir_umask = 0;
+  return result;
 }
 
 static Lisp_Object
 do_auto_save_eh (Lisp_Object ignore)
 {
+  auto_saving_dir_umask = 0;
   return Qnil;
 }
 
@@ -5282,7 +5287,7 @@ A non-nil CURRENT-ONLY argument means save only current buffer.  */)
 	  dir = Ffile_name_directory (listfile);
 	  if (NILP (Ffile_directory_p (dir)))
 	    internal_condition_case_1 (do_auto_save_make_dir,
-				       dir, Fcons (Fcons (Qfile_error, Qnil), Qnil),
+				       dir, Qt,
 				       do_auto_save_eh);
 	  UNGCPRO;
 	}

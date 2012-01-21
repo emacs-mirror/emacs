@@ -1,10 +1,9 @@
 ;;; org-docbook.el --- DocBook exporter for org-mode
 ;;
-;; Copyright (C) 2007-2011 Free Software Foundation, Inc.
+;; Copyright (C) 2007-2012 Free Software Foundation, Inc.
 ;;
 ;; Emacs Lisp Archive Entry
 ;; Filename: org-docbook.el
-;; Version: 7.7
 ;; Author: Baoqiu Cui <cbaoqiu AT yahoo DOT com>
 ;; Maintainer: Baoqiu Cui <cbaoqiu AT yahoo DOT com>
 ;; Keywords: org, wp, docbook
@@ -294,7 +293,7 @@ then use this command to convert it."
   (interactive "r")
   (let (reg docbook buf)
     (save-window-excursion
-      (if (org-mode-p)
+      (if (eq major-mode 'org-mode)
 	  (setq docbook (org-export-region-as-docbook
 			 beg end t 'string))
 	(setq reg (buffer-substring beg end)
@@ -394,6 +393,8 @@ in a window.  A non-interactive call will only return the buffer."
 	(org-open-file pdffile)
       (error "PDF file was not produced"))))
 
+(defvar org-heading-keyword-regexp-format) ; defined in org.el
+
 ;;;###autoload
 (defun org-export-as-docbook (&optional hidden ext-plist
 					to-buffer body-only pub-dir)
@@ -475,9 +476,11 @@ publishing directory."
 	 (current-dir (if buffer-file-name
 			  (file-name-directory buffer-file-name)
 			default-directory))
+	 (auto-insert nil); Avoid any auto-insert stuff for the new file
 	 (buffer (if to-buffer
 		     (cond
-		      ((eq to-buffer 'string) (get-buffer-create "*Org DocBook Export*"))
+		      ((eq to-buffer 'string)
+		       (get-buffer-create "*Org DocBook Export*"))
 		      (t (get-buffer-create to-buffer)))
 		   (find-file-noselect filename)))
 	 ;; org-levels-open is a global variable
@@ -499,8 +502,9 @@ publishing directory."
 	 ;; We will use HTML table formatter to export tables to DocBook
 	 ;; format, so need to set html-table-tag here.
 	 (html-table-tag (plist-get opt-plist :html-table-tag))
-	 (quote-re0   (concat "^[ \t]*" org-quote-string "\\>"))
-	 (quote-re    (concat "^\\(\\*+\\)\\([ \t]+" org-quote-string "\\>\\)"))
+	 (quote-re0   (concat "^ *" org-quote-string "\\( +\\|[ \t]*$\\)"))
+	 (quote-re    (format org-heading-keyword-regexp-format
+			      org-quote-string))
 	 (inquote     nil)
 	 (infixed     nil)
 	 (inverse     nil)
@@ -970,7 +974,7 @@ publishing directory."
 		    (push (cons num 1) footref-seen))))))
 
 	  (cond
-	   ((string-match "^\\(\\*+\\)[ \t]+\\(.*\\)" line)
+	   ((string-match "^\\(\\*+\\)\\(?: +\\(.*?\\)\\)?[ \t]*$" line)
 	    ;; This is a headline
 	    (setq level (org-tr-level (- (match-end 1) (match-beginning 1)
 					 level-offset))
@@ -1444,6 +1448,5 @@ the alist of previous items."
      (t line))))
 
 (provide 'org-docbook)
-
 
 ;;; org-docbook.el ends here

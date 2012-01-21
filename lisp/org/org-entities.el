@@ -1,12 +1,11 @@
 ;;; org-entities.el --- Support for special entities in Org-mode
 
-;; Copyright (C) 2010-2011 Free Software Foundation, Inc.
+;; Copyright (C) 2010-2012 Free Software Foundation, Inc.
 
 ;; Author: Carsten Dominik <carsten at orgmode dot org>,
 ;;         Ulf Stegemann <ulf at zeitform dot de>
 ;; Keywords: outlines, calendar, wp
 ;; Homepage: http://orgmode.org
-;; Version: 7.7
 ;;
 ;; This file is part of GNU Emacs.
 ;;
@@ -567,7 +566,5 @@ Kind can be any of `latex', `html', `ascii', `latin1', or `utf8'."
 ;; Local variables:
 ;; coding: utf-8
 ;; End:
-
-
 
 ;;; org-entities.el ends here

@@ -1,6 +1,6 @@
 ;;; nnmairix.el --- Mairix back end for Gnus, the Emacs newsreader
 
-;; Copyright (C) 2007-2011  Free Software Foundation, Inc.
+;; Copyright (C) 2007-2012  Free Software Foundation, Inc.
 
 ;; Author: David Engster <dengste@eml.cc>
 ;; Keywords: mail searching
@@ -483,7 +483,7 @@ Other back ends might or might not work.")
 	       mfolder query threads)))
       ;; Check return value
       (cond
-       ((zerop rval)			; call was succesful
+       ((zerop rval)			; call was successful
 	(nnmairix-call-backend
 	 "open-server" nnmairix-backend-server)
 	;; If we're dealing with nnml, rename files

@@ -1,6 +1,6 @@
 ;;; time.el --- display time, load and mail indicator in mode line of Emacs -*-coding: utf-8 -*-
 
-;; Copyright (C) 1985-1987, 1993-1994, 1996, 2000-2011
+;; Copyright (C) 1985-1987, 1993-1994, 1996, 2000-2012
 ;;   Free Software Foundation, Inc.
 
 ;; Maintainer: FSF
@@ -64,13 +64,14 @@ directory `display-time-mail-directory' contains nonempty files."
 
 (defcustom display-time-default-load-average 0
   "Which load average value will be shown in the mode line.
-Almost every system can provide values of load for past 1 minute, past 5 or
-past 15 minutes.  The default is to display 1 minute load average.
+Almost every system can provide values of load for the past 1 minute,
+past 5 or past 15 minutes.  The default is to display 1-minute load average.
 The value can be one of:
 
   0   => 1 minute load
   1   => 5 minutes load
-  2   => 15 minutes load"
+  2   => 15 minutes load
+  nil => None (do not display the load average)"
   :type '(choice (const :tag "1 minute load" 0)
 		 (const :tag "5 minutes load" 1)
 		 (const :tag "15 minutes load" 2)
@@ -78,7 +79,10 @@ The value can be one of:
   :group 'display-time)
 
 (defvar display-time-load-average nil
-  "Load average currently being shown in mode line.")
+  "Value of the system's load average currently shown on the mode line.
+See `display-time-default-load-average'.
+
+This is an internal variable; setting it has no effect.")
 
 (defcustom display-time-load-average-threshold 0.1
   "Load-average values below this value won't be shown in the mode line."
@@ -349,6 +353,8 @@ would give mode line times like `94/12/30 21:07:48 (UTC)'."
 	  (timer-activate timer)))))
 
 (defun display-time-next-load-average ()
+  "Switch between different load averages in the mode line.
+Switches from the 1 to 5 to 15 minute load average, and then back to 1."
   (interactive)
   (if (= 3 (setq display-time-load-average (1+ display-time-load-average)))
       (setq display-time-load-average 0))

@@ -1,6 +1,6 @@
 ;;; dired.el --- directory-browsing commands -*- lexical-binding: t -*-
 
-;; Copyright (C) 1985-1986, 1992-1997, 2000-2011
+;; Copyright (C) 1985-1986, 1992-1997, 2000-2012
 ;;   Free Software Foundation, Inc.
 
 ;; Author: Sebastian Kremer <sk@thp.uni-koeln.de>
@@ -1111,6 +1111,11 @@ BEG..END is the line where the file info is located."
 
 (defvar ls-lisp-use-insert-directory-program)
 
+(defun dired-switches-escape-p (switches)
+  "Return non-nil if the string SWITCHES contains -b or --escape."
+  ;; Do not match things like "--block-size" that happen to contain "b".
+  (string-match "\\(\\`\\| \\)-[[:alnum:]]*b\\|--escape\\>" switches))
+
 (defun dired-insert-directory (dir switches &optional file-list wildcard hdr)
   "Insert a directory listing of DIR, Dired style.
 Use SWITCHES to make the listings.
@@ -1152,7 +1157,7 @@ see `dired-use-ls-dired' for more details.")
 	    (dired-align-file beg (point))))
       (insert-directory dir switches wildcard (not wildcard)))
     ;; Quote certain characters, unless ls quoted them for us.
-    (if (not (string-match "b" dired-actual-switches))
+    (if (not (dired-switches-escape-p dired-actual-switches))
 	(save-excursion
 	  (setq end (point-marker))
 	  (goto-char opoint)
@@ -1167,7 +1172,22 @@ see `dired-use-ls-dired' for more details.")
 				  "\\015"
 				  (text-properties-at (match-beginning 0)))
 			   nil t))
-	  (set-marker end nil)))
+	  (set-marker end nil))
+      ;; Replace any newlines in DIR with literal "\n"s, for the sake
+      ;; of the header line.  To disambiguate a literal "\n" in the
+      ;; actual dirname, we also replace "\" with "\\".
+      ;; Personally, I think this should always be done, irrespective
+      ;; of the value of dired-actual-switches, because:
+      ;;  i) Dired simply does not work with an unescaped newline in
+      ;;  the directory name used in the header (bug=10469#28), and
+      ;;  ii) "\" is always replaced with "\\" in the listing, so doing
+      ;;  it in the header as well makes things consistent.
+      ;; But at present it is only done if "-b" is in ls-switches,
+      ;; because newlines in dirnames are uncommon, and people may
+      ;; have gotten used to seeing unescaped "\" in the headers.
+      ;; Note: adjust dired-build-subdir-alist if you change this.
+      (setq dir (replace-regexp-in-string "\\\\" "\\\\" dir nil t)
+            dir (replace-regexp-in-string "\n" "\\n" dir nil t)))
     (dired-insert-set-properties opoint (point))
     ;; If we used --dired and it worked, the lines are already indented.
     ;; Otherwise, indent them.
@@ -2099,7 +2119,18 @@ Otherwise, an error occurs in these cases."
           ;; with quotation marks in their names.
 	  (while (string-match "\\(?:[^\\]\\|\\`\\)\\(\"\\)" file)
 	    (setq file (replace-match "\\\"" nil t file 1)))
-
+          ;; Unescape any spaces escaped by ls -b (bug#10469).
+          ;; Other -b quotes, eg \t, \n, work transparently.
+          (if (dired-switches-escape-p dired-actual-switches)
+              (let ((start 0)
+                    (rep "")
+                    (shift -1))
+                (if (eq localp 'verbatim)
+                    (setq rep "\\\\"
+                          shift +1))
+                (while (string-match "\\(\\\\\\) " file start)
+                  (setq file (replace-match rep nil t file 1)
+                        start (+ shift (match-end 0))))))
 	  (when (eq system-type 'windows-nt)
 	    (save-match-data
 	      (let ((start 0))
@@ -2107,6 +2138,7 @@ Otherwise, an error occurs in these cases."
 		  (aset file (match-beginning 0) ?/)
 		  (setq start (match-end 0))))))
 
+          ;; Hence we don't need to worry about converting `\\' back to `\'.
           (setq file (read (concat "\"" file "\"")))
 	  ;; The above `read' will return a unibyte string if FILE
 	  ;; contains eight-bit-control/graphic characters.
@@ -2524,12 +2556,31 @@ instead of `dired-actual-switches'."
 	    (delete-region (point) (match-end 1))
 	    (insert new-dir-name))
 	  (setq count (1+ count))
+	  ;; Undo any escaping of newlines and \ by dired-insert-directory.
+	  ;; Convert "n" preceded by odd number of \ to newline, and \\ to \.
+	  (when (and (dired-switches-escape-p switches)
+		     (string-match-p "\\\\" new-dir-name))
+	    (let (temp res)
+	      (mapc (lambda (char)
+		      (cond ((equal char ?\\)
+			     (if temp
+				 (setq res (concat res "\\")
+				       temp nil)
+			       (setq temp "\\")))
+			    ((and temp (equal char ?n))
+			     (setq res (concat res "\n")
+				   temp nil))
+			    (t
+			     (setq res (concat res temp (char-to-string char))
+				   temp nil))))
+		    new-dir-name)
+	      (setq new-dir-name res)))
 	  (dired-alist-add-1 new-dir-name
-			     ;; Place a sub directory boundary between lines.
-			     (save-excursion
-			       (goto-char (match-beginning 0))
-			       (beginning-of-line)
-			       (point-marker)))))
+           ;; Place a sub directory boundary between lines.
+           (save-excursion
+             (goto-char (match-beginning 0))
+             (beginning-of-line)
+             (point-marker)))))
       (if (and (> count 1) (called-interactively-p 'interactive))
 	  (message "Buffer includes %d directories" count)))
     ;; We don't need to sort it because it is in buffer order per
@@ -3667,7 +3718,7 @@ Ask means pop up a menu for the user to select one of copy, move or link."
 ;;;;;;  dired-run-shell-command dired-do-shell-command dired-do-async-shell-command
 ;;;;;;  dired-clean-directory dired-do-print dired-do-touch dired-do-chown
 ;;;;;;  dired-do-chgrp dired-do-chmod dired-compare-directories dired-backup-diff
-;;;;;;  dired-diff) "dired-aux" "dired-aux.el" "2301de52aab0488c60d2b4841b6f597f")
+;;;;;;  dired-diff) "dired-aux" "dired-aux.el" "e77c506a0dd793230c5856a67e408fc6")
 ;;; Generated autoloads from dired-aux.el
 
 (autoload 'dired-diff "dired-aux" "\
@@ -3784,8 +3835,11 @@ file name added at the end of COMMAND (separated by a space).
 
 `*' and `?' when not surrounded by whitespace have no special
 significance for `dired-do-shell-command', and are passed through
-normally to the shell, but you must confirm first.  To pass `*' by
-itself to the shell as a wildcard, type `*\"\"'.
+normally to the shell, but you must confirm first.
+
+If you want to use `*' as a shell wildcard with whitespace around
+it, write `*\"\"' in place of just `*'.  This is equivalent to just
+`*' in the shell, but avoids Dired's special handling.
 
 If COMMAND produces output, it goes to a separate buffer.
 
@@ -4128,7 +4182,7 @@ instead.
 ;;;***
 
 ;;;### (autoloads (dired-do-relsymlink dired-jump-other-window dired-jump)
-;;;;;;  "dired-x" "dired-x.el" "a542cdbf155ff79f36331bae217f3b28")
+;;;;;;  "dired-x" "dired-x.el" "85900e333d980b376bf820108ae1a1fc")
 ;;; Generated autoloads from dired-x.el
 
 (autoload 'dired-jump "dired-x" "\

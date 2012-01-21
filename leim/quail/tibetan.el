@@ -1,6 +1,6 @@
 ;;; tibetan.el --- Quail package for inputting Tibetan characters -*-coding: iso-2022-7bit;-*-
 
-;; Copyright (C) 1997, 2001-2011  Free Software Foundation, Inc.
+;; Copyright (C) 1997, 2001-2012  Free Software Foundation, Inc.
 ;; Copyright (C) 1997, 1998, 1999, 2000, 2001, 2002, 2003, 2004, 2005,
 ;;   2006, 2007, 2008, 2009, 2010, 2011
 ;;   National Institute of Advanced Industrial Science and Technology (AIST)
@@ -159,7 +159,7 @@
  nil nil nil nil nil nil nil nil
  'quail-tibetan-update-translation)
 
-;; Here we build up a Quail map for a Tibtan sequence the whole of
+;; Here we build up a Quail map for a Tibetan sequence the whole of
 ;; which can be one composition.
 ;;
 ;; A Tibetan syllable is typically structured as follows:
@@ -224,7 +224,7 @@
     ("F" . "M")				; anusvara
     ("g" . "u")				; zhabs kyu
     ("G" . "i")				; gi gu
-    ("H" . ",")				; viraama
+    ("H" . ",")				; virama
     ("j" . "o")				; naro
     ("J" . "e")				; 'greng bu
     ("k" . "ts")			; tsa

@@ -11,7 +11,7 @@
 This is the @value{EDITION} edition of the @cite{GNU Emacs Manual},@*
 updated for Emacs version @value{EMACSVER}.
 
-Copyright @copyright{} 1985-1987, 1993-2011  Free Software Foundation, Inc.
+Copyright @copyright{} 1985-1987, 1993-2012  Free Software Foundation, Inc.
 
 @quotation
 Permission is granted to copy, distribute and/or modify this document
@@ -210,7 +210,7 @@ Appendices
 * GNU Free Documentation License:: The license for this documentation.
 * Emacs Invocation::    Hairy startup options.
 * X Resources::         X resources for customizing Emacs.
-* Antinews::            Information about Emacs version 22.
+* Antinews::            Information about Emacs version 23.
 * Mac OS / GNUstep::    Using Emacs under Mac OS and GNUstep.
 * Microsoft Windows::   Using Emacs on Microsoft Windows and MS-DOS.
 * Manifesto::           What's GNU?  Gnu's Not Unix!
@@ -919,10 +919,10 @@ Customizing the Calendar and Diary
 
 Document Viewing
 
-* Navigation::  Navigation inside DocView buffers.
-* Searching::   Searching inside documents.
-* Slicing::     Specifying which part of pages should be displayed.
-* Conversion::  Influencing and triggering conversion.
+* DocView Navigation::  Navigating DocView buffers.
+* DocView Searching::   Searching inside documents.
+* DocView Slicing::     Specifying which part of a page is displayed.
+* DocView Conversion::  Influencing and triggering conversion.
 
 Sending Mail
 
@@ -974,7 +974,8 @@ Gnus
 
 * Buffers of Gnus::     The group, summary, and article buffers.
 * Gnus Startup::        What you should know about starting Gnus.
-* Summary of Gnus::     A short description of the basic Gnus commands.
+* Gnus Group Buffer::   A short description of Gnus group commands.
+* Gnus Summary Buffer:: A short description of Gnus summary commands.
 
 Running Shell Commands from Emacs
 
@@ -987,7 +988,6 @@ Running Shell Commands from Emacs
 * Shell Options::       Options for customizing Shell mode.
 * Terminal emulator::   An Emacs window as a terminal emulator.
 * Term Mode::           Special Emacs commands used in Term mode.
-* Paging in Term::      Paging in the terminal emulator.
 * Remote Host::         Connecting to another computer.
 * Serial Terminal::     Connecting to a serial port.
 
@@ -1033,15 +1033,14 @@ Customization
 
 Easy Customization Interface
 
-* Customization Groups::     How settings are classified in a structure.
+* Customization Groups::     How settings are classified.
 * Browsing Custom::          Browsing and searching for settings.
 * Changing a Variable::      How to edit an option's value and set the option.
-* Saving Customizations::    Specifying the file for saving customizations.
+* Saving Customizations::    Saving customizations for future Emacs sessions.
 * Face Customization::       How to edit the attributes of a face.
-* Specific Customization::   Making a customization buffer for specific
-                                variables, faces, or groups.
-* Custom Themes::            How to define collections of customized options
-                                that can be loaded and unloaded together.
+* Specific Customization::   Customizing specific settings or groups.
+* Custom Themes::            Collections of customization settings.
+* Creating Custom Themes::   How to create a new custom theme.
 
 Variables
 
@@ -1089,9 +1088,7 @@ Dealing with Emacs Trouble
 * Text Garbled::        Garbage in the text.
 * Memory Full::         How to cope when you run out of memory.
 * After a Crash::       Recovering editing in an Emacs session that crashed.
-* Emergency Escape::    Emergency escape---
-                          What to do if Emacs stops responding.
-* Total Frustration::   When you are at your wits' end.
+* Emergency Escape::    What to do if Emacs stops responding.
 
 Reporting Bugs
 
@@ -1107,7 +1104,6 @@ Command Line Arguments for Emacs Invocation
                           and call functions.
 * Initial Options::     Arguments that take effect while starting Emacs.
 * Command Example::     Examples of using command line arguments.
-* Resume Arguments::    Specifying arguments when you resume a running Emacs.
 * Environment::         Environment variables that Emacs uses.
 * Display X::           Changing the default display and using remote login.
 * Font X::              Choosing a font for text, under X.
@@ -1128,15 +1124,15 @@ X Options and Resources
 
 * Resources::           Using X resources with Emacs (in general).
 * Table of Resources::  Table of specific X resources that affect Emacs.
-* Face Resources::      X resources for customizing faces.
 * Lucid Resources::     X resources for Lucid menus.
 * LessTif Resources::   X resources for LessTif and Motif menus.
 * GTK resources::       Resources for GTK widgets.
 
 GTK resources
 
-* GTK widget names::      How widgets in GTK are named in general.
-* GTK Names in Emacs::    GTK widget names in Emacs.
+* GTK Resource Basics::   Basic usage of GTK+ resources.
+* GTK Widget Names::      How GTK+ widgets are named.
+* GTK Names in Emacs::    GTK+ widgets used by Emacs.
 * GTK styles::            What can be customized in a GTK widget.
 
 Emacs and Mac OS / GNUstep
@@ -1371,7 +1367,7 @@ Shapiro, Richard Sharman, Olin Shivers, Espen Skoglund, Rick Sladkey,
 Lynn Slater, Chris Smith, David Smith, Paul D.@: Smith, William
 Sommerfeld, Andre Spiegel, Michael Staats, Ulf Stegemann, Reiner Steib,
 Sam Steingold, Ake Stenhoff, Peter Stephenson, Ken Stevens, Andy Stewart,
-Jonathan Stigelman, Martin Stjernholm, Kim F.@: Storm, Steve Strassman,
+Jonathan Stigelman, Martin Stjernholm, Kim F.@: Storm, Steve Strassmann,
 Olaf Sylvester, Naoto Takahashi, Steven Tamm, Jean-Philippe Theberge,
 Jens T.@: Berger Thielemann, Spencer Thomas, Jim Thompson, Luc
 Teirlinck, David O'Toole, Tom Tromey, Enami Tsugutomo, Eli Tziperman,

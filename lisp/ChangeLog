@@ -1,8 +1,336 @@
-2011-12-30  Kenichi Handa  <handa@m17n.org>
+20122-01-21  Kenichi Handa  <handa@m17n.org>
 
 	* international/mule-cmds.el (prefer-coding-system): Show a
 	warning message if the default value of file-name-coding-system
 	was not changed.
+
+2012-01-21  Jérémy Compostella  <jeremy.compostella@gmail.com>
+
+	* windmove.el (windmove-reference-loc): Fix
+	windmove-reference-loc miscalculation.
+
+2012-01-21  Jay Belanger  <jay.p.belanger@gmail.com>
+
+	* calc/calc-units.el (math-put-default-units): Don't use "1" as a
+	default unit.
+
+2012-01-21  Glenn Morris  <rgm@gnu.org>
+
+	* international/mule.el (auto-coding-alist): Add .tbz.
+
+	* files.el (local-enable-local-variables): Doc fix.
+	(inhibit-local-variables-regexps): Rename from
+	inhibit-first-line-modes-regexps.  Keep old name as obsolete alias.
+	Doc fix.  Add some extensions from auto-coding-alist.
+	(inhibit-local-variables-suffixes):
+	Rename from inhibit-first-line-modes-suffixes.  Doc fix.
+	(inhibit-local-variables-p):
+	New function, extracted from set-auto-mode-1.
+	(set-auto-mode): Doc fix.  Respect inhibit-local-variables-regexps.
+	(set-auto-mode-1): Doc fix.  Use inhibit-local-variables-p.
+	(hack-local-variables): Doc fix.  Make the mode-only case
+	respect enable-local-variables and friends.
+	Respect inhibit-local-variables-regexps for file-locals, but
+	not for directory-locals.
+	(set-visited-file-name):
+	Take account of inhibit-local-variables-regexps.
+	Whether it applies may change as the file name is changed.
+	* jka-cmpr-hook.el (jka-compr-install):
+	* jka-compr.el (jka-compr-uninstall):
+	Update for inhibit-first-line-modes-suffixes name change.
+
+2012-01-20  Martin Rudalics  <rudalics@gmx.at>
+
+	* help-macro.el (make-help-screen): Temporarily restore original
+	binding for minor-mode-map-alist (Bug#10454).
+
+2012-01-19  Julien Danjou  <julien@danjou.info>
+
+	* color.el (color-name-to-rgb): Use the white color to find the max
+	color component value and return correctly computed values.
+	(color-name-to-rgb): Add missing float conversion for max value.
+
+2012-01-19  Martin Rudalics  <rudalics@gmx.at>
+
+	* window.el (window--state-get-1, window-state-get): Do not use
+	special state value for window-persistent-parameters.  Rename
+	argument IGNORE to WRITABLE.  Rewrite doc-string.
+	(window--state-put-2): Reset all window parameters to nil before
+	assigning values of persistent parameters.
+
+2012-01-18  Alan Mackenzie  <acm@muc.de>
+
+	Eliminate sluggishness and hangs in fontification of "semicolon
+	deserts".
+
+	* progmodes/cc-engine.el (c-state-nonlit-pos-interval): change
+	value 10000 -> 3000.
+	(c-state-safe-place): Reformulate so it doesn't stack up an
+	infinite number of wrong entries in c-state-nonlit-pos-cache.
+	(c-determine-limit-get-base, c-determine-limit): New functions to
+	determine backward search limits disregarding literals.
+	(c-find-decl-spots): Amend commenting.
+	(c-cheap-inside-bracelist-p): New function which detects "={".
+
+	* progmodes/cc-fonts.el
+	(c-make-font-lock-BO-decl-search-function): Give a limit to a
+	backward search.
+	(c-font-lock-declarations): Fix an occurrence of point being
+	undefined.  Check additionally for point being in a bracelist or
+	near a macro invocation without a semicolon so as to avoid a
+	fruitless time consuming search for a declarator.  Give a more
+	precise search limit for declarators using the new
+	c-determine-limit.
+
+2012-01-18  Glenn Morris  <rgm@gnu.org>
+
+	* files.el (auto-mode-alist, inhibit-first-line-modes-regexps)
+	(set-auto-mode): Doc fixes.
+
+2012-01-17  Glenn Morris  <rgm@gnu.org>
+
+	* isearch.el (search-nonincremental-instead): Fix doc typo.
+
+	* dired.el (dired-insert-directory): Handle newlines in directory name.
+	(dired-build-subdir-alist): Unescape newlines in directory name.
+
+2012-01-17  Michael Albinus  <michael.albinus@gmx.de>
+
+	* net/tramp.el (tramp-local-end-of-line): New defcustom.
+	(tramp-action-login, tramp-action-yesno, tramp-action-yn)
+	(tramp-action-terminal): Use it.  (Bug#10530)
+
+2012-01-16  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* minibuffer.el (completion--replace): Strip properties (bug#10062).
+
+2012-01-16  Martin Rudalics  <rudalics@gmx.at>
+
+	* window.el (window-state-ignored-parameters): Remove variable.
+	(window--state-get-1): Rename argument MARKERS to IGNORE.
+	Handle persistent window parameters.  Make copy of clone-of
+	parameter only if requested.  (Bug#10348)
+	(window--state-put-2): Install a window parameter only if it has
+	a non-nil value or an existing parameter shall be overwritten.
+
+2012-01-15  Michael Albinus  <michael.albinus@gmx.de>
+
+	* net/tramp-sh.el (tramp-remote-path): Set tramp-autoload cookie.
+
+2012-01-14  Eli Zaretskii  <eliz@gnu.org>
+
+	* info.el (Info-toc-build): If the Info file has no "Up" pointer,
+	don't pass the (nil) value of `upnode' to string-match.
+
+2012-01-14  Chong Yidong  <cyd@gnu.org>
+
+	* startup.el (command-line): Fix X resource class for cursorColor.
+	Fix values recognized by the cursorBlink resource.
+
+2012-01-14  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* epg.el (epg--make-temp-file): Avoid permission race condition
+	when running on old Emacs versions (bug#10403).
+
+2012-01-14  Glenn Morris  <rgm@gnu.org>
+
+	* dired.el (dired-get-filename): Fix 'verbatim case of previous change.
+
+2012-01-13  Alan Mackenzie  <acm@muc.de>
+
+	Fix filling for when filladapt mode is enabled.
+
+	* progmodes/cc-cmds.el (c-fill-paragraph): In the invocation of
+	c-mask-paragraph, pass in `fill-paragraph' rather than
+	`fill-region-as-paragraph'.  (This is a reversion of a previous
+	change.)
+	* progmodes/cc-mode.el (c-basic-common-init): Make
+	fill-paragraph-handle-comment buffer local and set it to nil.
+
+2012-01-13  Glenn Morris  <rgm@gnu.org>
+
+	* dired.el (dired-switches-escape-p): New function.
+	(dired-insert-directory): Use dired-switches-escape-p.
+	(dired-get-filename): Undo "\ " quoting if needed.  (Bug#10469)
+
+	* find-dired.el (find-ls-option): Doc fix.  (Bug#10262)
+
+2012-01-12  Glenn Morris  <rgm@gnu.org>
+
+	* mail/sendmail.el (mail-mode): Update paragraph-separate for
+	changes in adaptive-fill-regexp.  (Bug#10276)
+
+2012-01-11  Alan Mackenzie  <acm@muc.de>
+
+	Fix Emacs bug #10463 - put `widen's around the critical spots.
+
+	* progmodes/cc-engine.el (c-in-literal, c-literal-limits): Put a
+	widen around each invocation of c-state-pp-to-literal.  Remove an
+	unused let variable.
+
+2012-01-11  Glenn Morris  <rgm@gnu.org>
+
+	* dired-aux.el (dired-do-shell-command): Fix */? logic.  (Bug#6561)
+	Doc fix.
+
+2012-01-10  Chong Yidong  <cyd@gnu.org>
+
+	* net/network-stream.el (network-stream-open-starttls):
+	Avoid emitting a confusing error message when the server gives a bad
+	response to the capability command.
+
+2012-01-10  Glenn Morris  <rgm@gnu.org>
+
+	* mail/unrmail.el (unrmail): Tweak previous change.
+
+2012-01-09  Chong Yidong  <cyd@gnu.org>
+
+	* custom.el (custom-safe-themes): Use SHA-256 for hashing.
+
+2012-01-08  Alan Mackenzie  <acm@muc.de>
+
+	Optimise font locking in long enum definitions.
+
+	* progmodes/cc-fonts.el (c-font-lock-declarations): Add an extra
+	arm to a cond form to handle enums.
+	* progmodes/cc-langs.el (c-enums-contain-decls): New lang variable.
+	* progmodes/cc-mode.el (c-font-lock-fontify-region): Correct a typo.
+
+2012-01-07  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* files.el (move-file-to-trash): Preserve default file modes on error.
+	(Bug#10401)
+
+2012-01-07  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* faces.el (set-face-attribute): Clarify the meaning of the nil
+	frame (bug#10294).
+
+	* subr.el (with-selected-frame): Mention that the selected frame
+	is restored (bug#9980).
+
+	* ibuffer.el (ibuffer-mode): List the bindings in the corrent map
+	(bug#9759).
+
+	* mail/smtpmail.el (password-cache-add): Remove unused declaration.
+	(password-read): Don't autoload unused function.
+
+2012-01-07  Juanma Barranquero  <lekktu@gmail.com>
+
+	* progmodes/which-func.el (which-func-mode): Turn into a
+	non-interactive function and mark as obsolete (bug#10428).
+
+2012-01-06  Chong Yidong  <cyd@gnu.org>
+
+	* files.el (hack-dir-local-variables-non-file-buffer): Add doc.
+	(hack-one-local-variable-eval-safep): Allow 0 arg for minor mode
+	functions, along with 1 and -1.
+
+2012-01-06  Eli Zaretskii  <eliz@gnu.org>
+
+	* time.el (display-time-load-average)
+	(display-time-default-load-average): Doc fixes.  See the thread
+	starting at
+	http://lists.gnu.org/archive/html/help-gnu-emacs/2012-01/msg00059.html
+	for the details.
+
+2012-01-06  Glenn Morris  <rgm@gnu.org>
+
+	* mail/unrmail.el (unrmail): Give an explicit error if the input file
+	has no messages.  (Bug#10377)
+
+	* info.el (Info-mode-map): Bind e to end-of-buffer, rather
+	than Info-edit.  (Bug#10385)
+
+	* time.el (display-time-load-average, display-time-next-load-average):
+	Doc fixes.
+
+	* emacs-lisp/bytecomp.el (byte-compile-file): Do not propagate a file
+	local setting of buffer-read-only to the input buffer.  (Bug#10419)
+
+	* calendar/calendar.el (calendar-mode):
+	Locally set scroll-margin to 0.  (Bug#10379)
+
+2012-01-06  Ulrich Mueller  <ulm@gentoo.org>
+
+	* play/doctor.el (doctor-death): Escape "," characters.  (Bug#10370)
+
+2012-01-05  Glenn Morris  <rgm@gnu.org>
+
+	* eshell/em-unix.el (diff-no-select): Autoload it.
+	(eshell/diff): Use diff-no-select.  (Bug#10420)
+
+2012-01-05  Chong Yidong  <cyd@gnu.org>
+
+	* shell.el (shell-dynamic-complete-functions): Revert last change.
+	(shell-command-completion-function): New function.
+	(shell-completion-vars): Use it to implement
+	shell-completion-execonly (Bug#10417).
+
+	* custom.el (enable-theme): Don't set custom-safe-themes.
+
+	* cus-theme.el (custom-theme-merge-theme):
+	Ignore custom-enabled-themes and custom-safe-themes.
+
+2012-01-05  Michael R. Mauger  <mmaug@yahoo.com>
+
+	* progmodes/sql.el (sql-login-hook): Add hook to respond to the
+	first prompt in `sql-interacive-mode'.
+	(sql-mode-oracle-font-lock-keywords): Add CONNECT_BY_* builtin
+	keywords.
+	(sql-mode-mysql-font-lock-keywords):  Add ELSEIF keyword.
+	(sql-product-interactive): Bug fix: Set `sql-buffer' in
+	context of original buffer.  Invoke `sql-login-hook'.
+
+2012-01-04  Eli Zaretskii  <eliz@gnu.org>
+
+	* mail/rmail.el (rmail-font-lock-keywords): Accept non-ASCII
+	letters in cite-prefix.
+
+2012-01-03  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* mail/smtpmail.el (smtpmail-stream-type): Mention the `ssl' value.
+
+2012-01-03  Chong Yidong  <cyd@gnu.org>
+
+	* shell.el (shell-dynamic-complete-functions):
+	Put pcomplete-completions-at-point, so as to try
+	comint-filename-completion first (Bug#10417).
+
+2012-01-02  Richard Stallman  <rms@gnu.org>
+
+	* battery.el (battery-status-function):
+	Detect when to use battery-yeeloong-sysfs.
+	(battery-echo-area-format): Add string for Yeeloong.
+	(battery-linux-proc-apm, battery-linux-proc-acpi): Doc fixes.
+	(battery-yeeloong-sysfs): New function.
+
+2012-01-02  Chong Yidong  <cyd@gnu.org>
+
+	* dirtrack.el (dirtrack-list): Eliminate unused third element.
+	(dirtrack): Merge code for handling relative filenames in prompt
+	from shell-dir-cookie-watcher.
+	(dirtrack-debug-message): New arg to avoid excess format calls.
+
+	* shell.el (shell-dir-cookie-re): Variable deleted.
+	(shell-dir-cookie-watcher): Function deleted.
+	(shell-mode): Don't use shell-dir-cookie-re, since it is redundant
+	with dirtrack-mode.
+
+2012-01-01  Eli Zaretskii  <eliz@gnu.org>
+
+	* term/w32-win.el (dynamic-library-alist) <gnutls>:
+	Load libgnutls-28.dll, from GnuTLS version 3.x, in preference to
+	libgnutls-26.dll.
+
+2011-12-31  Andreas Schwab  <schwab@linux-m68k.org>
+
+	* emacs-lisp/bytecomp.el (byte-compile-file): Fix indentation.
+
+2011-12-31  Eli Zaretskii  <eliz@gnu.org>
+
+	* mail/rmail.el (rmail-show-message-1): Decode any RFC2047 encoded
+	headers of non-MIME messages, when rmail-enable-mime is non-nil.
 
 2011-12-29  Michael Albinus  <michael.albinus@gmx.de>
 
@@ -36,33 +364,32 @@
 	(gdb-var-delete-children, gdb-edit-value, gdb-var-update)
 	(gdb-stopped, def-gdb-auto-update-trigger)
 	(gdb-place-breakpoints, gdb-select-thread, gdb-select-frame)
-	(gdb-get-changed-registers, gdb-get-main-selected-frame): Callers
-	changed.
+	(gdb-get-changed-registers, gdb-get-main-selected-frame):
+	Callers changed.
 	(gud-gdbmi-completions): New function.
 	(gdb): Use it for generating the completion table.
 
 2011-12-24  Alan Mackenzie  <acm@muc.de>
 
 	Introduce a mechanism to widen the region used in context font
-	locking.  Use this to protect declarations from losing their
-	contexts.
+	locking.  Use this to protect declarations from losing their contexts.
 
-	* progmodes/cc-langs.el (c-before-font-lock-functions): replace
-	c-set-fl-decl-start with c-change-set-fl-decl-start (Renaming).
-	(c-before-context-fontification-functions): new defvar, a list of
+	* progmodes/cc-langs.el (c-before-font-lock-functions):
+	Replace c-set-fl-decl-start with c-change-set-fl-decl-start (Renaming).
+	(c-before-context-fontification-functions): New defvar, a list of
 	functions to be run just before context (etc.) font locking.
 
 	* progmodes/cc-mode.el (c-extend-font-lock-region-for-macros):
-	new, functionality extracted from
+	New, functionality extracted from
 	c-neutralize-syntax-in-and-mark-CPP.
-	(c-in-after-change-fontification): new variable.
+	(c-in-after-change-fontification): New variable.
 	(c-after-change): Set c-in-after-change-fontification.
 	(c-set-fl-decl-start): Rejig its interface, so it can be called
 	from both after-change and context fontifying.
-	(c-change-set-fl-decl-start, c-context-set-fl-decl-start): new
-	functions.
-	(c-standard-font-lock-fontify-region-function): new variable.
-	(c-font-lock-fontify-region): new function.
+	(c-change-set-fl-decl-start, c-context-set-fl-decl-start):
+	New functions.
+	(c-standard-font-lock-fontify-region-function): New variable.
+	(c-font-lock-fontify-region): New function.
 
 2011-12-24  Juri Linkov  <juri@jurta.org>
 
@@ -78,17 +405,17 @@
 
 	Fix unstable fontification inside templates.
 
-	* progmodes/cc-langs.el (c-before-font-lock-functions): newly
-	created from the singular version.  The (c c++ objc) entry now
+	* progmodes/cc-langs.el (c-before-font-lock-functions):
+	Newly created from the singular version.  The (c c++ objc) entry now
 	additionally has c-set-fl-decl-start.  The other languages (apart
 	from AWK) have that as a single entry.
 
-	* progmodes/cc-fonts.el (c-font-lock-enclosing-decls): The
-	functionality for "local" declarations has been extracted to
+	* progmodes/cc-fonts.el (c-font-lock-enclosing-decls):
+	The functionality for "local" declarations has been extracted to
 	c-set-fl-decl-start.
 
-	* progmodes/cc-mode.el: (c-common-init, c-after-change): Changes
-	due to pluralisation of c-before-font-lock-functions.
+	* progmodes/cc-mode.el (c-common-init, c-after-change):
+	Changes due to pluralisation of c-before-font-lock-functions.
 	(c-set-fl-decl-start): New function, extracted from
 	c-font-lock-enclosing-decls and enhanced.
 
@@ -200,22 +527,19 @@
 
 	* progmodes/cc-langs (c-label-kwds): Let AWK take the same
 	expression as the rest.
-	(c-nonlabel-token-key): Allow string literals for AWK.  Refactor
-	for the other modes.
+	(c-nonlabel-token-key): Allow string literals for AWK.
+	Refactor for the other modes.
 
 	Large brace-block initialisation makes CC Mode slow: Fix.
-	Tidy up and accelerate c-in-literal, etc. by using the
-	c-parse-state
+	Tidy up and accelerate c-in-literal, etc. by using the c-parse-state
 	routines.  Limit backward searching in c-font-lock-enclosing.decl.
 
 	* progmodes/cc-engine.el (c-state-pp-to-literal): Return the
 	pp-state and literal type in addition to the limits.
-	(c-state-safe-place): New defun, extracted from
-	c-state-literal-at.
+	(c-state-safe-place): New defun, extracted from c-state-literal-at.
 	(c-state-literal-at): Use the above new defun.
-	(c-slow-in-literal, c-fast-in-literal): Removed.
-	(c-in-literal, c-literal-limits): Amended to use
-	c-state-pp-to-literal.
+	(c-slow-in-literal, c-fast-in-literal): Remove.
+	(c-in-literal, c-literal-limits): Amend to use c-state-pp-to-literal.
 
 	* progmodes/cc-fonts.el (c-font-lock-enclosing-decls): Check for
 	being in a literal.  Add a limit for backward searching.
@@ -289,8 +613,8 @@
 2011-12-10  Eli Zaretskii  <eliz@gnu.org>
 
 	* mail/rmailsum.el (rmail-header-summary): RFC2047 decode the
-	`from' or `to' address before taking its substring.  Fixes
-	incorrect display in Rmail summary buffer whereby an RFC2047
+	`from' or `to' address before taking its substring.
+	Fixes incorrect display in Rmail summary buffer whereby an RFC2047
 	encoded name is chopped in the middle of the encoded string, and
 	thus displayed encoded.
 
@@ -509,8 +833,8 @@
 	(verilog-uvm-statement-re): Support UVM indentation and
 	highlighting, with old OVM keywords only.
 	(verilog-auto-tieoff, verilog-auto-tieoff-declaration):
-	Support AUTOTIEOFF creating non-wire data types.  Suggested by Jonathan
-	Greenlaw.
+	Support AUTOTIEOFF creating non-wire data types.
+	Suggested by Jonathan Greenlaw.
 	(verilog-auto-insert-lisp, verilog-delete-to-paren)
 	(verilog-forward-sexp-cmt, verilog-forward-sexp-ign-cmt)
 	(verilog-inject-sense, verilog-read-inst-pins)
@@ -596,11 +920,11 @@
 	Andrew Drake.
 	(verilog-auto-star-safe, verilog-delete-auto-star-implicit)
 	(verilog-inst-comment-re): Fix not deleting Interfaced comment
-	when expanding .* in interfaces, bug320.  Reported by Pierre-David
-	Pfister.
+	when expanding .* in interfaces, bug320.
+	Reported by Pierre-David Pfister.
 	(verilog-read-module-name): Fix import statements between module
-	name and open parenthesis, bug317.  Reported by Pierre-David
-	Pfister.
+	name and open parenthesis, bug317.
+	Reported by Pierre-David Pfister.
 	(verilog-simplify-range-expression): Fix simplification of
 	multiplications inside AUTOWIRE connections, bug303.
 	(verilog-auto-inst-port): Support parameter expansion in
@@ -854,8 +1178,7 @@
 
 2011-11-19  Andreas Schwab  <schwab@linux-m68k.org>
 
-	* progmodes/sh-script.el (sh-assignment-regexp): Add entry for
-	bash.
+	* progmodes/sh-script.el (sh-assignment-regexp): Add entry for bash.
 
 2011-11-19  Juri Linkov  <juri@jurta.org>
 
@@ -980,8 +1303,7 @@
 
 	* window.el (window-resize, delete-window, split-window):
 	Replace window-splits by window-combination-resize.
-	* cus-start.el (window-splits): Replace by
-	window-combination-resize.
+	* cus-start.el (window-splits): Replace by window-combination-resize.
 
 2011-11-17  Glenn Morris  <rgm@gnu.org>
 
@@ -1046,8 +1368,7 @@
 	* window.el (split-window, window-state-get-1)
 	(window-state-put-1, window-state-put-2): Rename occurrences of
 	window-nest to window-combination-limit.
-	* cus-start.el (window-nest): Rename to
-	window-combination-limit.
+	* cus-start.el (window-nest): Rename to window-combination-limit.
 
 2011-11-16  Chong Yidong  <cyd@gnu.org>
 
@@ -1239,7 +1560,7 @@
 	(window-list-no-nils): Remove.
 	(window-state-get-1, window-state-get): Use backquote instead.
 
-2011-11-08  thierry  <thierry.volpiatto@gmail.com>
+2011-11-08  Thierry Volpiatto  <thierry.volpiatto@gmail.com>
 
 	* emacs-lisp/find-func.el (find-function-read):
 	Fix incorrect use of default argument in `completing-read'.
@@ -4389,7 +4710,7 @@
 
 	* printing.el: Add documentation to all the `pr-toggle-' commands.
 
-2011-07-11  Leo  <sdl.web@gmail.com>  (tiny change)
+2011-07-11  Leo Liu  <sdl.web@gmail.com>
 
 	* files.el (toggle-read-only): Only do the `C-x C-q' warning on VC
 	backends where it makes sense (bug#2623).
@@ -6973,7 +7294,7 @@
 2011-05-23  Kevin Ryde  <user42@zip.com.au>
 
 	* emacs-lisp/advice.el (ad-read-advised-function):
-	Use `function-called-at-point' as the default default, if it has
+	Use `function-called-at-point' as the default, if it has
 	advice and passes PREDICATE.
 
 2011-05-23  Stefan Monnier  <monnier@iro.umontreal.ca>
@@ -7799,7 +8120,7 @@
 	* net/gnutls.el (gnutls-negotiate): Add hostname, verify-flags,
 	verify-error, and verify-hostname-error parameters.  Check whether
 	default trustfile exists before going to use it.  Add missing
-	argument to gnutls-message-maybe call.  Return return value.
+	argument to gnutls-message-maybe call.  Return value.
 	Reported by Claudio Bley <claudio.bley@gmail.com>.
 	(open-gnutls-stream): Add usage example.
 
@@ -9423,7 +9744,7 @@
 	* calc/calc-menu.el (calc-units-menu): Add entries for logarithmic
 	units and musical notes.
 
-2011-03-20  Leo  <sdl.web@gmail.com>
+2011-03-20  Leo Liu  <sdl.web@gmail.com>
 
 	* ido.el (ido-read-internal): Use completing-read-default.
 	(ido-completing-read): Fix compatibility with completing-read.
@@ -9775,7 +10096,7 @@ See ChangeLog.15 for earlier changes.
 ;; coding: utf-8
 ;; End:
 
-  Copyright (C) 2011  Free Software Foundation, Inc.
+  Copyright (C) 2011-2012  Free Software Foundation, Inc.
 
   This file is part of GNU Emacs.
 

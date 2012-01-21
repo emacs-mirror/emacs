@@ -1,11 +1,10 @@
 ;;; ob-asymptote.el --- org-babel functions for asymptote evaluation
 
-;; Copyright (C) 2009-2011 Free Software Foundation, Inc.
+;; Copyright (C) 2009-2012 Free Software Foundation, Inc.
 
 ;; Author: Eric Schulte
 ;; Keywords: literate programming, reproducible research
 ;; Homepage: http://orgmode.org
-;; Version: 7.7
 
 ;; This file is part of GNU Emacs.
 
@@ -98,9 +97,8 @@ Asymptote does not support sessions"
 The elisp value PAIR is converted into Asymptote code specifying
 a variable of the same value."
   (let ((var (car pair))
-        (val (if (symbolp (cdr pair))
-                 (symbol-name (cdr pair))
-               (cdr pair))))
+        (val (let ((v (cdr pair)))
+	       (if (symbolp v) (symbol-name v) v))))
     (cond
      ((integerp val)
       (format "int %S=%S;" var val))
@@ -108,55 +106,42 @@ a variable of the same value."
       (format "real %S=%S;" var val))
      ((stringp val)
       (format "string %S=\"%s\";" var val))
+     ((and (listp val) (not (listp (car val))))
+      (let* ((type (org-babel-asymptote-define-type val))
+	     (fmt (if (eq 'string type) "\"%s\"" "%s"))
+	     (vect (mapconcat (lambda (e) (format fmt e)) val ", ")))
+	(format "%s[] %S={%s};" type var vect)))
      ((listp val)
-      (let* ((dimension-2-p (not (null (cdr val))))
-             (dim (if dimension-2-p "[][]" "[]"))
-             (type (org-babel-asymptote-define-type val))
-             (array (org-babel-asymptote-table-to-array
-                     val
-                     (if dimension-2-p '(:lstart "{" :lend "}," :llend "}")))))
-        (format "%S%s %S=%s;" type dim var array))))))
-
-(defun org-babel-asymptote-table-to-array (table params)
-  "Convert values of an elisp table into a string of an asymptote array.
-Empty cells are ignored."
-  (labels ((atom-to-string (table)
-                           (cond
-                            ((null table) '())
-                            ((not (listp (car table)))
-                             (cons (if (and (stringp (car table))
-                                            (not (string= (car table) "")))
-                                       (format "\"%s\"" (car table))
-                                     (format "%s" (car table)))
-                                   (atom-to-string (cdr table))))
-                            (t
-                             (cons (atom-to-string (car table))
-                                   (atom-to-string (cdr table))))))
-           ;; Remove any empty row
-           (fix-empty-lines (table)
-                            (delq nil (mapcar (lambda (l) (delq "" l)) table))))
-    (orgtbl-to-generic
-     (fix-empty-lines (atom-to-string table))
-     (org-combine-plists '(:hline nil :sep "," :tstart "{" :tend "}") params))))
+      (let* ((type (org-babel-asymptote-define-type val))
+	     (fmt (if (eq 'string type) "\"%s\"" "%s"))
+             (array (mapconcat (lambda (row)
+				 (concat "{"
+					 (mapconcat (lambda (e) (format fmt e))
+						    row ", ")
+					 "}"))
+			       val ",")))
+        (format "%S[][] %S={%s};" type var array))))))
 
 (defun org-babel-asymptote-define-type (data)
   "Determine type of DATA.
-DATA is a list. Type symbol is returned as 'symbol. The type is
-usually the type of the first atom encountered, except for arrays
-of int, where every cell must be of int type."
-  (labels ((anything-but-int (el)
-                             (cond
-                              ((null el) nil)
-                              ((not (listp (car el)))
-                               (cond
-                                ((floatp (car el)) 'real)
-                                ((stringp (car el)) 'string)
-                                (t
-                                 (anything-but-int (cdr el)))))
-                              (t
-                               (or (anything-but-int (car el))
-                                   (anything-but-int (cdr el)))))))
-    (or (anything-but-int data) 'int)))
+
+DATA is a list.  Return type as a symbol.
+
+The type is `string' if any element in DATA is
+a string. Otherwise, it is either `real', if some elements are
+floats, or `int'."
+  (let* ((type 'int)
+	 find-type			; for byte-compiler
+	 (find-type
+	  (function
+	   (lambda (row)
+	     (catch 'exit
+	       (mapc (lambda (el)
+		       (cond ((listp el) (funcall find-type el))
+			     ((stringp el) (throw 'exit (setq type 'string)))
+			     ((floatp el) (setq type 'real))))
+		     row))))))
+    (funcall find-type data) type))
 
 (provide 'ob-asymptote)
 

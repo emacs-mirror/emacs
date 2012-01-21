@@ -1,6 +1,6 @@
 ;;; rlogin.el --- remote login interface
 
-;; Copyright (C) 1992-1995, 1997-1998, 2001-2011
+;; Copyright (C) 1992-1995, 1997-1998, 2001-2012
 ;;   Free Software Foundation, Inc.
 
 ;; Author: Noah Friedman

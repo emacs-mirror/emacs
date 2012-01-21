@@ -1,6 +1,6 @@
 ;;; isearch.el --- incremental search minor mode
 
-;; Copyright (C) 1992-1997, 1999-2011  Free Software Foundation, Inc.
+;; Copyright (C) 1992-1997, 1999-2012  Free Software Foundation, Inc.
 
 ;; Author: Daniel LaLiberte <liberte@cs.uiuc.edu>
 ;; Maintainer: FSF
@@ -102,7 +102,7 @@ in Isearch mode is always downcased."
   :group 'isearch)
 
 (defcustom search-nonincremental-instead t
-  "If non-nil, do a nonincremental search instead if exiting immediately.
+  "If non-nil, do a nonincremental search instead of exiting immediately.
 Actually, `isearch-edit-string' is called to let you enter the search
 string, and RET terminates editing and does a nonincremental search."
   :type 'boolean

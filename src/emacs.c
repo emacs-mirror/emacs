@@ -1,6 +1,6 @@
 /* Fully extensible Emacs, running on Unix, intended for GNU.
 
-Copyright (C) 1985-1987, 1993-1995, 1997-1999, 2001-2011
+Copyright (C) 1985-1987, 1993-1995, 1997-1999, 2001-2012
   Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
@@ -98,7 +98,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #endif
 
 static const char emacs_version[] = VERSION;
-static const char emacs_copyright[] = "Copyright (C) 2011 Free Software Foundation, Inc.";
+static const char emacs_copyright[] = "Copyright (C) 2012 Free Software Foundation, Inc.";
 
 /* Make these values available in GDB, which doesn't see macros.  */
 
@@ -2480,9 +2480,11 @@ The value is nil if that directory's name is not known.  */);
 
   DEFVAR_LISP ("installation-directory", Vinstallation_directory,
 	       doc: /* A directory within which to look for the `lib-src' and `etc' directories.
-This is non-nil when we can't find those directories in their standard
-installed locations, but we can find them near where the Emacs executable
-was found.  */);
+In an installed Emacs, this is normally nil.  It is non-nil if
+both `lib-src' (on MS-DOS, `info') and `etc' directories are found
+within the variable `invocation-directory' or its parent.  For example,
+this is the case when running an uninstalled Emacs executable from its
+build directory.  */);
   Vinstallation_directory = Qnil;
 
   DEFVAR_LISP ("system-messages-locale", Vsystem_messages_locale,

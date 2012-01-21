@@ -1,6 +1,6 @@
 ;;; hippie-exp.el --- expand text trying various ways to find its expansion
 
-;; Copyright (C) 1992, 2001-2011  Free Software Foundation, Inc.
+;; Copyright (C) 1992, 2001-2012  Free Software Foundation, Inc.
 
 ;; Author: Anders Holst <aho@sans.kth.se>
 ;; Last change: 3 March 1998

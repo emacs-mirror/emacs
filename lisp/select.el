@@ -1,6 +1,6 @@
 ;;; select.el --- lisp portion of standard selection support
 
-;; Copyright (C) 1993-1994, 2001-2011  Free Software Foundation, Inc.
+;; Copyright (C) 1993-1994, 2001-2012  Free Software Foundation, Inc.
 
 ;; Maintainer: FSF
 ;; Keywords: internal
@@ -106,7 +106,7 @@ in `selection-converter-alist', which see."
 			     ((eq data-type 'STRING)
 			      'iso-8859-1)
 			     (t
-			      (error "Unknow selection data type: %S" type))))
+			      (error "Unknown selection data type: %S" type))))
 	    data (if coding (decode-coding-string data coding)
 		   (string-to-multibyte data)))
       (setq next-selection-coding-system nil)

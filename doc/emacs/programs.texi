@@ -1,5 +1,5 @@
 @c This is part of the Emacs manual.
-@c Copyright (C) 1985-1987, 1993-1995, 1997, 1999-2011
+@c Copyright (C) 1985-1987, 1993-1995, 1997, 1999-2012
 @c   Free Software Foundation, Inc.
 @c See file emacs.texi for copying conditions.
 @node Programs, Building, Text, Top
@@ -952,7 +952,7 @@ comment text.
 comment on the current line, along with the whitespace before it.
 Since the comment is saved to the kill ring, you can reinsert it on
 another line by moving to the end of that line, doing @kbd{C-y}, and
-then @kbd{M-;} to realign the command.  You can achieve the same
+then @kbd{M-;} to realign the comment.  You can achieve the same
 effect as @kbd{C-u M-;} by typing @kbd{M-x comment-kill}
 (@code{comment-dwim} actually calls @code{comment-kill} as a
 subroutine when it is given a prefix argument).

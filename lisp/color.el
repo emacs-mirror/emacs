@@ -1,6 +1,6 @@
 ;;; color.el --- Color manipulation library -*- coding: utf-8; -*-
 
-;; Copyright (C) 2010-2011 Free Software Foundation, Inc.
+;; Copyright (C) 2010-2012 Free Software Foundation, Inc.
 
 ;; Authors: Julien Danjou <julien@danjou.info>
 ;;          Drew Adams <drew.adams@oracle.com>
@@ -53,7 +53,10 @@ numbers, (RED GREEN BLUE), each between 0.0 and 1.0 inclusive.
 Optional arg FRAME specifies the frame where the color is to be
 displayed.  If FRAME is omitted or nil, use the selected frame.
 If FRAME cannot display COLOR, return nil."
-  (mapcar (lambda (x) (/ x 65535.0)) (color-values color frame)))
+  ;; `colors-values' maximum value is either 65535 or 65280 depending on the
+  ;; display system. So we use a white conversion to get the max value.
+  (let ((valmax (float (car (color-values "#ffffff")))))
+    (mapcar (lambda (x) (/ x valmax)) (color-values color frame))))
 
 (defun color-rgb-to-hex  (red green blue)
   "Return hexadecimal notation for the color RED GREEN BLUE.

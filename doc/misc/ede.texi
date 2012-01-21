@@ -5,7 +5,7 @@
 @copying
 This file describes EDE, the Emacs Development Environment.
 
-Copyright @copyright{} 1998-2001, 2004-2005, 2008-2011  Free Software Foundation, Inc.
+Copyright @copyright{} 1998-2001, 2004-2005, 2008-2012  Free Software Foundation, Inc.
 
 @quotation
 Permission is granted to copy, distribute and/or modify this document
@@ -1588,7 +1588,7 @@ Argument @var{PROJ} is the project to save.
 @end deffn
 
 @deffn Method ede-proj-configure-recreate :AFTER this
-Delete project @var{THIS}es configure script and start over.
+Delete project @var{THIS}'s configure script and start over.
 @end deffn
 
 @deffn Method ede-proj-makefile-insert-user-rules :AFTER this

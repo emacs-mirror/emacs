@@ -1,6 +1,6 @@
 ;;; gnus-msg.el --- mail and post interface for Gnus
 
-;; Copyright (C) 1995-2011  Free Software Foundation, Inc.
+;; Copyright (C) 1995-2012  Free Software Foundation, Inc.
 
 ;; Author: Masanobu UMEDA <umerin@flab.flab.fujitsu.junet>
 ;;	Lars Magne Ingebrigtsen <larsi@gnus.org>
@@ -1129,7 +1129,7 @@ If VERY-WIDE, make a very wide reply."
 	    (insert headers))
 	  (goto-char (point-max)))
 	(mml-quote-region (point) (point-max))
-	(message-reply nil wide 'switch-to-buffer)
+	(message-reply nil wide)
 	(when yank
 	  (gnus-inews-yank-articles yank))
 	(gnus-summary-handle-replysign)))))

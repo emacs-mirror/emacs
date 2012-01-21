@@ -99,7 +99,7 @@ names of the people who have checked it.
 
 SECTION                  READERS
 ----------------------------------
-TUTORIAL             
+TUTORIAL             cyd
 TUTORIAL.bg          
 TUTORIAL.cn
 TUTORIAL.cs          
@@ -107,7 +107,7 @@ TUTORIAL.de
 TUTORIAL.eo
 TUTORIAL.es          
 TUTORIAL.fr          
-TUTORIAL.he
+TUTORIAL.he          eliz
 TUTORIAL.it          
 TUTORIAL.ja		 
 TUTORIAL.ko
@@ -117,7 +117,7 @@ TUTORIAL.pt_BR
 TUTORIAL.ro
 TUTORIAL.ru          
 TUTORIAL.sk          
-TUTORIAL.sl          
+TUTORIAL.sl          Primoz PETERLIN
 TUTORIAL.sv          
 TUTORIAL.th          
 TUTORIAL.zh
@@ -133,9 +133,9 @@ buffers.texi      cyd
 building.texi     cyd
 calendar.texi     
 cal-xtra.texi     
-cmdargs.texi      
+cmdargs.texi      cyd
 commands.texi     cyd
-custom.texi       
+custom.texi       cyd
 dired.texi        cyd
 dired-xtra.texi
 display.texi      cyd
@@ -144,7 +144,7 @@ emacs-xtra.texi
 emerge-xtra.texi
 entering.texi     cyd
 files.texi        cyd
-fixit.texi        
+fixit.texi        cyd
 fortran-xtra.texi 
 frames.texi       cyd
 glossary.texi
@@ -154,28 +154,28 @@ killing.texi      cyd
 kmacro.texi       cyd
 macos.texi        
 maintaining.texi  cyd
-major.texi        
 mark.texi         cyd
 mini.texi         
-misc.texi         
+misc.texi         cyd
 modes.texi        cyd
 msdog.texi        
 msdog-xtra.texi   
 mule.texi         
 m-x.texi          cyd
+package.texi      cyd
 picture-xtra.texi
 programs.texi     cyd
 regs.texi         cyd
 rmail.texi        
 screen.texi       cyd
 search.texi       cyd
-sending.texi      
+sending.texi      cyd
 text.texi         cyd
-trouble.texi      
+trouble.texi      cyd
 vc-xtra.texi      cyd
 vc1-xtra.texi     cyd
 windows.texi      cyd
-xresources.texi   
+xresources.texi   cyd
 
 ** Check the Lisp manual.
 
@@ -203,7 +203,7 @@ help.texi
 hooks.texi        
 index.texi
 internals.texi    
-intro.texi        
+intro.texi        cyd
 keymaps.texi      
 lists.texi        
 loading.texi      

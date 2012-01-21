@@ -1,5 +1,5 @@
 /* Utility and Unix shadow routines for GNU Emacs on the Microsoft W32 API.
-   Copyright (C) 1994-1995, 2000-2011  Free Software Foundation, Inc.
+   Copyright (C) 1994-1995, 2000-2012  Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -2894,6 +2894,8 @@ sys_rename (const char * oldname, const char * newname)
 {
   BOOL result;
   char temp[MAX_PATH];
+  int newname_dev;
+  int oldname_dev;
 
   /* MoveFile on Windows 95 doesn't correctly change the short file name
      alias in a number of circumstances (it is not easy to predict when
@@ -2909,6 +2911,9 @@ sys_rename (const char * oldname, const char * newname)
      the temp name has a long extension to ensure correct renaming.  */
 
   strcpy (temp, map_w32_filename (oldname, NULL));
+
+  /* volume_info is set indirectly by map_w32_filename.  */
+  oldname_dev = volume_info.serialnum;
 
   if (os_subtype == OS_WIN95)
     {
@@ -2953,13 +2958,38 @@ sys_rename (const char * oldname, const char * newname)
      all the permutations of shared or subst'd drives, etc.)  */
 
   newname = map_w32_filename (newname, NULL);
+
+  /* volume_info is set indirectly by map_w32_filename.  */
+  newname_dev = volume_info.serialnum;
+
   result = rename (temp, newname);
 
-  if (result < 0
-      && errno == EEXIST
-      && _chmod (newname, 0666) == 0
-      && _unlink (newname) == 0)
-    result = rename (temp, newname);
+  if (result < 0)
+    {
+
+      if (errno == EACCES
+	  && newname_dev != oldname_dev)
+	{
+	  /* The implementation of `rename' on Windows does not return
+	     errno = EXDEV when you are moving a directory to a
+	     different storage device (ex. logical disk).  It returns
+	     EACCES instead.  So here we handle such situations and
+	     return EXDEV.  */
+	  DWORD attributes;
+
+	  if ((attributes = GetFileAttributes (temp)) != -1
+	      && attributes & FILE_ATTRIBUTE_DIRECTORY)
+	    errno = EXDEV;
+	}
+      else if (errno == EEXIST)
+	{
+	  if (_chmod (newname, 0666) != 0)
+	    return result;
+	  if (_unlink (newname) != 0)
+	    return result;
+	  result = rename (temp, newname);
+	}
+    }
 
   return result;
 }

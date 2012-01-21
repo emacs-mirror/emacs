@@ -1,6 +1,6 @@
 ;;; semantic/mru-bookmark.el --- Automatic bookmark tracking
 
-;; Copyright (C) 2007-2011 Free Software Foundation, Inc.
+;; Copyright (C) 2007-2012 Free Software Foundation, Inc.
 
 ;; Author: Eric M. Ludlam <eric@siege-engine.com>
 
@@ -363,7 +363,7 @@ Argument PROMPT is the prompt to use when reading."
       (setq ans (assoc ans alist))
       (if ans
 	  (cdr ans)
-	;; no match.  Custom word.  Look it up somwhere?
+	;; no match.  Custom word.  Look it up somewhere?
 	nil)
       )))
 

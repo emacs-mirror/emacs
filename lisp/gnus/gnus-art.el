@@ -1,6 +1,6 @@
 ;;; gnus-art.el --- article mode commands for Gnus
 
-;; Copyright (C) 1996-2011 Free Software Foundation, Inc.
+;; Copyright (C) 1996-2012 Free Software Foundation, Inc.
 
 ;; Author: Lars Magne Ingebrigtsen <larsi@gnus.org>
 ;; Keywords: news
@@ -2785,10 +2785,11 @@ summary buffer."
 	       (or how (setq how gnus-article-browse-delete-temp))
 	       (if (eq how 'ask)
 		   (let ((files (length gnus-article-browse-html-temp-list)))
-		     (gnus-y-or-n-p (format
-				     "Delete all %s temporary HTML file%s? "
-				     files
-				     (if (> files 1) "s" ""))))
+		     (gnus-y-or-n-p
+		      (if (= files 1)
+			  "Delete the temporary HTML file? "
+			(format "Delete all %s temporary HTML files? "
+				files))))
 		 how)))
     (dolist (file gnus-article-browse-html-temp-list)
       (cond ((file-directory-p file)
@@ -3239,9 +3240,16 @@ always hide."
 Point is left at the beginning of the narrowed-to region."
   (narrow-to-region
    (goto-char (point-min))
-   (if (search-forward "\n\n" nil 1)
-       (1- (point))
-     (point-max)))
+   (cond
+    ;; Absolutely no headers displayed.
+    ((looking-at "\n")
+     (point))
+    ;; Normal headers.
+    ((search-forward "\n\n" nil 1)
+     (1- (point)))
+    ;; Nothing but headers.
+    (t
+     (point-max))))
   (goto-char (point-min)))
 
 (defun article-goto-body ()

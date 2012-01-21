@@ -1,11 +1,10 @@
 ;;; ob-sql.el --- org-babel functions for sql evaluation
 
-;; Copyright (C) 2009-2011  Free Software Foundation, Inc.
+;; Copyright (C) 2009-2012  Free Software Foundation, Inc.
 
 ;; Author: Eric Schulte
 ;; Keywords: literate programming, reproducible research
 ;; Homepage: http://orgmode.org
-;; Version: 7.7
 
 ;; This file is part of GNU Emacs.
 
@@ -32,7 +31,7 @@
 ;;
 ;; Also SQL evaluation generally takes place inside of a database.
 ;;
-;; For now let's just allow a generic ':cmdline' header argument.
+;; For now lets just allow a generic ':cmdline' header argument.
 ;;
 ;; TODO:
 ;;
@@ -50,6 +49,9 @@
 (declare-function orgtbl-to-csv "org-table" (TABLE PARAMS))
 
 (defvar org-babel-default-header-args:sql '())
+
+(defvar org-babel-header-arg-names:sql
+  '(engine out-file))
 
 (defun org-babel-expand-body:sql (body params)
   "Expand BODY according to the values of PARAMS."
@@ -85,31 +87,38 @@ This function is called by `org-babel-execute-src-block'."
       (insert (org-babel-expand-body:sql body params)))
     (message command)
     (shell-command command)
-    (with-temp-buffer
-      ;; need to figure out what the delimiter is for the header row
+    (if (or (member "scalar" result-params)
+	    (member "verbatim" result-params)
+	    (member "html" result-params)
+	    (member "code" result-params)
+	    (equal (point-min) (point-max)))
+	(with-temp-buffer
+	  (progn (insert-file-contents-literally out-file) (buffer-string)))
       (with-temp-buffer
-        (insert-file-contents out-file)
-        (goto-char (point-min))
-        (when (re-search-forward "^\\(-+\\)[^-]" nil t)
-          (setq header-delim (match-string-no-properties 1)))
-        (goto-char (point-max))
-        (forward-char -1)
-        (while (looking-at "\n")
-          (delete-char 1)
-          (goto-char (point-max))
-          (forward-char -1))
-        (write-file out-file))
-      (org-table-import out-file '(16))
-      (org-babel-reassemble-table
-       (mapcar (lambda (x)
-                 (if (string= (car x) header-delim)
-                     'hline
-                   x))
-               (org-table-to-lisp))
-       (org-babel-pick-name (cdr (assoc :colname-names params))
-			    (cdr (assoc :colnames params)))
-       (org-babel-pick-name (cdr (assoc :rowname-names params))
-			    (cdr (assoc :rownames params)))))))
+	;; need to figure out what the delimiter is for the header row
+	(with-temp-buffer
+	  (insert-file-contents out-file)
+	  (goto-char (point-min))
+	  (when (re-search-forward "^\\(-+\\)[^-]" nil t)
+	    (setq header-delim (match-string-no-properties 1)))
+	  (goto-char (point-max))
+	  (forward-char -1)
+	  (while (looking-at "\n")
+	    (delete-char 1)
+	    (goto-char (point-max))
+	    (forward-char -1))
+	  (write-file out-file))
+	(org-table-import out-file '(16))
+	(org-babel-reassemble-table
+	 (mapcar (lambda (x)
+		   (if (string= (car x) header-delim)
+		       'hline
+		     x))
+		 (org-table-to-lisp))
+	 (org-babel-pick-name (cdr (assoc :colname-names params))
+			      (cdr (assoc :colnames params)))
+	 (org-babel-pick-name (cdr (assoc :rowname-names params))
+			      (cdr (assoc :rownames params))))))))
 
 (defun org-babel-sql-expand-vars (body vars)
   "Expand the variables held in VARS in BODY."

@@ -1,6 +1,6 @@
 ;;; semantic/analyze/fcn.el --- Analyzer support functions.
 
-;; Copyright (C) 2007-2011 Free Software Foundation, Inc.
+;; Copyright (C) 2007-2012 Free Software Foundation, Inc.
 
 ;; Author: Eric M. Ludlam <zappo@gnu.org>
 

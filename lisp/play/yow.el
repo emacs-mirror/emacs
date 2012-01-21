@@ -1,6 +1,6 @@
 ;;; yow.el --- quote random zippyisms
 
-;; Copyright (C) 1993-1995, 2000-2011  Free Software Foundation, Inc.
+;; Copyright (C) 1993-1995, 2000-2012  Free Software Foundation, Inc.
 
 ;; Maintainer: FSF
 ;; Author: Richard Mlynarik

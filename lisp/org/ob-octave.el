@@ -1,11 +1,10 @@
 ;;; ob-octave.el --- org-babel functions for octave and matlab evaluation
 
-;; Copyright (C) 2010-2011  Free Software Foundation, Inc.
+;; Copyright (C) 2010-2012  Free Software Foundation, Inc.
 
 ;; Author: Dan Davison
 ;; Keywords: literate programming, reproducible research
 ;; Homepage: http://orgmode.org
-;; Version: 7.7
 
 ;; This file is part of GNU Emacs.
 
@@ -87,13 +86,24 @@ end")
 	  (org-babel-expand-body:generic
 	   body params (org-babel-variable-assignments:octave params)))
 	 (result (org-babel-octave-evaluate
-		  session full-body result-type matlabp)))
-    (org-babel-reassemble-table
-     result
-     (org-babel-pick-name
-      (cdr (assoc :colname-names params)) (cdr (assoc :colnames params)))
-     (org-babel-pick-name
-      (cdr (assoc :rowname-names params)) (cdr (assoc :rownames params))))))
+		  session
+		  (if (org-babel-octave-graphical-output-file params)
+		      (mapconcat 'identity
+				 (list
+				  "set (0, \"defaultfigurevisible\", \"off\");"
+				  full-body
+				  (format "print -dpng %s" (org-babel-octave-graphical-output-file params)))
+				 "\n")
+		    full-body)
+		  result-type matlabp)))
+    (if (org-babel-octave-graphical-output-file params)
+	nil
+      (org-babel-reassemble-table
+       result
+       (org-babel-pick-name
+	(cdr (assoc :colname-names params)) (cdr (assoc :colnames params)))
+       (org-babel-pick-name
+	(cdr (assoc :rowname-names params)) (cdr (assoc :rownames params)))))))
 
 (defun org-babel-prep-session:matlab (session params)
   "Prepare SESSION according to PARAMS."
@@ -118,7 +128,11 @@ specifying a variable of the same value."
   (if (listp var)
       (concat "[" (mapconcat #'org-babel-octave-var-to-octave var
 			     (if (listp (car var)) "; " ",")) "]")
-    (format "%s" (or var "nil"))))
+    (cond
+     ((stringp var)
+      (format "\'%s\'" var))
+     (t
+      (format "%s" var)))))
 
 (defun org-babel-prep-session:octave (session params &optional matlabp)
   "Prepare SESSION according to the header arguments specified in PARAMS."
@@ -255,6 +269,11 @@ This removes initial blank and comment lines and then calls
   (if (string-match "^\"\\([^\000]+\\)\"$" string)
       (match-string 1 string)
     string))
+
+(defun org-babel-octave-graphical-output-file (params)
+  "Name of file to which maxima should send graphical output."
+  (and (member "graphics" (cdr (assq :result-params params)))
+       (cdr (assq :file params))))
 
 (provide 'ob-octave)
 

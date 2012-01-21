@@ -1,5 +1,5 @@
 /* Convert files for Emacs Hexl mode.
-   Copyright (C) 1989, 2001-2011  Free Software Foundation, Inc.
+   Copyright (C) 1989, 2001-2012  Free Software Foundation, Inc.
 
 Author: Keith Gabryelski
 (according to authors.el)

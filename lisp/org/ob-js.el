@@ -1,11 +1,10 @@
 ;;; ob-js.el --- org-babel functions for Javascript
 
-;; Copyright (C) 2010-2011 Free Software Foundation
+;; Copyright (C) 2010-2012 Free Software Foundation, Inc.
 
 ;; Author: Eric Schulte
 ;; Keywords: literate programming, reproducible research, js
 ;; Homepage: http://orgmode.org
-;; Version: 7.7
 
 ;; This file is part of GNU Emacs.
 

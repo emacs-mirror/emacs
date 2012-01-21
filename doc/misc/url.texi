@@ -20,7 +20,7 @@
 @copying
 This file documents the Emacs Lisp URL loading package.
 
-Copyright @copyright{} 1993-1999, 2002, 2004-2011 Free Software Foundation, Inc.
+Copyright @copyright{} 1993-1999, 2002, 2004-2012 Free Software Foundation, Inc.
 
 @quotation
 Permission is granted to copy, distribute and/or modify this document

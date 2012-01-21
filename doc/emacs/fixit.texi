@@ -1,5 +1,5 @@
 @c This is part of the Emacs manual.
-@c Copyright (C) 1985-1987, 1993-1995, 1997, 2001-2011
+@c Copyright (C) 1985-1987, 1993-1995, 1997, 2001-2012
 @c   Free Software Foundation, Inc.
 @c See file emacs.texi for copying conditions.
 @node Fixit, Keyboard Macros, Search, Top
@@ -356,7 +356,7 @@ Show the list of options.
   In Text mode and related modes, @kbd{M-@key{TAB}}
 (@code{ispell-complete-word}) performs in-buffer completion based on
 spelling correction.  Insert the beginning of a word, and then type
-@kbd{M-@key{TAB}}; this shows shows a list of completions.  (If your
+@kbd{M-@key{TAB}}; this shows a list of completions.  (If your
 window manager intercepts @kbd{M-@key{TAB}}, type @kbd{@key{ESC}
 @key{TAB}} or @kbd{C-M-i}.)  Each completion is listed with a digit or
 character; type that digit or character to choose it.

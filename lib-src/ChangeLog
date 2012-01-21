@@ -1,3 +1,9 @@
+2012-01-05  Glenn Morris  <rgm@gnu.org>
+
+	* ebrowse.c (version) <emacs_copyright>:
+	* etags.c (print_version) <emacs_copyright>:
+	* rcs2log (Copyright): Update short copyright year to 2012.
+
 2011-12-25  Andreas Schwab  <schwab@linux-m68k.org>
 
 	* etags.c (C_entries): Properly skip over string and character
@@ -7930,7 +7936,7 @@
 ;; coding: utf-8
 ;; End:
 
-  Copyright (C) 1988-1999, 2001-2011 Free Software Foundation, Inc.
+  Copyright (C) 1988-1999, 2001-2012 Free Software Foundation, Inc.
 
   This file is part of GNU Emacs.
 

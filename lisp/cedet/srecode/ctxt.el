@@ -1,6 +1,6 @@
 ;;; srecode/ctxt.el --- Derive a context from the source buffer.
 
-;; Copyright (C) 2007-2011 Free Software Foundation, Inc.
+;; Copyright (C) 2007-2012 Free Software Foundation, Inc.
 
 ;; Author: Eric M. Ludlam <eric@siege-engine.com>
 
@@ -41,7 +41,7 @@
 (define-overload srecode-calculate-context ()
   "Calculate the context at the current point.
 The returned context is a list, with the top-most context first.
-Each returned context is a string that that would show up in a `context'
+Each returned context is a string that would show up in a `context'
 statement in an `.srt' file.
 
 Some useful context values used by the provided srecode templates are:

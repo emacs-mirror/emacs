@@ -1,6 +1,6 @@
 ;;; wisent-grammar.el --- Wisent's input grammar mode
 
-;; Copyright (C) 2002-2011 Free Software Foundation, Inc.
+;; Copyright (C) 2002-2012 Free Software Foundation, Inc.
 ;;
 ;; Author: David Ponce <david@dponce.com>
 ;; Maintainer: David Ponce <david@dponce.com>
@@ -470,13 +470,13 @@ Menu items are appended to the common grammar menu.")
      "srecode/srt-wy")
     ("wisent-javascript-jv-wy.el"
      "semantic/wisent/js-wy"
-     "Copyright (C) 1998-2011 Ecma International"
+     "Copyright (C) 1998-2011 Ecma International."
      ,wisent-make-parsers--ecmascript-license)
     ("wisent-java-tags-wy.el"
      "semantic/wisent/javat-wy")
     ("wisent-python-wy.el"
      "semantic/wisent/python-wy"
-     "Copyright (C) 2001-2010 Python Software Foundation"
+     "Copyright (c) 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010 Python Software Foundation; All Rights Reserved."
      ,wisent-make-parsers--python-license)))
 
 (defun wisent-make-parsers ()

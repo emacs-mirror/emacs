@@ -1,3 +1,164 @@
+2012-01-16  Volker Sobek  <reklov@live.com>  (tiny change)
+
+	* programs.texi (Comment Commands): Typo (bug#10514).
+
+2012-01-15  Chong Yidong  <cyd@gnu.org>
+
+	* xresources.texi (X Resources): Describe GTK+ case first.
+	(Resources): Don't use borderWidth as an example, since it doesn't
+	work with GTK+.
+	(Table of Resources): Clarify role of several resources, including
+	the Emacs 24 behavior of cursorBlink etc.
+	(Face Resources): Node deleted.  Recommend using Customize
+	instead.  Add paragraph to `Table of Resources' node summarizing
+	how to use X resources for changing faces.
+	(Lucid Resources): Rewrite, omitting description of font names,
+	referring to the Fonts node instead.
+	(LessTif Resources): Copyedits.
+	(GTK resources): Rewrite, describing the difference between gtk2
+	and gtk3.
+	(GTK Resource Basics): New node.
+	(GTK Widget Names, GTK Names in Emacs): Rewrite.
+	(GTK styles): Just refer to Fonts node for GTK font format.
+
+	* display.texi (Faces): Document the cursor face.
+
+2012-01-14  Chong Yidong  <cyd@gnu.org>
+
+	* cmdargs.texi (Action Arguments): No need to mention EMACSLOADPATH.
+	(General Variables): Add xref to Lisp Libraries.
+	(Initial Options): Copyedits.
+	(Resume Arguments): Node deleted; emacs.bash/csh are obsolete.
+	(Environment): Clarify what getenv does.
+	(General Variables): Clarify EMACSPATH etc.  Emacs does not assume
+	light backgrounds on xterms.
+	(Misc Variables): TEMP and TMP are not Windows-specific.
+	(Display X): Copyedits.
+	(Colors X): -bd does nothing for GTK.
+	(Icons X): Gnome 3 doesn't use taskbars.
+
+	* misc.texi (Shell): Document exec-path here.
+
+	* rmail.texi (Movemail): Add xref for exec-path.
+
+2012-01-13  Glenn Morris  <rgm@gnu.org>
+
+	* dired.texi (Dired and Find): Clarify find-ls-options.
+
+2012-01-09  Chong Yidong  <cyd@gnu.org>
+
+	* custom.texi (Custom Themes): Switched custom-safe-themes to use
+	SHA-256.
+
+2012-01-07  Chong Yidong  <cyd@gnu.org>
+
+	* display.texi (Useless Whitespace): Add Whitespace mode.
+
+	* custom.texi (Hooks): Discuss how to disable minor modes.
+
+	* files.texi (Diff Mode): Discuss diff-auto-refine-mode
+	(Bug#10309).  Discuss use of Whitespace mode (Bug#10300).
+
+	* trouble.texi (Lossage): Refer to Bugs node for problems.
+	(DEL Does Not Delete): Don't use "usual erasure key" teminology.
+	(Screen Garbled): Don't refer to terminal "manufacturers".
+	(Total Frustration): Node deleted.  Eliza is documented in
+	Amusements now.
+	(Known Problems): More info about using the bug tracker.  Mention
+	debbugs package.
+	(Bug Criteria): Copyedits.
+	(Understanding Bug Reporting): Mention emacs -Q.
+
+2012-01-06  Chong Yidong  <cyd@gnu.org>
+
+	* custom.texi (Specifying File Variables): The mode: keyword
+	doesn't have to be first anymore.  Add example of specifying minor
+	modes.
+	(Directory Variables): Simplify example.  Mention application to
+	non-file buffers.
+	(Disabling): Use "initialization file" terminology.
+	(Init Examples): Fix hook example.
+
+2012-01-06  Eli Zaretskii  <eliz@gnu.org>
+
+	* cmdargs.texi (MS-Windows Registry): Shorten the index entry.
+	(Bug#10422)
+	Move the stuff about resources to xresources.texi.
+
+	* xresources.texi (Resources): Move information about setting X
+	resources in the Registry from cmdargs.texi.  Make the index entry
+	be similar to the one in cmdargs.texi.
+
+2012-01-05  Chong Yidong  <cyd@gnu.org>
+
+	* custom.texi (Customization Groups): Update example.
+	(Browsing Custom): Document the new search field.
+	(Changing a Variable): Update example for Emacs 24 changes.
+	Document Custom-set and Custom-save commands.
+	(Face Customization): Document Emacs 24 changes.  De-document
+	modify-face.
+	(Specific Customization): Mention customize-variable.
+	(Custom Themes): Add customize-themes, custom-theme-load-path,
+	custom-theme-directory, and describe-theme.
+	(Creating Custom Themes): New node.
+	(Examining): Mention M-:.
+
+	* package.texi (Packages): Fix typo.
+
+2012-01-03  Chong Yidong  <cyd@gnu.org>
+
+	* misc.texi (Single Shell): Don't document Lisp usage of
+	shell-command.  Tidy up discussion of synchronicity.  Add index
+	entries for async-shell-command.
+	(Interactive Shell): Note that M-x shell uses shell-file-name.
+	Note change in behavior in Emacs 24.
+	(Shell Mode): Shell mode now uses completion-at-point.
+	(Shell Prompts): Emphasize that comint-use-prompt-regexp isn't the
+	default method for recognizing prompts nowadays.
+	(Shell Ring): Add xref to Minibuffer History.
+	(Directory Tracking): Explain Dirtrack mode in more detail.
+	(Term Mode): Fix index entries.
+	(Paging in Term): Merge into Term Mode.
+	(Serial Terminal, Emacs Server, emacsclient Options): Copyedits.
+	(Printing): Fix xref.  State default of lpr-switches.
+	(PostScript): Remove obsolete sentence.  Omit description of
+	non-interactive behaviors.
+	(Hyperlinking): Improve description.
+	(Browse-URL): Using compose-mail for mailto URLs is the default.
+	Document browse-url-mailto-function.
+	(Goto Address mode): Add index entries.  Add xref to Browse-URL.
+	(FFAP): FFAP is not a minor mode.
+	(Amusements): M-x lm was renamed to M-x landmark.  Document
+	nato-region.
+
+2012-01-01  Chong Yidong  <cyd@gnu.org>
+
+	* misc.texi (Gnus, Buffers of Gnus): Copyedits.
+	(Gnus Startup): Note that the system might not be set up for news.
+	Describe group levels more clearly.
+	(Gnus Group Buffer, Gnus Summary Buffer): New nodes, split from
+	Summary of Gnus.
+	(Document View): Copyedits.  Move zoom commads to DocView
+	Navigation node.
+	(DocView Navigation, DocView Searching, DocView Slicing)
+	(DocView Conversion): Nodes renamed from Navigation, etc.
+
+	* sending.texi (Mail Sending): Add message-kill-buffer-on-exit.
+
+2011-12-31  Eli Zaretskii  <eliz@gnu.org>
+
+	* basic.texi (Moving Point): Fix the description of C-n and C-p.
+	(Bug#10380)
+
+2011-12-30  Chong Yidong  <cyd@gnu.org>
+
+	* sending.texi (Sending Mail): Document initial mail buffer name,
+	and changed multiple mail buffer behavior.
+	(Mail Format): Put the example at the top of the section.
+	(Mail Headers): Move discussion of "From" to the top.
+	(Mail Sending): Document sendmail-query-once.
+	(Citing Mail): Make it less Rmail-specific.
+
 2011-12-29  Chong Yidong  <cyd@gnu.org>
 
 	* text.texi (Org Mode): Copyedits.  Refer to Outline Format for
@@ -8689,7 +8850,7 @@
 ;; coding: utf-8
 ;; End:
 
-  Copyright (C) 1993-1999, 2001-2011  Free Software Foundation, Inc.
+  Copyright (C) 1993-1999, 2001-2012  Free Software Foundation, Inc.
 
   This file is part of GNU Emacs.
 

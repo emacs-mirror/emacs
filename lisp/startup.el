@@ -1,6 +1,6 @@
 ;;; startup.el --- process Emacs shell arguments  -*- lexical-binding: t -*-
 
-;; Copyright (C) 1985-1986, 1992, 1994-2011  Free Software Foundation, Inc.
+;; Copyright (C) 1985-1986, 1992, 1994-2012  Free Software Foundation, Inc.
 
 ;; Maintainer: FSF
 ;; Keywords: internal
@@ -910,7 +910,7 @@ opening the first frame (e.g. open a connection to an X server).")
 	    (setq no-blinking-cursor t)))
       ;; If the cursorColor X resource exists, alter the `cursor' face
       ;; spec, but mark it as changed outside of Customize.
-      (let ((color (x-get-resource "cursorColor" "CursorColor")))
+      (let ((color (x-get-resource "cursorColor" "Foreground")))
 	(when color
 	  (put 'cursor 'theme-face
 	       `((changed ((t :background ,color)))))
@@ -929,7 +929,7 @@ opening the first frame (e.g. open a connection to an X server).")
 	      emacs-basic-display
 	      (and (memq window-system '(x w32 ns))
 		   (not (member (x-get-resource "cursorBlink" "CursorBlink")
-				'("off" "false")))))
+				'("no" "off" "false" "0")))))
     (setq no-blinking-cursor t))
 
   ;; Re-evaluate predefined variables whose initial value depends on
