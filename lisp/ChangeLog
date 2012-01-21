@@ -1,3 +1,8 @@
+2012-01-21  Jay Belanger  <jay.p.belanger@gmail.com>
+
+	* calc/calc-units.el (math-put-default-units): Don't use "1" as a
+	default unit.
+
 2012-01-21  Glenn Morris  <rgm@gnu.org>
 
 	* international/mule.el (auto-coding-alist): Add .tbz.
