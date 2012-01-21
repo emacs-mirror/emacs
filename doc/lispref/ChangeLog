@@ -1,3 +1,9 @@
+2012-01-21  Glenn Morris  <rgm@gnu.org>
+
+	* modes.texi (Auto Major Mode):
+	* variables.texi (File Local Variables):
+	Mention inhibit-local-variables-regexps.
+
 2012-01-19  Martin Rudalics  <rudalics@gmx.at>
 
 	* windows.texi (Window Configurations): Rewrite references to

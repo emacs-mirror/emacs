@@ -588,6 +588,18 @@ Chosen, emacs, The GNU Emacs Manual}.  If @code{enable-local-variables}
 is @code{nil}, @code{set-auto-mode} does not check the @w{@samp{-*-}}
 line, or near the end of the file, for any mode tag.
 
+@vindex inhibit-local-variables-regexps
+There are some file types where it is not appropriate to scan the file
+contents for a mode specifier.  For example, a tar archive may happen to
+contain, near the end of the file, a member file that has a local
+variables section specifying a mode for that particular file.  This
+should not be applied to the containing tar file.  Similarly, a tiff
+image file might just happen to contain a first line that seems to
+match the @w{@samp{-*-}} pattern.  For these reasons, both these file
+extensions are members of the list @var{inhibit-local-variables-regexps}.
+Add patterns to this list to prevent Emacs searching them for local
+variables of any kind (not just mode specifiers).
+
 If @var{keep-mode-if-same} is non-@code{nil}, this function does not
 call the mode command if the buffer is already in the proper major
 mode.  For instance, @code{set-visited-file-name} sets this to
