@@ -369,6 +369,14 @@ turn on `whitespace-mode' for *vc-diff* buffers.  Modes should call
 *** Using "mode: MINOR-MODE" to enable a minor mode is deprecated.
 Instead, use "eval: (minor-mode 1)".
 
+FIXME: inhibit-first-line-modes-regexps was not mentioned in lispref,
+but this probably should be.
+*** The variable `inhibit-first-line-modes-regexps' has been renamed
+to `inhibit-local-variables-regexps'.  As the name suggests, it now
+applies to ALL file local variables, not just -*- mode ones.
+The associated `inhibit-first-line-modes-suffixes' has been renamed
+in the corresponding way.
+
 +++
 ** The variable `focus-follows-mouse' now always defaults to nil.
 

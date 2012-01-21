@@ -119,7 +119,7 @@ based on the filename itself and `jka-compr-compression-info-list'."
 (defun jka-compr-install ()
   "Install jka-compr.
 This adds entries to `file-name-handler-alist' and `auto-mode-alist'
-and `inhibit-first-line-modes-suffixes'."
+and `inhibit-local-variables-suffixes'."
 
   (setq jka-compr-file-name-handler-entry
 	(cons (jka-compr-build-file-regexp) 'jka-compr-handler))
@@ -145,12 +145,12 @@ and `inhibit-first-line-modes-suffixes'."
          ;; are chosen right according to the file names
          ;; sans `.gz'.
          (push (list (jka-compr-info-regexp x) nil 'jka-compr) auto-mode-alist)
-         ;; Also add these regexps to
-         ;; inhibit-first-line-modes-suffixes, so that a
-         ;; -*- line in the first file of a compressed tar
-         ;; file doesn't override tar-mode.
+         ;; Also add these regexps to inhibit-local-variables-suffixes,
+         ;; so that a -*- line in the first file of a compressed tar file,
+         ;; or a Local Variables section in a member file at the end of
+         ;; the tar file don't override tar-mode.
          (push (jka-compr-info-regexp x)
-               inhibit-first-line-modes-suffixes)))
+               inhibit-local-variables-suffixes)))
   (setq auto-mode-alist
 	(append auto-mode-alist jka-compr-mode-alist-additions))
 

@@ -1,3 +1,26 @@
+2012-01-21  Glenn Morris  <rgm@gnu.org>
+
+	* files.el (local-enable-local-variables): Doc fix.
+	(inhibit-local-variables-regexps): Rename from
+	inhibit-first-line-modes-regexps.  Keep old name as obsolete alias.
+	Doc fix.  Add some extensions from auto-coding-alist.
+	(inhibit-local-variables-suffixes):
+	Rename from inhibit-first-line-modes-suffixes.  Doc fix.
+	(inhibit-local-variables-p):
+	New function, extracted from set-auto-mode-1.
+	(set-auto-mode): Doc fix.  Respect inhibit-local-variables-regexps.
+	(set-auto-mode-1): Doc fix.  Use inhibit-local-variables-p.
+	(hack-local-variables): Doc fix.  Make the mode-only case
+	respect enable-local-variables and friends.
+	Respect inhibit-local-variables-regexps for file-locals, but
+	not for directory-locals.
+	(set-visited-file-name):
+	Take account of inhibit-local-variables-regexps.
+	Whether it applies may change as the file name is changed.
+	* jka-cmpr-hook.el (jka-compr-install):
+	* jka-compr.el (jka-compr-uninstall):
+	Update for inhibit-first-line-modes-suffixes name change.
+
 2012-01-20  Martin Rudalics  <rudalics@gmx.at>
 
 	* help-macro.el (make-help-screen): Temporarily restore original

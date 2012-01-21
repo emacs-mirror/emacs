@@ -657,16 +657,15 @@ It is not recommended to set this variable permanently to anything but nil.")
 (defun jka-compr-uninstall ()
   "Uninstall jka-compr.
 This removes the entries in `file-name-handler-alist' and `auto-mode-alist'
-and `inhibit-first-line-modes-suffixes' that were added
+and `inhibit-local-variables-suffixes' that were added
 by `jka-compr-installed'."
-  ;; Delete from inhibit-first-line-modes-suffixes
-  ;; what jka-compr-install added.
+  ;; Delete from inhibit-local-variables-suffixes what jka-compr-install added.
   (mapc
      (function (lambda (x)
 		 (and (jka-compr-info-strip-extension x)
-		      (setq inhibit-first-line-modes-suffixes
+		      (setq inhibit-local-variables-suffixes
 			    (delete (jka-compr-info-regexp x)
-				    inhibit-first-line-modes-suffixes)))))
+				    inhibit-local-variables-suffixes)))))
      jka-compr-compression-info-list--internal)
 
   (let* ((fnha (cons nil file-name-handler-alist))
