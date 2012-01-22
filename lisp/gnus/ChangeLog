@@ -1,3 +1,7 @@
+2012-01-21  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* mm-decode.el (mm-interactively-view-part): Fix prompt.
+
 2012-01-10  Teodor Zlatanov  <tzz@lifelogs.com>
 
 	* nntp.el (nntp-send-authinfo): Query `auth-source-search' with the
