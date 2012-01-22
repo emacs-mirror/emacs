@@ -3115,13 +3115,15 @@ beginning of local filename are not substituted."
 (defun tramp-action-login (proc vec)
   "Send the login name."
   (when (not (stringp tramp-current-user))
-    (save-window-excursion
-      (let ((enable-recursive-minibuffers t))
-	(pop-to-buffer (tramp-get-connection-buffer vec))
-	(setq tramp-current-user (read-string (match-string 0))))))
-  (tramp-message vec 3 "Sending login name `%s'" tramp-current-user)
+    (setq tramp-current-user
+	  (with-connection-property vec "login-as"
+	    (save-window-excursion
+	      (let ((enable-recursive-minibuffers t))
+		(pop-to-buffer (tramp-get-connection-buffer vec))
+		(read-string (match-string 0)))))))
   (with-current-buffer (tramp-get-connection-buffer vec)
     (tramp-message vec 6 "\n%s" (buffer-string)))
+  (tramp-message vec 3 "Sending login name `%s'" tramp-current-user)
   (tramp-send-string vec (concat tramp-current-user tramp-local-end-of-line)))
 
 (defun tramp-action-password (proc vec)

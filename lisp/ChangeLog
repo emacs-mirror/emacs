@@ -1,3 +1,15 @@
+2012-01-22  Michael Albinus  <michael.albinus@gmx.de>
+
+	* net/tramp.el (tramp-action-login): Set connection property "login-as".
+
+	* net/tramp-cache.el (tramp-dump-connection-properties): Do not dump
+	properties, when "login-as" is set.
+
+	* net/tramp-sh.el (tramp-methods): Add user spec to "pscp" and "psftp".
+	(tramp-default-user-alist): Don't add "pscp".
+	(tramp-do-copy-or-rename-file-out-of-band): Use connection
+	property "login-as", if set.  (Bug#10530)
+
 2012-01-21  Michael Albinus  <michael.albinus@gmx.de>
 
 	* net/tramp-sh.el (tramp-default-user-alist): Don't add "plink",
