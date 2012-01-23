@@ -417,17 +417,17 @@ supplied, if ARG is greater or smaller than zero, respectively."
                               (- (nth 3 edges) 1))))
       (cond
        ((> effective-arg 0)
-          top-left)
+	top-left)
        ((< effective-arg 0)
-          bottom-right)
+	bottom-right)
        ((= effective-arg 0)
-          (windmove-coord-add
-             top-left
-	     (let ((col-row
-		    (posn-col-row
-		     (posn-at-point (window-point window) window))))
-	       (cons (- (car col-row) (window-hscroll window))
-		     (cdr col-row)))))))))
+	(windmove-coord-add
+	 top-left
+	 ;; Don't care whether window is horizontally scrolled -
+	 ;; `posn-at-point' handles that already.  See also:
+	 ;; http://lists.gnu.org/archive/html/emacs-devel/2012-01/msg00638.html
+	 (posn-col-row
+	  (posn-at-point (window-point window) window))))))))
 
 ;; This uses the reference location in the current window (calculated
 ;; by `windmove-reference-loc' above) to find a reference location

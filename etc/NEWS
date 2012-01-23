@@ -84,10 +84,6 @@ longer have any effect.  (They were declared obsolete in Emacs 23.)
 ** New command line option `--no-site-lisp' removes site-lisp directories
 from load-path.  -Q now implies this.
 
----
-** On Windows, Emacs now warns when the obsolete _emacs init file is used,
-and also when HOME is set to C:\ by default.
-
 
 * Changes in Emacs 24.1
 
@@ -374,6 +370,13 @@ turn on `whitespace-mode' for *vc-diff* buffers.  Modes should call
 Instead, use "eval: (minor-mode 1)".
 
 +++
+*** The variable `inhibit-first-line-modes-regexps' has been renamed
+to `inhibit-local-variables-regexps'.  As the name suggests, it now
+applies to ALL file local variables, not just -*- mode ones.
+The associated `inhibit-first-line-modes-suffixes' has been renamed
+in the corresponding way.
+
++++
 ** The variable `focus-follows-mouse' now always defaults to nil.
 
 ** New primitive `secure-hash' that supports many secure hash algorithms
@@ -426,11 +429,6 @@ These maximize and minimize the size of a window within its frame.
 *** New commands `switch-to-prev-buffer' and `switch-to-next-buffer'.
 These functions allow to navigate through the live buffers that have
 been shown in a specific window.
-
-+++
-*** New functions `window-state-get' and `window-state-put'.
-These functions allow to save and restore the state of an arbitrary
-frame or window as an Elisp object.
 
 ** The inactive minibuffer has its own major mode `minibuffer-inactive-mode'.
 This is handy for minibuffer-only frames, and is also used for the "mouse-1
@@ -1158,6 +1156,11 @@ state before the last buffer display operation in that window.
 iconifying or deleting a frame when burying a buffer shown in a dedicated
 frame or quitting a window showing a buffer in a frame of its own.
 
++++
+*** New functions `window-state-get' and `window-state-put'.
+These functions allow to save and restore the state of an arbitrary
+frame or window as an Elisp object.
+
 ** Completion
 
 *** New variable completion-extra-properties used to specify extra properties
@@ -1364,6 +1367,9 @@ This means that the empty symbol can now be read back.  Also, #: by itself
 (when not immediately followed by a possible symbol character) stands for
 an empty uninterned symbol.
 
++++
+** New math functions `isnan', `copysign', `frexp', `ldexp'.
+
 ** Obsolete functions and variables
 
 *** buffer-substring-filters is obsolete.
@@ -1378,17 +1384,20 @@ Use `filter-buffer-substring-functions' instead.
 
 * Changes in Emacs 24.1 on non-free operating systems
 
-** New configure.bat option --enable-checking builds Emacs with extra
-runtime checks.
+---
+** On MS Windows, Emacs warns when using the obsolete init file _emacs,
+and also when HOME is set to C:\ by default.
 
-** New configure.bat option --distfiles to specify files to be
-included in binary distribution.
+** New configure.bat options
 
-** New configure.bat option --without-gnutls to disable automatic
-GnuTLS detection.
+*** --enable-checking builds Emacs with extra runtime checks.
 
-** New configure.bat option --lib for general library linkage, works
-with the USER_LIBS build variable.
+*** --distfiles specifies files to be included in binary distribution.
+
+*** --without-gnutls disables automatic GnuTLS detection.
+
+*** --lib for general library linkage, works with the USER_LIBS build
+variable.
 
 ** New make target `dist' to create binary distribution for MS Windows.
 

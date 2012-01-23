@@ -3104,9 +3104,9 @@ window configuration; see @ref{Frame Configurations}.
 @defun current-window-configuration &optional frame
 This function returns a new object representing @var{frame}'s current
 window configuration.  The default for @var{frame} is the selected
-frame.  This function saves copies of window parameters listed by the
-variable @code{window-persistent-parameters}, see @ref{Window
-Parameters} for details.
+frame.  The variable @code{window-persistent-parameters} specifies
+whether and which window parameters are saved by this function, see
+@ref{Window Parameters} for details.
 @end defun
 
 @defun set-window-configuration configuration
@@ -3214,27 +3214,25 @@ to clone the state of a frame into an arbitrary live window
 (@code{set-window-configuration} effectively clones the windows of a
 frame into the root window of that very frame only).
 
-@defun window-state-get &optional window ignore
+@defun window-state-get &optional window writable
 This function returns the state of @var{window} as a Lisp object.  The
 argument @var{window} can be any window and defaults to the root window
 of the selected frame.
 
-If the optional argument @var{ignore} is non-@code{nil}, this means to
+If the optional argument @var{writable} is non-@code{nil}, this means to
 not use markers for sampling positions like @code{window-point} or
 @code{window-start}.  This argument should be non-@code{nil} when the
-state shall be written on disk and read back in another session.
+state shall be written to disk and read back in another session.
 
-The variable @code{window-persistent-parameters} specifies whether and
-which window parameters are saved by this function, see @ref{Window
-Parameters} for details.
+Together, the argument @var{writable} and the variable
+@code{window-persistent-parameters} specify which window parameters are
+saved by this function, see @ref{Window Parameters} for details.
 @end defun
 
-The value returned by @code{window-state-get} can be converted, using
-one of the functions defined by Desktop Save Mode (@pxref{Desktop Save
-Mode}), to an object that can be written to a file.  Such objects can be
-read back and converted to a Lisp object representing the state of the
-window.  That Lisp object can be used as argument for the following
-function in order to restore the state window in another window.
+The value returned by @code{window-state-get} can be used in the same
+session to make a clone of a window in another window.  It can be also
+written to disk and read back in another session.  In either case, use
+the function described next to restore the state of the window.
 
 @defun window-state-put state &optional window ignore
 This function puts the window state @var{state} into @var{window}.  The
@@ -3281,10 +3279,10 @@ states of windows (@pxref{Window Configurations}) do not care about
 window parameters.  This means, that when you change the value of a
 parameter within the body of a @code{save-window-excursion}, the
 previous value is not restored upon exit of that macro.  It also means
-that when you clone via @code{window-state-put} a window state saved
-earlier by @code{window-state-get}, the cloned windows come up with no
-parameters at all.  The following variable allows to override the
-standard behavior.
+that when you restore via @code{window-state-put} a window state saved
+earlier by @code{window-state-get}, all cloned windows have their
+parameters reset to @code{nil}.  The following variable allows to
+override the standard behavior.
 
 @defvar window-persistent-parameters
 This variable is an alist specifying which parameters get saved by
@@ -3293,32 +3291,25 @@ subsequently restored by @code{set-window-configuration} and
 @code{window-state-put}, see @ref{Window Configurations}.
 
 The @sc{car} of each entry of this alist is the symbol specifying the
-parameter.  The @sc{cdr} must be one of the following:
+parameter.  The @sc{cdr} should be one of the following:
 
 @table @asis
-@item @code{state}
-This value means the parameter is saved by @code{window-state-get}
-provided its @var{ignore} argument is @code{nil}.  The function
-@code{current-window-configuration} does not save this parameter.
-
 @item @code{nil}
-This value specifies that the parameter is saved by
-@code{current-window-configuration} and, provided its @var{ignore}
-argument is @code{nil}, by @code{window-state-get}.
+This value means the parameter is neither saved by
+@code{window-state-get} nor by @code{current-window-configuration}.
 
 @item @code{t}
+This value specifies that the parameter is saved by
+@code{current-window-configuration} and, provided its @var{writable}
+argument is @code{nil}, by @code{window-state-get}.
+
+@item @code{writable}
 This means that the parameter is saved unconditionally by both
 @code{current-window-configuration} and @code{window-state-get}.  This
 value should not be used for parameters whose values do not have a read
 syntax.  Otherwise, invoking @code{window-state-put} in another session
 may fail with an @code{invalid-read-syntax} error.
 @end table
-
-Parameters that have been saved are restored to their previous values by
-@code{set-window-configuration} respectively are installed by
-@code{window-state-put}.  Parameters that have not been saved are left
-alone by @code{set-window-configuration} respectively are not installed
-by @code{window-state-put}.
 @end defvar
 
 Some functions, notably @code{delete-window},

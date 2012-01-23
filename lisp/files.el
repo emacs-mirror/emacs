@@ -510,14 +510,36 @@ and ignores this variable."
 		 (other :tag "Query" other))
   :group 'find-file)
 
+;; This is an odd variable IMO.
+;; You might wonder why it is needed, when we could just do:
+;; (set (make-local-variable 'enable-local-variables) nil)
+;; These two are not precisely the same.
+;; Setting this variable does not cause -*- mode settings to be
+;; ignored, whereas setting enable-local-variables does.
+;; Only three places in Emacs use this variable: tar and arc modes,
+;; and rmail.  The first two don't need it.  They already use
+;; inhibit-local-variables-regexps, which is probably enough, and
+;; could also just set enable-local-variables locally to nil.
+;; Them setting it has the side-effect that dir-locals cannot apply to
+;; eg tar files (?).  FIXME Is this appropriate?
+;; AFAICS, rmail is the only thing that needs this, and the only
+;; reason it uses it is for BABYL files (which are obsolete).
+;; These contain "-*- rmail -*-" in the first line, which rmail wants
+;; to respect, so that find-file on a BABYL file will switch to
+;; rmail-mode automatically (this is nice, but hardly essential,
+;; since most people are used to explicitly running a command to
+;; access their mail; M-x gnus etc).  Rmail files may happen to
+;; contain Local Variables sections in messages, which Rmail wants to
+;; ignore.  So AFAICS the only reason this variable exists is for a
+;; minor convenience feature for handling of an obsolete Rmail file format.
 (defvar local-enable-local-variables t
   "Like `enable-local-variables' but meant for buffer-local bindings.
 The meaningful values are nil and non-nil.  The default is non-nil.
 If a major mode sets this to nil, buffer-locally, then any local
-variables list in the file will be ignored.
+variables list in a file visited in that mode will be ignored.
 
-This variable does not affect the use of major modes
-specified in a -*- line.")
+This variable does not affect the use of major modes specified
+in a -*- line.")
 
 (defcustom enable-local-eval 'maybe
   "Control processing of the \"variable\" `eval' in a file's local variables.
@@ -2405,9 +2427,6 @@ If the element has the form (REGEXP FUNCTION NON-NIL), then after
 calling FUNCTION (if it's not nil), we delete the suffix that matched
 REGEXP and search the list again for another match.
 
-If the file name matches `inhibit-first-line-modes-regexps',
-then `auto-mode-alist' is not processed.
-
 The extensions whose FUNCTION is `archive-mode' should also
 appear in `auto-coding-alist' with `no-conversion' coding system.
 
@@ -2478,15 +2497,54 @@ of a script, mode MODE is enabled.
 
 See also `auto-mode-alist'.")
 
-(defvar inhibit-first-line-modes-regexps
-  (mapcar 'purecopy '("\\.tar\\'" "\\.tgz\\'" "\\.tiff?\\'"
-		      "\\.gif\\'" "\\.png\\'" "\\.jpe?g\\'"))
-  "List of regexps; if one matches a file name, don't look for `-*-'.")
+(define-obsolete-variable-alias 'inhibit-first-line-modes-regexps
+  'inhibit-file-local-variables-regexps "24.1")
 
-(defvar inhibit-first-line-modes-suffixes nil
-  "List of regexps for what to ignore, for `inhibit-first-line-modes-regexps'.
-When checking `inhibit-first-line-modes-regexps', we first discard
+;; TODO really this should be a list of modes (eg tar-mode), not regexps,
+;; because we are duplicating info from auto-mode-alist.
+;; TODO many elements of this list are also in auto-coding-alist.
+(defvar inhibit-local-variables-regexps
+  (mapcar 'purecopy '("\\.tar\\'" "\\.t[bg]z\\'"
+		      "\\.arc\\'" "\\.zip\\'" "\\.lzh\\'" "\\.lha\\'"
+		      "\\.zoo\\'" "\\.[jew]ar\\'" "\\.xpi\\'" "\\.rar\\'"
+		      "\\.7z\\'"
+		      "\\.sx[dmicw]\\'" "\\.odt\\'"
+		      "\\.tiff?\\'" "\\.gif\\'" "\\.png\\'" "\\.jpe?g\\'"))
+  "List of regexps matching file names in which to ignore local variables.
+This includes `-*-' lines as well as trailing \"Local Variables\" sections.
+Files matching this list are typically binary file formats.
+They may happen to contain sequences that look like local variable
+specifications, but are not really, or they may be containers for
+member files with their own local variable sections, which are
+not appropriate for the containing file.
+See also `inhibit-local-variables-suffixes'.")
+
+(define-obsolete-variable-alias 'inhibit-first-line-modes-suffixes
+  'inhibit-local-variables-suffixes "24.1")
+
+(defvar inhibit-local-variables-suffixes nil
+  "List of regexps matching suffixes to remove from file names.
+When checking `inhibit-local-variables-regexps', we first discard
 from the end of the file name anything that matches one of these regexps.")
+
+;; TODO explicitly add case-fold-search t?
+(defun inhibit-local-variables-p ()
+  "Return non-nil if file local variables should be ignored.
+This checks the file (or buffer) name against `inhibit-local-variables-regexps'
+and `inhibit-local-variables-suffixes'."
+  (let ((temp inhibit-local-variables-regexps)
+	(name (if buffer-file-name
+		  (file-name-sans-versions buffer-file-name)
+		(buffer-name))))
+    (while (let ((sufs inhibit-local-variables-suffixes))
+	     (while (and sufs (not (string-match (car sufs) name)))
+	       (setq sufs (cdr sufs)))
+	     sufs)
+      (setq name (substring name 0 (match-beginning 0))))
+    (while (and temp
+		(not (string-match (car temp) name)))
+      (setq temp (cdr temp)))
+    temp))
 
 (defvar auto-mode-interpreter-regexp
   (purecopy "#![ \t]?\\([^ \t\n]*\
@@ -2550,21 +2608,24 @@ Also applies to `magic-fallback-mode-alist'.")
 (defun set-auto-mode (&optional keep-mode-if-same)
   "Select major mode appropriate for current buffer.
 
-To find the right major mode, this function checks for a -*- mode tag,
+To find the right major mode, this function checks for a -*- mode tag
 checks for a `mode:' entry in the Local Variables section of the file,
 checks if it uses an interpreter listed in `interpreter-mode-alist',
 matches the buffer beginning against `magic-mode-alist',
 compares the filename against the entries in `auto-mode-alist',
 then matches the buffer beginning against `magic-fallback-mode-alist'.
 
-If `enable-local-variables' is nil, this function does not check for
-any mode: tag anywhere in the file.
+If `enable-local-variables' is nil, or if the file name matches
+`inhibit-local-variables-regexps', this function does not check
+for any mode: tag anywhere in the file.  If `local-enable-local-variables'
+is nil, then the only mode: tag that can be relevant is a -*- one.
 
 If the optional argument KEEP-MODE-IF-SAME is non-nil, then we
 set the major mode only if that would change it.  In other words
 we don't actually set it to the same mode the buffer already has."
   ;; Look for -*-MODENAME-*- or -*- ... mode: MODENAME; ... -*-
-  (let (end done mode modes)
+  (let ((try-locals (not (inhibit-local-variables-p)))
+	end done mode modes)
     ;; Once we drop the deprecated feature where mode: is also allowed to
     ;; specify minor-modes (ie, there can be more than one "mode:"), we can
     ;; remove this section and just let (hack-local-variables t) handle it.
@@ -2572,7 +2633,9 @@ we don't actually set it to the same mode the buffer already has."
     (save-excursion
       (goto-char (point-min))
       (skip-chars-forward " \t\n")
+      ;; Note by design local-enable-local-variables does not matter here.
       (and enable-local-variables
+	   try-locals
 	   (setq end (set-auto-mode-1))
 	   (if (save-excursion (search-forward ":" end t))
 	       ;; Find all specifications for the `mode:' variable
@@ -2603,8 +2666,12 @@ we don't actually set it to the same mode the buffer already has."
 	      (or (set-auto-mode-0 mode keep-mode-if-same)
 		  ;; continuing would call minor modes again, toggling them off
 		  (throw 'nop nil))))))
+    ;; hack-local-variables checks local-enable-local-variables etc, but
+    ;; we might as well be explicit here for the sake of clarity.
     (and (not done)
 	 enable-local-variables
+	 local-enable-local-variables
+	 try-locals
 	 (setq mode (hack-local-variables t))
 	 (not (memq mode modes))	; already tried and failed
 	 (if (not (functionp mode))
@@ -2714,38 +2781,24 @@ same, do nothing and return nil."
 (defun set-auto-mode-1 ()
   "Find the -*- spec in the buffer.
 Call with point at the place to start searching from.
-If one is found, set point to the beginning
-and return the position of the end.
-Otherwise, return nil; point may be changed."
+If one is found, set point to the beginning and return the position
+of the end.  Otherwise, return nil; may change point.
+The variable `inhibit-local-variables-regexps' can cause a -*- spec to
+be ignored; but `enable-local-variables' and `local-enable-local-variables'
+have no effect."
   (let (beg end)
     (and
      ;; Don't look for -*- if this file name matches any
-     ;; of the regexps in inhibit-first-line-modes-regexps.
-     (let ((temp inhibit-first-line-modes-regexps)
-	   (name (if buffer-file-name
-		     (file-name-sans-versions buffer-file-name)
-		   (buffer-name))))
-       (while (let ((sufs inhibit-first-line-modes-suffixes))
-		(while (and sufs (not (string-match (car sufs) name)))
-		  (setq sufs (cdr sufs)))
-		sufs)
-	 (setq name (substring name 0 (match-beginning 0))))
-       (while (and temp
-		   (not (string-match (car temp) name)))
-	 (setq temp (cdr temp)))
-       (not temp))
-
+     ;; of the regexps in inhibit-local-variables-regexps.
+     (not (inhibit-local-variables-p))
      (search-forward "-*-" (line-end-position
-                            ;; If the file begins with "#!"
-                            ;; (exec interpreter magic), look
-                            ;; for mode frobs in the first two
-                            ;; lines.  You cannot necessarily
-                            ;; put them in the first line of
-                            ;; such a file without screwing up
-                            ;; the interpreter invocation.
-                            ;; The same holds for
-                            ;;   '\"
-                            ;; in man pages (preprocessor
+                            ;; If the file begins with "#!"  (exec
+                            ;; interpreter magic), look for mode frobs
+                            ;; in the first two lines.  You cannot
+                            ;; necessarily put them in the first line
+                            ;; of such a file without screwing up the
+                            ;; interpreter invocation.  The same holds
+                            ;; for '\" in man pages (preprocessor
                             ;; magic for the `man' program).
                             (and (looking-at "^\\(#!\\|'\\\\\"\\)") 2)) t)
      (progn
@@ -3090,19 +3143,41 @@ Uses `hack-local-variables-apply' to apply the variables.
 If MODE-ONLY is non-nil, all we do is check whether a \"mode:\"
 is specified, and return the corresponding mode symbol, or nil.
 In this case, we try to ignore minor-modes, and only return a
-major-mode."
+major-mode.
+
+If `enable-local-variables' or `local-enable-local-variables' is nil,
+this function does nothing.  If `inhibit-local-variables-regexps'
+applies to the file in question, the file is not scanned for
+local variables, but directory-local variables may still be applied."
+  ;; We don't let inhibit-local-variables-p influence the value of
+  ;; enable-local-variables, because then it would affect dir-local
+  ;; variables.  We don't want to search eg tar files for file local
+  ;; variable sections, but there is no reason dir-locals cannot apply
+  ;; to them.  The real meaning of inhibit-local-variables-p is "do
+  ;; not scan this file for local variables".
   (let ((enable-local-variables
 	 (and local-enable-local-variables enable-local-variables))
 	result)
     (unless mode-only
       (setq file-local-variables-alist nil)
       (report-errors "Directory-local variables error: %s"
+	;; Note this is a no-op if enable-local-variables is nil.
 	(hack-dir-local-variables)))
-    (when (or mode-only enable-local-variables)
-      ;; If MODE-ONLY is non-nil, and the prop line specifies a mode,
-      ;; then we're done, and have no need to scan further.
-      (unless (and (setq result (hack-local-variables-prop-line mode-only))
-		   mode-only)
+    ;; This entire function is basically a no-op if enable-local-variables
+    ;; is nil.  All it does is set file-local-variables-alist to nil.
+    (when enable-local-variables
+      ;; This part used to ignore enable-local-variables when mode-only
+      ;; was non-nil.  That was inappropriate, eg consider the
+      ;; (artificial) example of:
+      ;; (setq local-enable-local-variables nil)
+      ;; Open a file foo.txt that contains "mode: sh".
+      ;; It correctly opens in text-mode.
+      ;; M-x set-visited-file name foo.c, and it incorrectly stays in text-mode.
+      (unless (or (inhibit-local-variables-p)
+		  ;; If MODE-ONLY is non-nil, and the prop line specifies a
+		  ;; mode, then we're done, and have no need to scan further.
+		  (and (setq result (hack-local-variables-prop-line mode-only))
+		       mode-only))
 	;; Look for "Local variables:" line in last page.
 	(save-excursion
 	  (goto-char (point-max))
@@ -3192,14 +3267,13 @@ major-mode."
 					    (indirect-variable var))
 					  val) result)
 			    (error nil)))))
-		    (forward-line 1)))))))))
-    ;; Now we've read all the local variables.
-    ;; If MODE-ONLY is non-nil, return whether the mode was specified.
-    (cond (mode-only result)
-	  ;; Otherwise, set the variables.
-	  (enable-local-variables
-	   (hack-local-variables-filter result nil)
-	   (hack-local-variables-apply)))))
+		    (forward-line 1))))))))
+      ;; Now we've read all the local variables.
+      ;; If MODE-ONLY is non-nil, return whether the mode was specified.
+      (if mode-only result
+	;; Otherwise, set the variables.
+	(hack-local-variables-filter result nil)
+	(hack-local-variables-apply)))))
 
 (defun hack-local-variables-apply ()
   "Apply the elements of `file-local-variables-alist'.
@@ -3611,7 +3685,7 @@ the old visited file has been renamed to the new name FILENAME."
   (interactive "FSet visited file name: ")
   (if (buffer-base-buffer)
       (error "An indirect buffer cannot visit a file"))
-  (let (truename)
+  (let (truename old-try-locals)
     (if filename
 	(setq filename
 	      (if (string-equal filename "")
@@ -3636,7 +3710,8 @@ the old visited file has been renamed to the new name FILENAME."
 	(progn
 	  (and filename (lock-buffer filename))
 	  (unlock-buffer)))
-    (setq buffer-file-name filename)
+    (setq old-try-locals (not (inhibit-local-variables-p))
+	  buffer-file-name filename)
     (if filename			; make buffer name reflect filename.
 	(let ((new-name (file-name-nondirectory buffer-file-name)))
 	  (setq default-directory (file-name-directory buffer-file-name))
@@ -3656,59 +3731,63 @@ the old visited file has been renamed to the new name FILENAME."
     (setq buffer-file-number
 	  (if filename
 	      (nthcdr 10 (file-attributes buffer-file-name))
-	      nil)))
-  ;; write-file-functions is normally used for things like ftp-find-file
-  ;; that visit things that are not local files as if they were files.
-  ;; Changing to visit an ordinary local file instead should flush the hook.
-  (kill-local-variable 'write-file-functions)
-  (kill-local-variable 'local-write-file-hooks)
-  (kill-local-variable 'revert-buffer-function)
-  (kill-local-variable 'backup-inhibited)
-  ;; If buffer was read-only because of version control,
-  ;; that reason is gone now, so make it writable.
-  (if vc-mode
-      (setq buffer-read-only nil))
-  (kill-local-variable 'vc-mode)
-  ;; Turn off backup files for certain file names.
-  ;; Since this is a permanent local, the major mode won't eliminate it.
-  (and buffer-file-name
-       backup-enable-predicate
-       (not (funcall backup-enable-predicate buffer-file-name))
-       (progn
-	 (make-local-variable 'backup-inhibited)
-	 (setq backup-inhibited t)))
-  (let ((oauto buffer-auto-save-file-name))
-    ;; If auto-save was not already on, turn it on if appropriate.
-    (if (not buffer-auto-save-file-name)
-	(and buffer-file-name auto-save-default
-	     (auto-save-mode t))
-      ;; If auto save is on, start using a new name.
-      ;; We deliberately don't rename or delete the old auto save
-      ;; for the old visited file name.  This is because perhaps
-      ;; the user wants to save the new state and then compare with the
-      ;; previous state from the auto save file.
-      (setq buffer-auto-save-file-name
-	    (make-auto-save-file-name)))
-    ;; Rename the old auto save file if any.
-    (and oauto buffer-auto-save-file-name
-	 (file-exists-p oauto)
-	 (rename-file oauto buffer-auto-save-file-name t)))
-  (and buffer-file-name
-       (not along-with-file)
-       (set-buffer-modified-p t))
-  ;; Update the major mode, if the file name determines it.
-  (condition-case nil
-      ;; Don't change the mode if it is special.
-      (or (not change-major-mode-with-file-name)
-	  (get major-mode 'mode-class)
-	  ;; Don't change the mode if the local variable list specifies it.
-	  (hack-local-variables t)
-	  ;; TODO consider making normal-mode handle this case.
-	  (let ((old major-mode))
-	    (set-auto-mode t)
-	    (or (eq old major-mode)
-		(hack-local-variables))))
-    (error nil)))
+	    nil))
+    ;; write-file-functions is normally used for things like ftp-find-file
+    ;; that visit things that are not local files as if they were files.
+    ;; Changing to visit an ordinary local file instead should flush the hook.
+    (kill-local-variable 'write-file-functions)
+    (kill-local-variable 'local-write-file-hooks)
+    (kill-local-variable 'revert-buffer-function)
+    (kill-local-variable 'backup-inhibited)
+    ;; If buffer was read-only because of version control,
+    ;; that reason is gone now, so make it writable.
+    (if vc-mode
+	(setq buffer-read-only nil))
+    (kill-local-variable 'vc-mode)
+    ;; Turn off backup files for certain file names.
+    ;; Since this is a permanent local, the major mode won't eliminate it.
+    (and buffer-file-name
+	 backup-enable-predicate
+	 (not (funcall backup-enable-predicate buffer-file-name))
+	 (progn
+	   (make-local-variable 'backup-inhibited)
+	   (setq backup-inhibited t)))
+    (let ((oauto buffer-auto-save-file-name))
+      ;; If auto-save was not already on, turn it on if appropriate.
+      (if (not buffer-auto-save-file-name)
+	  (and buffer-file-name auto-save-default
+	       (auto-save-mode t))
+	;; If auto save is on, start using a new name.
+	;; We deliberately don't rename or delete the old auto save
+	;; for the old visited file name.  This is because perhaps
+	;; the user wants to save the new state and then compare with the
+	;; previous state from the auto save file.
+	(setq buffer-auto-save-file-name
+	      (make-auto-save-file-name)))
+      ;; Rename the old auto save file if any.
+      (and oauto buffer-auto-save-file-name
+	   (file-exists-p oauto)
+	   (rename-file oauto buffer-auto-save-file-name t)))
+    (and buffer-file-name
+	 (not along-with-file)
+	 (set-buffer-modified-p t))
+    ;; Update the major mode, if the file name determines it.
+    (condition-case nil
+	;; Don't change the mode if it is special.
+	(or (not change-major-mode-with-file-name)
+	    (get major-mode 'mode-class)
+	    ;; Don't change the mode if the local variable list specifies it.
+	    ;; The file name can influence whether the local variables apply.
+	    (and old-try-locals
+		 ;; h-l-v also checks it, but might as well be explcit.
+		 (not (inhibit-local-variables-p))
+		 (hack-local-variables t))
+	    ;; TODO consider making normal-mode handle this case.
+	    (let ((old major-mode))
+	      (set-auto-mode t)
+	      (or (eq old major-mode)
+		  (hack-local-variables))))
+    (error nil))))
 
 (defun write-file (filename &optional confirm)
   "Write current buffer into file FILENAME.

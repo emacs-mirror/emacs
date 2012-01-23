@@ -57,7 +57,7 @@ static Lisp_Object Qreplace_buffer_in_windows, Qget_mru_window;
 static Lisp_Object Qwindow_resize_root_window, Qwindow_resize_root_window_vertically;
 static Lisp_Object Qscroll_up, Qscroll_down, Qscroll_command;
 static Lisp_Object Qsafe, Qabove, Qbelow;
-static Lisp_Object Qauto_buffer_name, Qclone_of, Qstate;
+static Lisp_Object Qauto_buffer_name, Qclone_of;
 
 static int displayed_window_lines (struct window *);
 static struct window *decode_window (Lisp_Object);
@@ -5889,9 +5889,8 @@ save_window_save (Lisp_Object window, struct Lisp_Vector *vector, int i)
 	       tem = XCDR (tem))
 	    {
 	      pers = XCAR (tem);
-	      /* Save values for persistent window parameters whose cdr
-		 is either nil or t.  */
-	      if (CONSP (pers) && (NILP (XCDR (pers)) || EQ (XCDR (pers), Qt)))
+	      /* Save values for persistent window parameters. */
+	      if (CONSP (pers) && !NILP (XCDR (pers)))
 		{
 		  par = Fassq (XCAR (pers), w->window_parameters);
 		  if (NILP (par))
@@ -5966,7 +5965,9 @@ and for each displayed buffer, where display starts, and the positions of
 point and mark.  An exception is made for point in the current buffer:
 its value is -not- saved.
 This also records the currently selected frame, and FRAME's focus
-redirection (see `redirect-frame-focus').  */)
+redirection (see `redirect-frame-focus').  The variable
+`window-persistent-parameters' specifies which window parameters are
+saved by this function.  */)
   (Lisp_Object frame)
 {
   register Lisp_Object tem;
@@ -6504,7 +6505,6 @@ syms_of_window (void)
   DEFSYM (Qbelow, "below");
   DEFSYM (Qauto_buffer_name, "auto-buffer-name");
   DEFSYM (Qclone_of, "clone-of");
-  DEFSYM (Qstate, "state");
 
   staticpro (&Vwindow_list);
 
@@ -6616,28 +6616,28 @@ function `set-window-combination-limit'.  */);
 
   DEFVAR_LISP ("window-persistent-parameters", Vwindow_persistent_parameters,
 	       doc: /* Alist of persistent window parameters.
-Parameters in this list are saved by `current-window-configuration' and
-`window-state-get' and subsequently restored to their previous values by
-`set-window-configuration' and `window-state-put'.
+This alist specifies which window parameters shall get saved by
+`current-window-configuration' and `window-state-get' and subsequently
+restored to their previous values by `set-window-configuration' and
+`window-state-put'.
 
 The car of each entry of this alist is the symbol specifying the
 parameter.  The cdr is one of the following:
 
-The symbol `state' means the parameter is saved by `window-state-get'
-provided its IGNORE argument is nil.  `current-window-configuration'
-does not save this parameter.
+nil means the parameter is neither saved by `window-state-get' nor by
+`current-window-configuration'.
 
-nil means the parameter is saved by `current-window-configuration' and,
-provided its IGNORE argument is nil, by `window-state-get'.
+t means the parameter is saved by `current-window-configuration' and,
+provided its WRITABLE argument is nil, by `window-state-get'.
 
-t means the parameter is saved unconditionally by both
-`current-window-configuration' and `window-state-get'.  Parameters
-without read syntax (like windows or frames) should not use that.
+The symbol `writable' means the parameter is saved unconditionally by
+both `current-window-configuration' and `window-state-get'.  Do not use
+this value for parameters without read syntax (like windows or frames).
 
 Parameters not saved by `current-window-configuration' or
 `window-state-get' are left alone by `set-window-configuration'
 respectively are not installed by `window-state-put'.  */);
-  Vwindow_persistent_parameters = list1 (Fcons (Qclone_of, Qstate));
+  Vwindow_persistent_parameters = list1 (Fcons (Qclone_of, Qt));
 
   defsubr (&Sselected_window);
   defsubr (&Sminibuffer_window);

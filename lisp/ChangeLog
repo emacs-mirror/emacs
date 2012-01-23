@@ -1,3 +1,136 @@
+2012-01-23  Mike Lamb  <mrlamb@gmail.com>  (tiny change)
+
+	* eshell/esh-util.el (eshell-read-hosts-file):
+	Skip comment lines.  (Bug#10549)
+
+	* eshell/em-unix.el (pcomplete/ssh): Remove.  (Bug#10548)
+
+2012-01-23  Juanma Barranquero  <lekktu@gmail.com>
+
+	* subr.el (display-delayed-warnings): Doc fix.
+	(collapse-delayed-warnings): New function to collapse identical
+	adjacent warnings.
+	(delayed-warnings-hook): Add it.
+
+2012-01-22  Michael Albinus  <michael.albinus@gmx.de>
+
+	* net/tramp.el (tramp-action-login): Set connection property "login-as".
+
+	* net/tramp-cache.el (tramp-dump-connection-properties): Do not dump
+	properties, when "login-as" is set.
+
+	* net/tramp-sh.el (tramp-methods): Add user spec to "pscp" and "psftp".
+	(tramp-default-user-alist): Don't add "pscp".
+	(tramp-do-copy-or-rename-file-out-of-band): Use connection
+	property "login-as", if set.  (Bug#10530)
+
+2012-01-21  Michael Albinus  <michael.albinus@gmx.de>
+
+	* net/tramp-sh.el (tramp-default-user-alist): Don't add "plink",
+	"plink1" and "psftp".  (Bug#10530)
+
+2012-01-21  Kenichi Handa  <handa@m17n.org>
+
+	* international/mule-cmds.el (prefer-coding-system): Show a
+	warning message if the default value of file-name-coding-system
+	was not changed.
+
+2012-01-21  Jérémy Compostella  <jeremy.compostella@gmail.com>
+
+	* windmove.el (windmove-reference-loc): Fix
+	windmove-reference-loc miscalculation.
+
+2012-01-21  Jay Belanger  <jay.p.belanger@gmail.com>
+
+	* calc/calc-units.el (math-put-default-units): Don't use "1" as a
+	default unit.
+
+2012-01-21  Glenn Morris  <rgm@gnu.org>
+
+	* international/mule.el (auto-coding-alist): Add .tbz.
+
+	* files.el (local-enable-local-variables): Doc fix.
+	(inhibit-local-variables-regexps): Rename from
+	inhibit-first-line-modes-regexps.  Keep old name as obsolete alias.
+	Doc fix.  Add some extensions from auto-coding-alist.
+	(inhibit-local-variables-suffixes):
+	Rename from inhibit-first-line-modes-suffixes.  Doc fix.
+	(inhibit-local-variables-p):
+	New function, extracted from set-auto-mode-1.
+	(set-auto-mode): Doc fix.  Respect inhibit-local-variables-regexps.
+	(set-auto-mode-1): Doc fix.  Use inhibit-local-variables-p.
+	(hack-local-variables): Doc fix.  Make the mode-only case
+	respect enable-local-variables and friends.
+	Respect inhibit-local-variables-regexps for file-locals, but
+	not for directory-locals.
+	(set-visited-file-name):
+	Take account of inhibit-local-variables-regexps.
+	Whether it applies may change as the file name is changed.
+	* jka-cmpr-hook.el (jka-compr-install):
+	* jka-compr.el (jka-compr-uninstall):
+	Update for inhibit-first-line-modes-suffixes name change.
+
+2012-01-20  Martin Rudalics  <rudalics@gmx.at>
+
+	* help-macro.el (make-help-screen): Temporarily restore original
+	binding for minor-mode-map-alist (Bug#10454).
+
+2012-01-19  Julien Danjou  <julien@danjou.info>
+
+	* color.el (color-name-to-rgb): Use the white color to find the max
+	color component value and return correctly computed values.
+	(color-name-to-rgb): Add missing float conversion for max value.
+
+2012-01-19  Martin Rudalics  <rudalics@gmx.at>
+
+	* window.el (window--state-get-1, window-state-get): Do not use
+	special state value for window-persistent-parameters.  Rename
+	argument IGNORE to WRITABLE.  Rewrite doc-string.
+	(window--state-put-2): Reset all window parameters to nil before
+	assigning values of persistent parameters.
+
+2012-01-18  Alan Mackenzie  <acm@muc.de>
+
+	Eliminate sluggishness and hangs in fontification of "semicolon
+	deserts".
+
+	* progmodes/cc-engine.el (c-state-nonlit-pos-interval): change
+	value 10000 -> 3000.
+	(c-state-safe-place): Reformulate so it doesn't stack up an
+	infinite number of wrong entries in c-state-nonlit-pos-cache.
+	(c-determine-limit-get-base, c-determine-limit): New functions to
+	determine backward search limits disregarding literals.
+	(c-find-decl-spots): Amend commenting.
+	(c-cheap-inside-bracelist-p): New function which detects "={".
+
+	* progmodes/cc-fonts.el
+	(c-make-font-lock-BO-decl-search-function): Give a limit to a
+	backward search.
+	(c-font-lock-declarations): Fix an occurrence of point being
+	undefined.  Check additionally for point being in a bracelist or
+	near a macro invocation without a semicolon so as to avoid a
+	fruitless time consuming search for a declarator.  Give a more
+	precise search limit for declarators using the new
+	c-determine-limit.
+
+2012-01-18  Glenn Morris  <rgm@gnu.org>
+
+	* files.el (auto-mode-alist, inhibit-first-line-modes-regexps)
+	(set-auto-mode): Doc fixes.
+
+2012-01-17  Glenn Morris  <rgm@gnu.org>
+
+	* isearch.el (search-nonincremental-instead): Fix doc typo.
+
+	* dired.el (dired-insert-directory): Handle newlines in directory name.
+	(dired-build-subdir-alist): Unescape newlines in directory name.
+
+2012-01-17  Michael Albinus  <michael.albinus@gmx.de>
+
+	* net/tramp.el (tramp-local-end-of-line): New defcustom.
+	(tramp-action-login, tramp-action-yesno, tramp-action-yn)
+	(tramp-action-terminal): Use it.  (Bug#10530)
+
 2012-01-16  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* minibuffer.el (completion--replace): Strip properties (bug#10062).
@@ -33,6 +166,17 @@
 2012-01-14  Glenn Morris  <rgm@gnu.org>
 
 	* dired.el (dired-get-filename): Fix 'verbatim case of previous change.
+
+2012-01-13  Alan Mackenzie  <acm@muc.de>
+
+	Fix filling for when filladapt mode is enabled.
+
+	* progmodes/cc-cmds.el (c-fill-paragraph): In the invocation of
+	c-mask-paragraph, pass in `fill-paragraph' rather than
+	`fill-region-as-paragraph'.  (This is a reversion of a previous
+	change.)
+	* progmodes/cc-mode.el (c-basic-common-init): Make
+	fill-paragraph-handle-comment buffer local and set it to nil.
 
 2012-01-13  Glenn Morris  <rgm@gnu.org>
 

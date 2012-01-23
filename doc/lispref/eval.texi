@@ -64,8 +64,8 @@ evaluate a @dfn{function call} form such as @code{(car x)}, Emacs
 first evaluates the argument (the subform @code{x}).  After evaluating
 the argument, Emacs @dfn{executes} the function (@code{car}), and if
 the function is written in Lisp, execution works by evaluating the
-@dfn{body} of the function.  (In this example, however, @code{car} is
-not a Lisp function; it is a primitive function implemented in C.)
+@dfn{body} of the function (in this example, however, @code{car} is
+not a Lisp function; it is a primitive function implemented in C).
 @xref{Functions}, for more information about functions and function
 calls.
 
@@ -77,9 +77,8 @@ variables (@pxref{Variables}).@footnote{This definition of
 that can affect the result of a program.}  Whenever a form refers to a
 variable without creating a new binding for it, the variable evaluates
 to the value given by the current environment.  Evaluating a form may
-create a new environment for recursive evaluation, by binding
-variables (@pxref{Local Variables}).  Such environments are temporary,
-and vanish when the evaluation of the form is complete.
+also temporarily alter the environment by binding variables
+(@pxref{Local Variables}).
 
 @cindex side effect
   Evaluating a form may also make changes that persist; these changes
@@ -177,9 +176,9 @@ program.  Here is an example:
 @cindex symbol evaluation
 
   When a symbol is evaluated, it is treated as a variable.  The result
-is the variable's value, if it has one.  If it has none (if its value
-cell is void), an error is signaled.  For more information on the use of
-variables, see @ref{Variables}.
+is the variable's value, if it has one.  If the symbol has no value as
+a variable, the Lisp interpreter signals an error.  For more
+information on the use of variables, see @ref{Variables}.
 
   In the following example, we set the value of a symbol with
 @code{setq}.  Then we evaluate the symbol, and get back the value that
@@ -602,12 +601,13 @@ functions provides the ability to pass information to them as
 arguments.
 
 @defun eval form &optional lexical
-This is the basic function evaluating an expression.  It evaluates
+This is the basic function for evaluating an expression.  It evaluates
 @var{form} in the current environment and returns the result.  How the
 evaluation proceeds depends on the type of the object (@pxref{Forms}).
-@var{lexical} if non-nil means to evaluate @var{form} using lexical scoping
-rules (@pxref{Lexical Binding}) instead of the default dynamic scoping used
-historically in Emacs Lisp.
+
+The argument @var{lexical}, if non-@code{nil}, means to evaluate
+@var{form} using lexical scoping rules for variables, instead of the
+default dynamic scoping rules.  @xref{Lexical Binding}.
 
 Since @code{eval} is a function, the argument expression that appears
 in a call to @code{eval} is evaluated twice: once as preparation before

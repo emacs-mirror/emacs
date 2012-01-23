@@ -100,10 +100,10 @@ names of the people who have checked it.
 SECTION                  READERS
 ----------------------------------
 TUTORIAL             cyd
-TUTORIAL.bg          
+TUTORIAL.bg          ogi
 TUTORIAL.cn
 TUTORIAL.cs          
-TUTORIAL.de          
+TUTORIAL.de          wl
 TUTORIAL.eo
 TUTORIAL.es          
 TUTORIAL.fr          
@@ -117,7 +117,7 @@ TUTORIAL.pt_BR
 TUTORIAL.ro
 TUTORIAL.ru          
 TUTORIAL.sk          
-TUTORIAL.sl          
+TUTORIAL.sl          Primoz PETERLIN
 TUTORIAL.sv          
 TUTORIAL.th          
 TUTORIAL.zh
@@ -187,25 +187,25 @@ backups.texi
 buffers.texi      
 commands.texi     
 compile.texi      
-control.texi      
+control.texi      cyd
 customize.texi    
 debugging.texi    
 display.texi      
 edebug.texi
 elisp.texi
 errors.texi       
-eval.texi         
+eval.texi         cyd
 files.texi        
 frames.texi       
 functions.texi    
-hash.texi         
+hash.texi         cyd
 help.texi         
 hooks.texi        
 index.texi
 internals.texi    
-intro.texi        
+intro.texi        cyd
 keymaps.texi      
-lists.texi        
+lists.texi        cyd
 loading.texi      
 locals.texi       
 macros.texi       
@@ -214,17 +214,17 @@ markers.texi
 minibuf.texi      
 modes.texi        
 nonascii.texi     
-numbers.texi      
-objects.texi      
+numbers.texi      cyd
+objects.texi      cyd
 os.texi           
 package.texi
 positions.texi    
 processes.texi
 searching.texi    
-sequences.texi    
+sequences.texi    cyd
 streams.texi      
-strings.texi      
-symbols.texi      
+strings.texi      cyd
+symbols.texi      cyd
 syntax.texi       
 text.texi         
 tips.texi         
@@ -232,8 +232,7 @@ variables.texi
 windows.texi      
 
 * PLANNED ADDITIONS
-
-** pov-mode (probably not for Emacs-23: waiting for a Free POV-Ray).
+* pov-mode (probably not for Emacs-23: waiting for a Free POV-Ray).
 ** gas-mode ?
 
 

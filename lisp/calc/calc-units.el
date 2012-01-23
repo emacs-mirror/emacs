@@ -415,18 +415,19 @@ If EXPR is nil, return nil."
 
 (defun math-put-default-units (expr)
   "Put the units in EXPR in the default units table."
-  (let* ((units (math-get-units expr))
-         (standard-units (math-get-standard-units expr))
+  (let ((units (math-get-units expr)))
+    (unless (eq units 1)
+      (let* ((standard-units (math-get-standard-units expr))
          (default-units (gethash
                          standard-units
                          math-default-units-table)))
-    (cond
-     ((not default-units)
-      (puthash standard-units (list units) math-default-units-table))
-     ((not (equal units (car default-units)))
-      (puthash standard-units
-               (list units (car default-units))
-               math-default-units-table)))))
+        (cond
+         ((not default-units)
+          (puthash standard-units (list units) math-default-units-table))
+         ((not (equal units (car default-units)))
+          (puthash standard-units
+                   (list units (car default-units))
+                   math-default-units-table)))))))
 
 
 (defun calc-convert-units (&optional old-units new-units)

@@ -1,3 +1,54 @@
+2012-01-23  Chong Yidong  <cyd@gnu.org>
+
+	* strings.texi (Text Comparison): Minor qualification.
+
+	* lists.texi (Cons Cells): Copyedits.
+	(List Elements): Mention push.
+	(List Variables): Mention pop.
+	(Rings): Move to sequences.texi.
+
+	* sequences.texi (Sequence Functions): Don't repeat the
+	introduction already given in the parent.
+	(Vectors): Copyedits.
+	(Rings): Move from lists.texi.  Note that this is specific to the
+	ring package.
+
+	* symbols.texi (Definitions, Symbol Components): Mention variable
+	scoping issues.
+	(Plists and Alists): Copyedits.
+
+	* eval.texi (Intro Eval, Symbol Forms): Minor tweaks for
+	correctness with lexical scoping.
+	(Eval): Copyedits.
+
+2012-01-21  Chong Yidong  <cyd@gnu.org>
+
+	* intro.texi (A Sample Function Description): Special notation
+	used for macros too.
+
+	* objects.texi (Ctl-Char Syntax, Other Char Bits): Copyedits.
+	(Symbol Type): Add xref for keyword symbols.
+	(Sequence Type): Clarify differences between sequence types.
+	(Cons Cell Type): Add "linked list" index entry.
+	(Non-ASCII in Strings): Copyedits.
+	(Equality Predicates): Symbols with same name need not be eq.
+
+	* numbers.texi (Float Basics): Document isnan, copysign, frexp and
+	ldexp.  Move float-e and float-pi to Math Functions node.
+
+2012-01-21  Glenn Morris  <rgm@gnu.org>
+
+	* modes.texi (Auto Major Mode):
+	* variables.texi (File Local Variables):
+	Mention inhibit-local-variables-regexps.
+
+2012-01-19  Martin Rudalics  <rudalics@gmx.at>
+
+	* windows.texi (Window Configurations): Rewrite references to
+	persistent window parameters.
+	(Window Parameters): Fix description of persistent window
+	parameters.
+
 2012-01-16  Juanma Barranquero  <lekktu@gmail.com>
 
 	* windows.texi (Window Parameters): Use @pxref.

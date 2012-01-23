@@ -1,3 +1,7 @@
+2012-01-23  Chong Yidong  <cyd@gnu.org>
+
+	* anti.texi (Antinews): Add Emacs 23 antinews.
+
 2012-01-16  Volker Sobek  <reklov@live.com>  (tiny change)
 
 	* programs.texi (Comment Commands): Typo (bug#10514).

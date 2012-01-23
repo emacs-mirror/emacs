@@ -1172,7 +1172,22 @@ see `dired-use-ls-dired' for more details.")
 				  "\\015"
 				  (text-properties-at (match-beginning 0)))
 			   nil t))
-	  (set-marker end nil)))
+	  (set-marker end nil))
+      ;; Replace any newlines in DIR with literal "\n"s, for the sake
+      ;; of the header line.  To disambiguate a literal "\n" in the
+      ;; actual dirname, we also replace "\" with "\\".
+      ;; Personally, I think this should always be done, irrespective
+      ;; of the value of dired-actual-switches, because:
+      ;;  i) Dired simply does not work with an unescaped newline in
+      ;;  the directory name used in the header (bug=10469#28), and
+      ;;  ii) "\" is always replaced with "\\" in the listing, so doing
+      ;;  it in the header as well makes things consistent.
+      ;; But at present it is only done if "-b" is in ls-switches,
+      ;; because newlines in dirnames are uncommon, and people may
+      ;; have gotten used to seeing unescaped "\" in the headers.
+      ;; Note: adjust dired-build-subdir-alist if you change this.
+      (setq dir (replace-regexp-in-string "\\\\" "\\\\" dir nil t)
+            dir (replace-regexp-in-string "\n" "\\n" dir nil t)))
     (dired-insert-set-properties opoint (point))
     ;; If we used --dired and it worked, the lines are already indented.
     ;; Otherwise, indent them.
@@ -2541,12 +2556,31 @@ instead of `dired-actual-switches'."
 	    (delete-region (point) (match-end 1))
 	    (insert new-dir-name))
 	  (setq count (1+ count))
+	  ;; Undo any escaping of newlines and \ by dired-insert-directory.
+	  ;; Convert "n" preceded by odd number of \ to newline, and \\ to \.
+	  (when (and (dired-switches-escape-p switches)
+		     (string-match-p "\\\\" new-dir-name))
+	    (let (temp res)
+	      (mapc (lambda (char)
+		      (cond ((equal char ?\\)
+			     (if temp
+				 (setq res (concat res "\\")
+				       temp nil)
+			       (setq temp "\\")))
+			    ((and temp (equal char ?n))
+			     (setq res (concat res "\n")
+				   temp nil))
+			    (t
+			     (setq res (concat res temp (char-to-string char))
+				   temp nil))))
+		    new-dir-name)
+	      (setq new-dir-name res)))
 	  (dired-alist-add-1 new-dir-name
-			     ;; Place a sub directory boundary between lines.
-			     (save-excursion
-			       (goto-char (match-beginning 0))
-			       (beginning-of-line)
-			       (point-marker)))))
+           ;; Place a sub directory boundary between lines.
+           (save-excursion
+             (goto-char (match-beginning 0))
+             (beginning-of-line)
+             (point-marker)))))
       (if (and (> count 1) (called-interactively-p 'interactive))
 	  (message "Buffer includes %d directories" count)))
     ;; We don't need to sort it because it is in buffer order per

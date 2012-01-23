@@ -12607,7 +12607,7 @@ four arguments:
 @enumerate
 @item
 The first argument is the regular expression that the function searches
-for.  The regular expression will be a string between quotations marks.
+for.  The regular expression will be a string between quotation marks.
 
 @item
 The optional second argument limits how far the function will search; it is a
@@ -15012,7 +15012,7 @@ expression for this (@pxref{Syntax}), so the loop is straightforward:
 @group
 (while (and (< (point) end)
             (re-search-forward
-             "\\(\\w\\|\\s_\\)+[^ \t\n]*[ \t\n]*" end t)
+             "\\(\\w\\|\\s_\\)+[^ \t\n]*[ \t\n]*" end t))
   (setq count (1+ count)))
 @end group
 @end smallexample

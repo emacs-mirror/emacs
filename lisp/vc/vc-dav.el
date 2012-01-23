@@ -170,10 +170,7 @@ It should return a status of either 0 (no differences found), or
 ;;    Return a dav-specific mode line string for URL. Are there any
 ;;    specific states that we want exposed?
 ;;
-;; vc-dav-dired-state-info(url)
-;;    Translate the `vc-state' property of URL into a string that can
-;;    be used in a vc-dired buffer.  Are there any extra states that
-;;    we want exposed?
+;; vc-dir support
 ;;
 ;; vc-dav-receive-file(url rev)
 ;;    Let this backend `receive' a file that is already registered

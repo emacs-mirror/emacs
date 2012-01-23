@@ -1660,6 +1660,13 @@ Query (once) about all the variables.
 @end table
 @end defopt
 
+@defvar inhibit-local-variables-regexps
+This is a list of regular expressions.  If a file has a name
+matching an element of this list, then it is not scanned for
+any form of file-local variable.  For examples of why you might want
+to use this, @pxref{Auto Major Mode}.
+@end defvar
+
 @defun hack-local-variables &optional mode-only
 This function parses, and binds or evaluates as appropriate, any local
 variables specified by the contents of the current buffer.  The variable

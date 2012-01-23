@@ -326,7 +326,6 @@ Lists
 * Modifying Lists::         Storing new pieces into an existing list.
 * Sets And Lists::          A list can represent a finite mathematical set.
 * Association Lists::       A list can represent a finite relation or mapping.
-* Rings::                   Managing a fixed-size ring of objects.
 
 Modifying Existing List Structure
 
@@ -344,6 +343,7 @@ Sequences, Arrays, and Vectors
 * Vector Functions::        Functions specifically for vectors.
 * Char-Tables::             How to work with char-tables.
 * Bool-Vectors::            How to work with bool-vectors.
+* Rings::                   Managing a fixed-size ring of objects.
 
 Hash Tables
 

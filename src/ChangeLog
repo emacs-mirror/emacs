@@ -1,3 +1,25 @@
+2012-01-21  Chong Yidong  <cyd@gnu.org>
+
+	* floatfns.c (Fcopysign): Make the second argument non-optional,
+	since nil is not allowed anyway.
+
+2012-01-21  Andreas Schwab  <schwab@linux-m68k.org>
+
+	* process.c (read_process_output): Use p instead of XPROCESS (proc).
+	(send_process): Likewise.
+
+2012-01-19  Martin Rudalics  <rudalics@gmx.at>
+
+	* window.c (save_window_save, Fcurrent_window_configuration)
+	(Vwindow_persistent_parameters): Do not use Qstate.  Rewrite
+	doc-strings.
+
+2012-01-19  Kenichi Handa  <handa@m17n.org>
+
+	* character.c (char_width): New function.
+	(Fchar_width, c_string_width, lisp_string_width):
+	Use char_width (Bug#9496).
+
 2012-01-16  Martin Rudalics  <rudalics@gmx.at>
 
 	* window.c (Vwindow_persistent_parameters): New variable.

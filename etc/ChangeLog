@@ -1,3 +1,16 @@
+2012-01-21  Ognyan Kulev  <ogi@tower.3.bg>
+
+	* tutorials/TUTORIAL.bg: Updated; synchronize with TUTORIAL.
+
+2012-01-19  Werner Lemberg  <wl@gnu.org>
+
+	* tutorial/TUTORIAL.de: Updated; synchronize with TUTORIAL.
+	Minor typographical improvements.
+
+2012-01-17  Primoz PETERLIN  <primoz.peterlin@mf.uni-lj.si>
+
+	* tutorials/TUTORIAL.sl: Update.
+
 2012-01-14  Eli Zaretskii  <eliz@gnu.org>
 
 	* tutorials/TUTORIAL.he: Update to follow changes to TUTORIAL in
