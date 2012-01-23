@@ -1,7 +1,9 @@
 2012-01-23  Juanma Barranquero  <lekktu@gmail.com>
 
-	* subr.el (display-delayed-warnings):
-	Collapse identical adjacent messages.
+	* subr.el (display-delayed-warnings): Doc fix.
+	(collapse-delayed-warnings): New function to collapse identical
+	adjacent warnings.
+	(delayed-warnings-hook): Add it.
 
 2012-01-22  Michael Albinus  <michael.albinus@gmx.de>
 

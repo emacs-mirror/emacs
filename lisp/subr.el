@@ -1857,23 +1857,30 @@ FILE should be the name of a library, with no directory name."
 
 (defun display-delayed-warnings ()
   "Display delayed warnings from `delayed-warnings-list'.
-Collapse identical adjacent messages into one (plus count).
-This is the default value of `delayed-warnings-hook'."
+Used from `delayed-warnings-hook' (which see)."
+  (dolist (warning (nreverse delayed-warnings-list))
+    (apply 'display-warning warning))
+  (setq delayed-warnings-list nil))
+
+(defun collapse-delayed-warnings ()
+  "Remove duplicates from `delayed-warnings-list'.
+Collapse identical adjacent warnings into one (plus count).
+Used from `delayed-warnings-hook' (which see)."
   (let ((count 1)
-        (warnings (nreverse delayed-warnings-list))
-        warning)
-    (while warnings
-      (setq warning (pop warnings))
-      (if (equal warning (car warnings))
+        collapsed warning)
+    (while delayed-warnings-list
+      (setq warning (pop delayed-warnings-list))
+      (if (equal warning (car delayed-warnings-list))
           (setq count (1+ count))
         (when (> count 1)
           (setcdr warning (cons (format "%s [%d times]" (cadr warning) count)
                                 (cddr warning)))
           (setq count 1))
-        (apply 'display-warning warning))))
-  (setq delayed-warnings-list nil))
+        (push warning collapsed)))
+    (setq delayed-warnings-list (nreverse collapsed))))
 
-(defvar delayed-warnings-hook '(display-delayed-warnings)
+(defvar delayed-warnings-hook '(collapse-delayed-warnings
+                                display-delayed-warnings)
   "Normal hook run to process delayed warnings.
 Functions in this hook should access the `delayed-warnings-list'
 variable (which see) and remove from it the warnings they process.")
