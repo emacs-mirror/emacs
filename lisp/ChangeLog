@@ -1,3 +1,8 @@
+2012-01-23  Mike Lamb  <mrlamb@gmail.com>  (tiny change)
+
+	* eshell/esh-util.el (eshell-read-hosts-file):
+	Skip comment lines.  (Bug#10549)
+
 2012-01-23  Juanma Barranquero  <lekktu@gmail.com>
 
 	* subr.el (display-delayed-warnings): Doc fix.
