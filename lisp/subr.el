@@ -1857,9 +1857,20 @@ FILE should be the name of a library, with no directory name."
 
 (defun display-delayed-warnings ()
   "Display delayed warnings from `delayed-warnings-list'.
+Collapse identical adjacent messages into one (plus count).
 This is the default value of `delayed-warnings-hook'."
-  (dolist (warning (nreverse delayed-warnings-list))
-    (apply 'display-warning warning))
+  (let ((count 1)
+        (warnings (nreverse delayed-warnings-list))
+        warning)
+    (while warnings
+      (setq warning (pop warnings))
+      (if (equal warning (car warnings))
+          (setq count (1+ count))
+        (when (> count 1)
+          (setcdr warning (cons (format "%s [%d times]" (cadr warning) count)
+                                (cddr warning)))
+          (setq count 1))
+        (apply 'display-warning warning))))
   (setq delayed-warnings-list nil))
 
 (defvar delayed-warnings-hook '(display-delayed-warnings)

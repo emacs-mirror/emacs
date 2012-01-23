@@ -1,3 +1,8 @@
+2012-01-23  Juanma Barranquero  <lekktu@gmail.com>
+
+	* subr.el (display-delayed-warnings):
+	Collapse identical adjacent messages.
+
 2012-01-22  Michael Albinus  <michael.albinus@gmx.de>
 
 	* net/tramp.el (tramp-action-login): Set connection property "login-as".
