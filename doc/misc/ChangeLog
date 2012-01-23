@@ -1,3 +1,7 @@
+2012-01-23  Glenn Morris  <rgm@gnu.org>
+
+	* pcl-cvs.texi (About PCL-CVS): Refer to vc-dir rather than vc-dired.
+
 2012-01-19  Eric Hanchrow  <eric.hanchrow@gmail.com>
 
 	* tramp.texi (File): Tweak wording for the `scpc' option.
