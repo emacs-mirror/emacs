@@ -792,8 +792,6 @@ external command."
   (funcall (or (pcomplete-find-completion-function (pcomplete-arg 1))
 	       pcomplete-default-completion-function)))
 
-(defalias 'pcomplete/ssh 'pcomplete/rsh)
-
 (defvar block-size)
 (defvar by-bytes)
 (defvar dereference-links)

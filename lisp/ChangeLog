@@ -3,6 +3,8 @@
 	* eshell/esh-util.el (eshell-read-hosts-file):
 	Skip comment lines.  (Bug#10549)
 
+	* eshell/em-unix.el (pcomplete/ssh): Remove.  (Bug#10548)
+
 2012-01-23  Juanma Barranquero  <lekktu@gmail.com>
 
 	* subr.el (display-delayed-warnings): Doc fix.
