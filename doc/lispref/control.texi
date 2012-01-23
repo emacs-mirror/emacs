@@ -8,11 +8,11 @@
 @cindex special forms for control structures
 @cindex control structures
 
-  A Lisp program consists of expressions or @dfn{forms} (@pxref{Forms}).
-We control the order of execution of these forms by enclosing them in
-@dfn{control structures}.  Control structures are special forms which
-control when, whether, or how many times to execute the forms they
-contain.
+  A Lisp program consists of a set of @dfn{expressions}, or
+@dfn{forms} (@pxref{Forms}).  We control the order of execution of
+these forms by enclosing them in @dfn{control structures}.  Control
+structures are special forms which control when, whether, or how many
+times to execute the forms they contain.
 
 @cindex textual order
   The simplest order of execution is sequential execution: first form

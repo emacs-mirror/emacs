@@ -410,8 +410,13 @@ in case if @code{case-fold-search} is non-@code{nil}.
 @defun string= string1 string2
 This function returns @code{t} if the characters of the two strings
 match exactly.  Symbols are also allowed as arguments, in which case
-their print names are used.
-Case is always significant, regardless of @code{case-fold-search}.
+the symbol names are used.  Case is always significant, regardless of
+@code{case-fold-search}.
+
+This function is equivalent to @code{equal} for comparing two strings
+(@pxref{Equality Predicates}).  In particular, the text properties of
+the two strings are ignored.  But if either argument is not a string
+or symbol, an error is signaled.
 
 @example
 (string= "abc" "abc")
@@ -421,10 +426,6 @@ Case is always significant, regardless of @code{case-fold-search}.
 (string= "ab" "ABC")
      @result{} nil
 @end example
-
-The function @code{string=} ignores the text properties of the two
-strings.  When @code{equal} (@pxref{Equality Predicates}) compares two
-strings, it uses @code{string=}.
 
 For technical reasons, a unibyte and a multibyte string are
 @code{equal} if and only if they contain the same sequence of

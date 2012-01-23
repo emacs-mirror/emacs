@@ -23,7 +23,6 @@ the whole list.
 * Modifying Lists::     Storing new pieces into an existing list.
 * Sets And Lists::      A list can represent a finite mathematical set.
 * Association Lists::   A list can represent a finite relation or mapping.
-* Rings::               Managing a fixed-size ring of objects.
 @end menu
 
 @node Cons Cells
@@ -31,61 +30,56 @@ the whole list.
 @cindex lists and cons cells
 
   Lists in Lisp are not a primitive data type; they are built up from
-@dfn{cons cells}.  A cons cell is a data object that represents an
-ordered pair.  That is, it has two slots, and each slot @dfn{holds}, or
-@dfn{refers to}, some Lisp object.  One slot is known as the @sc{car},
-and the other is known as the @sc{cdr}.  (These names are traditional;
-see @ref{Cons Cell Type}.)  @sc{cdr} is pronounced ``could-er.''
+@dfn{cons cells} (@pxref{Cons Cell Type}).  A cons cell is a data
+object that represents an ordered pair.  That is, it has two slots,
+and each slot @dfn{holds}, or @dfn{refers to}, some Lisp object.  One
+slot is known as the @sc{car}, and the other is known as the @sc{cdr}.
+(These names are traditional; see @ref{Cons Cell Type}.)  @sc{cdr} is
+pronounced ``could-er.''
 
   We say that ``the @sc{car} of this cons cell is'' whatever object
 its @sc{car} slot currently holds, and likewise for the @sc{cdr}.
 
   A list is a series of cons cells ``chained together,'' so that each
-cell refers to the next one.  There is one cons cell for each element of
-the list.  By convention, the @sc{car}s of the cons cells hold the
-elements of the list, and the @sc{cdr}s are used to chain the list: the
-@sc{cdr} slot of each cons cell refers to the following cons cell.  The
-@sc{cdr} of the last cons cell is @code{nil}.  This asymmetry between
-the @sc{car} and the @sc{cdr} is entirely a matter of convention; at the
-level of cons cells, the @sc{car} and @sc{cdr} slots have the same
-characteristics.
+cell refers to the next one.  There is one cons cell for each element
+of the list.  By convention, the @sc{car}s of the cons cells hold the
+elements of the list, and the @sc{cdr}s are used to chain the list
+(this asymmetry between @sc{car} and @sc{cdr} is entirely a matter of
+convention; at the level of cons cells, the @sc{car} and @sc{cdr}
+slots have similar properties).  Hence, the @sc{cdr} slot of each cons
+cell in a list refers to the following cons cell.
 
 @cindex true list
-  Since @code{nil} is the conventional value to put in the @sc{cdr} of
-the last cons cell in the list, we call that case a @dfn{true list}.
-
-  In Lisp, we consider the symbol @code{nil} a list as well as a
-symbol; it is the list with no elements.  For convenience, the symbol
+  Also by convention, the @sc{cdr} of the last cons cell in a list is
+@code{nil}.  We call such a @code{nil}-terminated structure a
+@dfn{true list}.  In Emacs Lisp, the symbol @code{nil} is both a
+symbol and a list with no elements.  For convenience, the symbol
 @code{nil} is considered to have @code{nil} as its @sc{cdr} (and also
-as its @sc{car}).  Therefore, the @sc{cdr} of a true list is always a
-true list.
+as its @sc{car}).
+
+  Hence, the @sc{cdr} of a true list is always a true list.  The
+@sc{cdr} of a nonempty true list is a true list containing all the
+elements except the first.
 
 @cindex dotted list
 @cindex circular list
-  If the @sc{cdr} of a list's last cons cell is some other value,
-neither @code{nil} nor another cons cell, we call the structure a
-@dfn{dotted list}, since its printed representation would use
-@samp{.}.  There is one other possibility: some cons cell's @sc{cdr}
-could point to one of the previous cons cells in the list.  We call
-that structure a @dfn{circular list}.
+  If the @sc{cdr} of a list's last cons cell is some value other than
+@code{nil}, we call the structure a @dfn{dotted list}, since its
+printed representation would use dotted pair notation (@pxref{Dotted
+Pair Notation}).  There is one other possibility: some cons cell's
+@sc{cdr} could point to one of the previous cons cells in the list.
+We call that structure a @dfn{circular list}.
 
   For some purposes, it does not matter whether a list is true,
-circular or dotted.  If the program doesn't look far enough down the
+circular or dotted.  If a program doesn't look far enough down the
 list to see the @sc{cdr} of the final cons cell, it won't care.
 However, some functions that operate on lists demand true lists and
 signal errors if given a dotted list.  Most functions that try to find
 the end of a list enter infinite loops if given a circular list.
 
 @cindex list structure
-  Because most cons cells are used as part of lists, the phrase
-@dfn{list structure} has come to mean any structure made out of cons
-cells.
-
-  The @sc{cdr} of any nonempty true list @var{l} is a list containing all the
-elements of @var{l} except the first.
-
-  @xref{Cons Cell Type}, for the read and print syntax of cons cells and
-lists, and for ``box and arrow'' illustrations of lists.
+  Because most cons cells are used as part of lists, we refer to any
+structure made out of cons cells as a @dfn{list structure}.
 
 @node List-related Predicates
 @section Predicates on Lists
@@ -257,6 +251,10 @@ x
 x
      @result{} (b c)
 @end example
+
+@noindent
+For the @code{pop} macro, which removes an element from a list,
+@xref{List Variables}.
 @end defmac
 
 @defun nth n list
@@ -695,6 +693,10 @@ This macro provides an alternative way to write
 l
      @result{} (c a b)
 @end example
+
+@noindent
+For the @code{pop} macro, which removes the first element from a list,
+@xref{List Elements}.
 @end defmac
 
   Two functions modify lists that are the values of variables.
@@ -1800,90 +1802,3 @@ often modifies the original list structure of @var{alist}.
 compares the @sc{cdr} of each @var{alist} association instead of the
 @sc{car}.
 @end defun
-
-@node Rings
-@section Managing a Fixed-Size Ring of Objects
-
-@cindex ring data structure
-  This section describes functions for operating on rings.  A
-@dfn{ring} is a fixed-size data structure that supports insertion,
-deletion, rotation, and modulo-indexed reference and traversal.
-
-@defun make-ring size
-This returns a new ring capable of holding @var{size} objects.
-@var{size} should be an integer.
-@end defun
-
-@defun ring-p object
-This returns @code{t} if @var{object} is a ring, @code{nil} otherwise.
-@end defun
-
-@defun ring-size ring
-This returns the maximum capacity of the @var{ring}.
-@end defun
-
-@defun ring-length ring
-This returns the number of objects that @var{ring} currently contains.
-The value will never exceed that returned by @code{ring-size}.
-@end defun
-
-@defun ring-elements ring
-This returns a list of the objects in @var{ring}, in order, newest first.
-@end defun
-
-@defun ring-copy ring
-This returns a new ring which is a copy of @var{ring}.
-The new ring contains the same (@code{eq}) objects as @var{ring}.
-@end defun
-
-@defun ring-empty-p ring
-This returns @code{t} if @var{ring} is empty, @code{nil} otherwise.
-@end defun
-
-  The newest element in the ring always has index 0.  Higher indices
-correspond to older elements.  Indices are computed modulo the ring
-length.  Index @minus{}1 corresponds to the oldest element, @minus{}2
-to the next-oldest, and so forth.
-
-@defun ring-ref ring index
-This returns the object in @var{ring} found at index @var{index}.
-@var{index} may be negative or greater than the ring length.  If
-@var{ring} is empty, @code{ring-ref} signals an error.
-@end defun
-
-@defun ring-insert ring object
-This inserts @var{object} into @var{ring}, making it the newest
-element, and returns @var{object}.
-
-If the ring is full, insertion removes the oldest element to
-make room for the new element.
-@end defun
-
-@defun ring-remove ring &optional index
-Remove an object from @var{ring}, and return that object.  The
-argument @var{index} specifies which item to remove; if it is
-@code{nil}, that means to remove the oldest item.  If @var{ring} is
-empty, @code{ring-remove} signals an error.
-@end defun
-
-@defun ring-insert-at-beginning ring object
-This inserts @var{object} into @var{ring}, treating it as the oldest
-element.  The return value is not significant.
-
-If the ring is full, this function removes the newest element to make
-room for the inserted element.
-@end defun
-
-@cindex fifo data structure
-  If you are careful not to exceed the ring size, you can
-use the ring as a first-in-first-out queue.  For example:
-
-@lisp
-(let ((fifo (make-ring 5)))
-  (mapc (lambda (obj) (ring-insert fifo obj))
-        '(0 one "two"))
-  (list (ring-remove fifo) t
-        (ring-remove fifo) t
-        (ring-remove fifo)))
-     @result{} (0 t one t "two")
-@end lisp
