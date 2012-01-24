@@ -1,3 +1,12 @@
+2012-01-24  Julien Danjou  <julien@danjou.info>
+
+	* color.el (color-rgb-to-hsl): Fix value computing.
+	(color-hue-to-rgb): New function.
+	(color-hsl-to-rgb): New function.
+	(color-clamp, color-saturate-hsl, color-saturate-name)
+	(color-desaturate-hsl, color-desaturate-name, color-lighten-hsl)
+	(color-lighten-name, color-darken-hsl, color-darken-name): New function.
+
 2012-01-24  Glenn Morris  <rgm@gnu.org>
 
 	* vc/vc-rcs.el (vc-rcs-create-tag):
