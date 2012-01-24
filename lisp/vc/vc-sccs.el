@@ -359,9 +359,9 @@ revert all subfiles."
 ;;; our own set of name-to-revision mappings.
 ;;;
 
-(defun vc-sccs-create-tag (backend dir name branchp)
+(defun vc-sccs-create-tag (dir name branchp)
   (when branchp
-    (error "SCCS backend %s does not support module branches" backend))
+    (error "SCCS backend does not support module branches"))
   (let ((result (vc-tag-precondition dir)))
     (if (stringp result)
 	(error "File %s is not up-to-date" result)

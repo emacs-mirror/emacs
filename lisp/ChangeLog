@@ -1,3 +1,9 @@
+2012-01-24  Glenn Morris  <rgm@gnu.org>
+
+	* vc/vc-rcs.el (vc-rcs-create-tag):
+	* vc/vc-sccs.el (vc-sccs-create-tag):
+	Fix argument spec to be what vc-create-tag expects.  (Bug#10515)
+
 2012-01-23  Mike Lamb  <mrlamb@gmail.com>  (tiny change)
 
 	* eshell/esh-util.el (eshell-read-hosts-file):
