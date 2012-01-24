@@ -262,12 +262,6 @@ turn this feature back on, if someone would like to do the work.
 This macro declares @var{option} as a customizable @dfn{user option}.
 You should not quote @var{option}.
 
-This causes the function @code{user-variable-p} to return @code{t}
-when given @var{option} as an argument.  @xref{Defining Variables}.
-The argument @var{doc} specifies the documentation string for the
-variable.  (Note that there is no need to start @var{doc} with a
-@samp{*}.)
-
 The argument @var{standard} is an expression that specifies the
 standard value for @var{option}.  Evaluating the @code{defcustom} form
 evaluates @var{standard}, but does not necessarily install the
@@ -284,6 +278,9 @@ standard value.  So be sure to use an expression which is harmless to
 evaluate at any time.  We recommend avoiding backquotes in
 @var{standard}, because they are not expanded when editing the value,
 so list values will appear to have the wrong structure.
+
+The argument @var{doc} specifies the documentation string for the
+variable.
 
 Every @code{defcustom} should specify @code{:group} at least once.
 
@@ -472,6 +469,22 @@ name of a program that needs to be searched at run time.
 A good place to put calls to this function is in the function
 @code{command-line} that is run during startup (@pxref{Startup Summary})
 or in the various hooks it calls.
+@end defun
+
+@defun custom-variable-p arg
+This function returns non-@code{nil} if @var{arg} is a customizable
+variable.  A customizable variable is either a variable that has a
+@code{standard-value} or @code{custom-autoload} property (usually
+meaning it was declared with @code{defcustom}), or an alias for
+another customizable variable.
+@end defun
+
+@defun user-variable-p arg
+This function is like @code{custom-variable-p}, except it also returns
+@code{t} if the first character of the variable's documentation string
+is the character @samp{*}.  That is an obsolete way of indicating a
+user option, so for most purposes you may consider
+@code{user-variable-p} as equivalent to @code{custom-variable-p}.
 @end defun
 
 @node Customization Types
