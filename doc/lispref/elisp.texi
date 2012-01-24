@@ -436,12 +436,10 @@ Variables
 
 Scoping Rules for Variable Bindings
 
-* Scope::                   Scope means where in the program a value
-                              is visible.  Comparison with other languages.
-* Extent::                  Extent means how long in time a value exists.
-* Impl of Scope::           Two ways to implement dynamic scoping.
-* Using Scoping::           How to use dynamic scoping carefully and
-                              avoid problems.
+* Dynamic Binding::         The default for binding local variables in Emacs.
+* Dynamic Binding Tips::    Avoiding problems with dynamic binding.
+* Lexical Binding::         A different type of local variable binding.
+* Using Lexical Binding::   How to enable lexical binding.
 
 Buffer-Local Variables
 

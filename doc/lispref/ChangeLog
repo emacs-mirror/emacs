@@ -1,3 +1,26 @@
+2012-01-24  Chong Yidong  <cyd@gnu.org>
+
+	* variables.texi (Variables, Local Variables, Void Variables):
+	Edit to make the descriptions less specific to dynamic binding.
+	(Local Variables): Default max-specpdl-size is now 1300.
+	(Defining Variables): Edits for lexical scoping.  Delete
+	information about starting docstrings with *.  De-document
+	user-variable-p.
+	(Tips for Defining): Remove an unimportant discussion of quitting
+	in the middle of a load.
+	(Accessing Variables, Setting Variables): Discuss lexical binding.
+	(Variable Scoping): Rewrite.
+	(Scope, Extent, Impl of Scope): Nodes deleted.
+	(Dynamic Binding): New node, with material from Scope, Extent, and
+	Impl of Scope nodes.
+	(Dynamic Binding Tips): Rename from Using Scoping.
+	(Lexical Binding): Rewrite.
+	(Using Lexical Binding): Rename from Converting to Lexical
+	Binding.  Convert to subsection.
+
+	* customize.texi (Variable Definitions): Add custom-variable-p.
+	Move user-variable-p documentation here.
+
 2012-01-23  Chong Yidong  <cyd@gnu.org>
 
 	* strings.texi (Text Comparison): Minor qualification.

@@ -3779,7 +3779,7 @@ the old visited file has been renamed to the new name FILENAME."
 	    ;; Don't change the mode if the local variable list specifies it.
 	    ;; The file name can influence whether the local variables apply.
 	    (and old-try-locals
-		 ;; h-l-v also checks it, but might as well be explcit.
+		 ;; h-l-v also checks it, but might as well be explicit.
 		 (not (inhibit-local-variables-p))
 		 (hack-local-variables t))
 	    ;; TODO consider making normal-mode handle this case.
