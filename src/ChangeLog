@@ -1,3 +1,8 @@
+2012-01-25  HIROSHI OOTA  <nil@mad.dog.cx>  (tiny change)
+
+	* coding.c (encode_designation_at_bol): Change return value to
+	EMACS_INT.
+
 2012-01-25  Chong Yidong  <cyd@gnu.org>
 
 	* eval.c (Fuser_variable_p): Doc fix; mention custom-variable-p.
