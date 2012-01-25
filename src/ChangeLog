@@ -1,6 +1,11 @@
-2012-01-19  Chong Yidong  <cyd@gnu.org>
+2012-01-25  Chong Yidong  <cyd@gnu.org>
 
 	* Version 23.4 released.
+
+2012-01-25  HIROSHI OOTA  <nil@mad.dog.cx>  (tiny change)
+
+	* coding.c (encode_designation_at_bol): Change return value to
+	EMACS_INT.
 
 2012-01-19  Paul Eggert  <eggert@cs.ucla.edu>
 

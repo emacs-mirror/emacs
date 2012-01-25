@@ -944,7 +944,7 @@ static void coding_alloc_by_making_gap P_ ((struct coding_system *,
 static unsigned char *alloc_destination P_ ((struct coding_system *,
 					     EMACS_INT, unsigned char *));
 static void setup_iso_safe_charsets P_ ((Lisp_Object));
-static int encode_designation_at_bol P_ ((struct coding_system *,
+static EMACS_INT encode_designation_at_bol P_ ((struct coding_system *,
 					  int *, int *, unsigned char *));
 static int detect_eol P_ ((const unsigned char *,
 			   EMACS_INT, enum coding_category));
@@ -4509,7 +4509,7 @@ encode_invocation_designation (charset, coding, dst, p_nchars)
    If the current block ends before any end-of-line, we may fail to
    find all the necessary designations.  */
 
-static int
+static EMACS_INT
 encode_designation_at_bol (coding, charbuf, charbuf_end, dst)
      struct coding_system *coding;
      int *charbuf, *charbuf_end;
