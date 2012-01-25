@@ -3622,10 +3622,7 @@ specific buffers."
                        (vscroll . ,(window-vscroll window))
                        (dedicated . ,(window-dedicated-p window))
                        (point . ,(if writable point (copy-marker point)))
-                       (start . ,(if writable start (copy-marker start)))
-                       ,@(when mark
-                           `((mark . ,(if writable
-                                          mark (copy-marker mark))))))))))))
+                       (start . ,(if writable start (copy-marker start))))))))))
 	 (tail
 	  (when (memq type '(vc hc))
 	    (let (list)
@@ -3809,11 +3806,7 @@ value can be also stored on disk and read back in a new session."
 	  ;; have been created and sized).
 	  (ignore-errors
 	    (set-window-start window (cdr (assq 'start state)))
-	    (set-window-point window (cdr (assq 'point state)))
-	    ;; I'm not sure whether we should set the mark here, but maybe
-	    ;; it can be used.
-	    (let ((mark (cdr (assq 'mark state))))
-	      (when mark (set-mark mark))))
+	    (set-window-point window (cdr (assq 'point state))))
 	  ;; Select window if it's the selected one.
 	  (when (cdr (assq 'selected state))
 	    (select-window window)))))))

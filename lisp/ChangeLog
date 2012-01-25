@@ -1,3 +1,8 @@
+2012-01-25  Jérémy Compostella  <jeremy.compostella@gmail.com>
+
+	* window.el (window--state-get-1, window--state-put-2): Don't
+	save and restore the mark.
+
 2012-01-25  Chong Yidong  <cyd@gnu.org>
 
 	* custom.el (custom-variable-p): Doc fix.
