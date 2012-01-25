@@ -1,3 +1,7 @@
+2012-01-25  Glenn Morris  <rgm@gnu.org>
+
+	* vc/vc.el (vc-modify-change-comment): Scoping fix.  (Bug#10513)
+
 2012-01-24  Glenn Morris  <rgm@gnu.org>
 
 	* pcmpl-gnu.el (pcomplete/tar): Handle " - ".  (Bug#10457)
