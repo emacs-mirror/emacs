@@ -1,3 +1,7 @@
+2012-01-25  Lars Ingebrigtsen  <larsi@gnus.org>
+
+	* macros.texi (Defining Macros): Slight `declare' fixup.
+
 2012-01-25  Glenn Morris  <rgm@gnu.org>
 
 	* makefile.w32-in (texinputdir):

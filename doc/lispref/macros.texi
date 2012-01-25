@@ -228,7 +228,7 @@ step through them for Edebug.
 @defmac declare @var{specs}@dots{}
 @anchor{Definition of declare}
 A @code{declare} form is used in a macro definition to specify various
-additional information about it.  Two kinds of specification are
+additional information about it.  The following specifications are
 currently supported:
 
 @table @code
