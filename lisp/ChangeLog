@@ -4,6 +4,9 @@
 
 2012-01-25  Glenn Morris  <rgm@gnu.org>
 
+	* dired.el (dired-goto-file): Handle some of the more common
+	characters that `ls -b' escapes.  (Bug#10596)
+
 	* progmodes/compile.el (compilation-next-error-function):
 	Respect compilation-first-column in the "*compilation*" buffer.
 	* progmodes/grep.el (grep-first-column): New variable.  (Bug#10594)
