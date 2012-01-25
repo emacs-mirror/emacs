@@ -38,7 +38,7 @@ MAKEINFO_OPTS = --force --enable-encoding  -I$(srcdir) -I$(emacsdir)
 # The environment variable and its value to add $(srcdir) to the path
 # searched for TeX input files.
 texinputdir = $(srcdir)\..\..\nt\envadd.bat \
-		"TEXINPUTS=$(srcdir);$(texinputdir);$(TEXINPUTS)" \
+		"TEXINPUTS=$(srcdir);$(texinputdir);$(emacsdir);$(TEXINPUTS)" \
 		"MAKEINFO=$(MAKEINFO) $(MAKEINFO_OPTS)" /C
 
 # The name of the manual:

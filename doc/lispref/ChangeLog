@@ -1,5 +1,6 @@
 2012-01-25  Glenn Morris  <rgm@gnu.org>
 
+	* makefile.w32-in (texinputdir):
 	* Makefile.in (ENVADD): Add $emacsdir.  (Bug#10603)
 
 2012-01-24  Chong Yidong  <cyd@gnu.org>
