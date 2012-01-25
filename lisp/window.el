@@ -3604,25 +3604,20 @@ specific buffers."
                 (when list
                   `((parameters . ,list))))
             ,@(when buffer
-                ;; All buffer related things go in here - make the buffer
-                ;; current when retrieving `point' and `mark'.
-                (with-current-buffer (window-buffer window)
-                  (let ((point (window-point-1 window))
-                        (start (window-start window))
-                        (mark (mark t)))
-                    `((buffer
-                       ,(buffer-name buffer)
-                       (selected . ,selected)
-                       ,@(when window-size-fixed
-                           `((size-fixed . ,window-size-fixed)))
-                       (hscroll . ,(window-hscroll window))
-                       (fringes . ,(window-fringes window))
-                       (margins . ,(window-margins window))
-                       (scroll-bars . ,(window-scroll-bars window))
-                       (vscroll . ,(window-vscroll window))
-                       (dedicated . ,(window-dedicated-p window))
-                       (point . ,(if writable point (copy-marker point)))
-                       (start . ,(if writable start (copy-marker start))))))))))
+                ;; All buffer related things go in here.
+		(let ((point (window-point-1 window))
+		      (start (window-start window)))
+		  `((buffer
+		     ,(buffer-name buffer)
+		     (selected . ,selected)
+		     (hscroll . ,(window-hscroll window))
+		     (fringes . ,(window-fringes window))
+		     (margins . ,(window-margins window))
+		     (scroll-bars . ,(window-scroll-bars window))
+		     (vscroll . ,(window-vscroll window))
+		     (dedicated . ,(window-dedicated-p window))
+		     (point . ,(if writable point (copy-marker point)))
+		     (start . ,(if writable start (copy-marker start)))))))))
 	 (tail
 	  (when (memq type '(vc hc))
 	    (let (list)
@@ -3667,10 +3662,7 @@ value can be also stored on disk and read back in a new session."
      (min-height-ignore . ,(window-min-size window nil t))
      (min-width-ignore  . ,(window-min-size window t t))
      (min-height-safe   . ,(window-min-size window nil 'safe))
-     (min-width-safe    . ,(window-min-size window t 'safe))
-     ;; These are probably not needed.
-     ,@(when (window-size-fixed-p window) `((fixed-height . t)))
-     ,@(when (window-size-fixed-p window t) `((fixed-width . t))))
+     (min-width-safe    . ,(window-min-size window t 'safe)))
    (window--state-get-1 window writable)))
 
 (defvar window-state-put-list nil

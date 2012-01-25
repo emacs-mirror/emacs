@@ -1,3 +1,8 @@
+2012-01-25  Martin Rudalics  <rudalics@gmx.at>
+
+	* window.el (window-state-get, window--state-get-1): Don't deal
+	with fixed-sizeness of windows.  Simplify code.
+
 2012-01-25  Jérémy Compostella  <jeremy.compostella@gmail.com>
 
 	* window.el (window--state-get-1, window--state-put-2): Don't
