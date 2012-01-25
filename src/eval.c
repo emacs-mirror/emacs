@@ -926,13 +926,14 @@ lisp_indirect_variable (Lisp_Object sym)
 DEFUN ("user-variable-p", Fuser_variable_p, Suser_variable_p, 1, 1, 0,
        doc: /* Return t if VARIABLE is intended to be set and modified by users.
 \(The alternative is a variable used internally in a Lisp program.)
-A variable is a user variable if
-\(1) the first character of its documentation is `*', or
-\(2) it is customizable (its property list contains a non-nil value
-    of `standard-value' or `custom-autoload'), or
-\(3) it is an alias for another user variable.
-Return nil if VARIABLE is an alias and there is a loop in the
-chain of symbols.  */)
+
+This function returns t if (i) the first character of its
+documentation is `*', or (ii) it is customizable (its property list
+contains a non-nil value of `standard-value' or `custom-autoload'), or
+\(iii) it is an alias for a user variable.
+
+But condition (i) is considered obsolete, so for most purposes this is
+equivalent to `custom-variable-p'.  */)
   (Lisp_Object variable)
 {
   Lisp_Object documentation;

@@ -591,8 +591,10 @@ If NOSET is non-nil, don't bother autoloading LOAD when setting the variable."
 
 ;; This test is also in the C code of `user-variable-p'.
 (defun custom-variable-p (variable)
-  "Return non-nil if VARIABLE is a custom variable.
-This recursively follows aliases."
+  "Return non-nil if VARIABLE is a customizable variable.
+A customizable variable is either (i) a variable whose property
+list contains a non-nil `standard-value' or `custom-autoload'
+property, or (ii) an alias for another customizable variable."
   (setq variable (indirect-variable variable))
   (or (get variable 'standard-value)
       (get variable 'custom-autoload)))

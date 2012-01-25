@@ -1,3 +1,7 @@
+2012-01-25  Chong Yidong  <cyd@gnu.org>
+
+	* custom.el (custom-variable-p): Doc fix.
+
 2012-01-25  Glenn Morris  <rgm@gnu.org>
 
 	* progmodes/compile.el (compilation-next-error-function):

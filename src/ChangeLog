@@ -1,3 +1,7 @@
+2012-01-25  Chong Yidong  <cyd@gnu.org>
+
+	* eval.c (Fuser_variable_p): Doc fix; mention custom-variable-p.
+
 2012-01-21  Chong Yidong  <cyd@gnu.org>
 
 	* floatfns.c (Fcopysign): Make the second argument non-optional,
