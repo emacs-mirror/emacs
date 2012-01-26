@@ -3060,8 +3060,6 @@ When FORCE, rebuild the tool bar."
 (defvar bookmark-make-record-function)
 
 
-(defvar bidi-paragraph-direction)
-
 (defun gnus-summary-mode (&optional group)
   "Major mode for reading articles.
 
@@ -3100,8 +3098,9 @@ The following commands are available:
   (setq buffer-read-only t		;Disable modification
 	show-trailing-whitespace nil)
   (setq truncate-lines t)
-  ;; Force paragraph direction to be left-to-right.
-  (setq bidi-paragraph-direction 'left-to-right)
+  ;; Force paragraph direction to be left-to-right.  Don't make it
+  ;; bound in old Emacsen and XEmacsen.
+  (set (make-local-variable 'bidi-paragraph-direction) 'left-to-right)
   (add-to-invisibility-spec '(gnus-sum . t))
   (gnus-summary-set-display-table)
   (gnus-set-default-directory)
@@ -6283,13 +6282,19 @@ The resulting hash table is returned, or nil if no Xrefs were found."
 	 (entry (gnus-group-entry group))
 	 (info (nth 2 entry))
 	 (active (gnus-active group))
+	 (set-marks
+	  (or gnus-propagate-marks
+	      (gnus-method-option-p
+	       (gnus-find-method-for-group group)
+	       'server-marks)))
 	 range)
     (if (not entry)
 	;; Group that Gnus doesn't know exists, but still allow the
 	;; backend to set marks.
-	(gnus-request-set-mark
-	 group (list (list (gnus-compress-sequence (sort articles #'<))
-			   'add '(read))))
+	(when set-marks
+	  (gnus-request-set-mark
+	   group (list (list (gnus-compress-sequence (sort articles #'<))
+			     'add '(read)))))
       ;; Normal, subscribed groups.
       (setq range (gnus-compute-read-articles group articles))
       (with-current-buffer gnus-group-buffer
@@ -6298,11 +6303,14 @@ The resulting hash table is returned, or nil if no Xrefs were found."
 	     (gnus-info-set-marks ',info ',(gnus-info-marks info) t)
 	     (gnus-info-set-read ',info ',(gnus-info-read info))
 	     (gnus-get-unread-articles-in-group ',info (gnus-active ,group))
-	     (gnus-request-set-mark ,group (list (list ',range 'del '(read))))
+	     (when ,set-marks
+	       (gnus-request-set-mark
+		,group (list (list ',range 'del '(read)))))
 	     (gnus-group-update-group ,group t))))
       ;; Add the read articles to the range.
       (gnus-info-set-read info range)
-      (gnus-request-set-mark group (list (list range 'add '(read))))
+      (when set-marks
+	(gnus-request-set-mark group (list (list range 'add '(read)))))
       ;; Then we have to re-compute how many unread
       ;; articles there are in this group.
       (when active
@@ -10061,7 +10069,11 @@ ACTION can be either `move' (the default), `crosspost' or `copy'."
 		  (gnus-add-marked-articles
 		   to-group 'expire (list to-article) info))
 
-		(when to-marks
+		(when (and to-marks
+			   (or gnus-propagate-marks
+			       (gnus-method-option-p
+				(gnus-find-method-for-group to-group)
+				'server-marks)))
 		  (gnus-request-set-mark
 		   to-group (list (list (list to-article) 'add to-marks)))))
 

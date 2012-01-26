@@ -1,5 +1,26 @@
 2012-01-26  Katsumi Yamaoka  <yamaoka@jpl.org>
 
+	* gnus-sum.el (gnus-summary-mode): Don't make bidi-paragraph-direction
+	bound in old Emacsen and XEmacsen.
+
+2012-01-26  Nick Alcock  <nick.alcock@oracle.com>  (tiny change)
+
+	* gnus.el (gnus-group-find-parameter): Check for liveness of the
+	buffer, not of the string which is its name.
+
+2012-01-26  Lars Ingebrigtsen  <larsi@gnus.org>
+
+	* gnus-sum.el (gnus-summary-move-article): Don't propagate marks to
+	non-server-marks groups.
+	(gnus-group-make-articles-read): Ditto.
+
+	* gnus-srvr.el (gnus-server-prepare): Use it to avoid showing ephemeral
+	methods (bug#9676).
+
+	* gnus.el (gnus-method-ephemeral-p): New function.
+
+2012-01-26  Katsumi Yamaoka  <yamaoka@jpl.org>
+
 	* gnus-sum.el (gnus-summary-mode): Force paragraph direction to be
 	left-to-right.
 
