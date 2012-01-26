@@ -1,3 +1,8 @@
+2012-01-26  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* gnus-sum.el (gnus-summary-mode): Force paragraph direction to be
+	left-to-right.
+
 2012-01-21  Lars Magne Ingebrigtsen  <larsi@gnus.org>
 
 	* mm-decode.el (mm-interactively-view-part): Fix prompt.

@@ -3063,6 +3063,8 @@ When FORCE, rebuild the tool bar."
 (defvar bookmark-make-record-function)
 
 
+(defvar bidi-paragraph-direction)
+
 (defun gnus-summary-mode (&optional group)
   "Major mode for reading articles.
 
@@ -3101,6 +3103,8 @@ The following commands are available:
   (setq buffer-read-only t		;Disable modification
 	show-trailing-whitespace nil)
   (setq truncate-lines t)
+  ;; Force paragraph direction to be left-to-right.
+  (setq bidi-paragraph-direction 'left-to-right)
   (add-to-invisibility-spec '(gnus-sum . t))
   (gnus-summary-set-display-table)
   (gnus-set-default-directory)
