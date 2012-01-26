@@ -1,3 +1,8 @@
+2012-01-26  Chong Yidong  <cyd@gnu.org>
+
+	* search.c (Fsearch_forward, Fsearch_backward): Document negative
+	repeat counts (Bug#10507).
+
 2012-01-26  Glenn Morris  <rgm@gnu.org>
 
 	* lread.c (syms_of_lread): Doc fix.

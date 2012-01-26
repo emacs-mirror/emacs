@@ -2181,7 +2181,9 @@ An optional second argument bounds the search; it is a buffer position.
 The match found must not extend before that position.
 Optional third argument, if t, means if fail just return nil (no error).
  If not nil and not t, position at limit of search and return nil.
-Optional fourth argument is repeat count--search for successive occurrences.
+Optional fourth argument COUNT, if non-nil, means to search for COUNT
+ successive occurrences.  If COUNT is negative, search forward,
+ instead of backward, for -COUNT occurrences.
 
 Search case-sensitivity is determined by the value of the variable
 `case-fold-search', which see.
@@ -2200,7 +2202,9 @@ The match found must not extend after that position.  A value of nil is
   equivalent to (point-max).
 Optional third argument, if t, means if fail just return nil (no error).
   If not nil and not t, move to limit of search and return nil.
-Optional fourth argument is repeat count--search for successive occurrences.
+Optional fourth argument COUNT, if non-nil, means to search for COUNT
+ successive occurrences.  If COUNT is negative, search backward,
+ instead of forward, for -COUNT occurrences.
 
 Search case-sensitivity is determined by the value of the variable
 `case-fold-search', which see.
