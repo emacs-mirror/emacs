@@ -3099,7 +3099,7 @@ The following commands are available:
 	show-trailing-whitespace nil)
   (setq truncate-lines t)
   ;; Force paragraph direction to be left-to-right.  Don't make it
-  ;; bound in old Emacsen and XEmacsen.
+  ;; bound globally in old Emacsen and XEmacsen.
   (set (make-local-variable 'bidi-paragraph-direction) 'left-to-right)
   (add-to-invisibility-spec '(gnus-sum . t))
   (gnus-summary-set-display-table)
