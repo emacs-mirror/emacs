@@ -1,3 +1,8 @@
+2012-01-26  Lars Ingebrigtsen  <larsi@gnus.org>
+
+	* macros.texi (Defining Macros): Don't claim that `declare' only
+	affects Edebug and indentation.
+
 2012-01-25  Lars Ingebrigtsen  <larsi@gnus.org>
 
 	* macros.texi (Defining Macros): Slight `declare' fixup.
