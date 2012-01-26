@@ -4595,7 +4595,8 @@ to load.  See also `load-dangerous-libraries'.  */);
 Non-nil means that the code in the current buffer should be evaluated
 with lexical binding.
 This variable is automatically set from the file variables of an
-interpreted Lisp file read using `load'.  */);
+interpreted Lisp file read using `load'.  Unlike other file local
+variables, this must be set in the first line of a file.  */);
   Fmake_variable_buffer_local (Qlexical_binding);
 
   DEFVAR_LISP ("eval-buffer-list", Veval_buffer_list,
