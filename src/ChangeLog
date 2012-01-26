@@ -1,5 +1,7 @@
 2012-01-26  Chong Yidong  <cyd@gnu.org>
 
+	* keyboard.c (Vecho_keystrokes): Document zero value (Bug#10503).
+
 	* search.c (Fsearch_forward, Fsearch_backward): Document negative
 	repeat counts (Bug#10507).
 
