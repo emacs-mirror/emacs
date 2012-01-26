@@ -1610,6 +1610,8 @@ textual parts.")
 (declare-function gnus-fetch-headers "gnus-sum"
 		  (articles &optional limit force-new dependencies))
 
+(autoload 'nnir-search-thread "nnir")
+
 (deffoo nnimap-request-thread (header &optional group server)
   (when group
     (setq group (nnimap-decode-gnus-group group)))

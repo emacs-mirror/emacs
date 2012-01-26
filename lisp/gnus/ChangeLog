@@ -3,6 +3,17 @@
 	* gnus-sum.el (gnus-summary-mode): Force paragraph direction to be
 	left-to-right.
 
+2012-01-26  Lars Ingebrigtsen  <larsi@gnus.org>
+
+	* nnimap.el (nnir-search-thread): Autoload to avoid a compilation
+	warning.
+
+2012-01-25  Lars Ingebrigtsen  <larsi@gnus.org>
+
+	* gnus-sum.el (gnus-summary-line-format-alist): Don't try to
+	macroexpand the nnir things, since they haven't been defined yet, and
+	nnir requires gnus-sum.
+
 2012-01-21  Lars Magne Ingebrigtsen  <larsi@gnus.org>
 
 	* mm-decode.el (mm-interactively-view-part): Fix prompt.

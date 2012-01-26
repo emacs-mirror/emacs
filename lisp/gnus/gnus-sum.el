@@ -1371,15 +1371,12 @@ the normal Gnus MIME machinery."
     (?c (or (mail-header-chars gnus-tmp-header) 0) ?d)
     (?k (gnus-summary-line-message-size gnus-tmp-header) ?s)
     (?L gnus-tmp-lines ?s)
-    (?Z (or ,(gnus-macroexpand-all
-	      '(nnir-article-rsv (mail-header-number gnus-tmp-header)))
+    (?Z (or (nnir-article-rsv (mail-header-number gnus-tmp-header))
 	    0) ?d)
-    (?G (or ,(gnus-macroexpand-all
-	      '(nnir-article-group (mail-header-number gnus-tmp-header)))
+    (?G (or (nnir-article-group (mail-header-number gnus-tmp-header))
 	    "") ?s)
-    (?g (or ,(gnus-macroexpand-all
-	      '(gnus-group-short-name
-		(nnir-article-group (mail-header-number gnus-tmp-header))))
+    (?g (or (gnus-group-short-name
+	     (nnir-article-group (mail-header-number gnus-tmp-header)))
 	    "") ?s)
     (?O gnus-tmp-downloaded ?c)
     (?I gnus-tmp-indentation ?s)
