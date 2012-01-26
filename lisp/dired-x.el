@@ -85,12 +85,12 @@ use \\[customize]."
   :set (lambda (sym val)
          (if (set sym val)
              (progn
-               (define-key global-map "\C-x\C-j" 'dired-jump)
-               (define-key global-map "\C-x4\C-j" 'dired-jump-other-window))
-           (if (eq 'dired-jump (lookup-key global-map "\C-x\C-j"))
-               (define-key global-map "\C-x\C-j" nil))
-           (if (eq 'dired-jump-other-window (lookup-key global-map "\C-x4\C-j"))
-               (define-key global-map "\C-x4\C-j" nil))))
+               (define-key ctl-x-map "\C-j" 'dired-jump)
+               (define-key ctl-x-4-map "\C-j" 'dired-jump-other-window))
+           (if (eq 'dired-jump (lookup-key ctl-x-map "\C-j"))
+               (define-key ctl-x-map "\C-j" nil))
+           (if (eq 'dired-jump-other-window (lookup-key ctl-x-4-map "\C-j"))
+               (define-key ctl-x-4-map "\C-j" nil))))
   :group 'dired-keys)
 
 (defcustom dired-bind-man t

@@ -1,3 +1,9 @@
+2012-01-26  Glenn Morris  <rgm@gnu.org>
+
+	* dired-x.el (dired-bind-jump): Use ctl-x-map and ctl-x-4-map.
+	* term.el (term-raw-escape-map): Use Control-X-prefix.
+	* vc/vc-hooks.el (vc-prefix-map): Use ctl-x-map.  (Bug#10566)
+
 2012-01-25  Martin Rudalics  <rudalics@gmx.at>
 
 	* window.el (window-state-get, window--state-get-1): Don't deal

@@ -907,8 +907,7 @@ is buffer-local."
   (define-key map [remap self-insert-command] 'term-send-raw)
   (define-key map "\e" esc-map)
   (setq term-raw-map map)
-  (setq term-raw-escape-map
-	(copy-keymap (lookup-key (current-global-map) "\C-x")))
+  (setq term-raw-escape-map (copy-keymap 'Control-X-prefix))
 
   ;; Added nearly all the 'gray keys' -mm
 
