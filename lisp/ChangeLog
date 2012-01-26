@@ -1,3 +1,38 @@
+2012-01-26  Glenn Morris  <rgm@gnu.org>
+
+	* dired-x.el (dired-bind-jump): Use ctl-x-map and ctl-x-4-map.
+	* term.el (term-raw-escape-map): Use Control-X-prefix.
+	* vc/vc-hooks.el (vc-prefix-map): Use ctl-x-map.  (Bug#10566)
+
+2012-01-25  Martin Rudalics  <rudalics@gmx.at>
+
+	* window.el (window-state-get, window--state-get-1): Don't deal
+	with fixed-sizeness of windows.  Simplify code.
+
+2012-01-25  Jérémy Compostella  <jeremy.compostella@gmail.com>
+
+	* window.el (window--state-get-1, window--state-put-2): Don't
+	save and restore the mark.
+
+2012-01-25  Chong Yidong  <cyd@gnu.org>
+
+	* custom.el (custom-variable-p): Doc fix.
+
+2012-01-25  Glenn Morris  <rgm@gnu.org>
+
+	* dired.el (dired-goto-file): Handle some of the more common
+	characters that `ls -b' escapes.  (Bug#10596)
+
+	* progmodes/compile.el (compilation-next-error-function):
+	Respect compilation-first-column in the "*compilation*" buffer.
+	* progmodes/grep.el (grep-first-column): New variable.  (Bug#10594)
+
+	* vc/vc.el (vc-modify-change-comment): Scoping fix.  (Bug#10513)
+
+2012-01-24  Glenn Morris  <rgm@gnu.org>
+
+	* pcmpl-gnu.el (pcomplete/tar): Handle " - ".  (Bug#10457)
+
 2012-01-24  Julien Danjou  <julien@danjou.info>
 
 	* color.el (color-rgb-to-hsl): Fix value computing.

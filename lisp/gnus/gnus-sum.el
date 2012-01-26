@@ -1371,15 +1371,12 @@ the normal Gnus MIME machinery."
     (?c (or (mail-header-chars gnus-tmp-header) 0) ?d)
     (?k (gnus-summary-line-message-size gnus-tmp-header) ?s)
     (?L gnus-tmp-lines ?s)
-    (?Z (or ,(gnus-macroexpand-all
-	      '(nnir-article-rsv (mail-header-number gnus-tmp-header)))
+    (?Z (or (nnir-article-rsv (mail-header-number gnus-tmp-header))
 	    0) ?d)
-    (?G (or ,(gnus-macroexpand-all
-	      '(nnir-article-group (mail-header-number gnus-tmp-header)))
+    (?G (or (nnir-article-group (mail-header-number gnus-tmp-header))
 	    "") ?s)
-    (?g (or ,(gnus-macroexpand-all
-	      '(gnus-group-short-name
-		(nnir-article-group (mail-header-number gnus-tmp-header))))
+    (?g (or (gnus-group-short-name
+	     (nnir-article-group (mail-header-number gnus-tmp-header)))
 	    "") ?s)
     (?O gnus-tmp-downloaded ?c)
     (?I gnus-tmp-indentation ?s)
@@ -3063,6 +3060,8 @@ When FORCE, rebuild the tool bar."
 (defvar bookmark-make-record-function)
 
 
+(defvar bidi-paragraph-direction)
+
 (defun gnus-summary-mode (&optional group)
   "Major mode for reading articles.
 
@@ -3101,6 +3100,8 @@ The following commands are available:
   (setq buffer-read-only t		;Disable modification
 	show-trailing-whitespace nil)
   (setq truncate-lines t)
+  ;; Force paragraph direction to be left-to-right.
+  (setq bidi-paragraph-direction 'left-to-right)
   (add-to-invisibility-spec '(gnus-sum . t))
   (gnus-summary-set-display-table)
   (gnus-set-default-directory)

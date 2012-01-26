@@ -2640,6 +2640,20 @@ instead of `dired-actual-switches'."
 		  (replace-regexp-in-string "\^m" "\\^m" base nil t))
 	    (setq search-string
 		  (replace-regexp-in-string "\\\\" "\\\\" search-string nil t))
+	    (and (dired-switches-escape-p dired-actual-switches)
+		 (string-match "[ \t\n]" search-string)
+		 ;; FIXME to fix this for all possible file names
+		 ;; (embedded control characters etc), we need to
+		 ;; escape everything that `ls -b' does.
+		 (setq search-string
+		       (replace-regexp-in-string " " "\\ "
+						 search-string nil t)
+		       search-string
+		       (replace-regexp-in-string "\t" "\\t"
+						 search-string nil t)
+		       search-string
+		       (replace-regexp-in-string "\n" "\\n"
+						 search-string nil t)))
 	    (while (and (not found)
 			;; filenames are preceded by SPC, this makes
 			;; the search faster (e.g. for the filename "-"!).
@@ -4182,7 +4196,7 @@ instead.
 ;;;***
 
 ;;;### (autoloads (dired-do-relsymlink dired-jump-other-window dired-jump)
-;;;;;;  "dired-x" "dired-x.el" "85900e333d980b376bf820108ae1a1fc")
+;;;;;;  "dired-x" "dired-x.el" "8d995933a8d82be3a8662d7eff7543cc")
 ;;; Generated autoloads from dired-x.el
 
 (autoload 'dired-jump "dired-x" "\

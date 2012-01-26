@@ -374,6 +374,9 @@ Notice that using \\[next-error] or \\[compile-goto-error] modifies
     ("^Binary file \\(.+\\) matches$" 1 nil nil 0 1))
   "Regexp used to match grep hits.  See `compilation-error-regexp-alist'.")
 
+(defvar grep-first-column 0		; bug#10594
+  "Value to use for `compilation-first-column' in grep buffers.")
+
 (defvar grep-error "grep hit"
   "Message to print when no matches are found.")
 

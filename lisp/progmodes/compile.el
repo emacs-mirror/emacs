@@ -2271,6 +2271,7 @@ This is the value of `next-error-function' in Compilation buffers."
   (when reset
     (setq compilation-current-error nil))
   (let* ((screen-columns compilation-error-screen-columns)
+	 (first-column compilation-first-column)
 	 (last 1)
 	 (msg (compilation-next-error (or n 1) nil
 				      (or compilation-current-error
@@ -2309,7 +2310,10 @@ This is the value of `next-error-function' in Compilation buffers."
                ;; Obey the compilation-error-screen-columns of the target
                ;; buffer if its major mode set it buffer-locally.
                (if (local-variable-p 'compilation-error-screen-columns)
-                   compilation-error-screen-columns screen-columns)))
+                   compilation-error-screen-columns screen-columns))
+              (compilation-first-column
+               (if (local-variable-p 'compilation-first-column)
+                   compilation-first-column first-column)))
           (save-restriction
             (widen)
             (goto-char (point-min))

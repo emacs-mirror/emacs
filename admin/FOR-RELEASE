@@ -118,7 +118,7 @@ TUTORIAL.ro
 TUTORIAL.ru          
 TUTORIAL.sk          
 TUTORIAL.sl          Primoz PETERLIN
-TUTORIAL.sv          
+TUTORIAL.sv          Mats Lidell
 TUTORIAL.th          
 TUTORIAL.zh
 
@@ -126,7 +126,7 @@ TUTORIAL.zh
 
 abbrevs.texi      cyd
 ack.texi          
-anti.texi
+anti.texi         cyd
 arevert-xtra.texi cyd
 basic.texi        cyd
 buffers.texi      cyd

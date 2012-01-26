@@ -1047,6 +1047,8 @@ binding.  (However, special variables are still dynamically bound; see
 below.)  If @code{nil}, dynamic binding is used for all local
 variables.  This variable is typically set for a whole Emacs Lisp
 file, as a file local variable (@pxref{File Local Variables}).
+Note that unlike other such variables, this one must be set in the
+first line of a file.
 @end defvar
 
 @noindent
