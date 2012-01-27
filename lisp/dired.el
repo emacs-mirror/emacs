@@ -3168,8 +3168,8 @@ object files--just `.o' will mark more than you might think."
     (dired-mark-if
      (and (not (looking-at dired-re-dot))
 	  (not (eolp))			; empty line
-	  (let ((fn (dired-get-filename nil t)))
-	    (and fn (string-match regexp (file-name-nondirectory fn)))))
+	  (let ((fn (dired-get-filename t t)))
+	    (and fn (string-match regexp fn))))
      "matching file")))
 
 (defun dired-mark-files-containing-regexp (regexp &optional marker-char)

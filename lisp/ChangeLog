@@ -1,3 +1,8 @@
+2012-01-27  Eduard Wiebe  <usenet@pusto.de>
+
+	* dired.el (dired-mark-files-regexp):
+	Include any subdirectory components.  (Bug#10445)
+
 2012-01-27  Mike Lamb  <mrlamb@gmail.com>  (tiny change)
 
 	* pcmpl-unix.el (pcmpl-ssh-known-hosts):
