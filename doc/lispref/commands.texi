@@ -75,18 +75,22 @@ function yourself (@pxref{Keyboard Macros}).
 character causes @dfn{quitting} (@pxref{Quitting}).
 
 @defvar pre-command-hook
-The editor command loop runs this normal hook before each command.  At
-that time, @code{this-command} contains the command that is about to
-run, and @code{last-command} describes the previous command.
-@xref{Command Loop Info}.
+This normal hook is run by the editor command loop before it executes
+each command.  At that time, @code{this-command} contains the command
+that is about to run, and @code{last-command} describes the previous
+command.  @xref{Command Loop Info}.
 @end defvar
 
 @defvar post-command-hook
-The editor command loop runs this normal hook after each command
-(including commands terminated prematurely by quitting or by errors),
-and also when the command loop is first entered.  At that time,
-@code{this-command} refers to the command that just ran, and
-@code{last-command} refers to the command before that.
+This normal hook is run by the editor command loop after it executes
+each command (including commands terminated prematurely by quitting or
+by errors).  At that time, @code{this-command} refers to the command
+that just ran, and @code{last-command} refers to the command before
+that.
+
+This hook is also run when Emacs first enters the command loop (at
+which point @code{this-command} and @code{last-command} are both
+@code{nil}).
 @end defvar
 
   Quitting is suppressed while running @code{pre-command-hook} and
