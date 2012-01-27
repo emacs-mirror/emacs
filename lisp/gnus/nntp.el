@@ -772,7 +772,11 @@ command whose response triggered the error."
   "Retrieve group info on INFOS."
   (nntp-with-open-group nil server
     (let ((buffer (nntp-find-connection-buffer nntp-server-buffer)))
+      (unless infos
+	(with-current-buffer buffer
+	  (setq nntp-retrieval-in-progress nil)))
       (when (and buffer
+		 infos
 		 (with-current-buffer buffer
 		   (not nntp-retrieval-in-progress)))
 	;; The first time this is run, this variable is `try'.  So we

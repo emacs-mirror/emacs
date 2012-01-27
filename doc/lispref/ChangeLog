@@ -1,3 +1,7 @@
+2012-01-27  Chong Yidong  <cyd@gnu.org>
+
+	* commands.texi (Command Overview): Minor clarification (Bug#10384).
+
 2012-01-26  Chong Yidong  <cyd@gnu.org>
 
 	* searching.texi (String Search): Document negative repeat count

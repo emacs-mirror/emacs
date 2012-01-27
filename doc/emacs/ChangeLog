@@ -1,3 +1,13 @@
+2012-01-27  Dani Moncayo  <dmoncayo@gmail.com>
+
+	* buffers.texi (Select Buffer): Clarify explanation of switching
+	to new buffers.  Fix description of next-buffer and
+	previous-buffer	(Bug#10334).
+	(Misc Buffer): Add xref to View Mode.
+
+	* text.texi (Fill Commands): Fix description of
+	sentence-end-double-space.
+
 2012-01-23  Chong Yidong  <cyd@gnu.org>
 
 	* anti.texi (Antinews): Add Emacs 23 antinews.

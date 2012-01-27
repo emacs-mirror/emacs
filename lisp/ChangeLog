@@ -1,3 +1,7 @@
+2012-01-27  Alex Harsanyi  <harsanyi@mac.com>
+
+	* xml.el (xml-parse-tag): Fix parsing of comments (Bug#10405).
+
 2012-01-26  Glenn Morris  <rgm@gnu.org>
 
 	* dired-x.el (dired-bind-jump): Use ctl-x-map and ctl-x-4-map.

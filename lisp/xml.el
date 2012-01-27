@@ -421,7 +421,8 @@ Returns one of:
      ;;  skip comments
      ((looking-at "<!--")
       (search-forward "-->")
-      nil)
+      (skip-syntax-forward " ")
+      (xml-parse-tag parse-dtd xml-ns))
      ;;  end tag
      ((looking-at "</")
       '())

@@ -90,9 +90,7 @@ selected buffer other than the current buffer.
 name using the minibuffer.  Then it makes that buffer current, and
 displays it in the currently-selected window.  An empty input
 specifies the buffer that was current most recently among those not
-now displayed in any window.  If you specify a buffer that does not
-exist, @kbd{C-x b} creates a new, empty buffer that is not visiting
-any file, and selects it for editing.
+now displayed in any window.
 
   While entering the buffer name, you can use the usual completion and
 history commands (@pxref{Minibuffer}).  Note that @kbd{C-x b}, and
@@ -102,21 +100,24 @@ completing up to a nonexistent buffer name, Emacs prints
 @samp{[Confirm]} and you must type a second @key{RET} to submit that
 buffer name.  @xref{Completion Exit}, for details.
 
-  One reason to create a new buffer is to use it for making temporary
-notes.  If you try to save it, Emacs asks for the file name to use.
-The default value of the variable @code{major-mode} determines the new
-buffer's major mode; the default value is Fundamental mode.  @xref{Major
-Modes}.
+  If you specify a buffer that does not exist, @kbd{C-x b} creates a
+new, empty buffer that is not visiting any file, and selects it for
+editing.  The default value of the variable @code{major-mode}
+determines the new buffer's major mode; the default value is
+Fundamental mode.  @xref{Major Modes}.  One reason to create a new
+buffer is to use it for making temporary notes.  If you try to save
+it, Emacs asks for the file name to use.
 
 @kindex C-x @key{LEFT}
 @kindex C-x @key{RIGHT}
 @findex next-buffer
 @findex previous-buffer
   For conveniently switching between a few buffers, use the commands
-@kbd{C-x @key{LEFT}} and @kbd{C-x @key{RIGHT}}.  @kbd{C-x @key{RIGHT}}
-(@code{previous-buffer}) selects the previous buffer (following the order
-of most recent selection in the current frame), while @kbd{C-x @key{LEFT}}
-(@code{next-buffer}) moves through buffers in the reverse direction.
+@kbd{C-x @key{LEFT}} and @kbd{C-x @key{RIGHT}}.  @kbd{C-x @key{LEFT}}
+(@code{previous-buffer}) selects the previous buffer (following the
+order of most recent selection in the current frame), while @kbd{C-x
+@key{RIGHT}} (@code{next-buffer}) moves through buffers in the reverse
+direction.
 
 @kindex C-x 4 b
 @findex switch-to-buffer-other-window
@@ -215,7 +216,7 @@ Change the name of the current buffer.
 @item M-x rename-uniquely
 Rename the current buffer by adding @samp{<@var{number}>} to the end.
 @item M-x view-buffer @key{RET} @var{buffer} @key{RET}
-Scroll through buffer @var{buffer}.
+Scroll through buffer @var{buffer}.  @xref{View Mode}.
 @end table
 
 @kindex C-x C-q
@@ -256,8 +257,8 @@ switch to some other buffer before using the command, in order for it
 to make a different buffer.)
 
   The commands @kbd{M-x append-to-buffer} and @kbd{M-x insert-buffer}
-can be used to copy text from one buffer to another.  @xref{Accumulating
-Text}.
+can also be used to copy text from one buffer to another.
+@xref{Accumulating Text}.
 
 @node Kill Buffer
 @section Killing Buffers
