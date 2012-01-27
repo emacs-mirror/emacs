@@ -379,7 +379,7 @@ Reinsertion of killed text is called "yanking".  Generally, the
 commands that can remove a lot of text kill the text (they are set up so
 that you can yank the text), while the commands that remove just one
 character, or only remove blank lines and spaces, do deletion (so you
-cannot yank that text).  <DEL> and C-d  do deletion in the simplest
+cannot yank that text).  <DEL> and C-d do deletion in the simplest
 case, with no argument.  When given an argument, they kill instead.
 
 >> Move the cursor to the beginning of a line which is not empty.
