@@ -1,3 +1,8 @@
+2012-01-27  Mike Lamb  <mrlamb@gmail.com>  (tiny change)
+
+	* pcmpl-unix.el (pcmpl-ssh-known-hosts):
+	Handle [host]:port syntax.  (Bug#10533)
+
 2012-01-27  Alex Harsanyi  <harsanyi@mac.com>
 
 	* xml.el (xml-parse-tag): Fix parsing of comments (Bug#10405).
