@@ -3059,6 +3059,7 @@ When FORCE, rebuild the tool bar."
 (declare-function turn-on-gnus-mailing-list-mode "gnus-ml" ())
 (defvar bookmark-make-record-function)
 
+(defvar bidi-paragraph-direction)
 
 (defun gnus-summary-mode (&optional group)
   "Major mode for reading articles.
