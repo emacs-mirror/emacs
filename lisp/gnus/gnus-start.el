@@ -1714,6 +1714,21 @@ backend check whether the group actually exists."
 	  (with-current-buffer nntp-server-buffer
 	    (gnus-read-active-file-1 method nil)))))
 
+    ;; Clear out all the early methods.
+    (dolist (elem type-cache)
+      (destructuring-bind (method method-type infos dummy) elem
+	(when (and method
+		   infos
+		   (gnus-check-backend-function
+		    'retrieve-group-data-early (car method))
+		   (not (gnus-method-denied-p method)))
+	  (when (ignore-errors (gnus-get-function method 'open-server))
+	    (unless (gnus-server-opened method)
+	      (gnus-open-server method))
+	    (when (gnus-server-opened method)
+	      ;; Just mark this server as "cleared".
+	      (gnus-retrieve-group-data-early method nil))))))
+
     ;; Start early async retrieval of data.
     (let ((done-methods nil)
 	  sanity-spec)
