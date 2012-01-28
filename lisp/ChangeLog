@@ -1,3 +1,11 @@
+2012-01-28  Chong Yidong  <cyd@gnu.org>
+
+	* eshell/esh-arg.el (eshell-quote-argument): New function.
+
+	* eshell/esh-ext.el (eshell-invoke-batch-file):
+	* eshell/em-unix.el (eshell/cat, eshell/du): Use it to quote the
+	first arg to eshell-parse-command (Bug#10523).
+
 2012-01-28  Drew Adams  <drew.adams@oracle.com>
 
 	* net/ange-ftp.el (ange-ftp-canonize-filename): Check, that

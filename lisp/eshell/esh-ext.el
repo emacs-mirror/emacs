@@ -108,7 +108,9 @@ wholly ignored."
   ;; argument...
   (setcar args (subst-char-in-string ?/ ?\\ (car args)))
   (throw 'eshell-replace-command
-	 (eshell-parse-command eshell-windows-shell-file (cons "/c" args))))
+	 (eshell-parse-command
+	  (eshell-quote-argument eshell-windows-shell-file)
+	  (cons "/c" args))))
 
 (defcustom eshell-interpreter-alist
   (if (eshell-under-windows-p)

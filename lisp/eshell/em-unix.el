@@ -599,7 +599,7 @@ symlink, then revert to the system's definition of cat."
       (let ((ext-cat (eshell-search-path "cat")))
 	(if ext-cat
 	    (throw 'eshell-replace-command
-		   (eshell-parse-command ext-cat args))
+		   (eshell-parse-command (eshell-quote-argument ext-cat) args))
 	  (if eshell-in-pipeline-p
 	      (error "Eshell's `cat' does not work in pipelines")
 	    (error "Eshell's `cat' cannot display one of the files given"))))
@@ -855,7 +855,7 @@ external command."
 			   (file-remote-p (expand-file-name arg) 'method) "ftp")
 			  (throw 'have-ange-path t))))))
 	(throw 'eshell-replace-command
-	       (eshell-parse-command ext-du args))
+	       (eshell-parse-command (eshell-quote-argument ext-du) args))
       (eshell-eval-using-options
        "du" args
        '((?a "all" nil show-all
