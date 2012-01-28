@@ -512,7 +512,8 @@ as well as widgets, buttons, overlays, and text properties."
 
       (setq item-list
             `(("character"
-               ,(format "%s (%d, #o%o, #x%x)"
+               ,(format "%s (displayed as %s) (codepoint %d, #o%o, #x%x)"
+			char-description
                         (apply 'propertize char-description
                                (text-properties-at pos))
                         char char char))

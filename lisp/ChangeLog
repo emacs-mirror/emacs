@@ -1,3 +1,10 @@
+2012-01-28  Eli Zaretskii  <eliz@gnu.org>
+
+	* descr-text.el (describe-char): Show the raw character, not only
+	its display form at POS.  Suggested by Kenichi Handa <handa@m17n.org>.
+	See http://lists.gnu.org/archive/html/emacs-devel/2012-01/msg00760.html
+	for the reasons.
+
 2012-01-28  Phil Hagelberg  <phil@hagelb.org>
 
 	* emacs-lisp/package.el (package-install): Run
