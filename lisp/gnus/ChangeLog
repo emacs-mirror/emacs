@@ -107,7 +107,7 @@
 
 	* gnus.el (gnus-parameters): Doc fix.
 
-2012-01-06  Dave Abrahams  <dave@boostpro.com>  (tiny change)
+2012-01-06  Dave Abrahams  <dave@boostpro.com>
 
 	* gnus-sum.el (gnus-summary-refer-thread): If the subtree is hidden,
 	show the thread after expansion.
@@ -373,7 +373,7 @@
 	* nnir.el (gnus-registry-enabled): Defvar to keep the compiler happy.
 	* nnmairix.el (gnus-registry-enabled): Ditto.
 
-2011-10-17  Dave Abrahams  <dave@boostpro.com>  (tiny change)
+2011-10-17  Dave Abrahams  <dave@boostpro.com>
 
 	* gnus-registry.el (gnus-registry-enabled): Add new variable (bug#9691).
 	(gnus-registry-install-shortcuts): Set `gnus-registry-install' to 'ask
@@ -627,7 +627,7 @@
 	* gnus.el (gnus-variable-list): Don't save `gnus-format-specs' in the
 	newsrc file.  It doesn't seem like an important optimization any more.
 
-2011-09-10  Dave Abrahams  <dave@boostpro.com>  (tiny change)
+2011-09-10  Dave Abrahams  <dave@boostpro.com>
 
 	* nnimap.el (nnimap-transform-headers): Fix regexp to be less prone to
 	overflows.
@@ -904,7 +904,7 @@
 
 	* spam.el (spam-fetch-field-fast): Rewrite slightly for clarity.
 
-2011-07-31  Dave Abrahams  <dave@boostpro.com>  (tiny change)
+2011-07-31  Dave Abrahams  <dave@boostpro.com>
 
 	* gnus-sum.el (gnus-summary-refer-thread): Since lambdas aren't
 	closures, quote the form properly (bug#9194).
