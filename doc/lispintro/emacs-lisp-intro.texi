@@ -334,6 +334,9 @@ every node in every chapter.
 @c global@pageno = -11
 @c end iftex
 
+@set COUNT-WORDS count-words-example
+@c Length of variable name chosen so that things still line up when expanded.
+
 @menu
 * Preface::                     What to look for.
 * List Processing::             What is Lisp?
@@ -702,8 +705,6 @@ Regular Expression Searches
 * fwd-para while::              The forward motion @code{while} loop.
 
 Counting: Repetition and Regexps
-@set COUNT-WORDS count-words-example
-@c Length of variable name chosen so that things still line up when expanded.
 
 * Why Count Words::
 * @value{COUNT-WORDS}::         Use a regexp, but find a problem.
