@@ -1,4 +1,9 @@
+2012-01-28  Samuel Thibault  <sthibault@debian.org>  (tiny change)
+
+	* s/gnu.h: Define POSIX_SIGNALS (Bug#10552).
+
 2012-01-28  Chong Yidong  <cyd@gnu.org>
+
 
 	* minibuf.c (syms_of_minibuf): Doc fix (Bug#10550).
 
