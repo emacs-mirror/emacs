@@ -1637,7 +1637,7 @@ Otherwise use brackets."
 	 :tag " Search "
 	 :help-echo echo :action
 	 (lambda (widget &optional _event)
-	   (customize-apropos (widget-value (widget-get widget :parent)))))
+	   (customize-apropos (split-string (widget-value (widget-get widget :parent))))))
 	(widget-insert "\n")))
 
     ;; The custom command buttons are also in the toolbar, so for a
