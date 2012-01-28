@@ -1,3 +1,11 @@
+2012-01-28  Drew Adams  <drew.adams@oracle.com>
+
+	* descr-text.el (describe-char): Show information about POS, in
+	addition to information about the character at POS.  Improve and
+	update the doc string.  Change "code point" to "code point in
+	charset", to avoid confusion with the character's Unicode code
+	point shown above that.  (Bug#10129)
+
 2012-01-28  Eli Zaretskii  <eliz@gnu.org>
 
 	* descr-text.el (describe-char): Show the raw character, not only
