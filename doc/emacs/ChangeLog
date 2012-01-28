@@ -1,5 +1,7 @@
 2012-01-28  Chong Yidong  <cyd@gnu.org>
 
+	* files.texi (Filesets): Fix typos.
+
 	* display.texi (Faces): Add xref to Colors node.
 
 2012-01-27  Dani Moncayo  <dmoncayo@gmail.com>
