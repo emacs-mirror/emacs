@@ -1,3 +1,8 @@
+2012-01-28  Phil Hagelberg  <phil@hagelb.org>
+
+	* emacs-lisp/package.el (package-install): Run
+	package-refresh-contents if there is no archive yet (Bug#97978).
+
 2012-01-28  Chong Yidong  <cyd@gnu.org>
 
 	* emacs-lisp/package.el (package-maybe-load-descriptor): New

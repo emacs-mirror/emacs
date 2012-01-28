@@ -889,6 +889,8 @@ archive in `package-archives'.  Interactively, prompt for NAME."
      ;; symbols for completion.
      (unless package--initialized
        (package-initialize t))
+     (unless package-archive-contents
+       (package-refresh-contents))
      (list (intern (completing-read
 		    "Install package: "
 		    (mapcar (lambda (elt)
