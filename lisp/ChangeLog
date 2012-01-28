@@ -47,6 +47,8 @@
 
 2012-01-28  Chong Yidong  <cyd@gnu.org>
 
+	* simple.el (deactivate-mark): Doc fix (Bug#8614).
+
 	* tooltip.el (tooltip-mode): Doc fix.
 	(tooltip-use-echo-area): Mark as obsolete (Bug#6595).
 
