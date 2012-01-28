@@ -1936,20 +1936,20 @@ adds a @samp{Filesets} menu to the menu bar.
 
 @findex filesets-add-buffer
 @findex filesets-remove-buffer
-  The simplest way to define a fileset is by adding files to it one
-at a time.  To add a file to fileset @var{name}, visit the file and
-type @kbd{M-x filesets-add-buffer @kbd{RET} @var{name} @kbd{RET}}.  If
+  The simplest way to define a fileset is by adding files to it one at
+a time.  To add a file to fileset @var{name}, visit the file and type
+@kbd{M-x filesets-add-buffer @kbd{RET} @var{name} @kbd{RET}}.  If
 there is no fileset @var{name}, this creates a new one, which
-initially creates only the current file.  The command @kbd{M-x
+initially contains only the current file.  The command @kbd{M-x
 filesets-remove-buffer} removes the current file from a fileset.
 
   You can also edit the list of filesets directly, with @kbd{M-x
 filesets-edit} (or by choosing @samp{Edit Filesets} from the
 @samp{Filesets} menu).  The editing is performed in a Customize buffer
-(@pxref{Easy Customization}).  Filesets need not be a simple list of
-files---you can also define filesets using regular expression matching
-file names.  Some examples of these more complicated filesets are
-shown in the Customize buffer.  Remember to select @samp{Save for
+(@pxref{Easy Customization}).  Normally, a fileset is a simple list of
+files, but you can also define a fileset as a regular expression
+matching file names.  Some examples of these more complicated filesets
+are shown in the Customize buffer.  Remember to select @samp{Save for
 future sessions} if you want to use the same filesets in future Emacs
 sessions.
 

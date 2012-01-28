@@ -1377,15 +1377,15 @@ remains selected until a subsequent call to @code{select-frame}.  Each
 terminal frame has a number which appears in the mode line before the
 buffer name (@pxref{Mode Line Variables}).
 
-@defun select-frame-set-input-focus frame
+@defun select-frame-set-input-focus frame &optional norecord
 This function selects @var{frame}, raises it (should it happen to be
-obscured by other frames) and tries to give it the X server's focus.  On
-a text-only terminal, the next redisplay displays the new frame on the
-entire terminal screen.  The return value of this function is not
-significant.
+obscured by other frames) and tries to give it the X server's focus.
+On a text-only terminal, the next redisplay displays the new frame on
+the entire terminal screen.  The optional argument @var{norecord} has
+the same meaning as for @code{select-frame} (see below).  The return
+value of this function is not significant.
 @end defun
 
-@c ??? This is not yet implemented properly.
 @defun select-frame frame &optional norecord
 This function selects frame @var{frame}, temporarily disregarding the
 focus of the X server if any.  The selection of @var{frame} lasts until
@@ -1395,18 +1395,20 @@ window system, the previously selected frame may be restored as the
 selected frame after return to the command loop, because it still may
 have the window system's input focus.)
 
-The specified @var{frame} becomes the selected frame, as explained
-above, and the terminal that @var{frame} is on becomes the selected
-terminal.  The window selected within @var{frame} becomes the selected
-window.  This function returns @var{frame}, or @code{nil} if @var{frame}
-has been deleted.
+The specified @var{frame} becomes the selected frame, and its terminal
+becomes the selected terminal.  This function then calls
+@code{select-window} as a subroutine, passing the window selected
+within @var{frame} as its first argument and @var{norecord} as its
+second argument (hence, if @var{norecord} is non-@code{nil}, this
+avoids changing the order of recently selected windows nor the buffer
+list).  @xref{Selecting Windows}.
 
-Optional argument @var{norecord} non-@code{nil} means to neither change
-the order of recently selected windows nor the buffer list.  @xref{The
-Buffer List}.
+This function returns @var{frame}, or @code{nil} if @var{frame} has
+been deleted.
 
-In general, you should never use @code{select-frame} in a way that could
-switch to a different terminal without switching back when you're done.
+In general, you should never use @code{select-frame} in a way that
+could switch to a different terminal without switching back when
+you're done.
 @end defun
 
 Emacs cooperates with the window system by arranging to select frames as

@@ -82,7 +82,9 @@ longer have any effect.  (They were declared obsolete in Emacs 23.)
 
 +++
 ** New command line option `--no-site-lisp' removes site-lisp directories
-from load-path.  -Q now implies this.
+from load-path.  -Q now implies this.  This option does not affect the
+EMACSLOADPATH environment variable (and hence has no effect for
+Nextstep builds.)
 
 
 * Changes in Emacs 24.1
@@ -433,6 +435,10 @@ been shown in a specific window.
 ** The inactive minibuffer has its own major mode `minibuffer-inactive-mode'.
 This is handy for minibuffer-only frames, and is also used for the "mouse-1
 pops up *Messages*" feature, which can now easily be changed.
+
+---
+** `tooltip-use-echo-area' is obsolete.
+Rather than setting this to t, disable Tooltip mode instead.
 
 
 * Editing Changes in Emacs 24.1

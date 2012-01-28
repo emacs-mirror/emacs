@@ -1012,13 +1012,10 @@ the conventions listed above:
 (defvar text-mode-map
   (let ((map (make-sparse-keymap)))
     (define-key map "\e\t" 'ispell-complete-word)
-    (define-key map "\es" 'center-line)
-    (define-key map "\eS" 'center-paragraph)
     map)
   "Keymap for `text-mode'.
-Many other modes, such as Mail mode, Outline mode
-and Indented Text mode, inherit all the commands
-defined in this map.")
+Many other modes, such as `mail-mode', `outline-mode' and
+`indented-text-mode', inherit all the commands defined in this map.")
 @end group
 @end smallexample
 
@@ -1036,7 +1033,6 @@ Turning on Text mode runs the normal hook `text-mode-hook'."
 @end group
 @group
   (set (make-local-variable 'text-mode-variant) t)
-  ;; @r{These two lines are a feature added recently.}
   (set (make-local-variable 'require-final-newline)
        mode-require-final-newline)
   (set (make-local-variable 'indent-line-function) 'indent-relative))
@@ -1047,103 +1043,29 @@ Turning on Text mode runs the normal hook `text-mode-hook'."
 (The last line is redundant nowadays, since @code{indent-relative} is
 the default value, and we'll delete it in a future version.)
 
-  Here is how it was defined formerly, before
-@code{define-derived-mode} existed:
-
-@smallexample
-@group
-;; @r{This isn't needed nowadays, since @code{define-derived-mode} does it.}
-(define-abbrev-table 'text-mode-abbrev-table ()
-  "Abbrev table used while in text mode.")
-@end group
-
-@group
-(defun text-mode ()
-  "Major mode for editing text intended for humans to read...
- Special commands: \\@{text-mode-map@}
-@end group
-@group
-Turning on text-mode runs the hook `text-mode-hook'."
-  (interactive)
-  (kill-all-local-variables)
-  (use-local-map text-mode-map)
-@end group
-@group
-  (setq local-abbrev-table text-mode-abbrev-table)
-  (set-syntax-table text-mode-syntax-table)
-@end group
-@group
-  ;; @r{These four lines are absent from the current version}
-  ;; @r{not because this is done some other way, but because}
-  ;; @r{nowadays Text mode uses the normal definition of paragraphs.}
-  (set (make-local-variable 'paragraph-start)
-       (concat "[ \t]*$\\|" page-delimiter))
-  (set (make-local-variable 'paragraph-separate) paragraph-start)
-  (set (make-local-variable 'indent-line-function) 'indent-relative-maybe)
-@end group
-@group
-  (setq mode-name "Text")
-  (setq major-mode 'text-mode)
-  (run-mode-hooks 'text-mode-hook)) ; @r{Finally, this permits the user to}
-                                    ;   @r{customize the mode with a hook.}
-@end group
-@end smallexample
-
 @cindex @file{lisp-mode.el}
-  The three Lisp modes (Lisp mode, Emacs Lisp mode, and Lisp
-Interaction mode) have more features than Text mode and the code is
-correspondingly more complicated.  Here are excerpts from
-@file{lisp-mode.el} that illustrate how these modes are written.
+  The three Lisp modes (Lisp mode, Emacs Lisp mode, and Lisp Interaction
+mode) have more features than Text mode and the code is correspondingly
+more complicated.  Here are excerpts from @file{lisp-mode.el} that
+illustrate how these modes are written.
+
+  Here is how the Lisp mode syntax and abbrev tables are defined:
 
 @cindex syntax table example
 @smallexample
 @group
 ;; @r{Create mode-specific table variables.}
-(defvar lisp-mode-syntax-table nil "")
-(defvar lisp-mode-abbrev-table nil "")
-@end group
-
-@group
-(defvar emacs-lisp-mode-syntax-table
-  (let ((table (make-syntax-table)))
-    (let ((i 0))
-@end group
-
-@group
-      ;; @r{Set syntax of chars up to @samp{0} to say they are}
-      ;;   @r{part of symbol names but not words.}
-      ;;   @r{(The digit @samp{0} is @code{48} in the @acronym{ASCII} character set.)}
-      (while (< i ?0)
-        (modify-syntax-entry i "_   " table)
-        (setq i (1+ i)))
-      ;; @r{@dots{} similar code follows for other character ranges.}
-@end group
-@group
-      ;; @r{Then set the syntax codes for characters that are special in Lisp.}
-      (modify-syntax-entry ?  "    " table)
-      (modify-syntax-entry ?\t "    " table)
-      (modify-syntax-entry ?\f "    " table)
-      (modify-syntax-entry ?\n ">   " table)
-@end group
-@group
-      ;; @r{Give CR the same syntax as newline, for selective-display.}
-      (modify-syntax-entry ?\^m ">   " table)
-      (modify-syntax-entry ?\; "<   " table)
-      (modify-syntax-entry ?` "'   " table)
-      (modify-syntax-entry ?' "'   " table)
-      (modify-syntax-entry ?, "'   " table)
-@end group
-@group
-      ;; @r{@dots{}likewise for many other characters@dots{}}
-      (modify-syntax-entry ?\( "()  " table)
-      (modify-syntax-entry ?\) ")(  " table)
-      (modify-syntax-entry ?\[ "(]  " table)
-      (modify-syntax-entry ?\] ")[  " table))
-    table))
-@end group
-@group
-;; @r{Create an abbrev table for lisp-mode.}
+(defvar lisp-mode-abbrev-table nil)
 (define-abbrev-table 'lisp-mode-abbrev-table ())
+
+(defvar lisp-mode-syntax-table
+  (let ((table (copy-syntax-table emacs-lisp-mode-syntax-table)))
+    (modify-syntax-entry ?\[ "_   " table)
+    (modify-syntax-entry ?\] "_   " table)
+    (modify-syntax-entry ?# "' 14" table)
+    (modify-syntax-entry ?| "\" 23bn" table)
+    table)
+  "Syntax table used in `lisp-mode'.")
 @end group
 @end smallexample
 
@@ -1152,7 +1074,7 @@ each calls the following function to set various variables:
 
 @smallexample
 @group
-(defun lisp-mode-variables (lisp-syntax)
+(defun lisp-mode-variables (&optional lisp-syntax keywords-case-insensitive)
   (when lisp-syntax
     (set-syntax-table lisp-mode-syntax-table))
   (setq local-abbrev-table lisp-mode-abbrev-table)
@@ -1160,22 +1082,14 @@ each calls the following function to set various variables:
 @end group
 @end smallexample
 
-  In Lisp and most programming languages, we want the paragraph
-commands to treat only blank lines as paragraph separators.  And the
-modes should understand the Lisp conventions for comments.  The rest of
-@code{lisp-mode-variables} sets this up:
+@noindent
+Amongst other things, this function sets up the @code{comment-start}
+variable to handle Lisp comments:
 
 @smallexample
 @group
-  (set (make-local-variable 'paragraph-start)
-       (concat page-delimiter "\\|$" ))
-  (set (make-local-variable 'paragraph-separate)
-       paragraph-start)
-  @dots{}
-@end group
-@group
-  (set (make-local-variable 'comment-indent-function)
-       'lisp-comment-indent))
+  (make-local-variable 'comment-start)
+  (setq comment-start ";")
   @dots{}
 @end group
 @end smallexample
@@ -1187,11 +1101,10 @@ common.  The following code sets up the common commands:
 
 @smallexample
 @group
-(defvar shared-lisp-mode-map
+(defvar lisp-mode-shared-map
   (let ((map (make-sparse-keymap)))
-    (define-key shared-lisp-mode-map "\e\C-q" 'indent-sexp)
-    (define-key shared-lisp-mode-map "\177"
-                'backward-delete-char-untabify)
+    (define-key map "\e\C-q" 'indent-sexp)
+    (define-key map "\177" 'backward-delete-char-untabify)
     map)
   "Keymap for commands shared by all sorts of Lisp modes.")
 @end group
@@ -1203,25 +1116,29 @@ And here is the code to set up the keymap for Lisp mode:
 @smallexample
 @group
 (defvar lisp-mode-map
-  (let ((map (make-sparse-keymap)))
-    (set-keymap-parent map shared-lisp-mode-map)
+  (let ((map (make-sparse-keymap))
+	(menu-map (make-sparse-keymap "Lisp")))
+    (set-keymap-parent map lisp-mode-shared-map)
     (define-key map "\e\C-x" 'lisp-eval-defun)
     (define-key map "\C-c\C-z" 'run-lisp)
+    @dots{}
     map)
-  "Keymap for ordinary Lisp mode...")
+  "Keymap for ordinary Lisp mode.
+All commands in `lisp-mode-shared-map' are inherited by this map.")
 @end group
 @end smallexample
 
-  Finally, here is the complete major mode command definition for Lisp
-mode.
+@noindent
+Finally, here is the major mode command for Lisp mode:
 
 @smallexample
 @group
-(defun lisp-mode ()
+(define-derived-mode lisp-mode prog-mode "Lisp"
   "Major mode for editing Lisp code for Lisps other than GNU Emacs Lisp.
 Commands:
 Delete converts tabs to spaces as it moves back.
 Blank lines separate paragraphs.  Semicolons start comments.
+
 \\@{lisp-mode-map@}
 Note that `run-lisp' may be used either to start an inferior Lisp job
 or to switch back to an existing one.
@@ -1230,24 +1147,12 @@ or to switch back to an existing one.
 @group
 Entry to this mode calls the value of `lisp-mode-hook'
 if that value is non-nil."
-  (interactive)
-  (kill-all-local-variables)
-@end group
-@group
-  (use-local-map lisp-mode-map)          ; @r{Select the mode's keymap.}
-  (setq major-mode 'lisp-mode)           ; @r{This is how @code{describe-mode}}
-                                         ;   @r{finds out what to describe.}
-  (setq mode-name "Lisp")                ; @r{This goes into the mode line.}
-  (lisp-mode-variables t)                ; @r{This defines various variables.}
-  (set (make-local-variable 'comment-start-skip)
+  (lisp-mode-variables nil t)
+  (set (make-local-variable 'find-tag-default-function) 'lisp-find-tag-default)
+  (make-local-variable 'comment-start-skip)
+  (setq comment-start-skip
        "\\(\\(^\\|[^\\\\\n]\\)\\(\\\\\\\\\\)*\\)\\(;+\\|#|\\) *")
-  (set (make-local-variable 'font-lock-keywords-case-fold-search) t)
-@end group
-@group
-  (setq imenu-case-fold-search t)
-  (set-syntax-table lisp-mode-syntax-table)
-  (run-mode-hooks 'lisp-mode-hook))      ; @r{This permits the user to use a}
-                                         ;   @r{hook to customize the mode.}
+  (setq imenu-case-fold-search t))
 @end group
 @end smallexample
 

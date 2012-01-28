@@ -3584,15 +3584,18 @@ does not pop any summary buffer."
     (if (stringp subject) (setq subject (rfc2047-decode-string subject)))
     (prog1
 	(compose-mail to subject other-headers noerase
-		      switch-function yank-action sendactions)
+		      switch-function yank-action sendactions
+		      `(rmail-mail-return ,replybuffer))
       (if (eq switch-function 'switch-to-buffer-other-frame)
 	  ;; This is not a standard frame parameter; nothing except
 	  ;; sendmail.el looks at it.
-	    (modify-frame-parameters (selected-frame)
+	  (modify-frame-parameters (selected-frame)
 				   '((mail-dedicated-frame . t)))))))
 
 (defun rmail-mail-return (&optional newbuf)
-  "NEWBUF is a buffer to switch to."
+  "Try to return to Rmail from the mail window.
+If optional argument NEWBUF is specified, it is the Rmail buffer
+to switch to."
   (cond
    ;; If there is only one visible frame with no special handling,
    ;; consider deleting the mail window to return to Rmail.
@@ -3602,23 +3605,30 @@ does not pop any summary buffer."
 		 (cdr (assq 'mail-dedicated-frame
 			    (frame-parameters))))))
     (let (rmail-flag summary-buffer)
-      (and (not (one-window-p))
-	   (with-current-buffer
-	       (window-buffer (next-window (selected-window) 'not))
-	     (setq rmail-flag (eq major-mode 'rmail-mode))
-	     (setq summary-buffer
-		   (and (boundp 'mail-bury-selects-summary)
-			mail-bury-selects-summary
-			(boundp 'rmail-summary-buffer)
-			rmail-summary-buffer
-			(buffer-name rmail-summary-buffer)
-			(not (get-buffer-window rmail-summary-buffer))
-			rmail-summary-buffer))))
-      (if rmail-flag
-	  ;; If the Rmail buffer has a summary, show that.
-	  (if summary-buffer (switch-to-buffer summary-buffer)
-	    (delete-window))
-	(switch-to-buffer newbuf))))
+      (unless (one-window-p)
+	(with-current-buffer
+	    (window-buffer (next-window (selected-window) 'not))
+	  (setq rmail-flag (eq major-mode 'rmail-mode))
+	  (setq summary-buffer
+		(and (boundp 'mail-bury-selects-summary)
+		     mail-bury-selects-summary
+		     (boundp 'rmail-summary-buffer)
+		     rmail-summary-buffer
+		     (buffer-name rmail-summary-buffer)
+		     (not (get-buffer-window rmail-summary-buffer))
+		     rmail-summary-buffer))))
+      (cond ((null rmail-flag)
+	     ;; If the Rmail buffer is not in the next window, switch
+	     ;; directly to the Rmail buffer specified by NEWBUF.
+	     (if (buffer-live-p newbuf)
+		 (switch-to-buffer newbuf)))
+	    ;; If the Rmail buffer is in the next window, switch to
+	    ;; the summary buffer if `mail-bury-selects-summary' is
+	    ;; non-nil.  Otherwise just delete this window.
+	    (summary-buffer
+	     (switch-to-buffer summary-buffer))
+	    (t
+	     (delete-window)))))
    ;; If the frame was probably made for this buffer, the user
    ;; probably wants to delete it now.
    ((display-multi-frame-p)

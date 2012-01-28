@@ -3991,7 +3991,7 @@ changed in the future.
 @node Transposition
 @section Transposition of Text
 
-  This subroutine is used by the transposition commands.
+  This function can be used to transpose stretches of text:
 
 @defun transpose-regions start1 end1 start2 end2 &optional leave-markers
 This function exchanges two nonoverlapping portions of the buffer.
