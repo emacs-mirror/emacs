@@ -1108,7 +1108,11 @@ To get the frame's current foreground color, use `frame-parameters'."
 (defun set-cursor-color (color-name)
   "Set the text cursor color of the selected frame to COLOR-NAME.
 When called interactively, prompt for the name of the color to use.
-To get the frame's current cursor color, use `frame-parameters'."
+This works by setting the `cursor-color' frame parameter on the
+selected frame.
+
+You can also set the text cursor color, for all frames, by
+customizing the `cursor' face."
   (interactive (list (read-color "Cursor color: ")))
   (modify-frame-parameters (selected-frame)
 			   (list (cons 'cursor-color color-name))))

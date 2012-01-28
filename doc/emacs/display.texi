@@ -493,7 +493,7 @@ attribute is taken from the face named @code{default}.
 
   The @code{default} face is the default for displaying text, and all
 of its attributes are specified.  Its background color is also used as
-the frame's background color.
+the frame's background color.  @xref{Colors}.
 
 @cindex cursor face
   Another special face is the @code{cursor} face.  On graphical
