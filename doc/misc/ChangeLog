@@ -1,3 +1,9 @@
+2012-01-28  Andreas Schwab  <schwab@linux-m68k.org>
+
+	* cc-mode.texi: Always @defindex ss.
+	(Config Basics): Fix argument of @itemize.
+	(Macro Backslashes): Add @code around index entry.
+
 2012-01-23  Glenn Morris  <rgm@gnu.org>
 
 	* pcl-cvs.texi (About PCL-CVS): Refer to vc-dir rather than vc-dired.

@@ -147,10 +147,7 @@ CC Mode
 @comment !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
 @comment Define an index for syntactic symbols.
-@ifnottex @c In texi2dvi, the @defindex would create an empty cc-mode.ss
-          @c For Info, unlike tex, @syncodeindex needs a matching @defindex.
 @defindex ss
-@end ifnottex
 
 @comment Combine key, syntactic symbol and concept indices into one.
 @syncodeindex ss cp
@@ -2200,7 +2197,7 @@ method, ``Top-level commands or the customization interface''.
 
 If you make conflicting settings in several of these ways, the way
 that takes precedence is the one that appears latest in this list:
-@itemize @asis
+@itemize @w{}
 @item
 @table @asis
 @item Style
@@ -6661,7 +6658,7 @@ these macros properly, see @ref{Macros with ;}.
 @node     Macro Backslashes, Macros with ;, Custom Macros, Custom Macros
 @comment  node-name,  next,  previous,  up
 @section Customizing Macro Backslashes
-@cindex #define
+@cindex @code{#define}
 @comment !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
 @ccmode{} provides some tools to help keep the line continuation
