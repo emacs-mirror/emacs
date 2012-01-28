@@ -1,3 +1,8 @@
+2012-01-28  Drew Adams  <drew.adams@oracle.com>
+
+	* net/ange-ftp.el (ange-ftp-canonize-filename): Check, that
+	`default-directory' is non-nil.
+
 2012-01-28  Eli Zaretskii  <eliz@gnu.org>
 
 	* mail/emacsbug.el (report-emacs-bug): Fill the potentially long

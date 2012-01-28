@@ -3098,7 +3098,8 @@ logged in as user USER and cd'd to directory DIR."
             (if (not (eq system-type 'windows-nt))
                 (setq name (ange-ftp-real-expand-file-name name))
               ;; Windows UNC default dirs do not make sense for ftp.
-              (setq name (if (string-match "\\`//" default-directory)
+              (setq name (if (and default-directory
+				  (string-match "\\`//" default-directory))
                              (ange-ftp-real-expand-file-name name "c:/")
                            (ange-ftp-real-expand-file-name name)))
               ;; Strip off possible drive specifier.
