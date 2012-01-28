@@ -1,5 +1,9 @@
 2012-01-28  Roland Winkler  <winkler@gnu.org>
 
+	* textmodes/bibtex.el (bibtex-vec-incr): Fix docstring.
+
+2012-01-28  Roland Winkler  <winkler@gnu.org>
+
 	* textmodes/bibtex.el (bibtex-entry-alist): New function.
 	(bibtex-set-dialect): Use it.  Either set global values of
 	dialect-dependent variables or bind these variables buffer-locally

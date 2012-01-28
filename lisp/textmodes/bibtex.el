@@ -2191,6 +2191,10 @@ Optional arg COMMA is as in `bibtex-enclosing-field'."
   (let ((fun (lambda (kryp kr) ; adapted from `current-kill'
                (car (set kryp (nthcdr (mod (- n (length (eval kryp)))
                                            (length kr)) kr))))))
+    ;; We put the mark at the beginning of the inserted field or entry
+    ;; and point at its end - a behavior similar to what `yank' does.
+    ;; The mark is then used by `bibtex-yank-pop', which needs to know
+    ;; what we have inserted.
     (if (eq bibtex-last-kill-command 'field)
         (progn
           ;; insert past the current field
@@ -2219,7 +2223,7 @@ Optional arg COMMA is as in `bibtex-enclosing-field'."
   (aset vec idx (cons newelt (aref vec idx))))
 
 (defsubst bibtex-vec-incr (vec idx)
-  "Add NEWELT to the list stored in VEC at index IDX."
+  "Increment by 1 the counter which is stored in VEC at index IDX."
   (aset vec idx (1+ (aref vec idx))))
 
 (defun bibtex-format-entry ()
