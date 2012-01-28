@@ -3620,7 +3620,7 @@ to switch to."
       (cond ((null rmail-flag)
 	     ;; If the Rmail buffer is not in the next window, switch
 	     ;; directly to the Rmail buffer specified by NEWBUF.
-	     (if newbuf
+	     (if (buffer-live-p newbuf)
 		 (switch-to-buffer newbuf)))
 	    ;; If the Rmail buffer is in the next window, switch to
 	    ;; the summary buffer if `mail-bury-selects-summary' is
