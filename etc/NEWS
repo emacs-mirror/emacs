@@ -436,6 +436,10 @@ been shown in a specific window.
 This is handy for minibuffer-only frames, and is also used for the "mouse-1
 pops up *Messages*" feature, which can now easily be changed.
 
+---
+** `tooltip-use-echo-area' is obsolete.
+Rather than setting this to t, disable Tooltip mode instead.
+
 
 * Editing Changes in Emacs 24.1
 

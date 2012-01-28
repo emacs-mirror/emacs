@@ -1,5 +1,8 @@
 2012-01-28  Chong Yidong  <cyd@gnu.org>
 
+	* tooltip.el (tooltip-mode): Doc fix.
+	(tooltip-use-echo-area): Mark as obsolete (Bug#6595).
+
 	* frame.el (set-cursor-color): Doc fix (Bug#352).
 
 	* mail/rmail.el (rmail-start-mail): Add send-action again (Bug#10625).
