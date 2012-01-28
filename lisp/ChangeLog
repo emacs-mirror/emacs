@@ -1,5 +1,8 @@
 2012-01-28  Chong Yidong  <cyd@gnu.org>
 
+	* mail/rmail.el (rmail-start-mail): Add send-action again (Bug#10625).
+	(rmail-mail-return): Switch to NEWBUF only if it is non-nil.
+
 	* cus-edit.el (custom-buffer-create-internal): Fix search button
 	action (Bug#10542).
 
