@@ -1,5 +1,8 @@
 2012-01-28  Chong Yidong  <cyd@gnu.org>
 
+	* display.texi (Fringe Indicators): Clarify fringe-indicator-alist
+	doc (Bug#8568).
+
 	* frames.texi (Input Focus): Add NORECORD arg to
 	select-frame-set-input-focus.  Clarify its role in select-frame.
 
