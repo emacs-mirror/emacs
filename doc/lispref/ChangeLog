@@ -1,5 +1,8 @@
 2012-01-28  Chong Yidong  <cyd@gnu.org>
 
+	* text.texi (Transposition): We don't use transpose-region as an
+	internal subroutine (Bug#3249).
+
 	* modes.texi (Example Major Modes): Update Lisp example code to
 	current sources.  Delete the old non-derived-major-mode example,
 	which has diverged badly from current sources.
