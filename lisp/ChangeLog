@@ -1,3 +1,18 @@
+2012-01-28  Roland Winkler  <winkler@gnu.org>
+
+	* textmodes/bibtex.el (bibtex-entry-alist): New function.
+	(bibtex-set-dialect): Use it.  Either set global values of
+	dialect-dependent variables or bind these variables buffer-locally
+	(Bug#10254).
+	(bibtex-mode): Call bibtex-set-dialect via
+	hack-local-variables-hook.
+	(bibtex-dialect): Update docstring.  Add
+	safe-local-variable predicate.
+	(bibtex-entry-alist, bibtex-field-alist): Initialize via
+	bibtex-set-dialect.
+	(bibtex-mode-map): Define menu for each dialect.
+	(bibtex-entry): Fix docstring.
+
 2012-01-28  Chong Yidong  <cyd@gnu.org>
 
 	* eshell/esh-arg.el (eshell-quote-argument): New function.
