@@ -1,3 +1,8 @@
+2012-01-28  Eli Zaretskii  <eliz@gnu.org>
+
+	* mail/emacsbug.el (report-emacs-bug): Fill the potentially long
+	line that displays system-configuration-options.  (Bug#9924)
+
 2012-01-28  Drew Adams  <drew.adams@oracle.com>
 
 	* descr-text.el (describe-char): Show information about POS, in
