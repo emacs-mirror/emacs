@@ -1,3 +1,14 @@
+2012-01-27  Elias Pipping  <pipping@lavabit.com>  (tiny change)
+
+	* shr.el (shr-browse-url): Fix the name of the `browse-url-mail'
+	function call.
+
+2012-01-27  Vida Gábor  <vidagabor@gmail.com>  (tiny change)
+
+	* gnus-demon.el (gnus-demon-run-callback, gnus-demon-init): Convert to
+	seconds, and make the repeat clause with HH:MM specs work as
+	documented.
+
 2012-01-27  Lars Ingebrigtsen  <larsi@gnus.org>
 
 	* gnus-start.el (gnus-get-unread-articles): Clear out "early" methods
