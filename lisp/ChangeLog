@@ -5,6 +5,7 @@
 
 	* cus-edit.el (custom-buffer-create-internal): Fix search button
 	action (Bug#10542).
+	(customize-unsaved, customize-saved): Doc fix (Bug#10541).
 
 2012-01-27  Eduard Wiebe  <usenet@pusto.de>
 

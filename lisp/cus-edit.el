@@ -1357,7 +1357,7 @@ suggest to customize that face, if it's customizable."
 
 ;;;###autoload
 (defun customize-unsaved ()
-  "Customize all user options set in this session but not saved."
+  "Customize all options and faces set in this session but not saved."
   (interactive)
   (let ((found nil))
     (mapatoms (lambda (symbol)
@@ -1395,7 +1395,7 @@ suggest to customize that face, if it's customizable."
 			    "*Customize Rogue*"))))
 ;;;###autoload
 (defun customize-saved ()
-  "Customize all already saved user options."
+  "Customize all saved options and faces."
   (interactive)
   (let ((found nil))
     (mapatoms (lambda (symbol)
