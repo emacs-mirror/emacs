@@ -1,5 +1,14 @@
 2012-01-28  Chong Yidong  <cyd@gnu.org>
 
+	* emacs-lisp/package.el (package-maybe-load-descriptor): New
+	function, split from package-maybe-load-descriptor.
+	(package-maybe-load-descriptor): Use it.
+	(package-download-transaction): Fully load required packages
+	inside the loop, so that `require' calls work (Bug#10593).
+	(package-install): No need to call package-initialize now.
+
+2012-01-28  Chong Yidong  <cyd@gnu.org>
+
 	* tooltip.el (tooltip-mode): Doc fix.
 	(tooltip-use-echo-area): Mark as obsolete (Bug#6595).
 
