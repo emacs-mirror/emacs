@@ -1,3 +1,7 @@
+2012-01-28  Chong Yidong  <cyd@gnu.org>
+
+	* minibuf.c (syms_of_minibuf): Doc fix (Bug#10550).
+
 2012-01-26  Chong Yidong  <cyd@gnu.org>
 
 	* keyboard.c (Vecho_keystrokes): Document zero value (Bug#10503).
