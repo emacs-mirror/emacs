@@ -1,5 +1,8 @@
 2012-01-28  Chong Yidong  <cyd@gnu.org>
 
+	* frames.texi (Input Focus): Add NORECORD arg to
+	select-frame-set-input-focus.  Clarify its role in select-frame.
+
 	* text.texi (Transposition): We don't use transpose-region as an
 	internal subroutine (Bug#3249).
 
