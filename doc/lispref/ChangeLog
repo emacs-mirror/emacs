@@ -1,3 +1,9 @@
+2012-01-28  Chong Yidong  <cyd@gnu.org>
+
+	* modes.texi (Example Major Modes): Update Lisp example code to
+	current sources.  Delete the old non-derived-major-mode example,
+	which has diverged badly from current sources.
+
 2012-01-27  Glenn Morris  <rgm@gnu.org>
 
 	* makefile.w32-in (texinputdir): Fix (presumed) typo.
