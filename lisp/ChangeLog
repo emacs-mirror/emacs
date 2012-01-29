@@ -1,3 +1,11 @@
+2012-01-29  Chong Yidong  <cyd@gnu.org>
+
+	* emacs-lisp/lisp-mode.el (emacs-lisp-mode-abbrev-table): Define
+	and use in Emacs Lisp mode (Bug#9360).
+	(lisp-mode-abbrev-table): Add doc.
+	(lisp-mode-variables): Don't set local-abbrev-table.
+	(lisp-interaction-mode): Use emacs-lisp-mode-abbrev-table.
+
 2012-01-28  Roland Winkler  <winkler@gnu.org>
 
 	* textmodes/bibtex.el (bibtex-vec-incr): Fix docstring.

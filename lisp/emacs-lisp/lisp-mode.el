@@ -34,8 +34,14 @@
 (defvar font-lock-string-face)
 
 (defvar lisp-mode-abbrev-table nil)
+(define-abbrev-table 'lisp-mode-abbrev-table ()
+  "Abbrev table for Lisp mode.")
 
-(define-abbrev-table 'lisp-mode-abbrev-table ())
+(defvar emacs-lisp-mode-abbrev-table nil)
+(define-abbrev-table 'emacs-lisp-mode-abbrev-table ()
+  "Abbrev table for Emacs Lisp mode.
+It has `lisp-mode-abbrev-table' as its parent."
+  :parents (list lisp-mode-abbrev-table))
 
 (defvar emacs-lisp-mode-syntax-table
   (let ((table (make-syntax-table))
@@ -206,7 +212,6 @@ score-mode.el.  KEYWORDS-CASE-INSENSITIVE non-nil means that for
 font-lock keywords will not be case sensitive."
   (when lisp-syntax
     (set-syntax-table lisp-mode-syntax-table))
-  (setq local-abbrev-table lisp-mode-abbrev-table)
   (make-local-variable 'paragraph-ignore-fill-prefix)
   (setq paragraph-ignore-fill-prefix t)
   (make-local-variable 'fill-paragraph-function)
@@ -540,7 +545,8 @@ Semicolons start comments.
 
 \\{lisp-interaction-mode-map}
 Entry to this mode calls the value of `lisp-interaction-mode-hook'
-if that value is non-nil.")
+if that value is non-nil."
+  :abbrev-table nil)
 
 (defun eval-print-last-sexp ()
   "Evaluate sexp before point; print value into current buffer.
