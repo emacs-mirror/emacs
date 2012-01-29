@@ -1,3 +1,7 @@
+2012-01-29  Glenn Morris  <rgm@gnu.org>
+
+	* windows.texi (Window Sizes): Fix typo.
+
 2012-01-28  Chong Yidong  <cyd@gnu.org>
 
 	* display.texi (Fringe Indicators): Clarify fringe-indicator-alist

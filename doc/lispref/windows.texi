@@ -479,7 +479,7 @@ partially-visible line at the bottom of the text area is not counted.
 @end defun
 
   For compatibility with previous versions of Emacs,
-@code{window-height} is an alias for @code{window-body-height}, and
+@code{window-height} is an alias for @code{window-total-height}, and
 @code{window-width} is an alias for @code{window-body-width}.  These
 aliases are considered obsolete and will be removed in the future.
 
