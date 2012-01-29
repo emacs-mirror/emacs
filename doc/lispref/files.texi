@@ -1511,9 +1511,6 @@ The functions @code{file-selinux-context} and @code{set-file-selinux-context}
 get and set, respectively, the SELinux properties of a file.}
 context of the file.  For this to work, Emacs must have been built
 with libselinux support.
-
-Functions like @code{backup-buffer} use these optional arguments
-to preserve information about their input files.
 @end deffn
 
 @deffn Command make-symbolic-link filename newname  &optional ok-if-exists
