@@ -1340,7 +1340,7 @@ FIXME: These should be front-ended by xml.el.
 ** GnuTLS
 
 *** New library `gnutls.el'.
-This requires Emacs to have built with GnuTLS support.
+This requires Emacs to have been built with GnuTLS support.
 The main functions are `open-gnutls-stream' and `gnutls-negotiate'.
 It's easiest to use these functions through `open-network-stream'
 because it can upgrade connections through STARTTLS opportunistically
