@@ -49,6 +49,12 @@ found at build time.  To prevent this, use the configure option
 `--without-imagemagick'.  See below for ImageMagick features.
 
 ---
+** Emacs can be compiled with libxml2 support.
+This happens by default if a suitably recent version of the library is
+found at build time.  To prevent this, use the configure option
+`--without-xml2'.  See below for libxml2 features.
+
+---
 ** There is a new configure option --with-wide-int.
 With it, Emacs integers typically have 62 bits, even on 32-bit machines.
 On 32-bit hosts, this raises the limit on buffer sizes from about 512 MiB
@@ -1324,12 +1330,10 @@ these image types, minus those listed in `imagemagick-types-inhibit'.
 See the Emacs Lisp Reference Manual for more information.
 
 ** XML and HTML parsing
-
-*** If Emacs is compiled with libxml2 support (which is the default),
-two new Emacs Lisp-level functions are defined:
-`libxml-parse-html-region' (which will parse "real world" HTML)
-and `libxml-parse-xml-region' (which parses XML).  Both return an
-Emacs Lisp parse tree.
+If Emacs is compiled with libxml2 support, there are two new functions:
+`libxml-parse-html-region' (which parses "real world" HTML) and
+`libxml-parse-xml-region' (which parses XML).  Both return an Emacs
+Lisp parse tree.
 
 FIXME: These should be front-ended by xml.el.
 
