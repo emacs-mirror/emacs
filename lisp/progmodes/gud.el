@@ -1646,8 +1646,8 @@ and source-file directory for your debugger."
   (gud-common-init command-line nil 'gud-pdb-marker-filter)
   (set (make-local-variable 'gud-minor-mode) 'pdb)
 
-  (gud-def gud-break  "break %f:%l"  "\C-b" "Set breakpoint at current line.")
-  (gud-def gud-remove "clear %f:%l"  "\C-d" "Remove breakpoint at current line")
+  (gud-def gud-break  "break %d%f:%l"  "\C-b" "Set breakpoint at current line.")
+  (gud-def gud-remove "clear %d%f:%l"  "\C-d" "Remove breakpoint at current line")
   (gud-def gud-step   "step"         "\C-s" "Step one source line with display.")
   (gud-def gud-next   "next"         "\C-n" "Step one line (skip functions).")
   (gud-def gud-cont   "continue"     "\C-r" "Continue with display.")

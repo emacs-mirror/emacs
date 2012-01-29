@@ -1,4 +1,11 @@
+2012-01-29  Syver Enstad  <syver.enstad@cisco.com>
+
+	* progmodes/gud.el (pdb): Give pdb full paths, to allow setting
+	breakpoints in files outside current directory (Bug#6098).
+
 2012-01-29  Chong Yidong  <cyd@gnu.org>
+
+	* progmodes/python.el: Require ansi-color at top-level.
 
 	* emacs-lisp/lisp-mode.el (emacs-lisp-mode-abbrev-table): Define
 	and use in Emacs Lisp mode (Bug#9360).
