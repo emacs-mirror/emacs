@@ -1,3 +1,8 @@
+2012-01-29  Chong Yidong  <cyd@gnu.org>
+
+	* numbers.texi (Predicates on Numbers): Fix wholenump/natnump
+	description (Bug#10189).
+
 2012-01-29  Glenn Morris  <rgm@gnu.org>
 
 	* files.texi (Changing Files): Document SELinux support.

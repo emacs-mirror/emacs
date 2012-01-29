@@ -282,15 +282,15 @@ This predicate tests whether its argument is a number (either integer or
 floating point), and returns @code{t} if so, @code{nil} otherwise.
 @end defun
 
-@defun wholenump object
+@defun natnump object
 @cindex natural numbers
-The @code{wholenump} predicate (whose name comes from the phrase
-``whole-number-p'') tests to see whether its argument is a nonnegative
-integer, and returns @code{t} if so, @code{nil} otherwise.  0 is
-considered non-negative.
+This predicate (whose name comes from the phrase ``natual number'')
+tests to see whether its argument is a nonnegative integer, and
+returns @code{t} if so, @code{nil} otherwise.  0 is considered
+non-negative.
 
-@findex natnump
-@code{natnump} is an obsolete synonym for @code{wholenump}.
+@findex wholenump number
+This is a synonym for @code{natnump}.
 @end defun
 
 @defun zerop number
