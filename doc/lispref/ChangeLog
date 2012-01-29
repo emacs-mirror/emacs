@@ -1,5 +1,8 @@
 2012-01-29  Chong Yidong  <cyd@gnu.org>
 
+	* syntax.texi (Syntax Class Table): Tweak description of newline
+	char syntax (Bug#9619).
+
 	* numbers.texi (Predicates on Numbers): Fix wholenump/natnump
 	description (Bug#10189).
 
