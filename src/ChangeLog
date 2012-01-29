@@ -1,3 +1,7 @@
+2012-01-29  Glenn Morris  <rgm@gnu.org>
+
+	* gnutls.c (syms_of_gnutls): More doc (from etc/NEWS).
+
 2012-01-28  Samuel Thibault  <sthibault@debian.org>  (tiny change)
 
 	* s/gnu.h: Define POSIX_SIGNALS (Bug#10552).
