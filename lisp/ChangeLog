@@ -1,3 +1,20 @@
+2012-01-29  Juanma Barranquero  <lekktu@gmail.com>
+
+	* window.el (window-with-parameter): Remove unused variable `windows'.
+	(window--side-check): Remove unused variable `code'.
+	(window--resize-siblings): Remove unused variable `first'.
+	(adjust-window-trailing-edge): Remove unused variable `failed'.
+	(window-deletable-p, window--delete): Remove unused variable `buffer'.
+	Use `let', not `let*'.
+	(balance-windows-2): Remove unused variable `found'.
+	(window--state-put-2): Remove unused variable `splits'.
+	(window-state-put): Remove unused variable `selected'.
+	(same-window-p): Use `string-match-p'.
+	(display-buffer-assq-regexp): Remove unused variable `value'.
+	(display-buffer-pop-up-frame, display-buffer-pop-up-window):
+	Mark argument ALIST as ignored.
+	(pop-to-buffer): Remove unused variable `old-window'.
+
 2012-01-29  Eli Zaretskii  <eliz@gnu.org>
 
 	* jka-cmpr-hook.el (jka-compr-compression-info-list): Support .lz
@@ -88,8 +105,8 @@
 
 2012-01-28  Chong Yidong  <cyd@gnu.org>
 
-	* emacs-lisp/package.el (package-maybe-load-descriptor): New
-	function, split from package-maybe-load-descriptor.
+	* emacs-lisp/package.el (package-maybe-load-descriptor):
+	New function, split from package-maybe-load-descriptor.
 	(package-maybe-load-descriptor): Use it.
 	(package-download-transaction): Fully load required packages
 	inside the loop, so that `require' calls work (Bug#10593).
@@ -214,8 +231,8 @@
 
 2012-01-21  Jérémy Compostella  <jeremy.compostella@gmail.com>
 
-	* windmove.el (windmove-reference-loc): Fix
-	windmove-reference-loc miscalculation.
+	* windmove.el (windmove-reference-loc):
+	Fix windmove-reference-loc miscalculation.
 
 2012-01-21  Jay Belanger  <jay.p.belanger@gmail.com>
 
@@ -271,8 +288,8 @@
 	Eliminate sluggishness and hangs in fontification of "semicolon
 	deserts".
 
-	* progmodes/cc-engine.el (c-state-nonlit-pos-interval): change
-	value 10000 -> 3000.
+	* progmodes/cc-engine.el (c-state-nonlit-pos-interval):
+	Change value 10000 -> 3000.
 	(c-state-safe-place): Reformulate so it doesn't stack up an
 	infinite number of wrong entries in c-state-nonlit-pos-cache.
 	(c-determine-limit-get-base, c-determine-limit): New functions to
