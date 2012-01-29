@@ -1,5 +1,7 @@
 2012-01-29  Chong Yidong  <cyd@gnu.org>
 
+	* frame.el (window-system-default-frame-alist): Doc fix.
+
 	* dynamic-setting.el (font-setting-change-default-font): Don't
 	change the default face if SET-FONT argument is non-nil (Bug#9982).
 
