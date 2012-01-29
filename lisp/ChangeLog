@@ -1,3 +1,8 @@
+2012-01-29  Eli Zaretskii  <eliz@gnu.org>
+
+	* jka-cmpr-hook.el (jka-compr-compression-info-list): Support .lz
+	and .lzma compressed files.
+
 2012-01-29  Chong Yidong  <cyd@gnu.org>
 
 	* frame.el (window-system-default-frame-alist): Doc fix.

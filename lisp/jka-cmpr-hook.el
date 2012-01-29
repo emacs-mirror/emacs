@@ -234,6 +234,14 @@ options through Custom does this automatically."
      "compressing"        "gzip"         ("-c" "-q")
      "uncompressing"      "gzip"         ("-c" "-q" "-d")
      t t "\037\213"]
+    ["\\.lz\\'"
+     "Lzip compressing"   "lzip"         ("-c" "-q")
+     "Lzip uncompressing" "lzip"         ("-c" "-q" "-d")
+     t t "LZIP"]
+    ["\\.lzma\\'"
+     "LZMA compressing"   "lzma"         ("-c" "-q" "-z")
+     "LZMA uncompressing" "lzma"         ("-c" "-q" "-d")
+     t t ""]
     ["\\.xz\\'"
      "XZ compressing"     "xz"           ("-c" "-q")
      "XZ uncompressing"   "xz"           ("-c" "-q" "-d")
