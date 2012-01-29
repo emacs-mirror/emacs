@@ -1,3 +1,8 @@
+2012-01-29  Chong Yidong  <cyd@gnu.org>
+
+	* dynamic-setting.el (font-setting-change-default-font): Don't
+	change the default face if SET-FONT argument is non-nil (Bug#9982).
+
 2012-01-29  Samuel Bronson  <naesten@gmail.com>  (tiny change)
 
 	* custom.el (defcustom): Add doc link to Lisp manual (Bug#10635).

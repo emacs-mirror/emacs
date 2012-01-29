@@ -74,9 +74,10 @@ current form for the frame (i.e. hinting or somesuch changed)."
 					:font font-to-set))))))
 
       ;; Set for future frames.
-      (set-face-attribute 'default t :font new-font)
-      (let ((spec (list (list t (face-attr-construct 'default)))))
-	(progn
+      (when set-font
+	;; FIXME: this is not going to play well with Custom themes.
+	(set-face-attribute 'default t :font new-font)
+	(let ((spec (list (list t (face-attr-construct 'default)))))
 	  (put 'default 'customized-face spec)
 	  (custom-push-theme 'theme-face 'default 'user 'set spec)
 	  (put 'default 'face-modified nil))))))
