@@ -1,3 +1,9 @@
+2012-01-28  Lars Ingebrigtsen  <larsi@gnus.org>
+
+	* mm-view.el (mm-display-inline-fontify): Bind `font-lock-support-mode'
+	instead of setting it locally, since the latter doesn't seem to have
+	any effect (most of the time).
+
 2012-01-27  Elias Pipping  <pipping@lavabit.com>  (tiny change)
 
 	* shr.el (shr-browse-url): Fix the name of the `browse-url-mail'
