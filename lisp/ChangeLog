@@ -1,3 +1,7 @@
+2012-01-29  Samuel Bronson  <naesten@gmail.com>  (tiny change)
+
+	* custom.el (defcustom): Add doc link to Lisp manual (Bug#10635).
+
 2012-01-29  Syver Enstad  <syver.enstad@cisco.com>  (tiny change)
 
 	* progmodes/gud.el (pdb): Give pdb full paths, to allow setting
