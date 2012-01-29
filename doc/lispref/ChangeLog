@@ -1,5 +1,7 @@
 2012-01-29  Glenn Morris  <rgm@gnu.org>
 
+	* files.texi (Changing Files): Document SELinux support.
+
 	* windows.texi (Window Sizes): Fix typo.
 
 2012-01-28  Chong Yidong  <cyd@gnu.org>

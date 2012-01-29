@@ -24,8 +24,10 @@ so we will look at it and add it to the manual.
 
 * Installation Changes in Emacs 24.1
 
+---
 ** Configure links against libselinux if it is found.
-You can disable this by using --without-selinux.
+You can disable this by using --without-selinux.  See below for
+information on SELinux support.
 
 ---
 ** By default, the installed Info and man pages are compressed.
@@ -263,14 +265,17 @@ Emacs.pane.menubar.font:  Courier-12
 Also, the first dash (which does not indicate anything) is just
 displayed as a space.
 
++++
 ** Basic SELinux support has been added.
 This requires Emacs to be linked with libselinux at build time.
 
++++
 *** Emacs preserves the SELinux file context when backing up, and
 optionally when copying files. To this end, copy-file has an extra
 optional argument, and backup-buffer and friends include the SELinux
 context in their return values.
 
++++
 *** The new functions file-selinux-context and set-file-selinux-context
 get and set the SELinux context of a file.
 ---
