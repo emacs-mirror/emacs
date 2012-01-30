@@ -1,3 +1,9 @@
+2012-01-30  Eli Zaretskii  <eliz@gnu.org>
+
+	* lib/makefile.w32-in ($(BLD)/sha1.$(O) $(BLD)/sha256.$(O)
+	$(BLD)/sha512.$(O)): Depend on stamp_BLD.  Fixes a build failure
+	with "make -j3".
+
 2012-01-16  Juanma Barranquero  <lekktu@gmail.com>
 
 	* .bzrignore: Ignore etc/__pycache__.

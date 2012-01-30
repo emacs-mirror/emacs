@@ -155,6 +155,7 @@ $(BLD)/filemode.$(O) : \
 #
 $(BLD)/dtoastr.$(O) $(BLD)/getopt.$(O) $(BLD)/getopt1.$(O): stamp_BLD
 $(BLD)/strftime.$(O) $(BLD)/time_r.$(O) $(BLD)/md5.$(O): stamp_BLD
+$(BLD)/sha1.$(O) $(BLD)/sha256.$(O) $(BLD)/sha512.$(O): stamp_BLD
 $(BLD)/filemode.$(O): stamp_BLD
 
 #
