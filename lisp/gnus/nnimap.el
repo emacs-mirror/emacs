@@ -1738,7 +1738,8 @@ textual parts.")
 			(not (looking-at (format "%d .*\n" sequence)))))
 	    (when messagep
 	      (nnheader-message-maybe
-	       7 "nnimap read %dk" (/ (buffer-size) 1000)))
+	       7 "nnimap read %dk from %s" (/ (buffer-size) 1000)
+	       nnimap-address))
 	    (nnheader-accept-process-output process)
 	    (goto-char (point-max)))
           openp)

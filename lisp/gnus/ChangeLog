@@ -1,3 +1,8 @@
+2012-01-30  Lars Ingebrigtsen  <larsi@gnus.org>
+
+	* nnimap.el (nnimap-wait-for-response): Include the imap server name in
+	the message for greater debuggability.
+
 2012-01-28  Lars Ingebrigtsen  <larsi@gnus.org>
 
 	* mm-view.el (mm-display-inline-fontify): Bind `font-lock-support-mode'
