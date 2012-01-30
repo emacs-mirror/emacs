@@ -1,4 +1,15 @@
+2012-01-30  Philipp Haselwarter  <philipp.haselwarter@gmx.de>  (tiny change)
+
+	* gnus-agent.el (gnus-agent-auto-agentize-methods): Point to the Agent
+	section in the manual.
+
 2012-01-30  Lars Ingebrigtsen  <larsi@gnus.org>
+
+	* rfc2047.el (rfc2047-encode-region): Allow not folding the encoded
+	words.
+	(rfc2047-encode-string): Ditto.
+	(rfc2047-encode-parameter): Don't fold parameters.  Some MUAs do not
+	understand folded filename="..." parameters, for instance.
 
 	* nnimap.el (nnimap-wait-for-response): Include the imap server name in
 	the message for greater debuggability.
