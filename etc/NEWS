@@ -999,9 +999,12 @@ of the header line.
 
 ** A backquote not followed by a space is now always treated as new-style.
 
-** Test for special mode-class was moved from view-file to view-buffer.
-FIXME: This only says what was changed, but not what are the
-programmer-visible consequences.
+---
+** View mode's test for a special mode-class is now in view-buffer.
+So now this command respects special modes too - previously only
+view-file did.  Note that commands such as view-file-other-frame still
+do not respect this feature - this inconsistency should probably be
+fixed in a future release.
 
 ** Passing a nil argument to a minor mode function now turns the mode
 ON unconditionally.
