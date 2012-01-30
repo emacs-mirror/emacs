@@ -1000,11 +1000,9 @@ of the header line.
 ** A backquote not followed by a space is now always treated as new-style.
 
 ---
-** View mode's test for a special mode-class is now in view-buffer.
-So now this command respects special modes too - previously only
-view-file did.  Note that commands such as view-file-other-frame still
-do not respect this feature - this inconsistency should probably be
-fixed in a future release.
+** view-buffer now treats special mode-class in the same way that
+view-file has since Emacs 22 (ie, it won't enable View mode if the
+major-mode is special).
 
 ** Passing a nil argument to a minor mode function now turns the mode
 ON unconditionally.
