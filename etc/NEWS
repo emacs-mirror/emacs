@@ -997,8 +997,6 @@ coordinate in the POSITION list now counts from the top of the text
 area, excluding any header line.  Previously, it counted from the top
 of the header line.
 
-** Removed obsolete name `e' (use `float-e' instead).
-
 ** A backquote not followed by a space is now always treated as new-style.
 
 ** Test for special mode-class was moved from view-file to view-buffer.
@@ -1022,6 +1020,7 @@ similar to the ones created by shift-selection.  In previous Emacs
 versions, these regions were delineated by `mouse-drag-overlay', which
 has now been removed.
 
+---
 ** cl.el no longer provides `cl-19'.
 
 ** The menu bar bindings's caches are not used any more.
@@ -1037,10 +1036,12 @@ x-make-font-bold-italic, mldrag-drag-mode-line, mldrag-drag-vertical-line,
 iswitchb-default-keybindings, char-bytes, isearch-return-char,
 make-local-hook
 
++++
 ** The following obsolete variables and varaliases were removed:
-checkdoc-minor-keymap, vc-header-alist, directory-sep-char, and
-font-lock-defaults-alist.
+checkdoc-minor-keymap, vc-header-alist, directory-sep-char,
+font-lock-defaults-alist, and e (use float-e).
 
+---
 ** The following obsolete files were removed:
 sc.el, x-menu.el, rnews.el, rnewspost.el
 
