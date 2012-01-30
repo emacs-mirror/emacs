@@ -1,4 +1,21 @@
+2012-01-29  Chong Yidong  <cyd@gnu.org>
+
+	* syntax.texi (Syntax Class Table): Tweak description of newline
+	char syntax (Bug#9619).
+
+	* numbers.texi (Predicates on Numbers): Fix wholenump/natnump
+	description (Bug#10189).
+
+2012-01-29  Glenn Morris  <rgm@gnu.org>
+
+	* files.texi (Changing Files): Document SELinux support.
+
+	* windows.texi (Window Sizes): Fix typo.
+
 2012-01-28  Chong Yidong  <cyd@gnu.org>
+
+	* display.texi (Fringe Indicators): Clarify fringe-indicator-alist
+	doc (Bug#8568).
 
 	* frames.texi (Input Focus): Add NORECORD arg to
 	select-frame-set-input-focus.  Clarify its role in select-frame.

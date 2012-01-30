@@ -1,4 +1,120 @@
+2012-01-29  Juanma Barranquero  <lekktu@gmail.com>
+
+	* window.el (window-with-parameter): Remove unused variable `windows'.
+	(window--side-check): Remove unused variable `code'.
+	(window--resize-siblings): Remove unused variable `first'.
+	(adjust-window-trailing-edge): Remove unused variable `failed'.
+	(window-deletable-p, window--delete): Remove unused variable `buffer'.
+	Use `let', not `let*'.
+	(balance-windows-2): Remove unused variable `found'.
+	(window--state-put-2): Remove unused variable `splits'.
+	(window-state-put): Remove unused variable `selected'.
+	(same-window-p): Use `string-match-p'.
+	(display-buffer-assq-regexp): Remove unused variable `value'.
+	(display-buffer-pop-up-frame, display-buffer-pop-up-window):
+	Mark argument ALIST as ignored.
+	(pop-to-buffer): Remove unused variable `old-window'.
+
+2012-01-29  Eli Zaretskii  <eliz@gnu.org>
+
+	* jka-cmpr-hook.el (jka-compr-compression-info-list): Support .lz
+	and .lzma compressed files.
+
+2012-01-29  Chong Yidong  <cyd@gnu.org>
+
+	* frame.el (window-system-default-frame-alist): Doc fix.
+
+	* dynamic-setting.el (font-setting-change-default-font): Don't
+	change the default face if SET-FONT argument is non-nil (Bug#9982).
+
+2012-01-29  Samuel Bronson  <naesten@gmail.com>  (tiny change)
+
+	* custom.el (defcustom): Add doc link to Lisp manual (Bug#10635).
+
+2012-01-29  Syver Enstad  <syver.enstad@cisco.com>  (tiny change)
+
+	* progmodes/gud.el (pdb): Give pdb full paths, to allow setting
+	breakpoints in files outside current directory (Bug#6098).
+
+2012-01-29  Chong Yidong  <cyd@gnu.org>
+
+	* progmodes/python.el: Require ansi-color at top-level.
+
+	* emacs-lisp/lisp-mode.el (emacs-lisp-mode-abbrev-table): Define
+	and use in Emacs Lisp mode (Bug#9360).
+	(lisp-mode-abbrev-table): Add doc.
+	(lisp-mode-variables): Don't set local-abbrev-table.
+	(lisp-interaction-mode): Use emacs-lisp-mode-abbrev-table.
+
+2012-01-28  Roland Winkler  <winkler@gnu.org>
+
+	* textmodes/bibtex.el (bibtex-vec-incr): Fix docstring.
+
+2012-01-28  Roland Winkler  <winkler@gnu.org>
+
+	* textmodes/bibtex.el (bibtex-entry-alist): New function.
+	(bibtex-set-dialect): Use it.  Either set global values of
+	dialect-dependent variables or bind these variables buffer-locally
+	(Bug#10254).
+	(bibtex-mode): Call bibtex-set-dialect via
+	hack-local-variables-hook.
+	(bibtex-dialect): Update docstring.  Add
+	safe-local-variable predicate.
+	(bibtex-entry-alist, bibtex-field-alist): Initialize via
+	bibtex-set-dialect.
+	(bibtex-mode-map): Define menu for each dialect.
+	(bibtex-entry): Fix docstring.
+
 2012-01-28  Chong Yidong  <cyd@gnu.org>
+
+	* eshell/esh-arg.el (eshell-quote-argument): New function.
+
+	* eshell/esh-ext.el (eshell-invoke-batch-file):
+	* eshell/em-unix.el (eshell/cat, eshell/du): Use it to quote the
+	first arg to eshell-parse-command (Bug#10523).
+
+2012-01-28  Drew Adams  <drew.adams@oracle.com>
+
+	* net/ange-ftp.el (ange-ftp-canonize-filename): Check, that
+	`default-directory' is non-nil.
+
+2012-01-28  Eli Zaretskii  <eliz@gnu.org>
+
+	* mail/emacsbug.el (report-emacs-bug): Fill the potentially long
+	line that displays system-configuration-options.  (Bug#9924)
+
+2012-01-28  Drew Adams  <drew.adams@oracle.com>
+
+	* descr-text.el (describe-char): Show information about POS, in
+	addition to information about the character at POS.  Improve and
+	update the doc string.  Change "code point" to "code point in
+	charset", to avoid confusion with the character's Unicode code
+	point shown above that.  (Bug#10129)
+
+2012-01-28  Eli Zaretskii  <eliz@gnu.org>
+
+	* descr-text.el (describe-char): Show the raw character, not only
+	its display form at POS.  Suggested by Kenichi Handa <handa@m17n.org>.
+	See http://lists.gnu.org/archive/html/emacs-devel/2012-01/msg00760.html
+	for the reasons.
+
+2012-01-28  Phil Hagelberg  <phil@hagelb.org>
+
+	* emacs-lisp/package.el (package-install): Run
+	package-refresh-contents if there is no archive yet (Bug#9798).
+
+2012-01-28  Chong Yidong  <cyd@gnu.org>
+
+	* emacs-lisp/package.el (package-maybe-load-descriptor):
+	New function, split from package-maybe-load-descriptor.
+	(package-maybe-load-descriptor): Use it.
+	(package-download-transaction): Fully load required packages
+	inside the loop, so that `require' calls work (Bug#10593).
+	(package-install): No need to call package-initialize now.
+
+2012-01-28  Chong Yidong  <cyd@gnu.org>
+
+	* simple.el (deactivate-mark): Doc fix (Bug#8614).
 
 	* tooltip.el (tooltip-mode): Doc fix.
 	(tooltip-use-echo-area): Mark as obsolete (Bug#6595).
@@ -115,8 +231,8 @@
 
 2012-01-21  Jérémy Compostella  <jeremy.compostella@gmail.com>
 
-	* windmove.el (windmove-reference-loc): Fix
-	windmove-reference-loc miscalculation.
+	* windmove.el (windmove-reference-loc):
+	Fix windmove-reference-loc miscalculation.
 
 2012-01-21  Jay Belanger  <jay.p.belanger@gmail.com>
 
@@ -172,8 +288,8 @@
 	Eliminate sluggishness and hangs in fontification of "semicolon
 	deserts".
 
-	* progmodes/cc-engine.el (c-state-nonlit-pos-interval): change
-	value 10000 -> 3000.
+	* progmodes/cc-engine.el (c-state-nonlit-pos-interval):
+	Change value 10000 -> 3000.
 	(c-state-safe-place): Reformulate so it doesn't stack up an
 	infinite number of wrong entries in c-state-nonlit-pos-cache.
 	(c-determine-limit-get-base, c-determine-limit): New functions to

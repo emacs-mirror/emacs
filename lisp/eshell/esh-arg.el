@@ -202,6 +202,18 @@ If POS is nil, the location of point is checked."
     (or (= pos (point-max))
 	(memq (char-after pos) eshell-delimiter-argument-list))))
 
+(defun eshell-quote-argument (string)
+  "Return STRING with magic characters quoted.
+Magic characters are those in `eshell-special-chars-outside-quoting'."
+  (let ((index 0))
+    (mapconcat (lambda (c)
+		 (prog1
+		     (or (eshell-quote-backslash string index)
+			 (char-to-string c))
+		   (setq index (1+ index))))
+	       string
+	       "")))
+
 ;; Argument parsing
 
 (defun eshell-parse-arguments (beg end)

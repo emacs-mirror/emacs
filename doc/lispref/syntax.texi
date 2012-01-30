@@ -128,10 +128,10 @@ their meanings, and examples of their use.
 @deffn {Syntax class} @w{whitespace character}
 @dfn{Whitespace characters} (designated by @w{@samp{@ }} or @samp{-})
 separate symbols and words from each other.  Typically, whitespace
-characters have no other syntactic significance, and multiple whitespace
-characters are syntactically equivalent to a single one.  Space, tab,
-newline and formfeed are classified as whitespace in almost all major
-modes.
+characters have no other syntactic significance, and multiple
+whitespace characters are syntactically equivalent to a single one.
+Space, tab, and formfeed are classified as whitespace in almost all
+major modes.
 @end deffn
 
 @deffn {Syntax class} @w{word constituent}

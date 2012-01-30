@@ -67,6 +67,7 @@
 ;;; Code:
 
 (require 'comint)
+(require 'ansi-color)
 
 (eval-when-compile
   (require 'compile)
@@ -1386,7 +1387,6 @@ For running multiple processes in multiple buffers, see `run-python' and
 
 \\{inferior-python-mode-map}"
   :group 'python
-  (require 'ansi-color) ; for ipython
   (setq mode-line-process '(":%s"))
   (set (make-local-variable 'comint-input-filter) 'python-input-filter)
   (add-hook 'comint-preoutput-filter-functions #'python-preoutput-filter
@@ -1530,7 +1530,6 @@ behavior, change `python-remove-cwd-from-path' to nil."
   (interactive (if current-prefix-arg
 		   (list (read-string "Run Python: " python-command) nil t)
 		 (list python-command)))
-  (require 'ansi-color) ; for ipython
   (unless cmd (setq cmd python-command))
   (python-check-version cmd)
   (setq python-command cmd)

@@ -24,8 +24,41 @@ so we will look at it and add it to the manual.
 
 * Installation Changes in Emacs 24.1
 
-** Configure links against libselinux if it is found.
-You can disable this by using --without-selinux.
+---
+** Emacs can be compiled with Gtk+ 3.0 if you pass --with-x-toolkit=gtk3
+to configure.  Note that other libraries used by Emacs, RSVG and GConf,
+also depend on Gtk+.  You can disable them with --without-rsvg and
+--without-gconf.
+
+---
+** Emacs can be compiled with GnuTLS support.
+This happens by default if a suitably recent version of the library is
+found at build time.  To prevent this, use the configure option
+`--without-gnutls'.  See below for GnuTLS features.
+
+---
+** Emacs can be compiled with SELinux support.
+This happens by default if a suitably recent version of the library is
+found at build time.  To prevent this, use the configure option
+`--without-selinux'.  See below for SELinux features.
+
+---
+** Emacs can be compiled with ImageMagick support.
+This happens by default if a suitably recent version of the library is
+found at build time.  To prevent this, use the configure option
+`--without-imagemagick'.  See below for ImageMagick features.
+
+---
+** Emacs can be compiled with libxml2 support.
+This happens by default if a suitably recent version of the library is
+found at build time.  To prevent this, use the configure option
+`--without-xml2'.  See below for libxml2 features.
+
+---
+** There is a new configure option --with-wide-int.
+With it, Emacs integers typically have 62 bits, even on 32-bit machines.
+On 32-bit hosts, this raises the limit on buffer sizes from about 512 MiB
+to about 2 GiB.
 
 ---
 ** By default, the installed Info and man pages are compressed.
@@ -38,31 +71,9 @@ These provide no new functionality, they just remove the need to edit
 lib-src/Makefile by hand in order to use the associated features.
 
 ---
-** Emacs can be compiled against Gtk+ 3.0 if you pass --with-x-toolkit=gtk3
-to configure.  Note that other libraries used by Emacs, RSVG and GConf,
-also depend on Gtk+.  You can disable them with --without-rsvg and
---without-gconf.
-
----
 ** There is a new configure option --enable-use-lisp-union-type.
 This is only useful for Emacs developers to debug certain types of bugs.
 This is not a new feature; only the configure flag is new.
-
----
-** There is a new configure option --with-wide-int.
-With it, Emacs integers typically have 62 bits, even on 32-bit machines.
-On 32-bit hosts, this raises the limit on buffer sizes from about 512 MiB
-to about 2 GiB.
-
----
-** New translation of the Emacs Tutorial in Hebrew is available.
-Type `C-u C-h t' to choose it in case your language setup doesn't
-automatically select it.
-
-** Emacs can be compiled with ImageMagick support.
-Emacs links to ImageMagick if version 6.2.8 or newer of the library is
-present at build time.  To inhibit ImageMagick, use the configure
-option `--without-imagemagick' .
 
 ---
 ** The standalone programs digest-doc and sorted-doc are removed.
@@ -229,6 +240,11 @@ cannot be encoded by the `terminal-coding-system'.
 *** `nobreak-char-display' now also highlights Unicode hyphen chars
 (U+2010 and U+2011).
 
+---
+*** New translation of the Emacs Tutorial in Hebrew is available.
+Type `C-u C-h t' to choose it in case your language setup doesn't
+automatically select it.
+
 ** Improved GTK integration
 +++
 *** GTK scroll-bars are now placed on the right by default.
@@ -263,14 +279,17 @@ Emacs.pane.menubar.font:  Courier-12
 Also, the first dash (which does not indicate anything) is just
 displayed as a space.
 
++++
 ** Basic SELinux support has been added.
 This requires Emacs to be linked with libselinux at build time.
 
++++
 *** Emacs preserves the SELinux file context when backing up, and
 optionally when copying files. To this end, copy-file has an extra
 optional argument, and backup-buffer and friends include the SELinux
 context in their return values.
 
++++
 *** The new functions file-selinux-context and set-file-selinux-context
 get and set the SELinux context of a file.
 ---
@@ -1302,41 +1321,31 @@ is being animated.
 
 *** `image-extension-data' is renamed to `image-metadata'.
 
-*** If Emacs is compiled with ImageMagick support (see Startup
-Changes), the function `imagemagick-types' returns a list of image
-file extensions that your installation of ImageMagick supports.  The
+*** Emacs can be compiled with ImageMagick support.
+Then the function `imagemagick-types' returns a list of image file
+extensions that your installation of ImageMagick supports.  The
 function `imagemagick-register-types' enables ImageMagick support for
 these image types, minus those listed in `imagemagick-types-inhibit'.
 
 See the Emacs Lisp Reference Manual for more information.
 
 ** XML and HTML parsing
-
-*** If Emacs is compiled with libxml2 support (which is the default),
-two new Emacs Lisp-level functions are defined:
-`libxml-parse-html-region' (which will parse "real world" HTML)
-and `libxml-parse-xml-region' (which parses XML).  Both return an
-Emacs Lisp parse tree.
+If Emacs is compiled with libxml2 support, there are two new functions:
+`libxml-parse-html-region' (which parses "real world" HTML) and
+`libxml-parse-xml-region' (which parses XML).  Both return an Emacs
+Lisp parse tree.
 
 FIXME: These should be front-ended by xml.el.
 
 ** GnuTLS
 
-*** Emacs can be compiled with libgnutls support
-This is the default.  You will then be able to use the functionality
-in gnutls.el, namely the `open-gnutls-stream' and `gnutls-negotiate'
-functions.  It's easiest to use these functions through
-`open-network-stream' because it can upgrade connections through
-STARTTLS opportunistically or use plain SSL, depending on your needs.
-
-Only versions 2.8.x and higher or GnuTLS have been tested.
-[FIXME: this statement needs clarifying, given that GnuTLS >= 2.6.6
-is the test used by configure.]
-
-*** gnutls-log-level
-Set `gnutls-log-level' higher than 0 to get debug output.  1 is for
-important messages, 2 is for debug data, and higher numbers are as per
-the GnuTLS logging conventions.  The output is in *Messages*.
+*** New library `gnutls.el'.
+This requires Emacs to have been built with GnuTLS support.
+The main functions are `open-gnutls-stream' and `gnutls-negotiate'.
+It's easiest to use these functions through `open-network-stream'
+because it can upgrade connections through STARTTLS opportunistically
+or use plain SSL, depending on your needs.  For debugging, set
+`gnutls-log-level' greater than 0.
 
 ** Isearch
 

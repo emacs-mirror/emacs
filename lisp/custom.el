@@ -231,6 +231,7 @@ The following keywords are meaningful:
 	it does (require VALUE) first.
 :risky	Set SYMBOL's `risky-local-variable' property to VALUE.
 :safe	Set SYMBOL's `safe-local-variable' property to VALUE.
+        See Info node `(elisp) File Local Variables'.
 
 The following common keywords are also meaningful.
 

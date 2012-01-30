@@ -39,8 +39,12 @@ function to this list, which should take an alist of parameters
 as its argument.")
 
 (defvar window-system-default-frame-alist nil
-  "Alist of window-system dependent default frame parameters.
-Parameters specified here supersede the values given in
+  "Window-system dependent default frame parameters.
+The value should be an alist of elements (WINDOW-SYSTEM . ALIST),
+where WINDOW-SYSTEM is a window system symbol (see `window-system')
+and ALIST is a frame parameter alist like `default-frame-alist'.
+Then, for frames on WINDOW-SYSTEM, any parameters specified in
+ALIST supersede the corresponding parameters specified in
 `default-frame-alist'.")
 
 ;; The initial value given here used to ask for a minibuffer.
