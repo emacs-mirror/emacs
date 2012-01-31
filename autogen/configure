@@ -12190,6 +12190,14 @@ $as_echo "$emacs_cv_lesstif" >&6; }
       CPPFLAGS=$OLD_CPPFLAGS
     fi
   fi
+  ac_fn_c_check_header_mongrel "$LINENO" "Xm/BulletinB.h" "ac_cv_header_Xm_BulletinB_h" "$ac_includes_default"
+if test "x$ac_cv_header_Xm_BulletinB_h" = x""yes; then :
+
+else
+  as_fn_error "Motif toolkit requested but requirements not found." "$LINENO" 5
+fi
+
+
 fi
 
 
@@ -12201,7 +12209,7 @@ if test "${with_toolkit_scroll_bars}" != "no"; then
 
       HAVE_XAW3D=no
       USE_TOOLKIT_SCROLL_BARS=yes
-    elif test "${HAVE_XAW3D}" = "yes"; then
+    elif test "${HAVE_XAW3D}" = "yes" || test "${USE_X_TOOLKIT}" = "LUCID"; then
       $as_echo "#define USE_TOOLKIT_SCROLL_BARS 1" >>confdefs.h
 
       USE_TOOLKIT_SCROLL_BARS=yes
