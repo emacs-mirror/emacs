@@ -1,3 +1,12 @@
+2012-01-31  Juanma Barranquero  <lekktu@gmail.com>
+
+	* progmodes/cwarn.el (cwarn): Remove dead link.
+	(cwarn-configuration, cwarn-verbose, cwarn-mode-text, cwarn-load-hook):
+	Remove * from defcustom docstrings.
+	(turn-on-cwarn-mode): Make obsolete.
+	(c-at-toplevel-p): Remove compatibility code for Emacs 20.3 and older.
+	(turn-on-cwarn-mode-if-enabled): Call `cwarn-mode'.
+
 2012-01-31  Glenn Morris  <rgm@gnu.org>
 
 	* emacs-lisp/easy-mmode.el (define-minor-mode): Fix :variable case.
