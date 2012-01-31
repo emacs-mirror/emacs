@@ -1,3 +1,9 @@
+2012-01-29  David Engster  <deng@randomsample.de>
+
+	Fix require error when using srecode-insert (Bug#9967).
+	* srecode/insert.el: Require srecode/filters.
+	* srecode/filters.el: Drop two requires.
+
 2012-01-09  Eric Ludlam  <zappo@gnu.org>
 
 	* ede.el (ede-project-directories): New option.

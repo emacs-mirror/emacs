@@ -24,8 +24,41 @@ so we will look at it and add it to the manual.
 
 * Installation Changes in Emacs 24.1
 
-** Configure links against libselinux if it is found.
-You can disable this by using --without-selinux.
+---
+** Emacs can be compiled with Gtk+ 3.0 if you pass --with-x-toolkit=gtk3
+to configure.  Note that other libraries used by Emacs, RSVG and GConf,
+also depend on Gtk+.  You can disable them with --without-rsvg and
+--without-gconf.
+
+---
+** Emacs can be compiled with GnuTLS support.
+This happens by default if a suitably recent version of the library is
+found at build time.  To prevent this, use the configure option
+`--without-gnutls'.  See below for GnuTLS features.
+
+---
+** Emacs can be compiled with SELinux support.
+This happens by default if a suitably recent version of the library is
+found at build time.  To prevent this, use the configure option
+`--without-selinux'.  See below for SELinux features.
+
+---
+** Emacs can be compiled with ImageMagick support.
+This happens by default if a suitably recent version of the library is
+found at build time.  To prevent this, use the configure option
+`--without-imagemagick'.  See below for ImageMagick features.
+
+---
+** Emacs can be compiled with libxml2 support.
+This happens by default if a suitably recent version of the library is
+found at build time.  To prevent this, use the configure option
+`--without-xml2'.  See below for libxml2 features.
+
+---
+** There is a new configure option --with-wide-int.
+With it, Emacs integers typically have 62 bits, even on 32-bit machines.
+On 32-bit hosts, this raises the limit on buffer sizes from about 512 MiB
+to about 2 GiB.
 
 ---
 ** By default, the installed Info and man pages are compressed.
@@ -38,31 +71,9 @@ These provide no new functionality, they just remove the need to edit
 lib-src/Makefile by hand in order to use the associated features.
 
 ---
-** Emacs can be compiled against Gtk+ 3.0 if you pass --with-x-toolkit=gtk3
-to configure.  Note that other libraries used by Emacs, RSVG and GConf,
-also depend on Gtk+.  You can disable them with --without-rsvg and
---without-gconf.
-
----
 ** There is a new configure option --enable-use-lisp-union-type.
 This is only useful for Emacs developers to debug certain types of bugs.
 This is not a new feature; only the configure flag is new.
-
----
-** There is a new configure option --with-wide-int.
-With it, Emacs integers typically have 62 bits, even on 32-bit machines.
-On 32-bit hosts, this raises the limit on buffer sizes from about 512 MiB
-to about 2 GiB.
-
----
-** New translation of the Emacs Tutorial in Hebrew is available.
-Type `C-u C-h t' to choose it in case your language setup doesn't
-automatically select it.
-
-** Emacs can be compiled with ImageMagick support.
-Emacs links to ImageMagick if version 6.2.8 or newer of the library is
-present at build time.  To inhibit ImageMagick, use the configure
-option `--without-imagemagick' .
 
 ---
 ** The standalone programs digest-doc and sorted-doc are removed.
@@ -82,7 +93,9 @@ longer have any effect.  (They were declared obsolete in Emacs 23.)
 
 +++
 ** New command line option `--no-site-lisp' removes site-lisp directories
-from load-path.  -Q now implies this.
+from load-path.  -Q now implies this.  This option does not affect the
+EMACSLOADPATH environment variable (and hence has no effect for
+Nextstep builds.)
 
 
 * Changes in Emacs 24.1
@@ -227,6 +240,11 @@ cannot be encoded by the `terminal-coding-system'.
 *** `nobreak-char-display' now also highlights Unicode hyphen chars
 (U+2010 and U+2011).
 
+---
+*** New translation of the Emacs Tutorial in Hebrew is available.
+Type `C-u C-h t' to choose it in case your language setup doesn't
+automatically select it.
+
 ** Improved GTK integration
 +++
 *** GTK scroll-bars are now placed on the right by default.
@@ -261,14 +279,17 @@ Emacs.pane.menubar.font:  Courier-12
 Also, the first dash (which does not indicate anything) is just
 displayed as a space.
 
++++
 ** Basic SELinux support has been added.
 This requires Emacs to be linked with libselinux at build time.
 
++++
 *** Emacs preserves the SELinux file context when backing up, and
 optionally when copying files. To this end, copy-file has an extra
 optional argument, and backup-buffer and friends include the SELinux
 context in their return values.
 
++++
 *** The new functions file-selinux-context and set-file-selinux-context
 get and set the SELinux context of a file.
 ---
@@ -430,14 +451,13 @@ These maximize and minimize the size of a window within its frame.
 These functions allow to navigate through the live buffers that have
 been shown in a specific window.
 
-+++
-*** New functions `window-state-get' and `window-state-put'.
-These functions allow to save and restore the state of an arbitrary
-frame or window as an Elisp object.
-
 ** The inactive minibuffer has its own major mode `minibuffer-inactive-mode'.
 This is handy for minibuffer-only frames, and is also used for the "mouse-1
 pops up *Messages*" feature, which can now easily be changed.
+
+---
+** `tooltip-use-echo-area' is obsolete.
+Rather than setting this to t, disable Tooltip mode instead.
 
 
 * Editing Changes in Emacs 24.1
@@ -977,13 +997,12 @@ coordinate in the POSITION list now counts from the top of the text
 area, excluding any header line.  Previously, it counted from the top
 of the header line.
 
-** Removed obsolete name `e' (use `float-e' instead).
-
 ** A backquote not followed by a space is now always treated as new-style.
 
-** Test for special mode-class was moved from view-file to view-buffer.
-FIXME: This only says what was changed, but not what are the
-programmer-visible consequences.
+---
+** view-buffer now treats special mode-class in the same way that
+view-file has since Emacs 22 (ie, it won't enable View mode if the
+major-mode is special).
 
 ** Passing a nil argument to a minor mode function now turns the mode
 ON unconditionally.
@@ -1002,6 +1021,7 @@ similar to the ones created by shift-selection.  In previous Emacs
 versions, these regions were delineated by `mouse-drag-overlay', which
 has now been removed.
 
+---
 ** cl.el no longer provides `cl-19'.
 
 ** The menu bar bindings's caches are not used any more.
@@ -1017,10 +1037,12 @@ x-make-font-bold-italic, mldrag-drag-mode-line, mldrag-drag-vertical-line,
 iswitchb-default-keybindings, char-bytes, isearch-return-char,
 make-local-hook
 
++++
 ** The following obsolete variables and varaliases were removed:
-checkdoc-minor-keymap, vc-header-alist, directory-sep-char, and
-font-lock-defaults-alist.
+checkdoc-minor-keymap, vc-header-alist, directory-sep-char,
+font-lock-defaults-alist, and e (use float-e).
 
+---
 ** The following obsolete files were removed:
 sc.el, x-menu.el, rnews.el, rnewspost.el
 
@@ -1031,8 +1053,8 @@ sc.el, x-menu.el, rnews.el, rnewspost.el
 
 ** Code can now use lexical scoping by default instead of dynamic scoping.
 The `lexical-binding' variable lets code use lexical scoping for local
-variables.  It is typically set via file-local variables, in which case it
-applies to all the code in that file.
+variables.  It is typically set via a file-local variable in the first
+line of the file, in which case it applies to all the code in that file.
 
 *** `eval' takes a new optional argument `lexical' to choose the new lexical
 binding instead of the old dynamic binding mode.
@@ -1161,6 +1183,11 @@ state before the last buffer display operation in that window.
 iconifying or deleting a frame when burying a buffer shown in a dedicated
 frame or quitting a window showing a buffer in a frame of its own.
 
++++
+*** New functions `window-state-get' and `window-state-put'.
+These functions allow to save and restore the state of an arbitrary
+frame or window as an Elisp object.
+
 ** Completion
 
 *** New variable completion-extra-properties used to specify extra properties
@@ -1266,6 +1293,7 @@ on-the-fly spell checking for comments and strings.
 *** Enabled globalized minor modes can be disabled in specific modes,
 by running (FOO-mode-hook 0) via a mode hook.
 
++++
 *** `define-minor-mode' accepts a new keyword :variable.
 
 +++
@@ -1296,41 +1324,31 @@ is being animated.
 
 *** `image-extension-data' is renamed to `image-metadata'.
 
-*** If Emacs is compiled with ImageMagick support (see Startup
-Changes), the function `imagemagick-types' returns a list of image
-file extensions that your installation of ImageMagick supports.  The
+*** Emacs can be compiled with ImageMagick support.
+Then the function `imagemagick-types' returns a list of image file
+extensions that your installation of ImageMagick supports.  The
 function `imagemagick-register-types' enables ImageMagick support for
 these image types, minus those listed in `imagemagick-types-inhibit'.
 
 See the Emacs Lisp Reference Manual for more information.
 
 ** XML and HTML parsing
-
-*** If Emacs is compiled with libxml2 support (which is the default),
-two new Emacs Lisp-level functions are defined:
-`libxml-parse-html-region' (which will parse "real world" HTML)
-and `libxml-parse-xml-region' (which parses XML).  Both return an
-Emacs Lisp parse tree.
+If Emacs is compiled with libxml2 support, there are two new functions:
+`libxml-parse-html-region' (which parses "real world" HTML) and
+`libxml-parse-xml-region' (which parses XML).  Both return an Emacs
+Lisp parse tree.
 
 FIXME: These should be front-ended by xml.el.
 
 ** GnuTLS
 
-*** Emacs can be compiled with libgnutls support
-This is the default.  You will then be able to use the functionality
-in gnutls.el, namely the `open-gnutls-stream' and `gnutls-negotiate'
-functions.  It's easiest to use these functions through
-`open-network-stream' because it can upgrade connections through
-STARTTLS opportunistically or use plain SSL, depending on your needs.
-
-Only versions 2.8.x and higher or GnuTLS have been tested.
-[FIXME: this statement needs clarifying, given that GnuTLS >= 2.6.6
-is the test used by configure.]
-
-*** gnutls-log-level
-Set `gnutls-log-level' higher than 0 to get debug output.  1 is for
-important messages, 2 is for debug data, and higher numbers are as per
-the GnuTLS logging conventions.  The output is in *Messages*.
+*** New library `gnutls.el'.
+This requires Emacs to have been built with GnuTLS support.
+The main functions are `open-gnutls-stream' and `gnutls-negotiate'.
+It's easiest to use these functions through `open-network-stream'
+because it can upgrade connections through STARTTLS opportunistically
+or use plain SSL, depending on your needs.  For debugging, set
+`gnutls-log-level' greater than 0.
 
 ** Isearch
 
@@ -1367,6 +1385,9 @@ This means that the empty symbol can now be read back.  Also, #: by itself
 (when not immediately followed by a possible symbol character) stands for
 an empty uninterned symbol.
 
++++
+** New math functions `isnan', `copysign', `frexp', `ldexp'.
+
 ** Obsolete functions and variables
 
 *** buffer-substring-filters is obsolete.
@@ -1382,20 +1403,19 @@ Use `filter-buffer-substring-functions' instead.
 * Changes in Emacs 24.1 on non-free operating systems
 
 ---
-** On MS Windows, Emacs now warns when the obsolete _emacs init file is used,
+** On MS Windows, Emacs warns when using the obsolete init file _emacs,
 and also when HOME is set to C:\ by default.
 
-** New configure.bat option --enable-checking builds Emacs with extra
-runtime checks.
+** New configure.bat options
 
-** New configure.bat option --distfiles to specify files to be
-included in binary distribution.
+*** --enable-checking builds Emacs with extra runtime checks.
 
-** New configure.bat option --without-gnutls to disable automatic
-GnuTLS detection.
+*** --distfiles specifies files to be included in binary distribution.
 
-** New configure.bat option --lib for general library linkage, works
-with the USER_LIBS build variable.
+*** --without-gnutls disables automatic GnuTLS detection.
+
+*** --lib for general library linkage, works with the USER_LIBS build
+variable.
 
 ** New make target `dist' to create binary distribution for MS Windows.
 

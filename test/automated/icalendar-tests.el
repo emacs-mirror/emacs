@@ -731,10 +731,9 @@ DTSTART;VALUE=DATE-TIME:20030919"
    "&19/9/2003 non-recurring allday\n"
    "&9/19/2003 non-recurring allday\n")
   (icalendar-tests--test-import
-   ;; do not remove the trailing blank after "long"!
-   "SUMMARY:long
- summary
-DTSTART;VALUE=DATE:20030919"
+   ;; Checkdoc removes trailing blanks.  Therefore: format!
+   (format "%s\n%s\n%s" "SUMMARY:long " " summary"
+           "DTSTART;VALUE=DATE:20030919")
    "&2003/9/19 long summary\n"
    "&19/9/2003 long summary\n"
    "&9/19/2003 long summary\n")

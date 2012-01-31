@@ -546,11 +546,11 @@ made by Text mode and is available only in that and related modes
 newline as the end of a sentence; a period followed by just one space
 indicates an abbreviation, not the end of a sentence.  Accordingly,
 the fill commands will not break a line after a period followed by
-just one space.  If you change the variable
-@code{sentence-end-double-space} to a non-@code{nil} value, the fill
-commands will break a line after a period followed by one space, and
-put just one space after each period.  @xref{Sentences}, for other
-effects and possible drawbacks of this.
+just one space.  If you set the variable
+@code{sentence-end-double-space} to @code{nil}, the fill commands will
+break a line after a period followed by one space, and put just one
+space after each period.  @xref{Sentences}, for other effects and
+possible drawbacks of this.
 
 @vindex colon-double-space
   If the variable @code{colon-double-space} is non-@code{nil}, the

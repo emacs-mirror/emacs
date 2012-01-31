@@ -380,7 +380,7 @@ detected as prompt when being sent on echoing hosts, therefore.")
     (tramp-remote-shell         "/bin/sh")
     (tramp-remote-shell-args    ("-c"))
     (tramp-copy-program         "pscp")
-    (tramp-copy-args            (("-P" "%p") ("-scp") ("-p" "%k")
+    (tramp-copy-args            (("-l" "%u") ("-P" "%p") ("-scp") ("-p" "%k")
 				 ("-q") ("-r")))
     (tramp-copy-keep-date       t)
     (tramp-copy-recursive       t)
@@ -394,7 +394,7 @@ detected as prompt when being sent on echoing hosts, therefore.")
     (tramp-remote-shell         "/bin/sh")
     (tramp-remote-shell-args    ("-c"))
     (tramp-copy-program         "pscp")
-    (tramp-copy-args            (("-P" "%p") ("-sftp") ("-p" "%k")
+    (tramp-copy-args            (("-l" "%u") ("-P" "%p") ("-sftp") ("-p" "%k")
 				 ("-q") ("-r")))
     (tramp-copy-keep-date       t)
     (tramp-copy-recursive       t)
@@ -419,13 +419,12 @@ detected as prompt when being sent on echoing hosts, therefore.")
 	     `(,(concat "\\`" (regexp-opt '("su" "sudo" "ksu")) "\\'")
 	       nil "root"))
 ;; Do not add "ssh" based methods, otherwise ~/.ssh/config would be ignored.
+;; Do not add "plink" based methods, they ask interactively for the user.
 ;;;###tramp-autoload
 (add-to-list 'tramp-default-user-alist
 	     `(,(concat
 		 "\\`"
-		 (regexp-opt
-		  '("rcp" "remcp" "rsh" "telnet" "krlogin"
-		    "plink" "plink1" "pscp" "psftp" "fcp"))
+		 (regexp-opt '("rcp" "remcp" "rsh" "telnet" "krlogin" "fcp"))
 		 "\\'")
 	       nil ,(user-login-name)))
 
@@ -2281,8 +2280,10 @@ The method used must be an out-of-band method."
 	;; Set variables for computing the prompt for reading
 	;; password.
 	(setq tramp-current-method (tramp-file-name-method v)
-	      tramp-current-user   (tramp-file-name-user v)
-	      tramp-current-host   (tramp-file-name-real-host v))
+	      tramp-current-user (or (tramp-file-name-user v)
+				     (tramp-get-connection-property
+				      v "login-as" nil))
+	      tramp-current-host (tramp-file-name-real-host v))
 
 	;; Expand hops.  Might be necessary for gateway methods.
 	(setq v (car (tramp-compute-multi-hops v)))
@@ -2309,8 +2310,15 @@ The method used must be an out-of-band method."
 	  (setq port (string-to-number (match-string 2 host))
 		host (string-to-number (match-string 1 host))))
 
+	;; Check for user.  There might be an interactive setting.
+	(setq user (or (tramp-file-name-user v)
+		       (tramp-get-connection-property v "login-as" nil)))
+
 	;; Compose copy command.
-	(setq spec (format-spec-make
+	(setq host (or host "")
+	      user (or user "")
+	      port (or port "")
+	      spec (format-spec-make
 		    ?h host ?u user ?p port
 		    ?t (tramp-get-connection-property
 			(tramp-get-connection-process v) "temp-file" "")

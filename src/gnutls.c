@@ -1118,7 +1118,10 @@ syms_of_gnutls (void)
   defsubr (&Sgnutls_available_p);
 
   DEFVAR_INT ("gnutls-log-level", global_gnutls_log_level,
-	      doc: /* Logging level used by the GnuTLS functions.  */);
+	      doc: /* Logging level used by the GnuTLS functions.
+Set this larger than 0 to get debug output in the *Messages* buffer.
+1 is for important messages, 2 is for debug data, and higher numbers
+are as per the GnuTLS logging conventions.  */);
   global_gnutls_log_level = 0;
 }
 

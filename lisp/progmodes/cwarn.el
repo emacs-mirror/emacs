@@ -117,7 +117,6 @@
 (defgroup cwarn nil
   "Highlight suspicious C and C++ constructions."
   :version "21.1"
-  :link '(url-link "http://www.andersl.com/emacs")
   :group 'faces)
 
 (defvar cwarn-mode nil
@@ -129,7 +128,7 @@ instead.")
 (defcustom cwarn-configuration
   '((c-mode (not reference))
     (c++-mode t))
-  "*List of items each describing which features are enable for a mode.
+  "List of items each describing which features are enable for a mode.
 Each item is on the form (mode featurelist), where featurelist can be
 on one of three forms:
 
@@ -158,7 +157,7 @@ keyword list."
   :group 'cwarn)
 
 (defcustom cwarn-verbose t
-  "*When nil, CWarn mode will not generate any messages.
+  "When nil, CWarn mode will not generate any messages.
 
 Currently, messages are generated when the mode is activated and
 deactivated."
@@ -166,7 +165,7 @@ deactivated."
   :type 'boolean)
 
 (defcustom cwarn-mode-text " CWarn"
-  "*String to display in the mode line when CWarn mode is active.
+  "String to display in the mode line when CWarn mode is active.
 
 \(When the string is not empty, make sure that it has a leading space.)"
   :tag "CWarn mode text"                ; To separate it from `global-...'
@@ -174,7 +173,7 @@ deactivated."
   :type 'string)
 
 (defcustom cwarn-load-hook nil
-  "*Functions to run when CWarn mode is first loaded."
+  "Functions to run when CWarn mode is first loaded."
   :tag "Load Hook"
   :group 'cwarn
   :type 'hook)
@@ -204,6 +203,7 @@ With ARG, turn CWarn mode on if and only if arg is positive."
 This function is designed to be added to hooks, for example:
   (add-hook 'c-mode-hook 'turn-on-cwarn-mode)"
   (cwarn-mode 1))
+(make-obsolete 'turn-on-cwarn-mode 'cwarn-mode "24.1")
 
 ;;}}}
 ;;{{{ Help functions
@@ -245,29 +245,6 @@ If ADDP is non-nil, install else remove."
       (if (cwarn-is-enabled major-mode feature)
 	  (funcall (if addp 'font-lock-add-keywords 'font-lock-remove-keywords)
 		   nil keywords)))))
-
-;;}}}
-;;{{{ Backward compatibility
-
-;; This piece of code will be part of CC mode as of Emacs 20.4.
-(if (not (fboundp 'c-at-toplevel-p))
-(defun c-at-toplevel-p ()
-  "Return a determination as to whether point is at the `top-level'.
-Being at the top-level means that point is either outside any
-enclosing block (such function definition), or inside a class
-definition, but outside any method blocks.
-
-If point is not at the top-level (e.g. it is inside a method
-definition), then nil is returned.  Otherwise, if point is at a
-top-level not enclosed within a class definition, t is returned.
-Otherwise, a 2-vector is returned where the zeroth element is the
-buffer position of the start of the class declaration, and the first
-element is the buffer position of the enclosing class' opening
-brace."
-  (let ((state (c-parse-state)))
-    (or (not (c-most-enclosing-brace state))
-	(c-search-uplist-for-classkey state))))
-)
 
 ;;}}}
 ;;{{{ Font-lock keywords and match functions
@@ -368,7 +345,7 @@ The semicolon after a `do { ... } while (x);' construction is not matched."
   "Turn on CWarn mode in the current buffer if applicable.
 The mode is turned if some feature is enabled for the current
 `major-mode' in `cwarn-configuration'."
-  (if (cwarn-is-enabled major-mode) (turn-on-cwarn-mode)))
+  (when (cwarn-is-enabled major-mode) (cwarn-mode 1)))
 
 ;;;###autoload
 (define-globalized-minor-mode global-cwarn-mode

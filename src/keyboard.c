@@ -11835,38 +11835,39 @@ result of looking up the original command in the active keymaps.  */);
   Vthis_original_command = Qnil;
 
   DEFVAR_INT ("auto-save-interval", auto_save_interval,
-	      doc: /* *Number of input events between auto-saves.
+	      doc: /* Number of input events between auto-saves.
 Zero means disable autosaving due to number of characters typed.  */);
   auto_save_interval = 300;
 
   DEFVAR_LISP ("auto-save-timeout", Vauto_save_timeout,
-	       doc: /* *Number of seconds idle time before auto-save.
+	       doc: /* Number of seconds idle time before auto-save.
 Zero or nil means disable auto-saving due to idleness.
 After auto-saving due to this many seconds of idle time,
 Emacs also does a garbage collection if that seems to be warranted.  */);
   XSETFASTINT (Vauto_save_timeout, 30);
 
   DEFVAR_LISP ("echo-keystrokes", Vecho_keystrokes,
-	       doc: /* *Nonzero means echo unfinished commands after this many seconds of pause.
-The value may be integer or floating point.  */);
+	       doc: /* Nonzero means echo unfinished commands after this many seconds of pause.
+The value may be integer or floating point.
+If the value is zero, don't echo at all.  */);
   Vecho_keystrokes = make_number (1);
 
   DEFVAR_INT ("polling-period", polling_period,
-	      doc: /* *Interval between polling for input during Lisp execution.
+	      doc: /* Interval between polling for input during Lisp execution.
 The reason for polling is to make C-g work to stop a running program.
 Polling is needed only when using X windows and SIGIO does not work.
 Polling is automatically disabled in all other cases.  */);
   polling_period = 2;
 
   DEFVAR_LISP ("double-click-time", Vdouble_click_time,
-	       doc: /* *Maximum time between mouse clicks to make a double-click.
+	       doc: /* Maximum time between mouse clicks to make a double-click.
 Measured in milliseconds.  The value nil means disable double-click
 recognition; t means double-clicks have no time limit and are detected
 by position only.  */);
   Vdouble_click_time = make_number (500);
 
   DEFVAR_INT ("double-click-fuzz", double_click_fuzz,
-	      doc: /* *Maximum mouse movement between clicks to make a double-click.
+	      doc: /* Maximum mouse movement between clicks to make a double-click.
 On window-system frames, value is the number of pixels the mouse may have
 moved horizontally or vertically between two clicks to make a double-click.
 On non window-system frames, value is interpreted in units of 1/8 characters
@@ -11877,7 +11878,7 @@ to count as a drag.  */);
   double_click_fuzz = 3;
 
   DEFVAR_BOOL ("inhibit-local-menu-bar-menus", inhibit_local_menu_bar_menus,
-	       doc: /* *Non-nil means inhibit local map menu bar menus.  */);
+	       doc: /* Non-nil means inhibit local map menu bar menus.  */);
   inhibit_local_menu_bar_menus = 0;
 
   DEFVAR_INT ("num-input-keys", num_input_keys,
@@ -12052,7 +12053,7 @@ and the minor mode maps regardless of `overriding-local-map'.  */);
   Vspecial_event_map = Fcons (intern_c_string ("keymap"), Qnil);
 
   DEFVAR_LISP ("track-mouse", do_mouse_tracking,
-	       doc: /* *Non-nil means generate motion events for mouse motion.  */);
+	       doc: /* Non-nil means generate motion events for mouse motion.  */);
 
   DEFVAR_KBOARD ("system-key-alist", Vsystem_key_alist,
 		 doc: /* Alist of system-specific X windows key symbols.
@@ -12146,7 +12147,7 @@ immediately after running `post-command-hook'.  */);
   Vdelayed_warnings_list = Qnil;
 
   DEFVAR_LISP ("suggest-key-bindings", Vsuggest_key_bindings,
-	       doc: /* *Non-nil means show the equivalent key-binding when M-x command has one.
+	       doc: /* Non-nil means show the equivalent key-binding when M-x command has one.
 The value can be a length of time to show the message for.
 If the value is non-nil and not a number, we wait 2 seconds.  */);
   Vsuggest_key_bindings = Qt;
@@ -12206,7 +12207,7 @@ just after executing the command.  */);
 
   DEFVAR_LISP ("global-disable-point-adjustment",
 	       Vglobal_disable_point_adjustment,
-	       doc: /* *If non-nil, always suppress point adjustment.
+	       doc: /* If non-nil, always suppress point adjustment.
 
 The default value is nil, in which case, point adjustment are
 suppressed only after special commands that set
@@ -12214,7 +12215,7 @@ suppressed only after special commands that set
   Vglobal_disable_point_adjustment = Qnil;
 
   DEFVAR_LISP ("minibuffer-message-timeout", Vminibuffer_message_timeout,
-	       doc: /* *How long to display an echo-area message when the minibuffer is active.
+	       doc: /* How long to display an echo-area message when the minibuffer is active.
 If the value is not a number, such messages don't time out.  */);
   Vminibuffer_message_timeout = make_number (2);
 

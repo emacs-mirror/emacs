@@ -326,7 +326,6 @@ Lists
 * Modifying Lists::         Storing new pieces into an existing list.
 * Sets And Lists::          A list can represent a finite mathematical set.
 * Association Lists::       A list can represent a finite relation or mapping.
-* Rings::                   Managing a fixed-size ring of objects.
 
 Modifying Existing List Structure
 
@@ -344,6 +343,7 @@ Sequences, Arrays, and Vectors
 * Vector Functions::        Functions specifically for vectors.
 * Char-Tables::             How to work with char-tables.
 * Bool-Vectors::            How to work with bool-vectors.
+* Rings::                   Managing a fixed-size ring of objects.
 
 Hash Tables
 
@@ -436,12 +436,10 @@ Variables
 
 Scoping Rules for Variable Bindings
 
-* Scope::                   Scope means where in the program a value
-                              is visible.  Comparison with other languages.
-* Extent::                  Extent means how long in time a value exists.
-* Impl of Scope::           Two ways to implement dynamic scoping.
-* Using Scoping::           How to use dynamic scoping carefully and
-                              avoid problems.
+* Dynamic Binding::         The default for binding local variables in Emacs.
+* Dynamic Binding Tips::    Avoiding problems with dynamic binding.
+* Lexical Binding::         A different type of local variable binding.
+* Using Lexical Binding::   How to enable lexical binding.
 
 Buffer-Local Variables
 

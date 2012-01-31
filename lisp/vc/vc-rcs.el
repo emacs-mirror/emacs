@@ -809,9 +809,9 @@ systime, or nil if there is none.  Also, reposition point."
 ;;; Tag system
 ;;;
 
-(defun vc-rcs-create-tag (backend dir name branchp)
+(defun vc-rcs-create-tag (dir name branchp)
   (when branchp
-    (error "RCS backend %s does not support module branches" backend))
+    (error "RCS backend does not support module branches"))
   (let ((result (vc-tag-precondition dir)))
     (if (stringp result)
 	(error "File %s is not up-to-date" result)

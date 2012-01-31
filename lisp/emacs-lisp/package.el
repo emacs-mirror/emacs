@@ -382,30 +382,37 @@ controls which package subdirectories may be loaded.
 In each valid package subdirectory, this function loads the
 description file containing a call to `define-package', which
 updates `package-alist' and `package-obsolete-alist'."
-  (let ((all (memq 'all package-load-list))
-	(regexp (concat "\\`" package-subdirectory-regexp "\\'"))
-	name version force)
+  (let ((regexp (concat "\\`" package-subdirectory-regexp "\\'")))
     (dolist (dir (cons package-user-dir package-directory-list))
       (when (file-directory-p dir)
 	(dolist (subdir (directory-files dir))
-	  (when (and (file-directory-p (expand-file-name subdir dir))
-		     (string-match regexp subdir))
-	    (setq name    (intern (match-string 1 subdir))
-		  version (match-string 2 subdir)
-		  force   (assq name package-load-list))
-	    (when (cond
-		   ((null force)
-		    all) ; not in package-load-list
-		   ((null (setq force (cadr force)))
-		    nil) ; disabled
-		   ((eq force t)
-		    t)
-		   ((stringp force) ; held
-		    (version-list-= (version-to-list version)
-				    (version-to-list force)))
-		   (t
-		    (error "Invalid element in `package-load-list'")))
-	      (package-load-descriptor dir subdir))))))))
+	  (when (string-match regexp subdir)
+	    (package-maybe-load-descriptor (match-string 1 subdir)
+					   (match-string 2 subdir)
+					   dir)))))))
+
+(defun package-maybe-load-descriptor (name version dir)
+  "Maybe load a specific package from directory DIR.
+NAME and VERSION are the package's name and version strings.
+This function checks `package-load-list', before actually loading
+the package by calling `package-load-descriptor'."
+  (let ((force (assq (intern name) package-load-list))
+	(subdir (concat name "-" version)))
+    (and (file-directory-p (expand-file-name subdir dir))
+	 ;; Check `package-load-list':
+	 (cond ((null force)
+		(memq 'all package-load-list))
+	       ((null (setq force (cadr force)))
+		nil) ; disabled
+	       ((eq force t)
+		t)
+	       ((stringp force) ; held
+		(version-list-= (version-to-list version)
+				(version-to-list force)))
+	       (t
+		(error "Invalid element in `package-load-list'")))
+	 ;; Actually load the descriptor:
+	 (package-load-descriptor dir subdir))))
 
 (defsubst package-desc-vers (desc)
   "Extract version from a package description vector."
@@ -861,7 +868,13 @@ using `package-compute-transaction'."
 				 (package-desc-doc desc)
 				 (package-desc-reqs desc)))
        (t
-	(error "Unknown package kind: %s" (symbol-name kind)))))))
+	(error "Unknown package kind: %s" (symbol-name kind))))
+      ;; If package A depends on package B, then A may `require' B
+      ;; during byte compilation.  So we need to activate B before
+      ;; unpacking A.
+      (package-maybe-load-descriptor (symbol-name elt) v-string
+				     package-user-dir)
+      (package-activate elt (version-to-list v-string)))))
 
 (defvar package--initialized nil)
 
@@ -876,6 +889,8 @@ archive in `package-archives'.  Interactively, prompt for NAME."
      ;; symbols for completion.
      (unless package--initialized
        (package-initialize t))
+     (unless package-archive-contents
+       (package-refresh-contents))
      (list (intern (completing-read
 		    "Install package: "
 		    (mapcar (lambda (elt)
@@ -889,9 +904,7 @@ archive in `package-archives'.  Interactively, prompt for NAME."
 	     (symbol-name name)))
     (package-download-transaction
      (package-compute-transaction (list name)
-				  (package-desc-reqs (cdr pkg-desc)))))
-  ;; Try to activate it.
-  (package-initialize))
+				  (package-desc-reqs (cdr pkg-desc))))))
 
 (defun package-strip-rcs-id (str)
   "Strip RCS version ID from the version string STR.

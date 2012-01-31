@@ -1,3 +1,28 @@
+2012-01-31  Chong Yidong  <cyd@gnu.org>
+
+	* windows.texi (Split Window): C-mouse-2 doesn't work on GTK+
+	scroll bars (Bug#10666).
+
+2012-01-28  Chong Yidong  <cyd@gnu.org>
+
+	* files.texi (Filesets): Fix typos.
+
+	* display.texi (Faces): Add xref to Colors node.
+
+2012-01-27  Dani Moncayo  <dmoncayo@gmail.com>
+
+	* buffers.texi (Select Buffer): Clarify explanation of switching
+	to new buffers.  Fix description of next-buffer and
+	previous-buffer	(Bug#10334).
+	(Misc Buffer): Add xref to View Mode.
+
+	* text.texi (Fill Commands): Fix description of
+	sentence-end-double-space.
+
+2012-01-23  Chong Yidong  <cyd@gnu.org>
+
+	* anti.texi (Antinews): Add Emacs 23 antinews.
+
 2012-01-16  Volker Sobek  <reklov@live.com>  (tiny change)
 
 	* programs.texi (Comment Commands): Typo (bug#10514).

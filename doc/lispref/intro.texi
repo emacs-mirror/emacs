@@ -162,7 +162,7 @@ being described, are formatted like this: @var{first-number}.
 
 @cindex @code{nil}
 @cindex false
-  In Lisp, the symbol @code{nil} has three separate meanings: it
+  In Emacs Lisp, the symbol @code{nil} has three separate meanings: it
 is a symbol with the name @samp{nil}; it is the logical truth value
 @var{false}; and it is the empty list---the list of zero elements.
 When used as a variable, @code{nil} always has the value @code{nil}.
@@ -396,13 +396,14 @@ Form', respectively.  Commands are simply functions that may be called
 interactively; macros process their arguments differently from functions
 (the arguments are not evaluated), but are presented the same way.
 
-  Special form descriptions use a more complex notation to specify
-optional and repeated arguments because they can break the argument
-list down into separate arguments in more complicated ways.
-@samp{@r{[}@var{optional-arg}@r{]}} means that @var{optional-arg} is
-optional and @samp{@var{repeated-args}@dots{}} stands for zero or more
-arguments.  Parentheses are used when several arguments are grouped into
-additional levels of list structure.  Here is an example:
+  The descriptions of macros and special forms use a more complex
+notation to specify optional and repeated arguments, because they can
+break the argument list down into separate arguments in more
+complicated ways.  @samp{@r{[}@var{optional-arg}@r{]}} means that
+@var{optional-arg} is optional and @samp{@var{repeated-args}@dots{}}
+stands for zero or more arguments.  Parentheses are used when several
+arguments are grouped into additional levels of list structure.  Here
+is an example:
 
 @defspec count-loop (@var{var} [@var{from} @var{to} [@var{inc}]]) @var{body}@dots{}
 This imaginary special form implements a loop that executes the
@@ -485,9 +486,9 @@ giving a prefix argument makes @var{here} non-@code{nil}.
 @end deffn
 
 @defvar emacs-build-time
-The value of this variable indicates the time at which Emacs was built
-at the local site.  It is a list of three integers, like the value
-of @code{current-time} (@pxref{Time of Day}).
+The value of this variable indicates the time at which Emacs was
+built.  It is a list of three integers, like the value of
+@code{current-time} (@pxref{Time of Day}).
 
 @example
 @group

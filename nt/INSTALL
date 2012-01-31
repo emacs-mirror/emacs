@@ -68,13 +68,19 @@
      With GNU Make, you can use the -j command-line option to have
      Make execute several commands at once, like this:
 
+       gmake -j 2
+
+     (With versions of GNU Make before 3.82, you need also set the
+     XMFLAGS variable, like this:
+
        gmake -j 2 XMFLAGS="-j 2"
 
-     The XMFLAGS variable overrides the default behavior of GNU Make
-     on Windows, whereby recursive Make invocations reset the maximum
-     number of simultaneous commands to 1.  The above command allows
-     up to 4 simultaneous commands at once in the top-level Make, and
-     up to 3 in each one of the recursive Make's.
+     The XMFLAGS variable overrides the default behavior of version
+     3.82 and older of GNU Make on Windows, whereby recursive Make
+     invocations reset the maximum number of simultaneous commands to
+     1.  The above command allows up to 4 simultaneous commands at
+     once in the top-level Make, and up to 3 in each one of the
+     recursive Make's.)
 
   4. Generate the Info manuals (only if you are building out of Bazaar,
      and if you have makeinfo.exe installed):
@@ -359,7 +365,7 @@
   session.
 
   You can get pre-built binaries (including any required DLL and the
-  gnutls.h file) and an installer at http://josefsson.org/gnutls4win/.
+  header files) at http://sourceforge.net/projects/ezwinports/files/.
 
 * Experimental SVG support
 

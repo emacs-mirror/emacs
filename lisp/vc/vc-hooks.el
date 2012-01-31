@@ -941,7 +941,7 @@ current, and kill the buffer that visits the link."
     (define-key map "~" 'vc-revision-other-window)
     map))
 (fset 'vc-prefix-map vc-prefix-map)
-(define-key global-map "\C-xv" 'vc-prefix-map)
+(define-key ctl-x-map "v" 'vc-prefix-map)
 
 (defvar vc-menu-map
   (let ((map (make-sparse-keymap "Version Control")))

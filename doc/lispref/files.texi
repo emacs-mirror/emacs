@@ -1480,7 +1480,7 @@ with @code{add-name-to-file} and then deleting @var{filename} has the
 same effect as renaming, aside from momentary intermediate states.
 @end deffn
 
-@deffn Command copy-file oldname newname &optional ok-if-exists time preserve-uid-gid
+@deffn Command copy-file oldname newname &optional ok-if-exists time preserve-uid-gid preserve-selinux
 This command copies the file @var{oldname} to @var{newname}.  An
 error is signaled if @var{oldname} does not exist.  If @var{newname}
 names a directory, it copies @var{oldname} into that directory,
@@ -1501,6 +1501,16 @@ usually set to the user running Emacs).  If @var{preserve-uid-gid} is
 non-@code{nil}, we attempt to copy the user and group ownership of the
 file.  This works only on some operating systems, and only if you have
 the correct permissions to do so.
+
+@cindex SELinux
+If the optional argument @var{preserve-selinux} is non-@code{nil}, we
+attempt to copy the SELinux@footnote{@samp{Security-Enhanced Linux}
+is a kernel feature that allows for finer access controls to be set on
+files, and a system security policy to define who can access what.
+The functions @code{file-selinux-context} and @code{set-file-selinux-context}
+get and set, respectively, the SELinux properties of a file.}
+context of the file.  For this to work, Emacs must have been built
+with libselinux support.
 @end deffn
 
 @deffn Command make-symbolic-link filename newname  &optional ok-if-exists

@@ -1213,7 +1213,8 @@ textual parts.")
       t)))
 
 (deffoo nnimap-retrieve-group-data-early (server infos)
-  (when (nnimap-possibly-change-group nil server)
+  (when (and (nnimap-possibly-change-group nil server)
+	     infos)
     (with-current-buffer (nnimap-buffer)
       (erase-buffer)
       (setf (nnimap-group nnimap-object) nil)
@@ -1610,6 +1611,8 @@ textual parts.")
 (declare-function gnus-fetch-headers "gnus-sum"
 		  (articles &optional limit force-new dependencies))
 
+(autoload 'nnir-search-thread "nnir")
+
 (deffoo nnimap-request-thread (header &optional group server)
   (when group
     (setq group (nnimap-decode-gnus-group group)))
@@ -1735,7 +1738,8 @@ textual parts.")
 			(not (looking-at (format "%d .*\n" sequence)))))
 	    (when messagep
 	      (nnheader-message-maybe
-	       7 "nnimap read %dk" (/ (buffer-size) 1000)))
+	       7 "nnimap read %dk from %s" (/ (buffer-size) 1000)
+	       nnimap-address))
 	    (nnheader-accept-process-output process)
 	    (goto-char (point-max)))
           openp)

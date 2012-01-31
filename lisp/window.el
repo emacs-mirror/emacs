@@ -299,7 +299,7 @@ non-nil means only return a window whose window-parameter value
 for PARAMETER equals VALUE (comparison is done with `equal').
 Optional argument ANY non-nil means consider internal windows
 too."
-  (let (this-value windows)
+  (let (this-value)
     (catch 'found
       (walk-window-tree
        (lambda (window)
@@ -435,7 +435,7 @@ A valid configuration has to preserve the following invariant:
   parent whose window-side parameter is nil and there must be no
   leaf window whose window-side parameter is nil."
   (let (normal none left top right bottom
-	side parent parent-side code)
+	side parent parent-side)
     (when (or (catch 'reset
 		(walk-window-tree
 		 (lambda (window)
@@ -1807,8 +1807,7 @@ preferably only resize windows adjacent to EDGE."
       (if (window-combined-p sub horizontal)
 	  ;; In an iso-combination try to extract DELTA from WINDOW's
 	  ;; siblings.
-	  (let ((first sub)
-		(skip (eq trail 'after))
+	  (let ((skip (eq trail 'after))
 		this-delta other-delta)
 	    ;; Decide which windows shall be left alone.
 	    (while sub
@@ -1993,7 +1992,7 @@ move it as far as possible in the desired direction."
   (setq window (window-normalize-window window))
   (let ((frame (window-frame window))
 	(right window)
-	left this-delta min-delta max-delta failed)
+	left this-delta min-delta max-delta)
     ;; Find the edge we want to move.
     (while (and (or (not (window-combined-p right horizontal))
 		    (not (window-right right)))
@@ -2309,9 +2308,8 @@ frame."
     (when (window-parameter window 'window-atom)
       (setq window (window-atom-root window))))
 
-  (let* ((parent (window-parent window))
-	 (frame (window-frame window))
-	 (buffer (window-buffer window)))
+  (let ((parent (window-parent window))
+        (frame (window-frame window)))
     (cond
      ((frame-root-window-p window)
       ;; WINDOW's frame can be deleted only if there are other frames
@@ -2798,8 +2796,7 @@ means the buffer shown in window will be killed.  Return non-nil
 if WINDOW gets deleted or its frame is auto-hidden."
   (setq window (window-normalize-window window t))
   (unless (and dedicated-only (not (window-dedicated-p window)))
-    (let* ((buffer (window-buffer window))
-	   (deletable (window-deletable-p window)))
+    (let ((deletable (window-deletable-p window)))
       (cond
        ((eq deletable 'frame)
 	(let ((frame (window-frame window)))
@@ -3355,7 +3352,7 @@ is non-nil."
 	 (number-of-children 0)
 	 (parent-size (window-new-total window))
 	 (total-sum parent-size)
-	 found failed size sub-total sub-delta sub-amount rest)
+	 failed size sub-total sub-delta sub-amount rest)
     (while sub
       (setq number-of-children (1+ number-of-children))
       (when (window-size-fixed-p sub horizontal)
@@ -3372,7 +3369,6 @@ is non-nil."
       (while (and sub (not failed))
 	;; Ignore child windows that should be ignored or are stuck.
 	(unless (window--resize-child-windows-skip-p sub)
-	  (setq found t)
 	  (setq sub-total (window-total-size sub horizontal))
 	  (setq sub-delta (- size sub-total))
 	  (setq sub-amount
@@ -3604,28 +3600,20 @@ specific buffers."
                 (when list
                   `((parameters . ,list))))
             ,@(when buffer
-                ;; All buffer related things go in here - make the buffer
-                ;; current when retrieving `point' and `mark'.
-                (with-current-buffer (window-buffer window)
-                  (let ((point (window-point-1 window))
-                        (start (window-start window))
-                        (mark (mark t)))
-                    `((buffer
-                       ,(buffer-name buffer)
-                       (selected . ,selected)
-                       ,@(when window-size-fixed
-                           `((size-fixed . ,window-size-fixed)))
-                       (hscroll . ,(window-hscroll window))
-                       (fringes . ,(window-fringes window))
-                       (margins . ,(window-margins window))
-                       (scroll-bars . ,(window-scroll-bars window))
-                       (vscroll . ,(window-vscroll window))
-                       (dedicated . ,(window-dedicated-p window))
-                       (point . ,(if writable point (copy-marker point)))
-                       (start . ,(if writable start (copy-marker start)))
-                       ,@(when mark
-                           `((mark . ,(if writable
-                                          mark (copy-marker mark))))))))))))
+                ;; All buffer related things go in here.
+		(let ((point (window-point-1 window))
+		      (start (window-start window)))
+		  `((buffer
+		     ,(buffer-name buffer)
+		     (selected . ,selected)
+		     (hscroll . ,(window-hscroll window))
+		     (fringes . ,(window-fringes window))
+		     (margins . ,(window-margins window))
+		     (scroll-bars . ,(window-scroll-bars window))
+		     (vscroll . ,(window-vscroll window))
+		     (dedicated . ,(window-dedicated-p window))
+		     (point . ,(if writable point (copy-marker point)))
+		     (start . ,(if writable start (copy-marker start)))))))))
 	 (tail
 	  (when (memq type '(vc hc))
 	    (let (list)
@@ -3670,10 +3658,7 @@ value can be also stored on disk and read back in a new session."
      (min-height-ignore . ,(window-min-size window nil t))
      (min-width-ignore  . ,(window-min-size window t t))
      (min-height-safe   . ,(window-min-size window nil 'safe))
-     (min-width-safe    . ,(window-min-size window t 'safe))
-     ;; These are probably not needed.
-     ,@(when (window-size-fixed-p window) `((fixed-height . t)))
-     ,@(when (window-size-fixed-p window t) `((fixed-width . t))))
+     (min-width-safe    . ,(window-min-size window t 'safe)))
    (window--state-get-1 window writable)))
 
 (defvar window-state-put-list nil
@@ -3747,7 +3732,6 @@ value can be also stored on disk and read back in a new session."
   "Helper function for `window-state-put'."
   (dolist (item window-state-put-list)
     (let ((window (car item))
-	  (splits (cdr (assq 'splits item)))
 	  (combination-limit (cdr (assq 'combination-limit item)))
 	  (parameters (cdr (assq 'parameters item)))
 	  (state (cdr (assq 'buffer item))))
@@ -3809,11 +3793,7 @@ value can be also stored on disk and read back in a new session."
 	  ;; have been created and sized).
 	  (ignore-errors
 	    (set-window-start window (cdr (assq 'start state)))
-	    (set-window-point window (cdr (assq 'point state)))
-	    ;; I'm not sure whether we should set the mark here, but maybe
-	    ;; it can be used.
-	    (let ((mark (cdr (assq 'mark state))))
-	      (when mark (set-mark mark))))
+	    (set-window-point window (cdr (assq 'point state))))
 	  ;; Select window if it's the selected one.
 	  (when (cdr (assq 'selected state))
 	    (select-window window)))))))
@@ -3841,8 +3821,7 @@ windows can get as small as `window-safe-min-height' and
 	       (= (window-total-size window t)
 		  (cdr (assq 'total-width state)))))
 	 (min-height (cdr (assq 'min-height head)))
-	 (min-width (cdr (assq 'min-width head)))
-	 selected)
+	 (min-width (cdr (assq 'min-width head))))
     (if (and (not totals)
 	     (or (> min-height (window-total-size window))
 		 (> min-width (window-total-size window t)))
@@ -4259,7 +4238,7 @@ selected rather than (as usual) some other window.  See
 	;; The elements of `same-window-regexps' can be regexps
 	;; or cons cells whose cars are regexps.
 	(when (or (and (stringp regexp)
-		       (string-match regexp buffer-name))
+		       (string-match-p regexp buffer-name))
 		  (and (consp regexp) (stringp (car regexp))
 		       (string-match-p (car regexp) buffer-name)))
 	  (throw 'found t)))))))
@@ -4617,8 +4596,7 @@ specified, e.g. by the user options `display-buffer-alist' or
   "Retrieve ALIST entry corresponding to BUFFER-NAME."
   (catch 'match
     (dolist (entry alist)
-      (let ((key (car entry))
-	    (value (cdr entry)))
+      (let ((key (car entry)))
 	(when (or (and (stringp key)
 		       (string-match-p key buffer-name))
 		  (and (symbolp key) (functionp key)
@@ -4807,7 +4785,7 @@ See `display-buffer' for the format of display actions."
                           (funcall special-display-function
                                    buffer ',(if (listp pars) pars)))))))))
 
-(defun display-buffer-pop-up-frame (buffer alist)
+(defun display-buffer-pop-up-frame (buffer _alist)
   "Display BUFFER in a new frame.
 This works by calling `pop-up-frame-function'.  If successful,
 return the window used; otherwise return nil."
@@ -4822,7 +4800,7 @@ return the window used; otherwise return nil."
       (set-window-prev-buffers window nil)
       window)))
 
-(defun display-buffer-pop-up-window (buffer alist)
+(defun display-buffer-pop-up-window (buffer _alist)
   "Display BUFFER by popping up a new window.
 The new window is created on the selected frame, or in
 `last-nonminibuffer-frame' if no windows can be created there.
@@ -4925,8 +4903,7 @@ at the front of the list of recently selected ones."
 		     (if current-prefix-arg t)))
   (setq buffer (window-normalize-buffer-to-switch-to buffer))
   (set-buffer buffer)
-  (let* ((old-window (selected-window))
-	 (old-frame (selected-frame))
+  (let* ((old-frame (selected-frame))
 	 (window (display-buffer buffer action))
 	 (frame (window-frame window)))
     ;; If we chose another frame, make sure it gets input focus.

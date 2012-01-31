@@ -7,6 +7,7 @@ See the end of the file for license conditions.
 * Status Key
   -      -- as yet unknown
   n/a    -- not applicable (internal, uninteresting, etc)
+  obsolete -- an obsolete feature, to be removed in future
   todo   -- not documented but should be
   NODE   -- documented in or under info node NODE
 
@@ -26,7 +27,6 @@ See the end of the file for license conditions.
   bytecomp                (elisp) Compilation Functions
   checkdoc                (elisp) Documentation Tips
   cl                      (cl)
-  cl-19                   n/a
   cl-compat               n/a
   cl-specs                n/a
   copyright               -
@@ -47,13 +47,12 @@ See the end of the file for license conditions.
   generic                 (elisp) Generic Modes
   gulp                    n/a
   helper                  -
-  levents                 -
+  levents                 obsolete
   lisp-float-type         -
   lisp-mnt                -
   lisp-mode               n/a
-  lmenu                   -
-  lselect                 -
-  lucid                   -
+  lmenu                   obsolete
+  lucid                   obsolete
   macroexp                (elisp) Expansion
   pp                      (emacs) Program Indent
   re-builder              -
@@ -62,7 +61,7 @@ See the end of the file for license conditions.
   ring                    (elisp) Rings
   rx                      -
   shadow                  -
-  sregex                  -
+  sregex                  obsolete
   syntax                  (elisp) Position Parse
   testcover               -
   timer                   (elisp) Timers

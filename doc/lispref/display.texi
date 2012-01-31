@@ -3367,54 +3367,48 @@ fringe, and no arrow bitmaps, use @code{((top .  left) (bottom . left))}.
 
 @defvar fringe-indicator-alist
 This buffer-local variable specifies the mapping from logical fringe
-indicators to the actual bitmaps displayed in the window fringes.
+indicators to the actual bitmaps displayed in the window fringes.  The
+value is an alist of elements @code{(@var{indicator}
+. @var{bitmaps})}, where @var{indicator} specifies a logical indicator
+type and @var{bitmaps} specifies the fringe bitmaps to use for that
+indicator.
 
-These symbols identify the logical fringe indicators:
+  Each @var{indicator} should be one of the following symbols:
 
 @table @asis
-@item Truncation and continuation line indicators:
-@code{truncation}, @code{continuation}.
+@item @code{truncation}, @code{continuation}.
+Used for truncation and continuation lines.
 
-@item Buffer position indicators:
-@code{up}, @code{down},
-@code{top}, @code{bottom},
-@code{top-bottom}.
+@item @code{up}, @code{down}, @code{top}, @code{bottom}, @code{top-bottom}
+Used to indicate buffer boundaries when
+@code{indicate-buffer-boundaries} is non-@code{nil}: @code{up} and
+@code{down} indicate a buffer boundary lying above or below the window
+edge; @code{top} and @code{bottom} indicate the topmost and bottommost
+buffer text line; and @code{top-bottom} indicates where there is just
+one line of text in the buffer.
 
-@item Empty line indicator:
-@code{empty-line}.
+@item @code{empty-line}
+Used to indicate empty lines when @code{indicate-empty-lines} is
+non-@code{nil}.
 
-@item Overlay arrow indicator:
-@code{overlay-arrow}.
-
-@item Unknown bitmap indicator:
-@code{unknown}.
+@item @code{overlay-arrow}
+Used for overlay arrows (@pxref{Overlay Arrow}).
+@c Is this used anywhere?
+@c @item Unknown bitmap indicator:
+@c @code{unknown}.
 @end table
 
-  The value is an alist where each element @code{(@var{indicator} . @var{bitmaps})}
-specifies the fringe bitmaps used to display a specific logical
-fringe indicator.
+  Each @var{bitmaps} value may be a list of symbols @code{(@var{left}
+@var{right} [@var{left1} @var{right1}])}.  The @var{left} and
+@var{right} symbols specify the bitmaps shown in the left and/or right
+fringe, for the specific indicator.  @var{left1} and @var{right1} are
+specific to the @code{bottom} and @code{top-bottom} indicators, and
+are used to indicate that the last text line has no final newline.
+Alternatively, @var{bitmaps} may be a single symbol which is used in
+both left and right fringes.
 
-Here, @var{indicator} specifies the logical indicator type, and
-@var{bitmaps} is list of symbols @code{(@var{left} @var{right}
-[@var{left1} @var{right1}])} which specifies the actual bitmap shown
-in the left or right fringe for the logical indicator.
+  The standard symbols for fringe bitmaps are:
 
-The @var{left} and @var{right} symbols specify the bitmaps shown in
-the left and/or right fringe for the specific indicator.  The
-@var{left1} or @var{right1} bitmaps are used only for the `bottom' and
-`top-bottom indicators when the last (only) line in has no final
-newline.  Alternatively, @var{bitmaps} may be a single symbol which is
-used in both left and right fringes.
-
-When @code{fringe-indicator-alist} has a buffer-local value, and there
-is no bitmap defined for a logical indicator, or the bitmap is
-@code{t}, the corresponding value from the default value of
-@code{fringe-indicator-alist} is used.
-
-To completely hide a specific indicator, set the bitmap to @code{nil}.
-@end defvar
-
-Standard fringe bitmaps for indicators:
 @example
 left-arrow right-arrow up-arrow down-arrow
 left-curly-arrow right-curly-arrow
@@ -3427,6 +3421,16 @@ filled-square hollow-square
 vertical-bar horizontal-bar
 empty-line question-mark
 @end example
+
+@noindent
+In addition, @code{nil} represents the empty bitmap (i.e.@: an
+indicator that is not shown).
+
+  When @code{fringe-indicator-alist} has a buffer-local value, and
+there is no bitmap defined for a logical indicator, or the bitmap is
+@code{t}, the corresponding value from the default value of
+@code{fringe-indicator-alist} is used.
+@end defvar
 
 @node Fringe Cursors
 @subsection Fringe Cursors

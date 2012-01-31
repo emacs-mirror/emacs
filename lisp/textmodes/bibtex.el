@@ -826,7 +826,7 @@ Predefined dialects include BibTeX and biblatex."
 
 (defcustom bibtex-dialect 'BibTeX
   "Current BibTeX dialect.  For allowed values see `bibtex-dialect-list'.
-During a session change it via `bibtex-set-dialect'."
+To interactively change the dialect use the command `bibtex-set-dialect'."
   :group 'bibtex
   :set '(lambda (symbol value)
           (set-default symbol value)
@@ -836,6 +836,7 @@ During a session change it via `bibtex-set-dialect'."
   :type '(choice (const BibTeX)
                  (const biblatex)
                  (symbol :tag "Custom")))
+(put 'bibtex-dialect 'safe-local-variable 'symbolp)
 
 (defcustom bibtex-no-opt-remove-re "\\`option"
   "If a field name matches this regexp, the prefix OPT is not removed.
@@ -1442,11 +1443,13 @@ Set this variable before loading BibTeX mode."
 
 ;; Internal Variables
 
-(defvar bibtex-entry-alist bibtex-BibTeX-entry-alist
-  "Alist of currently active entry types.")
+(defvar bibtex-entry-alist nil
+  "Alist of currently active entry types.
+Initialized by `bibtex-set-dialect'.")
 
-(defvar bibtex-field-alist bibtex-BibTeX-field-alist
-  "Alist of currently active field types.")
+(defvar bibtex-field-alist nil
+  "Alist of currently active field types.
+Initialized by `bibtex-set-dialect'.")
 
 (defvar bibtex-field-braces-opt nil
   "Optimized value of `bibtex-field-braces-alist'.
@@ -2188,6 +2191,10 @@ Optional arg COMMA is as in `bibtex-enclosing-field'."
   (let ((fun (lambda (kryp kr) ; adapted from `current-kill'
                (car (set kryp (nthcdr (mod (- n (length (eval kryp)))
                                            (length kr)) kr))))))
+    ;; We put the mark at the beginning of the inserted field or entry
+    ;; and point at its end - a behavior similar to what `yank' does.
+    ;; The mark is then used by `bibtex-yank-pop', which needs to know
+    ;; what we have inserted.
     (if (eq bibtex-last-kill-command 'field)
         (progn
           ;; insert past the current field
@@ -2216,7 +2223,7 @@ Optional arg COMMA is as in `bibtex-enclosing-field'."
   (aset vec idx (cons newelt (aref vec idx))))
 
 (defsubst bibtex-vec-incr (vec idx)
-  "Add NEWELT to the list stored in VEC at index IDX."
+  "Increment by 1 the counter which is stored in VEC at index IDX."
   (aset vec idx (1+ (aref vec idx))))
 
 (defun bibtex-format-entry ()
@@ -3376,104 +3383,124 @@ if that value is non-nil.
   (setq imenu-generic-expression
         (list (list nil bibtex-entry-head bibtex-key-in-head))
         imenu-case-fold-search t)
-  (bibtex-set-dialect bibtex-dialect))
+  ;; Allow `bibtex-dialect' as a file-local variable.
+  (add-hook 'hack-local-variables-hook 'bibtex-set-dialect nil t))
 
-(defun bibtex-set-dialect (dialect)
-  "Select BibTeX mode DIALECT.
-This sets the variable `bibtex-dialect' which holds the currently active
-dialect.  Dialects are listed in `bibtex-dialect-list'."
+(defun bibtex-entry-alist (dialect)
+  "Return entry-alist for DIALECT."
+  (let ((var (intern (format "bibtex-%s-entry-alist" dialect)))
+        entry-alist)
+    (if (boundp var)
+        (setq entry-alist (symbol-value var))
+      (error "BibTeX dialect `%s' undefined" dialect))
+    (if (not (consp (nth 1 (car entry-alist))))
+        ;; new format
+        entry-alist
+      ;; Convert old format of `bibtex-entry-field-alist'
+      (unless (get var 'entry-list-format)
+        (put var 'entry-list-format "pre-24")
+        (message "Old format of `%s' (pre GNU Emacs 24).
+Please convert to the new format."
+                 (if (eq (indirect-variable 'bibtex-entry-field-alist) var)
+                     'bibtex-entry-field-alist var))
+        (sit-for 3))
+      (let (lst)
+        (dolist (entry entry-alist)
+          (let ((fl (nth 1 entry)) req xref opt)
+            (dolist (field (copy-tree (car fl)))
+              (if (nth 3 field) (setcar (nthcdr 3 field) 0))
+              (if (or (not (nth 2 entry))
+                      (assoc-string (car field) (car (nth 2 entry)) t))
+                  (push field req)
+                (push field xref)))
+            (dolist (field (nth 1 fl))
+              (push field opt))
+            (push (list (car entry) nil (nreverse req)
+                        (nreverse xref) (nreverse opt))
+                  lst)))
+        (nreverse lst)))))
+
+(defun bibtex-set-dialect (&optional dialect local)
+  "Select BibTeX DIALECT for editing BibTeX files.
+This sets the user variable `bibtex-dialect' as well as the dialect-dependent
+internal variables.  Allowed dialects are listed in `bibtex-dialect-list'.
+If DIALECT is nil use current value of `bibtex-dialect'.
+If LOCAL is non-nil make buffer-local bindings for these variables rather than
+setting the global values.  The dialect-dependent internal variables
+are also bound buffer-locally if `bibtex-dialect' is already buffer-local
+in the current buffer (for example, as a file-local variable).
+LOCAL is t for interactive calls."
   (interactive (list (intern (completing-read "Dialect: "
                                               (mapcar 'list bibtex-dialect-list)
-                                              nil t))))
-  (unless (eq dialect (get 'bibtex-dialect 'dialect))
-    (put 'bibtex-dialect 'dialect dialect)
-    (setq bibtex-dialect dialect)
+                                              nil t)) t))
+  (let ((setfun (if (or local (local-variable-p 'bibtex-dialect))
+                    (lambda (var val) (set (make-local-variable var) val))
+                  'set)))
+    (if dialect (funcall setfun 'bibtex-dialect dialect))
 
-  ;; Bind variables
-    (setq bibtex-entry-alist
-          (let ((var (intern (format "bibtex-%s-entry-alist" dialect)))
-                entry-alist)
-            (if (boundp var)
-                (setq entry-alist (symbol-value var))
-              (error "BibTeX dialect `%s' undefined" dialect))
-            (if (not (consp (nth 1 (car entry-alist))))
-                ;; new format
-                entry-alist
-              ;; Convert old format
-              (unless (get var 'entry-list-format)
-                (put var 'entry-list-format "pre-24")
-                (message "Old format of `%s' (pre GNU Emacs 24).
-Please convert to the new format."
-                         (if (eq (indirect-variable 'bibtex-entry-field-alist) var)
-                             'bibtex-entry-field-alist var))
-                (sit-for 3))
-              (let (lst)
-                (dolist (entry entry-alist)
-                  (let ((fl (nth 1 entry)) req xref opt)
-                    (dolist (field (copy-tree (car fl)))
-                      (if (nth 3 field) (setcar (nthcdr 3 field) 0))
-                      (if (or (not (nth 2 entry))
-                              (assoc-string (car field) (car (nth 2 entry)) t))
-                          (push field req)
-                        (push field xref)))
-                    (dolist (field (nth 1 fl))
-                      (push field opt))
-                    (push (list (car entry) nil (nreverse req)
-                                (nreverse xref) (nreverse opt))
-                          lst)))
-                (nreverse lst))))
-          bibtex-field-alist
-          (let ((var (intern (format "bibtex-%s-field-alist" dialect))))
-            (if (boundp var)
-                (symbol-value var)
-              (error "Field types for BibTeX dialect `%s' undefined" dialect)))
-          bibtex-entry-type
-          (concat "@[ \t]*\\(?:"
-                  (regexp-opt (mapcar 'car bibtex-entry-alist)) "\\)")
-          bibtex-entry-head (concat "^[ \t]*\\("
-                                    bibtex-entry-type
-                                    "\\)[ \t]*[({][ \t\n]*\\("
-                                    bibtex-reference-key
-                                    "\\)")
-          bibtex-entry-maybe-empty-head (concat bibtex-entry-head "?")
-          bibtex-any-valid-entry-type
-          (concat "^[ \t]*@[ \t]*\\(?:"
-                  (regexp-opt (append '("String" "Preamble")
-                                      (mapcar 'car bibtex-entry-alist))) "\\)"))
-    ;; Define entry commands
-    (dolist (elt bibtex-entry-alist)
-      (let* ((entry (car elt))
-             (fname (intern (concat "bibtex-" entry))))
-        (unless (fboundp fname)
-          (eval (list 'defun fname nil
-                      (format "Insert a new BibTeX @%s entry; see also `bibtex-entry'."
-                              entry)
-                      '(interactive "*")
-                      `(bibtex-entry ,entry))))))
-    ;; Define menu
-    ;; We use the same keymap for all BibTeX buffers.  So all these buffers
-    ;; have the same BibTeX dialect.  To define entry types buffer-locally,
-    ;; it would be necessary to give each BibTeX buffer a new keymap that
-    ;; becomes a child of `bibtex-mode-map'.  Useful??
-    (easy-menu-define
-      nil bibtex-mode-map "Entry-Types Menu in BibTeX mode"
-      (apply 'list "Entry-Types"
-             (append
-              (mapcar (lambda (entry)
-                        (vector (or (nth 1 entry) (car entry))
-                                (intern (format "bibtex-%s" (car entry))) t))
-                      bibtex-entry-alist)
-              `("---"
-                ["String" bibtex-String t]
-                ["Preamble" bibtex-Preamble t]
-                "---"
-                ,(append '("BibTeX dialect")
-                         (mapcar (lambda (dialect)
-                                   (vector (symbol-name dialect)
-                                           `(lambda () (interactive)
-                                              (bibtex-set-dialect ',dialect))
-                                           t))
-                                 bibtex-dialect-list))))))))
+    ;; Set internal variables
+    (funcall setfun 'bibtex-entry-alist (bibtex-entry-alist bibtex-dialect))
+    (funcall setfun 'bibtex-field-alist
+             (let ((var (intern (format "bibtex-%s-field-alist"
+                                        bibtex-dialect))))
+               (if (boundp var)
+                   (symbol-value var)
+                 (error "Field types for BibTeX dialect `%s' undefined"
+                        bibtex-dialect))))
+    (funcall setfun 'bibtex-entry-type
+             (concat "@[ \t]*\\(?:"
+                     (regexp-opt (mapcar 'car bibtex-entry-alist)) "\\)"))
+    (funcall setfun 'bibtex-entry-head
+             (concat "^[ \t]*\\(" bibtex-entry-type "\\)[ \t]*[({][ \t\n]*\\("
+                     bibtex-reference-key "\\)"))
+    (funcall setfun 'bibtex-entry-maybe-empty-head
+             (concat bibtex-entry-head "?"))
+    (funcall setfun 'bibtex-any-valid-entry-type
+             (concat "^[ \t]*@[ \t]*\\(?:"
+                     (regexp-opt
+                      (append '("String" "Preamble")
+                              (mapcar 'car bibtex-entry-alist))) "\\)"))))
+
+;; Entry commands and menus for BibTeX dialects
+;; We do not use `easy-menu-define' here because this gets confused
+;; if we want to have multiple versions of the "same" menu.
+(let ((select-map (make-sparse-keymap)))
+  ;; Submenu for selecting the dialect
+  (dolist (dialect (reverse bibtex-dialect-list))
+    (define-key select-map (vector dialect)
+      `(menu-item ,(symbol-name dialect)
+                  (lambda () (interactive) (bibtex-set-dialect ',dialect t))
+                  :button (:radio . (eq bibtex-dialect ',dialect)))))
+  ;; We define a menu for each dialect.
+  ;; Then we select the menu we want via the :visible keyword
+  (dolist (dialect bibtex-dialect-list)
+    (let ((entry-alist (bibtex-entry-alist dialect))
+          (menu-map (make-sparse-keymap)))
+      (define-key menu-map [select]
+        `(menu-item "BibTeX dialect" ,select-map))
+      (define-key menu-map [nil-2] '(menu-item "--"))
+      (define-key menu-map [bibtex-preamble]
+        '(menu-item "Preamble" bibtex-Preamble))
+      (define-key menu-map [bibtex-String]
+        '(menu-item "String" bibtex-String))
+      (define-key menu-map [nil-1] '(menu-item "--"))
+      (dolist (elt (reverse entry-alist))
+        ;; Entry commands
+        (let* ((entry (car elt))
+               (fname (intern (format "bibtex-%s" entry))))
+          (unless (fboundp fname)
+            (eval (list 'defun fname nil
+                        (format "Insert a template for a @%s entry; see also `bibtex-entry'."
+                                entry)
+                        '(interactive "*")
+                        `(bibtex-entry ,entry))))
+          ;; Menu entries
+          (define-key menu-map (vector fname)
+            `(menu-item ,(or (nth 1 elt) (car elt)) ,fname))))
+      (define-key bibtex-mode-map
+        (vector 'menu-bar dialect)
+        `(menu-item "Entry-Types" ,menu-map
+                    :visible (eq bibtex-dialect ',dialect))))))
 
 (defun bibtex-field-list (entry-type)
   "Return list of allowed fields for entry ENTRY-TYPE.
@@ -3505,7 +3532,7 @@ and `bibtex-user-optional-fields'."
     (cons required optional)))
 
 (defun bibtex-entry (entry-type)
-  "Insert a new BibTeX entry of type ENTRY-TYPE.
+  "Insert a template for a BibTeX entry of type ENTRY-TYPE.
 After insertion call the value of `bibtex-add-entry-hook' if that value
 is non-nil."
   (interactive

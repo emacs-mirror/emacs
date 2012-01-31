@@ -1880,7 +1880,8 @@ The headers are reset to their non-expanded form."
      "Enter a replacement change comment."
      "*vc-log*"
      (lambda () (vc-call-backend backend 'log-edit-mode))
-     (lexical-let ((rev rev))
+     (lexical-let ((rev rev)
+                   (backend backend))
        (lambda (files comment)
          (vc-call-backend backend
                           'modify-change-comment files rev comment))))))

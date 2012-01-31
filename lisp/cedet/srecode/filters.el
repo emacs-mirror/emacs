@@ -26,8 +26,9 @@
 ;;; Code:
 
 (require 'newcomment)
-(require 'srecode/table)
-(require 'srecode/insert)
+
+(declare-function srecode-dictionary-lookup-name "srecode/dictionary")
+(defvar srecode-inserter-variable-current-dictionary)
 
 (defun srecode-comment-prefix (str)
   "Prefix each line of STR with the comment prefix characters."

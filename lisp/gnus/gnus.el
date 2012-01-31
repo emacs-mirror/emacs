@@ -3581,6 +3581,13 @@ that that variable is buffer-local to the summary buffers."
 					    gnus-valid-select-methods)))
 		 (equal (nth 1 m1) (nth 1 m2)))))))
 
+(defun gnus-method-ephemeral-p (method)
+  (let ((equal nil))
+    (dolist (ephemeral gnus-ephemeral-servers)
+      (when (gnus-sloppily-equal-method-parameters method ephemeral)
+	(setq equal t)))
+    equal))
+
 (defsubst gnus-sloppily-equal-method-parameters (m1 m2)
   ;; Check parameters for sloppy equality.
   (let ((p1 (copy-sequence (cddr m1)))
@@ -3877,7 +3884,7 @@ If SYMBOL, return the value of that symbol in the group parameters.
 
 If you call this function inside a loop, consider using the faster
 `gnus-group-fast-parameter' instead."
-  (with-current-buffer (if (buffer-live-p gnus-group-buffer)
+  (with-current-buffer (if (buffer-live-p (get-buffer gnus-group-buffer))
 			   gnus-group-buffer
 			 (current-buffer))
     (if symbol

@@ -483,7 +483,7 @@ list."
       (insert-file-contents eshell-hosts-file)
       (goto-char (point-min))
       (while (re-search-forward
-	      "^\\(\\S-+\\)\\s-+\\(\\S-+\\)\\(\\s-*\\(\\S-+\\)\\)?" nil t)
+	      "^\\([^#[:space:]]+\\)\\s-+\\(\\S-+\\)\\(\\s-*\\(\\S-+\\)\\)?" nil t)
 	(if (match-string 1)
 	    (add-to-list 'hosts (match-string 1)))
 	(if (match-string 2)

@@ -1357,7 +1357,7 @@ suggest to customize that face, if it's customizable."
 
 ;;;###autoload
 (defun customize-unsaved ()
-  "Customize all user options set in this session but not saved."
+  "Customize all options and faces set in this session but not saved."
   (interactive)
   (let ((found nil))
     (mapatoms (lambda (symbol)
@@ -1395,7 +1395,7 @@ suggest to customize that face, if it's customizable."
 			    "*Customize Rogue*"))))
 ;;;###autoload
 (defun customize-saved ()
-  "Customize all already saved user options."
+  "Customize all saved options and faces."
   (interactive)
   (let ((found nil))
     (mapatoms (lambda (symbol)
@@ -1637,7 +1637,7 @@ Otherwise use brackets."
 	 :tag " Search "
 	 :help-echo echo :action
 	 (lambda (widget &optional _event)
-	   (customize-apropos (widget-value (widget-get widget :parent)))))
+	   (customize-apropos (split-string (widget-value (widget-get widget :parent))))))
 	(widget-insert "\n")))
 
     ;; The custom command buttons are also in the toolbar, so for a

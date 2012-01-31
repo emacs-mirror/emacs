@@ -167,7 +167,7 @@ See the end of the file for license conditions.
   but GnuTLS won't be available to the running session.
 
   You can get pre-built binaries (including any required DLL and the
-  gnutls.h file) and an installer at http://josefsson.org/gnutls4win/.
+  header files) at http://sourceforge.net/projects/ezwinports/files/.
 
 * Uninstalling Emacs
 

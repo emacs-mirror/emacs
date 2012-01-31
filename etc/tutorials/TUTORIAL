@@ -379,7 +379,7 @@ Reinsertion of killed text is called "yanking".  Generally, the
 commands that can remove a lot of text kill the text (they are set up so
 that you can yank the text), while the commands that remove just one
 character, or only remove blank lines and spaces, do deletion (so you
-cannot yank that text).  <DEL> and C-d  do deletion in the simplest
+cannot yank that text).  <DEL> and C-d do deletion in the simplest
 case, with no argument.  When given an argument, they kill instead.
 
 >> Move the cursor to the beginning of a line which is not empty.
@@ -577,7 +577,6 @@ Most of the time, the buffer's name is the same as the file name
 The buffer list you make with C-x C-b shows you both the buffer name
 and the file name of every buffer.
 
-ANY text you see in an Emacs window is always part of some buffer.
 Some buffers do not correspond to files.  The buffer named
 "*Buffer List*", which contains the buffer list that you made with
 C-x C-b, does not have any file.  This TUTORIAL buffer initially did

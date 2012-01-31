@@ -231,10 +231,11 @@ usually do not have translators for other languages.\n\n")))
                     "', version "
 		    (mapconcat 'number-to-string (x-server-version) ".") "\n")
 	  (error t)))
-    (if (and system-configuration-options
-	     (not (equal system-configuration-options "")))
-	(insert "configured using `configure "
-		system-configuration-options "'\n\n"))
+    (when (and system-configuration-options
+	       (not (equal system-configuration-options "")))
+      (insert "Configured using:\n `configure "
+	      system-configuration-options "'\n\n")
+      (fill-region (line-beginning-position -1) (point)))
     (insert "Important settings:\n")
     (mapc
      (lambda (var)

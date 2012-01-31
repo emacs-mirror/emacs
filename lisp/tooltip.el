@@ -39,18 +39,15 @@
 ;;; Switching tooltips on/off
 
 (define-minor-mode tooltip-mode
-  "Toggle use of graphical tooltips (Tooltip mode).
-With a prefix argument ARG, enable Tooltip mode if ARG is
-positive, and disable it otherwise.  If called from Lisp, enable
-it if ARG is omitted or nil.
+  "Toggle Tooltip mode.
+With ARG, turn Tooltip mode on if and only if ARG is positive.
 
-When Tooltip mode is enabled, Emacs displays help text in a
-pop-up window for buttons and menu items that you put the mouse
-on.  \(However, if `tooltip-use-echo-area' is non-nil, this and
-all pop-up help appears in the echo area.)
+When this global minor mode is enabled, Emacs displays help
+text (e.g. for buttons and menu items that you put the mouse on)
+in a pop-up window.
 
-When Tooltip mode is disabled, Emacs displays one line of
-the help text in the echo area, and does not make a pop-up window."
+When Tooltip mode is disabled, Emacs displays help text in the
+echo area, instead of making a pop-up window."
   :global t
   ;; Even if we start on a text-only terminal, make this non-nil by
   ;; default because we can open a graphical frame later (multi-tty).
@@ -144,10 +141,13 @@ of the `tooltip' face are used instead."
 
 (defcustom tooltip-use-echo-area nil
   "Use the echo area instead of tooltip frames for help and GUD tooltips.
-To display multi-line help text in the echo area, set this to t
-and enable `tooltip-mode'."
+This variable is obsolete; instead of setting it to t, disable
+`tooltip-mode' (which has a similar effect)."
   :type 'boolean
   :group 'tooltip)
+
+(make-obsolete-variable 'tooltip-use-echo-area
+			"disable Tooltip mode instead" "24.1")
 
 
 ;;; Variables that are not customizable.

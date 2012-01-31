@@ -330,7 +330,7 @@ The following commands are available:
     (dolist (open gnus-opened-servers)
       (when (and (not (member (car open) done))
 		 ;; Just ignore ephemeral servers.
-		 (not (member (car open) gnus-ephemeral-servers)))
+		 (not (gnus-method-ephemeral-p (car open))))
 	(push (car open) done)
 	(gnus-server-insert-server-line
 	 (setq op-ser (format "%s:%s" (caar open) (nth 1 (car open))))

@@ -22,7 +22,7 @@ dnl  You should have received a copy of the GNU General Public License
 dnl  along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
 
 AC_PREREQ(2.65)
-AC_INIT(emacs, 24.0.92)
+AC_INIT(emacs, 24.0.93)
 AC_CONFIG_HEADER(src/config.h:src/config.in)
 AC_CONFIG_SRCDIR(src/lisp.h)
 AC_CONFIG_AUX_DIR(build-aux)
@@ -2234,6 +2234,8 @@ Motif version prior to 2.1.
       CPPFLAGS=$OLD_CPPFLAGS
     fi
   fi
+  AC_CHECK_HEADER([Xm/BulletinB.h], [],
+    [AC_MSG_ERROR([Motif toolkit requested but requirements not found.])])
 fi
 
 dnl Use toolkit scroll bars if configured for GTK or X toolkit and either
@@ -2249,7 +2251,7 @@ if test "${with_toolkit_scroll_bars}" != "no"; then
       AC_DEFINE(USE_TOOLKIT_SCROLL_BARS)
       HAVE_XAW3D=no
       USE_TOOLKIT_SCROLL_BARS=yes
-    elif test "${HAVE_XAW3D}" = "yes"; then
+    elif test "${HAVE_XAW3D}" = "yes" || test "${USE_X_TOOLKIT}" = "LUCID"; then
       AC_DEFINE(USE_TOOLKIT_SCROLL_BARS)
       USE_TOOLKIT_SCROLL_BARS=yes
     fi

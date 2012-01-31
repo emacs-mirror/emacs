@@ -3751,10 +3751,18 @@ a mistake; see the documentation of `set-mark'."
     (signal 'mark-inactive nil)))
 
 (defsubst deactivate-mark (&optional force)
-  "Deactivate the mark by setting `mark-active' to nil.
-Unless FORCE is non-nil, this function does nothing if Transient
-Mark mode is disabled.
-This function also runs `deactivate-mark-hook'."
+  "Deactivate the mark.
+If Transient Mark mode is disabled, this function normally does
+nothing; but if FORCE is non-nil, it deactivates the mark anyway.
+
+Deactivating the mark sets `mark-active' to nil, updates the
+primary selection according to `select-active-regions', and runs
+`deactivate-mark-hook'.
+
+If Transient Mark mode was temporarily enabled, reset the value
+of the variable `transient-mark-mode'; if this causes Transient
+Mark mode to be disabled, don't change `mark-active' to nil or
+run `deactivate-mark-hook'."
   (when (or transient-mark-mode force)
     (when (and (if (eq select-active-regions 'only)
 		   (eq (car-safe transient-mark-mode) 'only)
