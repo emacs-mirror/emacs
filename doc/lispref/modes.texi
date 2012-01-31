@@ -1351,11 +1351,11 @@ implementing a mode in one self-contained definition.
 @defmac define-minor-mode mode doc [init-value [lighter [keymap]]] keyword-args@dots{} body@dots{}
 This macro defines a new minor mode whose name is @var{mode} (a
 symbol).  It defines a command named @var{mode} to toggle the minor
-mode, with @var{doc} as its documentation string.  It also defines a
-variable named @var{mode}, which is set to @code{t} or @code{nil} by
-enabling or disabling the mode.  The variable is initialized to
-@var{init-value}.  Except in unusual circumstances (see below), this
-value must be @code{nil}.
+mode, with @var{doc} as its documentation string.  By default, it also
+defines a variable named @var{mode}, which is set to @code{t} or
+@code{nil} by enabling or disabling the mode.  The variable is
+initialized to @var{init-value}.  Except in unusual circumstances (see
+below), this value must be @code{nil}.
 
 The string @var{lighter} says what to display in the mode line
 when the mode is enabled; if it is @code{nil}, the mode is not displayed
@@ -1410,6 +1410,17 @@ This is equivalent to specifying @var{lighter} positionally.
 
 @item :keymap @var{keymap}
 This is equivalent to specifying @var{keymap} positionally.
+
+@item :variable @var{place}
+This replaces the default variable @var{mode}, used to store the state
+of the mode.  If you specify this, the @var{mode} variable is not
+defined, and any @var{init-value} argument is unused.  @var{place}
+can be a different named variable (which you must define yourself), or
+anything that can be used with the @code{setf} function
+(@pxref{Generalized Variables,,, cl, Common Lisp Extensions}).
+@var{place} can also be a cons @code{(@var{get} . @var{set})},
+where @var{get} is an expression that returns the current state,
+and @var{set} is a function of one argument (a state) that sets it.
 @end table
 
 Any other keyword arguments are passed directly to the

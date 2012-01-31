@@ -1293,6 +1293,7 @@ on-the-fly spell checking for comments and strings.
 *** Enabled globalized minor modes can be disabled in specific modes,
 by running (FOO-mode-hook 0) via a mode hook.
 
++++
 *** `define-minor-mode' accepts a new keyword :variable.
 
 +++
