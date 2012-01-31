@@ -9,7 +9,9 @@
 
 2012-01-31  Glenn Morris  <rgm@gnu.org>
 
-	* emacs-lisp/easy-mmode.el (define-minor-mode): Fix :variable case.
+	* emacs-lisp/easy-mmode.el (define-minor-mode):
+	Fix :variable handling of mode a symbol not equal to modefun.
+	Allow named functions to be used as the cdr of variable:.
 
 2012-01-30  Glenn Morris  <rgm@gnu.org>
 

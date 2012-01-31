@@ -160,7 +160,7 @@ For example, you could write
 	 (hook (intern (concat mode-name "-hook")))
 	 (hook-on (intern (concat mode-name "-on-hook")))
 	 (hook-off (intern (concat mode-name "-off-hook")))
-	 keyw keymap-sym)
+	 keyw keymap-sym tmp)
 
     ;; Check keys.
     (while (keywordp (setq keyw (car body)))
@@ -177,7 +177,15 @@ For example, you could write
 	(:require (setq require (pop body)))
 	(:keymap (setq keymap (pop body)))
         (:variable (setq variable (pop body))
-         (if (not (functionp (cdr-safe variable)))
+         (setq tmp (cdr-safe variable))
+         (if (not (or (functionp tmp)
+                      (and tmp
+                           (symbolp tmp)
+                           ;; Hack to allow for named functions not within
+                           ;; eval-when-compile.
+                           ;; Cf define-compilation-mode.
+                           (boundp 'byte-compile-function-environment)
+                           (assq tmp byte-compile-function-environment))))
              ;; PLACE is not of the form (GET . SET).
              (setq mode variable)
            (setq mode (car variable))
