@@ -1513,11 +1513,12 @@ If SPEC is nil, return nil."
 
 (defun face-spec-reset-face (face &optional frame)
   "Reset all attributes of FACE on FRAME to unspecified."
-  (let (reset-args)
-    (dolist (attr-and-name face-attribute-name-alist)
-      (push 'unspecified reset-args)
-      (push (car attr-and-name) reset-args))
-    (apply 'set-face-attribute face frame reset-args)))
+  (unless (eq face 'default)
+    (let (reset-args)
+      (dolist (attr-and-name face-attribute-name-alist)
+	(push 'unspecified reset-args)
+	(push (car attr-and-name) reset-args))
+      (apply 'set-face-attribute face frame reset-args))))
 
 (defun face-spec-set (face spec &optional for-defface)
   "Set FACE's face spec, which controls its appearance, to SPEC.
