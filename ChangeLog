@@ -1,3 +1,7 @@
+2012-01-31  Glenn Morris  <rgm@gnu.org>
+
+	* configure.in: Allow Emacs to actually be built with xaw scroll-bars.
+
 2012-01-30  Eli Zaretskii  <eliz@gnu.org>
 
 	* lib/makefile.w32-in ($(BLD)/sha1.$(O) $(BLD)/sha256.$(O)

@@ -2249,7 +2249,7 @@ if test "${with_toolkit_scroll_bars}" != "no"; then
       AC_DEFINE(USE_TOOLKIT_SCROLL_BARS)
       HAVE_XAW3D=no
       USE_TOOLKIT_SCROLL_BARS=yes
-    elif test "${HAVE_XAW3D}" = "yes"; then
+    elif test "${HAVE_XAW3D}" = "yes" || test "${USE_X_TOOLKIT}" = "LUCID"; then
       AC_DEFINE(USE_TOOLKIT_SCROLL_BARS)
       USE_TOOLKIT_SCROLL_BARS=yes
     fi
