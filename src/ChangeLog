@@ -1,3 +1,8 @@
+2012-01-31  Glenn Morris  <rgm@gnu.org>
+
+	* nsterm.m (syms_of_nsterm) <x-toolkit-scroll-bars>:
+	* xterm.c (syms_of_xterm) <x-toolkit-scroll-bars>: Sync docs.
+
 2012-01-29  Glenn Morris  <rgm@gnu.org>
 
 	* gnutls.c (syms_of_gnutls): More doc (from etc/NEWS).
