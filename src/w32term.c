@@ -6432,7 +6432,8 @@ baseline level.  The default value is nil.  */);
 A value of nil means Emacs doesn't use toolkit scroll bars.
 With the X Window system, the value is a symbol describing the
 X toolkit.  Possible values are: gtk, motif, xaw, or xaw3d.
-With MS Windows, the value is t.  */);
+With MS Windows, the value is t.  With Nextstep, the value is
+t or nil.  */);
   Vx_toolkit_scroll_bars = Qt;
 
   staticpro (&last_mouse_motion_frame);

@@ -284,7 +284,7 @@ floating point), and returns @code{t} if so, @code{nil} otherwise.
 
 @defun natnump object
 @cindex natural numbers
-This predicate (whose name comes from the phrase ``natual number'')
+This predicate (whose name comes from the phrase ``natural number'')
 tests to see whether its argument is a nonnegative integer, and
 returns @code{t} if so, @code{nil} otherwise.  0 is considered
 non-negative.

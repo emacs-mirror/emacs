@@ -286,7 +286,7 @@ the mode if ARG is omitted or nil.
                            ,(if keymap keymap-sym
                                 `(if (boundp ',keymap-sym) ,keymap-sym))
                              nil
-                             ,(unless (eq mode modefun) 'modefun)))))))
+                             ,(unless (eq mode modefun) `',modefun)))))))
 
 ;;;
 ;;; make global minor mode

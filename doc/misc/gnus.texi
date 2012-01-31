@@ -18236,8 +18236,7 @@ Agent.  Go to the server buffer (@kbd{^} in the group buffer) and press
 @kbd{J a} on the server (or servers) that you wish to have covered by the
 Agent (@pxref{Server Agent Commands}), or @kbd{J r} on automatically
 added servers you do not wish to have covered by the Agent.  By default,
-all @code{nntp} and @code{nnimap} servers in @code{gnus-select-method} and
-@code{gnus-secondary-select-methods} are agentized.
+no servers are agentized.
 
 @item
 Decide on download policy.  It's fairly simple once you decide whether
@@ -19263,7 +19262,7 @@ to agentize remote back ends.  The auto-agentizing has the same effect
 as running @kbd{J a} on the servers (@pxref{Server Agent Commands}).
 If the file exist, you must manage the servers manually by adding or
 removing them, this variable is only applicable the first time you
-start Gnus.  The default is @samp{(nntp nnimap)}.
+start Gnus.  The default is @samp{nil}.
 
 @end table
 

@@ -362,7 +362,7 @@ The buffer may be narrowed."
     (modify-syntax-entry ?@ "." table)
     table))
 
-(defun rfc2047-encode-region (b e)
+(defun rfc2047-encode-region (b e &optional dont-fold)
   "Encode words in region B to E that need encoding.
 By default, the region is treated as containing RFC2822 addresses.
 Dynamically bind `rfc2047-encoding-type' to change that."
@@ -546,16 +546,17 @@ Dynamically bind `rfc2047-encoding-type' to change that."
 		 (signal (car err) (cdr err))
 	       (error "Invalid data for rfc2047 encoding: %s"
 		      (mm-replace-in-string orig-text "[ \t\n]+" " "))))))))
-    (rfc2047-fold-region b (point))
+    (unless dont-fold
+      (rfc2047-fold-region b (point)))
     (goto-char (point-max))))
 
-(defun rfc2047-encode-string (string)
+(defun rfc2047-encode-string (string &optional dont-fold)
   "Encode words in STRING.
 By default, the string is treated as containing addresses (see
 `rfc2047-encoding-type')."
   (mm-with-multibyte-buffer
     (insert string)
-    (rfc2047-encode-region (point-min) (point-max))
+    (rfc2047-encode-region (point-min) (point-max) dont-fold)
     (buffer-string)))
 
 ;; From RFC 2047:
@@ -850,7 +851,7 @@ This is a substitution for the `rfc2231-encode-string' function, that
 is the standard but many mailers don't support it."
   (let ((rfc2047-encoding-type 'mime)
 	(rfc2047-encode-max-chars nil))
-    (rfc2045-encode-string param (rfc2047-encode-string value))))
+    (rfc2045-encode-string param (rfc2047-encode-string value t))))
 
 ;;;
 ;;; Functions for decoding RFC2047 messages
