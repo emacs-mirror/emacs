@@ -7153,7 +7153,7 @@
 	"failed" all the time.
 
 	* gnus.el: Throughout all files, replace (save-excursion (set-buffer
-	...)) with (with-current-buffer ... ).
+	...)) with (with-current-buffer ...).
 
 	* nntp.el (nntp-open-server): Return whether the open was successful or
 	not.

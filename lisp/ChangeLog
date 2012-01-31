@@ -69,8 +69,8 @@
 
 	* progmodes/python.el: Require ansi-color at top-level.
 
-	* emacs-lisp/lisp-mode.el (emacs-lisp-mode-abbrev-table): Define
-	and use in Emacs Lisp mode (Bug#9360).
+	* emacs-lisp/lisp-mode.el (emacs-lisp-mode-abbrev-table):
+	Define and use in Emacs Lisp mode (Bug#9360).
 	(lisp-mode-abbrev-table): Add doc.
 	(lisp-mode-variables): Don't set local-abbrev-table.
 	(lisp-interaction-mode): Use emacs-lisp-mode-abbrev-table.
@@ -184,8 +184,8 @@
 
 2012-01-25  Jérémy Compostella  <jeremy.compostella@gmail.com>
 
-	* window.el (window--state-get-1, window--state-put-2): Don't
-	save and restore the mark.
+	* window.el (window--state-get-1, window--state-put-2):
+	Don't save and restore the mark.
 
 2012-01-25  Chong Yidong  <cyd@gnu.org>
 
@@ -532,7 +532,7 @@
 	first prompt in `sql-interacive-mode'.
 	(sql-mode-oracle-font-lock-keywords): Add CONNECT_BY_* builtin
 	keywords.
-	(sql-mode-mysql-font-lock-keywords):  Add ELSEIF keyword.
+	(sql-mode-mysql-font-lock-keywords): Add ELSEIF keyword.
 	(sql-product-interactive): Bug fix: Set `sql-buffer' in
 	context of original buffer.  Invoke `sql-login-hook'.
 
@@ -4046,7 +4046,7 @@
 
 	* cus-start.el (all): Add entry for bidi-paragraph-direction.
 
-	* international/uni-bidi.el: Regenerated.
+	* international/uni-bidi.el: Regenerate.
 
 2011-08-23  Kenichi Handa  <handa@m17n.org>
 

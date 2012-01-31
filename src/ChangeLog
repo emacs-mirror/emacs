@@ -14,7 +14,6 @@
 
 2012-01-28  Chong Yidong  <cyd@gnu.org>
 
-
 	* minibuf.c (syms_of_minibuf): Doc fix (Bug#10550).
 
 2012-01-26  Chong Yidong  <cyd@gnu.org>
@@ -2369,7 +2368,7 @@
 	Remove unreachable code.
 	(read_hex, load_charset_map_from_file): Check for integer overflow.
 
-	* xterm.c: don't go over XClientMessageEvent limit
+	* xterm.c: Don't go over XClientMessageEvent limit.
 	(scroll_bar_windows_size): Now ptrdiff_t, as we prefer signed.
 	(x_send_scroll_bar_event): Likewise.  Check that the size does not
 	exceed limits imposed by XClientMessageEvent, as well as the usual
@@ -5660,7 +5659,7 @@
 
 	* ccl.c (ccl_driver): Redo slightly to avoid the need for 'unsigned'.
 
-	ccl: add integer overflow checks
+	ccl: Add integer overflow checks.
 	* ccl.c (CCL_CODE_MAX, GET_CCL_RANGE, GET_CCL_CODE, GET_CCL_INT):
 	(IN_INT_RANGE): New macros.
 	(ccl_driver): Use them to check for integer overflow when
