@@ -86,7 +86,8 @@ replacing its case-insensitive matches with the literal string in LIGHTER."
 ;;;###autoload
 (defmacro define-minor-mode (mode doc &optional init-value lighter keymap &rest body)
   "Define a new minor mode MODE.
-This defines the control variable MODE and the toggle command MODE.
+This defines the toggle command MODE and (by default) a control variable
+MODE (you can override this with the :variable keyword, see below).
 DOC is the documentation for the mode toggle command.
 
 Optional INIT-VALUE is the initial value of the mode's variable.
@@ -116,12 +117,15 @@ BODY contains code to execute each time the mode is enabled or disabled.
 :lighter SPEC	Same as the LIGHTER argument.
 :keymap MAP	Same as the KEYMAP argument.
 :require SYM	Same as in `defcustom'.
-:variable PLACE	The location (as can be used with `setf') to use instead
-		of the variable MODE to store the state of the mode.  PLACE
-		can also be of the form (GET . SET) where GET is an expression
-		that returns the current state and SET is a function that takes
-		a new state and sets it.  If you specify a :variable, this
-		function assumes it is defined elsewhere.
+:variable PLACE	The location to use instead of the variable MODE to store
+		the state of the mode.	This can be simply a different
+		named variable, or more generally anything that can be used
+		with the CL macro `setf'.  PLACE can also be of the form
+		\(GET . SET), where GET is an expression that returns the
+		current state, and SET is a function that takes one argument,
+		the new state, and sets it.  If you specify a :variable,
+		this function does not define a MODE variable (nor any of
+		the terms used in :variable).
 
 For example, you could write
   (define-minor-mode foo-mode \"If enabled, foo on you!\"
