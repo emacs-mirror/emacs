@@ -1,3 +1,7 @@
+2012-01-31  Glenn Morris  <rgm@gnu.org>
+
+	* emacs-lisp/easy-mmode.el (define-minor-mode): Fix :variable case.
+
 2012-01-30  Glenn Morris  <rgm@gnu.org>
 
 	* emacs-lisp/authors.el (authors-fixed-entries):
