@@ -4,7 +4,7 @@
 ;; Maintainer: FSF
 ;; Keywords: mouse gpm linux
 
-;; Copyright (C) 1994, 1995, 1998, 2006, 2007, 2008, 2009, 2010, 2011
+;; Copyright (C) 1994, 1995, 1998, 2006, 2007, 2008, 2009, 2010, 2011, 2012
 ;;   Free Software Foundation, Inc.
 
 ;; This file is part of GNU Emacs.

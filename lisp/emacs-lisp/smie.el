@@ -1,6 +1,6 @@
 ;;; smie.el --- Simple Minded Indentation Engine
 
-;; Copyright (C) 2010, 2011  Free Software Foundation, Inc.
+;; Copyright (C) 2010, 2011, 2012  Free Software Foundation, Inc.
 
 ;; Author: Stefan Monnier <monnier@iro.umontreal.ca>
 ;; Keywords: languages, lisp, internal, parsing, indentation

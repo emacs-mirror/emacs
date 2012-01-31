@@ -1,6 +1,6 @@
 ;;; semantic-scm-by.el --- Generated parser support file
 
-;; Copyright (C) 2001, 2003, 2009, 2010, 2011 Free Software Foundation, Inc.
+;; Copyright (C) 2001, 2003, 2009, 2010, 2011, 2012 Free Software Foundation, Inc.
 
 ;; This file is part of GNU Emacs.
 
@@ -19,8 +19,7 @@
 
 ;;; Commentary:
 ;;
-;; This file was generated from the grammar file
-;; semantic/bovine/scm.by in the CEDET repository.
+;; This file was generated from etc/grammars/scm.by.
 
 ;;; Code:
 

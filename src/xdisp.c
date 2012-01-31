@@ -1,7 +1,7 @@
 /* Display generation from window structure and buffer text.
    Copyright (C) 1985, 1986, 1987, 1988, 1993, 1994, 1995,
                  1997, 1998, 1999, 2000, 2001, 2002, 2003,
-                 2004, 2005, 2006, 2007, 2008, 2009, 2010, 2011
+                 2004, 2005, 2006, 2007, 2008, 2009, 2010, 2011, 2012
                  Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
@@ -19635,6 +19635,12 @@ fill_composite_glyph_string (s, base_face, overlaps)
     }
   s->cmp_to = i;
 
+  if (s->face == NULL)
+    {
+      s->face = base_face->ascii_face;
+      s->font = s->face->font;
+    }
+
   /* All glyph strings for the same composition has the same width,
      i.e. the width set for the first component of the composition.  */
   s->width = s->first_glyph->pixel_width;
@@ -23484,7 +23490,7 @@ note_mouse_highlight (f, x, y)
      int x, y;
 {
   Display_Info *dpyinfo = FRAME_X_DISPLAY_INFO (f);
-  enum window_part part;
+  enum window_part part = ON_NOTHING;
   Lisp_Object window;
   struct window *w;
   Cursor cursor = No_Cursor;
@@ -23518,11 +23524,14 @@ note_mouse_highlight (f, x, y)
   /* Which window is that in?  */
   window = window_from_coordinates (f, x, y, &part, 0, 0, 1);
 
-  /* If we were displaying active text in another window, clear that.
-     Also clear if we move out of text area in same window.  */
+  /* If displaying active text in another window, clear that.  */
   if (! EQ (window, dpyinfo->mouse_face_window)
-      || (part != ON_TEXT && part != ON_MODE_LINE && part != ON_HEADER_LINE
-	  && !NILP (dpyinfo->mouse_face_window)))
+      /* Also clear if we move out of text area in same window.  */
+      || (!NILP (dpyinfo->mouse_face_window)
+	  && !NILP (window)
+	  && part != ON_TEXT
+	  && part != ON_MODE_LINE
+	  && part != ON_HEADER_LINE))
     clear_mouse_face (dpyinfo);
 
   /* Not on a window -> return.  */
@@ -23571,7 +23580,7 @@ note_mouse_highlight (f, x, y)
       && XFASTINT (w->last_modified) == BUF_MODIFF (b)
       && XFASTINT (w->last_overlay_modified) == BUF_OVERLAY_MODIFF (b))
     {
-      int hpos, vpos, pos, i, dx, dy, area;
+      int hpos, vpos, pos, i, dx, dy, area = LAST_AREA;
       struct glyph *glyph;
       Lisp_Object object;
       Lisp_Object mouse_face = Qnil, overlay = Qnil, position;

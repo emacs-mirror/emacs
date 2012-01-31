@@ -1,7 +1,7 @@
 GNU Emacs Installation Guide for the DJGPP (a.k.a. MS-DOS) port
 
 Copyright (C) 1992, 1994, 1996, 1997, 2000, 2001, 2002, 2003, 2004,
-2005, 2006, 2007, 2008, 2009, 2010, 2011  Free Software Foundation, Inc.
+2005, 2006, 2007, 2008, 2009, 2010, 2011, 2012  Free Software Foundation, Inc.
 See the end of the file for license conditions.
 
 The DJGPP port of GNU Emacs builds and runs on plain DOS and also on

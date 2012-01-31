@@ -1,7 +1,7 @@
 ;;; cal-mayan.el --- calendar functions for the Mayan calendars
 
 ;; Copyright (C) 1992, 1993, 1995, 1997, 2001, 2002, 2003, 2004, 2005,
-;;   2006, 2007, 2008, 2009, 2010, 2011  Free Software Foundation, Inc.
+;;   2006, 2007, 2008, 2009, 2010, 2011, 2012  Free Software Foundation, Inc.
 
 ;; Author: Stewart M. Clamen <clamen@cs.cmu.edu>
 ;;         Edward M. Reingold <reingold@cs.uiuc.edu>

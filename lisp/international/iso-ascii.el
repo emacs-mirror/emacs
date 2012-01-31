@@ -1,7 +1,7 @@
 ;;; iso-ascii.el --- set up char tables for ISO 8859/1 on ASCII terminals
 
 ;; Copyright (C) 1987, 1995, 1998, 2001, 2002, 2003, 2004,
-;;   2005, 2006, 2007, 2008, 2009, 2010, 2011  Free Software Foundation, Inc.
+;;   2005, 2006, 2007, 2008, 2009, 2010, 2011, 2012  Free Software Foundation, Inc.
 
 ;; Author: Howard Gayle
 ;; Maintainer: FSF

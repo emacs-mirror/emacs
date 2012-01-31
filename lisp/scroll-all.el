@@ -1,7 +1,7 @@
 ;;; scroll-all.el --- scroll all buffers together minor mode
 
 ;; Copyright (C) 1997, 2001, 2002, 2003, 2004, 2005,
-;;   2006, 2007, 2008, 2009, 2010, 2011 Free Software Foundation, Inc.
+;;   2006, 2007, 2008, 2009, 2010, 2011, 2012 Free Software Foundation, Inc.
 
 ;; Author: Gary D. Foster <Gary.Foster@corp.sun.com>
 ;; Keywords: scroll crisp brief lock

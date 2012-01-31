@@ -1,6 +1,6 @@
 ;;; srecode/srt-wy.el --- Generated parser support file
 
-;; Copyright (C) 2005, 2007, 2008, 2009, 2010, 2011 Free Software Foundation, Inc.
+;; Copyright (C) 2005, 2007, 2008, 2009, 2010, 2011, 2012 Free Software Foundation, Inc.
 
 ;; This file is part of GNU Emacs.
 
@@ -18,8 +18,8 @@
 ;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
 
 ;;; Commentary:
-
-;; Generated from srecode-template.wy in the CEDET repository.
+;;
+;; This file was generated from etc/grammars/srecode-template.wy.
 
 ;;; Code:
 

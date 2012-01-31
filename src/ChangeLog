@@ -1,3 +1,101 @@
+2012-01-25  Chong Yidong  <cyd@gnu.org>
+
+	* Version 23.4 released.
+
+2012-01-25  HIROSHI OOTA  <nil@mad.dog.cx>  (tiny change)
+
+	* coding.c (encode_designation_at_bol): Change return value to
+	EMACS_INT.
+
+2012-01-19  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* coding.c (encode_designation_at_bol): Don't use uninitialized
+	local variable (Bug#9318).
+
+2012-01-19  Kenichi Handa  <handa@m17n.org>
+
+	* coding.c (encode_designation_at_bol): New args charbuf_end and
+	dst.  Return the number of produced bytes.  Callers changed.
+	(coding_set_source): Return how many bytes coding->source was
+	relocated.
+	(coding_set_destination): Return how many bytes
+	coding->destination was relocated.
+	(CODING_DECODE_CHAR, CODING_ENCODE_CHAR, CODING_CHAR_CHARSET)
+	(CODING_CHAR_CHARSET_P): Adjusted for the avove changes.
+
+2012-01-19  Kazuhiro Ito  <kzhr@d1.dion.ne.jp>  (tiny change)
+
+	* coding.c (CODING_CHAR_CHARSET_P): New macro.
+	(encode_coding_emacs_mule, encode_coding_iso_2022): Use the above
+	macro (Bug#9318).
+
+2012-01-19  Andreas Schwab  <schwab@linux-m68k.org>
+
+	The following changes are to fix Bug#9318.
+
+	* coding.c (CODING_ENCODE_CHAR, CODING_CHAR_CHARSET): New macros.
+	(encode_coding_emacs_mule, ENCODE_ISO_CHARACTER)
+	(encode_coding_iso_2022, encode_coding_sjis)
+	(encode_coding_big5, encode_coding_charset): Use the above macros.
+
+2012-01-18  Yoshiaki Kasahara  <kasahara@nc.kyushu-u.ac.jp>  (tiny change)
+
+	* buffer.c (init_buffer) [USE_MMAP_FOR_BUFFERS]: Adjust to
+	aliasing change.
+
+2012-01-15  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
+
+	* xftfont.c (xftfont_draw): Use the font metrics of s->font to
+	fill background (Bug#8992).
+
+2012-01-13  Kenichi Handa  <handa@m17n.org>
+
+	* character.c (char_width): New function.
+	(Fchar_width, c_string_width, lisp_string_width):
+	Use char_width (Bug#9496).
+
+2012-01-12  Sven Joachim  <svenjoac@gmx.de>
+
+	* s/gnu-linux.h: Use CRT_DIR.
+
+2011-11-11  Johan Bockgård  <bojohan@gnu.org>
+
+	* xdisp.c (fill_composite_glyph_string): Always set s->face, to
+	avoid a crash (bug#9496).
+
+2012-01-09  Chong Yidong  <cyd@gnu.org>
+
+	* xdisp.c (note_mouse_highlight): Fix use of uninitialized var.
+
+2012-01-09  Eli Zaretskii  <eliz@gnu.org>
+
+	* xdisp.c (note_mouse_highlight): Initialize `area'.  (Bug#9947)
+	Initialize `part', to avoid a possible random value that matches
+	one of those tested as condition to clear the mouse face.
+
+2012-01-09  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
+
+	* dispnew.c (scrolling_window): Truncate overlaps in copy
+	destination of scroll runs so as to avoid assigning disabled bogus
+	rows and unnecessary graphics copy operations.
+
+2012-01-09  Eli Zaretskii  <eliz@gnu.org>
+
+	* dispnew.c (scrolling_window): Fix incorrect indices in accessing
+	current_matrix and desired_matrix.  (Bug#9990)
+
+2011-10-31  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
+
+	* xmenu.c (cleanup_widget_value_tree): New function.
+	(xmenu_show, xdialog_show): Use it in record_unwind_protect instead of
+	calling free_menubar_widget_value_tree directly (Bug#9830).
+
+2011-09-19  Andreas Schwab  <schwab@linux-m68k.org>
+
+	* keymap.c (Fsingle_key_description): Use make_specified_string
+	instead of build_string to build string from push_key_description.
+	(Bug#5193)
+
 2011-09-10  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
 
 	* xdisp.c (expose_window): Save original value of phys_cursor_on_p
@@ -22962,7 +23060,7 @@ See ChangeLog.10 for earlier changes.
 ;; add-log-time-zone-rule: t
 ;; End:
 
-    Copyright (C) 2007, 2008, 2009, 2010, 2011  Free Software Foundation, Inc.
+    Copyright (C) 2007, 2008, 2009, 2010, 2011, 2012  Free Software Foundation, Inc.
 
   This file is part of GNU Emacs.
 

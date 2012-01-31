@@ -1,6 +1,6 @@
 ;;; semantic/wisent/javat-wy.el --- Generated parser support file
 
-;; Copyright (C) 2002, 2007, 2009, 2010, 2011  Free Software Foundation, Inc.
+;; Copyright (C) 2002, 2007, 2009, 2010, 2011, 2012  Free Software Foundation, Inc.
 
 ;; This file is part of GNU Emacs.
 
@@ -19,8 +19,7 @@
 
 ;;; Commentary:
 ;;
-;; This file was generated from the grammar file
-;; semantic/wisent/wisent-java-tags.wy in the CEDET repository.
+;; This file was generated from etc/grammars/java-tags.wy.
 
 ;;; Code:
 

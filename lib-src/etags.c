@@ -30,7 +30,7 @@ IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 Copyright (C) 1984, 1987, 1988, 1989, 1993, 1994, 1995, 1998, 1999,
   2000, 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010,
-  2011  Free Software Foundation, Inc.
+  2011, 2012  Free Software Foundation, Inc.
 
 This file is not considered part of GNU Emacs.
 
@@ -898,7 +898,7 @@ static void
 print_version ()
 {
   /* Makes it easier to update automatically. */
-  char emacs_copyright[] = "Copyright (C) 2011 Free Software Foundation, Inc.";
+  char emacs_copyright[] = "Copyright (C) 2012 Free Software Foundation, Inc.";
 
   printf ("%s (%s %s)\n", (CTAGS) ? "ctags" : "etags", EMACS_NAME, VERSION);
   puts (emacs_copyright);

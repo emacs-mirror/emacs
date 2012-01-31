@@ -1,6 +1,6 @@
 ;;; semantic/debug.el --- Language Debugger framework
 
-;; Copyright (C) 2003, 2004, 2005, 2008, 2009, 2010, 2011  Free Software Foundation, Inc.
+;; Copyright (C) 2003, 2004, 2005, 2008, 2009, 2010, 2011, 2012  Free Software Foundation, Inc.
 
 ;; Author: Eric M. Ludlam <zappo@gnu.org>
 

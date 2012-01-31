@@ -7,7 +7,7 @@
 #### you should make sure that this script will include it.
 
 # Copyright (C) 1995, 1997, 1998, 2000, 2001, 2002, 2003, 2004, 2005,
-#   2006, 2007, 2008, 2009, 2010, 2011  Free Software Foundation, Inc.
+#   2006, 2007, 2008, 2009, 2010, 2011, 2012  Free Software Foundation, Inc.
 
 # This file is part of GNU Emacs.
 #
@@ -344,6 +344,7 @@ for subdir in lisp site-lisp \
 	      etc/images/smilies etc/images/smilies/grayscale \
 	      etc/images/smilies/medium etc/images/tree-widget \
 	      etc/images/tree-widget/default etc/images/tree-widget/folder \
+	      etc/grammars \
 	      etc/refcards etc/schema etc/tutorials info doc doc/emacs \
 	      doc/misc doc/man doc/lispref doc/lispintro m4 msdos \
 	      nextstep nextstep/Cocoa nextstep/Cocoa/Emacs.base \
@@ -583,6 +584,7 @@ echo "Making links to \`etc'"
 (cd etc
  files=`ls -d * | grep -v CVS | grep -v RCS | grep -v 'Old' | grep -v '^e$' \
         | grep -v '^charsets$' | grep -v '^gnus$' | grep -v '^images$' | grep -v '^nxml$' \
+        | grep -v '^grammars$' \
         | grep -v '^refcards$' | grep -v '^tutorials$'| grep -v '^schema$'`
  ln $files ../${tempdir}/etc
  ## If we ended up with a symlink, or if we did not get anything
@@ -606,7 +608,7 @@ echo "Making links to \`etc'"
  rm -f DOC* *~ \#*\# *.dvi *.log *.orig *.rej *,v =* core
  rm -f TAGS)
 
-for dir in etc/charsets etc/e etc/gnus etc/nxml etc/tutorials etc/refcards etc/schema ; do
+for dir in etc/charsets etc/e etc/grammars etc/gnus etc/nxml etc/tutorials etc/refcards etc/schema ; do
     echo "Making links to \`${dir}'"
     (cd ${dir}
 	ln `ls -d * | grep -v CVS | grep -v RCS` ../../${tempdir}/${dir}

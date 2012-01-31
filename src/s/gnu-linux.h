@@ -1,6 +1,6 @@
 /* This file is the configuration file for Linux-based GNU systems
    Copyright (C) 1985, 1986, 1992, 1994, 1996, 1999, 2001, 2002, 2003, 2004,
-                 2005, 2006, 2007, 2008, 2009, 2010, 2011  Free Software Foundation, Inc.
+                 2005, 2006, 2007, 2008, 2009, 2010, 2011, 2012  Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -168,7 +168,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 /* Ask GCC where to find libgcc.a.  */
 #define LIB_GCC `$(CC) $(C_SWITCH_X_SITE) -print-libgcc-file-name`
 
-#define START_FILES pre-crt0.o /usr/lib/crt1.o /usr/lib/crti.o
+#define START_FILES pre-crt0.o $(CRT_DIR)/crt1.o $(CRT_DIR)/crti.o
 
 /* Here is how to find X Windows.  LD_SWITCH_X_SITE_AUX gives an -R option
    says where to find X windows at run time.  */
@@ -198,7 +198,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #define LIBS_DEBUG
 #undef LIB_GCC
 #define LIB_GCC
-#define LIB_STANDARD -lgcc -lc -lgcc /usr/lib/crtn.o
+#define LIB_STANDARD -lgcc -lc -lgcc $(CRT_DIR)/crtn.o
 
 /* Don't use -g in test compiles in configure.
    This is so we will use the same shared libs for that linking

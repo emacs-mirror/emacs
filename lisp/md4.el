@@ -1,6 +1,6 @@
 ;;; md4.el --- MD4 Message Digest Algorithm.
 
-;; Copyright (C) 2001, 2004, 2007, 2008, 2009, 2010, 2011  Free Software Foundation, Inc.
+;; Copyright (C) 2001, 2004, 2007, 2008, 2009, 2010, 2011, 2012  Free Software Foundation, Inc.
 
 ;; Author: Taro Kawagishi <tarok@transpulse.org>
 ;; Keywords: MD4

@@ -1,7 +1,7 @@
 ;;; cal-tex.el --- calendar functions for printing calendars with LaTeX
 
 ;; Copyright (C) 1995, 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008,
-;;   2009, 2010, 2011  Free Software Foundation, Inc.
+;;   2009, 2010, 2011, 2012  Free Software Foundation, Inc.
 
 ;; Author: Steve Fisk <fisk@bowdoin.edu>
 ;;         Edward M. Reingold <reingold@cs.uiuc.edu>

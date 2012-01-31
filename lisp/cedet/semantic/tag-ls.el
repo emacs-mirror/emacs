@@ -1,7 +1,7 @@
 ;;; semantic/tag-ls.el --- Language Specific override functions for tags
 
 ;; Copyright (C) 1999, 2000, 2001, 2002, 2003, 2004, 2006, 2007, 2008,
-;;   2009, 2010, 2011  Free Software Foundation, Inc.
+;;   2009, 2010, 2011, 2012  Free Software Foundation, Inc.
 
 ;; Author: Eric M. Ludlam <zappo@gnu.org>
 

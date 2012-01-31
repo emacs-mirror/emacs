@@ -1,7 +1,7 @@
 /* Buffer manipulation primitives for GNU Emacs.
    Copyright (C) 1985, 1986, 1987, 1988, 1989, 1993, 1994,
                  1995, 1997, 1998, 1999, 2000, 2001, 2002,
-                 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010, 2011
+                 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010, 2011, 2012
                  Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
@@ -5338,7 +5338,7 @@ init_buffer ()
       Map new memory.  */
    struct buffer *b;
 
-   for (b = all_buffers; b; b = b->next)
+   for (b = all_buffers; b; b = b->header.next.buffer)
      if (b->text->beg == NULL)
        enlarge_buffer_text (b, 0);
  }

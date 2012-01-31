@@ -8,7 +8,7 @@
 @copying
 This manual is for Remember Mode, version 1.9
 
-Copyright @copyright{} 2001, 2004, 2005, 2007, 2008, 2009, 2010, 2011
+Copyright @copyright{} 2001, 2004, 2005, 2007, 2008, 2009, 2010, 2011, 2012
 Free Software Foundation, Inc.
 
 @quotation

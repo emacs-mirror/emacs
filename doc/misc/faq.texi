@@ -5,7 +5,7 @@
 @c %**end of header
 
 @c This is used in many places
-@set VER 23.3.50
+@set VER 23.4
 
 @c This file is maintained by Romain Francoise <rfrancoise@gnu.org>.
 @c Feel free to install changes without prior permission (but I'd
@@ -13,7 +13,7 @@
 
 @copying
 Copyright @copyright{} 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008,
-2009, 2010, 2011 Free Software Foundation, Inc.@*
+2009, 2010, 2011, 2012 Free Software Foundation, Inc.@*
 Copyright @copyright{} 1994, 1995, 1996, 1997, 1998, 1999, 2000
 Reuven M. Lerner@*
 Copyright @copyright{} 1992, 1993 Steven Byrnes@*

@@ -1,7 +1,7 @@
 ;;; pgg-pgp.el --- PGP 2.* and 6.* support for PGG.
 
 ;; Copyright (C) 1999, 2000, 2002, 2003, 2004, 2005, 2006, 2007, 2008,
-;;   2009, 2010, 2011  Free Software Foundation, Inc.
+;;   2009, 2010, 2011, 2012  Free Software Foundation, Inc.
 
 ;; Author: Daiki Ueno <ueno@unixuser.org>
 ;; Created: 1999/11/02
