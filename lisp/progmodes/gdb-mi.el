@@ -45,7 +45,7 @@
 
 ;; This file uses GDB/MI as the primary interface to GDB.  It runs gdb with
 ;; GDB/MI (-interp=mi) and access CLI using "-interpreter-exec console
-;; cli-command".  This code works replaces gdb-ui.el and uses MI tokens instead
+;; cli-command".  This code replaces gdb-ui.el and uses MI tokens instead
 ;; of queues.  Eventually MI should be asynchronous.
 
 ;; Windows Platforms:
