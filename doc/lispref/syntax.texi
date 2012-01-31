@@ -606,11 +606,13 @@ expression prefix syntax class, and characters with the @samp{p} flag.
 @section Parsing Expressions
 
   This section describes functions for parsing and scanning balanced
-expressions, also known as @dfn{sexps}.  Basically, a sexp is either a
-balanced parenthetical grouping, a string, or a symbol name (a
-sequence of characters whose syntax is either word constituent or
-symbol constituent).  However, characters whose syntax is expression
-prefix are treated as part of the sexp if they appear next to it.
+expressions.  We will refer to such expressions as @dfn{sexps},
+following the terminology of Lisp, even though these functions can act
+on languages other than Lisp.  Basically, a sexp is either a balanced
+parenthetical grouping, a string, or a ``symbol'' (i.e.@: a sequence
+of characters whose syntax is either word constituent or symbol
+constituent).  However, characters whose syntax is expression prefix
+are treated as part of the sexp if they appear next to it.
 
   The syntax table controls the interpretation of characters, so these
 functions can be used for Lisp expressions when in Lisp mode and for C
@@ -829,10 +831,6 @@ comments, or strings.
 The value is @code{nil} if @var{state} represents a parse which has
 arrived at a top level position.
 @end defun
-
-  We have provided this access function rather than document how the
-data is represented in the state, because we plan to change the
-representation in the future.
 
 @node Low-Level Parsing
 @subsection Low-Level Parsing
