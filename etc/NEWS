@@ -999,6 +999,7 @@ of the header line.
 
 ** A backquote not followed by a space is now always treated as new-style.
 
+---
 ** view-buffer now treats special mode-class in the same way that
 view-file has since Emacs 22 (ie, it won't enable View mode if the
 major-mode is special).
