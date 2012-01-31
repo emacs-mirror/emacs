@@ -1,3 +1,8 @@
+2012-01-31  Chong Yidong  <cyd@gnu.org>
+
+	* windows.texi (Split Window): C-mouse-2 doesn't work on GTK+
+	scroll bars (Bug#10666).
+
 2012-01-28  Chong Yidong  <cyd@gnu.org>
 
 	* files.texi (Filesets): Fix typos.
