@@ -2234,6 +2234,8 @@ Motif version prior to 2.1.
       CPPFLAGS=$OLD_CPPFLAGS
     fi
   fi
+  AC_CHECK_HEADER([Xm/BulletinB.h], [],
+    [AC_MSG_ERROR([Motif toolkit requested but requirements not found.])])
 fi
 
 dnl Use toolkit scroll bars if configured for GTK or X toolkit and either
