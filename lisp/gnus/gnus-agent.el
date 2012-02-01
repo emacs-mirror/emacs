@@ -3618,7 +3618,7 @@ articles in every agentized group? "))
                                 (setq r d
                                       d (directory-file-name d)))
                               ;; if ANY ancestor was NOT in keep hash and
-                              ;; it's already in to-remove, add it to
+                              ;; it's not already in to-remove, add it to
                               ;; to-remove.
                               (if (and r
                                        (not (member r to-remove)))

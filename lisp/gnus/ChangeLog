@@ -1,3 +1,8 @@
+2012-01-31  Jim Meyering  <jim@meyering.net>
+
+	* gnus-agent.el (gnus-agent-expire-unagentized-dirs):
+	Correct a comment (insert "not") and hide nominally-doubled "to".
+
 2012-01-30  Philipp Haselwarter  <philipp.haselwarter@gmx.de>  (tiny change)
 
 	* gnus-agent.el (gnus-agent-auto-agentize-methods): Point to the Agent
