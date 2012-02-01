@@ -1,5 +1,9 @@
 2012-02-01  Chong Yidong  <cyd@gnu.org>
 
+	* view.el (view-buffer-other-window, view-buffer-other-frame):
+	Handle special modes like view-buffer (Bug#10650).
+	(view-buffer): Simplify.
+
 	* frame.el (set-frame-font): Tweak meaning of third argument.
 
 	* dynamic-setting.el (font-setting-change-default-font): Use
