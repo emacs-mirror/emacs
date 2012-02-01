@@ -1,5 +1,8 @@
 2012-02-01  Lars Ingebrigtsen  <larsi@gnus.org>
 
+	* gnus.el (gnus-valid-select-methods): nnmaildir also saves marks in
+	the "server".
+
 	* gnus-group.el (gnus-group-get-new-news-this-group): Don't overwrite
 	the real error message with the useless "previously known to be down".
 	Which isn't even correct.
