@@ -1290,6 +1290,7 @@ on-the-fly spell checking for comments and strings.
 *** New hook `change-major-mode-after-body-hook', run by
 `run-mode-hooks' just before any other mode hooks.
 
++++
 *** Enabled globalized minor modes can be disabled in specific major modes.
 If the global mode is global-FOO-mode, then run (FOO-mode -1) in the
 major mode's hook, where FOO-mode toggles the mode on a per-buffer basis.
