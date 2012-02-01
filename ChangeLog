@@ -1,3 +1,17 @@
+2012-02-01  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Port to older Solaris 10 versions (Bug#10677).
+	Bug reported by Chong Yidong for SunOS 5.10 Generic_127111-11 sparc.
+	I cannot reproduce it on SunOS 5.10 Generic_141444-09 sparc but
+	possibly this is because Sun fixed the 'stat' bug in my version.
+	* Makefile.in (GNULIB_TOOL_FLAGS): Do not avoid the pathmax module.
+	* lib/pathmax.h, m4/pathmax.m4: New files, from gnulib.
+	* lib/gnulib.mk, m4/gl-comp.m4: Regenerate.
+	These changes are based on gnulib version
+	4f11d6bebc3098c64ffde27079ab0d0cecfd0cdc dated 2011-10-07 20:59:10,
+	because Emacs is in feature freeze and we do not want to merge any
+	more-recent changes from gnulib.
+
 2012-01-31  Glenn Morris  <rgm@gnu.org>
 
 	* configure.in: Throw an explicit error if Motif toolkit was
