@@ -1,5 +1,8 @@
 2012-02-01  Glenn Morris  <rgm@gnu.org>
 
+	* progmodes/compile.el (compilation-internal-error-properties):
+	Respect compilation-first-column in the "*compilation*" buffer.
+
 	* emacs-lisp/easy-mmode.el (define-minor-mode):
 	Relax :variable's test for a named function.
 
