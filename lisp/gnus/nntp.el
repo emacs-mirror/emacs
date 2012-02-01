@@ -1385,6 +1385,10 @@ password contained in '~/.nntp-authinfo'."
       (nnheader-cancel-timer timer))
     (when (and process
 	       (not (memq (process-status process) '(open run))))
+      (with-current-buffer pbuffer
+	(goto-char (point-min))
+	(nnheader-report 'nntp "Error when connecting: %s"
+			 (buffer-substring (point) (line-end-position))))
       (setq process nil))
     (unless process
       (nntp-kill-buffer pbuffer))

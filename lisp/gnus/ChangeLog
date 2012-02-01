@@ -1,5 +1,12 @@
 2012-02-01  Lars Ingebrigtsen  <larsi@gnus.org>
 
+	* gnus-group.el (gnus-group-get-new-news-this-group): Don't overwrite
+	the real error message with the useless "previously known to be down".
+	Which isn't even correct.
+
+	* nntp.el (nntp-open-connection): Report the error message if the nntp
+	server can't be reached.
+
 	* nnimap.el (nnimap-retrieve-group-data-early): Keep track of how many
 	groups we do a total scan for.
 	(nnimap-wait-for-response): Say that we're doing a total scan, if we're
