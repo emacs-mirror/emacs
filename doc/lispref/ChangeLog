@@ -1,3 +1,8 @@
+2012-02-01  Glenn Morris  <rgm@gnu.org>
+
+	* modes.texi (Defining Minor Modes):
+	Mention disabling global minor modes on a per-major-mode basis.
+
 2012-01-31  Chong Yidong  <cyd@gnu.org>
 
 	* syntax.texi (Parsing Expressions): Clarify intro (Bug#10657).
