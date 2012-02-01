@@ -1,3 +1,10 @@
+2012-02-01  Chong Yidong  <cyd@gnu.org>
+
+	* frame.el (set-frame-font): Tweak meaning of third argument.
+
+	* dynamic-setting.el (font-setting-change-default-font): Use
+	set-frame-font (Bug#9982).
+
 2012-02-01  Glenn Morris  <rgm@gnu.org>
 
 	* progmodes/compile.el (compilation-internal-error-properties):
