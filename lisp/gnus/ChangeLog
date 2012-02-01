@@ -1,3 +1,10 @@
+2012-02-01  Lars Ingebrigtsen  <larsi@gnus.org>
+
+	* nnimap.el (nnimap-retrieve-group-data-early): Keep track of how many
+	groups we do a total scan for.
+	(nnimap-wait-for-response): Say that we're doing a total scan, if we're
+	doing that.
+
 2012-01-31  Jim Meyering  <jim@meyering.net>
 
 	* gnus-agent.el (gnus-agent-expire-unagentized-dirs):

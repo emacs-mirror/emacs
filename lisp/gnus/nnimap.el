@@ -134,7 +134,7 @@ textual parts.")
 
 (defstruct nnimap
   group process commands capabilities select-result newlinep server
-  last-command-time greeting examined stream-type)
+  last-command-time greeting examined stream-type initial-resync)
 
 (defvar nnimap-object nil)
 
@@ -288,7 +288,8 @@ textual parts.")
     (gnus-add-buffer)
     (set (make-local-variable 'after-change-functions) nil)
     (set (make-local-variable 'nnimap-object)
-	 (make-nnimap :server (nnoo-current-server 'nnimap)))
+	 (make-nnimap :server (nnoo-current-server 'nnimap)
+		      :initial-resync 0))
     (push (list buffer (current-buffer)) nnimap-connection-alist)
     (push (current-buffer) nnimap-process-buffers)
     (current-buffer)))
@@ -1218,6 +1219,7 @@ textual parts.")
     (with-current-buffer (nnimap-buffer)
       (erase-buffer)
       (setf (nnimap-group nnimap-object) nil)
+      (setf (nnimap-initial-resync nnimap-object) 0)
       (let ((qresyncp (nnimap-capability "QRESYNC"))
 	    params groups sequences active uidvalidity modseq group)
 	;; Go through the infos and gather the data needed to know
@@ -1256,6 +1258,8 @@ textual parts.")
 		     ;; examine), but will tell us whether the group
 		     ;; is read-only or not.
 		     "SELECT")))
+	      (setf (nnimap-initial-resync nnimap-object)
+		    (1+ (nnimap-initial-resync nnimap-object)))
 	      (push (list (nnimap-send-command "%s %S" command
 					       (utf7-encode group t))
 			  (nnimap-send-command "UID FETCH %d:* FLAGS" start)
@@ -1738,10 +1742,15 @@ textual parts.")
 			(not (looking-at (format "%d .*\n" sequence)))))
 	    (when messagep
 	      (nnheader-message-maybe
-	       7 "nnimap read %dk from %s" (/ (buffer-size) 1000)
-	       nnimap-address))
+	       7 "nnimap read %dk from %s%s" (/ (buffer-size) 1000)
+	       nnimap-address
+	       (if (not (zerop (nnimap-initial-resync nnimap-object)))
+		   (format " (initial sync of %d groups; please wait)"
+			   (nnimap-initial-resync nnimap-object))
+		 "")))
 	    (nnheader-accept-process-output process)
 	    (goto-char (point-max)))
+	  (setf (nnimap-initial-resync nnimap-object) 0)
           openp)
       (quit
        (when debug-on-quit
