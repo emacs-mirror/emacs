@@ -1,3 +1,10 @@
+2012-02-01  Eli Zaretskii  <eliz@gnu.org>
+
+	* ralloc.c (resize_bloc, r_alloc_sbrk): Don't call memmove if its
+	first 2 arguments are identical.  This makes inserting large
+	output from a subprocess an order of magnitude faster on
+	MS-Windows, where all sbrk'ed memory is always contiguous.
+
 2012-01-31  Glenn Morris  <rgm@gnu.org>
 
 	* nsterm.m (syms_of_nsterm) <x-toolkit-scroll-bars>:
