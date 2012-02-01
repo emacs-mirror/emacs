@@ -620,6 +620,8 @@ gl_GNULIB_ENABLED_stat_FALSE
 gl_GNULIB_ENABLED_stat_TRUE
 gl_GNULIB_ENABLED_sigprocmask_FALSE
 gl_GNULIB_ENABLED_sigprocmask_TRUE
+gl_GNULIB_ENABLED_pathmax_FALSE
+gl_GNULIB_ENABLED_pathmax_TRUE
 gl_GNULIB_ENABLED_be453cec5eecf5731a274f2de7f2db36_FALSE
 gl_GNULIB_ENABLED_be453cec5eecf5731a274f2de7f2db36_TRUE
 gl_GNULIB_ENABLED_dosname_FALSE
@@ -6959,6 +6961,7 @@ esac
   # Code from module mktime:
   # Code from module multiarch:
   # Code from module nocrash:
+  # Code from module pathmax:
   # Code from module pthread_sigmask:
   # Code from module readlink:
   # Code from module signal-h:
@@ -21810,6 +21813,7 @@ $as_echo "$gl_cv_next_unistd_h" >&6; }
 
   gl_gnulib_enabled_dosname=false
   gl_gnulib_enabled_be453cec5eecf5731a274f2de7f2db36=false
+  gl_gnulib_enabled_pathmax=false
   gl_gnulib_enabled_sigprocmask=false
   gl_gnulib_enabled_stat=false
   gl_gnulib_enabled_strtoll=false
@@ -21827,6 +21831,15 @@ $as_echo "$gl_cv_next_unistd_h" >&6; }
 
 
       gl_gnulib_enabled_be453cec5eecf5731a274f2de7f2db36=true
+    fi
+  }
+  func_gl_gnulib_m4code_pathmax ()
+  {
+    if ! $gl_gnulib_enabled_pathmax; then
+
+
+
+      gl_gnulib_enabled_pathmax=true
     fi
   }
   func_gl_gnulib_m4code_sigprocmask ()
@@ -22008,6 +22021,9 @@ fi
         func_gl_gnulib_m4code_dosname
       fi
       if test $REPLACE_STAT = 1; then
+        func_gl_gnulib_m4code_pathmax
+      fi
+      if test $REPLACE_STAT = 1; then
         func_gl_gnulib_m4code_verify
       fi
     fi
@@ -22164,6 +22180,14 @@ fi
 else
   gl_GNULIB_ENABLED_be453cec5eecf5731a274f2de7f2db36_TRUE='#'
   gl_GNULIB_ENABLED_be453cec5eecf5731a274f2de7f2db36_FALSE=
+fi
+
+   if $gl_gnulib_enabled_pathmax; then
+  gl_GNULIB_ENABLED_pathmax_TRUE=
+  gl_GNULIB_ENABLED_pathmax_FALSE='#'
+else
+  gl_GNULIB_ENABLED_pathmax_TRUE='#'
+  gl_GNULIB_ENABLED_pathmax_FALSE=
 fi
 
    if $gl_gnulib_enabled_sigprocmask; then
@@ -22662,6 +22686,10 @@ Usually this means the macro was only invoked conditionally." "$LINENO" 5
 fi
 if test -z "${gl_GNULIB_ENABLED_be453cec5eecf5731a274f2de7f2db36_TRUE}" && test -z "${gl_GNULIB_ENABLED_be453cec5eecf5731a274f2de7f2db36_FALSE}"; then
   as_fn_error "conditional \"gl_GNULIB_ENABLED_be453cec5eecf5731a274f2de7f2db36\" was never defined.
+Usually this means the macro was only invoked conditionally." "$LINENO" 5
+fi
+if test -z "${gl_GNULIB_ENABLED_pathmax_TRUE}" && test -z "${gl_GNULIB_ENABLED_pathmax_FALSE}"; then
+  as_fn_error "conditional \"gl_GNULIB_ENABLED_pathmax\" was never defined.
 Usually this means the macro was only invoked conditionally." "$LINENO" 5
 fi
 if test -z "${gl_GNULIB_ENABLED_sigprocmask_TRUE}" && test -z "${gl_GNULIB_ENABLED_sigprocmask_FALSE}"; then
