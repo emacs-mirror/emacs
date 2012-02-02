@@ -1253,6 +1253,7 @@ jumping all the way to the top-level.
 ** The function format-time-string now supports the %N directive, for
 higher-resolution time stamps.
 
++++
 ** New function `read-char-choice' reads a restricted set of characters,
 discarding any inputs not inside the set.
 

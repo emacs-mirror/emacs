@@ -582,11 +582,12 @@ If this variable is non-@code{nil}, its value is a form to evaluate
 whenever the character @code{help-char} is read.  If evaluating the form
 produces a string, that string is displayed.
 
-A command that calls @code{read-event} or @code{read-char} probably
-should bind @code{help-form} to a non-@code{nil} expression while it
-does input.  (The time when you should not do this is when @kbd{C-h} has
-some other meaning.)  Evaluating this expression should result in a
-string that explains what the input is for and how to enter it properly.
+A command that calls @code{read-event}, @code{read-char-choice}, or
+@code{read-char} probably should bind @code{help-form} to a
+non-@code{nil} expression while it does input.  (The time when you
+should not do this is when @kbd{C-h} has some other meaning.)
+Evaluating this expression should result in a string that explains
+what the input is for and how to enter it properly.
 
 Entry to the minibuffer binds this variable to the value of
 @code{minibuffer-help-form} (@pxref{Definition of minibuffer-help-form}).

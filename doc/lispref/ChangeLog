@@ -1,5 +1,8 @@
 2012-02-02  Glenn Morris  <rgm@gnu.org>
 
+	* commands.texi (Reading One Event):
+	* help.texi (Help Functions): Document read-char-choice.
+
 	* hooks.texi (Standard Hooks):
 	* modes.texi (Keymaps and Minor Modes):
 	* text.texi (Commands for Insertion): Document post-self-insert-hook.
