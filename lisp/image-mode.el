@@ -482,7 +482,7 @@ Remove text properties that display the image."
   "Show the image of the image file.
 Turn the image data into a real image, but only if the whole file
 was inserted."
-  (unless (derived-mode-p 'image-mode major-mode)
+  (unless (derived-mode-p 'image-mode)
     (error "The buffer is not in Image mode"))
   (let* ((filename (buffer-file-name))
 	 (data-p (not (and filename

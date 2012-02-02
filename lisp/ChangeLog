@@ -1,3 +1,8 @@
+2012-02-02  Juri Linkov  <juri@jurta.org>
+
+	* image-mode.el (image-toggle-display-image): Remove tautological
+	`major-mode' from the `derived-mode-p' test.
+
 2012-02-02  Kenichi Handa  <handa@m17n.org>
 
 	* composite.el (compose-region, compose-string): Signal error for
