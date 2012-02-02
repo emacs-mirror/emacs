@@ -1283,6 +1283,7 @@ syntactic rules.
 *** `prog-mode' is a new major mode from which programming modes
 should be derived.
 
++++
 **** `prog-mode-hook' can be used to enable features for programming
 modes, e.g. (add-hook 'prog-mode-hook 'flyspell-prog-mode) to enable
 on-the-fly spell checking for comments and strings.
