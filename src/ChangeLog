@@ -1,3 +1,8 @@
+2012-02-02  Michael Albinus  <michael.albinus@gmx.de>
+
+	* dbusbind.c (Fdbus_register_method): Mention the return value
+	:ignore in the docstring.
+
 2012-02-02  Glenn Morris  <rgm@gnu.org>
 
 	* callproc.c (Fcall_process, Fcall_process_region): Doc fix.
