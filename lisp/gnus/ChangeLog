@@ -1,3 +1,8 @@
+2012-02-02  Lars Ingebrigtsen  <larsi@gnus.org>
+
+	* gnus-msg.el (gnus-summary-mail-forward): Respect the process marks,
+	not the prefix, as documented (bug#10689).
+
 2012-02-01  Lars Ingebrigtsen  <larsi@gnus.org>
 
 	* gnus.el (gnus-valid-select-methods): nnmaildir also saves marks in
