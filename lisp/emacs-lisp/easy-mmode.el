@@ -182,15 +182,9 @@ For example, you could write
 	(:require (setq require (pop body)))
 	(:keymap (setq keymap (pop body)))
         (:variable (setq variable (pop body))
-         (setq tmp (cdr-safe variable))
-         (if (not (or (functionp tmp)
-                      (and tmp
-                           (symbolp tmp)
-                           ;; Hack to allow for named functions not within
-                           ;; eval-when-compile.
-                           ;; Cf define-compilation-mode.
-                           (boundp 'byte-compile-function-environment)
-                           (assq tmp byte-compile-function-environment))))
+         (if (not (and (setq tmp (cdr-safe variable))
+                       (or (symbolp tmp)
+                           (functionp tmp))))
              ;; PLACE is not of the form (GET . SET).
              (setq mode variable)
            (setq mode (car variable))

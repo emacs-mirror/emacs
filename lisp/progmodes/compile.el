@@ -1058,6 +1058,7 @@ FMTS is a list of format specs for transforming the file name.
 	 (marker
           (if marker-line (compilation--loc->marker (cadr marker-line))))
 	 (screen-columns compilation-error-screen-columns)
+	 (first-column compilation-first-column)
 	 end-marker loc end-loc)
     (if (not (and marker (marker-buffer marker)))
 	(setq marker nil)		; no valid marker for this file
@@ -1078,7 +1079,10 @@ FMTS is a list of format specs for transforming the file name.
                ;; Obey the compilation-error-screen-columns of the target
                ;; buffer if its major mode set it buffer-locally.
                (if (local-variable-p 'compilation-error-screen-columns)
-                   compilation-error-screen-columns screen-columns)))
+                   compilation-error-screen-columns screen-columns))
+	      (compilation-first-column
+               (if (local-variable-p 'compilation-first-column)
+                   compilation-first-column first-column)))
           (save-excursion
 	  (save-restriction
 	    (widen)

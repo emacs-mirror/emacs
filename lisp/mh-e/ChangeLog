@@ -52,7 +52,7 @@
 	pop-to-buffer-same-window.
 	* mh-folder.el (mh-inc-folder, mh-modify, mh-scan-folder)
 	(mh-make-folder): Call mh-pop-to-buffer-same-window instead of
-	switch-to-buffer. The previous change which used pop-to-buffer
+	switch-to-buffer.  The previous change which used pop-to-buffer
 	produced the wrong behavior.
 
 2011-07-12  Henrique Martins  <henrique@martins.cc>  (tiny change)
@@ -73,8 +73,8 @@
 
 	* mh-folder.el (mh-inc-folder, mh-modify, mh-scan-folder)
 	(mh-make-folder): Replace calls to switch-to-buffer with of
-	pop-to-buffer. The former is intended for interactive use only and
-	generates warnings in Emacs 24.
+	pop-to-buffer.  The former is intended for interactive use only
+	and generates warnings in Emacs 24.
 
 2011-07-09  Bill Wohler  <wohler@newt.com>
 
@@ -96,7 +96,7 @@
 	* mh-e.el: Just require mh-loaddefs since loading it in an
 	eval-and-compile block causes compilation errors in XEmacs.
 
-	* mh-acros.el, 	mh-comp.el, mh-e.el, mh-folder.el, mh-letter.el:
+	* mh-acros.el, mh-comp.el, mh-e.el, mh-folder.el, mh-letter.el:
 	* mh-mime.el, mh-search.el, mh-seq.el: Shush XEmacs compiler in
 	mh-do-in-xemacs block.
 
@@ -107,7 +107,7 @@
 
 	* mh-letter.el (mh-letter-mode-map, mh-letter-complete)
 	(mh-complete-word): Remove FIXME comments since these functions
-	are still needed in other Emacsen. However, they can probably
+	are still needed in other Emacsen.  However, they can probably
 	stand to be generalized like completion-at-point.
 	(mh-letter-complete-or-space): Remove unused variable.
 
@@ -173,7 +173,7 @@
 2010-05-14  Peter S Galbraith  <psg@debian.org>
 
 	* mh-mime.el (mh-decode-message-subject): New function to decode
-	RFC2047 encoded Subject lines. Used for reply drafts.
+	RFC2047 encoded Subject lines.  Used for reply drafts.
 	* mh-comp.el (mh-compose-and-send-mail): Call
 	`mh-decode-message-subject' on (reply or forward) message drafts.
 

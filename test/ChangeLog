@@ -7,7 +7,7 @@
 
 	* automated/compile-tests.el (compile-tests--test-regexps-data):
 	Increase column numbers by one to reflect change in how
-	compilation-message is recorded	(Bug#10172).
+	compilation-message is recorded (Bug#10172).
 
 2011-11-22  Glenn Morris  <rgm@gnu.org>
 
@@ -26,7 +26,7 @@
 2011-10-30  Ulf Jasper  <ulf.jasper@web.de>
 
 	* automated/newsticker-tests.el
-	(newsticker--group-manage-orphan-feeds): Removed fsetting of
+	(newsticker--group-manage-orphan-feeds): Remove fsetting of
 	newsticker--treeview-tree-update.
 
 2011-10-29  Ulf Jasper  <ulf.jasper@web.de>
@@ -63,7 +63,7 @@
 	(icalendar--format-ical-event)
 	(icalendar--parse-summary-and-rest)
 	(icalendar-tests--do-test-import)
-	(icalendar-tests--do-test-cycle) : Changed argument order of
+	(icalendar-tests--do-test-cycle): Change argument order of
 	string= to EXPECTED ACTUAL.
 	(icalendar--import-format-sample)
 	(icalendar--format-ical-event)
@@ -71,7 +71,7 @@
 	(icalendar-import-rrule)
 	(icalendar-import-duration)
 	(icalendar-import-bug-6766)
-	(icalendar-real-world): Adjusted to string= instead of
+	(icalendar-real-world): Adjust to string= instead of
 	icalendar-tests--compare-strings.
 	(icalendar-import-multiple-vcalendars): New.
 
@@ -258,8 +258,8 @@
 2010-02-19  Ulf Jasper  <ulf.jasper@web.de>
 
 	* icalendar-testsuite.el
-	(icalendar-testsuite--run-function-tests): Added new tests.
-	(icalendar-testsuite--test-diarytime-to-isotime): Added another
+	(icalendar-testsuite--run-function-tests): Add new tests.
+	(icalendar-testsuite--test-diarytime-to-isotime): Add another
 	testcase.
 	(icalendar-testsuite--test-convert-ordinary-to-ical): New.
 	(icalendar-testsuite--test-convert-weekly-to-ical): New.
@@ -284,14 +284,14 @@
 2009-12-18  Ulf Jasper  <ulf.jasper@web.de>
 
 	* icalendar-testsuite.el
-	(icalendar-testsuite--run-function-tests): Added
+	(icalendar-testsuite--run-function-tests): Add
 	icalendar-testsuite--test-parse-vtimezone.
 	(icalendar-testsuite--test-parse-vtimezone): New.
 	(icalendar-testsuite--do-test-cycle): Doc changes.
-	(icalendar-testsuite--run-real-world-tests): Removed trailing
+	(icalendar-testsuite--run-real-world-tests): Remove trailing
 	whitespace -- see change of icalendar--add-diary-entry in
 	icalendar.el.
-	(icalendar-testsuite--run-cycle-tests): Re-enabled all tests.
+	(icalendar-testsuite--run-cycle-tests): Re-enable all tests.
 
 2009-09-30  Glenn Morris  <rgm@gnu.org>
 
@@ -312,12 +312,12 @@
 2009-01-25  Ulf Jasper  <ulf.jasper@web.de>
 
 	* icalendar-testsuite.el
-	(icalendar-testsuite--run-function-tests): Added
-	icalendar-testsuite--test-diarytime-to-isotime.
-	(icalendar-testsuite--test-parse-summary-and-rest): Adjusted to
+	(icalendar-testsuite--run-function-tests):
+	Add icalendar-testsuite--test-diarytime-to-isotime.
+	(icalendar-testsuite--test-parse-summary-and-rest): Adjust to
 	recent icalendar fixes.
 	(icalendar-testsuite--test-diarytime-to-isotime): New.
-	(icalendar-testsuite--test-create-uid): Adjusted to recent
+	(icalendar-testsuite--test-create-uid): Adjust to recent
 	icalendar changes.
 
 2008-11-30  Shigeru Fukaya  <shigeru.fukaya@gmail.com>

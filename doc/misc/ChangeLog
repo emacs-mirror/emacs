@@ -1,3 +1,8 @@
+2012-01-30  Philipp Haselwarter  <philipp.haselwarter@gmx.de>  (tiny change)
+
+	* gnus.texi (Agent Basics): Fix outdated description of
+	`gnus-agent-auto-agentize-methods'.
+
 2012-01-28  Andreas Schwab  <schwab@linux-m68k.org>
 
 	* cc-mode.texi: Always @defindex ss.

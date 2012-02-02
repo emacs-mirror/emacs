@@ -1521,7 +1521,14 @@ starts, for example by providing a @code{:require} keyword.
 
 Use @code{:group @var{group}} in @var{keyword-args} to specify the
 custom group for the mode variable of the global minor mode.
+
+Generally speaking, when you define a globalized minor mode, you should
+also define a non-globalized version, so that people can use (or
+disable) it in individual buffers.  This also allows them to disable a
+globally enabled minor mode in a specific major mode, by using that
+mode's hook.
 @end defmac
+
 
 @node Mode Line Format
 @section Mode-Line Format

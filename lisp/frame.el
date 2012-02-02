@@ -1053,7 +1053,7 @@ If FRAME is omitted, describe the currently selected frame."
 
 (define-obsolete-function-alias 'set-default-font 'set-frame-font "23.1")
 
-(defun set-frame-font (font-name &optional keep-size all-frames)
+(defun set-frame-font (font-name &optional keep-size frames)
   "Set the default font to FONT-NAME.
 When called interactively, prompt for the name of a font, and use
 that font on the selected frame.
@@ -1063,9 +1063,10 @@ fixed.  If KEEP-SIZE is non-nil (or with a prefix argument), try
 to keep the current frame size fixed (in pixels) by adjusting the
 number of lines and columns.
 
-If ALL-FRAMES is nil, apply the font to the selected frame only.
-If ALL-FRAMES is non-nil, apply the font to all frames; in
-addition, alter the user's Customization settings as though the
+If FRAMES is nil, apply the font to the selected frame only.
+If FRAMES is non-nil, it should be a list of frames to act upon,
+or t meaning all graphical frames.  Also, if FRAME is non-nil,
+alter the user's Customization settings as though the
 font-related attributes of the `default' face had been \"set in
 this session\", so that the font is applied to future frames."
   (interactive
@@ -1079,9 +1080,14 @@ this session\", so that the font is applied to future frames."
      (list font current-prefix-arg nil)))
   (when (stringp font-name)
     (let* ((this-frame (selected-frame))
-	   (frames (if all-frames (frame-list) (list this-frame)))
+	   ;; FRAMES nil means affect the selected frame.
+	   (frame-list (cond ((null frames)
+			      (list this-frame))
+			     ((eq frames t)
+			      (frame-list))
+			     (t frames)))
 	   height width)
-      (dolist (f frames)
+      (dolist (f frame-list)
 	(when (display-multi-font-p f)
 	  (if keep-size
 	      (setq height (* (frame-parameter f 'height)
@@ -1099,7 +1105,7 @@ this session\", so that the font is applied to future frames."
 	       f
 	       (list (cons 'height (round height (frame-char-height f)))
 		     (cons 'width  (round width  (frame-char-width f))))))))
-      (when all-frames
+      (when frames
 	;; Alter the user's Custom setting of the `default' face, but
 	;; only for font-related attributes.
 	(let ((specs (cadr (assq 'user (get 'default 'theme-face))))

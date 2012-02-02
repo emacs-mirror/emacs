@@ -13,7 +13,7 @@
 
 	* buffers.texi (Select Buffer): Clarify explanation of switching
 	to new buffers.  Fix description of next-buffer and
-	previous-buffer	(Bug#10334).
+	previous-buffer (Bug#10334).
 	(Misc Buffer): Add xref to View Mode.
 
 	* text.texi (Fill Commands): Fix description of

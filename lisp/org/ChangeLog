@@ -924,8 +924,8 @@
 
 2012-01-03  Matt Lundin  <mdl@imapmail.org>
 
-	* org-agenda.el: (org-class): Fix holidays symbol in
-	org-class.  This was resulting in an "Bad sexp..." warning.
+	* org-agenda.el (org-class): Fix holidays symbol in org-class.
+	This was resulting in an "Bad sexp..." warning.
 
 2012-01-03  Carsten Dominik  <carsten.dominik@gmail.com>
 
@@ -968,13 +968,13 @@
 
 2012-01-03  Eric Schulte  <schulte.eric@gmail.com>
 
-	* ob-sql.el (org-babel-header-arg-names:sql): Sql specific header
+	* ob-sql.el (org-babel-header-arg-names:sql): SQL specific header
 	argument names which should be inherited.
 
 2012-01-03  Nicolas Goaziou  <n.goaziou@gmail.com>
 
-	* org.el (org-in-block-p): Return matched name of block, if
-	any.  It can be useful when a list of block names is provided as
+	* org.el (org-in-block-p): Return matched name of block, if any.
+	It can be useful when a list of block names is provided as
 	an argument.
 
 2012-01-03  Nicolas Goaziou  <n.goaziou@gmail.com>
@@ -1038,10 +1038,10 @@
 	* org-exp.el (org-export-protect-quoted-subtrees): More accurate
 	regexp.  Also use new regexp to match generic headlines.
 
-	* org-html.el (org-export-as-html): More accurate regexp.  Also
-	use new regexp to match generic headlines.
+	* org-html.el (org-export-as-html): More accurate regexp.
+	Also use new regexp to match generic headlines.
 
-	* org-mouse.el (org-mouse-match-todo-keyword): Removed unused
+	* org-mouse.el (org-mouse-match-todo-keyword): Remove unused
 	and now erroneous function.
 
 	* org.el (org-heading-regexp, org-heading-keyword-regexp-format):
@@ -1071,8 +1071,8 @@
 
 2012-01-03  David Maus  <dmaus@ictsoc.de>
 
-	* org.el (org-loop-over-headlines-in-active-region): New
-	customization variable.  Loop over headlines in active region.
+	* org.el (org-loop-over-headlines-in-active-region):
+	New customization variable.  Loop over headlines in active region.
 	(org-schedule, org-deadline): Apply to headlines in region depending
 	on new customization variable.
 
@@ -1092,8 +1092,8 @@
 
 2012-01-03  Bastien Guerry  <bzg@gnu.org>
 
-	* org.el (org-format-agenda-item, org-scan-tags): Rename
-	`org-format-agenda-item' to `org-agenda-format-item'.
+	* org.el (org-format-agenda-item, org-scan-tags):
+	Rename `org-format-agenda-item' to `org-agenda-format-item'.
 
 2012-01-03  Bastien Guerry  <bzg@gnu.org>
 

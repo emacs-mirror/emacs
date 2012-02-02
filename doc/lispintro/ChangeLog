@@ -1,7 +1,7 @@
 2012-01-28  Andreas Schwab  <schwab@linux-m68k.org>
 
 	* emacs-lisp-intro.texi (Top): Move setting of COUNT-WORDS outside
-	of @menu. (Bug#10628)
+	of @menu.  (Bug#10628)
 
 2012-01-19  Juanma Barranquero  <lekktu@gmail.com>
 

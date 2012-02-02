@@ -9447,7 +9447,7 @@ comment at the start of cc-engine.el for more info."
 
 	   ;; CASE 5B.1: Member init list.
 	   ((eq (char-after tmp-pos) ?:)
-	    (if (or (> tmp-pos indent-point)
+	    (if (or (>= tmp-pos indent-point)
 		    (= (c-point 'bosws) (1+ tmp-pos)))
 		(progn
 		  ;; There is no preceding member init clause.

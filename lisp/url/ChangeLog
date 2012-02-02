@@ -86,16 +86,15 @@
 2011-05-02  Lars Magne Ingebrigtsen  <larsi@gnus.org>
 
 	* url-queue.el: New file.
-	(url-queue-run-queue): Pick the first waiting job, and not the
-	last.
+	(url-queue-run-queue): Pick the first waiting job, and not the last.
 	(url-queue-parallel-processes): Lower the concurrency level, since
 	Emacs doesn't seem to like too many async processes.
 	(url-queue-prune-old-entries): Fix up the pruning code.
 
 2011-04-16  Lars Magne Ingebrigtsen  <larsi@gnus.org>
 
-	* url-http.el (url-http-wait-for-headers-change-function): Protect
-	against malformed headerless responses from servers.
+	* url-http.el (url-http-wait-for-headers-change-function):
+	Protect against malformed headerless responses from servers.
 
 2011-04-02  Chong Yidong  <cyd@stupidchicken.com>
 
@@ -123,9 +122,9 @@
 
 2011-02-03  Lars Ingebrigtsen  <larsi@gnus.org>
 
-	* url-http.el (url-http-wait-for-headers-change-function): Don't
-	move point if the callback function has moved changed/killed the
-	process buffer.
+	* url-http.el (url-http-wait-for-headers-change-function):
+	Don't move point if the callback function has moved/changed/killed
+	the process buffer.
 
 2010-12-16  Miles Bader  <miles@gnu.org>
 
@@ -198,8 +197,8 @@
 
 2010-10-01  Lars Magne Ingebrigtsen  <larsi@gnus.org>
 
-	* url-cookie.el (url-cookie-handle-set-cookie): Use
-	url-lazy-message for the cookie warning, which isn't very interesting.
+	* url-cookie.el (url-cookie-handle-set-cookie): Use url-lazy-message
+	for the cookie warning, which isn't very interesting.
 
 	* url-http.el (url-http-async-sentinel): Check that the buffer is
 	still alive before switching to it.
@@ -265,13 +264,13 @@
 2010-07-01  Mark A. Hershberger  <mah@everybody.org>
 
 	* url-http.el (url-http-create-request): Add a CRLF on the end so
-	that POSTs with content to https urls work.
+	that POSTs with content to https URLs work.
 	See <https://bugs.launchpad.net/mediawiki-el/+bug/540759>
 
 2010-06-22  Mark A. Hershberger  <mah@everybody.org>
 
 	* url-parse.el (url-user-for-url, url-password-for-url):
-	Convenience functions that get usernames and passwords for urls
+	Convenience functions that get usernames and passwords for URLs
 	from auth-source functions.
 
 2010-06-12  Štěpán Němec  <stepnem@gmail.com>  (tiny change)
