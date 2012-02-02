@@ -12,7 +12,7 @@
 
 2012-02-02  Kenichi Handa  <handa@m17n.org>
 
-	* (compose-region): Cancel previous change.
+	* composite.el (compose-region): Cancel previous change.
 
 2012-02-02  Kenichi Handa  <handa@m17n.org>
 
@@ -27,8 +27,8 @@
 
 	* frame.el (set-frame-font): Tweak meaning of third argument.
 
-	* dynamic-setting.el (font-setting-change-default-font): Use
-	set-frame-font (Bug#9982).
+	* dynamic-setting.el (font-setting-change-default-font):
+	Use set-frame-font (Bug#9982).
 
 2012-02-01  Glenn Morris  <rgm@gnu.org>
 
