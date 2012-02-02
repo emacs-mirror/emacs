@@ -127,6 +127,9 @@ not exactly a hook, but does a similar job.
 @xref{Calendar Customizing,,, emacs}.
 @end ifnottex
 
+@item change-major-mode-after-body-hook
+@xref{Mode Hooks}.
+
 @item change-major-mode-hook
 @xref{Creating Buffer-Local}.
 
@@ -292,8 +295,14 @@ Manual}.
 @item post-command-hook
 @xref{Command Overview}.
 
+@item post-self-insert-hook
+@xref{Keymaps and Minor Modes}.
+
 @item pre-command-hook
 @xref{Command Overview}.
+
+@item prog-mode-hook
+@xref{Basic Major Modes}.
 
 @item resume-tty-functions
 @xref{Suspending Emacs}.

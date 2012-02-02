@@ -1052,15 +1052,23 @@ If FRAME is omitted, describe the currently selected frame."
                   (pattern &optional face frame maximum width))
 
 (define-obsolete-function-alias 'set-default-font 'set-frame-font "23.1")
-(defun set-frame-font (font-name &optional keep-size)
-  "Set the font of the selected frame to FONT-NAME.
-When called interactively, prompt for the name of the font to use.
-To get the frame's current default font, use `frame-parameters'.
 
-The default behavior is to keep the numbers of lines and columns in
-the frame, thus may change its pixel size.  If optional KEEP-SIZE is
-non-nil (interactively, prefix argument) the current frame size (in
-pixels) is kept by adjusting the numbers of the lines and columns."
+(defun set-frame-font (font-name &optional keep-size frames)
+  "Set the default font to FONT-NAME.
+When called interactively, prompt for the name of a font, and use
+that font on the selected frame.
+
+If KEEP-SIZE is nil, keep the number of frame lines and columns
+fixed.  If KEEP-SIZE is non-nil (or with a prefix argument), try
+to keep the current frame size fixed (in pixels) by adjusting the
+number of lines and columns.
+
+If FRAMES is nil, apply the font to the selected frame only.
+If FRAMES is non-nil, it should be a list of frames to act upon,
+or t meaning all graphical frames.  Also, if FRAME is non-nil,
+alter the user's Customization settings as though the
+font-related attributes of the `default' face had been \"set in
+this session\", so that the font is applied to future frames."
   (interactive
    (let* ((completion-ignore-case t)
 	  (font (completing-read "Font name: "
@@ -1069,19 +1077,57 @@ pixels) is kept by adjusting the numbers of the lines and columns."
 				 (x-list-fonts "*" nil (selected-frame))
                                  nil nil nil nil
                                  (frame-parameter nil 'font))))
-     (list font current-prefix-arg)))
-  (let (fht fwd)
-    (if keep-size
-	(setq fht (* (frame-parameter nil 'height) (frame-char-height))
-	      fwd (* (frame-parameter nil 'width)  (frame-char-width))))
-    (modify-frame-parameters (selected-frame)
-			     (list (cons 'font font-name)))
-    (if keep-size
-	(modify-frame-parameters
-	 (selected-frame)
-	 (list (cons 'height (round fht (frame-char-height)))
-	       (cons 'width (round fwd (frame-char-width)))))))
-  (run-hooks 'after-setting-font-hook 'after-setting-font-hooks))
+     (list font current-prefix-arg nil)))
+  (when (stringp font-name)
+    (let* ((this-frame (selected-frame))
+	   ;; FRAMES nil means affect the selected frame.
+	   (frame-list (cond ((null frames)
+			      (list this-frame))
+			     ((eq frames t)
+			      (frame-list))
+			     (t frames)))
+	   height width)
+      (dolist (f frame-list)
+	(when (display-multi-font-p f)
+	  (if keep-size
+	      (setq height (* (frame-parameter f 'height)
+			      (frame-char-height f))
+		    width  (* (frame-parameter f 'width)
+			      (frame-char-width f))))
+	  ;; When set-face-attribute is called for :font, Emacs
+	  ;; guesses the best font according to other face attributes
+	  ;; (:width, :weight, etc.) so reset them too (Bug#2476).
+	  (set-face-attribute 'default f
+			      :width 'normal :weight 'normal
+			      :slant 'normal :font font-name)
+	  (if keep-size
+	      (modify-frame-parameters
+	       f
+	       (list (cons 'height (round height (frame-char-height f)))
+		     (cons 'width  (round width  (frame-char-width f))))))))
+      (when frames
+	;; Alter the user's Custom setting of the `default' face, but
+	;; only for font-related attributes.
+	(let ((specs (cadr (assq 'user (get 'default 'theme-face))))
+	      (attrs '(:family :foundry :slant :weight :height :width))
+	      (new-specs nil))
+	  (if (null specs) (setq specs '((t nil))))
+	  (dolist (spec specs)
+	    ;; Each SPEC has the form (DISPLAY ATTRIBUTE-PLIST)
+	    (let ((display (nth 0 spec))
+		  (plist   (copy-tree (nth 1 spec))))
+	      ;; Alter only DISPLAY conditions matching this frame.
+	      (when (or (memq display '(t default))
+			(face-spec-set-match-display display this-frame))
+		(dolist (attr attrs)
+		  (setq plist (plist-put plist attr
+					 (face-attribute 'default attr)))))
+	      (push (list display plist) new-specs)))
+	  (setq new-specs (nreverse new-specs))
+	  (put 'default 'customized-face new-specs)
+	  (custom-push-theme 'theme-face 'default 'user 'set new-specs)
+	  (put 'default 'face-modified nil))))
+    (run-hooks 'after-setting-font-hook 'after-setting-font-hooks)))
 
 (defun set-frame-parameter (frame parameter value)
   "Set frame parameter PARAMETER to VALUE on FRAME.

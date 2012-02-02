@@ -500,6 +500,11 @@ syntax. (@xref{Abbrevs}, and @ref{Syntax Class Table}.)  It is also
 responsible for calling @code{blink-paren-function} when the inserted
 character has close parenthesis syntax (@pxref{Blinking}).
 
+@vindex post-self-insert-hook
+The final thing this command does is to run the hook
+@code{post-self-insert-hook}.  You could use this to automatically
+reindent text as it is typed, for example.
+
 Do not try substituting your own definition of
 @code{self-insert-command} for the standard one.  The editor command
 loop handles this function specially.

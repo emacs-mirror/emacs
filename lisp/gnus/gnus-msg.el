@@ -1230,7 +1230,7 @@ For the \"inline\" alternatives, also see the variable
   (interactive "P")
   (if (cdr (gnus-summary-work-articles nil))
       ;; Process marks are given.
-      (gnus-uu-digest-mail-forward arg post)
+      (gnus-uu-digest-mail-forward nil post)
     ;; No process marks.
     (let ((message-forward-as-mime message-forward-as-mime)
 	  (message-forward-show-mml message-forward-show-mml))

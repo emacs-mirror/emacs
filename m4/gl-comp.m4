@@ -65,6 +65,7 @@ AC_DEFUN([gl_EARLY],
   # Code from module mktime:
   # Code from module multiarch:
   # Code from module nocrash:
+  # Code from module pathmax:
   # Code from module pthread_sigmask:
   # Code from module readlink:
   # Code from module signal-h:
@@ -217,6 +218,7 @@ AC_REQUIRE([AC_C_INLINE])
 gl_UNISTD_H
   gl_gnulib_enabled_dosname=false
   gl_gnulib_enabled_be453cec5eecf5731a274f2de7f2db36=false
+  gl_gnulib_enabled_pathmax=false
   gl_gnulib_enabled_sigprocmask=false
   gl_gnulib_enabled_stat=false
   gl_gnulib_enabled_strtoll=false
@@ -234,6 +236,13 @@ gl_UNISTD_H
 AC_SUBST([LIBINTL])
 AC_SUBST([LTLIBINTL])
       gl_gnulib_enabled_be453cec5eecf5731a274f2de7f2db36=true
+    fi
+  }
+  func_gl_gnulib_m4code_pathmax ()
+  {
+    if ! $gl_gnulib_enabled_pathmax; then
+gl_PATHMAX
+      gl_gnulib_enabled_pathmax=true
     fi
   }
   func_gl_gnulib_m4code_sigprocmask ()
@@ -260,6 +269,9 @@ gl_SYS_STAT_MODULE_INDICATOR([stat])
       gl_gnulib_enabled_stat=true
       if test $REPLACE_STAT = 1; then
         func_gl_gnulib_m4code_dosname
+      fi
+      if test $REPLACE_STAT = 1; then
+        func_gl_gnulib_m4code_pathmax
       fi
       if test $REPLACE_STAT = 1; then
         func_gl_gnulib_m4code_verify
@@ -326,6 +338,7 @@ gl_STDLIB_MODULE_INDICATOR([strtoull])
   m4_pattern_allow([^gl_GNULIB_ENABLED_])
   AM_CONDITIONAL([gl_GNULIB_ENABLED_dosname], [$gl_gnulib_enabled_dosname])
   AM_CONDITIONAL([gl_GNULIB_ENABLED_be453cec5eecf5731a274f2de7f2db36], [$gl_gnulib_enabled_be453cec5eecf5731a274f2de7f2db36])
+  AM_CONDITIONAL([gl_GNULIB_ENABLED_pathmax], [$gl_gnulib_enabled_pathmax])
   AM_CONDITIONAL([gl_GNULIB_ENABLED_sigprocmask], [$gl_gnulib_enabled_sigprocmask])
   AM_CONDITIONAL([gl_GNULIB_ENABLED_stat], [$gl_gnulib_enabled_stat])
   AM_CONDITIONAL([gl_GNULIB_ENABLED_strtoll], [$gl_gnulib_enabled_strtoll])
@@ -502,6 +515,7 @@ AC_DEFUN([gl_FILE_LIST], [
   lib/md5.h
   lib/mktime-internal.h
   lib/mktime.c
+  lib/pathmax.h
   lib/pthread_sigmask.c
   lib/readlink.c
   lib/sha1.c
@@ -552,6 +566,7 @@ AC_DEFUN([gl_FILE_LIST], [
   m4/mktime.m4
   m4/multiarch.m4
   m4/nocrash.m4
+  m4/pathmax.m4
   m4/pthread_sigmask.m4
   m4/readlink.m4
   m4/sha1.m4

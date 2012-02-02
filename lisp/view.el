@@ -311,13 +311,9 @@ file: Users may suspend viewing in order to modify the buffer.
 Exiting View mode will then discard the user's edits.  Setting
 EXIT-ACTION to `kill-buffer-if-not-modified' avoids this."
   (interactive "bView buffer: ")
-  (if (eq (with-current-buffer buffer
-	    (get major-mode 'mode-class))
-	  'special)
-      (progn
-	(switch-to-buffer buffer)
-	(message "Not using View mode because the major mode is special"))
-    (switch-to-buffer buffer)
+  (switch-to-buffer buffer)
+  (if (eq (get major-mode 'mode-class) 'special)
+      (message "Not using View mode because the major mode is special")
     (view-mode-enter nil exit-action)))
 
 ;;;###autoload
@@ -339,7 +335,9 @@ this argument instead of explicitly setting `view-exit-action'."
   (interactive "bIn other window view buffer:\nP")
   (let ((pop-up-windows t))
     (pop-to-buffer buffer t))
-  (view-mode-enter nil exit-action))
+  (if (eq (get major-mode 'mode-class) 'special)
+      (message "Not using View mode because the major mode is special")
+    (view-mode-enter nil exit-action)))
 
 ;;;###autoload
 (defun view-buffer-other-frame (buffer &optional not-return exit-action)
@@ -360,7 +358,9 @@ this argument instead of explicitly setting `view-exit-action'."
   (interactive "bView buffer in other frame: \nP")
   (let ((pop-up-frames t))
     (pop-to-buffer buffer t))
-  (view-mode-enter nil exit-action))
+  (if (eq (get major-mode 'mode-class) 'special)
+      (message "Not using View mode because the major mode is special")
+    (view-mode-enter nil exit-action)))
 
 ;;;###autoload
 (define-minor-mode view-mode

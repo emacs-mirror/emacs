@@ -1626,7 +1626,7 @@ slower."
     ("nnagent" post-mail)
     ("nnimap" post-mail address prompt-address physical-address respool
      server-marks)
-    ("nnmaildir" mail respool address)
+    ("nnmaildir" mail respool address server-marks)
     ("nnnil" none))
   "*An alist of valid select methods.
 The first element of each list lists should be a string with the name

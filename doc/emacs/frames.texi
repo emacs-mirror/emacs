@@ -370,7 +370,6 @@ side-by-side windows with the boundary running through the click
 position (@pxref{Split Window}).
 @end table
 
-@kindex C-Mouse-2 @r{(scroll bar)}
 @kindex Mouse-1 @r{(scroll bar)}
   Furthermore, by clicking and dragging @kbd{Mouse-1} on the divider
 between two side-by-side mode lines, you can move the vertical

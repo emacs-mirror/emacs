@@ -4,8 +4,8 @@
 	(UINT64_MAX) [_WIN64]: Fix definition.
 	(uintmax_t, intmax_t): Fix definitions.
 
-	* inc/inttypes.h (strtoumax, strtoimax) [!__MINGW32__]: Provide
-	correct definitions.
+	* inc/inttypes.h (strtoumax, strtoimax) [!__MINGW32__]:
+	Provide correct definitions.
 
 	* config.nt (HAVE_DECL_STRTOLL): Define.
 	(va_copy) [_WIN64]: Provide a better definition.

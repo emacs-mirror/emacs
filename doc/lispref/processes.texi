@@ -300,7 +300,8 @@ MS-DOS doesn't support asynchronous subprocesses, so this option doesn't
 work there.
 
 @item @code{(:file @var{file-name})}
-Send the output to the file name specified.
+Send the output to the file name specified, overwriting it if it
+already exists.
 
 @item @code{(@var{real-destination} @var{error-destination})}
 Keep the standard output stream separate from the standard error stream;

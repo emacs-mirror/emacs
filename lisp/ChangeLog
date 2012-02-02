@@ -1,3 +1,57 @@
+2012-02-02  Glenn Morris  <rgm@gnu.org>
+
+	* server.el (server-auth-dir): Doc fix.
+	(server-eval-at): Doc fix.  Give an explicit error if !server-use-tcp.
+
+	* subr.el (run-mode-hooks): Doc fix.
+
+2012-02-02  Juri Linkov  <juri@jurta.org>
+
+	* image-mode.el (image-toggle-display-image): Remove tautological
+	`major-mode' from the `derived-mode-p' test.
+
+2012-02-02  Kenichi Handa  <handa@m17n.org>
+
+	* composite.el (compose-region): Cancel previous change.
+
+2012-02-02  Kenichi Handa  <handa@m17n.org>
+
+	* composite.el (compose-region, compose-string): Signal error for
+	a null string component (Bug#6988).
+
+2012-02-01  Chong Yidong  <cyd@gnu.org>
+
+	* view.el (view-buffer-other-window, view-buffer-other-frame):
+	Handle special modes like view-buffer (Bug#10650).
+	(view-buffer): Simplify.
+
+	* frame.el (set-frame-font): Tweak meaning of third argument.
+
+	* dynamic-setting.el (font-setting-change-default-font):
+	Use set-frame-font (Bug#9982).
+
+2012-02-01  Glenn Morris  <rgm@gnu.org>
+
+	* progmodes/compile.el (compilation-internal-error-properties):
+	Respect compilation-first-column in the "*compilation*" buffer.
+
+	* emacs-lisp/easy-mmode.el (define-minor-mode):
+	Relax :variable's test for a named function.
+
+2012-01-31  Alan Mackenzie  <acm@muc.de>
+
+	* progmodes/cc-engine.el (c-guess-basic-syntax): CASE 5B.1: Fix an
+	off by one error.
+
+2012-01-31  Chong Yidong  <cyd@gnu.org>
+
+	* frame.el (set-frame-font): New arg ALL-FRAMES.
+
+	* menu-bar.el (menu-set-font): Use set-frame-font.
+
+	* faces.el (face-spec-reset-face): Don't apply unspecified
+	attribute values to the default face.
+
 2012-01-31  Juanma Barranquero  <lekktu@gmail.com>
 
 	* progmodes/cwarn.el (cwarn): Remove dead link.
@@ -9,7 +63,9 @@
 
 2012-01-31  Glenn Morris  <rgm@gnu.org>
 
-	* emacs-lisp/easy-mmode.el (define-minor-mode): Fix :variable case.
+	* emacs-lisp/easy-mmode.el (define-minor-mode): Doc fix.
+	Fix :variable handling of mode a symbol not equal to modefun.
+	Allow named functions to be used as the cdr of :variable.
 
 2012-01-30  Glenn Morris  <rgm@gnu.org>
 
@@ -58,8 +114,8 @@
 
 	* progmodes/python.el: Require ansi-color at top-level.
 
-	* emacs-lisp/lisp-mode.el (emacs-lisp-mode-abbrev-table): Define
-	and use in Emacs Lisp mode (Bug#9360).
+	* emacs-lisp/lisp-mode.el (emacs-lisp-mode-abbrev-table):
+	Define and use in Emacs Lisp mode (Bug#9360).
 	(lisp-mode-abbrev-table): Add doc.
 	(lisp-mode-variables): Don't set local-abbrev-table.
 	(lisp-interaction-mode): Use emacs-lisp-mode-abbrev-table.
@@ -173,8 +229,8 @@
 
 2012-01-25  Jérémy Compostella  <jeremy.compostella@gmail.com>
 
-	* window.el (window--state-get-1, window--state-put-2): Don't
-	save and restore the mark.
+	* window.el (window--state-get-1, window--state-put-2):
+	Don't save and restore the mark.
 
 2012-01-25  Chong Yidong  <cyd@gnu.org>
 
@@ -521,7 +577,7 @@
 	first prompt in `sql-interacive-mode'.
 	(sql-mode-oracle-font-lock-keywords): Add CONNECT_BY_* builtin
 	keywords.
-	(sql-mode-mysql-font-lock-keywords):  Add ELSEIF keyword.
+	(sql-mode-mysql-font-lock-keywords): Add ELSEIF keyword.
 	(sql-product-interactive): Bug fix: Set `sql-buffer' in
 	context of original buffer.  Invoke `sql-login-hook'.
 
@@ -4035,7 +4091,7 @@
 
 	* cus-start.el (all): Add entry for bidi-paragraph-direction.
 
-	* international/uni-bidi.el: Regenerated.
+	* international/uni-bidi.el: Regenerate.
 
 2011-08-23  Kenichi Handa  <handa@m17n.org>
 

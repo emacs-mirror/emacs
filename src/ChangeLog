@@ -1,3 +1,37 @@
+2012-02-02  Michael Albinus  <michael.albinus@gmx.de>
+
+	* dbusbind.c (Fdbus_register_method): Mention the return value
+	:ignore in the docstring.
+
+2012-02-02  Glenn Morris  <rgm@gnu.org>
+
+	* callproc.c (Fcall_process, Fcall_process_region): Doc fix.
+
+	* nsterm.m (syms_of_nsterm) <x-toolkit-scroll-bars>:
+	Unconditionally set to t.  (Bug#10673)
+	* nsterm.m (syms_of_nsterm) <x-toolkit-scroll-bars>:
+	* w32term.c (syms_of_w32term) <x-toolkit-scroll-bars>:
+	* xterm.c (syms_of_xterm) <x-toolkit-scroll-bars>: Doc fix.
+
+2012-02-02  Kenichi Handa  <handa@m17n.org>
+
+	(x_produce_glyphs): Cancel previous change.  If cmp->glyph_len is
+	0, do not call append_composite_glyph.
+
+2012-02-02  Kenichi Handa  <handa@m17n.org>
+
+	* xdisp.c (BUILD_COMPOSITE_GLYPH_STRING): Initialize first_s to
+	NULL (Bug#6988).
+	(x_produce_glyphs): If the component of a composition is a null
+	string, set it->pixel_width to 1 to avoid zero-width glyph.
+
+2012-02-01  Eli Zaretskii  <eliz@gnu.org>
+
+	* ralloc.c (resize_bloc, r_alloc_sbrk): Don't call memmove if its
+	first 2 arguments are identical.  This makes inserting large
+	output from a subprocess an order of magnitude faster on
+	MS-Windows, where all sbrk'ed memory is always contiguous.
+
 2012-01-31  Glenn Morris  <rgm@gnu.org>
 
 	* nsterm.m (syms_of_nsterm) <x-toolkit-scroll-bars>:
@@ -13,7 +47,6 @@
 	* s/gnu.h: Define POSIX_SIGNALS (Bug#10552).
 
 2012-01-28  Chong Yidong  <cyd@gnu.org>
-
 
 	* minibuf.c (syms_of_minibuf): Doc fix (Bug#10550).
 
@@ -2369,7 +2402,7 @@
 	Remove unreachable code.
 	(read_hex, load_charset_map_from_file): Check for integer overflow.
 
-	* xterm.c: don't go over XClientMessageEvent limit
+	* xterm.c: Don't go over XClientMessageEvent limit.
 	(scroll_bar_windows_size): Now ptrdiff_t, as we prefer signed.
 	(x_send_scroll_bar_event): Likewise.  Check that the size does not
 	exceed limits imposed by XClientMessageEvent, as well as the usual
@@ -5660,7 +5693,7 @@
 
 	* ccl.c (ccl_driver): Redo slightly to avoid the need for 'unsigned'.
 
-	ccl: add integer overflow checks
+	ccl: Add integer overflow checks.
 	* ccl.c (CCL_CODE_MAX, GET_CCL_RANGE, GET_CCL_CODE, GET_CCL_INT):
 	(IN_INT_RANGE): New macros.
 	(ccl_driver): Use them to check for integer overflow when

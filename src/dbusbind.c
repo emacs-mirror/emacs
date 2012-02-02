@@ -2162,10 +2162,13 @@ DONT-REGISTER-SERVICE below).
 
 PATH is the D-Bus object path SERVICE is registered (See discussion of
 DONT-REGISTER-SERVICE below).  INTERFACE is the interface offered by
-SERVICE.  It must provide METHOD.  HANDLER is a Lisp function to be
-called when a method call is received.  It must accept the input
-arguments of METHOD.  The return value of HANDLER is used for
-composing the returning D-Bus message.
+SERVICE.  It must provide METHOD.
+
+HANDLER is a Lisp function to be called when a method call is
+received.  It must accept the input arguments of METHOD.  The return
+value of HANDLER is used for composing the returning D-Bus message.
+In case HANDLER shall return a reply message with an empty argument
+list, HANDLER must return the symbol `:ignore'.
 
 When DONT-REGISTER-SERVICE is non-nil, the known name SERVICE is not
 registered.  This means that other D-Bus clients have no way of

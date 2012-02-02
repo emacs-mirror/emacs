@@ -22738,7 +22738,7 @@ compute_overhangs_and_x (struct glyph_string *s, int x, int backward_p)
     ptrdiff_t cmp_id = (row)->glyphs[area][START].u.cmp.id;		    \
     struct composition *cmp = composition_table[cmp_id];		    \
     XChar2b *char2b;							    \
-    struct glyph_string *first_s IF_LINT (= NULL);			    \
+    struct glyph_string *first_s = NULL;				    \
     int n;								    \
     									    \
     char2b = (XChar2b *) alloca ((sizeof *char2b) * cmp->glyph_len);	    \
@@ -24400,7 +24400,7 @@ x_produce_glyphs (struct it *it)
 	  /* Initialize the bounding box.  */
 	  if (pcm)
 	    {
-	      width = pcm->width;
+	      width = cmp->glyph_len > 0 ? pcm->width : 0;
 	      ascent = pcm->ascent;
 	      descent = pcm->descent;
 	      lbearing = pcm->lbearing;
@@ -24408,7 +24408,7 @@ x_produce_glyphs (struct it *it)
 	    }
 	  else
 	    {
-	      width = font->space_width;
+	      width = cmp->glyph_len > 0 ? font->space_width : 0;
 	      ascent = FONT_BASE (font);
 	      descent = FONT_DESCENT (font);
 	      lbearing = 0;
@@ -24626,7 +24626,7 @@ x_produce_glyphs (struct it *it)
       if (it->descent < 0)
 	it->descent = 0;
 
-      if (it->glyph_row)
+      if (it->glyph_row && cmp->glyph_len > 0)
 	append_composite_glyph (it);
     }
   else if (it->what == IT_COMPOSITION)

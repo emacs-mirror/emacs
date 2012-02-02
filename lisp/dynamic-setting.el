@@ -42,45 +42,28 @@ If DISPLAY-OR-FRAME is a frame, the display is the one for that frame.
 
 If SET-FONT is non-nil, change the font for frames.  Otherwise re-apply the
 current form for the frame (i.e. hinting or somesuch changed)."
-
   (let ((new-font (and (fboundp 'font-get-system-font)
-		       (font-get-system-font))))
-    (when new-font
-      ;; Be careful here: when set-face-attribute is called for the
-      ;; :font attribute, Emacs tries to guess the best matching font
-      ;; by examining the other face attributes (Bug#2476).
-
+		       (font-get-system-font)))
+	(frame-list (frames-on-display-list display-or-frame)))
+    (when (and new-font (display-graphic-p display-or-frame))
       (clear-font-cache)
-      ;; Set for current frames. Only change font for those that have
-      ;; the old font now. If they don't have the old font, the user
-      ;; probably changed it.
-      (dolist (f (frames-on-display-list display-or-frame))
-	(if (display-graphic-p f)
-	    (let* ((frame-font
-		    (or (font-get (face-attribute 'default :font f
-						  'default) :user-spec)
-			(frame-parameter f 'font-parameter)))
-		   (font-to-set
-		    (if set-font new-font
-		      ;; else set font again, hinting etc. may have changed.
-		      frame-font)))
-	      (if font-to-set
-		  (progn
-		    (set-frame-parameter f 'font-parameter font-to-set)
-		    (set-face-attribute 'default f
-					:width 'normal
-					:weight 'normal
-					:slant 'normal
-					:font font-to-set))))))
-
-      ;; Set for future frames.
-      (when set-font
-	;; FIXME: this is not going to play well with Custom themes.
-	(set-face-attribute 'default t :font new-font)
-	(let ((spec (list (list t (face-attr-construct 'default)))))
-	  (put 'default 'customized-face spec)
-	  (custom-push-theme 'theme-face 'default 'user 'set spec)
-	  (put 'default 'face-modified nil))))))
+      (if set-font
+	  ;; Set the font on all current and future frames, as though
+	  ;; the `default' face had been "set for this session":
+	  (set-frame-font new-font nil frame-list)
+	;; Just redraw the existing fonts on all frames:
+	(dolist (f frame-list)
+	  (let ((frame-font
+		 (or (font-get (face-attribute 'default :font f 'default)
+			       :user-spec)
+		     (frame-parameter f 'font-parameter))))
+	    (when frame-font
+	      (set-frame-parameter f 'font-parameter frame-font)
+	      (set-face-attribute 'default f
+				  :width 'normal
+				  :weight 'normal
+				  :slant 'normal
+				  :font frame-font))))))))
 
 (defun dynamic-setting-handle-config-changed-event (event)
   "Handle config-changed-event on the display in EVENT.

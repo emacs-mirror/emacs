@@ -72,7 +72,7 @@ Split the selected window into two windows, one above the other
 Split the selected window into two windows, positioned side by side
 (@code{split-window-right}).
 @item C-Mouse-2
-In the mode line or scroll bar of a window, split that window.
+In the mode line of a window, split that window.
 @end table
 
 @kindex C-x 2
@@ -125,11 +125,14 @@ lines in every partial-width window regardless of its width.
   On text terminals, side-by-side windows are separated by a vertical
 divider which is drawn using the @code{vertical-border} face.
 
+@kindex C-Mouse-2 @r{(mode line)}
 @kindex C-Mouse-2 @r{(scroll bar)}
-  You can also split a window horizontally or vertically by clicking
-@kbd{C-Mouse-2} in the mode line or the scroll bar.  If you click on
-the mode line, that puts the vertical divider where you click; if you
-click in the scroll bar, that puts the new mode-line where you click.
+  If you click @kbd{C-Mouse-2} in the mode line of a window, that
+splits the window, putting a vertical divider where you click.
+Depending on how Emacs is compiled, you can also split a window by
+clicking @kbd{C-Mouse-2} in the scroll bar, which puts a horizontal
+divider where you click (this feature does not work when Emacs uses
+GTK+ scroll bars).
 
 @node Other Window
 @section Using Other Windows

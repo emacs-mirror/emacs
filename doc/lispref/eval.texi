@@ -39,12 +39,15 @@ interpreter.
 
 @cindex form
 @cindex expression
-  A Lisp object that is intended for evaluation is called an
-@dfn{expression} or a @dfn{form}.  The fact that forms are data
-objects and not merely text is one of the fundamental differences
-between Lisp-like languages and typical programming languages.  Any
-object can be evaluated, but in practice only numbers, symbols, lists
-and strings are evaluated very often.
+@cindex S-expression
+  A Lisp object that is intended for evaluation is called a @dfn{form}
+or @dfn{expression}@footnote{It is sometimes also referred to as an
+@dfn{S-expression} or @dfn{sexp}, but we generally do not use this
+terminology in this manual.}.  The fact that forms are data objects
+and not merely text is one of the fundamental differences between
+Lisp-like languages and typical programming languages.  Any object can
+be evaluated, but in practice only numbers, symbols, lists and strings
+are evaluated very often.
 
   In subsequent sections, we will describe the details of what
 evaluation means for each kind of form.
@@ -96,12 +99,12 @@ interpretation.  @xref{Command Loop}.
 @node Forms
 @section Kinds of Forms
 
-  A Lisp object that is intended to be evaluated is called a @dfn{form}.
-How Emacs evaluates a form depends on its data type.  Emacs has three
-different kinds of form that are evaluated differently: symbols, lists,
-and ``all other types.''  This section describes all three kinds, one by
-one, starting with the ``all other types'' which are self-evaluating
-forms.
+  A Lisp object that is intended to be evaluated is called a
+@dfn{form} (or an @dfn{expression}).  How Emacs evaluates a form
+depends on its data type.  Emacs has three different kinds of form
+that are evaluated differently: symbols, lists, and ``all other
+types.''  This section describes all three kinds, one by one, starting
+with the ``all other types'' which are self-evaluating forms.
 
 @menu
 * Self-Evaluating Forms::   Forms that evaluate to themselves.

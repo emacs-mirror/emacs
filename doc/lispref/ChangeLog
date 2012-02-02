@@ -1,3 +1,38 @@
+2012-02-02  Glenn Morris  <rgm@gnu.org>
+
+	* processes.texi (Synchronous Processes):
+	Mention call-process's :file gets overwritten.
+
+	* commands.texi (Reading One Event):
+	* help.texi (Help Functions): Document read-char-choice.
+
+	* hooks.texi (Standard Hooks):
+	* modes.texi (Keymaps and Minor Modes):
+	* text.texi (Commands for Insertion): Document post-self-insert-hook.
+
+	* hooks.texi (Standard Hooks): Add prog-mode-hook.
+
+	* hooks.texi (Standard Hooks):
+	* modes.texi (Major Mode Conventions, Mode Hooks):
+	Document change-major-mode-after-body-hook.
+
+2012-02-01  Glenn Morris  <rgm@gnu.org>
+
+	* modes.texi (Defining Minor Modes):
+	Mention disabling global minor modes on a per-major-mode basis.
+
+2012-01-31  Chong Yidong  <cyd@gnu.org>
+
+	* syntax.texi (Parsing Expressions): Clarify intro (Bug#10657).
+	(Parser State): Remove unnecessary statement (Bug#10661).
+
+	* eval.texi (Intro Eval): Add footnote about "sexp" terminology.
+
+2012-01-31  Glenn Morris  <rgm@gnu.org>
+
+	* modes.texi (Defining Minor Modes):
+	Document define-minor-mode's new :variable keyword.
+
 2012-01-29  Chong Yidong  <cyd@gnu.org>
 
 	* syntax.texi (Syntax Class Table): Tweak description of newline
