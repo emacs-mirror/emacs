@@ -295,6 +295,9 @@ Manual}.
 @item post-command-hook
 @xref{Command Overview}.
 
+@item post-self-insert-hook
+@xref{Keymaps and Minor Modes}.
+
 @item pre-command-hook
 @xref{Command Overview}.
 

@@ -1271,6 +1271,7 @@ syntax-propertize-via-font-lock to reuse old font-lock-syntactic-keywords
 as-is; and syntax-propertize-rules which provides a new way to specify
 syntactic rules.
 
++++
 ** New hook post-self-insert-hook run at the end of self-insert-command.
 
 +++

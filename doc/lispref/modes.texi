@@ -1341,11 +1341,12 @@ alist @code{minor-mode-map-alist}.  @xref{Definition of minor-mode-map-alist}.
 @cindex @code{self-insert-command}, minor modes
   One use of minor mode keymaps is to modify the behavior of certain
 self-inserting characters so that they do something else as well as
-self-insert.  In general, this is the only way to do that, since the
-facilities for customizing @code{self-insert-command} are limited to
-special cases (designed for abbrevs and Auto Fill mode).  (Do not try
-substituting your own definition of @code{self-insert-command} for the
-standard one.  The editor command loop handles this function specially.)
+self-insert.  (Another way to customize @code{self-insert-command} is
+through @code{post-self-insert-hook}.  Apart from this, the facilities
+for customizing @code{self-insert-command} are limited to special cases,
+designed for abbrevs and Auto Fill mode.  Do not try substituting your
+own definition of @code{self-insert-command} for the standard one.  The
+editor command loop handles this function specially.)
 
 The key sequences bound in a minor mode should consist of @kbd{C-c}
 followed by one of @kbd{.,/?`'"[]\|~!#$%^&*()-_+=}.  (The other

@@ -1,6 +1,12 @@
 2012-02-02  Glenn Morris  <rgm@gnu.org>
 
 	* hooks.texi (Standard Hooks):
+	* modes.texi (Keymaps and Minor Modes):
+	* text.texi (Commands for Insertion): Document post-self-insert-hook.
+
+	* hooks.texi (Standard Hooks): Add prog-mode-hook.
+
+	* hooks.texi (Standard Hooks):
 	* modes.texi (Major Mode Conventions, Mode Hooks):
 	Document change-major-mode-after-body-hook.
 
@@ -17,8 +23,6 @@
 	* eval.texi (Intro Eval): Add footnote about "sexp" terminology.
 
 2012-01-31  Glenn Morris  <rgm@gnu.org>
-
-	* hooks.texi (Standard Hooks): Add prog-mode-hook.
 
 	* modes.texi (Defining Minor Modes):
 	Document define-minor-mode's new :variable keyword.
