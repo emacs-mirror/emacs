@@ -1,3 +1,11 @@
+2012-02-02  Glenn Morris  <rgm@gnu.org>
+
+	* nsterm.m (syms_of_nsterm) <x-toolkit-scroll-bars>:
+	Unconditionally set to t.  (Bug#10673)
+	* nsterm.m (syms_of_nsterm) <x-toolkit-scroll-bars>:
+	* w32term.c (syms_of_w32term) <x-toolkit-scroll-bars>:
+	* xterm.c (syms_of_xterm) <x-toolkit-scroll-bars>: Doc fix.
+
 2012-02-02  Kenichi Handa  <handa@m17n.org>
 
 	* xdisp.c (BUILD_COMPOSITE_GLYPH_STRING): Initialize first_s to
