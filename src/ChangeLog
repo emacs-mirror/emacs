@@ -1,5 +1,7 @@
 2012-02-02  Glenn Morris  <rgm@gnu.org>
 
+	* callproc.c (Fcall_process, Fcall_process_region): Doc fix.
+
 	* nsterm.m (syms_of_nsterm) <x-toolkit-scroll-bars>:
 	Unconditionally set to t.  (Bug#10673)
 	* nsterm.m (syms_of_nsterm) <x-toolkit-scroll-bars>:

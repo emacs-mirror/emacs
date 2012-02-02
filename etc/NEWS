@@ -1240,8 +1240,9 @@ set of "wrapping" filters, similar to around advice.
 ** `server-eval-at' is provided to allow evaluating forms on different
 Emacs server instances.
 
-** `call-process' allows a `(:file "file")' spec to redirect STDOUT to
-a file.
++++
+** `call-process' and `call-process-region' allow a `(:file "file")' spec
+to redirect STDOUT to a file.
 
 ---
 ** Variable `stack-trace-on-error' removed.
