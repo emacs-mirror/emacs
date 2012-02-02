@@ -164,7 +164,8 @@ The remaining arguments are optional.
 The program's input comes from file INFILE (nil means `/dev/null').
 Insert output in BUFFER before point; t means current buffer; nil for BUFFER
  means discard it; 0 means discard and don't wait; and `(:file FILE)', where
- FILE is a file name string, means that it should be written to that file.
+ FILE is a file name string, means that it should be written to that file
+ \(if the file already exists it is overwritten).
 BUFFER can also have the form (REAL-BUFFER STDERR-FILE); in that case,
 REAL-BUFFER says what to do with standard output, as above,
 while STDERR-FILE says what to do with standard error in the child.
@@ -940,7 +941,7 @@ Delete the text if fourth arg DELETE is non-nil.
 Insert output in BUFFER before point; t means current buffer; nil for
  BUFFER means discard it; 0 means discard and don't wait; and `(:file
  FILE)', where FILE is a file name string, means that it should be
- written to that file.
+ written to that file (if the file already exists it is overwritten).
 BUFFER can also have the form (REAL-BUFFER STDERR-FILE); in that case,
 REAL-BUFFER says what to do with standard output, as above,
 while STDERR-FILE says what to do with standard error in the child.

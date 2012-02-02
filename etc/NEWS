@@ -1237,11 +1237,13 @@ passing the hook functions as arguments to a "wrapping" function.
 *** New macro `with-wrapper-hook' for running an abnormal hook as a
 set of "wrapping" filters, similar to around advice.
 
-** `server-eval-at' is provided to allow evaluating forms on different
-Emacs server instances.
++++
+** The new function `server-eval-at' allows evaluation of Lisp forms on
+named Emacs server instances, using TCP sockets.
 
-** `call-process' allows a `(:file "file")' spec to redirect STDOUT to
-a file.
++++
+** `call-process' and `call-process-region' allow a `(:file "file")' spec
+to redirect STDOUT to a file.
 
 ---
 ** Variable `stack-trace-on-error' removed.
@@ -1253,6 +1255,7 @@ jumping all the way to the top-level.
 ** The function format-time-string now supports the %N directive, for
 higher-resolution time stamps.
 
++++
 ** New function `read-char-choice' reads a restricted set of characters,
 discarding any inputs not inside the set.
 
@@ -1271,6 +1274,7 @@ syntax-propertize-via-font-lock to reuse old font-lock-syntactic-keywords
 as-is; and syntax-propertize-rules which provides a new way to specify
 syntactic rules.
 
++++
 ** New hook post-self-insert-hook run at the end of self-insert-command.
 
 +++
@@ -1283,10 +1287,12 @@ syntactic rules.
 *** `prog-mode' is a new major mode from which programming modes
 should be derived.
 
++++
 **** `prog-mode-hook' can be used to enable features for programming
 modes, e.g. (add-hook 'prog-mode-hook 'flyspell-prog-mode) to enable
 on-the-fly spell checking for comments and strings.
 
++++
 *** New hook `change-major-mode-after-body-hook', run by
 `run-mode-hooks' just before any other mode hooks.
 

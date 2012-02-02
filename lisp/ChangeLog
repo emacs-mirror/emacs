@@ -1,3 +1,15 @@
+2012-02-02  Glenn Morris  <rgm@gnu.org>
+
+	* server.el (server-auth-dir): Doc fix.
+	(server-eval-at): Doc fix.  Give an explicit error if !server-use-tcp.
+
+	* subr.el (run-mode-hooks): Doc fix.
+
+2012-02-02  Juri Linkov  <juri@jurta.org>
+
+	* image-mode.el (image-toggle-display-image): Remove tautological
+	`major-mode' from the `derived-mode-p' test.
+
 2012-02-02  Kenichi Handa  <handa@m17n.org>
 
 	* (compose-region): Cancel previous change.

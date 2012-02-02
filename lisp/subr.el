@@ -1539,10 +1539,12 @@ if it is empty or a duplicate."
 
 (defun run-mode-hooks (&rest hooks)
   "Run mode hooks `delayed-mode-hooks' and HOOKS, or delay HOOKS.
-Execution is delayed if the variable `delay-mode-hooks' is non-nil.
-Otherwise, runs the mode hooks and then `after-change-major-mode-hook'.
-Major mode functions should use this instead of `run-hooks' when running their
-FOO-mode-hook."
+If the variable `delay-mode-hooks' is non-nil, does not run any hooks,
+just adds the HOOKS to the list `delayed-mode-hooks'.
+Otherwise, runs hooks in the sequence: `change-major-mode-after-body-hook',
+`delayed-mode-hooks' (in reverse order), HOOKS, and finally
+`after-change-major-mode-hook'.  Major mode functions should use
+this instead of `run-hooks' when running their FOO-mode-hook."
   (if delay-mode-hooks
       ;; Delaying case.
       (dolist (hook hooks)

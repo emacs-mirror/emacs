@@ -1,3 +1,8 @@
+2012-02-02  Glenn Morris  <rgm@gnu.org>
+
+	* configure.in [HAVE_NS]:
+	Error if use --without-toolkit-scroll-bars.  (Bug#10673)
+
 2012-02-01  Paul Eggert  <eggert@cs.ucla.edu>
 
 	Port to older Solaris 10 versions (Bug#10677).
