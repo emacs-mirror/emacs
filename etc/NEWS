@@ -1237,8 +1237,9 @@ passing the hook functions as arguments to a "wrapping" function.
 *** New macro `with-wrapper-hook' for running an abnormal hook as a
 set of "wrapping" filters, similar to around advice.
 
-** `server-eval-at' is provided to allow evaluating forms on different
-Emacs server instances.
++++
+** The new function `server-eval-at' allows evaluation of Lisp forms on
+named Emacs server instances, using TCP sockets.
 
 +++
 ** `call-process' and `call-process-region' allow a `(:file "file")' spec

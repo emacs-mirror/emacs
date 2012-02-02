@@ -126,6 +126,8 @@ port number."
 
 (defcustom server-auth-dir (locate-user-emacs-file "server/")
   "Directory for server authentication files.
+We only use this if `server-use-tcp' is non-nil.
+Otherwise we use `server-socket-dir'.
 
 NOTE: On FAT32 filesystems, directories are not secure;
 files can be read and modified by any user or process.
@@ -1525,7 +1527,14 @@ only these files will be asked to be saved."
   nil)
 
 (defun server-eval-at (server form)
-  "Eval FORM on Emacs Server SERVER."
+  "Contact the Emacs server named SERVER and evaluate FORM there.
+Returns the result of the evaluation, or signals an error if it
+cannot contact the specified server.  For example:
+  \(server-eval-at \"server\" '(emacs-pid))
+returns the process ID of the Emacs instance running \"server\".
+This function requires the use of TCP sockets. "
+  (or server-use-tcp
+      (error "This function requires TCP sockets"))
   (let ((auth-file (expand-file-name server server-auth-dir))
 	(coding-system-for-read 'binary)
 	(coding-system-for-write 'binary)
