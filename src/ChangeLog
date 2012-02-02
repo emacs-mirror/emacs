@@ -1,5 +1,10 @@
 2012-02-02  Kenichi Handa  <handa@m17n.org>
 
+	(x_produce_glyphs): Cancel previous change.  If cmp->glyph_len is
+	0, do not call append_composite_glyph.
+
+2012-02-02  Kenichi Handa  <handa@m17n.org>
+
 	* xdisp.c (BUILD_COMPOSITE_GLYPH_STRING): Initialize first_s to
 	NULL (Bug#6988).
 	(x_produce_glyphs): If the component of a composition is a null

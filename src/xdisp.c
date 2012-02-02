@@ -24595,10 +24595,6 @@ x_produce_glyphs (struct it *it)
 	it->glyph_row->contains_overlapping_glyphs_p = 1;
 
       it->pixel_width = cmp->pixel_width;
-      if (it->pixel_width == 0)
-	/* We assure that all visible glyphs have at least 1-pixel
-	   width.  */
-	it->pixel_width = 1;
       it->ascent = it->phys_ascent = cmp->ascent;
       it->descent = it->phys_descent = cmp->descent;
       if (face->box != FACE_NO_BOX)
@@ -24630,7 +24626,7 @@ x_produce_glyphs (struct it *it)
       if (it->descent < 0)
 	it->descent = 0;
 
-      if (it->glyph_row)
+      if (it->glyph_row && cmp->glyph_len > 0)
 	append_composite_glyph (it);
     }
   else if (it->what == IT_COMPOSITION)
