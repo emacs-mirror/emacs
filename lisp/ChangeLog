@@ -12,6 +12,10 @@
 
 2012-02-02  Kenichi Handa  <handa@m17n.org>
 
+	* (compose-region): Cancel previous change.
+
+2012-02-02  Kenichi Handa  <handa@m17n.org>
+
 	* composite.el (compose-region, compose-string): Signal error for
 	a null string component (Bug#6988).
 

@@ -211,7 +211,7 @@ or a vector or list of integers and rules.
 If it is a character, it is an alternate character to display instead
 of the text in the region.
 
-If it is a string, the elements are one or more alternate characters.  In
+If it is a string, the elements are alternate characters.  In
 this case, TAB element has a special meaning.  If the first
 character is TAB, the glyphs are displayed with left padding space
 so that no pixel overlaps with the previous column.  If the last
@@ -234,9 +234,7 @@ text in the composition."
   (let ((modified-p (buffer-modified-p))
 	(inhibit-read-only t))
     (if (or (vectorp components) (listp components))
-	(setq components (encode-composition-components components))
-      (if (= (length components) 0)
-	  (error "Invalid composition component: %s" components)))
+	(setq components (encode-composition-components components)))
     (compose-region-internal start end components modification-func)
     (restore-buffer-modified-p modified-p)))
 
@@ -269,9 +267,7 @@ Optional 5th argument MODIFICATION-FUNC is a function to call to
 adjust the composition when it gets invalid because of a change of
 text in the composition."
   (if (or (vectorp components) (listp components))
-      (setq components (encode-composition-components components))
-    (if (= (length components) 0)
-	(error "Invalid composition component: %s" components)))
+      (setq components (encode-composition-components components)))
   (or start (setq start 0))
   (or end (setq end (length string)))
   (compose-string-internal string start end components modification-func)
