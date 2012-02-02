@@ -298,6 +298,9 @@ Manual}.
 @item pre-command-hook
 @xref{Command Overview}.
 
+@item prog-mode-hook
+@xref{Basic Major Modes}.
+
 @item resume-tty-functions
 @xref{Suspending Emacs}.
 

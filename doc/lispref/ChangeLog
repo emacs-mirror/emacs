@@ -18,6 +18,8 @@
 
 2012-01-31  Glenn Morris  <rgm@gnu.org>
 
+	* hooks.texi (Standard Hooks): Add prog-mode-hook.
+
 	* modes.texi (Defining Minor Modes):
 	Document define-minor-mode's new :variable keyword.
 
