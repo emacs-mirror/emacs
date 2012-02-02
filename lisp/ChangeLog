@@ -1,3 +1,8 @@
+2012-02-02  Kenichi Handa  <handa@m17n.org>
+
+	* composite.el (compose-region, compose-string): Signal error for
+	a null string component (Bug#6988).
+
 2012-02-01  Chong Yidong  <cyd@gnu.org>
 
 	* view.el (view-buffer-other-window, view-buffer-other-frame):
