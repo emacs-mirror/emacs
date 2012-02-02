@@ -1,3 +1,10 @@
+2012-02-01  Kenichi Handa  <handa@m17n.org>
+
+	* xdisp.c (BUILD_COMPOSITE_GLYPH_STRING): Initialize first_s to
+	NULL (Bug#6988).
+	(x_produce_glyphs): If the component of a composition is a null
+	string, set it->pixel_width to 1 to avoid zero-width glyph.
+
 2012-01-31  Glenn Morris  <rgm@gnu.org>
 
 	* nsterm.m (syms_of_nsterm) <x-toolkit-scroll-bars>:

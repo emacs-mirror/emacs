@@ -22738,7 +22738,7 @@ compute_overhangs_and_x (struct glyph_string *s, int x, int backward_p)
     ptrdiff_t cmp_id = (row)->glyphs[area][START].u.cmp.id;		    \
     struct composition *cmp = composition_table[cmp_id];		    \
     XChar2b *char2b;							    \
-    struct glyph_string *first_s IF_LINT (= NULL);			    \
+    struct glyph_string *first_s = NULL;				    \
     int n;								    \
     									    \
     char2b = (XChar2b *) alloca ((sizeof *char2b) * cmp->glyph_len);	    \
@@ -24400,7 +24400,7 @@ x_produce_glyphs (struct it *it)
 	  /* Initialize the bounding box.  */
 	  if (pcm)
 	    {
-	      width = pcm->width;
+	      width = cmp->glyph_len > 0 ? pcm->width : 0;
 	      ascent = pcm->ascent;
 	      descent = pcm->descent;
 	      lbearing = pcm->lbearing;
@@ -24408,7 +24408,7 @@ x_produce_glyphs (struct it *it)
 	    }
 	  else
 	    {
-	      width = font->space_width;
+	      width = cmp->glyph_len > 0 ? font->space_width : 0;
 	      ascent = FONT_BASE (font);
 	      descent = FONT_DESCENT (font);
 	      lbearing = 0;
@@ -24595,6 +24595,10 @@ x_produce_glyphs (struct it *it)
 	it->glyph_row->contains_overlapping_glyphs_p = 1;
 
       it->pixel_width = cmp->pixel_width;
+      if (it->pixel_width == 0)
+	/* We assure that all visible glyphs have at least 1-pixel
+	   width.  */
+	it->pixel_width = 1;
       it->ascent = it->phys_ascent = cmp->ascent;
       it->descent = it->phys_descent = cmp->descent;
       if (face->box != FACE_NO_BOX)

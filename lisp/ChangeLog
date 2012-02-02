@@ -1,3 +1,8 @@
+2012-02-01  Kenichi Handa  <handa@m17n.org>
+
+	* composite.el (compose-region, compose-string): Signal error for
+	a null string component (Bug#6988).
+
 2012-01-31  Chong Yidong  <cyd@gnu.org>
 
 	* frame.el (set-frame-font): New arg ALL-FRAMES.
