@@ -1,5 +1,8 @@
 2012-02-02  Lars Ingebrigtsen  <larsi@gnus.org>
 
+	* gnus-group.el (gnus-group-read-ephemeral-group): Don't add a new
+	address parameter if one already exists (bug#9676).
+
 	* gnus-msg.el (gnus-summary-mail-forward): Respect the process marks,
 	not the prefix, as documented (bug#10689).
 
