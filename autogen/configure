@@ -9838,6 +9838,10 @@ ns_frag=/dev/null
 NS_OBJ=
 NS_OBJC_OBJ=
 if test "${HAVE_NS}" = yes; then
+  if test "$with_toolkit_scroll_bars" = "no"; then
+    as_fn_error "Native scroll bars are not implemented for Nextstep." "$LINENO" 5
+  fi
+
   window_system=nextstep
   with_xft=no
   # set up packaging dirs
