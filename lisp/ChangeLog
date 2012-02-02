@@ -1,3 +1,7 @@
+2012-02-02  Glenn Morris  <rgm@gnu.org>
+
+	* subr.el (run-mode-hooks): Doc fix.
+
 2012-02-02  Juri Linkov  <juri@jurta.org>
 
 	* image-mode.el (image-toggle-display-image): Remove tautological

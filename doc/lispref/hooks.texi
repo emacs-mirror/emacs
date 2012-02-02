@@ -127,6 +127,9 @@ not exactly a hook, but does a similar job.
 @xref{Calendar Customizing,,, emacs}.
 @end ifnottex
 
+@item change-major-mode-after-body-hook
+@xref{Mode Hooks}.
+
 @item change-major-mode-hook
 @xref{Creating Buffer-Local}.
 

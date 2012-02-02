@@ -1287,6 +1287,7 @@ should be derived.
 modes, e.g. (add-hook 'prog-mode-hook 'flyspell-prog-mode) to enable
 on-the-fly spell checking for comments and strings.
 
++++
 *** New hook `change-major-mode-after-body-hook', run by
 `run-mode-hooks' just before any other mode hooks.
 

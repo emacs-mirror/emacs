@@ -1,3 +1,9 @@
+2012-02-02  Glenn Morris  <rgm@gnu.org>
+
+	* hooks.texi (Standard Hooks):
+	* modes.texi (Major Mode Conventions, Mode Hooks):
+	Document change-major-mode-after-body-hook.
+
 2012-02-01  Glenn Morris  <rgm@gnu.org>
 
 	* modes.texi (Defining Minor Modes):
