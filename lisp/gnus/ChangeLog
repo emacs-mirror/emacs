@@ -1,5 +1,8 @@
 2012-02-02  Lars Ingebrigtsen  <larsi@gnus.org>
 
+	* nnimap.el (nnimap-retrieve-group-data-early): Don't say we're doing
+	an initial sync unless we're really doing one.
+
 	* gnus-group.el (gnus-group-read-ephemeral-group): Don't add a new
 	address parameter if one already exists (bug#9676).
 
