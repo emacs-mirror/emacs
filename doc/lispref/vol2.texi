@@ -1371,6 +1371,7 @@ Images
 * Defining Images::         Convenient ways to define an image for later use.
 * Showing Images::          Convenient ways to display an image once
                               it is defined.
+* Animated Images::         Some image formats can be animated.
 * Image Cache::             Internal mechanisms of image display.
 
 Buttons

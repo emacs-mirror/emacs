@@ -1,3 +1,10 @@
+2012-02-03  Glenn Morris  <rgm@gnu.org>
+
+	* image.el (image-animated-p): Doc fix.  Use image-animated-types.
+	(image-animate-timeout): Doc fix.
+
+	* image-mode.el (image-animate-loop, image-toggle-animation): Doc fixes.
+
 2012-02-02  Glenn Morris  <rgm@gnu.org>
 
 	* server.el (server-auth-dir): Doc fix.

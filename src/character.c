@@ -311,10 +311,10 @@ If the multibyte character does not represent a byte, return -1.  */)
 
 /* Return width (columns) of C considering the buffer display table DP. */
 
-static int
+static EMACS_INT
 char_width (int c, struct Lisp_Char_Table *dp)
 {
-  int width = CHAR_WIDTH (c);
+  EMACS_INT width = CHAR_WIDTH (c);
 
   if (dp)
     {
@@ -326,7 +326,12 @@ char_width (int c, struct Lisp_Char_Table *dp)
 	  {
 	    ch = AREF (disp, i);
 	    if (CHARACTERP (ch))
-	      width += CHAR_WIDTH (XFASTINT (ch));
+	      {
+		int w = CHAR_WIDTH (XFASTINT (ch));
+		if (INT_ADD_OVERFLOW (width, w))
+		  string_overflow ();
+		width += w;
+	      }
 	  }
     }
   return width;
@@ -340,7 +345,8 @@ Tab is taken to occupy `tab-width' columns.
 usage: (char-width CHAR)  */)
   (Lisp_Object ch)
 {
-  int c, width;
+  int c;
+  EMACS_INT width;
 
   CHECK_CHARACTER (ch);
   c = XINT (ch);
@@ -367,10 +373,14 @@ c_string_width (const unsigned char *str, EMACS_INT len, int precision,
     {
       int bytes;
       int c = STRING_CHAR_AND_LENGTH (str + i_byte, bytes);
-      int thiswidth = char_width (c, dp);
+      EMACS_INT thiswidth = char_width (c, dp);
 
-      if (precision > 0
-	  && (width + thiswidth > precision))
+      if (precision <= 0)
+	{
+	  if (INT_ADD_OVERFLOW (width, thiswidth))
+	    string_overflow ();
+	}
+      else if (precision - width < thiswidth)
 	{
 	  *nchars = i;
 	  *nbytes = i_byte;

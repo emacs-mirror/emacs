@@ -4134,6 +4134,7 @@ displayed (@pxref{Display Feature Testing}).
 * Other Image Types::   Various other formats are supported.
 * Defining Images::     Convenient ways to define an image for later use.
 * Showing Images::      Convenient ways to display an image once it is defined.
+* Animated Images::     Some image formats can be animated.
 * Image Cache::         Internal mechanisms of image display.
 @end menu
 
@@ -4151,12 +4152,10 @@ names for these dynamic libraries (though it is not possible to add
 new image formats).  Note that image types @code{pbm} and @code{xbm}
 do not depend on external libraries and are always available in Emacs.
 
-  The supported image formats include XBM, XPM (this requires the
-libraries @code{libXpm} version 3.4k and @code{libz}), GIF (requiring
-@code{libungif} 4.1.0), PostScript, PBM, JPEG (requiring the
-@code{libjpeg} library version v6a), TIFF (requiring @code{libtiff}
-v3.4), PNG (requiring @code{libpng} 1.0.2), and SVG (requiring
-@code{librsvg} 2.0.0).
+  The supported image formats (and the necessary library files)
+include XBM, XPM (@code{libXpm} and @code{libz}), GIF (@code{libgif}
+or @code{libungif}), PostScript, PBM, JPEG (@code{libjpeg}), TIFF
+(@code{libtiff}), PNG (@code{libpng}), and SVG (@code{librsvg}).
 
   You specify one of these formats with an image type symbol.  The image
 type symbols are @code{xbm}, @code{xpm}, @code{gif}, @code{postscript},
@@ -4471,32 +4470,12 @@ specifies the actual color to use for displaying that name.
 
 @table @code
 @item :index @var{index}
-You can use @code{:index} to specify one image from a GIF file that
-contains more than one image.  This property specifies use of image
-number @var{index} from the file.  If the GIF file doesn't contain an
-image with index @var{index}, the image displays as a hollow box.
+You can use @code{:index} to specify image number @var{index} from a
+GIF file that contains more than one image.  If the GIF file doesn't
+contain an image with the specified index, the image displays as a
+hollow box.  GIF files with more than one image can be animated,
+@pxref{Animated Images}.
 @end table
-
-@ignore
-This could be used to implement limited support for animated GIFs.
-For example, the following function displays a multi-image GIF file
-at point-min in the current buffer, switching between sub-images
-every 0.1 seconds.
-
-(defun show-anim (file max)
-  "Display multi-image GIF file FILE which contains MAX subimages."
-  (display-anim (current-buffer) file 0 max t))
-
-(defun display-anim (buffer file idx max first-time)
-  (when (= idx max)
-    (setq idx 0))
-  (let ((img (create-image file nil :image idx)))
-    (with-current-buffer buffer
-      (goto-char (point-min))
-      (unless first-time (delete-char 1))
-      (insert-image img))
-    (run-with-timer 0.1 nil 'display-anim buffer file (1+ idx) max nil)))
-@end ignore
 
 @node TIFF Images
 @subsection TIFF Images
@@ -4506,10 +4485,10 @@ every 0.1 seconds.
 
 @table @code
 @item :index @var{index}
-You can use @code{:index} to specify one image from a TIFF file that
-contains more than one image.  This property specifies use of image
-number @var{index} from the file.  If the TIFF file doesn't contain an
-image with index @var{index}, the image displays as a hollow box.
+You can use @code{:index} to specify image number @var{index} from a
+TIFF file that contains more than one image.  If the TIFF file doesn't
+contain an image with the specified index, the image displays as a
+hollow box.
 @end table
 
 @node PostScript Images
@@ -4856,6 +4835,39 @@ first time an image is loaded.  Once an image is placed in the image
 cache, it can always be displayed, even if the value of
 @var{max-image-size} is subsequently changed (@pxref{Image Cache}).
 @end defvar
+
+@node Animated Images
+@subsection Animated Images
+
+@cindex animation
+@cindex image animation
+Some image files can contain more than one image.  This can be used to
+create animation.  Currently, Emacs only supports animated GIF files.
+The following functions related to animated images are available.
+
+@defun image-animated-p image
+This function returns non-nil if @var{image} can be animated.
+The actual return value is a cons @code{(@var{nimages} . @var{delay})}, 
+where @var{nimages} is the number of frames and @var{delay} is the
+delay in seconds between them.
+@end defun
+
+@defun image-animate image &optional index limit
+This function animates @var{image}.  The optional integer @var{index}
+specifies the frame from which to start (default 0).  The optional
+argument @var{limit} controls the length of the animation.  If omitted
+or @code{nil}, the image animates once only; if @code{t} it loops
+forever; if a number animation stops after that many seconds.
+@end defun
+
+@noindent Animation operates by means of a timer.  Note that Emacs imposes a
+minimum frame delay of 0.01 seconds.
+
+@defun image-animate-timer image
+This function returns the timer responsible for animating @var{image},
+if there is one.
+@end defun
+
 
 @node Image Cache
 @subsection Image Cache

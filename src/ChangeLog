@@ -1,3 +1,12 @@
+2012-02-03  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Handle overflow when computing char display width (Bug#9496).
+	* character.c (char_width): Return EMACS_INT, not int.
+	(char_width, c_string_width): Check for overflow when
+	computing the width; this is possible now that individual
+	characters can have unbounded width.  Problem introduced
+	by merge from Emacs 23 on 2012-01-19.
+
 2012-02-02  Michael Albinus  <michael.albinus@gmx.de>
 
 	* dbusbind.c (Fdbus_register_method): Mention the return value

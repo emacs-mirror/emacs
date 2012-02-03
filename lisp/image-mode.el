@@ -557,13 +557,15 @@ the image by calling `image-mode'."
 ;;; Animated images
 
 (defcustom image-animate-loop nil
-  "Whether to play animated images on a loop in Image mode."
+  "Non-nil means animated images loop forever, rather than playing once."
   :type 'boolean
   :version "24.1"
   :group 'image)
 
 (defun image-toggle-animation ()
-  "Start or stop animating the current image."
+  "Start or stop animating the current image.
+If `image-animate-loop' is non-nil, animation loops forever.
+Otherwise it plays once, then stops."
   (interactive)
   (let ((image (image-get-display-property))
 	animation)

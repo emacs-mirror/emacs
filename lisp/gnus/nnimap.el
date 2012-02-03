@@ -1244,12 +1244,7 @@ textual parts.")
 		     'qresync
 		     nil group 'qresync)
 	       sequences)
-	    (let ((start
-		   (if (and active uidvalidity)
-		       ;; Fetch the last 100 flags.
-		       (max 1 (- (cdr active) 100))
-		     1))
-		  (command
+	    (let ((command
 		   (if uidvalidity
 		       "EXAMINE"
 		     ;; If we don't have a UIDVALIDITY, then this is
@@ -1257,9 +1252,14 @@ textual parts.")
 		     ;; have to do a SELECT (which is slower than an
 		     ;; examine), but will tell us whether the group
 		     ;; is read-only or not.
-		     "SELECT")))
-	      (setf (nnimap-initial-resync nnimap-object)
-		    (1+ (nnimap-initial-resync nnimap-object)))
+		     "SELECT"))
+		  start)
+	      (if (and active uidvalidity)
+		  ;; Fetch the last 100 flags.
+		  (setq start (max 1 (- (cdr active) 100)))
+		(setf (nnimap-initial-resync nnimap-object)
+		      (1+ (nnimap-initial-resync nnimap-object)))
+		(setq start 1))
 	      (push (list (nnimap-send-command "%s %S" command
 					       (utf7-encode group t))
 			  (nnimap-send-command "UID FETCH %d:* FLAGS" start)
