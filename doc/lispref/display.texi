@@ -4469,10 +4469,10 @@ specifies the actual color to use for displaying that name.
 
 @table @code
 @item :index @var{index}
-You can use @code{:index} to specify one image from a GIF file that
-contains more than one image.  This property specifies use of image
-number @var{index} from the file.  If the GIF file doesn't contain an
-image with index @var{index}, the image displays as a hollow box.
+You can use @code{:index} to specify image number @var{index} from a
+GIF file that contains more than one image.  If the GIF file doesn't
+contain an image with the specified index, the image displays as a
+hollow box.
 @end table
 
 @ignore
@@ -4504,10 +4504,10 @@ every 0.1 seconds.
 
 @table @code
 @item :index @var{index}
-You can use @code{:index} to specify one image from a TIFF file that
-contains more than one image.  This property specifies use of image
-number @var{index} from the file.  If the TIFF file doesn't contain an
-image with index @var{index}, the image displays as a hollow box.
+You can use @code{:index} to specify image number @var{index} from a
+TIFF file that contains more than one image.  If the TIFF file doesn't
+contain an image with the specified index, the image displays as a
+hollow box.
 @end table
 
 @node PostScript Images
