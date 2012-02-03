@@ -1,5 +1,12 @@
 2012-02-03  Glenn Morris  <rgm@gnu.org>
 
+	* display.texi (GIF Images): Mention animation.
+	Remove commented-out old example of animation.
+	(Animated Images): New subsection.
+	* elisp.texi (Top):
+	* vol1.texi (Top):
+	* vol2.texi (Top): Add Animated Images menu entry.
+
 	* display.texi (Image Formats): Remove oddly specific information
 	on versions of image libraries.
 	(GIF Images, TIFF Images): Minor rephrasing.

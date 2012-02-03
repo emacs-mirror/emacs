@@ -1323,12 +1323,16 @@ i.e. via menu entries of the form `(menu-item "--")'.
 
 ** Image API
 
++++
 *** Animated images support (currently animated gifs only).
 
++++
 **** `image-animated-p' returns non-nil if an image can be animated.
 
++++
 **** `image-animate' animates a supplied image spec.
 
++++
 **** `image-animate-timer' returns the timer object for an image that
 is being animated.
 
