@@ -1259,6 +1259,7 @@ higher-resolution time stamps.
 ** New function `read-char-choice' reads a restricted set of characters,
 discarding any inputs not inside the set.
 
++++
 ** `image-library-alist' is renamed to `dynamic-library-alist'.
 The variable is now used to load all kind of supported dynamic libraries,
 not just image libraries.  The previous name is still available as an
@@ -1280,6 +1281,7 @@ syntactic rules.
 +++
 ** Syntax tables support a new "comment style c" additionally to style b.
 
+---
 ** frame-local variables cannot be let-bound any more.
 
 ** Major and minor mode changes
