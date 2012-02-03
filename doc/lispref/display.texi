@@ -4151,12 +4151,10 @@ names for these dynamic libraries (though it is not possible to add
 new image formats).  Note that image types @code{pbm} and @code{xbm}
 do not depend on external libraries and are always available in Emacs.
 
-  The supported image formats include XBM, XPM (this requires the
-libraries @code{libXpm} version 3.4k and @code{libz}), GIF (requiring
-@code{libungif} 4.1.0), PostScript, PBM, JPEG (requiring the
-@code{libjpeg} library version v6a), TIFF (requiring @code{libtiff}
-v3.4), PNG (requiring @code{libpng} 1.0.2), and SVG (requiring
-@code{librsvg} 2.0.0).
+  The supported image formats (and the necessary library files)
+include XBM, XPM (@code{libXpm} and @code{libz}), GIF (@code{libgif}
+or @code{libungif}), PostScript, PBM, JPEG (@code{libjpeg}), TIFF
+(@code{libtiff}), PNG (@code{libpng}), and SVG (@code{librsvg}).
 
   You specify one of these formats with an image type symbol.  The image
 type symbols are @code{xbm}, @code{xpm}, @code{gif}, @code{postscript},
