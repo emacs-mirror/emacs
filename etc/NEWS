@@ -1310,10 +1310,13 @@ Trashing is performed if TRASH and `delete-by-moving-to-trash' are
 both non-nil.  Interactively, TRASH defaults to t, unless a prefix
 argument is supplied (see Trash changes, above).
 
+---
 ** `facemenu-read-color' is now an alias for `read-color'.
-The command `read-color' now requires a match for a color name or RGB
-triplet, instead of signaling an error if the user provides a invalid
-input.
+
++++
+** The command `read-color' now requires a match for a color name
+or RGB triplet, instead of signaling an error if the user provides
+invalid input.
 
 ** Tool-bars can display separators.
 Tool-bar separators are handled like menu separators in menu-bar maps,

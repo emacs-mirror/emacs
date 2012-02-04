@@ -1,3 +1,7 @@
+2012-02-04  Glenn Morris  <rgm@gnu.org>
+
+	* minibuf.texi (High-Level Completion): Updates for read-color.
+
 2012-02-03  Glenn Morris  <rgm@gnu.org>
 
 	* display.texi (GIF Images): Mention animation.
