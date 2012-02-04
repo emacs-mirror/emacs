@@ -1,3 +1,8 @@
+2012-02-04  Martin Rudalics  <rudalics@gmx.at>
+
+	* dispnew.c (change_frame_size_1): Calculate new_frame_total_cols
+	after rounding frame sizes.  (Bug#9723)
+
 2012-02-04  Eli Zaretskii  <eliz@gnu.org>
 
 	* keyboard.c (adjust_point_for_property): Don't position point
