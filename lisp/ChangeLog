@@ -1,5 +1,7 @@
 2012-02-04  Glenn Morris  <rgm@gnu.org>
 
+	* image.el (image-extension-data): Add obsolete alias.
+
 	* facemenu.el (list-colors-display): Doc fix (minor rephrasing).
 
 	* ido.el (ido-find-file): Doc fix (ido-toggle-vc not on any key).
