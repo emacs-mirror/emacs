@@ -1,5 +1,8 @@
 2012-02-04  Glenn Morris  <rgm@gnu.org>
 
+	* files.el (revert-buffer):
+	Doc fix (mention revert-buffer-in-progress-p).
+
 	* emacs-lisp/ert-x.el (ert-simulate-command):
 	Check deferred-action-list (which is obsolete) is bound.
 

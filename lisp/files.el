@@ -5131,6 +5131,8 @@ revert buffers without querying for confirmation.)
 Optional third argument PRESERVE-MODES non-nil means don't alter
 the files modes.  Normally we reinitialize them using `normal-mode'.
 
+This function binds `revert-buffer-in-progress-p' non-nil while it operates.
+
 If the value of `revert-buffer-function' is non-nil, it is called to
 do all the work for this command.  Otherwise, the hooks
 `before-revert-hook' and `after-revert-hook' are run at the beginning

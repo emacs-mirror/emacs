@@ -1,5 +1,7 @@
 2012-02-04  Glenn Morris  <rgm@gnu.org>
 
+	* backups.texi (Reverting): Mention revert-buffer-in-progress-p.
+
 	* debugging.texi (Error Debugging): Mention debug-on-event.
 	* commands.texi (Misc Events): Mention sigusr1,2 and debugging.
 
