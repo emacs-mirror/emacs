@@ -1,3 +1,8 @@
+2012-02-04  Andreas Schwab  <schwab@linux-m68k.org>
+
+	* .gdbinit (pp1, pv1): Remove redundant defines.
+	(pr): Use pp.
+
 2012-02-04  Chong Yidong  <cyd@gnu.org>
 
 	* nsterm.m: Declare a global (Bug#10694).
