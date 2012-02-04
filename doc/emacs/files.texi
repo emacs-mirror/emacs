@@ -1907,7 +1907,10 @@ point.  Partial Completion mode offers other features extending
 
 @findex image-mode
 @findex image-toggle-display
+@findex image-toggle-animation
 @cindex images, viewing
+@cindex image animation
+@cindex animated images
   Visiting image files automatically selects Image mode.  This major
 mode allows you to toggle between displaying the file as an image in
 the Emacs buffer, and displaying its underlying text representation,
@@ -1915,7 +1918,12 @@ using the command @kbd{C-c C-c} (@code{image-toggle-display}).  This
 works only when Emacs can display the specific image type.  If the
 displayed image is wider or taller than the frame, the usual point
 motion keys (@kbd{C-f}, @kbd{C-p}, and so forth) cause different parts
-of the image to be displayed.
+of the image to be displayed.  If the image can be animated, then
+the command @kbd{RET} (@code{image-toggle-animation}), will start (or
+stop) animating it.  Animation plays once, unless the option
+@code{image-animate-loop} is non-@code{nil}.  Currently, Emacs only
+supports animated GIF files (@pxref{Animated Images,,, elisp, The Emacs
+Lisp Reference Manual}).
 
 @findex thumbs-mode
 @findex mode, thumbs
