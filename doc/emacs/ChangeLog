@@ -1,5 +1,8 @@
 2012-02-04  Glenn Morris  <rgm@gnu.org>
 
+	* macos.texi (Customization options specific to Mac OS / GNUstep):
+	New subsection.
+
 	* display.texi (Colors): Mention list-colors-sort.
 
 	* files.texi (File Conveniences): Mention image animation.

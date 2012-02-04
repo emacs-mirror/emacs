@@ -1458,10 +1458,13 @@ and also when HOME is set to C:\ by default.
 +++
 ** New make target `dist' to create binary distribution for MS Windows.
 
-** Function `w32-default-color-map' is now obsolete.
+---
+** The Lisp function `w32-default-color-map' is now obsolete.
+(It is only used internally in the Emacs C code.)
 
-** On Nextstep/OSX, the menu bar can be hidden by customizing
-ns-auto-hide-menu-bar.
++++
+** Customize ns-auto-hide-menu-bar to have the menu-bar hidden, but
+reappear on mouse-over.  (Requires OS X 10.6 or later.)
 
 
 ----------------------------------------------------------------------
