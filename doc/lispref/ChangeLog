@@ -1,5 +1,7 @@
 2012-02-04  Glenn Morris  <rgm@gnu.org>
 
+	* modes.texi (Running Hooks): Try to clarify with-wrapper-hook.
+
 	* text.texi (Buffer Contents):
 	Update filter-buffer-substring description.
 

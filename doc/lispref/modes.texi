@@ -135,21 +135,32 @@ This macro runs the abnormal hook @code{hook} as a series of nested
 ``wrapper functions'' around the @var{body} forms.  The effect is
 similar to nested @code{around} advices (@pxref{Around-Advice}).
 
-Each hook function must accept an argument list consisting of a function
+Each hook function should accept an argument list consisting of a function
 @var{fun}, followed by the additional arguments listed in @var{args}.
-The function @var{fun} passed to the very first hook function in
-@var{hook} does the same as @var{body}, if it is called with arguments
-@var{args}.  The @var{fun} passed to each successive hook function is
+The first hook function is passed a function @var{fun} that, if it is
+called with arguments @var{args}, performs @var{body} (i.e., the default
+operation).  The @var{fun} passed to each successive hook function is
 constructed from all the preceding hook functions (and @var{body}); if
 this @var{fun} is called with arguments @var{args}, it does what the
 @code{with-wrapper-hook} call would if the preceding hook functions were
 the only ones in @var{hook}.
 
-In the function definition of the hook function, @var{fun} can be called
-any number of times (including not calling it at all).  This function
-definition is then used to construct the @var{fun} passed to the next
-hook function in @var{hook}, if any.  The last or ``outermost''
-@var{fun} is called once to produce the effect.
+Each hook function may call its @var{fun} argument as many times as it
+wishes, including never.  In that case, such a hook function acts to
+replace the default definition altogether, and any preceding hook
+functions.  Of course, a subsequent hook function may do the same thing.
+
+Each hook function definition is used to construct the @var{fun} passed
+to the next hook function in @var{hook}, if any.  The last or
+``outermost'' @var{fun} is called once to produce the overall effect.
+
+When might you want to use a wrapper hook?  The function
+@code{filter-buffer-substring} illustrates a common case.  There is a
+basic functionality, performed by @var{body}---in this case, to extract
+a buffer-substring.  Then any number of hook functions can act in
+sequence to modify that string, before returning the final result.
+A wrapper-hook also allows for a hook function to completely replace the
+default definition (by not calling @var{fun}).
 @end defmac
 
 @node Setting Hooks

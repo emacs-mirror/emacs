@@ -1373,16 +1373,19 @@ around the preceding ones, like a set of nested `around' advices.
 Each hook function should accept an argument list consisting of a
 function FUN, followed by the additional arguments in ARGS.
 
-The FUN passed to the first hook function in HOOK performs BODY,
-if it is called with arguments ARGS.  The FUN passed to each
-successive hook function is defined based on the preceding hook
-functions; if called with arguments ARGS, it does what the
-`with-wrapper-hook' call would do if the preceding hook functions
-were the only ones present in HOOK.
+The first hook function in HOOK is passed a FUN that, if it is called
+with arguments ARGS, performs BODY (i.e., the default operation).
+The FUN passed to each successive hook function is defined based
+on the preceding hook functions; if called with arguments ARGS,
+it does what the `with-wrapper-hook' call would do if the
+preceding hook functions were the only ones present in HOOK.
 
-In the function definition of each hook function, FUN can be
-called any number of times (including not calling it at all).
-That function definition is then used to construct the FUN passed
+Each hook function may call its FUN argument as many times as it wishes,
+including never.  In that case, such a hook function acts to replace
+the default definition altogether, and any preceding hook functions.
+Of course, a subsequent hook function may do the same thing.
+
+Each hook function definition is used to construct the FUN passed
 to the next hook function, if any.  The last (or \"outermost\")
 FUN is then called once."
   (declare (indent 2) (debug (form sexp body)))

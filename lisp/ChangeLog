@@ -1,5 +1,7 @@
 2012-02-04  Glenn Morris  <rgm@gnu.org>
 
+	* subr.el (with-wrapper-hook): Doc fixes.
+
 	* simple.el (filter-buffer-substring-functions)
 	(buffer-substring-filters, filter-buffer-substring): Doc fixes.
 
