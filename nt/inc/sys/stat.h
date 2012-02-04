@@ -97,6 +97,9 @@ struct stat {
   char		   st_gname[260];
 };
 
+/* Prevent redefinition by other headers, e.g. wchar.h.  */
+#define _STAT_DEFINED
+
 _CRTIMP int __cdecl __MINGW_NOTHROW	fstat (int, struct stat*);
 _CRTIMP int __cdecl __MINGW_NOTHROW	chmod (const char*, int);
 _CRTIMP int __cdecl __MINGW_NOTHROW	stat (const char*, struct stat*);

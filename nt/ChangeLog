@@ -1,3 +1,8 @@
+2012-02-04  Eli Zaretskii  <eliz@gnu.org>
+
+	* inc/sys/stat.h (_STAT_DEFINED): Define, to prevent redefinitions
+	by other headers.
+
 2011-11-27  Fabrice Popineau  <fabrice.popineau@supelec.fr>  (tiny change)
 
 	* inc/stdint.h (uint32_t, uint64_t) [_WIN64]: New typedefs.
