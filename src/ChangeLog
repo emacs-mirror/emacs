@@ -1,3 +1,8 @@
+2012-02-04  Eli Zaretskii  <eliz@gnu.org>
+
+	* keyboard.c (adjust_point_for_property): Don't position point
+	before BEGV.  (Bug#10696)
+
 2012-02-03  Paul Eggert  <eggert@cs.ucla.edu>
 
 	Handle overflow when computing char display width (Bug#9496).
