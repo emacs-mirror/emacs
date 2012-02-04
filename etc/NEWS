@@ -340,6 +340,7 @@ trashing.  This avoids inadvertently trashing temporary files.
 *** Calling `delete-file' or `delete-directory' with a prefix argument
 now forces true deletion, regardless of `delete-by-moving-to-trash'.
 
++++
 ** New option `list-colors-sort' defines the color sort order
 for `list-colors-display'.
 
@@ -454,10 +455,6 @@ been shown in a specific window.
 ** The inactive minibuffer has its own major mode `minibuffer-inactive-mode'.
 This is handy for minibuffer-only frames, and is also used for the "mouse-1
 pops up *Messages*" feature, which can now easily be changed.
-
----
-** `tooltip-use-echo-area' is obsolete.
-Rather than setting this to t, disable Tooltip mode instead.
 
 
 * Editing Changes in Emacs 24.1
@@ -714,26 +711,22 @@ utf-8, and do the normal `undecided' decoding for the rest.
 
 ** Eshell changes
 
-*** The default value of eshell-directory-name is a directory named
-"eshell" in `user-emacs-directory'.  If the old "~/.eshell/" directory
-exists, that is used instead.
+---
+*** The default value of `eshell-directory-name' has changed
+to be an "eshell" directory in `user-emacs-directory'.
+The old "~/.eshell/" directory is still used if it exists, though.
 
 ** gdb-mi
 +++
-*** GDB User Interface migrated to GDB Machine Interface and now
-supports multithread non-stop debugging and debugging of several
-threads simultaneously.
-
-** In ido-mode, C-v is no longer bound to ido-toggle-vc.
-The reason is that this interferes with cua-mode.
+*** The GDB User Interface has been migrated to GDB Machine Interface.
+It now supports multithread non-stop debugging and simultaneous
+debugging of several threads.
 
 ** Image mode
 
-*** RET (`image-toggle-animation') toggles animation, if the displayed
-image can be animated.
-
-*** Option `image-animate-loop', if non-nil, loops the animation.
-If nil, `image-toggle-animation' plays the animation once.
++++
+*** RET (`image-toggle-animation') toggles animation, if applicable.
+Animation plays once, unless the option `image-animate-loop' is non-nil.
 
 ** Info
 
@@ -752,8 +745,6 @@ and also because `Info-edit' is a rarely used command that is disabled
 by default.
 
 +++
-** The Landmark game is now invoked with `landmark', not `lm'.
-
 ** MH-E has been upgraded to MH-E version 8.3.1.
 See MH-E-NEWS for details.
 
@@ -925,6 +916,13 @@ You can get a comparable behavior with:
 They are superseded by shift-select-mode enabled by default in 23.1.
 
 ** Miscellaneous
+
++++
+*** The Landmark game is now invoked with `landmark', not `lm'.
+
+---
+*** In `ido-file-completion-map', C-v is no longer bound to ido-toggle-vc.
+(This interfered with cua-mode.)
 
 +++
 *** f90.el has some support for Fortran 2008 syntax.
@@ -1403,6 +1401,10 @@ an empty uninterned symbol.
 ** New math functions `isnan', `copysign', `frexp', `ldexp'.
 
 ** Obsolete functions and variables
+
+---
+*** `tooltip-use-echo-area' is obsolete.
+Rather than setting this to t, disable Tooltip mode instead.
 
 *** buffer-substring-filters is obsolete.
 Use `filter-buffer-substring-functions' instead.
