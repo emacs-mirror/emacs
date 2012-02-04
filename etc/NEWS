@@ -1234,6 +1234,8 @@ passing the hook functions as arguments to a "wrapping" function.
 +++
 *** New macro `with-wrapper-hook' for running an abnormal hook as a
 set of "wrapping" filters, similar to around advice.
+(A version of this macro was actually added in Emacs 23.2 but was not
+advertised at the time.)
 
 +++
 ** The new function `server-eval-at' allows evaluation of Lisp forms on
