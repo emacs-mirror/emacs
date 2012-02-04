@@ -1019,6 +1019,11 @@ similar to the ones created by shift-selection.  In previous Emacs
 versions, these regions were delineated by `mouse-drag-overlay', which
 has now been removed.
 
++++
+** The fourth argument of filter-buffer-substring, which says to remove
+text properties from the final result, has been removed.
+Eg simply pass the result through substring-no-properties if you need this.
+
 ---
 ** cl.el no longer provides `cl-19'.
 
@@ -1415,6 +1420,7 @@ an empty uninterned symbol.
 *** `tooltip-use-echo-area' is obsolete.
 Rather than setting this to t, disable Tooltip mode instead.
 
++++
 *** buffer-substring-filters is obsolete.
 Use `filter-buffer-substring-functions' instead.
 

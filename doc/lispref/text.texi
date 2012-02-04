@@ -218,44 +218,46 @@ This is like @code{buffer-substring}, except that it does not copy text
 properties, just the characters themselves.  @xref{Text Properties}.
 @end defun
 
-@defun filter-buffer-substring start end &optional delete noprops
+@defun filter-buffer-substring start end &optional delete
 This function passes the buffer text between @var{start} and @var{end}
-through the filter functions specified by the variable
-@code{buffer-substring-filters}, and returns the value from the last
-filter function.  If @code{buffer-substring-filters} is @code{nil},
-the value is the unaltered text from the buffer, what
-@code{buffer-substring} would return.
+through the filter functions specified by the wrapper hook
+@code{filter-buffer-substring-functions}, and returns the final
+result of applying all filters.  The obsolete variable
+@code{buffer-substring-filters} is also consulted.  If both of these
+variables are @code{nil}, the value is the unaltered text from the
+buffer, as @code{buffer-substring} would return.
 
 If @var{delete} is non-@code{nil}, this function deletes the text
 between @var{start} and @var{end} after copying it, like
 @code{delete-and-extract-region}.
-
-If @var{noprops} is non-@code{nil}, the final string returned does not
-include text properties, while the string passed through the filters
-still includes text properties from the buffer text.
 
 Lisp code should use this function instead of @code{buffer-substring},
 @code{buffer-substring-no-properties},
 or @code{delete-and-extract-region} when copying into user-accessible
 data structures such as the kill-ring, X clipboard, and registers.
 Major and minor modes can add functions to
-@code{buffer-substring-filters} to alter such text as it is copied out
-of the buffer.
+@code{filter-buffer-substring-functions} to alter such text as it is
+copied out of the buffer.
 @end defun
 
-@defvar buffer-substring-filters
-This variable should be a list of functions that accept a single
-argument, a string, and return a string.
-@code{filter-buffer-substring} passes the buffer substring to the
-first function in this list, and the return value of each function is
-passed to the next function.  The return value of the last function is
-used as the return value of @code{filter-buffer-substring}.
+@defvar filter-buffer-substring-functions
+This variable is a wrapper hook (@pxref{Running Hooks}), whose members
+should be functions that accept four arguments: @var{fun},
+@var{start}, @var{end}, and @var{delete}.  @var{fun} is a function
+that takes three arguments (@var{start}, @var{end}, and @var{delete}),
+and returns a string.  In both cases, the @var{start}, @var{end}, and
+@var{delete} arguments are the same as those of
+@code{filter-buffer-substring}.
 
-As a special convention, point is set to the start of the buffer text
-being operated on (i.e., the @var{start} argument for
-@code{filter-buffer-substring}) before these functions are called.
-
-If this variable is @code{nil}, no filtering is performed.
+The first hook function is passed a @var{fun} that is equivalent to
+the default operation of @code{filter-buffer-substring}, i.e. it
+returns the buffer-substring between @var{start} and @var{end}
+(processed by any @code{buffer-substring-filters}) and optionally
+deletes the original text from the buffer.  In most cases, the hook
+function will call @var{fun} once, and then do its own processing of
+the result.  The next hook function receives a @var{fun} equivalent to
+this, and so on.  The actual return value is the result of all the
+hook functions acting in sequence.
 @end defvar
 
 @defun buffer-string

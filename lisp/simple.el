@@ -2914,28 +2914,46 @@ These commands include \\[set-mark-command] and \\[start-kbd-macro]."
 
 
 (defvar filter-buffer-substring-functions nil
-  "Wrapper hook around `filter-buffer-substring'.
-The functions on this special hook are called with four arguments:
-  NEXT-FUN BEG END DELETE
-NEXT-FUN is a function of three arguments (BEG END DELETE)
-that performs the default operation.  The other three arguments
-are like the ones passed to `filter-buffer-substring'.")
+  "This variable is a wrapper hook around `filter-buffer-substring'.
+Each member of the hook should be a function accepting four arguments:
+\(FUN BEG END DELETE), where FUN is itself a function of three arguments
+\(BEG END DELETE).  The arguments BEG, END, and DELETE are the same
+as those of `filter-buffer-substring' in each case.
+
+The first hook function to be called receives a FUN equivalent
+to the default operation of `filter-buffer-substring',
+i.e. one that returns the buffer-substring between BEG and
+END (processed by any `buffer-substring-filters').  Normally,
+the hook function will call FUN and then do its own processing
+of the result.  The next hook function receives a FUN equivalent
+to the previous hook function, calls it, and does its own
+processing, and so on.  The overall result is that of all hook
+functions acting in sequence.
+
+Any hook may choose not to call FUN though, in which case it
+effectively replaces the default behavior with whatever it chooses.
+Of course, a later hook function may do the same thing.")
 
 (defvar buffer-substring-filters nil
   "List of filter functions for `filter-buffer-substring'.
 Each function must accept a single argument, a string, and return
 a string.  The buffer substring is passed to the first function
 in the list, and the return value of each function is passed to
-the next.  The return value of the last function is used as the
-return value of `filter-buffer-substring'.
+the next.  The final result (if `buffer-substring-filters' is
+nil, this is the unfiltered buffer-substring) is passed to the
+first function on `filter-buffer-substring-functions'.
 
-If this variable is nil, no filtering is performed.")
+As a special convention, point is set to the start of the buffer text
+being operated on (i.e., the first argument of `filter-buffer-substring')
+before these functions are called.")
 (make-obsolete-variable 'buffer-substring-filters
                         'filter-buffer-substring-functions "24.1")
 
 (defun filter-buffer-substring (beg end &optional delete)
   "Return the buffer substring between BEG and END, after filtering.
-The filtering is performed by `filter-buffer-substring-functions'.
+The wrapper hook `filter-buffer-substring-functions' performs
+the actual filtering.  The obsolete variable `buffer-substring-filters'
+is also consulted.  If both of these are nil, no filtering is done.
 
 If DELETE is non-nil, the text between BEG and END is deleted
 from the buffer.

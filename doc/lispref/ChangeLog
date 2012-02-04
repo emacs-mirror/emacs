@@ -1,3 +1,8 @@
+2012-02-04  Glenn Morris  <rgm@gnu.org>
+
+	* text.texi (Buffer Contents):
+	Update filter-buffer-substring description.
+
 2012-02-04  Chong Yidong  <cyd@gnu.org>
 
 	* functions.texi (What Is a Function): Add closures.  Mention

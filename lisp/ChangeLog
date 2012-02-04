@@ -1,3 +1,8 @@
+2012-02-04  Glenn Morris  <rgm@gnu.org>
+
+	* simple.el (filter-buffer-substring-functions)
+	(buffer-substring-filters, filter-buffer-substring): Doc fixes.
+
 2012-02-04  Lars Ljung  <lars@matholka.se>  (tiny change)
 
 	* eshell/esh-ext.el (eshell-windows-shell-file): Match "cmdproxy"
