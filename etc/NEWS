@@ -1443,15 +1443,19 @@ and also when HOME is set to C:\ by default.
 
 ** New configure.bat options
 
++++
 *** --enable-checking builds Emacs with extra runtime checks.
 
++++
 *** --distfiles specifies files to be included in binary distribution.
 
++++
 *** --without-gnutls disables automatic GnuTLS detection.
 
-*** --lib for general library linkage, works with the USER_LIBS build
-variable.
++++
+*** --lib for general library linkage, works with the USER_LIBS build variable.
 
++++
 ** New make target `dist' to create binary distribution for MS Windows.
 
 ** Function `w32-default-color-map' is now obsolete.
