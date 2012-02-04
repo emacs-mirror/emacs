@@ -9,16 +9,13 @@
 
   A @dfn{variable} is a name used in a program to stand for a value.
 In Lisp, each variable is represented by a Lisp symbol
-(@pxref{Symbols}).  The symbol's name serves as the variable name, and
-the symbol's value cell holds the variable's value@footnote{Strictly
-speaking, the symbol's value cell always holds the variable's current
-value under the default @dfn{dynamic binding} rules.  Under
-@dfn{lexical binding} rules, the value cell holds the variable's
-@dfn{global value}.  @xref{Variable Scoping}, for details.}.
-@xref{Symbol Components}.
-
-  In Emacs Lisp, the use of a symbol as a variable is independent of
-its use as a function name.
+(@pxref{Symbols}).  The variable name is simply the symbol's name, and
+the variable's value is stored in the symbol's value cell@footnote{To
+be precise, under the default @dfn{dynamic binding} rules the value
+cell always holds the variable's current value, but this is not the
+case under @dfn{lexical binding} rules.  @xref{Variable Scoping}, for
+details.}.  @xref{Symbol Components}.  In Emacs Lisp, the use of a
+symbol as a variable is independent of its use as a function name.
 
   As previously noted in this manual, a Lisp program is represented
 primarily by Lisp objects, and only secondarily as text.  The textual
@@ -151,8 +148,8 @@ does not raise an error if you actually change it.
 with new values.  Sometimes it is useful to give a variable a
 @dfn{local value}---a value that takes effect only within a certain
 part of a Lisp program.  When a variable has a local value, we say
-that it has a @dfn{local binding}, or that it is a @dfn{local
-variable}.
+that it is @dfn{locally bound} to that value, and that it is a
+@dfn{local variable}.
 
   For example, when a function is called, its argument variables
 receive local values, which are the actual arguments supplied to the
@@ -186,10 +183,10 @@ local binding.  To be more precise, a rule called the @dfn{scoping
 rule} determines where in a program a local binding takes effect.  The
 default scoping rule in Emacs Lisp is called @dfn{dynamic scoping},
 which simply states that the current binding at any given point in the
-execution of a program is the most recently-created local binding for
-that variable that still exists.  For details about dynamic scoping,
-and an alternative scoping rule called @dfn{lexical scoping},
-@xref{Variable Scoping}.
+execution of a program is the most recently-created binding for that
+variable that still exists.  For details about dynamic scoping, and an
+alternative scoping rule called @dfn{lexical scoping}, @xref{Variable
+Scoping}.
 
   The special forms @code{let} and @code{let*} exist to create local
 bindings:
@@ -294,27 +291,27 @@ has room to execute.
 @cindex @code{void-variable} error
 @cindex void variable
 
-  If you have never given a symbol any value as a global variable, we
-say that that symbol's global value is @dfn{void}.  Note that this
-does @emph{not} mean the value is @code{nil}.  The symbol @code{nil}
-is a Lisp object and can be the value of a variable, just as any other
-object can be; but it is still a value.
+  We say that a variable is void if its symbol has an unassigned value
+cell (@pxref{Symbol Components}).  Under Emacs Lisp's default dynamic
+binding rules (@pxref{Variable Scoping}), the value cell stores the
+variable's current (local or global) value.  Note that an unassigned
+value cell is @emph{not} the same as having @code{nil} in the value
+cell.  The symbol @code{nil} is a Lisp object and can be the value of
+a variable, just as any other object can be; but it is still a value.
+If a variable is void, trying to evaluate the variable signals a
+@code{void-variable} error rather than a value.
 
-  More precisely, a variable is void if its symbol has an unassigned
-value cell (@pxref{Symbol Components}).  Under Emacs Lisp's default
-dynamic binding rules, the value cell stores the variable's current
-(local or global) value; if a variable is void, trying to evaluate the
-variable signals a @code{void-variable} error rather than a value.
-But when a variable is lexically bound, it can have a local value
-which is determined by the lexical environment, even if the value cell
-is empty and the variable is technically void.  @xref{Variable
-Scoping}.
+  Under lexical binding rules, the value cell only holds the
+variable's global value, i.e.@: the value outside of any lexical
+binding contruct.  When a variable is lexically bound, the local value
+is determined by the lexical environment; the variable may have a
+local value if its symbol's value cell is unassigned.
 
 @defun makunbound symbol
 This function empties out the value cell of @var{symbol}, making the
 variable void.  It returns @var{symbol}.
 
-If @var{symbol} has a (dynamic) local binding, @code{makunbound} voids
+If @var{symbol} has a dynamic local binding, @code{makunbound} voids
 the current binding, and this voidness lasts only as long as the local
 binding is in effect.  Afterwards, the previously shadowed local or
 global binding is reexposed; then the variable will no longer be void,
@@ -615,15 +612,15 @@ name in the text of the program.  You can use the @code{symbol-value}
 function to extract the value.
 
 @defun symbol-value symbol
-This function returns the value of @var{symbol}.  This is the value in
-the symbol's value cell, which is where the variable's current
-(dynamic) value is stored.  If the variable has no local binding, this
-is simply its global value.
+This function returns the value stored in @var{symbol}'s value cell.
+This is where the variable's current (dynamic) value is stored.  If
+the variable has no local binding, this is simply its global value.
+If the variable is void, a @code{void-variable} error is signaled.
 
 If the variable is lexically bound, the value reported by
-@code{symbol-value} is the dynamic value, and not the local lexical
-value (which is determined by the lexical environment rather than the
-symbol's value cell).  @xref{Variable Scoping}.
+@code{symbol-value} is not necessarily the same as the variable's
+lexical value, which is determined by the lexical environment rather
+than the symbol's value cell.  @xref{Variable Scoping}.
 
 @example
 @group
@@ -657,9 +654,6 @@ symbol's value cell).  @xref{Variable Scoping}.
      @result{} 5
 @end group
 @end example
-
-A @code{void-variable} error is signaled if @var{symbol} is void as a
-variable.
 @end defun
 
 @node Setting Variables
@@ -945,12 +939,12 @@ construct.
 
 @example
 @group
-(defun getx ()
-  x)            ; @r{@code{x} is used ``free'' in this function.}
-
 (let ((x 1))    ; @r{@code{x} is lexically bound.}
   (+ x 3))
      @result{} 4
+
+(defun getx ()
+  x)            ; @r{@code{x} is used ``free'' in this function.}
 
 (let ((x 1))    ; @r{@code{x} is lexically bound.}
   (getx))
@@ -972,20 +966,18 @@ itself.
 within the construct and their local values.  When the Lisp evaluator
 wants the current value of a variable, it looks first in the lexical
 environment; if the variable is not specified in there, it looks in
-the symbol's value cell, where the dynamical value is stored.
+the symbol's value cell, where the dynamic value is stored.
 
 @cindex closures
   Lexical bindings have indefinite extent.  Even after a binding
 construct has finished executing, its lexical environment can be
 ``kept around'' in Lisp objects called @dfn{closures}.  A closure is
-created whenever you evaluate a lambda expression (@pxref{Lambda
-Expressions}) with lexical binding enabled.  It is represented by a
-list whose @sc{car} is the symbol @code{closure}.  It is a function,
-in the sense that it can be passed as an argument to @code{funcall};
-when called as a function, any lexical variable references within its
-definition will use the retained lexical environment.
+created when you create a named or anonymous function with lexical
+binding enabled.  @xref{Closures}, for details.
 
-  Here is an example which illustrates the use of a closure:
+  When a closure is called as a function, any lexical variable
+references within its definition use the retained lexical environment.
+Here is an example:
 
 @example
 (defvar my-ticker nil)   ; @r{We will use this dynamically bound}
@@ -1199,7 +1191,8 @@ foo @result{} 'a
 @end group
 @end example
 
-  Note that references to @code{foo} in @var{body} access the
+@noindent
+Note that references to @code{foo} in @var{body} access the
 buffer-local binding of buffer @samp{b}.
 
   When a file specifies local variable values, these become buffer-local
@@ -1642,6 +1635,11 @@ For boolean-valued variables that are safe, use @code{booleanp} as the
 property value.  Lambda expressions should be quoted so that
 @code{describe-variable} can display the predicate.
 
+  When defining a user option using @code{defcustom}, you can set its
+@code{safe-local-variable} property by adding the arguments
+@code{:safe @var{function}} to @code{defcustom} (@pxref{Variable
+Definitions}).
+
 @defopt safe-local-variable-values
 This variable provides another way to mark some variable values as
 safe.  It is a list of cons cells @code{(@var{var} . @var{val})},
@@ -1661,27 +1659,30 @@ the value @var{val}, based on the above criteria.
 @end defun
 
 @c @cindex risky local variable   Duplicates risky-local-variable
-  Some variables are considered @dfn{risky}.  A variable whose name
-ends in any of @samp{-command}, @samp{-frame-alist}, @samp{-function},
+  Some variables are considered @dfn{risky}.  If a variable is risky,
+it is never entered automatically into
+@code{safe-local-variable-values}; Emacs always queries before setting
+a risky variable, unless the user explicitly allows a value by
+customizing @code{safe-local-variable-values} directly.
+
+  Any variable whose name has a non-@code{nil}
+@code{risky-local-variable} property is considered risky.  When you
+define a user option using @code{defcustom}, you can set its
+@code{risky-local-variable} property by adding the arguments
+@code{:risky @var{value}} to @code{defcustom} (@pxref{Variable
+Definitions}).  In addition, any variable whose name ends in any of
+@samp{-command}, @samp{-frame-alist}, @samp{-function},
 @samp{-functions}, @samp{-hook}, @samp{-hooks}, @samp{-form},
 @samp{-forms}, @samp{-map}, @samp{-map-alist}, @samp{-mode-alist},
-@samp{-program}, or @samp{-predicate} is considered risky.  The
-variables @samp{font-lock-keywords}, @samp{font-lock-keywords}
-followed by a digit, and @samp{font-lock-syntactic-keywords} are also
-considered risky.  Finally, any variable whose name has a
-non-@code{nil} @code{risky-local-variable} property is considered
-risky.
+@samp{-program}, or @samp{-predicate} is automatically considered
+risky.  The variables @samp{font-lock-keywords},
+@samp{font-lock-keywords} followed by a digit, and
+@samp{font-lock-syntactic-keywords} are also considered risky.
 
 @defun risky-local-variable-p sym
 This function returns non-@code{nil} if @var{sym} is a risky variable,
 based on the above criteria.
 @end defun
-
-  If a variable is risky, it will not be entered automatically into
-@code{safe-local-variable-values} as described above.  Therefore,
-Emacs will always query before setting a risky variable, unless the
-user explicitly allows the setting by customizing
-@code{safe-local-variable-values} directly.
 
 @defvar ignored-local-variables
 This variable holds a list of variables that should not be given local

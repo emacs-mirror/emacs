@@ -1,3 +1,26 @@
+2012-02-04  Chong Yidong  <cyd@gnu.org>
+
+	* functions.texi (What Is a Function): Add closures.  Mention
+	"return value" terminology.  Add xref for command-execute.  Remove
+	unused "keystroke command" terminology.
+	(Lambda Expressions): Give a different example than in the
+	following subsection.  Add xref to Anonymous Functions.
+	(Function Documentation): Remove gratuitous markup.
+	(Function Names): Move introductory text to `What Is a Function'.
+	(Defining Functions): Fix defun argument spec.
+	(Anonymous Functions): Document lambda macro explicitly.  Mention
+	effects on lexical binding.
+	(Function Cells): Downplay direct usage of fset.
+	(Closures): New node.
+	(Inline Functions): Remove "open-code" terminology.
+	(Declaring Functions): Minor tweak; .m is not C code.
+
+	* variables.texi (Variables): Don't refer to "global value".
+	(Local Variables, Void Variables): Copyedits.
+	(Lexical Binding): Minor clarification of example.
+	(File Local Variables): Mention :safe and :risky defcustom args.
+	(Lexical Binding): Add xref to Closures node.
+
 2012-02-04  Glenn Morris  <rgm@gnu.org>
 
 	* minibuf.texi (High-Level Completion): Updates for read-color.

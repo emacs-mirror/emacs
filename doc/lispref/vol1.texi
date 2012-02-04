@@ -478,6 +478,7 @@ Functions
 * Anonymous Functions::     Lambda expressions are functions with no names.
 * Function Cells::          Accessing or setting the function definition
                               of a symbol.
+* Closures::                Functions that enclose a lexical environment.
 * Obsolete Functions::      Declaring functions obsolete.
 * Inline Functions::        Defining functions that the compiler
                               will open code.
