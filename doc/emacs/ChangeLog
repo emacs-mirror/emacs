@@ -1,5 +1,7 @@
 2012-02-04  Glenn Morris  <rgm@gnu.org>
 
+	* display.texi (Colors): Mention list-colors-sort.
+
 	* files.texi (File Conveniences): Mention image animation.
 
 2012-01-31  Chong Yidong  <cyd@gnu.org>

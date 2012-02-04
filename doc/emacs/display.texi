@@ -524,16 +524,18 @@ specify a color for a face---for instance, when customizing the face
 or an @dfn{RGB triplet}.
 
 @findex list-colors-display
+@vindex list-colors-sort
   A color name is a pre-defined name, such as @samp{dark orange} or
 @samp{medium sea green}.  To view a list of color names, type @kbd{M-x
-list-colors-display}.  If you run this command on a graphical display,
-it shows the full range of color names known to Emacs (these are the
-standard X11 color names, defined in X's @file{rgb.txt} file).  If you
-run the command on a text-only terminal, it shows only a small subset
-of colors that can be safely displayed on such terminals.  However,
-Emacs understands X11 color names even on text-only terminals; if a
-face is given a color specified by an X11 color name, it is displayed
-using the closest-matching terminal color.
+list-colors-display}.  To control the order in which colors are shown,
+customize @code{list-colors-sort}.  If you run this command on a
+graphical display, it shows the full range of color names known to Emacs
+(these are the standard X11 color names, defined in X's @file{rgb.txt}
+file).  If you run the command on a text-only terminal, it shows only a
+small subset of colors that can be safely displayed on such terminals.
+However, Emacs understands X11 color names even on text-only terminals;
+if a face is given a color specified by an X11 color name, it is
+displayed using the closest-matching terminal color.
 
   An RGB triplet is a string of the form @samp{#RRGGBB}.  Each of the
 R, G, and B components is a hexadecimal number specifying the
