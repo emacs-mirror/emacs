@@ -1337,7 +1337,9 @@ i.e. via menu entries of the form `(menu-item "--")'.
 **** `image-animate-timer' returns the timer object for an image that
 is being animated.
 
-*** `image-extension-data' is renamed to `image-metadata'.
+---
+*** `image-extension-data' has been renamed to `image-metadata'.
+The old name is an obsolete alias to the new one.
 
 *** Emacs can be compiled with ImageMagick support.
 Then the function `imagemagick-types' returns a list of image file
@@ -1367,6 +1369,7 @@ or use plain SSL, depending on your needs.  For debugging, set
 
 ** Isearch
 
+---
 *** New hook `isearch-update-post-hook' that runs in `isearch-update'.
 
 +++
@@ -1412,6 +1415,7 @@ Rather than setting this to t, disable Tooltip mode instead.
 *** buffer-substring-filters is obsolete.
 Use `filter-buffer-substring-functions' instead.
 
+---
 *** `byte-compile-disable-print-circle' is obsolete.
 
 *** `deferred-action-list' and `deferred-action-function' are obsolete.
