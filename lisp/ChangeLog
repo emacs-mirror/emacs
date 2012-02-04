@@ -1,5 +1,8 @@
 2012-02-04  Glenn Morris  <rgm@gnu.org>
 
+	* emacs-lisp/ert-x.el (ert-simulate-command):
+	Check deferred-action-list (which is obsolete) is bound.
+
 	* subr.el (with-wrapper-hook): Doc fixes.
 
 	* simple.el (filter-buffer-substring-functions)

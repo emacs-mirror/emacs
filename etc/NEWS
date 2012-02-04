@@ -1427,7 +1427,10 @@ Use `filter-buffer-substring-functions' instead.
 ---
 *** `byte-compile-disable-print-circle' is obsolete.
 
+---
 *** `deferred-action-list' and `deferred-action-function' are obsolete.
+Use `post-command-hook' instead.
+
 +++
 *** `font-lock-maximum-size' is obsolete.
 
