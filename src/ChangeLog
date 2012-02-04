@@ -1,3 +1,8 @@
+2012-02-04  Eli Zaretskii  <eliz@gnu.org>
+
+	* w32.c (get_emacs_configuration_options): Include
+	--enable-checking, if specified, in the return value.
+
 2012-02-04  Martin Rudalics  <rudalics@gmx.at>
 
 	* dispnew.c (change_frame_size_1): Calculate new_frame_total_cols
