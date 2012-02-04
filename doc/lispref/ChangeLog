@@ -1,5 +1,8 @@
 2012-02-04  Glenn Morris  <rgm@gnu.org>
 
+	* debugging.texi (Error Debugging): Mention debug-on-event.
+	* commands.texi (Misc Events): Mention sigusr1,2 and debugging.
+
 	* modes.texi (Running Hooks): Try to clarify with-wrapper-hook.
 
 	* text.texi (Buffer Contents):

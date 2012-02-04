@@ -1403,7 +1403,9 @@ as well as those in the -*- line.
 
 ** keymaps can inherit from multiple parents.
 
-** `debug-on-event' lets you debug Emacs when stuck because of inhibit-quit.
++++
+** Set `debug-on-event' to make Emacs enter the debugger e.g. on receipt
+of SIGUSR1.  This can be useful when `inhibit-quit' is set.
 
 +++
 ** New reader macro ## which stands for the empty symbol.

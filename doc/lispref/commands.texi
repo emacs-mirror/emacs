@@ -1696,6 +1696,7 @@ parameters are used to display the help-echo text are described in
 These events are generated when the Emacs process receives
 the signals @code{SIGUSR1} and @code{SIGUSR2}.  They contain no
 additional data because signals do not carry additional information.
+They can be useful for debugging (@pxref{Error Debugging}).
 
 To catch a user signal, bind the corresponding event to an interactive
 command in the @code{special-event-map} (@pxref{Active Keymaps}).
