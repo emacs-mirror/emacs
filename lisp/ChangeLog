@@ -1,3 +1,7 @@
+2012-02-04  Leo Liu  <sdl.web@gmail.com>
+
+	* emacs-lisp/smie.el: Fix dead link (Bug#10711).
+
 2012-02-04  Glenn Morris  <rgm@gnu.org>
 
 	* image.el (image-extension-data): Add obsolete alias.
