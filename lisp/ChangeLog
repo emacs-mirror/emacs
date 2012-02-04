@@ -1,3 +1,8 @@
+2012-02-04  Lars Ljung  <lars@matholka.se>  (tiny change)
+
+	* eshell/esh-ext.el (eshell-windows-shell-file): Match "cmdproxy"
+	anywhere in shell-file-name, not just at the beginning.  (Bug#10523)
+
 2012-02-04  Leo Liu  <sdl.web@gmail.com>
 
 	* emacs-lisp/smie.el: Fix dead link (Bug#10711).

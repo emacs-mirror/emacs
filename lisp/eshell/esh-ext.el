@@ -91,7 +91,7 @@ since nothing else but Eshell will be able to understand
 
 (defcustom eshell-windows-shell-file
   (if (eshell-under-windows-p)
-      (if (string-match "\\(\\`cmdproxy\\|sh\\)\\.\\(com\\|exe\\)"
+      (if (string-match "\\(cmdproxy\\|sh\\)\\.\\(com\\|exe\\)"
 			shell-file-name)
 	  (or (eshell-search-path "cmd.exe")
 	      (eshell-search-path "command.com"))
