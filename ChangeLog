@@ -1,3 +1,8 @@
+2012-02-04  Glenn Morris  <rgm@gnu.org>
+
+	* Makefile.in (uninstall):
+	Handle compressed info files and man pages.  (Bug#10718)
+
 2012-02-02  Glenn Morris  <rgm@gnu.org>
 
 	* configure.in [HAVE_NS]:
