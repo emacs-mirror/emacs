@@ -1,3 +1,7 @@
+2012-02-04  Chong Yidong  <cyd@gnu.org>
+
+	* nsterm.m: Declare a global (Bug#10694).
+
 2012-02-04  Eli Zaretskii  <eliz@gnu.org>
 
 	* w32.c (get_emacs_configuration_options): Include
