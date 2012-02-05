@@ -1,5 +1,9 @@
 2012-02-05  Christoph Scholtes  <cschol2112@googlemail.com>
 
+	* gmake.defs (PRAGMA_SYSTEM_HEADER): Add for GCC.
+
+	* nmake.defs (PRAGMA_SYSTEM_HEADER): Add, but ignore with MSVC.
+
 	* makefile.w32-in (maybe-copy-distfiles)
 	(maybe-copy-distfiles-CMD, maybe-copy-distfiles-SH)
 	(create-tmp-dist-dir): Added to make --distfiles optional.
