@@ -153,8 +153,8 @@ If you set @code{debug-on-event} to a special event (@pxref{Special
 Events}), Emacs will try to enter the debugger as soon as it receives
 this event, bypassing @code{special-event-map}.  At present, the only
 supported values correspond to the signals @code{SIGUSR1} and
-@code{SIGUSR2}.  This can be helpful when @code{inhibit-quit} is set
-and Emacs is not otherwise responding.
+@code{SIGUSR2} (this is the default).  This can be helpful when
+@code{inhibit-quit} is set and Emacs is not otherwise responding.
 @end defopt
 
   To debug an error that happens during loading of the init

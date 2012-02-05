@@ -1,5 +1,7 @@
 2012-02-05  Glenn Morris  <rgm@gnu.org>
 
+	* trouble.texi (Checklist): Mention debug-on-event.
+
 	* maintaining.texi (Maintaining): Add cross-ref to ERT.
 
 2012-02-04  Glenn Morris  <rgm@gnu.org>

@@ -784,6 +784,12 @@ non-@code{nil} will start the Lisp debugger and show a backtrace.
 This backtrace is useful for debugging such long loops, so if you can
 produce it, copy it into the bug report.
 
+@vindex debug-on-event
+If you cannot get Emacs to respond to @kbd{C-g} (e.g., because
+@code{inhibit-quit} is set), then you can try sending the signal
+specified by @code{debug-on-event} (default SIGUSR2) from outside
+Emacs to cause it to enter the debugger.
+
 @item
 Check whether any programs you have loaded into the Lisp world,
 including your initialization file, set any variables that may affect

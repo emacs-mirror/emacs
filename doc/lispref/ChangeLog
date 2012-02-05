@@ -1,3 +1,7 @@
+2012-02-05  Glenn Morris  <rgm@gnu.org>
+
+	* debugging.texi (Error Debugging): Mention debug-on-event default.
+
 2012-02-04  Glenn Morris  <rgm@gnu.org>
 
 	* backups.texi (Reverting): Mention revert-buffer-in-progress-p.
