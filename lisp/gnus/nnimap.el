@@ -269,14 +269,16 @@ textual parts.")
 	 result))
       (mapconcat #'identity (nreverse result) ",")))))
 
-(deffoo nnimap-open-server (server &optional defs)
+(deffoo nnimap-open-server (server &optional defs no-reconnect)
   (if (nnimap-server-opened server)
       t
     (unless (assq 'nnimap-address defs)
       (setq defs (append defs (list (list 'nnimap-address server)))))
     (nnoo-change-server 'nnimap server defs)
-    (or (nnimap-find-connection nntp-server-buffer)
-	(nnimap-open-connection nntp-server-buffer))))
+    (if no-reconnect
+	(nnimap-find-connection nntp-server-buffer)
+      (or (nnimap-find-connection nntp-server-buffer)
+	  (nnimap-open-connection nntp-server-buffer)))))
 
 (defun nnimap-make-process-buffer (buffer)
   (with-current-buffer
@@ -1278,7 +1280,7 @@ textual parts.")
 
 (deffoo nnimap-finish-retrieve-group-infos (server infos sequences)
   (when (and sequences
-	     (nnimap-possibly-change-group nil server)
+	     (nnimap-possibly-change-group nil server t)
 	     ;; Check that the process is still alive.
 	     (get-buffer-process (nnimap-buffer))
 	     (memq (process-status (get-buffer-process (nnimap-buffer)))
@@ -1633,11 +1635,11 @@ textual parts.")
 				  (cdr (assoc "SEARCH" (cdr result))))))
            nil t))))))
 
-(defun nnimap-possibly-change-group (group server)
+(defun nnimap-possibly-change-group (group server &optional no-reconnect)
   (let ((open-result t))
     (when (and server
 	       (not (nnimap-server-opened server)))
-      (setq open-result (nnimap-open-server server)))
+      (setq open-result (nnimap-open-server server nil no-reconnect)))
     (cond
      ((not open-result)
       nil)

@@ -1,3 +1,11 @@
+2012-02-05  Lars Ingebrigtsen  <larsi@gnus.org>
+
+	* nnimap.el (nnimap-open-server): Allow switching the nnoo server
+	without reconnecting.
+	(nnimap-possibly-change-group): Ditto.
+	(nnimap-finish-retrieve-group-infos): Don't reconnect if the server
+	connection has died before being called.
+
 2012-02-02  Lars Ingebrigtsen  <larsi@gnus.org>
 
 	* nnimap.el (nnimap-retrieve-group-data-early): Don't say we're doing
