@@ -257,8 +257,22 @@ install-other-dirs-gmake:
 install-shortcuts:
 	"$(INSTALL_DIR)/bin/addpm" -q
 
-dist: install-bin
-	mkdir $(TMP_DIST_DIR)
+maybe-copy-distfiles: maybe-copy-distfiles-$(SHELLTYPE)
+
+maybe-copy-distfiles-CMD: doit
+	@if not $(ARGQUOTE)$(DIST_FILES)$(ARGQUOTE)=="" $(CP_DIR) $(DIST_FILES) $(TMP_DIST_DIR)/bin
+
+maybe-copy-distfiles-SH: doit
+	@if [ ! $(ARGQUOTE)$(DIST_FILES)$(ARGQUOTE)=="" ] ; then \
+	  $(CP_DIR) $(DIST_FILES) $(TMP_DIST_DIR)/bin
+	fi
+
+create-tmp-dist-dir:
+	mkdir "$(TMP_DIST_DIR)"
+# Also create bin directory for dist files.
+	mkdir "$(TMP_DIST_DIR)/bin"
+
+dist: install-bin create-tmp-dist-dir maybe-copy-distfiles
 	$(CP) "$(INSTALL_DIR)/BUGS" $(TMP_DIST_DIR)
 	$(CP) "$(INSTALL_DIR)/COPYING" $(TMP_DIST_DIR)
 	$(CP) "$(INSTALL_DIR)/README" $(TMP_DIST_DIR)
@@ -269,7 +283,6 @@ dist: install-bin
 	$(CP_DIR) "$(INSTALL_DIR)/lisp" $(TMP_DIST_DIR)
 	$(CP_DIR) "$(INSTALL_DIR)/leim" $(TMP_DIST_DIR)
 	$(CP_DIR) "$(INSTALL_DIR)/site-lisp" $(TMP_DIST_DIR)
-	$(CP_DIR) $(DIST_FILES) $(TMP_DIST_DIR)/bin
 	$(COMSPEC)$(ComSpec) /c $(ARGQUOTE)zipdist.bat $(VERSION)$(ARGQUOTE)
 	$(DEL_TREE) $(TMP_DIST_DIR)
 

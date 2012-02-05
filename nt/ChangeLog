@@ -1,3 +1,10 @@
+2012-02-05  Christoph Scholtes  <cschol2112@googlemail.com>
+
+	* makefile.w32-in (maybe-copy-distfiles)
+	(maybe-copy-distfiles-CMD, maybe-copy-distfiles-SH)
+	(create-tmp-dist-dir): Added to make --distfiles optional.
+	(dist): Use create-tmp-dist-dir and maybe-copy-distfiles.
+
 2012-02-04  Eli Zaretskii  <eliz@gnu.org>
 
 	* inc/sys/stat.h (_STAT_DEFINED): Define, to prevent redefinitions
