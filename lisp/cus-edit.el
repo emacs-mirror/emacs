@@ -1624,7 +1624,9 @@ Otherwise use brackets."
     ;; Insert the search field.
     (when custom-search-field
       (widget-insert "\n")
-      (let* ((echo "Search for custom items")
+      (let* ((echo "Search for custom items.
+You can enter one or more words separated by spaces,
+or a regular expression.")
 	     (search-widget
 	      (widget-create
 	       'editable-field
