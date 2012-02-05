@@ -4,6 +4,9 @@
 	Document custom-unlispify-remove-prefixes.
 	(Variable Definitions): Backquotes in defcustom seem to work fine
 	now.  Various other copyedits.
+	(Simple Types): Copyedits.  Document color selector.
+	(Composite Types): Copyedits.
+	(Splicing into Lists): Clarifications.
 
 	* eval.texi (Backquote): Move from macros.texi.
 

@@ -188,7 +188,7 @@ buffers.texi
 commands.texi     
 compile.texi      
 control.texi      cyd
-customize.texi    
+customize.texi    cyd
 debugging.texi    
 display.texi      
 edebug.texi
