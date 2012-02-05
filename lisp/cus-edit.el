@@ -2599,7 +2599,6 @@ try matching its doc string against `custom-guess-doc-alist'."
 		  :parent widget)
 		 buttons))
 	  ((memq form '(lisp mismatch))
-	   ;; In lisp mode edit the saved value when possible.
 	   (push (widget-create-child-and-convert
 		  widget 'custom-visibility
 		  :help-echo "Hide the value of this option."
@@ -2611,11 +2610,10 @@ try matching its doc string against `custom-guess-doc-alist'."
 		  t)
 		 buttons)
 	   (insert " ")
-	   (let* ((value (cond ((get symbol 'saved-value)
-				(car (get symbol 'saved-value)))
-			       ((get symbol 'standard-value)
-				(car (get symbol 'standard-value)))
-			       ((default-boundp symbol)
+	   ;; This used to try presenting the saved value or the
+	   ;; standard value, but it seems more intuitive to present
+	   ;; the current value (Bug#7600).
+	   (let* ((value (cond ((default-boundp symbol)
 				(custom-quote (funcall get symbol)))
 			       (t
 				(custom-quote (widget-get conv :value))))))

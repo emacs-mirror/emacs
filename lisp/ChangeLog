@@ -5,6 +5,9 @@
 
 2012-02-05  Chong Yidong  <cyd@gnu.org>
 
+	* cus-edit.el (custom-variable-value-create): For mismatched
+	types, show the current value (Bug#7600).
+
 	* custom.el (defcustom): Doc fix.
 
 2012-02-05  Glenn Morris  <rgm@gnu.org>
