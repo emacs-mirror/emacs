@@ -23,6 +23,7 @@ function @code{eval}.
 * Intro Eval::  Evaluation in the scheme of things.
 * Forms::       How various sorts of objects are evaluated.
 * Quoting::     Avoiding evaluation (to put constants in the program).
+* Backquote::   Easier construction of list structure.
 * Eval::        How to invoke the Lisp interpreter explicitly.
 @end menu
 
@@ -578,6 +579,96 @@ Here are some examples of expressions that use @code{quote}:
 Functions}), which causes an anonymous lambda expression written in Lisp
 to be compiled, and @samp{`} (@pxref{Backquote}), which is used to quote
 only part of a list, while computing and substituting other parts.
+
+@node Backquote
+@section Backquote
+@cindex backquote (list substitution)
+@cindex ` (list substitution)
+@findex `
+
+  @dfn{Backquote constructs} allow you to quote a list, but
+selectively evaluate elements of that list.  In the simplest case, it
+is identical to the special form @code{quote}
+@iftex
+@end iftex
+@ifnottex
+(described in the previous section; @pxref{Quoting}).
+@end ifnottex
+For example, these two forms yield identical results:
+
+@example
+@group
+`(a list of (+ 2 3) elements)
+     @result{} (a list of (+ 2 3) elements)
+@end group
+@group
+'(a list of (+ 2 3) elements)
+     @result{} (a list of (+ 2 3) elements)
+@end group
+@end example
+
+@findex , @r{(with backquote)}
+  The special marker @samp{,} inside of the argument to backquote
+indicates a value that isn't constant.  The Emacs Lisp evaluator
+evaluates the argument of @samp{,}, and puts the value in the list
+structure:
+
+@example
+@group
+`(a list of ,(+ 2 3) elements)
+     @result{} (a list of 5 elements)
+@end group
+@end example
+
+@noindent
+Substitution with @samp{,} is allowed at deeper levels of the list
+structure also.  For example:
+
+@example
+@group
+`(1 2 (3 ,(+ 4 5)))
+     @result{} (1 2 (3 9))
+@end group
+@end example
+
+@findex ,@@ @r{(with backquote)}
+@cindex splicing (with backquote)
+  You can also @dfn{splice} an evaluated value into the resulting list,
+using the special marker @samp{,@@}.  The elements of the spliced list
+become elements at the same level as the other elements of the resulting
+list.  The equivalent code without using @samp{`} is often unreadable.
+Here are some examples:
+
+@example
+@group
+(setq some-list '(2 3))
+     @result{} (2 3)
+@end group
+@group
+(cons 1 (append some-list '(4) some-list))
+     @result{} (1 2 3 4 2 3)
+@end group
+@group
+`(1 ,@@some-list 4 ,@@some-list)
+     @result{} (1 2 3 4 2 3)
+@end group
+
+@group
+(setq list '(hack foo bar))
+     @result{} (hack foo bar)
+@end group
+@group
+(cons 'use
+  (cons 'the
+    (cons 'words (append (cdr list) '(as elements)))))
+     @result{} (use the words foo bar as elements)
+@end group
+@group
+`(use the words ,@@(cdr list) as elements)
+     @result{} (use the words foo bar as elements)
+@end group
+@end example
+
 
 @node Eval
 @section Eval

@@ -229,6 +229,9 @@ The following keywords are meaningful:
 	VALUE should be a feature symbol.  If you save a value
 	for this option, then when your `.emacs' file loads the value,
 	it does (require VALUE) first.
+:set-after VARIABLES
+	Specifies that SYMBOL should be set after the list of variables
+        VARIABLES when both have been customized.
 :risky	Set SYMBOL's `risky-local-variable' property to VALUE.
 :safe	Set SYMBOL's `safe-local-variable' property to VALUE.
         See Info node `(elisp) File Local Variables'.
@@ -300,9 +303,6 @@ The following common keywords are also meaningful.
         Load file FILE (a string) before displaying this customization
         item.  Loading is done with `load', and only if the file is
         not already loaded.
-:set-after VARIABLES
-	Specifies that SYMBOL should be set after the list of variables
-        VARIABLES when both have been customized.
 
 If SYMBOL has a local binding, then this form affects the local
 binding.  This is normally not what you want.  Thus, if you need

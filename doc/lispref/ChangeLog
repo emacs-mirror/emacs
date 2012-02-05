@@ -1,3 +1,18 @@
+2012-02-05  Chong Yidong  <cyd@gnu.org>
+
+	* customize.texi (Common Keywords): Minor clarifications.
+	Document custom-unlispify-remove-prefixes.
+	(Variable Definitions): Backquotes in defcustom seem to work fine
+	now.  Various other copyedits.
+
+	* eval.texi (Backquote): Move from macros.texi.
+
+	* macros.texi (Expansion): Minor clarification.
+	(Backquote): Move node to eval.texi.
+	(Defining Macros): Move an example from Backquote node.
+	(Argument Evaluation): No need to mention Pascal.
+	(Indenting Macros): Add xref to Defining Macros.
+
 2012-02-05  Glenn Morris  <rgm@gnu.org>
 
 	* debugging.texi (Error Debugging): Mention debug-on-event default.

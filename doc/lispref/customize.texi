@@ -24,9 +24,10 @@ definitions---as well as face definitions (@pxref{Defining Faces}).
 @section Common Item Keywords
 
 @cindex customization keywords
-  All kinds of customization declarations (for variables and groups, and
-for faces) accept keyword arguments for specifying various information.
-This section describes some keywords that apply to all kinds.
+  The customization declarations that we will describe in the next few
+sections (@code{defcustom}, @code{defgroup}, etc.) all accept keyword
+arguments for specifying various information.  This section describes
+keywords that apply to all types of customization declarations.
 
   All of these keywords, except @code{:tag}, can be used more than once
 in a given item.  Each use of the keyword has an independent effect.
@@ -108,8 +109,7 @@ You can specify the text to use in the customization buffer by adding
 for example, @code{(info-link :tag "foo" "(emacs)Top")} makes a link to
 the Emacs manual which appears in the buffer as @samp{foo}.
 
-An item can have more than one external link; however, most items have
-none at all.
+You can use this keyword more than once, to add multiple links.
 
 @item :load @var{file}
 @kindex load@r{, customization keyword}
@@ -136,14 +136,13 @@ version.  The value @var{version} must be a string.
 @kindex package-version@r{, customization keyword}
 This keyword specifies that the item was first introduced in
 @var{package} version @var{version}, or that its meaning or default
-value was changed in that version.  The value of @var{package} is a
-symbol and @var{version} is a string.
+value was changed in that version.  This keyword takes priority over
+@code{:version}.
 
-This keyword takes priority over @code{:version}.
-
-@var{package} should be the official name of the package, such as MH-E
-or Gnus.  If the package @var{package} is released as part of Emacs,
-@var{package} and @var{version} should appear in the value of
+@var{package} should be the official name of the package, as a symbol
+(e.g.@: @code{MH-E}).  @var{version} should be a string.  If the
+package @var{package} is released as part of Emacs, @var{package} and
+@var{version} should appear in the value of
 @code{customize-package-emacs-version-alist}.
 @end table
 
@@ -226,41 +225,31 @@ also use this keyword in @code{defgroup}:
 @table @code
 @item :prefix @var{prefix}
 @kindex prefix@r{, @code{defgroup} keyword}
-If the name of an item in the group starts with @var{prefix}, then the
-tag for that item is constructed (by default) by omitting @var{prefix}.
-
-One group can have any number of prefixes.
+If the name of an item in the group starts with @var{prefix}, and the
+customizable variable @code{custom-unlispify-remove-prefixes} is
+non-@code{nil}, the item's tag will omit @var{prefix}.  A group can
+have any number of prefixes.
 @end table
 @end defmac
 
-  The prefix-discarding feature is currently turned off, which means
-that @code{:prefix} currently has no effect.  We did this because we
-found that discarding the specified prefixes often led to confusing
-names for options.  This happened because the people who wrote the
-@code{defgroup} definitions for various groups added @code{:prefix}
-keywords whenever they make logical sense---that is, whenever the
-variables in the library have a common prefix.
+@defopt custom-unlispify-remove-prefixes
+If this variable is non-@code{nil}, the prefixes specified by a
+group's @code{:prefix} keyword are omitted from tag names, whenever
+the user customizes the group.
 
-  In order to obtain good results with @code{:prefix}, it would be
-necessary to check the specific effects of discarding a particular
-prefix, given the specific items in a group and their names and
-documentation.  If the resulting text is not clear, then @code{:prefix}
-should not be used in that case.
-
-  It should be possible to recheck all the customization groups, delete
-the @code{:prefix} specifications which give unclear results, and then
-turn this feature back on, if someone would like to do the work.
+The default value is @code{nil}, i.e.@: the prefix-discarding feature
+is disabled.  This is because discarding prefixes often leads to
+confusing names for options and faces.
+@end defopt
 
 @node Variable Definitions
 @section Defining Customization Variables
 @cindex define customization options
 @cindex customization variables, how to define
 
-  Use @code{defcustom} to declare user-customizable variables.
-
 @defmac defcustom option standard doc [keyword value]@dots{}
-This macro declares @var{option} as a customizable @dfn{user option}.
-You should not quote @var{option}.
+This macro declares @var{option} as a user option (i.e.@: a
+customizable variable).  You should not quote @var{option}.
 
 The argument @var{standard} is an expression that specifies the
 standard value for @var{option}.  Evaluating the @code{defcustom} form
@@ -275,19 +264,12 @@ cases applies, @code{defcustom} installs the result of evaluating
 The expression @var{standard} can be evaluated at various other times,
 too---whenever the customization facility needs to know @var{option}'s
 standard value.  So be sure to use an expression which is harmless to
-evaluate at any time.  We recommend avoiding backquotes in
-@var{standard}, because they are not expanded when editing the value,
-so list values will appear to have the wrong structure.
+evaluate at any time.
 
 The argument @var{doc} specifies the documentation string for the
 variable.
 
 Every @code{defcustom} should specify @code{:group} at least once.
-
-If you specify the @code{:set} keyword, to make the variable take other
-special actions when set through the customization buffer, the
-variable's documentation string should tell the user specifically how
-to do the same job in hand-written Lisp code.
 
 When you evaluate a @code{defcustom} form with @kbd{C-M-x} in Emacs Lisp
 mode (@code{eval-defun}), a special feature of @code{eval-defun}
@@ -295,11 +277,12 @@ arranges to set the variable unconditionally, without testing whether
 its value is void.  (The same feature applies to @code{defvar}.)
 @xref{Defining Variables}.
 
-If you put a @code{defcustom} in a file that is preloaded at dump time
-(@pxref{Building Emacs}), and the standard value installed for the
-variable at that time might not be correct, use
+If you put a @code{defcustom} in a pre-loaded Emacs Lisp file
+(@pxref{Building Emacs}), the standard value installed at dump time
+might be incorrect, e.g.@: because another variable that it depends on
+has not been assigned the right value yet.  In that case, use
 @code{custom-reevaluate-setting}, described below, to re-evaluate the
-standard value during or after Emacs startup.
+standard value after Emacs starts up.
 @end defmac
 
   @code{defcustom} accepts the following additional keywords:
@@ -330,6 +313,9 @@ the value properly for this option (which may not mean simply setting
 the option as a Lisp variable).  The default for @var{setfunction} is
 @code{set-default}.
 
+If you specify this keyword, the variable's documentation string
+should describe how to do the same job in hand-written Lisp code.
+
 @item :get @var{getfunction}
 @kindex get@r{, @code{defcustom} keyword}
 Specify @var{getfunction} as the way to extract the value of this
@@ -341,7 +327,7 @@ value).  The default is @code{default-value}.
 You have to really understand the workings of Custom to use
 @code{:get} correctly.  It is meant for values that are treated in
 Custom as variables but are not actually stored in Lisp variables.  It
-is almost surely a mistake to specify @code{getfunction} for a value
+is almost surely a mistake to specify @var{getfunction} for a value
 that really is stored in a Lisp variable.
 
 @item :initialize @var{function}
@@ -380,16 +366,15 @@ already set or has been customized; otherwise, just use
 These functions behave like @code{custom-initialize-set}
 (@code{custom-initialize-default}, respectively), but catch errors.
 If an error occurs during initialization, they set the variable to
-@code{nil} using @code{set-default}, and throw no error.
+@code{nil} using @code{set-default}, and signal no error.
 
-These two functions are only meant for options defined in pre-loaded
-files, where some variables or functions used to compute the option's
-value may not yet be defined.  The option normally gets updated in
-@file{startup.el}, ignoring the previously computed value.  Because of
-this typical usage, the value which these two functions compute
-normally only matters when, after startup, one unsets the option's
-value and then reevaluates the defcustom.  By that time, the necessary
-variables and functions will be defined, so there will not be an error.
+These functions are meant for options defined in pre-loaded files,
+where the @var{standard} expression may signal an error because some
+required variable or function is not yet defined.  The value normally
+gets updated in @file{startup.el}, ignoring the value computed by
+@code{defcustom}.  After startup, if one unsets the value and
+reevaluates the @code{defcustom}, the @var{standard} expression can be
+evaluated without error.
 @end table
 
 @item :risky @var{value}
@@ -457,18 +442,16 @@ is an expression that evaluates to the value.
 
 @defun custom-reevaluate-setting symbol
 This function re-evaluates the standard value of @var{symbol}, which
-should be a user option declared via @code{defcustom}.  (If the
+should be a user option declared via @code{defcustom}.  If the
 variable was customized, this function re-evaluates the saved value
-instead.)  This is useful for customizable options that are defined
-before their value could be computed correctly, such as variables
-defined in packages that are loaded at dump time, but depend on the
-run-time information.  For example, the value could be a file whose
-precise name depends on the hierarchy of files when Emacs runs, or a
-name of a program that needs to be searched at run time.
+instead.  Then it sets the user option to that value (using the
+option's @code{:set} property if that is defined).
 
-A good place to put calls to this function is in the function
-@code{command-line} that is run during startup (@pxref{Startup Summary})
-or in the various hooks it calls.
+This is useful for customizable options that are defined before their
+value could be computed correctly.  For example, during startup Emacs
+calls this function for some user options that were defined in
+pre-loaded Emacs Lisp files, but whose initial values depend on
+information available only at run-time.
 @end defun
 
 @defun custom-variable-p arg
