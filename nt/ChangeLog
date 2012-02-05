@@ -1,6 +1,6 @@
 2012-02-05  Christoph Scholtes  <cschol2112@googlemail.com>
 
-	* README.W32: Clarification for inclusion in source tarball.
+	* README.W32: Clarification for inclusion in source tarball. (Bug#9750)
 
 	* gmake.defs (PRAGMA_SYSTEM_HEADER): Add for GCC.
 
@@ -9,7 +9,7 @@
 	* makefile.w32-in (maybe-copy-distfiles)
 	(maybe-copy-distfiles-CMD, maybe-copy-distfiles-SH)
 	(create-tmp-dist-dir): Added to make --distfiles optional.
-	(dist): Use create-tmp-dist-dir and maybe-copy-distfiles.
+	(dist): Use create-tmp-dist-dir and maybe-copy-distfiles. (Bug#10261)
 
 2012-02-04  Eli Zaretskii  <eliz@gnu.org>
 

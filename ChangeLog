@@ -1,6 +1,6 @@
 2012-02-05  Christoph Scholtes  <cschol2112@googlemail.com>
 
-	* make-dist (README.W32): Include file in source tarball.
+	* make-dist (README.W32): Include file in source tarball. (Bug#9750)
 
 	* lib/makefile.w32-in (PRAGMA_SYSTEM_HEADER): Move to platform
 	specific makefiles to support getopt_.h generation with MSVC.
