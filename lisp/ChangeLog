@@ -1,3 +1,9 @@
+2012-02-05  Chong Yidong  <cyd@gnu.org>
+
+	* wid-edit.el (widget-field-value-get): New optional arg to
+	suppress trailing whitespace truncation.
+	(character): Use it (Bug#2689).
+
 2012-02-05  Andreas Schwab  <schwab@linux-m68k.org>
 
 	* progmodes/gud.el (gud-pv): Use pv instead of pv1.

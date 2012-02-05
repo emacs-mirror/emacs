@@ -1987,10 +1987,14 @@ the earlier input."
     (when (overlayp overlay)
       (delete-overlay overlay))))
 
-(defun widget-field-value-get (widget)
-  "Return current text in editing field."
+(defun widget-field-value-get (widget &optional no-truncate)
+  "Return current text in editing field.
+Normally, trailing spaces within the editing field are truncated.
+But if NO-TRUNCATE is non-nil, include them."
   (let ((from (widget-field-start widget))
-	(to (widget-field-text-end widget))
+	(to   (if no-truncate
+		  (widget-field-end widget)
+		(widget-field-text-end widget)))
 	(buffer (widget-field-buffer widget))
 	(secret (widget-get widget :secret))
 	(old (current-buffer)))
@@ -3407,6 +3411,7 @@ To use this type, you must define :match or :match-alternatives."
   :format "%{%t%}: %v\n"
   :valid-regexp "\\`.\\'"
   :error "This field should contain a single character"
+  :value-get (lambda (w) (widget-field-value-get w t))
   :value-to-internal (lambda (_widget value)
 		       (if (stringp value)
 			   value
