@@ -1412,7 +1412,7 @@ as well as those in the -*- line.
 of SIGUSR1.  This can be useful when `inhibit-quit' is set.
 
 +++
-** New reader macro ## which stands for the empty symbol.
+** New reader macro ## that stands for the empty symbol.
 This means that the empty symbol can now be read back.  Also, #: by itself
 (when not immediately followed by a possible symbol character) stands for
 an empty uninterned symbol.
