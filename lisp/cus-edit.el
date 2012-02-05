@@ -3249,6 +3249,7 @@ Also change :reverse-video to :inverse-video."
   :args '((const :tag "all" t)
 	  (const :tag "defaults" default)
 	  (checklist
+	   :tag "specific display"
 	   :offset 0
 	   :extra-offset 9
 	   :args ((group :sibling-args (:help-echo "\

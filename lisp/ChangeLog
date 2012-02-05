@@ -2,6 +2,7 @@
 
 	* cus-edit.el (custom-variable-reset-backup): Quote the value
 	before storing it in the customized-value property (Bug#6712).
+	(custom-display): Add a customization type tag.
 
 	* wid-edit.el (widget-field-value-get): New optional arg to
 	suppress trailing whitespace truncation.
