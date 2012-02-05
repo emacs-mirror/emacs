@@ -1,3 +1,8 @@
+2012-02-05  Andreas Schwab  <schwab@linux-m68k.org>
+
+	* progmodes/gud.el (gud-pv): Use pv instead of pv1.
+	* progmodes/gdb-mi.el (gud-pp): Use pp instead of pp1.
+
 2012-02-05  Chong Yidong  <cyd@gnu.org>
 
 	* custom.el (defcustom): Doc fix.

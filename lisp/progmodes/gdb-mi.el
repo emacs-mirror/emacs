@@ -779,9 +779,9 @@ detailed description of this mode.
   (gud-def gud-pp
 	   (gud-call
 	    (concat
-	     "pp1 " (if (eq (buffer-local-value
-			     'major-mode (window-buffer)) 'speedbar-mode)
-			(gdb-find-watch-expression) "%e")) arg)
+	     "pp " (if (eq (buffer-local-value
+			    'major-mode (window-buffer)) 'speedbar-mode)
+		       (gdb-find-watch-expression) "%e")) arg)
 	   nil   "Print the Emacs s-expression.")
 
   (define-key gud-minor-mode-map [left-margin mouse-1]
