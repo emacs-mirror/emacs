@@ -1,3 +1,9 @@
+2012-02-05  Juanma Barranquero  <lekktu@gmail.com>
+
+	* emacs-lisp/pp.el (pp-to-string): Use `with-temp-buffer'.
+	(pp-buffer): Use `ignore-errors', `looking-at-p'.
+	(pp-last-sexp): Use `looking-at-p'.
+
 2012-02-04  Glenn Morris  <rgm@gnu.org>
 
 	* files.el (revert-buffer):
