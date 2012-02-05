@@ -1,5 +1,8 @@
 2012-02-05  Chong Yidong  <cyd@gnu.org>
 
+	* cus-edit.el (custom-variable-reset-backup): Quote the value
+	before storing it in the customized-value property (Bug#6712).
+
 	* wid-edit.el (widget-field-value-get): New optional arg to
 	suppress trailing whitespace truncation.
 	(character): Use it (Bug#2689).

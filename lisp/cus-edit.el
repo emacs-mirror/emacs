@@ -3071,7 +3071,7 @@ to switch between two values."
 	      (funcall set symbol (car value))
 	     (error nil)))
       (error "No backup value for %s" symbol))
-    (put symbol 'customized-value (list (car value)))
+    (put symbol 'customized-value (list (custom-quote (car value))))
     (put symbol 'variable-comment comment)
     (put symbol 'customized-variable-comment comment)
     (custom-variable-state-set widget)
