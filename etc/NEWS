@@ -1243,6 +1243,8 @@ set of "wrapping" filters, similar to around advice.
 (A version of this macro was actually added in Emacs 23.2 but was not
 advertised at the time.)
 
+** Macro `with-demoted-errors' was added in Emacs 23.1 but not advertised.
+
 +++
 ** The new function `server-eval-at' allows evaluation of Lisp forms on
 named Emacs server instances, using TCP sockets.
