@@ -995,7 +995,16 @@ coordinate in the POSITION list now counts from the top of the text
 area, excluding any header line.  Previously, it counted from the top
 of the header line.
 
-** A backquote not followed by a space is now always treated as new-style.
+---
+** Support for "old-style" backquotes, which have been obsolete for
+more than 10 years, has been further reduced.  Now a backquote not
+followed by a space is always treated as a "new-style" backquote.
+Please consider completely removing all "old-style" backquotes from
+your code as a matter of some urgency.  If your code uses backquotes
+as documented in the Elisp manual, and compiles without warning, then
+you have nothing to do in this regard.  Code not following the
+appropriate conventions may fail to compile.  The most common cause of
+trouble seems to be an old-style backquote followed by a newline.
 
 ---
 ** view-buffer now treats special mode-class in the same way that
