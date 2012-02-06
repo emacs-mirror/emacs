@@ -1,3 +1,8 @@
+2012-02-06  Glenn Morris  <rgm@gnu.org>
+
+	* control.texi (Handling Errors):
+	Mention condition-case-no-debug and with-demoted-errors.
+
 2012-02-05  Chong Yidong  <cyd@gnu.org>
 
 	* customize.texi (Common Keywords): Minor clarifications.
