@@ -1,3 +1,8 @@
+2012-02-06  Christoph Scholtes  <cschol2112@googlemail.com>
+
+	* README.W32: Removed specific version information for libXpm
+	included in the binary distribution for maintenance purposes.
+
 2012-02-05  Christoph Scholtes  <cschol2112@googlemail.com>
 
 	* README.W32: Clarification for inclusion in source tarball. (Bug#9750)
