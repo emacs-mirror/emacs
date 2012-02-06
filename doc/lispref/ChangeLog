@@ -1,5 +1,7 @@
 2012-02-06  Glenn Morris  <rgm@gnu.org>
 
+	* modes.texi (Running Hooks): Mention run-hook-wrapped.
+
 	* control.texi (Handling Errors):
 	Mention condition-case-no-debug and with-demoted-errors.
 

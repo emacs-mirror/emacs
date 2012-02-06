@@ -163,6 +163,14 @@ A wrapper-hook also allows for a hook function to completely replace the
 default definition (by not calling @var{fun}).
 @end defmac
 
+@defun run-hook-wrapped hook wrap-function &rest args
+This function is similar to @code{run-hook-with-args-until-success}.
+Like that function, it runs the functions on the abnormal hook
+@code{hook}, stopping at the first one that returns non-@code{nil}.
+Instead of calling the hook functions directly, though, it actually
+calls @code{wrap-function} with arguments @code{fun} and @code{args}.
+@end defun
+
 @node Setting Hooks
 @subsection Setting Hooks
 
