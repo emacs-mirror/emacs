@@ -1,3 +1,8 @@
+2012-02-06  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* gnus-sum.el (gnus-summary-show-thread):
+	next-single-char-property-change may return nil in XEmacs.
+
 2012-02-06  Lars Ingebrigtsen  <larsi@gnus.org>
 
 	* gnus-sum.el (gnus-handle-ephemeral-exit): Allow exiting from Gnus
