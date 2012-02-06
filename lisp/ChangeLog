@@ -1,3 +1,11 @@
+2012-02-06  Lars Ingebrigtsen  <larsi@gnus.org>
+
+	* progmodes/cc-mode.el
+	(c-standard-font-lock-fontify-region-function): Set the default at
+	load time, too, so that `font-lock-fontify-buffer' can be called
+	without setting up the entire mode first.  This fixes a bug in
+	`mm-inline-text' with C MIME parts.
+
 2012-02-06  Chong Yidong  <cyd@gnu.org>
 
 	* simple.el (list-processes--refresh): Delete exited processes

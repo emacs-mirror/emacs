@@ -1155,7 +1155,8 @@ Note that the style variables are always made local to the buffer."
   ;; `c-set-fl-decl-start' for the detailed functionality.
   (cons (c-set-fl-decl-start beg) end))
 
-(defvar c-standard-font-lock-fontify-region-function nil
+(defvar c-standard-font-lock-fontify-region-function
+  (default-value 'font-lock-fontify-region-function)
   "Standard value of `font-lock-fontify-region-function'")
 
 (defun c-font-lock-fontify-region (beg end &optional verbose)
