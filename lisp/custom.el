@@ -200,10 +200,14 @@ set to nil, as the value is no longer rogue."
 
 (defmacro defcustom (symbol value doc &rest args)
   "Declare SYMBOL as a customizable variable that defaults to VALUE.
+SYMBOL is the variable name; it should not be quoted.
+VALUE is an expression specifying the variable's standard value.
+This expression should not be quoted.  It is evaluated once by
+`defcustom', and the value is assigned to SYMBOL if the variable
+is unbound.  The expression may also be re-evaluated by Customize
+whenever it needs to get the variable's standard value.
 DOC is the variable documentation.
 
-Neither SYMBOL nor VALUE need to be quoted.
-If SYMBOL is not already bound, initialize it to VALUE.
 The remaining arguments should have the form
 
    [KEYWORD VALUE]...
