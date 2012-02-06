@@ -1,3 +1,11 @@
+2012-02-06  Lars Ingebrigtsen  <larsi@gnus.org>
+
+	* url-queue.el (url-queue-setup-runners): New function that uses
+	`run-with-idle-timer' for extra asynchronicity.
+	(url-queue-remove-jobs-from-host): New function.
+	(url-queue-callback-function): Remove jobs from the same host if
+	connection failed.
+
 2012-01-12  Glenn Morris  <rgm@gnu.org>
 
 	* url-auth.el (url-basic-auth, url-digest-auth):
