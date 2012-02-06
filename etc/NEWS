@@ -47,6 +47,7 @@ found at build time.  To prevent this, use the configure option
 This happens by default if a suitably recent version of the library is
 found at build time.  To prevent this, use the configure option
 `--without-imagemagick'.  See below for ImageMagick features.
+This feature is not available for the Nextstep or MS ports.
 
 ---
 ** Emacs can be compiled with libxml2 support.
@@ -1381,12 +1382,11 @@ is being animated.
 The old name is an obsolete alias to the new one.
 
 *** Emacs can be compiled with ImageMagick support.
+This feature is not available for the Nextstep or MS ports.
 Then the function `imagemagick-types' returns a list of image file
 extensions that your installation of ImageMagick supports.  The
 function `imagemagick-register-types' enables ImageMagick support for
 these image types, minus those listed in `imagemagick-types-inhibit'.
-
-See the Emacs Lisp Reference Manual for more information.
 
 ** XML and HTML parsing
 If Emacs is compiled with libxml2 support, there are two new functions:
