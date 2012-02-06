@@ -1,5 +1,11 @@
 2012-02-06  Lars Ingebrigtsen  <larsi@gnus.org>
 
+	* url-cache.el (url-cache-prune-cache): New function.
+
+	* url.el (url-retrieve-number-of-calls): New variable.
+	(url-retrieve-internal): Use it to expire the cache once in a
+	while.
+
 	* url-queue.el (url-queue-setup-runners): New function that uses
 	`run-with-idle-timer' for extra asynchronicity.
 	(url-queue-remove-jobs-from-host): New function.

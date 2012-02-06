@@ -119,6 +119,9 @@ Sometimes while retrieving a URL, the URL library needs to use another buffer
 than the one returned initially by `url-retrieve'.  In this case, it sets this
 variable in the original buffer as a forwarding pointer.")
 
+(defvar url-retrieve-number-of-calls 0)
+(autoload 'url-cache-prune-cache "url-cache")
+
 ;;;###autoload
 (defun url-retrieve (url callback &optional cbargs silent)
   "Retrieve URL asynchronously and call CALLBACK with CBARGS when finished.
@@ -174,6 +177,10 @@ If SILENT, don't message progress reports and the like."
   (unless (url-type url)
     (error "Bad url: %s" (url-recreate-url url)))
   (setf (url-silent url) silent)
+  ;; Once in a while, remove old entries from the URL cache.
+  (when (zerop (% url-retrieve-number-of-calls 1000))
+    (url-cache-prune-cache))
+  (setq url-retrieve-number-of-calls (1+ url-retrieve-number-of-calls))
   (let ((loader (url-scheme-get-property (url-type url) 'loader))
 	(url-using-proxy (if (url-host url)
 			     (url-find-proxy-for-url url (url-host url))))
