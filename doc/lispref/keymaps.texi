@@ -2346,7 +2346,7 @@ The various toolkits with which you can build Emacs do not all support
 the same set of features for menus.  Some code works as expected with
 one toolkit, but not under another.
 
-One example is menu actions or buttons in a top-level menu-bar.  The
+One example is menu actions or buttons in a top-level menu bar.  The
 following works with the Lucid toolkit or on MS Windows, but not with
 GTK or Nextstep, where clicking on the item has no effect.
 
@@ -2690,7 +2690,7 @@ Like the menu bar, the tool bar can display separators (@pxref{Menu
 Separators}).  Tool bar separators are vertical rather than
 horizontal, though, and only a single style is supported.  Separators
 are represented in the tool bar keymap in the same way as for the
-menu-bar, i.e. using a @code{(menu-item "--"}) entry.  The Gtk+ and
+menu bar, i.e. using a @code{(menu-item "--"}) entry.  The Gtk+ and
 Nextstep tool bars render separators natively, otherwise Emacs selects
 a separator image that is appropriate for the display.  Note that tool
 bar separators do not support any properties, such as @code{:visible}.
