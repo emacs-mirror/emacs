@@ -2713,47 +2713,50 @@ support pty association, if PROGRAM is nil."
   (tabulated-list-init-header))
 
 (defun list-processes--refresh ()
-  "Recompute the list of processes for the Process List buffer."
+  "Recompute the list of processes for the Process List buffer.
+Also, delete any process that is exited or signaled."
   (setq tabulated-list-entries nil)
   (dolist (p (process-list))
-    (when (or (not process-menu-query-only)
-	      (process-query-on-exit-flag p))
-      (let* ((buf (process-buffer p))
-	     (type (process-type p))
-	     (name (process-name p))
-	     (status (symbol-name (process-status p)))
-	     (buf-label (if (buffer-live-p buf)
-			    `(,(buffer-name buf)
-			      face link
-			      help-echo ,(concat "Visit buffer `"
-						 (buffer-name buf) "'")
-			      follow-link t
-			      process-buffer ,buf
-			      action process-menu-visit-buffer)
-			  "--"))
-	     (tty (or (process-tty-name p) "--"))
-	     (cmd
-	      (if (memq type '(network serial))
-		  (let ((contact (process-contact p t)))
-		    (if (eq type 'network)
-			(format "(%s %s)"
-				(if (plist-get contact :type)
-				    "datagram"
-				  "network")
-				(if (plist-get contact :server)
-				    (format "server on %s"
-					    (plist-get contact :server))
-				  (format "connection to %s"
-					  (plist-get contact :host))))
-		      (format "(serial port %s%s)"
-			      (or (plist-get contact :port) "?")
-			      (let ((speed (plist-get contact :speed)))
-				(if speed
-				    (format " at %s b/s" speed)
-				  "")))))
-		(mapconcat 'identity (process-command p) " "))))
-	(push (list p (vector name status buf-label tty cmd))
-	      tabulated-list-entries)))))
+    (cond ((memq (process-status p) '(exit signal closed))
+	   (delete-process p))
+	  ((or (not process-menu-query-only)
+	       (process-query-on-exit-flag p))
+	   (let* ((buf (process-buffer p))
+		  (type (process-type p))
+		  (name (process-name p))
+		  (status (symbol-name (process-status p)))
+		  (buf-label (if (buffer-live-p buf)
+				 `(,(buffer-name buf)
+				   face link
+				   help-echo ,(concat "Visit buffer `"
+						      (buffer-name buf) "'")
+				   follow-link t
+				   process-buffer ,buf
+				   action process-menu-visit-buffer)
+			       "--"))
+		  (tty (or (process-tty-name p) "--"))
+		  (cmd
+		   (if (memq type '(network serial))
+		       (let ((contact (process-contact p t)))
+			 (if (eq type 'network)
+			     (format "(%s %s)"
+				     (if (plist-get contact :type)
+					 "datagram"
+				       "network")
+				     (if (plist-get contact :server)
+					 (format "server on %s"
+						 (plist-get contact :server))
+				       (format "connection to %s"
+					       (plist-get contact :host))))
+			   (format "(serial port %s%s)"
+				   (or (plist-get contact :port) "?")
+				   (let ((speed (plist-get contact :speed)))
+				     (if speed
+					 (format " at %s b/s" speed)
+				       "")))))
+		     (mapconcat 'identity (process-command p) " "))))
+	     (push (list p (vector name status buf-label tty cmd))
+		   tabulated-list-entries))))))
 
 (defun process-menu-visit-buffer (button)
   (display-buffer (button-get button 'process-buffer)))
