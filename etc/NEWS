@@ -1039,20 +1039,32 @@ Eg simply pass the result through substring-no-properties if you need this.
 ** The menu bar bindings's caches are not used any more.
 Use (where-is-internal <def> nil t) instead.
 
-** The following obsolete functions and aliases were removed:
-comint-kill-output, decompose-composite-char, outline-visible,
-internal-find-face, internal-get-face, frame-update-faces,
-frame-update-face-colors, x-frob-font-weight, x-frob-font-slant,
-x-make-font-bold, x-make-font-demibold, x-make-font-unbold
-x-make-font-italic, x-make-font-oblique, x-make-font-unitalic
-x-make-font-bold-italic, mldrag-drag-mode-line, mldrag-drag-vertical-line,
-iswitchb-default-keybindings, char-bytes, isearch-return-char,
-make-local-hook
++++
+** The following obsolete (mostly since at least 21.1) functions and aliases
+have been removed (the appropriate new function is given in parentheses):
+comint-kill-output (comint-delete-output),
+decompose-composite-char (char-to-string),
+outline-visible (outline-invisible-p),
+internal-find-face (facep), internal-get-face (facep and check-face),
+frame-update-faces (not needed),
+frame-update-face-colors (frame-set-background-mode),
+x-frob-font-weight and x-frob-font-slant (appropriate make-face-* function),
+x-make-font-bold and x-make-font-demibold (make-face-bold),
+x-make-font-italic and x-make-font-oblique (make-face-italic),
+x-make-font-bold-italic (make-face-bold-italic),
+x-make-font-unbold (make-face-unbold),
+x-make-font-unitalic (make-face-unitalic),
+mldrag-drag-mode-line (mouse-drag-mode-line),
+mldrag-drag-vertical-line (mouse-drag-vertical-line),
+iswitchb-default-keybindings (iswitchb-mode), char-bytes (== 1),
+isearch-return-char (isearch-printing-char), make-local-hook (not needed)
 
 +++
-** The following obsolete variables and varaliases were removed:
-checkdoc-minor-keymap, vc-header-alist, directory-sep-char,
-font-lock-defaults-alist, and e (use float-e).
+** The following obsolete (mostly since at least 21.1) variables and varaliases
+have been removed (the appropriate new variable is given in parentheses):
+checkdoc-minor-keymap (checkdoc-minor-mode-map),
+vc-header-alist (vc-BACKEND-header), directory-sep-char (== ?/)
+font-lock-defaults-alist (font-lock-defaults), and e (float-e).
 
 ---
 ** The following obsolete files were removed:
