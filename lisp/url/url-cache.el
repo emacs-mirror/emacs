@@ -216,24 +216,26 @@ considered \"expired\"."
   (let ((current-time (current-time))
 	(total-files 0)
 	(deleted-files 0))
-    (dolist (file (directory-files (or directory url-cache-directory) t))
-      (unless (member (file-name-nondirectory file) '("." ".."))
-	(setq total-files (1+ total-files))
-	(cond
-	 ((file-directory-p file)
-	  (when (url-cache-prune-cache file)
-	    (setq deleted-files (1+ deleted-files))))
-	 ((time-less-p
-	   (time-add
-	    (nth 5 (file-attributes file))
-	    (seconds-to-time url-cache-expire-time))
-	   current-time)
-	  (delete-file file)
-	  (setq deleted-files (1+ deleted-files))))))
-    (if (< deleted-files total-files)
-	nil
-      (delete-directory directory)
-      t)))
+    (setq directory (or directory url-cache-directory))
+    (when (file-exists-p directory)
+      (dolist (file (directory-files directory t))
+	(unless (member (file-name-nondirectory file) '("." ".."))
+	  (setq total-files (1+ total-files))
+	  (cond
+	   ((file-directory-p file)
+	    (when (url-cache-prune-cache file)
+	      (setq deleted-files (1+ deleted-files))))
+	   ((time-less-p
+	     (time-add
+	      (nth 5 (file-attributes file))
+	      (seconds-to-time url-cache-expire-time))
+	     current-time)
+	    (delete-file file)
+	    (setq deleted-files (1+ deleted-files))))))
+      (if (< deleted-files total-files)
+	  nil
+	(delete-directory directory)
+	t))))
 
 (provide 'url-cache)
 

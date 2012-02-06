@@ -1,6 +1,8 @@
 2012-02-06  Lars Ingebrigtsen  <larsi@gnus.org>
 
 	* url-cache.el (url-cache-prune-cache): New function.
+	(url-cache-prune-cache): Check that the directory exists before
+	trying to delete it.
 
 	* url.el (url-retrieve-number-of-calls): New variable.
 	(url-retrieve-internal): Use it to expire the cache once in a
