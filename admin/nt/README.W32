@@ -114,13 +114,11 @@ See the end of the file for license conditions.
   Emacs has built in support for XBM and PPM/PGM/PBM images, and the
   libXpm library is bundled, providing XPM support (required for color
   toolbar icons and splash screen).  Source for libXpm should be available
-  on the same place as you got this binary distribution from.  The version
-  of libXpm bundled with this version of Emacs is 3.5.7, based on x.org's
-  libXpm library from X11R7.3.
+  on the same place as you got this binary distribution from.
 
   Emacs can also support some other image formats with appropriate
   libraries.  These libraries are all available as part of GTK
-  download for Windows (http://www.gtk.org/download-windows.html), or
+  download for Windows (http://www.gtk.org/download/win32.php), or
   from the GnuWin32 project.  Emacs will find them if the directory
   they are installed in is on the PATH.
 
