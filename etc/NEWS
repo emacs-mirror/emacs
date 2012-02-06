@@ -1240,7 +1240,7 @@ Instead, the offending function is removed.
 *** New function `run-hook-wrapped' for running an abnormal hook by
 passing the hook functions as arguments to a "wrapping" function.
 Like `run-hook-with-args-until-success', it stops at the first
-non-nil retun value.
+non-nil return value.
 
 +++
 *** New macro `with-wrapper-hook' for running an abnormal hook as a
