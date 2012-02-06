@@ -2513,7 +2513,7 @@ text matching `comint-prompt-regexp'."
 	      (if (> n 0)
 		  (next-single-char-property-change pos 'field)
 		(previous-single-char-property-change pos 'field)))
-	(cond ((or (null pos) (= pos prev-pos))
+	(cond ((= pos prev-pos)
 	       ;; Ran off the end of the buffer.
 	       (when (> n 0)
 		 ;; There's always an input field at the end of the

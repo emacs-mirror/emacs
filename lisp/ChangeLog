@@ -1,5 +1,8 @@
 2012-02-06  Chong Yidong  <cyd@gnu.org>
 
+	* comint.el (comint-next-prompt): next-single-char-property-change
+	and prev-single-char-property-change never return nil (Bug#8657).
+
 	* custom.el (defcustom): Doc fix (Bug#9711).
 
 2012-02-05  Chong Yidong  <cyd@gnu.org>
