@@ -1,3 +1,8 @@
+2012-02-06  Chong Yidong  <cyd@gnu.org>
+
+	* gnus-sum.el (gnus-summary-show-thread):
+	next-single-char-property-change never returns nil (Bug#8657).
+
 2012-02-05  Lars Ingebrigtsen  <larsi@gnus.org>
 
 	* nnimap.el (nnimap-open-server): Allow switching the nnoo server

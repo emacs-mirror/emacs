@@ -11579,8 +11579,7 @@ Returns nil if no thread was there to be shown."
 	 (beg (progn (beginning-of-line) (if (bobp) (point) (1- (point)))))
 	 (eoi (when end
 		(if (fboundp 'next-single-char-property-change)
-		    (or (next-single-char-property-change end 'invisible)
-			(point-max))
+		    (next-single-char-property-change end 'invisible)
 		  (while (progn
 			   (end-of-line 2)
 			   (and (not (eobp))
