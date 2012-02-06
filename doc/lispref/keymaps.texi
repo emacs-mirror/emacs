@@ -2658,6 +2658,15 @@ The @code{:rtl} property specifies an alternative image to use for
 right-to-left languages.  Only the Gtk+ version of Emacs supports this
 at present.
 
+Like the menu bar, the tool bar can display separators (@pxref{Menu
+Separators}).  Tool bar separators are vertical rather than
+horizontal, though, and only a single style is supported.  Separators
+are represented in the tool bar keymap in the same way as for the
+menu-bar, i.e. using a @code{(menu-item "--"}) entry.  The Gtk+ and
+Nextstep tool bars render separators natively, otherwise Emacs selects
+a separator image that is appropriate for the display.  Note that tool
+bar separators do not support any properties, such as @code{:visible}.
+
 The default tool bar is defined so that items specific to editing do not
 appear for major modes whose command symbol has a @code{mode-class}
 property of @code{special} (@pxref{Major Mode Conventions}).  Major

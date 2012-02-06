@@ -1,5 +1,7 @@
 2012-02-06  Glenn Morris  <rgm@gnu.org>
 
+	* keymaps.texi (Tool Bar): Mention separators.
+
 	* modes.texi (Running Hooks): Mention run-hook-wrapped.
 
 	* control.texi (Handling Errors):

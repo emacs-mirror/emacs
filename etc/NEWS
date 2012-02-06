@@ -1335,6 +1335,7 @@ argument is supplied (see Trash changes, above).
 or RGB triplet, instead of signaling an error if the user provides
 invalid input.
 
++++
 ** Tool-bars can display separators.
 Tool-bar separators are handled like menu separators in menu-bar maps,
 i.e. via menu entries of the form `(menu-item "--")'.
