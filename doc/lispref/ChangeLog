@@ -1,6 +1,8 @@
 2012-02-06  Glenn Morris  <rgm@gnu.org>
 
 	* keymaps.texi (Tool Bar): Mention separators.
+	(Inheritance and Keymaps):
+	Mention make-composed-keymap and multiple inheritance.
 
 	* modes.texi (Running Hooks): Mention run-hook-wrapped.
 

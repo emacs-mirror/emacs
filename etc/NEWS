@@ -1412,8 +1412,11 @@ as well as those in the -*- line.
 ---
 ** rx.el has a new `group-n' construct for explicitly numbered groups.
 
-** keymaps can inherit from multiple parents.
-There is a new function `make-composed-keymap' that [does something].
++++
+** New function `make-composed-keymap' that constructs a new keymap
+from multiple input maps.  You can use this to make a keymap that
+inherits from multiple maps, eg:
+ (set-keymap-parent newmap (make-composed-keymap othermap parent))
 
 +++
 ** Set `debug-on-event' to make Emacs enter the debugger e.g. on receipt
