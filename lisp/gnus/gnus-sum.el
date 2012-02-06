@@ -7352,7 +7352,7 @@ If FORCE (the prefix), also save the .newsrc file(s)."
 (defun gnus-handle-ephemeral-exit (quit-config)
   "Handle movement when leaving an ephemeral group.
 The state which existed when entering the ephemeral is reset."
-  (if (not (buffer-name (car quit-config)))
+  (if (not (buffer-live-p (car quit-config)))
       (gnus-configure-windows 'group 'force)
     (set-buffer (car quit-config))
     (unless (eq (cdr quit-config) 'group)
