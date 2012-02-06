@@ -1,3 +1,8 @@
+2012-02-06  Chong Yidong  <cyd@gnu.org>
+
+	* doc.c (store_function_docstring): Avoid applying docstring of
+	alias to base function (Bug#2603).
+
 2012-02-04  Andreas Schwab  <schwab@linux-m68k.org>
 
 	* .gdbinit (pp1, pv1): Remove redundant defines.
