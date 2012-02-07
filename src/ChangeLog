@@ -1,5 +1,7 @@
 2012-02-07  Glenn Morris  <rgm@gnu.org>
 
+	* image.c (Fimagemagick_types): Doc fix.
+
 	* image.c (imagemagick-render-type): Change it from a lisp object
 	to an integer.  Move the doc here from the lisp manual.
 	Treat all values not equal to 0 the same.

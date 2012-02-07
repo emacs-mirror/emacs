@@ -1,5 +1,7 @@
 2012-02-07  Glenn Morris  <rgm@gnu.org>
 
+	* image.el (imagemagick-types-inhibit): Doc fix.
+
 	* cus-start.el (imagemagick-render-type): Add it.
 
 2012-02-06  Lars Ingebrigtsen  <larsi@gnus.org>

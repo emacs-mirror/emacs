@@ -686,7 +686,7 @@ The minimum delay between successive frames is 0.01s."
   '(C HTML HTM TXT PDF)
   "ImageMagick types that Emacs should not use ImageMagick to handle.
 This should be a list of symbols, each of which has the same
-names as one of the format tags used internally by ImageMagick;
+name as one of the format tags used internally by ImageMagick;
 see `imagemagick-types'.  Entries in this list are excluded from
 being registered by `imagemagick-register-types'.
 

@@ -7983,6 +7983,7 @@ DEFUN ("imagemagick-types", Fimagemagick_types, Simagemagick_types, 0, 0, 0,
 Each entry in this list is a symbol named after an ImageMagick format
 tag.  See the ImageMagick manual for a list of ImageMagick formats and
 their descriptions (http://www.imagemagick.org/script/formats.php).
+You can also try the shell command: `identify -list format'.
 
 Note that ImageMagick recognizes many file-types that Emacs does not
 recognize as images, such as C.  See `imagemagick-types-inhibit'.  */)
