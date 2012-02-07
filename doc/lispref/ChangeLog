@@ -1,6 +1,6 @@
 2012-02-07  Glenn Morris  <rgm@gnu.org>
 
-	* display.texi (ImageMagick Images):
+	* display.texi (ImageMagick Images): General update.
 	Move most details of imagemagick-render-type to the variable's doc.
 
 2012-02-06  Glenn Morris  <rgm@gnu.org>
