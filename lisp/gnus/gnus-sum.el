@@ -7328,9 +7328,11 @@ If FORCE (the prefix), also save the .newsrc file(s)."
 	(gnus-kill-buffer gnus-original-article-buffer)
 	(setq gnus-article-current nil))
       ;; Return to the group buffer.
-      (gnus-configure-windows 'group 'force)
       (if (not gnus-kill-summary-on-exit)
-	  (gnus-deaden-summary)
+	  (progn
+	    (gnus-deaden-summary)
+	    (gnus-configure-windows 'group 'force))
+	(gnus-configure-windows 'group 'force)
 	(gnus-close-group group)
 	(gnus-kill-buffer gnus-summary-buffer))
       (unless gnus-single-article-buffer

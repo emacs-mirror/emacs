@@ -1,3 +1,19 @@
+2012-02-07  Lars Ingebrigtsen  <larsi@gnus.org>
+
+	* shr-color.el (shr-color-set-minimum-interval): Renamed to add prefix
+	(bug#10732).
+
+	* shr.el (shr-insert-document): Add doc string.
+	(shr-visit-file): Ditto.
+	(shr-remove-trailing-whitespace): New function.
+	(shr-insert-document): Use it to clean up trailing whitespace as the
+	final step (bug#10714).
+
+2012-02-06  Lars Ingebrigtsen  <larsi@gnus.org>
+
+	* gnus-sum.el (gnus-summary-exit-no-update): Really deaden the summary
+	buffer if `gnus-kill-summary-on-exit' is nil.
+
 2012-02-06  Katsumi Yamaoka  <yamaoka@jpl.org>
 
 	* gnus-sum.el (gnus-summary-show-thread):
