@@ -1,5 +1,8 @@
 2012-02-07  Glenn Morris  <rgm@gnu.org>
 
+	* emacs-lisp/easy-mmode.el (define-minor-mode):
+	Doc fixes for the macro and the mode it defines.
+
 	* image.el (imagemagick-types-inhibit): Doc fix.
 
 	* cus-start.el (imagemagick-render-type): Add it.

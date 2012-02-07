@@ -1,3 +1,8 @@
+2012-02-07  Glenn Morris  <rgm@gnu.org>
+
+	* modes.texi (Defining Minor Modes):
+	Expand on args of defined minor modes.
+
 2012-02-07  Chong Yidong  <cyd@gnu.org>
 
 	* variables.texi (Creating Buffer-Local): Minor clarification

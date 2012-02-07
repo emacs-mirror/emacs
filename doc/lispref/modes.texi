@@ -1380,11 +1380,21 @@ implementing a mode in one self-contained definition.
 @defmac define-minor-mode mode doc [init-value [lighter [keymap]]] keyword-args@dots{} body@dots{}
 This macro defines a new minor mode whose name is @var{mode} (a
 symbol).  It defines a command named @var{mode} to toggle the minor
-mode, with @var{doc} as its documentation string.  By default, it also
-defines a variable named @var{mode}, which is set to @code{t} or
-@code{nil} by enabling or disabling the mode.  The variable is
-initialized to @var{init-value}.  Except in unusual circumstances (see
-below), this value must be @code{nil}.
+mode, with @var{doc} as its documentation string.
+
+The toggle command takes one optional (prefix) argument.
+If called interactively with no argument it toggles the mode on or off.
+A positive prefix argument enables the mode, any other prefix argument
+disables it.  From Lisp, an argument of @code{toggle} toggles the mode,
+whereas an omitted or @code{nil} argument enables the mode.
+This makes it easy to enable the minor mode in a major mode hook, for example.
+If @var{doc} is nil, the macro supplies a default documentation string
+explaining the above.
+
+By default, it also defines a variable named @var{mode}, which is set to
+@code{t} or @code{nil} by enabling or disabling the mode.  The variable
+is initialized to @var{init-value}.  Except in unusual circumstances
+(see below), this value must be @code{nil}.
 
 The string @var{lighter} says what to display in the mode line
 when the mode is enabled; if it is @code{nil}, the mode is not displayed
@@ -1478,9 +1488,10 @@ for this macro.
 @smallexample
 (define-minor-mode hungry-mode
   "Toggle Hungry mode.
-With no argument, this command toggles the mode.
-Non-null prefix argument turns on the mode.
-Null prefix argument turns off the mode.
+Interactively with no argument, this command toggles the mode.
+A positive prefix argument enables the mode, any other prefix
+argument disables it.  From Lisp, argument omitted or nil enables
+the mode, `toggle' toggles the state.
 
 When Hungry mode is enabled, the control delete key
 gobbles all preceding whitespace except the last.
@@ -1509,13 +1520,7 @@ minor modes don't need any.
 @smallexample
 (define-minor-mode hungry-mode
   "Toggle Hungry mode.
-With no argument, this command toggles the mode.
-Non-null prefix argument turns on the mode.
-Null prefix argument turns off the mode.
-
-When Hungry mode is enabled, the control delete key
-gobbles all preceding whitespace except the last.
-See the command \\[hungry-electric-delete]."
+...rest of documentation as before..."
  ;; The initial value.
  :init-value nil
  ;; The indicator for the mode line.

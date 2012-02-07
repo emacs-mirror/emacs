@@ -1012,8 +1012,11 @@ trouble seems to be an old-style backquote followed by a newline.
 view-file has since Emacs 22 (ie, it won't enable View mode if the
 major-mode is special).
 
-** Passing a nil argument to a minor mode function now turns the mode
-ON unconditionally.
+** Passing a nil argument to a minor mode defined by define-minor-mode
+now turns the mode ON unconditionally.  This is so that you can write, e.g.
+  (add-hook 'text-mode-hook 'foo-minor-mode)
+to enable foo-minor-mode in Text mode buffers, thus removing the need
+for `turn-on-foo-minor-mode' style functions.
 
 +++
 ** During startup, Emacs no longer adds entries for `menu-bar-lines'

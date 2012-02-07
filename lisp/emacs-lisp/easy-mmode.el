@@ -90,6 +90,14 @@ This defines the toggle command MODE and (by default) a control variable
 MODE (you can override this with the :variable keyword, see below).
 DOC is the documentation for the mode toggle command.
 
+The defined mode command takes one optional (prefix) argument.
+Interactively with no prefix argument it toggles the mode.
+With a prefix argument, it enables the mode if the argument is
+positive and otherwise disables it.  When called from Lisp, it
+enables the mode if the argument is omitted or nil, and toggles
+the mode if the argument is `toggle'.  If DOC is nil this
+function adds a basic doc-string stating these facts.
+
 Optional INIT-VALUE is the initial value of the mode's variable.
 Optional LIGHTER is displayed in the modeline when the mode is on.
 Optional KEYMAP is the default keymap bound to the mode keymap.
@@ -242,7 +250,7 @@ or call the function `%s'."))))
 	      (format (concat "Toggle %s on or off.
 With a prefix argument ARG, enable %s if ARG is
 positive, and disable it otherwise.  If called from Lisp, enable
-the mode if ARG is omitted or nil.
+the mode if ARG is omitted or nil, and toggle it if ARG is `toggle'.
 \\{%s}") pretty-name pretty-name keymap-sym))
 	 ;; Use `toggle' rather than (if ,mode 0 1) so that using
 	 ;; repeat-command still does the toggling correctly.
