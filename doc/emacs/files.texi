@@ -1915,15 +1915,18 @@ point.  Partial Completion mode offers other features extending
 mode allows you to toggle between displaying the file as an image in
 the Emacs buffer, and displaying its underlying text representation,
 using the command @kbd{C-c C-c} (@code{image-toggle-display}).  This
-works only when Emacs can display the specific image type.  If the
-displayed image is wider or taller than the frame, the usual point
-motion keys (@kbd{C-f}, @kbd{C-p}, and so forth) cause different parts
-of the image to be displayed.  If the image can be animated, then
-the command @kbd{RET} (@code{image-toggle-animation}), will start (or
-stop) animating it.  Animation plays once, unless the option
-@code{image-animate-loop} is non-@code{nil}.  Currently, Emacs only
-supports animated GIF files (@pxref{Animated Images,,, elisp, The Emacs
-Lisp Reference Manual}).
+works only when Emacs can display the specific image type@footnote{If
+your Emacs was compiled with ImageMagick support, then after using
+@code{imagemagick-register-types}, you can view in Image mode any
+image type that ImageMagick supports; @pxref{ImageMagick Images,,,
+elisp, The Emacs Lisp Reference Manual}}.  If the displayed image is wider
+or taller than the frame, the usual point motion keys (@kbd{C-f},
+@kbd{C-p}, and so forth) cause different parts of the image to be
+displayed.  If the image can be animated, then the command @kbd{RET}
+(@code{image-toggle-animation}), will start (or stop) animating it.
+Animation plays once, unless the option @code{image-animate-loop} is
+non-@code{nil}.  Currently, Emacs only supports animated GIF files
+(@pxref{Animated Images,,, elisp, The Emacs Lisp Reference Manual}).
 
 @findex thumbs-mode
 @findex mode, thumbs
