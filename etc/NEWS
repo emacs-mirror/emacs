@@ -1381,12 +1381,14 @@ is being animated.
 *** `image-extension-data' has been renamed to `image-metadata'.
 The old name is an obsolete alias to the new one.
 
++++
 *** Emacs can be compiled with ImageMagick support.
 This feature is not available for the Nextstep or MS ports.
 Then the function `imagemagick-types' returns a list of image file
 extensions that your installation of ImageMagick supports.  The
 function `imagemagick-register-types' enables ImageMagick support for
 these image types, minus those listed in `imagemagick-types-inhibit'.
+Visiting one of these file types will then use Image mode.
 
 ** XML and HTML parsing
 If Emacs is compiled with libxml2 support, there are two new functions:
