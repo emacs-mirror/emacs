@@ -1,3 +1,8 @@
+2012-02-07  Alan Mackenzie  <acm@muc.de>
+
+	* progmodes/cc-engine.el (c-forward-objc-directive): Prevent
+	looping in "#pragma mark @implementation".
+
 2012-02-07  Michael Albinus  <michael.albinus@gmx.de>
 
 	* notifications.el (notifications-on-closed-signal): Make `reason'
