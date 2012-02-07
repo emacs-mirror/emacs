@@ -1,3 +1,8 @@
+2012-02-07  Lars Ingebrigtsen  <larsi@gnus.org>
+
+	* gnus.texi (Mail Source Specifiers): Add a pop3 via an SSH tunnel
+	example (modified from an example by Michael Albinus).
+
 2012-01-30  Philipp Haselwarter  <philipp.haselwarter@gmx.de>  (tiny change)
 
 	* gnus.texi (Agent Basics): Fix outdated description of
