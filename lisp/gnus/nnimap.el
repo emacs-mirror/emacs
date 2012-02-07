@@ -208,8 +208,7 @@ textual parts.")
 	  (delete-region (+ (match-beginning 0) 2) (point))
 	  (setq string (buffer-substring (point) (+ (point) size)))
 	  (delete-region (point) (+ (point) size))
-	  (insert (format "%S" (subst-char-in-string
-				?\n ?\s string))))
+	  (insert (format "%S" (mm-subst-char-in-string ?\n ?\s string))))
 	(beginning-of-line)
 	(setq article
 	      (and (re-search-forward "UID \\([0-9]+\\)" (line-end-position)
