@@ -4560,12 +4560,13 @@ There may be overlap between image loaders in your Emacs installation,
 and you may prefer to use a different one for a given image type
 (which loader will be used in practice depends on the priority of the
 loaders).  
-@end ignore
 For example, if you never want to use the ImageMagick loader to view
-JPEG files, add @code{JPG} to this list.  Note that ImageMagick often
-distinguishes between several different types of a particular format
-(e.g., @code{JPG}, @code{JPEG}, @code{PJPEG}, etc.), and you may need
-to add all versions to this list.
+JPEG files, add @code{JPG} to this list.
+@end ignore
+Note that ImageMagick often distinguishes between several different
+types of a particular format (e.g., @code{JPG}, @code{JPEG},
+@code{PJPEG}, etc.), and you may need to add all versions to this
+list.
 
 @c Not sure this should even be in the manual at all.
 @vindex imagemagick-render-type
