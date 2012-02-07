@@ -688,11 +688,14 @@ The minimum delay between successive frames is 0.01s."
 This should be a list of symbols, each of which has the same
 name as one of the format tags used internally by ImageMagick;
 see `imagemagick-types'.  Entries in this list are excluded from
-being registered by `imagemagick-register-types'.
+being registered by `imagemagick-register-types', so if you change
+this variable you must do so before you call that function.
 
 If Emacs is compiled without ImageMagick, this variable has no effect."
   :type '(choice (const :tag "Let ImageMagick handle all types it can" nil)
 		 (repeat symbol))
+  ;; Ideally, would have a :set function that checks if we already did
+  ;; imagemagick-register-types, and if so undoes it, then redoes it.
   :version "24.1"
   :group 'image)
 
