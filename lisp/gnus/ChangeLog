@@ -1,3 +1,7 @@
+2012-02-07  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* gnus-sum.el (gnus-summary-show-thread): Revert last two changes.
+
 2012-02-07  Lars Ingebrigtsen  <larsi@gnus.org>
 
 	* nnimap.el (nnimap-transform-headers): Remove unused variable.
