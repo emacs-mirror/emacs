@@ -1,3 +1,9 @@
+2012-02-07  Glenn Morris  <rgm@gnu.org>
+
+	* image.c (imagemagick-render-type): Change it from a lisp object
+	to an integer.  Move the doc here from the lisp manual.
+	Treat all values not equal to 0 the same.
+
 2012-02-06  Chong Yidong  <cyd@gnu.org>
 
 	* doc.c (store_function_docstring): Avoid applying docstring of

@@ -1,3 +1,8 @@
+2012-02-07  Glenn Morris  <rgm@gnu.org>
+
+	* display.texi (ImageMagick Images):
+	Move most details of imagemagick-render-type to the variable's doc.
+
 2012-02-06  Glenn Morris  <rgm@gnu.org>
 
 	* keymaps.texi (Tool Bar): Mention separators.

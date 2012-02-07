@@ -4543,14 +4543,10 @@ loader will be used in practice depends on the priority of the loaders).
 For example, if you never want to use the ImageMagick loader to use
 JPEG files, add @code{JPG} to this list.
 
+@c Not sure this should even be in the manual at all.
 @vindex imagemagick-render-type
-You can set the variable @code{imagemagick-render-type} to choose
-between screen render methods for the ImageMagick loader.  The options
-are: @code{0}, a conservative method which works with older
-@c FIXME details of this "newer method"?
-@c Presumably it is faster but may be less "robust"?
-ImageMagick versions (it is a bit slow, but robust); and @code{1},
-a newer ImageMagick method.
+If you wish to experiment with the performance of the ImageMagick
+loader, see the variable @code{imagemagick-render-type}.
 
 Images loaded with ImageMagick support a few new display specifications:
 
