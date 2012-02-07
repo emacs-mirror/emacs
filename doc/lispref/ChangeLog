@@ -1,3 +1,8 @@
+2012-02-07  Chong Yidong  <cyd@gnu.org>
+
+	* variables.texi (Creating Buffer-Local): Minor clarification
+	to buffer-local-variables doc (Bug#10715).
+
 2012-02-07  Glenn Morris  <rgm@gnu.org>
 
 	* display.texi (ImageMagick Images): General update.

@@ -1317,11 +1317,12 @@ value (@pxref{Default Value}) of @var{variable} instead.
 
 @defun buffer-local-variables &optional buffer
 This function returns a list describing the buffer-local variables in
-buffer @var{buffer}.  (If @var{buffer} is omitted, the current buffer is
-used.)  It returns an association list (@pxref{Association Lists}) in
-which each element contains one buffer-local variable and its value.
-However, when a variable's buffer-local binding in @var{buffer} is void,
-then the variable appears directly in the resulting list.
+buffer @var{buffer}.  (If @var{buffer} is omitted, the current buffer
+is used.)  Normally, each list element has the form
+@w{@code{(@var{sym} . @var{val})}}, where @var{sym} is a buffer-local
+variable (a symbol) and @var{val} is its buffer-local value.  But when
+a variable's buffer-local binding in @var{buffer} is void, its list
+element is just @var{sym}.
 
 @example
 @group

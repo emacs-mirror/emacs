@@ -1,3 +1,9 @@
+2012-02-07  Chong Yidong  <cyd@gnu.org>
+
+	* buffer.c (Fbuffer_local_variables)
+	(buffer_lisp_local_variables): Handle unbound vars correctly;
+	don't let Qunbound leak into Lisp.
+
 2012-02-07  Glenn Morris  <rgm@gnu.org>
 
 	* image.c (Fimagemagick_types): Doc fix.
