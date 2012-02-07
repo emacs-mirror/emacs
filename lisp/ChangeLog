@@ -1,5 +1,12 @@
 2012-02-07  Alan Mackenzie  <acm@muc.de>
 
+	Fix spurious recognition of c-in-knr-argdecl.
+
+	* progmodes/cc-engine.el (c-in-knr-argdecl): Check for '=' in a
+	putative K&R region.
+
+2012-02-07  Alan Mackenzie  <acm@muc.de>
+
 	* progmodes/cc-engine.el (c-forward-objc-directive): Prevent
 	looping in "#pragma mark @implementation".
 
