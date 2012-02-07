@@ -1,3 +1,9 @@
+2012-02-07  Eli Zaretskii  <eliz@gnu.org>
+
+	* ls-lisp.el (ls-lisp-sanitize): New function.
+	(ls-lisp-insert-directory): Use it to fix or remove any elements
+	in file-alist with missing attributes.  (Bug#4673)
+
 2012-02-07  Alan Mackenzie  <acm@muc.de>
 
 	Fix spurious recognition of c-in-knr-argdecl.
