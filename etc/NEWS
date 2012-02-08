@@ -905,17 +905,30 @@ this was not advertised at the time.
 
 ** Obsolete modes
 
-*** partial-completion-mode is obsolete.
+---
+*** abbrevlist.el
+
+*** erc-hecomplete.el
+
+*** partial-completion-mode (complete.el) is obsolete.
 You can get a comparable behavior with:
 (setq completion-styles '(partial-completion initials))
 (setq completion-pcm-complete-word-inserts-delimiters t)
 
-*** pc-mode.el is obsolete.
+---
+*** pc-mode.el is obsolete (CUA mode is much more comprehensive).
 
+*** pgg is obsolete (use EasyPG instead)
+
+---
 *** sregex.el is obsolete, since rx.el is a strict superset.
 
-*** s-region.el and pc-select are obsolete.
-They are superseded by shift-select-mode enabled by default in 23.1.
+---
+*** s-region.el and pc-select.el are obsolete.
+They are superseded by shift-select-mode, enabled by default since 23.1.
+
++++
+*** vc-mcvs.el is obsolete (for lack of a maintainer)
 
 ** Miscellaneous
 
