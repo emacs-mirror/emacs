@@ -1341,8 +1341,10 @@ Francis J.@: Wright wrote @file{woman.el}, a package for browsing
 manual pages without the @code{man} command.
 
 @item
-Tom Wurgler wrote @file{emacs-lock.el}, which makes it harder
-to exit with valuable buffers unsaved.
+Juanma Barranquero wrote @file{emacs-lock.el} (based on the original
+version by Tom Wurgler), which makes it harder to exit with valuable
+buffers unsaved.  He also made many other contributions to other
+areas, including MS Windows support.
 
 @item
 Masatake Yamato wrote @file{ld-script.el}, an editing mode for GNU
