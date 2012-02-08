@@ -1,3 +1,7 @@
+2012-02-08  Glenn Morris  <rgm@gnu.org>
+
+	* loading.texi (Named Features): Update the require example.
+
 2012-02-07  Glenn Morris  <rgm@gnu.org>
 
 	* modes.texi (Defining Minor Modes):
