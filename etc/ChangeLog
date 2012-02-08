@@ -1,3 +1,8 @@
+2012-02-08  Alex Ott  <alexott@gmail.com>
+
+	* tutorials/TUTORIAL.ru: Updated; synchronize with TUTORIAL.
+	Coding system changed to UTF-8.
+
 2012-02-06  Juanma Barranquero  <lekktu@gmail.com>
 
 	* tutorials/TUTORIAL.es: Updated; synchronize with TUTORIAL.
