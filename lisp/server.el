@@ -403,14 +403,15 @@ If CLIENT is non-nil, add a description of it to the logged message."
     ;; Rewritten to avoid inadvertently killing the current buffer after
     ;; `delete-frame' removed FRAME (Bug#10729).
     (let ((buffer (frame-parameter frame 'server-dummy-buffer)))
-      (if (and (one-window-p 'nomini frame)
-	       (eq (window-buffer (frame-first-window frame)) buffer))
-	  ;; The temp frame still only shows one buffer, and that is the
-	  ;; internal temp buffer.
-	  (delete-frame frame)
-	(set-frame-parameter frame 'visibility t)
-	(set-frame-parameter frame 'server-dummy-buffer nil))
-      (kill-buffer buffer))))
+      (when (buffer-live-p buffer)
+	(if (and (one-window-p 'nomini frame)
+		 (eq (window-buffer (frame-first-window frame)) buffer))
+	    ;; The temp frame still only shows one buffer, and that is the
+	    ;; internal temp buffer.
+	    (delete-frame frame)
+	  (set-frame-parameter frame 'visibility t)
+	  (set-frame-parameter frame 'server-dummy-buffer nil))
+	(kill-buffer buffer)))))
 
 (defun server-handle-delete-frame (frame)
   "Delete the client connection when the emacsclient frame is deleted.
