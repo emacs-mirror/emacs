@@ -829,6 +829,7 @@ sql-list-all and sql-list-table.
 
 ** TeX modes
 
++++
 *** latex-electric-env-pair-mode keeps \begin..\end matched on the fly.
 
 ** Tramp

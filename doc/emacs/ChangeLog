@@ -1,3 +1,7 @@
+2012-02-08  Glenn Morris  <rgm@gnu.org>
+
+	* text.texi (LaTeX Editing): Mention latex-electric-env-pair-mode.
+
 2012-02-07  Glenn Morris  <rgm@gnu.org>
 
 	* files.texi (File Conveniences): Mention ImageMagick images.
