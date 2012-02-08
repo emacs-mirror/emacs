@@ -671,6 +671,7 @@ To turn off the search field, set custom-search-field to nil.
 *** Custom options now start out hidden if at their default values.
 Use the arrow to the left of the option name to toggle visibility.
 
+---
 *** custom-buffer-sort-alphabetically now defaults to t.
 
 +++
@@ -750,10 +751,13 @@ by default.
 ** MH-E has been upgraded to MH-E version 8.3.1.
 See MH-E-NEWS for details.
 
+---
 ** Modula-2 mode provides auto-indentation.
 
+---
 ** mpc.el: Can use pseudo tags of the form tag1|tag2 as a union of two tags.
 
+---
 ** Prolog mode has been completely revamped, with lots of additional
 functionality such as more intelligent indentation, electricity, support for
 more variants, including Mercury, and a lot more.
@@ -976,7 +980,8 @@ Notifications API.  It requires D-Bus for communication.
 ** soap-client.el supports access to SOAP web services from Emacs.
 soap-inspect.el is an interactive inspector for SOAP WSDL structures.
 
-** xmodmap-generic-mode for xmodmap files.
+---
+** New generic mode, xmodmap-generic-mode, for xmodmap files.
 
 ** New emacs-lock.el package.
 (The pre-existing one has been renamed to old-emacs-lock.el and moved
