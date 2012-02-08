@@ -1,6 +1,6 @@
 ;;; tar-mode.el --- simple editing of tar files from GNU Emacs
 
-;; Copyright (C) 1990-1991, 1993-2012  Free Software Foundation, Inc.
+;; Copyright (C) 1990-1991, 1993-2012 Free Software Foundation, Inc.
 
 ;; Author: Jamie Zawinski <jwz@lucid.com>
 ;; Maintainer: FSF
@@ -677,9 +677,12 @@ See also: variables `tar-update-datestamp' and `tar-anal-blocksize'.
 
 (define-minor-mode tar-subfile-mode
   "Minor mode for editing an element of a tar-file.
-This mode arranges for \"saving\" this buffer to write the data
-into the tar-file buffer that it came from.  The changes will actually
-appear on disk when you save the tar-file's buffer."
+With a prefix argument ARG, enable the mode if ARG is positive,
+and disable it otherwise.  If called from Lisp, enable the mode
+if ARG is omitted or nil.  This mode arranges for \"saving\" this
+buffer to write the data into the tar-file buffer that it came
+from.  The changes will actually appear on disk when you save the
+tar-file's buffer."
   ;; Don't do this, because it is redundant and wastes mode line space.
   ;; :lighter " TarFile"
   nil nil nil

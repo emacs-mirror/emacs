@@ -203,7 +203,10 @@ directory."
 
 
 (define-minor-mode dirtrack-debug-mode
-  "Toggle Dirtrack debugging."
+  "Toggle Dirtrack debugging.
+With a prefix argument ARG, enable Dirtrack debugging if ARG is
+positive, and disable it otherwise.  If called from Lisp, enable
+the mode if ARG is omitted or nil."
   nil nil nil
   (if dirtrack-debug-mode
       (display-buffer (get-buffer-create dirtrack-debug-buffer))))

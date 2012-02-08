@@ -1,6 +1,6 @@
 ;;; cwarn.el --- highlight suspicious C and C++ constructions
 
-;; Copyright (C) 1999-2012  Free Software Foundation, Inc.
+;; Copyright (C) 1999-2012 Free Software Foundation, Inc.
 
 ;; Author: Anders Lindgren <andersl@andersl.com>
 ;; Keywords: c, languages, faces
@@ -191,7 +191,9 @@ Note, in addition to enabling this minor mode, the major mode must
 be included in the variable `cwarn-configuration'.  By default C and
 C++ modes are included.
 
-With ARG, turn CWarn mode on if and only if arg is positive."
+With a prefix argument ARG, enable the mode if ARG is positive,
+and disable it otherwise.  If called from Lisp, enable the mode
+if ARG is omitted or nil."
   :group 'cwarn :lighter cwarn-mode-text
   (cwarn-font-lock-keywords cwarn-mode)
   (if font-lock-mode (font-lock-fontify-buffer)))

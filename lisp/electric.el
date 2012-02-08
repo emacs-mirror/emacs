@@ -404,7 +404,10 @@ one of those symbols.")
 
 ;;;###autoload
 (define-minor-mode electric-layout-mode
-  "Automatically insert newlines around some chars."
+  "Automatically insert newlines around some chars.
+With a prefix argument ARG, enable Electric Layout mode if ARG is
+positive, and disable it otherwise.  If called from Lisp, enable
+the mode if ARG is omitted or nil."
   :global t
   :group 'electricity
   (if electric-layout-mode

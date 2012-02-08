@@ -1,3 +1,35 @@
+2012-02-08  Glenn Morris  <rgm@gnu.org>
+
+	* completion.el (dynamic-completion-mode):
+	* dirtrack.el (dirtrack-debug-mode):
+	* electric.el (electric-layout-mode):
+	* epa-mail.el (epa-mail-mode, epa-global-mail-mode):
+	* face-remap.el (text-scale-mode, buffer-face-mode):
+	* iimage.el (iimage-mode):
+	* image-mode.el (image-transform-mode):
+	* minibuffer.el (completion-in-region-mode):
+	* scroll-lock.el (scroll-lock-mode):
+	* simple.el (next-error-follow-minor-mode):
+	* tar-mode.el (tar-subfile-mode):
+	* tooltip.el (tooltip-mode):
+	* vcursor.el (vcursor-use-vcursor-map):
+	* wid-browse.el (widget-minor-mode):
+	* emulation/tpu-edt.el (tpu-edt-mode):
+	* emulation/tpu-extras.el (tpu-cursor-free-mode):
+	* international/iso-ascii.el (iso-ascii-mode):
+	* language/thai-util.el (thai-word-mode):
+	* mail/supercite.el (sc-minor-mode):
+	* net/goto-addr.el (goto-address-mode):
+	* net/rcirc.el (rcirc-multiline-minor-mode, rcirc-track-minor-mode):
+	* progmodes/cwarn.el (cwarn-mode):
+	* progmodes/flymake.el (flymake-mode):
+	* progmodes/glasses.el (glasses-mode):
+	* progmodes/hideshow.el (hs-minor-mode):
+	* progmodes/pascal.el (pascal-outline-mode):
+	* textmodes/enriched.el (enriched-mode):
+	* vc/smerge-mode.el (smerge-mode):
+	Doc fixes (minor mode argument).
+
 2012-02-07  Eli Zaretskii  <eliz@gnu.org>
 
 	* ls-lisp.el (ls-lisp-sanitize): New function.

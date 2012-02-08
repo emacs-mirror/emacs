@@ -321,9 +321,11 @@ select the source buffer."
 
 (define-minor-mode next-error-follow-minor-mode
   "Minor mode for compilation, occur and diff modes.
+With a prefix argument ARG, enable mode if ARG is positive, and
+disable it otherwise.  If called from Lisp, enable mode if ARG is
+omitted or nil.
 When turned on, cursor motion in the compilation, grep, occur or diff
-buffer causes automatic display of the corresponding source code
-location."
+buffer causes automatic display of the corresponding source code location."
   :group 'next-error :init-value nil :lighter " Fol"
   (if (not next-error-follow-minor-mode)
       (remove-hook 'post-command-hook 'next-error-follow-mode-post-command-hook t)

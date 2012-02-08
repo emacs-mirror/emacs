@@ -1,6 +1,6 @@
 ;;; iso-ascii.el --- set up char tables for ISO 8859/1 on ASCII terminals
 
-;; Copyright (C) 1987, 1995, 1998, 2001-2012  Free Software Foundation, Inc.
+;; Copyright (C) 1987, 1995, 1998, 2001-2012 Free Software Foundation, Inc.
 
 ;; Author: Howard Gayle
 ;; Maintainer: FSF
@@ -163,7 +163,10 @@
 (iso-ascii-display 255 "\"y") ; small y with diaeresis or umlaut mark
 
 (define-minor-mode iso-ascii-mode
-  "Toggle ISO-ASCII mode."
+  "Toggle ISO-ASCII mode.
+With a prefix argument ARG, enable the mode if ARG is positive,
+and disable it otherwise.  If called from Lisp, enable the mode
+if ARG is omitted or nil."
   :variable (eq standard-display-table iso-ascii-display-table)
   (unless standard-display-table
     (setq standard-display-table iso-ascii-standard-display-table)))
