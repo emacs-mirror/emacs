@@ -85,6 +85,10 @@
 	erc-button-next.
 	(button, erc-button-next): Use it.
 
+2011-04-20  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* erc-hecomplete.el: Move to ../obsolete.
+
 2011-03-07  Chong Yidong  <cyd@stupidchicken.com>
 
 	* Version 23.3 released.

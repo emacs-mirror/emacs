@@ -908,7 +908,8 @@ this was not advertised at the time.
 ---
 *** abbrevlist.el
 
-*** erc-hecomplete.el
+---
+*** erc-hecomplete.el (use erc-pcomplete.el instead)
 
 *** partial-completion-mode (complete.el) is obsolete.
 You can get a comparable behavior with:
