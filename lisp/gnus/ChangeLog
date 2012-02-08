@@ -1,3 +1,9 @@
+2012-02-08  Lars Ingebrigtsen  <larsi@gnus.org>
+
+	* shr.el: Inhibit getting and sending cookies when fetching pictures.
+
+	* gnus-html.el (gnus-html-schedule-image-fetching): Ditto.
+
 2012-02-07  Lars Ingebrigtsen  <larsi@gnus.org>
 
 	* shr.el (shr-remove-trailing-whitespace): Don't strip whitespace from

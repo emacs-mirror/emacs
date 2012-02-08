@@ -390,7 +390,7 @@ Use ALT-TEXT for the image string."
   (if (fboundp 'url-queue-retrieve)
       (url-queue-retrieve (car image)
 			  'gnus-html-image-fetched
-			  (list buffer image) t)
+			  (list buffer image) t t)
     (ignore-errors
       (url-retrieve (car image)
 		    'gnus-html-image-fetched
