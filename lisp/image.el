@@ -207,6 +207,8 @@ compatibility with versions of Emacs that lack the variable
            (delete image-directory (copy-sequence (or path load-path))))))
 
 
+;; Used to be in image-type-header-regexps, but now not used anywhere
+;; (since 2009-08-28).
 (defun image-jpeg-p (data)
   "Value is non-nil if DATA, a string, consists of JFIF image data.
 We accept the tag Exif because that is the same format."

@@ -1,5 +1,8 @@
 2012-02-08  Glenn Morris  <rgm@gnu.org>
 
+	* image-mode.el (image-transform-minor-mode-map, image-transform-mode):
+	Comment out (does nothing).
+
 	* completion.el (dynamic-completion-mode):
 	* dirtrack.el (dirtrack-debug-mode):
 	* electric.el (electric-layout-mode):

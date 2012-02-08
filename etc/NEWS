@@ -1386,13 +1386,19 @@ is being animated.
 The old name is an obsolete alias to the new one.
 
 +++
-*** Emacs can be compiled with ImageMagick support.
-This feature is not available for the Nextstep or MS ports.
+*** Image mode can view any image type that ImageMagick supports.
+This requires Emacs to be built with ImageMagick support.
 Then the function `imagemagick-types' returns a list of image file
 extensions that your installation of ImageMagick supports.  The
 function `imagemagick-register-types' enables ImageMagick support for
 these image types, minus those listed in `imagemagick-types-inhibit'.
 Visiting one of these file types will then use Image mode.
+
+---
+*** New commands to resize and rotate images in Image mode.
+These require Emacs to be built with ImageMagick support.
+image-transform-fit-to-height, image-transform-fit-to-width,
+image-transform-set-rotation, image-transform-set-scale.
 
 ** XML and HTML parsing
 If Emacs is compiled with libxml2 support, there are two new functions:
