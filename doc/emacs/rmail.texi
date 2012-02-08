@@ -1118,7 +1118,7 @@ buffer before sorting it.
 @section Display of Messages
 
   This section describes how Rmail displays mail headers,
-@acronym{MIME} sections and attachments, and URLs.
+@acronym{MIME} sections and attachments, URLs, and encrypted messages.
 
 @table @kbd
 @item t
@@ -1208,6 +1208,12 @@ command toggles the display of only an entity at point.
 variable @code{rmail-enable-mime} to @code{nil}.  When this is the
 case, the @kbd{v} (@code{rmail-mime}) command instead creates a
 temporary buffer to display the current @acronym{MIME} message.
+
+@findex rmail-epa-decrypt
+@cindex encrypted mails (reading in Rmail)
+  If the current message is an encrypted one, use the command @kbd{M-x
+rmail-epa-decrypt} to decrypt it, using the EasyPG library
+(@pxref{Top,,, epa, EasyPG Assistant User's Manual}).
 
   You can highlight and activate URLs in the Rmail buffer using Goto
 Address mode:

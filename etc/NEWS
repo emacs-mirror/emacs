@@ -762,6 +762,7 @@ more variants, including Mercury, and a lot more.
 
 ** Rmail
 
++++
 *** The command `rmail-epa-decrypt' decrypts OpenPGP data
 in the Rmail incoming message.
 

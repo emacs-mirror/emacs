@@ -1,5 +1,7 @@
 2012-02-08  Glenn Morris  <rgm@gnu.org>
 
+	* rmail.texi (Rmail Display): Mention rmail-epa-decrypt.
+
 	* text.texi (LaTeX Editing): Mention latex-electric-env-pair-mode.
 
 2012-02-07  Glenn Morris  <rgm@gnu.org>
