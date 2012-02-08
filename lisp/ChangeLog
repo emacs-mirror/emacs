@@ -1,3 +1,8 @@
+2012-02-08  Martin Rudalics  <rudalics@gmx.at>
+
+	* server.el (server-unselect-display): Don't inadvertently kill
+	the current buffer.  (Bug#10729)
+
 2012-02-08  Glenn Morris  <rgm@gnu.org>
 
 	* progmodes/sql.el (sql-port, sql-connection-alist, sql-list-all)
