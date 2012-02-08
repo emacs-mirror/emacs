@@ -329,6 +329,7 @@ Good luck."
 This will only be consulted if the coding system in
 `erc-server-coding-system' is `undecided'."
   :group 'erc-server
+  :version "24.1"
   :type '(repeat coding-system))
 
 (defcustom erc-server-coding-system (if (and (fboundp 'coding-system-p)

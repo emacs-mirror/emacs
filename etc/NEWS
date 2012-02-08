@@ -701,11 +701,9 @@ The standard directory local variables feature replaces it.
 
 ** ERC changes
 
-*** New vars `erc-autojoin-timing' and `erc-autojoin-delay'.
-If the value of `erc-autojoin-timing' is 'ident, ERC autojoins after a
-successful NickServ identification, or after `erc-autojoin-delay'
-seconds.  The default value, 'ident, means to autojoin immediately
-after connecting.
+---
+*** New options `erc-autojoin-timing' and `erc-autojoin-delay',
+controlling attempts to autojoin a channel.
 
 *** New variable `erc-coding-system-precedence': If we use `undecided'
 as the server coding system, this variable will then be consulted.
