@@ -123,7 +123,7 @@ variable in the original buffer as a forwarding pointer.")
 (autoload 'url-cache-prune-cache "url-cache")
 
 ;;;###autoload
-(defun url-retrieve (url callback &optional cbargs silent)
+(defun url-retrieve (url callback &optional cbargs silent inhibit-cookies)
   "Retrieve URL asynchronously and call CALLBACK with CBARGS when finished.
 URL is either a string or a parsed URL.
 
@@ -147,7 +147,9 @@ The variables `url-request-data', `url-request-method' and
 request; dynamic binding of other variables doesn't necessarily
 take effect.
 
-If SILENT, then don't message progress reports and the like."
+If SILENT, then don't message progress reports and the like.
+If INHIBIT-COOKIES, cookies will neither be stored nor sent to
+the server."
 ;;; XXX: There is code in Emacs that does dynamic binding
 ;;; of the following variables around url-retrieve:
 ;;; url-standalone-mode, url-gateway-unplugged, w3-honor-stylesheets,
@@ -158,14 +160,18 @@ If SILENT, then don't message progress reports and the like."
 ;;; webmail.el; the latter should be updated.  Is
 ;;; url-cookie-multiple-line needed anymore?  The other url-cookie-*
 ;;; are (for now) only used in synchronous retrievals.
-  (url-retrieve-internal url callback (cons nil cbargs) silent))
+  (url-retrieve-internal url callback (cons nil cbargs) silent
+			 inhibit-cookies))
 
-(defun url-retrieve-internal (url callback cbargs &optional silent)
+(defun url-retrieve-internal (url callback cbargs &optional silent
+				  inhibit-cookies)
   "Internal function; external interface is `url-retrieve'.
 CBARGS is what the callback will actually receive - the first item is
 the list of events, as described in the docstring of `url-retrieve'.
 
-If SILENT, don't message progress reports and the like."
+If SILENT, don't message progress reports and the like.
+If INHIBIT-COOKIES, cookies will neither be stored nor sent to
+the server."
   (url-do-setup)
   (url-gc-dead-buffers)
   (if (stringp url)
@@ -177,6 +183,7 @@ If SILENT, don't message progress reports and the like."
   (unless (url-type url)
     (error "Bad url: %s" (url-recreate-url url)))
   (setf (url-silent url) silent)
+  (setf (url-use-cookies url) (not inhibit-cookies))
   ;; Once in a while, remove old entries from the URL cache.
   (when (zerop (% url-retrieve-number-of-calls 1000))
     (url-cache-prune-cache))

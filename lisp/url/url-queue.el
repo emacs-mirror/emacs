@@ -50,10 +50,11 @@
 
 (defstruct url-queue
   url callback cbargs silentp
-  buffer start-time pre-triggered)
+  buffer start-time pre-triggered
+  inhibit-cookiesp)
 
 ;;;###autoload
-(defun url-queue-retrieve (url callback &optional cbargs silent)
+(defun url-queue-retrieve (url callback &optional cbargs silent inhibit-cookies)
   "Retrieve URL asynchronously and call CALLBACK with CBARGS when finished.
 Like `url-retrieve' (which see for details of the arguments), but
 controls the level of parallelism via the
@@ -63,7 +64,8 @@ controls the level of parallelism via the
 		(list (make-url-queue :url url
 				      :callback callback
 				      :cbargs cbargs
-				      :silentp silent))))
+				      :silentp silent
+				      :inhibit-cookiesp inhibit-cookies))))
   (url-queue-setup-runners))
 
 ;; To ensure asynch behaviour, we start the required number of queue
@@ -131,7 +133,8 @@ controls the level of parallelism via the
 	(ignore-errors
 	  (url-retrieve (url-queue-url job)
 			#'url-queue-callback-function (list job)
-			(url-queue-silentp job)))))
+			(url-queue-silentp job)
+			(url-queue-inhibit-cookiesp job)))))
 
 (defun url-queue-prune-old-entries ()
   (let (dead-jobs)

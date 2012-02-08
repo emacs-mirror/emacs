@@ -35,7 +35,8 @@
                           (&optional type user password host portspec filename
                                      target attributes fullness))
             (:copier nil))
-  type user password host portspec filename target attributes fullness silent)
+  type user password host portspec filename target attributes fullness
+  silent (use-cookies t))
 
 (defsubst url-port (urlobj)
   (or (url-portspec urlobj)
