@@ -7038,7 +7038,7 @@ produce_chars (coding, translation_table, last_block)
 			  dst_end = coding->destination + coding->dst_bytes;
 			  coding_set_source (coding);
 			  src = coding->source + offset;
-			  src_end = coding->source + coding->src_bytes;
+			  src_end = coding->source + coding->consumed;
 			  if (EQ (coding->src_object, coding->dst_object))
 			    dst_end = (unsigned char *) src;
 			}
@@ -7072,7 +7072,7 @@ produce_chars (coding, translation_table, last_block)
 			dst_end = coding->destination + coding->dst_bytes;
 			coding_set_source (coding);
 			src = coding->source + offset;
-			src_end = coding->source + coding->src_bytes;
+			src_end = coding->source + coding->consumed;
 			if (EQ (coding->src_object, coding->dst_object))
 			  dst_end = (unsigned char *) src;
 		      }
@@ -7093,7 +7093,7 @@ produce_chars (coding, translation_table, last_block)
 		  dst = alloc_destination (coding, require, dst);
 		  coding_set_source (coding);
 		  src = coding->source + offset;
-		  src_end = coding->source + coding->src_bytes;
+		  src_end = coding->source + coding->consumed;
 		}
 	    }
 	  produced_chars = coding->consumed_char;

@@ -1,3 +1,7 @@
+2012-02-08  Kenichi Handa  <handa@m17n.org>
+
+	* coding.c (produce_chars): Fix updating of src_end (Bug#10701).
+
 2012-01-25  Chong Yidong  <cyd@gnu.org>
 
 	* Version 23.4 released.
