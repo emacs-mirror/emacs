@@ -1,5 +1,8 @@
 2012-02-08  Glenn Morris  <rgm@gnu.org>
 
+	* progmodes/sql.el (sql-port, sql-connection-alist, sql-list-all)
+	(sql-list-table): Doc fixes.
+
 	* image-mode.el (image-transform-minor-mode-map, image-transform-mode):
 	Comment out (does nothing).
 

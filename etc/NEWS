@@ -781,63 +781,50 @@ directory is a remote file name and neither the environment variable
 $ESHELL nor the variable `explicit-shell-file-name' is set.
 
 ---
-** SQL Mode enhancements.
+** SQL mode
 
-*** `sql-dialect' is an alias for `sql-product'.
+---
+*** New options `sql-port', `sql-connection-alist', `sql-send-terminator',
+and `sql-oracle-scan-on'.
 
-*** New variable `sql-port' specifies the port number for connecting
-to a MySQL or Postgres server.
-
-*** The command `sql-product-interactive' now takes a prefix argument,
-which causes it to prompt for an SQL product instead of the current
-value of `sql-product'.
-
-*** Product-specific SQL interactive commands now take prefix args.
-These commands (`sql-sqlite', `sql-postgres', `sql-mysql', etc.),
-given a prefix argument, prompt for a name for the SQL interactive
-buffer.  This reduces the need for calling `sql-rename-buffer'.
-
-*** SQL interactive modes suppress command continuation prompts, and
-replace tabs with spaces.  The first change impacts multiple line SQL
-statements entered with C-j between each line, statements yanked into
-the buffer and statements sent with `sql-send-*' functions.  The
-second change prevents the MySQL and Postgres interpreters from
-listing object name completions when sent text via `sql-send-*'
-functions.
-
+---
 *** New custom variables control prompting for login parameters.
 Each supported product has a custom variable `sql-*-login-params',
 which is a list of the parameters to be prompted for before a
 connection is established.
 
-*** New variable `sql-connection-alist' for login parameter values.
-This can be used to store different username, database and server
-values.  Connections defined in this variable appear in the submenu
-SQL->Start... for making new SQLi sessions.
+---
+*** The command `sql-product-interactive' now takes a prefix argument,
+which causes it to prompt for an SQL product.
 
+---
+*** Product-specific SQL interactive commands now take prefix arguments.
+These commands (`sql-sqlite', `sql-postgres', `sql-mysql', etc.),
+given a prefix argument, prompt for a name for the SQL interactive
+buffer.  This reduces the need for calling `sql-rename-buffer'.
+
+---
+*** SQL interactive modes suppress command continuation prompts, and
+replace tabs with spaces.  The first change impacts multiple line SQL
+statements entered with C-j between each line, statements yanked into
+the buffer and statements sent with `sql-send-*' functions.  The
+second prevents the MySQL and Postgres interpreters from listing
+object name completions when sent text via `sql-send-*' functions.
+
+---
 *** New command `sql-connect' starts a predefined SQLi session,
 using the login parameters from `sql-connection-alist'.
 
+---
 *** New "Save Connection" menu item in SQLi buffers.
 This gathers the login params specified for the SQLi session, if it
 was not started by a connection, and saves them as a new connection.
 
-*** Commands for listing database objects and details.
-In an SQLi session, you can get a list of objects in the database.
-The contents of these lists are product specific.
+---
+*** New commands for listing database objects and details:
+sql-list-all and sql-list-table.
 
-**** `C-c C-l a' or the "SQL->List all objects" menu item
-lists all the objects in the database.  With a prefix argument, it
-displays additional details or extend the listing to include other
-schemas objects.
-
-**** `C-c C-l t' or the "SQL->List Table details" menu item
-prompts for the name of a database table or view and displays the list
-of columns in the relation.  With a prefix argument, it displays
-additional details about each column.
-
-*** New options `sql-send-terminator' and `sql-oracle-scan-on'.
-
+---
 *** An API for manipulating SQL product definitions has been added.
 
 ** TeX modes
