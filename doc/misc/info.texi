@@ -1146,7 +1146,7 @@ switches to the buffer @samp{*info*<2>}, creating it if necessary.
   If you have created many Info buffers in Emacs, you might find it
 difficult to remember which buffer is showing which manual.  You can
 use the command @kbd{M-x info-display-manual} to show an Info manual
-by name, reusing an existing buffer if one exists.
+by name, reusing an existing buffer if there is one.
 
 @node Emacs Info Variables, , Create Info buffer, Advanced
 @comment  node-name,  next,  previous,  up
