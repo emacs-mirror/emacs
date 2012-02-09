@@ -1754,8 +1754,11 @@ textual parts.")
 	       7 "nnimap read %dk from %s%s" (/ (buffer-size) 1000)
 	       nnimap-address
 	       (if (not (zerop (nnimap-initial-resync nnimap-object)))
-		   (format " (initial sync of %d groups; please wait)"
-			   (nnimap-initial-resync nnimap-object))
+		   (format " (initial sync of %d group%s; please wait)"
+			   (nnimap-initial-resync nnimap-object)
+			   (if (= (nnimap-initial-resync nnimap-object) 1)
+			       ""
+			     "s"))
 		 "")))
 	    (nnheader-accept-process-output process)
 	    (goto-char (point-max)))
