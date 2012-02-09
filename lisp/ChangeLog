@@ -1,5 +1,8 @@
 2012-02-09  Glenn Morris  <rgm@gnu.org>
 
+	* net/browse-url.el (browse-url-can-use-xdg-open)
+	(browse-url-xdg-open): Doc fixes.
+
 	* electric.el (electric-indent-mode, electric-pair-mode)
 	(electric-layout-rules, electric-layout-mode): Doc fixes.
 	(electric-pair-pairs, electric-pair-skip-self): Add :version tags.

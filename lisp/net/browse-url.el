@@ -944,7 +944,9 @@ used instead of `browse-url-new-window-flag'."
    url args))
 
 (defun browse-url-can-use-xdg-open ()
-  "Check if xdg-open can be used, i.e. we are on Gnome, KDE, Xfce4 or LXDE."
+  "Return non-nil if the \"xdg-open\" program can be used.
+xdg-open is a desktop utility that calls your preferred web browser.
+This requires you to be running either Gnome, KDE, Xfce4 or LXDE."
   (and (getenv "DISPLAY")
        (executable-find "xdg-open")
        ;; xdg-open may call gnome-open and that does not wait for its child
@@ -974,7 +976,10 @@ used instead of `browse-url-new-window-flag'."
 
 
 ;;;###autoload
-(defun browse-url-xdg-open (url &optional new-window)
+(defun browse-url-xdg-open (url &optional ignored)
+  "Pass the specified URL to the \"xdg-open\" command.
+xdg-open is a desktop utility that calls your preferred web browser.
+The optional argument IGNORED is not used."
   (interactive (browse-url-interactive-arg "URL: "))
   (call-process "xdg-open" nil 0 nil url))
 
