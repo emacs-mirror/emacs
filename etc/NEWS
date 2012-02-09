@@ -587,10 +587,6 @@ region (or with the left margin if there is no previous line).
 +++
 ** Archive Mode has basic support for browsing and updating 7z archives.
 
-+++
-** browse-url has a new variable `browse-url-mailto-function'
-specifies how mailto: URLs are handled.  The default is `browse-url-mail'.
-
 ---
 ** BibTeX mode
 
@@ -639,6 +635,16 @@ appt-visible/appt-msg-window (use the variable appt-display-format)
 ---
 *** Some diary function aliases (obsolete since Emacs 22.1) have been removed:
 view-diary-entries, list-diary-entries, show-all-diary-entries
+
+
+** Browse-url
+
++++
+*** New option `browse-url-mailto-function' specifies how to handle "mailto:"s.
+
+---
+*** The default browser used by the package is now the "xdg-open" program,
+on platforms that support it.  This calls your desktop's preferred browser.
 
 ** CC Mode (C, C++, etc.)
 
@@ -892,8 +898,6 @@ this was not advertised at the time.
 Since Emacs 23, it has done the same thing as `toggle-read-only', but
 this was not advertised at the time.
 
-** FIXME: xdg-open for browse-url and reportbug, 2010/08.
-
 ** Obsolete modes
 
 ---
@@ -923,6 +927,8 @@ They are superseded by shift-select-mode, enabled by default since 23.1.
 *** vc-mcvs.el is obsolete (for lack of a maintainer)
 
 ** Miscellaneous
+
+*** FIXME: xdg-open for reportbug, 2010/08.
 
 +++
 *** The Landmark game is now invoked with `landmark', not `lm'.
