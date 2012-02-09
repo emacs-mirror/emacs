@@ -1302,7 +1302,7 @@ lines but no body lines, and (iii) showing everything.
 body lines and subtree (if any), by typing @kbd{M-<up>}
 (@code{org-metaup}) or @kbd{M-<down>} (@code{org-metadown}) on the
 heading line.  Similarly, you can promote or demote a heading line
-with @kbd{M-<left>} (@code{org-metaleft}) and @kbd{M-<left>}
+with @kbd{M-<left>} (@code{org-metaleft}) and @kbd{M-<right>}
 (@code{org-metaright}).  These commands execute their global bindings
 if invoked on a body line.
 
