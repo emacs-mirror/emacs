@@ -85,6 +85,7 @@ Discard an examined offset if its absolute value is greater than this.
 
 The offset of a line included in the indent information returned by
 `c-guess-basic-syntax'."
+  :version "24.1"
   :type 'integer
   :group 'c)
 
@@ -92,6 +93,7 @@ The offset of a line included in the indent information returned by
   "The maximum region size for examining indent information with `c-guess'.
 It takes a long time to examine indent information from a large region;
 this option helps you limit that time. `nil' means no limit."
+  :version "24.1"
   :type 'integer
   :group 'c)
 

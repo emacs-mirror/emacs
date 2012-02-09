@@ -1,5 +1,8 @@
 2012-02-09  Glenn Morris  <rgm@gnu.org>
 
+	* progmodes/cc-guess.el (c-guess-offset-threshold, c-guess-region-max):
+	Add :version tags.
+
 	* progmodes/compile.el (compilation-first-column)
 	(compilation-error-screen-columns, compilation-filter-start): Doc fixes.
 
