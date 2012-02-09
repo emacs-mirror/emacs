@@ -592,9 +592,10 @@ When you have finished writing your report, type @kbd{C-c C-c} and it
 will be sent to the Emacs maintainers at @email{bug-gnu-emacs@@gnu.org}.
 (If you want to suggest an improvement or new feature, use the same
 address.)  If you cannot send mail from inside Emacs, you can copy the
-text of your report to your normal mail client and send it to that
-address.  Or you can simply send an email to that address describing
-the problem.
+text of your report to your normal mail client (if your system
+supports it, you can type @kbd{C-c m} to have Emacs do this for you)
+and send it to that address.  Or you can simply send an email to that
+address describing the problem.
 
 Your report will be sent to the @samp{bug-gnu-emacs} mailing list, and
 stored in the GNU Bug Tracker at @url{http://debbugs.gnu.org}.  Please

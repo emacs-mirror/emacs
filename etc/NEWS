@@ -174,9 +174,11 @@ in your ~/.authinfo file instead.
 **** The command `mail-attach-file' was renamed to `mail-insert-file'.
 The old name is now an obsolete alias to the new name.
 
-*** The M-x report-emacs-bug command can optionally pass the text of
-your bug report to your desktop's preferred mail client.  This
-uses either the "xdg-email" utility, or OS X's "open" command.
++++
+*** You can type C-c m from M-x report-emacs-bug if you prefer, and if
+your system supports it, to transfer your report to your desktop's
+preferred mail client.  This uses either the "xdg-email" utility, or
+OS X's "open" command.
 
 ** Emacs server and client changes
 +++

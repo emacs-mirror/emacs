@@ -1,3 +1,7 @@
+2012-02-09  Glenn Morris  <rgm@gnu.org>
+
+	* trouble.texi (Checklist): Mention C-c m in report-emacs-bug.
+
 2012-02-09  Jay Belanger  <jay.p.belanger@gmail.com>
 
 	* text.texi (Org Mode): Fix typo.
