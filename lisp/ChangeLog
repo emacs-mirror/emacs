@@ -1,5 +1,8 @@
 2012-02-09  Glenn Morris  <rgm@gnu.org>
 
+	* vc/log-view.el (log-view-toggle-entry-display):
+	* vc/vc.el (vc-merge, vc-pull): Doc fixes.
+
 	* mail/emacsbug.el (report-emacs-bug-can-use-osx-open)
 	(report-emacs-bug-can-use-xdg-email):
 	(report-emacs-bug-insert-to-mailer): Doc fixes.

@@ -859,21 +859,20 @@ controlling the degree of parallelism.
 
 +++
 *** Support for pulling on distributed version control systems.
-`C-x v +' (`vc-pull') runs a "pull" operation, if it is supported, to
-update the current branch and working tree.  A prefix argument means
-to prompt the user for specifics, e.g. a pull location.
+`C-x v +' (`vc-pull') runs a "pull" operation, if it is supported
+(currently with Bzr, Git, and Mercurial), to update the current branch
+and working tree.  A prefix argument means to prompt the user for
+specifics, e.g. a pull location.
 
-**** `vc-update' is now an alias for `vc-pull'.
-
-**** Currently supported by Bzr, Git, and Mercurial.
+---
+*** `vc-update' is now an alias for `vc-pull'.
 
 +++
 *** Support for merging on distributed version control systems.
-The vc-merge command now runs a "merge" operation, if it is supported,
-to merge changes from another branch into the current one.  It prompts
-for specifics, e.g. a merge source.
-
-**** Currently supported for Bzr, Git, and Mercurial.
+The vc-merge command now runs a "merge" operation, if it is supported
+(currently with Bzr, Git, and Mercurial), to merge changes from
+another branch into the current one.  It prompts for specifics, e.g. a
+merge source.
 
 +++
 *** New option `vc-revert-show-diff' controls whether `vc-revert'
@@ -882,13 +881,10 @@ shows a diff while querying the user.  It defaults to t.
 +++
 *** Log entries in some Log View buffers can be toggled to display a
 longer description by typing RET (log-view-toggle-entry-display).
+This is currently supported for Bzr, Git, and Mercurial (to support
+another backend, define a `log-view-expanded-log-entry-function').
 In the Log View buffers made by `C-x v L' (vc-print-root-log), you can
 use this to display the full log entry for the revision at point.
-
-**** Currently supported for Bzr, Git, and Mercurial.
-
-**** Packages using Log View mode can enable this functionality by
-binding `log-view-expanded-log-entry-function' to a suitable function.
 
 +++
 *** New command `vc-ediff' allows visual comparison of two revisions
