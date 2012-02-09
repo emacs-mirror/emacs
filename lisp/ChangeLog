@@ -1,5 +1,10 @@
 2012-02-09  Glenn Morris  <rgm@gnu.org>
 
+	* mail/emacsbug.el (report-emacs-bug-can-use-osx-open)
+	(report-emacs-bug-can-use-xdg-email):
+	(report-emacs-bug-insert-to-mailer): Doc fixes.
+	(report-emacs-bug): Message fix.
+
 	* net/browse-url.el (browse-url-can-use-xdg-open)
 	(browse-url-xdg-open): Doc fixes.
 

@@ -78,13 +78,16 @@ Used for querying duplicates and linking to existing bugs.")
 (defvar message-strip-special-text-properties)
 
 (defun report-emacs-bug-can-use-osx-open ()
-  "Check if OSX open can be used to insert bug report into mailer"
+  "Return non-nil if the OS X \"open\" command is available for mailing."
   (and (featurep 'ns)
        (equal (executable-find "open") "/usr/bin/open")
        (memq system-type '(darwin))))
 
+;; FIXME this duplicates much of the logic from browse-url-can-use-xdg-open.
 (defun report-emacs-bug-can-use-xdg-email ()
-  "Check if xdg-email can be used, i.e. we are on Gnome, KDE or xfce4."
+  "Return non-nil if the \"xdg-email\" command can be used.
+xdg-email is a desktop utility that calls your preferred mail client.
+This requires you to be running either Gnome, KDE, or Xfce4."
   (and (getenv "DISPLAY")
        (executable-find "xdg-email")
        (or (getenv "GNOME_DESKTOP_SESSION_ID")
@@ -98,16 +101,23 @@ Used for querying duplicates and linking to existing bugs.")
 				  "org.gnome.SessionManager.CanShutdown"))
 	     (error nil))
 	   (equal (getenv "KDE_FULL_SESSION") "true")
+	   ;; FIXME? browse-url-can-use-xdg-open also accepts LXDE.
+	   ;; Is that no good here, or just overlooked?
 	   (condition-case nil
 	       (eq 0 (call-process
 		      "/bin/sh" nil nil nil
 		      "-c"
+		      ;; FIXME use string-match rather than grep.
 		      "xprop -root _DT_SAVE_MODE|grep xfce4"))
 	     (error nil)))))
 
 (defun report-emacs-bug-insert-to-mailer ()
+  "Send the message to your preferred mail client.
+This requires either the OS X \"open\" command, or the freedesktop
+\"xdg-email\" command to be available."
   (interactive)
   (save-excursion
+    ;; FIXME? use mail-fetch-field?
     (let* ((to (progn
 		 (goto-char (point-min))
 		 (forward-line)
@@ -319,7 +329,7 @@ usually do not have translators for other languages.\n\n")))
 		"  Type \\[kill-buffer] RET to cancel (don't send it).\n"))
 	(if can-insert-mail
 	    (princ (substitute-command-keys
-		    "  Type \\[report-emacs-bug-insert-to-mailer] to insert text to you preferred mail program.\n")))
+		    "  Type \\[report-emacs-bug-insert-to-mailer] to copy text to your preferred mail program.\n")))
 	(terpri)
 	(princ (substitute-command-keys
 		"  Type \\[report-emacs-bug-info] to visit in Info the Emacs Manual section

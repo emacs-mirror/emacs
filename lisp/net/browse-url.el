@@ -969,6 +969,7 @@ This requires you to be running either Gnome, KDE, Xfce4 or LXDE."
 	       (eq 0 (call-process
 		      "/bin/sh" nil nil nil
 		      "-c"
+		      ;; FIXME use string-match rather than grep.
 		      "xprop -root _DT_SAVE_MODE|grep xfce4"))
 	     (error nil))
 	   (member (getenv "DESKTOP_SESSION") '("LXDE" "Lubuntu"))
