@@ -1,3 +1,9 @@
+2012-02-09  Lars Ingebrigtsen  <larsi@rusty>
+
+	* mail/smtpmail.el (smtpmail-user-mail-address): New function.
+	(smtpmail-via-smtp): Use it, or fall back on the From address.
+	(smtpmail-send-it): Ditto.
+
 2012-02-09  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* emacs-lisp/bytecomp.el (byte-compile-file-form-defvar):
