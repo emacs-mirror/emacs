@@ -12856,6 +12856,7 @@ If ALL is a number, fetch this number of articles."
 			(gnus-group-decoded-name gnus-newsgroup-name)
 			(if initial "max" "default")
 			len)
+		       nil nil
 		       (if initial
 			   (cons (number-to-string initial)
 				 0)))))

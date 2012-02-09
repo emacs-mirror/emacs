@@ -1,5 +1,8 @@
 2012-02-08  Lars Ingebrigtsen  <larsi@gnus.org>
 
+	* gnus-sum.el (gnus-summary-insert-old-articles): Use a default instead
+	of an initial-input for consistency (bug#10757).
+
 	* shr.el: Inhibit getting and sending cookies when fetching pictures.
 
 	* gnus-html.el (gnus-html-schedule-image-fetching): Ditto.
