@@ -657,9 +657,9 @@ view-diary-entries, list-diary-entries, show-all-diary-entries
 *** The default browser used by the package is now the "xdg-open" program,
 on platforms that support it.  This calls your desktop's preferred browser.
 
-** CC Mode (C, C++, etc.)
-
-*** New feature to "guess" the style in an existing buffer.
++++
+** New CC Mode feature to "guess" the style in an existing buffer.
+The main entry is M-x c-guess.
 
 ** comint and modes derived from it use the generic completion code.
 
