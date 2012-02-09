@@ -133,7 +133,13 @@ email, or to use the old defaults that rely on external mail
 facilities (`sendmail-send-it' on GNU/Linux and other Unix-like
 systems, and `mailclient-send-it' on Windows).
 
-*** smtpmail changes
+---
+*** `compose-mail' now accepts an optional 8th arg, RETURN-ACTION, and
+passes it to the mail user agent function.  This argument specifies an
+action for returning to the caller after finishing with the mail.
+For example, this is used by Rmail to optionally delete a mail window.
+
+*** smtpmail
 
 **** smtpmail now uses encrypted connections (via STARTTLS) if the
 mail server supports them.  It also uses the auth-source framework for
@@ -1003,11 +1009,6 @@ with the last argument `bidi-class'.
 of the target directory, if the latter is an existing directory.  The
 new optional arg COPY-CONTENTS, if non-nil, makes the function copy
 the contents directly into a pre-existing target directory.
-
-** `compose-mail' now accepts an optional 8th arg, RETURN-ACTION, and
-passes it to the mail user agent function.  This argument specifies an
-action for returning to the caller after finishing with the mail.
-This is currently used by Rmail to delete a mail window.
 
 ** For mouse click input events in the text area, the Y pixel
 coordinate in the POSITION list now counts from the top of the text
