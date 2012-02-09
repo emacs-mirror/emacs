@@ -668,9 +668,10 @@ on platforms that support it.  This calls your desktop's preferred browser.
 *** Compilation mode can be used without font-lock-mode.
 `compilation-parse-errors-function' is now obsolete.
 
-*** `compilation-filter-start' is let-bound to the start of the text
-inserted by the compilation filter function, when calling
-compilation-filter-hook.
+---
+*** New variable `compilation-filter-start', bound while
+compilation-filter-hook runs.  It records the start position of the
+text inserted by compilation-filter.
 
 ---
 *** `compilation-error-screen-columns' and `compilation-first-column'

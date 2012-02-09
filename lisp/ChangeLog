@@ -1,7 +1,7 @@
 2012-02-09  Glenn Morris  <rgm@gnu.org>
 
 	* progmodes/compile.el (compilation-first-column)
-	(compilation-error-screen-columns): Doc fixes.
+	(compilation-error-screen-columns, compilation-filter-start): Doc fixes.
 
 	* vc/log-view.el (log-view-toggle-entry-display):
 	* vc/vc.el (vc-merge, vc-pull): Doc fixes.

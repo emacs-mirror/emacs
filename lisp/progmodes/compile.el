@@ -74,8 +74,8 @@ If Emacs lacks asynchronous process support, this hook is run
 after `call-process' inserts the grep output into the buffer.")
 
 (defvar compilation-filter-start nil
-  "Start of the text inserted by `compilation-filter'.
-This is bound to a buffer position before running `compilation-filter-hook'.")
+  "Position of the start of the text inserted by `compilation-filter'.
+This is bound before running `compilation-filter-hook'.")
 
 (defvar compilation-first-column 1
   "*This is how compilers number the first column, usually 1 or 0.
