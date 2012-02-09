@@ -4863,7 +4863,13 @@ like `write-region' does."
 (defun rename-uniquely ()
   "Rename current buffer to a similar name not already taken.
 This function is useful for creating multiple shell process buffers
-or multiple mail buffers, etc."
+or multiple mail buffers, etc.
+
+Note that some commands, in particular those based on `compilation-mode'
+\(`compile', `grep', etc.) will reuse the current buffer if it has the
+appropriate mode even if it has been renamed.  So as well as renaming
+the buffer, you also need to switch buffers before running another
+instance of such commands."
   (interactive)
   (save-match-data
     (let ((base-name (buffer-name)))

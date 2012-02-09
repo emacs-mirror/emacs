@@ -1,5 +1,7 @@
 2012-02-09  Glenn Morris  <rgm@gnu.org>
 
+	* files.el (rename-uniquely): Doc fix.  (Bug#3806)
+
 	* progmodes/cc-guess.el (c-guess-offset-threshold, c-guess-region-max):
 	Add :version tags.
 
