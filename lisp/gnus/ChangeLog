@@ -1,5 +1,8 @@
 2012-02-09  Lars Ingebrigtsen  <larsi@gnus.org>
 
+	* gnus-msg.el (gnus-msg-mail): Use `message-mail' if Gnus isn't
+	running.
+
 	* nnimap.el (nnimap-wait-for-response): Minor fixup of message string.
 
 	* gnus.el (gnus-server-extend-method): Don't add an -address component
