@@ -1,3 +1,8 @@
+2012-02-09  Juanma Barranquero  <lekktu@gmail.com>
+
+	* gnus.el (gnus-method-ephemeral-p): Move after declaration of defsubst
+	`gnus-sloppily-equal-method-parameters' to avoid a warning.
+
 2012-02-09  Lars Ingebrigtsen  <larsi@gnus.org>
 
 	* gnus-msg.el (gnus-msg-mail): Use `message-mail' if Gnus isn't
@@ -1489,7 +1494,7 @@
 
 2011-06-21  Andrew Cohen  <cohen@andy.bu.edu>
 
-	* nnimap.el (nnimap-find-article-by-message-id): return nil when no
+	* nnimap.el (nnimap-find-article-by-message-id): Return nil when no
 	article found.
 
 2011-06-18  Teodor Zlatanov  <tzz@lifelogs.com>
