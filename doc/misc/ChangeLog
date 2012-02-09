@@ -1,5 +1,7 @@
 2012-02-09  Glenn Morris  <rgm@gnu.org>
 
+	* sem-user.texi (Semantic mode user commands): Typo fix.
+
 	* info.texi (Create Info buffer): Mention info-display-manual.
 
 2012-02-07  Lars Ingebrigtsen  <larsi@gnus.org>
