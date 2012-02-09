@@ -3,15 +3,20 @@ See the end of the file for license conditions.
 
 			   Emacs for Windows
 
-  This README file describes how to set up and run a precompiled
-  version of GNU Emacs for Windows.  This distribution can be found on
-  the ftp.gnu.org server and its mirrors:
+  This README.W32 file describes how to set up and run a precompiled
+  distribution of GNU Emacs for Windows.  You can find the precompiled
+  distribution on the ftp.gnu.org server and its mirrors:
 
-	ftp://ftp.gnu.org/gnu/emacs/windows/
+   	ftp://ftp.gnu.org/gnu/emacs/windows/
 
   This server contains other distributions, including the full Emacs
   source distribution and a barebin distribution which can be installed
   over it, as well as older releases of Emacs for Windows.
+
+  Information on how to compile Emacs from sources on Windows is in
+  the files README and INSTALL in this directory.  If you received
+  this file as part of the Emacs source distribution, please read
+  those 2 files and not this one.
 
   Answers to frequently asked questions, and further information about
   this port of GNU Emacs and related software packages can be found via
@@ -123,9 +128,7 @@ See the end of the file for license conditions.
   Emacs has built in support for XBM and PPM/PGM/PBM images, and the
   libXpm library is bundled, providing XPM support (required for color
   toolbar icons and splash screen).  Source for libXpm should be available
-  on the same place as you got this binary distribution from.  The version
-  of libXpm bundled with this version of Emacs is 3.5.7, based on x.org's
-  libXpm library from X11R7.3.
+  on the same place as you got this binary distribution from.
 
   Emacs can also support some other image formats with appropriate
   libraries.  These libraries are all available as part of GTK

@@ -198,12 +198,16 @@ set to nil, as the value is no longer rogue."
   (run-hooks 'custom-define-hook)
   symbol)
 
-(defmacro defcustom (symbol value doc &rest args)
-  "Declare SYMBOL as a customizable variable that defaults to VALUE.
+(defmacro defcustom (symbol standard doc &rest args)
+  "Declare SYMBOL as a customizable variable.
+SYMBOL is the variable name; it should not be quoted.
+STANDARD is an expression specifying the variable's standard
+value.  It should not be quoted.  It is evaluated once by
+`defcustom', and the value is assigned to SYMBOL if the variable
+is unbound.  The expression itself is also stored, so that
+Customize can re-evaluate it later to get the standard value.
 DOC is the variable documentation.
 
-Neither SYMBOL nor VALUE need to be quoted.
-If SYMBOL is not already bound, initialize it to VALUE.
 The remaining arguments should have the form
 
    [KEYWORD VALUE]...
@@ -229,6 +233,9 @@ The following keywords are meaningful:
 	VALUE should be a feature symbol.  If you save a value
 	for this option, then when your `.emacs' file loads the value,
 	it does (require VALUE) first.
+:set-after VARIABLES
+	Specifies that SYMBOL should be set after the list of variables
+        VARIABLES when both have been customized.
 :risky	Set SYMBOL's `risky-local-variable' property to VALUE.
 :safe	Set SYMBOL's `safe-local-variable' property to VALUE.
         See Info node `(elisp) File Local Variables'.
@@ -300,9 +307,6 @@ The following common keywords are also meaningful.
         Load file FILE (a string) before displaying this customization
         item.  Loading is done with `load', and only if the file is
         not already loaded.
-:set-after VARIABLES
-	Specifies that SYMBOL should be set after the list of variables
-        VARIABLES when both have been customized.
 
 If SYMBOL has a local binding, then this form affects the local
 binding.  This is normally not what you want.  Thus, if you need
@@ -320,14 +324,15 @@ for more information."
   `(custom-declare-variable
     ',symbol
     ,(if lexical-binding    ;FIXME: This is not reliable, but is all we have.
-         ;; The `default' arg should be an expression that evaluates to
-         ;; the value to use.  The use of `eval' for it is spread over
-         ;; many different places and hence difficult to eliminate, yet
-         ;; we want to make sure that the `value' expression is checked by the
-         ;; byte-compiler, and that lexical-binding is obeyed, so quote the
-         ;; expression with `lambda' rather than with `quote'.
-         `(list (lambda () ,value))
-       `',value)
+         ;; The STANDARD arg should be an expression that evaluates to
+         ;; the standard value.  The use of `eval' for it is spread
+         ;; over many different places and hence difficult to
+         ;; eliminate, yet we want to make sure that the `standard'
+         ;; expression is checked by the byte-compiler, and that
+         ;; lexical-binding is obeyed, so quote the expression with
+         ;; `lambda' rather than with `quote'.
+         `(list (lambda () ,standard))
+       `',standard)
     ,doc
     ,@args))
 

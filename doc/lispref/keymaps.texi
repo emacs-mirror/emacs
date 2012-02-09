@@ -432,6 +432,34 @@ for every numeric character code without modifier bits, even if it is
 @code{nil}, so these character's bindings are never inherited from
 the parent keymap.
 
+@cindex keymap inheritance from multiple maps
+  Sometimes you want to make a keymap that inherits from more than one
+map.  You can use the function @code{make-composed-keymap} for this.
+
+@defun make-composed-keymap maps &optional parent
+This function returns a new keymap composed of the existing keymap(s)
+@var{maps}, and optionally inheriting from a parent keymap
+@var{parent}.  @var{maps} can be a single keymap or a list of more
+than one.  When looking up a key in the resulting new map, Emacs
+searches in each of the @var{maps}, and then in @var{parent}, stopping
+at the first match.  A @code{nil} binding in any one of @var{maps}
+overrides any binding in @var{parent}, but not a non-@code{nil} binding
+in any other of the @var{maps}.
+@end defun
+
+@noindent For example, here is how Emacs sets the parent of
+@code{help-mode-map}, such that it inherits from both
+@code{button-buffer-map} and @code{special-mode-map}:
+
+@example
+(defvar help-mode-map
+  (let ((map (make-sparse-keymap)))
+    (set-keymap-parent map (make-composed-keymap button-buffer-map
+                                                 special-mode-map))
+    ... map) ... )
+@end example
+
+
 @node Prefix Keys
 @section Prefix Keys
 @cindex prefix key
@@ -2318,7 +2346,7 @@ The various toolkits with which you can build Emacs do not all support
 the same set of features for menus.  Some code works as expected with
 one toolkit, but not under another.
 
-One example is menu actions or buttons in a top-level menu-bar.  The
+One example is menu actions or buttons in a top-level menu bar.  The
 following works with the Lucid toolkit or on MS Windows, but not with
 GTK or Nextstep, where clicking on the item has no effect.
 
@@ -2657,6 +2685,15 @@ image.
 The @code{:rtl} property specifies an alternative image to use for
 right-to-left languages.  Only the Gtk+ version of Emacs supports this
 at present.
+
+Like the menu bar, the tool bar can display separators (@pxref{Menu
+Separators}).  Tool bar separators are vertical rather than
+horizontal, though, and only a single style is supported.  Separators
+are represented in the tool bar keymap in the same way as for the
+menu bar, i.e. using a @code{(menu-item "--"}) entry.  The Gtk+ and
+Nextstep tool bars render separators natively, otherwise Emacs selects
+a separator image that is appropriate for the display.  Note that tool
+bar separators do not support any properties, such as @code{:visible}.
 
 The default tool bar is defined so that items specific to editing do not
 appear for major modes whose command symbol has a @code{mode-class}

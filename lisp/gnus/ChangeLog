@@ -1,3 +1,73 @@
+2012-02-09  Lars Ingebrigtsen  <larsi@gnus.org>
+
+	* nnimap.el (nnimap-wait-for-response): Minor fixup of message string.
+
+	* gnus.el (gnus-server-extend-method): Don't add an -address component
+	if the method already has one (bug#9676).
+
+2012-02-08  Lars Ingebrigtsen  <larsi@gnus.org>
+
+	* gnus-sum.el (gnus-summary-insert-old-articles): Use a default instead
+	of an initial-input for consistency (bug#10757).
+
+	* shr.el: Inhibit getting and sending cookies when fetching pictures.
+
+	* gnus-html.el (gnus-html-schedule-image-fetching): Ditto.
+
+2012-02-07  Lars Ingebrigtsen  <larsi@gnus.org>
+
+	* shr.el (shr-remove-trailing-whitespace): Don't strip whitespace from
+	lines that are narrower than the window width.  Otherwise background
+	"blocks" will look less readable.
+
+2012-02-07  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* gnus-sum.el (gnus-summary-show-thread): Revert last two changes.
+
+2012-02-07  Lars Ingebrigtsen  <larsi@gnus.org>
+
+	* nnimap.el (nnimap-transform-headers): Remove unused variable.
+	(nnimap-transform-headers): Fix parsing BODYSTRUCTURE elements that
+	have newlines within the strings, and where the UID comes after the
+	BODYSTRUCTURE element (bug#10537).
+
+	* shr-color.el (shr-color-set-minimum-interval): Renamed to add prefix
+	(bug#10732).
+
+	* shr.el (shr-insert-document): Add doc string.
+	(shr-visit-file): Ditto.
+	(shr-remove-trailing-whitespace): New function.
+	(shr-insert-document): Use it to clean up trailing whitespace as the
+	final step (bug#10714).
+
+2012-02-06  Lars Ingebrigtsen  <larsi@gnus.org>
+
+	* gnus-sum.el (gnus-summary-exit-no-update): Really deaden the summary
+	buffer if `gnus-kill-summary-on-exit' is nil.
+
+2012-02-06  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* gnus-sum.el (gnus-summary-show-thread):
+	next-single-char-property-change may return nil in XEmacs.
+
+2012-02-06  Lars Ingebrigtsen  <larsi@gnus.org>
+
+	* gnus-sum.el (gnus-handle-ephemeral-exit): Allow exiting from Gnus
+	when just reading a single group from "without" Gnus.
+
+2012-02-06  Chong Yidong  <cyd@gnu.org>
+
+	* gnus-sum.el (gnus-summary-show-thread):
+	next-single-char-property-change never returns nil (Bug#8657).
+
+2012-02-05  Lars Ingebrigtsen  <larsi@gnus.org>
+
+	* nnimap.el (nnimap-open-server): Allow switching the nnoo server
+	without reconnecting.
+	(nnimap-possibly-change-group): Ditto.
+	(nnimap-finish-retrieve-group-infos): Don't reconnect if the server
+	connection has died before being called.
+
 2012-02-02  Lars Ingebrigtsen  <larsi@gnus.org>
 
 	* nnimap.el (nnimap-retrieve-group-data-early): Don't say we're doing

@@ -1624,7 +1624,9 @@ Otherwise use brackets."
     ;; Insert the search field.
     (when custom-search-field
       (widget-insert "\n")
-      (let* ((echo "Search for custom items")
+      (let* ((echo "Search for custom items.
+You can enter one or more words separated by spaces,
+or a regular expression.")
 	     (search-widget
 	      (widget-create
 	       'editable-field
@@ -2599,7 +2601,6 @@ try matching its doc string against `custom-guess-doc-alist'."
 		  :parent widget)
 		 buttons))
 	  ((memq form '(lisp mismatch))
-	   ;; In lisp mode edit the saved value when possible.
 	   (push (widget-create-child-and-convert
 		  widget 'custom-visibility
 		  :help-echo "Hide the value of this option."
@@ -2611,11 +2612,10 @@ try matching its doc string against `custom-guess-doc-alist'."
 		  t)
 		 buttons)
 	   (insert " ")
-	   (let* ((value (cond ((get symbol 'saved-value)
-				(car (get symbol 'saved-value)))
-			       ((get symbol 'standard-value)
-				(car (get symbol 'standard-value)))
-			       ((default-boundp symbol)
+	   ;; This used to try presenting the saved value or the
+	   ;; standard value, but it seems more intuitive to present
+	   ;; the current value (Bug#7600).
+	   (let* ((value (cond ((default-boundp symbol)
 				(custom-quote (funcall get symbol)))
 			       (t
 				(custom-quote (widget-get conv :value))))))
@@ -3073,7 +3073,7 @@ to switch between two values."
 	      (funcall set symbol (car value))
 	     (error nil)))
       (error "No backup value for %s" symbol))
-    (put symbol 'customized-value (list (car value)))
+    (put symbol 'customized-value (list (custom-quote (car value))))
     (put symbol 'variable-comment comment)
     (put symbol 'customized-variable-comment comment)
     (custom-variable-state-set widget)
@@ -3251,6 +3251,7 @@ Also change :reverse-video to :inverse-video."
   :args '((const :tag "all" t)
 	  (const :tag "defaults" default)
 	  (checklist
+	   :tag "specific display"
 	   :offset 0
 	   :extra-offset 9
 	   :args ((group :sibling-args (:help-echo "\

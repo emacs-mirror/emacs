@@ -321,9 +321,11 @@ select the source buffer."
 
 (define-minor-mode next-error-follow-minor-mode
   "Minor mode for compilation, occur and diff modes.
+With a prefix argument ARG, enable mode if ARG is positive, and
+disable it otherwise.  If called from Lisp, enable mode if ARG is
+omitted or nil.
 When turned on, cursor motion in the compilation, grep, occur or diff
-buffer causes automatic display of the corresponding source code
-location."
+buffer causes automatic display of the corresponding source code location."
   :group 'next-error :init-value nil :lighter " Fol"
   (if (not next-error-follow-minor-mode)
       (remove-hook 'post-command-hook 'next-error-follow-mode-post-command-hook t)
@@ -2713,47 +2715,50 @@ support pty association, if PROGRAM is nil."
   (tabulated-list-init-header))
 
 (defun list-processes--refresh ()
-  "Recompute the list of processes for the Process List buffer."
+  "Recompute the list of processes for the Process List buffer.
+Also, delete any process that is exited or signaled."
   (setq tabulated-list-entries nil)
   (dolist (p (process-list))
-    (when (or (not process-menu-query-only)
-	      (process-query-on-exit-flag p))
-      (let* ((buf (process-buffer p))
-	     (type (process-type p))
-	     (name (process-name p))
-	     (status (symbol-name (process-status p)))
-	     (buf-label (if (buffer-live-p buf)
-			    `(,(buffer-name buf)
-			      face link
-			      help-echo ,(concat "Visit buffer `"
-						 (buffer-name buf) "'")
-			      follow-link t
-			      process-buffer ,buf
-			      action process-menu-visit-buffer)
-			  "--"))
-	     (tty (or (process-tty-name p) "--"))
-	     (cmd
-	      (if (memq type '(network serial))
-		  (let ((contact (process-contact p t)))
-		    (if (eq type 'network)
-			(format "(%s %s)"
-				(if (plist-get contact :type)
-				    "datagram"
-				  "network")
-				(if (plist-get contact :server)
-				    (format "server on %s"
-					    (plist-get contact :server))
-				  (format "connection to %s"
-					  (plist-get contact :host))))
-		      (format "(serial port %s%s)"
-			      (or (plist-get contact :port) "?")
-			      (let ((speed (plist-get contact :speed)))
-				(if speed
-				    (format " at %s b/s" speed)
-				  "")))))
-		(mapconcat 'identity (process-command p) " "))))
-	(push (list p (vector name status buf-label tty cmd))
-	      tabulated-list-entries)))))
+    (cond ((memq (process-status p) '(exit signal closed))
+	   (delete-process p))
+	  ((or (not process-menu-query-only)
+	       (process-query-on-exit-flag p))
+	   (let* ((buf (process-buffer p))
+		  (type (process-type p))
+		  (name (process-name p))
+		  (status (symbol-name (process-status p)))
+		  (buf-label (if (buffer-live-p buf)
+				 `(,(buffer-name buf)
+				   face link
+				   help-echo ,(concat "Visit buffer `"
+						      (buffer-name buf) "'")
+				   follow-link t
+				   process-buffer ,buf
+				   action process-menu-visit-buffer)
+			       "--"))
+		  (tty (or (process-tty-name p) "--"))
+		  (cmd
+		   (if (memq type '(network serial))
+		       (let ((contact (process-contact p t)))
+			 (if (eq type 'network)
+			     (format "(%s %s)"
+				     (if (plist-get contact :type)
+					 "datagram"
+				       "network")
+				     (if (plist-get contact :server)
+					 (format "server on %s"
+						 (plist-get contact :server))
+				       (format "connection to %s"
+					       (plist-get contact :host))))
+			   (format "(serial port %s%s)"
+				   (or (plist-get contact :port) "?")
+				   (let ((speed (plist-get contact :speed)))
+				     (if speed
+					 (format " at %s b/s" speed)
+				       "")))))
+		     (mapconcat 'identity (process-command p) " "))))
+	     (push (list p (vector name status buf-label tty cmd))
+		   tabulated-list-entries))))))
 
 (defun process-menu-visit-buffer (button)
   (display-buffer (button-get button 'process-buffer)))
@@ -2914,28 +2919,46 @@ These commands include \\[set-mark-command] and \\[start-kbd-macro]."
 
 
 (defvar filter-buffer-substring-functions nil
-  "Wrapper hook around `filter-buffer-substring'.
-The functions on this special hook are called with four arguments:
-  NEXT-FUN BEG END DELETE
-NEXT-FUN is a function of three arguments (BEG END DELETE)
-that performs the default operation.  The other three arguments
-are like the ones passed to `filter-buffer-substring'.")
+  "This variable is a wrapper hook around `filter-buffer-substring'.
+Each member of the hook should be a function accepting four arguments:
+\(FUN BEG END DELETE), where FUN is itself a function of three arguments
+\(BEG END DELETE).  The arguments BEG, END, and DELETE are the same
+as those of `filter-buffer-substring' in each case.
+
+The first hook function to be called receives a FUN equivalent
+to the default operation of `filter-buffer-substring',
+i.e. one that returns the buffer-substring between BEG and
+END (processed by any `buffer-substring-filters').  Normally,
+the hook function will call FUN and then do its own processing
+of the result.  The next hook function receives a FUN equivalent
+to the previous hook function, calls it, and does its own
+processing, and so on.  The overall result is that of all hook
+functions acting in sequence.
+
+Any hook may choose not to call FUN though, in which case it
+effectively replaces the default behavior with whatever it chooses.
+Of course, a later hook function may do the same thing.")
 
 (defvar buffer-substring-filters nil
   "List of filter functions for `filter-buffer-substring'.
 Each function must accept a single argument, a string, and return
 a string.  The buffer substring is passed to the first function
 in the list, and the return value of each function is passed to
-the next.  The return value of the last function is used as the
-return value of `filter-buffer-substring'.
+the next.  The final result (if `buffer-substring-filters' is
+nil, this is the unfiltered buffer-substring) is passed to the
+first function on `filter-buffer-substring-functions'.
 
-If this variable is nil, no filtering is performed.")
+As a special convention, point is set to the start of the buffer text
+being operated on (i.e., the first argument of `filter-buffer-substring')
+before these functions are called.")
 (make-obsolete-variable 'buffer-substring-filters
                         'filter-buffer-substring-functions "24.1")
 
 (defun filter-buffer-substring (beg end &optional delete)
   "Return the buffer substring between BEG and END, after filtering.
-The filtering is performed by `filter-buffer-substring-functions'.
+The wrapper hook `filter-buffer-substring-functions' performs
+the actual filtering.  The obsolete variable `buffer-substring-filters'
+is also consulted.  If both of these are nil, no filtering is done.
 
 If DELETE is non-nil, the text between BEG and END is deleted
 from the buffer.

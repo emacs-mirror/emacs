@@ -7617,7 +7617,6 @@ imagemagick_load_image (struct frame *f, struct image *img,
   EMACS_INT ino;
   int desired_width, desired_height;
   double rotation;
-  EMACS_INT imagemagick_rendermethod;
   int pixelwidth;
   ImageInfo  *image_info;
   ExceptionInfo *exception;
@@ -7798,9 +7797,8 @@ imagemagick_load_image (struct frame *f, struct image *img,
      went ok.  */
 
   init_color_table ();
-  imagemagick_rendermethod = (INTEGERP (Vimagemagick_render_type)
-                              ? XINT (Vimagemagick_render_type) : 0);
-  if (imagemagick_rendermethod == 0)
+
+  if (imagemagick_render_type == 0)
     {
       size_t image_height;
 
@@ -7850,8 +7848,7 @@ imagemagick_load_image (struct frame *f, struct image *img,
         }
       DestroyPixelIterator (iterator);
     }
-
-  if (imagemagick_rendermethod == 1)
+  else                          /* imagemagick_render_type != 0 */
     {
       /* Magicexportimage is normally faster than pixelpushing.  This
          method is also well tested. Some aspects of this method are
@@ -7986,6 +7983,7 @@ DEFUN ("imagemagick-types", Fimagemagick_types, Simagemagick_types, 0, 0, 0,
 Each entry in this list is a symbol named after an ImageMagick format
 tag.  See the ImageMagick manual for a list of ImageMagick formats and
 their descriptions (http://www.imagemagick.org/script/formats.php).
+You can also try the shell command: `identify -list format'.
 
 Note that ImageMagick recognizes many file-types that Emacs does not
 recognize as images, such as C.  See `imagemagick-types-inhibit'.  */)
@@ -8958,8 +8956,17 @@ The value can also be nil, meaning the cache is never cleared.
 The function `clear-image-cache' disregards this variable.  */);
   Vimage_cache_eviction_delay = make_number (300);
 #ifdef HAVE_IMAGEMAGICK
-  DEFVAR_LISP ("imagemagick-render-type", Vimagemagick_render_type,
-               doc: /* Choose between ImageMagick render methods.  */);
+  DEFVAR_INT ("imagemagick-render-type", imagemagick_render_type,
+    doc: /* Integer indicating which ImageMagick rendering method to use.
+The options are:
+  0 -- the default method (pixel pushing)
+  1 -- a newer method ("MagickExportImagePixels") that may perform
+       better (speed etc) in some cases, but has not been as thoroughly
+       tested with Emacs as the default method.  This method requires
+       ImageMagick version 6.4.6 (approximately) or later.
+*/);
+  /* MagickExportImagePixels is in 6.4.6-9, but not 6.4.4-10.  */
+  imagemagick_render_type = 0;
 #endif
 
 }

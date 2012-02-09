@@ -14,8 +14,10 @@ ocasión, usaremos las siguientes abreviaturas.
  	 <car>.  Escribimos <ESC> para referirnos a la tecla ESC.
 
 Nota importante: para terminar la sesión de Emacs teclee C-x C-c (dos
-caracteres).  Los caracteres ">>" en el margen izquierdo indican
-instrucciones para que usted trate de usar un comando.  Por ejemplo:
+caracteres).  Para cancelar un comando parcialmente introducido,
+teclee C-g.
+Los caracteres ">>" en el margen izquierdo indican instrucciones para
+que usted trate de usar un comando.  Por ejemplo:
 <<Blank lines inserted around following line by help-with-tutorial>>
 [Mitad de página en blanco para propósitos didácticos.  El texto continúa abajo]
 >> Ahora teclee C-v (ver la próxima pantalla) para desplazarse a la
@@ -47,9 +49,12 @@ Los siguientes comandos son útiles para ver pantallas completas:
 		 pantalla (Esto es CONTROL-L, no CONTROL-1.)
 
 >> Encuentre el cursor, y fíjese qué texto hay cerca de éste.
-   Luego teclee C-l.
-   Encuentre el cursor otra vez y note que el mismo texto está cerca
-   del cursor ahora.
+   Luego teclee C-l.  Encuentre el cursor otra vez y note que el mismo
+   texto está todavía cerca del cursor, pero ahora está en el centro
+   de la pantalla.
+   Si vuelve teclear C-l, ese texto se moverá al principio de la
+   pantalla.  Al teclear C-l otra vez, se moverá al final de la
+   pantalla.
 
 Si su terminal las soporta, también puede usar las teclas AvPág o
 RegPág para moverse por pantallas completas, pero puede editar más
@@ -89,9 +94,9 @@ comandos de posicionamiento básico del cursor todo el tiempo.
    lo que hace C-p cuando el cursor está en medio de la línea.
 
 Cada línea de texto termina con un carácter de nueva línea (Newline),
-que sirve para separarla de la línea siguiente.  La última línea de su
-archivo debe de tener un carácter de nueva línea al final (pero Emacs
-no requiere que ésta lo tenga).
+que sirve para separarla de la línea siguiente.  (Normalmente, la
+última línea de un archivo termina con un carácter de nueva línea,
+pero Emacs no requiere que sea así.)
 
 >> Intente usar C-b al comienzo de una línea.  Debería moverse al
    final de la línea previa.  Esto sucede porque retrocede a través
@@ -227,24 +232,17 @@ Esto debió haber desplazado la pantalla hacia arriba 8 líneas.  Si
 quisiera desplazarla hacia abajo de nuevo, puede dar un argumento a
 M-v.
 
-Si está usando un sistema de ventanas, como X11 o MS-Windows, debe
+Si está usando un entorno gráfico, como X o MS-Windows, debe
 haber una larga área rectangular llamada una barra de desplazamiento
 en el lado izquierdo de la ventana de Emacs.  Puede desplazar el texto
 al oprimir el botón del ratón en la barra de desplazamiento.
 
->> Pruebe presionando el botón del medio en la parte superior del área
-   resaltada en la barra de desplazamiento.  Éste debe desplazar el
-   texto a una posición determinada según cuan alto o bajo oprima el
-   botón.
-
->> Intente mover el ratón arriba y abajo, mientras mantiene el botón
-   del medio presionado.  Verá que el texto se desplaza arriba y abajo
-   a medida que mueve el ratón.
+Si su ratón tiene un botón de rueda, también puede utilizarlo para
+desplazar el texto.
 
 
-
-* CUANDO EMACS ESTÁ BLOQUEADO
------------------------------
+* SI EMACS DEJA DE RESPONDER
+----------------------------
 
 Si Emacs dejara de responder a sus comandos, puede detenerlo con
 seguridad al teclear C-g.  Puede usar C-g para detener un comando que
@@ -253,7 +251,7 @@ esté tomando mucho tiempo para ejecutarse.
 También puede usar C-g para descartar un argumento numérico o el
 comienzo de un comando que no quiere finalizar.
 
->> Escriba C-u 100 para hacer un argumento numérico de 100, entonces
+>> Escriba C-u 100 para hacer un argumento numérico de 100, y luego
    pruebe C-g.
    Ahora pruebe C-f.  Esto deberá mover sólo un carácter, ya que
    canceló el argumento con C-g.
@@ -282,7 +280,7 @@ desactivado, conteste la pregunta con "n".
 * VENTANAS
 ----------
 
-Emacs puede tener varias ventanas, cada una mostrando su propio texto.
+Emacs puede tener varias "ventanas", cada una mostrando su propio texto.
 Explicaremos después como usar múltiples ventanas.  Ahora mismo
 queremos explicar cómo deshacerse de ventanas adicionales y volver a
 la edición básica en una ventana.  Es sencillo:
@@ -294,9 +292,9 @@ contiene el cursor, para ocupar toda la pantalla.  Esto borra todas las
 demás ventanas.
 
 >> Mueva el cursor a esta línea y escriba C-u 0 C-l.
->> Escriba Control-h k Control-f.
+>> Escriba C-h k C-f.
    Vea como esta ventana se encoge, mientras una nueva aparece y
-   muestra documentación sobre el comando Control-f.
+   muestra documentación sobre el comando C-f.
 
 >> Escriba C-x 1 y vea que la ventana de listado de documentación
    desaparece.
@@ -312,41 +310,36 @@ cuatro caracteres.
 * INSERTAR Y BORRAR
 -------------------
 
-Si quiere insertar un texto, basta con que lo teclee.  Emacs
-interpreta los caracteres que usted puede ver, tales como A, 7, *,
-etc. como texto y los inserta inmediatamente.  Teclee <Return> (la
-tecla Enter) para insertar un carácter de nueva línea.
+Si quiere insertar un texto, basta con que lo teclee.  Los caracteres
+normales, como A, 7, *, etc. se insertan nada más teclearlos.  Teclee
+<Return> (la tecla "Enter" o "Intro") para insertar un carácter de
+nueva línea.
 
-Puede borrar el último carácter que escribió oprimiendo <Delback>.
-<Delback> es una tecla en el teclado--la misma que normalmente usa
-fuera de emacs para borrar el último carácter que escribió.
-Normalmente es una tecla una o dos filas arriba de la tecla <Return>,
-y que está usualmente rotulada como "Backspace", "Del" o simplemente
-con una flecha en dirección izquierda que no es parte de las teclas de
-flecha.
+Para borrar el carácter que precede al cursor, oprima <DEL>. Es una
+tecla alargada, normalmente etiquetada como "Backspace" o "Del", o con
+una flecha apuntando a la izquierda; la misma que suele utilizar fuera
+de Emacs para borrar el último carácter introducido.
 
-Si la tecla larga está rotulada "Backspace", entonces ésa es la que
-debe de usar para <Delback>.  Puede haber otra tecla llamada "Del" en
-otra parte, pero ésa no es <Delback>.
-
-Generalmente, <Delback> borra el carácter inmediatamente anterior a la
-posición actual del cursor.
+Puede haber otra tecla llamada "Del" o "Supr" en otra parte, pero ésa
+no es <DEL>.
 
 >> Haga esto ahora: teclee unos pocos caracteres, después bórrelos
-   tecleando <Delback> varias veces.  No se preocupe si este archivo
+   tecleando <DEL> varias veces.  No se preocupe si este archivo
    cambia, no alterará el tutorial principal.  Ésta es su copia
    personal de él.
 
-Cuando una línea de texto se hace muy grande para una sola línea en la
+Cuando una línea de texto se hace muy grande para una sola línea de la
 pantalla, la línea de texto "continúa" en una segunda línea en la
-pantalla.  Un backslash ("\") (o, si está usando un sistema de
-ventanas, una pequeña flecha curva) en el margen derecho indica que la
-línea "continúa".
+pantalla. Si está usando un entorno gráfico, se mostrarán pequeñas
+flechas curvas en las estrechas franjas vacías (los "márgenes" derecho
+e izquierdo) a cada lado del área de texto, para indicar que la línea
+continúa. Si está utilizando una terminal, la continuación se señala
+mediante una barra invertida ("\") en la última columna de la derecha.
 
 >> Inserte texto hasta que llegue al margen derecho, y siga
    insertando.  Verá aparecer una línea de continuación.
 
->> Use <Delback> para borrar el texto hasta que la línea de nuevo
+>> Use <DEL> para borrar el texto hasta que la línea de nuevo
    quepa en la pantalla.  La línea de continuación se pierde.
 
 Puede borrar un carácter de nueva línea como cualquier otro carácter.
@@ -355,7 +348,7 @@ sola línea.  Si el resultado de la combinación de líneas es demasiado
 largo para caber en el ancho de la pantalla, se mostrará con una línea
 de continuación.
 
->> Mueva el cursor al comienzo de una línea y teclee <Delback>.  Esto
+>> Mueva el cursor al comienzo de una línea y teclee <DEL>.  Esto
    juntará esa línea con la línea anterior.
 
 >> Teclee <Return> para reinsertar la nueva línea que borró.
@@ -370,27 +363,29 @@ Ya ha aprendido la manera más básica de teclear algo en Emacs y
 corregir errores.  Puede borrar por palabras o por líneas.  He aquí un
 resumen de las operaciones de borrado:
 
-	<Delback> 	borra el carácter justo antes que el cursor
+	<DEL>   	borra el carácter justo antes que el cursor
 	C-d		borra el siguiente carácter después del cursor
 
-	M-<Delback> 	Elimina la palabra inmediatamente antes del
+	M-<DEL> 	Elimina la palabra inmediatamente antes del
                          cursor
 	M-d        	Elimina la siguiente palabra después del cursor
 
 	C-k  		Elimina desde el cursor hasta el fin de la línea
 	M-k  		Elimina hasta el final de la oración actual
 
-Note que <Delback> y C-d, comparados con M-<Delback> y M-d, extienden
-el paralelismo iniciado por C-f y M-f (bien, <Delback> no es realmente
-una tecla de control, pero no nos preocuparemos de eso ahora).  C-k y
-M-k, en ciertas forma, son como C-e y M-e, en que las líneas son
-oraciones opuestas.
+Note que <DEL> y C-d, comparados con M-<DEL> y M-d, extienden el
+paralelismo iniciado por C-f y M-f (bien, <DEL> no es realmente una
+tecla de control, pero no nos preocuparemos de eso ahora).  C-k y M-k,
+en ciertas forma, son como C-e y M-e, en que las líneas de unos
+corresponden a sentencias en los otros.
 
-También puede eliminar cualquier parte del buffer con un método
-uniforme.  Muévase a un extremo de esa parte, y teclee C-@ o C-SPC
-(cualquiera de los dos).  (SPC es la barra espaciadora.)  Muévase al
-otro extremo de esa parte, y teclee C-w.  Eso elimina todo el texto
-entre las dos posiciones.
+También puede eliminar un segmento contiguo de texto con un método
+uniforme.  Muévase a un extremo de ese segmento de texto, y teclee C-@
+o C-SPC (cualquiera de los dos).  (SPC es la barra espaciadora.)
+Luego, mueva el cursor al otro extremo del texto que desea eliminar.
+Al hacerlo, Emacs resaltará el texto situado entre el cursor y la
+posición en la que tecleó C-SPC.  Finalmente, teclee C-w.  Eso elimina
+todo el texto entre las dos posiciones.
 
 >> Mueva el cursor a la letra T del inicio del párrafo anterior.
 >> Teclee C-SPC.  Emacs debe mostrar el mensaje "Mark set" en la parte
@@ -401,12 +396,15 @@ entre las dos posiciones.
    termina justo antes de la x.
 
 La diferencia entre "eliminar" y "borrar" es que el texto "eliminado"
-puede ser reinsertado, mientras que las cosas "borradas" no pueden ser
-reinsertadas.  La reinserción de texto eliminado se llama "yanking" o
-"pegar".  Generalmente, los comandos que pueden quitar mucho texto lo
-eliminan, mientras que los comandos que quitan solo un carácter, o
-solo líneas en blanco y espacios, borran (para que no pueda pegar ese
-texto).
+puede ser reinsertado (en cualquier posición), mientras que las cosas
+"borradas" no pueden ser reinsertadas (sin embargo, es posible
+deshacer el borrado; ver más abajo).  La reinserción de texto
+eliminado se llama "yanking" o "pegar".  Generalmente, los comandos
+que pueden quitar mucho texto lo eliminan (para que pueda pegarlo de
+nuevo) mientras que los comandos que quitan solo un carácter, o solo
+líneas en blanco y espacios, borran (y por tanto no se puede pegar lo
+borrado).  Si se normalmente, sin pasar un argumento, <DEL> y C-d
+borran.  Con un argumento, eliminan.
 
 >> Mueva el cursor al comienzo de una línea que no esté vacía.
    Luego teclee C-k para eliminar el texto de esa línea.
@@ -420,12 +418,13 @@ especialmente: Elimina ese número de líneas y TAMBIÉN sus
 contenidos.  Esto no es una simple repetición.  C-u 2 C-k elimina dos
 líneas y sus nuevas líneas, tecleando C-k dos veces no hace esto.
 
-Traer texto eliminado de regreso es llamado "yanking" o "pegar".
-(Piense en ello como pegar de nuevo, o traer de vuelta, algún texto
-que le fue quitado.)  Puede pegar el texto eliminado en, ya sea el
-lugar en que fue eliminado, o en otra parte del buffer, o hasta en un
-archivo diferente.  Puede pegar el texto varias veces, lo que hace
-varias copias de él.
+Reinsertar texto eliminado se denomina "yanking" o "pegar".  (Piense
+en ello como pegar de nuevo, o traer de vuelta, algún texto que le fue
+quitado.)  Puede pegar el texto eliminado, ya sea el lugar en que fue
+eliminado, o en otra parte del buffer, o hasta en un archivo
+diferente.  Puede pegar el texto varias veces, lo que hace varias
+copias de él.  Algunos editores se refieren a eliminar y reinsertar
+como "cortar" y "pegar" (consulte el Glosario en el manual de Emacs).
 
 El comando para pegar es C-y.  Reinserta el último texto eliminado, en
 la posición actual del cursor.
@@ -468,32 +467,31 @@ eliminación más reciente).
 ----------
 
 Si hace un cambio al texto, y luego decide que fue un error,
-puede deshacer el cambio con el comando deshacer, C-x u.
+puede deshacer el cambio con el comando deshacer, C-/.
 
-Normalmente, C-x u deshace los cambios hechos por un comando; si repite
-varias veces seguidas C-x u, cada repetición deshará un comando
+Normalmente, C-/ deshace los cambios hechos por un comando; si repite
+varias veces seguidas C-/, cada repetición deshará un comando
 adicional.
 
 Pero hay dos excepciones: los comandos que no cambian el texto no
-cuentan (esto incluye los comandos de movimiento del cursor y el
-comando de desplazamiento), y los caracteres de autoinserción se
-manejan usualmente en grupos de hasta 20.  (Esto es para reducir el
-numero de C-x u que tenga que teclear para deshacer una inserción en
+cuentan (esto incluye los comandos de movimiento del cursor y de
+desplazamiento), y los caracteres de autoinserción se manejan
+usualmente en grupos de hasta 20 caracteres.  (Esto es para reducir el
+numero de C-/ que tenga que teclear para deshacer una inserción en
 el texto.)
 
->> Elimine esta línea con C-k, después teclee C-x u y debería
+>> Elimine esta línea con C-k, después teclee C-/ y debería
    reaparecer.
 
-C-_ es un comando alternativo para deshacer; funciona igual que C-x u,
-pero es más fácil de teclear varias veces seguidas.  La desventaja de
-C-_ es que en algunos teclados no es obvio cómo se teclea.  Por esto
-existe también C-x u.  En algunas terminales, puede teclear C-_ al
-teclear / mientras oprime CONTROL.
+C-_ es un comando alternativo para deshacer; funciona igual que C-/.
+En algunas terminales, al teclear C-/ en realidad envía C-_ a Emacs.
+También existe la alternativa de usar C-x u, que funciona exactamente
+igual que C-/, pero es menos cómodo de teclear.
 
-Un argumento numérico para C-_ o C-x u actúa como un factor de
+Un argumento numérico para C-/, C-_ o C-x u actúa como un factor de
 repetición.
 
-Uuede deshacer un texto borrado justo como puede deshacer el texto
+Puede deshacer un texto borrado justo como puede deshacer el texto
 eliminado.  La distinción entre eliminar algo y borrar algo afecta en
 si puede pegarlo con C-y; no hay diferencia alguna para deshacer.
 
@@ -516,17 +514,17 @@ cuando guarde, Emacs dejará el archivo original bajo un nombre
 cambiado en caso de que luego decida que sus cambios fueron un error.
 
 Si mira cerca del final de la pantalla podrá ver una línea que
-comienza y termina con guiones, y comienza con "--:-- TUTORIAL.es" o
-algo así.  Esta parte de la pantalla normalmente muestra el nombre del
-archivo que está visitando.  En este momento está visitando un archivo
-llamado "TUTORIAL.es" que es su borrador personal del tutorial de
-Emacs.  Cuando encuentre un archivo con Emacs, el nombre de ese
-archivo aparecerá en ese mismo punto.
+comienza con guiones, y empieza con " -:--- TUTORIAL.es" o algo así.
+Esta parte de la pantalla normalmente muestra el nombre del archivo
+que está visitando.  En este momento está visitando su propia copia
+del tutorial de Emacs, que se llama "TUTORIAL.es".  Cuando encuentre
+un archivo con Emacs, el nombre de ese archivo aparecerá en ese mismo
+punto.
 
 Una cosa especial acerca del comando para encontrar un archivo, es que
 tendrá que decir que nombre de archivo desea.  Decimos que el comando
-"lee un argumento desde la terminal" (en este caso, el argumento es el
-nombre del archivo).  Después de teclear el comando:
+"lee un argumento" (en este caso, el argumento es el nombre del
+archivo).  Después de teclear el comando:
 
 	C-x C-f   Encontrar un archivo
 
@@ -544,13 +542,12 @@ entrada al minibuffer) puede cancelar el comando con C-g.
    Así que no encontrará archivo alguno.
 
 Cuando haya finalizado de ingresar el nombre del archivo, teclee
-<Return> para terminarlo.  Entonces el comando C-x C-f trabaja, y
-encuentra el archivo que escogió.  El minibuffer desaparece cuando el
-comando C-x C-f termina.
+<Return> para terminarlo.  El minibuffer desaparece, y el comando C-x
+C-f trabaja para encontrar el archivo que escogió.
 
-Poco tiempo después aparecerá el contenido del archivo en la pantalla,
-y puede editarlo.  Cuando quiera que sus cambios sean permanentes,
-teclee el comando
+En seguida aparecerá el contenido del archivo en la pantalla, y puede
+editarlo.  Cuando quiera que sus cambios sean permanentes, teclee el
+comando
 
 	C-x C-s   Guardar el archivo
 
@@ -561,11 +558,12 @@ final del nombre del archivo original.
 
 Cuando guardar haya terminado, Emacs mostrará el nombre del archivo
 escrito.  Deberá guardar frecuentemente, para que no pierda mucho
-trabajo si el sistema falla.
+trabajo si el sistema falla (vea la sección "AUTO GUARDADO", más
+adelante).
 
->> Teclee C-x C-s, guardando la copia del tutorial.
-   Esto debería mostrar "Wrote ...TUTORIAL.es" al final de la
-   pantalla.
+>> Teclee C-x C-s TUTORIAL.es <Return>
+   Esto guardará el tutorial en un archivo llamado TUTORIAL.es, y
+   mostrará "Wrote ...TUTORIAL.es" al final de la pantalla.
 
 Puede encontrar un archivo existente, para verlo o editarlo.  También
 puede hacerlo con un archivo que no exista.  Ésta es la forma de crear
@@ -584,16 +582,10 @@ dentro de Emacs.  Puede volver a el encontrándolo de nuevo con C-x
 C-f.  De esta forma puede mantener un gran número de archivos dentro
 de Emacs.
 
->> Cree un archivo llamado "foo" tecleando C-x C-f foo <Return>.
-   Luego inserte algún texto, edítelo, y guarde "foo" tecleando C-x
-   C-s.
-   Finalmente teclee C-x C-f TUTORIAL.es <Return>
-   para regresar al tutorial.
-
 Emacs almacena cada texto del archivo dentro de un objeto llamado
 "buffer".  Al encontrar un archivo se crea un nuevo buffer dentro de
-Emacs.  Para mirar la lista de los buffers que existen actualmente en
-su sesión de Emacs, teclee:
+Emacs.  Para mirar la lista de los buffers que existen actualmente,
+teclee:
 
 	C-x C-b   Lista de buffers
 
@@ -612,22 +604,24 @@ que corresponde a un archivo, puede hacerlo visitando el archivo de
 nuevo con C-x C-f.  Pero existe una manera más rápida: use el comando
 C-x b.  En ese comando, necesita teclear el nombre de buffer.
 
->> Teclee C-x b foo <Return> para volver al buffer "foo" que contiene
-   el texto del archivo "foo".  Después teclee C-x b TUTORIAL.es
-   <Return> para regresar a este tutorial.
+>> Cree un archivo llamado "foo" tecleando C-x C-f foo <Return>.
+   Después teclee C-x b TUTORIAL.es <Return> para regresar a este
+   tutorial.
 
 La mayoría del tiempo el nombre del buffer es el mismo que el nombre
 del archivo (sin la parte del directorio del archivo).  Sin embargo,
 esto no es así siempre.  La lista de buffers que hace con C-x C-b
-siempre muestra el nombre de todos los buffers.
+muestra el nombre de cada buffer y de su archivo correspondiente.
 
-CUALQUIER texto que vea en una ventana de Emacs siempre es parte de un
-buffer.  Algunos buffers no corresponden a un archivo.  Por ejemplo,
-el buffer llamado "*Buffer List*" no tiene ningún archivo.  Es el
-buffer que contiene la lista de buffers que ha creado con C-x C-b.  El
-buffer llamado "*Messages*" tampoco tiene un archivo correspondiente;
-contiene los mensajes que han aparecido en la línea de abajo durante
-su sesión de Emacs.
+Algunos buffers no corresponden a un archivo.  El buffer llamado
+"*Buffer List*", que contiene la lista de buffers que ha creado con
+C-x C-b, no tiene archivo.  Este buffer TUTORIAL.es al principio no
+tenía archivo, pero ahora ya sí, porque en la sección anterior tecleó
+C-x C-s y lo guardó en un archivo.
+
+El buffer llamado "*Messages*" tampoco tiene un archivo
+correspondiente.  Este buffer contiene los mensajes que han aparecido
+en la línea de abajo durante su sesión de Emacs.
 
 >> Teclee C-x b *Messages* <Return> para ver el buffer de mensajes.
    Luego teclee C-x b TUTORIAL <Return> para regresar a este tutorial.
@@ -669,45 +663,45 @@ comando C-x C-c.  (No se preocupe por perder los cambios que haya
 hecho; C-x C-c ofrece guardar cada archivo alterado antes de finalizar
 Emacs.)
 
-C-z es el comando para salir de Emacs *temporalmente*: para que pueda
-regresar a la misma sesión de Emacs después.
+Si está utilizando una pantalla gráfica, no necesita ningún comando
+especial para cambiar de Emacs a otra aplicación.  Puede hacerlo con
+el ratón, o mediante el gestor de ventanas.  Sin embargo, si está
+usando una terminal que solo puede mostrar una aplicación a la vez,
+tendrá que "suspender" Emacs para poder acceder a otros programas.
 
-En sistemas que lo permiten C-z "suspende" Emacs; esto es, se regresa
-al intérprete de comandos pero no se destruye Emacs.  En los
+C-z es el comando para salir de Emacs *temporalmente*: para que pueda
+regresar a la misma sesión de Emacs después.  Cuando Emacs está
+ejecutándose en una terminal, C-z "suspende" Emacs; esto es, se
+regresa al intérprete de comandos pero no se destruye Emacs.  En los
 intérpretes de comandos más comunes, puede reanudar Emacs con el
 comando `fg' o con `%emacs'.
 
-En sistemas que no implementen el suspendido, C-z crea un
-subintérprete que corre bajo Emacs para darle la opción de correr
-otros programas y regresar a Emacs después; esto en realidad no "sale"
-de Emacs.  En este caso, el comando `exit' del intérprete es la vía
-usual para regresar a Emacs desde éste.
-
 El momento para usar C-x C-c es cuando está listo para salir del
 sistema.  Es además el paso correcto para salir de un Emacs llamado
-bajo programas de manejo de correo y diversas otras utilidades, puesto
-que ellos no saben cómo lidiar con la suspensión de Emacs.  En
-circunstancias normales, si no va a salir, es mejor suspender
-Emacs con C-z en lugar de salir de él.
+bajo programas de gestión de correo y otras utilidades diversas.
 
-Existen varios comandos C-x.  Aquí hay una lista de los que ha
+Existen muchos comandos C-x.  He aquí la lista de los que ya ha
 aprendido:
 
-	C-x C-f 	Encontrar archivo.
-        C-x C-s 	Guardar archivo.
-        C-x C-b 	Lista de buffers.
-        C-x C-c 	Salir de Emacs.
-        C-x 1 		Borrar todo menos una ventana.
-        C-x u 		Deshacer.
+	C-x C-f		Encontrar archivo
+	C-x C-s		Guardar archivo
+	C-x s		Guardar varios buffers
+	C-x C-b		Lista de buffers
+	C-x b		Cambiar a otro buffer
+	C-x C-c		Salir de Emacs
+	C-x 1		Borrar todo menos una ventana
+	C-x u		Deshacer
 
 Los comandos eXtendidos por nombre son comandos que se utilizan aún
 con menos frecuencia, o únicamente en ciertos modos.  Un ejemplo es el
-comando replace-string, el cual globalmente substituye una cadena de
-caracteres por otra.  Cuando teclea M-x, Emacs le pregunta al
-final de la pantalla con M-x y debe escribir el nombre del
-comando; en este caso "replace-string".  Solo teclee "repl s<TAB>" y
-Emacs completará el nombre.  Finalice el nombre del comando con
-<Return>.
+comando replace-string, el cual substituye globalmente una cadena de
+caracteres por otra.  Cuando teclea M-x, Emacs le pregunta al final de
+la pantalla con M-x y debe escribir el nombre del comando; en este
+caso "replace-string".  Solo teclee "repl s<TAB>" y Emacs completará
+el nombre.  (<TAB> es la tecla del tabulador, que habitualmenté está
+situada sobre la tecla de bloquear mayúsculas o la de shift, en el
+lado izquierdo del teclado.)  Para aceptar el comando y ejecutarlo,
+pulse <Return>.
 
 El comando replace-string requiere dos argumentos: la cadena de
 caracteres a reemplazar, y la cadena de caracteres para reemplazarla.
@@ -733,11 +727,11 @@ un # al principio y al final; por ejemplo, si su archivo se llama
 "hola.c", su archivo auto guardado es "#hola.c#".  Cuando guarda por
 la vía normal, Emacs borra su archivo de auto guardado.
 
-Si la computadora falla, puede recuperar su edición de auto
-guardado encontrando el archivo normal (el archivo que estuvo
-editando, no el archivo de auto guardar) y entonces tecleando M-x
-recover file<Return>.  Cuando le pregunte por la confirmación, teclee
-yes<Return> para ir y recuperar la información del auto guardado.
+Si la computadora falla, puede recuperar su edición de auto guardado
+encontrando el archivo normal (el archivo que estuvo editando, no el
+archivo de auto guardar) y entonces tecleando M-x recover-file
+<Return>.  Cuando le pregunte por la confirmación, teclee yes<Return>
+para seguir adelante y recuperar la información de auto guardado.
 
 
 * ÁREA DE ECO
@@ -754,20 +748,20 @@ lentamente, se los muestra al final de la pantalla en un área llamada
 La línea inmediatamente encima del área de eco recibe el nombre de
 "línea de modo" o "mode line".  La línea de modo dice algo así:
 
---:** TUTORIAL.es         (Fundamental)--l765--65%---------
+ -:**-  TUTORIAL.es       63% L749    (Fundamental)
 
 Esta línea da información útil acerca del estado de Emacs y del texto
 que está editando.
 
 Ya sabe qué significa el nombre del archivo: es el archivo que usted
-ha encontrado.  -NN%-- indica su posición actual en el texto; esto
+ha encontrado.  NN% indica su posición actual en el texto; esto
 significa que NN por ciento del texto está encima de la parte superior
 de la pantalla.  Si el principio del archivo está en la pantalla, éste
-dirá --Top-- en vez de --00%--.  Si el final del texto está en la
-pantalla, dirá --Bot--.  Si está mirando un texto tan pequeño que cabe
-en la pantalla, el modo de línea dirá --All--.
+dirá "Top" en vez de " 0%".  Si el final del texto está en la
+pantalla, dirá "Bot".  Si está mirando un texto tan pequeño que cabe
+entero en la pantalla, el modo de línea dirá "All".
 
-La L y los dígitos indican la posición de otra forma: ellos dan el
+La L y los dígitos señalan la posición de otra forma: indican el
 número de línea actual del punto.
 
 Los asteriscos cerca del frente significan que usted ha hecho cambios
@@ -795,7 +789,8 @@ fundamental-mode es un comando para cambiar al modo fundamental.
 
 Si va a editar un texto de algún lenguaje humano, como este archivo,
 debería usar el modo de texto.
->> Teclee M-x text mode<Return>.
+
+>> Teclee M-x text-mode <Return>.
 
 No se preocupe, ninguno de los comandos de Emacs que ha aprendido
 cambia de manera significativa.  Pero puede observar que M-f y M-b
@@ -805,20 +800,20 @@ de palabras.
 
 Los modos mayores normalmente hacen cambios sutiles como el anterior:
 la mayoría de comandos hacen "el mismo trabajo" en cada modo mayor,
-pero funcionan un poco diferente.
+pero funcionan de forma un poco diferente.
 
-Para ver documentación en el modo mayor actual, teclee C-h m.
+Para ver la documentación del modo mayor actual, teclee C-h m.
 
->> Use C-u C-v una o más veces para traer esta línea cerca de la
-   parte superior de la pantalla.
+>> Use C-l C-l para traer esta línea en la parte superior de la
+   pantalla.
 
 >> Teclee C-h m, para ver como el modo de Texto difiere del modo
    Fundamental.
 
 >> Teclee C-x 1 para eliminar la documentación de la pantalla.
 
-Los modos mayores son llamados así porque también hay modos menores.
-Los modos menores no son alternativas para los modos mayores, solo
+Los modos mayores se llaman así porque también hay modos menores.  Los
+modos menores no son alternativas para los modos mayores, solo
 modificaciones menores de éstos.  Cada modo menor puede ser activado o
 desactivado por sí mismo, independiente de todos los otros modos
 menores, e independiente de su modo mayor.  Por tanto, puede no usar
@@ -830,13 +825,13 @@ español, es el modo Auto Fill.  Cuando este modo está activado, Emacs
 rompe la línea entre palabras automáticamente siempre que inserte
 texto y la línea sea demasiado ancha.
 
-Puede activar el modo Auto Fill al hacer M-x auto fill mode<Return>.
+Puede activar el modo Auto Fill al hacer M-x auto-fill-mode <Return>.
 Cuando el modo esté activado, puede desactivarlo nuevamente usando M-x
-auto fill mode<Return>.  Si el modo está desactivado, este comando lo
+auto-fill-mode <Return>.  Si el modo está desactivado, este comando lo
 activa, y si el modo está activado, este comando lo desactiva.
 Decimos que el comando "cambia el modo".
 
->> teclee M-x auto fill mode<Return> ahora.  Luego inserte una línea
+>> teclee M-x auto-fill-mode <Return> ahora.  Luego inserte una línea
    de "asdf " repetidas veces hasta que la vea dividida en dos líneas.
    Debe intercalar espacios porque Auto Fill sólo rompe líneas en los
    espacios.
@@ -861,15 +856,13 @@ ese párrafo.
 * BUSCAR
 --------
 
-Emacs puede hacer búsquedas de cadenas (grupos de caracteres o
-palabras contiguos) hacia adelante a través del texto o hacia atrás en
-el mismo.  La búsqueda de una cadena es un comando de movimiento de
+Emacs puede hacer búsquedas de cadenas (una "cadena" es un grupo de
+caracteres contiguos) hacia adelante a través del texto o hacia atrás
+en el mismo.  La búsqueda de una cadena es un comando de movimiento de
 cursor; mueve el cursor al próximo lugar donde esa cadena aparece.
 
-El comando de búsqueda de Emacs es diferente a los comandos de
-búsqueda de los demás editores, en que es "incremental".  Esto
-significa que la búsqueda ocurre mientras teclea la cadena para
-buscarla.
+El comando de búsqueda de Emacs es "incremental".  Esto significa que
+la búsqueda ocurre mientras teclea la cadena para buscarla.
 
 El comando para iniciar una búsqueda es C-s para búsqueda hacia
 adelante, y C-r para la búsqueda hacia atrás.  ¡PERO ESPERE!  No los
@@ -886,7 +879,7 @@ quiere buscar.  <Return> termina una búsqueda.
    Ahora ha buscado "cursor", una vez.
 >> Teclee C-s de nuevo, para buscar la siguiente ocurrencia de
    "cursor".
->> Ahora teclee <Delback> cuatro veces y vea como se mueve el cursor.
+>> Ahora teclee <DEL> cuatro veces y vea como se mueve el cursor.
 >> Teclee <Return> para terminar la búsqueda.
 
 ¿Vió lo que ocurrió?  Emacs, en una búsqueda incremental, trata de ir
@@ -895,27 +888,22 @@ ir a la próxima ocurrencia de 'cursor' solo teclee C-s de nuevo.  Si
 tal ocurrencia no existe, Emacs pita y le dice que la búsqueda actual
 está fallando ("failing").  C-g también termina la búsqueda.
 
-NOTA: En algunos sistemas, teclear C-s dejará inmóvil la pantalla y no
-podrá ver más respuesta de Emacs.  Esto indica que una
-"característica" del sistema operativo llamada "control de flujo" está
-interceptando el C-s y no permitiéndole llegar hasta Emacs.  Para
-descongelar la pantalla, teclee C-q.  Luego consulte la sección
-"Entrada Espontánea para Búsqueda Incremental" en el manual de Emacs
-para consejos de cómo tratar con esta "característica".
-
-Si se encuentra en medio de una búsqueda incremental y teclea
-<Delback>, notará que el último carácter de la cadena buscada se borra
-y la búsqueda vuelve al sitio anterior de la búsqueda.  Por ejemplo,
-suponga que ha tecleado "c", para buscar la primera ocurrencia de "c".
-Ahora, si teclea "u", el cursor se moverá a la primera ocurrencia de
-"cu".  Ahora teclee <Delback>.  Esto borra la "u" de la cadena
-buscada, y el cursor vuelve a la primera ocurrencia de "c".
+Si se encuentra en medio de una búsqueda incremental y teclea <DEL>,
+la búsqueda "vuelve" a un punto anterior.  Si teclea <DEL> justo
+después de teclear C-s para avanzar hasta la siguiente ocurrencia de
+la cadena buscada, el cursor retrocede a una ocurrencia previa.  Si no
+hay ocurrencias previas, <DEL> borra el último carácter de la cadena
+buscada.  Por ejemplo, suponga que ha tecleado "c", para buscar la
+primera ocurrencia de "c".  Ahora, si teclea "u", el cursor se moverá
+a la primera ocurrencia de "cu".  Ahora teclee <DEL>.  Esto borra la
+"u" de la cadena buscada, y el cursor vuelve a la primera ocurrencia
+de "c".
 
 Si está en medio de una búsqueda y teclea un carácter control o meta
 (con algunas pocas excepciones: los caracteres que son especiales en
 una búsqueda, tales como C-s y C-r), la búsqueda termina.
 
-El C-s inicia una exploración que busca alguna ocurrencia de la cadena
+C-s inicia una exploración que busca alguna ocurrencia de la cadena
 buscada DESPUÉS de la posición actual del cursor.  Si quiere buscar
 algo anterior en el texto, teclee en cambio C-r.  Todo lo que hemos
 dicho sobre C-s también se aplica a C-r, excepto que la dirección de
@@ -926,14 +914,16 @@ la búsqueda se invierte.
 --------------------
 
 Una de las características agradables de Emacs es que se puede mostrar
-más de una ventana en la pantalla al mismo tiempo.
+más de una ventana en la pantalla al mismo tiempo.  (Note que Emacs
+usa el término "marcos", descrito en la siguiente sección, para
+referirse a lo que otras aplicaciones llaman "ventanas".  El manual de
+Emacs contiene un Glosario de términos.)
 
->> Mueva el cursor a esta línea y teclee C-u 0 C-l (eso es CONTROL-L,
-   no CONTROL-1).
+>> Mueva el cursor a esta línea y teclee C-l C-l.
 
->> Ahora teclee C-x 2 que divide la pantalla en dos ventanas.  Ambas
-   ventanas muestran este tutorial.  El cursor permanece en la ventana
-   superior.
+>> Ahora teclee C-x 2 que divide la pantalla en dos ventanas.
+   Ambas ventanas muestran este tutorial.  El cursor de edición
+   permanece en la ventana superior.
 
 >> Teclee C-M-v para desplazar la ventana inferior.
    (Si no tiene una tecla META real, teclee ESC C-v.)
@@ -947,24 +937,25 @@ más de una ventana en la pantalla al mismo tiempo.
    superior.
    El cursor en la ventana superior está justo donde estaba antes.
 
-Puede continuar usando C-x o para cambiar entre las ventanas.  Cada
-ventana tiene su propia posición del cursor, pero únicamente una
-ventana actual muestra el cursor.  Todos los comandos de edición
-comunes se aplican a la ventana en que está el cursor.  Llamaremos
-esto la "ventana seleccionada".
+Puede continuar usando C-x o para cambiar entre las ventanas.  La
+"ventana seleccionada", donde tiene lugar casi toda la edición, es la
+que tiene un cursor muy visible que parpadea cuando usted no está
+tecleando.  Las otras ventanas tienen sus propia posición del cursor;
+si está ejecutando Emacs en una pantalla gráfica, esos cursores se
+muestran como rectángulos vacíos que no parpadean.
 
 El comando C-M-v es muy útil cuando está editando un texto en una
-ventana y usando la otra ventana como referencia.  Puede mantener el
-cursor siempre en la ventana donde está editando, y avanzar a la otra
-ventana secuencialmente con C-M-v.
+ventana y usando la otra ventana como referencia.  Sin moverse de la
+ventana seleccionada, puede desplazar el texto de la otra ventana con
+C-M-v.
 
 C-M-v es un ejemplo de un carácter CONTROL-META.  Si tiene una tecla
-META real, puede teclear C-M-v pulsando a la vez CONTROL y META
+META (o Alt), puede teclear C-M-v pulsando a la vez CONTROL y META
 mientras teclea v.  No importa qué tecla "vaya primero", CONTROL o
 META, porque las dos teclas actúan modificando los caracteres que
 teclea.
 
-Si no tiene una tecla META real, y en vez de eso usa ESC, el orden sí
+Si no tiene una tecla META, y en vez de eso usa ESC, el orden sí
 importa: debe teclear ESC seguido de Control-v, porque Control-ESC v
 no funcionará.  Esto es porque ESC es un carácter que tiene valor por
 sí mismo, no es una tecla modificadora.
@@ -990,6 +981,32 @@ diferentes:
 
 >> Teclee C-x o para regresar a la ventana superior, y C-x 1 para
    borrar la ventana inferior.
+
+
+* MÚLTIPLES MARCOS
+------------------
+
+Emacs puede crear también múltiples "marcos".  Marco es como
+denominamos a un grupo de ventanas, junto con sus menus, barras de
+desplazamiento, áreas de eco, etc.  En entornos gráficos, lo que Emacs
+denomina "marco" es lo que otras aplicaciones llaman "ventana".  En
+entornos gráficos, es posible mostrar varios marcos al mismo tiempo.
+En una terminal, solo se puede mostrar un marco a la vez.
+
+>> Teclee M-x make-frame <Return>.
+   En la pantalla aparecerá un nuevo marco.
+
+En el nuevo marco puede hacer todo lo que hacía en el marco original.
+El primer marco no tiene nada de especial.
+
+>> Teclee M-x delete-frame <Return>.
+   Esto destruye el marco seleccionado.
+
+También puede destruir un marco mediante el método normal que ofrezca
+el entorno gráfico (a menudo, pinchando con el ratón en un botón
+etiquetado como "X" en alguna de las esquinas superiores del marco).
+Si al hacer eso destruye el último marco de Emacs, la aplicación
+termina.
 
 
 * NIVELES RECURSIVOS DE EDICIÓN
@@ -1024,32 +1041,27 @@ Emacs.  Todos estos comandos de "ayuda" comienzan con el carácter
 Control-h, que es llamado "el carácter de Ayuda (Help)".
 
 Para usar las funciones de ayuda, teclee el carácter C-h, y luego un
-carácter decidiendo qué tipo de ayuda quiere.  Si está REALMENTE
+carácter que especifica qué tipo de ayuda quiere.  Si está REALMENTE
 perdido teclee C-h ? y Emacs le dirá qué tipo de ayuda puede
 ofrecerle.  Si ha tecleado C-h y decide que no quiere ninguna ayuda,
 teclee C-g para cancelarlo.
 
-(En algunas instalaciones cambian el significado del carácter C-h.
-Realmente no deberían hacer esto como una política para todos los
-usuarios, así que tiene argumentos para quejarse al administrador del
-sistema.  Mientras tanto, si C-h no muestra un mensaje de ayuda en el
-final de la pantalla, intente teclear la tecla F1 o, en su lugar, M-x
-help <Return>).
+(Si C-h no muestra un mensaje de ayuda en el final de la pantalla,
+intente teclear la tecla F1 o, en su lugar, M-x help <Return>.)
 
 La función de AYUDA más básica es C-h c.  Teclee C-h, el carácter c y
 un carácter de comando o secuencia de comando; Emacs le mostrará
 una descripción muy breve del comando.
 
 >> Teclee C-h c C-p.
-  El mensaje debe ser algo como
+   El mensaje debe ser algo como
 
 	  C-p runs the command previous-line
 
-Esto le dice el "nombre de la función".  Los nombres de función se
-usan principalmente para adecuar y extender Emacs.  Pero ya que los
-nombres de las funciones se eligen para indicar lo que el comando
-hace, también pueden servir como una breve documentación: suficiente
-para recordarle los comandos que ha aprendido.
+Esto le dice el "nombre de la función".  Ya que los nombres de las
+funciones se eligen para indicar lo que hace el comando, pueden servir
+como una breve documentación: suficiente para recordarle los comandos
+que ha aprendido.
 
 Los comandos de múltiples caracteres tales como C-x C-s y (sí no tiene
 las teclas META o EDIT o ALT) <ESC>v también están permitidos después
@@ -1062,22 +1074,23 @@ C-h c.
 
 Esto muestra la documentación de la función, al igual que el nombre,
 en una ventana de Emacs.  Cuando haya terminado de leer el resultado,
-teclee C-x 1 para deshacerse del texto de ayuda.  No tiene que hacer
-esto ahora.  Puede hacer algunas ediciones mientras se refiere
-al texto de ayuda, y entonces teclear C-x 1.
+teclee C-x 1 para deshacerse de la ventana.  No tiene que hacer esto
+ahora.  Puede hacer algunas ediciones mientras se refiere al texto de
+ayuda, y entonces teclear C-x 1.
 
 Aquí hay algunas otras opciones útiles de C-h:
 
    C-h f	Describe una función.  Usted teclea el nombre de la
 		función.
 
->> Intente teclear C-h f previous-line<Return>.
+>> Intente teclear C-h f previous-line <Return>.
    Esto muestra toda la información que Emacs tiene sobre la función
    que implementa el comando C-p
 
-Un comando similar, C-h v, muestra la documentación de variables cuyos
-valores pueda poner para adecuar el comportamiento de Emacs.  Necesita
-teclear el nombre de la variable cuando Emacs pregunte por ella.
+Un comando similar, C-h v, muestra documentación de las variables,
+incluyendo los valores que pueda poner para adaptar el comportamiento
+de Emacs.  Deberá teclear el nombre de la variable cuando Emacs
+pregunte por ella.
 
    C-h a 	Comando Apropos.  Teclee una palabra y Emacs hará una
 		lista de todos los comandos que contengan esa palabra.
@@ -1086,7 +1099,7 @@ teclear el nombre de la variable cuando Emacs pregunte por ella.
 		listará una secuencia de uno o dos caracteres la cual
 		ejecutará el mismo comando.
 
->> Teclee C-h a file<Return>.
+>> Teclee C-h a file <Return>.
 
 Esto muestra en otra ventana una lista de todos los comandos M-x con
 la palabra "file" en sus nombres.  Verá comandos de caracteres como
@@ -1098,36 +1111,37 @@ correspondientes tales como find-file.
 
 >> Teclee C-x 1 para borrar la ventana de ayuda.
 
-   C-h i        Leer los Manuales En-Línea (alias Info).  Este comando
+   C-h i        Leer los manuales incluidos (alias Info).  Este comando
                 lo pone en un buffer especial llamado `*info*' donde
-                puede leer manuales en línea de los paquetes
-                instalados en su sistema.  Teclee m Emacs <Return>
-                para leer el manual de Emacs.  Sí nunca ha usado Info
-                antes, teclee ? y Emacs lo llevará en una visita
-                guiada de los servicios del modo de Info.  Una vez que
-                haya terminado este tutorial, debería considerar el
-                manual Info de Emacs como su documentación primaria.
+                puede leer manuales de los paquetes instalados en su
+                sistema. Teclee m emacs <Return> para leer el manual
+                de Emacs.  Si nunca ha usado Info, teclee ? y Emacs y
+                lo llevará por una visita guiada de los servicios del
+                modo de Info.  Una vez que haya terminado este
+                tutorial, debería considerar el manual Info de Emacs
+                como su documentación primaria.
 
 
 * MÁS CARACTERÍSTICAS
 ---------------------
 
-Puede aprender más de Emacs leyendo su manual, ya sea como libro o en
-línea en el Info (use el menú Ayuda--"Help"--o teclee F10 h r).  Dos
-características que pueden gustarle son la completación, que ahorra
-teclear, y dired, que simplifica el manejo de archivos.
+Puede aprender más acerca de Emacs leyendo su manual, ya sea como
+libro o en el propio Emacs (use el menú Ayuda, "Help", o teclee C-h
+r).  Dos características que pueden gustarle son la completación, que
+ahorra teclear, y dired, que simplifica el manejo de archivos.
 
 La completación es una manera de ahorrar teclear innecesariamente.
 Por ejemplo, si quiere cambiarse al buffer "*Messages*", puede teclear
 C-x b *M<Tab> y emacs encontrará el resto del nombre del buffer tan
 lejos como pueda determinar de lo que ya haya tecleado.  La
-completación es descrita en el Info del manual de Emacs en el nodo
-llamado "Completation".
+completación también funciona con nombres de comandos y de archivos.
+La completación se describe en el Info del manual de Emacs en el nodo
+llamado "Completion".
 
 Dired le permite listar los archivos en un directorio (y opcionalmente
 sus subdirectorios), moverse alrededor de esa lista, visitar,
 renombrar, borrar y aparte de eso operar en los archivos.  Dired está
-descrito en el Info en el manual de Emacs en el nodo llamado "Dired".
+descrito en el manual de Emacs en el nodo llamado "Dired".
 
 El manual también describe otras características de Emacs.
 
@@ -1135,13 +1149,11 @@ El manual también describe otras características de Emacs.
 * CONCLUSIÓN
 ------------
 
-Recuerde, para salir permanentemente de Emacs use C-x C-c.  Para salir
-temporalmente a un intérprete de comandos, de forma que puede volver a
-Emacs después, use C-z.
+Para salir permanentemente de Emacs use C-x C-c.
 
 Este tutorial intenta ser comprensible para todos los usuarios nuevos,
-así que si encuentra algo que no esté claro, no se siente y se culpe a
-sí mismo: ¡Quéjese!
+así que si encuentra algo que no esté claro, no se quede parado
+culpándose a sí mismo: ¡Quéjese!
 
 
 * COPIA
@@ -1174,6 +1186,7 @@ La versión en español ha sido revisada y corregida por:
 La versión en español ha sido actualizada por:
 
 	Rafael Sepúlveda <drs@gnulinux.org.mx>
+	Juanma Barranquero <lekktu@gmail.com>
 
 Por favor, en caso de duda, sólo es válido el original en inglés de la
 siguiente nota de derechos de reproducción (que puede encontrar en el

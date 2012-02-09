@@ -7328,9 +7328,11 @@ If FORCE (the prefix), also save the .newsrc file(s)."
 	(gnus-kill-buffer gnus-original-article-buffer)
 	(setq gnus-article-current nil))
       ;; Return to the group buffer.
-      (gnus-configure-windows 'group 'force)
       (if (not gnus-kill-summary-on-exit)
-	  (gnus-deaden-summary)
+	  (progn
+	    (gnus-deaden-summary)
+	    (gnus-configure-windows 'group 'force))
+	(gnus-configure-windows 'group 'force)
 	(gnus-close-group group)
 	(gnus-kill-buffer gnus-summary-buffer))
       (unless gnus-single-article-buffer
@@ -7352,7 +7354,7 @@ If FORCE (the prefix), also save the .newsrc file(s)."
 (defun gnus-handle-ephemeral-exit (quit-config)
   "Handle movement when leaving an ephemeral group.
 The state which existed when entering the ephemeral is reset."
-  (if (not (buffer-name (car quit-config)))
+  (if (not (buffer-live-p (car quit-config)))
       (gnus-configure-windows 'group 'force)
     (set-buffer (car quit-config))
     (unless (eq (cdr quit-config) 'group)
@@ -11579,6 +11581,7 @@ Returns nil if no thread was there to be shown."
 	 (beg (progn (beginning-of-line) (if (bobp) (point) (1- (point)))))
 	 (eoi (when end
 		(if (fboundp 'next-single-char-property-change)
+		    ;; Note: XEmacs version of n-s-c-p-c may return nil
 		    (or (next-single-char-property-change end 'invisible)
 			(point-max))
 		  (while (progn
@@ -12853,6 +12856,7 @@ If ALL is a number, fetch this number of articles."
 			(gnus-group-decoded-name gnus-newsgroup-name)
 			(if initial "max" "default")
 			len)
+		       nil nil
 		       (if initial
 			   (cons (number-to-string initial)
 				 0)))))

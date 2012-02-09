@@ -102,3 +102,6 @@ For each step, check for possible errors.
 13. For a pretest, announce it on emacs-devel and BCC the pretesters.
     For a release, announce it on info-gnu@gnu.org,
     info-gnu-emacs@gnu.org, and emacs-devel.
+
+14. For a release, update the Emacs homepage in the web repository.
+    Also add the new NEWS file as NEWS.xx.y.

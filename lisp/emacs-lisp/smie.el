@@ -56,7 +56,7 @@
 ;; building the 2D precedence tables and then computing the precedence levels
 ;; from it) can be found in pages 187-194 of "Parsing techniques" by Dick Grune
 ;; and Ceriel Jacobs (BookBody.pdf available at
-;; http://www.cs.vu.nl/~dick/PTAPG.html).
+;; http://dickgrune.com/Books/PTAPG_1st_Edition/).
 ;;
 ;; OTOH we had to kill many chickens, read many coffee grounds, and practice
 ;; untold numbers of black magic spells, to come up with the indentation code.

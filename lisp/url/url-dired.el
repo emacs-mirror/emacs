@@ -43,7 +43,10 @@
   (url-dired-find-file))
 
 (define-minor-mode url-dired-minor-mode
-  "Minor mode for directory browsing."
+  "Minor mode for directory browsing.
+With a prefix argument ARG, enable the mode if ARG is positive,
+and disable it otherwise.  If called from Lisp, enable the mode
+if ARG is omitted or nil."
   :lighter " URL" :keymap url-dired-minor-mode-map)
 
 (defun url-find-file-dired (dir)

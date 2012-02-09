@@ -979,7 +979,10 @@ and the total number of lines in the buffer."
 ;;;
 ;;;###autoload
 (define-minor-mode tpu-edt-mode
-  "TPU/edt emulation."
+  "Toggle TPU/edt emulation on or off.
+With a prefix argument ARG, enable the mode if ARG is positive,
+and disable it otherwise.  If called from Lisp, enable the mode
+if ARG is omitted or nil."
   :global t
   (if tpu-edt-mode (tpu-edt-on) (tpu-edt-off)))
 
@@ -2437,11 +2440,14 @@ If FILE is nil, try to load a default file.  The default file names are
 
 
 ;;;### (autoloads (tpu-set-cursor-bound tpu-set-cursor-free tpu-set-scroll-margins
-;;;;;;  tpu-cursor-free-mode) "tpu-extras" "tpu-extras.el" "512b5771d29a538e69567644413951a8")
+;;;;;;  tpu-cursor-free-mode) "tpu-extras" "tpu-extras.el" "76f06905db4c5bfb3b86491a51512a0e")
 ;;; Generated autoloads from tpu-extras.el
 
 (autoload 'tpu-cursor-free-mode "tpu-extras" "\
 Minor mode to allow the cursor to move freely about the screen.
+With a prefix argument ARG, enable the mode if ARG is positive,
+and disable it otherwise.  If called from Lisp, enable the mode
+if ARG is omitted or nil.
 
 \(fn &optional ARG)" t nil)
 

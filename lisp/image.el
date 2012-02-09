@@ -207,6 +207,8 @@ compatibility with versions of Emacs that lack the variable
            (delete image-directory (copy-sequence (or path load-path))))))
 
 
+;; Used to be in image-type-header-regexps, but now not used anywhere
+;; (since 2009-08-28).
 (defun image-jpeg-p (data)
   "Value is non-nil if DATA, a string, consists of JFIF image data.
 We accept the tag Exif because that is the same format."
@@ -328,6 +330,10 @@ Optional DATA-P non-nil means SOURCE is a string containing image data."
       (error "Invalid image type `%s'" type))
   type)
 
+
+(if (fboundp 'image-metadata)           ; eg not --without-x
+    (define-obsolete-function-alias 'image-extension-data
+      'image-metadata' "24.1"))
 
 (define-obsolete-variable-alias
     'image-library-alist
@@ -682,13 +688,16 @@ The minimum delay between successive frames is 0.01s."
   '(C HTML HTM TXT PDF)
   "ImageMagick types that Emacs should not use ImageMagick to handle.
 This should be a list of symbols, each of which has the same
-names as one of the format tags used internally by ImageMagick;
+name as one of the format tags used internally by ImageMagick;
 see `imagemagick-types'.  Entries in this list are excluded from
-being registered by `imagemagick-register-types'.
+being registered by `imagemagick-register-types', so if you change
+this variable you must do so before you call that function.
 
 If Emacs is compiled without ImageMagick, this variable has no effect."
   :type '(choice (const :tag "Let ImageMagick handle all types it can" nil)
 		 (repeat symbol))
+  ;; Ideally, would have a :set function that checks if we already did
+  ;; imagemagick-register-types, and if so undoes it, then redoes it.
   :version "24.1"
   :group 'image)
 

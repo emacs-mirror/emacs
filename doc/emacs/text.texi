@@ -1302,7 +1302,7 @@ lines but no body lines, and (iii) showing everything.
 body lines and subtree (if any), by typing @kbd{M-<up>}
 (@code{org-metaup}) or @kbd{M-<down>} (@code{org-metadown}) on the
 heading line.  Similarly, you can promote or demote a heading line
-with @kbd{M-<left>} (@code{org-metaleft}) and @kbd{M-<left>}
+with @kbd{M-<left>} (@code{org-metaleft}) and @kbd{M-<right>}
 (@code{org-metaright}).  These commands execute their global bindings
 if invoked on a body line.
 
@@ -1591,12 +1591,15 @@ variable @code{latex-block-names}.
 
 @findex tex-close-latex-block
 @kindex C-c C-e @r{(La@TeX{} mode)}
+@findex latex-electric-env-pair-mode
   In La@TeX{} input, @samp{\begin} and @samp{\end} tags must balance.
 You can use @kbd{C-c C-e} (@code{tex-close-latex-block}) to insert an
 @samp{\end} tag which matches the last unmatched @samp{\begin}.  It
 also indents the @samp{\end} to match the corresponding @samp{\begin},
 and inserts a newline after the @samp{\end} tag if point is at the
-beginning of a line.
+beginning of a line.  The minor mode @code{latex-electric-env-pair-mode}
+automatically inserts an @samp{\end} or @samp{\begin} tag for you
+when you type the corresponding one.
 
 @node TeX Print
 @subsection @TeX{} Printing Commands

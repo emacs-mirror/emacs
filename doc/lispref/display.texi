@@ -4527,30 +4527,51 @@ specifying the bounding box of the PostScript image, analogous to the
 support, you can use the ImageMagick library to load many image formats.
 
 @findex imagemagick-types
+@findex imagemagick-register-types
 The function @code{imagemagick-types} returns a list of image file
 extensions that your installation of ImageMagick supports.  To enable
 support, you must call the function @code{imagemagick-register-types}.
+This enables Emacs to visit these file types in @code{image-mode}
+(@pxref{File Conveniences,,, emacs, The GNU Emacs Manual}).
+If your Emacs was not compiled with ImageMagick support, then
+@code{imagemagick-types} will be undefined and
+@code{imagemagick-register-types} will do nothing.
 
 @vindex imagemagick-types-inhibit
 The variable @code{imagemagick-types-inhibit} specifies a list of
-image types that you do @emph{not} want ImageMagick to handle.  There
-may be overlap between image loaders in your Emacs installation, and
-you may prefer to use a different one for a given image type (which
-@c FIXME how is this priority determined?
-loader will be used in practice depends on the priority of the loaders).
-@c FIXME why are these uppercase when image-types is lower-case?
-@c FIXME what are the possible options?  Are these actually file extensions?
-For example, if you never want to use the ImageMagick loader to use
+image types that you do @emph{not} want ImageMagick to handle.  It is
+a list of symbols, each of which has the same name as one of the
+format tags used internally by ImageMagick (i.e., as
+@code{imagemagick-types} returns).  ImageMagick has a very broad
+definition of what an image is, for example it includes such file
+types as C files and HTML files.  It is not appropriate to treat these
+as images in Emacs.  You can add any other ImageMagick type that you
+wish to this list.
+@ignore
+@c I don't know what this means.  I suspect it means eg loading jpg
+@c images via libjpeg or ImageMagick.  But it doesn't work.
+@c If you don't have libjpeg support compiled in, you cannot
+@c view jpeg images, even if you have imagemagick support:
+@c http://debbugs.gnu.org/9045
+@c And if you have both compiled in, then you always get
+@c the libjpeg version:
+@c http://debbugs.gnu.org/10746
+There may be overlap between image loaders in your Emacs installation,
+and you may prefer to use a different one for a given image type
+(which loader will be used in practice depends on the priority of the
+loaders).  
+For example, if you never want to use the ImageMagick loader to view
 JPEG files, add @code{JPG} to this list.
+@end ignore
+Note that ImageMagick often distinguishes between several different
+types of a particular format (e.g., @code{JPG}, @code{JPEG},
+@code{PJPEG}, etc.), and you may need to add all versions to this
+list.
 
+@c Not sure this should even be in the manual at all.
 @vindex imagemagick-render-type
-You can set the variable @code{imagemagick-render-type} to choose
-between screen render methods for the ImageMagick loader.  The options
-are: @code{0}, a conservative method which works with older
-@c FIXME details of this "newer method"?
-@c Presumably it is faster but may be less "robust"?
-ImageMagick versions (it is a bit slow, but robust); and @code{1},
-a newer ImageMagick method.
+If you wish to experiment with the performance of the ImageMagick
+loader, see the variable @code{imagemagick-render-type}.
 
 Images loaded with ImageMagick support a few new display specifications:
 
@@ -4565,10 +4586,11 @@ aspect ratio may not be preserved.
 Specifies a rotation angle in degrees.
 
 @item :index
-Specifies which image to view inside an image bundle file format, such
-as TIFF or DJVM.  You can use the @code{image-metadata} function to
-retrieve the total number of images in an image bundle (this is
-similar to how GIF files work).
+@c Doesn't work: http://debbugs.gnu.org/7978
+This has the same meaning as it does for GIF images (@pxref{GIF Images}),
+i.e. it specifies which image to view inside an image bundle file format
+such as DJVM.  You can use the @code{image-metadata} function to
+retrieve the total number of images in an image bundle.
 @end table
 
 

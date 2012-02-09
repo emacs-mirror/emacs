@@ -1,3 +1,94 @@
+2012-02-08  Glenn Morris  <rgm@gnu.org>
+
+	* loading.texi (Named Features): Update the require example.
+
+2012-02-07  Glenn Morris  <rgm@gnu.org>
+
+	* modes.texi (Defining Minor Modes):
+	Expand on args of defined minor modes.
+
+2012-02-07  Chong Yidong  <cyd@gnu.org>
+
+	* variables.texi (Creating Buffer-Local): Minor clarification
+	to buffer-local-variables doc (Bug#10715).
+
+2012-02-07  Glenn Morris  <rgm@gnu.org>
+
+	* display.texi (ImageMagick Images): General update.
+	Move most details of imagemagick-render-type to the variable's doc.
+
+2012-02-06  Glenn Morris  <rgm@gnu.org>
+
+	* keymaps.texi (Tool Bar): Mention separators.
+	(Inheritance and Keymaps):
+	Mention make-composed-keymap and multiple inheritance.
+
+	* modes.texi (Running Hooks): Mention run-hook-wrapped.
+
+	* control.texi (Handling Errors):
+	Mention condition-case-no-debug and with-demoted-errors.
+
+2012-02-05  Chong Yidong  <cyd@gnu.org>
+
+	* customize.texi (Common Keywords): Minor clarifications.
+	Document custom-unlispify-remove-prefixes.
+	(Variable Definitions): Backquotes in defcustom seem to work fine
+	now.  Various other copyedits.
+	(Simple Types): Copyedits.  Document color selector.
+	(Composite Types): Copyedits.
+	(Splicing into Lists): Clarifications.
+
+	* eval.texi (Backquote): Move from macros.texi.
+
+	* macros.texi (Expansion): Minor clarification.
+	(Backquote): Move node to eval.texi.
+	(Defining Macros): Move an example from Backquote node.
+	(Argument Evaluation): No need to mention Pascal.
+	(Indenting Macros): Add xref to Defining Macros.
+
+2012-02-05  Glenn Morris  <rgm@gnu.org>
+
+	* debugging.texi (Error Debugging): Mention debug-on-event default.
+
+2012-02-04  Glenn Morris  <rgm@gnu.org>
+
+	* backups.texi (Reverting): Mention revert-buffer-in-progress-p.
+
+	* debugging.texi (Error Debugging): Mention debug-on-event.
+	* commands.texi (Misc Events): Mention sigusr1,2 and debugging.
+
+	* modes.texi (Running Hooks): Try to clarify with-wrapper-hook.
+
+	* text.texi (Buffer Contents):
+	Update filter-buffer-substring description.
+
+2012-02-04  Chong Yidong  <cyd@gnu.org>
+
+	* functions.texi (What Is a Function): Add closures.  Mention
+	"return value" terminology.  Add xref for command-execute.  Remove
+	unused "keystroke command" terminology.
+	(Lambda Expressions): Give a different example than in the
+	following subsection.  Add xref to Anonymous Functions.
+	(Function Documentation): Remove gratuitous markup.
+	(Function Names): Move introductory text to `What Is a Function'.
+	(Defining Functions): Fix defun argument spec.
+	(Anonymous Functions): Document lambda macro explicitly.  Mention
+	effects on lexical binding.
+	(Function Cells): Downplay direct usage of fset.
+	(Closures): New node.
+	(Inline Functions): Remove "open-code" terminology.
+	(Declaring Functions): Minor tweak; .m is not C code.
+
+	* variables.texi (Variables): Don't refer to "global value".
+	(Local Variables, Void Variables): Copyedits.
+	(Lexical Binding): Minor clarification of example.
+	(File Local Variables): Mention :safe and :risky defcustom args.
+	(Lexical Binding): Add xref to Closures node.
+
+2012-02-04  Glenn Morris  <rgm@gnu.org>
+
+	* minibuf.texi (High-Level Completion): Updates for read-color.
+
 2012-02-03  Glenn Morris  <rgm@gnu.org>
 
 	* display.texi (GIF Images): Mention animation.

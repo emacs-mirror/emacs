@@ -1,3 +1,41 @@
+2012-02-09  Glenn Morris  <rgm@gnu.org>
+
+	* buffers.texi (Misc Buffer): M-x info does not seem to require a buffer
+	switch after M-x rename-uniquely.
+
+	* trouble.texi (Checklist): Mention C-c m in report-emacs-bug.
+
+2012-02-09  Jay Belanger  <jay.p.belanger@gmail.com>
+
+	* text.texi (Org Mode): Fix typo.
+
+2012-02-08  Glenn Morris  <rgm@gnu.org>
+
+	* ack.texi (Acknowledgments): Update emacs-lock info.
+
+	* rmail.texi (Rmail Display): Mention rmail-epa-decrypt.
+
+	* text.texi (LaTeX Editing): Mention latex-electric-env-pair-mode.
+
+2012-02-07  Glenn Morris  <rgm@gnu.org>
+
+	* files.texi (File Conveniences): Mention ImageMagick images.
+
+2012-02-05  Glenn Morris  <rgm@gnu.org>
+
+	* trouble.texi (Checklist): Mention debug-on-event.
+
+	* maintaining.texi (Maintaining): Add cross-ref to ERT.
+
+2012-02-04  Glenn Morris  <rgm@gnu.org>
+
+	* macos.texi (Customization options specific to Mac OS / GNUstep):
+	New subsection.
+
+	* display.texi (Colors): Mention list-colors-sort.
+
+	* files.texi (File Conveniences): Mention image animation.
+
 2012-01-31  Chong Yidong  <cyd@gnu.org>
 
 	* windows.texi (Split Window): C-mouse-2 doesn't work on GTK+

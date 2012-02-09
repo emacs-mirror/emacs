@@ -320,8 +320,10 @@ request.")
              ;; Authorization
              auth
              ;; Cookies
-             (url-cookie-generate-header-lines host real-fname
-                                               (equal "https" (url-type url-http-target-url)))
+	     (when (url-use-cookies url-http-target-url)
+	       (url-cookie-generate-header-lines
+		host real-fname
+		(equal "https" (url-type url-http-target-url))))
              ;; If-modified-since
              (if (and (not no-cache)
                       (member url-http-method '("GET" nil)))
@@ -498,7 +500,8 @@ should be shown to the user."
 	(file-name-handler-alist nil))
     (setq class (/ url-http-response-status 100))
     (url-http-debug "Parsed HTTP headers: class=%d status=%d" class url-http-response-status)
-    (url-http-handle-cookies)
+    (when (url-use-cookies url-http-target-url)
+      (url-http-handle-cookies))
 
     (case class
       ;; Classes of response codes

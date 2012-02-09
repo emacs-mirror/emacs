@@ -6,7 +6,10 @@
 @chapter Maintaining Large Programs
 
   This chapter describes Emacs features for maintaining large
-programs.
+programs.  If you are maintaining a large Lisp program, then in
+addition to the features described here, you may find
+the @file{ERT} (``Emacs Lisp Regression Testing'') library useful
+(@pxref{Top,,ERT,ert, Emacs Lisp Regression Testing}).
 
 @menu
 * Version Control::     Using version control systems.

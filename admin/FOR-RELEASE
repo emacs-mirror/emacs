@@ -111,11 +111,11 @@ TUTORIAL.he          eliz
 TUTORIAL.it          
 TUTORIAL.ja		 
 TUTORIAL.ko
-TUTORIAL.nl		 
+TUTORIAL.nl	     Pieter Schoenmakers
 TUTORIAL.pl          
 TUTORIAL.pt_BR       
 TUTORIAL.ro
-TUTORIAL.ru          
+TUTORIAL.ru          Alex Ott
 TUTORIAL.sk          
 TUTORIAL.sl          Primoz PETERLIN
 TUTORIAL.sv          Mats Lidell
@@ -188,7 +188,7 @@ buffers.texi
 commands.texi     
 compile.texi      
 control.texi      cyd
-customize.texi    
+customize.texi    cyd
 debugging.texi    
 display.texi      
 edebug.texi
@@ -197,7 +197,7 @@ errors.texi
 eval.texi         cyd
 files.texi        
 frames.texi       
-functions.texi    
+functions.texi    cyd
 hash.texi         cyd
 help.texi         
 hooks.texi        
@@ -208,7 +208,7 @@ keymaps.texi
 lists.texi        cyd
 loading.texi      
 locals.texi       
-macros.texi       
+macros.texi       cyd
 maps.texi         
 markers.texi      
 minibuf.texi      
@@ -228,7 +228,7 @@ symbols.texi      cyd
 syntax.texi       
 text.texi         
 tips.texi         
-variables.texi    
+variables.texi    cyd
 windows.texi      
 
 * PLANNED ADDITIONS

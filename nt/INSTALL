@@ -402,6 +402,17 @@
   maybe a problem with the way Cairo or librsvg is using it that
   doesn't show up on other platforms.
 
+* Optional extra runtime checks
+
+  The configure.bat option --enable-checking builds Emacs with some
+  optional extra runtime checks and assertions enabled.  This may be
+  useful for debugging.
+
+* Optional extra libraries
+
+  You can pass --lib LIBNAME option to configure.bat to cause Emacs to
+  link with the specified library.  You can use this option more than once.
+
 * Building
 
   After running configure, simply run the appropriate `make' program for

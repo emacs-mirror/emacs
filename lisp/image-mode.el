@@ -607,22 +607,27 @@ Otherwise it plays once, then stops."
       (image-toggle-display))))
 
 
-(defvar image-transform-minor-mode-map
-  (let ((map (make-sparse-keymap)))
-    ;; (define-key map  [(control ?+)] 'image-scale-in)
-    ;; (define-key map  [(control ?-)] 'image-scale-out)
-    ;; (define-key map  [(control ?=)] 'image-scale-none)
-    ;; (define-key map "c f h" 'image-scale-fit-height)
-    ;; (define-key map "c ]" 'image-rotate-right)
-    map)
-  "Minor mode keymap `image-transform-mode'.")
+;; Not yet implemented.
+;;; (defvar image-transform-minor-mode-map
+;;;   (let ((map (make-sparse-keymap)))
+;;;     ;; (define-key map  [(control ?+)] 'image-scale-in)
+;;;     ;; (define-key map  [(control ?-)] 'image-scale-out)
+;;;     ;; (define-key map  [(control ?=)] 'image-scale-none)
+;;;     ;; (define-key map "c f h" 'image-scale-fit-height)
+;;;     ;; (define-key map "c ]" 'image-rotate-right)
+;;;     map)
+;;;   "Minor mode keymap `image-transform-mode'.")
+;;;
+;;; (define-minor-mode image-transform-mode
+;;;   "Minor mode for scaling and rotating images.
+;;; With a prefix argument ARG, enable the mode if ARG is positive,
+;;; and disable it otherwise.  If called from Lisp, enable the mode
+;;; if ARG is omitted or nil.  This minor mode requires Emacs to have
+;;; been compiled with ImageMagick support."
+;;;   nil "image-transform" image-transform-minor-mode-map)
 
-(define-minor-mode image-transform-mode
-  "Minor mode for scaling and rotating images.
-This minor mode has no effect unless Emacs is compiled with
-ImageMagick support."
-  nil "image-transform" image-transform-minor-mode-map)
 
+;; FIXME this doesn't seem mature yet. Document in manual when it is.
 (defvar image-transform-resize nil
   "The image resize operation.
 Its value should be one of the following:
@@ -664,6 +669,7 @@ compiled with ImageMagick support."
 	,@(if (not (equal 0.0 image-transform-rotation))
 	      (list :rotation image-transform-rotation))))))
 
+;; FIXME 2 works, but eg 1.9 or 0.5 don't?
 (defun image-transform-set-scale (scale)
   "Prompt for a number, and resize the current image by that amount.
 This command has no effect unless Emacs is compiled with

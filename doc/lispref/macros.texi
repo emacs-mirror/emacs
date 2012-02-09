@@ -27,7 +27,6 @@ instead.  @xref{Inline Functions}.
 * Expansion::               How, when and why macros are expanded.
 * Compiling Macros::        How macros are expanded by the compiler.
 * Defining Macros::         How to write a macro definition.
-* Backquote::               Easier construction of list structure.
 * Problems with Macros::    Don't evaluate the macro arguments too many times.
                               Don't hide the user's variables.
 * Indenting Macros::        Specifying how to indent macro calls.
@@ -78,10 +77,9 @@ to the argument values from the macro call, or to a list of them in the
 case of a @code{&rest} argument.  And the macro body executes and
 returns its value just as a function body does.
 
-  The second crucial difference between macros and functions is that the
-value returned by the macro body is not the value of the macro call.
-Instead, it is an alternate expression for computing that value, also
-known as the @dfn{expansion} of the macro.  The Lisp interpreter
+  The second crucial difference between macros and functions is that
+the value returned by the macro body is an alternate Lisp expression,
+also known as the @dfn{expansion} of the macro.  The Lisp interpreter
 proceeds to evaluate the expansion as soon as it comes back from the
 macro.
 
@@ -221,7 +219,26 @@ any @code{interactive} declaration is ignored since macros cannot be
 called interactively.
 @end defspec
 
-  The body of the macro definition can include a @code{declare} form,
+  Macros often need to construct large list structures from a mixture
+of constants and nonconstant parts.  To make this easier, use the
+@samp{`} syntax (@pxref{Backquote}).  For example:
+
+@example
+@example
+@group
+(defmacro t-becomes-nil (variable)
+  `(if (eq ,variable t)
+       (setq ,variable nil)))
+@end group
+
+@group
+(t-becomes-nil foo)
+     @equiv{} (if (eq foo t) (setq foo nil))
+@end group
+@end example
+@end example
+
+  The body of a macro definition can include a @code{declare} form,
 which can specify how @key{TAB} should indent macro calls, and how to
 step through them for Edebug.
 
@@ -259,107 +276,11 @@ without evaluating any @var{specs}.
 has no effect on how the macro expands, on what the macro means in the
 program.  It only affects the secondary features listed above.
 
-@node Backquote
-@section Backquote
-@cindex backquote (list substitution)
-@cindex ` (list substitution)
-@findex `
-
-  Macros often need to construct large list structures from a mixture of
-constants and nonconstant parts.  To make this easier, use the @samp{`}
-syntax (usually called @dfn{backquote}).
-
-  Backquote allows you to quote a list, but selectively evaluate
-elements of that list.  In the simplest case, it is identical to the
-special form @code{quote} (@pxref{Quoting}).  For example, these
-two forms yield identical results:
-
-@example
-@group
-`(a list of (+ 2 3) elements)
-     @result{} (a list of (+ 2 3) elements)
-@end group
-@group
-'(a list of (+ 2 3) elements)
-     @result{} (a list of (+ 2 3) elements)
-@end group
-@end example
-
-@findex , @r{(with backquote)}
-The special marker @samp{,} inside of the argument to backquote
-indicates a value that isn't constant.  Backquote evaluates the
-argument of @samp{,} and puts the value in the list structure:
-
-@example
-@group
-(list 'a 'list 'of (+ 2 3) 'elements)
-     @result{} (a list of 5 elements)
-@end group
-@group
-`(a list of ,(+ 2 3) elements)
-     @result{} (a list of 5 elements)
-@end group
-@end example
-
-  Substitution with @samp{,} is allowed at deeper levels of the list
-structure also.  For example:
-
-@example
-@group
-(defmacro t-becomes-nil (variable)
-  `(if (eq ,variable t)
-       (setq ,variable nil)))
-@end group
-
-@group
-(t-becomes-nil foo)
-     @equiv{} (if (eq foo t) (setq foo nil))
-@end group
-@end example
-
-@findex ,@@ @r{(with backquote)}
-@cindex splicing (with backquote)
-  You can also @dfn{splice} an evaluated value into the resulting list,
-using the special marker @samp{,@@}.  The elements of the spliced list
-become elements at the same level as the other elements of the resulting
-list.  The equivalent code without using @samp{`} is often unreadable.
-Here are some examples:
-
-@example
-@group
-(setq some-list '(2 3))
-     @result{} (2 3)
-@end group
-@group
-(cons 1 (append some-list '(4) some-list))
-     @result{} (1 2 3 4 2 3)
-@end group
-@group
-`(1 ,@@some-list 4 ,@@some-list)
-     @result{} (1 2 3 4 2 3)
-@end group
-
-@group
-(setq list '(hack foo bar))
-     @result{} (hack foo bar)
-@end group
-@group
-(cons 'use
-  (cons 'the
-    (cons 'words (append (cdr list) '(as elements)))))
-     @result{} (use the words foo bar as elements)
-@end group
-@group
-`(use the words ,@@(cdr list) as elements)
-     @result{} (use the words foo bar as elements)
-@end group
-@end example
-
 @node Problems with Macros
 @section Common Problems Using Macros
 
-  The basic facts of macro expansion have counterintuitive consequences.
-This section describes some important consequences that can lead to
+  Macro expansion can have counterintuitive consequences.  This
+section describes some important consequences that can lead to
 trouble, and rules to follow to avoid trouble.
 
 @menu
@@ -407,9 +328,8 @@ program is actually run.
 
   When defining a macro you must pay attention to the number of times
 the arguments will be evaluated when the expansion is executed.  The
-following macro (used to facilitate iteration) illustrates the problem.
-This macro allows us to write a simple ``for'' loop such as one might
-find in Pascal.
+following macro (used to facilitate iteration) illustrates the
+problem.  This macro allows us to write a ``for'' loop construct.
 
 @findex for
 @smallexample
@@ -683,9 +603,9 @@ either.
 @node Indenting Macros
 @section Indenting Macros
 
-  You can use the @code{declare} form in the macro definition to
-specify how to @key{TAB} should indent calls to the macro.  You
-write it like this:
+  Within a macro definition, you can use the @code{declare} form
+(@pxref{Defining Macros}) to specify how to @key{TAB} should indent
+calls to the macro.  An indentation specifiction is written like this:
 
 @example
 (declare (indent @var{indent-spec}))
@@ -715,6 +635,7 @@ the line uses the standard pattern.
 @var{symbol} should be a function name; that function is called to
 calculate the indentation of a line within this expression.  The
 function receives two arguments:
+
 @table @asis
 @item @var{state}
 The value returned by @code{parse-partial-sexp} (a Lisp primitive for
@@ -723,6 +644,7 @@ beginning of this line.
 @item @var{pos}
 The position at which the line being indented begins.
 @end table
+
 @noindent
 It should return either a number, which is the number of columns of
 indentation for that line, or a list whose car is such a number.  The

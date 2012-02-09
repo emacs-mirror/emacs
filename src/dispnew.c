@@ -5761,19 +5761,22 @@ change_frame_size_1 (register struct frame *f, int newheight, int newwidth, int 
   if (newwidth == 0)
     newwidth  = FRAME_COLS  (f);
 
-  /* Compute width of windows in F.
-     This is the width of the frame without vertical scroll bars.  */
-  new_frame_total_cols = FRAME_TOTAL_COLS_ARG (f, newwidth);
-
+  /* Compute width of windows in F.  */
   /* Round up to the smallest acceptable size.  */
   check_frame_size (f, &newheight, &newwidth);
 
+  /* This is the width of the frame with vertical scroll bars and fringe
+     columns.  Do this after rounding - see discussion of bug#9723.  */
+  new_frame_total_cols = FRAME_TOTAL_COLS_ARG (f, newwidth);
+
   /* If we're not changing the frame size, quit now.  */
-  /* Frame width may be unchanged but the text portion may change, for example,
-     fullscreen and remove/add scroll bar.  */
+  /* Frame width may be unchanged but the text portion may change, for
+     example, fullscreen and remove/add scroll bar.  */
   if (newheight == FRAME_LINES (f)
-      && newwidth == FRAME_COLS  (f) // text portion unchanged
-      && new_frame_total_cols == FRAME_TOTAL_COLS (f)) // frame width unchanged
+      /* Text portion unchanged?  */
+      && newwidth == FRAME_COLS  (f)
+      /* Frame width unchanged?  */
+      && new_frame_total_cols == FRAME_TOTAL_COLS (f))
     return;
 
   BLOCK_INPUT;

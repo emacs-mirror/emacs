@@ -30,6 +30,7 @@
 
 (eval-when-compile (require 'cl))
 (require 'browse-url)
+(require 'url-parse)
 
 (defcustom url-queue-parallel-processes 6
   "The number of concurrent processes."
@@ -49,10 +50,11 @@
 
 (defstruct url-queue
   url callback cbargs silentp
-  buffer start-time)
+  buffer start-time pre-triggered
+  inhibit-cookiesp)
 
 ;;;###autoload
-(defun url-queue-retrieve (url callback &optional cbargs silent)
+(defun url-queue-retrieve (url callback &optional cbargs silent inhibit-cookies)
   "Retrieve URL asynchronously and call CALLBACK with CBARGS when finished.
 Like `url-retrieve' (which see for details of the arguments), but
 controls the level of parallelism via the
@@ -62,8 +64,32 @@ controls the level of parallelism via the
 		(list (make-url-queue :url url
 				      :callback callback
 				      :cbargs cbargs
-				      :silentp silent))))
-  (url-queue-run-queue))
+				      :silentp silent
+				      :inhibit-cookiesp inhibit-cookies))))
+  (url-queue-setup-runners))
+
+;; To ensure asynch behaviour, we start the required number of queue
+;; runners from `run-with-idle-timer'.  So we're basically going
+;; through the queue in two ways: 1) synchronously when a program
+;; calls `url-queue-retrieve' (which will then start the required
+;; number of queue runners), and 2) at the exit of each job, which
+;; will then not start any further threads, but just reuse the
+;; previous "slot".
+
+(defun url-queue-setup-runners ()
+  (let ((running 0)
+	waiting)
+    (dolist (entry url-queue)
+      (cond
+       ((or (url-queue-start-time entry)
+	    (url-queue-pre-triggered entry))
+	(incf running))
+       ((not waiting)
+	(setq waiting entry))))
+    (when (and waiting
+	       (< running url-queue-parallel-processes))
+      (setf (url-queue-pre-triggered waiting) t)
+      (run-with-idle-timer 0.01 nil 'url-queue-run-queue))))
 
 (defun url-queue-run-queue ()
   (url-queue-prune-old-entries)
@@ -81,16 +107,34 @@ controls the level of parallelism via the
       (url-queue-start-retrieve waiting))))
 
 (defun url-queue-callback-function (status job)
+  (when (and (eq (car status) :error)
+	     (eq (cadr (cadr status)) 'connection-failed))
+    ;; If we get a connection error, then flush all other jobs from
+    ;; the host from the queue.  This particularly makes sense if the
+    ;; error really is a DNS resolver issue, which happens
+    ;; synchronously and totally halts Emacs.
+    (url-queue-remove-jobs-from-host
+     (plist-get (nthcdr 3 (cadr status)) :host)))
   (setq url-queue (delq job url-queue))
   (url-queue-run-queue)
   (apply (url-queue-callback job) (cons status (url-queue-cbargs job))))
 
+(defun url-queue-remove-jobs-from-host (host)
+  (let ((jobs nil))
+    (dolist (job url-queue)
+      (when (equal (url-host (url-generic-parse-url (url-queue-url job)))
+		   host)
+	(push job jobs)))
+    (dolist (job jobs)
+      (setq url-queue (delq job url-queue)))))
+  
 (defun url-queue-start-retrieve (job)
   (setf (url-queue-buffer job)
 	(ignore-errors
 	  (url-retrieve (url-queue-url job)
 			#'url-queue-callback-function (list job)
-			(url-queue-silentp job)))))
+			(url-queue-silentp job)
+			(url-queue-inhibit-cookiesp job)))))
 
 (defun url-queue-prune-old-entries ()
   (let (dead-jobs)

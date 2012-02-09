@@ -519,17 +519,14 @@ filter out the color from the output."
   "Display names of defined colors, and show what they look like.
 If the optional argument LIST is non-nil, it should be a list of
 colors to display.  Otherwise, this command computes a list of
-colors that the current display can handle.
+colors that the current display can handle.  Customize
+`list-colors-sort' to change the order in which colors are shown.
 
-If the optional argument BUFFER-NAME is nil, it defaults to
-*Colors*.
+If the optional argument BUFFER-NAME is nil, it defaults to *Colors*.
 
 If the optional argument CALLBACK is non-nil, it should be a
 function to call each time the user types RET or clicks on a
-color.  The function should accept a single argument, the color
-name.
-
-You can change the color sort order by customizing `list-colors-sort'."
+color.  The function should accept a single argument, the color name."
   (interactive)
   (when (and (null list) (> (display-color-cells) 0))
     (setq list (list-colors-duplicates (defined-colors)))

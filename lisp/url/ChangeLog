@@ -1,3 +1,34 @@
+2012-02-08  Lars Ingebrigtsen  <larsi@gnus.org>
+
+	* url-parse.el (url): Add the `use-cookies' slot to the URL struct
+	to be able to keep track of whether to do cookies or not on a
+	per-URL basis.
+
+	* url-queue.el (url-queue-retrieve): Take an optional
+	`inhibit-cookies' parameter.
+
+	* url.el (url-retrieve): Ditto
+
+	* url-http.el (url-http-create-request): Don't send cookies unless
+	requested.
+	(url-http-parse-headers): Don't store cookies unless requested.
+
+2012-02-06  Lars Ingebrigtsen  <larsi@gnus.org>
+
+	* url-cache.el (url-cache-prune-cache): New function.
+	(url-cache-prune-cache): Check that the directory exists before
+	trying to delete it.
+
+	* url.el (url-retrieve-number-of-calls): New variable.
+	(url-retrieve-internal): Use it to expire the cache once in a
+	while.
+
+	* url-queue.el (url-queue-setup-runners): New function that uses
+	`run-with-idle-timer' for extra asynchronicity.
+	(url-queue-remove-jobs-from-host): New function.
+	(url-queue-callback-function): Remove jobs from the same host if
+	connection failed.
+
 2012-01-12  Glenn Morris  <rgm@gnu.org>
 
 	* url-auth.el (url-basic-auth, url-digest-auth):

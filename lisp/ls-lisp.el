@@ -331,6 +331,7 @@ not contain `d', so that a full listing is expected."
 	     ;; do all bindings here for speed
 	     total-line files elt short file-size attr
 	     fuid fgid uid-len gid-len)
+	(setq file-alist (ls-lisp-sanitize file-alist))
 	(cond ((memq ?A switches)
 	       (setq file-alist
 		     (ls-lisp-delete-matching "^\\.\\.?$" file-alist)))
@@ -436,6 +437,22 @@ not contain `d', so that a full listing is expected."
 				  switches time-index))
 	(message "%s: doesn't exist or is inaccessible" file)
 	(ding) (sit-for 2)))))		; to show user the message!
+
+(defun ls-lisp-sanitize (file-alist)
+  "Sanitize the elements in FILE-ALIST.
+Fixes any elements in the alist for directory entries whose file
+attributes are nil (meaning that `file-attributes' failed for
+them).  This is known to happen for some network shares, in
+particular for the \"..\" directory entry.
+
+If the \"..\" directory entry has nil attributes, the attributes
+are copied from the \".\" entry, if they are non-nil.  Otherwise,
+the offending element is removed from the list, as are any
+elements for other directory entries with nil attributes."
+  (if (and (null (cdr (assoc ".." file-alist)))
+	   (cdr (assoc "." file-alist)))
+      (setcdr (assoc ".." file-alist) (cdr (assoc "." file-alist))))
+  (rassq-delete-all nil file-alist))
 
 (defun ls-lisp-column-format (file-alist)
   "Insert the file names (only) in FILE-ALIST into the current buffer.

@@ -4363,6 +4363,9 @@ encoded string (and the same mask) will decode the string."
      (setq i (1+ i)))
    (concat string-vector)))
 
+;; Should this have a key-binding, or be in a menu?
+;; There doesn't really seem to be an appropriate menu.
+;; Eg the edit command is not in a menu either.
 (defun rmail-epa-decrypt ()
   "Decrypt OpenPGP armors in current message."
   (interactive)

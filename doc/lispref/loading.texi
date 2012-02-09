@@ -696,23 +696,29 @@ already.  If not, it loads the feature from the appropriate file.  This
 file should call @code{provide} at the top level to add the feature to
 @code{features}; if it fails to do so, @code{require} signals an error.
 
-  For example, in @file{emacs/lisp/prolog.el},
-the definition for @code{run-prolog} includes the following code:
+  For example, in @file{idlwave.el}, the definition for
+@code{idlwave-complete-filename} includes the following code:
 
 @smallexample
-(defun run-prolog ()
-  "Run an inferior Prolog process, with I/O via buffer *prolog*."
-  (interactive)
-  (require 'comint)
-  (switch-to-buffer (make-comint "prolog" prolog-program-name))
-  (inferior-prolog-mode))
+(defun idlwave-complete-filename ()
+  "Use the comint stuff to complete a file name."
+   (require 'comint)
+   (let* ((comint-file-name-chars "~/A-Za-z0-9+@:_.$#%=@{@}\\-")
+          (comint-completion-addsuffix nil)
+          ...)
+       (comint-dynamic-complete-filename)))
 @end smallexample
 
 @noindent
 The expression @code{(require 'comint)} loads the file @file{comint.el}
-if it has not yet been loaded.  This ensures that @code{make-comint} is
-defined.  Features are normally named after the files that provide them,
-so that @code{require} need not be given the file name.
+if it has not yet been loaded, ensuring that
+@code{comint-dynamic-complete-filename} is defined.  Features are
+normally named after the files that provide them, so that
+@code{require} need not be given the file name.  (Note that it is
+important that the @code{require} statement be outside the body of the
+@code{let}.  Loading a library while its variables are let-bound can
+have unintended consequences, namely the variables becoming unbound
+after the let exits.)
 
 The @file{comint.el} file contains the following top-level expression:
 

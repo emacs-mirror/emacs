@@ -14751,6 +14751,18 @@ corresponding keywords.
 A script to be run before fetching the mail.  The syntax is the same as
 the @code{:program} keyword.  This can also be a function to be run.
 
+One popular way to use this is to set up an SSH tunnel to access the
+@acronym{POP} server.  Here's an example:
+
+@lisp
+(pop :server "127.0.0.1"
+     :port 1234
+     :user "foo"
+     :password "secret"
+     :prescript
+     "nohup ssh -f -L 1234:pop.server:110 remote.host sleep 3600 &")
+@end lisp
+
 @item :postscript
 A script to be run after fetching the mail.  The syntax is the same as
 the @code{:program} keyword.  This can also be a function to be run.

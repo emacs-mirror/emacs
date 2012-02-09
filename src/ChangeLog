@@ -1,3 +1,50 @@
+2012-02-09  Kenichi Handa  <handa@m17n.org>
+
+	* coding.c (produce_chars): Fix updating of src_end (Bug#10701).
+
+2012-02-07  Chong Yidong  <cyd@gnu.org>
+
+	* buffer.c (Fbuffer_local_variables)
+	(buffer_lisp_local_variables): Handle unbound vars correctly;
+	don't let Qunbound leak into Lisp.
+
+2012-02-07  Glenn Morris  <rgm@gnu.org>
+
+	* image.c (Fimagemagick_types): Doc fix.
+
+	* image.c (imagemagick-render-type): Change it from a lisp object
+	to an integer.  Move the doc here from the lisp manual.
+	Treat all values not equal to 0 the same.
+
+2012-02-06  Chong Yidong  <cyd@gnu.org>
+
+	* doc.c (store_function_docstring): Avoid applying docstring of
+	alias to base function (Bug#2603).
+
+2012-02-04  Andreas Schwab  <schwab@linux-m68k.org>
+
+	* .gdbinit (pp1, pv1): Remove redundant defines.
+	(pr): Use pp.
+
+2012-02-04  Chong Yidong  <cyd@gnu.org>
+
+	* nsterm.m: Declare a global (Bug#10694).
+
+2012-02-04  Eli Zaretskii  <eliz@gnu.org>
+
+	* w32.c (get_emacs_configuration_options): Include
+	--enable-checking, if specified, in the return value.
+
+2012-02-04  Martin Rudalics  <rudalics@gmx.at>
+
+	* dispnew.c (change_frame_size_1): Calculate new_frame_total_cols
+	after rounding frame sizes.  (Bug#9723)
+
+2012-02-04  Eli Zaretskii  <eliz@gnu.org>
+
+	* keyboard.c (adjust_point_for_property): Don't position point
+	before BEGV.  (Bug#10696)
+
 2012-02-03  Paul Eggert  <eggert@cs.ucla.edu>
 
 	Handle overflow when computing char display width (Bug#9496).

@@ -50,5 +50,5 @@ s!^	\./!	!
   s/movemail[^ ]* *//
 }
 /^insrcdir=/s/^.*$/\#&/
-/^	 *\$(insrcdir) ||/s,\$(insrcdir) ||,command.com /c if not exist $<,
+/^	 *\$(insrcdir) ||/s,\$(insrcdir) ||,command.com /c if not exist $(<F),
 
