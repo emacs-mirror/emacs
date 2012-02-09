@@ -947,8 +947,15 @@ They are superseded by shift-select-mode, enabled by default since 23.1.
 ** Occur Edit mode applies edits made in *Occur* buffers to the
 original buffers.  It is bound to "e" in Occur mode.
 
-** New global minor modes electric-pair-mode, electric-indent-mode,
-and electric-layout-mode.
+** New global minor mode electric-pair-mode.
+When enabled, typing an open parenthesis automatically inserts the
+matching closing one.
+
+** New global minor mode electric-indent-mode.
+When enabled, typing certain characters triggers reindentation.
+
+** New global minor mode electric-layout-mode.
+When enabled, typing certain characters automatically inserts newlines.
 
 ** tabulated-list.el provides a generic major mode for tabulated data,
 from which other modes can be derived.
