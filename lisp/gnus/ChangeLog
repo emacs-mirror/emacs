@@ -1,3 +1,8 @@
+2012-02-09  Lars Ingebrigtsen  <larsi@gnus.org>
+
+	* gnus.el (gnus-server-extend-method): Don't add an -address component
+	if the method already has one (bug#9676).
+
 2012-02-08  Lars Ingebrigtsen  <larsi@gnus.org>
 
 	* gnus-sum.el (gnus-summary-insert-old-articles): Use a default instead

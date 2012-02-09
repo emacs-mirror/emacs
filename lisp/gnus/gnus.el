@@ -4123,12 +4123,17 @@ parameters."
   (if (or (not (inline (gnus-similar-server-opened method)))
 	  (not (cddr method)))
       method
-    (setq method
-	  `(,(car method) ,(concat (cadr method) "+" group)
-	    (,(intern (format "%s-address" (car method))) ,(cadr method))
-	    ,@(cddr method)))
-    (push method gnus-extended-servers)
-    method))
+    (let ((address-slot
+	   (intern (format "%s-address" (car method)))))
+      (setq method
+	    (if (assq address-slot (cddr method))
+		`(,(car method) ,(concat (cadr method) "+" group)
+		  ,@(cddr method))
+	      `(,(car method) ,(concat (cadr method) "+" group)
+		(,address-slot ,(cadr method))
+		,@(cddr method))))
+      (push method gnus-extended-servers)
+      method)))
 
 (defun gnus-server-status (method)
   "Return the status of METHOD."
