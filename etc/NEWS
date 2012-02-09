@@ -672,6 +672,7 @@ on platforms that support it.  This calls your desktop's preferred browser.
 inserted by the compilation filter function, when calling
 compilation-filter-hook.
 
+---
 *** `compilation-error-screen-columns' and `compilation-first-column'
 are obeyed in the editing buffer.  So programming language modes can
 set them, whereas previously only the value in the *compilation* buffer
