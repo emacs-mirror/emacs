@@ -252,9 +252,9 @@ do @kbd{M-x shell} again, it makes a new shell buffer named
 under its new name.  This method is also good for mail buffers,
 compilation buffers, and most Emacs features that create special
 buffers with particular names.  (With some of these features, such as
-@kbd{M-x compile}, @kbd{M-x grep} an @kbd{M-x info}, you need to
-switch to some other buffer before using the command, in order for it
-to make a different buffer.)
+@kbd{M-x compile}, @kbd{M-x grep}, you need to switch to some other
+buffer before using the command again, otherwise it will reuse the
+current buffer despite the name change.)
 
   The commands @kbd{M-x append-to-buffer} and @kbd{M-x insert-buffer}
 can also be used to copy text from one buffer to another.

@@ -1,5 +1,8 @@
 2012-02-09  Glenn Morris  <rgm@gnu.org>
 
+	* buffers.texi (Misc Buffer): M-x info does not seem to require a buffer
+	switch after M-x rename-uniquely.
+
 	* trouble.texi (Checklist): Mention C-c m in report-emacs-bug.
 
 2012-02-09  Jay Belanger  <jay.p.belanger@gmail.com>
