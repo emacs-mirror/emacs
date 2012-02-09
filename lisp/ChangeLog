@@ -1,3 +1,11 @@
+2012-02-09  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* emacs-lisp/bytecomp.el (byte-compile-file-form-defvar):
+	Don't fallback on byte-compile-defvar.  Optimize (defvar foo) away.
+	(byte-compile-tmp-var): New const.
+	(byte-compile-defvar): Use it to minimize .elc size.
+	Just use `defvar' rather than simulate it (bug#10761).
+
 2012-02-09  Glenn Morris  <rgm@gnu.org>
 
 	* files.el (rename-uniquely): Doc fix.  (Bug#3806)
