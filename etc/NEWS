@@ -742,13 +742,12 @@ Animation plays once, unless the option `image-animate-loop' is non-nil.
 
 ** Info
 
-*** New command `info-display-manual' displays an Info manual
-specified by its name.  If that manual is already visited in some Info
-buffer within the current session, the command will display that
-buffer.  Otherwise, it will load the manual and display it.  This is
-handy if you have many manuals in many Info buffers, and don't
-remember the name of the buffer visiting the manual you want to
-consult.
++++
+*** New command `info-display-manual' displays a named Info manual.
+If that manual is already visited in some Info buffer, it displays
+that buffer.  (This is handy if you have many manuals in many *info*
+buffers, and don't remember the name of the buffer visiting the manual
+you want to consult.)  Otherwise, it loads and displays the manual.
 
 +++
 *** `e' is now bound to `end-of-buffer' rather than to `Info-edit'.

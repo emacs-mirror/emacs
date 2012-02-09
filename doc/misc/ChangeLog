@@ -1,3 +1,7 @@
+2012-02-09  Glenn Morris  <rgm@gnu.org>
+
+	* info.texi (Create Info buffer): Mention info-display-manual.
+
 2012-02-07  Lars Ingebrigtsen  <larsi@gnus.org>
 
 	* gnus.texi (Mail Source Specifiers): Add a pop3 via an SSH tunnel
