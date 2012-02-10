@@ -1,4 +1,4 @@
-;;; f90.el --- Fortran-90 mode (free format)
+;;; f90.el --- Fortran-90 mode (free format)  -*- lexical-binding: t -*-
 
 ;; Copyright (C) 1995-1997, 2000-2012  Free Software Foundation, Inc.
 
@@ -2319,7 +2319,6 @@ escape character."
 
 ;; Local Variables:
 ;; coding: utf-8
-;; lexical-binding: t
 ;; End:
 
 ;;; f90.el ends here

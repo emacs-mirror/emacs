@@ -80,6 +80,12 @@ David Bakhash wrote @file{strokes.el}, a mode for controlling Emacs by
 moving the mouse in particular patterns.
 
 @item
+Juanma Barranquero wrote @file{emacs-lock.el} (based on the original
+version by Tom Wurgler), which makes it harder to exit with valuable
+buffers unsaved.  He also made many other contributions to other
+areas, including MS Windows support.
+
+@item
 Eli Barzilay wrote @file{calculator.el}, a desktop calculator for
 Emacs.
 
@@ -1339,10 +1345,6 @@ merging two versions of a file.
 @item
 Francis J.@: Wright wrote @file{woman.el}, a package for browsing
 manual pages without the @code{man} command.
-
-@item
-Tom Wurgler wrote @file{emacs-lock.el}, which makes it harder
-to exit with valuable buffers unsaved.
 
 @item
 Masatake Yamato wrote @file{ld-script.el}, an editing mode for GNU

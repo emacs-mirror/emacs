@@ -2002,7 +2002,7 @@ The function is called with the arguments passed to `read-buffer'.  */);
 
   DEFVAR_BOOL ("read-buffer-completion-ignore-case",
 	       read_buffer_completion_ignore_case,
-	       doc: /* *Non-nil means completion ignores case when reading a buffer name.  */);
+	       doc: /* Non-nil means completion ignores case when reading a buffer name.  */);
   read_buffer_completion_ignore_case = 0;
 
   DEFVAR_LISP ("minibuffer-setup-hook", Vminibuffer_setup_hook,
@@ -2014,20 +2014,24 @@ The function is called with the arguments passed to `read-buffer'.  */);
   Vminibuffer_exit_hook = Qnil;
 
   DEFVAR_LISP ("history-length", Vhistory_length,
-	       doc: /* *Maximum length for history lists before truncation takes place.
-A number means that length; t means infinite.  Truncation takes place
-just after a new element is inserted.  Setting the `history-length'
-property of a history variable overrides this default.  */);
+	       doc: /* Maximum length of history lists before truncation takes place.
+A number means truncate to that length; truncation deletes old
+elements, and is done just after inserting a new element.
+A value of t means no truncation.
+
+This variable only affects history lists that don't specify their own
+maximum lengths.  Setting the `history-length' property of a history
+variable overrides this default.  */);
   XSETFASTINT (Vhistory_length, 30);
 
   DEFVAR_BOOL ("history-delete-duplicates", history_delete_duplicates,
-	       doc: /* *Non-nil means to delete duplicates in history.
+	       doc: /* Non-nil means to delete duplicates in history.
 If set to t when adding a new history element, all previous identical
 elements are deleted from the history list.  */);
   history_delete_duplicates = 0;
 
   DEFVAR_LISP ("history-add-new-input", Vhistory_add_new_input,
-	       doc: /* *Non-nil means to add new elements in history.
+	       doc: /* Non-nil means to add new elements in history.
 If set to nil, minibuffer reading functions don't add new elements to the
 history list, so it is possible to do this afterwards by calling
 `add-to-history' explicitly.  */);
@@ -2042,7 +2046,7 @@ controls the behavior, rather than this variable.  */);
   completion_ignore_case = 0;
 
   DEFVAR_BOOL ("enable-recursive-minibuffers", enable_recursive_minibuffers,
-	       doc: /* *Non-nil means to allow minibuffer commands while in the minibuffer.
+	       doc: /* Non-nil means to allow minibuffer commands while in the minibuffer.
 This variable makes a difference whenever the minibuffer window is active. */);
   enable_recursive_minibuffers = 0;
 
@@ -2098,7 +2102,7 @@ is added with
   Vminibuffer_history_position = Qnil;
 
   DEFVAR_BOOL ("minibuffer-auto-raise", minibuffer_auto_raise,
-	       doc: /* *Non-nil means entering the minibuffer raises the minibuffer's frame.
+	       doc: /* Non-nil means entering the minibuffer raises the minibuffer's frame.
 Some uses of the echo area also raise that frame (since they use it too).  */);
   minibuffer_auto_raise = 0;
 

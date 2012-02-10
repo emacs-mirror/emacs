@@ -41,62 +41,58 @@ references another object:
 @table @asis
 @item Print name
 @cindex print name cell
-The @dfn{print name cell} holds a string that names the symbol for
-reading and printing.  See @code{symbol-name} in @ref{Creating Symbols}.
+The symbol's name.
 
 @item Value
 @cindex value cell
-The @dfn{value cell} holds the current value of the symbol as a
-variable.  When a symbol is used as a form, the value of the form is the
-contents of the symbol's value cell.  See @code{symbol-value} in
-@ref{Accessing Variables}.
+The symbol's current value as a variable.
 
 @item Function
 @cindex function cell
-The @dfn{function cell} holds the function definition of the symbol.
-When a symbol is used as a function, its function definition is used in
-its place.  This cell is also used to make a symbol stand for a keymap
-or a keyboard macro, for editor command execution.  Because each symbol
-has separate value and function cells, variables names and function names do
-not conflict.  See @code{symbol-function} in @ref{Function Cells}.
+The symbol's function definition.  It can also hold a symbol, a
+keymap, or a keyboard macro.
 
 @item Property list
 @cindex property list cell
-The @dfn{property list cell} holds the property list of the symbol.  See
-@code{symbol-plist} in @ref{Property Lists}.
+The symbol's property list.
 @end table
 
-  The print name cell always holds a string, and cannot be changed.  The
-other three cells can be set individually to any specified Lisp object.
+@noindent
+The print name cell always holds a string, and cannot be changed.
+Each of the other three cells can be set to any Lisp object.
 
-  The print name cell holds the string that is the name of the symbol.
-Since symbols are represented textually by their names, it is important
-not to have two symbols with the same name.  The Lisp reader ensures
-this: every time it reads a symbol, it looks for an existing symbol with
-the specified name before it creates a new one.  (In GNU Emacs Lisp,
-this lookup uses a hashing algorithm and an obarray; see @ref{Creating
-Symbols}.)
+  The print name cell holds the string that is the name of a symbol.
+Since symbols are represented textually by their names, it is
+important not to have two symbols with the same name.  The Lisp reader
+ensures this: every time it reads a symbol, it looks for an existing
+symbol with the specified name before it creates a new one.  To get a
+symbol's name, use the function @code{symbol-name} (@pxref{Creating
+Symbols}).
 
-  The value cell holds the symbol's value as a variable
-(@pxref{Variables}).  That is what you get if you evaluate the symbol as
-a Lisp expression (@pxref{Evaluation}).  Any Lisp object is a legitimate
-value.  Certain symbols have values that cannot be changed; these
-include @code{nil} and @code{t}, and any symbol whose name starts with
-@samp{:} (those are called @dfn{keywords}).  @xref{Constant Variables}.
+  The value cell holds a symbol's value as a variable, which is what
+you get if the symbol itself is evaluated as a Lisp expression.
+@xref{Variables}, for details about how values are set and retrieved,
+including complications such as @dfn{local bindings} and @dfn{scoping
+rules}.  Most symbols can have any Lisp object as a value, but certain
+special symbols have values that cannot be changed; these include
+@code{nil} and @code{t}, and any symbol whose name starts with
+@samp{:} (those are called @dfn{keywords}).  @xref{Constant
+Variables}.
 
-  We often refer to ``the function @code{foo}'' when we really mean
-the function stored in the function cell of the symbol @code{foo}.  We
-make the distinction explicit only when necessary.  In normal
-usage, the function cell usually contains a function
-(@pxref{Functions}) or a macro (@pxref{Macros}), as that is what the
-Lisp interpreter expects to see there (@pxref{Evaluation}).  Keyboard
-macros (@pxref{Keyboard Macros}), keymaps (@pxref{Keymaps}) and
-autoload objects (@pxref{Autoloading}) are also sometimes stored in
-the function cells of symbols.
+  The function cell holds a symbol's function definition.  Often, we
+refer to ``the function @code{foo}'' when we really mean the function
+stored in the function cell of @code{foo}; we make the distinction
+explicit only when necessary.  Typically, the function cell is used to
+hold a function (@pxref{Functions}) or a macro (@pxref{Macros}).
+However, it can also be used to hold a symbol (@pxref{Function
+Indirection}), keyboard macro (@pxref{Keyboard Macros}), keymap
+(@pxref{Keymaps}), or autoload object (@pxref{Autoloading}).  To get
+the contents of a symbol's function cell, use the function
+@code{symbol-function} (@pxref{Function Cells}).
 
   The property list cell normally should hold a correctly formatted
-property list (@pxref{Property Lists}), as a number of functions expect
-to see a property list there.
+property list.  To get a symbol's function cell, use the function
+@code{symbol-plist}.  @xref{Property Lists}.
 
   The function cell or the value cell may be @dfn{void}, which means
 that the cell does not reference any object.  (This is not the same
@@ -104,57 +100,43 @@ thing as holding the symbol @code{void}, nor the same as holding the
 symbol @code{nil}.)  Examining a function or value cell that is void
 results in an error, such as @samp{Symbol's value as variable is void}.
 
-  The four functions @code{symbol-name}, @code{symbol-value},
-@code{symbol-plist}, and @code{symbol-function} return the contents of
-the four cells of a symbol.  Here as an example we show the contents of
-the four cells of the symbol @code{buffer-file-name}:
+  Because each symbol has separate value and function cells, variables
+names and function names do not conflict.  For example, the symbol
+@code{buffer-file-name} has a value (the name of the file being
+visited in the current buffer) as well as a function definition (a
+primitive function that returns the name of the file):
 
 @example
-(symbol-name 'buffer-file-name)
-     @result{} "buffer-file-name"
-(symbol-value 'buffer-file-name)
+buffer-file-name
      @result{} "/gnu/elisp/symbols.texi"
 (symbol-function 'buffer-file-name)
      @result{} #<subr buffer-file-name>
-(symbol-plist 'buffer-file-name)
-     @result{} (variable-documentation 29529)
 @end example
-
-@noindent
-Because this symbol is the variable which holds the name of the file
-being visited in the current buffer, the value cell contents we see are
-the name of the source file of this chapter of the Emacs Lisp Manual.
-The property list cell contains the list @code{(variable-documentation
-29529)} which tells the documentation functions where to find the
-documentation string for the variable @code{buffer-file-name} in the
-@file{DOC-@var{version}} file.  (29529 is the offset from the beginning
-of the @file{DOC-@var{version}} file to where that documentation string
-begins---see @ref{Documentation Basics}.)  The function cell contains
-the function for returning the name of the file.
-@code{buffer-file-name} names a primitive function, which has no read
-syntax and prints in hash notation (@pxref{Primitive Function Type}).  A
-symbol naming a function written in Lisp would have a lambda expression
-(or a byte-code object) in this cell.
 
 @node Definitions, Creating Symbols, Symbol Components, Symbols
 @section Defining Symbols
 @cindex definitions of symbols
 
-  A @dfn{definition} in Lisp is a special form that announces your
-intention to use a certain symbol in a particular way.  In Emacs Lisp,
-you can define a symbol as a variable, or define it as a function (or
-macro), or both independently.
-
-  A definition construct typically specifies a value or meaning for the
-symbol for one kind of use, plus documentation for its meaning when used
-in this way.  Thus, when you define a symbol as a variable, you can
-supply an initial value for the variable, plus documentation for the
-variable.
+  A @dfn{definition} is a special kind of Lisp expression that
+announces your intention to use a symbol in a particular way.  It
+typically specifies a value or meaning for the symbol for one kind of
+use, plus documentation for its meaning when used in this way.  Thus,
+when you define a symbol as a variable, you can supply an initial
+value for the variable, plus documentation for the variable.
 
   @code{defvar} and @code{defconst} are special forms that define a
-symbol as a global variable.  They are documented in detail in
-@ref{Defining Variables}.  For defining user option variables that can
-be customized, use @code{defcustom} (@pxref{Customization}).
+symbol as a @dfn{global variable}---a variable that can be accessed at
+any point in a Lisp program.  @xref{Variables}, for details about
+variables.  To define a customizable variable, use the
+@code{defcustom} macro, which also calls @code{defvar} as a subroutine
+(@pxref{Customization}).
+
+  In principle, you can assign a variable value to any symbol with
+@code{setq}, whether not it has first been defined as a variable.
+However, you ought to write a variable definition for each global
+variable that you want to use; otherwise, your Lisp program may not
+act correctly if it is evaluated with lexical scoping enabled
+(@pxref{Variable Scoping}).
 
   @code{defun} defines a symbol as a function, creating a lambda
 expression and storing it in the function cell of the symbol.  This
@@ -171,15 +153,14 @@ both macro and function definitions are kept in the function cell, and
 that cell can hold only one Lisp object at any given time.
 @xref{Macros}.
 
-  In Emacs Lisp, a definition is not required in order to use a symbol
-as a variable or function.  Thus, you can make a symbol a global
-variable with @code{setq}, whether you define it first or not.  The real
-purpose of definitions is to guide programmers and programming tools.
-They inform programmers who read the code that certain symbols are
-@emph{intended} to be used as variables, or as functions.  In addition,
-utilities such as @file{etags} and @file{make-docfile} recognize
-definitions, and add appropriate information to tag tables and the
-@file{DOC-@var{version}} file.  @xref{Accessing Documentation}.
+  As previously noted, Emacs Lisp allows the same symbol to be defined
+both as a variable (e.g.@: with @code{defvar}) and as a function or
+macro (e.g.@: with @code{defun}).  Such definitions do not conflict.
+
+  These definition also act as guides for programming tools.  For
+example, the @kbd{C-h f} and @kbd{C-h v} commands create help buffers
+containing links to the relevant variable, function, or macro
+definitions.  @xref{Name Help,,, emacs, The GNU Emacs Manual}.
 
 @node Creating Symbols, Property Lists, Definitions, Symbols
 @section Creating and Interning Symbols
@@ -254,8 +235,8 @@ not work---only @code{intern} can enter a symbol in an obarray properly.
 
 @cindex CL note---symbol in obarrays
 @quotation
-@b{Common Lisp note:} In Common Lisp, a single symbol may be interned in
-several obarrays.
+@b{Common Lisp note:} Unlike Common Lisp, Emacs Lisp does not provide
+for interning a single symbol in several obarrays.
 @end quotation
 
   Most of the functions below take a name and sometimes an obarray as
@@ -448,12 +429,13 @@ must be distinct.
 
   Property lists are better than association lists for attaching
 information to various Lisp function names or variables.  If your
-program keeps all of its associations in one association list, it will
+program keeps all such information in one association list, it will
 typically need to search that entire list each time it checks for an
-association.  This could be slow.  By contrast, if you keep the same
-information in the property lists of the function names or variables
-themselves, each search will scan only the length of one property list,
-which is usually short.  This is why the documentation for a variable is
+association for a particular Lisp function name or variable, which
+could be slow.  By contrast, if you keep the same information in the
+property lists of the function names or variables themselves, each
+search will scan only the length of one property list, which is
+usually short.  This is why the documentation for a variable is
 recorded in a property named @code{variable-documentation}.  The byte
 compiler likewise uses properties to record those functions needing
 special treatment.

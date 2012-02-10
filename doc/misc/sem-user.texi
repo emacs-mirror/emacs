@@ -176,7 +176,7 @@ Copy the current tag into a register
 kill it as well.  This allows you to insert or jump to that tag with
 the usual register commands.  @xref{Registers,,,emacs,Emacs manual}.
 
-@item \C-c , @kbd{up}
+@item C-c , @kbd{up}
 Transpose the current tag with the previous one
 (@code{senator-transpose-tags-up}).
 

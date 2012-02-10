@@ -1,6 +1,6 @@
 ;;; hideshow.el --- minor mode cmds to selectively display code/comment blocks
 
-;; Copyright (C) 1994-2012  Free Software Foundation, Inc.
+;; Copyright (C) 1994-2012 Free Software Foundation, Inc.
 
 ;; Author: Thien-Thi Nguyen <ttn@gnu.org>
 ;;      Dan Nicolaescu <dann@ics.uci.edu>
@@ -928,6 +928,10 @@ This can be useful if you have huge RCS logs in those comments."
 ;;;###autoload
 (define-minor-mode hs-minor-mode
   "Minor mode to selectively hide/show code and comment blocks.
+With a prefix argument ARG, enable the mode if ARG is positive,
+and disable it otherwise.  If called from Lisp, enable the mode
+if ARG is omitted or nil.
+
 When hideshow minor mode is on, the menu bar is augmented with hideshow
 commands and the hideshow commands are enabled.
 The value '(hs . t) is added to `buffer-invisibility-spec'.

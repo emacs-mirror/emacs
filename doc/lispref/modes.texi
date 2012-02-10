@@ -135,22 +135,41 @@ This macro runs the abnormal hook @code{hook} as a series of nested
 ``wrapper functions'' around the @var{body} forms.  The effect is
 similar to nested @code{around} advices (@pxref{Around-Advice}).
 
-Each hook function must accept an argument list consisting of a function
+Each hook function should accept an argument list consisting of a function
 @var{fun}, followed by the additional arguments listed in @var{args}.
-The function @var{fun} passed to the very first hook function in
-@var{hook} does the same as @var{body}, if it is called with arguments
-@var{args}.  The @var{fun} passed to each successive hook function is
+The first hook function is passed a function @var{fun} that, if it is
+called with arguments @var{args}, performs @var{body} (i.e., the default
+operation).  The @var{fun} passed to each successive hook function is
 constructed from all the preceding hook functions (and @var{body}); if
 this @var{fun} is called with arguments @var{args}, it does what the
 @code{with-wrapper-hook} call would if the preceding hook functions were
 the only ones in @var{hook}.
 
-In the function definition of the hook function, @var{fun} can be called
-any number of times (including not calling it at all).  This function
-definition is then used to construct the @var{fun} passed to the next
-hook function in @var{hook}, if any.  The last or ``outermost''
-@var{fun} is called once to produce the effect.
+Each hook function may call its @var{fun} argument as many times as it
+wishes, including never.  In that case, such a hook function acts to
+replace the default definition altogether, and any preceding hook
+functions.  Of course, a subsequent hook function may do the same thing.
+
+Each hook function definition is used to construct the @var{fun} passed
+to the next hook function in @var{hook}, if any.  The last or
+``outermost'' @var{fun} is called once to produce the overall effect.
+
+When might you want to use a wrapper hook?  The function
+@code{filter-buffer-substring} illustrates a common case.  There is a
+basic functionality, performed by @var{body}---in this case, to extract
+a buffer-substring.  Then any number of hook functions can act in
+sequence to modify that string, before returning the final result.
+A wrapper-hook also allows for a hook function to completely replace the
+default definition (by not calling @var{fun}).
 @end defmac
+
+@defun run-hook-wrapped hook wrap-function &rest args
+This function is similar to @code{run-hook-with-args-until-success}.
+Like that function, it runs the functions on the abnormal hook
+@code{hook}, stopping at the first one that returns non-@code{nil}.
+Instead of calling the hook functions directly, though, it actually
+calls @code{wrap-function} with arguments @code{fun} and @code{args}.
+@end defun
 
 @node Setting Hooks
 @subsection Setting Hooks
@@ -468,8 +487,9 @@ other packages would interfere with them.
 @cindex major mode hook
 Each major mode should have a normal @dfn{mode hook} named
 @code{@var{modename}-mode-hook}.  The very last thing the major mode command
-should do is to call @code{run-mode-hooks}.  This runs the mode hook,
-and then runs the normal hook @code{after-change-major-mode-hook}.
+should do is to call @code{run-mode-hooks}.  This runs the normal
+hook @code{change-major-mode-after-body-hook}, the mode hook,
+and then the normal hook @code{after-change-major-mode-hook}.
 @xref{Mode Hooks}.
 
 @item
@@ -587,6 +607,18 @@ on the text at the beginning of the buffer (using
 Chosen, emacs, The GNU Emacs Manual}.  If @code{enable-local-variables}
 is @code{nil}, @code{set-auto-mode} does not check the @w{@samp{-*-}}
 line, or near the end of the file, for any mode tag.
+
+@vindex inhibit-local-variables-regexps
+There are some file types where it is not appropriate to scan the file
+contents for a mode specifier.  For example, a tar archive may happen to
+contain, near the end of the file, a member file that has a local
+variables section specifying a mode for that particular file.  This
+should not be applied to the containing tar file.  Similarly, a tiff
+image file might just happen to contain a first line that seems to
+match the @w{@samp{-*-}} pattern.  For these reasons, both these file
+extensions are members of the list @var{inhibit-local-variables-regexps}.
+Add patterns to this list to prevent Emacs searching them for local
+variables of any kind (not just mode specifiers).
 
 If @var{keep-mode-if-same} is non-@code{nil}, this function does not
 call the mode command if the buffer is already in the proper major
@@ -883,6 +915,20 @@ mode, which is used by the @samp{*Buffer List*} buffer.  @xref{List
 Buffers,,Listing Existing Buffers, emacs, The GNU Emacs Manual}.
 @end deffn
 
+@cindex tables of data
+@deffn Command tabulated-list-mode
+Tabulated List mode is another mode that derives from Special mode.  It
+displays tabulated data, i.e. a series of rows and columns, where each
+row represents a particular entry, whose properties are displayed in the
+various columns.  It provides a general mechanism for sorting on
+columns.  You can use Tabulated List mode as the basis for other modes
+that need to display lists.  For example, the @samp{*Packages*} buffer
+uses this (@pxref{Packages,,, emacs, The GNU Emacs Manual}). The
+documentation of the @code{tabulated-list-mode} function explains what
+you need to do to use it.  At a minimum, specify the column format via
+the @code{tabulated-list-format} variable.
+@end deffn
+
 @node Generic Modes
 @subsection Generic Modes
 @cindex generic mode
@@ -927,8 +973,9 @@ before it runs the mode hook variable @code{@var{mode}-hook}.
 @node Mode Hooks
 @subsection Mode Hooks
 
-  Every major mode command should finish by running its mode hook and
-the mode-independent normal hook @code{after-change-major-mode-hook}.
+  Every major mode command should finish by running the mode-independent
+normal hook @code{change-major-mode-after-body-hook}, its mode hook,
+and the normal hook @code{after-change-major-mode-hook}.
 It does this by calling @code{run-mode-hooks}.  If the major mode is a
 derived mode, that is if it calls another major mode (the parent mode)
 in its body, it should do this inside @code{delay-mode-hooks} so that
@@ -937,11 +984,12 @@ call to @code{run-mode-hooks} runs the parent's mode hook too.
 @xref{Major Mode Conventions}.
 
   Emacs versions before Emacs 22 did not have @code{delay-mode-hooks}.
-When user-implemented major modes have not been updated to use it,
-they won't entirely follow these conventions: they may run the
-parent's mode hook too early, or fail to run
-@code{after-change-major-mode-hook}.  If you encounter such a major
-mode, please correct it to follow these conventions.
+Versions before 24 did not have @code{change-major-mode-after-body-hook}.
+When user-implemented major modes do not use @code{run-mode-hooks} and
+have not been updated to use these newer features, they won't entirely
+follow these conventions: they may run the parent's mode hook too early,
+or fail to run @code{after-change-major-mode-hook}.  If you encounter
+such a major mode, please correct it to follow these conventions.
 
   When you defined a major mode using @code{define-derived-mode}, it
 automatically makes sure these conventions are followed.  If you
@@ -951,6 +999,7 @@ use the following functions to handle these conventions automatically.
 @defun run-mode-hooks &rest hookvars
 Major modes should run their mode hook using this function.  It is
 similar to @code{run-hooks} (@pxref{Hooks}), but it also runs
+@code{change-major-mode-after-body-hook} and
 @code{after-change-major-mode-hook}.
 
 When this function is called during the execution of a
@@ -969,6 +1018,11 @@ The hooks will actually run during the next call to
 @code{run-mode-hooks} after the end of the @code{delay-mode-hooks}
 construct.
 @end defmac
+
+@defvar change-major-mode-after-body-hook
+This is a normal hook run by @code{run-mode-hooks}.  It is run before
+the mode hooks.
+@end defvar
 
 @defvar after-change-major-mode-hook
 This is a normal hook run by @code{run-mode-hooks}.  It is run at the
@@ -1000,13 +1054,10 @@ the conventions listed above:
 (defvar text-mode-map
   (let ((map (make-sparse-keymap)))
     (define-key map "\e\t" 'ispell-complete-word)
-    (define-key map "\es" 'center-line)
-    (define-key map "\eS" 'center-paragraph)
     map)
   "Keymap for `text-mode'.
-Many other modes, such as Mail mode, Outline mode
-and Indented Text mode, inherit all the commands
-defined in this map.")
+Many other modes, such as `mail-mode', `outline-mode' and
+`indented-text-mode', inherit all the commands defined in this map.")
 @end group
 @end smallexample
 
@@ -1024,7 +1075,6 @@ Turning on Text mode runs the normal hook `text-mode-hook'."
 @end group
 @group
   (set (make-local-variable 'text-mode-variant) t)
-  ;; @r{These two lines are a feature added recently.}
   (set (make-local-variable 'require-final-newline)
        mode-require-final-newline)
   (set (make-local-variable 'indent-line-function) 'indent-relative))
@@ -1035,103 +1085,29 @@ Turning on Text mode runs the normal hook `text-mode-hook'."
 (The last line is redundant nowadays, since @code{indent-relative} is
 the default value, and we'll delete it in a future version.)
 
-  Here is how it was defined formerly, before
-@code{define-derived-mode} existed:
-
-@smallexample
-@group
-;; @r{This isn't needed nowadays, since @code{define-derived-mode} does it.}
-(define-abbrev-table 'text-mode-abbrev-table ()
-  "Abbrev table used while in text mode.")
-@end group
-
-@group
-(defun text-mode ()
-  "Major mode for editing text intended for humans to read...
- Special commands: \\@{text-mode-map@}
-@end group
-@group
-Turning on text-mode runs the hook `text-mode-hook'."
-  (interactive)
-  (kill-all-local-variables)
-  (use-local-map text-mode-map)
-@end group
-@group
-  (setq local-abbrev-table text-mode-abbrev-table)
-  (set-syntax-table text-mode-syntax-table)
-@end group
-@group
-  ;; @r{These four lines are absent from the current version}
-  ;; @r{not because this is done some other way, but because}
-  ;; @r{nowadays Text mode uses the normal definition of paragraphs.}
-  (set (make-local-variable 'paragraph-start)
-       (concat "[ \t]*$\\|" page-delimiter))
-  (set (make-local-variable 'paragraph-separate) paragraph-start)
-  (set (make-local-variable 'indent-line-function) 'indent-relative-maybe)
-@end group
-@group
-  (setq mode-name "Text")
-  (setq major-mode 'text-mode)
-  (run-mode-hooks 'text-mode-hook)) ; @r{Finally, this permits the user to}
-                                    ;   @r{customize the mode with a hook.}
-@end group
-@end smallexample
-
 @cindex @file{lisp-mode.el}
-  The three Lisp modes (Lisp mode, Emacs Lisp mode, and Lisp
-Interaction mode) have more features than Text mode and the code is
-correspondingly more complicated.  Here are excerpts from
-@file{lisp-mode.el} that illustrate how these modes are written.
+  The three Lisp modes (Lisp mode, Emacs Lisp mode, and Lisp Interaction
+mode) have more features than Text mode and the code is correspondingly
+more complicated.  Here are excerpts from @file{lisp-mode.el} that
+illustrate how these modes are written.
+
+  Here is how the Lisp mode syntax and abbrev tables are defined:
 
 @cindex syntax table example
 @smallexample
 @group
 ;; @r{Create mode-specific table variables.}
-(defvar lisp-mode-syntax-table nil "")
-(defvar lisp-mode-abbrev-table nil "")
-@end group
-
-@group
-(defvar emacs-lisp-mode-syntax-table
-  (let ((table (make-syntax-table)))
-    (let ((i 0))
-@end group
-
-@group
-      ;; @r{Set syntax of chars up to @samp{0} to say they are}
-      ;;   @r{part of symbol names but not words.}
-      ;;   @r{(The digit @samp{0} is @code{48} in the @acronym{ASCII} character set.)}
-      (while (< i ?0)
-        (modify-syntax-entry i "_   " table)
-        (setq i (1+ i)))
-      ;; @r{@dots{} similar code follows for other character ranges.}
-@end group
-@group
-      ;; @r{Then set the syntax codes for characters that are special in Lisp.}
-      (modify-syntax-entry ?  "    " table)
-      (modify-syntax-entry ?\t "    " table)
-      (modify-syntax-entry ?\f "    " table)
-      (modify-syntax-entry ?\n ">   " table)
-@end group
-@group
-      ;; @r{Give CR the same syntax as newline, for selective-display.}
-      (modify-syntax-entry ?\^m ">   " table)
-      (modify-syntax-entry ?\; "<   " table)
-      (modify-syntax-entry ?` "'   " table)
-      (modify-syntax-entry ?' "'   " table)
-      (modify-syntax-entry ?, "'   " table)
-@end group
-@group
-      ;; @r{@dots{}likewise for many other characters@dots{}}
-      (modify-syntax-entry ?\( "()  " table)
-      (modify-syntax-entry ?\) ")(  " table)
-      (modify-syntax-entry ?\[ "(]  " table)
-      (modify-syntax-entry ?\] ")[  " table))
-    table))
-@end group
-@group
-;; @r{Create an abbrev table for lisp-mode.}
+(defvar lisp-mode-abbrev-table nil)
 (define-abbrev-table 'lisp-mode-abbrev-table ())
+
+(defvar lisp-mode-syntax-table
+  (let ((table (copy-syntax-table emacs-lisp-mode-syntax-table)))
+    (modify-syntax-entry ?\[ "_   " table)
+    (modify-syntax-entry ?\] "_   " table)
+    (modify-syntax-entry ?# "' 14" table)
+    (modify-syntax-entry ?| "\" 23bn" table)
+    table)
+  "Syntax table used in `lisp-mode'.")
 @end group
 @end smallexample
 
@@ -1140,7 +1116,7 @@ each calls the following function to set various variables:
 
 @smallexample
 @group
-(defun lisp-mode-variables (lisp-syntax)
+(defun lisp-mode-variables (&optional lisp-syntax keywords-case-insensitive)
   (when lisp-syntax
     (set-syntax-table lisp-mode-syntax-table))
   (setq local-abbrev-table lisp-mode-abbrev-table)
@@ -1148,22 +1124,14 @@ each calls the following function to set various variables:
 @end group
 @end smallexample
 
-  In Lisp and most programming languages, we want the paragraph
-commands to treat only blank lines as paragraph separators.  And the
-modes should understand the Lisp conventions for comments.  The rest of
-@code{lisp-mode-variables} sets this up:
+@noindent
+Amongst other things, this function sets up the @code{comment-start}
+variable to handle Lisp comments:
 
 @smallexample
 @group
-  (set (make-local-variable 'paragraph-start)
-       (concat page-delimiter "\\|$" ))
-  (set (make-local-variable 'paragraph-separate)
-       paragraph-start)
-  @dots{}
-@end group
-@group
-  (set (make-local-variable 'comment-indent-function)
-       'lisp-comment-indent))
+  (make-local-variable 'comment-start)
+  (setq comment-start ";")
   @dots{}
 @end group
 @end smallexample
@@ -1175,11 +1143,10 @@ common.  The following code sets up the common commands:
 
 @smallexample
 @group
-(defvar shared-lisp-mode-map
+(defvar lisp-mode-shared-map
   (let ((map (make-sparse-keymap)))
-    (define-key shared-lisp-mode-map "\e\C-q" 'indent-sexp)
-    (define-key shared-lisp-mode-map "\177"
-                'backward-delete-char-untabify)
+    (define-key map "\e\C-q" 'indent-sexp)
+    (define-key map "\177" 'backward-delete-char-untabify)
     map)
   "Keymap for commands shared by all sorts of Lisp modes.")
 @end group
@@ -1191,25 +1158,29 @@ And here is the code to set up the keymap for Lisp mode:
 @smallexample
 @group
 (defvar lisp-mode-map
-  (let ((map (make-sparse-keymap)))
-    (set-keymap-parent map shared-lisp-mode-map)
+  (let ((map (make-sparse-keymap))
+	(menu-map (make-sparse-keymap "Lisp")))
+    (set-keymap-parent map lisp-mode-shared-map)
     (define-key map "\e\C-x" 'lisp-eval-defun)
     (define-key map "\C-c\C-z" 'run-lisp)
+    @dots{}
     map)
-  "Keymap for ordinary Lisp mode...")
+  "Keymap for ordinary Lisp mode.
+All commands in `lisp-mode-shared-map' are inherited by this map.")
 @end group
 @end smallexample
 
-  Finally, here is the complete major mode command definition for Lisp
-mode.
+@noindent
+Finally, here is the major mode command for Lisp mode:
 
 @smallexample
 @group
-(defun lisp-mode ()
+(define-derived-mode lisp-mode prog-mode "Lisp"
   "Major mode for editing Lisp code for Lisps other than GNU Emacs Lisp.
 Commands:
 Delete converts tabs to spaces as it moves back.
 Blank lines separate paragraphs.  Semicolons start comments.
+
 \\@{lisp-mode-map@}
 Note that `run-lisp' may be used either to start an inferior Lisp job
 or to switch back to an existing one.
@@ -1218,24 +1189,12 @@ or to switch back to an existing one.
 @group
 Entry to this mode calls the value of `lisp-mode-hook'
 if that value is non-nil."
-  (interactive)
-  (kill-all-local-variables)
-@end group
-@group
-  (use-local-map lisp-mode-map)          ; @r{Select the mode's keymap.}
-  (setq major-mode 'lisp-mode)           ; @r{This is how @code{describe-mode}}
-                                         ;   @r{finds out what to describe.}
-  (setq mode-name "Lisp")                ; @r{This goes into the mode line.}
-  (lisp-mode-variables t)                ; @r{This defines various variables.}
-  (set (make-local-variable 'comment-start-skip)
+  (lisp-mode-variables nil t)
+  (set (make-local-variable 'find-tag-default-function) 'lisp-find-tag-default)
+  (make-local-variable 'comment-start-skip)
+  (setq comment-start-skip
        "\\(\\(^\\|[^\\\\\n]\\)\\(\\\\\\\\\\)*\\)\\(;+\\|#|\\) *")
-  (set (make-local-variable 'font-lock-keywords-case-fold-search) t)
-@end group
-@group
-  (setq imenu-case-fold-search t)
-  (set-syntax-table lisp-mode-syntax-table)
-  (run-mode-hooks 'lisp-mode-hook))      ; @r{This permits the user to use a}
-                                         ;   @r{hook to customize the mode.}
+  (setq imenu-case-fold-search t))
 @end group
 @end smallexample
 
@@ -1415,11 +1374,12 @@ alist @code{minor-mode-map-alist}.  @xref{Definition of minor-mode-map-alist}.
 @cindex @code{self-insert-command}, minor modes
   One use of minor mode keymaps is to modify the behavior of certain
 self-inserting characters so that they do something else as well as
-self-insert.  In general, this is the only way to do that, since the
-facilities for customizing @code{self-insert-command} are limited to
-special cases (designed for abbrevs and Auto Fill mode).  (Do not try
-substituting your own definition of @code{self-insert-command} for the
-standard one.  The editor command loop handles this function specially.)
+self-insert.  (Another way to customize @code{self-insert-command} is
+through @code{post-self-insert-hook}.  Apart from this, the facilities
+for customizing @code{self-insert-command} are limited to special cases,
+designed for abbrevs and Auto Fill mode.  Do not try substituting your
+own definition of @code{self-insert-command} for the standard one.  The
+editor command loop handles this function specially.)
 
 The key sequences bound in a minor mode should consist of @kbd{C-c}
 followed by one of @kbd{.,/?`'"[]\|~!#$%^&*()-_+=}.  (The other
@@ -1434,11 +1394,21 @@ implementing a mode in one self-contained definition.
 @defmac define-minor-mode mode doc [init-value [lighter [keymap]]] keyword-args@dots{} body@dots{}
 This macro defines a new minor mode whose name is @var{mode} (a
 symbol).  It defines a command named @var{mode} to toggle the minor
-mode, with @var{doc} as its documentation string.  It also defines a
-variable named @var{mode}, which is set to @code{t} or @code{nil} by
-enabling or disabling the mode.  The variable is initialized to
-@var{init-value}.  Except in unusual circumstances (see below), this
-value must be @code{nil}.
+mode, with @var{doc} as its documentation string.
+
+The toggle command takes one optional (prefix) argument.
+If called interactively with no argument it toggles the mode on or off.
+A positive prefix argument enables the mode, any other prefix argument
+disables it.  From Lisp, an argument of @code{toggle} toggles the mode,
+whereas an omitted or @code{nil} argument enables the mode.
+This makes it easy to enable the minor mode in a major mode hook, for example.
+If @var{doc} is nil, the macro supplies a default documentation string
+explaining the above.
+
+By default, it also defines a variable named @var{mode}, which is set to
+@code{t} or @code{nil} by enabling or disabling the mode.  The variable
+is initialized to @var{init-value}.  Except in unusual circumstances
+(see below), this value must be @code{nil}.
 
 The string @var{lighter} says what to display in the mode line
 when the mode is enabled; if it is @code{nil}, the mode is not displayed
@@ -1493,6 +1463,17 @@ This is equivalent to specifying @var{lighter} positionally.
 
 @item :keymap @var{keymap}
 This is equivalent to specifying @var{keymap} positionally.
+
+@item :variable @var{place}
+This replaces the default variable @var{mode}, used to store the state
+of the mode.  If you specify this, the @var{mode} variable is not
+defined, and any @var{init-value} argument is unused.  @var{place}
+can be a different named variable (which you must define yourself), or
+anything that can be used with the @code{setf} function
+(@pxref{Generalized Variables,,, cl, Common Lisp Extensions}).
+@var{place} can also be a cons @code{(@var{get} . @var{set})},
+where @var{get} is an expression that returns the current state,
+and @var{set} is a function of one argument (a state) that sets it.
 @end table
 
 Any other keyword arguments are passed directly to the
@@ -1521,9 +1502,10 @@ for this macro.
 @smallexample
 (define-minor-mode hungry-mode
   "Toggle Hungry mode.
-With no argument, this command toggles the mode.
-Non-null prefix argument turns on the mode.
-Null prefix argument turns off the mode.
+Interactively with no argument, this command toggles the mode.
+A positive prefix argument enables the mode, any other prefix
+argument disables it.  From Lisp, argument omitted or nil enables
+the mode, `toggle' toggles the state.
 
 When Hungry mode is enabled, the control delete key
 gobbles all preceding whitespace except the last.
@@ -1552,13 +1534,7 @@ minor modes don't need any.
 @smallexample
 (define-minor-mode hungry-mode
   "Toggle Hungry mode.
-With no argument, this command toggles the mode.
-Non-null prefix argument turns on the mode.
-Null prefix argument turns off the mode.
-
-When Hungry mode is enabled, the control delete key
-gobbles all preceding whitespace except the last.
-See the command \\[hungry-electric-delete]."
+...rest of documentation as before..."
  ;; The initial value.
  :init-value nil
  ;; The indicator for the mode line.
@@ -1593,7 +1569,14 @@ starts, for example by providing a @code{:require} keyword.
 
 Use @code{:group @var{group}} in @var{keyword-args} to specify the
 custom group for the mode variable of the global minor mode.
+
+Generally speaking, when you define a globalized minor mode, you should
+also define a non-globalized version, so that people can use (or
+disable) it in individual buffers.  This also allows them to disable a
+globally enabled minor mode in a specific major mode, by using that
+mode's hook.
 @end defmac
+
 
 @node Mode Line Format
 @section Mode-Line Format

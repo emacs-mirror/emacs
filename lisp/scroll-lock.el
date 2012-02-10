@@ -49,10 +49,12 @@
 ;;;###autoload
 (define-minor-mode scroll-lock-mode
   "Buffer-local minor mode for pager-like scrolling.
-Keys which normally move point by line or paragraph will scroll
-the buffer by the respective amount of lines instead and point
-will be kept vertically fixed relative to window boundaries
-during scrolling."
+With a prefix argument ARG, enable the mode if ARG is positive,
+and disable it otherwise.  If called from Lisp, enable the mode
+if ARG is omitted or nil.  When enabled, keys that normally move
+point by line or paragraph will scroll the buffer by the
+respective amount of lines instead and point will be kept
+vertically fixed relative to window boundaries during scrolling."
   :lighter " ScrLck"
   :keymap scroll-lock-mode-map
   (if scroll-lock-mode

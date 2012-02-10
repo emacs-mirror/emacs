@@ -1,6 +1,6 @@
 ;;; gdb-mi.el --- User Interface for running GDB
 
-;; Copyright (C) 2007-2012  Free Software Foundation, Inc.
+;; Copyright (C) 2007-2012 Free Software Foundation, Inc.
 
 ;; Author: Nick Roberts <nickrob@gnu.org>
 ;; Maintainer: FSF
@@ -26,7 +26,7 @@
 ;;; Credits:
 
 ;; This file was written by Nick Roberts following the general design
-;; used in gdb-ui.el for Emacs 22.1 - 23.1.  It is currently being developed
+;; used in gdb-ui.el for Emacs 22.1 - 23.1.  It was further developed
 ;; by Dmitry Dzhus <dima@sphinx.net.ru> as part of the Google Summer
 ;; of Code 2009 Project "Emacs GDB/MI migration".
 
@@ -45,7 +45,7 @@
 
 ;; This file uses GDB/MI as the primary interface to GDB.  It runs gdb with
 ;; GDB/MI (-interp=mi) and access CLI using "-interpreter-exec console
-;; cli-command".  This code works without gdb-ui.el and uses MI tokens instead
+;; cli-command".  This code replaces gdb-ui.el and uses MI tokens instead
 ;; of queues.  Eventually MI should be asynchronous.
 
 ;; Windows Platforms:
@@ -779,9 +779,9 @@ detailed description of this mode.
   (gud-def gud-pp
 	   (gud-call
 	    (concat
-	     "pp1 " (if (eq (buffer-local-value
-			     'major-mode (window-buffer)) 'speedbar-mode)
-			(gdb-find-watch-expression) "%e")) arg)
+	     "pp " (if (eq (buffer-local-value
+			    'major-mode (window-buffer)) 'speedbar-mode)
+		       (gdb-find-watch-expression) "%e")) arg)
 	   nil   "Print the Emacs s-expression.")
 
   (define-key gud-minor-mode-map [left-margin mouse-1]

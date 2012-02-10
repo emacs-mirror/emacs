@@ -1142,6 +1142,12 @@ prefix argument for the @kbd{C-h i} command (@code{info}) which
 switches to the Info buffer with that number.  Thus, @kbd{C-u 2 C-h i}
 switches to the buffer @samp{*info*<2>}, creating it if necessary.
 
+@findex info-display-manual
+  If you have created many Info buffers in Emacs, you might find it
+difficult to remember which buffer is showing which manual.  You can
+use the command @kbd{M-x info-display-manual} to show an Info manual
+by name, reusing an existing buffer if there is one.
+
 @node Emacs Info Variables, , Create Info buffer, Advanced
 @comment  node-name,  next,  previous,  up
 @section Emacs Info-mode Variables

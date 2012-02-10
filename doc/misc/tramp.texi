@@ -866,12 +866,21 @@ Newer versions of @option{ssh} (for example OpenSSH 4) offer an option
 @option{ControlMaster}.  This allows @option{scp} to reuse an existing
 @option{ssh} channel, which increases performance.
 
-Before you use this method, you shall check whether your @option{ssh}
-implementation does support this option.  Try from the command line
+Before you use this method, you should check whether your @option{ssh}
+implementation supports this option.  Try from the command line
 
 @example
-ssh localhost -o ControlMaster=yes
+ssh localhost -o ControlMaster=yes /bin/true
 @end example
+
+If that command succeeds silently, then you can use @option{scpc}; but
+if it fails like
+
+@example
+command-line: line 0: Bad configuration option: ControlMaster
+@end example
+
+then you cannot use it.
 
 This method supports the @samp{-p} argument.
 

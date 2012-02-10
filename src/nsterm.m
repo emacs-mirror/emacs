@@ -1,6 +1,7 @@
 /* NeXT/Open/GNUstep / MacOSX communication module.
-   Copyright (C) 1989, 1993-1994, 2005-2006, 2008-2012
-     Free Software Foundation, Inc.
+
+Copyright (C) 1989, 1993-1994, 2005-2006, 2008-2012
+  Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -64,6 +65,7 @@ int term_trace_num = 0;
 #define NSTRACE(x)
 #endif
 
+extern NSString *NSMenuDidBeginTrackingNotification;
 
 /* ==========================================================================
 
@@ -6735,12 +6737,12 @@ Only works on OSX 10.6 or later.  */);
 
   /* TODO: move to common code */
   DEFVAR_LISP ("x-toolkit-scroll-bars", Vx_toolkit_scroll_bars,
-	       doc: /* If not nil, Emacs uses toolkit scroll bars.  */);
-#ifdef USE_TOOLKIT_SCROLL_BARS
+	       doc: /* Which toolkit scroll bars Emacs uses, if any.
+A value of nil means Emacs doesn't use toolkit scroll bars.
+With the X Window system, the value is a symbol describing the
+X toolkit.  Possible values are: gtk, motif, xaw, or xaw3d.
+With MS Windows or Nextstep, the value is t.  */);
   Vx_toolkit_scroll_bars = Qt;
-#else
-  Vx_toolkit_scroll_bars = Qnil;
-#endif
 
   DEFVAR_BOOL ("x-use-underline-position-properties",
 	       x_use_underline_position_properties,

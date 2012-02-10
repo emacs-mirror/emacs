@@ -2237,22 +2237,21 @@ list that represents a doc string reference.
 (put 'defvar   'byte-hunk-handler 'byte-compile-file-form-defvar)
 (put 'defconst 'byte-hunk-handler 'byte-compile-file-form-defvar)
 (defun byte-compile-file-form-defvar (form)
-  (if (null (nth 3 form))
-      ;; Since there is no doc string, we can compile this as a normal form,
-      ;; and not do a file-boundary.
-      (byte-compile-keep-pending form)
-    (when (and (symbolp (nth 1 form))
-               (not (string-match "[-*/:$]" (symbol-name (nth 1 form))))
-               (byte-compile-warning-enabled-p 'lexical))
-      (byte-compile-warn "global/dynamic var `%s' lacks a prefix"
-                         (nth 1 form)))
-    (push (nth 1 form) byte-compile-bound-variables)
-    (if (eq (car form) 'defconst)
-	(push (nth 1 form) byte-compile-const-variables))
+  (when (and (symbolp (nth 1 form))
+             (not (string-match "[-*/:$]" (symbol-name (nth 1 form))))
+             (byte-compile-warning-enabled-p 'lexical))
+    (byte-compile-warn "global/dynamic var `%s' lacks a prefix"
+                       (nth 1 form)))
+  (push (nth 1 form) byte-compile-bound-variables)
+  (if (eq (car form) 'defconst)
+      (push (nth 1 form) byte-compile-const-variables))
+  (if (and (null (cddr form))		;No `value' provided.
+           (eq (car form) 'defvar))     ;Just a declaration.
+      nil
     (cond ((consp (nth 2 form))
-	   (setq form (copy-sequence form))
-	   (setcar (cdr (cdr form))
-		   (byte-compile-top-level (nth 2 form) nil 'file))))
+           (setq form (copy-sequence form))
+           (setcar (cdr (cdr form))
+                   (byte-compile-top-level (nth 2 form) nil 'file))))
     form))
 
 (put 'define-abbrev-table 'byte-hunk-handler
@@ -4124,8 +4123,10 @@ binding slots have been popped."
     (push (nth 1 (nth 1 form)) byte-compile-global-not-obsolete-vars))
   (byte-compile-normal-call form))
 
+(defconst byte-compile-tmp-var (make-symbol "def-tmp-var"))
+
 (defun byte-compile-defvar (form)
-  ;; This is not used for file-level defvar/consts with doc strings.
+  ;; This is not used for file-level defvar/consts.
   (when (and (symbolp (nth 1 form))
              (not (string-match "[-*/:$]" (symbol-name (nth 1 form))))
              (byte-compile-warning-enabled-p 'lexical))
@@ -4148,32 +4149,21 @@ binding slots have been popped."
     (push var byte-compile-bound-variables)
     (if (eq fun 'defconst)
 	(push var byte-compile-const-variables))
-    (byte-compile-body-do-effect
-     (list
-      ;; Put the defined variable in this library's load-history entry
-      ;; just as a real defvar would, but only in top-level forms.
-      (when (and (cddr form) (null byte-compile-current-form))
-	`(setq current-load-list (cons ',var current-load-list)))
-      (when (> (length form) 3)
-	(when (and string (not (stringp string)))
-	    (byte-compile-warn "third arg to `%s %s' is not a string: %s"
-			       fun var string))
-	`(put ',var 'variable-documentation ,string))
-      (if (cddr form)		; `value' provided
-	  (let ((byte-compile-not-obsolete-vars (list var)))
-	    (if (eq fun 'defconst)
-		;; `defconst' sets `var' unconditionally.
-		(let ((tmp (make-symbol "defconst-tmp-var")))
-                  ;; Quote with `quote' to prevent byte-compiling the body,
-                  ;; which would lead to an inf-loop.
-		  `(funcall '(lambda (,tmp) (defconst ,var ,tmp))
-			    ,value))
-	      ;; `defvar' sets `var' only when unbound.
-	      `(if (not (default-boundp ',var)) (setq-default ,var ,value))))
-	(when (eq fun 'defconst)
-	  ;; This will signal an appropriate error at runtime.
-	  `(eval ',form)))
-      `',var))))
+    (when (and string (not (stringp string)))
+      (byte-compile-warn "third arg to `%s %s' is not a string: %s"
+                         fun var string))
+    (byte-compile-form-do-effect
+     (if (cddr form)  ; `value' provided
+         ;; Quote with `quote' to prevent byte-compiling the body,
+         ;; which would lead to an inf-loop.
+         `(funcall '(lambda (,byte-compile-tmp-var)
+                      (,fun ,var ,byte-compile-tmp-var ,@(nthcdr 3 form)))
+                   ,value)
+        (if (eq fun 'defconst)
+            ;; This will signal an appropriate error at runtime.
+            `(eval ',form)
+          ;; A simple (defvar foo) just returns foo.
+          `',var)))))
 
 (defun byte-compile-autoload (form)
   (byte-compile-set-symbol-position 'autoload)

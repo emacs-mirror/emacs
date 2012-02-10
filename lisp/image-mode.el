@@ -482,7 +482,7 @@ Remove text properties that display the image."
   "Show the image of the image file.
 Turn the image data into a real image, but only if the whole file
 was inserted."
-  (unless (derived-mode-p 'image-mode major-mode)
+  (unless (derived-mode-p 'image-mode)
     (error "The buffer is not in Image mode"))
   (let* ((filename (buffer-file-name))
 	 (data-p (not (and filename
@@ -557,13 +557,15 @@ the image by calling `image-mode'."
 ;;; Animated images
 
 (defcustom image-animate-loop nil
-  "Whether to play animated images on a loop in Image mode."
+  "Non-nil means animated images loop forever, rather than playing once."
   :type 'boolean
   :version "24.1"
   :group 'image)
 
 (defun image-toggle-animation ()
-  "Start or stop animating the current image."
+  "Start or stop animating the current image.
+If `image-animate-loop' is non-nil, animation loops forever.
+Otherwise it plays once, then stops."
   (interactive)
   (let ((image (image-get-display-property))
 	animation)
@@ -605,22 +607,27 @@ the image by calling `image-mode'."
       (image-toggle-display))))
 
 
-(defvar image-transform-minor-mode-map
-  (let ((map (make-sparse-keymap)))
-    ;; (define-key map  [(control ?+)] 'image-scale-in)
-    ;; (define-key map  [(control ?-)] 'image-scale-out)
-    ;; (define-key map  [(control ?=)] 'image-scale-none)
-    ;; (define-key map "c f h" 'image-scale-fit-height)
-    ;; (define-key map "c ]" 'image-rotate-right)
-    map)
-  "Minor mode keymap `image-transform-mode'.")
+;; Not yet implemented.
+;;; (defvar image-transform-minor-mode-map
+;;;   (let ((map (make-sparse-keymap)))
+;;;     ;; (define-key map  [(control ?+)] 'image-scale-in)
+;;;     ;; (define-key map  [(control ?-)] 'image-scale-out)
+;;;     ;; (define-key map  [(control ?=)] 'image-scale-none)
+;;;     ;; (define-key map "c f h" 'image-scale-fit-height)
+;;;     ;; (define-key map "c ]" 'image-rotate-right)
+;;;     map)
+;;;   "Minor mode keymap `image-transform-mode'.")
+;;;
+;;; (define-minor-mode image-transform-mode
+;;;   "Minor mode for scaling and rotating images.
+;;; With a prefix argument ARG, enable the mode if ARG is positive,
+;;; and disable it otherwise.  If called from Lisp, enable the mode
+;;; if ARG is omitted or nil.  This minor mode requires Emacs to have
+;;; been compiled with ImageMagick support."
+;;;   nil "image-transform" image-transform-minor-mode-map)
 
-(define-minor-mode image-transform-mode
-  "Minor mode for scaling and rotating images.
-This minor mode has no effect unless Emacs is compiled with
-ImageMagick support."
-  nil "image-transform" image-transform-minor-mode-map)
 
+;; FIXME this doesn't seem mature yet. Document in manual when it is.
 (defvar image-transform-resize nil
   "The image resize operation.
 Its value should be one of the following:
@@ -662,6 +669,7 @@ compiled with ImageMagick support."
 	,@(if (not (equal 0.0 image-transform-rotation))
 	      (list :rotation image-transform-rotation))))))
 
+;; FIXME 2 works, but eg 1.9 or 0.5 don't?
 (defun image-transform-set-scale (scale)
   "Prompt for a number, and resize the current image by that amount.
 This command has no effect unless Emacs is compiled with

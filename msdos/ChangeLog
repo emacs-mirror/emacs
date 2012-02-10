@@ -1,3 +1,9 @@
+2012-02-04  Eli Zaretskii  <eliz@gnu.org>
+
+	* sed3v2.inp (insrcdir): Use $(<F) rather than $<, as
+	command.com's "if not exist" doesn't grok forward slashes in file
+	names.
+
 2012-01-14  Eli Zaretskii  <eliz@gnu.org>
 
 	* sed4.inp (PATH_DUMPLOADSEARCH): Edit to "../lisp", for when the
@@ -642,7 +648,7 @@
 	b-emacs.exe to 3072K.
 
 	* mainmake.v2 (emacs lispref lispintro): Chdir under doc/.
-	(emacs): Renamed from `man', to reflect changes in doc directory
+	(emacs): Rename from `man', to reflect changes in doc directory
 	structure.  All callers changed.
 	(clean mostlyclean distclean maintainer-clean extraclean): Chdir
 	into doc/ for manuals.  Add misc subdirectory.
@@ -1097,7 +1103,7 @@
 
 1996-08-04  Richard Stallman  <rms@psilocin.gnu.ai.mit.edu>
 
-	* is_exec.c: Renamed from is-exec.c.
+	* is_exec.c: Rename from is-exec.c.
 
 1996-07-27  Richard Stallman  <rms@psilocin.gnu.ai.mit.edu>
 
@@ -1132,7 +1138,7 @@
 
 	* mainmake.v2 (src): Create a file with sed commands instead of using
 	a long sed command line (some versions of Sed don't handle that).
-	(gdb): Merged back into src, undoing April 13 change.
+	(gdb): Merge back into src, undoing April 13 change.
 	(install): Do use if statements, but not a loop.
 
 1996-04-13  Richard Stallman  <rms@mole.gnu.ai.mit.edu>

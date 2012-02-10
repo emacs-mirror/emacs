@@ -1,6 +1,6 @@
 ;;; pascal.el --- major mode for editing pascal source in Emacs -*- lexical-binding: t -*-
 
-;; Copyright (C) 1993-2012  Free Software Foundation, Inc.
+;; Copyright (C) 1993-2012 Free Software Foundation, Inc.
 
 ;; Author: Espen Skoglund <esk@gnu.org>
 ;; Keywords: languages
@@ -1394,8 +1394,12 @@ The default is a name found in the buffer around point."
 (define-obsolete-function-alias 'pascal-outline 'pascal-outline-mode "22.1")
 (define-minor-mode pascal-outline-mode
   "Outline-line minor mode for Pascal mode.
-When in Pascal Outline mode, portions
-of the text being edited may be made invisible. \\<pascal-outline-map>
+With a prefix argument ARG, enable the mode if ARG is positive,
+and disable it otherwise.  If called from Lisp, enable the mode
+if ARG is omitted or nil.
+
+When enabled, portions of the text being edited may be made
+invisible. \\<pascal-outline-map>
 
 Pascal Outline mode provides some additional commands.
 

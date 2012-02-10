@@ -243,6 +243,8 @@
                    "--volno-file=")))
           (pcomplete-opt "01234567ABCFGKLMNOPRSTUVWXZbcdfghiklmoprstuvwxz"))
         (cond
+         ((pcomplete-match "\\`-\\'" 0)
+          (pcomplete-here*))
          ((pcomplete-match "\\`--after-date=" 0)
           (pcomplete-here*))
          ((pcomplete-match "\\`--backup=" 0)

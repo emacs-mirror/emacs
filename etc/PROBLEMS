@@ -352,7 +352,7 @@ There are two different protocols in general use.  One of them uses
 the `flock' system call.  The other involves creating a lock file;
 `movemail' must be able to write in /usr/spool/mail in order to do
 this.  You control which one is used by defining, or not defining,
-the macro MAIL_USE_FLOCK in config.h or the m- or s- file it includes.
+the macro MAIL_USE_FLOCK in config.h or the m/ or s/ file it includes.
 IF YOU DON'T USE THE FORM OF INTERLOCKING THAT IS NORMAL ON YOUR
 SYSTEM, YOU CAN LOSE MAIL!
 
@@ -2744,7 +2744,7 @@ value in the man page for a.out (5).
 initialized variables.  Emacs makes all initialized variables in most
 of its files pure after dumping, but the variables declared static and
 not initialized are not supposed to be pure.  On these systems you
-may need to add "#define static" to the m- or the s- file.
+may need to add "#define static" to config.h.
 
 * Runtime problems on legacy systems
 

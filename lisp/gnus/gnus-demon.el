@@ -102,6 +102,7 @@ Emacs has been idle for IDLE `gnus-demon-timestep's."
   "Run FUNC if Emacs has been idle for longer than IDLE seconds."
   (unless gnus-inhibit-demon
     (when (or (not idle)
+              (and (eq idle t) (> (gnus-demon-idle-since) 0))
               (<= idle (gnus-demon-idle-since)))
       (with-local-quit
        (ignore-errors
@@ -115,6 +116,7 @@ Emacs has been idle for IDLE `gnus-demon-timestep's."
     ;; Set up the timer.
     (let* ((func (nth 0 handler))
            (time (nth 1 handler))
+           (time-type (type-of time))
            (idle (nth 2 handler))
            ;; Compute time according with timestep.
            ;; If t, replace by 1
@@ -123,33 +125,32 @@ Emacs has been idle for IDLE `gnus-demon-timestep's."
                        ((null time)
 			nil)
 		       ((stringp time)
-			(gnus-demon-time-to-step time))
+			(* (gnus-demon-time-to-step time) gnus-demon-timestep))
                        (t
 			(* time gnus-demon-timestep))))
+           (idle (if (numberp idle)
+                     (* idle gnus-demon-timestep)
+                   idle))
+
            (timer
             (cond
-             ;; (func number t)
-             ;; Call when Emacs has been idle for `time'
-             ((and (numberp time) (eq idle t))
-              (run-with-timer time time 'gnus-demon-run-callback func time))
-             ;; (func number number)
-             ;; Call every `time' when Emacs has been idle for `idle'
-             ((and (numberp time) (numberp idle))
-              (run-with-timer time time 'gnus-demon-run-callback func idle))
              ;; (func nil number)
              ;; Only call when Emacs has been idle for `idle'
              ((and (null time) (numberp idle))
               (run-with-idle-timer (* idle gnus-demon-timestep) t
                                    'gnus-demon-run-callback func))
-             ;; (func number nil)
+             ;; (func number any)
              ;; Call every `time'
-             ((and (numberp time) (null idle))
-              (run-with-timer time time 'gnus-demon-run-callback func)))))
+             ((eq time-type 'integer)
+              (run-with-timer time time 'gnus-demon-run-callback func idle))
+             ;; (func string any)
+             ((eq time-type 'string)
+              (run-with-timer time (* 24 60 60) 'gnus-demon-run-callback func idle)))))
       (when timer
         (add-to-list 'gnus-demon-timers timer)))))
 
 (defun gnus-demon-time-to-step (time)
-  "Find out how many seconds to TIME, which is on the form \"17:43\"."
+  "Find out how many steps to TIME, which is on the form \"17:43\"."
   (let* ((now (current-time))
 	 ;; obtain NOW as discrete components -- make a vector for speed
 	 (nowParts (decode-time now))

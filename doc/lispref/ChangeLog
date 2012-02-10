@@ -1,3 +1,321 @@
+2012-02-10  Leo Liu  <sdl.web@gmail.com>
+
+	* control.texi (Handling Errors): Change condition-case-no-debug
+	to condition-case-unless-debug.
+
+2012-02-10  Chong Yidong  <cyd@gnu.org>
+
+	* advice.texi (Defining Advice): Clarify ad-unadvise.
+	(Activation of Advice): Specifying the ACTIVATE flag in defadvice
+	is not abnormal.
+	(Advising Primitives): Node deleted; ad-define-subr-args has been
+	removed.
+
+	* compile.texi (Speed of Byte-Code): Use float-time in example.
+	(Compilation Functions): Note that the log uses Compilation mode.
+	Don't discuss the contents of byte-code function object here.
+	(Compilation Functions): De-document internal function byte-code.
+	(Docs and Compilation): Minor clarifications.
+
+	* objects.texi (Byte-Code Type): Add xref to Byte-Code Function
+	Objects.
+
+2012-02-10  Glenn Morris  <rgm@gnu.org>
+
+	* text.texi (Checksum/Hash): Rename node from MD5 Checksum.
+	Mention secure-hash.
+	* elisp.texi, vol1.texi, vol2.texi: Update menu entry.
+
+2012-02-10  Chong Yidong  <cyd@gnu.org>
+
+	* loading.texi (Loading): Don't emphasize "library" terminology.
+	(Library Search): load-path is not a user option.  Mention role of
+	-L option and packages.  Improve examples.
+	(Loading Non-ASCII): Don't mention unibyte Emacs, which is
+	obsolete.
+	(Autoload): Minor clarifications.
+
+2012-02-10  Glenn Morris  <rgm@gnu.org>
+
+	* files.texi (Magic File Names): Tweak remote-file-name-inhibit-cache.
+
+	* modes.texi (Basic Major Modes): Mention tabulated-list-mode.
+
+2012-02-08  Glenn Morris  <rgm@gnu.org>
+
+	* loading.texi (Named Features): Update the require example.
+
+2012-02-07  Glenn Morris  <rgm@gnu.org>
+
+	* modes.texi (Defining Minor Modes):
+	Expand on args of defined minor modes.
+
+2012-02-07  Chong Yidong  <cyd@gnu.org>
+
+	* variables.texi (Creating Buffer-Local): Minor clarification
+	to buffer-local-variables doc (Bug#10715).
+
+2012-02-07  Glenn Morris  <rgm@gnu.org>
+
+	* display.texi (ImageMagick Images): General update.
+	Move most details of imagemagick-render-type to the variable's doc.
+
+2012-02-06  Glenn Morris  <rgm@gnu.org>
+
+	* keymaps.texi (Tool Bar): Mention separators.
+	(Inheritance and Keymaps):
+	Mention make-composed-keymap and multiple inheritance.
+
+	* modes.texi (Running Hooks): Mention run-hook-wrapped.
+
+	* control.texi (Handling Errors):
+	Mention condition-case-no-debug and with-demoted-errors.
+
+2012-02-05  Chong Yidong  <cyd@gnu.org>
+
+	* customize.texi (Common Keywords): Minor clarifications.
+	Document custom-unlispify-remove-prefixes.
+	(Variable Definitions): Backquotes in defcustom seem to work fine
+	now.  Various other copyedits.
+	(Simple Types): Copyedits.  Document color selector.
+	(Composite Types): Copyedits.
+	(Splicing into Lists): Clarifications.
+
+	* eval.texi (Backquote): Move from macros.texi.
+
+	* macros.texi (Expansion): Minor clarification.
+	(Backquote): Move node to eval.texi.
+	(Defining Macros): Move an example from Backquote node.
+	(Argument Evaluation): No need to mention Pascal.
+	(Indenting Macros): Add xref to Defining Macros.
+
+2012-02-05  Glenn Morris  <rgm@gnu.org>
+
+	* debugging.texi (Error Debugging): Mention debug-on-event default.
+
+2012-02-04  Glenn Morris  <rgm@gnu.org>
+
+	* backups.texi (Reverting): Mention revert-buffer-in-progress-p.
+
+	* debugging.texi (Error Debugging): Mention debug-on-event.
+	* commands.texi (Misc Events): Mention sigusr1,2 and debugging.
+
+	* modes.texi (Running Hooks): Try to clarify with-wrapper-hook.
+
+	* text.texi (Buffer Contents):
+	Update filter-buffer-substring description.
+
+2012-02-04  Chong Yidong  <cyd@gnu.org>
+
+	* functions.texi (What Is a Function): Add closures.  Mention
+	"return value" terminology.  Add xref for command-execute.  Remove
+	unused "keystroke command" terminology.
+	(Lambda Expressions): Give a different example than in the
+	following subsection.  Add xref to Anonymous Functions.
+	(Function Documentation): Remove gratuitous markup.
+	(Function Names): Move introductory text to `What Is a Function'.
+	(Defining Functions): Fix defun argument spec.
+	(Anonymous Functions): Document lambda macro explicitly.  Mention
+	effects on lexical binding.
+	(Function Cells): Downplay direct usage of fset.
+	(Closures): New node.
+	(Inline Functions): Remove "open-code" terminology.
+	(Declaring Functions): Minor tweak; .m is not C code.
+
+	* variables.texi (Variables): Don't refer to "global value".
+	(Local Variables, Void Variables): Copyedits.
+	(Lexical Binding): Minor clarification of example.
+	(File Local Variables): Mention :safe and :risky defcustom args.
+	(Lexical Binding): Add xref to Closures node.
+
+2012-02-04  Glenn Morris  <rgm@gnu.org>
+
+	* minibuf.texi (High-Level Completion): Updates for read-color.
+
+2012-02-03  Glenn Morris  <rgm@gnu.org>
+
+	* display.texi (GIF Images): Mention animation.
+	Remove commented-out old example of animation.
+	(Animated Images): New subsection.
+	* elisp.texi (Top):
+	* vol1.texi (Top):
+	* vol2.texi (Top): Add Animated Images menu entry.
+
+	* display.texi (Image Formats): Remove oddly specific information
+	on versions of image libraries.
+	(GIF Images, TIFF Images): Minor rephrasing.
+
+2012-02-02  Glenn Morris  <rgm@gnu.org>
+
+	* processes.texi (Synchronous Processes):
+	Mention call-process's :file gets overwritten.
+
+	* commands.texi (Reading One Event):
+	* help.texi (Help Functions): Document read-char-choice.
+
+	* hooks.texi (Standard Hooks):
+	* modes.texi (Keymaps and Minor Modes):
+	* text.texi (Commands for Insertion): Document post-self-insert-hook.
+
+	* hooks.texi (Standard Hooks): Add prog-mode-hook.
+
+	* hooks.texi (Standard Hooks):
+	* modes.texi (Major Mode Conventions, Mode Hooks):
+	Document change-major-mode-after-body-hook.
+
+2012-02-01  Glenn Morris  <rgm@gnu.org>
+
+	* modes.texi (Defining Minor Modes):
+	Mention disabling global minor modes on a per-major-mode basis.
+
+2012-01-31  Chong Yidong  <cyd@gnu.org>
+
+	* syntax.texi (Parsing Expressions): Clarify intro (Bug#10657).
+	(Parser State): Remove unnecessary statement (Bug#10661).
+
+	* eval.texi (Intro Eval): Add footnote about "sexp" terminology.
+
+2012-01-31  Glenn Morris  <rgm@gnu.org>
+
+	* modes.texi (Defining Minor Modes):
+	Document define-minor-mode's new :variable keyword.
+
+2012-01-29  Chong Yidong  <cyd@gnu.org>
+
+	* syntax.texi (Syntax Class Table): Tweak description of newline
+	char syntax (Bug#9619).
+
+	* numbers.texi (Predicates on Numbers): Fix wholenump/natnump
+	description (Bug#10189).
+
+2012-01-29  Glenn Morris  <rgm@gnu.org>
+
+	* files.texi (Changing Files): Document SELinux support.
+
+	* windows.texi (Window Sizes): Fix typo.
+
+2012-01-28  Chong Yidong  <cyd@gnu.org>
+
+	* display.texi (Fringe Indicators): Clarify fringe-indicator-alist
+	doc (Bug#8568).
+
+	* frames.texi (Input Focus): Add NORECORD arg to
+	select-frame-set-input-focus.  Clarify its role in select-frame.
+
+	* text.texi (Transposition): We don't use transpose-region as an
+	internal subroutine (Bug#3249).
+
+	* modes.texi (Example Major Modes): Update Lisp example code to
+	current sources.  Delete the old non-derived-major-mode example,
+	which has diverged badly from current sources.
+
+2012-01-27  Glenn Morris  <rgm@gnu.org>
+
+	* makefile.w32-in (texinputdir): Fix (presumed) typo.
+	(VERSION, manual): Remove, unused.
+
+2012-01-27  Chong Yidong  <cyd@gnu.org>
+
+	* commands.texi (Command Overview): Minor clarification (Bug#10384).
+
+2012-01-26  Chong Yidong  <cyd@gnu.org>
+
+	* searching.texi (String Search): Document negative repeat count
+	(Bug#10507).
+
+2012-01-26  Glenn Morris  <rgm@gnu.org>
+
+	* variables.texi (Using Lexical Binding):
+	Mention that lexical-binding should be set in the first line.
+
+2012-01-26  Lars Ingebrigtsen  <larsi@gnus.org>
+
+	* macros.texi (Defining Macros): Don't claim that `declare' only
+	affects Edebug and indentation.
+
+2012-01-25  Lars Ingebrigtsen  <larsi@gnus.org>
+
+	* macros.texi (Defining Macros): Slight `declare' fixup.
+
+2012-01-25  Glenn Morris  <rgm@gnu.org>
+
+	* makefile.w32-in (texinputdir):
+	* Makefile.in (ENVADD): Add $emacsdir.  (Bug#10603)
+
+2012-01-24  Chong Yidong  <cyd@gnu.org>
+
+	* variables.texi (Variables, Local Variables, Void Variables):
+	Edit to make the descriptions less specific to dynamic binding.
+	(Local Variables): Default max-specpdl-size is now 1300.
+	(Defining Variables): Edits for lexical scoping.  Delete
+	information about starting docstrings with *.  De-document
+	user-variable-p.
+	(Tips for Defining): Remove an unimportant discussion of quitting
+	in the middle of a load.
+	(Accessing Variables, Setting Variables): Discuss lexical binding.
+	(Variable Scoping): Rewrite.
+	(Scope, Extent, Impl of Scope): Nodes deleted.
+	(Dynamic Binding): New node, with material from Scope, Extent, and
+	Impl of Scope nodes.
+	(Dynamic Binding Tips): Rename from Using Scoping.
+	(Lexical Binding): Rewrite.
+	(Using Lexical Binding): Rename from Converting to Lexical
+	Binding.  Convert to subsection.
+
+	* customize.texi (Variable Definitions): Add custom-variable-p.
+	Move user-variable-p documentation here.
+
+2012-01-23  Chong Yidong  <cyd@gnu.org>
+
+	* strings.texi (Text Comparison): Minor qualification.
+
+	* lists.texi (Cons Cells): Copyedits.
+	(List Elements): Mention push.
+	(List Variables): Mention pop.
+	(Rings): Move to sequences.texi.
+
+	* sequences.texi (Sequence Functions): Don't repeat the
+	introduction already given in the parent.
+	(Vectors): Copyedits.
+	(Rings): Move from lists.texi.  Note that this is specific to the
+	ring package.
+
+	* symbols.texi (Definitions, Symbol Components): Mention variable
+	scoping issues.
+	(Plists and Alists): Copyedits.
+
+	* eval.texi (Intro Eval, Symbol Forms): Minor tweaks for
+	correctness with lexical scoping.
+	(Eval): Copyedits.
+
+2012-01-21  Chong Yidong  <cyd@gnu.org>
+
+	* intro.texi (A Sample Function Description): Special notation
+	used for macros too.
+
+	* objects.texi (Ctl-Char Syntax, Other Char Bits): Copyedits.
+	(Symbol Type): Add xref for keyword symbols.
+	(Sequence Type): Clarify differences between sequence types.
+	(Cons Cell Type): Add "linked list" index entry.
+	(Non-ASCII in Strings): Copyedits.
+	(Equality Predicates): Symbols with same name need not be eq.
+
+	* numbers.texi (Float Basics): Document isnan, copysign, frexp and
+	ldexp.  Move float-e and float-pi to Math Functions node.
+
+2012-01-21  Glenn Morris  <rgm@gnu.org>
+
+	* modes.texi (Auto Major Mode):
+	* variables.texi (File Local Variables):
+	Mention inhibit-local-variables-regexps.
+
+2012-01-19  Martin Rudalics  <rudalics@gmx.at>
+
+	* windows.texi (Window Configurations): Rewrite references to
+	persistent window parameters.
+	(Window Parameters): Fix description of persistent window
+	parameters.
+
 2012-01-16  Juanma Barranquero  <lekktu@gmail.com>
 
 	* windows.texi (Window Parameters): Use @pxref.

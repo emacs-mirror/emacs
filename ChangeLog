@@ -1,3 +1,47 @@
+2012-02-05  Christoph Scholtes  <cschol2112@googlemail.com>
+
+	* make-dist (README.W32): Include file in source tarball. (Bug#9750)
+
+	* lib/makefile.w32-in (PRAGMA_SYSTEM_HEADER): Move to platform
+	specific makefiles to support getopt_.h generation with MSVC.
+
+2012-02-04  Glenn Morris  <rgm@gnu.org>
+
+	* Makefile.in (uninstall):
+	Handle compressed info files and man pages.  (Bug#10718)
+
+2012-02-02  Glenn Morris  <rgm@gnu.org>
+
+	* configure.in [HAVE_NS]:
+	Error if use --without-toolkit-scroll-bars.  (Bug#10673)
+
+2012-02-01  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Port to older Solaris 10 versions (Bug#10677).
+	Bug reported by Chong Yidong for SunOS 5.10 Generic_127111-11 sparc.
+	I cannot reproduce it on SunOS 5.10 Generic_141444-09 sparc but
+	possibly this is because Sun fixed the 'stat' bug in my version.
+	* Makefile.in (GNULIB_TOOL_FLAGS): Do not avoid the pathmax module.
+	* lib/pathmax.h, m4/pathmax.m4: New files, from gnulib.
+	* lib/gnulib.mk, m4/gl-comp.m4: Regenerate.
+	These changes are based on gnulib version
+	4f11d6bebc3098c64ffde27079ab0d0cecfd0cdc dated 2011-10-07 20:59:10,
+	because Emacs is in feature freeze and we do not want to merge any
+	more-recent changes from gnulib.
+
+2012-01-31  Glenn Morris  <rgm@gnu.org>
+
+	* configure.in: Throw an explicit error if Motif toolkit was
+	requested but requirements could not be found.
+
+	* configure.in: Allow Emacs to actually be built with xaw scroll-bars.
+
+2012-01-30  Eli Zaretskii  <eliz@gnu.org>
+
+	* lib/makefile.w32-in ($(BLD)/sha1.$(O) $(BLD)/sha256.$(O)
+	$(BLD)/sha512.$(O)): Depend on stamp_BLD.  Fixes a build failure
+	with "make -j3".
+
 2012-01-16  Juanma Barranquero  <lekktu@gmail.com>
 
 	* .bzrignore: Ignore etc/__pycache__.

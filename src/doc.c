@@ -507,9 +507,11 @@ aren't strings.  */)
 /* Scanning the DOC files and placing docstring offsets into functions.  */
 
 static void
-store_function_docstring (Lisp_Object fun, ptrdiff_t offset)
+store_function_docstring (Lisp_Object obj, ptrdiff_t offset)
 {
-  fun = indirect_function (fun);
+  /* Don't use indirect_function here, or defaliases will apply their
+     docstrings to the base functions (Bug#2603).  */
+  Lisp_Object fun = SYMBOLP (obj) ? XSYMBOL (obj)->function : obj;
 
   /* The type determines where the docstring is stored.  */
 

@@ -636,7 +636,8 @@ resize_bloc (bloc_ptr bloc, SIZE size)
             }
 	  else
 	    {
-	      memmove (b->new_data, b->data, b->size);
+	      if (b->new_data != b->data)
+		memmove (b->new_data, b->data, b->size);
 	      *b->variable = b->data = b->new_data;
             }
 	}
@@ -647,7 +648,8 @@ resize_bloc (bloc_ptr bloc, SIZE size)
 	}
       else
 	{
-	  memmove (bloc->new_data, bloc->data, old_size);
+	  if (bloc->new_data != bloc->data)
+	    memmove (bloc->new_data, bloc->data, old_size);
 	  memset ((char *) bloc->new_data + old_size, 0, size - old_size);
 	  *bloc->variable = bloc->data = bloc->new_data;
 	}
@@ -663,7 +665,8 @@ resize_bloc (bloc_ptr bloc, SIZE size)
             }
 	  else
 	    {
-	      memmove (b->new_data, b->data, b->size);
+	      if (b->new_data != b->data)
+		memmove (b->new_data, b->data, b->size);
 	      *b->variable = b->data = b->new_data;
 	    }
 	}
@@ -816,7 +819,8 @@ r_alloc_sbrk (long int size)
 	     header.  */
 	  for (b = last_bloc; b != NIL_BLOC; b = b->prev)
 	    {
-	      memmove (b->new_data, b->data, b->size);
+	      if (b->new_data != b->data)
+		memmove (b->new_data, b->data, b->size);
 	      *b->variable = b->data = b->new_data;
 	    }
 
@@ -862,7 +866,8 @@ r_alloc_sbrk (long int size)
 
 	  for (b = first_bloc; b != NIL_BLOC; b = b->next)
 	    {
-	      memmove (b->new_data, b->data, b->size);
+	      if (b->new_data != b->data)
+		memmove (b->new_data, b->data, b->size);
 	      *b->variable = b->data = b->new_data;
 	    }
 	}

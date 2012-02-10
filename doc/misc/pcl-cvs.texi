@@ -6,8 +6,7 @@
 @c %**end of header
 
 @copying
-Copyright @copyright{} 1991-2012
-Free Software Foundation, Inc.
+Copyright @copyright{} 1991-2012 Free Software Foundation, Inc.
 
 @quotation
 Permission is granted to copy, distribute and/or modify this document
@@ -136,10 +135,9 @@ Customization
 PCL-CVS is a front-end to CVS versions 1.9 and later.
 It concisely shows the present status of a checked out module in an
 Emacs buffer and provides single-key access to the most frequently used CVS
-commands.
-For Emacs users accustomed to VC, PCL-CVS can be thought of as a replacement
-for VC-dired (@pxref{VC Directory Mode, , , emacs, The GNU
-Emacs Manual}) specifically designed for CVS.
+commands.  Note that the @code{vc-dir} command (@pxref{VC Directory
+Mode, , , emacs, The GNU Emacs Manual}) provides similar
+functionality, but for several version control systems, including CVS.
 
 PCL-CVS was originally written many years ago by Per Cederqvist who
 proudly maintained it until January 1996, at which point he released the

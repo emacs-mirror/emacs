@@ -1,3 +1,8 @@
+2012-01-19  Glenn Morris  <rgm@gnu.org>
+
+	* bzrmerge.el (bzrmerge-missing): Allow a definitive "no" answer to the
+	"skip?" question, since there can be multiple such for any revision.
+
 2012-01-14  Eli Zaretskii  <eliz@gnu.org>
 
 	* FOR-RELEASE (Check the Emacs Tutorial): Mark TUTORIAL.he as

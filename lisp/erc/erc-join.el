@@ -75,6 +75,7 @@ If the value is `ident', autojoin after successful NickServ
 identification, or after `erc-autojoin-delay' seconds.
 Any other value means the same as `connect'."
   :group 'erc-autojoin
+  :version "24.1"
   :type  '(choice (const :tag "On Connection" 'connect)
 		  (const :tag "When Identified" 'ident)))
 
@@ -84,6 +85,7 @@ This only takes effect if `erc-autojoin-timing' is `ident'.
 If NickServ identification occurs before this delay expires, ERC
 autojoins immediately at that time."
   :group 'erc-autojoin
+  :version "24.1"
   :type  'integer)
 
 (defcustom erc-autojoin-domain-only t

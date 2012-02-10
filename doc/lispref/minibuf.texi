@@ -1335,19 +1335,19 @@ but uses the predicate @code{user-variable-p} instead of
 @deffn Command read-color &optional prompt convert allow-empty display
 This function reads a string that is a color specification, either the
 color's name or an RGB hex value such as @code{#RRRGGGBBB}.  It
-prompts with @var{prompt} (default: @code{"Color (name or #R+G+B+):"})
+prompts with @var{prompt} (default: @code{"Color (name or #RGB triplet):"})
 and provides completion for color names, but not for hex RGB values.
 In addition to names of standard colors, completion candidates include
 the foreground and background colors at point.
 
 Valid RGB values are described in @ref{Color Names}.
 
-The function's return value is the color name typed by the user in the
+The function's return value is the string typed by the user in the
 minibuffer.  However, when called interactively or if the optional
-argument @var{convert} is non-@code{nil}, it converts the name into
-the color's RGB value and returns that value as a string.  If an
-invalid color name was specified, this function signals an error,
-except that empty color names are allowed when @code{allow-empty} is
+argument @var{convert} is non-@code{nil}, it converts any input color
+name into the corresponding RGB value string and instead returns that.
+This function requires a valid color specification to be input.
+Empty color names are allowed when @code{allow-empty} is
 non-@code{nil} and the user enters null input.
 
 Interactively, or when @var{display} is non-@code{nil}, the return

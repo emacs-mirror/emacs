@@ -1626,7 +1626,7 @@ slower."
     ("nnagent" post-mail)
     ("nnimap" post-mail address prompt-address physical-address respool
      server-marks)
-    ("nnmaildir" mail respool address)
+    ("nnmaildir" mail respool address server-marks)
     ("nnnil" none))
   "*An alist of valid select methods.
 The first element of each list lists should be a string with the name
@@ -3609,6 +3609,13 @@ that that variable is buffer-local to the summary buffers."
       ;; If p2 now is empty, they were equal.
       (null p2))))
 
+(defun gnus-method-ephemeral-p (method)
+  (let ((equal nil))
+    (dolist (ephemeral gnus-ephemeral-servers)
+      (when (gnus-sloppily-equal-method-parameters method ephemeral)
+	(setq equal t)))
+    equal))
+
 (defun gnus-methods-sloppily-equal (m1 m2)
   ;; Same method.
   (or
@@ -3877,7 +3884,7 @@ If SYMBOL, return the value of that symbol in the group parameters.
 
 If you call this function inside a loop, consider using the faster
 `gnus-group-fast-parameter' instead."
-  (with-current-buffer (if (buffer-live-p gnus-group-buffer)
+  (with-current-buffer (if (buffer-live-p (get-buffer gnus-group-buffer))
 			   gnus-group-buffer
 			 (current-buffer))
     (if symbol
@@ -4116,12 +4123,17 @@ parameters."
   (if (or (not (inline (gnus-similar-server-opened method)))
 	  (not (cddr method)))
       method
-    (setq method
-	  `(,(car method) ,(concat (cadr method) "+" group)
-	    (,(intern (format "%s-address" (car method))) ,(cadr method))
-	    ,@(cddr method)))
-    (push method gnus-extended-servers)
-    method))
+    (let ((address-slot
+	   (intern (format "%s-address" (car method)))))
+      (setq method
+	    (if (assq address-slot (cddr method))
+		`(,(car method) ,(concat (cadr method) "+" group)
+		  ,@(cddr method))
+	      `(,(car method) ,(concat (cadr method) "+" group)
+		(,address-slot ,(cadr method))
+		,@(cddr method))))
+      (push method gnus-extended-servers)
+      method)))
 
 (defun gnus-server-status (method)
   "Return the status of METHOD."

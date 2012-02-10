@@ -49,7 +49,6 @@ This function searches forward from point for an exact match for
 @var{string}.  If successful, it sets point to the end of the occurrence
 found, and returns the new value of point.  If no match is found, the
 value and side effects depend on @var{noerror} (see below).
-@c Emacs 19 feature
 
 In the following example, point is initially at the beginning of the
 line.  Then @code{(search-forward "fox")} moves point after the last
@@ -91,18 +90,21 @@ The argument @var{noerror} only affects valid searches which fail to
 find a match.  Invalid arguments cause errors regardless of
 @var{noerror}.
 
-If @var{repeat} is supplied (it must be a positive number), then the
-search is repeated that many times (each time starting at the end of the
-previous time's match).  If these successive searches succeed, the
-function succeeds, moving point and returning its new value.  Otherwise
-the search fails, with results depending on the value of
-@var{noerror}, as described above.
+If @var{repeat} is a positive number @var{n}, it serves as a repeat
+count: the search is repeated @var{n} times, each time starting at the
+end of the previous time's match.  If these successive searches
+succeed, the function succeeds, moving point and returning its new
+value.  Otherwise the search fails, with results depending on the
+value of @var{noerror}, as described above.  If @var{repeat} is a
+negative number -@var{n}, it serves as a repeat count of @var{n} for a
+search in the opposite (backward) direction.
 @end deffn
 
 @deffn Command search-backward string &optional limit noerror repeat
 This function searches backward from point for @var{string}.  It is
-just like @code{search-forward} except that it searches backwards and
-leaves point at the beginning of the match.
+like @code{search-forward}, except that it searches backwards rather
+than forwards.  Backward searches leave point at the beginning of the
+match.
 @end deffn
 
 @deffn Command word-search-forward string &optional limit noerror repeat

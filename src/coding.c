@@ -855,7 +855,7 @@ static void coding_alloc_by_making_gap (struct coding_system *,
 static unsigned char *alloc_destination (struct coding_system *,
                                          ptrdiff_t, unsigned char *);
 static void setup_iso_safe_charsets (Lisp_Object);
-static int encode_designation_at_bol (struct coding_system *,
+static ptrdiff_t encode_designation_at_bol (struct coding_system *,
 				      int *, int *, unsigned char *);
 static int detect_eol (const unsigned char *,
                        ptrdiff_t, enum coding_category);
@@ -4351,7 +4351,7 @@ encode_invocation_designation (struct charset *charset,
    If the current block ends before any end-of-line, we may fail to
    find all the necessary designations.  */
 
-static int
+static ptrdiff_t
 encode_designation_at_bol (struct coding_system *coding,
 			   int *charbuf, int *charbuf_end,
 			   unsigned char *dst)
@@ -6849,7 +6849,7 @@ produce_chars (struct coding_system *coding, Lisp_Object translation_table,
 			  dst_end = coding->destination + coding->dst_bytes;
 			  coding_set_source (coding);
 			  src = coding->source + offset;
-			  src_end = coding->source + coding->src_bytes;
+			  src_end = coding->source + coding->consumed;
 			  if (EQ (coding->src_object, coding->dst_object))
 			    dst_end = (unsigned char *) src;
 			}
@@ -6883,7 +6883,7 @@ produce_chars (struct coding_system *coding, Lisp_Object translation_table,
 			dst_end = coding->destination + coding->dst_bytes;
 			coding_set_source (coding);
 			src = coding->source + offset;
-			src_end = coding->source + coding->src_bytes;
+			src_end = coding->source + coding->consumed;
 			if (EQ (coding->src_object, coding->dst_object))
 			  dst_end = (unsigned char *) src;
 		      }
@@ -6904,7 +6904,7 @@ produce_chars (struct coding_system *coding, Lisp_Object translation_table,
 		  dst = alloc_destination (coding, require, dst);
 		  coding_set_source (coding);
 		  src = coding->source + offset;
-		  src_end = coding->source + coding->src_bytes;
+		  src_end = coding->source + coding->consumed;
 		}
 	    }
 	  produced_chars = coding->consumed_char;

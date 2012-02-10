@@ -341,7 +341,7 @@ GNULIB_MODULES = \
   mktime pthread_sigmask readlink \
   socklen stdarg stdio strftime strtoimax strtoumax symlink sys_stat
 GNULIB_TOOL_FLAGS = \
- --avoid=msvc-inval --avoid=msvc-nothrow --avoid=pathmax \
+ --avoid=msvc-inval --avoid=msvc-nothrow \
  --avoid=raise --avoid=threadlib \
  --conditional-dependencies --import --no-changelog --no-vc-files \
  --makefile-name=gnulib.mk
@@ -727,11 +727,16 @@ uninstall:
 	(cd $(DESTDIR)${infodir} && \
 	  for elt in $(INFO_FILES); do \
 	    $(INSTALL_INFO) --remove --info-dir=. $$elt; \
-	    for f in `ls $$elt $$elt-[1-9] $$elt-[1-9][0-9] 2>/dev/null`; do \
+	    if [ -n "${GZIP_INFO}" ] && [ -n "${GZIP_PROG}" ]; then \
+	       ext=.gz; else ext=; fi; \
+	    for f in `ls $$elt$$ext $$elt-[1-9]$$ext $$elt-[1-9][0-9]$$ext 2>/dev/null`; do \
 	      rm -f $$f; \
 	    done; \
 	  done;)
-	(cd $(DESTDIR)${man1dir}  && rm -f $(MAN_PAGES))
+	(if [ -n "${GZIP_INFO}" ] && [ -n "${GZIP_PROG}" ]; then \
+	    ext=.gz; else ext=; fi; \
+	 cd $(DESTDIR)${man1dir} && for page in ${MAN_PAGES}; do \
+	   rm -f $$page$$ext; done )
 	(cd $(DESTDIR)${bindir}  && rm -f $(EMACSFULL) $(EMACS))
 	(cd $(DESTDIR)${icondir} && rm -f hicolor/*x*/apps/emacs.png hicolor/*x*/apps/emacs22.png hicolor/scalable/apps/emacs.svg hicolor/scalable/mimetypes/emacs-document.svg )
 	-rm -f $(DESTDIR)${desktopdir}/emacs.desktop

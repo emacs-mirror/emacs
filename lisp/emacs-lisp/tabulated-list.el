@@ -1,4 +1,4 @@
-;;; tabulated-list.el --- generic major mode for tabulated lists.
+;;; tabulated-list.el --- generic major mode for tabulated lists -*- lexical-binding: t -*-
 
 ;; Copyright (C) 2011-2012 Free Software Foundation, Inc.
 
@@ -362,7 +362,6 @@ as the ewoc pretty-printer."
 
 ;; Local Variables:
 ;; coding: utf-8
-;; lexical-binding: t
 ;; End:
 
 ;;; tabulated-list.el ends here

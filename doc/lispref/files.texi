@@ -1480,7 +1480,7 @@ with @code{add-name-to-file} and then deleting @var{filename} has the
 same effect as renaming, aside from momentary intermediate states.
 @end deffn
 
-@deffn Command copy-file oldname newname &optional ok-if-exists time preserve-uid-gid
+@deffn Command copy-file oldname newname &optional ok-if-exists time preserve-uid-gid preserve-selinux
 This command copies the file @var{oldname} to @var{newname}.  An
 error is signaled if @var{oldname} does not exist.  If @var{newname}
 names a directory, it copies @var{oldname} into that directory,
@@ -1501,6 +1501,16 @@ usually set to the user running Emacs).  If @var{preserve-uid-gid} is
 non-@code{nil}, we attempt to copy the user and group ownership of the
 file.  This works only on some operating systems, and only if you have
 the correct permissions to do so.
+
+@cindex SELinux
+If the optional argument @var{preserve-selinux} is non-@code{nil}, we
+attempt to copy the SELinux@footnote{@samp{Security-Enhanced Linux}
+is a kernel feature that allows for finer access controls to be set on
+files, and a system security policy to define who can access what.
+The functions @code{file-selinux-context} and @code{set-file-selinux-context}
+get and set, respectively, the SELinux properties of a file.}
+context of the file.  For this to work, Emacs must have been built
+with libselinux support.
 @end deffn
 
 @deffn Command make-symbolic-link filename newname  &optional ok-if-exists
@@ -2852,24 +2862,21 @@ is a good way to come up with one.
 @end defun
 
 @defopt remote-file-name-inhibit-cache
-Whether to use the remote file-name cache for read access.
-
-File attributes of remote files are cached for better performance.  If
-they are changed out of Emacs' control, the cached values become
+The attributes of remote files can be cached for better performance.  If
+they are changed outside of Emacs's control, the cached values become
 invalid, and must be reread.
 
-When set to @code{nil}, cached values are always used.  This shall be
-set with care.  When set to @code{t}, cached values are never used.
-ALthough this is the safest value, it could result in performance
-degradation.
+When this variable is set to @code{nil}, cached values are never
+expired.  Use this setting with caution, only if you are sure nothing
+other than Emacs ever changes the remote files.  If it is set to
+@code{t}, cached values are never used.  This is the safest value, but
+could result in performance degradation.
 
 A compromise is to set it to a positive number.  This means that
 cached values are used for that amount of seconds since they were
-cached.
-
-In case a remote file is checked regularly, it might be reasonable to
-let-bind this variable to a value less then the time period between
-two checks.  Example:
+cached.  If a remote file is checked regularly, it might be a good
+idea to let-bind this variable to a value less than the time period
+between consecutive checks.  For example:
 
 @example
 (defun display-time-file-nonempty-p (file)

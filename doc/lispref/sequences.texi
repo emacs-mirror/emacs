@@ -8,10 +8,10 @@
 @chapter Sequences, Arrays, and Vectors
 @cindex sequence
 
-  Recall that the @dfn{sequence} type is the union of two other Lisp
-types: lists and arrays.  In other words, any list is a sequence, and
-any array is a sequence.  The common property that all sequences have is
-that each is an ordered collection of elements.
+  The @dfn{sequence} type is the union of two other Lisp types: lists
+and arrays.  In other words, any list is a sequence, and any array is
+a sequence.  The common property that all sequences have is that each
+is an ordered collection of elements.
 
   An @dfn{array} is a fixed-length object with a slot for each of its
 elements.  All the elements are accessible in constant time.  The four
@@ -54,19 +54,17 @@ But it is possible to add elements to the list, or remove elements.
 * Vector Functions::      Functions specifically for vectors.
 * Char-Tables::           How to work with char-tables.
 * Bool-Vectors::          How to work with bool-vectors.
+* Rings::                 Managing a fixed-size ring of objects.
 @end menu
 
 @node Sequence Functions
 @section Sequences
 
-  In Emacs Lisp, a @dfn{sequence} is either a list or an array.  The
-common property of all sequences is that they are ordered collections of
-elements.  This section describes functions that accept any kind of
-sequence.
+  This section describes functions that accept any kind of sequence.
 
 @defun sequencep object
-Returns @code{t} if @var{object} is a list, vector, string,
-bool-vector, or char-table, @code{nil} otherwise.
+This function returns @code{t} if @var{object} is a list, vector,
+string, bool-vector, or char-table, @code{nil} otherwise.
 @end defun
 
 @defun length sequence
@@ -149,8 +147,9 @@ This function generalizes @code{aref} (@pxref{Array Functions}) and
 
 @defun copy-sequence sequence
 @cindex copying sequences
-Returns a copy of @var{sequence}.  The copy is the same type of object
-as the original sequence, and it has the same elements in the same order.
+This function returns a copy of @var{sequence}.  The copy is the same
+type of object as the original sequence, and it has the same elements
+in the same order.
 
 Storing a new element into the copy does not affect the original
 @var{sequence}, and vice versa.  However, the elements of the new
@@ -394,8 +393,8 @@ symbol-lookup tables (@pxref{Creating Symbols}), as part of the
 representation of a byte-compiled function (@pxref{Byte Compilation}),
 and more.
 
-  In Emacs Lisp, the indices of the elements of a vector start from zero
-and count up from there.
+  Like other arrays, vectors use zero-origin indexing: the first
+element has index 0.
 
   Vectors are printed with square brackets surrounding the elements.
 Thus, a vector whose elements are the symbols @code{a}, @code{b} and
@@ -728,3 +727,96 @@ bv
 @noindent
 These results make sense because the binary codes for control-_ and
 control-W are 11111 and 10111, respectively.
+
+@node Rings
+@section Managing a Fixed-Size Ring of Objects
+
+@cindex ring data structure
+  A @dfn{ring} is a fixed-size data structure that supports insertion,
+deletion, rotation, and modulo-indexed reference and traversal.  An
+efficient ring data structure is implemented by the @code{ring}
+package.  It provides the functions listed in this section.
+
+  Note that several ``rings'' in Emacs, like the kill ring and the
+mark ring, are actually implemented as simple lists, @emph{not} using
+the @code{ring} package; thus the following functions won't work on
+them.
+
+@defun make-ring size
+This returns a new ring capable of holding @var{size} objects.
+@var{size} should be an integer.
+@end defun
+
+@defun ring-p object
+This returns @code{t} if @var{object} is a ring, @code{nil} otherwise.
+@end defun
+
+@defun ring-size ring
+This returns the maximum capacity of the @var{ring}.
+@end defun
+
+@defun ring-length ring
+This returns the number of objects that @var{ring} currently contains.
+The value will never exceed that returned by @code{ring-size}.
+@end defun
+
+@defun ring-elements ring
+This returns a list of the objects in @var{ring}, in order, newest first.
+@end defun
+
+@defun ring-copy ring
+This returns a new ring which is a copy of @var{ring}.
+The new ring contains the same (@code{eq}) objects as @var{ring}.
+@end defun
+
+@defun ring-empty-p ring
+This returns @code{t} if @var{ring} is empty, @code{nil} otherwise.
+@end defun
+
+  The newest element in the ring always has index 0.  Higher indices
+correspond to older elements.  Indices are computed modulo the ring
+length.  Index @minus{}1 corresponds to the oldest element, @minus{}2
+to the next-oldest, and so forth.
+
+@defun ring-ref ring index
+This returns the object in @var{ring} found at index @var{index}.
+@var{index} may be negative or greater than the ring length.  If
+@var{ring} is empty, @code{ring-ref} signals an error.
+@end defun
+
+@defun ring-insert ring object
+This inserts @var{object} into @var{ring}, making it the newest
+element, and returns @var{object}.
+
+If the ring is full, insertion removes the oldest element to
+make room for the new element.
+@end defun
+
+@defun ring-remove ring &optional index
+Remove an object from @var{ring}, and return that object.  The
+argument @var{index} specifies which item to remove; if it is
+@code{nil}, that means to remove the oldest item.  If @var{ring} is
+empty, @code{ring-remove} signals an error.
+@end defun
+
+@defun ring-insert-at-beginning ring object
+This inserts @var{object} into @var{ring}, treating it as the oldest
+element.  The return value is not significant.
+
+If the ring is full, this function removes the newest element to make
+room for the inserted element.
+@end defun
+
+@cindex fifo data structure
+  If you are careful not to exceed the ring size, you can
+use the ring as a first-in-first-out queue.  For example:
+
+@lisp
+(let ((fifo (make-ring 5)))
+  (mapc (lambda (obj) (ring-insert fifo obj))
+        '(0 one "two"))
+  (list (ring-remove fifo) t
+        (ring-remove fifo) t
+        (ring-remove fifo)))
+     @result{} (0 t one t "two")
+@end lisp

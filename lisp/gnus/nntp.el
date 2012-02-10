@@ -772,7 +772,11 @@ command whose response triggered the error."
   "Retrieve group info on INFOS."
   (nntp-with-open-group nil server
     (let ((buffer (nntp-find-connection-buffer nntp-server-buffer)))
+      (unless infos
+	(with-current-buffer buffer
+	  (setq nntp-retrieval-in-progress nil)))
       (when (and buffer
+		 infos
 		 (with-current-buffer buffer
 		   (not nntp-retrieval-in-progress)))
 	;; The first time this is run, this variable is `try'.  So we
@@ -1381,6 +1385,10 @@ password contained in '~/.nntp-authinfo'."
       (nnheader-cancel-timer timer))
     (when (and process
 	       (not (memq (process-status process) '(open run))))
+      (with-current-buffer pbuffer
+	(goto-char (point-min))
+	(nnheader-report 'nntp "Error when connecting: %s"
+			 (buffer-substring (point) (line-end-position))))
       (setq process nil))
     (unless process
       (nntp-kill-buffer pbuffer))

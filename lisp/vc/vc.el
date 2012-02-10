@@ -1880,7 +1880,8 @@ The headers are reset to their non-expanded form."
      "Enter a replacement change comment."
      "*vc-log*"
      (lambda () (vc-call-backend backend 'log-edit-mode))
-     (lexical-let ((rev rev))
+     (lexical-let ((rev rev)
+                   (backend backend))
        (lambda (files comment)
          (vc-call-backend backend
                           'modify-change-comment files rev comment))))))
@@ -1888,6 +1889,7 @@ The headers are reset to their non-expanded form."
 ;;;###autoload
 (defun vc-merge ()
   "Perform a version control merge operation.
+You must be visiting a version controlled file, or in a `vc-dir' buffer.
 On a distributed version control system, this runs a \"merge\"
 operation to incorporate changes from another branch onto the
 current branch, prompting for an argument list.
@@ -2365,6 +2367,7 @@ depending on the underlying version-control system."
 ;;;###autoload
 (defun vc-pull (&optional arg)
   "Update the current fileset or branch.
+You must be visiting a version controlled file, or in a `vc-dir' buffer.
 On a distributed version control system, this runs a \"pull\"
 operation to update the current branch, prompting for an argument
 list if required.  Optional prefix ARG forces a prompt.

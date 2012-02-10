@@ -186,7 +186,7 @@ When found, offer to remove them."
 (defcustom gnus-agent-auto-agentize-methods nil
   "Initially, all servers from these methods are agentized.
 The user may remove or add servers using the Server buffer.
-See Info node `(gnus)Server Buffer'."
+See Info nodes `(gnus)Server Buffer', `(gnus)Agent Variables'."
   :version "22.1"
   :type '(repeat symbol)
   :group 'gnus-agent)
@@ -3618,7 +3618,7 @@ articles in every agentized group? "))
                                 (setq r d
                                       d (directory-file-name d)))
                               ;; if ANY ancestor was NOT in keep hash and
-                              ;; it's already in to-remove, add it to
+                              ;; it's not already in to-remove, add it to
                               ;; to-remove.
                               (if (and r
                                        (not (member r to-remove)))

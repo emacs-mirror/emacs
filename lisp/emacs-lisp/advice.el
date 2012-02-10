@@ -348,10 +348,7 @@
 ;; first argument list defined in the list of before/around/after advices.
 ;; The values of <arglist> variables can be accessed/changed in the body of
 ;; an advice by simply referring to them by their original name, however,
-;; more portable argument access macros are also provided (see below).  For
-;; subrs/special-forms for which neither explicit argument list definitions
-;; are available, nor their documentation strings contain such definitions
-;; (as they do v19s), `(&rest ad-subr-args)' will be used.
+;; more portable argument access macros are also provided (see below).
 
 ;; <advised-docstring> is an optional, special documentation string which will
 ;; be expanded into a proper documentation string upon call of `documentation'.
@@ -491,17 +488,15 @@
 
 ;; @@@ Argument list mapping:
 ;; ==========================
-;; Because `defadvice' allows the specification of the argument list of the
-;; advised function we need a mapping mechanism that maps this argument list
-;; onto that of the original function. For example, somebody might specify
-;; `(sym newdef)' as the argument list of `fset', while advice might use
-;; `(&rest ad-subr-args)' as the argument list of the original function
-;; (depending on what Emacs version is used). Hence SYM and NEWDEF have to
-;; be properly mapped onto the &rest variable when the original definition is
-;; called. Advice automatically takes care of that mapping, hence, the advice
-;; programmer can specify an argument list without having to know about the
-;; exact structure of the original argument list as long as the new argument
-;; list takes a compatible number/magnitude of actual arguments.
+;; Because `defadvice' allows the specification of the argument list
+;; of the advised function we need a mapping mechanism that maps this
+;; argument list onto that of the original function. Hence SYM and
+;; NEWDEF have to be properly mapped onto the &rest variable when the
+;; original definition is called. Advice automatically takes care of
+;; that mapping, hence, the advice programmer can specify an argument
+;; list without having to know about the exact structure of the
+;; original argument list as long as the new argument list takes a
+;; compatible number/magnitude of actual arguments.
 
 ;; @@ Activation and deactivation:
 ;; ===============================
@@ -884,9 +879,6 @@
 ;; @@ Summary of forms with special meanings when used within an advice:
 ;; =====================================================================
 ;;   ad-return-value   name of the return value variable (get/settable)
-;;   ad-subr-args      name of &rest argument variable used for advised
-;;                     subrs whose actual argument list cannot be
-;;                     determined (get/settable)
 ;;   (ad-get-arg <pos>), (ad-get-args <pos>),
 ;;   (ad-set-arg <pos> <value>), (ad-set-args <pos> <value-list>)
 ;;                     argument access text macros to get/set the values of
@@ -2593,36 +2585,6 @@ For that it has to be fbound with a non-autoload definition."
 	 (fset symbol (symbol-function function))
 	 (byte-compile symbol)
 	 (fset function (symbol-function symbol))))))
-
-
-;; @@ Constructing advised definitions:
-;; ====================================
-;;
-;; Main design decisions about the form of advised definitions:
-;;
-;; A) How will original definitions be called?
-;; B) What will argument lists of advised functions look like?
-;;
-;; Ad A)
-;;    I chose to use function indirection for all four types of original
-;;    definitions (functions, macros, subrs and special forms), i.e., create
-;;    a unique symbol `ad-Orig-<name>' which is fbound to the original
-;;    definition and call it according to type and arguments.  Functions and
-;;    subrs that don't have any &rest arguments can be called directly in a
-;;    `(ad-Orig-<name> ....)' form.  If they have a &rest argument we have to
-;;    use `apply'.  Macros will be called with
-;;    `(macroexpand '(ad-Orig-<name> ....))', and special forms also need a
-;;    form like that with `eval' instead of `macroexpand'.
-;;
-;; Ad B)
-;;    Use original arguments where possible and `(&rest ad-subr-args)'
-;;    otherwise, even though this seems to be more complicated and less
-;;    uniform than a general `(&rest args)' approach.  My reason to still
-;;    do it that way is that in most cases my approach leads to the more
-;;    efficient form for the advised function, and portability (e.g., to
-;;    make the same advice work regardless of whether something is a
-;;    function or a subr) can still be achieved with argument access macros.
-
 
 (defun ad-prognify (forms)
   (cond ((<= (length forms) 1)

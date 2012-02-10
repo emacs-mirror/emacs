@@ -75,18 +75,22 @@ function yourself (@pxref{Keyboard Macros}).
 character causes @dfn{quitting} (@pxref{Quitting}).
 
 @defvar pre-command-hook
-The editor command loop runs this normal hook before each command.  At
-that time, @code{this-command} contains the command that is about to
-run, and @code{last-command} describes the previous command.
-@xref{Command Loop Info}.
+This normal hook is run by the editor command loop before it executes
+each command.  At that time, @code{this-command} contains the command
+that is about to run, and @code{last-command} describes the previous
+command.  @xref{Command Loop Info}.
 @end defvar
 
 @defvar post-command-hook
-The editor command loop runs this normal hook after each command
-(including commands terminated prematurely by quitting or by errors),
-and also when the command loop is first entered.  At that time,
-@code{this-command} refers to the command that just ran, and
-@code{last-command} refers to the command before that.
+This normal hook is run by the editor command loop after it executes
+each command (including commands terminated prematurely by quitting or
+by errors).  At that time, @code{this-command} refers to the command
+that just ran, and @code{last-command} refers to the command before
+that.
+
+This hook is also run when Emacs first enters the command loop (at
+which point @code{this-command} and @code{last-command} are both
+@code{nil}).
 @end defvar
 
   Quitting is suppressed while running @code{pre-command-hook} and
@@ -1692,6 +1696,7 @@ parameters are used to display the help-echo text are described in
 These events are generated when the Emacs process receives
 the signals @code{SIGUSR1} and @code{SIGUSR2}.  They contain no
 additional data because signals do not carry additional information.
+They can be useful for debugging (@pxref{Error Debugging}).
 
 To catch a user signal, bind the corresponding event to an interactive
 command in the @code{special-event-map} (@pxref{Active Keymaps}).
@@ -2466,6 +2471,17 @@ and @code{key-translation-map} (@pxref{Translation Keymaps}).
 
 The argument @var{prompt} is either a string to be displayed in the
 echo area as a prompt, or @code{nil}, meaning not to display a prompt.
+@end defun
+
+@defun read-char-choice prompt chars &optional inhibit-quit
+This function uses @code{read-key} to read and return a single
+character.  It ignores any input that is not a member of @var{chars},
+a list of accepted characters.  Optionally, it will also ignore
+keyboard-quit events while it is waiting for valid input.  If you bind
+@code{help-form} (@pxref{Help Functions}) to a non-@code{nil} value
+while calling @code{read-char-choice}, then pressing @code{help-char}
+causes it to evaluate @code{help-form} and display the result.  It
+then continues to wait for a valid input character, or keyboard-quit.
 @end defun
 
 @node Event Mod

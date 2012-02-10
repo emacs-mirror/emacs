@@ -243,7 +243,7 @@ PROPERTY is set persistent when KEY is a vector."
     (aset key 3 nil))
   (let ((hash (or (gethash key tramp-cache-data)
 		  (puthash key (make-hash-table :test 'equal)
-			    tramp-cache-data))))
+			   tramp-cache-data))))
     (puthash property value hash)
     (setq tramp-cache-data-changed t)
     (tramp-message key 7 "%s %s" property value)
@@ -329,10 +329,15 @@ KEY identifies the connection, it is either a process or a vector."
 	       tramp-cache-data-changed
 	       (stringp tramp-persistency-file-name))
       (let ((cache (copy-hash-table tramp-cache-data)))
-	;; Remove temporary data.
+	;; Remove temporary data.  If there is the key "login-as", we
+	;; don't save either, because all other properties might
+	;; depend on the login name, and we want to give the
+	;; possibility to use another login name later on.
 	(maphash
 	 (lambda (key value)
-	   (if (and (vectorp key) (not (tramp-file-name-localname key)))
+	   (if (and (vectorp key)
+		    (not (tramp-file-name-localname key))
+		    (not (gethash "login-as" value)))
 	       (progn
 		 (remhash "process-name" value)
 		 (remhash "process-buffer" value)

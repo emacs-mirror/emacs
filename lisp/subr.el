@@ -1373,16 +1373,19 @@ around the preceding ones, like a set of nested `around' advices.
 Each hook function should accept an argument list consisting of a
 function FUN, followed by the additional arguments in ARGS.
 
-The FUN passed to the first hook function in HOOK performs BODY,
-if it is called with arguments ARGS.  The FUN passed to each
-successive hook function is defined based on the preceding hook
-functions; if called with arguments ARGS, it does what the
-`with-wrapper-hook' call would do if the preceding hook functions
-were the only ones present in HOOK.
+The first hook function in HOOK is passed a FUN that, if it is called
+with arguments ARGS, performs BODY (i.e., the default operation).
+The FUN passed to each successive hook function is defined based
+on the preceding hook functions; if called with arguments ARGS,
+it does what the `with-wrapper-hook' call would do if the
+preceding hook functions were the only ones present in HOOK.
 
-In the function definition of each hook function, FUN can be
-called any number of times (including not calling it at all).
-That function definition is then used to construct the FUN passed
+Each hook function may call its FUN argument as many times as it wishes,
+including never.  In that case, such a hook function acts to replace
+the default definition altogether, and any preceding hook functions.
+Of course, a subsequent hook function may do the same thing.
+
+Each hook function definition is used to construct the FUN passed
 to the next hook function, if any.  The last (or \"outermost\")
 FUN is then called once."
   (declare (indent 2) (debug (form sexp body)))
@@ -1539,10 +1542,12 @@ if it is empty or a duplicate."
 
 (defun run-mode-hooks (&rest hooks)
   "Run mode hooks `delayed-mode-hooks' and HOOKS, or delay HOOKS.
-Execution is delayed if the variable `delay-mode-hooks' is non-nil.
-Otherwise, runs the mode hooks and then `after-change-major-mode-hook'.
-Major mode functions should use this instead of `run-hooks' when running their
-FOO-mode-hook."
+If the variable `delay-mode-hooks' is non-nil, does not run any hooks,
+just adds the HOOKS to the list `delayed-mode-hooks'.
+Otherwise, runs hooks in the sequence: `change-major-mode-after-body-hook',
+`delayed-mode-hooks' (in reverse order), HOOKS, and finally
+`after-change-major-mode-hook'.  Major mode functions should use
+this instead of `run-hooks' when running their FOO-mode-hook."
   (if delay-mode-hooks
       ;; Delaying case.
       (dolist (hook hooks)
@@ -1857,12 +1862,33 @@ FILE should be the name of a library, with no directory name."
 
 (defun display-delayed-warnings ()
   "Display delayed warnings from `delayed-warnings-list'.
-This is the default value of `delayed-warnings-hook'."
+Used from `delayed-warnings-hook' (which see)."
   (dolist (warning (nreverse delayed-warnings-list))
     (apply 'display-warning warning))
   (setq delayed-warnings-list nil))
 
-(defvar delayed-warnings-hook '(display-delayed-warnings)
+(defun collapse-delayed-warnings ()
+  "Remove duplicates from `delayed-warnings-list'.
+Collapse identical adjacent warnings into one (plus count).
+Used from `delayed-warnings-hook' (which see)."
+  (let ((count 1)
+        collapsed warning)
+    (while delayed-warnings-list
+      (setq warning (pop delayed-warnings-list))
+      (if (equal warning (car delayed-warnings-list))
+          (setq count (1+ count))
+        (when (> count 1)
+          (setcdr warning (cons (format "%s [%d times]" (cadr warning) count)
+                                (cddr warning)))
+          (setq count 1))
+        (push warning collapsed)))
+    (setq delayed-warnings-list (nreverse collapsed))))
+
+;; At present this is only really useful for Emacs internals.
+;; Document in the lispref if it becomes generally useful.
+;; Ref http://lists.gnu.org/archive/html/emacs-devel/2012-02/msg00085.html
+(defvar delayed-warnings-hook '(collapse-delayed-warnings
+                                display-delayed-warnings)
   "Normal hook run to process delayed warnings.
 Functions in this hook should access the `delayed-warnings-list'
 variable (which see) and remove from it the warnings they process.")
@@ -3193,7 +3219,7 @@ If BODY finishes, `while-no-input' returns whatever value BODY produced."
 	   (or (input-pending-p)
 	       (progn ,@body)))))))
 
-(defmacro condition-case-no-debug (var bodyform &rest handlers)
+(defmacro condition-case-unless-debug (var bodyform &rest handlers)
   "Like `condition-case' except that it does not catch anything when debugging.
 More specifically if `debug-on-error' is set, then it does not catch any signal."
   (declare (debug condition-case) (indent 2))
@@ -3205,6 +3231,9 @@ More specifically if `debug-on-error' is set, then it does not catch any signal.
              (funcall ,bodysym)
            ,@handlers)))))
 
+(define-obsolete-function-alias 'condition-case-no-debug
+  'condition-case-unless-debug "24.1")
+
 (defmacro with-demoted-errors (&rest body)
   "Run BODY and demote any errors to simple messages.
 If `debug-on-error' is non-nil, run BODY without catching its errors.
@@ -3212,7 +3241,7 @@ This is to be used around code which is not expected to signal an error
 but which should be robust in the unexpected case that an error is signaled."
   (declare (debug t) (indent 0))
   (let ((err (make-symbol "err")))
-    `(condition-case-no-debug ,err
+    `(condition-case-unless-debug ,err
          (progn ,@body)
        (error (message "Error: %S" ,err) nil))))
 

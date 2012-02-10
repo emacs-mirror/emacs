@@ -1172,7 +1172,22 @@ see `dired-use-ls-dired' for more details.")
 				  "\\015"
 				  (text-properties-at (match-beginning 0)))
 			   nil t))
-	  (set-marker end nil)))
+	  (set-marker end nil))
+      ;; Replace any newlines in DIR with literal "\n"s, for the sake
+      ;; of the header line.  To disambiguate a literal "\n" in the
+      ;; actual dirname, we also replace "\" with "\\".
+      ;; Personally, I think this should always be done, irrespective
+      ;; of the value of dired-actual-switches, because:
+      ;;  i) Dired simply does not work with an unescaped newline in
+      ;;  the directory name used in the header (bug=10469#28), and
+      ;;  ii) "\" is always replaced with "\\" in the listing, so doing
+      ;;  it in the header as well makes things consistent.
+      ;; But at present it is only done if "-b" is in ls-switches,
+      ;; because newlines in dirnames are uncommon, and people may
+      ;; have gotten used to seeing unescaped "\" in the headers.
+      ;; Note: adjust dired-build-subdir-alist if you change this.
+      (setq dir (replace-regexp-in-string "\\\\" "\\\\" dir nil t)
+            dir (replace-regexp-in-string "\n" "\\n" dir nil t)))
     (dired-insert-set-properties opoint (point))
     ;; If we used --dired and it worked, the lines are already indented.
     ;; Otherwise, indent them.
@@ -2541,12 +2556,31 @@ instead of `dired-actual-switches'."
 	    (delete-region (point) (match-end 1))
 	    (insert new-dir-name))
 	  (setq count (1+ count))
+	  ;; Undo any escaping of newlines and \ by dired-insert-directory.
+	  ;; Convert "n" preceded by odd number of \ to newline, and \\ to \.
+	  (when (and (dired-switches-escape-p switches)
+		     (string-match-p "\\\\" new-dir-name))
+	    (let (temp res)
+	      (mapc (lambda (char)
+		      (cond ((equal char ?\\)
+			     (if temp
+				 (setq res (concat res "\\")
+				       temp nil)
+			       (setq temp "\\")))
+			    ((and temp (equal char ?n))
+			     (setq res (concat res "\n")
+				   temp nil))
+			    (t
+			     (setq res (concat res temp (char-to-string char))
+				   temp nil))))
+		    new-dir-name)
+	      (setq new-dir-name res)))
 	  (dired-alist-add-1 new-dir-name
-			     ;; Place a sub directory boundary between lines.
-			     (save-excursion
-			       (goto-char (match-beginning 0))
-			       (beginning-of-line)
-			       (point-marker)))))
+           ;; Place a sub directory boundary between lines.
+           (save-excursion
+             (goto-char (match-beginning 0))
+             (beginning-of-line)
+             (point-marker)))))
       (if (and (> count 1) (called-interactively-p 'interactive))
 	  (message "Buffer includes %d directories" count)))
     ;; We don't need to sort it because it is in buffer order per
@@ -2606,6 +2640,20 @@ instead of `dired-actual-switches'."
 		  (replace-regexp-in-string "\^m" "\\^m" base nil t))
 	    (setq search-string
 		  (replace-regexp-in-string "\\\\" "\\\\" search-string nil t))
+	    (and (dired-switches-escape-p dired-actual-switches)
+		 (string-match "[ \t\n]" search-string)
+		 ;; FIXME to fix this for all possible file names
+		 ;; (embedded control characters etc), we need to
+		 ;; escape everything that `ls -b' does.
+		 (setq search-string
+		       (replace-regexp-in-string " " "\\ "
+						 search-string nil t)
+		       search-string
+		       (replace-regexp-in-string "\t" "\\t"
+						 search-string nil t)
+		       search-string
+		       (replace-regexp-in-string "\n" "\\n"
+						 search-string nil t)))
 	    (while (and (not found)
 			;; filenames are preceded by SPC, this makes
 			;; the search faster (e.g. for the filename "-"!).
@@ -3120,8 +3168,8 @@ object files--just `.o' will mark more than you might think."
     (dired-mark-if
      (and (not (looking-at dired-re-dot))
 	  (not (eolp))			; empty line
-	  (let ((fn (dired-get-filename nil t)))
-	    (and fn (string-match regexp (file-name-nondirectory fn)))))
+	  (let ((fn (dired-get-filename t t)))
+	    (and fn (string-match regexp fn))))
      "matching file")))
 
 (defun dired-mark-files-containing-regexp (regexp &optional marker-char)
@@ -4148,7 +4196,7 @@ instead.
 ;;;***
 
 ;;;### (autoloads (dired-do-relsymlink dired-jump-other-window dired-jump)
-;;;;;;  "dired-x" "dired-x.el" "85900e333d980b376bf820108ae1a1fc")
+;;;;;;  "dired-x" "dired-x.el" "8d995933a8d82be3a8662d7eff7543cc")
 ;;; Generated autoloads from dired-x.el
 
 (autoload 'dired-jump "dired-x" "\

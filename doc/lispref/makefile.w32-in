@@ -38,13 +38,8 @@ MAKEINFO_OPTS = --force --enable-encoding  -I$(srcdir) -I$(emacsdir)
 # The environment variable and its value to add $(srcdir) to the path
 # searched for TeX input files.
 texinputdir = $(srcdir)\..\..\nt\envadd.bat \
-		"TEXINPUTS=$(srcdir);$(texinputdir);$(TEXINPUTS)" \
+		"TEXINPUTS=$(srcdir);$(texinfodir);$(emacsdir);$(TEXINPUTS)" \
 		"MAKEINFO=$(MAKEINFO) $(MAKEINFO_OPTS)" /C
-
-# The name of the manual:
-VERSION=2.9
-## FIXME can this be set by configure, as per Makefile.in?
-manual = elisp-manual-23-$(VERSION)
 
 # List of all the texinfo files in the manual:
 

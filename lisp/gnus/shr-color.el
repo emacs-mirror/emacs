@@ -267,7 +267,8 @@ Like rgb() or hsl()."
      (t
       nil))))
 
-(defun set-minimum-interval (val1 val2 min max interval &optional fixed)
+(defun shr-color-set-minimum-interval (val1 val2 min max interval
+					    &optional fixed)
   "Set minimum interval between VAL1 and VAL2 to INTERVAL.
 The values are bound by MIN and MAX.
 If FIXED is t, then VAL1 will not be touched."
@@ -341,9 +342,9 @@ color will be adapted to be visible on BG."
 		 (>= luminance-distance shr-color-visible-luminance-min))
 	    (list bg fg)
 	  ;; Not visible, try to change luminance to make them visible
-	  (let ((Ls (set-minimum-interval (car bg-lab) (car fg-lab) 0 100
-					  shr-color-visible-luminance-min
-					  fixed-background)))
+	  (let ((Ls (shr-color-set-minimum-interval
+		     (car bg-lab) (car fg-lab) 0 100
+		     shr-color-visible-luminance-min fixed-background)))
 	    (unless fixed-background
 	      (setcar bg-lab (car Ls)))
 	    (setcar fg-lab (cadr Ls))

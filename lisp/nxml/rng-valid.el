@@ -475,7 +475,7 @@ The schema is set like `rng-auto-set-schema'."
     (save-restriction
       (widen)
       (nxml-with-invisible-motion
-	(condition-case-no-debug err
+	(condition-case-unless-debug err
 	    (and (rng-validate-prepare)
 		 (let ((rng-dt-namespace-context-getter '(nxml-ns-get-context)))
 		   (nxml-with-unmodifying-text-property-changes

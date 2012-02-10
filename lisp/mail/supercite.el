@@ -1,6 +1,6 @@
 ;;; supercite.el --- minor mode for citing mail and news replies
 
-;; Copyright (C) 1993, 1997, 2001-2012  Free Software Foundation, Inc.
+;; Copyright (C) 1993, 1997, 2001-2012 Free Software Foundation, Inc.
 
 ;; Author: 1993 Barry A. Warsaw <bwarsaw@python.org>
 ;; Maintainer:    Glenn Morris <rgm@gnu.org>
@@ -1847,8 +1847,7 @@ Note on function names in this list: all functions of the form
 ;; ======================================================================
 ;; published interface to mail and news readers
 
-(define-minor-mode sc-minor-mode
-  "Supercite minor mode."
+(define-minor-mode sc-minor-mode nil
   :group 'supercite
   :lighter (" SC" (sc-auto-fill-region-p
 		   (":f" (sc-fixup-whitespace-p "w"))

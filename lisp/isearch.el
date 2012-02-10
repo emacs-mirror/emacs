@@ -102,7 +102,7 @@ in Isearch mode is always downcased."
   :group 'isearch)
 
 (defcustom search-nonincremental-instead t
-  "If non-nil, do a nonincremental search instead if exiting immediately.
+  "If non-nil, do a nonincremental search instead of exiting immediately.
 Actually, `isearch-edit-string' is called to let you enter the search
 string, and RET terminates editing and does a nonincremental search."
   :type 'boolean
@@ -835,7 +835,8 @@ It is called by the function `isearch-forward' and other related functions."
 ;; Some high level utilities.  Others below.
 
 (defun isearch-update ()
-  ;; Called after each command to update the display.
+  "This is called after every isearch command to update the display.
+The last thing it does is to run `isearch-update-post-hook'."
   (if (and (null unread-command-events)
 	   (null executing-kbd-macro))
       (progn

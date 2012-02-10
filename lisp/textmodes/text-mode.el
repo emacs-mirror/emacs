@@ -63,8 +63,7 @@ You can thus get the full benefit of adaptive filling
  (see the variable `adaptive-fill-mode').
 \\{text-mode-map}
 Turning on Text mode runs the normal hook `text-mode-hook'."
-  (make-local-variable 'text-mode-variant)
-  (setq text-mode-variant t)
+  (set (make-local-variable 'text-mode-variant) t)
   (set (make-local-variable 'require-final-newline)
        mode-require-final-newline)
   (set (make-local-variable 'indent-line-function) 'indent-relative))

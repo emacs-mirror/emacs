@@ -1,6 +1,6 @@
 /* Implementation of GUI terminal on the Microsoft W32 API.
 
-Copyright (C) 1989, 1993-2012  Free Software Foundation, Inc.
+Copyright (C) 1989, 1993-2012 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -6432,7 +6432,7 @@ baseline level.  The default value is nil.  */);
 A value of nil means Emacs doesn't use toolkit scroll bars.
 With the X Window system, the value is a symbol describing the
 X toolkit.  Possible values are: gtk, motif, xaw, or xaw3d.
-With MS Windows, the value is t.  */);
+With MS Windows or Nextstep, the value is t.  */);
   Vx_toolkit_scroll_bars = Qt;
 
   staticpro (&last_mouse_motion_frame);

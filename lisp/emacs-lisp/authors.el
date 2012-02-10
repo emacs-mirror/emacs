@@ -421,7 +421,8 @@ Changes to files in this list are not listed.")
      "vt220.el" "vt240.el")
     ("Motorola" :changed "buff-menu.el")
     ("Hiroshi Nakano" :changed "ralloc.c")
-    ("Sundar Narasimhan" :changed "rnewspost.el")
+    ;; File removed in Emacs 24.1.
+;;;    ("Sundar Narasimhan" :changed "rnewspost.el")
     ;; No longer distributed.
 ;;;    ("NeXT, Inc." :wrote "unexnext.c")
     ("Mark Neale" :changed "fortran.el")

@@ -86,8 +86,17 @@ replacing its case-insensitive matches with the literal string in LIGHTER."
 ;;;###autoload
 (defmacro define-minor-mode (mode doc &optional init-value lighter keymap &rest body)
   "Define a new minor mode MODE.
-This defines the control variable MODE and the toggle command MODE.
+This defines the toggle command MODE and (by default) a control variable
+MODE (you can override this with the :variable keyword, see below).
 DOC is the documentation for the mode toggle command.
+
+The defined mode command takes one optional (prefix) argument.
+Interactively with no prefix argument it toggles the mode.
+With a prefix argument, it enables the mode if the argument is
+positive and otherwise disables it.  When called from Lisp, it
+enables the mode if the argument is omitted or nil, and toggles
+the mode if the argument is `toggle'.  If DOC is nil this
+function adds a basic doc-string stating these facts.
 
 Optional INIT-VALUE is the initial value of the mode's variable.
 Optional LIGHTER is displayed in the modeline when the mode is on.
@@ -113,15 +122,19 @@ BODY contains code to execute each time the mode is enabled or disabled.
 		buffer-local, so don't make the variable MODE buffer-local.
 		By default, the mode is buffer-local.
 :init-value VAL	Same as the INIT-VALUE argument.
+		Not used if you also specify :variable.
 :lighter SPEC	Same as the LIGHTER argument.
 :keymap MAP	Same as the KEYMAP argument.
 :require SYM	Same as in `defcustom'.
-:variable PLACE	The location (as can be used with `setf') to use instead
-		of the variable MODE to store the state of the mode.  PLACE
-		can also be of the form (GET . SET) where GET is an expression
-		that returns the current state and SET is a function that takes
-		a new state and sets it.  If you specify a :variable, this
-		function assumes it is defined elsewhere.
+:variable PLACE	The location to use instead of the variable MODE to store
+		the state of the mode.	This can be simply a different
+		named variable, or more generally anything that can be used
+		with the CL macro `setf'.  PLACE can also be of the form
+		\(GET . SET), where GET is an expression that returns the
+		current state, and SET is a function that takes one argument,
+		the new state, and sets it.  If you specify a :variable,
+		this function does not define a MODE variable (nor any of
+		the terms used in :variable).
 
 For example, you could write
   (define-minor-mode foo-mode \"If enabled, foo on you!\"
@@ -160,7 +173,7 @@ For example, you could write
 	 (hook (intern (concat mode-name "-hook")))
 	 (hook-on (intern (concat mode-name "-on-hook")))
 	 (hook-off (intern (concat mode-name "-off-hook")))
-	 keyw keymap-sym)
+	 keyw keymap-sym tmp)
 
     ;; Check keys.
     (while (keywordp (setq keyw (car body)))
@@ -177,7 +190,9 @@ For example, you could write
 	(:require (setq require (pop body)))
 	(:keymap (setq keymap (pop body)))
         (:variable (setq variable (pop body))
-         (if (not (functionp (cdr-safe variable)))
+         (if (not (and (setq tmp (cdr-safe variable))
+                       (or (symbolp tmp)
+                           (functionp tmp))))
              ;; PLACE is not of the form (GET . SET).
              (setq mode variable)
            (setq mode (car variable))
@@ -235,7 +250,7 @@ or call the function `%s'."))))
 	      (format (concat "Toggle %s on or off.
 With a prefix argument ARG, enable %s if ARG is
 positive, and disable it otherwise.  If called from Lisp, enable
-the mode if ARG is omitted or nil.
+the mode if ARG is omitted or nil, and toggle it if ARG is `toggle'.
 \\{%s}") pretty-name pretty-name keymap-sym))
 	 ;; Use `toggle' rather than (if ,mode 0 1) so that using
 	 ;; repeat-command still does the toggling correctly.
@@ -286,7 +301,7 @@ the mode if ARG is omitted or nil.
                            ,(if keymap keymap-sym
                                 `(if (boundp ',keymap-sym) ,keymap-sym))
                              nil
-                             ,(unless (eq mode modefun) 'modefun)))))))
+                             ,(unless (eq mode modefun) `',modefun)))))))
 
 ;;;
 ;;; make global minor mode

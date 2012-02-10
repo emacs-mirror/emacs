@@ -749,7 +749,7 @@ directory and source-file directory for your debugger."
 	   "Evaluate C dereferenced pointer expression at point.")
 
   ;; For debugging Emacs only.
-  (gud-def gud-pv "pv1 %e"      "\C-v" "Print the value of the lisp variable.")
+  (gud-def gud-pv "pv %e"      "\C-v" "Print the value of the lisp variable.")
 
   (gud-def gud-until  "until %l" "\C-u" "Continue to current line.")
   (gud-def gud-run    "run"	 nil    "Run the program.")
@@ -1646,8 +1646,8 @@ and source-file directory for your debugger."
   (gud-common-init command-line nil 'gud-pdb-marker-filter)
   (set (make-local-variable 'gud-minor-mode) 'pdb)
 
-  (gud-def gud-break  "break %f:%l"  "\C-b" "Set breakpoint at current line.")
-  (gud-def gud-remove "clear %f:%l"  "\C-d" "Remove breakpoint at current line")
+  (gud-def gud-break  "break %d%f:%l"  "\C-b" "Set breakpoint at current line.")
+  (gud-def gud-remove "clear %d%f:%l"  "\C-d" "Remove breakpoint at current line")
   (gud-def gud-step   "step"         "\C-s" "Step one source line with display.")
   (gud-def gud-next   "next"         "\C-n" "Step one line (skip functions).")
   (gud-def gud-cont   "continue"     "\C-r" "Continue with display.")

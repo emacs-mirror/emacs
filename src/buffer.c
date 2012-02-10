@@ -1022,7 +1022,10 @@ buffer_lisp_local_variables (struct buffer *buf)
       if (buf != current_buffer)
 	val = XCDR (elt);
 
-      result = Fcons (Fcons (XCAR (elt), val), result);
+      result = Fcons (EQ (val, Qunbound)
+		      ? XCAR (elt)
+		      : Fcons (XCAR (elt), val),
+		      result);
     }
 
   return result;
@@ -1064,9 +1067,12 @@ No argument or nil as argument means use current buffer as BUFFER.  */)
 	idx = PER_BUFFER_IDX (offset);
 	if ((idx == -1 || PER_BUFFER_VALUE_P (buf, idx))
 	    && SYMBOLP (PER_BUFFER_SYMBOL (offset)))
-	  result = Fcons (Fcons (PER_BUFFER_SYMBOL (offset),
-				 PER_BUFFER_VALUE (buf, offset)),
-			  result);
+	  {
+	    Lisp_Object sym = PER_BUFFER_SYMBOL (offset);
+	    Lisp_Object val = PER_BUFFER_VALUE (buf, offset);
+	    result = Fcons (EQ (val, Qunbound) ? sym : Fcons (sym, val),
+			    result);
+	  }
       }
   }
 

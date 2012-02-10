@@ -294,7 +294,7 @@ DEFUN ("isnan", Fisnan, Sisnan, 1, 1, 0,
 }
 
 #ifdef HAVE_COPYSIGN
-DEFUN ("copysign", Fcopysign, Scopysign, 1, 2, 0,
+DEFUN ("copysign", Fcopysign, Scopysign, 2, 2, 0,
        doc: /* Copy sign of X2 to value of X1, and return the result.
 Cause an error if X1 or X2 is not a float.  */)
   (Lisp_Object x1, Lisp_Object x2)

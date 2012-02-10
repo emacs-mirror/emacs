@@ -13,30 +13,35 @@ for a library to customize functions defined within Emacs---cleaner
 than redefining the whole function.
 
 @cindex piece of advice
-  Each function can have multiple @dfn{pieces of advice}, separately
-defined.  Each defined piece of advice can be @dfn{enabled} or
-@dfn{disabled} explicitly.  All the enabled pieces of advice for any given
-function actually take effect when you @dfn{activate} advice for that
+  Each function can have multiple @dfn{pieces of advice}, each of
+which can be separately defined and then @dfn{enabled} or
+@dfn{disabled}.  All the enabled pieces of advice for any given
+function actually take effect when you @dfn{activate advice} for that
 function, or when you define or redefine the function.  Note that
-enabling a piece of advice and activating advice for a function
-are not the same thing.
+enabling a piece of advice and activating advice for a function are
+not the same thing.
 
-  @strong{Usage Note:} Advice is useful for altering the behavior of
-existing calls to an existing function.  If you want the new behavior
-for new calls, or for key bindings, you should define a new function
-(or a new command) which uses the existing function.
+  Advice is useful for altering the behavior of existing calls to an
+existing function.  If you want the new behavior for new function
+calls or new key bindings, you should define a new function or
+command, and have it use the existing function as a subroutine.
 
-  @strong{Usage note:} Advising a function can cause confusion in
-debugging, since people who debug calls to the original function may
-not notice that it has been modified with advice.  Therefore, if you
-have the possibility to change the code of that function (or ask
-someone to do so) to run a hook, please solve the problem that way.
-Advice should be reserved for the cases where you cannot get the
-function changed.
+  Advising a function can cause confusion in debugging, since people
+who debug calls to the original function may not notice that it has
+been modified with advice.  Therefore, if you have the possibility to
+change the code of that function to run a hook, please solve the
+problem that way.  Advice should be reserved for the cases where you
+cannot get the function changed.  In particular, Emacs' own source
+files should not put advice on functions in Emacs.  There are
+currently a few exceptions to this convention, but we aim to correct
+them.
 
-  In particular, this means that a file in Emacs should not put advice
-on a function in Emacs.  There are currently a few exceptions to this
-convention, but we aim to correct them.
+  Unless you know what you are doing, do @emph{not} advise a primitive
+(@pxref{What Is a Function}).  Some primitives are used by the advice
+mechanism; advising them could cause an infinite recursion.  Also,
+many primitives are called directly from C code.  Calls to the
+primitive from Lisp code will take note of the advice, but calls from
+C code will ignore the advice.
 
 @menu
 * Simple Advice::           A simple example to explain the basics of advice.
@@ -48,7 +53,6 @@ convention, but we aim to correct them.
 * Preactivation::           Preactivation is a way of speeding up the
                               loading of compiled advice.
 * Argument Access in Advice:: How advice can access the function's arguments.
-* Advising Primitives::     Accessing arguments when advising a primitive.
 * Combined Definition::     How advice is implemented.
 @end menu
 
@@ -258,7 +262,7 @@ All subroutines used by the advice need to be available when the byte
 compiler expands the macro.
 
 @deffn Command ad-unadvise function
-This command deletes the advice from @var{function}.
+This command deletes all pieces of advice from @var{function}.
 @end deffn
 
 @deffn Command ad-unadvise-all
@@ -355,13 +359,13 @@ replaced with the new one.
 @cindex advice, activating
 
 By default, advice does not take effect when you define it---only when
-you @dfn{activate} advice for the function that was advised.  However,
-the advice will be activated automatically if you define or redefine
-the function later.  You can request the activation of advice for a
-function when you define the advice, by specifying the @code{activate}
-flag in the @code{defadvice}.  But normally you activate the advice
-for a function by calling the function @code{ad-activate} or one of
-the other activation commands listed below.
+you @dfn{activate} advice for the function.  However, the advice will
+be activated automatically if you define or redefine the function
+later.  You can request the activation of advice for a function when
+you define the advice, by specifying the @code{activate} flag in the
+@code{defadvice}; or you can activate the advice separately by calling
+the function @code{ad-activate} or one of the other activation
+commands listed below.
 
 Separating the activation of advice from the act of defining it permits
 you to add several pieces of advice to one function efficiently, without
@@ -679,39 +683,6 @@ will be 3, and @var{r} will be @code{(2 1 0)} inside the body of
 
   These argument constructs are not really implemented as Lisp macros.
 Instead they are implemented specially by the advice mechanism.
-
-@node Advising Primitives
-@section Advising Primitives
-@cindex advising primitives
-
-  Advising a primitive function (@pxref{What Is a Function}) is risky.
-Some primitive functions are used by the advice mechanism; advising
-them could cause an infinite recursion.  Also, many primitive
-functions are called directly from C code.  Calls to the primitive
-from Lisp code will take note of the advice, but calls from C code
-will ignore the advice.
-
-When the advice facility constructs the combined definition, it needs
-to know the argument list of the original function.  This is not
-always possible for primitive functions.  When advice cannot determine
-the argument list, it uses @code{(&rest ad-subr-args)}, which always
-works but is inefficient because it constructs a list of the argument
-values.  You can use @code{ad-define-subr-args} to declare the proper
-argument names for a primitive function:
-
-@defun ad-define-subr-args function arglist
-This function specifies that @var{arglist} should be used as the
-argument list for function @var{function}.
-@end defun
-
-For example,
-
-@example
-(ad-define-subr-args 'fset '(sym newdef))
-@end example
-
-@noindent
-specifies the argument list for the function @code{fset}.
 
 @node Combined Definition
 @section The Combined Definition

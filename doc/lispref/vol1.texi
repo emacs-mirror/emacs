@@ -390,6 +390,7 @@ Evaluation
 * Forms::                   How various sorts of objects are evaluated.
 * Quoting::                 Avoiding evaluation (to put constants in
                               the program).
+* Backquote::               Easier construction of list structure.
 * Eval::                    How to invoke the Lisp interpreter explicitly.
 
 Kinds of Forms
@@ -478,6 +479,7 @@ Functions
 * Anonymous Functions::     Lambda expressions are functions with no names.
 * Function Cells::          Accessing or setting the function definition
                               of a symbol.
+* Closures::                Functions that enclose a lexical environment.
 * Obsolete Functions::      Declaring functions obsolete.
 * Inline Functions::        Defining functions that the compiler
                               will open code.
@@ -500,7 +502,6 @@ Macros
 * Expansion::               How, when and why macros are expanded.
 * Compiling Macros::        How macros are expanded by the compiler.
 * Defining Macros::         How to write a macro definition.
-* Backquote::               Easier construction of list structure.
 * Problems with Macros::    Don't evaluate the macro arguments too many times.
                               Don't hide the user's variables.
 * Indenting Macros::        Specifying how to indent macro calls.
@@ -567,7 +568,6 @@ Advising Emacs Lisp Functions
 * Preactivation::           Preactivation is a way of speeding up the
                               loading of compiled advice.
 * Argument Access in Advice:: How advice can access the function's arguments.
-* Advising Primitives::     Accessing arguments when advising a primitive.
 * Combined Definition::     How advice is implemented.
 
 Debugging Lisp Programs
@@ -1081,7 +1081,7 @@ Text
 * Registers::               How registers are implemented.  Accessing
                               the text or position stored in a register.
 * Base 64::                 Conversion to or from base 64 encoding.
-* MD5 Checksum::            Compute the MD5 "message digest"/"checksum".
+* Checksum/Hash::           Computing "message digests"/"checksums"/"hashes".
 * Atomic Changes::          Installing several buffer changes "atomically".
 * Change Hooks::            Supplying functions to be run when text is changed.
 
@@ -1372,6 +1372,7 @@ Images
 * Defining Images::         Convenient ways to define an image for later use.
 * Showing Images::          Convenient ways to display an image once
                               it is defined.
+* Animated Images::         Some image formats can be animated.
 * Image Cache::             Internal mechanisms of image display.
 
 Buttons

@@ -74,11 +74,14 @@ If Emacs lacks asynchronous process support, this hook is run
 after `call-process' inserts the grep output into the buffer.")
 
 (defvar compilation-filter-start nil
-  "Start of the text inserted by `compilation-filter'.
-This is bound to a buffer position before running `compilation-filter-hook'.")
+  "Position of the start of the text inserted by `compilation-filter'.
+This is bound before running `compilation-filter-hook'.")
 
 (defvar compilation-first-column 1
-  "*This is how compilers number the first column, usually 1 or 0.")
+  "*This is how compilers number the first column, usually 1 or 0.
+If this is buffer-local in the destination buffer, Emacs obeys
+that value, otherwise it uses the value in the *compilation*
+buffer.  This enables a major-mode to specify its own value.")
 
 (defvar compilation-parse-errors-filename-function nil
   "Function to call to post-process filenames while parsing error messages.
@@ -547,7 +550,10 @@ Otherwise they are interpreted as character positions, with
 each character occupying one column.
 The default is to use screen columns, which requires that the compilation
 program and Emacs agree about the display width of the characters,
-especially the TAB character."
+especially the TAB character.
+If this is buffer-local in the destination buffer, Emacs obeys
+that value, otherwise it uses the value in the *compilation*
+buffer.  This enables a major-mode to specify its own value."
   :type 'boolean
   :group 'compilation
   :version "20.4")
@@ -1058,6 +1064,7 @@ FMTS is a list of format specs for transforming the file name.
 	 (marker
           (if marker-line (compilation--loc->marker (cadr marker-line))))
 	 (screen-columns compilation-error-screen-columns)
+	 (first-column compilation-first-column)
 	 end-marker loc end-loc)
     (if (not (and marker (marker-buffer marker)))
 	(setq marker nil)		; no valid marker for this file
@@ -1078,7 +1085,10 @@ FMTS is a list of format specs for transforming the file name.
                ;; Obey the compilation-error-screen-columns of the target
                ;; buffer if its major mode set it buffer-locally.
                (if (local-variable-p 'compilation-error-screen-columns)
-                   compilation-error-screen-columns screen-columns)))
+                   compilation-error-screen-columns screen-columns))
+	      (compilation-first-column
+               (if (local-variable-p 'compilation-first-column)
+                   compilation-first-column first-column)))
           (save-excursion
 	  (save-restriction
 	    (widen)
@@ -2271,6 +2281,7 @@ This is the value of `next-error-function' in Compilation buffers."
   (when reset
     (setq compilation-current-error nil))
   (let* ((screen-columns compilation-error-screen-columns)
+	 (first-column compilation-first-column)
 	 (last 1)
 	 (msg (compilation-next-error (or n 1) nil
 				      (or compilation-current-error
@@ -2309,7 +2320,10 @@ This is the value of `next-error-function' in Compilation buffers."
                ;; Obey the compilation-error-screen-columns of the target
                ;; buffer if its major mode set it buffer-locally.
                (if (local-variable-p 'compilation-error-screen-columns)
-                   compilation-error-screen-columns screen-columns)))
+                   compilation-error-screen-columns screen-columns))
+              (compilation-first-column
+               (if (local-variable-p 'compilation-first-column)
+                   compilation-first-column first-column)))
           (save-restriction
             (widen)
             (goto-char (point-min))

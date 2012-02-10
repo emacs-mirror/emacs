@@ -36,7 +36,7 @@ TEXI2DVI = texi2dvi
 TEXI2PDF = texi2pdf
 DVIPS = dvips
 
-ENVADD = TEXINPUTS="$(srcdir):$(texinfodir):$(TEXINPUTS)" \
+ENVADD = TEXINPUTS="$(srcdir):$(texinfodir):$(emacsdir):$(TEXINPUTS)" \
          MAKEINFO="$(MAKEINFO) $(MAKEINFO_OPTS)"
 
 # List of all the texinfo files in the manual:
