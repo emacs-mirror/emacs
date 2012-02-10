@@ -305,9 +305,6 @@ context in their return values.
 +++
 *** The new functions file-selinux-context and set-file-selinux-context
 get and set the SELinux context of a file.
----
-*** Tramp offers handlers for file-selinux-context and set-file-selinux-context
-for remote machines which support SELinux.
 
 ** Changes for exiting Emacs
 +++
@@ -385,9 +382,6 @@ If a theme is not in this list, Emacs queries before loading it, and
 offers to save the theme to `custom-safe-themes' automatically.  By
 default, all themes included in Emacs are treated as safe.
 
-** The user option `remote-file-name-inhibit-cache' controls whether
-the remote file-name cache is used for read access.
-
 ** File- and directory-local variable changes
 +++
 *** You can stop directory local vars from applying to subdirectories.
@@ -414,10 +408,10 @@ in the corresponding way.
 +++
 ** The variable `focus-follows-mouse' now always defaults to nil.
 
-** New primitive `secure-hash' that supports many secure hash algorithms
-including md5, sha-1 and sha-2 (sha-224, sha-256, sha-384 and sha-512).
-The elisp implementation sha1.el is removed. Feature sha1 is provided
-by default.
++++
+** New primitive `secure-hash' that supports many secure hash algorithms:
+md5, sha1, sha2, sha224, sha256, sha384, and sha512.  The lisp library
+sha1.el has been removed.  The `sha1' feature is provided by default.
 
 ** Menu-bar changes
 ---
@@ -465,9 +459,10 @@ These maximize and minimize the size of a window within its frame.
 These functions allow to navigate through the live buffers that have
 been shown in a specific window.
 
++++
 ** The inactive minibuffer has its own major mode `minibuffer-inactive-mode'.
-This is handy for minibuffer-only frames, and is also used for the "mouse-1
-pops up *Messages*" feature, which can now easily be changed.
+This is handy for minibuffer-only frames, and is also used for the feature
+where mouse-1 pops up *Messages*"', which can now easily be changed.
 
 
 * Editing Changes in Emacs 24.1
@@ -599,18 +594,16 @@ region (or with the left margin if there is no previous line).
 +++
 ** Archive Mode has basic support for browsing and updating 7z archives.
 
----
 ** BibTeX mode
-
+---
 *** BibTeX mode now supports biblatex.
-Use the variable bibtex-dialect to select support for different BibTeX
-dialects.  bibtex-entry-field-alist is now an obsolete alias for
-bibtex-BibTeX-entry-alist.
-
+Use the variable bibtex-dialect to select different BibTeX dialects.
+bibtex-entry-field-alist is now an obsolete alias forbibtex-BibTeX-entry-alist.
+---
 *** New command `bibtex-search-entries' bound to C-c C-a.
-
+---
 *** New `bibtex-entry-format' option `sort-fields', disabled by default.
-
+---
 *** New variable `bibtex-search-entry-globally'.
 
 ** Calendar, Diary, and Appt
@@ -854,12 +847,20 @@ sql-list-all and sql-list-table.
 ---
 *** The following access methods are discontinued: "ssh1_old",
 "ssh2_old", "scp1_old", "scp2_old", "imap", "imaps" and "fish".
++++
+*** The user option `remote-file-name-inhibit-cache' controls whether
+remote file attributes are cached for better performance.
 ---
 *** The option `ange-ftp-binary-file-name-regexp' has changed its
 default value to "".
+---
+*** Handlers for file-selinux-context and set-file-selinux-context for
+remote machines that support SELinux.
 
-** `url-queue-retrieve' downloads web pages asynchronously, but allow
-controlling the degree of parallelism.
++++
+** New function, `url-queue-retrieve', which behaves like url-retrieve,
+but with limits (`url-queue-parallel-processes', `url-queue-timeout') on
+the degree of parallelism.
 
 ** VC and related modes
 
@@ -921,6 +922,7 @@ You can get a comparable behavior with:
 ---
 *** pc-mode.el is obsolete (CUA mode is much more comprehensive).
 
+[FIXME gnus.texi, message.texi need updating]
 *** pgg is obsolete (use EasyPG instead)
 
 ---
@@ -958,16 +960,23 @@ They are superseded by shift-select-mode, enabled by default since 23.1.
 ** Occur Edit mode applies edits made in *Occur* buffers to the
 original buffers.  It is bound to "e" in Occur mode.
 
++++
 ** New global minor mode electric-pair-mode.
 When enabled, typing an open parenthesis automatically inserts the
 matching closing one.
 
++++
 ** New global minor mode electric-indent-mode.
 When enabled, typing certain characters triggers reindentation.
+Major modes wishing to use this can set electric-indent-chars or
+electric-indent-functions.
 
++++
 ** New global minor mode electric-layout-mode.
 When enabled, typing certain characters automatically inserts newlines.
+Major modes wishing to use this can set electric-layout-rules.
 
++++
 ** tabulated-list.el provides a generic major mode for tabulated data,
 from which other modes can be derived.
 
@@ -1297,8 +1306,11 @@ set of "wrapping" filters, similar to around advice.
 advertised at the time.)
 
 +++
-** The macros `condition-case-no-debug' and `with-demoted-errors' were
-added in Emacs 23.1, but not advertised.
+** New macro `condition-case-unless-debug' (this was actually added in
+Emacs 23.1 as condition-case-no-debug, but not advertised)
+
++++
+** The macro `with-demoted-errors' was added in Emacs 23.1, but not advertised.
 
 +++
 ** The new function `server-eval-at' allows evaluation of Lisp forms on

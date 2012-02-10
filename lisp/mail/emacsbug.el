@@ -32,6 +32,9 @@
 
 ;;; Code:
 
+(require 'sendmail)
+(require 'message)
+
 (defgroup emacsbug nil
   "Sending Emacs bug reports."
   :group 'maint
@@ -365,26 +368,7 @@ usually do not have translators for other languages.\n\n")))
          (string-equal (buffer-substring-no-properties (point-min) (point))
                        report-emacs-bug-orig-text)
          (error "No text entered in bug report"))
-    (or report-emacs-bug-no-confirmation
-	;; mailclient.el does not handle From (at present).
-	(if (derived-mode-p 'message-mode)
-	    (eq message-send-mail-function 'message-send-mail-with-mailclient)
-	  (eq send-mail-function 'mailclient-send-it))
-	;; Not narrowing to the headers, but that's OK.
-	(let ((from (mail-fetch-field "From")))
-	  (and (or (not from)
-		   (message-bogus-recipient-p from)
-		   ;; This is the default user-mail-address.  On today's
-		   ;; systems, it seems more likely to be wrong than right,
-		   ;; since most people don't run their own mail server.
-		   (string-match (format "\\<%s@%s\\>"
-					 (regexp-quote (user-login-name))
-					 (regexp-quote (system-name)))
-				 from))
-	       (not (yes-or-no-p
-		     (format "Is `%s' really your email address? " from)))
-	       (error "Please edit the From address and try again"))))
-    ;; The last warning for novice users.
+    ;; Warning for novice users.
     (unless (or report-emacs-bug-no-confirmation
 		(yes-or-no-p
 		 "Send this bug report to the Emacs maintainers? "))
@@ -407,7 +391,32 @@ and send the mail again%s."
                                     report-emacs-bug-send-command)
                           "")))))
       (error "M-x report-emacs-bug was cancelled, please read *Bug Help* buffer"))
-
+    ;; Query the user for the SMTP method, so that we can skip
+    ;; questions about From header validity if the user is going to
+    ;; use mailclient, anyway.
+    (when (eq send-mail-function 'sendmail-query-once)
+      (sendmail-query-user-about-smtp)
+      (when (derived-mode-p 'message-mode)
+	(setq message-send-mail-function (message-default-send-mail-function))))
+    (or report-emacs-bug-no-confirmation
+	;; mailclient.el does not need a valid From
+	(if (derived-mode-p 'message-mode)
+	    (eq message-send-mail-function 'message-send-mail-with-mailclient)
+	  (eq send-mail-function 'mailclient-send-it))
+	;; Not narrowing to the headers, but that's OK.
+	(let ((from (mail-fetch-field "From")))
+	  (and (or (not from)
+		   (message-bogus-recipient-p from)
+		   ;; This is the default user-mail-address.  On today's
+		   ;; systems, it seems more likely to be wrong than right,
+		   ;; since most people don't run their own mail server.
+		   (string-match (format "\\<%s@%s\\>"
+					 (regexp-quote (user-login-name))
+					 (regexp-quote (system-name)))
+				 from))
+	       (not (yes-or-no-p
+		     (format "Is `%s' really your email address? " from)))
+	       (error "Please edit the From address and try again"))))
     ;; Delete the uninteresting text that was just to help fill out the report.
     (rfc822-goto-eoh)
     (forward-line 1)

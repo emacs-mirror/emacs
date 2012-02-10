@@ -548,7 +548,6 @@ Advising Emacs Lisp Functions
 * Preactivation::           Preactivation is a way of speeding up the
                               loading of compiled advice.
 * Argument Access in Advice:: How advice can access the function's arguments.
-* Advising Primitives::     Accessing arguments when advising a primitive.
 * Combined Definition::     How advice is implemented.
 
 Debugging Lisp Programs
@@ -1061,7 +1060,7 @@ Text
 * Registers::               How registers are implemented.  Accessing
                               the text or position stored in a register.
 * Base 64::                 Conversion to or from base 64 encoding.
-* MD5 Checksum::            Compute the MD5 "message digest"/"checksum".
+* Checksum/Hash::           Computing "message digests"/"checksums"/"hashes".
 * Atomic Changes::          Installing several buffer changes "atomically".
 * Change Hooks::            Supplying functions to be run when text is changed.
 

@@ -237,7 +237,7 @@ from disabled to enabled, it tries to refine the current hunk, as
 well."
   :group 'diff-mode :init-value t :lighter nil ;; " Auto-Refine"
   (when diff-auto-refine-mode
-    (condition-case-no-debug nil (diff-refine-hunk) (error nil))))
+    (condition-case-unless-debug nil (diff-refine-hunk) (error nil))))
 
 ;;;;
 ;;;; font-lock support
@@ -542,7 +542,7 @@ but in the file header instead, in which case move forward to the first hunk."
 (easy-mmode-define-navigation
  diff-hunk diff-hunk-header-re "hunk" diff-end-of-hunk diff-restrict-view
  (if diff-auto-refine-mode
-     (condition-case-no-debug nil (diff-refine-hunk) (error nil))))
+     (condition-case-unless-debug nil (diff-refine-hunk) (error nil))))
 
 (easy-mmode-define-navigation
  diff-file diff-file-header-re "file" diff-end-of-hunk)

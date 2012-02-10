@@ -354,11 +354,14 @@ request.")
 ;; Parsing routines
 (defun url-http-clean-headers ()
   "Remove trailing \r from header lines.
-This allows us to use `mail-fetch-field', etc."
+This allows us to use `mail-fetch-field', etc.
+Return the number of characters removed."
   (declare (special url-http-end-of-headers))
-  (goto-char (point-min))
-  (while (re-search-forward "\r$" url-http-end-of-headers t)
-    (replace-match "")))
+  (let ((end (marker-position url-http-end-of-headers)))
+    (goto-char (point-min))
+    (while (re-search-forward "\r$" url-http-end-of-headers t)
+      (replace-match ""))
+    (- end url-http-end-of-headers)))
 
 (defun url-http-handle-authentication (proxy)
   (declare (special status success url-http-method url-http-data
@@ -644,7 +647,8 @@ should be shown to the user."
 			(url-retrieve-internal
 			 redirect-uri url-callback-function
 			 url-callback-arguments
-			 (url-silent url-current-object)))
+			 (url-silent url-current-object)
+			 (not (url-use-cookies url-current-object))))
 		   (url-mark-buffer-as-dead buffer))
 	       ;; We hit url-max-redirections, so issue an error and
 	       ;; stop redirecting.
@@ -1054,7 +1058,7 @@ the end of the document."
 	  (setq url-http-end-of-headers (set-marker (make-marker)
 						    (point))
 		end-of-headers t)
-	  (url-http-clean-headers)))
+	  (setq nd (- nd (url-http-clean-headers)))))
 
       (if (not end-of-headers)
 	  ;; Haven't seen the end of the headers yet, need to wait

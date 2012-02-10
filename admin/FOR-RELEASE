@@ -180,13 +180,13 @@ xresources.texi   cyd
 ** Check the Lisp manual.
 
 abbrevs.texi      
-advice.texi       
+advice.texi       cyd
 anti.texi         
 back.texi
 backups.texi      
 buffers.texi      
 commands.texi     
-compile.texi      
+compile.texi      cyd
 control.texi      cyd
 customize.texi    cyd
 debugging.texi    
@@ -206,7 +206,7 @@ internals.texi
 intro.texi        cyd
 keymaps.texi      
 lists.texi        cyd
-loading.texi      
+loading.texi      cyd
 locals.texi       
 macros.texi       cyd
 maps.texi         

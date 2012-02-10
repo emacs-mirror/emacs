@@ -1,3 +1,7 @@
+2012-02-10  Glenn Morris  <rgm@gnu.org>
+
+	* fns.c (Fsecure_hash): Doc fix.
+
 2012-02-09  Kenichi Handa  <handa@m17n.org>
 
 	* coding.c (produce_chars): Fix updating of src_end (Bug#10701).

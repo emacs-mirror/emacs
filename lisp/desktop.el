@@ -1158,7 +1158,7 @@ directory DIRNAME."
       (desktop-load-file desktop-buffer-major-mode)
       (let ((buffer-list (buffer-list))
 	    (result
-	     (condition-case-no-debug err
+	     (condition-case-unless-debug err
 		 (funcall (or (cdr (assq desktop-buffer-major-mode
 					 desktop-buffer-mode-handlers))
 			      'desktop-restore-file-buffer)

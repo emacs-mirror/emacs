@@ -1415,6 +1415,12 @@ paragraph commands to work on.  Auto Fill mode, if enabled in a
 programming language major mode, indents the new lines which it
 creates.
 
+@findex electric-layout-mode
+  Electric Layout mode (@kbd{M-x electric-layout-mode}) is a global
+minor mode that automatically inserts newlines when you type certain
+characters; for example, @samp{@{}, @samp{@}} and @samp{;} in Javascript
+mode.
+
   Apart from Hideshow mode (@pxref{Hideshow}), another way to
 selectively display parts of a program is to use the selective display
 feature (@pxref{Selective Display}).  Programming modes often also

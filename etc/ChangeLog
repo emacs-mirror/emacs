@@ -1,3 +1,8 @@
+2012-02-10  Leo Liu  <sdl.web@gmail.com>
+
+	* NEWS: Change condition-case-no-debug to
+	condition-case-unless-debug and split the entry in two.
+
 2012-02-08  Alex Ott  <alexott@gmail.com>
 
 	* tutorials/TUTORIAL.ru: Updated; synchronize with TUTORIAL.
