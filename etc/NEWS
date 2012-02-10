@@ -465,9 +465,10 @@ These maximize and minimize the size of a window within its frame.
 These functions allow to navigate through the live buffers that have
 been shown in a specific window.
 
++++
 ** The inactive minibuffer has its own major mode `minibuffer-inactive-mode'.
-This is handy for minibuffer-only frames, and is also used for the "mouse-1
-pops up *Messages*" feature, which can now easily be changed.
+This is handy for minibuffer-only frames, and is also used for the feature
+where mouse-1 pops up *Messages*"', which can now easily be changed.
 
 
 * Editing Changes in Emacs 24.1

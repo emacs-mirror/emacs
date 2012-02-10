@@ -1,5 +1,7 @@
 2012-02-10  Glenn Morris  <rgm@gnu.org>
 
+	* mini.texi (Minibuffer Edit): Mention minibuffer-inactive-mode.
+
 	* programs.texi (Misc for Programs): Mention electric-layout-mode.
 
 2012-02-09  Glenn Morris  <rgm@gnu.org>

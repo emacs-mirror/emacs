@@ -195,6 +195,12 @@ possible completions.  @xref{Other Window}.
 the minibuffer is active.  To allow such commands in the minibuffer,
 set the variable @code{enable-recursive-minibuffers} to @code{t}.
 
+@findex minibuffer-inactive-mode
+  When not active, the minibuffer is in @code{minibuffer-inactive-mode},
+and clicking @kbd{Mouse-1} there shows the @samp{*Messages*} buffer.
+If you use a dedicated frame for minibuffers, Emacs also recognizes
+certain keys there, for example @kbd{n} to make a new frame.
+
 @node Completion
 @section Completion
 @c This node is referenced in the tutorial.  When renaming or deleting
