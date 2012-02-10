@@ -1,3 +1,12 @@
+2012-02-10  Chong Yidong  <cyd@gnu.org>
+
+	* loading.texi (Loading): Don't emphasize "library" terminology.
+	(Library Search): load-path is not a user option.  Mention role of
+	-L option and packages.  Improve examples.
+	(Loading Non-ASCII): Don't mention unibyte Emacs, which is
+	obsolete.
+	(Autoload): Minor clarifications.
+
 2012-02-10  Glenn Morris  <rgm@gnu.org>
 
 	* modes.texi (Basic Major Modes): Mention tabulated-list-mode.
