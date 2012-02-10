@@ -1,3 +1,8 @@
+2012-02-10  Lars Ingebrigtsen  <larsi@gnus.org>
+
+	* url-http.el (url-http-parse-headers): When redirecting, pass on
+	the `inhibit-cookie' parameter.
+
 2012-02-10  Glenn Morris  <rgm@gnu.org>
 
 	* url-queue.el (url-queue-retrieve): Fic previous doc fix.
