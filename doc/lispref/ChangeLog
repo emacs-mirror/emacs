@@ -1,3 +1,9 @@
+2012-02-10  Glenn Morris  <rgm@gnu.org>
+
+	* text.texi (Checksum/Hash): Rename node from MD5 Checksum.
+	Mention secure-hash.
+	* elisp.texi, vol1.texi, vol2.texi: Update menu entry.
+
 2012-02-10  Chong Yidong  <cyd@gnu.org>
 
 	* loading.texi (Loading): Don't emphasize "library" terminology.

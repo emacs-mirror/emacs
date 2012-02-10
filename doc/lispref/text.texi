@@ -56,7 +56,7 @@ the character after point.
 * Registers::        How registers are implemented.  Accessing the text or
                        position stored in a register.
 * Base 64::          Conversion to or from base 64 encoding.
-* MD5 Checksum::     Compute the MD5 "message digest"/"checksum".
+* Checksum/Hash::    Computing "message digests"/"checksums"/"hashes".
 * Parsing HTML::     Parsing HTML and XML.
 * Atomic Changes::   Installing several buffer changes "atomically".
 * Change Hooks::     Supplying functions to be run when text is changed.
@@ -4071,9 +4071,11 @@ decoded text.
 The decoding functions ignore newline characters in the encoded text.
 @end defun
 
-@node MD5 Checksum
-@section MD5 Checksum
+@node Checksum/Hash
+@section Checksum/Hash
 @cindex MD5 checksum
+@cindex hashing, secure
+@cindex SHA-1
 @cindex message digest computation
 
   MD5 cryptographic checksums, or @dfn{message digests}, are 128-bit
@@ -4084,7 +4086,7 @@ RFC@footnote{
 For an explanation of what is an RFC, see the footnote in @ref{Base
 64}.
 }1321.  This section describes the Emacs facilities for computing
-message digests.
+message digests and other forms of ``secure hash''.
 
 @defun md5 object &optional start end coding-system noerror
 This function returns the MD5 message digest of @var{object}, which
@@ -4117,6 +4119,16 @@ Normally, @code{md5} signals an error if the text can't be encoded
 using the specified or chosen coding system.  However, if
 @var{noerror} is non-@code{nil}, it silently uses @code{raw-text}
 coding instead.
+@end defun
+
+@defun secure-hash algorithm object &optional start end binary
+This function provides a general interface to a variety of secure
+hashing algorithms.  As well as the MD5 algorithm, it supports SHA-1,
+SHA-2, SHA-224, SHA-256, SHA-384 and SHA-512.  The argument
+@var{algorithm} is a symbol stating which hash to compute.  The
+arguments @var{object}, @var{start}, and @var{end} are as for the
+@code{md5} function.  If the optional argument @var{binary} is
+non-@code{nil}, returns a string in binary form.
 @end defun
 
 @node Parsing HTML
