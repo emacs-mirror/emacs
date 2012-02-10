@@ -56,9 +56,10 @@
 ;;;###autoload
 (defun url-queue-retrieve (url callback &optional cbargs silent inhibit-cookies)
   "Retrieve URL asynchronously and call CALLBACK with CBARGS when finished.
-Like `url-retrieve' (which see for details of the arguments), but
-controls the level of parallelism via the
-`url-queue-parallel-processes' variable."
+This is like `url-retrieve' (which see for details of the arguments),
+but downloads in parallel.  The variable `url-queue-parallel-processes'
+sets the number of concurrent processes.  The variable `url-queue-timeout'
+sets a timeout."
   (setq url-queue
 	(append url-queue
 		(list (make-url-queue :url url
@@ -127,7 +128,7 @@ controls the level of parallelism via the
 	(push job jobs)))
     (dolist (job jobs)
       (setq url-queue (delq job url-queue)))))
-  
+
 (defun url-queue-start-retrieve (job)
   (setf (url-queue-buffer job)
 	(ignore-errors

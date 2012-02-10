@@ -858,8 +858,9 @@ sql-list-all and sql-list-table.
 *** The option `ange-ftp-binary-file-name-regexp' has changed its
 default value to "".
 
-** `url-queue-retrieve' downloads web pages asynchronously, but allow
-controlling the degree of parallelism.
++++
+** New function, url-queue-retrieve, fetches URLs asynchronously like
+url-retrieve does, but in parallel.
 
 ** VC and related modes
 
@@ -921,6 +922,7 @@ You can get a comparable behavior with:
 ---
 *** pc-mode.el is obsolete (CUA mode is much more comprehensive).
 
+[gnus.texi, message.texi need updating]
 *** pgg is obsolete (use EasyPG instead)
 
 ---

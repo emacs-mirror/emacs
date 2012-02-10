@@ -1,3 +1,7 @@
+2012-02-10  Glenn Morris  <rgm@gnu.org>
+
+	* url-queue.el (url-queue-retrieve): Doc fix.
+
 2012-02-08  Lars Ingebrigtsen  <larsi@gnus.org>
 
 	* url-parse.el (url): Add the `use-cookies' slot to the URL struct

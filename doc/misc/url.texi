@@ -201,13 +201,25 @@ data.  @var{url} is either a string or a parsed URL structure.  Return
 info, or mailto URLs that need no further processing).
 @end defun
 
-@defun url-retrieve url callback &optional cbargs
+@defun url-retrieve url callback &optional cbargs silent no-cookies
 Retrieve @var{url} asynchronously and call @var{callback} with args
 @var{cbargs} when finished.  The callback is called when the object
 has been completely retrieved, with the current buffer containing the
 object and any MIME headers associated with it.  @var{url} is either a
 string or a parsed URL structure.  Returns the buffer @var{url} will
 load into, or @code{nil} if the process has already completed.
+If the optional argument @var{silent} is non-@code{nil}, suppress
+progress messages.  If the optional argument @var{no-cookies} is
+non-@code{nil}, do not store or send cookies.
+@end defun
+
+@vindex url-queue-parallel-processes
+@vindex url-queue-timeout
+@defun url-queue-retrieve url callback &optional cbargs silent no-cookies
+This acts like the @code{url-retrieve} function, but downloads in
+parallel.  The option @code{url-queue-parallel-processes} controls the
+number of concurrent processes, and the option @code{url-queue-timeout}
+sets a timeout in seconds.
 @end defun
 
 @node Supported URL Types

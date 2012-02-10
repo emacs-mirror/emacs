@@ -1,3 +1,8 @@
+2012-02-10  Glenn Morris  <rgm@gnu.org>
+
+	* url.texi (Retrieving URLs): Update url-retrieve arguments.
+	Mention url-queue-retrieve.
+
 2012-02-09  Glenn Morris  <rgm@gnu.org>
 
 	* sem-user.texi (Semantic mode user commands): Typo fix.
