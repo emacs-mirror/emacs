@@ -1305,8 +1305,10 @@ set of "wrapping" filters, similar to around advice.
 advertised at the time.)
 
 +++
-** The macros `condition-case-no-debug' and `with-demoted-errors' were
-added in Emacs 23.1, but not advertised.
+** New macro `condition-case-unless-debug' (this was actually added in
+Emacs 23.1 as condition-case-no-debug, but not advertised)
+
+** The macro `with-demoted-errors' was added in Emacs 23.1, but not advertised.
 
 +++
 ** The new function `server-eval-at' allows evaluation of Lisp forms on

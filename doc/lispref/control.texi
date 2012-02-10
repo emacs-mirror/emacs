@@ -948,8 +948,8 @@ The effect of @code{debug} here is only to prevent
 given error will invoke the debugger only if @code{debug-on-error} and
 the other usual filtering mechanisms say it should.  @xref{Error Debugging}.
 
-@defmac condition-case-no-debug var protected-form handlers@dots{}
-The macro @code{condition-case-no-debug} provides another way to
+@defmac condition-case-unless-debug var protected-form handlers@dots{}
+The macro @code{condition-case-unless-debug} provides another way to
 handle debugging of such forms.  It behaves exactly like
 @code{condition-case}, unless the variable @code{debug-on-error} is
 non-@code{nil}, in which case it does not handle any errors at all.
@@ -1131,9 +1131,9 @@ Here's the example at the beginning of this subsection rewritten using
 @defmac with-demoted-errors body@dots{}
 This macro is like a milder version of @code{ignore-errors}.  Rather
 than suppressing errors altogether, it converts them into messages.
-Use this form around code that is not expected to signal errors,
-but should be robust if one does occur.  Note that this macro
-uses @code{condition-case-no-debug} rather than @code{condition-case}.
+Use this form around code that is not expected to signal errors, but
+should be robust if one does occur.  Note that this macro uses
+@code{condition-case-unless-debug} rather than @code{condition-case}.
 @end defmac
 
 @node Error Symbols

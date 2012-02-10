@@ -2272,7 +2272,7 @@ in which C preprocessor directives are used. e.g. `asm-mode' and
 		 "save-selected-window" "save-window-excursion"
 		 "save-match-data" "save-current-buffer"
 		 "combine-after-change-calls" "unwind-protect"
-		 "condition-case" "condition-case-no-debug"
+		 "condition-case" "condition-case-unless-debug"
 		 "track-mouse" "eval-after-load" "eval-and-compile"
 		 "eval-when-compile" "eval-when" "eval-next-after-load"
 		 "with-case-table" "with-category-table"
