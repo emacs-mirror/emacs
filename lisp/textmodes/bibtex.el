@@ -443,6 +443,7 @@ which is called to determine the initial content of the field.
 ALTERNATIVE if non-nil is an integer that numbers sets of
 alternatives, starting from zero."
   :group 'BibTeX
+  :version "24.1"
   :type 'bibtex-entry-alist)
 (put 'bibtex-BibTeX-entry-alist 'risky-local-variable t)
 
@@ -696,6 +697,7 @@ alternatives, starting from zero."
   "Alist of biblatex entry types and their associated fields.
 It has the same format as `bibtex-BibTeX-entry-alist'."
   :group 'bibtex
+  :version "24.1"
   :type 'bibtex-entry-alist)
 (put 'bibtex-biblatex-entry-alist 'risky-local-variable t)
 
@@ -717,6 +719,7 @@ It has the same format as `bibtex-BibTeX-entry-alist'."
 Each element is a list (FIELD COMMENT).  COMMENT is used as a default
 if `bibtex-BibTeX-entry-alist' does not define a comment for FIELD."
   :group 'bibtex
+  :version "24.1"
   :type 'bibtex-field-alist)
 
 (defcustom bibtex-biblatex-field-alist
@@ -814,6 +817,7 @@ if `bibtex-BibTeX-entry-alist' does not define a comment for FIELD."
     "Alist of biblatex fields.
 It has the same format as `bibtex-BibTeX-entry-alist'."
   :group 'bibtex
+  :version "24.1"
   :type 'bibtex-field-alist)
 
 (defcustom bibtex-dialect-list '(BibTeX biblatex)
@@ -822,12 +826,14 @@ For each DIALECT (a symbol) a variable bibtex-DIALECT-entry-alist defines
 the allowed entries and bibtex-DIALECT-field-alist defines known field types.
 Predefined dialects include BibTeX and biblatex."
   :group 'bibtex
+  :version "24.1"
   :type '(repeat (symbol :tag "Dialect")))
 
 (defcustom bibtex-dialect 'BibTeX
   "Current BibTeX dialect.  For allowed values see `bibtex-dialect-list'.
 To interactively change the dialect use the command `bibtex-set-dialect'."
   :group 'bibtex
+  :version "24.1"
   :set '(lambda (symbol value)
           (set-default symbol value)
           ;; `bibtex-set-dialect' is undefined during loading (no problem)
@@ -842,6 +848,7 @@ To interactively change the dialect use the command `bibtex-set-dialect'."
   "If a field name matches this regexp, the prefix OPT is not removed.
 If nil prefix OPT is always removed"
   :group 'bibtex
+  :version "24.1"
   :type '(choice (regexp) (const nil)))
 
 (defcustom bibtex-comment-start "@Comment"
@@ -930,6 +937,7 @@ See also `bibtex-search-entry-globally'."
   "If non-nil, interactive calls of `bibtex-search-entry' search globally.
 A global search includes all files in `bibtex-files'."
   :group 'bibtex
+  :version "24.1"
   :type 'boolean)
 
 (defcustom bibtex-help-message t
@@ -1291,6 +1299,7 @@ Set this variable before loading BibTeX mode."
 (defcustom bibtex-search-buffer "*BibTeX Search*"
   "Buffer for BibTeX search results."
   :group 'bibtex
+  :version "24.1"
   :type 'string)
 
 ;; `bibtex-font-lock-keywords' is a user option, too.  But since the

@@ -594,18 +594,16 @@ region (or with the left margin if there is no previous line).
 +++
 ** Archive Mode has basic support for browsing and updating 7z archives.
 
----
 ** BibTeX mode
-
+---
 *** BibTeX mode now supports biblatex.
-Use the variable bibtex-dialect to select support for different BibTeX
-dialects.  bibtex-entry-field-alist is now an obsolete alias for
-bibtex-BibTeX-entry-alist.
-
+Use the variable bibtex-dialect to select different BibTeX dialects.
+bibtex-entry-field-alist is now an obsolete alias forbibtex-BibTeX-entry-alist.
+---
 *** New command `bibtex-search-entries' bound to C-c C-a.
-
+---
 *** New `bibtex-entry-format' option `sort-fields', disabled by default.
-
+---
 *** New variable `bibtex-search-entry-globally'.
 
 ** Calendar, Diary, and Appt
