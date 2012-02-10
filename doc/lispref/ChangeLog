@@ -1,3 +1,20 @@
+2012-02-10  Chong Yidong  <cyd@gnu.org>
+
+	* advice.texi (Defining Advice): Clarify ad-unadvise.
+	(Activation of Advice): Specifying the ACTIVATE flag in defadvice
+	is not abnormal.
+	(Advising Primitives): Node deleted; ad-define-subr-args has been
+	removed.
+
+	* compile.texi (Speed of Byte-Code): Use float-time in example.
+	(Compilation Functions): Note that the log uses Compilation mode.
+	Don't discuss the contents of byte-code function object here.
+	(Compilation Functions): De-document internal function byte-code.
+	(Docs and Compilation): Minor clarifications.
+
+	* objects.texi (Byte-Code Type): Add xref to Byte-Code Function
+	Objects.
+
 2012-02-10  Glenn Morris  <rgm@gnu.org>
 
 	* text.texi (Checksum/Hash): Rename node from MD5 Checksum.
