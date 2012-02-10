@@ -858,8 +858,9 @@ default value to "".
 remote machines that support SELinux.
 
 +++
-** New function, url-queue-retrieve, fetches URLs asynchronously like
-url-retrieve does, but in parallel.
+** New function, `url-queue-retrieve', which behaves like url-retrieve,
+but with limits (`url-queue-parallel-processes', `url-queue-timeout') on
+the degree of parallelism.
 
 ** VC and related modes
 

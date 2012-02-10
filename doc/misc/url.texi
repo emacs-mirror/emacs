@@ -216,10 +216,10 @@ non-@code{nil}, do not store or send cookies.
 @vindex url-queue-parallel-processes
 @vindex url-queue-timeout
 @defun url-queue-retrieve url callback &optional cbargs silent no-cookies
-This acts like the @code{url-retrieve} function, but downloads in
-parallel.  The option @code{url-queue-parallel-processes} controls the
-number of concurrent processes, and the option @code{url-queue-timeout}
-sets a timeout in seconds.
+This acts like the @code{url-retrieve} function, but with limits on
+the degree of parallelism.  The option @code{url-queue-parallel-processes}
+controls the number of concurrent processes, and the option
+@code{url-queue-timeout} sets a timeout in seconds.
 @end defun
 
 @node Supported URL Types

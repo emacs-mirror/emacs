@@ -1,3 +1,7 @@
+2012-02-10  Glenn Morris  <rgm@gnu.org>
+
+	* url-queue.el (url-queue-retrieve): Fic previous doc fix.
+
 2012-02-10  Andreas Schwab  <schwab@linux-m68k.org>
 
 	* url-http.el (url-http-clean-headers): Return the number of
