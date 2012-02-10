@@ -968,6 +968,7 @@ When enabled, typing certain characters triggers reindentation.
 ** New global minor mode electric-layout-mode.
 When enabled, typing certain characters automatically inserts newlines.
 
++++
 ** tabulated-list.el provides a generic major mode for tabulated data,
 from which other modes can be derived.
 

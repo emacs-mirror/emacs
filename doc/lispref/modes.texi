@@ -915,6 +915,20 @@ mode, which is used by the @samp{*Buffer List*} buffer.  @xref{List
 Buffers,,Listing Existing Buffers, emacs, The GNU Emacs Manual}.
 @end deffn
 
+@cindex tables of data
+@deffn Command tabulated-list-mode
+Tabulated List mode is another mode that derives from Special mode.  It
+displays tabulated data, i.e. a series of rows and columns, where each
+row represents a particular entry, whose properties are displayed in the
+various columns.  It provides a general mechanism for sorting on
+columns.  You can use Tabulated List mode as the basis for other modes
+that need to display lists.  For example, the @samp{*Packages*} buffer
+uses this (@pxref{Packages,,, emacs, The GNU Emacs Manual}). The
+documentation of the @code{tabulated-list-mode} function explains what
+you need to do to use it.  At a minimum, specify the column format via
+the @code{tabulated-list-format} variable.
+@end deffn
+
 @node Generic Modes
 @subsection Generic Modes
 @cindex generic mode
