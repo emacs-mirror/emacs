@@ -1,3 +1,8 @@
+2012-02-10  Glenn Morris  <rgm@gnu.org>
+
+	* international/mule-cmds.el (unify-8859-on-encoding-mode)
+	(unify-8859-on-decoding-mode): Properly mark as obsolete.
+
 2012-02-10  Lars Ingebrigtsen  <larsi@gnus.org>
 
 	* mail/emacsbug.el (report-emacs-bug-hook): Query the user first

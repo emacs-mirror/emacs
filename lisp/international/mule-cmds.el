@@ -1,6 +1,6 @@
 ;;; mule-cmds.el --- commands for multilingual environment -*-coding: iso-2022-7bit -*-
 
-;; Copyright (C) 1997-2012  Free Software Foundation, Inc.
+;; Copyright (C) 1997-2012 Free Software Foundation, Inc.
 ;; Copyright (C) 1995, 1996, 1997, 1998, 1999, 2000, 2001, 2002, 2003, 2004,
 ;;   2005, 2006, 2007, 2008, 2009, 2010, 2011
 ;;   National Institute of Advanced Industrial Science and Technology (AIST)
@@ -2863,13 +2863,18 @@ on encoding."
 ;; Backwards compatibility.  These might be better with :init-value t,
 ;; but that breaks loadup.
 (define-minor-mode unify-8859-on-encoding-mode
-  "Obsolete."
+  "Exists only for backwards compatibility."
   :group 'mule
   :global t)
+;; Doc said "obsolete" in 23.1, this statement only added in 24.1.
+(make-obsolete 'unify-8859-on-encoding-mode "don't use it." "23.1")
+
 (define-minor-mode unify-8859-on-decoding-mode
-  "Obsolete."
+  "Exists only for backwards compatibility."
   :group 'mule
   :global t)
+;; Doc said "obsolete" in 23.1, this statement only added in 24.1.
+(make-obsolete 'unify-8859-on-decoding-mode "don't use it." "23.1")
 
 (defvar nonascii-insert-offset 0)
 (make-obsolete-variable 'nonascii-insert-offset "do not use it." "23.1")
