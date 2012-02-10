@@ -648,7 +648,7 @@ should be shown to the user."
 			 redirect-uri url-callback-function
 			 url-callback-arguments
 			 (url-silent url-current-object)
-			 (not (url-use-cookies url))))
+			 (not (url-use-cookies url-current-object))))
 		   (url-mark-buffer-as-dead buffer))
 	       ;; We hit url-max-redirections, so issue an error and
 	       ;; stop redirecting.
