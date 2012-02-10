@@ -1,3 +1,10 @@
+2012-02-10  Andreas Schwab  <schwab@linux-m68k.org>
+
+	* url-http.el (url-http-clean-headers): Return the number of
+	removed characters.
+	(url-http-wait-for-headers-change-function): Adjust end position
+	after cleaning the headers.  (Bug#10768)
+
 2012-02-10  Glenn Morris  <rgm@gnu.org>
 
 	* url-queue.el (url-queue-retrieve): Doc fix.
