@@ -1,3 +1,7 @@
+2012-02-10  Glenn Morris  <rgm@gnu.org>
+
+	* files.el (remote-file-name-inhibit-cache): Doc fixes.
+
 2012-02-09  Lars Ingebrigtsen  <larsi@rusty>
 
 	* mail/smtpmail.el (smtpmail-user-mail-address): New function.

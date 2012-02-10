@@ -305,9 +305,6 @@ context in their return values.
 +++
 *** The new functions file-selinux-context and set-file-selinux-context
 get and set the SELinux context of a file.
----
-*** Tramp offers handlers for file-selinux-context and set-file-selinux-context
-for remote machines which support SELinux.
 
 ** Changes for exiting Emacs
 +++
@@ -384,9 +381,6 @@ directory named "themes/" in `data-directory'.
 If a theme is not in this list, Emacs queries before loading it, and
 offers to save the theme to `custom-safe-themes' automatically.  By
 default, all themes included in Emacs are treated as safe.
-
-** The user option `remote-file-name-inhibit-cache' controls whether
-the remote file-name cache is used for read access.
 
 ** File- and directory-local variable changes
 +++
@@ -855,9 +849,15 @@ sql-list-all and sql-list-table.
 ---
 *** The following access methods are discontinued: "ssh1_old",
 "ssh2_old", "scp1_old", "scp2_old", "imap", "imaps" and "fish".
++++
+*** The user option `remote-file-name-inhibit-cache' controls whether
+remote file attributes are cached for better performance.
 ---
 *** The option `ange-ftp-binary-file-name-regexp' has changed its
 default value to "".
+---
+*** Handlers for file-selinux-context and set-file-selinux-context for
+remote machines that support SELinux.
 
 +++
 ** New function, url-queue-retrieve, fetches URLs asynchronously like
@@ -923,7 +923,7 @@ You can get a comparable behavior with:
 ---
 *** pc-mode.el is obsolete (CUA mode is much more comprehensive).
 
-[gnus.texi, message.texi need updating]
+[FIXME gnus.texi, message.texi need updating]
 *** pgg is obsolete (use EasyPG instead)
 
 ---

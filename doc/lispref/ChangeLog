@@ -9,6 +9,8 @@
 
 2012-02-10  Glenn Morris  <rgm@gnu.org>
 
+	* files.texi (Magic File Names): Tweak remote-file-name-inhibit-cache.
+
 	* modes.texi (Basic Major Modes): Mention tabulated-list-mode.
 
 2012-02-08  Glenn Morris  <rgm@gnu.org>
