@@ -1,3 +1,11 @@
+2012-02-10  Lars Ingebrigtsen  <larsi@gnus.org>
+
+	* mail/emacsbug.el (report-emacs-bug-hook): Query the user first
+	about SMTP before checking the From header.
+
+	* mail/sendmail.el (sendmail-query-user-about-smtp): Refacored out
+	into own function for reuse by emacsbug.el.
+
 2012-02-10  Leo Liu  <sdl.web@gmail.com>
 
 	* subr.el (condition-case-unless-debug): Rename from
