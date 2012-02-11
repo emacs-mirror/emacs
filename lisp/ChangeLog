@@ -1,3 +1,8 @@
+2012-02-11  Leo Liu  <sdl.web@gmail.com>
+
+	* progmodes/python.el (python-end-of-statement): Fix infinite
+	loop.  (Bug#10788)
+
 2012-02-10  Glenn Morris  <rgm@gnu.org>
 
 	* international/mule-cmds.el (unify-8859-on-encoding-mode)
