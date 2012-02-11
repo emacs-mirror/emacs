@@ -1,3 +1,15 @@
+2012-02-11  Chong Yidong  <cyd@gnu.org>
+
+	* debugging.texi (Debugging): Copyedits.  Describe testcover, ERT.
+	(Error Debugging): Note that debug-ignored-errors overrides list
+	values of debug-on-error too.  Add xref to Signaling Errors.  Note
+	that debug-on-signal is not customizable.  Mention
+	condition-case-unless-debug.
+	(Compilation Errors): Node deleted.
+
+	* compile.texi (Compiler Errors): Move a paragraph here from
+	deleted node Compilation Errors.
+
 2012-02-10  Leo Liu  <sdl.web@gmail.com>
 
 	* control.texi (Handling Errors): Change condition-case-no-debug
