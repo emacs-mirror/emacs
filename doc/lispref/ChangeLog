@@ -1,5 +1,16 @@
 2012-02-11  Chong Yidong  <cyd@gnu.org>
 
+	* commands.texi (Command Overview): Mention read-key.
+	(Using Interactive, Interactive Call): Minor clarifications.
+	(Function Keys, Click Events): Avoid "input stream" terminology.
+	(Click Events): Add xref to Window Sizes and Accessing Mouse.
+	Clarify column and row components.
+	(Accessing Mouse): Add xref to Click Events.  Minor fixes.
+	(Special Events): Copyedits.
+
+	* streams.texi (Input Streams): De-document get-file-char.
+	(Output Variables): Don't refer to old backquote syntax.
+
 	* debugging.texi (Debugging): Copyedits.  Describe testcover, ERT.
 	(Error Debugging): Note that debug-ignored-errors overrides list
 	values of debug-on-error too.  Add xref to Signaling Errors.  Note
