@@ -1,5 +1,10 @@
 2012-02-11  Chong Yidong  <cyd@gnu.org>
 
+	* display.texi (Fringe Indicators): Add xref to Fringe Bitmaps.
+	Move the list of standard bitmaps there.
+	(Fringe Cursors): Rewrite for clarity.
+	(Fringe Bitmaps): Consolidate the list of standard bitmaps here.
+
 	* commands.texi (Command Overview): Mention read-key.
 	(Using Interactive, Interactive Call): Minor clarifications.
 	(Function Keys, Click Events): Avoid "input stream" terminology.

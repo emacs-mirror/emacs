@@ -3380,12 +3380,11 @@ indicator.
 Used for truncation and continuation lines.
 
 @item @code{up}, @code{down}, @code{top}, @code{bottom}, @code{top-bottom}
-Used to indicate buffer boundaries when
-@code{indicate-buffer-boundaries} is non-@code{nil}: @code{up} and
-@code{down} indicate a buffer boundary lying above or below the window
-edge; @code{top} and @code{bottom} indicate the topmost and bottommost
-buffer text line; and @code{top-bottom} indicates where there is just
-one line of text in the buffer.
+Used when @code{indicate-buffer-boundaries} is non-@code{nil}:
+@code{up} and @code{down} indicate a buffer boundary lying above or
+below the window edge; @code{top} and @code{bottom} indicate the
+topmost and bottommost buffer text line; and @code{top-bottom}
+indicates where there is just one line of text in the buffer.
 
 @item @code{empty-line}
 Used to indicate empty lines when @code{indicate-empty-lines} is
@@ -3407,24 +3406,9 @@ are used to indicate that the last text line has no final newline.
 Alternatively, @var{bitmaps} may be a single symbol which is used in
 both left and right fringes.
 
-  The standard symbols for fringe bitmaps are:
-
-@example
-left-arrow right-arrow up-arrow down-arrow
-left-curly-arrow right-curly-arrow
-left-triangle right-triangle
-top-left-angle top-right-angle
-bottom-left-angle bottom-right-angle
-left-bracket right-bracket
-filled-rectangle hollow-rectangle
-filled-square hollow-square
-vertical-bar horizontal-bar
-empty-line question-mark
-@end example
-
-@noindent
-In addition, @code{nil} represents the empty bitmap (i.e.@: an
-indicator that is not shown).
+  @xref{Fringe Bitmaps}, for a list of standard bitmap symbols and how
+to define your own.  In addition, @code{nil} represents the empty
+bitmap (i.e.@: an indicator that is not shown).
 
   When @code{fringe-indicator-alist} has a buffer-local value, and
 there is no bitmap defined for a logical indicator, or the bitmap is
@@ -3442,16 +3426,6 @@ cursor in the right fringe instead of using two lines.  Different
 bitmaps are used to represent the cursor in the fringe depending on
 the current buffer's cursor type.
 
-@table @asis
-@item Logical cursor types:
-@code{box} , @code{hollow}, @code{bar},
-@code{hbar}, @code{hollow-small}.
-@end table
-
-The @code{hollow-small} type is used instead of @code{hollow} when the
-normal @code{hollow-rectangle} bitmap is too tall to fit on a specific
-display line.
-
 @defopt overflow-newline-into-fringe
 If this is non-@code{nil}, lines exactly as wide as the window (not
 counting the final newline character) are not continued.  Instead,
@@ -3462,23 +3436,30 @@ fringe.
 @defvar fringe-cursor-alist
 This variable specifies the mapping from logical cursor type to the
 actual fringe bitmaps displayed in the right fringe.  The value is an
-alist where each element @code{(@var{cursor} . @var{bitmap})} specifies
-the fringe bitmaps used to display a specific logical cursor type in
-the fringe.  Here, @var{cursor} specifies the logical cursor type and
-@var{bitmap} is a symbol specifying the fringe bitmap to be displayed
-for that logical cursor type.
+alist where each element has the form @code{(@var{cursor-type}
+. @var{bitmap})}, which means to use the fringe bitmap @var{bitmap} to
+display cursors of type @var{cursor-type}.
+
+Each @var{cursor-type} should be one of @code{box}, @code{hollow},
+@code{bar}, @code{hbar}, or @code{hollow-small}.  The first four have
+the same meanings as in the @code{cursor-type} frame parameter
+(@pxref{Cursor Parameters}).  The @code{hollow-small} type is used
+instead of @code{hollow} when the normal @code{hollow-rectangle}
+bitmap is too tall to fit on a specific display line.
+
+Each @var{bitmap} should be a symbol specifying the fringe bitmap to
+be displayed for that logical cursor type.
+@iftex
+See the next subsection for details.
+@end iftex
+@ifnottex
+@xref{Fringe Bitmaps}.
+@end ifnottex
 
 When @code{fringe-cursor-alist} has a buffer-local value, and there is
 no bitmap defined for a cursor type, the corresponding value from the
 default value of @code{fringes-indicator-alist} is used.
 @end defvar
-
-Standard bitmaps for displaying the cursor in right fringe:
-@example
-filled-rectangle hollow-rectangle filled-square hollow-square
-vertical-bar horizontal-bar
-@end example
-
 
 @node Fringe Bitmaps
 @subsection Fringe Bitmaps
@@ -3487,22 +3468,74 @@ vertical-bar horizontal-bar
 
   The @dfn{fringe bitmaps} are the actual bitmaps which represent the
 logical fringe indicators for truncated or continued lines, buffer
-boundaries, overlay arrow, etc.  Fringe bitmap symbols have their own
-name space.  The fringe bitmaps are shared by all frames and windows.
-You can redefine the built-in fringe bitmaps, and you can define new
-fringe bitmaps.
+boundaries, overlay arrows, etc.  Each bitmap is represented by a
+symbol.
+@iftex
+These symbols are referred to by the variables
+@code{fringe-indicator-alist} and @code{fringe-cursor-alist},
+described in the previous subsections.
+@end iftex
+@ifnottex
+These symbols are referred to by the variable
+@code{fringe-indicator-alist}, which maps fringe indicators to bitmaps
+(@pxref{Fringe Indicators}), and the variable
+@code{fringe-cursor-alist}, which maps fringe cursors to bitmaps
+(@pxref{Fringe Cursors}).
+@end ifnottex
 
-  The way to display a bitmap in the left or right fringes for a given
-line in a window is by specifying the @code{display} property for one
-of the characters that appears in it.  Use a display specification of
-the form @code{(left-fringe @var{bitmap} [@var{face}])} or
-@code{(right-fringe @var{bitmap} [@var{face}])} (@pxref{Display
-Property}).  Here, @var{bitmap} is a symbol identifying the bitmap you
-want, and @var{face} (which is optional) is the name of the face whose
-colors should be used for displaying the bitmap, instead of the
-default @code{fringe} face.  @var{face} is automatically merged with
-the @code{fringe} face, so normally @var{face} need only specify the
-foreground color for the bitmap.
+  Lisp programs can also directly display a bitmap in the left or
+right fringe, by using a @code{display} property for one of the
+characters appearing in the line (@pxref{Other Display Specs}).  Such
+a display specification has the form
+
+@example
+(left-fringe @var{bitmap} [@var{face}])
+@end example
+
+@noindent
+or
+
+@example
+(right-fringe @var{bitmap} [@var{face}])
+@end example
+
+@noindent
+The symbol @var{bitmap} identifies the bitmap to display.  The
+optional @var{face} names a face whose foreground color is used to
+display the bitmap; this face is automatically merged with the
+@code{fringe} face.
+
+  Here is a list of the standard fringe bitmaps defined in Emacs, and
+how they are currently used in Emacs (via
+@code{fringe-indicator-alist} and @code{fringe-cursor-alist}):
+
+@table @asis
+@item @code{left-arrow}, @code{right-arrow}
+Used to indicate truncated lines.
+
+@item @code{left-curly-arrow}, @code{right-curly-arrow}
+Used to indicate continued lines.
+
+@item @code{right-triangle}, @code{left-triangle}
+The former is used by overlay arrows.  The latter is unused.
+
+@item @code{up-arrow}, @code{down-arrow}, @code{top-left-angle} @code{top-right-angle}
+@itemx @code{bottom-left-angle}, @code{bottom-right-angle}
+@itemx @code{top-right-angle}, @code{top-left-angle}
+@itemx @code{left-bracket}, @code{right-bracket}, @code{top-right-angle}, @code{top-left-angle}
+Used to indicate buffer boundaries.
+
+@item @code{filled-rectangle}, @code{hollow-rectangle}
+@itemx @code{filled-square}, @code{hollow-square}
+@itemx @code{vertical-bar}, @code{horizontal-bar}
+Used for different types of fringe cursors.
+
+@item @code{empty-line}, @code{question-mark}
+Unused.
+@end table
+
+@noindent
+The next subsection describes how to define your own fringe bitmaps.
 
 @defun fringe-bitmaps-at-pos &optional pos window
 This function returns the fringe bitmaps of the display line
