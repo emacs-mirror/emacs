@@ -1,5 +1,9 @@
 2012-02-11  Glenn Morris  <rgm@gnu.org>
 
+	* select.el (x-get-selection-internal, x-own-selection-internal)
+	(x-disown-selection-internal):
+	* x-dnd.el (x-get-selection-internal): Update declarations.
+
 	* vc/log-view.el (vc-diff-internal): Remove unneeded declaration.
 
 	* window.el (window-sides-slots):
