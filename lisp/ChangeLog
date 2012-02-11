@@ -1,3 +1,8 @@
+2012-02-11  Glenn Morris  <rgm@gnu.org>
+
+	* progmodes/prolog.el: Remove leading '*' from defcustom docs.
+	(prolog-system-version): Give it a type.
+
 2012-02-11  Eli Zaretskii  <eliz@gnu.org>
 
 	* term/pc-win.el (x-select-text, x-selection-owner-p)
