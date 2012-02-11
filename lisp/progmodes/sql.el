@@ -824,7 +824,9 @@ for the first time."
 
 All products share this list; products should define a regexp to
 identify additional keywords in a variable defined by
-the :statement feature.")
+the :statement feature."
+  :type 'string
+  :group 'SQL)
 
 ;; Customization for Oracle
 
@@ -851,8 +853,11 @@ You will find the file in your Orant\\bin directory."
   :version "24.1"
   :group 'SQL)
 
-(defcustom sql-oracle-statement-starters (regexp-opt '("declare" "begin" "with"))
-  "Additional statement starting keywords in Oracle.")
+(defcustom sql-oracle-statement-starters
+  (regexp-opt '("declare" "begin" "with"))
+  "Additional statement starting keywords in Oracle."
+  :type 'string
+  :group 'SQL)
 
 (defcustom sql-oracle-scan-on t
   "Non-nil if placeholders should be replaced in Oracle SQLi.

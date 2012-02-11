@@ -1,5 +1,8 @@
 2012-02-11  Glenn Morris  <rgm@gnu.org>
 
+	* progmodes/sql.el (sql-ansi-statement-starters)
+	(sql-oracle-statement-starters): Add custom type.
+
 	* progmodes/prolog.el: Remove leading '*' from defcustom docs.
 	(prolog-system-version): Give it a type.
 
