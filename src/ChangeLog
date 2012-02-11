@@ -1,7 +1,10 @@
 2012-02-11  Eli Zaretskii  <eliz@gnu.org>
 
-	* w16select.c (Fx_selection_exists_p): Sync doc string with
-	xselect.c.  (Bug#10783)
+	* w32select.c (Fx_selection_exists_p): Sync doc string and
+	argument list with xselect.c.  (Bug#10783)
+
+	* w16select.c (Fx_selection_exists_p): Sync doc string and
+	argument list with xselect.c.  (Bug#10783)
 
 2012-02-10  Glenn Morris  <rgm@gnu.org>
 
