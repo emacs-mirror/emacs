@@ -172,6 +172,7 @@ files and lock files."
 (defcustom dired-omit-verbose t
   "When non-nil, show messages when omitting files.
 When nil, don't show messages."
+  :version "24.1"
   :type 'boolean
   :group 'dired-x)
 

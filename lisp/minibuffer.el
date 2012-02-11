@@ -510,6 +510,7 @@ Each override has the shape (CATEGORY . ALIST) where ALIST is
 an association list that can specify properties such as:
 - `styles': the list of `completion-styles' to use for that category.
 - `cycle': the `completion-cycle-threshold' to use for that category."
+  :version "24.1"
   :type `(alist :key-type (choice :tag "Category"
 				  (const buffer)
                                   (const file)
@@ -612,6 +613,7 @@ If nil, cycling is never used.
 If t, cycling is always used.
 If an integer, cycling is used as soon as there are fewer completion
 candidates than this number."
+  :version "24.1"
   :type completion--cycling-threshold-type)
 
 (defun completion--cycle-threshold (metadata)
@@ -2310,6 +2312,7 @@ Those chars are treated as delimiters iff this variable is non-nil.
 I.e. if non-nil, M-x SPC will just insert a \"-\" in the minibuffer, whereas
 if nil, it will list all possible commands in *Completions* because none of
 the commands start with a \"-\" or a SPC."
+  :version "24.1"
   :type 'boolean)
 
 (defun completion-pcm--pattern-trivial-p (pattern)

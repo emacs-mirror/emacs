@@ -1095,6 +1095,7 @@ probably want to set this variable only for specific groups,
 e.g. using `gnus-posting-styles':
 
   (eval (set (make-local-variable 'message-cite-reply-position) 'above))"
+  :version "24.1"
   :type '(choice (const :tag "Reply inline" 'traditional)
 		 (const :tag "Reply above" 'above)
 		 (const :tag "Reply below" 'below))

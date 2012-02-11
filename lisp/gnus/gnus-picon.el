@@ -87,6 +87,7 @@ added right to the textual representation."
 (defcustom gnus-picon-inhibit-top-level-domains t
   "If non-nil, don't piconify top-level domains.
 These are often not very interesting."
+  :version "24.1"
   :type 'boolean
   :group 'gnus-picon)
 

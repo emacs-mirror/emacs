@@ -39,6 +39,7 @@
 
 (defcustom netrc-file "~/.authinfo"
   "File where user credentials are stored."
+  :version "24.1"
   :type 'file
   :group 'netrc)
 

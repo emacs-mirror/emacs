@@ -39,6 +39,7 @@
 
 (defgroup gnutls nil
   "Emacs interface to the GnuTLS library."
+  :version "24.1"
   :prefix "gnutls-"
   :group 'net-utils)
 

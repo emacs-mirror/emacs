@@ -142,6 +142,7 @@ display.")
 The addresses are matched, they don't have to be fully qualified.
 In the messages, these addresses can be the sender or the
 recipients."
+  :version "24.1"
   :group 'gnus-registry
   :type '(repeat regexp))
 
@@ -243,6 +244,7 @@ the Bit Bucket."
 
 (defcustom gnus-registry-max-pruned-entries nil
   "Maximum number of pruned entries in the registry, nil for unlimited."
+  :version "24.1"
   :group 'gnus-registry
   :type '(radio (const :format "Unlimited " nil)
                 (integer :format "Maximum number: %v")))

@@ -1,3 +1,25 @@
+2012-02-11  Glenn Morris  <rgm@gnu.org>
+
+	* sieve-manage.el (sieve-manage-default-stream):
+	* shr.el (shr):
+	* nnir.el (nnir-ignored-newsgroups, nnir-summary-line-format)
+	(nnir-retrieve-headers-override-function)
+	(nnir-imap-default-search-key, nnir-notmuch-program)
+	(nnir-notmuch-additional-switches, nnir-notmuch-remove-prefix)
+	(nnir-method-default-engines):
+	* message.el (message-cite-reply-position):
+	* gssapi.el (gssapi-program):
+	* gravatar.el (gravatar):
+	* gnus-sum.el (gnus-refer-thread-use-nnir):
+	* gnus-registry.el (gnus-registry-unfollowed-addresses)
+	(gnus-registry-max-pruned-entries):
+	* gnus-picon.el (gnus-picon-inhibit-top-level-domains):
+	* gnus-int.el (gnus-after-set-mark-hook)
+	(gnus-before-update-mark-hook):
+	* gnus-async.el (gnus-async-post-fetch-function):
+	* auth-source.el (auth-source-cache-expiry):
+	Add missing :version tags to new defcustoms and defgroups.
+
 2012-02-10  Lars Ingebrigtsen  <larsi@gnus.org>
 
 	* message.el (message-default-send-mail-function): Made into own

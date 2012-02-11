@@ -1,5 +1,79 @@
 2012-02-11  Glenn Morris  <rgm@gnu.org>
 
+	* window.el (window-sides-slots):
+	* tool-bar.el (tool-bar-position):
+	* term/xterm.el (xterm-extra-capabilities):
+	* ses.el (ses-self-reference-early-detection):
+	* progmodes/verilog-mode.el (verilog-auto-declare-nettype)
+	(verilog-auto-wire-type)
+	(verilog-auto-delete-trailing-whitespace)
+	(verilog-auto-reset-blocking-in-non, verilog-auto-inst-sort)
+	(verilog-auto-tieoff-declaration):
+	* progmodes/sql.el (sql-login-hook, sql-ansi-statement-starters)
+	(sql-oracle-statement-starters, sql-oracle-scan-on):
+	* progmodes/prolog.el (prolog-align-comments-flag)
+	(prolog-indent-mline-comments-flag, prolog-object-end-to-0-flag)
+	(prolog-left-indent-regexp, prolog-paren-indent-p)
+	(prolog-paren-indent, prolog-parse-mode, prolog-keywords)
+	(prolog-types, prolog-mode-specificators)
+	(prolog-determinism-specificators, prolog-directives)
+	(prolog-electric-newline-flag, prolog-hungry-delete-key-flag)
+	(prolog-electric-dot-flag)
+	(prolog-electric-dot-full-predicate-template)
+	(prolog-electric-underscore-flag, prolog-electric-tab-flag)
+	(prolog-electric-if-then-else-flag, prolog-electric-colon-flag)
+	(prolog-electric-dash-flag, prolog-old-sicstus-keys-flag)
+	(prolog-program-switches, prolog-prompt-regexp)
+	(prolog-debug-on-string, prolog-debug-off-string)
+	(prolog-trace-on-string, prolog-trace-off-string)
+	(prolog-zip-on-string, prolog-zip-off-string)
+	(prolog-use-standard-consult-compile-method-flag)
+	(prolog-use-prolog-tokenizer-flag, prolog-imenu-flag)
+	(prolog-imenu-max-lines, prolog-info-predicate-index)
+	(prolog-underscore-wordchar-flag, prolog-use-sicstus-sd)
+	(prolog-char-quote-workaround):
+	* progmodes/cc-vars.el (c-defun-tactic):
+	* net/tramp.el (tramp-encoding-command-interactive)
+	(tramp-local-end-of-line):
+	* net/soap-client.el (soap-client):
+	* net/netrc.el (netrc-file):
+	* net/gnutls.el (gnutls):
+	* minibuffer.el (completion-category-overrides)
+	(completion-cycle-threshold)
+	(completion-pcm-complete-word-inserts-delimiters):
+	* man.el (Man-name-local-regexp):
+	* mail/feedmail.el (feedmail-display-full-frame):
+	* international/characters.el (glyphless-char-display-control):
+	* eshell/em-ls.el (eshell-ls-date-format):
+	* emacs-lisp/cl-indent.el (lisp-lambda-list-keyword-alignment)
+	(lisp-lambda-list-keyword-parameter-indentation)
+	(lisp-lambda-list-keyword-parameter-alignment):
+	* doc-view.el (doc-view-image-width, doc-view-unoconv-program):
+	* dired-x.el (dired-omit-verbose):
+	* cus-theme.el (custom-theme-allow-multiple-selections):
+	* calc/calc.el (calc-highlight-selections-with-faces)
+	(calc-lu-field-reference, calc-lu-power-reference)
+	(calc-note-threshold):
+	* battery.el (battery-mode-line-limit):
+	* arc-mode.el (archive-7z-extract, archive-7z-expunge)
+	(archive-7z-update):
+	* allout.el (allout-prefixed-keybindings)
+	(allout-unprefixed-keybindings)
+	(allout-inhibit-auto-fill-on-headline)
+	(allout-flattened-numbering-abbreviation):
+	* allout-widgets.el (allout-widgets-auto-activation)
+	(allout-widgets-icons-dark-subdir)
+	(allout-widgets-icons-light-subdir, allout-widgets-icon-types)
+	(allout-widgets-theme-dark-background)
+	(allout-widgets-theme-light-background)
+	(allout-widgets-item-image-properties-emacs)
+	(allout-widgets-item-image-properties-xemacs)
+	(allout-widgets-run-unit-tests-on-load)
+	(allout-widgets-time-decoration-activity)
+	(allout-widgets-hook-error-post-time)
+	(allout-widgets-track-decoration):
+	Add missing :version tags to new defcustoms and defgroups.
+
 	* progmodes/sql.el (sql-ansi-statement-starters)
 	(sql-oracle-statement-starters): Add custom type.
 

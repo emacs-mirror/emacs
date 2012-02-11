@@ -322,6 +322,7 @@ Archive and member name will be added."
   "Program and its options to run in order to extract a 7z file member.
 Extraction should happen to standard output.  Archive and member name will
 be added."
+  :version "24.1"
   :type '(list (string :tag "Program")
 	       (repeat :tag "Options"
 		       :inline t
@@ -332,6 +333,7 @@ be added."
   '("7z" "d")
   "Program and its options to run in order to delete 7z file members.
 Archive and member names will be added."
+  :version "24.1"
   :type '(list (string :tag "Program")
 	       (repeat :tag "Options"
 		       :inline t
@@ -343,6 +345,7 @@ Archive and member names will be added."
   "Program and its options to run in order to update a 7z file member.
 Options should ensure that specified directory will be put into the 7z
 file.  Archive and member name will be added."
+  :version "24.1"
   :type '(list (string :tag "Program")
 	       (repeat :tag "Options"
 		       :inline t

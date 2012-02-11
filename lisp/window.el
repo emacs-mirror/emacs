@@ -385,6 +385,7 @@ bottom side of each frame.  If an element is a number, this means
 to display at most that many side windows on the corresponding
 side.  If an element is nil, this means there's no bound on the
 number of slots on that side."
+  :version "24.1"
   :risky t
   :type
   '(list
