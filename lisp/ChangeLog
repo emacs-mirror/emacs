@@ -1,5 +1,7 @@
 2012-02-11  Glenn Morris  <rgm@gnu.org>
 
+	* vc/log-view.el (vc-diff-internal): Remove unneeded declaration.
+
 	* window.el (window-sides-slots):
 	* tool-bar.el (tool-bar-position):
 	* term/xterm.el (xterm-extra-capabilities):
