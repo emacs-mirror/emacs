@@ -1,3 +1,10 @@
+2012-02-11  Eli Zaretskii  <eliz@gnu.org>
+
+	* term/pc-win.el (x-select-text, x-selection-owner-p)
+	(x-own-selection-internal, x-disown-selection-internal)
+	(x-get-selection-internal): Sync doc strings and argument lists
+	with xselect.c, common-win.el and x-win.el.  (Bug#10783)
+
 2012-02-11  Leo Liu  <sdl.web@gmail.com>
 
 	* progmodes/python.el (python-end-of-statement): Fix infinite

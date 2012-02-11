@@ -1,3 +1,8 @@
+2012-02-11  Eli Zaretskii  <eliz@gnu.org>
+
+	* w16select.c (Fx_selection_exists_p): Sync doc string with
+	xselect.c.  (Bug#10783)
+
 2012-02-10  Glenn Morris  <rgm@gnu.org>
 
 	* fns.c (Fsecure_hash): Doc fix.
