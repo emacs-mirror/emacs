@@ -363,7 +363,7 @@ emacs_gnutls_write (struct Lisp_Process *proc, const char *buf, EMACS_INT nbyte)
 
       if (rtnval < 0)
 	{
-	  if (rtnval == GNUTLS_E_AGAIN || rtnval == GNUTLS_E_INTERRUPTED)
+	  if (rtnval == GNUTLS_E_INTERRUPTED)
 	    continue;
 	  else
 	    break;

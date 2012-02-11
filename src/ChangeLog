@@ -1,3 +1,7 @@
+2012-02-11  Lars Ingebrigtsen  <larsi@gnus.org>
+
+	* gnutls.c (emacs_gnutls_write): Don't infloop if sendto fails.
+
 2012-02-11  Eli Zaretskii  <eliz@gnu.org>
 
 	* w32select.c (Fx_selection_exists_p): Sync doc string and
