@@ -1,3 +1,8 @@
+2012-02-12  Glenn Morris  <rgm@gnu.org>
+
+	* ack.texi (Acknowledgments):
+	* emacs.texi (Acknowledgments): Updates for new files in 24.1.
+
 2012-02-10  Glenn Morris  <rgm@gnu.org>
 
 	* mini.texi (Minibuffer Edit): Mention minibuffer-inactive-mode.
