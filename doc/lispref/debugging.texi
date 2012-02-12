@@ -370,14 +370,10 @@ to step through a primitive function.
 
 @table @kbd
 @item c
-Exit the debugger and continue execution.  When continuing is possible,
-it resumes execution of the program as if the debugger had never been
-entered (aside from any side-effects that you caused by changing
-variable values or data structures while inside the debugger).
-
-Continuing is possible after entry to the debugger due to function entry
-or exit, explicit invocation, or quitting.  You cannot continue if the
-debugger was entered because of an error.
+Exit the debugger and continue execution.  This resumes execution of
+the program as if the debugger had never been entered (aside from any
+side-effects that you caused by changing variable values or data
+structures while inside the debugger).
 
 @item d
 Continue execution, but enter the debugger the next time any Lisp

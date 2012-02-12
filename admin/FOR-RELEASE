@@ -185,11 +185,11 @@ anti.texi
 back.texi
 backups.texi      
 buffers.texi      
-commands.texi     
+commands.texi     cyd
 compile.texi      cyd
 control.texi      cyd
 customize.texi    cyd
-debugging.texi    
+debugging.texi    cyd
 display.texi      
 edebug.texi
 elisp.texi
@@ -222,7 +222,7 @@ positions.texi
 processes.texi
 searching.texi    
 sequences.texi    cyd
-streams.texi      
+streams.texi      cyd
 strings.texi      cyd
 symbols.texi      cyd
 syntax.texi       

@@ -1,3 +1,8 @@
+2012-02-12  Chong Yidong  <cyd@gnu.org>
+
+	* debugging.texi (Debugger Commands): Continuing is now allowed
+	for errors.
+
 2012-02-11  Chong Yidong  <cyd@gnu.org>
 
 	* display.texi (Fringe Indicators): Add xref to Fringe Bitmaps.
