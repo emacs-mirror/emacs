@@ -1,5 +1,8 @@
 2012-02-12  Chong Yidong  <cyd@gnu.org>
 
+	* xdisp.c (handle_stop): Avoid assigning -1 to it->face_id here,
+	as that creates a dangerous corner case.
+
 	* window.c (Fdelete_window_internal): Invalidate the mouse
 	highlight (Bug#9904).
 

@@ -2750,8 +2750,11 @@ init_iterator (struct it *it, struct window *w,
   if (charpos >= BUF_BEG (current_buffer))
     {
       it->end_charpos = ZV;
-      it->face_id = -1;
       IT_CHARPOS (*it) = charpos;
+
+      /* We will rely on `reseat' to set this up properly, via
+	 handle_face_prop.  */
+      it->face_id = it->base_face_id;
 
       /* Compute byte position if not specified.  */
       if (bytepos < charpos)
