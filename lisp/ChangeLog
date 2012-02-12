@@ -1,3 +1,7 @@
+2012-02-12  Glenn Morris  <rgm@gnu.org>
+
+	* allout-widgets.el: Add missing license notice.
+
 2012-02-11  Glenn Morris  <rgm@gnu.org>
 
 	* select.el (x-get-selection-internal, x-own-selection-internal)
