@@ -47,6 +47,7 @@
   "If non-nil, this should be a TLS priority string.
 For instance, if you want to skip the \"dhe-rsa\" algorithm,
 set this variable to \"normal:-dhe-rsa\"."
+  :group 'gnutls
   :type '(choice (const nil)
 		 string))
 
