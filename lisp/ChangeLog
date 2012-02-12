@@ -1,3 +1,8 @@
+2012-02-12  Alan Mackenzie  <acm@muc.de>
+
+	Fix infinite loop with long macros.
+	* cc-engine.el (c-state-safe-place): Handle macros properly.
+
 2012-02-12  Chong Yidong  <cyd@gnu.org>
 
 	* window.el (display-buffer): Doc fix (Bug#10785).
