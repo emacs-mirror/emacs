@@ -240,6 +240,7 @@ See the existing keys for examples.
 Functions can be bound to multiple keys, but binding keys to
 multiple functions will not work - the last binding for a key
 prevails."
+  :version "24.1"
   :type 'allout-keybindings-binding
   :group 'allout-keybindings
   :set 'allout-compose-and-institute-keymap
@@ -263,6 +264,7 @@ Use vector format for the keys:
     parentheses, with the literal key, as above, preceded by the name(s)
     of the modifiers, eg: [(control ?a)]
 See the existing keys for examples."
+  :version "24.1"
   :type 'allout-keybindings-binding
   :group 'allout-keybindings
   :set 'allout-compose-and-institute-keymap
@@ -402,6 +404,7 @@ else allout's special hanging-indent maintaining auto-fill function,
 ;;;_  = allout-inhibit-auto-fill-on-headline
 (defcustom allout-inhibit-auto-fill-on-headline nil
   "If non-nil, auto-fill will be inhibited while on topic's header line."
+  :version "24.1"
   :type 'boolean
   :group 'allout)
 (make-variable-buffer-local 'allout-inhibit-auto-fill-on-headline)
@@ -764,6 +767,7 @@ Set this var to the bullet you want to use for file cross-references."
   "If non-nil, `allout-flatten-exposed-to-buffer' abbreviates topic
 numbers to minimal amount with some context.  Otherwise, entire
 numbers are always used."
+  :version "24.1"
   :type 'boolean
   :group 'allout)
 

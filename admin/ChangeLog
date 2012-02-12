@@ -1,3 +1,8 @@
+2012-02-11  Glenn Morris  <rgm@gnu.org>
+
+	* admin.el (cusver-find-files, cusver-scan, cusver-goto-xref)
+	(cusver-check): New functions.
+
 2012-01-19  Glenn Morris  <rgm@gnu.org>
 
 	* bzrmerge.el (bzrmerge-missing): Allow a definitive "no" answer to the

@@ -552,12 +552,10 @@ Advising Emacs Lisp Functions
 
 Debugging Lisp Programs
 
-* Debugger::                How the Emacs Lisp debugger is implemented.
+* Debugger::                A debugger for the Emacs Lisp evaluator.
 * Edebug::                  A source-level Emacs Lisp debugger.
 * Syntax Errors::           How to find syntax errors.
 * Test Coverage::           Ensuring you have tested all branches in your code.
-* Compilation Errors::      How to find errors that show up in
-                              byte compilation.
 
 The Lisp Debugger
 

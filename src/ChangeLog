@@ -1,3 +1,33 @@
+2012-02-12  Chong Yidong  <cyd@gnu.org>
+
+	* xdisp.c (handle_stop): Avoid assigning -1 to it->face_id here,
+	as that creates a dangerous corner case.
+
+	* window.c (Fdelete_window_internal): Invalidate the mouse
+	highlight (Bug#9904).
+
+2012-02-12  Glenn Morris  <rgm@gnu.org>
+
+	* xselect.c (Fx_own_selection_internal)
+	(Fx_get_selection_internal, Fx_disown_selection_internal)
+	(Fx_selection_owner_p, Fx_selection_exists_p): Doc fixes.
+	* nsselect.m (Fx_own_selection_internal)
+	(Fx_disown_selection_internal, Fx_selection_exists_p)
+	(Fx_selection_owner_p, Fx_get_selection_internal):
+	Sync docs and argument specs with the xselect.c versions.
+
+2012-02-11  Lars Ingebrigtsen  <larsi@gnus.org>
+
+	* gnutls.c (emacs_gnutls_write): Don't infloop if sendto fails.
+
+2012-02-11  Eli Zaretskii  <eliz@gnu.org>
+
+	* w32select.c (Fx_selection_exists_p): Sync doc string and
+	argument list with xselect.c.  (Bug#10783)
+
+	* w16select.c (Fx_selection_exists_p): Sync doc string and
+	argument list with xselect.c.  (Bug#10783)
+
 2012-02-10  Glenn Morris  <rgm@gnu.org>
 
 	* fns.c (Fsecure_hash): Doc fix.

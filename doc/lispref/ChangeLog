@@ -1,3 +1,36 @@
+2012-02-12  Chong Yidong  <cyd@gnu.org>
+
+	* debugging.texi (Debugger Commands): Continuing is now allowed
+	for errors.
+
+2012-02-11  Chong Yidong  <cyd@gnu.org>
+
+	* display.texi (Fringe Indicators): Add xref to Fringe Bitmaps.
+	Move the list of standard bitmaps there.
+	(Fringe Cursors): Rewrite for clarity.
+	(Fringe Bitmaps): Consolidate the list of standard bitmaps here.
+
+	* commands.texi (Command Overview): Mention read-key.
+	(Using Interactive, Interactive Call): Minor clarifications.
+	(Function Keys, Click Events): Avoid "input stream" terminology.
+	(Click Events): Add xref to Window Sizes and Accessing Mouse.
+	Clarify column and row components.
+	(Accessing Mouse): Add xref to Click Events.  Minor fixes.
+	(Special Events): Copyedits.
+
+	* streams.texi (Input Streams): De-document get-file-char.
+	(Output Variables): Don't refer to old backquote syntax.
+
+	* debugging.texi (Debugging): Copyedits.  Describe testcover, ERT.
+	(Error Debugging): Note that debug-ignored-errors overrides list
+	values of debug-on-error too.  Add xref to Signaling Errors.  Note
+	that debug-on-signal is not customizable.  Mention
+	condition-case-unless-debug.
+	(Compilation Errors): Node deleted.
+
+	* compile.texi (Compiler Errors): Move a paragraph here from
+	deleted node Compilation Errors.
+
 2012-02-10  Leo Liu  <sdl.web@gmail.com>
 
 	* control.texi (Handling Errors): Change condition-case-no-debug

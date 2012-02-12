@@ -172,6 +172,7 @@ Higher values result in larger images."
 (defcustom doc-view-image-width 850
   "Default image width.
 Has only an effect if imagemagick support is compiled into emacs."
+  :version "24.1"
   :type 'number
   :group 'doc-view)
 
@@ -201,6 +202,7 @@ If this and `doc-view-dvipdfm-program' are set,
   "Program to convert any file type readable by OpenOffice.org to PDF.
 
 Needed for viewing OpenOffice.org (and MS Office) files."
+  :version "24.1"
   :type 'file
   :group 'doc-view)
 

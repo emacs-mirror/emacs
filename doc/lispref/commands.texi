@@ -37,13 +37,13 @@ are done, and the subroutines that allow Lisp programs to do them.
 @node Command Overview
 @section Command Loop Overview
 
-  The first thing the command loop must do is read a key sequence, which
-is a sequence of events that translates into a command.  It does this by
-calling the function @code{read-key-sequence}.  Your Lisp code can also
-call this function (@pxref{Key Sequence Input}).  Lisp programs can also
-do input at a lower level with @code{read-event} (@pxref{Reading One
-Event}) or discard pending input with @code{discard-input}
-(@pxref{Event Input Misc}).
+  The first thing the command loop must do is read a key sequence,
+which is a sequence of input events that translates into a command.
+It does this by calling the function @code{read-key-sequence}.  Lisp
+programs can also call this function (@pxref{Key Sequence Input}).
+They can also read input at a lower level with @code{read-key} or
+@code{read-event} (@pxref{Reading One Event}), or discard pending
+input with @code{discard-input} (@pxref{Event Input Misc}).
 
   The key sequence is translated into a command through the currently
 active keymaps.  @xref{Key Lookup}, for information on how this is done.
@@ -67,12 +67,9 @@ use the minibuffer, so if you call @code{find-file} as a function from
 Lisp code, you must supply the file name string as an ordinary Lisp
 function argument.
 
-  If the command is a string or vector (i.e., a keyboard macro) then
-@code{execute-kbd-macro} is used to execute it.  You can call this
-function yourself (@pxref{Keyboard Macros}).
-
-  To terminate the execution of a running command, type @kbd{C-g}.  This
-character causes @dfn{quitting} (@pxref{Quitting}).
+  If the command is a keyboard macro (i.e.@: a string or vector),
+Emacs executes it using @code{execute-kbd-macro} (@pxref{Keyboard
+Macros}).
 
 @defvar pre-command-hook
 This normal hook is run by the editor command loop before it executes
@@ -175,8 +172,8 @@ or more arguments.
 
 @item
 It may be a string; its contents are a sequence of elements separated
-by newlines, one for each parameter@footnote{Some elements actually
-supply two parameters.}.  Each element consists of a code character
+by newlines, one for each argument@footnote{Some elements actually
+supply two arguments.}.  Each element consists of a code character
 (@pxref{Interactive Codes}) optionally followed by a prompt (which
 some code characters use and some ignore).  Here is an example:
 
@@ -575,21 +572,24 @@ the command is a function, @code{command-execute} calls
 @code{call-interactively}, which reads the arguments and calls the
 command.  You can also call these functions yourself.
 
+  Note that the term ``command'', in this context, refers to an
+interactively callable function (or function-like object), or a
+keyboard macro.  It does not refer to the key sequence used to invoke
+a command (@pxref{Keymaps}).
+
 @defun commandp object &optional for-call-interactively
-Returns @code{t} if @var{object} is suitable for calling interactively;
-that is, if @var{object} is a command.  Otherwise, returns @code{nil}.
+This function returns @code{t} if @var{object} is a command.
+Otherwise, it returns @code{nil}.
 
-Interactively-callable objects include strings and vectors (which are
-treated as keyboard macros), lambda expressions that contain a
-top-level @code{interactive} form (@pxref{Using Interactive}),
-byte-code function objects made from such lambda expressions, autoload
-objects that are declared as interactive (non-@code{nil} fourth
-argument to @code{autoload}), and some primitive functions.
-
-A symbol satisfies @code{commandp} if it has a non-@code{nil}
+Commands include strings and vectors (which are treated as keyboard
+macros), lambda expressions that contain a top-level
+@code{interactive} form (@pxref{Using Interactive}), byte-code
+function objects made from such lambda expressions, autoload objects
+that are declared as interactive (non-@code{nil} fourth argument to
+@code{autoload}), and some primitive functions.  Also, a symbol is
+considered a command if it has a non-@code{nil}
 @code{interactive-form} property, or if its function definition
-satisfies @code{commandp}.  Keys and keymaps are not commands.
-Rather, they are used to look up commands (@pxref{Keymaps}).
+satisfies @code{commandp}.
 
 If @var{for-call-interactively} is non-@code{nil}, then
 @code{commandp} returns @code{t} only for objects that
@@ -649,14 +649,14 @@ callable function or a keyboard macro.
 
 A string or vector as @var{command} is executed with
 @code{execute-kbd-macro}.  A function is passed to
-@code{call-interactively}, along with the optional @var{record-flag}
-and @var{keys}.
+@code{call-interactively} (see above), along with the
+@var{record-flag} and @var{keys} arguments.
 
-A symbol is handled by using its function definition in its place.  A
-symbol with an @code{autoload} definition counts as a command if it was
-declared to stand for an interactively callable function.  Such a
-definition is handled by loading the specified library and then
-rechecking the definition of the symbol.
+If @var{command} is a symbol, its function definition is used in its
+place.  A symbol with an @code{autoload} definition counts as a
+command if it was declared to stand for an interactively callable
+function.  Such a definition is handled by loading the specified
+library and then rechecking the definition of the symbol.
 
 The argument @var{special}, if given, means to ignore the prefix
 argument and not clear it.  This is used for executing special events
@@ -1131,9 +1131,9 @@ The
 @ifnottex
 2**22
 @end ifnottex
-bit in the character code indicates a character typed with
-the alt key held down.  (On some terminals, the key labeled @key{ALT}
-is actually the meta key.)
+bit in the character code indicates a character typed with the alt key
+held down.  (The key labeled @key{Alt} on most keyboards is actually
+treated as the meta key, not this.)
 @end table
 
   It is best to avoid mentioning specific bit numbers in your program.
@@ -1151,10 +1151,10 @@ specify the characters (@pxref{Changing Key Bindings}).  The function
 
 @cindex function keys
 Most keyboards also have @dfn{function keys}---keys that have names or
-symbols that are not characters.  Function keys are represented in Emacs
-Lisp as symbols; the symbol's name is the function key's label, in lower
-case.  For example, pressing a key labeled @key{F1} places the symbol
-@code{f1} in the input stream.
+symbols that are not characters.  Function keys are represented in
+Emacs Lisp as symbols; the symbol's name is the function key's label,
+in lower case.  For example, pressing a key labeled @key{F1} generates
+an input event represented by the symbol @code{f1}.
 
 The event type of a function key event is the event symbol itself.
 @xref{Classifying Events}.
@@ -1287,6 +1287,11 @@ the marginal areas, @var{position} has this form:
  @var{image} (@var{dx} . @var{dy}) (@var{width} . @var{height}))
 @end example
 
+@noindent
+The meanings of these list elements are documented below.
+@xref{Accessing Mouse}, for functions that let you easily access these
+elements.
+
 @table @asis
 @item @var{window}
 This is the window in which the click occurred.
@@ -1298,39 +1303,36 @@ which the click occurred.  It is one of the symbols @code{mode-line},
 @code{header-line}, @code{vertical-line}, @code{left-margin},
 @code{right-margin}, @code{left-fringe}, or @code{right-fringe}.
 
-In one special case, @var{pos-or-area} is a list containing a symbol (one
-of the symbols listed above) instead of just the symbol.  This happens
-after the imaginary prefix keys for the event are inserted into the
-input stream.  @xref{Key Sequence Input}.
-
+In one special case, @var{pos-or-area} is a list containing a symbol
+(one of the symbols listed above) instead of just the symbol.  This
+happens after the imaginary prefix keys for the event are registered
+by Emacs.  @xref{Key Sequence Input}.
 
 @item @var{x}, @var{y}
-These are the pixel coordinates of the click, relative to
-the top left corner of @var{window}, which is @code{(0 . 0)}.
-For a click on text, these are relative to the top left corner of
-the window's text area.  For the mode or header line, they are
-relative to the top left window edge.  For fringes, margins, and the
-vertical border, @var{x} does not have meaningful data.  For fringes
-and margins, @var{y} is relative to the bottom edge of the header
-line.
+These are the relative pixel coordinates of the click.  For clicks in
+the text area of a window, the coordinate origin @code{(0 . 0)} is
+taken to be the top left corner of the text area.  @xref{Window
+Sizes}.  For clicks in a mode line or header line, the coordinate
+origin is the top left corner of the window itself.  For fringes,
+margins, and the vertical border, @var{x} does not have meaningful
+data.  For fringes and margins, @var{y} is relative to the bottom edge
+of the header line.  In all cases, the @var{x} and @var{y} coordinates
+increase rightward and downward respectively.
 
 @item @var{timestamp}
 This is the time at which the event occurred, in milliseconds.
 
 @item @var{object}
-This is the object on which the click occurred.  It is either
-@code{nil} if there is no string property, or it has the form
-(@var{string} . @var{string-pos}) when there is a string-type text
-property at the click position.
+This is either @code{nil} if there is no string-type text property at
+the click position, or a cons cell of the form (@var{string}
+. @var{string-pos}) if there is one:
 
 @table @asis
 @item @var{string}
-This is the string on which the click occurred, including any
-properties.
+The string which was clicked on, including any properties.
 
 @item @var{string-pos}
-This is the position in the string on which the click occurred,
-relevant if properties at the click need to be looked up.
+The position in the string where the click occurred.
 @end table
 
 @item @var{text-pos}
@@ -1340,14 +1342,17 @@ the window.  For other events, it is the current buffer position in
 the window.
 
 @item @var{col}, @var{row}
-These are the actual coordinates of the glyph under the @var{x},
-@var{y} position, possibly padded with default character width
-glyphs if @var{x} is beyond the last glyph on the line.  For clicks on
-the header or mode line, these are measured from the top left edge of
-the header or mode line.  For clicks on the fringes and on the
-vertical border, these have no meaningful data.  For clicks on the
-margins, @var{col} is measured from the left edge of the margin area
-and @var{row} is measured from the top of the margin area.
+These are the actual column and row coordinate numbers of the glyph
+under the @var{x}, @var{y} position.  If @var{x} lies beyond the last
+column of actual text on its line, @var{col} is reported by adding
+fictional extra columns that have the default character width.  Row 0
+is taken to be the header line if the window has one, or the topmost
+row of the text area otherwise.  Column 0 is taken to be the leftmost
+column of the text area for clicks on a window text area, or the
+leftmost mode line or header line column for clicks there.  For clicks
+on fringes or vertical borders, these have no meaningful data.  For
+clicks on margins, @var{col} is measured from the left edge of the
+margin area and @var{row} is measured from the top of the margin area.
 
 @item @var{image}
 This is the image object on which the click occurred.  It is either
@@ -1885,7 +1890,7 @@ must be the last element of the list.  For example,
 a mouse button or motion event.
 
   These two functions return the starting or ending position of a
-mouse-button event, as a list of this form:
+mouse-button event, as a list of this form (@pxref{Click Events}):
 
 @example
 (@var{window} @var{pos-or-area} (@var{x} . @var{y}) @var{timestamp}
@@ -1936,12 +1941,13 @@ Return the pixel-based x and y coordinates in @var{position}, as a
 cons cell @code{(@var{x} . @var{y})}.  These coordinates are relative
 to the window given by @code{posn-window}.
 
-This example shows how to convert these window-relative coordinates
-into frame-relative coordinates:
+This example shows how to convert the window-relative coordinates in
+the text area of a window into frame-relative coordinates:
 
 @example
 (defun frame-relative-coordinates (position)
-  "Return frame-relative coordinates from POSITION."
+  "Return frame-relative coordinates from POSITION.
+POSITION is assumed to lie in a window text area."
   (let* ((x-y (posn-x-y position))
          (window (posn-window position))
          (edges (window-inside-pixel-edges window)))
@@ -1966,10 +1972,10 @@ window possesses a header line (@pxref{Header Lines}), it is
 
 @defun posn-actual-col-row position
 Return the actual row and column in @var{position}, as a cons cell
-@code{(@var{col} . @var{row})}.  The values are the actual row number
-in the window, and the actual character number in that row.  It returns
-@code{nil} if @var{position} does not include actual positions values.
-You can use @code{posn-col-row} to get approximate values.
+@code{(@var{col} . @var{row})}.  The values are the actual row and
+column numbers in the window.  @xref{Click Events}, for details.  It
+returns @code{nil} if @var{position} does not include actual positions
+values.
 @end defun
 
 @defun posn-string position
@@ -2680,9 +2686,9 @@ Likewise, incremental search uses this feature to unread events with no
 special meaning in a search, because these events should exit the search
 and then execute normally.
 
-The reliable and easy way to extract events from a key sequence so as to
-put them in @code{unread-command-events} is to use
-@code{listify-key-sequence} (@pxref{Strings of Events}).
+The reliable and easy way to extract events from a key sequence so as
+to put them in @code{unread-command-events} is to use
+@code{listify-key-sequence} (see below).
 
 Normally you add events to the front of this list, so that the events
 most recently unread will be reread first.
@@ -2787,28 +2793,29 @@ during the sleep.
 @section Special Events
 
 @cindex special events
-Special events are handled at a very low level---as soon as they are
-read.  The @code{read-event} function processes these events itself, and
-never returns them.  Instead, it keeps waiting for the first event
-that is not special and returns that one.
+Certain @dfn{special events} are handled at a very low level---as soon
+as they are read.  The @code{read-event} function processes these
+events itself, and never returns them.  Instead, it keeps waiting for
+the first event that is not special and returns that one.
 
-Events that are handled in this way do not echo, they are never grouped
-into key sequences, and they never appear in the value of
+  Special events do not echo, they are never grouped into key
+sequences, and they never appear in the value of
 @code{last-command-event} or @code{(this-command-keys)}.  They do not
 discard a numeric argument, they cannot be unread with
 @code{unread-command-events}, they may not appear in a keyboard macro,
 and they are not recorded in a keyboard macro while you are defining
 one.
 
-These events do, however, appear in @code{last-input-event} immediately
-after they are read, and this is the way for the event's definition to
-find the actual event.
+  Special events do, however, appear in @code{last-input-event}
+immediately after they are read, and this is the way for the event's
+definition to find the actual event.
 
-The events types @code{iconify-frame}, @code{make-frame-visible},
+  The events types @code{iconify-frame}, @code{make-frame-visible},
 @code{delete-frame}, @code{drag-n-drop}, and user signals like
 @code{sigusr1} are normally handled in this way.  The keymap which
-defines how to handle special events---and which events are special---is
-in the variable @code{special-event-map} (@pxref{Active Keymaps}).
+defines how to handle special events---and which events are
+special---is in the variable @code{special-event-map} (@pxref{Active
+Keymaps}).
 
 @node Waiting
 @section Waiting for Elapsed Time or Input

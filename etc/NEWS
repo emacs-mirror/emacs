@@ -939,6 +939,7 @@ They are superseded by shift-select-mode, enabled by default since 23.1.
 
 +++
 *** The Landmark game is now invoked with `landmark', not `lm'.
+Its functions and variables have been similarly renamed.
 
 ---
 *** In `ido-file-completion-map', C-v is no longer bound to ido-toggle-vc.

@@ -310,6 +310,7 @@ is `(valuefunc member)'."
 (defcustom nnir-ignored-newsgroups ""
   "*A regexp to match newsgroups in the active file that should
   be skipped when searching."
+  :version "24.1"
   :type '(regexp)
   :group 'nnir)
 
@@ -324,6 +325,7 @@ with three items unique to nnir summary buffers:
 %g    Article original short group name (string)
 
 If nil this will use `gnus-summary-line-format'."
+  :version "24.1"
   :type '(string)
   :group 'nnir)
 
@@ -335,6 +337,7 @@ retrieved header format.
 
 If this variable is nil, or if the provided function returns nil for a search
 result, `gnus-retrieve-headers' will be called instead."
+  :version "24.1"
   :type '(function)
   :group 'nnir)
 
@@ -342,6 +345,7 @@ result, `gnus-retrieve-headers' will be called instead."
   "*The default IMAP search key for an nnir search. Must be one of
   the keys in `nnir-imap-search-arguments'. To use raw imap queries
   by default set this to \"Imap\"."
+  :version "24.1"
   :type `(choice ,@(mapcar (lambda (elem) (list 'const (car elem)))
 			   nnir-imap-search-arguments))
   :group 'nnir)
@@ -503,6 +507,7 @@ arrive at the correct group name, \"mail.misc\"."
 
 (defcustom nnir-notmuch-program "notmuch"
   "*Name of notmuch search executable."
+  :version "24.1"
   :type '(string)
   :group 'nnir)
 
@@ -513,6 +518,7 @@ Note that this should be a list.  Ie, do NOT use the following:
     (setq nnir-notmuch-additional-switches \"-i -w\") ; wrong
 Instead, use this:
     (setq nnir-notmuch-additional-switches '(\"-i\" \"-w\"))"
+  :version "24.1"
   :type '(repeat (string))
   :group 'nnir)
 
@@ -523,6 +529,7 @@ regular expression.
 
 This variable is very similar to `nnir-namazu-remove-prefix', except
 that it is for notmuch, not Namazu."
+  :version "24.1"
   :type '(regexp)
   :group 'nnir)
 
@@ -573,6 +580,7 @@ Add an entry here when adding a new search engine.")
   '((nnimap . imap)
     (nntp . gmane))
   "*Alist of default search engines keyed by server method."
+  :version "24.1"
   :type `(repeat (cons (choice (const nnimap) (const nttp) (const nnspool)
 			       (const nneething) (const nndir) (const nnmbox)
 			       (const nnml) (const nnmh) (const nndraft)

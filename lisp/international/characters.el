@@ -1372,7 +1372,7 @@ METHOD must be one of these symbols:
   `acronym':    display an acronym of the character in a box.  The
                 acronym is taken from `char-acronym-table', which see.
   `hex-code':   display the hexadecimal character code in a box."
-
+  :version "24.1"
   :type '(alist :key-type (symbol :tag "Character Group")
 		:value-type (symbol :tag "Display Method"))
   :options '((c0-control

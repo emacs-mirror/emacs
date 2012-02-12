@@ -428,6 +428,7 @@ any other non-nil value, take the action in both cases.  Even if
 you're not confirming the sending of immediate or queued messages,
 it can still be interesting to see a lot about them as they are
 shuttled robotically onward."
+  :version "24.1"
   :group 'feedmail-misc
   :type 'boolean
   )

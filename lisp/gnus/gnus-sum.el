@@ -122,6 +122,7 @@ If t, fetch all the available old headers."
   "*Use nnir to search an entire server when referring threads. A
 nil value will only search for thread-related articles in the
 current group."
+  :version "24.1"
   :group 'gnus-thread
   :type 'boolean)
 

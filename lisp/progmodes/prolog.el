@@ -329,7 +329,7 @@
 ;; General configuration
 
 (defcustom prolog-system nil
-  "*Prolog interpreter/compiler used.
+  "Prolog interpreter/compiler used.
 The value of this variable is nil or a symbol.
 If it is a symbol, it determines default values of other configuration
 variables with respect to properties of the specified Prolog
@@ -341,6 +341,7 @@ mercury - Mercury
 sicstus - SICStus Prolog
 swi     - SWI Prolog
 gnu     - GNU Prolog"
+  :version "24.1"
   :group 'prolog
   :type '(choice (const :tag "SICStus" :value sicstus)
                  (const :tag "SWI Prolog" :value swi)
@@ -361,63 +362,74 @@ gnu     - GNU Prolog"
     (eclipse  (3 . 7))
     (gnu      (0 . 0)))
   ;; FIXME: This should be auto-detected instead of user-provided.
-  "*Alist of Prolog system versions.
+  "Alist of Prolog system versions.
 The version numbers are of the format (Major . Minor)."
+  :version "24.1"
+  :type '(repeat (list (symbol :tag "System")
+                       (cons :tag "Version numbers" (integer :tag "Major")
+                             (integer :tag "Minor"))))
   :group 'prolog)
 
 ;; Indentation
 
 (defcustom prolog-indent-width 4
-  "*The indentation width used by the editing buffer."
+  "The indentation width used by the editing buffer."
   :group 'prolog-indentation
   :type 'integer)
 
 (defcustom prolog-align-comments-flag t
-  "*Non-nil means automatically align comments when indenting."
+  "Non-nil means automatically align comments when indenting."
+  :version "24.1"
   :group 'prolog-indentation
   :type 'boolean)
 
 (defcustom prolog-indent-mline-comments-flag t
-  "*Non-nil means indent contents of /* */ comments.
+  "Non-nil means indent contents of /* */ comments.
 Otherwise leave such lines as they are."
+  :version "24.1"
   :group 'prolog-indentation
   :type 'boolean)
 
 (defcustom prolog-object-end-to-0-flag t
-  "*Non-nil means indent closing '}' in SICStus object definitions to level 0.
+  "Non-nil means indent closing '}' in SICStus object definitions to level 0.
 Otherwise indent to `prolog-indent-width'."
+  :version "24.1"
   :group 'prolog-indentation
   :type 'boolean)
 
 (defcustom prolog-left-indent-regexp "\\(;\\|\\*?->\\)"
-  "*Regexp for character sequences after which next line is indented.
+  "Regexp for character sequences after which next line is indented.
 Next line after such a regexp is indented to the opening parenthesis level."
+  :version "24.1"
   :group 'prolog-indentation
   :type 'regexp)
 
 (defcustom prolog-paren-indent-p nil
-  "*If non-nil, increase indentation for parenthesis expressions.
+  "If non-nil, increase indentation for parenthesis expressions.
 The second and subsequent line in a parenthesis expression other than
 a compound term can either be indented `prolog-paren-indent' to the
 right (if this variable is non-nil) or in the same way as for compound
 terms (if this variable is nil, default)."
+  :version "24.1"
   :group 'prolog-indentation
   :type 'boolean)
 
 (defcustom prolog-paren-indent 4
-  "*The indentation increase for parenthesis expressions.
+  "The indentation increase for parenthesis expressions.
 Only used in ( If -> Then ; Else) and ( Disj1 ; Disj2 ) style expressions."
+  :version "24.1"
   :group 'prolog-indentation
   :type 'integer)
 
 (defcustom prolog-parse-mode 'beg-of-clause
-  "*The parse mode used (decides from which point parsing is done).
+  "The parse mode used (decides from which point parsing is done).
 Legal values:
 'beg-of-line   - starts parsing at the beginning of a line, unless the
                  previous line ends with a backslash.  Fast, but has
                  problems detecting multiline /* */ comments.
 'beg-of-clause - starts parsing at the beginning of the current clause.
                  Slow, but copes better with /* */ comments."
+  :version "24.1"
   :group 'prolog-indentation
   :type '(choice (const :value beg-of-line)
                  (const :value beg-of-clause)))
@@ -447,7 +459,8 @@ Legal values:
     (t
      ;; FIXME: Shouldn't we just use the union of all the above here?
      ("dynamic" "module")))
-  "*Alist of Prolog keywords which is used for font locking of directives."
+  "Alist of Prolog keywords which is used for font locking of directives."
+  :version "24.1"
   :group 'prolog-font-lock
   :type 'sexp)
 
@@ -455,7 +468,8 @@ Legal values:
   '((mercury
      ("char" "float" "int" "io__state" "string" "univ"))
     (t nil))
-  "*Alist of Prolog types used by font locking."
+  "Alist of Prolog types used by font locking."
+  :version "24.1"
   :group 'prolog-font-lock
   :type 'sexp)
 
@@ -463,7 +477,8 @@ Legal values:
   '((mercury
      ("bound" "di" "free" "ground" "in" "mdi" "mui" "muo" "out" "ui" "uo"))
     (t nil))
-  "*Alist of Prolog mode specificators used by font locking."
+  "Alist of Prolog mode specificators used by font locking."
+  :version "24.1"
   :group 'prolog-font-lock
   :type 'sexp)
 
@@ -472,7 +487,8 @@ Legal values:
      ("cc_multi" "cc_nondet" "det" "erroneous" "failure" "multi" "nondet"
       "semidet"))
     (t nil))
-  "*Alist of Prolog determinism specificators used by font locking."
+  "Alist of Prolog determinism specificators used by font locking."
+  :version "24.1"
   :group 'prolog-font-lock
   :type 'sexp)
 
@@ -480,7 +496,8 @@ Legal values:
   '((mercury
      ("^#[0-9]+"))
     (t nil))
-  "*Alist of Prolog source code directives used by font locking."
+  "Alist of Prolog source code directives used by font locking."
+  :version "24.1"
   :group 'prolog-font-lock
   :type 'sexp)
 
@@ -488,17 +505,19 @@ Legal values:
 ;; Keyboard
 
 (defcustom prolog-electric-newline-flag (not (fboundp 'electric-indent-mode))
-  "*Non-nil means automatically indent the next line when the user types RET."
+  "Non-nil means automatically indent the next line when the user types RET."
+  :version "24.1"
   :group 'prolog-keyboard
   :type 'boolean)
 
 (defcustom prolog-hungry-delete-key-flag nil
-  "*Non-nil means delete key consumes all preceding spaces."
+  "Non-nil means delete key consumes all preceding spaces."
+  :version "24.1"
   :group 'prolog-keyboard
   :type 'boolean)
 
 (defcustom prolog-electric-dot-flag nil
-  "*Non-nil means make dot key electric.
+  "Non-nil means make dot key electric.
 Electric dot appends newline or inserts head of a new clause.
 If dot is pressed at the end of a line where at least one white space
 precedes the point, it inserts a recursive call to the current predicate.
@@ -506,53 +525,61 @@ If dot is pressed at the beginning of an empty line, it inserts the head
 of a new clause for the current predicate.  It does not apply in strings
 and comments.
 It does not apply in strings and comments."
+  :version "24.1"
   :group 'prolog-keyboard
   :type 'boolean)
 
 (defcustom prolog-electric-dot-full-predicate-template nil
-  "*If nil, electric dot inserts only the current predicate's name and `('
+  "If nil, electric dot inserts only the current predicate's name and `('
 for recursive calls or new clause heads.  Non-nil means to also
 insert enough commas to cover the predicate's arity and `)',
 and dot and newline for recursive calls."
+  :version "24.1"
   :group 'prolog-keyboard
   :type 'boolean)
 
 (defcustom prolog-electric-underscore-flag nil
-  "*Non-nil means make underscore key electric.
+  "Non-nil means make underscore key electric.
 Electric underscore replaces the current variable with underscore.
 If underscore is pressed not on a variable then it behaves as usual."
+  :version "24.1"
   :group 'prolog-keyboard
   :type 'boolean)
 
 (defcustom prolog-electric-tab-flag nil
-  "*Non-nil means make TAB key electric.
+  "Non-nil means make TAB key electric.
 Electric TAB inserts spaces after parentheses, ->, and ;
 in ( If -> Then ; Else) and ( Disj1 ; Disj2 ) style expressions."
+  :version "24.1"
   :group 'prolog-keyboard
   :type 'boolean)
 
 (defcustom prolog-electric-if-then-else-flag nil
-  "*Non-nil makes `(', `>' and `;' electric
+  "Non-nil makes `(', `>' and `;' electric
 to automatically indent if-then-else constructs."
+  :version "24.1"
   :group 'prolog-keyboard
   :type 'boolean)
 
 (defcustom prolog-electric-colon-flag nil
-  "*Makes `:' electric (inserts `:-' on a new line).
+  "Makes `:' electric (inserts `:-' on a new line).
 If non-nil, pressing `:' at the end of a line that starts in
 the first column (i.e., clause heads) inserts ` :-' and newline."
+  :version "24.1"
   :group 'prolog-keyboard
   :type 'boolean)
 
 (defcustom prolog-electric-dash-flag nil
-  "*Makes `-' electric (inserts a `-->' on a new line).
+  "Makes `-' electric (inserts a `-->' on a new line).
 If non-nil, pressing `-' at the end of a line that starts in
 the first column (i.e., DCG heads) inserts ` -->' and newline."
+  :version "24.1"
   :group 'prolog-keyboard
   :type 'boolean)
 
 (defcustom prolog-old-sicstus-keys-flag nil
-  "*Non-nil means old SICStus Prolog mode keybindings are used."
+  "Non-nil means old SICStus Prolog mode keybindings are used."
+  :version "24.1"
   :group 'prolog-keyboard
   :type 'boolean)
 
@@ -570,7 +597,7 @@ the first column (i.e., DCG heads) inserts ` -->' and newline."
  		      (not (executable-find (car names))))
  	    (setq names (cdr names)))
  	  (or (car names) "prolog"))))
-  "*Alist of program names for invoking an inferior Prolog with `run-prolog'."
+  "Alist of program names for invoking an inferior Prolog with `run-prolog'."
   :group 'prolog-inferior
   :type 'sexp)
 (defun prolog-program-name ()
@@ -579,7 +606,8 @@ the first column (i.e., DCG heads) inserts ` -->' and newline."
 (defcustom prolog-program-switches
   '((sicstus ("-i"))
     (t nil))
-  "*Alist of switches given to inferior Prolog run with `run-prolog'."
+  "Alist of switches given to inferior Prolog run with `run-prolog'."
+  :version "24.1"
   :group 'prolog-inferior
   :type 'sexp)
 (defun prolog-program-switches ()
@@ -594,7 +622,7 @@ the first column (i.e., DCG heads) inserts ` -->' and newline."
     (swi "[%f].")
     (gnu     "[%f].")
     (t "reconsult(%f)."))
-  "*Alist of strings defining predicate for reconsulting.
+  "Alist of strings defining predicate for reconsulting.
 
 Some parts of the string are replaced:
 `%f' by the name of the consulted file (can be a temporary file)
@@ -616,7 +644,7 @@ Some parts of the string are replaced:
                      "prolog:zap_file(%m,%b,compile).")))
     (swi "[%f].")
     (t "compile(%f)."))
-  "*Alist of strings and lists defining predicate for recompilation.
+  "Alist of strings and lists defining predicate for recompilation.
 
 Some parts of the string are replaced:
 `%f' by the name of the compiled file (can be a temporary file)
@@ -634,7 +662,7 @@ If `prolog-program-name' is nil, it is an argument to the `compile' function."
   (prolog-find-value-by-system prolog-compile-string))
 
 (defcustom prolog-eof-string "end_of_file.\n"
-  "*Alist of strings that represent end of file for prolog.
+  "Alist of strings that represent end of file for prolog.
 nil means send actual operating system end of file."
   :group 'prolog-inferior
   :type 'sexp)
@@ -645,7 +673,8 @@ nil means send actual operating system end of file."
     (swi "^\\(\\[[a-zA-Z]*\\] \\)?[1-9]?[0-9]*[ ]?\\?- \\|^| +")
     (gnu "^| \\?-")
     (t "^|? *\\?-"))
-  "*Alist of prompts of the prolog system command line."
+  "Alist of prompts of the prolog system command line."
+  :version "24.1"
   :group 'prolog-inferior
   :type 'sexp)
 (defun prolog-prompt-regexp ()
@@ -654,42 +683,48 @@ nil means send actual operating system end of file."
 ;; (defcustom prolog-continued-prompt-regexp
 ;;   '((sicstus "^\\(| +\\|     +\\)")
 ;;     (t "^|: +"))
-;;   "*Alist of regexps matching the prompt when consulting `user'."
+;;   "Alist of regexps matching the prompt when consulting `user'."
 ;;   :group 'prolog-inferior
 ;;   :type 'sexp)
 
 (defcustom prolog-debug-on-string "debug.\n"
-  "*Predicate for enabling debug mode."
+  "Predicate for enabling debug mode."
+  :version "24.1"
   :group 'prolog-inferior
   :type 'string)
 
 (defcustom prolog-debug-off-string "nodebug.\n"
-  "*Predicate for disabling debug mode."
+  "Predicate for disabling debug mode."
+  :version "24.1"
   :group 'prolog-inferior
   :type 'string)
 
 (defcustom prolog-trace-on-string "trace.\n"
-  "*Predicate for enabling tracing."
+  "Predicate for enabling tracing."
+  :version "24.1"
   :group 'prolog-inferior
   :type 'string)
 
 (defcustom prolog-trace-off-string "notrace.\n"
-  "*Predicate for disabling tracing."
+  "Predicate for disabling tracing."
+  :version "24.1"
   :group 'prolog-inferior
   :type 'string)
 
 (defcustom prolog-zip-on-string "zip.\n"
-  "*Predicate for enabling zip mode for SICStus."
+  "Predicate for enabling zip mode for SICStus."
+  :version "24.1"
   :group 'prolog-inferior
   :type 'string)
 
 (defcustom prolog-zip-off-string "nozip.\n"
-  "*Predicate for disabling zip mode for SICStus."
+  "Predicate for disabling zip mode for SICStus."
+  :version "24.1"
   :group 'prolog-inferior
   :type 'string)
 
 (defcustom prolog-use-standard-consult-compile-method-flag t
-  "*Non-nil means use the standard compilation method.
+  "Non-nil means use the standard compilation method.
 Otherwise the new compilation method will be used.  This
 utilizes a special compilation buffer with the associated
 features such as parsing of error messages and automatically
@@ -698,6 +733,7 @@ jumping to the source code responsible for the error.
 Warning: the new method is so far only experimental and
 does contain bugs.  The recommended setting for the novice user
 is non-nil for this variable."
+  :version "24.1"
   :group 'prolog-inferior
   :type 'boolean)
 
@@ -706,41 +742,48 @@ is non-nil for this variable."
 
 (defcustom prolog-use-prolog-tokenizer-flag
   (not (fboundp 'syntax-propertize-rules))
-  "*Non-nil means use the internal prolog tokenizer for indentation etc.
+  "Non-nil means use the internal prolog tokenizer for indentation etc.
 Otherwise use `parse-partial-sexp' which is faster but sometimes incorrect."
+  :version "24.1"
   :group 'prolog-other
   :type 'boolean)
 
 (defcustom prolog-imenu-flag t
-  "*Non-nil means add a clause index menu for all prolog files."
+  "Non-nil means add a clause index menu for all prolog files."
+  :version "24.1"
   :group 'prolog-other
   :type 'boolean)
 
 (defcustom prolog-imenu-max-lines 3000
-  "*The maximum number of lines of the file for imenu to be enabled.
+  "The maximum number of lines of the file for imenu to be enabled.
 Relevant only when `prolog-imenu-flag' is non-nil."
+  :version "24.1"
   :group 'prolog-other
   :type 'integer)
 
 (defcustom prolog-info-predicate-index
   "(sicstus)Predicate Index"
-  "*The info node for the SICStus predicate index."
+  "The info node for the SICStus predicate index."
+  :version "24.1"
   :group 'prolog-other
   :type 'string)
 
 (defcustom prolog-underscore-wordchar-flag nil
-  "*Non-nil means underscore (_) is a word-constituent character."
+  "Non-nil means underscore (_) is a word-constituent character."
+  :version "24.1"
   :group 'prolog-other
   :type 'boolean)
 
 (defcustom prolog-use-sicstus-sd nil
-  "*If non-nil, use the source level debugger of SICStus 3#7 and later."
+  "If non-nil, use the source level debugger of SICStus 3#7 and later."
+  :version "24.1"
   :group 'prolog-other
   :type 'boolean)
 
 (defcustom prolog-char-quote-workaround nil
-  "*If non-nil, declare 0 as a quote character to handle 0'<char>.
+  "If non-nil, declare 0 as a quote character to handle 0'<char>.
 This is really kludgy, and unneeded (i.e. obsolete) in Emacs>=24."
+  :version "24.1"
   :group 'prolog-other
   :type 'boolean)
 

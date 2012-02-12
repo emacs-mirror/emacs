@@ -3886,9 +3886,17 @@ Signal an error when WINDOW is the only window on its frame.  */)
       && EQ (r->new_total, (horflag ? r->total_cols : r->total_lines)))
     /* We can delete WINDOW now.  */
     {
+      Mouse_HLInfo *hlinfo;
+
       /* Block input.  */
       BLOCK_INPUT;
       window_resize_apply (p, horflag);
+
+      /* If this window is referred to by the dpyinfo's mouse
+	 highlight, invalidate that slot to be safe (Bug#9904).  */
+      hlinfo = MOUSE_HL_INFO (XFRAME (w->frame));
+      if (EQ (hlinfo->mouse_face_window, window))
+	hlinfo->mouse_face_window = Qnil;
 
       windows_or_buffers_changed++;
       Vwindow_list = Qnil;

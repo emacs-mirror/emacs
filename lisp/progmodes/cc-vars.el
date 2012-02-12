@@ -349,6 +349,7 @@ Its value is one of:
  go-outward  -- Nested functions are also recognized.  Should a function
                 command hit the beginning/end of a nested scope, it will
                 carry on at the less nested level."
+  :version "24.1"
   :type '(radio
 	  (const :tag "Functions are at the top-level" t)
 	  (const :tag "Functions are also recognized inside declaration scopes" go-outward))

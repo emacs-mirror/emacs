@@ -181,6 +181,7 @@ See the variable `tramp-encoding-shell' for more information."
   (unless (string-match "cmd\\.exe" tramp-encoding-shell) "-i")
   "*Use this switch together with `tramp-encoding-shell' for interactive shells.
 See the variable `tramp-encoding-shell' for more information."
+  :version "24.1"
   :group 'tramp
   :type '(choice (const nil) string))
 
@@ -463,6 +464,7 @@ the remote shell.")
 (defcustom tramp-local-end-of-line
   (if (memq system-type '(windows-nt)) "\r\n" "\n")
   "*String used for end of line in local processes."
+  :version "24.1"
   :group 'tramp
   :type 'string)
 

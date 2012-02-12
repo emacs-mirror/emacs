@@ -9,6 +9,21 @@
 ;; Keywords: outlines
 ;; Website: http://myriadicity.net/software-and-systems/craft/emacs-allout
 
+;; This file is part of GNU Emacs.
+
+;; GNU Emacs is free software: you can redistribute it and/or modify
+;; it under the terms of the GNU General Public License as published by
+;; the Free Software Foundation, either version 3 of the License, or
+;; (at your option) any later version.
+
+;; GNU Emacs is distributed in the hope that it will be useful,
+;; but WITHOUT ANY WARRANTY; without even the implied warranty of
+;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+;; GNU General Public License for more details.
+
+;; You should have received a copy of the GNU General Public License
+;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+
 ;;; Commentary:
 
 ;; This is an allout outline-mode add-on that highlights outline structure
@@ -131,6 +146,7 @@ explicitly invoke `allout-widgets-mode' in allout buffers where
 you want allout widgets operation.
 
 See `allout-widgets-mode' for allout widgets mode features."
+  :version "24.1"
   :type 'boolean
   :group 'allout-widgets
   :set 'allout-widgets-setup
@@ -155,16 +171,19 @@ See `allout-widgets-mode' for allout widgets mode features."
 ;;;_  = allout-widgets-icons-dark-subdir
 (defcustom allout-widgets-icons-dark-subdir "icons/allout-widgets/dark-bg/"
   "Directory on `image-load-path' holding allout icons for dark backgrounds."
+  :version "24.1"
   :type 'string
   :group 'allout-widgets)
 ;;;_  = allout-widgets-icons-light-subdir
 (defcustom allout-widgets-icons-light-subdir "icons/allout-widgets/light-bg/"
   "Directory on `image-load-path' holding allout icons for light backgrounds."
+  :version "24.1"
   :type 'string
   :group 'allout-widgets)
 ;;;_  = allout-widgets-icon-types
 (defcustom allout-widgets-icon-types '(xpm png)
   "File extensions for the icon graphic format types, in order of preference."
+  :version "24.1"
   :type '(repeat symbol)
   :group 'allout-widgets)
 
@@ -172,23 +191,27 @@ See `allout-widgets-mode' for allout widgets mode features."
 ;;;_   = allout-widgets-theme-dark-background
 (defcustom allout-widgets-theme-dark-background "allout-dark-bg"
   "Identify the outline's icon theme to use with a dark background."
+  :version "24.1"
   :type '(string)
   :group 'allout-widgets)
 ;;;_   = allout-widgets-theme-light-background
 (defcustom allout-widgets-theme-light-background "allout-light-bg"
   "Identify the outline's icon theme to use with a light background."
+  :version "24.1"
   :type '(string)
   :group 'allout-widgets)
 ;;;_   = allout-widgets-item-image-properties-emacs
 (defcustom allout-widgets-item-image-properties-emacs
   '(:ascent center :mask (heuristic t))
   "*Default properties item widget images in mainline Emacs."
+  :version "24.1"
   :type 'plist
   :group 'allout-widgets)
 ;;;_   = allout-widgets-item-image-properties-xemacs
 (defcustom allout-widgets-item-image-properties-xemacs
   nil
   "*Default properties item widget images in XEmacs."
+  :version "24.1"
   :type 'plist
   :group 'allout-widgets)
 ;;;_  . Developer
@@ -204,6 +227,7 @@ doing byte-compilation with a repeat count, so the file is loaded after
 compilation.)
 
 See `allout-widgets-run-unit-tests' to see what's run."
+  :version "24.1"
   :type 'boolean
   :group 'allout-widgets-developer)
 ;;;_   = allout-widgets-time-decoration-activity
@@ -215,6 +239,7 @@ The details are retained as the value of
 
 Generally, allout widgets code developers are the only ones who'll want to
 set this."
+  :version "24.1"
   :type 'boolean
   :group 'allout-widgets-developer)
 ;;;_   = allout-widgets-hook-error-post-time 0
@@ -224,6 +249,7 @@ set this."
 0 is minimal, or nil to not post to the message area.
 
 This is for debugging purposes."
+  :version "24.1"
   :type 'integer
   :group 'allout-widgets-developer)
 ;;;_   = allout-widgets-maintain-tally nil
@@ -235,6 +261,7 @@ This is for debugging purposes.
 The tally shows the total number of item widgets in the current
 buffer, and tracking increases as new widgets are added and
 decreases as obsolete widgets are garbage collected."
+  :version "24.1"
   :type 'boolean
   :group 'allout-widgets-developer)
 (defvar allout-widgets-tally nil
@@ -268,6 +295,7 @@ The number varies according to the evanescence of objects on a
 This is for debugging purposes, and generally set at need in a
 buffer rather than as a prevailing configuration \(but it's handy
 to publicize it by making it a customization variable\)."
+  :version "24.1"
   :type 'boolean
   :group 'allout-widgets-developer)
 (make-variable-buffer-local 'allout-widgets-track-decoration)

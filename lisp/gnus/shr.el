@@ -35,6 +35,7 @@
 
 (defgroup shr nil
   "Simple HTML Renderer"
+  :version "24.1"
   :group 'mail)
 
 (defcustom shr-max-image-proportion 0.9

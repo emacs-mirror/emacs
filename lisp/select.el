@@ -72,7 +72,7 @@ variable is set, it is used for the next communication only.
 After the communication, this variable is set to nil.")
 
 (declare-function x-get-selection-internal "xselect.c"
-		  (selection-symbol target-type &optional time-stamp))
+		  (selection-symbol target-type &optional time-stamp terminal))
 
 ;; Only declared obsolete in 23.3.
 (define-obsolete-function-alias 'x-selection 'x-get-selection "at least 19.34")
@@ -118,9 +118,9 @@ in `selection-converter-alist', which see."
   (x-get-selection-internal 'CLIPBOARD 'STRING))
 
 (declare-function x-own-selection-internal "xselect.c"
-		  (selection-name selection-value))
+		  (selection-name selection-value &optional frame))
 (declare-function x-disown-selection-internal "xselect.c"
-		  (selection &optional time))
+		  (selection &optional time terminal))
 
 (defun x-set-selection (type data)
   "Make an X selection of type TYPE and value DATA.

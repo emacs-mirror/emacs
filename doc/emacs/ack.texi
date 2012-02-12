@@ -51,8 +51,9 @@ files.
 @item
 Michael Albinus wrote @file{dbus.el}, a package that implements the
 D-Bus message bus protocol; @file{zeroconf.el}, a mode for browsing
-Avahi services; and @file{xesam.el}, a Xesam-based search engine
-interface.  He and Kai Groﬂjohann wrote the Tramp package, which
+Avahi services; @file{xesam.el}, a Xesam-based search engine
+interface; and @file{secrets.el}, an interface to keyring daemons for
+storing confidential data.  He and Kai Groﬂjohann wrote the Tramp package, which
 provides transparent remote file editing using rcp, ssh, ftp, and
 other network protocols.  He and Daniel Pittman wrote
 @file{tramp-cache.el}.
@@ -196,7 +197,8 @@ prior to Emacs 23 for Mac OS.
 
 @item
 Chong Yidong was the Emacs co-maintainer for Emacs 23.  He made many
-improvements to the Emacs display engine.
+improvements to the Emacs display engine.  He also wrote
+@file{tabulated-list.el}, a generic major mode for lists of data.
 
 @item
 James Clark wrote SGML mode, a mode for editing SGML documents; and
@@ -231,7 +233,8 @@ files as ``thumbnails.''
 
 @item
 Julien Danjou wrote an implementation of ``Desktop Notifications''
-(@file{notifications.el}).
+(@file{notifications.el}); and @file{color.el}, a library for general
+color manipulation.  He also made various contributions to Gnus.
 
 @item
 Vivek Dasmohapatra wrote @file{htmlfontify.el}, to convert a buffer or
@@ -254,6 +257,7 @@ Eric Ding wrote @file{goto-addr.el},
 
 @item
 Jan Dj‰rv added support for the GTK+ toolkit and X drag-and-drop.
+He also wrote @file{dynamic-setting.el}.
 
 @item
 Carsten Dominik wrote Ref@TeX{}, a package for setting up labels and
@@ -434,7 +438,10 @@ non-@acronym{ASCII} text from an @acronym{ASCII} keyboard.
 Jesper Harder wrote @file{yenc.el}, for decoding yenc encoded messages.
 
 @item
-K. Shane Hartman wrote @file{chistory.el} and @file{echistory.el},
+Alexandru Harsanyi wrote a library for accessing SOAP web services.
+
+@item
+K.@: Shane Hartman wrote @file{chistory.el} and @file{echistory.el},
 packages for browsing command history lists; @file{electric.el} and
 @file{helper.el}, which provide an alternative command loop and
 appropriate help facilities; @file{emacsbug.el}, a package for
@@ -486,12 +493,16 @@ wrote many of its parts.  Several of these are now general components of
 Emacs: @file{dns.el} for Domain Name Service lookups;
 @file{format-spec.el} for formatting arbitrary format strings;
 @file{netrc.el} for parsing of @file{.netrc} files; and
-@file{time-date.el} for general date and time handling.  Components of
-Gnus have also been written by: Nagy Andras, David Blacka, Scott Byer,
-Kevin Greiner, Kai Groﬂjohann, Joe Hildebrand, Paul Jarc, Sascha
+@file{time-date.el} for general date and time handling.
+He also wrote @file{network-stream.el}, for opening network processes;
+and @file{url-queue.el}, for controlling parallel downloads of URLs.
+Components of Gnus have also been written by: Nagy Andras, David
+Blacka, Scott Byer, Ludovic CourtËs, Julien Danjou, Kevin Greiner, Kai
+Groﬂjohann, Joe Hildebrand, Paul Jarc, Simon Josefsson, Sascha
 L¸decke, David Moore, Jim Radford, Benjamin Rutt, Raymond Scholz,
-Thomas Steffen, Reiner Steib, Didier Verna, Ilja Weis, Katsumi Yamaoka,
-Teodor Zlatanov, and others (@pxref{Contributors,,,gnus, the Gnus Manual}).
+Thomas Steffen, Reiner Steib, Didier Verna, Ilja Weis, Katsumi
+Yamaoka, Teodor Zlatanov, and others (@pxref{Contributors,,,gnus, the
+Gnus Manual}).
 
 @item
 Andrew Innes contributed extensively to the MS-Windows support.
@@ -612,11 +623,12 @@ R.@: Dodd.  He also wrote @file{ls-lisp.el}, a Lisp emulation of the
 program.
 
 @item
-Ken Stevens wrote @file{ispell.el}, a spell-checker interface.
-
-@item
 David K@ringaccent{a}gedal wrote @file{tempo.el}, providing support for
 easy insertion of boilerplate text and other common constructions.
+
+@item
+Igor Kuzmin wrote @file{cconv.el}, providing closure conversion for
+statically scoped Emacs lisp.
 
 @item
 Daniel LaLiberte wrote @file{edebug.el}, a source-level debugger for
@@ -810,8 +822,9 @@ a directory-level front end to the CVS version control system;
 text; @file{smerge-mode.el}, a minor mode for resolving @code{diff3}
 conflicts; @file{diff-mode.el}, a mode for viewing and editing context
 diffs; @file{css-mode.el} for Cascading Style Sheets;
-@file{bibtex-style.el} for BibTeX Style files; and @file{mpc.el}, a
-client for the ``Music Player Daemon''.
+@file{bibtex-style.el} for BibTeX Style files; @file{mpc.el}, a
+client for the ``Music Player Daemon''; and @file{pcase.el},
+implementing ML-style pattern matching.
 
 @item
 Morioka Tomohiko wrote several packages for MIME support in Gnus and
@@ -1172,8 +1185,7 @@ Peter Stephenson wrote @file{vcursor.el}, which implements a ``virtual
 cursor'' that you can move with the keyboard and use for copying text.
 
 @item
-Ken Stevens wrote the initial version of @file{ispell.el} and maintains
-that package since Ispell 3.1 release.
+Ken Stevens wrote @file{ispell.el}, a spell-checker interface.
 
 @item
 Kim F.@: Storm made many improvements to the Emacs display engine,
@@ -1228,7 +1240,7 @@ subprocess.
 
 @item
 Tom Tromey wrote @file{bug-reference.el}, providing clickable links to
-bug reports.
+bug reports; and the first version of the Emacs package system.
 
 @item
 Eli Tziperman wrote @file{rmail-spam-filter.el}, a spam filter for RMAIL.
@@ -1237,7 +1249,8 @@ Eli Tziperman wrote @file{rmail-spam-filter.el}, a spam filter for RMAIL.
 Daiki Ueno wrote @file{starttls.el}, support for Transport Layer
 Security protocol; @file{sasl-cram.el} and @file{sasl-digest.el} (with
 Kenichi Okada), and @file{sasl.el}, support for Simple Authentication
-and Security Layer (SASL); and the EasyPG (and its predecessor PGG)
+and Security Layer (SASL); @file{plstore.el} for secure storage of
+propery lists; and the EasyPG (and its predecessor PGG)
 package, for GnuPG and PGP support.
 
 @item
@@ -1348,7 +1361,8 @@ manual pages without the @code{man} command.
 
 @item
 Masatake Yamato wrote @file{ld-script.el}, an editing mode for GNU
-linker scripts, and contributed subword handling in CC mode.
+linker scripts, and contributed subword handling and style
+``guessing'' in CC mode.
 
 @item
 Jonathan Yavner wrote @file{testcover.el}, a package for keeping track
@@ -1408,6 +1422,11 @@ Reto Zimmermann wrote @file{vera-mode.el}.
 @item
 Neal Ziring and Felix S.@: T.@: Wu wrote @file{vi.el}, an emulation of the
 VI text editor.
+
+@item
+Ted Zlatanov (as well as his contributions to the Gnus newsreader)
+wrote an interface to the GnuTLS library, for secure network
+connections; and a futures facility for the URL library.
 
 @item
 Detlev Zundel wrote @file{re-builder.el}, a package for building regexps

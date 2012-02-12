@@ -431,24 +431,28 @@ If `calc-show-selections' is non-nil, then selected sub-formulas are shown
 by displaying the rest of the formula in `calc-nonselected-face'.
 If `calc-show-selections' is nil, then selected sub-formulas are shown
 by displaying the sub-formula in `calc-selected-face'."
+  :version "24.1"
   :group 'calc
   :type 'boolean)
 
 (defcustom calc-lu-field-reference
   "20 uPa"
   "The default reference level for logarithmic units (field)."
+  :version "24.1"
   :group 'calc
   :type '(string))
 
 (defcustom calc-lu-power-reference
   "mW"
   "The default reference level for logarithmic units (power)."
+  :version "24.1"
   :group 'calc
   :type '(string))
 
 (defcustom calc-note-threshold "1"
   "The number of cents that a frequency should be near a note
 to be identified as that note."
+  :version "24.1"
   :type 'string
   :group 'calc)
 

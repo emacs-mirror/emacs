@@ -442,6 +442,129 @@ Also generate PostScript output in PS-DEST."
 	  (setq done t))))
       (forward-line 1))))
 
+
+;; Stuff to check new defcustoms got :version tags.
+;; Adapted from check-declare.el.
+
+(defun cusver-find-files (root &optional old)
+  "Find .el files beneath directory ROOT that contain defcustoms.
+If optional OLD is non-nil, also include defvars."
+  (process-lines find-program root
+		 "-name" "*.el"
+		 "-exec" grep-program
+		 "-l" "-E" (format "^[ \\t]*\\(def%s"
+				   (if old "(custom|var)"
+				     "custom"
+				     ))
+		 "{}" "+"))
+
+;; TODO if a defgroup with a version tag, apply to all customs in that
+;; group (eg for new files).
+(defun cusver-scan (file &optional old)
+  "Scan FILE for `defcustom' calls.
+Return a list with elements of the form (VAR . VER),
+This means that FILE contains a defcustom for variable VAR, with
+a :version tag having value VER (may be nil).
+If optional argument OLD is non-nil, also scan for defvars."
+  (let ((m (format "Scanning %s..." file))
+	(re (format "^[ \t]*\\((def%s\\)[ \t\n]"
+		    (if old "\\(?:custom\\|var\\)" "custom")))
+        alist var ver)
+    (message "%s" m)
+    (with-temp-buffer
+      (insert-file-contents file)
+      ;; FIXME we could theoretically be inside a string.
+      (while (re-search-forward re nil t)
+        (goto-char (match-beginning 1))
+        (if (and (setq form (ignore-errors (read (current-buffer))))
+                 (setq var (car-safe (cdr-safe form)))
+		 ;; Exclude macros, eg (defcustom ,varname ...).
+		 (symbolp var))
+            (setq ver (car (cdr-safe (memq :version form)))
+                  alist (cons (cons var ver) alist))
+          (if form (message "Malformed defcustom: `%s'" form)))))
+    (message "%sdone" m)
+    alist))
+
+(define-button-type 'cusver-xref 'action #'cusver-goto-xref)
+
+(defun cusver-goto-xref (button)
+  "Jump to a lisp file for the BUTTON at point."
+  (let ((file (button-get button 'file))
+	(var (button-get button 'var)))
+    (if (not (file-readable-p file))
+	(message "Cannot read `%s'" file)
+      (with-current-buffer (find-file-noselect file)
+	(goto-char (point-min))
+	(or (re-search-forward (format "^[ \t]*(defcustom[ \t]*%s" var) nil t)
+	    (message "Unable to locate defcustom"))
+	(pop-to-buffer (current-buffer))))))
+
+;; You should probably at least do a grep over the old directory
+;; to check the results of this look sensible.  Eg cus-start if
+;; something moved from C to Lisp.
+;; TODO handle renamed things with aliases to the old names.
+;; What to do about new files?  Does everything in there need a :version,
+;; or eg just the defgroup?
+(defun cusver-check (newdir olddir)
+  "Check that defcustoms have :version tags where needed.
+NEWDIR is the current lisp/ directory, OLDDIR is that from the previous
+release.  A defcustom that is only in NEWDIR should have a :version
+tag.  We exclude cases where a defvar exists in OLDDIR, since
+just converting a defvar to a defcustom does not require a :version bump.
+
+Note that a :version tag should also be added if the value of a defcustom
+changes (in a non-trivial way).  This function does not check for that."
+  (interactive "DNew Lisp directory: \nDOld Lisp directory: ")
+  (or (file-directory-p (setq newdir (expand-file-name newdir)))
+      (error "Directory `%s' not found" newdir))
+  (or (file-directory-p (setq olddir (expand-file-name olddir)))
+      (error "Directory `%s' not found" olddir))
+  (let* ((newfiles (progn (message "Finding new files with defcustoms...")
+			  (cusver-find-files newdir)))
+	 (oldfiles (progn (message "Finding old files with defcustoms...")
+			  (cusver-find-files olddir t)))
+	 (newcus (progn (message "Reading new defcustoms...")
+			(mapcar
+			 (lambda (file)
+			   (cons file (cusver-scan file))) newfiles)))
+	 oldcus result thisfile)
+    (message "Reading old defcustoms...")
+    (dolist (file oldfiles)
+      (setq oldcus (append oldcus (cusver-scan file t))))
+    ;; newcus has elements (FILE (VAR VER) ... ).
+    ;; oldcus just (VAR . VER).
+    (message "Checking for version tags...")
+    (dolist (new newcus)
+      (setq file (car new)
+	    thisfile
+	    (let (missing var)
+	      (dolist (cons (cdr new))
+		(or (cdr cons)
+		    (assq (setq var (car cons)) oldcus)
+		    (push var missing)))
+	      (if missing
+		  (cons file missing))))
+      (if thisfile
+	  (setq result (cons thisfile result))))
+    (message "Checking for version tags... done")
+    (if (not result)
+	(message "No missing :version tags")
+      (pop-to-buffer "*cusver*")
+      (erase-buffer)
+      (insert "These defcustoms might be missing :version tags:\n\n")
+      (dolist (elem result)
+	(let* ((str (file-relative-name (car elem) newdir))
+	       (strlen (length str)))
+	  (dolist (var (cdr elem))
+	    (insert (format "%s: %s\n" str var))
+	    (make-text-button (+ (line-beginning-position 0) strlen 2)
+			      (line-end-position 0)
+			      'file (car elem)
+			      'var var
+			      'help-echo "Mouse-2: visit this definition"
+			      :type 'cusver-xref)))))))
+
 (provide 'admin)
 
 ;;; admin.el ends here

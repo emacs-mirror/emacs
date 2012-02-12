@@ -336,12 +336,18 @@ ns_string_to_pasteboard (id pb, Lisp_Object str)
 
 
 DEFUN ("x-own-selection-internal", Fx_own_selection_internal,
-       Sx_own_selection_internal, 2, 2, 0,
-       doc: /* Assert a selection.
-SELECTION-NAME is a symbol, typically `PRIMARY', `SECONDARY', or `CLIPBOARD'.
+       Sx_own_selection_internal, 2, 3, 0,
+       doc: /* Assert an X selection of type SELECTION and value VALUE.
+SELECTION is a symbol, typically `PRIMARY', `SECONDARY', or `CLIPBOARD'.
+\(Those are literal upper-case symbol names, since that's what X expects.)
 VALUE is typically a string, or a cons of two markers, but may be
-anything that the functions on `selection-converter-alist' know about.  */)
-     (Lisp_Object selection_name, Lisp_Object selection_value)
+anything that the functions on `selection-converter-alist' know about.
+
+FRAME should be a frame that should own the selection.  If omitted or
+nil, it defaults to the selected frame.
+
+On Nextstep, FRAME is unused.  */)
+     (Lisp_Object selection, Lisp_Object value, Lisp_Object frame)
 {
   id pb;
   Lisp_Object old_value, new_value;
@@ -351,15 +357,15 @@ anything that the functions on `selection-converter-alist' know about.  */)
 
 
   check_ns ();
-  CHECK_SYMBOL (selection_name);
-  if (NILP (selection_value))
-      error ("selection-value may not be nil.");
-  pb = ns_symbol_to_pb (selection_name);
+  CHECK_SYMBOL (selection);
+  if (NILP (value))
+      error ("selection value may not be nil.");
+  pb = ns_symbol_to_pb (selection);
   if (pb == nil) return Qnil;
 
   ns_declare_pasteboard (pb);
-  old_value = assq_no_quit (selection_name, Vselection_alist);
-  new_value = Fcons (selection_name, Fcons (selection_value, Qnil));
+  old_value = assq_no_quit (selection, Vselection_alist);
+  new_value = Fcons (selection, Fcons (value, Qnil));
 
   if (NILP (old_value))
     Vselection_alist = Fcons (new_value, Vselection_alist);
@@ -369,7 +375,7 @@ anything that the functions on `selection-converter-alist' know about.  */)
   /* We only support copy of text.  */
   type = NSStringPboardType;
   target_symbol = ns_string_to_symbol (type);
-  data = ns_get_local_selection (selection_name, target_symbol);
+  data = ns_get_local_selection (selection, target_symbol);
   if (!NILP (data))
     {
       if (STRINGP (data))
@@ -380,37 +386,53 @@ anything that the functions on `selection-converter-alist' know about.  */)
   if (!EQ (Vns_sent_selection_hooks, Qunbound))
     {
       for (rest = Vns_sent_selection_hooks; CONSP (rest); rest = Fcdr (rest))
-        call3 (Fcar (rest), selection_name, target_symbol, successful_p);
+        call3 (Fcar (rest), selection, target_symbol, successful_p);
     }
   
-  return selection_value;
+  return value;
 }
 
 
 DEFUN ("x-disown-selection-internal", Fx_disown_selection_internal,
-       Sx_disown_selection_internal, 1, 2, 0,
-       doc: /* If we own the selection SELECTION, disown it.  */)
-     (Lisp_Object selection_name, Lisp_Object time)
+       Sx_disown_selection_internal, 1, 3, 0,
+       doc: /* If we own the selection SELECTION, disown it.
+Disowning it means there is no such selection.
+
+Sets the last-change time for the selection to TIME-OBJECT (by default
+the time of the last event).
+
+TERMINAL should be a terminal object or a frame specifying the X
+server to query.  If omitted or nil, that stands for the selected
+frame's display, or the first available X display.
+
+On Nextstep, the TIME-OBJECT and TERMINAL arguments are unused.
+On MS-DOS, all this does is return non-nil if we own the selection.  */)
+  (Lisp_Object selection, Lisp_Object time_object, Lisp_Object terminal)
 {
   id pb;
   check_ns ();
-  CHECK_SYMBOL (selection_name);
-  if (NILP (assq_no_quit (selection_name, Vselection_alist))) return Qnil;
+  CHECK_SYMBOL (selection);
+  if (NILP (assq_no_quit (selection, Vselection_alist))) return Qnil;
 
-  pb = ns_symbol_to_pb (selection_name);
+  pb = ns_symbol_to_pb (selection);
   if (pb != nil) ns_undeclare_pasteboard (pb);
   return Qt;
 }
 
 
 DEFUN ("x-selection-exists-p", Fx_selection_exists_p, Sx_selection_exists_p,
-       0, 1, 0, doc: /* Whether there is an owner for the given selection.
-The arg should be the name of the selection in question, typically one of
-the symbols `PRIMARY', `SECONDARY', or `CLIPBOARD'.
-\(Those are literal upper-case symbol names.)
-For convenience, the symbol nil is the same as `PRIMARY',
-and t is the same as `SECONDARY'.)  */)
-     (Lisp_Object selection)
+       0, 2, 0, doc: /* Whether there is an owner for the given X selection.
+SELECTION should be the name of the selection in question, typically
+one of the symbols `PRIMARY', `SECONDARY', or `CLIPBOARD'.  (X expects
+these literal upper-case names.)  The symbol nil is the same as
+`PRIMARY', and t is the same as `SECONDARY'.
+
+TERMINAL should be a terminal object or a frame specifying the X
+server to query.  If omitted or nil, that stands for the selected
+frame's display, or the first available X display.
+
+On Nextstep, TERMINAL is unused.  */)
+     (Lisp_Object selection, Lisp_Object terminal)
 {
   id pb;
   NSArray *types;
@@ -428,14 +450,20 @@ and t is the same as `SECONDARY'.)  */)
 
 
 DEFUN ("x-selection-owner-p", Fx_selection_owner_p, Sx_selection_owner_p,
-       0, 1, 0,
-       doc: /* Whether the current Emacs process owns the given selection.
+       0, 2, 0,
+       doc: /* Whether the current Emacs process owns the given X Selection.
 The arg should be the name of the selection in question, typically one of
 the symbols `PRIMARY', `SECONDARY', or `CLIPBOARD'.
-\(Those are literal upper-case symbol names.)
+\(Those are literal upper-case symbol names, since that's what X expects.)
 For convenience, the symbol nil is the same as `PRIMARY',
-and t is the same as `SECONDARY'.)  */)
-     (Lisp_Object selection)
+and t is the same as `SECONDARY'.
+
+TERMINAL should be a terminal object or a frame specifying the X
+server to query.  If omitted or nil, that stands for the selected
+frame's display, or the first available X display.
+
+On Nextstep, TERMINAL is unused.  */)
+     (Lisp_Object selection, Lisp_Object terminal)
 {
   check_ns ();
   CHECK_SYMBOL (selection);
@@ -446,12 +474,22 @@ and t is the same as `SECONDARY'.)  */)
 
 
 DEFUN ("x-get-selection-internal", Fx_get_selection_internal,
-       Sx_get_selection_internal, 2, 2, 0,
-       doc: /* Return text selected from some pasteboard.
-SELECTION is a symbol, typically `PRIMARY', `SECONDARY', or `CLIPBOARD'.
-\(Those are literal upper-case symbol names.)
-TYPE is the type of data desired, typically `STRING'.  */)
-     (Lisp_Object selection_name, Lisp_Object target_type)
+       Sx_get_selection_internal, 2, 4, 0,
+       doc: /* Return text selected from some X window.
+SELECTION-SYMBOL is typically `PRIMARY', `SECONDARY', or `CLIPBOARD'.
+\(Those are literal upper-case symbol names, since that's what X expects.)
+TARGET-TYPE is the type of data desired, typically `STRING'.
+
+TIME-STAMP is the time to use in the XConvertSelection call for foreign
+selections.  If omitted, defaults to the time for the last event.
+
+TERMINAL should be a terminal object or a frame specifying the X
+server to query.  If omitted or nil, that stands for the selected
+frame's display, or the first available X display.
+
+On Nextstep, TIME-STAMP and TERMINAL are unused.  */)
+     (Lisp_Object selection_name, Lisp_Object target_type,
+      Lisp_Object time_stamp, Lisp_Object terminal)
 {
   Lisp_Object val;
 
