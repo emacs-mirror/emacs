@@ -1,3 +1,14 @@
+2012-02-12  Lars Ingebrigtsen  <larsi@gnus.org>
+
+	* nnml.el (nnml-request-compact-group): Delete the marks file after
+	compaction (bug#10800).
+
+	* gnus-art.el (gnus-stop-downloads): Stop `url-queue' downloads on
+	group exit.
+
+	* nnimap.el (nnimap-parse-flags): Parse correctly when we have mixed
+	QRESYNC/FETCH output.
+
 2012-02-11  Glenn Morris  <rgm@gnu.org>
 
 	* sieve-manage.el (sieve-manage-default-stream):

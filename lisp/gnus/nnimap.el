@@ -1539,7 +1539,8 @@ textual parts.")
 
 (defun nnimap-parse-flags (sequences)
   (goto-char (point-min))
-  ;; Change \Delete etc to %Delete, so that the reader can read it.
+  ;; Change \Delete etc to %Delete, so that the Emacs Lisp reader can
+  ;; read it.
   (subst-char-in-region (point-min) (point-max)
 			?\\ ?% t)
   ;; Remove any MODSEQ entries in the buffer, because they may contain
@@ -1610,7 +1611,9 @@ textual parts.")
 			     vanished highestmodseq)
 		       articles)
 		groups)
-	  (goto-char end)
+	  (if (eq flag-sequence 'qresync)
+	      (goto-char end)
+	    (setq end (point)))
 	  (setq articles nil))))
     groups))
 
