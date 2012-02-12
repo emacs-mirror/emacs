@@ -1,3 +1,8 @@
+2012-02-12  Chong Yidong  <cyd@gnu.org>
+
+	* window.c (Fdelete_window_internal): Invalidate the mouse
+	highlight (Bug#9904).
+
 2012-02-12  Glenn Morris  <rgm@gnu.org>
 
 	* xselect.c (Fx_own_selection_internal)
