@@ -259,7 +259,9 @@ and t is the same as `SECONDARY'.
 
 TERMINAL should be a terminal object or a frame specifying the X
 server to query.  If omitted or nil, that stands for the selected
-frame's display, or the first available X display."
+frame's display, or the first available X display.
+
+On Nextstep, TERMINAL is unused."
     (if x-select-enable-clipboard
       (let (text)
 	;; Don't die if w16-get-clipboard-data signals an error.
@@ -285,7 +287,9 @@ VALUE is typically a string, or a cons of two markers, but may be
 anything that the functions on `selection-converter-alist' know about.
 
 FRAME should be a frame that should own the selection.  If omitted or
-nil, it defaults to the selected frame."
+nil, it defaults to the selected frame.
+
+On Nextstep, FRAME is unused."
   (ignore-errors
     (x-select-text value))
   value)
@@ -294,24 +298,33 @@ nil, it defaults to the selected frame."
   "If we own the selection SELECTION, disown it.
 Disowning it means there is no such selection.
 
+Sets the last-change time for the selection to TIME-OBJECT (by default
+the time of the last event).
+
 TERMINAL should be a terminal object or a frame specifying the X
 server to query.  If omitted or nil, that stands for the selected
-frame's display, or the first available X display."
+frame's display, or the first available X display.
+
+On Nextstep, the TIME-OBJECT and TERMINAL arguments are unused.
+On MS-DOS, all this does is return non-nil if we own the selection."
   (if (x-selection-owner-p selection)
       t))
 
 ;; x-get-selection-internal is used in select.el
-(defun x-get-selection-internal (selection-symbol target-type &optional time_stamp terminal)
+(defun x-get-selection-internal (selection-symbol target-type &optional time-stamp terminal)
   "Return text selected from some X window.
-SELECTION is a symbol, typically `PRIMARY', `SECONDARY', or `CLIPBOARD'.
+SELECTION-SYMBOL is typically `PRIMARY', `SECONDARY', or `CLIPBOARD'.
 \(Those are literal upper-case symbol names, since that's what X expects.)
-TYPE is the type of data desired, typically `STRING'.
-TIME_STAMP is the time to use in the XConvertSelection call for foreign
+TARGET-TYPE is the type of data desired, typically `STRING'.
+
+TIME-STAMP is the time to use in the XConvertSelection call for foreign
 selections.  If omitted, defaults to the time for the last event.
 
 TERMINAL should be a terminal object or a frame specifying the X
 server to query.  If omitted or nil, that stands for the selected
-frame's display, or the first available X display."
+frame's display, or the first available X display.
+
+On Nextstep, TIME-STAMP and TERMINAL are unused."
   (x-get-selection-value))
 
 ;; From src/fontset.c:

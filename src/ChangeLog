@@ -1,3 +1,13 @@
+2012-02-12  Glenn Morris  <rgm@gnu.org>
+
+	* xselect.c (Fx_own_selection_internal)
+	(Fx_get_selection_internal, Fx_disown_selection_internal)
+	(Fx_selection_owner_p, Fx_selection_exists_p): Doc fixes.
+	* nsselect.m (Fx_own_selection_internal)
+	(Fx_disown_selection_internal, Fx_selection_exists_p)
+	(Fx_selection_owner_p, Fx_get_selection_internal):
+	Sync docs and argument specs with the xselect.c versions.
+
 2012-02-11  Lars Ingebrigtsen  <larsi@gnus.org>
 
 	* gnutls.c (emacs_gnutls_write): Don't infloop if sendto fails.

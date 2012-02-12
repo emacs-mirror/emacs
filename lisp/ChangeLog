@@ -1,5 +1,9 @@
 2012-02-12  Glenn Morris  <rgm@gnu.org>
 
+	* term/pc-win.el (x-selection-owner-p, x-own-selection-internal)
+	(x-disown-selection-internal, x-get-selection-internal):
+	Sync docs with the xselect.c versions.
+
 	* allout-widgets.el: Add missing license notice.
 
 2012-02-11  Glenn Morris  <rgm@gnu.org>
