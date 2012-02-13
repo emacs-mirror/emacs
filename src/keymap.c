@@ -2270,9 +2270,15 @@ around function keys and event symbols.  */)
   if (CONSP (key) && lucid_event_type_list_p (key))
     key = Fevent_convert_list (key);
 
+  if (CONSP (key) && INTEGERP (XCAR (key)) && INTEGERP (XCDR (key)))
+    /* An interval from a map-char-table.  */
+    return concat3 (Fsingle_key_description (XCAR (key), no_angles),
+		    build_string (".."),
+		    Fsingle_key_description (XCDR (key), no_angles));
+
   key = EVENT_HEAD (key);
 
-  if (INTEGERP (key))		/* Normal character */
+  if (INTEGERP (key))		/* Normal character.  */
     {
       char tem[KEY_DESCRIPTION_SIZE], *p;
 
@@ -2280,7 +2286,7 @@ around function keys and event symbols.  */)
       *p = 0;
       return make_specified_string (tem, -1, p - tem, 1);
     }
-  else if (SYMBOLP (key))	/* Function key or event-symbol */
+  else if (SYMBOLP (key))	/* Function key or event-symbol.  */
     {
       if (NILP (no_angles))
 	{
