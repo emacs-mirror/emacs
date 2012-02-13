@@ -14227,14 +14227,19 @@ if the server supports UID EXPUNGE, but it's not done by default on
 servers that doesn't support that command.
 
 @item nnimap-streaming
-Virtually all @code{IMAP} server support fast streaming of data.  If
-you have problems connecting to the server, try setting this to @code{nil}.
+Virtually all @acronym{IMAP} server support fast streaming of data.
+If you have problems connecting to the server, try setting this to
+@code{nil}.
 
 @item nnimap-fetch-partial-articles
 If non-@code{nil}, fetch partial articles from the server.  If set to
 a string, then it's interpreted as a regexp, and parts that have
 matching types will be fetched.  For instance, @samp{"text/"} will
 fetch all textual parts, while leaving the rest on the server.
+
+@item nnimap-record-commands
+If non-@code{nil}, record all @acronym{IMAP} commands in the
+@samp{"*imap log*"} buffer.
 
 @end table
 

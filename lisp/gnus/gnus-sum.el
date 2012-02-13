@@ -7319,6 +7319,7 @@ If FORCE (the prefix), also save the .newsrc file(s)."
       (when (gnus-buffer-live-p gnus-article-buffer)
 	(with-current-buffer gnus-article-buffer
 	  (gnus-article-stop-animations)
+	  (gnus-stop-downloads)
 	  (mm-destroy-parts gnus-article-mime-handles)
 	  ;; Set it to nil for safety reason.
 	  (setq gnus-article-mime-handle-alist nil)
@@ -9656,6 +9657,7 @@ C-u g', show the raw article."
       (when (gnus-buffer-live-p gnus-article-buffer)
 	(with-current-buffer gnus-article-buffer
 	  (gnus-article-stop-animations)
+	  (gnus-stop-downloads)
 	  (mm-destroy-parts gnus-article-mime-handles)
 	  ;; Set it to nil for safety reason.
 	  (setq gnus-article-mime-handle-alist nil)

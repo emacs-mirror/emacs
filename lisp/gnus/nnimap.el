@@ -289,7 +289,7 @@ textual parts.")
 
 (defun nnimap-make-process-buffer (buffer)
   (with-current-buffer
-      (generate-new-buffer (format "*nnimap %s %s %s*"
+      (generate-new-buffer (format " *nnimap %s %s %s*"
 				   nnimap-address nnimap-server-port
 				   (gnus-buffer-exists-p buffer)))
     (mm-disable-multibyte)
@@ -1539,7 +1539,8 @@ textual parts.")
 
 (defun nnimap-parse-flags (sequences)
   (goto-char (point-min))
-  ;; Change \Delete etc to %Delete, so that the reader can read it.
+  ;; Change \Delete etc to %Delete, so that the Emacs Lisp reader can
+  ;; read it.
   (subst-char-in-region (point-min) (point-max)
 			?\\ ?% t)
   ;; Remove any MODSEQ entries in the buffer, because they may contain
@@ -1610,7 +1611,9 @@ textual parts.")
 			     vanished highestmodseq)
 		       articles)
 		groups)
-	  (goto-char end)
+	  (if (eq flag-sequence 'qresync)
+	      (goto-char end)
+	    (setq end (point)))
 	  (setq articles nil))))
     groups))
 
@@ -1693,13 +1696,17 @@ textual parts.")
     (nnimap-wait-for-response nnimap-sequence))
   nnimap-sequence)
 
+(defvar nnimap-record-commands nil
+  "If non-nil, log commands to the \"*imap log*\" buffer.")
+
 (defun nnimap-log-command (command)
-  (with-current-buffer (get-buffer-create "*imap log*")
-    (goto-char (point-max))
-    (insert (format-time-string "%H:%M:%S") " "
-	    (if nnimap-inhibit-logging
-		"(inhibited)\n"
-	      command)))
+  (when nnimap-record-commands
+    (with-current-buffer (get-buffer-create "*imap log*")
+      (goto-char (point-max))
+      (insert (format-time-string "%H:%M:%S") " "
+	      (if nnimap-inhibit-logging
+		  "(inhibited)\n"
+		command))))
   command)
 
 (defun nnimap-command (&rest args)
