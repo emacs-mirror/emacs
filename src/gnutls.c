@@ -345,15 +345,16 @@ emacs_gnutls_write (struct Lisp_Process *proc, const char *buf, EMACS_INT nbyte)
   EMACS_INT bytes_written;
   gnutls_session_t state = proc->gnutls_state;
 
-  if (proc->gnutls_initstage != GNUTLS_STAGE_READY) {
+  if (proc->gnutls_initstage != GNUTLS_STAGE_READY)
+    {
 #ifdef EWOULDBLOCK
-    errno = EWOULDBLOCK;
+      errno = EWOULDBLOCK;
 #endif
 #ifdef EAGAIN
-    errno = EAGAIN;
+      errno = EAGAIN;
 #endif
-    return 0;
-  }
+      return 0;
+    }
 
   bytes_written = 0;
 
@@ -365,20 +366,22 @@ emacs_gnutls_write (struct Lisp_Process *proc, const char *buf, EMACS_INT nbyte)
 	{
 	  if (rtnval == GNUTLS_E_INTERRUPTED)
 	    continue;
-	  else {
-	    /* If we get EAGAIN, then set errno appropriately so that
-	       send_process retries the correct way instead of
-	       erroring out. */
-	    if (rtnval == EAGAIN) {
+	  else
+	    {
+	      /* If we get GNUTLS_E_AGAIN, then set errno
+		 appropriately so that send_process retries the
+		 correct way instead of erroring out. */
+	      if (rtnval == GNUTLS_E_AGAIN)
+		{
 #ifdef EWOULDBLOCK
-	      errno = EWOULDBLOCK;
+		  errno = EWOULDBLOCK;
 #endif
 #ifdef EAGAIN
-	      errno = EAGAIN;
+		  errno = EAGAIN;
 #endif
+		}
+	      break;
 	    }
-	    break;
-	  }
 	}
 
       buf += rtnval;

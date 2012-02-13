@@ -1,3 +1,7 @@
+2012-02-13  Andreas Schwab  <schwab@linux-m68k.org>
+
+	* gnutls.c (emacs_gnutls_write): Fix last change.
+
 2012-02-13  Lars Ingebrigtsen  <larsi@gnus.org>
 
 	* gnutls.c (emacs_gnutls_write): Set errno appropriately for
