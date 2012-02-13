@@ -1,5 +1,9 @@
 2012-02-13  Lars Ingebrigtsen  <larsi@gnus.org>
 
+	* nnimap.el (nnimap-record-commands): New variable.
+	(nnimap-log-command): Use it.
+	(nnimap-make-process-buffer): Add a space to the process buffer.
+
 	* shr.el (shr-rescale-image): Allow viewing large images.
 
 2012-02-12  Lars Ingebrigtsen  <larsi@gnus.org>
