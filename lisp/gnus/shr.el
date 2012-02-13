@@ -557,7 +557,8 @@ the URL of the image to the kill buffer instead."
     (insert alt)))
 
 (defun shr-rescale-image (data)
-  (let ((image (create-image data nil t :ascent 100)))
+  (let* ((max-image-size 0)
+	 (image (create-image data nil t :ascent 100)))
     (if (or (not (fboundp 'imagemagick-types))
 	    (not (get-buffer-window (current-buffer))))
 	image
