@@ -1,3 +1,7 @@
+2012-02-13  Teodor Zlatanov  <tzz@lifelogs.com>
+
+	* url-future.el (url-future-test): Move to test/automated.
+
 2012-02-10  Lars Ingebrigtsen  <larsi@gnus.org>
 
 	* url-http.el (url-http-parse-headers): When redirecting, pass on
