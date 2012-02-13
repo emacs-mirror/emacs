@@ -1,3 +1,8 @@
+2012-02-13  Lars Ingebrigtsen  <larsi@gnus.org>
+
+	* simple.el (mail-user-agent): Mention that `gnus-user-agent' only
+	does its stuff if Gnus is running.
+
 2012-02-13  Alan Mackenzie  <acm@muc.de>
 
 	Fix a loop in c-set-fl-decl-start.
