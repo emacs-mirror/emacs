@@ -365,8 +365,20 @@ emacs_gnutls_write (struct Lisp_Process *proc, const char *buf, EMACS_INT nbyte)
 	{
 	  if (rtnval == GNUTLS_E_INTERRUPTED)
 	    continue;
-	  else
+	  else {
+	    /* If we get EAGAIN, then set errno appropriately so that
+	       send_process retries the correct way instead of
+	       erroring out. */
+	    if (rtnval == EAGAIN) {
+#ifdef EWOULDBLOCK
+	      errno = EWOULDBLOCK;
+#endif
+#ifdef EAGAIN
+	      errno = EAGAIN;
+#endif
+	    }
 	    break;
+	  }
 	}
 
       buf += rtnval;
