@@ -1,3 +1,10 @@
+2012-02-13  Alan Mackenzie  <acm@muc.de>
+
+	Fix a loop in c-set-fl-decl-start.
+
+	* progmodes/cc-engine (c-set-fl-decl-start): Add a check that
+	c-backward-syntactic-ws actually moves backwards.
+
 2012-02-13  Leo Liu  <sdl.web@gmail.com>
 
 	* net/rcirc.el (rcirc-markup-attributes): Move point to the
