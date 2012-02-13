@@ -2015,7 +2015,7 @@ remote file.  For graphical file dialogs, any of the special values
 of MUSTMATCH `confirm' and `confirm-after-completion' are
 treated as equivalent to nil.  Some graphical file dialogs respect
 a MUSTMATCH value of t, and some do not (or it only has a cosmetic
-effect, but does not actually prevent the user from entering a
+effect, and does not actually prevent the user from entering a
 non-existent file).
 
 See also `read-file-name-completion-ignore-case'
