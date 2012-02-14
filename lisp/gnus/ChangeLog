@@ -3,6 +3,8 @@
 	* nnimap.el (nnimap-record-commands): New variable.
 	(nnimap-log-command): Use it.
 	(nnimap-make-process-buffer): Add a space to the process buffer.
+	(nnimap-transform-headers): Don't bug out on header lines containing
+	stuff that look like IMAP length encodings.
 
 	* shr.el (shr-rescale-image): Allow viewing large images.
 
@@ -85,7 +87,7 @@
 	have newlines within the strings, and where the UID comes after the
 	BODYSTRUCTURE element (bug#10537).
 
-	* shr-color.el (shr-color-set-minimum-interval): Renamed to add prefix
+	* shr-color.el (shr-color-set-minimum-interval): Rename to add prefix
 	(bug#10732).
 
 	* shr.el (shr-insert-document): Add doc string.

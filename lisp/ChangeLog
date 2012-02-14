@@ -1,3 +1,35 @@
+2012-02-14  Lars Ingebrigtsen  <larsi@gnus.org>
+
+	* mail/smtpmail.el (smtpmail-query-smtp-server): Fix typo in the
+	way the ports list is computed.
+	(smtpmail-query-smtp-server): Prompt the user for a port number if
+	we can't connect to any of the standard ports (bug#10810).
+
+2012-02-14  Teodor Zlatanov  <tzz@lifelogs.com>
+
+	* net/gnutls.el (gnutls-trustfiles): Add Cygwin location.
+
+2012-02-13  Glenn Morris  <rgm@gnu.org>
+
+	* minibuffer.el (read-file-name): Doc fix.  (Bug#10798)
+
+2012-02-13  Teodor Zlatanov  <tzz@lifelogs.com>
+
+	* net/gnutls.el (gnutls-trustfiles): New variable.
+	(gnutls-negotiate): Use it.
+
+2012-02-13  Lars Ingebrigtsen  <larsi@gnus.org>
+
+	* simple.el (mail-user-agent): Mention that `gnus-user-agent' only
+	does its stuff if Gnus is running.
+
+2012-02-13  Alan Mackenzie  <acm@muc.de>
+
+	Fix a loop in c-set-fl-decl-start.
+
+	* progmodes/cc-engine (c-set-fl-decl-start): Add a check that
+	c-backward-syntactic-ws actually moves backwards.
+
 2012-02-13  Leo Liu  <sdl.web@gmail.com>
 
 	* net/rcirc.el (rcirc-markup-attributes): Move point to the

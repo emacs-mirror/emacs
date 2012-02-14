@@ -1114,7 +1114,7 @@ Note that the style variables are always made local to the buffer."
     (goto-char (c-point 'bol new-pos))
     (when lit-limits			; Comment or string.
       (goto-char (car lit-limits)))
-    (setq bod-lim (max (- (point) 500) (point-min)))
+    (setq bod-lim (c-determine-limit 500))
 
     (while
 	;; Go to a less nested declaration each time round this loop.
@@ -1132,11 +1132,12 @@ Note that the style variables are always made local to the buffer."
 	 ;; Try and go out a level to search again.
 	 (progn
 	   (c-backward-syntactic-ws bod-lim)
-	   (or (memq (char-before) '(?\( ?\[))
-	       (and (eq (char-before) ?\<)
-		    (eq (c-get-char-property
-			 (1- (point)) 'syntax-table)
-			c-<-as-paren-syntax))))
+	   (and (> (point) bod-lim)
+		(or (memq (char-before) '(?\( ?\[))
+		    (and (eq (char-before) ?\<)
+			 (eq (c-get-char-property
+			      (1- (point)) 'syntax-table)
+			     c-<-as-paren-syntax)))))
 	 (not (bobp)))
       (backward-char))
     new-pos))				; back over (, [, <.

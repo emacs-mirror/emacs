@@ -201,7 +201,10 @@ textual parts.")
 	(while (re-search-forward
 		"[^]][ (]{\\([0-9]+\\)}\r?\n"
 		(save-excursion
-		  (or (re-search-forward "\\* [0-9]+ FETCH" nil t)
+		  ;; Start of the header section.
+		  (or (re-search-forward "] {[0-9]+}\r?\n" nil t)
+		      ;; Start of the next FETCH.
+		      (re-search-forward "\\* [0-9]+ FETCH" nil t)
 		      (point-max)))
 		t)
 	  (setq size (string-to-number (match-string 1)))

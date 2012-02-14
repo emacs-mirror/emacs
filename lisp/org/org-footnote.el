@@ -475,7 +475,7 @@ or new, let the user edit the definition of the footnote."
       (org-footnote-create-definition label)
       (org-footnote-auto-adjust-maybe)))))
 
-(defvar org-blank-before-new-entry nil) ; silence byte-compiler
+(defvar org-blank-before-new-entry) ; silence byte-compiler
 (defun org-footnote-create-definition (label)
   "Start the definition of a footnote with label LABEL."
   (interactive "sLabel: ")
@@ -595,8 +595,8 @@ With prefix arg SPECIAL, offer additional commands in a menu."
 (defvar org-footnote-insert-pos-for-preprocessor 'point-max
   "See `org-footnote-normalize'.")
 
-(defvar org-export-footnotes-seen nil) ; silence byte-compiler
-(defvar org-export-footnotes-data nil) ; silence byte-compiler
+(defvar org-export-footnotes-seen) ; silence byte-compiler
+(defvar org-export-footnotes-data) ; silence byte-compiler
 
 ;;;###autoload
 (defun org-footnote-normalize (&optional sort-only export-props)
