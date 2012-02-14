@@ -2,6 +2,8 @@
 
 	* mail/smtpmail.el (smtpmail-query-smtp-server): Fix typo in the
 	way the ports list is computed.
+	(smtpmail-query-smtp-server): Prompt the user for a port number if
+	we can't connect to any of the standard ports (bug#10810).
 
 2012-02-14  Teodor Zlatanov  <tzz@lifelogs.com>
 
