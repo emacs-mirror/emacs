@@ -1,3 +1,15 @@
+2012-02-14  Chong Yidong  <cyd@gnu.org>
+
+	* keymaps.texi (Format of Keymaps): The CACHE component of keymaps
+	was removed on 2009-09-10.  Update lisp-mode-map example.
+	(Inheritance and Keymaps): Minor clarification.
+	(Searching Keymaps): Remove out-of-place enumeration.
+	(Key Lookup): Remove unnecessary example (one was already given in
+	Format of Keymaps).
+	(Changing Key Bindings): Update suppress-keymap example.
+	(Menu Bar, Tool Bar): Copyedits.
+	(Tool Bar): Update tool-bar-map example.
+
 2012-02-12  Chong Yidong  <cyd@gnu.org>
 
 	* debugging.texi (Debugger Commands): Continuing is now allowed

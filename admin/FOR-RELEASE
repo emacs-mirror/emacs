@@ -204,7 +204,7 @@ hooks.texi
 index.texi
 internals.texi    
 intro.texi        cyd
-keymaps.texi      
+keymaps.texi      cyd
 lists.texi        cyd
 loading.texi      cyd
 locals.texi       
