@@ -56,6 +56,7 @@ set this variable to \"normal:-dhe-rsa\"."
     "/etc/ssl/certs/ca-certificates.crt" ; Debian, Ubuntu, Gentoo and Arch Linux
     "/etc/pki/tls/certs/ca-bundle.crt"   ; Fedora and RHEL
     "/etc/ssl/ca-bundle.pem"             ; Suse
+    "/usr/ssl/cert/ca-bundle.crt"        ; Cygwin
     )
   "List of CA bundle location filenames or a function returning said list.
 The files may be in PEM or DER format, as per the GnuTLS documentation.
