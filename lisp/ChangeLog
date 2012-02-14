@@ -1,3 +1,7 @@
+2012-02-14  Glenn Morris  <rgm@gnu.org>
+
+	* mail/smtpmail.el (smtpmail-query-smtp-server): Give it a doc.
+
 2012-02-14  Lars Ingebrigtsen  <larsi@gnus.org>
 
 	* mail/smtpmail.el (smtpmail-query-smtp-server): Fix typo in the
