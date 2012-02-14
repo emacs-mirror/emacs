@@ -597,11 +597,11 @@ The list is in preference order.")
 
 (defun smtpmail-query-smtp-server ()
   (let ((server (read-string "Outgoing SMTP mail server: "))
-	(ports '("smtp" 587))
+	(ports '(25 587))
 	stream port)
-    (when (and smtpmail-smtp-server
-	       (not (member smtpmail-smtp-server ports)))
-      (push smtpmail-smtp-server ports))
+    (when (and smtpmail-smtp-service
+	       (not (member smtpmail-smtp-service ports)))
+      (push smtpmail-smtp-service ports))
     (while (and (not smtpmail-smtp-server)
 		(setq port (pop ports)))
       (when (setq stream (condition-case ()

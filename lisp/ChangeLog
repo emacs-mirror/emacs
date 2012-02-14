@@ -1,3 +1,8 @@
+2012-02-14  Lars Ingebrigtsen  <larsi@gnus.org>
+
+	* mail/smtpmail.el (smtpmail-query-smtp-server): Fix typo in the
+	way the ports list is computed.
+
 2012-02-14  Teodor Zlatanov  <tzz@lifelogs.com>
 
 	* net/gnutls.el (gnutls-trustfiles): Add Cygwin location.
