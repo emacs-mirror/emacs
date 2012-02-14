@@ -41,7 +41,6 @@
 ;;; Code:
 
 (eval-when-compile (require 'cl))
-(eval-when-compile (require 'ert))
 
 (defstruct url-future callback errorback status value)
 

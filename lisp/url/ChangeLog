@@ -1,3 +1,7 @@
+2012-02-14  Leo Liu  <sdl.web@gmail.com>
+
+	* url-future.el: Fix last change.
+
 2012-02-13  Teodor Zlatanov  <tzz@lifelogs.com>
 
 	* url-future.el (url-future-test): Move to test/automated.
