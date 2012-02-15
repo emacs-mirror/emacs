@@ -1,3 +1,8 @@
+2012-02-15  Chong Yidong  <cyd@gnu.org>
+
+	* eval.c (Fdefvar, Fdefconst): Doc fix; note that the variable is
+	marked as special.  Also, starting docstrings with * is obsolete.
+
 2012-02-13  Andreas Schwab  <schwab@linux-m68k.org>
 
 	* gnutls.c (emacs_gnutls_write): Fix last change.

@@ -1,3 +1,7 @@
+2012-02-15  Chong Yidong  <cyd@gnu.org>
+
+	* custom.el (defcustom): Doc fix; note use of defvar.
+
 2012-02-15  Glenn Morris  <rgm@gnu.org>
 
 	* mail/smtpmail.el (smtpmail-smtp-user, smtpmail-stream-type):
