@@ -689,6 +689,7 @@ file referenced.  If false, this is not supported."
 Set this to \"wire\" if the Verilog code uses \"`default_nettype
 none\".  Note using `default_nettype none isn't recommended practice; this
 mode is experimental."
+  :version "24.1"
   :group 'verilog-mode-actions
   :type 'boolean)
 (put 'verilog-auto-declare-nettype 'safe-local-variable `stringp)
@@ -696,6 +697,7 @@ mode is experimental."
 (defcustom verilog-auto-wire-type nil
   "*Non-nil specifies the data type to use with `verilog-auto-wire' etc.
 Set this to \"logic\" for SystemVerilog code, or use `verilog-auto-logic'."
+  :version "24.1"
   :group 'verilog-mode-actions
   :type 'boolean)
 (put 'verilog-auto-wire-type 'safe-local-variable `stringp)
@@ -709,6 +711,7 @@ The name of the function or case will be set between the braces."
 
 (defcustom verilog-auto-delete-trailing-whitespace nil
   "*True means to `delete-trailing-whitespace' in `verilog-auto'."
+  :version "24.1"
   :group 'verilog-mode-actions
   :type 'boolean)
 (put 'verilog-auto-delete-trailing-whitespace 'safe-local-variable 'verilog-booleanp)
@@ -986,6 +989,7 @@ If nil, all blocking assigned signals are ignored when any
 non-blocking assignment is in the AUTORESET block.  This allows
 blocking assignments to be used for temporary values and not have
 those temporaries reset.  See example in `verilog-auto-reset'."
+  :version "24.1"
   :type 'boolean
   :group 'verilog-mode-auto)
 (put 'verilog-auto-reset-blocking-in-non 'safe-local-variable 'verilog-booleanp)
@@ -1073,6 +1077,7 @@ declared together to remain together.  Sorted order reduces
 changes when declarations are moved around in a file.
 
 See also `verilog-auto-arg-sort'."
+  :version "24.1"
   :group 'verilog-mode-auto
   :type 'boolean)
 (put 'verilog-auto-inst-sort 'safe-local-variable 'verilog-booleanp)
@@ -1135,6 +1140,7 @@ See the \\[verilog-faq] for examples on using this."
   "*Data type used for the declaration for AUTOTIEOFF.  If \"wire\" then
 create a wire, if \"assign\" create an assignment, else the data type for
 variable creation."
+  :version "24.1"
   :group 'verilog-mode-auto
   :type 'string)
 (put 'verilog-auto-tieoff-declaration 'safe-local-variable 'stringp)

@@ -2129,7 +2129,7 @@ comment at the start of cc-engine.el for more info."
     (widen)
     (save-excursion
       (let ((c c-state-nonlit-pos-cache)
-	    pos npos lit macro-beg)
+	    pos npos lit macro-beg macro-end)
 	;; Trim the cache to take account of buffer changes.
 	(while (and c (> (car c) c-state-nonlit-pos-cache-limit))
 	  (setq c (cdr c)))
@@ -2143,28 +2143,29 @@ comment at the start of cc-engine.el for more info."
 	    ;; Add an element to `c-state-nonlit-pos-cache' each iteration.
 	    (and
 	     (<= (setq npos (+ pos c-state-nonlit-pos-interval)) here)
+
+	     ;; Test for being in a literal.
 	     (progn
 	       (setq lit (car (cddr (c-state-pp-to-literal pos npos))))
-	       (cond
-		((null lit)
-		 (setq pos npos)
-		 t)
-		((<= (cdr lit) here)
-		 (setq pos (cdr lit))
-		 t)
-		(t
-		 (setq pos (car lit))
-		 nil))))
+	       (or (null lit)
+		   (prog1 (<= (cdr lit) here)
+		     (setq npos (cdr lit)))))
 
-	  (goto-char pos)
-	  (when (and (c-beginning-of-macro) (/= (point) pos))
-	      (setq macro-beg (point))
-	      (c-syntactic-end-of-macro)
-	      (or (eobp) (forward-char))
-	      (setq pos (if (<= (point) here)
-			    (point)
-			  macro-beg)))
-	    (setq c-state-nonlit-pos-cache (cons pos c-state-nonlit-pos-cache)))
+	     ;; Test for being in a macro.
+	     (progn
+	       (goto-char npos)
+	       (setq macro-beg
+		     (and (c-beginning-of-macro) (/= (point) npos) (point)))
+	       (when macro-beg
+		 (c-syntactic-end-of-macro)
+		 (or (eobp) (forward-char))
+		 (setq macro-end (point)))
+	       (or (null macro-beg)
+		   (prog1 (<= macro-end here)
+		     (setq npos macro-end)))))
+
+	  (setq pos npos)
+	  (setq c-state-nonlit-pos-cache (cons pos c-state-nonlit-pos-cache)))
 
 	(if (> pos c-state-nonlit-pos-cache-limit)
 	    (setq c-state-nonlit-pos-cache-limit pos))
@@ -7396,6 +7397,7 @@ comment at the start of cc-engine.el for more info."
     (let ((start (point))
 	  start-char
 	  (c-promote-possible-types t)
+	  lim
 	  ;; Turn off recognition of angle bracket arglists while parsing
 	  ;; types here since the protocol reference list might then be
 	  ;; considered part of the preceding name or superclass-name.
@@ -7423,6 +7425,7 @@ comment at the start of cc-engine.el for more info."
 ;	      (c-forward-token-2) ; 2006/1/13 This doesn't move if the token's
 ;	      at EOB.
 	      (goto-char (match-end 0))
+	      (setq lim (point))
 	      (c-skip-ws-forward)
 	      (c-forward-type))
 
@@ -7447,7 +7450,7 @@ comment at the start of cc-engine.el for more info."
 		t))))
 
 	  (progn
-	    (c-backward-syntactic-ws)
+	    (c-backward-syntactic-ws lim)
 	    (c-clear-c-type-property start (1- (point)) 'c-decl-end)
 	    (c-put-c-type-property (1- (point)) 'c-decl-end)
 	    t)
@@ -7590,14 +7593,17 @@ comment at the start of cc-engine.el for more info."
     (save-restriction
       ;; If we're in a macro, our search range is restricted to it.  Narrow to
       ;; the searchable range.
-      (let* ((macro-start (c-query-macro-start))
-	     (lim (max (or lim (point-min)) (or macro-start (point-min))))
+      (let* ((macro-start (save-excursion (and (c-beginning-of-macro) (point))))
+	     (macro-end (save-excursion (and macro-start (c-end-of-macro) (point))))
+	     (low-lim (max (or lim (point-min))   (or macro-start (point-min))))
 	     before-lparen after-rparen
-	     (pp-count-out 20))	; Max number of paren/brace constructs before we give up
-	(narrow-to-region lim (c-point 'eol))
+	     (pp-count-out 20))	; Max number of paren/brace constructs before
+				; we give up
+	(narrow-to-region low-lim (or macro-end (point-max)))
 
 	;; Search backwards for the defun's argument list.  We give up if we
-	;; encounter a "}" (end of a previous defun) or BOB.
+	;; encounter a "}" (end of a previous defun) an "=" (which can't be in
+	;; a knr region) or BOB.
 	;;
 	;; The criterion for a paren structure being the arg list is:
 	;; o - there is non-WS stuff after it but before any "{"; AND
@@ -7617,12 +7623,13 @@ comment at the start of cc-engine.el for more info."
 	(catch 'knr
 	  (while (> pp-count-out 0) ; go back one paren/bracket pair each time.
 	    (setq pp-count-out (1- pp-count-out))
-	    (c-syntactic-skip-backward "^)]}")
+	    (c-syntactic-skip-backward "^)]}=")
 	    (cond ((eq (char-before) ?\))
 		   (setq after-rparen (point)))
 		  ((eq (char-before) ?\])
 		   (setq after-rparen nil))
-		  (t ; either } (hit previous defun) or no more parens/brackets
+		  (t ; either } (hit previous defun) or = or no more
+		     ; parens/brackets.
 		   (throw 'knr nil)))
 
 	    (if after-rparen
@@ -7638,18 +7645,18 @@ comment at the start of cc-engine.el for more info."
 		   ;; It can't be the arg list if next token is ; or {
 		   (progn (goto-char after-rparen)
 			  (c-forward-syntactic-ws)
-			  (not (memq (char-after) '(?\; ?\{))))
+			  (not (memq (char-after) '(?\; ?\{ ?\=))))
 
 		   ;; Is the thing preceding the list an identifier (the
 		   ;; function name), or a macro expansion?
 		   (progn
 		     (goto-char before-lparen)
 		     (eq (c-backward-token-2) 0)
-		     (or (c-on-identifier)
+		     (or (eq (c-on-identifier) (point))
 			 (and (eq (char-after) ?\))
 			      (c-go-up-list-backward)
 			      (eq (c-backward-token-2) 0)
-			      (c-on-identifier))))
+			      (eq (c-on-identifier) (point)))))
 
 		   ;; Have we got a non-empty list of comma-separated
 		   ;; identifiers?

@@ -696,6 +696,9 @@ operation, reverting preserves all the markers.  If they are not
 identical, reverting does change the buffer; in that case, it preserves
 the markers in the unchanged text (if any) at the beginning and end of
 the buffer.  Preserving any additional markers would be problematical.
+
+This command binds @code{revert-buffer-in-progress-p} to a
+non-@code{nil} value while it operates.
 @end deffn
 
 You can customize how @code{revert-buffer} does its work by setting

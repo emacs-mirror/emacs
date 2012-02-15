@@ -275,7 +275,10 @@ Also fontifies the buffer appropriately (see `goto-address-fontify-p' and
 
 ;;;###autoload
 (define-minor-mode goto-address-mode
-  "Minor mode to buttonize URLs and e-mail addresses in the current buffer."
+  "Minor mode to buttonize URLs and e-mail addresses in the current buffer.
+With a prefix argument ARG, enable the mode if ARG is positive,
+and disable it otherwise.  If called from Lisp, enable the mode
+if ARG is omitted or nil."
   nil
   ""
   nil

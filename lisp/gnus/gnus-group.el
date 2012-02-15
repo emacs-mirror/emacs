@@ -2295,10 +2295,15 @@ Return the name of the group if selection was successful."
     (gnus-no-server))
   (when (stringp method)
     (setq method (gnus-server-to-method method)))
-  (setq method
-	`(,(car method) ,(concat (cadr method) "-ephemeral")
-	  (,(intern (format "%s-address" (car method))) ,(cadr method))
-	  ,@(cddr method)))
+  (let ((address-slot
+	 (intern (format "%s-address" (car method)))))
+    (setq method
+	  (if (assq address-slot (cddr method))
+	      `(,(car method) ,(concat (cadr method) "-ephemeral")
+		,@(cddr method))
+	    `(,(car method) ,(concat (cadr method) "-ephemeral")
+	      (,address-slot ,(cadr method))
+	      ,@(cddr method)))))
   (let ((group (if (gnus-group-foreign-p group) group
 		 (gnus-group-prefixed-name (gnus-group-real-name group)
 					   method))))

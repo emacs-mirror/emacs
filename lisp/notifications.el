@@ -107,9 +107,12 @@
    notifications-action-signal
    'notifications-on-action-signal))
 
-(defun notifications-on-closed-signal (id reason)
+(defun notifications-on-closed-signal (id &optional reason)
   "Dispatch signals to callback functions from `notifications-on-closed-map'."
-  (let ((entry (assoc id notifications-on-close-map)))
+  ;; notification-daemon prior 0.4.0 does not send a reason.  So we
+  ;; make it optional, and assume `undefined' as default.
+  (let ((entry (assoc id notifications-on-close-map))
+	(reason (or reason 4)))
     (when entry
       (funcall (cadr entry)
 	       id (cadr (assoc reason notifications-closed-reason)))

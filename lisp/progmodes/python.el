@@ -1004,9 +1004,10 @@ On a comment line, go to end of line."
                                (error (goto-char pos) (end-of-line)))))
 			  ((python-skip-out t s))))
 	     (end-of-line))
-	   (unless comment
-	     (eq ?\\ (char-before))))	; Line continued?
-    (end-of-line 2))			; Try next line.
+	   (and (not comment)
+		(not (eobp))
+		(eq ?\\ (char-before)))) ; Line continued?
+    (end-of-line 2))                     ; Try next line.
   (point))
 
 (defun python-previous-statement (&optional count)

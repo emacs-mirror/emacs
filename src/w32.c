@@ -1940,6 +1940,9 @@ get_emacs_configuration_options (void)
 #ifdef EMACSDEBUG
     " --no-opt",
 #endif
+#ifdef ENABLE_CHECKING
+    " --enable-checking",
+#endif
     /* configure.bat already sets USER_CFLAGS and USER_LDFLAGS
        with a starting space to save work here.  */
 #ifdef USER_CFLAGS

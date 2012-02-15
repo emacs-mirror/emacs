@@ -502,10 +502,12 @@ aren't strings.  */)
 /* Scanning the DOC files and placing docstring offsets into functions.  */
 
 static void
-store_function_docstring (Lisp_Object fun, EMACS_INT offset)
+store_function_docstring (Lisp_Object obj, EMACS_INT offset)
 /* Use EMACS_INT because we get offset from pointer subtraction.  */
 {
-  fun = indirect_function (fun);
+  /* Don't use indirect_function here, or defaliases will apply their
+     docstrings to the base functions (Bug#2603).  */
+  Lisp_Object fun = SYMBOLP (obj) ? XSYMBOL (obj)->function : obj;
 
   /* The type determines where the docstring is stored.  */
 

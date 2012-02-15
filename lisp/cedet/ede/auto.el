@@ -31,6 +31,9 @@
 
 (require 'eieio)
 
+(declare-function ede-directory-safe-p "ede")
+(declare-function ede-add-project-to-global-list "ede")
+
 (defclass ede-project-autoload ()
   ((name :initarg :name
 	 :documentation "Name of this project type")

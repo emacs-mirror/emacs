@@ -1,3 +1,8 @@
+2012-02-13  Teodor Zlatanov  <tzz@lifelogs.com>
+
+	* automated/url-future-tests.el (url-future-tests): Move from
+	lisp/url/url-future.el and rename.
+
 2012-01-29  Ulf Jasper  <ulf.jasper@web.de>
 
 	* automated/icalendar-tests.el (icalendar-import-non-recurring):

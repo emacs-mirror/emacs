@@ -1,6 +1,6 @@
 ;;; smtpmail.el --- simple SMTP protocol (RFC 821) for sending mail
 
-;; Copyright (C) 1995-1996, 2001-2012  Free Software Foundation, Inc.
+;; Copyright (C) 1995-1996, 2001-2012 Free Software Foundation, Inc.
 
 ;; Author: Tomoji Kagatani <kagatani@rbc.ncl.omron.co.jp>
 ;; Maintainer: Simon Josefsson <simon@josefsson.org>
@@ -200,7 +200,10 @@ The list is in preference order.")
 	;; local binding in the mail buffer will take effect.
 	(smtpmail-mail-address
          (or (and mail-specify-envelope-from (mail-envelope-from))
-             user-mail-address))
+             (smtpmail-user-mail-address)
+	     (let ((from (mail-fetch-field "from")))
+	       (and from
+		    (cadr (mail-extract-address-components from))))))
 	(smtpmail-code-conv-from
 	 (if enable-multibyte-characters
 	     (let ((sendmail-coding-system smtpmail-code-conv-from))
@@ -593,23 +596,45 @@ The list is in preference order.")
   (mapconcat 'identity (cdr response) "\n"))
 
 (defun smtpmail-query-smtp-server ()
+  "Query for an SMTP server and try to contact it.
+If the contact succeeds, customizes and saves `smtpmail-smtp-server'
+and `smtpmail-smtp-service'.  This tries standard SMTP ports, and if
+none works asks you to supply one.  If you know that you need to use
+a non-standard port, you can set `smtpmail-smtp-service' in advance.
+Returns an error if the server cannot be contacted."
   (let ((server (read-string "Outgoing SMTP mail server: "))
-	(ports '("smtp" 587))
-	stream port)
-    (when (and smtpmail-smtp-server
-	       (not (member smtpmail-smtp-server ports)))
-      (push smtpmail-smtp-server ports))
+	(ports '(25 587))
+	stream port prompted)
+    (when (and smtpmail-smtp-service
+	       (not (member smtpmail-smtp-service ports)))
+      (push smtpmail-smtp-service ports))
     (while (and (not smtpmail-smtp-server)
 		(setq port (pop ports)))
-      (when (setq stream (condition-case ()
-			     (open-network-stream "smtp" nil server port)
-			   (quit nil)
-			   (error nil)))
+      (if (not (setq stream (condition-case ()
+				(open-network-stream "smtp" nil server port)
+			      (quit nil)
+			      (error nil))))
+	  ;; We've used up the list of default ports, so query the user.
+	  (when (and (not ports)
+		     (not prompted))
+	    (push (read-number (format "Port number to use when contacting %s? "
+				       server))
+		  ports)
+	    (setq prompted t))
 	(customize-save-variable 'smtpmail-smtp-server server)
 	(customize-save-variable 'smtpmail-smtp-service port)
 	(delete-process stream)))
     (unless smtpmail-smtp-server
       (error "Couldn't contact an SMTP server"))))
+
+(defun smtpmail-user-mail-address ()
+  "Return `user-mail-address' if it's a valid email address."
+  (and user-mail-address
+       (let ((parts (split-string user-mail-address "@")))
+	 (and (= (length parts) 2)
+	      ;; There's a dot in the domain name.
+	      (string-match "\\." (cadr parts))
+	      user-mail-address))))
 
 (defun smtpmail-via-smtp (recipient smtpmail-text-buffer
 				    &optional ask-for-password)
@@ -621,10 +646,16 @@ The list is in preference order.")
 	(port smtpmail-smtp-service)
         ;; `smtpmail-mail-address' should be set to the appropriate
         ;; buffer-local value by the caller, but in case not:
-        (envelope-from (or smtpmail-mail-address
-                           (and mail-specify-envelope-from
-                                (mail-envelope-from))
-                           user-mail-address))
+        (envelope-from
+	 (or smtpmail-mail-address
+	     (and mail-specify-envelope-from
+		  (mail-envelope-from))
+	     (smtpmail-user-mail-address)
+	     ;; Fall back on the From: header as the envelope From
+	     ;; address.
+	     (let ((from (mail-fetch-field "from")))
+	       (and from
+		    (cadr (mail-extract-address-components from))))))
 	response-code
 	process-buffer
 	result

@@ -1323,11 +1323,11 @@ with the name of the subroutine.
 @node Byte-Code Type
 @subsection Byte-Code Function Type
 
-The byte compiler produces @dfn{byte-code function objects}.
-Internally, a byte-code function object is much like a vector; however,
-the evaluator handles this data type specially when it appears as a
-function to be called.  @xref{Byte Compilation}, for information about
-the byte compiler.
+@dfn{Byte-code function objects} are produced by byte-compiling Lisp
+code (@pxref{Byte Compilation}).  Internally, a byte-code function
+object is much like a vector; however, the evaluator handles this data
+type specially when it appears in a function call.  @xref{Byte-Code
+Objects}.
 
 The printed representation and read syntax for a byte-code function
 object is like that for a vector, with an additional @samp{#} before the

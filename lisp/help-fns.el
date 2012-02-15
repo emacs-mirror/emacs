@@ -707,12 +707,19 @@ it is displayed along with the global value."
 	      (with-current-buffer standard-output
 		(setq val-start-pos (point))
 		(princ "value is ")
-		(let ((from (point)))
-		  (terpri)
-		  (pp val)
-		  (if (< (point) (+ 68 (line-beginning-position 0)))
-		      (delete-region from (1+ from))
-		    (delete-region (1- from) from))
+		(let ((from (point))
+		      (line-beg (line-beginning-position))
+		      ;;
+		      (print-rep
+		       (let ((print-quoted t))
+			 (prin1-to-string val))))
+		  (if (< (+ (length print-rep) (point) (- line-beg)) 68)
+		      (insert print-rep)
+		    (terpri)
+		    (pp val)
+		    (if (< (point) (+ 68 (line-beginning-position 0)))
+			(delete-region from (1+ from))
+		      (delete-region (1- from) from)))
 		  (let* ((sv (get variable 'standard-value))
 			 (origval (and (consp sv)
 				       (condition-case nil

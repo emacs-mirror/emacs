@@ -1,3 +1,9 @@
+2012-02-08  Glenn Morris  <rgm@gnu.org>
+
+	* erc-backend.el (erc-coding-system-precedence):
+	* erc-join.el (erc-autojoin-delay, erc-autojoin-timing):
+	Add missing :version settings.
+
 2012-01-06  Glenn Morris  <rgm@gnu.org>
 
 	* erc.el (erc-tls): Add autoload cookie.  (Bug#10333)
@@ -84,6 +90,10 @@
 	* erc-button.el (erc-button-next-function): New function extracted from
 	erc-button-next.
 	(button, erc-button-next): Use it.
+
+2011-04-20  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* erc-hecomplete.el: Move to ../obsolete.
 
 2011-03-07  Chong Yidong  <cyd@stupidchicken.com>
 

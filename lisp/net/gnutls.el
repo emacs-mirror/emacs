@@ -39,6 +39,7 @@
 
 (defgroup gnutls nil
   "Emacs interface to the GnuTLS library."
+  :version "24.1"
   :prefix "gnutls-"
   :group 'net-utils)
 
@@ -46,8 +47,23 @@
   "If non-nil, this should be a TLS priority string.
 For instance, if you want to skip the \"dhe-rsa\" algorithm,
 set this variable to \"normal:-dhe-rsa\"."
+  :group 'gnutls
   :type '(choice (const nil)
-		 string))
+                 string))
+
+(defcustom gnutls-trustfiles
+  '(
+    "/etc/ssl/certs/ca-certificates.crt" ; Debian, Ubuntu, Gentoo and Arch Linux
+    "/etc/pki/tls/certs/ca-bundle.crt"   ; Fedora and RHEL
+    "/etc/ssl/ca-bundle.pem"             ; Suse
+    "/usr/ssl/cert/ca-bundle.crt"        ; Cygwin
+    )
+  "List of CA bundle location filenames or a function returning said list.
+The files may be in PEM or DER format, as per the GnuTLS documentation.
+The files may not exist, in which case they will be ignored."
+  :group 'gnutls
+  :type '(choice (function :tag "Function to produce list of bundle filenames")
+                 (repeat (file :tag "Bundle filename"))))
 
 ;;;###autoload
 (defcustom gnutls-min-prime-bits nil
@@ -116,7 +132,7 @@ TYPE is `gnutls-x509pki' (default) or `gnutls-anon'.  Use nil for the default.
 PROCESS is a process returned by `open-network-stream'.
 HOSTNAME is the remote hostname.  It must be a valid string.
 PRIORITY-STRING is as per the GnuTLS docs, default is \"NORMAL\".
-TRUSTFILES is a list of CA bundles.
+TRUSTFILES is a list of CA bundles.  It defaults to `gnutls-trustfiles'.
 CRLFILES is a list of CRL files.
 KEYLIST is an alist of (client key file, client cert file) pairs.
 MIN-PRIME-BITS is the minimum acceptable size of Diffie-Hellman keys
@@ -154,18 +170,20 @@ here's a recent version of the list.
 It must be omitted, a number, or nil; if omitted or nil it
 defaults to GNUTLS_VERIFY_ALLOW_X509_V1_CA_CRT."
   (let* ((type (or type 'gnutls-x509pki))
-         (default-trustfile "/etc/ssl/certs/ca-certificates.crt")
          (trustfiles (or trustfiles
-                         (when (file-exists-p default-trustfile)
-                           (list default-trustfile))))
+                         (delq nil
+                               (mapcar (lambda (f) (and f (file-exists-p f) f))
+                                       (if (functionp gnutls-trustfiles)
+                                           (funcall gnutls-trustfiles)
+                                         gnutls-trustfiles)))))
          (priority-string (or priority-string
                               (cond
                                ((eq type 'gnutls-anon)
                                 "NORMAL:+ANON-DH:!ARCFOUR-128")
                                ((eq type 'gnutls-x509pki)
-				(if gnutls-algorithm-priority
-				    (upcase gnutls-algorithm-priority)
-				  "NORMAL")))))
+                                (if gnutls-algorithm-priority
+                                    (upcase gnutls-algorithm-priority)
+                                  "NORMAL")))))
          (min-prime-bits (or min-prime-bits gnutls-min-prime-bits))
          (params `(:priority ,priority-string
                              :hostname ,hostname

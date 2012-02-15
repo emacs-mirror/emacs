@@ -655,14 +655,16 @@ Done before generating the new subject of a forward."
 	(t
 	 (error "Don't know how to send mail.  Please customize `message-send-mail-function'"))))
 
-;; Useful to set in site-init.el
-(defcustom message-send-mail-function
+(defun message-default-send-mail-function ()
   (cond ((eq send-mail-function 'smtpmail-send-it) 'message-smtpmail-send-it)
 	((eq send-mail-function 'feedmail-send-it) 'feedmail-send-it)
 	((eq send-mail-function 'sendmail-query-once) 'sendmail-query-once)
 	((eq send-mail-function 'mailclient-send-it)
 	 'message-send-mail-with-mailclient)
-	(t (message-send-mail-function)))
+	(t (message-send-mail-function))))
+
+;; Useful to set in site-init.el
+(defcustom message-send-mail-function (message-default-send-mail-function)
   "Function to call to send the current buffer as mail.
 The headers should be delimited by a line whose contents match the
 variable `mail-header-separator'.
@@ -1093,6 +1095,7 @@ probably want to set this variable only for specific groups,
 e.g. using `gnus-posting-styles':
 
   (eval (set (make-local-variable 'message-cite-reply-position) 'above))"
+  :version "24.1"
   :type '(choice (const :tag "Reply inline" 'traditional)
 		 (const :tag "Reply above" 'above)
 		 (const :tag "Reply below" 'below))

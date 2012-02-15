@@ -157,6 +157,7 @@ for doing the actual authentication."
 (defcustom sieve-manage-default-stream 'network
   "Default stream type to use for `sieve-manage'.
 Must be a name of a stream in `sieve-manage-stream-alist'."
+  :version "24.1"
   :type 'symbol
   :group 'sieve-manage)
 

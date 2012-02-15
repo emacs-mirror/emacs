@@ -923,6 +923,7 @@ the old and FORCE is nil."
 
 (defcustom ses-self-reference-early-detection nil
   "True if cycle detection is early for cells that refer to themselves."
+  :version "24.1"
   :type 'boolean
   :group 'ses)
 

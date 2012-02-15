@@ -285,7 +285,7 @@ Customizing your password will store it in your ~/.emacs file."
   :safe 'stringp)
 
 (defcustom sql-port 0
-  "Default port."
+  "Default port for connecting to a MySQL or Postgres server."
   :version "24.1"
   :type 'number
   :group 'SQL
@@ -613,30 +613,22 @@ settings.")
   '(:font-lock :sqli-program :sqli-options :sqli-login :statement))
 
 (defcustom sql-connection-alist nil
-  "An alist of connection parameters for interacting with a SQL
-  product.
-
+  "An alist of connection parameters for interacting with a SQL product.
 Each element of the alist is as follows:
 
   \(CONNECTION \(SQL-VARIABLE VALUE) ...)
 
 Where CONNECTION is a symbol identifying the connection, SQL-VARIABLE
 is the symbol name of a SQL mode variable, and VALUE is the value to
-be assigned to the variable.
-
-The most common SQL-VARIABLE settings associated with a connection
-are:
-
-  `sql-product'
-  `sql-user'
-  `sql-password'
-  `sql-port'
-  `sql-server'
-  `sql-database'
+be assigned to the variable.  The most common SQL-VARIABLE settings
+associated with a connection are: `sql-product', `sql-user',
+`sql-password', `sql-port', `sql-server', and `sql-database'.
 
 If a SQL-VARIABLE is part of the connection, it will not be
-prompted for during login."
-
+prompted for during login.  The command `sql-connect' starts a
+predefined SQLi session using the parameters from this list.
+Connections defined here appear in the submenu SQL->Start...  for
+making new SQLi sessions."
   :type `(alist :key-type (string :tag "Connection")
                 :value-type
                 (set
@@ -818,6 +810,7 @@ is changed."
 
 This hook is invoked in a buffer once it is ready to accept input
 for the first time."
+  :version "24.1"
   :type 'hook
   :group 'SQL)
 
@@ -832,7 +825,10 @@ for the first time."
 
 All products share this list; products should define a regexp to
 identify additional keywords in a variable defined by
-the :statement feature.")
+the :statement feature."
+  :version "24.1"
+  :type 'string
+  :group 'SQL)
 
 ;; Customization for Oracle
 
@@ -859,8 +855,12 @@ You will find the file in your Orant\\bin directory."
   :version "24.1"
   :group 'SQL)
 
-(defcustom sql-oracle-statement-starters (regexp-opt '("declare" "begin" "with"))
-  "Additional statement starting keywords in Oracle.")
+(defcustom sql-oracle-statement-starters
+  (regexp-opt '("declare" "begin" "with"))
+  "Additional statement starting keywords in Oracle."
+  :version "24.1"
+  :type 'string
+  :group 'SQL)
 
 (defcustom sql-oracle-scan-on t
   "Non-nil if placeholders should be replaced in Oracle SQLi.
@@ -875,6 +875,7 @@ You need to issue the following command in SQL*Plus to be safe:
     SET DEFINE OFF
 
 In older versions of SQL*Plus, this was the SET SCAN OFF command."
+  :version "24.1"
   :type 'boolean
   :group 'SQL)
 
@@ -3647,7 +3648,9 @@ The list is maintained in SQL interactive buffers.")
       (read-from-minibuffer prompt tname))))
 
 (defun sql-list-all (&optional enhanced)
-  "List all database objects."
+  "List all database objects.
+With optional prefix argument ENHANCED, displays additional
+details or extends the listing to include other schemas objects."
   (interactive "P")
   (let ((sqlbuf (sql-find-sqli-buffer)))
     (unless sqlbuf
@@ -3659,7 +3662,9 @@ The list is maintained in SQL interactive buffers.")
       (set (make-local-variable 'sql-buffer) sqlbuf))))
 
 (defun sql-list-table (name &optional enhanced)
-  "List the details of a database table. "
+  "List the details of a database table named NAME.
+Displays the columns in the relation.  With optional prefix argument
+ENHANCED, displays additional details about each column."
   (interactive
    (list (sql-read-table-name "Table name: ")
          current-prefix-arg))

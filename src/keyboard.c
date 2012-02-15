@@ -1749,7 +1749,9 @@ adjust_point_for_property (EMACS_INT last_pt, int modified)
 	{
 	  xassert (end > PT);
 	  SET_PT (PT < last_pt
-		  ? (STRINGP (val) && SCHARS (val) == 0 ? beg - 1 : beg)
+		  ? (STRINGP (val) && SCHARS (val) == 0
+		     ? max (beg - 1, BEGV)
+		     : beg)
 		  : end);
 	  check_composition = check_invisible = 1;
 	}

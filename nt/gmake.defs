@@ -289,6 +289,8 @@ ifdef USER_LIBS
 USER_LIBS := $(patsubst %,-l%,$(USER_LIBS))
 endif
 
+PRAGMA_SYSTEM_HEADER = \#pragma GCC system_header
+
 ifeq "$(ARCH)" "i386"
 ifdef NOOPT
 ARCH_CFLAGS     = -c $(DEBUG_FLAG) $(NOCYGWIN)

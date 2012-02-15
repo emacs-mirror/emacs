@@ -4847,12 +4847,15 @@ guesswork fails.  Normally, an error is signaled in such case.  */)
 }
 
 DEFUN ("secure-hash", Fsecure_hash, Ssecure_hash, 2, 5, 0,
-       doc: /* Return the secure hash of an OBJECT.
-ALGORITHM is a symbol: md5, sha1, sha224, sha256, sha384 or sha512.
-OBJECT is either a string or a buffer.
-Optional arguments START and END are character positions specifying
-which portion of OBJECT for computing the hash.  If BINARY is non-nil,
-return a string in binary form.  */)
+       doc: /* Return the secure hash of OBJECT, a buffer or string.
+ALGORITHM is a symbol specifying the hash to use:
+md5, sha1, sha224, sha256, sha384 or sha512.
+
+The two optional arguments START and END are positions specifying for
+which part of OBJECT to compute the hash.  If nil or omitted, uses the
+whole OBJECT.
+
+If BINARY is non-nil, returns a string in binary form.  */)
   (Lisp_Object algorithm, Lisp_Object object, Lisp_Object start, Lisp_Object end, Lisp_Object binary)
 {
   return secure_hash (algorithm, object, start, end, Qnil, Qnil, binary);

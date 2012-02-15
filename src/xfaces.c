@@ -3360,7 +3360,7 @@ update_face_from_frame_parameter (struct frame *f, Lisp_Object param,
 
       /* Changing the background color might change the background
 	 mode, so that we have to load new defface specs.
-	 Call frame-update-face-colors to do that.  */
+	 Call frame-set-background-mode to do that.  */
       XSETFRAME (frame, f);
       call1 (Qframe_set_background_mode, frame);
 

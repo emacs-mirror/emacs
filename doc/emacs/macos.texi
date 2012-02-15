@@ -130,6 +130,18 @@ open the dragged files in the current frame use the following line:
 @end lisp
 
 
+@subsection Customization options specific to Mac OS / GNUstep
+
+The following customization options are specific to the Nextstep port.
+
+@table @code
+@item ns-auto-hide-menu-bar
+Non-nil means the menu-bar is hidden by default, but appears if you
+move the mouse pointer over it.  (Requires OS X 10.6 or later.)
+
+@end table
+
+
 @node Mac / GNUstep Events, GNUstep Support, Mac / GNUstep Customization, Mac OS / GNUstep
 @section Windowing System Events under Mac OS / GNUstep
 

@@ -4148,7 +4148,6 @@ in a separate window.
 \\[ido-toggle-regexp] Toggle regexp searching.
 \\[ido-toggle-prefix] Toggle between substring and prefix matching.
 \\[ido-toggle-case] Toggle case-sensitive searching of file names.
-\\[ido-toggle-vc] Toggle version control for this file.
 \\[ido-toggle-literal] Toggle literal reading of this file.
 \\[ido-completion-help] Show list of matching files in separate window.
 \\[ido-toggle-ignore] Toggle ignoring files listed in `ido-ignore-files'."

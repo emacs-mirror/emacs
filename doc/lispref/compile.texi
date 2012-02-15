@@ -32,9 +32,6 @@ variable binding for @code{no-byte-compile} into it, like this:
 ;; -*-no-byte-compile: t; -*-
 @end example
 
-  @xref{Compilation Errors}, for how to investigate errors occurring in
-byte compilation.
-
 @menu
 * Speed of Byte-Code::          An example of speedup from byte compilation.
 * Compilation Functions::       Byte compilation functions.
@@ -56,18 +53,16 @@ Here is an example:
 @example
 @group
 (defun silly-loop (n)
-  "Return time before and after N iterations of a loop."
-  (let ((t1 (current-time-string)))
-    (while (> (setq n (1- n))
-              0))
-    (list t1 (current-time-string))))
+  "Return the time, in seconds, to run N iterations of a loop."
+  (let ((t1 (float-time)))
+    (while (> (setq n (1- n)) 0))
+    (- (float-time) t1)))
 @result{} silly-loop
 @end group
 
 @group
 (silly-loop 50000000)
-@result{} ("Wed Mar 11 21:10:19 2009"
-    "Wed Mar 11 21:10:41 2009")  ; @r{22 seconds}
+@result{} 10.235304117202759
 @end group
 
 @group
@@ -77,18 +72,17 @@ Here is an example:
 
 @group
 (silly-loop 50000000)
-@result{} ("Wed Mar 11 21:12:26 2009"
-    "Wed Mar 11 21:12:32 2009")  ; @r{6 seconds}
+@result{} 3.705854892730713
 @end group
 @end example
 
-  In this example, the interpreted code required 22 seconds to run,
-whereas the byte-compiled code required 6 seconds.  These results are
-representative, but actual results will vary greatly.
+  In this example, the interpreted code required 10 seconds to run,
+whereas the byte-compiled code required less than 4 seconds.  These
+results are representative, but actual results may vary.
 
 @node Compilation Functions
 @comment  node-name,  next,  previous,  up
-@section The Compilation Functions
+@section Byte-Compilation Functions
 @cindex compilation functions
 
   You can byte-compile an individual function or macro definition with
@@ -96,43 +90,36 @@ the @code{byte-compile} function.  You can compile a whole file with
 @code{byte-compile-file}, or several files with
 @code{byte-recompile-directory} or @code{batch-byte-compile}.
 
-  The byte compiler produces error messages and warnings about each file
-in a buffer called @samp{*Compile-Log*}.  These report things in your
-program that suggest a problem but are not necessarily erroneous.
+  Sometimes, the byte compiler produces warning and/or error messages
+(@pxref{Compiler Errors}, for details).  These messages are recorded
+in a buffer called @samp{*Compile-Log*}, which uses Compilation mode.
+@xref{Compilation Mode,,,emacs, The GNU Emacs Manual}.
 
 @cindex macro compilation
-  Be careful when writing macro calls in files that you may someday
-byte-compile.  Macro calls are expanded when they are compiled, so the
-macros must already be defined for proper compilation.  For more
-details, see @ref{Compiling Macros}.  If a program does not work the
-same way when compiled as it does when interpreted, erroneous macro
-definitions are one likely cause (@pxref{Problems with Macros}).
-Inline (@code{defsubst}) functions are less troublesome; if you
+  Be careful when writing macro calls in files that you intend to
+byte-compile.  Since macro calls are expanded when they are compiled,
+the macros need to be loaded into Emacs or the byte compiler will not
+do the right thing.  The usual way to handle this is with
+@code{require} forms which specify the files containing the needed
+macro definitions (@pxref{Named Features}).  Normally, the
+byte compiler does not evaluate the code that it is compiling, but it
+handles @code{require} forms specially, by loading the specified
+libraries.  To avoid loading the macro definition files when someone
+@emph{runs} the compiled program, write @code{eval-when-compile}
+around the @code{require} calls (@pxref{Eval During Compile}).  For
+more details, @xref{Compiling Macros}.
+
+  Inline (@code{defsubst}) functions are less troublesome; if you
 compile a call to such a function before its definition is known, the
 call will still work right, it will just run slower.
-
-  Normally, compiling a file does not evaluate the file's contents or
-load the file.  But it does execute any @code{require} calls at top
-level in the file.  One way to ensure that necessary macro definitions
-are available during compilation is to require the file that defines
-them (@pxref{Named Features}).  To avoid loading the macro definition files
-when someone @emph{runs} the compiled program, write
-@code{eval-when-compile} around the @code{require} calls (@pxref{Eval
-During Compile}).
 
 @defun byte-compile symbol
 This function byte-compiles the function definition of @var{symbol},
 replacing the previous definition with the compiled one.  The function
 definition of @var{symbol} must be the actual code for the function;
-i.e., the compiler does not follow indirection to another symbol.
-@code{byte-compile} returns the new, compiled definition of
-@var{symbol}.
-
-  If @var{symbol}'s definition is a byte-code function object,
-@code{byte-compile} does nothing and returns @code{nil}.  Lisp records
-only one function definition for any symbol, and if that is already
-compiled, non-compiled code is not available anywhere.  So there is no
-way to ``compile the same definition again.''
+@code{byte-compile} does not handle function indirection.  The return
+value is the byte-code function object which is the compiled
+definition of @var{symbol} (@pxref{Byte-Code Objects}).
 
 @example
 @group
@@ -153,16 +140,15 @@ way to ``compile the same definition again.''
 @end group
 @end example
 
-@noindent
-The result is a byte-code function object.  The string it contains is
-the actual byte-code; each character in it is an instruction or an
-operand of an instruction.  The vector contains all the constants,
-variable names and function names used by the function, except for
-certain primitives that are coded as special instructions.
+If @var{symbol}'s definition is a byte-code function object,
+@code{byte-compile} does nothing and returns @code{nil}.  It does not
+``compile the symbol's definition again'', since the original
+(non-compiled) code has already been replaced in the symbol's function
+cell by the byte-compiled code.
 
-If the argument to @code{byte-compile} is a @code{lambda} expression,
-it returns the corresponding compiled code, but does not store
-it anywhere.
+The argument to @code{byte-compile} can also be a @code{lambda}
+expression.  In that case, the function returns the corresponding
+compiled code but does not store it anywhere.
 @end defun
 
 @deffn Command compile-defun &optional arg
@@ -252,19 +238,6 @@ files that have an up-to-date @samp{.elc} file.
 @end example
 @end defun
 
-@defun byte-code code-string data-vector max-stack
-@cindex byte-code interpreter
-This function actually interprets byte-code.  A byte-compiled function
-is actually defined with a body that calls @code{byte-code}.  Don't call
-this function yourself---only the byte compiler knows how to generate
-valid calls to this function.
-
-In Emacs version 18, byte-code was always executed by way of a call to
-the function @code{byte-code}.  Nowadays, byte-code is usually executed
-as part of a byte-code function object, and only rarely through an
-explicit call to @code{byte-code}.
-@end defun
-
 @node Docs and Compilation
 @section Documentation Strings and Compilation
 @cindex dynamic loading of documentation
@@ -290,33 +263,11 @@ then further access to documentation strings in this file will
 probably give nonsense results.
 @end itemize
 
-  If your site installs Emacs following the usual procedures, these
-problems will never normally occur.  Installing a new version uses a new
-directory with a different name; as long as the old version remains
-installed, its files will remain unmodified in the places where they are
-expected to be.
-
-  However, if you have built Emacs yourself and use it from the
-directory where you built it, you will experience this problem
-occasionally if you edit and recompile Lisp files.  When it happens, you
-can cure the problem by reloading the file after recompiling it.
-
-  You can turn off this feature at compile time by setting
-@code{byte-compile-dynamic-docstrings} to @code{nil}; this is useful
-mainly if you expect to change the file, and you want Emacs processes
-that have already loaded it to keep working when the file changes.
-You can do this globally, or for one source file by specifying a
-file-local binding for the variable.  One way to do that is by adding
-this string to the file's first line:
-
-@example
--*-byte-compile-dynamic-docstrings: nil;-*-
-@end example
-
-@defvar byte-compile-dynamic-docstrings
-If this is non-@code{nil}, the byte compiler generates compiled files
-that are set up for dynamic loading of documentation strings.
-@end defvar
+@noindent
+These problems normally occur only if you build Emacs yourself and use
+it from the directory where you built it, and you happen to edit
+and/or recompile the Lisp source files.  They can be easily cured by
+reloading each file after recompiling it.
 
 @cindex @samp{#@@@var{count}}
 @cindex @samp{#$}
@@ -327,6 +278,23 @@ construct skips the next @var{count} characters.  It also uses the
 string.''  It is usually best not to use these constructs in Lisp source
 files, since they are not designed to be clear to humans reading the
 file.
+
+  You can disable the dynamic documentation string feature at compile
+time by setting @code{byte-compile-dynamic-docstrings} to @code{nil};
+this is useful mainly if you expect to change the file, and you want
+Emacs processes that have already loaded it to keep working when the
+file changes.  You can do this globally, or for one source file by
+specifying a file-local binding for the variable.  One way to do that
+is by adding this string to the file's first line:
+
+@example
+-*-byte-compile-dynamic-docstrings: nil;-*-
+@end example
+
+@defvar byte-compile-dynamic-docstrings
+If this is non-@code{nil}, the byte compiler generates compiled files
+that are set up for dynamic loading of documentation strings.
+@end defvar
 
 @node Dynamic Loading
 @section Dynamic Loading of Individual Functions
@@ -477,13 +445,22 @@ to what @code{eval-when-compile} does.
   Byte compilation outputs all errors and warnings into the buffer
 @samp{*Compile-Log*}.  The messages include file names and line
 numbers that identify the location of the problem.  The usual Emacs
-commands for operating on compiler diagnostics work properly on
-these messages.
+commands for operating on compiler diagnostics work properly on these
+messages.
 
-  However, the warnings about functions that were used but not
-defined are always ``located'' at the end of the file, so these
-commands won't find the places they are really used.  To do that,
-you must search for the function names.
+  When an error is due to invalid syntax in the program, the byte
+compiler might get confused about the errors' exact location.  One way
+to investigate is to switch to the buffer @w{@samp{*Compiler Input*}}.
+(This buffer name starts with a space, so it does not show up in
+@kbd{M-x list-buffers}.)  This buffer contains the program being
+compiled, and point shows how far the byte compiler was able to read;
+the cause of the error might be nearby.  @xref{Syntax Errors}, for
+some tips for locating syntax errors.
+
+  When the byte compiler warns about functions that were used but not
+defined, it always reports the line number for the end of the file,
+not the locations where the missing functions were called.  To find
+the latter, you must search for the function names.
 
   You can suppress the compiler warning for calling an undefined
 function @var{func} by conditionalizing the function call on an
@@ -541,17 +518,16 @@ one you intend to suppress.
 @cindex byte-code function
 
   Byte-compiled functions have a special data type: they are
-@dfn{byte-code function objects}.
+@dfn{byte-code function objects}.  Whenever such an object appears as
+a function to be called, Emacs uses the byte-code interpreter to
+execute the byte-code.
 
-  Internally, a byte-code function object is much like a vector;
-however, the evaluator handles this data type specially when it appears
-as a function to be called.  The printed representation for a byte-code
-function object is like that for a vector, with an additional @samp{#}
-before the opening @samp{[}.
-
-  A byte-code function object must have at least four elements; there is
-no maximum number, but only the first six elements have any normal use.
-They are:
+  Internally, a byte-code function object is much like a vector; its
+elements can be accessed using @code{aref}.  Its printed
+representation is like that for a vector, with an additional @samp{#}
+before the opening @samp{[}.  It must have at least four elements;
+there is no maximum number, but only the first six elements have any
+normal use.  They are:
 
 @table @var
 @item arglist
@@ -588,7 +564,7 @@ representation.  It is the definition of the command
   [arg 1 forward-sexp]
   2
   254435
-  "p"]
+  "^p"]
 @end example
 
   The primitive way to create a byte-code object is with
@@ -603,10 +579,6 @@ with @var{elements} as its elements.
 function yourself, because if they are inconsistent, Emacs may crash
 when you call the function.  Always leave it to the byte compiler to
 create these objects; it makes the elements consistent (we hope).
-
-  You can access the elements of a byte-code object using @code{aref};
-you can also use @code{vconcat} to create a vector with the same
-elements.
 
 @node Disassembly
 @section Disassembled Byte-Code

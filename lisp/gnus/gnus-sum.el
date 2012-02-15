@@ -122,6 +122,7 @@ If t, fetch all the available old headers."
   "*Use nnir to search an entire server when referring threads. A
 nil value will only search for thread-related articles in the
 current group."
+  :version "24.1"
   :group 'gnus-thread
   :type 'boolean)
 
@@ -7318,6 +7319,7 @@ If FORCE (the prefix), also save the .newsrc file(s)."
       (when (gnus-buffer-live-p gnus-article-buffer)
 	(with-current-buffer gnus-article-buffer
 	  (gnus-article-stop-animations)
+	  (gnus-stop-downloads)
 	  (mm-destroy-parts gnus-article-mime-handles)
 	  ;; Set it to nil for safety reason.
 	  (setq gnus-article-mime-handle-alist nil)
@@ -7328,9 +7330,11 @@ If FORCE (the prefix), also save the .newsrc file(s)."
 	(gnus-kill-buffer gnus-original-article-buffer)
 	(setq gnus-article-current nil))
       ;; Return to the group buffer.
-      (gnus-configure-windows 'group 'force)
       (if (not gnus-kill-summary-on-exit)
-	  (gnus-deaden-summary)
+	  (progn
+	    (gnus-deaden-summary)
+	    (gnus-configure-windows 'group 'force))
+	(gnus-configure-windows 'group 'force)
 	(gnus-close-group group)
 	(gnus-kill-buffer gnus-summary-buffer))
       (unless gnus-single-article-buffer
@@ -7352,7 +7356,7 @@ If FORCE (the prefix), also save the .newsrc file(s)."
 (defun gnus-handle-ephemeral-exit (quit-config)
   "Handle movement when leaving an ephemeral group.
 The state which existed when entering the ephemeral is reset."
-  (if (not (buffer-name (car quit-config)))
+  (if (not (buffer-live-p (car quit-config)))
       (gnus-configure-windows 'group 'force)
     (set-buffer (car quit-config))
     (unless (eq (cdr quit-config) 'group)
@@ -9653,6 +9657,7 @@ C-u g', show the raw article."
       (when (gnus-buffer-live-p gnus-article-buffer)
 	(with-current-buffer gnus-article-buffer
 	  (gnus-article-stop-animations)
+	  (gnus-stop-downloads)
 	  (mm-destroy-parts gnus-article-mime-handles)
 	  ;; Set it to nil for safety reason.
 	  (setq gnus-article-mime-handle-alist nil)
@@ -11579,6 +11584,7 @@ Returns nil if no thread was there to be shown."
 	 (beg (progn (beginning-of-line) (if (bobp) (point) (1- (point)))))
 	 (eoi (when end
 		(if (fboundp 'next-single-char-property-change)
+		    ;; Note: XEmacs version of n-s-c-p-c may return nil
 		    (or (next-single-char-property-change end 'invisible)
 			(point-max))
 		  (while (progn
@@ -12853,6 +12859,7 @@ If ALL is a number, fetch this number of articles."
 			(gnus-group-decoded-name gnus-newsgroup-name)
 			(if initial "max" "default")
 			len)
+		       nil nil
 		       (if initial
 			   (cons (number-to-string initial)
 				 0)))))

@@ -65,6 +65,7 @@ int term_trace_num = 0;
 #define NSTRACE(x)
 #endif
 
+extern NSString *NSMenuDidBeginTrackingNotification;
 
 /* ==========================================================================
 

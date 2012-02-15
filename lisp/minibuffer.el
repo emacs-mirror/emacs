@@ -510,6 +510,7 @@ Each override has the shape (CATEGORY . ALIST) where ALIST is
 an association list that can specify properties such as:
 - `styles': the list of `completion-styles' to use for that category.
 - `cycle': the `completion-cycle-threshold' to use for that category."
+  :version "24.1"
   :type `(alist :key-type (choice :tag "Category"
 				  (const buffer)
                                   (const file)
@@ -612,6 +613,7 @@ If nil, cycling is never used.
 If t, cycling is always used.
 If an integer, cycling is used as soon as there are fewer completion
 candidates than this number."
+  :version "24.1"
   :type completion--cycling-threshold-type)
 
 (defun completion--cycle-threshold (metadata)
@@ -1515,7 +1517,10 @@ exit."
 ;; (defalias 'completion-in-region--prech 'completion-in-region--postch)
 
 (define-minor-mode completion-in-region-mode
-  "Transient minor mode used during `completion-in-region'."
+  "Transient minor mode used during `completion-in-region'.
+With a prefix argument ARG, enable the modemode if ARG is
+positive, and disable it otherwise.  If called from Lisp, enable
+the mode if ARG is omitted or nil."
   :global t
   (setq completion-in-region--data nil)
   ;; (remove-hook 'pre-command-hook #'completion-in-region--prech)
@@ -2006,12 +2011,19 @@ DIR should be an absolute directory name.  It defaults to the value of
 If this command was invoked with the mouse, use a graphical file
 dialog if `use-dialog-box' is non-nil, and the window system or X
 toolkit in use provides a file dialog box, and DIR is not a
-remote file.  For graphical file dialogs, any the special values
-of MUSTMATCH; `confirm' and `confirm-after-completion' are
-treated as equivalent to nil.
+remote file.  For graphical file dialogs, any of the special values
+of MUSTMATCH `confirm' and `confirm-after-completion' are
+treated as equivalent to nil.  Some graphical file dialogs respect
+a MUSTMATCH value of t, and some do not (or it only has a cosmetic
+effect, and does not actually prevent the user from entering a
+non-existent file).
 
 See also `read-file-name-completion-ignore-case'
 and `read-file-name-function'."
+  ;; If x-gtk-use-old-file-dialog = t (xg_get_file_with_selection),
+  ;; then MUSTMATCH is enforced.  But with newer Gtk
+  ;; (xg_get_file_with_chooser), it only has a cosmetic effect.
+  ;; The user can still type a non-existent file name.
   (funcall (or read-file-name-function #'read-file-name-default)
            prompt dir default-filename mustmatch initial predicate))
 
@@ -2307,6 +2319,7 @@ Those chars are treated as delimiters iff this variable is non-nil.
 I.e. if non-nil, M-x SPC will just insert a \"-\" in the minibuffer, whereas
 if nil, it will list all possible commands in *Completions* because none of
 the commands start with a \"-\" or a SPC."
+  :version "24.1"
   :type 'boolean)
 
 (defun completion-pcm--pattern-trivial-p (pattern)

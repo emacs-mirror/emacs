@@ -111,11 +111,11 @@ TUTORIAL.he          eliz
 TUTORIAL.it          
 TUTORIAL.ja		 
 TUTORIAL.ko
-TUTORIAL.nl		 
+TUTORIAL.nl	     Pieter Schoenmakers
 TUTORIAL.pl          
 TUTORIAL.pt_BR       
 TUTORIAL.ro
-TUTORIAL.ru          
+TUTORIAL.ru          Alex Ott
 TUTORIAL.sk          
 TUTORIAL.sl          Primoz PETERLIN
 TUTORIAL.sv          Mats Lidell
@@ -180,16 +180,16 @@ xresources.texi   cyd
 ** Check the Lisp manual.
 
 abbrevs.texi      
-advice.texi       
+advice.texi       cyd
 anti.texi         
 back.texi
 backups.texi      
 buffers.texi      
-commands.texi     
-compile.texi      
+commands.texi     cyd
+compile.texi      cyd
 control.texi      cyd
-customize.texi    
-debugging.texi    
+customize.texi    cyd
+debugging.texi    cyd
 display.texi      
 edebug.texi
 elisp.texi
@@ -197,18 +197,18 @@ errors.texi
 eval.texi         cyd
 files.texi        
 frames.texi       
-functions.texi    
+functions.texi    cyd
 hash.texi         cyd
 help.texi         
 hooks.texi        
 index.texi
 internals.texi    
 intro.texi        cyd
-keymaps.texi      
+keymaps.texi      cyd
 lists.texi        cyd
-loading.texi      
+loading.texi      cyd
 locals.texi       
-macros.texi       
+macros.texi       cyd
 maps.texi         
 markers.texi      
 minibuf.texi      
@@ -222,13 +222,13 @@ positions.texi
 processes.texi
 searching.texi    
 sequences.texi    cyd
-streams.texi      
+streams.texi      cyd
 strings.texi      cyd
 symbols.texi      cyd
 syntax.texi       
 text.texi         
 tips.texi         
-variables.texi    
+variables.texi    cyd
 windows.texi      
 
 * PLANNED ADDITIONS

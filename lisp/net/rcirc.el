@@ -1,6 +1,6 @@
 ;;; rcirc.el --- default, simple IRC client.
 
-;; Copyright (C) 2005-2012  Free Software Foundation, Inc.
+;; Copyright (C) 2005-2012 Free Software Foundation, Inc.
 
 ;; Author: Ryan Yeske <rcyeske@gmail.com>
 ;; Maintainers: Ryan Yeske <rcyeske@gmail.com>,
@@ -1261,7 +1261,10 @@ Create the buffer if it doesn't exist."
   "Keymap for multiline mode in rcirc.")
 
 (define-minor-mode rcirc-multiline-minor-mode
-  "Minor mode for editing multiple lines in rcirc."
+  "Minor mode for editing multiple lines in rcirc.
+With a prefix argument ARG, enable the mode if ARG is positive,
+and disable it otherwise.  If called from Lisp, enable the mode
+if ARG is omitted or nil."
   :init-value nil
   :lighter " rcirc-mline"
   :keymap rcirc-multiline-minor-mode-map
@@ -1779,7 +1782,10 @@ This function does not alter the INPUT string."
 
 ;;;###autoload
 (define-minor-mode rcirc-track-minor-mode
-  "Global minor mode for tracking activity in rcirc buffers."
+  "Global minor mode for tracking activity in rcirc buffers.
+With a prefix argument ARG, enable the mode if ARG is positive,
+and disable it otherwise.  If called from Lisp, enable the mode
+if ARG is omitted or nil."
   :init-value nil
   :lighter ""
   :keymap rcirc-track-minor-mode-map
@@ -2378,6 +2384,7 @@ keywords when no KEYWORD is given."
     (delete-region (match-beginning 1) (match-end 1))
     (goto-char (match-beginning 1)))
   ;; remove the ^O characters now
+  (goto-char (point-min))
   (while (re-search-forward "\C-o+" nil t)
     (delete-region (match-beginning 0) (match-end 0))))
 

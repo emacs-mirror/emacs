@@ -1,3 +1,7 @@
+2012-02-14  Chong Yidong  <cyd@gnu.org>
+
+	* org-footnote.el: Remove bogus defvar values (Bug#10745).
+
 2012-01-05  Eric Schulte  <eric.schulte@gmx.com>
 
 	* ob.el (org-babel-expand-noweb-references): Resurrect dropped

@@ -398,13 +398,12 @@ echo "Making links to \`m4'"
 (cd m4
  ln *.m4 ../${tempdir}/m4)
 
-## Exclude README.W32 because it is specific to pre-built binaries(?).
 echo "Making links to \`nt'"
 (cd nt
  ln emacs.manifest emacs.rc emacsclient.rc config.nt ../${tempdir}/nt
  ln emacs-src.tags nmake.defs gmake.defs subdirs.el ../${tempdir}/nt
  ln [a-z]*.bat [a-z]*.[ch] ../${tempdir}/nt
- ln ChangeLog INSTALL README makefile.w32-in ../${tempdir}/nt)
+ ln ChangeLog INSTALL README README.W32 makefile.w32-in ../${tempdir}/nt)
 
 echo "Making links to \`nt/inc' and its subdirectories"
 for f in `find nt/inc -type f -name '[a-z]*.h'`; do

@@ -110,6 +110,7 @@ string are substituted as defined by the current value of the variable
 
 (defcustom battery-mode-line-limit 100
   "Percentage of full battery load below which display battery status"
+  :version "24.1"
   :type 'integer
   :group 'battery)
 

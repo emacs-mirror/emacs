@@ -213,7 +213,6 @@ getopt_.h-SH: doit
 
 HAVE_GETOPT_H = HAVE_GETOPT_H
 INCLUDE_NEXT = include_next
-PRAGMA_SYSTEM_HEADER = \#pragma GCC system_header
 PRAGMA_COLUMNS =
 NEXT_GETOPT_H = <getopt.h>
 ARG_NONNULL_H = ../build-aux/snippet/arg-nonnull.h

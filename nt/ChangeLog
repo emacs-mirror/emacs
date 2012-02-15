@@ -1,3 +1,26 @@
+2012-02-06  Christoph Scholtes  <cschol2112@googlemail.com>
+
+	* README.W32: Removed specific version information for libXpm
+	included in the binary distribution for maintenance purposes.
+
+2012-02-05  Christoph Scholtes  <cschol2112@googlemail.com>
+
+	* README.W32: Clarification for inclusion in source tarball. (Bug#9750)
+
+	* gmake.defs (PRAGMA_SYSTEM_HEADER): Add for GCC.
+
+	* nmake.defs (PRAGMA_SYSTEM_HEADER): Add, but ignore with MSVC.
+
+	* makefile.w32-in (maybe-copy-distfiles)
+	(maybe-copy-distfiles-CMD, maybe-copy-distfiles-SH)
+	(create-tmp-dist-dir): Added to make --distfiles optional.
+	(dist): Use create-tmp-dist-dir and maybe-copy-distfiles. (Bug#10261)
+
+2012-02-04  Eli Zaretskii  <eliz@gnu.org>
+
+	* inc/sys/stat.h (_STAT_DEFINED): Define, to prevent redefinitions
+	by other headers.
+
 2011-11-27  Fabrice Popineau  <fabrice.popineau@supelec.fr>  (tiny change)
 
 	* inc/stdint.h (uint32_t, uint64_t) [_WIN64]: New typedefs.

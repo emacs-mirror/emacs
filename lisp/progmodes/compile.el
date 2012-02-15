@@ -74,11 +74,14 @@ If Emacs lacks asynchronous process support, this hook is run
 after `call-process' inserts the grep output into the buffer.")
 
 (defvar compilation-filter-start nil
-  "Start of the text inserted by `compilation-filter'.
-This is bound to a buffer position before running `compilation-filter-hook'.")
+  "Position of the start of the text inserted by `compilation-filter'.
+This is bound before running `compilation-filter-hook'.")
 
 (defvar compilation-first-column 1
-  "*This is how compilers number the first column, usually 1 or 0.")
+  "*This is how compilers number the first column, usually 1 or 0.
+If this is buffer-local in the destination buffer, Emacs obeys
+that value, otherwise it uses the value in the *compilation*
+buffer.  This enables a major-mode to specify its own value.")
 
 (defvar compilation-parse-errors-filename-function nil
   "Function to call to post-process filenames while parsing error messages.
@@ -547,7 +550,10 @@ Otherwise they are interpreted as character positions, with
 each character occupying one column.
 The default is to use screen columns, which requires that the compilation
 program and Emacs agree about the display width of the characters,
-especially the TAB character."
+especially the TAB character.
+If this is buffer-local in the destination buffer, Emacs obeys
+that value, otherwise it uses the value in the *compilation*
+buffer.  This enables a major-mode to specify its own value."
   :type 'boolean
   :group 'compilation
   :version "20.4")

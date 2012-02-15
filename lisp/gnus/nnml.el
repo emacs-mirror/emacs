@@ -1298,6 +1298,9 @@ Use the nov database for the current group if available."
 	  (nnml-save-nov)
 	  ;; b/ Save the active file:
 	  (nnmail-save-active nnml-group-alist nnml-active-file)
+	  (let ((marks (nnml-group-pathname group nnml-marks-file-name server)))
+	    (when (file-exists-p marks)
+	      (delete-file marks)))
 	  t)))))
 
 (defun nnml-request-compact (&optional server)

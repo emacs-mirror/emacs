@@ -385,6 +385,7 @@ bottom side of each frame.  If an element is a number, this means
 to display at most that many side windows on the corresponding
 side.  If an element is nil, this means there's no bound on the
 number of slots on that side."
+  :version "24.1"
   :risky t
   :type
   '(list
@@ -4624,16 +4625,20 @@ buffer.  Return the window chosen for displaying BUFFER-OR-NAME,
 or nil if no such window is found.
 
 Optional argument ACTION should have the form (FUNCTION . ALIST).
-FUNCTION is either a function or a list of functions.  Each such
-function is called with two arguments: the buffer to display and
-an alist.  It should either display the buffer and return the
-window, or return nil if unable to display the buffer.
+FUNCTION is either a function or a list of functions.
+ALIST is an arbitrary association list (alist).
+
+Each such FUNCTION should accept two arguments: the buffer to
+display and an alist.  Based on those arguments, it should either
+display the buffer and return the window, or return nil if unable
+to display the buffer.
 
 The `display-buffer' function builds a function list and an alist
-from `display-buffer-overriding-action', `display-buffer-alist',
-the ACTION argument, `display-buffer-base-action', and
-`display-buffer-fallback-action' (in that order).  Then it calls
-each function in the combined function list in turn, passing the
+by combining the functions and alists specified in
+`display-buffer-overriding-action', `display-buffer-alist', the
+ACTION argument, `display-buffer-base-action', and
+`display-buffer-fallback-action' (in order).  Then it calls each
+function in the combined function list in turn, passing the
 buffer as the first argument and the combined alist as the second
 argument, until one of the functions returns non-nil.
 

@@ -1,3 +1,9 @@
+2012-02-04  Eli Zaretskii  <eliz@gnu.org>
+
+	* sed3v2.inp (insrcdir): Use $(<F) rather than $<, as
+	command.com's "if not exist" doesn't grok forward slashes in file
+	names.
+
 2012-01-14  Eli Zaretskii  <eliz@gnu.org>
 
 	* sed4.inp (PATH_DUMPLOADSEARCH): Edit to "../lisp", for when the

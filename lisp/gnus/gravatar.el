@@ -29,6 +29,7 @@
 
 (defgroup gravatar nil
   "Gravatar."
+  :version "24.1"
   :group 'comm)
 
 (defcustom gravatar-automatic-caching t

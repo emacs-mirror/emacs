@@ -207,6 +207,8 @@ compatibility with versions of Emacs that lack the variable
            (delete image-directory (copy-sequence (or path load-path))))))
 
 
+;; Used to be in image-type-header-regexps, but now not used anywhere
+;; (since 2009-08-28).
 (defun image-jpeg-p (data)
   "Value is non-nil if DATA, a string, consists of JFIF image data.
 We accept the tag Exif because that is the same format."
@@ -328,6 +330,10 @@ Optional DATA-P non-nil means SOURCE is a string containing image data."
       (error "Invalid image type `%s'" type))
   type)
 
+
+(if (fboundp 'image-metadata)           ; eg not --without-x
+    (define-obsolete-function-alias 'image-extension-data
+      'image-metadata' "24.1"))
 
 (define-obsolete-variable-alias
     'image-library-alist
@@ -595,13 +601,15 @@ Example:
   "List of supported animated image types.")
 
 (defun image-animated-p (image)
-  "Return non-nil if image can be animated.
-Actually, the return value is a cons (NIMAGES . DELAY), where
-NIMAGES is the number of sub-images in the animated image and
-DELAY is the delay in second until the next sub-image shall be
-displayed."
+  "Return non-nil if IMAGE can be animated.
+To be capable of being animated, an image must be of a type
+listed in `image-animated-types', and contain more than one
+sub-image, with a specified animation delay.  The actual return
+value is a cons (NIMAGES . DELAY), where NIMAGES is the number
+of sub-images in the animated image and DELAY is the delay in
+seconds until the next sub-image should be displayed."
   (cond
-   ((eq (plist-get (cdr image) :type) 'gif)
+   ((memq (plist-get (cdr image) :type) image-animated-types)
     (let* ((metadata (image-metadata image))
 	   (images (plist-get metadata 'count))
 	   (delay (plist-get metadata 'delay)))
@@ -609,6 +617,7 @@ displayed."
 	(if (< delay 0) (setq delay 0.1))
 	(cons images delay))))))
 
+;; "Destructively"?
 (defun image-animate (image &optional index limit)
   "Start animating IMAGE.
 Animation occurs by destructively altering the IMAGE spec list.
@@ -639,16 +648,20 @@ number, play until that number of seconds has elapsed."
 	(setq timer nil)))
     timer))
 
+;; FIXME? The delay may not be the same for different sub-images,
+;; hence we need to call image-animated-p to return it.
+;; But it also returns count, so why do we bother passing that as an
+;; argument?
 (defun image-animate-timeout (image n count time-elapsed limit)
   "Display animation frame N of IMAGE.
 N=0 refers to the initial animation frame.
 COUNT is the total number of frames in the animation.
-DELAY is the time between animation frames, in seconds.
 TIME-ELAPSED is the total time that has elapsed since
 `image-animate-start' was called.
 LIMIT determines when to stop.  If t, loop forever.  If nil, stop
  after displaying the last animation frame.  Otherwise, stop
- after LIMIT seconds have elapsed."
+ after LIMIT seconds have elapsed.
+The minimum delay between successive frames is 0.01s."
   (plist-put (cdr image) :index n)
   (force-window-update)
   (setq n (1+ n))
@@ -675,13 +688,16 @@ LIMIT determines when to stop.  If t, loop forever.  If nil, stop
   '(C HTML HTM TXT PDF)
   "ImageMagick types that Emacs should not use ImageMagick to handle.
 This should be a list of symbols, each of which has the same
-names as one of the format tags used internally by ImageMagick;
+name as one of the format tags used internally by ImageMagick;
 see `imagemagick-types'.  Entries in this list are excluded from
-being registered by `imagemagick-register-types'.
+being registered by `imagemagick-register-types', so if you change
+this variable you must do so before you call that function.
 
 If Emacs is compiled without ImageMagick, this variable has no effect."
   :type '(choice (const :tag "Let ImageMagick handle all types it can" nil)
 		 (repeat symbol))
+  ;; Ideally, would have a :set function that checks if we already did
+  ;; imagemagick-register-types, and if so undoes it, then redoes it.
   :version "24.1"
   :group 'image)
 

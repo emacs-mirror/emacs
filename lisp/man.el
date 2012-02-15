@@ -224,6 +224,7 @@ the associated section number."
 (defcustom Man-name-local-regexp (concat "^" (regexp-opt '("NOM" "NAME")) "$")
   "Regexp that matches the text that precedes the command's name.
 Used in `bookmark-set' to get the default bookmark name."
+  :version "24.1"
   :type 'string :group 'bookmark)
 
 (defvar manual-program "man"

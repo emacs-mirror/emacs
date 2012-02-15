@@ -3581,13 +3581,6 @@ that that variable is buffer-local to the summary buffers."
 					    gnus-valid-select-methods)))
 		 (equal (nth 1 m1) (nth 1 m2)))))))
 
-(defun gnus-method-ephemeral-p (method)
-  (let ((equal nil))
-    (dolist (ephemeral gnus-ephemeral-servers)
-      (when (gnus-sloppily-equal-method-parameters method ephemeral)
-	(setq equal t)))
-    equal))
-
 (defsubst gnus-sloppily-equal-method-parameters (m1 m2)
   ;; Check parameters for sloppy equality.
   (let ((p1 (copy-sequence (cddr m1)))
@@ -3615,6 +3608,13 @@ that that variable is buffer-local to the summary buffers."
 		(return nil))))))
       ;; If p2 now is empty, they were equal.
       (null p2))))
+
+(defun gnus-method-ephemeral-p (method)
+  (let ((equal nil))
+    (dolist (ephemeral gnus-ephemeral-servers)
+      (when (gnus-sloppily-equal-method-parameters method ephemeral)
+	(setq equal t)))
+    equal))
 
 (defun gnus-methods-sloppily-equal (m1 m2)
   ;; Same method.
@@ -4123,12 +4123,17 @@ parameters."
   (if (or (not (inline (gnus-similar-server-opened method)))
 	  (not (cddr method)))
       method
-    (setq method
-	  `(,(car method) ,(concat (cadr method) "+" group)
-	    (,(intern (format "%s-address" (car method))) ,(cadr method))
-	    ,@(cddr method)))
-    (push method gnus-extended-servers)
-    method))
+    (let ((address-slot
+	   (intern (format "%s-address" (car method)))))
+      (setq method
+	    (if (assq address-slot (cddr method))
+		`(,(car method) ,(concat (cadr method) "+" group)
+		  ,@(cddr method))
+	      `(,(car method) ,(concat (cadr method) "+" group)
+		(,address-slot ,(cadr method))
+		,@(cddr method))))
+      (push method gnus-extended-servers)
+      method)))
 
 (defun gnus-server-status (method)
   "Return the status of METHOD."

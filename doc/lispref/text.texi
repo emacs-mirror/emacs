@@ -56,7 +56,7 @@ the character after point.
 * Registers::        How registers are implemented.  Accessing the text or
                        position stored in a register.
 * Base 64::          Conversion to or from base 64 encoding.
-* MD5 Checksum::     Compute the MD5 "message digest"/"checksum".
+* Checksum/Hash::    Computing "message digests"/"checksums"/"hashes".
 * Parsing HTML::     Parsing HTML and XML.
 * Atomic Changes::   Installing several buffer changes "atomically".
 * Change Hooks::     Supplying functions to be run when text is changed.
@@ -218,44 +218,46 @@ This is like @code{buffer-substring}, except that it does not copy text
 properties, just the characters themselves.  @xref{Text Properties}.
 @end defun
 
-@defun filter-buffer-substring start end &optional delete noprops
+@defun filter-buffer-substring start end &optional delete
 This function passes the buffer text between @var{start} and @var{end}
-through the filter functions specified by the variable
-@code{buffer-substring-filters}, and returns the value from the last
-filter function.  If @code{buffer-substring-filters} is @code{nil},
-the value is the unaltered text from the buffer, what
-@code{buffer-substring} would return.
+through the filter functions specified by the wrapper hook
+@code{filter-buffer-substring-functions}, and returns the final
+result of applying all filters.  The obsolete variable
+@code{buffer-substring-filters} is also consulted.  If both of these
+variables are @code{nil}, the value is the unaltered text from the
+buffer, as @code{buffer-substring} would return.
 
 If @var{delete} is non-@code{nil}, this function deletes the text
 between @var{start} and @var{end} after copying it, like
 @code{delete-and-extract-region}.
-
-If @var{noprops} is non-@code{nil}, the final string returned does not
-include text properties, while the string passed through the filters
-still includes text properties from the buffer text.
 
 Lisp code should use this function instead of @code{buffer-substring},
 @code{buffer-substring-no-properties},
 or @code{delete-and-extract-region} when copying into user-accessible
 data structures such as the kill-ring, X clipboard, and registers.
 Major and minor modes can add functions to
-@code{buffer-substring-filters} to alter such text as it is copied out
-of the buffer.
+@code{filter-buffer-substring-functions} to alter such text as it is
+copied out of the buffer.
 @end defun
 
-@defvar buffer-substring-filters
-This variable should be a list of functions that accept a single
-argument, a string, and return a string.
-@code{filter-buffer-substring} passes the buffer substring to the
-first function in this list, and the return value of each function is
-passed to the next function.  The return value of the last function is
-used as the return value of @code{filter-buffer-substring}.
+@defvar filter-buffer-substring-functions
+This variable is a wrapper hook (@pxref{Running Hooks}), whose members
+should be functions that accept four arguments: @var{fun},
+@var{start}, @var{end}, and @var{delete}.  @var{fun} is a function
+that takes three arguments (@var{start}, @var{end}, and @var{delete}),
+and returns a string.  In both cases, the @var{start}, @var{end}, and
+@var{delete} arguments are the same as those of
+@code{filter-buffer-substring}.
 
-As a special convention, point is set to the start of the buffer text
-being operated on (i.e., the @var{start} argument for
-@code{filter-buffer-substring}) before these functions are called.
-
-If this variable is @code{nil}, no filtering is performed.
+The first hook function is passed a @var{fun} that is equivalent to
+the default operation of @code{filter-buffer-substring}, i.e. it
+returns the buffer-substring between @var{start} and @var{end}
+(processed by any @code{buffer-substring-filters}) and optionally
+deletes the original text from the buffer.  In most cases, the hook
+function will call @var{fun} once, and then do its own processing of
+the result.  The next hook function receives a @var{fun} equivalent to
+this, and so on.  The actual return value is the result of all the
+hook functions acting in sequence.
 @end defvar
 
 @defun buffer-string
@@ -4069,9 +4071,11 @@ decoded text.
 The decoding functions ignore newline characters in the encoded text.
 @end defun
 
-@node MD5 Checksum
-@section MD5 Checksum
+@node Checksum/Hash
+@section Checksum/Hash
 @cindex MD5 checksum
+@cindex hashing, secure
+@cindex SHA-1
 @cindex message digest computation
 
   MD5 cryptographic checksums, or @dfn{message digests}, are 128-bit
@@ -4082,7 +4086,7 @@ RFC@footnote{
 For an explanation of what is an RFC, see the footnote in @ref{Base
 64}.
 }1321.  This section describes the Emacs facilities for computing
-message digests.
+message digests and other forms of ``secure hash''.
 
 @defun md5 object &optional start end coding-system noerror
 This function returns the MD5 message digest of @var{object}, which
@@ -4115,6 +4119,16 @@ Normally, @code{md5} signals an error if the text can't be encoded
 using the specified or chosen coding system.  However, if
 @var{noerror} is non-@code{nil}, it silently uses @code{raw-text}
 coding instead.
+@end defun
+
+@defun secure-hash algorithm object &optional start end binary
+This function provides a general interface to a variety of secure
+hashing algorithms.  As well as the MD5 algorithm, it supports SHA-1,
+SHA-2, SHA-224, SHA-256, SHA-384 and SHA-512.  The argument
+@var{algorithm} is a symbol stating which hash to compute.  The
+arguments @var{object}, @var{start}, and @var{end} are as for the
+@code{md5} function.  If the optional argument @var{binary} is
+non-@code{nil}, returns a string in binary form.
 @end defun
 
 @node Parsing HTML

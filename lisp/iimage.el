@@ -137,8 +137,7 @@ Examples of image filename patterns to match:
                                         '(display modification-hooks))))))))))
 
 ;;;###autoload
-(define-minor-mode iimage-mode
-  "Toggle inline image minor mode."
+(define-minor-mode iimage-mode nil
   :group 'iimage :lighter " iImg" :keymap iimage-mode-map
   (iimage-mode-buffer iimage-mode))
 

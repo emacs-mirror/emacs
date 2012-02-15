@@ -203,6 +203,9 @@ DEBUG_LINK = -debug
 D = d
 !endif
 
+# gcc-specific pragma (ignore for MSVC)
+PRAGMA_SYSTEM_HEADER =
+
 !if "$(ARCH)" == "i386"
 !ifdef NOOPT
 #ARCH_CFLAGS     = -nologo -c -Zel -W2 -H63 -Od -G3d -Zp8 $(DEBUG_FLAG)

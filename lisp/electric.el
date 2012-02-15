@@ -260,9 +260,9 @@ With a prefix argument ARG, enable Electric Indent mode if ARG is
 positive, and disable it otherwise.  If called from Lisp, enable
 the mode if ARG is omitted or nil.
 
-Electric Indent mode is a global minor mode.  When enabled,
-reindentation is triggered whenever you insert a character listed
-in `electric-indent-chars'."
+This is a global minor mode.  When enabled, it reindents whenever
+the hook `electric-indent-functions' returns non-nil, or you
+insert a character from `electric-indent-chars'."
   :global t
   :group 'electricity
   (if (not electric-indent-mode)
@@ -288,6 +288,8 @@ in `electric-indent-chars'."
 (defcustom electric-pair-pairs
   '((?\" . ?\"))
   "Alist of pairs that should be used regardless of major mode."
+  :group 'electricity
+  :version "24.1"
   :type '(repeat (cons character character)))
 
 (defcustom electric-pair-skip-self t
@@ -296,6 +298,8 @@ When inserting a closing paren character right before the same character,
 just skip that character instead, so that hitting ( followed by ) results
 in \"()\" rather than \"())\".
 This can be convenient for people who find it easier to hit ) than C-f."
+  :group 'electricity
+  :version "24.1"
   :type 'boolean)
 
 (defun electric-pair-post-self-insert-function ()
@@ -360,7 +364,9 @@ the mode if ARG is omitted or nil.
 
 Electric Pair mode is a global minor mode.  When enabled, typing
 an open parenthesis automatically inserts the corresponding
-closing parenthesis.  \(Likewise for brackets, etc.)"
+closing parenthesis.  \(Likewise for brackets, etc.)
+
+See options `electric-pair-pairs' and `electric-pair-skip-self'."
   :global t
   :group 'electricity
   (if electric-pair-mode
@@ -375,8 +381,8 @@ closing parenthesis.  \(Likewise for brackets, etc.)"
   "List of rules saying where to automatically insert newlines.
 Each rule has the form (CHAR . WHERE) where CHAR is the char
 that was just inserted and WHERE specifies where to insert newlines
-and can be: nil, `before', `after', `around', or a function that returns
-one of those symbols.")
+and can be: nil, `before', `after', `around', or a function of no
+arguments that returns one of those symbols.")
 
 (defun electric-layout-post-self-insert-function ()
   (let* ((rule (cdr (assq last-command-event electric-layout-rules)))
@@ -404,7 +410,11 @@ one of those symbols.")
 
 ;;;###autoload
 (define-minor-mode electric-layout-mode
-  "Automatically insert newlines around some chars."
+  "Automatically insert newlines around some chars.
+With a prefix argument ARG, enable Electric Layout mode if ARG is
+positive, and disable it otherwise.  If called from Lisp, enable
+the mode if ARG is omitted or nil.
+The variable `electric-layout-rules' says when and how to insert newlines."
   :global t
   :group 'electricity
   (if electric-layout-mode

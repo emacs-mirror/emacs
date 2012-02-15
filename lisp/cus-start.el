@@ -237,6 +237,8 @@ Leaving \"Default\" unchecked is equivalent with specifying a default of
 			    :set custom-set-minor-mode)
 	     ;; fringe.c
 	     (overflow-newline-into-fringe fringe boolean)
+	     ;; image.c
+	     (imagemagick-render-type image integer "24.1")
 	     ;; indent.c
 	     (indent-tabs-mode indent boolean)
 	     ;; keyboard.c
@@ -504,6 +506,8 @@ since it could result in memory overflow and make Emacs crash."
 		       (fboundp 'x-selection-exists-p))
 		      ((string-match "fringe" (symbol-name symbol))
 		       (fboundp 'define-fringe-bitmap))
+		      ((string-match "\\`imagemagick" (symbol-name symbol))
+		       (fboundp 'imagemagick-types))
 		      ((equal "font-use-system-font" (symbol-name symbol))
 		       (featurep 'system-font-setting))
 		      ;; Conditioned on x-create-frame, because that's

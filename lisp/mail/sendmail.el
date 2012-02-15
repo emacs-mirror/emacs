@@ -513,48 +513,51 @@ This also saves the value of `send-mail-function' via Customize."
   ;; a second time, probably because someone's using an old value
   ;; of send-mail-function.
   (when (eq send-mail-function 'sendmail-query-once)
-    (let* ((options `(("mail client" . mailclient-send-it)
-                      ,@(when (and sendmail-program
-                                   (executable-find sendmail-program))
-                          '(("transport" . sendmail-send-it)))
-                      ("smtp" . smtpmail-send-it)))
-           (choice
-            ;; Query the user.
-            (with-temp-buffer
-              (rename-buffer "*Emacs Mail Setup Help*" t)
-              (insert "\
+    (sendmail-query-user-about-smtp))
+  (funcall send-mail-function))
+
+(defun sendmail-query-user-about-smtp ()
+  (let* ((options `(("mail client" . mailclient-send-it)
+		    ,@(when (and sendmail-program
+				 (executable-find sendmail-program))
+			'(("transport" . sendmail-send-it)))
+		    ("smtp" . smtpmail-send-it)))
+	 (choice
+	  ;; Query the user.
+	  (with-temp-buffer
+	    (rename-buffer "*Emacs Mail Setup Help*" t)
+	    (insert "\
  Emacs is about to send an email message, but it has not been
  configured for sending email.  To tell Emacs how to send email:
 
  - Type `"
-		      (propertize "mail client" 'face 'bold)
-		      "' to start your default email client and
+		    (propertize "mail client" 'face 'bold)
+		    "' to start your default email client and
    pass it the message text.\n\n")
-	      (and sendmail-program
-		   (executable-find sendmail-program)
-		   (insert "\
+	    (and sendmail-program
+		 (executable-find sendmail-program)
+		 (insert "\
  - Type `"
-			   (propertize "transport" 'face 'bold)
-			   "' to invoke the system's mail transport agent
+			 (propertize "transport" 'face 'bold)
+			 "' to invoke the system's mail transport agent
    (the `"
-			   sendmail-program
-			   "' program).\n\n"))
-	      (insert "\
+			 sendmail-program
+			 "' program).\n\n"))
+	    (insert "\
  - Type `"
-		      (propertize "smtp" 'face 'bold)
-		      "' to send mail directly to an \"outgoing mail\" server.
+		    (propertize "smtp" 'face 'bold)
+		    "' to send mail directly to an \"outgoing mail\" server.
    (Emacs may prompt you for SMTP settings).
 
  Emacs will record your selection and will use it thereafter.
  To change it later, customize the option `send-mail-function'.\n")
-              (goto-char (point-min))
-              (display-buffer (current-buffer))
-              (let ((completion-ignore-case t))
-                (completing-read "Send mail via: "
-                                 options nil 'require-match)))))
-      (customize-save-variable 'send-mail-function
-                               (cdr (assoc-string choice options t)))))
-  (funcall send-mail-function))
+	    (goto-char (point-min))
+	    (display-buffer (current-buffer))
+	    (let ((completion-ignore-case t))
+	      (completing-read "Send mail via: "
+			       options nil 'require-match)))))
+    (customize-save-variable 'send-mail-function
+			     (cdr (assoc-string choice options t)))))
 
 (defun sendmail-sync-aliases ()
   (when mail-personal-alias-file
