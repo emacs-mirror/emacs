@@ -1,3 +1,8 @@
+2012-02-15  Glenn Morris  <rgm@gnu.org>
+
+	* shell.el (shell-delimiter-argument-list):
+	Revert 2011-02-17 change.  (Bug#8027)
+
 2012-02-15  Chong Yidong  <cyd@gnu.org>
 
 	* custom.el (defcustom): Doc fix; note use of defvar.
