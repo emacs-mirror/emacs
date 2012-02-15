@@ -303,7 +303,7 @@ If a variable is void, trying to evaluate the variable signals a
 
   Under lexical binding rules, the value cell only holds the
 variable's global value, i.e.@: the value outside of any lexical
-binding contruct.  When a variable is lexically bound, the local value
+binding construct.  When a variable is lexically bound, the local value
 is determined by the lexical environment; the variable may have a
 local value if its symbol's value cell is unassigned.
 

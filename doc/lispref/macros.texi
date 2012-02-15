@@ -605,7 +605,7 @@ either.
 
   Within a macro definition, you can use the @code{declare} form
 (@pxref{Defining Macros}) to specify how to @key{TAB} should indent
-calls to the macro.  An indentation specifiction is written like this:
+calls to the macro.  An indentation specification is written like this:
 
 @example
 (declare (indent @var{indent-spec}))
