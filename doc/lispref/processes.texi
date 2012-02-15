@@ -1939,7 +1939,10 @@ queued but input may be lost.  You can use the function
 @code{process-command} to determine whether a network connection or
 server is stopped; a non-@code{nil} value means yes.
 
+@cindex network connection, encrypted
 @cindex encrypted network connections
+@cindex TLS network connections
+@cindex STARTTLS network connections
 @defun open-network-stream name buffer-or-name host service &rest parameters
 This function opens a TCP connection, with optional encryption, and
 returns a process object that represents the connection.
