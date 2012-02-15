@@ -1111,7 +1111,10 @@ font-lock-defaults-alist (font-lock-defaults), and e (float-e).
 ** The following obsolete files were removed:
 sc.el, x-menu.el, rnews.el, rnewspost.el
 
-** FIXME finder-inf.el changes.
+---
+** The format of the finder-inf.el file has changed, since the finder
+mechanism is now based on the package concept.  The variable
+finder-package-info is replaced by package--builtins and finder-keywords-hash.
 
 
 * Lisp changes in Emacs 24.1
