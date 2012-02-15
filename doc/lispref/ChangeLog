@@ -1,3 +1,7 @@
+2012-02-15  Glenn Morris  <rgm@gnu.org>
+
+	* processes.texi (Network): Document open-network-stream :parameters.
+
 2012-02-14  Chong Yidong  <cyd@gnu.org>
 
 	* keymaps.texi (Format of Keymaps): The CACHE component of keymaps
