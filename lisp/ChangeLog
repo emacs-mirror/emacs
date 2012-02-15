@@ -5,6 +5,8 @@
 
 2012-02-15  Chong Yidong  <cyd@gnu.org>
 
+	* minibuffer.el (completion-at-point-functions): Doc fix.
+
 	* custom.el (defcustom): Doc fix; note use of defvar.
 
 2012-02-15  Glenn Morris  <rgm@gnu.org>
