@@ -47,6 +47,7 @@ developing GNU and promoting software freedom.''
 * How Mail Works::      Brief introduction to mail concepts.
 * Emacs Speaks SMTP::   How to use the SMTP library in Emacs.
 * Authentication::      Authenticating yourself to the server.
+* Encryption::          Protecting your connection to the server.
 * Queued delivery::     Sending mail without an internet connection.
 * Server workarounds::  Mail servers with special requirements.
 * Debugging::           Tracking down problems.
@@ -129,24 +130,37 @@ be useful if you don't have a MTA set up on your host, or if your
 machine is often disconnected from the internet.
 
   Sending mail via SMTP requires configuring your mail user agent
-(@pxref{Mail Methods,,,emacs}) to use the SMTP library.  How to do
-this should be described for each mail user agent; for the default
-mail user agent the variable @code{send-mail-function} (@pxref{Mail
-Sending,,,emacs}) is used; for the Message and Gnus user agents the
-variable @code{message-send-mail-function} (@pxref{Mail
-Variables,,,message}) is used.
+(@pxref{Mail Methods,,,emacs}) to use the SMTP library.  If you
+have not configured anything, then in Emacs 24.1 and later the first
+time you try to send a mail Emacs will ask how you want to send
+mail.  To use this library, answer @samp{smtp} when prompted.  Emacs
+then asks for the name of the SMTP server.
 
-@example
-;; If you use the default mail user agent.
+ If you prefer, or if you are using a non-standard mail user agent,
+you can configure this yourself.  The normal way to do this is to set
+the variable @code{send-mail-function} (@pxref{Mail
+Sending,,,emacs}) to the value you want to use.  To use this library:
+
+@smallexample
 (setq send-mail-function 'smtpmail-send-it)
-;; If you use Message or Gnus.
-(setq message-send-mail-function 'smtpmail-send-it)
-@end example
+@end smallexample
+
+@noindent
+The default value for this variable is @code{sendmail-query-once},
+which interactively asks how you want to send mail.
+
+Your mail user agent might use a different variable for this purpose.
+It should inherit from @code{send-mail-function}, but if it does not,
+or if you prefer, you can set that variable directly.  Consult your
+mail user agent's documentation for more details.  For example,
+(@pxref{Mail Variables,,,message}).
 
   Before using SMTP you must find out the hostname of the SMTP server
-to use.  Your system administrator should provide you with this
-information, but often it is the same as the server you receive mail
-from.
+to use.  Your system administrator or mail service provider should
+supply this information.  Often it is some variant of the server you
+receive mail from.  If your email address is
+@samp{yourname@@example.com}, then the name of the SMTP server is
+may be something like @samp{smtp.example.com}.
 
 @table @code
 @item smtpmail-smtp-server
@@ -201,101 +215,114 @@ The following example illustrates what you could put in
 @node Authentication
 @chapter Authentication
 
+@cindex password
+@cindex user name
+Most SMTP servers require clients to authenticate themselves before
+they are allowed to send mail.  Authentication usually involves
+supplying a user name and password. 
+
+If you have not configured anything, then the first time you try to
+send mail via a server, Emacs (version 24.1 and later) prompts you
+for the user name and password to use, and then offers to save the
+information.  By default, Emacs stores authentication information in
+a file @file{~/.authinfo}.
+
+@cindex authinfo
+The basic format of the @file{~/.authinfo} file is one line for each
+set of credentials.  Each line consists of pairs of variables and
+values.  A simple example would be:
+
+@smallexample
+machine mail.example.org port 25 login myuser password mypassword
+@end smallexample
+
+@noindent
+This specifies that when using the SMTP server called @samp{mail.example.org}
+on port 25, Emacs should send the user name @samp{myuser} and the
+password @samp{mypassword}.  Either or both of the login and password
+fields may be absent, in which case Emacs prompts for the information
+when you try to send mail.  (This replaces the old
+@code{smtpmail-auth-credentials} variable used prior to Emacs 24.1.)
+
+@vindex smtpmail-smtp-user
+  When the SMTP library connects to a host on a certain port, it
+searches the @file{~/.authinfo} file for a matching entry.  If an
+entry is found, the authentication process is invoked and the
+credentials are used.  If the variable @code{smtpmail-smtp-user} is
+set to a non-@code{nil} value, then only entries for that user are
+considered.  For more information on the @file{~/.authinfo}
+file, @pxref{Top,,auth-source, auth, Emacs auth-source Library}.
+
 @cindex SASL
 @cindex CRAM-MD5
+@cindex PLAIN
 @cindex LOGIN
+The process by which the SMTP library authenticates you to the server
+is known as ``Simple Authentication and Security Layer'' (SASL).
+There are various SASL mechanisms, and this library supports three of
+them: CRAM-MD5, PLAIN, and LOGIN.  It tries each of them, in that order,
+until one succeeds.  The first uses a form of encryption to obscure
+your password, while the other two do not.
+
+
+@node Encryption
+@chapter Encryption
+
 @cindex STARTTLS
 @cindex TLS
 @cindex SSL
-Many environments require SMTP clients to authenticate themselves
-before they are allowed to route mail via a server.  The two following
-variables contains the authentication information needed for this.
+For greater security, you can encrypt your connection to the SMTP
+server.  If this is to work, both Emacs and the server must support it.
 
-The first variable, @code{smtpmail-auth-credentials}, instructs the
-SMTP library to use a SASL authentication step, currently only the
-CRAM-MD5 and LOGIN mechanisms are supported and will be selected in
-that order if the server support both.
+The SMTP library supports the ``Transport Layer Security'' (TLS), and
+the older ``Secure Sockets Layer'' (SSL) encryption mechanisms.
+It also supports STARTTLS, which is a variant of TLS in which the
+initial connection to the server is made in plain text, requesting a
+switch to an encrypted channel for the rest of the process.
 
-The second variable, @code{smtpmail-starttls-credentials}, instructs
-the SMTP library to connect to the server using STARTTLS.  This means
-the protocol exchange may be integrity protected and confidential by
-using the Transport Layer Security (TLS) protocol, and optionally also
-authentication of the client and server.
+@vindex smtpmail-stream-type
+The variable @code{smtpmail-stream-type} controls what form of
+connection the SMTP library uses.  The default value is @code{nil},
+which means to use a plain connection, but try to switch to a STARTTLS
+encrypted connection if the server supports it.  Other possible values
+are: @code{starttls} - insist on STARTTLS; @code{ssl} - use TLS/SSL;
+and @code{plain} - no encryption.
 
-TLS is a security protocol that is also known as SSL, although
-strictly speaking, SSL is an older variant of TLS.  TLS is backwards
-compatible with SSL.  In most mundane situations, the two terms are
-equivalent.
-
-The TLS feature uses the elisp package @file{starttls.el} (see it for
-more information on customization), which in turn require that at
-least one of the following external tools are installed:
+Use of any form of TLS/SSL requires support in Emacs.  You can either
+use the built-in support (in Emacs 24.1 and later), or the
+@file{starttls.el} Lisp library.  The built-in support uses the GnuTLS
+@footnote{@url{http://www.gnu.org/software/gnutls/}} library.
+If your Emacs has GnuTLS support built-in, the function
+@code{gnutls-available-p} is defined and returns non-@code{nil}.
+Otherwise, you must use the @file{starttls.el} library (see that file for
+more information on customization options, etc.).  The Lisp library
+requires one of the following external tools to be installed:
 
 @enumerate
 @item
-The GnuTLS command line tool @samp{gnutls-cli}, you can get it from
+The GnuTLS command line tool @samp{gnutls-cli}, which you can get from
 @url{http://www.gnu.org/software/gnutls/}.  This is the recommended
-tool, mainly because it can verify the server certificates.
+tool, mainly because it can verify server certificates.
 
 @item
-The @samp{starttls} external program, you can get it from
+The @samp{starttls} external program, which you can get from
 @file{starttls-*.tar.gz} from @uref{ftp://ftp.opaopa.org/pub/elisp/}.
 @end enumerate
 
-It is not uncommon to use both these mechanisms, e.g., to use STARTTLS
-to achieve integrity and confidentiality and then use SASL for client
-authentication.
+@cindex certificates
+@cindex keys
+The SMTP server may also request that you verify your identity by
+sending a certificate and the associated encryption key to the server.
+If you need to do this, you can use an @file{~/.authinfo} entry like this:
 
-@table @code
-@item smtpmail-auth-credentials
-@vindex smtpmail-auth-credentials
-  The variable @code{smtpmail-auth-credentials} contains a list of
-hostname, port, username and password tuples.  When the SMTP library
-connects to a host on a certain port, this variable is searched to
-find a matching entry for that hostname and port.  If an entry is
-found, the authentication process is invoked and the credentials are
-used.
+@smallexample
+machine mail.example.org port 25 key "~/.my_smtp_tls.key" cert "~/.my_smtp_tls.cert"
+@end smallexample
 
-The hostname field follows the same format as
-@code{smtpmail-smtp-server} (i.e., a string) and the port field the
-same format as @code{smtpmail-smtp-service} (i.e., a string or an
-integer).  The username and password fields, which either can be
-@code{nil} to indicate that the user is prompted for the value
-interactively, should be strings with the username and password,
-respectively, information that is normally provided by system
-administrators.
+@noindent
+(This replaces the old @code{smtpmail-starttls-credentials} variable used
+prior to Emacs 24.1.)
 
-@item smtpmail-starttls-credentials
-@vindex smtpmail-starttls-credentials
-  The variable @code{smtpmail-starttls-credentials} contains a list of
-tuples with hostname, port, name of file containing client key, and
-name of file containing client certificate.  The processing is similar
-to the previous variable.  The client key and certificate may be
-@code{nil} if you do not wish to use client authentication.
-@end table
-
-The following example illustrates what you could put in
-@file{~/.emacs} to enable both SASL authentication and STARTTLS.  The
-server name (@code{smtpmail-smtp-server}) is @var{hostname}, the
-server port (@code{smtpmail-smtp-service}) is @var{port}, and the
-username and password are @var{username} and @var{password}
-respectively.
-
-@example
-;; Authenticate using this username and password against my server.
-(setq smtpmail-auth-credentials
-      '(("@var{hostname}" "@var{port}" "@var{username}" "@var{password}")))
-
-;; Note that if @var{port} is an integer, you must not quote it as a
-;; string.  Normally @var{port} should be the integer 25, and the example
-;; become:
-(setq smtpmail-auth-credentials
-      '(("@var{hostname}" 25 "@var{username}" "@var{password}")))
-
-;; Use STARTTLS without authentication against the server.
-(setq smtpmail-starttls-credentials
-      '(("@var{hostname}" "@var{port}" nil nil)))
-@end example
 
 @node Queued delivery
 @chapter Queued delivery

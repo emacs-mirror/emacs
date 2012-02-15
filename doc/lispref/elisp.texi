@@ -654,6 +654,7 @@ Completion
                               shell commands.
 * Completion Styles::       Specifying rules for performing completion.
 * Programmed Completion::   Writing your own completion-function.
+* Completion in Buffers::   Completing text in ordinary buffers.
 
 Command Loop
 

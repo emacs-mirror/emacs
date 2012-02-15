@@ -48,17 +48,16 @@ you it is normal.  We try to make all hooks normal, as much as
 possible, so that you can use them in a uniform way.
 
   Every major mode command is supposed to run a normal hook called the
-@dfn{mode hook} as the one of the last steps of initialization.  This
-makes it easy for a user to customize the behavior of the mode, by
-overriding the buffer-local variable assignments already made by the
-mode.  Most minor mode functions also run a mode hook at the end.  But
-hooks are used in other contexts too.  For example, the hook
-@code{suspend-hook} runs just before Emacs suspends itself
-(@pxref{Suspending Emacs}).
+@dfn{mode hook} as one of the last steps of initialization.  This makes
+it easy for a user to customize the behavior of the mode, by overriding
+the buffer-local variable assignments already made by the mode.  Most
+minor mode functions also run a mode hook at the end.  But hooks are
+used in other contexts too.  For example, the hook @code{suspend-hook}
+runs just before Emacs suspends itself (@pxref{Suspending Emacs}).
 
-  The recommended way to add a hook function to a normal hook is by
-calling @code{add-hook} (see below).  The hook functions may be any of
-the valid kinds of functions that @code{funcall} accepts (@pxref{What
+  The recommended way to add a hook function to a hook is by calling
+@code{add-hook} (@pxref{Setting Hooks}).  The hook functions may be any
+of the valid kinds of functions that @code{funcall} accepts (@pxref{What
 Is a Function}).  Most normal hook variables are initially void;
 @code{add-hook} knows how to deal with this.  You can add hooks either
 globally or buffer-locally with @code{add-hook}.
@@ -178,7 +177,7 @@ calls @code{wrap-function} with arguments @code{fun} and @code{args}.
 in Lisp Interaction mode:
 
 @example
-(add-hook 'lisp-interaction-mode-hook 'turn-on-auto-fill)
+(add-hook 'lisp-interaction-mode-hook 'auto-fill-mode)
 @end example
 
 @defun add-hook hook function &optional append local
@@ -202,13 +201,13 @@ If @var{function} has a non-@code{nil} property
 changing major modes) won't delete it from the hook variable's local
 value.
 
-It is best to design your hook functions so that the order in which
-they are executed does not matter.  Any dependence on the order is
-asking for trouble.  However, the order is predictable: normally,
-@var{function} goes at the front of the hook list, so it will be
-executed first (barring another @code{add-hook} call).  If the
-optional argument @var{append} is non-@code{nil}, the new hook
-function goes at the end of the hook list and will be executed last.
+For a normal hook, hook functions should be designed so that the order
+in which they are executed does not matter.  Any dependence on the order
+is asking for trouble.  However, the order is predictable: normally,
+@var{function} goes at the front of the hook list, so it is executed
+first (barring another @code{add-hook} call).  If the optional argument
+@var{append} is non-@code{nil}, the new hook function goes at the end of
+the hook list and is executed last.
 
 @code{add-hook} can handle the cases where @var{hook} is void or its
 value is a single function; it sets or changes the value to a list of
@@ -302,8 +301,8 @@ initialization, function and variable names, and hooks.
 
   If you use the @code{define-derived-mode} macro, it will take care of
 many of these conventions automatically.  @xref{Derived Modes}.  Note
-also that fundamental mode is an exception to many of these conventions,
-because its definition is to present the global state of Emacs.
+also that Fundamental mode is an exception to many of these conventions,
+because it represents the default state of Emacs.
 
   The following list of conventions is only partial.  Each major mode
 should aim for consistency in general with other Emacs major modes, as
@@ -460,8 +459,9 @@ The mode can specify a local value for
 this mode.
 
 @item
-The mode can specify how to complete various keywords by adding
-to the special hook @code{completion-at-point-functions}.
+The mode can specify how to complete various keywords by adding one or
+more buffer-local entries to the special hook
+@code{completion-at-point-functions}.  @xref{Completion in Buffers}.
 
 @item
 Use @code{defvar} or @code{defcustom} to set mode-related variables, so
@@ -555,16 +555,15 @@ In the comments that document the file, you should provide a sample
 @cindex mode loading
 The top-level forms in the file defining the mode should be written so
 that they may be evaluated more than once without adverse consequences.
-Even if you never load the file more than once, someone else will.
 @end itemize
 
 @node Auto Major Mode
 @subsection How Emacs Chooses a Major Mode
 @cindex major mode, automatic selection
 
-  Based on information in the file name or in the file itself, Emacs
-automatically selects a major mode for the new buffer when a file is
-visited.  It also processes local variables specified in the file text.
+  When Emacs visits a file, it automatically selects a major mode for
+the buffer based on information in the file name or in the file itself.
+It also processes local variables specified in the file text.
 
 @deffn Command normal-mode &optional find-file
 This function establishes the proper major mode and buffer-local variable

@@ -1250,7 +1250,7 @@ Daiki Ueno wrote @file{starttls.el}, support for Transport Layer
 Security protocol; @file{sasl-cram.el} and @file{sasl-digest.el} (with
 Kenichi Okada), and @file{sasl.el}, support for Simple Authentication
 and Security Layer (SASL); @file{plstore.el} for secure storage of
-propery lists; and the EasyPG (and its predecessor PGG)
+property lists; and the EasyPG (and its predecessor PGG)
 package, for GnuPG and PGP support.
 
 @item

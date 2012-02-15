@@ -1,3 +1,8 @@
+2012-02-15  Glenn Morris  <rgm@gnu.org>
+
+	* smtpmail.texi (Emacs Speaks SMTP): General update for 24.1.
+	(Encryption): New chapter, split out from previous.
+
 2012-02-13  Lars Ingebrigtsen  <larsi@gnus.org>
 
 	* gnus.texi (Customizing the IMAP Connection): Mention

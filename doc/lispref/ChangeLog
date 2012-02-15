@@ -1,3 +1,19 @@
+2012-02-15  Chong Yidong  <cyd@gnu.org>
+
+	* minibuf.texi (Basic Completion): Define "completion table".
+	Move completion-in-region to Completion in Buffers node.
+	(Completion Commands): Use "completion table" terminology.
+	(Completion in Buffers): New node.
+
+	* modes.texi (Hooks): add-hook can be used for abnormal hooks too.
+	(Setting Hooks): Update minor mode usage example.
+	(Major Mode Conventions): Note that completion-at-point-functions
+	should be altered locally.  Add xref to Completion in Buffers.
+
+2012-02-15  Glenn Morris  <rgm@gnu.org>
+
+	* processes.texi (Network): Document open-network-stream :parameters.
+
 2012-02-14  Chong Yidong  <cyd@gnu.org>
 
 	* keymaps.texi (Format of Keymaps): The CACHE component of keymaps

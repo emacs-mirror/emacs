@@ -1,3 +1,9 @@
+2012-02-14  Lars Ingebrigtsen  <larsi@gnus.org>
+
+	* url-queue.el (url-queue-kill-job): Refactored out code.
+	(url-queue-remove-jobs-from-host): Use it to kill jobs that are in
+	flight.
+
 2012-02-14  Teodor Zlatanov  <tzz@lifelogs.com>
 
 	* url-future.el: Minor doc update.

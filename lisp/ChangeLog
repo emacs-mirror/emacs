@@ -1,3 +1,23 @@
+2012-02-15  Glenn Morris  <rgm@gnu.org>
+
+	* shell.el (shell-delimiter-argument-list):
+	Revert 2011-02-17 change.  (Bug#8027)
+
+2012-02-15  Chong Yidong  <cyd@gnu.org>
+
+	* minibuffer.el (completion-at-point-functions): Doc fix.
+
+	* custom.el (defcustom): Doc fix; note use of defvar.
+
+2012-02-15  Glenn Morris  <rgm@gnu.org>
+
+	* mail/smtpmail.el (smtpmail-smtp-user, smtpmail-stream-type):
+	Doc fixes.
+
+2012-02-14  Glenn Morris  <rgm@gnu.org>
+
+	* mail/smtpmail.el (smtpmail-query-smtp-server): Give it a doc.
+
 2012-02-14  Lars Ingebrigtsen  <larsi@gnus.org>
 
 	* mail/smtpmail.el (smtpmail-query-smtp-server): Fix typo in the

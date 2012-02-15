@@ -1,6 +1,6 @@
 ;;; smtpmail.el --- simple SMTP protocol (RFC 821) for sending mail
 
-;; Copyright (C) 1995-1996, 2001-2012  Free Software Foundation, Inc.
+;; Copyright (C) 1995-1996, 2001-2012 Free Software Foundation, Inc.
 
 ;; Author: Tomoji Kagatani <kagatani@rbc.ncl.omron.co.jp>
 ;; Maintainer: Simon Josefsson <simon@josefsson.org>
@@ -86,7 +86,8 @@ The default value would be \"smtp\" or 25."
   :group 'smtpmail)
 
 (defcustom smtpmail-smtp-user nil
-  "User name to use when looking up credentials."
+  "User name to use when looking up credentials in the authinfo file.
+If non-nil, only consider credentials for the specified user."
   :version "24.1"
   :type '(choice (const nil) string)
   :group 'smtpmail)
@@ -99,11 +100,10 @@ don't define this value."
   :group 'smtpmail)
 
 (defcustom smtpmail-stream-type nil
-  "Connection type SMTP connections.
-This may be either nil (possibly upgraded to STARTTLS if
-possible), or `starttls' (refuse to send if STARTTLS isn't
-available), or `plain' (never use STARTTLS), or `ssl' (to use
-TLS/SSL)."
+  "Type of SMTP connections to use.
+This may be either nil (possibly upgraded to STARTTLS if possible),
+or `starttls' (refuse to send if STARTTLS isn't available), or `plain'
+\(never use STARTTLS), or `ssl' (to use TLS/SSL)."
   :version "24.1"
   :group 'smtpmail
   :type '(choice (const :tag "Possibly upgrade to STARTTLS" nil)
@@ -596,6 +596,12 @@ The list is in preference order.")
   (mapconcat 'identity (cdr response) "\n"))
 
 (defun smtpmail-query-smtp-server ()
+  "Query for an SMTP server and try to contact it.
+If the contact succeeds, customizes and saves `smtpmail-smtp-server'
+and `smtpmail-smtp-service'.  This tries standard SMTP ports, and if
+none works asks you to supply one.  If you know that you need to use
+a non-standard port, you can set `smtpmail-smtp-service' in advance.
+Returns an error if the server cannot be contacted."
   (let ((server (read-string "Outgoing SMTP mail server: "))
 	(ports '(25 587))
 	stream port prompted)
@@ -608,8 +614,7 @@ The list is in preference order.")
 				(open-network-stream "smtp" nil server port)
 			      (quit nil)
 			      (error nil))))
-	  ;; We've used up the list of default ports, so query the
-	  ;; user.
+	  ;; We've used up the list of default ports, so query the user.
 	  (when (and (not ports)
 		     (not prompted))
 	    (push (read-number (format "Port number to use when contacting %s? "

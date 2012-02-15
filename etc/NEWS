@@ -141,22 +141,22 @@ For example, this is used by Rmail to optionally delete a mail window.
 
 *** smtpmail
 
-**** smtpmail now uses encrypted connections (via STARTTLS) if the
-mail server supports them.  It also uses the auth-source framework for
-getting credentials.
++++
+**** smtpmail now uses encrypted connections (via STARTTLS) by default
+if the mail server supports them.  This uses either built-in GnuTLS
+support, or the starttls.el library.  Customize `smtpmail-stream-type'
+to change this.
 
++++
 **** The variable `smtpmail-auth-credentials' has been removed.
-That variable used to have the default value "~/.authinfo", in which
-case you won't see any difference.  But if you changed it to be a list
-of user names and passwords, that setting is now ignored; you will be
-prompted for the user name and the password, which will then be saved
-to ~/.authinfo.  (To control where and how the credentials are stored,
-see the auth-source manual.  You may want to change the auth-source
-preferences if you want to store the credentials encrypted, for
-instance.)
-
-You can also manually copy the credentials to your ~/.authinfo file.
-For example, if you had
+By default, the information is now stored in the file ~/.authinfo.
+This was the default value of smtpmail-auth-credentials.
+If you had customized smtpmail-auth-credentials to a list of user
+names and passwords, those settings will not be used.  Your first
+connection to the smtp server will prompt for the user name and password,
+and then offer to save them to the ~/.authinfo file.  Or you can
+manually copy the credentials to your ~/.authinfo files.  For example,
+if you had
 
   (setq smtpmail-auth-credentials
         '(("mail.example.org" 25 "jim" "s!cret")))
@@ -165,6 +165,10 @@ then the equivalent line in ~/.authinfo would be
 
   machine mail.example.org port 25 login jim password s!cret
 
+See the auth-source manual for more information, e.g. on encrypting
+the credentials file.
+
++++
 **** The variable `smtpmail-starttls-credentials' has been removed.
 
 If you had that set, then you need to put
@@ -1107,7 +1111,10 @@ font-lock-defaults-alist (font-lock-defaults), and e (float-e).
 ** The following obsolete files were removed:
 sc.el, x-menu.el, rnews.el, rnewspost.el
 
-** FIXME finder-inf.el changes.
+---
+** The format of the finder-inf.el file has changed, since the finder
+mechanism is now based on the package concept.  The variable
+finder-package-info is replaced by package--builtins and finder-keywords-hash.
 
 
 * Lisp changes in Emacs 24.1
@@ -1282,6 +1289,7 @@ behavior of `completing-read'.
 ** `glyphless-char-display' can now distinguish between graphical and
 text terminal display, via a char-table entry that is a cons cell.
 
++++
 ** `open-network-stream' can now be used to open an encrypted stream.
 It now accepts an optional `:type' parameter for initiating a TLS
 connection, directly or via STARTTLS.  To do STARTTLS, additional
