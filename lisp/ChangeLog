@@ -1,3 +1,8 @@
+2012-02-15  Glenn Morris  <rgm@gnu.org>
+
+	* mail/smtpmail.el (smtpmail-smtp-user, smtpmail-stream-type):
+	Doc fixes.
+
 2012-02-14  Glenn Morris  <rgm@gnu.org>
 
 	* mail/smtpmail.el (smtpmail-query-smtp-server): Give it a doc.

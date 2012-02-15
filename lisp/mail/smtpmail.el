@@ -86,7 +86,8 @@ The default value would be \"smtp\" or 25."
   :group 'smtpmail)
 
 (defcustom smtpmail-smtp-user nil
-  "User name to use when looking up credentials."
+  "User name to use when looking up credentials in the authinfo file.
+If non-nil, only consider credentials for the specified user."
   :version "24.1"
   :type '(choice (const nil) string)
   :group 'smtpmail)
@@ -99,11 +100,10 @@ don't define this value."
   :group 'smtpmail)
 
 (defcustom smtpmail-stream-type nil
-  "Connection type SMTP connections.
-This may be either nil (possibly upgraded to STARTTLS if
-possible), or `starttls' (refuse to send if STARTTLS isn't
-available), or `plain' (never use STARTTLS), or `ssl' (to use
-TLS/SSL)."
+  "Type of SMTP connections to use.
+This may be either nil (possibly upgraded to STARTTLS if possible),
+or `starttls' (refuse to send if STARTTLS isn't available), or `plain'
+\(never use STARTTLS), or `ssl' (to use TLS/SSL)."
   :version "24.1"
   :group 'smtpmail
   :type '(choice (const :tag "Possibly upgrade to STARTTLS" nil)

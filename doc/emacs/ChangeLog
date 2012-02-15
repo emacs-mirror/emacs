@@ -1,3 +1,7 @@
+2012-02-15  Glenn Morris  <rgm@gnu.org>
+
+	* sending.texi (Mail Sending): smtpmail-auth-credentials was removed.
+
 2012-02-12  Glenn Morris  <rgm@gnu.org>
 
 	* ack.texi (Acknowledgments):
