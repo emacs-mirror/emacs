@@ -1,5 +1,15 @@
 2012-02-16  Chong Yidong  <cyd@gnu.org>
 
+	* syntax.texi (Syntax Tables, Syntax Descriptors)
+	(Syntax Table Functions): Copyedits.
+	(Syntax Basics): Don't repeat the material in the preceding node.
+	(Syntax Class Table): Use a table.
+	(Syntax Properties): Document syntax-propertize-function and
+	syntax-propertize-extend-region-functions.
+	(Motion via Parsing): Clarify scan-lists. Fix indentation.
+	(Parser State): Update for the new "c" comment style.  Fix
+	description of item 7 (comment style).
+
 	* modes.texi (Minor Modes): Update how mode commands should treat
 	arguments now.
 	(Mode Line Basics): Clarify force-mode-line-update.
@@ -16,7 +26,8 @@
 	(Search-based Fontification): Emphasize that font-lock-keywords
 	should not be set directly.
 	(Faces for Font Lock): Avoid some confusing terminology.
-	(Syntactic Font Lock): Minor clarifications.
+	(Syntactic Font Lock): Minor clarifications.  Add xref to
+	Syntactic Font Lock node.
 
 2012-02-15  Chong Yidong  <cyd@gnu.org>
 

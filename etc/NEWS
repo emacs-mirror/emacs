@@ -1349,6 +1349,7 @@ The variable is now used to load all kind of supported dynamic libraries,
 not just image libraries.  The previous name is still available as an
 obsolete alias.
 
++++
 ** New variable `syntax-propertize-function'.
 This replaces `font-lock-syntactic-keywords' which is now obsolete.
 This allows syntax-table properties to be set independently from font-lock:

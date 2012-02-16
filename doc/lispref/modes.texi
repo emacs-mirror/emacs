@@ -2995,6 +2995,12 @@ which syntactic constructs to highlight.  There are several variables
 that affect syntactic fontification; you should set them by means of
 @code{font-lock-defaults} (@pxref{Font Lock Basics}).
 
+  Whenever Font Lock mode performs syntactic fontification on a stretch
+of text, it first calls the function specified by
+@code{syntax-propertize-function}.  Major modes can use this to apply
+@code{syntax-table} text properties to override the buffer's syntax
+table in special cases.  @xref{Syntax Properties}.
+
 @defvar font-lock-keywords-only
 If the value of this variable is non-@code{nil}, Font Lock does not do
 syntactic fontification, only search-based fontification based on
@@ -3191,7 +3197,7 @@ reasonably fast.
 @end defvar
 
 @node Auto-Indentation
-@section Auto-indentation of code
+@section Automatic Indentation of code
 
 For programming languages, an important feature of a major mode is to
 provide automatic indentation.  This is controlled in Emacs by
@@ -3214,7 +3220,7 @@ for a compiler, but on the other hand, the parser embedded in the
 indentation code will want to be somewhat friendly to syntactically
 incorrect code.
 
-Good maintainable indentation functions usually fall into 2 categories:
+Good maintainable indentation functions usually fall into two categories:
 either parsing forward from some ``safe'' starting point until the
 position of interest, or parsing backward from the position of interest.
 Neither of the two is a clearly better choice than the other: parsing
