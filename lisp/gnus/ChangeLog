@@ -1,3 +1,7 @@
+2012-02-16  Leo Liu  <sdl.web@gmail.com>
+
+	* gnus-start.el (gnus-1): Avoid duplicate entries.
+
 2012-02-15  Lars Ingebrigtsen  <larsi@gnus.org>
 
 	* shr.el (shr-remove-trailing-whitespace): Really delete the padding on
