@@ -143,8 +143,7 @@ arguments in Calendar mode even without the Meta modifier.  For example,
 
   A week (or month, or year) is not just a quantity of days; we think of
 weeks (months, years) as starting on particular dates.  So Calendar mode
-provides commands to move to the beginning or end of a week, month or
-year:
+provides commands to move to the start or end of a week, month or year:
 
 @table @kbd
 @kindex C-a @r{(Calendar mode)}
@@ -246,12 +245,10 @@ Scroll calendar one month forward (@code{calendar-scroll-left}).
 Scroll calendar one month backward (@code{calendar-scroll-right}).
 @item C-v
 @itemx @key{next}
-Scroll calendar three months forward
-(@code{calendar-scroll-left-three-months}).
+Scroll three months forward (@code{calendar-scroll-left-three-months}).
 @item M-v
 @itemx @key{prior}
-Scroll calendar three months backward
-(@code{calendar-scroll-right-three-months}).
+Scroll three months backward (@code{calendar-scroll-right-three-months}).
 @end table
 
 @kindex > @r{(Calendar mode)}
@@ -290,7 +287,8 @@ Display the number of days in the current region
 
 @kindex M-= @r{(Calendar mode)}
 @findex calendar-count-days-region
-  To determine the number of days in the region, type @kbd{M-=}
+  To determine the number of days in a range, set the mark on one
+date using @kbd{C-SPC}, move point to another date, and type @kbd{M-=}
 (@code{calendar-count-days-region}).  The numbers of days shown is
 @emph{inclusive}; that is, it includes the days specified by mark and
 point.
@@ -342,6 +340,8 @@ buries all buffers related to the calendar, selecting other buffers.
 calendar deletes or iconifies that frame depending on the value of
 @code{calendar-remove-frame-by-deleting}.)
 
+@c FIXME this mentions holidays and diary entries, albeit briefly, so
+@c should it be moved after those sections?  Or at least xref them.
 @node Writing Calendar Files
 @section Writing Calendar Files
 
@@ -427,7 +427,7 @@ Generate a Filofax-style calendar for one year
   Some of these commands print the calendar sideways (in ``landscape
 mode''), so it can be wider than it is long.  Some of them use Filofax
 paper size (3.75in x 6.75in).  All of these commands accept a prefix
-argument which specifies how many days, weeks, months or years to print
+argument, which specifies how many days, weeks, months or years to print
 (starting always with the selected one).
 
   If the variable @code{cal-tex-holidays} is non-@code{nil} (the default),
@@ -452,11 +452,10 @@ to.
 and can display them.  You can add your own holidays to the default list.
 
 @table @kbd
-@item h
+@item Mouse-3 Holidays
+@itemx h
 Display holidays for the selected date
 (@code{calendar-cursor-holidays}).
-@item Mouse-3 Holidays
-Display any holidays for the date you click on.
 @item x
 Mark holidays in the calendar window (@code{calendar-mark-holidays}).
 @item u
@@ -518,6 +517,7 @@ the calendar displays holidays in this way.  If you want the list of
 holidays centered around a different month, use @kbd{C-u M-x
 holidays}, which prompts for the month and year.
 
+@c FIXME can we write Baha'i properly?
   The holidays known to Emacs include United States holidays and the
 major Baha'i, Chinese, Christian, Islamic, and Jewish holidays; also the
 solstices and equinoxes.
@@ -541,11 +541,10 @@ practice}, not historical fact.  For example Veteran's Day began in
 times of sunrise and sunset for any date.
 
 @table @kbd
-@item S
+@item Mouse-3 Sunrise/sunset
+@itemx S
 Display times of sunrise and sunset for the selected date
 (@code{calendar-sunrise-sunset}).
-@item Mouse-3 Sunrise/sunset
-Display times of sunrise and sunset for the date you click on.
 @item M-x sunrise-sunset
 Display times of sunrise and sunset for today's date.
 @item C-u M-x sunrise-sunset
@@ -615,9 +614,8 @@ for how daylight saving time is determined.
 
   As a user, you might find it convenient to set the calendar location
 variables for your usual physical location in your @file{.emacs} file.
-And when you install Emacs on a machine, you can create a
-@file{default.el} file which sets them properly for the typical location
-of most users of that machine.  @xref{Init File}.
+If you are a system administrator, you may want to set these variables
+for all users in a @file{default.el} file.  @xref{Init File}.
 
 @node Lunar Phases
 @section Phases of the Moon
@@ -666,8 +664,8 @@ sixteenth century and was not widely used before the eighteenth century;
 it did not fully displace the Julian calendar and gain universal
 acceptance until the early twentieth century.  The Emacs calendar can
 display any month since January, year 1 of the current era, but the
-calendar displayed is the Gregorian, even for a date at which the
-Gregorian calendar did not exist.
+calendar displayed is always the Gregorian, even for a date at which
+the Gregorian calendar did not exist.
 
   While Emacs cannot display other calendars, it can convert dates to
 and from several other calendars.
@@ -680,11 +678,13 @@ and from several other calendars.
 * Mayan Calendar::         Moving to a date specified in a Mayan calendar.
 @end menu
 
+@c FIXME perhaps most of the details should be moved to cal-xtra.
+@c Just list the major supported systems here?
 @node Calendar Systems
 @subsection Supported Calendar Systems
 
 @cindex ISO commercial calendar
-  The ISO commercial calendar is used largely in Europe.
+  The ISO commercial calendar is often used in business.
 
 @cindex Julian calendar
   The Julian calendar, named after Julius Caesar, was the one used in Europe
@@ -745,7 +745,8 @@ championed by Birashk, based on a 2,820-year cycle.  It differs from
 the astronomical Persian calendar, which is based on astronomical
 events.  As of this writing the first future discrepancy is projected
 to occur on March 20, 2025.  It is currently not clear what the
-official calendar of Iran will be that far into the future.
+official calendar of Iran will be at that time.
+@c FIXME not so far in the future now.
 
 @cindex Chinese calendar
   The Chinese calendar is a complicated system of lunar months arranged
@@ -768,11 +769,10 @@ between the 18th and 19th months.
 in various other calendar systems:
 
 @table @kbd
-@item Mouse-3  Other calendars
-Display the date that you click on, expressed in various other calendars.
 @kindex p @r{(Calendar mode)}
 @findex calendar-print-other-dates
-@item p o
+@item Mouse-3  Other calendars
+@itemx p o
 Display the selected date in various other calendars.
 (@code{calendar-print-other-dates}).
 @findex calendar-iso-print-date
@@ -821,18 +821,16 @@ Display Persian date for selected day
 Display Mayan date for selected day (@code{calendar-mayan-print-date}).
 @end table
 
-  If you are using a graphic display, the easiest way to translate a
-date into other calendars is to click on it with @kbd{Mouse-3}, then
-choose @kbd{Other calendars} from the menu that appears.  This displays
-the equivalent forms of the date in all the calendars Emacs understands,
-in the form of a menu.  (Choosing an alternative from this menu doesn't
-actually do anything---the menu is used only for display.)
-
   Otherwise, move point to the date you want to convert, then type the
 appropriate command starting with @kbd{p} from the table above.  The
 prefix @kbd{p} is a mnemonic for ``print,'' since Emacs ``prints'' the
 equivalent date in the echo area. @kbd{p o} displays the
-date in all forms known to Emacs.
+date in all forms known to Emacs.  You can also use @kbd{Mouse-3} and
+then choose @kbd{Other calendars} from the menu that appears.  This
+displays the equivalent forms of the date in all the calendars Emacs
+understands, in the form of a menu.  (Choosing an alternative from
+this menu doesn't actually do anything---the menu is used only for
+display.)
 
 @node From Other Calendar
 @subsection Converting From Other Calendars
@@ -903,7 +901,7 @@ Islamic, or French names.
 @c FIXME move?
 @findex calendar-hebrew-list-yahrzeits
 @cindex yahrzeits
-  One common question concerning the Hebrew calendar is the computation
+  One common issue concerning the Hebrew calendar is the computation
 of the anniversary of a date of death, called a ``yahrzeit.''  The Emacs
 calendar includes a facility for such calculations.  If you are in the
 calendar, the command @kbd{M-x calendar-hebrew-list-yahrzeits} asks you for
@@ -1053,11 +1051,10 @@ it.  You can also view today's events outside of Calendar mode.  In the
 following, key bindings refer to the Calendar buffer.
 
 @table @kbd
-@item d
+@item Mouse-3 Diary
+@itemx d
 Display all diary entries for the selected date
 (@code{diary-view-entries}).
-@item Mouse-3 Diary
-Display all diary entries for the date you click on.
 @item s
 Display the entire diary file (@code{diary-show-all-entries}).
 @item m

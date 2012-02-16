@@ -1,5 +1,7 @@
 2012-02-16  Glenn Morris  <rgm@gnu.org>
 
+	* calendar.texi: Misc small changes.
+
 	* vc1-xtra.texi (VC Delete/Rename, CVS Options):
 	* cal-xtra.texi (Diary Display): Fix TeX cross-refs to other manuals.
 
