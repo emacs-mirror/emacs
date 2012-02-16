@@ -1,3 +1,10 @@
+2012-02-16  Kenichi Handa  <handa@m17n.org>
+
+	* international/charprop.el:
+	* international/uni-name.el:
+	* international/uni-old-name.el:
+	* international/uni-comment.el: Regenerate.
+
 2012-02-14  Glenn Morris  <rgm@gnu.org>
 
 	* mail/smtpmail.el (smtpmail-query-smtp-server): Give it a doc.
