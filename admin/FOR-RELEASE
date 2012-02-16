@@ -61,11 +61,6 @@ sk	Miroslav Vaško
 
 * BUGS
 
-** rms: gnus-dired.el is a mistake.  Those features should not
-be part of Gnus.  They should be moved to some other part of Emacs.
-rsteib: Gnus dependencies in `gnus-dired.el' (and `mailcap.el') have been
-minimized.  I don't know what is left to do here.
-
 ** Check for modes which bind M-s that conflicts with a new global binding M-s
 and change key bindings where necessary.  The current list of modes:
 
@@ -145,7 +140,7 @@ emerge-xtra.texi
 entering.texi     cyd
 files.texi        cyd
 fixit.texi        cyd
-fortran-xtra.texi 
+fortran-xtra.texi rgm
 frames.texi       cyd
 glossary.texi
 help.texi         cyd
@@ -232,7 +227,7 @@ variables.texi    cyd
 windows.texi      
 
 * PLANNED ADDITIONS
-* pov-mode (probably not for Emacs-23: waiting for a Free POV-Ray).
+* pov-mode (waiting for a Free POV-Ray)
 ** gas-mode ?
 
 
