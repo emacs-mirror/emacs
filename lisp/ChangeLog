@@ -1,3 +1,8 @@
+2012-02-16  Glenn Morris  <rgm@gnu.org>
+
+	* calendar/cal-hebrew.el (calendar-hebrew-list-yahrzeits):
+	Interactively in calendar buffer, give an error if not on a date.
+
 2012-02-15  Glenn Morris  <rgm@gnu.org>
 
 	* shell.el (shell-delimiter-argument-list):
