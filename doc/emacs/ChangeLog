@@ -1,5 +1,7 @@
 2012-02-16  Glenn Morris  <rgm@gnu.org>
 
+	* dired-xtra.texi (Subdir Switches): Small fixes.
+
 	* fortran-xtra.texi: Tiny changes and some adjustments to line breaks.
 
 2012-02-15  Glenn Morris  <rgm@gnu.org>
