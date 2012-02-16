@@ -1,5 +1,8 @@
 2012-02-16  Glenn Morris  <rgm@gnu.org>
 
+	* vc1-xtra.texi (VC Delete/Rename, CVS Options):
+	* cal-xtra.texi (Diary Display): Fix TeX cross-refs to other manuals.
+
 	* dired-xtra.texi (Subdir Switches): Small fixes.
 
 	* fortran-xtra.texi: Tiny changes and some adjustments to line breaks.

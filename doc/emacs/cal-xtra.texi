@@ -538,7 +538,13 @@ are no diary entries, even if that day is a holiday.  If you want such
 days to be shown in the fancy diary buffer, set the variable
 @code{diary-list-include-blanks} to @code{t}.@refill
 
-  The fancy diary buffer enables View mode (@pxref{View Mode}).
+  The fancy diary buffer enables View mode
+@iftex
+(@pxref{View Mode,,, emacs, the Emacs Manual}).
+@end iftex
+@ifnottex
+(@pxref{View Mode}).
+@end ifnottex
 
   The alternative display method @code{diary-simple-display} shows the
 actual diary buffer, and uses invisible text to hide entries that don't
@@ -569,7 +575,13 @@ display, the other irrelevant entries are really absent, not just
 hidden.  After preparing the buffer, it runs the hook
 @code{diary-print-entries-hook}.  The default value of this hook sends
 the data directly to the printer with the command @code{lpr-buffer}
-(@pxref{Printing}).  If you want to use a different command to do the
+@iftex
+(@pxref{Printing,,, emacs, the Emacs Manual}).
+@end iftex
+@ifnottex
+(@pxref{Printing}).
+@end ifnottex
+If you want to use a different command to do the
 printing, just change the value of this hook.  Other uses might include,
 for example, rearranging the lines into order by day and time.
 
