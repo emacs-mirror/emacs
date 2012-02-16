@@ -814,8 +814,6 @@ Font Lock Mode
                                   contents can also specify how to fontify it.
 * Faces for Font Lock::     Special faces specifically for Font Lock.
 * Syntactic Font Lock::     Fontification based on syntax tables.
-* Setting Syntax Properties::   Defining character syntax based on context
-                                  using the Font Lock mechanism.
 * Multiline Font Lock::     How to coerce Font Lock into properly
                               highlighting multiline constructs.
 
