@@ -1,6 +1,12 @@
+2012-02-17  Lawrence Mitchell <wence@gmx.li>
+            Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* newcomment.el (uncomment-region-default): Don't leave extra space
+	when an arg is provided (bug#8150).
+
 2012-02-17  Teodor Zlatanov  <tzz@lifelogs.com>
 
-	* net/gnutls.el (gnutls-trustfiles): Fixed Cygwin bundle location.
+	* net/gnutls.el (gnutls-trustfiles): Fix Cygwin bundle location.
 
 2012-02-17  Glenn Morris  <rgm@gnu.org>
 
@@ -327,8 +333,8 @@
 
 2012-02-07  Alan Mackenzie  <acm@muc.de>
 
-	* progmodes/cc-engine.el (c-forward-objc-directive): Prevent
-	looping in "#pragma mark @implementation".
+	* progmodes/cc-engine.el (c-forward-objc-directive):
+	Prevent looping in "#pragma mark @implementation".
 
 2012-02-07  Michael Albinus  <michael.albinus@gmx.de>
 
@@ -568,8 +574,8 @@
 	(Bug#10254).
 	(bibtex-mode): Call bibtex-set-dialect via
 	hack-local-variables-hook.
-	(bibtex-dialect): Update docstring.  Add
-	safe-local-variable predicate.
+	(bibtex-dialect): Update docstring.
+	Add safe-local-variable predicate.
 	(bibtex-entry-alist, bibtex-field-alist): Initialize via
 	bibtex-set-dialect.
 	(bibtex-mode-map): Define menu for each dialect.
@@ -610,8 +616,8 @@
 
 2012-01-28  Phil Hagelberg  <phil@hagelb.org>
 
-	* emacs-lisp/package.el (package-install): Run
-	package-refresh-contents if there is no archive yet (Bug#9798).
+	* emacs-lisp/package.el (package-install):
+	Run package-refresh-contents if there is no archive yet (Bug#9798).
 
 2012-01-28  Chong Yidong  <cyd@gnu.org>
 
@@ -788,8 +794,8 @@
 2012-01-19  Martin Rudalics  <rudalics@gmx.at>
 
 	* window.el (window--state-get-1, window-state-get): Do not use
-	special state value for window-persistent-parameters.  Rename
-	argument IGNORE to WRITABLE.  Rewrite doc-string.
+	special state value for window-persistent-parameters.
+	Rename argument IGNORE to WRITABLE.  Rewrite doc-string.
 	(window--state-put-2): Reset all window parameters to nil before
 	assigning values of persistent parameters.
 
@@ -879,8 +885,8 @@
 	c-mask-paragraph, pass in `fill-paragraph' rather than
 	`fill-region-as-paragraph'.  (This is a reversion of a previous
 	change.)
-	* progmodes/cc-mode.el (c-basic-common-init): Make
-	fill-paragraph-handle-comment buffer local and set it to nil.
+	* progmodes/cc-mode.el (c-basic-common-init):
+	Make fill-paragraph-handle-comment buffer local and set it to nil.
 
 2012-01-13  Glenn Morris  <rgm@gnu.org>
 
