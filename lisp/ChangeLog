@@ -1,3 +1,11 @@
+2012-02-17  Tassilo Horn  <tassilo@member.fsf.org>
+
+	* saveplace.el (save-place-ignore-files-regexp): New variable
+	allowing for excluding files from saving their location of point.
+	The default value matches the temporary commit message editing
+	files from Git, SVN, Bazaar, and Mercurial.
+	(save-place-to-alist): Use it.
+
 2012-02-17  Lawrence Mitchell <wence@gmx.li>
             Stefan Monnier  <monnier@iro.umontreal.ca>
 
