@@ -1330,7 +1330,7 @@ mode for editing VHDL source code.
 John Wiegley wrote @file{align.el}, a set of commands for aligning text
 according to regular-expression based rules; @file{isearchb.el} for fast
 buffer switching; @file{timeclock.el}, a package for keeping track of
-time spent on projects; the Baha'i calendar support;
+time spent on projects; the Bahá'í calendar support;
 @file{pcomplete.el}, a programmable completion facility;
 @file{remember.el}, a mode for jotting down things to remember;
 @file{eudcb-mab.el}, an address book backend for the Emacs Unified
