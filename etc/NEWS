@@ -1432,7 +1432,8 @@ The old name is an obsolete alias to the new one.
 +++
 *** Image mode can view any image type that ImageMagick supports.
 This requires Emacs to be built with ImageMagick support.
-Then the function `imagemagick-types' returns a list of image file
+If your Emacs has ImageMagick support, then the function
+`imagemagick-types' is defined, and returns a list of image file
 extensions that your installation of ImageMagick supports.  The
 function `imagemagick-register-types' enables ImageMagick support for
 these image types, minus those listed in `imagemagick-types-inhibit'.
@@ -1456,11 +1457,12 @@ FIXME: These should be front-ended by xml.el.
 
 *** New library `gnutls.el'.
 This requires Emacs to have been built with GnuTLS support.
-The main functions are `open-gnutls-stream' and `gnutls-negotiate'.
-It's easiest to use these functions through `open-network-stream'
-because it can upgrade connections through STARTTLS opportunistically
-or use plain SSL, depending on your needs.  For debugging, set
-`gnutls-log-level' greater than 0.
+If your Emacs has GnuTLS support, the function gnutls-available-p is
+defined and returns non-nil.  The main functions are `open-gnutls-stream'
+and `gnutls-negotiate'.  It's easiest to use these functions through
+`open-network-stream' because it can upgrade connections through
+STARTTLS opportunistically or use plain SSL, depending on your needs.
+For debugging, set `gnutls-log-level' greater than 0.
 
 ** Isearch
 
