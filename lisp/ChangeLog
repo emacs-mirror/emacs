@@ -1,3 +1,7 @@
+2012-02-17  Glenn Morris  <rgm@gnu.org>
+
+	* net/socks.el: Require network-stream.  (Bug#10599)
+
 2012-02-17  Kenichi Handa  <handa@m17n.org>
 
 	* international/charprop.el:

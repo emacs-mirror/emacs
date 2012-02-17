@@ -35,6 +35,8 @@
   (require 'wid-edit))
 (require 'custom)
 
+;; FIXME this is bad practice, and who is it for anyway, since Emacs
+;; has split-string since at least 21.1.
 (if (not (fboundp 'split-string))
     (defun split-string (string &optional pattern)
       "Return a list of substrings of STRING which are separated by PATTERN.
@@ -335,9 +337,16 @@ If PATTERN is omitted, it defaults to \"[ \\f\\t\\n\\r\\v]+\"."
 
 (declare-function socks-original-open-network-stream "socks") ; fset
 
+;; FIXME this is a terrible idea.
+;; It is not even compatible with the argument spec of open-network-stream
+;; in 24.1.  If this is really necessary, open-network-stream
+;; could get a wrapper hook, or defer to open-network-stream-function.
+
 (defvar socks-override-functions nil
   "*Whether to overwrite the open-network-stream function with the SOCKSified
 version.")
+
+(require 'network-stream)
 
 (if (fboundp 'socks-original-open-network-stream)
     nil				; Do nothing, we've been here already
