@@ -646,25 +646,25 @@ result, Emacs treats them as four consecutive empty string constants.
 based on parsing expressions.
 
 @defun scan-lists from count depth
-This function scans forward @var{count} balanced parenthetical groupings
-from position @var{from}.  It returns the position where the scan stops.
-If @var{count} is negative, the scan moves backwards.
+This function scans forward @var{count} balanced parenthetical
+groupings from position @var{from}.  It returns the position where the
+scan stops.  If @var{count} is negative, the scan moves backwards.
 
-If @var{depth} is nonzero, assume that the starting point is already
-@var{depth} parentheses deep.  This function counts out @var{count}
-number of points where the parenthesis depth goes back to zero, then
-stops.  Thus, a positive value for @var{depth} has the effect of
-moving out @var{depth} levels of parenthesis, whereas a negative
-@var{depth} has the effect of moving deeper by @var{-depth} levels of
-parenthesis.
+If @var{depth} is nonzero, treat the starting position as being
+@var{depth} parentheses deep.  The scanner moves forward or backward
+through the buffer until the depth changes to zero @var{count} times.
+Hence, a positive value for @var{depth} has the effect of moving out
+@var{depth} levels of parenthesis from the starting position, while a
+negative @var{depth} has the effect of moving deeper by @var{-depth}
+levels of parenthesis.
 
 Scanning ignores comments if @code{parse-sexp-ignore-comments} is
 non-@code{nil}.
 
-If the scan reaches the beginning or end of the buffer (or its
-accessible portion), and the depth is not zero, an error is signaled.
-If the depth is zero but the count is not used up, @code{nil} is
-returned.
+If the scan reaches the beginning or end of the accessible part of the
+buffer before it has scanned over @var{count} parenthetical groupings,
+the return value is @code{nil} if the depth at that point is zero; if
+the depth is non-zero, a @code{scan-error} error is signaled.
 @end defun
 
 @defun scan-sexps from count
