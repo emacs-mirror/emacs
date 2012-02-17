@@ -1,5 +1,7 @@
 2012-02-17  Glenn Morris  <rgm@gnu.org>
 
+	* ack.texi (Acknowledgments): Mention Gnulib.
+
 	* ack.texi, calendar.texi, cal-xtra.texi: Use "Bahá'í".
 
 	* calendar.texi: Misc small changes, including updating the dates
