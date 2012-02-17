@@ -1,3 +1,7 @@
+2012-02-17  Glenn Morris  <rgm@gnu.org>
+
+	* hooks.texi (Standard Hooks): Fix cross-ref to Emacs manual.
+
 2012-02-16  Chong Yidong  <cyd@gnu.org>
 
 	* syntax.texi (Syntax Tables, Syntax Descriptors)

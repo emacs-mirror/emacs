@@ -275,8 +275,7 @@ for appointment notification.
 @item lisp-indent-function
 
 @item mail-setup-hook
-@xref{Mail Mode Misc,, Mail Mode Miscellany, emacs, the GNU Emacs
-Manual}.
+@xref{Mail Misc,, Mail Miscellany, emacs, the GNU Emacs Manual}.
 
 @item menu-bar-update-hook
 @xref{Menu Bar}.

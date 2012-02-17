@@ -1,5 +1,7 @@
 2012-02-17  Glenn Morris  <rgm@gnu.org>
 
+	* maintaining.texi (Old Revisions): Fix cross-refs to Ediff manual.
+
 	* ack.texi (Acknowledgments): Mention Gnulib.
 
 	* ack.texi, calendar.texi, cal-xtra.texi: Use "Bahá'í".

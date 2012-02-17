@@ -13972,10 +13972,9 @@ this is:
 
 @noindent
 The buffer's syntax table determines which characters are and are not
-word constituents.  (@xref{Syntax, , What Constitutes a Word or
-Symbol?}, for more about syntax.  Also, see @ref{Syntax, Syntax, The
-Syntax Table, emacs, The GNU Emacs Manual}, and @ref{Syntax Tables, ,
-Syntax Tables, elisp, The GNU Emacs Lisp Reference Manual}.)
+word constituents.  For more information about syntax,
+@pxref{Syntax Tables, , Syntax Tables, elisp, The GNU Emacs Lisp
+Reference Manual}.
 
 @need 800
 The search expression looks like this:
@@ -14836,8 +14835,7 @@ constituent} characters.  Word constituent characters are members of
 one syntax category.  Other syntax categories include the class of
 punctuation characters, such as the period and the comma, and the
 class of whitespace characters, such as the blank space and the tab
-character.  (For more information, see @ref{Syntax, Syntax, The Syntax
-Table, emacs, The GNU Emacs Manual}, and @ref{Syntax Tables, , Syntax
+character.  (For more information, @pxref{Syntax Tables, , Syntax
 Tables, elisp, The GNU Emacs Lisp Reference Manual}.)
 
 Syntax tables specify which characters belong to which categories.
@@ -15007,7 +15005,7 @@ word and symbol by symbol, and another expression that counts the
 jumps.  The true-or-false-test for the @code{while} loop should test
 true so long as point should jump forward, and false when point is at
 the end of the definition.  We have already redefined the regular
-expression for this (@pxref{Syntax}), so the loop is straightforward:
+expression for this, so the loop is straightforward:
 
 @smallexample
 @group
