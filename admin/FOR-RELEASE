@@ -7,7 +7,7 @@ Check cross-references between the manuals (eg from emacs to elisp)
 are correct.  You can use something like the following in the info
 directory in the Emacs build tree:
 
-emacs -Q --eval "(setq Info-default-directory-list '(\".\"))" \
+emacs -Q --eval "(progn (require 'info) (setq Info-directory-list '(\".\")))" \
   -f info-xref-check-all
 
 make emacs.dvi, elisp.dvi, and deal with any errors (undefined
