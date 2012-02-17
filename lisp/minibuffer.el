@@ -1550,16 +1550,16 @@ the mode if ARG is omitted or nil."
 Each function on this hook is called in turns without any argument and should
 return either nil to mean that it is not applicable at point,
 or a function of no argument to perform completion (discouraged),
-or a list of the form (START END COLLECTION &rest PROPS) where
+or a list of the form (START END COLLECTION . PROPS) where
  START and END delimit the entity to complete and should include point,
  COLLECTION is the completion table to use to complete it, and
  PROPS is a property list for additional information.
 Currently supported properties are all the properties that can appear in
 `completion-extra-properties' plus:
  `:predicate'	a predicate that completion candidates need to satisfy.
- `:exclusive'	If `no', means that if the completion data does not match the
-   text at point failure, then instead of reporting a completion failure,
-   the completion should try the next completion function.")
+ `:exclusive'	If `no', means that if the completion table fails to
+   match the text at point, then instead of reporting a completion
+   failure, the completion should try the next completion function.")
 
 (defvar completion--capf-misbehave-funs nil
   "List of functions found on `completion-at-point-functions' that misbehave.

@@ -123,7 +123,7 @@ working tree, and schedule the renaming for committing.
 it via the version control system.  The file is removed from the
 working tree, and in the VC Directory buffer
 @iftex
-(@pxref{VC Directory Mode}),
+(@pxref{VC Directory Mode,,, emacs, the Emacs Manual}),
 @end iftex
 @ifnottex
 (@pxref{VC Directory Mode}),
@@ -438,4 +438,10 @@ difference is that the ``manual'' version backups made by @kbd{C-x v
 locking-like behavior using its @env{CVSREAD} or @dfn{watch} feature;
 see the CVS documentation for details.  If that case, you can use
 @kbd{C-x v v} in Emacs to toggle locking, as you would for a
-locking-based version control system (@pxref{VC With A Locking VCS}).
+locking-based version control system
+@iftex
+(@pxref{VC With A Locking VCS,,,emacs, the Emacs Manual}).
+@end iftex
+@ifnottex
+(@pxref{VC With A Locking VCS}).
+@end ifnottex

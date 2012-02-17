@@ -780,17 +780,15 @@ The return value is BASE-VARIABLE.  */)
 
 DEFUN ("defvar", Fdefvar, Sdefvar, 1, UNEVALLED, 0,
        doc: /* Define SYMBOL as a variable, and return SYMBOL.
-You are not required to define a variable in order to use it,
-but the definition can supply documentation and an initial value
-in a way that tags can recognize.
+You are not required to define a variable in order to use it, but
+defining it lets you supply an initial value and documentation, which
+can be referred to by the Emacs help facilities and other programming
+tools.  The `defvar' form also declares the variable as \"special\",
+so that it is always dynamically bound even if `lexical-binding' is t.
 
-INITVALUE is evaluated, and used to set SYMBOL, only if SYMBOL's value is void.
-If SYMBOL is buffer-local, its default value is what is set;
- buffer-local values are not affected.
-INITVALUE and DOCSTRING are optional.
-If DOCSTRING starts with *, this variable is identified as a user option.
- This means that M-x set-variable recognizes it.
- See also `user-variable-p'.
+The optional argument INITVALUE is evaluated, and used to set SYMBOL,
+only if SYMBOL's value is void.  If SYMBOL is buffer-local, its
+default value is what is set; buffer-local values are not affected.
 If INITVALUE is missing, SYMBOL's value is not set.
 
 If SYMBOL has a local binding, then this form affects the local
@@ -799,6 +797,13 @@ load a file defining variables, with this form or with `defconst' or
 `defcustom', you should always load that file _outside_ any bindings
 for these variables.  \(`defconst' and `defcustom' behave similarly in
 this respect.)
+
+The optional argument DOCSTRING is a documentation string for the
+variable.
+
+To define a user option, use `defcustom' instead of `defvar'.
+The function `user-variable-p' also identifies a variable as a user
+option if its DOCSTRING starts with *, but this behavior is obsolete.
 usage: (defvar SYMBOL &optional INITVALUE DOCSTRING)  */)
   (Lisp_Object args)
 {
@@ -873,15 +878,19 @@ usage: (defvar SYMBOL &optional INITVALUE DOCSTRING)  */)
 
 DEFUN ("defconst", Fdefconst, Sdefconst, 2, UNEVALLED, 0,
        doc: /* Define SYMBOL as a constant variable.
-The intent is that neither programs nor users should ever change this value.
-Always sets the value of SYMBOL to the result of evalling INITVALUE.
-If SYMBOL is buffer-local, its default value is what is set;
- buffer-local values are not affected.
-DOCSTRING is optional.
+This declares that neither programs nor users should ever change the
+value.  This constancy is not actually enforced by Emacs Lisp, but
+SYMBOL is marked as a special variable so that it is never lexically
+bound.
 
-If SYMBOL has a local binding, then this form sets the local binding's
-value.  However, you should normally not make local bindings for
-variables defined with this form.
+The `defconst' form always sets the value of SYMBOL to the result of
+evalling INITVALUE.  If SYMBOL is buffer-local, its default value is
+what is set; buffer-local values are not affected.  If SYMBOL has a
+local binding, then this form sets the local binding's value.
+However, you should normally not make local bindings for variables
+defined with this form.
+
+The optional DOCSTRING specifies the variable's documentation string.
 usage: (defconst SYMBOL INITVALUE [DOCSTRING])  */)
   (Lisp_Object args)
 {

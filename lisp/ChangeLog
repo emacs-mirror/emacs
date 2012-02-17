@@ -1,9 +1,30 @@
-2012-02-16  Kenichi Handa  <handa@m17n.org>
+2012-02-17  Kenichi Handa  <handa@m17n.org>
 
 	* international/charprop.el:
 	* international/uni-name.el:
 	* international/uni-old-name.el:
 	* international/uni-comment.el: Regenerate.
+
+2012-02-16  Glenn Morris  <rgm@gnu.org>
+
+	* calendar/cal-hebrew.el (calendar-hebrew-list-yahrzeits):
+	Interactively in calendar buffer, give an error if not on a date.
+
+2012-02-15  Glenn Morris  <rgm@gnu.org>
+
+	* shell.el (shell-delimiter-argument-list):
+	Revert 2011-02-17 change.  (Bug#8027)
+
+2012-02-15  Chong Yidong  <cyd@gnu.org>
+
+	* minibuffer.el (completion-at-point-functions): Doc fix.
+
+	* custom.el (defcustom): Doc fix; note use of defvar.
+
+2012-02-15  Glenn Morris  <rgm@gnu.org>
+
+	* mail/smtpmail.el (smtpmail-smtp-user, smtpmail-stream-type):
+	Doc fixes.
 
 2012-02-14  Glenn Morris  <rgm@gnu.org>
 

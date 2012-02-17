@@ -1939,9 +1939,13 @@ queued but input may be lost.  You can use the function
 @code{process-command} to determine whether a network connection or
 server is stopped; a non-@code{nil} value means yes.
 
-@defun open-network-stream name buffer-or-name host service
-This function opens a TCP connection, and returns a process object
-that represents the connection.
+@cindex network connection, encrypted
+@cindex encrypted network connections
+@cindex TLS network connections
+@cindex STARTTLS network connections
+@defun open-network-stream name buffer-or-name host service &rest parameters
+This function opens a TCP connection, with optional encryption, and
+returns a process object that represents the connection.
 
 The @var{name} argument specifies the name for the process object.  It
 is modified as necessary to make it unique.
@@ -1955,6 +1959,83 @@ associated with any buffer.
 The arguments @var{host} and @var{service} specify where to connect to;
 @var{host} is the host name (a string), and @var{service} is the name of
 a defined network service (a string) or a port number (an integer).
+
+@c FIXME?  Is this too lengthy for the printed manual?
+The remaining arguments @var{parameters} are keyword/argument pairs
+that are mainly relevant to encrypted connections:
+
+@table @code
+
+@item :nowait @var{boolean}
+If non-@code{nil}, try to make an asynchronous connection.
+
+@item :type @var{type}
+The type of connection.  Options are:
+
+@table @code
+@item plain
+An ordinary, unencrypted connection.
+@item tls
+@itemx ssl
+A TLS (``Transport Layer Security'') connection.
+@item nil
+@itemx network
+Start with a plain connection, and if parameters @samp{:success}
+and @samp{:capability-command} are supplied, try to upgrade to an encrypted
+connection via STARTTLS.  If that fails, retain the unencrypted connection.
+@item starttls
+As for @code{nil}, but if STARTTLS fails drop the connection.
+@item shell
+A shell connection.
+@end table
+
+@item :always-query-capabilities @var{boolean}
+If non-@code{nil}, always ask for the server's capabilities, even when
+doing a @samp{plain} connection.
+
+@item :capability-command @var{capability-command}
+Command string to query the host capabilities.
+
+@item :end-of-command @var{regexp}
+@itemx :end-of-capability @var{regexp}
+Regular expression matching the end of a command, or the end of the
+command @var{capability-command}.  The latter defaults to the former.
+
+@item :starttls-function @var{function}
+Function of one argument (the response to @var{capability-command}),
+which returns either @code{nil}, or the command to activate STARTTLS
+if supported.
+
+@item :success @var{regexp}
+Regular expression matching a successful STARTTLS negotiation.
+
+@item :use-starttls-if-possible @var{boolean}
+If non-@code{nil}, do opportunistic STARTTLS upgrades even if Emacs
+doesn't have built-in TLS support.
+
+@item :client-certificate @var{list-or-t}
+Either a list of the form @code{(@var{key-file} @var{cert-file})},
+naming the certificate key file and certificate file itself, or
+@code{t}, meaning to query @code{auth-source} for this information
+(@pxref{Top,,auth-source, auth, Emacs auth-source Library}).
+Only used for TLS or STARTTLS.
+
+@item :return-list @var{cons-or-nil}
+The return value of this function.  If omitted or @code{nil}, return a
+process object.  Otherwise, a cons of the form @code{(@var{process-object}
+. @var{plist})}, where @var{plist} has keywords:
+
+@table @code
+@item :greeting @var{string-or-nil}
+If non-@code{nil}, the greeting string returned by the host.
+@item :capabilities @var{string-or-nil}
+If non-@code{nil}, the host's capability string.
+@item :type @var{symbol}
+The connection type: @samp{plain} or @samp{tls}.
+@end table
+
+@end table
+
 @end defun
 
 @node Network Servers

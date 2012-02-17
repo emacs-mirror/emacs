@@ -287,6 +287,11 @@ John Eaton and Kurt Hornik wrote Octave mode.
 Rolf Ebert co-wrote Ada mode.
 
 @item
+Paul Eggert integrated the Gnulib portability library, and made many
+other portability fixes to the C code; as well as his contributions
+to VC and the calendar.
+
+@item
 Stephen Eglen wrote @file{mspools.el}, which tells you which Procmail
 folders have mail waiting in them; and @file{iswitchb.el}, a feature
 for incremental reading and completion of buffer names.
@@ -1250,7 +1255,7 @@ Daiki Ueno wrote @file{starttls.el}, support for Transport Layer
 Security protocol; @file{sasl-cram.el} and @file{sasl-digest.el} (with
 Kenichi Okada), and @file{sasl.el}, support for Simple Authentication
 and Security Layer (SASL); @file{plstore.el} for secure storage of
-propery lists; and the EasyPG (and its predecessor PGG)
+property lists; and the EasyPG (and its predecessor PGG)
 package, for GnuPG and PGP support.
 
 @item
@@ -1330,7 +1335,7 @@ mode for editing VHDL source code.
 John Wiegley wrote @file{align.el}, a set of commands for aligning text
 according to regular-expression based rules; @file{isearchb.el} for fast
 buffer switching; @file{timeclock.el}, a package for keeping track of
-time spent on projects; the Baha'i calendar support;
+time spent on projects; the Bahá'í calendar support;
 @file{pcomplete.el}, a programmable completion facility;
 @file{remember.el}, a mode for jotting down things to remember;
 @file{eudcb-mab.el}, an address book backend for the Emacs Unified

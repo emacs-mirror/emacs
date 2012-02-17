@@ -731,7 +731,7 @@ from the cursor position."
   (interactive
    (let* ((death-date
            (if (equal (current-buffer) (get-buffer calendar-buffer))
-               (calendar-cursor-to-date)
+               (calendar-cursor-to-date t)
              (let* ((today (calendar-current-date))
                     (year (calendar-read
                            "Year of death (>0): "

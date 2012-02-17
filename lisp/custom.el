@@ -208,7 +208,11 @@ is unbound.  The expression itself is also stored, so that
 Customize can re-evaluate it later to get the standard value.
 DOC is the variable documentation.
 
-The remaining arguments should have the form
+This macro uses `defvar' as a subroutine, which also marks the
+variable as \"special\", so that it is always dynamically bound
+even when `lexical-binding' is t.
+
+The remaining arguments to `defcustom' should have the form
 
    [KEYWORD VALUE]...
 

@@ -1,3 +1,13 @@
+2012-02-15  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* image.c (MAX_IMAGE_SIZE): Increase from 6.0 to 10.0; see
+	<http://lists.gnu.org/archive/html/emacs-devel/2012-02/msg00540.html>.
+
+2012-02-15  Chong Yidong  <cyd@gnu.org>
+
+	* eval.c (Fdefvar, Fdefconst): Doc fix; note that the variable is
+	marked as special.  Also, starting docstrings with * is obsolete.
+
 2012-02-13  Andreas Schwab  <schwab@linux-m68k.org>
 
 	* gnutls.c (emacs_gnutls_write): Fix last change.

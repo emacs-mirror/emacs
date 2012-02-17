@@ -763,8 +763,8 @@ prompt the user for the name of an NNTP server to use."
     ;; Add "native" to gnus-predefined-server-alist just to have a
     ;; name for the native select method.
     (when gnus-select-method
-      (push (cons "native" gnus-select-method)
-	    gnus-predefined-server-alist))
+      (add-to-list 'gnus-predefined-server-alist
+		   (cons "native" gnus-select-method)))
 
     (if gnus-agent
 	(gnus-agentize))

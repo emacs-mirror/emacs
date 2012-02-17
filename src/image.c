@@ -976,7 +976,7 @@ or omitted means use the selected frame.  */)
 
 static void free_image (struct frame *f, struct image *img);
 
-#define MAX_IMAGE_SIZE 6.0
+#define MAX_IMAGE_SIZE 10.0
 /* Allocate and return a new image structure for image specification
    SPEC.  SPEC has a hash value of HASH.  */
 
