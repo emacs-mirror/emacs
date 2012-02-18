@@ -1,3 +1,10 @@
+2012-02-18  Chong Yidong  <cyd@gnu.org>
+
+	* modes.texi (Tabulated List Mode): New node.
+	(Basic Major Modes): Add xref to it.
+
+	* processes.texi (Process Information): Mention Process Menu mode.
+
 2012-02-17  Chong Yidong  <cyd@gnu.org>
 
 	* syntax.texi (Motion via Parsing): Doc fix for scan-lists.

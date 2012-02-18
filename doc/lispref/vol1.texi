@@ -802,9 +802,10 @@ Major Modes
 * Derived Modes::           Defining a new major mode based on another major
                               mode.
 * Basic Major Modes::       Modes that other modes are often derived from.
+* Mode Hooks::              Hooks run at the end of major mode commands.
+* Tabulated List Mode::     Parent mode for buffers containing tabulated data.
 * Generic Modes::           Defining a simple major mode that supports
                               comment syntax and Font Lock mode.
-* Mode Hooks::              Hooks run at the end of major mode commands.
 * Example Major Modes::     Text mode and Lisp modes.
 
 Minor Modes
