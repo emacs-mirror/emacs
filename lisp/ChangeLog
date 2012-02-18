@@ -1,3 +1,9 @@
+2012-02-18  Andreas Schwab  <schwab@linux-m68k.org>
+
+	* international/titdic-cnv.el: Remove duplicate coding tag.
+	* language/cham.el: Likewise.
+	* language/tai-viet.el: Likewise.
+
 2012-02-18  Glenn Morris  <rgm@gnu.org>
 
 	* calendar/cal-menu.el (cal-menu-diary-menu, cal-menu-goto-menu):
