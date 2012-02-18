@@ -1,5 +1,7 @@
 2012-02-18  Glenn Morris  <rgm@gnu.org>
 
+	* ack.texi (Acknowledgments): Add xref to Org manual.
+
 	* rmail.texi: Copyedits.  Use 'mail composition buffer' in place
 	of '*mail*', since Message does not call it that.
 	(Rmail Reply): Rename rmail-dont-reply-to-names.
