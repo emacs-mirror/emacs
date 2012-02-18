@@ -254,8 +254,8 @@ define pitx
   while ($i < $it->sp && $i < 4)
     set $e = $it->stack[$i]
     printf "stack[%d]: ", $i
-    pitmethod $e->method
-    printf "[%d]", $e->position.charpos
+    pitmethod $e.method
+    printf "[%d]", $e.position.charpos
     printf "\n"
     set $i = $i + 1
   end

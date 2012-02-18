@@ -1,3 +1,8 @@
+2012-02-18  Eli Zaretskii  <eliz@gnu.org>
+
+	* .gdbinit (pitx): Fix incorrect references to fields of the
+	iterator stack.
+
 2012-02-17  Chong Yidong  <cyd@gnu.org>
 
 	* syntax.c (Fscan_lists): Doc fix (Bug#10833).
