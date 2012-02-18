@@ -1,5 +1,14 @@
 2012-02-18  Glenn Morris  <rgm@gnu.org>
 
+	* rmail.texi: Copyedits.  Use 'mail composition buffer' in place
+	of '*mail*', since Message does not call it that.
+	(Rmail Reply): Rename rmail-dont-reply-to-names.
+	\\`info- no longer handled specially.
+	Update for rmail-enable-mime-composing.
+	Don't mention 'm' for replies.
+	Don't mention rmail-mail-new-frame and cancelling, since it does
+	not work for Message at the moment.
+
 	* cal-xtra.texi: Copyedits.
 
 	* emacs-xtra.texi: Set encoding to ISO-8859-1.

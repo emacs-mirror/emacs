@@ -1,5 +1,9 @@
 2012-02-18  Glenn Morris  <rgm@gnu.org>
 
+	* mail/rmail.el (rmail-dont-reply-to-names): Mark as obsolete.
+
+	* mail/undigest.el (unforward-rmail-message): Doc fix.
+
 	* saveplace.el (save-place-ignore-files-regexp): Add :version.
 
 2012-02-18  Eli Zaretskii  <eliz@gnu.org>

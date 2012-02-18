@@ -228,8 +228,9 @@ Leaves original message, deleted, before the undigestified messages."
 ;;;###autoload
 (defun unforward-rmail-message ()
   "Extract a forwarded message from the containing message.
-This puts the forwarded message into a separate rmail message
-following the containing message."
+This puts the forwarded message into a separate rmail message following
+the containing message.  This command is only useful when messages are
+forwarded with `rmail-enable-mime-composing' set to nil."
   (interactive)
   (set-buffer rmail-buffer)
   (let ((buff (current-buffer))

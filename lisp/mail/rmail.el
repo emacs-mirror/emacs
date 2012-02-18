@@ -285,8 +285,10 @@ Setting this variable has an effect only before reading a mail."
   :version "21.1")
 
 ;;;###autoload
-(defvaralias 'rmail-dont-reply-to-names 'mail-dont-reply-to-names)
+(define-obsolete-variable-alias 'rmail-dont-reply-to-names
+  'mail-dont-reply-to-names "24.1")
 
+;; Prior to 24.1, this used to contain "\\`info-".
 ;;;###autoload
 (defvar rmail-default-dont-reply-to-names nil
   "Regexp specifying part of the default value of `mail-dont-reply-to-names'.
