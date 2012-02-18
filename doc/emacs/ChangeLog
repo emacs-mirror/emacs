@@ -1,3 +1,7 @@
+2012-02-18  Glenn Morris  <rgm@gnu.org>
+
+	* emacs-xtra.texi: Set encoding to ISO-8859-1.
+
 2012-02-17  Glenn Morris  <rgm@gnu.org>
 
 	* maintaining.texi (Old Revisions): Fix cross-refs to Ediff manual.
