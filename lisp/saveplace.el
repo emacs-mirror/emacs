@@ -135,6 +135,7 @@ removable and network volumes."
   "Regexp matching files for which no location should be recorded.
 Useful for temporary file such as commit message files that are
 automatically created by the VCS."
+  :version "24.1"
   :type 'regexp :group 'save-place)
 
 (defun toggle-save-place (&optional parg)

@@ -1,3 +1,7 @@
+2012-02-18  Glenn Morris  <rgm@gnu.org>
+
+	* saveplace.el (save-place-ignore-files-regexp): Add :version.
+
 2012-02-18  Eli Zaretskii  <eliz@gnu.org>
 
 	* international/characters.el (script-list): Sync with the latest
