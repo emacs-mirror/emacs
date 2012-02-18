@@ -1,3 +1,13 @@
+2012-02-18  Glenn Morris  <rgm@gnu.org>
+
+	* calendar/cal-menu.el (cal-menu-diary-menu, cal-menu-goto-menu):
+	* calendar/calendar.el (diary-file, diary-bahai-entry-symbol)
+	(calendar-bahai-all-holidays-flag, calendar-other-dates):
+	* calendar/diary-lib.el (diary-abbreviated-year-flag):
+	* calendar/holidays.el (holiday-bahai-holidays)
+	(calendar-holidays, list-holidays):
+	Use utf-8 Bahá'í in doc-strings, menus, etc.
+
 2012-02-17  Tassilo Horn  <tassilo@member.fsf.org>
 
 	* saveplace.el (save-place-ignore-files-regexp): New variable
