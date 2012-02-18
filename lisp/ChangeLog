@@ -1,3 +1,8 @@
+2012-02-18  Eli Zaretskii  <eliz@gnu.org>
+
+	* international/characters.el (script-list): Sync with the latest
+	Unicode Character Database.
+
 2012-02-18  Andreas Schwab  <schwab@linux-m68k.org>
 
 	* international/titdic-cnv.el: Remove duplicate coding tag.
