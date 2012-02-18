@@ -1,3 +1,8 @@
+2012-02-18  Lars Ingebrigtsen  <larsi@gnus.org>
+
+	* shr.el (shr-image-fetched): Make sure we really kill the right
+	buffer.
+
 2012-02-16  Leo Liu  <sdl.web@gmail.com>
 
 	* gnus-start.el (gnus-1): Avoid duplicate entries.
