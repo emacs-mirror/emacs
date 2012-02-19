@@ -328,7 +328,11 @@ Given a Unix syntax file name, returns a string ending in slash.  */)
      call the corresponding file handler.  */
   handler = Ffind_file_name_handler (filename, Qfile_name_directory);
   if (!NILP (handler))
-    return call2 (handler, Qfile_name_directory, filename);
+    {
+      Lisp_Object handled_name = call2 (handler, Qfile_name_directory,
+					filename);
+      return STRINGP (handled_name) ? handled_name : Qnil;
+    }
 
   filename = FILE_SYSTEM_CASE (filename);
 #ifdef DOS_NT
@@ -397,7 +401,13 @@ or the entire name if it contains no slash.  */)
      call the corresponding file handler.  */
   handler = Ffind_file_name_handler (filename, Qfile_name_nondirectory);
   if (!NILP (handler))
-    return call2 (handler, Qfile_name_nondirectory, filename);
+    {
+      Lisp_Object handled_name = call2 (handler, Qfile_name_nondirectory,
+					filename);
+      if (STRINGP (handled_name))
+	return handled_name;
+      error ("Invalid handler in `file-name-handler-alist'");
+    }
 
   beg = SSDATA (filename);
   end = p = beg + SBYTES (filename);
@@ -434,7 +444,11 @@ get a current directory to run processes in.  */)
      call the corresponding file handler.  */
   handler = Ffind_file_name_handler (filename, Qunhandled_file_name_directory);
   if (!NILP (handler))
-    return call2 (handler, Qunhandled_file_name_directory, filename);
+    {
+      Lisp_Object handled_name = call2 (handler, Qunhandled_file_name_directory,
+					filename);
+      return STRINGP (handled_name) ? handled_name : Qnil;
+    }
 
   return Ffile_name_directory (filename);
 }
@@ -488,7 +502,13 @@ For a Unix-syntax file name, just appends a slash.  */)
      call the corresponding file handler.  */
   handler = Ffind_file_name_handler (file, Qfile_name_as_directory);
   if (!NILP (handler))
-    return call2 (handler, Qfile_name_as_directory, file);
+    {
+      Lisp_Object handled_name = call2 (handler, Qfile_name_as_directory,
+					file);
+      if (STRINGP (handled_name))
+	return handled_name;
+      error ("Invalid handler in `file-name-handler-alist'");
+    }
 
   buf = (char *) alloca (SBYTES (file) + 10);
   file_name_as_directory (buf, SSDATA (file));
@@ -547,7 +567,13 @@ In Unix-syntax, this function just removes the final slash.  */)
      call the corresponding file handler.  */
   handler = Ffind_file_name_handler (directory, Qdirectory_file_name);
   if (!NILP (handler))
-    return call2 (handler, Qdirectory_file_name, directory);
+    {
+      Lisp_Object handled_name = call2 (handler, Qdirectory_file_name,
+					directory);
+      if (STRINGP (handled_name))
+	return handled_name;
+      error ("Invalid handler in `file-name-handler-alist'");
+    }
 
   buf = (char *) alloca (SBYTES (directory) + 20);
   directory_file_name (SSDATA (directory), buf);
@@ -747,7 +773,7 @@ filesystem tree, not (expand-file-name ".."  dirname).  */)
   int is_escaped = 0;
 #endif /* DOS_NT */
   ptrdiff_t length;
-  Lisp_Object handler, result;
+  Lisp_Object handler, result, handled_name;
   int multibyte;
   Lisp_Object hdir;
 
@@ -757,7 +783,14 @@ filesystem tree, not (expand-file-name ".."  dirname).  */)
      call the corresponding file handler.  */
   handler = Ffind_file_name_handler (name, Qexpand_file_name);
   if (!NILP (handler))
-    return call3 (handler, Qexpand_file_name, name, default_directory);
+    {
+      handled_name = call3 (handler, Qexpand_file_name,
+			    name, default_directory);
+      if (STRINGP (handled_name))
+	return handled_name;
+      error ("Invalid handler in `file-name-handler-alist'");
+    }
+
 
   /* Use the buffer's default-directory if DEFAULT_DIRECTORY is omitted.  */
   if (NILP (default_directory))
@@ -783,7 +816,13 @@ filesystem tree, not (expand-file-name ".."  dirname).  */)
     {
       handler = Ffind_file_name_handler (default_directory, Qexpand_file_name);
       if (!NILP (handler))
-	return call3 (handler, Qexpand_file_name, name, default_directory);
+	{
+	  handled_name = call3 (handler, Qexpand_file_name,
+				name, default_directory);
+	  if (STRINGP (handled_name))
+	    return handled_name;
+	  error ("Invalid handler in `file-name-handler-alist'");
+	}
     }
 
   {
@@ -1284,7 +1323,13 @@ filesystem tree, not (expand-file-name ".."  dirname).  */)
      to be expanded again. */
   handler = Ffind_file_name_handler (result, Qexpand_file_name);
   if (!NILP (handler))
-    return call3 (handler, Qexpand_file_name, result, default_directory);
+    {
+      handled_name = call3 (handler, Qexpand_file_name,
+			    result, default_directory);
+      if (STRINGP (handled_name))
+	return handled_name;
+      error ("Invalid handler in `file-name-handler-alist'");
+    }
 
   return result;
 }
@@ -1537,7 +1582,13 @@ those `/' is discarded.  */)
      call the corresponding file handler.  */
   handler = Ffind_file_name_handler (filename, Qsubstitute_in_file_name);
   if (!NILP (handler))
-    return call2 (handler, Qsubstitute_in_file_name, filename);
+    {
+      Lisp_Object handled_name = call2 (handler, Qsubstitute_in_file_name,
+					filename);
+      if (STRINGP (handled_name))
+	return handled_name;
+      error ("Invalid handler in `file-name-handler-alist'");
+    }
 
   /* Always work on a copy of the string, in case GC happens during
      decode of environment variables, causing the original Lisp_String
