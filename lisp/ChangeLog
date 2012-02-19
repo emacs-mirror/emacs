@@ -1,5 +1,20 @@
 2012-02-19  Chong Yidong  <cyd@gnu.org>
 
+	* comint.el: Require ansi-color.
+	(comint-output-filter-functions): Add ansi-color-process-output.
+
+	* ansi-color.el: Don't set comint-output-filter-functions; it is
+	now in the initial value defined in comint.el.
+	(ansi-color-apply-face-function): New variable.
+	(ansi-color-apply-on-region): Use it.
+	(ansi-color-apply-overlay-face): New function.
+
+	* shell.el (shell): No need to require ansi-color.
+	(shell-mode): Use ansi-color-apply-face-function to highlight
+	color escapes using font-lock-face property (Bug#10835).
+
+2012-02-19  Chong Yidong  <cyd@gnu.org>
+
 	* vc/ediff-init.el (ediff-strip-mode-line-format): Handle non-list
 	mode-line formats (Bug#10839).
 

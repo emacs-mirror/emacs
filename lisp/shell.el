@@ -510,6 +510,16 @@ buffer."
   (set (make-local-variable 'shell-dirstack) nil)
   (set (make-local-variable 'shell-last-dir) nil)
   (shell-dirtrack-mode 1)
+
+  ;; By default, ansi-color applies faces using overlays.  This is
+  ;; very inefficient in Shell buffers (e.g. Bug#10835).  We use a
+  ;; custom `ansi-color-apply-face-function' to convert color escape
+  ;; sequences into `font-lock-face' properties.
+  (set (make-local-variable 'ansi-color-apply-face-function)
+       (lambda (beg end face)
+	 (when face
+	   (put-text-property beg end 'font-lock-face face))))
+
   ;; This is not really correct, since the shell buffer does not really
   ;; edit this directory.  But it is useful in the buffer list and menus.
   (setq list-buffers-directory (expand-file-name default-directory))
@@ -625,7 +635,6 @@ Otherwise, one argument `-i' is passed to the shell.
 		      (read-directory-name
 		       "Default directory: " default-directory default-directory
 		       t nil))))))))
-  (require 'ansi-color)
   (setq buffer (if (or buffer (not (derived-mode-p 'shell-mode))
                        (comint-check-proc (current-buffer)))
                    (get-buffer-create (or buffer "*shell*"))
