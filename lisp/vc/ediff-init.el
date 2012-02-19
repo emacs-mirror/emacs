@@ -1743,8 +1743,10 @@ Unless optional argument INPLACE is non-nil, return a new string."
 
 ;; If ediff modified mode line, strip the modification
 (defsubst ediff-strip-mode-line-format ()
-  (if (member (car mode-line-format) '(" A: " " B: " " C: " " Ancestor: "))
-      (setq mode-line-format (nth 2 mode-line-format))))
+  (and (consp mode-line-format)
+       (member (car mode-line-format)
+	       '(" A: " " B: " " C: " " Ancestor: "))
+       (setq mode-line-format (nth 2 mode-line-format))))
 
 ;; Verify that we have a difference selected.
 (defsubst ediff-valid-difference-p (&optional n)
