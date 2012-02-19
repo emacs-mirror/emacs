@@ -1,3 +1,9 @@
+2012-02-19  Lars Ingebrigtsen  <larsi@gnus.org>
+
+	* url-queue.el (url-queue-callback-function): Remove the job from
+	the queue so that we don't kill the current buffer, which will
+	then make the callback function kill a random buffer.
+
 2012-02-14  Lars Ingebrigtsen  <larsi@gnus.org>
 
 	* url-queue.el (url-queue-kill-job): Refactored out code.
