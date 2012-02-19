@@ -848,8 +848,7 @@ Multiline Font Lock Constructs
 
 Documentation
 
-* Documentation Basics::    Good style for doc strings.
-                              Where to put them.  How Emacs stores them.
+* Documentation Basics::    Where doc strings are defined and stored.
 * Accessing Documentation:: How Lisp programs can access doc strings.
 * Keys in Documentation::   Substituting current key bindings.
 * Describing Characters::   Making printable descriptions of

@@ -1,3 +1,17 @@
+2012-02-19  Chong Yidong  <cyd@gnu.org>
+
+	* help.texi (Documentation, Documentation Basics, Help Functions):
+	Minor clarifications.
+	(Accessing Documentation): Clarify what documentation-property is
+	for.  Add xref to Keys in Documentation.
+
+	* tips.texi (Documentation Tips): Don't recommend using * in
+	docstrings.
+
+	* macros.texi (Defining Macros):
+	* modes.texi (Derived Modes): Say "documentation string" instead
+	of docstring.
+
 2012-02-18  Chong Yidong  <cyd@gnu.org>
 
 	* modes.texi (Tabulated List Mode): New node.

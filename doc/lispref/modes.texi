@@ -800,10 +800,10 @@ You can also specify @code{nil} for @var{parent}.  This gives the new
 mode no parent.  Then @code{define-derived-mode} behaves as described
 above, but, of course, omits all actions connected with @var{parent}.
 
-The argument @var{docstring} specifies the documentation string for
-the new mode.  @code{define-derived-mode} adds some general
-information about the mode's hook, followed by the mode's keymap, at
-the end of this docstring.  If you omit @var{docstring},
+The argument @var{docstring} specifies the documentation string for the
+new mode.  @code{define-derived-mode} adds some general information
+about the mode's hook, followed by the mode's keymap, at the end of this
+documentation string.  If you omit @var{docstring},
 @code{define-derived-mode} generates a documentation string.
 
 The @var{keyword-args} are pairs of keywords and values.  The values
