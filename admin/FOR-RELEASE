@@ -78,6 +78,9 @@ and change key bindings where necessary.  The current list of modes:
    `log-edit-comment-search-forward'.  Perhaps search commands
    on the global key binding `M-s' are useless in these modes.
 
+5. Rmail binds `\es' to `rmail-search'/`rmail-summary-search'.
+
+
 * DOCUMENTATION
 
 ** Document XEmbed support
