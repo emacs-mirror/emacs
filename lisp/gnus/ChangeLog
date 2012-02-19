@@ -1,3 +1,8 @@
+2012-02-19  Vida Gábor  <vidagabor@gmail.com>  (tiny change)
+
+	* gnus-demon.el (gnus-demon-init): Don't multiply time twice.
+	Reported by Peter Münster.
+
 2012-02-18  Lars Ingebrigtsen  <larsi@gnus.org>
 
 	* shr.el (shr-image-fetched): Make sure we really kill the right
