@@ -12860,9 +12860,8 @@ If ALL is a number, fetch this number of articles."
 			(if initial "max" "default")
 			len)
 		       nil nil
-		       (if initial
-			   (cons (number-to-string initial)
-				 0)))))
+		       (and initial
+			    (number-to-string initial)))))
 		(unless (string-match "^[ \t]*$" input)
 		  (setq all (string-to-number input))
 		  (if (< all len)

@@ -1,5 +1,12 @@
 2012-02-20  Lars Ingebrigtsen  <larsi@gnus.org>
 
+	* nnimap.el (nnimap-request-list): Return the group names encoded as
+	utf8.  Otherwise non-European group names don't work.
+	(nnimap-request-newgroups): Ditto.
+
+	* gnus-sum.el (gnus-summary-insert-old-articles): Fix the syntax for
+	the default in `read-string' (bug#10757).
+
 	* gnus-msg.el (gnus-group-post-news): Don't bug out on `C-u a' on
 	topics (bug#10843).
 
