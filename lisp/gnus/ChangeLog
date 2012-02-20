@@ -1,5 +1,7 @@
 2012-02-20  Lars Ingebrigtsen  <larsi@gnus.org>
 
+	* mm-decode.el (mm-shr): Remove "soft hyphens".
+
 	* nnimap.el (nnimap-request-list): Return the group names encoded as
 	utf8.  Otherwise non-European group names don't work.
 	(nnimap-request-newgroups): Ditto.
