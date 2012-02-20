@@ -34,7 +34,7 @@ extern int etext;
 #endif
 
 extern char *start_of_data (void);
-#if defined USE_LSB_TAG
+#if defined USE_LSB_TAG || UINTPTR_MAX >> VALBITS == 0
 #define EXCEEDS_LISP_PTR(ptr) 0
 #elif defined DATA_SEG_BITS
 #define EXCEEDS_LISP_PTR(ptr) \

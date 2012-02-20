@@ -168,6 +168,10 @@ extern int suppress_checking EXTERNALLY_VISIBLE;
 #define GCTYPEBITS 3
 #endif
 
+#ifndef VALBITS
+#define VALBITS (BITS_PER_EMACS_INT - GCTYPEBITS)
+#endif
+
 #ifndef NO_DECL_ALIGN
 # ifndef DECL_ALIGN
 #  if HAVE_ATTRIBUTE_ALIGNED
@@ -191,7 +195,15 @@ extern int suppress_checking EXTERNALLY_VISIBLE;
      || defined DARWIN_OS || defined __sun)
 /* We also need to be able to specify mult-of-8 alignment on static vars.  */
 # if defined DECL_ALIGN
-#  define USE_LSB_TAG
+/* mark_maybe_object assumes that EMACS_INT values are contiguous,
+   but this is not true on some hosts where EMACS_INT is wider than a pointer,
+   as they may allocate the halves of an EMACS_INT separately.
+   On these hosts USE_LSB_TAG is not needed because the top bits of an
+   EMACS_INT are unused, so define USE_LSB_TAG only on hosts where it
+   might be useful.  */
+#  if UINTPTR_MAX >> VALBITS != 0
+#   define USE_LSB_TAG
+#  endif
 # endif
 #endif
 
@@ -308,11 +320,6 @@ enum Lisp_Fwd_Type
     Lisp_Fwd_Buffer_Obj,	/* Fwd to a Lisp_Object field of buffers.  */
     Lisp_Fwd_Kboard_Obj,	/* Fwd to a Lisp_Object field of kboards.  */
   };
-
-/* These values are overridden by the m- file on some machines.  */
-#ifndef VALBITS
-#define VALBITS (BITS_PER_EMACS_INT - GCTYPEBITS)
-#endif
 
 #ifdef USE_LISP_UNION_TYPE
 
