@@ -183,6 +183,11 @@ in shell buffers.  You set this variable by calling one of:
   :group 'ansi-colors
   :version "23.2")
 
+(defvar ansi-color-apply-face-function 'ansi-color-apply-overlay-face
+  "Function for applying an Ansi Color face to text in a buffer.
+This function should accept three arguments: BEG, END, and FACE,
+and it should apply face FACE to the text between BEG and END.")
+
 ;;;###autoload
 (defun ansi-color-for-comint-mode-on ()
   "Set `ansi-color-for-comint-mode' to t."
@@ -220,9 +225,6 @@ This is a good function to put in `comint-output-filter-functions'."
 	   (ansi-color-filter-region start-marker end-marker))
 	  (t
 	   (ansi-color-apply-on-region start-marker end-marker)))))
-
-(add-hook 'comint-output-filter-functions
-	  'ansi-color-process-output)
 
 (defalias 'ansi-color-unfontify-region 'font-lock-default-unfontify-region)
 (make-obsolete 'ansi-color-unfontify-region "not needed any more" "24.1")
@@ -379,10 +381,9 @@ start of the region and set the face with which to start.  Set
       ;; Find the next SGR sequence.
       (while (re-search-forward ansi-color-regexp end-marker t)
 	;; Colorize the old block from start to end using old face.
-	(when face
-	  (ansi-color-set-extent-face
-	   (ansi-color-make-extent start-marker (match-beginning 0))
-	   face))
+	(funcall ansi-color-apply-face-function
+		 start-marker (match-beginning 0)
+		 face)
         ;; store escape sequence and new start position
         (setq escape-sequence (match-string 1)
 	      start-marker (copy-marker (match-end 0)))
@@ -395,22 +396,23 @@ start of the region and set the face with which to start.  Set
       (if (re-search-forward "\033" end-marker t)
 	  (progn
 	    ;; if the rest of the region should have a face, put it there
-	    (when face
-	      (ansi-color-set-extent-face
-	       (ansi-color-make-extent start-marker (point))
-	       face))
+	    (funcall ansi-color-apply-face-function
+		     start-marker (point) face)
 	    ;; save face and point
 	    (setq ansi-color-context-region
 		  (list face (copy-marker (match-beginning 0)))))
 	;; if the rest of the region should have a face, put it there
-	(if face
-	    (progn
-	      (ansi-color-set-extent-face
-	       (ansi-color-make-extent start-marker end-marker)
-	       face)
-	      (setq ansi-color-context-region (list face)))
-	  ;; reset context
-	  (setq ansi-color-context-region nil))))))
+	(funcall ansi-color-apply-face-function
+		 start-marker end-marker face)
+	(setq ansi-color-context-region (if face (list face)))))))
+
+(defun ansi-color-apply-overlay-face (beg end face)
+  "Make an overlay from BEG to END, and apply face FACE.
+If FACE is nil, do nothing."
+  (when face
+    (ansi-color-set-extent-face
+     (ansi-color-make-extent beg end)
+     face)))
 
 ;; This function helps you look for overlapping overlays.  This is
 ;; useful in comint-buffers.  Overlapping overlays should not happen!

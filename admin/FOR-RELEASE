@@ -7,7 +7,7 @@ Check cross-references between the manuals (eg from emacs to elisp)
 are correct.  You can use something like the following in the info
 directory in the Emacs build tree:
 
-emacs -Q --eval "(setq Info-default-directory-list '(\".\"))" \
+emacs -Q --eval "(progn (require 'info) (setq Info-directory-list '(\".\")))" \
   -f info-xref-check-all
 
 make emacs.dvi, elisp.dvi, and deal with any errors (undefined
@@ -61,11 +61,6 @@ sk	Miroslav Vaško
 
 * BUGS
 
-** rms: gnus-dired.el is a mistake.  Those features should not
-be part of Gnus.  They should be moved to some other part of Emacs.
-rsteib: Gnus dependencies in `gnus-dired.el' (and `mailcap.el') have been
-minimized.  I don't know what is left to do here.
-
 ** Check for modes which bind M-s that conflicts with a new global binding M-s
 and change key bindings where necessary.  The current list of modes:
 
@@ -82,6 +77,9 @@ and change key bindings where necessary.  The current list of modes:
 4. PCL-CVS binds `M-s' to `cvs-status', and log-edit-mode binds it to
    `log-edit-comment-search-forward'.  Perhaps search commands
    on the global key binding `M-s' are useless in these modes.
+
+5. Rmail binds `\es' to `rmail-search'/`rmail-summary-search'.
+
 
 * DOCUMENTATION
 
@@ -131,13 +129,13 @@ arevert-xtra.texi cyd
 basic.texi        cyd
 buffers.texi      cyd
 building.texi     cyd
-calendar.texi     
-cal-xtra.texi     
+calendar.texi     rgm
+cal-xtra.texi     rgm
 cmdargs.texi      cyd
 commands.texi     cyd
 custom.texi       cyd
 dired.texi        cyd
-dired-xtra.texi
+dired-xtra.texi   rgm
 display.texi      cyd
 emacs.texi        
 emacs-xtra.texi
@@ -145,7 +143,7 @@ emerge-xtra.texi
 entering.texi     cyd
 files.texi        cyd
 fixit.texi        cyd
-fortran-xtra.texi 
+fortran-xtra.texi rgm
 frames.texi       cyd
 glossary.texi
 help.texi         cyd
@@ -166,7 +164,7 @@ package.texi      cyd
 picture-xtra.texi
 programs.texi     cyd
 regs.texi         cyd
-rmail.texi        
+rmail.texi        rgm
 screen.texi       cyd
 search.texi       cyd
 sending.texi      cyd
@@ -199,7 +197,7 @@ files.texi
 frames.texi       
 functions.texi    cyd
 hash.texi         cyd
-help.texi         
+help.texi         cyd
 hooks.texi        
 index.texi
 internals.texi    
@@ -212,7 +210,7 @@ macros.texi       cyd
 maps.texi         
 markers.texi      
 minibuf.texi      
-modes.texi        
+modes.texi        cyd
 nonascii.texi     
 numbers.texi      cyd
 objects.texi      cyd
@@ -225,14 +223,14 @@ sequences.texi    cyd
 streams.texi      cyd
 strings.texi      cyd
 symbols.texi      cyd
-syntax.texi       
+syntax.texi       cyd
 text.texi         
 tips.texi         
 variables.texi    cyd
 windows.texi      
 
 * PLANNED ADDITIONS
-* pov-mode (probably not for Emacs-23: waiting for a Free POV-Ray).
+* pov-mode (waiting for a Free POV-Ray)
 ** gas-mode ?
 
 

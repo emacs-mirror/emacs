@@ -1,3 +1,86 @@
+2012-02-19  Chong Yidong  <cyd@gnu.org>
+
+	* comint.el: Require ansi-color.
+	(comint-output-filter-functions): Add ansi-color-process-output.
+
+	* ansi-color.el: Don't set comint-output-filter-functions; it is
+	now in the initial value defined in comint.el.
+	(ansi-color-apply-face-function): New variable.
+	(ansi-color-apply-on-region): Use it.
+	(ansi-color-apply-overlay-face): New function.
+
+	* shell.el (shell): No need to require ansi-color.
+	(shell-mode): Use ansi-color-apply-face-function to highlight
+	color escapes using font-lock-face property (Bug#10835).
+
+2012-02-19  Chong Yidong  <cyd@gnu.org>
+
+	* vc/ediff-init.el (ediff-strip-mode-line-format): Handle non-list
+	mode-line formats (Bug#10839).
+
+2012-02-18  Glenn Morris  <rgm@gnu.org>
+
+	* mail/rmail.el (rmail-dont-reply-to-names): Mark as obsolete.
+
+	* mail/undigest.el (unforward-rmail-message): Doc fix.
+
+	* saveplace.el (save-place-ignore-files-regexp): Add :version.
+
+2012-02-18  Eli Zaretskii  <eliz@gnu.org>
+
+	* international/characters.el (script-list): Sync with the latest
+	Unicode Character Database.
+
+2012-02-18  Andreas Schwab  <schwab@linux-m68k.org>
+
+	* international/titdic-cnv.el: Remove duplicate coding tag.
+	* language/cham.el: Likewise.
+	* language/tai-viet.el: Likewise.
+
+2012-02-18  Glenn Morris  <rgm@gnu.org>
+
+	* calendar/cal-menu.el (cal-menu-diary-menu, cal-menu-goto-menu):
+	* calendar/calendar.el (diary-file, diary-bahai-entry-symbol)
+	(calendar-bahai-all-holidays-flag, calendar-other-dates):
+	* calendar/diary-lib.el (diary-abbreviated-year-flag):
+	* calendar/holidays.el (holiday-bahai-holidays)
+	(calendar-holidays, list-holidays):
+	Use utf-8 Bahá'í in doc-strings, menus, etc.
+
+2012-02-17  Tassilo Horn  <tassilo@member.fsf.org>
+
+	* saveplace.el (save-place-ignore-files-regexp): New variable
+	allowing for excluding files from saving their location of point.
+	The default value matches the temporary commit message editing
+	files from Git, SVN, Bazaar, and Mercurial.
+	(save-place-to-alist): Use it.
+
+2012-02-17  Lawrence Mitchell <wence@gmx.li>
+            Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* newcomment.el (uncomment-region-default): Don't leave extra space
+	when an arg is provided (bug#8150).
+
+2012-02-17  Teodor Zlatanov  <tzz@lifelogs.com>
+
+	* net/gnutls.el (gnutls-trustfiles): Fix Cygwin bundle location.
+
+2012-02-17  Glenn Morris  <rgm@gnu.org>
+
+	* net/socks.el: Require network-stream.  (Bug#10599)
+
+2012-02-17  Kenichi Handa  <handa@m17n.org>
+
+	* international/charprop.el:
+	* international/uni-name.el:
+	* international/uni-old-name.el:
+	* international/uni-comment.el: Regenerate.
+
+2012-02-16  Glenn Morris  <rgm@gnu.org>
+
+	* calendar/cal-hebrew.el (calendar-hebrew-list-yahrzeits):
+	Interactively in calendar buffer, give an error if not on a date.
+
 2012-02-15  Glenn Morris  <rgm@gnu.org>
 
 	* shell.el (shell-delimiter-argument-list):
@@ -307,8 +390,8 @@
 
 2012-02-07  Alan Mackenzie  <acm@muc.de>
 
-	* progmodes/cc-engine.el (c-forward-objc-directive): Prevent
-	looping in "#pragma mark @implementation".
+	* progmodes/cc-engine.el (c-forward-objc-directive):
+	Prevent looping in "#pragma mark @implementation".
 
 2012-02-07  Michael Albinus  <michael.albinus@gmx.de>
 
@@ -548,8 +631,8 @@
 	(Bug#10254).
 	(bibtex-mode): Call bibtex-set-dialect via
 	hack-local-variables-hook.
-	(bibtex-dialect): Update docstring.  Add
-	safe-local-variable predicate.
+	(bibtex-dialect): Update docstring.
+	Add safe-local-variable predicate.
 	(bibtex-entry-alist, bibtex-field-alist): Initialize via
 	bibtex-set-dialect.
 	(bibtex-mode-map): Define menu for each dialect.
@@ -590,8 +673,8 @@
 
 2012-01-28  Phil Hagelberg  <phil@hagelb.org>
 
-	* emacs-lisp/package.el (package-install): Run
-	package-refresh-contents if there is no archive yet (Bug#9798).
+	* emacs-lisp/package.el (package-install):
+	Run package-refresh-contents if there is no archive yet (Bug#9798).
 
 2012-01-28  Chong Yidong  <cyd@gnu.org>
 
@@ -768,8 +851,8 @@
 2012-01-19  Martin Rudalics  <rudalics@gmx.at>
 
 	* window.el (window--state-get-1, window-state-get): Do not use
-	special state value for window-persistent-parameters.  Rename
-	argument IGNORE to WRITABLE.  Rewrite doc-string.
+	special state value for window-persistent-parameters.
+	Rename argument IGNORE to WRITABLE.  Rewrite doc-string.
 	(window--state-put-2): Reset all window parameters to nil before
 	assigning values of persistent parameters.
 
@@ -859,8 +942,8 @@
 	c-mask-paragraph, pass in `fill-paragraph' rather than
 	`fill-region-as-paragraph'.  (This is a reversion of a previous
 	change.)
-	* progmodes/cc-mode.el (c-basic-common-init): Make
-	fill-paragraph-handle-comment buffer local and set it to nil.
+	* progmodes/cc-mode.el (c-basic-common-init):
+	Make fill-paragraph-handle-comment buffer local and set it to nil.
 
 2012-01-13  Glenn Morris  <rgm@gnu.org>
 

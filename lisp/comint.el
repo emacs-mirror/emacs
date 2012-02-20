@@ -103,6 +103,7 @@
 
 (eval-when-compile (require 'cl))
 (require 'ring)
+(require 'ansi-color)
 
 ;; Buffer Local Variables:
 ;;============================================================================
@@ -385,7 +386,7 @@ history list.  Default is to save anything that isn't all whitespace.")
 These functions get one argument, a string containing the text to send.")
 
 ;;;###autoload
-(defvar comint-output-filter-functions '(comint-postoutput-scroll-to-bottom comint-watch-for-password-prompt)
+(defvar comint-output-filter-functions '(ansi-color-process-output comint-postoutput-scroll-to-bottom comint-watch-for-password-prompt)
   "Functions to call after output is inserted into the buffer.
 One possible function is `comint-postoutput-scroll-to-bottom'.
 These functions get one argument, a string containing the text as originally

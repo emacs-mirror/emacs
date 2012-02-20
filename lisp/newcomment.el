@@ -872,14 +872,15 @@ comment markers."
 	  (when (and sre (looking-at (concat "\\s-*\n\\s-*" srei)))
 	    (goto-char (match-end 0)))
 	  (if (null arg) (delete-region (point-min) (point))
-	    (skip-syntax-backward " ")
-	    (delete-char (- numarg))
-	    (unless (or (bobp)
-			(save-excursion (goto-char (point-min))
-					(looking-at comment-start-skip)))
-	      ;; If there's something left but it doesn't look like
-	      ;; a comment-start any more, just remove it.
-	      (delete-region (point-min) (point))))
+            (let* ((opoint (point-marker))
+                   (nchar (skip-syntax-backward " ")))
+              (delete-char (- numarg))
+              (unless (and (not (bobp))
+                           (save-excursion (goto-char (point-min))
+                                           (looking-at comment-start-skip)))
+                ;; If there's something left but it doesn't look like
+                ;; a comment-start any more, just remove it.
+                (delete-region (point-min) opoint))))
 
 	  ;; Remove the end-comment (and leading padding and such).
 	  (goto-char (point-max)) (comment-enter-backward)

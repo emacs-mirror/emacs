@@ -826,9 +826,7 @@ In Dired, visit the file or directory named on this line.
 
 @item
 When you define a variable that users ought to set interactively, you
-normally should use @code{defcustom}.  However, if for some reason you
-use @code{defvar} instead, start the doc string with a @samp{*}.
-@xref{Defining Variables}.
+should use @code{defcustom}.  @xref{Defining Variables}.
 
 @item
 The documentation string for a variable that is a yes-or-no flag should

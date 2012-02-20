@@ -34,6 +34,8 @@ license to the document, as described in section 6 of the license.
 @end quotation
 @end copying
 
+@documentencoding ISO-8859-1
+
 @dircategory Emacs
 @direntry
 * Emacs-Xtra: (emacs-xtra).    Specialized Emacs features.

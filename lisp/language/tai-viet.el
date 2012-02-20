@@ -57,7 +57,3 @@ is available at this web page:
 ")))
 
 (provide 'tai-viet)
-
-;; Local Variables:
-;; coding: utf-8
-;; End:

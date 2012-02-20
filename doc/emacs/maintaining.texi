@@ -725,7 +725,7 @@ call this command from a Dired buffer (@pxref{Dired}).
 
 @ifnottex
 @item M-x vc-ediff
-Like @kbd{C-x v =}, but using Ediff.  @xref{Top, Ediff, ediff, The
+Like @kbd{C-x v =}, but using Ediff.  @xref{Top,, Ediff, ediff, The
 Ediff Manual}.
 @end ifnottex
 
@@ -777,7 +777,7 @@ current VC fileset.
 @ifnottex
 @findex vc-ediff
   @kbd{M-x vc-ediff} works like @kbd{C-x v =}, except that it uses an
-Ediff session.  @xref{Top, Ediff, ediff, The Ediff Manual}.
+Ediff session.  @xref{Top,, Ediff, ediff, The Ediff Manual}.
 @end ifnottex
 
 @findex vc-root-diff

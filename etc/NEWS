@@ -1077,6 +1077,7 @@ Eg simply pass the result through substring-no-properties if you need this.
 ---
 ** cl.el no longer provides `cl-19'.
 
++++
 ** The menu bar bindings's caches are not used any more.
 Use (where-is-internal <def> nil t) instead.
 
@@ -1314,12 +1315,21 @@ set of "wrapping" filters, similar to around advice.
 (A version of this macro was actually added in Emacs 23.2 but was not
 advertised at the time.)
 
+** Debugger changes
 +++
-** New macro `condition-case-unless-debug' (this was actually added in
+*** New macro `condition-case-unless-debug' (this was actually added in
 Emacs 23.1 as condition-case-no-debug, but not advertised)
-
 +++
-** The macro `with-demoted-errors' was added in Emacs 23.1, but not advertised.
+*** The macro `with-demoted-errors' was added in Emacs 23.1, but not advertised.
+---
+*** Variable `stack-trace-on-error' removed.
++++
+*** The debugger can now "continue" from an error, which means it will
+jump to the error handler as if the debugger had not been invoked
+instead of jumping all the way to the top-level.
++++
+*** Set `debug-on-event' to enter the debugger on events like SIGUSR1.
+This can be useful when `inhibit-quit' is set.
 
 +++
 ** The new function `server-eval-at' allows evaluation of Lisp forms on
@@ -1329,19 +1339,20 @@ named Emacs server instances, using TCP sockets.
 ** `call-process' and `call-process-region' allow a `(:file "file")' spec
 to redirect STDOUT to a file.
 
----
-** Variable `stack-trace-on-error' removed.
-Also the debugger can now "continue" from an error, which means it will jump
-to the error handler as if the debugger had not been invoked instead of
-jumping all the way to the top-level.
-
 +++
 ** The function format-time-string now supports the %N directive, for
 higher-resolution time stamps.
 
+** New input reading functions
 +++
-** New function `read-char-choice' reads a restricted set of characters,
-discarding any inputs not inside the set.
+*** New function `read-char-choice' reads a restricted set of
+characters, discarding any inputs not inside the set.
++++
+*** The command `read-color' now requires a match for a color name
+or RGB triplet, instead of signaling an error if the user provides
+invalid input.
+---
+**** `facemenu-read-color' is now an alias for `read-color'.
 
 +++
 ** `image-library-alist' is renamed to `dynamic-library-alist'.
@@ -1349,7 +1360,9 @@ The variable is now used to load all kind of supported dynamic libraries,
 not just image libraries.  The previous name is still available as an
 obsolete alias.
 
-** New variable `syntax-propertize-function'.
+** Syntax parsing changes
++++
+*** New variable `syntax-propertize-function'.
 This replaces `font-lock-syntactic-keywords' which is now obsolete.
 This allows syntax-table properties to be set independently from font-lock:
 just call syntax-propertize to make sure the text is propertized.
@@ -1358,35 +1371,33 @@ syntax-propertize-extend-region-functions, as well as two helper functions:
 syntax-propertize-via-font-lock to reuse old font-lock-syntactic-keywords
 as-is; and syntax-propertize-rules which provides a new way to specify
 syntactic rules.
++++
+*** Syntax tables support a new "comment style c" additionally to style b.
 
 +++
 ** New hook post-self-insert-hook run at the end of self-insert-command.
-
-+++
-** Syntax tables support a new "comment style c" additionally to style b.
 
 ---
 ** frame-local variables cannot be let-bound any more.
 
 ** Major and minor mode changes
 +++
+*** `set-auto-mode' now respects mode: local variables at the end of files,
+as well as those in the -*- line.
++++
 *** `prog-mode' is a new major mode from which programming modes
 should be derived.
-
 +++
 **** `prog-mode-hook' can be used to enable features for programming
 modes, e.g. (add-hook 'prog-mode-hook 'flyspell-prog-mode) to enable
 on-the-fly spell checking for comments and strings.
-
 +++
 *** New hook `change-major-mode-after-body-hook', run by
 `run-mode-hooks' just before any other mode hooks.
-
 +++
 *** Enabled globalized minor modes can be disabled in specific major modes.
 If the global mode is global-FOO-mode, then run (FOO-mode -1) in the
 major mode's hook, where FOO-mode toggles the mode on a per-buffer basis.
-
 +++
 *** `define-minor-mode' accepts a new keyword :variable.
 
@@ -1395,14 +1406,6 @@ major mode's hook, where FOO-mode toggles the mode on a per-buffer basis.
 Trashing is performed if TRASH and `delete-by-moving-to-trash' are
 both non-nil.  Interactively, TRASH defaults to t, unless a prefix
 argument is supplied (see Trash changes, above).
-
----
-** `facemenu-read-color' is now an alias for `read-color'.
-
-+++
-** The command `read-color' now requires a match for a color name
-or RGB triplet, instead of signaling an error if the user provides
-invalid input.
 
 +++
 ** Tool-bars can display separators.
@@ -1431,7 +1434,8 @@ The old name is an obsolete alias to the new one.
 +++
 *** Image mode can view any image type that ImageMagick supports.
 This requires Emacs to be built with ImageMagick support.
-Then the function `imagemagick-types' returns a list of image file
+If your Emacs has ImageMagick support, then the function
+`imagemagick-types' is defined, and returns a list of image file
 extensions that your installation of ImageMagick supports.  The
 function `imagemagick-register-types' enables ImageMagick support for
 these image types, minus those listed in `imagemagick-types-inhibit'.
@@ -1455,11 +1459,12 @@ FIXME: These should be front-ended by xml.el.
 
 *** New library `gnutls.el'.
 This requires Emacs to have been built with GnuTLS support.
-The main functions are `open-gnutls-stream' and `gnutls-negotiate'.
-It's easiest to use these functions through `open-network-stream'
-because it can upgrade connections through STARTTLS opportunistically
-or use plain SSL, depending on your needs.  For debugging, set
-`gnutls-log-level' greater than 0.
+If your Emacs has GnuTLS support, the function gnutls-available-p is
+defined and returns non-nil.  The main functions are `open-gnutls-stream'
+and `gnutls-negotiate'.  It's easiest to use these functions through
+`open-network-stream' because it can upgrade connections through
+STARTTLS opportunistically or use plain SSL, depending on your needs.
+For debugging, set `gnutls-log-level' greater than 0.
 
 ** Isearch
 
@@ -1486,11 +1491,6 @@ only used by Emacs on some platforms to display warnings during
 startup, which might otherwise not be noticed.  This uses the functions
 display-delayed-warnings and collapse-delayed-warnings.
 
-
-+++
-** `set-auto-mode' now respects mode: local variables at the end of files,
-as well as those in the -*- line.
-
 ---
 ** rx.el has a new `group-n' construct for explicitly numbered groups.
 
@@ -1499,10 +1499,6 @@ as well as those in the -*- line.
 from multiple input maps.  You can use this to make a keymap that
 inherits from multiple maps, eg:
  (set-keymap-parent newmap (make-composed-keymap othermap parent))
-
-+++
-** Set `debug-on-event' to make Emacs enter the debugger e.g. on receipt
-of SIGUSR1.  This can be useful when `inhibit-quit' is set.
 
 +++
 ** New reader macro ## that stands for the empty symbol.

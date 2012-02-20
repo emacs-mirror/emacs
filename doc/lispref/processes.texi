@@ -714,6 +714,9 @@ This command displays a listing of all living processes.  In addition,
 it finally deletes any process whose status was @samp{Exited} or
 @samp{Signaled}.  It returns @code{nil}.
 
+The processes are shown in a buffer named @samp{*Process List*}, whose
+major mode is named Process Menu mode.
+
 If @var{query-only} is non-@code{nil} then it lists only processes
 whose query flag is non-@code{nil}.  @xref{Query Before Exit}.
 @end deffn

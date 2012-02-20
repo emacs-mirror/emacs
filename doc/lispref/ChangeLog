@@ -1,3 +1,63 @@
+2012-02-19  Chong Yidong  <cyd@gnu.org>
+
+	* help.texi (Documentation, Documentation Basics, Help Functions):
+	Minor clarifications.
+	(Accessing Documentation): Clarify what documentation-property is
+	for.  Add xref to Keys in Documentation.
+
+	* tips.texi (Documentation Tips): Don't recommend using * in
+	docstrings.
+
+	* macros.texi (Defining Macros):
+	* modes.texi (Derived Modes): Say "documentation string" instead
+	of docstring.
+
+2012-02-18  Chong Yidong  <cyd@gnu.org>
+
+	* modes.texi (Tabulated List Mode): New node.
+	(Basic Major Modes): Add xref to it.
+
+	* processes.texi (Process Information): Mention Process Menu mode.
+
+2012-02-17  Chong Yidong  <cyd@gnu.org>
+
+	* syntax.texi (Motion via Parsing): Doc fix for scan-lists.
+
+2012-02-17  Glenn Morris  <rgm@gnu.org>
+
+	* hooks.texi (Standard Hooks): Fix cross-ref to Emacs manual.
+
+2012-02-16  Chong Yidong  <cyd@gnu.org>
+
+	* syntax.texi (Syntax Tables, Syntax Descriptors)
+	(Syntax Table Functions): Copyedits.
+	(Syntax Basics): Don't repeat the material in the preceding node.
+	(Syntax Class Table): Use a table.
+	(Syntax Properties): Document syntax-propertize-function and
+	syntax-propertize-extend-region-functions.
+	(Motion via Parsing): Clarify scan-lists. Fix indentation.
+	(Parser State): Update for the new "c" comment style.  Fix
+	description of item 7 (comment style).
+
+	* modes.texi (Minor Modes): Update how mode commands should treat
+	arguments now.
+	(Mode Line Basics): Clarify force-mode-line-update.
+	(Mode Line Top): Note that the example is not realistic.
+	(Mode Line Variables, Mode Line Data, %-Constructs, Header Lines)
+	(Emulating Mode Line): Use "mode line" instead of "mode-line", and
+	"mode line construct" instead of "mode line specification".
+	(Syntactic Font Lock): Remove mention of obsolete variable
+	font-lock-syntactic-keywords.
+	(Setting Syntax Properties): Node deleted.
+	(Font Lock Mode): Note that Font Lock mode is a minor mode.
+	(Font Lock Basics): Note that syntactic fontification falls back
+	on `syntax-table'.
+	(Search-based Fontification): Emphasize that font-lock-keywords
+	should not be set directly.
+	(Faces for Font Lock): Avoid some confusing terminology.
+	(Syntactic Font Lock): Minor clarifications.  Add xref to
+	Syntactic Font Lock node.
+
 2012-02-15  Chong Yidong  <cyd@gnu.org>
 
 	* minibuf.texi (Basic Completion): Define "completion table".
@@ -9,6 +69,10 @@
 	(Setting Hooks): Update minor mode usage example.
 	(Major Mode Conventions): Note that completion-at-point-functions
 	should be altered locally.  Add xref to Completion in Buffers.
+	Remove duplicate tip about auto-mode-alist.
+	(Minor Modes): Rewrite introduction.
+	(Minor Mode Conventions): Copyedits.  Don't recommend
+	variable-only minor modes since few minor modes are like that.
 
 2012-02-15  Glenn Morris  <rgm@gnu.org>
 

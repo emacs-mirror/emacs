@@ -12763,8 +12763,8 @@ from date id references chars lines xref extra.
 In the case of a string value, if the @code{match} is a regular
 expression, a @samp{gnus-match-substitute-replacement} is proceed on
 the value to replace the positional parameters @samp{\@var{n}} by the
-corresponding parenthetical matches (see @xref{Replacing the Text that
-Matched, , Text Replacement, elisp, The Emacs Lisp Reference Manual}.)
+corresponding parenthetical matches (see @xref{Replacing Match,,
+Replacing the Text that Matched, elisp, The Emacs Lisp Reference Manual}.)
 
 @vindex message-reply-headers
 

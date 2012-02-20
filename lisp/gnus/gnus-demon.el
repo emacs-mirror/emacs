@@ -137,8 +137,7 @@ Emacs has been idle for IDLE `gnus-demon-timestep's."
              ;; (func nil number)
              ;; Only call when Emacs has been idle for `idle'
              ((and (null time) (numberp idle))
-              (run-with-idle-timer (* idle gnus-demon-timestep) t
-                                   'gnus-demon-run-callback func))
+              (run-with-idle-timer idle t 'gnus-demon-run-callback func))
              ;; (func number any)
              ;; Call every `time'
              ((eq time-type 'integer)

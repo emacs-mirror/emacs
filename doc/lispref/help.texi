@@ -8,11 +8,11 @@
 @chapter Documentation
 @cindex documentation strings
 
-  GNU Emacs Lisp has convenient on-line help facilities, most of which
-derive their information from the documentation strings associated with
-functions and variables.  This chapter describes how to write good
-documentation strings for your Lisp programs, as well as how to write
-programs to access documentation.
+  GNU Emacs has convenient built-in help facilities, most of which
+derive their information from documentation strings associated with
+functions and variables.  This chapter describes how to access
+documentation strings in Lisp programs.  @xref{Documentation Tips},
+for how to write good documentation strings.
 
   Note that the documentation strings for Emacs are not the same thing
 as the Emacs manual.  Manuals have their own source files, written in
@@ -23,12 +23,10 @@ manual is not organized in that fashion; it is organized in terms of
 topics of discussion.
 
   For commands to display documentation strings, see @ref{Help, ,
-Help, emacs, The GNU Emacs Manual}.  For the conventions for writing
-documentation strings, see @ref{Documentation Tips}.
+Help, emacs, The GNU Emacs Manual}.
 
 @menu
-* Documentation Basics::      Good style for doc strings.
-                                Where to put them.  How Emacs stores them.
+* Documentation Basics::      Where doc strings are defined and stored.
 * Accessing Documentation::   How Lisp programs can access doc strings.
 * Keys in Documentation::     Substituting current key bindings.
 * Describing Characters::     Making printable descriptions of
@@ -52,14 +50,15 @@ string follows the argument list.  In a variable definition, the
 documentation string follows the initial value of the variable.
 
   When you write a documentation string, make the first line a
-complete sentence (or two complete sentences) since some commands,
-such as @code{apropos}, show only the first line of a multi-line
-documentation string.  Also, you should not indent the second line of
-a documentation string, if it has one, because that looks odd when you
+complete sentence (or two complete sentences) that briefly describes
+what the function or variable does.  Some commands, such as
+@code{apropos}, show only the first line of a multi-line documentation
+string.  Also, you should not indent the second line of a
+documentation string, if it has one, because that looks odd when you
 use @kbd{C-h f} (@code{describe-function}) or @kbd{C-h v}
 (@code{describe-variable}) to view the documentation string.  There
-are many other conventions for doc strings; see @ref{Documentation
-Tips}.
+are many other conventions for documentation strings; see
+@ref{Documentation Tips}.
 
   Documentation strings can contain several special substrings, which
 stand for key bindings to be looked up in the current keymaps when the
@@ -71,55 +70,67 @@ rearranges the key bindings.  (@xref{Keys in Documentation}.)
   Emacs Lisp mode fills documentation strings to the width
 specified by @code{emacs-lisp-docstring-fill-column}.
 
-  In Emacs Lisp, a documentation string is accessible through the
-function or variable that it describes:
+  Exactly where a documentation string is stored depends on how its
+function or variable was defined or loaded into memory:
 
 @itemize @bullet
 @item
 @kindex function-documentation
-The documentation for a function is usually stored in the function
-definition itself (@pxref{Lambda Expressions} and @pxref{Function
-Documentation}).  The function @code{documentation} knows how to
-extract it.  You can also put function documentation in the
-@code{function-documentation} property of the function name.  That is
-useful with definitions such as keyboard macros that can't hold a
-documentation string.
+When you define a function (@pxref{Lambda Expressions}, and
+@pxref{Function Documentation}), the documentation string is stored in
+the function definition itself.  You can also put function
+documentation in the @code{function-documentation} property of a
+function name.  That is useful for function definitions which can't
+hold a documentation string, such as keyboard macros.
 
 @item
 @kindex variable-documentation
-The documentation for a variable is stored in the variable's property
-list under the property name @code{variable-documentation}.  The
-function @code{documentation-property} knows how to retrieve it.
-@end itemize
+When you define a variable with a @code{defvar} or related form
+(@pxref{Defining Variables}), the documentation is stored in the
+variable's @code{variable-documentation} property.
 
 @cindex @file{DOC-@var{version}} (documentation) file
-To save space, the documentation for preloaded functions and variables
-(including primitive functions and autoloaded functions) is stored in
-the file @file{emacs/etc/DOC-@var{version}}---not inside Emacs.  The
-documentation strings for functions and variables loaded during the
-Emacs session from byte-compiled files are stored in those files
-(@pxref{Docs and Compilation}).
+@item
+To save memory, the documentation for preloaded functions and
+variables (including primitive functions and autoloaded functions) is
+not kept in memory, but in the file
+@file{emacs/etc/DOC-@var{version}}, where @var{version} is the Emacs
+version number (@pxref{Version Info}).
 
-The data structure inside Emacs has an integer offset into the file, or
-a list containing a file name and an integer, in place of the
-documentation string.  The functions @code{documentation} and
-@code{documentation-property} use that information to fetch the
-documentation string from the appropriate file; this is transparent to
-the user.
+@item
+When a function or variable is loaded from a byte-compiled file during
+the Emacs session, its documentation string is not loaded into memory.
+Instead, Emacs looks it up in the byte-compiled file as needed.
+@xref{Docs and Compilation}.
+@end itemize
+
+@noindent
+Regardless of where the documentation string is stored, you can
+retrieve it using the @code{documentation} or
+@code{documentation-property} function, described in the next section.
 
 @node Accessing Documentation
 @section Access to Documentation Strings
 
 @defun documentation-property symbol property &optional verbatim
-This function returns the documentation string that is recorded in
-@var{symbol}'s property list under property @var{property}.  It
-retrieves the text from a file if the value calls for that.  If the
-property value isn't @code{nil}, isn't a string, and doesn't refer to
-text in a file, then it is evaluated to obtain a string.
+This function returns the documentation string recorded in
+@var{symbol}'s property list under property @var{property}.  It is
+most often used to look up the documentation strings of variables, for
+which @var{property} is @code{variable-documentation}.  However, it
+can also be used to look up other kinds of documentation, such as for
+customization groups (but for function documentation, use the
+@code{documentation} command, below).
+
+If the value recorded in the property list refers to a documentation
+string stored in a @file{DOC-@var{version}} file or a byte-compiled
+file, it looks up that string and returns it.  If the property value
+isn't @code{nil}, isn't a string, and doesn't refer to text in a file,
+then it is evaluated as a Lisp expression to obtain a string.
 
 The last thing this function does is pass the string through
-@code{substitute-command-keys} to substitute actual key bindings,
-unless @var{verbatim} is non-@code{nil}.
+@code{substitute-command-keys} to substitute actual key bindings
+(@pxref{Keys in Documentation}).  However, it skips this step if
+@var{verbatim} is non-@code{nil}.
 
 @smallexample
 @group
@@ -270,13 +281,13 @@ When the `track-eol' feature is doing its job, the value is 9999.
 @end group
 @end smallexample
 
-@defun Snarf-documentation filename
 @anchor{Definition of Snarf-documentation}
-This function is used only during Emacs initialization, just before
-the runnable Emacs is dumped.  It finds the file offsets of the
-documentation strings stored in the file @var{filename}, and records
-them in the in-core function definitions and variable property lists in
-place of the actual strings.  @xref{Building Emacs}.
+@defun Snarf-documentation filename
+This function is used when building Emacs, just before the runnable
+Emacs is dumped.  It finds the positions of the documentation strings
+stored in the file @var{filename}, and records those positions into
+memory in the function definitions and variable property lists.
+@xref{Building Emacs}.
 
 Emacs reads the file @var{filename} from the @file{emacs/etc} directory.
 When the dumped Emacs is later executed, the same file will be looked
@@ -515,13 +526,14 @@ definition as a function, variable, or face, or has properties.
 The function returns a list of elements that look like this:
 
 @example
-(@var{symbol} @var{score} @var{fn-doc} @var{var-doc}
+(@var{symbol} @var{score} @var{function-doc} @var{variable-doc}
  @var{plist-doc} @var{widget-doc} @var{face-doc} @var{group-doc})
 @end example
 
 Here, @var{score} is an integer measure of how important the symbol
-seems to be as a match, and the remaining elements are documentation
-strings for @var{symbol}'s various roles (or @code{nil}).
+seems to be as a match.  Each of the remaining elements is a
+documentation string, or @code{nil}, for @var{symbol} as a function,
+variable, etc.
 
 It also displays the symbols in a buffer named @samp{*Apropos*}, each
 with a one-line description taken from the beginning of its

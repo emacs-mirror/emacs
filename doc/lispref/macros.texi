@@ -258,7 +258,8 @@ Specify how to indent calls to this macro.  @xref{Indenting Macros},
 for more details.
 
 @item (doc-string @var{number})
-Specify which element of the macro is the doc string, if any.
+Specify which element of the macro is the documentation string, if
+any.
 @end table
 
 A @code{declare} form only has its special effect in the body of a

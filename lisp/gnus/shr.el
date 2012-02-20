@@ -524,20 +524,21 @@ the URL of the image to the kill buffer instead."
 				      directory)))))
 
 (defun shr-image-fetched (status buffer start end)
-  (when (and (buffer-name buffer)
-	     (not (plist-get status :error)))
-    (url-store-in-cache (current-buffer))
-    (when (or (search-forward "\n\n" nil t)
-	      (search-forward "\r\n\r\n" nil t))
-      (let ((data (buffer-substring (point) (point-max))))
-        (with-current-buffer buffer
-	  (save-excursion
-	    (let ((alt (buffer-substring start end))
-		  (inhibit-read-only t))
-	      (delete-region start end)
-	      (goto-char start)
-	      (funcall shr-put-image-function data alt)))))))
-  (kill-buffer (current-buffer)))
+  (let ((image-buffer (current-buffer)))
+    (when (and (buffer-name buffer)
+	       (not (plist-get status :error)))
+      (url-store-in-cache image-buffer)
+      (when (or (search-forward "\n\n" nil t)
+		(search-forward "\r\n\r\n" nil t))
+	(let ((data (buffer-substring (point) (point-max))))
+	  (with-current-buffer buffer
+	    (save-excursion
+	      (let ((alt (buffer-substring start end))
+		    (inhibit-read-only t))
+		(delete-region start end)
+		(goto-char start)
+		(funcall shr-put-image-function data alt)))))))
+    (kill-buffer image-buffer)))
 
 (defun shr-put-image (data alt)
   "Put image DATA with a string ALT.  Return image."

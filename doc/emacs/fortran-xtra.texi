@@ -1,5 +1,5 @@
 @c This is part of the Emacs manual.
-@c Copyright (C) 2004-2012  Free Software Foundation, Inc.
+@c Copyright (C) 2004-2012 Free Software Foundation, Inc.
 @c See file emacs.texi for copying conditions.
 @c
 @c This file is included either in emacs-xtra.texi (when producing the
@@ -70,11 +70,10 @@ command runs the hook @code{fortran-mode-hook}.
 @subsection Motion Commands
 
   In addition to the normal commands for moving by and operating on
-``defuns'' (Fortran subprograms---functions and subroutines, using the
-commands @code{fortran-beginning-of-subprogram} and
-@code{fortran-end-of-subprogram}; as well as modules for F90 mode),
-Fortran mode provides special commands to move by statements and other
-program units.
+``defuns'' (Fortran subprograms---functions and subroutines, as well
+as modules for F90 mode, using the commands @code{fortran-end-of-subprogram}
+and @code{fortran-beginning-of-subprogram}), Fortran mode provides
+special commands to move by statements and other program units.
 
 @table @kbd
 @kindex C-c C-n @r{(Fortran mode)}
@@ -97,16 +96,15 @@ statement in the buffer), move to the start of the buffer.
 @findex f90-next-block
 @item C-c C-e
 Move point forward to the start of the next code block, or the end of
-the current block, whichever is encountered first.
-(@code{f90-next-block}).  A code block is a subroutine,
-@code{if}--@code{endif} statement, and so forth.  This command exists
-for F90 mode only, not Fortran mode.  With a numeric argument, this
-moves forward that many blocks.
+the current one, whichever comes first (@code{f90-next-block}).
+A code block is a subroutine, @code{if}--@code{endif} statement, and
+so forth.  This command exists for F90 mode only, not Fortran mode.
+With a numeric argument, it moves forward that many blocks.
 
 @kindex C-c C-a @r{(F90 mode)}
 @findex f90-previous-block
 @item C-c C-a
-Move point backward to the previous code block
+Move point backward to the previous block
 (@code{f90-previous-block}).  This is like @code{f90-next-block}, but
 moves backwards.
 
@@ -163,7 +161,7 @@ Break the current line at point and set up a continuation line
 @item M-^
 Join this line to the previous line (@code{fortran-join-line}).
 @item C-M-q
-Indent all the lines of the subprogram point is in
+Indent all the lines of the subprogram that point is in
 (@code{fortran-indent-subprogram}).
 @item M-q
 Fill a comment block or statement (using @code{fortran-fill-paragraph}
@@ -239,17 +237,17 @@ to the continuation style.
   The setting of continuation style affects several other aspects of
 editing in Fortran mode.  In fixed form mode, the minimum column
 number for the body of a statement is 6.  Lines inside of Fortran
-blocks that are indented to larger column numbers always use only the
+blocks that are indented to larger column numbers must use only the
 space character for whitespace.  In tab format mode, the minimum
 column number for the statement body is 8, and the whitespace before
-column 8 must always consist of one tab character.
+column 8 must consist of one tab character.
 
 @node ForIndent Num
 @subsubsection Line Numbers
 
   If a number is the first non-whitespace in the line, Fortran
 indentation assumes it is a line number and moves it to columns 0
-through 4.  (Columns always count from 0 in GNU Emacs.)
+through 4.  (Columns always count from 0 in Emacs.)
 
 @vindex fortran-line-number-indent
   Line numbers of four digits or less are normally indented one space.
@@ -329,7 +327,7 @@ non-@code{nil} value, indenting any numbered statement must check for a
 @samp{do} that ends there.  If you always end @samp{do} statements with
 a @samp{continue} line (or if you use the more modern @samp{enddo}),
 then you can speed up indentation by setting this variable to
-@code{nil}.  The default is @code{nil}.
+@code{nil} (the default).
 
 @item fortran-blink-matching-if
 If this is @code{t}, indenting an @samp{endif} (or @samp{enddo}
@@ -338,17 +336,17 @@ statement moves the cursor momentarily to the matching @samp{if} (or
 
 @item fortran-minimum-statement-indent-fixed
 Minimum indentation for Fortran statements when using fixed form
-continuation line style.  Statement bodies are never indented less than
-this much.  The default is 6.
+continuation line style.  Statement bodies are never indented by less than
+this.  The default is 6.
 
 @item fortran-minimum-statement-indent-tab
 Minimum indentation for Fortran statements for tab format continuation line
-style.  Statement bodies are never indented less than this much.  The
+style.  Statement bodies are never indented by less than this.  The
 default is 8.
 @end table
 
-The variables controlling the indentation of comments are described in
-the following section.
+The following section describes the variables controlling the
+indentation of comments.
 
 @node Fortran Comments
 @subsection Fortran Comments
@@ -364,7 +362,7 @@ comments start with @samp{!} and can follow other text.  Because only
 some Fortran 77 compilers accept this syntax, Fortran mode will not
 insert such comments unless you have said in advance to do so.  To do
 this, set the variable @code{fortran-comment-line-start} to @samp{"!"}.
-If you use an unusual value, you may also need to adjust
+If you use an unusual value, you may need to change
 @code{fortran-comment-line-start-skip}.
 
 
@@ -373,7 +371,7 @@ If you use an unusual value, you may also need to adjust
 Align comment or insert new comment (@code{comment-dwim}).
 
 @item C-x ;
-Applies to nonstandard @samp{!} comments only.
+Applies to nonstandard @samp{!} comments only (@code{comment-set-column}).
 
 @item C-c ;
 Turn all lines of the region into comments, or (with argument) turn them back
@@ -406,10 +404,10 @@ Align the text at a fixed column, which is the sum of
 @code{fortran-comment-line-extra-indent} and the minimum statement
 indentation.  This is the default.
 
-The minimum statement indentation is
-@code{fortran-minimum-statement-indent-fixed} for fixed form
-continuation line style and @code{fortran-minimum-statement-indent-tab}
-for tab format style.
+The minimum indentation is
+@code{fortran-minimum-statement-indent-tab} for tab format
+continuation line style and @code{fortran-minimum-statement-indent-fixed}
+for fixed form style.
 
 @item relative
 Align the text as if it were a line of code, but with an additional
@@ -434,17 +432,17 @@ never be indented at all, no matter what the value of
 lines are directives.  Matching lines are never indented, and receive
 distinctive font-locking.
 
-  The normal Emacs comment command @kbd{C-x ;} has not been redefined.  If
-you use @samp{!} comments, this command can be used with them.  Otherwise
-it is useless in Fortran mode.
+  The normal Emacs comment command @kbd{C-x ;} (@code{comment-set-column})
+has not been redefined.  If you use @samp{!} comments, this command
+can be used with them.  Otherwise it is useless in Fortran mode.
 
 @kindex C-c ; @r{(Fortran mode)}
 @findex fortran-comment-region
 @vindex fortran-comment-region
   The command @kbd{C-c ;} (@code{fortran-comment-region}) turns all the
-lines of the region into comments by inserting the string @samp{C$$$} at
+lines of the region into comments by inserting the string @samp{c$$$} at
 the front of each one.  With a numeric argument, it turns the region
-back into live code by deleting @samp{C$$$} from the front of each line
+back into live code by deleting @samp{c$$$} from the front of each line
 in it.  The string used for these comments can be controlled by setting
 the variable @code{fortran-comment-region}.  Note that here we have an
 example of a command and a variable with the same name; these two uses
@@ -507,8 +505,7 @@ Display a ``column ruler'' momentarily above the current line
 Split the current window horizontally temporarily so that it is
 @code{fortran-line-length} columns wide
 (@code{fortran-window-create-momentarily}).  This may help you avoid
-making lines longer than the character limit imposed by your Fortran
-compiler.
+making lines longer than the limit imposed by your Fortran compiler.
 @item C-u C-c C-w
 Split the current window horizontally so that it is
 @code{fortran-line-length} columns wide (@code{fortran-window-create}).

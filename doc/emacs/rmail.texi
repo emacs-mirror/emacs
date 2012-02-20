@@ -87,8 +87,7 @@ other buffers, and never switch back, you have exited.  Just make sure
 to save the Rmail file eventually (like any other file you have
 changed).  @kbd{C-x s} is a suitable way to do this (@pxref{Save
 Commands}).  The Rmail command @kbd{b}, @code{rmail-bury}, buries the
-Rmail buffer and its summary buffer without expunging and saving the
-Rmail file.
+Rmail buffer and its summary without expunging and saving the Rmail file.
 
 @node Rmail Scrolling
 @section Scrolling Within a Message
@@ -276,7 +275,7 @@ Expunge the Rmail file (@code{rmail-expunge}).
 @findex rmail-delete-forward
 @findex rmail-delete-backward
   There are two Rmail commands for deleting messages.  Both delete the
-current message and select another message.  @kbd{d}
+current message and select another.  @kbd{d}
 (@code{rmail-delete-forward}) moves to the following message, skipping
 messages already deleted, while @kbd{C-d} (@code{rmail-delete-backward})
 moves to the previous nondeleted message.  If there is no nondeleted
@@ -337,7 +336,7 @@ any time in Rmail by typing @kbd{g}.
 @vindex rmail-primary-inbox-list
 @cindex @env{MAIL} environment variable
   The variable @code{rmail-primary-inbox-list} contains a list of the
-files which are inboxes for your primary Rmail file.  If you don't set
+files that are inboxes for your primary Rmail file.  If you don't set
 this variable explicitly, Rmail uses the @env{MAIL} environment
 variable, or, as a last resort, a default inbox based on
 @code{rmail-spool-directory}.  The default inbox file depends on your
@@ -367,6 +366,7 @@ all into a separate Rmail file avoids the need for interlocking in all
 the rest of Rmail, since only Rmail operates on the Rmail file.
 @end enumerate
 
+@c FIXME remove this in Emacs 25; won't be relevant any more.
   Rmail was originally written to use the Babyl format as its internal
 format.  Since then, we have recognized that the usual inbox format
 (@samp{mbox}) on Unix and GNU systems is adequate for the job, and so
@@ -454,6 +454,7 @@ second says which files in that directory to offer (all those that match
 the regular expression).  If no files match, you cannot select this menu
 item.  These variables also apply to choosing a file for output
 (@pxref{Rmail Output}).
+@c FIXME matches only checked when Rmail file first visited?
 
 @ignore
 @findex set-rmail-inbox-list
@@ -516,6 +517,7 @@ currently displayed and no more.  @xref{Rmail Display}.  In addition,
 @kbd{o} converts the message to Babyl format (used by Rmail in Emacs
 version 22 and before) if the file is in Babyl format; @kbd{C-o}
 cannot output to Babyl files at all.
+@c FIXME remove BABYL mention in Emacs 25?
 
   If the output file is currently visited in an Emacs buffer, the
 output commands append the message to that buffer.  It is up to you to
@@ -727,7 +729,7 @@ Try sending a bounced message a second time (@code{rmail-retry-failure}).
 @cindex reply to a message
   The most common reason to send a message while in Rmail is to reply
 to the message you are reading.  To do this, type @kbd{r}
-(@code{rmail-reply}).  This displays the @samp{*mail*} buffer in
+(@code{rmail-reply}).  This displays a mail composition buffer in
 another window, much like @kbd{C-x 4 m}, but preinitializes the
 @samp{Subject}, @samp{To}, @samp{CC}, @samp{In-reply-to} and
 @samp{References} header fields based on the message you are replying
@@ -735,23 +737,20 @@ to.  The @samp{To} field starts out as the address of the person who
 sent the message you received, and the @samp{CC} field starts out with
 all the other recipients of that message.
 
-@vindex rmail-dont-reply-to-names
+@vindex mail-dont-reply-to-names
   You can exclude certain recipients from being included automatically
-in replies, using the variable @code{rmail-dont-reply-to-names}.  Its
+in replies, using the variable @code{mail-dont-reply-to-names}.  Its
 value should be a regular expression; any recipients that match are
 excluded from the @samp{CC} field.  They are also excluded from the
 @samp{To} field, unless this would leave the field empty.  If this
 variable is nil, then the first time you compose a reply it is
-initialized to a default value that matches your own address, and any
-name starting with @samp{info-}.  (Those names are excluded because
-there is a convention of using them for large mailing lists to broadcast
-announcements.)
+initialized to a default value that matches your own address.
 
   To omit the @samp{CC} field completely for a particular reply, enter
 the reply command with a numeric argument: @kbd{C-u r} or @kbd{1 r}.
 This means to reply only to the sender of the original message.
 
-  Once the @samp{*mail*} buffer has been initialized, editing and
+  Once the mail composition buffer has been initialized, editing and
 sending the mail goes as usual (@pxref{Sending Mail}).  You can edit
 the presupplied header fields if they are not what you want.  You can
 also use commands such as @kbd{C-c C-y}, which yanks in the message
@@ -767,7 +766,7 @@ and yank the new current message.
 send the failed message back to you, enclosed in a @dfn{failure
 message}.  The Rmail command @kbd{M-m} (@code{rmail-retry-failure})
 prepares to send the same message a second time: it sets up a
-@samp{*mail*} buffer with the same text and header fields as before.  If
+mail composition buffer with the same text and header fields as before.  If
 you type @kbd{C-c C-c} right away, you send the message again exactly
 the same as the first time.  Alternatively, you can edit the text or
 headers and then send it.  The variable
@@ -780,23 +779,31 @@ headers are stripped from the failed message when retrying it.
 @cindex forwarding a message
   Another frequent reason to send mail in Rmail is to @dfn{forward} the
 current message to other users.  @kbd{f} (@code{rmail-forward}) makes
-this easy by preinitializing the @samp{*mail*} buffer with the current
-message as the text, and a subject designating a forwarded message.  All
-you have to do is fill in the recipients and send.  When you forward a
-message, recipients get a message which is ``from'' you, and which has
-the original message in its contents.
+this easy by preinitializing the mail composition buffer with the current
+message as the text, and a subject of the form @code{[@var{from}:
+@var{subject}]}, where @var{from} and @var{subject} are the sender and
+subject of the original message.  All you have to do is fill in the
+recipients and send.  When you forward a message, recipients get a
+message which is ``from'' you, and which has the original message in
+its contents.
 
+@vindex rmail-enable-mime-composing
 @findex unforward-rmail-message
-  Forwarding a message encloses it between two delimiter lines.  It also
-modifies every line that starts with a dash, by inserting @w{@samp{- }}
-at the start of the line.  When you receive a forwarded message, if it
+  Rmail offers two formats for forwarded messages.  The default is to
+use MIME (@pxref{Rmail Display}) format.  This includes the original
+message as a separate part.  You can use a simpler format if you
+prefer, by setting the variable @code{rmail-enable-mime-composing} to
+@code{nil}.  In this case, Rmail just includes the original message
+enclosed between two delimiter lines.  It also modifies every line
+that starts with a dash, by inserting @w{@samp{- }} at the start of
+the line.  When you receive a forwarded message in this format, if it
 contains something besides ordinary text---for example, program source
-code---you might find it useful to undo that transformation.  You can do
-this by selecting the forwarded message and typing @kbd{M-x
-unforward-rmail-message}.  This command extracts the original forwarded
-message, deleting the inserted @w{@samp{- }} strings, and inserts it
-into the Rmail file as a separate message immediately following the
-current one.
+code---you might find it useful to undo that transformation.  You can
+do this by selecting the forwarded message and typing @kbd{M-x
+unforward-rmail-message}.  This command extracts the original
+forwarded message, deleting the inserted @w{@samp{- }} strings, and
+inserts it into the Rmail file as a separate message immediately
+following the current one.
 
 @findex rmail-resend
   @dfn{Resending} is an alternative similar to forwarding; the
@@ -812,22 +819,28 @@ numeric argument.)
   Use the @kbd{m} (@code{rmail-mail}) command to start editing an
 outgoing message that is not a reply.  It leaves the header fields empty.
 Its only difference from @kbd{C-x 4 m} is that it makes the Rmail buffer
-accessible for @kbd{C-c C-y}, just as @kbd{r} does.  Thus, @kbd{m} can be
-used to reply to or forward a message; it can do anything @kbd{r} or @kbd{f}
-can do.
+accessible for @kbd{C-c C-y}, just as @kbd{r} does.
+@ignore
+@c Not a good idea, because it does not include Reply-To etc.
+Thus, @kbd{m} can be used to reply to or forward a message; it can do
+anything @kbd{r} or @kbd{f} can do.
+@end ignore
 
 @kindex c @r{(Rmail)}
 @findex rmail-continue
   The @kbd{c} (@code{rmail-continue}) command resumes editing the
-@samp{*mail*} buffer, to finish editing an outgoing message you were
+mail composition buffer, to finish editing an outgoing message you were
 already composing, or to alter a message you have sent.
 
 @vindex rmail-mail-new-frame
   If you set the variable @code{rmail-mail-new-frame} to a
 non-@code{nil} value, then all the Rmail commands to start sending a
 message create a new frame to edit it in.  This frame is deleted when
-you send the message, or when you use the @samp{Cancel} item in the
-@samp{Mail} menu.
+you send the message.
+@ignore
+@c FIXME does not work with Message -> Kill Message
+, or when you use the @samp{Cancel} item in the @samp{Mail} menu.
+@end ignore
 
   All the Rmail commands to send a message use the mail-composition
 method that you have chosen (@pxref{Mail Methods}).
@@ -905,8 +918,8 @@ commas.
 makes a partial summary mentioning only the messages that have one or
 more recipients matching the regular expression @var{rcpts}.  You can
 use commas to separate multiple regular expressions.  These are matched
-against the @samp{To}, @samp{From}, and @samp{CC} headers (with a prefix
-argument, this header is not included).
+against the @samp{To}, @samp{From}, and @samp{CC} headers (supply a prefix
+argument to exclude this header).
 
 @kindex C-M-t @r{(Rmail)}
 @findex rmail-summary-by-topic
@@ -1178,7 +1191,7 @@ Move point to the next @acronym{MIME} tagline button.
 (@code{rmail-mime-next-item}).
 
 @findex rmail-mime-previous-item
-@item @key{BackTab}
+@item S-@key{TAB}
 Move point to the previous @acronym{MIME} part
 (@code{rmail-mime-previous-item}).
 
@@ -1195,7 +1208,7 @@ immediately after its tagline, as part of the Rmail buffer, while
 taglines, with their actual contents hidden.  In either case, you can
 toggle a @acronym{MIME} part between its ``displayed'' and ``hidden''
 states by typing @key{RET} anywhere in the part---or anywhere in its
-tagline, apart from a tagline button for some other action.  Type
+tagline (except for buttons for other actions, if there are any).  Type
 @key{RET} (or click with the mouse) to activate a tagline button, and
 @key{TAB} to cycle point between tagline buttons.
 
@@ -1213,7 +1226,7 @@ temporary buffer to display the current @acronym{MIME} message.
 @cindex encrypted mails (reading in Rmail)
   If the current message is an encrypted one, use the command @kbd{M-x
 rmail-epa-decrypt} to decrypt it, using the EasyPG library
-(@pxref{Top,,, epa, EasyPG Assistant User's Manual}).
+(@pxref{Top,, EasyPG, epa, EasyPG Assistant User's Manual}).
 
   You can highlight and activate URLs in the Rmail buffer using Goto
 Address mode:
@@ -1300,13 +1313,13 @@ the message, if you have made any changes in it.
 @cindex undigestify
 
   A @dfn{digest message} is a message which exists to contain and carry
-several other messages.  Digests are used on some moderated mailing
+several other messages.  Digests are used on some mailing
 lists; all the messages that arrive for the list during a period of time
 such as one day are put inside a single digest which is then sent to the
-subscribers.  Transmitting the single digest uses much less computer
+subscribers.  Transmitting the single digest uses less computer
 time than transmitting the individual messages even though the total
-size is the same, because the per-message overhead in network mail
-transmission is considerable.
+size is the same, because of the per-message overhead in network mail
+transmission.
 
 @findex undigestify-rmail-message
   When you receive a digest message, the most convenient way to read it is
@@ -1321,14 +1334,15 @@ message itself is flagged as deleted.
 @section Reading Rot13 Messages
 @cindex rot13 code
 
-  Mailing list messages that might offend some readers are sometimes
+  Mailing list messages that might offend or annoy some readers are sometimes
 encoded in a simple code called @dfn{rot13}---so named because it
 rotates the alphabet by 13 letters.  This code is not for secrecy, as it
-provides none; rather, it enables those who might be offended to avoid
-seeing the real text of the message.
+provides none; rather, it enables those who wish to to avoid
+seeing the real text of the message.  For example, a review of a film
+might use rot13 to hide important plot points.
 
 @findex rot13-other-window
-  To view a buffer which uses the rot13 code, use the command @kbd{M-x
+  To view a buffer that uses the rot13 code, use the command @kbd{M-x
 rot13-other-window}.  This displays the current buffer in another window
 which applies the code when displaying the text.
 

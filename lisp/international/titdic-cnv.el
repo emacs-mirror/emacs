@@ -1204,8 +1204,4 @@ to store generated Quail packages."
 	(miscdic-convert filename dir))))
   (kill-emacs 0))
 
-;; Local Variables:
-;; coding: iso-2022-7bit
-;; End:
-
 ;;; titdic-cnv.el ends here

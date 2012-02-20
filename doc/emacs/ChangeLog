@@ -1,3 +1,49 @@
+2012-02-20  Glenn Morris  <rgm@gnu.org>
+
+	* ack.texi (Acknowledgments): More updates.
+
+	* emacs.texi (Acknowledgments): Add several names from ack.texi.
+	(Distrib): Small updates.
+
+2012-02-18  Glenn Morris  <rgm@gnu.org>
+
+	* ack.texi (Acknowledgments): Add xref to Org manual.
+
+	* rmail.texi: Copyedits.  Use 'mail composition buffer' in place
+	of '*mail*', since Message does not call it that.
+	(Rmail Reply): Rename rmail-dont-reply-to-names.
+	\\`info- no longer handled specially.
+	Update for rmail-enable-mime-composing.
+	Don't mention 'm' for replies.
+	Don't mention rmail-mail-new-frame and cancelling, since it does
+	not work for Message at the moment.
+
+	* cal-xtra.texi: Copyedits.
+
+	* emacs-xtra.texi: Set encoding to ISO-8859-1.
+
+2012-02-17  Glenn Morris  <rgm@gnu.org>
+
+	* maintaining.texi (Old Revisions): Fix cross-refs to Ediff manual.
+
+	* ack.texi (Acknowledgments): Mention Gnulib.
+
+	* ack.texi, calendar.texi, cal-xtra.texi: Use "Bahá'í".
+
+	* calendar.texi: Misc small changes, including updating the dates
+	of examples.
+
+2012-02-16  Glenn Morris  <rgm@gnu.org>
+
+	* calendar.texi: Misc small changes.
+
+	* vc1-xtra.texi (VC Delete/Rename, CVS Options):
+	* cal-xtra.texi (Diary Display): Fix TeX cross-refs to other manuals.
+
+	* dired-xtra.texi (Subdir Switches): Small fixes.
+
+	* fortran-xtra.texi: Tiny changes and some adjustments to line breaks.
+
 2012-02-15  Glenn Morris  <rgm@gnu.org>
 
 	* sending.texi (Mail Sending): smtpmail-auth-credentials was removed.
