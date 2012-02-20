@@ -1,5 +1,9 @@
 2012-02-20  Lars Ingebrigtsen  <larsi@gnus.org>
 
+	* url-queue.el (url-queue-kill-job): Delete the process sentinel
+	before killing the process to avoid a race condition between the
+	two processes killing off the process buffer.
+
 	* url.el (url-retrieve-internal): Warn about file errors when
 	pruning the cache instead of bugging out (bug#10831).
 
