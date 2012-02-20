@@ -1,3 +1,8 @@
+2012-02-20  Leo Liu  <sdl.web@gmail.com>
+
+	* icomplete.el (icomplete-completions): Check FROM arg before
+	passing to substring (Bug#10850).
+
 2012-02-19  Chong Yidong  <cyd@gnu.org>
 
 	* comint.el: Require ansi-color.
