@@ -1,5 +1,8 @@
 2012-02-20  Lars Ingebrigtsen  <larsi@gnus.org>
 
+	* gnus-msg.el (gnus-group-post-news): Don't bug out on `C-u a' on
+	topics (bug#10843).
+
 	* nnimap.el (nnimap-log-command): Add the IMAP address to the log
 	buffer.  Suggested by Herbert Valerio Riedel.
 	(nnimap-request-move-article): Delete the message from the correct IMAP
