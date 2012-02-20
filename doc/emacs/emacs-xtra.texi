@@ -70,7 +70,7 @@ license to the document, as described in section 6 of the license.
 * Emerge::              A convenient way of merging two versions of a program.
 * Advanced VC Usage::   Advanced VC (version control) features.
 * Fortran::             Fortran mode and its special features.
-* MS-DOS::              Using Emacs on MS-DOS (otherwise known as @dfn{MS-DOG}).
+* MS-DOS::              Using Emacs on MS-DOS.
 @end iftex
 * Index::
 @end menu

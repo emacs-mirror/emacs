@@ -40,7 +40,7 @@ here.
 * Windows Fonts::       Specifying fonts on MS-Windows.
 * Windows Misc::        Miscellaneous Windows features.
 @ifnottex
-* MS-DOS::              Using Emacs on MS-DOS (otherwise known as @dfn{MS-DOG}).
+* MS-DOS::              Using Emacs on MS-DOS.
 @end ifnottex
 @end menu
 

@@ -1,5 +1,11 @@
 2012-02-20  Glenn Morris  <rgm@gnu.org>
 
+	* emacs.texi (Top, Preface): Small rephrasings.
+	(menu, detailmenu): Update entries, and reformat some descriptions.
+	* building.texi, display.texi, emacs-xtra.texi, files.texi:
+	* frames.texi, kmacro.texi, msdog.texi, programs.texi, text.texi:
+	Reformat some menu descriptions.
+
 	* ack.texi (Acknowledgments): More updates.
 
 	* emacs.texi (Acknowledgments): Add several names from ack.texi,

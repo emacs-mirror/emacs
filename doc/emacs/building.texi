@@ -471,8 +471,7 @@ Manual}.
 * Commands of GUD::     Key bindings for common commands.
 * GUD Customization::   Defining your own commands for GUD.
 * GDB Graphical Interface::  An enhanced mode that uses GDB features to
-                        implement a graphical debugging environment through
-                        Emacs.
+                        implement a graphical debugging environment.
 @end menu
 
 @node Starting GUD

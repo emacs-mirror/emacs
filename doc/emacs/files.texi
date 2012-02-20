@@ -36,7 +36,7 @@ on file directories.
 * Misc File Ops::       Other things you can do on files.
 * Compressed Files::    Accessing compressed files.
 * File Archives::       Operating on tar, zip, jar etc. archive files.
-* Remote Files::        Accessing files on other sites.
+* Remote Files::        Accessing files on other machines.
 * Quoted File Names::   Quoting special characters in file names.
 * File Name Cache::     Completion against a list of files you often use.
 * File Conveniences::   Convenience Features for Finding Files.

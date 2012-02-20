@@ -28,7 +28,7 @@ the text is displayed.
 * Highlight Interactively:: Tell Emacs what text to highlight.
 * Fringes::                Enabling or disabling window fringes.
 * Displaying Boundaries::  Displaying top and bottom of the buffer.
-* Useless Whitespace::     Showing possibly-spurious trailing whitespace.
+* Useless Whitespace::     Showing possibly spurious trailing whitespace.
 * Selective Display::      Hiding lines with lots of indentation.
 * Optional Mode Line::     Optional mode line display features.
 * Text Display::           How text characters are normally displayed.

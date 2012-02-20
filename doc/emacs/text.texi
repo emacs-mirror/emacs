@@ -74,9 +74,9 @@ for editing such pictures.
 * Text Mode::           The major modes for editing text files.
 * Outline Mode::        Editing outlines.
 * Org Mode::            The Emacs organizer.
-* TeX Mode::            Editing input to the formatter TeX.
+* TeX Mode::            Editing TeX and LaTeX files.
 * HTML Mode::           Editing HTML and SGML files.
-* Nroff Mode::          Editing input to the formatter nroff.
+* Nroff Mode::          Editing input to the nroff formatter.
 * Enriched Text::       Editing text ``enriched'' with fonts, colors, etc.
 * Text Based Tables::   Commands for editing text-based tables.
 * Two-Column::          Splitting text columns into separate windows.
