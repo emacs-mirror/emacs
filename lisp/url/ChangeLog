@@ -1,3 +1,8 @@
+2012-02-20  Lars Ingebrigtsen  <larsi@gnus.org>
+
+	* url.el (url-retrieve-internal): Warn about file errors when
+	pruning the cache instead of bugging out (bug#10831).
+
 2012-02-19  Lars Ingebrigtsen  <larsi@gnus.org>
 
 	* url-queue.el (url-queue-callback-function): Remove the job from
