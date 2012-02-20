@@ -3,6 +3,7 @@
 	* ack.texi (Acknowledgments): More updates.
 
 	* emacs.texi (Acknowledgments): Add several names from ack.texi.
+	(Distrib): Small updates.
 
 2012-02-18  Glenn Morris  <rgm@gnu.org>
 

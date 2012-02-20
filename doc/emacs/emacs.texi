@@ -11,7 +11,7 @@
 This is the @value{EDITION} edition of the @cite{GNU Emacs Manual},@*
 updated for Emacs version @value{EMACSVER}.
 
-Copyright @copyright{} 1985-1987, 1993-2012  Free Software Foundation, Inc.
+Copyright @copyright{} 1985-1987, 1993-2012 Free Software Foundation, Inc.
 
 @quotation
 Permission is granted to copy, distribute and/or modify this document
@@ -1237,7 +1237,7 @@ Macintosh (and GNUstep).
 @unnumbered Distribution
 
 GNU Emacs is @dfn{free software}; this means that everyone is free to
-use it and free to redistribute it on certain conditions.  GNU Emacs
+use it and free to redistribute it under certain conditions.  GNU Emacs
 is not in the public domain; it is copyrighted and there are
 restrictions on its distribution, but these restrictions are designed
 to permit everything that a good cooperating citizen would want to do.
@@ -1245,11 +1245,10 @@ What is not allowed is to try to prevent others from further sharing
 any version of GNU Emacs that they might get from you.  The precise
 conditions are found in the GNU General Public License that comes with
 Emacs and also appears in this manual@footnote{This manual is itself
-covered by the GNU Free Documentation License (see the reverse title
-page in the printed manual or view the full source for online formats
-to see the precise conditions).  This license is similar in spirit to
-the General Public License, but is more suitable for documentation.
-@xref{GNU Free Documentation License}.}.  @xref{Copying}.
+covered by the GNU Free Documentation License.  This license is
+similar in spirit to the General Public License, but is more suitable
+for documentation.  @xref{GNU Free Documentation License}.}.
+@xref{Copying}.
 
 One way to get a copy of GNU Emacs is from someone else who has it.
 You need not ask for our permission to do so, or tell any one else;
@@ -1266,14 +1265,22 @@ redistribute the GNU Emacs received from them under the usual terms of the
 General Public License.  In other words, the program must be free for you
 when you get it, not just free for the manufacturer.
 
-@c FIXME no longer true?
-You can also order copies of GNU Emacs from the Free Software
-Foundation.  This is a convenient and reliable way to get a copy; it is
-also a good way to help fund our work.  We also sell hardcopy versions
-of this manual and @cite{An Introduction to Programming in Emacs Lisp},
-by Robert J. Chassell.  You can visit our online store at
-@url{http://shop.fsf.org/}.  For further information,
-write to
+If you find GNU Emacs useful, please @strong{send a donation} to the
+Free Software Foundation to support our work.  Donations to the Free
+Software Foundation are tax deductible in the US.  If you use GNU Emacs
+at your workplace, please suggest that the company make a donation. 
+For more information on how you can help, see
+@url{http://www.gnu.org/help/help.html}.
+
+We also sell hardcopy versions of this manual and @cite{An
+Introduction to Programming in Emacs Lisp}, by Robert J.@: Chassell.
+You can visit our online store at @url{http://shop.fsf.org/}.
+The income from sales goes to support the foundation's purpose: the
+development of new free software, and improvements to our existing
+programs including GNU Emacs.
+
+If you need to contact the Free Software Foundation, see
+@url{http://www.fsf.org/about/contact/}, or write to
 
 @display
 Free Software Foundation
@@ -1281,19 +1288,6 @@ Free Software Foundation
 Boston, MA 02110-1301
 USA
 @end display
-
-The income from sales goes to support the foundation's purpose: the
-development of new free software, and improvements to our existing
-programs including GNU Emacs.
-
-@c FIXME you can't order a CD any more.
-If you find GNU Emacs useful, please @strong{send a donation} to the
-Free Software Foundation to support our work.  Donations to the Free
-Software Foundation are tax deductible in the US.  If you use GNU Emacs
-at your workplace, please suggest that the company make a donation.  If
-company policy is unsympathetic to the idea of donating to charity, you
-might instead suggest ordering a CD-ROM from the Foundation
-occasionally, or subscribing to periodic updates.
 
 @iftex
 @node Acknowledgments, Intro, Distrib, Top
