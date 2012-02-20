@@ -74,7 +74,8 @@ default value when appropriate; @file{rfn-eshadow.el}, shadowing of
 @code{read-file-name} input; @file{mb-depth.el}, display of minibuffer
 depth; @file{button.el}, the library that implements clickable buttons;
 @file{face-remap.el}, a package for changing the default face in
-individual buffers; and @file{macroexp.el} for macro-expansion.
+individual buffers; and @file{macroexp.el} for macro-expansion.  He
+also worked on an early version of the lexical-binding code.
 
 @item
 David Bakhash wrote @file{strokes.el}, a mode for controlling Emacs by
@@ -185,7 +186,8 @@ for editing IDL and WAVE CL.
 @item
 Bob Chassell wrote @file{texnfo-upd.el}, @file{texinfo.el}, and
 @file{makeinfo.el}, modes and utilities for working with Texinfo files;
-and @file{page-ext.el}, commands for extended page handling.
+and @file{page-ext.el}, commands for extended page handling.  He also
+wrote the ``Introduction to programming in Emacs Lisp'' manual.
 
 @item
 Jihyun Cho wrote @file{hanja-util.el} and @file{hangul.el}, utilities
@@ -198,7 +200,8 @@ prior to Emacs 23 for Mac OS.
 @item
 Chong Yidong was the Emacs co-maintainer from Emacs 23 onwards.  He made many
 improvements to the Emacs display engine.  He also wrote
-@file{tabulated-list.el}, a generic major mode for lists of data.
+@file{tabulated-list.el}, a generic major mode for lists of data;
+and improved support for themes and packages.
 
 @item
 James Clark wrote SGML mode, a mode for editing SGML documents; and
@@ -502,7 +505,8 @@ Emacs: @file{dns.el} for Domain Name Service lookups;
 @file{netrc.el} for parsing of @file{.netrc} files; and
 @file{time-date.el} for general date and time handling.
 He also wrote @file{network-stream.el}, for opening network processes;
-and @file{url-queue.el}, for controlling parallel downloads of URLs.
+@file{url-queue.el}, for controlling parallel downloads of URLs;
+and implemented libxml2 support.
 Components of Gnus have also been written by: Nagy Andras, David
 Blacka, Scott Byer, Ludovic Courtès, Julien Danjou, Kevin Greiner, Kai
 Großjohann, Joe Hildebrand, Paul Jarc, Simon Josefsson, Sascha
@@ -831,7 +835,8 @@ conflicts; @file{diff-mode.el}, a mode for viewing and editing context
 diffs; @file{css-mode.el} for Cascading Style Sheets;
 @file{bibtex-style.el} for BibTeX Style files; @file{mpc.el}, a
 client for the ``Music Player Daemon''; and @file{pcase.el},
-implementing ML-style pattern matching.
+implementing ML-style pattern matching.  He integrated the
+lexical-binding code in Emacs 24.
 
 @item
 Morioka Tomohiko wrote several packages for MIME support in Gnus and
@@ -1039,6 +1044,9 @@ Markus Rost wrote @file{cus-test.el}, a testing framework for customize.
 @item
 Guillermo J.@: Rozas wrote @file{scheme.el}, a mode for editing Scheme and
 DSSSL code.
+
+@item
+Martin Rudalics implemented improved display-buffer handling in Emacs 24.
 
 @item
 Ivar Rummelhoff wrote @file{winner.el}, which records recent window
@@ -1279,6 +1287,9 @@ operations on rectangle regions of text.  He also contributed to Gnus
 (q.v.@:).
 
 @item
+Joakim Verona implemented ImageMagick support.
+
+@item
 Ulrik Vieth implemented @file{meta-mode.el}, for editing MetaFont code.
 
 @item
@@ -1399,7 +1410,7 @@ zone out in front of Emacs.
 Eli Zaretskii made many standard Emacs features work on MS-DOS and
 Microsoft Windows.  He also wrote @file{tty-colors.el}, which
 implements transparent mapping of X colors to tty colors; and
-@file{rxvt.el}.
+@file{rxvt.el}.  He implemented support for bidirectional text.
 
 @item
 Jamie Zawinski wrote much of the support for faces and X selections.

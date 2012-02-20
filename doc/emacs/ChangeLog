@@ -1,5 +1,7 @@
 2012-02-20  Glenn Morris  <rgm@gnu.org>
 
+	* ack.texi (Acknowledgments): More updates.
+
 	* emacs.texi (Acknowledgments): Add several names from ack.texi.
 
 2012-02-18  Glenn Morris  <rgm@gnu.org>
