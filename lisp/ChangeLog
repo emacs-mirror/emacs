@@ -1,3 +1,7 @@
+2012-02-20  Glenn Morris  <rgm@gnu.org>
+
+	* emacs-lisp/authors.el (authors-aliases): Add another entry.
+
 2012-02-20  Leo Liu  <sdl.web@gmail.com>
 
 	* icomplete.el (icomplete-completions): Check FROM arg before
