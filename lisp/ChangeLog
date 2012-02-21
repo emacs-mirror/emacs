@@ -1,5 +1,8 @@
 2012-02-21  Glenn Morris  <rgm@gnu.org>
 
+	* vc/emerge.el (emerge-defvar-local):
+	Set `permanent-local' property rather than unused `preserved'.
+
 	* textmodes/picture.el (picture-delete-char): New alias.
 	(picture-mode-map): Use it.  (Bug#10860)
 	(picture-mode): Doc fix.
