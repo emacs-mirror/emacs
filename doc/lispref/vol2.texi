@@ -863,12 +863,11 @@ Files
 * File Locks::              Locking and unlocking files, to prevent
                               simultaneous editing by two people.
 * Information about Files:: Testing existence, accessibility, size of files.
-* Changing Files::          Renaming files, changing protection, etc.
+* Changing Files::          Renaming files, changing permissions, etc.
 * File Names::              Decomposing and expanding file names.
 * Contents of Directories:: Getting a list of the files in a directory.
 * Create/Delete Dirs::      Creating and Deleting Directories.
-* Magic File Names::        Defining "magic" special handling
-                              for certain file names.
+* Magic File Names::        Special handling for certain file names.
 * Format Conversion::       Conversion to and from various file formats.
 
 Visiting Files

@@ -1,3 +1,10 @@
+2012-02-21  Chong Yidong  <cyd@gnu.org>
+
+	* fileio.c (Vfile_name_handler_alist): Doc fix.
+
+	* buffer.c (Fget_file_buffer): Protect against invalid file
+	handler return value.
+
 2012-02-20  Paul Eggert  <eggert@cs.ucla.edu>
 
 	* .gdbinit (xreload): Don't assume EMACS_INT fits in 'long'

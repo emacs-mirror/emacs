@@ -83,8 +83,6 @@ and change key bindings where necessary.  The current list of modes:
 
 * DOCUMENTATION
 
-** Document XEmbed support
-
 ** Check the Emacs Tutorial.
 
 The first line of every tutorial must begin with text ending in a
@@ -193,7 +191,7 @@ edebug.texi
 elisp.texi
 errors.texi       
 eval.texi         cyd
-files.texi        
+files.texi        cyd
 frames.texi       
 functions.texi    cyd
 hash.texi         cyd
@@ -228,10 +226,6 @@ text.texi
 tips.texi         
 variables.texi    cyd
 windows.texi      
-
-* PLANNED ADDITIONS
-* pov-mode (waiting for a Free POV-Ray)
-** gas-mode ?
 
 
 Local variables:
