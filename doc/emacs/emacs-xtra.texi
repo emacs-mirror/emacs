@@ -11,8 +11,7 @@
 @copying
 This manual describes specialized features of Emacs.
 
-Copyright @copyright{} 2004-2012
-Free Software Foundation, Inc.
+Copyright @copyright{} 2004-2012 Free Software Foundation, Inc.
 
 @quotation
 Permission is granted to copy, distribute and/or modify this document
@@ -111,10 +110,10 @@ style of the Elisp manual.  Other sections should follow the style of
 the Emacs manual.
 
 @iftex
-@c ``Picture Mode'' is a chapter, not a section, so it's outside @raisesections.
-@include picture-xtra.texi
 
 @raisesections
+@include picture-xtra.texi
+
 @include arevert-xtra.texi
 
 @include dired-xtra.texi
