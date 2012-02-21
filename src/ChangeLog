@@ -1,5 +1,8 @@
 2012-02-20  Paul Eggert  <eggert@cs.ucla.edu>
 
+	* .gdbinit (xreload): Don't assume EMACS_INT fits in 'long'
+	when computing $valmask.
+
 	Fix crash due to non-contiguous EMACS_INT (Bug#10780).
 	* lisp.h (VALBITS): Move definition up, so that USE_LSB_TAG can use it.
 	(USE_LSB_TAG): Do not define if UINTPTR_MAX >> VALBITS == 0.
