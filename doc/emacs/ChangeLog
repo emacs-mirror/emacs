@@ -1,5 +1,8 @@
 2012-02-21  Glenn Morris  <rgm@gnu.org>
 
+	* emerge-xtra.texi (Emerge, Submodes of Emerge, Combining in Emerge):
+	Small fixes.
+
 	* emacs-xtra.texi: Picture mode is no longer a chapter.
 
 	* picture-xtra.texi (Basic Picture): C-a does get remapped.

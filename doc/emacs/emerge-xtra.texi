@@ -1,5 +1,5 @@
 @c This is part of the Emacs manual.
-@c Copyright (C) 2004-2012  Free Software Foundation, Inc.
+@c Copyright (C) 2004-2012 Free Software Foundation, Inc.
 @c See file emacs.texi for copying conditions.
 @c
 @c This file is included either in emacs-xtra.texi (when producing the
@@ -19,7 +19,7 @@ easier.  For other ways to compare files, see
 @ifnottex
 @ref{Comparing Files},
 @end ifnottex
-and @ref{Top, Ediff,, ediff, The Ediff Manual}.
+and @ref{Top,, Ediff, ediff, The Ediff Manual}.
 
 @menu
 * Overview of Emerge::     How to start Emerge.  Basic concepts.
@@ -155,13 +155,13 @@ which neither version is presumed ``correct.''  The mode line
 indicates Skip Prefers mode with @samp{S}.  This mode is only relevant
 when there is an ancestor.
 
-@findex emerge-auto-advance-mode
-@findex emerge-skip-prefers-mode
-  Use the command @kbd{s a} (@code{emerge-auto-advance-mode}) to set or
-clear Auto Advance mode.  Use @kbd{s s}
-(@code{emerge-skip-prefers-mode}) to set or clear Skip Prefers mode.
-These commands turn on the mode with a positive argument, turn it off
-with a negative or zero argument, and toggle the mode with no argument.
+@findex emerge-auto-advance
+@findex emerge-skip-prefers
+  Use the command @kbd{s a} (@code{emerge-auto-advance}) to set or clear
+Auto Advance mode.  Use @kbd{s s} (@code{emerge-skip-prefers}) to set or
+clear Skip Prefers mode.  These commands turn on the mode with a
+positive argument, turn it off with a negative or zero argument, and
+toggle the mode with no argument.
 
 @node State of Difference
 @subsection State of a Difference
@@ -362,9 +362,9 @@ like this:
 @example
 @group
 #ifdef NEW
-@var{version from A buffer}
-#else /* not NEW */
 @var{version from B buffer}
+#else /* not NEW */
+@var{version from A buffer}
 #endif /* not NEW */
 @end group
 @end example
@@ -380,7 +380,7 @@ produces the results shown above, looks like this:
 
 @example
 @group
-"#ifdef NEW\n%a#else /* not NEW */\n%b#endif /* not NEW */\n"
+"#ifdef NEW\n%b#else /* not NEW */\n%a#endif /* not NEW */\n"
 @end group
 @end example
 
