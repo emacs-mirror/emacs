@@ -161,7 +161,7 @@ msdog-xtra.texi
 mule.texi         
 m-x.texi          cyd
 package.texi      cyd
-picture-xtra.texi
+picture-xtra.texi rgm  (see bug#10860)
 programs.texi     cyd
 regs.texi         cyd
 rmail.texi        rgm

@@ -1,5 +1,7 @@
 2012-02-21  Glenn Morris  <rgm@gnu.org>
 
+	* picture-xtra.texi (Basic Picture): C-a does get remapped.
+
 	* ack.texi (Acknowledgments): Small changes, including resorting,
 	and removal of things no longer distributed.
 

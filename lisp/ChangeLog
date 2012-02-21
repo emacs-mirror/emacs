@@ -1,3 +1,9 @@
+2012-02-21  Glenn Morris  <rgm@gnu.org>
+
+	* textmodes/picture.el (picture-motion, picture-motion-reverse)
+	(picture-self-insert, picture-tab-chars): Doc fix.
+	(picture-mode-map): Fix C-a, C-e.
+
 2012-02-20  Glenn Morris  <rgm@gnu.org>
 
 	* emacs-lisp/authors.el (authors-aliases): Add another entry.
