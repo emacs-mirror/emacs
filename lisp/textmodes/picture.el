@@ -604,6 +604,8 @@ Leaves the region surrounding the rectangle."
 
 ;; Picture Keymap, entry and exit points.
 
+(defalias 'picture-delete-char 'delete-char)
+
 (defvar picture-mode-map nil)
 
 (defun picture-substitute (oldfun newfun)
@@ -633,7 +635,7 @@ Leaves the region surrounding the rectangle."
       (picture-substitute 'move-end-of-line 'picture-end-of-line)
       (picture-substitute 'mouse-set-point 'picture-mouse-set-point)
 
-      (define-key picture-mode-map "\C-c\C-d" 'delete-char)
+      (define-key picture-mode-map "\C-c\C-d" 'picture-delete-char)
       (define-key picture-mode-map "\e\t" 'picture-toggle-tab-state)
       (define-key picture-mode-map "\t" 'picture-tab)
       (define-key picture-mode-map "\e\t" 'picture-tab-search)
@@ -722,7 +724,7 @@ You can edit tabular text with these commands:
 
 You can manipulate text with these commands:
  Clear ARG columns after point without moving:    \\[picture-clear-column]
- Delete char at point:                            \\[delete-char]
+ Delete char at point:                            \\[picture-delete-char]
  Clear ARG columns backward:                      \\[picture-backward-clear-column]
  Clear ARG lines, advancing over them:            \\[picture-clear-line]
   (the cleared text is saved in the kill ring)

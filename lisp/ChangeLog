@@ -1,3 +1,9 @@
+2012-02-21  Glenn Morris  <rgm@gnu.org>
+
+	* textmodes/picture.el (picture-delete-char): Newalias.
+	(picture-mode-map): Use it.  (Bug#10860)
+	(picture-mode): Doc fix.
+
 2012-02-21  Juanma Barranquero  <lekktu@gmail.com>
 
 	* newcomment.el (uncomment-region-default): Remove unused binding.
