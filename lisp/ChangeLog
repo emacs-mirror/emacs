@@ -1,3 +1,8 @@
+2012-02-22  Glenn Morris  <rgm@gnu.org>
+
+	* ffap.el (ffap-c-path):
+	* man.el (Man-header-file-path): Handle multiarch.  (Bug#10702)
+
 2012-02-22  Chong Yidong  <cyd@gnu.org>
 
 	* custom.el (load-theme): Doc fix.
