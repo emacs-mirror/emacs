@@ -1,3 +1,10 @@
+2012-02-22  Glenn Morris  <rgm@gnu.org>
+
+	* macos.texi: Copyedits.  Fix @key/@kbd usage.
+	(Mac / GNUstep Basics): Don't mention the panels, since the next
+	section covers them.
+	(Mac / GNUstep Customization): Merge some panel info from previous.
+
 2012-02-21  Glenn Morris  <rgm@gnu.org>
 
 	* emerge-xtra.texi (Emerge, Submodes of Emerge, Combining in Emerge):

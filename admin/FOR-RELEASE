@@ -148,7 +148,7 @@ help.texi         cyd
 indent.texi       cyd
 killing.texi      cyd
 kmacro.texi       cyd
-macos.texi        
+macos.texi        rgm  (can't actually test any of it though)
 maintaining.texi  cyd
 mark.texi         cyd
 mini.texi         
