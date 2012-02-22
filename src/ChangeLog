@@ -1,3 +1,8 @@
+2012-02-22  Chong Yidong  <cyd@gnu.org>
+
+	* xterm.c (x_draw_image_relief): Add missing type check for
+	Vtool_bar_button_margin (Bug#10743).
+
 2012-02-21  Chong Yidong  <cyd@gnu.org>
 
 	* fileio.c (Vfile_name_handler_alist): Doc fix.
