@@ -195,12 +195,25 @@ extern int suppress_checking EXTERNALLY_VISIBLE;
      || defined DARWIN_OS || defined __sun)
 /* We also need to be able to specify mult-of-8 alignment on static vars.  */
 # if defined DECL_ALIGN
-/* mark_maybe_object assumes that EMACS_INT values are contiguous,
-   but this is not true on some hosts where EMACS_INT is wider than a pointer,
-   as they may allocate the halves of an EMACS_INT separately.
-   On these hosts USE_LSB_TAG is not needed because the top bits of an
-   EMACS_INT are unused, so define USE_LSB_TAG only on hosts where it
-   might be useful.  */
+/* On hosts where VALBITS is greater than the pointer width in bits,
+   USE_LSB_TAG is:
+
+    a. unnecessary, because the top bits of an EMACS_INT are unused,
+
+    b. slower, because it typically requires extra masking, and
+
+    c. harmful, because it can create Lisp_Object values that are so scrambled
+       that mark_maybe_object cannot decipher them.  mark_maybe_object assumes
+       that EMACS_INT values are contiguous, but a host where EMACS_INT is
+       wider than a pointer might allocate the top half of an EMACS_INT in
+       (say) a 32-bit word on the stack, putting the bottom half in a 32-bit
+       register that is saved elsewhere in a jmp_buf.  When this happens,
+       since USE_LSB_TAG is not defined the bottom half alone is a valid
+       pointer that mark_maybe_pointer can follow; but if USE_LSB_TAG were
+       defined, the bottom half would not be a valid pointer and neither
+       mark_maybe_object nor mark_maybe_pointer would follow it.
+
+   So, define USE_LSB_TAG only on hosts where it might be useful.  */
 #  if UINTPTR_MAX >> VALBITS != 0
 #   define USE_LSB_TAG
 #  endif
