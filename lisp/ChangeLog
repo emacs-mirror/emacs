@@ -1,3 +1,8 @@
+2012-02-22  Glenn Morris  <rgm@gnu.org>
+
+	* dired-x.el (dired-guess-shell-alist-default):
+	Remove escape sequences from nroff output.  (Bug#172)
+
 2012-02-21  Glenn Morris  <rgm@gnu.org>
 
 	* vc/emerge.el (emerge-defvar-local):
