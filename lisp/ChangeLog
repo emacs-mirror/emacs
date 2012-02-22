@@ -1,3 +1,9 @@
+2012-02-22  Juri Linkov  <juri@jurta.org>
+
+	* international/mule-cmds.el (read-char-by-name): Use \` and \'.
+	(ucs-insert): Doc fix.  Check for hex digits in the string.
+	Don't display `nil' in the error message.  (Bug#10857)
+
 2012-02-22  Alan Mackenzie  <acm@muc.de>
 
 	* progmodes/cc-modes: revert change #107149 from 2012-02-06.
