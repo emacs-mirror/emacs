@@ -186,7 +186,10 @@ the server."
   (setf (url-use-cookies url) (not inhibit-cookies))
   ;; Once in a while, remove old entries from the URL cache.
   (when (zerop (% url-retrieve-number-of-calls 1000))
-    (url-cache-prune-cache))
+    (condition-case error
+	(url-cache-prune-cache)
+      (file-error
+       (message "Error when expiring the cache: %s" error))))
   (setq url-retrieve-number-of-calls (1+ url-retrieve-number-of-calls))
   (let ((loader (url-scheme-get-property (url-type url) 'loader))
 	(url-using-proxy (if (url-host url)

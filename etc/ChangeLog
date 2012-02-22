@@ -1,3 +1,7 @@
+2012-02-20  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* emacs-buffer.gdb ($valmask): Don't assume EMACS_INT fits in 'long'.
+
 2012-02-10  Leo Liu  <sdl.web@gmail.com>
 
 	* NEWS: Change condition-case-no-debug to

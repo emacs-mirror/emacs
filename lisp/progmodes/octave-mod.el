@@ -1,9 +1,9 @@
 ;;; octave-mod.el --- editing Octave source files under Emacs
 
-;; Copyright (C) 1997, 2001-2012  Free Software Foundation, Inc.
+;; Copyright (C) 1997, 2001-2012 Free Software Foundation, Inc.
 
 ;; Author: Kurt Hornik <Kurt.Hornik@wu-wien.ac.at>
-;; Author: John Eaton <jwe@octave.org>
+;;	   John Eaton <jwe@octave.org>
 ;; Maintainer: FSF
 ;; Keywords: languages
 

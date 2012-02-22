@@ -5640,18 +5640,25 @@ of file names regardless of the current language environment.  */);
 	make_pure_c_string ("Cannot set file date"));
 
   DEFVAR_LISP ("file-name-handler-alist", Vfile_name_handler_alist,
-	       doc: /* *Alist of elements (REGEXP . HANDLER) for file names handled specially.
-If a file name matches REGEXP, then all I/O on that file is done by calling
-HANDLER.
+	       doc: /* Alist of elements (REGEXP . HANDLER) for file names handled specially.
+If a file name matches REGEXP, all I/O on that file is done by calling
+HANDLER.  If a file name matches more than one handler, the handler
+whose match starts last in the file name gets precedence.  The
+function `find-file-name-handler' checks this list for a handler for
+its argument.
 
-The first argument given to HANDLER is the name of the I/O primitive
-to be handled; the remaining arguments are the arguments that were
-passed to that primitive.  For example, if you do
-    (file-exists-p FILENAME)
-and FILENAME is handled by HANDLER, then HANDLER is called like this:
-    (funcall HANDLER 'file-exists-p FILENAME)
-The function `find-file-name-handler' checks this list for a handler
-for its argument.  */);
+HANDLER should be a function.  The first argument given to it is the
+name of the I/O primitive to be handled; the remaining arguments are
+the arguments that were passed to that primitive.  For example, if you
+do (file-exists-p FILENAME) and FILENAME is handled by HANDLER, then
+HANDLER is called like this:
+
+  (funcall HANDLER 'file-exists-p FILENAME)
+
+Note that HANDLER must be able to handle all I/O primitives; if it has
+nothing special to do for a primitive, it should reinvoke the
+primitive to handle the operation \"the usual way\".
+See Info node `(elisp)Magic File Names' for more details.  */);
   Vfile_name_handler_alist = Qnil;
 
   DEFVAR_LISP ("set-auto-coding-function",

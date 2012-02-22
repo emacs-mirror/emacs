@@ -52,7 +52,7 @@ for doing so on MS-DOS).
 * Frame Commands::      Iconifying, deleting, and switching frames.
 * Fonts::               Changing the frame font.
 * Speedbar::            How to make and use a speedbar frame.
-* Multiple Displays::   How one Emacs job can talk to several displays.
+* Multiple Displays::   How one Emacs instance can talk to several displays.
 * Frame Parameters::    Changing the colors and other modes of frames.
 * Scroll Bars::         How to enable and disable scroll bars; how to use them.
 * Drag and Drop::       Using drag and drop to open files and insert text.

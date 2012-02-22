@@ -1,6 +1,6 @@
 ;;; authors.el --- utility for maintaining Emacs' AUTHORS file -*-coding: utf-8;-*-
 
-;; Copyright (C) 2000-2012  Free Software Foundation, Inc.
+;; Copyright (C) 2000-2012 Free Software Foundation, Inc.
 
 ;; Author: Gerd Moellmann <gerd@gnu.org>
 ;; Maintainer: Kim F. Storm <storm@cua.dk>
@@ -58,6 +58,7 @@ files.")
     ("David M. Koppelman" "David M. Koppelman, Koppel@Ec?e.Lsu.Edu"
      "David Koppelman")
     ("David M. Smith" "David Smith" "David M Smith")
+    ("David O'Toole" "David T. O'Toole")
     ("Deepak Goel" "D. Goel")
     ("Ed L. Cashin" "Ed L Cashin")
     ("Edward M. Reingold" "Ed Reingold" "Edward M Reingold"

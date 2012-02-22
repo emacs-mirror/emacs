@@ -1,3 +1,32 @@
+2012-02-22  Chong Yidong  <cyd@gnu.org>
+
+	* xterm.c (x_draw_image_relief): Add missing type check for
+	Vtool_bar_button_margin (Bug#10743).
+
+2012-02-21  Chong Yidong  <cyd@gnu.org>
+
+	* fileio.c (Vfile_name_handler_alist): Doc fix.
+
+	* buffer.c (Fget_file_buffer): Protect against invalid file
+	handler return value.
+
+2012-02-20  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* .gdbinit (xreload): Don't assume EMACS_INT fits in 'long'
+	when computing $valmask.
+
+	Fix crash due to non-contiguous EMACS_INT (Bug#10780).
+	* lisp.h (VALBITS): Move definition up, so that USE_LSB_TAG can use it.
+	(USE_LSB_TAG): Do not define if UINTPTR_MAX >> VALBITS == 0.
+	It's useless in that case, and it can cause problems on hosts
+	that allocate halves of EMACS_INT values separately.
+	Reported by Dan Horák.  Diagnosed by Andreas Schwab in
+	<http://debbugs.gnu.org/cgi/bugreport.cgi?bug=10780#30>.
+	* mem-limits.h (EXCEEDS_LISP_PTR): Define to 0 on hosts where
+	UINTPTR_MAX >> VALBITS == 0.  This is required by the above change;
+	it avoids undefined behavior on hosts where shifting right by more
+	than the word width has undefined behavior.
+
 2012-02-19  Chong Yidong  <cyd@gnu.org>
 
 	* fileio.c (Ffile_name_directory, Ffile_name_nondirectory)

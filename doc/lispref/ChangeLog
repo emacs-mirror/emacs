@@ -1,3 +1,13 @@
+2012-02-21  Chong Yidong  <cyd@gnu.org>
+
+	* files.texi (Files): Mention magic file names as arguments.
+	(Reading from Files): Copyedits.
+	(File Attributes): Mention how to change file modes.
+	(Changing Files): Use standard "file permissions" terminology.
+	Add xref to File Attributes node.
+	(Locating Files): Document locate-user-emacs-file.
+	(Unique File Names): Recommend against using make-temp-name.
+
 2012-02-19  Chong Yidong  <cyd@gnu.org>
 
 	* help.texi (Documentation, Documentation Basics, Help Functions):

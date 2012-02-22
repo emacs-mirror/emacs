@@ -347,7 +347,9 @@ are exhibited within the square braces.)"
 	    (setq prospects nil)
 	  (while (and comps (not limit))
 	    (setq comp
-                  (if prefix-len (substring (car comps) prefix-len) (car comps))
+		  (if (and prefix-len (<= prefix-len (length (car comps))))
+		      (substring (car comps) prefix-len)
+		    (car comps))
 		  comps (cdr comps))
 	    (cond ((string-equal comp "") (setq most-is-exact t))
 		  ((member comp prospects))

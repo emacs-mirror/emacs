@@ -2854,7 +2854,7 @@ If DEPTH is nonzero, treat that as the nesting depth of the starting
 point (i.e. the starting point is DEPTH parentheses deep).  This
 function scans over parentheses until the depth goes to zero COUNT
 times.  Hence, positive DEPTH moves out that number of levels of
-paretheses, while negative DEPTH moves to a deeper level.
+parentheses, while negative DEPTH moves to a deeper level.
 
 Comments are ignored if `parse-sexp-ignore-comments' is non-nil.
 

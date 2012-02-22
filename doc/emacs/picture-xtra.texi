@@ -78,9 +78,10 @@ column, converting a tab to multiple spaces if necessary.  @kbd{C-n} and
 @code{picture-move-up}, which can either insert spaces or convert tabs
 as necessary to make sure that point stays in exactly the same column.
 @kbd{C-e} runs @code{picture-end-of-line}, which moves to after the last
-nonblank character on the line.  There is no need to change @kbd{C-a},
-as the choice of screen model does not affect beginnings of
-lines.
+nonblank character on the line.  @kbd{C-a} runs
+@code{picture-beginning-of-line}.  (The choice of screen model does not
+affect beginnings of lines; the only extra thing this command does is
+update the current picture column to 0.)
 
 @findex picture-newline
   Insertion of text is adapted to the quarter-plane screen model

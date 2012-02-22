@@ -224,7 +224,7 @@ ALIGN specifies that the `comment-end' markers should be aligned.
      /* bli */
   if `comment-end' is empty, this has no effect, unless EXTRA is also set,
   in which case the comment gets wrapped in a box.
-  
+
 EXTRA specifies that an extra line should be used before and after the
   region to comment (to put the `comment-end' and `comment-start').
   e.g. in C it comments regions as
@@ -872,8 +872,8 @@ comment markers."
 	  (when (and sre (looking-at (concat "\\s-*\n\\s-*" srei)))
 	    (goto-char (match-end 0)))
 	  (if (null arg) (delete-region (point-min) (point))
-            (let* ((opoint (point-marker))
-                   (nchar (skip-syntax-backward " ")))
+            (let ((opoint (point-marker)))
+              (skip-syntax-backward " ")
               (delete-char (- numarg))
               (unless (and (not (bobp))
                            (save-excursion (goto-char (point-min))

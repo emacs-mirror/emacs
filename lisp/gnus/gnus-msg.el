@@ -640,7 +640,7 @@ a news."
 	     (if (= 1 (prefix-numeric-value arg))
 		 (gnus-group-completing-read "Newsgroup" nil
 					     (gnus-read-active-file-p))
-	       (gnus-group-group-name))
+	       (or (gnus-group-group-name) ""))
 	   ""))
 	;; make sure last viewed article doesn't affect posting styles:
 	(gnus-article-copy))

@@ -868,6 +868,7 @@ textual parts.")
 	  ;; Move the article to a different method.
 	  (let ((result (eval accept-form)))
 	    (when result
+	      (nnimap-possibly-change-group group server)
 	      (nnimap-delete-article article)
 	      result)))))))
 
@@ -1190,7 +1191,8 @@ textual parts.")
 	  (dolist (response responses)
 	    (let* ((sequence (car response))
 		   (response (cadr response))
-		   (group (cadr (assoc sequence sequences))))
+		   (group (cadr (assoc sequence sequences)))
+		   (egroup (encode-coding-string group 'utf-8)))
 	      (when (and group
 			 (equal (caar response) "OK"))
 		(let ((uidnext (nnimap-find-parameter "UIDNEXT" response))
@@ -1202,15 +1204,14 @@ textual parts.")
 		    (setq highest (1- (string-to-number (car uidnext)))))
 		  (cond
 		   ((null highest)
-		    (insert (format "%S 0 1 y\n" (utf7-decode group t))))
+		    (insert (format "%S 0 1 y\n" egroup)))
 		   ((zerop exists)
 		    ;; Empty group.
-		    (insert (format "%S %d %d y\n"
-				    (utf7-decode group t)
+		    (insert (format "%S %d %d y\n" egroup
 				    highest (1+ highest))))
 		   (t
 		    ;; Return the widest possible range.
-		    (insert (format "%S %d 1 y\n" (utf7-decode group t)
+		    (insert (format "%S %d 1 y\n" egroup
 				    (or highest exists)))))))))
 	  t)))))
 
@@ -1222,7 +1223,7 @@ textual parts.")
 		       (nnimap-get-groups)))
 	(unless (assoc group nnimap-current-infos)
 	  ;; Insert dummy numbers here -- they don't matter.
-	  (insert (format "%S 0 1 y\n" (utf7-encode group)))))
+	  (insert (format "%S 0 1 y\n" (encode-coding-string group 'utf-8)))))
       t)))
 
 (deffoo nnimap-retrieve-group-data-early (server infos)
@@ -1706,7 +1707,8 @@ textual parts.")
   (when nnimap-record-commands
     (with-current-buffer (get-buffer-create "*imap log*")
       (goto-char (point-max))
-      (insert (format-time-string "%H:%M:%S") " "
+      (insert (format-time-string "%H:%M:%S")
+	      " [" nnimap-address "] "
 	      (if nnimap-inhibit-logging
 		  "(inhibited)\n"
 		command))))

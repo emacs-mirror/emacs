@@ -152,9 +152,11 @@ The variable `url-queue-timeout' sets a timeout."
 
 (defun url-queue-kill-job (job)
   (when (bufferp (url-queue-buffer job))
-    (while (get-buffer-process (url-queue-buffer job))
-      (ignore-errors
-	(delete-process (get-buffer-process (url-queue-buffer job)))))
+    (let (process)
+      (while (setq process (get-buffer-process (url-queue-buffer job)))
+	(set-process-sentinel process 'ignore)
+	(ignore-errors
+	  (delete-process process))))
     (ignore-errors
       (kill-buffer (url-queue-buffer job)))))
 

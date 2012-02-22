@@ -99,12 +99,12 @@ Cover art by Etienne Suvasa.
 
 Emacs is the extensible, customizable, self-documenting real-time
 display editor.  This Info file describes how to edit with Emacs and
-some of how to customize it; it corresponds to GNU Emacs version
+some of the ways to customize it; it corresponds to GNU Emacs version
 @value{EMACSVER}.
 
 @ifinfo
-To learn more about the Info documentation system, type @kbd{h},
-to visit a programmed instruction sequence for the Info commands.
+If you are reading this in Emacs, type @kbd{h} to read a basic
+introduction to the Info documentation system.
 @end ifinfo
 
 For information on extending Emacs, see @ref{Top, Emacs Lisp,, elisp, The
@@ -113,6 +113,8 @@ Emacs Lisp Reference Manual}.
 @insertcopying
 @end ifnottex
 
+@c Note that the TeX version generates its own TOC, so the ifnottex's
+@c here are not really necessary.
 @menu
 * Distrib::             How to get the latest Emacs distribution.
 * Intro::               An introduction to Emacs concepts.
@@ -146,12 +148,7 @@ Fundamental Editing Commands
 
 Important Text-Changing Commands
 * Mark::                The mark: how to delimit a "region" of text.
-* Killing::             Killing (cutting) text.
-* Yanking::             Recovering killed text.  Moving text. (Pasting.)
-* Cut and Paste::       Clipboard and selections on graphical displays.
-* Accumulating Text::   Other ways of copying text.
-* Rectangles::          Operating on text in rectangular areas.
-* CUA Bindings::        Using @kbd{C-x}, @kbd{C-c}, @kbd{C-v} to kill and yank.
+* Killing::             Killing (cutting) and yanking (copying) text.
 * Registers::           Saving a text string or a location in the buffer.
 * Display::             Controlling what text is displayed.
 * Search::              Finding or replacing occurrences of a string.
@@ -161,8 +158,8 @@ Important Text-Changing Commands
 Major Structures of Emacs
 * Files::               All about handling files.
 * Buffers::             Multiple buffers; editing several files at once.
-* Windows::             Viewing two pieces of text at once.
-* Frames::              Running the same Emacs session in multiple X windows.
+* Windows::             Viewing multiple pieces of text in one frame.
+* Frames::              Using multiple ``windows'' on your display.
 * International::       Using non-@acronym{ASCII} character sets.
 
 Advanced Features
@@ -172,8 +169,7 @@ Advanced Features
 * Programs::            Commands and modes for editing programs.
 * Building::            Compiling, running and debugging programs.
 * Maintaining::         Features for maintaining large programs.
-* Abbrevs::             Defining text abbreviations to reduce
-                          the number of characters you must type.
+* Abbrevs::             Defining text abbreviations to reduce typing.
 * Dired::               Directory and file manager.
 * Calendar/Diary::      Calendar and diary facilities.
 * Sending Mail::        Sending mail in Emacs.
@@ -187,7 +183,7 @@ Advanced Features
 @ifnottex
 * Picture Mode::        Editing pictures made up of text characters.
 @end ifnottex
-* Editing Binary Files:: Editing binary files with Hexl mode.
+* Editing Binary Files::  Editing binary files with Hexl mode.
 * Saving Emacs Sessions:: Saving Emacs state from one session to the next.
 * Recursive Edit::      Performing edits while "within another command".
 * Emulation::           Emulating some other editors with Emacs.
@@ -291,6 +287,15 @@ The Mark and the Region
 
 Killing and Moving Text
 
+* Deletion and Killing:: Commands that remove text.
+* Yanking::             Recovering killed text.  Moving text. (Pasting.)
+* Cut and Paste::       Clipboard and selections on graphical displays.
+* Accumulating Text::   Other ways of copying text.
+* Rectangles::          Operating on text in rectangular areas.
+* CUA Bindings::        Using @kbd{C-x}, @kbd{C-c}, @kbd{C-v} to kill and yank.
+
+Deletion and Killing
+
 * Deletion::            Commands for deleting small amounts of text and
                           blank areas.
 * Killing by Lines::    How to kill entire lines of text at one time.
@@ -338,7 +343,7 @@ Controlling the Display
 * Highlight Interactively:: Tell Emacs what text to highlight.
 * Fringes::                Enabling or disabling window fringes.
 * Displaying Boundaries::  Displaying top and bottom of the buffer.
-* Useless Whitespace::     Showing possibly-spurious trailing whitespace.
+* Useless Whitespace::     Showing possibly spurious trailing whitespace.
 * Selective Display::      Hiding lines with lots of indentation.
 * Optional Mode Line::     Optional mode line display features.
 * Text Display::           How text characters are normally displayed.
@@ -391,8 +396,10 @@ Keyboard Macros
 * Basic Keyboard Macro::     Defining and running keyboard macros.
 * Keyboard Macro Ring::      Where previous keyboard macros are saved.
 * Keyboard Macro Counter::   Inserting incrementing numbers in macros.
-* Keyboard Macro Query::     Making keyboard macros do different things each time.
-* Save Keyboard Macro::      Giving keyboard macros names; saving them in files.
+* Keyboard Macro Query::     Making keyboard macros do different things each
+                                time.
+* Save Keyboard Macro::      Giving keyboard macros names; saving them in
+                                files.
 * Edit Keyboard Macro::      Editing keyboard macros.
 * Keyboard Macro Step-Edit:: Interactively executing and editing a keyboard
                                 macro.
@@ -403,7 +410,9 @@ File Handling
 * Visiting::            Visiting a file prepares Emacs to edit the file.
 * Saving::              Saving makes your changes permanent.
 * Reverting::           Reverting cancels all the changes not saved.
+@ifnottex
 * Autorevert::          Auto Reverting non-file buffers.
+@end ifnottex
 * Auto Save::           Auto Save periodically protects against loss of data.
 * File Aliases::        Handling multiple names for one file.
 * Directories::         Creating, deleting, and listing file directories.
@@ -412,7 +421,7 @@ File Handling
 * Misc File Ops::       Other things you can do on files.
 * Compressed Files::    Accessing compressed files.
 * File Archives::       Operating on tar, zip, jar etc. archive files.
-* Remote Files::        Accessing files on other sites.
+* Remote Files::        Accessing files on other machines.
 * Quoted File Names::   Quoting special characters in file names.
 * File Name Cache::     Completion against a list of files you often use.
 * File Conveniences::   Convenience Features for Finding Files.
@@ -434,11 +443,13 @@ Backup Files
 * Backup Deletion::     Emacs deletes excess numbered backups.
 * Backup Copying::      Backups can be made by copying or renaming.
 
+@ifnottex
 Auto Reverting Non-File Buffers
 
 * Auto Reverting the Buffer Menu:: Auto Revert of the Buffer Menu.
 * Auto Reverting Dired::           Auto Revert of Dired buffers.
 * Supporting additional buffers::  How to add more Auto Revert support.
+@end ifnottex
 
 Auto-Saving: Protection Against Disasters
 
@@ -475,6 +486,10 @@ Multiple Windows
 * Displaying Buffers::  How Emacs picks a window for displaying a buffer.
 * Window Convenience::  Convenience functions for window handling.
 
+Displaying Buffers
+
+* Window Choice::       How @code{display-buffer} works.
+
 Frames and Graphical Displays
 
 * Mouse Commands::      Moving, cutting, and pasting, with the mouse.
@@ -486,7 +501,7 @@ Frames and Graphical Displays
 * Frame Commands::      Iconifying, deleting, and switching frames.
 * Fonts::               Changing the frame font.
 * Speedbar::            How to make and use a speedbar frame.
-* Multiple Displays::   How one Emacs job can talk to several displays.
+* Multiple Displays::   How one Emacs instance can talk to several displays.
 * Frame Parameters::    Changing the colors and other modes of frames.
 * Scroll Bars::         How to enable and disable scroll bars; how to use them.
 * Drag and Drop::       Using drag and drop to open files and insert text.
@@ -523,6 +538,7 @@ International Character Set Support
 * Unibyte Mode::            You can pick one European character set
                               to use without multibyte characters.
 * Charsets::                How Emacs groups its internal character codes.
+* Bidirectional Editing::   Support for right-to-left scripts.
 
 Modes
 
@@ -549,9 +565,9 @@ Commands for Human Languages
 * Text Mode::           The major modes for editing text files.
 * Outline Mode::        Editing outlines.
 * Org Mode::            The Emacs organizer.
-* TeX Mode::            Editing input to the formatter TeX.
+* TeX Mode::            Editing TeX and LaTeX files.
 * HTML Mode::           Editing HTML and SGML files.
-* Nroff Mode::          Editing input to the formatter nroff.
+* Nroff Mode::          Editing input to the nroff formatter.
 * Enriched Text::       Editing text ``enriched'' with fonts, colors, etc.
 * Text Based Tables::   Commands for editing text-based tables.
 * Two-Column::          Splitting text columns into separate windows.
@@ -567,11 +583,15 @@ Filling Text
 Outline Mode
 
 * Outline Format::      What the text of an outline looks like.
-* Outline Motion::      Special commands for moving through
-                          outlines.
+* Outline Motion::      Special commands for moving through outlines.
 * Outline Visibility::  Commands to control what is visible.
 * Outline Views::       Outlines and multiple views.
 * Foldout::             Folding means zooming in on outlines.
+
+Org Mode
+
+* Org Organizer::       Managing TODO lists and agendas.
+* Org Authoring::       Exporting Org buffers to various formats.
 
 @TeX{} Mode
 
@@ -622,9 +642,11 @@ Editing Programs
 * Semantic::            Suite of editing tools based on source code parsing.
 * Misc for Programs::   Other Emacs features useful for editing programs.
 * C Modes::             Special commands of C, C++, Objective-C,
-                          Java, and Pike modes.
+                          Java, IDL, Pike and AWK modes.
 * Asm Mode::            Asm mode and its special features.
+@ifnottex
 * Fortran::             Fortran mode and its special features.
+@end ifnottex
 
 Top-Level Definitions, or Defuns
 
@@ -657,10 +679,9 @@ Manipulating Comments
 
 Documentation Lookup
 
-* Info Lookup::         Looking up library functions and commands
-                          in Info files.
-* Man Page::            Looking up man pages of library functions and commands.
-* Lisp Doc::            Looking up Emacs Lisp functions, etc.
+* Info Lookup::        Looking up library functions and commands in Info files.
+* Man Page::           Looking up man pages of library functions and commands.
+* Lisp Doc::           Looking up Emacs Lisp functions, etc.
 
 C and Related Modes
 
@@ -670,6 +691,7 @@ C and Related Modes
 * Other C Commands::    Filling comments, viewing expansion of macros,
                           and other neat features.
 
+@ifnottex
 Fortran Mode
 
 * Fortran Motion::      Moving point by statements or subprograms.
@@ -686,6 +708,7 @@ Fortran Indentation
 * ForIndent Num::       How line numbers auto-indent.
 * ForIndent Conv::      Conventions you must obey to avoid trouble.
 * ForIndent Vars::      Variables controlling Fortran indent style.
+@end ifnottex
 
 Compiling and Testing Programs
 
@@ -712,8 +735,7 @@ Running Debuggers Under Emacs
 * Commands of GUD::     Key bindings for common commands.
 * GUD Customization::   Defining your own commands for GUD.
 * GDB Graphical Interface::  An enhanced mode that uses GDB features to
-                          implement a graphical debugging environment through
-                          Emacs.
+                          implement a graphical debugging environment.
 
 GDB Graphical Interface
 
@@ -734,7 +756,9 @@ Maintaining Large Programs
 * Tags::                Go directly to any function in your program in one
                           command.  Tags remembers which file it is in.
 * EDE::                 An integrated development environment for Emacs.
+@ifnottex
 * Emerge::              A convenient way of merging two versions of a program.
+@end ifnottex
 
 Version Control
 
@@ -748,9 +772,10 @@ Version Control
 * VC Undo::             Canceling changes before or after committing.
 * VC Directory Mode::   Listing files managed by version control.
 * Branches::            Multiple lines of development.
-* Revision Tags::       Symbolic names for revisions.
+@ifnottex
 * Miscellaneous VC::    Various other commands and features of VC.
 * Customizing VC::      Variables that change VC's behavior.
+@end ifnottex
 
 Introduction to Version Control
 
@@ -780,6 +805,7 @@ Multiple Branches of a File
 * Merging::               Transferring changes between branches.
 * Creating Branches::     How to start a new branch.
 
+@ifnottex
 Miscellaneous Commands and Features of VC
 
 * Change Logs and VC::    Generating a change log file from log entries.
@@ -792,6 +818,7 @@ Customizing VC
 * General VC Options::    Options that apply to multiple back ends.
 * RCS and SCCS::          Options for RCS and SCCS.
 * CVS Options::           Options for CVS.
+@end ifnottex
 
 Change Logs
 
@@ -808,6 +835,7 @@ Tags Tables
 * Tags Search::         Using a tags table for searching and replacing.
 * List Tags::           Listing and finding tags defined in a file.
 
+@ifnottex
 Merging Files with Emerge
 
 * Overview of Emerge::  How to start Emerge.  Basic concepts.
@@ -820,6 +848,7 @@ Merging Files with Emerge
 * Exiting Emerge::      What to do when you've finished the merge.
 * Combining in Emerge::     How to keep both alternatives for a difference.
 * Fine Points of Emerge::   Miscellaneous issues.
+@end ifnottex
 
 Abbrevs
 
@@ -855,7 +884,9 @@ Dired, the Directory Editor
 * Transforming File Names::  Using patterns to rename multiple files.
 * Comparison in Dired::      Running `diff' by way of Dired.
 * Subdirectories in Dired::  Adding subdirectories to the Dired buffer.
+@ifnottex
 * Subdir Switches::          Subdirectory switches in Dired.
+@end ifnottex
 * Subdirectory Motion::      Moving across subdirectories, and up and down.
 * Hiding Subdirectories::    Making subdirectories visible or invisible.
 * Dired Updating::           Discarding lines for files of no interest.
@@ -878,9 +909,11 @@ The Calendar and the Diary
 * Diary::               Displaying events from your diary.
 * Appointments::        Reminders when it's time to do something.
 * Importing Diary::     Converting diary events to/from other formats.
-* Daylight Saving::    How to specify when daylight saving time is active.
+* Daylight Saving::     How to specify when daylight saving time is active.
 * Time Intervals::      Keeping track of time intervals.
+@ifnottex
 * Advanced Calendar/Diary Usage:: Advanced Calendar/Diary customization.
+@end ifnottex
 
 Movement in the Calendar
 
@@ -905,6 +938,7 @@ The Diary
 * Adding to Diary::        Commands to create diary entries.
 * Special Diary Entries::  Anniversaries, blocks of dates, cyclic entries, etc.
 
+@ifnottex
 Customizing the Calendar and Diary
 
 * Calendar Customizing::   Calendar layout and hooks.
@@ -916,6 +950,7 @@ Customizing the Calendar and Diary
 * Diary Display::          A choice of ways to display the diary.
 * Fancy Diary Display::    Sorting diary entries, using included diary files.
 * Sexp Diary Entries::     More flexible diary entries.
+@end ifnottex
 
 Document Viewing
 
@@ -967,8 +1002,8 @@ Reading Mail with Rmail
 
 Rmail Summaries
 
-* Rmail Make Summary::       Making various sorts of summaries.
-* Rmail Summary Edit::       Manipulating messages from the summary.
+* Rmail Make Summary::  Making various sorts of summaries.
+* Rmail Summary Edit::  Manipulating messages from the summary.
 
 Gnus
 
@@ -1155,7 +1190,8 @@ Emacs and Microsoft Windows/MS-DOS
 * Windows Printing::    How to specify the printer on MS-Windows.
 * Windows Fonts::       Specifying fonts on MS-Windows.
 * Windows Misc::        Miscellaneous Windows features.
-* MS-DOS::              Using Emacs on MS-DOS (otherwise known as @dfn{MS-DOG}).
+@ifnottex
+* MS-DOS::              Using Emacs on MS-DOS.
 
 Emacs and MS-DOS
 
@@ -1166,6 +1202,7 @@ Emacs and MS-DOS
 * MS-DOS Printing::     Printing specifics on MS-DOS.
 * MS-DOS and MULE::     Support for internationalization on MS-DOS.
 * MS-DOS Processes::    Running subprocesses on MS-DOS.
+@end ifnottex
 
 @end detailmenu
 @end menu
@@ -1183,7 +1220,7 @@ primer.  If you are new to Emacs, we recommend you start with
 the integrated, learn-by-doing tutorial, before reading the manual.  To
 run the tutorial, start Emacs and type @kbd{C-h t}.  The tutorial
 describes commands, tells you when to try them, and explains the
-results.
+results.  The tutorial is available in several languages.
 
   On first reading, just skim chapters 1 and 2, which describe the
 notational conventions of the manual and the general appearance of the
@@ -1201,20 +1238,19 @@ need them.
 
   Read the Common Problems chapter if Emacs does not seem to be
 working properly.  It explains how to cope with several common
-problems (@pxref{Lossage}), as well as when and how to report Emacs
-bugs (@pxref{Bugs}).
+problems (@pxref{Lossage,, Dealing with Emacs Trouble}), as well as
+when and how to report Emacs bugs (@pxref{Bugs}).
 
   To find the documentation of a particular command, look in the index.
 Keys (character commands) and command names have separate indexes.
 There is also a glossary, with a cross reference for each term.
 
   This manual is available as a printed book and also as an Info file.
-The Info file is for use with the Info program, which is the principal
-means of accessing on-line documentation in the GNU system.  Both the
-Emacs Info file and an Info reader are included with GNU Emacs.  The
-Info file and the printed book contain substantially the same text and
-are generated from the same source files, which are also distributed
-with GNU Emacs.
+The Info file is for reading from Emacs itself, or with the Info program.
+Info is the principal format for documentation in the GNU system.
+The Info file and the printed book contain substantially the same text
+and are generated from the same source files, which are also
+distributed with GNU Emacs.
 
   GNU Emacs is a member of the Emacs editor family.  There are many
 Emacs editors, all sharing common principles of organization.  For
@@ -1223,14 +1259,15 @@ learned from its development, see @cite{Emacs, the Extensible,
 Customizable Self-Documenting Display Editor}, available from
 @url{ftp://publications.ai.mit.edu/ai-publications/pdf/AIM-519A.pdf}.
 
-This edition of the manual is intended for use with GNU Emacs
+This version of the manual is mainly intended for use with GNU Emacs
 installed on GNU and Unix systems.  GNU Emacs can also be used on
-MS-DOS (also called MS-DOG), Microsoft Windows, and Macintosh systems.
-Those systems use different file name syntax; in addition
-MS-DOS does not support all GNU Emacs features.  @xref{Microsoft
-Windows}, for information about using Emacs on Windows.
-@xref{Mac OS / GNUstep}, for information about using Emacs on
-Macintosh (and GNUstep).
+MS-DOS, Microsoft Windows, and Macintosh systems.  The Info file
+version of this manual contains some more information about using
+Emacs on those systems.  Those systems use different file name syntax;
+in addition MS-DOS does not support all GNU Emacs features.
+@xref{Microsoft Windows}, for information about using Emacs on
+Windows.  @xref{Mac OS / GNUstep}, for information about using Emacs
+on Macintosh (and GNUstep).
 @end iftex
 
 @node Distrib, Intro, Top, Top
@@ -1294,39 +1331,44 @@ USA
 @unnumberedsec Acknowledgments
 
 Contributors to GNU Emacs include Jari Aalto, Per Abrahamsen, Tomas
-Abrahamsson, Jay K.@: Adams, Michael Albinus, Nagy Andras, Ralf
-Angeli, Joe Arceneaux, Miles Bader, David Bakhash, Juanma Barranquero,
-Eli Barzilay, Thomas Baumann, Steven L.@: Baur, Jay Belanger,
-Alexander L.@: Belikoff, Thomas Bellman, Scott Bender, Boaz Ben-Zvi,
-Sergey Berezin, Karl Berry, Anna M.@: Bigatti, Ray Blaak, Martin
-Blais, Jim Blandy, Johan Bockgård, Jan Böcker, Lennart Borgman, Per
-Bothner, Terrence Brannon, Frank Bresz, Peter Breton, Emmanuel Briot,
-Kevin Broadey, Vincent Broman, Michael Brouwer, David M.@: Brown,
-Georges Brun-Cottan, Joe Buehler, W@l{}odek Bzyl, Bill Carpenter, Per
-Cederqvist, Hans Chalupsky, Chong Yidong, Chris Chase, Bob Chassell,
-Andrew Choi, Sacha Chua, James Clark, Mike Clarkson, Glynn Clements,
-Andrew Cohen, Daniel Colascione, Ludovic Courtès, Andrew Csillag,
-Baoqiu Cui, Doug Cutting, Mathias Dahl, Julien Danjou, Satyaki Das,
-Vivek Dasmohapatra, Michael DeCorte, Gary Delp, Matthieu Devin,
-Christophe de Dinechin, Eri Ding, Jan Djärv, Carsten Dominik, Scott
-Draves, Benjamin Drieu, Viktor Dukhovni, Dmitry Dzhus, John Eaton,
-Rolf Ebert, Carl Edman, David Edmondson, Paul Eggert, Stephen Eglen,
-Torbjörn Einarsson, Tsugutomo Enami, David Engster, Hans Henrik
-Eriksen, Michael Ernst, Ata Etemadi, Frederick Farnbach, Oscar
-Figueiredo, Fred Fish, Karl Fogel, Gary Foster, Romain Francoise, Noah
-Friedman, Andreas Fuchs, Shigeru Fukaya, Hallvard Furuseth, Keith
-Gabryelski, Peter S.@: Galbraith, Kevin Gallagher, Kevin Gallo, Juan
-León Lahoz García, Howard Gayle, Daniel German, Stephen Gildea, Julien
-Gilles, David Gillespie, Bob Glickstein, Deepak Goel, Boris Goldowsky,
-David Goodger, Michelangelo Grigni, Odd Gripenstam, Kai Großjohann,
-Michael Gschwind, Bastien Guerry, Henry Guillaume, Doug Gwyn, Bruno
-Haible, Ken'ichi Handa, Lars Hansen, Chris Hanson, Jesper Harder,
-Alexandru Harsanyi, K.@: Shane Hartman, John Heidemann, Jon K.@:
-Hellan, Magnus Henoch, Markus Heritsch, Dirk Herrmann, Karl Heuer,
-Manabu Higashida, Anders Holst, Jeffrey C.@: Honig, Tassilo Horn, Kurt
-Hornik, Tom Houlder, Joakim Hove, Denis Howe, Lars Ingebrigtsen,
-Andrew Innes, Seiichiro Inoue, Philip Jackson, Pavel Janik, Paul Jarc,
-Ulf Jasper, Michael K.@: Johnson, Kyle Jones, Terry Jones, Simon
+Abrahamsson, Jay K.@: Adams, Alon Albert, Michael Albinus, Nagy
+Andras, Benjamin Andresen, Ralf Angeli, Joe Arceneaux, Emil Åström,
+Miles Bader, David Bakhash, Juanma Barranquero, Eli Barzilay, Thomas
+Baumann, Steven L.@: Baur, Jay Belanger, Alexander L.@: Belikoff,
+Thomas Bellman, Scott Bender, Boaz Ben-Zvi, Sergey Berezin, Karl
+Berry, Anna M.@: Bigatti, Ray Blaak, Martin Blais, Jim Blandy, Johan
+Bockgård, Jan Böcker, Joel Boehland, Lennart Borgman, Per Bothner,
+Terrence Brannon, Frank Bresz, Peter Breton, Emmanuel Briot, Kevin
+Broadey, Vincent Broman, Michael Brouwer, David M.@: Brown, Stefan Bruda,
+Georges Brun-Cottan, Joe Buehler, Scott Byer, W@l{}odek Bzyl,
+Bill Carpenter, Per Cederqvist, Hans Chalupsky, Chris Chase, Bob
+Chassell, Andrew Choi, Chong Yidong, Sacha Chua, Stewart Clamen, James
+Clark, Mike Clarkson, Glynn Clements, Andrew Cohen, Daniel Colascione,
+Edward O'Connor, Christoph Conrad, Ludovic Courtès, Andrew Csillag,
+Toby Cubitt, Baoqiu Cui, Doug Cutting, Mathias Dahl, Julien Danjou, Satyaki
+Das, Vivek Dasmohapatra, Dan Davison, Michael DeCorte, Gary Delp, Nachum
+Dershowitz, Dave Detlefs, Matthieu Devin, Christophe de Dinechin, Eri
+Ding, Jan Djärv, Lawrence R.@: Dodd, Carsten Dominik, Scott Draves,
+Benjamin Drieu, Viktor Dukhovni, Jacques Duthen, Dmitry Dzhus, John
+Eaton, Rolf Ebert, Carl Edman, David Edmondson, Paul Eggert, Stephen
+Eglen, Christian Egli, Torbjörn Einarsson, Tsugutomo Enami, David
+Engster, Hans Henrik Eriksen, Michael Ernst, Ata Etemadi, Frederick
+Farnbach, Oscar Figueiredo, Fred Fish, Steve Fisk, Karl Fogel, Gary
+Foster, Eric S.@: Fraga, Romain Francoise, Noah Friedman, Andreas
+Fuchs, Shigeru Fukaya, Hallvard Furuseth, Keith Gabryelski, Peter S.@:
+Galbraith, Kevin Gallagher, Kevin Gallo, Juan León Lahoz García,
+Howard Gayle, Daniel German, Stephen Gildea, Julien Gilles, David
+Gillespie, Bob Glickstein, Deepak Goel, David De La Harpe Golden, Boris
+Goldowsky, David Goodger, Chris Gray, Kevin Greiner, Michelangelo Grigni, Odd
+Gripenstam, Kai Großjohann, Michael Gschwind, Bastien Guerry, Henry
+Guillaume, Doug Gwyn, Bruno Haible, Ken'ichi Handa, Lars Hansen, Chris
+Hanson, Jesper Harder, Alexandru Harsanyi, K.@: Shane Hartman, John
+Heidemann, Jon K.@: Hellan, Magnus Henoch, Markus Heritsch, Dirk
+Herrmann, Karl Heuer, Manabu Higashida, Konrad Hinsen, Anders Holst,
+Jeffrey C.@: Honig, Tassilo Horn, Kurt Hornik, Tom Houlder, Joakim
+Hove, Denis Howe, Lars Ingebrigtsen, Andrew Innes, Seiichiro Inoue,
+Philip Jackson, Martyn Jago, Pavel Janik, Paul Jarc, Ulf Jasper,
+Thorsten Jolitz, Michael K.@: Johnson, Kyle Jones, Terry Jones, Simon
 Josefsson, Alexandre Julliard, Arne Jørgensen, Tomoji Kagatani,
 Brewster Kahle, Tokuya Kameshima, Lute Kamstra, Ivan Kanis, David
 Kastrup, David Kaufman, Henry Kautz, Taichi Kawabata, Taro Kawagishi,
@@ -1337,56 +1379,59 @@ Ryszard Kubiak, Igor Kuzmin, David Kågedal, Daniel LaLiberte, Karl
 Landstrom, Mario Lang, Aaron Larson, James R.@: Larus, Vinicius Jose
 Latorre, Werner Lemberg, Frederic Lepied, Peter Liljenberg, Christian
 Limpach, Lars Lindberg, Chris Lindblad, Anders Lindgren, Thomas Link,
-Juri Linkov, Francis Litterio, Emilio C.@: Lopes, Károly L@H{o}rentey,
-Martin Lorentzon, Dave Love, Sascha Lüdecke, Eric Ludlam, Greg McGary,
-Roland McGrath, Michael McNamara, Alan Mackenzie, Christopher J.@:
-Madsen, Neil M.@: Mager, Ken Manheimer, Bill Mann, Brian Marick, Simon
-Marshall, Bengt Martensson, Charlie Martin, Yukihiro Matsumoto, Thomas
-May, Will Mengarini, David Megginson, Stefan Merten, Ben A.@:
-Mesander, Wayne Mesard, Brad Miller, Lawrence Mitchell, Richard
-Mlynarik, Gerd Moellmann, Stefan Monnier, Morioka Tomohiko, Keith
-Moore, Jan Moringen, Glenn Morris, Diane Murray, Sen Nagata, Gergely
-Nagy, Erik Naggum, Nobuyoshi Nakada, Thomas Neumann, Thien-Thi Nguyen,
-Mike Newton, Jurgen Nickelsen, Dan Nicolaescu, Hrvoje Niksic, Jeff
-Norden, Andrew Norman, Edward O'Connor, Kentaro Ohkouchi, Christian
-Ohler, Alexandre Oliva, Bob Olson, Michael Olson, Takaaki Ota, Pieter
-E.@: J.@: Pareit, Ross Patterson, David Pearson, Jeff Peck, Damon
-Anton Permezel, Tom Perrine, William M.@: Perry, Per Persson, Jens
-Petersen, Daniel Pfeiffer, Richard L.@: Pieri, Fred Pierresteguy,
-François Pinard, Christian Plaunt, David Ponce, Francesco A.@:
-Potorti, Michael D.@: Prange, Mukesh Prasad, Ken Raeburn, Marko
-Rahamaa, Ashwin Ram, Eric S.@: Raymond, Paul Reilly, Edward M.@:
-Reingold, Alex Rezinsky, Rob Riepel, David Reitter, Adrian Robert,
-Nick Roberts, Roland B.@: Roberts, John Robinson, Danny Roozendaal,
-Sebastian Rose, William Rosenblatt, Markus Rost, Guillermo J.@: Rozas,
-Martin Rudalics, Ivar Rummelhoff, Jason Rumney, Wolfgang Rupprecht,
-Kevin Ryde, James B.@: Salem, Masahiko Sato, Timo Savola, Jorgen
-Schaefer, Holger Schauer, William Schelter, Ralph Schleicher, Gregor
-Schmid, Michael Schmidt, Ronald S.@: Schnell, Philippe Schnoebelen,
-Jan Schormann, Alex Schroeder, Rainer Schoepf, Stefan Schoef, Raymond
-Scholz, Eric Schulte, Andreas Schwab, Randal Schwartz, Oliver Seidel,
-Manuel Serrano, Paul Sexton, Hovav Shacham, Stanislav Shalunov, Marc
-Shapiro, Richard Sharman, Olin Shivers, Tibor @v{S}imko, Espen
-Skoglund, Rick Sladkey, Lynn Slater, Chris Smith, David Smith, Paul
-D.@: Smith, Wilson Snyder, William Sommerfeld, Andre Spiegel, Michael
-Staats, Ulf Stegemann, Reiner Steib, Sam Steingold, Ake Stenhoff,
-Peter Stephenson, Ken Stevens, Andy Stewart, Jonathan Stigelman,
-Martin Stjernholm, Kim F.@: Storm, Steve Strassmann, Olaf Sylvester,
-Naoto Takahashi, Steven Tamm, Luc Teirlinck, Jean-Philippe Theberge,
-Jens T.@: Berger Thielemann, Spencer Thomas, Jim Thompson, Toru
-Tomabechi, David O'Toole, Markus Triska, Tom Tromey, Enami Tsugutomo,
-Eli Tziperman, Daiki Ueno, Masanobu Umeda, Rajesh Vaidheeswarran, Neil
+Juri Linkov, Francis Litterio, Sergey Litvinov, Emilio C.@: Lopes,
+Martin Lorentzon, Dave Love, Eric Ludlam, Károly L@H{o}rentey, Sascha
+Lüdecke, Greg McGary, Roland McGrath, Michael McNamara, Alan Mackenzie,
+Christopher J.@: Madsen, Neil M.@: Mager, Ken Manheimer, Bill Mann,
+Brian Marick, Simon Marshall, Bengt Martensson, Charlie Martin,
+Yukihiro Matsumoto, David Maus, Thomas May, Will Mengarini, David
+Megginson, Stefan Merten, Ben A.@: Mesander, Wayne Mesard, Brad
+Miller, Lawrence Mitchell, Richard Mlynarik, Gerd Moellmann, Stefan
+Monnier, Keith Moore, Jan Moringen, Morioka Tomohiko, Glenn Morris,
+Don Morrison, Diane Murray, Riccardo Murri, Sen Nagata, Erik Naggum,
+Gergely Nagy, Nobuyoshi Nakada, Thomas Neumann, Mike Newton, Thien-Thi Nguyen,
+Jurgen Nickelsen, Dan Nicolaescu, Hrvoje Niksic, Jeff Norden,
+Andrew Norman, Kentaro Ohkouchi, Christian Ohler,
+Kenichi Okada, Alexandre Oliva, Bob Olson, Michael Olson, Takaaki Ota,
+Pieter E.@: J.@: Pareit, Ross Patterson, David Pearson, Juan Pechiar,
+Jeff Peck, Damon Anton Permezel, Tom Perrine, William M.@: Perry, Per
+Persson, Jens Petersen, Daniel Pfeiffer, Justus Piater, Richard L.@:
+Pieri, Fred Pierresteguy, François Pinard, Daniel Pittman, Christian
+Plaunt, Alexander Pohoyda, David Ponce, Francesco A.@: Potorti,
+Michael D.@: Prange, Mukesh Prasad, Ken Raeburn, Marko Rahamaa, Ashwin
+Ram, Eric S.@: Raymond, Paul Reilly, Edward M.@: Reingold, David
+Reitter, Alex Rezinsky, Rob Riepel, Lara Rios, Adrian Robert, Nick
+Roberts, Roland B.@: Roberts, John Robinson, Denis B.@: Roegel, Danny
+Roozendaal, Sebastian Rose, William Rosenblatt, Markus Rost, Guillermo
+J.@: Rozas, Martin Rudalics, Ivar Rummelhoff, Jason Rumney, Wolfgang
+Rupprecht, Benjamin Rutt, Kevin Ryde, James B.@: Salem, Masahiko Sato,
+Timo Savola, Jorgen Schaefer, Holger Schauer, William Schelter, Ralph
+Schleicher, Gregor Schmid, Michael Schmidt, Ronald S.@: Schnell,
+Philippe Schnoebelen, Jan Schormann, Alex Schroeder, Stefan Schoef,
+Rainer Schoepf, Raymond Scholz, Eric Schulte, Andreas Schwab, Randal
+Schwartz, Oliver Seidel, Manuel Serrano, Paul Sexton, Hovav Shacham,
+Stanislav Shalunov, Marc Shapiro, Richard Sharman, Olin Shivers, Tibor
+@v{S}imko, Espen Skoglund, Rick Sladkey, Lynn Slater, Chris Smith,
+David Smith, Paul D.@: Smith, Wilson Snyder, William Sommerfeld, Simon
+South, Andre Spiegel, Michael Staats, Thomas Steffen, Ulf Stegemann,
+Reiner Steib, Sam Steingold, Ake Stenhoff, Peter Stephenson, Ken
+Stevens, Andy Stewart, Jonathan Stigelman, Martin Stjernholm, Kim F.@:
+Storm, Steve Strassmann, Christopher Suckling, Olaf Sylvester, Naoto
+Takahashi, Steven Tamm, Luc Teirlinck, Jean-Philippe Theberge, Jens
+T.@: Berger Thielemann, Spencer Thomas, Jim Thompson, Toru Tomabechi,
+David O'Toole, Markus Triska, Tom Tromey, Enami Tsugutomo, Eli
+Tziperman, Daiki Ueno, Masanobu Umeda, Rajesh Vaidheeswarran, Neil
 W.@: Van Dyke, Didier Verna, Joakim Verona, Ulrik Vieth, Geoffrey
 Voelker, Johan Vromans, Inge Wallin, John Paul Wallington, Colin
-Walters, Barry Warsaw, Christoph Wedler, Morten Welinder, Joseph Brian
-Wells, Rodney Whitby, John Wiegley, Ed Wilkinson, Mike Williams,
-Roland Winkler, Bill Wohler, Steven A.@: Wood, Dale R.@: Worley,
-Francis J.@: Wright, Felix S.@: T.@: Wu, Tom Wurgler, Katsumi Yamaoka,
-Yamamoto Mitsuharu, Masatake Yamato, Jonathan Yavner, Ryan Yeske, Ilya
-Zakharevich, Milan Zamazal, Victor Zandy, Eli Zaretskii, Jamie
-Zawinski, Andrew Zhilin, Shenghuo Zhu, Piotr Zielinski, Ian T.@:
-Zimmermann, Reto Zimmermann, Neal Ziring, Teodor Zlatanov, and Detlev
-Zundel.
+Walters, Barry Warsaw, Christoph Wedler, Ilja Weis, Zhang Weize,
+Morten Welinder, Joseph Brian Wells, Rodney Whitby, John Wiegley,
+Sascha Wilde, Ed Wilkinson, Mike Williams, Roland Winkler, Bill
+Wohler, Steven A.@: Wood, Dale R.@: Worley, Francis J.@: Wright, Felix
+S.@: T.@: Wu, Tom Wurgler, Yamamoto Mitsuharu, Katsumi Yamaoka,
+Masatake Yamato, Jonathan Yavner, Ryan Yeske, Ilya Zakharevich, Milan
+Zamazal, Victor Zandy, Eli Zaretskii, Jamie Zawinski, Andrew Zhilin,
+Shenghuo Zhu, Piotr Zielinski, Ian T.@: Zimmermann, Reto Zimmermann,
+Neal Ziring, Teodor Zlatanov, and Detlev Zundel.
 @end iftex
 
 @node Intro, Glossary, Distrib, Top

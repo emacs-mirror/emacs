@@ -964,24 +964,26 @@ replace it with a dir-locals-file `./%s'"
    ;; FIXME "man ./" does not work with dired-do-shell-command,
    ;; because there seems to be no way for us to modify the filename,
    ;; only the command.  Hmph.  `dired-man' works though.
-   (list "\\.\\(?:[0-9]\\|man\\)\\'" '(let ((loc (Man-support-local-filenames)))
-                                        (cond ((eq loc 'man-db) "man -l")
-                                              ((eq loc 'man) "man ./")
-                                              (t
-                                               "cat * | tbl | nroff -man -h"))))
+   (list "\\.\\(?:[0-9]\\|man\\)\\'"
+         '(let ((loc (Man-support-local-filenames)))
+            (cond ((eq loc 'man-db) "man -l")
+                  ((eq loc 'man) "man ./")
+                  (t
+                   "cat * | tbl | nroff -man -h | col -b"))))
    (list "\\.\\(?:[0-9]\\|man\\)\\.g?z\\'"
          '(let ((loc (Man-support-local-filenames)))
             (cond ((eq loc 'man-db)
                    "man -l")
                   ((eq loc 'man)
                    "man ./")
-                  (t "gunzip -qc * | tbl | nroff -man -h")))
+                  (t "gunzip -qc * | tbl | nroff -man -h | col -b")))
 	 ;; Optional decompression.
 	 '(concat "gunzip" (if dired-guess-shell-gzip-quiet " -q")))
-   (list "\\.[0-9]\\.Z\\'" '(let ((loc (Man-support-local-filenames)))
-                              (cond ((eq loc 'man-db) "man -l")
-                                    ((eq loc 'man) "man ./")
-                                    (t "zcat * | tbl | nroff -man -h")))
+   (list "\\.[0-9]\\.Z\\'"
+         '(let ((loc (Man-support-local-filenames)))
+            (cond ((eq loc 'man-db) "man -l")
+                  ((eq loc 'man) "man ./")
+                  (t "zcat * | tbl | nroff -man -h | col -b")))
 	 ;; Optional conversion to gzip format.
 	 '(concat "znew" (if dired-guess-shell-gzip-quiet " -q")
 		  " " dired-guess-shell-znew-switches))

@@ -1,8 +1,34 @@
+2012-02-22  Glenn Morris  <rgm@gnu.org>
+
+	* macos.texi: Copyedits.  Fix @key/@kbd usage.
+	(Mac / GNUstep Basics): Don't mention the panels, since the next
+	section covers them.
+	(Mac / GNUstep Customization): Merge some panel info from previous.
+
+2012-02-21  Glenn Morris  <rgm@gnu.org>
+
+	* emerge-xtra.texi (Emerge, Submodes of Emerge, Combining in Emerge):
+	Small fixes.
+
+	* emacs-xtra.texi: Picture mode is no longer a chapter.
+
+	* picture-xtra.texi (Basic Picture): C-a does get remapped.
+
+	* ack.texi (Acknowledgments): Small changes, including resorting,
+	and removal of things no longer distributed.
+
 2012-02-20  Glenn Morris  <rgm@gnu.org>
+
+	* emacs.texi (Top, Preface): Small rephrasings.
+	(menu, detailmenu): Update entries, and reformat some descriptions.
+	* building.texi, display.texi, emacs-xtra.texi, files.texi:
+	* frames.texi, kmacro.texi, msdog.texi, programs.texi, text.texi:
+	Reformat some menu descriptions.
 
 	* ack.texi (Acknowledgments): More updates.
 
-	* emacs.texi (Acknowledgments): Add several names from ack.texi.
+	* emacs.texi (Acknowledgments): Add several names from ack.texi,
+	and from Author: headers.
 	(Distrib): Small updates.
 
 2012-02-18  Glenn Morris  <rgm@gnu.org>

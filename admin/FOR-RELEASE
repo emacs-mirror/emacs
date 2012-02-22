@@ -83,8 +83,6 @@ and change key bindings where necessary.  The current list of modes:
 
 * DOCUMENTATION
 
-** Document XEmbed support
-
 ** Check the Emacs Tutorial.
 
 The first line of every tutorial must begin with text ending in a
@@ -123,7 +121,7 @@ TUTORIAL.zh
 ** Check the manual.
 
 abbrevs.texi      cyd
-ack.texi          
+ack.texi          rgm
 anti.texi         cyd
 arevert-xtra.texi cyd
 basic.texi        cyd
@@ -137,9 +135,9 @@ custom.texi       cyd
 dired.texi        cyd
 dired-xtra.texi   rgm
 display.texi      cyd
-emacs.texi        
-emacs-xtra.texi
-emerge-xtra.texi
+emacs.texi        rgm
+emacs-xtra.texi   rgm
+emerge-xtra.texi  rgm
 entering.texi     cyd
 files.texi        cyd
 fixit.texi        cyd
@@ -150,7 +148,7 @@ help.texi         cyd
 indent.texi       cyd
 killing.texi      cyd
 kmacro.texi       cyd
-macos.texi        
+macos.texi        rgm  (can't actually test any of it though)
 maintaining.texi  cyd
 mark.texi         cyd
 mini.texi         
@@ -161,7 +159,7 @@ msdog-xtra.texi
 mule.texi         
 m-x.texi          cyd
 package.texi      cyd
-picture-xtra.texi
+picture-xtra.texi rgm
 programs.texi     cyd
 regs.texi         cyd
 rmail.texi        rgm
@@ -193,7 +191,7 @@ edebug.texi
 elisp.texi
 errors.texi       
 eval.texi         cyd
-files.texi        
+files.texi        cyd
 frames.texi       
 functions.texi    cyd
 hash.texi         cyd
@@ -228,10 +226,6 @@ text.texi
 tips.texi         
 variables.texi    cyd
 windows.texi      
-
-* PLANNED ADDITIONS
-* pov-mode (waiting for a Free POV-Ray)
-** gas-mode ?
 
 
 Local variables:
