@@ -2331,8 +2331,8 @@ x_draw_image_relief (struct glyph_string *s)
 	  && INTEGERP (XCAR (Vtool_bar_button_margin))
 	  && INTEGERP (XCDR (Vtool_bar_button_margin)))
 	{
-	  extra_x = XCAR (Vtool_bar_button_margin);
-	  extra_y = XCDR (Vtool_bar_button_margin);
+	  extra_x = XINT (XCAR (Vtool_bar_button_margin));
+	  extra_y = XINT (XCDR (Vtool_bar_button_margin));
 	}
       else if (INTEGERP (Vtool_bar_button_margin))
 	extra_x = extra_y = XINT (Vtool_bar_button_margin);
