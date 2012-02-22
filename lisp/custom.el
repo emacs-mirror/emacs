@@ -1138,9 +1138,10 @@ This variable cannot be set in a Custom theme."
 The theme file is named THEME-theme.el, in one of the directories
 specified by `custom-theme-load-path'.
 
-If optional arg NO-CONFIRM is non-nil, and THEME is not
-considered safe according to `custom-safe-themes', prompt the
-user for confirmation.
+If the theme is not considered safe by `custom-safe-themes',
+prompt the user for confirmation before loading it.  But if
+optional arg NO-CONFIRM is non-nil, load the theme without
+prompting.
 
 Normally, this function also enables THEME; if optional arg
 NO-ENABLE is non-nil, load the theme but don't enable it.
