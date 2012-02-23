@@ -1,6 +1,6 @@
 2012-02-23  Glenn Morris  <rgm@gnu.org>
 
-	* emacs-lisp/authors.el (authors-aliases)
+	* emacs-lisp/authors.el (authors-aliases, authors-fixed-case)
 	(authors-obsolete-files-regexps, authors-ignored-files)
 	(authors-ambiguous-files, authors-renamed-files-alist):
 	Add more entries.

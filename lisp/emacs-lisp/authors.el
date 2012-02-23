@@ -81,6 +81,8 @@ files.")
     ("Gerd Möllmann" "Gerd Moellmann")
     ("Hallvard B. Furuseth" "Hallvard B Furuseth" "Hallvard Furuseth")
     ("Hrvoje Nikšić" "Hrvoje Niksic")
+    ;; lisp/org/ChangeLog 2010-11-11.
+    (nil "aaa bbb")
     ;; src/ChangeLog.4, 1994-01-11, since fixed.
 ;;;    (nil "(afs@hplb.hpl.hp.com)")
     ;; lisp/gnus/ChangeLog.1, 1998-01-15.
@@ -186,6 +188,7 @@ Each entry is of the form (REALNAME REGEXP...).  If an author's name
 matches one of the REGEXPs, use REALNAME instead.
 If REALNAME is nil, ignore that author.")
 
+;; FIXME seems it would be less fragile to check for O', Mc, etc.
 (defconst authors-fixed-case
   '("Bryan O'Sullivan"
     "Christian von Roques"
@@ -194,6 +197,7 @@ If REALNAME is nil, ignore that author.")
     "David J. MacKenzie"
     "David McCabe"
     "David O'Toole"
+    "Devon Sean McCullough"
     "Dominique de Waleffe"
     "Edward O'Connor"
     "Exal de Jesus Garcia Carrillo"
@@ -206,8 +210,11 @@ If REALNAME is nil, ignore that author.")
     "Nelson Jose dos Santos Ferreira"
     "Peter von der Ahe"
     "Peter O'Gorman"
+    "Piet van Oostrum"
     "Roland McGrath"
-    "Sean O'Rourke")
+    "Sean O'Halpin"
+    "Sean O'Rourke"
+    "Tijs van Bakel")
   "List of authors whose names cannot be simply capitalized.")
 
 (defvar authors-public-domain-files
@@ -235,7 +242,7 @@ If REALNAME is nil, ignore that author.")
     "\\.\\(cvs\\|git\\)ignore$"		; obsolete or uninteresting
     "\\.arch-inventory$"
     ;; TODO lib/? Matches other things?
-    "m4/" "Emacs.xcodeproj" "charsets" "mapfiles"
+    "build-aux/" "m4/" "Emacs.xcodeproj" "charsets" "mapfiles"
     "preferences\\.\\(nib\\|gorm\\)"
     "vc-\\(rcs\\|cvs\\|sccs\\)-hooks\\.el$")
   "List of regexps matching obsolete files.
