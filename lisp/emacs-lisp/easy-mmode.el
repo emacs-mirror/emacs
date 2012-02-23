@@ -135,6 +135,8 @@ BODY contains code to execute each time the mode is enabled or disabled.
 		the new state, and sets it.  If you specify a :variable,
 		this function does not define a MODE variable (nor any of
 		the terms used in :variable).
+:after-hook     A single lisp form which is evaluated after the mode hooks
+                have been run.  It should not be quoted.
 
 For example, you could write
   (define-minor-mode foo-mode \"If enabled, foo on you!\"
@@ -170,6 +172,7 @@ For example, you could write
          (setter nil)            ;The function (if any) to set the mode var.
          (modefun mode)          ;The minor mode function name we're defining.
 	 (require t)
+	 (after-hook nil)
 	 (hook (intern (concat mode-name "-hook")))
 	 (hook-on (intern (concat mode-name "-on-hook")))
 	 (hook-off (intern (concat mode-name "-off-hook")))
@@ -197,6 +200,7 @@ For example, you could write
              (setq mode variable)
            (setq mode (car variable))
            (setq setter (cdr variable))))
+	(:after-hook (setq after-hook (pop body)))
 	(t (push keyw extra-keywords) (push (pop body) extra-keywords))))
 
     (setq keymap-sym (if (and keymap (symbolp keymap)) keymap
@@ -275,7 +279,8 @@ the mode if ARG is omitted or nil, and toggle it if ARG is `toggle'.
                               (not (equal ,last-message
                                           (current-message))))
                    (message ,(format "%s %%sabled" pretty-name)
-                            (if ,mode "en" "dis"))))))
+                            (if ,mode "en" "dis")))))
+	   ,@(when after-hook `(,after-hook)))
 	 (force-mode-line-update)
 	 ;; Return the new setting.
 	 ,mode)

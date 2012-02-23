@@ -2949,6 +2949,12 @@ unwind_create_frame (Lisp_Object frame)
   return Qnil;
 }
 
+static Lisp_Object
+unwind_create_frame_1 (Lisp_Object val)
+{
+  inhibit_window_configuration_change_hook = val;
+  return Qnil;
+}
 
 static void
 x_default_font_parameter (struct frame *f, Lisp_Object parms)
@@ -3321,17 +3327,31 @@ This function is an internal primitive--use `make-frame' instead.  */)
      happen.  */
   init_frame_faces (f);
 
-  /* The X resources controlling the menu-bar and tool-bar are
-     processed specially at startup, and reflected in the mode
-     variables; ignore them here.  */
-  x_default_parameter (f, parms, Qmenu_bar_lines,
-		       NILP (Vmenu_bar_mode)
-		       ? make_number (0) : make_number (1),
-		       NULL, NULL, RES_TYPE_NUMBER);
-  x_default_parameter (f, parms, Qtool_bar_lines,
-		       NILP (Vtool_bar_mode)
-		       ? make_number (0) : make_number (1),
-		       NULL, NULL, RES_TYPE_NUMBER);
+  /* Set the menu-bar-lines and tool-bar-lines parameters.  We don't
+     look up the X resources controlling the menu-bar and tool-bar
+     here; they are processed specially at startup, and reflected in
+     the values of the mode variables.
+
+     Avoid calling window-configuration-change-hook; otherwise we
+     could get an infloop in next_frame since the frame is not yet in
+     Vframe_list.  */
+  {
+    int count2 = SPECPDL_INDEX ();
+    record_unwind_protect (unwind_create_frame_1,
+			   inhibit_window_configuration_change_hook);
+    inhibit_window_configuration_change_hook = Qt;
+
+    x_default_parameter (f, parms, Qmenu_bar_lines,
+			 NILP (Vmenu_bar_mode)
+			 ? make_number (0) : make_number (1),
+			 NULL, NULL, RES_TYPE_NUMBER);
+    x_default_parameter (f, parms, Qtool_bar_lines,
+			 NILP (Vtool_bar_mode)
+			 ? make_number (0) : make_number (1),
+			 NULL, NULL, RES_TYPE_NUMBER);
+
+    unbind_to (count2, Qnil);
+  }
 
   x_default_parameter (f, parms, Qbuffer_predicate, Qnil,
 		       "bufferPredicate", "BufferPredicate",

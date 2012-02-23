@@ -833,9 +833,9 @@ text; @file{smerge-mode.el}, a minor mode for resolving @code{diff3}
 conflicts; @file{diff-mode.el}, a mode for viewing and editing context
 diffs; @file{css-mode.el} for Cascading Style Sheets;
 @file{bibtex-style.el} for BibTeX Style files; @file{mpc.el}, a
-client for the ``Music Player Daemon''; and @file{pcase.el},
-implementing ML-style pattern matching.  He integrated the
-lexical binding code in Emacs 24.
+client for the ``Music Player Daemon''; @file{smie.el}, a generic
+indentation engine; and @file{pcase.el}, implementing ML-style pattern
+matching.  He integrated the lexical binding code in Emacs 24.
 
 @item
 Morioka Tomohiko wrote several packages for MIME support in Gnus and

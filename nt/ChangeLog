@@ -1,3 +1,7 @@
+2012-02-23  Dani Moncayo  <dmoncayo@gmail.com>  (tiny change)
+
+	* makefile.w32-in (maybe-copy-distfiles-SH): Fix typo.
+
 2012-02-06  Christoph Scholtes  <cschol2112@googlemail.com>
 
 	* README.W32: Removed specific version information for libXpm
@@ -13,7 +17,7 @@
 
 	* makefile.w32-in (maybe-copy-distfiles)
 	(maybe-copy-distfiles-CMD, maybe-copy-distfiles-SH)
-	(create-tmp-dist-dir): Added to make --distfiles optional.
+	(create-tmp-dist-dir): Add to make --distfiles optional.
 	(dist): Use create-tmp-dist-dir and maybe-copy-distfiles. (Bug#10261)
 
 2012-02-04  Eli Zaretskii  <eliz@gnu.org>
@@ -149,8 +153,8 @@
 	A new ESC_USER_CFLAGS variable is written to config.settings.
 	This variable has the same value as the escusercflags variable.
 
-	* gmake.defs, nmake.defs: Added the variable ESC_CFLAGS.  This
-	variable is identical to the CFLAGS variable except that it
+	* gmake.defs, nmake.defs: Added the variable ESC_CFLAGS.
+	This variable is identical to the CFLAGS variable except that it
 	includes the new ESC_USER_CFLAGS variable instead of USER_CFLAGS.
 
 	These changes, along with some changes to src/makefile.w32-in,
@@ -195,8 +199,7 @@
 
 2011-04-28  Eli Zaretskii  <eliz@gnu.org>
 
-	* gmake.defs (ARCH): Fix error message in case of unknown
-	architecture.
+	* gmake.defs (ARCH): Fix error message in case of unknown architecture.
 
 2011-04-27  Eli Zaretskii  <eliz@gnu.org>
 
@@ -227,8 +230,8 @@
 
 	* configure.bat: Modified the code that parses the --cflags and
 	--ldflags options to support parameters that include the =
-	character as long as they are enclosed in quotes.  This
-	functionality depends on command extensions.  Configure.bat now
+	character as long as they are enclosed in quotes.
+	This functionality depends on command extensions.  Configure.bat now
 	attempts to enable command extensions and displays a warning
 	message if they could not be enabled.  If configure.bat could
 	not enable command extensions the old parsing code is used that
@@ -756,8 +759,8 @@
 	Ignore return status.
 
 	* configure.bat (dontCopy): Rename admin/unidata/Makefile to keep
-	it out of the way of Windows generated file.  Generate
-	admin/unidata/makefile.
+	it out of the way of Windows generated file.
+	Generate admin/unidata/makefile.
 
 	* makefile.w32-in (unidatagen-nmake, unidatagen-clean-nmake)
 	(unidatagen-CMD, unidatagen-clean-CMD, unidatagen-SH)
@@ -956,8 +959,8 @@
 
 	* gmake.defs: Export XMFLAGS.
 
-	* makefile.w32-in (all-other-dirs-nmake, recompile-nmake): Don't
-	use $(XMFLAGS) for nmake, as it doesn't support parallelism.
+	* makefile.w32-in (all-other-dirs-nmake, recompile-nmake):
+	Don't use $(XMFLAGS) for nmake, as it doesn't support parallelism.
 
 2006-12-22  Eli Zaretskii  <eliz@gnu.org>
 
@@ -1541,8 +1544,8 @@
 	* README: Update info about compilers.
 
 	* makefile.w32-in: Use $(MAKETYPE) instead of $(SHELLTYPE) to
-	select correct rule for invoking make in another directory.  Amend
-	rules accordingly.
+	select correct rule for invoking make in another directory.
+	Amend rules accordingly.
 	(clean): Delete $(COMPILER_TEMP_FILES) instead of *.pdb.
 
 	* nmake.defs (EMACS_ICON_PATH): Delete definition.
@@ -1785,7 +1788,7 @@
 
 1999-01-31  Andrew Innes  <andrewi@gnu.org>
 
-	* addsection.c (ROUND_UP_DST_AND_ZERO): Renamed from
+	* addsection.c (ROUND_UP_DST_AND_ZERO): Rename from
 	ROUND_UP_DST.  Zeroes the alignment slop.
 	(copy_executable_and_add_section): Update the
 	SizeOfHeaders field properly.
@@ -2127,7 +2130,7 @@
 1995-06-09  Geoff Voelker  <voelker@cs.washington.edu>
 
 	* emacs.bat.in: Renamed from emacs.bat.
-	(emacs_dir): Renamed from emacs_path.
+	(emacs_dir): Rename from emacs_path.
 	Definition removed.
 
 	* addpm.c: New file.
@@ -2189,7 +2192,7 @@
 
 1995-04-09  Geoff Voelker  <voelker@cs.washington.edu>
 
-	* makefile.def (INSTALL_DIR): Changed to generic directory.
+	* makefile.def (INSTALL_DIR): Change to generic directory.
 
 	* emacs.bat: Added arguments when emacs.exe invoked.
 

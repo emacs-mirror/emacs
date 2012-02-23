@@ -37,7 +37,8 @@
 ;; Some ideas and also a few lines of code have been borrowed (not stolen ;-)
 ;; from Oz.el, the Emacs major mode for the Oz programming language,
 ;; Copyright (C) 1993 DFKI GmbH, Germany, with permission.
-;; Authors: Ralf Scheidhauer and Michael Mehl ([scheidhr|mehl](at)dfki(dot)uni-sb(dot)de)
+;; Authored by Ralf Scheidhauer and Michael Mehl
+;;   ([scheidhr|mehl](at)dfki(dot)uni-sb(dot)de)
 ;;
 ;; More ideas and code have been taken from the SICStus debugger mode
 ;; (http://www.csd.uu.se/~perm/source_debug/index.shtml -- broken link

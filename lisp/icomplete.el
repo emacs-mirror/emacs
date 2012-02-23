@@ -333,23 +333,23 @@ are exhibited within the square braces.)"
                  (window-width)))
              (prefix-len
               ;; Find the common prefix among `comps'.
-	      (if (eq t (compare-strings (car comps) nil (length most)
-					 most nil nil completion-ignore-case))
-                  ;; Common case.
-		  (length most)
-                ;; Else, use try-completion.
-		(let ((comps-prefix (try-completion "" comps)))
-                  (and (stringp comps-prefix)
-                       (length comps-prefix)))))
+	      ;; We can't use the optimization below because its assumptions
+	      ;; aren't always true, e.g. when completion-cycling (bug#10850):
+	      ;; (if (eq t (compare-strings (car comps) nil (length most)
+	      ;; 			 most nil nil completion-ignore-case))
+	      ;;     ;; Common case.
+	      ;;     (length most)
+	      ;; Else, use try-completion.
+	      (let ((comps-prefix (try-completion "" comps)))
+		(and (stringp comps-prefix)
+		     (length comps-prefix)))) ;;)
 
 	     prospects most-is-exact comp limit)
 	(if (eq most-try t) ;; (or (null (cdr comps))
 	    (setq prospects nil)
 	  (while (and comps (not limit))
 	    (setq comp
-		  (if (and prefix-len (<= prefix-len (length (car comps))))
-		      (substring (car comps) prefix-len)
-		    (car comps))
+		  (if prefix-len (substring (car comps) prefix-len) (car comps))
 		  comps (cdr comps))
 	    (cond ((string-equal comp "") (setq most-is-exact t))
 		  ((member comp prospects))

@@ -58,11 +58,11 @@ some initial text ending in a slash.  This is the @dfn{default
 directory}.  For example, it may start out like this:
 
 @example
-Find File: /u2/emacs/src/
+Find file: /u2/emacs/src/
 @end example
 
 @noindent
-Here, @samp{Find File:@: } is the prompt and @samp{/u2/emacs/src/} is
+Here, @samp{Find file:@: } is the prompt and @samp{/u2/emacs/src/} is
 the default directory.  If you now type @kbd{buffer.c} as input, that
 specifies the file @file{/u2/emacs/src/buffer.c}.  @xref{File Names},
 for information about the default directory.
@@ -79,7 +79,7 @@ name starting with a slash or a tilde after the default directory.
 For example, you can specify @file{/etc/termcap} as follows:
 
 @example
-Find File: /u2/emacs/src//etc/termcap
+Find file: /u2/emacs/src//etc/termcap
 @end example
 
 @noindent
@@ -247,7 +247,10 @@ completion.
 completion alternatives (in this case, command names) that start with
 @samp{au}.  There are several, including @code{auto-fill-mode} and
 @code{autoconf-mode}, but they all begin with @code{auto}, so the
-@samp{au} in the minibuffer completes to @samp{auto}.
+@samp{au} in the minibuffer completes to @samp{auto}.  (More commands
+may be defined in your Emacs session.  For example, if a command
+called @code{authorize-me} was defined, Emacs could only complete
+as far as @samp{aut}.)
 
   If you type @key{TAB} again immediately, it cannot determine the
 next character; it could be @samp{-}, @samp{a}, or @samp{c}.  So it
@@ -385,7 +388,7 @@ it just submits the argument as you have entered it.
 @item
 @dfn{Permissive completion with confirmation} is like permissive
 completion, with an exception: if you typed @key{TAB} and this
-completed the text up to some intermediate state (i.e. one that is not
+completed the text up to some intermediate state (i.e., one that is not
 yet an exact completion match), typing @key{RET} right afterward does
 not submit the argument.  Instead, Emacs asks for confirmation by
 momentarily displaying @samp{[Confirm]} after the text; type @key{RET}
@@ -450,8 +453,7 @@ position in the completion alternative.
 @item emacs22
 This completion style is similar to @code{basic}, except that it
 ignores the text in the minibuffer after point.  It is so-named
-because it corresponds to the completion behavior in Emacs 22 and
-earlier.
+because it corresponds to the completion behavior in Emacs 22.
 @end table
 
 @noindent
@@ -475,6 +477,18 @@ This very aggressive completion style attempts to complete acronyms
 and initialisms.  For example, when completing command names, it
 matches @samp{lch} to @samp{list-command-history}.
 @end table
+
+@noindent
+There is also a very simple completion style called @code{emacs21}.
+In this style, if the text in the minibuffer is @samp{foobar},
+only matches starting with @samp{foobar} are considered.
+
+@vindex completion-category-overrides
+You can use different completion styles in different situations,
+by setting the variable @code{completion-category-overrides}.
+For example, the default setting says to use only @code{basic}
+and @code{substring} completion for buffer names.
+
 
 @node Completion Options
 @subsection Completion Options
@@ -521,7 +535,7 @@ commands never display the completion list buffer; you must type
 @kbd{?}  to display the list.  If the value is @code{lazy}, Emacs only
 shows the completion list buffer on the second attempt to complete.
 In other words, if there is nothing to complete, the first @key{TAB}
-echoes @samp{Next char not unique}; the second @key{TAB} does the
+echoes @samp{Next char not unique}; the second @key{TAB} shows the
 completion list buffer.
 
 @vindex completion-cycle-threshold
@@ -688,7 +702,7 @@ value.  @xref{Incremental Search}.
 @vindex command-history
   The list of previous minibuffer-using commands is stored as a Lisp
 list in the variable @code{command-history}.  Each element is a Lisp
-expression which describes one command and its arguments.  Lisp programs
+expression that describes one command and its arguments.  Lisp programs
 can re-execute a command by calling @code{eval} with the
 @code{command-history} element.
 

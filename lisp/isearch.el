@@ -1433,16 +1433,38 @@ See `isearch-query-replace' for more information."
   (isearch-query-replace delimited t))
 
 (defun isearch-occur (regexp &optional nlines)
-  "Run `occur' with regexp to search from the current search string.
-Interactively, REGEXP is the current search regexp or a quoted search
-string.  NLINES has the same meaning as in `occur'."
+  "Run `occur' using the last search string as the regexp.
+Interactively, REGEXP is constructed using the search string from the
+last search command.  NLINES has the same meaning as in `occur'.
+
+If the last search command was a word search, REGEXP is computed from
+the search words, ignoring punctuation.  If the last search
+command was a regular expression search, REGEXP is the regular
+expression used in that search.  If the last search command searched
+for a literal string, REGEXP is constructed by quoting all the special
+characters in that string."
   (interactive
-   (list
-    (cond
-     (isearch-word (word-search-regexp isearch-string))
-     (isearch-regexp isearch-string)
-     (t (regexp-quote isearch-string)))
-    (if current-prefix-arg (prefix-numeric-value current-prefix-arg))))
+   (let* ((perform-collect (consp current-prefix-arg))
+	  (regexp (cond
+		   (isearch-word (word-search-regexp isearch-string))
+		   (isearch-regexp isearch-string)
+		   (t (regexp-quote isearch-string)))))
+     (list regexp
+	   (if perform-collect
+	       ;; Perform collect operation
+	       (if (zerop (regexp-opt-depth regexp))
+		   ;; No subexpression so collect the entire match.
+		   "\\&"
+		 ;; Get the regexp for collection pattern.
+		 (isearch-done nil t)
+		 (isearch-clean-overlays)
+		 (let ((default (car occur-collect-regexp-history)))
+		   (read-string
+		    (format "Regexp to collect (default %s): " default)
+		    nil 'occur-collect-regexp-history default)))
+	     ;; Otherwise normal occur takes numerical prefix argument.
+	     (when current-prefix-arg
+	       (prefix-numeric-value current-prefix-arg))))))
   (let ((case-fold-search isearch-case-fold-search)
 	;; Set `search-upper-case' to nil to not call
 	;; `isearch-no-upper-case-p' in `occur-1'.

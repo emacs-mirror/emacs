@@ -151,11 +151,16 @@ kmacro.texi       cyd
 macos.texi        rgm  (can't actually test any of it though)
 maintaining.texi  cyd
 mark.texi         cyd
-mini.texi         
+mini.texi         rgm
 misc.texi         cyd
 modes.texi        cyd
-msdog.texi        
-msdog-xtra.texi   
+msdog.texi        rgm  (can't actually test any of it though)
+  It was not obvious to me that the following is true (it could well be though):
+
+   Emacs on Windows automatically determines your default printer and
+   sets the variable `printer-name' to that printer's name.
+
+msdog-xtra.texi   rgm  (can't actually test any of it though)
 mule.texi         
 m-x.texi          cyd
 package.texi      cyd

@@ -2094,11 +2094,6 @@
 	(gnus-registry--split-fancy-with-parent-internal): Fix splitting bugs
 	and provide better messaging.
 
-2011-04-06  David Engster  <dengste@eml.cc>
-
-	* Makefile.in (fail-on-warning): New rule to compile with warnings as
-	errors.
-
 2011-04-06  Teodor Zlatanov  <tzz@lifelogs.com>
 
 	* gnus-registry.el: Don't use ERT if it's not available.  Load it

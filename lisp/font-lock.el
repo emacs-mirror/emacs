@@ -629,21 +629,24 @@ Major/minor modes can set this variable if they know which option applies.")
   ;; Shut up the byte compiler.
   (defvar font-lock-face-attributes))	; Obsolete but respected if set.
 
+(defun font-lock-initial-fontify ()
+  ;; The first fontification after turning the mode on.  This must
+  ;;  only be called after the mode hooks have been run.
+  (let ((max-size (font-lock-value-in-major-mode font-lock-maximum-size)))
+    (cond (font-lock-fontified
+	   nil)
+	  ((or (null max-size) (> max-size (buffer-size)))
+	   (font-lock-fontify-buffer))
+	  (font-lock-verbose
+	   (message "Fontifying %s...buffer size greater than font-lock-maximum-size"
+		    (buffer-name))))))
+
 (defun font-lock-mode-internal (arg)
   ;; Turn on Font Lock mode.
   (when arg
     (add-hook 'after-change-functions 'font-lock-after-change-function t t)
     (font-lock-set-defaults)
-    (font-lock-turn-on-thing-lock)
-    ;; Fontify the buffer if we have to.
-    (let ((max-size (font-lock-value-in-major-mode font-lock-maximum-size)))
-      (cond (font-lock-fontified
-	     nil)
-	    ((or (null max-size) (> max-size (buffer-size)))
-	     (font-lock-fontify-buffer))
-	    (font-lock-verbose
-	     (message "Fontifying %s...buffer size greater than font-lock-maximum-size"
-		      (buffer-name))))))
+    (font-lock-turn-on-thing-lock))
   ;; Turn off Font Lock mode.
   (unless font-lock-mode
     (remove-hook 'after-change-functions 'font-lock-after-change-function t)
