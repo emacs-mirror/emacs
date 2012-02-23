@@ -3,6 +3,8 @@
 	* isearch.el (isearch-occur): Sync interactive spec with occur's
 	new feature in `occur-read-primary-args'.  Doc fix.  (Bug#10705)
 
+	* replace.el (occur-menu-map): Add menu item for `occur-edit-mode'.
+
 2012-02-22  Juri Linkov  <juri@jurta.org>
 
 	* international/mule-cmds.el (read-char-by-name): Use \` and \'.
