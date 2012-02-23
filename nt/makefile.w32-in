@@ -264,7 +264,7 @@ maybe-copy-distfiles-CMD: doit
 
 maybe-copy-distfiles-SH: doit
 	@if [ ! $(ARGQUOTE)$(DIST_FILES)$(ARGQUOTE)=="" ] ; then \
-	  $(CP_DIR) $(DIST_FILES) $(TMP_DIST_DIR)/bin
+	  $(CP_DIR) $(DIST_FILES) $(TMP_DIST_DIR)/bin ; \
 	fi
 
 create-tmp-dist-dir:
