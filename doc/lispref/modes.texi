@@ -1594,15 +1594,20 @@ anything that can be used with the @code{setf} function
 @var{place} can also be a cons @code{(@var{get} . @var{set})},
 where @var{get} is an expression that returns the current state,
 and @var{set} is a function of one argument (a state) that sets it.
+
+@item :after-hook @var{after-hook}
+This defines a single lisp form which is evaluated after the mode hooks
+have run.  It should not be quoted.
 @end table
 
 Any other keyword arguments are passed directly to the
 @code{defcustom} generated for the variable @var{mode}.
 
-The command named @var{mode} first performs the standard actions such
-as setting the variable named @var{mode} and then executes the
-@var{body} forms, if any.  It finishes by running the mode hook
-variable @code{@var{mode}-hook}.
+The command named @var{mode} first performs the standard actions such as
+setting the variable named @var{mode} and then executes the @var{body}
+forms, if any.  It then runs the mode hook variable
+@code{@var{mode}-hook} and finishes by evaluating any form in
+@code{:after-hook}.
 @end defmac
 
   The initial value must be @code{nil} except in cases where (1) the

@@ -1,3 +1,15 @@
+2012-02-23  Alan Mackenzie  <acm@muc.de>
+
+	* emacs-lisp/easy-mmode.el (define-minor-mode): Add extra
+	parameter "after-hook:" to allow the expansion to run code after
+	the execution of the mode hooks.
+
+	* font-lock.el (font-lock-initial-fontify): New function extracted
+	from font-lock-mode-interal.
+
+	* font-core.el (font-lock-mode): call font-lock-initial-fontify in
+	:after-hook.
+
 2012-02-23  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* minibuffer.el: Make sure cycling is reset upon edit with icomplete.el.
