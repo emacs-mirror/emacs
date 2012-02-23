@@ -1,5 +1,11 @@
 2012-02-23  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* minibuffer.el: Make sure cycling is reset upon edit with icomplete.el.
+	(completion--cache-all-sorted-completions): New function.
+	(completion-all-sorted-completions): Use it.
+	(completion--do-completion, minibuffer-force-complete):
+	Use it to re-instate the flush hook.
+
 	* icomplete.el (icomplete-completions): Replace last fix with a better
 	one (bug#10850).
 

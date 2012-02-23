@@ -705,23 +705,23 @@ when the buffer's text is already an exact match."
 
           ;; It did find a match.  Do we match some possibility exactly now?
           (let* ((exact (test-completion completion
-                                        minibuffer-completion-table
-                                        minibuffer-completion-predicate))
-                 (threshold (completion--cycle-threshold md))
-                (comps
-                 ;; Check to see if we want to do cycling.  We do it
-                 ;; here, after having performed the normal completion,
-                 ;; so as to take advantage of the difference between
-                 ;; try-completion and all-completions, for things
-                 ;; like completion-ignored-extensions.
-                  (when (and threshold
-                            ;; Check that the completion didn't make
-                            ;; us jump to a different boundary.
-                            (or (not completed)
-                                (< (car (completion-boundaries
-                                         (substring completion 0 comp-pos)
                                          minibuffer-completion-table
-                                         minibuffer-completion-predicate
+                                         minibuffer-completion-predicate))
+                 (threshold (completion--cycle-threshold md))
+                 (comps
+                  ;; Check to see if we want to do cycling.  We do it
+                  ;; here, after having performed the normal completion,
+                  ;; so as to take advantage of the difference between
+                  ;; try-completion and all-completions, for things
+                  ;; like completion-ignored-extensions.
+                  (when (and threshold
+                             ;; Check that the completion didn't make
+                             ;; us jump to a different boundary.
+                             (or (not completed)
+                                 (< (car (completion-boundaries
+                                          (substring completion 0 comp-pos)
+                                          minibuffer-completion-table
+                                          minibuffer-completion-predicate
                                          ""))
                                    comp-pos)))
                    (completion-all-sorted-completions))))
@@ -735,7 +735,7 @@ when the buffer's text is already an exact match."
               ;; Fewer than completion-cycle-threshold remaining
               ;; completions: let's cycle.
               (setq completed t exact t)
-              (setq completion-all-sorted-completions comps)
+              (completion--cache-all-sorted-completions comps)
               (minibuffer-force-complete))
              (completed
               ;; We could also decide to refresh the completions,
@@ -800,6 +800,11 @@ scroll the window of possible completions."
         (#b000 nil)
         (t     t)))))
 
+(defun completion--cache-all-sorted-completions (comps)
+  (add-hook 'after-change-functions
+               'completion--flush-all-sorted-completions nil t)
+  (setq completion-all-sorted-completions comps))
+
 (defun completion--flush-all-sorted-completions (&rest _ignore)
   (remove-hook 'after-change-functions
                'completion--flush-all-sorted-completions t)
@@ -848,10 +853,7 @@ scroll the window of possible completions."
           ;; Cache the result.  This is not just for speed, but also so that
           ;; repeated calls to minibuffer-force-complete can cycle through
           ;; all possibilities.
-          (add-hook 'after-change-functions
-                    'completion--flush-all-sorted-completions nil t)
-          (setq completion-all-sorted-completions
-                (nconc all base-size))))))
+          (completion--cache-all-sorted-completions (nconc all base-size))))))
 
 (defun minibuffer-force-complete ()
   "Complete the minibuffer to an exact match.
@@ -875,9 +877,10 @@ Repeated uses step through the possible completions."
         (completion--done (buffer-substring-no-properties start (point))
                           'finished (unless mod "Sole completion"))))
      (t
-      (setq completion-cycling t)
       (completion--replace base end (car all))
       (completion--done (buffer-substring-no-properties start (point)) 'sole)
+      ;; Set cycling after modifying the buffer since the flush hook resets it.
+      (setq completion-cycling t)
       ;; If completing file names, (car all) may be a directory, so we'd now
       ;; have a new set of possible completions and might want to reset
       ;; completion-all-sorted-completions to nil, but we prefer not to,
@@ -885,7 +888,7 @@ Repeated uses step through the possible completions."
       ;; through the previous possible completions.
       (let ((last (last all)))
         (setcdr last (cons (car all) (cdr last)))
-        (setq completion-all-sorted-completions (cdr all)))))))
+        (completion--cache-all-sorted-completions (cdr all)))))))
 
 (defvar minibuffer-confirm-exit-commands
   '(minibuffer-complete minibuffer-complete-word PC-complete PC-complete-word)
