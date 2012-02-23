@@ -1,3 +1,7 @@
+2012-02-23  Glenn Morris  <rgm@gnu.org>
+
+	* ack.texi (Acknowledgments): Mention smie.
+
 2012-02-22  Glenn Morris  <rgm@gnu.org>
 
 	* macos.texi: Copyedits.  Fix @key/@kbd usage.
