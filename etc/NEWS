@@ -965,6 +965,12 @@ Its functions and variables have been similarly renamed.
 ** Occur Edit mode applies edits made in *Occur* buffers to the
 original buffers.  It is bound to "e" in Occur mode.
 
+** When `occur' is called with the prefix argument `C-u'
+the matching strings are collected into the `*Occur*' buffer
+without line numbers.  If there are parenthesized subexpressions
+in the specified regexp, `occur' reads replacement text that
+may contain \\& and \\N whose convention follows `replace-match'.
+
 +++
 ** New global minor mode electric-pair-mode.
 When enabled, typing an open parenthesis automatically inserts the
