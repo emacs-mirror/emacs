@@ -41,17 +41,21 @@ files.")
 (defconst authors-aliases
   '(
     ("Aaron S. Hawley" "Aaron Hawley")
+    ("Alexandru Harsanyi" "Alex Harsanyi")
     ("Andrew Csillag" "Drew Csillag")
     ("Anna M. Bigatti" "Anna Bigatti")
     ("Barry A. Warsaw" "Barry A. Warsaw, Century Computing, Inc."
      "Barry A. Warsaw, ITB" "Barry Warsaw")
+    ("Bill Carpenter" "WJ Carpenter")
     ("Bill Mann" "William F. Mann")
     ("Bill Rozas" "Guillermo J. Rozas")
     ("Björn Torkelsson" "Bjorn Torkelsson")
     ("Brian Fox" "Brian J. Fox")
+    ("Brian Sniffen" "Brian T. Sniffen")
     ("Christoph Wedler" "Christoph.Wedler@sap.com")
     ("Daniel Pfeiffer" "<Daniel.Pfeiffer@Informatik.START.db.de>"
      "<Daniel.Pfeiffer@Informatik.START.dbp.de>")
+    ("David Abrahams" "Dave Abrahams")
     ("David De La Harpe Golden" "David Golden")
     ("David Gillespie" "Dave Gillespie")
     ("David Kågedal" "David K..edal")
@@ -93,6 +97,7 @@ files.")
     ("Jens-Ulrik Holger Petersen" "Jens-Ulrik Petersen")
     ("Jeremy Bertram Maitin-Shepard" "Jeremy Maitin-Shepard")
     ("Johan Bockgård" "Johan Bockgard")
+    ("John J Foerch" "John Foerch")
     ("John W. Eaton" "John Eaton")
     ("Jonathan I. Kamens" "Jonathan Kamens")
     ("Joseph Arceneaux" "Joe Arceneaux")
@@ -110,6 +115,7 @@ files.")
     ("Kevin Greiner" "Kevin J. Greiner")
     ("Kim F. Storm" "Kim Storm")
     ("Kyle Jones" "Kyle E. Jones")
+    ("Lars Magne Ingebrigtsen" "Lars Ingebrigtsen")
     ("Marcus G. Daniels" "Marcus Daniels")
     ("Mark D. Baushke" "Mark D Baushke")
     ("Marko Kohtala" "Kohtala Marko")
@@ -125,12 +131,14 @@ files.")
     ("Michael Sperber" "Michael Sperber \\[Mr. Preprocessor\\]")
     ("Mikio Nakajima" "Nakajima Mikio")
     ("Nelson Jose dos Santos Ferreira" "Nelson Ferreira")
+    ("Noorul Islam" "Noorul Islam K M")
     ("Paul Eggert" "eggert")
     ("Paul Reilly" "(pmr@legacy.pajato.com)")
     ("Pavel Janík" "Pavel Janík Ml." "Pavel Janik Ml." "Pavel Janik" "Pavel Janík" "Pavel@Janik.Cz")
     ("Pavel Kobiakov" "Pavel Kobyakov")
     ("Per Abrahamsen" "Per Abhiddenware")
     ("Per Starbäck" "Per Starback")
+    ("Peter J. Weisberg" "PJ Weisberg")
     ("Peter S. Galbraith" "Peter Galbraith")
     ("Peter Runestig" "Peter 'luna' Runestig")
     ("Peter S. Galbraith" "Peter S Galbraith")
@@ -145,16 +153,19 @@ files.")
     ("Sacha Chua" "Sandra Jean Chua")
     ("Sam Steingold" "Sam Shteingold")
     ("Satyaki Das" "Indexed search by Satyaki Das")
+    ("Sébastien Vauban" "Sebastien Vauban")
     ;; There are other Stefans.
 ;;;    ("Stefan Monnier" "Stefan")
     ("Stephen A. Wood" "(saw@cebaf.gov)")
     ("Steven L. Baur" "SL Baur" "Steven L Baur")
     ("Stewart M. Clamen" "Stewart Clamen")
     ("Stuart D. Herring" "Stuart Herring" "Davis Herring")
+    ("T.V. Raman" "T\\. V\\. Raman")
     ("Taichi Kawabata" "KAWABATA,? Taichi")
     ("Takaaki Ota" "Tak Ota")
     ("Takahashi Naoto" "Naoto Takahashi")
     ("Teodor Zlatanov" "Ted Zlatanov")
+    ("Thomas Dye" "Tom Dye")
     ("Thomas Horsley" "Tom Horsley")	; FIXME ?
     ("Thomas Wurgler" "Tom Wurgler")
     ("Tomohiko Morioka" "MORIOKA Tomohiko")
@@ -223,11 +234,12 @@ If REALNAME is nil, ignore that author.")
     ".*loaddefs.el$"			; not obsolete, but auto-generated
     "\\.\\(cvs\\|git\\)ignore$"		; obsolete or uninteresting
     "\\.arch-inventory$"
+    ;; TODO lib/? Matches other things?
+    "m4/" "Emacs.xcodeproj" "charsets" "mapfiles"
     "preferences\\.\\(nib\\|gorm\\)"
     "vc-\\(rcs\\|cvs\\|sccs\\)-hooks\\.el$")
   "List of regexps matching obsolete files.
-Changes to files matching one of the regexps in this list are not
-listed.")
+Changes to files matching one of the regexps in this list are not listed.")
 
 (defconst authors-ignored-files
   '("external-lisp"
@@ -258,7 +270,12 @@ listed.")
     "*.el"
     ;; Autogen:
     "cus-load.el" "finder-inf.el" "ldefs-boot.el"
+    "compile" "config.guess" "config.sub" "depcomp"
+    ;; Only existed briefly, then renamed:
+    "images/icons/allout-widgets-dark-bg"
+    "images/icons/allout-widgets-light-bg"
     ;; Never had any meaningful changes logged, now deleted:
+    "unidata/bidimirror.awk" "unidata/biditype.awk"
     "split-man" "Xkeymap.txt" "ms-7bkermit" "ulimit.hack"
     "gnu-hp300" "refcard.bit" "ledit.l" "forms.README" "forms-d2.dat"
     "CXTERM-DIC/PY.tit" "CXTERM-DIC/ZIRANMA.tit"
@@ -309,29 +326,47 @@ Changes to files in this list are not listed.")
     "complete.el"
     "cpp.el"
     "ctxt.el"
+    "custom.el"
+    "cyrillic.el"
+    "czech.el"
     "debug.el"
     "dired.el"
     "el.el"
+    "eshell.el"
+    "ethiopic.el"
+    "f90.el"
     "files.el"
     "find.el"
     "format.el"
+    "generic.el"
+    "georgian.el"
+    "greek.el"
     "grep.el"
+    "hebrew.el"
     "imenu.el"
+    "indian.el"
+    "japanese.el"
     "java.el"
+    "lao.el"
     "linux.el"
     "locate.el"
     "make.el"
     "mode.el"
     "python.el"
+    "rmailmm.el"
     "semantic.el"
     "shell.el"
     "simple.el"
+    "slovak.el"
     "sort.el"
     "speedbar.el"
     "srecode.el"
     "table.el"
     "texi.el"
+    "thai.el"
+    "tibetan.el"
     "util.el"
+    "vc-bzr.el"
     "wisent.el")
   "List of basenames occurring more than once in the source.")
 
@@ -589,6 +624,7 @@ in the repository.")
     ("texi/url.txi" . "url.texi")
     ("edt-user.doc" . "edt.texi")
     ("DEV-NOTES" . "nextstep")
+    ("org/COPYRIGHT-AND-LICENSE" . "org/README")
     ;; Moved to different directories.
     ("ctags.1" . "ctags.1")
     ("etags.1" . "etags.1")
