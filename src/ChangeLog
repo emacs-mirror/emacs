@@ -6,6 +6,7 @@
 
 	* window.c (inhibit_window_configuration_change_hook): New var.
 	(run_window_configuration_change_hook): Obey it.
+	(syms_of_window): Initialize it.
 
 2012-02-22  Chong Yidong  <cyd@gnu.org>
 

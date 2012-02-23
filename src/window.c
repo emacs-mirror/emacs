@@ -6527,6 +6527,8 @@ syms_of_window (void)
   window_scroll_preserve_hpos = -1;
   window_scroll_preserve_vpos = -1;
 
+  inhibit_window_configuration_change_hook = Qnil;
+
   DEFVAR_LISP ("temp-buffer-show-function", Vtemp_buffer_show_function,
 	       doc: /* Non-nil means call as function to display a help buffer.
 The function is called with one argument, the buffer to be displayed.
