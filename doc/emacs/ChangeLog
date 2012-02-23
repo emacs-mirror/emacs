@@ -1,5 +1,10 @@
 2012-02-23  Glenn Morris  <rgm@gnu.org>
 
+	* mini.texi (Minibuffer File, Completion Options, Repetition):
+	Copyedits.
+	(Completion Example): Other M-x au* commands may be defined.
+	(Completion Styles): Mention emacs21 and completion-category-overrides.
+
 	* msdog.texi (Text and Binary, ls in Lisp, Windows HOME)
 	(Windows Keyboard, Windows Mouse, Windows Processes)
 	(Windows Printing, Windows Misc): Copyedits.

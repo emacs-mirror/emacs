@@ -510,7 +510,9 @@ styles for specific categories, such as files, buffers, etc."
 Each override has the shape (CATEGORY . ALIST) where ALIST is
 an association list that can specify properties such as:
 - `styles': the list of `completion-styles' to use for that category.
-- `cycle': the `completion-cycle-threshold' to use for that category."
+- `cycle': the `completion-cycle-threshold' to use for that category.
+Categories are symbols such as `buffer' and `file', used when
+completing buffer and file names, respectively."
   :version "24.1"
   :type `(alist :key-type (choice :tag "Category"
 				  (const buffer)

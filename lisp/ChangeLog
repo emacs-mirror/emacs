@@ -3,6 +3,10 @@
 	* emacs-lisp/lisp.el (beginning-of-defun-raw): Don't call end-of-defun
 	when it might call us back infinitely (bug#10797).
 
+2012-02-23  Glenn Morris  <rgm@gnu.org>
+
+	* minibuffer.el (completion-category-overrides): Doc fix.
+
 2012-02-23  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* minibuffer.el (completion-table-with-context): Fix inf-loop.
