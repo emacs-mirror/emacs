@@ -1,5 +1,10 @@
 2012-02-23  Glenn Morris  <rgm@gnu.org>
 
+	* msdog.texi (Text and Binary, ls in Lisp, Windows HOME)
+	(Windows Keyboard, Windows Mouse, Windows Processes)
+	(Windows Printing, Windows Misc): Copyedits.
+	(ls in Lisp): Update switches list.
+
 	* msdog-xtra.texi (MS-DOS Display): Update list-colors-display xref.
 	Update dos-mode* function names.
 	(MS-DOS Printing, MS-DOS and MULE): Copyedits.
