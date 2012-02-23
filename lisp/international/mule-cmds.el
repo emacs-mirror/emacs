@@ -2949,9 +2949,9 @@ point or a number in hash notation, e.g. #o21430 for octal,
                        '(metadata (category . unicode-name))
                      (complete-with-action action (ucs-names) string pred))))))
     (cond
-     ((string-match-p "^[0-9a-fA-F]+$" input)
+     ((string-match-p "\\`[0-9a-fA-F]+\\'" input)
       (string-to-number input 16))
-     ((string-match-p "^#" input)
+     ((string-match-p "\\`#" input)
       (read input))
      (t
       (cdr (assoc-string input (ucs-names) t))))))
@@ -2967,6 +2967,10 @@ preceded by an asterisk `*' and use completion, it will show all
 the characters whose names include that substring, not necessarily
 at the beginning of the name.
 
+This function also accepts a hexadecimal number of Unicode code
+point or a number in hash notation, e.g. #o21430 for octal,
+#x2318 for hex, or #10r8984 for decimal.
+
 The optional third arg INHERIT (non-nil when called interactively),
 says to inherit text properties from adjoining text, if those
 properties are sticky."
@@ -2975,9 +2979,12 @@ properties are sticky."
 	 (prefix-numeric-value current-prefix-arg)
 	 t))
   (unless count (setq count 1))
-  (if (stringp character)
+  (if (and (stringp character)
+	   (string-match-p "\\`[0-9a-fA-F]+\\'" character))
       (setq character (string-to-number character 16)))
   (cond
+   ((null character)
+    (error "Not a Unicode character"))
    ((not (integerp character))
     (error "Not a Unicode character code: %S" character))
    ((or (< character 0) (> character #x10FFFF))
