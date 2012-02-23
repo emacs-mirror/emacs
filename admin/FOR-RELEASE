@@ -155,7 +155,7 @@ mini.texi
 misc.texi         cyd
 modes.texi        cyd
 msdog.texi        
-msdog-xtra.texi   
+msdog-xtra.texi   rgm  (can't actually test any of it though)
 mule.texi         
 m-x.texi          cyd
 package.texi      cyd

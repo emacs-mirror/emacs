@@ -199,10 +199,10 @@ of Emacs packages that use fonts (such as @code{font-lock}, Enriched
 Text mode, and others) by defining the relevant faces to use different
 colors.  Use the @code{list-colors-display} command
 @iftex
-(@pxref{Frame Parameters,,,emacs, the Emacs Manual})
+(@pxref{Colors,,,emacs, the Emacs Manual})
 @end iftex
 @ifnottex
-(@pxref{Frame Parameters})
+(@pxref{Colors})
 @end ifnottex
 and the @code{list-faces-display} command
 @iftex
@@ -260,10 +260,10 @@ visible frame smaller than the full screen, but Emacs still cannot
 display more than a single frame at a time.
 
 @cindex frame size under MS-DOS
-@findex mode4350
-@findex mode25
-  The @code{mode4350} command switches the display to 43 or 50
-lines, depending on your hardware; the @code{mode25} command switches
+@findex dos-mode4350
+@findex dos-mode25
+  The @code{dos-mode4350} command switches the display to 43 or 50
+lines, depending on your hardware; the @code{dos-mode25} command switches
 to the default 80x25 screen size.
 
   By default, Emacs only knows how to set screen sizes of 80 columns by
@@ -394,7 +394,7 @@ different default values on MS-DOS.
 for details about setting up printing to a networked printer.
 
   Some printers expect DOS codepage encoding of non-@acronym{ASCII} text, even
-though they are connected to a Windows machine which uses a different
+though they are connected to a Windows machine that uses a different
 encoding for the same locale.  For example, in the Latin-1 locale, DOS
 uses codepage 850 whereas Windows uses codepage 1252.  @xref{MS-DOS and
 MULE}.  When you print to such printers from Windows, you can use the
@@ -483,7 +483,7 @@ appropriate terminal coding system that is supported by the codepage.
 The special features described in the rest of this section mostly
 pertain to codepages that encode ISO 8859 character sets.
 
-  For the codepages which correspond to one of the ISO character sets,
+  For the codepages that correspond to one of the ISO character sets,
 Emacs knows the character set based on the codepage number.  Emacs
 automatically creates a coding system to support reading and writing
 files that use the current codepage, and uses this coding system by
@@ -607,9 +607,14 @@ MS-DOS with some network redirector.
 
 @cindex directory listing on MS-DOS
 @vindex dired-listing-switches @r{(MS-DOS)}
-  Dired on MS-DOS uses the @code{ls-lisp} package where other
-platforms use the system @code{ls} command.  Therefore, Dired on
-MS-DOS supports only some of the possible options you can mention in
-the @code{dired-listing-switches} variable.  The options that work are
-@samp{-A}, @samp{-a}, @samp{-c}, @samp{-i}, @samp{-r}, @samp{-S},
-@samp{-s}, @samp{-t}, and @samp{-u}.
+  Dired on MS-DOS uses the @code{ls-lisp} package
+@iftex
+(@pxref{ls in Lisp,,,emacs, the Emacs Manual}).
+@end iftex
+@ifnottex
+(@pxref{ls in Lisp}).
+@end ifnottex
+Therefore, Dired on MS-DOS supports only some of the possible options
+you can mention in the @code{dired-listing-switches} variable.  The
+options that work are @samp{-A}, @samp{-a}, @samp{-c}, @samp{-i},
+@samp{-r}, @samp{-S}, @samp{-s}, @samp{-t}, and @samp{-u}.
