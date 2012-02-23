@@ -380,12 +380,12 @@
 
 2011-02-17  Ken Manheimer  <ken.manheimer@gmail.com>
 
-	* images/icons/allout-widgets/dark-bg/encrypted-locked.png:
-	* images/icons/allout-widgets/dark-bg/encrypted-locked.xpm:
+	* images/icons/allout-widgets/dark-bg/locked-encrypted.png:
+	* images/icons/allout-widgets/dark-bg/locked-encrypted.xpm:
 	* images/icons/allout-widgets/dark-bg/unlocked-encrypted.png:
 	* images/icons/allout-widgets/dark-bg/unlocked-encrypted.xpm:
-	* images/icons/allout-widgets/light-bg/encrypted-locked.png:
-	* images/icons/allout-widgets/light-bg/encrypted-locked.xpm:
+	* images/icons/allout-widgets/light-bg/locked-encrypted.png:
+	* images/icons/allout-widgets/light-bg/locked-encrypted.xpm:
 	* images/icons/allout-widgets/light-bg/unlocked-encrypted.png:
 	* images/icons/allout-widgets/light-bg/unlocked-encrypted.xpm:
 	Reorganize icon directories and files to reconcile against windows

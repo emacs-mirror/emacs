@@ -13,7 +13,7 @@
 
 2012-02-22  Alan Mackenzie  <acm@muc.de>
 
-	* progmodes/cc-modes: revert change #107149 from 2012-02-06.
+	* progmodes/cc-mode.el: Revert change #107149 from 2012-02-06.
 
 2012-02-22  Glenn Morris  <rgm@gnu.org>
 
@@ -189,7 +189,7 @@
 
 	Fix a loop in c-set-fl-decl-start.
 
-	* progmodes/cc-engine (c-set-fl-decl-start): Add a check that
+	* progmodes/cc-engine.el (c-set-fl-decl-start): Add a check that
 	c-backward-syntactic-ws actually moves backwards.
 
 2012-02-13  Leo Liu  <sdl.web@gmail.com>
@@ -1379,10 +1379,10 @@
 
 	Add the switch statement to AWK Mode.
 
-	* progmodes/cc-awk (awk-font-lock-keywords): Add "switch", "case",
+	* progmodes/cc-awk.el (awk-font-lock-keywords): Add "switch", "case",
 	"default" to the keywords regexp.
 
-	* progmodes/cc-langs (c-label-kwds): Let AWK take the same
+	* progmodes/cc-langs.el (c-label-kwds): Let AWK take the same
 	expression as the rest.
 	(c-nonlabel-token-key): Allow string literals for AWK.
 	Refactor for the other modes.
@@ -6401,7 +6401,7 @@
 	* comint.el (comint-password-prompt-regexp): Accept "Response" as
 	a password-like phrase.
 
-2011-06-30  Mastake YAMATO  <yamato@redhat.com>
+2011-06-30  Masatake YAMATO  <yamato@redhat.com>
 
 	* progmodes/cc-guess.el: New file.
 
@@ -10709,7 +10709,8 @@
 	(calc-lu-field-reference): Rename from
 	`calc-logunits-field-reference'.
 
-	* calc/calc-help (calc-l-prefix-help): Mention musical note functions.
+	* calc/calc-help.el (calc-l-prefix-help):
+	Mention musical note functions.
 
 2011-03-17  Stefan Monnier  <monnier@iro.umontreal.ca>
 
@@ -10885,7 +10886,7 @@
 
 2011-03-09  Ken Manheimer  <ken.manheimer@gmail.com>
 
-	* allout.el Summary: Change so yank of distinctive-bullet items
+	* allout.el: Change so yank of distinctive-bullet items
 	preserves the existing header prefix, rebulleting it if necessary,
 	rather than replacing it.  This is necessary for proper operation
 	of cooperative addons like allout-widgets.
