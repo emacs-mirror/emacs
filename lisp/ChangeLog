@@ -1,3 +1,8 @@
+2012-02-23  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* minibuffer.el (completion-table-with-context): Fix inf-loop.
+	Reported by Aaron S. Hawley <aaron.s.hawley@gmail.com>.
+
 2012-02-23  Glenn Morris  <rgm@gnu.org>
 
 	* emacs-lisp/authors.el (authors-aliases, authors-fixed-case)

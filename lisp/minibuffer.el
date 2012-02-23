@@ -226,30 +226,31 @@ case sensitive instead."
 
 (defun completion-table-with-context (prefix table string pred action)
   ;; TODO: add `suffix' maybe?
-  ;; Notice that `pred' may not be a function in some abusive cases.
-  (when (functionp pred)
-    (setq pred
-          ;; Predicates are called differently depending on the nature of
-          ;; the completion table :-(
-          (cond
-           ((vectorp table)             ;Obarray.
-            (lambda (sym) (funcall pred (concat prefix (symbol-name sym)))))
-           ((hash-table-p table)
-            (lambda (s _v) (funcall pred (concat prefix s))))
-           ((functionp table)
-            (lambda (s) (funcall pred (concat prefix s))))
-           (t                           ;Lists and alists.
-            (lambda (s)
-              (funcall pred (concat prefix (if (consp s) (car s) s))))))))
-  (if (eq (car-safe action) 'boundaries)
-      (let* ((len (length prefix))
-             (bound (completion-boundaries string table pred (cdr action))))
-        (list* 'boundaries (+ (car bound) len) (cdr bound)))
-    (let ((comp (complete-with-action action table string pred)))
-      (cond
-       ;; In case of try-completion, add the prefix.
-       ((stringp comp) (concat prefix comp))
-       (t comp)))))
+  (let ((pred
+         (if (not (functionp pred))
+             ;; Notice that `pred' may not be a function in some abusive cases.
+             pred
+           ;; Predicates are called differently depending on the nature of
+           ;; the completion table :-(
+           (cond
+            ((vectorp table)            ;Obarray.
+             (lambda (sym) (funcall pred (concat prefix (symbol-name sym)))))
+            ((hash-table-p table)
+             (lambda (s _v) (funcall pred (concat prefix s))))
+            ((functionp table)
+             (lambda (s) (funcall pred (concat prefix s))))
+            (t                          ;Lists and alists.
+             (lambda (s)
+               (funcall pred (concat prefix (if (consp s) (car s) s)))))))))
+    (if (eq (car-safe action) 'boundaries)
+        (let* ((len (length prefix))
+               (bound (completion-boundaries string table pred (cdr action))))
+          (list* 'boundaries (+ (car bound) len) (cdr bound)))
+      (let ((comp (complete-with-action action table string pred)))
+        (cond
+         ;; In case of try-completion, add the prefix.
+         ((stringp comp) (concat prefix comp))
+         (t comp))))))
 
 (defun completion-table-with-terminator (terminator table string pred action)
   "Construct a completion table like TABLE but with an extra TERMINATOR.
