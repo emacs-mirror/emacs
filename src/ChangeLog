@@ -1,3 +1,12 @@
+2012-02-23  Chong Yidong  <cyd@gnu.org>
+
+	* xfns.c (Fx_create_frame): Avoid window-configuration-change-hook
+	call when setting menu-bar-lines and tool-bar-lines parameters.
+	(unwind_create_frame_1): New helper function.
+
+	* window.c (inhibit_window_configuration_change_hook): New var.
+	(run_window_configuration_change_hook): Obey it.
+
 2012-02-22  Chong Yidong  <cyd@gnu.org>
 
 	* xterm.c (x_draw_image_relief): Add missing type check for
