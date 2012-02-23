@@ -1405,7 +1405,7 @@ on-the-fly spell checking for comments and strings.
 If the global mode is global-FOO-mode, then run (FOO-mode -1) in the
 major mode's hook, where FOO-mode toggles the mode on a per-buffer basis.
 +++
-*** `define-minor-mode' accepts a new keyword :variable.
+*** `define-minor-mode' accepts new keywords :variable, :after-hook.
 
 +++
 ** `delete-file' and `delete-directory' now accept optional arg TRASH.
