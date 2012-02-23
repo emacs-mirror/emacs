@@ -1,3 +1,8 @@
+2012-02-23  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* icomplete.el (icomplete-completions): Replace last fix with a better
+	one (bug#10850).
+
 2012-02-23  Dmitry Gutov  <dgutov@yandex.ru>
 
 	* emacs-lisp/lisp.el (beginning-of-defun-raw): Don't call end-of-defun
