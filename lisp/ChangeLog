@@ -3300,7 +3300,7 @@
 
 2011-10-08  Thierry Volpiatto  <thierry.volpiatto@gmail.com>
 
-	* lisp/eshell/eshell.el (eshell-command): Avoid using hooks.
+	* eshell/eshell.el (eshell-command): Avoid using hooks.
 
 2011-10-07  Chong Yidong  <cyd@stupidchicken.com>
 
