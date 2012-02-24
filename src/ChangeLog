@@ -6764,7 +6764,7 @@
 	conversion specifiers.  For example, use "...%"pI"d..." rather
 	than "...%"pEd"...".
 	(pEd): Remove.  All uses replaced with similar uses of pI.
-	* src/m/amdx86-64.h, src/m/ia64.h, src/m/ibms390x.h: Likewise.
+	* m/amdx86-64.h, m/ia64.h, m/ibms390x.h: Likewise.
 	* alloc.c (check_pure_size): Don't overflow by converting size to int.
 	* bidi.c (bidi_dump_cached_states): Use pI to avoid cast.
 	* data.c (Fnumber_to_string): Use pI instead of if-then-else-abort.
@@ -7746,8 +7746,7 @@
 	Without this change, on typical 64-bit hosts error ("...%d...", N)
 	was used to print both 32- and 64-bit integers N, which relied on
 	undefined behavior.
-	* lisp.h, src/m/amdx86-64.h, src/m/ia64.h, src/m/ibms390x.h (pEd):
-	New macro.
+	* lisp.h, m/amdx86-64.h, m/ia64.h, m/ibms390x.h (pEd): New macro.
 	* lisp.h (error, verror): Mark as printf-like functions.
 	* eval.c (verror): Use vsnprintf, not doprnt, to do the real work.
 	Report overflow in size calculations when allocating printf buffer.

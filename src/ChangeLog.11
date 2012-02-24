@@ -533,8 +533,8 @@
 	* deps.mk (getloadavg.o): Remove; gnulib now does this.
 	* lisp.h (getloadavg) [!defined HAVE_GETLOADAVG]: Remove; gnulib
 	now does this.
-	* src/s/freebsd.h (HAVE_GETLOADAVG): Remove; gnulib now does this.
-	* src/s/netbsd.h (HAVE_GETLOADAVG): Likewise.
+	* s/freebsd.h (HAVE_GETLOADAVG): Remove; gnulib now does this.
+	* s/netbsd.h (HAVE_GETLOADAVG): Likewise.
 	* config.in: Regenerate.
 
 2011-02-15  Eli Zaretskii  <eliz@gnu.org>
@@ -12539,7 +12539,7 @@
 
 2009-06-23  Jim Meyering  <meyering@redhat.com>
 
-	* src/ftfont.c (setup_otf_gstring, ftfont_shape_by_flt):
+	* ftfont.c (setup_otf_gstring, ftfont_shape_by_flt):
 	Use xmalloc and xrealloc (not malloc and realloc), so subsequent heap
 	pointer dereferences are guaranteed to be valid.
 
