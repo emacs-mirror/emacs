@@ -1413,6 +1413,9 @@ Trashing is performed if TRASH and `delete-by-moving-to-trash' are
 both non-nil.  Interactively, TRASH defaults to t, unless a prefix
 argument is supplied (see Trash changes, above).
 
+FIXME
+** New functions files-equal-p, file-subdir-of-p that [do something]
+
 +++
 ** Tool-bars can display separators.
 Tool-bar separators are handled like menu separators in menu-bar maps,

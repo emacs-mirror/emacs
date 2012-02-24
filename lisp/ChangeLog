@@ -1,14 +1,12 @@
 2012-02-24  Thierry Volpiatto  <thierry.volpiatto@gmail.com>
 
-	* lisp/files.el (files-equal-p): New, simple equality check between two filename.
-	(file-subdir-of-p): New, Check if dir1 is subdir of dir2.
-	(copy-directory): Return error when trying to copy a directory on itself.
+	* files.el (files-equal-p, file-subdir-of-p): New functions.
+	(copy-directory): Error when trying to copy a directory on itself.
 	Add missing copy-contents arg to tramp handler.
-
-	* lisp/dired-aux.el (dired-copy-file-recursive): Same.
-	(dired-create-files): Modify destination when source is equal to dest when copying files.
-	Return also when dest is a subdir of source.
-	(bug#10489)
+	* dired-aux.el (dired-copy-file-recursive): Same.
+	(dired-create-files): Modify destination when source is equal to
+	dest when copying files.
+	Return also when dest is a subdir of source. (bug#10489)
 
 2012-02-24  Michael Albinus  <michael.albinus@gmx.de>
 

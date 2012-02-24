@@ -5002,7 +5002,7 @@ when they don't, it returns nil."
   (let ((handler (or (find-file-name-handler dir1 'file-subdir-of-p)
                      (find-file-name-handler dir2 'file-subdir-of-p))))
     (if handler
-        (funcalll handler 'file-subdir-of-p dir1 dir2)
+        (funcall handler 'file-subdir-of-p dir1 dir2)
       (when (and (file-directory-p dir1)
                  (file-directory-p dir2))
         (loop with f1 = (file-truename dir1)
