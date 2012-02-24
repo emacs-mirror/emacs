@@ -512,7 +512,7 @@ main (int argc, char ** argv)
   char modname[MAX_PATH];
   char path[MAX_PATH];
   char dir[MAX_PATH];
-
+  int status;
 
   interactive = TRUE;
 
@@ -551,20 +551,73 @@ main (int argc, char ** argv)
 
   /* Although Emacs always sets argv[0] to an absolute pathname, we
      might get run in other ways as well, so convert argv[0] to an
-     absolute name before comparing to the module name.  Don't get
-     caught out by mixed short and long names.  */
-  GetShortPathName (modname, modname, sizeof (modname));
+     absolute name before comparing to the module name.  */
   path[0] = '\0';
-  if (!SearchPath (NULL, argv[0], ".exe", sizeof (path), path, &progname)
-      || !GetShortPathName (path, path, sizeof (path))
-      || stricmp (modname, path) != 0)
+  /* The call to SearchPath will find argv[0] in the current
+     directory, append ".exe" to it if needed, and also canonicalize
+     it, to resolve references to ".", "..", etc.  */
+  status = SearchPath (NULL, argv[0], ".exe", sizeof (path), path,
+				  &progname);
+  if (!(status > 0 && stricmp (modname, path) == 0))
     {
-      /* We are being used as a helper to run a DOS app; just pass
-	 command line to DOS app without change.  */
-      /* TODO: fill in progname.  */
-      if (spawn (NULL, GetCommandLine (), dir, &rc))
-	return rc;
-      fail ("Could not run %s\n", GetCommandLine ());
+      if (status <= 0)
+	{
+	  char *s;
+
+	  /* Make sure we have argv[0] in path[], as the failed
+	     SearchPath might not have copied it there.  */
+	  strcpy (path, argv[0]);
+	  /* argv[0] could include forward slashes; convert them all
+	     to backslashes, for strrchr calls below to DTRT.  */
+	  for (s = path; *s; s++)
+	    if (*s == '/')
+	      *s = '\\';
+	}
+      /* Perhaps MODNAME and PATH use mixed short and long file names.  */
+      if (!(GetShortPathName (modname, modname, sizeof (modname))
+	    && GetShortPathName (path, path, sizeof (path))
+	    && stricmp (modname, path) == 0))
+	{
+	  /* Sometimes GetShortPathName fails because one or more
+	     directories leading to argv[0] have issues with access
+	     rights.  In that case, at least we can compare the
+	     basenames.  Note: this disregards the improbable case of
+	     invoking a program of the same name from another
+	     directory, since the chances of that other executable to
+	     be both our namesake and a 16-bit DOS application are nil.  */
+	  char *p = strrchr (path, '\\');
+	  char *q = strrchr (modname, '\\');
+	  char *pdot, *qdot;
+
+	  if (!p)
+	    p = strchr (path, ':');
+	  if (!p)
+	    p = path;
+	  else
+	    p++;
+	  if (!q)
+	    q = strchr (modname, ':');
+	  if (!q)
+	    q = modname;
+	  else
+	    q++;
+
+	  pdot = strrchr (p, '.');
+	  if (!pdot || stricmp (pdot, ".exe") != 0)
+	    pdot = p + strlen (p);
+	  qdot = strrchr (q, '.');
+	  if (!qdot || stricmp (qdot, ".exe") != 0)
+	    qdot = q + strlen (q);
+	  if (pdot - p != qdot - q || strnicmp (p, q, pdot - p) != 0)
+	    {
+	      /* We are being used as a helper to run a DOS app; just
+		 pass command line to DOS app without change.  */
+	      /* TODO: fill in progname.  */
+	      if (spawn (NULL, GetCommandLine (), dir, &rc))
+		return rc;
+	      fail ("Could not run %s\n", GetCommandLine ());
+	    }
+	}
     }
 
   /* Process command line.  If running interactively (-c or /c not

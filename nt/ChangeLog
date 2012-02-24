@@ -1,3 +1,14 @@
+2012-02-24  Eli Zaretskii  <eliz@gnu.org>
+
+	Prevent endless re-spawning of cmdproxy.exe when some of its
+	parent directories have access limitations.
+
+	* cmdproxy.c (main): Bypass conversion of the file name in argv[0]
+	and our own module name to short 8+3 aliases, if the original file
+	names compare equal.  If GetShortPathName fails, compare the base
+	names of the two file names, and only re-spawn the command line if
+	the base-name comparison also fails.  (Bug#10674)
+
 2012-02-23  Dani Moncayo  <dmoncayo@gmail.com>  (tiny change)
 
 	* makefile.w32-in (maybe-copy-distfiles-SH): Fix typo.
