@@ -20972,7 +20972,7 @@
 
 2002-12-30  Richard Dawe  <rich@phekda.freeserve.co.uk>
 
-	* src/config.in (!HAVE_SIZE_T): Fix order of arguments in
+	* config.in (!HAVE_SIZE_T): Fix order of arguments in
 	type definition of size_t.
 
 2003-01-02  Steven Tamm  <steventamm@mac.com>
