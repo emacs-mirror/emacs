@@ -1264,6 +1264,8 @@ Special value `always' suppresses confirmation."
 
 (defun dired-copy-file-recursive (from to ok-flag &optional
 				       preserve-time top recursive)
+  (when (file-subdir-of-p to from)
+    (error "Cannot copy `%s' into its subdirectory `%s'" from to))
   (let ((attrs (file-attributes from)))
     (if (and recursive
 	     (eq t (car attrs))
@@ -1430,10 +1432,30 @@ ESC or `q' to not overwrite any of the remaining files,
                   (cond  ((integerp marker-char) marker-char)
                          (marker-char (dired-file-marker from)) ; slow
                          (t nil))))
-	    (when (and (file-directory-p from)
-		       (file-directory-p to)
-		       (eq file-creator 'dired-copy-file))
-	      (setq to (file-name-directory to)))
+            ;; Handle the `dired-copy-file' file-creator specially
+            ;; When copying a directory to another directory or
+            ;; possibly to itself or one of its subdirectories.
+            ;; e.g "~/foo/" => "~/test/"
+            ;; or "~/foo/" =>"~/foo/"
+            ;; or "~/foo/ => ~/foo/bar/")
+            ;; In this case the 'name-constructor' have set the destination
+            ;; TO to "~/test/foo" because the old emacs23 behavior
+            ;; of `copy-directory' was to not create the subdirectory
+            ;; and instead copy the contents.
+            ;; With the new behavior of `copy-directory'
+            ;; (similar to the `cp' shell command) we don't
+            ;; need such a construction of the target directory,
+            ;; so modify the destination TO to "~/test/" instead of "~/test/foo/".
+            (let ((destname (file-name-directory to)))
+              (when (and (file-directory-p from)
+                         (file-directory-p to)
+                         (eq file-creator 'dired-copy-file))
+                (setq to destname))
+              ;; If DESTNAME and FROM are the same directory or
+              ;; If DESTNAME is a subdirectory of FROM, return error.
+              (and (file-subdir-of-p destname from)
+                   (error "Cannot copy `%s' into its subdirectory `%s'"
+                          from to)))
             (condition-case err
                 (progn
                   (funcall file-creator from to dired-overwrite-confirmed)
