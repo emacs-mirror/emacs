@@ -1,3 +1,8 @@
+2012-02-24  Chong Yidong  <cyd@gnu.org>
+
+	* keyboard.c (process_special_events): Handle all X selection
+	requests in kbd_buffer, not just the next one (Bug#8869).
+
 2012-02-23  Chong Yidong  <cyd@gnu.org>
 
 	* xfns.c (Fx_create_frame): Avoid window-configuration-change-hook
