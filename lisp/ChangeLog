@@ -1,3 +1,8 @@
+2012-02-24  Michael Albinus  <michael.albinus@gmx.de>
+
+	* net/ange-ftp.el (ange-ftp-parse-netrc): Suppress comment lines.
+	(Bug#10874)
+
 2012-02-23  Alan Mackenzie  <acm@muc.de>
 
 	* emacs-lisp/easy-mmode.el (define-minor-mode): Add extra
