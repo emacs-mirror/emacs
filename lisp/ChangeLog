@@ -1,3 +1,12 @@
+2012-02-25  Michael Albinus  <michael.albinus@gmx.de>
+
+	* net/tramp.el (tramp-file-name-for-operation): Add
+	`files-equal-p' and `file-subdir-of-p'.
+
+	* net/tramp-sh.el (tramp-sh-handle-copy-directory):
+	* net/tramp-smb.el (tramp-smb-handle-copy-directory): Add
+	COPY-CONTENTS argument.
+
 2012-02-25  Chong Yidong  <cyd@gnu.org>
 
 	Add custom groups for VC backends, for consistency with vc-bzr.
