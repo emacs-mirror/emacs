@@ -1018,6 +1018,23 @@ a regular file (not a directory, named pipe, terminal, or
 other I/O device).
 @end defun
 
+@defun files-equal-p file1 file2
+This function return @code{t} if the files @var{file1} and @var{file2} name
+the same file.
+Comparison is made with the @code{file-attributes} of both files. 
+@end defun
+
+@defun file-subdir-of-p dir1 dir2
+This function return @code{t} if directory @var{dir1} is a subdirectory
+of @var{dir2} or if @var{dir1} and @var{dir2} are the same directory.
+Arguments @var{dir1} and @var{dir2} must be existing directories,
+otherwise, return nil.
+Check is done by building a directory name based on equality of differents
+components of both directory names, if this resulting directory name
+is equal to @var{dir2}, we assume directory @var{dir1}
+is a subdirectory of @var{dir2}.
+@end defun
+
 @node Truenames
 @subsection Truenames
 @cindex truename (of file)
