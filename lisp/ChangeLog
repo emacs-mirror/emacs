@@ -1,5 +1,7 @@
 2012-02-25  Chong Yidong  <cyd@gnu.org>
 
+	* newcomment.el (comment-styles): Add autoload (Bug#10868).
+
 	* term/x-win.el (x-initialize-window-system): Reduce default for
 	x-selection-timeout to 5 seconds (Bug#8869).
 
