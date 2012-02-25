@@ -1254,11 +1254,9 @@ If SEND-IF-FORCE, only send authinfo to the server if the
          (auth-info
           (nth 0 (auth-source-search
 		  :max 1
-		  :host (list nntp-address
-			      (nnoo-current-server 'nntp))
-		  :port (or (cdr (assoc (format "%s" nntp-port-number)
-					'(("563" . ("563" "nntps" "snews")))))
-			    '("119" "nntp")))))
+		  :host (list nntp-address (nnoo-current-server 'nntp))
+		  :port `("119" "nntp" ,(format "%s" nntp-port-number)
+			  "563" "nntps" "snews"))))
          (auth-user (plist-get auth-info :user))
          (auth-force (plist-get auth-info :force))
          (auth-passwd (plist-get auth-info :secret))
