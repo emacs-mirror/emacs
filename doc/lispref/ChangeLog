@@ -1,5 +1,12 @@
 2012-02-25  Chong Yidong  <cyd@gnu.org>
 
+	* files.texi (File Attributes): Document file-selinux-context.
+	(Changing Files): Link to it.
+	(Changing Files): Document set-file-selinux-context.
+
+	* backups.texi (Making Backups): Return value of backup-buffer is
+	changed.
+
 	* searching.texi (Regexp Backslash): Add index entry (Bug#10869).
 
 2012-02-24  Glenn Morris  <rgm@gnu.org>

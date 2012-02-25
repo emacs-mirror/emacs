@@ -57,12 +57,13 @@ buffer, if appropriate.  It is called by @code{save-buffer} before
 saving the buffer the first time.
 
 If a backup was made by renaming, the return value is a cons cell of
-the form (@var{modes} . @var{backupname}), where @var{modes} are the
-mode bits of the original file, as returned by @code{file-modes}
-(@pxref{File Attributes,, Other Information about Files}), and
-@var{backupname} is the name of the backup.  In all other cases, that
-is, if a backup was made by copying or if no backup was made, this
-function returns @code{nil}.
+the form (@var{modes} @var{context} @var{backupname}), where
+@var{modes} are the mode bits of the original file, as returned by
+@code{file-modes} (@pxref{File Attributes,, Other Information about
+Files}), @var{context} is a list describing the original file's
+SELinux context (@pxref{File Attributes}), and @var{backupname} is the
+name of the backup.  In all other cases, that is, if a backup was made
+by copying or if no backup was made, this function returns @code{nil}.
 @end defun
 
 @defvar buffer-backed-up

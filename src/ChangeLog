@@ -1,5 +1,8 @@
 2012-02-25  Chong Yidong  <cyd@gnu.org>
 
+	* fileio.c (Ffile_selinux_context, Fset_file_selinux_context):
+	Doc fix.
+
 	* xselect.c (Fx_selection_exists_p): Doc fix.
 	(x_clipboard_manager_save_all): Print an informative message
 	before saving to clipboard manager.
