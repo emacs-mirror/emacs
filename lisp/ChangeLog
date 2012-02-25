@@ -1,3 +1,8 @@
+2012-02-25  Chong Yidong  <cyd@gnu.org>
+
+	* term/x-win.el (x-initialize-window-system): Reduce default for
+	x-selection-timeout to 5 seconds (Bug#8869).
+
 2012-02-24  Thierry Volpiatto  <thierry.volpiatto@gmail.com>
 
 	* files.el (file-subdir-of-p): Fix typo.

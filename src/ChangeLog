@@ -1,3 +1,9 @@
+2012-02-25  Chong Yidong  <cyd@gnu.org>
+
+	* xselect.c (Fx_selection_exists_p): Doc fix.
+	(x_clipboard_manager_save_all): Print an informative message
+	before saving to clipboard manager.
+
 2012-02-24  Chong Yidong  <cyd@gnu.org>
 
 	* keyboard.c (process_special_events): Handle all X selection

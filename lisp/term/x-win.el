@@ -1408,11 +1408,12 @@ Request data types in the order specified by `x-select-request-type'."
 		(cons '(reverse . t) default-frame-alist)))))
 
   ;; Set x-selection-timeout, measured in milliseconds.
-  (let ((res-selection-timeout
-	 (x-get-resource "selectionTimeout" "SelectionTimeout")))
-    (setq x-selection-timeout 20000)
-    (if res-selection-timeout
-	(setq x-selection-timeout (string-to-number res-selection-timeout))))
+  (let ((res-selection-timeout (x-get-resource "selectionTimeout"
+					       "SelectionTimeout")))
+    (setq x-selection-timeout
+	  (if res-selection-timeout
+	      (string-to-number res-selection-timeout)
+	    5000)))
 
   ;; Don't let Emacs suspend under X.
   (add-hook 'suspend-hook 'x-win-suspend-error)
