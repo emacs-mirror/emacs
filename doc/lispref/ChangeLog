@@ -5,7 +5,10 @@
 	(Changing Files): Document set-file-selinux-context.
 
 	* backups.texi (Making Backups): Return value of backup-buffer is
-	changed.
+	changed.  Mention default value of backup-directory-alist.
+	(Rename or Copy): Note that backup-by-copying-when-mismatch is t.
+	(Auto-Saving): New minor mode behavior for auto-save-mode.
+	(Reverting): Add defvar for revert-buffer-in-progress-p.
 
 	* searching.texi (Regexp Backslash): Add index entry (Bug#10869).
 
