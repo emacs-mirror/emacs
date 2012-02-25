@@ -1018,6 +1018,23 @@ a regular file (not a directory, named pipe, terminal, or
 other I/O device).
 @end defun
 
+@defun files-equal-p file1 file2
+This function return @code{t} if the files @var{file1} and @var{file2} name
+the same file.
+Comparison is made with the @code{file-attributes} of both files. 
+@end defun
+
+@defun file-subdir-of-p dir1 dir2
+This function return @code{t} if directory @var{dir1} is a subdirectory
+of @var{dir2} or if @var{dir1} and @var{dir2} are the same directory.
+Arguments @var{dir1} and @var{dir2} must be existing directories,
+otherwise, return nil.
+Check is done by building a directory name based on equality of differents
+components of both directory names, if this resulting directory name
+is equal to @var{dir2}, we assume directory @var{dir1}
+is a subdirectory of @var{dir2}.
+@end defun
+
 @node Truenames
 @subsection Truenames
 @cindex truename (of file)
@@ -1129,6 +1146,18 @@ both others and group, and that the sticky bit is set.
 
 @xref{Changing Files}, for functions that change file permissions,
 such as @code{set-file-modes}.
+
+@cindex MS-DOS and file modes
+@cindex file modes and MS-DOS
+@strong{MS-DOS note:} On MS-DOS, there is no such thing as an
+``executable'' file mode bit.  So @code{file-modes} considers a file
+executable if its name ends in one of the standard executable
+extensions, such as @file{.com}, @file{.bat}, @file{.exe}, and some
+others.  Files that begin with the Unix-standard @samp{#!} signature,
+such as shell and Perl scripts, are also considered executable.
+Directories are also reported as executable, for compatibility with
+Unix.  These conventions are also followed by @code{file-attributes},
+below.
 @end defun
 
   If the @var{filename} argument to the next two functions is a
@@ -1304,16 +1333,26 @@ is on the file-system device whose number is 1014478468.
 @end table
 @end defun
 
-@cindex MS-DOS and file modes
-@cindex file modes and MS-DOS
-  On MS-DOS, there is no such thing as an ``executable'' file mode bit.
-So Emacs considers a file executable if its name ends in one of the
-standard executable extensions, such as @file{.com}, @file{.bat},
-@file{.exe}, and some others.  Files that begin with the Unix-standard
-@samp{#!} signature, such as shell and Perl scripts, are also considered
-as executable files.  This is reflected in the values returned by
-@code{file-modes} and @code{file-attributes}.  Directories are also
-reported with executable bit set, for compatibility with Unix.
+@cindex SELinux context
+  SELinux is a Linux kernel feature which provides more sophisticated
+file access controls than ordinary ``Unix-style'' file permissions.
+If Emacs has been compiled with SELinux support on a system with
+SELinux enabled, you can use the function @code{file-selinux-context}
+to retrieve a file's SELinux security context.  For the function
+@code{set-file-selinux-context}, see @ref{Changing Files}.
+
+@defun file-selinux-context filename
+This function returns the SELinux security context of the file
+@var{filename}.  This return value is a list of the form
+@code{(@var{user} @var{role} @var{type} @var{range})}, whose elements
+are the context's user, role, type, and range respectively, as Lisp
+strings.  See the SELinux documentation for details about what these
+actually mean.
+
+If the file does not exist or is inaccessible, or if the system does
+not support SELinux, or if Emacs was not compiled with SELinux
+support, then the return value is @code{(nil nil nil nil)}.
+@end defun
 
 @node Locating Files
 @subsection How to Locate Files in Standard Places
@@ -1528,15 +1567,9 @@ non-@code{nil}, we attempt to copy the user and group ownership of the
 file.  This works only on some operating systems, and only if you have
 the correct permissions to do so.
 
-@cindex SELinux
-If the optional argument @var{preserve-selinux} is non-@code{nil}, we
-attempt to copy the SELinux@footnote{@samp{Security-Enhanced Linux}
-is a kernel feature that allows for finer access controls to be set on
-files, and a system security policy to define who can access what.
-The functions @code{file-selinux-context} and @code{set-file-selinux-context}
-get and set, respectively, the SELinux properties of a file.}
-context of the file.  For this to work, Emacs must have been built
-with libselinux support.
+If the optional argument @var{preserve-selinux} is non-@code{nil}, and
+Emacs has been compiled with SELinux support, this function attempts
+to copy the file's SELinux context (@pxref{File Attributes}).
 @end deffn
 
 @deffn Command make-symbolic-link filename newname  &optional ok-if-exists
@@ -1665,6 +1698,16 @@ to @var{time}.  The return value is @code{t} if the times are successfully
 set, otherwise it is @code{nil}.  @var{time} defaults to the current
 time and must be in the format returned by @code{current-time}
 (@pxref{Time of Day}).
+@end defun
+
+@defun set-file-selinux-context filename context
+This function sets the SELinux security context of the file
+@var{filename} to @var{context}.  @xref{File Attributes}, for a brief
+description of SELinux contexts.  The @var{context} argument should be
+a list @code{(@var{user} @var{role} @var{type} @var{range})}, like the
+return value of @code{file-selinux-context}.  The function does
+nothing if SELinux is disabled, or if Emacs was compiled without
+SELinux support.
 @end defun
 
 @node File Names

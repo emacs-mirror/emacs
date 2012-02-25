@@ -1,4 +1,19 @@
+2012-02-25  Thierry Volpiatto  <thierry.volpiatto@gmail.com>
+
+	* files.texi (files-equal-p, file-subdir-of-p): New,
+	add initial documentation.
+
 2012-02-25  Chong Yidong  <cyd@gnu.org>
+
+	* files.texi (File Attributes): Document file-selinux-context.
+	(Changing Files): Link to it.
+	(Changing Files): Document set-file-selinux-context.
+
+	* backups.texi (Making Backups): Return value of backup-buffer is
+	changed.  Mention default value of backup-directory-alist.
+	(Rename or Copy): Note that backup-by-copying-when-mismatch is t.
+	(Auto-Saving): New minor mode behavior for auto-save-mode.
+	(Reverting): Add defvar for revert-buffer-in-progress-p.
 
 	* searching.texi (Regexp Backslash): Add index entry (Bug#10869).
 

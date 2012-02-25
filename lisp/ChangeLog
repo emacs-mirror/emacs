@@ -1,3 +1,22 @@
+2012-02-25  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* term/ns-win.el (global-map): Bind ns-drag-file to
+	ns-find-file (Bug#5855, Bug#10050).
+
+2012-02-25  Andreas Schwab  <schwab@linux-m68k.org>
+
+	* calendar/parse-time.el (parse-time-string): Allow extractor to
+	return nil.
+
+2012-02-25  Michael Albinus  <michael.albinus@gmx.de>
+
+	* net/tramp.el (tramp-file-name-for-operation):
+	Add `files-equal-p' and `file-subdir-of-p'.
+
+	* net/tramp-sh.el (tramp-sh-handle-copy-directory):
+	* net/tramp-smb.el (tramp-smb-handle-copy-directory):
+	Add COPY-CONTENTS argument.
+
 2012-02-25  Chong Yidong  <cyd@gnu.org>
 
 	Add custom groups for VC backends, for consistency with vc-bzr.
@@ -45,9 +64,9 @@
 	the execution of the mode hooks.
 
 	* font-lock.el (font-lock-initial-fontify): New function extracted
-	from font-lock-mode-interal.
+	from font-lock-mode-internal.
 
-	* font-core.el (font-lock-mode): call font-lock-initial-fontify in
+	* font-core.el (font-lock-mode): Call font-lock-initial-fontify in
 	:after-hook.
 
 2012-02-23  Stefan Monnier  <monnier@iro.umontreal.ca>
@@ -413,7 +432,7 @@
 	* mail/emacsbug.el (report-emacs-bug-hook): Query the user first
 	about SMTP before checking the From header.
 
-	* mail/sendmail.el (sendmail-query-user-about-smtp): Refacored out
+	* mail/sendmail.el (sendmail-query-user-about-smtp): Refactor out
 	into own function for reuse by emacsbug.el.
 
 2012-02-10  Leo Liu  <sdl.web@gmail.com>
@@ -427,7 +446,7 @@
 	* emacs-lisp/package.el (package-refresh-contents)
 	(package-menu-execute):
 	* desktop.el (desktop-create-buffer):
-	* font-lock.el (lisp-font-lock-keywords-2): caller changed.
+	* font-lock.el (lisp-font-lock-keywords-2): Caller changed.
 
 2012-02-10  Glenn Morris  <rgm@gnu.org>
 
