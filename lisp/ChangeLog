@@ -1,3 +1,8 @@
+2012-02-25  Andreas Schwab  <schwab@linux-m68k.org>
+
+	* calendar/parse-time.el (parse-time-string): Allow extractor to
+	return nil.
+
 2012-02-25  Michael Albinus  <michael.albinus@gmx.de>
 
 	* net/tramp.el (tramp-file-name-for-operation): Add

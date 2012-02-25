@@ -193,28 +193,29 @@ unknown are returned as nil."
 		 (predicate (pop rule))
 		 (parse-time-val))
 	    (when (and (not (nth (car slots) time)) ;not already set
-		       (setq parse-time-val (cond ((and (consp predicate)
-					     (not (eq (car predicate)
-						      'lambda)))
-					(and (numberp parse-time-elt)
-					     (<= (car predicate) parse-time-elt)
-					     (<= parse-time-elt (cadr predicate))
-					     parse-time-elt))
-				       ((symbolp predicate)
-					(cdr (assoc parse-time-elt
-						    (symbol-value predicate))))
-				       ((funcall predicate)))))
+		       (setq parse-time-val
+			     (cond ((and (consp predicate)
+					 (not (eq (car predicate)
+						  'lambda)))
+				    (and (numberp parse-time-elt)
+					 (<= (car predicate) parse-time-elt)
+					 (<= parse-time-elt (cadr predicate))
+					 parse-time-elt))
+				   ((symbolp predicate)
+				    (cdr (assoc parse-time-elt
+						(symbol-value predicate))))
+				   ((funcall predicate)))))
 	      (setq exit t)
 	      (while slots
-		(let ((new-val (and rule
-				    (let ((this (pop rule)))
-				      (if (vectorp this)
-					  (parse-integer
-					   parse-time-elt
-					   (aref this 0) (aref this 1))
-					(funcall this))))))
-		  (rplaca (nthcdr (pop slots) time)
-			  (or new-val parse-time-val)))))))))
+		(let ((new-val (if rule
+				   (let ((this (pop rule)))
+				     (if (vectorp this)
+					 (parse-integer
+					  parse-time-elt
+					  (aref this 0) (aref this 1))
+				       (funcall this)))
+				 parse-time-val)))
+		  (rplaca (nthcdr (pop slots) time) new-val))))))))
     time))
 
 (provide 'parse-time)
