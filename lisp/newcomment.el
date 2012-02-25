@@ -185,6 +185,7 @@ The `plain' comment style doubles this value.
 This should generally stay 0, except for a few modes like Lisp where
 it is 1 so that regions are commented with two or three semi-colons.")
 
+;;;###autoload
 (defconst comment-styles
   '((plain      nil nil nil nil
                 "Start in column 0 (do not indent), as in Emacs-20")

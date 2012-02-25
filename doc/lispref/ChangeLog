@@ -1,3 +1,12 @@
+2012-02-25  Chong Yidong  <cyd@gnu.org>
+
+	* searching.texi (Regexp Backslash): Add index entry (Bug#10869).
+
+2012-02-24  Glenn Morris  <rgm@gnu.org>
+
+	* errors.texi (Standard Errors): Mention dbus-error.
+	For arith-error sub-classes, just use one cross-ref.
+
 2012-02-23  Alan Mackenzie  <acm@muc.de>
 
 	* modes.texi (Defining Minor Modes): Document the new keyword

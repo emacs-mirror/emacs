@@ -1,3 +1,7 @@
+2012-02-23  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* nntp.el (nntp-send-authinfo): Work for secure nntp entry in authinfo.
+
 2012-02-20  Lars Ingebrigtsen  <larsi@gnus.org>
 
 	* mm-decode.el (mm-shr): Remove "soft hyphens".

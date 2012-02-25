@@ -41,13 +41,18 @@
   (require 'cl)
   (require 'vc))
 
+(defgroup vc-rcs nil
+  "VC RCS backend."
+  :version "24.1"
+  :group 'vc)
+
 (defcustom vc-rcs-release nil
   "The release number of your RCS installation, as a string.
 If nil, VC itself computes this value when it is first needed."
   :type '(choice (const :tag "Auto" nil)
 		 (string :tag "Specified")
 		 (const :tag "Unknown" unknown))
-  :group 'vc)
+  :group 'vc-rcs)
 
 (defcustom vc-rcs-register-switches nil
   "Switches for registering a file in RCS.
@@ -59,7 +64,7 @@ If t, use no switches."
 		 (string :tag "Argument String")
 		 (repeat :tag "Argument List" :value ("") string))
   :version "21.1"
-  :group 'vc)
+  :group 'vc-rcs)
 
 (defcustom vc-rcs-diff-switches nil
   "String or list of strings specifying switches for RCS diff under VC.
@@ -69,20 +74,20 @@ If nil, use the value of `vc-diff-switches'.  If t, use no switches."
 		 (string :tag "Argument String")
 		 (repeat :tag "Argument List" :value ("") string))
   :version "21.1"
-  :group 'vc)
+  :group 'vc-rcs)
 
 (defcustom vc-rcs-header '("\$Id\$")
   "Header keywords to be inserted by `vc-insert-headers'."
   :type '(repeat string)
   :version "24.1"     ; no longer consult the obsolete vc-header-alist
-  :group 'vc)
+  :group 'vc-rcs)
 
 (defcustom vc-rcsdiff-knows-brief nil
   "Indicates whether rcsdiff understands the --brief option.
 The value is either `yes', `no', or nil.  If it is nil, VC tries
 to use --brief and sets this variable to remember whether it worked."
   :type '(choice (const :tag "Work out" nil) (const yes) (const no))
-  :group 'vc)
+  :group 'vc-rcs)
 
 ;;;###autoload
 (defcustom vc-rcs-master-templates
@@ -95,7 +100,7 @@ For a description of possible values, see `vc-check-master-templates'."
 			 (choice string
 				 function)))
   :version "21.1"
-  :group 'vc)
+  :group 'vc-rcs)
 
 
 ;;; Properties of the backend

@@ -59,6 +59,11 @@
 ;;; Customization options
 ;;;
 
+(defgroup vc-cvs nil
+  "VC CVS backend."
+  :version "24.1"
+  :group 'vc)
+
 (defcustom vc-cvs-global-switches nil
   "Global switches to pass to any CVS command."
   :type '(choice (const :tag "None" nil)
@@ -67,7 +72,7 @@
 			 :value ("")
 			 string))
   :version "22.1"
-  :group 'vc)
+  :group 'vc-cvs)
 
 (defcustom vc-cvs-register-switches nil
   "Switches for registering a file into CVS.
@@ -79,7 +84,7 @@ If t, use no switches."
 		 (string :tag "Argument String")
 		 (repeat :tag "Argument List" :value ("") string))
   :version "21.1"
-  :group 'vc)
+  :group 'vc-cvs)
 
 (defcustom vc-cvs-diff-switches nil
   "String or list of strings specifying switches for CVS diff under VC.
@@ -89,13 +94,13 @@ If nil, use the value of `vc-diff-switches'.  If t, use no switches."
                  (string :tag "Argument String")
                  (repeat :tag "Argument List" :value ("") string))
   :version "21.1"
-  :group 'vc)
+  :group 'vc-cvs)
 
 (defcustom vc-cvs-header '("\$Id\$")
   "Header keywords to be inserted by `vc-insert-headers'."
   :version "24.1"     ; no longer consult the obsolete vc-header-alist
   :type '(repeat string)
-  :group 'vc)
+  :group 'vc-cvs)
 
 (defcustom vc-cvs-use-edit t
   "Non-nil means to use `cvs edit' to \"check out\" a file.
@@ -103,7 +108,7 @@ This is only meaningful if you don't use the implicit checkout model
 \(i.e. if you have $CVSREAD set)."
   :type 'boolean
   :version "21.1"
-  :group 'vc)
+  :group 'vc-cvs)
 
 (defcustom vc-cvs-stay-local 'only-file
   "Non-nil means use local operations when possible for remote repositories.
@@ -131,7 +136,7 @@ by these regular expressions."
                                :tag "if it matches")
                        (repeat :format "%v%i\n" :inline t (regexp :tag "or"))))
   :version "23.1"
-  :group 'vc)
+  :group 'vc-cvs)
 
 (defcustom vc-cvs-sticky-date-format-string "%c"
   "Format string for mode-line display of sticky date.
@@ -139,7 +144,7 @@ Format is according to `format-time-string'.  Only used if
 `vc-cvs-sticky-tag-display' is t."
   :type '(string)
   :version "22.1"
-  :group 'vc)
+  :group 'vc-cvs)
 
 (defcustom vc-cvs-sticky-tag-display t
   "Specify the mode-line display of sticky tags.
@@ -178,7 +183,7 @@ displayed.  Date and time is displayed for sticky dates.
 See also variable `vc-cvs-sticky-date-format-string'."
   :type '(choice boolean function)
   :version "22.1"
-  :group 'vc)
+  :group 'vc-cvs)
 
 ;;;
 ;;; Internal variables

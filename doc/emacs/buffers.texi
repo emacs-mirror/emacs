@@ -106,7 +106,9 @@ editing.  The default value of the variable @code{major-mode}
 determines the new buffer's major mode; the default value is
 Fundamental mode.  @xref{Major Modes}.  One reason to create a new
 buffer is to use it for making temporary notes.  If you try to save
-it, Emacs asks for the file name to use.
+it, Emacs asks for the file name to use, and the buffer's major mode
+is re-established taking that file name into account (@pxref{Choosing
+Modes}).
 
 @kindex C-x @key{LEFT}
 @kindex C-x @key{RIGHT}

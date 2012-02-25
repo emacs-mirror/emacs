@@ -116,13 +116,18 @@
 
 ;;; Customization options
 
+(defgroup vc-hg nil
+  "VC Mercurial (hg) backend."
+  :version "24.1"
+  :group 'vc)
+
 (defcustom vc-hg-global-switches nil
   "Global switches to pass to any Hg command."
   :type '(choice (const :tag "None" nil)
          (string :tag "Argument String")
          (repeat :tag "Argument List" :value ("") string))
   :version "22.2"
-  :group 'vc)
+  :group 'vc-hg)
 
 (defcustom vc-hg-diff-switches t ; Hg doesn't support common args like -u
   "String or list of strings specifying switches for Hg diff under VC.
@@ -132,12 +137,12 @@ If nil, use the value of `vc-diff-switches'.  If t, use no switches."
                  (string :tag "Argument String")
                  (repeat :tag "Argument List" :value ("") string))
   :version "23.1"
-  :group 'vc)
+  :group 'vc-hg)
 
 (defcustom vc-hg-program "hg"
   "Name of the Mercurial executable (excluding any arguments)."
   :type 'string
-  :group 'vc)
+  :group 'vc-hg)
 
 (defcustom vc-hg-root-log-format
   '("{rev}:{tags}: {author|person} {date|shortdate} {desc|firstline}\\n"
@@ -153,7 +158,7 @@ REGEXP is a regular expression matching the resulting Mercurial
 output, and KEYWORDS is a list of `font-lock-keywords' for
 highlighting the Log View buffer."
   :type '(list string string (repeat sexp))
-  :group 'vc
+  :group 'vc-hg
   :version "24.1")
 
 

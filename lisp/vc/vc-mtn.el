@@ -34,6 +34,11 @@
 
 (eval-when-compile (require 'cl) (require 'vc))
 
+(defgroup vc-mtn nil
+  "VC Monotone (mtn) backend."
+  :version "24.1"
+  :group 'vc)
+
 (defcustom vc-mtn-diff-switches t
   "String or list of strings specifying switches for monotone diff under VC.
 If nil, use the value of `vc-diff-switches'.  If t, use no switches."
@@ -42,13 +47,13 @@ If nil, use the value of `vc-diff-switches'.  If t, use no switches."
 		 (string :tag "Argument String")
 		 (repeat :tag "Argument List" :value ("") string))
   :version "23.1"
-  :group 'vc)
+  :group 'vc-mtn)
 
 (define-obsolete-variable-alias 'vc-mtn-command 'vc-mtn-program "23.1")
 (defcustom vc-mtn-program "mtn"
   "Name of the monotone executable."
   :type 'string
-  :group 'vc)
+  :group 'vc-mtn)
 
 ;; Clear up the cache to force vc-call to check again and discover
 ;; new functions when we reload this file.
@@ -153,7 +158,7 @@ If nil, use the value of `vc-diff-switches'.  If t, use no switches."
   "Rewrite rules to shorten Mtn's revision names on the mode-line."
   :type '(repeat (cons regexp string))
   :version "22.2"
-  :group 'vc)
+  :group 'vc-mtn)
 
 (defun vc-mtn-mode-line-string (file)
   "Return string for placement in modeline by `vc-mode-line' for FILE."

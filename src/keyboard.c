@@ -4154,29 +4154,55 @@ kbd_buffer_get_event (KBOARD **kbp,
 static void
 process_special_events (void)
 {
-  while (kbd_fetch_ptr != kbd_store_ptr)
+  struct input_event *event;
+
+  for (event = kbd_fetch_ptr; event != kbd_store_ptr; ++event)
     {
-      struct input_event *event;
+      if (event == kbd_buffer + KBD_BUFFER_SIZE)
+	{
+	  event = kbd_buffer;
+	  if (event == kbd_store_ptr)
+	    break;
+	}
 
-      event = ((kbd_fetch_ptr < kbd_buffer + KBD_BUFFER_SIZE)
-	       ? kbd_fetch_ptr
-	       : kbd_buffer);
-
-      last_event_timestamp = event->timestamp;
-
-      /* These two kinds of events get special handling
-	 and don't actually appear to the command loop.  */
+      /* If we find a stored X selection request, handle it now.  */
       if (event->kind == SELECTION_REQUEST_EVENT
 	  || event->kind == SELECTION_CLEAR_EVENT)
 	{
 #ifdef HAVE_X11
-	  struct input_event copy;
 
-	  /* Remove it from the buffer before processing it,
-	     since otherwise swallow_events called recursively could see it
-	     and process it again.  */
-	  copy = *event;
-	  kbd_fetch_ptr = event + 1;
+	  /* Remove the event from the fifo buffer before processing;
+	     otherwise swallow_events called recursively could see it
+	     and process it again.  To do this, we move the events
+	     between kbd_fetch_ptr and EVENT one slot to the right,
+	     cyclically.  */
+
+	  struct input_event copy = *event;
+	  struct input_event *beg
+	    = (kbd_fetch_ptr == kbd_buffer + KBD_BUFFER_SIZE)
+	    ? kbd_buffer : kbd_fetch_ptr;
+
+	  if (event > beg)
+	    memmove (beg + 1, beg, (event - beg) * sizeof (struct input_event));
+	  else if (event < beg)
+	    {
+	      if (event > kbd_buffer)
+		memmove (kbd_buffer + 1, kbd_buffer,
+			 (event - kbd_buffer) * sizeof (struct input_event));
+	      *kbd_buffer = *(kbd_buffer + KBD_BUFFER_SIZE - 1);
+	      if (beg < kbd_buffer + KBD_BUFFER_SIZE - 1)
+		memmove (beg + 1, beg,
+			 (kbd_buffer + KBD_BUFFER_SIZE - 1 - beg)
+			 * sizeof (struct input_event));
+	    }
+
+	  if (kbd_fetch_ptr == kbd_buffer + KBD_BUFFER_SIZE)
+	    kbd_fetch_ptr = kbd_buffer + 1;
+	  else
+	    kbd_fetch_ptr++;
+
+	  /* X wants last_event_timestamp for selection ownership.  */
+	  last_event_timestamp = copy.timestamp;
 	  input_pending = readable_events (0);
 	  x_handle_selection_event (&copy);
 #else
@@ -4185,8 +4211,6 @@ process_special_events (void)
 	  abort ();
 #endif
 	}
-      else
-	break;
     }
 }
 

@@ -4985,6 +4985,39 @@ given.  With a prefix argument, TRASH is nil."
 		 directory 'full directory-files-no-dot-files-regexp)))
       (delete-directory-internal directory)))))
 
+(defun files-equal-p (file1 file2)
+  "Return non-nil if FILE1 and FILE2 name the same file."
+  (let ((handler (or (find-file-name-handler file1 'files-equal-p)
+                     (find-file-name-handler file2 'files-equal-p))))
+    (if handler
+        (funcall handler 'files-equal-p file1 file2)
+      (equal (file-attributes (file-truename file1))
+             (file-attributes (file-truename file2))))))
+
+(defun file-subdir-of-p (dir1 dir2)
+  "Return non-nil if DIR1 is a subdirectory of DIR2.
+Note that a directory is treated by this function as a subdirectory of itself.
+This function only works when its two arguments already exist,
+when they don't, it returns nil."
+  (let ((handler (or (find-file-name-handler dir1 'file-subdir-of-p)
+                     (find-file-name-handler dir2 'file-subdir-of-p))))
+    (if handler
+        (funcall handler 'file-subdir-of-p dir1 dir2)
+      (when (and (file-directory-p dir1)
+                 (file-directory-p dir2))
+        (loop with f1 = (file-truename dir1)
+              with f2 = (file-truename dir2)
+              with ls1 = (or (split-string f1 "/" t) (list "/"))
+              with ls2 = (or (split-string f2 "/" t) (list "/"))
+              for p = (string-match "^/" f1)
+              for i in ls1
+              for j in ls2
+              when (string= i j)
+              concat (if p (concat "/" i) (concat i "/"))
+              into root
+              finally return
+              (files-equal-p (file-truename root) f2))))))
+
 (defun copy-directory (directory newname &optional keep-time parents copy-contents)
   "Copy DIRECTORY to NEWNAME.  Both args must be strings.
 This function always sets the file modes of the output files to match
@@ -5011,12 +5044,16 @@ directly into NEWNAME instead."
 	    (format "Copy directory %s to: " dir)
 	    default-directory default-directory nil nil)
 	   current-prefix-arg t nil)))
+  (when (file-subdir-of-p newname directory)
+    (error "Cannot copy `%s' into its subdirectory `%s'"
+           directory newname))
   ;; If default-directory is a remote directory, make sure we find its
   ;; copy-directory handler.
   (let ((handler (or (find-file-name-handler directory 'copy-directory)
 		     (find-file-name-handler newname 'copy-directory))))
     (if handler
-	(funcall handler 'copy-directory directory newname keep-time parents)
+	(funcall handler 'copy-directory directory
+                 newname keep-time parents copy-contents)
 
       ;; Compute target name.
       (setq directory (directory-file-name (expand-file-name directory))
@@ -5025,7 +5062,12 @@ directly into NEWNAME instead."
       (cond ((not (file-directory-p newname))
 	     ;; If NEWNAME is not an existing directory, create it;
 	     ;; that is where we will copy the files of DIRECTORY.
-	     (make-directory newname parents))
+	     (make-directory newname parents)
+             ;; `file-subdir-of-p' doesn't handle non--existing directories,
+             ;; so double check now if NEWNAME is not a subdir of DIRECTORY.
+             (and (file-subdir-of-p newname directory)
+                  (error "Cannot copy `%s' into its subdirectory `%s'"
+                         directory newname)))
 	    ;; If NEWNAME is an existing directory and COPY-CONTENTS
 	    ;; is nil, copy into NEWNAME/[DIRECTORY-BASENAME].
 	    ((not copy-contents)

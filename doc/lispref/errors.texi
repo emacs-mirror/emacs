@@ -1,6 +1,6 @@
 @c -*-texinfo-*-
 @c This is part of the GNU Emacs Lisp Reference Manual.
-@c Copyright (C) 1990-1993, 1999, 2001-2012  Free Software Foundation, Inc.
+@c Copyright (C) 1990-1993, 1999, 2001-2012 Free Software Foundation, Inc.
 @c See the file elisp.texi for copying conditions.
 @setfilename ../../info/errors
 @node Standard Errors, Standard Buffer-Local Variables, GNU Emacs Internals, Top
@@ -54,6 +54,11 @@ sequence or buffer.@*
 @code{"Buffer is read-only"}@*
 @xref{Read Only Buffers}.
 
+@ignore
+@item circular-list
+@code{"List contains a loop"}@*
+@end ignore
+
 @item coding-system-error
 @code{"Invalid coding system"}@*
 @xref{Lisp and Coding Systems}.
@@ -65,6 +70,11 @@ sequence or buffer.@*
 @item cyclic-variable-indirection
 @code{"Symbol's chain of variable indirections contains a loop"}@*
 @xref{Variable Aliases}.
+
+@item dbus-error
+@code{"D-Bus error"}@*
+This is only defined if Emacs was compiled with D-Bus support.@*
+@xref{Errors and Events,,, dbus, D-Bus integration in Emacs}.
 
 @item end-of-buffer
 @code{"End of buffer"}@*
@@ -128,6 +138,11 @@ in accessing a remote file using ftp.@*
 @code{"No catch for tag"}@*
 @xref{Catch and Throw}.
 
+@ignore
+@item protected-field
+@code{"Attempt to modify a protected field"}
+@end ignore
+
 @item scan-error
 @code{"Scan error"}@*
 This happens when certain syntax-parsing functions
@@ -171,31 +186,26 @@ This is a subcategory of @code{buffer-read-only}.@*
 @xref{Type Predicates}.
 @end table
 
-  These kinds of error, which are classified as special cases of
+  The following kinds of error, which are classified as special cases of
 @code{arith-error}, can occur on certain systems for invalid use of
-mathematical functions.
+mathematical functions.  @xref{Math Functions}.
 
 @table @code
 @item domain-error
-@code{"Arithmetic domain error"}@*
-@xref{Math Functions}.
+@code{"Arithmetic domain error"}
 
 @item overflow-error
 @code{"Arithmetic overflow error"}@*
-This is a subcategory of @code{domain-error}.@*
-@xref{Math Functions}.
+This is a subcategory of @code{domain-error}.
 
 @item range-error
-@code{"Arithmetic range error"}@*
-@xref{Math Functions}.
+@code{"Arithmetic range error"}
 
 @item singularity-error
 @code{"Arithmetic singularity error"}@*
-This is a subcategory of @code{domain-error}.@*
-@xref{Math Functions}.
+This is a subcategory of @code{domain-error}.
 
 @item underflow-error
 @code{"Arithmetic underflow error"}@*
-This is a subcategory of @code{domain-error}.@*
-@xref{Math Functions}.
+This is a subcategory of @code{domain-error}.
 @end table

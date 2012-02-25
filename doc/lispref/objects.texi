@@ -370,7 +370,7 @@ with other programming languages.  Unlike some other languages, Emacs
 Lisp supports this syntax only in character literals and strings.
 
 @cindex @samp{\} in character constant
-@cindex backslash in character constant
+@cindex backslash in character constants
 @cindex octal character code
   The most general read syntax for a character represents the
 character code in either octal or hex.  To use octal, write a question

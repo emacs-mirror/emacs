@@ -1,3 +1,8 @@
+2012-02-25  Dani Moncayo  <dmoncayo@gmail.com>  (tiny change)
+
+	* buffers.texi (Select Buffer): Mention that saving in a new file
+	name can switch to a different major mode.
+
 2012-02-23  Glenn Morris  <rgm@gnu.org>
 
 	* mini.texi (Minibuffer File, Completion Options, Repetition):

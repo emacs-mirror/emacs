@@ -2142,9 +2142,9 @@ DEFUN ("x-selection-exists-p", Fx_selection_exists_p, Sx_selection_exists_p,
        0, 2, 0,
        doc: /* Whether there is an owner for the given X selection.
 SELECTION should be the name of the selection in question, typically
-one of the symbols `PRIMARY', `SECONDARY', or `CLIPBOARD'.  (X expects
-these literal upper-case names.)  The symbol nil is the same as
-`PRIMARY', and t is the same as `SECONDARY'.
+one of the symbols `PRIMARY', `SECONDARY', `CLIPBOARD', or
+`CLIPBOARD_MANAGER' (X expects these literal upper-case names.)  The
+symbol nil is the same as `PRIMARY', and t is the same as `SECONDARY'.
 
 TERMINAL should be a terminal object or a frame specifying the X
 server to query.  If omitted or nil, that stands for the selected
@@ -2273,8 +2273,14 @@ x_clipboard_manager_save_all (void)
 
       local_frame = XCAR (XCDR (XCDR (XCDR (local_selection))));
       if (FRAME_LIVE_P (XFRAME (local_frame)))
-	internal_condition_case_1 (x_clipboard_manager_save, local_frame,
-				   Qt, x_clipboard_manager_error_2);
+	{
+	  Lisp_Object args[1];
+	  args[0] = build_string ("Saving clipboard to X clipboard manager...");
+	  Fmessage (1, args);
+
+	  internal_condition_case_1 (x_clipboard_manager_save, local_frame,
+				     Qt, x_clipboard_manager_error_2);
+	}
     }
 }
 
