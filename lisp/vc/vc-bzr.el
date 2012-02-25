@@ -56,7 +56,7 @@
 (put 'Bzr 'vc-functions nil)
 
 (defgroup vc-bzr nil
-  "VC bzr backend."
+  "VC Bazaar (bzr) backend."
   :version "22.2"
   :group 'vc)
 

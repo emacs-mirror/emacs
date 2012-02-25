@@ -1,5 +1,19 @@
 2012-02-25  Chong Yidong  <cyd@gnu.org>
 
+	Add custom groups for VC backends, for consistency with vc-bzr.
+
+	* vc/vc-arch.el (vc-arch):
+	* vc/vc-cvs.el (vc-cvs):
+	* vc/vc-git.el (vc-git):
+	* vc/vc-hg.el (vc-hg):
+	* vc/vc-mtn.el (vc-mtn):
+	* vc/vc-rcs.el (vc-rcs):
+	* vc/vc-sccs.el (vc-sccs):
+	* vc/vc-svn.el (vc-svn): New customization group (Bug#10871).
+	All relevant defcustoms reassigned.
+
+2012-02-25  Chong Yidong  <cyd@gnu.org>
+
 	* newcomment.el (comment-styles): Add autoload (Bug#10868).
 
 	* term/x-win.el (x-initialize-window-system): Reduce default for

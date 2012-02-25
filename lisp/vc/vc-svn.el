@@ -39,11 +39,16 @@
 ;;; Customization options
 ;;;
 
+(defgroup vc-svn nil
+  "VC Subversion (svn) backend."
+  :version "24.1"
+  :group 'vc)
+
 ;; FIXME there is also svnadmin.
 (defcustom vc-svn-program "svn"
   "Name of the SVN executable."
   :type 'string
-  :group 'vc)
+  :group 'vc-svn)
 
 (defcustom vc-svn-global-switches nil
   "Global switches to pass to any SVN command."
@@ -53,7 +58,7 @@
 			 :value ("")
 			 string))
   :version "22.1"
-  :group 'vc)
+  :group 'vc-svn)
 
 (defcustom vc-svn-register-switches nil
   "Switches for registering a file into SVN.
@@ -65,7 +70,7 @@ If t, use no switches."
 		 (string :tag "Argument String")
 		 (repeat :tag "Argument List" :value ("") string))
   :version "22.1"
-  :group 'vc)
+  :group 'vc-svn)
 
 (defcustom vc-svn-diff-switches
   t			   ;`svn' doesn't support common args like -c or -b.
@@ -81,13 +86,13 @@ If you want to force an empty list of arguments, use t."
 			 :value ("")
 			 string))
   :version "22.1"
-  :group 'vc)
+  :group 'vc-svn)
 
 (defcustom vc-svn-header '("\$Id\$")
   "Header keywords to be inserted by `vc-insert-headers'."
   :version "24.1"     ; no longer consult the obsolete vc-header-alist
   :type '(repeat string)
-  :group 'vc)
+  :group 'vc-svn)
 
 ;; We want to autoload it for use by the autoloaded version of
 ;; vc-svn-registered, but we want the value to be compiled at startup, not
