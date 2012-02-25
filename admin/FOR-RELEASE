@@ -194,7 +194,7 @@ debugging.texi    cyd
 display.texi      
 edebug.texi
 elisp.texi
-errors.texi       
+errors.texi       rgm
 eval.texi         cyd
 files.texi        cyd
 frames.texi       

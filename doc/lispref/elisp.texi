@@ -170,7 +170,7 @@ Appendices
 * Tips::                    Advice and coding conventions for Emacs Lisp.
 * GNU Emacs Internals::     Building and dumping Emacs;
                               internal data structures.
-* Standard Errors::         List of all error symbols.
+* Standard Errors::         List of main error symbols.
 * Standard Buffer-Local Variables::
                             List of variables buffer-local in all buffers.
 * Standard Keymaps::        List of standard keymaps.
