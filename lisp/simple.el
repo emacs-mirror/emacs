@@ -5810,8 +5810,8 @@ Valid values include:
   `mh-e-user-agent'     -- use the Emacs interface to the MH mail system.
                            See Info node `(mh-e)'.
   `gnus-user-agent'     -- like `message-user-agent', but with Gnus
-                           paraphernalia, particularly the Gcc: header for
-                           archiving.
+                           paraphernalia if Gnus is running, particularly
+                           the Gcc: header for archiving.
 
 Additional valid symbols may be available; check with the author of
 your package for details.  The function should return non-nil if it

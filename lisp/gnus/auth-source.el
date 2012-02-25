@@ -84,6 +84,7 @@
   "How many seconds passwords are cached, or nil to disable
 expiring.  Overrides `password-cache-expiry' through a
 let-binding."
+  :version "24.1"
   :group 'auth-source
   :type '(choice (const :tag "Never" nil)
                  (const :tag "All Day" 86400)

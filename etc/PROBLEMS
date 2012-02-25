@@ -1357,6 +1357,28 @@ single copies.  You do not need any other drivers or options.
             Option	"Device"           "/dev/input/mice"
     EndSection
 
+*** Emacs is slow to exit in X
+
+After you use e.g. C-x C-c to exit, it takes many seconds before the
+Emacs window disappears.  If Emacs was started from a terminal, you
+see the message:
+
+  Error saving to X clipboard manager.
+  If the problem persists, set `x-select-enable-clipboard-manager' to nil.
+
+As the message suggests, this problem occurs when Emacs thinks you
+have a clipboard manager program running, but has trouble contacting it.
+If you don't want to use a clipboard manager, you can set the
+suggested variable.  Or you can make Emacs not wait so long by
+reducing the value of `x-selection-timeout', either in .emacs or with
+X resources.
+
+Sometimes this problem is due to a bug in your clipboard manager.
+Updating to the latest version of the manager can help.
+For example, in the Xfce 4.8 desktop environment, the clipboard
+manager in versions of xfce4-settings-helper before 4.8.2 is buggy;
+https://bugzilla.xfce.org/show_bug.cgi?id=7588 .
+
 * Runtime problems on character terminals
 
 ** The meta key does not work on xterm.

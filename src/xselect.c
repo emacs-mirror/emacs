@@ -1981,7 +1981,9 @@ VALUE is typically a string, or a cons of two markers, but may be
 anything that the functions on `selection-converter-alist' know about.
 
 FRAME should be a frame that should own the selection.  If omitted or
-nil, it defaults to the selected frame.  */)
+nil, it defaults to the selected frame.
+
+On Nextstep, FRAME is unused.  */)
   (Lisp_Object selection, Lisp_Object value, Lisp_Object frame)
 {
   if (NILP (frame)) frame = selected_frame;
@@ -2002,15 +2004,18 @@ nil, it defaults to the selected frame.  */)
 DEFUN ("x-get-selection-internal", Fx_get_selection_internal,
        Sx_get_selection_internal, 2, 4, 0,
        doc: /* Return text selected from some X window.
-SELECTION is a symbol, typically `PRIMARY', `SECONDARY', or `CLIPBOARD'.
+SELECTION-SYMBOL is typically `PRIMARY', `SECONDARY', or `CLIPBOARD'.
 \(Those are literal upper-case symbol names, since that's what X expects.)
-TYPE is the type of data desired, typically `STRING'.
-TIME_STAMP is the time to use in the XConvertSelection call for foreign
+TARGET-TYPE is the type of data desired, typically `STRING'.
+
+TIME-STAMP is the time to use in the XConvertSelection call for foreign
 selections.  If omitted, defaults to the time for the last event.
 
 TERMINAL should be a terminal object or a frame specifying the X
 server to query.  If omitted or nil, that stands for the selected
-frame's display, or the first available X display.  */)
+frame's display, or the first available X display.
+
+On Nextstep, TIME-STAMP and TERMINAL are unused.  */)
   (Lisp_Object selection_symbol, Lisp_Object target_type,
    Lisp_Object time_stamp, Lisp_Object terminal)
 {
@@ -2051,9 +2056,15 @@ DEFUN ("x-disown-selection-internal", Fx_disown_selection_internal,
        doc: /* If we own the selection SELECTION, disown it.
 Disowning it means there is no such selection.
 
+Sets the last-change time for the selection to TIME-OBJECT (by default
+the time of the last event).
+
 TERMINAL should be a terminal object or a frame specifying the X
 server to query.  If omitted or nil, that stands for the selected
-frame's display, or the first available X display.  */)
+frame's display, or the first available X display.
+
+On Nextstep, the TIME-OBJECT and TERMINAL arguments are unused.
+On MS-DOS, all this does is return non-nil if we own the selection.  */)
   (Lisp_Object selection, Lisp_Object time_object, Lisp_Object terminal)
 {
   Time timestamp;
@@ -2109,7 +2120,9 @@ and t is the same as `SECONDARY'.
 
 TERMINAL should be a terminal object or a frame specifying the X
 server to query.  If omitted or nil, that stands for the selected
-frame's display, or the first available X display.  */)
+frame's display, or the first available X display.
+
+On Nextstep, TERMINAL is unused.  */)
   (Lisp_Object selection, Lisp_Object terminal)
 {
   struct frame *f = frame_for_x_selection (terminal);
@@ -2128,13 +2141,15 @@ DEFUN ("x-selection-exists-p", Fx_selection_exists_p, Sx_selection_exists_p,
        0, 2, 0,
        doc: /* Whether there is an owner for the given X selection.
 SELECTION should be the name of the selection in question, typically
-one of the symbols `PRIMARY', `SECONDARY', or `CLIPBOARD'.  (X expects
-these literal upper-case names.)  The symbol nil is the same as
-`PRIMARY', and t is the same as `SECONDARY'.
+one of the symbols `PRIMARY', `SECONDARY', `CLIPBOARD', or
+`CLIPBOARD_MANAGER' (X expects these literal upper-case names.)  The
+symbol nil is the same as `PRIMARY', and t is the same as `SECONDARY'.
 
 TERMINAL should be a terminal object or a frame specifying the X
 server to query.  If omitted or nil, that stands for the selected
-frame's display, or the first available X display.  */)
+frame's display, or the first available X display.
+
+On Nextstep, TERMINAL is unused.  */)
   (Lisp_Object selection, Lisp_Object terminal)
 {
   Window owner;
@@ -2257,8 +2272,14 @@ x_clipboard_manager_save_all (void)
 
       local_frame = XCAR (XCDR (XCDR (XCDR (local_selection))));
       if (FRAME_LIVE_P (XFRAME (local_frame)))
-	internal_condition_case_1 (x_clipboard_manager_save, local_frame,
-				   Qt, x_clipboard_manager_error_2);
+	{
+	  Lisp_Object args[1];
+	  args[0] = build_string ("Saving clipboard to X clipboard manager...");
+	  Fmessage (1, args);
+
+	  internal_condition_case_1 (x_clipboard_manager_save, local_frame,
+				     Qt, x_clipboard_manager_error_2);
+	}
     }
 }
 

@@ -215,15 +215,27 @@ the associated section number."
 		       (string :tag "Real Section")))
   :group 'man)
 
+;; FIXME see comments at ffap-c-path.
 (defcustom Man-header-file-path
-  '("/usr/include" "/usr/local/include")
+  (let ((arch (with-temp-buffer
+                (when (eq 0 (ignore-errors
+                              (call-process "gcc" nil '(t nil) nil
+                                            "-print-multiarch")))
+                  (goto-char (point-min))
+                  (buffer-substring (point) (line-end-position)))))
+        (base '("/usr/include" "/usr/local/include")))
+    (if (zerop (length arch))
+        base
+      (append base (list (expand-file-name arch "/usr/include")))))
   "C Header file search path used in Man."
+  :version "24.1"                       ; add multiarch
   :type '(repeat string)
   :group 'man)
 
 (defcustom Man-name-local-regexp (concat "^" (regexp-opt '("NOM" "NAME")) "$")
   "Regexp that matches the text that precedes the command's name.
 Used in `bookmark-set' to get the default bookmark name."
+  :version "24.1"
   :type 'string :group 'bookmark)
 
 (defvar manual-program "man"

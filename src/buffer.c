@@ -272,7 +272,11 @@ See also `find-buffer-visiting'.  */)
      call the corresponding file handler.  */
   handler = Ffind_file_name_handler (filename, Qget_file_buffer);
   if (!NILP (handler))
-    return call2 (handler, Qget_file_buffer, filename);
+    {
+      Lisp_Object handled_buf = call2 (handler, Qget_file_buffer,
+				       filename);
+      return BUFFERP (handled_buf) ? handled_buf : Qnil;
+    }
 
   for (tail = Vbuffer_alist; CONSP (tail); tail = XCDR (tail))
     {

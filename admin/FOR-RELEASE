@@ -7,7 +7,7 @@ Check cross-references between the manuals (eg from emacs to elisp)
 are correct.  You can use something like the following in the info
 directory in the Emacs build tree:
 
-emacs -Q --eval "(setq Info-default-directory-list '(\".\"))" \
+emacs -Q --eval "(progn (require 'info) (setq Info-directory-list '(\".\")))" \
   -f info-xref-check-all
 
 make emacs.dvi, elisp.dvi, and deal with any errors (undefined
@@ -61,11 +61,6 @@ sk	Miroslav Vaško
 
 * BUGS
 
-** rms: gnus-dired.el is a mistake.  Those features should not
-be part of Gnus.  They should be moved to some other part of Emacs.
-rsteib: Gnus dependencies in `gnus-dired.el' (and `mailcap.el') have been
-minimized.  I don't know what is left to do here.
-
 ** Check for modes which bind M-s that conflicts with a new global binding M-s
 and change key bindings where necessary.  The current list of modes:
 
@@ -83,9 +78,10 @@ and change key bindings where necessary.  The current list of modes:
    `log-edit-comment-search-forward'.  Perhaps search commands
    on the global key binding `M-s' are useless in these modes.
 
-* DOCUMENTATION
+5. Rmail binds `\es' to `rmail-search'/`rmail-summary-search'.
 
-** Document XEmbed support
+
+* DOCUMENTATION
 
 ** Check the Emacs Tutorial.
 
@@ -125,48 +121,53 @@ TUTORIAL.zh
 ** Check the manual.
 
 abbrevs.texi      cyd
-ack.texi          
+ack.texi          rgm
 anti.texi         cyd
 arevert-xtra.texi cyd
 basic.texi        cyd
 buffers.texi      cyd
 building.texi     cyd
-calendar.texi     
-cal-xtra.texi     
+calendar.texi     rgm
+cal-xtra.texi     rgm
 cmdargs.texi      cyd
 commands.texi     cyd
 custom.texi       cyd
 dired.texi        cyd
-dired-xtra.texi
+dired-xtra.texi   rgm
 display.texi      cyd
-emacs.texi        
-emacs-xtra.texi
-emerge-xtra.texi
+emacs.texi        rgm
+emacs-xtra.texi   rgm
+emerge-xtra.texi  rgm
 entering.texi     cyd
 files.texi        cyd
 fixit.texi        cyd
-fortran-xtra.texi 
+fortran-xtra.texi rgm
 frames.texi       cyd
 glossary.texi
 help.texi         cyd
 indent.texi       cyd
 killing.texi      cyd
 kmacro.texi       cyd
-macos.texi        
+macos.texi        rgm  (can't actually test any of it though)
 maintaining.texi  cyd
 mark.texi         cyd
-mini.texi         
+mini.texi         rgm
 misc.texi         cyd
 modes.texi        cyd
-msdog.texi        
-msdog-xtra.texi   
+msdog.texi        rgm  (can't actually test any of it though)
+  It was not obvious to me that the following is true (it could well be though):
+
+   Emacs on Windows automatically determines your default printer and
+   sets the variable `printer-name' to that printer's name.
+
+msdog-xtra.texi   rgm  (can't actually test any of it though)
 mule.texi         
 m-x.texi          cyd
 package.texi      cyd
-picture-xtra.texi
+picture-xtra.texi rgm
 programs.texi     cyd
 regs.texi         cyd
-rmail.texi        
+rmail.texi        rgm
 screen.texi       cyd
 search.texi       cyd
 sending.texi      cyd
@@ -185,26 +186,26 @@ anti.texi
 back.texi
 backups.texi      
 buffers.texi      
-commands.texi     
+commands.texi     cyd
 compile.texi      cyd
 control.texi      cyd
 customize.texi    cyd
-debugging.texi    
+debugging.texi    cyd
 display.texi      
 edebug.texi
 elisp.texi
 errors.texi       
 eval.texi         cyd
-files.texi        
+files.texi        cyd
 frames.texi       
 functions.texi    cyd
 hash.texi         cyd
-help.texi         
+help.texi         cyd
 hooks.texi        
 index.texi
 internals.texi    
 intro.texi        cyd
-keymaps.texi      
+keymaps.texi      cyd
 lists.texi        cyd
 loading.texi      cyd
 locals.texi       
@@ -212,7 +213,7 @@ macros.texi       cyd
 maps.texi         
 markers.texi      
 minibuf.texi      
-modes.texi        
+modes.texi        cyd
 nonascii.texi     
 numbers.texi      cyd
 objects.texi      cyd
@@ -222,18 +223,14 @@ positions.texi
 processes.texi
 searching.texi    
 sequences.texi    cyd
-streams.texi      
+streams.texi      cyd
 strings.texi      cyd
 symbols.texi      cyd
-syntax.texi       
+syntax.texi       cyd
 text.texi         
 tips.texi         
 variables.texi    cyd
 windows.texi      
-
-* PLANNED ADDITIONS
-* pov-mode (probably not for Emacs-23: waiting for a Free POV-Ray).
-** gas-mode ?
 
 
 Local variables:

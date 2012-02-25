@@ -33,6 +33,7 @@
   "Set to a list if the XTerm supports modifyOtherKeys or
 reporting the background color.  Set to 'check to check for those
 features.  Set to nil to skip the checks."
+  :version "24.1"
   :group 'xterm
   :type '(choice (const :tag "No" nil)
                  (const :tag "Check" check)

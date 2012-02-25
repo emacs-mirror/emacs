@@ -74,6 +74,7 @@ It should return non-nil if the article is to be prefetched."
   "Function called after an article has been prefetched.
 The function will be called narrowed to the region of the article
 that was fetched."
+  :version "24.1"
   :group 'gnus-asynchronous
   :type 'function)
 

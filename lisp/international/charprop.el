@@ -2,7 +2,8 @@
 ;; FILE: uni-name.el
 (define-char-code-property 'name "uni-name.el"
   "Unicode character name.
-Property value is a string.")
+Property value is a string or nil.
+The value nil stands for the default value \"null string\").")
 ;; FILE: uni-category.el
 (define-char-code-property 'general-category "uni-category.el"
   "Unicode general category.
@@ -48,7 +49,8 @@ Property value is a symbol `Y' or `N'.  See also the property `mirroring'.")
 ;; FILE: uni-old-name.el
 (define-char-code-property 'old-name "uni-old-name.el"
   "Unicode old names as published in Unicode 1.0.
-Property value is a string.")
+Property value is a string or nil.
+The value nil stands for the default value \"null string\").")
 ;; FILE: uni-comment.el
 (define-char-code-property 'iso-10646-comment "uni-comment.el"
   "Unicode ISO 10646 comment.

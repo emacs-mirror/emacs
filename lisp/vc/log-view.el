@@ -561,9 +561,6 @@ changeset that affected the currently considered file(s)."
 	       log-view-vc-fileset))
      to fr)))
 
-(declare-function vc-diff-internal "vc"
-		  (async vc-fileset rev1 rev2 &optional verbose))
-
 (defun log-view-diff-changeset (beg end)
   "Get the diff between two revisions.
 If the mark is not active or the mark is on the revision at point,

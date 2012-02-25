@@ -43,11 +43,13 @@
 
 (defcustom gnus-after-set-mark-hook nil
   "Hook called just after marks are set in a group."
+  :version "24.1"
   :group 'gnus-start
   :type 'hook)
 
 (defcustom gnus-before-update-mark-hook nil
   "Hook called just before marks are updated in a group."
+  :version "24.1"
   :group 'gnus-start
   :type 'hook)
 

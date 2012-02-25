@@ -445,13 +445,22 @@ to what @code{eval-when-compile} does.
   Byte compilation outputs all errors and warnings into the buffer
 @samp{*Compile-Log*}.  The messages include file names and line
 numbers that identify the location of the problem.  The usual Emacs
-commands for operating on compiler diagnostics work properly on
-these messages.
+commands for operating on compiler diagnostics work properly on these
+messages.
 
-  However, the warnings about functions that were used but not
-defined are always ``located'' at the end of the file, so these
-commands won't find the places they are really used.  To do that,
-you must search for the function names.
+  When an error is due to invalid syntax in the program, the byte
+compiler might get confused about the errors' exact location.  One way
+to investigate is to switch to the buffer @w{@samp{*Compiler Input*}}.
+(This buffer name starts with a space, so it does not show up in
+@kbd{M-x list-buffers}.)  This buffer contains the program being
+compiled, and point shows how far the byte compiler was able to read;
+the cause of the error might be nearby.  @xref{Syntax Errors}, for
+some tips for locating syntax errors.
+
+  When the byte compiler warns about functions that were used but not
+defined, it always reports the line number for the end of the file,
+not the locations where the missing functions were called.  To find
+the latter, you must search for the function names.
 
   You can suppress the compiler warning for calling an undefined
 function @var{func} by conditionalizing the function call on an

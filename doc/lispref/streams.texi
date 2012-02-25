@@ -266,12 +266,6 @@ reader encountered the open parenthesis, decided that it ended the
 input, and unread it.  Another attempt to read from the stream at this
 point would read @samp{()} and return @code{nil}.
 
-@defun get-file-char
-This function is used internally as an input stream to read from the
-input file opened by the function @code{load}.  Don't use this function
-yourself.
-@end defun
-
 @node Input Functions
 @section Input Functions
 
@@ -702,9 +696,8 @@ The default is @code{t}, meaning display in the echo area.
 
 @defvar print-quoted
 If this is non-@code{nil}, that means to print quoted forms using
-abbreviated reader syntax.  @code{(quote foo)} prints as @code{'foo},
-@code{(function foo)} as @code{#'foo}, and backquoted forms print
-using modern backquote syntax.
+abbreviated reader syntax, e.g.@: @code{(quote foo)} prints as
+@code{'foo}, and @code{(function foo)} as @code{#'foo}.
 @end defvar
 
 @defvar print-escape-newlines

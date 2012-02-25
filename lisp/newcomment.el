@@ -185,6 +185,7 @@ The `plain' comment style doubles this value.
 This should generally stay 0, except for a few modes like Lisp where
 it is 1 so that regions are commented with two or three semi-colons.")
 
+;;;###autoload
 (defconst comment-styles
   '((plain      nil nil nil nil
                 "Start in column 0 (do not indent), as in Emacs-20")
@@ -224,7 +225,7 @@ ALIGN specifies that the `comment-end' markers should be aligned.
      /* bli */
   if `comment-end' is empty, this has no effect, unless EXTRA is also set,
   in which case the comment gets wrapped in a box.
-  
+
 EXTRA specifies that an extra line should be used before and after the
   region to comment (to put the `comment-end' and `comment-start').
   e.g. in C it comments regions as
@@ -872,14 +873,15 @@ comment markers."
 	  (when (and sre (looking-at (concat "\\s-*\n\\s-*" srei)))
 	    (goto-char (match-end 0)))
 	  (if (null arg) (delete-region (point-min) (point))
-	    (skip-syntax-backward " ")
-	    (delete-char (- numarg))
-	    (unless (or (bobp)
-			(save-excursion (goto-char (point-min))
-					(looking-at comment-start-skip)))
-	      ;; If there's something left but it doesn't look like
-	      ;; a comment-start any more, just remove it.
-	      (delete-region (point-min) (point))))
+            (let ((opoint (point-marker)))
+              (skip-syntax-backward " ")
+              (delete-char (- numarg))
+              (unless (and (not (bobp))
+                           (save-excursion (goto-char (point-min))
+                                           (looking-at comment-start-skip)))
+                ;; If there's something left but it doesn't look like
+                ;; a comment-start any more, just remove it.
+                (delete-region (point-min) opoint))))
 
 	  ;; Remove the end-comment (and leading padding and such).
 	  (goto-char (point-max)) (comment-enter-backward)

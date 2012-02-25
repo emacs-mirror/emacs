@@ -7234,7 +7234,7 @@
 
 2004-05-10  Miles Bader  <miles@gnu.org>
 
-	* lisp/progmodes/gud.el (gud-common-init): Only consider an existing
+	* progmodes/gud.el (gud-common-init): Only consider an existing
 	buffer an error if the debugger process is actually running.
 
 2004-05-10  Juanma Barranquero  <lektu@terra.es>
@@ -7529,7 +7529,7 @@
 
 2004-05-03  Michael Mauger  <mmaug@yahoo.com>
 
-	* emacs/lisp/progmodes/sql.el (sql-xemacs-p, sql-emacs19-p)
+	* progmodes/sql.el (sql-xemacs-p, sql-emacs19-p)
 	(sql-emacs20-p): Remove.
 	(sql-mode-syntax-table): Use shared GNU Emacs/XEmacs syntax.
 	(sql-builtin-face, sql-doc-face): Remove.

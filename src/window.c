@@ -122,6 +122,9 @@ static int window_initialized;
 /* Hook to run when window config changes.  */
 static Lisp_Object Qwindow_configuration_change_hook;
 
+/* If non-nil, run_window_configuration_change_hook does nothing.  */
+Lisp_Object inhibit_window_configuration_change_hook;
+
 /* Used by the function window_scroll_pixel_based */
 static int window_scroll_pixel_based_preserve_x;
 static int window_scroll_pixel_based_preserve_y;
@@ -2895,7 +2898,7 @@ run_window_configuration_change_hook (struct frame *f)
     = Fdefault_value (Qwindow_configuration_change_hook);
   XSETFRAME (frame, f);
 
-  if (NILP (Vrun_hooks))
+  if (NILP (Vrun_hooks) || !NILP (inhibit_window_configuration_change_hook))
     return;
 
   /* Use the right buffer.  Matters when running the local hooks.  */
@@ -3887,9 +3890,17 @@ Signal an error when WINDOW is the only window on its frame.  */)
       && EQ (r->new_total, (horflag ? r->total_cols : r->total_lines)))
     /* We can delete WINDOW now.  */
     {
+      Mouse_HLInfo *hlinfo;
+
       /* Block input.  */
       BLOCK_INPUT;
       window_resize_apply (p, horflag);
+
+      /* If this window is referred to by the dpyinfo's mouse
+	 highlight, invalidate that slot to be safe (Bug#9904).  */
+      hlinfo = MOUSE_HL_INFO (XFRAME (w->frame));
+      if (EQ (hlinfo->mouse_face_window, window))
+	hlinfo->mouse_face_window = Qnil;
 
       windows_or_buffers_changed++;
       Vwindow_list = Qnil;
@@ -6517,6 +6528,8 @@ syms_of_window (void)
   window_scroll_pixel_based_preserve_y = -1;
   window_scroll_preserve_hpos = -1;
   window_scroll_preserve_vpos = -1;
+
+  inhibit_window_configuration_change_hook = Qnil;
 
   DEFVAR_LISP ("temp-buffer-show-function", Vtemp_buffer_show_function,
 	       doc: /* Non-nil means call as function to display a help buffer.

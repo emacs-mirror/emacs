@@ -1,6 +1,6 @@
 ;;; picture.el --- "Picture mode" -- editing using quarter-plane screen model
 
-;; Copyright (C) 1985, 1994, 2001-2012  Free Software Foundation, Inc.
+;; Copyright (C) 1985, 1994, 2001-2012 Free Software Foundation, Inc.
 
 ;; Author: K. Shane Hartman
 ;; Maintainer: FSF
@@ -211,7 +211,7 @@ The mode line is updated to reflect the current direction."
   "Move point in direction of current picture motion in Picture mode.
 With ARG do it that many times.  Useful for delineating rectangles in
 conjunction with diagonal picture motion.
-Do \\[command-apropos]  picture-movement  to see commands which control motion."
+Use \"\\[command-apropos] picture-movement\" to see commands which control motion."
   (interactive "^p")
   (picture-move-down (* arg picture-vertical-step))
   (picture-forward-column (* arg picture-horizontal-step)))
@@ -220,7 +220,7 @@ Do \\[command-apropos]  picture-movement  to see commands which control motion."
   "Move point in direction opposite of current picture motion in Picture mode.
 With ARG do it that many times.  Useful for delineating rectangles in
 conjunction with diagonal picture motion.
-Do \\[command-apropos]  picture-movement  to see commands which control motion."
+Use \"\\[command-apropos] picture-movement\" to see commands which control motion."
   (interactive "^p")
   (picture-motion (- arg)))
 
@@ -280,7 +280,7 @@ Do \\[command-apropos]  picture-movement  to see commands which control motion."
   "Insert this character in place of character previously at the cursor.
 The cursor then moves in the direction you previously specified
 with the commands `picture-movement-right', `picture-movement-up', etc.
-Do \\[command-apropos] `picture-movement' to see those commands."
+Use \"\\[command-apropos] picture-movement\" to see those commands."
   (interactive "p")
   (picture-update-desired-column (not (eq this-command last-command)))
   (picture-insert last-command-event arg)) ; Always a character in this case.
@@ -378,8 +378,10 @@ With positive argument insert that many lines."
 
 (defcustom picture-tab-chars "!-~"
   "A character set which controls behavior of commands.
-\\[picture-set-tab-stops] and \\[picture-tab-search].  It is NOT a
-regular expression, any regexp special characters will be quoted.
+\\[picture-set-tab-stops] and \\[picture-tab-search].
+The syntax for this variable is like the syntax used inside of `[...]'
+in a regular expression--but without the `[' and the `]'.
+It is NOT a regular expression, any regexp special characters will be quoted.
 It defines a set of \"interesting characters\" to look for when setting
 \(or searching for) tab stops, initially \"!-~\" (all printing characters).
 For example, suppose that you are editing a table which is formatted thus:
@@ -602,6 +604,8 @@ Leaves the region surrounding the rectangle."
 
 ;; Picture Keymap, entry and exit points.
 
+(defalias 'picture-delete-char 'delete-char)
+
 (defvar picture-mode-map nil)
 
 (defun picture-substitute (oldfun newfun)
@@ -627,11 +631,11 @@ Leaves the region surrounding the rectangle."
       (picture-substitute 'newline-and-indent 'picture-duplicate-line)
       (picture-substitute 'next-line 'picture-move-down)
       (picture-substitute 'previous-line 'picture-move-up)
-      (picture-substitute 'beginning-of-line 'picture-beginning-of-line)
-      (picture-substitute 'end-of-line 'picture-end-of-line)
+      (picture-substitute 'move-beginning-of-line 'picture-beginning-of-line)
+      (picture-substitute 'move-end-of-line 'picture-end-of-line)
       (picture-substitute 'mouse-set-point 'picture-mouse-set-point)
 
-      (define-key picture-mode-map "\C-c\C-d" 'delete-char)
+      (define-key picture-mode-map "\C-c\C-d" 'picture-delete-char)
       (define-key picture-mode-map "\e\t" 'picture-toggle-tab-state)
       (define-key picture-mode-map "\t" 'picture-tab)
       (define-key picture-mode-map "\e\t" 'picture-tab-search)
@@ -720,7 +724,7 @@ You can edit tabular text with these commands:
 
 You can manipulate text with these commands:
  Clear ARG columns after point without moving:    \\[picture-clear-column]
- Delete char at point:                            \\[delete-char]
+ Delete char at point:                            \\[picture-delete-char]
  Clear ARG columns backward:                      \\[picture-backward-clear-column]
  Clear ARG lines, advancing over them:            \\[picture-clear-line]
   (the cleared text is saved in the kill ring)

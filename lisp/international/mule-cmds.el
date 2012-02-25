@@ -1,6 +1,6 @@
 ;;; mule-cmds.el --- commands for multilingual environment -*-coding: iso-2022-7bit -*-
 
-;; Copyright (C) 1997-2012  Free Software Foundation, Inc.
+;; Copyright (C) 1997-2012 Free Software Foundation, Inc.
 ;; Copyright (C) 1995, 1996, 1997, 1998, 1999, 2000, 2001, 2002, 2003, 2004,
 ;;   2005, 2006, 2007, 2008, 2009, 2010, 2011
 ;;   National Institute of Advanced Industrial Science and Technology (AIST)
@@ -2863,13 +2863,18 @@ on encoding."
 ;; Backwards compatibility.  These might be better with :init-value t,
 ;; but that breaks loadup.
 (define-minor-mode unify-8859-on-encoding-mode
-  "Obsolete."
+  "Exists only for backwards compatibility."
   :group 'mule
   :global t)
+;; Doc said "obsolete" in 23.1, this statement only added in 24.1.
+(make-obsolete 'unify-8859-on-encoding-mode "don't use it." "23.1")
+
 (define-minor-mode unify-8859-on-decoding-mode
-  "Obsolete."
+  "Exists only for backwards compatibility."
   :group 'mule
   :global t)
+;; Doc said "obsolete" in 23.1, this statement only added in 24.1.
+(make-obsolete 'unify-8859-on-decoding-mode "don't use it." "23.1")
 
 (defvar nonascii-insert-offset 0)
 (make-obsolete-variable 'nonascii-insert-offset "do not use it." "23.1")
@@ -2944,9 +2949,9 @@ point or a number in hash notation, e.g. #o21430 for octal,
                        '(metadata (category . unicode-name))
                      (complete-with-action action (ucs-names) string pred))))))
     (cond
-     ((string-match-p "^[0-9a-fA-F]+$" input)
+     ((string-match-p "\\`[0-9a-fA-F]+\\'" input)
       (string-to-number input 16))
-     ((string-match-p "^#" input)
+     ((string-match-p "\\`#" input)
       (read input))
      (t
       (cdr (assoc-string input (ucs-names) t))))))
@@ -2962,6 +2967,10 @@ preceded by an asterisk `*' and use completion, it will show all
 the characters whose names include that substring, not necessarily
 at the beginning of the name.
 
+This function also accepts a hexadecimal number of Unicode code
+point or a number in hash notation, e.g. #o21430 for octal,
+#x2318 for hex, or #10r8984 for decimal.
+
 The optional third arg INHERIT (non-nil when called interactively),
 says to inherit text properties from adjoining text, if those
 properties are sticky."
@@ -2970,9 +2979,12 @@ properties are sticky."
 	 (prefix-numeric-value current-prefix-arg)
 	 t))
   (unless count (setq count 1))
-  (if (stringp character)
+  (if (and (stringp character)
+	   (string-match-p "\\`[0-9a-fA-F]+\\'" character))
       (setq character (string-to-number character 16)))
   (cond
+   ((null character)
+    (error "Not a Unicode character"))
    ((not (integerp character))
     (error "Not a Unicode character code: %S" character))
    ((or (< character 0) (> character #x10FFFF))

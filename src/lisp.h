@@ -168,6 +168,10 @@ extern int suppress_checking EXTERNALLY_VISIBLE;
 #define GCTYPEBITS 3
 #endif
 
+#ifndef VALBITS
+#define VALBITS (BITS_PER_EMACS_INT - GCTYPEBITS)
+#endif
+
 #ifndef NO_DECL_ALIGN
 # ifndef DECL_ALIGN
 #  if HAVE_ATTRIBUTE_ALIGNED
@@ -191,7 +195,28 @@ extern int suppress_checking EXTERNALLY_VISIBLE;
      || defined DARWIN_OS || defined __sun)
 /* We also need to be able to specify mult-of-8 alignment on static vars.  */
 # if defined DECL_ALIGN
-#  define USE_LSB_TAG
+/* On hosts where VALBITS is greater than the pointer width in bits,
+   USE_LSB_TAG is:
+
+    a. unnecessary, because the top bits of an EMACS_INT are unused,
+
+    b. slower, because it typically requires extra masking, and
+
+    c. harmful, because it can create Lisp_Object values that are so scrambled
+       that mark_maybe_object cannot decipher them.  mark_maybe_object assumes
+       that EMACS_INT values are contiguous, but a host where EMACS_INT is
+       wider than a pointer might allocate the top half of an EMACS_INT in
+       (say) a 32-bit word on the stack, putting the bottom half in a 32-bit
+       register that is saved elsewhere in a jmp_buf.  When this happens,
+       since USE_LSB_TAG is not defined the bottom half alone is a valid
+       pointer that mark_maybe_pointer can follow; but if USE_LSB_TAG were
+       defined, the bottom half would not be a valid pointer and neither
+       mark_maybe_object nor mark_maybe_pointer would follow it.
+
+   So, define USE_LSB_TAG only on hosts where it might be useful.  */
+#  if UINTPTR_MAX >> VALBITS != 0
+#   define USE_LSB_TAG
+#  endif
 # endif
 #endif
 
@@ -308,11 +333,6 @@ enum Lisp_Fwd_Type
     Lisp_Fwd_Buffer_Obj,	/* Fwd to a Lisp_Object field of buffers.  */
     Lisp_Fwd_Kboard_Obj,	/* Fwd to a Lisp_Object field of kboards.  */
   };
-
-/* These values are overridden by the m- file on some machines.  */
-#ifndef VALBITS
-#define VALBITS (BITS_PER_EMACS_INT - GCTYPEBITS)
-#endif
 
 #ifdef USE_LISP_UNION_TYPE
 

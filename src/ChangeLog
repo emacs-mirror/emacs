@@ -1,4 +1,4 @@
-2012-02-10  Paul Eggert  <eggert@cs.ucla.edu>
+2012-02-25  Paul Eggert  <eggert@cs.ucla.edu>
 
 	Fix integer width and related bugs (Bug#9874).
 	* alloc.c (pure_bytes_used_lisp, pure_bytes_used_non_lisp):
@@ -787,6 +787,126 @@
 	(struct scroll_bar): Use struct vectorlike_header
 	rather than rolling our own approximation.
 	(SCROLL_BAR_VEC_SIZE): Remove; not used.
+
+2012-02-25  Chong Yidong  <cyd@gnu.org>
+
+	* xselect.c (Fx_selection_exists_p): Doc fix.
+	(x_clipboard_manager_save_all): Print an informative message
+	before saving to clipboard manager.
+
+2012-02-24  Chong Yidong  <cyd@gnu.org>
+
+	* keyboard.c (process_special_events): Handle all X selection
+	requests in kbd_buffer, not just the next one (Bug#8869).
+
+2012-02-23  Chong Yidong  <cyd@gnu.org>
+
+	* xfns.c (Fx_create_frame): Avoid window-configuration-change-hook
+	call when setting menu-bar-lines and tool-bar-lines parameters.
+	(unwind_create_frame_1): New helper function.
+
+	* window.c (inhibit_window_configuration_change_hook): New var.
+	(run_window_configuration_change_hook): Obey it.
+	(syms_of_window): Initialize it.
+
+2012-02-22  Chong Yidong  <cyd@gnu.org>
+
+	* xterm.c (x_draw_image_relief): Add missing type check for
+	Vtool_bar_button_margin (Bug#10743).
+
+2012-02-21  Chong Yidong  <cyd@gnu.org>
+
+	* fileio.c (Vfile_name_handler_alist): Doc fix.
+
+	* buffer.c (Fget_file_buffer): Protect against invalid file
+	handler return value.
+
+2012-02-20  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* .gdbinit (xreload): Don't assume EMACS_INT fits in 'long'
+	when computing $valmask.
+
+	Fix crash due to non-contiguous EMACS_INT (Bug#10780).
+	* lisp.h (VALBITS): Move definition up, so that USE_LSB_TAG can use it.
+	(USE_LSB_TAG): Do not define if UINTPTR_MAX >> VALBITS == 0.
+	It's useless in that case, and it can cause problems on hosts
+	that allocate halves of EMACS_INT values separately.
+	Reported by Dan Horák.  Diagnosed by Andreas Schwab in
+	<http://debbugs.gnu.org/cgi/bugreport.cgi?bug=10780#30>.
+	* mem-limits.h (EXCEEDS_LISP_PTR): Define to 0 on hosts where
+	UINTPTR_MAX >> VALBITS == 0.  This is required by the above change;
+	it avoids undefined behavior on hosts where shifting right by more
+	than the word width has undefined behavior.
+
+2012-02-19  Chong Yidong  <cyd@gnu.org>
+
+	* fileio.c (Ffile_name_directory, Ffile_name_nondirectory)
+	(Funhandled_file_name_directory, Ffile_name_as_directory)
+	(Fdirectory_file_name, Fexpand_file_name)
+	(Fsubstitute_in_file_name): Protect against invalid file handler
+	return values (Bug#10845).
+
+2012-02-18  Eli Zaretskii  <eliz@gnu.org>
+
+	* .gdbinit (pitx): Fix incorrect references to fields of the
+	iterator stack.
+
+2012-02-17  Chong Yidong  <cyd@gnu.org>
+
+	* syntax.c (Fscan_lists): Doc fix (Bug#10833).
+
+2012-02-15  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* image.c (MAX_IMAGE_SIZE): Increase from 6.0 to 10.0; see
+	<http://lists.gnu.org/archive/html/emacs-devel/2012-02/msg00540.html>.
+
+2012-02-15  Chong Yidong  <cyd@gnu.org>
+
+	* eval.c (Fdefvar, Fdefconst): Doc fix; note that the variable is
+	marked as special.  Also, starting docstrings with * is obsolete.
+
+2012-02-13  Andreas Schwab  <schwab@linux-m68k.org>
+
+	* gnutls.c (emacs_gnutls_write): Fix last change.
+
+2012-02-13  Lars Ingebrigtsen  <larsi@gnus.org>
+
+	* gnutls.c (emacs_gnutls_write): Set errno appropriately for
+	send_process.
+
+2012-02-13  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* keymap.c (Fsingle_key_description): Handle char ranges.
+
+2012-02-12  Chong Yidong  <cyd@gnu.org>
+
+	* xdisp.c (handle_stop): Avoid assigning -1 to it->face_id here,
+	as that creates a dangerous corner case.
+
+	* window.c (Fdelete_window_internal): Invalidate the mouse
+	highlight (Bug#9904).
+
+2012-02-12  Glenn Morris  <rgm@gnu.org>
+
+	* xselect.c (Fx_own_selection_internal)
+	(Fx_get_selection_internal, Fx_disown_selection_internal)
+	(Fx_selection_owner_p, Fx_selection_exists_p): Doc fixes.
+	* nsselect.m (Fx_own_selection_internal)
+	(Fx_disown_selection_internal, Fx_selection_exists_p)
+	(Fx_selection_owner_p, Fx_get_selection_internal):
+	Sync docs and argument specs with the xselect.c versions.
+
+2012-02-11  Lars Ingebrigtsen  <larsi@gnus.org>
+
+	* gnutls.c (emacs_gnutls_write): Don't infloop if sendto fails.
+
+2012-02-11  Eli Zaretskii  <eliz@gnu.org>
+
+	* w32select.c (Fx_selection_exists_p): Sync doc string and
+	argument list with xselect.c.  (Bug#10783)
+
+	* w16select.c (Fx_selection_exists_p): Sync doc string and
+	argument list with xselect.c.  (Bug#10783)
 
 2012-02-10  Glenn Morris  <rgm@gnu.org>
 
@@ -7440,7 +7560,7 @@
 	conversion specifiers.  For example, use "...%"pI"d..." rather
 	than "...%"pEd"...".
 	(pEd): Remove.  All uses replaced with similar uses of pI.
-	* src/m/amdx86-64.h, src/m/ia64.h, src/m/ibms390x.h: Likewise.
+	* m/amdx86-64.h, m/ia64.h, m/ibms390x.h: Likewise.
 	* alloc.c (check_pure_size): Don't overflow by converting size to int.
 	* bidi.c (bidi_dump_cached_states): Use pI to avoid cast.
 	* data.c (Fnumber_to_string): Use pI instead of if-then-else-abort.
@@ -8422,8 +8542,7 @@
 	Without this change, on typical 64-bit hosts error ("...%d...", N)
 	was used to print both 32- and 64-bit integers N, which relied on
 	undefined behavior.
-	* lisp.h, src/m/amdx86-64.h, src/m/ia64.h, src/m/ibms390x.h (pEd):
-	New macro.
+	* lisp.h, m/amdx86-64.h, m/ia64.h, m/ibms390x.h (pEd): New macro.
 	* lisp.h (error, verror): Mark as printf-like functions.
 	* eval.c (verror): Use vsnprintf, not doprnt, to do the real work.
 	Report overflow in size calculations when allocating printf buffer.

@@ -810,6 +810,7 @@ is changed."
 
 This hook is invoked in a buffer once it is ready to accept input
 for the first time."
+  :version "24.1"
   :type 'hook
   :group 'SQL)
 
@@ -824,7 +825,10 @@ for the first time."
 
 All products share this list; products should define a regexp to
 identify additional keywords in a variable defined by
-the :statement feature.")
+the :statement feature."
+  :version "24.1"
+  :type 'string
+  :group 'SQL)
 
 ;; Customization for Oracle
 
@@ -851,8 +855,12 @@ You will find the file in your Orant\\bin directory."
   :version "24.1"
   :group 'SQL)
 
-(defcustom sql-oracle-statement-starters (regexp-opt '("declare" "begin" "with"))
-  "Additional statement starting keywords in Oracle.")
+(defcustom sql-oracle-statement-starters
+  (regexp-opt '("declare" "begin" "with"))
+  "Additional statement starting keywords in Oracle."
+  :version "24.1"
+  :type 'string
+  :group 'SQL)
 
 (defcustom sql-oracle-scan-on t
   "Non-nil if placeholders should be replaced in Oracle SQLi.
@@ -867,6 +875,7 @@ You need to issue the following command in SQL*Plus to be safe:
     SET DEFINE OFF
 
 In older versions of SQL*Plus, this was the SET SCAN OFF command."
+  :version "24.1"
   :type 'boolean
   :group 'SQL)
 

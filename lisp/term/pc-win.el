@@ -218,11 +218,12 @@ On X, if `x-select-enable-clipboard' is non-nil, copy TEXT to the
 clipboard.  If `x-select-enable-primary' is non-nil, put TEXT in
 the primary selection.
 
-On Windows, make TEXT the current selection.  If
+On MS-Windows, make TEXT the current selection.  If
 `x-select-enable-clipboard' is non-nil, copy the text to the
 clipboard as well.
 
-On Nextstep, put TEXT in the pasteboard."
+On Nextstep, put TEXT in the pasteboard (`x-select-enable-clipboard'
+is not used)."
   (if x-select-enable-clipboard
       (w16-set-clipboard-data text))
   (setq x-last-selected-text text))
@@ -248,13 +249,19 @@ On Nextstep, put TEXT in the pasteboard."
 	  (setq x-last-selected-text text))))))
 
 ;; x-selection-owner-p is used in simple.el.
-(defun x-selection-owner-p (&optional type)
+(defun x-selection-owner-p (&optional selection terminal)
   "Whether the current Emacs process owns the given X Selection.
 The arg should be the name of the selection in question, typically one of
 the symbols `PRIMARY', `SECONDARY', or `CLIPBOARD'.
 \(Those are literal upper-case symbol names, since that's what X expects.)
 For convenience, the symbol nil is the same as `PRIMARY',
-and t is the same as `SECONDARY'."
+and t is the same as `SECONDARY'.
+
+TERMINAL should be a terminal object or a frame specifying the X
+server to query.  If omitted or nil, that stands for the selected
+frame's display, or the first available X display.
+
+On Nextstep, TERMINAL is unused."
     (if x-select-enable-clipboard
       (let (text)
 	;; Don't die if w16-get-clipboard-data signals an error.
@@ -272,30 +279,52 @@ and t is the same as `SECONDARY'."
 
 ;; x-own-selection-internal and x-disown-selection-internal are used
 ;; in select.el:x-set-selection.
-(defun x-own-selection-internal (type value)
-  "Assert an X selection of the given TYPE with the given VALUE.
-TYPE is a symbol, typically `PRIMARY', `SECONDARY', or `CLIPBOARD'.
+(defun x-own-selection-internal (selection value &optional frame)
+  "Assert an X selection of the type SELECTION with and value VALUE.
+SELECTION is a symbol, typically `PRIMARY', `SECONDARY', or `CLIPBOARD'.
 \(Those are literal upper-case symbol names, since that's what X expects.)
 VALUE is typically a string, or a cons of two markers, but may be
-anything that the functions on `selection-converter-alist' know about."
+anything that the functions on `selection-converter-alist' know about.
+
+FRAME should be a frame that should own the selection.  If omitted or
+nil, it defaults to the selected frame.
+
+On Nextstep, FRAME is unused."
   (ignore-errors
     (x-select-text value))
   value)
 
-(defun x-disown-selection-internal (selection &optional time)
+(defun x-disown-selection-internal (selection &optional time-object terminal)
   "If we own the selection SELECTION, disown it.
-Disowning it means there is no such selection."
+Disowning it means there is no such selection.
+
+Sets the last-change time for the selection to TIME-OBJECT (by default
+the time of the last event).
+
+TERMINAL should be a terminal object or a frame specifying the X
+server to query.  If omitted or nil, that stands for the selected
+frame's display, or the first available X display.
+
+On Nextstep, the TIME-OBJECT and TERMINAL arguments are unused.
+On MS-DOS, all this does is return non-nil if we own the selection."
   (if (x-selection-owner-p selection)
       t))
 
 ;; x-get-selection-internal is used in select.el
-(defun x-get-selection-internal (selection type &optional time_stamp)
+(defun x-get-selection-internal (selection-symbol target-type &optional time-stamp terminal)
   "Return text selected from some X window.
-SELECTION is a symbol, typically `PRIMARY', `SECONDARY', or `CLIPBOARD'.
+SELECTION-SYMBOL is typically `PRIMARY', `SECONDARY', or `CLIPBOARD'.
 \(Those are literal upper-case symbol names, since that's what X expects.)
-TYPE is the type of data desired, typically `STRING'.
-TIME_STAMP is the time to use in the XConvertSelection call for foreign
-selections.  If omitted, defaults to the time for the last event."
+TARGET-TYPE is the type of data desired, typically `STRING'.
+
+TIME-STAMP is the time to use in the XConvertSelection call for foreign
+selections.  If omitted, defaults to the time for the last event.
+
+TERMINAL should be a terminal object or a frame specifying the X
+server to query.  If omitted or nil, that stands for the selected
+frame's display, or the first available X display.
+
+On Nextstep, TIME-STAMP and TERMINAL are unused."
   (x-get-selection-value))
 
 ;; From src/fontset.c:

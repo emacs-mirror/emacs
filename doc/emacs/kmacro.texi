@@ -35,8 +35,10 @@ intelligent or general.  For such things, Lisp must be used.
 * Basic Keyboard Macro::     Defining and running keyboard macros.
 * Keyboard Macro Ring::      Where previous keyboard macros are saved.
 * Keyboard Macro Counter::   Inserting incrementing numbers in macros.
-* Keyboard Macro Query::     Making keyboard macros do different things each time.
-* Save Keyboard Macro::      Giving keyboard macros names; saving them in files.
+* Keyboard Macro Query::     Making keyboard macros do different things each
+                               time.
+* Save Keyboard Macro::      Giving keyboard macros names; saving them in
+                               files.
 * Edit Keyboard Macro::      Editing keyboard macros.
 * Keyboard Macro Step-Edit:: Interactively executing and editing a keyboard
                                macro.

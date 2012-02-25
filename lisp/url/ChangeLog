@@ -1,3 +1,36 @@
+2012-02-20  Lars Ingebrigtsen  <larsi@gnus.org>
+
+	* url-queue.el (url-queue-kill-job): Delete the process sentinel
+	before killing the process to avoid a race condition between the
+	two processes killing off the process buffer.
+
+	* url.el (url-retrieve-internal): Warn about file errors when
+	pruning the cache instead of bugging out (bug#10831).
+
+2012-02-19  Lars Ingebrigtsen  <larsi@gnus.org>
+
+	* url-queue.el (url-queue-callback-function): Remove the job from
+	the queue so that we don't kill the current buffer, which will
+	then make the callback function kill a random buffer.
+
+2012-02-14  Lars Ingebrigtsen  <larsi@gnus.org>
+
+	* url-queue.el (url-queue-kill-job): Refactored out code.
+	(url-queue-remove-jobs-from-host): Use it to kill jobs that are in
+	flight.
+
+2012-02-14  Teodor Zlatanov  <tzz@lifelogs.com>
+
+	* url-future.el: Minor doc update.
+
+2012-02-14  Leo Liu  <sdl.web@gmail.com>
+
+	* url-future.el: Fix last change.
+
+2012-02-13  Teodor Zlatanov  <tzz@lifelogs.com>
+
+	* url-future.el (url-future-test): Move to test/automated.
+
 2012-02-10  Lars Ingebrigtsen  <larsi@gnus.org>
 
 	* url-http.el (url-http-parse-headers): When redirecting, pass on

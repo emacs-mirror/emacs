@@ -55,6 +55,7 @@
 
 (defgroup soap-client nil
   "Access SOAP web services from Emacs."
+  :version "24.1"
   :group 'tools)
 
 ;;;; Support for parsing XML documents with namespaces

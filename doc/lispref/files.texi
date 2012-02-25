@@ -8,9 +8,9 @@
 @comment  node-name,  next,  previous,  up
 @chapter Files
 
-  In Emacs, you can find, create, view, save, and otherwise work with
-files and file directories.  This chapter describes most of the
-file-related functions of Emacs Lisp, but a few others are described in
+  This chapter describes the Emacs Lisp functions and variables to
+find, create, view, save, and otherwise work with files and file
+directories.  A few other file-related functions are described in
 @ref{Buffers}, and those related to backups and auto-saving are
 described in @ref{Backups and Auto-Saving}.
 
@@ -18,8 +18,15 @@ described in @ref{Backups and Auto-Saving}.
 names.  A file name is actually a string.  Most of these functions
 expand file name arguments by calling @code{expand-file-name}, so that
 @file{~} is handled correctly, as are relative file names (including
-@samp{../}).  These functions don't recognize environment variable
-substitutions such as @samp{$HOME}.  @xref{File Name Expansion}.
+@samp{../}).  @xref{File Name Expansion}.
+
+  In addition, certain @dfn{magic} file names are handled specially.
+For example, when a remote file name is specified, Emacs accesses the
+file over the network via an appropriate protocol (@pxref{Remote
+Files,, Remote Files, emacs, The GNU Emacs Manual}).  This handling is
+done at a very low level, so you may assume that all the functions
+described in this chapter accept magic file names as file name
+arguments, except where noted.  @xref{Magic File Names}, for details.
 
   When file I/O functions signal Lisp errors, they usually use the
 condition @code{file-error} (@pxref{Handling Errors}).  The error
@@ -35,12 +42,11 @@ to locale @code{system-message-locale}, and decoded using coding system
 * File Locks::               Locking and unlocking files, to prevent
                                simultaneous editing by two people.
 * Information about Files::  Testing existence, accessibility, size of files.
-* Changing Files::           Renaming files, changing protection, etc.
+* Changing Files::           Renaming files, changing permissions, etc.
 * File Names::               Decomposing and expanding file names.
 * Contents of Directories::  Getting a list of the files in a directory.
 * Create/Delete Dirs::       Creating and Deleting Directories.
-* Magic File Names::         Defining "magic" special handling
-                               for certain file names.
+* Magic File Names::         Special handling for certain file names.
 * Format Conversion::        Conversion to and from various file formats.
 @end menu
 
@@ -513,17 +519,15 @@ current buffer after point.  It returns a list of the absolute file name
 and the length of the data inserted.  An error is signaled if
 @var{filename} is not the name of a file that can be read.
 
-The function @code{insert-file-contents} checks the file contents
-against the defined file formats, and converts the file contents if
-appropriate and also calls the functions in
-the list @code{after-insert-file-functions}.  @xref{Format Conversion}.
-Normally, one of the functions in the
+This function checks the file contents against the defined file
+formats, and converts the file contents if appropriate and also calls
+the functions in the list @code{after-insert-file-functions}.
+@xref{Format Conversion}.  Normally, one of the functions in the
 @code{after-insert-file-functions} list determines the coding system
 (@pxref{Coding Systems}) used for decoding the file's contents,
 including end-of-line conversion.  However, if the file contains null
-bytes, it is by default visited without any code conversions; see
-@ref{Lisp and Coding Systems, inhibit-null-byte-detection}, for how to
-control this behavior.
+bytes, it is by default visited without any code conversions.
+@xref{Lisp and Coding Systems, inhibit-null-byte-detection}.
 
 If @var{visit} is non-@code{nil}, this function additionally marks the
 buffer as unmodified and sets up various fields in the buffer so that it
@@ -554,11 +558,9 @@ with @code{insert-file-contents}, as long as @var{replace} and
 @end defun
 
 @defun insert-file-contents-literally filename &optional visit beg end replace
-This function works like @code{insert-file-contents} except that it does
-not do format decoding (@pxref{Format Conversion}), does not do
-character code conversion (@pxref{Coding Systems}), does not run
-@code{find-file-hook}, does not perform automatic uncompression, and so
-on.
+This function works like @code{insert-file-contents} except that it
+does not run @code{find-file-hook}, and does not do format decoding,
+character code conversion, automatic uncompression, and so on.
 @end defun
 
 If you want to pass a file name to another process so that another
@@ -796,7 +798,7 @@ This function returns @code{t} if a file named @var{filename} appears
 to exist.  This does not mean you can necessarily read the file, only
 that you can find out its attributes.  (On Unix and GNU/Linux, this is
 true if the file exists and you have execute permission on the
-containing directories, regardless of the protection of the file
+containing directories, regardless of the permissions of the file
 itself.)
 
 If the file does not exist, or if fascist access control policies
@@ -1020,7 +1022,6 @@ other I/O device).
 @subsection Truenames
 @cindex truename (of file)
 
-@c Emacs 19 features
   The @dfn{truename} of a file is the name that you get by following
 symbolic links at all levels until none remain, then simplifying away
 @samp{.}@: and @samp{..}@: appearing as name components.  This results
@@ -1030,9 +1031,9 @@ the number of hard links to the file.  However, truenames are useful
 because they eliminate symbolic links as a cause of name variation.
 
 @defun file-truename filename
-The function @code{file-truename} returns the truename of the file
-@var{filename}.  If the argument is not an absolute file name,
-this function first expands it against @code{default-directory}.
+This function returns the truename of the file @var{filename}.  If the
+argument is not an absolute file name, this function first expands it
+against @code{default-directory}.
 
 This function does not expand environment variables.  Only
 @code{substitute-in-file-name} does that.  @xref{Definition of
@@ -1081,28 +1082,29 @@ we would have:
 @comment  node-name,  next,  previous,  up
 @subsection Other Information about Files
 
-  This section describes the functions for getting detailed information
-about a file, other than its contents.  This information includes the
-mode bits that control access permission, the owner and group numbers,
-the number of names, the inode number, the size, and the times of access
-and modification.
+  This section describes the functions for getting detailed
+information about a file, other than its contents.  This information
+includes the mode bits that control access permissions, the owner and
+group numbers, the number of names, the inode number, the size, and
+the times of access and modification.
 
 @defun file-modes filename
-@cindex permission
+@cindex file permissions
+@cindex permissions, file
 @cindex file attributes
-This function returns the mode bits of @var{filename}, as an integer.
-The mode bits are also called the file permissions, and they specify
-access control in the usual Unix fashion.  If the low-order bit is 1,
-then the file is executable by all users, if the second-lowest-order bit
-is 1, then the file is writable by all users, etc.
+@cindex file modes
+This function returns the @dfn{mode bits} describing the @dfn{file
+permissions} of @var{filename}, as an integer.  It recursively follows
+symbolic links in @var{filename} at all levels.  If @var{filename}
+does not exist, the return value is @code{nil}.
 
-The highest value returnable is 4095 (7777 octal), meaning that
-everyone has read, write, and execute permission, that the @acronym{SUID} bit
-is set for both others and group, and that the sticky bit is set.
-
-If @var{filename} does not exist, @code{file-modes} returns @code{nil}.
-
-This function recursively follows symbolic links at all levels.
+@xref{File Permissions,,, coreutils, The @sc{gnu} @code{Coreutils}
+Manual}, for a description of mode bits.  If the low-order bit is 1,
+then the file is executable by all users, if the second-lowest-order
+bit is 1, then the file is writable by all users, etc.  The highest
+value returnable is 4095 (7777 octal), meaning that everyone has read,
+write, and execute permission, that the @acronym{SUID} bit is set for
+both others and group, and that the sticky bit is set.
 
 @example
 @group
@@ -1124,12 +1126,15 @@ This function recursively follows symbolic links at all levels.
   -rw-rw-rw-  1 lewis 0 3063 Oct 30 16:00 diffs
 @end group
 @end example
+
+@xref{Changing Files}, for functions that change file permissions,
+such as @code{set-file-modes}.
 @end defun
 
-If the @var{filename} argument to the next two functions is a symbolic
-link, then these function do @emph{not} replace it with its target.
-However, they both recursively follow symbolic links at all levels of
-parent directories.
+  If the @var{filename} argument to the next two functions is a
+symbolic link, then these function do @emph{not} replace it with its
+target.  However, they both recursively follow symbolic links at all
+levels of parent directories.
 
 @defun file-nlinks filename
 This functions returns the number of names (i.e., hard links) that
@@ -1316,20 +1321,16 @@ reported with executable bit set, for compatibility with Unix.
 @cindex find file in path
 
   This section explains how to search for a file in a list of
-directories (a @dfn{path}).  One example is when you need to look for
-a program's executable file, e.g., to find out whether a given program
-is installed on the user's system.  Another example is the search for
-Lisp libraries (@pxref{Library Search}).  Such searches generally need
-to try various possible file name extensions, in addition to various
-possible directories.  Emacs provides a function for such a
-generalized search for a file.
+directories (a @dfn{path}), or for an executable file in the standard
+list of executable file directories, or for an Emacs-specific user
+configuration file.
 
 @defun locate-file filename path &optional suffixes predicate
 This function searches for a file whose name is @var{filename} in a
 list of directories given by @var{path}, trying the suffixes in
-@var{suffixes}.  If it finds such a file, it returns the full
-@dfn{absolute file name} of the file (@pxref{Relative File Names});
-otherwise it returns @code{nil}.
+@var{suffixes}.  If it finds such a file, it returns the file's
+absolute file name (@pxref{Relative File Names}); otherwise it returns
+@code{nil}.
 
 The optional argument @var{suffixes} gives the list of file-name
 suffixes to append to @var{filename} when searching.
@@ -1337,24 +1338,23 @@ suffixes to append to @var{filename} when searching.
 suffixes.  If @var{suffixes} is @code{nil}, or @code{("")}, then there
 are no suffixes, and @var{filename} is used only as-is.  Typical
 values of @var{suffixes} are @code{exec-suffixes} (@pxref{Subprocess
-Creation, exec-suffixes}), @code{load-suffixes},
-@code{load-file-rep-suffixes} and the return value of the function
-@code{get-load-suffixes} (@pxref{Load Suffixes}).
+Creation}), @code{load-suffixes}, @code{load-file-rep-suffixes} and
+the return value of the function @code{get-load-suffixes} (@pxref{Load
+Suffixes}).
 
 Typical values for @var{path} are @code{exec-path} (@pxref{Subprocess
-Creation, exec-path}) when looking for executable programs or
-@code{load-path} (@pxref{Library Search, load-path}) when looking for
-Lisp files.  If @var{filename} is absolute, @var{path} has no effect,
-but the suffixes in @var{suffixes} are still tried.
+Creation}) when looking for executable programs, or @code{load-path}
+(@pxref{Library Search}) when looking for Lisp files.  If
+@var{filename} is absolute, @var{path} has no effect, but the suffixes
+in @var{suffixes} are still tried.
 
-The optional argument @var{predicate}, if non-@code{nil}, specifies
-the predicate function to use for testing whether a candidate file is
-suitable.  The predicate function is passed the candidate file name as
-its single argument.  If @var{predicate} is @code{nil} or unspecified,
-@code{locate-file} uses @code{file-readable-p} as the default
-predicate.  Useful non-default predicates include
-@code{file-executable-p}, @code{file-directory-p}, and other
-predicates described in @ref{Kinds of Files}.
+The optional argument @var{predicate}, if non-@code{nil}, specifies a
+predicate function for testing whether a candidate file is suitable.
+The predicate is passed the candidate file name as its single
+argument.  If @var{predicate} is @code{nil} or omitted,
+@code{locate-file} uses @code{file-readable-p} as the predicate.
+@xref{Kinds of Files}, for other useful predicates, e.g.@:
+@code{file-executable-p} and @code{file-directory-p}.
 
 For compatibility, @var{predicate} can also be one of the symbols
 @code{executable}, @code{readable}, @code{writable}, @code{exists}, or
@@ -1363,11 +1363,37 @@ a list of one or more of these symbols.
 
 @defun executable-find program
 This function searches for the executable file of the named
-@var{program} and returns the full absolute name of the executable,
+@var{program} and returns the absolute file name of the executable,
 including its file-name extensions, if any.  It returns @code{nil} if
 the file is not found.  The functions searches in all the directories
-in @code{exec-path} and tries all the file-name extensions in
-@code{exec-suffixes}.
+in @code{exec-path}, and tries all the file-name extensions in
+@code{exec-suffixes} (@pxref{Subprocess Creation}).
+@end defun
+
+@defun locate-user-emacs-file base-name &optional old-name
+This function returns an absolute file name for an Emacs-specific
+configuration or data file.  The argument @file{base-name} should be a
+relative file name.  The return value is the absolute name of a file
+in the directory specified by @code{user-emacs-directory}; if that
+directory does not exist, this function creates it.
+
+If the optional argument @var{old-name} is non-@code{nil}, it
+specifies a file in the user's home directory,
+@file{~/@var{old-name}}.  If such a file exists, the return value is
+the absolute name of that file, instead of the file specified by
+@var{base-name}.  This argument is intended to be used by Emacs
+packages to provide backward compatibility.  For instance, prior to
+the introduction of @code{user-emacs-directory}, the abbrev file was
+located in @file{~/.abbrev_defs}, so the definition of
+@code{abbrev-file-name} is
+
+@example
+(defcustom abbrev-file-name
+  (locate-user-emacs-file "abbrev_defs" ".abbrev_defs")
+  "Default name of file from which to read abbrevs."
+  @dots{}
+  :type 'file)
+@end example
 @end defun
 
 @node Changing Files
@@ -1378,8 +1404,8 @@ in @code{exec-path} and tries all the file-name extensions in
 @cindex linking files
 @cindex setting modes of files
 
-  The functions in this section rename, copy, delete, link, and set the
-modes of files.
+  The functions in this section rename, copy, delete, link, and set
+the modes (permissions) of files.
 
   In the functions that have an argument @var{newname}, if a file by the
 name of @var{newname} already exists, the actions taken depend on the
@@ -1548,54 +1574,67 @@ no prefix argument is given, and @code{nil} otherwise.
 See also @code{delete-directory} in @ref{Create/Delete Dirs}.
 @end deffn
 
+@cindex file permissions, setting
+@cindex permissions, file
+@cindex file modes, setting
 @deffn Command set-file-modes filename mode
-This function sets mode bits of @var{filename} to @var{mode} (which
-must be an integer when the function is called non-interactively).
-Only the low 12 bits of @var{mode} are used.
+This function sets the @dfn{file mode} (or @dfn{file permissions}) of
+@var{filename} to @var{mode}.  It recursively follows symbolic links
+at all levels for @var{filename}.
 
-Interactively, @var{mode} is read from the minibuffer using
-@code{read-file-modes}, which accepts mode bits either as a number or
-as a character string representing the mode bits symbolically.  See
-the description of @code{read-file-modes} below for the supported
-forms of symbolic notation for mode bits.
-
-This function recursively follows symbolic links at all levels for
-@var{filename}.
-@end deffn
-
-@c Emacs 19 feature
-@defun set-default-file-modes mode
-@cindex umask
-This function sets the default file protection for new files created by
-Emacs and its subprocesses.  Every file created with Emacs initially has
-this protection, or a subset of it (@code{write-region} will not give a
-file execute permission even if the default file protection allows
-execute permission).  On Unix and GNU/Linux, the default protection is
-the bitwise complement of the ``umask'' value.
-
-The argument @var{mode} must be an integer.  On most systems, only the
-low 9 bits of @var{mode} are meaningful.  You can use the Lisp construct
-for octal numbers to enter @var{mode}; for example,
+If called non-interactively, @var{mode} must be an integer.  Only the
+lowest 12 bits of the integer are used; on most systems, only the
+lowest 9 bits are meaningful.  You can use the Lisp construct for
+octal numbers to enter @var{mode}.  For example,
 
 @example
-(set-default-file-modes #o644)
+(set-file-modes #o644)
 @end example
 
-Saving a modified version of an existing file does not count as creating
-the file; it preserves the existing file's mode, whatever that is.  So
-the default file protection has no effect.
+@noindent
+specifies that the file should be readable and writable for its owner,
+readable for group members, and readable for all other users.
+@xref{File Permissions,,, coreutils, The @sc{gnu} @code{Coreutils}
+Manual}, for a description of mode bit specifications.
+
+Interactively, @var{mode} is read from the minibuffer using
+@code{read-file-modes} (see below), which lets the user type in either
+an integer or a string representing the permissions symbolically.
+
+@xref{File Attributes}, for the function @code{file-modes}, which
+returns the permissions of a file.
+@end deffn
+
+@defun set-default-file-modes mode
+@cindex umask
+This function sets the default file permissions for new files created
+by Emacs and its subprocesses.  Every file created with Emacs
+initially has these permissions, or a subset of them
+(@code{write-region} will not grant execute permissions even if the
+default file permissions allow execution).  On Unix and GNU/Linux, the
+default permissions are given by the bitwise complement of the
+``umask'' value.
+
+The argument @var{mode} should be an integer which specifies the
+permissions, similar to @code{set-file-modes} above.  Only the lowest
+9 bits are meaningful.
+
+The default file permissions have no effect when you save a modified
+version of an existing file; saving a file preserves its existing
+permissions.
 @end defun
 
 @defun default-file-modes
-This function returns the current default protection value.
+This function returns the default file permissions, as an integer.
 @end defun
 
 @defun read-file-modes &optional prompt base-file
-This function reads file mode bits from the minibuffer.  The optional
-argument @var{prompt} specifies a non-default prompt.  Second optional
-argument @var{base-file} is the name of a file on whose permissions to
-base the mode bits that this function returns, if what the user types
-specifies mode bits relative to permissions of an existing file.
+This function reads a set of file mode bits from the minibuffer.  The
+first optional argument @var{prompt} specifies a non-default prompt.
+Second second optional argument @var{base-file} is the name of a file
+on whose permissions to base the mode bits that this function returns,
+if what the user types specifies mode bits relative to permissions of
+an existing file.
 
 If user input represents an octal number, this function returns that
 number.  If it is a complete symbolic specification of mode bits, as
@@ -1607,16 +1646,16 @@ mode bits of @var{base-file}.  If @var{base-file} is omitted or
 @code{nil}, the function uses @code{0} as the base mode bits.  The
 complete and relative specifications can be combined, as in
 @code{"u+r,g+rx,o+r,g-w"}.  @xref{File Permissions,,, coreutils, The
-@sc{gnu} @code{Coreutils} Manual}, for detailed description of
-symbolic mode bits specifications.
+@sc{gnu} @code{Coreutils} Manual}, for a description of file mode
+specifications.
 @end defun
 
 @defun file-modes-symbolic-to-number modes &optional base-modes
-This subroutine converts a symbolic specification of file mode bits in
-@var{modes} into the equivalent numeric value.  If the symbolic
+This function converts a symbolic file mode specification in
+@var{modes} into the equivalent integer value.  If the symbolic
 specification is based on an existing file, that file's mode bits are
 taken from the optional argument @var{base-modes}; if that argument is
-omitted or @code{nil}, it defaults to zero, i.e.@: no access rights at
+omitted or @code{nil}, it defaults to 0, i.e.@: no access rights at
 all.
 @end defun
 
@@ -2175,25 +2214,6 @@ programs use @code{small-temporary-file-directory} instead, if that is
 non-@code{nil}.  To use it, you should expand the prefix against
 the proper directory before calling @code{make-temp-file}.
 
-  In older Emacs versions where @code{make-temp-file} does not exist,
-you should use @code{make-temp-name} instead:
-
-@example
-(make-temp-name
- (expand-file-name @var{name-of-application}
-                   temporary-file-directory))
-@end example
-
-@defun make-temp-name string
-This function generates a string that can be used as a unique file
-name.  The name starts with @var{string}, and has several random
-characters appended to it, which are different in each Emacs job.  It
-is like @code{make-temp-file} except that it just constructs a name,
-and does not create a file.  Another difference is that @var{string}
-should be an absolute file name.  On MS-DOS, this function can
-truncate the @var{string} prefix to fit into the 8+3 file-name limits.
-@end defun
-
 @defopt temporary-file-directory
 @cindex @code{TMPDIR} environment variable
 @cindex @code{TMP} environment variable
@@ -2230,6 +2250,21 @@ should compute the directory like this:
                         temporary-file-directory)))
 @end example
 @end defopt
+
+@defun make-temp-name base-name
+This function generates a string that can be used as a unique file
+name.  The name starts with @var{base-name}, and has several random
+characters appended to it, which are different in each Emacs job.  It
+is like @code{make-temp-file} except that (i) it just constructs a
+name, and does not create a file, and (ii) @var{base-name} should be
+an absolute file name (on MS-DOS, this function can truncate
+@var{base-name} to fit into the 8+3 file-name limits).
+
+@strong{Warning:} In most cases, you should not use this function; use
+@code{make-temp-file} instead!  This function is susceptible to a race
+condition, between the @code{make-temp-name} call and the creation of
+the file, which in some cases may cause a security hole.
+@end defun
 
 @node File Name Completion
 @subsection File Name Completion
@@ -2555,7 +2590,6 @@ no prefix argument is given, and @code{nil} otherwise.
 @section Making Certain File Names ``Magic''
 @cindex magic file names
 
-@c Emacs 19 feature
   You can implement special handling for certain file names.  This is
 called making those names @dfn{magic}.  The principal use for this
 feature is in implementing remote file names (@pxref{Remote Files,,
@@ -2564,7 +2598,7 @@ Remote Files, emacs, The GNU Emacs Manual}).
   To define a kind of magic file name, you must supply a regular
 expression to define the class of names (all those that match the
 regular expression), plus a handler that implements all the primitive
-Emacs file operations for file names that do match.
+Emacs file operations for file names that match.
 
 @vindex file-name-handler-alist
   The variable @code{file-name-handler-alist} holds a list of handlers,

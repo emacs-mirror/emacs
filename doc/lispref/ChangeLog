@@ -1,3 +1,152 @@
+2012-02-25  Chong Yidong  <cyd@gnu.org>
+
+	* searching.texi (Regexp Backslash): Add index entry (Bug#10869).
+
+2012-02-24  Glenn Morris  <rgm@gnu.org>
+
+	* errors.texi (Standard Errors): Mention dbus-error.
+	For arith-error sub-classes, just use one cross-ref.
+
+2012-02-23  Alan Mackenzie  <acm@muc.de>
+
+	* modes.texi (Defining Minor Modes): Document the new keyword
+	:after-hook.
+
+2012-02-21  Chong Yidong  <cyd@gnu.org>
+
+	* files.texi (Files): Mention magic file names as arguments.
+	(Reading from Files): Copyedits.
+	(File Attributes): Mention how to change file modes.
+	(Changing Files): Use standard "file permissions" terminology.
+	Add xref to File Attributes node.
+	(Locating Files): Document locate-user-emacs-file.
+	(Unique File Names): Recommend against using make-temp-name.
+
+2012-02-19  Chong Yidong  <cyd@gnu.org>
+
+	* help.texi (Documentation, Documentation Basics, Help Functions):
+	Minor clarifications.
+	(Accessing Documentation): Clarify what documentation-property is
+	for.  Add xref to Keys in Documentation.
+
+	* tips.texi (Documentation Tips): Don't recommend using * in
+	docstrings.
+
+	* macros.texi (Defining Macros):
+	* modes.texi (Derived Modes): Say "documentation string" instead
+	of docstring.
+
+2012-02-18  Chong Yidong  <cyd@gnu.org>
+
+	* modes.texi (Tabulated List Mode): New node.
+	(Basic Major Modes): Add xref to it.
+
+	* processes.texi (Process Information): Mention Process Menu mode.
+
+2012-02-17  Chong Yidong  <cyd@gnu.org>
+
+	* syntax.texi (Motion via Parsing): Doc fix for scan-lists.
+
+2012-02-17  Glenn Morris  <rgm@gnu.org>
+
+	* hooks.texi (Standard Hooks): Fix cross-ref to Emacs manual.
+
+2012-02-16  Chong Yidong  <cyd@gnu.org>
+
+	* syntax.texi (Syntax Tables, Syntax Descriptors)
+	(Syntax Table Functions): Copyedits.
+	(Syntax Basics): Don't repeat the material in the preceding node.
+	(Syntax Class Table): Use a table.
+	(Syntax Properties): Document syntax-propertize-function and
+	syntax-propertize-extend-region-functions.
+	(Motion via Parsing): Clarify scan-lists. Fix indentation.
+	(Parser State): Update for the new "c" comment style.  Fix
+	description of item 7 (comment style).
+
+	* modes.texi (Minor Modes): Update how mode commands should treat
+	arguments now.
+	(Mode Line Basics): Clarify force-mode-line-update.
+	(Mode Line Top): Note that the example is not realistic.
+	(Mode Line Variables, Mode Line Data, %-Constructs, Header Lines)
+	(Emulating Mode Line): Use "mode line" instead of "mode-line", and
+	"mode line construct" instead of "mode line specification".
+	(Syntactic Font Lock): Remove mention of obsolete variable
+	font-lock-syntactic-keywords.
+	(Setting Syntax Properties): Node deleted.
+	(Font Lock Mode): Note that Font Lock mode is a minor mode.
+	(Font Lock Basics): Note that syntactic fontification falls back
+	on `syntax-table'.
+	(Search-based Fontification): Emphasize that font-lock-keywords
+	should not be set directly.
+	(Faces for Font Lock): Avoid some confusing terminology.
+	(Syntactic Font Lock): Minor clarifications.  Add xref to
+	Syntactic Font Lock node.
+
+2012-02-15  Chong Yidong  <cyd@gnu.org>
+
+	* minibuf.texi (Basic Completion): Define "completion table".
+	Move completion-in-region to Completion in Buffers node.
+	(Completion Commands): Use "completion table" terminology.
+	(Completion in Buffers): New node.
+
+	* modes.texi (Hooks): add-hook can be used for abnormal hooks too.
+	(Setting Hooks): Update minor mode usage example.
+	(Major Mode Conventions): Note that completion-at-point-functions
+	should be altered locally.  Add xref to Completion in Buffers.
+	Remove duplicate tip about auto-mode-alist.
+	(Minor Modes): Rewrite introduction.
+	(Minor Mode Conventions): Copyedits.  Don't recommend
+	variable-only minor modes since few minor modes are like that.
+
+2012-02-15  Glenn Morris  <rgm@gnu.org>
+
+	* processes.texi (Network): Document open-network-stream :parameters.
+
+2012-02-14  Chong Yidong  <cyd@gnu.org>
+
+	* keymaps.texi (Format of Keymaps): The CACHE component of keymaps
+	was removed on 2009-09-10.  Update lisp-mode-map example.
+	(Inheritance and Keymaps): Minor clarification.
+	(Searching Keymaps): Remove out-of-place enumeration.
+	(Key Lookup): Remove unnecessary example (one was already given in
+	Format of Keymaps).
+	(Changing Key Bindings): Update suppress-keymap example.
+	(Menu Bar, Tool Bar): Copyedits.
+	(Tool Bar): Update tool-bar-map example.
+
+2012-02-12  Chong Yidong  <cyd@gnu.org>
+
+	* debugging.texi (Debugger Commands): Continuing is now allowed
+	for errors.
+
+2012-02-11  Chong Yidong  <cyd@gnu.org>
+
+	* display.texi (Fringe Indicators): Add xref to Fringe Bitmaps.
+	Move the list of standard bitmaps there.
+	(Fringe Cursors): Rewrite for clarity.
+	(Fringe Bitmaps): Consolidate the list of standard bitmaps here.
+
+	* commands.texi (Command Overview): Mention read-key.
+	(Using Interactive, Interactive Call): Minor clarifications.
+	(Function Keys, Click Events): Avoid "input stream" terminology.
+	(Click Events): Add xref to Window Sizes and Accessing Mouse.
+	Clarify column and row components.
+	(Accessing Mouse): Add xref to Click Events.  Minor fixes.
+	(Special Events): Copyedits.
+
+	* streams.texi (Input Streams): De-document get-file-char.
+	(Output Variables): Don't refer to old backquote syntax.
+
+	* debugging.texi (Debugging): Copyedits.  Describe testcover, ERT.
+	(Error Debugging): Note that debug-ignored-errors overrides list
+	values of debug-on-error too.  Add xref to Signaling Errors.  Note
+	that debug-on-signal is not customizable.  Mention
+	condition-case-unless-debug.
+	(Compilation Errors): Node deleted.
+
+	* compile.texi (Compiler Errors): Move a paragraph here from
+	deleted node Compilation Errors.
+
 2012-02-10  Leo Liu  <sdl.web@gmail.com>
 
 	* control.texi (Handling Errors): Change condition-case-no-debug

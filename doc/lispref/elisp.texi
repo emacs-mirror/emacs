@@ -552,12 +552,10 @@ Advising Emacs Lisp Functions
 
 Debugging Lisp Programs
 
-* Debugger::                How the Emacs Lisp debugger is implemented.
+* Debugger::                A debugger for the Emacs Lisp evaluator.
 * Edebug::                  A source-level Emacs Lisp debugger.
 * Syntax Errors::           How to find syntax errors.
 * Test Coverage::           Ensuring you have tested all branches in your code.
-* Compilation Errors::      How to find errors that show up in
-                              byte compilation.
 
 The Lisp Debugger
 
@@ -656,6 +654,7 @@ Completion
                               shell commands.
 * Completion Styles::       Specifying rules for performing completion.
 * Programmed Completion::   Writing your own completion-function.
+* Completion in Buffers::   Completing text in ordinary buffers.
 
 Command Loop
 
@@ -765,6 +764,7 @@ Major and Minor Modes
 * Mode Line Format::   Customizing the text that appears in the mode line.
 * Imenu::              Providing a menu of definitions made in a buffer.
 * Font Lock Mode::     How modes can highlight text according to syntax.
+* Auto-Indentation::   How to teach Emacs to indent for a major mode.
 * Desktop Save Mode::  How modes can have buffer state saved between
                          Emacs sessions.
 
@@ -781,9 +781,10 @@ Major Modes
 * Derived Modes::           Defining a new major mode based on another major
                               mode.
 * Basic Major Modes::       Modes that other modes are often derived from.
+* Mode Hooks::              Hooks run at the end of major mode functions.
+* Tabulated List Mode::     Parent mode for buffers containing tabulated data.
 * Generic Modes::           Defining a simple major mode that supports
                               comment syntax and Font Lock mode.
-* Mode Hooks::              Hooks run at the end of major mode functions.
 * Example Major Modes::     Text mode and Lisp modes.
 
 Minor Modes
@@ -815,8 +816,6 @@ Font Lock Mode
                                   contents can also specify how to fontify it.
 * Faces for Font Lock::     Special faces specifically for Font Lock.
 * Syntactic Font Lock::     Fontification based on syntax tables.
-* Setting Syntax Properties::   Defining character syntax based on context
-                                  using the Font Lock mechanism.
 * Multiline Font Lock::     How to coerce Font Lock into properly
                               highlighting multiline constructs.
 
@@ -828,8 +827,7 @@ Multiline Font Lock Constructs
 
 Documentation
 
-* Documentation Basics::    Good style for doc strings.
-                              Where to put them.  How Emacs stores them.
+* Documentation Basics::    Where doc strings are defined and stored.
 * Accessing Documentation:: How Lisp programs can access doc strings.
 * Keys in Documentation::   Substituting current key bindings.
 * Describing Characters::   Making printable descriptions of
@@ -845,12 +843,11 @@ Files
 * File Locks::              Locking and unlocking files, to prevent
                               simultaneous editing by two people.
 * Information about Files:: Testing existence, accessibility, size of files.
-* Changing Files::          Renaming files, changing protection, etc.
+* Changing Files::          Renaming files, changing permissions, etc.
 * File Names::              Decomposing and expanding file names.
 * Contents of Directories:: Getting a list of the files in a directory.
 * Create/Delete Dirs::      Creating and Deleting Directories.
-* Magic File Names::        Defining "magic" special handling
-                              for certain file names.
+* Magic File Names::        Special handling for certain file names.
 * Format Conversion::       Conversion to and from various file formats.
 
 Visiting Files

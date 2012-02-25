@@ -1,3 +1,413 @@
+2012-02-25  Chong Yidong  <cyd@gnu.org>
+
+	Add custom groups for VC backends, for consistency with vc-bzr.
+
+	* vc/vc-arch.el (vc-arch):
+	* vc/vc-cvs.el (vc-cvs):
+	* vc/vc-git.el (vc-git):
+	* vc/vc-hg.el (vc-hg):
+	* vc/vc-mtn.el (vc-mtn):
+	* vc/vc-rcs.el (vc-rcs):
+	* vc/vc-sccs.el (vc-sccs):
+	* vc/vc-svn.el (vc-svn): New customization group (Bug#10871).
+	All relevant defcustoms reassigned.
+
+2012-02-25  Chong Yidong  <cyd@gnu.org>
+
+	* newcomment.el (comment-styles): Add autoload (Bug#10868).
+
+	* term/x-win.el (x-initialize-window-system): Reduce default for
+	x-selection-timeout to 5 seconds (Bug#8869).
+
+2012-02-24  Thierry Volpiatto  <thierry.volpiatto@gmail.com>
+
+	* files.el (file-subdir-of-p): Fix typo.
+
+2012-02-24  Thierry Volpiatto  <thierry.volpiatto@gmail.com>
+
+	* files.el (files-equal-p, file-subdir-of-p): New functions.
+	(copy-directory): Error when trying to copy a directory on itself.
+	Add missing copy-contents arg to tramp handler.
+	* dired-aux.el (dired-copy-file-recursive): Same.
+	(dired-create-files): Modify destination when source is equal to
+	dest when copying files.
+	Return also when dest is a subdir of source.  (Bug#10489)
+
+2012-02-24  Michael Albinus  <michael.albinus@gmx.de>
+
+	* net/ange-ftp.el (ange-ftp-parse-netrc): Suppress comment lines.
+	(Bug#10874)
+
+2012-02-23  Alan Mackenzie  <acm@muc.de>
+
+	* emacs-lisp/easy-mmode.el (define-minor-mode): Add extra
+	parameter "after-hook:" to allow the expansion to run code after
+	the execution of the mode hooks.
+
+	* font-lock.el (font-lock-initial-fontify): New function extracted
+	from font-lock-mode-interal.
+
+	* font-core.el (font-lock-mode): call font-lock-initial-fontify in
+	:after-hook.
+
+2012-02-23  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* minibuffer.el: Make sure cycling is reset upon edit with icomplete.el.
+	(completion--cache-all-sorted-completions): New function.
+	(completion-all-sorted-completions): Use it.
+	(completion--do-completion, minibuffer-force-complete):
+	Use it to re-instate the flush hook.
+
+	* icomplete.el (icomplete-completions): Replace last fix with a better
+	one (bug#10850).
+
+2012-02-23  Dmitry Gutov  <dgutov@yandex.ru>
+
+	* emacs-lisp/lisp.el (beginning-of-defun-raw): Don't call end-of-defun
+	when it might call us back infinitely (bug#10797).
+
+2012-02-23  Glenn Morris  <rgm@gnu.org>
+
+	* minibuffer.el (completion-category-overrides): Doc fix.
+
+2012-02-23  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* minibuffer.el (completion-table-with-context): Fix inf-loop.
+	Reported by Aaron S. Hawley <aaron.s.hawley@gmail.com>.
+
+2012-02-23  Glenn Morris  <rgm@gnu.org>
+
+	* emacs-lisp/authors.el (authors-aliases, authors-fixed-case)
+	(authors-obsolete-files-regexps, authors-ignored-files)
+	(authors-ambiguous-files, authors-renamed-files-alist):
+	Add more entries.
+
+2012-02-23  Juri Linkov  <juri@jurta.org>
+
+	* isearch.el (isearch-occur): Sync interactive spec with occur's
+	new feature in `occur-read-primary-args'.  Doc fix.  (Bug#10705)
+
+	* replace.el (occur-menu-map): Add menu item for `occur-edit-mode'.
+
+2012-02-22  Juri Linkov  <juri@jurta.org>
+
+	* international/mule-cmds.el (read-char-by-name): Use \` and \'.
+	(ucs-insert): Doc fix.  Check for hex digits in the string.
+	Don't display `nil' in the error message.  (Bug#10857)
+
+2012-02-22  Alan Mackenzie  <acm@muc.de>
+
+	* progmodes/cc-mode.el: Revert change #107149 from 2012-02-06.
+
+2012-02-22  Glenn Morris  <rgm@gnu.org>
+
+	* ffap.el (ffap-c-path):
+	* man.el (Man-header-file-path): Handle multiarch.  (Bug#10702)
+
+2012-02-22  Chong Yidong  <cyd@gnu.org>
+
+	* custom.el (load-theme): Doc fix.
+
+2012-02-22  Glenn Morris  <rgm@gnu.org>
+
+	* dired-x.el (dired-guess-shell-alist-default):
+	Remove escape sequences from nroff output.  (Bug#172)
+
+2012-02-21  Glenn Morris  <rgm@gnu.org>
+
+	* vc/emerge.el (emerge-defvar-local):
+	Set `permanent-local' property rather than unused `preserved'.
+
+	* textmodes/picture.el (picture-delete-char): New alias.
+	(picture-mode-map): Use it.  (Bug#10860)
+	(picture-mode): Doc fix.
+
+2012-02-21  Juanma Barranquero  <lekktu@gmail.com>
+
+	* newcomment.el (uncomment-region-default): Remove unused binding.
+
+2012-02-21  Glenn Morris  <rgm@gnu.org>
+
+	* textmodes/picture.el (picture-motion, picture-motion-reverse)
+	(picture-self-insert, picture-tab-chars): Doc fix.
+	(picture-mode-map): Fix C-a, C-e.
+
+2012-02-20  Glenn Morris  <rgm@gnu.org>
+
+	* emacs-lisp/authors.el (authors-aliases): Add another entry.
+
+2012-02-20  Leo Liu  <sdl.web@gmail.com>
+
+	* icomplete.el (icomplete-completions): Check FROM arg before
+	passing to substring (Bug#10850).
+
+2012-02-19  Chong Yidong  <cyd@gnu.org>
+
+	* comint.el: Require ansi-color.
+	(comint-output-filter-functions): Add ansi-color-process-output.
+
+	* ansi-color.el: Don't set comint-output-filter-functions; it is
+	now in the initial value defined in comint.el.
+	(ansi-color-apply-face-function): New variable.
+	(ansi-color-apply-on-region): Use it.
+	(ansi-color-apply-overlay-face): New function.
+
+	* shell.el (shell): No need to require ansi-color.
+	(shell-mode): Use ansi-color-apply-face-function to highlight
+	color escapes using font-lock-face property (Bug#10835).
+
+2012-02-19  Chong Yidong  <cyd@gnu.org>
+
+	* vc/ediff-init.el (ediff-strip-mode-line-format): Handle non-list
+	mode-line formats (Bug#10839).
+
+2012-02-18  Glenn Morris  <rgm@gnu.org>
+
+	* mail/rmail.el (rmail-dont-reply-to-names): Mark as obsolete.
+
+	* mail/undigest.el (unforward-rmail-message): Doc fix.
+
+	* saveplace.el (save-place-ignore-files-regexp): Add :version.
+
+2012-02-18  Eli Zaretskii  <eliz@gnu.org>
+
+	* international/characters.el (script-list): Sync with the latest
+	Unicode Character Database.
+
+2012-02-18  Andreas Schwab  <schwab@linux-m68k.org>
+
+	* international/titdic-cnv.el: Remove duplicate coding tag.
+	* language/cham.el: Likewise.
+	* language/tai-viet.el: Likewise.
+
+2012-02-18  Glenn Morris  <rgm@gnu.org>
+
+	* calendar/cal-menu.el (cal-menu-diary-menu, cal-menu-goto-menu):
+	* calendar/calendar.el (diary-file, diary-bahai-entry-symbol)
+	(calendar-bahai-all-holidays-flag, calendar-other-dates):
+	* calendar/diary-lib.el (diary-abbreviated-year-flag):
+	* calendar/holidays.el (holiday-bahai-holidays)
+	(calendar-holidays, list-holidays):
+	Use utf-8 Bahá'í in doc-strings, menus, etc.
+
+2012-02-17  Tassilo Horn  <tassilo@member.fsf.org>
+
+	* saveplace.el (save-place-ignore-files-regexp): New variable
+	allowing for excluding files from saving their location of point.
+	The default value matches the temporary commit message editing
+	files from Git, SVN, Bazaar, and Mercurial.
+	(save-place-to-alist): Use it.
+
+2012-02-17  Lawrence Mitchell <wence@gmx.li>
+            Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* newcomment.el (uncomment-region-default): Don't leave extra space
+	when an arg is provided (bug#8150).
+
+2012-02-17  Teodor Zlatanov  <tzz@lifelogs.com>
+
+	* net/gnutls.el (gnutls-trustfiles): Fix Cygwin bundle location.
+
+2012-02-17  Glenn Morris  <rgm@gnu.org>
+
+	* net/socks.el: Require network-stream.  (Bug#10599)
+
+2012-02-17  Kenichi Handa  <handa@m17n.org>
+
+	* international/charprop.el:
+	* international/uni-name.el:
+	* international/uni-old-name.el:
+	* international/uni-comment.el: Regenerate.
+
+2012-02-16  Glenn Morris  <rgm@gnu.org>
+
+	* calendar/cal-hebrew.el (calendar-hebrew-list-yahrzeits):
+	Interactively in calendar buffer, give an error if not on a date.
+
+2012-02-15  Glenn Morris  <rgm@gnu.org>
+
+	* shell.el (shell-delimiter-argument-list):
+	Revert 2011-02-17 change.  (Bug#8027)
+
+2012-02-15  Chong Yidong  <cyd@gnu.org>
+
+	* minibuffer.el (completion-at-point-functions): Doc fix.
+
+	* custom.el (defcustom): Doc fix; note use of defvar.
+
+2012-02-15  Glenn Morris  <rgm@gnu.org>
+
+	* mail/smtpmail.el (smtpmail-smtp-user, smtpmail-stream-type):
+	Doc fixes.
+
+2012-02-14  Glenn Morris  <rgm@gnu.org>
+
+	* mail/smtpmail.el (smtpmail-query-smtp-server): Give it a doc.
+
+2012-02-14  Lars Ingebrigtsen  <larsi@gnus.org>
+
+	* mail/smtpmail.el (smtpmail-query-smtp-server): Fix typo in the
+	way the ports list is computed.
+	(smtpmail-query-smtp-server): Prompt the user for a port number if
+	we can't connect to any of the standard ports (bug#10810).
+
+2012-02-14  Teodor Zlatanov  <tzz@lifelogs.com>
+
+	* net/gnutls.el (gnutls-trustfiles): Add Cygwin location.
+
+2012-02-13  Glenn Morris  <rgm@gnu.org>
+
+	* minibuffer.el (read-file-name): Doc fix.  (Bug#10798)
+
+2012-02-13  Teodor Zlatanov  <tzz@lifelogs.com>
+
+	* net/gnutls.el (gnutls-trustfiles): New variable.
+	(gnutls-negotiate): Use it.
+
+2012-02-13  Lars Ingebrigtsen  <larsi@gnus.org>
+
+	* simple.el (mail-user-agent): Mention that `gnus-user-agent' only
+	does its stuff if Gnus is running.
+
+2012-02-13  Alan Mackenzie  <acm@muc.de>
+
+	Fix a loop in c-set-fl-decl-start.
+
+	* progmodes/cc-engine.el (c-set-fl-decl-start): Add a check that
+	c-backward-syntactic-ws actually moves backwards.
+
+2012-02-13  Leo Liu  <sdl.web@gmail.com>
+
+	* net/rcirc.el (rcirc-markup-attributes): Move point to the
+	beginning so that all \C-o chars are removed.
+
+2012-02-12  Teodor Zlatanov  <tzz@lifelogs.com>
+
+	* net/gnutls.el (gnutls-algorithm-priority): Add missing :group
+	tag.
+
+2012-02-12  Alan Mackenzie  <acm@muc.de>
+
+	Fix infinite loop with long macros.
+	* cc-engine.el (c-state-safe-place): Handle macros properly.
+
+2012-02-12  Chong Yidong  <cyd@gnu.org>
+
+	* window.el (display-buffer): Doc fix (Bug#10785).
+
+2012-02-12  Glenn Morris  <rgm@gnu.org>
+
+	* term/pc-win.el (x-selection-owner-p, x-own-selection-internal)
+	(x-disown-selection-internal, x-get-selection-internal):
+	Sync docs with the xselect.c versions.
+
+	* allout-widgets.el: Add missing license notice.
+
+2012-02-11  Glenn Morris  <rgm@gnu.org>
+
+	* select.el (x-get-selection-internal, x-own-selection-internal)
+	(x-disown-selection-internal):
+	* x-dnd.el (x-get-selection-internal): Update declarations.
+
+	* vc/log-view.el (vc-diff-internal): Remove unneeded declaration.
+
+	* window.el (window-sides-slots):
+	* tool-bar.el (tool-bar-position):
+	* term/xterm.el (xterm-extra-capabilities):
+	* ses.el (ses-self-reference-early-detection):
+	* progmodes/verilog-mode.el (verilog-auto-declare-nettype)
+	(verilog-auto-wire-type)
+	(verilog-auto-delete-trailing-whitespace)
+	(verilog-auto-reset-blocking-in-non, verilog-auto-inst-sort)
+	(verilog-auto-tieoff-declaration):
+	* progmodes/sql.el (sql-login-hook, sql-ansi-statement-starters)
+	(sql-oracle-statement-starters, sql-oracle-scan-on):
+	* progmodes/prolog.el (prolog-align-comments-flag)
+	(prolog-indent-mline-comments-flag, prolog-object-end-to-0-flag)
+	(prolog-left-indent-regexp, prolog-paren-indent-p)
+	(prolog-paren-indent, prolog-parse-mode, prolog-keywords)
+	(prolog-types, prolog-mode-specificators)
+	(prolog-determinism-specificators, prolog-directives)
+	(prolog-electric-newline-flag, prolog-hungry-delete-key-flag)
+	(prolog-electric-dot-flag)
+	(prolog-electric-dot-full-predicate-template)
+	(prolog-electric-underscore-flag, prolog-electric-tab-flag)
+	(prolog-electric-if-then-else-flag, prolog-electric-colon-flag)
+	(prolog-electric-dash-flag, prolog-old-sicstus-keys-flag)
+	(prolog-program-switches, prolog-prompt-regexp)
+	(prolog-debug-on-string, prolog-debug-off-string)
+	(prolog-trace-on-string, prolog-trace-off-string)
+	(prolog-zip-on-string, prolog-zip-off-string)
+	(prolog-use-standard-consult-compile-method-flag)
+	(prolog-use-prolog-tokenizer-flag, prolog-imenu-flag)
+	(prolog-imenu-max-lines, prolog-info-predicate-index)
+	(prolog-underscore-wordchar-flag, prolog-use-sicstus-sd)
+	(prolog-char-quote-workaround):
+	* progmodes/cc-vars.el (c-defun-tactic):
+	* net/tramp.el (tramp-encoding-command-interactive)
+	(tramp-local-end-of-line):
+	* net/soap-client.el (soap-client):
+	* net/netrc.el (netrc-file):
+	* net/gnutls.el (gnutls):
+	* minibuffer.el (completion-category-overrides)
+	(completion-cycle-threshold)
+	(completion-pcm-complete-word-inserts-delimiters):
+	* man.el (Man-name-local-regexp):
+	* mail/feedmail.el (feedmail-display-full-frame):
+	* international/characters.el (glyphless-char-display-control):
+	* eshell/em-ls.el (eshell-ls-date-format):
+	* emacs-lisp/cl-indent.el (lisp-lambda-list-keyword-alignment)
+	(lisp-lambda-list-keyword-parameter-indentation)
+	(lisp-lambda-list-keyword-parameter-alignment):
+	* doc-view.el (doc-view-image-width, doc-view-unoconv-program):
+	* dired-x.el (dired-omit-verbose):
+	* cus-theme.el (custom-theme-allow-multiple-selections):
+	* calc/calc.el (calc-highlight-selections-with-faces)
+	(calc-lu-field-reference, calc-lu-power-reference)
+	(calc-note-threshold):
+	* battery.el (battery-mode-line-limit):
+	* arc-mode.el (archive-7z-extract, archive-7z-expunge)
+	(archive-7z-update):
+	* allout.el (allout-prefixed-keybindings)
+	(allout-unprefixed-keybindings)
+	(allout-inhibit-auto-fill-on-headline)
+	(allout-flattened-numbering-abbreviation):
+	* allout-widgets.el (allout-widgets-auto-activation)
+	(allout-widgets-icons-dark-subdir)
+	(allout-widgets-icons-light-subdir, allout-widgets-icon-types)
+	(allout-widgets-theme-dark-background)
+	(allout-widgets-theme-light-background)
+	(allout-widgets-item-image-properties-emacs)
+	(allout-widgets-item-image-properties-xemacs)
+	(allout-widgets-run-unit-tests-on-load)
+	(allout-widgets-time-decoration-activity)
+	(allout-widgets-hook-error-post-time)
+	(allout-widgets-track-decoration):
+	Add missing :version tags to new defcustoms and defgroups.
+
+	* progmodes/sql.el (sql-ansi-statement-starters)
+	(sql-oracle-statement-starters): Add custom type.
+
+	* progmodes/prolog.el: Remove leading '*' from defcustom docs.
+	(prolog-system-version): Give it a type.
+
+2012-02-11  Eli Zaretskii  <eliz@gnu.org>
+
+	* term/pc-win.el (x-select-text, x-selection-owner-p)
+	(x-own-selection-internal, x-disown-selection-internal)
+	(x-get-selection-internal): Sync doc strings and argument lists
+	with xselect.c, common-win.el and x-win.el.  (Bug#10783)
+
+2012-02-11  Leo Liu  <sdl.web@gmail.com>
+
+	* progmodes/python.el (python-end-of-statement): Fix infinite
+	loop.  (Bug#10788)
+
+2012-02-10  Glenn Morris  <rgm@gnu.org>
+
+	* international/mule-cmds.el (unify-8859-on-encoding-mode)
+	(unify-8859-on-decoding-mode): Properly mark as obsolete.
+
 2012-02-10  Lars Ingebrigtsen  <larsi@gnus.org>
 
 	* mail/emacsbug.el (report-emacs-bug-hook): Query the user first
@@ -123,8 +533,8 @@
 
 2012-02-07  Alan Mackenzie  <acm@muc.de>
 
-	* progmodes/cc-engine.el (c-forward-objc-directive): Prevent
-	looping in "#pragma mark @implementation".
+	* progmodes/cc-engine.el (c-forward-objc-directive):
+	Prevent looping in "#pragma mark @implementation".
 
 2012-02-07  Michael Albinus  <michael.albinus@gmx.de>
 
@@ -364,8 +774,8 @@
 	(Bug#10254).
 	(bibtex-mode): Call bibtex-set-dialect via
 	hack-local-variables-hook.
-	(bibtex-dialect): Update docstring.  Add
-	safe-local-variable predicate.
+	(bibtex-dialect): Update docstring.
+	Add safe-local-variable predicate.
 	(bibtex-entry-alist, bibtex-field-alist): Initialize via
 	bibtex-set-dialect.
 	(bibtex-mode-map): Define menu for each dialect.
@@ -406,8 +816,8 @@
 
 2012-01-28  Phil Hagelberg  <phil@hagelb.org>
 
-	* emacs-lisp/package.el (package-install): Run
-	package-refresh-contents if there is no archive yet (Bug#9798).
+	* emacs-lisp/package.el (package-install):
+	Run package-refresh-contents if there is no archive yet (Bug#9798).
 
 2012-01-28  Chong Yidong  <cyd@gnu.org>
 
@@ -584,8 +994,8 @@
 2012-01-19  Martin Rudalics  <rudalics@gmx.at>
 
 	* window.el (window--state-get-1, window-state-get): Do not use
-	special state value for window-persistent-parameters.  Rename
-	argument IGNORE to WRITABLE.  Rewrite doc-string.
+	special state value for window-persistent-parameters.
+	Rename argument IGNORE to WRITABLE.  Rewrite doc-string.
 	(window--state-put-2): Reset all window parameters to nil before
 	assigning values of persistent parameters.
 
@@ -675,8 +1085,8 @@
 	c-mask-paragraph, pass in `fill-paragraph' rather than
 	`fill-region-as-paragraph'.  (This is a reversion of a previous
 	change.)
-	* progmodes/cc-mode.el (c-basic-common-init): Make
-	fill-paragraph-handle-comment buffer local and set it to nil.
+	* progmodes/cc-mode.el (c-basic-common-init):
+	Make fill-paragraph-handle-comment buffer local and set it to nil.
 
 2012-01-13  Glenn Morris  <rgm@gnu.org>
 
@@ -1053,10 +1463,10 @@
 
 	Add the switch statement to AWK Mode.
 
-	* progmodes/cc-awk (awk-font-lock-keywords): Add "switch", "case",
+	* progmodes/cc-awk.el (awk-font-lock-keywords): Add "switch", "case",
 	"default" to the keywords regexp.
 
-	* progmodes/cc-langs (c-label-kwds): Let AWK take the same
+	* progmodes/cc-langs.el (c-label-kwds): Let AWK take the same
 	expression as the rest.
 	(c-nonlabel-token-key): Allow string literals for AWK.
 	Refactor for the other modes.
@@ -2915,7 +3325,7 @@
 
 2011-10-08  Thierry Volpiatto  <thierry.volpiatto@gmail.com>
 
-	* lisp/eshell/eshell.el (eshell-command): Avoid using hooks.
+	* eshell/eshell.el (eshell-command): Avoid using hooks.
 
 2011-10-07  Chong Yidong  <cyd@stupidchicken.com>
 
@@ -6075,7 +6485,7 @@
 	* comint.el (comint-password-prompt-regexp): Accept "Response" as
 	a password-like phrase.
 
-2011-06-30  Mastake YAMATO  <yamato@redhat.com>
+2011-06-30  Masatake YAMATO  <yamato@redhat.com>
 
 	* progmodes/cc-guess.el: New file.
 
@@ -7635,7 +8045,7 @@
 
 	* isearch.el (isearch-range-invisible): Use invisible-p (bug#8721).
 
-2009-11-23  Toby Cubitt  <toby-predictive@dr-qubit.org>
+2011-05-27  Toby Cubitt  <toby-predictive@dr-qubit.org>
 
 	* emacs-lisp/avl-tree.el: New avl-tree-stack datatype.  Add new
 	traversal functions for avl-trees.
@@ -7652,8 +8062,6 @@
 	(avl-tree-mapc, avl-tree-mapf, avl-tree-mapcar): New functions.
 	(avl-tree-stack, avl-tree-stack-pop, avl-tree-stack-first)
 	(avl-tree-stack-empty-p): New functions.
-
-2009-11-23  Toby Cubitt  <toby-predictive@dr-qubit.org>
 
 	* emacs-lisp/avl-tree.el (avl-tree--del-balance): Rename from
 	avl-tree--del-balance1 and make it work both ways.
@@ -10383,7 +10791,8 @@
 	(calc-lu-field-reference): Rename from
 	`calc-logunits-field-reference'.
 
-	* calc/calc-help (calc-l-prefix-help): Mention musical note functions.
+	* calc/calc-help.el (calc-l-prefix-help):
+	Mention musical note functions.
 
 2011-03-17  Stefan Monnier  <monnier@iro.umontreal.ca>
 
@@ -10559,7 +10968,7 @@
 
 2011-03-09  Ken Manheimer  <ken.manheimer@gmail.com>
 
-	* allout.el Summary: Change so yank of distinctive-bullet items
+	* allout.el: Change so yank of distinctive-bullet items
 	preserves the existing header prefix, rebulleting it if necessary,
 	rather than replacing it.  This is necessary for proper operation
 	of cooperative addons like allout-widgets.

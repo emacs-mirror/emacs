@@ -633,6 +633,7 @@ for reading certain kinds of names with completion.
                              shell commands.
 * Completion Styles::      Specifying rules for performing completion.
 * Programmed Completion::  Writing your own completion-function.
+* Completion in Buffers::  Completing text in ordinary buffers.
 @end menu
 
 @node Basic Completion
@@ -644,10 +645,12 @@ higher-level completion features that do use the minibuffer.
 
 @defun try-completion string collection &optional predicate
 This function returns the longest common substring of all possible
-completions of @var{string} in @var{collection}.  The value of
-@var{collection} must be a list of strings, an alist whose keys are
-strings or symbols, an obarray, a hash table, or a completion function
-(@pxref{Programmed Completion}).
+completions of @var{string} in @var{collection}.
+
+@cindex completion table
+The @var{collection} argument is called the @dfn{completion table}.
+Its value must be a list of strings, an alist whose keys are strings
+or symbols, an obarray, a hash table, or a completion function.
 
 Completion compares @var{string} against each of the permissible
 completions specified by @var{collection}.  If no permissible
@@ -678,13 +681,13 @@ Also, you cannot intern a given symbol in more than one obarray.
 If @var{collection} is a hash table, then the keys that are strings
 are the possible completions.  Other keys are ignored.
 
-You can also use a function as @var{collection}.
-Then the function is solely responsible for performing completion;
-@code{try-completion} returns whatever this function returns.  The
-function is called with three arguments: @var{string}, @var{predicate}
-and @code{nil} (the reason for the third argument is so that the same
-function can be used in @code{all-completions} and do the appropriate
-thing in either case).  @xref{Programmed Completion}.
+You can also use a function as @var{collection}.  Then the function is
+solely responsible for performing completion; @code{try-completion}
+returns whatever this function returns.  The function is called with
+three arguments: @var{string}, @var{predicate} and @code{nil} (the
+reason for the third argument is so that the same function can be used
+in @code{all-completions} and do the appropriate thing in either
+case).  @xref{Programmed Completion}.
 
 If the argument @var{predicate} is non-@code{nil}, then it must be a
 function of one argument, unless @var{collection} is a hash table, in
@@ -862,29 +865,12 @@ proper value is done the first time you do completion using @var{var}.
 It is done by calling @var{fun} with no arguments.  The
 value @var{fun} returns becomes the permanent value of @var{var}.
 
-Here is an example of use:
+Here is a usage example:
 
 @smallexample
 (defvar foo (lazy-completion-table foo make-my-alist))
 @end smallexample
 @end defmac
-
-The function @code{completion-in-region} provides a convenient way to
-perform completion on an arbitrary stretch of text in an Emacs buffer:
-
-@defun completion-in-region start end collection &optional predicate
-This function completes the text in the current buffer between the
-positions @var{start} and @var{end}, using @var{collection}.  The
-argument @var{collection} has the same meaning as in
-@code{try-completion} (@pxref{Basic Completion}).
-
-This function inserts the completion text directly into the current
-buffer.  Unlike @code{completing-read} (@pxref{Minibuffer
-Completion}), it does not activate the minibuffer.
-
-For this function to work, point must be somewhere between @var{start}
-and @var{end}.
-@end defun
 
 @node Minibuffer Completion
 @subsection Completion and the Minibuffer
@@ -899,13 +885,14 @@ This function reads a string in the minibuffer, assisting the user by
 providing completion.  It activates the minibuffer with prompt
 @var{prompt}, which must be a string.
 
-The actual completion is done by passing @var{collection} and
-@var{predicate} to the function @code{try-completion} (@pxref{Basic
-Completion}).  This happens in certain commands bound in the local
-keymaps used for completion.  Some of these commands also call
-@code{test-completion}.  Thus, if @var{predicate} is non-@code{nil},
-it should be compatible with @var{collection} and
-@code{completion-ignore-case}.  @xref{Definition of test-completion}.
+The actual completion is done by passing the completion table
+@var{collection} and the completion predicate @var{predicate} to the
+function @code{try-completion} (@pxref{Basic Completion}).  This
+happens in certain commands bound in the local keymaps used for
+completion.  Some of these commands also call @code{test-completion}.
+Thus, if @var{predicate} is non-@code{nil}, it should be compatible
+with @var{collection} and @code{completion-ignore-case}.
+@xref{Definition of test-completion}.
 
 The value of the optional argument @var{require-match} determines how
 the user may exit the minibuffer:
@@ -1005,10 +992,11 @@ They are described in the following section.
 in the minibuffer to do completion.
 
 @defvar minibuffer-completion-table
-The value of this variable is the collection used for completion in
-the minibuffer.  This is the global variable that contains what
+The value of this variable is the completion table used for completion
+in the minibuffer.  This is the global variable that contains what
 @code{completing-read} passes to @code{try-completion}.  It is used by
-minibuffer completion commands such as @code{minibuffer-complete-word}.
+minibuffer completion commands such as
+@code{minibuffer-complete-word}.
 @end defvar
 
 @defvar minibuffer-completion-predicate
@@ -1716,6 +1704,87 @@ The function can determine the collection used for the current
 completion via the variable @code{minibuffer-completion-table}
 (@pxref{Completion Commands}).
 @end defvar
+
+@node Completion in Buffers
+@subsection Completion in Ordinary Buffers
+@cindex inline completion
+
+@findex completion-at-point
+  Although completion is usually done in the minibuffer, the
+completion facility can also be used on the text in ordinary Emacs
+buffers.  In many major modes, in-buffer completion is performed by
+the @kbd{C-M-i} or @kbd{M-@key{TAB}} command, bound to
+@code{completion-at-point}.  @xref{Symbol Completion,,, emacs, The GNU
+Emacs Manual}.  This command uses the abnormal hook variable
+@code{completion-at-point-functions}:
+
+@defvar completion-at-point-functions
+The value of this abnormal hook should be a list of functions, which
+are used to compute a completion table for completing the text at
+point.  It can be used by major modes to provide mode-specific
+completion tables (@pxref{Major Mode Conventions}).
+
+When the command @code{completion-at-point} runs, it calls the
+functions in the list one by one, without any argument.  Each function
+should return @code{nil} if it is unable to produce a completion table
+for the text at point.  Otherwise it should return a list of the form
+
+@example
+(@var{start} @var{end} @var{collection} . @var{props})
+@end example
+
+@noindent
+@var{start} and @var{end} delimit the text to complete (which should
+enclose point).  @var{collection} is a completion table for completing
+that text, in a form suitable for passing as the second argument to
+@code{try-completion} (@pxref{Basic Completion}); completion
+alternatives will be generated from this completion table in the usual
+way, via the completion styles defined in @code{completion-styles}
+(@pxref{Completion Styles}).  @var{props} is a property list for
+additional information; the following optional properties are
+recognized:
+
+@table @code
+@item :predicate
+The value should be a predicate that completion candidates need to
+satisfy.
+
+@item :exclusive
+If the value is @code{no}, then if the completion table fails to match
+the text at point, then @code{completion-at-point} moves on to the
+next function in @code{completion-at-point-functions} instead of
+reporting a completion failure.
+@end table
+
+A function in @code{completion-at-point-functions} may also return a
+function.  In that case, that returned function is called, with no
+argument, and it is entirely responsible for performing the
+completion.  We discourage this usage; it is intended to help convert
+old code to using @code{completion-at-point}.
+
+The first function in @code{completion-at-point-functions} to return a
+non-@code{nil} value is used by @code{completion-at-point}.  The
+remaining functions are not called.  The exception to this is when
+there is a @code{:exclusive} specification, as described above.
+@end defvar
+
+  The following function provides a convenient way to perform
+completion on an arbitrary stretch of text in an Emacs buffer:
+
+@defun completion-in-region start end collection &optional predicate
+This function completes the text in the current buffer between the
+positions @var{start} and @var{end}, using @var{collection}.  The
+argument @var{collection} has the same meaning as in
+@code{try-completion} (@pxref{Basic Completion}).
+
+This function inserts the completion text directly into the current
+buffer.  Unlike @code{completing-read} (@pxref{Minibuffer
+Completion}), it does not activate the minibuffer.
+
+For this function to work, point must be somewhere between @var{start}
+and @var{end}.
+@end defun
+
 
 @node Yes-or-No Queries
 @section Yes-or-No Queries

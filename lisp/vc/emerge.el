@@ -39,13 +39,13 @@
 (defmacro emerge-defvar-local (var value doc)
   "Defines SYMBOL as an advertised variable.
 Performs a defvar, then executes `make-variable-buffer-local' on
-the variable.  Also sets the `preserved' property, so that
+the variable.  Also sets the `permanent-local' property, so that
 `kill-all-local-variables' (called by major-mode setting commands)
 won't destroy Emerge control variables."
   `(progn
     (defvar ,var ,value ,doc)
     (make-variable-buffer-local ',var)
-    (put ',var 'preserved t)))
+    (put ',var 'permanent-local t)))
 
 ;; Add entries to minor-mode-alist so that emerge modes show correctly
 (defvar emerge-minor-modes-list

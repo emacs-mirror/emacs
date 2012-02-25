@@ -1,3 +1,108 @@
+2012-02-25  Dani Moncayo  <dmoncayo@gmail.com>  (tiny change)
+
+	* buffers.texi (Select Buffer): Mention that saving in a new file
+	name can switch to a different major mode.
+
+2012-02-23  Glenn Morris  <rgm@gnu.org>
+
+	* mini.texi (Minibuffer File, Completion Options, Repetition):
+	Copyedits.
+	(Completion Example): Other M-x au* commands may be defined.
+	(Completion Styles): Mention emacs21 and completion-category-overrides.
+
+	* msdog.texi (Text and Binary, ls in Lisp, Windows HOME)
+	(Windows Keyboard, Windows Mouse, Windows Processes)
+	(Windows Printing, Windows Misc): Copyedits.
+	(ls in Lisp): Update switches list.
+
+	* msdog-xtra.texi (MS-DOS Display): Update list-colors-display xref.
+	Update dos-mode* function names.
+	(MS-DOS Printing, MS-DOS and MULE): Copyedits.
+	(MS-DOS Processes): Add xref to main ls-lisp section.
+
+	* ack.texi (Acknowledgments): Mention smie.
+
+2012-02-22  Glenn Morris  <rgm@gnu.org>
+
+	* macos.texi: Copyedits.  Fix @key/@kbd usage.
+	(Mac / GNUstep Basics): Don't mention the panels, since the next
+	section covers them.
+	(Mac / GNUstep Customization): Merge some panel info from previous.
+
+2012-02-21  Glenn Morris  <rgm@gnu.org>
+
+	* emerge-xtra.texi (Emerge, Submodes of Emerge, Combining in Emerge):
+	Small fixes.
+
+	* emacs-xtra.texi: Picture mode is no longer a chapter.
+
+	* picture-xtra.texi (Basic Picture): C-a does get remapped.
+
+	* ack.texi (Acknowledgments): Small changes, including resorting,
+	and removal of things no longer distributed.
+
+2012-02-20  Glenn Morris  <rgm@gnu.org>
+
+	* emacs.texi (Top, Preface): Small rephrasings.
+	(menu, detailmenu): Update entries, and reformat some descriptions.
+	* building.texi, display.texi, emacs-xtra.texi, files.texi:
+	* frames.texi, kmacro.texi, msdog.texi, programs.texi, text.texi:
+	Reformat some menu descriptions.
+
+	* ack.texi (Acknowledgments): More updates.
+
+	* emacs.texi (Acknowledgments): Add several names from ack.texi,
+	and from Author: headers.
+	(Distrib): Small updates.
+
+2012-02-18  Glenn Morris  <rgm@gnu.org>
+
+	* ack.texi (Acknowledgments): Add xref to Org manual.
+
+	* rmail.texi: Copyedits.  Use 'mail composition buffer' in place
+	of '*mail*', since Message does not call it that.
+	(Rmail Reply): Rename rmail-dont-reply-to-names.
+	\\`info- no longer handled specially.
+	Update for rmail-enable-mime-composing.
+	Don't mention 'm' for replies.
+	Don't mention rmail-mail-new-frame and cancelling, since it does
+	not work for Message at the moment.
+
+	* cal-xtra.texi: Copyedits.
+
+	* emacs-xtra.texi: Set encoding to ISO-8859-1.
+
+2012-02-17  Glenn Morris  <rgm@gnu.org>
+
+	* maintaining.texi (Old Revisions): Fix cross-refs to Ediff manual.
+
+	* ack.texi (Acknowledgments): Mention Gnulib.
+
+	* ack.texi, calendar.texi, cal-xtra.texi: Use "Bahá'í".
+
+	* calendar.texi: Misc small changes, including updating the dates
+	of examples.
+
+2012-02-16  Glenn Morris  <rgm@gnu.org>
+
+	* calendar.texi: Misc small changes.
+
+	* vc1-xtra.texi (VC Delete/Rename, CVS Options):
+	* cal-xtra.texi (Diary Display): Fix TeX cross-refs to other manuals.
+
+	* dired-xtra.texi (Subdir Switches): Small fixes.
+
+	* fortran-xtra.texi: Tiny changes and some adjustments to line breaks.
+
+2012-02-15  Glenn Morris  <rgm@gnu.org>
+
+	* sending.texi (Mail Sending): smtpmail-auth-credentials was removed.
+
+2012-02-12  Glenn Morris  <rgm@gnu.org>
+
+	* ack.texi (Acknowledgments):
+	* emacs.texi (Acknowledgments): Updates for new files in 24.1.
+
 2012-02-10  Glenn Morris  <rgm@gnu.org>
 
 	* mini.texi (Minibuffer Edit): Mention minibuffer-inactive-mode.

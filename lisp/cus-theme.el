@@ -521,6 +521,7 @@ It includes all faces in list FACES."
 
 (defcustom custom-theme-allow-multiple-selections nil
   "Whether to allow multi-selections in the *Custom Themes* buffer."
+  :version "24.1"
   :type 'boolean
   :group 'custom-buffer)
 

@@ -1741,8 +1741,9 @@ xg_toggle_notify_cb (GObject *gobject, GParamSpec *arg1, gpointer user_data)
    PROMPT is a prompt to show to the user.  May not be NULL.
    DEFAULT_FILENAME is a default selection to be displayed.  May be NULL.
    If MUSTMATCH_P is non-zero, the returned file name must be an existing
-   file.  *FUNC is set to a function that can be used to retrieve the
-   selected file name from the returned widget.
+   file.  (Actually, this only has cosmetic effects, the user can
+   still enter a non-existing file.)  *FUNC is set to a function that
+   can be used to retrieve the selected file name from the returned widget.
 
    Returns the created widget.  */
 

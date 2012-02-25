@@ -1,3 +1,7 @@
+2012-02-14  Chong Yidong  <cyd@gnu.org>
+
+	* org-footnote.el: Remove bogus defvar values (Bug#10745).
+
 2012-01-05  Eric Schulte  <eric.schulte@gmx.com>
 
 	* ob.el (org-babel-expand-noweb-references): Resurrect dropped
@@ -436,7 +440,7 @@
 
 2012-01-03  Michael Brand  <michael.ch.brand@gmail.com>
 
-	* org.el Key bindings: remap the Outline functions from
+	* org.el (Key bindings): remap the Outline functions from
 	`outline-mode-prefix-map' where possible.
 
 2012-01-03  Christian Moe  <mail@christianmoe.com>  (tiny change)
@@ -535,9 +539,7 @@
 	(org-odt-styles-dir, org-export-odt-schema-dir): New
 	variables.
 
-	* org-odt.el: New file.
-
-	* org-lparse: New file.
+	* org-odt.el, org-lparse.el: New files.
 
 2012-01-03  Carsten Dominik  <carsten.dominik@gmail.com>
 

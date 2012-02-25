@@ -786,6 +786,9 @@ a previously found match."
     (define-key map [occur-rename-buffer]
       `(menu-item ,(purecopy "Rename Occur Buffer") occur-rename-buffer
 		  :help ,(purecopy "Rename the current *Occur* buffer to *Occur: original-buffer-name*.")))
+    (define-key map [occur-edit-buffer]
+      `(menu-item ,(purecopy "Edit Occur Buffer") occur-edit-mode
+		  :help ,(purecopy "Edit the *Occur* buffer and apply changes to the original buffers.")))
     (define-key map [separator-2] menu-bar-separator)
     (define-key map [occur-mode-goto-occurrence-other-window]
       `(menu-item ,(purecopy "Go To Occurrence Other Window") occur-mode-goto-occurrence-other-window

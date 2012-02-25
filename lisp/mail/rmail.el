@@ -285,8 +285,10 @@ Setting this variable has an effect only before reading a mail."
   :version "21.1")
 
 ;;;###autoload
-(defvaralias 'rmail-dont-reply-to-names 'mail-dont-reply-to-names)
+(define-obsolete-variable-alias 'rmail-dont-reply-to-names
+  'mail-dont-reply-to-names "24.1")
 
+;; Prior to 24.1, this used to contain "\\`info-".
 ;;;###autoload
 (defvar rmail-default-dont-reply-to-names nil
   "Regexp specifying part of the default value of `mail-dont-reply-to-names'.
@@ -4698,7 +4700,7 @@ SENDERS is a string of regexps separated by commas.
 ;;;***
 
 ;;;### (autoloads (unforward-rmail-message undigestify-rmail-message)
-;;;;;;  "undigest" "undigest.el" "1be42b2d20b13004f0ad1b504630ed00")
+;;;;;;  "undigest" "undigest.el" "a31a35802a2adbc51be42959c3043dbd")
 ;;; Generated autoloads from undigest.el
 
 (autoload 'undigestify-rmail-message "undigest" "\
@@ -4709,8 +4711,9 @@ Leaves original message, deleted, before the undigestified messages.
 
 (autoload 'unforward-rmail-message "undigest" "\
 Extract a forwarded message from the containing message.
-This puts the forwarded message into a separate rmail message
-following the containing message.
+This puts the forwarded message into a separate rmail message following
+the containing message.  This command is only useful when messages are
+forwarded with `rmail-enable-mime-composing' set to nil.
 
 \(fn)" t nil)
 

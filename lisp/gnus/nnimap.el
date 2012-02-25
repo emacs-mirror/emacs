@@ -201,7 +201,10 @@ textual parts.")
 	(while (re-search-forward
 		"[^]][ (]{\\([0-9]+\\)}\r?\n"
 		(save-excursion
-		  (or (re-search-forward "\\* [0-9]+ FETCH" nil t)
+		  ;; Start of the header section.
+		  (or (re-search-forward "] {[0-9]+}\r?\n" nil t)
+		      ;; Start of the next FETCH.
+		      (re-search-forward "\\* [0-9]+ FETCH" nil t)
 		      (point-max)))
 		t)
 	  (setq size (string-to-number (match-string 1)))
@@ -289,7 +292,7 @@ textual parts.")
 
 (defun nnimap-make-process-buffer (buffer)
   (with-current-buffer
-      (generate-new-buffer (format "*nnimap %s %s %s*"
+      (generate-new-buffer (format " *nnimap %s %s %s*"
 				   nnimap-address nnimap-server-port
 				   (gnus-buffer-exists-p buffer)))
     (mm-disable-multibyte)
@@ -865,6 +868,7 @@ textual parts.")
 	  ;; Move the article to a different method.
 	  (let ((result (eval accept-form)))
 	    (when result
+	      (nnimap-possibly-change-group group server)
 	      (nnimap-delete-article article)
 	      result)))))))
 
@@ -1187,7 +1191,8 @@ textual parts.")
 	  (dolist (response responses)
 	    (let* ((sequence (car response))
 		   (response (cadr response))
-		   (group (cadr (assoc sequence sequences))))
+		   (group (cadr (assoc sequence sequences)))
+		   (egroup (encode-coding-string group 'utf-8)))
 	      (when (and group
 			 (equal (caar response) "OK"))
 		(let ((uidnext (nnimap-find-parameter "UIDNEXT" response))
@@ -1199,15 +1204,14 @@ textual parts.")
 		    (setq highest (1- (string-to-number (car uidnext)))))
 		  (cond
 		   ((null highest)
-		    (insert (format "%S 0 1 y\n" (utf7-decode group t))))
+		    (insert (format "%S 0 1 y\n" egroup)))
 		   ((zerop exists)
 		    ;; Empty group.
-		    (insert (format "%S %d %d y\n"
-				    (utf7-decode group t)
+		    (insert (format "%S %d %d y\n" egroup
 				    highest (1+ highest))))
 		   (t
 		    ;; Return the widest possible range.
-		    (insert (format "%S %d 1 y\n" (utf7-decode group t)
+		    (insert (format "%S %d 1 y\n" egroup
 				    (or highest exists)))))))))
 	  t)))))
 
@@ -1219,7 +1223,7 @@ textual parts.")
 		       (nnimap-get-groups)))
 	(unless (assoc group nnimap-current-infos)
 	  ;; Insert dummy numbers here -- they don't matter.
-	  (insert (format "%S 0 1 y\n" (utf7-encode group)))))
+	  (insert (format "%S 0 1 y\n" (encode-coding-string group 'utf-8)))))
       t)))
 
 (deffoo nnimap-retrieve-group-data-early (server infos)
@@ -1539,7 +1543,8 @@ textual parts.")
 
 (defun nnimap-parse-flags (sequences)
   (goto-char (point-min))
-  ;; Change \Delete etc to %Delete, so that the reader can read it.
+  ;; Change \Delete etc to %Delete, so that the Emacs Lisp reader can
+  ;; read it.
   (subst-char-in-region (point-min) (point-max)
 			?\\ ?% t)
   ;; Remove any MODSEQ entries in the buffer, because they may contain
@@ -1610,7 +1615,9 @@ textual parts.")
 			     vanished highestmodseq)
 		       articles)
 		groups)
-	  (goto-char end)
+	  (if (eq flag-sequence 'qresync)
+	      (goto-char end)
+	    (setq end (point)))
 	  (setq articles nil))))
     groups))
 
@@ -1693,13 +1700,18 @@ textual parts.")
     (nnimap-wait-for-response nnimap-sequence))
   nnimap-sequence)
 
+(defvar nnimap-record-commands nil
+  "If non-nil, log commands to the \"*imap log*\" buffer.")
+
 (defun nnimap-log-command (command)
-  (with-current-buffer (get-buffer-create "*imap log*")
-    (goto-char (point-max))
-    (insert (format-time-string "%H:%M:%S") " "
-	    (if nnimap-inhibit-logging
-		"(inhibited)\n"
-	      command)))
+  (when nnimap-record-commands
+    (with-current-buffer (get-buffer-create "*imap log*")
+      (goto-char (point-max))
+      (insert (format-time-string "%H:%M:%S")
+	      " [" nnimap-address "] "
+	      (if nnimap-inhibit-logging
+		  "(inhibited)\n"
+		command))))
   command)
 
 (defun nnimap-command (&rest args)

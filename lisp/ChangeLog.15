@@ -779,9 +779,9 @@
 
 2011-02-17  Ken Manheimer  <ken.manheimer@gmail.com>
 
-	* lisp/allout-widgets.el (allout-widgets-icons-light-subdir)
+	* allout-widgets.el (allout-widgets-icons-light-subdir)
 	(allout-widgets-icons-dark-subdir): Track relocations of icons.
-	* lisp/allout.el: Remove commentary about remove encryption
+	* allout.el: Remove commentary about remove encryption
 	passphrase mnemonic support and verification.
 	(allout-encrypt-string): Recognize epg failure to decrypt gpg2
 	armored text using gpg1, and indicate that the gpg version *might*

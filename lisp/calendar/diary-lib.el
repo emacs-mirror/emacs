@@ -337,7 +337,7 @@ expressions that can involve the keywords `days' (a number), `date'
 
 (defcustom diary-abbreviated-year-flag t
   "Interpret a two-digit year DD in a diary entry as either 19DD or 20DD.
-This applies to the Gregorian, Hebrew, Islamic, and Baha'i calendars.
+This applies to the Gregorian, Hebrew, Islamic, and Bahá'í calendars.
 When the current century is added to a two-digit year, if the result
 is more than 50 years in the future, the previous century is assumed.
 If the result is more than 50 years in the past, the next century is assumed.
@@ -2623,5 +2623,9 @@ user is asked to confirm its addition."
     (funcall func noconfirm)))
 
 (provide 'diary-lib)
+
+;; Local Variables:
+;; coding: utf-8
+;; End:
 
 ;;; diary-lib.el ends here

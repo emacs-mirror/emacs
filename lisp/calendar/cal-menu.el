@@ -52,7 +52,7 @@
     ["Insert Anniversary" diary-insert-anniversary-entry]
     ["Insert Block" diary-insert-block-entry]
     ["Insert Cyclic" diary-insert-cyclic-entry]
-    ("Insert Baha'i"
+    ("Insert Bahá'í"
      ["One time" diary-bahai-insert-entry]
      ["Monthly" diary-bahai-insert-monthly-entry]
      ["Yearly" diary-bahai-insert-yearly-entry])
@@ -127,7 +127,7 @@
     ["Astronomical Date" calendar-astro-goto-day-number]
     ["Hebrew Date" calendar-hebrew-goto-date]
     ["Persian Date" calendar-persian-goto-date]
-    ["Baha'i Date" calendar-bahai-goto-date]
+    ["Bahá'í Date" calendar-bahai-goto-date]
     ["Islamic Date" calendar-islamic-goto-date]
     ["Julian Date" calendar-julian-goto-date]
     ["Chinese Date" calendar-chinese-goto-date]
@@ -281,5 +281,9 @@ is non-nil."
 (run-hooks 'cal-menu-load-hook)
 
 (provide 'cal-menu)
+
+;; Local Variables:
+;; coding: utf-8
+;; End:
 
 ;;; cal-menu.el ends here

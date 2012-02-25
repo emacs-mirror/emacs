@@ -173,13 +173,11 @@ ordinary binding applies to events of a particular @dfn{event type},
 which is always a character or a symbol.  @xref{Classifying Events}.
 In this kind of binding, @var{binding} is a command.
 
-@item (@var{type} @var{item-name} @r{[}@var{cache}@r{]} .@: @var{binding})
+@item (@var{type} @var{item-name} .@: @var{binding})
 This specifies a binding which is also a simple menu item that
-displays as @var{item-name} in the menu.  @var{cache}, if present,
-caches certain information for display in the menu.  @xref{Simple Menu
-Items}.
+displays as @var{item-name} in the menu.  @xref{Simple Menu Items}.
 
-@item (@var{type} @var{item-name} @var{help-string} @r{[}@var{cache}@r{]} .@: @var{binding})
+@item (@var{type} @var{item-name} @var{help-string} .@: @var{binding})
 This is a simple menu item with help string @var{help-string}.
 
 @item (@var{type} menu-item .@: @var{details})
@@ -234,8 +232,9 @@ other input events; thus, @kbd{M-@key{end}} has nothing to do with
 @kbd{@key{ESC} @key{end}}.
 
   Here as an example is the local keymap for Lisp mode, a sparse
-keymap.  It defines bindings for @key{DEL} and @key{TAB}, plus @kbd{C-c
-C-l}, @kbd{M-C-q}, and @kbd{M-C-x}.
+keymap.  It defines bindings for @key{DEL}, @kbd{C-c C-z},
+@kbd{C-M-q}, and @kbd{C-M-x} (the actual value also contains a menu
+binding, which is omitted here for the sake of brevity).
 
 @example
 @group
@@ -250,11 +249,8 @@ lisp-mode-map
 @end group
 @group
  (27 keymap
-     ;; @r{@kbd{M-C-x}, treated as @kbd{@key{ESC} C-x}}
-     (24 . lisp-send-defun)
-     keymap
-     ;; @r{@kbd{M-C-q}, treated as @kbd{@key{ESC} C-q}}
-     (17 . indent-sexp))
+     ;; @r{@kbd{C-M-x}, treated as @kbd{@key{ESC} C-x}}
+     (24 . lisp-send-defun))
 @end group
 @group
  ;; @r{This part is inherited from @code{lisp-mode-shared-map}.}
@@ -264,9 +260,8 @@ lisp-mode-map
 @end group
 @group
  (27 keymap
-     ;; @r{@kbd{M-C-q}, treated as @kbd{@key{ESC} C-q}}
-     (17 . indent-sexp))
- (9 . lisp-indent-line))
+     ;; @r{@kbd{C-M-q}, treated as @kbd{@key{ESC} C-q}}
+     (17 . indent-sexp)))
 @end group
 @end example
 
@@ -441,10 +436,10 @@ This function returns a new keymap composed of the existing keymap(s)
 @var{maps}, and optionally inheriting from a parent keymap
 @var{parent}.  @var{maps} can be a single keymap or a list of more
 than one.  When looking up a key in the resulting new map, Emacs
-searches in each of the @var{maps}, and then in @var{parent}, stopping
-at the first match.  A @code{nil} binding in any one of @var{maps}
-overrides any binding in @var{parent}, but not a non-@code{nil} binding
-in any other of the @var{maps}.
+searches in each of the @var{maps} in turn, and then in @var{parent},
+stopping at the first match.  A @code{nil} binding in any one of
+@var{maps} overrides any binding in @var{parent}, but it does not
+override any non-@code{nil} binding in any other of the @var{maps}.
 @end defun
 
 @noindent For example, here is how Emacs sets the parent of
@@ -762,35 +757,23 @@ them:
 @end lisp
 
 @noindent
-The @var{find-in} and @var{find-in-any} are pseudo functions that
-search in one keymap and in an alist of keymaps, respectively.
-(Searching a single keymap for a binding is called @dfn{key lookup};
-see @ref{Key Lookup}.)  If the key sequence starts with a mouse event,
-or a symbolic prefix event followed by a mouse event, that event's
-position is used instead of point and the current buffer.  Mouse
-events on an embedded string use non-@code{nil} text properties from
-that string instead of the buffer.
+@var{find-in} and @var{find-in-any} are pseudo functions that search
+in one keymap and in an alist of keymaps, respectively.  (Searching a
+single keymap for a binding is called @dfn{key lookup}; see @ref{Key
+Lookup}.)  If the key sequence starts with a mouse event, or a
+symbolic prefix event followed by a mouse event, that event's position
+is used instead of point and the current buffer.  Mouse events on an
+embedded string use non-@code{nil} text properties from that string
+instead of the buffer.
 
-@enumerate
-@item
-The function finally found may be remapped
-(@pxref{Remapping Commands}).
-
-@item
-Characters that are bound to @code{self-insert-command} are translated
-according to @code{translation-table-for-input} before insertion.
-
-@item
-@code{current-active-maps} returns a list of the
-currently active keymaps at point.
-
-@item
-When a match is found (@pxref{Key Lookup}), if the binding in the
+  When a match is found (@pxref{Key Lookup}), if the binding in the
 keymap is a function, the search is over.  However if the keymap entry
 is a symbol with a value or a string, Emacs replaces the input key
 sequences with the variable's value or the string, and restarts the
 search of the active keymaps.
-@end enumerate
+
+  The function finally found might also be remapped.  @xref{Remapping
+Commands}.
 
 @node Controlling Active Maps
 @section Controlling the Active Keymaps
@@ -1088,21 +1071,9 @@ lookup form a complete key, and the object is its binding, but the
 binding is not executable as a command.
 @end table
 
-  In short, a keymap entry may be a keymap, a command, a keyboard macro,
-a symbol that leads to one of them, or an indirection or @code{nil}.
-Here is an example of a sparse keymap with two characters bound to
-commands and one bound to another keymap.  This map is the normal value
-of @code{emacs-lisp-mode-map}.  Note that 9 is the code for @key{TAB},
-127 for @key{DEL}, 27 for @key{ESC}, 17 for @kbd{C-q} and 24 for
-@kbd{C-x}.
-
-@example
-@group
-(keymap (9 . lisp-indent-line)
-        (127 . backward-delete-char-untabify)
-        (27 keymap (17 . indent-sexp) (24 . eval-defun)))
-@end group
-@end example
+  In short, a keymap entry may be a keymap, a command, a keyboard
+macro, a symbol that leads to one of them, or an indirection or
+@code{nil}.
 
 @node Functions for Key Lookup
 @section Functions for Key Lookup
@@ -1472,23 +1443,21 @@ that is used for some other purpose is likely to cause trouble; for
 example, suppressing @code{global-map} would make it impossible to use
 most of Emacs.
 
-Most often, @code{suppress-keymap} is used to initialize local
-keymaps of modes such as Rmail and Dired where insertion of text is not
-desirable and the buffer is read-only.  Here is an example taken from
-the file @file{emacs/lisp/dired.el}, showing how the local keymap for
-Dired mode is set up:
+This function can be used to initialize the local keymap of a major
+mode for which insertion of text is not desirable.  But usually such a
+mode should be derived from @code{special-mode} (@pxref{Basic Major
+Modes}); then its keymap will automatically inherit from
+@code{special-mode-map}, which is already suppressed.  Here is how
+@code{special-mode-map} is defined:
 
 @smallexample
 @group
-(setq dired-mode-map (make-keymap))
-(suppress-keymap dired-mode-map)
-(define-key dired-mode-map "r" 'dired-rename-file)
-(define-key dired-mode-map "\C-d" 'dired-flag-file-deleted)
-(define-key dired-mode-map "d" 'dired-flag-file-deleted)
-(define-key dired-mode-map "v" 'dired-view-file)
-(define-key dired-mode-map "e" 'dired-find-file)
-(define-key dired-mode-map "f" 'dired-find-file)
-@dots{}
+(defvar special-mode-map
+  (let ((map (make-sparse-keymap)))
+    (suppress-keymap map)
+    (define-key map "q" 'quit-window)
+    @dots{}
+    map))
 @end group
 @end smallexample
 @end defun
@@ -2064,12 +2033,10 @@ event type (it doesn't matter what event type) to a binding like this:
 @noindent
 The @sc{car}, @var{item-string}, is the string to be displayed in the
 menu.  It should be short---preferably one to three words.  It should
-describe the action of the command it corresponds to.  Note that it is
-not generally possible to display non-@acronym{ASCII} text in menus.  It will
-work for keyboard menus and will work to a large extent when Emacs is
-built with the Gtk+ toolkit.@footnote{In this case, the text is first
-encoded using the @code{utf-8} coding system and then rendered by the
-toolkit as it sees fit.}
+describe the action of the command it corresponds to.  Note that not
+all graphical toolkits can display non-@acronym{ASCII} text in menus
+(it will work for keyboard menus and will work to a large extent with
+the GTK+ toolkit).
 
   You can also supply a second string, called the help string, as follows:
 
@@ -2418,18 +2385,6 @@ this; @key{SPC} is the default.)
 she should type the corresponding character---the one whose binding is
 that alternative.
 
-@ignore
-In a menu intended for keyboard use, each menu item must clearly
-indicate what character to type.  The best convention to use is to make
-the character the first letter of the item string---that is something
-users will understand without being told.  We plan to change this; by
-the time you read this manual, keyboard menus may explicitly name the
-key for each alternative.
-@end ignore
-
-  This way of using menus in an Emacs-like editor was inspired by the
-Hierarkey system.
-
 @defvar menu-prompt-more-char
 This variable specifies the character to use to ask to see
 the next line of a menu.  Its initial value is 32, the code
@@ -2512,21 +2467,17 @@ can do it this way:
 @subsection The Menu Bar
 @cindex menu bar
 
-  Most window systems allow each frame to have a @dfn{menu bar}---a
-permanently displayed menu stretching horizontally across the top of
-the frame.  (In order for a frame to display a menu bar, its
-@code{menu-bar-lines} parameter must be greater than zero.
-@xref{Layout Parameters}.)
-
-  The items of the menu bar are the subcommands of the fake ``function
-key'' @code{menu-bar}, as defined in the active keymaps.
+  On graphical displays, there is usually a @dfn{menu bar} at the top
+of each frame.  @xref{Menu Bars,,,emacs, The GNU Emacs Manual}.  Menu
+bar items are subcommands of the fake ``function key''
+@code{menu-bar}, as defined in the active keymaps.
 
   To add an item to the menu bar, invent a fake ``function key'' of your
 own (let's call it @var{key}), and make a binding for the key sequence
 @code{[menu-bar @var{key}]}.  Most often, the binding is a menu keymap,
 so that pressing a button on the menu bar item leads to another menu.
 
-  When more than one active keymap defines the same fake function key
+  When more than one active keymap defines the same ``function key''
 for the menu bar, the item appears just once.  If the user clicks on
 that menu bar item, it brings up a single, combined menu containing
 all the subcommands of that item---the global subcommands, the local
@@ -2540,11 +2491,6 @@ were @code{nil}.  @xref{Active Keymaps}.
   Here's an example of setting up a menu bar item:
 
 @example
-@group
-(modify-frame-parameters (selected-frame)
-                         '((menu-bar-lines . 2)))
-@end group
-
 @group
 ;; @r{Make a menu keymap (with a prompt string)}
 ;; @r{and make it the menu bar item's definition.}
@@ -2618,20 +2564,17 @@ that the command does not actually have, it is ignored.
 @subsection Tool bars
 @cindex tool bar
 
-  A @dfn{tool bar} is a row of icons at the top of a frame, that execute
-commands when you click on them---in effect, a kind of graphical menu
-bar.
+  A @dfn{tool bar} is a row of clickable icons at the top of a frame,
+just below the menu bar.  @xref{Tool Bars,,,emacs, The GNU Emacs
+Manual}.
 
-  The frame parameter @code{tool-bar-lines} (X resource @samp{toolBar})
-controls how many lines' worth of height to reserve for the tool bar.  A
-zero value suppresses the tool bar.  If the value is nonzero, and
-@code{auto-resize-tool-bars} is non-@code{nil}, the tool bar expands and
-contracts automatically as needed to hold the specified contents.
-
-  If the value of @code{auto-resize-tool-bars} is @code{grow-only},
-the tool bar expands automatically, but does not contract automatically.
-To contract the tool bar, the user has to redraw the frame by entering
-@kbd{C-l}.
+  On each frame, the frame parameter @code{tool-bar-lines} controls
+how many lines' worth of height to reserve for the tool bar.  A zero
+value suppresses the tool bar.  If the value is nonzero, and
+@code{auto-resize-tool-bars} is non-@code{nil}, the tool bar expands
+and contracts automatically as needed to hold the specified contents.
+If the value is @code{grow-only}, the tool bar expands automatically,
+but does not contract automatically.
 
   The tool bar contents are controlled by a menu keymap attached to a
 fake ``function key'' called @code{tool-bar} (much like the way the menu
@@ -2683,17 +2626,17 @@ button in disabled state by applying an edge-detection algorithm to the
 image.
 
 The @code{:rtl} property specifies an alternative image to use for
-right-to-left languages.  Only the Gtk+ version of Emacs supports this
+right-to-left languages.  Only the GTK+ version of Emacs supports this
 at present.
 
 Like the menu bar, the tool bar can display separators (@pxref{Menu
 Separators}).  Tool bar separators are vertical rather than
-horizontal, though, and only a single style is supported.  Separators
-are represented in the tool bar keymap in the same way as for the
-menu bar, i.e. using a @code{(menu-item "--"}) entry.  The Gtk+ and
-Nextstep tool bars render separators natively, otherwise Emacs selects
-a separator image that is appropriate for the display.  Note that tool
-bar separators do not support any properties, such as @code{:visible}.
+horizontal, though, and only a single style is supported.  They are
+represented in the tool bar keymap by @code{(menu-item "--")} entries;
+properties like @code{:visible} are not supported for tool bar
+separators.  Separators are rendered natively in GTK+ and Nextstep
+tool bars; in the other cases, they are rendered using an image of a
+vertical line.
 
 The default tool bar is defined so that items specific to editing do not
 appear for major modes whose command symbol has a @code{mode-class}
@@ -2706,18 +2649,20 @@ using an indirection through @code{tool-bar-map}.
 
 @defvar tool-bar-map
 By default, the global map binds @code{[tool-bar]} as follows:
+
 @example
 (global-set-key [tool-bar]
-  '(menu-item "tool bar" ignore
-              :filter (lambda (ignore) tool-bar-map)))
+		`(menu-item ,(purecopy "tool bar") ignore
+			    :filter tool-bar-make-keymap))
 @end example
+
 @noindent
-Thus the tool bar map is derived dynamically from the value of variable
-@code{tool-bar-map} and you should normally adjust the default (global)
-tool bar by changing that map.  Major modes may replace the global bar
-completely by making @code{tool-bar-map} buffer-local and set to a
-keymap containing only the desired items.  Info mode provides an
-example.
+The function @code{tool-bar-make-keymap}, in turn, derives the actual
+tool bar map dynamically from the value of the variable
+@code{tool-bar-map}.  Hence, you should normally adjust the default
+(global) tool bar by changing that map.  Some major modes, such as
+Info mode, completely replace the global tool bar by making
+@code{tool-bar-map} buffer-local and setting it to a different keymap.
 @end defvar
 
 There are two convenience functions for defining tool bar items, as

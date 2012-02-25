@@ -1084,8 +1084,7 @@ documentation of functions, variables and commands that you plan to
 use in your program.
 
 @menu
-* Info Lookup::         Looking up library functions and commands
-                          in Info files.
+* Info Lookup::         Looking up library functions and commands in Info files.
 * Man Page::            Looking up man pages of library functions and commands.
 * Lisp Doc::            Looking up Emacs Lisp functions, etc.
 @end menu

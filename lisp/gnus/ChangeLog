@@ -1,3 +1,93 @@
+2012-02-23  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* nntp.el (nntp-send-authinfo): Work for secure nntp entry in authinfo.
+
+2012-02-20  Lars Ingebrigtsen  <larsi@gnus.org>
+
+	* mm-decode.el (mm-shr): Remove "soft hyphens".
+
+	* nnimap.el (nnimap-request-list): Return the group names encoded as
+	utf8.  Otherwise non-European group names don't work.
+	(nnimap-request-newgroups): Ditto.
+
+	* gnus-sum.el (gnus-summary-insert-old-articles): Fix the syntax for
+	the default in `read-string' (bug#10757).
+
+	* gnus-msg.el (gnus-group-post-news): Don't bug out on `C-u a' on
+	topics (bug#10843).
+
+	* nnimap.el (nnimap-log-command): Add the IMAP address to the log
+	buffer.  Suggested by Herbert Valerio Riedel.
+	(nnimap-request-move-article): Delete the message from the correct IMAP
+	server.
+
+2012-02-19  Vida Gábor  <vidagabor@gmail.com>  (tiny change)
+
+	* gnus-demon.el (gnus-demon-init): Don't multiply time twice.
+	Reported by Peter Münster.
+
+2012-02-18  Lars Ingebrigtsen  <larsi@gnus.org>
+
+	* shr.el (shr-image-fetched): Make sure we really kill the right
+	buffer.
+
+2012-02-16  Leo Liu  <sdl.web@gmail.com>
+
+	* gnus-start.el (gnus-1): Avoid duplicate entries.
+
+2012-02-15  Lars Ingebrigtsen  <larsi@gnus.org>
+
+	* shr.el (shr-remove-trailing-whitespace): Really delete the padding on
+	too-wide lines.
+
+2012-02-15  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* shr.el (shr-rescale-image): Undo previous change; see
+	<http://lists.gnu.org/archive/html/emacs-devel/2012-02/msg00540.html>.
+
+2012-02-13  Lars Ingebrigtsen  <larsi@gnus.org>
+
+	* nnimap.el (nnimap-record-commands): New variable.
+	(nnimap-log-command): Use it.
+	(nnimap-make-process-buffer): Add a space to the process buffer.
+	(nnimap-transform-headers): Don't bug out on header lines containing
+	stuff that look like IMAP length encodings.
+
+	* shr.el (shr-rescale-image): Allow viewing large images.
+
+2012-02-12  Lars Ingebrigtsen  <larsi@gnus.org>
+
+	* nnml.el (nnml-request-compact-group): Delete the marks file after
+	compaction (bug#10800).
+
+	* gnus-art.el (gnus-stop-downloads): Stop `url-queue' downloads on
+	group exit.
+
+	* nnimap.el (nnimap-parse-flags): Parse correctly when we have mixed
+	QRESYNC/FETCH output.
+
+2012-02-11  Glenn Morris  <rgm@gnu.org>
+
+	* sieve-manage.el (sieve-manage-default-stream):
+	* shr.el (shr):
+	* nnir.el (nnir-ignored-newsgroups, nnir-summary-line-format)
+	(nnir-retrieve-headers-override-function)
+	(nnir-imap-default-search-key, nnir-notmuch-program)
+	(nnir-notmuch-additional-switches, nnir-notmuch-remove-prefix)
+	(nnir-method-default-engines):
+	* message.el (message-cite-reply-position):
+	* gssapi.el (gssapi-program):
+	* gravatar.el (gravatar):
+	* gnus-sum.el (gnus-refer-thread-use-nnir):
+	* gnus-registry.el (gnus-registry-unfollowed-addresses)
+	(gnus-registry-max-pruned-entries):
+	* gnus-picon.el (gnus-picon-inhibit-top-level-domains):
+	* gnus-int.el (gnus-after-set-mark-hook)
+	(gnus-before-update-mark-hook):
+	* gnus-async.el (gnus-async-post-fetch-function):
+	* auth-source.el (auth-source-cache-expiry):
+	Add missing :version tags to new defcustoms and defgroups.
+
 2012-02-10  Lars Ingebrigtsen  <larsi@gnus.org>
 
 	* message.el (message-default-send-mail-function): Made into own
@@ -44,7 +134,7 @@
 	have newlines within the strings, and where the UID comes after the
 	BODYSTRUCTURE element (bug#10537).
 
-	* shr-color.el (shr-color-set-minimum-interval): Renamed to add prefix
+	* shr-color.el (shr-color-set-minimum-interval): Rename to add prefix
 	(bug#10732).
 
 	* shr.el (shr-insert-document): Add doc string.
@@ -2007,11 +2097,6 @@
 	* gnus-registry.el (gnus-registry-post-process-groups)
 	(gnus-registry--split-fancy-with-parent-internal): Fix splitting bugs
 	and provide better messaging.
-
-2011-04-06  David Engster  <dengste@eml.cc>
-
-	* Makefile.in (fail-on-warning): New rule to compile with warnings as
-	errors.
 
 2011-04-06  Teodor Zlatanov  <tzz@lifelogs.com>
 

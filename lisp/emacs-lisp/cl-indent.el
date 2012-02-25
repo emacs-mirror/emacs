@@ -104,6 +104,7 @@ If non-nil, alignment is done with the first keyword
 \(defun foo (arg1 arg2 &rest rest
                       &key key1 key2)
   #|...|#)"
+  :version "24.1"
   :type 'boolean
   :group 'lisp-indent)
 
@@ -111,6 +112,7 @@ If non-nil, alignment is done with the first keyword
   "Indentation of lambda list keyword parameters.
 See `lisp-lambda-list-keyword-parameter-alignment'
 for more information."
+  :version "24.1"
   :type 'integer
   :group 'lisp-indent)
 
@@ -130,6 +132,7 @@ If non-nil, alignment is done with the first parameter
 \(defun foo (arg1 arg2 &key key1 key2
                             key3 key4)
   #|...|#)"
+  :version "24.1"
   :type 'boolean
   :group 'lisp-indent)
 

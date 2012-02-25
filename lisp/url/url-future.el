@@ -36,12 +36,11 @@
 ;; So, to get the value:
 ;; (when (url-future-completed-p future) (url-future-value future))
 
-;; See the ERT tests and the code for further details.
+;; See `url-future-tests' and the code below for further details.
 
 ;;; Code:
 
 (eval-when-compile (require 'cl))
-(eval-when-compile (require 'ert))
 
 (defstruct url-future callback errorback status value)
 
@@ -94,33 +93,6 @@
   (if (url-future-done-p url-future)
       (signal 'error 'url-future-already-done)
     (url-future-finish url-future 'cancel)))
-
-(ert-deftest url-future-test ()
-  (let* (saver
-	 (text "running future")
-         (good (make-url-future :value (lambda () (format text))
-                                :callback (lambda (f) (set 'saver f))))
-         (bad (make-url-future :value (lambda () (/ 1 0))
-                               :errorback (lambda (&rest d) (set 'saver d))))
-         (tocancel (make-url-future :value (lambda () (/ 1 0))
-                                    :callback (lambda (f) (set 'saver f))
-                                    :errorback (lambda (&rest d)
-                                                 (set 'saver d)))))
-    (should (equal good (url-future-call good)))
-    (should (equal good saver))
-    (should (equal text (url-future-value good)))
-    (should (url-future-completed-p good))
-    (should-error (url-future-call good))
-    (setq saver nil)
-    (should (equal bad (url-future-call bad)))
-    (should-error (url-future-call bad))
-    (should (equal saver (list bad '(arith-error))))
-    (should (url-future-errored-p bad))
-    (setq saver nil)
-    (should (equal (url-future-cancel tocancel) tocancel))
-    (should-error (url-future-call tocancel))
-    (should (null saver))
-    (should (url-future-cancelled-p tocancel))))
 
 (provide 'url-future)
 ;;; url-future.el ends here

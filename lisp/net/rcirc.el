@@ -2384,6 +2384,7 @@ keywords when no KEYWORD is given."
     (delete-region (match-beginning 1) (match-end 1))
     (goto-char (match-beginning 1)))
   ;; remove the ^O characters now
+  (goto-char (point-min))
   (while (re-search-forward "\C-o+" nil t)
     (delete-region (match-beginning 0) (match-end 0))))
 

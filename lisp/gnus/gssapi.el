@@ -37,6 +37,7 @@
 and %l with the user name.  The program should accept commands on
 stdin and return responses to stdout.  Each entry in the list is
 tried until a successful connection is made."
+  :version "24.1"
   :group 'network
   :type '(repeat string))
 

@@ -331,7 +331,7 @@
 
 1998-07-30  Paul Eggert  <eggert@twinsun.com>
 
-	* src/Makefile.in (widget.o, xfns.o, xmenu.o):
+	* Makefile.in (widget.o, xfns.o, xmenu.o):
 	Prepend $(srcdir)/ to rule dependencies outside this dir.
 
 1998-07-29  Kenichi Handa  <handa@etl.go.jp>
@@ -4884,14 +4884,13 @@
 	The new GNU C library strftime needs the underlying host's
 	strftime for locale dependent formats.
 
-	* configure.in (AC_CHECK_FUNCS): Add strftime.
-	* src/config.in (HAVE_STRFTIME): New undef.
-	* src/editfns.c (emacs_strftime): New decl.
+	* config.in (HAVE_STRFTIME): New undef.
+	* editfns.c (emacs_strftime): New decl.
 	(Fformat_time_string): Doc fix: %b, %h, %B, %a, %A, and %p depend on
 	locale; don't use actual chars to describe %n and %t.
 
-	* src/Makefile.in (strftime.o):
-	* src/makefile.nt ($(BLD)\strftime.obj):
+	* Makefile.in (strftime.o):
+	* makefile.nt ($(BLD)\strftime.obj):
 	No need to compile with -Dstrftime=emacs_strftime any more.
 
 1997-11-22  Richard Stallman  <rms@gnu.org>

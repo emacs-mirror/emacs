@@ -166,9 +166,10 @@
   '((name
      1 unidata-gen-table-name "uni-name.el"
      "Unicode character name.
-Property value is a string."
+Property value is a string or nil.
+The value nil stands for the default value \"null string\")."
      nil
-     "")
+     nil)
     (general-category
      2 unidata-gen-table-symbol "uni-category.el"
      "Unicode general category.
@@ -235,7 +236,8 @@ Property value is a symbol `Y' or `N'.  See also the property `mirroring'."
     (old-name
      10 unidata-gen-table-name "uni-old-name.el"
      "Unicode old names as published in Unicode 1.0.
-Property value is a string.")
+Property value is a string or nil.
+The value nil stands for the default value \"null string\").")
     (iso-10646-comment
      11 unidata-gen-table-name "uni-comment.el"
      "Unicode ISO 10646 comment.
@@ -712,7 +714,7 @@ is the character itself.")))
 	    (aset table c name)
 	    (if (= c char)
 		(setq val name))))
-	(or val ""))))
+	val)))
 
    ((and (integerp val) (> val 0))
     (let* ((symbol-table (aref (char-table-extra-slot table 4) 1))
@@ -738,9 +740,7 @@ is the character itself.")))
 	    ((eq sym 'CJK\ COMPATIBILITY\ IDEOGRAPH)
 	     (format "%s-%04X" sym char))
 	    ((eq sym 'VARIATION\ SELECTOR)
-	     (format "%s-%d" sym (+ (- char #xe0100) 17))))))
-
-   (t "")))
+	     (format "%s-%d" sym (+ (- char #xe0100) 17))))))))
 
 ;; Store VAL as the name of CHAR in TABLE.
 
