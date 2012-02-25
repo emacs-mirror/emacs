@@ -1,3 +1,9 @@
+2012-02-25  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* term/ns-win.el (global-map): Bind ns-drag-file to
+	ns-find-file (Bug#5855, Bug#10050).
+
+
 2012-02-25  Andreas Schwab  <schwab@linux-m68k.org>
 
 	* calendar/parse-time.el (parse-time-string): Allow extractor to
