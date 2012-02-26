@@ -1019,20 +1019,19 @@ other I/O device).
 @end defun
 
 @defun files-equal-p file1 file2
-This function return @code{t} if the files @var{file1} and @var{file2} name
-the same file.
-Comparison is made with the @code{file-attributes} of both files. 
+This function returns @code{t} if the files @var{file1} and
+@var{file2} name the same file.  Two ordinary files are considered to
+be the same if the function @code{file-attributes} (@xref{File
+Attributes}) returns @code{equal} values for them.
 @end defun
 
 @defun file-subdir-of-p dir1 dir2
-This function return @code{t} if directory @var{dir1} is a subdirectory
-of @var{dir2} or if @var{dir1} and @var{dir2} are the same directory.
-Arguments @var{dir1} and @var{dir2} must be existing directories,
-otherwise, return nil.
-Check is done by building a directory name based on equality of differents
-components of both directory names, if this resulting directory name
-is equal to @var{dir2}, we assume directory @var{dir1}
-is a subdirectory of @var{dir2}.
+This function returns @code{t} if directory @var{dir1} is a
+subdirectory of @var{dir2}, or if @var{dir1} and @var{dir2} are the
+same directory.  It compares the @code{file-truename} values of the
+two directories (@pxref{Truenames}).  If either @var{dir1} or
+@var{dir2} do not name existing directories, the return value is
+@code{nil}.
 @end defun
 
 @node Truenames

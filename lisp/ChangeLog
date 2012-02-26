@@ -1,3 +1,9 @@
+2012-02-26  Chong Yidong  <cyd@gnu.org>
+
+	* files.el (files-equal-p): Doc fix.
+	(file-subdir-of-p): Doc fix.  Convert loop macro to plain Lisp,
+	and quit the loop once a mismatch is found.
+
 2012-02-25  Juanma Barranquero  <lekktu@gmail.com>
 
 	* bs.el (bs--show-with-configuration): Don't throw an error
