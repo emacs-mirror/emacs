@@ -1,3 +1,10 @@
+2012-02-26  Jim Blandy  <jimb@red-bean.com>
+
+	* progmodes/gdb-mi.el (gdb-mi-quote): New function.
+	(gdb-send): Apply it to the operand of the '-interpreter-exec
+	console' command, so that we can pass arguments with (say) quotes
+	in them.  Store exact string sent in gdb-debug-log (Bug#10765).
+
 2012-02-26  Chong Yidong  <cyd@gnu.org>
 
 	* help-fns.el (describe-function-1): Clarify description of
