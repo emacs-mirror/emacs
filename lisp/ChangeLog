@@ -1,3 +1,8 @@
+2012-02-26  Michael Albinus  <michael.albinus@gmx.de>
+
+	* net/tramp.el (tramp-inodes, tramp-devices): Initialize with 0.
+	(tramp-get-inode, tramp-get-device): Use cached values.
+
 2012-02-26  Alan Mackenzie  <acm@muc.de>
 
 	Check there is a font-lock specification before doing initial
