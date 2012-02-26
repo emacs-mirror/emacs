@@ -1,3 +1,16 @@
+2012-02-26  Alan Mackenzie  <acm@muc.de>
+
+	Check there is a font-lock specification before doing initial
+	fontification.
+
+	* font-core.el (font-lock-mode): Move the conditional from
+	:after-hook to font-lock-initial-fontify.
+	(font-lock-default-function): Move the check for a specification
+	to font-lock-spec-present.
+
+	* font-lock.el (font-lock-initial-fontify): call ...
+	(font-lock-spec-present): New function.
+
 2012-02-26  Jim Blandy  <jimb@red-bean.com>
 
 	* progmodes/gdb-mi.el (gdb-mi-quote): New function.
