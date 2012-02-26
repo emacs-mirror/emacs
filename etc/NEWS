@@ -1131,6 +1131,11 @@ sc.el, x-menu.el, rnews.el, rnewspost.el
 mechanism is now based on the package concept.  The variable
 finder-package-info is replaced by package--builtins and finder-keywords-hash.
 
+---
+** When generating autoloads, `update-directory-autoloads' no longer
+assumes every inspected file is in your `load-path'.  It instead
+generates relative names according to the current `load-path'.
+
 
 * Lisp changes in Emacs 24.1
 
