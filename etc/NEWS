@@ -1578,6 +1578,10 @@ and also when HOME is set to C:\ by default.
 ** Customize ns-auto-hide-menu-bar to have the menu-bar hidden, but
 reappear on mouse-over.  (Requires OS X 10.6 or later.)
 
++++
+** On Mac OS X, dragging a file into Emacs visits the file, like on
+other platforms, rather than inserting its contents into the buffer.
+
 
 ----------------------------------------------------------------------
 This file is part of GNU Emacs.
