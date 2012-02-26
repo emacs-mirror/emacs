@@ -1,3 +1,8 @@
+2012-02-26  Chong Yidong  <cyd@gnu.org>
+
+	* ediff.texi (Quick Help Commands): Add a couple of index entries
+	(Bug#10834).
+
 2012-02-17  Glenn Morris  <rgm@gnu.org>
 
 	* gnus.texi (Posting Styles):

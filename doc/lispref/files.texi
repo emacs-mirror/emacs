@@ -1021,7 +1021,7 @@ other I/O device).
 @defun files-equal-p file1 file2
 This function returns @code{t} if the files @var{file1} and
 @var{file2} name the same file.  Two ordinary files are considered to
-be the same if the function @code{file-attributes} (@xref{File
+be the same if the function @code{file-attributes} (@pxref{File
 Attributes}) returns @code{equal} values for them.
 @end defun
 

@@ -433,6 +433,8 @@ command (see @kbd{ga}, @kbd{gb}, and @kbd{gc}).
 
 @node Quick Help Commands,Other Session Commands,,Session Commands
 @section Quick Help Commands
+@cindex command help
+@cindex important commands
 
 @table @kbd
 @item ?
