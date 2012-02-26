@@ -1,3 +1,14 @@
+2012-02-25  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Generalize fix for crash due to non-contiguous EMACS_INT (Bug#10780).
+	Suggested by Stefan Monnier in
+	<http://lists.gnu.org/archive/html/emacs-devel/2012-02/msg00692.html>.
+	* alloc.c (widen_to_Lisp_Object): New static function.
+	(mark_memory): Also mark Lisp_Objects by fetching pointer words
+	and widening them to Lisp_Objects.  This would work even if
+	USE_LSB_TAG is defined and wide integers are used, which might
+	happen in a future version of Emacs.
+
 2012-02-25  Chong Yidong  <cyd@gnu.org>
 
 	* fileio.c (Ffile_selinux_context, Fset_file_selinux_context):
