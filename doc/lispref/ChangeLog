@@ -1,3 +1,7 @@
+2012-02-26  Michael Albinus  <michael.albinus@gmx.de>
+
+	* files.texi (Magic File Names): Add files-equal-p and file-subdir-of-p.
+
 2012-02-26  Chong Yidong  <cyd@gnu.org>
 
 	* files.texi (Kinds of Files): Improve documentation of

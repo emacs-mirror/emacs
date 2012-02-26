@@ -2726,9 +2726,9 @@ first, before handlers for jobs such as remote file access.
 @code{file-name-nondirectory},
 @code{file-name-sans-versions}, @code{file-newer-than-file-p},
 @code{file-ownership-preserved-p},
-@code{file-readable-p}, @code{file-regular-p}, @code{file-symlink-p},
-@code{file-truename}, @code{file-writable-p},
-@code{find-backup-file-name},
+@code{file-readable-p}, @code{file-regular-p}, @code{file-subdir-of-p},
+@code{file-symlink-p}, @code{file-truename}, @code{file-writable-p},
+@code{files-equal-p}, @code{find-backup-file-name},
 @c Not sure why it was here:   @code{find-file-noselect},@*
 @code{get-file-buffer},
 @code{insert-directory},
