@@ -3,7 +3,7 @@
 	* font-lock.el (font-lock-specified-p): Rename from
 	font-lock-spec-present.  Callers changed.
 
-2012-02-27  Daniel Hackney  <dan@haxney.org>  (tiny change)
+2012-02-27  Daniel Hackney  <dan@haxney.org>
 
 	* emacs-lisp/package.el (package-compute-transaction): Handle
 	holding a package version to t in package-load-list.
