@@ -1086,8 +1086,17 @@ as a Meta key and any number of multiple escapes are allowed."
 (defun viper-intercept-ESC-key ()
   "Function that implements ESC key in Viper emulation of Vi."
   (interactive)
-  (let ((cmd (or (key-binding (viper-envelop-ESC-key))
-		 (lambda () (interactive) (error "Viper bell")))))
+  ;; `key-binding' needs to be called in a context where Viper's
+  ;; minor-mode map(s) have been temporarily disabled so the ESC
+  ;; binding to viper-intercept-ESC-key doesn't hide the binding we're
+  ;; looking for (Bug#9146):
+  (let* ((event (viper-envelop-ESC-key))
+	 (cmd (cond ((equal event viper-ESC-key)
+		     'viper-intercept-ESC-key)
+		    ((let ((emulation-mode-map-alists nil))
+		       (key-binding event)))
+		    (t
+		     (error "Viper bell")))))
 
     ;; call the actual function to execute ESC (if no other symbols followed)
     ;; or the key bound to the ESC sequence (if the sequence was issued

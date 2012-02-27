@@ -1,5 +1,8 @@
 2012-02-27  Chong Yidong  <cyd@gnu.org>
 
+	* emulation/viper-cmd.el (viper-intercept-ESC-key): Fix
+	key-binding lookup for ESC key (Bug#9146).
+
 	* font-lock.el (font-lock-specified-p): Rename from
 	font-lock-spec-present.  Callers changed.
 
