@@ -192,7 +192,7 @@ this function onto `change-major-mode-hook'."
 
   ;; Only do hard work if the mode has specified stuff in
   ;; `font-lock-defaults'.
-  (when (font-lock-spec-present mode)
+  (when (font-lock-specified-p mode)
     (font-lock-mode-internal mode)))
 
 (defun turn-on-font-lock ()

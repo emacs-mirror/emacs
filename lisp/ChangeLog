@@ -1,3 +1,8 @@
+2012-02-27  Chong Yidong  <cyd@gnu.org>
+
+	* font-lock.el (font-lock-specified-p): Rename from
+	font-lock-spec-present.  Callers changed.
+
 2012-02-27  Daniel Hackney  <dan@haxney.org>  (tiny change)
 
 	* emacs-lisp/package.el (package-compute-transaction): Handle

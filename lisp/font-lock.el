@@ -629,10 +629,13 @@ Major/minor modes can set this variable if they know which option applies.")
   ;; Shut up the byte compiler.
   (defvar font-lock-face-attributes))	; Obsolete but respected if set.
 
-(defun font-lock-spec-present (mode)
-  ;; Is there enough specification to do fontification at all?
+(defun font-lock-specified-p (mode)
+  "Return non-nil if the current buffer is ready for fontification.
+The MODE argument, if non-nil, means Font Lock mode is about to
+be enabled."
   (or font-lock-defaults
-      (if (boundp 'font-lock-keywords) font-lock-keywords)
+      (and (boundp 'font-lock-keywords)
+	   font-lock-keywords)
       (and mode
 	   (boundp 'font-lock-set-defaults)
 	   font-lock-set-defaults
@@ -643,7 +646,7 @@ Major/minor modes can set this variable if they know which option applies.")
   ;; The first fontification after turning the mode on.  This must
   ;;  only be called after the mode hooks have been run.
   (when (and font-lock-mode
-	     (font-lock-spec-present t))
+	     (font-lock-specified-p t))
     (let ((max-size (font-lock-value-in-major-mode font-lock-maximum-size)))
       (cond (font-lock-fontified
 	     nil)
