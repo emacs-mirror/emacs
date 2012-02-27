@@ -1,3 +1,15 @@
+2012-02-27  Chong Yidong  <cyd@gnu.org>
+
+	* buffers.texi (Creating Buffers): Clarify that
+	generate-new-buffer uses generate-new-buffer-names.
+	(Killing Buffers): Remove bogus example duplicating buffer-live-p.
+
+	* files.texi (Directory Names): Index entry for file name abbreviations.
+	(Relative File Names, File Name Expansion): Refer to it.
+	(Locating Files): Move locate-user-emacs-file documentation to
+	Standard File Names.
+	(Standard File Names): Add locate-user-emacs-file; update examples.
+
 2012-02-26  Michael Albinus  <michael.albinus@gmx.de>
 
 	* files.texi (Magic File Names): Add files-equal-p and file-subdir-of-p.
