@@ -1,5 +1,12 @@
 2012-02-28  Glenn Morris  <rgm@gnu.org>
 
+	* locals.texi: Remove file.
+	* elisp.texi, vol1.texi, vol2.texi: Don't include locals.texi.
+	Remove menu entry.
+	* errors.texi, maps.texi: Adjust node pointers.
+	* internals.texi (Buffer Internals): Remove cross-refs to locals.texi.
+	* Makefile.in (srcs): Remove locals.texi.
+
 	* frames.texi (Mouse Position): Fix cross-ref.
 
 2012-02-27  Chong Yidong  <cyd@gnu.org>
