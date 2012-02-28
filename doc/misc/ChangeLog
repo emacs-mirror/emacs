@@ -1,3 +1,11 @@
+2012-02-28  Glenn Morris  <rgm@gnu.org>
+
+	* calc.texi, cc-mode.texi, cl.texi, ebrowse.texi, ediff.texi:
+	* eshell.texi, gnus-faq.texi, gnus-news.texi, gnus.texi:
+	* idlwave.texi, info.texi, newsticker.texi, nxml-mode.texi:
+	* org.texi, sc.texi, vip.texi, viper.texi:
+	Standardize possessive apostrophe usage.
+
 2012-02-26  Chong Yidong  <cyd@gnu.org>
 
 	* ediff.texi (Quick Help Commands): Add a couple of index entries

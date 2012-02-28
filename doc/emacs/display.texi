@@ -22,7 +22,7 @@ the text is displayed.
 * Follow Mode::            Follow mode lets two windows scroll as one.
 * Faces::                  How to change the display style using faces.
 * Colors::                 Specifying colors for faces.
-* Standard Faces::         Emacs' predefined faces.
+* Standard Faces::         The main predefined faces.
 * Text Scale::             Increasing or decreasing text size in a buffer.
 * Font Lock::              Minor mode for syntactic highlighting using faces.
 * Highlight Interactively:: Tell Emacs what text to highlight.

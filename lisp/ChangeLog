@@ -1,3 +1,24 @@
+2012-02-28  Glenn Morris  <rgm@gnu.org>
+
+	* shell.el (shell-mode):
+	* progmodes/vhdl-mode.el (wildcard-to-regexp, file-expand-wildcards):
+	* play/landmark.el (landmark-font-lock-face-O):
+	* play/handwrite.el (handwrite):
+	* play/gomoku.el (gomoku-O):
+	* net/browse-url.el (browse-url-browser-display):
+	* international/mule.el (define-charset):
+	* htmlfontify.el (hfy-etags-cmd, hfy-face-attr-for-class):
+	* filesets.el (filesets-find-file-delay):
+	* eshell/em-xtra.el (eshell-xtra):
+	* eshell/em-unix.el (eshell-grep):
+	* emulation/viper.el (viper-mode):
+	* emacs-lisp/regexp-opt.el (regexp-opt-group):
+	* emacs-lisp/easymenu.el (easy-menu-define):
+	* calendar/timeclock.el (timeclock-use-display-time):
+	* bs.el (bs-mode):
+	* bookmark.el (bookmark-save-flag):
+	Doc fix (standardize possessive apostrophe usage).
+
 2012-02-27  Chong Yidong  <cyd@gnu.org>
 
 	* emulation/viper-cmd.el (viper-intercept-ESC-key): Fix

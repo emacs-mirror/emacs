@@ -5,7 +5,7 @@
 @copying
 This file documents the GNU Emacs Common Lisp emulation package.
 
-Copyright @copyright{} 1993, 2001-2012  Free Software Foundation, Inc.
+Copyright @copyright{} 1993, 2001-2012 Free Software Foundation, Inc.
 
 @quotation
 Permission is granted to copy, distribute and/or modify this document
@@ -128,7 +128,7 @@ features.
 
 @item
 Some features conflict with existing things in Emacs Lisp.  For
-example, Emacs' @code{assoc} function is incompatible with the
+example, Emacs's @code{assoc} function is incompatible with the
 Common Lisp @code{assoc}.  In such cases, this package usually
 adds the suffix @samp{*} to the function name of the Common
 Lisp version of the function (e.g., @code{assoc*}).
@@ -2094,7 +2094,7 @@ of a list.  @var{list} should evaluate to a list; the body @var{forms}
 are executed with @var{var} bound to each element of the list in
 turn.  Finally, the @var{result} form (or @code{nil}) is evaluated
 with @var{var} bound to @code{nil} to produce the result returned by
-the loop.  Unlike with Emacs's built in @code{dolist}, the loop is
+the loop.  Unlike with Emacs'ss built in @code{dolist}, the loop is
 surrounded by an implicit @code{nil} block.
 @end defspec
 
@@ -2104,7 +2104,7 @@ of times.  The body is executed with @var{var} bound to the integers
 from zero (inclusive) to @var{count} (exclusive), in turn.  Then
 the @code{result} form is evaluated with @var{var} bound to the total
 number of iterations that were done (i.e., @code{(max 0 @var{count})})
-to get the return value for the loop form.  Unlike with Emacs's built in
+to get the return value for the loop form.  Unlike with Emacs'ss built in
 @code{dolist}, the loop is surrounded by an implicit @code{nil} block.
 @end defspec
 
@@ -2226,7 +2226,7 @@ returned by @code{buffer-list}.  For each buffer @code{buf},
 it calls @code{buffer-file-name} and collects the results into
 a list, which is then returned from the @code{loop} construct.
 The result is a list of the file names of all the buffers in
-Emacs' memory.  The words @code{for}, @code{in}, and @code{collect}
+Emacs's memory.  The words @code{for}, @code{in}, and @code{collect}
 are reserved words in the @code{loop} language.
 
 @example
@@ -3870,7 +3870,7 @@ with @var{sequence}.
 As an extension to Common Lisp, @var{start} and/or @var{end}
 may be negative, in which case they represent a distance back
 from the end of the sequence.  This is for compatibility with
-Emacs' @code{substring} function.  Note that @code{subseq} is
+Emacs's @code{substring} function.  Note that @code{subseq} is
 the @emph{only} sequence function that allows negative
 @var{start} and @var{end}.
 
@@ -4059,7 +4059,7 @@ is less than (not equal to) its second argument.  For example,
 for sorting numbers and strings, respectively; @code{>} would sort
 numbers into decreasing rather than increasing order.
 
-This function differs from Emacs' built-in @code{sort} in that it
+This function differs from Emacs's built-in @code{sort} in that it
 can operate on any type of sequence, not just lists.  Also, it
 accepts a @code{:key} argument which is used to preprocess data
 fed to the @var{predicate} function.  For example,
@@ -5186,7 +5186,7 @@ variables no collision can occur.)
 
 @xref{Lexical Bindings}, for a description of the @code{lexical-let}
 form which establishes a Common Lisp-style lexical binding, and some
-examples of how it differs from Emacs' regular @code{let}.
+examples of how it differs from Emacs's regular @code{let}.
 
 @item
 Reader macros.  Common Lisp includes a second type of macro that

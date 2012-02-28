@@ -1,6 +1,6 @@
 ;;; w32-fns.el --- Lisp routines for 32-bit Windows
 
-;; Copyright (C) 1994, 2001-2012  Free Software Foundation, Inc.
+;; Copyright (C) 1994, 2001-2012 Free Software Foundation, Inc.
 
 ;; Author: Geoff Voelker <voelker@cs.washington.edu>
 ;; Keywords: internal
@@ -161,7 +161,7 @@ You should set this to t when using a non-system shell.\n\n"))))
 (add-hook 'before-init-hook 'set-default-process-coding-system)
 
 
-;;; Basic support functions for managing Emacs' locale setting
+;;; Basic support functions for managing Emacs's locale setting
 
 (defvar w32-valid-locales nil
   "List of locale ids known to be supported.")

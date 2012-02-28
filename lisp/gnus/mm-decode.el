@@ -1,6 +1,6 @@
 ;;; mm-decode.el --- Functions for decoding MIME things
 
-;; Copyright (C) 1998-2012  Free Software Foundation, Inc.
+;; Copyright (C) 1998-2012 Free Software Foundation, Inc.
 
 ;; Author: Lars Magne Ingebrigtsen <larsi@gnus.org>
 ;;	MORIOKA Tomohiko <morioka@jaist.ac.jp>
@@ -1493,7 +1493,7 @@ be determined."
   (let ((image (mm-get-image handle)))
     (or (not image)
 	(if (featurep 'xemacs)
-	    ;; XEmacs' glyphs can actually tell us about their width, so
+	    ;; XEmacs's glyphs can actually tell us about their width, so
 	    ;; let's be nice and smart about them.
 	    (or mm-inline-large-images
 		(and (<= (glyph-width image) (window-pixel-width))

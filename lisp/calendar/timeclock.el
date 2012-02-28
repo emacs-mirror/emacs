@@ -1,6 +1,6 @@
 ;;; timeclock.el --- mode for keeping track of how much you work
 
-;; Copyright (C) 1999-2012  Free Software Foundation, Inc.
+;; Copyright (C) 1999-2012 Free Software Foundation, Inc.
 
 ;; Author: John Wiegley <johnw@gnu.org>
 ;; Created: 25 Mar 1999
@@ -150,7 +150,7 @@ This variable only has effect if set with \\[customize]."
 (defcustom timeclock-use-display-time t
   "If non-nil, use `display-time-hook' for doing modeline updates.
 The advantage of this is that one less timer has to be set running
-amok in Emacs' process space.  The disadvantage is that it requires
+amok in Emacs's process space.  The disadvantage is that it requires
 you to have `display-time' running.  If you don't want to use
 `display-time', but still want the modeline to show how much time is
 left, set this variable to nil.  Changing the value of this variable

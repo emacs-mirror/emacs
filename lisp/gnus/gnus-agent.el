@@ -1,6 +1,6 @@
 ;;; gnus-agent.el --- unplugged support for Gnus
 
-;; Copyright (C) 1997-2012  Free Software Foundation, Inc.
+;; Copyright (C) 1997-2012 Free Software Foundation, Inc.
 
 ;; Author: Lars Magne Ingebrigtsen <larsi@gnus.org>
 ;; This file is part of GNU Emacs.
@@ -602,7 +602,7 @@ manipulated as follows:
 		  (make-mode-line-mouse-map mouse-button mouse-func)
 		  'mouse-face
 		  (if (and (featurep 'xemacs)
-			   ;; XEmacs' `facep' only checks for a face
+			   ;; XEmacs's `facep' only checks for a face
 			   ;; object, not for a face name, so it's useless
 			   ;; to check with `facep'.
 			   (find-face 'modeline))

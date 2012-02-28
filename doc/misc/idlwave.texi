@@ -4193,7 +4193,7 @@ installed.  Many Emacsen come with an older bundled copy of IDLWAVE
 (e.g. v4.7 for Emacs 21.x), which is likely what's being used instead.
 You need to make sure your Emacs @emph{load-path} contains the directory
 where IDLWAVE is installed (@file{/usr/local/share/emacs/site-lisp}, by
-default), @emph{before} Emacs' default search directories.  You can
+default), @emph{before} Emacs's default search directories.  You can
 accomplish this by putting the following in your @file{.emacs}:
 
 @lisp

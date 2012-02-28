@@ -1,6 +1,6 @@
 @c -*-texinfo-*-
 @c This is part of the GNU Emacs Lisp Reference Manual.
-@c Copyright (C) 1999, 2002-2012  Free Software Foundation, Inc.
+@c Copyright (C) 1999, 2002-2012 Free Software Foundation, Inc.
 @c See the file elisp.texi for copying conditions.
 
 @c This node must have no pointers.
@@ -29,7 +29,7 @@ different scripts.
 The @code{^} interactive spec code, the function
 @code{handle-shift-selection}, and the variable
 @code{this-command-keys-shift-translated} have all been removed.
-Shift-translated keys are no longer treated specially, making Emacs'
+Shift-translated keys are no longer treated specially, making Emacs's
 handling of keybindings much more consistent.
 
 @item

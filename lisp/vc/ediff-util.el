@@ -3103,7 +3103,7 @@ Hit \\[ediff-recenter] to reset the windows afterward."
 ;; according to context.
 ;; If DEFAULT-FILE is set, it should be used as the default value.
 ;; If DEFAULT-DIR is non-nil, use it as the default directory.
-;; Otherwise, use the value of Emacs' variable `default-directory.'
+;; Otherwise, use the value of `default-directory.'
 (defun ediff-read-file-name (prompt default-dir default-file &optional no-dirs)
   ;; hack default-dir if it is not set
   (setq default-dir

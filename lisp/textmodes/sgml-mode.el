@@ -62,7 +62,7 @@
   :group 'sgml
   :type 'hook)
 
-;; As long as Emacs' syntax can't be complemented with predicates to context
+;; As long as Emacs's syntax can't be complemented with predicates to context
 ;; sensitively confirm the syntax of characters, we have to live with this
 ;; kludgy kind of tradeoff.
 (defvar sgml-specials '(?\")

@@ -22,7 +22,7 @@
 
 ;;; Commentary:
 
-;; Defines most of Emacs's file- and directory-handling functions,
+;; Defines most of Emacs'ss file- and directory-handling functions,
 ;; including basic file visiting, backup generation, link handling,
 ;; ITS-id version control, load- and write-hook handling, and the like.
 
@@ -5259,7 +5259,7 @@ non-nil, it is called instead of rereading visited file contents."
 			 (unlock-buffer)))
 		   (widen)
 		   (let ((coding-system-for-read
-			  ;; Auto-saved file should be read by Emacs'
+			  ;; Auto-saved file should be read by Emacs's
 			  ;; internal coding.
 			  (if auto-save-p 'auto-save-coding
 			    (or coding-system-for-read

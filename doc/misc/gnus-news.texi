@@ -44,7 +44,7 @@ for more information about nntp marks.  Note that downgrading isn't
 safe in general.
 
 @item Incompatibility when switching from Emacs 23 to Emacs 22 
-In Emacs 23, Gnus uses Emacs' new internal coding system @code{utf-8-emacs}
+In Emacs 23, Gnus uses Emacs's new internal coding system @code{utf-8-emacs}
 for saving articles drafts and @file{~/.newsrc.eld}.  These files may not
 be read correctly in Emacs 22 and below.  If you want to use Gnus across
 different Emacs versions, you may set @code{mm-auto-save-coding-system}
@@ -333,7 +333,7 @@ in the group buffer, see the variable @code{gnus-group-update-tool-bar}.
 Its default value depends on your Emacs version.
 @c FIXME: Document this in the manual
 
-@item You can change the location of XEmacs' toolbars in Gnus buffers.
+@item You can change the location of XEmacs's toolbars in Gnus buffers.
 See @code{gnus-use-toolbar} and @code{message-use-toolbar}.
 
 @end itemize

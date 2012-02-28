@@ -1,5 +1,9 @@
 2012-02-28  Glenn Morris  <rgm@gnu.org>
 
+	* advice.texi, anti.texi, display.texi, elisp.texi:
+	* processes.texi, variables.texi, vol1.texi, vol2.texi:
+	Standardize possessive apostrophe usage.
+
 	* locals.texi: Remove file.
 	* elisp.texi, vol1.texi, vol2.texi: Don't include locals.texi.
 	Remove menu entry.

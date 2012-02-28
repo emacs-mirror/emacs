@@ -1,6 +1,6 @@
 ;;; mule.el --- basic commands for multilingual environment
 
-;; Copyright (C) 1997-2012  Free Software Foundation, Inc.
+;; Copyright (C) 1997-2012 Free Software Foundation, Inc.
 ;; Copyright (C) 1995, 1996, 1997, 1998, 1999, 2000, 2001, 2002, 2003, 2004,
 ;;   2005, 2006, 2007, 2008, 2009, 2010, 2011
 ;;   National Institute of Advanced Industrial Science and Technology (AIST)
@@ -165,7 +165,7 @@ compatibility.
 
 VALUE must be a nonnegative integer that can be used as an invalid
 code point of the charset.  If the minimum code is 0 and the maximum
-code is greater than Emacs' maximum integer value, `:invalid-code'
+code is greater than Emacs's maximum integer value, `:invalid-code'
 should not be omitted.
 
 `:code-offset'

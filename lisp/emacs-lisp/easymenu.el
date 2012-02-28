@@ -99,7 +99,7 @@ KEYS is expanded with `substitute-command-keys' before it is used.
 
 KEYS is nil, a string or a vector; nil or a keyboard equivalent to this
 menu item.
-This is a hint that will considerably speed up Emacs' first display of
+This is a hint that will considerably speed up Emacs's first display of
 a menu.  Use `:key-sequence nil' when you know that this menu item has no
 keyboard equivalent.
 

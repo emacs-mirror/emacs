@@ -33,7 +33,7 @@ you use an Emacs that was built for MS-DOS.
 @ifnottex
   @xref{Text and Binary}, for information
 @end ifnottex
-about Emacs' special handling of text files under MS-DOS (and Windows).
+about Emacs's special handling of text files under MS-DOS (and Windows).
 
 @menu
 * Keyboard: MS-DOS Keyboard.   Keyboard conventions on MS-DOS.

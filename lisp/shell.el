@@ -1,6 +1,6 @@
 ;;; shell.el --- specialized comint.el for running the shell -*- lexical-binding: t -*-
 
-;; Copyright (C) 1988, 1993-1997, 2000-2012  Free Software Foundation, Inc.
+;; Copyright (C) 1988, 1993-1997, 2000-2012 Free Software Foundation, Inc.
 
 ;; Author: Olin Shivers <shivers@cs.cmu.edu>
 ;;	Simon Marshall <simon@gnu.org>
@@ -471,7 +471,7 @@ to continue it.
 keep this buffer's default directory the same as the shell's working directory.
 While directory tracking is enabled, the shell's working directory is displayed
 by \\[list-buffers] or \\[mouse-buffer-menu] in the `File' field.
-\\[dirs] queries the shell and resyncs Emacs' idea of what the current
+\\[dirs] queries the shell and resyncs Emacs's idea of what the current
     directory stack is.
 \\[shell-dirtrack-mode] turns directory tracking on and off.
 \(The `dirtrack' package provides an alternative implementation of this

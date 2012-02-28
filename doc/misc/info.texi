@@ -14,8 +14,7 @@
 This file describes how to use Info, the on-line, menu-driven GNU
 documentation system.
 
-Copyright @copyright{} 1989, 1992, 1996-2012
-Free Software Foundation, Inc.
+Copyright @copyright{} 1989, 1992, 1996-2012 Free Software Foundation, Inc.
 
 @quotation
 Permission is granted to copy, distribute and/or modify this document
@@ -1108,7 +1107,7 @@ In the stand-alone reader, @kbd{0} goes through the last menu item;
 this is so you need not count how many entries are there.
 
   If your display supports multiple fonts, colors or underlining, and
-you are using Emacs' Info mode to read Info files, the third, sixth
+you are using Emacs's Info mode to read Info files, the third, sixth
 and ninth menu items have a @samp{*} that stands out, either in color
 or in some other attribute, such as underline; this makes it easy to
 see at a glance which number to use for an item.

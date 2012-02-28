@@ -1,6 +1,6 @@
 ;;; cua-base.el --- emulate CUA key bindings
 
-;; Copyright (C) 1997-2012  Free Software Foundation, Inc.
+;; Copyright (C) 1997-2012 Free Software Foundation, Inc.
 
 ;; Author: Kim F. Storm <storm@cua.dk>
 ;; Keywords: keyboard emulations convenience cua
@@ -116,7 +116,7 @@
 
 ;; CUA register support
 ;; --------------------
-;; Emacs' standard register support is also based on a separate set of
+;; Emacs's standard register support is also based on a separate set of
 ;; "register commands".
 ;;
 ;; CUA's register support is activated by providing a numeric
@@ -134,7 +134,7 @@
 
 ;; CUA rectangle support
 ;; ---------------------
-;; Emacs' normal rectangle support is based on interpreting the region
+;; Emacs's normal rectangle support is based on interpreting the region
 ;; between the mark and point as a "virtual rectangle", and using a
 ;; completely separate set of "rectangle commands" [C-x r ...] on the
 ;; region to copy, kill, fill a.s.o. the virtual rectangle.

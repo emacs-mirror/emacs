@@ -1,3 +1,7 @@
+2012-02-28  Glenn Morris  <rgm@gnu.org>
+
+	* emacs-lisp-intro.texi: Standardize possessive apostrophe usage.
+
 2012-02-17  Glenn Morris  <rgm@gnu.org>
 
 	* emacs-lisp-intro.texi (Design @value{COUNT-WORDS}, Syntax)

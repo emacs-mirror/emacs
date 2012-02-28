@@ -1,3 +1,8 @@
+2012-02-28  Glenn Morris  <rgm@gnu.org>
+
+	* semantic/db.el (semanticdb-search-results-table):
+	Doc fix (standardize possessive apostrophe usage).
+
 2012-02-09  Juanma Barranquero  <lekktu@gmail.com>
 
 	* ede/auto.el (ede-directory-safe-p, ede-add-project-to-global-list):

@@ -687,7 +687,7 @@ Insert state.  For instance, Emacs has a @dfn{yank} command, @kbd{C-y},
 which is similar to Vi's @kbd{p}.  However, unlike @kbd{p}, @kbd{C-y} can be
 used in Insert state of Viper.  Emacs also has a kill ring where it keeps
 pieces of text you deleted while editing buffers.  The command @kbd{M-y} is
-used to delete the text previously put back by Emacs' @kbd{C-y} or by Vi's
+used to delete the text previously put back by Emacs's @kbd{C-y} or by Vi's
 @kbd{p} command and reinsert text that was placed on the kill-ring earlier.
 
 This works both in Vi and Insert states.
@@ -1289,7 +1289,7 @@ the following example:
 The above discussion of the meaning of Viper's words concerns only Viper's
 movement commands.  In regular expressions, words remain the same as in
 Emacs.  That is, the expressions @code{\w}, @code{\>}, @code{\<}, etc., use
-Emacs' idea of what is a word, and they don't look into the value of
+Emacs's idea of what is a word, and they don't look into the value of
 variable @code{viper-syntax-preference}.  This is because Viper doesn't change
 syntax tables in fear of upsetting the various major modes that set these
 tables.
@@ -2504,7 +2504,7 @@ major modes.
 @item viper-minibuffer-emacs-face  'viper-minibuffer-emacs-face
 These faces control the appearance of the minibuffer text in the
 corresponding Viper states.  You can change the appearance of these faces
-through Emacs' customization widget, which is accessible through the
+through Emacs's customization widget, which is accessible through the
 menubar.
 
 Viper is located in this widget under the @emph{Emulations} customization
@@ -3205,7 +3205,7 @@ in the appropriate major mode hooks.
 
 The above discussion concerns only the movement commands.  In regular
 expressions, words remain the same as in Emacs.  That is, the expressions
-@code{\w}, @code{\>}, @code{\<}, etc., use Emacs' idea of what is a word,
+@code{\w}, @code{\>}, @code{\<}, etc., use Emacs's idea of what is a word,
 and they don't look into the value of variable
 @code{viper-syntax-preference}.  This is because Viper avoids changing
 syntax tables in order to not thwart the various major modes that set these

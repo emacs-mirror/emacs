@@ -9819,7 +9819,7 @@ stack but resets everything else to its default state.
 @kindex Z ?
 @pindex calc-help
 The @kbd{?} key (@code{calc-help}) displays a series of brief help messages.
-Some keys (such as @kbd{b} and @kbd{d}) are prefix keys, like Emacs'
+Some keys (such as @kbd{b} and @kbd{d}) are prefix keys, like Emacs's
 @key{ESC} and @kbd{C-x} prefixes.  You can type
 @kbd{?} after a prefix to see a list of commands beginning with that
 prefix.  (If the message includes @samp{[MORE]}, press @kbd{?} again
@@ -18912,7 +18912,7 @@ Computer Programming}, Volume II, contains a thorough description
 of the theory of random number generators and their measurement and
 characterization.
 
-If @code{RandSeed} has no stored value, Calc calls Emacs' built-in
+If @code{RandSeed} has no stored value, Calc calls Emacs's built-in
 @code{random} function to get a stream of random numbers, which it
 then treats in various ways to avoid problems inherent in the simple
 random number generators that many systems use to implement @code{random}.
@@ -35252,7 +35252,7 @@ character of the prefix can simply be typed twice.
 
 Calc is controlled by many variables, most of which can be reset
 from within Calc.  Some variables are less involved with actual
-calculation and can be set outside of Calc using Emacs's
+calculation and can be set outside of Calc using Emacs'ss
 customization facilities.  These variables are listed below.
 Typing @kbd{M-x customize-variable RET @var{variable-name} RET}
 will bring up a buffer in which the variable's value can be redefined.

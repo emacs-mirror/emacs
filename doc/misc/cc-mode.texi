@@ -156,7 +156,7 @@ CC Mode
 @copying
 This manual is for CC Mode in Emacs.
 
-Copyright @copyright{} 1995-2012  Free Software Foundation, Inc.
+Copyright @copyright{} 1995-2012 Free Software Foundation, Inc.
 
 @quotation
 Permission is granted to copy, distribute and/or modify this document
@@ -6942,7 +6942,7 @@ circumstances, can locate the top-most opening brace much more quickly than
 styles where these braces are hung (e.g. most JDK-derived Java styles),
 this hack can improve performance of the core syntax parsing routines
 from 3 to 60 times.  However, for styles which @emph{do} conform to
-Emacs' recommended style of putting top-level braces in column zero,
+Emacs's recommended style of putting top-level braces in column zero,
 this hack can degrade performance by about as much.  Thus this variable
 is set to @code{nil} by default, since the Emacs-friendly styles should
 be more common (and encouraged!).  Note that this variable has no effect
@@ -7053,7 +7053,7 @@ Set the variable @code{c-basic-offset}.  @xref{Getting Started}.
 @kindex C-j
 @emph{Why doesn't the @kbd{RET} key indent the new line?}
 
-Emacs' convention is that @kbd{RET} just adds a newline, and that
+Emacs's convention is that @kbd{RET} just adds a newline, and that
 @kbd{C-j} adds a newline and indents it.  You can make @kbd{RET} do this
 too by adding this to your @code{c-initialization-hook}:
 

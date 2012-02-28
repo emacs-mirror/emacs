@@ -567,7 +567,7 @@ directory specified by the variable @code{custom-theme-directory}
 (which defaults to @file{~/.emacs.d/}), and a directory named
 @file{etc/themes} in your Emacs installation (see the variable
 @code{data-directory}).  The latter contains several Custom themes
-which are distributed with Emacs, which customize Emacs' faces to fit
+which are distributed with Emacs, which customize Emacs's faces to fit
 various color schemes.  (Note, however, that Custom themes need not be
 restricted to this purpose; they can be used to customize variables
 too).

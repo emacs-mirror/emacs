@@ -1,3 +1,9 @@
+2012-02-28  Glenn Morris  <rgm@gnu.org>
+
+	* custom.texi, display.texi, emacs.texi, files.texi:
+	* msdog-xtra.texi, msdog.texi, vc-xtra.texi:
+	Standardize possessive apostrophe usage.
+
 2012-02-25  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* macos.texi (Mac / GNUstep Customization): Remove text about

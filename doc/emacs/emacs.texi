@@ -163,7 +163,7 @@ Major Structures of Emacs
 * International::       Using non-@acronym{ASCII} character sets.
 
 Advanced Features
-* Modes::               Major and minor modes alter Emacs' basic behavior.
+* Modes::               Major and minor modes alter Emacs's basic behavior.
 * Indentation::         Editing the white space at the beginnings of lines.
 * Text::                Commands and modes for editing human languages.
 * Programs::            Commands and modes for editing programs.
@@ -337,7 +337,7 @@ Controlling the Display
 * Follow Mode::            Follow mode lets two windows scroll as one.
 * Faces::                  How to change the display style using faces.
 * Colors::                 Specifying colors for faces.
-* Standard Faces::         Emacs' predefined faces.
+* Standard Faces::         The main predefined faces.
 * Text Scale::             Increasing or decreasing text size in a buffer.
 * Font Lock::              Minor mode for syntactic highlighting using faces.
 * Highlight Interactively:: Tell Emacs what text to highlight.

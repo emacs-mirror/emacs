@@ -2712,7 +2712,7 @@ Unsigned integer in network byte order, with length 3.
 @itemx dword
 @itemx long
 Unsigned integer in network byte order, with length 4.
-Note: These values may be limited by Emacs' integer implementation limits.
+Note: These values may be limited by Emacs's integer implementation limits.
 
 @item u16r
 @itemx u24r

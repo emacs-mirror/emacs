@@ -1,6 +1,6 @@
 ;;; bs.el --- menu for selecting and displaying buffers -*- lexical-binding: t -*-
 
-;; Copyright (C) 1998-2012  Free Software Foundation, Inc.
+;; Copyright (C) 1998-2012 Free Software Foundation, Inc.
 ;; Author: Olaf Sylvester <Olaf.Sylvester@netsurf.de>
 ;; Maintainer: Olaf Sylvester <Olaf.Sylvester@netsurf.de>
 ;; Keywords: convenience
@@ -618,7 +618,7 @@ Used from `window-size-change-functions'."
 (put 'bs-mode 'mode-class 'special)
 
 (define-derived-mode bs-mode nil "Buffer-Selection-Menu"
-  "Major mode for editing a subset of Emacs' buffers.
+  "Major mode for editing a subset of Emacs's buffers.
 \\<bs-mode-map>
 Aside from two header lines each line describes one buffer.
 Move to a line representing the buffer you want to edit and select
