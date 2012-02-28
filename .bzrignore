@@ -49,7 +49,7 @@ doc/**/*.pdf
 doc/**/*.log
 !doc/lispintro/cons-*.pdf
 !doc/lispintro/drawers.pdf
-!doc/lispinfo/lambda-*.pdf
+!doc/lispintro/lambda-*.pdf
 info/*
 admin/unidata/unidata.txt
 build-aux/compile
