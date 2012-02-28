@@ -5,6 +5,7 @@
 	Remove menu entry.
 	* errors.texi, maps.texi: Adjust node pointers.
 	* internals.texi (Buffer Internals): Remove cross-refs to locals.texi.
+	* makefile.w32-in (srcs):
 	* Makefile.in (srcs): Remove locals.texi.
 
 	* frames.texi (Mouse Position): Fix cross-ref.
