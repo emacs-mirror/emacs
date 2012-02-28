@@ -1,7 +1,7 @@
 2012-02-28  Thierry Volpiatto  <thierry.volpiatto@gmail.com>
 
-	* files.texi Rename files-equal-p to file-equal-p.
-	Update chnaged behavior of file-subdir-of-p.
+	* files.texi: Rename files-equal-p to file-equal-p.
+	Update changed behavior of file-subdir-of-p.
 
 2012-02-28  Glenn Morris  <rgm@gnu.org>
 

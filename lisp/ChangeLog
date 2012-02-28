@@ -1,11 +1,13 @@
 2012-02-28  Thierry Volpiatto  <thierry.volpiatto@gmail.com>
 
-	* lisp/files.el (file-equal-p): renamed from `files-equal-p'.
-	Now return nil when one or both files doesn't exists.
+	* files.el (file-equal-p): Rename from `files-equal-p'.
+	Return nil when one or both files don't exist.
 	(file-subdir-of-p): Now only top directory must exists,
 	return nil if it doesn't.
-	(copy-directory): No need to test with `file-subdir-of-p' after creating dir.
-	* tramp.el (tramp-file-name-for-operation): Rename `files-equal-p' to `file-equal-p'.
+	(copy-directory): No need to test with `file-subdir-of-p' after
+	creating dir.
+	* net/tramp.el (tramp-file-name-for-operation): Rename `files-equal-p'
+	to `file-equal-p'.
 
 2012-02-28  Glenn Morris  <rgm@gnu.org>
 
@@ -30,16 +32,16 @@
 
 2012-02-27  Chong Yidong  <cyd@gnu.org>
 
-	* emulation/viper-cmd.el (viper-intercept-ESC-key): Fix
-	key-binding lookup for ESC key (Bug#9146).
+	* emulation/viper-cmd.el (viper-intercept-ESC-key):
+	Fix key-binding lookup for ESC key (Bug#9146).
 
 	* font-lock.el (font-lock-specified-p): Rename from
 	font-lock-spec-present.  Callers changed.
 
 2012-02-27  Daniel Hackney  <dan@haxney.org>
 
-	* emacs-lisp/package.el (package-compute-transaction): Handle
-	holding a package version to t in package-load-list.
+	* emacs-lisp/package.el (package-compute-transaction):
+	Handle holding a package version to t in package-load-list.
 
 2012-02-26  Michael Albinus  <michael.albinus@gmx.de>
 
