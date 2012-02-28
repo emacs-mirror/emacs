@@ -1,3 +1,12 @@
+2012-02-28  Thierry Volpiatto  <thierry.volpiatto@gmail.com>
+
+	* lisp/files.el (file-equal-p): renamed from `files-equal-p'.
+	Now return nil when one or both files doesn't exists.
+	(file-subdir-of-p): Now only top directory must exists,
+	return nil if it doesn't.
+	(copy-directory): No need to test with `file-subdir-of-p' after creating dir.
+	* tramp.el (tramp-file-name-for-operation): Rename `files-equal-p' to `file-equal-p'.
+
 2012-02-28  Glenn Morris  <rgm@gnu.org>
 
 	* shell.el (shell-mode):

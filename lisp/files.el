@@ -4985,27 +4985,26 @@ given.  With a prefix argument, TRASH is nil."
 		 directory 'full directory-files-no-dot-files-regexp)))
       (delete-directory-internal directory)))))
 
-(defun files-equal-p (file1 file2)
-  "Return non-nil if FILE1 and FILE2 name the same file.
-Ordinary files are considered to be the same if `file-attributes'
-returns `equal' values for them."
-  (let ((handler (or (find-file-name-handler file1 'files-equal-p)
-                     (find-file-name-handler file2 'files-equal-p))))
+(defun file-equal-p (file1 file2)
+  "Return non-nil if existing files FILE1 and FILE2 name the same file.
+Return nil if one or both files doesn't exists."
+  (let ((handler (or (find-file-name-handler file1 'file-equal-p)
+                     (find-file-name-handler file2 'file-equal-p))))
     (if handler
-        (funcall handler 'files-equal-p file1 file2)
-      (equal (file-attributes (file-truename file1))
-             (file-attributes (file-truename file2))))))
+        (funcall handler 'file-equal-p file1 file2)
+      (let ((f1-attr (file-attributes (file-truename file1)))
+            (f2-attr (file-attributes (file-truename file2))))
+        (and f1-attr f2-attr (equal f1-attr f2-attr))))))
 
 (defun file-subdir-of-p (dir1 dir2)
   "Return non-nil if DIR1 is a subdirectory of DIR2.
 A directory is considered to be a subdirectory of itself.
-Return nil if DIR1 or DIR2 are not existing directories."
+Return nil if top directory DIR2 is not an existing directory."
   (let ((handler (or (find-file-name-handler dir1 'file-subdir-of-p)
                      (find-file-name-handler dir2 'file-subdir-of-p))))
     (if handler
         (funcall handler 'file-subdir-of-p dir1 dir2)
-      (when (and (file-directory-p dir1)
-                 (file-directory-p dir2))
+      (when (file-directory-p dir2) ; Top dir must exist.
 	(setq dir1 (file-truename dir1)
 	      dir2 (file-truename dir2))
 	(let ((ls1  (or (split-string dir1 "/" t) '("/")))
@@ -5019,7 +5018,7 @@ Return nil if DIR1 or DIR2 are not existing directories."
 	    (setq ls1 (cdr ls1)
 		  ls2 (cdr ls2)))
 	  (unless mismatch
-	    (files-equal-p (file-truename root) dir2)))))))
+	    (file-equal-p root dir2)))))))
 
 (defun copy-directory (directory newname &optional keep-time parents copy-contents)
   "Copy DIRECTORY to NEWNAME.  Both args must be strings.
@@ -5065,12 +5064,7 @@ directly into NEWNAME instead."
       (cond ((not (file-directory-p newname))
 	     ;; If NEWNAME is not an existing directory, create it;
 	     ;; that is where we will copy the files of DIRECTORY.
-	     (make-directory newname parents)
-             ;; `file-subdir-of-p' doesn't handle non--existing directories,
-             ;; so double check now if NEWNAME is not a subdir of DIRECTORY.
-             (and (file-subdir-of-p newname directory)
-                  (error "Cannot copy `%s' into its subdirectory `%s'"
-                         directory newname)))
+	     (make-directory newname parents))
 	    ;; If NEWNAME is an existing directory and COPY-CONTENTS
 	    ;; is nil, copy into NEWNAME/[DIRECTORY-BASENAME].
 	    ((not copy-contents)

@@ -1018,7 +1018,7 @@ a regular file (not a directory, named pipe, terminal, or
 other I/O device).
 @end defun
 
-@defun files-equal-p file1 file2
+@defun file-equal-p file1 file2
 This function returns @code{t} if the files @var{file1} and
 @var{file2} name the same file.  Two ordinary files are considered to
 be the same if the function @code{file-attributes} (@pxref{File
@@ -1029,9 +1029,8 @@ Attributes}) returns @code{equal} values for them.
 This function returns @code{t} if directory @var{dir1} is a
 subdirectory of @var{dir2}, or if @var{dir1} and @var{dir2} are the
 same directory.  It compares the @code{file-truename} values of the
-two directories (@pxref{Truenames}).  If either @var{dir1} or
-@var{dir2} do not name existing directories, the return value is
-@code{nil}.
+two directories (@pxref{Truenames}).  If @var{dir2} 
+do not name an existing directory, the return value is @code{nil}.
 @end defun
 
 @node Truenames
@@ -2722,7 +2721,7 @@ first, before handlers for jobs such as remote file access.
 @code{file-ownership-preserved-p},
 @code{file-readable-p}, @code{file-regular-p}, @code{file-subdir-of-p},
 @code{file-symlink-p}, @code{file-truename}, @code{file-writable-p},
-@code{files-equal-p}, @code{find-backup-file-name},
+@code{file-equal-p}, @code{find-backup-file-name},
 @c Not sure why it was here:   @code{find-file-noselect},@*
 @code{get-file-buffer},
 @code{insert-directory},
