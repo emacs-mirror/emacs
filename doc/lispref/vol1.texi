@@ -188,8 +188,6 @@ Appendices
 * GNU Emacs Internals::     Building and dumping Emacs;
                               internal data structures.
 * Standard Errors::         List of main error symbols.
-* Standard Buffer-Local Variables::
-                            List of variables buffer-local in all buffers.
 * Standard Keymaps::        List of standard keymaps.
 * Standard Hooks::          List of standard hook variables.
 
@@ -1532,7 +1530,6 @@ Object Internals
 @c include tips.texi
 @c include internals.texi
 @c include errors.texi
-@c include locals.texi
 @c include maps.texi
 @c include hooks.texi
 
