@@ -1,3 +1,7 @@
+2012-02-28  Glenn Morris  <rgm@gnu.org>
+
+	* frames.texi (Mouse Position): Fix cross-ref.
+
 2012-02-27  Chong Yidong  <cyd@gnu.org>
 
 	* buffers.texi (Creating Buffers): Clarify that

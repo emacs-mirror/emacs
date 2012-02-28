@@ -1,7 +1,6 @@
 @c -*-texinfo-*-
 @c This is part of the GNU Emacs Lisp Reference Manual.
-@c Copyright (C) 1990-1995, 1998-1999, 2001-2012
-@c   Free Software Foundation, Inc.
+@c Copyright (C) 1990-1995, 1998-1999, 2001-2012 Free Software Foundation, Inc.
 @c See the file elisp.texi for copying conditions.
 @setfilename ../../info/frames
 @node Frames, Positions, Windows, Top
@@ -1709,7 +1708,7 @@ displayed on @var{frame} is visible; otherwise it returns @code{nil}.
 @var{frame} omitted or @code{nil} means the selected frame.  This is
 useful when @code{make-pointer-invisible} is set to @code{t}: it
 allows to know if the pointer has been hidden.
-@xref{Mouse Avoidance,,,emacs}.
+@xref{Mouse Avoidance,,,emacs, The Emacs Manual}.
 @end defun
 
 @need 3000
