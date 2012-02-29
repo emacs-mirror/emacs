@@ -926,7 +926,7 @@ Buffers
                               is visited.
 * Buffer Modification::     A buffer is @dfn{modified} if it needs to be saved.
 * Modification Time::       Determining whether the visited file was changed
-                              ``behind Emacs's back''.
+                              "behind Emacs's back".
 * Read Only Buffers::       Modifying text is not allowed in a
                               read-only buffer.
 * The Buffer List::         How to look at all the existing buffers.

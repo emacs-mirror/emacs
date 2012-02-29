@@ -159,7 +159,7 @@ Major Structures of Emacs
 * Files::               All about handling files.
 * Buffers::             Multiple buffers; editing several files at once.
 * Windows::             Viewing multiple pieces of text in one frame.
-* Frames::              Using multiple ``windows'' on your display.
+* Frames::              Using multiple "windows" on your display.
 * International::       Using non-@acronym{ASCII} character sets.
 
 Advanced Features
@@ -273,7 +273,7 @@ Help
 * Language Help::       Help relating to international language support.
 * Misc Help::           Other help commands.
 * Help Files::          Commands to display auxiliary help files.
-* Help Echo::           Help on active text and tooltips (`balloon help').
+* Help Echo::           Help on active text and tooltips ("balloon help").
 
 The Mark and the Region
 
@@ -568,7 +568,7 @@ Commands for Human Languages
 * TeX Mode::            Editing TeX and LaTeX files.
 * HTML Mode::           Editing HTML and SGML files.
 * Nroff Mode::          Editing input to the nroff formatter.
-* Enriched Text::       Editing text ``enriched'' with fonts, colors, etc.
+* Enriched Text::       Editing text "enriched" with fonts, colors, etc.
 * Text Based Tables::   Commands for editing text-based tables.
 * Two-Column::          Splitting text columns into separate windows.
 

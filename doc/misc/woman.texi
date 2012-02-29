@@ -432,7 +432,7 @@ slow.  @xref{Cache, , The WoMan Topic Cache}, for further details.
 
 @menu
 * Cache::               The WoMan Topic Cache
-* Word at point::       Using the ``Word at Point'' as a Topic Suggestion
+* Word at point::       Using the "Word at Point" as a Topic Suggestion
 @end menu
 
 @node Cache, Word at point, Topic, Topic
@@ -472,7 +472,7 @@ time it is run in a new Emacs session.
 
 @node Word at point,  , Cache, Topic
 @comment  node-name,  next,  previous,  up
-@subsection Using the ``Word at Point'' as a Topic Suggestion
+@subsection Using the "Word at Point" as a Topic Suggestion
 @cindex word at point
 @cindex point, word at
 

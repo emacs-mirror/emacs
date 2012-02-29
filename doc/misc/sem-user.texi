@@ -1,6 +1,6 @@
 @c This file is included by semantic.texi
 
-@c Copyright (C) 1999-2005, 2007, 2009-2012  Free Software Foundation, Inc.
+@c Copyright (C) 1999-2005, 2007, 2009-2012 Free Software Foundation, Inc.
 
 @c Permission is granted to copy, distribute and/or modify this
 @c document under the terms of the GNU Free Documentation License,
@@ -31,7 +31,7 @@ File,,,emacs,Emacs manual}.
 * Analyzer::            Semantic tools for analyzing code.
 * Speedbar::            Using @semantic{} with the Speedbar.
 * SymRef::              Interface to symbol reference tools.
-* MRU Bookmarks::       Managing tag ``bookmarks''.
+* MRU Bookmarks::       Managing tag "bookmarks".
 * Sticky Func Mode::    Showing declarations in the header line.
 * Highlight Func Mode:: Highlight the current function declaration.
 * Tag Decoration Mode:: Minor mode to decorate tags.

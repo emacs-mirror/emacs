@@ -1,5 +1,7 @@
 2012-02-29  Glenn Morris  <rgm@gnu.org>
 
+	* emacs.texi, help.texi, text.texi: Use "" quotes in menus.
+
 	* dired.texi, emacs.texi: Use @code{} in menus when appropriate.
 
 2012-02-28  Glenn Morris  <rgm@gnu.org>

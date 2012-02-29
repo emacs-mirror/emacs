@@ -228,7 +228,7 @@ controls the number of concurrent processes, and the option
 @menu
 * http/https::                  Hypertext Transfer Protocol.
 * file/ftp::                    Local files and FTP archives.
-* info::                        Emacs `Info' pages.
+* info::                        Emacs "Info" pages.
 * mailto::                      Sending email.
 * news/nntp/snews::             Usenet news.
 * rlogin/telnet/tn3270::        Remote host connectivity.

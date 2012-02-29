@@ -1,5 +1,7 @@
 2012-02-29  Glenn Morris  <rgm@gnu.org>
 
+	* sem-user.texi, url.texi, woman.texi: Use "" quotes in menus.
+
 	* cl.texi: Use @code{} in menus when appropriate.
 
 2012-02-28  Glenn Morris  <rgm@gnu.org>
