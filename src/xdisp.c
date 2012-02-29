@@ -5156,6 +5156,12 @@ next_overlay_string (struct it *it)
       it->current.overlay_string_index = -1;
       it->n_overlay_strings = 0;
       it->overlay_strings_charpos = -1;
+      /* If there's an empty display string on the stack, pop the
+	 stack, to resync the bidi iterator with IT's position.  Such
+	 empty strings are pushed onto the stack in
+	 get_overlay_strings_1.  */
+      if (it->sp > 0 && STRINGP (it->string) && !SCHARS (it->string))
+	pop_it (it);
 
       /* If we're at the end of the buffer, record that we have
 	 processed the overlay strings there already, so that
@@ -5453,8 +5459,15 @@ get_overlay_strings_1 (struct it *it, EMACS_INT charpos, int compute_stop_p)
       xassert (!compute_stop_p || it->sp == 0);
 
       /* When called from handle_stop, there might be an empty display
-         string loaded.  In that case, don't bother saving it.  */
-      if (!STRINGP (it->string) || SCHARS (it->string))
+         string loaded.  In that case, don't bother saving it.  But
+         don't use this optimization with the bidi iterator, since we
+         need the corresponding pop_it call to resync the bidi
+         iterator's position with IT's position, after we are done
+         with the overlay strings.  (The corresponding call to pop_it
+         in case of an empty display string is in
+         next_overlay_string.)  */
+      if (!(!it->bidi_p
+	    && STRINGP (it->string) && !SCHARS (it->string)))
 	push_it (it, NULL);
 
       /* Set up IT to deliver display elements from the first overlay

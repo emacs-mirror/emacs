@@ -1,3 +1,11 @@
+2012-02-29  Eli Zaretskii  <eliz@gnu.org>
+
+	* xdisp.c (get_overlay_strings_1): Under bidi redisplay, call
+	push_it before setting up the iterator for the first overlay
+	string, even if we have an empty string loaded.
+	(next_overlay_string): If there's an empty string on the iterator
+	stack, pop the stack.  (Bug#10903)
+
 2012-02-25  Paul Eggert  <eggert@cs.ucla.edu>
 
 	Generalize fix for crash due to non-contiguous EMACS_INT (Bug#10780).
