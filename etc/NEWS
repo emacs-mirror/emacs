@@ -1427,7 +1427,7 @@ both non-nil.  Interactively, TRASH defaults to t, unless a prefix
 argument is supplied (see Trash changes, above).
 
 +++
-** New file predicate functions: files-equal-p, file-subdir-of-p.
+** New file predicate functions: file-equal-p, file-subdir-of-p.
 
 +++
 ** Tool-bars can display separators.
