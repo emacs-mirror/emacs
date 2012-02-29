@@ -1,3 +1,7 @@
+2012-02-29  Glenn Morris  <rgm@gnu.org>
+
+	* dired.texi, emacs.texi: Use @code{} in menus when appropriate.
+
 2012-02-28  Glenn Morris  <rgm@gnu.org>
 
 	* custom.texi, display.texi, emacs.texi, files.texi:

@@ -882,7 +882,7 @@ Dired, the Directory Editor
                                either one file or several files.
 * Shell Commands in Dired::  Running a shell command on the marked files.
 * Transforming File Names::  Using patterns to rename multiple files.
-* Comparison in Dired::      Running `diff' by way of Dired.
+* Comparison in Dired::      Running @code{diff} by way of Dired.
 * Subdirectories in Dired::  Adding subdirectories to the Dired buffer.
 @ifnottex
 * Subdir Switches::          Subdirectory switches in Dired.
@@ -890,7 +890,7 @@ Dired, the Directory Editor
 * Subdirectory Motion::      Moving across subdirectories, and up and down.
 * Hiding Subdirectories::    Making subdirectories visible or invisible.
 * Dired Updating::           Discarding lines for files of no interest.
-* Dired and Find::           Using `find' to choose the files for Dired.
+* Dired and Find::           Using @code{find} to choose the files for Dired.
 * Wdired::                   Operating on files by editing the Dired buffer.
 * Image-Dired::              Viewing image thumbnails in Dired.
 * Misc Dired Features::      Various other features.
