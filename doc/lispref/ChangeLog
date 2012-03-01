@@ -1,3 +1,8 @@
+2012-03-01  Michael Albinus  <michael.albinus@gmx.de>
+
+	* files.texi (Kinds of Files): The return value of file-equal-p is
+	unspecified, if FILE1 or FILE2 does not exist.
+
 2012-03-01  Glenn Morris  <rgm@gnu.org>
 
 	* hooks.texi (Standard Hooks): Remove mode-specific hooks.
@@ -13,7 +18,7 @@
 
 2012-02-28  Thierry Volpiatto  <thierry.volpiatto@gmail.com>
 
-	* files.texi: Rename files-equal-p to file-equal-p.
+	* files.texi (Kinds of Files): Rename files-equal-p to file-equal-p.
 	Update changed behavior of file-subdir-of-p.
 
 2012-02-28  Glenn Morris  <rgm@gnu.org>

@@ -1020,16 +1020,15 @@ other I/O device).
 
 @defun file-equal-p file1 file2
 This function returns @code{t} if the files @var{file1} and
-@var{file2} name the same file.  Two ordinary files are considered to
-be the same if the function @code{file-attributes} (@pxref{File
-Attributes}) returns @code{equal} values for them.
+@var{file2} name the same file.  If @var{file1} or @var{file2} does
+not exist, the return value is unspecified.
 @end defun
 
 @defun file-subdir-of-p dir1 dir2
 This function returns @code{t} if directory @var{dir1} is a
 subdirectory of @var{dir2}, or if @var{dir1} and @var{dir2} are the
 same directory.  It compares the @code{file-truename} values of the
-two directories (@pxref{Truenames}).  If @var{dir2} 
+two directories (@pxref{Truenames}).  If @var{dir2}
 do not name an existing directory, the return value is @code{nil}.
 @end defun
 
