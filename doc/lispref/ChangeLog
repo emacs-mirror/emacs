@@ -1,3 +1,10 @@
+2012-03-01  Glenn Morris  <rgm@gnu.org>
+
+	* maps.texi (Standard Keymaps): General update.
+	Remove mode-specific maps, talk about the more general keymaps.
+	* help.texi (Help Functions): Add vindex for Helper-help-map.
+	* keymaps.texi (Active Keymaps): Minor rephrasing.
+
 2012-02-29  Glenn Morris  <rgm@gnu.org>
 
 	* elisp.texi, vol1.texi, vol2.texi: Use "" quotes in menus.

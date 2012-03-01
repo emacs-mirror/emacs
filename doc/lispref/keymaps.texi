@@ -1,6 +1,6 @@
 @c -*-texinfo-*-
 @c This is part of the GNU Emacs Lisp Reference Manual.
-@c Copyright (C) 1990-1994, 1998-2012  Free Software Foundation, Inc.
+@c Copyright (C) 1990-1994, 1998-2012 Free Software Foundation, Inc.
 @c See the file elisp.texi for copying conditions.
 @setfilename ../../info/keymaps
 @node Keymaps, Modes, Command Loop, Top
@@ -686,7 +686,7 @@ and exit commands.  @xref{Intro to Minibuffers}.
   Emacs has other keymaps that are used in a different way---translating
 events within @code{read-key-sequence}.  @xref{Translation Keymaps}.
 
-  @xref{Standard Keymaps}, for a list of standard keymaps.
+  @xref{Standard Keymaps}, for a list of some standard keymaps.
 
 @defun current-active-maps &optional olp position
 This returns the list of active keymaps that would be used by the
