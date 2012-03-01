@@ -1,5 +1,7 @@
 2012-03-01  Glenn Morris  <rgm@gnu.org>
 
+	* hooks.texi (Standard Hooks): Remove mode-specific hooks.
+
 	* maps.texi (Standard Keymaps): General update.
 	Remove mode-specific maps, talk about the more general keymaps.
 	* help.texi (Help Functions): Add vindex for Helper-help-map.
