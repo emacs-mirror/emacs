@@ -2735,7 +2735,7 @@
 
 	* configure.in: Only check for m17n-flt if HAVE_LIBOTF.
 
-2008-08-28  Adrian Robert  <Adrian.B.Robert@gmail.com>
+2008-10-03  Adrian Robert  <Adrian.B.Robert@gmail.com>
 
 	* configure.in: Report USE_TOOLKIT_SCROLLBARS as such (not mentioning
 	"X") to avoid confusion.
@@ -3897,7 +3897,7 @@
 	$PKG_CONFIG --exists "$2" to config.log.
 	* configure: Regenerate.
 
-2006-07-08  Richard Stallman  <rms@gnu.org>
+2006-07-09  Richard Stallman  <rms@gnu.org>
 
 	* INSTALL (DETAILED BUILDING AND INSTALLATION): Minor corrections.
 
@@ -4135,7 +4135,7 @@
 
 	* configure.in (HAVE_CANCELMENUTRACKING): New test.
 
-2005-05-11  Jérôme Marant  <jmarant@marant.org>
+2005-05-19  Jérôme Marant  <jmarant@marant.org>
 
 	* configure.in: Add --enable-locallisppath.
 
@@ -4284,6 +4284,12 @@
 
 	* configure.in: Check for exec-shield.
 
+2004-09-04  Reiner Steib  <Reiner.Steib@gmx.de>
+
+	* Makefile.in (install-arch-indep): Add pgg and sieve.
+
+	* info/.cvsignore: Added pgg and sieve.
+
 2004-08-06  Andreas Schwab  <schwab@suse.de>
 
 	* Makefile.in (install-arch-indep, uninstall): Add flymake.
@@ -4291,12 +4297,6 @@
 2004-07-31  Eli Zaretskii  <eliz@gnu.org>
 
 	* config.bat: Update URLs in the comments.
-
-2004-08-02  Reiner Steib  <Reiner.Steib@gmx.de>
-
-	* Makefile.in (install-arch-indep): Add pgg and sieve.
-
-	* info/.cvsignore: Added pgg and sieve.
 
 2004-07-05  Andreas Schwab  <schwab@suse.de>
 
@@ -4399,7 +4399,7 @@
 	* INSTALL.CVS: Renamed from INSTALL-CVS to avoid file-name
 	clashes with install-sh on 8+3 filesystems.
 
-2003-12-08  Miles Bader  <miles@gnu.org>
+2003-12-24  Miles Bader  <miles@gnu.org>
 
 	* .cvsignore: Add .arch-inventory.
 
@@ -4532,19 +4532,6 @@
 	* configure.in: Append * to s390-*-linux-gnu case.
 	(LIBMAIL) <lockfile>: Don't define.
 
-2003-04-30  Richard M. Stallman  <rms@gnu.org>
-
-	* configure.in: Handle system types sysv5uw* and sysv5OpenUNIX*.
-
-2003-04-28  Francesco Potortì  <pot@gnu.org>
-
-	* configure.in: Undo last (RMS') change, as it is useless, per
-	Dave Love.
-
-2003-04-08  Richard M. Stallman  <rms@gnu.org>
-
-	* configure.in: Put #include of jpeglib.h at start of line.
-
 2003-04-30  Kai Großjohann  <kai.grossjohann@gmx.net>
 
 	* INSTALL (* GNU/Linux development packages): Mention Debian and
@@ -4558,6 +4545,19 @@
 
 	* INSTALL (* GNU/Linux development packages): Tell people to
 	install additional packages for compiling Emacs.
+
+2003-04-30  Richard M. Stallman  <rms@gnu.org>
+
+	* configure.in: Handle system types sysv5uw* and sysv5OpenUNIX*.
+
+2003-04-28  Francesco Potortì  <pot@gnu.org>
+
+	* configure.in: Undo last (RMS') change, as it is useless, per
+	Dave Love.
+
+2003-04-08  Richard M. Stallman  <rms@gnu.org>
+
+	* configure.in: Put #include of jpeglib.h at start of line.
 
 2003-04-06  Francesco Potortì  <pot@gnu.org>
 
@@ -4667,7 +4667,7 @@
 
 	* autogen.sh: New file.
 
-2002-11-15  Dave Love  <fx@gnu.org>
+2002-11-18  Dave Love  <fx@gnu.org>
 
 	* configure.in: Tidy up various quoting issues throughout.
 	Use AC_GNU_SOURCE.
@@ -4823,7 +4823,7 @@
 	variable HAVE_CARBON.  Also define HAVE_WINDOW_SYSTEM, HAVE_MOUSE,
 	and HAVE_MENUS in AH_BOTTOM if HAVE_CARBON is defined.
 
-2002-04-28  Colin Walters  <walters@verbum.org>
+2002-04-29  Colin Walters  <walters@verbum.org>
 
 	* configure.in: Delete configure check for access to the game user.
 
@@ -10128,7 +10128,7 @@
 ;; coding: utf-8
 ;; End:
 
-  Copyright (C) 1993-1999, 2001-2012  Free Software Foundation, Inc.
+  Copyright (C) 1993-1999, 2001-2012 Free Software Foundation, Inc.
 
   This file is part of GNU Emacs.
 
