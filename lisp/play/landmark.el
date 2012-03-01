@@ -1,6 +1,6 @@
 ;;; landmark.el --- neural-network robot that learns landmarks
 
-;; Copyright (C) 1996-1997, 2000-2012  Free Software Foundation, Inc.
+;; Copyright (C) 1996-1997, 2000-2012 Free Software Foundation, Inc.
 
 ;; Author: Terrence Brannon (was: <brannon@rana.usc.edu>)
 ;; Created: December 16, 1996 - first release to usenet
@@ -210,7 +210,7 @@
 
 (defface landmark-font-lock-face-O '((((class color)) :foreground "red")
 			       (t :weight bold))
-  "Face to use for Emacs' O."
+  "Face to use for Emacs's O."
   :version "22.1"
   :group 'landmark)
 

@@ -4312,12 +4312,14 @@ mark_memory (void *start, void *end)
 	void *w = *(void **) ((char *) pp + i);
 	mark_maybe_pointer (w);
 
+#ifdef USE_LSB_TAG
 	/* A host where a Lisp_Object is wider than a pointer might
 	   allocate a Lisp_Object in non-adjacent halves.  If
 	   USE_LSB_TAG, the bottom half is not a valid pointer, so
 	   widen it to to a Lisp_Object and check it that way.  */
 	if (sizeof w < sizeof (Lisp_Object))
 	  mark_maybe_object (widen_to_Lisp_Object (w));
+#endif
       }
 }
 

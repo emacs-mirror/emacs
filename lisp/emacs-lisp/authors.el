@@ -1,4 +1,4 @@
-;;; authors.el --- utility for maintaining Emacs' AUTHORS file -*-coding: utf-8;-*-
+;;; authors.el --- utility for maintaining Emacs's AUTHORS file -*-coding: utf-8;-*-
 
 ;; Copyright (C) 2000-2012 Free Software Foundation, Inc.
 
@@ -25,7 +25,7 @@
 ;;; Commentary:
 
 ;; Use M-x authors RET to create an *Authors* buffer that can used as
-;; or merged with Emacs' AUTHORS file.
+;; or merged with Emacs's AUTHORS file.
 
 ;;; Code:
 

@@ -1,3 +1,95 @@
+2012-03-01  Michael R. Mauger  <mmaug@yahoo.com>
+
+	* progmodes/sql.el: Bug fix
+	(sql-get-login-ext): Save login values in globals.
+	(sql-get-login): Use new version of `sql-get-login-ext'.
+	(sql-interactive-mode): Set global `sql-connection' to nil.
+	(sql-connect): Set global values for connection.
+	(sql-product-interactive): Save global values as buffer local.
+
+2012-02-29  Leo Liu  <sdl.web@gmail.com>
+
+	* abbrev.el (define-abbrevs): Reset sys to nil.
+
+2012-02-28  Thierry Volpiatto  <thierry.volpiatto@gmail.com>
+
+	* files.el (file-equal-p): Rename from `files-equal-p'.
+	Return nil when one or both files don't exist.
+	(file-subdir-of-p): Now only top directory must exists,
+	return nil if it doesn't.
+	(copy-directory): No need to test with `file-subdir-of-p' after
+	creating dir.
+	* net/tramp.el (tramp-file-name-for-operation): Rename `files-equal-p'
+	to `file-equal-p'.
+
+2012-02-28  Glenn Morris  <rgm@gnu.org>
+
+	* shell.el (shell-mode):
+	* progmodes/vhdl-mode.el (wildcard-to-regexp, file-expand-wildcards):
+	* play/landmark.el (landmark-font-lock-face-O):
+	* play/handwrite.el (handwrite):
+	* play/gomoku.el (gomoku-O):
+	* net/browse-url.el (browse-url-browser-display):
+	* international/mule.el (define-charset):
+	* htmlfontify.el (hfy-etags-cmd, hfy-face-attr-for-class):
+	* filesets.el (filesets-find-file-delay):
+	* eshell/em-xtra.el (eshell-xtra):
+	* eshell/em-unix.el (eshell-grep):
+	* emulation/viper.el (viper-mode):
+	* emacs-lisp/regexp-opt.el (regexp-opt-group):
+	* emacs-lisp/easymenu.el (easy-menu-define):
+	* calendar/timeclock.el (timeclock-use-display-time):
+	* bs.el (bs-mode):
+	* bookmark.el (bookmark-save-flag):
+	Doc fix (standardize possessive apostrophe usage).
+
+2012-02-27  Chong Yidong  <cyd@gnu.org>
+
+	* emulation/viper-cmd.el (viper-intercept-ESC-key):
+	Fix key-binding lookup for ESC key (Bug#9146).
+
+	* font-lock.el (font-lock-specified-p): Rename from
+	font-lock-spec-present.  Callers changed.
+
+2012-02-27  Daniel Hackney  <dan@haxney.org>
+
+	* emacs-lisp/package.el (package-compute-transaction):
+	Handle holding a package version to t in package-load-list.
+
+2012-02-26  Michael Albinus  <michael.albinus@gmx.de>
+
+	* net/tramp.el (tramp-inodes, tramp-devices): Initialize with 0.
+	(tramp-get-inode, tramp-get-device): Use cached values.
+
+2012-02-26  Alan Mackenzie  <acm@muc.de>
+
+	Check there is a font-lock specification before doing initial
+	fontification.
+
+	* font-core.el (font-lock-mode): Move the conditional from
+	:after-hook to font-lock-initial-fontify.
+	(font-lock-default-function): Move the check for a specification
+	to font-lock-spec-present.
+
+	* font-lock.el (font-lock-initial-fontify): call ...
+	(font-lock-spec-present): New function.
+
+2012-02-26  Jim Blandy  <jimb@red-bean.com>
+
+	* progmodes/gdb-mi.el (gdb-mi-quote): New function.
+	(gdb-send): Apply it to the operand of the '-interpreter-exec
+	console' command, so that we can pass arguments with (say) quotes
+	in them.  Store exact string sent in gdb-debug-log (Bug#10765).
+
+2012-02-26  Chong Yidong  <cyd@gnu.org>
+
+	* help-fns.el (describe-function-1): Clarify description of
+	remapping (Bug#10844).
+
+	* files.el (files-equal-p): Doc fix.
+	(file-subdir-of-p): Doc fix.  Convert loop macro to plain Lisp,
+	and quit the loop once a mismatch is found.
+
 2012-02-25  Juanma Barranquero  <lekktu@gmail.com>
 
 	* bs.el (bs--show-with-configuration): Don't throw an error

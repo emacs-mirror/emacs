@@ -35,6 +35,21 @@ subdirs.el
 TAGS
 TAGS-LISP
 cxxdefs.h
+# Intermediate files when making pdf versions of the manuals.
+*.aux
+*.cp
+*.fn
+*.fns
+*.ky
+*.pg
+*.toc
+*.tp
+*.vr
+doc/**/*.pdf
+doc/**/*.log
+!doc/lispintro/cons-*.pdf
+!doc/lispintro/drawers.pdf
+!doc/lispintro/lambda-*.pdf
 info/*
 admin/unidata/unidata.txt
 build-aux/compile

@@ -1,6 +1,6 @@
 ;;; image.el --- image API
 
-;; Copyright (C) 1998-2012  Free Software Foundation, Inc.
+;; Copyright (C) 1998-2012 Free Software Foundation, Inc.
 
 ;; Maintainer: FSF
 ;; Keywords: multimedia
@@ -163,7 +163,7 @@ compatibility with versions of Emacs that lack the variable
                 dir (expand-file-name "../" dir))))
       (setq image-directory-load-path dir))
 
-    ;; If `image-directory-load-path' isn't Emacs' image directory,
+    ;; If `image-directory-load-path' isn't Emacs's image directory,
     ;; it's probably a user preference, so use it. Then use a
     ;; relative setting if possible; otherwise, use
     ;; `image-directory-load-path'.
@@ -194,7 +194,7 @@ compatibility with versions of Emacs that lack the variable
               ;; Set it to nil if image is not found.
               (cond ((file-exists-p (expand-file-name image d2ei)) d2ei)
                     ((file-exists-p (expand-file-name image d1ei)) d1ei)))))
-     ;; Use Emacs' image directory.
+     ;; Use Emacs's image directory.
      (image-directory-load-path
       (setq image-directory image-directory-load-path))
      (no-error

@@ -265,7 +265,7 @@
 @copying
 This manual is for Org version @value{VERSION}.
 
-Copyright @copyright{} 2004-2012  Free Software Foundation, Inc.
+Copyright @copyright{} 2004-2012 Free Software Foundation, Inc.
 
 @quotation
 Permission is granted to copy, distribute and/or modify this document
@@ -6162,7 +6162,7 @@ applying it to another one.
 By customizing the variable @code{org-clock-idle-time} to some integer, such
 as 10 or 15, Emacs can alert you when you get back to your computer after
 being idle for that many minutes@footnote{On computers using Mac OS X,
-idleness is based on actual user idleness, not just Emacs' idle time.  For
+idleness is based on actual user idleness, not just Emacs's idle time.  For
 X11, you can install a utility program @file{x11idle.c}, available in the
 UTILITIES directory of the Org git distribution, to get the same general
 treatment of idleness.  On other systems, idle time refers to Emacs idle time

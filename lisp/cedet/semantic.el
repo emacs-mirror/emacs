@@ -1,6 +1,6 @@
 ;;; semantic.el --- Semantic buffer evaluator.
 
-;; Copyright (C) 1999-2012  Free Software Foundation, Inc.
+;; Copyright (C) 1999-2012 Free Software Foundation, Inc.
 
 ;; Author: Eric M. Ludlam <zappo@gnu.org>
 ;; Keywords: syntax tools
@@ -623,7 +623,7 @@ was marked unparseable, then do nothing, and return the cache."
 
 ;;;; Parse the whole system.
      ((semantic-parse-tree-needs-rebuild-p)
-      ;; Use Emacs' built-in progress-reporter
+      ;; Use Emacs's built-in progress-reporter
       (let ((semantic--progress-reporter
 	     (and (>= (point-max) semantic-minimum-working-buffer-size)
 		  (eq semantic-working-type 'percent)
@@ -762,7 +762,7 @@ This function returns semantic tags without overlays."
       ;; Designated to ignore.
       (setq stream (car nontermsym))
       (if stream
-	  ;; Use Emacs' built-in progress reporter:
+	  ;; Use Emacs's built-in progress reporter:
 	  (and (boundp 'semantic--progress-reporter)
 	       semantic--progress-reporter
 	       (eq semantic-working-type 'percent)

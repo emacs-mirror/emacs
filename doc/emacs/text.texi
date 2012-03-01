@@ -77,7 +77,7 @@ for editing such pictures.
 * TeX Mode::            Editing TeX and LaTeX files.
 * HTML Mode::           Editing HTML and SGML files.
 * Nroff Mode::          Editing input to the nroff formatter.
-* Enriched Text::       Editing text ``enriched'' with fonts, colors, etc.
+* Enriched Text::       Editing text "enriched" with fonts, colors, etc.
 * Text Based Tables::   Commands for editing text-based tables.
 * Two-Column::          Splitting text columns into separate windows.
 @end menu

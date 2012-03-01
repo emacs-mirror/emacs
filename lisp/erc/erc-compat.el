@@ -1,6 +1,6 @@
 ;;; erc-compat.el --- ERC compatibility code for XEmacs
 
-;; Copyright (C) 2002-2003, 2005-2012  Free Software Foundation, Inc.
+;; Copyright (C) 2002-2003, 2005-2012 Free Software Foundation, Inc.
 
 ;; Author: Alex Schroeder <alex@gnu.org>
 ;; URL: http://www.emacswiki.org/cgi-bin/wiki/ERC
@@ -70,7 +70,7 @@ See `erc-encoding-coding-alist'."
 are placed.
 Note that this should end with a directory separator.")
 
-;; XEmacs' `replace-match' does not replace matching subexpressions in strings.
+;; XEmacs's `replace-match' does not replace matching subexpressions in strings.
 (defun erc-replace-match-subexpression-in-string
   (newtext string match subexp start &optional fixedcase literal)
   "Replace the subexpression SUBEXP of the last match in STRING with NEWTEXT.

@@ -161,7 +161,7 @@ Where and how to get Gnus?
 @subsubheading Answer
 
 Gnus is released independent from releases of Emacs and XEmacs.
-Therefore, the version bundled with Emacs or the version in XEmacs'
+Therefore, the version bundled with Emacs or the version in XEmacs's
 package system might not be up to date (e.g. Gnus 5.9 bundled with Emacs
 21 is outdated).
 You can get the latest released version of Gnus from

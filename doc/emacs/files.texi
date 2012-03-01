@@ -288,7 +288,7 @@ see @ref{Drag and Drop}, and @ref{Misc Dired Features}.
 
   Each time you visit a file, Emacs automatically scans its contents
 to detect what character encoding and end-of-line convention it uses,
-and converts these to Emacs' internal encoding and end-of-line
+and converts these to Emacs's internal encoding and end-of-line
 convention within the buffer.  When you save the buffer, Emacs
 performs the inverse conversion, writing the file to disk with its
 original encoding and end-of-line convention.  @xref{Coding Systems}.

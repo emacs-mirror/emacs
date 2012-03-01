@@ -13,8 +13,7 @@
 This manual is for Newsticker (version @value{VERSION}, @value{UPDATED}).
 
 @noindent
-Copyright @copyright{} 2004-2012
-Free Software Foundation, Inc.
+Copyright @copyright{} 2004-2012 Free Software Foundation, Inc.
 
 @quotation
 Permission is granted to copy, distribute and/or modify this document
@@ -128,7 +127,7 @@ requires an XML-parser (@file{xml.el}) which is part of GNU Emacs.  If
 you are using XEmacs you want to get the @file{net-utils} package
 which contains @file{xml.el} for XEmacs.
 
-Newsticker retrieves headlines either via Emacs' built-in retrieval
+Newsticker retrieves headlines either via Emacs's built-in retrieval
 functions, by an arbitrary external program that retrieves files via
 http and prints them to stdout (like
 @uref{http://www.gnu.org/software/wget/wget.html, wget}, or -- on a
@@ -215,7 +214,7 @@ retrieved.
 @item
 @vindex newsticker-retrieval-method
 @code{newsticker-retrieval-method} defines how headlines are
-retrieved. This is either done using Emacs' built-in download
+retrieved.  This is either done using Emacs's built-in download
 capabilities or using an external tool.
 @item
 @vindex newsticker-retrieval-interval

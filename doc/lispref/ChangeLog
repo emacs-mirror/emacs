@@ -1,3 +1,53 @@
+2012-02-29  Glenn Morris  <rgm@gnu.org>
+
+	* elisp.texi, vol1.texi, vol2.texi: Use "" quotes in menus.
+
+2012-02-28  Thierry Volpiatto  <thierry.volpiatto@gmail.com>
+
+	* files.texi: Rename files-equal-p to file-equal-p.
+	Update changed behavior of file-subdir-of-p.
+
+2012-02-28  Glenn Morris  <rgm@gnu.org>
+
+	* advice.texi, anti.texi, display.texi, elisp.texi:
+	* processes.texi, variables.texi, vol1.texi, vol2.texi:
+	Standardize possessive apostrophe usage.
+
+	* locals.texi: Remove file.
+	* elisp.texi, vol1.texi, vol2.texi: Don't include locals.texi.
+	Remove menu entry.
+	* errors.texi, maps.texi: Adjust node pointers.
+	* internals.texi (Buffer Internals): Remove cross-refs to locals.texi.
+	* makefile.w32-in (srcs):
+	* Makefile.in (srcs): Remove locals.texi.
+
+	* frames.texi (Mouse Position): Fix cross-ref.
+
+2012-02-27  Chong Yidong  <cyd@gnu.org>
+
+	* buffers.texi (Creating Buffers): Clarify that
+	generate-new-buffer uses generate-new-buffer-names.
+	(Killing Buffers): Remove bogus example duplicating buffer-live-p.
+
+	* files.texi (Directory Names): Index entry for file name abbreviations.
+	(Relative File Names, File Name Expansion): Refer to it.
+	(Locating Files): Move locate-user-emacs-file documentation to
+	Standard File Names.
+	(Standard File Names): Add locate-user-emacs-file; update examples.
+
+2012-02-26  Michael Albinus  <michael.albinus@gmx.de>
+
+	* files.texi (Magic File Names): Add files-equal-p and file-subdir-of-p.
+
+2012-02-26  Chong Yidong  <cyd@gnu.org>
+
+	* files.texi (Kinds of Files): Improve documentation of
+	files-equal-p and file-subdir-of-p.
+
+2012-02-26  Glenn Morris  <rgm@gnu.org>
+
+	* intro.texi (Acknowledgements): Small changes.
+
 2012-02-25  Glenn Morris  <rgm@gnu.org>
 
 	* errors.texi: Don't try to list _all_ the error symbols.

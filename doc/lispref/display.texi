@@ -1,6 +1,6 @@
 @c -*-texinfo-*-
 @c This is part of the GNU Emacs Lisp Reference Manual.
-@c Copyright (C) 1990-1995, 1998-2012  Free Software Foundation, Inc.
+@c Copyright (C) 1990-1995, 1998-2012 Free Software Foundation, Inc.
 @c See the file elisp.texi for copying conditions.
 @setfilename ../../info/display
 @node Display, System Interface, Processes, Top
@@ -28,7 +28,7 @@ that Emacs presents to the user.
 * Display Property::    Enabling special display features.
 * Images::              Displaying images in Emacs buffers.
 * Buttons::             Adding clickable buttons to Emacs buffers.
-* Abstract Display::    Emacs' Widget for Object Collections.
+* Abstract Display::    Emacs's Widget for Object Collections.
 * Blinking::            How Emacs shows the matching open parenthesis.
 * Usual Display::       The usual conventions for displaying nonprinting chars.
 * Display Tables::      How to specify other conventions.
@@ -4941,7 +4941,7 @@ using @code{equal}.  If @var{frame} is @code{nil}, it defaults to the
 selected frame.  If @var{frame} is @code{t}, the image is flushed on
 all existing frames.
 
-In Emacs' current implementation, each graphical terminal possesses an
+In Emacs's current implementation, each graphical terminal possesses an
 image cache, which is shared by all the frames on that terminal
 (@pxref{Multiple Terminals}).  Thus, refreshing an image in one frame
 also refreshes it in all other frames on the same terminal.

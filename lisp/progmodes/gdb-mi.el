@@ -1672,8 +1672,6 @@ static char *magick[] = {
   (if (not (string= "" string))
       (setq gdb-last-command string)
     (if gdb-last-command (setq string gdb-last-command)))
-  (if gdb-enable-debug
-      (push (cons 'mi-send (concat string "\n")) gdb-debug-log))
   (if (string-match "^-" string)
       ;; MI command
       (progn
@@ -1683,9 +1681,21 @@ static char *magick[] = {
     (if (string-match "\\\\$" string)
 	(setq gdb-continuation (concat gdb-continuation string "\n"))
       (setq gdb-first-done-or-error t)
-      (process-send-string proc (concat "-interpreter-exec console \""
-					gdb-continuation string "\"\n"))
+      (let ((to-send (concat "-interpreter-exec console "
+                             (gdb-mi-quote string)
+                             "\n")))
+        (if gdb-enable-debug
+            (push (cons 'mi-send to-send) gdb-debug-log))
+        (process-send-string proc to-send))
       (setq gdb-continuation nil))))
+
+(defun gdb-mi-quote (string)
+  "Return STRING quoted properly as an MI argument.
+The string is enclosed in double quotes.
+All embedded quotes, newlines, and backslashes are preceded with a backslash."
+  (setq string (replace-regexp-in-string "\\([\"\\]\\)" "\\\\\\&" string))
+  (setq string (replace-regexp-in-string "\n" "\\n" string t t))
+  (concat "\"" string "\""))
 
 (defun gdb-input (command handler-function)
   "Send COMMAND to GDB via the MI interface.

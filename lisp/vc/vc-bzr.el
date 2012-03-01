@@ -1,6 +1,6 @@
 ;;; vc-bzr.el --- VC backend for the bzr revision control system
 
-;; Copyright (C) 2006-2012  Free Software Foundation, Inc.
+;; Copyright (C) 2006-2012 Free Software Foundation, Inc.
 
 ;; Author: Dave Love <fx@gnu.org>
 ;; 	   Riccardo Murri <riccardo.murri@gmail.com>
@@ -431,7 +431,7 @@ If any error occurred in running `bzr status', then return nil."
             (skip-chars-forward " \n\t") ;Throw away spaces.
             (cons status
                   ;; "bzr" will output warnings and informational messages to
-                  ;; stderr; due to Emacs' `vc-do-command' (and, it seems,
+                  ;; stderr; due to Emacs's `vc-do-command' (and, it seems,
                   ;; `start-process' itself) limitations, we cannot catch stderr
                   ;; and stdout into different buffers.  So, if there's anything
                   ;; left in the buffer after removing the above status

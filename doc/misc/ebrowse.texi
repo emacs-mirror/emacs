@@ -10,7 +10,7 @@
 @copying
 This file documents Ebrowse, a C++ class browser for GNU Emacs.
 
-Copyright @copyright{} 2000-2012  Free Software Foundation, Inc.
+Copyright @copyright{} 2000-2012 Free Software Foundation, Inc.
 
 @quotation
 Permission is granted to copy, distribute and/or modify this document
@@ -149,7 +149,7 @@ importantly you can find or view member declarations and definitions
 with a keystroke.  @xref{Member Buffers}.
 
 These two buffer types and the commands they provide support the
-navigational use of the browser.  The second form resembles Emacs' Tags
+navigational use of the browser.  The second form resembles Emacs's Tags
 package for C and other procedural languages.  Ebrowse's commands of
 this type are not confined to special buffers; they are most often used
 while you are editing your source code.

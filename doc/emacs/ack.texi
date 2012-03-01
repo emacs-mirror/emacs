@@ -553,7 +553,7 @@ for the Transport Layer Security protocol.
 
 @item
 Arne Jørgensen wrote @file{latexenc.el}, a package to
-automatically guess the correct coding system in LaTeX files.
+automatically guess the correct coding system in La@TeX{} files.
 
 @item
 Alexandre Julliard wrote @file{vc-git.el}, support for the Git version
@@ -571,7 +571,7 @@ control system.
 Henry Kautz wrote @file{bib-mode.el}, a mode for maintaining
 bibliography databases compatible with @code{refer} (the @code{troff}
 version) and @code{lookbib}, and @file{refbib.el}, a package to convert
-those databases to the format used by the LaTeX text formatting package.
+those databases to the format used by the La@TeX{} text formatting package.
 
 @item
 Taichi Kawabata added support for Devanagari script and the Indian
@@ -832,7 +832,7 @@ a directory-level front end to the CVS version control system;
 text; @file{smerge-mode.el}, a minor mode for resolving @code{diff3}
 conflicts; @file{diff-mode.el}, a mode for viewing and editing context
 diffs; @file{css-mode.el} for Cascading Style Sheets;
-@file{bibtex-style.el} for BibTeX Style files; @file{mpc.el}, a
+@file{bibtex-style.el} for Bib@TeX{} Style files; @file{mpc.el}, a
 client for the ``Music Player Daemon''; @file{smie.el}, a generic
 indentation engine; and @file{pcase.el}, implementing ML-style pattern
 matching.  He integrated the lexical binding code in Emacs 24.

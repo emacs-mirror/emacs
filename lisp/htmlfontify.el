@@ -1,6 +1,6 @@
 ;;; htmlfontify.el --- htmlize a buffer/source tree with optional hyperlinks
 
-;; Copyright (C) 2002-2003, 2009-2012  Free Software Foundation, Inc.
+;; Copyright (C) 2002-2003, 2009-2012 Free Software Foundation, Inc.
 
 ;; Emacs Lisp Archive Entry
 ;; Package: htmlfontify
@@ -376,7 +376,7 @@ commands in `hfy-etags-cmd-alist'."
   "The etags equivalent command to run in a source directory to generate a tags
 file for the whole source tree from there on down.  The command should emit
 the etags output on stdout.\n
-Two canned commands are provided - they drive Emacs' etags and
+Two canned commands are provided - they drive Emacs's etags and
 exuberant-ctags' etags respectively."
   :group 'htmlfontify
   :tag   "etags-command"
@@ -859,13 +859,13 @@ If CLASS is set, it must be a `defface' alist key [see below],
 in which case the first face specification returned by `hfy-combined-face-spec'
 which *doesn't* clash with CLASS is returned.\n
 \(A specification with a class of t is considered to match any class you
-specify - this matches Emacs' behavior when deciding on which face attributes
+specify - this matches Emacs's behavior when deciding on which face attributes
 to use, to the best of my understanding).\n
 If CLASS is nil, then you just get whatever `face-attr-construct' returns,
 ie the current specification in effect for FACE.\n
 *NOTE*: This function forces any face that is not 'default and which has
 no :inherit property to inherit from 'default (this is because 'default
-is magical in that Emacs' fonts behave as if they inherit implicitly from
+is magical in that Emacs's fonts behave as if they inherit implicitly from
 'default, but no such behavior exists in HTML/CSS).\n
 See also `hfy-display-class' for details of valid values for CLASS."
   (let ((face-spec

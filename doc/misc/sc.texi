@@ -204,7 +204,7 @@ When the original message is cited by @code{sc-cite-original}, it will
 (optionally) be filled by Supercite.  However, if you manually edit the
 cited text and want to re-fill it, you must use an add-on package such
 as @cite{filladapt} or @cite{gin-mode}.  These packages can recognize
-Supercited text and will fill them appropriately.  Emacs' built-in
+Supercited text and will fill them appropriately.  Emacs's built-in
 filling routines, e.g@. @code{fill-paragraph}, do not recognize cited
 text and will not re-fill them properly because it cannot guess the
 @code{fill-prefix} being used.
@@ -786,7 +786,7 @@ pertaining to the MUAs you are using.
 One final note.  After Supercite is loaded into your Emacs session, it
 runs the hook @code{sc-load-hook}.  You can put any customizations into
 this hook since it is only run once.  This will not work, however, if
-your Emacs maintainer has put Supercite into your dumped Emacs' image.
+your Emacs maintainer has put Supercite into your dumped Emacs image.
 In that case, you can use the @code{sc-pre-hook} variable, but this will
 get executed every time @code{sc-cite-original} is called.  @xref{Reply
 Buffer Initialization}.@refill
@@ -1008,7 +1008,7 @@ fill each cited paragraph in the reply buffer.
 
 I usually run with both these variables containing their default values.
 When Supercite's automatic filling breaks on a particular message, I
-will use Emacs' undo feature to undo back before the citation was
+will use Emacs's undo feature to undo back before the citation was
 applied to the original message.  Then I'll toggle the variables and
 manually cite those paragraphs that I don't want to fill or collapse
 whitespace on.  @xref{Variable Toggling Shortcuts}.@refill
@@ -1688,7 +1688,7 @@ Toggles the variable @code{sc-fixup-whitespace-p}.
 
 @findex set-variable
 The following commands let you set the value of multi-value variables,
-in the same way that Emacs' @code{set-variable} does:
+in the same way that Emacs's @code{set-variable} does:
 
 @table @kbd
 @item C-c C-p C-t a
@@ -1777,7 +1777,7 @@ old information is lost.@refill
 @findex open-line
 @kindex C-c C-p o
 @item @code{sc-open-line} (@kbd{C-c C-p o})
-Similar to Emacs' standard @code{open-line} commands, but inserts the
+Similar to Emacs's standard @code{open-line} commands, but inserts the
 citation string in front of the new line.  As with @code{open-line},
 an optional numeric argument inserts that many new lines.@refill
 @end table

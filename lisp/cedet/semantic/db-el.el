@@ -1,6 +1,6 @@
 ;;; semantic/db-el.el --- Semantic database extensions for Emacs Lisp
 
-;;; Copyright (C) 2002-2012  Free Software Foundation, Inc.
+;;; Copyright (C) 2002-2012 Free Software Foundation, Inc.
 
 ;; Author: Eric M. Ludlam <zappo@gnu.org>
 ;; Keywords: tags
@@ -132,7 +132,7 @@ For Emacs Lisp system DB, there isn't one."
   "Convert one TAG, originating from Emacs OBJ, into standardized form.
 If Emacs cannot resolve this symbol to a particular file, then return nil."
   ;; Here's the idea.  For each tag, get the name, then use
-  ;; Emacs' `symbol-file' to get the source.  Once we have that,
+  ;; Emacs's `symbol-file' to get the source.  Once we have that,
   ;; we can use more typical semantic searching techniques to
   ;; get a regularly parsed tag.
   (let* ((type (cond ((semantic-tag-of-class-p tag 'function)

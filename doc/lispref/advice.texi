@@ -1,6 +1,6 @@
 @c -*-texinfo-*-
 @c This is part of the GNU Emacs Lisp Reference Manual.
-@c Copyright (C) 1998-1999, 2001-2012  Free Software Foundation, Inc.
+@c Copyright (C) 1998-1999, 2001-2012 Free Software Foundation, Inc.
 @c See the file elisp.texi for copying conditions.
 @setfilename ../../info/advising
 @node Advising Functions, Debugging, Byte Compilation, Top
@@ -31,7 +31,7 @@ who debug calls to the original function may not notice that it has
 been modified with advice.  Therefore, if you have the possibility to
 change the code of that function to run a hook, please solve the
 problem that way.  Advice should be reserved for the cases where you
-cannot get the function changed.  In particular, Emacs' own source
+cannot get the function changed.  In particular, Emacs's own source
 files should not put advice on functions in Emacs.  There are
 currently a few exceptions to this convention, but we aim to correct
 them.

@@ -1705,7 +1705,7 @@ expressions}.  For example, a typical forward search would be invoked by
 @var{pat} you must preceded it by @samp{\}.  VIP strips off these @kbd{\}'s
 before @kbd{/} and the resulting @var{pat} becomes the actual search
 pattern.  Emacs provides a different and richer class or regular
-expressions than Vi/Ex, and VIP uses Emacs' regular expressions.  See GNU
+expressions than Vi/Ex, and VIP uses Emacs's regular expressions.  See GNU
 Emacs Manual for details of regular expressions.
 
 Several Ex commands can be entered in a line by separating them by a pipe

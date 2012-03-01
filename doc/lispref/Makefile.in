@@ -1,6 +1,6 @@
 # Makefile for the GNU Emacs Lisp Reference Manual.
 
-# Copyright (C) 1990-1996, 1998-2012  Free Software Foundation, Inc.
+# Copyright (C) 1990-1996, 1998-2012 Free Software Foundation, Inc.
 
 # This file is part of GNU Emacs.
 
@@ -70,7 +70,6 @@ srcs = \
   $(srcdir)/keymaps.texi \
   $(srcdir)/lists.texi \
   $(srcdir)/loading.texi \
-  $(srcdir)/locals.texi \
   $(srcdir)/macros.texi \
   $(srcdir)/maps.texi \
   $(srcdir)/markers.texi \

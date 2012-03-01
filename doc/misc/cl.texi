@@ -5,7 +5,7 @@
 @copying
 This file documents the GNU Emacs Common Lisp emulation package.
 
-Copyright @copyright{} 1993, 2001-2012  Free Software Foundation, Inc.
+Copyright @copyright{} 1993, 2001-2012 Free Software Foundation, Inc.
 
 @quotation
 Permission is granted to copy, distribute and/or modify this document
@@ -60,17 +60,17 @@ does assume a basic familiarity with Emacs Lisp.
 
 @menu
 * Overview::             Installation, usage, etc.
-* Program Structure::    Arglists, `eval-when', `defalias'
-* Predicates::           `typep' and `equalp'
-* Control Structure::    `setf', `do', `loop', etc.
-* Macros::               Destructuring, `define-compiler-macro'
-* Declarations::         `proclaim', `declare', etc.
-* Symbols::              Property lists, `gensym'
+* Program Structure::    Arglists, @code{eval-when}, @code{defalias}
+* Predicates::           @code{typep} and @code{equalp}
+* Control Structure::    @code{setf}, @code{do}, @code{loop}, etc.
+* Macros::               Destructuring, @code{define-compiler-macro}
+* Declarations::         @code{proclaim}, @code{declare}, etc.
+* Symbols::              Property lists, @code{gensym}
 * Numbers::              Predicates, functions, random numbers
 * Sequences::            Mapping, functions, searching, sorting
-* Lists::                `caddr', `sublis', `member*', `assoc*', etc.
-* Structures::           `defstruct'
-* Assertions::           `check-type', `assert', `ignore-errors'.
+* Lists::                @code{caddr}, @code{sublis}, @code{member*}, @code{assoc*}, etc.
+* Structures::           @code{defstruct}
+* Assertions::           @code{check-type}, @code{assert}, @code{ignore-errors}.
 
 * Efficiency Concerns::         Hints and techniques
 * Common Lisp Compatibility::   All known differences with Steele
@@ -128,7 +128,7 @@ features.
 
 @item
 Some features conflict with existing things in Emacs Lisp.  For
-example, Emacs' @code{assoc} function is incompatible with the
+example, Emacs's @code{assoc} function is incompatible with the
 Common Lisp @code{assoc}.  In such cases, this package usually
 adds the suffix @samp{*} to the function name of the Common
 Lisp version of the function (e.g., @code{assoc*}).
@@ -293,8 +293,8 @@ do with programs as a whole: advanced argument lists for functions,
 and the @code{eval-when} construct.
 
 @menu
-* Argument Lists::       `&key', `&aux', `defun*', `defmacro*'.
-* Time of Evaluation::   The `eval-when' construct.
+* Argument Lists::       @code{&key}, @code{&aux}, @code{defun*}, @code{defmacro*}.
+* Time of Evaluation::   The @code{eval-when} construct.
 @end menu
 
 @iftex
@@ -683,8 +683,8 @@ This section describes functions for testing whether various
 facts are true or false.
 
 @menu
-* Type Predicates::      `typep', `deftype', and `coerce'
-* Equality Predicates::  `equalp'
+* Type Predicates::      @code{typep}, @code{deftype}, and @code{coerce}
+* Equality Predicates::  @code{equalp}
 @end menu
 
 @node Type Predicates, Equality Predicates, Predicates, Predicates
@@ -858,14 +858,14 @@ various advanced control structures, including the powerful
 constructs.
 
 @menu
-* Assignment::             The `psetq' form
-* Generalized Variables::  `setf', `incf', `push', etc.
-* Variable Bindings::      `progv', `lexical-let', `flet', `macrolet'
-* Conditionals::           `case', `typecase'
-* Blocks and Exits::       `block', `return', `return-from'
-* Iteration::              `do', `dotimes', `dolist', `do-symbols'
-* Loop Facility::          The Common Lisp `loop' macro
-* Multiple Values::        `values', `multiple-value-bind', etc.
+* Assignment::             The @code{psetq} form
+* Generalized Variables::  @code{setf}, @code{incf}, @code{push}, etc.
+* Variable Bindings::      @code{progv}, @code{lexical-let}, @code{flet}, @code{macrolet}
+* Conditionals::           @code{case}, @code{typecase}
+* Blocks and Exits::       @code{block}, @code{return}, @code{return-from}
+* Iteration::              @code{do}, @code{dotimes}, @code{dolist}, @code{do-symbols}
+* Loop Facility::          The Common Lisp @code{loop} macro
+* Multiple Values::        @code{values}, @code{multiple-value-bind}, etc.
 @end menu
 
 @node Assignment, Generalized Variables, Control Structure, Control Structure
@@ -929,9 +929,9 @@ Just as certain forms like @code{a[i]} can be lvalues in C, there
 is a set of forms that can be generalized variables in Lisp.
 
 @menu
-* Basic Setf::         `setf' and place forms
-* Modify Macros::      `incf', `push', `rotatef', `letf', `callf', etc.
-* Customizing Setf::   `define-modify-macro', `defsetf', `define-setf-method'
+* Basic Setf::         @code{setf} and place forms
+* Modify Macros::      @code{incf}, @code{push}, @code{rotatef}, @code{letf}, @code{callf}, etc.
+* Customizing Setf::   @code{define-modify-macro}, @code{defsetf}, @code{define-setf-method}
 @end menu
 
 @node Basic Setf, Modify Macros, Generalized Variables, Generalized Variables
@@ -1540,10 +1540,10 @@ analogous to Lisp's built-in @code{let} form.
 are also related to variable bindings.
 
 @menu
-* Dynamic Bindings::     The `progv' form
-* Lexical Bindings::     `lexical-let' and lexical closures
-* Function Bindings::    `flet' and `labels'
-* Macro Bindings::       `macrolet' and `symbol-macrolet'
+* Dynamic Bindings::     The @code{progv} form
+* Lexical Bindings::     @code{lexical-let} and lexical closures
+* Function Bindings::    @code{flet} and @code{labels}
+* Macro Bindings::       @code{macrolet} and @code{symbol-macrolet}
 @end menu
 
 @node Dynamic Bindings, Lexical Bindings, Variable Bindings, Variable Bindings
@@ -2094,7 +2094,7 @@ of a list.  @var{list} should evaluate to a list; the body @var{forms}
 are executed with @var{var} bound to each element of the list in
 turn.  Finally, the @var{result} form (or @code{nil}) is evaluated
 with @var{var} bound to @code{nil} to produce the result returned by
-the loop.  Unlike with Emacs's built in @code{dolist}, the loop is
+the loop.  Unlike with Emacs'ss built in @code{dolist}, the loop is
 surrounded by an implicit @code{nil} block.
 @end defspec
 
@@ -2104,7 +2104,7 @@ of times.  The body is executed with @var{var} bound to the integers
 from zero (inclusive) to @var{count} (exclusive), in turn.  Then
 the @code{result} form is evaluated with @var{var} bound to the total
 number of iterations that were done (i.e., @code{(max 0 @var{count})})
-to get the return value for the loop form.  Unlike with Emacs's built in
+to get the return value for the loop form.  Unlike with Emacs'ss built in
 @code{dolist}, the loop is surrounded by an implicit @code{nil} block.
 @end defspec
 
@@ -2140,12 +2140,12 @@ construct called the ``Loop Facility'' or ``@code{loop} macro,''
 with an easy-to-use but very powerful and expressive syntax.
 
 @menu
-* Loop Basics::           `loop' macro, basic clause structure
-* Loop Examples::         Working examples of `loop' macro
-* For Clauses::           Clauses introduced by `for' or `as'
-* Iteration Clauses::     `repeat', `while', `thereis', etc.
-* Accumulation Clauses::  `collect', `sum', `maximize', etc.
-* Other Clauses::         `with', `if', `initially', `finally'
+* Loop Basics::           @code{loop} macro, basic clause structure
+* Loop Examples::         Working examples of @code{loop} macro
+* For Clauses::           Clauses introduced by @code{for} or @code{as}
+* Iteration Clauses::     @code{repeat}, @code{while}, @code{thereis}, etc.
+* Accumulation Clauses::  @code{collect}, @code{sum}, @code{maximize}, etc.
+* Other Clauses::         @code{with}, @code{if}, @code{initially}, @code{finally}
 @end menu
 
 @node Loop Basics, Loop Examples, Loop Facility, Loop Facility
@@ -2226,7 +2226,7 @@ returned by @code{buffer-list}.  For each buffer @code{buf},
 it calls @code{buffer-file-name} and collects the results into
 a list, which is then returned from the @code{loop} construct.
 The result is a list of the file names of all the buffers in
-Emacs' memory.  The words @code{for}, @code{in}, and @code{collect}
+Emacs's memory.  The words @code{for}, @code{in}, and @code{collect}
 are reserved words in the @code{loop} language.
 
 @example
@@ -3184,8 +3184,8 @@ This package defines several symbol-related features that were
 missing from Emacs Lisp.
 
 @menu
-* Property Lists::       `get*', `remprop', `getf', `remf'
-* Creating Symbols::     `gensym', `gentemp'
+* Property Lists::       @code{get*}, @code{remprop}, @code{getf}, @code{remf}
+* Creating Symbols::     @code{gensym}, @code{gentemp}
 @end menu
 
 @node Property Lists, Creating Symbols, Symbols, Symbols
@@ -3330,10 +3330,10 @@ This section defines a few simple Common Lisp operations on numbers
 which were left out of Emacs Lisp.
 
 @menu
-* Predicates on Numbers::       `plusp', `oddp', `floatp-safe', etc.
-* Numerical Functions::         `abs', `floor*', etc.
-* Random Numbers::              `random*', `make-random-state'
-* Implementation Parameters::   `most-positive-float'
+* Predicates on Numbers::       @code{plusp}, @code{oddp}, @code{floatp-safe}, etc.
+* Numerical Functions::         @code{abs}, @code{floor*}, etc.
+* Random Numbers::              @code{random*}, @code{make-random-state}
+* Implementation Parameters::   @code{most-positive-float}
 @end menu
 
 @iftex
@@ -3630,10 +3630,10 @@ Emacs Lisp includes a few of these, notably @code{elt} and
 
 @menu
 * Sequence Basics::          Arguments shared by all sequence functions
-* Mapping over Sequences::   `mapcar*', `mapcan', `map', `every', etc.
-* Sequence Functions::       `subseq', `remove*', `substitute', etc.
-* Searching Sequences::      `find', `position', `count', `search', etc.
-* Sorting Sequences::        `sort*', `stable-sort', `merge'
+* Mapping over Sequences::   @code{mapcar*}, @code{mapcan}, @code{map}, @code{every}, etc.
+* Sequence Functions::       @code{subseq}, @code{remove*}, @code{substitute}, etc.
+* Searching Sequences::      @code{find}, @code{position}, @code{count}, @code{search}, etc.
+* Sorting Sequences::        @code{sort*}, @code{stable-sort}, @code{merge}
 @end menu
 
 @node Sequence Basics, Mapping over Sequences, Sequences, Sequences
@@ -3870,7 +3870,7 @@ with @var{sequence}.
 As an extension to Common Lisp, @var{start} and/or @var{end}
 may be negative, in which case they represent a distance back
 from the end of the sequence.  This is for compatibility with
-Emacs' @code{substring} function.  Note that @code{subseq} is
+Emacs's @code{substring} function.  Note that @code{subseq} is
 the @emph{only} sequence function that allows negative
 @var{start} and @var{end}.
 
@@ -4059,7 +4059,7 @@ is less than (not equal to) its second argument.  For example,
 for sorting numbers and strings, respectively; @code{>} would sort
 numbers into decreasing rather than increasing order.
 
-This function differs from Emacs' built-in @code{sort} in that it
+This function differs from Emacs's built-in @code{sort} in that it
 can operate on any type of sequence, not just lists.  Also, it
 accepts a @code{:key} argument which is used to preprocess data
 fed to the @var{predicate} function.  For example,
@@ -4113,10 +4113,10 @@ a merged sequence which is (stably) sorted according to
 The functions described here operate on lists.
 
 @menu
-* List Functions::                `caddr', `first', `list*', etc.
-* Substitution of Expressions::   `subst', `sublis', etc.
-* Lists as Sets::                 `member*', `adjoin', `union', etc.
-* Association Lists::             `assoc*', `rassoc*', `acons', `pairlis'
+* List Functions::                @code{caddr}, @code{first}, @code{list*}, etc.
+* Substitution of Expressions::   @code{subst}, @code{sublis}, etc.
+* Lists as Sets::                 @code{member*}, @code{adjoin}, @code{union}, etc.
+* Association Lists::             @code{assoc*}, @code{rassoc*}, @code{acons}, @code{pairlis}
 @end menu
 
 @node List Functions, Substitution of Expressions, Lists, Lists
@@ -5186,7 +5186,7 @@ variables no collision can occur.)
 
 @xref{Lexical Bindings}, for a description of the @code{lexical-let}
 form which establishes a Common Lisp-style lexical binding, and some
-examples of how it differs from Emacs' regular @code{let}.
+examples of how it differs from Emacs's regular @code{let}.
 
 @item
 Reader macros.  Common Lisp includes a second type of macro that
