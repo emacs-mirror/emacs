@@ -1,3 +1,12 @@
+2012-03-01  Michael R. Mauger  <mmaug@yahoo.com>
+
+	* progmodes/sql.el: Bug fix
+	(sql-get-login-ext): Save login values in globals.
+	(sql-get-login): Use new version of `sql-get-login-ext'.
+	(sql-interactive-mode): Set global `sql-connection' to nil.
+	(sql-connect): Set global values for connection.
+	(sql-product-interactive): Save global values as buffer local.
+
 2012-02-29  Leo Liu  <sdl.web@gmail.com>
 
 	* abbrev.el (define-abbrevs): Reset sys to nil.
