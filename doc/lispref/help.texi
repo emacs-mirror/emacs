@@ -636,6 +636,7 @@ in the minibuffer with the message @samp{Help (Type ? for further
 options)}, and then provides assistance in finding out what the key
 bindings are, and what the mode is intended for.  It returns @code{nil}.
 
+@vindex Helper-help-map
 This can be customized by changing the map @code{Helper-help-map}.
 @end deffn
 

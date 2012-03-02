@@ -1,10 +1,24 @@
+2012-03-01  Michael Albinus  <michael.albinus@gmx.de>
+
+	* files.texi (Kinds of Files): The return value of file-equal-p is
+	unspecified, if FILE1 or FILE2 does not exist.
+
+2012-03-01  Glenn Morris  <rgm@gnu.org>
+
+	* hooks.texi (Standard Hooks): Remove mode-specific hooks.
+
+	* maps.texi (Standard Keymaps): General update.
+	Remove mode-specific maps, talk about the more general keymaps.
+	* help.texi (Help Functions): Add vindex for Helper-help-map.
+	* keymaps.texi (Active Keymaps): Minor rephrasing.
+
 2012-02-29  Glenn Morris  <rgm@gnu.org>
 
 	* elisp.texi, vol1.texi, vol2.texi: Use "" quotes in menus.
 
 2012-02-28  Thierry Volpiatto  <thierry.volpiatto@gmail.com>
 
-	* files.texi: Rename files-equal-p to file-equal-p.
+	* files.texi (Kinds of Files): Rename files-equal-p to file-equal-p.
 	Update changed behavior of file-subdir-of-p.
 
 2012-02-28  Glenn Morris  <rgm@gnu.org>

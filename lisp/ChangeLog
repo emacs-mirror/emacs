@@ -1,3 +1,14 @@
+2012-03-01  Michael Albinus  <michael.albinus@gmx.de>
+
+	* files.el (file-equal-p): Fix docstring.  Avoid unnecessary
+	access of FILE2, if FILE1 does not exist.
+
+	* net/tramp-sh.el (tramp-remote-process-environment): Add "PAGER=\"\"".
+	Reported by Robert Lupton the Good <rhl@astro.princeton.edu>.
+
+	* vc/vc-git.el (vc-git--call): Enable `inhibit-null-byte-detection'.
+	Add "PAGER=" to `process-environment'.
+
 2012-03-01  Michael R. Mauger  <mmaug@yahoo.com>
 
 	* progmodes/sql.el: Bug fix
