@@ -1,5 +1,8 @@
 2012-03-02  Glenn Morris  <rgm@gnu.org>
 
+	* backups.texi (Reverting): Un-duplicate revert-buffer-in-progress-p,
+	and relocate entry.  Mention buffer-stale-function.
+
 	* elisp.texi, vol1.texi, vol2.texi: Standardize some menu entries.
 
 	* hooks.texi (Standard Hooks): General update.
