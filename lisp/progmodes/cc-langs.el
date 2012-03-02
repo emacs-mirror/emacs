@@ -459,8 +459,10 @@ so that all identifiers are recognized as words.")
   ;; For documentation see the following c-lang-defvar of the same name.
   ;; The value here may be a list of functions or a single function.
   t nil
-  c++ '(c-extend-region-for-CPP c-before-change-check-<>-operators)
-  (c objc) 'c-extend-region-for-CPP
+  c++ '(c-extend-region-for-CPP
+	c-before-change-check-<>-operators
+	c-invalidate-macro-cache)
+  (c objc) '(c-extend-region-for-CPP c-invalidate-macro-cache)
   ;; java 'c-before-change-check-<>-operators
   awk 'c-awk-record-region-clear-NL)
 (c-lang-defvar c-get-state-before-change-functions

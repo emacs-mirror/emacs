@@ -1,3 +1,25 @@
+2012-03-02  Alan Mackenzie  <acm@muc.de>
+
+	Depessimize the handling of very large macros.
+
+	* progmodes/cc-engine.el (c-macro-cache, c-macro-cache-start-pos):
+	(c-macro-cache-syntactic): New variables to implement a one
+	element macro cache.
+	(c-invalidate-macro-cache): New function.
+	(c-beginning-of-macro, c-end-of-macro, c-syntactic-end-of-macro):
+	Adapt to use the new cache.
+	(c-state-safe-place): Use better the cache of safe positions.
+	(c-state-semi-nonlit-pos-cache)
+	(c-state-semi-nonlit-pos-cache-limit):
+	New variables for...
+	(c-state-semi-safe-place): New function.  Here, in a macro is "safe".
+	(c-invalidate-state-cache-1): New stuff for c-state-semi-safe-place.
+	(c-in-literal, c-literal-limits, c-determine-limit-get-base): Use
+	c-state-semi-safe-place.
+
+	* progmodes/cc-langs.el (c-get-state-before-change-functions): Add
+	c-invalidate-macro-cache to the C, C++, Obj entries.
+
 2012-03-02  Michael Albinus  <michael.albinus@gmx.de>
 
 	* jka-compr.el (jka-compr-call-process): Apply
