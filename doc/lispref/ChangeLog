@@ -1,5 +1,7 @@
 2012-03-02  Glenn Morris  <rgm@gnu.org>
 
+	* elisp.texi, vol1.texi, vol2.texi: Standardize some menu entries.
+
 	* hooks.texi (Standard Hooks): General update.
 	Put related hooks together.  Add and remove items.
 	* commands.texi (Keyboard Macros): Remove cross-ref to Standard Hooks.
