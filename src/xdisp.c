@@ -15611,7 +15611,7 @@ redisplay_window (Lisp_Object window, int just_this_one_p)
 
 	  SAVE_IT (it1, it, it1data);
 	  start_display (&it1, w, startp);
-	  move_it_vertically (&it1, margin);
+	  move_it_vertically (&it1, margin * FRAME_LINE_HEIGHT (f));
 	  margin_pos = IT_CHARPOS (it1);
 	  RESTORE_IT (&it, &it, it1data);
 	}

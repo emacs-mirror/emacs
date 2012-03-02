@@ -4,6 +4,8 @@
 	position past the first glyph_row that ends at ZV.  (Bug#10902)
 	(redisplay_window, next_element_from_string): Fix typos in
 	comments.
+	(redisplay_window): Pass to move_it_vertically the margin in
+	pixels, not in screen lines.
 
 2012-03-02  Glenn Morris  <rgm@gnu.org>
 
