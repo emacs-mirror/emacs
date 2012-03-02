@@ -1,3 +1,8 @@
+2012-03-02  Eli Zaretskii  <eliz@gnu.org>
+
+	* xdisp.c (try_window_reusing_current_matrix): Don't move cursor
+	position past the first glyph_row that ends at ZV.  (Bug#10902)
+
 2012-03-02  Glenn Morris  <rgm@gnu.org>
 
 	* buffer.c (buffer-list-update-hook): Doc fix.

@@ -16322,7 +16322,10 @@ try_window_reusing_current_matrix (struct window *w)
 	   ++first_row_to_display)
 	{
 	  if (PT >= MATRIX_ROW_START_CHARPOS (first_row_to_display)
-	      && PT < MATRIX_ROW_END_CHARPOS (first_row_to_display))
+	      && (PT < MATRIX_ROW_END_CHARPOS (first_row_to_display)
+		  || (PT == MATRIX_ROW_END_CHARPOS (first_row_to_display)
+		      && first_row_to_display->ends_at_zv_p
+		      && pt_row == NULL)))
 	    pt_row = first_row_to_display;
 	}
 
@@ -16414,7 +16417,9 @@ try_window_reusing_current_matrix (struct window *w)
       if (pt_row)
 	{
 	  for (row = MATRIX_ROW (w->current_matrix, w->cursor.vpos);
-	       row < bottom_row && PT >= MATRIX_ROW_END_CHARPOS (row);
+	       row < bottom_row
+		 && PT >= MATRIX_ROW_END_CHARPOS (row)
+		 && !row->ends_at_zv_p;
 	       row++)
 	    {
 	      w->cursor.vpos++;
