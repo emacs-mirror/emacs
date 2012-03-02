@@ -1,3 +1,9 @@
+2012-03-02  Michael Albinus  <michael.albinus@gmx.de>
+
+	* jka-compr.el (jka-compr-call-process): Apply
+	`file-accessible-directory-p' only when the default directory is
+	not remote.
+
 2012-03-01  Michael Albinus  <michael.albinus@gmx.de>
 
 	* files.el (file-equal-p): Fix docstring.  Avoid unnecessary
