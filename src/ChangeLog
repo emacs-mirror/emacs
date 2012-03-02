@@ -1,3 +1,7 @@
+2012-03-02  Glenn Morris  <rgm@gnu.org>
+
+	* buffer.c (buffer-list-update-hook): Doc fix.
+
 2012-02-29  Eli Zaretskii  <eliz@gnu.org>
 
 	* xdisp.c (get_overlay_strings_1): Under bidi redisplay, call
