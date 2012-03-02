@@ -7362,7 +7362,7 @@ next_element_from_string (struct it *it)
   if (it->current.overlay_string_index >= 0)
     {
       /* Get the next character from an overlay string.  In overlay
-	 strings, There is no field width or padding with spaces to
+	 strings, there is no field width or padding with spaces to
 	 do.  */
       if (IT_STRING_CHARPOS (*it) >= SCHARS (it->string))
 	{
@@ -15602,7 +15602,7 @@ redisplay_window (Lisp_Object window, int just_this_one_p)
 	     accessible region of the buffer.  This can happen when we
 	     have just switched to a different buffer and/or changed
 	     its restriction.  In that case, startp is initialized to
-	     the character position 1 (BEG) because we did not yet
+	     the character position 1 (BEGV) because we did not yet
 	     have chance to display the buffer even once.  */
 	  && BEGV <= CHARPOS (startp) && CHARPOS (startp) <= ZV)
 	{

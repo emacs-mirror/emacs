@@ -2,6 +2,8 @@
 
 	* xdisp.c (try_window_reusing_current_matrix): Don't move cursor
 	position past the first glyph_row that ends at ZV.  (Bug#10902)
+	(redisplay_window, next_element_from_string): Fix typos in
+	comments.
 
 2012-03-02  Glenn Morris  <rgm@gnu.org>
 
