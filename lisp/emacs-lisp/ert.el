@@ -862,7 +862,7 @@ run.  DEBUGGER-ARGS are the arguments to `debugger'."
                   (make-ert-test-failed :condition condition
                                         :backtrace backtrace
                                         :infos infos))))
-         ;; Work around Emacs' heuristic (in eval.c) for detecting
+         ;; Work around Emacs's heuristic (in eval.c) for detecting
          ;; errors in the debugger.
          (incf num-nonmacro-input-events)
          ;; FIXME: We should probably implement more fine-grained

@@ -1,6 +1,6 @@
 ;;; semantic/db.el --- Semantic tag database manager
 
-;; Copyright (C) 2000-2012  Free Software Foundation, Inc.
+;; Copyright (C) 2000-2012 Free Software Foundation, Inc.
 
 ;; Author: Eric M. Ludlam <zappo@gnu.org>
 ;; Keywords: tags
@@ -205,7 +205,7 @@ If one doesn't exist, create it."
    )
   "Table used for search results when there is no file or table association.
 Examples include search results from external sources such as from
-Emacs' own symbol table, or from external libraries.")
+Emacs's own symbol table, or from external libraries.")
 
 (defmethod semanticdb-refresh-table ((obj semanticdb-search-results-table) &optional force)
   "If the tag list associated with OBJ is loaded, refresh it.

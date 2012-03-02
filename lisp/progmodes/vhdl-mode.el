@@ -1,6 +1,6 @@
 ;;; vhdl-mode.el --- major mode for editing VHDL code
 
-;; Copyright (C) 1992-2012  Free Software Foundation, Inc.
+;; Copyright (C) 1992-2012 Free Software Foundation, Inc.
 
 ;; Authors:     Reto Zimmermann <reto@gnu.org>
 ;;              Rodney J. Whitby <software.vhdl-mode@rwhitby.net>
@@ -2040,7 +2040,7 @@ Ignore byte-compiler warnings you might see."
 ;; `wildcard-to-regexp' is included only in XEmacs 21
 (unless (fboundp 'wildcard-to-regexp)
   (defun wildcard-to-regexp (wildcard)
-    "Simplified version of `wildcard-to-regexp' from Emacs' `files.el'."
+    "Simplified version of `wildcard-to-regexp' from Emacs's `files.el'."
     (let* ((i (string-match "[*?]" wildcard))
 	   (result (substring wildcard 0 i))
 	   (len (length wildcard)))
@@ -2087,7 +2087,7 @@ Ignore byte-compiler warnings you might see."
 ;; `file-expand-wildcards' undefined (XEmacs)
 (unless (fboundp 'file-expand-wildcards)
   (defun file-expand-wildcards (pattern &optional full)
-    "Taken from Emacs' `files.el'."
+    "Taken from Emacs's `files.el'."
     (let* ((nondir (file-name-nondirectory pattern))
     	   (dirpart (file-name-directory pattern))
     	   (dirs (if (and dirpart (string-match "[[*?]" dirpart))

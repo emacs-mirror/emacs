@@ -1108,8 +1108,11 @@ The difference to vc-do-command is that this function always invokes
 (defun vc-git--call (buffer command &rest args)
   ;; We don't need to care the arguments.  If there is a file name, it
   ;; is always a relative one.  This works also for remote
-  ;; directories.
-  (apply 'process-file vc-git-program nil buffer nil command args))
+  ;; directories.  We enable `inhibit-null-byte-detection', otherwise
+  ;; Tramp's eol conversion might be confused.
+  (let ((inhibit-null-byte-detection t)
+	(process-environment (cons "PAGER=" process-environment)))
+    (apply 'process-file vc-git-program nil buffer nil command args)))
 
 (defun vc-git--out-ok (command &rest args)
   (zerop (apply 'vc-git--call '(t nil) command args)))

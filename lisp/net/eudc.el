@@ -1,6 +1,6 @@
 ;;; eudc.el --- Emacs Unified Directory Client
 
-;; Copyright (C) 1998-2012  Free Software Foundation, Inc.
+;; Copyright (C) 1998-2012 Free Software Foundation, Inc.
 
 ;; Author: Oscar Figueiredo <oscar@cpe.fr>
 ;; Maintainer: Pavel Janík <Pavel@Janik.cz>
@@ -133,7 +133,7 @@
       (setq plist (cdr (cdr plist))))
     nil))
 
-;; Emacs' plist-get lacks third parameter
+;; Emacs's plist-get lacks third parameter
 (defun eudc-plist-get (plist prop &optional default)
   "Extract a value from a property list.
 PLIST is a property list, which is a list of the form

@@ -482,12 +482,14 @@ suitable file is found, return nil."
 		  (if (member (event-modifiers (aref key 0)) '(nil (shift)))
 		      (push key non-modified-keys)))
 		(when remapped
-		  (princ "It is remapped to `")
+		  (princ "Its keys are remapped to `")
 		  (princ (symbol-name remapped))
-		  (princ "'"))
+		  (princ "'.\n"))
 
 		(when keys
-		  (princ (if remapped ", which is bound to " "It is bound to "))
+		  (princ (if remapped
+			     "Without this remapping, it would be bound to "
+			   "It is bound to "))
 		  ;; If lots of ordinary text characters run this command,
 		  ;; don't mention them one by one.
 		  (if (< (length non-modified-keys) 10)

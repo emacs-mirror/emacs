@@ -10,7 +10,7 @@
 
 ;;; Commentary:
 
-;; A replacement for parts of Emacs' sendmail.el (specifically,
+;; A replacement for parts of sendmail.el (specifically,
 ;; it's what handles your outgoing mail after you hit C-c C-c in mail
 ;; mode).  See below for a list of additional features, including the
 ;; ability to queue messages for later sending.  This replaces

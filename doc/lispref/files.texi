@@ -1018,6 +1018,20 @@ a regular file (not a directory, named pipe, terminal, or
 other I/O device).
 @end defun
 
+@defun file-equal-p file1 file2
+This function returns @code{t} if the files @var{file1} and
+@var{file2} name the same file.  If @var{file1} or @var{file2} does
+not exist, the return value is unspecified.
+@end defun
+
+@defun file-subdir-of-p dir1 dir2
+This function returns @code{t} if directory @var{dir1} is a
+subdirectory of @var{dir2}, or if @var{dir1} and @var{dir2} are the
+same directory.  It compares the @code{file-truename} values of the
+two directories (@pxref{Truenames}).  If @var{dir2}
+do not name an existing directory, the return value is @code{nil}.
+@end defun
+
 @node Truenames
 @subsection Truenames
 @cindex truename (of file)
@@ -1129,6 +1143,18 @@ both others and group, and that the sticky bit is set.
 
 @xref{Changing Files}, for functions that change file permissions,
 such as @code{set-file-modes}.
+
+@cindex MS-DOS and file modes
+@cindex file modes and MS-DOS
+@strong{MS-DOS note:} On MS-DOS, there is no such thing as an
+``executable'' file mode bit.  So @code{file-modes} considers a file
+executable if its name ends in one of the standard executable
+extensions, such as @file{.com}, @file{.bat}, @file{.exe}, and some
+others.  Files that begin with the Unix-standard @samp{#!} signature,
+such as shell and Perl scripts, are also considered executable.
+Directories are also reported as executable, for compatibility with
+Unix.  These conventions are also followed by @code{file-attributes},
+below.
 @end defun
 
   If the @var{filename} argument to the next two functions is a
@@ -1304,16 +1330,26 @@ is on the file-system device whose number is 1014478468.
 @end table
 @end defun
 
-@cindex MS-DOS and file modes
-@cindex file modes and MS-DOS
-  On MS-DOS, there is no such thing as an ``executable'' file mode bit.
-So Emacs considers a file executable if its name ends in one of the
-standard executable extensions, such as @file{.com}, @file{.bat},
-@file{.exe}, and some others.  Files that begin with the Unix-standard
-@samp{#!} signature, such as shell and Perl scripts, are also considered
-as executable files.  This is reflected in the values returned by
-@code{file-modes} and @code{file-attributes}.  Directories are also
-reported with executable bit set, for compatibility with Unix.
+@cindex SELinux context
+  SELinux is a Linux kernel feature which provides more sophisticated
+file access controls than ordinary ``Unix-style'' file permissions.
+If Emacs has been compiled with SELinux support on a system with
+SELinux enabled, you can use the function @code{file-selinux-context}
+to retrieve a file's SELinux security context.  For the function
+@code{set-file-selinux-context}, see @ref{Changing Files}.
+
+@defun file-selinux-context filename
+This function returns the SELinux security context of the file
+@var{filename}.  This return value is a list of the form
+@code{(@var{user} @var{role} @var{type} @var{range})}, whose elements
+are the context's user, role, type, and range respectively, as Lisp
+strings.  See the SELinux documentation for details about what these
+actually mean.
+
+If the file does not exist or is inaccessible, or if the system does
+not support SELinux, or if Emacs was not compiled with SELinux
+support, then the return value is @code{(nil nil nil nil)}.
+@end defun
 
 @node Locating Files
 @subsection How to Locate Files in Standard Places
@@ -1322,8 +1358,10 @@ reported with executable bit set, for compatibility with Unix.
 
   This section explains how to search for a file in a list of
 directories (a @dfn{path}), or for an executable file in the standard
-list of executable file directories, or for an Emacs-specific user
-configuration file.
+list of executable file directories.
+
+  To search for a user-specific configuration file, @xref{Standard
+File Names}, for the @code{locate-user-emacs-file} function.
 
 @defun locate-file filename path &optional suffixes predicate
 This function searches for a file whose name is @var{filename} in a
@@ -1368,32 +1406,6 @@ including its file-name extensions, if any.  It returns @code{nil} if
 the file is not found.  The functions searches in all the directories
 in @code{exec-path}, and tries all the file-name extensions in
 @code{exec-suffixes} (@pxref{Subprocess Creation}).
-@end defun
-
-@defun locate-user-emacs-file base-name &optional old-name
-This function returns an absolute file name for an Emacs-specific
-configuration or data file.  The argument @file{base-name} should be a
-relative file name.  The return value is the absolute name of a file
-in the directory specified by @code{user-emacs-directory}; if that
-directory does not exist, this function creates it.
-
-If the optional argument @var{old-name} is non-@code{nil}, it
-specifies a file in the user's home directory,
-@file{~/@var{old-name}}.  If such a file exists, the return value is
-the absolute name of that file, instead of the file specified by
-@var{base-name}.  This argument is intended to be used by Emacs
-packages to provide backward compatibility.  For instance, prior to
-the introduction of @code{user-emacs-directory}, the abbrev file was
-located in @file{~/.abbrev_defs}, so the definition of
-@code{abbrev-file-name} is
-
-@example
-(defcustom abbrev-file-name
-  (locate-user-emacs-file "abbrev_defs" ".abbrev_defs")
-  "Default name of file from which to read abbrevs."
-  @dots{}
-  :type 'file)
-@end example
 @end defun
 
 @node Changing Files
@@ -1528,15 +1540,9 @@ non-@code{nil}, we attempt to copy the user and group ownership of the
 file.  This works only on some operating systems, and only if you have
 the correct permissions to do so.
 
-@cindex SELinux
-If the optional argument @var{preserve-selinux} is non-@code{nil}, we
-attempt to copy the SELinux@footnote{@samp{Security-Enhanced Linux}
-is a kernel feature that allows for finer access controls to be set on
-files, and a system security policy to define who can access what.
-The functions @code{file-selinux-context} and @code{set-file-selinux-context}
-get and set, respectively, the SELinux properties of a file.}
-context of the file.  For this to work, Emacs must have been built
-with libselinux support.
+If the optional argument @var{preserve-selinux} is non-@code{nil}, and
+Emacs has been compiled with SELinux support, this function attempts
+to copy the file's SELinux context (@pxref{File Attributes}).
 @end deffn
 
 @deffn Command make-symbolic-link filename newname  &optional ok-if-exists
@@ -1665,6 +1671,16 @@ to @var{time}.  The return value is @code{t} if the times are successfully
 set, otherwise it is @code{nil}.  @var{time} defaults to the current
 time and must be in the format returned by @code{current-time}
 (@pxref{Time of Day}).
+@end defun
+
+@defun set-file-selinux-context filename context
+This function sets the SELinux security context of the file
+@var{filename} to @var{context}.  @xref{File Attributes}, for a brief
+description of SELinux contexts.  The @var{context} argument should be
+a list @code{(@var{user} @var{role} @var{type} @var{range})}, like the
+return value of @code{file-selinux-context}.  The function does
+nothing if SELinux is disabled, or if Emacs was compiled without
+SELinux support.
 @end defun
 
 @node File Names
@@ -1838,14 +1854,15 @@ not an extension.
 
   All the directories in the file system form a tree starting at the
 root directory.  A file name can specify all the directory names
-starting from the root of the tree; then it is called an @dfn{absolute}
-file name.  Or it can specify the position of the file in the tree
-relative to a default directory; then it is called a @dfn{relative} file
-name.  On Unix and GNU/Linux, an absolute file name starts with a slash
-or a tilde (@samp{~}), and a relative one does not.  On MS-DOS and
-MS-Windows, an absolute file name starts with a slash or a backslash, or
-with a drive specification @samp{@var{x}:/}, where @var{x} is the
-@dfn{drive letter}.
+starting from the root of the tree; then it is called an
+@dfn{absolute} file name.  Or it can specify the position of the file
+in the tree relative to a default directory; then it is called a
+@dfn{relative} file name.  On Unix and GNU/Linux, an absolute file
+name starts with a @samp{/} or a @samp{~}
+(@pxref{abbreviate-file-name}), and a relative one does not.  On
+MS-DOS and MS-Windows, an absolute file name starts with a slash or a
+backslash, or with a drive specification @samp{@var{x}:/}, where
+@var{x} is the @dfn{drive letter}.
 
 @defun file-name-absolute-p filename
 This function returns @code{t} if file @var{filename} is an absolute
@@ -1981,8 +1998,10 @@ because this is not portable.  Always use
   To convert a directory name to its abbreviation, use this
 function:
 
+@cindex file name abbreviations
+@cindex abbreviated file names
 @defun abbreviate-file-name filename
-@anchor{Definition of abbreviate-file-name}
+@anchor{abbreviate-file-name}
 This function returns an abbreviated form of @var{filename}.  It
 applies the abbreviations specified in @code{directory-abbrev-alist}
 (@pxref{File Aliases,,File Aliases, emacs, The GNU Emacs Manual}),
@@ -2000,11 +2019,15 @@ because it recognizes abbreviations even as part of the name.
 @subsection Functions that Expand Filenames
 @cindex expansion of file names
 
-  @dfn{Expansion} of a file name means converting a relative file name
-to an absolute one.  Since this is done relative to a default directory,
-you must specify the default directory name as well as the file name to
-be expanded.  Expansion also simplifies file names by eliminating
-redundancies such as @file{./} and @file{@var{name}/../}.
+  @dfn{Expanding} a file name means converting a relative file name to
+an absolute one.  Since this is done relative to a default directory,
+you must specify the default directory name as well as the file name
+to be expanded.  It also involves expanding abbreviations like
+@file{~/}
+@ifnottex
+(@pxref{abbreviate-file-name}),
+@end ifnottex
+and eliminating redundancies like @file{./} and @file{@var{name}/../}.
 
 @defun expand-file-name filename &optional directory
 This function converts @var{filename} to an absolute file name.  If
@@ -2369,49 +2392,60 @@ filter out a directory named @file{foo.elc}.
 @node Standard File Names
 @subsection Standard File Names
 
-  Most of the file names used in Lisp programs are entered by the user.
-But occasionally a Lisp program needs to specify a standard file name
-for a particular use---typically, to hold customization information
-about each user.  For example, abbrev definitions are stored (by
-default) in the file @file{~/.abbrev_defs}; the @code{completion}
-package stores completions in the file @file{~/.completions}.  These are
-two of the many standard file names used by parts of Emacs for certain
-purposes.
+  Sometimes, an Emacs Lisp program needs to specify a standard file
+name for a particular use---typically, to hold configuration data
+specified by the current user.  Usually, such files should be located
+in the directory specified by @code{user-emacs-directory}, which is
+@file{~/.emacs.d} by default (@pxref{Init File}).  For example, abbrev
+definitions are stored by default in @file{~/.emacs.d/abbrev_defs}.
+The easiest way to specify such a file name is to use the function
+@code{locate-user-emacs-file}.
 
-  Various operating systems have their own conventions for valid file
-names and for which file names to use for user profile data.  A Lisp
-program which reads a file using a standard file name ought to use, on
-each type of system, a file name suitable for that system.  The function
-@code{convert-standard-filename} makes this easy to do.
+@defun locate-user-emacs-file base-name &optional old-name
+This function returns an absolute file name for an Emacs-specific
+configuration or data file.  The argument @file{base-name} should be a
+relative file name.  The return value is the absolute name of a file
+in the directory specified by @code{user-emacs-directory}; if that
+directory does not exist, this function creates it.
 
-@defun convert-standard-filename filename
-This function alters the file name @var{filename} to fit the conventions
-of the operating system in use, and returns the result as a new string.
-@end defun
-
-  The recommended way to specify a standard file name in a Lisp program
-is to choose a name which fits the conventions of GNU and Unix systems,
-usually with a nondirectory part that starts with a period, and pass it
-to @code{convert-standard-filename} instead of using it directly.  Here
-is an example from the @code{completion} package:
+If the optional argument @var{old-name} is non-@code{nil}, it
+specifies a file in the user's home directory,
+@file{~/@var{old-name}}.  If such a file exists, the return value is
+the absolute name of that file, instead of the file specified by
+@var{base-name}.  This argument is intended to be used by Emacs
+packages to provide backward compatibility.  For instance, prior to
+the introduction of @code{user-emacs-directory}, the abbrev file was
+located in @file{~/.abbrev_defs}.  Here is the definition of
+@code{abbrev-file-name}:
 
 @example
-(defvar save-completions-file-name
-        (convert-standard-filename "~/.completions")
-  "*The file name to save completions to.")
+(defcustom abbrev-file-name
+  (locate-user-emacs-file "abbrev_defs" ".abbrev_defs")
+  "Default name of file from which to read abbrevs."
+  @dots{}
+  :type 'file)
 @end example
+@end defun
 
-  On GNU and Unix systems, and on some other systems as well,
-@code{convert-standard-filename} returns its argument unchanged.  On
-some other systems, it alters the name to fit the system's conventions.
+  A lower-level function for standardizing file names, which
+@code{locate-user-emacs-file} uses as a subroutine, is
+@code{convert-standard-filename}.
 
-  For example, on MS-DOS the alterations made by this function include
-converting a leading @samp{.}  to @samp{_}, converting a @samp{_} in the
-middle of the name to @samp{.} if there is no other @samp{.}, inserting
-a @samp{.} after eight characters if there is none, and truncating to
-three characters after the @samp{.}.  (It makes other changes as well.)
-Thus, @file{.abbrev_defs} becomes @file{_abbrev.def}, and
-@file{.completions} becomes @file{_complet.ion}.
+@defun convert-standard-filename filename
+This function returns a file name based on @var{filename}, which fits
+the conventions of the current operating system.
+
+On GNU and Unix systems, this simply returns @var{filename}.  On other
+operating systems, it may enforce system-specific file name
+conventions; for example, on MS-DOS this function performs a variety
+of changes to enforce MS-DOS file name limitations, including
+converting any leading @samp{.} to @samp{_} and truncating to three
+characters after the @samp{.}.
+
+The recommended way to use this function is to specify a name which
+fits the conventions of GNU and Unix systems, and pass it to
+@code{convert-standard-filename}.
+@end defun
 
 @node Contents of Directories
 @section Contents of Directories
@@ -2684,9 +2718,9 @@ first, before handlers for jobs such as remote file access.
 @code{file-name-nondirectory},
 @code{file-name-sans-versions}, @code{file-newer-than-file-p},
 @code{file-ownership-preserved-p},
-@code{file-readable-p}, @code{file-regular-p}, @code{file-symlink-p},
-@code{file-truename}, @code{file-writable-p},
-@code{find-backup-file-name},
+@code{file-readable-p}, @code{file-regular-p}, @code{file-subdir-of-p},
+@code{file-symlink-p}, @code{file-truename}, @code{file-writable-p},
+@code{file-equal-p}, @code{find-backup-file-name},
 @c Not sure why it was here:   @code{find-file-noselect},@*
 @code{get-file-buffer},
 @code{insert-directory},

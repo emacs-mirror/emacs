@@ -1596,7 +1596,7 @@ where @var{get} is an expression that returns the current state,
 and @var{set} is a function of one argument (a state) that sets it.
 
 @item :after-hook @var{after-hook}
-This defines a single lisp form which is evaluated after the mode hooks
+This defines a single Lisp form which is evaluated after the mode hooks
 have run.  It should not be quoted.
 @end table
 

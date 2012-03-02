@@ -1,6 +1,6 @@
 ;;; browse-url.el --- pass a URL to a WWW browser
 
-;; Copyright (C) 1995-2012  Free Software Foundation, Inc.
+;; Copyright (C) 1995-2012 Free Software Foundation, Inc.
 
 ;; Author: Denis Howe <dbh@doc.ic.ac.uk>
 ;; Maintainer: FSF
@@ -297,7 +297,7 @@ Defaults to the value of `browse-url-netscape-arguments' at the time
   :group 'browse-url)
 
 (defcustom browse-url-browser-display nil
-  "The X display for running the browser, if not same as Emacs'."
+  "The X display for running the browser, if not same as Emacs's."
   :type '(choice string (const :tag "Default" nil))
   :group 'browse-url)
 

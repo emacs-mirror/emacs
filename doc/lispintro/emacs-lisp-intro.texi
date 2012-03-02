@@ -1015,7 +1015,7 @@ Emacs with the on-line tutorial.  To use it, type @kbd{C-h t}.  (This
 means you press and release the @key{CTRL} key and the @kbd{h} at the
 same time, and then press and release @kbd{t}.)
 
-Also, I often refer to one of Emacs' standard commands by listing the
+Also, I often refer to one of Emacs's standard commands by listing the
 keys which you press to invoke the command and then giving the name of
 the command in parentheses, like this: @kbd{M-C-\}
 (@code{indent-region}).  What this means is that the
@@ -1325,7 +1325,7 @@ jumps the cursor back to the matching opening parenthesis, so you can
 see which one it is.  This is very useful, since every list you type
 in Lisp must have its closing parenthesis match its opening
 parenthesis.  (@xref{Major Modes, , Major Modes, emacs, The GNU Emacs
-Manual}, for more information about Emacs' modes.)
+Manual}, for more information about Emacs's modes.)
 
 @node Run a Program, Making Errors, Lisp Lists, List Processing
 @comment  node-name,  next,  previous,  up
@@ -2962,7 +2962,7 @@ have eyes.  When a computer program works on a buffer, that buffer does
 not need to be visible on the screen.
 
 @code{switch-to-buffer} is designed for humans and does two different
-things: it switches the buffer to which Emacs' attention is directed; and
+things: it switches the buffer to which Emacs's attention is directed; and
 it switches the buffer displayed in the window to the new buffer.
 @code{set-buffer}, on the other hand, does only one thing: it switches
 the attention of the computer program to a different buffer.  The buffer
@@ -4642,7 +4642,7 @@ Select a buffer for Emacs to be active in and display it in the current
 window so users can look at it.  Usually bound to @kbd{C-x b}.
 
 @item set-buffer
-Switch Emacs' attention to a buffer on which programs will run.  Don't
+Switch Emacs's attention to a buffer on which programs will run.  Don't
 alter what the window is showing.
 
 @item buffer-size
@@ -5501,7 +5501,7 @@ Written in skeletal form, the workings of the body look like this:
 
 In summary, @code{append-to-buffer} works as follows: it saves the
 value of the current buffer in the variable called @code{oldbuf}.  It
-gets the new buffer (creating one if need be) and switches Emacs'
+gets the new buffer (creating one if need be) and switches Emacs's
 attention to it.  Using the value of @code{oldbuf}, it inserts the
 region of text from the old buffer into the new buffer; and then using
 @code{save-excursion}, it brings you back to your original buffer.
@@ -6009,7 +6009,7 @@ expression in detail.  The expression looks like this:
 @end smallexample
 
 @noindent
-The expression @code{(set-buffer buffer)} changes Emacs' attention
+The expression @code{(set-buffer buffer)} changes Emacs's attention
 from the current buffer to the one from which the text will copied.
 In that buffer, the variables @code{start} and @code{end} are set to
 the beginning and end of the buffer, using the commands
@@ -15284,7 +15284,7 @@ specification.  Since people worry that a computer is broken if they
 don't see anything going on, the first line of the body is a
 message.
 
-The next line contains a @code{save-excursion} that returns Emacs'
+The next line contains a @code{save-excursion} that returns Emacs's
 attention to the current buffer when the function completes.  This is
 useful in case you embed this function in another function that
 presumes point is restored to the original buffer.
@@ -16954,7 +16954,7 @@ Either of these two functions, @code{graph-body-print} or
 @section Need for Printed Axes
 
 A graph needs printed axes, so you can orient yourself.  For a do-once
-project, it may be reasonable to draw the axes by hand using Emacs'
+project, it may be reasonable to draw the axes by hand using Emacs's
 Picture mode; but a graph drawing function may be used more than once.
 
 For this reason, I have written enhancements to the basic
@@ -17002,10 +17002,10 @@ expressions in Emacs Lisp you can change or extend Emacs.
 
 @node Default Configuration, Site-wide Init, Emacs Initialization, Emacs Initialization
 @ifnottex
-@unnumberedsec Emacs' Default Configuration
+@unnumberedsec Emacs's Default Configuration
 @end ifnottex
 
-There are those who appreciate Emacs' default configuration.  After
+There are those who appreciate Emacs's default configuration.  After
 all, Emacs starts you in C mode when you edit a C file, starts you in
 Fortran mode when you edit a Fortran file, and starts you in
 Fundamental mode when you edit an unadorned file.  This all makes
@@ -17033,7 +17033,7 @@ you may.  The new format is consistent with the Emacs Lisp file
 naming conventions; the old format saves typing.}
 
 A @file{~/.emacs} file contains Emacs Lisp code.  You can write this
-code yourself; or you can use Emacs' @code{customize} feature to write
+code yourself; or you can use Emacs's @code{customize} feature to write
 the code for you.  You can combine your own expressions and
 auto-written Customize expressions in your @file{.emacs} file.
 
@@ -17098,7 +17098,7 @@ initialization file.
 @findex defcustom
 
 You can specify variables using @code{defcustom} so that you and
-others can then use Emacs' @code{customize} feature to set their
+others can then use Emacs's @code{customize} feature to set their
 values.  (You cannot use @code{customize} to write function
 definitions; but you can write @code{defuns} in your @file{.emacs}
 file.  Indeed, you can write any Lisp expression in your @file{.emacs}
@@ -17765,7 +17765,7 @@ the keys to @code{split-window-quietly}, like this:
 @vindex load-path
 If you load many extensions, as I do, then instead of specifying the
 exact location of the extension file, as shown above, you can specify
-that directory as part of Emacs' @code{load-path}.  Then, when Emacs
+that directory as part of Emacs's @code{load-path}.  Then, when Emacs
 loads a file, it will search that directory as well as its default
 list of directories.  (The default list is specified in @file{paths.h}
 when Emacs is built.)

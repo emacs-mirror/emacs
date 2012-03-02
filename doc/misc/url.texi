@@ -96,7 +96,7 @@ where @samp{@r{[}} and @samp{@r{]}} delimit optional parts.
 but you should beware of the security risks of sending cleartext
 passwords.  @var{hostname} may be a domain name or a dotted decimal
 address.  If the @samp{:@var{port}} is omitted then the library will
-use the `well known' port for that service when accessing URLs.  With
+use the ``well known'' port for that service when accessing URLs.  With
 the possible exception of @code{telnet}, it is rare for ports to be
 specified, and it is possible using a non-standard port may have
 undesired consequences if a different service is listening on that
@@ -145,7 +145,7 @@ is the host name associated with it, or @code{nil};
 @item port
 is the port number associated with it, or @code{nil};
 @item file
-is the `file' part of it, or @code{nil}.  This doesn't necessarily
+is the ``file'' part of it, or @code{nil}.  This doesn't necessarily
 actually refer to a file;
 @item target
 is the target part, or @code{nil};
@@ -228,7 +228,7 @@ controls the number of concurrent processes, and the option
 @menu
 * http/https::                  Hypertext Transfer Protocol.
 * file/ftp::                    Local files and FTP archives.
-* info::                        Emacs `Info' pages.
+* info::                        Emacs "Info" pages.
 * mailto::                      Sending email.
 * news/nntp/snews::             Usenet news.
 * rlogin/telnet/tn3270::        Remote host connectivity.
@@ -472,7 +472,7 @@ The form of a mailto URL is
 @var{header} is @samp{body}, then @var{contents} is put in the body
 otherwise a @var{header} header field is created with @var{contents}
 as its contents.  Note that the URL library does not consider any
-headers `dangerous' so you should check them before sending the
+headers ``dangerous'' so you should check them before sending the
 message.
 
 @c Fixme: update
@@ -1009,7 +1009,7 @@ This the @samp{nslookup} program.  It is @code{"nslookup"} by default.
 In some circumstances it is desirable to suppress making network
 connections.  A typical case is when rendering HTML in a mail user
 agent, when external URLs should not be activated, particularly to
-avoid `bugs' which `call home' by fetch single-pixel images and the
+avoid ``bugs'' which ``call home'' by fetch single-pixel images and the
 like.  To arrange this, bind the following variable for the duration
 of such processing.
 
@@ -1062,7 +1062,7 @@ automatically via @code{url-do-setup} when it is configured to be on.
 Note that the size of the history list is currently not limited.
 
 @vindex url-history-hash-table
-The history `list' is actually a hash table,
+The history ``list'' is actually a hash table,
 @code{url-history-hash-table}.  It contains access times keyed by URL
 strings.  The times are in the format returned by @code{current-time}.
 

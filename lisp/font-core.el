@@ -138,7 +138,7 @@ The above is the default behavior of `font-lock-mode'; you may specify
 your own function which is called when `font-lock-mode' is toggled via
 `font-lock-function'. "
   nil nil nil
-  :after-hook (if font-lock-mode (font-lock-initial-fontify))
+  :after-hook (font-lock-initial-fontify)
   ;; Don't turn on Font Lock mode if we don't have a display (we're running a
   ;; batch job) or if the buffer is invisible (the name starts with a space).
   (when (or noninteractive (eq (aref (buffer-name) 0) ?\s))
@@ -192,13 +192,7 @@ this function onto `change-major-mode-hook'."
 
   ;; Only do hard work if the mode has specified stuff in
   ;; `font-lock-defaults'.
-  (when (or font-lock-defaults
-	    (if (boundp 'font-lock-keywords) font-lock-keywords)
-	    (and mode
-		 (boundp 'font-lock-set-defaults)
-		 font-lock-set-defaults
-		 font-lock-major-mode
-		 (not (eq font-lock-major-mode major-mode))))
+  (when (font-lock-specified-p mode)
     (font-lock-mode-internal mode)))
 
 (defun turn-on-font-lock ()

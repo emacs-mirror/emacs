@@ -3,11 +3,11 @@
 @c Copyright (C) 1990-1993, 1999, 2001-2012 Free Software Foundation, Inc.
 @c See the file elisp.texi for copying conditions.
 @setfilename ../../info/errors
-@node Standard Errors, Standard Buffer-Local Variables, GNU Emacs Internals, Top
+@node Standard Errors, Standard Keymaps, GNU Emacs Internals, Top
 @appendix Standard Errors
 @cindex standard errors
 
-  Here is the complete list of the error symbols in standard Emacs,
+  Here is a list of the more important error symbols in standard Emacs,
 grouped by concept.  The list includes each symbol's message (on the
 @code{error-message} property of the symbol) and a cross reference to a
 description of how the error can occur.
@@ -23,6 +23,15 @@ conditions, that means it has none.
 
   As a special exception, the error symbol @code{quit} does not have the
 condition @code{error}, because quitting is not considered an error.
+
+@c You can grep for "(put 'foo 'error-conditions ...) to find
+@c examples defined in Lisp.  Eg soap-client.el, sasl.el.
+  Most of these error symbols are defined in C (mainly @file{data.c}),
+but some are defined in Lisp.  For example, the file @file{userlock.el}
+defines the @code{file-locked} and @code{file-supersession} errors.
+Several of the specialized Lisp libraries distributed with Emacs
+define their own error symbols.  We do not attempt to list of all
+those here.
 
   @xref{Errors}, for an explanation of how errors are generated and
 handled.
@@ -54,10 +63,16 @@ sequence or buffer.@*
 @code{"Buffer is read-only"}@*
 @xref{Read Only Buffers}.
 
-@ignore
 @item circular-list
 @code{"List contains a loop"}@*
-@end ignore
+This happens when some operations (e.g. resolving face names)
+encounter circular structures.@*
+@xref{Circular Objects}.
+
+@item cl-assertion-failed
+@code{"Assertion failed"}@*
+This happens when the @code{assert} macro fails a test.@*
+@xref{Assertions,,, cl, Common Lisp Extensions}.
 
 @item coding-system-error
 @code{"Invalid coding system"}@*
@@ -105,14 +120,23 @@ do have @code{error-message} properties, and if no data is provided,
 the @code{error-message} property @emph{is} used.@*
 @xref{Files}.
 
+@c jka-compr.el
+@item compression-error
+This is a subcategory of @code{file-error}, which results from
+problems handling a compressed file.@*
+@xref{How Programs Do Loading}.
+
+@c userlock.el
 @item file-locked
 This is a subcategory of @code{file-error}.@*
 @xref{File Locks}.
 
+@c userlock.el
 @item file-supersession
 This is a subcategory of @code{file-error}.@*
 @xref{Modification Time}.
 
+@c net/ange-ftp.el
 @item ftp-error
 This is a subcategory of @code{file-error}, which results from problems
 in accessing a remote file using ftp.@*
@@ -130,6 +154,7 @@ in accessing a remote file using ftp.@*
 @code{"Invalid regexp"}@*
 @xref{Regular Expressions}.
 
+@c simple.el
 @item mark-inactive
 @code{"The mark is not active now"}@*
 @xref{The Mark}.
@@ -139,6 +164,7 @@ in accessing a remote file using ftp.@*
 @xref{Catch and Throw}.
 
 @ignore
+@c Not actually used for anything?  Probably definition should be removed.
 @item protected-field
 @code{"Attempt to modify a protected field"}
 @end ignore
@@ -160,6 +186,7 @@ and any symbols that start with @samp{:},
 may not be changed.@*
 @xref{Constant Variables, , Variables that Never Change}.
 
+@c simple.el
 @item text-read-only
 @code{"Text is read-only"}@*
 This is a subcategory of @code{buffer-read-only}.@*

@@ -1364,10 +1364,10 @@ ones, in case fg and bg are nil."
 	    (when (memq (car column) '(td th))
 	      (let ((width (cdr (assq :width (cdr column)))))
 		(when (and width
-			   (string-match "\\([0-9]+\\)%" width))
-		  (aset columns i
-			(/ (string-to-number (match-string 1 width))
-			   100.0))))
+			   (string-match "\\([0-9]+\\)%" width)
+			   (not (zerop (setq width (string-to-number
+						    (match-string 1 width))))))
+		  (aset columns i (/ width 100.0))))
 	      (setq i (1+ i)))))))
     columns))
 

@@ -1,6 +1,6 @@
 ;;; em-unix.el --- UNIX command aliases
 
-;; Copyright (C) 1999-2012  Free Software Foundation, Inc.
+;; Copyright (C) 1999-2012 Free Software Foundation, Inc.
 
 ;; Author: John Wiegley <johnw@gnu.org>
 
@@ -712,7 +712,7 @@ available..."
 
 (defun eshell-grep (command args &optional maybe-use-occur)
   "Generic service function for the various grep aliases.
-It calls Emacs' grep utility if the command is not redirecting output,
+It calls Emacs's grep utility if the command is not redirecting output,
 and if it's not part of a command pipeline.  Otherwise, it calls the
 external command."
   (if (and maybe-use-occur eshell-no-grep-available)

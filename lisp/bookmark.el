@@ -1,6 +1,6 @@
 ;;; bookmark.el --- set bookmarks, maybe annotate them, jump to them later
 
-;; Copyright (C) 1993-1997, 2001-2012  Free Software Foundation, Inc.
+;; Copyright (C) 1993-1997, 2001-2012 Free Software Foundation, Inc.
 
 ;; Author: Karl Fogel <kfogel@red-bean.com>
 ;; Maintainer: Karl Fogel <kfogel@red-bean.com>
@@ -65,7 +65,7 @@
 --> t means save bookmarks when Emacs is killed.
 --> Otherwise, it should be a number that is the frequency with which
     the bookmark list is saved (i.e.: the number of times which
-    Emacs' bookmark list may be modified before it is automatically
+    Emacs's bookmark list may be modified before it is automatically
     saved.).  If it is a number, Emacs will also automatically save
     bookmarks when it is killed.
 

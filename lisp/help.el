@@ -1,7 +1,6 @@
 ;;; help.el --- help commands for Emacs
 
-;; Copyright (C) 1985-1986, 1993-1994, 1998-2012
-;;   Free Software Foundation, Inc.
+;; Copyright (C) 1985-1986, 1993-1994, 1998-2012 Free Software Foundation, Inc.
 
 ;; Maintainer: FSF
 ;; Keywords: help, internal
@@ -24,7 +23,7 @@
 
 ;;; Commentary:
 
-;; This code implements GNU Emacs' on-line help system, the one invoked by
+;; This code implements GNU Emacs's on-line help system, the one invoked by
 ;; `M-x help-for-help'.
 
 ;;; Code:

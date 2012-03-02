@@ -1,6 +1,6 @@
 ;;; font-lock.el --- Electric font lock mode
 
-;; Copyright (C) 1992-2012  Free Software Foundation, Inc.
+;; Copyright (C) 1992-2012 Free Software Foundation, Inc.
 
 ;; Author: Jamie Zawinski
 ;;	Richard Stallman
@@ -67,7 +67,7 @@
 ;;
 ;; The syntactic keyword pass places `syntax-table' text properties in the
 ;; buffer according to the variable `font-lock-syntactic-keywords'.  It is
-;; necessary because Emacs' syntax table is not powerful enough to describe all
+;; necessary because Emacs's syntax table is not powerful enough to describe all
 ;; the different syntactic constructs required by the sort of people who decide
 ;; that a single quote can be syntactic or not depending on the time of day.
 ;; (What sort of person could decide to overload the meaning of a quote?)
@@ -629,17 +629,32 @@ Major/minor modes can set this variable if they know which option applies.")
   ;; Shut up the byte compiler.
   (defvar font-lock-face-attributes))	; Obsolete but respected if set.
 
+(defun font-lock-specified-p (mode)
+  "Return non-nil if the current buffer is ready for fontification.
+The MODE argument, if non-nil, means Font Lock mode is about to
+be enabled."
+  (or font-lock-defaults
+      (and (boundp 'font-lock-keywords)
+	   font-lock-keywords)
+      (and mode
+	   (boundp 'font-lock-set-defaults)
+	   font-lock-set-defaults
+	   font-lock-major-mode
+	   (not (eq font-lock-major-mode major-mode)))))
+
 (defun font-lock-initial-fontify ()
   ;; The first fontification after turning the mode on.  This must
   ;;  only be called after the mode hooks have been run.
-  (let ((max-size (font-lock-value-in-major-mode font-lock-maximum-size)))
-    (cond (font-lock-fontified
-	   nil)
-	  ((or (null max-size) (> max-size (buffer-size)))
-	   (font-lock-fontify-buffer))
-	  (font-lock-verbose
-	   (message "Fontifying %s...buffer size greater than font-lock-maximum-size"
-		    (buffer-name))))))
+  (when (and font-lock-mode
+	     (font-lock-specified-p t))
+    (let ((max-size (font-lock-value-in-major-mode font-lock-maximum-size)))
+      (cond (font-lock-fontified
+	     nil)
+	    ((or (null max-size) (> max-size (buffer-size)))
+	     (font-lock-fontify-buffer))
+	    (font-lock-verbose
+	     (message "Fontifying %s...buffer size greater than font-lock-maximum-size"
+		      (buffer-name)))))))
 
 (defun font-lock-mode-internal (arg)
   ;; Turn on Font Lock mode.

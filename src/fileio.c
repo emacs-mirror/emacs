@@ -2798,9 +2798,13 @@ See `file-symlink-p' to distinguish symlinks.  */)
 
 DEFUN ("file-selinux-context", Ffile_selinux_context,
        Sfile_selinux_context, 1, 1, 0,
-       doc: /* Return SELinux context of file named FILENAME,
-as a list ("user", "role", "type", "range"). Return (nil, nil, nil, nil)
-if file does not exist, is not accessible, or SELinux is disabled */)
+       doc: /* Return SELinux context of file named FILENAME.
+The return value is a list (USER ROLE TYPE RANGE), where the list
+elements are strings naming the user, role, type, and range of the
+file's SELinux security context.
+
+Return (nil nil nil nil) if the file is nonexistent or inaccessible,
+or if SELinux is disabled, or if Emacs lacks SELinux support.  */)
   (Lisp_Object filename)
 {
   Lisp_Object absname;
@@ -2853,9 +2857,12 @@ if file does not exist, is not accessible, or SELinux is disabled */)
 
 DEFUN ("set-file-selinux-context", Fset_file_selinux_context,
        Sset_file_selinux_context, 2, 2, 0,
-       doc: /* Set SELinux context of file named FILENAME to CONTEXT
-as a list ("user", "role", "type", "range"). Has no effect if SELinux
-is disabled. */)
+       doc: /* Set SELinux context of file named FILENAME to CONTEXT.
+CONTEXT should be a list (USER ROLE TYPE RANGE), where the list
+elements are strings naming the components of a SELinux context.
+
+This function does nothing if SELinux is disabled, or if Emacs was not
+compiled with SELinux support.  */)
   (Lisp_Object filename, Lisp_Object context)
 {
   Lisp_Object absname;

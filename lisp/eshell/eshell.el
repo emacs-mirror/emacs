@@ -140,12 +140,12 @@
 ;;   paragraph wasn't discovered until two months after I wrote the
 ;;   text; it was not intentional).
 ;;
-;; @ Emacs' register and bookmarking facilities can be used for
+;; @ Emacs's register and bookmarking facilities can be used for
 ;;   remembering where you've been, and what you've seen -- to varying
 ;;   levels of persistence.  They could perhaps even be tied to
 ;;   specific "moments" during eshell execution, which would include
 ;;   the environment at that time, as well as other variables.
-;;   Although this would require functionality orthogonal to Emacs'
+;;   Although this would require functionality orthogonal to Emacs's
 ;;   own bookmarking facilities, the interface used could be made to
 ;;   operate very similarly.
 ;;

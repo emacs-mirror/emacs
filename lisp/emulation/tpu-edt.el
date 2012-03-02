@@ -1,6 +1,6 @@
 ;;; tpu-edt.el --- Emacs emulating TPU emulating EDT
 
-;; Copyright (C) 1993-1995, 2000-2012  Free Software Foundation, Inc.
+;; Copyright (C) 1993-1995, 2000-2012 Free Software Foundation, Inc.
 
 ;; Author: Rob Riepel <riepel@networking.stanford.edu>
 ;; Maintainer: Rob Riepel <riepel@networking.stanford.edu>
@@ -89,7 +89,7 @@
 ;;    details.
 
 ;;    Like TPU, Emacs uses multiple buffers.  Some buffers are used to hold
-;;    files you are editing; other "internal" buffers are used for Emacs' own
+;;    files you are editing; other "internal" buffers are used for Emacs's own
 ;;    purposes (like showing you help).  Here are some commands for dealing
 ;;    with buffers.
 
@@ -197,7 +197,7 @@
 
 ;;    ; Emacs uses Control-s and Control-q.  Problems can occur when using
 ;;    ; Emacs on terminals that use these codes for flow control (Xon/Xoff
-;;    ; flow control).  These lines disable Emacs' use of these characters.
+;;    ; flow control).  These lines disable Emacs's use of these characters.
 ;;    (global-unset-key "\C-s")
 ;;    (global-unset-key "\C-q")
 

@@ -94,7 +94,7 @@ handling the sort of tasks accomplished by those tools.
 @cindex Eshell, what it is
 
 Eshell is a @dfn{command shell} written in Emacs Lisp.  Everything it
-does, it uses Emacs' facilities to do.  This means that Eshell is as
+does, it uses Emacs's facilities to do.  This means that Eshell is as
 portable as Emacs itself.  It also means that cooperation with Lisp code
 is natural and seamless.
 

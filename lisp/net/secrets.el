@@ -78,7 +78,7 @@
 ;;   (secrets-create-collection "my collection")
 
 ;; There exists a special collection called "session", which has the
-;; lifetime of the corresponding client session (aka Emacs'
+;; lifetime of the corresponding client session (aka Emacs's
 ;; lifetime).  It is created automatically when Emacs uses the Secret
 ;; Service interface, and it is deleted when Emacs is killed.
 ;; Therefore, it can be used to store and retrieve secret items
@@ -99,7 +99,7 @@
 
 ;; Secret items can be added or deleted to a collection.  In the
 ;; following examples, we use the special collection "session", which
-;; is bound to Emacs' lifetime.
+;; is bound to Emacs's lifetime.
 ;;
 ;;   (secrets-delete-item "session" "my item")
 ;;   (secrets-create-item "session" "my item" "geheim"

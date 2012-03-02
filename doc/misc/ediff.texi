@@ -433,6 +433,8 @@ command (see @kbd{ga}, @kbd{gb}, and @kbd{gc}).
 
 @node Quick Help Commands,Other Session Commands,,Session Commands
 @section Quick Help Commands
+@cindex command help
+@cindex important commands
 
 @table @kbd
 @item ?
@@ -1731,7 +1733,7 @@ faces, you can modify them when Ediff is being loaded using
 @end smallexample
 
 @strong{Please note:} to set Ediff's faces, use only @code{copy-face}
-or @code{set/make-face-@dots{}} as shown above. Emacs' low-level
+or @code{set/make-face-@dots{}} as shown above. Emacs's low-level
 face-manipulation functions should be avoided.
 
 @node Narrowing, Refinement of Difference Regions, Highlighting Difference Regions, Customization

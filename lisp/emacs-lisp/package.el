@@ -750,7 +750,8 @@ not included in this list."
 	      hold)
 	  (when (setq hold (assq next-pkg package-load-list))
 	    (setq hold (cadr hold))
-	    (cond ((eq hold nil)
+	    (cond ((eq hold t))
+		  ((eq hold nil)
 		   (error "Required package '%s' is disabled"
 			  (symbol-name next-pkg)))
 		  ((null (stringp hold))

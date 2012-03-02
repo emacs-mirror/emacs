@@ -1,6 +1,6 @@
 ;;; antlr-mode.el --- major mode for ANTLR grammar files
 
-;; Copyright (C) 1999-2012  Free Software Foundation, Inc.
+;; Copyright (C) 1999-2012 Free Software Foundation, Inc.
 
 ;; Author: Christoph.Wedler@sap.com
 ;; Keywords: languages, ANTLR, code generator
@@ -961,7 +961,7 @@ group.  The string matched by the first group is highlighted with
 	 (antlr-re-search-forward
 	  "^\\(private\\|public\\|protected\\)\\>[ \t]*\\(\\(\\sw+[ \t]*\\(:\\)?\\)\\)?"
 	  limit))
-     (1 font-lock-type-face)		; not XEmacs' java level-3 fruit salad
+     (1 font-lock-type-face)		; not XEmacs's java level-3 fruit salad
      (3 (if (antlr-upcase-p (char-after (match-beginning 3)))
 	    antlr-tokendef-face
 	  antlr-ruledef-face) nil t)
@@ -1030,7 +1030,7 @@ not to confuse their context_cache.")
 (define-abbrev-table 'antlr-mode-abbrev-table ())
 
 (defvar antlr-slow-cache-enabling-symbol 'loudly
-;; Emacs' font-lock changes buffer's tick counter, therefore this value should
+;; Emacs's font-lock changes buffer's tick counter, therefore this value should
 ;; be a parameter of a font-lock function, but not any other variable of
 ;; functions which call `antlr-slow-syntactic-context'.
   "If value is a bound symbol, cache will be used even with text changes.
@@ -1113,7 +1113,7 @@ WARNING: this may alter `match-data'."
   (or (buffer-syntactic-context) (buffer-syntactic-context-depth))
   :EMACS
   (let ((orig (point)) diff state
-	;; Arg, Emacs' (buffer-modified-tick) changes with font-lock.  Use
+	;; Arg, Emacs's (buffer-modified-tick) changes with font-lock.  Use
 	;; hack that `loudly' is bound during font-locking => cache use will
 	;; increase from 7% to 99.99% during font-locking.
 	(tick (or (boundp antlr-slow-cache-enabling-symbol)

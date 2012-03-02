@@ -44,8 +44,7 @@
 This is edition @value{VERSION} of the GNU Emacs Lisp Reference Manual,@*
 corresponding to Emacs version @value{EMACSVER}.
 
-Copyright @copyright{} 1990-1996, 1998-2012  Free Software
-Foundation, Inc.
+Copyright @copyright{} 1990-1996, 1998-2012 Free Software Foundation, Inc.
 
 @quotation
 Permission is granted to copy, distribute and/or modify this document
@@ -170,9 +169,7 @@ Appendices
 * Tips::                    Advice and coding conventions for Emacs Lisp.
 * GNU Emacs Internals::     Building and dumping Emacs;
                               internal data structures.
-* Standard Errors::         List of all error symbols.
-* Standard Buffer-Local Variables::
-                            List of variables buffer-local in all buffers.
+* Standard Errors::         List of main error symbols.
 * Standard Keymaps::        List of standard keymaps.
 * Standard Hooks::          List of standard hook variables.
 
@@ -908,7 +905,7 @@ Buffers
                               is visited.
 * Buffer Modification::     A buffer is @dfn{modified} if it needs to be saved.
 * Modification Time::       Determining whether the visited file was changed
-                              ``behind Emacs's back''.
+                              "behind Emacs's back".
 * Read Only Buffers::       Modifying text is not allowed in a
                               read-only buffer.
 * The Buffer List::         How to look at all the existing buffers.
@@ -1266,7 +1263,7 @@ Emacs Display
 * Display Property::        Enabling special display features.
 * Images::                  Displaying images in Emacs buffers.
 * Buttons::                 Adding clickable buttons to Emacs buffers.
-* Abstract Display::        Emacs' Widget for Object Collections.
+* Abstract Display::        Emacs's Widget for Object Collections.
 * Blinking::                How Emacs shows the matching open parenthesis.
 * Usual Display::           The usual conventions for displaying
                               nonprinting chars.
@@ -1512,7 +1509,6 @@ Object Internals
 @include tips.texi
 @include internals.texi
 @include errors.texi
-@include locals.texi
 @include maps.texi
 @include hooks.texi
 

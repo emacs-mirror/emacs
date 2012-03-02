@@ -163,7 +163,7 @@ The properties returned may include `top', `left', `height', and `width'."
 (define-key global-map [ns-power-off] 'save-buffers-kill-emacs)
 (define-key global-map [ns-open-file] 'ns-find-file)
 (define-key global-map [ns-open-temp-file] [ns-open-file])
-(define-key global-map [ns-drag-file] 'ns-insert-file)
+(define-key global-map [ns-drag-file] 'ns-find-file)
 (define-key global-map [ns-drag-color] 'ns-set-foreground-at-mouse)
 (define-key global-map [S-ns-drag-color] 'ns-set-background-at-mouse)
 (define-key global-map [ns-drag-text] 'ns-insert-text)

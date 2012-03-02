@@ -1234,7 +1234,7 @@ make it possible to categorize errors at various levels of generality
 when you write an error handler.  Using error symbols alone would
 eliminate all but the narrowest level of classification.
 
-  @xref{Standard Errors}, for a list of all the standard error symbols
+  @xref{Standard Errors}, for a list of the main error symbols
 and their conditions.
 
 @node Cleanups

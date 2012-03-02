@@ -3028,7 +3028,7 @@ If ADAPT, return the home adaptive file instead."
 			   (* (abs score)
 			      gnus-score-decay-scale)))))))
     (if (and (featurep 'xemacs)
-	     ;; XEmacs' floor can handle only the floating point
+	     ;; XEmacs's floor can handle only the floating point
 	     ;; number below the half of the maximum integer.
 	     (> (abs n) (lsh -1 -2)))
 	(string-to-number

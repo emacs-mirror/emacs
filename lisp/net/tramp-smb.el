@@ -288,7 +288,7 @@ pass to the OPERATION."
 	 (buffer-name))))))
 
 (defun tramp-smb-handle-copy-directory
-  (dirname newname &optional keep-date parents)
+  (dirname newname &optional keep-date parents copy-contents)
   "Like `copy-directory' for Tramp files.  KEEP-DATE is not handled."
   (setq dirname (expand-file-name dirname)
 	newname (expand-file-name newname))

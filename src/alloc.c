@@ -1582,6 +1582,21 @@ make_number (EMACS_INT n)
 }
 #endif
 
+/* Convert the pointer-sized word P to EMACS_INT while preserving its
+   type and ptr fields.  */
+static Lisp_Object
+widen_to_Lisp_Object (void *p)
+{
+  intptr_t i = (intptr_t) p;
+#ifdef USE_LISP_UNION_TYPE
+  Lisp_Object obj;
+  obj.i = i;
+  return obj;
+#else
+  return i;
+#endif
+}
+
 /***********************************************************************
 			  String Allocation
  ***********************************************************************/
@@ -4294,7 +4309,19 @@ mark_memory (void *start, void *end)
 
   for (pp = start; (void *) pp < end; pp++)
     for (i = 0; i < sizeof *pp; i += GC_POINTER_ALIGNMENT)
-      mark_maybe_pointer (*(void **) ((char *) pp + i));
+      {
+	void *w = *(void **) ((char *) pp + i);
+	mark_maybe_pointer (w);
+
+#ifdef USE_LSB_TAG
+	/* A host where a Lisp_Object is wider than a pointer might
+	   allocate a Lisp_Object in non-adjacent halves.  If
+	   USE_LSB_TAG, the bottom half is not a valid pointer, so
+	   widen it to to a Lisp_Object and check it that way.  */
+	if (sizeof w < sizeof (Lisp_Object))
+	  mark_maybe_object (widen_to_Lisp_Object (w));
+#endif
+      }
 }
 
 /* setjmp will work with GCC unless NON_SAVING_SETJMP is defined in

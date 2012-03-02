@@ -1,6 +1,6 @@
 @c -*-texinfo-*-
 @c This is part of the GNU Emacs Lisp Reference Manual.
-@c Copyright (C) 1990-1993, 1998, 2001-2012  Free Software Foundation, Inc.
+@c Copyright (C) 1990-1993, 1998, 2001-2012 Free Software Foundation, Inc.
 @c See the file elisp.texi for copying conditions.
 @setfilename ../../info/hooks
 @node Standard Hooks, Index, Standard Keymaps, Top
@@ -22,7 +22,7 @@ Every major mode defines a mode hook named
 @samp{@var{modename}-mode-hook}.  The major mode command runs this
 normal hook with @code{run-mode-hooks} as the very last thing it does.
 @xref{Mode Hooks}.  Most minor modes have mode hooks too.  Mode hooks
-are omitted in the list below.
+are omitted from the list below.
 
 The variables whose names end in @samp{-hooks} or @samp{-functions} are
 usually @dfn{abnormal hooks}; their values are lists of functions, but
@@ -95,38 +95,6 @@ not exactly a hook, but does a similar job.
 @item buffer-access-fontify-functions
 @xref{Lazy Properties}.
 
-@item calendar-initial-window-hook
-@iftex
-@inforef{Calendar Customizing,, emacs-xtra}.
-@end iftex
-@ifnottex
-@xref{Calendar Customizing,,, emacs}.
-@end ifnottex
-
-@item calendar-load-hook
-@iftex
-@inforef{Calendar Customizing,, emacs-xtra}.
-@end iftex
-@ifnottex
-@xref{Calendar Customizing,,, emacs}.
-@end ifnottex
-
-@item calendar-today-invisible-hook
-@iftex
-@inforef{Calendar Customizing,, emacs-xtra}.
-@end iftex
-@ifnottex
-@xref{Calendar Customizing,,, emacs}.
-@end ifnottex
-
-@item calendar-today-visible-hook
-@iftex
-@inforef{Calendar Customizing,, emacs-xtra}.
-@end iftex
-@ifnottex
-@xref{Calendar Customizing,,, emacs}.
-@end ifnottex
-
 @item change-major-mode-after-body-hook
 @xref{Mode Hooks}.
 
@@ -153,67 +121,7 @@ Hook called after defining each customize option.
 Functions to call when Emacs deletes a frame.  @xref{Deleting Frames}.
 
 @item delete-terminal-functions
-Functions to call when Emacs deletes a terminal.  @xref{Multiple
-Terminals}.
-
-@item desktop-after-read-hook
-Normal hook run after a successful @code{desktop-read}.  May be used
-to show a buffer list.  @xref{Saving Emacs Sessions,, Saving Emacs
-Sessions, emacs, the GNU Emacs Manual}.
-
-@item desktop-no-desktop-file-hook
-Normal hook run when @code{desktop-read} can't find a desktop file.
-May be used to show a dired buffer.  @xref{Saving Emacs Sessions,,
-Saving Emacs Sessions, emacs, the GNU Emacs Manual}.
-
-@item desktop-save-hook
-Normal hook run before the desktop is saved in a desktop file.  This
-is useful for truncating history lists, for example.  @xref{Saving
-Emacs Sessions,, Saving Emacs Sessions, emacs, the GNU Emacs Manual}.
-
-@item diary-hook
-List of functions called after the display of the diary.  Can be used
-for appointment notification.
-
-@item diary-list-entries-hook
-@iftex
-@inforef{Fancy Diary Display,, emacs-xtra}.
-@end iftex
-@ifnottex
-@xref{Fancy Diary Display,,, emacs}.
-@end ifnottex
-
-@item diary-mark-entries-hook
-@iftex
-@inforef{Fancy Diary Display,, emacs-xtra}.
-@end iftex
-@ifnottex
-@xref{Fancy Diary Display,,, emacs}.
-@end ifnottex
-
-@item diary-nongregorian-listing-hook
-@iftex
-@inforef{Non-Gregorian Diary,, emacs-xtra}.
-@end iftex
-@ifnottex
-@xref{Non-Gregorian Diary,,, emacs}.
-@end ifnottex
-
-@item diary-nongregorian-marking-hook
-@iftex
-@inforef{Non-Gregorian Diary,, emacs-xtra}.
-@end iftex
-@ifnottex
-@xref{Non-Gregorian Diary,,, emacs}.
-@end ifnottex
-
-@item diary-print-entries-hook
-@iftex
-@inforef{Diary Display,, emacs-xtra}.
-@end iftex
-@ifnottex
-@xref{Diary Display,,, emacs}.
-@end ifnottex
+Functions to call when Emacs deletes a terminal.  @xref{Multiple Terminals}.
 
 @item disabled-command-function
 @xref{Disabling Commands}.
@@ -272,8 +180,6 @@ for appointment notification.
 @item kill-emacs-query-functions
 @xref{Killing Emacs}.
 
-@item lisp-indent-function
-
 @item mail-setup-hook
 @xref{Mail Misc,, Mail Miscellany, emacs, the GNU Emacs Manual}.
 
@@ -289,8 +195,6 @@ for appointment notification.
 @item mouse-position-function
 @xref{Mouse Position}.
 
-@item occur-hook
-
 @item post-command-hook
 @xref{Command Overview}.
 
@@ -305,8 +209,6 @@ for appointment notification.
 
 @item resume-tty-functions
 @xref{Suspending Emacs}.
-
-@item scheme-indent-function
 
 @item suspend-hook
 @xref{Suspending Emacs}.

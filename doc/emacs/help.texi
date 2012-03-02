@@ -71,7 +71,7 @@ meanings for it, but they all support @key{F1} for help.)
 * Language Help::       Help relating to international language support.
 * Misc Help::           Other help commands.
 * Help Files::          Commands to display auxiliary help files.
-* Help Echo::           Help on active text and tooltips (`balloon help').
+* Help Echo::           Help on active text and tooltips ("balloon help").
 @end menu
 
 @iftex

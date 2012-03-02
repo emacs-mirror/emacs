@@ -8,8 +8,7 @@
 This manual documents nxml-mode, an Emacs major mode for editing
 XML with RELAX NG support.
 
-Copyright @copyright{} 2007-2012
-Free Software Foundation, Inc.
+Copyright @copyright{} 2007-2012 Free Software Foundation, Inc.
 
 @quotation
 Permission is granted to copy, distribute and/or modify this document
@@ -355,7 +354,7 @@ Otherwise, it is a paragraph boundary.
 @chapter Outlining
 
 nXML mode allows you to display all or part of a buffer as an
-outline, in a similar way to Emacs' outline mode.  An outline in nXML
+outline, in a similar way to Emacs's outline mode.  An outline in nXML
 mode is based on recognizing two kinds of element: sections and
 headings.  There is one heading for every section and one section for
 every heading.  A section contains its heading as or within its first

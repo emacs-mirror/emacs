@@ -184,8 +184,8 @@ abbrevs.texi
 advice.texi       cyd
 anti.texi         
 back.texi
-backups.texi      
-buffers.texi      
+backups.texi      cyd
+buffers.texi      cyd
 commands.texi     cyd
 compile.texi      cyd
 control.texi      cyd
@@ -194,7 +194,7 @@ debugging.texi    cyd
 display.texi      
 edebug.texi
 elisp.texi
-errors.texi       
+errors.texi       rgm
 eval.texi         cyd
 files.texi        cyd
 frames.texi       
@@ -208,9 +208,8 @@ intro.texi        cyd
 keymaps.texi      cyd
 lists.texi        cyd
 loading.texi      cyd
-locals.texi       
 macros.texi       cyd
-maps.texi         
+maps.texi         rgm
 markers.texi      
 minibuf.texi      
 modes.texi        cyd

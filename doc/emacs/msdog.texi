@@ -574,7 +574,7 @@ then change their minds; if this has the effect of bringing up the
 Windows menu, it alters the meaning of subsequent commands.  Many
 users find this frustrating.
 
-  You can re-enable Windows' default handling of tapping the @key{ALT}
+  You can re-enable Windows's default handling of tapping the @key{ALT}
 key by setting @code{w32-pass-alt-to-system} to a non-@code{nil}
 value.
 

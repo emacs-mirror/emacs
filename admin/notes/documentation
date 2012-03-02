@@ -112,3 +112,6 @@ The kind of change for which the user really needs help from Antinews
 is where a feature works _differently_ in the previous version.
 In those cases, the user might have trouble figuring out how to use
 the old version without some sort of help.
+
+** To indicate possession, write Emacs's rather than Emacs'.
+http://lists.gnu.org/archive/html/emacs-devel/2012-02/msg00649.html

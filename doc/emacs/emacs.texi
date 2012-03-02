@@ -159,11 +159,11 @@ Major Structures of Emacs
 * Files::               All about handling files.
 * Buffers::             Multiple buffers; editing several files at once.
 * Windows::             Viewing multiple pieces of text in one frame.
-* Frames::              Using multiple ``windows'' on your display.
+* Frames::              Using multiple "windows" on your display.
 * International::       Using non-@acronym{ASCII} character sets.
 
 Advanced Features
-* Modes::               Major and minor modes alter Emacs' basic behavior.
+* Modes::               Major and minor modes alter Emacs's basic behavior.
 * Indentation::         Editing the white space at the beginnings of lines.
 * Text::                Commands and modes for editing human languages.
 * Programs::            Commands and modes for editing programs.
@@ -273,7 +273,7 @@ Help
 * Language Help::       Help relating to international language support.
 * Misc Help::           Other help commands.
 * Help Files::          Commands to display auxiliary help files.
-* Help Echo::           Help on active text and tooltips (`balloon help').
+* Help Echo::           Help on active text and tooltips ("balloon help").
 
 The Mark and the Region
 
@@ -337,7 +337,7 @@ Controlling the Display
 * Follow Mode::            Follow mode lets two windows scroll as one.
 * Faces::                  How to change the display style using faces.
 * Colors::                 Specifying colors for faces.
-* Standard Faces::         Emacs' predefined faces.
+* Standard Faces::         The main predefined faces.
 * Text Scale::             Increasing or decreasing text size in a buffer.
 * Font Lock::              Minor mode for syntactic highlighting using faces.
 * Highlight Interactively:: Tell Emacs what text to highlight.
@@ -568,7 +568,7 @@ Commands for Human Languages
 * TeX Mode::            Editing TeX and LaTeX files.
 * HTML Mode::           Editing HTML and SGML files.
 * Nroff Mode::          Editing input to the nroff formatter.
-* Enriched Text::       Editing text ``enriched'' with fonts, colors, etc.
+* Enriched Text::       Editing text "enriched" with fonts, colors, etc.
 * Text Based Tables::   Commands for editing text-based tables.
 * Two-Column::          Splitting text columns into separate windows.
 
@@ -882,7 +882,7 @@ Dired, the Directory Editor
                                either one file or several files.
 * Shell Commands in Dired::  Running a shell command on the marked files.
 * Transforming File Names::  Using patterns to rename multiple files.
-* Comparison in Dired::      Running `diff' by way of Dired.
+* Comparison in Dired::      Running @code{diff} by way of Dired.
 * Subdirectories in Dired::  Adding subdirectories to the Dired buffer.
 @ifnottex
 * Subdir Switches::          Subdirectory switches in Dired.
@@ -890,7 +890,7 @@ Dired, the Directory Editor
 * Subdirectory Motion::      Moving across subdirectories, and up and down.
 * Hiding Subdirectories::    Making subdirectories visible or invisible.
 * Dired Updating::           Discarding lines for files of no interest.
-* Dired and Find::           Using `find' to choose the files for Dired.
+* Dired and Find::           Using @code{find} to choose the files for Dired.
 * Wdired::                   Operating on files by editing the Dired buffer.
 * Image-Dired::              Viewing image thumbnails in Dired.
 * Misc Dired Features::      Various other features.

@@ -302,9 +302,9 @@ This requires Emacs to be linked with libselinux at build time.
 
 +++
 *** Emacs preserves the SELinux file context when backing up, and
-optionally when copying files. To this end, copy-file has an extra
-optional argument, and backup-buffer and friends include the SELinux
-context in their return values.
+optionally when copying files.  To this end, `copy-file' has an extra
+optional argument, and the return value of `backup-buffer' now
+includes the SELinux context.
 
 +++
 *** The new functions file-selinux-context and set-file-selinux-context
@@ -1019,6 +1019,14 @@ for buffers with dead inferior processes has been generalized.
 
 * Incompatible Lisp Changes in Emacs 24.1
 
++++
+** The return value of `backup-buffer' has changed.
+It is now a list of three elements, where the second element is a list
+describing the original file's SELinux context.  If Emacs or the
+system lacks SELinux cupport, the context list is (nil nil nil nil).
+See the "Basic SELinux support" entry under "Changes in Emacs 24.1",
+above.
+
 ---
 ** `char-direction-table' and the associated function `char-direction'
 were deleted.  They were buggy and inferior to the new support of
@@ -1122,6 +1130,11 @@ sc.el, x-menu.el, rnews.el, rnewspost.el
 ** The format of the finder-inf.el file has changed, since the finder
 mechanism is now based on the package concept.  The variable
 finder-package-info is replaced by package--builtins and finder-keywords-hash.
+
+---
+** When generating autoloads, `update-directory-autoloads' no longer
+assumes every inspected file is in your `load-path'.  It instead
+generates relative names according to the current `load-path'.
 
 
 * Lisp changes in Emacs 24.1
@@ -1413,8 +1426,8 @@ Trashing is performed if TRASH and `delete-by-moving-to-trash' are
 both non-nil.  Interactively, TRASH defaults to t, unless a prefix
 argument is supplied (see Trash changes, above).
 
-FIXME
-** New functions files-equal-p, file-subdir-of-p that [do something]
++++
+** New file predicate functions: file-equal-p, file-subdir-of-p.
 
 +++
 ** Tool-bars can display separators.
@@ -1569,6 +1582,10 @@ and also when HOME is set to C:\ by default.
 +++
 ** Customize ns-auto-hide-menu-bar to have the menu-bar hidden, but
 reappear on mouse-over.  (Requires OS X 10.6 or later.)
+
++++
+** On Mac OS X, dragging a file into Emacs visits the file, like on
+other platforms, rather than inserting its contents into the buffer.
 
 
 ----------------------------------------------------------------------

@@ -22,7 +22,7 @@
 
 ;;; Commentary:
 
-;; Defines most of Emacs's file- and directory-handling functions,
+;; Defines most of Emacs'ss file- and directory-handling functions,
 ;; including basic file visiting, backup generation, link handling,
 ;; ITS-id version control, load- and write-hook handling, and the like.
 
@@ -4985,38 +4985,41 @@ given.  With a prefix argument, TRASH is nil."
 		 directory 'full directory-files-no-dot-files-regexp)))
       (delete-directory-internal directory)))))
 
-(defun files-equal-p (file1 file2)
-  "Return non-nil if FILE1 and FILE2 name the same file."
-  (let ((handler (or (find-file-name-handler file1 'files-equal-p)
-                     (find-file-name-handler file2 'files-equal-p))))
+(defun file-equal-p (file1 file2)
+  "Return non-nil if files FILE1 and FILE2 name the same file.
+If FILE1 or FILE2 does not exist, the return value is unspecified."
+  (let ((handler (or (find-file-name-handler file1 'file-equal-p)
+                     (find-file-name-handler file2 'file-equal-p))))
     (if handler
-        (funcall handler 'files-equal-p file1 file2)
-      (equal (file-attributes (file-truename file1))
-             (file-attributes (file-truename file2))))))
+        (funcall handler 'file-equal-p file1 file2)
+      (let (f1-attr f2-attr)
+        (and (setq f1-attr (file-attributes (file-truename file1)))
+	     (setq f2-attr (file-attributes (file-truename file2)))
+	     (equal f1-attr f2-attr))))))
 
 (defun file-subdir-of-p (dir1 dir2)
   "Return non-nil if DIR1 is a subdirectory of DIR2.
-Note that a directory is treated by this function as a subdirectory of itself.
-This function only works when its two arguments already exist,
-when they don't, it returns nil."
+A directory is considered to be a subdirectory of itself.
+Return nil if top directory DIR2 is not an existing directory."
   (let ((handler (or (find-file-name-handler dir1 'file-subdir-of-p)
                      (find-file-name-handler dir2 'file-subdir-of-p))))
     (if handler
         (funcall handler 'file-subdir-of-p dir1 dir2)
-      (when (and (file-directory-p dir1)
-                 (file-directory-p dir2))
-        (loop with f1 = (file-truename dir1)
-              with f2 = (file-truename dir2)
-              with ls1 = (or (split-string f1 "/" t) (list "/"))
-              with ls2 = (or (split-string f2 "/" t) (list "/"))
-              for p = (string-match "^/" f1)
-              for i in ls1
-              for j in ls2
-              when (string= i j)
-              concat (if p (concat "/" i) (concat i "/"))
-              into root
-              finally return
-              (files-equal-p (file-truename root) f2))))))
+      (when (file-directory-p dir2) ; Top dir must exist.
+	(setq dir1 (file-truename dir1)
+	      dir2 (file-truename dir2))
+	(let ((ls1  (or (split-string dir1 "/" t) '("/")))
+	      (ls2  (or (split-string dir2 "/" t) '("/")))
+	      (root (if (string-match "\\`/" dir1) "/" ""))
+	      (mismatch nil))
+	  (while (and ls1 ls2 (not mismatch))
+	    (if (string-equal (car ls1) (car ls2))
+		(setq root (concat root (car ls1) "/"))
+	      (setq mismatch t))
+	    (setq ls1 (cdr ls1)
+		  ls2 (cdr ls2)))
+	  (unless mismatch
+	    (file-equal-p root dir2)))))))
 
 (defun copy-directory (directory newname &optional keep-time parents copy-contents)
   "Copy DIRECTORY to NEWNAME.  Both args must be strings.
@@ -5062,12 +5065,7 @@ directly into NEWNAME instead."
       (cond ((not (file-directory-p newname))
 	     ;; If NEWNAME is not an existing directory, create it;
 	     ;; that is where we will copy the files of DIRECTORY.
-	     (make-directory newname parents)
-             ;; `file-subdir-of-p' doesn't handle non--existing directories,
-             ;; so double check now if NEWNAME is not a subdir of DIRECTORY.
-             (and (file-subdir-of-p newname directory)
-                  (error "Cannot copy `%s' into its subdirectory `%s'"
-                         directory newname)))
+	     (make-directory newname parents))
 	    ;; If NEWNAME is an existing directory and COPY-CONTENTS
 	    ;; is nil, copy into NEWNAME/[DIRECTORY-BASENAME].
 	    ((not copy-contents)
@@ -5256,7 +5254,7 @@ non-nil, it is called instead of rereading visited file contents."
 			 (unlock-buffer)))
 		   (widen)
 		   (let ((coding-system-for-read
-			  ;; Auto-saved file should be read by Emacs'
+			  ;; Auto-saved file should be read by Emacs's
 			  ;; internal coding.
 			  (if auto-save-p 'auto-save-coding
 			    (or coding-system-for-read

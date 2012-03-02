@@ -1,6 +1,6 @@
 ;;; filesets.el --- handle group of files
 
-;; Copyright (C) 2002-2012  Free Software Foundation, Inc.
+;; Copyright (C) 2002-2012 Free Software Foundation, Inc.
 
 ;; Author: Thomas Link <sanobast-emacs@yahoo.de>
 ;; Maintainer: FSF
@@ -518,7 +518,7 @@ Caveat: Changes will take effect after rebuilding the menu."
 This is for calls via `filesets-find-or-display-file'
 or `filesets-find-file'.
 
-Set this to 0, if you don't use XEmacs' buffer tabs."
+Set this to 0, if you don't use XEmacs's buffer tabs."
   :set (function filesets-set-default)
   :type 'number
   :group 'filesets)

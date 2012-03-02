@@ -1,6 +1,6 @@
 @c -*-texinfo-*-
 @c This is part of the GNU Emacs Lisp Reference Manual.
-@c Copyright (C) 1990-1995, 1998-2012  Free Software Foundation, Inc.
+@c Copyright (C) 1990-1995, 1998-2012 Free Software Foundation, Inc.
 @c See the file elisp.texi for copying conditions.
 @setfilename ../../info/variables
 @node Variables, Functions, Control Structures, Top
@@ -479,7 +479,7 @@ not the buffer-local value.  (But you should not be making
 buffer-local bindings for a symbol that is defined with
 @code{defconst}.)
 
-An example of the use of @code{defconst} is Emacs' definition of
+An example of the use of @code{defconst} is Emacs's definition of
 @code{float-pi}---the mathematical constant @math{pi}, which ought not
 to be changed by anyone (attempts by the Indiana State Legislature
 notwithstanding).  As the second form illustrates, however,

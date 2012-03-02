@@ -26,7 +26,7 @@
 ;;; Commentary:
 
 ;; Ewoc Was Once Cookie
-;; But now it's Emacs' Widget for Object Collections
+;; But now it's Emacs's Widget for Object Collections
 
 ;; As the name implies this derives from the `cookie' package (part
 ;; of Elib).  The changes are pervasive though mostly superficial:
