@@ -4,6 +4,7 @@
 	(Building Emacs): Say less about CANNOT_DUMP platforms.
 	Replace deleted eval-at-startup with custom-initialize-delay.
 	(Pure Storage): Small changes.
+	(Memory Usage): Copyedit.
 
 	* tips.texi: Copyedits.
 	(Coding Conventions): Mention autoloads.

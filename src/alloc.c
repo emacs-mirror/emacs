@@ -6446,7 +6446,9 @@ If this portion is smaller than `gc-cons-threshold', this is ignored.  */);
 	      doc: /* Number of string characters that have been consed so far.  */);
 
   DEFVAR_INT ("misc-objects-consed", misc_objects_consed,
-	      doc: /* Number of miscellaneous objects that have been consed so far.  */);
+	      doc: /* Number of miscellaneous objects that have been consed so far.
+These include markers and overlays, plus certain objects not visible
+to users.  */);
 
   DEFVAR_INT ("intervals-consed", intervals_consed,
 	      doc: /* Number of intervals that have been consed so far.  */);

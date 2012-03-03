@@ -456,7 +456,7 @@ point number.
   These functions and variables give information about the total amount
 of memory allocation that Emacs has done, broken down by data type.
 Note the difference between these and the values returned by
-@code{(garbage-collect)}; those count objects that currently exist, but
+@code{garbage-collect}; those count objects that currently exist, but
 these count the number or size of all allocations, including those for
 objects that have since been freed.
 
