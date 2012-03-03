@@ -158,10 +158,10 @@ you must run Emacs with @samp{-batch}.
 
   Emacs Lisp uses two kinds of storage for user-created Lisp objects:
 @dfn{normal storage} and @dfn{pure storage}.  Normal storage is where
-all the new data created during an Emacs session are kept; see the
-following section for information on normal storage.  Pure storage is
-used for certain data in the preloaded standard Lisp files---data that
-should never change during actual use of Emacs.
+all the new data created during an Emacs session are kept
+(@pxref{Garbage Collection}).  Pure storage is used for certain data
+in the preloaded standard Lisp files---data that should never change
+during actual use of Emacs.
 
   Pure storage is allocated only while @file{temacs} is loading the
 standard preloaded Lisp libraries.  In the file @file{emacs}, it is
@@ -170,14 +170,14 @@ the memory space can be shared by all the Emacs jobs running on the
 machine at once.  Pure storage is not expandable; a fixed amount is
 allocated when Emacs is compiled, and if that is not sufficient for
 the preloaded libraries, @file{temacs} allocates dynamic memory for
-the part that didn't fit.  If that happens, you should increase the
-compilation parameter @code{PURESIZE} in the file
-@file{src/puresize.h} and rebuild Emacs, even though the resulting
-image will work: garbage collection is disabled in this situation,
-causing a memory leak.  Such an overflow normally won't happen unless you
-try to preload additional libraries or add features to the standard
-ones.  Emacs will display a warning about the overflow when it
-starts.
+the part that didn't fit.  The resulting image will work, but garbage
+collection (@pxref{Garbage Collection}) is disabled in this situation,
+causing a memory leak.  Such an overflow normally won't happen unless
+you try to preload additional libraries or add features to the
+standard ones.  Emacs will display a warning about the overflow when
+it starts.  If this happens, you should increase the compilation
+parameter @code{SYSTEM_PURESIZE_EXTRA} in the file
+@file{src/puresize.h} and rebuild Emacs.
 
 @defun purecopy object
 This function makes a copy in pure storage of @var{object}, and returns
@@ -188,8 +188,7 @@ not make copies of other objects such as symbols, but just returns
 them unchanged.  It signals an error if asked to copy markers.
 
 This function is a no-op except while Emacs is being built and dumped;
-it is usually called only in the file @file{emacs/lisp/loaddefs.el}, but
-a few packages call it just in case you decide to preload them.
+it is usually called only in preloaded Lisp files.
 @end defun
 
 @defvar pure-bytes-used
@@ -363,7 +362,7 @@ object consists of a header and the storage for the string text
 itself; the latter is only allocated when the string is created.)
 @end table
 
-If there was overflow in pure space (see the previous section),
+If there was overflow in pure space (@pxref{Pure Storage}),
 @code{garbage-collect} returns @code{nil}, because a real garbage
 collection can not be done in this situation.
 @end deffn
@@ -371,7 +370,7 @@ collection can not be done in this situation.
 @defopt garbage-collection-messages
 If this variable is non-@code{nil}, Emacs displays a message at the
 beginning and end of garbage collection.  The default value is
-@code{nil}, meaning there are no such messages.
+@code{nil}.
 @end defopt
 
 @defvar post-gc-hook
@@ -390,7 +389,7 @@ that the subsequent garbage collection does not happen immediately when
 the threshold is exhausted, but only the next time the Lisp evaluator is
 called.
 
-The initial threshold value is 400,000.  If you specify a larger
+The initial threshold value is 800,000.  If you specify a larger
 value, garbage collection will happen less often.  This reduces the
 amount of time spent garbage collecting, but increases total memory use.
 You may want to do this when running a program that creates lots of

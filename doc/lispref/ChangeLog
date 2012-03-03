@@ -3,6 +3,7 @@
 	* internals.texi: Change @appendix section commands to @section.
 	(Building Emacs): Say less about CANNOT_DUMP platforms.
 	Replace deleted eval-at-startup with custom-initialize-delay.
+	(Pure Storage): Small changes.
 
 	* tips.texi: Copyedits.
 	(Coding Conventions): Mention autoloads.

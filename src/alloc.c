@@ -1,6 +1,7 @@
 /* Storage allocation and gc for GNU Emacs Lisp interpreter.
-   Copyright (C) 1985-1986, 1988, 1993-1995, 1997-2012
-      Free Software Foundation, Inc.
+
+Copyright (C) 1985-1986, 1988, 1993-1995, 1997-2012
+  Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -5010,11 +5011,12 @@ Garbage collection happens automatically if you cons more than
 `gc-cons-threshold' bytes of Lisp data since previous garbage collection.
 `garbage-collect' normally returns a list with info on amount of space in use:
  ((USED-CONSES . FREE-CONSES) (USED-SYMS . FREE-SYMS)
-  (USED-MARKERS . FREE-MARKERS) USED-STRING-CHARS USED-VECTOR-SLOTS
+  (USED-MISCS . FREE-MISCS) USED-STRING-CHARS USED-VECTOR-SLOTS
   (USED-FLOATS . FREE-FLOATS) (USED-INTERVALS . FREE-INTERVALS)
   (USED-STRINGS . FREE-STRINGS))
 However, if there was overflow in pure space, `garbage-collect'
-returns nil, because real GC can't be done.  */)
+returns nil, because real GC can't be done.
+See Info node `(elisp)Garbage Collection'.  */)
   (void)
 {
   register struct specbinding *bind;
