@@ -5,6 +5,12 @@
 	Replace deleted eval-at-startup with custom-initialize-delay.
 	(Pure Storage): Small changes.
 	(Memory Usage): Copyedit.
+	(Writing Emacs Primitives): Update Fcoordinates_in_window_p and For
+	example definitions. Give examples of things with non-nil
+	interactive args.  Mention eval_sub.  Remove old info about
+	strings and GCPRO.  Mention cus-start.el.
+	(Buffer Internals, Window Internals, Process Internals):
+	Misc small updates and fixes for fields.
 
 	* tips.texi: Copyedits.
 	(Coding Conventions): Mention autoloads.

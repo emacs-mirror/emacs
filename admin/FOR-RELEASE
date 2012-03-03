@@ -203,7 +203,8 @@ hash.texi         cyd
 help.texi         cyd
 hooks.texi        rgm
 index.texi
-internals.texi    
+internals.texi    rgm  (I don't know much about this, so it would be
+    good if someone else could at least look at the FIXME? comments.)
 intro.texi        cyd
 keymaps.texi      cyd
 lists.texi        cyd
