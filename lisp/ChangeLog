@@ -1,3 +1,10 @@
+2012-03-03  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* mail/emacsbug.el (report-emacs-bug-hook): Look at the value of
+	`message-default-send-mail-function' and not `send-mail-function'
+	when doing the prompting for `sendmail-query-once' before sending
+	in Message buffers (bug#10897).
+
 2012-03-02  Alan Mackenzie  <acm@muc.de>
 
 	Depessimize the handling of very large macros.
