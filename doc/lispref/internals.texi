@@ -106,13 +106,12 @@ and load them with @file{site-load.el}.
 Load the files with @file{site-init.el}, then copy the files into the
 installation directory for Lisp files when you install Emacs.
 
-@c FIXME the default is non-nil; I don't think this makes sense.
 @item
-Specify a non-@code{nil} value for
-@code{byte-compile-dynamic-docstrings} as a local variable in each of these
-files, and load them with either @file{site-load.el} or
-@file{site-init.el}.  (This method has the drawback that the
-documentation strings take up space in Emacs all the time.)
+Specify a @code{nil} value for @code{byte-compile-dynamic-docstrings}
+as a local variable in each of these files, and load them with either
+@file{site-load.el} or @file{site-init.el}.  (This method has the
+drawback that the documentation strings take up space in Emacs all the
+time.)
 @end itemize
 
   It is not advisable to put anything in @file{site-load.el} or
