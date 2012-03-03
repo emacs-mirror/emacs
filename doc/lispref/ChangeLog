@@ -1,3 +1,16 @@
+2012-03-03  Glenn Morris  <rgm@gnu.org>
+
+	* tips.texi: Copyedits.
+	(Coding Conventions): Mention autoloads.
+	Combine partially duplicated macro items.  Fix xref.
+	Refer to Library Headers for copyright notice.
+	(Programming Tips): edit-options is long-obsolete.
+	(Compilation Tips): Mention loading bytecomp for byte-compile props.
+	(Warning Tips): Mention declare-function.
+	(Documentation Tips): Remove old info.
+	(Comment Tips): Mention comment-dwim, not indent-for-comment.
+	(Library Headers): General update.
+
 2012-03-02  Glenn Morris  <rgm@gnu.org>
 
 	* backups.texi (Reverting): Un-duplicate revert-buffer-in-progress-p,
