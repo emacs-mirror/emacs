@@ -1,5 +1,5 @@
 @c This is part of the Emacs manual.
-@c Copyright (C) 2004-2012  Free Software Foundation, Inc.
+@c Copyright (C) 2004-2012 Free Software Foundation, Inc.
 @c See file emacs.texi for copying conditions.
 @c
 @c This file is included either in emacs-xtra.texi (when producing the
@@ -96,6 +96,7 @@ Neither are Dired buffers for which you used shell wildcards or file
 arguments to list only some of the files.  @samp{*Find*} and
 @samp{*Locate*} buffers do not auto-revert either.
 
+@c FIXME?  This should be in the elisp manual?
 @node Supporting additional buffers
 @subsection Adding Support for Auto-Reverting additional Buffers.
 

@@ -201,7 +201,7 @@ frames.texi
 functions.texi    cyd
 hash.texi         cyd
 help.texi         cyd
-hooks.texi        
+hooks.texi        rgm
 index.texi
 internals.texi    
 intro.texi        cyd

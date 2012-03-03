@@ -203,6 +203,7 @@ to keep: LEN chars starting BEG chars from the beginning."
   ;; call-process barfs if default-directory is inaccessible.
   (let ((default-directory
 	  (if (and default-directory
+		   (not (file-remote-p default-directory))
 		   (file-accessible-directory-p default-directory))
 	      default-directory
 	    (file-name-directory infile))))

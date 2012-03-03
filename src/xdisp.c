@@ -7362,7 +7362,7 @@ next_element_from_string (struct it *it)
   if (it->current.overlay_string_index >= 0)
     {
       /* Get the next character from an overlay string.  In overlay
-	 strings, There is no field width or padding with spaces to
+	 strings, there is no field width or padding with spaces to
 	 do.  */
       if (IT_STRING_CHARPOS (*it) >= SCHARS (it->string))
 	{
@@ -15602,7 +15602,7 @@ redisplay_window (Lisp_Object window, int just_this_one_p)
 	     accessible region of the buffer.  This can happen when we
 	     have just switched to a different buffer and/or changed
 	     its restriction.  In that case, startp is initialized to
-	     the character position 1 (BEG) because we did not yet
+	     the character position 1 (BEGV) because we did not yet
 	     have chance to display the buffer even once.  */
 	  && BEGV <= CHARPOS (startp) && CHARPOS (startp) <= ZV)
 	{
@@ -15611,7 +15611,7 @@ redisplay_window (Lisp_Object window, int just_this_one_p)
 
 	  SAVE_IT (it1, it, it1data);
 	  start_display (&it1, w, startp);
-	  move_it_vertically (&it1, margin);
+	  move_it_vertically (&it1, margin * FRAME_LINE_HEIGHT (f));
 	  margin_pos = IT_CHARPOS (it1);
 	  RESTORE_IT (&it, &it, it1data);
 	}
@@ -16322,7 +16322,10 @@ try_window_reusing_current_matrix (struct window *w)
 	   ++first_row_to_display)
 	{
 	  if (PT >= MATRIX_ROW_START_CHARPOS (first_row_to_display)
-	      && PT < MATRIX_ROW_END_CHARPOS (first_row_to_display))
+	      && (PT < MATRIX_ROW_END_CHARPOS (first_row_to_display)
+		  || (PT == MATRIX_ROW_END_CHARPOS (first_row_to_display)
+		      && first_row_to_display->ends_at_zv_p
+		      && pt_row == NULL)))
 	    pt_row = first_row_to_display;
 	}
 
@@ -16414,7 +16417,9 @@ try_window_reusing_current_matrix (struct window *w)
       if (pt_row)
 	{
 	  for (row = MATRIX_ROW (w->current_matrix, w->cursor.vpos);
-	       row < bottom_row && PT >= MATRIX_ROW_END_CHARPOS (row);
+	       row < bottom_row
+		 && PT >= MATRIX_ROW_END_CHARPOS (row)
+		 && !row->ends_at_zv_p;
 	       row++)
 	    {
 	      w->cursor.vpos++;

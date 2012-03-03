@@ -1,6 +1,6 @@
 /* Buffer manipulation primitives for GNU Emacs.
 
-Copyright (C) 1985-1989, 1993-1995, 1997-2012  Free Software Foundation, Inc.
+Copyright (C) 1985-1989, 1993-1995, 1997-2012 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -1717,7 +1717,7 @@ record_buffer (Lisp_Object buffer)
 /* Move BUFFER to the end of the buffer (a)lists.  Do nothing if the
    buffer is killed.  For the selected frame's buffer list this moves
    BUFFER to its end even if it was never shown in that frame.  If
-   this happens we have a feature, hence `unrecord-buffer' should be
+   this happens we have a feature, hence `bury-buffer-internal' should be
    called only when BUFFER was shown in the selected frame.  */
 
 DEFUN ("bury-buffer-internal", Fbury_buffer_internal, Sbury_buffer_internal,
@@ -5996,7 +5996,7 @@ The function `kill-all-local-variables' runs this before doing anything else.  *
 	       doc: /* Hook run when the buffer list changes.
 Functions running this hook are `get-buffer-create',
 `make-indirect-buffer', `rename-buffer', `kill-buffer',
-`record-buffer' and `unrecord-buffer'.  */);
+and `bury-buffer-internal'.  */);
   Vbuffer_list_update_hook = Qnil;
   DEFSYM (Qbuffer_list_update_hook, "buffer-list-update-hook");
 

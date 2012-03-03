@@ -187,9 +187,9 @@ Appendices
 * Tips::                    Advice and coding conventions for Emacs Lisp.
 * GNU Emacs Internals::     Building and dumping Emacs;
                               internal data structures.
-* Standard Errors::         List of main error symbols.
-* Standard Keymaps::        List of standard keymaps.
-* Standard Hooks::          List of standard hook variables.
+* Standard Errors::         List of some standard error symbols.
+* Standard Keymaps::        List of some standard keymaps.
+* Standard Hooks::          List of some standard hook variables.
 
 * Index::                   Index including concepts, functions, variables,
                               and other terms.

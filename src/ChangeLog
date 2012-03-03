@@ -1,3 +1,16 @@
+2012-03-02  Eli Zaretskii  <eliz@gnu.org>
+
+	* xdisp.c (try_window_reusing_current_matrix): Don't move cursor
+	position past the first glyph_row that ends at ZV.  (Bug#10902)
+	(redisplay_window, next_element_from_string): Fix typos in
+	comments.
+	(redisplay_window): Pass to move_it_vertically the margin in
+	pixels, not in screen lines.
+
+2012-03-02  Glenn Morris  <rgm@gnu.org>
+
+	* buffer.c (buffer-list-update-hook): Doc fix.
+
 2012-02-29  Eli Zaretskii  <eliz@gnu.org>
 
 	* xdisp.c (get_overlay_strings_1): Under bidi redisplay, call
