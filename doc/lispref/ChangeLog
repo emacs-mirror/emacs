@@ -1,5 +1,9 @@
 2012-03-03  Glenn Morris  <rgm@gnu.org>
 
+	* internals.texi: Change @appendix section commands to @section.
+	(Building Emacs): Say less about CANNOT_DUMP platforms.
+	Replace deleted eval-at-startup with custom-initialize-delay.
+
 	* tips.texi: Copyedits.
 	(Coding Conventions): Mention autoloads.
 	Combine partially duplicated macro items.  Fix xref.

@@ -1057,6 +1057,11 @@ you have nothing to do in this regard.  Code not following the
 appropriate conventions may fail to compile.  The most common cause of
 trouble seems to be an old-style backquote followed by a newline.
 
++++
+** The macro `eval-at-startup' was removed in Emacs 23.2, but this
+was not advertised at the time.  The function `custom-initialize-delay'
+replaced all known uses.
+
 ---
 ** view-buffer now treats special mode-class in the same way that
 view-file has since Emacs 22 (ie, it won't enable View mode if the

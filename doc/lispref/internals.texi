@@ -21,7 +21,7 @@ internal aspects of GNU Emacs that may be of interest to C programmers.
 @end menu
 
 @node Building Emacs
-@appendixsec Building Emacs
+@section Building Emacs
 @cindex building Emacs
 @pindex temacs
 
@@ -44,7 +44,7 @@ environment, resulting in an Emacs that is still impure but no longer
 bare.
 
 @cindex dumping Emacs
-  It takes a substantial time to load the standard Lisp files.  Luckily,
+  It takes some time to load the standard Lisp files.  Luckily,
 you don't have to do this each time you run Emacs; @file{temacs} can
 dump out an executable program called @file{emacs} that has these files
 preloaded.  @file{emacs} starts more quickly because it does not need to
@@ -61,23 +61,22 @@ The argument @samp{dump} tells @file{loadup.el} to dump a new executable
 named @file{emacs}.  The variable @code{preloaded-file-list} stores a
 list of the Lisp files that were dumped with the @file{emacs} executable.
 
-  Some operating systems don't support dumping.  On those systems, you
-must start Emacs with the @samp{temacs -l loadup} command each time you
-use it.  This takes a substantial time, but since you need to start
-Emacs once a day at most---or once a week if you never log out---the
-extra time is not too severe a problem.
+  If you port Emacs to a new operating system, and are not able to
+implement dumping, then Emacs must load @file{loadup.el} each time it
+starts.
 
 @cindex @file{site-load.el}
-
   You can specify additional files to preload by writing a library named
-@file{site-load.el} that loads them.  You may need to add a definition
+@file{site-load.el} that loads them.  You may need to rebuild Emacs
+with an added definition
 
 @example
 #define SITELOAD_PURESIZE_EXTRA @var{n}
 @end example
 
 @noindent
-to make @var{n} added bytes of pure space to hold the additional files.
+to make @var{n} added bytes of pure space to hold the additional files;
+see @file{src/puresize.h}.
 (Try adding increments of 20000 until it is big enough.)  However, the
 advantage of preloading additional files decreases as machines get
 faster.  On modern machines, it is usually not advisable.
@@ -107,6 +106,7 @@ and load them with @file{site-load.el}.
 Load the files with @file{site-init.el}, then copy the files into the
 installation directory for Lisp files when you install Emacs.
 
+@c FIXME the default is non-nil; I don't think this makes sense.
 @item
 Specify a non-@code{nil} value for
 @code{byte-compile-dynamic-docstrings} as a local variable in each of these
@@ -121,17 +121,27 @@ expect in an ordinary unmodified Emacs.  If you feel you must override
 normal features for your site, do it with @file{default.el}, so that
 users can override your changes if they wish.  @xref{Startup Summary}.
 
-  In a package that can be preloaded, it is sometimes useful to
-specify a computation to be done when Emacs subsequently starts up.
-For this, use @code{eval-at-startup}:
+  In a package that can be preloaded, it is sometimes necessary (or
+useful) to delay certain evaluations until Emacs subsequently starts
+up.  The vast majority of such cases relate to the values of
+customizable variables.  For example, @code{tutorial-directory} is a
+variable defined in @file{startup.el}, which is preloaded.  The default
+value is set based on @code{data-directory}.  The variable needs to
+access the value of @code{data-directory} when Emacs starts, not when
+it is dumped, because the Emacs executable has probably been installed
+in a different location since it was dumped.
 
-@defmac eval-at-startup body@dots{}
-This evaluates the @var{body} forms, either immediately if running in
-an Emacs that has already started up, or later when Emacs does start
-up.  Since the value of the @var{body} forms is not necessarily
-available when the @code{eval-at-startup} form is run, that form
-always returns @code{nil}.
-@end defmac
+@defun custom-initialize-delay symbol value
+This function delays the initialization of @var{symbol} to the next
+Emacs start.  You normally use this function by specifying it as the
+@code{:initialize} property of a customizable variable.  (The argument
+@var{value} is unused, and is provided only for compatiblity with the
+form Custom expects.)
+@end defun
+
+In the unlikely event that you need a more general functionality than
+@code{custom-initialize-delay} provides, you can use
+@code{before-init-hook} (@pxref{Startup Summary}).
 
 @defun dump-emacs to-file from-file
 @cindex unexec
@@ -144,7 +154,7 @@ you must run Emacs with @samp{-batch}.
 @end defun
 
 @node Pure Storage
-@appendixsec Pure Storage
+@section Pure Storage
 @cindex pure storage
 
   Emacs Lisp uses two kinds of storage for user-created Lisp objects:
@@ -205,7 +215,7 @@ You should not change this flag in a running Emacs.
 @end defvar
 
 @node Garbage Collection
-@appendixsec Garbage Collection
+@section Garbage Collection
 @cindex garbage collection
 
 @cindex memory allocation
@@ -494,7 +504,7 @@ Emacs session.
 @end defvar
 
 @node Writing Emacs Primitives
-@appendixsec Writing Emacs Primitives
+@section Writing Emacs Primitives
 @cindex primitive function internals
 @cindex writing Emacs primitives
 
@@ -512,7 +522,7 @@ appearance.)
 @group
 DEFUN ("or", For, Sor, 0, UNEVALLED, 0,
   doc: /* Eval args until one of them yields non-nil, then return that
-value. The remaining args are not evalled at all.
+value.  The remaining args are not evalled at all.
 If all args return nil, return nil.
 @end group
 @group
@@ -811,7 +821,7 @@ in @file{byte-opt.el} which binds @code{side-effect-free-fns} and
 knows about it.
 
 @node Object Internals
-@appendixsec Object Internals
+@section Object Internals
 @cindex object internals
 
   GNU Emacs Lisp manipulates many different types of data.  The actual
@@ -838,7 +848,7 @@ explicitly using a suitable predicate (@pxref{Type Predicates}).
 @end menu
 
 @node Buffer Internals
-@appendixsubsec Buffer Internals
+@subsection Buffer Internals
 @cindex internals, of buffer
 @cindex buffer internals
 
@@ -1101,7 +1111,7 @@ if that window no longer displays this buffer.
 @end table
 
 @node Window Internals
-@appendixsubsec Window Internals
+@subsection Window Internals
 @cindex internals, of window
 @cindex window internals
 
@@ -1134,8 +1144,8 @@ vertically.
 @item next
 @itemx prev
 The next sibling and previous sibling of this window.  @code{next} is
-@code{nil} if the window is the rightmost or bottommost in its group;
-@code{prev} is @code{nil} if it is the leftmost or topmost in its
+@code{nil} if the window is the right-most or bottom-most in its group;
+@code{prev} is @code{nil} if it is the left-most or top-most in its
 group.
 
 @item left_col
@@ -1296,7 +1306,7 @@ A glyph matrix describing the desired display of this window.
 @end table
 
 @node Process Internals
-@appendixsubsec Process Internals
+@subsection Process Internals
 @cindex internals, of process
 @cindex process internals
 
