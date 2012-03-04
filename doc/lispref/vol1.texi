@@ -994,7 +994,7 @@ Frames
 * Window System Selections::Transferring text to and from other X clients.
 * Drag and Drop::               Internals of Drag-and-Drop implementation.
 * Color Names::             Getting the definitions of color names.
-* Text Terminal Colors::    Defining colors for text-only terminals.
+* Text Terminal Colors::    Defining colors for text terminals.
 * Resources::               Getting resource values from the server.
 * Display Feature Testing:: Determining the features of a terminal.
 

@@ -101,8 +101,8 @@ even earlier than this.)
 It runs the normal hook @code{before-init-hook}.
 
 @item
-It initializes the window frame and faces, if appropriate, and turns
-on the menu bar and tool bar, if the initial frame needs them.
+It initializes the initial frame's faces, and turns on the menu bar
+and tool bar if needed.
 
 @item
 It loads the library @file{site-start}, if it exists.  This is not
@@ -144,7 +144,7 @@ If the buffer @samp{*scratch*} exists and is still in Fundamental mode
 @code{initial-major-mode}.
 
 @item
-If started on a text-only terminal, it loads the terminal-specific
+If started on a text terminal, it loads the terminal-specific
 Lisp library, which is specified by the variable
 @code{term-file-prefix} (@pxref{Terminal-Specific}).  This is not done
 in @code{--batch} mode, nor if @code{term-file-prefix} is @code{nil}.
@@ -600,7 +600,7 @@ directly does not run this hook.
 @subsection Suspending Emacs
 @cindex suspending Emacs
 
-  On text-only terminals, it is possible to @dfn{suspend Emacs}, which
+  On text terminals, it is possible to @dfn{suspend Emacs}, which
 means stopping Emacs temporarily and returning control to its superior
 process, which is usually the shell.  This allows you to resume
 editing later in the same Emacs process, with the same buffers, the
@@ -740,10 +740,10 @@ terminal object, a frame (meaning the terminal for that frame), or
 
 @deffn Command suspend-frame
 This command @dfn{suspends} a frame.  For GUI frames, it calls
-@code{iconify-frame} (@pxref{Visibility of Frames}); for text-only
-frames, it calls either @code{suspend-emacs} or @code{suspend-tty},
-depending on whether the frame is displayed on the controlling
-terminal device or not.
+@code{iconify-frame} (@pxref{Visibility of Frames}); for frames on
+text terminals, it calls either @code{suspend-emacs} or
+@code{suspend-tty}, depending on whether the frame is displayed on the
+controlling terminal device or not.
 @end deffn
 
 @node System Environment

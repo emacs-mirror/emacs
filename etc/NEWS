@@ -542,7 +542,6 @@ point motion, do not alter the primary selection.
 *** mouse-2 is now bound to `mouse-yank-primary'.
 This pastes from the primary selection, ignoring the kill-ring.
 Previously, mouse-2 was bound to `mouse-yank-at-click'.
-
 +++
 *** `x-select-enable-clipboard' now defaults to t on all platforms.
 +++
@@ -569,7 +568,7 @@ between applications.
 
 +++
 *** Support for X cut buffers has been removed.
-
++++
 *** X clipboard managers are now supported.
 To inhibit this, change `x-select-enable-clipboard-manager' to nil.
 
@@ -1118,7 +1117,9 @@ x-make-font-unitalic (make-face-unitalic),
 mldrag-drag-mode-line (mouse-drag-mode-line),
 mldrag-drag-vertical-line (mouse-drag-vertical-line),
 iswitchb-default-keybindings (iswitchb-mode), char-bytes (== 1),
-isearch-return-char (isearch-printing-char), make-local-hook (not needed)
+isearch-return-char (isearch-printing-char), make-local-hook (not needed),
+set-screen-height (set-frame-height), set-screen-width (set-frame-width)
+
 
 +++
 ** The following obsolete (mostly since at least 21.1) variables and varaliases

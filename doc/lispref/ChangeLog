@@ -1,3 +1,32 @@
+2012-03-04  Chong Yidong  <cyd@gnu.org>
+
+	* frames.texi (Frames): Remove little-used "terminal frame" and
+	"window frame" terminology.
+	(Frame Parameters, Font and Color Parameters, Initial Parameters)
+	(Size and Position, Visibility of Frames): Callers changed.
+	(Frames): Clarify which terminals in framep are graphical.
+	(Initial Parameters): --geometry is not the only option which adds
+	to initial-frame-alist.
+	(Position Parameters): Note that icon-left and icon-top are for
+	old window managers only.
+	(Size Parameters): Sizes are in characters even on graphical
+	displays.
+	(Management Parameters): Note that window-id and outer-window-id
+	can't really be changed, and that auto-raise isn't always obeyed.
+	(Cursor Parameters): Document cursor-type explicitly.
+	(Size and Position): The aliases set-screen-height and
+	set-screen-width have been deleted.
+	(Visibility of Frames): Mention "minimization".
+
+	* os.texi (Startup Summary): Minor clarifications.
+	(Startup Summary, Suspending Emacs): Standardize on "text
+	terminal" terminology.
+
+	* windows.texi (Basic Windows, Coordinates and Windows)
+	(Coordinates and Windows):
+	* display.texi (Refresh Screen, Line Height, Face Attributes)
+	(Overlay Arrow, Beeping, Glyphless Chars): Likewise.
+
 2012-03-04  Glenn Morris  <rgm@gnu.org>
 
 	* abbrevs.texi: Small copyedits throughout.

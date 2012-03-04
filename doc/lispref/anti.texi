@@ -93,9 +93,9 @@ are always drawn using the X core font driver.
 @item
 Display terminals are no longer represented using a ``terminal'' data
 type; this is not necessary, because we have removed the ability to
-display on graphical and text-only terminals simultaneously.  For the
-same reason, the @code{window-system} variable is no longer
-frame-local, and the @code{window-system} function has been removed.
+display on graphical and text terminals simultaneously.  For the same
+reason, the @code{window-system} variable is no longer frame-local,
+and the @code{window-system} function has been removed.
 
 @item
 The functions @code{list-system-processes} and
