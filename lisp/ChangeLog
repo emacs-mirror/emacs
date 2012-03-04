@@ -1,3 +1,9 @@
+2012-03-04  Glenn Morris  <rgm@gnu.org>
+
+	* abbrev.el (copy-abbrev-table, abbrev-table-p)
+	(abbrev-minor-mode-table-alist, define-abbrev, abbrev-insert)
+	(expand-abbrev, define-abbrev-table): Doc fixes.
+
 2012-03-03  Lars Magne Ingebrigtsen  <larsi@gnus.org>
 
 	* mail/emacsbug.el (report-emacs-bug-hook): Look at the value of

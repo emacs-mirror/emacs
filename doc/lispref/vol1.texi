@@ -1208,7 +1208,6 @@ Parsing Expressions
 
 Abbrevs and Abbrev Expansion
 
-* Abbrev Mode::             Setting up Emacs for abbreviation.
 * Abbrev Tables::           Creating and working with abbrev tables.
 * Defining Abbrevs::        Specifying abbreviations and their expansions.
 * Abbrev Files::            Saving abbrevs in files.

@@ -1,3 +1,12 @@
+2012-03-04  Glenn Morris  <rgm@gnu.org>
+
+	* abbrevs.texi: Small copyedits throughout.
+	(Abbrev Mode): Remove this section, folding it into the top-level.
+	(Abbrev Tables): Don't mention irrelevant return values.
+	(Abbrev Expansion): Add cross-ref for wrapper hooks.
+	(Standard Abbrev Tables): Emacs Lisp mode now has its own table.
+	(Abbrev Table Properties): Update nil :regexp description.
+
 2012-03-03  Glenn Morris  <rgm@gnu.org>
 
 	* internals.texi: Change @appendix section commands to @section.
