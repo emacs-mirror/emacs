@@ -279,9 +279,9 @@ used to manipulate the notification item with
                             (or hints '(:array :signature "{sv}"))
                             :int32 (or timeout -1)))
 
-    ;; Register close/action callback function.  We must also
-    ;; remmember the daemon's unique name, because the daemon could
-    ;; have restarted.
+    ;; Register close/action callback function.  We must also remember
+    ;; the daemon's unique name, because the daemon could have
+    ;; restarted.
     (let ((on-action (plist-get params :on-action))
           (on-close (plist-get params :on-close))
 	  (unique-name (dbus-get-name-owner :session notifications-service)))
