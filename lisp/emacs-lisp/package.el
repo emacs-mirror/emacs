@@ -4,7 +4,7 @@
 
 ;; Author: Tom Tromey <tromey@redhat.com>
 ;; Created: 10 Mar 2007
-;; Version: 0.9
+;; Version: 1.0
 ;; Keywords: tools
 
 ;; This file is part of GNU Emacs.
