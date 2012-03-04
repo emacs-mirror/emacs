@@ -1,3 +1,11 @@
+2012-03-04  Michael Albinus  <michael.albinus@gmx.de>
+
+	* notifications.el (notifications-unique-name): New defvar.
+	(notifications-on-action-signal, notifications-on-closed-signal):
+	Check for unique service name of incoming event.
+	(top): Register for signals with wildcard service name.
+	(notifications-notify): Remember daemon unique service name.
+
 2012-03-04  Chong Yidong  <cyd@gnu.org>
 
 	* cus-start.el: Make x-select-enable-clipboard-manager

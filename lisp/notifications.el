@@ -91,17 +91,24 @@
 (defvar notifications-on-close-map nil
   "Mapping between notification and close callback functions.")
 
+(defvar notifications-unique-name ""
+  "Unique service name of notification daemon.
+This must be kept, because the notification daemon could be
+restarted, and the registered signals cannot be identified anymore.")
+
 (defun notifications-on-action-signal (id action)
   "Dispatch signals to callback functions from `notifications-on-action-map'."
   (let ((entry (assoc id notifications-on-action-map)))
-    (when entry
+    (when (and entry
+	       (string-equal notifications-unique-name
+			     (dbus-event-service-name last-input-event)))
       (funcall (cadr entry) id action)
       (remove entry 'notifications-on-action-map))))
 
 (when (fboundp 'dbus-register-signal)
   (dbus-register-signal
    :session
-   notifications-service
+   nil
    notifications-path
    notifications-interface
    notifications-action-signal
@@ -113,7 +120,9 @@
   ;; make it optional, and assume `undefined' as default.
   (let ((entry (assoc id notifications-on-close-map))
 	(reason (or reason 4)))
-    (when entry
+    (when (and entry
+	       (string-equal notifications-unique-name
+			     (dbus-event-service-name last-input-event)))
       (funcall (cadr entry)
 	       id (cadr (assoc reason notifications-closed-reason)))
       (remove entry 'notifications-on-close-map))))
@@ -121,7 +130,7 @@
 (when (fboundp 'dbus-register-signal)
   (dbus-register-signal
    :session
-   notifications-service
+   nil
    notifications-path
    notifications-interface
    notifications-closed-signal
@@ -276,6 +285,10 @@ used to manipulate the notification item with
                             `(:array ,@actions)
                             (or hints '(:array :signature "{sv}"))
                             :int32 (or timeout -1)))
+
+    ;; Remember daemon unique service name.
+    (setq notifications-unique-name
+	  (dbus-get-name-owner :session notifications-service))
 
     ;; Register close/action callback function
     (let ((on-action (plist-get params :on-action))
