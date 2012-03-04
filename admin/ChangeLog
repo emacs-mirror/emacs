@@ -1,3 +1,9 @@
+2012-02-06  Christoph Scholtes  <cschol2112@googlemail.com>
+
+	* nt/README.W32: Backported fixed url for image libraries from
+	trunk. Removed explicit reference to version of libXpm included in
+	binary distributions for maintenance purposes.
+
 2012-01-19  Chong Yidong  <cyd@gnu.org>
 
 	* Version 23.4 released.
