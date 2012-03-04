@@ -1,3 +1,8 @@
+2012-03-04  Chong Yidong  <cyd@gnu.org>
+
+	* cus-start.el: Make x-select-enable-clipboard-manager
+	customizable.
+
 2012-03-04  Glenn Morris  <rgm@gnu.org>
 
 	* abbrev.el (copy-abbrev-table, abbrev-table-p)
