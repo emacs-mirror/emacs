@@ -62,7 +62,7 @@ you call these functions when input is available, they don't redisplay
 immediately, but the requested redisplay does happen
 eventually---after all the input has been processed.
 
-  On text-only terminals, suspending and resuming Emacs normally also
+  On text terminals, suspending and resuming Emacs normally also
 refreshes the screen.  Some terminal emulators record separate
 contents for display-oriented programs such as Emacs and for ordinary
 sequential display.  If you are using such a terminal, you might want
@@ -1809,7 +1809,7 @@ into a Lisp value as described above.  However, in this case the
 numeric height value specifies the line spacing, rather than the line
 height.
 
-  On text-only terminals, the line spacing cannot be altered.
+  On text terminals, the line spacing cannot be altered.
 
 @node Faces
 @section Faces
@@ -2058,7 +2058,7 @@ floating point and function values are not allowed.
 Font weight---one of the symbols (from densest to faintest)
 @code{ultra-bold}, @code{extra-bold}, @code{bold}, @code{semi-bold},
 @code{normal}, @code{semi-light}, @code{light}, @code{extra-light}, or
-@code{ultra-light}.  On text-only terminals that support
+@code{ultra-light}.  On text terminals which support
 variable-brightness text, any weight greater than normal is displayed
 as extra bright, and any weight less than normal is displayed as
 half-bright.
@@ -2066,8 +2066,8 @@ half-bright.
 @item :slant
 Font slant---one of the symbols @code{italic}, @code{oblique},
 @code{normal}, @code{reverse-italic}, or @code{reverse-oblique}.  On
-text-only terminals that support variable-brightness text, slanted
-text is displayed as half-bright.
+text terminals that support variable-brightness text, slanted text is
+displayed as half-bright.
 
 @item :foreground
 Foreground color, a string.  The value can be a system-defined color
@@ -3649,9 +3649,9 @@ this list.
 
 Each variable on this list can have properties
 @code{overlay-arrow-string} and @code{overlay-arrow-bitmap} that
-specify an overlay arrow string (for text-only terminals) or fringe
-bitmap (for graphical terminals) to display at the corresponding
-overlay arrow position.  If either property is not set, the default
+specify an overlay arrow string (for text terminals) or fringe bitmap
+(for graphical terminals) to display at the corresponding overlay
+arrow position.  If either property is not set, the default
 @code{overlay-arrow-string} or @code{overlay-arrow} fringe indicator
 is used.
 
@@ -6043,8 +6043,8 @@ This is a synonym for @code{ding}.
 
 @defopt visible-bell
 This variable determines whether Emacs should flash the screen to
-represent a bell.  Non-@code{nil} means yes, @code{nil} means no.  This
-is effective on graphical displays, and on text-only terminals
+represent a bell.  Non-@code{nil} means yes, @code{nil} means no.
+This is effective on graphical displays, and on text terminals
 provided the terminal's Termcap entry defines the visible bell
 capability (@samp{vb}).
 @end defopt
@@ -6340,7 +6340,7 @@ such changes affect all of Emacs display.
 they appear in a buffer, but in some special way (e.g. as a box
 containing a hexadecimal code).  These include characters that cannot
 be displayed with any available font (on a graphical display), or that
-cannot be encoded by the terminal's coding system (on a text-only
+cannot be encoded by the terminal's coding system (on a text
 terminal).  Specific characters can also be defined to be glyphless.
 
 @defvar glyphless-char-display
@@ -6355,7 +6355,7 @@ Don't display the character.
 
 @item @code{thin-space}
 Display a thin space, 1-pixel wide on graphical displays, or
-1-character wide on text-only terminals.
+1-character wide on text terminals.
 
 @item @code{empty-box}
 Display an empty box.
@@ -6374,7 +6374,7 @@ Except for @code{zero-width}, these methods display using the
 
 An entry can also be a cons cell @code{(@var{graphical}
 . @var{text})}, where @var{graphical} and @var{text} are the display
-methods on graphical displays and text-only terminals respectively.
+methods on graphical displays and text terminals respectively.
 
 The char-table has one extra slot, which determines how to display any
 character that cannot be displayed with any available font, or cannot

@@ -93,15 +93,16 @@
 
 (defun notifications-on-action-signal (id action)
   "Dispatch signals to callback functions from `notifications-on-action-map'."
-  (let ((entry (assoc id notifications-on-action-map)))
+  (let* ((unique-name (dbus-event-service-name last-input-event))
+	 (entry (assoc (cons unique-name id) notifications-on-action-map)))
     (when entry
       (funcall (cadr entry) id action)
-      (remove entry 'notifications-on-action-map))))
+      (remove entry notifications-on-action-map))))
 
 (when (fboundp 'dbus-register-signal)
   (dbus-register-signal
    :session
-   notifications-service
+   nil
    notifications-path
    notifications-interface
    notifications-action-signal
@@ -111,17 +112,18 @@
   "Dispatch signals to callback functions from `notifications-on-closed-map'."
   ;; notification-daemon prior 0.4.0 does not send a reason.  So we
   ;; make it optional, and assume `undefined' as default.
-  (let ((entry (assoc id notifications-on-close-map))
-	(reason (or reason 4)))
+  (let* ((unique-name (dbus-event-service-name last-input-event))
+	 (entry (assoc (cons unique-name id) notifications-on-close-map))
+	 (reason (or reason 4)))
     (when entry
       (funcall (cadr entry)
 	       id (cadr (assoc reason notifications-closed-reason)))
-      (remove entry 'notifications-on-close-map))))
+      (remove entry notifications-on-close-map))))
 
 (when (fboundp 'dbus-register-signal)
   (dbus-register-signal
    :session
-   notifications-service
+   nil
    notifications-path
    notifications-interface
    notifications-closed-signal
@@ -277,13 +279,18 @@ used to manipulate the notification item with
                             (or hints '(:array :signature "{sv}"))
                             :int32 (or timeout -1)))
 
-    ;; Register close/action callback function
+    ;; Register close/action callback function.  We must also remember
+    ;; the daemon's unique name, because the daemon could have
+    ;; restarted.
     (let ((on-action (plist-get params :on-action))
-          (on-close (plist-get params :on-close)))
+          (on-close (plist-get params :on-close))
+	  (unique-name (dbus-get-name-owner :session notifications-service)))
       (when on-action
-        (add-to-list 'notifications-on-action-map (list id on-action)))
+        (add-to-list 'notifications-on-action-map
+		     (list (cons unique-name id) on-action)))
       (when on-close
-        (add-to-list 'notifications-on-close-map (list id on-close))))
+        (add-to-list 'notifications-on-close-map
+		     (list (cons unique-name id) on-close))))
 
     ;; Return notification id
     id))

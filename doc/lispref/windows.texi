@@ -68,7 +68,7 @@ window, and the contents of the selected message in another window.
 graphical desktop environments and window systems, such as the X
 Window System.  When Emacs is run on X, each of its graphical X
 windows is an Emacs frame (containing one or more Emacs windows).
-When Emacs is run on a text-only terminal, the frame fills the entire
+When Emacs is run on a text terminal, the frame fills the entire
 terminal screen.
 
 @cindex tiled windows
@@ -2964,8 +2964,8 @@ the bottommost row.
 
 Note that these are the actual outer edges of the window, including
 any header line, mode line, scroll bar, fringes, and display margins.
-On a text-only terminal, if the window has a neighbor on its right,
-its right edge includes the separator line between the window and its
+On a text terminal, if the window has a neighbor on its right, its
+right edge includes the separator line between the window and its
 neighbor.
 @end defun
 
@@ -3046,8 +3046,8 @@ argument because it always uses the frame that @var{window} is on.
 
   The following functions return window positions in pixels, rather
 than character units.  Though mostly useful on graphical displays,
-they can also be called on text-only terminals, where the screen area
-of each text character is taken to be ``one pixel''.
+they can also be called on text terminals, where the screen area of
+each text character is taken to be ``one pixel''.
 
 @defun window-pixel-edges &optional window
 This function returns a list of pixel coordinates for the edges of

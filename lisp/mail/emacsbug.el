@@ -394,7 +394,10 @@ and send the mail again%s."
     ;; Query the user for the SMTP method, so that we can skip
     ;; questions about From header validity if the user is going to
     ;; use mailclient, anyway.
-    (when (eq send-mail-function 'sendmail-query-once)
+    (when (or (and (derived-mode-p 'message-mode)
+		   (eq message-send-mail-function 'sendmail-query-once))
+	      (and (not (derived-mode-p 'message-mode))
+		   (eq send-mail-function 'sendmail-query-once)))
       (sendmail-query-user-about-smtp)
       (when (derived-mode-p 'message-mode)
 	(setq message-send-mail-function (message-default-send-mail-function))))

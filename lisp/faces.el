@@ -1513,12 +1513,23 @@ If SPEC is nil, return nil."
 
 (defun face-spec-reset-face (face &optional frame)
   "Reset all attributes of FACE on FRAME to unspecified."
-  (unless (eq face 'default)
-    (let (reset-args)
-      (dolist (attr-and-name face-attribute-name-alist)
-	(push 'unspecified reset-args)
-	(push (car attr-and-name) reset-args))
-      (apply 'set-face-attribute face frame reset-args))))
+  (apply 'set-face-attribute face frame
+	 (if (eq face 'default)
+	     ;; For the default face, avoid making any attribute
+	     ;; unspecifed.  Instead, set attributes to default values
+	     ;; (see also realize_default_face in xfaces.c).
+	     (append
+	      '(:underline nil :overline nil :strike-through nil
+		:box nil :inverse-video nil :stipple nil :inherit nil)
+	      (unless (display-graphic-p frame)
+		'(:family "default" :foundry "default" :width normal
+		  :height 1 :weight normal :slant normal
+		  :foreground "unspecified-fg"
+		  :background "unspecified-bg")))
+	   ;; For all other faces, unspecify all attributes.
+	   (apply 'append
+		  (mapcar (lambda (x) (list (car x) 'unspecified))
+			  face-attribute-name-alist)))))
 
 (defun face-spec-set (face spec &optional for-defface)
   "Set FACE's face spec, which controls its appearance, to SPEC.

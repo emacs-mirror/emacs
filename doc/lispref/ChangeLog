@@ -1,3 +1,66 @@
+2012-03-04  Chong Yidong  <cyd@gnu.org>
+
+	* frames.texi (Frames): Remove little-used "terminal frame" and
+	"window frame" terminology.
+	(Frame Parameters, Font and Color Parameters, Initial Parameters)
+	(Size and Position, Visibility of Frames): Callers changed.
+	(Frames): Clarify which terminals in framep are graphical.
+	(Initial Parameters): --geometry is not the only option which adds
+	to initial-frame-alist.
+	(Position Parameters): Note that icon-left and icon-top are for
+	old window managers only.
+	(Size Parameters): Sizes are in characters even on graphical
+	displays.
+	(Management Parameters): Note that window-id and outer-window-id
+	can't really be changed, and that auto-raise isn't always obeyed.
+	(Cursor Parameters): Document cursor-type explicitly.
+	(Size and Position): The aliases set-screen-height and
+	set-screen-width have been deleted.
+	(Visibility of Frames): Mention "minimization".
+
+	* os.texi (Startup Summary): Minor clarifications.
+	(Startup Summary, Suspending Emacs): Standardize on "text
+	terminal" terminology.
+
+	* windows.texi (Basic Windows, Coordinates and Windows)
+	(Coordinates and Windows):
+	* display.texi (Refresh Screen, Line Height, Face Attributes)
+	(Overlay Arrow, Beeping, Glyphless Chars): Likewise.
+
+2012-03-04  Glenn Morris  <rgm@gnu.org>
+
+	* abbrevs.texi: Small copyedits throughout.
+	(Abbrev Mode): Remove this section, folding it into the top-level.
+	(Abbrev Tables): Don't mention irrelevant return values.
+	(Abbrev Expansion): Add cross-ref for wrapper hooks.
+	(Standard Abbrev Tables): Emacs Lisp mode now has its own table.
+	(Abbrev Table Properties): Update nil :regexp description.
+
+2012-03-03  Glenn Morris  <rgm@gnu.org>
+
+	* internals.texi: Change @appendix section commands to @section.
+	(Building Emacs): Say less about CANNOT_DUMP platforms.
+	Replace deleted eval-at-startup with custom-initialize-delay.
+	(Pure Storage): Small changes.
+	(Memory Usage): Copyedit.
+	(Writing Emacs Primitives): Update Fcoordinates_in_window_p and For
+	example definitions. Give examples of things with non-nil
+	interactive args.  Mention eval_sub.  Remove old info about
+	strings and GCPRO.  Mention cus-start.el.
+	(Buffer Internals, Window Internals, Process Internals):
+	Misc small updates and fixes for fields.
+
+	* tips.texi: Copyedits.
+	(Coding Conventions): Mention autoloads.
+	Combine partially duplicated macro items.  Fix xref.
+	Refer to Library Headers for copyright notice.
+	(Programming Tips): edit-options is long-obsolete.
+	(Compilation Tips): Mention loading bytecomp for byte-compile props.
+	(Warning Tips): Mention declare-function.
+	(Documentation Tips): Remove old info.
+	(Comment Tips): Mention comment-dwim, not indent-for-comment.
+	(Library Headers): General update.
+
 2012-03-02  Glenn Morris  <rgm@gnu.org>
 
 	* backups.texi (Reverting): Un-duplicate revert-buffer-in-progress-p,

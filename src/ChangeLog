@@ -1,3 +1,7 @@
+2012-03-03  Glenn Morris  <rgm@gnu.org>
+
+	* alloc.c (Fgarbage_collect, misc-objects-consed): Doc fixes.
+
 2012-03-02  Eli Zaretskii  <eliz@gnu.org>
 
 	* xdisp.c (try_window_reusing_current_matrix): Don't move cursor

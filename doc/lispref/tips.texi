@@ -58,7 +58,7 @@ Separate the prefix from the rest of the name with a hyphen, @samp{-}.
 This practice helps avoid name conflicts, since all global variables
 in Emacs Lisp share the same name space, and all functions share
 another name space@footnote{The benefits of a Common Lisp-style
-package system are considered not to outweigh the costs.}
+package system are considered not to outweigh the costs.}.
 
 Occasionally, for a command name intended for users to use, it is more
 convenient if some words come before the package's name prefix.  And
@@ -108,6 +108,17 @@ compilation.  Using @code{eval-when-compile} avoids loading @var{bar}
 when the compiled version of @var{foo} is @emph{used}.  It should be
 called before the first use of the macro in the file.  @xref{Compiling
 Macros}.
+
+@item
+Avoid loading additional libraries at run time unless they are really
+needed.  If your file simply cannot work without some other library,
+then just @code{require} that library at the top-level and be done
+with it.  But if your file contains several independent features, and
+only one or two require the extra library, then consider putting
+@code{require} statements inside the relevant functions rather than at
+the top-level.  Or use @code{autoload} statements to load the extra
+library when needed.  This way people who don't use those aspects of
+your file do not need to load the extra library.
 
 @item
 Please don't require the @code{cl} package of Common Lisp extensions at
@@ -194,11 +205,8 @@ replacements differs from that of the originals.
 
 @item
 Constructs that define a function or variable should be macros,
-not functions, and their names should start with @samp{def}.
-
-@item
-A macro that defines a function or variable should have a name that
-starts with @samp{define-}.  The macro should receive the name to be
+not functions, and their names should start with @samp{define-}.
+The macro should receive the name to be
 defined as the first argument.  That will help various tools find the
 definition automatically.  Avoid constructing the names in the macro
 itself, since that would confuse these tools.
@@ -207,7 +215,7 @@ itself, since that would confuse these tools.
 In some other systems there is a convention of choosing variable names
 that begin and end with @samp{*}.  We don't use that convention in Emacs
 Lisp, so please don't use it in your programs.  (Emacs uses such names
-only for special-purpose buffers.)  The users will find Emacs more
+only for special-purpose buffers.)  People will find Emacs more
 coherent if all libraries use the same conventions.
 
 @item
@@ -216,7 +224,7 @@ constants, you should make sure Emacs always decodes these characters
 the same way, regardless of the user's settings.  The easiest way to
 do this is to use the coding system @code{utf-8-emacs} (@pxref{Coding
 System Basics}), and specify that coding in the @samp{-*-} line or the
-local variables list.  @xref{File variables, , Local Variables in
+local variables list.  @xref{File Variables, , Local Variables in
 Files, emacs, The GNU Emacs Manual}.
 
 @example
@@ -224,8 +232,7 @@ Files, emacs, The GNU Emacs Manual}.
 @end example
 
 @item
-Indent each function with @kbd{C-M-q} (@code{indent-sexp}) using the
-default indentation parameters.
+Indent the file using the default indentation parameters.
 
 @item
 Don't make a habit of putting close-parentheses on lines by
@@ -233,29 +240,8 @@ themselves; Lisp programmers find this disconcerting.
 
 @item
 Please put a copyright notice and copying permission notice on the
-file if you distribute copies.  Use a notice like this one:
+file if you distribute copies.  @xref{Library Headers}.
 
-@smallexample
-;; Copyright (C) @var{year} @var{name}
-
-;; This program is free software: you can redistribute it and/or
-;; modify it under the terms of the GNU General Public License as
-;; published by the Free Software Foundation, either version 3 of
-;; the License, or (at your option) any later version.
-
-;; This program is distributed in the hope that it will be useful,
-;; but WITHOUT ANY WARRANTY; without even the implied warranty of
-;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-;; GNU General Public License for more details.
-
-;; You should have received a copy of the GNU General Public License
-;; along with this program.  If not, see
-;; <http://www.gnu.org/licenses/>.
-@end smallexample
-
-If you have signed papers to assign the copyright to the Foundation,
-then use @samp{Free Software Foundation, Inc.} as @var{name}.
-Otherwise, use your name.  @xref{Library Headers}.
 @end itemize
 
 @node Key Binding Conventions
@@ -324,11 +310,11 @@ Similarly, don't bind a key sequence ending in @key{C-g}, since that
 is commonly used to cancel a key sequence.
 
 @item
-Anything which acts like a temporary mode or state which the user can
+Anything that acts like a temporary mode or state that the user can
 enter and leave should define @kbd{@key{ESC} @key{ESC}} or
 @kbd{@key{ESC} @key{ESC} @key{ESC}} as a way to escape.
 
-For a state which accepts ordinary Emacs commands, or more generally any
+For a state that accepts ordinary Emacs commands, or more generally any
 kind of state in which @key{ESC} followed by a function key or arrow key
 is potentially meaningful, then you must not define @kbd{@key{ESC}
 @key{ESC}}, since that would preclude recognizing an escape sequence
@@ -398,8 +384,8 @@ An error message should start with a capital letter but should not end
 with a period.
 
 @item
-A question asked in the minibuffer with @code{y-or-n-p} or
-@code{yes-or-no-p} should start with a capital letter and end with
+A question asked in the minibuffer with @code{yes-or-no-p} or
+@code{y-or-n-p} should start with a capital letter and end with
 @samp{? }.
 
 @item
@@ -457,10 +443,9 @@ to generate such messages.
 
 @item
 Try to avoid using recursive edits.  Instead, do what the Rmail @kbd{e}
-command does: use a new local keymap that contains one command defined
-to switch back to the old local keymap.  Or do what the
-@code{edit-options} command does: switch to another buffer and let the
-user switch back at will.  @xref{Recursive Editing}.
+command does: use a new local keymap that contains a command defined
+to switch back to the old local keymap.  Or simply switch to another
+buffer and let the user switch back at will.  @xref{Recursive Editing}.
 @end itemize
 
 @node Compilation Tips
@@ -515,6 +500,10 @@ compiled specially (@pxref{Array Functions}):
 @end group
 @end example
 
+@noindent
+Note that in this case (and many others), you must first load the
+@file{bytecomp} library, which defines the @code{byte-compile} property.
+
 @item
 If calling a small function accounts for a substantial part of your
 program's running time, make the function inline.  This eliminates
@@ -541,6 +530,11 @@ Such a definition has no effect except to tell the compiler
 not to warn about uses of the variable @code{foo} in this file.
 
 @item
+Similarly, to avoid a compiler warning about an undefined function
+that you know @emph{will} be defined, use a @code{declare-function}
+statement (@pxref{Declaring Functions}).
+
+@item
 If you use many functions and variables from a certain file, you can
 add a @code{require} for that package to avoid compilation warnings
 for them.  For instance,
@@ -561,8 +555,8 @@ functions and variables in your package.
 
 @item
 The last resort for avoiding a warning, when you want to do something
-that usually is a mistake but it's not a mistake in this one case,
-is to put a call to @code{with-no-warnings} around it.
+that is usually a mistake but you know is not a mistake in your usage,
+is to put it inside @code{with-no-warnings}.  @xref{Compiler Errors}.
 @end itemize
 
 @node Documentation Tips
@@ -580,11 +574,9 @@ Every command, function, or variable intended for users to know about
 should have a documentation string.
 
 @item
-An internal variable or subroutine of a Lisp program might as well have
-a documentation string.  In earlier Emacs versions, you could save space
-by using a comment instead of a documentation string, but that is no
-longer the case---documentation strings now take up very little space in
-a running Emacs.
+An internal variable or subroutine of a Lisp program might as well
+have a documentation string.  Documentation strings take up very
+little space in a running Emacs.
 
 @item
 Format the documentation string so that it fits in an Emacs window on an
@@ -595,14 +587,14 @@ or it will look bad in the output of @code{apropos}.
 You can fill the text if that looks good.  However, rather than blindly
 filling the entire documentation string, you can often make it much more
 readable by choosing certain line breaks with care.  Use blank lines
-between topics if the documentation string is long.
+between sections if the documentation string is long.
 
 @item
 The first line of the documentation string should consist of one or two
 complete sentences that stand on their own as a summary.  @kbd{M-x
 apropos} displays just the first line, and if that line's contents don't
 stand on their own, the result looks bad.  In particular, start the
-first line with a capital letter and end with a period.
+first line with a capital letter and end it with a period.
 
 For a function, the first line should briefly answer the question,
 ``What does this function do?''  For a variable, the first line should
@@ -630,7 +622,7 @@ important arguments.
 When a function's documentation string mentions the value of an argument
 of the function, use the argument name in capital letters as if it were
 a name for that value.  Thus, the documentation string of the function
-@code{eval} refers to its second argument as @samp{FORM}, because the
+@code{eval} refers to its first argument as @samp{FORM}, because the
 actual argument name is @code{form}:
 
 @example
@@ -654,7 +646,7 @@ string.  If the symbol's name is @code{foo}, write ``foo,'' not
 
 This might appear to contradict the policy of writing function
 argument values, but there is no real contradiction; the argument
-@emph{value} is not the same thing as the @emph{symbol} which the
+@emph{value} is not the same thing as the @emph{symbol} that the
 function uses to hold the value.
 
 If this puts a lower-case letter at the beginning of a sentence
@@ -825,8 +817,8 @@ In Dired, visit the file or directory named on this line.
 @end example
 
 @item
-When you define a variable that users ought to set interactively, you
-should use @code{defcustom}.  @xref{Defining Variables}.
+When you define a variable that represents an option users might want
+to set, use @code{defcustom}.  @xref{Defining Variables}.
 
 @item
 The documentation string for a variable that is a yes-or-no flag should
@@ -839,19 +831,14 @@ all non-@code{nil} values are equivalent and indicate explicitly what
 @section Tips on Writing Comments
 @cindex comments, Lisp convention for
 
-  We recommend these conventions for where to put comments and how to
-indent them:
+  We recommend these conventions for comments:
 
 @table @samp
 @item ;
 Comments that start with a single semicolon, @samp{;}, should all be
 aligned to the same column on the right of the source code.  Such
-comments usually explain how the code on the same line does its job.  In
-Lisp mode and related modes, the @kbd{M-;} (@code{indent-for-comment})
-command automatically inserts such a @samp{;} in the right place, or
-aligns such a comment if it is already present.
-
-This and following examples are taken from the Emacs sources.
+comments usually explain how the code on that line does its job.
+For example:
 
 @smallexample
 @group
@@ -873,7 +860,7 @@ at that point.  For example:
 (prog1 (setq auto-fill-function
              @dots{}
              @dots{}
-  ;; update mode line
+  ;; Update mode line.
   (force-mode-line-update)))
 @end group
 @end smallexample
@@ -882,17 +869,17 @@ We also normally use two semicolons for comments outside functions.
 
 @smallexample
 @group
-;; This Lisp code is run in Emacs
-;; when it is to operate as a server
-;; for other processes.
+;; This Lisp code is run in Emacs when it is to operate as
+;; a server for other processes.
 @end group
 @end smallexample
 
-Every function that has no documentation string (presumably one that is
-used only internally within the package it belongs to), should instead
-have a two-semicolon comment right before the function, explaining what
-the function does and how to call it properly.  Explain precisely what
-each argument means and how the function interprets its possible values.
+If a function has no documentation string, it should instead have a
+two-semicolon comment right before the function, explaining what the
+function does and how to call it properly.  Explain precisely what
+each argument means and how the function interprets its possible
+values.  It is much better to convert such comments to documentation
+strings, though.
 
 @item ;;;
 Comments that start with three semicolons, @samp{;;;}, should start at
@@ -903,7 +890,7 @@ semicolons depends on whether the comment should be considered a
 ``heading'' by Outline minor mode.  By default, comments starting with
 at least three semicolons (followed by a single space and a
 non-whitespace character) are considered headings, comments starting
-with two or less are not.
+with two or fewer are not.
 
 Another use for triple-semicolon comments is for commenting out lines
 within a function.  We use three semicolons for this precisely so that
@@ -934,11 +921,11 @@ program.  For example:
 @end table
 
 @noindent
-The indentation commands of the Lisp modes in Emacs, such as @kbd{M-;}
-(@code{indent-for-comment}) and @key{TAB} (@code{lisp-indent-line}),
-automatically indent comments according to these conventions,
-depending on the number of semicolons.  @xref{Comments,,
-Manipulating Comments, emacs, The GNU Emacs Manual}.
+Generally speaking, the @kbd{M-;} (@code{comment-dwim}) command
+automatically starts a comment of the appropriate type; or indents an
+existing comment to the right place, depending on the number of
+semicolons.
+@xref{Comments,, Manipulating Comments, emacs, The GNU Emacs Manual}.
 
 @node Library Headers
 @section Conventional Headers for Emacs Libraries
@@ -947,39 +934,28 @@ Manipulating Comments, emacs, The GNU Emacs Manual}.
 
   Emacs has conventions for using special comments in Lisp libraries
 to divide them into sections and give information such as who wrote
-them.  This section explains these conventions.
-
-  We'll start with an example, a package that is included in the Emacs
-distribution.
-
-  Parts of this example reflect its status as part of Emacs; for
-example, the copyright notice lists the Free Software Foundation as the
-copyright holder, and the copying permission says the file is part of
-Emacs.  When you write a package and post it, the copyright holder would
-be you (unless your employer claims to own it instead), and you should
-get the suggested copying permission from the end of the GNU General
-Public License itself.  Don't say your file is part of Emacs
-if we haven't installed it in Emacs yet!
-
-  With that warning out of the way, on to the example:
+them.  Using a standard format for these items makes it easier for
+tools (and people) to extract the relevant information.  This section
+explains these conventions, starting with an example:
 
 @smallexample
 @group
-;;; lisp-mnt.el --- minor mode for Emacs Lisp maintainers
+;;; foo.el --- Support for the Foo programming language
 
-;; Copyright (C) 1992 Free Software Foundation, Inc.
+;; Copyright (C) 2010-2012 Your Name
 @end group
 
-;; Author: Eric S. Raymond <esr@@snark.thyrsus.com>
-;; Maintainer: Eric S. Raymond <esr@@snark.thyrsus.com>
-;; Created: 14 Jul 1992
-;; Version: 1.2
+;; Author: Your Name <yourname@@example.com>
+;; Maintainer: Someone Else <someone@@example.com>
+;; Created: 14 Jul 2010
 @group
-;; Keywords: docs
+;; Keywords: languages
 
-;; This file is part of GNU Emacs.
+;; This file is not part of GNU Emacs.
+
+;; This file is free software@dots{}
 @dots{}
-;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+;; along with this file.  If not, see <http://www.gnu.org/licenses/>.
 @end group
 @end smallexample
 
@@ -990,8 +966,19 @@ if we haven't installed it in Emacs yet!
 @end example
 
 @noindent
-The description should be complete in one line.  If the file
+The description should be contained in one line.  If the file
 needs a @samp{-*-} specification, put it after @var{description}.
+If this would make the first line too long, use a Local Variables
+section at the end of the file.
+
+  The copyright notice usually lists your name (if you wrote the
+file).  If you have an employer who claims copyright on your work, you
+might need to list them instead.  Do not say that the copyright holder
+is the Free Software Foundation (or that the file is part of GNU
+Emacs) unless your file has been accepted into the Emacs distribution.
+For more information on the form of copyright and license notices, see
+@uref{http://www.gnu.org/licenses/gpl-howto.html, the guide on the GNU
+website}.
 
   After the copyright notice come several @dfn{header comment} lines,
 each beginning with @samp{;; @var{header-name}:}.  Here is a table of
@@ -999,55 +986,55 @@ the conventional possibilities for @var{header-name}:
 
 @table @samp
 @item Author
-This line states the name and net address of at least the principal
-author of the library.
-
-If there are multiple authors, you can list them on continuation lines
-led by @code{;;} and a tab character, like this:
+This line states the name and email address of at least the principal
+author of the library.  If there are multiple authors, list them on
+continuation lines led by @code{;;} and whitespace (this is easier
+for tools to parse than having more than one author on one line).
+We recommend including a contact email address, of the form
+@samp{<@dots{}>}.  For example:
 
 @smallexample
 @group
-;; Author: Ashwin Ram <Ram-Ashwin@@cs.yale.edu>
-;;      Dave Sill <de5@@ornl.gov>
-;;      Dave Brennan <brennan@@hal.com>
-;;      Eric Raymond <esr@@snark.thyrsus.com>
+;; Author: Your Name <yourname@@example.com>
+;;      Someone Else <someone@@example.com>
+;;      Another Person <another@@example.com>
 @end group
 @end smallexample
 
 @item Maintainer
-This line should contain a single name/address as in the Author line, or
-an address only, or the string @samp{FSF}.  If there is no maintainer
-line, the person(s) in the Author field are presumed to be the
-maintainers.  The example above is mildly bogus because the maintainer
-line is redundant.
+This header has the same format as the Author header.  It lists the
+person(s) who currently maintain(s) the file (respond to bug reports,
+etc.).
 
-The idea behind the @samp{Author} and @samp{Maintainer} lines is to make
-possible a Lisp function to ``send mail to the maintainer'' without
-having to mine the name out by hand.
-
-Be sure to surround the network address with @samp{<@dots{}>} if
-you include the person's full name as well as the network address.
+If there is no maintainer line, the person(s) in the Author field
+is/are presumed to be the maintainers.  Some files in Emacs use
+@samp{FSF} for the maintainer.  This means that the original author is
+no longer responsible for the file, and that it is maintained as part
+of Emacs.
 
 @item Created
-This optional line gives the original creation date of the
-file.  For historical interest only.
+This optional line gives the original creation date of the file, and
+is for historical interest only.
 
 @item Version
-If you wish to record version numbers for the individual Lisp program, put
-them in this line.
-
-@item Adapted-By
-In this header line, place the name of the person who adapted the
-library for installation (to make it fit the style conventions, for
-example).
+If you wish to record version numbers for the individual Lisp program,
+put them in this line.  Lisp files distributed with Emacs generally do
+not have a @samp{Version} header, since the version number of Emacs
+itself serves the same purpose.  If you are distributing a collection
+of multiple files, we recommend not writing the version in every file,
+but only the main one.
 
 @item Keywords
 This line lists keywords for the @code{finder-by-keyword} help command.
 Please use that command to see a list of the meaningful keywords.
 
-This field is important; it's how people will find your package when
-they're looking for things by topic area.  To separate the keywords, you
-can use spaces, commas, or both.
+This field is how people will find your package when they're looking
+for things by topic.  To separate the keywords, you can use spaces,
+commas, or both.
+
+The name of this field is unfortunate, since people often assume it is
+the place to write arbitrary keywords that describe their package,
+rather than just the relevant Finder keywords.
 
 @item Package-Version
 If @samp{Version} is not suitable for use by the package manager, then
@@ -1060,7 +1047,7 @@ If this exists, it names packages on which the current package depends
 for proper operation.  @xref{Packaging Basics}.  This is used by the
 package manager both at download time (to ensure that a complete set
 of packages is downloaded) and at activation time (to ensure that a
-package is activated if and only if all its dependencies have been).
+package is only activated if all its dependencies have been).
 
 Its format is a list of lists.  The @code{car} of each sub-list is the
 name of a package, as a symbol.  The @code{cadr} of each sub-list is
@@ -1081,8 +1068,8 @@ appropriate.  You can also put in header lines with other header
 names---they have no standard meanings, so they can't do any harm.
 
   We use additional stylized comments to subdivide the contents of the
-library file.  These should be separated by blank lines from anything
-else.  Here is a table of them:
+library file.  These should be separated from anything else by blank
+lines.  Here is a table of them:
 
 @table @samp
 @item ;;; Commentary:
@@ -1092,16 +1079,12 @@ It should come right after the copying permissions, terminated by a
 text is used by the Finder package, so it should make sense in that
 context.
 
-@item ;;; Documentation:
-This was used in some files in place of @samp{;;; Commentary:},
-but it is deprecated.
-
 @item ;;; Change Log:
-This begins change log information stored in the library file (if you
-store the change history there).  For Lisp files distributed with Emacs,
-the change history is kept in the file @file{ChangeLog} and not in the
-source file at all; these files generally do not have a @samp{;;; Change
-Log:} line.  @samp{History} is an alternative to @samp{Change Log}.
+This begins an optional log of changes to the file over time.  Don't
+put too much information in this section---it is better to keep the
+detailed logs in a separate @file{ChangeLog} file (as Emacs does),
+and/or to use a version control system.  @samp{History} is an
+alternative to @samp{Change Log}.
 
 @item ;;; Code:
 This begins the actual code of the program.

@@ -460,6 +460,8 @@ since it could result in memory overflow and make Emacs crash."
 	     (x-use-underline-position-properties display boolean "22.1")
 	     (x-underline-at-descent-line display boolean "22.1")
 	     (x-stretch-cursor display boolean "21.1")
+	     ;; xselect.c
+	     (x-select-enable-clipboard-manager killing boolean "24.1")
 	     ;; xsettings.c
 	     (font-use-system-font font-selection boolean "23.2")))
       this symbol group type standard version native-p rest prop propval
