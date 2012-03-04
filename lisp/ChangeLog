@@ -5,6 +5,10 @@
 	when doing the prompting for `sendmail-query-once' before sending
 	in Message buffers (bug#10897).
 
+	* net/tls.el (open-tls-stream): Don't set the dont-query-on-exit flag.
+	This is inconsistent with all the other stream functions, which leave
+	the setting up to the higher levels (if so wanted) (bug#10931).
+
 2012-03-02  Alan Mackenzie  <acm@muc.de>
 
 	Depessimize the handling of very large macros.
