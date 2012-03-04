@@ -1,3 +1,12 @@
+2012-03-04  Paul Eggert  <eggert@cs.ucla.edu>
+
+	configure: fix ncurses 'configure' issue on Solaris 10 (Bug#10677)
+	* configure.in (LIBS_TERMCAP): Default this to the result of
+	the tputs library search.  Do a run-time test for the linkability
+	of tputs unless cross-compiling, as that's more reliable if the
+	link flags and libraries are messed up.  Don't change LIBS as
+	a result of the test, as that may mess up later tests.
+
 2012-02-05  Christoph Scholtes  <cschol2112@googlemail.com>
 
 	* make-dist (README.W32): Include file in source tarball. (Bug#9750)
