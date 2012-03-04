@@ -1,3 +1,9 @@
+2012-03-04  Tassilo Horn  <tassilo@member.fsf.org>
+
+	* saveplace.el (save-place-to-alist)
+	(save-place-ignore-files-regexp): Allow value nil to disable this
+	feature.
+
 2012-03-04  Chong Yidong  <cyd@gnu.org>
 
 	* faces.el (face-spec-reset-face): For the default face, reset the
