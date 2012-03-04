@@ -1,3 +1,8 @@
+2012-03-04  Thierry Volpiatto  <thierry.volpiatto@gmail.com>
+
+	* gnus-msg.el (gnus-msg-mail): Call `message-mail' correctly when Gnus
+	isn't running (bug#10897).
+
 2012-02-25  Lars Magne Ingebrigtsen  <larsi@gnus.org>
 
 	* shr.el (shr-column-specs): Protect against TDs with "width: 0%".
