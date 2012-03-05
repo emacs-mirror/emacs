@@ -1,5 +1,8 @@
 2012-03-05  Leo Liu  <sdl.web@gmail.com>
 
+	* simple.el (backward-delete-char-untabify): Constrain point to
+	field (Bug#10939).
+
 	* eshell/em-cmpl.el (eshell-cmpl-initialize): Fix shift-tab key.
 
 2012-03-05  Chong Yidong  <cyd@gnu.org>
