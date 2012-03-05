@@ -949,46 +949,51 @@ rather than line counts."
       (forward-line (1- line)))))
 
 (defun count-words-region (start end)
-  "Return the number of words between START and END.
+  "Count the number of words in the region.
 If called interactively, print a message reporting the number of
-lines, words, and characters in the region."
+lines, words, and chars in the region.
+If called from Lisp, return the number of words between positions
+START and END."
   (interactive "r")
-  (let ((words 0))
-    (save-excursion
-      (save-restriction
-        (narrow-to-region start end)
-        (goto-char (point-min))
-        (while (forward-word 1)
-          (setq words (1+ words)))))
-    (when (called-interactively-p 'interactive)
-      (count-words--message "Region"
-			    (count-lines start end)
-			    words
-			    (- end start)))
-    words))
+  (if (called-interactively-p 'any)
+      (count-words--message "Region" start end)
+    (count-words start end)))
 
-(defun count-words ()
-  "Display the number of lines, words, and characters in the buffer.
-In Transient Mark mode when the mark is active, display the
-number of lines, words, and characters in the region."
-  (interactive)
-  (if (use-region-p)
-      (call-interactively 'count-words-region)
-    (let* ((beg (point-min))
-	   (end (point-max))
-	   (lines (count-lines beg end))
-	   (words (count-words-region beg end))
-	   (chars (- end beg)))
-      (count-words--message "Buffer" lines words chars))))
+(defun count-words (start end)
+  "Count words between START and END.
+If called interactively, START and END are normally the start and
+end of the buffer; but if the region is active, START and END are
+the start and end of the region.  Print a message reporting the
+number of lines, words, and chars.
 
-(defun count-words--message (str lines words chars)
-  (message "%s has %d line%s, %d word%s, and %d character%s."
-	   str
-	   lines (if (= lines 1) "" "s")
-	   words (if (= words 1) "" "s")
-	   chars (if (= chars 1) "" "s")))
+If called from Lisp, return the number of words between START and
+END, without printing any message."
+  (interactive (list nil nil))
+  (cond ((not (called-interactively-p 'any))
+	 (let ((words 0))
+	   (save-excursion
+	     (save-restriction
+	       (narrow-to-region start end)
+	       (goto-char (point-min))
+	       (while (forward-word 1)
+		 (setq words (1+ words)))))
+	   words))
+	((use-region-p)
+	 (call-interactively 'count-words-region))
+	(t
+	 (count-words--message "Buffer" (point-min) (point-max)))))
 
-(defalias 'count-lines-region 'count-words-region)
+(defun count-words--message (str start end)
+  (let ((lines (count-lines start end))
+	(words (count-words start end))
+	(chars (- end start)))
+    (message "%s has %d line%s, %d word%s, and %d character%s."
+	     str
+	     lines (if (= lines 1) "" "s")
+	     words (if (= words 1) "" "s")
+	     chars (if (= chars 1) "" "s"))))
+
+(define-obsolete-function-alias 'count-lines-region 'count-words-region "24.1")
 
 (defun what-line ()
   "Print the current buffer line number and narrowed line number of point."

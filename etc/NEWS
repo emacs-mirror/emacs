@@ -483,9 +483,12 @@ isearch-yank-kill.
 
 +++
 ** New commands `count-words-region' and `count-words'.
-
-*** `count-lines-region' is now an alias for `count-words-region',
-bound to M-=, which shows the number of lines, words, and characters.
++++
+*** M-= is bound to `count-words-region', not `count-lines-region'.
+The `count-words-region' command, when called interactively, reports
+the number of lines, words, and characters in the region.  It is a
+superset of the old `count-lines-region', which is now an obsolete
+alias for it.
 
 +++
 ** The default value of `backup-by-copying-when-mismatch' is now t.
