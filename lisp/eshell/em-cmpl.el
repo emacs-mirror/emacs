@@ -299,8 +299,7 @@ to writing a completion function."
   ;; jww (1999-10-19): Will this work on anything but X?
   (if (featurep 'xemacs)
       (define-key eshell-mode-map [iso-left-tab] 'pcomplete-reverse)
-    (define-key eshell-mode-map [(shift iso-lefttab)] 'pcomplete-reverse)
-    (define-key eshell-mode-map [(shift control ?i)] 'pcomplete-reverse))
+    (define-key eshell-mode-map [backtab] 'pcomplete-reverse))
   (define-key eshell-mode-map [(meta ??)] 'pcomplete-list))
 
 (defun eshell-completion-command-name ()
