@@ -1,3 +1,9 @@
+2012-03-06  Glenn Morris  <rgm@gnu.org>
+
+	* term/pc-win.el (x-selection-owner-p, x-own-selection-internal)
+	(x-disown-selection-internal, x-get-selection-internal):
+	Doc fix (add arglist signatures).  (Bug#10783)
+
 2012-03-06  Kaushik Srenevasan  <ksrenevasan@gmail.com>  (tiny change)
 
 	* progmodes/gdb-mi.el (gdb-breakpoints-list-handler-custom):
