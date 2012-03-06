@@ -910,6 +910,10 @@ it is readable, regular, etc., you should test the result."
                     ;;   (setq user (nth 2 (file-attributes file)))
                     ;;   (and prev-user (not (equal user prev-user))))
                     (string-match locate-dominating-stop-dir-regexp file)))
+      ;; FIXME? maybe this function should (optionally?)
+      ;; use file-readable-p instead.  In many cases, an unreadable
+      ;; FILE is no better than a non-existent one.
+      ;; See eg dir-locals-find-file.
       (setq try (file-exists-p (expand-file-name name file)))
       (cond (try (setq root file))
             ((equal file (setq file (file-name-directory
@@ -3569,8 +3573,14 @@ of no valid cache entry."
 	 (locals-file (locate-dominating-file file dir-locals-file-name))
 	 (dir-elt nil))
     ;; `locate-dominating-file' may have abbreviated the name.
-    (if locals-file
-	(setq locals-file (expand-file-name dir-locals-file-name locals-file)))
+    (and locals-file
+	 (setq locals-file (expand-file-name dir-locals-file-name locals-file))
+	 ;; FIXME? is it right to silently ignore an unreadable file?
+	 ;; Maybe we'd want to keep searching in that case.
+	 ;; That is a locate-dominating-file issue.
+	 (or (not (file-readable-p locals-file))
+	     (not (file-regular-p locals-file)))
+	 (setq locals-file nil))
     ;; Find the best cached value in `dir-locals-directory-cache'.
     (dolist (elt dir-locals-directory-cache)
       (when (and (eq t (compare-strings file nil (length (car elt))
