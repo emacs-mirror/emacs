@@ -880,7 +880,10 @@ or mount points potentially requiring authentication as a different user.")
 (defun locate-dominating-file (file name)
   "Look up the directory hierarchy from FILE for a file named NAME.
 Stop at the first parent directory containing a file NAME,
-and return the directory.  Return nil if not found."
+and return the directory.  Return nil if not found.
+
+This function only tests if FILE exists.  If you care about whether
+it is readable, regular, etc., you should test the result."
   ;; We used to use the above locate-dominating-files code, but the
   ;; directory-files call is very costly, so we're much better off doing
   ;; multiple calls using the code in here.

@@ -1,3 +1,7 @@
+2012-03-06  Glenn Morris  <rgm@gnu.org>
+
+	* files.el (locate-dominating-file): Doc fix.
+
 2012-03-06  Adam Spiers  <emacs@adamspiers.org>  (tiny change)
 
 	* calendar/calendar.el (calendar-set-mode-line):
