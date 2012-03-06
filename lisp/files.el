@@ -877,13 +877,14 @@ or mount points potentially requiring authentication as a different user.")
 ;;               (setq dir nil))))
 ;;       nil)))
 
-(defun locate-dominating-file (file name)
+(defun locate-dominating-file (file name &optional predicate)
   "Look up the directory hierarchy from FILE for a file named NAME.
 Stop at the first parent directory containing a file NAME,
 and return the directory.  Return nil if not found.
 
-This function only tests if FILE exists.  If you care about whether
-it is readable, regular, etc., you should test the result."
+Optional argument PREDICATE is a function of one argument, a file.
+It should return non-nil if the file is acceptable.  The default is
+`file-exists-p'; you might, e.g., want to use `file-readable-p' instead."
   ;; We used to use the above locate-dominating-files code, but the
   ;; directory-files call is very costly, so we're much better off doing
   ;; multiple calls using the code in here.
@@ -910,11 +911,8 @@ it is readable, regular, etc., you should test the result."
                     ;;   (setq user (nth 2 (file-attributes file)))
                     ;;   (and prev-user (not (equal user prev-user))))
                     (string-match locate-dominating-stop-dir-regexp file)))
-      ;; FIXME? maybe this function should (optionally?)
-      ;; use file-readable-p instead.  In many cases, an unreadable
-      ;; FILE is no better than a non-existent one.
-      ;; See eg dir-locals-find-file.
-      (setq try (file-exists-p (expand-file-name name file)))
+      (setq try (funcall (or predicate 'file-exists-p)
+			 (expand-file-name name file)))
       (cond (try (setq root file))
             ((equal file (setq file (file-name-directory
                                      (directory-file-name file))))
@@ -3552,7 +3550,7 @@ across different environments and users.")
   "Find the directory-local variables for FILE.
 This searches upward in the directory tree from FILE.
 It stops at the first directory that has been registered in
-`dir-locals-directory-cache' or contains a `dir-locals-file'.
+`dir-locals-directory-cache' or contains a readable `dir-locals-file'.
 If it finds an entry in the cache, it checks that it is valid.
 A cache entry with no modification time element (normally, one that
 has been assigned directly using `dir-locals-set-directory-class', not
@@ -3570,17 +3568,15 @@ of no valid cache entry."
 	  (if (eq system-type 'ms-dos)
 	      (dosified-file-name dir-locals-file)
 	    dir-locals-file))
-	 (locals-file (locate-dominating-file file dir-locals-file-name))
+	 ;; FIXME?  Is it right to silently ignore unreadable files?
+	 (locals-file (locate-dominating-file file dir-locals-file-name
+					      (lambda (file)
+						(and (file-readable-p file)
+						     (file-regular-p file)))))
 	 (dir-elt nil))
     ;; `locate-dominating-file' may have abbreviated the name.
-    (and locals-file
-	 (setq locals-file (expand-file-name dir-locals-file-name locals-file))
-	 ;; FIXME? is it right to silently ignore an unreadable file?
-	 ;; Maybe we'd want to keep searching in that case.
-	 ;; That is a locate-dominating-file issue.
-	 (or (not (file-readable-p locals-file))
-	     (not (file-regular-p locals-file)))
-	 (setq locals-file nil))
+    (if locals-file
+	(setq locals-file (expand-file-name dir-locals-file-name locals-file)))
     ;; Find the best cached value in `dir-locals-directory-cache'.
     (dolist (elt dir-locals-directory-cache)
       (when (and (eq t (compare-strings file nil (length (car elt))
