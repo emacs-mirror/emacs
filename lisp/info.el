@@ -1165,6 +1165,8 @@ a case-insensitive match is tried."
 		       (progn (setq file (expand-file-name "dir.info" truename))
 			      (file-attributes file))
 		       (progn (setq file (expand-file-name "DIR.INFO" truename))
+			      (file-attributes file))
+		       (progn (setq file (expand-file-name "dir.gz" truename))
 			      (file-attributes file)))))
 		(setq dirs-done
 		      (cons truename
