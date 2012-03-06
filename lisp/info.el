@@ -1166,6 +1166,10 @@ a case-insensitive match is tried."
 			      (file-attributes file))
 		       (progn (setq file (expand-file-name "DIR.INFO" truename))
 			      (file-attributes file))
+		       ;; Shouldn't really happen, but sometimes does,
+		       ;; eg on Debian systems with buggy packages;
+		       ;; so may as well try it.
+		       ;; http://lists.gnu.org/archive/html/emacs-devel/2012-03/msg00005.html
 		       (progn (setq file (expand-file-name "dir.gz" truename))
 			      (file-attributes file)))))
 		(setq dirs-done
