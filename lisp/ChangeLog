@@ -1,3 +1,15 @@
+2012-03-07  Michael Albinus  <Michael.Albinus@alcatel-lucent.com>
+
+	Avoid superfluous registering of signals.  (Bug#10807)
+
+	* notifications.el (notifications-on-action-object)
+	(notifications-on-close-object): New defvars.
+	(notifications-on-action-signal, notifications-on-closed-signal):
+	Unregister the signal if not needed any longer.
+	(notifications-notify): Register `notifications-action-signal' or
+	`notifications-closed-signal', if :on-action or :on-close has been
+	passed as argument.
+
 2012-03-07  Chong Yidong  <cyd@gnu.org>
 
 	* cus-start.el: Avoid x-select-enable-clipboard-manager warning on
