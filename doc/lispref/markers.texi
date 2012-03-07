@@ -58,6 +58,8 @@ with @code{insert-before-markers} (@pxref{Insertion}).
 relocate them if necessary.  This slows processing in a buffer with a
 large number of markers.  For this reason, it is a good idea to make a
 marker point nowhere if you are sure you don't need it any more.
+Markers that can no longer be accessed are eventually removed
+(@pxref{Garbage Collection}).
 
 @cindex markers as numbers
   Because it is common to perform arithmetic operations on a marker

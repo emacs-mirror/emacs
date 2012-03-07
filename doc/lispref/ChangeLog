@@ -2,6 +2,7 @@
 
 	* markers.texi (The Region):
 	Briefly mention use-empty-active-region and region-active-p.
+	(Overview of Markers): Reword garbage collection, add cross-ref.
 
 2012-03-07  Chong Yidong  <cyd@gnu.org>
 
