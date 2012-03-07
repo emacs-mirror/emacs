@@ -1,3 +1,10 @@
+2012-03-07  Eli Zaretskii  <eliz@gnu.org>
+
+	* international/quail.el (quail-help): Force
+	bidi-paragraph-direction be left-to-right.  See discussion in
+	http://lists.gnu.org/archive/html/emacs-devel/2012-03/msg00062.html
+	for the reason.
+
 2012-03-07  Michael Albinus  <Michael.Albinus@alcatel-lucent.com>
 
 	Avoid superfluous registering of signals.  (Bug#10807)
