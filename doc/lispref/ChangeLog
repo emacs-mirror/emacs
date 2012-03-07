@@ -1,3 +1,14 @@
+2012-03-07  Chong Yidong  <cyd@gnu.org>
+
+	* text.texi (Buffer Contents): Don't duplicate explanation of
+	region arguments from Text node.  Put doc of obsolete var
+	buffer-substring-filters back, since it is referred to.
+	(Low-Level Kill Ring): Yank now uses clipboard instead of primary
+	selection by default.
+
+	* markers.texi (The Mark): Fix typo.
+	(The Region): Copyedits.
+
 2012-03-07  Glenn Morris  <rgm@gnu.org>
 
 	* markers.texi (Overview of Markers): Copyedits.

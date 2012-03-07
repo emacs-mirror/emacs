@@ -422,11 +422,11 @@ can request deactivation of the mark upon return to the editor command
 loop by setting the variable @code{deactivate-mark} to a
 non-@code{nil} value.
 
-  If Transient Mode is enabled, certain editing commands that normally
-apply to text near point, apply instead to the region when the mark is
-active.  This is the main motivation for using Transient Mark mode.
-(Another is that this enables highlighting of the region when the mark
-is active.  @xref{Display}.)
+  If Transient Mark mode is enabled, certain editing commands that
+normally apply to text near point, apply instead to the region when
+the mark is active.  This is the main motivation for using Transient
+Mark mode.  (Another is that this enables highlighting of the region
+when the mark is active.  @xref{Display}.)
 
   In addition to the mark, each buffer has a @dfn{mark ring} which is a
 list of markers containing previous values of the mark.  When editing
@@ -662,16 +662,15 @@ integer).  This is the position of either point or the mark, whichever is
 larger.
 @end defun
 
-  Few programs need to use the @code{region-beginning} and
-@code{region-end} functions.  A command designed to operate on a region
-should normally use @code{interactive} with the @samp{r} specification
-to find the beginning and end of the region.  This lets other Lisp
-programs specify the bounds explicitly as arguments.  (@xref{Interactive
-Codes}.)
+  Instead of using @code{region-beginning} and @code{region-end}, a
+command designed to operate on a region should normally use
+@code{interactive} with the @samp{r} specification to find the
+beginning and end of the region.  This lets other Lisp programs
+specify the bounds explicitly as arguments.  @xref{Interactive Codes}.
 
 @defun use-region-p
 This function returns @code{t} if Transient Mark mode is enabled, the
-mark is active, and there's a valid region in the buffer.  Commands
-that operate on the region (instead of on text near point) when
-there's an active mark should use this to test whether to do that.
+mark is active, and there is a valid region in the buffer.  This
+function is intended to be used by commands that operate on the
+region, instead of on text near point, when the mark is active.
 @end defun

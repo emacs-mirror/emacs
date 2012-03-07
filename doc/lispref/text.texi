@@ -169,13 +169,9 @@ convert any portion of the text in the buffer into a string.
 @defun buffer-substring start end
 This function returns a string containing a copy of the text of the
 region defined by positions @var{start} and @var{end} in the current
-buffer.  If the arguments are not positions in the accessible portion of
-the buffer, @code{buffer-substring} signals an @code{args-out-of-range}
-error.
-
-It is not necessary for @var{start} to be less than @var{end}; the
-arguments can be given in either order.  But most often the smaller
-argument is written first.
+buffer.  If the arguments are not positions in the accessible portion
+of the buffer, @code{buffer-substring} signals an
+@code{args-out-of-range} error.
 
 Here's an example which assumes Font-Lock mode is not enabled:
 
@@ -218,14 +214,20 @@ This is like @code{buffer-substring}, except that it does not copy text
 properties, just the characters themselves.  @xref{Text Properties}.
 @end defun
 
+@defun buffer-string
+This function returns the contents of the entire accessible portion of
+the current buffer as a string.  It is equivalent to
+@w{@code{(buffer-substring (point-min) (point-max))}}.
+@end defun
+
 @defun filter-buffer-substring start end &optional delete
 This function passes the buffer text between @var{start} and @var{end}
 through the filter functions specified by the wrapper hook
-@code{filter-buffer-substring-functions}, and returns the final
-result of applying all filters.  The obsolete variable
-@code{buffer-substring-filters} is also consulted.  If both of these
-variables are @code{nil}, the value is the unaltered text from the
-buffer, as @code{buffer-substring} would return.
+@code{filter-buffer-substring-functions}, and returns the result.  The
+obsolete variable @code{buffer-substring-filters} is also consulted.
+If both of these variables are @code{nil}, the value is the unaltered
+text from the buffer, i.e.@: what @code{buffer-substring} would
+return.
 
 If @var{delete} is non-@code{nil}, this function deletes the text
 between @var{start} and @var{end} after copying it, like
@@ -260,30 +262,20 @@ this, and so on.  The actual return value is the result of all the
 hook functions acting in sequence.
 @end defvar
 
-@defun buffer-string
-This function returns the contents of the entire accessible portion of
-the current buffer as a string.  It is equivalent to
-
-@example
-(buffer-substring (point-min) (point-max))
-@end example
-
-@example
-@group
----------- Buffer: foo ----------
-This is the contents of buffer foo
-
----------- Buffer: foo ----------
-
-(buffer-string)
-     @result{} "This is the contents of buffer foo\n"
-@end group
-@end example
-@end defun
+@defvar buffer-substring-filters
+This variable is obsoleted by
+@code{filter-buffer-substring-functions}, but is still supported for
+backward compatibility.  Its value should should be a list of
+functions which accept a single string argument and return another
+string.  @code{filter-buffer-substring} passes the buffer substring to
+the first function in this list, and the return value of each function
+is passed to the next function.  The return value of the last function
+is passed to @code{filter-buffer-substring-functions}.
+@end defvar
 
 @defun current-word &optional strict really-word
-This function returns the symbol (or word) at or near point, as a string.
-The return value includes no text properties.
+This function returns the symbol (or word) at or near point, as a
+string.  The return value includes no text properties.
 
 If the optional argument @var{really-word} is non-@code{nil}, it finds a
 word; otherwise, it finds a symbol (which includes both word
@@ -1112,13 +1104,11 @@ case, the first string is used as the ``most recent kill'', and all
 the other strings are pushed onto the kill ring, for easy access by
 @code{yank-pop}.
 
-The normal use of this function is to get the window system's primary
-selection as the most recent kill, even if the selection belongs to
+The normal use of this function is to get the window system's
+clipboard as the most recent kill, even if the selection belongs to
 another application.  @xref{Window System Selections}.  However, if
-the selection was provided by the current Emacs session, this function
-should return @code{nil}.  (If it is hard to tell whether Emacs or
-some other program provided the selection, it should be good enough to
-use @code{string=} to compare it with the last text Emacs provided.)
+the clipboard contents come from the current Emacs session, this
+function should return @code{nil}.
 @end defvar
 
 @defvar interprogram-cut-function
@@ -1129,9 +1119,8 @@ programs, when you are using a window system.  Its value should be
 If the value is a function, @code{kill-new} and @code{kill-append} call
 it with the new first element of the kill ring as the argument.
 
-The normal use of this function is to set the window system's primary
-selection from the newly killed text.
-@xref{Window System Selections}.
+The normal use of this function is to put newly killed text in the
+window system's clipboard.  @xref{Window System Selections}.
 @end defvar
 
 @node Internals of Kill Ring
