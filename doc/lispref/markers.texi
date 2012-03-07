@@ -1,6 +1,6 @@
 @c -*-texinfo-*-
 @c This is part of the GNU Emacs Lisp Reference Manual.
-@c Copyright (C) 1990-1995, 1998-1999, 2001-2012  Free Software Foundation, Inc.
+@c Copyright (C) 1990-1995, 1998-1999, 2001-2012 Free Software Foundation, Inc.
 @c See the file elisp.texi for copying conditions.
 @setfilename ../../info/markers
 @node Markers, Text, Positions, Top
@@ -27,8 +27,8 @@ deleted, so that it stays with the two characters on either side of it.
 @node Overview of Markers
 @section Overview of Markers
 
-  A marker specifies a buffer and a position in that buffer.  The
-marker can be used to represent a position in the functions that
+  A marker specifies a buffer and a position in that buffer.  A
+marker can be used to represent a position in functions that
 require one, just as an integer could be used.  In that case, the
 marker's buffer is normally ignored.  Of course, a marker used in this
 way usually points to a position in the buffer that the function
@@ -38,12 +38,12 @@ operates on, but that is entirely the programmer's responsibility.
   A marker has three attributes: the marker position, the marker
 buffer, and the insertion type.  The marker position is an integer
 that is equivalent (at a given time) to the marker as a position in
-that buffer.  But the marker's position value can change often during
-the life of the marker.  Insertion and deletion of text in the buffer
-relocate the marker.  The idea is that a marker positioned between two
-characters remains between those two characters despite insertion and
-deletion elsewhere in the buffer.  Relocation changes the integer
-equivalent of the marker.
+that buffer.  But the marker's position value can change during
+the life of the marker, and often does.  Insertion and deletion of
+text in the buffer relocate the marker.  The idea is that a marker
+positioned between two characters remains between those two characters
+despite insertion and deletion elsewhere in the buffer.  Relocation
+changes the integer equivalent of the marker.
 
 @cindex marker relocation
   Deleting text around a marker's position leaves the marker between the
@@ -63,7 +63,7 @@ will continue to use time if they do point somewhere.
 
 @cindex markers as numbers
   Because it is common to perform arithmetic operations on a marker
-position, most of the arithmetic operations (including @code{+} and
+position, most of these operations (including @code{+} and
 @code{-}) accept markers as arguments.  In such cases, the marker
 stands for its current position.
 
@@ -188,7 +188,7 @@ chapter.
 (point-min-marker)
      @result{} #<marker at 1 in markers.texi>
 (point-max-marker)
-     @result{} #<marker at 15573 in markers.texi>
+     @result{} #<marker at 24080 in markers.texi>
 @end group
 
 @group
@@ -229,8 +229,8 @@ buffer.
 @end group
 
 @group
-(copy-marker 20000)
-     @result{} #<marker at 7572 in markers.texi>
+(copy-marker 90000)
+     @result{} #<marker at 24080 in markers.texi>
 @end group
 @end example
 
@@ -509,7 +509,8 @@ example:
 This function sets the current buffer's mark to @var{position}, and
 pushes a copy of the previous mark onto @code{mark-ring}.  If
 @var{position} is @code{nil}, then the value of point is used.
-@code{push-mark} returns @code{nil}.
+@c Doesn't seem relevant.
+@c @code{push-mark} returns @code{nil}.
 
 The function @code{push-mark} normally @emph{does not} activate the
 mark.  To do that, specify @code{t} for the argument @var{activate}.
@@ -523,8 +524,9 @@ This function pops off the top element of @code{mark-ring} and makes
 that mark become the buffer's actual mark.  This does not move point in
 the buffer, and it does nothing if @code{mark-ring} is empty.  It
 deactivates the mark.
-
-The return value is not meaningful.
+@c
+@c Seems even less relevant.
+@c The return value is not meaningful.
 @end defun
 
 @defopt transient-mark-mode

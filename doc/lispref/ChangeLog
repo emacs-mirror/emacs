@@ -1,3 +1,9 @@
+2012-03-07  Glenn Morris  <rgm@gnu.org>
+
+	* markers.texi (Overview of Markers): Copyedits.
+	(Creating Markers): Update approximate example buffer size.
+	(The Mark): Don't mention uninteresting return values.
+
 2012-03-05  Chong Yidong  <cyd@gnu.org>
 
 	* positions.texi (Text Lines): Document count-words.
