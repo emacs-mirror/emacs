@@ -1,3 +1,8 @@
+2012-03-07  Glenn Morris  <rgm@gnu.org>
+
+	* markers.texi (The Region):
+	Briefly mention use-empty-active-region and region-active-p.
+
 2012-03-07  Chong Yidong  <cyd@gnu.org>
 
 	* text.texi (Buffer Contents): Don't duplicate explanation of

@@ -58,8 +58,6 @@ with @code{insert-before-markers} (@pxref{Insertion}).
 relocate them if necessary.  This slows processing in a buffer with a
 large number of markers.  For this reason, it is a good idea to make a
 marker point nowhere if you are sure you don't need it any more.
-Unreferenced markers are garbage collected eventually, but until then
-will continue to use time if they do point somewhere.
 
 @cindex markers as numbers
   Because it is common to perform arithmetic operations on a marker
@@ -636,6 +634,9 @@ more marks than this are pushed onto the @code{mark-ring},
 @code{push-mark} discards an old mark when it adds a new one.
 @end defopt
 
+@c There is also global-mark-ring-max, but this chapter explicitly
+@c does not talk about the global mark.
+
 @node The Region
 @section The Region
 @cindex region (between point and mark)
@@ -673,4 +674,12 @@ This function returns @code{t} if Transient Mark mode is enabled, the
 mark is active, and there is a valid region in the buffer.  This
 function is intended to be used by commands that operate on the
 region, instead of on text near point, when the mark is active.
+
+A region is valid if it has a non-zero size, or if the user option
+@code{use-empty-active-region} is non-@code{nil} (by default, it is
+@code{nil}).  The function @code{region-active-p} is similar to
+@code{use-region-p}, but considers all regions as valid.  In most
+cases, you should not use @code{region-active-p}, since if the region
+is empty it is often more appropriate to operate on point.
 @end defun
+
