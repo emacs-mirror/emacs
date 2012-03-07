@@ -1,3 +1,8 @@
+2012-03-07  Chong Yidong  <cyd@gnu.org>
+
+	* cus-start.el: Avoid x-select-enable-clipboard-manager warning on
+	non-X platforms.
+
 2012-03-06  Glenn Morris  <rgm@gnu.org>
 
 	* term/pc-win.el (x-selection-owner-p, x-own-selection-internal)
