@@ -1076,7 +1076,8 @@ Text
 * Registers::               How registers are implemented.  Accessing
                               the text or position stored in a register.
 * Base 64::                 Conversion to or from base 64 encoding.
-* Checksum/Hash::           Computing "message digests"/"checksums"/"hashes".
+* Checksum/Hash::           Computing cryptographic hashes.
+* Parsing HTML/XML::        Parsing HTML and XML.
 * Atomic Changes::          Installing several buffer changes "atomically".
 * Change Hooks::            Supplying functions to be run when text is changed.
 

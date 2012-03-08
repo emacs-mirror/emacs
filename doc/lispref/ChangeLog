@@ -1,3 +1,12 @@
+2012-03-08  Chong Yidong  <cyd@gnu.org>
+
+	* text.texi (Mode-Specific Indent): Document new behavior of
+	indent-for-tab-command.  Document tab-always-indent.
+	(Special Properties): Copyedits.
+	(Checksum/Hash): Improve secure-hash doc.  Do not recommend MD5.
+	(Parsing HTML/XML): Rename from Parsing HTML.  Update doc of
+	libxml-parse-html-region.
+
 2012-03-07  Glenn Morris  <rgm@gnu.org>
 
 	* markers.texi (The Region): Briefly mention use-empty-active-region

@@ -1482,13 +1482,12 @@ These require Emacs to be built with ImageMagick support.
 image-transform-fit-to-height, image-transform-fit-to-width,
 image-transform-set-rotation, image-transform-set-scale.
 
++++
 ** XML and HTML parsing
-If Emacs is compiled with libxml2 support, there are two new functions:
-`libxml-parse-html-region' (which parses "real world" HTML) and
-`libxml-parse-xml-region' (which parses XML).  Both return an Emacs
-Lisp parse tree.
-
-FIXME: These should be front-ended by xml.el.
+If Emacs is compiled with libxml2 support, there are two new
+functions: `libxml-parse-html-region' (which parses "real world" HTML)
+and `libxml-parse-xml-region' (which parses XML).  Both return an
+Emacs Lisp parse tree.
 
 ** GnuTLS
 
