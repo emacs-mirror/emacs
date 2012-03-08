@@ -1,3 +1,10 @@
+2012-03-08  Alan Mackenzie  <acm@muc.de>
+
+	* progmodes/cc-cmds.el (c-mark-function): Make it leave a mark at
+	the starting position; make it extend the marked region when
+	invoked repeatedly - all under appropriate circumstances.
+	Fixes bugs #5525, #10906.
+
 2012-03-08  Glenn Morris  <rgm@gnu.org>
 
 	* files.el (locate-dominating-file, dir-locals-find-file):
