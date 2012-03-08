@@ -1,3 +1,9 @@
+2012-03-08  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* gtkutil.c (x_wm_set_size_hint): Use one row in call to
+	FRAME_TEXT_LINES_TO_PIXEL_HEIGHT so base_height is greater than
+	zero (Bug#10954).
+
 2012-03-03  Glenn Morris  <rgm@gnu.org>
 
 	* alloc.c (Fgarbage_collect, misc-objects-consed): Doc fixes.
