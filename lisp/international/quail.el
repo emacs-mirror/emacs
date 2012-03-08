@@ -833,7 +833,15 @@ The format of KBD-LAYOUT is the same as `quail-keyboard-layout'."
 	(insert bar)
 	(if (= (if (stringp lower) (string-width lower) (char-width lower)) 1)
 	    (insert " "))
-	(insert lower upper)
+	;; Insert invisible LRM characters to force each keyboard row
+	;; be rendered left to right, and also to prevent reordering of
+	;; individual characters within each cell.  See
+	;; http://lists.gnu.org/archive/html/emacs-devel/2012-03/msg00085.html
+	;; for the reasons.
+	(insert (propertize (string ?\x200e) 'invisible t))
+	(insert lower)
+	(insert (propertize (string ?\x200e) 'invisible t))
+	(insert upper)
 	(if (= (if (stringp upper) (string-width upper) (char-width upper)) 1)
 	    (insert " "))
 	(setq i (+ i 2))
@@ -849,20 +857,21 @@ The format of KBD-LAYOUT is the same as `quail-keyboard-layout'."
 	;;(delete-region pos (point)))
 	(let ((from1 100) (to1 0) from2 to2)
 	  (while (not (eobp))
-	    (if (looking-at "[| ]*$")
+	    (if (looking-at "[| \u200e]*$")
 		;; The entire row is blank.
 		(delete-region (point) (match-end 0))
 	      ;; Delete blank key columns at the head.
-	      (if (looking-at " *\\(|    \\)+")
+	      (if (looking-at " *\\(| \u200e \u200e  \\)+")
 		  (subst-char-in-region (point) (match-end 0) ?| ? ))
 	      ;; Delete blank key columns at the tail.
-	      (if (re-search-forward "\\(    |\\)+$" (line-end-position) t)
+	      (if (re-search-forward "\\( \u200e \u200e  |\\)+$"
+				     (line-end-position) t)
 		  (delete-region (match-beginning 0) (point)))
 	      (beginning-of-line))
 	    ;; Calculate the start and end columns of a horizontal line.
 	    (if (eolp)
 		(setq from2 from1 to2 to1)
-	      (skip-chars-forward " ")
+	      (skip-chars-forward " \u200e")
 	      (setq from2 (current-column))
 	      (end-of-line)
 	      (setq to2 (current-column))
