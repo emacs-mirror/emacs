@@ -1,3 +1,8 @@
+2012-03-09  Michael Albinus  <michael.albinus@gmx.de>
+
+	* net/dbus.el: (dbus-property-handler): Return empty array if
+	there are no properties.
+
 2012-03-09  Leo Liu  <sdl.web@gmail.com>
 
 	* savehist.el (savehist-printable): Stricter check for string
