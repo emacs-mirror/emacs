@@ -1,3 +1,9 @@
+2012-03-09  Eli Zaretskii  <eliz@gnu.org>
+
+	* mail/smtpmail.el (smtpmail-send-it): Bind
+	coding-system-for-write to *-unix, so that FCC files are kept in
+	valid mbox format.
+
 2012-03-09  Glenn Morris  <rgm@gnu.org>
 
 	* files.el (dir-locals-find-file):
