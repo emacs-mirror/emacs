@@ -1,3 +1,9 @@
+2012-03-09  Glenn Morris  <rgm@gnu.org>
+
+	* files.el (dir-locals-find-file):
+	Don't check result is regular, readable.
+	(dir-locals-read-from-file): Demote errors.
+
 2012-03-08  Eli Zaretskii  <eliz@gnu.org>
 
 	* international/quail.el (quail-insert-kbd-layout): Insert

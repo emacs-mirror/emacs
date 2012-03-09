@@ -3574,13 +3574,14 @@ of no valid cache entry."
 	 (dir-elt nil))
     ;; `locate-dominating-file' may have abbreviated the name.
     (and locals-file
-	 (setq locals-file (expand-file-name dir-locals-file-name locals-file))
-	 ;; FIXME? is it right to silently ignore an unreadable file?
-	 ;; Maybe we'd want to keep searching in that case.
-	 ;; That is a locate-dominating-file issue.
-	 (or (not (file-readable-p locals-file))
-	     (not (file-regular-p locals-file)))
-	 (setq locals-file nil))
+	 (setq locals-file (expand-file-name dir-locals-file-name locals-file)))
+	 ;; Let dir-locals-read-from-file inform us via demoted-errors
+	 ;; about unreadable files, etc.
+	 ;; Maybe we'd want to keep searching though - that is
+	 ;; a locate-dominating-file issue.
+;;;	 (or (not (file-readable-p locals-file))
+;;;	     (not (file-regular-p locals-file)))
+;;;	 (setq locals-file nil))
     ;; Find the best cached value in `dir-locals-directory-cache'.
     (dolist (elt dir-locals-directory-cache)
       (when (and (eq t (compare-strings file nil (length (car elt))
@@ -3622,15 +3623,19 @@ FILE is the name of the file holding the variables to apply.
 The new class name is the same as the directory in which FILE
 is found.  Returns the new class name."
   (with-temp-buffer
-    (insert-file-contents file)
-    (let* ((dir-name (file-name-directory file))
-	   (class-name (intern dir-name))
-	   (variables (let ((read-circle nil))
-			(read (current-buffer)))))
-      (dir-locals-set-class-variables class-name variables)
-      (dir-locals-set-directory-class dir-name class-name
-				      (nth 5 (file-attributes file)))
-      class-name)))
+    ;; Errors reading the file are not very informative.
+    ;; Eg just "Error: (end-of-file)" does not give any clue that the
+    ;; problem is related to dir-locals.
+    (with-demoted-errors
+      (insert-file-contents file)
+      (let* ((dir-name (file-name-directory file))
+	     (class-name (intern dir-name))
+	     (variables (let ((read-circle nil))
+			  (read (current-buffer)))))
+	(dir-locals-set-class-variables class-name variables)
+	(dir-locals-set-directory-class dir-name class-name
+					(nth 5 (file-attributes file)))
+	class-name))))
 
 (defun hack-dir-local-variables ()
   "Read per-directory local variables for the current buffer.
