@@ -1,5 +1,10 @@
 2012-03-10  Eli Zaretskii  <eliz@gnu.org>
 
+	* strings.texi (String Basics):
+	* sequences.texi (Sequence Functions): Mention that `length' is
+	not appropriate for computing the string width on display; add a
+	cross-reference to the description of `string-width'.  (Bug#10978)
+
 	* eval.texi (Autoloading): Minor change of wording.
 
 2012-03-10  Chong Yidong  <cyd@gnu.org>

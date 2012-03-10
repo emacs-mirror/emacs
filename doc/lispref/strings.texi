@@ -51,7 +51,9 @@ C are terminated by a character with @acronym{ASCII} code 0.)
 operate on them with the general array and sequence functions.
 (@xref{Sequences Arrays Vectors}.)  For example, you can access or
 change individual characters in a string using the functions @code{aref}
-and @code{aset} (@pxref{Array Functions}).
+and @code{aset} (@pxref{Array Functions}).  However, note that
+@code{length} should @emph{not} be used for computing the width of a
+string on display; use @code{string-width} (@pxref{Width}) instead.
 
   There are two text representations for non-@acronym{ASCII} characters in
 Emacs strings (and in buffers): unibyte and multibyte (@pxref{Text

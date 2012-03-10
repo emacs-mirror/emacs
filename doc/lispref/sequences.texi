@@ -108,6 +108,11 @@ Emacs character code.
 @noindent
 See also @code{string-bytes}, in @ref{Text Representations}.
 
+If you need to compute the width of a string on display, you should
+use @code{string-width} (@pxref{Width}), not @code{length}, since
+@code{length} only counts the number of characters, but does not
+account for the display width of each character.
+
 @defun elt sequence index
 @cindex elements of sequences
 This function returns the element of @var{sequence} indexed by
