@@ -430,7 +430,11 @@ apply the face `mm-uu-extract'."
 
 (defun mm-uu-forward-extract ()
   (mm-make-handle (mm-uu-copy-to-buffer
-		   (progn (goto-char start-point) (forward-line) (point))
+		   (progn
+		     (goto-char start-point)
+		     (forward-line)
+		     (skip-chars-forward "\n")
+		     (point))
 		   (progn (goto-char end-point) (forward-line -1) (point)))
 		  '("message/rfc822" (charset . gnus-decoded))))
 
