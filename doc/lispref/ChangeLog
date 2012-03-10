@@ -1,3 +1,10 @@
+2012-03-10  Chong Yidong  <cyd@gnu.org>
+
+	* keymaps.texi (Mouse Menus): Describe non-toolkit behavior as the
+	non-default situation.  Describe one-submenu exception (Bug#7695).
+
+	* nonascii.texi (Character Properties): Copyedits.
+
 2012-03-08  Chong Yidong  <cyd@gnu.org>
 
 	* text.texi (Mode-Specific Indent): Document new behavior of

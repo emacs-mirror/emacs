@@ -214,7 +214,7 @@ maps.texi         rgm
 markers.texi      rgm
 minibuf.texi      
 modes.texi        cyd
-nonascii.texi     
+nonascii.texi     cyd
 numbers.texi      cyd
 objects.texi      cyd
 os.texi           
@@ -227,7 +227,7 @@ streams.texi      cyd
 strings.texi      cyd
 symbols.texi      cyd
 syntax.texi       cyd
-text.texi         
+text.texi         cyd
 tips.texi         rgm
 variables.texi    cyd
 windows.texi      
