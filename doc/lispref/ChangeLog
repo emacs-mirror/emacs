@@ -1,5 +1,8 @@
 2012-03-10  Chong Yidong  <cyd@gnu.org>
 
+	* loading.texi (Autoload): Explicitly state which forms are
+	processed specially (Bug#7783).
+
 	* keymaps.texi (Mouse Menus): Describe non-toolkit behavior as the
 	non-default situation.  Describe one-submenu exception (Bug#7695).
 
