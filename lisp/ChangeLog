@@ -1,5 +1,10 @@
 2012-03-10  Richard Stallman  <rms@gnu.org>
 
+	* mail/rmail.el (rmail-buffers-swapped-p): Don't assume dead
+	view buffer means not swapped.
+	(rmail-view-buffer-kill-buffer-hook): Give buf name in error msg.
+	(rmail-write-region-annotate): Error if real text has disappeared.
+
 	* epa-mail.el (epa-mail-encrypt): Bind inhibit-read-only.
 
 2012-03-10  Chong Yidong  <cyd@gnu.org>
