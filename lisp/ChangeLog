@@ -1,3 +1,8 @@
+2012-03-10  Jae-hyeon Park  <jae-hyeon.park@desy.de>  (tiny change)
+
+	* international/fontset.el (font-encoding-alist): Add an entry for
+	ksx1001 (Bug#5667).
+
 2012-03-10  Richard Stallman  <rms@gnu.org>
 
 	* mail/sendmail.el (mail-encode-header):
