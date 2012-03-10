@@ -1964,7 +1964,8 @@ Otherwise, for buffers inheriting from dired-mode, call `toggle-read-only'."
   (interactive)
   (if (eq major-mode 'dired-mode)
       (wdired-change-to-wdired-mode)
-    (toggle-read-only)))
+    (with-no-warnings
+      (toggle-read-only))))
 
 (defun dired-next-line (arg)
   "Move down lines then position at filename.
@@ -2622,58 +2623,61 @@ instead of `dired-actual-switches'."
 	      (read-file-name "Goto file: "
 			      (dired-current-directory))))
      (push-mark)))
-  (setq file (directory-file-name file)) ; does no harm if no directory
-  (let (found case-fold-search dir)
-    (setq dir (or (file-name-directory file)
-		  (error "File name `%s' is not absolute" file)))
-    (save-excursion
-      ;; The hair here is to get the result of dired-goto-subdir
-      ;; without really calling it if we don't have any subdirs.
-      (if (if (string= dir (expand-file-name default-directory))
-	      (goto-char (point-min))
-	    (and (cdr dired-subdir-alist)
-		 (dired-goto-subdir dir)))
-	  (let ((base (file-name-nondirectory file))
-		search-string
-		(boundary (dired-subdir-max)))
-	    (setq search-string
-		  (replace-regexp-in-string "\^m" "\\^m" base nil t))
-	    (setq search-string
-		  (replace-regexp-in-string "\\\\" "\\\\" search-string nil t))
-	    (and (dired-switches-escape-p dired-actual-switches)
-		 (string-match "[ \t\n]" search-string)
-		 ;; FIXME to fix this for all possible file names
-		 ;; (embedded control characters etc), we need to
-		 ;; escape everything that `ls -b' does.
-		 (setq search-string
-		       (replace-regexp-in-string " " "\\ "
-						 search-string nil t)
-		       search-string
-		       (replace-regexp-in-string "\t" "\\t"
-						 search-string nil t)
-		       search-string
-		       (replace-regexp-in-string "\n" "\\n"
-						 search-string nil t)))
-	    (while (and (not found)
-			;; filenames are preceded by SPC, this makes
-			;; the search faster (e.g. for the filename "-"!).
- 			(search-forward (concat " " search-string)
-					boundary 'move))
-	      ;; Match could have BASE just as initial substring or
-	      ;; or in permission bits or date or
-	      ;; not be a proper filename at all:
-	      (if (equal base (dired-get-filename 'no-dir t))
-		    ;; Must move to filename since an (actually
-		    ;; correct) match could have been elsewhere on the
-		    ;; ;; line (e.g. "-" would match somewhere in the
-		    ;; permission bits).
-		  (setq found (dired-move-to-filename))
-		;; If this isn't the right line, move forward to avoid
-		;; trying this line again.
-		(forward-line 1))))))
-    (and found
-	 ;; return value of point (i.e., FOUND):
-	 (goto-char found))))
+  (unless (file-name-absolute-p file)
+    (error "File name `%s' is not absolute" file))
+  (setq file (directory-file-name file)) ; does no harm if not a directory
+  (let* ((case-fold-search nil)
+	 (dir (file-name-directory file))
+	 (found (or
+		 ;; First, look for a listing under the absolute name.
+		 (save-excursion
+		   (goto-char (point-min))
+		   (dired-goto-file-1 file file (point-max)))
+		 ;; Otherwise, look for it as a relative name.  The
+		 ;; hair is to get the result of `dired-goto-subdir'
+		 ;; without calling it if we don't have any subdirs.
+		 (save-excursion
+		   (when (if (string= dir (expand-file-name default-directory))
+			     (goto-char (point-min))
+			   (and (cdr dired-subdir-alist)
+				(dired-goto-subdir dir)))
+		     (dired-goto-file-1 (file-name-nondirectory file)
+					file
+					(dired-subdir-max)))))))
+    ;; Return buffer position, if found.
+    (if found
+	(goto-char found))))
+
+(defun dired-goto-file-1 (file full-name limit)
+  "Advance to the Dired listing labeled by FILE; return its position.
+Return nil if the listing is not found.  If FILE contains
+characters that would not appear in a Dired buffer, search using
+the quoted forms of those characters.
+
+FULL-NAME specifies the actual file name the listing must have,
+as returned by `dired-get-filename'.  LIMIT is the search limit."
+  (let (str)
+    (setq str (replace-regexp-in-string "\^m" "\\^m"  file nil t))
+    (setq str (replace-regexp-in-string "\\\\" "\\\\" str nil t))
+    (and (dired-switches-escape-p dired-actual-switches)
+	 (string-match "[ \t\n]" str)
+	 ;; FIXME: to fix this for embedded control characters etc, we
+	 ;; should escape everything that `ls -b' does.
+	 (setq str (replace-regexp-in-string " " "\\ "  str nil t)
+	       str (replace-regexp-in-string "\t" "\\t" str nil t)
+	       str (replace-regexp-in-string "\n" "\\n" str nil t)))
+    (let ((found nil)
+	  ;; filenames are preceded by SPC, this makes the search faster
+	  ;; (e.g. for the filename "-").
+	  (search-string (concat " " str)))
+      (while (and (not found)
+		  (search-forward search-string limit 'move))
+	;; Check that we are in the right place.  Match could have
+	;; BASE just as initial substring or in permission bits etc.
+	(if (equal full-name (dired-get-filename nil t))
+	    (setq found (dired-move-to-filename))
+	  (forward-line 1)))
+      found)))
 
 (defvar dired-find-subdir)
 

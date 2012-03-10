@@ -1,3 +1,10 @@
+2012-03-10  Chong Yidong  <cyd@gnu.org>
+
+	* dired.el (dired-goto-file): Recognize absolute file name
+	listings (Bug#7126).
+	(dired-goto-file-1): New helper function.
+	(dired-toggle-read-only): Inhibit warnings.
+
 2012-03-09  Michael Albinus  <michael.albinus@gmx.de>
 
 	* net/dbus.el: (dbus-property-handler): Return empty array if
