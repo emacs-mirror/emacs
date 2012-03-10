@@ -1,5 +1,8 @@
 2012-03-10  Chong Yidong  <cyd@gnu.org>
 
+	* flymake.texi (Example -- Configuring a tool called via make):
+	Mention the Automake COMPILE variable (Bug#8715).
+
 	* info.texi (Getting Started): Add an index entry (Bug#10450).
 
 2012-03-02  Michael Albinus  <michael.albinus@gmx.de>
