@@ -1,5 +1,8 @@
 2012-03-10  Chong Yidong  <cyd@gnu.org>
 
+	* minibuffer.el (completion-in-region, completion-help-at-point):
+	Give the completion field overlay a high priority (Bug#6830).
+
 	* dired.el (dired-goto-file): Recognize absolute file name
 	listings (Bug#7126).
 	(dired-goto-file-1): New helper function.
