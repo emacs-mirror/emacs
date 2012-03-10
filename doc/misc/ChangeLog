@@ -1,3 +1,7 @@
+2012-03-10  Chong Yidong  <cyd@gnu.org>
+
+	* info.texi (Getting Started): Add an index entry (Bug#10450).
+
 2012-03-02  Michael Albinus  <michael.albinus@gmx.de>
 
 	* dbus.texi (Signals): Known names will be mapped onto unique

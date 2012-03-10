@@ -90,6 +90,7 @@ Started' chapter.
 @node Getting Started, Advanced, Top, Top
 @comment  node-name,  next,  previous,  up
 @chapter Getting Started
+@cindex Texinfo
 
 This first part of this Info manual describes how to get around inside
 of Info.  The second part of the manual describes various advanced
