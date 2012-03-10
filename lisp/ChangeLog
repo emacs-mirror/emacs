@@ -1,3 +1,8 @@
+2012-03-10  Martin Rudalics  <rudalics@gmx.at>
+
+	* speedbar.el (speedbar-unhighlight-one-tag-line): Avoid
+	unhighlighting due to frame switching (Bug#10275).
+
 2012-03-10  Chong Yidong  <cyd@gnu.org>
 
 	* minibuffer.el (completion-in-region, completion-help-at-point):
