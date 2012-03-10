@@ -1,3 +1,9 @@
+2012-03-10  Chong Yidong  <cyd@gnu.org>
+
+	* emulation/cua-rect.el (cua--init-rectangles):
+	* emulation/cua-base.el (cua--init-keymaps): Add
+	delete-forward-char to remappings (Bug#9666).
+
 2012-03-10  Martin Rudalics  <rudalics@gmx.at>
 
 	* speedbar.el (speedbar-unhighlight-one-tag-line): Avoid
