@@ -1,3 +1,8 @@
+2012-03-10  Eli Zaretskii  <eliz@gnu.org>
+
+	* info.texi (Expert Info): Move the index entry for "Texinfo" from
+	"Getting Started" to this node.  (Bug#10450)
+
 2012-03-10  Chong Yidong  <cyd@gnu.org>
 
 	* flymake.texi (Example -- Configuring a tool called via make):
