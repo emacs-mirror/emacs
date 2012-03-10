@@ -192,7 +192,9 @@ If no one is selected, symmetric encryption will be performed.  "
 	     (if sign
 		 (epa-select-keys context
 				  "Select keys for signing.  "))))))
-  (epa-encrypt-region start end recipients sign signers))
+  ;; Don't let some read-only text stop us from encrypting.
+  (let ((inhibit-read-only t))
+    (epa-encrypt-region start end recipients sign signers)))
 
 ;;;###autoload
 (defun epa-mail-import-keys ()
