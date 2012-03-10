@@ -1,3 +1,7 @@
+2012-03-10  Eli Zaretskii  <eliz@gnu.org>
+
+	* eval.texi (Autoloading): Minor change of wording.
+
 2012-03-10  Chong Yidong  <cyd@gnu.org>
 
 	* loading.texi (Autoload): Explicitly state which forms are
