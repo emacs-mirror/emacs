@@ -1,3 +1,12 @@
+2012-03-10  Eli Zaretskii  <eliz@gnu.org>
+
+	* net/mairix.el (mairix-replace-invalid-chars): Rename from
+	mairix-replace-illegal-chars; all callers changed.  Don't remove
+	^, ~, and = characters: they are meaningful in mairix search
+	specs.
+	(mairix-widget-create-query): Add usage information about mairix
+	search forms: negating words, searching for substrings, etc.
+
 2012-03-10  Jae-hyeon Park  <jae-hyeon.park@desy.de>  (tiny change)
 
 	* international/fontset.el (font-encoding-alist): Add an entry for
