@@ -1,5 +1,7 @@
 2012-03-10  Richard Stallman  <rms@gnu.org>
 
+	* mail/mail-utils.el (mail-quote-printable): Quote multibyte chars.
+
 	* mail/rmail.el (rmail-buffers-swapped-p): Don't assume dead
 	view buffer means not swapped.
 	(rmail-view-buffer-kill-buffer-hook): Give buf name in error msg.
