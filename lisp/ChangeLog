@@ -1,5 +1,8 @@
 2012-03-10  Richard Stallman  <rms@gnu.org>
 
+	* mail/sendmail.el (mail-encode-header):
+	Set rfc2047-encode-encoded-words.
+
 	* mail/mail-utils.el (mail-quote-printable): Quote multibyte chars.
 
 	* mail/rmail.el (rmail-buffers-swapped-p): Don't assume dead
