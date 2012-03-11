@@ -1,3 +1,8 @@
+2012-03-11  Juri Linkov  <juri@jurta.org>
+
+	* replace.el (replace-highlight): Set isearch-word to nil
+	unconditionally.  (Bug#10887)
+
 2012-03-10  Eli Zaretskii  <eliz@gnu.org>
 
 	* net/mairix.el (mairix-replace-invalid-chars): Rename from

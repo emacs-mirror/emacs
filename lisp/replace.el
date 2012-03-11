@@ -2116,13 +2116,13 @@ make, or the user didn't cancel the call."
   (if query-replace-lazy-highlight
       (let ((isearch-string string)
 	    (isearch-regexp regexp)
+	    ;; Set isearch-word to nil because word-replace is regexp-based,
+	    ;; so `isearch-search-fun' should not use `word-search-forward'.
+	    (isearch-word nil)
 	    (search-whitespace-regexp nil)
 	    (isearch-case-fold-search case-fold)
 	    (isearch-forward t)
 	    (isearch-error nil))
-	;; Set isearch-word to nil because word-replace is regexp-based,
-	;; so `isearch-search-fun' should not use `word-search-forward'.
-	(if (and isearch-word isearch-regexp) (setq isearch-word nil))
 	(isearch-lazy-highlight-new-loop range-beg range-end))))
 
 (defun replace-dehighlight ()
