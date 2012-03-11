@@ -3027,11 +3027,11 @@ the buffer list."
 
 (defmacro save-window-excursion (&rest body)
   "Execute BODY, then restore previous window configuration.
-Return the value of the last form in BODY.
-Restore which buffer appears in which window, where display
-starts, and the value of point and mark for each window, as well
-as the choice of selected window, and which buffer is current.
-The value of point in the current buffer is not restored.
+This macro saves the window configuration on the selected frame,
+executes BODY, then calls `set-window-configuration' to restore
+the saved window configuration.  The return value is the last
+form in BODY.  The window configuration is also restored if BODY
+exits nonlocally.
 
 BEWARE: Most uses of this macro introduce bugs.
 E.g. it should not be used to try and prevent some code from opening
