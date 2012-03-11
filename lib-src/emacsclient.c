@@ -1768,7 +1768,7 @@ main (int argc, char **argv)
   /* Now, wait for an answer and print any messages.  */
   while (exit_status == EXIT_SUCCESS)
     {
-      char *p;
+      char *p, *end_p;
       do
         {
           errno = 0;
@@ -1783,61 +1783,64 @@ main (int argc, char **argv)
 
       string[rl] = '\0';
 
-      p = string + strlen (string) - 1;
-      while (p > string && *p == '\n')
-        *p-- = 0;
+      /* Loop over all NL-terminated messages.  */
+      for (end_p = p = string; end_p != NULL && *end_p != '\0'; p = end_p)
+	{
+	  end_p = strchr (p, '\n');
+	  if (end_p != NULL)
+	    *end_p++ = '\0';
 
-      if (strprefix ("-emacs-pid ", string))
-        {
-          /* -emacs-pid PID: The process id of the Emacs process. */
-          emacs_pid = strtol (string + strlen ("-emacs-pid"), NULL, 10);
-        }
-      else if (strprefix ("-window-system-unsupported ", string))
-        {
-          /* -window-system-unsupported: Emacs was compiled without X
-              support.  Try again on the terminal. */
-          nowait = 0;
-          tty = 1;
-          goto retry;
-        }
-      else if (strprefix ("-print ", string))
-        {
-          /* -print STRING: Print STRING on the terminal. */
-          str = unquote_argument (string + strlen ("-print "));
-          if (needlf)
-            printf ("\n");
-          printf ("%s", str);
-          needlf = str[0] == '\0' ? needlf : str[strlen (str) - 1] != '\n';
-        }
-      else if (strprefix ("-error ", string))
-        {
-          /* -error DESCRIPTION: Signal an error on the terminal. */
-          str = unquote_argument (string + strlen ("-error "));
-          if (needlf)
-            printf ("\n");
-          fprintf (stderr, "*ERROR*: %s", str);
-          needlf = str[0] == '\0' ? needlf : str[strlen (str) - 1] != '\n';
-	  exit_status = EXIT_FAILURE;
-        }
+	  if (strprefix ("-emacs-pid ", p))
+	    {
+	      /* -emacs-pid PID: The process id of the Emacs process. */
+	      emacs_pid = strtol (p + strlen ("-emacs-pid"), NULL, 10);
+	    }
+	  else if (strprefix ("-window-system-unsupported ", p))
+	    {
+	      /* -window-system-unsupported: Emacs was compiled without X
+		 support.  Try again on the terminal. */
+	      nowait = 0;
+	      tty = 1;
+	      goto retry;
+	    }
+	  else if (strprefix ("-print ", p))
+	    {
+	      /* -print STRING: Print STRING on the terminal. */
+	      str = unquote_argument (p + strlen ("-print "));
+	      if (needlf)
+		printf ("\n");
+	      printf ("%s", str);
+	      needlf = str[0] == '\0' ? needlf : str[strlen (str) - 1] != '\n';
+	    }
+	  else if (strprefix ("-error ", p))
+	    {
+	      /* -error DESCRIPTION: Signal an error on the terminal. */
+	      str = unquote_argument (p + strlen ("-error "));
+	      if (needlf)
+		printf ("\n");
+	      fprintf (stderr, "*ERROR*: %s", str);
+	      needlf = str[0] == '\0' ? needlf : str[strlen (str) - 1] != '\n';
+	      exit_status = EXIT_FAILURE;
+	    }
 #ifdef SIGSTOP
-      else if (strprefix ("-suspend ", string))
-        {
-          /* -suspend: Suspend this terminal, i.e., stop the process. */
-          if (needlf)
-            printf ("\n");
-          needlf = 0;
-          kill (0, SIGSTOP);
-        }
+	  else if (strprefix ("-suspend ", p))
+	    {
+	      /* -suspend: Suspend this terminal, i.e., stop the process. */
+	      if (needlf)
+		printf ("\n");
+	      needlf = 0;
+	      kill (0, SIGSTOP);
+	    }
 #endif
-      else
-        {
-          /* Unknown command. */
-          if (needlf)
-            printf ("\n");
-          printf ("*ERROR*: Unknown message: %s", string);
-          needlf = string[0]
-	    == '\0' ? needlf : string[strlen (string) - 1] != '\n';
-        }
+	  else
+	    {
+	      /* Unknown command. */
+	      if (needlf)
+		printf ("\n");
+	      needlf = 0;
+	      printf ("*ERROR*: Unknown message: %s\n", p);
+	    }
+	}
     }
 
   if (needlf)
