@@ -893,16 +893,23 @@ that uses or sets the mark."
 ;; Counting lines, one way or another.
 
 (defun goto-line (line &optional buffer)
-  "Goto LINE, counting from line 1 at beginning of buffer.
-Normally, move point in the current buffer, and leave mark at the
-previous position.  With just \\[universal-argument] as argument,
-move point in the most recently selected other buffer, and switch to it.
+  "Go to LINE, counting from line 1 at beginning of buffer.
+If called interactively, a numeric prefix argument specifies
+LINE; without a numeric prefix argument, read LINE from the
+minibuffer.
 
-If there's a number in the buffer at point, it is the default for LINE.
+If optional argument BUFFER is non-nil, switch to that buffer and
+move to line LINE there.  If called interactively with \\[universal-argument]
+as argument, BUFFER is the most recently selected other buffer.
+
+Prior to moving point, this function sets the mark (without
+activating it), unless Transient Mark mode is enabled and the
+mark is already active.
 
 This function is usually the wrong thing to use in a Lisp program.
 What you probably want instead is something like:
-  (goto-char (point-min)) (forward-line (1- N))
+  (goto-char (point-min))
+  (forward-line (1- N))
 If at all possible, an even better solution is to use char counts
 rather than line counts."
   (interactive
