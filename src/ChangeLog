@@ -1,5 +1,7 @@
 2012-03-11  Chong Yidong  <cyd@gnu.org>
 
+	* keymap.c (Fkey_description): Doc fix (Bug#9700).
+
 	* editfns.c (Fconstrain_to_field): Doc fix (Bug#9452).
 
 2012-03-10  Chong Yidong  <cyd@gnu.org>

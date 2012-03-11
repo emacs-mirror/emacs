@@ -2043,8 +2043,9 @@ static Lisp_Object Qsingle_key_description, Qkey_description;
 DEFUN ("key-description", Fkey_description, Skey_description, 1, 2, 0,
        doc: /* Return a pretty description of key-sequence KEYS.
 Optional arg PREFIX is the sequence of keys leading up to KEYS.
-Control characters turn into "C-foo" sequences, meta into "M-foo",
-spaces are put between sequence elements, etc.  */)
+For example, [?\C-x ?l] is converted into the string \"C-x l\".
+
+The `kbd' macro is an approximate inverse of this.  */)
   (Lisp_Object keys, Lisp_Object prefix)
 {
   int len = 0;
