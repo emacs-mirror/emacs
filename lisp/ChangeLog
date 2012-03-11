@@ -1,3 +1,8 @@
+2012-03-11  Martin Rudalics  <rudalics@gmx.at>
+
+	* window.el (split-window-below): Fix bug in case where
+	split-window-keep-point is nil (Bug#10971).
+
 2012-03-11  Juri Linkov  <juri@jurta.org>
 
 	* replace.el (replace-highlight): Set isearch-word to nil
