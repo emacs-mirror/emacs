@@ -1,3 +1,9 @@
+2012-03-11  Michael Albinus  <michael.albinus@gmx.de>
+
+	* autorevert.el (auto-revert-handler): Ensure, that
+	file-readable-p is applied only for local files or in
+	auto-revert-tail-mode.
+
 2012-03-11  Andreas Schwab  <schwab@linux-m68k.org>
 
 	* server.el (server-eval-at): Handle non-tcp connections.  Decode
