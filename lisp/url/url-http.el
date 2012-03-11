@@ -153,38 +153,40 @@ request.")
 
 (defun url-http-find-free-connection (host port)
   (let ((conns (gethash (cons host port) url-http-open-connections))
-	(found nil))
-    (while (and conns (not found))
+	(connection nil))
+    (while (and conns (not connection))
       (if (not (memq (process-status (car conns)) '(run open connect)))
 	  (progn
 	    (url-http-debug "Cleaning up dead process: %s:%d %S"
 			    host port (car conns))
 	    (url-http-idle-sentinel (car conns) nil))
-	(setq found (car conns))
-	(url-http-debug "Found existing connection: %s:%d %S" host port found))
+	(setq connection (car conns))
+	(url-http-debug "Found existing connection: %s:%d %S" host port connection))
       (pop conns))
-    (if found
+    (if connection
 	(url-http-debug "Reusing existing connection: %s:%d" host port)
       (url-http-debug "Contacting host: %s:%d" host port))
     (url-lazy-message "Contacting host: %s:%d" host port)
-    (url-http-mark-connection-as-busy
-     host port
-     (or found
-         (let ((buf (generate-new-buffer " *url-http-temp*")))
-           ;; `url-open-stream' needs a buffer in which to do things
-           ;; like authentication.  But we use another buffer afterwards.
-           (unwind-protect
-               (let ((proc (url-open-stream host buf host port)))
-		 ;; url-open-stream might return nil.
-		 (when (processp proc)
-		   ;; Drop the temp buffer link before killing the buffer.
-		   (set-process-buffer proc nil))
-                 proc)
-	     ;; If there was an error on connect, make sure we don't
-	     ;; get queried.
-	     (when (get-buffer-process buf)
-	       (set-process-query-on-exit-flag (get-buffer-process buf) nil))
-             (kill-buffer buf)))))))
+
+    (unless connection
+      (let ((buf (generate-new-buffer " *url-http-temp*")))
+	;; `url-open-stream' needs a buffer in which to do things
+	;; like authentication.  But we use another buffer afterwards.
+	(unwind-protect
+	    (let ((proc (url-open-stream host buf host port)))
+	      ;; url-open-stream might return nil.
+	      (when (processp proc)
+		;; Drop the temp buffer link before killing the buffer.
+		(set-process-buffer proc nil)
+		(setq connection proc)))
+	  ;; If there was an error on connect, make sure we don't
+	  ;; get queried.
+	  (when (get-buffer-process buf)
+	    (set-process-query-on-exit-flag (get-buffer-process buf) nil))
+	  (kill-buffer buf))))
+
+    (if connection
+	(url-http-mark-connection-as-busy host port connection))))
 
 ;; Building an HTTP request
 (defun url-http-user-agent-string ()
