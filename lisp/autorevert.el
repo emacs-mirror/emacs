@@ -444,11 +444,11 @@ This is an internal function used by Auto-Revert Mode."
 			 ;; `remote-file-name-inhibit-cache' forces Tramp
 			 ;; to reread the values.
 			 (let ((remote-file-name-inhibit-cache t))
-			   (file-readable-p buffer-file-name)
-			   (/= auto-revert-tail-pos
-			       (setq size
-				     (nth 7 (file-attributes
-					     buffer-file-name)))))
+			   (and (file-readable-p buffer-file-name)
+				(/= auto-revert-tail-pos
+				    (setq size
+					  (nth 7 (file-attributes
+						  buffer-file-name))))))
 		       (and (not (file-remote-p buffer-file-name))
 			    (file-readable-p buffer-file-name)
 			    (not (verify-visited-file-modtime buffer)))))
