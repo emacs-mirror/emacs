@@ -1031,7 +1031,7 @@ You can use a display table to substitute other text for the ellipsis
 buffer and then present it to the user for perusal rather than for
 editing.  Many help commands use this feature.
 
-@defspec with-output-to-temp-buffer buffer-name forms@dots{}
+@defmac with-output-to-temp-buffer buffer-name forms@dots{}
 This function executes @var{forms} while arranging to insert any output
 they print into the buffer named @var{buffer-name}, which is first
 created if necessary, and put into Help mode.  Finally, the buffer is
@@ -1083,7 +1083,7 @@ The value of the last form in @var{forms} is returned.
 ---------- Buffer: foo ----------
 @end group
 @end example
-@end defspec
+@end defmac
 
 @defopt temp-buffer-show-function
 If this variable is non-@code{nil}, @code{with-output-to-temp-buffer}

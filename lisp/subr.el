@@ -3026,13 +3026,12 @@ the buffer list."
 	   (set-buffer ,old-buffer))))))
 
 (defmacro save-window-excursion (&rest body)
-  "Execute BODY, preserving window sizes and contents.
+  "Execute BODY, then restore previous window configuration.
 Return the value of the last form in BODY.
-Restore which buffer appears in which window, where display starts,
-and the value of point and mark for each window.
-Also restore the choice of selected window.
-Also restore which buffer is current.
-Does not restore the value of point in current buffer.
+Restore which buffer appears in which window, where display
+starts, and the value of point and mark for each window, as well
+as the choice of selected window, and which buffer is current.
+The value of point in the current buffer is not restored.
 
 BEWARE: Most uses of this macro introduce bugs.
 E.g. it should not be used to try and prevent some code from opening

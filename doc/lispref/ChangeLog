@@ -1,3 +1,11 @@
+2012-03-11  Chong Yidong  <cyd@gnu.org>
+
+	* windows.texi (Window Configurations): save-window-excursion is
+	now a macro.
+
+	* display.texi (Temporary Displays): with-output-to-temp-buffer is
+	now a macro.
+
 2012-03-10  Eli Zaretskii  <eliz@gnu.org>
 
 	* strings.texi (String Basics):

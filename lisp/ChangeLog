@@ -1,5 +1,7 @@
 2012-03-11  Chong Yidong  <cyd@gnu.org>
 
+	* subr.el (save-window-excursion): Doc fix (Bug#9979).
+
 	* dabbrev.el (dabbrev--find-expansion): Update progress reporter
 	when finished (Bug#10963).
 
