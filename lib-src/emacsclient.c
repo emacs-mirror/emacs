@@ -1812,6 +1812,14 @@ main (int argc, char **argv)
 	      printf ("%s", str);
 	      needlf = str[0] == '\0' ? needlf : str[strlen (str) - 1] != '\n';
 	    }
+	  else if (strprefix ("-print-nonl ", p))
+	    {
+	      /* -print-nonl STRING: Print STRING on the terminal.
+	         Used to continue a preceding -print command.  */
+	      str = unquote_argument (p + strlen ("-print-nonl "));
+	      printf ("%s", str);
+	      needlf = str[0] == '\0' ? needlf : str[strlen (str) - 1] != '\n';
+	    }
 	  else if (strprefix ("-error ", p))
 	    {
 	      /* -error DESCRIPTION: Signal an error on the terminal. */

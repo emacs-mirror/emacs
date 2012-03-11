@@ -706,9 +706,29 @@ Server mode runs a process that accepts commands from the
           (pp v)
           (let ((text (buffer-substring-no-properties
                        (point-min) (point-max))))
-            (server-send-string
-             proc (format "-print %s\n"
-                          (server-quote-arg text)))))))))
+            (server-reply-print (server-quote-arg text) proc)))))))
+
+(defconst server-msg-size 1024
+  "Maximum size of a message sent to a client.")
+
+(defun server-reply-print (qtext proc)
+  "Send a `-print QTEXT' command to client PROC.
+QTEXT must be already quoted.
+This handles splitting the command if it would be bigger than
+`server-msg-size'."
+  (let ((prefix "-print ")
+	part)
+    (while (> (+ (length qtext) (length prefix) 1) server-msg-size)
+      ;; We have to split the string
+      (setq part (substring qtext 0 (- server-msg-size (length prefix) 1)))
+      ;; Don't split in the middle of a quote sequence
+      (if (string-match "\\(^\\|[^&]\\)\\(&&\\)+$" part)
+	  ;; There is an uneven number of & at the end
+	  (setq part (substring part 0 -1)))
+      (setq qtext (substring qtext (length part)))
+      (server-send-string proc (concat prefix part "\n"))
+      (setq prefix "-print-nonl "))
+    (server-send-string proc (concat prefix qtext "\n"))))
 
 (defun server-create-tty-frame (tty type proc)
   (unless tty
@@ -910,6 +930,11 @@ The following commands are accepted by the client:
 `-print STRING'
   Print STRING on stdout.  Used to send values
   returned by -eval.
+
+`-print-nonl STRING'
+  Print STRING on stdout.  Used to continue a
+  preceding -print command that would be too big to send
+  in a single message.
 
 `-error DESCRIPTION'
   Signal an error and delete process PROC.
@@ -1560,20 +1585,22 @@ This function requires the use of TCP sockets. "
       (process-send-string
        process
        (concat "-auth " secret " -eval "
-	       (replace-regexp-in-string
-		" " "&_" (format "%S" form))
+	       (server-quote-arg (format "%S" form))
 	       "\n"))
       (while (memq (process-status process) '(open run))
 	(accept-process-output process 0 10))
       (goto-char (point-min))
       ;; If the result is nil, there's nothing in the buffer.  If the
       ;; result is non-nil, it's after "-print ".
-      (when (search-forward "\n-print" nil t)
-	(let ((start (point)))
-	  (while (search-forward "&_" nil t)
-	    (replace-match " " t t))
-	  (goto-char start)
-	  (read (current-buffer)))))))
+      (let ((answer ""))
+	(while (re-search-forward "\n-print\\(-nonl\\)? " nil t)
+	  (setq answer
+		(concat answer
+			(buffer-substring (point)
+					  (progn (skip-chars-forward "^\n")
+						 (point))))))
+	(if (not (equal answer ""))
+	    (read (server-unquote-arg answer)))))))
 
 
 (provide 'server)
