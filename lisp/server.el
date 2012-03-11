@@ -1559,34 +1559,39 @@ only these files will be asked to be saved."
 Returns the result of the evaluation, or signals an error if it
 cannot contact the specified server.  For example:
   \(server-eval-at \"server\" '(emacs-pid))
-returns the process ID of the Emacs instance running \"server\".
-This function requires the use of TCP sockets. "
-  (or server-use-tcp
-      (error "This function requires TCP sockets"))
-  (let ((auth-file (expand-file-name server server-auth-dir))
-	(coding-system-for-read 'binary)
-	(coding-system-for-write 'binary)
-	address port secret process)
-    (unless (file-exists-p auth-file)
-      (error "No such server definition: %s" auth-file))
+returns the process ID of the Emacs instance running \"server\"."
+  (let* ((server-dir (if server-use-tcp server-auth-dir server-socket-dir))
+	 (server-file (expand-file-name server server-dir))
+	 (coding-system-for-read 'binary)
+	 (coding-system-for-write 'binary)
+	 address port secret process)
+    (unless (file-exists-p server-file)
+      (error "No such server: %s" server))
     (with-temp-buffer
-      (insert-file-contents auth-file)
-      (unless (looking-at "\\([0-9.]+\\):\\([0-9]+\\)")
-	(error "Invalid auth file"))
-      (setq address (match-string 1)
-	    port (string-to-number (match-string 2)))
-      (forward-line 1)
-      (setq secret (buffer-substring (point) (line-end-position)))
-      (erase-buffer)
-      (unless (setq process (open-network-stream "eval-at" (current-buffer)
-						 address port))
-	(error "Unable to contact the server"))
-      (set-process-query-on-exit-flag process nil)
-      (process-send-string
-       process
-       (concat "-auth " secret " -eval "
-	       (server-quote-arg (format "%S" form))
-	       "\n"))
+      (when server-use-tcp
+	(let ((coding-system-for-read 'no-conversion))
+	  (insert-file-contents server-file)
+	  (unless (looking-at "\\([0-9.]+\\):\\([0-9]+\\)")
+	    (error "Invalid auth file"))
+	  (setq address (match-string 1)
+		port (string-to-number (match-string 2)))
+	  (forward-line 1)
+	  (setq secret (buffer-substring (point) (line-end-position)))
+	  (erase-buffer)))
+      (unless (setq process (make-network-process
+			     :name "eval-at"
+			     :buffer (current-buffer)
+			     :host address
+			     :service (if server-use-tcp port server-file)
+			     :family (if server-use-tcp 'ipv4 'local)
+			     :noquery t))
+	       (error "Unable to contact the server"))
+      (if server-use-tcp
+	  (process-send-string process (concat "-auth " secret "\n")))
+      (process-send-string process
+			   (concat "-eval "
+				   (server-quote-arg (format "%S" form))
+				   "\n"))
       (while (memq (process-status process) '(open run))
 	(accept-process-output process 0 10))
       (goto-char (point-min))
@@ -1600,7 +1605,8 @@ This function requires the use of TCP sockets. "
 					  (progn (skip-chars-forward "^\n")
 						 (point))))))
 	(if (not (equal answer ""))
-	    (read (server-unquote-arg answer)))))))
+	    (read (decode-coding-string (server-unquote-arg answer)
+					'emacs-internal)))))))
 
 
 (provide 'server)
