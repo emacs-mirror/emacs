@@ -6,6 +6,8 @@
 	* display.texi (Temporary Displays): with-output-to-temp-buffer is
 	now a macro.
 
+	* text.texi (Fields): Minor copyedit.
+
 2012-03-10  Eli Zaretskii  <eliz@gnu.org>
 
 	* strings.texi (String Basics):

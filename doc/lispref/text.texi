@@ -3777,7 +3777,7 @@ closest to @var{new-pos} that is in the same field as @var{old-pos}.
 
 If @var{new-pos} is @code{nil}, then @code{constrain-to-field} uses
 the value of point instead, and moves point to the resulting position
-as well as returning it.
+in addition to returning that position.
 
 If @var{old-pos} is at the boundary of two fields, then the acceptable
 final positions depend on the argument @var{escape-from-edge}.  If
