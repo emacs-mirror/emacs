@@ -291,9 +291,6 @@ this list."
 ;; Internal variables
 ;;----------------------------------------------------------------
 
-;; Last obarray of completions in `dabbrev-completion'
-(defvar dabbrev--last-obarray nil)
-
 ;; Table of expansions seen so far
 (defvar dabbrev--last-table nil)
 
@@ -320,9 +317,6 @@ this list."
 
 ;; The buffer we found the expansion last time.
 (defvar dabbrev--last-buffer-found nil)
-
-;; The buffer we last did a completion in.
-(defvar dabbrev--last-completion-buffer nil)
 
 ;; If non-nil, a function to use when copying successive words.
 ;; It should be `upcase' or `downcase'.
@@ -393,47 +387,39 @@ then it searches *all* buffers."
                  dabbrev-case-fold-search)
                (or (not dabbrev-upcase-means-case-search)
                    (string= abbrev (downcase abbrev)))))
-	 (my-obarray dabbrev--last-obarray)
+	 (list 'uninitialized)
          (table
-          (completion-table-dynamic
-           (let ((initialized nil))
-             (lambda (abbrev)
-               (unless initialized
-		 (setq initialized t)
-                 (save-excursion
-                   ;;--------------------------------
-                   ;; New abbreviation to expand.
-                   ;;--------------------------------
-                   (setq dabbrev--last-abbreviation abbrev)
-                   ;; Find all expansion
-                   (let ((completion-list
-                          (dabbrev--find-all-expansions abbrev ignore-case-p))
-                         (completion-ignore-case ignore-case-p))
-                     ;; Make an obarray with all expansions
-                     (setq my-obarray (make-vector (length completion-list) 0))
-                     (or (> (length my-obarray) 0)
-                         (error "No dynamic expansion for \"%s\" found%s"
-                                abbrev
-                                (if dabbrev--check-other-buffers
-                                    "" " in this-buffer")))
-                     (cond
-                      ((not (and ignore-case-p
-                                 dabbrev-case-replace))
-                       (dolist (string completion-list)
-                         (intern string my-obarray)))
-                      ((string= abbrev (upcase abbrev))
-                       (dolist (string completion-list)
-                         (intern (upcase string) my-obarray)))
-                      ((string= (substring abbrev 0 1)
-                                (upcase (substring abbrev 0 1)))
-                       (dolist (string completion-list)
-                         (intern (capitalize string) my-obarray)))
-                      (t
-                       (dolist (string completion-list)
-                         (intern (downcase string) my-obarray))))
-                     (setq dabbrev--last-obarray my-obarray)
-                     (setq dabbrev--last-completion-buffer (current-buffer)))))
-               my-obarray)))))
+          (lambda (s p a)
+            (if (eq a 'metadata)
+                `(metadata (cycle-sort-function . ,#'identity)
+                           (category . dabbrev))
+              (when (eq list 'uninitialized)
+                (save-excursion
+                  ;;--------------------------------
+                  ;; New abbreviation to expand.
+                  ;;--------------------------------
+                  (setq dabbrev--last-abbreviation abbrev)
+                  ;; Find all expansion
+                  (let ((completion-list
+                         (dabbrev--find-all-expansions abbrev ignore-case-p))
+                        (completion-ignore-case ignore-case-p))
+                    (or (consp completion-list)
+                        (error "No dynamic expansion for \"%s\" found%s"
+                               abbrev
+                               (if dabbrev--check-other-buffers
+                                   "" " in this-buffer")))
+                    (setq list
+                          (cond
+                           ((not (and ignore-case-p dabbrev-case-replace))
+                            completion-list)
+                           ((string= abbrev (upcase abbrev))
+                            (mapcar #'upcase completion-list))
+                           ((string= (substring abbrev 0 1)
+                                     (upcase (substring abbrev 0 1)))
+                            (mapcar #'capitalize completion-list))
+                           (t
+                            (mapcar #'downcase completion-list)))))))
+              (complete-with-action a list s p)))))
     (completion-in-region beg end table)))
 
 ;;;###autoload
@@ -627,8 +613,6 @@ all skip characters."
 
 (defun dabbrev--reset-global-variables ()
   "Initialize all global variables."
-  ;; dabbrev--last-obarray and dabbrev--last-completion-buffer
-  ;; must not be reset here.
   (setq dabbrev--last-table nil
 	dabbrev--last-abbreviation nil
 	dabbrev--last-abbrev-location nil

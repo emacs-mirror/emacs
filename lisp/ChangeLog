@@ -1,3 +1,10 @@
+2012-03-12  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* dabbrev.el: Fix cycle completion order (bug#10963).
+	(dabbrev--last-obarray, dabbrev--last-completion-buffer): Remove.
+	(dabbrev-completion): Don't use an obarray; provide
+	a cycle-sort-function.
+
 2012-03-12  Leo Liu  <sdl.web@gmail.com>
 
 	* simple.el (kill-new): Use equal-including-properties for
