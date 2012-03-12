@@ -2868,7 +2868,9 @@ compare_overlays (const void *v1, const void *v2)
      between "equal" overlays.  The result can still change between
      invocations of Emacs, but it won't change in the middle of
      `find_field' (bug#6830).  */
-  return XHASH (s1->overlay) < XHASH (s2->overlay) ? -1 : 1;
+  if (XHASH (s1->overlay) != XHASH (s2->overlay))
+    return XHASH (s1->overlay) < XHASH (s2->overlay) ? -1 : 1;
+  return 0;
 }
 
 /* Sort an array of overlays by priority.  The array is modified in place.
