@@ -1,3 +1,8 @@
+2012-03-12  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* gnus-int.el (gnus-backend-trace): Flip default to nil before Emacs
+	24.1 release.
+
 2012-03-10  David Edmondson  <dme@dme.org>
 
 	* mm-uu.el (mm-uu-forward-extract): Allow for blank lines between the
