@@ -1,3 +1,9 @@
+2012-03-12  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* minibuffer.el (minibuffer-complete): Don't get confused when the
+	function is run twice via different commands (bug#10958).
+	(complete-with-action): Fix docstring.
+
 2012-03-12  Chong Yidong  <cyd@gnu.org>
 
 	* nxml/nxml-mode.el (nxml-mode-map): Do not bind C-RET (Bug#6776).
@@ -21,8 +27,8 @@
 
 2012-03-11  Andreas Schwab  <schwab@linux-m68k.org>
 
-	* server.el (server-eval-at): Handle non-tcp connections.  Decode
-	result string.
+	* server.el (server-eval-at): Handle non-tcp connections.
+	Decode result string.
 
 	* server.el (server-msg-size): New constant.
 	(server-reply-print): New function.
@@ -85,13 +91,13 @@
 2012-03-10  Chong Yidong  <cyd@gnu.org>
 
 	* emulation/cua-rect.el (cua--init-rectangles):
-	* emulation/cua-base.el (cua--init-keymaps): Add
-	delete-forward-char to remappings (Bug#9666).
+	* emulation/cua-base.el (cua--init-keymaps):
+	Add delete-forward-char to remappings (Bug#9666).
 
 2012-03-10  Martin Rudalics  <rudalics@gmx.at>
 
-	* speedbar.el (speedbar-unhighlight-one-tag-line): Avoid
-	unhighlighting due to frame switching (Bug#10275).
+	* speedbar.el (speedbar-unhighlight-one-tag-line):
+	Avoid unhighlighting due to frame switching (Bug#10275).
 
 2012-03-10  Chong Yidong  <cyd@gnu.org>
 
@@ -115,8 +121,8 @@
 
 2012-03-09  Eli Zaretskii  <eliz@gnu.org>
 
-	* mail/smtpmail.el (smtpmail-send-it): Bind
-	coding-system-for-write to *-unix, so that FCC files are kept in
+	* mail/smtpmail.el (smtpmail-send-it):
+	Bind coding-system-for-write to *-unix, so that FCC files are kept in
 	valid mbox format.
 
 2012-03-09  Glenn Morris  <rgm@gnu.org>
@@ -127,8 +133,8 @@
 
 2012-03-08  Eli Zaretskii  <eliz@gnu.org>
 
-	* international/quail.el (quail-insert-kbd-layout): Insert
-	invisible LRM characters before each character in a keyboard
+	* international/quail.el (quail-insert-kbd-layout):
+	Insert invisible LRM characters before each character in a keyboard
 	layout cell, to prevent their reordering by bidi display engine.
 	For details, see the discussion in
 	http://lists.gnu.org/archive/html/emacs-devel/2012-03/msg00085.html.
@@ -147,8 +153,8 @@
 
 2012-03-07  Eli Zaretskii  <eliz@gnu.org>
 
-	* international/quail.el (quail-help): Force
-	bidi-paragraph-direction be left-to-right.  See discussion in
+	* international/quail.el (quail-help):
+	Force bidi-paragraph-direction be left-to-right.  See discussion in
 	http://lists.gnu.org/archive/html/emacs-devel/2012-03/msg00062.html
 	for the reason.
 
@@ -280,16 +286,16 @@
 	New variables for...
 	(c-state-semi-safe-place): New function.  Here, in a macro is "safe".
 	(c-invalidate-state-cache-1): New stuff for c-state-semi-safe-place.
-	(c-in-literal, c-literal-limits, c-determine-limit-get-base): Use
-	c-state-semi-safe-place.
+	(c-in-literal, c-literal-limits, c-determine-limit-get-base):
+	Use c-state-semi-safe-place.
 
-	* progmodes/cc-langs.el (c-get-state-before-change-functions): Add
-	c-invalidate-macro-cache to the C, C++, Obj entries.
+	* progmodes/cc-langs.el (c-get-state-before-change-functions):
+	Add c-invalidate-macro-cache to the C, C++, Obj entries.
 
 2012-03-02  Michael Albinus  <michael.albinus@gmx.de>
 
-	* jka-compr.el (jka-compr-call-process): Apply
-	`file-accessible-directory-p' only when the default directory is
+	* jka-compr.el (jka-compr-call-process):
+	Apply `file-accessible-directory-p' only when the default directory is
 	not remote.
 
 2012-03-01  Michael Albinus  <michael.albinus@gmx.de>

@@ -162,7 +162,7 @@ Like CL's `some'."
 (defun complete-with-action (action table string pred)
   "Perform completion ACTION.
 STRING is the string to complete.
-TABLE is the completion table, which should not be a function.
+TABLE is the completion table.
 PRED is a completion predicate.
 ACTION can be one of nil, t or `lambda'."
   (cond
@@ -776,7 +776,8 @@ scroll the window of possible completions."
   (interactive)
   ;; If the previous command was not this,
   ;; mark the completion buffer obsolete.
-  (unless (eq this-command last-command)
+  (setq this-command 'completion-at-point)
+  (unless (eq 'completion-at-point last-command)
     (completion--flush-all-sorted-completions)
     (setq minibuffer-scroll-window nil))
 
