@@ -1,3 +1,7 @@
+2012-03-12  Christopher Schmidt  <christopher@ch.ristopher.com>
+
+	* ibuffer.el (ibuffer-redisplay): Remove another gratuitous error.
+
 2012-03-11  Michael Albinus  <michael.albinus@gmx.de>
 
 	* autorevert.el (auto-revert-handler): Ensure, that
