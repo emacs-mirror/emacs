@@ -302,6 +302,12 @@ Help mode due to setting `temp-buffer-show-hook' rather than using
 
 ** Keyboard problems
 
+*** Unable to enter the M-| key on some German keyboards.
+Some users have reported that M-| suffers from "keyboard ghosting".
+This can't be fixed by Emacs, as the keypress never gets passed to it
+at all (as can be verified using "xev").  You can work around this by
+typing `ESC |' instead.
+
 *** "Compose Character" key does strange things when used as a Meta key.
 
 If you define one key to serve as both Meta and Compose Character, you
