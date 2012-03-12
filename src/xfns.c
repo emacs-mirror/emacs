@@ -2952,7 +2952,7 @@ unwind_create_frame (Lisp_Object frame)
 static Lisp_Object
 unwind_create_frame_1 (Lisp_Object val)
 {
-  inhibit_window_configuration_change_hook = val;
+  inhibit_lisp_code = val;
   return Qnil;
 }
 
@@ -3337,9 +3337,8 @@ This function is an internal primitive--use `make-frame' instead.  */)
      Vframe_list.  */
   {
     int count2 = SPECPDL_INDEX ();
-    record_unwind_protect (unwind_create_frame_1,
-			   inhibit_window_configuration_change_hook);
-    inhibit_window_configuration_change_hook = Qt;
+    record_unwind_protect (unwind_create_frame_1, inhibit_lisp_code);
+    inhibit_lisp_code = Qt;
 
     x_default_parameter (f, parms, Qmenu_bar_lines,
 			 NILP (Vmenu_bar_mode)

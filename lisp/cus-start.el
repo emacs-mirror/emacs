@@ -502,6 +502,8 @@ since it could result in memory overflow and make Emacs crash."
 		       (featurep 'ns))
 		      ((string-match "\\`x-.*gtk" (symbol-name symbol))
 		       (featurep 'gtk))
+		      ((string-match "clipboard-manager" (symbol-name symbol))
+		       (boundp 'x-select-enable-clipboard-manager))
 		      ((string-match "\\`x-" (symbol-name symbol))
 		       (fboundp 'x-create-frame))
 		      ((string-match "selection" (symbol-name symbol))

@@ -162,7 +162,7 @@ Like CL's `some'."
 (defun complete-with-action (action table string pred)
   "Perform completion ACTION.
 STRING is the string to complete.
-TABLE is the completion table, which should not be a function.
+TABLE is the completion table.
 PRED is a completion predicate.
 ACTION can be one of nil, t or `lambda'."
   (cond
@@ -776,7 +776,8 @@ scroll the window of possible completions."
   (interactive)
   ;; If the previous command was not this,
   ;; mark the completion buffer obsolete.
-  (unless (eq this-command last-command)
+  (setq this-command 'completion-at-point)
+  (unless (eq 'completion-at-point last-command)
     (completion--flush-all-sorted-completions)
     (setq minibuffer-scroll-window nil))
 
@@ -1483,10 +1484,13 @@ exit."
           (minibuffer-completion-predicate predicate)
           (ol (make-overlay start end nil nil t)))
       (overlay-put ol 'field 'completion)
+      ;; HACK: if the text we are completing is already in a field, we
+      ;; want the completion field to take priority (e.g. Bug#6830).
+      (overlay-put ol 'priority 100)
       (when completion-in-region-mode-predicate
         (completion-in-region-mode 1)
         (setq completion-in-region--data
-            (list (current-buffer) start end collection)))
+	      (list (current-buffer) start end collection)))
       (unwind-protect
           (call-interactively 'minibuffer-complete)
         (delete-overlay ol)))))
@@ -1653,9 +1657,10 @@ The completion method is determined by `completion-at-point-functions'."
         ;; introduce a corresponding hook (plus another for word-completion,
         ;; and another for force-completion, maybe?).
         (overlay-put ol 'field 'completion)
+	(overlay-put ol 'priority 100)
         (completion-in-region-mode 1)
         (setq completion-in-region--data
-            (list (current-buffer) start end collection))
+	      (list (current-buffer) start end collection))
         (unwind-protect
             (call-interactively 'minibuffer-completion-help)
           (delete-overlay ol))))

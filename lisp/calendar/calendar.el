@@ -2602,7 +2602,7 @@ If called by a mouse-event, pops up a menu with the result."
     ;; If no frame exists yet, we have no idea what width to use.
     (and (= width 10)
          (not window-system)
-         (setq width (or (getenv "COLUMNS") 80)))
+         (setq width (string-to-number (or (getenv "COLUMNS") "80"))))
     (setq mode-line-format
           (if buffer-file-name
               `("-" mode-line-modified

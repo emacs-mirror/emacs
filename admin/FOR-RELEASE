@@ -211,15 +211,15 @@ lists.texi        cyd
 loading.texi      cyd
 macros.texi       cyd
 maps.texi         rgm
-markers.texi      
+markers.texi      rgm
 minibuf.texi      
 modes.texi        cyd
-nonascii.texi     
+nonascii.texi     cyd
 numbers.texi      cyd
 objects.texi      cyd
 os.texi           
-package.texi
-positions.texi    
+package.texi      rgm
+positions.texi    cyd
 processes.texi
 searching.texi    
 sequences.texi    cyd
@@ -227,7 +227,7 @@ streams.texi      cyd
 strings.texi      cyd
 symbols.texi      cyd
 syntax.texi       cyd
-text.texi         
+text.texi         cyd
 tips.texi         rgm
 variables.texi    cyd
 windows.texi      

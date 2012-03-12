@@ -88,8 +88,14 @@
 (defvar notifications-on-action-map nil
   "Mapping between notification and action callback functions.")
 
+(defvar notifications-on-action-object nil
+  "Object for registered on-action signal.")
+
 (defvar notifications-on-close-map nil
   "Mapping between notification and close callback functions.")
+
+(defvar notifications-on-close-object nil
+  "Object for registered on-close signal.")
 
 (defun notifications-on-action-signal (id action)
   "Dispatch signals to callback functions from `notifications-on-action-map'."
@@ -97,16 +103,11 @@
 	 (entry (assoc (cons unique-name id) notifications-on-action-map)))
     (when entry
       (funcall (cadr entry) id action)
-      (remove entry notifications-on-action-map))))
-
-(when (fboundp 'dbus-register-signal)
-  (dbus-register-signal
-   :session
-   nil
-   notifications-path
-   notifications-interface
-   notifications-action-signal
-   'notifications-on-action-signal))
+      (when (and (not (setq notifications-on-action-map
+			    (remove entry notifications-on-action-map)))
+		 notifications-on-action-object)
+	(dbus-unregister-object notifications-on-action-object)
+	(setq notifications-on-action-object nil)))))
 
 (defun notifications-on-closed-signal (id &optional reason)
   "Dispatch signals to callback functions from `notifications-on-closed-map'."
@@ -118,16 +119,11 @@
     (when entry
       (funcall (cadr entry)
 	       id (cadr (assoc reason notifications-closed-reason)))
-      (remove entry notifications-on-close-map))))
-
-(when (fboundp 'dbus-register-signal)
-  (dbus-register-signal
-   :session
-   nil
-   notifications-path
-   notifications-interface
-   notifications-closed-signal
-   'notifications-on-closed-signal))
+      (when (and (not (setq notifications-on-close-map
+			    (remove entry notifications-on-close-map)))
+		 notifications-on-close-object)
+	(dbus-unregister-object notifications-on-close-object)
+	(setq notifications-on-close-object nil)))))
 
 (defun notifications-notify (&rest params)
   "Send notification via D-Bus using the Freedesktop notification protocol.
@@ -287,10 +283,29 @@ used to manipulate the notification item with
 	  (unique-name (dbus-get-name-owner :session notifications-service)))
       (when on-action
         (add-to-list 'notifications-on-action-map
-		     (list (cons unique-name id) on-action)))
+		     (list (cons unique-name id) on-action))
+	(unless notifications-on-action-object
+	  (setq notifications-on-action-object
+		(dbus-register-signal
+		 :session
+		 nil
+		 notifications-path
+		 notifications-interface
+		 notifications-action-signal
+		 'notifications-on-action-signal))))
+
       (when on-close
         (add-to-list 'notifications-on-close-map
-		     (list (cons unique-name id) on-close))))
+		     (list (cons unique-name id) on-close))
+	(unless notifications-on-close-object
+	  (setq notifications-on-close-object
+		(dbus-register-signal
+		 :session
+		 nil
+		 notifications-path
+		 notifications-interface
+		 notifications-closed-signal
+		 'notifications-on-closed-signal)))))
 
     ;; Return notification id
     id))

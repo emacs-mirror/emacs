@@ -2864,7 +2864,11 @@ compare_overlays (const void *v1, const void *v2)
     return s1->beg < s2->beg ? -1 : 1;
   if (s1->end != s2->end)
     return s2->end < s1->end ? -1 : 1;
-  return 0;
+  /* Avoid the non-determinism of qsort by choosing an arbitrary ordering
+     between "equal" overlays.  The result can still change between
+     invocations of Emacs, but it won't change in the middle of
+     `find_field' (bug#6830).  */
+  return XHASH (s1->overlay) < XHASH (s2->overlay) ? -1 : 1;
 }
 
 /* Sort an array of overlays by priority.  The array is modified in place.

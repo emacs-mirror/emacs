@@ -2784,11 +2784,43 @@ AC_CHECK_FUNCS(getpt)
 # It's better to believe a function is not available
 # than to expect to find it in ncurses.
 # Also we need tputs and friends to be able to build at all.
-have_tputs_et_al=true
+AC_MSG_CHECKING([for library containing tputs])
+# Run a test program that contains a call to tputs, a call that is
+# never executed.  This tests whether a pre-'main' dynamic linker
+# works with the library.  It's too much trouble to actually call
+# tputs in the test program, due to portability hassles.  When
+# cross-compiling, assume the test program will run if it links.
+AC_DEFUN([tputs_link_source], [
+  AC_LANG_SOURCE(
+     [[extern void tputs (const char *, int, int (*)(int));
+       int main (int argc, char **argv)
+       {
+	  if (argc == 10000)
+	    tputs (argv[0], 0, 0);
+	  return 0;
+       }]])
+])
 # Maybe curses should be tried earlier?
 # See http://debbugs.gnu.org/cgi/bugreport.cgi?bug=9736#35
-AC_SEARCH_LIBS(tputs, [ncurses terminfo termcap curses], , have_tputs_et_al=false)
-if test "$have_tputs_et_al" != true; then
+for tputs_library in '' ncurses terminfo termcap curses; do
+  OLIBS=$LIBS
+  if test -z "$tputs_library"; then
+    LIBS_TERMCAP=
+    msg='none required'
+  else
+    LIBS_TERMCAP=-l$tputs_library
+    msg=$LIBS_TERMCAP
+    LIBS="$LIBS_TERMCAP $LIBS"
+  fi
+  AC_RUN_IFELSE([tputs_link_source], [], [msg=no],
+    [AC_LINK_IFELSE([tputs_link_source], [], [msg=no])])
+  LIBS=$OLIBS
+  if test "X$msg" != Xno; then
+    break
+  fi
+done
+AC_MSG_RESULT([$msg])
+if test "X$msg" = Xno; then
   AC_MSG_ERROR([The required function `tputs' was not found in any library.
 These libraries were tried: libncurses, libterminfo, libtermcap, libcurses.
 Please try installing whichever of these libraries is most appropriate
@@ -2807,7 +2839,6 @@ HAVE_LIBNCURSES=yes
 ## freebsd < 40000, ms-w32, msdos, netbsd < 599002500, and
 ## darwin|gnu without ncurses.
 TERMINFO=no
-LIBS_TERMCAP=
 case "$opsys" in
   ## cygwin: Fewer environment variables to go wrong, more terminal types.
   ## hpux10-20: Use the system provided termcap(3) library.
@@ -2872,10 +2903,6 @@ esac
 TERMCAP_OBJ=tparam.o
 if test $TERMINFO = yes; then
   AC_DEFINE(TERMINFO, 1, [Define to 1 if you use terminfo instead of termcap.])
-
-  ## Default used to be -ltermcap.  Add a case above if need something else.
-  test "x$LIBS_TERMCAP" = "x" && LIBS_TERMCAP="-lcurses"
-
   TERMCAP_OBJ=terminfo.o
 fi
 AC_SUBST(LIBS_TERMCAP)

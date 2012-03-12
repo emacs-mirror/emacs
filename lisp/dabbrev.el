@@ -763,6 +763,7 @@ of the start of the occurrence."
                                      (- (length dabbrev--friend-buffer-list)))
 	   (setq dabbrev--last-expansion-location (point-min))
 	   (setq expansion (dabbrev--try-find abbrev nil 1 ignore-case)))
+	 (progress-reporter-done dabbrev--progress-reporter)
 	 expansion)))))
 
 ;; Compute the list of buffers to scan.

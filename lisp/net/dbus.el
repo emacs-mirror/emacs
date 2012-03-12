@@ -1039,7 +1039,8 @@ It will be registered for all objects created by `dbus-register-object'."
 		    (car (last key))
 		    (list :variant (cdar (last (car val))))))))
 	 dbus-registered-objects-table)
-	(list result))))))
+	;; Return the result, or an empty array.
+	(list :array (or result '(:signature "{sv}"))))))))
 
  
 ;; Initialize :system and :session buses.  This adds their file

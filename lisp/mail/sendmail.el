@@ -1085,7 +1085,9 @@ Return non-nil if and only if some part of the header is encoded."
 		(cons selected mm-coding-system-priorities)
 	      mm-coding-system-priorities))
 	   (tick (buffer-chars-modified-tick))
-	   (rfc2047-encode-encoded-words nil))
+	   ;; rms: this proved necessary, but I don't recall why.
+	   ;; Can anyone determine why, and state it here?
+	   (rfc2047-encode-encoded-words t))
       (rfc2047-encode-message-header)
       (= tick (buffer-chars-modified-tick)))))
 

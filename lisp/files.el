@@ -880,7 +880,10 @@ or mount points potentially requiring authentication as a different user.")
 (defun locate-dominating-file (file name)
   "Look up the directory hierarchy from FILE for a file named NAME.
 Stop at the first parent directory containing a file NAME,
-and return the directory.  Return nil if not found."
+and return the directory.  Return nil if not found.
+
+This function only tests if FILE exists.  If you care about whether
+it is readable, regular, etc., you should test the result."
   ;; We used to use the above locate-dominating-files code, but the
   ;; directory-files call is very costly, so we're much better off doing
   ;; multiple calls using the code in here.
@@ -907,6 +910,10 @@ and return the directory.  Return nil if not found."
                     ;;   (setq user (nth 2 (file-attributes file)))
                     ;;   (and prev-user (not (equal user prev-user))))
                     (string-match locate-dominating-stop-dir-regexp file)))
+      ;; FIXME? maybe this function should (optionally?)
+      ;; use file-readable-p instead.  In many cases, an unreadable
+      ;; FILE is no better than a non-existent one.
+      ;; See eg dir-locals-find-file.
       (setq try (file-exists-p (expand-file-name name file)))
       (cond (try (setq root file))
             ((equal file (setq file (file-name-directory
@@ -3566,8 +3573,15 @@ of no valid cache entry."
 	 (locals-file (locate-dominating-file file dir-locals-file-name))
 	 (dir-elt nil))
     ;; `locate-dominating-file' may have abbreviated the name.
-    (if locals-file
-	(setq locals-file (expand-file-name dir-locals-file-name locals-file)))
+    (and locals-file
+	 (setq locals-file (expand-file-name dir-locals-file-name locals-file)))
+	 ;; Let dir-locals-read-from-file inform us via demoted-errors
+	 ;; about unreadable files, etc.
+	 ;; Maybe we'd want to keep searching though - that is
+	 ;; a locate-dominating-file issue.
+;;;	 (or (not (file-readable-p locals-file))
+;;;	     (not (file-regular-p locals-file)))
+;;;	 (setq locals-file nil))
     ;; Find the best cached value in `dir-locals-directory-cache'.
     (dolist (elt dir-locals-directory-cache)
       (when (and (eq t (compare-strings file nil (length (car elt))
@@ -3609,15 +3623,19 @@ FILE is the name of the file holding the variables to apply.
 The new class name is the same as the directory in which FILE
 is found.  Returns the new class name."
   (with-temp-buffer
-    (insert-file-contents file)
-    (let* ((dir-name (file-name-directory file))
-	   (class-name (intern dir-name))
-	   (variables (let ((read-circle nil))
-			(read (current-buffer)))))
-      (dir-locals-set-class-variables class-name variables)
-      (dir-locals-set-directory-class dir-name class-name
-				      (nth 5 (file-attributes file)))
-      class-name)))
+    ;; Errors reading the file are not very informative.
+    ;; Eg just "Error: (end-of-file)" does not give any clue that the
+    ;; problem is related to dir-locals.
+    (with-demoted-errors
+      (insert-file-contents file)
+      (let* ((dir-name (file-name-directory file))
+	     (class-name (intern dir-name))
+	     (variables (let ((read-circle nil))
+			  (read (current-buffer)))))
+	(dir-locals-set-class-variables class-name variables)
+	(dir-locals-set-directory-class dir-name class-name
+					(nth 5 (file-attributes file)))
+	class-name))))
 
 (defun hack-dir-local-variables ()
   "Read per-directory local variables for the current buffer.

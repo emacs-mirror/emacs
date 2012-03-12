@@ -3273,7 +3273,7 @@ Otherwise, the window starts are chosen so as to minimize the
 amount of redisplay; this is convenient on slow terminals."
   (interactive "P")
   (let ((old-window (selected-window))
-	(old-point (point))
+	(old-point (window-point-1))
 	(size (and size (prefix-numeric-value size)))
         moved-by-window-height moved new-window bottom)
     (when (and size (< size 0) (< (- size) window-min-height))
@@ -3282,22 +3282,27 @@ amount of redisplay; this is convenient on slow terminals."
     (setq new-window (split-window nil size))
     (unless split-window-keep-point
       (with-current-buffer (window-buffer)
-	(goto-char (window-start))
-	(setq moved (vertical-motion (window-height)))
-	(set-window-start new-window (point))
-	(when (> (point) (window-point new-window))
-	  (set-window-point new-window (point)))
-	(when (= moved (window-height))
-	  (setq moved-by-window-height t)
-	  (vertical-motion -1))
-	(setq bottom (point)))
-      (and moved-by-window-height
-	   (<= bottom (point))
-	   (set-window-point old-window (1- bottom)))
-      (and moved-by-window-height
-	   (<= (window-start new-window) old-point)
-	   (set-window-point new-window old-point)
-	   (select-window new-window)))
+	;; Use `save-excursion' around vertical movements below
+	;; (Bug#10971).  Note: When the selected window's buffer has a
+	;; header line, up to two lines of the buffer may not show up
+	;; in the resulting configuration.
+	(save-excursion
+	  (goto-char (window-start))
+	  (setq moved (vertical-motion (window-height)))
+	  (set-window-start new-window (point))
+	  (when (> (point) (window-point new-window))
+	    (set-window-point new-window (point)))
+	  (when (= moved (window-height))
+	    (setq moved-by-window-height t)
+	    (vertical-motion -1))
+	  (setq bottom (point)))
+	(and moved-by-window-height
+	     (<= bottom (point))
+	     (set-window-point-1 old-window (1- bottom)))
+	(and moved-by-window-height
+	     (<= (window-start new-window) old-point)
+	     (set-window-point new-window old-point)
+	     (select-window new-window))))
     ;; Always copy quit-restore parameter in interactive use.
     (let ((quit-restore (window-parameter old-window 'quit-restore)))
       (when quit-restore

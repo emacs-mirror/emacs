@@ -607,16 +607,25 @@ untar into a directory named DIR; otherwise, signal an error."
 	(error "Package does not untar cleanly into directory %s/" dir))))
   (tar-untar-buffer))
 
-(defun package-unpack (name version)
-  (let* ((dirname (concat (symbol-name name) "-" version))
+(defun package-unpack (package version)
+  (let* ((name (symbol-name package))
+	 (dirname (concat name "-" version))
 	 (pkg-dir (expand-file-name dirname package-user-dir)))
     (make-directory package-user-dir t)
     ;; FIXME: should we delete PKG-DIR if it exists?
     (let* ((default-directory (file-name-as-directory package-user-dir)))
       (package-untar-buffer dirname)
-      (package-generate-autoloads (symbol-name name) pkg-dir)
-      (let ((load-path (cons pkg-dir load-path)))
-	(byte-recompile-directory pkg-dir 0 t)))))
+      (package--make-autoloads-and-compile name pkg-dir))))
+
+(defun package--make-autoloads-and-compile (name pkg-dir)
+  "Generate autoloads and do byte-compilation for package named NAME.
+PKG-DIR is the name of the package directory."
+  (package-generate-autoloads name pkg-dir)
+  (let ((load-path (cons pkg-dir load-path)))
+    ;; We must load the autoloads file before byte compiling, in
+    ;; case there are magic cookies to set up non-trivial paths.
+    (load (expand-file-name (concat name "-autoloads") pkg-dir) nil t)
+    (byte-recompile-directory pkg-dir 0 t)))
 
 (defun package--write-file-no-coding (file-name)
   (let ((buffer-file-coding-system 'no-conversion))
@@ -656,9 +665,7 @@ untar into a directory named DIR; otherwise, signal an error."
 	 nil
 	 pkg-file
 	 nil nil nil 'excl))
-      (package-generate-autoloads file-name pkg-dir)
-      (let ((load-path (cons pkg-dir load-path)))
-	(byte-recompile-directory pkg-dir 0 t)))))
+      (package--make-autoloads-and-compile file-name pkg-dir))))
 
 (defmacro package--with-work-buffer (location file &rest body)
   "Run BODY in a buffer containing the contents of FILE at LOCATION.

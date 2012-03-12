@@ -893,16 +893,23 @@ that uses or sets the mark."
 ;; Counting lines, one way or another.
 
 (defun goto-line (line &optional buffer)
-  "Goto LINE, counting from line 1 at beginning of buffer.
-Normally, move point in the current buffer, and leave mark at the
-previous position.  With just \\[universal-argument] as argument,
-move point in the most recently selected other buffer, and switch to it.
+  "Go to LINE, counting from line 1 at beginning of buffer.
+If called interactively, a numeric prefix argument specifies
+LINE; without a numeric prefix argument, read LINE from the
+minibuffer.
 
-If there's a number in the buffer at point, it is the default for LINE.
+If optional argument BUFFER is non-nil, switch to that buffer and
+move to line LINE there.  If called interactively with \\[universal-argument]
+as argument, BUFFER is the most recently selected other buffer.
+
+Prior to moving point, this function sets the mark (without
+activating it), unless Transient Mark mode is enabled and the
+mark is already active.
 
 This function is usually the wrong thing to use in a Lisp program.
 What you probably want instead is something like:
-  (goto-char (point-min)) (forward-line (1- N))
+  (goto-char (point-min))
+  (forward-line (1- N))
 If at all possible, an even better solution is to use char counts
 rather than line counts."
   (interactive
@@ -949,46 +956,51 @@ rather than line counts."
       (forward-line (1- line)))))
 
 (defun count-words-region (start end)
-  "Return the number of words between START and END.
+  "Count the number of words in the region.
 If called interactively, print a message reporting the number of
-lines, words, and characters in the region."
+lines, words, and chars in the region.
+If called from Lisp, return the number of words between positions
+START and END."
   (interactive "r")
-  (let ((words 0))
-    (save-excursion
-      (save-restriction
-        (narrow-to-region start end)
-        (goto-char (point-min))
-        (while (forward-word 1)
-          (setq words (1+ words)))))
-    (when (called-interactively-p 'interactive)
-      (count-words--message "Region"
-			    (count-lines start end)
-			    words
-			    (- end start)))
-    words))
+  (if (called-interactively-p 'any)
+      (count-words--message "Region" start end)
+    (count-words start end)))
 
-(defun count-words ()
-  "Display the number of lines, words, and characters in the buffer.
-In Transient Mark mode when the mark is active, display the
-number of lines, words, and characters in the region."
-  (interactive)
-  (if (use-region-p)
-      (call-interactively 'count-words-region)
-    (let* ((beg (point-min))
-	   (end (point-max))
-	   (lines (count-lines beg end))
-	   (words (count-words-region beg end))
-	   (chars (- end beg)))
-      (count-words--message "Buffer" lines words chars))))
+(defun count-words (start end)
+  "Count words between START and END.
+If called interactively, START and END are normally the start and
+end of the buffer; but if the region is active, START and END are
+the start and end of the region.  Print a message reporting the
+number of lines, words, and chars.
 
-(defun count-words--message (str lines words chars)
-  (message "%s has %d line%s, %d word%s, and %d character%s."
-	   str
-	   lines (if (= lines 1) "" "s")
-	   words (if (= words 1) "" "s")
-	   chars (if (= chars 1) "" "s")))
+If called from Lisp, return the number of words between START and
+END, without printing any message."
+  (interactive (list nil nil))
+  (cond ((not (called-interactively-p 'any))
+	 (let ((words 0))
+	   (save-excursion
+	     (save-restriction
+	       (narrow-to-region start end)
+	       (goto-char (point-min))
+	       (while (forward-word 1)
+		 (setq words (1+ words)))))
+	   words))
+	((use-region-p)
+	 (call-interactively 'count-words-region))
+	(t
+	 (count-words--message "Buffer" (point-min) (point-max)))))
 
-(defalias 'count-lines-region 'count-words-region)
+(defun count-words--message (str start end)
+  (let ((lines (count-lines start end))
+	(words (count-words start end))
+	(chars (- end start)))
+    (message "%s has %d line%s, %d word%s, and %d character%s."
+	     str
+	     lines (if (= lines 1) "" "s")
+	     words (if (= words 1) "" "s")
+	     chars (if (= chars 1) "" "s"))))
+
+(define-obsolete-function-alias 'count-lines-region 'count-words-region "24.1")
 
 (defun what-line ()
   "Print the current buffer line number and narrowed line number of point."
@@ -3458,8 +3470,10 @@ and KILLP is t if a prefix arg was specified."
                      ((eq backward-delete-char-untabify-method 'all)
                       " \t\n\r")))
          (n (if skip
-                (let ((wh (- (point) (save-excursion (skip-chars-backward skip)
-                                                     (point)))))
+                (let* ((oldpt (point))
+                       (wh (- oldpt (save-excursion
+                                      (skip-chars-backward skip)
+                                      (constrain-to-field nil oldpt)))))
                   (+ arg (if (zerop wh) 0 (1- wh))))
               arg)))
     ;; Avoid warning about delete-backward-char

@@ -1,3 +1,33 @@
+2012-03-12  Chong Yidong  <cyd@gnu.org>
+
+	* eval.c (inhibit_lisp_code): Rename from
+	inhibit_window_configuration_change_hook; move from window.c.
+
+	* xfns.c (unwind_create_frame_1, Fx_create_frame):
+	* window.c (run_window_configuration_change_hook)
+	(syms_of_window): Callers changed.
+
+2012-03-11  Chong Yidong  <cyd@gnu.org>
+
+	* keymap.c (Fkey_description): Doc fix (Bug#9700).
+
+	* editfns.c (Fconstrain_to_field): Doc fix (Bug#9452).
+
+2012-03-10  Chong Yidong  <cyd@gnu.org>
+
+	* frame.c (other_visible_frames): Don't assume the selected frame
+	is visible (Bug#10955).
+
+2012-03-09  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* buffer.c (compare_overlays): Avoid qsort's instability (bug#6830).
+
+2012-03-08  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* gtkutil.c (x_wm_set_size_hint): Use one row in call to
+	FRAME_TEXT_LINES_TO_PIXEL_HEIGHT so base_height is greater than
+	zero (Bug#10954).
+
 2012-03-03  Glenn Morris  <rgm@gnu.org>
 
 	* alloc.c (Fgarbage_collect, misc-objects-consed): Doc fixes.
@@ -195,8 +225,8 @@
 
 2012-02-04  Eli Zaretskii  <eliz@gnu.org>
 
-	* w32.c (get_emacs_configuration_options): Include
-	--enable-checking, if specified, in the return value.
+	* w32.c (get_emacs_configuration_options):
+	Include --enable-checking, if specified, in the return value.
 
 2012-02-04  Martin Rudalics  <rudalics@gmx.at>
 
@@ -302,8 +332,8 @@
 2012-01-19  Martin Rudalics  <rudalics@gmx.at>
 
 	* window.c (save_window_save, Fcurrent_window_configuration)
-	(Vwindow_persistent_parameters): Do not use Qstate.  Rewrite
-	doc-strings.
+	(Vwindow_persistent_parameters): Do not use Qstate.
+	Rewrite doc-strings.
 
 2012-01-19  Kenichi Handa  <handa@m17n.org>
 
@@ -477,9 +507,9 @@
 	* nsselect.m (CUT_BUFFER_SUPPORT): Remove define.
 	(symbol_to_nsstring): Fix indentation.
 	(ns_symbol_to_pb): New function.
-	(Fns_get_selection_internal): Renamed from Fns_get_cut_buffer_internal.
-	(Fns_rotate_cut_buffers_internal): Removed.
-	(Fns_store_selection_internal): Renamed from
+	(Fns_get_selection_internal): Rename from Fns_get_cut_buffer_internal.
+	(Fns_rotate_cut_buffers_internal): Remove.
+	(Fns_store_selection_internal): Rename from
 	Fns_store_cut_buffer_internal.
 	(ns_get_foreign_selection, Fx_own_selection_internal)
 	(Fx_disown_selection_internal, Fx_selection_exists_p)
@@ -620,7 +650,7 @@
 	(coding_set_destination): Return how many bytes
 	coding->destination was relocated.
 	(CODING_DECODE_CHAR, CODING_ENCODE_CHAR, CODING_CHAR_CHARSET)
-	(CODING_CHAR_CHARSET_P): Adjusted for the avove changes.
+	(CODING_CHAR_CHARSET_P): Adjust for the avove changes.
 
 2011-12-05  Kazuhiro Ito  <kzhr@d1.dion.ne.jp>  (tiny change)
 

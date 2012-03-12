@@ -152,7 +152,7 @@ int tty = 0;
 const char *alternate_editor = NULL;
 
 /* If non-NULL, the filename of the UNIX socket.  */
-char *socket_name = NULL;
+const char *socket_name = NULL;
 
 /* If non-NULL, the filename of the authentication file.  */
 const char *server_file = NULL;
@@ -955,36 +955,37 @@ initialize_sockets (void)
  * the Emacs server: host, port, and authentication string.
  */
 static int
-get_server_config (struct sockaddr_in *server, char *authentication)
+get_server_config (const char *config_file, struct sockaddr_in *server,
+		   char *authentication)
 {
   char dotted[32];
   char *port;
   FILE *config = NULL;
 
-  if (file_name_absolute_p (server_file))
-    config = fopen (server_file, "rb");
+  if (file_name_absolute_p (config_file))
+    config = fopen (config_file, "rb");
   else
     {
       const char *home = egetenv ("HOME");
 
       if (home)
         {
-	  char *path = xmalloc (strlen (home) + strlen (server_file)
+	  char *path = xmalloc (strlen (home) + strlen (config_file)
 				+ EXTRA_SPACE);
 	  strcpy (path, home);
 	  strcat (path, "/.emacs.d/server/");
-	  strcat (path, server_file);
+	  strcat (path, config_file);
           config = fopen (path, "rb");
 	  free (path);
         }
 #ifdef WINDOWSNT
       if (!config && (home = egetenv ("APPDATA")))
         {
-	  char *path = xmalloc (strlen (home) + strlen (server_file)
+	  char *path = xmalloc (strlen (home) + strlen (config_file)
 				+ EXTRA_SPACE);
 	  strcpy (path, home);
 	  strcat (path, "/.emacs.d/server/");
-	  strcat (path, server_file);
+	  strcat (path, config_file);
           config = fopen (path, "rb");
 	  free (path);
         }
@@ -1019,14 +1020,14 @@ get_server_config (struct sockaddr_in *server, char *authentication)
 }
 
 static HSOCKET
-set_tcp_socket (void)
+set_tcp_socket (const char *local_server_file)
 {
   HSOCKET s;
   struct sockaddr_in server;
   struct linger l_arg = {1, 1};
   char auth_string[AUTH_KEY_LENGTH + 1];
 
-  if (! get_server_config (&server, auth_string))
+  if (! get_server_config (local_server_file, &server, auth_string))
     return INVALID_SOCKET;
 
   if (server.sin_addr.s_addr != inet_addr ("127.0.0.1") && !quiet)
@@ -1236,7 +1237,7 @@ init_signals (void)
 
 
 static HSOCKET
-set_local_socket (void)
+set_local_socket (const char *local_socket_name)
 {
   HSOCKET s;
   struct sockaddr_un server;
@@ -1254,27 +1255,20 @@ set_local_socket (void)
   server.sun_family = AF_UNIX;
 
   {
-    int sock_status = 0;
-    int default_sock = !socket_name;
-    int saved_errno = 0;
-    const char *server_name = "server";
+    int sock_status;
+    int use_tmpdir = 0;
+    int saved_errno;
+    const char *server_name = local_socket_name;
     const char *tmpdir IF_LINT ( = NULL);
     char *tmpdir_storage = NULL;
     char *socket_name_storage = NULL;
 
-    if (socket_name && !strchr (socket_name, '/')
-	&& !strchr (socket_name, '\\'))
+    if (!strchr (local_socket_name, '/') && !strchr (local_socket_name, '\\'))
       {
 	/* socket_name is a file name component.  */
- 	server_name = socket_name;
- 	socket_name = NULL;
- 	default_sock = 1;	/* Try both UIDs.  */
-      }
-
-    if (default_sock)
-      {
 	long uid = geteuid ();
 	ptrdiff_t tmpdirlen;
+	use_tmpdir = 1;
 	tmpdir = egetenv ("TMPDIR");
 	if (!tmpdir)
           {
@@ -1293,26 +1287,27 @@ set_local_socket (void)
               tmpdir = "/tmp";
           }
 	tmpdirlen = strlen (tmpdir);
-	socket_name = socket_name_storage =
+	socket_name_storage =
 	  xmalloc (tmpdirlen + strlen (server_name) + EXTRA_SPACE);
-	strcpy (socket_name, tmpdir);
-	sprintf (socket_name + tmpdirlen, "/emacs%ld/", uid);
-	strcat (socket_name + tmpdirlen, server_name);
+	strcpy (socket_name_storage, tmpdir);
+	sprintf (socket_name_storage + tmpdirlen, "/emacs%ld/", uid);
+	strcat (socket_name_storage + tmpdirlen, server_name);
+	local_socket_name = socket_name_storage;
       }
 
-    if (strlen (socket_name) < sizeof (server.sun_path))
-      strcpy (server.sun_path, socket_name);
+    if (strlen (local_socket_name) < sizeof (server.sun_path))
+      strcpy (server.sun_path, local_socket_name);
     else
       {
         message (TRUE, "%s: socket-name %s too long\n",
-                 progname, socket_name);
+                 progname, local_socket_name);
         fail ();
       }
 
     /* See if the socket exists, and if it's owned by us. */
     sock_status = socket_status (server.sun_path);
     saved_errno = errno;
-    if (sock_status && default_sock)
+    if (sock_status && use_tmpdir)
       {
 	/* Failing that, see if LOGNAME or USER exist and differ from
 	   our euid.  If so, look for a socket based on the UID
@@ -1333,21 +1328,21 @@ set_local_socket (void)
 		/* We're running under su, apparently. */
 		long uid = pw->pw_uid;
 		ptrdiff_t tmpdirlen = strlen (tmpdir);
-		socket_name = xmalloc (tmpdirlen + strlen (server_name)
-				       + EXTRA_SPACE);
-		strcpy (socket_name, tmpdir);
-		sprintf (socket_name + tmpdirlen, "/emacs%ld/", uid);
-		strcat (socket_name + tmpdirlen, server_name);
+		char *user_socket_name
+		  = xmalloc (tmpdirlen + strlen (server_name) + EXTRA_SPACE);
+		strcpy (user_socket_name, tmpdir);
+		sprintf (user_socket_name + tmpdirlen, "/emacs%ld/", uid);
+		strcat (user_socket_name + tmpdirlen, server_name);
 
-		if (strlen (socket_name) < sizeof (server.sun_path))
-		  strcpy (server.sun_path, socket_name);
+		if (strlen (user_socket_name) < sizeof (server.sun_path))
+		  strcpy (server.sun_path, user_socket_name);
 		else
 		  {
 		    message (TRUE, "%s: socket-name %s too long\n",
-			     progname, socket_name);
+			     progname, user_socket_name);
 		    exit (EXIT_FAILURE);
 		  }
-		free (socket_name);
+		free (user_socket_name);
 
 		sock_status = socket_status (server.sun_path);
                 saved_errno = errno;
@@ -1401,6 +1396,7 @@ static HSOCKET
 set_socket (int no_exit_if_error)
 {
   HSOCKET s;
+  const char *local_server_file = server_file;
 
   INITIALIZE ();
 
@@ -1408,7 +1404,7 @@ set_socket (int no_exit_if_error)
   /* Explicit --socket-name argument.  */
   if (socket_name)
     {
-      s = set_local_socket ();
+      s = set_local_socket (socket_name);
       if ((s != INVALID_SOCKET) || no_exit_if_error)
 	return s;
       message (TRUE, "%s: error accessing socket \"%s\"\n",
@@ -1418,30 +1414,29 @@ set_socket (int no_exit_if_error)
 #endif
 
   /* Explicit --server-file arg or EMACS_SERVER_FILE variable.  */
-  if (!server_file)
-    server_file = egetenv ("EMACS_SERVER_FILE");
+  if (!local_server_file)
+    local_server_file = egetenv ("EMACS_SERVER_FILE");
 
-  if (server_file)
+  if (local_server_file)
     {
-      s = set_tcp_socket ();
+      s = set_tcp_socket (local_server_file);
       if ((s != INVALID_SOCKET) || no_exit_if_error)
 	return s;
 
       message (TRUE, "%s: error accessing server file \"%s\"\n",
-	       progname, server_file);
+	       progname, local_server_file);
       exit (EXIT_FAILURE);
     }
 
 #ifndef NO_SOCKETS_IN_FILE_SYSTEM
   /* Implicit local socket.  */
-  s = set_local_socket ();
+  s = set_local_socket ("server");
   if (s != INVALID_SOCKET)
     return s;
 #endif
 
   /* Implicit server file.  */
-  server_file = "server";
-  s = set_tcp_socket ();
+  s = set_tcp_socket ("server");
   if ((s != INVALID_SOCKET) || no_exit_if_error)
     return s;
 
@@ -1573,8 +1568,6 @@ main (int argc, char **argv)
   int rl = 0, needlf = 0;
   char *cwd, *str;
   char string[BUFSIZ+1];
-  int null_socket_name IF_LINT ( = 0);
-  int null_server_file IF_LINT ( = 0);
   int start_daemon_if_needed;
   int exit_status = EXIT_SUCCESS;
 
@@ -1602,27 +1595,12 @@ main (int argc, char **argv)
      in case of failure to connect.  */
   start_daemon_if_needed = (alternate_editor
 			    && (alternate_editor[0] == '\0'));
-  if (start_daemon_if_needed)
-    {
-      /* set_socket changes the values for socket_name and
-	 server_file, we need to reset them, if they were NULL before
-	 for the second call to set_socket.  */
-      null_socket_name = (socket_name == NULL);
-      null_server_file = (server_file == NULL);
-    }
 
   emacs_socket = set_socket (alternate_editor || start_daemon_if_needed);
   if (emacs_socket == INVALID_SOCKET)
     {
       if (! start_daemon_if_needed)
 	fail ();
-
-      /* Reset socket_name and server_file if they were NULL
-	 before the set_socket call.  */
-      if (null_socket_name)
-	socket_name = NULL;
-      if (null_server_file)
-	server_file = NULL;
 
       start_daemon_and_retry_set_socket ();
     }
@@ -1790,7 +1768,7 @@ main (int argc, char **argv)
   /* Now, wait for an answer and print any messages.  */
   while (exit_status == EXIT_SUCCESS)
     {
-      char *p;
+      char *p, *end_p;
       do
         {
           errno = 0;
@@ -1805,61 +1783,72 @@ main (int argc, char **argv)
 
       string[rl] = '\0';
 
-      p = string + strlen (string) - 1;
-      while (p > string && *p == '\n')
-        *p-- = 0;
+      /* Loop over all NL-terminated messages.  */
+      for (end_p = p = string; end_p != NULL && *end_p != '\0'; p = end_p)
+	{
+	  end_p = strchr (p, '\n');
+	  if (end_p != NULL)
+	    *end_p++ = '\0';
 
-      if (strprefix ("-emacs-pid ", string))
-        {
-          /* -emacs-pid PID: The process id of the Emacs process. */
-          emacs_pid = strtol (string + strlen ("-emacs-pid"), NULL, 10);
-        }
-      else if (strprefix ("-window-system-unsupported ", string))
-        {
-          /* -window-system-unsupported: Emacs was compiled without X
-              support.  Try again on the terminal. */
-          nowait = 0;
-          tty = 1;
-          goto retry;
-        }
-      else if (strprefix ("-print ", string))
-        {
-          /* -print STRING: Print STRING on the terminal. */
-          str = unquote_argument (string + strlen ("-print "));
-          if (needlf)
-            printf ("\n");
-          printf ("%s", str);
-          needlf = str[0] == '\0' ? needlf : str[strlen (str) - 1] != '\n';
-        }
-      else if (strprefix ("-error ", string))
-        {
-          /* -error DESCRIPTION: Signal an error on the terminal. */
-          str = unquote_argument (string + strlen ("-error "));
-          if (needlf)
-            printf ("\n");
-          fprintf (stderr, "*ERROR*: %s", str);
-          needlf = str[0] == '\0' ? needlf : str[strlen (str) - 1] != '\n';
-	  exit_status = EXIT_FAILURE;
-        }
+	  if (strprefix ("-emacs-pid ", p))
+	    {
+	      /* -emacs-pid PID: The process id of the Emacs process. */
+	      emacs_pid = strtol (p + strlen ("-emacs-pid"), NULL, 10);
+	    }
+	  else if (strprefix ("-window-system-unsupported ", p))
+	    {
+	      /* -window-system-unsupported: Emacs was compiled without X
+		 support.  Try again on the terminal. */
+	      nowait = 0;
+	      tty = 1;
+	      goto retry;
+	    }
+	  else if (strprefix ("-print ", p))
+	    {
+	      /* -print STRING: Print STRING on the terminal. */
+	      str = unquote_argument (p + strlen ("-print "));
+	      if (needlf)
+		printf ("\n");
+	      printf ("%s", str);
+	      needlf = str[0] == '\0' ? needlf : str[strlen (str) - 1] != '\n';
+	    }
+	  else if (strprefix ("-print-nonl ", p))
+	    {
+	      /* -print-nonl STRING: Print STRING on the terminal.
+	         Used to continue a preceding -print command.  */
+	      str = unquote_argument (p + strlen ("-print-nonl "));
+	      printf ("%s", str);
+	      needlf = str[0] == '\0' ? needlf : str[strlen (str) - 1] != '\n';
+	    }
+	  else if (strprefix ("-error ", p))
+	    {
+	      /* -error DESCRIPTION: Signal an error on the terminal. */
+	      str = unquote_argument (p + strlen ("-error "));
+	      if (needlf)
+		printf ("\n");
+	      fprintf (stderr, "*ERROR*: %s", str);
+	      needlf = str[0] == '\0' ? needlf : str[strlen (str) - 1] != '\n';
+	      exit_status = EXIT_FAILURE;
+	    }
 #ifdef SIGSTOP
-      else if (strprefix ("-suspend ", string))
-        {
-          /* -suspend: Suspend this terminal, i.e., stop the process. */
-          if (needlf)
-            printf ("\n");
-          needlf = 0;
-          kill (0, SIGSTOP);
-        }
+	  else if (strprefix ("-suspend ", p))
+	    {
+	      /* -suspend: Suspend this terminal, i.e., stop the process. */
+	      if (needlf)
+		printf ("\n");
+	      needlf = 0;
+	      kill (0, SIGSTOP);
+	    }
 #endif
-      else
-        {
-          /* Unknown command. */
-          if (needlf)
-            printf ("\n");
-          printf ("*ERROR*: Unknown message: %s", string);
-          needlf = string[0]
-	    == '\0' ? needlf : string[strlen (string) - 1] != '\n';
-        }
+	  else
+	    {
+	      /* Unknown command. */
+	      if (needlf)
+		printf ("\n");
+	      needlf = 0;
+	      printf ("*ERROR*: Unknown message: %s\n", p);
+	    }
+	}
     }
 
   if (needlf)

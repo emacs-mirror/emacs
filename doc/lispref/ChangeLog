@@ -1,3 +1,69 @@
+2012-03-11  Chong Yidong  <cyd@gnu.org>
+
+	* windows.texi (Window Configurations): save-window-excursion is
+	now a macro.
+
+	* display.texi (Temporary Displays): with-output-to-temp-buffer is
+	now a macro.
+
+	* text.texi (Fields): Minor copyedit.
+
+2012-03-10  Eli Zaretskii  <eliz@gnu.org>
+
+	* strings.texi (String Basics):
+	* sequences.texi (Sequence Functions): Mention that `length' is
+	not appropriate for computing the string width on display; add a
+	cross-reference to the description of `string-width'.  (Bug#10978)
+
+	* eval.texi (Autoloading): Minor change of wording.
+
+2012-03-10  Chong Yidong  <cyd@gnu.org>
+
+	* loading.texi (Autoload): Explicitly state which forms are
+	processed specially (Bug#7783).
+
+	* keymaps.texi (Mouse Menus): Describe non-toolkit behavior as the
+	non-default situation.  Describe one-submenu exception (Bug#7695).
+
+	* nonascii.texi (Character Properties): Copyedits.
+
+2012-03-08  Chong Yidong  <cyd@gnu.org>
+
+	* text.texi (Mode-Specific Indent): Document new behavior of
+	indent-for-tab-command.  Document tab-always-indent.
+	(Special Properties): Copyedits.
+	(Checksum/Hash): Improve secure-hash doc.  Do not recommend MD5.
+	(Parsing HTML/XML): Rename from Parsing HTML.  Update doc of
+	libxml-parse-html-region.
+
+2012-03-07  Glenn Morris  <rgm@gnu.org>
+
+	* markers.texi (The Region): Briefly mention use-empty-active-region
+	and region-active-p.
+	(Overview of Markers): Reword garbage collection, add cross-ref.
+	(The Mark): Tiny clarification re command loop and activate-mark-hook.
+
+2012-03-07  Chong Yidong  <cyd@gnu.org>
+
+	* text.texi (Buffer Contents): Don't duplicate explanation of
+	region arguments from Text node.  Put doc of obsolete var
+	buffer-substring-filters back, since it is referred to.
+	(Low-Level Kill Ring): Yank now uses clipboard instead of primary
+	selection by default.
+
+	* markers.texi (The Mark): Fix typo.
+	(The Region): Copyedits.
+
+2012-03-07  Glenn Morris  <rgm@gnu.org>
+
+	* markers.texi (Overview of Markers): Copyedits.
+	(Creating Markers): Update approximate example buffer size.
+	(The Mark): Don't mention uninteresting return values.
+
+2012-03-05  Chong Yidong  <cyd@gnu.org>
+
+	* positions.texi (Text Lines): Document count-words.
+
 2012-03-04  Chong Yidong  <cyd@gnu.org>
 
 	* frames.texi (Frames): Remove little-used "terminal frame" and

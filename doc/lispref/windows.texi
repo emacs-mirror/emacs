@@ -3142,7 +3142,7 @@ as @code{save-window-excursion}:
 @end example
 @end defun
 
-@defspec save-window-excursion forms@dots{}
+@defmac save-window-excursion forms@dots{}
 This special form records the window configuration, executes @var{forms}
 in sequence, then restores the earlier window configuration.  The window
 configuration includes, for each window, the value of point and the
@@ -3179,7 +3179,7 @@ For example:
      ;; @r{The screen is now split again.}
 @end group
 @end example
-@end defspec
+@end defmac
 
 @defun window-configuration-p object
 This function returns @code{t} if @var{object} is a window configuration.

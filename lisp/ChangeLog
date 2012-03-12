@@ -1,3 +1,235 @@
+2012-03-12  Kenichi Handa  <handa@m17n.org>
+
+	* international/quail.el (quail-insert-kbd-layout): Surround each
+	row by LRO and PDF instead of inserting many LRMs.  Pad the left
+	and right of each non-spacing marks.  Insert invisible space
+	between lower and upper characters to prevent composition.
+
+2012-03-12  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* minibuffer.el (minibuffer-complete): Don't get confused when the
+	function is run twice via different commands (bug#10958).
+	(complete-with-action): Fix docstring.
+
+2012-03-12  Chong Yidong  <cyd@gnu.org>
+
+	* nxml/nxml-mode.el (nxml-mode-map): Do not bind C-RET (Bug#6776).
+	(nxml-completion-at-point-function): New function.
+	(nxml-mode): Use it.
+	(nxml-bind-meta-tab-to-complete-flag): Default to t.
+
+	* emacs-lisp/package.el (package-unpack, package-unpack-single):
+	Load generated autoloads file before byte compiling (Bug#10970).
+	(package--make-autoloads-and-compile): New helper fun.
+
+2012-03-12  Christopher Schmidt  <christopher@ch.ristopher.com>
+
+	* ibuffer.el (ibuffer-redisplay): Remove another gratuitous error.
+
+2012-03-11  Michael Albinus  <michael.albinus@gmx.de>
+
+	* autorevert.el (auto-revert-handler): Ensure, that
+	file-readable-p is applied only for local files or in
+	auto-revert-tail-mode.
+
+2012-03-11  Andreas Schwab  <schwab@linux-m68k.org>
+
+	* server.el (server-eval-at): Handle non-tcp connections.
+	Decode result string.
+
+	* server.el (server-msg-size): New constant.
+	(server-reply-print): New function.
+	(server-eval-and-print): Use it.
+	(server-eval-at): Use server-quote-arg and server-unquote-arg.
+	Handle -print-nonl.
+
+2012-03-11  Christopher Schmidt  <christopher@ch.ristopher.com>
+
+	* ibuffer.el (ibuffer-redisplay): Remove gratuitous error
+	(Bug#10987).
+
+2012-03-11  Chong Yidong  <cyd@gnu.org>
+
+	* simple.el (goto-line): Doc fix (Bug#9938).
+
+	* subr.el (save-window-excursion): Doc fix (Bug#9979).
+
+	* dabbrev.el (dabbrev--find-expansion): Update progress reporter
+	when finished (Bug#10963).
+
+2012-03-11  Martin Rudalics  <rudalics@gmx.at>
+
+	* window.el (split-window-below): Fix bug in case where
+	split-window-keep-point is nil (Bug#10971).
+
+2012-03-11  Juri Linkov  <juri@jurta.org>
+
+	* replace.el (replace-highlight): Set isearch-word to nil
+	unconditionally.  (Bug#10887)
+
+2012-03-10  Eli Zaretskii  <eliz@gnu.org>
+
+	* net/mairix.el (mairix-replace-invalid-chars): Rename from
+	mairix-replace-illegal-chars; all callers changed.  Don't remove
+	^, ~, and = characters: they are meaningful in mairix search
+	specs.
+	(mairix-widget-create-query): Add usage information about mairix
+	search forms: negating words, searching for substrings, etc.
+
+2012-03-10  Jae-hyeon Park  <jae-hyeon.park@desy.de>  (tiny change)
+
+	* international/fontset.el (font-encoding-alist): Add an entry for
+	ksx1001 (Bug#5667).
+
+2012-03-10  Richard Stallman  <rms@gnu.org>
+
+	* mail/sendmail.el (mail-encode-header):
+	Set rfc2047-encode-encoded-words.
+
+	* mail/mail-utils.el (mail-quote-printable): Quote multibyte chars.
+
+	* mail/rmail.el (rmail-buffers-swapped-p): Don't assume dead
+	view buffer means not swapped.
+	(rmail-view-buffer-kill-buffer-hook): Give buf name in error msg.
+	(rmail-write-region-annotate): Error if real text has disappeared.
+
+	* epa-mail.el (epa-mail-encrypt): Bind inhibit-read-only.
+
+2012-03-10  Chong Yidong  <cyd@gnu.org>
+
+	* emulation/cua-rect.el (cua--init-rectangles):
+	* emulation/cua-base.el (cua--init-keymaps):
+	Add delete-forward-char to remappings (Bug#9666).
+
+2012-03-10  Martin Rudalics  <rudalics@gmx.at>
+
+	* speedbar.el (speedbar-unhighlight-one-tag-line):
+	Avoid unhighlighting due to frame switching (Bug#10275).
+
+2012-03-10  Chong Yidong  <cyd@gnu.org>
+
+	* minibuffer.el (completion-in-region, completion-help-at-point):
+	Give the completion field overlay a high priority (Bug#6830).
+
+	* dired.el (dired-goto-file): Recognize absolute file name
+	listings (Bug#7126).
+	(dired-goto-file-1): New helper function.
+	(dired-toggle-read-only): Inhibit warnings.
+
+2012-03-09  Michael Albinus  <michael.albinus@gmx.de>
+
+	* net/dbus.el: (dbus-property-handler): Return empty array if
+	there are no properties.
+
+2012-03-09  Leo Liu  <sdl.web@gmail.com>
+
+	* savehist.el (savehist-printable): Stricter check for string
+	value (Bug#10937).
+
+2012-03-09  Eli Zaretskii  <eliz@gnu.org>
+
+	* mail/smtpmail.el (smtpmail-send-it):
+	Bind coding-system-for-write to *-unix, so that FCC files are kept in
+	valid mbox format.
+
+2012-03-09  Glenn Morris  <rgm@gnu.org>
+
+	* files.el (dir-locals-find-file):
+	Don't check result is regular, readable.
+	(dir-locals-read-from-file): Demote errors.
+
+2012-03-08  Eli Zaretskii  <eliz@gnu.org>
+
+	* international/quail.el (quail-insert-kbd-layout):
+	Insert invisible LRM characters before each character in a keyboard
+	layout cell, to prevent their reordering by bidi display engine.
+	For details, see the discussion in
+	http://lists.gnu.org/archive/html/emacs-devel/2012-03/msg00085.html.
+
+2012-03-08  Alan Mackenzie  <acm@muc.de>
+
+	* progmodes/cc-cmds.el (c-mark-function): Make it leave a mark at
+	the starting position; make it extend the marked region when
+	invoked repeatedly - all under appropriate circumstances.
+	Fixes bugs #5525, #10906.
+
+2012-03-08  Glenn Morris  <rgm@gnu.org>
+
+	* files.el (locate-dominating-file, dir-locals-find-file):
+	Undo 2012-03-06 change.
+
+2012-03-07  Eli Zaretskii  <eliz@gnu.org>
+
+	* international/quail.el (quail-help):
+	Force bidi-paragraph-direction be left-to-right.  See discussion in
+	http://lists.gnu.org/archive/html/emacs-devel/2012-03/msg00062.html
+	for the reason.
+
+2012-03-07  Michael Albinus  <michael.albinus@gmx.de>
+
+	Avoid superfluous registering of signals.  (Bug#10807)
+
+	* notifications.el (notifications-on-action-object)
+	(notifications-on-close-object): New defvars.
+	(notifications-on-action-signal, notifications-on-closed-signal):
+	Unregister the signal if not needed any longer.
+	(notifications-notify): Register `notifications-action-signal' or
+	`notifications-closed-signal', if :on-action or :on-close has been
+	passed as argument.
+
+2012-03-07  Chong Yidong  <cyd@gnu.org>
+
+	* cus-start.el: Avoid x-select-enable-clipboard-manager warning on
+	non-X platforms.
+
+2012-03-06  Glenn Morris  <rgm@gnu.org>
+
+	* term/pc-win.el (x-selection-owner-p, x-own-selection-internal)
+	(x-disown-selection-internal, x-get-selection-internal):
+	Doc fix (add arglist signatures).  (Bug#10783)
+
+2012-03-06  Kaushik Srenevasan  <ksrenevasan@gmail.com>  (tiny change)
+
+	* progmodes/gdb-mi.el (gdb-breakpoints-list-handler-custom):
+	Handle breakpoints with no "type".
+
+2012-03-06  Glenn Morris  <rgm@gnu.org>
+
+	* files.el (locate-dominating-file): Add optional predicate argument.
+	(dir-locals-find-file): Make use of above change.
+
+2012-03-06  Thien-Thi Nguyen  <ttn@gnuvola.org>
+
+	* info.el (Info-insert-dir): Also try "dir.gz".
+
+2012-03-06  Glenn Morris  <rgm@gnu.org>
+
+	* files.el (dir-locals-find-file):
+	Ignore non-readable or non-regular files.  (Bug#10928)
+
+	* files.el (locate-dominating-file): Doc fix.
+
+2012-03-06  Adam Spiers  <emacs@adamspiers.org>  (tiny change)
+
+	* calendar/calendar.el (calendar-set-mode-line):
+	`getenv' returns a string.  (Bug#10951)
+
+2012-03-05  Leo Liu  <sdl.web@gmail.com>
+
+	* simple.el (backward-delete-char-untabify): Constrain point to
+	field (Bug#10939).
+
+	* eshell/em-cmpl.el (eshell-cmpl-initialize): Fix shift-tab key.
+
+2012-03-05  Chong Yidong  <cyd@gnu.org>
+
+	* simple.el (count-words): If called from Lisp, return the word
+	count, for symmetry with `count-lines'.  Arglist changed.
+	(count-words--message): Args changed.  Consolidate counting code
+	from count-words and count-words-region.
+	(count-words-region): Caller changed.
+	(count-lines-region): Make it an obsolete alias.
+
 2012-03-04  Tassilo Horn  <tassilo@member.fsf.org>
 
 	* saveplace.el (save-place-to-alist)
@@ -61,16 +293,16 @@
 	New variables for...
 	(c-state-semi-safe-place): New function.  Here, in a macro is "safe".
 	(c-invalidate-state-cache-1): New stuff for c-state-semi-safe-place.
-	(c-in-literal, c-literal-limits, c-determine-limit-get-base): Use
-	c-state-semi-safe-place.
+	(c-in-literal, c-literal-limits, c-determine-limit-get-base):
+	Use c-state-semi-safe-place.
 
-	* progmodes/cc-langs.el (c-get-state-before-change-functions): Add
-	c-invalidate-macro-cache to the C, C++, Obj entries.
+	* progmodes/cc-langs.el (c-get-state-before-change-functions):
+	Add c-invalidate-macro-cache to the C, C++, Obj entries.
 
 2012-03-02  Michael Albinus  <michael.albinus@gmx.de>
 
-	* jka-compr.el (jka-compr-call-process): Apply
-	`file-accessible-directory-p' only when the default directory is
+	* jka-compr.el (jka-compr-call-process):
+	Apply `file-accessible-directory-p' only when the default directory is
 	not remote.
 
 2012-03-01  Michael Albinus  <michael.albinus@gmx.de>

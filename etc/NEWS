@@ -483,9 +483,12 @@ isearch-yank-kill.
 
 +++
 ** New commands `count-words-region' and `count-words'.
-
-*** `count-lines-region' is now an alias for `count-words-region',
-bound to M-=, which shows the number of lines, words, and characters.
++++
+*** M-= is bound to `count-words-region', not `count-lines-region'.
+The `count-words-region' command, when called interactively, reports
+the number of lines, words, and characters in the region.  It is a
+superset of the old `count-lines-region', which is now an obsolete
+alias for it.
 
 +++
 ** The default value of `backup-by-copying-when-mismatch' is now t.
@@ -768,6 +771,11 @@ See MH-E-NEWS for details.
 ---
 ** mpc.el: Can use pseudo tags of the form tag1|tag2 as a union of two tags.
 
+** nXML mode no longer binds C-RET to `nxml-complete'.
+Completion is now performed via `completion-at-point', bound to M-TAB.
+If `nxml-bind-meta-tab-to-complete-flag' is non-nil (the default),
+this performs tag completion.
+
 ---
 ** Prolog mode has been completely revamped, with lots of additional
 functionality such as more intelligent indentation, electricity, support for
@@ -1049,12 +1057,16 @@ of the header line.
 ** Support for "old-style" backquotes, which have been obsolete for
 more than 10 years, has been further reduced.  Now a backquote not
 followed by a space is always treated as a "new-style" backquote.
-Please consider completely removing all "old-style" backquotes from
-your code as a matter of some urgency.  If your code uses backquotes
-as documented in the Elisp manual, and compiles without warning, then
-you have nothing to do in this regard.  Code not following the
-appropriate conventions may fail to compile.  The most common cause of
-trouble seems to be an old-style backquote followed by a newline.
+Please remove all "old-style" backquotes from your code.  If your code
+uses backquotes as documented in the Elisp manual, and compiles
+without warning, then you have nothing to do in this regard.  Code not
+following the appropriate conventions may fail to compile.
+
+The most common cause of trouble seems to be an old-style backquote
+followed by a newline.  Another cause of trouble is vector notation
+for key sequence notation: instead of [(control ,)] and [(control ')],
+you should write [(control ?,)] and [(control ?')], which will work in
+older Emacs too.
 
 +++
 ** The macro `eval-at-startup' was removed in Emacs 23.2, but this
@@ -1475,13 +1487,12 @@ These require Emacs to be built with ImageMagick support.
 image-transform-fit-to-height, image-transform-fit-to-width,
 image-transform-set-rotation, image-transform-set-scale.
 
++++
 ** XML and HTML parsing
-If Emacs is compiled with libxml2 support, there are two new functions:
-`libxml-parse-html-region' (which parses "real world" HTML) and
-`libxml-parse-xml-region' (which parses XML).  Both return an Emacs
-Lisp parse tree.
-
-FIXME: These should be front-ended by xml.el.
+If Emacs is compiled with libxml2 support, there are two new
+functions: `libxml-parse-html-region' (which parses "real world" HTML)
+and `libxml-parse-xml-region' (which parses XML).  Both return an
+Emacs Lisp parse tree.
 
 ** GnuTLS
 

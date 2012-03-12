@@ -1,3 +1,21 @@
+2012-03-11  Andreas Schwab  <schwab@linux-m68k.org>
+
+	* emacsclient.c (main): Handle -print-nonl command.
+
+	* emacsclient.c (main): Handle multiple messages in a single
+	datagram.
+
+	* emacsclient.c (socket_name): Add const.
+	(get_server_config): Add parameter config_file, use it instead of
+	global server_file.
+	(set_tcp_socket): Add parameter local_server_file, pass it down to
+	get_server_config.
+	(set_local_socket): Add parameter local_socket_name, use it
+	instead of global socket_name.
+	(set_socket): Adjust calls to set_local_socket and set_tcp_socket.
+	Don't clobber global server_file or socket_name.
+	(main): No longer reset server_file or socket_name.
+
 2012-01-05  Glenn Morris  <rgm@gnu.org>
 
 	* ebrowse.c (version) <emacs_copyright>:

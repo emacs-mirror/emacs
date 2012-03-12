@@ -1235,6 +1235,7 @@ this:
 
 @node Expert Info
 @chapter Info for Experts
+@cindex Texinfo
 
   This chapter explains how to write an Info file by hand.  However,
 in most cases, writing a Texinfo file is better, since you can use it

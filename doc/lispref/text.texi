@@ -56,8 +56,8 @@ the character after point.
 * Registers::        How registers are implemented.  Accessing the text or
                        position stored in a register.
 * Base 64::          Conversion to or from base 64 encoding.
-* Checksum/Hash::    Computing "message digests"/"checksums"/"hashes".
-* Parsing HTML::     Parsing HTML and XML.
+* Checksum/Hash::    Computing cryptographic hashes.
+* Parsing HTML/XML:: Parsing HTML and XML.
 * Atomic Changes::   Installing several buffer changes "atomically".
 * Change Hooks::     Supplying functions to be run when text is changed.
 @end menu
@@ -169,13 +169,9 @@ convert any portion of the text in the buffer into a string.
 @defun buffer-substring start end
 This function returns a string containing a copy of the text of the
 region defined by positions @var{start} and @var{end} in the current
-buffer.  If the arguments are not positions in the accessible portion of
-the buffer, @code{buffer-substring} signals an @code{args-out-of-range}
-error.
-
-It is not necessary for @var{start} to be less than @var{end}; the
-arguments can be given in either order.  But most often the smaller
-argument is written first.
+buffer.  If the arguments are not positions in the accessible portion
+of the buffer, @code{buffer-substring} signals an
+@code{args-out-of-range} error.
 
 Here's an example which assumes Font-Lock mode is not enabled:
 
@@ -218,14 +214,20 @@ This is like @code{buffer-substring}, except that it does not copy text
 properties, just the characters themselves.  @xref{Text Properties}.
 @end defun
 
+@defun buffer-string
+This function returns the contents of the entire accessible portion of
+the current buffer as a string.  It is equivalent to
+@w{@code{(buffer-substring (point-min) (point-max))}}.
+@end defun
+
 @defun filter-buffer-substring start end &optional delete
 This function passes the buffer text between @var{start} and @var{end}
 through the filter functions specified by the wrapper hook
-@code{filter-buffer-substring-functions}, and returns the final
-result of applying all filters.  The obsolete variable
-@code{buffer-substring-filters} is also consulted.  If both of these
-variables are @code{nil}, the value is the unaltered text from the
-buffer, as @code{buffer-substring} would return.
+@code{filter-buffer-substring-functions}, and returns the result.  The
+obsolete variable @code{buffer-substring-filters} is also consulted.
+If both of these variables are @code{nil}, the value is the unaltered
+text from the buffer, i.e.@: what @code{buffer-substring} would
+return.
 
 If @var{delete} is non-@code{nil}, this function deletes the text
 between @var{start} and @var{end} after copying it, like
@@ -260,30 +262,20 @@ this, and so on.  The actual return value is the result of all the
 hook functions acting in sequence.
 @end defvar
 
-@defun buffer-string
-This function returns the contents of the entire accessible portion of
-the current buffer as a string.  It is equivalent to
-
-@example
-(buffer-substring (point-min) (point-max))
-@end example
-
-@example
-@group
----------- Buffer: foo ----------
-This is the contents of buffer foo
-
----------- Buffer: foo ----------
-
-(buffer-string)
-     @result{} "This is the contents of buffer foo\n"
-@end group
-@end example
-@end defun
+@defvar buffer-substring-filters
+This variable is obsoleted by
+@code{filter-buffer-substring-functions}, but is still supported for
+backward compatibility.  Its value should should be a list of
+functions which accept a single string argument and return another
+string.  @code{filter-buffer-substring} passes the buffer substring to
+the first function in this list, and the return value of each function
+is passed to the next function.  The return value of the last function
+is passed to @code{filter-buffer-substring-functions}.
+@end defvar
 
 @defun current-word &optional strict really-word
-This function returns the symbol (or word) at or near point, as a string.
-The return value includes no text properties.
+This function returns the symbol (or word) at or near point, as a
+string.  The return value includes no text properties.
 
 If the optional argument @var{really-word} is non-@code{nil}, it finds a
 word; otherwise, it finds a symbol (which includes both word
@@ -1112,13 +1104,11 @@ case, the first string is used as the ``most recent kill'', and all
 the other strings are pushed onto the kill ring, for easy access by
 @code{yank-pop}.
 
-The normal use of this function is to get the window system's primary
-selection as the most recent kill, even if the selection belongs to
+The normal use of this function is to get the window system's
+clipboard as the most recent kill, even if the selection belongs to
 another application.  @xref{Window System Selections}.  However, if
-the selection was provided by the current Emacs session, this function
-should return @code{nil}.  (If it is hard to tell whether Emacs or
-some other program provided the selection, it should be good enough to
-use @code{string=} to compare it with the last text Emacs provided.)
+the clipboard contents come from the current Emacs session, this
+function should return @code{nil}.
 @end defvar
 
 @defvar interprogram-cut-function
@@ -1129,9 +1119,8 @@ programs, when you are using a window system.  Its value should be
 If the value is a function, @code{kill-new} and @code{kill-append} call
 it with the new first element of the kill ring as the argument.
 
-The normal use of this function is to set the window system's primary
-selection from the newly killed text.
-@xref{Window System Selections}.
+The normal use of this function is to put newly killed text in the
+window system's clipboard.  @xref{Window System Selections}.
 @end defvar
 
 @node Internals of Kill Ring
@@ -2214,14 +2203,48 @@ key to indent properly for the language being edited.  This section
 describes the mechanism of the @key{TAB} key and how to control it.
 The functions in this section return unpredictable values.
 
-@defvar indent-line-function
-This variable's value is the function to be used by @key{TAB} (and
-various commands) to indent the current line.  The command
-@code{indent-according-to-mode} does little more than call this function.
+@deffn Command indent-for-tab-command &optional rigid
+This is the command bound to @key{TAB} in most editing modes.  Its
+usual action is to indent the current line, but it can alternatively
+insert a tab character or indent a region.
 
-In Lisp mode, the value is the symbol @code{lisp-indent-line}; in C
-mode, @code{c-indent-line}; in Fortran mode, @code{fortran-indent-line}.
-The default value is @code{indent-relative}.  @xref{Auto-Indentation}.
+Here is what it does:
+
+@itemize
+@item
+First, it checks whether Transient Mark mode is enabled and the region
+is active.  If so, it called @code{indent-region} to indent all the
+text in the region (@pxref{Region Indent}).
+
+@item
+Otherwise, if the indentation function in @code{indent-line-function}
+is @code{indent-to-left-margin} (a trivial command that inserts a tab
+character), or if the variable @code{tab-always-indent} specifies that
+a tab character ought to be inserted (see below), then it inserts a
+tab character.
+
+@item
+Otherwise, it indents the current line; this is done by calling the
+function in @code{indent-line-function}.  If the line is already
+indented, and the value of @code{tab-always-indent} is @code{complete}
+(see below), it tries completing the text at point.
+@end itemize
+
+If @var{rigid} is non-@code{nil} (interactively, with a prefix
+argument), then after this command indents a line or inserts a tab, it
+also rigidly indents the entire balanced expression which starts at
+the beginning of the current line, in order to reflect the new
+indentation.  This argument is ignored if the command indents the
+region.
+@end deffn
+
+@defvar indent-line-function
+This variable's value is the function to be used by
+@code{indent-for-tab-command}, and various other indentation commands,
+to indent the current line.  It is usually assigned by the major mode;
+for instance, Lisp mode sets it to @code{lisp-indent-line}, C mode
+sets it to @code{c-indent-line}, and so on.  The default value is
+@code{indent-relative}.  @xref{Auto-Indentation}.
 @end defvar
 
 @deffn Command indent-according-to-mode
@@ -2229,40 +2252,30 @@ This command calls the function in @code{indent-line-function} to
 indent the current line in a way appropriate for the current major mode.
 @end deffn
 
-@deffn Command indent-for-tab-command &optional rigid
-This command calls the function in @code{indent-line-function} to
-indent the current line; however, if that function is
-@code{indent-to-left-margin}, @code{insert-tab} is called instead.
-(That is a trivial command that inserts a tab character.)  If
-@var{rigid} is non-@code{nil}, this function also rigidly indents the
-entire balanced expression that starts at the beginning of the current
-line, to reflect change in indentation of the current line.
-@end deffn
-
 @deffn Command newline-and-indent
 This function inserts a newline, then indents the new line (the one
-following the newline just inserted) according to the major mode.
-
-It does indentation by calling the current @code{indent-line-function}.
-In programming language modes, this is the same thing @key{TAB} does,
-but in some text modes, where @key{TAB} inserts a tab,
-@code{newline-and-indent} indents to the column specified by
-@code{left-margin}.
+following the newline just inserted) according to the major mode.  It
+does indentation by calling @code{indent-according-to-mode}.
 @end deffn
 
 @deffn Command reindent-then-newline-and-indent
-@comment !!SourceFile simple.el
 This command reindents the current line, inserts a newline at point,
 and then indents the new line (the one following the newline just
-inserted).
-
-This command does indentation on both lines according to the current
-major mode, by calling the current value of @code{indent-line-function}.
-In programming language modes, this is the same thing @key{TAB} does,
-but in some text modes, where @key{TAB} inserts a tab,
-@code{reindent-then-newline-and-indent} indents to the column specified
-by @code{left-margin}.
+inserted).  It does indentation on both lines by calling
+@code{indent-according-to-mode}.
 @end deffn
+
+@defopt tab-always-indent
+This variable can be used to customize the behavior of the @key{TAB}
+(@code{indent-for-tab-command}) command.  If the value is @code{t}
+(the default), the command normally just indents the current line.  If
+the value is @code{nil}, the command indents the current line only if
+point is at the left margin or in the line's indentation; otherwise,
+it inserts a tab character.  If the value is @code{complete}, the
+command first tries to indent the current line, and if the line was
+already indented, it calls @code{completion-at-point} to complete the
+text at point (@pxref{Completion in Buffers}).
+@end defopt
 
 @node Region Indent
 @subsection Indenting an Entire Region
@@ -2838,7 +2851,7 @@ faster to process chunks of text that have the same property value.
 comparing property values.  In all cases, @var{object} defaults to the
 current buffer.
 
-  For high performance, it's very important to use the @var{limit}
+  For good performance, it's very important to use the @var{limit}
 argument to these functions, especially the ones that search for a
 single property---otherwise, they may spend a long time scanning to the
 end of the buffer, if the property you are interested in does not change.
@@ -2850,15 +2863,15 @@ different properties.
 
 @defun next-property-change pos &optional object limit
 The function scans the text forward from position @var{pos} in the
-string or buffer @var{object} till it finds a change in some text
+string or buffer @var{object} until it finds a change in some text
 property, then returns the position of the change.  In other words, it
 returns the position of the first character beyond @var{pos} whose
 properties are not identical to those of the character just after
 @var{pos}.
 
 If @var{limit} is non-@code{nil}, then the scan ends at position
-@var{limit}.  If there is no property change before that point,
-@code{next-property-change} returns @var{limit}.
+@var{limit}.  If there is no property change before that point, this
+function returns @var{limit}.
 
 The value is @code{nil} if the properties remain unchanged all the way
 to the end of @var{object} and @var{limit} is @code{nil}.  If the value
@@ -2991,10 +3004,9 @@ character.
 @item face
 @cindex face codes of text
 @kindex face @r{(text property)}
-You can use the property @code{face} to control the font and color of
-text.  @xref{Faces}, for more information.
-
-@code{face} can be the following:
+The @code{face} property controls the appearance of the character,
+such as its font and color.  @xref{Faces}.  The value of the property
+can be the following:
 
 @itemize @bullet
 @item
@@ -3007,10 +3019,10 @@ face attribute name and @var{value} is a meaningful value for that
 attribute.  With this feature, you do not need to create a face each
 time you want to specify a particular attribute for certain text.
 @xref{Face Attributes}.
-@end itemize
 
-@code{face} can also be a list, where each element uses one of the
-forms listed above.
+@item
+A list, where each element uses one of the two forms listed above.
+@end itemize
 
 Font Lock mode (@pxref{Font Lock Mode}) works in most buffers by
 dynamically updating the @code{face} property of characters based on
@@ -3365,15 +3377,15 @@ of the text.
   Self-inserting characters normally take on the same properties as the
 preceding character.  This is called @dfn{inheritance} of properties.
 
-  In a Lisp program, you can do insertion with inheritance or without,
-depending on your choice of insertion primitive.  The ordinary text
-insertion functions such as @code{insert} do not inherit any properties.
-They insert text with precisely the properties of the string being
-inserted, and no others.  This is correct for programs that copy text
-from one context to another---for example, into or out of the kill ring.
-To insert with inheritance, use the special primitives described in this
-section.  Self-inserting characters inherit properties because they work
-using these primitives.
+  A Lisp program can do insertion with inheritance or without,
+depending on the choice of insertion primitive.  The ordinary text
+insertion functions, such as @code{insert}, do not inherit any
+properties.  They insert text with precisely the properties of the
+string being inserted, and no others.  This is correct for programs
+that copy text from one context to another---for example, into or out
+of the kill ring.  To insert with inheritance, use the special
+primitives described in this section.  Self-inserting characters
+inherit properties because they work using these primitives.
 
   When you do insertion with inheritance, @emph{which} properties are
 inherited, and from where, depends on which properties are @dfn{sticky}.
@@ -3765,7 +3777,7 @@ closest to @var{new-pos} that is in the same field as @var{old-pos}.
 
 If @var{new-pos} is @code{nil}, then @code{constrain-to-field} uses
 the value of point instead, and moves point to the resulting position
-as well as returning it.
+in addition to returning that position.
 
 If @var{old-pos} is at the boundary of two fields, then the acceptable
 final positions depend on the argument @var{escape-from-edge}.  If
@@ -4074,46 +4086,64 @@ The decoding functions ignore newline characters in the encoded text.
 @node Checksum/Hash
 @section Checksum/Hash
 @cindex MD5 checksum
-@cindex hashing, secure
-@cindex SHA-1
-@cindex message digest computation
+@cindex SHA hash
+@cindex hash, cryptographic
+@cindex cryptographic hash
 
-  MD5 cryptographic checksums, or @dfn{message digests}, are 128-bit
-``fingerprints'' of a document or program.  They are used to verify
-that you have an exact and unaltered copy of the data.  The algorithm
-to calculate the MD5 message digest is defined in Internet
-RFC@footnote{
-For an explanation of what is an RFC, see the footnote in @ref{Base
-64}.
-}1321.  This section describes the Emacs facilities for computing
-message digests and other forms of ``secure hash''.
+  Emacs has built-in support for computing @dfn{cryptographic hashes}.
+A cryptographic hash, or @dfn{checksum}, is a digital ``fingerprint''
+of a piece of data (e.g.@: a block of text) which can be used to check
+that you have an unaltered copy of that data.
 
-@defun md5 object &optional start end coding-system noerror
-This function returns the MD5 message digest of @var{object}, which
-should be a buffer or a string.
+@cindex message digest
+  Emacs supports several common cryptographic hash algorithms: MD5,
+SHA-1, SHA-2, SHA-224, SHA-256, SHA-384 and SHA-512.  MD5 is the
+oldest of these algorithms, and is commonly used in @dfn{message
+digests} to check the integrity of messages transmitted over a
+network.  MD5 is not ``collision resistant'' (i.e.@: it is possible to
+deliberately design different pieces of data which have the same MD5
+hash), so you should not used it for anything security-related.  A
+similar theoretical weakness also exists in SHA-1.  Therefore, for
+security-related applications you should use the other hash types,
+such as SHA-2.
 
-The two optional arguments @var{start} and @var{end} are character
+@defun secure-hash algorithm object &optional start end binary
+This function returns a hash for @var{object}.  The argument
+@var{algorithm} is a symbol stating which hash to compute: one of
+@code{md5}, @code{sha1}, @code{sha224}, @code{sha256}, @code{sha384}
+or @code{sha512}.  The argument @var{object} should be a buffer or a
+string.
+
+The optional arguments @var{start} and @var{end} are character
 positions specifying the portion of @var{object} to compute the
-message digest for.  If they are @code{nil} or omitted, the digest is
+message digest for.  If they are @code{nil} or omitted, the hash is
 computed for the whole of @var{object}.
 
-The function @code{md5} does not compute the message digest directly
-from the internal Emacs representation of the text (@pxref{Text
-Representations}).  Instead, it encodes the text using a coding
-system, and computes the message digest from the encoded text.  The
-optional fourth argument @var{coding-system} specifies which coding
-system to use for encoding the text.  It should be the same coding
-system that you used to read the text, or that you used or will use
-when saving or sending the text.  @xref{Coding Systems}, for more
-information about coding systems.
+If the argument @var{binary} is omitted or @code{nil}, the function
+returns the @dfn{text form} of the hash, as an ordinary Lisp string.
+If @var{binary} is non-@code{nil}, it returns the hash in @dfn{binary
+form}, as a sequence of bytes stored in a unibyte string.
 
-If @var{coding-system} is @code{nil} or omitted, the default depends
-on @var{object}.  If @var{object} is a buffer, the default for
-@var{coding-system} is whatever coding system would be chosen by
-default for writing this text into a file.  If @var{object} is a
-string, the user's most preferred coding system (@pxref{Recognize
-Coding, prefer-coding-system, the description of
-@code{prefer-coding-system}, emacs, GNU Emacs Manual}) is used.
+This function does not compute the hash directly from the internal
+representation of @var{object}'s text (@pxref{Text Representations}).
+Instead, it encodes the text using a coding system (@pxref{Coding
+Systems}), and computes the hash from that encoded text.  If
+@var{object} is a buffer, the coding system used is the one which
+would be chosen by default for writing the text into a file.  If
+@var{object} is a string, the user's preferred coding system is used
+(@pxref{Recognize Coding,,, emacs, GNU Emacs Manual}).
+@end defun
+
+@defun md5 object &optional start end coding-system noerror
+This function returns an MD5 hash.  It is semi-obsolete, since for
+most purposes it is equivalent to calling @code{secure-hash} with
+@code{md5} as the @var{algorithm} argument.  The @var{object},
+@var{start} and @var{end} arguments have the same meanings as in
+@code{secure-hash}.
+
+If @var{coding-system} is non-@code{nil}, it specifies a coding system
+to use to encode the text; if omitted or @code{nil}, the default
+coding system is used, like in @code{secure-hash}.
 
 Normally, @code{md5} signals an error if the text can't be encoded
 using the specified or chosen coding system.  However, if
@@ -4121,65 +4151,53 @@ using the specified or chosen coding system.  However, if
 coding instead.
 @end defun
 
-@defun secure-hash algorithm object &optional start end binary
-This function provides a general interface to a variety of secure
-hashing algorithms.  As well as the MD5 algorithm, it supports SHA-1,
-SHA-2, SHA-224, SHA-256, SHA-384 and SHA-512.  The argument
-@var{algorithm} is a symbol stating which hash to compute.  The
-arguments @var{object}, @var{start}, and @var{end} are as for the
-@code{md5} function.  If the optional argument @var{binary} is
-non-@code{nil}, returns a string in binary form.
-@end defun
-
-@node Parsing HTML
-@section Parsing HTML
+@node Parsing HTML/XML
+@section Parsing HTML and XML
 @cindex parsing html
 
+When Emacs is compiled with libxml2 support, the following functions
+are available to parse HTML or XML text into Lisp object trees.
+
 @defun libxml-parse-html-region start end &optional base-url
-This function provides HTML parsing via the @code{libxml2} library.
-It parses ``real world'' HTML and tries to return a sensible parse tree
-regardless.
+This function parses the text between @var{start} and @var{end} as
+HTML, and returns a list representing the HTML @dfn{parse tree}.  It
+attempts to handle ``real world'' HTML by robustly coping with syntax
+mistakes.
 
-In addition to @var{start} and @var{end} (specifying the start and end
-of the region to act on), it takes an optional parameter,
-@var{base-url}, which is used to expand relative URLs in the document,
-if any.
+The optional argument @var{base-url}, if non-@code{nil}, should be a
+string specifying the base URL for relative URLs occurring in links.
 
-Here's an example demonstrating the structure of the parsed data you
-get out.  Given this HTML document:
+In the parse tree, each HTML node is represented by a list in which
+the first element is a symbol representing the node name, the second
+element is an alist of node attributes, and the remaining elements are
+the subnodes.
 
-@example
-<html><hEad></head><body width=101><div class=thing>Foo<div>Yes
-@end example
-
-You get this parse tree:
+The following example demonstrates this.  Given this (malformed) HTML
+document:
 
 @example
-(html
- (head)
- (body
-  (:width . "101")
-  (div
-   (:class . "thing")
-   (text . "Foo")
-   (div
-    (text . "Yes\n")))))
+<html><head></head><body width=101><div class=thing>Foo<div>Yes
 @end example
 
-It's a simple tree structure, where the @code{car} for each node is
-the name of the node, and the @code{cdr} is the value, or the list of
-values.
+@noindent
+A call to @code{libxml-parse-html-region} returns this:
 
-Attributes are coded the same way as child nodes, but with @samp{:} as
-the first character.
+@example
+(html ()
+  (head ())
+  (body ((width . "101"))
+   (div ((class . "thing"))
+    "Foo"
+    (div ()
+      "Yes"))))
+@end example
 @end defun
 
 @cindex parsing xml
 @defun libxml-parse-xml-region start end &optional base-url
-
-This is much the same as @code{libxml-parse-html-region} above, but
-operates on XML instead of HTML, and is correspondingly stricter about
-syntax.
+This function is the same as @code{libxml-parse-html-region}, except
+that it parses the text as XML rather than HTML (so it is stricter
+about syntax).
 @end defun
 
 @node Atomic Changes

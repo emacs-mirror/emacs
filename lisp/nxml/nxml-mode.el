@@ -86,18 +86,9 @@ as the first attribute on the previous line."
   :group 'nxml
   :type 'integer)
 
-(defcustom nxml-bind-meta-tab-to-complete-flag (not window-system)
-  "Non-nil means bind M-TAB in `nxml-mode-map' to `nxml-complete'.
-C-return will be bound to `nxml-complete' in any case.
-M-TAB gets swallowed by many window systems/managers, and
-`documentation' will show M-TAB rather than C-return as the
-binding for `nxml-complete' when both are bound.  So it's better
-to bind M-TAB only when it will work."
+(defcustom nxml-bind-meta-tab-to-complete-flag t
+  "Non-nil means to use nXML completion in \\[completion-at-point]."
   :group 'nxml
-  :set (lambda (sym flag)
-	 (set-default sym flag)
-	 (when (and (boundp 'nxml-mode-map) nxml-mode-map)
-	   (define-key nxml-mode-map "\M-\t" (and flag 'nxml-complete))))
   :type 'boolean)
 
 (defcustom nxml-prefer-utf-16-to-utf-8-flag nil
@@ -418,9 +409,7 @@ reference.")
     (define-key map "\C-c\C-o" nxml-outline-prefix-map)
     (define-key map [S-mouse-2] 'nxml-mouse-hide-direct-text-content)
     (define-key map "/" 'nxml-electric-slash)
-    (define-key map [C-return] 'nxml-complete)
-    (when nxml-bind-meta-tab-to-complete-flag
-      (define-key map "\M-\t" 'nxml-complete))
+    (define-key map "\M-\t" 'completion-at-point)
     map)
   "Keymap for nxml-mode.")
 
@@ -479,7 +468,7 @@ the start-tag, point, and end-tag are all left on separate lines.
 If `nxml-slash-auto-complete-flag' is non-nil, then inserting a `</'
 automatically inserts the rest of the end-tag.
 
-\\[nxml-complete] performs completion on the symbol preceding point.
+\\[completion-at-point] performs completion on the symbol preceding point.
 
 \\[nxml-dynamic-markup-word] uses the contents of the current buffer
 to choose a tag to put around the word preceding point.
@@ -555,6 +544,8 @@ Many aspects this mode can be customized using
         (nxml-clear-inside (point-min) (point-max))
 	(nxml-with-invisible-motion
 	  (nxml-scan-prolog)))))
+  (add-hook 'completion-at-point-functions
+            #'nxml-completion-at-point-function nil t)
   (add-hook 'after-change-functions 'nxml-after-change nil t)
   (add-hook 'change-major-mode-hook 'nxml-cleanup nil t)
 
@@ -1653,6 +1644,11 @@ depend on `nxml-completion-hook'."
     ;; Eventually we will complete on entity names here.
     (ding)
     (message "Cannot complete in this context")))
+
+(defun nxml-completion-at-point-function ()
+  "Call `nxml-complete' to perform completion at point."
+  (when nxml-bind-meta-tab-to-complete-flag
+    #'nxml-complete))
 
 ;;; Movement
 

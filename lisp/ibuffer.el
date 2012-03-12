@@ -2140,11 +2140,10 @@ If optional arg SILENT is non-nil, do not display progress messages."
   (unless silent
     (message "Redisplaying current buffer list..."))
   (let ((blist (ibuffer-current-state-list)))
-    (when (null blist)
-      (if (and (featurep 'ibuf-ext)
+    (when (and (null blist)
+	       (featurep 'ibuf-ext)
 	       (or ibuffer-filtering-qualifiers ibuffer-hidden-filter-groups))
-	  (message "No buffers! (note: filtering in effect)")
-	(error "No buffers!")))
+      (message "No buffers! (note: filtering in effect)"))
     (ibuffer-redisplay-engine blist t)
     (unless silent
       (message "Redisplaying current buffer list...done"))
@@ -2174,11 +2173,10 @@ If optional arg SILENT is non-nil, do not display progress messages."
 		   (cadr bufs))
 		 (ibuffer-current-buffers-with-marks bufs)
 		 ibuffer-display-maybe-show-predicates)))
-    (when (null blist)
-      (if (and (featurep 'ibuf-ext)
-	       ibuffer-filtering-qualifiers)
-	  (message "No buffers! (note: filtering in effect)")
-	(error "No buffers!")))
+    (and (null blist)
+	 (featurep 'ibuf-ext)
+	 ibuffer-filtering-qualifiers
+	 (message "No buffers! (note: filtering in effect)"))
     (unless silent
       (message "Updating buffer list..."))
     (ibuffer-redisplay-engine blist arg)

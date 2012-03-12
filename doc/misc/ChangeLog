@@ -1,3 +1,15 @@
+2012-03-10  Eli Zaretskii  <eliz@gnu.org>
+
+	* info.texi (Expert Info): Move the index entry for "Texinfo" from
+	"Getting Started" to this node.  (Bug#10450)
+
+2012-03-10  Chong Yidong  <cyd@gnu.org>
+
+	* flymake.texi (Example -- Configuring a tool called via make):
+	Mention the Automake COMPILE variable (Bug#8715).
+
+	* info.texi (Getting Started): Add an index entry (Bug#10450).
+
 2012-03-02  Michael Albinus  <michael.albinus@gmx.de>
 
 	* dbus.texi (Signals): Known names will be mapped onto unique

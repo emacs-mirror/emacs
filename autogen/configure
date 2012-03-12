@@ -14265,68 +14265,76 @@ done
 # It's better to believe a function is not available
 # than to expect to find it in ncurses.
 # Also we need tputs and friends to be able to build at all.
-have_tputs_et_al=true
-# Maybe curses should be tried earlier?
-# See http://debbugs.gnu.org/cgi/bugreport.cgi?bug=9736#35
 { $as_echo "$as_me:${as_lineno-$LINENO}: checking for library containing tputs" >&5
 $as_echo_n "checking for library containing tputs... " >&6; }
-if test "${ac_cv_search_tputs+set}" = set; then :
-  $as_echo_n "(cached) " >&6
-else
-  ac_func_search_save_LIBS=$LIBS
-cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+# Run a test program that contains a call to tputs, a call that is
+# never executed.  This tests whether a pre-'main' dynamic linker
+# works with the library.  It's too much trouble to actually call
+# tputs in the test program, due to portability hassles.  When
+# cross-compiling, assume the test program will run if it links.
+
+# Maybe curses should be tried earlier?
+# See http://debbugs.gnu.org/cgi/bugreport.cgi?bug=9736#35
+for tputs_library in '' ncurses terminfo termcap curses; do
+  OLIBS=$LIBS
+  if test -z "$tputs_library"; then
+    LIBS_TERMCAP=
+    msg='none required'
+  else
+    LIBS_TERMCAP=-l$tputs_library
+    msg=$LIBS_TERMCAP
+    LIBS="$LIBS_TERMCAP $LIBS"
+  fi
+  if test "$cross_compiling" = yes; then :
+  cat confdefs.h - <<_ACEOF >conftest.$ac_ext
 /* end confdefs.h.  */
 
-/* Override any GCC internal prototype to avoid an error.
-   Use char because int might match the return type of a GCC
-   builtin and then its argument prototype would still apply.  */
-#ifdef __cplusplus
-extern "C"
-#endif
-char tputs ();
-int
-main ()
-{
-return tputs ();
-  ;
-  return 0;
-}
+  extern void tputs (const char *, int, int (*)(int));
+       int main (int argc, char **argv)
+       {
+	  if (argc == 10000)
+	    tputs (argv[0], 0, 0);
+	  return 0;
+       }
+
 _ACEOF
-for ac_lib in '' ncurses terminfo termcap curses; do
-  if test -z "$ac_lib"; then
-    ac_res="none required"
-  else
-    ac_res=-l$ac_lib
-    LIBS="-l$ac_lib  $ac_func_search_save_LIBS"
-  fi
-  if ac_fn_c_try_link "$LINENO"; then :
-  ac_cv_search_tputs=$ac_res
+if ac_fn_c_try_link "$LINENO"; then :
+
+else
+  msg=no
 fi
 rm -f core conftest.err conftest.$ac_objext \
-    conftest$ac_exeext
-  if test "${ac_cv_search_tputs+set}" = set; then :
-  break
+    conftest$ac_exeext conftest.$ac_ext
+else
+  cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+/* end confdefs.h.  */
+
+  extern void tputs (const char *, int, int (*)(int));
+       int main (int argc, char **argv)
+       {
+	  if (argc == 10000)
+	    tputs (argv[0], 0, 0);
+	  return 0;
+       }
+
+_ACEOF
+if ac_fn_c_try_run "$LINENO"; then :
+
+else
+  msg=no
 fi
+rm -f core *.core core.conftest.* gmon.out bb.out conftest$ac_exeext \
+  conftest.$ac_objext conftest.beam conftest.$ac_ext
+fi
+
+  LIBS=$OLIBS
+  if test "X$msg" != Xno; then
+    break
+  fi
 done
-if test "${ac_cv_search_tputs+set}" = set; then :
-
-else
-  ac_cv_search_tputs=no
-fi
-rm conftest.$ac_ext
-LIBS=$ac_func_search_save_LIBS
-fi
-{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_cv_search_tputs" >&5
-$as_echo "$ac_cv_search_tputs" >&6; }
-ac_res=$ac_cv_search_tputs
-if test "$ac_res" != no; then :
-  test "$ac_res" = "none required" || LIBS="$ac_res $LIBS"
-
-else
-  have_tputs_et_al=false
-fi
-
-if test "$have_tputs_et_al" != true; then
+{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $msg" >&5
+$as_echo "$msg" >&6; }
+if test "X$msg" = Xno; then
   as_fn_error "The required function \`tputs' was not found in any library.
 These libraries were tried: libncurses, libterminfo, libtermcap, libcurses.
 Please try installing whichever of these libraries is most appropriate
@@ -14346,7 +14354,6 @@ HAVE_LIBNCURSES=yes
 ## freebsd < 40000, ms-w32, msdos, netbsd < 599002500, and
 ## darwin|gnu without ncurses.
 TERMINFO=no
-LIBS_TERMCAP=
 case "$opsys" in
   ## cygwin: Fewer environment variables to go wrong, more terminal types.
   ## hpux10-20: Use the system provided termcap(3) library.
@@ -14434,10 +14441,6 @@ TERMCAP_OBJ=tparam.o
 if test $TERMINFO = yes; then
 
 $as_echo "#define TERMINFO 1" >>confdefs.h
-
-
-  ## Default used to be -ltermcap.  Add a case above if need something else.
-  test "x$LIBS_TERMCAP" = "x" && LIBS_TERMCAP="-lcurses"
 
   TERMCAP_OBJ=terminfo.o
 fi

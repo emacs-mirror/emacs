@@ -478,7 +478,8 @@ Thank you for your help in stamping out bugs.
 
 ;;;###autoload
 (defun gnus-msg-mail (&optional to subject other-headers continue
-				switch-action yank-action send-actions return-action)
+				switch-action yank-action send-actions
+				return-action)
   "Start editing a mail message to be sent.
 Like `message-mail', but with Gnus paraphernalia, particularly the
 Gcc: header for archiving purposes.
@@ -486,7 +487,8 @@ If Gnus isn't running, a plain `message-mail' setup is used
 instead."
   (interactive)
   (if (not (gnus-alive-p))
-      (message-mail)
+      (message-mail to subject other-headers continue
+                    nil yank-action send-actions return-action)
     (let ((buf (current-buffer))
 	  mail-buf)
       (gnus-setup-message 'message

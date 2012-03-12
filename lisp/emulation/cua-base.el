@@ -1478,6 +1478,7 @@ If ARG is the atom `-', scroll upward by nearly full screen."
   (define-key cua--region-keymap [remap backward-delete-char]	'cua-delete-region)
   (define-key cua--region-keymap [remap backward-delete-char-untabify] 'cua-delete-region)
   (define-key cua--region-keymap [remap delete-char]		'cua-delete-region)
+  (define-key cua--region-keymap [remap delete-forward-char]    'cua-delete-region)
   ;; kill region
   (define-key cua--region-keymap [remap kill-region]		'cua-cut-region)
   (define-key cua--region-keymap [remap clipboard-kill-region]	'cua-cut-region)

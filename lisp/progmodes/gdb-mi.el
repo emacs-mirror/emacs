@@ -2397,15 +2397,15 @@ HANDLER-NAME handler uses customization of CUSTOM-DEFUN. See
         (gdb-table-add-row table
                            (list
                             (bindat-get-field breakpoint 'number)
-                            type
-                            (bindat-get-field breakpoint 'disp)
+                            (or type "")
+                            (or (bindat-get-field breakpoint 'disp) "")
                             (let ((flag (bindat-get-field breakpoint 'enabled)))
                               (if (string-equal flag "y")
                                   (propertize "y" 'font-lock-face  font-lock-warning-face)
                                 (propertize "n" 'font-lock-face  font-lock-comment-face)))
                             (bindat-get-field breakpoint 'addr)
-                            (bindat-get-field breakpoint 'times)
-                            (if (string-match ".*watchpoint" type)
+                            (or (bindat-get-field breakpoint 'times) "")
+                            (if (and type (string-match ".*watchpoint" type))
                                 (bindat-get-field breakpoint 'what)
                               (or pending at
                                   (concat "in "

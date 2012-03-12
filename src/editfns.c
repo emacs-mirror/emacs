@@ -663,10 +663,11 @@ is after LIMIT, then LIMIT will be returned instead.  */)
 
 DEFUN ("constrain-to-field", Fconstrain_to_field, Sconstrain_to_field, 2, 5, 0,
        doc: /* Return the position closest to NEW-POS that is in the same field as OLD-POS.
-
 A field is a region of text with the same `field' property.
-If NEW-POS is nil, then the current point is used instead, and set to the
-constrained position if that is different.
+
+If NEW-POS is nil, then use the current point instead, and move point
+to the resulting constrained position, in addition to returning that
+position.
 
 If OLD-POS is at the boundary of two fields, then the allowable
 positions for NEW-POS depends on the value of the optional argument

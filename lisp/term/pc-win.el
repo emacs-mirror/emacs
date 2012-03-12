@@ -159,6 +159,12 @@ created."
 ;; returned value matters.  Also, by the way, recall that `ignore' is
 ;; a useful function for returning 'nil regardless of argument.
 
+;; Note: Any re-definition in this file of a function that is defined
+;; in C on other platforms, should either have no doc-string, or one
+;; that is identical to the C version, but with the arglist signature
+;; at the end.  Otherwise help-split-fundoc gets confused on other
+;; platforms.  (Bug#10783)
+
 ;; From src/xfns.c
 (defun x-list-fonts (pattern &optional face frame maximum width)
   (if (or (null width) (and (numberp width) (= width 1)))
@@ -261,7 +267,9 @@ TERMINAL should be a terminal object or a frame specifying the X
 server to query.  If omitted or nil, that stands for the selected
 frame's display, or the first available X display.
 
-On Nextstep, TERMINAL is unused."
+On Nextstep, TERMINAL is unused.
+
+\(fn &optional SELECTION TERMINAL)"
     (if x-select-enable-clipboard
       (let (text)
 	;; Don't die if w16-get-clipboard-data signals an error.
@@ -289,7 +297,9 @@ anything that the functions on `selection-converter-alist' know about.
 FRAME should be a frame that should own the selection.  If omitted or
 nil, it defaults to the selected frame.
 
-On Nextstep, FRAME is unused."
+On Nextstep, FRAME is unused.
+
+\(fn SELECTION VALUE &optional FRAME)"
   (ignore-errors
     (x-select-text value))
   value)
@@ -306,7 +316,9 @@ server to query.  If omitted or nil, that stands for the selected
 frame's display, or the first available X display.
 
 On Nextstep, the TIME-OBJECT and TERMINAL arguments are unused.
-On MS-DOS, all this does is return non-nil if we own the selection."
+On MS-DOS, all this does is return non-nil if we own the selection.
+
+\(fn SELECTION &optional TIME-OBJECT TERMINAL)"
   (if (x-selection-owner-p selection)
       t))
 
@@ -324,7 +336,9 @@ TERMINAL should be a terminal object or a frame specifying the X
 server to query.  If omitted or nil, that stands for the selected
 frame's display, or the first available X display.
 
-On Nextstep, TIME-STAMP and TERMINAL are unused."
+On Nextstep, TIME-STAMP and TERMINAL are unused.
+
+\(fn SELECTION-SYMBOL TARGET-TYPE &optional TIME-STAMP TERMINAL)"
   (x-get-selection-value))
 
 ;; From src/fontset.c:

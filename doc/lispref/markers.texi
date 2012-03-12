@@ -1,6 +1,6 @@
 @c -*-texinfo-*-
 @c This is part of the GNU Emacs Lisp Reference Manual.
-@c Copyright (C) 1990-1995, 1998-1999, 2001-2012  Free Software Foundation, Inc.
+@c Copyright (C) 1990-1995, 1998-1999, 2001-2012 Free Software Foundation, Inc.
 @c See the file elisp.texi for copying conditions.
 @setfilename ../../info/markers
 @node Markers, Text, Positions, Top
@@ -27,8 +27,8 @@ deleted, so that it stays with the two characters on either side of it.
 @node Overview of Markers
 @section Overview of Markers
 
-  A marker specifies a buffer and a position in that buffer.  The
-marker can be used to represent a position in the functions that
+  A marker specifies a buffer and a position in that buffer.  A
+marker can be used to represent a position in functions that
 require one, just as an integer could be used.  In that case, the
 marker's buffer is normally ignored.  Of course, a marker used in this
 way usually points to a position in the buffer that the function
@@ -38,12 +38,12 @@ operates on, but that is entirely the programmer's responsibility.
   A marker has three attributes: the marker position, the marker
 buffer, and the insertion type.  The marker position is an integer
 that is equivalent (at a given time) to the marker as a position in
-that buffer.  But the marker's position value can change often during
-the life of the marker.  Insertion and deletion of text in the buffer
-relocate the marker.  The idea is that a marker positioned between two
-characters remains between those two characters despite insertion and
-deletion elsewhere in the buffer.  Relocation changes the integer
-equivalent of the marker.
+that buffer.  But the marker's position value can change during
+the life of the marker, and often does.  Insertion and deletion of
+text in the buffer relocate the marker.  The idea is that a marker
+positioned between two characters remains between those two characters
+despite insertion and deletion elsewhere in the buffer.  Relocation
+changes the integer equivalent of the marker.
 
 @cindex marker relocation
   Deleting text around a marker's position leaves the marker between the
@@ -58,12 +58,12 @@ with @code{insert-before-markers} (@pxref{Insertion}).
 relocate them if necessary.  This slows processing in a buffer with a
 large number of markers.  For this reason, it is a good idea to make a
 marker point nowhere if you are sure you don't need it any more.
-Unreferenced markers are garbage collected eventually, but until then
-will continue to use time if they do point somewhere.
+Markers that can no longer be accessed are eventually removed
+(@pxref{Garbage Collection}).
 
 @cindex markers as numbers
   Because it is common to perform arithmetic operations on a marker
-position, most of the arithmetic operations (including @code{+} and
+position, most of these operations (including @code{+} and
 @code{-}) accept markers as arguments.  In such cases, the marker
 stands for its current position.
 
@@ -188,7 +188,7 @@ chapter.
 (point-min-marker)
      @result{} #<marker at 1 in markers.texi>
 (point-max-marker)
-     @result{} #<marker at 15573 in markers.texi>
+     @result{} #<marker at 24080 in markers.texi>
 @end group
 
 @group
@@ -229,8 +229,8 @@ buffer.
 @end group
 
 @group
-(copy-marker 20000)
-     @result{} #<marker at 7572 in markers.texi>
+(copy-marker 90000)
+     @result{} #<marker at 24080 in markers.texi>
 @end group
 @end example
 
@@ -422,11 +422,11 @@ can request deactivation of the mark upon return to the editor command
 loop by setting the variable @code{deactivate-mark} to a
 non-@code{nil} value.
 
-  If Transient Mode is enabled, certain editing commands that normally
-apply to text near point, apply instead to the region when the mark is
-active.  This is the main motivation for using Transient Mark mode.
-(Another is that this enables highlighting of the region when the mark
-is active.  @xref{Display}.)
+  If Transient Mark mode is enabled, certain editing commands that
+normally apply to text near point, apply instead to the region when
+the mark is active.  This is the main motivation for using Transient
+Mark mode.  (Another is that this enables highlighting of the region
+when the mark is active.  @xref{Display}.)
 
   In addition to the mark, each buffer has a @dfn{mark ring} which is a
 list of markers containing previous values of the mark.  When editing
@@ -509,7 +509,8 @@ example:
 This function sets the current buffer's mark to @var{position}, and
 pushes a copy of the previous mark onto @code{mark-ring}.  If
 @var{position} is @code{nil}, then the value of point is used.
-@code{push-mark} returns @code{nil}.
+@c Doesn't seem relevant.
+@c @code{push-mark} returns @code{nil}.
 
 The function @code{push-mark} normally @emph{does not} activate the
 mark.  To do that, specify @code{t} for the argument @var{activate}.
@@ -523,8 +524,9 @@ This function pops off the top element of @code{mark-ring} and makes
 that mark become the buffer's actual mark.  This does not move point in
 the buffer, and it does nothing if @code{mark-ring} is empty.  It
 deactivates the mark.
-
-The return value is not meaningful.
+@c
+@c Seems even less relevant.
+@c The return value is not meaningful.
 @end defun
 
 @defopt transient-mark-mode
@@ -593,8 +595,16 @@ the function @code{use-region-p} for that (@pxref{The Region}).
 @defvarx deactivate-mark-hook
 These normal hooks are run, respectively, when the mark becomes active
 and when it becomes inactive.  The hook @code{activate-mark-hook} is
-also run at the end of a command if the mark is active and it is
-possible that the region may have changed.
+also run at the end of the command loop if the mark is active and it
+is possible that the region may have changed.
+@ignore
+This piece of command_loop_1, run unless deactivating the mark:
+  if (current_buffer != prev_buffer || MODIFF != prev_modiff)
+    {
+      Lisp_Object hook = intern ("activate-mark-hook");
+      Frun_hooks (1, &hook);
+    }
+@end ignore
 @end defvar
 
 @defun handle-shift-selection
@@ -634,6 +644,9 @@ more marks than this are pushed onto the @code{mark-ring},
 @code{push-mark} discards an old mark when it adds a new one.
 @end defopt
 
+@c There is also global-mark-ring-max, but this chapter explicitly
+@c does not talk about the global mark.
+
 @node The Region
 @section The Region
 @cindex region (between point and mark)
@@ -660,16 +673,23 @@ integer).  This is the position of either point or the mark, whichever is
 larger.
 @end defun
 
-  Few programs need to use the @code{region-beginning} and
-@code{region-end} functions.  A command designed to operate on a region
-should normally use @code{interactive} with the @samp{r} specification
-to find the beginning and end of the region.  This lets other Lisp
-programs specify the bounds explicitly as arguments.  (@xref{Interactive
-Codes}.)
+  Instead of using @code{region-beginning} and @code{region-end}, a
+command designed to operate on a region should normally use
+@code{interactive} with the @samp{r} specification to find the
+beginning and end of the region.  This lets other Lisp programs
+specify the bounds explicitly as arguments.  @xref{Interactive Codes}.
 
 @defun use-region-p
 This function returns @code{t} if Transient Mark mode is enabled, the
-mark is active, and there's a valid region in the buffer.  Commands
-that operate on the region (instead of on text near point) when
-there's an active mark should use this to test whether to do that.
+mark is active, and there is a valid region in the buffer.  This
+function is intended to be used by commands that operate on the
+region, instead of on text near point, when the mark is active.
+
+A region is valid if it has a non-zero size, or if the user option
+@code{use-empty-active-region} is non-@code{nil} (by default, it is
+@code{nil}).  The function @code{region-active-p} is similar to
+@code{use-region-p}, but considers all regions as valid.  In most
+cases, you should not use @code{region-active-p}, since if the region
+is empty it is often more appropriate to operate on point.
 @end defun
+
