@@ -1,3 +1,9 @@
+2012-03-12  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* dabbrev.el: Fix cycle completion (bug#10963).
+	Use lexical binding and wrap to 80 columns.
+	(dabbrev-completion): Delay computing the list of completions.
+
 2012-03-12  Kenichi Handa  <handa@m17n.org>
 
 	* international/quail.el (quail-insert-kbd-layout): Surround each

@@ -1,4 +1,4 @@
-;;; dabbrev.el --- dynamic abbreviation package
+;;; dabbrev.el --- dynamic abbreviation package  -*- lexical-binding: t -*-
 
 ;; Copyright (C) 1985-1986, 1992, 1994, 1996-1997, 2000-2012
 ;;   Free Software Foundation, Inc.
@@ -387,49 +387,54 @@ then it searches *all* buffers."
 	 (abbrev (dabbrev--abbrev-at-point))
          (beg (progn (search-backward abbrev) (point)))
          (end (progn (search-forward abbrev) (point)))
-	 (ignore-case-p (and (if (eq dabbrev-case-fold-search 'case-fold-search)
-				 case-fold-search
-			       dabbrev-case-fold-search)
-			     (or (not dabbrev-upcase-means-case-search)
-				 (string= abbrev (downcase abbrev)))))
-	 (my-obarray dabbrev--last-obarray))
-    (save-excursion
-      ;;--------------------------------
-      ;; New abbreviation to expand.
-      ;;--------------------------------
-      (setq dabbrev--last-abbreviation abbrev)
-      ;; Find all expansion
-      (let ((completion-list
-	     (dabbrev--find-all-expansions abbrev ignore-case-p))
-	    (completion-ignore-case ignore-case-p))
-	;; Make an obarray with all expansions
-	(setq my-obarray (make-vector (length completion-list) 0))
-	(or (> (length my-obarray) 0)
-	    (error "No dynamic expansion for \"%s\" found%s"
-		   abbrev
-		   (if dabbrev--check-other-buffers "" " in this-buffer")))
-	(cond
-	 ((or (not ignore-case-p)
-	      (not dabbrev-case-replace))
-	  (mapc (function (lambda (string)
-			    (intern string my-obarray)))
-		completion-list))
-	 ((string= abbrev (upcase abbrev))
-	  (mapc (function (lambda (string)
-			    (intern (upcase string) my-obarray)))
-		completion-list))
-	 ((string= (substring abbrev 0 1)
-		   (upcase (substring abbrev 0 1)))
-	  (mapc (function (lambda (string)
-			    (intern (capitalize string) my-obarray)))
-		completion-list))
-	 (t
-	  (mapc (function (lambda (string)
-			    (intern (downcase string) my-obarray)))
-		completion-list)))
-	(setq dabbrev--last-obarray my-obarray)
-	(setq dabbrev--last-completion-buffer (current-buffer))))
-    (completion-in-region beg end my-obarray)))
+	 (ignore-case-p
+          (and (if (eq dabbrev-case-fold-search 'case-fold-search)
+                   case-fold-search
+                 dabbrev-case-fold-search)
+               (or (not dabbrev-upcase-means-case-search)
+                   (string= abbrev (downcase abbrev)))))
+	 (my-obarray dabbrev--last-obarray)
+         (table
+          (completion-table-dynamic
+           (let ((initialized nil))
+             (lambda (abbrev)
+               (unless initialized
+		 (setq initialized t)
+                 (save-excursion
+                   ;;--------------------------------
+                   ;; New abbreviation to expand.
+                   ;;--------------------------------
+                   (setq dabbrev--last-abbreviation abbrev)
+                   ;; Find all expansion
+                   (let ((completion-list
+                          (dabbrev--find-all-expansions abbrev ignore-case-p))
+                         (completion-ignore-case ignore-case-p))
+                     ;; Make an obarray with all expansions
+                     (setq my-obarray (make-vector (length completion-list) 0))
+                     (or (> (length my-obarray) 0)
+                         (error "No dynamic expansion for \"%s\" found%s"
+                                abbrev
+                                (if dabbrev--check-other-buffers
+                                    "" " in this-buffer")))
+                     (cond
+                      ((not (and ignore-case-p
+                                 dabbrev-case-replace))
+                       (dolist (string completion-list)
+                         (intern string my-obarray)))
+                      ((string= abbrev (upcase abbrev))
+                       (dolist (string completion-list)
+                         (intern (upcase string) my-obarray)))
+                      ((string= (substring abbrev 0 1)
+                                (upcase (substring abbrev 0 1)))
+                       (dolist (string completion-list)
+                         (intern (capitalize string) my-obarray)))
+                      (t
+                       (dolist (string completion-list)
+                         (intern (downcase string) my-obarray))))
+                     (setq dabbrev--last-obarray my-obarray)
+                     (setq dabbrev--last-completion-buffer (current-buffer)))))
+               my-obarray)))))
+    (completion-in-region beg end table)))
 
 ;;;###autoload
 (defun dabbrev-expand (arg)
@@ -521,12 +526,13 @@ See also `dabbrev-abbrev-char-regexp' and \\[dabbrev-completion]."
       ;;--------------------------------
       (or expansion
 	  (setq expansion
-		(dabbrev--find-expansion abbrev direction
-					 (and (if (eq dabbrev-case-fold-search 'case-fold-search)
-						  case-fold-search
-						dabbrev-case-fold-search)
-					      (or (not dabbrev-upcase-means-case-search)
-						  (string= abbrev (downcase abbrev))))))))
+		(dabbrev--find-expansion
+                 abbrev direction
+                 (and (if (eq dabbrev-case-fold-search 'case-fold-search)
+                          case-fold-search
+                        dabbrev-case-fold-search)
+                      (or (not dabbrev-upcase-means-case-search)
+                          (string= abbrev (downcase abbrev))))))))
     (cond
      ((not expansion)
       (dabbrev--reset-global-variables)
@@ -667,13 +673,13 @@ of the expansion in `dabbrev--last-expansion-location'."
 	(let ((case-fold-search ignore-case)
 	      (count n))
 	  (while (and (> count 0)
-		      (setq expansion (dabbrev--search abbrev
-						       reverse
-						       (and ignore-case
-							    (if (eq dabbrev-case-distinction 'case-replace)
-								case-replace
-							      dabbrev-case-distinction))
-						       )))
+		      (setq expansion (dabbrev--search
+                                       abbrev reverse
+                                       (and ignore-case
+                                            (if (eq dabbrev-case-distinction
+                                                    'case-replace)
+                                                case-replace
+                                              dabbrev-case-distinction)))))
 	    (setq count (1- count))))
 	(and expansion
 	     (setq dabbrev--last-expansion-location (point)))
@@ -829,14 +835,15 @@ EXPANSION is the expansion substring to be used this time.
 RECORD-CASE-PATTERN, if non-nil, means set `dabbrev--last-case-pattern'
 to record whether we upcased the expansion, downcased it, or did neither."
   ;;(undo-boundary)
-  (let ((use-case-replace (and (if (eq dabbrev-case-fold-search 'case-fold-search)
-				   case-fold-search
-				 dabbrev-case-fold-search)
-			       (or (not dabbrev-upcase-means-case-search)
-				   (string= abbrev (downcase abbrev)))
-			       (if (eq dabbrev-case-replace 'case-replace)
-				   case-replace
-				 dabbrev-case-replace))))
+  (let ((use-case-replace
+         (and (if (eq dabbrev-case-fold-search 'case-fold-search)
+                  case-fold-search
+                dabbrev-case-fold-search)
+              (or (not dabbrev-upcase-means-case-search)
+                  (string= abbrev (downcase abbrev)))
+              (if (eq dabbrev-case-replace 'case-replace)
+                  case-replace
+                dabbrev-case-replace))))
 
     ;; If we upcased or downcased the original expansion,
     ;; do likewise for the subsequent words when we copy them.
@@ -862,12 +869,13 @@ to record whether we upcased the expansion, downcased it, or did neither."
     (let ((expansion-rest (substring expansion 1))
 	  (first-letter-position (string-match "[[:alpha:]]" abbrev)))
       (if (or (null first-letter-position)
-	      (and (not (and (or (string= expansion-rest (downcase expansion-rest))
-				 (string= expansion-rest (upcase expansion-rest)))
-			     (or (string= abbrev (downcase abbrev))
-				 (and (string= abbrev (upcase abbrev))
-				      (> (- (length abbrev) first-letter-position)
-					 1)))))
+	      (and (not
+                    (and (or (string= expansion-rest (downcase expansion-rest))
+                             (string= expansion-rest (upcase expansion-rest)))
+                         (or (string= abbrev (downcase abbrev))
+                             (and (string= abbrev (upcase abbrev))
+                                  (> (- (length abbrev) first-letter-position)
+                                     1)))))
 		   (string= abbrev
 			    (substring expansion 0 (length abbrev)))))
 	  (setq use-case-replace nil)))
@@ -951,9 +959,9 @@ Leaves point at the location of the start of the expansion."
       ;; Limited search.
       (save-restriction
 	(and dabbrev-limit
-	     (narrow-to-region dabbrev--last-expansion-location
-			       (+ (point)
-				  (if reverse (- dabbrev-limit) dabbrev-limit))))
+	     (narrow-to-region
+              dabbrev--last-expansion-location
+              (+ (point) (if reverse (- dabbrev-limit) dabbrev-limit))))
 	;;--------------------------------
 	;; Look for a distinct expansion, using dabbrev--last-table.
 	;;--------------------------------
