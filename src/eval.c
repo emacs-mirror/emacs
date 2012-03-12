@@ -124,6 +124,12 @@ Lisp_Object Vsignaling_function;
 
 int handling_signal;
 
+/* If non-nil, Lisp code must not be run since some part of Emacs is
+   in an inconsistent state.  Currently, x-create-frame uses this to
+   avoid triggering window-configuration-change-hook while the new
+   frame is half-initialized.  */
+Lisp_Object inhibit_lisp_code;
+
 static Lisp_Object funcall_lambda (Lisp_Object, ptrdiff_t, Lisp_Object *);
 static void unwind_to_catch (struct catchtag *, Lisp_Object) NO_RETURN;
 static int interactive_p (int);
@@ -3765,6 +3771,8 @@ alist of active lexical bindings.  */);
   Vautoload_queue = Qnil;
   staticpro (&Vsignaling_function);
   Vsignaling_function = Qnil;
+
+  inhibit_lisp_code = Qnil;
 
   defsubr (&Sor);
   defsubr (&Sand);

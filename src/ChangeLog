@@ -1,3 +1,12 @@
+2012-03-12  Chong Yidong  <cyd@gnu.org>
+
+	* eval.c (inhibit_lisp_code): Rename from
+	inhibit_window_configuration_change_hook; move from window.c.
+
+	* xfns.c (unwind_create_frame_1, Fx_create_frame):
+	* window.c (run_window_configuration_change_hook)
+	(syms_of_window): Callers changed.
+
 2012-03-11  Chong Yidong  <cyd@gnu.org>
 
 	* keymap.c (Fkey_description): Doc fix (Bug#9700).

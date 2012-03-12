@@ -810,10 +810,6 @@ extern Lisp_Object Vmouse_window;
 
 extern Lisp_Object Vmouse_event;
 
-/* If non-nil, run_window_configuration_change_hook does nothing.  */
-
-extern Lisp_Object inhibit_window_configuration_change_hook;
-
 EXFUN (Fnext_window, 3);
 EXFUN (Fselect_window, 2);
 EXFUN (Fset_window_buffer, 3);
