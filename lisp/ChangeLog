@@ -1,5 +1,10 @@
 2012-03-12  Chong Yidong  <cyd@gnu.org>
 
+	* nxml/nxml-mode.el (nxml-mode-map): Do not bind C-RET (Bug#6776).
+	(nxml-completion-at-point-function): New function.
+	(nxml-mode): Use it.
+	(nxml-bind-meta-tab-to-complete-flag): Default to t.
+
 	* emacs-lisp/package.el (package-unpack, package-unpack-single):
 	Load generated autoloads file before byte compiling (Bug#10970).
 	(package--make-autoloads-and-compile): New helper fun.

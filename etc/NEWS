@@ -771,6 +771,11 @@ See MH-E-NEWS for details.
 ---
 ** mpc.el: Can use pseudo tags of the form tag1|tag2 as a union of two tags.
 
+** nXML mode no longer binds C-RET to `nxml-complete'.
+Completion is now performed via `completion-at-point', bound to M-TAB.
+If `nxml-bind-meta-tab-to-complete-flag' is non-nil (the default),
+this performs tag completion.
+
 ---
 ** Prolog mode has been completely revamped, with lots of additional
 functionality such as more intelligent indentation, electricity, support for
