@@ -1,3 +1,9 @@
+2012-03-12  Leo Liu  <sdl.web@gmail.com>
+
+	* simple.el (kill-new): Use equal-including-properties for
+	comparison.
+	(kill-do-not-save-duplicates): Doc fix.
+
 2012-03-12  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* dabbrev.el: Fix cycle completion (bug#10963).
