@@ -825,28 +825,35 @@ The format of KBD-LAYOUT is the same as `quail-keyboard-layout'."
       (setq i 0)
       (while (< i quail-keyboard-layout-len)
 	(when (= (% i 30) 0)
+	  ;; Insert LRO to avoid bidi-reordering of keyboard cells.
+	  (insert (propertize (string ?\x202d) 'invisible t))
 	  (setq row (/ i 30))
 	  (if (> row 1)
 	      (insert-char 32 (+ row (/ (- row 2) 2)))))
 	(setq lower (aref layout i)
 	      upper (aref layout (1+ i)))
 	(insert bar)
-	(if (= (if (stringp lower) (string-width lower) (char-width lower)) 1)
+	(if (< (if (stringp lower) (string-width lower) (char-width lower)) 2)
 	    (insert " "))
-	;; Insert invisible LRM characters to force each keyboard row
-	;; be rendered left to right, and also to prevent reordering of
-	;; individual characters within each cell.  See
-	;; http://lists.gnu.org/archive/html/emacs-devel/2012-03/msg00085.html
-	;; for the reasons.
-	(insert (propertize (string ?\x200e) 'invisible t))
-	(insert lower)
-	(insert (propertize (string ?\x200e) 'invisible t))
-	(insert upper)
-	(if (= (if (stringp upper) (string-width upper) (char-width upper)) 1)
+	(if (and (characterp lower)
+		 (eq (get-char-code-property lower 'general-category) 'Mn))
+	    ;; Pad the left and right of non-spacing characters.
+	    (setq lower (compose-string (string lower) 0 1
+					(format "\t%c\t" lower))))
+	(if (and (characterp upper)
+		 (eq (get-char-code-property upper 'general-category) 'Mn))
+	    ;; Pad the left and right of non-spacing characters.
+	    (setq upper (compose-string (string upper) 0 1
+					(format "\t%c\t" upper))))
+	(insert lower (propertize " " 'invisible t) upper)
+	(if (< (if (stringp upper) (string-width upper) (char-width upper)) 2)
 	    (insert " "))
 	(setq i (+ i 2))
 	(if (= (% i 30) 0)
-	    (insert bar "\n")))
+	    (insert bar
+		    ;; Insert PDF to deny the previously inserted LRO.
+		    (propertize (string ?\x202c) 'invisible t)
+		    "\n")))
       ;; Insert horizontal lines while deleting blank key columns at the
       ;; beginning and end of each line.
       (save-restriction
@@ -857,21 +864,21 @@ The format of KBD-LAYOUT is the same as `quail-keyboard-layout'."
 	;;(delete-region pos (point)))
 	(let ((from1 100) (to1 0) from2 to2)
 	  (while (not (eobp))
-	    (if (looking-at "[| \u200e]*$")
+	    (if (looking-at "[| \u202c\u202d]*$")
 		;; The entire row is blank.
 		(delete-region (point) (match-end 0))
 	      ;; Delete blank key columns at the head.
-	      (if (looking-at " *\\(| \u200e \u200e  \\)+")
+	      (if (looking-at "\u202d? *\\(|     \\)+")
 		  (subst-char-in-region (point) (match-end 0) ?| ? ))
 	      ;; Delete blank key columns at the tail.
-	      (if (re-search-forward "\\( \u200e \u200e  |\\)+$"
+	      (if (re-search-forward "\\(     |\\)+\u202c?$"
 				     (line-end-position) t)
 		  (delete-region (match-beginning 0) (point)))
 	      (beginning-of-line))
 	    ;; Calculate the start and end columns of a horizontal line.
 	    (if (eolp)
 		(setq from2 from1 to2 to1)
-	      (skip-chars-forward " \u200e")
+	      (skip-chars-forward " \u202d")
 	      (setq from2 (current-column))
 	      (end-of-line)
 	      (setq to2 (current-column))
