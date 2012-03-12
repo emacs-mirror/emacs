@@ -1,3 +1,9 @@
+2012-03-12  Chong Yidong  <cyd@gnu.org>
+
+	* emacs-lisp/package.el (package-unpack, package-unpack-single):
+	Load generated autoloads file before byte compiling (Bug#10970).
+	(package--make-autoloads-and-compile): New helper fun.
+
 2012-03-12  Christopher Schmidt  <christopher@ch.ristopher.com>
 
 	* ibuffer.el (ibuffer-redisplay): Remove another gratuitous error.
