@@ -1,3 +1,8 @@
+2012-03-13  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* mail/sendmail.el (mail-encode-header):
+	Bind rfc2047-encode-encoded-words to nil.
+
 2012-03-13  Glenn Morris  <rgm@gnu.org>
 
 	* calendar/calendar.el (calendar-string-spread):
