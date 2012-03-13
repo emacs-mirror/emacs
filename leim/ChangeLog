@@ -1,3 +1,8 @@
+2012-03-13  Йордан Миладинов  <jordanmiladinov@gmail.com>  (tiny change)
+
+	* quail/cyrillic.el (bulgarian-alt-phonetic):
+	New input method.  (Bug#10893)
+
 2012-03-09  Mohsen BANAN  <libre@mohsen.1.banan.byname.net>
 
 	* quail/persian.el: Update which includes: (1) full compliance to
