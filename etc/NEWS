@@ -251,7 +251,8 @@ On character terminals, these methods are used for characters that
 cannot be encoded by the `terminal-coding-system'.
 
 ---
-*** New input methods for Farsi: farsi and farsi-translit.
+*** New input methods for Farsi: farsi and farsi-translit;
+and for Bulgarian: bulgarian-alt-phonetic.
 
 +++
 *** `nobreak-char-display' now also highlights Unicode hyphen chars
