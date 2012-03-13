@@ -1,3 +1,10 @@
+2012-03-13  Tim Landscheidt  <tim@tim-landscheidt.de>  (tiny change)
+
+	* calendar/icalendar.el (icalendar-export-file, icalendar-import-file):
+	* emulation/ws-mode.el (ws-query-replace):
+	* sort.el (sort-regexp-fields):
+	Fix missing trailing whitespace in interactive prompts.  (Bug#11002)
+
 2012-03-12  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* dabbrev.el: Fix cycle completion order (bug#10963).
