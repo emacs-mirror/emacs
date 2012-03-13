@@ -1371,7 +1371,7 @@ This can be useful when `inhibit-quit' is set.
 
 +++
 ** The new function `server-eval-at' allows evaluation of Lisp forms on
-named Emacs server instances, using TCP sockets.
+named Emacs server instances.
 
 +++
 ** `call-process' and `call-process-region' allow a `(:file "file")' spec
