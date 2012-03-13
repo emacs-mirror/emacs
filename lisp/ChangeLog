@@ -1,3 +1,9 @@
+2012-03-13  Kaushik Srenevasan  <ksrenevasan@gmail.com>  (tiny change)
+
+	* progmodes/gdb-mi.el (gdb-invalidate-disassembly):
+	For dynamically generated code, follow $PC.
+	(gdb-disassembly-handler-custom): Handle no function name case.
+
 2012-03-13  Tim Landscheidt  <tim@tim-landscheidt.de>  (tiny change)
 
 	* calendar/icalendar.el (icalendar-export-file, icalendar-import-file):
