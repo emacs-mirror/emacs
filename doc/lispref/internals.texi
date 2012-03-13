@@ -134,7 +134,7 @@ in a different location since it was dumped.
 This function delays the initialization of @var{symbol} to the next
 Emacs start.  You normally use this function by specifying it as the
 @code{:initialize} property of a customizable variable.  (The argument
-@var{value} is unused, and is provided only for compatiblity with the
+@var{value} is unused, and is provided only for compatibility with the
 form Custom expects.)
 @end defun
 

@@ -659,7 +659,7 @@ Fill in VALUES if based on an article."
 	     " containing the word)\n"
 	     "    substring=   to match words containing the substring\n"
 	     "    substring=N  to match words containing the substring, allowing\n"
-	     "                  up to N errors(mising/extra/different letters)\n"
+	     "                  up to N errors(missing/extra/different letters)\n"
 	     "    ^substring=  to match the substring at the beginning of a word.\n"))
     (widget-insert
      "Whitespace will be converted to ',' (i.e. AND).  Use '/' for OR.\n\n")

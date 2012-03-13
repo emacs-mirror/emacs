@@ -236,7 +236,7 @@
 
 (defun c-invalidate-macro-cache (beg end)
   ;; Called from a before-change function.  If the change region is before or
-  ;; in the macro characterised by `c-macro-cache' etc., nullify it
+  ;; in the macro characterized by `c-macro-cache' etc., nullify it
   ;; appropriately.  BEG and END are the standard before-change-functions
   ;; parameters.  END isn't used.
   (cond
@@ -2163,7 +2163,7 @@ comment at the start of cc-engine.el for more info."
 (make-variable-buffer-local 'c-state-semi-nonlit-pos-cache-limit)
 ;; An upper limit on valid entries in `c-state-semi-nonlit-pos-cache'.  This is
 ;; reduced by buffer changes, and increased by invocations of
-;; `c-state-literal-at'.  FIMXE!!!
+;; `c-state-literal-at'.  FIXME!!!
 
 (defsubst c-state-pp-to-literal (from to)
   ;; Do a parse-partial-sexp from FROM to TO, returning either

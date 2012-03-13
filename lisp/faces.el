@@ -1516,7 +1516,7 @@ If SPEC is nil, return nil."
   (apply 'set-face-attribute face frame
 	 (if (eq face 'default)
 	     ;; For the default face, avoid making any attribute
-	     ;; unspecifed.  Instead, set attributes to default values
+	     ;; unspecified.  Instead, set attributes to default values
 	     ;; (see also realize_default_face in xfaces.c).
 	     (append
 	      '(:underline nil :overline nil :strike-through nil

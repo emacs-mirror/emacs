@@ -1756,8 +1756,8 @@ the STRINGS are just concatenated and the result truncated."
                           (if (< (length strings) 2)
                               (append (list "") strings (list ""))
                             strings)))
-         (n (- length (length (apply 'concat strings))))
-         (m (1- (length strings)))
+         (n (- length (string-width (apply 'concat strings))))
+         (m (* (1- (length strings)) (char-width char)))
          (s (car strings))
          (strings (cdr strings))
          (i 0))
@@ -1766,7 +1766,7 @@ the STRINGS are just concatenated and the result truncated."
                       (make-string (max 0 (/ (+ n i) m)) char)
                       string)
             i (1+ i)))
-    (substring s 0 length)))
+    (truncate-string-to-width s length)))
 
 (defun calendar-update-mode-line ()
   "Update the calendar mode line with the current date and date style."

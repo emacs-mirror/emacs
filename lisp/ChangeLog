@@ -1,3 +1,45 @@
+2012-03-13  Glenn Morris  <rgm@gnu.org>
+
+	* calendar/calendar.el (calendar-string-spread):
+	Handle non-unit-width characters a bit better.  (Bug#10978)
+
+2012-03-13  Leo Liu  <sdl.web@gmail.com>
+
+	* vc/vc-hg.el (vc-hg-working-revision): Rework to work with both
+	directory and file as argument (Bug#10822).
+
+2012-03-13  Kaushik Srenevasan  <ksrenevasan@gmail.com>  (tiny change)
+
+	* progmodes/gdb-mi.el (gdb-invalidate-disassembly):
+	For dynamically generated code, follow $PC.
+	(gdb-disassembly-handler-custom): Handle no function name case.
+
+2012-03-13  Tim Landscheidt  <tim@tim-landscheidt.de>  (tiny change)
+
+	* calendar/icalendar.el (icalendar-export-file, icalendar-import-file):
+	* emulation/ws-mode.el (ws-query-replace):
+	* sort.el (sort-regexp-fields):
+	Fix missing trailing whitespace in interactive prompts.  (Bug#11002)
+
+2012-03-12  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* dabbrev.el: Fix cycle completion order (bug#10963).
+	(dabbrev--last-obarray, dabbrev--last-completion-buffer): Remove.
+	(dabbrev-completion): Don't use an obarray; provide
+	a cycle-sort-function.
+
+2012-03-12  Leo Liu  <sdl.web@gmail.com>
+
+	* simple.el (kill-new): Use equal-including-properties for
+	comparison.
+	(kill-do-not-save-duplicates): Doc fix.
+
+2012-03-12  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* dabbrev.el: Fix cycle completion (bug#10963).
+	Use lexical binding and wrap to 80 columns.
+	(dabbrev-completion): Delay computing the list of completions.
+
 2012-03-12  Kenichi Handa  <handa@m17n.org>
 
 	* international/quail.el (quail-insert-kbd-layout): Surround each

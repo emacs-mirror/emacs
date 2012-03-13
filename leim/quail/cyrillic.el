@@ -1236,6 +1236,79 @@ Unicode based."
  ("." ?$,1(n(B)
  ("/" ?.))
 
+(quail-define-package
+ "bulgarian-alt-phonetic" "Bulgarian" "$,1(1(=(D(B"
+ nil
+ "Bulgarian alternative Phonetic keyboard layout, producing Unicode.
+
+This phonetic layout replaces all the Latin letters with Bulgarian
+\(Cyrillic\) letters based on similarities in their pronunciation or look.
+
+Note that, since the letters ',Li(B', ',Ll(B', ',Ln(B' and ',Lo(B' are attached to the
+']', '\', '`' and '[' keys respectively, Caps Lock does not affect them."
+nil t t t t nil nil nil nil nil t)
+
+;;  $,1(N(B  1! 2@ 3$,1uV(B 4$ 5% 6$,1tL(B 7,A'(B 8* 9( 0) -$,1rs(B =+ $,1(l(}(B
+;;      $,1(G(B  $,1(H(B  $,1(5(B  $,1(@(B  $,1(B(B  $,1(J(B  $,1(C(B  $,1(8(B  $,1(>(B  $,1(?(B  $,1(O(B  $,1(I(B
+;;       ,L0(B  $,1(A(B  $,1(4(B  $,1(D(B  $,1(3(B  $,1(E(B  $,1(9(B  $,1(:(B  $,1(;(B  :; '"
+;;        $,1(7(B  $,1(6(B  $,1(F(B  $,1(2(B  $,1(1(B  $,1(=(B  $,1(<(B  ,$,1r~(B .$,1r|(B /?
+
+(quail-define-rules
+ ("#" ?,Lp(B)
+ ("&" ?,A'(B)
+ ("/#" ?#)
+ ("/&" ?&)
+ ("/<" ?<)
+ ("/>" ?>)
+ ("/[" ?\[)
+ ("/\\" ?\\)
+ ("/]" ?\])
+ ("/^" ?^)
+ ("/_" ?_)
+ ("/`" ?`)
+ ("/{" ?{)
+ ("/|" ?|)
+ ("/}" ?})
+ ("/~" ?~)
+ ("<" ?$,1r~(B)
+ (">" ?$,1r|(B)
+ ("A" ?$,1(0(B) ("a" ?$,1(P(B)
+ ("B" ?$,1(1(B) ("b" ?$,1(Q(B)
+ ("C" ?$,1(F(B) ("c" ?$,1(f(B)
+ ("D" ?$,1(4(B) ("d" ?$,1(T(B)
+ ("E" ?$,1(5(B) ("e" ?$,1(U(B)
+ ("F" ?$,1(D(B) ("f" ?$,1(d(B)
+ ("G" ?$,1(3(B) ("g" ?$,1(S(B)
+ ("H" ?$,1(E(B) ("h" ?$,1(e(B)
+ ("I" ?$,1(8(B) ("i" ?$,1(X(B)
+ ("J" ?$,1(9(B) ("j" ?$,1(Y(B)
+ ("K" ?$,1(:(B) ("k" ?$,1(Z(B)
+ ("L" ?$,1(;(B) ("l" ?$,1([(B)
+ ("M" ?$,1(<(B) ("m" ?$,1(\(B)
+ ("N" ?$,1(=(B) ("n" ?$,1(](B)
+ ("O" ?$,1(>(B) ("o" ?$,1(^(B)
+ ("P" ?$,1(?(B) ("p" ?$,1(_(B)
+ ("Q" ?$,1(G(B) ("q" ?$,1(g(B)
+ ("R" ?$,1(@(B) ("r" ?$,1(`(B)
+ ("S" ?$,1(A(B) ("s" ?$,1(a(B)
+ ("T" ?$,1(B(B) ("t" ?$,1(b(B)
+ ("U" ?$,1(C(B) ("u" ?$,1(c(B)
+ ("V" ?$,1(2(B) ("v" ?$,1(R(B)
+ ("W" ?$,1(H(B) ("w" ?$,1(h(B)
+ ("X" ?$,1(6(B) ("x" ?$,1(V(B)
+ ("Y" ?$,1(J(B) ("y" ?$,1(j(B)
+ ("Z" ?$,1(7(B) ("z" ?$,1(W(B)
+ ("[" ?$,1(o(B)
+ ("\\" ?$,1(l(B)
+ ("]" ?$,1(i(B)
+ ("^" ?$,1tL(B)
+ ("_" ?$,1rs(B)
+ ("`" ?$,1(n(B)
+ ("{" ?$,1(O(B)
+ ("|" ?$,1(}(B)
+ ("}" ?$,1(I(B)
+ ("~" ?$,1(N(B))
+
 ;; From `Bulgarian-PHO.kmap for Yudit', Alexander Shopov
 ;; <al_shopov@web.bg>.
 
