@@ -1,3 +1,8 @@
+2012-03-13  Leo Liu  <sdl.web@gmail.com>
+
+	* vc/vc-hg.el (vc-hg-working-revision): Rework to work with both
+	directory and file as argument (Bug#10822).
+
 2012-03-13  Kaushik Srenevasan  <ksrenevasan@gmail.com>  (tiny change)
 
 	* progmodes/gdb-mi.el (gdb-invalidate-disassembly):
