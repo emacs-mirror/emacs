@@ -156,9 +156,20 @@ The variable `url-queue-timeout' sets a timeout."
       (while (setq process (get-buffer-process (url-queue-buffer job)))
 	(set-process-sentinel process 'ignore)
 	(ignore-errors
-	  (delete-process process))))
-    (ignore-errors
-      (kill-buffer (url-queue-buffer job)))))
+	  (delete-process process)))))
+  ;; Call the callback with an error message to ensure that the caller
+  ;; is notified that the job has failed.
+  (with-current-buffer
+      (if (bufferp (url-queue-buffer job))
+	  ;; Use the (partially filled) process buffer it it exists.
+	  (url-queue-buffer job)
+	;; If not, just create a new buffer, which will probably be
+	;; killed again by the caller.
+	(generate-new-buffer " *temp*"))
+    (apply (url-queue-callback job)
+	   (cons (list :error (list 'error 'url-queue-timeout
+				    "Queue timeout exceeded"))
+		 (url-queue-cbargs job)))))
 
 (provide 'url-queue)
 

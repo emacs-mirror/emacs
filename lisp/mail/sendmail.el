@@ -1085,9 +1085,10 @@ Return non-nil if and only if some part of the header is encoded."
 		(cons selected mm-coding-system-priorities)
 	      mm-coding-system-priorities))
 	   (tick (buffer-chars-modified-tick))
-	   ;; rms: this proved necessary, but I don't recall why.
-	   ;; Can anyone determine why, and state it here?
-	   (rfc2047-encode-encoded-words t))
+	   ;; Many mailers, including Gnus, passes a message of which
+	   ;; the header is already encoded, so this is necessary to
+	   ;; prevent it from being encoded again.
+	   (rfc2047-encode-encoded-words nil))
       (rfc2047-encode-message-header)
       (= tick (buffer-chars-modified-tick)))))
 
