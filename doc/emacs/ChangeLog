@@ -1,3 +1,7 @@
+2012-03-15  Dani Moncayo  <dmoncayo@gmail.com>  (tiny change)
+
+	* dired.texi (Shell Commands in Dired): Fix typo.
+
 2012-03-04  Chong Yidong  <cyd@gnu.org>
 
 	* killing.texi (Clipboard): Document clipboard manager.
