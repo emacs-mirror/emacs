@@ -1,3 +1,9 @@
+2012-03-15  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* imenu.el: Fix multiple inheritance breakage (bug#9199).
+	(imenu-add-to-menubar): Don't add a redundant index.
+	(imenu-update-menubar): Handle a dynamically composed keymap.
+
 2012-03-13  Katsumi Yamaoka  <yamaoka@jpl.org>
 
 	* mail/sendmail.el (mail-encode-header):
