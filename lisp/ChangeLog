@@ -1,3 +1,11 @@
+2012-03-15  Chong Yidong  <cyd@gnu.org>
+
+	* emacs-lisp/ring.el (ring-extend): New function.
+	(ring-insert+extend): Extend the ring correctly (Bug#11019).
+
+	* comint.el (comint-read-input-ring)
+	(comint-add-to-input-history): Grow comint-input-ring lazily.
+
 2012-03-15  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* progmodes/perl-mode.el (perl-syntax-propertize-special-constructs):

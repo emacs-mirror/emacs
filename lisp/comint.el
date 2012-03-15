@@ -922,15 +922,18 @@ See also `comint-input-ignoredups' and `comint-write-input-ring'."
 	(t
 	 (let* ((file comint-input-ring-file-name)
 		(count 0)
-		(size comint-input-ring-size)
-		(ring (make-ring size)))
+		;; Some users set HISTSIZE or `comint-input-ring-size'
+		;; to huge numbers.  Don't allocate a huge ring right
+		;; away; there might not be that much history.
+		(ring-size (min 1500 comint-input-ring-size))
+		(ring (make-ring ring-size)))
 	   (with-temp-buffer
              (insert-file-contents file)
              ;; Save restriction in case file is already visited...
              ;; Watch for those date stamps in history files!
              (goto-char (point-max))
              (let (start end history)
-               (while (and (< count size)
+               (while (and (< count comint-input-ring-size)
                            (re-search-backward comint-input-ring-separator
                                                nil t)
                            (setq end (match-beginning 0)))
@@ -941,15 +944,18 @@ See also `comint-input-ignoredups' and `comint-write-input-ring'."
                          (point-min)))
                  (setq history (buffer-substring start end))
                  (goto-char start)
-                 (if (and (not (string-match comint-input-history-ignore
-                                             history))
-                          (or (null comint-input-ignoredups)
-                              (ring-empty-p ring)
-                              (not (string-equal (ring-ref ring 0)
-                                                 history))))
-                     (progn
-                       (ring-insert-at-beginning ring history)
-                       (setq count (1+ count)))))))
+                 (when (and (not (string-match comint-input-history-ignore
+					       history))
+			    (or (null comint-input-ignoredups)
+				(ring-empty-p ring)
+				(not (string-equal (ring-ref ring 0)
+						   history))))
+		   (when (= count ring-size)
+		     (ring-extend ring (min (- comint-input-ring-size ring-size)
+					    ring-size))
+		     (setq ring-size (ring-size ring)))
+		   (ring-insert-at-beginning ring history)
+		   (setq count (1+ count))))))
 	   (setq comint-input-ring ring
 		 comint-input-ring-index nil)))))
 
@@ -1691,13 +1697,18 @@ Argument 0 is the command name."
 (defun comint-add-to-input-history (cmd)
   "Add CMD to the input history.
 Ignore duplicates if `comint-input-ignoredups' is non-nil."
-  (if (and (funcall comint-input-filter cmd)
-	   (or (null comint-input-ignoredups)
-	       (not (ring-p comint-input-ring))
-	       (ring-empty-p comint-input-ring)
-	       (not (string-equal (ring-ref comint-input-ring 0)
-				  cmd))))
-      (ring-insert comint-input-ring cmd)))
+  (when (and (funcall comint-input-filter cmd)
+	     (or (null comint-input-ignoredups)
+		 (not (ring-p comint-input-ring))
+		 (ring-empty-p comint-input-ring)
+		 (not (string-equal (ring-ref comint-input-ring 0) cmd))))
+    ;; If `comint-input-ring' is full, maybe grow it.
+    (let ((size (ring-size comint-input-ring)))
+      (and (= size (ring-length comint-input-ring))
+	   (< size comint-input-ring-size)
+	   (ring-extend comint-input-ring
+			(min size (- comint-input-ring-size size)))))
+    (ring-insert comint-input-ring cmd)))
 
 (defun comint-send-input (&optional no-newline artificial)
   "Send input to process.
