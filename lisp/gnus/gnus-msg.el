@@ -1453,7 +1453,6 @@ If YANK is non-nil, include the original article."
     (error "Gnus has been shut down"))
   (gnus-setup-message (if (message-mail-user-agent) 'message 'bug)
     (unless (message-mail-user-agent)
-      (delete-other-windows)
       (when gnus-bug-create-help-buffer
 	(switch-to-buffer "*Gnus Help Bug*")
 	(erase-buffer)

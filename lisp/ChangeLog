@@ -1,3 +1,20 @@
+2012-03-15  Chong Yidong  <cyd@gnu.org>
+
+	* emacs-lisp/ring.el (ring-extend): New function.
+	(ring-insert+extend): Extend the ring correctly (Bug#11019).
+
+	* comint.el (comint-read-input-ring)
+	(comint-add-to-input-history): Grow comint-input-ring lazily.
+
+2012-03-15  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* progmodes/perl-mode.el (perl-syntax-propertize-special-constructs):
+	Fix up parsing of multiline twoarg non-paired elements (bug#11014).
+
+	* imenu.el: Fix multiple inheritance breakage (bug#9199).
+	(imenu-add-to-menubar): Don't add a redundant index.
+	(imenu-update-menubar): Handle a dynamically composed keymap.
+
 2012-03-13  Katsumi Yamaoka  <yamaoka@jpl.org>
 
 	* mail/sendmail.el (mail-encode-header):

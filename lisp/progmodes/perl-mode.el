@@ -388,7 +388,11 @@ The expansion is entirely correct because it uses the C preprocessor."
                       ;; In case of error, make sure we don't move backward.
 		      (scan-error (goto-char startpos) nil))
 		  (not (or (nth 8 (parse-partial-sexp
-				   (point) limit nil nil state 'syntax-table))
+				   ;; Since we don't know if point is within
+				   ;; the first or the scond arg, we have to
+				   ;; start from the beginning.
+				   (if twoargs (1+ (nth 8 state)) (point))
+				   limit nil nil state 'syntax-table))
 			   ;; If we have a self-paired opener and a twoargs
 			   ;; command, the form is s/../../ so we have to skip
 			   ;; a second time.

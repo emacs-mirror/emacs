@@ -1,3 +1,22 @@
+2012-03-14  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* gnus-sum.el (gnus-update-marks): Don't propagate marks unless
+	requested (bug#10961).
+
+	* shr.el (shr-table-widths): Divide the extra width more fairly over
+	the TDs (bug#10973).
+	(shr-render-td): Don't delete too much padding.
+	(shr-natural-width): Compute the natural width more correctly.
+	(shr-insert): Allow the natural width to be computed for tables again.
+	(shr-tag-table-1): Rework how the natural widths are computed by
+	rendering the table a third time.
+	(shr-natural-width): Removed.
+	(shr-buffer-width): New function.
+	(shr-expand-newlines): Use it.
+
+	* gnus-msg.el (gnus-bug): Don't delete the other windows.  We may be
+	using a `gnus-use-full-window' setup (bug#11013).
+
 2012-03-12  Lars Magne Ingebrigtsen  <larsi@gnus.org>
 
 	* gnus-int.el (gnus-backend-trace): Flip default to nil before Emacs
