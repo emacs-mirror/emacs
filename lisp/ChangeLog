@@ -1,3 +1,8 @@
+2012-03-16  Glenn Morris  <rgm@gnu.org>
+
+	* calendar/calendar.el (calendar-insert-at-column):
+	Handle non-unit-width characters a bit better.  (Bug#10978)
+
 2012-03-15  Chong Yidong  <cyd@gnu.org>
 
 	* emacs-lisp/ring.el (ring-extend): New function.
