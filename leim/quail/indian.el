@@ -440,7 +440,7 @@ Full key sequences are listed below:")
 (if nil
     (quail-define-package "telugu-inscript" "Telugu" "TlgIS" t "Telugu keyboard Inscript"))
 (quail-define-inscript-package
- indian-dev-base-table inscript-dev-keytable
+ indian-tlg-base-table inscript-dev-keytable
  "telugu-inscript" "Telugu" "TlgIS"
  "Telugu keyboard Inscript.")
 

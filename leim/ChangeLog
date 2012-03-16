@@ -1,3 +1,7 @@
+2012-03-16  Kenichi Handa  <handa@m17n.org>
+
+	* quail/indian.el (telugu-inscript): Fix typo.  (Bug#10936)
+
 2012-03-13  Йордан Миладинов  <jordanmiladinov@gmail.com>  (tiny change)
 
 	* quail/cyrillic.el (bulgarian-alt-phonetic):
