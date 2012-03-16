@@ -469,6 +469,11 @@ been shown in a specific window.
 This is handy for minibuffer-only frames, and is also used for the feature
 where mouse-1 pops up *Messages*"', which can now easily be changed.
 
+---
+** Minibuffers set `truncate-lines' to nil.
+If you want to change the value to something else, you could use
+for example minibuffer-setup-hook.
+
 
 * Editing Changes in Emacs 24.1
 
