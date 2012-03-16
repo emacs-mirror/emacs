@@ -1,5 +1,8 @@
 2012-03-16  Glenn Morris  <rgm@gnu.org>
 
+	* subr.el (eval-after-load): If named feature is provided not from
+	a file, run after-load forms.  (Bug#10946)
+
 	* calendar/calendar.el (calendar-insert-at-column):
 	Handle non-unit-width characters a bit better.  (Bug#10978)
 

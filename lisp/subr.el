@@ -1785,6 +1785,8 @@ this name matching.
 
 Alternatively, FILE can be a feature (i.e. a symbol), in which case FORM
 is evaluated at the end of any file that `provide's this feature.
+If the feature is provided when evaluating code not associated with a
+file, FORM is evaluated immediately after the provide statement.
 
 Usually FILE is just a library name like \"font-lock\" or a feature name
 like 'font-lock.
@@ -1814,14 +1816,16 @@ This function makes or adds to an entry on `after-load-alist'."
 	;; make sure that `form' is really run "after-load" in case the provide
 	;; call happens early.
 	(setq form
-	      `(when load-file-name
-		 (let ((fun (make-symbol "eval-after-load-helper")))
-		   (fset fun `(lambda (file)
-				(if (not (equal file ',load-file-name))
-				    nil
-				  (remove-hook 'after-load-functions ',fun)
-				  ,',form)))
-		   (add-hook 'after-load-functions fun)))))
+	      `(if load-file-name
+		   (let ((fun (make-symbol "eval-after-load-helper")))
+		     (fset fun `(lambda (file)
+				  (if (not (equal file ',load-file-name))
+				      nil
+				    (remove-hook 'after-load-functions ',fun)
+				    ,',form)))
+		     (add-hook 'after-load-functions fun))
+		 ;; Not being provided from a file, run form right now.
+		 ,form)))
       ;; Add FORM to the element unless it's already there.
       (unless (member form (cdr elt))
 	(nconc elt (purecopy (list form)))))))
