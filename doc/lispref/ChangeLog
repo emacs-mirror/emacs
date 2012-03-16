@@ -1,3 +1,8 @@
+2012-03-16  Glenn Morris  <rgm@gnu.org>
+
+	* modes.texi (Major Mode Conventions): Mention the strange
+	relationship between View mode and special modes.  (Bug#10650)
+
 2012-03-11  Chong Yidong  <cyd@gnu.org>
 
 	* windows.texi (Window Configurations): save-window-excursion is
