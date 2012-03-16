@@ -1,3 +1,8 @@
+2012-03-16  Aaron S. Hawley  <Aaron.S.Hawley@gmail.com>
+
+	* tar-mode.el (tar-mode): Fix saving by conditionally undoing
+        `special-mode' setting of `buffer-read-only'.  (Bug#11010)
+
 2012-03-16  Glenn Morris  <rgm@gnu.org>
 
 	* view.el (view-buffer, view-buffer-other-window)
