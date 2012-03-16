@@ -1,3 +1,7 @@
+2012-03-16  Leo Liu  <sdl.web@gmail.com>
+
+	* emacs-lisp/copyright.el (copyright-year-ranges): Fix typo.
+
 2012-03-16  Alan Mackenzie  <acm@muc.de>
 
 	Further optimise the handling of large macros.
