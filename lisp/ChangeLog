@@ -1,3 +1,20 @@
+2012-03-16  Alan Mackenzie  <acm@muc.de>
+
+	Further optimise the handling of large macros.
+
+	* progmodes/cc-engine.el (c-crosses-statement-barrier-p): Use a
+	limit to a call of `c-literal-limits'.
+	(c-determine-+ve-limit): New function.
+	(c-at-macro-vsemi-p): Move `c-in-literal' to the bottom of an
+	`and'.
+	(c-guess-basic-syntax): In macros, restrict a search limit to
+	2000.
+	In CASE 5B, restrict a search limit to 500.
+	(c-just-after-func-arglist-p): Obviouly wrong `or' -> `and'.
+
+	* progmodes/cc-mode.el (c-neutralize-syntax-in-and-mark-CPP):
+	Restrict macro bounds to +-500 from after-change's BEG END.
+
 2012-03-16  Leo Liu  <sdl.web@gmail.com>
 
 	* font-lock.el (lisp-font-lock-keywords-2): Add letrec.

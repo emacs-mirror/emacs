@@ -1246,7 +1246,7 @@ comment at the start of cc-engine.el for more info."
 		       (c-at-vsemi-p))))
 	      (throw 'done vsemi-pos))
 	     ;; In a string/comment?
-	     ((setq lit-range (c-literal-limits))
+	     ((setq lit-range (c-literal-limits from))
 	      (goto-char (cdr lit-range)))
 	     ((eq (char-after) ?:)
 	      (forward-char)
@@ -3250,8 +3250,7 @@ comment at the start of cc-engine.el for more info."
 	      (if scan-forward-p
 		  (progn (narrow-to-region (point-min) here)
 			 (c-append-to-state-cache good-pos))
-
-		(c-get-cache-scan-pos good-pos))))
+		good-pos)))
 
        (t ; (eq strategy 'IN-LIT)
 	(setq c-state-cache nil
@@ -4563,6 +4562,38 @@ comment at the start of cc-engine.el for more info."
 	(point-min))
        (t
 	(c-determine-limit (- how-far-back count) base try-size))))))
+
+(defun c-determine-+ve-limit (how-far &optional start-pos)
+  ;; Return a buffer position about HOW-FAR non-literal characters forward
+  ;; from START-POS (default point), which must not be inside a literal.
+  (save-excursion
+    (let ((pos (or start-pos (point)))
+	  (count how-far)
+	  (s (parse-partial-sexp (point) (point)))) ; null state
+      (while (and (not (eobp))
+		  (> count 0))
+	;; Scan over counted characters.
+	(setq s (parse-partial-sexp
+		 pos
+		 (min (+ pos count) (point-max))
+		 nil			; target-depth
+		 nil			; stop-before
+		 s			; state
+		 'syntax-table))	; stop-comment
+	(setq count (- count (- (point) pos) 1)
+	      pos (point))
+	;; Scan over literal characters.
+	(if (nth 8 s)
+	    (setq s (parse-partial-sexp
+		     pos
+		     (point-max)
+		     nil		; target-depth
+		     nil		; stop-before
+		     s			; state
+		     'syntax-table)	; stop-comment
+		  pos (point))))
+      (point))))
+
 
 ;; `c-find-decl-spots' and accompanying stuff.
 
@@ -7670,8 +7701,8 @@ comment at the start of cc-engine.el for more info."
     (and
      (eq (c-beginning-of-statement-1 lim) 'same)
 
-     (not (or (c-major-mode-is 'objc-mode)
-	      (c-forward-objc-directive)))
+     (not (and (c-major-mode-is 'objc-mode)
+	       (c-forward-objc-directive)))
 
      (setq id-start
 	   (car-safe (c-forward-decl-or-cast-1 (c-point 'bosws) nil nil)))
@@ -8635,7 +8666,6 @@ comment at the start of cc-engine.el for more info."
 	(setq pos (point)))
       (and
        c-macro-with-semi-re
-       (not (c-in-literal))
        (eq (skip-chars-backward " \t") 0)
 
        ;; Check we've got nothing after this except comments and empty lines
@@ -8666,7 +8696,9 @@ comment at the start of cc-engine.el for more info."
 	     (c-backward-syntactic-ws)
 	     t))
        (c-simple-skip-symbol-backward)
-       (looking-at c-macro-with-semi-re)))))
+       (looking-at c-macro-with-semi-re)
+       (goto-char pos)
+       (not (c-in-literal))))))		; The most expensive check last. 
 
 (defun c-macro-vsemi-status-unknown-p () t) ; See cc-defs.el.
 
@@ -9207,6 +9239,10 @@ comment at the start of cc-engine.el for more info."
 			  containing-sexp nil)))
 	      (setq lim (1+ containing-sexp))))
 	(setq lim (point-min)))
+      (when (c-beginning-of-macro)
+	(goto-char indent-point)
+	(let ((lim1 (c-determine-limit 2000)))
+	  (setq lim (max lim lim1))))
 
       ;; If we're in a parenthesis list then ',' delimits the
       ;; "statements" rather than being an operator (with the
@@ -9571,7 +9607,8 @@ comment at the start of cc-engine.el for more info."
 	 ;; CASE 5B: After a function header but before the body (or
 	 ;; the ending semicolon if there's no body).
 	 ((save-excursion
-	    (when (setq placeholder (c-just-after-func-arglist-p lim))
+	    (when (setq placeholder (c-just-after-func-arglist-p
+				     (max lim (c-determine-limit 500))))
 	      (setq tmp-pos (point))))
 	  (cond
 
@@ -9779,7 +9816,7 @@ comment at the start of cc-engine.el for more info."
 	   ;; top level construct.  Or, perhaps, an unrecognized construct.
 	   (t
 	    (while (and (setq placeholder (point))
-			(eq (car (c-beginning-of-decl-1 containing-sexp))
+			(eq (car (c-beginning-of-decl-1 containing-sexp)) ; Can't use `lim' here.
 			    'same)
 			(save-excursion
 			  (c-backward-syntactic-ws)
@@ -9882,7 +9919,7 @@ comment at the start of cc-engine.el for more info."
 			      (eq (cdar c-state-cache) (point)))
 			 ;; Speed up the backward search a bit.
 			 (goto-char (caar c-state-cache)))
-		     (c-beginning-of-decl-1 containing-sexp)
+		     (c-beginning-of-decl-1 containing-sexp) ; Can't use `lim' here.
 		     (setq placeholder (point))
 		     (if (= start (point))
 			 ;; The '}' is unbalanced.
