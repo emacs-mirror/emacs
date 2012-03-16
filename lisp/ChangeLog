@@ -1,3 +1,7 @@
+2012-03-16  Leo Liu  <sdl.web@gmail.com>
+
+	* font-lock.el (lisp-font-lock-keywords-2): Add letrec.
+
 2012-03-16  Aaron S. Hawley  <Aaron.S.Hawley@gmail.com>
 
 	* tar-mode.el (tar-mode): Fix saving by conditionally undoing
