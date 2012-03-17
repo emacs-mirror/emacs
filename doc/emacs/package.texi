@@ -157,25 +157,38 @@ directory name of the package archive.  You can alter this list if you
 wish to use third party package archives---but do so at your own risk,
 and use only third parties that you think you can trust!
 
-  Once a package is downloaded and installed, it takes effect in the
-current Emacs session.  What ``taking effect'' means depends on the
-package; most packages just make some new commands available, while
-others have more wide-ranging effects on the Emacs session.  For such
-information, consult the package's help buffer.
+  Once a package is downloaded and installed, it is @dfn{loaded} into
+the current Emacs session.  Loading a package is not quite the same as
+loading a Lisp library (@pxref{Lisp Libraries}); its effect varies
+from package to package.  Most packages just make some new commands
+available, while others have more wide-ranging effects on the Emacs
+session.  For such information, consult the package's help buffer.
 
-  By default, Emacs also automatically loads all installed packages
-(causing them to ``take effect'') in subsequent Emacs sessions.  This
-happens at startup, after processing the init file (@pxref{Init
-File}).  As an exception, Emacs does not load packages at startup if
-invoked with the @samp{-q} or @samp{--no-init-file} options
-(@pxref{Initial Options}).
+  By default, Emacs also automatically loads all installed packages in
+subsequent Emacs sessions.  This happens at startup, after processing
+the init file (@pxref{Init File}).  As an exception, Emacs does not
+load packages at startup if invoked with the @samp{-q} or
+@samp{--no-init-file} options (@pxref{Initial Options}).
 
 @vindex package-enable-at-startup
-@findex package-initialize
   To disable automatic package loading, change the variable
-@code{package-enable-at-startup} to @code{nil}.  If you do this, you
-can use the command @kbd{M-x package-initialize} to load your
-packages.
+@code{package-enable-at-startup} to @code{nil}.
+
+@findex package-initialize
+  The reason automatic package loading occurs after loading the init
+file is that user options only receive their customized values after
+loading the init file, including user options which affect the
+packaging system.  In some circumstances, you may want to load
+packages explicitly in your init file (usually because some other code
+in your init file depends on a package).  In that case, your init file
+should call the function @code{package-initialize}.  It is up to you
+to ensure that relevant user options, such as @code{package-load-list}
+(see below), are set up prior to the @code{package-initialize} call.
+You should also set @code{package-enable-at-startup} to @code{nil}, to
+avoid loading the packages again after processing the init file.
+Alternatively, you may choose to completely inhibit package loading at
+startup, and invoke the command @kbd{M-x package-initialize} to load
+your packages manually.
 
 @vindex package-load-list
   For finer control over package loading, you can use the variable

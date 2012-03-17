@@ -1,3 +1,8 @@
+2012-03-17  Chong Yidong  <cyd@gnu.org>
+
+	* package.texi (Package Installation): Document use of
+	package-initialize in init file.
+
 2012-03-16  Glenn Morris  <rgm@gnu.org>
 
 	* help.texi (Language Help):

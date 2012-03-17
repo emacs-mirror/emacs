@@ -1,3 +1,15 @@
+2012-03-17  Chong Yidong  <cyd@gnu.org>
+
+	* os.texi (Startup Summary): Mention package loading.
+	(Init File): Don't refer to .emacs in section title.  Copyedits.
+	(Terminal-Specific): Give a realistic example.
+	(Command-Line Arguments): Reference Entering Emacs instead of
+	repeating the spiel about not restarting Emacs.
+	(Time of Day): Discuss time representation at beginning of node.
+	(Sound Output): Copyedits.
+
+	* package.texi (Packaging Basics): Document package-initialize.
+
 2012-03-17  Eli Zaretskii  <eliz@gnu.org>
 
 	* frames.texi (Initial Parameters): Add an index entry for
