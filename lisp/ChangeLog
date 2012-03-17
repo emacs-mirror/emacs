@@ -1,3 +1,8 @@
+2012-03-17  Eli Zaretskii  <eliz@gnu.org>
+
+	* textmodes/ispell.el (ispell-get-decoded-string): Make the error
+	message more clear.
+
 2012-03-16  Leo Liu  <sdl.web@gmail.com>
 
 	* emacs-lisp/copyright.el (copyright-year-ranges): Fix typo.

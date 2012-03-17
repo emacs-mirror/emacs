@@ -1307,7 +1307,8 @@ Protects against bogus binding of `enable-multibyte-characters' in XEmacs."
   (let* ((slot (or
 		(assoc ispell-current-dictionary ispell-local-dictionary-alist)
 		(assoc ispell-current-dictionary ispell-dictionary-alist)
-		(error "No match for the current dictionary")))
+		(error "No data for dictionary \"%s\", neither in `ispell-local-dictionary-alist' nor in `ispell-dictionary-alist'"
+		       ispell-current-dictionary)))
 	 (str (nth n slot)))
     (when (and (> (length str) 0)
 	       (not (multibyte-string-p str)))
