@@ -1,3 +1,25 @@
+2012-03-13  Jambunathan K  <kjambunathan@gmail.com>
+
+	* htmlfontify.el: Add support for code block fontification for ODT
+	export (Bug #9914).
+	(hfy-optimisations): Define new option
+	`body-text-only'
+	(hfy-fontify-buffer): Honor above setting.
+	(hfy-begin-span, hfy-end-span): New routines factored out form
+	`hfy-fontify-buffer'.
+	(hfy-begin-span-handler, hfy-end-span-handler): New variables
+	that permit insertion of custom tags.
+	(hfy-fontify-buffer): Use above handlers.
+	(hfy-face-to-css-default): Same as the earlier `hfy-face-to-css'.
+	(hfy-face-to-css): Re-defined to be a variable.
+	(hfy-compile-stylesheet): Modified.  Allow stylesheet to be built
+	over multiple runs. This is made possible by having the caller let
+	bind a special variable `hfy-user-sheet-assoc'.
+	(htmlfontify-string): New defun.
+	(hfy-compile-face-map): Make sure that the last char in the
+	buffer is correctly fontified.
+	(hfy-face-resolve-face): Whitespace only change.
+
 2012-03-17  Eli Zaretskii  <eliz@gnu.org>
 
 	* textmodes/ispell.el (ispell-get-decoded-string): Make the error
