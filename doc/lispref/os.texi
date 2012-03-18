@@ -8,8 +8,7 @@
 @chapter Operating System Interface
 
   This chapter is about starting and getting out of Emacs, access to
-values in the operating system environment, and terminal input, output,
-and flow control.
+values in the operating system environment, and terminal input, output.
 
   @xref{Building Emacs}, for related information.  @xref{Display}, for
 additional operating system status information pertaining to the
@@ -60,7 +59,7 @@ can customize these actions.
 @cindex @file{startup.el}
 
   When Emacs is started up, it performs the following operations
-(which are defined in @file{startup.el}):
+(see @code{normal-top-level} in @file{startup.el}):
 
 @enumerate
 @item
@@ -70,6 +69,15 @@ adds the directory's subdirectories to the list, and those are scanned
 in their turn.  The files @file{subdirs.el} are normally generated
 automatically when Emacs is installed.
 
+@item
+It registers input methods by loading any @file{leim-list.el} file
+found in the @code{load-path}.
+
+@c It removes PWD from the environment if it is not accurate.
+@c It abbreviates default-directory.
+
+@c Now normal-top-level calls command-line.
+
 @vindex before-init-time
 @item
 It sets the variable @code{before-init-time} to the value of
@@ -77,32 +85,49 @@ It sets the variable @code{before-init-time} to the value of
 @code{after-init-time} to @code{nil}, which signals to Lisp programs
 that Emacs is being initialized.
 
-@vindex initial-window-system@r{, and startup}
-@vindex window-system-initialization-alist
-@item
-It loads the initialization library for the window system specified by
-the variable @code{initial-window-system} (@pxref{Window Systems,
-initial-window-system}).  This library's name is
-@file{term/@var{windowsystem}-win.el}, where @var{windowsystem} is the
-value of @code{initial-window-system}.  From that library, it calls
-the appropriate initialization function.  The initialization function
-for each supported window system is specified by
-@code{window-system-initialization-alist}.
-
+@c set-locale-environment
 @item
 It sets the language environment and the terminal coding system,
 if requested by environment variables such as @code{LANG}.
 
 @item
-It processes the initial options.  (Some of them are handled
-even earlier than this.)
+It does some basic parsing of the command-line arguments.
+
+@vindex initial-window-system@r{, and startup}
+@vindex window-system-initialization-alist
+@item
+If not running in batch mode, it initializes the window system that
+the variable @code{initial-window-system} specifies (@pxref{Window
+Systems, initial-window-system}).  The initialization function for
+each supported window system is specified by
+@code{window-system-initialization-alist}.  If the value
+of @code{initial-window-system} is @var{windowsystem}, then the
+appropriate initialization function is defined in the file
+@file{term/@var{windowsystem}-win.el}.  This file should have been
+compiled into the Emacs executable when it was built.
 
 @item
 It runs the normal hook @code{before-init-hook}.
 
 @item
-It initializes the initial frame's faces, and turns on the menu bar
-and tool bar if needed.
+If appropriate (e.g., not in batch mode or started as a daemon), it
+creates a graphical frame.
+
+@item
+It initializes the initial frame's faces, and sets up the menu bar
+and tool bar if needed.  If graphical frames are supported, it sets up
+the tool bar even if the current frame is not a graphical one, since a
+graphical frame may be created later on.
+
+@item
+It use @code{custom-reevaluate-setting} to re-initialize the members
+of the list @code{custom-delayed-init-variables}.  These are any
+pre-loaded user options whose default value depends on the run-time,
+rather than build-time, context.
+@xref{Building Emacs, custom-initialize-delay}.
+
+@c @item
+@c It registers the colors available for tty frames.
 
 @item
 It loads the library @file{site-start}, if it exists.  This is not
@@ -154,13 +179,17 @@ Lisp library, which is specified by the variable
 @code{term-file-prefix} (@pxref{Terminal-Specific}).  This is not done
 in @code{--batch} mode, nor if @code{term-file-prefix} is @code{nil}.
 
+@c Now command-line calls command-line-1.
+
 @item
 It displays the initial echo area message, unless you have suppressed
 that with @code{inhibit-startup-echo-area-message}.
 
 @item
-It processes the action arguments from the command line.
+It processes any command-line options that were not handled earlier.
 
+@c This next one is back in command-line, but the remaining bits of
+@c command-line-1 are not done if noninteractive.
 @item
 It now exits if the option @code{--batch} was specified.
 
@@ -168,6 +197,15 @@ It now exits if the option @code{--batch} was specified.
 If @code{initial-buffer-choice} is a string, it visits the file with
 that name.  Furthermore, if the @samp{*scratch*} buffer exists and is
 empty, it inserts @code{initial-scratch-message} into that buffer.
+
+@c To make things nice and confusing, the next three items can be
+@c called from two places.  If displaying a startup screen, they are
+@c called in command-line-1 before the startup screen is shown.
+@c inhibit-startup-hooks is then set and window-setup-hook set to nil.
+@c If not displaying a startup screen, they are are called in
+@c normal-top-level.
+@c FIXME?  So it seems they can be called before or after the
+@c daemon/session restore step?
 
 @item
 It runs @code{emacs-startup-hook} and then @code{term-setup-hook}.
@@ -181,21 +219,33 @@ specify.
 It runs @code{window-setup-hook}.  @xref{Window Systems}.
 
 @item
-If the option @code{--daemon} was specified, it calls
-@code{server-start} and detaches from the controlling terminal.
-@xref{Emacs Server,,, emacs, The GNU Emacs Manual}.
-
-@item
 It displays the @dfn{startup screen}, which is a special buffer that
 contains information about copyleft and basic Emacs usage.  This is
 not done if @code{initial-buffer-choice} or
 @code{inhibit-startup-screen} are @code{nil}, nor if the
 @samp{--no-splash} or @samp{-Q} command-line options were specified.
 
+@c End of command-line-1.
+
+@c Back to command-line from command-line-1.
+
+@c This is the point at which we actually exit in batch mode, but the
+@c last few bits of command-line-1 are not done in batch mode.
+
+@item
+If the option @code{--daemon} was specified, it calls
+@code{server-start} and detaches from the controlling terminal.
+@xref{Emacs Server,,, emacs, The GNU Emacs Manual}.
+
 @item
 If started by the X session manager, it calls
 @code{emacs-session-restore} passing it as argument the ID of the
 previous session.  @xref{Session Management}.
+
+@c End of command-line.
+
+@c Back to normal-top-level from command-line.
+
 @end enumerate
 
 @defopt inhibit-startup-screen
@@ -255,10 +305,12 @@ is @code{nil}, the @samp{*scratch*} buffer is empty.
   When you start Emacs, it normally attempts to load your @dfn{init
 file}.  This is either a file named @file{.emacs} or @file{.emacs.el}
 in your home directory, or a file named @file{init.el} in a
-subdirectory named @file{.emacs.d} in your home directory.  Whichever
-place you use, you can also compile the file (@pxref{Byte
+subdirectory named @file{.emacs.d} in your home directory.
+@ignore
+Whichever place you use, you can also compile the file (@pxref{Byte
 Compilation}); then the actual file loaded will be @file{.emacs.elc}
 or @file{init.elc}.
+@end ignore
 
   The command-line switches @samp{-q}, @samp{-Q}, and @samp{-u}
 control whether and where to find the init file; @samp{-q} (and the

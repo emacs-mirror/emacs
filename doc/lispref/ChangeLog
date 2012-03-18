@@ -1,3 +1,9 @@
+2012-03-18  Glenn Morris  <rgm@gnu.org>
+
+	* os.texi (System Interface): Flow control was removed.
+	(Startup Summary): General update.
+	(Init File): Don't mention compiling it.
+
 2012-03-17  Chong Yidong  <cyd@gnu.org>
 
 	* os.texi (Startup Summary): Mention package loading.
