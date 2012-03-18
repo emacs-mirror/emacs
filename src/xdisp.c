@@ -18456,9 +18456,11 @@ cursor_row_p (struct glyph_row *row)
       /* Suppose the row ends on a string.
 	 Unless the row is continued, that means it ends on a newline
 	 in the string.  If it's anything other than a display string
-	 (e.g. a before-string from an overlay), we don't want the
+	 (e.g., a before-string from an overlay), we don't want the
 	 cursor there.  (This heuristic seems to give the optimal
-	 behavior for the various types of multi-line strings.)  */
+	 behavior for the various types of multi-line strings.)
+	 One exception: if the string has `cursor' property on one of
+	 its characters, we _do_ want the cursor there.  */
       if (CHARPOS (row->end.string_pos) >= 0)
 	{
 	  if (row->continued_p)
@@ -18480,6 +18482,25 @@ cursor_row_p (struct glyph_row *row)
 		    result =
 		      (!NILP (prop)
 		       && display_prop_string_p (prop, glyph->object));
+		    /* If there's a `cursor' property on one of the
+		       string's characters, this row is a cursor row,
+		       even though this is not a display string.  */
+		    if (!result)
+		      {
+			Lisp_Object s = glyph->object;
+
+			for ( ; glyph >= beg && EQ (glyph->object, s); --glyph)
+			  {
+			    EMACS_INT gpos = glyph->charpos;
+
+			    if (!NILP (Fget_char_property (make_number (gpos),
+							   Qcursor, s)))
+			      {
+				result = 1;
+				break;
+			      }
+			  }
+		      }
 		    break;
 		  }
 	    }
