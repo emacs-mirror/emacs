@@ -1,3 +1,13 @@
+2012-03-18  Chong Yidong  <cyd@gnu.org>
+
+	* internals.texi (Building Emacs, Garbage Collection): Copyedits.
+	(Writing Emacs Primitives): Re-organize discussion of functions
+	with variable Lisp arguments are handled.  Delete an obsolete
+	remark, previously tagged as FIXME.
+
+	* os.texi (Idle Timers): Minor clarification.
+	(Idle Timers): Link to Time of Day for description of time list.
+
 2012-03-18  Glenn Morris  <rgm@gnu.org>
 
 	* os.texi (System Interface): Flow control was removed.
