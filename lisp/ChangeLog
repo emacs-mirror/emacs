@@ -1,3 +1,8 @@
+2012-03-18  Leo Liu  <sdl.web@gmail.com>
+
+	* net/rcirc.el (rcirc-cmd-quit): Allow quiting all servers with
+	prefix.
+
 2012-03-17  Eli Zaretskii  <eliz@gnu.org>
 
 	* textmodes/ispell.el (ispell-skip-tib, ispell-keep-choices-win)
