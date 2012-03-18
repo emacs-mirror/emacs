@@ -1521,7 +1521,10 @@ If SPEC is nil, return nil."
 	     (append
 	      '(:underline nil :overline nil :strike-through nil
 		:box nil :inverse-video nil :stipple nil :inherit nil)
-	      (unless (display-graphic-p frame)
+	      ;; `display-graphic-p' is unavailable when running
+	      ;; temacs, prior to loading frame.el.
+	      (unless (and (fboundp 'display-graphic-p)
+			   (display-graphic-p frame))
 		'(:family "default" :foundry "default" :width normal
 		  :height 1 :weight normal :slant normal
 		  :foreground "unspecified-fg"

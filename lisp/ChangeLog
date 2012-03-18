@@ -1,3 +1,8 @@
+2012-03-18  Chong Yidong  <cyd@gnu.org>
+
+	* faces.el (face-spec-reset-face): Don't call display-graphic-p if
+	it is not yet defined (for temacs).
+
 2012-03-18  Leo Liu  <sdl.web@gmail.com>
 
 	* net/rcirc.el (rcirc-cmd-quit): Allow quiting all servers with
