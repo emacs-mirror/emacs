@@ -1,3 +1,8 @@
+2012-03-19  Kenichi Handa  <handa@m17n.org>
+
+	* ftfont.c (ftfont_drive_otf): Mask bits of character code to make
+	it fit in a valid range (Bug#11003).
+
 2012-03-18  Eli Zaretskii  <eliz@gnu.org>
 
 	* xdisp.c (cursor_row_p): Even if the glyph row ends in a string

@@ -1856,7 +1856,7 @@ ftfont_drive_otf (MFLTFont *font,
   setup_otf_gstring (len);
   for (i = 0; i < len; i++)
     {
-      otf_gstring.glyphs[i].c = in->glyphs[from + i].c;
+      otf_gstring.glyphs[i].c = in->glyphs[from + i].c & 0x11FFFF;
       otf_gstring.glyphs[i].glyph_id = in->glyphs[from + i].code;
     }
 
