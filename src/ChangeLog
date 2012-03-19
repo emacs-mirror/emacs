@@ -1,3 +1,8 @@
+2012-03-19  Kenichi Handa  <handa@m17n.org>
+
+	* ftfont.c (ftfont_drive_otf): Mask bits of character code to make
+	it fit in a valid range (Bug#11003).
+
 2012-03-12  Chong Yidong  <cyd@gnu.org>
 
 	* eval.c (inhibit_lisp_code): Rename from
