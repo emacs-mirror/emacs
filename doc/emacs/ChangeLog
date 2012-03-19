@@ -1,3 +1,18 @@
+2012-03-17  Chong Yidong  <cyd@gnu.org>
+
+	* package.texi (Package Installation): Document use of
+	package-initialize in init file.
+
+2012-03-16  Glenn Morris  <rgm@gnu.org>
+
+	* help.texi (Language Help):
+	* mule.texi (International Chars):
+	etc/HELLO is for character demonstration.
+
+2012-03-15  Dani Moncayo  <dmoncayo@gmail.com>  (tiny change)
+
+	* dired.texi (Shell Commands in Dired): Fix typo.
+
 2012-03-04  Chong Yidong  <cyd@gnu.org>
 
 	* killing.texi (Clipboard): Document clipboard manager.

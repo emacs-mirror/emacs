@@ -34,7 +34,7 @@
 ;;  - (farsi-isiri-9149) Persian Keyboard based on Islamic Republic of Iran's ISIR-9147
 ;;  - (farsi-transliterate-banan) An intuitive transliteration keyboard for Farsi
 ;;
-;; Additional documentaion for these inpput methods can be found at:
+;; Additional documentation for these input methods can be found at:
 ;;  http://www.persoarabic.org/PLPC/120036
 ;;
 
@@ -279,7 +279,7 @@ Based on ISIRI-9147 Layout of Persian Letters and Symbols on Computer Keyboards.
 ;; ISIRI-9147 Persian keyboard is generally not well suited for Iranian-Expatriates
 ;; working/living in the West.
 ;;
-;; The qwetry keyboard is usually second nature to Persian speaking expatriates and they
+;; The qwerty keyboard is usually second nature to Persian speaking expatriates and they
 ;; don't want to learn/adapt to ISIRI-9147.  They expect software to adapt to them.
 ;;
 ;; That is what the ``Banan Multi-Character (Reverse) Transliteration Persian Input Method'' does.
@@ -289,21 +289,21 @@ Based on ISIRI-9147 Layout of Persian Letters and Symbols on Computer Keyboards.
 ;;  -  can write in farsi (not just speak it).
 ;;  -  is fully comfortable with a qwerty latin keyboard.
 ;;  -  is not familiar with isir-9147 and does not wish to be trained.
-;;  -  communicatates and writes in a mixed globish/persian -- not pure persian.
+;;  -  communicates and writes in a mixed globish/persian -- not pure persian.
 ;;  -  is intuitively familiar with transliteration of farsi/persian into latin based on two letter
 ;;     phonetic mapping to persian characters (e.g., gh ق --  kh خ -- sh ش -- ch چ -- zh ژ.
 ;;
 ;; This transliteration keyboard is designed to be intuitive such that
 ;; mapping are easy and natural to remember for a persian writer.
 ;; It is designed to be equivalent in capability to farsi-isiri-9147
-;; and provide for inputing all characters enumerated in ISIRI-6219.
+;; and provide for inputting all characters enumerated in ISIRI-6219.
 ;;
 ;; farsi-transliterate-banan is of course phonetic oriented.  But it is very different from
 ;; pinglish. Pinglish is word oriented where you sound out the word with latin letters --
-;; incuding the vowels. farsi-transliterate-banan is letter oriented where you enter the
+;; including the vowels. farsi-transliterate-banan is letter oriented where you enter the
 ;; latin letter/letters closest to the persian letter. And usually omit vowels.
 ;;
-;; For some persian characters there are multiple ways of inputing
+;; For some persian characters there are multiple ways of inputting
 ;; the same character. For example both ``i'' and ``y'' produce ی.
 ;; For یک ``yk'', ``y'' is more natural and for این ``ain'', ``i'' is more natural. 
 ;;
@@ -317,7 +317,7 @@ Based on ISIRI-9147 Layout of Persian Letters and Symbols on Computer Keyboards.
 ;;
 ;;
 ;; Prefix letter \ is used for two character inputs when an alternate form of a letter
-;; is desired for exampe \% is: ‌÷ when % is: ٪.
+;; is desired for example \% is: ‌÷ when % is: ٪.
 ;;
 ;; Prefix letter & is used for multi-character inputs when special characters are
 ;; desired based on their abbreviate name. For example you can enter &lrm; to enter the
@@ -485,7 +485,7 @@ Based on ISIRI-9147 Layout of Persian Letters and Symbols on Computer Keyboards.
  ("$" ?\u0670)  ;; (ucs-insert #x0670)ٰ   named: الفِ مقصوره‌ی فارسی
 
 
-;;;;;;;;;;;  isiri-6219 Table 8 - Forbiden Characters -- جدول ۸ - نویسه‌هایِ ممنوع  
+;;;;;;;;;;;  isiri-6219 Table 8 - Forbidden Characters -- جدول ۸ - نویسه‌هایِ ممنوع
 ;;  ;; he ye (ucs-insert 1728) kills emacs-24.0.90
 ;; arabic digits 0-9
 

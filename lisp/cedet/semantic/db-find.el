@@ -325,8 +325,10 @@ Default action as described in `semanticdb-find-translate-path'."
 	 (cond ((null path) semanticdb-current-database)
 	       ((semanticdb-table-p path) (oref path parent-db))
 	       (t (let ((tt (semantic-something-to-tag-table path)))
-		    ;; @todo - What does this DO ??!?!
-		    (with-current-buffer (semantic-tag-buffer (car tt))
+		    (if tt
+			;; @todo - What does this DO ??!?!
+			(with-current-buffer (semantic-tag-buffer (car tt))
+			  semanticdb-current-database)
 		      semanticdb-current-database))))))
     (apply
      #'nconc

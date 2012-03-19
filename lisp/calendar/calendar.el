@@ -1424,16 +1424,24 @@ Optional integers MON and YR are used instead of today's date."
   "Move to column INDENT, adding spaces as needed.
 Inserts STRING so that it ends at INDENT.  STRING is either a
 literal string, or a sexp to evaluate to return such.  Truncates
-STRING to length TRUNCATE, ensure a trailing space."
+STRING to length TRUNCATE, and ensures a trailing space."
   (if (not (ignore-errors (stringp (setq string (eval string)))))
       (calendar-move-to-column indent)
-    (if (> (length string) truncate)
-        (setq string (substring string 0 truncate)))
+    (if (> (string-width string) truncate)
+        (setq string (truncate-string-to-width string truncate)))
     (or (string-match " $" string)
-        (if (= (length string) truncate)
-            (aset string (1- truncate) ?\s)
-          (setq string (concat string " "))))
-    (calendar-move-to-column (- indent (length string)))
+        (setq string (concat (if (= (string-width string) truncate)
+                                 (substring string 0 -1)
+                               string)
+                             ;; Avoid inserting text properties unless
+                             ;; we have to (ie, non-unit-width chars).
+                             ;; This is by no means essential.
+                             (if (= (string-width string) (length string))
+                                 " "
+                               ;; Cribbed from buff-menu.el.
+                               (propertize
+                                " " 'display `(space :align-to ,indent))))))
+    (calendar-move-to-column (- indent (string-width string)))
     (insert string)))
 
 (defun calendar-generate-month (month year indent)
@@ -1756,8 +1764,8 @@ the STRINGS are just concatenated and the result truncated."
                           (if (< (length strings) 2)
                               (append (list "") strings (list ""))
                             strings)))
-         (n (- length (length (apply 'concat strings))))
-         (m (1- (length strings)))
+         (n (- length (string-width (apply 'concat strings))))
+         (m (* (1- (length strings)) (char-width char)))
          (s (car strings))
          (strings (cdr strings))
          (i 0))
@@ -1766,7 +1774,7 @@ the STRINGS are just concatenated and the result truncated."
                       (make-string (max 0 (/ (+ n i) m)) char)
                       string)
             i (1+ i)))
-    (substring s 0 length)))
+    (truncate-string-to-width s length)))
 
 (defun calendar-update-mode-line ()
   "Update the calendar mode line with the current date and date style."

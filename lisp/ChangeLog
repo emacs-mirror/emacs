@@ -1,3 +1,159 @@
+2012-03-18  Chong Yidong  <cyd@gnu.org>
+
+	* faces.el (face-spec-reset-face): Don't call display-graphic-p if
+	it is not yet defined (for temacs).
+
+2012-03-18  Leo Liu  <sdl.web@gmail.com>
+
+	* net/rcirc.el (rcirc-cmd-quit): Allow quiting all servers with
+	prefix.
+
+2012-03-17  Eli Zaretskii  <eliz@gnu.org>
+
+	* textmodes/ispell.el (ispell-skip-tib, ispell-keep-choices-win)
+	(ispell-choices-win-default-height, ispell-silently-savep)
+	(ispell-dictionary-alist, ispell-encoding8-command)
+	(ispell-check-version, ispell-aspell-find-dictionary)
+	(ispell-valid-dictionary-list, ispell-words-keyword)
+	(ispell-get-word, ispell-internal-change-dictionary)
+	(ispell-region, ispell-skip-region-list)
+	(ispell-begin-skip-region-regexp, ispell-ignore-fcc)
+	(ispell-process-line, ispell-minor-mode, ispell-minor-check)
+	(ispell-message-text-end, ispell-message)
+	(ispell-buffer-local-parsing): Doc fix.
+
+2012-03-13  Jambunathan K  <kjambunathan@gmail.com>
+
+	* htmlfontify.el: Add support for code block fontification for ODT
+	export (Bug #9914).
+	(hfy-optimisations): Define new option
+	`body-text-only'
+	(hfy-fontify-buffer): Honor above setting.
+	(hfy-begin-span, hfy-end-span): New routines factored out form
+	`hfy-fontify-buffer'.
+	(hfy-begin-span-handler, hfy-end-span-handler): New variables
+	that permit insertion of custom tags.
+	(hfy-fontify-buffer): Use above handlers.
+	(hfy-face-to-css-default): Same as the earlier `hfy-face-to-css'.
+	(hfy-face-to-css): Re-defined to be a variable.
+	(hfy-compile-stylesheet): Modified.  Allow stylesheet to be built
+	over multiple runs. This is made possible by having the caller let
+	bind a special variable `hfy-user-sheet-assoc'.
+	(htmlfontify-string): New defun.
+	(hfy-compile-face-map): Make sure that the last char in the
+	buffer is correctly fontified.
+	(hfy-face-resolve-face): Whitespace only change.
+
+2012-03-17  Eli Zaretskii  <eliz@gnu.org>
+
+	* textmodes/ispell.el (ispell-get-decoded-string): Make the error
+	message more clear.
+
+2012-03-16  Leo Liu  <sdl.web@gmail.com>
+
+	* emacs-lisp/copyright.el (copyright-year-ranges): Fix typo.
+
+2012-03-16  Alan Mackenzie  <acm@muc.de>
+
+	Further optimise the handling of large macros.
+
+	* progmodes/cc-engine.el (c-crosses-statement-barrier-p): Use a
+	limit to a call of `c-literal-limits'.
+	(c-determine-+ve-limit): New function.
+	(c-at-macro-vsemi-p): Move `c-in-literal' to the bottom of an
+	`and'.
+	(c-guess-basic-syntax): In macros, restrict a search limit to
+	2000.
+	In CASE 5B, restrict a search limit to 500.
+	(c-just-after-func-arglist-p): Obviouly wrong `or' -> `and'.
+
+	* progmodes/cc-mode.el (c-neutralize-syntax-in-and-mark-CPP):
+	Restrict macro bounds to +-500 from after-change's BEG END.
+
+2012-03-16  Leo Liu  <sdl.web@gmail.com>
+
+	* font-lock.el (lisp-font-lock-keywords-2): Add letrec.
+
+2012-03-16  Aaron S. Hawley  <Aaron.S.Hawley@gmail.com>
+
+	* tar-mode.el (tar-mode): Fix saving by conditionally undoing
+        `special-mode' setting of `buffer-read-only'.  (Bug#11010)
+
+2012-03-16  Glenn Morris  <rgm@gnu.org>
+
+	* view.el (view-buffer, view-buffer-other-window)
+	(view-buffer-other-frame): Doc fixes re special mode-class.
+
+	* subr.el (eval-after-load): If named feature is provided not from
+	a file, run after-load forms.  (Bug#10946)
+
+	* calendar/calendar.el (calendar-insert-at-column):
+	Handle non-unit-width characters a bit better.  (Bug#10978)
+
+2012-03-15  Chong Yidong  <cyd@gnu.org>
+
+	* emacs-lisp/ring.el (ring-extend): New function.
+	(ring-insert+extend): Extend the ring correctly (Bug#11019).
+
+	* comint.el (comint-read-input-ring)
+	(comint-add-to-input-history): Grow comint-input-ring lazily.
+
+2012-03-15  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* progmodes/perl-mode.el (perl-syntax-propertize-special-constructs):
+	Fix up parsing of multiline twoarg non-paired elements (bug#11014).
+
+	* imenu.el: Fix multiple inheritance breakage (bug#9199).
+	(imenu-add-to-menubar): Don't add a redundant index.
+	(imenu-update-menubar): Handle a dynamically composed keymap.
+
+2012-03-13  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* mail/sendmail.el (mail-encode-header):
+	Bind rfc2047-encode-encoded-words to nil.
+
+2012-03-13  Glenn Morris  <rgm@gnu.org>
+
+	* calendar/calendar.el (calendar-string-spread):
+	Handle non-unit-width characters a bit better.  (Bug#10978)
+
+2012-03-13  Leo Liu  <sdl.web@gmail.com>
+
+	* vc/vc-hg.el (vc-hg-working-revision): Rework to work with both
+	directory and file as argument (Bug#10822).
+
+2012-03-13  Kaushik Srenevasan  <ksrenevasan@gmail.com>  (tiny change)
+
+	* progmodes/gdb-mi.el (gdb-invalidate-disassembly):
+	For dynamically generated code, follow $PC.
+	(gdb-disassembly-handler-custom): Handle no function name case.
+
+2012-03-13  Tim Landscheidt  <tim@tim-landscheidt.de>  (tiny change)
+
+	* calendar/icalendar.el (icalendar-export-file, icalendar-import-file):
+	* emulation/ws-mode.el (ws-query-replace):
+	* sort.el (sort-regexp-fields):
+	Fix missing trailing whitespace in interactive prompts.  (Bug#11002)
+
+2012-03-12  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* dabbrev.el: Fix cycle completion order (bug#10963).
+	(dabbrev--last-obarray, dabbrev--last-completion-buffer): Remove.
+	(dabbrev-completion): Don't use an obarray; provide
+	a cycle-sort-function.
+
+2012-03-12  Leo Liu  <sdl.web@gmail.com>
+
+	* simple.el (kill-new): Use equal-including-properties for
+	comparison.
+	(kill-do-not-save-duplicates): Doc fix.
+
+2012-03-12  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* dabbrev.el: Fix cycle completion (bug#10963).
+	Use lexical binding and wrap to 80 columns.
+	(dabbrev-completion): Delay computing the list of completions.
+
 2012-03-12  Kenichi Handa  <handa@m17n.org>
 
 	* international/quail.el (quail-insert-kbd-layout): Surround each

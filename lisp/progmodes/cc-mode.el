@@ -925,8 +925,8 @@ Note that the style variables are always made local to the buffer."
     ;; inside a string, comment, or macro.
     (setq new-bounds (c-extend-font-lock-region-for-macros
 		      c-new-BEG c-new-END old-len))
-    (setq c-new-BEG (car new-bounds)
-	  c-new-END (cdr new-bounds))
+    (setq c-new-BEG (max (car new-bounds) (c-determine-limit 500 begg))
+	  c-new-END (min (cdr new-bounds) (c-determine-+ve-limit 500 endd)))
     ;; Clear all old relevant properties.
     (c-clear-char-property-with-value c-new-BEG c-new-END 'syntax-table '(1))
     (c-clear-char-property-with-value c-new-BEG c-new-END 'category 'c-cpp-delimiter)

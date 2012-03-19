@@ -251,7 +251,8 @@ On character terminals, these methods are used for characters that
 cannot be encoded by the `terminal-coding-system'.
 
 ---
-*** New input methods for Farsi: farsi and farsi-translit.
+*** New input methods for Farsi: farsi and farsi-translit;
+and for Bulgarian: bulgarian-alt-phonetic.
 
 +++
 *** `nobreak-char-display' now also highlights Unicode hyphen chars
@@ -467,6 +468,11 @@ been shown in a specific window.
 ** The inactive minibuffer has its own major mode `minibuffer-inactive-mode'.
 This is handy for minibuffer-only frames, and is also used for the feature
 where mouse-1 pops up *Messages*"', which can now easily be changed.
+
+---
+** Minibuffers set `truncate-lines' to nil.
+If you want to change the value to something else, you could use
+for example minibuffer-setup-hook.
 
 
 * Editing Changes in Emacs 24.1
@@ -1030,7 +1036,7 @@ for buffers with dead inferior processes has been generalized.
 ** The return value of `backup-buffer' has changed.
 It is now a list of three elements, where the second element is a list
 describing the original file's SELinux context.  If Emacs or the
-system lacks SELinux cupport, the context list is (nil nil nil nil).
+system lacks SELinux support, the context list is (nil nil nil nil).
 See the "Basic SELinux support" entry under "Changes in Emacs 24.1",
 above.
 
@@ -1370,7 +1376,7 @@ This can be useful when `inhibit-quit' is set.
 
 +++
 ** The new function `server-eval-at' allows evaluation of Lisp forms on
-named Emacs server instances, using TCP sockets.
+named Emacs server instances.
 
 +++
 ** `call-process' and `call-process-region' allow a `(:file "file")' spec

@@ -8,8 +8,7 @@
 @chapter Operating System Interface
 
   This chapter is about starting and getting out of Emacs, access to
-values in the operating system environment, and terminal input, output,
-and flow control.
+values in the operating system environment, and terminal input, output.
 
   @xref{Building Emacs}, for related information.  @xref{Display}, for
 additional operating system status information pertaining to the
@@ -60,7 +59,7 @@ can customize these actions.
 @cindex @file{startup.el}
 
   When Emacs is started up, it performs the following operations
-(which are defined in @file{startup.el}):
+(see @code{normal-top-level} in @file{startup.el}):
 
 @enumerate
 @item
@@ -70,6 +69,15 @@ adds the directory's subdirectories to the list, and those are scanned
 in their turn.  The files @file{subdirs.el} are normally generated
 automatically when Emacs is installed.
 
+@item
+It registers input methods by loading any @file{leim-list.el} file
+found in the @code{load-path}.
+
+@c It removes PWD from the environment if it is not accurate.
+@c It abbreviates default-directory.
+
+@c Now normal-top-level calls command-line.
+
 @vindex before-init-time
 @item
 It sets the variable @code{before-init-time} to the value of
@@ -77,32 +85,49 @@ It sets the variable @code{before-init-time} to the value of
 @code{after-init-time} to @code{nil}, which signals to Lisp programs
 that Emacs is being initialized.
 
-@vindex initial-window-system@r{, and startup}
-@vindex window-system-initialization-alist
-@item
-It loads the initialization library for the window system specified by
-the variable @code{initial-window-system} (@pxref{Window Systems,
-initial-window-system}).  This library's name is
-@file{term/@var{windowsystem}-win.el}, where @var{windowsystem} is the
-value of @code{initial-window-system}.  From that library, it calls
-the appropriate initialization function.  The initialization function
-for each supported window system is specified by
-@code{window-system-initialization-alist}.
-
+@c set-locale-environment
 @item
 It sets the language environment and the terminal coding system,
 if requested by environment variables such as @code{LANG}.
 
 @item
-It processes the initial options.  (Some of them are handled
-even earlier than this.)
+It does some basic parsing of the command-line arguments.
+
+@vindex initial-window-system@r{, and startup}
+@vindex window-system-initialization-alist
+@item
+If not running in batch mode, it initializes the window system that
+the variable @code{initial-window-system} specifies (@pxref{Window
+Systems, initial-window-system}).  The initialization function for
+each supported window system is specified by
+@code{window-system-initialization-alist}.  If the value
+of @code{initial-window-system} is @var{windowsystem}, then the
+appropriate initialization function is defined in the file
+@file{term/@var{windowsystem}-win.el}.  This file should have been
+compiled into the Emacs executable when it was built.
 
 @item
 It runs the normal hook @code{before-init-hook}.
 
 @item
-It initializes the initial frame's faces, and turns on the menu bar
-and tool bar if needed.
+If appropriate (e.g., not in batch mode or started as a daemon), it
+creates a graphical frame.
+
+@item
+It initializes the initial frame's faces, and sets up the menu bar
+and tool bar if needed.  If graphical frames are supported, it sets up
+the tool bar even if the current frame is not a graphical one, since a
+graphical frame may be created later on.
+
+@item
+It use @code{custom-reevaluate-setting} to re-initialize the members
+of the list @code{custom-delayed-init-variables}.  These are any
+pre-loaded user options whose default value depends on the run-time,
+rather than build-time, context.
+@xref{Building Emacs, custom-initialize-delay}.
+
+@c @item
+@c It registers the colors available for tty frames.
 
 @item
 It loads the library @file{site-start}, if it exists.  This is not
@@ -127,6 +152,11 @@ It loads your abbrevs from the file specified by
 (@pxref{Abbrev Files, abbrev-file-name}).  This is not done if the
 option @samp{--batch} was specified.
 
+@item
+If @code{package-enable-at-startup} is non-@code{nil}, it calls the
+function @code{package-initialize} to activate any optional Emacs Lisp
+package that has been installed.  @xref{Packaging Basics}.
+
 @vindex after-init-time
 @item
 It sets the variable @code{after-init-time} to the value of
@@ -149,13 +179,17 @@ Lisp library, which is specified by the variable
 @code{term-file-prefix} (@pxref{Terminal-Specific}).  This is not done
 in @code{--batch} mode, nor if @code{term-file-prefix} is @code{nil}.
 
+@c Now command-line calls command-line-1.
+
 @item
 It displays the initial echo area message, unless you have suppressed
 that with @code{inhibit-startup-echo-area-message}.
 
 @item
-It processes the action arguments from the command line.
+It processes any command-line options that were not handled earlier.
 
+@c This next one is back in command-line, but the remaining bits of
+@c command-line-1 are not done if noninteractive.
 @item
 It now exits if the option @code{--batch} was specified.
 
@@ -163,6 +197,15 @@ It now exits if the option @code{--batch} was specified.
 If @code{initial-buffer-choice} is a string, it visits the file with
 that name.  Furthermore, if the @samp{*scratch*} buffer exists and is
 empty, it inserts @code{initial-scratch-message} into that buffer.
+
+@c To make things nice and confusing, the next three items can be
+@c called from two places.  If displaying a startup screen, they are
+@c called in command-line-1 before the startup screen is shown.
+@c inhibit-startup-hooks is then set and window-setup-hook set to nil.
+@c If not displaying a startup screen, they are are called in
+@c normal-top-level.
+@c FIXME?  So it seems they can be called before or after the
+@c daemon/session restore step?
 
 @item
 It runs @code{emacs-startup-hook} and then @code{term-setup-hook}.
@@ -176,21 +219,33 @@ specify.
 It runs @code{window-setup-hook}.  @xref{Window Systems}.
 
 @item
-If the option @code{--daemon} was specified, it calls
-@code{server-start} and detaches from the controlling terminal.
-@xref{Emacs Server,,, emacs, The GNU Emacs Manual}.
-
-@item
 It displays the @dfn{startup screen}, which is a special buffer that
 contains information about copyleft and basic Emacs usage.  This is
 not done if @code{initial-buffer-choice} or
 @code{inhibit-startup-screen} are @code{nil}, nor if the
 @samp{--no-splash} or @samp{-Q} command-line options were specified.
 
+@c End of command-line-1.
+
+@c Back to command-line from command-line-1.
+
+@c This is the point at which we actually exit in batch mode, but the
+@c last few bits of command-line-1 are not done in batch mode.
+
+@item
+If the option @code{--daemon} was specified, it calls
+@code{server-start} and detaches from the controlling terminal.
+@xref{Emacs Server,,, emacs, The GNU Emacs Manual}.
+
 @item
 If started by the X session manager, it calls
 @code{emacs-session-restore} passing it as argument the ID of the
 previous session.  @xref{Session Management}.
+
+@c End of command-line.
+
+@c Back to normal-top-level from command-line.
+
 @end enumerate
 
 @defopt inhibit-startup-screen
@@ -242,17 +297,20 @@ is @code{nil}, the @samp{*scratch*} buffer is empty.
 @end defopt
 
 @node Init File
-@subsection The Init File, @file{.emacs}
+@subsection The Init File
 @cindex init file
 @cindex @file{.emacs}
+@cindex @file{init.el}
 
   When you start Emacs, it normally attempts to load your @dfn{init
 file}.  This is either a file named @file{.emacs} or @file{.emacs.el}
 in your home directory, or a file named @file{init.el} in a
-subdirectory named @file{.emacs.d} in your home directory.  Whichever
-place you use, you can also compile the file (@pxref{Byte
+subdirectory named @file{.emacs.d} in your home directory.
+@ignore
+Whichever place you use, you can also compile the file (@pxref{Byte
 Compilation}); then the actual file loaded will be @file{.emacs.elc}
 or @file{init.elc}.
+@end ignore
 
   The command-line switches @samp{-q}, @samp{-Q}, and @samp{-u}
 control whether and where to find the init file; @samp{-q} (and the
@@ -267,13 +325,13 @@ file.  If those environment variables are absent, though, Emacs uses
 your user-id to find your home directory.
 
 @cindex default init file
-  A site may have a @dfn{default init file}, which is the library
-named @file{default.el}.  Emacs finds the @file{default.el} file
-through the standard search path for libraries (@pxref{How Programs Do
-Loading}).  The Emacs distribution does not come with this file; sites
-may provide one for local customizations.  If the default init file
-exists, it is loaded whenever you start Emacs, except in batch mode or
-if @samp{-q} (or @samp{-Q}) is specified.  But your own personal init
+  An Emacs installation may have a @dfn{default init file}, which is a
+Lisp library named @file{default.el}.  Emacs finds this file through
+the standard search path for libraries (@pxref{How Programs Do
+Loading}).  The Emacs distribution does not come with this file; it is
+intended for local customizations.  If the default init file exists,
+it is loaded whenever you start Emacs, except in batch mode or if
+@samp{-q} (or @samp{-Q}) is specified.  But your own personal init
 file, if any, is loaded first; if it sets @code{inhibit-default-init}
 to a non-@code{nil} value, then Emacs does not subsequently load the
 @file{default.el} file.
@@ -343,23 +401,22 @@ in the normal manner, by searching the @code{load-path} directories, and
 trying the @samp{.elc} and @samp{.el} suffixes.
 
 @cindex Termcap
-  The usual function of a terminal-specific library is to enable
-special keys to send sequences that Emacs can recognize.  It may also
-need to set or add to @code{input-decode-map} if the Termcap or
-Terminfo entry does not specify all the terminal's function keys.
-@xref{Terminal Input}.
+  The usual role of a terminal-specific library is to enable special
+keys to send sequences that Emacs can recognize.  It may also need to
+set or add to @code{input-decode-map} if the Termcap or Terminfo entry
+does not specify all the terminal's function keys.  @xref{Terminal
+Input}.
 
   When the name of the terminal type contains a hyphen, and no library
 is found whose name is identical to the terminal's name, Emacs strips
 from the terminal's name the last hyphen and everything that follows
 it, and tries again.  This process is repeated until Emacs finds a
-matching library or until there are no more hyphens in the name (the
-latter means the terminal doesn't have any library specific to it).
-Thus, for example, if there are no @samp{aaa-48} and @samp{aaa-30}
-libraries, Emacs will try the same library @file{term/aaa.el} for
-terminal types @samp{aaa-48} and @samp{aaa-30-rv}.  If necessary, the
-library can evaluate @code{(getenv "TERM")} to find the full name of
-the terminal type.@refill
+matching library, or until there are no more hyphens in the name
+(i.g.@: there is no terminal-specific library).  For example, if the
+terminal name is @samp{xterm-256color} and there is no
+@file{term/xterm-256color.el} library, Emacs tries to load
+@file{term/xterm.el}.  If necessary, the terminal library can evaluate
+@code{(getenv "TERM")} to find the full name of the terminal type.
 
   Your init file can prevent the loading of the
 terminal-specific library by setting the variable
@@ -376,8 +433,8 @@ have their own libraries.  @xref{Hooks}.
 
 @defvar term-file-prefix
 @cindex @code{TERM} environment variable
-If the @code{term-file-prefix} variable is non-@code{nil}, Emacs loads
-a terminal-specific initialization file as follows:
+If the value of this variable is non-@code{nil}, Emacs loads a
+terminal-specific initialization file as follows:
 
 @example
 (load (concat term-file-prefix (getenv "TERM")))
@@ -409,29 +466,14 @@ feature.
 @subsection Command-Line Arguments
 @cindex command-line arguments
 
-  You can use command-line arguments to request various actions when you
-start Emacs.  Since you do not need to start Emacs more than once per
-day, and will often leave your Emacs session running longer than that,
-command-line arguments are hardly ever used.  As a practical matter, it
-is best to avoid making the habit of using them, since this habit would
-encourage you to kill and restart Emacs unnecessarily often.  These
-options exist for two reasons: to be compatible with other editors (for
-invocation by other programs) and to enable shell scripts to run
-specific Lisp programs.
-
-  This section describes how Emacs processes command-line arguments,
-and how you can customize them.
-
-@ignore
-  (Note that some other editors require you to start afresh each time
-you want to edit a file.  With this kind of editor, you will probably
-specify the file as a command-line argument.  The recommended way to
-use GNU Emacs is to start it only once, just after you log in, and do
-all your editing in the same Emacs process.  Each time you want to edit
-a different file, you visit it with the existing Emacs, which eventually
-comes to have many files in it ready for editing.  Usually you do not
-kill the Emacs until you are about to log out.)
-@end ignore
+  You can use command-line arguments to request various actions when
+you start Emacs.  Command-line arguments should not be commonly used,
+since the recommended way of using Emacs is to start it just once,
+after logging in, and do all editing in the same Emacs session
+(@pxref{Entering Emacs,,, emacs, The GNU Emacs Manual}); nonetheless,
+they can be useful when invoking Emacs from session scripts or
+debugging Emacs itself.  This section describes how Emacs processes
+command-line arguments.
 
 @defun command-line
 This function parses the command line that Emacs was called with,
@@ -525,9 +567,7 @@ as a file name to visit.
 
   There are two ways to get out of Emacs: you can kill the Emacs job,
 which exits permanently, or you can suspend it, which permits you to
-reenter the Emacs process later.  As a practical matter, you seldom kill
-Emacs---only when you are about to log out.  Suspending is much more
-common.
+reenter the Emacs process later.
 
 @menu
 * Killing Emacs::        Exiting Emacs irreversibly.
@@ -1105,24 +1145,47 @@ The value may be a floating point number.
 @node Time of Day
 @section Time of Day
 
-  This section explains how to determine the current time and the time
+  This section explains how to determine the current time and time
 zone.
+
+@cindex epoch
+  Most of these functions represent time as a list of either three
+integers, @code{(@var{sec-high} @var{sec-low} @var{microsec})}, or of
+two integers, @code{(@var{sec-high} @var{sec-low})}.  The integers
+@var{sec-high} and @var{sec-low} give the high and low bits of an
+integer number of seconds.  This integer number,
+@ifnottex
+@var{high} * 2**16 + @var{low},
+@end ifnottex
+@tex
+$high*2^{16}+low$,
+@end tex
+is the number of seconds from the @dfn{epoch} (0:00 January 1, 1970
+UTC) to the specified time.  The third list element @var{microsec}, if
+present, gives the number of microseconds from the start of that
+second to the specified time.
+
+  The return value of @code{current-time} represents time using three
+integers, while the timestamps in the return value of
+@code{file-attributes} use two integers (@pxref{Definition of
+file-attributes}).  In function arguments, e.g.@: the @var{time-value}
+argument to @code{current-time-string}, both two- and three-integer
+lists are accepted.  You can convert times from the list
+representation into standard human-readable strings using
+@code{current-time}, or to other forms using the @code{decode-time}
+and @code{format-time-string} functions documented in the following
+sections.
 
 @defun current-time-string &optional time-value
 This function returns the current time and date as a human-readable
-string.  The format of the string is unvarying; the number of characters
-used for each part is always the same, so you can reliably use
-@code{substring} to extract pieces of it.  It is wise to count the
-characters from the beginning of the string rather than from the end, as
-additional information may some day be added at the end.
+string.  The format of the string is unvarying; the number of
+characters used for each part is always the same, so you can reliably
+use @code{substring} to extract pieces of it.  You should count
+characters from the beginning of the string rather than from the end,
+as additional information may some day be added at the end.
 
 The argument @var{time-value}, if given, specifies a time to format
-instead of the current time.  This argument should have the same form
-as the times obtained from @code{current-time} (see below) and from
-@code{file-attributes} (@pxref{Definition of file-attributes}).  It
-should be a list whose first two elements are integers; a third
-(microsecond) element, if present, is ignored.  @var{time-value} can
-also be a cons of two integers, but this usage is obsolete.
+(represented as a list of integers), instead of the current time.
 
 @example
 @group
@@ -1133,33 +1196,16 @@ also be a cons of two integers, but this usage is obsolete.
 @end defun
 
 @defun current-time
-This function returns the system's time value as a list of three
-integers: @code{(@var{high} @var{low} @var{microsec})}.  The integers
-@var{high} and @var{low} combine to give the number of seconds since
-0:00 January 1, 1970 UTC (Coordinated Universal Time), which is
-@ifnottex
-@var{high} * 2**16 + @var{low}.
-@end ifnottex
-@tex
-$high*2^{16}+low$.
-@end tex
-
-The third element, @var{microsec}, gives the microseconds since the
-start of the current second (or 0 for systems that return time with
-the resolution of only one second).
-
-The first two elements can be compared with file time values such as you
-get with the function @code{file-attributes}.
-@xref{Definition of file-attributes}.
+This function returns the current time, represented as a list of three
+integers @code{(@var{sec-high} @var{sec-low} @var{microsec})}.  On
+systems with only one-second time resolutions, @var{microsec} is 0.
 @end defun
 
 @defun float-time &optional time-value
 This function returns the current time as a floating-point number of
-seconds since the epoch.  The argument @var{time-value}, if given,
-specifies a time to convert instead of the current time.  The argument
-should have the same form as for @code{current-time-string} (see
-above).  Thus, it accepts the output of @code{current-time} and
-@code{file-attributes} (@pxref{Definition of file-attributes}).
+seconds since the epoch.  The optional argument @var{time-value}, if
+given, specifies a time (represented as a list of integers) to convert
+instead of the current time.
 
 @emph{Warning}: Since the result is floating point, it may not be
 exact.  Do not use this function if precise time stamps are required.
@@ -1180,11 +1226,8 @@ adjustment, then the value is constant through time.
 If the operating system doesn't supply all the information necessary to
 compute the value, the unknown elements of the list are @code{nil}.
 
-The argument @var{time-value}, if given, specifies a time to analyze
-instead of the current time.  The argument should have the same form
-as for @code{current-time-string} (see above).  Thus, you can use
-times obtained from @code{current-time} (see above) and from
-@code{file-attributes}.  @xref{Definition of file-attributes}.
+The argument @var{time-value}, if given, specifies a time (represented
+as a list of integers) to analyze instead of the current time.
 @end defun
 
 The current time zone is determined by the @samp{TZ} environment
@@ -1196,16 +1239,15 @@ time zone.
 @node Time Conversion
 @section Time Conversion
 
-  These functions convert time values (lists of two or three integers)
-to calendrical information and vice versa.  You can get time values
-from the functions @code{current-time} (@pxref{Time of Day}) and
-@code{file-attributes} (@pxref{Definition of file-attributes}).
+  These functions convert time values (lists of two or three integers,
+as explained in the previous section) into calendrical information and
+vice versa.
 
-  Many 32-bit operating systems are limited to time values that contain 32 bits
-of information; these systems typically handle only the times from
-1901-12-13 20:45:52 UTC through 2038-01-19 03:14:07 UTC.  However, 64-bit
-and some 32-bit operating systems have larger time values, and can
-represent times far in the past or future.
+  Many 32-bit operating systems are limited to time values containing
+32 bits of information; these systems typically handle only the times
+from 1901-12-13 20:45:52 UTC through 2038-01-19 03:14:07 UTC.
+However, 64-bit and some 32-bit operating systems have larger time
+values, and can represent times far in the past or future.
 
   Time conversion functions always use the Gregorian calendar, even
 for dates before the Gregorian calendar was introduced.  Year numbers
@@ -1718,9 +1760,9 @@ certain length of time.  Aside from how to set them up, idle timers
 work just like ordinary timers.
 
 @deffn Command run-with-idle-timer secs repeat function &rest args
-Set up a timer which runs when Emacs has been idle for @var{secs}
-seconds.  The value of @var{secs} may be an integer or a floating point
-number; a value of the type returned by @code{current-idle-time}
+Set up a timer which runs the next time Emacs is idle for @var{secs}
+seconds.  The value of @var{secs} may be an integer or a floating
+point number; a value of the type returned by @code{current-idle-time}
 is also allowed.
 
 If @var{repeat} is @code{nil}, the timer runs just once, the first time
@@ -1733,13 +1775,13 @@ can use in calling @code{cancel-timer} (@pxref{Timers}).
 @end deffn
 
 @cindex idleness
-  Emacs becomes ``idle'' when it starts waiting for user input, and it
-remains idle until the user provides some input.  If a timer is set for
-five seconds of idleness, it runs approximately five seconds after Emacs
-first becomes idle.  Even if @var{repeat} is non-@code{nil}, this timer
-will not run again as long as Emacs remains idle, because the duration
-of idleness will continue to increase and will not go down to five
-seconds again.
+  Emacs becomes @dfn{idle} when it starts waiting for user input, and
+it remains idle until the user provides some input.  If a timer is set
+for five seconds of idleness, it runs approximately five seconds after
+Emacs first becomes idle.  Even if @var{repeat} is non-@code{nil},
+this timer will not run again as long as Emacs remains idle, because
+the duration of idleness will continue to increase and will not go
+down to five seconds again.
 
   Emacs can do various things while idle: garbage collect, autosave or
 handle data from a subprocess.  But these interludes during idleness do
@@ -1753,22 +1795,12 @@ minutes, and even if there have been garbage collections and autosaves.
 input.  Then it becomes idle again, and all the idle timers that are
 set up to repeat will subsequently run another time, one by one.
 
-@c Emacs 19 feature
 @defun current-idle-time
 If Emacs is idle, this function returns the length of time Emacs has
-been idle, as a list of three integers: @code{(@var{high} @var{low}
-@var{microsec})}.  The integers @var{high} and @var{low} combine to
-give the number of seconds of idleness, which is
-@ifnottex
-@var{high} * 2**16 + @var{low}.
-@end ifnottex
-@tex
-$high*2^{16}+low$.
-@end tex
-
-The third element, @var{microsec}, gives the microseconds since the
-start of the current second (or 0 for systems that return time with
-the resolution of only one second).
+been idle, as a list of three integers: @code{(@var{sec-high}
+@var{sec-low} @var{microsec})}, where @var{high} and @var{low} are the
+high and low bits for the number of seconds and @var{microsec} is the
+additional number of microseconds (@pxref{Time of Day}).
 
 When Emacs is not idle, @code{current-idle-time} returns @code{nil}.
 This is a convenient way to test whether Emacs is idle.
@@ -1801,9 +1833,9 @@ Here's an example:
 @end smallexample
 @end defun
 
-  Some idle timer functions in user Lisp packages have a loop that
-does a certain amount of processing each time around, and exits when
-@code{(input-pending-p)} is non-@code{nil}.  That approach seems very
+  Do not write an idle timer function containing a loop which does a
+certain amount of processing each time around, and exits when
+@code{(input-pending-p)} is non-@code{nil}.  This approach seems very
 natural but has two problems:
 
 @itemize
@@ -1816,9 +1848,9 @@ It blocks out any idle timers that ought to run during that time.
 @end itemize
 
 @noindent
-To avoid these problems, don't use that technique.  Instead, write
-such idle timers to reschedule themselves after a brief pause, using
-the method in the @code{timer-function} example above.
+The correct approach is for the idle timer to reschedule itself after
+a brief pause, using the method in the @code{timer-function} example
+above.
 
 @node Terminal Input
 @section Terminal Input
@@ -2014,9 +2046,8 @@ See also @code{open-dribble-file} in @ref{Recording Input}.
 @cindex sound
 
   To play sound using Emacs, use the function @code{play-sound}.  Only
-certain systems are supported; if you call @code{play-sound} on a system
-which cannot really do the job, it gives an error.  Emacs version 20 and
-earlier did not support sound at all.
+certain systems are supported; if you call @code{play-sound} on a
+system which cannot really do the job, it gives an error.
 
   The sound must be stored as a file in RIFF-WAVE format (@samp{.wav})
 or Sun Audio format (@samp{.au}).

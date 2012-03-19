@@ -1,3 +1,41 @@
+2012-03-18  Chong Yidong  <cyd@gnu.org>
+
+	* internals.texi (Building Emacs, Garbage Collection): Copyedits.
+	(Writing Emacs Primitives): Re-organize discussion of functions
+	with variable Lisp arguments are handled.  Delete an obsolete
+	remark, previously tagged as FIXME.
+
+	* os.texi (Idle Timers): Minor clarification.
+	(Idle Timers): Link to Time of Day for description of time list.
+
+2012-03-18  Glenn Morris  <rgm@gnu.org>
+
+	* os.texi (System Interface): Flow control was removed.
+	(Startup Summary): General update.
+	(Init File): Don't mention compiling it.
+
+2012-03-17  Chong Yidong  <cyd@gnu.org>
+
+	* os.texi (Startup Summary): Mention package loading.
+	(Init File): Don't refer to .emacs in section title.  Copyedits.
+	(Terminal-Specific): Give a realistic example.
+	(Command-Line Arguments): Reference Entering Emacs instead of
+	repeating the spiel about not restarting Emacs.
+	(Time of Day): Discuss time representation at beginning of node.
+	(Sound Output): Copyedits.
+
+	* package.texi (Packaging Basics): Document package-initialize.
+
+2012-03-17  Eli Zaretskii  <eliz@gnu.org>
+
+	* frames.texi (Initial Parameters): Add an index entry for
+	minibuffer-only frame.
+
+2012-03-16  Glenn Morris  <rgm@gnu.org>
+
+	* modes.texi (Major Mode Conventions): Mention the strange
+	relationship between View mode and special modes.  (Bug#10650)
+
 2012-03-11  Chong Yidong  <cyd@gnu.org>
 
 	* windows.texi (Window Configurations): save-window-excursion is

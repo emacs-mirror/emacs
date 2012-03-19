@@ -226,45 +226,14 @@ highlighting the Log View buffer."
 
 (defun vc-hg-working-revision (file)
   "Hg-specific version of `vc-working-revision'."
-  (let*
-      ((status nil)
-       (default-directory (file-name-directory file))
-       ;; Avoid localization of messages so we can parse the output.
-       (avoid-local-env (append (list "TERM=dumb" "LANGUAGE=C")
-				     process-environment))
-       (out
-        (with-output-to-string
-          (with-current-buffer
-              standard-output
-            (setq status
-                  (condition-case nil
-		      (let ((process-environment avoid-local-env))
-			;; Ignore all errors.
-			(process-file
-			 vc-hg-program nil t nil
-			 "--config" "alias.parents=parents"
-			 "--config" "defaults.parents="
-			 "parents" "--template" "{rev}" (file-relative-name file)))
-                    ;; Some problem happened.  E.g. We can't find an `hg'
-                    ;; executable.
-                    (error nil)))))))
-    (if (eq 0 status)
-	out
-      ;; Check if the file is in the 'added state, the above hg
-      ;; command does not distinguish between 'added and 'unregistered.
-      (setq status
-	    (condition-case nil
-		(let ((process-environment avoid-local-env))
-		  (process-file
-		   vc-hg-program nil nil nil
-		   ;; We use "log" here, if there's a faster command
-		   ;; that returns true for an 'added file and false
-		   ;; for an 'unregistered one, we could use that.
-		   "log" "-l1" (file-relative-name file)))
-	      ;; Some problem happened.  E.g. We can't find an `hg'
-	      ;; executable.
-	      (error nil)))
-      (when (eq 0 status) "0"))))
+  (let ((default-directory (if (file-directory-p file)
+                               (file-name-as-directory file)
+                             (file-name-directory file))))
+    (ignore-errors
+      (with-output-to-string
+        (process-file vc-hg-program nil standard-output nil
+                      "log" "-l" "1" "--template" "{rev}"
+                      (file-relative-name file))))))
 
 ;;; History functions
 

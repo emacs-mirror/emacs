@@ -2284,7 +2284,7 @@ in which C preprocessor directives are used. e.g. `asm-mode' and
      `(;; Control structures.  Emacs Lisp forms.
        (,(concat
 	  "(" (regexp-opt
-	       '("cond" "if" "while" "while-no-input" "let" "let*"
+	       '("cond" "if" "while" "while-no-input" "let" "let*" "letrec"
 		 "prog" "progn" "progv" "prog1" "prog2" "prog*"
 		 "inline" "lambda" "save-restriction" "save-excursion"
 		 "save-selected-window" "save-window-excursion"

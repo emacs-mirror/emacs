@@ -1,3 +1,8 @@
+2012-03-14  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* url-queue.el (url-queue-kill-job): Make sure that the callback
+	is always called, even if we have a timeout.
+
 2012-03-11  Chong Yidong  <cyd@gnu.org>
 
 	* url-http.el (url-http-end-of-document-sentinel): Handle

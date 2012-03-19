@@ -3,6 +3,18 @@
 	* ftfont.c (ftfont_drive_otf): Mask bits of character code to make
 	it fit in a valid range (Bug#11003).
 
+2012-03-18  Eli Zaretskii  <eliz@gnu.org>
+
+	* xdisp.c (cursor_row_p): Even if the glyph row ends in a string
+	that is not from display property, accept the row as a "cursor
+	row" if one of the string's character has a non-nil `cursor'
+	property.  Fixes cursor positioning when there are newlines in
+	overlay strings, e.g. in icomplete.el.  (Bug#11035)
+
+2012-03-12  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* buffer.c (compare_overlays): Don't assume args differ (Bug#6830).
+
 2012-03-12  Chong Yidong  <cyd@gnu.org>
 
 	* eval.c (inhibit_lisp_code): Rename from
