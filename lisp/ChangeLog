@@ -1,3 +1,9 @@
+2012-03-20  Tassilo Horn  <tassilo@member.fsf.org>
+
+	* textmodes/artist.el (artist-menu-map): Bind Rectangle menu item
+	to draw rectangles, not squares.  (Regression introduced by revno
+	103471)
+
 2012-03-18  Chong Yidong  <cyd@gnu.org>
 
 	* faces.el (face-spec-reset-face): Don't call display-graphic-p if
