@@ -1,3 +1,9 @@
+2012-03-20  Eli Zaretskii  <eliz@gnu.org>
+
+	* w32proc.c (Fw32_set_console_codepage)
+	(Fw32_set_console_output_codepage, Fw32_get_codepage_charset): Doc
+	fixes.
+
 2012-03-20  Chong Yidong  <cyd@gnu.org>
 
 	* dispnew.c (Fredisplay, Vredisplay_preemption_period): Update doc
