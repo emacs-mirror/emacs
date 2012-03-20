@@ -86,59 +86,57 @@ attempt to redisplay, in the middle of Lisp code, without actually
 waiting for input.
 
 @defun redisplay &optional force
-This function tries immediately to redisplay, provided there are no
-pending input events.
-
-If the optional argument @var{force} is non-@code{nil}, it does all
-pending redisplay work even if input is available, with no
-pre-emption.
+This function tries immediately to redisplay.  The optional argument
+@var{force}, if non-@code{nil}, forces the redisplay to be performed,
+instead of being preempted, even if input is pending and the variable
+@code{redisplay-dont-pause} is @code{nil} (see below).  If
+@code{redisplay-dont-pause} is non-@code{nil} (the default), this
+function redisplays in any case, i.e.@: @var{force} does nothing.
 
 The function returns @code{t} if it actually tried to redisplay, and
 @code{nil} otherwise.  A value of @code{t} does not mean that
-redisplay proceeded to completion; it could have been pre-empted by
-newly arriving terminal input.
+redisplay proceeded to completion; it could have been preempted by
+newly arriving input.
 @end defun
-
-  @code{redisplay} with no argument tries immediately to redisplay,
-but has no effect on the usual rules for what parts of the screen to
-redisplay.  By contrast, the following function adds certain windows
-to the pending redisplay work (as if their contents had completely
-changed), but doesn't immediately try to do any redisplay work.
-
-@defun force-window-update &optional object
-This function forces some or all windows to be updated on next
-redisplay.  If @var{object} is a window, it requires eventual
-redisplay of that window.  If @var{object} is a buffer or buffer name,
-it requires eventual redisplay of all windows displaying that buffer.
-If @var{object} is @code{nil} (or omitted), it requires eventual
-redisplay of all windows.
-@end defun
-
-  @code{force-window-update} does not do a redisplay immediately.
-(Emacs will do that when it waits for input.)  Rather, its effect is
-to put more work on the queue to be done by redisplay whenever there
-is a chance.
 
 @defvar redisplay-dont-pause
-If this variable is non-@code{nil}, pending input does not prevent or
-halt redisplay; redisplay occurs, and finishes, regardless of whether
-input is available.  If it is @code{nil}, Emacs redisplay stops if
-input arrives, and does not happen at all if input is available before
-it starts.  The default is @code{t}.
+If this variable is @code{nil}, arriving input events preempt
+redisplay; Emacs avoids starting a redisplay, and stops any redisplay
+that is in progress, until the input has been processed.  In
+particular, @code{(redisplay)} returns @code{nil} without actually
+redisplaying, if there is pending input.
+
+The default value is @code{t}, which means that pending input does not
+preempt redisplay.
 @end defvar
 
 @defvar redisplay-preemption-period
-This variable specifies how many seconds Emacs waits between checks
-for new input during redisplay.  (The default is 0.1 seconds.)  If
-input has arrived when Emacs checks, it pre-empts redisplay and
-processes the available input before trying again to redisplay.
+If @code{redisplay-dont-pause} is @code{nil}, this variable specifies
+how many seconds Emacs waits between checks for new input during
+redisplay; if input arrives during this interval, redisplay stops and
+the input is processed.  The default value is 0.1; if the value is
+@code{nil}, Emacs does not check for input during redisplay.
 
-If this variable is @code{nil}, Emacs does not check for input during
-redisplay, and redisplay cannot be preempted by input.
-
-This variable is only obeyed on graphical terminals.  For
-text terminals, see @ref{Terminal Output}.
+This variable has no effect when @code{redisplay-dont-pause} is
+non-@code{nil} (the default).
 @end defvar
+
+  Although @code{redisplay} tries immediately to redisplay, it does
+not change how Emacs decides which parts of its frame(s) to redisplay.
+By contrast, the following function adds certain windows to the
+pending redisplay work (as if their contents had completely changed),
+but does not immediately try to perform redisplay.
+
+@defun force-window-update &optional object
+This function forces some or all windows to be updated the next time
+Emacs does a redisplay.  If @var{object} is a window, that window is
+to be updated.  If @var{object} is a buffer or buffer name, all
+windows displaying that buffer are to be updated.  If @var{object} is
+@code{nil} (or omitted), all windows are to be updated.
+
+This function does not do a redisplay immediately; Emacs does that as
+it waits for input, or when the function @code{redisplay} is called.
+@end defun
 
 @node Truncation
 @section Truncation
@@ -169,7 +167,7 @@ If this buffer-local variable is non-@code{nil}, lines that extend
 beyond the right edge of the window are truncated; otherwise, they are
 continued.  As a special exception, the variable
 @code{truncate-partial-width-windows} takes precedence in
-@dfn{partial-width} windows (i.e., windows that do not occupy the
+@dfn{partial-width} windows (i.e.@: windows that do not occupy the
 entire frame width).
 @end defopt
 
@@ -192,37 +190,37 @@ a window, that forces truncation.
 
 @defvar wrap-prefix
 If this buffer-local variable is non-@code{nil}, it defines a
-``prefix'' that is prepended to every continuation line at
-display time.  (If lines are truncated, the wrap-prefix is never
-used.)  It may be a string or an image (@pxref{Other Display Specs}),
-or a stretch of whitespace such as specified by the @code{:width} or
-@code{:align-to} display properties (@pxref{Specified Space}).  The
-value is interpreted in the same way as a @code{display} text
-property.  @xref{Display Property}.
+@dfn{wrap prefix} which Emacs displays at the start of every
+continuation line.  (If lines are truncated, @code{wrap-prefix} is
+never used.)  Its value may be a string or an image (@pxref{Other
+Display Specs}), or a stretch of whitespace such as specified by the
+@code{:width} or @code{:align-to} display properties (@pxref{Specified
+Space}).  The value is interpreted in the same way as a @code{display}
+text property.  @xref{Display Property}.
 
-A wrap-prefix may also be specified for regions of text, using the
+A wrap prefix may also be specified for regions of text, using the
 @code{wrap-prefix} text or overlay property.  This takes precedence
 over the @code{wrap-prefix} variable.  @xref{Special Properties}.
 @end defvar
 
 @defvar line-prefix
 If this buffer-local variable is non-@code{nil}, it defines a
-``prefix'' that is prepended to every non-continuation line at
-display time.  It may be a string or an image (@pxref{Other Display
-Specs}), or a stretch of whitespace such as specified by the
-@code{:width} or @code{:align-to} display properties (@pxref{Specified
-Space}).  The value is interpreted in the same way as a @code{display}
-text property.  @xref{Display Property}.
+@dfn{line prefix} which Emacs displays at the start of every
+non-continuation line.  Its value may be a string or an image
+(@pxref{Other Display Specs}), or a stretch of whitespace such as
+specified by the @code{:width} or @code{:align-to} display properties
+(@pxref{Specified Space}).  The value is interpreted in the same way
+as a @code{display} text property.  @xref{Display Property}.
 
-A line-prefix may also be specified for regions of text using the
+A line prefix may also be specified for regions of text using the
 @code{line-prefix} text or overlay property.  This takes precedence
 over the @code{line-prefix} variable.  @xref{Special Properties}.
 @end defvar
 
   If your buffer contains @emph{very} long lines, and you use
 continuation to display them, computing the continuation lines can
-make Emacs redisplay slow.  The column computation and indentation
-functions also become slow.  Then you might find it advisable to set
+make redisplay slow.  The column computation and indentation functions
+also become slow.  Then you might find it advisable to set
 @code{cache-long-line-scans} to @code{t}.
 
 @defvar cache-long-line-scans

@@ -1,3 +1,9 @@
+2012-03-20  Chong Yidong  <cyd@gnu.org>
+
+	* display.texi (Forcing Redisplay): Various rewrites to reflect
+	new value of redisplay-dont-pause.
+	(Truncation): Copyedits.
+
 2012-03-20  Glenn Morris  <rgm@gnu.org>
 
 	* os.texi (Startup Summary): Don't mention initial-buffer-choice = t.
