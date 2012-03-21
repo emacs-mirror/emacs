@@ -56,6 +56,11 @@
 (quail-define-indian-trans-package
  indian-dev-itrans-v5-hash "devanagari-itrans" "Devanagari" "DevIT"
  "Devanagari transliteration by ITRANS method.")
+(quail-defrule "..." ?॥)
+(quail-defrule "\\'" ?॑)
+(quail-defrule "\\_" ?॒)
+(quail-defrule "\\__" ?_)
+(quail-defrule "\\''" ?')
 
 (if nil
     (quail-define-package "devanagari-kyoto-harvard" "Devanagari" "DevKH" t "Devanagari Kyoto-Harvard"))

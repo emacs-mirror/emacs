@@ -1,3 +1,8 @@
+2012-03-21  Kenichi Handa  <handa@m17n.org>
+
+	* quail/indian.el ("devanagari-itrans"): Add a few more useful
+	keys (Bug#10935).
+
 2012-03-16  Kenichi Handa  <handa@m17n.org>
 
 	* quail/indian.el (telugu-inscript): Fix typo.  (Bug#10936)
