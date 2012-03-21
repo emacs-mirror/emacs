@@ -6563,7 +6563,7 @@ Otherwise, trash FILENAME using the freedesktop.org conventions,
 		(new-fn      (expand-file-name (file-name-nondirectory fn)
 					       trash-dir)))
 	   ;; We can't trash a parent directory of trash-directory.
-	   (if (string-match fn trash-dir)
+	   (if (string-prefix-p fn trash-dir)
 	       (error "Trash directory `%s' is a subdirectory of `%s'"
 		      trash-dir filename))
 	   (unless (file-directory-p trash-dir)
@@ -6595,10 +6595,10 @@ Otherwise, trash FILENAME using the freedesktop.org conventions,
 				     (file-name-directory fn)))
 	     (error "Cannot move %s to trash: Permission denied" filename))
 	   ;; The trashed file cannot be the trash dir or its parent.
-	   (if (string-match fn trash-files-dir)
+	   (if (string-prefix-p fn trash-files-dir)
 	       (error "The trash directory %s is a subdirectory of %s"
 		      trash-files-dir filename))
-	   (if (string-match fn trash-info-dir)
+	   (if (string-prefix-p fn trash-info-dir)
 	       (error "The trash directory %s is a subdirectory of %s"
 		      trash-info-dir filename))
 
