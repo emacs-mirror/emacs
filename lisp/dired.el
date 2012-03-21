@@ -52,8 +52,8 @@
 ;;;###autoload
 (defcustom dired-listing-switches (purecopy "-al")
   "Switches passed to `ls' for Dired.  MUST contain the `l' option.
-May contain all other options that don't contradict `-l' except for `b';
-may contain even `F', `i' and `s'.  See also the variable
+May contain all other options that don't contradict `-l';
+may contain even `F', `b', `i' and `s'.  See also the variable
 `dired-ls-F-marks-symlinks' concerning the `F' switch.
 On systems such as MS-DOS and MS-Windows, which use `ls' emulation in Lisp,
 some of the `ls' switches are not supported; see the doc string of
