@@ -809,10 +809,10 @@ If no tags table is loaded, do nothing and return nil."
 	  beg)
       (when pattern
 	(save-excursion
-	  (search-backward pattern) ;FIXME: will fail if we're inside pattern.
-	  (setq beg (point))
-	  (forward-char (length pattern))
-	  (list beg (point) (tags-lazy-completion-table) :exclusive 'no))))))
+	  (when (search-backward pattern nil t) ; will fail inside pattern
+            (setq beg (point))
+            (forward-char (length pattern))
+            (list beg (point) (tags-lazy-completion-table) :exclusive 'no)))))))
 
 (defun find-tag-tag (string)
   "Read a tag name, with defaulting and completion."

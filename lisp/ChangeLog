@@ -1,3 +1,8 @@
+2012-03-21  Sam Steingold  <sds@gnu.org>
+
+	* progmodes/etags.el (tags-completion-at-point-function):
+	Avoid the error when point is inside the pattern.
+
 2012-03-21  John Yates  <john@yates-sheets.org>  (tiny change)
 
 	* progmodes/hideshow.el (hs-inside-comment-p): Fix hiding of first
