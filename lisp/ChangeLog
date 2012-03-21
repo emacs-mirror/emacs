@@ -1,3 +1,11 @@
+2012-03-21  Dmitry Gutov  <dgutov@yandex.ru>
+
+	* progmodes/ruby-mode.el: Don't confuse "end:" for "end" (bug#10786).
+	(ruby-block-end-re, ruby-delimiter, ruby-parse-partial)
+	(ruby-beginning-of-indent): Be more careful with the difference
+	between word-boundary and symbol boundary.
+	(ruby-mode-syntax-table): Make : a symbol constituent.
+
 2012-03-21  Andreas Politz  <politza@fh-trier.de>
 
 	* outline.el (outline-flag-region): Evaporate overlays (bug#10789).
