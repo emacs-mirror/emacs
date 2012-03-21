@@ -1,3 +1,9 @@
+2012-03-21  Anmol Khirbat  <anmol@khirbat.net>  (tiny change)
+
+	* ido.el (ido-set-current-directory, ido-read-internal)
+	(ido-choose-completion-string, ido-completion-help): Handle nil
+	value of ido-completion-buffer (Bug#11008).
+
 2012-03-21  Sam Steingold  <sds@gnu.org>
 
 	* window.el (switch-to-prev-buffer): Do not switch to a visible
