@@ -1,3 +1,18 @@
+2012-03-21  Chong Yidong  <cyd@gnu.org>
+
+	* display.texi (The Echo Area): Add xref to Output Streams.
+	(Displaying Messages): Improve doc of message.
+	(Echo Area Customization, Invisible Text): Copyedits.
+	(Invisible Text): Mention that spec comparison is done with eq.
+	(Width): Improve doc of char-width.
+	(Faces): Recommend using symbol instead of string for face name.
+	Minor clarifications.
+	(Defining Faces): Copyedits.  Update face example.
+	(Attribute Functions): Mark set-face-foreground etc as commands.
+	(Face Remapping): Mention text-scale-adjust.  Clarify
+	face-remapping-alist and related docs.
+	(Face Functions): Don't document make-face or copy-face.
+
 2012-03-20  Chong Yidong  <cyd@gnu.org>
 
 	* display.texi (Forcing Redisplay): Various rewrites to reflect

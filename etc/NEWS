@@ -123,6 +123,8 @@ and pops down the *Completions* buffer accordingly.
 *** Completion style can be set per-category `completion-category-overrides'.
 +++
 *** Completion of buffers now uses substring completion by default.
+---
+*** The `widget-complete-field' option has been removed.
 
 ** Mail changes
 

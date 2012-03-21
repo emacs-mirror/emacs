@@ -243,14 +243,12 @@ This variable is automatically buffer-local in every buffer.
 (@pxref{Errors}), for messages made with the @code{message} primitive,
 and for echoing keystrokes.  It is not the same as the minibuffer,
 despite the fact that the minibuffer appears (when active) in the same
-place on the screen as the echo area.  The @cite{GNU Emacs Manual}
-specifies the rules for resolving conflicts between the echo area and
-the minibuffer for use of that screen space (@pxref{Minibuffer,, The
-Minibuffer, emacs, The GNU Emacs Manual}).
+place on the screen as the echo area.  @xref{Minibuffer,, The
+Minibuffer, emacs, The GNU Emacs Manual}.
 
-  You can write output in the echo area by using the Lisp printing
-functions with @code{t} as the stream (@pxref{Output Functions}), or
-explicitly.
+  Apart from the functions documented in this section, you can print
+Lisp objects to the echo area by specifying @code{t} as the output
+stream.  @xref{Output Streams}.
 
 @menu
 * Displaying Messages:: Explicitly displaying text in the echo area.
@@ -263,27 +261,26 @@ explicitly.
 @subsection Displaying Messages in the Echo Area
 @cindex display message in echo area
 
-  This section describes the functions for explicitly producing echo
-area messages.  Many other Emacs features display messages there, too.
+  This section describes the standard functions for displaying
+messages in the echo area.
 
 @defun message format-string &rest arguments
-This function displays a message in the echo area.  The argument
-@var{format-string} is similar to a C language @code{printf} format
-string.  See @code{format} in @ref{Formatting Strings}, for the details
-on the conversion specifications.  @code{message} returns the
-constructed string.
+This function displays a message in the echo area.
+@var{format-string} is a format string, and @var{arguments} are the
+objects for its format specifications, like in the @code{format}
+function (@pxref{Formatting Strings}).  The resulting formatted string
+is displayed in the echo area; if it contains @code{face} text
+properties, it is displayed with the specified faces (@pxref{Faces}).
+The string is also added to the @samp{*Messages*} buffer, but without
+text properties (@pxref{Logging Messages}).
 
-In batch mode, @code{message} prints the message text on the standard
-error stream, followed by a newline.
+In batch mode, the message is printed to the standard error stream,
+followed by a newline.
 
-If @var{format-string}, or strings among the @var{arguments}, have
-@code{face} text properties, these affect the way the message is displayed.
-
-@c Emacs 19 feature
 If @var{format-string} is @code{nil} or the empty string,
 @code{message} clears the echo area; if the echo area has been
-expanded automatically, this brings it back to its normal size.
-If the minibuffer is active, this brings the minibuffer contents back
+expanded automatically, this brings it back to its normal size.  If
+the minibuffer is active, this brings the minibuffer contents back
 onto the screen immediately.
 
 @example
@@ -559,13 +556,13 @@ If the value is zero, then command input is not echoed.
 Normally, displaying a long message resizes the echo area to display
 the entire message.  But if the variable @code{message-truncate-lines}
 is non-@code{nil}, the echo area does not resize, and the message is
-truncated to fit it, as in Emacs 20 and before.
+truncated to fit it.
 @end defvar
 
   The variable @code{max-mini-window-height}, which specifies the
 maximum height for resizing minibuffer windows, also applies to the
-echo area (which is really a special use of the minibuffer window.
-@xref{Minibuffer Misc}.).
+echo area (which is really a special use of the minibuffer window;
+@pxref{Minibuffer Misc}).
 
 @node Warnings
 @section Reporting Warnings
@@ -762,10 +759,11 @@ that warning is not logged.
 @cindex invisible text
 You can make characters @dfn{invisible}, so that they do not appear on
 the screen, with the @code{invisible} property.  This can be either a
-text property (@pxref{Text Properties}) or a property of an overlay
+text property (@pxref{Text Properties}) or an overlay property
 (@pxref{Overlays}).  Cursor motion also partly ignores these
-characters; if the command loop finds point within them, it moves
-point to the other side of them.
+characters; if the command loop finds that point is inside a range of
+invisible text after a command, it relocates point to the other side
+of the text.
 
 In the simplest case, any non-@code{nil} @code{invisible} property makes
 a character invisible.  This is the default case---if you don't alter
@@ -805,13 +803,15 @@ the character is invisible.  The list can have two kinds of elements:
 
 @table @code
 @item @var{atom}
-A character is invisible if its @code{invisible} property value
-is @var{atom} or if it is a list with @var{atom} as a member.
+A character is invisible if its @code{invisible} property value is
+@var{atom} or if it is a list with @var{atom} as a member; comparison
+is done with @code{eq}.
 
 @item (@var{atom} . t)
 A character is invisible if its @code{invisible} property value is
-@var{atom} or if it is a list with @var{atom} as a member.  Moreover,
-a sequence of such characters displays as an ellipsis.
+@var{atom} or if it is a list with @var{atom} as a member; comparison
+is done with @code{eq}.  Moreover, a sequence of such characters
+displays as an ellipsis.
 @end table
 @end table
 @end defvar
@@ -846,7 +846,7 @@ major mode should use the mode's own name as an element of
 (overlay-put (make-overlay beginning end)
              'invisible 'my-symbol)
 
-;; @r{When done with the overlays:}
+;; @r{When done with the invisibility:}
 (remove-from-invisibility-spec '(my-symbol . t))
 ;; @r{Or respectively:}
 (remove-from-invisibility-spec 'my-symbol)
@@ -872,15 +872,16 @@ ignore invisible newlines if @code{line-move-ignore-invisible} is
 non-@code{nil} (the default), but only because they are explicitly
 programmed to do so.
 
-  However, if a command ends with point inside or at the boundary of invisible
-text, the main editing loop moves point to one of the two ends of the invisible
-text.  Which end to move to is chosen based on the following factors: make sure
-that the overall movement of the command is still in the same direction, and
-prefer a position where an inserted char would not inherit the @code{invisible}
-property.  Additionally, if the text is not replaced by an ellipsis and the
-command only moved within the invisible text, then point is moved one extra
-character so as to try and reflect the command's movement by a visible movement
-of the cursor.
+  However, if a command ends with point inside or at the boundary of
+invisible text, the main editing loop relocates point to one of the
+two ends of the invisible text.  Emacs chooses the direction of
+relocation so that it is the same as the overall movement direction of
+the command; if in doubt, it prefers a position where an inserted char
+would not inherit the @code{invisible} property.  Additionally, if the
+text is not replaced by an ellipsis and the command only moved within
+the invisible text, then point is moved one extra character so as to
+try and reflect the command's movement by a visible movement of the
+cursor.
 
   Thus, if the command moved point back to an invisible range (with the usual
 stickiness), Emacs moves point back to the beginning of that range.  If the
@@ -1666,8 +1667,11 @@ check the width of a character.  @xref{Primitive Indent}, and
 @ref{Screen Lines}, for related functions.
 
 @defun char-width char
-This function returns the width in columns of the character @var{char},
-if it were displayed in the current buffer and the selected window.
+This function returns the width in columns of the character
+@var{char}, if it were displayed in the current buffer (i.e.@: taking
+into account the buffer's display table, if any; @pxref{Display
+Tables}).  The width of a tab character is usually @code{tab-width}
+(@pxref{Usual Display}).
 @end defun
 
 @defun string-width string
@@ -1813,26 +1817,27 @@ height.
 @section Faces
 @cindex faces
 
-  A @dfn{face} is a collection of graphical attributes for displaying
-text: font, foreground color, background color, optional underlining,
-and so on.  Faces control how buffer text is displayed, and how some
-parts of the frame, such as the mode-line, are displayed.
+  A @dfn{face} is a collection of graphical @dfn{attributes} for
+displaying text: font, foreground color, background color, optional
+underlining, and so on.  Faces control how Emacs displays text in
+buffers, as well as other parts of the frame such as the mode line.
 @xref{Standard Faces,,, emacs, The GNU Emacs Manual}, for the list of
 faces Emacs normally comes with.
 
 @cindex face id
   For most purposes, you refer to a face in Lisp programs using its
-@dfn{face name}.  This is either a string or (equivalently) a Lisp
-symbol whose name is equal to that string.
+@dfn{face name}, which is usually a Lisp symbol.  For backward
+compatibility, a face name can also be a string, which is equivalent
+to a Lisp symbol of the same name.
 
 @defun facep object
 This function returns a non-@code{nil} value if @var{object} is a Lisp
 symbol or string that names a face.  Otherwise, it returns @code{nil}.
 @end defun
 
-  Each face name is meaningful for all frames, and by default it has
-the same meaning in all frames.  But you can arrange to give a
-particular face name a special meaning in one frame if you wish.
+  By default, each face name corresponds to the same set of attributes
+in all frames.  But you can also assign a face name a special set of
+attributes in one frame (@pxref{Attribute Functions}).
 
 @menu
 * Defining Faces::      How to define a face with @code{defface}.
@@ -1855,9 +1860,8 @@ particular face name a special meaning in one frame if you wish.
 @subsection Defining Faces
 
   The way to define a new face is with @code{defface}.  This creates a
-kind of customization item (@pxref{Customization}) which the user can
-customize using the Customization buffer (@pxref{Easy Customization,,,
-emacs, The GNU Emacs Manual}).
+kind of customization item which the user can customize using the
+Customization buffer (@pxref{Customization}).
 
   People are sometimes tempted to create variables whose values specify
 which faces to use (for example, Font-Lock does this).  In the vast
@@ -1883,14 +1887,16 @@ exactly what the @code{defface} says.
 
 The purpose of @var{spec} is to specify how the face should appear on
 different kinds of terminals.  It should be an alist whose elements
-have the form @code{(@var{display} @var{atts})}.  Each element's
-@sc{car}, @var{display}, specifies a class of terminals.  (The first
-element, if its @sc{car} is @code{default}, is special---it specifies
-defaults for the remaining elements).  The element's @sc{cadr},
-@var{atts}, is a list of face attributes and their values; it
-specifies what the face should look like on that kind of terminal.
-The possible attributes are defined in the value of
-@code{custom-face-attributes}.
+have the form @code{(@var{display} @var{atts})}.  @var{display}
+specifies a class of terminals (see below), while @var{atts} is a
+property list of face attributes and their values, specifying the
+appearance of the face on matching terminals
+@iftex
+(see the next section for details about face attributes).
+@end iftex
+@ifnottex
+(@pxref{Face Attributes}, for details about face attributes).
+@end ifnottex
 
 The @var{display} part of an element of @var{spec} determines which
 frames the element matches.  If more than one element of @var{spec}
@@ -1952,29 +1958,23 @@ frame must match one of the @var{value}s specified for it in
 @end table
 @end defmac
 
-  Here's how the standard face @code{region} is defined:
+  Here's how the standard face @code{highlight} is defined:
 
 @example
-@group
-(defface region
-  '((((class color) (min-colors 88) (background dark))
-     :background "blue3")
-@end group
-    (((class color) (min-colors 88) (background light))
-     :background "lightgoldenrod2")
-    (((class color) (min-colors 16) (background dark))
-     :background "blue3")
+(defface highlight
+  '((((class color) (min-colors 88) (background light))
+     :background "darkseagreen2")
+    (((class color) (min-colors 88) (background dark))
+     :background "darkolivegreen")
     (((class color) (min-colors 16) (background light))
-     :background "lightgoldenrod2")
+     :background "darkseagreen2")
+    (((class color) (min-colors 16) (background dark))
+     :background "darkolivegreen")
     (((class color) (min-colors 8))
-     :background "blue" :foreground "white")
-    (((type tty) (class mono))
-     :inverse-video t)
-    (t :background "gray"))
-@group
-  "Basic face for highlighting the region."
+     :background "green" :foreground "black")
+    (t :inverse-video t))
+  "Basic face for highlighting."
   :group 'basic-faces)
-@end group
 @end example
 
   Internally, @code{defface} uses the symbol property
@@ -2010,8 +2010,8 @@ doesn't specify that attribute.  In face merging, when the first face
 fails to specify a particular attribute, the next face gets a chance.
 However, the @code{default} face must specify all attributes.
 
-  Some of these font attributes are meaningful only on certain kinds
-of displays.  If your display cannot handle a certain attribute, the
+  Some of these attributes are meaningful only on certain kinds of
+displays.  If your display cannot handle a certain attribute, the
 attribute is ignored.
 
 @table @code
@@ -2216,20 +2216,18 @@ This function sets one or more attributes of @var{face} for
 the @code{defface} says.
 
 The extra arguments @var{arguments} specify the attributes to set, and
-the values for them.  They should consist of alternating attribute names
-(such as @code{:family} or @code{:underline}) and corresponding values.
-Thus,
+the values for them.  They should consist of alternating attribute
+names (such as @code{:family} or @code{:underline}) and values.  Thus,
 
 @example
 (set-face-attribute 'foo nil
                     :width 'extended
-                    :weight 'bold
-                    :underline "red")
+                    :weight 'bold)
 @end example
 
 @noindent
-sets the attributes @code{:width}, @code{:weight} and @code{:underline}
-to the corresponding values.
+sets the attribute @code{:width} to @code{extended} and the attribute
+@code{:weight} to @code{bold}.
 
 If @var{frame} is @code{t}, this function sets the default attributes
 for new frames.  Default attribute values specified this way override
@@ -2306,54 +2304,51 @@ If @var{value1} is a relative value for the face attribute
 face attribute @var{attribute}, returns @var{value1} unchanged.
 @end defun
 
-  The following functions provide compatibility with Emacs 20 and
-below.  They work by calling @code{set-face-attribute}.  Values of
-@code{t} and @code{nil} for their @var{frame} argument are handled
-just like @code{set-face-attribute} and @code{face-attribute}.
+  The following commands and functions mostly provide compatibility
+with old versions of Emacs.  They work by calling
+@code{set-face-attribute}.  Values of @code{t} and @code{nil} for
+their @var{frame} argument are handled just like
+@code{set-face-attribute} and @code{face-attribute}.  The commands
+read their arguments using the minibuffer, if called interactively.
 
-@defun set-face-foreground face color &optional frame
-@defunx set-face-background face color &optional frame
-These functions set the @code{:foreground} attribute (or
-@code{:background} attribute, respectively) of @var{face} to
-@var{color}.
-@end defun
+@deffn Command set-face-foreground face color &optional frame
+@deffnx Command set-face-background face color &optional frame
+These set the @code{:foreground} attribute (or @code{:background}
+attribute, respectively) of @var{face} to @var{color}.
+@end deffn
 
-@defun set-face-stipple face pattern &optional frame
-This function sets the @code{:stipple} attribute of @var{face} to
+@deffn Command set-face-stipple face pattern &optional frame
+This sets the @code{:stipple} attribute of @var{face} to
 @var{pattern}.
-@end defun
+@end deffn
 
-@defun set-face-font face font &optional frame
-This function sets the @code{:font} attribute of @var{face} to
-@var{font}.
-@end defun
+@deffn Command set-face-font face font &optional frame
+This sets the @code{:font} attribute of @var{face} to @var{font}.
+@end deffn
 
 @defun set-face-bold-p face bold-p &optional frame
-This function sets the @code{:weight} attribute of @var{face} to
-@var{normal} if @var{bold-p} is @code{nil}, and to @var{bold}
-otherwise.
+This sets the @code{:weight} attribute of @var{face} to @var{normal}
+if @var{bold-p} is @code{nil}, and to @var{bold} otherwise.
 @end defun
 
 @defun set-face-italic-p face italic-p &optional frame
-This function sets the @code{:slant} attribute of @var{face} to
-@var{normal} if @var{italic-p} is @code{nil}, and to @var{italic}
-otherwise.
+This sets the @code{:slant} attribute of @var{face} to @var{normal} if
+@var{italic-p} is @code{nil}, and to @var{italic} otherwise.
 @end defun
 
 @defun set-face-underline-p face underline &optional frame
-This function sets the @code{:underline} attribute of @var{face} to
+This sets the @code{:underline} attribute of @var{face} to
 @var{underline}.
 @end defun
 
 @defun set-face-inverse-video-p face inverse-video-p &optional frame
-This function sets the @code{:inverse-video} attribute of @var{face}
-to @var{inverse-video-p}.
+This sets the @code{:inverse-video} attribute of @var{face} to
+@var{inverse-video-p}.
 @end defun
 
-@defun invert-face face &optional frame
-This function swaps the foreground and background colors of face
-@var{face}.
-@end defun
+@deffn Command invert-face face &optional frame
+This swaps the foreground and background colors of face @var{face}.
+@end deffn
 
   The following functions examine the attributes of a face.  If you
 don't specify @var{frame}, they refer to the selected frame; @code{t}
@@ -2459,27 +2454,26 @@ steps, Emacs applies the attribute of the @code{default} face.
   If these various sources together specify more than one face for a
 particular character, Emacs merges the attributes of the various faces
 specified.  For each attribute, Emacs tries using the above order
-(i.e., first the face of any special glyph; then the face for region
-highlighting, if appropriate; then faces specified by overlays, then
-faces specified by text properties, then the @code{mode-line} or
-@code{mode-line-inactive} or @code{header-line} face, if appropriate,
-and finally the @code{default} face).
+(i.e.@: first the face of any special glyph; then the face for region
+highlighting, if appropriate; and so on).
 
 @node Face Remapping
 @subsection Face Remapping
 
   The variable @code{face-remapping-alist} is used for buffer-local or
-global changes in the appearance of a face.  For instance, it can be
-used to make the @code{default} face a variable-pitch face within a
-particular buffer.
+global changes in the appearance of a face.  For instance, it is used
+to implement the @code{text-scale-adjust} command (@pxref{Text
+Scale,,, emacs, The GNU Emacs Manual}).
 
 @defvar face-remapping-alist
-An alist whose elements have the form @code{(@var{face}
-@var{remapping...})}.  This causes Emacs to display text using the
-face @var{face} using @var{remapping...} instead of @var{face}'s
-ordinary definition.  @var{remapping...} may be any face specification
-suitable for a @code{face} text property: either a face name, or a
-property list of attribute/value pairs.  @xref{Special Properties}.
+The value of this variable is an alist whose elements have the form
+@code{(@var{face} . @var{remapping})}.  This causes Emacs to display
+any text having the face @var{face} with @var{remapping}, rather than
+the ordinary definition of @var{face}.  @var{remapping} may be any
+face specification suitable for a @code{face} text property: either a
+face name, or a property list of attribute/value pairs, or a list in
+which each element is either a face name or a property list
+(@pxref{Special Properties}).
 
 If @code{face-remapping-alist} is buffer-local, its local value takes
 effect only within that buffer.
@@ -2488,17 +2482,15 @@ Two points bear emphasizing:
 
 @enumerate
 @item
-The new definition @var{remapping...} is the complete
-specification of how to display @var{face}---it entirely replaces,
-rather than augmenting or modifying, the normal definition of that
-face.
+@var{remapping} serves as the complete specification for the remapped
+face---it replaces the normal definition of @var{face}, instead of
+modifying it.
 
 @item
-If @var{remapping...} recursively references the same face name
-@var{face}, either directly remapping entry, or via the
-@code{:inherit} attribute of some other face in @var{remapping...},
-then that reference uses the normal definition of @var{face} in the
-selected frame, instead of the ``remapped'' definition.
+If @var{remapping} references the same face name @var{face}, either
+directly or via the @code{:inherit} attribute of some other face in
+@var{remapping}, that reference uses the normal definition of
+@var{face}.  In other words, the remapping cannot be recursive.
 
 For instance, if the @code{mode-line} face is remapped using this
 entry in @code{face-remapping-alist}:
@@ -2512,82 +2504,72 @@ then the new definition of the @code{mode-line} face inherits from the
 @end enumerate
 @end defvar
 
-  A typical use of the @code{face-remapping-alist} is to change a
-buffer's @code{default} face; for example, the following changes a
-buffer's @code{default} face to use the @code{variable-pitch} face,
-with the height doubled:
-
-@example
-(set (make-local-variable 'face-remapping-alist)
-     '((default variable-pitch :height 2.0)))
-@end example
-
   The following functions implement a higher-level interface to
-@code{face-remapping-alist}, making it easier to use
-``cooperatively''.  They are mainly intended for buffer-local use, and
-so all make @code{face-remapping-alist} variable buffer-local as a
-side-effect.  They use entries in @code{face-remapping-alist} which
-have the general form:
+@code{face-remapping-alist}.  Most Lisp code should use these
+functions instead of setting @code{face-remapping-alist} directly, to
+avoid trampling on remappings applied elsewhere.  These functions are
+intended for buffer-local remappings, so they all make
+@code{face-remapping-alist} buffer-local as a side-effect. They manage
+@code{face-remapping-alist} entries of the form
 
 @example
-  (@var{face} @var{relative_specs_1} @var{relative_specs_2} @var{...} @var{base_specs})
+  (@var{face} @var{relative-spec-1} @var{relative-spec-2} @var{...} @var{base-spec})
 @end example
 
-Everything except @var{face} is a ``face spec'': a list of face names
-or face attribute-value pairs.  All face specs are merged together,
-with earlier values taking precedence.
-
-The @var{relative_specs_}n values are ``relative specs'', and are
-added by @code{face-remap-add-relative} (and removed by
-@code{face-remap-remove-relative}.  These are intended for face
-modifications (such as increasing the size).  Typical users of these
-relative specs would be minor modes.
-
-@var{base_specs} is the lowest-priority value, and by default is just the
-face name, which causes the global definition of that face to be used.
-
-A non-default value of @var{base_specs} may also be set using
-@code{face-remap-set-base}.  Because this @emph{overwrites} the
-default base-spec value (which inherits the global face definition),
-it is up to the caller of @code{face-remap-set-base} to add such
-inheritance if it is desired.  A typical use of
-@code{face-remap-set-base} would be a major mode adding a face
-remappings, e.g., of the default face.
-
+@noindent
+where, as explained above, each of the @var{relative-spec-N} and
+@var{base-spec} is either a face name, or a property list of
+attribute/value pairs.  Each of the @dfn{relative remapping} entries,
+@var{relative-spec-N}, is managed by the
+@code{face-remap-add-relative} and @code{face-remap-remove-relative}
+functions; these are intended for simple modifications like changing
+the text size.  The @dfn{base remapping} entry, @var{base-spec}, has
+the lowest priority and is managed by the @code{face-remap-set-base}
+and @code{face-remap-reset-base} functions; it is intended for major
+modes to remap faces in the buffers they control.
 
 @defun face-remap-add-relative face &rest specs
-This functions adds a face remapping entry of @var{face} to @var{specs}
-in the current buffer.
+This functions adds the face specifications in @var{specs} as relative
+remappings for face @var{face} in the current buffer.  The remaining
+arguments, @var{specs}, should form either a list of face names, or a
+property list of attribute/value pairs.
 
-It returns a ``cookie'' which can be used to later delete the remapping with
-@code{face-remap-remove-relative}.
+The return value is a Lisp object that serves as a ``cookie''; you can
+pass this object as an argument to @code{face-remap-remove-relative}
+if you need to remove the remapping later.
 
-@var{specs} can be any value suitable for the @code{face} text
-property, including a face name, a list of face names, or a
-face-attribute property list.  The attributes given by @var{specs}
-will be merged with any other currently active face remappings of
-@var{face}, and with the global definition of @var{face} (by default;
-this may be changed using @code{face-remap-set-base}), with the most
-recently added relative remapping taking precedence.
+@example
+;; Remap the `escape-glyph' face into a combination
+;; of the `highlight' and `italic' faces:
+(face-remap-add-relative 'escape-glyph 'highlight 'italic)
+
+;; Increase the size of the `default' face by 50%:
+(face-remap-add-relative 'default :height 1.5)
+@end example
 @end defun
 
 @defun face-remap-remove-relative cookie
-This function removes a face remapping previously added by
-@code{face-remap-add-relative}.  @var{cookie} should be a return value
-from that function.
+This function removes a relative remapping previously added by
+@code{face-remap-add-relative}.  @var{cookie} should be the Lisp
+object returned by @code{face-remap-add-relative} when the remapping
+was added.
 @end defun
 
 @defun face-remap-set-base face &rest specs
-This function sets the ``base remapping'' of @var{face} in the current
+This function sets the base remapping of @var{face} in the current
 buffer to @var{specs}.  If @var{specs} is empty, the default base
-remapping is restored, which inherits from the global definition of
-@var{face}; note that this is different from @var{specs} containing a
+remapping is restored, similar to calling @code{face-remap-reset-base}
+(see below); note that this is different from @var{specs} containing a
 single value @code{nil}, which has the opposite result (the global
 definition of @var{face} is ignored).
+
+This overwrites the default @var{base-spec}, which inherits the global
+face definition, so it is up to the caller to add such inheritance if
+so desired.
 @end defun
 
 @defun face-remap-reset-base face
-This function sets the ``base remapping'' of @var{face} to its default
+This function sets the base remapping of @var{face} to its default
 value, which inherits from @var{face}'s global definition.
 @end defun
 
@@ -2596,29 +2578,8 @@ value, which inherits from @var{face}'s global definition.
 
   Here are additional functions for creating and working with faces.
 
-@defun make-face name
-This function defines a new face named @var{name}, initially with all
-attributes @code{nil}.  It does nothing if there is already a face named
-@var{name}.
-@end defun
-
 @defun face-list
-This function returns a list of all defined faces.
-@end defun
-
-@defun copy-face old-face new-name &optional frame new-frame
-This function defines a face named @var{new-name} as a copy of the existing
-face named @var{old-face}.  It creates the face @var{new-name} if that
-doesn't already exist.
-
-If the optional argument @var{frame} is given, this function applies
-only to that frame.  Otherwise it applies to each frame individually,
-copying attributes from @var{old-face} in each frame to @var{new-face}
-in the same frame.
-
-If the optional argument @var{new-frame} is given, then @code{copy-face}
-copies the attributes of @var{old-face} in @var{frame} to @var{new-name}
-in @var{new-frame}.
+This function returns a list of all defined face names.
 @end defun
 
 @defun face-id face
@@ -2752,7 +2713,7 @@ these are used for messages in @samp{*Compilation*} buffers.
 @node Font Selection
 @subsection Font Selection
 
-  Before Emacs can draw a character on a particular display, it must
+  Before Emacs can draw a character on a graphical display, it must
 select a @dfn{font} for that character@footnote{In this context, the
 term @dfn{font} has nothing to do with Font Lock (@pxref{Font Lock
 Mode}).}.  @xref{Fonts,,, emacs, The GNU Emacs Manual}.  Normally,

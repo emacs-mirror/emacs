@@ -1,3 +1,7 @@
+2012-03-21  Chong Yidong  <cyd@gnu.org>
+
+	* xfaces.c (Vface_remapping_alist): Doc fix.
+
 2012-03-20  Eli Zaretskii  <eliz@gnu.org>
 
 	* w32proc.c (Fw32_set_console_codepage)
