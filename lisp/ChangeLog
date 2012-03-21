@@ -1,5 +1,8 @@
 2012-03-21  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* progmodes/etags.el (tags-completion-at-point-function):
+	Improve last fix.
+
 	* files.el (move-file-to-trash): Files aren't regexps (bug#11055).
 
 2012-03-21  Sam Steingold  <sds@gnu.org>
