@@ -1,5 +1,7 @@
 2012-03-21  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* outline.el (outline-flag-region): Evaporate overlays (bug#10789).
+
 	* progmodes/etags.el (tags-completion-at-point-function):
 	Improve last fix.
 
