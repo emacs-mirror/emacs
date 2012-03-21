@@ -1,3 +1,7 @@
+2012-03-21  Drew Adams  <drew.adams@oracle.com>
+
+	* info.el (Info-menu): Handle string value of FORK arg (Bug#10858).
+
 2012-03-21  Anmol Khirbat  <anmol@khirbat.net>  (tiny change)
 
 	* ido.el (ido-set-current-directory, ido-read-internal)
