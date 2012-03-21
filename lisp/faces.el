@@ -122,15 +122,13 @@ REGISTRY, ALTERNATIVE1, ALTERNATIVE2, and etc."
   "Return a list of all defined faces."
   (mapcar #'car face-new-frame-defaults))
 
-
-;;; ### If not frame-local initialize by what X resources?
-
 (defun make-face (face &optional no-init-from-resources)
   "Define a new face with name FACE, a symbol.
-NO-INIT-FROM-RESOURCES non-nil means don't initialize frame-local
-variants of FACE from X resources.  (X resources recognized are found
-in the global variable `face-x-resources'.)  If FACE is already known
-as a face, leave it unmodified.  Value is FACE."
+Do not call this directly from Lisp code; use `defface' instead.
+
+If NO-INIT-FROM-RESOURCES is non-nil, don't initialize face
+attributes from X resources.  If FACE is already known as a face,
+leave it unmodified.  Return FACE."
   (interactive (list (read-from-minibuffer
 		      "Make face: " nil nil t 'face-name-history)))
   (unless (facep face)
@@ -145,31 +143,30 @@ as a face, leave it unmodified.  Value is FACE."
       (make-face-x-resource-internal face)))
   face)
 
-
 (defun make-empty-face (face)
   "Define a new, empty face with name FACE.
-If the face already exists, it is left unmodified.  Value is FACE."
+Do not call this directly from Lisp code; use `defface' instead."
   (interactive (list (read-from-minibuffer
 		      "Make empty face: " nil nil t 'face-name-history)))
   (make-face face 'no-init-from-resources))
 
-
 (defun copy-face (old-face new-face &optional frame new-frame)
-  "Define a face just like OLD-FACE, with name NEW-FACE.
+  "Define a face named NEW-FACE, which is a copy of OLD-FACE.
+This function does not copy face customization data, so NEW-FACE
+will not be made customizable.  Most Lisp code should not call
+this function; use `defface' with :inherit instead.
 
-If NEW-FACE already exists as a face, it is modified to be like
-OLD-FACE.  If it doesn't already exist, it is created.
+If NEW-FACE already exists as a face, modify it to be like
+OLD-FACE.  If NEW-FACE doesn't already exist, create it.
 
-If the optional argument FRAME is given as a frame, NEW-FACE is
-changed on FRAME only.
-If FRAME is t, the frame-independent default specification for OLD-FACE
-is copied to NEW-FACE.
-If FRAME is nil, copying is done for the frame-independent defaults
-and for each existing frame.
+If the optional argument FRAME is a frame, change NEW-FACE on
+FRAME only.  If FRAME is t, copy the frame-independent default
+specification for OLD-FACE to NEW-FACE.  If FRAME is nil, copy
+the defaults as well as the faces on each existing frame.
 
-If the optional fourth argument NEW-FRAME is given,
-copy the information from face OLD-FACE on frame FRAME
-to NEW-FACE on frame NEW-FRAME.  In this case, FRAME may not be nil."
+If the optional fourth argument NEW-FRAME is given, copy the
+information from face OLD-FACE on frame FRAME to NEW-FACE on
+frame NEW-FRAME.  In this case, FRAME must not be nil."
   (let ((inhibit-quit t))
     (if (null frame)
 	(progn

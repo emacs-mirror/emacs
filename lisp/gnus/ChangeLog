@@ -1,3 +1,8 @@
+2012-03-19  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* shr.el (shr-insert): Update the text state properly to avoid
+	inserting spurious paragraph starts.
+
 2012-03-14  Lars Magne Ingebrigtsen  <larsi@gnus.org>
 
 	* gnus-sum.el (gnus-update-marks): Don't propagate marks unless

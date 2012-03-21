@@ -248,6 +248,9 @@ previous session.  @xref{Session Management}.
 
 @end enumerate
 
+@noindent
+The following options affect some aspects of the startup sequence.
+
 @defopt inhibit-startup-screen
 This variable, if non-@code{nil}, inhibits the startup screen.  In
 that case, Emacs typically displays the @samp{*scratch*} buffer; but
@@ -265,9 +268,13 @@ aliases for this variable.
 
 @defopt initial-buffer-choice
 This variable, if non-@code{nil}, determines a file or buffer for
-Emacs to display after starting up, instead of the startup screen.  If
-its value is @code{t}, Emacs displays the @samp{*scratch*} buffer.  If
-its value is a string, that specifies the name of a file for Emacs to
+Emacs to display after starting up, instead of the startup screen.
+@ignore
+@c I do not think this should be mentioned.  AFAICS it is just a dodge
+@c around inhibit-startup-screen not being settable on a site-wide basis.
+If its value is @code{t}, Emacs displays the @samp{*scratch*} buffer. 
+@end ignore
+If its value is a string, that specifies the name of a file for Emacs to
 visit.
 @end defopt
 
@@ -283,7 +290,7 @@ form to your init file:
 
 Emacs explicitly checks for an expression as shown above in your init
 file; your login name must appear in the expression as a Lisp string
-constant.  Other methods of setting
+constant.  You can also use the Custom interface.  Other methods of setting
 @code{inhibit-startup-echo-area-message} to the same value do not
 inhibit the startup message.  This way, you can easily inhibit the
 message for yourself if you wish, but thoughtless copying of your init
@@ -295,6 +302,34 @@ This variable, if non-@code{nil}, should be a string, which is
 inserted into the @samp{*scratch*} buffer when Emacs starts up.  If it
 is @code{nil}, the @samp{*scratch*} buffer is empty.
 @end defopt
+
+@noindent
+The following command-line options affect some aspects of the startup
+sequence.  @xref{Initial Options,,, emacs, The GNU Emacs Manual}.
+
+@table @code
+@item --no-splash
+Do not display a splash screen.
+
+@item --batch
+Run without an interactive terminal.  @xref{Batch Mode}.
+
+@item --daemon
+Do not initialize any display; just start a server in the background.
+
+@item --no-init-file
+@itemx -Q
+Do not load either the init file, or the @file{default} library.
+
+@item --no-site-file
+Do not load the @file{site-start} library.
+
+@item --quick
+@itemx -Q
+Equivalent to @samp{-q --no-site-file --no-splash}.
+@c and --no-site-lisp, but let's not mention that here.
+@end table
+
 
 @node Init File
 @subsection The Init File
