@@ -1,3 +1,8 @@
+2012-03-21  John Yates  <john@yates-sheets.org>  (tiny change)
+
+	* progmodes/hideshow.el (hs-inside-comment-p): Fix hiding of first
+	line (Bug#10855).
+
 2012-03-21  Drew Adams  <drew.adams@oracle.com>
 
 	* info.el (Info-menu): Handle string value of FORK arg (Bug#10858).
