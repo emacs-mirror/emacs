@@ -93,8 +93,7 @@ If nil, use the value of `vc-diff-switches'.  If t, use no switches."
   (ignore-errors
     (with-temp-buffer
       (call-process vc-bzr-program nil t nil "help" "status")
-      (goto-char (point-min))
-      (if (search-forward "--no-classify")
+      (if (search-backward "--no-classify" nil t)
           "--no-classify")))
   "String or list of strings specifying switches for bzr status under VC.
 The option \"--no-classify\" should be present if your bzr supports it."
