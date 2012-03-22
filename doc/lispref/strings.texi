@@ -508,6 +508,13 @@ are used.
 @code{string-lessp} is another name for @code{string<}.
 @end defun
 
+@defun string-prefix-p string1 string2 &optional ignore-case
+This function returns non-@code{nil} if @var{string1} is a prefix of
+@var{string2}; i.e., if @var{string2} starts with @var{string1}.  If
+the optional argument @var{ignore-case} is non-@code{nil}, the
+comparison ignores case differences.
+@end defun
+
 @defun compare-strings string1 start1 end1 string2 start2 end2 &optional ignore-case
 This function compares the specified part of @var{string1} with the
 specified part of @var{string2}.  The specified part of @var{string1}

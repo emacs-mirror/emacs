@@ -1548,6 +1548,10 @@ inherits from multiple maps, eg:
  (set-keymap-parent newmap (make-composed-keymap othermap parent))
 
 +++
+** New function `string-prefix-p'.
+(This was actually added in Emacs 23.2 but was not advertised at the time.)
+
++++
 ** New reader macro ## that stands for the empty symbol.
 This means that the empty symbol can now be read back.  Also, #: by itself
 (when not immediately followed by a possible symbol character) stands for

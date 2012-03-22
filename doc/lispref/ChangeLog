@@ -1,3 +1,7 @@
+2012-03-22  Glenn Morris  <rgm@gnu.org>
+
+	* strings.texi (Text Comparison): Mention string-prefix-p.
+
 2012-03-21  Chong Yidong  <cyd@gnu.org>
 
 	* display.texi (The Echo Area): Add xref to Output Streams.
