@@ -302,11 +302,16 @@ functionality.
 	    (if (or (null starttls-command)
 		    starttls-available)
 		"Server does not support TLS"
-	      (concat "Emacs does not support TLS, and no external `"
-		      (if starttls-use-gnutls
-			  starttls-gnutls-program
-			starttls-program)
-		      "' program was found")))
+	      ;; See `starttls-available-p'.  If this predicate
+	      ;; changes to allow running under Windows, the error
+	      ;; message below should be amended.
+	      (if (memq system-type '(windows-nt ms-dos))
+		  (concat "Emacs does not support TLS")
+		(concat "Emacs does not support TLS, and no external `"
+			(if starttls-use-gnutls
+			    starttls-gnutls-program
+			  starttls-program)
+			"' program was found"))))
       (delete-process stream)
       (setq stream nil))
     ;; Return value:
