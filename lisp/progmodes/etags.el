@@ -1410,7 +1410,9 @@ hits the start of file."
 	  tag tag-info pt)
     (forward-line 1)
     (while (not (or (eobp) (looking-at "\f")))
-      (setq tag-info (save-excursion (funcall snarf-tag-function t))
+      ;; We used to use explicit tags when available, but the current goto-func
+      ;; can only handle implicit tags.
+      (setq tag-info (save-excursion (funcall snarf-tag-function nil))
 	    tag (car tag-info)
 	    pt (with-current-buffer standard-output (point)))
       (princ tag)
