@@ -116,7 +116,8 @@ prepends `vc-bzr-status-switches' to ARGS."
                 process-environment)))
     (apply 'vc-do-command (or buffer "*vc*") okstatus vc-bzr-program
            file-or-list bzr-command
-           (if (string-equal "status" bzr-command)
+           (if (and (string-equal "status" bzr-command)
+                    vc-bzr-status-switches)
                (append (if (stringp vc-bzr-status-switches)
                            (list vc-bzr-status-switches)
                          vc-bzr-status-switches)
