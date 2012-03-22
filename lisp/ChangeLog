@@ -1,3 +1,8 @@
+2012-03-22  Sam Steingold  <sds@gnu.org>
+
+	* window.el (switch-to-prev-buffer): Revert last patch because the
+	bug turned out to be an advertised feature (Elisp manual 28.14).
+
 2012-03-22  Glenn Morris  <rgm@gnu.org>
 
 	* vc/vc-bzr.el (vc-bzr-status-switches): New option.  (Bug#6724)

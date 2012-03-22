@@ -2602,12 +2602,14 @@ shall not be switched to in future invocations of this command."
 		   (not (eq new-buffer old-buffer))
                    (or bury-or-kill
 		       (not (memq new-buffer next-buffers))))
-          (if (get-buffer-window new-buffer)
-	      ;; Try to avoid showing a buffer visible in some other window.
-	      (setq visible new-buffer)
-            (set-window-buffer-start-and-point
-             window new-buffer (nth 1 entry) (nth 2 entry))
-            (throw 'found t))))
+          ;; _DO_ show visible buffers as advertized in Elisp manual 28.14
+          ;;  on `switch-to-prev-buffer' & `switch-to-next-buffer'
+          ;;(if (get-buffer-window new-buffer)
+	  ;;    ;; Try to avoid showing a buffer visible in some other window.
+	  ;;    (setq visible new-buffer)
+          (set-window-buffer-start-and-point
+           window new-buffer (nth 1 entry) (nth 2 entry))
+          (throw 'found t)))
       ;; Scan reverted buffer list of WINDOW's frame next, skipping
       ;; entries of next buffers.  Note that when we bury or kill a
       ;; buffer we don't reverse the global buffer list to avoid showing
