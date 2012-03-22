@@ -607,6 +607,7 @@ as cdr."
     ;; forward comment, and see if we are inside, then extend
     ;; forward and backward as long as we have comments
     (let ((q (point)))
+      (skip-chars-forward "[:blank:]")
       (when (or (looking-at hs-c-start-regexp)
                 (re-search-backward hs-c-start-regexp (point-min) t))
         ;; first get to the beginning of this comment...

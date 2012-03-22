@@ -7114,7 +7114,7 @@
 	vc-default-mark-resolved.
 	(vc-default-mark-resolved): Change to an alias for ignore.
 
-2008-09-24  Andreas Politz  <politza@fh-trier.de>  (tiny change)
+2008-09-24  Andreas Politz  <politza@fh-trier.de>
 
 	* term.el (term-emulate-terminal): Encode input string before
 	checking its length.

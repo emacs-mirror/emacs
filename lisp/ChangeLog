@@ -4,6 +4,50 @@
 	change.  To avoid unwanted bidi reordering, use
 	bidi-string-mark-left-to-right instead of inserting LRO and PDF.
 
+2012-03-21  Dmitry Gutov  <dgutov@yandex.ru>
+
+	* progmodes/ruby-mode.el: Don't confuse "end:" for "end" (bug#10786).
+	(ruby-block-end-re, ruby-delimiter, ruby-parse-partial)
+	(ruby-beginning-of-indent): Be more careful with the difference
+	between word-boundary and symbol boundary.
+	(ruby-mode-syntax-table): Make : a symbol constituent.
+
+2012-03-21  Andreas Politz  <politza@fh-trier.de>
+
+	* outline.el (outline-flag-region): Evaporate overlays (bug#10789).
+
+2012-03-21  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* progmodes/etags.el (tags-completion-at-point-function):
+	Improve last fix.
+
+	* files.el (move-file-to-trash): Files aren't regexps (bug#11055).
+
+2012-03-21  Sam Steingold  <sds@gnu.org>
+
+	* progmodes/etags.el (tags-completion-at-point-function):
+	Avoid the error when point is inside the pattern.
+
+2012-03-21  John Yates  <john@yates-sheets.org>  (tiny change)
+
+	* progmodes/hideshow.el (hs-inside-comment-p): Fix hiding of first
+	line (Bug#10855).
+
+2012-03-21  Drew Adams  <drew.adams@oracle.com>
+
+	* info.el (Info-menu): Handle string value of FORK arg (Bug#10858).
+
+2012-03-21  Anmol Khirbat  <anmol@khirbat.net>  (tiny change)
+
+	* ido.el (ido-set-current-directory, ido-read-internal)
+	(ido-choose-completion-string, ido-completion-help): Handle nil
+	value of ido-completion-buffer (Bug#11008).
+
+2012-03-21  Sam Steingold  <sds@gnu.org>
+
+	* window.el (switch-to-prev-buffer): Do not switch to a visible
+	window previous buffer, just like with the frame previous buffers.
+
 2012-03-21  Chong Yidong  <cyd@gnu.org>
 
 	* faces.el (make-face, make-empty-face, copy-face):

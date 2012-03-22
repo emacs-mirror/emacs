@@ -2594,7 +2594,9 @@ new buffer."
        (list item current-prefix-arg))))
   ;; there is a problem here in that if several menu items have the same
   ;; name you can only go to the node of the first with this command.
-  (Info-goto-node (Info-extract-menu-item menu-item) (if fork menu-item)))
+  (Info-goto-node (Info-extract-menu-item menu-item)
+		  (and fork
+		       (if (stringp fork) fork menu-item))))
 
 (defun Info-extract-menu-item (menu-item)
   (setq menu-item (regexp-quote menu-item))
