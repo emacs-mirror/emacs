@@ -610,7 +610,7 @@ the copy, like @samp{cp -p}.
 @cindex recursive copying
 The variable @code{dired-recursive-copies} controls whether to copy
 directories recursively (like @samp{cp -r}).  The default is
-@code{nil}, which means that directories cannot be copied.
+@code{top}, which means to ask before recursively copying a directory.
 
 @item D
 @findex dired-do-delete

@@ -1,3 +1,7 @@
+2012-03-22  Glenn Morris  <rgm@gnu.org>
+
+	* dired.texi (Operating on Files): Fix dired-recursive-copies default.
+
 2012-03-17  Chong Yidong  <cyd@gnu.org>
 
 	* package.texi (Package Installation): Document use of
