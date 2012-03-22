@@ -1,3 +1,9 @@
+2012-03-22  Kenichi Handa  <handa@m17n.org>
+
+	* international/quail.el (quail-insert-kbd-layout): Fix previous
+	change.  To avoid unwanted bidi reordering, use
+	bidi-string-mark-left-to-right instead of inserting LRO and PDF.
+
 2012-03-21  Dmitry Gutov  <dgutov@yandex.ru>
 
 	* progmodes/ruby-mode.el: Don't confuse "end:" for "end" (bug#10786).

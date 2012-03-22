@@ -825,8 +825,6 @@ The format of KBD-LAYOUT is the same as `quail-keyboard-layout'."
       (setq i 0)
       (while (< i quail-keyboard-layout-len)
 	(when (= (% i 30) 0)
-	  ;; Insert LRO to avoid bidi-reordering of keyboard cells.
-	  (insert (propertize (string ?\x202d) 'invisible t))
 	  (setq row (/ i 30))
 	  (if (> row 1)
 	      (insert-char 32 (+ row (/ (- row 2) 2)))))
@@ -835,25 +833,26 @@ The format of KBD-LAYOUT is the same as `quail-keyboard-layout'."
 	(insert bar)
 	(if (< (if (stringp lower) (string-width lower) (char-width lower)) 2)
 	    (insert " "))
-	(if (and (characterp lower)
-		 (eq (get-char-code-property lower 'general-category) 'Mn))
-	    ;; Pad the left and right of non-spacing characters.
-	    (setq lower (compose-string (string lower) 0 1
-					(format "\t%c\t" lower))))
-	(if (and (characterp upper)
-		 (eq (get-char-code-property upper 'general-category) 'Mn))
-	    ;; Pad the left and right of non-spacing characters.
-	    (setq upper (compose-string (string upper) 0 1
-					(format "\t%c\t" upper))))
-	(insert lower (propertize " " 'invisible t) upper)
-	(if (< (if (stringp upper) (string-width upper) (char-width upper)) 2)
+	(if (characterp lower)
+	    (if (eq (get-char-code-property lower 'general-category) 'Mn)
+		;; Pad the left and right of non-spacing characters.
+		(setq lower (compose-string (string lower) 0 1
+					    (format "\t%c\t" lower)))
+	      (setq lower (string lower))))
+	(if (characterp upper)
+	    (if (eq (get-char-code-property upper 'general-category) 'Mn)
+		;; Pad the left and right of non-spacing characters.
+		(setq upper (compose-string (string upper) 0 1
+					    (format "\t%c\t" upper)))
+	      (setq upper (string upper))))
+	(insert (bidi-string-mark-left-to-right lower)
+		(propertize " " 'invisible t)
+		(bidi-string-mark-left-to-right upper))
+	(if (< (string-width upper) 2)
 	    (insert " "))
 	(setq i (+ i 2))
 	(if (= (% i 30) 0)
-	    (insert bar
-		    ;; Insert PDF to deny the previously inserted LRO.
-		    (propertize (string ?\x202c) 'invisible t)
-		    "\n")))
+	    (insert bar "\n")))
       ;; Insert horizontal lines while deleting blank key columns at the
       ;; beginning and end of each line.
       (save-restriction
