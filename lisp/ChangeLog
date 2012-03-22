@@ -1,3 +1,8 @@
+2012-03-22  Glenn Morris  <rgm@gnu.org>
+
+	* vc/vc-bzr.el (vc-bzr-status-switches): New option.  (Bug#6724)
+	(vc-bzr-command): If running "status", pass vc-bzr-status-switches.
+
 2012-03-22  Lars Magne Ingebrigtsen  <larsi@gnus.org>
 
 	* net/network-stream.el (network-stream-open-starttls): Make error
