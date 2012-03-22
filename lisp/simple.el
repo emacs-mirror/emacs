@@ -3688,7 +3688,8 @@ If ARG is zero, move to the beginning of the current line."
 			(assq prop buffer-invisibility-spec))))))
     (skip-chars-forward "^\n")
     (if (get-text-property (point) 'invisible)
-	(goto-char (next-single-property-change (point) 'invisible))
+	(goto-char (or (next-single-property-change (point) 'invisible)
+		       (point-max)))
       (goto-char (next-overlay-change (point))))
     (end-of-line)))
 

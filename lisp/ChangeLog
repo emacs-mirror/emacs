@@ -1,3 +1,8 @@
+2012-03-22  Chong Yidong  <cyd@gnu.org>
+
+	* simple.el (end-of-visible-line): Handle return value of
+	next-single-property-change properly (Bug#9371).
+
 2012-03-22  Kenichi Handa  <handa@m17n.org>
 
 	* international/quail.el (quail-insert-kbd-layout): Fix previous
