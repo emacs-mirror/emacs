@@ -1,8 +1,13 @@
+2012-03-23  Troels Nielsen  <bn.troels@gmail.com>  (tiny change)
+
+	* process.c (wait_reading_process_output): Handle pty disconnect
+	by refraining from sending oneself a SIGCHLD (bug#10933).
+
 2012-03-22  Chong Yidong  <cyd@gnu.org>
 
 	* dispextern.h (struct it): New member string_from_prefix_prop_p.
 
-	* xdisp.c (push_prefix_prop): Renamed from push_display_prop.
+	* xdisp.c (push_prefix_prop): Rename from push_display_prop.
 	Mark string as coming from a prefix property.
 	(handle_face_prop): Use default face for prefix strings (Bug#4281).
 	(pop_it, reseat_1): Save and restore string_from_prefix_prop_p.
@@ -14,8 +19,8 @@
 2012-03-20  Eli Zaretskii  <eliz@gnu.org>
 
 	* w32proc.c (Fw32_set_console_codepage)
-	(Fw32_set_console_output_codepage, Fw32_get_codepage_charset): Doc
-	fixes.
+	(Fw32_set_console_output_codepage, Fw32_get_codepage_charset):
+	Doc fixes.
 
 2012-03-20  Chong Yidong  <cyd@gnu.org>
 
