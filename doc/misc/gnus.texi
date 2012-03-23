@@ -12526,8 +12526,8 @@ mode buffers.
 Gnus provides a few different methods for storing the mail and news you
 send.  The default method is to use the @dfn{archive virtual server} to
 store the messages.  If you want to disable this completely, the
-@code{gnus-message-archive-group} variable should be @code{nil}, which
-is the default.
+@code{gnus-message-archive-group} variable should be @code{nil}.  The
+default is "sent.%Y-%m", which gives you one archive group per month.
 
 For archiving interesting messages in a group you read, see the
 @kbd{B c} (@code{gnus-summary-copy-article}) command (@pxref{Mail

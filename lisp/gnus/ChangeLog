@@ -1,3 +1,8 @@
+2012-03-22  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* auth-source.el (auth-source-netrc-create): Quote tokens that contain
+	"#" to avoid having them interpreted as comments.
+
 2012-03-19  Lars Magne Ingebrigtsen  <larsi@gnus.org>
 
 	* shr.el (shr-insert): Update the text state properly to avoid
