@@ -1,3 +1,7 @@
+2012-03-23  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* newcomment.el (comment-choose-indent): No space after BOL.
+
 2012-03-22  Sam Steingold  <sds@gnu.org>
 
 	* window.el (switch-to-prev-buffer): Revert last patch because the

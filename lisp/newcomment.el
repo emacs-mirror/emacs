@@ -587,7 +587,7 @@ Point is expected to be at the start of the comment."
                    (save-excursion (end-of-line) (current-column)))))
         (other nil)
         (min (save-excursion (skip-chars-backward " \t")
-                             (1+ (current-column)))))
+                             (if (bolp) 0 (1+ (current-column))))))
     ;; Fix up the range.
     (if (< max min) (setq max min))
     ;; Don't move past the fill column.
