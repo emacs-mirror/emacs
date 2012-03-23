@@ -1,3 +1,11 @@
+2012-03-23  Eli Zaretskii  <eliz@gnu.org>
+
+	* bidi.c (bidi_fetch_char): Use STRING_CHAR_AND_LENGTH instead of
+	FETCH_MULTIBYTE_CHAR followed by CHAR_BYTES.  Prevents crashes
+	when fetching a multibyte character consumes more bytes than
+	CHAR_BYTES returns, due to unification of CJK characters in
+	string_char.  (Bug#11073)
+
 2012-03-23  Troels Nielsen  <bn.troels@gmail.com>  (tiny change)
 
 	* process.c (wait_reading_process_output): Handle pty disconnect
