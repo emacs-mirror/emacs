@@ -1,3 +1,8 @@
+2012-03-24  Andreas Schwab  <schwab@linux-m68k.org>
+
+	* xterm.c (XTread_socket): Only modify handling_signal if
+	!SYNC_INPUT.  (Bug#11080)
+
 2012-03-23  Eli Zaretskii  <eliz@gnu.org>
 
 	* bidi.c (bidi_fetch_char): Use STRING_CHAR_AND_LENGTH instead of
