@@ -1,3 +1,8 @@
+2012-03-24  Chong Yidong  <cyd@gnu.org>
+
+	* mwheel.el (mwheel-scroll): Call deactivate-mark at the right
+	point (Bug#9623).
+
 2012-03-23  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* newcomment.el (comment-choose-indent): No space after BOL.
