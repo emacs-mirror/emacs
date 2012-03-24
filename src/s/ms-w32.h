@@ -286,6 +286,12 @@ typedef int pid_t;
 #define stricmp   _stricmp
 #define tzset     _tzset
 
+/* Include time.h before redirecting tzname, since MSVC's time.h
+   defines _tzname to call a function, but also declares tzname a
+   2-element array.  Having the redirection before including the
+   header thus has the effect of declaring a function that returns an
+   array, and triggers an error message.  */
+#include <time.h>
 #define tzname    _tzname
 #if !defined (_MSC_VER) || (_MSC_VER < 1400)
 #undef  utime
