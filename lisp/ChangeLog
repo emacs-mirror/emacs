@@ -1,7 +1,13 @@
+2012-03-24  Simon Leinen  <simon.leinen@gmail.com>
+
+	* vc/vc.el (vc-merge): Fix a prompt.
+
 2012-03-24  Chong Yidong  <cyd@gnu.org>
 
 	* mwheel.el (mwheel-scroll): Call deactivate-mark at the right
 	point (Bug#9623).
+
+	* button.el (button-at): Minor addition to docstring.
 
 2012-03-23  Stefan Monnier  <monnier@iro.umontreal.ca>
 
