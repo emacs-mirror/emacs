@@ -1,5 +1,8 @@
 2012-03-24  Andreas Schwab  <schwab@linux-m68k.org>
 
+	* xdisp.c (produce_glyphless_glyph): Limit length of acronym to 6
+	characters.
+
 	* xterm.c (XTread_socket): Only modify handling_signal if
 	!SYNC_INPUT.  (Bug#11080)
 
