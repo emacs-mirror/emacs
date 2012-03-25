@@ -437,14 +437,17 @@ It includes all faces in list FACES."
       (princ theme)
       (princ "\n")
       (dolist (spec faces)
+	;; Insert the face iff the checkbox widget is checked.
 	(when (widget-get (nth 1 spec) :value)
 	  (let* ((symbol (nth 0 spec))
 		 (widget (nth 2 spec))
 		 (value
-		  (if (car-safe (widget-get widget :children))
-		      (custom-face-widget-to-spec widget)
-		    ;; Child is null if the widget is closed (hidden).
-		    (widget-get widget :shown-value))))
+		  (cond
+		   ((car-safe (widget-get widget :children))
+		    (custom-face-widget-to-spec widget))
+		   ;; Child is null if the widget is closed (hidden).
+		   ((widget-get widget :shown-value))
+		   (t (custom-face-get-current-spec symbol)))))
 	    (when (and (facep symbol) value)
 	      (princ (if (bolp) " '(" "\n '("))
 	      (prin1 symbol)

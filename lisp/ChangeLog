@@ -1,5 +1,9 @@
 2012-03-25  Chong Yidong  <cyd@gnu.org>
 
+	* cus-theme.el (custom-theme-write-faces): Retrieve current face
+	spec with custom-face-get-current-spec if its :shown-value is not
+	determined yet (Bug#9337).
+
 	* button.el (button-at): Minor addition to docstring.
 
 2012-03-24  Simon Leinen  <simon.leinen@gmail.com>
