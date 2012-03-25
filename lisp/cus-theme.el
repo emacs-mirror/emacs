@@ -81,7 +81,9 @@ Do not call this mode function yourself.  It is meant for internal use."
 (defun customize-create-theme (&optional theme buffer)
   "Create or edit a custom theme.
 THEME, if non-nil, should be an existing theme to edit.  If THEME
-is `user', provide an option to remove these as custom settings.
+is `user', the resulting *Custom Theme* buffer also contains a
+checkbox for removing the theme settings specified in the buffer
+from the Custom save file.
 BUFFER, if non-nil, should be a buffer to use; the default is
 named *Custom Theme*."
   (interactive)
@@ -209,6 +211,8 @@ remove them from your saved Custom file.\n\n"))
     (message "")))
 
 (defun custom-theme-revert (_ignore-auto noconfirm)
+  "Revert the current *Custom Theme* buffer.
+This is the `revert-buffer-function' for `custom-new-theme-mode'."
   (when (or noconfirm (y-or-n-p "Discard current changes? "))
     (customize-create-theme custom-theme--save-name (current-buffer))))
 

@@ -1,8 +1,12 @@
 2012-03-25  Chong Yidong  <cyd@gnu.org>
 
+	* custom.el (load-theme): Even if NO-ENABLE arg is t, reenable the
+	theme if it was previously enabled before (Bug#11031).
+
 	* cus-theme.el (custom-theme-write-faces): Retrieve current face
 	spec with custom-face-get-current-spec if its :shown-value is not
 	determined yet (Bug#9337).
+	(customize-create-theme, custom-theme-revert): Doc fixes.
 
 	* button.el (button-at): Minor addition to docstring.
 

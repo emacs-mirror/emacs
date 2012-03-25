@@ -1143,8 +1143,9 @@ prompt the user for confirmation before loading it.  But if
 optional arg NO-CONFIRM is non-nil, load the theme without
 prompting.
 
-Normally, this function also enables THEME; if optional arg
-NO-ENABLE is non-nil, load the theme but don't enable it.
+Normally, this function also enables THEME.  If optional arg
+NO-ENABLE is non-nil, load the theme but don't enable it, unless
+the theme was already enabled.
 
 This function is normally called through Customize when setting
 `custom-enabled-themes'.  If used directly in your init file, it
@@ -1160,6 +1161,10 @@ Return t if THEME was successfully loaded, nil otherwise."
     nil nil))
   (unless (custom-theme-name-valid-p theme)
     (error "Invalid theme name `%s'" theme))
+  ;; If THEME is already enabled, re-enable it after loading, even if
+  ;; NO-ENABLE is t.
+  (if no-enable
+      (setq no-enable (not (custom-theme-enabled-p theme))))
   ;; If reloading, clear out the old theme settings.
   (when (custom-theme-p theme)
     (disable-theme theme)
