@@ -201,13 +201,13 @@ leim-list.el: $(SUBDIRS) $(WORLD) $(srcdir)/leim-ext.el
 
 install: all
 	- mkdir "$(INSTALLDIR)"
-	- $(DEL) same-dir.tst
-	- $(DEL) $(INSTALL_DIR)/same-dir.tst
-	echo SameDirTest > $(INSTALL_DIR)/same-dir.tst
+	- $(DEL) $(DIRNAME)_same-dir.tst
+	- $(DEL) $(INSTALL_DIR)/$(DIRNAME)_same-dir.tst
+	echo SameDirTest > $(INSTALL_DIR)/$(DIRNAME)_same-dir.tst
 	$(IFNOTSAMEDIR) $(CP) leim-list.el $(INSTALLDIR) $(ENDIF)
 	$(IFNOTSAMEDIR) $(CP_DIR) quail $(INSTALLDIR) $(ENDIF)
 	$(IFNOTSAMEDIR) $(CP_DIR) ja-dic $(INSTALLDIR) $(ENDIF)
-	- $(DEL) $(INSTALL_DIR)/same-dir.tst
+	- $(DEL) $(INSTALL_DIR)/$(DIRNAME)_same-dir.tst
 
 clean mostlyclean:
 	- $(FOREACH) $(TIT) $(FORDO) $(DEL) $(FORVAR) $(ENDFOR)
